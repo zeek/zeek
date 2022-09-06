@@ -5,6 +5,7 @@
 #include <broker/store.hh>
 #include <broker/store_event.hh>
 
+#include "zeek/CloneState.h"
 #include "zeek/Expr.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/Trigger.h"
@@ -129,7 +130,7 @@ public:
 	bool have_store = false;
 
 protected:
-	IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef{}, this}; }
+	IntrusivePtr<Val> DoClone(zeek::detail::CloneState* state) override { return {NewRef{}, this}; }
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
 	};

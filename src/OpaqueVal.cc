@@ -150,7 +150,7 @@ TypePtr OpaqueVal::UnserializeType(const broker::data& data)
 	return base_type(static_cast<TypeTag>(*tag));
 	}
 
-ValPtr OpaqueVal::DoClone(CloneState* state)
+ValPtr OpaqueVal::DoClone(detail::CloneState* state)
 	{
 	auto d = OpaqueVal::Serialize();
 	if ( ! d )
@@ -249,7 +249,7 @@ void HashVal::digest_one(EVP_MD_CTX* h, const ValPtr& v)
 	digest_one(h, v.get());
 	}
 
-ValPtr MD5Val::DoClone(CloneState* state)
+ValPtr MD5Val::DoClone(detail::CloneState* state)
 	{
 	auto out = make_intrusive<MD5Val>();
 
@@ -377,7 +377,7 @@ SHA1Val::~SHA1Val()
 #endif
 	}
 
-ValPtr SHA1Val::DoClone(CloneState* state)
+ValPtr SHA1Val::DoClone(detail::CloneState* state)
 	{
 	auto out = make_intrusive<SHA1Val>();
 
@@ -506,7 +506,7 @@ SHA256Val::~SHA256Val()
 #endif
 	}
 
-ValPtr SHA256Val::DoClone(CloneState* state)
+ValPtr SHA256Val::DoClone(detail::CloneState* state)
 	{
 	auto out = make_intrusive<SHA256Val>();
 
@@ -724,7 +724,7 @@ BloomFilterVal::BloomFilterVal(probabilistic::BloomFilter* bf) : OpaqueVal(bloom
 	bloom_filter = bf;
 	}
 
-ValPtr BloomFilterVal::DoClone(CloneState* state)
+ValPtr BloomFilterVal::DoClone(detail::CloneState* state)
 	{
 	if ( bloom_filter )
 		{
@@ -932,7 +932,7 @@ CardinalityVal::~CardinalityVal()
 	delete hash;
 	}
 
-ValPtr CardinalityVal::DoClone(CloneState* state)
+ValPtr CardinalityVal::DoClone(detail::CloneState* state)
 	{
 	return state->NewClone(
 		this, make_intrusive<CardinalityVal>(new probabilistic::detail::CardinalityCounter(*c)));
@@ -1073,7 +1073,7 @@ bool ParaglobVal::DoUnserialize(const broker::data& data)
 	return true;
 	}
 
-ValPtr ParaglobVal::DoClone(CloneState* state)
+ValPtr ParaglobVal::DoClone(detail::CloneState* state)
 	{
 	try
 		{

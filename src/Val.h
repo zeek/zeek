@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "zeek/CloneState.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Notifier.h"
 #include "zeek/Reporter.h"
@@ -271,19 +272,8 @@ protected:
 		return 1;
 		}
 
-	// For internal use by the Val::Clone() methods.
-	struct CloneState
-		{
-		// Caches a cloned value for later reuse during the same
-		// cloning operation. For recursive types, call this *before*
-		// descending down.
-		ValPtr NewClone(Val* src, ValPtr dst);
-
-		std::unordered_map<Val*, Val*> clones;
-		};
-
-	ValPtr Clone(CloneState* state);
-	virtual ValPtr DoClone(CloneState* state);
+	ValPtr Clone(detail::CloneState* state);
+	virtual ValPtr DoClone(detail::CloneState* state);
 
 	TypePtr type;
 
@@ -482,7 +472,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 private:
 	// This method is just here to trick the interface in
@@ -509,7 +499,7 @@ public:
 	const IPAddr& Get() const { return *addr_val; }
 
 protected:
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 private:
 	IPAddr* addr_val;
@@ -538,7 +528,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 private:
 	IPPrefix* subnet_val;
@@ -573,7 +563,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 private:
 	String* string_val;
@@ -592,7 +582,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 private:
 	FuncPtr func_val;
@@ -609,7 +599,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 private:
 	FilePtr file_val;
@@ -632,7 +622,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 private:
 	RE_Matcher* re_val;
@@ -681,7 +671,7 @@ public:
 protected:
 	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 	std::vector<ValPtr> vals;
 	TypeTag tag;
@@ -695,7 +685,7 @@ public:
 		expire_access_time = int(run_state::network_time - run_state::zeek_start_network_time);
 		}
 
-	TableEntryVal* Clone(Val::CloneState* state);
+	TableEntryVal* Clone(detail::CloneState* state);
 
 	const ValPtr& GetVal() const { return val; }
 
@@ -1041,7 +1031,7 @@ protected:
 
 	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 	TableTypePtr table_type;
 	detail::CompositeHash* table_hash;
@@ -1425,7 +1415,7 @@ protected:
 		return *f;
 		}
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 	void AddedField(int field) { Modified(); }
 
@@ -1474,7 +1464,7 @@ protected:
 	EnumVal(EnumTypePtr t, zeek_int_t i) : detail::IntValImplementation(std::move(t), i) { }
 
 	void ValDescribe(ODesc* d) const override;
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 	};
 
 class TypeVal final : public Val
@@ -1489,7 +1479,7 @@ public:
 
 protected:
 	void ValDescribe(ODesc* d) const override;
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 	};
 
 class VectorVal final : public Val, public notifier::detail::Modifiable
@@ -1647,7 +1637,7 @@ protected:
 
 	unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 private:
 	// Just for template inferencing.

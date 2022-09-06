@@ -591,7 +591,7 @@ X509Val::~X509Val()
 		X509_free(certificate);
 	}
 
-ValPtr X509Val::DoClone(CloneState* state)
+ValPtr X509Val::DoClone(zeek::detail::CloneState* state)
 	{
 	auto copy = make_intrusive<X509Val>();
 	if ( certificate )

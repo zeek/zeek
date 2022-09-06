@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 
+#include "zeek/CloneState.h"
 #include "zeek/Func.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/file_analysis/analyzer/x509/X509Common.h"
@@ -173,7 +174,7 @@ public:
 	 *
 	 * @return A cloned X509Val.
 	 */
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(zeek::detail::CloneState* state) override;
 
 	/**
 	 * Destructor.

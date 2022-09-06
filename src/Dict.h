@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+#include "zeek/CloneState.h"
 #include "zeek/Hash.h"
 #include "zeek/Reporter.h"
 

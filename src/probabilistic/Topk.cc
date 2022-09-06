@@ -175,7 +175,7 @@ void TopkVal::Merge(const TopkVal* value, bool doPrune)
 		}
 	}
 
-ValPtr TopkVal::DoClone(CloneState* state)
+ValPtr TopkVal::DoClone(zeek::detail::CloneState* state)
 	{
 	auto clone = make_intrusive<TopkVal>(size);
 	clone->Merge(this);

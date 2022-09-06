@@ -277,6 +277,7 @@ set(MAIN_SRCS
     Base64.cc
     BifReturnVal.cc
     CCL.cc
+    CloneState.cc
     CompHash.cc
     Conn.cc
     DFA.cc

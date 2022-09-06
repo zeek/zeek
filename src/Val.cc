@@ -83,19 +83,13 @@ CONVERTERS(TYPE_ENUM, EnumVal*, Val::AsEnumVal)
 CONVERTERS(TYPE_OPAQUE, OpaqueVal*, Val::AsOpaqueVal)
 CONVERTERS(TYPE_TYPE, TypeVal*, Val::AsTypeVal)
 
-ValPtr Val::CloneState::NewClone(Val* src, ValPtr dst)
-	{
-	clones.insert(std::make_pair(src, dst.get()));
-	return dst;
-	}
-
 ValPtr Val::Clone()
 	{
-	Val::CloneState state;
+	detail::CloneState state;
 	return Clone(&state);
 	}
 
-ValPtr Val::Clone(CloneState* state)
+ValPtr Val::Clone(detail::CloneState* state)
 	{
 	auto i = state->clones.find(this);
 
@@ -110,7 +104,7 @@ ValPtr Val::Clone(CloneState* state)
 	return c;
 	}
 
-ValPtr Val::DoClone(CloneState* state)
+ValPtr Val::DoClone(detail::CloneState* state)
 	{
 	switch ( type->InternalType() )
 		{
@@ -765,7 +759,7 @@ void PortVal::ValDescribe(ODesc* d) const
 	d->Add(Protocol());
 	}
 
-ValPtr PortVal::DoClone(CloneState* state)
+ValPtr PortVal::DoClone(detail::CloneState* state)
 	{
 	// Immutable.
 	return {NewRef{}, this};
@@ -807,7 +801,7 @@ ValPtr AddrVal::SizeVal() const
 		return val_mgr->Count(128);
 	}
 
-ValPtr AddrVal::DoClone(CloneState* state)
+ValPtr AddrVal::DoClone(detail::CloneState* state)
 	{
 	// Immutable.
 	return {NewRef{}, this};
@@ -906,7 +900,7 @@ bool SubNetVal::Contains(const IPAddr& addr) const
 	return subnet_val->Contains(addr);
 	}
 
-ValPtr SubNetVal::DoClone(CloneState* state)
+ValPtr SubNetVal::DoClone(detail::CloneState* state)
 	{
 	// Immutable.
 	return {NewRef{}, this};
@@ -1061,7 +1055,7 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
 	return make_intrusive<StringVal>(new String(true, result, r - result));
 	}
 
-ValPtr StringVal::DoClone(CloneState* state)
+ValPtr StringVal::DoClone(detail::CloneState* state)
 	{
 	// We could likely treat this type as immutable and return a reference
 	// instead of creating a new copy, but we first need to be careful and
@@ -1090,7 +1084,7 @@ void FuncVal::ValDescribe(ODesc* d) const
 	func_val->Describe(d);
 	}
 
-ValPtr FuncVal::DoClone(CloneState* state)
+ValPtr FuncVal::DoClone(detail::CloneState* state)
 	{
 	return make_intrusive<FuncVal>(func_val->DoClone());
 	}
@@ -1111,7 +1105,7 @@ void FileVal::ValDescribe(ODesc* d) const
 	file_val->Describe(d);
 	}
 
-ValPtr FileVal::DoClone(CloneState* state)
+ValPtr FileVal::DoClone(detail::CloneState* state)
 	{
 	// I think we can just ref the file here - it is unclear what else
 	// to do.  In the case of cached files, I think this is equivalent
@@ -1178,7 +1172,7 @@ void PatternVal::ValDescribe(ODesc* d) const
 	d->Add("/");
 	}
 
-ValPtr PatternVal::DoClone(CloneState* state)
+ValPtr PatternVal::DoClone(detail::CloneState* state)
 	{
 	// We could likely treat this type as immutable and return a reference
 	// instead of creating a new copy, but we first need to be careful and
@@ -1270,7 +1264,7 @@ void ListVal::Describe(ODesc* d) const
 		}
 	}
 
-ValPtr ListVal::DoClone(CloneState* state)
+ValPtr ListVal::DoClone(detail::CloneState* state)
 	{
 	auto lv = make_intrusive<ListVal>(tag);
 	lv->vals.reserve(vals.size());
@@ -1292,7 +1286,7 @@ unsigned int ListVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_
 	return fp;
 	}
 
-TableEntryVal* TableEntryVal::Clone(Val::CloneState* state)
+TableEntryVal* TableEntryVal::Clone(detail::CloneState* state)
 	{
 	auto rval = new TableEntryVal(val ? val->Clone(state) : nullptr);
 	rval->expire_access_time = expire_access_time;
@@ -2612,7 +2606,7 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 	return secs;
 	}
 
-ValPtr TableVal::DoClone(CloneState* state)
+ValPtr TableVal::DoClone(detail::CloneState* state)
 	{
 	auto tv = make_intrusive<TableVal>(table_type);
 	state->NewClone(this, tv);
@@ -2995,7 +2989,7 @@ void RecordVal::DescribeReST(ODesc* d) const
 	d->Add("}");
 	}
 
-ValPtr RecordVal::DoClone(CloneState* state)
+ValPtr RecordVal::DoClone(detail::CloneState* state)
 	{
 	// We set origin to 0 here.  Origin only seems to be used for exactly one
 	// purpose - to find the connection record that is associated with a
@@ -3050,7 +3044,7 @@ void EnumVal::ValDescribe(ODesc* d) const
 	d->Add(ename);
 	}
 
-ValPtr EnumVal::DoClone(CloneState* state)
+ValPtr EnumVal::DoClone(detail::CloneState* state)
 	{
 	// Immutable.
 	return {NewRef{}, this};
@@ -3061,7 +3055,7 @@ void TypeVal::ValDescribe(ODesc* d) const
 	d->Add(type->AsTypeType()->GetType()->GetName());
 	}
 
-ValPtr TypeVal::DoClone(CloneState* state)
+ValPtr TypeVal::DoClone(detail::CloneState* state)
 	{
 	// Immutable.
 	return {NewRef{}, this};
@@ -3584,7 +3578,7 @@ void VectorVal::Reserve(unsigned int num_elements)
 		yield_types->reserve(num_elements);
 	}
 
-ValPtr VectorVal::DoClone(CloneState* state)
+ValPtr VectorVal::DoClone(detail::CloneState* state)
 	{
 	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
 	vv->Reserve(vector_val->size());

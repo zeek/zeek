@@ -136,7 +136,7 @@ public:
 	 *
 	 * @returns cloned TopkVal
 	 */
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(zeek::detail::CloneState* state) override;
 
 	DECLARE_OPAQUE_VALUE(TopkVal)
 

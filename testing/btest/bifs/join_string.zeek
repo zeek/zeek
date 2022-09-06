@@ -19,4 +19,10 @@ event zeek_init()
 	print join_string_vec(d, "-");
 	print join_string_vec(e, ".");
 	print join_string_vec(c, "\x00");
+
+	local empty_set: set[string] = set();
+	print fmt("%s (empty)", join_string_set(empty_set, ", "));
+	print join_string_set(set("one"), ", ");
+	print join_string_set(set("one", "two", "three"), ", ");
+	print join_string_set(set("one", "two"), "");
 	}

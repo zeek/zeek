@@ -1,3 +1,7 @@
+5.1.0-dev.489 | 2022-09-06 07:44:18 -0700
+
+  * Add is_used attribute to an ID if used in a signature eval statement (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.486 | 2022-09-02 13:57:31 -0700
 
   * Update Management framework to new Supervisor::NodeConfig script fields (Christian Kreibich, Corelight)

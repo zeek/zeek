@@ -180,6 +180,10 @@ RuleConditionEval::RuleConditionEval(const char* func)
 			rules_error("eval function parameters must be a 'signature_state' "
 			            "and a 'string' type",
 			            func);
+
+		std::vector<AttrPtr> attrv{make_intrusive<Attr>(ATTR_IS_USED, nullptr)};
+		id->AddAttrs(
+			make_intrusive<Attributes>(std::move(attrv), id->GetType(), false, id->IsGlobal()));
 		}
 	}
 

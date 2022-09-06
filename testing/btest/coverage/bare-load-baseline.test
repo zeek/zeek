@@ -1,7 +1,8 @@
 # This test is meant to cover whether the set of scripts that get loaded by
 # default in bare mode matches a baseline of known defaults.  The baseline
 # should only need updating if something new is @load'd from init-bare.zeek
-# (or from an @load'd descendent of it).
+# (or from an @load'd descendent of it), or when a new builtin plugin is
+# added to Zeek.
 #
 # As the output has absolute paths in it, we need to remove the common
 # prefix to make the test work everywhere. That's what the sed magic
@@ -12,5 +13,6 @@
 # @TEST-EXEC: test -e loaded_scripts.log
 # @TEST-EXEC: cat loaded_scripts.log | egrep -v '#' | awk 'NR>0{print $1}' | sed -e ':a' -e '$!N' -e 's/^\(.*\).*\n\1.*/\1/' -e 'ta' >prefix
 # @TEST-EXEC: (test -L $BUILD && basename $(readlink $BUILD) || basename $BUILD) >buildprefix
-# @TEST-EXEC: cat loaded_scripts.log | sed "s#`cat buildprefix`#build#g" | sed "s#`cat prefix`##g" >canonified_loaded_scripts.log
+# @TEST-EXEC: cat loaded_scripts.log | sed "s#`cat buildprefix`#build#g" | sed "s#`cat prefix`##g" >prefix_canonified_loaded_scripts.log
+# @TEST-EXEC: grep -v 'Zeek_AF_Packet' prefix_canonified_loaded_scripts.log > canonified_loaded_scripts.log
 # @TEST-EXEC: btest-diff canonified_loaded_scripts.log

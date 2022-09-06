@@ -39,6 +39,12 @@ New Functionality
   been extended to work for packet and file analyzers. This now allows to
   leverage ``Analyzer::disabled_analyzers`` for these kinds of analyzers.
 
+- On Linux, the AF_PACKET packet source plugin (https://github.com/zeek/zeek-af_packet-plugin)
+  is included as builtin plugin by default. To select this packet source, prefix
+  the interface name with ``af_packet``.
+
+	zeek -i af_packet::eth0
+
 Changed Functionality
 ---------------------
 

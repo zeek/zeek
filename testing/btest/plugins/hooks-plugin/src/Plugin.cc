@@ -32,6 +32,21 @@ static std::set<std::string> sanitized_functions = {
 	"Telemetry::gauge_family_set",
 };
 
+// When a filename given to LOAD_FILE* hooks (and to the meta pre/post hooks)
+// contains any of these keywords, no log message is generated.
+static std::set<std::string> load_file_filter = {
+	"Zeek_AF_Packet",
+};
+
+static bool skip_load_file_logging_for(const std::string& s)
+	{
+	for ( const auto& needle : load_file_filter )
+		if ( s.find(needle) != std::string::npos )
+			return true;
+
+	return false;
+	}
+
 zeek::plugin::Configuration Plugin::Configure()
 	{
 	EnableHook(zeek::plugin::HOOK_LOAD_FILE);
@@ -93,6 +108,9 @@ static void describe_hook_args(const zeek::plugin::HookArgumentList& args, zeek:
 
 int Plugin::HookLoadFile(const LoadType type, const std::string& file, const std::string& resolved)
 	{
+	if ( skip_load_file_logging_for(resolved) )
+		return -1;
+
 	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLoadFile",
 	        file.c_str(), resolved.c_str());
 	return -1;
@@ -102,6 +120,9 @@ std::pair<int, std::optional<std::string>> Plugin::HookLoadFileExtended(const Lo
                                                                         const std::string& file,
                                                                         const std::string& resolved)
 	{
+	if ( skip_load_file_logging_for(resolved) )
+		return std::make_pair(-1, std::nullopt);
+
 	fprintf(stderr, "%.6f %-15s %s %s\n", zeek::run_state::network_time, "| HookLoadFileExtended",
 	        file.c_str(), resolved.c_str());
 	return std::make_pair(-1, std::nullopt);
@@ -177,6 +198,12 @@ void Plugin::MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookAr
 	zeek::ODesc d;
 	d.SetShort();
 	describe_hook_args(args, &d);
+
+	// Special case file loading filtering.
+	if ( hook == zeek::plugin::HOOK_LOAD_FILE || hook == zeek::plugin::HOOK_LOAD_FILE_EXT )
+		if ( skip_load_file_logging_for(std::string(d.Description())) )
+			return;
+
 	fprintf(stderr, "%.6f %-15s %s(%s)\n", zeek::run_state::network_time, "  MetaHookPre",
 	        hook_name(hook), d.Description());
 	}
@@ -187,6 +214,11 @@ void Plugin::MetaHookPost(zeek::plugin::HookType hook, const zeek::plugin::HookA
 	zeek::ODesc d1;
 	d1.SetShort();
 	describe_hook_args(args, &d1);
+
+	// Special case file loading filtering.
+	if ( hook == zeek::plugin::HOOK_LOAD_FILE || hook == zeek::plugin::HOOK_LOAD_FILE_EXT )
+		if ( skip_load_file_logging_for(std::string(d1.Description())) )
+			return;
 
 	zeek::ODesc d2;
 	d2.SetShort();

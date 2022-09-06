@@ -2612,19 +2612,7 @@ ValPtr TableVal::DoClone(detail::CloneState* state)
 	state->NewClone(this, tv);
 
 	const PDict<TableEntryVal>* tbl = AsTable();
-	for ( const auto& tble : *table_val )
-		{
-		auto key = tble.GetHashKey();
-		auto* val = tble.value;
-		TableEntryVal* nval = val->Clone(state);
-		tv->table_val->Insert(key.get(), nval);
-
-		if ( subnets )
-			{
-			auto idx = RecreateIndex(*key);
-			tv->subnets->Insert(idx.get(), nval);
-			}
-		}
+	tv->table_val->Clone(*tbl, state);
 
 	tv->attrs = attrs;
 

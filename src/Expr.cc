@@ -5329,6 +5329,28 @@ ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init)
 
 ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 	{
+	if ( e->Tag() == detail::EXPR_LIST )
+		{
+		auto pt = init_type(e);
+
+		if ( pt && pt->Tag() == t->Tag() )
+			{
+			ExprPtr pe;
+
+			if ( pt->IsTable() )
+				pe = make_intrusive<TableConstructorExpr>(e->AsListExprPtr(), nullptr,
+				                                          std::move(pt));
+			else if ( pt->IsSet() )
+				pe = make_intrusive<SetConstructorExpr>(e->AsListExprPtr(), nullptr,
+				                                        std::move(pt));
+			else
+				pe = make_intrusive<RecordConstructorExpr>(IntrusivePtr{NewRef{}, pt->AsRecordType()},
+				                                           e->AsListExprPtr());
+
+			return check_and_promote_expr(std::move(pe), std::move(t));
+			}
+		}
+
 	const auto& et = e->GetType();
 	TypeTag e_tag = et->Tag();
 	TypeTag t_tag = t->Tag();

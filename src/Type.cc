@@ -2698,6 +2698,7 @@ static TableTypePtr init_table_type(detail::ListExpr* l)
 	auto& elems = l->Exprs();
 	TypePtr index;
 	TypePtr yield;
+	TypePtr promote_yield;
 
 	for ( auto e : elems )
 		{
@@ -2707,8 +2708,13 @@ static TableTypePtr init_table_type(detail::ListExpr* l)
 			return nullptr;
 			}
 
+		if ( e->GetOp2()->Tag() == detail::EXPR_LIST )
+			{
+			promote_yield = init_type(e->GetOp2());
+			}
+
 		auto& ind = e->GetOp1()->GetType();
-		auto& y = e->GetOp2()->GetType();
+		auto& y = promote_yield ? promote_yield : e->GetOp2()->GetType();
 
 		if ( ! index )
 			{

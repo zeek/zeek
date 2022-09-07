@@ -255,11 +255,14 @@ public:
 	// function from the one above; its value is not used.
 	HashKey(const void* key, size_t size, hash_t hash, bool dont_copy);
 
-	~HashKey()
-		{
-		if ( is_our_dynamic )
-			delete[](char*) key;
-		}
+	// Copy constructor. Always copies the key.
+	HashKey(const HashKey& other);
+
+	// Move constructor. Takes ownership of the key.
+	HashKey(HashKey&& other) noexcept;
+
+	// Destructor
+	~HashKey();
 
 	// Hands over the key to the caller.  This means that if the
 	// key is our dynamic, we give it to the caller and mark it
@@ -342,6 +345,17 @@ public:
 	const void* KeyEnd() const { return static_cast<void*>(key + size); }
 
 	void Describe(ODesc* d) const;
+
+	bool operator==(const HashKey& other) const;
+	bool operator!=(const HashKey& other) const;
+
+	bool Equal(const void* other_key, size_t other_size, hash_t other_hash) const;
+
+	// Copy operator. Always copies the key.
+	HashKey& operator=(const HashKey& other);
+
+	// Move operator. Takes ownership of the key.
+	HashKey& operator=(HashKey&& other) noexcept;
 
 protected:
 	char* CopyKey(const char* key, size_t size) const;

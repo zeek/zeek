@@ -1,3 +1,8 @@
+5.1.0-dev.495 | 2022-09-07 14:29:32 +0200
+
+  * frameworks/dpd: Move to frameworks/analyzer/dpd, load by default
+    (Arne Welzel, Corelight)
+
 5.1.0-dev.489 | 2022-09-06 07:44:18 -0700
 
   * Add is_used attribute to an ID if used in a signature eval statement (Tim Wojtulewicz, Corelight)

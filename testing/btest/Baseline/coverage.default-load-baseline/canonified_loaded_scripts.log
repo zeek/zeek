@@ -112,6 +112,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     scripts/base/frameworks/input/readers/config.zeek
     scripts/base/frameworks/input/readers/sqlite.zeek
   scripts/base/frameworks/analyzer/__load__.zeek
+    scripts/base/frameworks/analyzer/dpd.zeek
   scripts/base/frameworks/files/__load__.zeek
     scripts/base/frameworks/files/main.zeek
       build/scripts/base/bif/file_analysis.bif.zeek
@@ -279,8 +280,6 @@ scripts/base/init-default.zeek
     scripts/base/frameworks/notice/actions/page.zeek
     scripts/base/frameworks/notice/actions/add-geodata.zeek
     scripts/base/frameworks/notice/actions/pp-alarms.zeek
-  scripts/base/frameworks/dpd/__load__.zeek
-    scripts/base/frameworks/dpd/main.zeek
   scripts/base/frameworks/signatures/__load__.zeek
     scripts/base/frameworks/signatures/main.zeek
   scripts/base/frameworks/packet-filter/__load__.zeek

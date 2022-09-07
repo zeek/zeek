@@ -10,6 +10,5 @@
 # seems to fail to correct the checksums when there's IP fragmentation).
 #
 @load base/frameworks/tunnels
-@load base/frameworks/dpd
 @load base/protocols/conn
 @load base/protocols/http

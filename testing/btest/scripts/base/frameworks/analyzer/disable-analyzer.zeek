@@ -7,7 +7,6 @@
 @load base/protocols/conn
 @load base/protocols/dns
 @load base/protocols/ssh
-@load base/frameworks/dpd
 
 redef Analyzer::disabled_analyzers += { Analyzer::ANALYZER_SSH };
 

@@ -4,7 +4,6 @@
 
 @load base/protocols/rdp
 @load base/protocols/conn
-@load base/frameworks/dpd
 
 event rdpeudp_syn(c: connection)
 	{

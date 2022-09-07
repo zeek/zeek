@@ -5,7 +5,6 @@
 # @TEST-EXEC: zeek -b -r $TRACES/tls/tls-13draft19-early-data.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
-@load base/frameworks/dpd
 @load base/frameworks/signatures
 @load-sigs base/protocols/ssl/dpd.sig
 @load-sigs policy/protocols/ssl/dpd-v2.sig

@@ -5,7 +5,6 @@
 # @TEST-EXEC: btest-diff ssh.log
 #
 @load base/frameworks/tunnels
-@load base/frameworks/dpd
 @load base/protocols/conn
 @load base/protocols/dns
 @load base/protocols/ssh

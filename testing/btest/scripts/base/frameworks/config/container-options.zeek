@@ -2,7 +2,6 @@
 # @TEST-EXEC: btest-diff out
 
 @load base/frameworks/config
-@load base/frameworks/dpd
 
 type Color: enum { RED, GREEN, BLUE };
 

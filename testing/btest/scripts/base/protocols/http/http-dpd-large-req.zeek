@@ -5,7 +5,6 @@
 
 @load base/protocols/conn
 @load base/protocols/http
-@load base/frameworks/dpd
 
 event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
 	{

@@ -4,7 +4,6 @@
 
 @load base/protocols/conn
 @load base/protocols/http
-@load base/frameworks/dpd
 
 redef report_gaps_for_partial = T;
 

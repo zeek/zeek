@@ -1,4 +1,3 @@
-@load base/frameworks/dpd
 @load base/protocols/conn/removal-hooks
 
 module NTLM;

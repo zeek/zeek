@@ -11,5 +11,4 @@
 @load base/protocols/conn
 @load base/protocols/dns
 @load base/protocols/http
-@load base/frameworks/dpd
 @load protocols/conn/speculative-service

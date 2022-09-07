@@ -1,5 +1,4 @@
 @load ./consts
-@load base/frameworks/dpd
 @load base/protocols/conn/removal-hooks
 
 module DCE_RPC;

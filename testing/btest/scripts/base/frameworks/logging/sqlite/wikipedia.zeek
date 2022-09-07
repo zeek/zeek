@@ -12,4 +12,3 @@
 @load base/protocols/http
 @load base/protocols/dns
 @load base/protocols/conn
-@load base/frameworks/dpd

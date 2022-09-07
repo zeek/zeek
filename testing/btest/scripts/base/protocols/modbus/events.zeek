@@ -9,7 +9,6 @@
 
 @load base/protocols/modbus
 @load base/protocols/conn
-@load base/frameworks/dpd
 
 redef DPD::ignore_violations_after = 1;
 

@@ -5,7 +5,6 @@
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/ssl
-@load base/frameworks/dpd
 
 redef SSL::log_include_client_certificate_subject_issuer = T;
 redef SSL::log_include_server_certificate_subject_issuer = T;

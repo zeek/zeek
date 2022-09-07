@@ -9,7 +9,6 @@
 @load base/protocols/conn
 @load base/protocols/ssl
 @load base/frameworks/tunnels
-@load base/frameworks/dpd
 
 event gtpv1_g_pdu_packet(outer: connection, inner_gtp: gtpv1_hdr, inner_ip: pkt_hdr)
     {

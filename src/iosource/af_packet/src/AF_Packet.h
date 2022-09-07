@@ -10,7 +10,6 @@ extern "C" {
 
 #include <errno.h>          // errorno
 #include <unistd.h>         // close()
-#include <linux/version.h>  // kernel version
 
 #include <net/ethernet.h>      // ETH_P_ALL
 #include <linux/if.h>          // ifreq

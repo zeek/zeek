@@ -1773,6 +1773,7 @@ stmt:
 
 	|	TOK_IF '(' expr ')' stmt
 			{
+			reject_directive($5);
 			set_location(@1, @4);
 			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, make_intrusive<NullStmt>());
 			script_coverage_mgr.AddStmt($$);
@@ -1780,6 +1781,8 @@ stmt:
 
 	|	TOK_IF '(' expr ')' stmt TOK_ELSE stmt
 			{
+			reject_directive($5);
+			reject_directive($7);
 			set_location(@1, @4);
 			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7});
 			script_coverage_mgr.AddStmt($$);
@@ -1794,12 +1797,14 @@ stmt:
 
 	|	for_head stmt
 			{
+			reject_directive($2);
 			$1->AsForStmt()->AddBody({AdoptRef{}, $2});
 			script_coverage_mgr.AddStmt($1);
 			}
 
 	|	TOK_WHILE '(' expr ')' stmt
 			{
+			reject_directive($5);
 			$$ = new WhileStmt({AdoptRef{}, $3}, {AdoptRef{}, $5});
 			script_coverage_mgr.AddStmt($$);
 			}
@@ -1906,7 +1911,7 @@ stmt:
 			}
 
 	|	conditional
-			{ $$ = new NullStmt; }
+			{ $$ = new NullStmt(true /* is_directive */); }
 	;
 
 stmt_list:

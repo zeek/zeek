@@ -1,3 +1,14 @@
+5.1.0-dev.497 | 2022-09-07 14:31:07 +0200
+
+  * GH-2289: parse.y/directives: Reject directives as statements (Arne Welzel, Corelight)
+
+    Conditional directives (``@if``, ``@ifdef``, ``@ifndef``, ``@else`` and ``@endif``)
+    can not be placed directly following ``if``, ``for`` or ``while`` statements
+    anymore. This was interpreted non-intuitively and could lead to subtle bugs.
+    The statement following the directive was placed outside of its intended block.
+    Placing braces after ``if``, ``for`` or ``while`` should result in the
+    intended behavior.
+
 5.1.0-dev.495 | 2022-09-07 14:29:32 +0200
 
   * frameworks/dpd: Move to frameworks/analyzer/dpd, load by default

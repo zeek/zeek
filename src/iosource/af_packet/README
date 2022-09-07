@@ -5,19 +5,21 @@ This plugin provides native AF_Packet support for Zeek. For details about AF_Pac
 
 ## Installation
 
-Before installing the plugin, make sure the kernel headers are installed and your kernel supports PACKET_FANOUT[^1] and TPACKET_V3.
+Before installing the plugin, make sure your kernel supports PACKET_FANOUT[^1] and TPACKET_V3.
 
 ### Package Manager
+
 The plugin is available as package for the [Zeek Package Manager](https://github.com/zeek/package-manager) and can be installed using the following command:
 
     zkg install zeek-af_packet-plugin
 
 ### Manual Install
-The following will compile and install the AF_Packet plugin alongside Zeek, assuming it can find the kernel headers in a standard location:
+
+The following will compile and install the AF_Packet plugin alongside Zeek::
 
     # ./configure && make && make install
 
-If the headers are installed somewhere non-standard, add `--with-kernel=<kernel-header-directory>` to the `configure` command. Furthermore, `--with-latest-kernel` will use the latest headers available instead of looking for the headers matching the running kernel's version. If everything built and installed correctly, you should see this:
+If everything built and installed correctly, you should see this::
 
     # zeek -NN Zeek::AF_Packet
     Zeek::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 3.2.0)

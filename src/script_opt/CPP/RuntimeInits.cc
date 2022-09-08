@@ -28,7 +28,7 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<EnumValPtr>& iv
 	{
 	auto& e_type = im->Types(init_vals[0]);
 	int val = init_vals[1];
-	ivec[offset] = make_enum__CPP(e_type, val);
+	ivec[offset] = zeek::detail::make_enum__CPP(e_type, val);
 	}
 
 template <class T>

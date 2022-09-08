@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <unistd.h>
+
 #include "zeek/DNS_Mgr.h"
 
 #include "zeek/zeek-config.h"
@@ -10,7 +12,6 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <algorithm>
 #include <cerrno>
 #include <cstdlib>

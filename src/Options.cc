@@ -1,10 +1,10 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <unistd.h>
+
 #include "zeek/Options.h"
 
 #include "zeek/zeek-config.h"
-
-#include <unistd.h>
 
 #include "zeek/ScriptProfile.h"
 #include "zeek/script_opt/ScriptOpt.h"

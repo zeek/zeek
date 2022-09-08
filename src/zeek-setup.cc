@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <unistd.h>
+
 #include "zeek/zeek-setup.h"
 
 #include "zeek/zeek-config.h"
@@ -8,7 +10,6 @@
 #include <openssl/opensslv.h>
 #include <openssl/ssl.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <csignal>
 #include <cstdio>
 #include <cstdlib>

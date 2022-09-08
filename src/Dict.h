@@ -1544,6 +1544,10 @@ private:
 
 	RobustDictIterator<T> MakeRobustIterator()
 		{
+		if ( IsOrdered() )
+			reporter->InternalError(
+				"RobustIterators are not currently supported for ordered dictionaries");
+
 		if ( ! iterators )
 			iterators = new std::vector<RobustDictIterator<T>*>;
 
@@ -1552,15 +1556,17 @@ private:
 
 	detail::DictEntry<T> GetNextRobustIteration(RobustDictIterator<T>* iter)
 		{
-		// If there are any inserted entries, return them first.
-		// That keeps the list small and helps avoiding searching
-		// a large list when deleting an entry.
+		// If there's no table in the dictionary, then the iterator needs to be
+		// cleaned up because it's not pointing at anything.
 		if ( ! table )
 			{
 			iter->Complete();
 			return detail::DictEntry<T>(nullptr); // end of iteration
 			}
 
+		// If there are any inserted entries, return them first.
+		// That keeps the list small and helps avoiding searching
+		// a large list when deleting an entry.
 		if ( iter->inserted && ! iter->inserted->empty() )
 			{
 			// Return the last one. Order doesn't matter,
@@ -1570,6 +1576,7 @@ private:
 			return e;
 			}
 
+		// First iteration.
 		if ( iter->next < 0 )
 			iter->next = Next(-1);
 

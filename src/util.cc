@@ -71,7 +71,7 @@ static bool can_read(const string& path)
 	}
 
 static string zeek_path_value;
-const string zeek_path_list_separator(1, path_list_separator);
+const string zeek_path_list_separator(path_list_separator.begin(), path_list_separator.end());
 
 namespace zeek::util
 	{
@@ -576,7 +576,7 @@ void add_to_zeek_path(const string& dir)
 	// Make sure path is initialized.
 	zeek_path();
 
-	zeek_path_value += string(zeek_path_list_separator) + dir;
+	zeek_path_value += zeek_path_list_separator + dir;
 	}
 
 FILE* open_package(string& path, const string& mode)
@@ -754,7 +754,7 @@ string without_zeekpath_component(std::string_view path)
 	{
 	string rval = normalize_path(path);
 
-	const auto paths = tokenize_string(zeek_path(), path_list_separator);
+	const auto paths = tokenize_string(zeek_path(), path_list_separator[0]);
 
 	for ( size_t i = 0; i < paths.size(); ++i )
 		{

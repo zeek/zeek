@@ -63,7 +63,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		std::stringstream s(dir);
 		std::string d;
 
-		while ( std::getline(s, d, path_list_separator) )
+		while ( std::getline(s, d, path_list_separator[0]) )
 			SearchDynamicPlugins(d);
 
 		return;

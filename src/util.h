@@ -78,9 +78,9 @@ extern HeapLeakChecker* heap_checker;
 #endif
 
 #if defined(_MSC_VER)
-const char path_list_separator = ';';
+inline constexpr std::string_view path_list_separator = ";";
 #else
-const char path_list_separator = ':';
+inline constexpr std::string_view path_list_separator = ":";
 #endif
 
 extern "C"

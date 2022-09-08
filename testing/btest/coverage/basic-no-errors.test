@@ -1,0 +1,14 @@
+# @TEST-DOC: Running zeek -r in non-bare mode and ensure reporter errors happen.
+# @TEST-EXEC: zeek -r $TRACES/http/get.trace %INPUT
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-canonifier' btest-diff reporter.log
+# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+
+redef Reporter::info_to_stderr = T;
+redef Reporter::errors_to_stderr = T;
+redef Reporter::warnings_to_stderr = T;
+
+event zeek_init()
+	{
+	Reporter::info("Hello, Zeek!");
+	}

@@ -541,10 +541,10 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
  * some source of data (either a host file or a DNS server). This indicates that we're
  * able to do lookups against c-ares now and should activate the IOSource.
  */
-static void sock_cb(void* data, int s, int read, int write)
+static void sock_cb(void* data, ares_socket_t s, int read, int write)
 	{
 	auto mgr = reinterpret_cast<DNS_Mgr*>(data);
-	mgr->RegisterSocket(s, read == 1, write == 1);
+	mgr->RegisterSocket((int)s, read == 1, write == 1);
 	}
 
 DNS_Mgr::DNS_Mgr(DNS_MgrMode arg_mode) : IOSource(true), mode(arg_mode)

@@ -5341,11 +5341,10 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 				pe = make_intrusive<TableConstructorExpr>(e->AsListExprPtr(), nullptr,
 				                                          std::move(pt));
 			else if ( pt->IsSet() )
-				pe = make_intrusive<SetConstructorExpr>(e->AsListExprPtr(), nullptr,
-				                                        std::move(pt));
+				pe = make_intrusive<SetConstructorExpr>(e->AsListExprPtr(), nullptr, std::move(pt));
 			else
-				pe = make_intrusive<RecordConstructorExpr>(IntrusivePtr{NewRef{}, pt->AsRecordType()},
-				                                           e->AsListExprPtr());
+				pe = make_intrusive<RecordConstructorExpr>(
+					IntrusivePtr{NewRef{}, pt->AsRecordType()}, e->AsListExprPtr());
 
 			return check_and_promote_expr(std::move(pe), std::move(t));
 			}

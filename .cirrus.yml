@@ -270,20 +270,10 @@ freebsd14_task:
   << : *CI_TEMPLATE
   << : *FREEBSD_ENVIRONMENT
 
-freebsd13_1_task:
-  freebsd_instance:
-    # FreeBSD 13.1 EOL: TBD (13.2 + 3 months)
-    image_family: freebsd-13-1
-    << : *FREEBSD_RESOURCES_TEMPLATE
-
-  prepare_script: ./ci/freebsd/prepare.sh
-  << : *CI_TEMPLATE
-  << : *FREEBSD_ENVIRONMENT
-
 freebsd13_task:
   freebsd_instance:
     # FreeBSD 13 EOL: January 31, 2026
-    image_family: freebsd-13-0
+    image_family: freebsd-13-1
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
@@ -293,7 +283,7 @@ freebsd13_task:
 freebsd12_task:
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
-    image_family: freebsd-12-2
+    image_family: freebsd-12-3
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

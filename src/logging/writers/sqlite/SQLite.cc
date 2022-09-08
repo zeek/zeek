@@ -147,7 +147,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
 		tablename = it->second;
 
 	if ( checkError(sqlite3_open_v2(
-			 fullpath.c_str(), &db,
+			 fullpath.string().c_str(), &db,
 			 SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL)) )
 		return false;
 

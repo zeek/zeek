@@ -88,7 +88,7 @@ struct LeftoverLog
 	 * Return the "path" (logging framework parlance) of the log without the
 	 * directory or file extension. E.g. the "path" of "logs/conn.log" is just "conn".
 	 */
-	std::string Path() const { return zeek::filesystem::path(filename).stem(); }
+	std::string Path() const { return zeek::filesystem::path(filename).stem().string(); }
 
 	/**
 	 * Deletes the shadow file and returns whether it succeeded.
@@ -493,7 +493,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 			}
 
 		if ( fname.front() != '/' && ! logdir.empty() )
-			fname = zeek::filesystem::path(logdir) / fname;
+			fname = (zeek::filesystem::path(logdir) / fname).string();
 
 		fname += ext;
 
@@ -773,7 +773,7 @@ static std::vector<LeftoverLog> find_leftover_logs()
 	if ( BifConst::LogAscii::logdir->Len() > 0 )
 		logdir = zeek::filesystem::absolute(BifConst::LogAscii::logdir->ToStdString());
 
-	auto d = opendir(logdir.c_str());
+	auto d = opendir(logdir.string().c_str());
 	struct dirent* dp;
 
 	if ( ! d )
@@ -788,8 +788,8 @@ static std::vector<LeftoverLog> find_leftover_logs()
 		if ( strncmp(dp->d_name, shadow_file_prefix, prefix_len) != 0 )
 			continue;
 
-		std::string shadow_fname = logdir / dp->d_name;
-		std::string log_fname = logdir / (dp->d_name + prefix_len);
+		std::string shadow_fname = (logdir / dp->d_name).string();
+		std::string log_fname = (logdir / (dp->d_name + prefix_len)).string();
 
 		if ( util::is_file(log_fname) )
 			{

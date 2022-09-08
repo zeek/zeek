@@ -6,6 +6,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "Obj.h"
+
 namespace zeek
 	{
 
@@ -111,7 +113,7 @@ public:
 	~IntrusivePtr()
 		{
 		if ( ptr_ )
-			Unref(ptr_);
+			Unref((zeek::Obj*)ptr_);
 		}
 
 	void swap(IntrusivePtr& other) noexcept { std::swap(ptr_, other.ptr_); }

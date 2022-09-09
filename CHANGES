@@ -1,3 +1,7 @@
+5.1.0-dev.500 | 2022-09-09 09:37:48 -0700
+
+  * CI: remove FreeBSD 13.0, update FreeBSD 12 to 12.3 (Tim Wojtulewicz, Corelight)
+
 5.1.0-dev.497 | 2022-09-07 14:31:07 +0200
 
   * GH-2289: parse.y/directives: Reject directives as statements (Arne Welzel, Corelight)

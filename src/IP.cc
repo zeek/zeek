@@ -20,7 +20,7 @@ static VectorValPtr BuildOptionsVal(const u_char* data, int len)
 	{
 	auto vv = make_intrusive<VectorVal>(id::find_type<VectorType>("ip6_options"));
 
-	while ( len > 0 )
+	while ( static_cast<size_t>(len) >= sizeof(struct ip6_opt) )
 		{
 		static auto ip6_option_type = id::find_type<RecordType>("ip6_option");
 		const struct ip6_opt* opt = (const struct ip6_opt*)data;

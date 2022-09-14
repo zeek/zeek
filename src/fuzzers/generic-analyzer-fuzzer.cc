@@ -65,7 +65,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
 		try
 			{
-			a->ForwardStream(chunk->size, chunk->data.get(), chunk->is_orig);
+			a->NextStream(chunk->size, chunk->data.get(), chunk->is_orig);
 			}
 		catch ( const binpac::Exception& e )
 			{

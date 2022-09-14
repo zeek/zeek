@@ -321,33 +321,37 @@ TransportProto ICMP_Analyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t*
 
 RecordValPtr ICMP_Analyzer::ExtractICMP4Context(int len, const u_char*& data)
 	{
-	const IP_Hdr ip_hdr_data((const struct ip*) data, false);
-	const IP_Hdr* ip_hdr = &ip_hdr_data;
-
-	uint32_t ip_hdr_len = ip_hdr->HdrLen();
-
 	uint32_t ip_len, frag_offset;
+	bool bad_hdr_len = false;
+	bool bad_checksum = false;
 	TransportProto proto = TRANSPORT_UNKNOWN;
-	int DF, MF, bad_hdr_len, bad_checksum;
+	int DF, MF;
 	IPAddr src_addr, dst_addr;
 	uint32_t src_port, dst_port;
 
-	if ( len < (int)sizeof(struct ip) || ip_hdr_len > uint32_t(len) )
+	if ( len < (int)sizeof(struct ip) )
 		{
 		// We don't have an entire IP header.
-		bad_hdr_len = 1;
+		bad_hdr_len = true;
 		ip_len = frag_offset = 0;
 		DF = MF = bad_checksum = 0;
 		src_port = dst_port = 0;
 		}
-
 	else
 		{
-		bad_hdr_len = 0;
+		const IP_Hdr ip_hdr_data((const struct ip*) data, false);
+		const IP_Hdr* ip_hdr = &ip_hdr_data;
+		uint32_t ip_hdr_len = ip_hdr->HdrLen();
+		bad_hdr_len = (ip_hdr_len > static_cast<uint32_t>(len));
+
+		if ( ! bad_hdr_len )
+			bad_checksum = ! run_state::current_pkt->l3_checksummed &&
+				(detail::in_cksum(reinterpret_cast<const uint8_t*>(ip_hdr->IP4_Hdr()),
+				                  ip_hdr_len) != 0xffff);
+		else
+			bad_checksum = false;
+
 		ip_len = ip_hdr->TotalLen();
-		bad_checksum = ! run_state::current_pkt->l3_checksummed &&
-		  (detail::in_cksum(reinterpret_cast<const uint8_t*>(ip_hdr->IP4_Hdr()),
-		                    ip_hdr_len) != 0xffff);
 
 		src_addr = ip_hdr->SrcAddr();
 		dst_addr = ip_hdr->DstAddr();

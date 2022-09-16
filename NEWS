@@ -2,6 +2,34 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 4.0.9
+==========
+
+This release fixes the following security issues:
+
+- Fix a possible overflow and crash in the ICMP analyzer when receiving a
+  specially crafted packet. Due to the possibility of this happening with
+  packets received from the network, this is a potential DoS vulnerability.
+
+- Fix a possible overflow and crash in the IRC analyzer when receiving a
+  specially crafted packet. Due to the possibility of this happening with
+  packets received from the network, this is a potential DoS vulnerability.
+  Note that this requires the ``irc_whois_channel_line`` to be handled. This
+  event is not handled by default, so this is likely a low-severity issue.
+
+- Fix a possible overflow and crash in the SMB analyzer when receiving a
+  specially crafted packet. Due to the possibility of this happening with
+  packets received from the network, this is a potential DoS vulnerability.
+  Note that this requires the ``smb1_transaction_secondary_request`` to be
+  handled. This event is not handled by default, so this is likely a
+  low-severity issue.
+
+- Fix two possible crashes when converting IP headers for output via the
+  ``raw_packet`` event. Due to the possibility of this happening with packets
+  received from the network, this is a potential DoS vulnerability. Note that
+  the ``raw_packet`` event is not enabled by default so these are likely
+  low-severity issues.
+
 Zeek 4.0.8
 ==========
 

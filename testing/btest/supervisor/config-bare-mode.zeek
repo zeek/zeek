@@ -3,6 +3,7 @@
 # string depending on mode, and exits. We verify the resulting outputs.
 
 # @TEST-PORT: BROKER_PORT
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff zeek/inherit/node.out

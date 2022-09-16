@@ -1,6 +1,7 @@
-# Skip this test when using ZAM, as it will generate a hard error in addition
-# to the warning.
+# Skip this test when using script optimization, as that generate hard
+# errors in addition to warnings.
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
 # @TEST-EXEC: zeek -b %INPUT > out 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath" btest-diff out

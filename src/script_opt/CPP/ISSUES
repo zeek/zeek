@@ -1,3 +1,6 @@
+globals initialized by expressions should be done with code, not values
+	- this would enable globals whose starting values include opaque's
+
 conditional code:
 	- top-level conditionals okay due to hash protection
 	- but lower-level, directly called, won't translate
@@ -16,12 +19,6 @@ standalone code won't execute global statements
 standalone code needs to deal with field_mapping initializations the
 same as enum_mapping
 
-type switches:
-	- easy to support by some sort of hash on the type
-
-when's:
-	- need to understand "return when" semantics
-
 slow compilation:
 	- analyze whether there's a bunch of unneeded stuff (e.g. orphan types)
 
@@ -30,4 +27,4 @@ efficiency:
 	- directly calling BiFs
 		- best done by supplanting bifcl
 	- event handlers directly called, using vector<ZVal> arguments
-	- import custom BiFs (e.g. network_time()) from ZAM
+	- import custom BiFs (e.g. network_time(), cat()) from ZAM

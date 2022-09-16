@@ -62,12 +62,12 @@ void AF_PacketSource::Open()
         return;
         }
 
-    if ( ! ConfigureFanoutGroup(enable_fanout) )
-        {
-        Error(errno ? strerror(errno) : "failed to join fanout group");
-        close(socket_fd);
-        return;
-        }
+	if ( ! ConfigureFanoutGroup(enable_fanout, enable_defrag) )
+		{
+		Error(errno ? strerror(errno) : "failed to join fanout group");
+		close(socket_fd);
+		return;
+		}
 
     if ( ! ConfigureHWTimestamping(enable_hw_timestamping) )
         {

@@ -67,9 +67,9 @@ private:
 
 	bool BindInterface();
 	bool EnablePromiscMode();
-	bool ConfigureFanoutGroup(bool enabled, bool defrag=false);
+	bool ConfigureFanoutGroup(bool enabled, bool defrag);
 	bool ConfigureHWTimestamping(bool enabled);
-	uint32_t GetFanoutMode(bool defrag=false);
+	uint32_t GetFanoutMode(bool defrag);
 };
 
 }

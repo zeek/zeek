@@ -374,11 +374,13 @@ public:
 		{
 		ivs.emplace_back(std::to_string(pattern));
 		ivs.emplace_back(std::to_string(is_case_insensitive));
+		ivs.emplace_back(std::to_string(is_single_line));
 		}
 
 private:
 	int pattern; // index into string representation of pattern
 	int is_case_insensitive; // case-insensitivity flag, 0 or 1
+	int is_single_line; // single-line flag, 0 or 1
 	};
 
 class PortConstInfo : public CPP_InitInfo

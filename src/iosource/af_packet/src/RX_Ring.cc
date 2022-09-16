@@ -11,7 +11,7 @@ extern "C" {
 #include <unistd.h>           // sysconf
 }
 
-RX_Ring::RX_Ring(int sock, size_t bufsize)
+RX_Ring::RX_Ring(int sock, size_t bufsize, size_t blocksize, int blocktimeout_msec)
 	{
 	int ret, ver = TPACKET_VERSION;
 
@@ -23,7 +23,7 @@ RX_Ring::RX_Ring(int sock, size_t bufsize)
 	if ( ret )
 		throw RX_RingException("unable to set TPacket version");
 
-	InitLayout(bufsize);
+	InitLayout(bufsize, blocksize, blocktimeout_msec);
 	ret = setsockopt(sock, SOL_PACKET, PACKET_RX_RING, (uint8_t *) &layout,
 		sizeof(layout));
 	if ( ret )
@@ -92,14 +92,14 @@ void RX_Ring::ReleasePacket()
 		NextBlock();
 	}
 
-void RX_Ring::InitLayout(size_t bufsize)
+void RX_Ring::InitLayout(size_t bufsize, size_t blocksize, int blocktimeout_msec)
 	{
 	memset(&layout, 0, sizeof(layout));
-	layout.tp_block_size = sysconf(_SC_PAGE_SIZE) << 2; //TODO: get rid of magic value
+	layout.tp_block_size = blocksize;
 	layout.tp_frame_size = TPACKET_ALIGNMENT << 7; // Seems to be irrelevant for V3
 	layout.tp_block_nr = bufsize / layout.tp_block_size;
 	layout.tp_frame_nr = (layout.tp_block_size / layout.tp_frame_size) * layout.tp_block_nr;
-	layout.tp_retire_blk_tov = 100; // Timeout for blocks
+	layout.tp_retire_blk_tov = blocktimeout_msec;
 	}
 
 void RX_Ring::NextBlock()

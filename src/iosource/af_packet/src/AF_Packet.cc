@@ -27,6 +27,8 @@ AF_PacketSource::AF_PacketSource(const std::string& path, bool is_live)
 void AF_PacketSource::Open()
 	{
 	uint64_t buffer_size = zeek::BifConst::AF_Packet::buffer_size;
+	uint64_t block_size = zeek::BifConst::AF_Packet::block_size;
+	int block_timeout_msec = static_cast<int>(zeek::BifConst::AF_Packet::block_timeout * 1000.0);
 	int link_type = zeek::BifConst::AF_Packet::link_type;
 
 	bool enable_hw_timestamping = zeek::BifConst::AF_Packet::enable_hw_timestamping;
@@ -41,14 +43,14 @@ void AF_PacketSource::Open()
         return;
         }
 
-    // Create RX-ring
-    try {
-        rx_ring = new RX_Ring(socket_fd, buffer_size);
-    } catch (RX_RingException& e) {
-        Error(errno ? strerror(errno) : "unable to create RX-ring");
-        close(socket_fd);
-        return;
-    }
+	// Create RX-ring
+	try {
+		rx_ring = new RX_Ring(socket_fd, buffer_size, block_size, block_timeout_msec);
+	} catch (RX_RingException& e) {
+		Error(errno ? strerror(errno) : "unable to create RX-ring");
+		close(socket_fd);
+		return;
+	}
 
     // Setup interface
     if ( ! BindInterface() )

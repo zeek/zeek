@@ -24,6 +24,8 @@ enum ChecksumMode %{
 %}
 
 const buffer_size: count;
+const block_size: count;
+const block_timeout: interval;
 const enable_hw_timestamping: bool;
 const enable_defrag: bool;
 const enable_fanout: bool;

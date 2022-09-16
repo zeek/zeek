@@ -21,14 +21,14 @@ public:
 	/**
 	 * Constructor
 	 */
-	RX_Ring(int sock, size_t bufsize);
+	RX_Ring(int sock, size_t bufsize, size_t blocksize, int blocktimeout_msec);
 	~RX_Ring();
 
 	bool GetNextPacket(tpacket3_hdr** hdr);
 	void ReleasePacket();
 
 protected:
-	void InitLayout(size_t bufsize);
+	void InitLayout(size_t bufsize, size_t blocksize, int blocktimeout_msec);
 	void NextBlock();
 
 private:

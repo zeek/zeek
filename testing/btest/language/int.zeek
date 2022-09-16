@@ -17,17 +17,13 @@ global i7: int = +0xc;
 global i8: int = 0xC;
 global i9: int = -0xC;
 global i10: int = -12;
-global i11: int = 9223372036854775807;   # max. allowed value
-global i12: int = -9223372036854775808;  # min. allowed value
-global i13: int = 0x7fffffffffffffff;   # max. allowed value
-global i14: int = -0x8000000000000000;  # min. allowed value
-global i15 = +3;
+global i11 = +3;
 
 event zeek_init()
 {
 	# Type inference test
 
-	test_case( "type inference", type_name(i15) == "int" );
+	test_case( "type inference", type_name(i11) == "int" );
 
 	# Test various constant representations
 
@@ -56,15 +52,4 @@ event zeek_init()
 	test_case( "assignment operator", i2 == 5 );
 	test_case( "bitwise lshift", i6 << 1 == 24 );
 	test_case( "bitwise rshift", i6 >> 1 == 6 );
-
-	# Max/min value tests
-
-	local str1 = fmt("max int value = %d", i11);
-	test_case( str1, str1 == "max int value = 9223372036854775807" );
-	local str2 = fmt("min int value = %d", i12);
-	test_case( str2, str2 == "min int value = -9223372036854775808" );
-	local str3 = fmt("max int value = %d", i13);
-	test_case( str3, str3 == "max int value = 9223372036854775807" );
-	local str4 = fmt("min int value = %d", i14);
-	test_case( str4, str4 == "min int value = -9223372036854775808" );
 }

@@ -1,3 +1,44 @@
+5.0.2 | 2022-09-19 11:56:36 -0700
+
+  * Release 5.0.2.
+
+  * Stop signal-masking upon running unit tests (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 48486b4156e2a7b689566a6a9a3e4d65c2700430)
+
+  * Pause signal-masking during script parsing (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 48486b4156e2a7b689566a6a9a3e4d65c2700430)
+
+  * Add btests to verify Zeek's handling of SIGTERM and reading stdin (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 48486b4156e2a7b689566a6a9a3e4d65c2700430)
+
+  * Add procps/procps-ng to several CI Docker images (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 48486b4156e2a7b689566a6a9a3e4d65c2700430)
+
+  * CI: remove FreeBSD 13.0, update FreeBSD 12 to 12.3 (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 5b0d20b5651b1fea3982f9e1d4a6f7df4359b5af)
+
+  * Add better length check to BuildOptionsVal() (Tim Wojtulewicz, Corelight)
+
+  * irc: Check parts.size() before removing the nick (Arne Welzel, Corelight)
+
+    ...also, don't remove the nick twice.
+
+  * Add some additional checks for caplen in ICMP analyzer (Tim Wojtulewicz, Corelight)
+
+  * smb: Unify transaction_data_to_val() usage (Arne Welzel, Corelight)
+
+    the data/string handling in smb1-com-transaction.pcac was improved
+    with c75519ca8869448efc488598090f96d63352312f, re-use the added
+    functionality also for smb1-com-transaction-secondary.pac to avoid
+    buffer overflows.
+
+  * Check IP payload length before casting to transport structure (Tim Wojtulewicz, Corelight)
+
 5.0.1 | 2022-08-26 10:25:19 -0700
 
   * Release 5.0.1.

@@ -155,20 +155,24 @@ void CPPCompile::Compile(bool report_uncompilable)
 		if ( ! func.ShouldSkip() )
 			DeclareFunc(func);
 
-	// We track lambdas by their internal names, because two different
-	// LambdaExpr's can wind up referring to the same underlying lambda
-	// if the bodies happen to be identical.  In that case, we don't
-	// want to generate the lambda twice.
-	unordered_set<string> lambda_names;
+	// We track lambdas by their internal names, and associate those
+	// with their AST bodies.  Two different LambdaExpr's can wind up
+	// referring to the same underlying lambda if the bodies happen to
+	// be identical.  In that case, we don't want to generate the lambda
+	// twice, but we do want to map the second one to the same body name.
+	unordered_map<string, const Stmt*> lambda_ASTs;
 	for ( const auto& l : pfs.Lambdas() )
 		{
 		const auto& n = l->Name();
-		if ( lambda_names.count(n) > 0 )
-			// Skip it.
-			continue;
-
-		DeclareLambda(l, pfs.ExprProf(l).get());
-		lambda_names.insert(n);
+		const auto body = l->Ingredients().body.get();
+		if ( lambda_ASTs.count(n) > 0 )
+			// Reuse previous body.
+			body_names[body] = body_names[lambda_ASTs[n]];
+		else
+			{
+			DeclareLambda(l, pfs.ExprProf(l).get());
+			lambda_ASTs[n] = body;
+			}
 		}
 
 	NL();
@@ -178,15 +182,15 @@ void CPPCompile::Compile(bool report_uncompilable)
 		if ( ! func.ShouldSkip() )
 			CompileFunc(func);
 
-	lambda_names.clear();
+	lambda_ASTs.clear();
 	for ( const auto& l : pfs.Lambdas() )
 		{
 		const auto& n = l->Name();
-		if ( lambda_names.count(n) > 0 )
+		if ( lambda_ASTs.count(n) > 0 )
 			continue;
 
 		CompileLambda(l, pfs.ExprProf(l).get());
-		lambda_names.insert(n);
+		lambda_ASTs[n] = l->Ingredients().body.get();
 		}
 
 	NL();

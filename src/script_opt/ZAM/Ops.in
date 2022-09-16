@@ -2173,6 +2173,174 @@ internal-op StrStr
 type VVC
 eval	EvalStrStr(frame[z.v2], z.c)
 
+macro Cat1Op(val)
+	auto& v1 = frame[z.v1];
+	ZVal::DeleteManagedType(v1);
+	v1 = val;
+	zeek::Ref(v1.string_val);
+
+internal-op Cat1
+type VC
+eval	Cat1Op(z.c)
+
+internal-op Cat1
+type VV
+eval	Cat1Op(frame[z.v2])
+
+macro Cat1FullVal(val)
+	Cat1Op(ZVal(ZAM_val_cat(val.ToVal(z.t))))
+
+internal-op Cat1Full
+type VC
+eval	Cat1FullVal(z.c)
+
+internal-op Cat1Full
+type VV
+eval	Cat1FullVal(frame[z.v2])
+
+internal-op CatN
+type V
+eval	auto aux = z.aux;
+	auto slots = z.aux->slots;
+	auto& ca = aux->cat_args;
+	int n = aux->n;
+	size_t max_size = 0;
+	for ( int i = 0; i < n; ++i )
+		max_size += ca[i]->MaxSize(frame, slots[i]);
+	auto res = new char[max_size + /* slop */ n + 1];
+	auto res_p = res;
+	for ( int i = 0; i < n; ++i )
+		ca[i]->RenderInto(frame, slots[i], res_p);
+	*res_p = '\0';
+	auto s = new String(true, reinterpret_cast<byte_vec>(res), res_p - res);
+	Cat1Op(ZVal(new StringVal(s)))
+
+macro CatNPre()
+	auto aux = z.aux;
+	auto slots = z.aux->slots;
+	auto& ca = aux->cat_args;
+
+macro CatNMid()
+	auto res = new char[max_size + /* slop */ 10];
+	auto res_p = res;
+
+macro CatNPost()
+	*res_p = '\0';
+	auto s = new String(true, reinterpret_cast<byte_vec>(res), res_p - res);
+	Cat1Op(ZVal(new StringVal(s)))
+
+internal-op Cat2
+type V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
+	max_size += ca[1]->MaxSize(frame, slots[1]);
+	CatNMid()
+	ca[0]->RenderInto(frame, slots[0], res_p);
+	ca[1]->RenderInto(frame, slots[1], res_p);
+	CatNPost()
+
+internal-op Cat3
+type V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
+	max_size += ca[1]->MaxSize(frame, slots[1]);
+	max_size += ca[2]->MaxSize(frame, slots[2]);
+	CatNMid()
+	ca[0]->RenderInto(frame, slots[0], res_p);
+	ca[1]->RenderInto(frame, slots[1], res_p);
+	ca[2]->RenderInto(frame, slots[2], res_p);
+	CatNPost()
+
+internal-op Cat4
+type V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
+	max_size += ca[1]->MaxSize(frame, slots[1]);
+	max_size += ca[2]->MaxSize(frame, slots[2]);
+	max_size += ca[3]->MaxSize(frame, slots[3]);
+	CatNMid()
+	ca[0]->RenderInto(frame, slots[0], res_p);
+	ca[1]->RenderInto(frame, slots[1], res_p);
+	ca[2]->RenderInto(frame, slots[2], res_p);
+	ca[3]->RenderInto(frame, slots[3], res_p);
+	CatNPost()
+
+internal-op Cat5
+type V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
+	max_size += ca[1]->MaxSize(frame, slots[1]);
+	max_size += ca[2]->MaxSize(frame, slots[2]);
+	max_size += ca[3]->MaxSize(frame, slots[3]);
+	max_size += ca[4]->MaxSize(frame, slots[4]);
+	CatNMid()
+	ca[0]->RenderInto(frame, slots[0], res_p);
+	ca[1]->RenderInto(frame, slots[1], res_p);
+	ca[2]->RenderInto(frame, slots[2], res_p);
+	ca[3]->RenderInto(frame, slots[3], res_p);
+	ca[4]->RenderInto(frame, slots[4], res_p);
+	CatNPost()
+
+internal-op Cat6
+type V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
+	max_size += ca[1]->MaxSize(frame, slots[1]);
+	max_size += ca[2]->MaxSize(frame, slots[2]);
+	max_size += ca[3]->MaxSize(frame, slots[3]);
+	max_size += ca[4]->MaxSize(frame, slots[4]);
+	max_size += ca[5]->MaxSize(frame, slots[5]);
+	CatNMid()
+	ca[0]->RenderInto(frame, slots[0], res_p);
+	ca[1]->RenderInto(frame, slots[1], res_p);
+	ca[2]->RenderInto(frame, slots[2], res_p);
+	ca[3]->RenderInto(frame, slots[3], res_p);
+	ca[4]->RenderInto(frame, slots[4], res_p);
+	ca[5]->RenderInto(frame, slots[5], res_p);
+	CatNPost()
+
+internal-op Cat7
+type V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
+	max_size += ca[1]->MaxSize(frame, slots[1]);
+	max_size += ca[2]->MaxSize(frame, slots[2]);
+	max_size += ca[3]->MaxSize(frame, slots[3]);
+	max_size += ca[4]->MaxSize(frame, slots[4]);
+	max_size += ca[5]->MaxSize(frame, slots[5]);
+	max_size += ca[6]->MaxSize(frame, slots[6]);
+	CatNMid()
+	ca[0]->RenderInto(frame, slots[0], res_p);
+	ca[1]->RenderInto(frame, slots[1], res_p);
+	ca[2]->RenderInto(frame, slots[2], res_p);
+	ca[3]->RenderInto(frame, slots[3], res_p);
+	ca[4]->RenderInto(frame, slots[4], res_p);
+	ca[5]->RenderInto(frame, slots[5], res_p);
+	ca[6]->RenderInto(frame, slots[6], res_p);
+	CatNPost()
+
+internal-op Cat8
+type V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
+	max_size += ca[1]->MaxSize(frame, slots[1]);
+	max_size += ca[2]->MaxSize(frame, slots[2]);
+	max_size += ca[3]->MaxSize(frame, slots[3]);
+	max_size += ca[4]->MaxSize(frame, slots[4]);
+	max_size += ca[5]->MaxSize(frame, slots[5]);
+	max_size += ca[6]->MaxSize(frame, slots[6]);
+	max_size += ca[7]->MaxSize(frame, slots[7]);
+	CatNMid()
+	ca[0]->RenderInto(frame, slots[0], res_p);
+	ca[1]->RenderInto(frame, slots[1], res_p);
+	ca[2]->RenderInto(frame, slots[2], res_p);
+	ca[3]->RenderInto(frame, slots[3], res_p);
+	ca[4]->RenderInto(frame, slots[4], res_p);
+	ca[5]->RenderInto(frame, slots[5], res_p);
+	ca[6]->RenderInto(frame, slots[6], res_p);
+	ca[7]->RenderInto(frame, slots[7], res_p);
+	CatNPost()
+
 internal-op Analyzer--Name
 type VV
 eval	auto atype = frame[z.v2].ToVal(z.t);

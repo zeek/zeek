@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "zeek/Desc.h"
+#include "zeek/script_opt/ZAM/BuiltInSupport.h"
 #include "zeek/script_opt/ZAM/Support.h"
 #include "zeek/script_opt/ZAM/ZOp.h"
 
@@ -319,6 +321,7 @@ public:
 		delete[] ints;
 		delete[] constants;
 		delete[] types;
+		delete[] cat_args;
 		}
 
 	// Returns the i'th element of the parallel arrays as a ValPtr.
@@ -404,6 +407,9 @@ public:
 	int* ints = nullptr;
 	ValPtr* constants = nullptr;
 	TypePtr* types = nullptr;
+
+	// A parallel array for the cat() built-in replacement.
+	std::unique_ptr<CatArg>* cat_args = nullptr;
 
 	// Used for accessing function names.
 	const ID* id_val = nullptr;

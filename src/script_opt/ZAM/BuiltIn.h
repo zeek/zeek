@@ -17,6 +17,8 @@ bool BuiltIn_Broker__flush_logs(const NameExpr* n, const ExprPList& args);
 bool BuiltIn_Files__enable_reassembly(const NameExpr* n, const ExprPList& args);
 bool BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, const ExprPList& args);
 bool BuiltIn_Log__write(const NameExpr* n, const ExprPList& args);
+bool BuiltIn_cat(const NameExpr* n, const ExprPList& args);
+ZInstAux* BuildCatAux(const ExprPList& args);
 bool BuiltIn_current_time(const NameExpr* n, const ExprPList& args);
 bool BuiltIn_get_port_etc(const NameExpr* n, const ExprPList& args);
 bool BuiltIn_network_time(const NameExpr* n, const ExprPList& args);

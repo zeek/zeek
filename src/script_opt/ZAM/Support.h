@@ -54,4 +54,6 @@ extern void ZAM_run_time_warning(const Location* loc, const char* msg);
 extern StringVal* ZAM_to_lower(const StringVal* sv);
 extern StringVal* ZAM_sub_bytes(const StringVal* s, zeek_uint_t start, zeek_int_t n);
 
+extern StringValPtr ZAM_val_cat(const ValPtr& v);
+
 	} // namespace zeek::detail

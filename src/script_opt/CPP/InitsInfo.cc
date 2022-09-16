@@ -401,7 +401,7 @@ void EnumTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 
 void OpaqueTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 	{
-	ivs.emplace_back(Fmt(c->TrackString(t->GetName())));
+	ivs.emplace_back(Fmt(c->TrackString(t->AsOpaqueType()->Name())));
 	}
 
 TypeTypeInfo::TypeTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))

@@ -3,6 +3,12 @@ Justification (input string 'abc')
 ----------------------------------
 ljust: 's'
 rjust: 's'
+
+find_str/rfind_str (input string 'abcdefghi')
+-----------------------------------------------------
 find_str: -1
 find_str: -1
 
+string_cat
+-----------------------------------------------------
+string_cat: 

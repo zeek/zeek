@@ -4,3 +4,5 @@ runtime error in compiled code: division by zero
 runtime error in compiled code: division by zero
 runtime error in compiled code: modulo by zero
 runtime error in compiled code: modulo by zero
+runtime error in compiled code: division/modulo by zero
+runtime error in compiled code: division/modulo by zero

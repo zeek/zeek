@@ -2,6 +2,7 @@
 
 #include "zeek/script_opt/CPP/RuntimeVec.h"
 
+#include "zeek/Overflow.h"
 #include "zeek/ZeekString.h"
 
 namespace zeek::detail
@@ -103,20 +104,25 @@ VEC_OP1(comp, ~, )
 
 // A kernel for applying a binary operation element-by-element to two
 // vectors of a given low-level type.
-#define VEC_OP2_KERNEL(accessor, type, op)                                                         \
+#define VEC_OP2_KERNEL(accessor, type, op, zero_check)                                             \
 	for ( unsigned int i = 0; i < v1->Size(); ++i )                                                \
 		{                                                                                          \
 		auto v1_i = v1->ValAt(i);                                                                  \
 		auto v2_i = v2->ValAt(i);                                                                  \
 		if ( v1_i && v2_i )                                                                        \
-			v_result->Assign(i, make_intrusive<type>(v1_i->accessor() op v2_i->accessor()));       \
+			{                                                                                      \
+			if ( zero_check && v2_i->IsZero() )                                                    \
+				reporter->CPPRuntimeError("division/modulo by zero");                              \
+			else                                                                                   \
+				v_result->Assign(i, make_intrusive<type>(v1_i->accessor() op v2_i->accessor()));   \
+			}                                                                                      \
 		}
 
 // Analogous to VEC_OP1, instantiates a function for a given binary operation,
 // which might-or-might-not be supported for low-level "double" types.
 // This version is for operations whose result type is the same as the
 // operand type.
-#define VEC_OP2(name, op, double_kernel)                                                           \
+#define VEC_OP2(name, op, double_kernel, zero_check)                                               \
 	VectorValPtr vec_op_##name##__CPP(const VectorValPtr& v1, const VectorValPtr& v2)              \
 		{                                                                                          \
 		if ( ! check_vec_sizes__CPP(v1, v2) )                                                      \
@@ -130,15 +136,15 @@ VEC_OP1(comp, ~, )
 			case TYPE_INTERNAL_INT:                                                                \
 				{                                                                                  \
 				if ( vt->Yield()->Tag() == TYPE_BOOL )                                             \
-					VEC_OP2_KERNEL(AsBool, BoolVal, op)                                            \
+					VEC_OP2_KERNEL(AsBool, BoolVal, op, zero_check)                                \
 				else                                                                               \
-					VEC_OP2_KERNEL(AsInt, IntVal, op)                                              \
+					VEC_OP2_KERNEL(AsInt, IntVal, op, zero_check)                                  \
 				break;                                                                             \
 				}                                                                                  \
                                                                                                    \
 			case TYPE_INTERNAL_UNSIGNED:                                                           \
 				{                                                                                  \
-				VEC_OP2_KERNEL(AsCount, CountVal, op)                                              \
+				VEC_OP2_KERNEL(AsCount, CountVal, op, zero_check)                                  \
 				break;                                                                             \
 				}                                                                                  \
                                                                                                    \
@@ -151,27 +157,28 @@ VEC_OP1(comp, ~, )
 		}
 
 // Instantiates a double_kernel for a binary operation.
-#define VEC_OP2_WITH_DOUBLE(name, op)                                                              \
+#define VEC_OP2_WITH_DOUBLE(name, op, zero_check)                                                  \
 	VEC_OP2(                                                                                       \
 		name, op, case TYPE_INTERNAL_DOUBLE                                                        \
 		: {                                                                                        \
-			VEC_OP2_KERNEL(AsDouble, DoubleVal, op)                                                \
+			VEC_OP2_KERNEL(AsDouble, DoubleVal, op, zero_check)                                    \
 			break;                                                                                 \
-		})
+		},                                                                                         \
+		zero_check)
 
 // The binary operations supported for vectors.
-VEC_OP2_WITH_DOUBLE(add, +)
-VEC_OP2_WITH_DOUBLE(sub, -)
-VEC_OP2_WITH_DOUBLE(mul, *)
-VEC_OP2_WITH_DOUBLE(div, /)
-VEC_OP2(mod, %, )
-VEC_OP2(and, &, )
-VEC_OP2(or, |, )
-VEC_OP2(xor, ^, )
-VEC_OP2(andand, &&, )
-VEC_OP2(oror, ||, )
-VEC_OP2(lshift, <<, )
-VEC_OP2(rshift, >>, )
+VEC_OP2_WITH_DOUBLE(add, +, 0)
+VEC_OP2_WITH_DOUBLE(sub, -, 0)
+VEC_OP2_WITH_DOUBLE(mul, *, 0)
+VEC_OP2_WITH_DOUBLE(div, /, 1)
+VEC_OP2(mod, %, , 1)
+VEC_OP2(and, &, , 0)
+VEC_OP2(or, |, , 0)
+VEC_OP2(xor, ^, , 0)
+VEC_OP2(andand, &&, , 0)
+VEC_OP2(oror, ||, , 0)
+VEC_OP2(lshift, <<, , 0)
+VEC_OP2(rshift, >>, , 0)
 
 // A version of VEC_OP2 that instead supports relational operations, so
 // the result type is always vector-of-bool.
@@ -189,19 +196,19 @@ VEC_OP2(rshift, >>, )
 			{                                                                                      \
 			case TYPE_INTERNAL_INT:                                                                \
 				{                                                                                  \
-				VEC_OP2_KERNEL(AsInt, BoolVal, op)                                                 \
+				VEC_OP2_KERNEL(AsInt, BoolVal, op, 0)                                              \
 				break;                                                                             \
 				}                                                                                  \
                                                                                                    \
 			case TYPE_INTERNAL_UNSIGNED:                                                           \
 				{                                                                                  \
-				VEC_OP2_KERNEL(AsCount, BoolVal, op)                                               \
+				VEC_OP2_KERNEL(AsCount, BoolVal, op, 0)                                            \
 				break;                                                                             \
 				}                                                                                  \
                                                                                                    \
 			case TYPE_INTERNAL_DOUBLE:                                                             \
 				{                                                                                  \
-				VEC_OP2_KERNEL(AsDouble, BoolVal, op)                                              \
+				VEC_OP2_KERNEL(AsDouble, BoolVal, op, 0)                                           \
 				break;                                                                             \
 				}                                                                                  \
                                                                                                    \
@@ -394,6 +401,11 @@ VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ)
 		if ( ! v_i )
 			continue;
 
+		// We compute these for each element to cover the case where
+		// the coerced vector is of type "any".
+		auto& t_i = v_i->GetType();
+		auto it = t_i->InternalType();
+
 		ValPtr r_i;
 		switch ( ytag )
 			{
@@ -402,11 +414,21 @@ VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ)
 				break;
 
 			case TYPE_INT:
-				r_i = val_mgr->Int(v_i->CoerceToInt());
+				if ( (it == TYPE_INTERNAL_UNSIGNED || it == TYPE_INTERNAL_DOUBLE) &&
+				     would_overflow(t_i.get(), yt.get(), v_i.get()) )
+					reporter->CPPRuntimeError(
+						"overflow promoting from unsigned/double to signed arithmetic value");
+				else
+					r_i = val_mgr->Int(v_i->CoerceToInt());
 				break;
 
 			case TYPE_COUNT:
-				r_i = val_mgr->Count(v_i->CoerceToUnsigned());
+				if ( (it == TYPE_INTERNAL_INT || it == TYPE_INTERNAL_DOUBLE) &&
+				     would_overflow(t_i.get(), yt.get(), v_i.get()) )
+					reporter->CPPRuntimeError(
+						"overflow promoting from signed/double to signed arithmetic value");
+				else
+					r_i = val_mgr->Count(v_i->CoerceToUnsigned());
 				break;
 
 			case TYPE_ENUM:

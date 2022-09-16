@@ -223,13 +223,12 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt)
     if ( ! socket_fd )
         return false;
 
-    struct tpacket3_hdr *packet = 0;
-    const u_char *data;
-    struct timeval ts;
-    while ( true )
-        {
-        if ( ! rx_ring->GetNextPacket(&packet) )
-            return false;
+	struct tpacket3_hdr *packet = 0;
+	const u_char *data;
+	while ( true )
+		{
+		if ( ! rx_ring->GetNextPacket(&packet) )
+			return false;
 
         current_hdr.ts.tv_sec = packet->tp_sec;
         current_hdr.ts.tv_usec = packet->tp_nsec / 1000;

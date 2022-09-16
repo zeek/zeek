@@ -34,7 +34,8 @@ static void strreverse(char* begin, char* end)
 }
 
 // Expects 'str' to have been made using "%e" scientific notation format string
-static void sn_strip_trailing_zeros(char* str)
+// Returns the number of characters removed
+static size_t sn_strip_trailing_zeros(char* str)
 	{
 	char* frac = 0;
 
@@ -53,7 +54,7 @@ static void sn_strip_trailing_zeros(char* str)
 		}
 
 	if ( ! frac )
-		return;
+		return 0;
 
 	char* start_dec = frac;
 	char* exp = 0;
@@ -84,22 +85,26 @@ static void sn_strip_trailing_zeros(char* str)
 	if ( trailing_zeros == start_dec )
 		--trailing_zeros;
 
-	if ( trailing_zeros && exp )
+	if ( ! trailing_zeros || ! exp )
+		return 0;
+
+	char* start_exp = exp;
+
+	for ( ; ; )
 		{
-		for ( ; ; )
-			{
-			*trailing_zeros = *exp;
+		*trailing_zeros = *exp;
 
-			if ( *exp == 0 )
-				break;
+		if ( *exp == 0 )
+			break;
 
-			++trailing_zeros;
-			++exp;
-			}
+		++trailing_zeros;
+		++exp;
 		}
+
+	return exp - start_exp;
 	}
 
-void modp_itoa10(int32_t value, char* str)
+size_t modp_itoa10(int32_t value, char* str)
 {
     char* wstr=str;
     // Take care of sign
@@ -111,9 +116,10 @@ void modp_itoa10(int32_t value, char* str)
 
     // Reverse string
     strreverse(str,wstr-1);
+    return wstr - str - 1;
 }
 
-void modp_uitoa10(uint32_t value, char* str)
+size_t modp_uitoa10(uint32_t value, char* str)
 {
     char* wstr=str;
     // Conversion. Number is reversed.
@@ -121,9 +127,10 @@ void modp_uitoa10(uint32_t value, char* str)
     *wstr='\0';
     // Reverse string
     strreverse(str, wstr-1);
+    return wstr - str - 1;
 }
 
-void modp_litoa10(int64_t value, char* str)
+size_t modp_litoa10(int64_t value, char* str)
 {
     char* wstr=str;
     uint64_t uvalue = (value < 0) ? (value == INT64_MIN ? (uint64_t)(INT64_MAX) + 1 : -value) : value;
@@ -135,9 +142,10 @@ void modp_litoa10(int64_t value, char* str)
 
     // Reverse string
     strreverse(str,wstr-1);
+    return wstr - str - 1;
 }
 
-void modp_ulitoa10(uint64_t value, char* str)
+size_t modp_ulitoa10(uint64_t value, char* str)
 {
     char* wstr=str;
     // Conversion. Number is reversed.
@@ -145,9 +153,10 @@ void modp_ulitoa10(uint64_t value, char* str)
     *wstr='\0';
     // Reverse string
     strreverse(str, wstr-1);
+    return wstr - str - 1;
 }
 
-void modp_dtoa(double value, char* str, int prec)
+size_t modp_dtoa(double value, char* str, int prec)
 {
     /* Hacky test for NaN
      * under -fast-math this won't work, but then you also won't
@@ -156,7 +165,7 @@ void modp_dtoa(double value, char* str, int prec)
      */
     if (! (value == value)) {
         str[0] = 'n'; str[1] = 'a'; str[2] = 'n'; str[3] = '\0';
-        return;
+        return 3;
     }
 
     /* we'll work in positive values and deal with the
@@ -177,9 +186,9 @@ void modp_dtoa(double value, char* str, int prec)
       which can be 100s of characters overflowing your buffers == bad
     */
     if (value >= thres_max) {
-        sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
-        sn_strip_trailing_zeros(str);
-        return;
+        int n = sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+        n -= sn_strip_trailing_zeros(str);
+        return n;
     }
 
     double diff = 0.0;
@@ -242,12 +251,13 @@ void modp_dtoa(double value, char* str, int prec)
     }
     *wstr='\0';
     strreverse(str, wstr-1);
+    return wstr - str - 1;
 }
 
 
 // This is near identical to modp_dtoa above
 //   The differnce is noted below
-void modp_dtoa2(double value, char* str, int prec)
+size_t modp_dtoa2(double value, char* str, int prec)
 {
     /* Hacky test for NaN
      * under -fast-math this won't work, but then you also won't
@@ -256,7 +266,7 @@ void modp_dtoa2(double value, char* str, int prec)
      */
     if (! (value == value)) {
         str[0] = 'n'; str[1] = 'a'; str[2] = 'n'; str[3] = '\0';
-        return;
+        return 3;
     }
 
     /* we'll work in positive values and deal with the
@@ -277,9 +287,9 @@ void modp_dtoa2(double value, char* str, int prec)
       which can be 100s of characters overflowing your buffers == bad
     */
     if (value >= thres_max) {
-        sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
-        sn_strip_trailing_zeros(str);
-        return;
+        int n = sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+        n -= sn_strip_trailing_zeros(str);
+        return n;
     }
 
     int count;
@@ -296,9 +306,9 @@ void modp_dtoa2(double value, char* str, int prec)
     double smallest = _pow10r[prec];
 
     if (value != 0.0 && value < smallest) {
-        sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
-        sn_strip_trailing_zeros(str);
-        return;
+        int n = sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+        n -= sn_strip_trailing_zeros(str);
+        return n;
     }
 
     int whole = (int) value;
@@ -362,11 +372,12 @@ void modp_dtoa2(double value, char* str, int prec)
     }
     *wstr='\0';
     strreverse(str, wstr-1);
+    return wstr - str - 1;
 }
 
 // This is near identical to modp_dtoa2 above, excep that it never uses
 // exponential notation and requires a buffer length.
-void modp_dtoa3(double value, char* str, int n, int prec)
+size_t modp_dtoa3(double value, char* str, int n, int prec)
 {
     /* Hacky test for NaN
      * under -fast-math this won't work, but then you also won't
@@ -375,7 +386,7 @@ void modp_dtoa3(double value, char* str, int n, int prec)
      */
     if (! (value == value)) {
         str[0] = 'n'; str[1] = 'a'; str[2] = 'n'; str[3] = '\0';
-        return;
+        return 3;
     }
 
     /* we'll work in positive values and deal with the
@@ -409,7 +420,7 @@ void modp_dtoa3(double value, char* str, int n, int prec)
         if ( i < 0 || i >= n ) {
         // Error or truncated output.
             snprintf(str, n, "NAN");
-            return;
+            return 3;
             }
 
         /* Remove trailing zeros. */
@@ -421,7 +432,7 @@ void modp_dtoa3(double value, char* str, int n, int prec)
             --p;
 
         *++p = '\0';
-        return;
+        return p - str - 1;
 
         /* ---- End of modified part.. */
     }
@@ -491,4 +502,5 @@ void modp_dtoa3(double value, char* str, int n, int prec)
     }
     *wstr='\0';
     strreverse(str, wstr-1);
+    return wstr - str - 1;
 }

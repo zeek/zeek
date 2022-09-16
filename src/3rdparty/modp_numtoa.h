@@ -34,37 +34,38 @@
 BEGIN_C
 
 #include <stdint.h>
+#include <stddef.h>
 
-/** \brief convert an signed integer to char buffer
+/** \brief convert an signed integer to char buffer, return # characters added
  *
  * \param[in] value
  * \param[out] buf the output buffer.  Should be 16 chars or more.
  */
-void modp_itoa10(int32_t value, char* buf);
+size_t modp_itoa10(int32_t value, char* buf);
 
-/** \brief convert an unsigned integer to char buffer
+/** \brief convert an unsigned integer to char buffer, return # characters added
  *
  * \param[in] value
  * \param[out] buf The output buffer, should be 16 chars or more.
  */
-void modp_uitoa10(uint32_t value, char* buf);
+size_t modp_uitoa10(uint32_t value, char* buf);
 
-/** \brief convert an signed long integer to char buffer
+/** \brief convert an signed long integer to char buffer, return # characters added
  *
  * \param[in] value
  * \param[out] buf the output buffer.  Should be 24 chars or more.
  */
-void modp_litoa10(int64_t value, char* buf);
+size_t modp_litoa10(int64_t value, char* buf);
 
-/** \brief convert an unsigned long integer to char buffer
+/** \brief convert an unsigned long integer to char buffer, return # characters added
  *
  * \param[in] value
  * \param[out] buf The output buffer, should be 24 chars or more.
  */
-void modp_ulitoa10(uint64_t value, char* buf);
+size_t modp_ulitoa10(uint64_t value, char* buf);
 
 /** \brief convert a floating point number to char buffer with
- *         fixed-precision format
+ *         fixed-precision format, return # characters added
  *
  * This is similar to "%.[0-9]f" in the printf style.  It will include
  * trailing zeros
@@ -78,10 +79,11 @@ void modp_ulitoa10(uint64_t value, char* buf);
  * \param[in] precision  Number of digits to the right of the decimal point.
  *    Can only be 0-9.
  */
-void modp_dtoa(double value, char* buf, int precision);
+size_t modp_dtoa(double value, char* buf, int precision);
 
 /** \brief convert a floating point number to char buffer with a
- *         variable-precision format, and no trailing zeros
+ *         variable-precision format, and no trailing zero, return
+ *         number of characters added
  *
  * This is similar to "%.[0-9]f" in the printf style, except it will
  * NOT include trailing zeros after the decimal point.  This type
@@ -100,15 +102,15 @@ void modp_dtoa(double value, char* buf, int precision);
  * \param[in] precision  Number of digits to the right of the decimal point.
  *    Can only be 0-9.
  */
-void modp_dtoa2(double value, char* buf, int precision);
+size_t modp_dtoa2(double value, char* buf, int precision);
 
 /** \brief convert a floating point number to char buffer with a
  *         variable-precision format, no trailing zeros, and no
- *   	scientific notation.
+ *   	scientific notation, return number of characters added
  *
  *  Other than avoiding scientific notation, this is the same as mop_dtoa2. It does however
  *  require the max buffer length. The buffer will always be null-terminated.
  */
-void modp_dtoa3(double value, char* buf, int n, int precision);
+size_t modp_dtoa3(double value, char* buf, int n, int precision);
 
 END_C

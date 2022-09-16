@@ -222,6 +222,10 @@ public:
 	// given by slot 1 (v1).
 	bool AssignsToSlot1() const;
 
+	// True if the given instruction assigns to the frame location
+	// corresponding to the given slot.
+	bool AssignsToSlot(int slot) const;
+
 	// True if the given instruction uses the value in the given frame
 	// slot. (Assigning to the slot does not constitute using the value.)
 	bool UsesSlot(int slot) const;

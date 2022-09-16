@@ -331,9 +331,16 @@ string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappi
 		auto inst_num_u = static_cast<zeek_uint_t>(inst_num);
 		for ( i = 0; i < map.id_start.size(); ++i )
 			{
-			// See discussion for ZInst::VName.
-			if ( (n == 1 && map.id_start[i] > inst_num_u) ||
-			     (n > 1 && map.id_start[i] >= inst_num_u) )
+			// See discussion for ZInst::VName, though this is
+			// a tad different since we have the general notion
+			// of AssignsToSlot().
+			if ( AssignsToSlot(n) )
+				{
+				if ( map.id_start[i] > inst_num_u )
+					break;
+				}
+
+			else if ( map.id_start[i] >= inst_num_u )
 				// Went too far.
 				break;
 			}
@@ -439,6 +446,18 @@ bool ZInstI::AssignsToSlot1() const
 		}
 
 	return false;
+	}
+
+bool ZInstI::AssignsToSlot(int slot) const
+	{
+	switch ( op )
+		{
+		case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV:
+			return slot == 1 || slot == 2;
+
+		default:
+			return slot == 1 && AssignsToSlot1();
+		}
 	}
 
 bool ZInstI::UsesSlot(int slot) const

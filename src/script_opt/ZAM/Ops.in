@@ -1761,6 +1761,30 @@ eval	auto& si = step_iters[z.v2];
 	frame[z.v1].uint_val = si.iter;
 	si.IterFinished();
 
+internal-op Next-Vector-Iter-Val-Var
+# v1 = iteration variable
+# v2 = value variable
+# v3 = iteration info
+# v4 = branch target if loop done
+op1-read-write
+type VVVV
+eval	auto& si = step_iters[z.v3];
+	if ( si.IsDoneIterating() )
+		BRANCH(v4)
+	const auto& vv = *si.vv;
+	if ( ! vv[si.iter] )
+		{ // Account for vector hole.  Re-execute for next position.
+		si.IterFinished();
+		--pc;	// so we then increment to here again
+		break;
+		}
+	frame[z.v1].uint_val = si.iter;
+	if ( z.is_managed )
+		frame[z.v2] = BuildVal(vv[si.iter]->ToVal(z.t), z.t);
+	else
+		frame[z.v2] = *vv[si.iter];
+	si.IterFinished();
+
 
 internal-op Init-String-Loop
 type VV

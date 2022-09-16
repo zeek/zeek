@@ -171,8 +171,8 @@ void ZAMCompiler::SetV4(ZAMStmt s, const InstLabel l)
 
 	auto ot = inst->op_type;
 
-	ASSERT(ot == OP_VVVV || ot == OP_VVVV_I4);
-	if ( ot != OP_VVVV_I4 )
+	ASSERT(ot == OP_VVVV || ot == OP_VVVV_I4 || ot == OP_VVVV_I3_I4);
+	if ( ot == OP_VVVV )
 		inst->op_type = OP_VVVV_I4;
 	}
 

@@ -90,9 +90,10 @@ if ( MSVC )
 
     # Set CAres
     find_package(c-ares)
-    set(HAVE_CARES true)
-    set(zeekdeps ${zeekdeps} ${c-ares_LIBRARIES})
+    set(HAVE_CARES true) # Disable FindCAres cmake file
     include_directories(BEFORE ${c-ares_INCLUDE_DIRS})
+    set(zeekdeps ${zeekdeps} ${c-ares_LIBRARIES})
+    add_definitions(-DCARES_STATICLIB)
 
     add_subdirectory(auxil/libunistd)
     set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)

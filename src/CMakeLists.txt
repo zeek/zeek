@@ -533,6 +533,7 @@ if (ZEEK_STANDALONE)
                    ${bro_PLUGIN_LIBS}
     )
     target_link_libraries(zeek ${bro_PLUGIN_LINK_LIBS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+    
     # Export symbols from zeek executable for use by plugins
     set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
 

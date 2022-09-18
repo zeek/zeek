@@ -1381,7 +1381,7 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
 
 			auto replacement = VecEvalRE(has_target);
 
-			eval = regex_replace(eval, regex(rhs), replacement);
+			eval = regex_replace(eval, regex(rhs), replacement, std::regex_constants::match_not_null);
 			}
 
 		auto is_none = ei.LHS_ET() == ZAM_EXPR_TYPE_NONE;

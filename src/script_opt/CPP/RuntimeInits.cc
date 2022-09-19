@@ -47,6 +47,8 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<PatternValPtr>&
 	auto re = new RE_Matcher(im->Strings(init_vals[0]));
 	if ( init_vals[1] )
 		re->MakeCaseInsensitive();
+	if ( init_vals[2] )
+		re->MakeSingleLine();
 
 	re->Compile();
 

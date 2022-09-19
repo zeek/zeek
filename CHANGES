@@ -1,3 +1,21 @@
+5.1.0-dev.535 | 2022-09-19 13:51:11 -0700
+
+  * updates to notes for compile-to-C++ maintenance (Vern Paxson, Corelight)
+
+  * fix deprecated "local" scoping in test scripts (Vern Paxson, Corelight)
+
+  * C++ script generation fix for lambdas that have identical bodies (Vern Paxson, Corelight)
+
+  * fix for C++ scripts that refer to "opaque" types (Vern Paxson, Corelight)
+
+  * C++ compilation support for 2-valued vector "for" loops (Vern Paxson, Corelight)
+
+  * C++ compilation support for RE /s operator (Vern Paxson, Corelight)
+
+  * run-time checking of vector operations for overflows and division-by-zero (Vern Paxson, Corelight)
+
+  * error propagation fix to avoid a crash (Vern Paxson, Corelight)
+
 5.1.0-dev.517 | 2022-09-19 13:44:13 -0700
 
   * specialized ZAM operators for speeding up cat() operations (Vern Paxson, Corelight)

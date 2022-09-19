@@ -2,13 +2,13 @@
 Reporter::Hook - Exercise Reporter Hook (dynamic, version 1.0.0)
     Implements Reporter (priority 0)
 
- | Hook  Some Info <...>/main.zeek, lines 498-499
- | Hook error An Error <...>/main.zeek, lines 498-499
- | Hook error An Error that does not show up in the log <...>/main.zeek, lines 498-499
+ | Hook  Some Info <...>/main.zeek, lines 517-518
+ | Hook error An Error <...>/main.zeek, lines 517-518
+ | Hook error An Error that does not show up in the log <...>/main.zeek, lines 517-518
  | Hook runtime error in compiled code field value missing 
- | Hook warning A warning <...>/main.zeek, lines 498-499
-<...>/main.zeek, lines 498-499: Some Info
-error in <...>/main.zeek, lines 498-499: An Error
-error in <...>/main.zeek, lines 498-499: An Error that does not show up in the log
+ | Hook warning A warning <...>/main.zeek, lines 517-518
+<...>/main.zeek, lines 517-518: Some Info
+error in <...>/main.zeek, lines 517-518: An Error
+error in <...>/main.zeek, lines 517-518: An Error that does not show up in the log
 runtime error in compiled code: field value missing
-warning in <...>/main.zeek, lines 498-499: A warning
+warning in <...>/main.zeek, lines 517-518: A warning

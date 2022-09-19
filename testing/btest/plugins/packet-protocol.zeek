@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zeek -r $TRACES/raw_layer.pcap -e "@load policy/misc/unknown-protocols"
 # @TEST-EXEC: cat conn.log > output_orig
 # @TEST-EXEC: cat unknown_protocols.log > output_orig

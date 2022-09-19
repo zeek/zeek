@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zeek -b -O ZAM --optimize-func='my_test' %INPUT >output
 # @TEST-EXEC: btest-diff output
 

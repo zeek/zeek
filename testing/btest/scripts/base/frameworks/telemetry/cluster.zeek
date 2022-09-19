@@ -1,4 +1,7 @@
 # @TEST-DOC: Query the Prometheus endpoint on 9911 and smoke check that zeek_version_info{...} is contained in the response for all cluster nodes.
+# Note compilable to C++ due to globals being initialized to a record that
+# has an opaque type as a field.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2

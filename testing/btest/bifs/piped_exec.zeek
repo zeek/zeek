@@ -15,3 +15,4 @@ if ( piped_exec("unset ZEEK_USE_CPP; zeek", cmds) != T )
 if ( piped_exec("cat > test.txt", "\x00\x00hello\x00\x00") != T )
 	exit(1);
 
+print "success!";

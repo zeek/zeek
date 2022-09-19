@@ -176,7 +176,8 @@ static void initialize_var(const IDPtr& id, InitClass c, ExprPtr init)
 	else if ( c == INIT_REMOVE )
 		assignment = make_intrusive<RemoveFromExpr>(lhs, init);
 	else
-		reporter->InternalError("bad InitClass in initialize_var");
+		// This can happen due to error propagation.
+		return;
 
 	if ( assignment->IsError() )
 		return;

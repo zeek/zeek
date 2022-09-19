@@ -168,6 +168,7 @@ PatternConstInfo::PatternConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo()
 	auto re = v->AsPatternVal()->Get();
 	pattern = c->TrackString(CPPEscape(re->OrigText()));
 	is_case_insensitive = re->IsCaseInsensitive();
+	is_single_line = re->IsSingleLine();
 	}
 
 CompoundItemInfo::CompoundItemInfo(CPPCompile* _c, ValPtr v) : CPP_InitInfo(), c(_c)
@@ -400,7 +401,7 @@ void EnumTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 
 void OpaqueTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 	{
-	ivs.emplace_back(Fmt(c->TrackString(t->GetName())));
+	ivs.emplace_back(Fmt(c->TrackString(t->AsOpaqueType()->Name())));
 	}
 
 TypeTypeInfo::TypeTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))

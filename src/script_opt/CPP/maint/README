@@ -15,7 +15,7 @@ The maintenance workflow:
     to check in updates to the list of how the compiler currently fares
     on various btests (see end of this doc):
 
-	Mon Aug  1 16:39:05 PDT 2022
+	Fri Sep 16 16:13:49 PDT 2022
 
 2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.
@@ -30,7 +30,7 @@ The maintenance workflow:
 5.  Run "check-CPP-gen.sh" for each Zeek file that passed "check-zeek.sh".
     This will generate a corresponding file in CPP-test/out* indicating whether
     "-O gen-C++" can successfully run on the input.  Presently, it should
-    be able to do so for all of them.
+    be able to do so for all of them, other than some exceptions noted below.
 
 6.  Copy ./src/zeek to ./zeek.HOLD.  This is used to speed up recompilation used
     in the next step.  However, it's also a headache to do development to
@@ -44,53 +44,48 @@ The maintenance workflow:
     This will generate C++ for the BTest, compile it, and run the result
     to see if it succeeds.  It populates CPP-test/diag* with the Btest
     diagnostic output (empty means success).  For non-empty output,
-    either fix the problem or update the database if it's not fixable.
+    either fix the problem, add 
+
+	# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
+    if the test isn't appropriate, or update the database if it's not
+    readily fixable, along with the reason why.
+
+    Note that do-CPP-btest.sh takes the same -d and -U arguments as
+    does btest, for displaying differences or updating the baseline
+    (which is Baseline.cpp).
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Database Of Known Issues (be sure to keep sorted)
-
 These BTests won't successfully run due to the indicated issue:
 
-	@if - has conditional code
+	bad-constructor - uses a complex old-style constructor that
+		should be updated
 	bad-when - deliberately has old-style "when" without captures
-	command-line-error - a deliberate command-line error
-	complex-to-debug - hard-to-figure-out failure
-	deprecated - uses features deprecated for -O C++
-	error-handling - behavior in face of an error differs
-	needs-plugin - requires knowing how to build an associated plugin
-	no-script - there's no actual script to compile
-	ZAM - meant specifically for -O ZAM
+	deprecated - uses deprecated features not support for -O gen-C++
+	test-glitch - fails because of how we do testing: the first -O gen-C++
+		pass leaves httpd running, which causes the second -O use-C++
+		pass to fail when it tries to start up a new httpd
+	opaque - needs a global whose value is (or contains) an opaque value,
+		not currently supported
+	skipped - test can be skipped due to environmental reasons (e.g.,
+		whether we have a certain Kerberos setup)
 
-Consider migrating these to have @TEST-REQUIRES clauses so we don't have
-to maintain this list.
+Database Of Known Issues (keep sorted)
 
-../testing/btest/core/negative-time.test no-script
-../testing/btest/core/pcap/dumper.zeek no-script
-../testing/btest/core/pcap/input-error.zeek command-line-error
-../testing/btest/core/proc-status-file.zeek no-script
-../testing/btest/core/scalar-vector.zeek deprecated
-../testing/btest/language/at-if-event.zeek @if
-../testing/btest/language/at-if.zeek @if
-../testing/btest/language/at-ifdef.zeek @if
-../testing/btest/language/at-ifndef.zeek @if
-../testing/btest/language/incr-vec-expr.test deprecated
-../testing/btest/language/uninitialized-local2.zeek error-handling
-../testing/btest/language/vector-deprecated.zeek deprecated
-../testing/btest/language/vector-in-operator.zeek
-../testing/btest/language/vector-in-operator.zeek deprecated
+../testing/btest/bifs/table_values.zeek bad-constructor
+../testing/btest/core/global_opaque_val.zeek opaque
+../testing/btest/language/alternate-event-hook-prototypes.zeek deprecated
+../testing/btest/language/global-init-calls-bif.zeek opaque
+../testing/btest/language/redef-same-prefixtable-idx.zeek deprecated
+../testing/btest/language/table-redef.zeek deprecated
 ../testing/btest/language/when-aggregates.zeek bad-when
-../testing/btest/opt/opt-files.zeek ZAM
-../testing/btest/opt/opt-files2.zeek ZAM
-../testing/btest/opt/opt-files3.zeek ZAM
-../testing/btest/opt/opt-func.zeek ZAM
-../testing/btest/opt/opt-func2.zeek ZAM
-../testing/btest/opt/opt-func3.zeek ZAM
-../testing/btest/plugins/packet-protocol.zeek needs-plugin
-../testing/btest/scripts/base/protocols/dhcp/dhcp-ack-msg-types.zeek no-script
-../testing/btest/scripts/base/protocols/dhcp/dhcp-all-msg-types.zeek no-script
-../testing/btest/scripts/base/protocols/dhcp/dhcp-discover-msg-types.zeek no-script
-../testing/btest/scripts/base/protocols/dhcp/inform.test no-script
-../testing/btest/scripts/base/utils/active-http.test complex-to-debug
-../testing/btest/scripts/policy/protocols/ssl/validate-certs.zeek no-script
-../testing/btest/supervisor/config-bare-mode.zeek @if
+../testing/btest/scripts/base/protocols/krb/smb2_krb.test skipped
+../testing/btest/scripts/base/protocols/krb/smb2_krb_nokeytab.test skipped
+../testing/btest/scripts/base/utils/active-http.test test-glitch
+../testing/btest/scripts/policy/frameworks/telemetry/log-prefixes.zeek opaque
+../testing/btest/scripts/policy/frameworks/telemetry/log.zeek opaque
+../testing/btest/scripts/policy/misc/dump-events.zeek skipped
+../testing/btest/telemetry/counter.zeek opaque
+../testing/btest/telemetry/gauge.zeek opaque
+../testing/btest/telemetry/histogram.zeek opaque

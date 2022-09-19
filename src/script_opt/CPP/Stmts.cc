@@ -458,12 +458,13 @@ void CPPCompile::GenForStmt(const ForStmt* f)
 	auto v = f->StmtExprPtr();
 	auto t = v->GetType()->Tag();
 	auto loop_vars = f->LoopVars();
+	auto value_var = f->ValueVar();
 
 	if ( t == TYPE_TABLE )
-		GenForOverTable(v, f->ValueVar(), loop_vars);
+		GenForOverTable(v, value_var, loop_vars);
 
 	else if ( t == TYPE_VECTOR )
-		GenForOverVector(v, loop_vars);
+		GenForOverVector(v, value_var, loop_vars);
 
 	else if ( t == TYPE_STRING )
 		GenForOverString(v, loop_vars);
@@ -515,7 +516,8 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
 		}
 	}
 
-void CPPCompile::GenForOverVector(const ExprPtr& vec, const IDPList* loop_vars)
+void CPPCompile::GenForOverVector(const ExprPtr& vec, const IDPtr& value_var,
+                                  const IDPList* loop_vars)
 	{
 	Emit("auto vv__CPP = %s;", GenExpr(vec, GEN_DONT_CARE));
 
@@ -523,7 +525,16 @@ void CPPCompile::GenForOverVector(const ExprPtr& vec, const IDPList* loop_vars)
 	StartBlock();
 
 	Emit("if ( ! vv__CPP->Has(i__CPP) ) continue;");
+
 	Emit("%s = i__CPP;", IDName((*loop_vars)[0]));
+
+	if ( value_var )
+		{
+		auto vv = IDName(value_var);
+		auto access = "vv__CPP->ValAt(i__CPP)";
+		auto native = GenericValPtrToGT(access, value_var->GetType(), GEN_NATIVE);
+		Emit("%s = %s;", IDName(value_var), native);
+		}
 	}
 
 void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars)

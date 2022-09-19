@@ -5,8 +5,6 @@ project(ZeekPluginAF_Packet)
 
 include(ZeekPlugin)
 
-add_compile_options(-Wunused -Werror)
-
 zeek_plugin_begin(Zeek AF_Packet)
 zeek_plugin_cc(src/Plugin.cc)
 zeek_plugin_cc(src/AF_Packet.cc)

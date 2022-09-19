@@ -220,7 +220,7 @@ public:
 		return *this;
 		}
 
-	DictIterator(DictIterator&& that)
+	DictIterator(DictIterator&& that) noexcept
 		{
 		if ( this == &that )
 			return;
@@ -238,7 +238,7 @@ public:
 		that.dict = nullptr;
 		}
 
-	DictIterator& operator=(DictIterator&& that)
+	DictIterator& operator=(DictIterator&& that) noexcept
 		{
 		if ( this == &that )
 			return *this;
@@ -358,7 +358,7 @@ public:
 			}
 		}
 
-	RobustDictIterator(RobustDictIterator&& other) : curr(nullptr)
+	RobustDictIterator(RobustDictIterator&& other) noexcept : curr(nullptr)
 		{
 		dict = nullptr;
 

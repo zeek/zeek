@@ -2009,8 +2009,21 @@ bool TableConstructorExpr::HasReducedOps(Reducer* c) const
 	for ( const auto& expr : exprs )
 		{
 		auto a = expr->AsAssignExpr();
+		auto lhs = a->GetOp1();
+		auto rhs = a->GetOp2();
+
 		// LHS is a list, not a singleton.
-		if ( ! a->GetOp1()->HasReducedOps(c) || ! a->GetOp2()->IsSingleton(c) )
+		if ( ! lhs->HasReducedOps(c) )
+			return NonReduced(this);
+
+		// RHS might also be a list, if it's a table-of-sets or such.
+		if ( rhs->Tag() == EXPR_LIST )
+			{
+			if ( ! rhs->HasReducedOps(c) )
+				return NonReduced(this);
+			}
+
+		else if ( ! rhs->IsSingleton(c) )
 			return NonReduced(this);
 		}
 
@@ -2498,8 +2511,8 @@ bool ListExpr::HasReducedOps(Reducer* c) const
 	{
 	for ( const auto& expr : exprs )
 		{
-		// Ugly hack for record constructors.
-		if ( expr->Tag() == EXPR_FIELD_ASSIGN )
+		// Ugly hack for record and complex table constructors.
+		if ( expr->Tag() == EXPR_FIELD_ASSIGN || expr->Tag() == EXPR_LIST )
 			{
 			if ( ! expr->HasReducedOps(c) )
 				return false;

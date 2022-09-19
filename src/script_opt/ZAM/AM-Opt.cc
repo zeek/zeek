@@ -400,6 +400,16 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				}
 				break;
 
+			case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV:
+				{
+				CheckSlotAssignment(inst->v2, inst);
+
+				auto depth = inst->loop_depth;
+				ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
+				ExtendLifetime(inst->v2, EndOfLoop(inst, depth));
+				}
+				break;
+
 			case OP_NEXT_VECTOR_ITER_VVV:
 			case OP_NEXT_STRING_ITER_VVV:
 				// Sometimes loops are written that don't actually
@@ -915,6 +925,9 @@ bool ZAMCompiler::VarIsAssigned(int slot, const ZInstI* i) const
 		// Otherwise fall through, since that flavor of iterate
 		// *does* also assign to slot 1.
 		}
+
+	if ( i->op == OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV && i->v2 == slot )
+		return true;
 
 	if ( i->op_type == OP_VV_FRAME )
 		// We don't want to consider these as assigning to the

@@ -72,6 +72,20 @@ StringVal* ZAM_sub_bytes(const StringVal* s, zeek_uint_t start, zeek_int_t n)
 	return new StringVal(ss ? ss : new String(""));
 	}
 
+StringValPtr ZAM_val_cat(const ValPtr& v)
+	{
+	// Quite similar to cat(), but for only one value.
+	zeek::ODesc d;
+	d.SetStyle(RAW_STYLE);
+
+	v->Describe(&d);
+
+	String* s = new String(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return make_intrusive<StringVal>(s);
+	}
+
 void ZAM_run_time_error(const char* msg)
 	{
 	fprintf(stderr, "%s\n", msg);

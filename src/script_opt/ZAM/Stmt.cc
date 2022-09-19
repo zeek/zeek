@@ -864,6 +864,7 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	{
 	auto loop_vars = f->LoopVars();
 	auto loop_var = (*loop_vars)[0];
+	auto value_var = f->ValueVar();
 
 	int iter_slot = num_step_iters++;
 
@@ -873,8 +874,20 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	auto init_end = AddInst(z);
 	auto iter_head = StartingBlock();
 
-	z = ZInstI(OP_NEXT_VECTOR_ITER_VVV, FrameSlot(loop_var), iter_slot, 0);
-	z.op_type = OP_VVV_I2_I3;
+	if ( value_var )
+		{
+		z = ZInstI(OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV, FrameSlot(loop_var), FrameSlot(value_var),
+		           iter_slot, 0);
+		z.t = value_var->GetType();
+		z.is_managed = ZVal::IsManagedType(z.t);
+		z.op_type = OP_VVVV_I3_I4;
+		}
+
+	else
+		{
+		z = ZInstI(OP_NEXT_VECTOR_ITER_VVV, FrameSlot(loop_var), iter_slot, 0);
+		z.op_type = OP_VVV_I2_I3;
+		}
 
 	return FinishLoop(iter_head, z, f->LoopBody(), iter_slot, false);
 	}
@@ -944,7 +957,9 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt
 	auto final_stmt = AddInst(z);
 
 	auto ot = iter_stmt.op_type;
-	if ( ot == OP_VVV_I3 || ot == OP_VVV_I2_I3 )
+	if ( ot == OP_VVVV_I3_I4 )
+		SetV4(loop_iter, GoToTarget(final_stmt));
+	else if ( ot == OP_VVV_I3 || ot == OP_VVV_I2_I3 )
 		SetV3(loop_iter, GoToTarget(final_stmt));
 	else
 		SetV2(loop_iter, GoToTarget(final_stmt));

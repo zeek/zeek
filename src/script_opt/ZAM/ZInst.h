@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "zeek/Desc.h"
+#include "zeek/script_opt/ZAM/BuiltInSupport.h"
 #include "zeek/script_opt/ZAM/Support.h"
 #include "zeek/script_opt/ZAM/ZOp.h"
 
@@ -222,6 +224,10 @@ public:
 	// given by slot 1 (v1).
 	bool AssignsToSlot1() const;
 
+	// True if the given instruction assigns to the frame location
+	// corresponding to the given slot.
+	bool AssignsToSlot(int slot) const;
+
 	// True if the given instruction uses the value in the given frame
 	// slot. (Assigning to the slot does not constitute using the value.)
 	bool UsesSlot(int slot) const;
@@ -315,6 +321,7 @@ public:
 		delete[] ints;
 		delete[] constants;
 		delete[] types;
+		delete[] cat_args;
 		}
 
 	// Returns the i'th element of the parallel arrays as a ValPtr.
@@ -400,6 +407,9 @@ public:
 	int* ints = nullptr;
 	ValPtr* constants = nullptr;
 	TypePtr* types = nullptr;
+
+	// A parallel array for the cat() built-in replacement.
+	std::unique_ptr<CatArg>* cat_args = nullptr;
 
 	// Used for accessing function names.
 	const ID* id_val = nullptr;

@@ -404,6 +404,7 @@ set(MAIN_SRCS
     script_opt/ZAM/AM-Opt.cc
     script_opt/ZAM/Branches.cc
     script_opt/ZAM/BuiltIn.cc
+    script_opt/ZAM/BuiltInSupport.cc
     script_opt/ZAM/Driver.cc
     script_opt/ZAM/Expr.cc
     script_opt/ZAM/Inst-Gen.cc

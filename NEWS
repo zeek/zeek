@@ -38,10 +38,10 @@ Breaking Changes
   the same file uid.
 
   This unrolling behavior always existed in a Zeek cluster when the network
-  connections involved in a file transfer are load-balanced to different workers.
-  Due to this affecting only a marginal ratio of files on real-world networks,
-  unrolling the log was chosen as the more efficient approach over making
-  the current logic cluster aware.
+  connections involved in a file transfer are load-balanced to different
+  workers.  Due to this affecting only a marginal ratio of files on real-world
+  networks, unrolling the log was chosen as the more efficient approach over
+  making the current logic cluster aware.
 
   The ``seen_bytes`` and ``missing_bytes`` fields of a ``File::Info`` record
   continue to represent the total number across all connections seen by the
@@ -60,12 +60,14 @@ Breaking Changes
   value alone, we aren't able to deprecate the original version of the method.
   This may cause build of packages to fail if they were using this method.
 
-- Conditional directives (``@if``, ``@ifdef``, ``@ifndef``, ``@else`` and ``@endif``)
-  can not be placed directly following ``if``, ``for`` or ``while`` statements
-  anymore. This was interpreted non-intuitively and could lead to subtle bugs.
-  The statement following the directive was placed outside of its intended block.
-  Placing braces after ``if``, ``for`` or ``while`` should result in the
-  intended behavior.
+- Conditional directives (``@if``, ``@ifdef``, ``@ifndef``, ``@else`` and
+  ``@endif``) can not be placed directly following ``if``, ``for`` or ``while``
+  statements anymore. This was interpreted non-intuitively and could lead to
+  subtle bugs.  The statement following the directive was placed outside of its
+  intended block.  Placing braces after ``if``, ``for`` or ``while`` should
+  result in the intended behavior.
+
+- The ``bro`` symlink to the ``zeek`` binary has finally been removed.
 
 New Functionality
 -----------------
@@ -99,7 +101,7 @@ New Functionality
   semantics for other record field attributes are not easy to grasp and there
   were no obvious use-cases identified.
 
-- Introduce a global ``disabling_analyzer()`` hook to allow vetoing calls
+- Introduced a global ``disabling_analyzer()`` hook to allow vetoing calls
   to ``disable_analyzer()``.
 
   The contract is simple: Any script can veto a ``disable_analyzer()`` call by
@@ -123,8 +125,34 @@ New Functionality
   when users expected their scripts to run last. Scripts placed in
   ``NodeConfig``'s new ``addl_base_scripts`` and ``addl_user_scripts`` fields
   will be loaded after the base scripts (and thus before any user scripts) and
-  after any user scripts, respectively. The old ``NodeConfig$scripts` field still
-  adds to the very end and is deprecated.
+  after any user scripts, respectively. The old ``NodeConfig$scripts` field
+  still adds to the very end and is deprecated.
+
+- Added a new script-level option ``max_changes_per_connection`` to limit the
+  number of ``tunnel_changed`` events that can be sent for a connection. This
+  helps prevent log spam from connections that regularly swap. The option
+  defaults to 5, and can be set to zero do disable the limiting.
+
+- Added a new BIF ``bytestring_to_float`` for converting 4-byte bytestrings to
+  float values.
+
+- Added a new BIF ``pow``.
+
+- Added new bit-shift operators ``<<`` and ``>>`` for use in scripts.
+
+- Added a new BIF ``table_keys`` which returns a ``set`` of keys from a table.
+
+- Added a new BIF ``table_values`` which returns a ``vector`` of keys from a
+  table.
+
+- Added new fields to the Modbus log for the Modbus PDU type, the transaction
+  ID, and the unit ID. See https://github.com/zeek/zeek/pull/2281 for more
+  information.
+
+- Added support for parsing TCP option 27, and fixed validation of lengths for
+  TCP options 28, 29, and 34.
+
+- Added new packet-analzyer to handle the DLT_LINUX_SLL2 PCAP link type.
 
 Changed Functionality
 ---------------------
@@ -150,6 +178,11 @@ Changed Functionality
 - When running in cluster mode, the manager by default now imports metrics from
   all other cluster nodes and opens port 9911/tcp for Prometheus metrics exposition.
 
+- The ``smb2_file_delete`` event will now be raised for SMB2 ``CREATE`` requests
+  marked with the ``FILE_DELETE_ON_CLOSE`` option.
+
+- Fixed ``bytestring_to_count`` to handle 3-, 5-, 6-, and 7-byte strings.
+
 Removed Functionality
 ---------------------
 
@@ -160,17 +193,27 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
-- The PDict class is now an alias to Dictionary and has been deprecated. Use Dictionary
-  directly, passing a pointer type to the template.
+- The ``PDict`` class is now an alias to ``Dictionary`` and has been
+  deprecated. Use ``Dictionary`` directly, passing a pointer type to the
+  template.
 
-- ``LogAscii::logdir`` and per-writer log directories have been
-  deprecated in favor of the new ``Log::default_logdir``.
+- ``LogAscii::logdir`` and per-writer log directories have been deprecated in
+  favor of the new ``Log::default_logdir``.
 
-- The HOOK_BRO_OBJ_DTOR hook and associated methods have been deprecated. They
-  are replaced by the HOOK_OBJ_DTOR hook and methods.
+- The ``HOOK_BRO_OBJ_DTOR`` hook and associated methods have been
+  deprecated. They are replaced by the ``HOOK_OBJ_DTOR`` hook and methods.
 
-- The ``misc/scan.zeek`` script has been marked for removal in Zeek 6.1.
-  Use github.com/ncsa/bro-simple-scan instead.
+- The ``bro_int_t`` and ``bro_uint_t`` types have been deprecated and replaced
+  by ``zeek_int_t`` and ``zeek_uint_t``.
+
+- The ``bro_inet_ntop.h`` and ``bro_inet_ntop.c`` files have been deprecated and
+  replaced by ``zeek_*`` files.
+
+- The ``BRO_PLUGIN_API_VERSION`` has been deprecated and replaced by
+  ``zeek::PLUGIN_API_VERSION``.
+
+- The ``misc/scan.zeek`` script has been marked for removal in Zeek 6.1.  Use
+  github.com/ncsa/bro-simple-scan instead.
 
 - The Supervisor framework's ``NodeConfig$scripts` field has been deprecated and
   marked for removal in Zeek 6.1. Use ``NodeConfig$addl_user_scripts`` instead.

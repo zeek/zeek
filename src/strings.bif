@@ -151,7 +151,6 @@ function join_string_set%(ss: string_set, sep: string%): string
 		return val_mgr->EmptyString();
 		}
 
-	// Not sure we need to protect from this
 	const auto& it = ss->GetType()->AsTableType()->GetIndexTypes();
 	if ( it.size() != 1  || it[0]->Tag() != TYPE_STRING )
 		{

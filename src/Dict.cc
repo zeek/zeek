@@ -2,19 +2,8 @@
 
 #include "zeek/Dict.h"
 
-#include "zeek/zeek-config.h"
-
-#ifdef HAVE_MEMORY_H
-#include <memory.h>
-#endif
-#include <algorithm>
-#include <climits>
-#include <csignal>
-#include <fstream>
-
 #include "zeek/3rdparty/doctest.h"
-#include "zeek/Reporter.h"
-#include "zeek/util.h"
+#include "zeek/Hash.h"
 
 namespace zeek
 	{

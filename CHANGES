@@ -1,3 +1,21 @@
+5.2.0-dev.6 | 2022-09-20 13:04:41 -0700
+
+  * Dict: Mark iterator move operator/constructors as noexcept (Tim Wojtulewicz, Corelight)
+
+  * Remove unused headers from Dict.cc (Tim Wojtulewicz, Corelight)
+
+  * Dict: Reduce some math required in repeatedly-called functions (Tim Wojtulewicz)
+
+  * Dict: use std::log2, remove custom Log2 method (Tim Wojtulewicz)
+
+  * Fix some typos in the 5.1.0 NEWS (Tim Wojtulewicz, Corelight)
+
+  * Start of 5.2.0 development (Tim Wojtulewicz, Corelight)
+
+  * Replace all the Warning() calls after IsFieldDeprecated() over to Warn() (AmazingPP)
+
+  * Fix deprecation not flagged and incorrect line number in record (AmazingPP)
+
 5.1.0-dev.535 | 2022-09-19 13:51:11 -0700
 
   * updates to notes for compile-to-C++ maintenance (Vern Paxson, Corelight)

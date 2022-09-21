@@ -987,25 +987,23 @@ std::optional<SupervisedNode> Stem::Poll()
 	const auto total_fd_count = fixed_fd_count + (nodes.size() * 2);
 	auto pfds = std::make_unique<pollfd[]>(total_fd_count);
 	int pfd_idx = 0;
-	pfds[pfd_idx++] = {pipe->InFD(), POLLIN, 0};
-	pfds[pfd_idx++] = {signal_flare->FD(), POLLIN, 0};
+	pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(pipe->InFD()), POLLIN, 0};
+	pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(signal_flare->FD()), POLLIN, 0};
 
-#if !defined(_MSC_VER)
 	for ( const auto& [name, node] : nodes )
 		{
 		node_pollfd_indices[name] = pfd_idx;
 
 		if ( node.stdout_pipe.pipe )
-			pfds[pfd_idx++] = {node.stdout_pipe.pipe->ReadFD(), POLLIN, 0};
+			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(node.stdout_pipe.pipe->ReadFD()), POLLIN, 0};
 		else
-			pfds[pfd_idx++] = {-1, POLLIN, 0};
+			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(-1), POLLIN, 0};
 
 		if ( node.stderr_pipe.pipe )
-			pfds[pfd_idx++] = {node.stderr_pipe.pipe->ReadFD(), POLLIN, 0};
+			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(node.stderr_pipe.pipe->ReadFD()), POLLIN, 0};
 		else
-			pfds[pfd_idx++] = {-1, POLLIN, 0};
+			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(-1), POLLIN, 0};
 		}
-#endif
 
 	// Note: the poll timeout here is for periodically checking if the parent
 	// process died (see below).

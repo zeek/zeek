@@ -1124,15 +1124,19 @@ public:
 		AddedField(field);
 		}
 
-	void Assign(int field, int new_val)
+	// For int types, we provide both [u]int32_t and [u]int64_t  versions
+	// for convenience, since sometimes the caller has one rather
+	// than the other.
+	void Assign(int field, int32_t new_val)
 		{
 		(*record_val)[field] = ZVal(zeek_int_t(new_val));
 		AddedField(field);
 		}
-
-	// For unsigned, we provide both uint32_t and uint64_t versions
-	// for convenience, since sometimes the caller has one rather
-	// than the other.
+	void Assign(int field, int64_t new_val)
+		{
+		(*record_val)[field] = ZVal(zeek_int_t(new_val));
+		AddedField(field);
+		}
 	void Assign(int field, uint32_t new_val)
 		{
 		(*record_val)[field] = ZVal(zeek_uint_t(new_val));

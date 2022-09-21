@@ -52,14 +52,19 @@ sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
   greedy: true
 
 ci_template: &CI_TEMPLATE
+  # Rules for skipping builds:
+  # - Don't do darwin builds on zeek-security repo because they use up a ton of compute credits.
+  # - Always build PRs, but not if they come from dependabot
+  # - Always build master and release/* builds from the main repo
   only_if: >
-    ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
+    ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
+    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( $CIRRUS_REPO_NAME == 'zeek' &&
       (
       $CIRRUS_BRANCH == 'master' ||
       $CIRRUS_BRANCH =~ 'release/.*'
       )
-    )
+    ) )
 
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.

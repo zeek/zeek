@@ -88,7 +88,7 @@ public:
 protected:
 	size_t ComputeMaxSize(ZVal* zframe, int slot) override;
 
-	const char* text;
+	const char* text = nullptr;
 	size_t n = 0;
 	};
 

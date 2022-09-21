@@ -127,6 +127,64 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 	return zeek::make_intrusive<zeek::StringVal>(s);
 	%}
 
+## Joins all values in the given set of strings with a separator placed
+## between each element.
+##
+## ss: The :zeek:type:`string_set` (``set[string]``).
+##
+## sep: The separator to place between each element.
+##
+## Returns: The concatenation of all elements in *s*, with *sep* placed
+##          between each element.
+##
+## .. zeek:see:: cat cat_sep string_cat
+##              fmt
+##              join_string_vec
+function join_string_set%(ss: string_set, sep: string%): string
+	%{
+	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
+	if ( ! ss->GetType()->IsSet () )
+		{
+		zeek::emit_builtin_error("join_string_set() requires a string set argument");
+		return val_mgr->EmptyString();
+		}
+
+	const auto& it = ss->GetType()->AsTableType()->GetIndexTypes();
+	if ( it.size() != 1  || it[0]->Tag() != TYPE_STRING )
+		{
+		zeek::emit_builtin_error("join_string_set() requires a string set argument");
+		return val_mgr->EmptyString();
+		}
+
+	int i = 0;
+	TableVal* tv = ss->AsTableVal();
+	const PDict<TableEntryVal>* loop_vals = tv->AsTable();
+
+	if ( ! loop_vals->Length() )
+		return val_mgr->EmptyString();
+
+	for ( const auto& iter : *loop_vals )
+		{
+		if ( i > 0 )
+			d.AddN(reinterpret_cast<const char*>(sep->Bytes()), sep->Len());
+
+		// Not sure this is fast - I guess we don't have access to the
+		// values used for the keys directly anymore.
+		auto k = iter.GetHashKey();
+		auto ind_lv = tv->RecreateIndex(*k);
+		ind_lv->Describe(&d);
+
+		++i;
+		}
+
+	zeek::String* str = new zeek::String(1, d.TakeBytes(), d.Len());
+	str->SetUseFreeToDelete(true);
+
+	return zeek::make_intrusive<zeek::StringVal>(str);
+	%}
+
 ## Returns an edited version of a string that applies a special
 ## "backspace character" (usually ``\x08`` for backspace or ``\x7f`` for DEL).
 ## For example, ``edit("hello there", "e")`` returns ``"llo t"``.

@@ -6,6 +6,7 @@
 ##! the destination port being the ICMP message code.
 
 @load base/utils/site
+@load base/utils/strings
 
 module Conn;
 
@@ -223,18 +224,6 @@ function conn_state(c: connection, trans: transport_proto): string
 		return "OTH";
 	}
 
-function determine_service(c: connection): string
-	{
-	local service = "";
-	for ( s in c$service )
-		{
-		if ( sub_bytes(s, 0, 1) != "-" )
-			service = service == "" ? s : cat(service, ",", s);
-		}
-
-	return to_lower(service);
-	}
-
 ## Fill out the c$conn record for logging
 function set_conn(c: connection, eoc: bool)
 	{
@@ -274,9 +263,10 @@ function set_conn(c: connection, eoc: bool)
 			c$conn$resp_pkts = c$resp$num_pkts;
 			c$conn$resp_ip_bytes = c$resp$num_bytes_ip;
 			}
-		local service = determine_service(c);
-		if ( service != "" )
-			c$conn$service=service;
+
+		if ( |c$service| > 0 )
+			c$conn$service=to_lower(join_string_set(c$service, ","));
+
 		c$conn$conn_state=conn_state(c, get_port_transport_proto(c$id$resp_p));
 
 		if ( c$history != "" )

@@ -16,9 +16,6 @@ test_binary_string("\xFF\xFF\xFF\x00");
 test_binary_string("\x00\x00\xFF\x00");
 test_binary_string("\x00\x00\x00\x00");
 
-print join_string_set(set("one", "two", "three"), ", ");
-print join_string_set(set("one"), ", ");
-
 print string_escape("hello world", "od");
 print string_escape("\\hello world\\", "");
 

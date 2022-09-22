@@ -9,6 +9,6 @@
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
 XXXXXXXXXX.XXXXXX	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:4f8:4:7:2e0:81ff:fe52:9a6b	0	bad_ipv6_dest_opt_len	-	F	zeek	-
 XXXXXXXXXX.XXXXXX	-	2001:78:1:32::1	0	2001:4f8:4:7:2e0:81ff:fe52:9a6b	0	multiple_home_addr_opts	-	F	zeek	-
-XXXXXXXXXX.XXXXXX	-	2001:78:1:32::1	0	2001:4f8:4:7:2e0:81ff:fe52:9a6b	0	invalid_IP_header_size	-	F	zeek	IP
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	invalid_IP_header_size	-	F	zeek	IP
 XXXXXXXXXX.XXXXXX	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:4f8:4:7:2e0:81ff:fe52:9a6b	0	bad_home_addr_len	-	F	zeek	-
 #close XXXX-XX-XX-XX-XX-XX

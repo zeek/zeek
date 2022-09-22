@@ -27,7 +27,7 @@ XXXXXXXXXX.XXXXXX	-	-	-	-	-	truncated_IP	-	F	zeek	IP
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	-	2001:4f8:4:7:2e0:81ff:fe52:ffff	0	2001:4f8:4:7:2e0:81ff:fe52:9a6b	0	truncated_IPv6	-	F	zeek	IP
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	truncated_IPv6	-	F	zeek	IP
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -58,7 +58,7 @@ XXXXXXXXXX.XXXXXX	-	-	-	-	-	truncated_ethernet_frame	-	F	zeek	ETHERNET
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	-	163.253.48.183	0	192.150.187.43	0	invalid_IP_header_size	-	F	zeek	IP
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	invalid_IP_header_size	-	F	zeek	IP
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -68,7 +68,7 @@ XXXXXXXXXX.XXXXXX	-	163.253.48.183	0	192.150.187.43	0	invalid_IP_header_size	-	F
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	-	163.253.48.183	0	192.150.187.43	0	internally_truncated_header	-	F	zeek	IP
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	internally_truncated_header	-	F	zeek	IP
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,
@@ -78,5 +78,5 @@ XXXXXXXXXX.XXXXXX	-	163.253.48.183	0	192.150.187.43	0	internally_truncated_heade
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	-	0.255.0.255	0	15.254.2.1	0	invalid_IP_header_size_in_tunnel	-	F	zeek	IP
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	invalid_IP_header_size_in_tunnel	-	F	zeek	IP
 #close XXXX-XX-XX-XX-XX-XX

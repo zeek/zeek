@@ -43,6 +43,13 @@ export {
 	## Returns: True if the analyzer was successfully disabled.
 	global disable_analyzer: function(tag: AllAnalyzers::Tag) : bool;
 
+	## Checks whether a protocol analyzer is generally enabled.
+	##
+	## tag: The tag of the analyzer to check.
+	##
+	## Returns: True if the analyzer is enabled, else false.
+	global analyzer_enabled: function(tag: Analyzer::Tag) : bool;
+
 	## Registers a set of well-known ports for an analyzer. If a future
 	## connection on one of these ports is seen, the analyzer will be
 	## automatically assigned to parsing it. The function *adds* to all ports
@@ -174,6 +181,11 @@ function disable_analyzer(tag: AllAnalyzers::Tag) : bool
 		return Files::__disable_analyzer(tag);
 
 	return __disable_analyzer(tag);
+	}
+
+function analyzer_enabled(tag: Analyzer::Tag) : bool
+	{
+	return __analyzer_enabled(tag);
 	}
 
 function register_for_ports(tag: Analyzer::Tag, ports: set[port]) : bool

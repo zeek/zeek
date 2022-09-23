@@ -19,6 +19,12 @@ function Analyzer::__disable_analyzer%(id: Analyzer::Tag%) : bool
 	return zeek::val_mgr->Bool(result);
 	%}
 
+function Analyzer::__analyzer_enabled%(id: Analyzer::Tag%) : bool
+	%{
+	auto c = zeek::analyzer_mgr->Lookup(id->AsEnumVal());
+	return zeek::val_mgr->Bool(c && c->Enabled());
+	%}
+
 function Analyzer::__disable_all_analyzers%(%) : any
 	%{
 	zeek::analyzer_mgr->DisableAllAnalyzers();

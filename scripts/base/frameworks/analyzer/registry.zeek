@@ -85,7 +85,7 @@ export {
 	global disable_analyzer_log: function(atype: AllAnalyzers::Tag, id: Log::ID);
 
 	## Disable a log, possibly also disabling involved event handlers
-	## if any were registered with the registry.
+	## if any were eegistered with the registry.
 	global disable_log: function(id: Log::ID);
 
 	const non_analyzer_log_streams: set[Log::ID] = { } &redef;

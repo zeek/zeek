@@ -377,6 +377,8 @@ TypePtr CPP_TypeInits::BuildTypeList(InitsManager* im, ValElemVec& init_vals, in
 	while ( iv_it != iv_end )
 		tl->Append(im->Types(*(iv_it++)));
 
+	tl->CheckPure();
+
 	return tl;
 	}
 

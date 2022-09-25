@@ -327,8 +327,8 @@ definitions:	definitions definition opt_ws
 			}
 	|	opt_ws
 			{
-			fprintf(fp_zeek_init, "%s", $1);
 			fprintf(fp_zeek_init, "export {\n");
+			fprintf(fp_zeek_init, "%s", $1);
 			}
 	;
 

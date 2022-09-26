@@ -20,6 +20,13 @@ New Functionality
 - File analyzers can now raise analyzer violations to the script-layer via
   the new AnalyzerViolation() method.
 
+Changed Functionality
+---------------------
+
+- Violations for packet analyzers that have sessions attached with them
+  will be raised once only. Further, analyzer confirmations are not raised
+  after a violation.
+
 Deprecated Functionality
 ------------------------
 

@@ -189,6 +189,10 @@ void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag
 	if ( session->AnalyzerState(effective_tag) == session::AnalyzerConfirmationState::CONFIRMED )
 		return;
 
+	// If this session violated previously, we don't allow through a confirmation.
+	if ( session->AnalyzerState(effective_tag) == session::AnalyzerConfirmationState::VIOLATED )
+		return;
+
 	session->SetAnalyzerState(effective_tag, session::AnalyzerConfirmationState::CONFIRMED);
 
 	if ( analyzer_confirmation_info )
@@ -237,6 +241,9 @@ void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, 
                                  int len, zeek::Tag arg_tag)
 	{
 	const auto& effective_tag = arg_tag ? arg_tag : GetAnalyzerTag();
+
+	if ( session->AnalyzerState(effective_tag) == session::AnalyzerConfirmationState::VIOLATED )
+		return;
 
 	session->SetAnalyzerState(effective_tag, session::AnalyzerConfirmationState::VIOLATED);
 

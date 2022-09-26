@@ -25,13 +25,15 @@ If everything built and installed correctly, you should see this::
     Zeek::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 3.2.0)
     [Packet Source] AF_PacketReader (interface prefix "af_packet"; supports live input)
     [Type] AF_Packet::FanoutMode
+    [Type] AF_Packet::ChecksumMode
     [Constant] AF_Packet::buffer_size
     [Constant] AF_Packet::enable_hw_timestamping
-    [Constant] AF_Packet::enable_fanout
     [Constant] AF_Packet::enable_defrag
+    [Constant] AF_Packet::enable_fanout
     [Constant] AF_Packet::fanout_mode
     [Constant] AF_Packet::fanout_id
     [Constant] AF_Packet::link_type
+    [Constant] AF_Packet::checksum_validation_mode
 
 ## Upgrade from Bro to Zeek
 

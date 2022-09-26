@@ -37,21 +37,13 @@ If everything built and installed correctly, you should see this::
     [Constant] AF_Packet::link_type
     [Constant] AF_Packet::checksum_validation_mode
 
-## Upgrade from Bro to Zeek
-
-In the context of the transition from Bro to Zeek, the plugin has been renamed. To upgrade from the Bro-version of the plugin, just remove the old version and then install the renamed one. Using the package manager the following will uninstall the old version of the plugin:
-
-    # zkg remove bro-af_packet-plugin
-
-For manually installed plugins, remove the corresponding plugin directory:
-
-    # rm -rf <path_to_zeek>/lib/bro/plugins/Bro_AF_Packet/
-
 ## Usage
 
 Once installed, you can use AF_Packet interfaces/ports by prefixing them with `af_packet::` on the command line. For example, to use AF_Packet to monitor interface `eth0`:
 
     # zeek -i af_packet::eth0
+
+### Permissions
 
 To use AF_Packet, running Zeek without root privileges, the Zeek processes need the CAP_NET_RAW capability. You can set it with the following command (on each sensor, after `zeekctl install`):
 
@@ -59,7 +51,18 @@ To use AF_Packet, running Zeek without root privileges, the Zeek processes need 
 
 The AF_Packet plugin automatically enables promiscuous mode on the interfaces. As the plugin is using PACKET_ADD_MEMBERSHIP to enter the promiscuous mode without interfering others, the PROMISC flag is not touched. To verify that the interface entered promiscuous mode you can use `dmesg`.
 
-To adapt the plugin to your needs, you can set a couple of parameters like buffer size. See [init.zeek](scripts/init.zeek) for the default values.
+### Offloading
+
+Remember to disable any offloading features provided by the Network Interface Card (NIC) or Linux networking stack that interfere with Zeek. In general, Zeek expects to see network packets as they arrive on the wire. See this [blog post](https://blog.securityonion.net/2011/10/when-is-full-packet-capture-not-full.html) for more background. Toggling offloading features can be done with the `ethtool -K` command, for example:
+
+    # IFACE=eth0
+    # for offload in rx tx sg tso ufo gso gro lro; do
+    #   ethtool -K $IFACE $offload off
+    # done
+
+For more details around the involved offloads consult the [ethtool manpage](https://man7.org/linux/man-pages/man8/ethtool.8.html). In addition, `ethtool -S` can be used to gather statistics at the interface level.
+
+While all offloading should usually be disabled, the plugin supports to outsource certain tasks like checksum validation. See the [configuration section](#advanced-configuration) for further information.
 
 ## Usage with `zeekctl`
 
@@ -68,11 +71,11 @@ To use the AF_Packet plugin with `zeekctl`, the `custom` load balance method can
     [manager]
     type=manager
     host=localhost
-
+     
     [proxy-1]
     type=proxy
     host=localhost
-
+     
     [worker-1]
     type=worker
     host=localhost
@@ -89,9 +92,33 @@ If all interfaces using `lb_method=custom` should be configured for AF_Packet, t
 
     lb_custom.InterfacePrefix=af_packet::
 
+## Advanced Configuration
+
+While the plugin aims at providing a "plug and play" user experience, it exposes several configuration options of the underlying API for customization (see [init.zeek](scripts/init.zeek) for the default values):
+
+* `buffer_size`: Set the overall buffer size allocated per socket. As the buffer is divided into blocks, this should be a multiple of the block size.
+* `block_size`: Set the size of a block in the buffer. Instead of ingesting packet by packet into the application, packets are aggregated in blocks to improve performance. The block size **must** be a multiple of the system's page size (see `getconf PAGE_SIZE`).
+* `block_timeout`: Set the timeout in milliseconds for passing a block to the application. This can be useful to reduce latency on less busy links.
+* `enable_hw_timestamping`: Enable support for hardware timestamping. Please note that this is an experimental feature.
+* `enable_defrag`: Enable defragmentation of IP packets before packets are load-balanced. This can be useful to prevent different fragments from being sent to different workers.
+* `enable_fanout`: Enable packet fanout for load-balancing across multiple workers. The load-balancing strategy is determined by the fanout mode.
+* `fanout_mode`: Set the load-balancing strategy. See [af_packet.bif](src/af_packet.bif) for the supported fanout modes.
+* `fanout_id`: Set the fanout ID that identifies a load-balancing group. When monitoring multiple interfaces, a separate ID has to be configured for each interface.
+* `link_type`: Set the link layer protocol.
+* `checksum_validation_mode`: Set how checksums are calculated and verified. See [af_packet.bif](src/af_packet.bif) for the supported validation modes.
+
+> **Note**:
+> Setting `checksum_validation_mode` will not have any effect when used with Zeek prior version 5.1.
+
+For further details on the above configuration options see the [kernel documentation](https://docs.kernel.org/networking/packet_mmap.html). Actual performance tuning is rather an art. For in-depth guidance, see the following resources, which can be transferred to Zeek:
+* [Suricata Extreme Performance Tuning guide](https://github.com/pevma/SEPTun)
+* [Suricata Extreme Performance Tuning guide - Mark II](https://github.com/pevma/SEPTun-Mark-II)
+
 ## Limitations
 
 * __VLAN tagging is now supported.__ Even using AF_Packet's ``ETH_P_ALL``, the kernel removes VLAN tags from packets.
   ~~While the tags are provided spereately, there is no efficient way to pass them to Zeek.~~ Applying knowledge about the internal data structures used by Zeek, the plugin now forwards VLAN tag control information to Zeek. Both IEEE 802.1Q and IEEE 802.1ad (QinQ) will be handled as expected.
+* Zeek workers crashing or restarting can, for a short period of time, disturb load balancing due to their packet
+  sockets being removed and later rejoining the fanout group. This may be visible in Zeek logs as gaps and/or duplicated connection entries produced by different Zeek workers.
 
-[^1]: Note that some kernel versions between 3.10 and 4.7 might exhibit a bug that prevents the required symmetric hashing. The script available at https://github.com/JustinAzoff/can-i-use-afpacket-fanout can be used to verify whether PACKET_FANOUT works as expected.
+[^1]: Note that some kernel versions between 3.10 and 4.7 might exhibit a bug that prevents the required symmetric hashing. The script available at https://github.com/JustinAzoff/can-i-use-afpacket-fanout can be used to verify whether PACKET_FANOUT works as expected. This issue should have been fixed in all stable kernels by now.

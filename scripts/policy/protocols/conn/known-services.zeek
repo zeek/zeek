@@ -293,9 +293,10 @@ function known_services_done(c: connection)
 		event service_info_commit(info);
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=-5
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=-5
 	{
-	known_services_done(c);
+	if ( info?$c )
+		known_services_done(info$c);
 	}
 
 # Handle the connection ending in case no protocol was ever detected.

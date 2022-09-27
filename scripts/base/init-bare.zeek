@@ -2268,6 +2268,51 @@ const RPC_status = {
 	[RPC_UNKNOWN_ERROR] = "unknown"
 };
 
+## Generic analyzer confirmation info record.
+##
+## .. zeek:see:: analyzer_confirmation_info
+type AnalyzerConfirmationInfo: record {
+	## The connection related to this confirmation, if any.
+	## This field may be set if there's any connection related information
+	## available for this confirmation. For protocol analyzers it is guaranteed
+	## to be set, but may also be added by file analyzers as additional
+	## contextual information.
+	c: connection &optional;
+
+	## The file object related to this confirmation, if any.
+	f: fa_file &optional;
+
+	## Specific analyzer instance that can be used to reference the analyzer
+	## when using builtin functions like :zeek:id:`disable_analyzer`.
+	aid: count &optional;
+};
+
+## Generic analyzer violation info record.
+##
+## .. zeek:see:: analyzer_violation_info
+type AnalyzerViolationInfo: record {
+	## The reason for the violation - should be user readable.
+	reason: string;
+
+	## The connection related to this violation, if any.
+	## This field may be set if there's any connection related information
+	## available for this violation. For protocol analyzers it is guaranteed
+	## to be set, but may also be added by file analyzers as additional
+	## contextual information.
+	c: connection &optional;
+
+	## The file object related to this violation, if any.
+	f: fa_file &optional;
+
+	## Specific analyzer instance that can be used to reference the analyzer
+	## when using builtin functions like :zeek:id:`disable_analyzer`.
+	aid: count &optional;
+
+	## Piece of binary data that was parsed and caused the violation.
+	data: string &optional;
+};
+
+
 module NFS3;
 
 export {

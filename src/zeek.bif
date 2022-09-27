@@ -5542,3 +5542,36 @@ function compress_path%(dir: string%): string
 	%{
 	return zeek::make_intrusive<zeek::StringVal>(zeek::util::detail::normalize_path(dir->ToStdString()));
 	%}
+
+## Returns true if the given tag belongs to a protocol analyzer.
+##
+## atype: The analyzer tag to check.
+##
+## Returns: true if *atype* is a tag of a protocol analyzer, else false.
+function is_protocol_analyzer%(atype: AllAnalyzers::Tag%) : bool
+	%{
+	auto val = atype->AsEnumVal();
+	return val_mgr->Bool(zeek::analyzer_mgr->Lookup(val) != nullptr);
+	%}
+
+## Returns true if the given tag belongs to a file analyzer.
+##
+## atype: The analyzer tag to check.
+##
+## Returns: true if *atype* is a tag of a file analyzer, else false.
+function is_file_analyzer%(atype: AllAnalyzers::Tag%) : bool
+	%{
+	auto val = atype->AsEnumVal();
+	return val_mgr->Bool(zeek::file_mgr->Lookup(val) != nullptr);
+	%}
+
+## Returns true if the given tag belongs to a packet analyzer.
+##
+## atype: The analyzer type to check.
+##
+## Returns: true if *atype* is a tag of a packet analyzer, else false.
+function is_packet_analyzer%(atype: AllAnalyzers::Tag%) : bool
+	%{
+	auto val = atype->AsEnumVal();
+	return val_mgr->Bool(zeek::packet_mgr->Lookup(val) != nullptr);
+	%}

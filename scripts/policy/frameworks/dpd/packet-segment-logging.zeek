@@ -18,10 +18,13 @@ export {
 }
 
 
-event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
-                         reason: string) &priority=4
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=4
 	{
-	if ( ! c?$dpd ) return;
+	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+		return;
 
-	c$dpd$packet_segment=fmt("%s", sub_bytes(get_current_packet()$data, 0, packet_segment_size));
+	if ( ! info?$c || ! info$c?$dpd )
+		return;
+
+	info$c$dpd$packet_segment = fmt("%s", sub_bytes(get_current_packet()$data, 0, packet_segment_size));
 	}

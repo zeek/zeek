@@ -678,6 +678,24 @@ void Analyzer::FlipRoles()
 	resp_supporters = tmp;
 	}
 
+void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag)
+	{
+	static auto info_type = zeek::id::find_type<RecordType>("AnalyzerConfirmationInfo");
+	static auto info_c_idx = info_type->FieldOffset("c");
+	static auto info_aid_idx = info_type->FieldOffset("aid");
+
+	auto info = make_intrusive<RecordVal>(info_type);
+	info->Assign(info_c_idx, ConnVal());
+	info->Assign(info_aid_idx, val_mgr->Count(id));
+
+	event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
+	}
+
+void Analyzer::EnqueueAnalyzerConfirmation(const zeek::Tag& arg_tag)
+	{
+	event_mgr.Enqueue(analyzer_confirmation, ConnVal(), arg_tag.AsVal(), val_mgr->Count(id));
+	}
+
 void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
 	{
 	if ( analyzer_confirmed )
@@ -685,18 +703,37 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
 
 	analyzer_confirmed = true;
 
-	if ( ! analyzer_confirmation )
-		return;
+	const auto& effective_tag = arg_tag ? arg_tag : tag;
 
-	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-	event_mgr.Enqueue(analyzer_confirmation, ConnVal(), tval, val_mgr->Count(id));
+	if ( analyzer_confirmation_info )
+		EnqueueAnalyzerConfirmationInfo(effective_tag);
+
+	if ( analyzer_confirmation )
+		EnqueueAnalyzerConfirmation(effective_tag);
 	}
 
-void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, zeek::Tag arg_tag)
+void Analyzer::EnqueueAnalyzerViolationInfo(const char* reason, const char* data, int len,
+                                            const zeek::Tag& arg_tag)
 	{
-	if ( ! analyzer_violation )
-		return;
+	static auto info_type = zeek::id::find_type<RecordType>("AnalyzerViolationInfo");
+	static auto info_reason_idx = info_type->FieldOffset("reason");
+	static auto info_c_idx = info_type->FieldOffset("c");
+	static auto info_aid_idx = info_type->FieldOffset("aid");
+	static auto info_data_idx = info_type->FieldOffset("data");
 
+	auto info = zeek::make_intrusive<RecordVal>(info_type);
+	info->Assign(info_reason_idx, make_intrusive<StringVal>(reason));
+	info->Assign(info_c_idx, ConnVal());
+	info->Assign(info_aid_idx, val_mgr->Count(id));
+	if ( data && len )
+		info->Assign(info_data_idx, make_intrusive<StringVal>(len, data));
+
+	event_mgr.Enqueue(analyzer_violation_info, arg_tag.AsVal(), info);
+	}
+
+void Analyzer::EnqueueAnalyzerViolation(const char* reason, const char* data, int len,
+                                        const zeek::Tag& arg_tag)
+	{
 	StringValPtr r;
 
 	if ( data && len )
@@ -709,8 +746,19 @@ void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, 
 	else
 		r = make_intrusive<StringVal>(reason);
 
-	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-	event_mgr.Enqueue(analyzer_violation, ConnVal(), tval, val_mgr->Count(id), std::move(r));
+	event_mgr.Enqueue(analyzer_violation, ConnVal(), arg_tag.AsVal(), val_mgr->Count(id),
+	                  std::move(r));
+	}
+
+void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, zeek::Tag arg_tag)
+	{
+	const auto& effective_tag = arg_tag ? arg_tag : tag;
+
+	if ( analyzer_violation_info )
+		EnqueueAnalyzerViolationInfo(reason, data, len, effective_tag);
+
+	if ( analyzer_violation )
+		EnqueueAnalyzerViolation(reason, data, len, effective_tag);
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t, bool do_expire,

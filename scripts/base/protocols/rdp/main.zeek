@@ -265,20 +265,20 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		}
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=5
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5
 	{
 	if ( atype == Analyzer::ANALYZER_RDP )
 		{
-		set_session(c);
-		c$rdp$analyzer_id = aid;
+		set_session(info$c);
+		info$c$rdp$analyzer_id = info$aid;
 		}
 	}
 
-event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string) &priority=5
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5
 	{
 	# If a protocol violation occurs, then log the record immediately.
-	if ( c?$rdp )
-		write_log(c);
+	if ( atype == Analyzer::ANALYZER_RDP && info$c?$rdp )
+		write_log(info$c);
 	}
 
 hook finalize_rdp(c: connection)

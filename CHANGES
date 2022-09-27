@@ -1,3 +1,8 @@
+5.2.0-dev.19 | 2022-09-27 13:32:20 +0200
+
+  * GH-2422: cmake: Exclude empty directories due to headers install
+    (Arne Welzel, Corelight)
+
 5.2.0-dev.17 | 2022-09-27 13:30:27 +0200
 
   * packet_analysis: Do not raise analyzer_confirmation per-packet for

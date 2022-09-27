@@ -584,6 +584,12 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         PATTERN "3rdparty/*" EXCLUDE
         # The "zeek -> ." symlink isn't needed in the install-tree
         REGEX "^${escaped_path}$" EXCLUDE
+
+	# FILES_MATCHING creates empty directories:
+	# https://gitlab.kitware.com/cmake/cmake/-/issues/17122
+	# Exclude the ones that this affects explicitly.
+	PATTERN "script_opt/CPP/maint" EXCLUDE
+	PATTERN "fuzzers/corpora" EXCLUDE
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/

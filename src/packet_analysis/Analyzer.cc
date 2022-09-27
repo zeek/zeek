@@ -169,25 +169,29 @@ void Analyzer::Weird(const char* name, Packet* packet, const char* addl) const
 
 void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag)
 	{
-	if ( session->AnalyzerState(arg_tag) == session::AnalyzerConfirmationState::CONFIRMED )
+	const auto& effective_tag = arg_tag ? arg_tag : GetAnalyzerTag();
+
+	if ( session->AnalyzerState(effective_tag) == session::AnalyzerConfirmationState::CONFIRMED )
 		return;
 
-	session->SetAnalyzerState(GetAnalyzerTag(), session::AnalyzerConfirmationState::CONFIRMED);
+	session->SetAnalyzerState(effective_tag, session::AnalyzerConfirmationState::CONFIRMED);
 
 	if ( ! analyzer_confirmation )
 		return;
 
-	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-	event_mgr.Enqueue(analyzer_confirmation, session->GetVal(), tval, val_mgr->Count(0));
+	event_mgr.Enqueue(analyzer_confirmation, session->GetVal(), effective_tag.AsVal(),
+	                  val_mgr->Count(0));
 	}
 
 void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, const char* data,
                                  int len, zeek::Tag arg_tag)
 	{
+	const auto& effective_tag = arg_tag ? arg_tag : GetAnalyzerTag();
+
+	session->SetAnalyzerState(effective_tag, session::AnalyzerConfirmationState::VIOLATED);
+
 	if ( ! analyzer_violation )
 		return;
-
-	session->SetAnalyzerState(GetAnalyzerTag(), session::AnalyzerConfirmationState::VIOLATED);
 
 	StringValPtr r;
 
@@ -201,8 +205,8 @@ void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, 
 	else
 		r = make_intrusive<StringVal>(reason);
 
-	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
-	event_mgr.Enqueue(analyzer_violation, session->GetVal(), tval, val_mgr->Count(0), std::move(r));
+	event_mgr.Enqueue(analyzer_violation, session->GetVal(), effective_tag.AsVal(),
+	                  val_mgr->Count(0), std::move(r));
 	}
 
 	} // namespace zeek::packet_analysis

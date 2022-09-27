@@ -1,3 +1,8 @@
+5.2.0-dev.17 | 2022-09-27 13:30:27 +0200
+
+  * packet_analysis: Do not raise analyzer_confirmation per-packet for
+    tunnels (Arne Welzel, Corelight)
+
 5.2.0-dev.15 | 2022-09-23 13:33:16 -0700
 
   * Skip darwin builds on zeek-security repo (Tim Wojtulewicz, Corelight)

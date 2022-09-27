@@ -186,6 +186,9 @@ void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag
 	{
 	const auto& effective_tag = arg_tag ? arg_tag : GetAnalyzerTag();
 
+	if ( ! session )
+		return;
+
 	if ( session->AnalyzerState(effective_tag) == session::AnalyzerConfirmationState::CONFIRMED )
 		return;
 
@@ -241,6 +244,9 @@ void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, 
                                  int len, zeek::Tag arg_tag)
 	{
 	const auto& effective_tag = arg_tag ? arg_tag : GetAnalyzerTag();
+
+	if ( ! session )
+		return;
 
 	if ( session->AnalyzerState(effective_tag) == session::AnalyzerConfirmationState::VIOLATED )
 		return;

@@ -136,6 +136,7 @@ export {
 		["FIN_advanced_last_seq"]               = ACTION_LOG,
 		["FIN_after_reset"]                     = ACTION_IGNORE,
 		["FIN_storm"]                           = ACTION_NOTICE_PER_ORIG,
+		["FTP_too_many_pending_commands"]       = ACTION_LOG_PER_CONN,
 		["HTTP_bad_chunk_size"]                 = ACTION_LOG,
 		["HTTP_chunked_transfer_for_multipart_message"] = ACTION_LOG,
 		["HTTP_overlapping_messages"]           = ACTION_LOG,

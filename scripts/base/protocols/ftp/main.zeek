@@ -10,6 +10,7 @@
 @load base/utils/numbers
 @load base/utils/addrs
 @load base/frameworks/cluster
+@load base/frameworks/notice/weird
 @load base/protocols/conn/removal-hooks
 
 module FTP;
@@ -51,6 +52,11 @@ export {
 	## FTP data finalization hook.  Expected FTP data channel state may
 	## get purged when called.
 	global finalize_ftp_data: hook(c: connection);
+
+	## Allow a client to send this many commands before the server
+	## sends a reply. If this value is exceeded a weird named
+	## FTP_too_many_pending_commands is logged for the connection.
+	option max_pending_commands = 20;
 }
 
 # Add the state tracking information variable to the connection record
@@ -229,7 +235,11 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 	set_ftp_session(c);
 
 	# Queue up the new command and argument
-	add_pending_cmd(c$ftp$pending_commands, command, arg);
+	if ( |c$ftp$pending_commands| < max_pending_commands )
+		add_pending_cmd(c$ftp$pending_commands, command, arg);
+	else
+		Reporter::conn_weird("FTP_too_many_pending_commands", c,
+				     cat(|c$ftp$pending_commands|), "FTP");
 
 	if ( command == "USER" )
 		c$ftp$user = arg;

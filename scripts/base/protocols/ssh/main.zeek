@@ -355,11 +355,11 @@ event ssh_server_host_key(c: connection, hash: string) &priority=5
 	c$ssh$host_key = hash;
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=20
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=20
 	{
 	if ( atype == Analyzer::ANALYZER_SSH )
 		{
-		set_session(c);
-		c$ssh$analyzer_id = aid;
+		set_session(info$c);
+		info$c$ssh$analyzer_id = info$aid;
 		}
 	}

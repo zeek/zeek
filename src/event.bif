@@ -354,6 +354,36 @@ event rexmit_inconsistency%(c: connection, t1: string, t2: string, tcp_flags: st
 ##    tap.
 event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 
+## Generated when an analyzer confirms successful parsing of a protocol, file, or packets.
+##
+## atype: The type of the analyzer confirming analysis. The value may be associated
+##        with a protocol, file or packet analyzer.
+##
+## info: Details about the confirmation, which may include a :zeek:type:`connection`
+##       object or :zeek:type:`fa_file` object related to the confirmation.
+##
+## .. note::
+##
+##    For packet analyzers, a confirmation is only raised if there's a session
+##    (connection) associated with a given packet. Confirmations are raised only
+##    once per session. Tunnel protocols like VXLAN or Geneve are examples for
+##    this behavior.
+##
+## .. zeek:see:: is_protocol_analyzer is_packet_analyzer is_file_analyzer
+event analyzer_confirmation_info%(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo%);
+
+## Generated for analyzer violations when parsing of a protocol, file, or packet.
+##
+## atype: The type of the analyzer reporting the violation. The value may be associated
+##        with a protocol, file or packet analyzer.
+##
+## info: Details about the violation. This record may include a :zeek:type:`connection`
+##       object or :zeek:type:`fa_file` and optionally the raw data as :zeek:type:`string`
+##       related to this violation.
+##
+## .. zeek:see:: is_protocol_analyzer is_packet_analyzer is_file_analyzer
+event analyzer_violation_info%(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo%);
+
 ## Generated when a protocol analyzer confirms that a connection is indeed
 ## using that protocol. Zeek's dynamic protocol detection heuristically activates
 ## analyzers as soon as it believes a connection *could* be using a particular
@@ -377,7 +407,7 @@ event content_gap%(c: connection, is_orig: bool, seq: count, length: count%);
 ##    Zeek's default scripts use this event to determine the ``service`` column
 ##    of :zeek:type:`Conn::Info`: once confirmed, the protocol will be listed
 ##    there (and thus in ``conn.log``).
-event analyzer_confirmation%(c: connection, atype: AllAnalyzers::Tag, aid: count%);
+event analyzer_confirmation%(c: connection, atype: AllAnalyzers::Tag, aid: count%) &deprecated="Remove in 6.1. Use the generic analyzer_confirmation_info event instead.";
 
 ## Generated if a DPD signature matched but the DPD buffer is already exhausted
 ## and thus the analyzer could not be attached. While this does not confirm
@@ -420,7 +450,7 @@ event protocol_late_match%(c: connection, atype: Analyzer::Tag%);
 ##    :zeek:id:`disable_analyzer` if it's parsing the wrong protocol. That's
 ##    however a script-level decision and not done automatically by the event
 ##    engine.
-event analyzer_violation%(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string%);
+event analyzer_violation%(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string%) &deprecated="Remove in 6.1. Use the generic analyzer_violation_info event instead.";
 
 ## Generated when a TCP connection terminated, passing on statistics about the
 ## two endpoints. This event is always generated when Zeek flushes the internal

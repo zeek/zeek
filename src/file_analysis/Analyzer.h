@@ -133,6 +133,38 @@ public:
 	 */
 	bool Skipping() const { return skip; }
 
+	/**
+	 * Signals to Zeek that the analyzer has recognized the input to indeed
+	 * conform to the expected format. This should be called as early as
+	 * possible during file analysis. It may turn into \c analyzer_confirmation_info
+	 * events at the script-layer (but only once per file , even if the method is
+	 * called multiple times).
+	 *
+	 * If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
+	 */
+	virtual void AnalyzerConfirmation(zeek::Tag tag = zeek::Tag());
+
+	/**
+	 * Signals to Zeek that the analyzer has found a sever violation
+	 * that could indicate it's not parsing the expected file format.
+	 * This turns into \c analyzer_violation_info events at the script-layer
+	 * (one such event is raised for each call to this method so that the
+	 * script-layer can built up a notion of how prevalent violations are; the
+	 * more, the less likely it's the right format).
+	 *
+	 * @param reason A textual description of the error encountered.
+	 *
+	 * @param data An optional pointer to the malformed data.
+	 *
+	 * @param len If \a data is given, the length of it.
+	 *
+	 * @param tag If tag is given, it overrides the analyzer tag passed to the
+	 * scripting layer; the default is the one of the analyzer itself.
+	 */
+	virtual void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0,
+	                               zeek::Tag tag = zeek::Tag());
+
 protected:
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
@@ -161,6 +193,7 @@ private:
 	File* file; /**< The file to which the analyzer is attached. */
 	bool got_stream_delivery;
 	bool skip;
+	bool analyzer_confirmed;
 
 	static ID id_counter;
 	};

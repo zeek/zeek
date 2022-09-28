@@ -6,6 +6,36 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 5.2.0
 ==========
 
+New Functionality
+-----------------
+
+- New ``analyzer_confirmation_info`` and ``analyzer_violation_info``
+  events with accompanying record types ``AnalyzerConfirmationInfo``
+  and ``AnalyzerViolationInfo`` have been added. These supersede
+  ``analyzer_confirmation`` and ``analyzer_violation``, which have
+  been deprecated.
+
+- Added helpers to determine protocol, packet or file analyzer based
+  on ``AllAnalyzers::Tag`` values named ``is_protocol_analyzer()``,
+  ``is_packet_analyzer()`` and ``is_file_analyzer()``.
+
+- File analyzers can now raise analyzer violations to the script-layer via
+  the new ``AnalyzerViolation()`` method.
+
+Changed Functionality
+---------------------
+
+- Violations for packet analyzers that have sessions attached with them
+  will be raised once only. Further, analyzer confirmations are not raised
+  after a violation.
+
+Deprecated Functionality
+------------------------
+
+- The ``analyzer_confirmation`` and ``analyzer_violation`` events have been
+  deprecated in favor of the more generic ``analyzer_confirmation_info`` and
+  ``analyzer_violation_info`` events.
+
 Zeek 5.1.0
 ==========
 

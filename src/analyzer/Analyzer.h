@@ -526,7 +526,7 @@ public:
 	 * Signals Zeek's protocol detection that the analyzer has recognized
 	 * the input to indeed conform to the expected protocol. This should
 	 * be called as early as possible during a connection's life-time. It
-	 * may turn into \c analyzer_confirmed event at the script-layer (but
+	 * may turn into \c analyzer_confirmation_info event at the script-layer (but
 	 * only once per analyzer for each connection, even if the method is
 	 * called multiple times).
 	 *
@@ -539,7 +539,7 @@ public:
 	 * Signals Zeek's protocol detection that the analyzer has found a
 	 * severe protocol violation that could indicate that it's not
 	 * parsing the expected protocol. This turns into \c
-	 * analyzer_violation events at the script-layer (one such event is
+	 * analyzer_violation_info events at the script-layer (one such event is
 	 * raised for each call to this method so that the script-layer can
 	 * built up a notion of how prevalent protocol violations are; the
 	 * more, the less likely it's the right protocol).
@@ -711,6 +711,20 @@ private:
 
 	// Helper for the ctors.
 	void CtorInit(const zeek::Tag& tag, Connection* conn);
+
+	// Internal helper to raise analyzer_confirmation events
+	void EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag);
+
+	// Remove in v6.1 - internal helper to raise analyzer_confirmation
+	void EnqueueAnalyzerConfirmation(const zeek::Tag& arg_tag);
+
+	// Internal helper to raise analyzer_violation_info
+	void EnqueueAnalyzerViolationInfo(const char* reason, const char* data, int len,
+	                                  const zeek::Tag& arg_tag);
+
+	// Remove in v6.1 - internal helper to raise analyzer_violation
+	void EnqueueAnalyzerViolation(const char* reason, const char* data, int len,
+	                              const zeek::Tag& arg_tag);
 
 	zeek::Tag tag;
 	ID id;

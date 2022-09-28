@@ -56,15 +56,28 @@ event zeek_init() &priority=5
 	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd", $policy=log_policy]);
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=10
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=10
 	{
+	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+		return;
+
+	if ( ! info?$c )
+		return;
+
+	local c = info$c;
 	local analyzer = Analyzer::name(atype);
 	add c$service[analyzer];
 	}
 
-event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
-                         reason: string) &priority=10
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=10
 	{
+	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+		return;
+
+	if ( ! info?$c )
+		return;
+
+	local c = info$c;
 	local analyzer = Analyzer::name(atype);
 	# If the service hasn't been confirmed yet, don't generate a log message
 	# for the protocol violation.
@@ -74,21 +87,40 @@ event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
 	delete c$service[analyzer];
 	add c$service_violation[analyzer];
 
-	local info: Info;
-	info$ts=network_time();
-	info$uid=c$uid;
-	info$id=c$id;
-	info$proto=get_port_transport_proto(c$id$orig_p);
-	info$analyzer=analyzer;
-	info$failure_reason=reason;
-	c$dpd = info;
+	local dpd: Info;
+	dpd$ts = network_time();
+	dpd$uid = c$uid;
+	dpd$id = c$id;
+	dpd$proto = get_port_transport_proto(c$id$orig_p);
+	dpd$analyzer = analyzer;
+
+	# Encode data into the reason if there's any as done for the old
+	# analyzer_violation event, previously.
+	local reason = info$reason;
+	if ( info?$data )
+		{
+		local ellipsis = |info$data| > 40 ? "..." : "";
+		local data = info$data[0:40];
+		reason = fmt("%s [%s%s]", reason, data, ellipsis);
+		}
+
+	dpd$failure_reason = reason;
+	c$dpd = dpd;
 	}
 
-event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string) &priority=5
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=5
 	{
+	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+		return;
+
+	if ( ! info?$c || ! info?$aid )
+		return;
+
 	if ( atype in ignore_violations )
 		return;
 
+	local c = info$c;
+	local aid = info$aid;
 	local size = c$orig$size + c$resp$size;
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
@@ -113,12 +145,17 @@ event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, re
 		}
 	}
 
-event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
-			 reason: string) &priority=-5
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=-5
 	{
-	if ( c?$dpd )
+	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+		return;
+
+	if ( ! info?$c )
+		return;
+
+	if ( info$c?$dpd )
 		{
-		Log::write(DPD::LOG, c$dpd);
-		delete c$dpd;
+		Log::write(DPD::LOG, info$c$dpd);
+		delete info$c$dpd;
 		}
 	}

@@ -1,3 +1,40 @@
+5.2.0-dev.25 | 2022-09-28 10:00:40 +0200
+
+  * Introduce generic analyzer_confirmation_info and
+    analyzer_violation_info (Arne Welzel, Corelight)
+
+    Introduce two new events for analyzer confirmation and analyzer violation
+    reporting. The current analyzer_confirmation and analyzer_violation
+    events assume connection objects and analyzer ids are available which
+    is not always the case. We're already passing aid=0 for packet analyzers
+    and there's not currently a way to report violations from file analyzers
+    using analyzer_violation, for example.
+
+    These new events use an extensible Info record approach so that additional
+    (optional) information can be added later without changing the signature.
+    It would allow for per analyzer extensions to the info records to pass
+    analyzer specific info to script land. It's not clear that this would be
+    a good idea, however.
+
+    The previous analyzer_confirmation and analyzer_violation events
+    continue to exist, but are deprecated and will be removed with Zeek 6.1.
+
+  * GH-133: packet_analysis: Protect from nullptr sessions (Arne
+    Welzel, Corelight) Passing nullptr sessions to
+    AnalyzerConfirmation and AnalyzerViolation of protocol analyzers
+    previously blew up - protect from that.
+
+  * packet_analysis: Raise violations once (and don't raise
+    confirmations after violations) (Arne Welzel, Corelight) This is
+    mostly to avoid per-packet violations for packet analyzers that
+    have sessions attached to them.
+
+  * Introduce basic test triggering when zeek -r triggers script
+    errors. (Arne Welzel, Corelight)
+
+  * file_analysis: Implement AnalyzerViolation() for
+    file_analysis/Analyzer (Arne Welzel, Corelight)
+
 5.2.0-dev.19 | 2022-09-27 13:32:20 +0200
 
   * GH-2422: cmake: Exclude empty directories due to headers install

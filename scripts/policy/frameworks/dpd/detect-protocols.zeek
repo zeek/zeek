@@ -198,8 +198,13 @@ hook finalize_protocol_detection(c: connection)
 	report_protocols(c);
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
 	{
+	if ( ! is_protocol_analyzer(atype) )
+		return;
+
+	local c = info$c;
+
 	# Don't report anything running on a well-known port.
 	if ( c$id$resp_p in Analyzer::registered_ports(atype) )
 		return;

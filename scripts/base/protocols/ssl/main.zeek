@@ -490,12 +490,12 @@ hook finalize_ssl(c: connection)
 	finish(c, F);
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=5
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5
 	{
 	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
 		{
-		set_session(c);
-		c$ssl$analyzer_id = aid;
+		set_session(info$c);
+		info$c$ssl$analyzer_id = info$aid;
 		}
 	}
 
@@ -510,9 +510,9 @@ event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, 
 	Weird::weird(wi);
 	}
 
-event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count,
-                         reason: string) &priority=5
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5
 	{
-	if ( c?$ssl && ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS ) )
-		finish(c, T);
+	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
+		if ( info$c?$ssl )
+			finish(info$c, T);
 	}

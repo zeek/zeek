@@ -18,10 +18,10 @@ export {
 
 }
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
 	{
-	if ( atype in analyzer_inactivity_timeouts )
-		set_inactivity_timeout(c$id, analyzer_inactivity_timeouts[atype]);
+	if ( atype in analyzer_inactivity_timeouts && info?$c )
+		set_inactivity_timeout(info$c$id, analyzer_inactivity_timeouts[atype]);
 	}
 
 event connection_established(c: connection)

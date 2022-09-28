@@ -1,6 +1,6 @@
-5.2.0-dev.26 | 2022-09-28 10:09:27 +0200
+5.2.0-dev.27 | 2022-09-28 10:34:28 +0200
 
-  * Bump bifcl submodule. (Robin Sommer)
+  * Bump `bifcl` and `doc` submodules. (Robin Sommer)
 
 5.2.0-dev.25 | 2022-09-28 10:00:40 +0200
 

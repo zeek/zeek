@@ -439,6 +439,9 @@ ListTypeInfo::ListTypeInfo(CPPCompile* _c, TypePtr _t)
 		if ( gi )
 			init_cohort = max(init_cohort, gi->InitCohort());
 		}
+
+	if ( ! types.empty() )
+		++init_cohort;
 	}
 
 void ListTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const

@@ -680,11 +680,6 @@ std::vector<Func*> ID::GetOptionHandlers() const
 	return v;
 	}
 
-void IDOptInfo::AddInitExpr(ExprPtr init_expr)
-	{
-	init_exprs.emplace_back(std::move(init_expr));
-	}
-
 	} // namespace detail
 
 	} // namespace zeek

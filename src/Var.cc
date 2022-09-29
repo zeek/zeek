@@ -17,6 +17,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
+#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/UsageAnalyzer.h"
 
@@ -117,12 +118,12 @@ static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs,
 	return true;
 	}
 
-static void initialize_var(const IDPtr& id, InitClass c, ExprPtr init)
+static ExprPtr initialize_var(const IDPtr& id, InitClass c, ExprPtr init)
 	{
 	if ( ! id->HasVal() )
 		{
 		if ( c == INIT_REMOVE )
-			return;
+			return nullptr;
 
 		bool no_init = ! init;
 
@@ -134,7 +135,7 @@ static void initialize_var(const IDPtr& id, InitClass c, ExprPtr init)
 			auto& t = id->GetType();
 
 			if ( ! IsAggr(t) )
-				return;
+				return nullptr;
 
 			ValPtr init_val;
 
@@ -147,7 +148,7 @@ static void initialize_var(const IDPtr& id, InitClass c, ExprPtr init)
 				catch ( InterpreterException& )
 					{
 					id->Error("initialization failed");
-					return;
+					return nullptr;
 					}
 				}
 
@@ -157,11 +158,11 @@ static void initialize_var(const IDPtr& id, InitClass c, ExprPtr init)
 			else if ( t->Tag() == TYPE_VECTOR )
 				init_val = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
 
-			id->SetVal(init_val);
-			return;
+			init = make_intrusive<ConstExpr>(init_val);
+			c = INIT_FULL;
 			}
 
-		if ( c == INIT_EXTRA )
+		else if ( c == INIT_EXTRA )
 			c = INIT_FULL;
 		}
 
@@ -177,19 +178,12 @@ static void initialize_var(const IDPtr& id, InitClass c, ExprPtr init)
 		assignment = make_intrusive<RemoveFromExpr>(lhs, init);
 	else
 		// This can happen due to error propagation.
-		return;
+		return nullptr;
 
 	if ( assignment->IsError() )
-		return;
+		return nullptr;
 
-	try
-		{
-		(void)assignment->Eval(nullptr);
-		}
-	catch ( InterpreterException& )
-		{
-		id->Error("initialization failed");
-		}
+	return assignment;
 	}
 
 static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
@@ -347,11 +341,29 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 		if ( init && ((c == INIT_EXTRA && id->GetAttr(ATTR_ADD_FUNC)) ||
 		              (c == INIT_REMOVE && id->GetAttr(ATTR_DEL_FUNC))) )
+			{
 			// Just apply the function.
 			id->SetVal(init, c);
+			id->GetOptInfo()->AddInitExpr(init, c);
+			}
 
 		else if ( dt != VAR_REDEF || init || ! attr )
-			initialize_var(id, c, init);
+			{
+			auto init_expr = initialize_var(id, c, init);
+			if ( init_expr )
+				{
+				id->GetOptInfo()->AddInitExpr(init_expr);
+
+				try
+					{
+					(void)init_expr->Eval(nullptr);
+					}
+				catch ( InterpreterException& )
+					{
+					id->Error("initialization failed");
+					}
+				}
+			}
 		}
 
 	if ( dt == VAR_CONST )

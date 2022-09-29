@@ -66,12 +66,41 @@ public:
 	// Accessors for the sundry initialization vectors, each retrieving
 	// a specific element identified by an index/offset.
 	const std::vector<int>& Indices(int offset) const { return indices[offset]; }
-	const char* Strings(int offset) const { return strings[offset]; }
-	const p_hash_type Hashes(int offset) const { return hashes[offset]; }
-	const TypePtr& Types(int offset) const { return types[offset]; }
-	const AttributesPtr& Attributes(int offset) const { return attributes[offset]; }
-	const AttrPtr& Attrs(int offset) const { return attrs[offset]; }
-	const CallExprPtr& CallExprs(int offset) const { return call_exprs[offset]; }
+	const char* Strings(int offset) const
+		{
+		ASSERT(offset >= 0 && offset < strings.size());
+		ASSERT(strings[offset]);
+		return strings[offset];
+		}
+	const p_hash_type Hashes(int offset) const
+		{
+		ASSERT(offset >= 0 && offset < hashes.size());
+		return hashes[offset];
+		}
+	const TypePtr& Types(int offset) const
+		{
+		ASSERT(offset >= 0 && offset < types.size());
+		ASSERT(types[offset]);
+		return types[offset];
+		}
+	const AttributesPtr& Attributes(int offset) const
+		{
+		ASSERT(offset >= 0 && offset < attributes.size());
+		ASSERT(attributes[offset]);
+		return attributes[offset];
+		}
+	const AttrPtr& Attrs(int offset) const
+		{
+		ASSERT(offset >= 0 && offset < attrs.size());
+		ASSERT(attrs[offset]);
+		return attrs[offset];
+		}
+	const CallExprPtr& CallExprs(int offset) const
+		{
+		ASSERT(offset >= 0 && offset < call_exprs.size());
+		ASSERT(call_exprs[offset]);
+		return call_exprs[offset];
+		}
 
 private:
 	std::vector<CPP_ValElem>& const_vals;

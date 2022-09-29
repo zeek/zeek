@@ -53,6 +53,7 @@ RUN apt-get -q update \
      python3-minimal \
      python3-git \
      python3-semantic-version \
+     python3-websocket \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 

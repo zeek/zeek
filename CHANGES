@@ -1,3 +1,7 @@
+5.2.0-dev.33 | 2022-09-30 12:36:34 -0700
+
+  * fix for deprecated when's where the inner frame is larger than the outer frame (Vern Paxson, Corelight)
+
 5.2.0-dev.31 | 2022-09-30 10:03:00 +0200
 
   * const: Deprecate tunnel-specific enable_* flags (Arne Welzel, Corelight)

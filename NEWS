@@ -22,6 +22,12 @@ New Functionality
 - File analyzers can now raise analyzer violations to the script-layer via
   the new ``AnalyzerViolation()`` method.
 
+- Packet analyzers can now be disabled and enabled at runtime using
+  the ``Analyzer::enable_analyzer()`` and ``Analyzer::disable_analyzer()``
+  wrappers. While initially for protocol analyzers only, these have
+  been extended to work for packet analyzers, too. Packet analyzers can
+  be added to ``Analyzer::disabled_analyzers``, too.
+
 Changed Functionality
 ---------------------
 
@@ -35,6 +41,21 @@ Deprecated Functionality
 - The ``analyzer_confirmation`` and ``analyzer_violation`` events have been
   deprecated in favor of the more generic ``analyzer_confirmation_info`` and
   ``analyzer_violation_info`` events.
+
+- The const values for toggling individual tunnel packet analyzers have
+  been deprecated in favor of using ``Analyzer::disable_analyzer()``
+  directly. This affects:
+
+	Tunnel::enable_ip
+	Tunnel::enable_ayiya
+	Tunnel::enable_teredo
+	Tunnel::enable_gtpv1
+	Tunnel::enable_gre
+
+  Setting these explicitly to F can be achieved by leveraging
+  ``Analyzers::disabled_analyzers``, for example:
+
+	redef Analyzer::disabled_analyzers += { PacketAnalyzer::ANALYZER_GRE };
 
 Zeek 5.1.0
 ==========

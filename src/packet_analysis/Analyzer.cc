@@ -107,6 +107,14 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet,
 		return false;
 		}
 
+	if ( ! inner_analyzer->IsEnabled() )
+		{
+		DBG_LOG(DBG_PACKET_ANALYSIS,
+		        "Analysis in %s found disabled next layer analyzer %s for identifier %#x",
+		        GetAnalyzerName(), inner_analyzer->GetAnalyzerName(), identifier);
+		return false;
+		}
+
 	DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.",
 	        GetAnalyzerName(), identifier);
 	return inner_analyzer->AnalyzePacket(len, data, packet);

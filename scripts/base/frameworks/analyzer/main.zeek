@@ -33,7 +33,7 @@ export {
 	## tag: The tag of the analyzer to enable.
 	##
 	## Returns: True if the analyzer was successfully enabled.
-	global enable_analyzer: function(tag: Analyzer::Tag) : bool;
+	global enable_analyzer: function(tag: AllAnalyzers::Tag) : bool;
 
 	## Disables an analyzer. Once disabled, the analyzer will not be used
 	## further for analysis of future connections.
@@ -41,7 +41,7 @@ export {
 	## tag: The tag of the analyzer to disable.
 	##
 	## Returns: True if the analyzer was successfully disabled.
-	global disable_analyzer: function(tag: Analyzer::Tag) : bool;
+	global disable_analyzer: function(tag: AllAnalyzers::Tag) : bool;
 
 	## Registers a set of well-known ports for an analyzer. If a future
 	## connection on one of these ports is seen, the analyzer will be
@@ -130,7 +130,7 @@ export {
 
 	## A set of analyzers to disable by default at startup. The default set
 	## contains legacy analyzers that are no longer supported.
-	global disabled_analyzers: set[Analyzer::Tag] = {
+	global disabled_analyzers: set[AllAnalyzers::Tag] = {
 		ANALYZER_TCPSTATS,
 	} &redef;
 
@@ -152,13 +152,19 @@ event zeek_init() &priority=5
 		disable_analyzer(a);
 	}
 
-function enable_analyzer(tag: Analyzer::Tag) : bool
+function enable_analyzer(tag: AllAnalyzers::Tag) : bool
 	{
+	if ( is_packet_analyzer(tag) )
+		return PacketAnalyzer::__enable_analyzer(tag);
+
 	return __enable_analyzer(tag);
 	}
 
-function disable_analyzer(tag: Analyzer::Tag) : bool
+function disable_analyzer(tag: AllAnalyzers::Tag) : bool
 	{
+	if ( is_packet_analyzer(tag) )
+		return PacketAnalyzer::__disable_analyzer(tag);
+
 	return __disable_analyzer(tag);
 	}
 

@@ -88,6 +88,30 @@ AnalyzerPtr Manager::GetAnalyzer(const std::string& name)
 	return analyzer_it->second;
 	}
 
+bool Manager::EnableAnalyzer(EnumVal* tag)
+	{
+	Component* c = Lookup(tag);
+	AnalyzerPtr a = GetAnalyzer(c->Name());
+	if ( ! a )
+		return false;
+
+	a->SetEnabled(true);
+
+	return true;
+	}
+
+bool Manager::DisableAnalyzer(EnumVal* tag)
+	{
+	Component* c = Lookup(tag);
+	AnalyzerPtr a = GetAnalyzer(c->Name());
+	if ( ! a )
+		return false;
+
+	a->SetEnabled(false);
+
+	return true;
+	}
+
 void Manager::ProcessPacket(Packet* packet)
 	{
 #ifdef DEBUG

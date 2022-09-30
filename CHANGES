@@ -1,3 +1,20 @@
+5.2.0-dev.31 | 2022-09-30 10:03:00 +0200
+
+  * const: Deprecate tunnel-specific enable_* flags (Arne Welzel, Corelight)
+
+    With packet analyzers being toggle-able at runtime these can go.
+    They hadn't been consistently implemented either (VXLAN, Geneve).
+
+  * packet_analysis: Introduce PacketAnalyzer::__disable_analyzer() (Arne Welzel, Corelight)
+
+    This adds machinery to the packet_analysis manager for disabling
+    and enabling packet analyzers and implements two low-level bifs
+    to use it.
+
+    Extend Analyzer::enable_analyzer() and Analyzer::disable_analyzer()
+    to transparently work with packet analyzers, too. This also allows
+    to add packet analyzers to Analyzer::disabled_analyzers.
+
 5.2.0-dev.27 | 2022-09-28 10:34:28 +0200
 
   * Bump `bifcl` and `doc` submodules. (Robin Sommer)

@@ -83,6 +83,46 @@ public:
 	AnalyzerPtr GetAnalyzer(const std::string& name);
 
 	/**
+	 * Enables an analyzer type. Only enabled analyzers will participate
+	 * in packet processing.
+	 *
+	 * @param tag The analyzer's tag.
+	 *
+	 * @return True if successful.
+	 */
+	bool EnableAnalyzer(zeek::EnumVal* tag);
+
+	/**
+	 * Enables an analyzer type. Only enabled analyzers will participate
+	 * in packet processing.
+	 *
+	 * @param tag The analyzer's tag.
+	 *
+	 * @return True if successful.
+	 */
+	bool EnableAnalyzer(const zeek::Tag& tag) { return EnableAnalyzer(tag.AsVal().get()); }
+
+	/**
+	 * Disables an analyzer type. Disabled analyzers will not participate
+	 * in packet processing.
+	 *
+	 * @param tag The packet analyzer's tag.
+	 *
+	 * @return True if successful.
+	 */
+	bool DisableAnalyzer(zeek::EnumVal* tag);
+
+	/**
+	 * Disables an analyzer type. Disabled analyzers will not participate
+	 * in packet processing.
+	 *
+	 * @param tag The packet analyzer's tag.
+	 *
+	 * @return True if successful.
+	 */
+	bool DisableAnalyzer(const zeek::Tag& tag) { return DisableAnalyzer(tag.AsVal().get()); };
+
+	/**
 	 * Processes a packet by applying the configured packet analyzers.
 	 *
 	 * @param packet The packet to process.

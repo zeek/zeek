@@ -1876,7 +1876,7 @@ void WhenInfo::Build(StmtPtr ws)
 	{
 	if ( IsDeprecatedSemantics(ws) )
 		{
-		pop_scope();
+		merge_top_scope();
 		return;
 		}
 

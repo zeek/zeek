@@ -17,6 +17,9 @@ Breaking Changes
   clusters running on FreeBSD, as that OS uses a different range for ephemeral
   ports.
 
+- The blank identifier ``_`` cannot be used in expressions and options anymore.
+  Outside of obfuscation exercises, this should have little real-world impact.
+
 New Functionality
 -----------------
 
@@ -38,6 +41,34 @@ New Functionality
   wrappers. While initially for protocol analyzers only, these have
   been extended to work for packet and file analyzers. This now allows to
   leverage ``Analyzer::disabled_analyzers`` for these kinds of analyzers.
+
+- The blank identifier ``_`` can now be used to ignore loop variables of
+  different types without type clash errors. This allows to do the following
+  within the same scope:
+
+	local vec = vector("a", "b", "c");
+	for ( _, v in vec )
+		print v;
+
+	for ( i, _ in vec )
+		print v;
+
+  Iterating over only the values of a table can be done by ignoring the full
+  index with a single blank identifier. Due to the internal structure of Zeek
+  tables, this can result in a performance improvement.
+
+	local tab = table(["a", 1, T] = "a1T", ["b", 2, F] = "b2f");
+	for ( _, v in tab )
+		print v;
+
+  It's also possible ignore individual indices of different types with the
+  blank identifier ``_`` as follows:
+
+	for ( [_, i, _], v in tab )
+		print i, v;
+
+  As noted under breaking changes, the blank identifier ``_`` cannot be
+  referenced in expression anymore.
 
 Changed Functionality
 ---------------------

@@ -5458,6 +5458,7 @@ bool check_and_promote_args(ListExpr* const args, const RecordType* types)
 	int ntypes = types->NumFields();
 
 	// give variadic BIFs automatic pass
+	// TODO: This unsafe variadic BIFs implementation should be deprecated.
 	if ( ntypes == 1 && types->FieldDecl(0)->type->Tag() == TYPE_ANY )
 		return true;
 
@@ -5471,28 +5472,63 @@ bool check_and_promote_args(ListExpr* const args, const RecordType* types)
 			{
 			auto td = types->FieldDecl(i);
 			const auto& def_attr = td->attrs ? td->attrs->Find(ATTR_DEFAULT).get() : nullptr;
+			const auto& var_attr = td->attrs ? td->attrs->Find(ATTR_VARIADIC).get() : nullptr;
 
-			if ( ! def_attr )
+			if ( ! def_attr && ! var_attr )
 				{
 				types->Error("parameter mismatch", args);
 				return false;
 				}
 
-			// Don't use the default expression directly, as
-			// doing so will wind up sharing its code across
-			// different invocations that use the default
-			// argument.  That works okay for the interpreter,
-			// but if we transform the code we want that done
-			// separately for each instance, rather than
-			// one instance inheriting the transformed version
-			// from another.
-			const auto& e = def_attr->GetExpr();
-			def_elements.emplace_back(e->Duplicate());
+			if ( def_attr )
+				{
+				// Don't use the default expression directly, as
+				// doing so will wind up sharing its code across
+				// different invocations that use the default
+				// argument.  That works okay for the interpreter,
+				// but if we transform the code we want that done
+				// separately for each instance, rather than
+				// one instance inheriting the transformed version
+				// from another.
+				const auto& e = def_attr->GetExpr();
+				def_elements.emplace_back(e->Duplicate());
+				}
+			else if ( var_attr )
+				{
+				auto vv = make_intrusive<VectorVal>(
+					IntrusivePtr{NewRef{}, td->type->AsVectorType()});
+				def_elements.emplace_back(make_intrusive<ConstExpr>(std::move(vv)));
+				}
 			}
 
 		auto ne = def_elements.size();
 		while ( ne )
 			el.push_back(def_elements[--ne].release());
+		}
+	else
+		{
+		int last = ntypes - 1;
+		auto td = last >= 0 ? types->FieldDecl(last) : nullptr;
+		bool is_variadic = td && td->attrs && td->attrs->Find(ATTR_VARIADIC);
+
+		if ( is_variadic )
+			{
+			if ( el[last]->GetType() == td->type )
+				last++;
+
+			if ( last < el.length() )
+				{
+				auto list_expr = make_intrusive<ListExpr>();
+
+				for ( int i = last; i < el.length(); ++i )
+					list_expr->Append(IntrusivePtr{NewRef{}, el[i]});
+				for ( int i = 0; i < list_expr->Exprs().length(); ++i )
+					el.pop_back();
+
+				auto var_element = make_intrusive<VectorConstructorExpr>(list_expr, td->type);
+				el.push_back(var_element.release());
+				}
+			}
 		}
 
 	auto tl = make_intrusive<TypeList>();

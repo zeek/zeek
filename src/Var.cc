@@ -464,7 +464,7 @@ void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr)
 		id->SetAttrs(make_intrusive<Attributes>(std::move(*attr), tnew, false, false));
 	}
 
-static void transfer_arg_defaults(RecordType* args, RecordType* recv)
+static void transfer_arg_defaults_and_variadic(RecordType* args, RecordType* recv)
 	{
 	for ( int i = 0; i < args->NumFields(); ++i )
 		{
@@ -472,18 +472,30 @@ static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 		TypeDecl* recv_i = recv->FieldDecl(i);
 
 		const auto& def = args_i->attrs ? args_i->attrs->Find(ATTR_DEFAULT) : nullptr;
+		const auto& var = args_i->attrs ? args_i->attrs->Find(ATTR_VARIADIC) : nullptr;
 
-		if ( ! def )
+		if ( ! def && ! var )
 			continue;
 
 		if ( ! recv_i->attrs )
 			{
-			std::vector<AttrPtr> a{def};
+			std::vector<AttrPtr> a;
+			if ( def )
+				a.emplace_back(def);
+			if ( var )
+				a.emplace_back(var);
+
 			recv_i->attrs = make_intrusive<Attributes>(std::move(a), recv_i->type, true, false);
 			}
 
-		else if ( ! recv_i->attrs->Find(ATTR_DEFAULT) )
-			recv_i->attrs->AddAttr(def);
+		else
+			{
+			if ( def && ! recv_i->attrs->Find(ATTR_DEFAULT) )
+				recv_i->attrs->AddAttr(def);
+
+			if ( var && ! recv_i->attrs->Find(ATTR_VARIADIC) )
+				recv_i->attrs->AddAttr(var);
+			}
 		}
 	}
 
@@ -566,7 +578,7 @@ static auto get_prototype(IDPtr id, FuncTypePtr t)
 			// &default params, automatically transfer any that
 			// are missing (convenience so that implementations
 			// don't need to specify the &default expression again).
-			transfer_arg_defaults(prototype->args.get(), t->Params().get());
+			transfer_arg_defaults_and_variadic(prototype->args.get(), t->Params().get());
 			}
 		else
 			{

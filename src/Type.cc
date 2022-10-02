@@ -700,12 +700,28 @@ FuncType::FuncType(RecordTypePtr arg_args, TypePtr arg_yield, FunctionFlavor arg
 
 	for ( int i = 0; i < args->NumFields(); ++i )
 		{
+		bool is_default_arg = false;
+		bool is_variadic_arg = false;
 		const TypeDecl* td = args->FieldDecl(i);
 
-		if ( td->attrs && td->attrs->Find(detail::ATTR_DEFAULT) )
-			has_default_arg = true;
+		if ( td->attrs )
+			{
+			if ( td->attrs->Find(detail::ATTR_DEFAULT) )
+				has_default_arg = is_default_arg = true;
+			if ( td->attrs->Find(detail::ATTR_VARIADIC) )
+				is_variadic_arg = true;
+			}
 
-		else if ( has_default_arg )
+		if ( is_variadic_arg && i != args->NumFields() - 1 )
+			{
+			const char* err_str = util::fmt("variadic parameter '%s' must be last "
+			                                "in a parameter list",
+			                                td->id);
+			args->Error(err_str);
+			return;
+			}
+
+		if ( has_default_arg && ! is_default_arg && ! is_variadic_arg )
 			{
 			const char* err_str = util::fmt("required parameter '%s' must precede "
 			                                "default parameters",

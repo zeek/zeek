@@ -51,6 +51,7 @@ enum AttrTag
 	ATTR_DEPRECATED,
 	ATTR_IS_ASSIGNED, // to suppress usage warnings
 	ATTR_IS_USED, // to suppress usage warnings
+	ATTR_VARIADIC, // for variadic params
 	NUM_ATTRS // this item should always be last
 	};
 

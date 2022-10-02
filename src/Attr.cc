@@ -40,6 +40,7 @@ const char* attr_name(AttrTag t)
 		"&deprecated",
 		"&is_assigned",
 		"&is_used",
+		"&variadic",
 	};
 
 	return attr_names[int(t)];
@@ -363,6 +364,20 @@ void Attributes::CheckAttr(Attr* a)
 			if ( ! check_default_attr(a, type, global_var, in_record, err_msg) &&
 			     ! err_msg.empty() )
 				Error(err_msg.c_str());
+			break;
+			}
+
+		case ATTR_VARIADIC:
+			{
+			if ( type->Tag() != TYPE_VECTOR )
+				{
+				Error("&variadic only applicable to vector");
+				break;
+				}
+
+			if ( global_var || ! in_record )
+				Error("&variadic must be a argument");
+
 			break;
 			}
 

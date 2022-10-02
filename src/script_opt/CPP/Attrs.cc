@@ -135,6 +135,8 @@ const char* CPPCompile::AttrName(AttrTag t)
 			return "ATTR_IS_ASSIGNED";
 		case ATTR_IS_USED:
 			return "ATTR_IS_USED";
+		case ATTR_VARIADIC:
+			return "ATTR_VARIADIC";
 
 		default:
 			return "<busted>";

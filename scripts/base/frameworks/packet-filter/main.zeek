@@ -48,6 +48,9 @@ export {
 
 		## Indicate if the filter was applied successfully.
 		success: bool  &log &default=T;
+
+		## A string reason why the filter failed to be created/installed.
+		failure_reason: string &log &optional;
 	};
 
 	## The BPF filter that is used by default to define what traffic should
@@ -317,6 +320,8 @@ function install(): bool
 		{
 		# Installing the filter failed for some reason.
 		info$success = F;
+		info$failure_reason = Pcap::get_filter_state_string(DefaultPcapFilter);
+
 		NOTICE([$note=Install_Failure,
 		        $msg=fmt("Installing packet filter failed"),
 		        $sub=current_filter]);

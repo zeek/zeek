@@ -282,7 +282,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -469,8 +469,8 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::get_filter, <frame>, (SSL::LOG, default)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::log_stream_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::log_stream_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
@@ -668,7 +668,7 @@
 0.000000   MetaHookPost  CallFunction(PacketFilter::build, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketFilter::install, <frame>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketFilter::log_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketFilter::log_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Pcap::install_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Pcap::precompile_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter, ip or not ip)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Site::update_local_nets_table, <frame>, (Site::local_nets, {})) -> <no result>
@@ -1509,8 +1509,8 @@
 0.000000   MetaHookPost  LoadFileExtended(1, ./programming, <...>/programming.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, ./video, <...>/video.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, s2, ./s2.sig) -> (-1, <no content>)
-0.000000   MetaHookPost  LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}) -> <void>
-0.000000   MetaHookPost  LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}, <void ptr>) -> true
+0.000000   MetaHookPost  LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 6, {ts (time), node (string), filter (string), init (bool), success (bool), failure_reason (string)}) -> <void>
+0.000000   MetaHookPost  LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 6, {ts (time), node (string), filter (string), init (bool), success (bool), failure_reason (string)}, <void ptr>) -> true
 0.000000   MetaHookPost  QueueEvent(NetControl::init()) -> false
 0.000000   MetaHookPost  QueueEvent(filter_change_tracking()) -> false
 0.000000   MetaHookPost  QueueEvent(zeek_init()) -> false
@@ -1797,7 +1797,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy]))
-0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1984,8 +1984,8 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy]))
 0.000000   MetaHookPre   CallFunction(Log::get_filter, <frame>, (SSL::LOG, default))
-0.000000   MetaHookPre   CallFunction(Log::log_stream_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG))
-0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T]))
+0.000000   MetaHookPre   CallFunction(Log::log_stream_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG))
+0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
@@ -2183,7 +2183,7 @@
 0.000000   MetaHookPre   CallFunction(PacketFilter::build, <frame>, ())
 0.000000   MetaHookPre   CallFunction(PacketFilter::combine_filters, <frame>, (ip or not ip, and, ))
 0.000000   MetaHookPre   CallFunction(PacketFilter::install, <frame>, ())
-0.000000   MetaHookPre   CallFunction(PacketFilter::log_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(PacketFilter::log_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Pcap::install_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter))
 0.000000   MetaHookPre   CallFunction(Pcap::precompile_pcap_filter, <frame>, (PacketFilter::DefaultPcapFilter, ip or not ip))
 0.000000   MetaHookPre   CallFunction(Site::update_local_nets_table, <frame>, (Site::local_nets, {}))
@@ -3024,8 +3024,8 @@
 0.000000   MetaHookPre   LoadFileExtended(1, ./programming, <...>/programming.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, ./video, <...>/video.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, s2, ./s2.sig)
-0.000000   MetaHookPre   LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)})
-0.000000   MetaHookPre   LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 5, {ts (time), node (string), filter (string), init (bool), success (bool)}, <void ptr>)
+0.000000   MetaHookPre   LogInit(Log::WRITER_ASCII, default, true, true, packet_filter(0.0,0.0,0.0), 6, {ts (time), node (string), filter (string), init (bool), success (bool), failure_reason (string)})
+0.000000   MetaHookPre   LogWrite(Log::WRITER_ASCII, default, packet_filter(0.0,0.0,0.0), 6, {ts (time), node (string), filter (string), init (bool), success (bool), failure_reason (string)}, <void ptr>)
 0.000000   MetaHookPre   QueueEvent(NetControl::init())
 0.000000   MetaHookPre   QueueEvent(filter_change_tracking())
 0.000000   MetaHookPre   QueueEvent(zeek_init())
@@ -3311,7 +3311,7 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy])
-0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>])
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -3498,8 +3498,8 @@
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy])
 0.000000 | HookCallFunction Log::get_filter(SSL::LOG, default)
-0.000000 | HookCallFunction Log::log_stream_policy([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG)
-0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T])
+0.000000 | HookCallFunction Log::log_stream_policy([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG)
+0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>])
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
@@ -3697,7 +3697,7 @@
 0.000000 | HookCallFunction PacketFilter::build()
 0.000000 | HookCallFunction PacketFilter::combine_filters(ip or not ip, and, )
 0.000000 | HookCallFunction PacketFilter::install()
-0.000000 | HookCallFunction PacketFilter::log_policy([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
+0.000000 | HookCallFunction PacketFilter::log_policy([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG, [name=default, writer=Log::WRITER_ASCII, path=packet_filter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Pcap::install_pcap_filter(PacketFilter::DefaultPcapFilter)
 0.000000 | HookCallFunction Pcap::precompile_pcap_filter(PacketFilter::DefaultPcapFilter, ip or not ip)
 0.000000 | HookCallFunction Site::update_local_nets_table(Site::local_nets, {})
@@ -4538,8 +4538,8 @@
 0.000000 | HookLoadFileExtended builtin-plugins/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFileExtended s1.sig ./s1.sig
 0.000000 | HookLoadFileExtended s2 ./s2.sig
-0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool)}
-0.000000 | HookLogWrite  packet_filter [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T]
+0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool), failure_reason (string)}
+0.000000 | HookLogWrite  packet_filter [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>]
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()

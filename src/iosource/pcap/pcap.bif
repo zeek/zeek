@@ -112,6 +112,18 @@ function error%(%): string
 	return zeek::make_intrusive<zeek::StringVal>("no error");
 	%}
 
+function get_filter_state_string%(id: PcapFilterID%): string
+	%{
+	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
+	if ( ps )
+		{
+		if ( auto filter = ps->GetBPFFilter(id->AsInt()) )
+			return zeek::make_intrusive<zeek::StringVal>(filter->GetStateMessage());
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>("<unknown>");
+	%}
+
 function findalldevs%(%): Pcap::Interfaces
 	%{
 	pcap_if_t* alldevs;

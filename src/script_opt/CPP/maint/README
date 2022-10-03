@@ -15,7 +15,7 @@ The maintenance workflow:
     to check in updates to the list of how the compiler currently fares
     on various btests (see end of this doc):
 
-	Fri Sep 16 16:13:49 PDT 2022
+	Thu Sep 29 14:49:49 PDT 2022
 
 2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.
@@ -74,18 +74,11 @@ These BTests won't successfully run due to the indicated issue:
 Database Of Known Issues (keep sorted)
 
 ../testing/btest/bifs/table_values.zeek bad-constructor
-../testing/btest/core/global_opaque_val.zeek opaque
 ../testing/btest/language/alternate-event-hook-prototypes.zeek deprecated
-../testing/btest/language/global-init-calls-bif.zeek opaque
 ../testing/btest/language/redef-same-prefixtable-idx.zeek deprecated
 ../testing/btest/language/table-redef.zeek deprecated
 ../testing/btest/language/when-aggregates.zeek bad-when
 ../testing/btest/scripts/base/protocols/krb/smb2_krb.test skipped
 ../testing/btest/scripts/base/protocols/krb/smb2_krb_nokeytab.test skipped
 ../testing/btest/scripts/base/utils/active-http.test test-glitch
-../testing/btest/scripts/policy/frameworks/telemetry/log-prefixes.zeek opaque
-../testing/btest/scripts/policy/frameworks/telemetry/log.zeek opaque
 ../testing/btest/scripts/policy/misc/dump-events.zeek skipped
-../testing/btest/telemetry/counter.zeek opaque
-../testing/btest/telemetry/gauge.zeek opaque
-../testing/btest/telemetry/histogram.zeek opaque

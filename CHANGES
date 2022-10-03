@@ -1,3 +1,13 @@
+5.2.0-dev.46 | 2022-10-03 09:45:05 -0700
+
+  * use dynamic rather than static initialization of globals for scripts compiled to C++ (Vern Paxson, Corelight)
+
+  * safety checking for initializing scripts compiled to C++ (Vern Paxson, Corelight)
+
+  * fixes for initializing scripts compiled to C++ (Vern Paxson, Corelight)
+
+  * restructured tracking of initializations of globals for script compilation (Vern Paxson, Corelight)
+
 5.2.0-dev.40 | 2022-10-03 09:44:40 -0700
 
   * http: Prevent script errors when http$current_entity is not set (Arne Welzel, Corelight)

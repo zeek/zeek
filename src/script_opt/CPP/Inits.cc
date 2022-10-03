@@ -188,6 +188,50 @@ void CPPCompile::InitializeConsts()
 	EndBlock(true);
 	}
 
+void CPPCompile::InitializeGlobals()
+	{
+	Emit("static void init_globals__CPP()");
+	StartBlock();
+
+	Emit("Frame* f__CPP = nullptr;");
+	NL();
+
+	for ( auto ginit : IDOptInfo::GetGlobalInitExprs() )
+		{
+		auto g = ginit.Id();
+		if ( pfs.Globals().count(g) == 0 )
+			continue;
+
+		auto ic = ginit.IC();
+		auto& init = ginit.Init();
+
+		if ( ic == INIT_NONE )
+			{
+			IDPtr gid = {NewRef{}, const_cast<ID*>(g)};
+			auto gn = make_intrusive<RefExpr>(make_intrusive<NameExpr>(gid));
+			auto ae = make_intrusive<AssignExpr>(gn, init, true);
+			Emit(GenExpr(ae.get(), GEN_NATIVE, true) + ";");
+			}
+
+		else
+			{
+			// This branch occurs for += or -= initializations that
+			// use associated functions.
+			string ics;
+			if ( ic == INIT_EXTRA )
+				ics = "INIT_EXTRA";
+			else if ( ic == INIT_REMOVE )
+				ics = "INIT_REMOVE";
+			else
+				reporter->FatalError("bad initialization class in CPPCompile::InitializeGlobals()");
+
+			Emit("%s->SetValue(%s, %s);", globals[g->Name()], GenExpr(init, GEN_NATIVE, true), ics);
+			}
+		}
+
+	EndBlock();
+	}
+
 void CPPCompile::GenInitHook()
 	{
 	NL();

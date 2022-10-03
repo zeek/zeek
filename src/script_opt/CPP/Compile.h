@@ -1015,6 +1015,10 @@ private:
 	// Generate code to initialize indirect references to constants.
 	void InitializeConsts();
 
+	// Generate code to initialize globals (using dynamic statements
+	// rather than constants).
+	void InitializeGlobals();
+
 	// Generate the initialization hook for this set of compiled code.
 	void GenInitHook();
 

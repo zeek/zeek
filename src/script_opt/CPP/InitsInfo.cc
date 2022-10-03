@@ -339,16 +339,7 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
 		attrs = -1;
 
 	exported = g->IsExport();
-
-	auto v = g->GetVal();
-	if ( v && gt->Tag() == TYPE_OPAQUE )
-		{
-		reporter->Error("cannot compile to C++ global \"%s\" initialized to opaque value",
-		                g->Name());
-		v = nullptr;
-		}
-
-	val = ValElem(c, v);
+	val = ValElem(c, nullptr); // empty because we initialize dynamically
 	}
 
 void GlobalInitInfo::InitializerVals(std::vector<std::string>& ivs) const
@@ -439,6 +430,9 @@ ListTypeInfo::ListTypeInfo(CPPCompile* _c, TypePtr _t)
 		if ( gi )
 			init_cohort = max(init_cohort, gi->InitCohort());
 		}
+
+	if ( ! types.empty() )
+		++init_cohort;
 	}
 
 void ListTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const

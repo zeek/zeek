@@ -917,7 +917,10 @@ p_hash_type ProfileFuncs::HashAttrs(const AttributesPtr& Attrs)
 		// can vary in structure due to compilation of elements.  We
 		// do though enforce consistency for their types.
 		if ( e )
+			{
 			h = merge_p_hashes(h, HashType(e->GetType()));
+			h = merge_p_hashes(h, p_hash(e.get()));
+			}
 		}
 
 	return h;

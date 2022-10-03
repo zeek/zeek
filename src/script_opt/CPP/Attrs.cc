@@ -18,7 +18,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttributes(const AttributesPtr& att
 	if ( pa != processed_attrs.end() )
 		return pa->second;
 
-	attributes.AddKey(attrs);
+	attributes.AddKey(attrs, pfs.HashAttrs(attrs));
 
 	// The cast is just so we can make an IntrusivePtr.
 	auto a_rep = const_cast<Attributes*>(attributes.GetRep(attrs));
@@ -49,7 +49,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr)
 
 	const auto& e = a->GetExpr();
 	if ( e && ! IsSimpleInitExpr(e) )
-		init_exprs.AddKey(e);
+		init_exprs.AddKey(e, p_hash(e));
 
 	auto gi = make_shared<AttrInfo>(this, attr);
 	attr_info->AddInstance(gi);

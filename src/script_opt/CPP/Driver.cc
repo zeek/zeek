@@ -5,6 +5,7 @@
 #include <cerrno>
 
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/IDOptInfo.h"
 
 extern std::unordered_set<std::string> files_with_conditionals;
 
@@ -311,6 +312,9 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 void CPPCompile::GenEpilog()
 	{
 	NL();
+	InitializeGlobals();
+
+	NL();
 	for ( const auto& ii : init_infos )
 		GenInitExpr(ii.second);
 
@@ -467,6 +471,9 @@ void CPPCompile::GenFinishInit()
 
 	NL();
 	Emit("load_BiFs__CPP();");
+
+	NL();
+	Emit("init_globals__CPP();");
 
 	EndBlock();
 	}

@@ -1,3 +1,7 @@
+5.2.0-dev.38 | 2022-10-03 09:08:42 -0700
+
+  * Fix some Coverity issues in the recent ZAM updates (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.35 | 2022-09-30 16:40:22 -0700
 
   * fixes for compiling "standalone" C++ scripts (Vern Paxson, Corelight)

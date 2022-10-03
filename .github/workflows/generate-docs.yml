@@ -115,7 +115,7 @@ jobs:
         # Only send notifications for scheduled runs. Runs from pull requests
         # show failures in the Github UI.
         if: failure() && github.event_name == 'schedule'
-        uses: dawidd6/action-send-mail@v3.6.1
+        uses: dawidd6/action-send-mail@v3.7.0
         with:
           server_address: ${{secrets.SMTP_HOST}}
           server_port: ${{secrets.SMTP_PORT}}

@@ -313,25 +313,25 @@ ZInstAux* ZAMCompiler::BuildCatAux(const ExprPList& args)
 
 			switch ( t->Tag() )
 				{
-			TYPE_BOOL:
-			TYPE_INT:
-			TYPE_COUNT:
-			TYPE_DOUBLE:
-			TYPE_TIME:
-			TYPE_ENUM:
-			TYPE_PORT:
-			TYPE_ADDR:
-			TYPE_SUBNET:
-				ca = std::make_unique<FixedCatArg>(t);
-				break;
+				case TYPE_BOOL:
+				case TYPE_INT:
+				case TYPE_COUNT:
+				case TYPE_DOUBLE:
+				case TYPE_TIME:
+				case TYPE_ENUM:
+				case TYPE_PORT:
+				case TYPE_ADDR:
+				case TYPE_SUBNET:
+					ca = std::make_unique<FixedCatArg>(t);
+					break;
 
-			TYPE_STRING:
-				ca = std::make_unique<StringCatArg>();
-				break;
+				case TYPE_STRING:
+					ca = std::make_unique<StringCatArg>();
+					break;
 
-			TYPE_PATTERN:
-				ca = std::make_unique<PatternCatArg>();
-				break;
+				case TYPE_PATTERN:
+					ca = std::make_unique<PatternCatArg>();
+					break;
 
 				default:
 					ca = std::make_unique<DescCatArg>(t);

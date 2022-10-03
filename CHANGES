@@ -1,3 +1,9 @@
+5.1.0-rc1.2 | 2022-10-03 09:14:30 -0700
+
+  * Fix some typos in the 5.1.0 NEWS (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 7e65b285ea237a76ce367b185bc9699382dcbe07)
+
 5.1.0-rc1 | 2022-09-20 09:02:50 -0700
 
   * Release 5.1.0-rc1

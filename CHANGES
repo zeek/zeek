@@ -1,3 +1,17 @@
+5.2.0-dev.40 | 2022-10-03 09:44:40 -0700
+
+  * http: Prevent script errors when http$current_entity is not set (Arne Welzel, Corelight)
+
+    The current_entity tracking in HTTP assumes that client/server never
+    send HTTP entities at the same time. The attached pcap (generated
+    artificially) violates this and triggers:
+
+        1663698249.307259 expression error in <...>base/protocols/http/./entities.zeek, line 89: field value missing (HTTP::c$http$current_entity)
+
+    For the http-no-crlf test, include weird.log as baseline. Now that weird is
+    @load'ed from http, it is actually created and seems to make sense
+    to btest-diff it, too.
+
 5.2.0-dev.38 | 2022-10-03 09:08:42 -0700
 
   * Fix some Coverity issues in the recent ZAM updates (Tim Wojtulewicz, Corelight)

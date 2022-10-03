@@ -3,7 +3,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/http/no_crlf.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff http.log
-# @TEST-EXEC: test ! -f weird.log
+# @TEST-EXEC: btest-diff weird.log
 
 @load base/protocols/conn
 @load base/protocols/http

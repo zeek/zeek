@@ -237,7 +237,7 @@ function build(): string
 	if ( |capture_filters| == 0 && ! enable_auto_protocol_capture_filters )
 		cfilter = default_capture_filter;
 
-	for ( id, cf in capture_filters )
+	for ( _, cf in capture_filters )
 		cfilter = combine_filters(cfilter, "or", cf);
 
 	if ( enable_auto_protocol_capture_filters )
@@ -245,11 +245,11 @@ function build(): string
 
 	# Apply the restriction filters.
 	local rfilter = "";
-	for ( id, rf in restrict_filters )
+	for ( _, rf in restrict_filters )
 		rfilter = combine_filters(rfilter, "and", rf);
 
 	# Apply the dynamic restriction filters.
-	for ( filt, drf in dynamic_restrict_filters )
+	for ( _, drf in dynamic_restrict_filters )
 		rfilter = combine_filters(rfilter, "and", string_cat("not (", drf, ")"));
 
 	# Finally, join them into one filter.

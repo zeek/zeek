@@ -246,7 +246,7 @@ event Cluster::node_down(name: string, id: string) &priority=10
 
 function site_id_in_pool(pool: Pool, site_id: count): bool
 	{
-	for ( i, pn in pool$nodes )
+	for ( _, pn in pool$nodes )
 		{
 		if ( pn$site_id == site_id )
 			return T;

@@ -81,7 +81,7 @@ function describe_file(f: fa_file): string
 	# are already populated).
 	#
 	# Just return a bit of our connection information and hope that that is good enough.
-	for ( cid, c in f$conns )
+	for ( _, c in f$conns )
 		{
 		if ( c?$ssl )
 			{
@@ -138,7 +138,7 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 
 	local c: connection &is_assigned;	# to help static analysis
 
-	for ( cid, c in f$conns )
+	for ( _, c in f$conns )
 		{
 		if ( ! c?$ssl )
 			return;

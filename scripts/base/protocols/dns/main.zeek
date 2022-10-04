@@ -191,7 +191,7 @@ function log_unmatched_msgs_queue(q: Queue::Queue)
 
 function log_unmatched_msgs(msgs: PendingMessages)
 	{
-	for ( trans_id, q in msgs )
+	for ( _, q in msgs )
 		{
 		log_unmatched_msgs_queue(q);
 		}

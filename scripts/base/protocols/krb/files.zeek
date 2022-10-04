@@ -48,7 +48,7 @@ function describe_file(f: fa_file): string
 	# are already populated).
 	#
 	# Just return a bit of our connection information and hope that that is good enough.
-	for ( cid, c in f$conns )
+	for ( _, c in f$conns )
 		{
 		if ( c?$krb )
 			{

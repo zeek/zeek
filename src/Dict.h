@@ -92,7 +92,7 @@ public:
 
 	// The size of the key. Less than 8 bytes we'll store directly in the entry, otherwise we'll
 	// store it as a pointer. This avoids extra allocations if we can help it.
-	uint16_t key_size = 0;
+	uint32_t key_size = 0;
 
 	// Lower 4 bytes of the 8-byte hash, which is used to calculate the position in the table.
 	uint32_t hash = 0;
@@ -103,7 +103,7 @@ public:
 		char* key;
 		};
 
-	DictEntry(void* arg_key, int key_size = 0, hash_t hash = 0, T* value = nullptr,
+	DictEntry(void* arg_key, uint32_t key_size = 0, hash_t hash = 0, T* value = nullptr,
 	          int16_t d = TOO_FAR_TO_REACH, bool copy_key = false)
 		: distance(d), key_size(key_size), hash((uint32_t)hash), value(value)
 		{
@@ -157,7 +157,7 @@ public:
 		return std::make_unique<detail::HashKey>(GetKey(), key_size, hash);
 		}
 
-	bool Equal(const char* arg_key, int arg_key_size, hash_t arg_hash) const
+	bool Equal(const char* arg_key, uint32_t arg_key_size, hash_t arg_hash) const
 		{ // only 40-bit hash comparison.
 		return (0 == ((hash ^ arg_hash) & HASH_MASK)) && key_size == arg_key_size &&
 		       0 == memcmp(GetKey(), arg_key, key_size);

@@ -1339,10 +1339,10 @@ void ZAM_ExprOpTemplate::InstantiateEval(const vector<ZAM_OperandType>& ot_orig,
 		}
 
 	if ( zc != ZIC_VEC )
-		for ( auto em1 : eval_mixed_set )
+		for ( const auto& em1 : eval_mixed_set )
 			{
 			auto et1 = em1.first;
-			for ( auto em2 : em1.second )
+			for ( const auto& em2 : em1.second )
 				{
 				auto et2 = em2.first;
 

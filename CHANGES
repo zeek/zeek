@@ -1,3 +1,7 @@
+5.2.0-dev.51 | 2022-10-05 13:27:08 +0200
+
+  * analyzer: Add file_analyzer support to enable_analyzer()/disable_analyzer() (Arne Welzel, Corelight)
+
 5.2.0-dev.46 | 2022-10-03 09:45:05 -0700
 
   * use dynamic rather than static initialization of globals for scripts compiled to C++ (Vern Paxson, Corelight)

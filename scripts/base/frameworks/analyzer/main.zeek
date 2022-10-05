@@ -142,6 +142,8 @@ export {
 }
 
 @load base/bif/analyzer.bif
+@load base/bif/file_analysis.bif
+@load base/bif/packet_analysis.bif
 
 event zeek_init() &priority=5
 	{
@@ -157,6 +159,9 @@ function enable_analyzer(tag: AllAnalyzers::Tag) : bool
 	if ( is_packet_analyzer(tag) )
 		return PacketAnalyzer::__enable_analyzer(tag);
 
+	if ( is_file_analyzer(tag) )
+		return Files::__enable_analyzer(tag);
+
 	return __enable_analyzer(tag);
 	}
 
@@ -164,6 +169,9 @@ function disable_analyzer(tag: AllAnalyzers::Tag) : bool
 	{
 	if ( is_packet_analyzer(tag) )
 		return PacketAnalyzer::__disable_analyzer(tag);
+
+	if ( is_file_analyzer(tag) )
+		return Files::__disable_analyzer(tag);
 
 	return __disable_analyzer(tag);
 	}

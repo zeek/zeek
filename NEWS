@@ -22,11 +22,11 @@ New Functionality
 - File analyzers can now raise analyzer violations to the script-layer via
   the new ``AnalyzerViolation()`` method.
 
-- Packet analyzers can now be disabled and enabled at runtime using
+- Packet and file analyzers can now be disabled and enabled at runtime using
   the ``Analyzer::enable_analyzer()`` and ``Analyzer::disable_analyzer()``
   wrappers. While initially for protocol analyzers only, these have
-  been extended to work for packet analyzers, too. Packet analyzers can
-  be added to ``Analyzer::disabled_analyzers``, too.
+  been extended to work for packet and file analyzers. This now allows to
+  leverage ``Analyzer::disabled_analyzers`` for these kinds of analyzers.
 
 Changed Functionality
 ---------------------

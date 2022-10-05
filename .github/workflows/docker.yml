@@ -99,14 +99,14 @@ jobs:
             zeekurity/${{ steps.target.outputs.tag }}
 
       - name: Preserve image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.IMAGE_NAME }}
           path: ${{ env.IMAGE_FILE }}
           retention-days: 1
 
       - name: Preserve btest artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: docker-btest
@@ -162,7 +162,7 @@ jobs:
           find testing/external/zeek-testing-cluster/.tmp -depth -execdir rename 's/[":<>|*?\r\n]/./g' "{}" \;
 
       - name: Preserve btest artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: cluster-btest
@@ -176,7 +176,7 @@ jobs:
           truncate -s0 ${{ env.IMAGE_FILE }}
 
       - name: Store truncated image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.IMAGE_NAME }}
           path: ${{ env.IMAGE_FILE }}

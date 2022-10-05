@@ -121,13 +121,13 @@ TEST_CASE("dict verify clone performance")
 		       float(d1) / d0);
 		}
 	}
-
+#if 0 //open this test to measure performance in detail
 TEST_CASE("dict measure clone")
 	{
-	constexpr int iMax = 3;
+	constexpr int iMax = 10;
 	long duration[iMax][4];
 	constexpr int base = 1000000;
-	constexpr int interval = 500000;
+	constexpr int interval = 200000;
 	ReportDuration rd;
 	for ( auto i = 0; i < iMax; i++ )
 		{
@@ -201,7 +201,7 @@ TEST_CASE("dict measure clone")
 		       duration[i][2], duration[i][3]);
 		}
 	}
-
+#endif
 TEST_CASE("dict construction")
 	{
 	PDict<int> dict;

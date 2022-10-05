@@ -273,7 +273,7 @@ void ZAM_OpTemplate::UnaryInstantiate()
 void ZAM_OpTemplate::Parse(const string& attr, const string& line, const Words& words)
 	{
 	int num_args = -1; // -1 = don't enforce
-	int nwords = words.size();
+	int nwords = static_cast<int>(words.size());
 
 	if ( attr == "type" )
 		{
@@ -1015,7 +1015,7 @@ void ZAM_ExprOpTemplate::Instantiate()
 		InstantiateV(op_types);
 	}
 
-void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots, int arity, bool do_vec)
+void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots, size_t arity, bool do_vec)
 	{
 	string args = "lhs, r1->AsConstExpr()";
 
@@ -1050,7 +1050,7 @@ void ZAM_ExprOpTemplate::InstantiateC1(const vector<ZAM_OperandType>& ots, int a
 		}
 	}
 
-void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots, int arity)
+void ZAM_ExprOpTemplate::InstantiateC2(const vector<ZAM_OperandType>& ots, size_t arity)
 	{
 	string args = "lhs, r1->AsNameExpr(), r2->AsConstExpr()";
 
@@ -1909,7 +1909,7 @@ string TemplateInput::SkipWords(const string& line, int n) const
 void TemplateInput::Gripe(const char* msg, const string& input) const
 	{
 	auto input_s = input.c_str();
-	int n = strlen(input_s);
+	size_t n = strlen(input_s);
 
 	fprintf(stderr, "%s, line %d: %s - %s", loc.file_name, loc.line_num, msg, input_s);
 	if ( n == 0 || input_s[n - 1] != '\n' )

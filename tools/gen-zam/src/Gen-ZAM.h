@@ -668,8 +668,8 @@ protected:
 
 	// Instantiates versions of the operation that have a constant
 	// as the first, second, or third operand ...
-	void InstantiateC1(const vector<ZAM_OperandType>& ots, int arity, bool do_vec = false);
-	void InstantiateC2(const vector<ZAM_OperandType>& ots, int arity);
+	void InstantiateC1(const vector<ZAM_OperandType>& ots, size_t arity, bool do_vec = false);
+	void InstantiateC2(const vector<ZAM_OperandType>& ots, size_t arity);
 	void InstantiateC3(const vector<ZAM_OperandType>& ots);
 
 	// ... or if all of the operands are non-constant.

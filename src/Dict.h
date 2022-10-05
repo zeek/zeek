@@ -51,8 +51,19 @@ constexpr uint32_t HASH_MASK = 0xFFFFFFFF; // only lower 32 bits.
 // 2 for debug. 16 is best for a release build.
 constexpr uint8_t DICT_REMAP_ENTRIES = 16;
 
-// Load factor = 1 - 0.5 ^ LOAD_FACTOR_BITS. 0.75 is the optimal value for release builds.
-constexpr uint8_t DICT_LOAD_FACTOR_BITS = 2;
+// 100 for size < 1 << DICT_THRESHOLD_BITS + DICT_THRESHOLD_BITS;
+// 75 for larger sizes
+// 25 for min load factor.
+constexpr uint8_t MIN_DICT_LOAD_FACTOR_100 = 25;
+constexpr uint8_t DICT_LOAD_FACTOR_100 = 75;
+
+// when space_distance is greater than SPACE_DISTANCE_THRESHOLD, double the size unless the load
+// factor is already lower than MIN_DICT_LOAD_FACTOR_100.
+constexpr uint16_t SPACE_DISTANCE_THRESHOLD = 32;
+
+// To ignore occasional faraway spaces. only when space_distance_samples are above
+// MIN_SPACE_DISTANCE_SAMPLES, we consider space_distance is not by chance.
+constexpr uint16_t MIN_SPACE_DISTANCE_SAMPLES = 128;
 
 // Default number of hash buckets in dictionary.  The dictionary will
 // increase the size of the hash table as needed.
@@ -474,7 +485,7 @@ public:
 	// lookup may move the key to right place if in the old zone to speed up the next lookup.
 	T* Lookup(const detail::HashKey* key) const
 		{
-		return Lookup(key->Key(), key->Size(), key->Hash());
+		return Lookup(key->Key(), key->Size(), FibHash(key->Hash()));
 		}
 
 	T* Lookup(const void* key, int key_size, detail::hash_t h) const
@@ -498,7 +509,7 @@ public:
 	// if the removal may have invalidated any existing iterators.
 	T* Insert(detail::HashKey* key, T* val, bool* iterators_invalidated = nullptr)
 		{
-		return Insert(key->TakeKey(), key->Size(), key->Hash(), val, false, iterators_invalidated);
+		return Insert(key->TakeKey(), key->Size(), FibHash(key->Hash()), val, false, iterators_invalidated);
 		}
 
 	// If copy_key is true, then the key is copied, otherwise it's assumed
@@ -577,6 +588,21 @@ public:
 				max_entries = num_entries;
 			if ( num_entries > ThresholdEntries() )
 				SizeUp();
+			// if space_distance is too great, performance decreases. we need to sizeup for
+			// performance.
+			else if ( space_distance_samples > detail::MIN_SPACE_DISTANCE_SAMPLES &&
+			          space_distance_sum > space_distance_samples * detail::SPACE_DISTANCE_THRESHOLD &&
+			          num_entries * 100 > uint32_t(detail::MIN_DICT_LOAD_FACTOR_100) * Capacity() )
+				{
+				// fprintf(
+				// 	stderr,
+				// 	"size up as space is too far away for a reasonable performance. %d/%ld %d/%d\n",
+				// 	SpaceDistance(), space_distance_samples, num_entries, Capacity());
+				SizeUp();
+				// reset performance metrics.
+				space_distance_sum = 0;
+				space_distance_samples = 0;
+				}
 			}
 
 		// Remap after insert can adjust asap to shorten period of mixed table.
@@ -729,6 +755,13 @@ public:
 	/// The capacity of the table, Buckets + Overflow Size.
 	int Capacity() const { return table ? bucket_capacity : 0; }
 	int ExpectedCapacity() const { return bucket_capacity; }
+	float LoadFactor() const { return float(num_entries) / Capacity(); }
+	int SpaceDistance() const
+		{
+		if ( ! space_distance_samples )
+			return 0;
+		return int(space_distance_sum / space_distance_samples);
+		}
 
 	// Debugging
 #define DUMPIF(f)                                                                                  \
@@ -947,7 +980,7 @@ private:
 		int capacity = Capacity();
 		if ( log2_buckets <= detail::DICT_THRESHOLD_BITS )
 			return capacity; // 20 or less elements, 1.0, only size up when necessary.
-		return capacity - (capacity >> detail::DICT_LOAD_FACTOR_BITS);
+		return capacity * detail::DICT_LOAD_FACTOR_100 / 100;
 		}
 
 	// Used to improve the distribution of the original hash.
@@ -961,17 +994,11 @@ private:
 		}
 
 	// Maps a hash to the appropriate n-bit table bucket.
-	int BucketByHash(detail::hash_t h, int bit) const
+	int BucketByHash(detail::hash_t hash, int bit) const
 		{
 		ASSERT(bit >= 0);
 		if ( ! bit )
 			return 0; //<< >> breaks on  64.
-
-#ifdef DICT_NO_FIB_HASH
-		detail::hash_t hash = h;
-#else
-		detail::hash_t hash = FibHash(h);
-#endif
 
 		int m = 64 - bit;
 		hash <<= m;
@@ -1162,11 +1189,13 @@ private:
 	void InsertRelocateAndAdjust(detail::DictEntry<T>& entry, int insert_position)
 		{
 /// e.distance is adjusted to be the one at insert_position.
-#ifdef ZEEK_DICT_DEBUG
+#ifdef DEBUG
 		entry.bucket = BucketByHash(entry.hash, log2_buckets);
-#endif // ZEEK_DICT_DEBUG
+#endif // DEBUG
 		int last_affected_position = insert_position;
 		InsertAndRelocate(entry, insert_position, &last_affected_position);
+		space_distance_sum += last_affected_position - insert_position;
+		space_distance_samples++;
 
 		// If remapping in progress, adjust the remap_end to step back a little to cover the new
 		// range if the changed range straddles over remap_end.
@@ -1504,6 +1533,9 @@ private:
 	uint32_t num_entries = 0;
 	uint32_t max_entries = 0;
 	uint64_t cum_entries = 0;
+	int64_t space_distance_samples = 0;
+	// how far the space is
+	int64_t space_distance_sum = 0;
 
 	dict_delete_func delete_func = nullptr;
 	detail::DictEntry<T>* table = nullptr;

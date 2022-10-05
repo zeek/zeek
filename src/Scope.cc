@@ -197,7 +197,7 @@ void merge_top_scope()
 
 	auto t = pop_scope();
 
-	for ( auto v : t->OrderedVars() )
+	for ( const auto& v : t->OrderedVars() )
 		{
 		v->SetOffset(top_scope->Length());
 		top_scope->Insert(v->Name(), v);

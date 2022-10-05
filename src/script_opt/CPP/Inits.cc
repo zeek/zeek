@@ -196,7 +196,7 @@ void CPPCompile::InitializeGlobals()
 	Emit("Frame* f__CPP = nullptr;");
 	NL();
 
-	for ( auto ginit : IDOptInfo::GetGlobalInitExprs() )
+	for ( const auto& ginit : IDOptInfo::GetGlobalInitExprs() )
 		{
 		auto g = ginit.Id();
 		if ( pfs.Globals().count(g) == 0 )

@@ -18,8 +18,8 @@ TEST_SUITE_BEGIN("Dict");
 
 struct ReportDuration
 	{
-	std::chrono::_V2::system_clock::time_point start;
-	std::chrono::_V2::system_clock::time_point stop;
+	std::chrono::system_clock::time_point start;
+	std::chrono::system_clock::time_point stop;
 
 	void Start()
 		{
@@ -124,10 +124,10 @@ TEST_CASE("dict verify clone performance")
 #if 0 //open this test to measure performance in detail
 TEST_CASE("dict measure clone")
 	{
-	constexpr int iMax = 10;
+	constexpr int iMax = ;
 	long duration[iMax][4];
 	constexpr int base = 1000000;
-	constexpr int interval = 200000;
+	constexpr int interval = 500000;
 	ReportDuration rd;
 	for ( auto i = 0; i < iMax; i++ )
 		{

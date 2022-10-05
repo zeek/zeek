@@ -505,7 +505,7 @@ void ZAM_OpTemplate::InstantiateOp(const string& method, const vector<ZAM_Operan
 		}
 	}
 
-void ZAM_OpTemplate::GenAssignmentlessVersion(string op)
+void ZAM_OpTemplate::GenAssignmentlessVersion(const string& op)
 	{
 	EmitTo(AssignFlavor);
 	Emit("assignmentless_op[" + op + "] = " + AssignmentLessOp() + ";");
@@ -544,7 +544,7 @@ void ZAM_OpTemplate::InstantiateMethod(const string& m, const string& suffix,
 	NL();
 	}
 
-void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot, string suffix,
+void ZAM_OpTemplate::InstantiateMethodCore(const vector<ZAM_OperandType>& ot, const string& suffix,
                                            ZAM_InstClass zc)
 	{
 	if ( HasCustomMethod() )
@@ -885,7 +885,7 @@ static unordered_map<char, ZAM_ExprType> expr_type_names = {
 static unordered_map<ZAM_ExprType, char> expr_name_types;
 
 ZAM_ExprOpTemplate::ZAM_ExprOpTemplate(ZAMGen* _g, string _base_name)
-	: ZAM_OpTemplate(_g, _base_name)
+	: ZAM_OpTemplate(_g, std::move(_base_name))
 	{
 	static bool did_map_init = false;
 
@@ -1539,7 +1539,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType>& ot
 	}
 
 ZAM_AssignOpTemplate::ZAM_AssignOpTemplate(ZAMGen* _g, string _base_name)
-	: ZAM_UnaryExprOpTemplate(_g, _base_name)
+	: ZAM_UnaryExprOpTemplate(_g, std::move(_base_name))
 	{
 	// Assignments apply to every valid form of ExprType.
 	for ( auto& etn : expr_type_names )
@@ -2118,7 +2118,7 @@ void ZAMGen::InitSwitch(EmitTarget et, string desc)
 	Emit(et, "{");
 	Emit(et, "switch ( rhs->Tag() ) {");
 
-	switch_targets[et] = desc;
+	switch_targets[et] = std::move(desc);
 	}
 
 void ZAMGen::CloseEmitTargets()

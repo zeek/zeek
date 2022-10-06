@@ -1,3 +1,14 @@
+5.2.0-dev.70 | 2022-10-06 14:18:18 -0700
+
+  * Remove stray `/` at the end of directory name. (Benjamin Bannier, Corelight)
+
+    This variable is used to construct a path where the trailing `/` lead to
+    full paths like `/foo/spicy-plugin//spicyz`.
+
+  * Remove commented out code. (Benjamin Bannier, Corelight)
+
+  * Bump spicy-plugin to v1.3.19. (Benjamin Bannier, Corelight)
+
 5.2.0-dev.66 | 2022-10-06 14:15:01 -0700
 
   * Update CT log list. (Johanna Amann, Corelight)

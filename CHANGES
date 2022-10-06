@@ -1,3 +1,14 @@
+5.2.0-dev.66 | 2022-10-06 14:15:01 -0700
+
+  * Update CT log list. (Johanna Amann, Corelight)
+
+    This uses the v3 json as a source for the first time. The test needed
+    some updating because Google removed a couple more logs - in the future
+    this should hopefully not be neccessary anymore because I think v3
+    should retain all logs.
+
+    In theory this might be neat in 5.1.
+
 5.2.0-dev.51 | 2022-10-05 13:27:08 +0200
 
   * analyzer: Add file_analyzer support to enable_analyzer()/disable_analyzer() (Arne Welzel, Corelight)

@@ -124,7 +124,7 @@ TEST_CASE("dict verify clone performance")
 #if 0 //open this test to measure performance in detail
 TEST_CASE("dict measure clone")
 	{
-	constexpr int iMax = ;
+	constexpr int iMax = 3;
 	long duration[iMax][4];
 	constexpr int base = 1000000;
 	constexpr int interval = 500000;

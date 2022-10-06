@@ -235,6 +235,18 @@ if ( ZEEK_SANITIZERS )
 
     set(_sanitizer_flags "-fsanitize=${ZEEK_SANITIZERS}")
 
+    # The linker command used by check_cxx_compiler_flag requires you to also pass the sanitizer to
+    # it or it fails. The best way to do this is to set CMAKE_REQUIRED_LINK_OPTIONS, but save off a
+    # copy of it so it can be reset back to what it was previously afterwards.
+    set(_temp_link_options ${CMAKE_REQUIRED_LINK_OPTIONS})
+    list(APPEND CMAKE_REQUIRED_LINK_OPTIONS ${_sanitizer_flags})
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag(${_sanitizer_flags} COMPILER_SUPPORTS_SANITIZERS)
+    if ( NOT COMPILER_SUPPORTS_SANITIZERS )
+      message(FATAL_ERROR "Invalid sanitizer compiler flags: ${_sanitizer_flags}")
+    endif()
+    set(CMAKE_REQUIRED_LINK_OPTIONS ${_temp_link_options})
+
     if ( ZEEK_SANITIZER_UB_CHECKS )
         set(_sanitizer_flags "${_sanitizer_flags} -fno-sanitize-recover=${ZEEK_SANITIZER_UB_CHECKS}")
     endif ()

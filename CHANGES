@@ -1,3 +1,14 @@
+5.1.0-rc1.4 | 2022-10-07 09:04:14 -0700
+
+  * Update CT log list.
+    
+    This uses the v3 json as a source for the first time. The test needed
+    some updating because Google removed a couple more logs - in the future
+    this should hopefully not be neccessary anymore because I think v3
+    should retain all logs.
+
+    (cherry picked from commit 2fce5b3a34a3653eeaa3e9fbc19ebad50901817a)
+    
 5.1.0-rc1.2 | 2022-10-03 09:14:30 -0700
 
   * Fix some typos in the 5.1.0 NEWS (Tim Wojtulewicz, Corelight)

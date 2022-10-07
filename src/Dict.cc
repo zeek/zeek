@@ -12,6 +12,7 @@ namespace zeek
 
 TEST_SUITE_BEGIN("Dict");
 
+#if 0 //comment out unit test for a separate PR
 //to show outputs of unit tests, define PRINTF as fprintf by uncommenting fprintf.
 //and run ./zeek --test -tc="dict verify clone performance"
 #define PRINTF(fmt, args...) //fprintf(stderr, fmt, args)
@@ -121,6 +122,7 @@ TEST_CASE("dict verify clone performance")
 		       float(d1) / d0);
 		}
 	}
+#endif	
 #if 0 //open this test to measure performance in detail
 TEST_CASE("dict measure clone")
 	{

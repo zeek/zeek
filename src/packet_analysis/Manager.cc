@@ -30,7 +30,10 @@ void Manager::InitPostScript(const std::string& unprocessed_output_file)
 	for ( const auto& analyzerComponent : GetComponents() )
 		{
 		if ( AnalyzerPtr newAnalyzer = InstantiateAnalyzer(analyzerComponent->Tag()) )
+			{
+			newAnalyzer->SetEnabled(analyzerComponent->Enabled());
 			analyzers.emplace(analyzerComponent->Name(), newAnalyzer);
+			}
 		}
 
 	// Initialize all analyzers
@@ -91,11 +94,7 @@ AnalyzerPtr Manager::GetAnalyzer(const std::string& name)
 bool Manager::EnableAnalyzer(EnumVal* tag)
 	{
 	Component* c = Lookup(tag);
-	AnalyzerPtr a = GetAnalyzer(c->Name());
-	if ( ! a )
-		return false;
-
-	a->SetEnabled(true);
+	c->SetEnabled(true);
 
 	return true;
 	}
@@ -103,11 +102,7 @@ bool Manager::EnableAnalyzer(EnumVal* tag)
 bool Manager::DisableAnalyzer(EnumVal* tag)
 	{
 	Component* c = Lookup(tag);
-	AnalyzerPtr a = GetAnalyzer(c->Name());
-	if ( ! a )
-		return false;
-
-	a->SetEnabled(false);
+	c->SetEnabled(false);
 
 	return true;
 	}

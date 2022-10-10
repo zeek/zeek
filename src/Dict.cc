@@ -246,6 +246,96 @@ TEST_CASE("dict robust iteration")
 	delete key3;
 	}
 
+TEST_CASE("dict ordered iteration")
+	{
+	PDict<uint32_t> dict(DictOrder::ORDERED);
+
+	// These key values are specifically contrived to be inserted
+	// into the dictionary in a different order by default.
+	uint32_t val = 15;
+	uint32_t key_val = 5;
+	auto key = std::make_unique<detail::HashKey>(key_val);
+
+	uint32_t val2 = 10;
+	uint32_t key_val2 = 25;
+	auto key2 = std::make_unique<detail::HashKey>(key_val2);
+
+	uint32_t val3 = 30;
+	uint32_t key_val3 = 45;
+	auto key3 = std::make_unique<detail::HashKey>(key_val3);
+
+	uint32_t val4 = 20;
+	uint32_t key_val4 = 35;
+	auto key4 = std::make_unique<detail::HashKey>(key_val4);
+
+	// Only insert the first three to start with so we can test the order
+	// being the same after a later insertion.
+	dict.Insert(key.get(), &val);
+	dict.Insert(key2.get(), &val2);
+	dict.Insert(key3.get(), &val3);
+
+	int count = 0;
+
+	for ( const auto& entry : dict )
+		{
+		auto* v = static_cast<uint32_t*>(entry.value);
+		uint32_t k = *(uint32_t*)entry.GetKey();
+
+		// The keys should be returned in the same order we inserted
+		// them, which is 5, 25, 45.
+		if ( count == 0 )
+			CHECK(k == 5);
+		else if ( count == 1 )
+			CHECK(k == 25);
+		else if ( count == 2 )
+			CHECK(k == 45);
+
+		count++;
+		}
+
+	dict.Insert(key4.get(), &val4);
+	count = 0;
+
+	for ( const auto& entry : dict )
+		{
+		auto* v = static_cast<uint32_t*>(entry.value);
+		uint32_t k = *(uint32_t*)entry.GetKey();
+
+		// The keys should be returned in the same order we inserted
+		// them, which is 5, 25, 45, 35.
+		if ( count == 0 )
+			CHECK(k == 5);
+		else if ( count == 1 )
+			CHECK(k == 25);
+		else if ( count == 2 )
+			CHECK(k == 45);
+		else if ( count == 3 )
+			CHECK(k == 35);
+
+		count++;
+		}
+
+	dict.Remove(key2.get());
+	count = 0;
+
+	for ( const auto& entry : dict )
+		{
+		auto* v = static_cast<uint32_t*>(entry.value);
+		uint32_t k = *(uint32_t*)entry.GetKey();
+
+		// The keys should be returned in the same order we inserted
+		// them, which is 5, 45, 35.
+		if ( count == 0 )
+			CHECK(k == 5);
+		else if ( count == 1 )
+			CHECK(k == 45);
+		else if ( count == 2 )
+			CHECK(k == 35);
+
+		count++;
+		}
+	}
+
 class DictTestDummy
 	{
 public:

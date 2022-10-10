@@ -163,6 +163,8 @@ public:
 	bool operator!=(const DictEntry& r) const { return ! Equal(r.GetKey(), r.key_size, r.hash); }
 	};
 
+using DictEntryVec = std::vector<detail::HashKey>;
+
 	} // namespace detail
 
 template <typename T> class DictIterator
@@ -198,6 +200,8 @@ public:
 		dict = that.dict;
 		curr = that.curr;
 		end = that.end;
+		ordered_iter = that.ordered_iter;
+
 		dict->IncrIters();
 		}
 
@@ -215,6 +219,8 @@ public:
 		dict = that.dict;
 		curr = that.curr;
 		end = that.end;
+		ordered_iter = that.ordered_iter;
+
 		dict->IncrIters();
 
 		return *this;
@@ -234,6 +240,7 @@ public:
 		dict = that.dict;
 		curr = that.curr;
 		end = that.end;
+		ordered_iter = that.ordered_iter;
 
 		that.dict = nullptr;
 		}
@@ -252,25 +259,64 @@ public:
 		dict = that.dict;
 		curr = that.curr;
 		end = that.end;
+		ordered_iter = that.ordered_iter;
 
 		that.dict = nullptr;
 
 		return *this;
 		}
 
-	reference operator*() { return *curr; }
-	reference operator*() const { return *curr; }
-	pointer operator->() { return curr; }
-	pointer operator->() const { return curr; }
+	reference operator*()
+		{
+		if ( dict->IsOrdered() )
+			{
+			// TODO: how does this work if ordered_iter == end(). LookupEntry will return a nullptr,
+			// which the dereference will fail on. That's undefined behavior, correct? Is that any
+			// different than if the unordered version returns a dereference of it's end?
+			auto e = dict->LookupEntry(*ordered_iter);
+			return *e;
+			}
+
+		return *curr;
+		}
+	reference operator*() const
+		{
+		if ( dict->IsOrdered() )
+			{
+			auto e = dict->LookupEntry(*ordered_iter);
+			return *e;
+			}
+
+		return *curr;
+		}
+	pointer operator->()
+		{
+		if ( dict->IsOrdered() )
+			return dict->LookupEntry(*ordered_iter);
+
+		return curr;
+		}
+	pointer operator->() const
+		{
+		if ( dict->IsOrdered() )
+			return dict->LookupEntry(*ordered_iter);
+
+		return curr;
+		}
 
 	DictIterator& operator++()
 		{
-		// The non-robust case is easy. Just advanced the current position forward until you find
-		// one isn't empty and isn't the end.
-		do
+		if ( dict->IsOrdered() )
+			++ordered_iter;
+		else
 			{
-			++curr;
-			} while ( curr != end && curr->Empty() );
+			// The non-robust case is easy. Just advance the current position forward until you
+			// find one isn't empty and isn't the end.
+			do
+				{
+				++curr;
+				} while ( curr != end && curr->Empty() );
+			}
 
 		return *this;
 		}
@@ -282,7 +328,17 @@ public:
 		return temp;
 		}
 
-	bool operator==(const DictIterator& that) const { return curr == that.curr; }
+	bool operator==(const DictIterator& that) const
+		{
+		if ( dict != that.dict )
+			return false;
+
+		if ( dict->IsOrdered() )
+			return ordered_iter == that.ordered_iter;
+
+		return curr == that.curr;
+		}
+
 	bool operator!=(const DictIterator& that) const { return ! (*this == that); }
 
 private:
@@ -291,10 +347,21 @@ private:
 	DictIterator(const Dictionary<T>* d, detail::DictEntry<T>* begin, detail::DictEntry<T>* end)
 		: curr(begin), end(end)
 		{
+		// Cast away the constness so that the number of iterators can be modified in the
+		// dictionary. This does violate the constness guarantees of const-begin()/end() and
+		// cbegin()/cend(), but we're not modifying the actual data in the collection, just a
+		// counter in the wrapper of the collection.
+		dict = const_cast<Dictionary<T>*>(d);
+
 		// Make sure that we're starting on a non-empty element.
 		while ( curr != end && curr->Empty() )
 			++curr;
 
+		dict->IncrIters();
+		}
+
+	DictIterator(const Dictionary<T>* d, detail::DictEntryVec::iterator iter) : ordered_iter(iter)
+		{
 		// Cast away the constness so that the number of iterators can be modified in the
 		// dictionary. This does violate the constness guarantees of const-begin()/end() and
 		// cbegin()/cend(), but we're not modifying the actual data in the collection, just a
@@ -306,6 +373,7 @@ private:
 	Dictionary<T>* dict = nullptr;
 	detail::DictEntry<T>* curr = nullptr;
 	detail::DictEntry<T>* end = nullptr;
+	detail::DictEntryVec::iterator ordered_iter;
 	};
 
 template <typename T> class RobustDictIterator
@@ -462,7 +530,7 @@ public:
 			}
 
 		if ( ordering == ORDERED )
-			order = new std::vector<detail::DictEntry<T>>;
+			order = std::make_unique<std::vector<detail::HashKey>>();
 		}
 
 	~Dictionary() { Clear(); }
@@ -479,12 +547,10 @@ public:
 
 	T* Lookup(const void* key, int key_size, detail::hash_t h) const
 		{
-		// Look up possibly modifies the entry. Why? if the entry is found but not positioned
-		// according to the current dict (so it's before SizeUp), it will be moved to the right
-		// position so next lookup is fast.
-		Dictionary* d = const_cast<Dictionary*>(this);
-		int position = d->LookupIndex(key, key_size, h);
-		return position >= 0 ? table[position].value : nullptr;
+		if ( auto e = LookupEntry(key, key_size, h) )
+			return e->value;
+
+		return nullptr;
 		}
 
 	T* Lookup(const char* key) const
@@ -530,13 +596,6 @@ public:
 			if ( ! copy_key )
 				delete[](char*) key;
 
-			if ( order )
-				{ // set new v to order too.
-				auto it = std::find(order->begin(), order->end(), table[position]);
-				ASSERT(it != order->end());
-				it->value = val;
-				}
-
 			if ( iterators && ! iterators->empty() )
 				// need to set new v for iterators too.
 				for ( auto c : *iterators )
@@ -564,12 +623,15 @@ public:
 						"Dictionary::Insert() possibly caused iterator invalidation");
 				}
 
+			// Do this before the actual insertion since creating the DictEntry is going to delete
+			// the key data. We need a copy of it first.
+			if ( order )
+				order->emplace_back(detail::HashKey{key, static_cast<size_t>(key_size), hash});
+
 			// Allocate memory for key if necesary. Key is updated to reflect internal key if
 			// necessary.
 			detail::DictEntry<T> entry(key, key_size, hash, val, insert_distance, copy_key);
 			InsertRelocateAndAdjust(entry, insert_position);
-			if ( order )
-				order->push_back(entry);
 
 			num_entries++;
 			cum_entries++;
@@ -629,7 +691,16 @@ public:
 		ASSERT(num_entries >= 0);
 		// e is about to be invalid. remove it from all references.
 		if ( order )
-			order->erase(std::remove(order->begin(), order->end(), entry), order->end());
+			{
+			for ( auto it = order->begin(); it != order->end(); ++it )
+				{
+				if ( it->Equal(key, key_size, hash) )
+					{
+					it = order->erase(it);
+					break;
+					}
+				}
+			}
 
 		T* v = entry.value;
 		entry.Clear();
@@ -677,10 +748,13 @@ public:
 		{
 		if ( ! order || n < 0 || n >= Length() )
 			return nullptr;
-		detail::DictEntry<T> entry = (*order)[n];
-		key = entry.GetKey();
-		key_size = entry.key_size;
-		return entry.value;
+
+		auto& hk = order->at(n);
+		auto entry = Lookup(&hk);
+
+		key = hk.Key();
+		key_size = hk.Size();
+		return entry;
 		}
 
 	T* NthEntry(int n, const char*& key) const
@@ -709,10 +783,8 @@ public:
 			}
 
 		if ( order )
-			{
-			delete order;
-			order = nullptr;
-			}
+			order.reset();
+
 		if ( iterators )
 			{
 			delete iterators;
@@ -913,12 +985,48 @@ public:
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-	iterator begin() { return {this, table, table + Capacity()}; }
-	iterator end() { return {this, table + Capacity(), table + Capacity()}; }
-	const_iterator begin() const { return {this, table, table + Capacity()}; }
-	const_iterator end() const { return {this, table + Capacity(), table + Capacity()}; }
-	const_iterator cbegin() { return {this, table, table + Capacity()}; }
-	const_iterator cend() { return {this, table + Capacity(), table + Capacity()}; }
+	iterator begin()
+		{
+		if ( IsOrdered() )
+			return {this, order->begin()};
+
+		return {this, table, table + Capacity()};
+		}
+	iterator end()
+		{
+		if ( IsOrdered() )
+			return {this, order->end()};
+
+		return {this, table + Capacity(), table + Capacity()};
+		}
+	const_iterator begin() const
+		{
+		if ( IsOrdered() )
+			return {this, order->begin()};
+
+		return {this, table, table + Capacity()};
+		}
+	const_iterator end() const
+		{
+		if ( IsOrdered() )
+			return {this, order->end()};
+
+		return {this, table + Capacity(), table + Capacity()};
+		}
+	const_iterator cbegin()
+		{
+		if ( IsOrdered() )
+			return {this, order->begin()};
+
+		return {this, table, table + Capacity()};
+		}
+	const_iterator cend()
+		{
+		if ( IsOrdered() )
+			return {this, order->end()};
+
+		return {this, table + Capacity(), table + Capacity()};
+		}
 
 	RobustDictIterator<T> begin_robust() { return MakeRobustIterator(); }
 	RobustDictIterator<T> end_robust() { return RobustDictIterator<T>(); }
@@ -1400,6 +1508,35 @@ private:
 		                                // previous log2_buckets.
 		}
 
+	/**
+	 * Retrieves a pointer to a full DictEntry in the table based on a hash key.
+	 *
+	 * @param key the key to lookup.
+	 * @return A pointer to the entry or a nullptr if no entry has a matching key.
+	 */
+	detail::DictEntry<T>* LookupEntry(const detail::HashKey& key)
+		{
+		return LookupEntry(key.Key(), key.Size(), key.Hash());
+		}
+
+	/**
+	 * Retrieves a pointer to a full DictEntry in the table based on key data.
+	 *
+	 * @param key the key to lookup
+	 * @param key_size the size of the key data
+	 * @param h a hash of the key data.
+	 * @return A pointer to the entry or a nullptr if no entry has a matching key.
+	 */
+	detail::DictEntry<T>* LookupEntry(const void* key, int key_size, detail::hash_t h) const
+		{
+		// Look up possibly modifies the entry. Why? if the entry is found but not positioned
+		// according to the current dict (so it's before SizeUp), it will be moved to the right
+		// position so next lookup is fast.
+		Dictionary* d = const_cast<Dictionary*>(this);
+		int position = d->LookupIndex(key, key_size, h);
+		return position >= 0 ? &(table[position]) : nullptr;
+		}
+
 	bool HaveOnlyRobustIterators() const
 		{
 		return (num_iterators == 0) || ((iterators ? iterators->size() : 0) == num_iterators);
@@ -1407,6 +1544,10 @@ private:
 
 	RobustDictIterator<T> MakeRobustIterator()
 		{
+		if ( IsOrdered() )
+			reporter->InternalError(
+				"RobustIterators are not currently supported for ordered dictionaries");
+
 		if ( ! iterators )
 			iterators = new std::vector<RobustDictIterator<T>*>;
 
@@ -1415,15 +1556,17 @@ private:
 
 	detail::DictEntry<T> GetNextRobustIteration(RobustDictIterator<T>* iter)
 		{
-		// If there are any inserted entries, return them first.
-		// That keeps the list small and helps avoiding searching
-		// a large list when deleting an entry.
+		// If there's no table in the dictionary, then the iterator needs to be
+		// cleaned up because it's not pointing at anything.
 		if ( ! table )
 			{
 			iter->Complete();
 			return detail::DictEntry<T>(nullptr); // end of iteration
 			}
 
+		// If there are any inserted entries, return them first.
+		// That keeps the list small and helps avoiding searching
+		// a large list when deleting an entry.
 		if ( iter->inserted && ! iter->inserted->empty() )
 			{
 			// Return the last one. Order doesn't matter,
@@ -1433,6 +1576,7 @@ private:
 			return e;
 			}
 
+		// First iteration.
 		if ( iter->next < 0 )
 			iter->next = Next(-1);
 
@@ -1509,8 +1653,10 @@ private:
 	detail::DictEntry<T>* table = nullptr;
 	std::vector<RobustDictIterator<T>*>* iterators = nullptr;
 
-	// Order means the order of insertion. means no deletion until exit. will be inefficient.
-	std::vector<detail::DictEntry<T>>* order = nullptr;
+	// Ordered dictionaries keep the order based on some criteria, by default the order of
+	// insertion. We only store a copy of the keys here for memory savings and for safety
+	// around reallocs and such.
+	std::unique_ptr<detail::DictEntryVec> order;
 	};
 
 template <typename T> using PDict = Dictionary<T>;

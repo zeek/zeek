@@ -1,3 +1,15 @@
+5.2.0-dev.77 | 2022-10-10 11:10:31 -0700
+
+  * Disable robust iteration for ordered dictionaries (Tim Wojtulewicz, Corelight)
+
+    This also includes some minor commenting cleanup in that class
+
+  * Add support for itertors with ordered dictionaries (Tim Wojtulewicz, Corelight)
+
+  * Add equality, inequality, copy, and move operators to HashKey (Tim Wojtulewicz, Corelight)
+
+  * Disable annoying bugprone-easily-swappable-parameters clang-tidy check [skip ci] (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.70 | 2022-10-06 14:18:18 -0700
 
   * Remove stray `/` at the end of directory name. (Benjamin Bannier, Corelight)

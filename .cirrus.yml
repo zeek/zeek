@@ -78,7 +78,6 @@ ci_template: &CI_TEMPLATE
   init_external_repos_script: ./ci/init-external-repos.sh
 
   build_script: ./ci/build.sh
-  test_script: ./ci/test.sh
 
   on_failure:
     upload_btest_tmp_dir_artifacts:

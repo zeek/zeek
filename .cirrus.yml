@@ -100,6 +100,8 @@ ci_template: &CI_TEMPLATE
     upload_btest_html_results_artifacts:
       path: "testing/**/btest-results.html"
       type: text/html
+    upload_justrx_autogen_artifacts:
+      path: "build/auxil/spicy/spicy/3rdparty/justrx/justrx/autogen/*"
     cache_statistics_script:
       ccache --show-stats
 

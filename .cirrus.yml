@@ -56,15 +56,6 @@ ci_template: &CI_TEMPLATE
   # - Don't do darwin builds on zeek-security repo because they use up a ton of compute credits.
   # - Always build PRs, but not if they come from dependabot
   # - Always build master and release/* builds from the main repo
-  only_if: >
-    ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
-    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-    ( $CIRRUS_REPO_NAME == 'zeek' &&
-      (
-      $CIRRUS_BRANCH == 'master' ||
-      $CIRRUS_BRANCH =~ 'release/.*'
-      )
-    ) )
 
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.
@@ -136,6 +127,7 @@ env:
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
 fedora35_task:
+  only_if: false
   container:
     # Fedora 35 EOL: Around Dec 2022
     dockerfile: ci/fedora-35/Dockerfile
@@ -143,6 +135,7 @@ fedora35_task:
   << : *CI_TEMPLATE
 
 fedora36_task:
+  only_if: false
   container:
     # Fedora 36 EOL: Around May 2023
     dockerfile: ci/fedora-36/Dockerfile
@@ -150,6 +143,7 @@ fedora36_task:
   << : *CI_TEMPLATE
 
 centosstream9_task:
+  only_if: false
   container:
     # Stream 9 EOL: Around Dec 2027
     dockerfile: ci/centos-stream-9/Dockerfile
@@ -157,6 +151,7 @@ centosstream9_task:
   << : *CI_TEMPLATE
 
 centosstream8_task:
+  only_if: false
   container:
     # Stream 8 EOL: May 31, 2024
     dockerfile: ci/centos-stream-8/Dockerfile
@@ -164,6 +159,7 @@ centosstream8_task:
   << : *CI_TEMPLATE
 
 centos7_task:
+  only_if: false
   container:
     # CentOS 7 EOL: June 30, 2024
     dockerfile: ci/centos-7/Dockerfile
@@ -171,6 +167,7 @@ centos7_task:
   << : *CI_TEMPLATE
 
 debian11_task:
+  only_if: false
   container:
     # Debian 11 EOL: June 2026
     dockerfile: ci/debian-11/Dockerfile
@@ -178,6 +175,7 @@ debian11_task:
   << : *CI_TEMPLATE
 
 debian11_static_task:
+  only_if: false
   container:
     # Just use a recent/common distro to run a static compile test.
     # Debian 11 EOL: June 2026
@@ -188,6 +186,7 @@ debian11_static_task:
     ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
 
 debian10_task:
+  only_if: false
   container:
     # Debian 10 EOL: June 2024
     dockerfile: ci/debian-10/Dockerfile
@@ -195,6 +194,7 @@ debian10_task:
   << : *CI_TEMPLATE
 
 opensuse_leap_15_4_task:
+  only_if: false
   container:
     # Opensuse Leap 15.4 EOL: TBD
     dockerfile: ci/opensuse-leap-15.4/Dockerfile
@@ -202,6 +202,7 @@ opensuse_leap_15_4_task:
   << : *CI_TEMPLATE
 
 opensuse_leap_15_3_task:
+  only_if: false
   container:
     # Opensuse Leap 15.3 EOL: ~Dec 2022
     dockerfile: ci/opensuse-leap-15.3/Dockerfile
@@ -209,6 +210,7 @@ opensuse_leap_15_3_task:
   << : *CI_TEMPLATE
 
 opensuse_tumbleweed_task:
+  only_if: false
   container:
     # Opensuse Tumbleweed has no EOL
     dockerfile: ci/opensuse-tumbleweed/Dockerfile
@@ -216,6 +218,7 @@ opensuse_tumbleweed_task:
   << : *CI_TEMPLATE
 
 ubuntu22_task:
+  only_if: false
   container:
     # Ubuntu 22.04 EOL: April 2027
     dockerfile: ci/ubuntu-22.04/Dockerfile
@@ -223,6 +226,7 @@ ubuntu22_task:
   << : *CI_TEMPLATE
 
 ubuntu20_task:
+  only_if: false
   container:
     # Ubuntu 20.04 EOL: April 2025
     dockerfile: ci/ubuntu-20.04/Dockerfile
@@ -230,6 +234,7 @@ ubuntu20_task:
   << : *CI_TEMPLATE
 
 ubuntu18_task:
+  only_if: false
   container:
     # Ubuntu 18.04 EOL: April 2023
     dockerfile: ci/ubuntu-18.04/Dockerfile
@@ -237,6 +242,7 @@ ubuntu18_task:
   << : *CI_TEMPLATE
 
 alpine_task:
+  only_if: false
   container:
     # Alpine releases typically happen every 6 months w/ support for 2 years.
     # The Dockerfile simply tracks latest Alpine release and shouldn't
@@ -255,6 +261,7 @@ macos_monterey_task:
   << : *MACOS_ENVIRONMENT
 
 macos_big_sur_task:
+  only_if: false
   macos_instance:
     image: big-sur-xcode-12.5
   prepare_script: ./ci/macos/prepare.sh
@@ -263,6 +270,7 @@ macos_big_sur_task:
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:
+  only_if: false
   freebsd_instance:
     # We don't support FreeBSD 14 yet, this is a purely informative task
     image_family: freebsd-14-0-snap
@@ -275,6 +283,7 @@ freebsd14_task:
   << : *FREEBSD_ENVIRONMENT
 
 freebsd13_task:
+  only_if: false
   freebsd_instance:
     # FreeBSD 13 EOL: January 31, 2026
     image_family: freebsd-13-1
@@ -285,6 +294,7 @@ freebsd13_task:
   << : *FREEBSD_ENVIRONMENT
 
 freebsd12_task:
+  only_if: false
   freebsd_instance:
     # FreeBSD 12 EOL: June 30, 2024
     image_family: freebsd-12-3
@@ -297,6 +307,7 @@ freebsd12_task:
 # This can be removed as soon as the first distribution that we use ships
 # OpenSSL 3.0
 openssl30_task:
+  only_if: false
   container:
     # Tweaked Ubuntu 20.04 EOL: April 2025
     dockerfile: ci/openssl-3.0/Dockerfile
@@ -306,6 +317,7 @@ openssl30_task:
     ZEEK_CI_CONFIGURE_FLAGS: *OPENSSL30_CONFIG
 
 asan_sanitizer_task:
+  only_if: false
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
@@ -321,6 +333,7 @@ asan_sanitizer_task:
     ASAN_OPTIONS: detect_leaks=1
 
 ubsan_sanitizer_task:
+  only_if: false
   container:
     # Just uses a recent/common distro to run undefined behavior checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile

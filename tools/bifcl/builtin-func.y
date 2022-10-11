@@ -15,10 +15,11 @@ using namespace std;
 
 extern int line_number;
 extern char* input_filename;
+extern char* input_filename_with_path;
 extern char* plugin;
 extern int alternative_mode;
 
-#define print_line_directive(fp) fprintf(fp, "\n#line %d \"%s\"\n", line_number, input_filename)
+#define print_line_directive(fp) fprintf(fp, "\n#line %d \"%s\"\n", line_number, input_filename_with_path)
 
 extern FILE* fp_zeek_init;
 extern FILE* fp_func_def;

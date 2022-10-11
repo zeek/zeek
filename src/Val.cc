@@ -1389,7 +1389,8 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
 
 TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 	{
-	Init(std::move(t));
+	bool ordered = (a != nullptr && a->Find(detail::ATTR_ORDERED) != nullptr);
+	Init(std::move(t), ordered);
 	SetAttrs(std::move(a));
 
 	if ( ! run_state::is_parsing )
@@ -1408,7 +1409,7 @@ TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 		}
 	}
 
-void TableVal::Init(TableTypePtr t)
+void TableVal::Init(TableTypePtr t, bool ordered)
 	{
 	table_type = std::move(t);
 	expire_func = nullptr;
@@ -1423,7 +1424,11 @@ void TableVal::Init(TableTypePtr t)
 		subnets = nullptr;
 
 	table_hash = new detail::CompositeHash(table_type->GetIndices());
-	table_val = new PDict<TableEntryVal>;
+	if ( ordered )
+		table_val = new PDict<TableEntryVal>(DictOrder::ORDERED);
+	else
+		table_val = new PDict<TableEntryVal>(DictOrder::UNORDERED);
+
 	table_val->SetDeleteFunc(table_entry_val_delete_func);
 	}
 

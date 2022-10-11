@@ -330,6 +330,7 @@ when	return TOK_WHEN;
 &broker_store	return TOK_ATTR_BROKER_STORE;
 &broker_allow_complex_type	return TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX;
 &backend	return TOK_ATTR_BACKEND;
+&ordered    return TOK_ATTR_ORDERED;
 
 @deprecated.* {
 	auto num_files = file_stack.length();

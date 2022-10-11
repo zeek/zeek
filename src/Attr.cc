@@ -40,6 +40,7 @@ const char* attr_name(AttrTag t)
 		"&deprecated",
 		"&is_assigned",
 		"&is_used",
+		"&ordered",
 	};
 
 	return attr_names[int(t)];
@@ -623,6 +624,11 @@ void Attributes::CheckAttr(Attr* a)
 
 			break;
 			}
+
+		case ATTR_ORDERED:
+			if ( type->Tag() != TYPE_TABLE )
+				Error("&ordered only applicable to tables");
+			break;
 
 		default:
 			BadTag("Attributes::CheckAttr", attr_name(a->Tag()));

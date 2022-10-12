@@ -68,36 +68,36 @@ public:
 	const std::vector<int>& Indices(int offset) const { return indices[offset]; }
 	const char* Strings(int offset) const
 		{
-		ASSERT(offset >= 0 && offset < strings.size());
+		ASSERT(offset >= 0 && offset < static_cast<int>(strings.size()));
 		ASSERT(strings[offset]);
 		return strings[offset];
 		}
 	const p_hash_type Hashes(int offset) const
 		{
-		ASSERT(offset >= 0 && offset < hashes.size());
+		ASSERT(offset >= 0 && offset < static_cast<int>(hashes.size()));
 		return hashes[offset];
 		}
 	const TypePtr& Types(int offset) const
 		{
-		ASSERT(offset >= 0 && offset < types.size());
+		ASSERT(offset >= 0 && offset < static_cast<int>(types.size()));
 		ASSERT(types[offset]);
 		return types[offset];
 		}
 	const AttributesPtr& Attributes(int offset) const
 		{
-		ASSERT(offset >= 0 && offset < attributes.size());
+		ASSERT(offset >= 0 && offset < static_cast<int>(attributes.size()));
 		ASSERT(attributes[offset]);
 		return attributes[offset];
 		}
 	const AttrPtr& Attrs(int offset) const
 		{
-		ASSERT(offset >= 0 && offset < attrs.size());
+		ASSERT(offset >= 0 && offset < static_cast<int>(attrs.size()));
 		ASSERT(attrs[offset]);
 		return attrs[offset];
 		}
 	const CallExprPtr& CallExprs(int offset) const
 		{
-		ASSERT(offset >= 0 && offset < call_exprs.size());
+		ASSERT(offset >= 0 && offset < static_cast<int>(call_exprs.size()));
 		ASSERT(call_exprs[offset]);
 		return call_exprs[offset];
 		}

@@ -453,7 +453,7 @@ void CPPCompile::GenFinishInit()
 
 	NL();
 	int max_cohort = 0;
-	for ( auto gi : all_global_info )
+	for ( const auto& gi : all_global_info )
 		max_cohort = std::max(max_cohort, gi->MaxCohort());
 
 	for ( auto c = 0; c <= max_cohort; ++c )

@@ -2268,6 +2268,20 @@ const RPC_status = {
 	[RPC_UNKNOWN_ERROR] = "unknown"
 };
 
+## The maximum number of analyzer violations the core generates before
+## suppressing them for a given analyzer instance. A weird providing
+## information about the analyzer and connection is generated once the
+## limit is reached.
+##
+## An analyzer generating this many violations is unlikely parsing
+## the right protocol or potentially buggy.
+##
+## See also :zeek:see:`DPD::max_violations` which controls disabling
+## analyzers through script logic after a certain number of violations
+## was observed.
+const max_analyzer_violations = 1000 &redef;
+
+
 module NFS3;
 
 export {

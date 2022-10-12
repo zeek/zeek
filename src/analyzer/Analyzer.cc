@@ -699,6 +699,16 @@ void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, 
 
 	StringValPtr r;
 
+	++analyzer_violations;
+
+	if ( analyzer_violations > BifConst::max_analyzer_violations )
+		{
+		if ( analyzer_violations == BifConst::max_analyzer_violations + 1 )
+			Weird("too_many_analyzer_violations");
+
+		return;
+		}
+
 	if ( data && len )
 		{
 		const char* tmp = util::copy_string(reason);

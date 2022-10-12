@@ -1,3 +1,10 @@
+5.2.0-dev.79 | 2022-10-12 09:32:38 -0700
+
+  * smtp: Prevent script errors when smtp$entity is not set (Tim Wojtulewicz, Corelight)
+
+    This is the same issue presented in 38e226bf75772dad8769fa4b5ae61fabb5fb34b9 but
+    for SMTP instead of HTTP.
+
 5.2.0-dev.77 | 2022-10-10 11:10:31 -0700
 
   * Disable robust iteration for ordered dictionaries (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,15 @@
+5.2.0-dev.86 | 2022-10-12 15:56:23 -0500
+
+  * Update gen-zam and paraglob submodules for Coverity/clang-tidy fixes (Tim Wojtulewicz, Corelight)
+
+  * Fix some compiler warnings in script_opt (Tim Wojtulewicz, Corelight)
+
+  * Fix recent Coverity findings (Tim Wojtulewicz, Corelight)
+
+    1491334: AUTO_CAUSES_COPY due to a for loop using auto& instead of const auto&
+    1498652: AUTO_CAUSES_COPY due to a for loop using auto& instead of const auto&
+    1498745: AUTO_CAUSES_COPY due to a for loop using auto& instead of const auto&
+
 5.2.0-dev.82 | 2022-10-12 20:02:36 +0200
 
   * Move API for disabling packet analyzers into component. (Robin Sommer)

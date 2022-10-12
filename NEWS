@@ -117,6 +117,14 @@ Changed Functionality
 - Passing non-string ``sep`` and ``def`` arguments to ``cat_sep()`` isn't a
   fatal error anymore. More descriptive error messages are produced, too.
 
+- The number of analyzer violation events that can be raised by protocol
+  analyzer instances is now capped by the const ``max_analyzer_violation_events``.
+  Its default is 1000 and the main purpose is to prevent analyzers from
+  scheduling too many ``analyzer_violation_info`` events before the
+  DPD ``max_violations`` script-level logic has a chance to run and disable
+  the problematic analyzer.
+
+
 Deprecated Functionality
 ------------------------
 

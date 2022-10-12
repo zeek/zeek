@@ -750,6 +750,8 @@ private:
 	bool finished;
 	bool removing;
 
+	uint64_t analyzer_violations = 0;
+
 	static ID id_counter;
 	};
 

@@ -754,6 +754,16 @@ void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, 
 	{
 	const auto& effective_tag = arg_tag ? arg_tag : tag;
 
+	++analyzer_violations;
+
+	if ( analyzer_violations > BifConst::max_analyzer_violations )
+		{
+		if ( analyzer_violations == BifConst::max_analyzer_violations + 1 )
+			Weird("too_many_analyzer_violations");
+
+		return;
+		}
+
 	if ( analyzer_violation_info )
 		EnqueueAnalyzerViolationInfo(reason, data, len, effective_tag);
 

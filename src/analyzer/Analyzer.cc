@@ -741,6 +741,16 @@ void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, 
 	if ( ! analyzer_violation )
 		return;
 
+	++analyzer_violations;
+
+	if ( analyzer_violations > BifConst::max_analyzer_violations )
+		{
+		if ( analyzer_violations == BifConst::max_analyzer_violations + 1 )
+			Weird("too_many_analyzer_violations");
+
+		return;
+		}
+
 	StringValPtr r;
 
 	if ( data && len )

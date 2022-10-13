@@ -5058,19 +5058,19 @@ export {
 	const max_depth: count = 2 &redef;
 
 	## Toggle whether to do IPv{4,6}-in-IPv{4,6} decapsulation.
-	const enable_ip = T &redef;
+	const enable_ip = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
 
 	## Toggle whether to do IPv{4,6}-in-AYIYA decapsulation.
-	const enable_ayiya = T &redef;
+	const enable_ayiya = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
 
 	## Toggle whether to do IPv6-in-Teredo decapsulation.
-	const enable_teredo = T &redef;
+	const enable_teredo = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
 
 	## Toggle whether to do GTPv1 decapsulation.
-	const enable_gtpv1 = T &redef;
+	const enable_gtpv1 = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
 
 	## Toggle whether to do GRE decapsulation.
-	const enable_gre = T &redef;
+	const enable_gre = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing

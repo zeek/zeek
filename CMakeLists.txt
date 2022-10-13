@@ -94,14 +94,14 @@ execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
      "export ZEEKPATH=`${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
      "export ZEEK_PLUGIN_PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":${ZEEK_PLUGIN_PATH}\n"
-     "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":\"${CMAKE_CURRENT_BINARY_DIR}/auxil/spicy/spicy/bin\":\"${CMAKE_CURRENT_BINARY_DIR}/src/builtin-plugins/spicy-plugin/bin/\":$PATH\n"
+     "export PATH=\"${CMAKE_CURRENT_BINARY_DIR}/src\":\"${CMAKE_CURRENT_BINARY_DIR}/auxil/spicy/spicy/bin\":\"${CMAKE_CURRENT_BINARY_DIR}/src/builtin-plugins/spicy-plugin/bin\":$PATH\n"
      "export SPICY_PATH=\"`${CMAKE_CURRENT_BINARY_DIR}/spicy-path`\"\n"
      "export HILTI_CXX_INCLUDE_DIRS=\"`${CMAKE_CURRENT_BINARY_DIR}/hilti-cxx-include-dirs`\"\n")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
      "setenv ZEEKPATH `${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
      "setenv ZEEK_PLUGIN_PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":${ZEEK_PLUGIN_PATH}\n"
-     "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":\"${CMAKE_CURRENT_BINARY_DIR}/auxil/spicy/spicy/bin\":\"${CMAKE_CURRENT_BINARY_DIR}/src/builtin-plugins/spicy-plugin/bin/\":$PATH\n"
+     "setenv PATH \"${CMAKE_CURRENT_BINARY_DIR}/src\":\"${CMAKE_CURRENT_BINARY_DIR}/auxil/spicy/spicy/bin\":\"${CMAKE_CURRENT_BINARY_DIR}/src/builtin-plugins/spicy-plugin/bin\":$PATH\n"
      "setenv SPICY_PATH \"`${CMAKE_CURRENT_BINARY_DIR}/spicy-path`\"\n"
      "setenv HILTI_CXX_INCLUDE_DIRS \"`${CMAKE_CURRENT_BINARY_DIR}/hilti-cxx-include-dirs`\"\n")
 
@@ -444,8 +444,6 @@ if ( NOT DISABLE_SPICY )
         set(SPICY_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/spicy-plugin)
     endif ()
 
-    # set(ZEEK_SPICY_PLUGIN_BUILD_LIBDIR ${CMAKE_BINARY_DIR}/auxil/spicy-plugin)
-    # set(ZEEK_SPICY_PLUGIN_BUILD_LIBDIR ${CMAKE_BINARY_DIR}/src/builtin-plugins/spicy-plugin)
     string(APPEND ZEEK_INCLUDE_PLUGINS ";${SPICY_PLUGIN_PATH}")
 endif ()
 

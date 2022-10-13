@@ -5,6 +5,7 @@
 #include <cerrno>
 
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/IDOptInfo.h"
 
 extern std::unordered_set<std::string> files_with_conditionals;
 
@@ -311,6 +312,9 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 void CPPCompile::GenEpilog()
 	{
 	NL();
+	InitializeGlobals();
+
+	NL();
 	for ( const auto& ii : init_infos )
 		GenInitExpr(ii.second);
 
@@ -449,7 +453,7 @@ void CPPCompile::GenFinishInit()
 
 	NL();
 	int max_cohort = 0;
-	for ( auto gi : all_global_info )
+	for ( const auto& gi : all_global_info )
 		max_cohort = std::max(max_cohort, gi->MaxCohort());
 
 	for ( auto c = 0; c <= max_cohort; ++c )
@@ -467,6 +471,9 @@ void CPPCompile::GenFinishInit()
 
 	NL();
 	Emit("load_BiFs__CPP();");
+
+	NL();
+	Emit("init_globals__CPP();");
 
 	EndBlock();
 	}

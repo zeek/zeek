@@ -27,6 +27,7 @@ scripts/base/init-bare.zeek
       scripts/base/frameworks/analyzer/main.zeek
         scripts/base/frameworks/packet-filter/utils.zeek
         build/scripts/base/bif/analyzer.bif.zeek
+        build/scripts/base/bif/file_analysis.bif.zeek
     scripts/base/packet-protocols/root/__load__.zeek
       scripts/base/packet-protocols/root/main.zeek
     scripts/base/packet-protocols/ip/__load__.zeek
@@ -115,7 +116,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     scripts/base/frameworks/analyzer/dpd.zeek
   scripts/base/frameworks/files/__load__.zeek
     scripts/base/frameworks/files/main.zeek
-      build/scripts/base/bif/file_analysis.bif.zeek
       scripts/base/utils/site.zeek
         scripts/base/utils/patterns.zeek
     scripts/base/frameworks/files/magic/__load__.zeek

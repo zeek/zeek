@@ -1,6 +1,7 @@
 ##! Analysis and logging for MIME entities found in SMTP sessions.
 
 @load base/frameworks/files
+@load base/frameworks/notice/weird
 @load base/utils/strings
 @load base/utils/files
 @load ./main
@@ -47,6 +48,19 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 	{
 	if ( ! c?$smtp )
 		return;
+
+	if ( ! c$smtp?$entity )
+		{
+		local weird = Weird::Info(
+			$ts=network_time(),
+			$name="missing_SMTP_entity",
+			$uid=c$uid,
+			$id=c$id,
+			$source="SMTP"
+		);
+		Weird::weird(weird);
+		return;
+		}
 
 	if ( h$name == "CONTENT-DISPOSITION" &&
 	     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in h$value )

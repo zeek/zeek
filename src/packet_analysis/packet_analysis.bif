@@ -77,3 +77,17 @@ function register_protocol_detection%(parent: PacketAnalyzer::Tag, child: Packet
 	parent_analyzer->RegisterProtocolDetection(child_analyzer);
 	return zeek::val_mgr->True();
 	%}
+
+## Internal function to disable a packet analyzer.
+function PacketAnalyzer::__disable_analyzer%(id: PacketAnalyzer::Tag%) : bool
+	%{
+	bool result = zeek::packet_mgr->DisableAnalyzer(id->AsEnumVal());
+	return zeek::val_mgr->Bool(result);
+	%}
+
+## Internal function to enable a packet analyzer.
+function PacketAnalyzer::__enable_analyzer%(id: PacketAnalyzer::Tag%) : bool
+	%{
+	bool result = zeek::packet_mgr->EnableAnalyzer(id->AsEnumVal());
+	return zeek::val_mgr->Bool(result);
+	%}

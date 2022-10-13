@@ -1,3 +1,128 @@
+5.2.0-dev.90 | 2022-10-13 08:57:45 -0500
+
+  * ZAM maintenance for recent test suite changes (and fixups missed last time) (Vern Paxson, Corelight)
+
+5.2.0-dev.86 | 2022-10-12 15:56:23 -0500
+
+  * Update gen-zam and paraglob submodules for Coverity/clang-tidy fixes (Tim Wojtulewicz, Corelight)
+
+  * Fix some compiler warnings in script_opt (Tim Wojtulewicz, Corelight)
+
+  * Fix recent Coverity findings (Tim Wojtulewicz, Corelight)
+
+    1491334: AUTO_CAUSES_COPY due to a for loop using auto& instead of const auto&
+    1498652: AUTO_CAUSES_COPY due to a for loop using auto& instead of const auto&
+    1498745: AUTO_CAUSES_COPY due to a for loop using auto& instead of const auto&
+
+5.2.0-dev.82 | 2022-10-12 20:02:36 +0200
+
+  * Move API for disabling packet analyzers into component. (Robin Sommer)
+
+    Before, that API was part of the analyzers themselves, which meant
+    we couldn't disable a packet analyzer before it had been
+    instantiated. That was different from protocol/file analyzers,
+    where we disable them through the corresponding component.
+
+  * Suppress warning on an existing packet analyzer being remapped. (Robin Sommer)
+
+5.2.0-dev.79 | 2022-10-12 09:32:38 -0700
+
+  * smtp: Prevent script errors when smtp$entity is not set (Tim Wojtulewicz, Corelight)
+
+    This is the same issue presented in 38e226bf75772dad8769fa4b5ae61fabb5fb34b9 but
+    for SMTP instead of HTTP.
+
+5.2.0-dev.77 | 2022-10-10 11:10:31 -0700
+
+  * Disable robust iteration for ordered dictionaries (Tim Wojtulewicz, Corelight)
+
+    This also includes some minor commenting cleanup in that class
+
+  * Add support for itertors with ordered dictionaries (Tim Wojtulewicz, Corelight)
+
+  * Add equality, inequality, copy, and move operators to HashKey (Tim Wojtulewicz, Corelight)
+
+  * Disable annoying bugprone-easily-swappable-parameters clang-tidy check [skip ci] (Tim Wojtulewicz, Corelight)
+
+5.2.0-dev.70 | 2022-10-06 14:18:18 -0700
+
+  * Remove stray `/` at the end of directory name. (Benjamin Bannier, Corelight)
+
+    This variable is used to construct a path where the trailing `/` lead to
+    full paths like `/foo/spicy-plugin//spicyz`.
+
+  * Remove commented out code. (Benjamin Bannier, Corelight)
+
+  * Bump spicy-plugin to v1.3.19. (Benjamin Bannier, Corelight)
+
+5.2.0-dev.66 | 2022-10-06 14:15:01 -0700
+
+  * Update CT log list. (Johanna Amann, Corelight)
+
+    This uses the v3 json as a source for the first time. The test needed
+    some updating because Google removed a couple more logs - in the future
+    this should hopefully not be neccessary anymore because I think v3
+    should retain all logs.
+
+    In theory this might be neat in 5.1.
+
+5.2.0-dev.51 | 2022-10-05 13:27:08 +0200
+
+  * analyzer: Add file_analyzer support to enable_analyzer()/disable_analyzer() (Arne Welzel, Corelight)
+
+5.2.0-dev.46 | 2022-10-03 09:45:05 -0700
+
+  * use dynamic rather than static initialization of globals for scripts compiled to C++ (Vern Paxson, Corelight)
+
+  * safety checking for initializing scripts compiled to C++ (Vern Paxson, Corelight)
+
+  * fixes for initializing scripts compiled to C++ (Vern Paxson, Corelight)
+
+  * restructured tracking of initializations of globals for script compilation (Vern Paxson, Corelight)
+
+5.2.0-dev.40 | 2022-10-03 09:44:40 -0700
+
+  * http: Prevent script errors when http$current_entity is not set (Arne Welzel, Corelight)
+
+    The current_entity tracking in HTTP assumes that client/server never
+    send HTTP entities at the same time. The attached pcap (generated
+    artificially) violates this and triggers:
+
+        1663698249.307259 expression error in <...>base/protocols/http/./entities.zeek, line 89: field value missing (HTTP::c$http$current_entity)
+
+    For the http-no-crlf test, include weird.log as baseline. Now that weird is
+    @load'ed from http, it is actually created and seems to make sense
+    to btest-diff it, too.
+
+5.2.0-dev.38 | 2022-10-03 09:08:42 -0700
+
+  * Fix some Coverity issues in the recent ZAM updates (Tim Wojtulewicz, Corelight)
+
+5.2.0-dev.35 | 2022-09-30 16:40:22 -0700
+
+  * fixes for compiling "standalone" C++ scripts (Vern Paxson, Corelight)
+
+5.2.0-dev.33 | 2022-09-30 12:36:34 -0700
+
+  * fix for deprecated when's where the inner frame is larger than the outer frame (Vern Paxson, Corelight)
+
+5.2.0-dev.31 | 2022-09-30 10:03:00 +0200
+
+  * const: Deprecate tunnel-specific enable_* flags (Arne Welzel, Corelight)
+
+    With packet analyzers being toggle-able at runtime these can go.
+    They hadn't been consistently implemented either (VXLAN, Geneve).
+
+  * packet_analysis: Introduce PacketAnalyzer::__disable_analyzer() (Arne Welzel, Corelight)
+
+    This adds machinery to the packet_analysis manager for disabling
+    and enabling packet analyzers and implements two low-level bifs
+    to use it.
+
+    Extend Analyzer::enable_analyzer() and Analyzer::disable_analyzer()
+    to transparently work with packet analyzers, too. This also allows
+    to add packet analyzers to Analyzer::disabled_analyzers.
+
 5.2.0-dev.27 | 2022-09-28 10:34:28 +0200
 
   * Bump `bifcl` and `doc` submodules. (Robin Sommer)

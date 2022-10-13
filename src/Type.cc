@@ -278,6 +278,15 @@ detail::TraversalCode Type::Traverse(detail::TraversalCallback* cb) const
 	HANDLE_TC_TYPE_POST(tc);
 	}
 
+void TypeList::CheckPure()
+	{
+	if ( pure_type )
+		return;
+
+	if ( ! types.empty() && AllMatch(types[0], false) )
+		pure_type = types[0];
+	}
+
 bool TypeList::AllMatch(const Type* t, bool is_init) const
 	{
 	for ( const auto& type : types )

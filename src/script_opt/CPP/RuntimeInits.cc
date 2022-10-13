@@ -377,6 +377,8 @@ TypePtr CPP_TypeInits::BuildTypeList(InitsManager* im, ValElemVec& init_vals, in
 	while ( iv_it != iv_end )
 		tl->Append(im->Types(*(iv_it++)));
 
+	tl->CheckPure();
+
 	return tl;
 	}
 
@@ -485,11 +487,10 @@ void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec
 	global = lookup_global__CPP(name, im->Types(type), exported);
 
 	if ( ! global->HasVal() && val >= 0 )
-		{
 		global->SetVal(im->ConstVals(val));
-		if ( attrs >= 0 )
-			global->SetAttrs(im->Attributes(attrs));
-		}
+
+	if ( attrs >= 0 )
+		global->SetAttrs(im->Attributes(attrs));
 	}
 
 void generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set)

@@ -72,6 +72,13 @@ public:
 	bool IsAnalyzer(const char* name);
 
 	/**
+	 * Return whether this analyzer is enabled or not.
+	 *
+	 * @return true if the analyzer is enabled, else false.
+	 */
+	bool IsEnabled() const { return enabled; }
+
+	/**
 	 * Analyzes the given packet. A common case is that the analyzed protocol
 	 * encapsulates another protocol, which can be determined by an identifier
 	 * in the header. In this case, derived classes may use ForwardPacket() to
@@ -187,6 +194,7 @@ public:
 	void Weird(const char* name, Packet* packet = nullptr, const char* addl = "") const;
 
 protected:
+	friend class Component;
 	friend class Manager;
 
 	/**
@@ -206,6 +214,14 @@ protected:
 	 * @return The defined analyzer if available, else nullptr.
 	 */
 	AnalyzerPtr LoadAnalyzer(const std::string& name);
+
+	/**
+	 * Enable or disable this analyzer. This is meant for internal use by
+	 * manager and component.
+	 *
+	 * @param value The new enabled value.
+	 */
+	void SetEnabled(bool value) { enabled = value; }
 
 	/**
 	 * Returns the module name corresponding to the analyzer, i.e. its script-land
@@ -258,6 +274,7 @@ private:
 	zeek::Tag tag;
 	Dispatcher dispatcher;
 	AnalyzerPtr default_analyzer = nullptr;
+	bool enabled = true;
 
 	/**
 	 * Flag for whether to report unknown protocols in ForwardPacket.

@@ -412,7 +412,7 @@ static void use_CPP()
 			}
 		}
 
-	if ( num_used == 0 )
+	if ( num_used == 0 && standalone_activations.empty() )
 		reporter->FatalError("no C++ functions found to use");
 
 	// Now that we've loaded all of the compiled scripts

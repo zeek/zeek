@@ -8,6 +8,7 @@
 #include <highwayhash/instruction_sets.h>
 #include <highwayhash/sip_hash.h>
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
@@ -182,6 +183,29 @@ HashKey::HashKey(const void* arg_key, size_t arg_size, hash_t arg_hash, bool /* 
 	size = write_size = arg_size;
 	hash = arg_hash;
 	key = (char*)arg_key;
+	}
+
+HashKey::HashKey(const HashKey& other) : HashKey(other.key, other.size, other.hash) { }
+
+HashKey::HashKey(HashKey&& other) noexcept
+	{
+	hash = other.hash;
+	size = other.size;
+	write_size = other.write_size;
+	read_size = other.read_size;
+
+	is_our_dynamic = other.is_our_dynamic;
+	key = other.key;
+
+	other.size = 0;
+	other.is_our_dynamic = false;
+	other.key = nullptr;
+	}
+
+HashKey::~HashKey()
+	{
+	if ( is_our_dynamic )
+		delete[] reinterpret_cast<char*>(key);
 	}
 
 hash_t HashKey::Hash() const
@@ -542,5 +566,116 @@ void HashKey::EnsureReadSpace(size_t n) const
 		                        "bytes with %lu remaining",
 		                        n, size - read_size);
 	}
+
+bool HashKey::operator==(const HashKey& other) const
+	{
+	// Quick exit for the same object.
+	if ( this == &other )
+		return true;
+
+	return Equal(other.key, other.size, other.hash);
+	}
+
+bool HashKey::operator!=(const HashKey& other) const
+	{
+	// Quick exit for different objects.
+	if ( this != &other )
+		return true;
+
+	return ! Equal(other.key, other.size, other.hash);
+	}
+
+bool HashKey::Equal(const void* other_key, size_t other_size, hash_t other_hash) const
+	{
+	// If the key memory is the same just return true.
+	if ( key == other_key && size == other_size )
+		return true;
+
+	// If either key is nullptr, return false. If they were both nullptr, it
+	// would have fallen in to the above block already.
+	if ( key == nullptr || other_key == nullptr )
+		return false;
+
+	return (hash == other_hash) && (size == other_size) && (memcmp(key, other_key, size) == 0);
+	}
+
+HashKey& HashKey::operator=(const HashKey& other)
+	{
+	if ( this == &other )
+		return *this;
+
+	if ( is_our_dynamic && IsAllocated() )
+		delete[] key;
+
+	hash = other.hash;
+	size = other.size;
+	is_our_dynamic = true;
+	write_size = other.write_size;
+	read_size = other.read_size;
+
+	key = CopyKey(other.key, other.size);
+
+	return *this;
+	}
+
+HashKey& HashKey::operator=(HashKey&& other) noexcept
+	{
+	if ( this == &other )
+		return *this;
+
+	hash = other.hash;
+	size = other.size;
+	write_size = other.write_size;
+	read_size = other.read_size;
+
+	if ( is_our_dynamic && IsAllocated() )
+		delete[] key;
+
+	is_our_dynamic = other.is_our_dynamic;
+	key = other.key;
+
+	other.size = 0;
+	other.is_our_dynamic = false;
+	other.key = nullptr;
+
+	return *this;
+	}
+
+TEST_SUITE_BEGIN("Hash");
+
+TEST_CASE("equality")
+	{
+	HashKey h1(12345);
+	HashKey h2(12345);
+	HashKey h3(67890);
+
+	CHECK(h1 == h2);
+	CHECK(h1 != h3);
+	}
+
+TEST_CASE("copy assignment")
+	{
+	HashKey h1(12345);
+	HashKey h2 = h1;
+	HashKey h3{h1};
+
+	CHECK(h1 == h2);
+	CHECK(h1 == h3);
+	}
+
+TEST_CASE("move assignment")
+	{
+	HashKey h1(12345);
+	HashKey h2(12345);
+	HashKey h3(12345);
+
+	HashKey h4 = std::move(h2);
+	HashKey h5{h3};
+
+	CHECK(h1 == h4);
+	CHECK(h1 == h5);
+	}
+
+TEST_SUITE_END();
 
 	} // namespace zeek::detail

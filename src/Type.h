@@ -339,6 +339,10 @@ public:
 	// is not pure or is empty.
 	const TypePtr& GetPureType() const { return pure_type; }
 
+	// Retrospectively instantiates an underlying pure type, if in
+	// fact each element has the same type.
+	void CheckPure();
+
 	// True if all of the types match t, false otherwise.  If
 	// is_init is true, then the matching is done in the context
 	// of an initialization.

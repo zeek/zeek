@@ -5,7 +5,13 @@
 
 #include "af_packet.bif.h"
 
-using namespace af_packet::iosource::pktsrc;
+// CentOS 7 if_packet.h does not yet have this define, provide it
+// explicitly if missing.
+#ifndef TP_STATUS_CSUM_VALID
+#define TP_STATUS_CSUM_VALID (1 << 7)
+#endif
+
+using namespace zeek::iosource::pktsrc;
 
 AF_PacketSource::~AF_PacketSource()
     {

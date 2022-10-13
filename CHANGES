@@ -1,3 +1,7 @@
+5.2.0-dev.90 | 2022-10-13 08:57:45 -0500
+
+  * ZAM maintenance for recent test suite changes (and fixups missed last time) (Vern Paxson, Corelight)
+
 5.2.0-dev.86 | 2022-10-12 15:56:23 -0500
 
   * Update gen-zam and paraglob submodules for Coverity/clang-tidy fixes (Tim Wojtulewicz, Corelight)

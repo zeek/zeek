@@ -259,6 +259,11 @@ TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals, 
 	return aggr;
 	}
 
+void assign_attrs__CPP(IDPtr id, std::vector<int> attr_tags, std::vector<ValPtr> attr_vals)
+	{
+	id->SetAttrs(build_attrs__CPP(move(attr_tags), move(attr_vals)));
+	}
+
 RecordValPtr record_constructor__CPP(vector<ValPtr> vals, RecordTypePtr t)
 	{
 	auto rv = make_intrusive<RecordVal>(t);

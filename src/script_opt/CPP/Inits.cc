@@ -206,12 +206,7 @@ void CPPCompile::InitializeGlobals()
 		auto& init = ginit.Init();
 
 		if ( ic == INIT_NONE )
-			{
-			IDPtr gid = {NewRef{}, const_cast<ID*>(g)};
-			auto gn = make_intrusive<RefExpr>(make_intrusive<NameExpr>(gid));
-			auto ae = make_intrusive<AssignExpr>(gn, init, true);
-			Emit(GenExpr(ae.get(), GEN_NATIVE, true) + ";");
-			}
+			Emit(GenExpr(init, GEN_NATIVE, true) + ";");
 
 		else
 			{
@@ -226,6 +221,15 @@ void CPPCompile::InitializeGlobals()
 				reporter->FatalError("bad initialization class in CPPCompile::InitializeGlobals()");
 
 			Emit("%s->SetValue(%s, %s);", globals[g->Name()], GenExpr(init, GEN_NATIVE, true), ics);
+			}
+
+		const auto& attrs = g->GetAttrs();
+		if ( attrs )
+			{
+			string attr_tags;
+			string attr_vals;
+			BuildAttrs(attrs, attr_tags, attr_vals);
+			Emit("assign_attrs__CPP(%s, %s, %s);", globals[g->Name()], attr_tags, attr_vals);
 			}
 		}
 

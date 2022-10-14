@@ -211,6 +211,16 @@ TableConstInfo::TableConstInfo(CPPCompile* c, ValPtr v) : CompoundItemInfo(c, v)
 	{
 	auto tv = cast_intrusive<TableVal>(v);
 
+	auto gi = c->RegisterAttributes(tv->GetAttrs());
+	int attrs = -1;
+	if ( gi )
+		{
+		init_cohort = max(init_cohort, gi->InitCohort() + 1);
+		attrs = gi->Offset();
+		}
+
+	vals.emplace_back(std::to_string(attrs));
+
 	for ( auto& tv_i : tv->ToMap() )
 		{
 		vals.emplace_back(ValElem(c, tv_i.first)); // index

@@ -114,9 +114,13 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<TableValPtr>& i
 	auto iv_it = init_vals.begin();
 	auto iv_end = init_vals.end();
 	auto t = *(iv_it++);
+	auto attrs = *(iv_it++);
 
 	auto tt = cast_intrusive<TableType>(im->Types(t));
 	auto tv = make_intrusive<TableVal>(tt);
+
+	if ( attrs >= 0 )
+		tv->SetAttrs(im->Attributes(attrs));
 
 	while ( iv_it != iv_end )
 		{

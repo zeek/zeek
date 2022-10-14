@@ -311,8 +311,11 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 
 void CPPCompile::GenEpilog()
 	{
-	NL();
-	InitializeGlobals();
+	if ( standalone )
+		{
+		NL();
+		InitializeGlobals();
+		}
 
 	NL();
 	for ( const auto& ii : init_infos )
@@ -472,8 +475,11 @@ void CPPCompile::GenFinishInit()
 	NL();
 	Emit("load_BiFs__CPP();");
 
-	NL();
-	Emit("init_globals__CPP();");
+	if ( standalone )
+		{
+		NL();
+		Emit("init_globals__CPP();");
+		}
 
 	EndBlock();
 	}

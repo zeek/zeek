@@ -84,6 +84,7 @@ foreach(_dep ${zeekdeps} )
 endforeach ()
 
 target_link_libraries(zeek_fuzzer_shared
+                      ${bro_PLUGIN_LINK_LIBS}
                       ${zeek_fuzzer_shared_deps}
                       ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 

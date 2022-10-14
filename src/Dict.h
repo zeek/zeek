@@ -70,7 +70,7 @@ constexpr int MIN_SPACE_DISTANCE_SAMPLES = 128;
 constexpr uint8_t DEFAULT_DICT_SIZE = 0;
 
 // When log2_buckets > DICT_THRESHOLD_BITS, DICT_LOAD_FACTOR_BITS becomes effective.
-// Basically if dict size < 2^DICT_THRESHOLD_BITS + n, we size up only if necessary.
+// Basically if dict size < 2^DICT_THRESHOLD_BITS + DICT_THRESHOLD_BITS, we size up only if necessary.
 constexpr uint8_t DICT_THRESHOLD_BITS = 3;
 
 // The value of an iteration cookie is the bucket and offset within the
@@ -653,7 +653,7 @@ public:
 			// if space_distance is too great, performance decreases. we need to sizeup for
 			// performance.
 			else if ( space_distance_samples > detail::MIN_SPACE_DISTANCE_SAMPLES && 
-				space_distance_sum > space_distance_samples * detail::SPACE_DISTANCE_THRESHOLD &&
+				space_distance_sum > uint64_t(space_distance_samples) * detail::SPACE_DISTANCE_THRESHOLD &&
 			          int(num_entries) > detail::MIN_DICT_LOAD_FACTOR_100 * Capacity() / 100 )
 				{
 				SizeUp();
@@ -1071,12 +1071,12 @@ private:
 	uint32_t ThresholdEntries() const
 		{
 		// Increase the size of the dictionary when it is 75% full. However, when the dictionary
-		// is small ( <= 20 elements ), only resize it when it's 100% full. The dictionary will
+		// is small ( bucket_capacity <= 2^3+3=11 elements ), only resize it when it's 100% full. The dictionary will
 		// always resize when the current insertion causes it to be full. This ensures that the
 		// current insertion should always be successful.
 		int capacity = Capacity();
 		if ( log2_buckets <= detail::DICT_THRESHOLD_BITS )
-			return capacity; // 20 or less elements, 1.0, only size up when necessary.
+			return capacity; 
 		return capacity * detail::DICT_LOAD_FACTOR_100 / 100;
 		}
 
@@ -1672,7 +1672,7 @@ private:
 	uint32_t num_entries = 0;
 	uint32_t max_entries = 0;
 	uint64_t cum_entries = 0;
-	int64_t space_distance_samples = 0;
+	uint32_t space_distance_samples = 0;
 	// how far the space is
 	int64_t space_distance_sum = 0;
 

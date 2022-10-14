@@ -655,12 +655,7 @@ public:
 			else if ( space_distance_samples > detail::MIN_SPACE_DISTANCE_SAMPLES && 
 				space_distance_sum > uint64_t(space_distance_samples) * detail::SPACE_DISTANCE_THRESHOLD &&
 			          int(num_entries) > detail::MIN_DICT_LOAD_FACTOR_100 * Capacity() / 100 )
-				{
 				SizeUp();
-				// reset performance metrics.
-				space_distance_sum = 0;
-				space_distance_samples = 0;
-				}
 			}
 
 		// Remap after insert can adjust asap to shorten period of mixed table.
@@ -1530,6 +1525,9 @@ private:
 		remaps++; // used in Lookup() to cover SizeUp with incomplete remaps.
 		ASSERT(remaps <= log2_buckets); // because we only sizeUp, one direction. we know the
 		                                // previous log2_buckets.
+		// reset performance metrics.
+		space_distance_sum = 0;
+		space_distance_samples = 0;
 		}
 
 	/**

@@ -337,8 +337,7 @@ void switch_to_file(const char *filename)
 		{
 		fprintf(stderr, "%s:%d: error: cannot include file \"%s\"\n", 
 			input_filename.c_str(), line_number,filename);
-		--include_stack_ptr;
-		return;
+		exit( 1 );
 		}
 
 	yyin = fp;
@@ -367,7 +366,7 @@ void include_file(const char *filename)
 			fprintf(stderr, "%s:%d error: cannot include file \"%s\": %s\n",
 					input_filename.c_str(), line_number, filename,
 					strerror(errno));
-			return;
+			exit( 1 );
 			}
 		}
 	else

@@ -1,3 +1,13 @@
+5.2.0-dev.99 | 2022-10-16 15:30:25 -0700
+
+  * Update zeek-3rdparty submodule for doctest/sqlite updates (Tim Wojtulewicz, Corelight)
+
+  * Update libkqueue submodule to latest upstream master (Tim Wojtulewicz, Corelight)
+
+  * Update rapidjson submodule to latest upstream master (Tim Wojtulewicz, Corelight)
+
+  * Update highwayhash submodule to latest upstream master (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.94 | 2022-10-13 15:12:19 -0500
 
   * Add toplevel build dir to `PATH` for dev helper scripts. (Benjamin Bannier, Corelight)

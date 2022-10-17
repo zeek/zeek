@@ -15,7 +15,7 @@ The maintenance workflow:
     to check in updates to the list of how the compiler currently fares
     on various btests (see end of this doc):
 
-	Thu Sep 29 14:49:49 PDT 2022
+	Wed Oct 12 11:36:46 PDT 2022
 
 2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.

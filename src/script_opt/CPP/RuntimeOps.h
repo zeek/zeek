@@ -171,6 +171,9 @@ extern TableValPtr table_constructor__CPP(std::vector<ValPtr> indices, std::vect
                                           TableTypePtr t, std::vector<int> attr_tags,
                                           std::vector<ValPtr> attr_vals);
 
+// Assigns a set of attributes to an identifier.
+extern void assign_attrs__CPP(IDPtr id, std::vector<int> attr_tags, std::vector<ValPtr> attr_vals);
+
 // Constructs a record of the given type, whose (ordered) fields are
 // assigned to the corresponding elements of the given vector of values.
 extern RecordValPtr record_constructor__CPP(std::vector<ValPtr> vals, RecordTypePtr t);

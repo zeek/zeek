@@ -84,6 +84,11 @@ public:
 	zeek::Tag Tag() const { return tag; }
 
 	/**
+	 * @return the name of the analyzer.
+	 */
+	const char* GetAnalyzerName() const;
+
+	/**
 	 * Returns the analyzer instance's internal ID. These IDs are unique
 	 * across all analyzers instantiated and can thus be used to
 	 * indentify a specific instance.
@@ -165,6 +170,12 @@ public:
 	virtual void AnalyzerViolation(const char* reason, const char* data = nullptr, int len = 0,
 	                               zeek::Tag tag = zeek::Tag());
 
+	/**
+	 * Convenience function that forwards directly to the corresponding
+	 * reporter->Weird(file, ...).
+	 */
+	void Weird(const char* name, const char* addl = "");
+
 protected:
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
@@ -194,6 +205,8 @@ private:
 	bool got_stream_delivery;
 	bool skip;
 	bool analyzer_confirmed;
+
+	uint64_t analyzer_violations = 0;
 
 	static ID id_counter;
 	};

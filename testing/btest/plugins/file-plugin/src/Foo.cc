@@ -25,7 +25,7 @@ bool Foo::DeliverStream(const u_char* data, uint64_t len)
 	AnalyzerConfirmation();
 	zeek::event_mgr.Enqueue(foo_piece, GetFile()->ToVal(),
 	                        zeek::make_intrusive<zeek::StringVal>(new zeek::String(data, len, 0)));
-	if ( ++i % 5 == 0 )
+	if ( ++i % 3 == 0 )
 		{
 		uint64_t threshold = 16;
 		AnalyzerViolation(zeek::util::fmt("test violation %d", i),

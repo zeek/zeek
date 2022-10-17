@@ -5,6 +5,10 @@
 # @TEST-EXEC: echo === >>output
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/ftp/retr.trace %INPUT >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff output
+# @TEST-EXEC: btest-diff weird.log
+
+# Suppress AnalyzerViolation() after the third one and create a weird.log.
+redef max_analyzer_violations = 3;
 
 event file_new(f: fa_file)
 	{

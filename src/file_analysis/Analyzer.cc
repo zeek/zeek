@@ -7,8 +7,8 @@
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
 
-// For analyzer_violation_info
-#include "event.bif.netvar_h"
+#include "const.bif.netvar_h" // for max_analyzer_violations
+#include "event.bif.netvar_h" // for analyzer_violation_info
 
 namespace zeek::file_analysis
 	{
@@ -38,6 +38,12 @@ Analyzer::Analyzer(RecordValPtr arg_args, File* arg_file)
 	{
 	}
 
+const char* Analyzer::GetAnalyzerName() const
+	{
+	assert(tag);
+	return file_mgr->GetComponentName(tag).c_str();
+	}
+
 void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
 	{
 	if ( analyzer_confirmed )
@@ -60,6 +66,16 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
 
 void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, zeek::Tag arg_tag)
 	{
+	++analyzer_violations;
+
+	if ( analyzer_violations > BifConst::max_analyzer_violations )
+		{
+		if ( analyzer_violations == BifConst::max_analyzer_violations + 1 )
+			Weird("too_many_analyzer_violations");
+
+		return;
+		}
+
 	if ( ! analyzer_violation_info )
 		return;
 
@@ -76,6 +92,11 @@ void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, 
 
 	const auto& tval = arg_tag ? arg_tag.AsVal() : tag.AsVal();
 	event_mgr.Enqueue(analyzer_violation_info, tval, info);
+	}
+
+void Analyzer::Weird(const char* name, const char* addl)
+	{
+	zeek::reporter->Weird(GetFile(), name, addl, GetAnalyzerName());
 	}
 
 	} // namespace zeek::file_analysis

@@ -1,3 +1,7 @@
+5.2.0-dev.105 | 2022-10-17 08:48:20 -0700
+
+  * Surface a better CMake error if the user passes an invalid sanitizer name (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.103 | 2022-10-16 17:49:24 -0700
 
   * plugins: Reject dynamic plugins matching names of built-in ones (Arne Welzel, Corelight)

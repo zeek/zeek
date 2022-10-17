@@ -1,3 +1,13 @@
+5.2.0-dev.103 | 2022-10-16 17:49:24 -0700
+
+  * plugins: Reject dynamic plugins matching names of built-in ones (Arne Welzel, Corelight)
+
+    This goes the hard-exit on conflicts route as IMO it provides better
+    messaging that something is wrong, rather than defaulting to something
+    the user may not expect.
+
+    Fixes #2403
+
 5.2.0-dev.101 | 2022-10-16 17:48:26 -0700
 
   * Add &ordered attribute for tables/sets (Tim Wojtulewicz, Corelight)

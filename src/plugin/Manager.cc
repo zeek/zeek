@@ -164,6 +164,8 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
 	dynamic_plugin_map::iterator m = dynamic_plugins.find(util::strtolower(name));
 
+	plugin_list* all_plugins = Manager::ActivePluginsInternal();
+
 	if ( m == dynamic_plugins.end() )
 		{
 		if ( ok_if_not_found )
@@ -172,8 +174,6 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		// Check if it's a static built-in plugin; they are always
 		// active, so just ignore. Not the most efficient way, but
 		// this should be rare to begin with.
-		plugin_list* all_plugins = Manager::ActivePluginsInternal();
-
 		for ( const auto& p : *all_plugins )
 			{
 			if ( p->Name() == name )
@@ -194,6 +194,23 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 	std::string dir = m->second + "/";
 
 	DBG_LOG(DBG_PLUGINS, "Activating plugin %s", name.c_str());
+
+	// If there's a plugin with the same name already, report an error and let
+	// the user do the conflict resolution.
+	auto lower_name = util::strtolower(name);
+	for ( const auto& p : *all_plugins )
+		{
+		if ( util::strtolower(p->Name()) == lower_name )
+			{
+			auto v = p->Version();
+			auto error = util::fmt(
+				"dynamic plugin %s from directory %s conflicts with %s plugin %s (%d.%d.%d)",
+				name.c_str(), dir.c_str(), p->DynamicPlugin() ? "dynamic" : "built-in",
+				p->Name().c_str(), v.major, v.minor, v.patch);
+			errors->push_back(error);
+			return false;
+			}
+		}
 
 	// Load shared libraries.
 

@@ -1,0 +1,2 @@
+error in <...>/init-bare.zeek, line 1: dynamic plugin zeek::asciireader from directory <...>/build/ conflicts with built-in plugin Zeek::AsciiReader (-1.-1.0)
+fatal error in <...>/init-bare.zeek, line 1: aborting after plugin errors

@@ -849,10 +849,14 @@ void HTTP_Analyzer::Done()
 	if ( IsFinished() )
 		return;
 
-	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
-
 	RequestMade(true, "message interrupted when connection done");
 	ReplyMade(true, "message interrupted when connection done");
+
+	// Call Done() on support and child analyzers only after RequestMade()
+	// and ReplyMade() completed. These methods may interact with the analyzer's
+	// child analyzers (specifically through HTTP_Entity's EndOfData() and
+	// ForwardEndOfData()) which isn't valid after a call to Done().
+	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	delete request_message;
 	request_message = nullptr;

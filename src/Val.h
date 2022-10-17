@@ -998,7 +998,7 @@ public:
 	void EnableChangeNotifications() { in_change_func = false; }
 
 protected:
-	void Init(TableTypePtr t);
+	void Init(TableTypePtr t, bool ordered = false);
 
 	using TableRecordDependencies = std::unordered_map<RecordType*, std::vector<TableValPtr>>;
 

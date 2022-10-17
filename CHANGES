@@ -1,3 +1,7 @@
+5.2.0-dev.101 | 2022-10-16 17:48:26 -0700
+
+  * Add &ordered attribute for tables/sets (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.99 | 2022-10-16 15:30:25 -0700
 
   * Update zeek-3rdparty submodule for doctest/sqlite updates (Tim Wojtulewicz, Corelight)

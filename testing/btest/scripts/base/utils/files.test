@@ -17,4 +17,7 @@ event zeek_init()
 	print extract_filename_from_content_disposition("attachment; filename=Economy");
 	print extract_filename_from_content_disposition("attachment; name=\"US-$ rates\"");
 	print extract_filename_from_content_disposition("attachment; filename*=iso-8859-1'en'%A3%20rates");
+	print extract_filename_from_content_disposition("form-data; name=\"fieldName\"; filename=\"filename.jpg\"");
+	print extract_filename_from_content_disposition("form-data; name=\"fieldName\"");
+	print extract_filename_from_content_disposition("form-data; filename=\"filename.jpg\"; name=\"fieldName\"");
 	}

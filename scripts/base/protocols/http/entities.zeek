@@ -84,7 +84,7 @@ event http_begin_entity(c: connection, is_orig: bool) &priority=10
 event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=3
 	{
 	if ( name == "CONTENT-DISPOSITION" &&
-	     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
+	     /[fF][iI][lL][eE][nN][aA][mM][eE][[:blank:]]*\*?=/ in value )
 		{
 		c$http$current_entity$filename = extract_filename_from_content_disposition(value);
 		}

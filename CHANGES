@@ -1,3 +1,37 @@
+5.2.0-dev.209 | 2022-11-08 16:44:48 -0700
+
+  * {http,smtp}/entities: Align header regexes with extract_filename_from_content_disposition() (Arne Welzel, Corelight)
+
+  * analyzer/HTTP: Call TCP_ApplicationAnalyzer::Done() after RequestMade()/ReplyMade() (Arne Welzel, Corelight)
+
+  * file_analysis/Analyzer: Limit maximum number of violations (Arne Welzel, Corelight)
+
+    Just the same as for protocol analyzers, prevent from violation event overload.
+
+  * test: Add btest verifying max_analyzer_violations functionality (Arne Welzel, Corelight)
+
+    The pcap has been generated roughly based on the example found on wikipedia
+    with some added garbled response after the STAT command from the client.
+
+  * analyzer: Cap analyzer violations at 1000 per analyzer instance (Arne Welzel, Corelight)
+
+  * Report an error if a key is too big for a DictEntry (Tim Wojtulewicz, Corelight)
+
+  * Use larger size variable for DictEntry key_size to avoid overflows with big keys (Tim Wojtulewicz, Corelight)
+
+  * ftp: Limit pending commands to FTP::max_pending_commands (default 20) (Arne Welzel, Corelight)
+
+  * Update baselines after AnalyzePacket changes (Arne Welzel, Corelight)
+
+    Mainly, for bad headers we do not (can not) put addresses into
+    the log anymore. Some were rather obviously bogus previously
+    already.
+
+  * protocol/ip: Only attach IP_Hdr to Packet if valid (Arne Welzel, Corelight)
+
+    Ensure packet->ip_hdr is not set (so no one can assume it's valid)
+    when AnalyzePacket() found something weird with the header.
+
 5.2.0-dev.198 | 2022-11-07 11:47:53 +0100
 
   * Bump documentation.

@@ -98,7 +98,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		}
 
 	if ( name == "CONTENT-DISPOSITION" &&
-	     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in value )
+	     /[fF][iI][lL][eE][nN][aA][mM][eE][[:blank:]]*\*?=/ in value )
 		{
 		c$http$current_entity$filename = extract_filename_from_content_disposition(value);
 		}

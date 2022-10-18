@@ -63,7 +63,7 @@ event mime_one_header(c: connection, h: mime_header_rec) &priority=5
 		}
 
 	if ( h$name == "CONTENT-DISPOSITION" &&
-	     /[fF][iI][lL][eE][nN][aA][mM][eE]/ in h$value )
+	     /[fF][iI][lL][eE][nN][aA][mM][eE][[:blank:]]*\*?=/ in h$value )
 		c$smtp$entity$filename = extract_filename_from_content_disposition(h$value);
 
 	if ( h$name == "CONTENT-TYPE" &&

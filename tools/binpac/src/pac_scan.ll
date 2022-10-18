@@ -22,8 +22,14 @@
 #include "pac_utils.h"
 
 #include <errno.h>
-#include <filesystem>
 #include <string_view>
+
+#ifdef MSVC
+#include <filesystem>
+#else
+#include <libgen.h>
+#include <memory>
+#endif
 
 int line_number = 1;
 
@@ -44,11 +50,24 @@ int char_token(int tok)
 
 void include_file(const char *filename);
 
-string dirname(std::string_view path)
-{
-  return std::filesystem::path(path).parent_path().string();
-}
+std::string do_dirname(std::string_view s)
+	{
+#ifdef MSVC
+	return std::filesystem::path(path).parent_path().string();
+#else
+	std::unique_ptr<char[]> tmp{new char[s.size()+1]};
+	strncpy(tmp.get(), s.data(), s.size());
+	tmp[s.size()] = '\0';
 
+	char* dn = dirname(tmp.get());
+	if ( !dn )
+		return "";
+
+	std::string res{dn};
+
+	return res;
+#endif
+	}
 %}
 
 /* EC -- embedded code state */
@@ -337,25 +356,20 @@ void include_file(const char *filename)
 	string full_filename;
 	if ( filename[0] == '/' )
 		full_filename = filename;
-    else if ( filename[0] == '.' )
-        {
-        char* tmp = new char[strlen(input_filename.c_str()) + 1];
-        strcpy(tmp, input_filename.c_str());
-        string dir = dirname(tmp);
+	else if ( filename[0] == '.' )
+		{
+		string dir = do_dirname(input_filename);
 
-        if ( ! dir.empty() )
-            full_filename = dir + "/" + filename;
-        else
-            {
-            fprintf(stderr, "%s:%d error: cannot include file \"%s\": %s\n",
-                    input_filename.c_str(), line_number, filename,
-                    strerror(errno));
-            delete [] tmp;
-            return;
-            }
-
-        delete [] tmp;
-        }
+		if ( ! dir.empty() )
+			full_filename = dir + "/" + filename;
+		else
+			{
+			fprintf(stderr, "%s:%d error: cannot include file \"%s\": %s\n",
+					input_filename.c_str(), line_number, filename,
+					strerror(errno));
+			return;
+			}
+		}
 	else
 		{
 		int i;

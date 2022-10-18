@@ -1,3 +1,11 @@
+5.2.0-dev.113 | 2022-10-18 08:30:45 -0700
+
+  * reset performance metrics every SizeUp() (Jason Lu)
+
+  * reduce space_distance_samples from int64_6 to uint32_t (Jason Lu)
+
+  * add performance based growth strategy (Jason Lu)
+
 5.2.0-dev.108 | 2022-10-17 16:18:55 -0700
 
   * -O C++ maintenance updates to test suite (Vern Paxson, Corelight)

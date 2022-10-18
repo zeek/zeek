@@ -51,15 +51,27 @@ constexpr uint32_t HASH_MASK = 0xFFFFFFFF; // only lower 32 bits.
 // 2 for debug. 16 is best for a release build.
 constexpr uint8_t DICT_REMAP_ENTRIES = 16;
 
-// Load factor = 1 - 0.5 ^ LOAD_FACTOR_BITS. 0.75 is the optimal value for release builds.
-constexpr uint8_t DICT_LOAD_FACTOR_BITS = 2;
+// 100 for size < 1 << DICT_THRESHOLD_BITS + DICT_THRESHOLD_BITS;
+// 75 for larger sizes
+// 25 for min load factor.
+constexpr int MIN_DICT_LOAD_FACTOR_100 = 25;
+constexpr int DICT_LOAD_FACTOR_100 = 75;
+
+// when space_distance is greater than SPACE_DISTANCE_THRESHOLD, double the size unless the load
+// factor is already lower than MIN_DICT_LOAD_FACTOR_100.
+constexpr int SPACE_DISTANCE_THRESHOLD = 32;
+
+// To ignore occasional faraway spaces. only when space_distance_samples are above
+// MIN_SPACE_DISTANCE_SAMPLES, we consider space_distance is not by chance.
+constexpr int MIN_SPACE_DISTANCE_SAMPLES = 128;
 
 // Default number of hash buckets in dictionary.  The dictionary will
 // increase the size of the hash table as needed.
 constexpr uint8_t DEFAULT_DICT_SIZE = 0;
 
 // When log2_buckets > DICT_THRESHOLD_BITS, DICT_LOAD_FACTOR_BITS becomes effective.
-// Basically if dict size < 2^DICT_THRESHOLD_BITS + n, we size up only if necessary.
+// Basically if dict size < 2^DICT_THRESHOLD_BITS + DICT_THRESHOLD_BITS, we size up only if
+// necessary.
 constexpr uint8_t DICT_THRESHOLD_BITS = 3;
 
 // The value of an iteration cookie is the bucket and offset within the
@@ -639,6 +651,16 @@ public:
 				max_entries = num_entries;
 			if ( num_entries > ThresholdEntries() )
 				SizeUp();
+
+			// if space_distance is too great, performance decreases. we need to sizeup for
+			// performance.
+			else if ( space_distance_samples > detail::MIN_SPACE_DISTANCE_SAMPLES &&
+			          static_cast<uint64_t>(space_distance_sum) >
+			              static_cast<uint64_t>(space_distance_samples) *
+			                  detail::SPACE_DISTANCE_THRESHOLD &&
+			          static_cast<int>(num_entries) >
+			              detail::MIN_DICT_LOAD_FACTOR_100 * Capacity() / 100 )
+				SizeUp();
 			}
 
 		// Remap after insert can adjust asap to shorten period of mixed table.
@@ -1049,13 +1071,13 @@ private:
 	uint32_t ThresholdEntries() const
 		{
 		// Increase the size of the dictionary when it is 75% full. However, when the dictionary
-		// is small ( <= 20 elements ), only resize it when it's 100% full. The dictionary will
-		// always resize when the current insertion causes it to be full. This ensures that the
-		// current insertion should always be successful.
+		// is small ( bucket_capacity <= 2^3+3=11 elements ), only resize it when it's 100% full.
+		// The dictionary will always resize when the current insertion causes it to be full. This
+		// ensures that the current insertion should always be successful.
 		int capacity = Capacity();
 		if ( log2_buckets <= detail::DICT_THRESHOLD_BITS )
-			return capacity; // 20 or less elements, 1.0, only size up when necessary.
-		return capacity - (capacity >> detail::DICT_LOAD_FACTOR_BITS);
+			return capacity;
+		return capacity * detail::DICT_LOAD_FACTOR_100 / 100;
 		}
 
 	// Used to improve the distribution of the original hash.
@@ -1270,11 +1292,13 @@ private:
 	void InsertRelocateAndAdjust(detail::DictEntry<T>& entry, int insert_position)
 		{
 /// e.distance is adjusted to be the one at insert_position.
-#ifdef ZEEK_DICT_DEBUG
+#ifdef DEBUG
 		entry.bucket = BucketByHash(entry.hash, log2_buckets);
-#endif // ZEEK_DICT_DEBUG
+#endif // DEBUG
 		int last_affected_position = insert_position;
 		InsertAndRelocate(entry, insert_position, &last_affected_position);
+		space_distance_sum += last_affected_position - insert_position;
+		space_distance_samples++;
 
 		// If remapping in progress, adjust the remap_end to step back a little to cover the new
 		// range if the changed range straddles over remap_end.
@@ -1470,9 +1494,9 @@ private:
 			return false;
 		detail::DictEntry<T> entry = RemoveAndRelocate(
 			position); // no iteration cookies to adjust, no need for last_affected_position.
-#ifdef ZEEK_DICT_DEBUG
+#ifdef DEBUG
 		entry.bucket = expected;
-#endif // ZEEK_DICT_DEBUG
+#endif // DEBUG
 
 		// find insert position.
 		int insert_position = EndOfClusterByBucket(expected);
@@ -1506,6 +1530,9 @@ private:
 		remaps++; // used in Lookup() to cover SizeUp with incomplete remaps.
 		ASSERT(remaps <= log2_buckets); // because we only sizeUp, one direction. we know the
 		                                // previous log2_buckets.
+		// reset performance metrics.
+		space_distance_sum = 0;
+		space_distance_samples = 0;
 		}
 
 	/**
@@ -1648,6 +1675,9 @@ private:
 	uint32_t num_entries = 0;
 	uint32_t max_entries = 0;
 	uint64_t cum_entries = 0;
+	uint32_t space_distance_samples = 0;
+	// how far the space is
+	int64_t space_distance_sum = 0;
 
 	dict_delete_func delete_func = nullptr;
 	detail::DictEntry<T>* table = nullptr;

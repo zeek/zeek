@@ -7,7 +7,8 @@ using namespace std;
 
 #include "bif_arg.h"
 
-static struct {
+static struct
+	{
 	const char* bif_type;
 	const char* zeek_type;
 	const char* c_type;
@@ -17,12 +18,14 @@ static struct {
 	const char* cast_smart;
 	const char* constructor;
 	const char* ctor_smart;
-} builtin_func_arg_type[] = {
-#define DEFINE_BIF_TYPE(id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
-	{bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},
+	} builtin_func_arg_type[] = {
+#define DEFINE_BIF_TYPE(id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart,   \
+                        cast_smart, constructor, ctor_smart)                                       \
+	{bif_type,       zeek_type,  c_type,      c_type_smart, accessor,                              \
+	 accessor_smart, cast_smart, constructor, ctor_smart},
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
-};
+	};
 
 extern const char* arg_list_name;
 
@@ -52,17 +55,13 @@ BuiltinFuncArg::BuiltinFuncArg(const char* arg_name, const char* arg_type_str,
 
 void BuiltinFuncArg::PrintZeek(FILE* fp)
 	{
-	fprintf(fp, "%s: %s%s %s", name, builtin_func_arg_type[type].zeek_type,
-	        type_str, attr_str);
+	fprintf(fp, "%s: %s%s %s", name, builtin_func_arg_type[type].zeek_type, type_str, attr_str);
 	}
 
 void BuiltinFuncArg::PrintCDef(FILE* fp, int n)
 	{
-	fprintf(fp,
-		"\t%s %s = (%s) (",
-		builtin_func_arg_type[type].c_type,
-		name,
-		builtin_func_arg_type[type].c_type);
+	fprintf(fp, "\t%s %s = (%s) (", builtin_func_arg_type[type].c_type, name,
+	        builtin_func_arg_type[type].c_type);
 
 	char buf[1024];
 	snprintf(buf, sizeof(buf), "(*%s)[%d].get()", arg_list_name, n);

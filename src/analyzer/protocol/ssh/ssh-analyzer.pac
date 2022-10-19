@@ -120,6 +120,16 @@ refine flow SSH_Flow += {
 		return true;
 		%}
 
+	function proc_ssh2_keys_setup_direction(is_orig: bool): bool
+		%{
+		if ( ssh2_keys_setup_direction )
+			{
+			zeek::BifEvent::enqueue_ssh2_keys_setup_direction(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				is_orig);
+			}
+		return true;
+		%}
 
 	function proc_ssh2_dh_gex_group(msg: SSH2_DH_GEX_GROUP): bool
 		%{
@@ -257,11 +267,24 @@ refine typeattr SSH2_DH_GEX_GROUP += &let {
 
 refine typeattr SSH2_ECC_REPLY += &let {
 	proc_k: bool = $context.flow.proc_ssh2_server_host_key(k_s.val);
-	proc_q: bool = $context.flow.proc_ssh2_ecc_key(q_s.val, false);
+	proc_q: bool = $context.flow.proc_ssh2_ecc_key(q_s.val, is_orig);
 };
 
 refine typeattr SSH2_ECC_INIT += &let {
-	proc: bool = $context.flow.proc_ssh2_ecc_key(q_c.val, true);
+	proc: bool = $context.flow.proc_ssh2_ecc_key(q_c.val, is_orig);
+	proc_kx_init_direction: bool = $context.flow.proc_ssh2_keys_setup_direction(is_orig);
+};
+
+refine typeattr SSH2_DH_GEX_INIT += &let {
+	proc_kx_init_direction: bool = $context.flow.proc_ssh2_keys_setup_direction(is_orig);
+};
+
+refine typeattr SSH2_GSS_INIT += &let {
+	proc_kx_init_direction: bool = $context.flow.proc_ssh2_keys_setup_direction(is_orig);
+};
+
+refine typeattr SSH2_RSA_SECRET += &let {
+	proc_kx_init_direction: bool = $context.flow.proc_ssh2_keys_setup_direction(is_orig);
 };
 
 refine typeattr SSH1_PUBLIC_KEY += &let {

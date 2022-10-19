@@ -253,3 +253,21 @@ event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, e
 ##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
 ##    ssh2_dh_server_params ssh2_gss_error
 event ssh2_ecc_key%(c: connection, is_orig: bool, q: string%);
+
+## SSH can negotiate the keys in several ways, including
+## SSH_MSG_KEXGSS_INIT, SSH_MSG_KEX_DH_GEX_INIT,
+## SSH_MSG_KEXDH_INIT, SSH_MSG_KEX_ECDH_INIT, 
+## SSH_MSG_ECMQV_INIT and SSH_MSG_KEXRSA_SECRET. By definition, these need to originate from
+## the client, and not from the server. (SSH_MSG_KEXRSA_PUBKEY is sent first by the server, 
+## the SECRET is the response to that)
+##
+## c: The connection
+##
+## is_orig: Did this message come from the originator?
+##
+## .. zeek:see:: ssh_server_version ssh_client_version
+##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
+##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
+##    ssh2_dh_server_params ssh2_gss_error
+event ssh2_keys_setup_direction%(c: connection, is_orig: bool%);

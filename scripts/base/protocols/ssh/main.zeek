@@ -54,6 +54,9 @@ export {
 		host_key_alg:    string       &log &optional;
 		## The server's key fingerprint
 		host_key:        string       &log &optional;
+		## Indicate whether there is a discrepancy between the host that
+		## set up the TCP connection, and sets up the SSH key exchange.
+		reversed_conn:   bool         &log &optional;
 	};
 
 	## The set of compression algorithms. We can't accurately determine
@@ -363,3 +366,12 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 		info$c$ssh$analyzer_id = info$aid;
 		}
 	}
+
+event ssh2_keys_setup_direction(c: connection, is_orig: bool) {
+    ## If a machine sends out the initial key material for the handshake, this should come from the client.
+    ## In most cases, this client is the machine that set up the TCP connection. If this is not the case,
+    ## add the `reversed_connection` tag to the logrow.
+    if ( ! is_orig ) {
+        c$ssh$reversed_conn = T;
+    }
+}

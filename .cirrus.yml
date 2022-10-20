@@ -120,7 +120,7 @@ env:
 
   # This is the https endpoint host and port used for benchmarking. It's kept
   # encrypted as a security measure to avoid leaking the host's information.
-  ZEEK_BENCHMARK_HOST: ENCRYPTED[62ecdc93e839800d754d09d9a9070e9cb9b209e7d7dd2472ba38648f786ff272d0e0ea71233d0910025f2c6f3771259c]
+  ZEEK_BENCHMARK_HOST: ENCRYPTED[380bf93de174db123387289dc6cb443ec341aab30befe43fe2f43634f86995b29a4571674092cdafb39308eaee65050d]
   ZEEK_BENCHMARK_PORT: ENCRYPTED[b97fabf4d6bd5eef107c8469c5cb2c44e0107d89c220f43e7d1e7bdfb32dbdc2620855fee8e5a8d889458d5a6ac3e5c7]
 
   # The repo token used for uploading data to Coveralls.io
@@ -219,6 +219,11 @@ ubuntu22_task:
     dockerfile: ci/ubuntu-22.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_CREATE_ARTIFACT: 1
+  upload_binary_artifacts:
+    path: build.tgz
+  benchmark_script: ./ci/benchmark.sh
 
 ubuntu20_task:
   container:

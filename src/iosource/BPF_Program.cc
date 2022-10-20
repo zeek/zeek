@@ -114,34 +114,18 @@ bool BPF_Program::Compile(zeek_uint_t snaplen, int linktype, const char* filter,
 		return true;
 		}
 
-#ifdef LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER
-	char my_error[PCAP_ERRBUF_SIZE];
-
-	int err = pcap_compile_nopcap(snaplen, linktype, &m_program, (char*)filter, optimize, netmask,
-	                              my_error);
-	if ( err < 0 )
+	pcap_t* pcap = pcap_open_dead(linktype, snaplen);
+	if ( ! pcap )
 		{
-		state = GetStateFromMessage(errstr);
-		state_message = util::fmt("pcap_compile(%s): %s", filter, pcap_geterr(pcap);
-		}
-#else
-	int err = pcap_compile_nopcap(static_cast<int>(snaplen), linktype, &m_program, (char*)filter,
-	                              optimize, netmask);
-
-	// We have no way of knowing what the error actually was because pcap_compile_nocap doesn't
-	// return an error string nor any other information, so just assume every failure is
-	// fatal.
-	if ( err < 0 )
 		state = FilterState::FATAL;
-#endif
-
-	if ( err == 0 )
-		{
-		m_compiled = true;
-		m_matches_anything = filter_matches_anything(filter);
+		state_message = "Failed to open pcap based on linktype/snaplen";
+		return false;
 		}
 
-	return err == 0;
+	bool status = Compile(pcap, filter, netmask, optimize);
+	pcap_close(pcap);
+
+	return status;
 	}
 
 bpf_program* BPF_Program::GetProgram()

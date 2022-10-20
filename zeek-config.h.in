@@ -75,10 +75,6 @@
 /* Define if you have the <sys/ethernet.h> header file. */
 #cmakedefine HAVE_SYS_ETHERNET_H
 
-/* Some libpcap versions use an extra parameter (error) in pcap_compile_nopcap
-   */
-#cmakedefine LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER
-
 /* Include krb5.h */
 #cmakedefine NEED_KRB5_H
 

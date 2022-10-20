@@ -1,3 +1,7 @@
+5.2.0-dev.116 | 2022-10-20 13:03:45 -0700
+
+  * Update bifcl, binpac, broker, cmake, gen-zam, and paraglob submodules (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.113 | 2022-10-18 08:30:45 -0700
 
   * reset performance metrics every SizeUp() (Jason Lu)

@@ -17,27 +17,37 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 # Windows: Configure runtime and dependencies
 if ( MSVC )
     cmake_policy(SET CMP0091 NEW)
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
-        set(CMAKE_MSVC_RUNTIME_LIBRARY_FLAG "MTd")
-    else ()
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
-        set(CMAKE_MSVC_RUNTIME_LIBRARY_FLAG "MT")
-    endif ()
+
+    # Remove existing runtime flags
+    set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_RELWITHDEBINFO
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        CMAKE_C_FLAGS_RELWITHDEBINFO
+    )
+    foreach(CompilerFlag ${CompilerFlags})
+        string(REGEX REPLACE "[/|-]MDd" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]MD" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]MTd" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]MT" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]Zi" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]W3" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]W4" "" ${CompilerFlag} "${${CompilerFlag}}")
+    endforeach()
+
+    # Set always to static runtime
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     set(OPENSSL_USE_STATIC_LIBS true)
     set(OPENSSL_MSVC_STATIC_RT true)
 
     if ( ZEEK_STANDALONE )
         include(${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
-
-        conan_cmake_configure(REQUIRES
-                                zlib/1.2.11
-                                openssl/1.1.1i
-                                winflexbison/2.5.24
-                                npcap-wpcap/1.31
-                                kqueue/2.3.2
-                              GENERATORS cmake_find_package)
-
+        conan_cmake_autodetect(settings)
         # Install packages from conanfile
         conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}/ci/windows/conanfile_windows.txt
                             BUILD missing

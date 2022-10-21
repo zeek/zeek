@@ -262,9 +262,6 @@ set(_gen_zeek_script_cpp ${CMAKE_CURRENT_BINARY_DIR}/../CPP-gen.cc)
 add_custom_command(OUTPUT ${_gen_zeek_script_cpp}
 		   COMMAND ${CMAKE_COMMAND} -E touch ${_gen_zeek_script_cpp})
 
-set_source_files_properties(3rdparty/nb_dns.c PROPERTIES COMPILE_FLAGS
-                            -fno-strict-aliasing)
-
 set(MAIN_SRCS
     digest.cc
     net_util.cc
@@ -426,7 +423,6 @@ set(THIRD_PARTY_SRCS
     3rdparty/ConvertUTF.c
     3rdparty/in_cksum.cc
     3rdparty/modp_numtoa.c
-    3rdparty/nb_dns.c
     3rdparty/patricia.c
     3rdparty/setsignal.c
     3rdparty/sqlite3.c
@@ -607,7 +603,6 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/zeek_inet_ntop.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bsd-getopt-long.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/modp_numtoa.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nb_dns.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/patricia.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/setsignal.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h

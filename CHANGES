@@ -1,3 +1,7 @@
+5.2.0-dev.131 | 2022-10-21 16:29:14 -0700
+
+  * Remove external CAF build for Coverity setup (Christian Kreibich, Corelight)
+
 5.2.0-dev.129 | 2022-10-21 12:24:25 -0700
 
   * Remove cmake tests for LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER (Tim Wojtulewicz, Corelight)

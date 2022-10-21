@@ -161,6 +161,10 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,
                                             std::vector<std::string>* errors)
 	{
+#if defined(_MSC_VER)
+	return false;
+#endif
+
 	errors->clear(); // caller should pass it in empty, but just to be sure
 
 	dynamic_plugin_map::iterator m = dynamic_plugins.find(util::strtolower(name));

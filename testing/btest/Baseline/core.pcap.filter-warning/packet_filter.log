@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	node	filter	init	success	failure_reason
 #types	time	string	string	bool	bool	string
-XXXXXXXXXX.XXXXXX	zeek	port 50000	T	T	-
+XXXXXXXXXX.XXXXXX	zeek	ip or not ip	T	F	IEEE 802.15.4 link-layer type filtering not implemented
 #close XXXX-XX-XX-XX-XX-XX

@@ -1,3 +1,19 @@
+5.2.0-dev.129 | 2022-10-21 12:24:25 -0700
+
+  * Remove cmake tests for LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER (Tim Wojtulewicz, Corelight)
+
+  * Rework the non-pcap version of BPF_Program::Compile (Tim Wojtulewicz, Corelight)
+
+  * Add btest that exercises the pcap filter warnings (Tim Wojtulewicz, Corelight)
+
+  * Restore reporting messages for pcap filter issues (Tim Wojtulewicz, Corelight)
+
+  * Add column to packet_filter.log for failure reason (Tim Wojtulewicz, Corelight)
+
+  * Store error message from BPF compilation (Tim Wojtulewicz, Corelight)
+
+  * Minor cleanup in BPF filtering code (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.120 | 2022-10-21 10:09:11 -0700
 
   * Reorder includes in Options.cc (Tim Wojtulewicz, Corelight)

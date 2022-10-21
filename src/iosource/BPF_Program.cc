@@ -71,15 +71,14 @@ static bool filter_matches_anything(const char* filter)
 	return (! filter) || strlen(filter) == 0 || strcmp(filter, "ip or not ip") == 0;
 	}
 
-BPF_Program::BPF_Program() : m_compiled(), m_matches_anything(false), m_program() { }
+BPF_Program::BPF_Program() : m_program() { }
 
 BPF_Program::~BPF_Program()
 	{
 	FreeCode();
 	}
 
-bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, std::string& errbuf,
-                          bool optimize)
+bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, bool optimize)
 	{
 	if ( ! pcap )
 		return false;
@@ -88,7 +87,8 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, st
 
 	if ( pcap_compile(pcap, &m_program, (char*)filter, optimize, netmask) < 0 )
 		{
-		errbuf = util::fmt("pcap_compile(%s): %s", filter, pcap_geterr(pcap));
+		state_message = std::string(pcap_geterr(pcap));
+		state = GetStateFromMessage(state_message);
 		return false;
 		}
 
@@ -98,8 +98,8 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, st
 	return true;
 	}
 
-bool BPF_Program::Compile(int snaplen, int linktype, const char* filter, uint32_t netmask,
-                          std::string& errbuf, bool optimize)
+bool BPF_Program::Compile(zeek_uint_t snaplen, int linktype, const char* filter, uint32_t netmask,
+                          bool optimize)
 	{
 	FreeCode();
 
@@ -114,27 +114,18 @@ bool BPF_Program::Compile(int snaplen, int linktype, const char* filter, uint32_
 		return true;
 		}
 
-#ifdef LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER
-	char my_error[PCAP_ERRBUF_SIZE];
-
-	int err = pcap_compile_nopcap(snaplen, linktype, &m_program, (char*)filter, optimize, netmask,
-	                              my_error);
-	if ( err < 0 )
-		errbuf = std::string(my_error);
-#else
-	int err = pcap_compile_nopcap(snaplen, linktype, &m_program, (char*)filter, optimize, netmask);
-
-	if ( err < 0 )
-		errbuf.clear();
-#endif
-
-	if ( err == 0 )
+	pcap_t* pcap = pcap_open_dead(linktype, snaplen);
+	if ( ! pcap )
 		{
-		m_compiled = true;
-		m_matches_anything = filter_matches_anything(filter);
+		state = FilterState::FATAL;
+		state_message = "Failed to open pcap based on linktype/snaplen";
+		return false;
 		}
 
-	return err == 0;
+	bool status = Compile(pcap, filter, netmask, optimize);
+	pcap_close(pcap);
+
+	return status;
 	}
 
 bpf_program* BPF_Program::GetProgram()
@@ -153,6 +144,14 @@ void BPF_Program::FreeCode()
 #endif
 		m_compiled = false;
 		}
+	}
+
+FilterState BPF_Program::GetStateFromMessage(const std::string& err)
+	{
+	if ( err.find("filtering not implemented") != std::string::npos )
+		return FilterState::WARNING;
+
+	return FilterState::FATAL;
 	}
 
 	} // namespace zeek::iosource::detail

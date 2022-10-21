@@ -5146,6 +5146,13 @@ export {
 	};
 
 	type Interfaces: set[Pcap::Interface];
+
+	## The state of the compilation for a pcap filter.
+	type filter_state: enum {
+		ok,     # no issues encountered
+		fatal,  # fatal issue, something that would prevent zeek from continuing
+		warning # non-fatal issue that should just be logged
+	};
 } # end export
 
 module DCE_RPC;

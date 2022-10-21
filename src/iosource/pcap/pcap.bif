@@ -1,13 +1,13 @@
 
 module Pcap;
 
-
 const snaplen: count;
 const bufsize: count;
 
 %%{
 #include <pcap.h>
 
+#include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/Manager.h"
 %%}
 
@@ -44,8 +44,13 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 	bool success = true;
 
 	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
-	if ( ps && ! ps->PrecompileFilter(id->AsInt(), s->CheckString()) )
-		success = false;
+	if ( ps )
+		{
+		bool compiled = ps->PrecompileFilter(id->AsInt(), s->CheckString());
+		auto filter = ps->GetBPFFilter(id->AsInt());
+		if ( ! compiled || ( filter && filter->GetState() != zeek::iosource::FilterState::OK ) )
+			success = false;
+		}
 
 	return zeek::val_mgr->Bool(success);
 	%}
@@ -99,11 +104,57 @@ function error%(%): string
 	if ( ps )
 		{
 		const char* err = ps->ErrorMsg();
-		if ( *err )
+		if ( err && *err )
 			return zeek::make_intrusive<zeek::StringVal>(err);
 		}
 
 	return zeek::make_intrusive<zeek::StringVal>("no error");
+	%}
+
+## Returns the initialization state of a PCAP filter, or OK if the either
+## there's no active packet source or the pcap filter ID does not exist.
+##
+## id: The PCAP filter id of a precompiled filter.
+##
+## Returns: A state value denoting whether any warnings or errors were
+##          encountered while initializing the filter.
+##
+## .. zeek:see:: Pcap::precompile_pcap_filter
+##               Pcap::install_pcap_filter
+function get_filter_state%(id: PcapFilterID%): filter_state
+	%{
+	EnumTypePtr filter_state = zeek::id::find_type<EnumType>("Pcap::filter_state");
+	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
+	if ( ps )
+		{
+		if ( auto filter = ps->GetBPFFilter(id->AsInt()) )
+			return filter_state->GetEnumVal(static_cast<zeek_int_t>(filter->GetState()));
+		}
+
+	return filter_state->GetEnumVal(static_cast<zeek_int_t>(iosource::FilterState::OK));
+	%}
+
+## Returns a string containing any error messages that were reported by
+## filter initialization.
+##
+## id: The PCAP filter id of a precompiled filter.
+##
+## Returns: Warning/error strings from the initialization process, a blank
+##          string if none were encountered, or '<unknown>' if either there
+##          is no active packet source or the filter ID doesn't exist.
+##
+## .. zeek:see:: Pcap::precompile_pcap_filter
+##               Pcap::install_pcap_filter
+function get_filter_state_string%(id: PcapFilterID%): string
+	%{
+	zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc();
+	if ( ps )
+		{
+		if ( auto filter = ps->GetBPFFilter(id->AsInt()) )
+			return zeek::make_intrusive<zeek::StringVal>(filter->GetStateMessage());
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>("<unknown>");
 	%}
 
 function findalldevs%(%): Pcap::Interfaces

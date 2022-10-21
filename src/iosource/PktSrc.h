@@ -5,6 +5,7 @@
 #include <sys/types.h> // for u_char
 #include <vector>
 
+#include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/iosource/Packet.h"
 
@@ -13,18 +14,13 @@ struct pcap_pkthdr;
 namespace zeek::iosource
 	{
 
-namespace detail
-	{
-class BPF_Program;
-	}
-
 /**
  * Base class for packet sources.
  */
 class PktSrc : public IOSource
 	{
 public:
-	static const int NETMASK_UNKNOWN = 0xffffffff;
+	static const uint32_t NETMASK_UNKNOWN = 0xffffffff;
 
 	/**
 	 * Struct for returning statistics on a packet source.
@@ -102,7 +98,7 @@ public:
 	 * Precompiles a BPF filter and associates the given index with it.
 	 * The compiled filter will be then available via \a GetBPFFilter().
 	 *
-	 * This is primarily a helper for packet source implementation that
+	 * This is primarily a helper for packet source implementations that
 	 * want to apply BPF filtering to their packets.
 	 *
 	 * @param index The index to associate with the filter.
@@ -139,7 +135,8 @@ public:
 	 *
 	 * @param pkt The content of the packet to filter.
 	 *
-	 * @return True if it maches. 	 */
+	 * @return True if it matches.
+	 */
 	bool ApplyBPFFilter(int index, const struct pcap_pkthdr* hdr, const u_char* pkt);
 
 	/**
@@ -158,9 +155,9 @@ public:
 	 * Precompiles a filter and associates a given index with it. The
 	 * filter syntax is defined by the packet source's implenentation.
 	 *
-	 * Derived classes must implement this to implement their filtering.
-	 * If they want to use BPF but don't support it natively, they can
-	 * call the corresponding helper method provided by \a PktSrc.
+	 * Derived classes can override this method to implement their own
+	 * filtering. If not overriden, it uses the pcap-based BPF filtering
+	 * by default.
 	 *
 	 * @param index The index to associate with the filter
 	 *
@@ -169,7 +166,10 @@ public:
 	 * @return True on success, false if a problem occurred or filtering
 	 * is not supported.
 	 */
-	virtual bool PrecompileFilter(int index, const std::string& filter) = 0;
+	virtual bool PrecompileFilter(int index, const std::string& filter)
+		{
+		return PrecompileBPFFilter(index, filter);
+		}
 
 	/**
 	 * Activates a precompiled filter with the given index.
@@ -336,6 +336,16 @@ protected:
 	 */
 	virtual void DoneWithPacket() = 0;
 
+	/**
+	 * Performs the actual filter compilation. This can be overridden to
+	 * provide a different implementation of the compiilation called by
+	 * PrecompileBPFFilter(). This is primarily used by the pcap source
+	 * use a different version of BPF_Filter::Compile;
+	 *
+	 * @param filter the filtering string being compiled.
+	 *
+	 * @return The compiled filter or nullptr if compilation failed.
+	 */
 	virtual detail::BPF_Program* CompileFilter(const std::string& filter);
 
 private:

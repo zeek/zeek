@@ -203,18 +203,17 @@ bool PktSrc::ExtractNextPacketInternal()
 
 detail::BPF_Program* PktSrc::CompileFilter(const std::string& filter)
 	{
-	std::string errbuf;
 	auto code = std::make_unique<detail::BPF_Program>();
 
-	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask(), errbuf) )
+	if ( ! code->Compile(BifConst::Pcap::snaplen, LinkType(), filter.c_str(), Netmask()) )
 		{
 		std::string msg = util::fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
-		if ( ! errbuf.empty() )
-			msg += ": " + errbuf;
+		std::string state_msg = code->GetStateMessage();
+		if ( ! state_msg.empty() )
+			msg += ": " + state_msg;
 
 		Error(msg);
-		return nullptr;
 		}
 
 	return code.release();
@@ -225,10 +224,9 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 	if ( index < 0 )
 		return false;
 
-	// Compile filter.
+	// Compile filter. This will always return a pointer, but may have stored an error
+	// internally.
 	auto code = CompileFilter(filter);
-	if ( ! code )
-		return false;
 
 	// Store it in vector.
 	if ( index >= static_cast<int>(filters.size()) )
@@ -239,7 +237,7 @@ bool PktSrc::PrecompileBPFFilter(int index, const std::string& filter)
 
 	filters[index] = code;
 
-	return true;
+	return code->GetState() != FilterState::FATAL;
 	}
 
 detail::BPF_Program* PktSrc::GetBPFFilter(int index)

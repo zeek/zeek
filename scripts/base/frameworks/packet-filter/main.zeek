@@ -48,6 +48,9 @@ export {
 
 		## Indicate if the filter was applied successfully.
 		success: bool  &log &default=T;
+
+		## A string reason why the filter failed to be created/installed.
+		failure_reason: string &log &optional;
 	};
 
 	## The BPF filter that is used by default to define what traffic should
@@ -276,22 +279,33 @@ function install(): bool
 		return F;
 
 	local ts = current_time();
+
 	if ( ! Pcap::precompile_pcap_filter(DefaultPcapFilter, tmp_filter) )
 		{
-		NOTICE([$note=Compile_Failure,
-		        $msg=fmt("Compiling packet filter failed"),
-		        $sub=tmp_filter]);
+		local state = Pcap::get_filter_state(DefaultPcapFilter);
+		local error_string : string;
+		if ( state == Pcap::fatal )
+			{
+			NOTICE([$note=Compile_Failure,
+			        $msg=fmt("Compiling packet filter failed"),
+			        $sub=tmp_filter]);
 
-		local error_string = fmt("Bad pcap filter '%s'", tmp_filter);
+			error_string = fmt("Bad pcap filter '%s': %s", tmp_filter,
+			                   Pcap::get_filter_state_string(DefaultPcapFilter));
 
-		local pkt_src_error : string = Pcap::error();
-		if ( pkt_src_error != "no error" )
-			error_string = pkt_src_error;
+			if ( network_time() == 0.0 )
+				Reporter::fatal(error_string);
+			else
+				Reporter::warning(error_string);
+			}
+		else if ( state == Pcap::warning )
+			{
+			error_string = fmt("Warning while compiling pcap filter '%s': %s",
+			                   tmp_filter,
+			                   Pcap::get_filter_state_string(DefaultPcapFilter));
 
-		if ( network_time() == 0.0 )
-			Reporter::fatal(error_string);
-		else
 			Reporter::warning(error_string);
+			}
 		}
 	local diff = current_time()-ts;
 	if ( diff > max_filter_compile_time )
@@ -317,6 +331,8 @@ function install(): bool
 		{
 		# Installing the filter failed for some reason.
 		info$success = F;
+		info$failure_reason = Pcap::get_filter_state_string(DefaultPcapFilter);
+
 		NOTICE([$note=Install_Failure,
 		        $msg=fmt("Installing packet filter failed"),
 		        $sub=current_filter]);

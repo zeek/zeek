@@ -263,25 +263,19 @@ void PcapSource::DoneWithPacket()
 	// Nothing to do.
 	}
 
-bool PcapSource::PrecompileFilter(int index, const std::string& filter)
-	{
-	return PktSrc::PrecompileBPFFilter(index, filter);
-	}
-
 detail::BPF_Program* PcapSource::CompileFilter(const std::string& filter)
 	{
-	std::string errbuf;
 	auto code = std::make_unique<detail::BPF_Program>();
 
-	if ( ! code->Compile(pd, filter.c_str(), Netmask(), errbuf) )
+	if ( ! code->Compile(pd, filter.c_str(), Netmask()) )
 		{
 		std::string msg = util::fmt("cannot compile BPF filter \"%s\"", filter.c_str());
 
-		if ( ! errbuf.empty() )
-			msg += ": " + errbuf;
+		std::string state_msg = code->GetStateMessage();
+		if ( ! state_msg.empty() )
+			msg += ": " + state_msg;
 
 		Error(msg);
-		return nullptr;
 		}
 
 	return code.release();
@@ -310,14 +304,16 @@ bool PcapSource::SetFilter(int index)
 		// since the default scripts will always attempt to compile
 		// and install a default filter
 		}
-	else
+	else if ( auto program = code->GetProgram() )
 		{
-		if ( pcap_setfilter(pd, code->GetProgram()) < 0 )
+		if ( pcap_setfilter(pd, program) < 0 )
 			{
 			PcapError();
 			return false;
 			}
 		}
+	else if ( code->GetState() != FilterState::OK )
+		return false;
 
 #ifndef HAVE_LINUX
 	// Linux doesn't clear counters when resetting filter.

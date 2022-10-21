@@ -1,3 +1,9 @@
+5.2.0-dev.120 | 2022-10-21 10:09:11 -0700
+
+  * Reorder includes in Options.cc (Tim Wojtulewicz, Corelight)
+
+  * Remove some leftover nb_dns stuff from the DNS_Mgr rework (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.116 | 2022-10-20 13:03:45 -0700
 
   * Update bifcl, binpac, broker, cmake, gen-zam, and paraglob submodules (Tim Wojtulewicz, Corelight)

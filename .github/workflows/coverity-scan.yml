@@ -42,11 +42,8 @@ jobs:
             curl \
             wget
 
-      - name: Install CAF
-        run: cd auxil/broker/caf && ./configure --prefix=`pwd`/build/install-root && cd build && make -j $(nproc) install
-
       - name: Configure
-        run: ./configure --build-type=debug --with-caf=`pwd`/auxil/broker/caf/build/install-root --disable-broker-tests --disable-spicy
+        run: ./configure --build-type=debug --disable-broker-tests --disable-spicy
 
       - name: Fetch Coverity Tools
         env:

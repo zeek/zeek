@@ -46,6 +46,9 @@ Changed Functionality
   will be raised once only. Further, analyzer confirmations are not raised
   after a violation.
 
+- The parameter given to ``enum_names()`` can now be a string naming the
+  enum type, rather than the type itself.
+
 Deprecated Functionality
 ------------------------
 

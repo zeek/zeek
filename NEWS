@@ -11,7 +11,7 @@ Breaking Changes
 
 - Zeekctl now assigns network ports to workers starting at port 27760. This
   fixes an issue where workers were starting up with ports within Linux's
-  ephemeral port range, and were potentiall failing to startup due the ports
+  ephemeral port range, and were potentially failing to startup due the ports
   already being in use. This change may require changes in firewall/routing
   configurations between hosts in a Zeek cluster. This should not affect
   clusters running on FreeBSD, as that OS uses a different range for ephemeral

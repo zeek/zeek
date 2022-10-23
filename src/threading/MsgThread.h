@@ -74,7 +74,7 @@ public:
 	 *
 	 * Only the child thread may call this method.
 	 *
-	 * @param msg The mesasge.
+	 * @param msg The message.
 	 */
 	void SendOut(BasicOutputMessage* msg) { return SendOut(msg, false); }
 

@@ -778,7 +778,7 @@ public:
 	 * Note that this method is rarely the right one to use. As it's for
 	 * informational purposes only, the plugin still needs to register
 	 * the BiF items themselves with the corresponding Zeek parts. Doing
-	 * so can be tricky, and it's recommned to instead define BiF items
+	 * so can be tricky, and it's recommend to instead define BiF items
 	 * in separate *.bif files that the plugin then pulls in. If defined
 	 * there, one does *not* need to call this method.
 	 *

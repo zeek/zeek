@@ -1144,7 +1144,7 @@ type AnaOutEveDPwTime = record {
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
-## g43 data format is exacatly same as g42 so use g42 directly
+## g43 data format is exactly same as g42 so use g42 directly
 
 # g50v1
 type AbsTime = record {

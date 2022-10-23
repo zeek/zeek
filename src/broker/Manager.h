@@ -110,7 +110,7 @@ public:
 	void Terminate();
 
 	/**
-	 * Returns true if any Broker communincation is currently active.
+	 * Returns true if any Broker communication is currently active.
 	 */
 	bool Active();
 

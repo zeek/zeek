@@ -44,7 +44,7 @@
 // Layer used in serial link as Pseudo Link Layer, Pseudo Transport Layer and
 // Pseudo Application Layer.
 //
-// For a long DNP3 application layer fragment, we may find it tramistted
+// For a long DNP3 application layer fragment, we may find it transmitted
 // over IP network in the following format:
 //
 //     Network Packet #1 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3

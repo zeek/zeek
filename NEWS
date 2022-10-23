@@ -1292,7 +1292,7 @@ New Functionality
 
 - Add parsing support for Remote Desktop Protocol UDP Transport Extension
   (RDPEUDP versions 1 and 2).  This primarily only adds "rdpeudp" to
-  connection record service fields when an RDPEUDP session handhake is
+  connection record service fields when an RDPEUDP session handshake is
   detected, but also provides a few other events related to the RDPEUDP
   connection establishment.
 

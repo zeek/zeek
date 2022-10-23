@@ -322,7 +322,7 @@ protected:
 	 * information. The callee keep ownership of the data but must
 	 * guarantee that it stays available at least until \a
 	 * DoneWithPacket() is called.  It is guaranteed that no two calls to
-	 * this method will hapen with \a DoneWithPacket() in between.
+	 * this method will happen with \a DoneWithPacket() in between.
 	 *
 	 * @return True if a packet is available and *pkt* filled in. False
 	 * if not packet is available or an error occured (which must be

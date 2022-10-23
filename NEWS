@@ -3983,7 +3983,7 @@ New Functionality
   exiting from the body as a result of a ``break`` statement (as
   opposed to a ``return`` or just reaching the end of the body). See
   ``doc/scripts/builtins.rst``, or the online documentation, for more
-  informatin.
+  information.
 
 - Bro's language now has a working ``switch`` statement that generally
   behaves like C-style switches (except that case labels can be

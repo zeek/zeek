@@ -186,7 +186,7 @@ using SourceID = std::uintptr_t;
 constexpr SourceID SOURCE_LOCAL = 0;
 
 // TODO: This is a temporary marker to flag events coming in via Broker.
-// Those are remote events but we don't have any further peer informationa
+// Those are remote events but we don't have any further peer information
 // available for them (as the old communication code would have). Once we
 // remove RemoteSerializer, we can turn the SourceID into a simple boolean
 // indicating whether it's a local or remote event.

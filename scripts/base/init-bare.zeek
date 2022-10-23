@@ -3569,7 +3569,7 @@ export {
 
 	## This information class is used to query or set extended attribute (EA) information for a file.
 	##
-	## For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+	## For more information, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
 	##
 	type SMB2::FileEA: record {
 		## Specifies the extended attribute name
@@ -3580,7 +3580,7 @@ export {
 
 	## A vector of extended attribute (EA) information for a file.
 	##
-	## For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+	## For more information, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
 	##
 	type SMB2::FileEAs: vector of SMB2::FileEA;
 

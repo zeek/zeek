@@ -17,7 +17,7 @@ export {
 }
 
 # This is inefficient; however, since this script only executes once on
-# startup, this shold be ok.
+# startup, this should be ok.
 function get_indent(level: count): string
 	{
 	local out = "";

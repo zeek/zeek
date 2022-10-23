@@ -201,7 +201,7 @@ public:
 	 *
 	 * @return A value for the next time that the source thinks the
 	 * poll should time out in seconds from the current time. Return
-	 * -1 if this should should not be considered.
+	 * -1 if this should not be considered.
 	 */
 	virtual double GetNextTimeout() override;
 

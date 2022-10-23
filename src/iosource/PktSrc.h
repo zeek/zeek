@@ -156,7 +156,7 @@ public:
 	 * filter syntax is defined by the packet source's implementation.
 	 *
 	 * Derived classes can override this method to implement their own
-	 * filtering. If not overriden, it uses the pcap-based BPF filtering
+	 * filtering. If not overridden, it uses the pcap-based BPF filtering
 	 * by default.
 	 *
 	 * @param index The index to associate with the filter

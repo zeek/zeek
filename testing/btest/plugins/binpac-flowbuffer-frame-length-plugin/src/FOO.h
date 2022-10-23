@@ -15,13 +15,13 @@ public:
 	FOO_Analyzer(zeek::Connection* conn);
 	virtual ~FOO_Analyzer();
 
-	// Overriden from Analyzer.
+	// Overridden from Analyzer.
 	virtual void Done();
 
 	virtual void DeliverStream(int len, const u_char* data, bool orig);
 	virtual void Undelivered(uint64_t seq, int len, bool orig);
 
-	// Overriden from tcp::TCP_ApplicationAnalyzer.
+	// Overridden from tcp::TCP_ApplicationAnalyzer.
 	virtual void EndpointEOF(bool is_orig);
 
 	static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn)

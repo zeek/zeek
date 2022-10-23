@@ -16,13 +16,13 @@ public:
 	explicit GSSAPI_Analyzer(Connection* conn);
 	~GSSAPI_Analyzer() override;
 
-	// Overriden from Analyzer.
+	// Overridden from Analyzer.
 	void Done() override;
 
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer.
+	// Overridden from analyzer::tcp::TCP_ApplicationAnalyzer.
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new GSSAPI_Analyzer(conn); }

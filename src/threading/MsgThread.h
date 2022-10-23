@@ -107,7 +107,7 @@ public:
 	 *
 	 * Only the child thread may call this method.
 	 *
-	 * Can be overriden in derived classed to hook into the error handling
+	 * Can be overridden in derived classed to hook into the error handling
 	 * but must should generally also call the parent implementation. Note
 	 * that this method is always called by the child thread and must not access
 	 * data or datastructures of the main thread directly.
@@ -123,7 +123,7 @@ public:
 	 *
 	 * Only the child thread may call this method.
 	 *
-	 * Can be overriden in derived classed to hook into the error handling
+	 * Can be overridden in derived classed to hook into the error handling
 	 * but must should generally also call the parent implementation. Note
 	 * that this method is always called by the child thread and must not access
 	 * data or datastructures of the main thread directly.
@@ -242,7 +242,7 @@ protected:
 	 *
 	 * This is method is called regularly by the threading::Manager.
 	 *
-	 * Can be overriden in derived classed to hook into the heart beat
+	 * Can be overridden in derived classed to hook into the heart beat
 	 * sending, but must call the parent implementation. Note that this
 	 * method is always called by the main thread and must not access
 	 * data of the child thread directly. Implement OnHeartbeat() if you
@@ -273,7 +273,7 @@ protected:
 	virtual bool OnFinish(double network_time) = 0;
 
 	/**
-	 * Overriden from BasicThread.
+	 * Overridden from BasicThread.
 	 */
 	void Run() override;
 	void OnWaitForStop() override;
@@ -389,7 +389,7 @@ public:
 	const char* Name() const { return name; }
 
 	/**
-	 * Callback that must be overriden for processing a message.
+	 * Callback that must be overridden for processing a message.
 	 */
 	virtual bool Process() = 0; // Thread will be terminated if returngin false.
 

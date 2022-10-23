@@ -104,7 +104,7 @@ public:
 
 protected:
 	/**
-	 * Overriden from plugin::Component.
+	 * Overridden from plugin::Component.
 	 */
 	void DoDescribe(ODesc* d) const override;
 

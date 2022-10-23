@@ -105,7 +105,7 @@ event mqtt_pingreq%(c: connection%);
 ## c: The connection
 event mqtt_pingresp%(c: connection%);
 
-## Generated for MQTT disconnect messages sent by the client when it is diconnecting cleanly.
+## Generated for MQTT disconnect messages sent by the client when it is disconnecting cleanly.
 ##
 ## c: The connection
 event mqtt_disconnect%(c: connection%);

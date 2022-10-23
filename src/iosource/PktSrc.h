@@ -251,7 +251,7 @@ protected:
 
 	/**
 	 * Called from the implementations of \a Open() to signal that the
-	 * source has been successully opened.
+	 * source has been successfully opened.
 	 *
 	 * @param props A properties instance describing the now open source.
 	 */

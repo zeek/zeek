@@ -660,7 +660,7 @@ x509_verify_chainerror:
 ##                  This only has to be provided if the SCT was encountered in an X.509
 ##                  certificate extension; in that case, it is necessary for validation.
 ##
-## Returns: T if the validation could be performed succesfully, F otherwise.
+## Returns: T if the validation could be performed successfully, F otherwise.
 ##
 ## .. zeek:see:: ssl_extension_signed_certificate_timestamp
 ##              x509_ocsp_ext_signed_certificate_timestamp

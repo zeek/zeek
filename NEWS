@@ -1589,7 +1589,7 @@ New Functionality
   See the documentation for more information:
   https://docs.zeek.org/en/stable/frameworks/supervisor.html
 
-- Add a new option, ``dpd_late_match_stop``, which can be used in conjuction
+- Add a new option, ``dpd_late_match_stop``, which can be used in conjunction
   with the option ``dpd_match_only_beginning`` and the new event
   ``protocol_late_match`` to help annotate the conn.log with a field
   to speculate on the protocol/service in cases where the DPD buffer

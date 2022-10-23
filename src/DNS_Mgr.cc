@@ -536,7 +536,7 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
 	}
 
 /**
- * Called when the c-ares socket changes state, whcih indicates that it's connected to
+ * Called when the c-ares socket changes state, which indicates that it's connected to
  * some source of data (either a host file or a DNS server). This indicates that we're
  * able to do lookups against c-ares now and should activate the IOSource.
  */

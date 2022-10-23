@@ -561,7 +561,7 @@ void ValTrace::ComputeVectorDelta(const ValTrace* prev, DeltaVector& deltas) con
 		return;
 		}
 
-	// Look for existing entries that need reassigment.
+	// Look for existing entries that need reassignment.
 	auto i = 0U;
 	for ( ; i < prev_n; ++i )
 		{

@@ -236,7 +236,7 @@ public:
 	BifItem(const BifItem& other);
 
 	/**
-	 * Assigment operator.
+	 * Assignment operator.
 	 */
 	BifItem& operator=(const BifItem& other);
 

@@ -303,7 +303,7 @@ public:
 		}
 
 protected:
-	// Returns true if an assigment involving the given identifier on
+	// Returns true if an assignment involving the given identifier on
 	// the LHS is in conflict with the given list of identifiers.
 	bool CheckID(const std::vector<const ID*>& ids, const ID* id, bool ignore_orig) const;
 

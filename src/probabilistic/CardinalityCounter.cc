@@ -36,7 +36,7 @@ void CardinalityCounter::Init(uint64_t size)
 	m = size;
 
 	// The following magic values are taken directly out of the
-	// description of the HyperLogLog algorithn.
+	// description of the HyperLogLog algorithm.
 
 	if ( m == 16 )
 		alpha_m = 0.673;

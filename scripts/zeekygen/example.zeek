@@ -66,7 +66,7 @@ redef enum Notice::Type += {
 
 # All redefs are automatically tracked.  Comments of the "##" form can be use
 # to further document it, but in some cases, like here, they wouldn't be
-# ading any interesting information that's not implicit.
+# adding any interesting information that's not implicit.
 redef enum Log::ID += { LOG };
 
 # Only identifiers declared in an export section will show up in generated docs.

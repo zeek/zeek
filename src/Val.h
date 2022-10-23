@@ -1737,7 +1737,7 @@ extern ValPtr cast_value_to_type(Val* v, Type* t);
 // Returns true if v can be casted to type T. If so, check_and_cast() will
 // succeed as well.
 //
-// Note: This implements the script-level type comparision operator.
+// Note: This implements the script-level type comparison operator.
 extern bool can_cast_value_to_type(const Val* v, Type* t);
 
 // Returns true if values of type s may support casting to type t. This is

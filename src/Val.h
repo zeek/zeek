@@ -139,7 +139,7 @@ public:
 		}
 
 	// Add this value to the given value (if appropriate).
-	// Returns true if succcessful.  is_first_init is true only if
+	// Returns true if successful.  is_first_init is true only if
 	// this is the *first* initialization of the value, not
 	// if it's a subsequent += initialization.
 	virtual bool AddTo(Val* v, bool is_first_init) const;
@@ -1521,7 +1521,7 @@ public:
 	bool AssignRepeat(unsigned int index, unsigned int how_many, ValPtr element);
 
 	// Add this value to the given value (if appropriate).
-	// Returns true if succcessful.
+	// Returns true if successful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
 	unsigned int Size() const { return vector_val->size(); }

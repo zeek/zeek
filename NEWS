@@ -896,7 +896,7 @@ Changed Functionality
     script, make sure that you do not use any third-party scripts that depend on the
     X509 events. The script is not loaded by default.
 
-  - The ICSI SSL Notary script was deprecated. This functionality is superseeded by newer
+  - The ICSI SSL Notary script was deprecated. This functionality is superseded by newer
     approaches, like SCT validation (which is supported by Zeek).
 
   - ``extract-certs-pem.zeek`` was deprecated - it never really worked in cluster modes.

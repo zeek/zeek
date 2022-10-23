@@ -1355,9 +1355,9 @@ type DescEle = record {
 
 # g86v3 does not quite understant specification description
 
-# g87 doest not quite understand specfication description
+# g87 doest not quite understand specification description
 
-# g88 doest not quite understand specfication description
+# g88 doest not quite understand specification description
 
 # g90v1
 type App_Id(qualifier_field: uint8, object_size16: uint16) = record {

@@ -178,7 +178,7 @@ protected:
 
 private:
 	// While this is storing session analyzer tags, we store it here since packet analyzers
-	// are persitent objects. We can't do this in the adapters because those get created
+	// are persistent objects. We can't do this in the adapters because those get created
 	// and destroyed for each connection.
 	using tag_set = std::set<zeek::Tag>;
 	using analyzer_map_by_port = std::map<uint32_t, tag_set*>;

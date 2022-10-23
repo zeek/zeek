@@ -863,7 +863,7 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 
 	else
 		// No need to Ref() because the StmtPList destructor
-		// doesn't Unref(), only the explict list-walking
+		// doesn't Unref(), only the explicit list-walking
 		// in the ~StmtList destructor.
 		f_stmts->append(stmt.release());
 

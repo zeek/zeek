@@ -77,7 +77,7 @@ protected:
 	void StartTLS();
 
 	bool orig_is_sender;
-	bool expect_sender, expect_recver;
+	bool expect_sender, expect_recover;
 	bool pipelining; // whether pipelining is supported
 	int state;
 	int last_replied_cmd;

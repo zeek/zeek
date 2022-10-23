@@ -30,7 +30,7 @@ SMTP_Analyzer::SMTP_Analyzer(Connection* conn)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("SMTP", conn)
 	{
 	expect_sender = false;
-	expect_recver = true;
+	expect_recover = true;
 	state = detail::SMTP_CONNECTED;
 	last_replied_cmd = -1;
 	first_cmd = detail::SMTP_CMD_CONN_ESTABLISHMENT;
@@ -166,7 +166,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 	// NOTE: do not use IsOrig() here, because of TURN command.
 	bool is_sender = orig_is_sender ? orig : ! orig;
 
-	if ( ! pipelining && ((is_sender && ! expect_sender) || (! is_sender && ! expect_recver)) )
+	if ( ! pipelining && ((is_sender && ! expect_sender) || (! is_sender && ! expect_recover)) )
 		Unexpected(is_sender, "out of order", length, line);
 
 	if ( is_sender )
@@ -190,13 +190,13 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 			NewCmd(cmd_code);
 
 			expect_sender = false;
-			expect_recver = true;
+			expect_recover = true;
 			}
 
 		else if ( state == detail::SMTP_IN_DATA )
 			{
 			// Check "." for end of data.
-			expect_recver = false; // ?? MAY server respond to mail data?
+			expect_recover = false; // ?? MAY server respond to mail data?
 
 			if ( line[0] == '.' )
 				++line;
@@ -231,7 +231,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 		else
 			{
 			expect_sender = false;
-			expect_recver = true;
+			expect_recover = true;
 
 			util::get_word(length, line, cmd_len, cmd);
 			line = util::skip_whitespace(line + cmd_len, end_of_line);
@@ -318,7 +318,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig)
 
 				pending_reply = 0;
 				expect_sender = true;
-				expect_recver = false;
+				expect_recover = false;
 				}
 
 			// Generate events.
@@ -387,7 +387,7 @@ void SMTP_Analyzer::StartTLS()
 	// STARTTLS was succesful. Remove SMTP support analyzers, add SSL
 	// analyzer, and throw event signifying the change.
 	state = detail::SMTP_IN_TLS;
-	expect_sender = expect_recver = true;
+	expect_sender = expect_recover = true;
 
 	RemoveSupportAnalyzer(cl_orig);
 	RemoveSupportAnalyzer(cl_resp);
@@ -751,7 +751,7 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig)
 
 					state = detail::SMTP_CONNECTED;
 					expect_sender = false;
-					expect_recver = true;
+					expect_recover = true;
 					break;
 
 				case 502:
@@ -863,7 +863,7 @@ void SMTP_Analyzer::RequestEvent(int cmd_len, const char* cmd, int arg_len, cons
 void SMTP_Analyzer::Unexpected(bool is_sender, const char* msg, int detail_len, const char* detail)
 	{
 	// Either party can send a line after an unexpected line.
-	expect_sender = expect_recver = true;
+	expect_sender = expect_recover = true;
 
 	if ( smtp_unexpected )
 		{

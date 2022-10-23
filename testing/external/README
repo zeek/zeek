@@ -106,7 +106,7 @@ there. For each trace, you also need to calculate a checksum with ``md5sum`` and
 put it into ``<url>.md5sum``. The scripts use this to decide if they need to
 redownload the trace. Accordingly, if you update a trace, make sure to also
 recalculate its checksum. Note that the traces will be downloaded to ``Traces/``
-but must not be added to the git repostiory; there's a ``.gitignore`` installed
+but must not be added to the git repository; there's a ``.gitignore`` installed
 to prevent that.
 
 

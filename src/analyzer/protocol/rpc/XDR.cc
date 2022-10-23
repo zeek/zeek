@@ -20,7 +20,7 @@ uint32_t zeek::analyzer::rpc::extract_XDR_uint32(const u_char*& buf, int& len)
 		return 0;
 		}
 
-	// Takes care of alignment and endianess differences.
+	// Takes care of alignment and endianness differences.
 	uint32_t buf_bits32;
 	memcpy(&buf_bits32, buf, 4);
 	uint32_t bits32 = ntohl(buf_bits32);

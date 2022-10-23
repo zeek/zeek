@@ -535,7 +535,7 @@ public:
 		{
 		if ( initial_size > 0 )
 			{
-			// If an initial size is speicified, init the table right away. Otherwise wait until the
+			// If an initial size is specified, init the table right away. Otherwise wait until the
 			// first insertion to init.
 			SetLog2Buckets(static_cast<uint16_t>(std::log2(initial_size)));
 			Init();

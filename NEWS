@@ -11,7 +11,7 @@ Breaking Changes
 
 - Zeekctl now assigns network ports to workers starting at port 27760. This
   fixes an issue where workers were starting up with ports within Linux's
-  ephemeral port range, and were potentiall failing to startup due the ports
+  ephemeral port range, and were potentially failing to startup due the ports
   already being in use. This change may require changes in firewall/routing
   configurations between hosts in a Zeek cluster. This should not affect
   clusters running on FreeBSD, as that OS uses a different range for ephemeral
@@ -316,7 +316,7 @@ New Functionality
 - Added support for parsing TCP option 27, and fixed validation of lengths for
   TCP options 28, 29, and 34.
 
-- Added new packet-analzyer to handle the DLT_LINUX_SLL2 PCAP link type.
+- Added new packet-analyzer to handle the DLT_LINUX_SLL2 PCAP link type.
 
 Changed Functionality
 ---------------------
@@ -564,7 +564,7 @@ Changed Functionality
   filter.
 
 - Log messages about errors in input files are now more informative about where
-  errors occured.
+  errors occurred.
 
 - The ``--enable-zeek-client`` configure flag has been removed and is now the
   default. The new ``--disable-zeek-client`` flag allows users to skip
@@ -989,7 +989,7 @@ Changed Functionality
     script, make sure that you do not use any third-party scripts that depend on the
     X509 events. The script is not loaded by default.
 
-  - The ICSI SSL Notary script was deprecated. This functionality is superseeded by newer
+  - The ICSI SSL Notary script was deprecated. This functionality is superseded by newer
     approaches, like SCT validation (which is supported by Zeek).
 
   - ``extract-certs-pem.zeek`` was deprecated - it never really worked in cluster modes.
@@ -1165,7 +1165,7 @@ New Functionality
   An example of a set with composite index is ``set[string, count, count]``.
 
 - Sumstats now allows manual epochs. If an ``epoch`` interval of 0 is specified,
-  epochs will have to be manually ended by callis ``SumStats::next_epoch``. This
+  epochs will have to be manually ended by calling ``SumStats::next_epoch``. This
   can be convenient because epochs can be synced to other events.
 
 - The Zeek distribution now includes Zeek's package manager, zkg. Its
@@ -1379,13 +1379,13 @@ New Functionality
   This should especially help with performance in environments where the
   same certificates are seen very often.
 
-  Certificate caching is very configureable; it is possible to disable the
+  Certificate caching is very configurable; it is possible to disable the
   feature, change the time intervals or even suppress X509 events.
   For details see ``scripts/base/files/x509/main.zeek``.
 
 - Add parsing support for Remote Desktop Protocol UDP Transport Extension
   (RDPEUDP versions 1 and 2).  This primarily only adds "rdpeudp" to
-  connection record service fields when an RDPEUDP session handhake is
+  connection record service fields when an RDPEUDP session handshake is
   detected, but also provides a few other events related to the RDPEUDP
   connection establishment.
 
@@ -1527,7 +1527,7 @@ Deprecated Functionality
   instead.
 
 - The ``analyzer::Analyzer::ConnectionEvent()``, ``analyzer::Analyzer::Event``,
-  and ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
+  and ``analyzer::Analyzer::ConnectionEventFast()`` methods are deprecated, use
   ``analyzer::Analyzer::EnqueueConnEvent()`` instead.
 
 - All ``val_mgr`` methods starting with "Get" are deprecated, use the new
@@ -1682,7 +1682,7 @@ New Functionality
   See the documentation for more information:
   https://docs.zeek.org/en/stable/frameworks/supervisor.html
 
-- Add a new option, ``dpd_late_match_stop``, which can be used in conjuction
+- Add a new option, ``dpd_late_match_stop``, which can be used in conjunction
   with the option ``dpd_match_only_beginning`` and the new event
   ``protocol_late_match`` to help annotate the conn.log with a field
   to speculate on the protocol/service in cases where the DPD buffer
@@ -1707,7 +1707,7 @@ Changed Functionality
 
 - A C++17-capable compiler and CMake 3.0+ are now required to compile Zeek
 
-- The backwards-compability wrappers & work-arounds introduced in 3.0
+- The backwards-compatibility wrappers & workarounds introduced in 3.0
   for the "Bro to Zeek rename" have either changed their operation, or in some
   cases been removed. Generally, anything that reported a
   naming-related warning in 3.0 now aborts with a corresponding error
@@ -1794,7 +1794,7 @@ Removed Functionality
 
 - Removed the ``current_conns_extern`` field from the ConnStats record
   type. Zeek only maintains a single timer manager now, and without the
-  manager tags that came with multiple tiemr managers, we don't track
+  manager tags that came with multiple timer managers, we don't track
   whether a connection is external anymore.
 
 Deprecated Functionality
@@ -1939,7 +1939,7 @@ New Functionality
       print n; # prints 4
 
   These anonymous functions can also be serialized over Broker with
-  their closures. In order to be serialzed over Broker the receiving
+  their closures. In order to be serialized over Broker the receiving
   script needs to have an identical version of the function declared.
   For the above example, a receiving script would need to have
   declared a function
@@ -2019,7 +2019,7 @@ Changed Functionality
   ``local.zeek``.  If you have a ``local.bro`` file from a previous
   installation, possibly with customizations made to it, the new
   version of Zeek will install a ``local.zeek`` file that is a symlink
-  to the pre-existing ``local.bro``.  In that case, you may want to
+  to the preexisting ``local.bro``.  In that case, you may want to
   just copy ``local.bro`` into the new ``local.zeek`` location to
   avoid confusion, but things are otherwise meant to work properly
   without intervention.
@@ -2261,7 +2261,7 @@ Changed Functionality
   ``DPD::max_violations`` and ``DPD::ignore_violations``.
 
 - The scan detection script, ``policy/misc/scan``, is no longer loaded by
-  default in ``site/local.zeek`` due to it frequenty causing performance issues.
+  default in ``site/local.zeek`` due to it frequently causing performance issues.
 
 Removed Functionality
 ---------------------
@@ -2489,7 +2489,7 @@ New Functionality
 
   When using BroControl, the function of proxies has changed with
   Broker. If you are upgrading and have configured more than one proxy
-  currenty, we recommend going back down to a single proxy node now.
+  currently, we recommend going back down to a single proxy node now.
   That should be fine unless you are using custom scripts doing
   significant data distribution through the new cluster framework.
 
@@ -3034,7 +3034,7 @@ Deprecated Functionality
 
 - The old communication system is now deprecated and scheduled for
   removal with the next Bro release. This includes the "communication"
-  framework, the ``&sychronized`` attributes, and the existing
+  framework, the ``&synchronized`` attributes, and the existing
   communication-related BiFs. Use Broker instead.
 
 - The infrastructure for serializing Bro values into a binary
@@ -3109,7 +3109,7 @@ Bro 2.5.4 primarily fixes security issues:
   array parsing, with potential impact to all Bro's BinPAC-generated
   analyzers in the form of buffer over-reads or other invalid memory
   accesses depending on whether a particular analyzer incorrectly
-  assumed that the evaulated-array-length expression is actually the
+  assumed that the evaluated-array-length expression is actually the
   number of elements that were parsed out from the input.
 
 * The NCP analyzer (not enabled by default and also updated to actually
@@ -3268,7 +3268,7 @@ New Functionality
   STARTTLS sessions, handing them over to TLS analysis. These analyzers
   do not yet analyze any further IMAP/XMPP content.
 
-- New funtionality has been added to the SSL/TLS analyzer:
+- New functionality has been added to the SSL/TLS analyzer:
 
   - Bro now supports (draft) TLS 1.3.
 
@@ -3582,10 +3582,10 @@ New Functionality
 
 - Bro now features a completely rewritten, enhanced SSH analyzer.  The
   new analyzer is able to determine if logins failed or succeeded in
-  most circumstances, logs a lot more more information about SSH
+  most circumstances, logs a lot more information about SSH
   sessions, supports v1, and introduces the intelligence type
   ``Intel::PUBKEY_HASH`` and location ``SSH::IN_SERVER_HOST_KEY``. The
-  analayzer also generates a set of additional events
+  analyzer also generates a set of additional events
   (``ssh_auth_successful``, ``ssh_auth_failed``, ``ssh_auth_attempted``,
   ``ssh_auth_result``, ``ssh_capabilities``, ``ssh2_server_host_key``,
   ``ssh1_server_host_key``, ``ssh_encrypted_packet``,
@@ -3845,7 +3845,7 @@ New Functionality
 
 - StartTLS is now supported for SMTP and POP3.
 
-- The X509 analyzer can now perform OSCP validation.
+- The X509 analyzer can now perform OCSP validation.
 
 - Bro now has analyzers for SNMP and Radius, which produce corresponding
   snmp.log and radius.log output (as well as various events of course).
@@ -3966,7 +3966,7 @@ New Functionality
 
   Scripts are provided at ``policy/frameworks/intel/seen`` that
   provide a broad set of sources of data to feed into the intel
-  framwork to be matched.
+  framework to be matched.
 
 - A new file analysis framework moves most of the processing of file
   content from script-land into the core, where it belongs. See
@@ -4076,7 +4076,7 @@ New Functionality
   exiting from the body as a result of a ``break`` statement (as
   opposed to a ``return`` or just reaching the end of the body). See
   ``doc/scripts/builtins.rst``, or the online documentation, for more
-  informatin.
+  information.
 
 - Bro's language now has a working ``switch`` statement that generally
   behaves like C-style switches (except that case labels can be
@@ -4097,7 +4097,7 @@ New Functionality
         opaque of topk
         opaque of bloomfilter
 
-  These go along with the corrsponding BiF functions ``md5_*``,
+  These go along with the corresponding BiF functions ``md5_*``,
   ``sha1_*``, ``sha256_*``, ``entropy_*``, etc. . Note that where
   these functions existed before, they have changed their signatures
   to work with opaques types rather than global state.
@@ -4417,7 +4417,7 @@ New Functionality
   Instead of adding a separate worker entry in node.cfg for each Bro
   worker process on each worker host, it is now possible to just
   specify the number of worker processes on each host and BroControl
-  configures everything correctly (including any neccessary enviroment
+  configures everything correctly (including any necessary enviroment
   variables for the balancers).
 
   This change adds three new keywords to the node.cfg file (to be used

@@ -1206,7 +1206,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals)
 		// seen before
 		if ( stream->num_val_fields == 0 || h->valhash == valhash )
 			{
-			// ok, exact duplicate, move entry to new dicrionary and do nothing else.
+			// ok, exact duplicate, move entry to new dictionary and do nothing else.
 			stream->lastDict->Remove(idxhash);
 			stream->currDict->Insert(idxhash, h);
 			delete idxhash;

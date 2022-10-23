@@ -284,7 +284,7 @@ event smb2_file_delete(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, de
 
 	if ( ! delete_pending )
 		{
-		# This is weird beause it would mean that someone didn't
+		# This is weird because it would mean that someone didn't
 		# set the delete bit in a delete request.
 		return;
 		}

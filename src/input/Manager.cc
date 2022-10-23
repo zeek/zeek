@@ -948,7 +948,7 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec,
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in type definition for for field \"%s\" in "
+			reporter->Error("Incompatible type \"%s\" in type definition for field \"%s\" in "
 			                "ReaderFrontend",
 			                type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 			return false;

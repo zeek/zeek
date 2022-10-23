@@ -930,7 +930,7 @@ bool Manager::AutoPublishEvent(string topic, Val* event)
 		return false;
 		}
 
-	DBG_LOG(DBG_BROKER, "Enabling auto-publising of event %s to topic %s", handler->Name(),
+	DBG_LOG(DBG_BROKER, "Enabling auto-publishing of event %s to topic %s", handler->Name(),
 	        topic.c_str());
 	handler->AutoPublish(move(topic));
 

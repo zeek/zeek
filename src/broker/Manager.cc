@@ -1648,7 +1648,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 
 	if ( ! id )
 		{
-		reporter->Warning("Received id-update request for unkown id: %s", id_name.c_str());
+		reporter->Warning("Received id-update request for unknown id: %s", id_name.c_str());
 		return false;
 		}
 

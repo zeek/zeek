@@ -468,7 +468,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 	// We try to look for the beginning of a RPC frame, assuming RPC
 	// frames begin at packet boundaries (though they may span over
 	// multiple packets) (note that the data* of DeliverStream() usually
-	// starts at a packet boundrary).
+	// starts at a packet boundary).
 	//
 	// If we see a frame start that makes sense (direction and frame
 	// lenght seem ok), we try to read (skip over) the next RPC message.

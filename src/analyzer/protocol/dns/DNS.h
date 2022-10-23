@@ -317,7 +317,7 @@ public:
 	int opcode; ///< query type, see DNS_Opcode
 	int rcode; ///< return code, see DNS_Code
 	int QR; ///< query record flag
-	int AA; ///< authoritiave answer flag
+	int AA; ///< authoritative answer flag
 	int TC; ///< truncated - size > 512 bytes for udp
 	int RD; ///< recursion desired
 	int RA; ///< recursion available

@@ -361,7 +361,7 @@ private:
 	// Traverse tree building the combined regular expressions.
 	void BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list* ids);
 
-	// Build groups of regular epxressions.
+	// Build groups of regular expressions.
 	void BuildPatternSets(RuleHdrTest::pattern_set_list* dst, const string_list& exprs,
 	                      const int_list& ids);
 

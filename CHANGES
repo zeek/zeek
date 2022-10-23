@@ -3310,7 +3310,7 @@
     - Add Debian 11 (Bullseye)
     - Drop Ubuntu 16.04
 
-  * Remove unneccessary >= 0 check in a UTF32 comparison Resolves
+  * Remove unnecessary >= 0 check in a UTF32 comparison Resolves
     Coverity CID 1461523. (Christian Kreibich, Corelight)
 
   * Trivial signedness warning fix. (Christian Kreibich, Corelight)

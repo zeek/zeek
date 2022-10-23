@@ -87,7 +87,7 @@ function print_snmp_bulk_pdu(pdu: SNMP::BulkPDU)
 	{
 	print fmt("    request_id:      %s", pdu$request_id);
 	print fmt("    non_repeaters:   %s", pdu$non_repeaters);
-	print fmt("    max_repititions: %s", pdu$max_repititions);
+	print fmt("    max_repetitions: %s", pdu$max_repetitions);
 	print_snmp_bindings(pdu$bindings);
 	}
 

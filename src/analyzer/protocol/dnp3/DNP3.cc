@@ -93,7 +93,7 @@
 // DNP3 Packet :  DNP3 Pseudo Data Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo
 // Application Layer
 //                                   ||                                    ||
-//                                   || (length field)                     || (original paylad byte
+//                                   || (length field)                     || (original payload byte
 //                                   stream)
 //                                   \/                                    \/
 //                DNP3 Additional Header              :                  Reassembled DNP3 Pseudo

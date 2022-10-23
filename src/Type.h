@@ -450,7 +450,7 @@ public:
 		std::string deprecation_msg;
 		RecordTypePtr args;
 		// Maps from parameter index in canonical prototype to
-		// parameter index in this alternate prorotype.
+		// parameter index in this alternate prototype.
 		std::map<int, int> offsets;
 		};
 

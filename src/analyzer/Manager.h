@@ -250,7 +250,7 @@ public:
 	 * 0.0.0.0 can be used as a wildcard matching any originator.
 	 *
 	 * @param resp The connection's anticipated responder address (no
-	 * wilcard).
+	 * wildcard).
 	 *
 	 * @param resp_p The connection's anticipated responder port.
 	 *
@@ -273,7 +273,7 @@ public:
 	 * be used as a wildcard matching any originator.
 	 *
 	 * @param resp The connection's anticipated responder address (no
-	 * wilcard).
+	 * wildcard).
 	 *
 	 * @param resp_p The connection's anticipated responder port.
 	 *
@@ -315,7 +315,7 @@ public:
 	 * be used as a wildcard matching any originator.
 	 *
 	 * @param resp The connection's anticipated responder address (no
-	 * wilcard).
+	 * wildcard).
 	 *
 	 * @param resp_p The connection's anticipated responder port.
 	 *

@@ -77,7 +77,7 @@ public:
 	static void SetIgnoreChecksumsNets(TableValPtr t);
 
 	/**
-	 * Gets the interpal pointer to the script-level variable `ignore_checksums_nets`.
+	 * Gets the internal pointer to the script-level variable `ignore_checksums_nets`.
 	 * This is used to prevent repeated (costly) lookup of the script-level variable
 	 * by IP-based analyzers.
 	 *

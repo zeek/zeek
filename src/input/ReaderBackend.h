@@ -258,7 +258,7 @@ protected:
 	 * Note that derived classes don't need to store the values passed in
 	 * here if other methods need them to; the \a ReaderBackend class
 	 * provides accessor methods to get them later, and they are passed
-	 * in here only for convinience.
+	 * in here only for convenience.
 	 */
 	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields,
 	                    const threading::Field* const* fields) = 0;

@@ -195,7 +195,7 @@ type flow_id : record {
 	src_h: addr;	##< The source IP address.
 	src_p: port;	##< The source port number.
 	dst_h: addr;	##< The destination IP address.
-	dst_p: port;	##< The desintation port number.
+	dst_p: port;	##< The destination port number.
 } &log;
 
 ## Specifics about an ICMP conversation. ICMP events typically pass this in

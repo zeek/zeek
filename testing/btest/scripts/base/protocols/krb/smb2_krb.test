@@ -1,5 +1,5 @@
 # This test verifies that given the proper keytab file, the
-# Kerberos analyzer can open the AD ticket in the Negociate
+# Kerberos analyzer can open the AD ticket in the Negotiate
 # Protocol Request and find the user.
 #
 # @TEST-REQUIRES: grep -q "#define USE_KRB5" $BUILD/zeek-config.h

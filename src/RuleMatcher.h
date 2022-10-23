@@ -297,7 +297,7 @@ public:
 	 */
 	void ClearFileMagicState(RuleFileMagicState* state) const;
 
-	// Initialize the matching state for a endpoind of a connection based on
+	// Initialize the matching state for a endpoint of a connection based on
 	// the given packet (which should be the first packet encountered for
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.

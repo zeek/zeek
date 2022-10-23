@@ -181,7 +181,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, bool is_or
 
 		// We now have a valid RPC_CallInfo (either the previous one
 		// in case of a rexmit or the current one).
-		// TODO: What to do in case of a rexmit_inconistency??
+		// TODO: What to do in case of a rexmit_inconsistency??
 		Event_RPC_Call(call);
 
 		if ( RPC_BuildCall(call, buf, n) )

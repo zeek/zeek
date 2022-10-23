@@ -4720,7 +4720,7 @@ export {
 		## The message type (20 for SAFE_MSG)
 		msg_type	: count;
 		## The application-specific data that is being passed
-		## from the sender to the reciever
+		## from the sender to the receiver
 		data		: string;
 		## Current time from the sender of the message
 		timestamp	: time &optional;

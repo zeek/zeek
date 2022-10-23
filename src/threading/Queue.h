@@ -23,7 +23,7 @@ namespace zeek::threading
  *
  * All Queue instances must be instantiated by Zeek's main thread.
  *
- * TODO: Unclear how critical performance is for this qeueue. We could likely
+ * TODO: Unclear how critical performance is for this queue. We could likely
  * optimize it further if helpful.
  */
 template <typename T> class Queue

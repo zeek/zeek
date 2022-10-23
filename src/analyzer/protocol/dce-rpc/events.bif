@@ -27,7 +27,7 @@ event dce_rpc_message%(c: connection, is_orig: bool, fid: count, ptype_id: count
 ##
 ## ctx_id: The context identifier of the data representation.
 ##
-## uuid: The string interpretted uuid of the endpoint being requested.
+## uuid: The string interpreted uuid of the endpoint being requested.
 ##
 ## ver_major: The major version of the endpoint being requested.
 ##
@@ -48,7 +48,7 @@ event dce_rpc_bind%(c: connection, fid: count, ctx_id: count, uuid: string, ver_
 ##
 ## ctx_id: The context identifier of the data representation.
 ##
-## uuid: The string interpretted uuid of the endpoint being requested.
+## uuid: The string interpreted uuid of the endpoint being requested.
 ##
 ## ver_major: The major version of the endpoint being requested.
 ##

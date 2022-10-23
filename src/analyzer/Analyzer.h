@@ -373,7 +373,7 @@ public:
 
 	/**
 	 * Returns a textual description of the analyzer's type. This is
-	 * what's passed to the constructor and usally corresponds to the
+	 * what's passed to the constructor and usually corresponds to the
 	 * protocol name, e.g., "HTTP".
 	 */
 	const char* GetAnalyzerName() const;

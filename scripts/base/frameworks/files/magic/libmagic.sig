@@ -1,6 +1,6 @@
 # These signatures were semi-automatically generated from libmagic's
 # (~ v5.17) magic database rules that have an associated mime type.
-# After generating, they were all manually reviewed and occassionally
+# After generating, they were all manually reviewed and occasionally
 # needed minor modifications by hand or were just ommited depending on
 # the complexity of the original magic rules.
 #

@@ -86,7 +86,7 @@ export {
 		client_chaddr:  string      &optional;
 	};
 
-	## The maximum amount of time that a transation ID will be watched
+	## The maximum amount of time that a transaction ID will be watched
 	## for to try and tie messages together into a single DHCP
 	## transaction narrative.
 	option DHCP::max_txid_watch_time = 30secs;

@@ -317,7 +317,7 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x7801 -> challenge: AuthChallenge(prefix.prefix_value);
 		0x7802 -> reply: AuthReply(prefix.prefix_value);
 		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value);
-		0x7804 -> seesionKeyRequest: uint16;
+		0x7804 -> sessionKeyRequest: uint16;
 		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value);
 		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value);
 		0x7807 -> error: AuthError(prefix.prefix_value);
@@ -598,7 +598,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x7801 -> challenge: AuthChallenge(prefix.prefix_value);
 		0x7802 -> reply: AuthReply(prefix.prefix_value);
 		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value);
-		0x7804 -> seesionKeyRequest: uint16;
+		0x7804 -> sessionKeyRequest: uint16;
 		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value);
 		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value);
 		0x7807 -> error: AuthError(prefix.prefix_value);

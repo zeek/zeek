@@ -60,7 +60,7 @@ public:
 	virtual ~MsgThread();
 
 	/**
-	 * Sends a message to the child thread. The message will be proceesed
+	 * Sends a message to the child thread. The message will be processed
 	 * once the thread has retrieved it from its incoming queue.
 	 *
 	 * Only the main thread may call this method.

@@ -279,7 +279,7 @@ protected:
 	void Error(const std::string& msg);
 
 	/**
-	 * Can be called from derived classes to flah a "weird" situation.
+	 * Can be called from derived classes to flag a "weird" situation.
 	 *
 	 * @param msg The message to pass on.
 	 *

@@ -49,7 +49,7 @@ public:
 	 * @param m object to track. Does not take ownership, but the object
 	 * will automatically unregister itself on destruction.
 	 *
-	 * @param r receiver to notify on changes. Does not take ownershop,
+	 * @param r receiver to notify on changes. Does not take ownership,
 	 * the receiver must remain valid as long as the registration stays
 	 * in place.
 	 */

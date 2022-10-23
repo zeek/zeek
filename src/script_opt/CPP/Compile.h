@@ -595,7 +595,7 @@ private:
 	std::unordered_set<std::string> compiled_funcs;
 
 	// "Simple" functions that we've compiled, i.e., those that have
-	// a single body and thus can be called dirctly.  Indexed by
+	// a single body and thus can be called directly.  Indexed by
 	// function name, and maps to the C++ name.
 	std::unordered_map<std::string, std::string> compiled_simple_funcs;
 

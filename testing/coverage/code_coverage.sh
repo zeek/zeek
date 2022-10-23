@@ -66,7 +66,7 @@ function check_group_coverage {
     done | sort | uniq)
 
     for i in $DIRS; do
-        # For elements in #src, we only care about the files direclty in the directory.
+        # For elements in #src, we only care about the files directly in the directory.
         if [[ "$i" = "#src" ]]; then
             RUN=$(echo $(grep "$i#[^#]\+$" $DATA | grep "$SRC_FOLDER$i\|build$i" | cut -f 2) | tr " " "+" | bc)
             TOTAL=$(echo $(grep "$i#[^#]\+$" $DATA | grep "$SRC_FOLDER$i\|build$i" | cut -f 3) | tr " " "+" | bc)

@@ -151,7 +151,7 @@ event zeek_init()
 
 	local pat1 = /.*PATTERN.*/;
 	local pat2 = copy(pat1);
-	# patterns cannot be directoy compared
+	# patterns cannot be directly compared
 	if ( same_object(pat1, pat2) )
 		print "FAIL P1";
 	if ( ! ( pat1 == "PATTERN" ) )

@@ -48,7 +48,7 @@
 #
 # Implementation number: The number of the implementation this request code
 #        is defined by.  An implementation number of zero is used
-#        for requst codes/data formats which all implementations
+#        for request codes/data formats which all implementations
 #        agree on.  Implementation number 255 is reserved (for
 #        extensions, in case we run out).
 #

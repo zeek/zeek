@@ -29,7 +29,7 @@ protected:
 
 /**
  * The thread manager coordinates all child threads. Once a BasicThread is
- * instantitated, it gets added to the manager, which will delete it later
+ * instantiated, it gets added to the manager, which will delete it later
  * once it has terminated.
  *
  * In addition to basic threads, the manager also provides additional

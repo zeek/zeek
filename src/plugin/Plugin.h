@@ -1082,7 +1082,7 @@ protected:
 	 * causes a log line to be written. It will _not_ be called on the logger
 	 * node. The function will be called each for every instantiated writer.
 	 *
-	 * @param writer The name of the writer being insantiated.
+	 * @param writer The name of the writer being instantiated.
 	 *
 	 * @param instantiating_filter Name of the filter causing the
 	 *        writer instantiation.

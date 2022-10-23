@@ -611,7 +611,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x780E -> update_key_sig: UpdateKeySig(prefix.prefix_value);
 		0x780F -> update_key_con: UpdateKeyCon(prefix.prefix_value);
 
-		#default -> unkonwndata: Debug_Byte; # &check( T );
+		#default -> unknowndata: Debug_Byte; # &check( T );
 		default -> unmatched: Default_Wrap(object_type_field);
 	};
 }

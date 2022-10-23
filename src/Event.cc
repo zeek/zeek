@@ -139,7 +139,7 @@ void EventMgr::Drain()
 	// a handler queued new events during its execution. This could lead
 	// to endless loops in case a handler kept triggering its own event.
 	// We now limit this to just a couple of rounds. We do more than
-	// just one round to make it less likley to break existing scripts
+	// just one round to make it less likely to break existing scripts
 	// that expect the old behavior to trigger something quickly.
 
 	for ( int round = 0; head && round < 2; round++ )

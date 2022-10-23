@@ -1250,7 +1250,7 @@ private:
 		// not found
 #ifdef ZEEK_DICT_DEBUG
 		if ( linear_position >= 0 )
-			{ // different. stop and try to see whats happending.
+			{ // different. stop and try to see whats happening.
 			ASSERT(false);
 			// rerun the function in debugger to track down the bug.
 			LookupIndex(key, key_size, hash);

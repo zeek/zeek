@@ -5490,7 +5490,7 @@ export {
 	const flowbuffer_capacity_max = 10 * 1024 * 1024 &redef;
 
 	## The initial capacity, in bytes, that will be allocated to the BinPAC
-	## flowbuffer of a given connection/analyzer.  If the buffer buffer is
+	## flowbuffer of a given connection/analyzer.  If the buffer is
 	## later contracted, its capacity is also reduced to this size.
 	const flowbuffer_capacity_min = 512 &redef;
 

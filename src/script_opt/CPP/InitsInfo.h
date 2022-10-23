@@ -217,7 +217,7 @@ private:
 class CPP_BasicConstInitsInfo : public CPP_CustomInitsInfo
 	{
 public:
-	// In the following, if "c_type" is non-empty then it specifes the
+	// In the following, if "c_type" is non-empty then it specifies the
 	// C++ type used to directly represent the constant.  If empty, it
 	// indicates that we instead use an index into a separate vector.
 	CPP_BasicConstInitsInfo(std::string _tag, std::string type, std::string c_type)

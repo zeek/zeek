@@ -98,7 +98,7 @@ type Request_Objects(function_code: uint8) = record {
 
 		# time data interval data object g50
 		0x3201 -> g50v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		#0x3202 -> time_interval_ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		#0x3202 -> time_interval_objects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 						# &check( object_header.qualifier_field == 0x0f && object_header.number_of_item == 0x01);
 		0x3202 -> g50v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 		0x3203 -> g50v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
@@ -140,7 +140,7 @@ type Request_Objects(function_code: uint8) = record {
 		0x780E -> g120v14_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 		0x780F -> g120v15_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 
-		# default -> ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		# default -> objects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 		default -> objects: empty;
 	};
 	# dump_data is always empty; I intend to use it for checking some conditions;

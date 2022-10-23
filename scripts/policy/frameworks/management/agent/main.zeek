@@ -820,7 +820,7 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 			res = Management::Result($reqid=reqid,
 			    $instance = Management::Agent::get_name(),
 			    $success = F,
-			    $error = fmt("cluster node %s not in runnning state", node),
+			    $error = fmt("cluster node %s not in running state", node),
 			    $node=node);
 			req$results += res;
 			}

@@ -1364,7 +1364,7 @@ bool DNS_Interpreter::ParseRR_DS(detail::DNS_MsgInfo* msg, const u_char*& data, 
 		case detail::SHA384:
 			break;
 		case detail::reserved:
-			analyzer->Weird("DNSSEC_DS_ResrevedDigestType", util::fmt("%d", ds_dtype));
+			analyzer->Weird("DNSSEC_DS_ReservedDigestType", util::fmt("%d", ds_dtype));
 			break;
 		default:
 			analyzer->Weird("DNSSEC_DS_unknown_DigestType", util::fmt("%d", ds_dtype));

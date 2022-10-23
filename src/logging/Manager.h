@@ -148,7 +148,7 @@ public:
 	 *
 	 * @param id  The enum value corresponding the log stream.
 	 *
-	 * @param colums A record of the type defined for the stream's
+	 * @param columns A record of the type defined for the stream's
 	 * columns.
 	 *
 	 * This methods corresponds directly to the internal BiF defined in

@@ -153,7 +153,7 @@ public:
 
 	/**
 	 * Precompiles a filter and associates a given index with it. The
-	 * filter syntax is defined by the packet source's implenentation.
+	 * filter syntax is defined by the packet source's implementation.
 	 *
 	 * Derived classes can override this method to implement their own
 	 * filtering. If not overriden, it uses the pcap-based BPF filtering

@@ -403,7 +403,7 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 		c->UpdateBody(c->Body()->Reduce(rc));
 		}
 
-	// Upate type cases.
+	// Update type cases.
 	for ( auto& i : case_label_type_list )
 		{
 		IDPtr idp = {NewRef{}, i.first};

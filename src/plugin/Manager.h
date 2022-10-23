@@ -155,7 +155,7 @@ public:
 	template <class T> std::list<T*> Components() const;
 
 	/**
-	 * Returns the (dynamic) plugin associated with a given filesytem
+	 * Returns the (dynamic) plugin associated with a given filesystem
 	 * path. The path can be the plugin directory itself, or any path
 	 * inside it.
 	 */

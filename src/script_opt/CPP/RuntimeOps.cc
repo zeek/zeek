@@ -157,7 +157,7 @@ SubNetValPtr addr_mask__CPP(const IPAddr& a, uint32_t mask)
 	return make_intrusive<SubNetVal>(a, mask);
 	}
 
-// Helper function for reporting invalidation of interators.
+// Helper function for reporting invalidation of iterators.
 static void check_iterators__CPP(bool invalid)
 	{
 	if ( invalid )

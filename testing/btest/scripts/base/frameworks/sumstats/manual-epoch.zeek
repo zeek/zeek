@@ -16,7 +16,7 @@ event second_test()
 
 	SumStats::observe("test.metric", [$host=6.5.4.3], [$num=2]);
 	SumStats::observe("test.metric", [$host=7.2.1.5], [$num=1]);
-	print "Performing second epoch with overvations";
+	print "Performing second epoch with observations";
 	local ret = SumStats::next_epoch("test");
 	if ( ! ret )
 		print "Return value false";

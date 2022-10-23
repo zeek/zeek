@@ -413,7 +413,7 @@ private:
 	std::string LocalName(const IDPtr& l) const { return LocalName(l.get()); }
 
 	// Returns a canonicalized name, with various non-alphanumeric
-	// characters stripped or transformed, and guananteed not to
+	// characters stripped or transformed, and guaranteed not to
 	// conflict with C++ keywords.
 	std::string Canonicalize(const char* name) const;
 

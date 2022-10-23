@@ -640,7 +640,7 @@ public:
 			if ( order )
 				order->emplace_back(detail::HashKey{key, static_cast<size_t>(key_size), hash});
 
-			// Allocate memory for key if necesary. Key is updated to reflect internal key if
+			// Allocate memory for key if necessary. Key is updated to reflect internal key if
 			// necessary.
 			detail::DictEntry<T> entry(key, key_size, hash, val, insert_distance, copy_key);
 			InsertRelocateAndAdjust(entry, insert_position);

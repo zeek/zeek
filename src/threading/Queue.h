@@ -233,7 +233,7 @@ template <typename T> inline uint64_t Queue<T>::Size()
 
 template <typename T> inline void Queue<T>::GetStats(Stats* stats)
 	{
-	// To be safe, we look all queues. That's probably unneccessary, but
+	// To be safe, we look all queues. That's probably unnecessary, but
 	// doesn't really hurt.
 	auto locks = LocksForAllQueues();
 

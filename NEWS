@@ -4324,7 +4324,7 @@ New Functionality
   Instead of adding a separate worker entry in node.cfg for each Bro
   worker process on each worker host, it is now possible to just
   specify the number of worker processes on each host and BroControl
-  configures everything correctly (including any neccessary enviroment
+  configures everything correctly (including any necessary enviroment
   variables for the balancers).
 
   This change adds three new keywords to the node.cfg file (to be used

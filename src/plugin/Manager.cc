@@ -121,7 +121,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		return;
 		}
 
-	// No plugin here, traverse subirectories.
+	// No plugin here, traverse subdirectories.
 
 	DIR* d = opendir(dir.c_str());
 

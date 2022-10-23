@@ -624,7 +624,7 @@ StmtPtr ForStmt::DoReduce(Reducer* c)
 	body = body->Reduce(c);
 
 	if ( body->Tag() == STMT_NULL )
-		Warn("empty \"for\" body leaves loop variables in indeterminant state");
+		Warn("empty \"for\" body leaves loop variables in indeterminate state");
 
 	if ( red_e_stmt )
 		return TransformMe(make_intrusive<StmtList>(red_e_stmt, this), c);

@@ -724,7 +724,7 @@ if ( NOT DISABLE_SPICY )
         # If we build spicy-plugin into Zeek we also need to build the Spicy
         # runtime dependencies into Zeek. Since no matter how Spicy itself was
         # linked this is always a static library, link the object files so we
-        # get all symbols and can can resolve all potential dependencies of
+        # get all symbols and can resolve all potential dependencies of
         # HLTO files at runtime.
         #
         # TODO(bbannier): Conceptually cleaner would be linking the runtime

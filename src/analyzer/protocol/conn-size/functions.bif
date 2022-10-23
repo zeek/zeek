@@ -42,7 +42,7 @@ function set_current_conn_bytes_threshold%(cid: conn_id, threshold: count, is_or
 	return zeek::val_mgr->True();
 	%}
 
-## Sets a threshold for connection packets, overwtiting any potential old thresholds.
+## Sets a threshold for connection packets, overwriting any potential old thresholds.
 ## Be aware that in nearly any case you will want to use the high level API
 ## instead (:zeek:see:`ConnThreshold::set_packets_threshold`).
 ##

@@ -1195,7 +1195,7 @@ private:
 	virtual Configuration Configure() = 0;
 
 	/**
-	 * Intializes the plugin's internal configuration. Called by the
+	 * Initializes the plugin's internal configuration. Called by the
 	 * manager before anything else.
 	 */
 	void DoConfigure();

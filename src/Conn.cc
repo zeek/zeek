@@ -400,7 +400,7 @@ void Connection::Describe(ODesc* d) const
 
 		case TRANSPORT_UNKNOWN:
 			d->Add("unknown");
-			reporter->InternalWarning("unknown transport in Connction::Describe()");
+			reporter->InternalWarning("unknown transport in Connection::Describe()");
 
 			break;
 

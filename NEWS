@@ -1434,7 +1434,7 @@ Deprecated Functionality
   instead.
 
 - The ``analyzer::Analyzer::ConnectionEvent()``, ``analyzer::Analyzer::Event``,
-  and ``analyzer::Analyzer::ConectionEventFast()`` methods are deprecated, use
+  and ``analyzer::Analyzer::ConnectionEventFast()`` methods are deprecated, use
   ``analyzer::Analyzer::EnqueueConnEvent()`` instead.
 
 - All ``val_mgr`` methods starting with "Get" are deprecated, use the new

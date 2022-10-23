@@ -310,7 +310,7 @@ public:
 	OutputHandler* GetOutputHandler() const { return output_handler; }
 
 	/**
-	 * Associates an OutputHandler with the connnection.
+	 * Associates an OutputHandler with the connection.
 	 *
 	 * @param handler The handler.
 	 */
@@ -571,7 +571,7 @@ public:
 	 * TODO: The above comment needs updating, there's no BuildConnVal()
 	 * anymore -VP
 	 *
-	 * @param conn_val The connenction value being updated.
+	 * @param conn_val The connection value being updated.
 	 */
 	virtual void UpdateConnVal(RecordVal* conn_val);
 

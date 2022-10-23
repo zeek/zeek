@@ -117,7 +117,7 @@ public:
 	[[noreturn]] void CPPRuntimeError(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
-	// that may lead to incorrectly processing a connnection.
+	// that may lead to incorrectly processing a connection.
 	void Weird(const char* name, const char* addl = "",
 	           const char* source = ""); // Raises net_weird().
 	void Weird(file_analysis::File* f, const char* name, const char* addl = "",

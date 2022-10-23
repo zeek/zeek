@@ -52,7 +52,7 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	if ( orig_done && resp_done )
 		{
 		// Finished decapsulating tunnel layer. Now do standard processing
-		// with the rest of the conneciton.
+		// with the rest of the connection.
 		//
 		// Note that we assume that no payload data arrives before both endpoints
 		// are done with their part of the SOCKS protocol.

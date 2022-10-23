@@ -1353,7 +1353,7 @@ type DescEle = record {
 
 # g86v1 is the same structure of DescEle
 
-# g86v3 does not quite understant specification description
+# g86v3 does not quite understand specification description
 
 # g87 doest not quite understand specification description
 

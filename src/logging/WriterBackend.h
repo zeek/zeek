@@ -363,7 +363,7 @@ protected:
 	 * @param close The network time when the *current* file was closed.
 	 *
 	 * @param terminating Indicates whether the rotation request occurs
-	 * due the main Zeek prcoess terminating (and not because we've
+	 * due the main Zeek process terminating (and not because we've
 	 * reached a regularly scheduled time for rotation).
 	 */
 	virtual bool DoRotate(const char* rotated_path, double open, double close,

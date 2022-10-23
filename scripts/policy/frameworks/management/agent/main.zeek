@@ -49,7 +49,7 @@ export {
 		requests: set[string] &default=set();
 	};
 
-	## Request state for restart requests, tracking eceived responses.
+	## Request state for restart requests, tracking received responses.
 	type RestartState: record {
 		## Request state for every node the agent asks the Supervisor
 		## to restart.

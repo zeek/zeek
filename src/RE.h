@@ -100,8 +100,8 @@ public:
 	bool MatchAll(const String* s);
 
 	// Compiles a set of regular expressions simultaniously.
-	// 'idx' contains indizes associated with the expressions.
-	// On matching, the set of indizes is returned which correspond
+	// 'idx' contains indices associated with the expressions.
+	// On matching, the set of indices is returned which correspond
 	// to the matching expressions.  (idx must not contain zeros).
 	bool CompileSet(const string_list& set, const int_list& idx);
 

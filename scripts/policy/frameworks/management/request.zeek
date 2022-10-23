@@ -15,7 +15,7 @@ export {
 	## :zeek:see:`Management::Request::finish` clears the state when
 	## a corresponding response event comes in, or the state times out.
 	type Request: record {
-		## Each request has a hopfully unique ID provided by the requester.
+		## Each request has a hopefully unique ID provided by the requester.
 		id: string;
 
 		## For requests that result based upon another request (such as when

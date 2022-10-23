@@ -1286,7 +1286,7 @@ New Functionality
   This should especially help with performance in environments where the
   same certificates are seen very often.
 
-  Certificate caching is very configureable; it is possible to disable the
+  Certificate caching is very configurable; it is possible to disable the
   feature, change the time intervals or even suppress X509 events.
   For details see ``scripts/base/files/x509/main.zeek``.
 

@@ -1602,7 +1602,7 @@ void TCPSessionAdapter::AddExtraAnalyzers(Connection* conn)
 	static zeek::Tag analyzer_connsize = analyzer_mgr->GetComponentTag("CONNSIZE");
 	static zeek::Tag analyzer_tcpstats = analyzer_mgr->GetComponentTag("TCPSTATS");
 
-	// We have to decide whether to reassamble the stream.
+	// We have to decide whether to reassemble the stream.
 	// We turn it on right away if we already have an app-layer
 	// analyzer, reassemble_first_packets is true, or the user
 	// asks us to do so.  In all other cases, reassembly may

@@ -3245,7 +3245,7 @@ export {
 		info_level			: count;
 		## Specify whether to search for directories or files
 		search_storage_type	: count;
-		## The string to serch for (note: may contain wildcards)
+		## The string to search for (note: may contain wildcards)
 		file_name			: string;
 	};
 

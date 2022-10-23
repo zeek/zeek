@@ -676,7 +676,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 				case detail::DELE:
 				case detail::XSENDER:
 					if ( masterState == detail::POP3_AUTHORIZATION )
-						AuthSuccessfull();
+						AuthSuccessful();
 					masterState = detail::POP3_TRANSACTION;
 					break;
 
@@ -689,7 +689,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 					if ( waitingForAuthentication )
 						masterState = detail::POP3_TRANSACTION;
 					waitingForAuthentication = false;
-					AuthSuccessfull();
+					AuthSuccessful();
 					break;
 
 				case detail::TOP:
@@ -819,7 +819,7 @@ void POP3_Analyzer::StartTLS()
 		EnqueueConnEvent(pop3_starttls, ConnVal());
 	}
 
-void POP3_Analyzer::AuthSuccessfull()
+void POP3_Analyzer::AuthSuccessful()
 	{
 	if ( user.size() )
 		POP3Event(pop3_login_success, false, user.c_str(), password.c_str());

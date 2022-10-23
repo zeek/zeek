@@ -1248,7 +1248,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals)
 		predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, pred_convert_error);
 
 		// if we encountered a convert error here - just continue as we would have without
-		// emitting the event. I do not really think that that can happen just here and not
+		// emitting the event. I do not really think that can happen just here and not
 		// at the top-level. But - this is safe.
 		if ( ! pred_convert_error )
 			{

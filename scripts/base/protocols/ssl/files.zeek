@@ -80,7 +80,7 @@ function describe_file(f: fa_file): string
 	# we do not know when this function is called (hence, if the data structures
 	# are already populated).
 	#
-	# Just return a bit of our connection information and hope that that is good enough.
+	# Just return a bit of our connection information and hope that is good enough.
 	for ( cid, c in f$conns )
 		{
 		if ( c?$ssl )

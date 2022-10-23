@@ -1,6 +1,6 @@
 #
 # This test procudes a recursive error: the error handler is itself broken. Rather
-# than looping indefinitly, the error inside the handler should reported to stderr.
+# than looping indefinitely, the error inside the handler should reported to stderr.
 #
 # @TEST-EXEC: zeek -b %INPUT >output 2>err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output

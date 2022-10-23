@@ -1075,7 +1075,7 @@ bool Manager::Unsubscribe(const string& topic_prefix)
 	for ( size_t i = 0; i < forwarded_prefixes.size(); ++i )
 		if ( forwarded_prefixes[i] == topic_prefix )
 			{
-			DBG_LOG(DBG_BROKER, "Unforwading topic prefix %s", topic_prefix.c_str());
+			DBG_LOG(DBG_BROKER, "Unforwarding topic prefix %s", topic_prefix.c_str());
 			forwarded_prefixes.erase(forwarded_prefixes.begin() + i);
 			break;
 			}

@@ -552,7 +552,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 			{
 			// Skip this chunk
 			if ( DEBUG_rpc_resync )
-				DEBUG_MSG("RPC resync: Need to resync. dicarding %d bytes.\n", len);
+				DEBUG_MSG("RPC resync: Need to resync. discarding %d bytes.\n", len);
 
 			NeedResync(); // let's try the resync again from the beginning
 			return false;

@@ -120,7 +120,7 @@ public:
 
 	/**
 	 * Signals that the analyzer is to skip all further input
-	 * processesing. This won't have an immediate effect internally, but
+	 * processing. This won't have an immediate effect internally, but
 	 * the flag can be queried through Skipping().
 	 *
 	 * @param do_skip If true, further processing will be skipped.

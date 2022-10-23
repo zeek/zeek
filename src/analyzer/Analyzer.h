@@ -330,7 +330,7 @@ public:
 	void SetSignature(const zeek::detail::Rule* sig) { signature = sig; }
 
 	/**
-	 * Signals the analyzer to skip all further input processesing. The \a
+	 * Signals the analyzer to skip all further input processing. The \a
 	 * Next*() methods check this flag and discard the input if its set.
 	 *
 	 * @param do_skip If true, further processing will be skipped.

@@ -13,7 +13,7 @@
 static inline bool is_established(const zeek::analyzer::tcp::TCP_Endpoint* e)
 	{
 	// We more or less follow Snort here: an established session
-	// is one for which the initial handshake has succeded (but we
+	// is one for which the initial handshake has succeeded (but we
 	// add partial connections).  The connection tear-down is part
 	// of the connection.
 	return e->state != zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE &&

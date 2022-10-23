@@ -6,7 +6,7 @@
 module SSL;
 
 export {
-	## Set this to true to includd the server certificate subject and
+	## Set this to true to include the server certificate subject and
 	## issuer from the SSL log file. This information is still available
 	## in x509.log.
 	const log_include_server_certificate_subject_issuer = F &redef;

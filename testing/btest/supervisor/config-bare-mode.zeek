@@ -34,7 +34,7 @@ event zeek_init()
 		Broker::subscribe(topic);
 		Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 
-		# Create a node that inherits basre mode from us.
+		# Create a node that inherits base mode from us.
 		local sn = Supervisor::NodeConfig($name="inherit", $directory="inherit");
 		Supervisor::create(sn);
 

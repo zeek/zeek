@@ -4505,7 +4505,7 @@ function lookup_autonomous_system%(a: addr%) : geo_autonomous_system
 
 ## Calculates distance between two geographic locations using the haversine
 ## formula.  Latitudes and longitudes must be given in degrees, where southern
-## hemispere latitudes are negative and western hemisphere longitudes are
+## hemisphere latitudes are negative and western hemisphere longitudes are
 ## negative.
 ##
 ## lat1: Latitude (in degrees) of location 1.

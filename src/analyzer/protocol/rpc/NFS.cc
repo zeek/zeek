@@ -663,7 +663,7 @@ RecordValPtr NFS_Interp::nfs3_write_reply(const u_char*& buf, int& n,
 		rep->Assign(3, nfs3_stable_how(buf, n));
 
 		// Writeverf. While the RFC says that this should be a fixed
-		// length opaque, it specifies the lenght as 8 bytes, so we
+		// length opaque, it specifies the length as 8 bytes, so we
 		// can also just as easily extract a uint64.
 		rep->Assign(4, ExtractUint64(buf, n));
 		}

@@ -74,7 +74,7 @@ unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsign
  * @param data Data to hash.
  * @param len Length of data to hash.
  * @param out Buffer to write data to. If set to nullptr, a static buffer will be used
- * @return Buffer that the hash was written to. Length is deoendent on the chosen hash function.
+ * @return Buffer that the hash was written to. Length is dependent on the chosen hash function.
  */
 unsigned char* calculate_digest(HashAlgorithm Alg, const unsigned char* data, uint64_t len,
                                 unsigned char* out);

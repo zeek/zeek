@@ -360,7 +360,7 @@ public:
 protected:
 	char* CopyKey(const char* key, size_t size) const;
 
-	// Payload setters for types stored directoly in the key_u union. These
+	// Payload setters for types stored directly in the key_u union. These
 	// adjust the size and write_size markers to indicate a full buffer, and
 	// use the key_u union for storage.
 	void Set(bool b);

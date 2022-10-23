@@ -1143,7 +1143,7 @@ ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const
 
 		case EXPR_GE:
 		case EXPR_GT:
-			// These should't happen due to canonicalization.
+			// These shouldn't happen due to canonicalization.
 			reporter->InternalError("confusion over canonicalization in set comparison");
 			break;
 

@@ -86,7 +86,7 @@ public:
 	/**
 	 * Returns the analyzer instance's internal ID. These IDs are unique
 	 * across all analyzers instantiated and can thus be used to
-	 * indentify a specific instance.
+	 * identify a specific instance.
 	 */
 	ID GetID() const { return id; }
 
@@ -120,7 +120,7 @@ public:
 
 	/**
 	 * Signals that the analyzer is to skip all further input
-	 * processsing. This won't have an immediate effect internally, but
+	 * processing. This won't have an immediate effect internally, but
 	 * the flag can be queried through Skipping().
 	 *
 	 * @param do_skip If true, further processing will be skipped.
@@ -168,10 +168,10 @@ public:
 protected:
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
-	 * @param arg_tag the tag definining the analyzer's type.
-	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifiying
+	 * @param arg_tag the tag defining the analyzer's type.
+	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifying
 	 *        tunable options, if any, related to a particular analyzer type.
-	 * @param arg_file the file to which the the analyzer is being attached.
+	 * @param arg_file the file to which the analyzer is being attached.
 	 */
 	Analyzer(zeek::Tag arg_tag, RecordValPtr arg_args, File* arg_file);
 
@@ -180,9 +180,9 @@ protected:
 	 * As this version of the constructor does not receive a name or tag,
 	 * SetAnalyzerTag() must be called before the instance can be used.
 	 *
-	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifiying
+	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifying
 	 *        tunable options, if any, related to a particular analyzer type.
-	 * @param arg_file the file to which the the analyzer is being attached.
+	 * @param arg_file the file to which the analyzer is being attached.
 	 */
 	Analyzer(RecordValPtr arg_args, File* arg_file);
 

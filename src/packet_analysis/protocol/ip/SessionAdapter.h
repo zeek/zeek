@@ -45,7 +45,7 @@ public:
 	virtual bool IsReuse(double t, const u_char* pkt);
 
 	/**
-	 * Pure virtual method to allow extra session analzyers to be added to this analyzer's
+	 * Pure virtual method to allow extra session analyzers to be added to this analyzer's
 	 * tree of children. This is used by analyzer::Manager when creating the session analyzer
 	 * tree.
 	 */
@@ -54,7 +54,7 @@ public:
 	/**
 	 * Associates a file with the analyzer in which to record all
 	 * analyzed input. This must only be called with derived classes that
-	 * overide the method; the default implementation will abort.
+	 * override the method; the default implementation will abort.
 	 *
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction of the input stream is to be recorded.
@@ -66,7 +66,7 @@ public:
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
-	 * called with derived classes that overide the method; the default
+	 * called with derived classes that override the method; the default
 	 * implementation will abort.
 	 *
 	 * @param direction One of the CONTENTS_* constants indicating which
@@ -90,7 +90,7 @@ public:
 	/**
 	 * Helper to raise a \c packet_contents event.
 	 *
-	 * @param data The dass to pass to the event.
+	 * @param data The data to pass to the event.
 	 *
 	 * @param len The length of \a data.
 	 */

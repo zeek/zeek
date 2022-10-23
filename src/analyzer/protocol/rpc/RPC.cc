@@ -181,7 +181,7 @@ int RPC_Interpreter::DeliverRPC(const u_char* buf, int n, int rpclen, bool is_or
 
 		// We now have a valid RPC_CallInfo (either the previous one
 		// in case of a rexmit or the current one).
-		// TODO: What to do in case of a rexmit_inconistency??
+		// TODO: What to do in case of a rexmit_inconsistency??
 		Event_RPC_Call(call);
 
 		if ( RPC_BuildCall(call, buf, n) )
@@ -468,11 +468,11 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 	// We try to look for the beginning of a RPC frame, assuming RPC
 	// frames begin at packet boundaries (though they may span over
 	// multiple packets) (note that the data* of DeliverStream() usually
-	// starts at a packet boundrary).
+	// starts at a packet boundary).
 	//
 	// If we see a frame start that makes sense (direction and frame
-	// lenght seem ok), we try to read (skip over) the next RPC message.
-	// If this is successfull and we the place we are seems like a valid
+	// length seem ok), we try to read (skip over) the next RPC message.
+	// If this is successful and we the place we are seems like a valid
 	// start of a RPC msg (direction and frame length seem ok). We assume
 	// that we have successfully resync'ed.
 
@@ -509,7 +509,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 			}
 
 		// Now lets see whether data points to the beginning of a RPC
-		// frame. If the resync processs is successful, we should be
+		// frame. If the resync processes is successful, we should be
 		// at the beginning of a frame.
 
 		if ( len < 12 )
@@ -552,7 +552,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 			{
 			// Skip this chunk
 			if ( DEBUG_rpc_resync )
-				DEBUG_MSG("RPC resync: Need to resync. dicarding %d bytes.\n", len);
+				DEBUG_MSG("RPC resync: Need to resync. discarding %d bytes.\n", len);
 
 			NeedResync(); // let's try the resync again from the beginning
 			return false;

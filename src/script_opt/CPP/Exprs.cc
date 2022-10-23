@@ -1088,7 +1088,7 @@ string CPPCompile::GenAssign(const ExprPtr& lhs, const ExprPtr& rhs, const strin
 			return GenListAssign(lhs, rhs);
 
 		default:
-			reporter->InternalError("bad assigment node in CPPCompile::GenExpr");
+			reporter->InternalError("bad assignment node in CPPCompile::GenExpr");
 			return "XXX";
 		}
 	}

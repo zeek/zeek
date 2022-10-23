@@ -486,7 +486,7 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2, SWParams& par
 			if ( current->swn_score == score_tl && current->swn_byte_assigned )
 				{
 				// If we had matched bytes (*and* it's the
-				// best neighbor), marke the node accordingly
+				// best neighbor), mark the node accordingly
 				//
 				if ( i >= br_max_b && j >= br_max_r )
 					{

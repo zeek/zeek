@@ -66,7 +66,7 @@ private:
 	};
 
 /**
- * A pair of pipes that can be used for bi-directinoal IPC.
+ * A pair of pipes that can be used for bi-directional IPC.
  */
 class PipePair
 	{

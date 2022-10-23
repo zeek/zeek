@@ -44,7 +44,7 @@ public:
 
 	const char* Name() const;
 
-	// Returns false if an error occured.
+	// Returns false if an error occurred.
 	bool Write(const char* data, int len = 0);
 
 	void Flush() { fflush(f); }

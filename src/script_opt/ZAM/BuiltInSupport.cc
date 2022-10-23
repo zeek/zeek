@@ -26,7 +26,7 @@ FixedCatArg::FixedCatArg(const TypePtr& _t) : t(_t)
 
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
-			max_size = 32; // from modp_dtoa2 documentatino
+			max_size = 32; // from modp_dtoa2 documentation
 			break;
 
 		case TYPE_ENUM:

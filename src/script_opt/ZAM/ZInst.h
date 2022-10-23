@@ -76,7 +76,7 @@ public:
 	          const std::string& id4) const;
 
 	// Returns the name to use in identifying one of the slots/integer
-	// values (designated by "n").  "inst_num" identifes the instruction
+	// values (designated by "n").  "inst_num" identifies the instruction
 	// by its number within a larger set.  "mappings" provides the
 	// mappings used to translate raw slots to the corresponding
 	// script variable(s).

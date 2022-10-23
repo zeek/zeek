@@ -149,14 +149,14 @@ public:
 	 */
 	bool GetCurrentPacket(const Packet** hdr);
 
-	// PacketSource interace for derived classes to override.
+	// PacketSource interface for derived classes to override.
 
 	/**
 	 * Precompiles a filter and associates a given index with it. The
-	 * filter syntax is defined by the packet source's implenentation.
+	 * filter syntax is defined by the packet source's implementation.
 	 *
 	 * Derived classes can override this method to implement their own
-	 * filtering. If not overriden, it uses the pcap-based BPF filtering
+	 * filtering. If not overridden, it uses the pcap-based BPF filtering
 	 * by default.
 	 *
 	 * @param index The index to associate with the filter
@@ -201,7 +201,7 @@ public:
 	 *
 	 * @return A value for the next time that the source thinks the
 	 * poll should time out in seconds from the current time. Return
-	 * -1 if this should should not be considered.
+	 * -1 if this should not be considered.
 	 */
 	virtual double GetNextTimeout() override;
 
@@ -251,7 +251,7 @@ protected:
 
 	/**
 	 * Called from the implementations of \a Open() to signal that the
-	 * source has been successully opened.
+	 * source has been successfully opened.
 	 *
 	 * @param props A properties instance describing the now open source.
 	 */
@@ -279,7 +279,7 @@ protected:
 	void Error(const std::string& msg);
 
 	/**
-	 * Can be called from derived classes to flah a "weird" situation.
+	 * Can be called from derived classes to flag a "weird" situation.
 	 *
 	 * @param msg The message to pass on.
 	 *
@@ -320,13 +320,13 @@ protected:
 	 *
 	 * @param pkt The packet structure to fill in with the packet's
 	 * information. The callee keep ownership of the data but must
-	 * guaranetee that it stays available at least until \a
+	 * guarantee that it stays available at least until \a
 	 * DoneWithPacket() is called.  It is guaranteed that no two calls to
-	 * this method will hapen with \a DoneWithPacket() in between.
+	 * this method will happen with \a DoneWithPacket() in between.
 	 *
 	 * @return True if a packet is available and *pkt* filled in. False
-	 * if not packet is available or an error occured (which must be
-	 * flageed via Error()).
+	 * if not packet is available or an error occurred (which must be
+	 * flagged via Error()).
 	 */
 	virtual bool ExtractNextPacket(Packet* pkt) = 0;
 
@@ -338,7 +338,7 @@ protected:
 
 	/**
 	 * Performs the actual filter compilation. This can be overridden to
-	 * provide a different implementation of the compiilation called by
+	 * provide a different implementation of the compilation called by
 	 * PrecompileBPFFilter(). This is primarily used by the pcap source
 	 * use a different version of BPF_Filter::Compile;
 	 *

@@ -171,7 +171,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 		// first packet we saw instantiating the partial connection
 		// was a keep-alive.  So, in either case, just ignore it.
 
-		// TODO: Don't we need to update last_reassm_seq ????
+		// TODO: Don't we need to update last_reassem_seq ????
 		return;
 		}
 
@@ -187,7 +187,7 @@ void TCP_Reassembler::Undelivered(uint64_t up_to_seq)
 
 	if ( DEBUG_tcp_contents )
 		{
-		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%" PRIu64 ", last_reassm=%" PRIu64 ", "
+		DEBUG_MSG("%.6f Undelivered: IsOrig()=%d up_to_seq=%" PRIu64 ", last_reassem=%" PRIu64 ", "
 		          "endp: FIN_cnt=%d, RST_cnt=%d, "
 		          "peer: FIN_cnt=%d, RST_cnt=%d\n",
 		          zeek::run_state::network_time, IsOrig(), up_to_seq, last_reassem_seq,
@@ -286,7 +286,7 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 
 	// ### Note: the original code did not check whether blocks have
 	// already been delivered, but not ACK'ed, and therefore still
-	// must be kept in the reassember.
+	// must be kept in the reassembler.
 
 	// We are to match any undelivered data, from last_reassem_seq to
 	// min(last_block->upper, up_to_seq).
@@ -546,10 +546,10 @@ void TCP_Reassembler::AckReceived(uint64_t seq)
 void TCP_Reassembler::CheckEOF()
 	{
 	// It is important that the check on whether we have pending data here
-	// is consistent with the check in TCP_Connection::ConnnectionClosed().
+	// is consistent with the check in TCP_Connection::ConnectionClosed().
 	//
 	// If we choose to call EndpointEOF here because, for example, we
-	// are already skipping deliveries, ConnnectionClosed() might decide
+	// are already skipping deliveries, ConnectionClosed() might decide
 	// that there is still DataPending, because it does not check
 	// SkipDeliveries(), and the connection will not be closed until
 	// timeout, since the did_EOF flag makes sure that EndpointEOF will

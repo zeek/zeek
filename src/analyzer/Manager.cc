@@ -243,7 +243,7 @@ bool Manager::RegisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto
 	else
 		{
 		// Cannot register these before PostScriptInit() has run because we
-		// depend on packet analyis having been set up. That also means we don't have
+		// depend on packet analysis having been set up. That also means we don't have
 		// a reliable return value, for now we just assume it's working.
 		pending_analyzers_for_ports.emplace(tag, proto, port);
 		return true;

@@ -77,7 +77,7 @@ public:
 	Reporter(bool abort_on_scripting_errors);
 	~Reporter();
 
-	// Initialize reporter-sepcific options	that are defined in script-layer.
+	// Initialize reporter-specific options	that are defined in script-layer.
 	void InitOptions();
 
 	// Report an informational message, nothing that needs specific
@@ -117,7 +117,7 @@ public:
 	[[noreturn]] void CPPRuntimeError(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
-	// that may lead to incorrectly processing a connnection.
+	// that may lead to incorrectly processing a connection.
 	void Weird(const char* name, const char* addl = "",
 	           const char* source = ""); // Raises net_weird().
 	void Weird(file_analysis::File* f, const char* name, const char* addl = "",

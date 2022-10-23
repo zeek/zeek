@@ -48,7 +48,7 @@ public:
 	~Manager();
 
 	/**
-	 * First-stage initializion of the manager. This is called early on
+	 * First-stage initialization of the manager. This is called early on
 	 * during Zeek's initialization, before any scripts are processed.
 	 */
 	void InitPreScript();
@@ -105,7 +105,7 @@ public:
 	 *        This parameter only has any effect for the first DataIn call of each
 	 *        file. It is ignored for all subsequent calls.
 	 * @return a unique file ID string which, in certain contexts, may be
-	 *         cached and passed back in to a subsequent function call in order
+	 *         cached and passed back into a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
@@ -131,7 +131,7 @@ public:
 	 *        disabled.
 	 *        This parameter is only used for the first bit of data for each file.
 	 * @return a unique file ID string which, in certain contexts, may be
-	 *         cached and passed back in to a subsequent function call in order
+	 *         cached and passed back into a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associated file is not going to be analyzed further.
@@ -201,7 +201,7 @@ public:
 
 	/**
 	 * Signal a gap in the file data stream.
-	 * @param offset number of bytes in to file at which missing chunk starts.
+	 * @param offset number of bytes into file at which missing chunk starts.
 	 * @param len length in bytes of the missing chunk of file data.
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
@@ -210,7 +210,7 @@ public:
 	 * @param precomputed_file_id may be set to a previous return value in order to
 	 *        bypass costly file handle lookups.
 	 * @return a unique file ID string which, in certain contexts, may be
-	 *         cached and passed back in to a subsequent function call in order
+	 *         cached and passed back into a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
@@ -228,7 +228,7 @@ public:
 	 * @param precomputed_file_id may be set to a previous return value in order to
 	 *        bypass costly file handle lookups.
 	 * @return a unique file ID string which, in certain contexts, may be
-	 *         cached and passed back in to a subsequent function call in order
+	 *         cached and passed back into a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
@@ -290,7 +290,7 @@ public:
 	File* LookupFile(const std::string& file_id) const;
 
 	/**
-	 * Queue attachment of an analzer to the file identifier.  Multiple
+	 * Queue attachment of an analyzer to the file identifier.  Multiple
 	 * analyzers of a given type can be attached per file identifier at a time
 	 * as long as the arguments differ.
 	 * @param file_id the file identifier/hash.
@@ -319,8 +319,8 @@ public:
 	/**
 	 * Instantiates a new file analyzer instance for the file.
 	 * @param tag The file analyzer's tag.
-	 * @param args The file analzer argument/option values.
-	 * @param f The file analzer is to be associated with.
+	 * @param args The file analyzer argument/option values.
+	 * @param f The file analyzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
 	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordValPtr args, File* f) const;
@@ -330,7 +330,7 @@ public:
 	 * chunk of data.
 	 * @param data A chunk of bytes to match magic MIME signatures against.
 	 * @param len The number of bytes in \a data.
-	 * @param rval An optional pre-existing structure in which to insert
+	 * @param rval An optional preexisting structure in which to insert
 	 *             new matches.  If it's a null pointer, an object is
 	 *             allocated and returned from the method.
 	 * @return Set of all matching file magic signatures, which may be

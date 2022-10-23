@@ -1062,7 +1062,7 @@ enum_body_list:
 enum_body_elem:
 		/* TODO: We could also define this as TOK_ID '=' expr, (or
 		   TOK_ID '=' = TOK_ID) so that we can return more descriptive
-		   error messages if someboy tries to use constant variables as
+		   error messages if somebody tries to use constant variables as
 		   enumerator.
 		*/
 		TOK_ID '=' TOK_CONSTANT opt_deprecated
@@ -1081,7 +1081,7 @@ enum_body_elem:
 	|	TOK_ID '=' '-' TOK_CONSTANT
 			{
 			// We only accept counts as enumerator, but we want to return a nice
-			// error message if users triy to use a negative integer (will also
+			// error message if users try to use a negative integer (will also
 			// catch other cases, but that's fine.)
 			reporter->Error("enumerator is not a count constant");
 			}

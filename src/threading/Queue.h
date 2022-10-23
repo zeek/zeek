@@ -23,7 +23,7 @@ namespace zeek::threading
  *
  * All Queue instances must be instantiated by Zeek's main thread.
  *
- * TODO: Unclear how critical performance is for this qeueue. We could likely
+ * TODO: Unclear how critical performance is for this queue. We could likely
  * optimize it further if helpful.
  */
 template <typename T> class Queue
@@ -33,7 +33,7 @@ public:
 	 * Constructor.
 	 *
 	 * reader, writer: The corresponding threads. This is for checking
-	 * whether they have terminated so that we can abort I/O opeations.
+	 * whether they have terminated so that we can abort I/O operations.
 	 * Can be left null for the main thread.
 	 */
 	Queue(BasicThread* arg_reader, BasicThread* arg_writer);
@@ -233,7 +233,7 @@ template <typename T> inline uint64_t Queue<T>::Size()
 
 template <typename T> inline void Queue<T>::GetStats(Stats* stats)
 	{
-	// To be safe, we look all queues. That's probably unneccessary, but
+	// To be safe, we look all queues. That's probably unnecessary, but
 	// doesn't really hurt.
 	auto locks = LocksForAllQueues();
 

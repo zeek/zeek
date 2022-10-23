@@ -450,7 +450,7 @@ public:
 		std::string deprecation_msg;
 		RecordTypePtr args;
 		// Maps from parameter index in canonical prototype to
-		// parameter index in this alternate prorotype.
+		// parameter index in this alternate prototype.
 		std::map<int, int> offsets;
 		};
 
@@ -785,7 +785,7 @@ public:
 
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
-	// added that aren't likewise explicitly initalized.
+	// added that aren't likewise explicitly initialized.
 	void AddName(const std::string& module_name, const char* name, zeek_int_t val, bool is_export,
 	             detail::Expr* deprecation = nullptr, bool from_redef = false);
 
@@ -988,13 +988,13 @@ inline bool IsFunc(TypeTag t)
 	return (t == TYPE_FUNC);
 	}
 
-// True if the given type type is a vector.
+// True if the given type tag is a vector.
 inline bool IsVector(TypeTag t)
 	{
 	return (t == TYPE_VECTOR);
 	}
 
-// True if the given type type is a string.
+// True if the given type tag is a string.
 inline bool IsString(TypeTag t)
 	{
 	return (t == TYPE_STRING);

@@ -327,7 +327,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn, const zeek::Tag&
 		rval->ScheduleInactivityTimer();
 
 		// Generate file_new after inserting it into manager's mapping
-		// in case script-layer calls back in to core from the event.
+		// in case script-layer calls back into core from the event.
 		rval->FileEvent(file_new);
 		// Same for file_over_new_connection.
 		rval->RaiseFileOverNewConnection(conn, is_orig);

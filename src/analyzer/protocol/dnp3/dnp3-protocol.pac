@@ -35,11 +35,11 @@ type DNP3_Request = record {
 		FREEZE_AT_TIME_NR -> freeze_time_nr_requests: Request_Objects(app_header.function_code)[];
 		COLD_RESTART -> cold_restart: empty;
 		WARM_RESTART -> warm_restart: empty;
-		INITIALIZE_DATA -> initilize_data: empty;  # obsolete
-		INITIALIZE_APPL -> initilize_appl: Request_Objects(app_header.function_code)[];
+		INITIALIZE_DATA -> initialize_data: empty;  # obsolete
+		INITIALIZE_APPL -> initialize_appl: Request_Objects(app_header.function_code)[];
 		START_APPL -> start_appl: Request_Objects(app_header.function_code)[];
 		STOP_APPL -> stop_appl: Request_Objects(app_header.function_code)[];
-		SAVE_CONFIG -> save_config: empty;  # depracated
+		SAVE_CONFIG -> save_config: empty;  # deprecated
 		ENABLE_UNSOLICITED -> enable_unsolicited: Request_Objects(app_header.function_code)[];
 		DISABLE_UNSOLICITED -> disable_unsolicited: Request_Objects(app_header.function_code)[];
 		ASSIGN_CLASS -> assign_class: Request_Objects(app_header.function_code)[];
@@ -98,7 +98,7 @@ type Request_Objects(function_code: uint8) = record {
 
 		# time data interval data object g50
 		0x3201 -> g50v1_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
-		#0x3202 -> time_interval_ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		#0x3202 -> time_interval_objects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 						# &check( object_header.qualifier_field == 0x0f && object_header.number_of_item == 0x01);
 		0x3202 -> g50v2_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 		0x3203 -> g50v3_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
@@ -140,7 +140,7 @@ type Request_Objects(function_code: uint8) = record {
 		0x780E -> g120v14_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 		0x780F -> g120v15_objs: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 
-		# default -> ojbects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
+		# default -> objects: Request_Data_Object(function_code, object_header.qualifier_field, object_header.object_type_field )[ object_header.number_of_item];
 		default -> objects: empty;
 	};
 	# dump_data is always empty; I intend to use it for checking some conditions;

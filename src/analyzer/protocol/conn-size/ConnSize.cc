@@ -162,7 +162,7 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration)
 
 void ConnSize_Analyzer::UpdateConnVal(RecordVal* conn_val)
 	{
-	// RecordType *connection_type is decleared in NetVar.h
+	// RecordType *connection_type is declared in NetVar.h
 	RecordVal* orig_endp = conn_val->GetFieldAs<RecordVal>("orig");
 	RecordVal* resp_endp = conn_val->GetFieldAs<RecordVal>("resp");
 

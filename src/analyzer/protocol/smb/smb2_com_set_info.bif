@@ -36,7 +36,7 @@ event smb2_file_delete%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, d
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *file* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -55,7 +55,7 @@ event smb2_file_sattr%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, ti
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *allocation* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -71,7 +71,7 @@ event smb2_file_allocation%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUI
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *end_of_file* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -88,7 +88,7 @@ event smb2_file_endoffile%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *mode* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -105,7 +105,7 @@ event smb2_file_mode%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, mod
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *pipe* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -124,7 +124,7 @@ event smb2_file_pipe%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, rea
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *position* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -140,7 +140,7 @@ event smb2_file_position%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID,
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *short_name* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -156,7 +156,7 @@ event smb2_file_shortname%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *valid_data_length* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -172,7 +172,7 @@ event smb2_file_validdatalength%(c: connection, hdr: SMB2::Header, file_id: SMB2
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *full_EA* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -188,7 +188,7 @@ event smb2_file_fullea%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, f
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *link* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -206,7 +206,7 @@ event smb2_file_link%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, roo
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *fs_control* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##
@@ -222,7 +222,7 @@ event smb2_file_fscontrol%(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID
 ## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
 ## version 2 requests of type *set_info* of the *fs_object_id* subtype
 ##
-## For more infomation, see MS-SMB2:2.2.39
+## For more information, see MS-SMB2:2.2.39
 ##
 ## c: The connection.
 ##

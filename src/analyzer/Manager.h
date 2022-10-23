@@ -50,10 +50,10 @@ namespace analyzer
  *
  * The manager maintains a registry of all available protocol analyzers,
  * including a mapping between their textual names and Tag. It
- * instantantiates new analyzers on demand. For new connections, the manager
+ * instantiates new analyzers on demand. For new connections, the manager
  * sets up their initial analyzer tree, including adding the right \c PIA,
  * respecting well-known ports, and tracking any analyzers specifically
- * scheduled for individidual connections.
+ * scheduled for individual connections.
  */
 class Manager : public plugin::ComponentManager<Component>
 	{
@@ -134,7 +134,7 @@ public:
 	void DisableAllAnalyzers();
 
 	/**
-	 * Returns the tag associated with an analyer name, or the tag
+	 * Returns the tag associated with an analyzer name, or the tag
 	 * associated with an error if no such analyzer exists.
 	 *
 	 * @param name The canonical analyzer name to check.
@@ -186,7 +186,7 @@ public:
 	bool RegisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port);
 
 	/**
-	 * Unregisters a well-known port for an anlyzers.
+	 * Unregisters a well-known port for an analyzers.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Tag.
@@ -200,7 +200,7 @@ public:
 	bool UnregisterAnalyzerForPort(EnumVal* tag, PortVal* port);
 
 	/**
-	 * Unregisters a well-known port for an anlyzers.
+	 * Unregisters a well-known port for an analyzers.
 	 *
 	 * @param tag The analyzer's tag.
 	 *
@@ -250,7 +250,7 @@ public:
 	 * 0.0.0.0 can be used as a wildcard matching any originator.
 	 *
 	 * @param resp The connection's anticipated responder address (no
-	 * wilcard).
+	 * wildcard).
 	 *
 	 * @param resp_p The connection's anticipated responder port.
 	 *
@@ -272,8 +272,8 @@ public:
 	 * @param orig The connection's anticipated originator address. 0 can
 	 * be used as a wildcard matching any originator.
 	 *
-	 * @param resp The The connection's anticipated responder address (no
-	 * wilcard).
+	 * @param resp The connection's anticipated responder address (no
+	 * wildcard).
 	 *
 	 * @param resp_p The connection's anticipated responder port.
 	 *
@@ -315,7 +315,7 @@ public:
 	 * be used as a wildcard matching any originator.
 	 *
 	 * @param resp The connection's anticipated responder address (no
-	 * wilcard).
+	 * wildcard).
 	 *
 	 * @param resp_p The connection's anticipated responder port.
 	 *

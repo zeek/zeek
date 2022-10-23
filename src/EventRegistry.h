@@ -125,7 +125,7 @@ private:
  * Different kinds of event groups exist. Currently, attribute and module
  * event groups are implemented. The first relates to event handler tagged
  * with the &group attribute. The second is based on grouping event and hook
- * handlers by the module in which and these are implmented.
+ * handlers by the module in which and these are implemented.
  *
  * Different kinds of are separate: Disabling the "HTTP" module event group does
  * not disable event handlers tagged with &group="HTTP", or vice versa.

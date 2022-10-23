@@ -155,7 +155,7 @@ public:
 	template <class T> std::list<T*> Components() const;
 
 	/**
-	 * Returns the (dynamic) plugin associated with a given filesytem
+	 * Returns the (dynamic) plugin associated with a given filesystem
 	 * path. The path can be the plugin directory itself, or any path
 	 * inside it.
 	 */
@@ -208,7 +208,7 @@ public:
 	 * for it. Normally a plugin receives events through HookQueueEvent()
 	 * only if Zeek actually has code to execute for it. By calling this
 	 * method, the plugin tells Zeek to raise the event even if there's no
-	 * correspondong handler; it will then go into HookQueueEvent() just as
+	 * corresponding handler; it will then go into HookQueueEvent() just as
 	 * any other.
 	 *
 	 * @param handler The event being interested in.
@@ -273,7 +273,7 @@ public:
 	 * If the plugins takes over by returning 1, there are two cases: if the
 	 * second tuple element remains unset, the plugin handled the loading
 	 * completely internally; the caller must not process it any further.
-	 * Alternatively, the plugin may optionally return the acutal content to
+	 * Alternatively, the plugin may optionally return the actual content to
 	 * use for the file as a string through the tuple's second element. If so,
 	 * the caller must ignore the file on disk and use that provided content
 	 * instead (including when there's actually no physical file in place on
@@ -493,7 +493,7 @@ private:
 	using dynamic_plugin_map = std::map<std::string, std::string>;
 	dynamic_plugin_map dynamic_plugins;
 
-	// We temporarliy buffer scripts to load to get them to load in the
+	// We temporarily buffer scripts to load to get them to load in the
 	// right order.
 	using file_list = std::list<std::string>;
 	file_list scripts_to_load;

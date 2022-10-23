@@ -60,7 +60,7 @@ public:
 	virtual ~MsgThread();
 
 	/**
-	 * Sends a message to the child thread. The message will be proceesed
+	 * Sends a message to the child thread. The message will be processed
 	 * once the thread has retrieved it from its incoming queue.
 	 *
 	 * Only the main thread may call this method.
@@ -74,7 +74,7 @@ public:
 	 *
 	 * Only the child thread may call this method.
 	 *
-	 * @param msg The mesasge.
+	 * @param msg The message.
 	 */
 	void SendOut(BasicOutputMessage* msg) { return SendOut(msg, false); }
 
@@ -107,7 +107,7 @@ public:
 	 *
 	 * Only the child thread may call this method.
 	 *
-	 * Can be overriden in derived classed to hook into the error handling
+	 * Can be overridden in derived classed to hook into the error handling
 	 * but must should generally also call the parent implementation. Note
 	 * that this method is always called by the child thread and must not access
 	 * data or datastructures of the main thread directly.
@@ -123,7 +123,7 @@ public:
 	 *
 	 * Only the child thread may call this method.
 	 *
-	 * Can be overriden in derived classed to hook into the error handling
+	 * Can be overridden in derived classed to hook into the error handling
 	 * but must should generally also call the parent implementation. Note
 	 * that this method is always called by the child thread and must not access
 	 * data or datastructures of the main thread directly.
@@ -242,7 +242,7 @@ protected:
 	 *
 	 * This is method is called regularly by the threading::Manager.
 	 *
-	 * Can be overriden in derived classed to hook into the heart beat
+	 * Can be overridden in derived classed to hook into the heart beat
 	 * sending, but must call the parent implementation. Note that this
 	 * method is always called by the main thread and must not access
 	 * data of the child thread directly. Implement OnHeartbeat() if you
@@ -257,7 +257,7 @@ protected:
 	bool Failed() const { return failed; }
 
 	/**
-	 * Regulatly triggered for execution in the child thread.
+	 * Regularly triggered for execution in the child thread.
 	 *
 	 * network_time: The network_time when the heartbeat was trigger by
 	 * the main thread.
@@ -273,7 +273,7 @@ protected:
 	virtual bool OnFinish(double network_time) = 0;
 
 	/**
-	 * Overriden from BasicThread.
+	 * Overridden from BasicThread.
 	 */
 	void Run() override;
 	void OnWaitForStop() override;
@@ -389,9 +389,9 @@ public:
 	const char* Name() const { return name; }
 
 	/**
-	 * Callback that must be overriden for processing a message.
+	 * Callback that must be overridden for processing a message.
 	 */
-	virtual bool Process() = 0; // Thread will be terminated if returngin false.
+	virtual bool Process() = 0; // Thread will be terminated if returning false.
 
 protected:
 	/**

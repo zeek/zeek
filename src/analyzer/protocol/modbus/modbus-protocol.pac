@@ -71,7 +71,7 @@ type ModbusTCP_PDU(is_orig: bool) = record {
 type ModbusTCP_TransportHeader = record {
 	tid: uint16; # Transaction identifier
 	pid: uint16; # Protocol identifier
-	len: uint16; # Length of everyting after this field
+	len: uint16; # Length of everything after this field
 	uid: uint8;  # Unit identifier (previously 'slave address')
 	fc:  uint8;  # MODBUS function code (see function_codes enum)
 } &byteorder=bigendian, &let {

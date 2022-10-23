@@ -19,7 +19,7 @@ class IntHistogramFamily;
 class Manager;
 
 /**
- * A handle to a metric that represents an aggregatable distribution of observed
+ * A handle to a metric that represents an aggregable distribution of observed
  * measurements with integer precision. Sorts individual measurements into
  * configurable buckets.
  */
@@ -124,7 +124,7 @@ private:
 	};
 
 /**
- * A handle to a metric that represents an aggregatable distribution of observed
+ * A handle to a metric that represents an aggregable distribution of observed
  * measurements with floating point precision. Sorts individual measurements
  * into configurable buckets.
  */

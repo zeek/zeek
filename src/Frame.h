@@ -86,7 +86,7 @@ public:
 	 * Gets the value associated with *id* and returns it. Returns
 	 * nullptr if no such element exists.
 	 *
-	 * @param id the id who's value to retreive
+	 * @param id the id who's value to retrieve
 	 * @return the value associated with *id*
 	 */
 	const ValPtr& GetElementByID(const IDPtr& id) const { return GetElementByID(id.get()); }
@@ -247,7 +247,7 @@ private:
 	/** The arguments to the function that this Frame is associated with. */
 	const zeek::Args* func_args;
 
-	/** The next statement to be evaluted in the context of this frame. */
+	/** The next statement to be evaluated in the context of this frame. */
 	Stmt* next_stmt;
 
 	trigger::TriggerPtr trigger;

@@ -52,7 +52,7 @@ public:
 		{
 		}
 
-	// Providse generic access to Zeek constant values based on a single
+	// Provides generic access to Zeek constant values based on a single
 	// index.
 	ValPtr ConstVals(int offset) const
 		{

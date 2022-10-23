@@ -169,7 +169,7 @@ public:
 		static NodeConfig FromJSON(std::string_view json);
 
 		/**
-		 * Convert this object into JSON respresentation.
+		 * Convert this object into JSON representation.
 		 * @return  the JSON string representing the node config.
 		 */
 		std::string ToJSON() const;
@@ -362,7 +362,7 @@ private:
 namespace detail
 	{
 /**
- * State used to initalialize and talk to the Supervisor Stem process.
+ * State used to initialize and talk to the Supervisor Stem process.
  */
 struct SupervisorStemHandle
 	{

@@ -102,7 +102,7 @@ public:
 	/**
 	 * Adds a protocol to this analyzer's dispatcher.
 	 *
-	 * @param idenfitier The identifier for the protocol being added.
+	 * @param identifier The identifier for the protocol being added.
 	 * @param child The analyzer that will be called for the new protocol during
 	 * forwarding.
 	 */

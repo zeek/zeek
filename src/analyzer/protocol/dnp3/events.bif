@@ -226,7 +226,7 @@ event dnp3_analog_input_event_DPwoTime%(c: connection, is_orig: bool, flag: coun
 event dnp3_analog_input_event_SPwTime%(c: connection, is_orig: bool, flag: count, value: count, time48: count%);
 
 ## Generated for DNP3 objects with the group number 32 and variation number 8
-## analog input event double-precisiion float point with time
+## analog input event double-precision float point with time
 event dnp3_analog_input_event_DPwTime%(c: connection, is_orig: bool, flag: count, value_low: count, value_high: count, time48: count%);
 
 ## Generated for DNP3 objects with the group number 33 and variation number 1

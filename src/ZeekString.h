@@ -46,7 +46,7 @@ public:
 	String(std::string_view str);
 	String(const String& bs);
 
-	// Constructor that takes owernship of the vector passed in.
+	// Constructor that takes ownership of the vector passed in.
 	String(bool arg_final_NUL, byte_vec str, int arg_n);
 
 	String();

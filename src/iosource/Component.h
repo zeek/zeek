@@ -39,7 +39,7 @@ protected:
 	/**
 	 * Constructor to use by derived classes.
 	 *
-	 * @param type The type of the componnent.
+	 * @param type The type of the component.
 	 *
 	 * @param name A descriptive name for the component.  This name must
 	 * be unique across all components of this type.
@@ -128,7 +128,7 @@ private:
 /**
  * Component description for plugins providing a PktDumper for packet output.
  *
- * PktDumpers aren't IOSurces but we locate them here to keep them along with
+ * PktDumpers aren't IOSources but we locate them here to keep them along with
  * the PktSrc.
  */
 class PktDumperComponent : public plugin::Component

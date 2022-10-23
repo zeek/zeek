@@ -139,7 +139,7 @@ public:
 		}
 
 	// Add this value to the given value (if appropriate).
-	// Returns true if succcessful.  is_first_init is true only if
+	// Returns true if successful.  is_first_init is true only if
 	// this is the *first* initialization of the value, not
 	// if it's a subsequent += initialization.
 	virtual bool AddTo(Val* v, bool is_first_init) const;
@@ -846,7 +846,7 @@ public:
 	 * @return  The value associated with the index.  If the index doesn't
 	 * exist, this is a nullptr.  For sets that don't really contain associated
 	 * values, a placeholder value is returned to differentiate it from
-	 * non-existent index (nullptr), but otherwise has no meaning in relation
+	 * nonexistent index (nullptr), but otherwise has no meaning in relation
 	 * to the set's contents.
 	 */
 	const ValPtr& Find(const ValPtr& index);
@@ -857,7 +857,7 @@ public:
 	 * @param index  The index to lookup in the table.
 	 * @return  The value associated with the index.  If the index doesn't
 	 * exist, instead returns the &default value.  If there's no &default
-	 * attribute, then nullptr is still returned for non-existent index.
+	 * attribute, then nullptr is still returned for nonexistent index.
 	 */
 	ValPtr FindOrDefault(const ValPtr& index);
 
@@ -899,7 +899,7 @@ public:
 	 *        may have invalidated existing iterators.
 	 * @return  The value associated with the index if it exists, else nullptr.
 	 * For a sets that don't really contain associated values, a placeholder
-	 * value is returned to differentiate it from non-existent index (nullptr),
+	 * value is returned to differentiate it from nonexistent index (nullptr),
 	 * but otherwise has no meaning in relation to the set's contents.
 	 */
 	ValPtr Remove(const Val& index, bool broker_forward = true,
@@ -993,7 +993,7 @@ public:
 	void DisableChangeNotifications() { in_change_func = true; }
 
 	/**
-	 * Re-enables change notifcations after being disabled by DisableChangeNotifications.
+	 * Re-enables change notifications after being disabled by DisableChangeNotifications.
 	 */
 	void EnableChangeNotifications() { in_change_func = false; }
 
@@ -1521,7 +1521,7 @@ public:
 	bool AssignRepeat(unsigned int index, unsigned int how_many, ValPtr element);
 
 	// Add this value to the given value (if appropriate).
-	// Returns true if succcessful.
+	// Returns true if successful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
 	unsigned int Size() const { return vector_val->size(); }
@@ -1737,7 +1737,7 @@ extern ValPtr cast_value_to_type(Val* v, Type* t);
 // Returns true if v can be casted to type T. If so, check_and_cast() will
 // succeed as well.
 //
-// Note: This implements the script-level type comparision operator.
+// Note: This implements the script-level type comparison operator.
 extern bool can_cast_value_to_type(const Val* v, Type* t);
 
 // Returns true if values of type s may support casting to type t. This is

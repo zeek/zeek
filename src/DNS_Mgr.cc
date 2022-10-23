@@ -350,7 +350,7 @@ static int get_ttl(unsigned char* abuf, int alen, int* ttl)
 
 /**
  * Called in response to ares_getaddrinfo requests. Builds a hostent structure from
- * the result data and sends it to the DNS manager via Addresult().
+ * the result data and sends it to the DNS manager via AddResult().
  */
 static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinfo* result)
 	{
@@ -536,7 +536,7 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
 	}
 
 /**
- * Called when the c-ares socket changes state, whcih indicates that it's connected to
+ * Called when the c-ares socket changes state, which indicates that it's connected to
  * some source of data (either a host file or a DNS server). This indicates that we're
  * able to do lookups against c-ares now and should activate the IOSource.
  */

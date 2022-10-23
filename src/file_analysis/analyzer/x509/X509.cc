@@ -164,7 +164,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f)
 
 	// we only read 255 bytes because byte 256 is always 0.
 	// if the string is longer than 255, that will be our null-termination,
-	// otherwhise i2t does null-terminate.
+	// otherwise i2t does null-terminate.
 	ASN1_OBJECT* algorithm;
 	X509_PUBKEY_get0_param(&algorithm, NULL, NULL, NULL, X509_get_X509_PUBKEY(ssl_cert));
 	if ( ! i2t_ASN1_OBJECT(buf, 255, algorithm) )
@@ -280,7 +280,7 @@ X509_STORE* X509::GetRootStore(TableVal* root_certs)
 		X509_free(x);
 		}
 
-	// Save the newly constructed certificate store into the cacheing map.
+	// Save the newly constructed certificate store into the caching map.
 	x509_stores[root_certs] = ctx;
 
 	return ctx;

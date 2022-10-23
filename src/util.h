@@ -86,7 +86,7 @@ using bro_uint_t [[deprecated("Remove in v6.1. Use zeek_uint_t.")]] = zeek_uint_
 extern char* strcasestr(const char* s, const char* find);
 #endif
 
-// This is used by the patricia code and so it remains outside of hte namespace.
+// This is used by the patricia code and so it remains outside of the namespace.
 extern "C" void out_of_memory(const char* where);
 
 namespace zeek
@@ -186,7 +186,7 @@ using SourceID = std::uintptr_t;
 constexpr SourceID SOURCE_LOCAL = 0;
 
 // TODO: This is a temporary marker to flag events coming in via Broker.
-// Those are remote events but we don't have any further peer informationa
+// Those are remote events but we don't have any further peer information
 // available for them (as the old communication code would have). Once we
 // remove RemoteSerializer, we can turn the SourceID into a simple boolean
 // indicating whether it's a local or remote event.
@@ -261,7 +261,7 @@ void terminate_processing();
 
 // Sets the current status of the Zeek process to the given string.
 // If the option --status-file has been set, this is written into
-// the the corresponding file.  Otherwise, the function is a no-op.
+// the corresponding file.  Otherwise, the function is a no-op.
 void set_processing_status(const char* status, const char* reason);
 
 // Renames the given file to a new temporary name, and opens a new file with

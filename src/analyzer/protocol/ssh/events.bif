@@ -55,7 +55,7 @@ event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 ## connection was determined to have had an authentication attempt.
 ## This determination is based on packet size analysis, and errs
 ## on the side of caution - that is, if there's any doubt about
-## whether or not an authenication attempt occured, this event is
+## whether or not an authentication attempt occurred, this event is
 ## *not* raised.
 ##
 ## At this point in the protocol, all we can determine is whether

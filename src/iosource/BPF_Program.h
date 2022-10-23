@@ -77,7 +77,7 @@ public:
 	FilterState GetState() const { return state; }
 
 	/**
-	 * Returns an error message, if any, that was returned from the compliation process.
+	 * Returns an error message, if any, that was returned from the compilation process.
 	 */
 	std::string GetStateMessage() const { return state_message; }
 

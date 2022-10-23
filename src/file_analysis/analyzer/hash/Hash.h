@@ -34,7 +34,7 @@ public:
 
 	/**
 	 * Finalizes the hash and raises a "file_hash" event.
-	 * @return always false so analyze will be deteched from file.
+	 * @return always false so analyze will be detached from file.
 	 */
 	bool EndOfFile() override;
 

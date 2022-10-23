@@ -46,7 +46,7 @@ enum DebugStream
 	DBG_ANALYZER, // Analyzer framework
 	DBG_PACKET_ANALYSIS, // Packet analysis
 	DBG_FILE_ANALYSIS, // File analysis
-	DBG_TM, // Time-machine packet input via Brocolli
+	DBG_TM, // Time-machine packet input via Broccoli
 	DBG_LOGGING, // Logging streams
 	DBG_INPUT, // Input streams
 	DBG_THREADING, // Threading system
@@ -83,7 +83,7 @@ public:
 	void EnableStream(DebugStream stream) { streams[int(stream)].enabled = true; }
 	void DisableStream(DebugStream stream) { streams[int(stream)].enabled = false; }
 
-	// Takes comma-seperated list of stream prefixes.
+	// Takes comma-separated list of stream prefixes.
 	void EnableStreams(const char* streams);
 
 	// Check the enabled streams for invalid ones.

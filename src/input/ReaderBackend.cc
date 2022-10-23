@@ -201,7 +201,7 @@ using namespace input;
 
 ReaderBackend::ReaderBackend(ReaderFrontend* arg_frontend) : MsgThread()
 	{
-	disabled = true; // disabled will be set correcty in init.
+	disabled = true; // disabled will be set correctly in init.
 	frontend = arg_frontend;
 	info = new ReaderInfo(frontend->Info());
 	num_fields = 0;

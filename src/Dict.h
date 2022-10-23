@@ -535,7 +535,7 @@ public:
 		{
 		if ( initial_size > 0 )
 			{
-			// If an initial size is speicified, init the table right away. Otherwise wait until the
+			// If an initial size is specified, init the table right away. Otherwise wait until the
 			// first insertion to init.
 			SetLog2Buckets(static_cast<uint16_t>(std::log2(initial_size)));
 			Init();
@@ -640,7 +640,7 @@ public:
 			if ( order )
 				order->emplace_back(detail::HashKey{key, static_cast<size_t>(key_size), hash});
 
-			// Allocate memory for key if necesary. Key is updated to reflect internal key if
+			// Allocate memory for key if necessary. Key is updated to reflect internal key if
 			// necessary.
 			detail::DictEntry<T> entry(key, key_size, hash, val, insert_distance, copy_key);
 			InsertRelocateAndAdjust(entry, insert_position);
@@ -1250,7 +1250,7 @@ private:
 		// not found
 #ifdef ZEEK_DICT_DEBUG
 		if ( linear_position >= 0 )
-			{ // different. stop and try to see whats happending.
+			{ // different. stop and try to see whats happening.
 			ASSERT(false);
 			// rerun the function in debugger to track down the bug.
 			LookupIndex(key, key_size, hash);
@@ -1654,7 +1654,7 @@ private:
 	void IncrIters() { ++num_iterators; }
 	void DecrIters() { --num_iterators; }
 
-	// alligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
+	// aligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
 
 	// when sizeup but the current mapping is in progress. the current mapping will be ignored
 	// as it will be remapped to new dict size anyway. however, the missed count is recorded

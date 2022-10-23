@@ -263,7 +263,7 @@ public:
 	bool ReadFiles(const std::vector<SignatureFile>& files);
 
 	/**
-	 * Inititialize a state object for matching file magic signatures.
+	 * Initialize a state object for matching file magic signatures.
 	 * @return A state object that can be used for file magic mime type
 	 *         identification.
 	 */
@@ -282,7 +282,7 @@ public:
 	 *              RuleMatcher::InitFileMagic()
 	 * @param data Chunk of data to match signatures against.
 	 * @param len Length of \a data in bytes.
-	 * @param matches An optional pre-existing match result object to
+	 * @param matches An optional preexisting match result object to
 	 *                modify with additional matches.  If it's a null
 	 *                pointer, one will be instantiated and returned from
 	 *                this method.
@@ -297,7 +297,7 @@ public:
 	 */
 	void ClearFileMagicState(RuleFileMagicState* state) const;
 
-	// Initialize the matching state for a endpoind of a connection based on
+	// Initialize the matching state for a endpoint of a connection based on
 	// the given packet (which should be the first packet encountered for
 	// this endpoint). If the matching is triggered by an PIA, a pointer to
 	// it needs to be given.
@@ -361,7 +361,7 @@ private:
 	// Traverse tree building the combined regular expressions.
 	void BuildRegEx(RuleHdrTest* hdr_test, string_list* exprs, int_list* ids);
 
-	// Build groups of regular epxressions.
+	// Build groups of regular expressions.
 	void BuildPatternSets(RuleHdrTest::pattern_set_list* dst, const string_list& exprs,
 	                      const int_list& ids);
 

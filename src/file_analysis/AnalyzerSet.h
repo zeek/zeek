@@ -127,7 +127,7 @@ protected:
 	file_analysis::Analyzer* InstantiateAnalyzer(const zeek::Tag& tag, RecordValPtr args) const;
 
 	/**
-	 * Insert an analyzer instance in to the set.
+	 * Insert an analyzer instance into the set.
 	 * @param a an analyzer instance.
 	 * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
 	 */
@@ -135,7 +135,7 @@ protected:
 
 	/**
 	 * Remove an analyzer instance from the set.
-	 * @param tag enumarator which specifies type of the analyzer to remove,
+	 * @param tag enumerator which specifies type of the analyzer to remove,
 	 *        just used for debugging messages.
 	 * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
 	 */

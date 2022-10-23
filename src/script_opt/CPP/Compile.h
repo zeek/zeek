@@ -10,7 +10,7 @@
 #include "zeek/script_opt/ScriptOpt.h"
 
 // We structure the compiler for generating C++ versions of Zeek script
-// bodies maily as a single large class.  While we divide the compiler's
+// bodies mainly as a single large class.  While we divide the compiler's
 // functionality into a number of groups (see below), these interact with
 // one another, and in particular with various member variables, enough
 // so that it's not clear there's benefit to further splitting the
@@ -385,7 +385,7 @@ private:
 	// then the BiF is also used in a non-call context.
 	void AddBiF(const ID* b, bool is_var);
 
-	// Register the given global name.  "suffix" distinguishs particular
+	// Register the given global name.  "suffix" distinguishes particular
 	// types of globals, such as the names of bifs, global (non-function)
 	// variables, or compiled Zeek functions.
 	bool AddGlobal(const std::string& g, const char* suffix);
@@ -413,7 +413,7 @@ private:
 	std::string LocalName(const IDPtr& l) const { return LocalName(l.get()); }
 
 	// Returns a canonicalized name, with various non-alphanumeric
-	// characters stripped or transformed, and guananteed not to
+	// characters stripped or transformed, and guaranteed not to
 	// conflict with C++ keywords.
 	std::string Canonicalize(const char* name) const;
 
@@ -509,7 +509,7 @@ private:
 	                      const IDPList* lambda_ids, const ProfileFunc* pf);
 
 	// Inspects the given profile to find the i'th parameter (starting
-	// at 0).  Returns nil if the profile indicates that that parameter
+	// at 0).  Returns nil if the profile indicates that the parameter
 	// is not used by the function.
 	const ID* FindParam(int i, const ProfileFunc* pf);
 
@@ -595,7 +595,7 @@ private:
 	std::unordered_set<std::string> compiled_funcs;
 
 	// "Simple" functions that we've compiled, i.e., those that have
-	// a single body and thus can be called dirctly.  Indexed by
+	// a single body and thus can be called directly.  Indexed by
 	// function name, and maps to the C++ name.
 	std::unordered_map<std::string, std::string> compiled_simple_funcs;
 

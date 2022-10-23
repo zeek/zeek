@@ -345,7 +345,7 @@ void TopkVal::Encountered(ValPtr encountered)
 
 	// ok, we now have an element in e
 	delete key;
-	IncrementCounter(e); // well, this certainly was anticlimatic.
+	IncrementCounter(e); // well, this certainly was anticlimactic.
 	}
 
 // increment by count

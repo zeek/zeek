@@ -207,14 +207,14 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x2202 -> ai_dead_32: empty;
 		0x2203 -> ai_dead_sp: empty;
 
-	# analog ouput status g40
+	# analog output status g40
 		0x2800 -> aos_default: empty;
 		0x2801 -> aos_32: empty;
 		0x2802 -> aos_16: empty;
 		0x2803 -> aos_sp: empty;
 		0x2804 -> aos_dp: empty;
 
-	# analog ouput g41
+	# analog output g41
 		0x2901 -> ao_32: empty;
 		0x2902 -> ao_16: empty;
 		0x2903 -> ao_sp: empty;
@@ -502,13 +502,13 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x2202 -> ai_dead_32: uint32;
 		0x2203 -> ai_dead_sp: uint32;
 
-	# analog ouput status g40
+	# analog output status g40
 		0x2801 -> aos_32: AnaOutStatus32;
 		0x2802 -> aos_16: AnaOutStatus16;
 		0x2803 -> aos_sp: AnaOutStatusSP;
 		0x2804 -> aos_dp: AnaOutStatusDP;
 
-	# analog ouput g41
+	# analog output g41
 		0x2901 -> ao_32: AnaOut32;
 		0x2902 -> ao_16: AnaOut16;
 		0x2903 -> ao_sp: AnaOutSP;
@@ -611,7 +611,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x780E -> update_key_sig: UpdateKeySig(prefix.prefix_value);
 		0x780F -> update_key_con: UpdateKeyCon(prefix.prefix_value);
 
-		#default -> unkonwndata: Debug_Byte; # &check( T );
+		#default -> unknowndata: Debug_Byte; # &check( T );
 		default -> unmatched: Default_Wrap(object_type_field);
 	};
 }
@@ -861,7 +861,7 @@ type AnalogInput16woFlag = record {
 	value: int16;
 } &byteorder = littleendian;
 
-# group: 30; variation: 5; singple precision 32 bit
+# group: 30; variation: 5; single precision 32 bit
 type AnalogInputSPwFlag = record {
 	flag: uint8;
 	value: uint32;
@@ -951,7 +951,7 @@ type AnalogInput16wTime = record {
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
-# group: 32; variation: 5; singple precision 32 bit
+# group: 32; variation: 5; single precision 32 bit
 type AnalogInputSPwoTime = record {
 	flag: uint8;
 	value: uint32;
@@ -1144,7 +1144,7 @@ type AnaOutEveDPwTime = record {
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
-## g43 data format is exacatly same as g42 so use g42 directly
+## g43 data format is exactly same as g42 so use g42 directly
 
 # g50v1
 type AbsTime = record {
@@ -1353,11 +1353,11 @@ type DescEle = record {
 
 # g86v1 is the same structure of DescEle
 
-# g86v3 does not quite understant specification description
+# g86v3 does not quite understand specification description
 
-# g87 doest not quite understand specfication description
+# g87 doest not quite understand specification description
 
-# g88 doest not quite understand specfication description
+# g88 doest not quite understand specification description
 
 # g90v1
 type App_Id(qualifier_field: uint8, object_size16: uint16) = record {

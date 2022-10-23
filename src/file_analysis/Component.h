@@ -41,7 +41,7 @@ public:
 	 * @param factory A factory function to instantiate instances of the
 	 * analyzer's class, which must be derived directly or indirectly
 	 * from file_analysis::Analyzer. This is typically a static \c
-	 * Instatiate() method inside the class that just allocates and
+	 * Instantiate() method inside the class that just allocates and
 	 * returns a new instance.
 	 *
 	 * @param subtype A subtype associated with this component that
@@ -90,7 +90,7 @@ public:
 
 protected:
 	/**
-	 * Overriden from plugin::Component.
+	 * Overridden from plugin::Component.
 	 */
 	void DoDescribe(ODesc* d) const override;
 

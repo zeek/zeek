@@ -100,7 +100,7 @@ protected:
 	// includes our pseudo-states such as TCP_ENDPOINT_PARTIAL.
 	//
 	// On return, do_close is true if we should consider the connection
-	// as closed, and gen_event if we shouuld generate an event about
+	// as closed, and gen_event if we should generate an event about
 	// this fact.
 	void UpdateStateMachine(double t, analyzer::tcp::TCP_Endpoint* endpoint,
 	                        analyzer::tcp::TCP_Endpoint* peer, uint32_t base_seq, uint32_t ack_seq,

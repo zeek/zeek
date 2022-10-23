@@ -930,7 +930,7 @@ bool Manager::AutoPublishEvent(string topic, Val* event)
 		return false;
 		}
 
-	DBG_LOG(DBG_BROKER, "Enabling auto-publising of event %s to topic %s", handler->Name(),
+	DBG_LOG(DBG_BROKER, "Enabling auto-publishing of event %s to topic %s", handler->Name(),
 	        topic.c_str());
 	handler->AutoPublish(move(topic));
 
@@ -1075,7 +1075,7 @@ bool Manager::Unsubscribe(const string& topic_prefix)
 	for ( size_t i = 0; i < forwarded_prefixes.size(); ++i )
 		if ( forwarded_prefixes[i] == topic_prefix )
 			{
-			DBG_LOG(DBG_BROKER, "Unforwading topic prefix %s", topic_prefix.c_str());
+			DBG_LOG(DBG_BROKER, "Unforwarding topic prefix %s", topic_prefix.c_str());
 			forwarded_prefixes.erase(forwarded_prefixes.begin() + i);
 			break;
 			}
@@ -1648,7 +1648,7 @@ bool Manager::ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu)
 
 	if ( ! id )
 		{
-		reporter->Warning("Received id-update request for unkown id: %s", id_name.c_str());
+		reporter->Warning("Received id-update request for unknown id: %s", id_name.c_str());
 		return false;
 		}
 
@@ -1758,7 +1758,7 @@ void Manager::ProcessError(broker::error_view err)
 	else
 		{
 
-		reporter->Warning("Unknown Broker error code %u: mapped to unspecificed enum value ",
+		reporter->Warning("Unknown Broker error code %u: mapped to unspecified enum value ",
 		                  static_cast<unsigned>(int_code));
 		ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
 		}

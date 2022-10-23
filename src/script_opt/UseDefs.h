@@ -76,7 +76,7 @@ public:
 
 private:
 	// Makes one pass over the statements, removing assignments
-	// corresponding to temporaries (because those can be propagted).
+	// corresponding to temporaries (because those can be propagated).
 	// "iter" is the iteration count of how often we've done such passes,
 	// with the first pass being numbered 1.
 	//
@@ -118,7 +118,7 @@ private:
 	// Add an ID into an existing set of UDs.
 	void AddID(UDs uds, const ID* id) const;
 
-	// Returns a new use-def corresonding to the given one, but
+	// Returns a new use-def corresponding to the given one, but
 	// with the definition of "id" removed.
 	UDs RemoveID(const ID* id, const UDs& uds);
 

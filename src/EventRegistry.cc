@@ -172,7 +172,7 @@ EventGroup::~EventGroup() noexcept { }
 // Run through all ScriptFunc instances associated with this group and
 // update their bodies after a group's enable/disable state has changed.
 //
-// EventGroup is private friend with Func, so fiddeling with the bodies
+// EventGroup is private friend with Func, so fiddling with the bodies
 // directly works and keeps the logic away from Func for now.
 void EventGroup::UpdateFuncBodies()
 	{

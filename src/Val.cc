@@ -3005,7 +3005,7 @@ ValPtr RecordVal::DoClone(CloneState* state)
 	// We set origin to 0 here.  Origin only seems to be used for exactly one
 	// purpose - to find the connection record that is associated with a
 	// record. As we cannot guarantee that it will ber zeroed out at the
-	// approproate time (as it seems to be guaranteed for the original record)
+	// appropriate time (as it seems to be guaranteed for the original record)
 	// we don't touch it.
 	auto rv = make_intrusive<RecordVal>(rt, false);
 	rv->origin = nullptr;

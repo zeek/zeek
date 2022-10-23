@@ -131,7 +131,7 @@ protected:
 	friend class Manager;
 
 private:
-	ReaderBackend* backend; // The backend we have instanatiated.
+	ReaderBackend* backend; // The backend we have instantiated.
 	ReaderBackend::ReaderInfo* info; // Meta information.
 	const threading::Field* const* fields; // The input fields.
 	int num_fields; // Information as passed to Init().

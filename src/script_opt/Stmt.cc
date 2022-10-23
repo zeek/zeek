@@ -306,9 +306,9 @@ bool IfStmt::NoFlowAfter(bool ignore_break) const
 	if ( s1 && s2 )
 		return s1->NoFlowAfter(ignore_break) && s2->NoFlowAfter(ignore_break);
 
-	// Assuming the test isn't constant, the non-existent branch
+	// Assuming the test isn't constant, the nonexistent branch
 	// could be picked, so flow definitely continues afterwards.
-	// (Constant branches will be pruned during reduciton.)
+	// (Constant branches will be pruned during reduction.)
 	return false;
 	}
 
@@ -403,7 +403,7 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 		c->UpdateBody(c->Body()->Reduce(rc));
 		}
 
-	// Upate type cases.
+	// Update type cases.
 	for ( auto& i : case_label_type_list )
 		{
 		IDPtr idp = {NewRef{}, i.first};
@@ -624,7 +624,7 @@ StmtPtr ForStmt::DoReduce(Reducer* c)
 	body = body->Reduce(c);
 
 	if ( body->Tag() == STMT_NULL )
-		Warn("empty \"for\" body leaves loop variables in indeterminant state");
+		Warn("empty \"for\" body leaves loop variables in indeterminate state");
 
 	if ( red_e_stmt )
 		return TransformMe(make_intrusive<StmtList>(red_e_stmt, this), c);
@@ -863,7 +863,7 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 
 	else
 		// No need to Ref() because the StmtPList destructor
-		// doesn't Unref(), only the explict list-walking
+		// doesn't Unref(), only the explicit list-walking
 		// in the ~StmtList destructor.
 		f_stmts->append(stmt.release());
 

@@ -29,7 +29,7 @@ protected:
 
 /**
  * The thread manager coordinates all child threads. Once a BasicThread is
- * instantitated, it gets addedd to the manager, which will delete it later
+ * instantiated, it gets added to the manager, which will delete it later
  * once it has terminated.
  *
  * In addition to basic threads, the manager also provides additional
@@ -79,7 +79,7 @@ public:
 
 	/**
 	 * Returns the number of currently active threads. This counts all
-	 * threads that are not yet joined, includingt any potentially in
+	 * threads that are not yet joined, including any potentially in
 	 * Terminating() state.
 	 */
 	int NumThreads() const { return all_threads.size(); }

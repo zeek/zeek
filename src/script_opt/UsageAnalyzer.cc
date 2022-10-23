@@ -179,7 +179,7 @@ void UsageAnalyzer::Expand(const ID* id)
 	// then again when actually analyzing that function.
 	//
 	// It might be tempting to special-case the seeding phase, but that
-	// gets hard if the global doesn't direclty refer to the function,
+	// gets hard if the global doesn't directly refer to the function,
 	// but instead ultimately incorporates a type with an attribute that
 	// uses the function.  So instead we allow re-visiting of identifiers
 	// and just suppress them once-per-analysis traversal (to save a bunch

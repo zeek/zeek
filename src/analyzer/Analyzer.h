@@ -61,7 +61,7 @@ using ID = uint32_t;
 using analyzer_timer_func = void (Analyzer::*)(double t);
 
 /**
- * Class to receive processed output from an anlyzer.
+ * Class to receive processed output from an analyzer.
  */
 class OutputHandler
 	{
@@ -101,7 +101,7 @@ public:
  * SupportAnalyzer. All analyzer input first passes through this list of
  * support analyzers, which can perform arbitrary preprocessing.
  *
- * When overiding any of the class' methods, always make sure to call the
+ * When overriding any of the class' methods, always make sure to call the
  * base-class version first.
  */
 class Analyzer
@@ -293,7 +293,7 @@ public:
 
 	/**
 	 * Returns the analyzer instance's internal ID. These IDs are unique
-	 * across all analyzer instantiated and can thus be used to indentify
+	 * across all analyzer instantiated and can thus be used to identify
 	 * a specific instance.
 	 */
 	ID GetID() const { return id; }
@@ -310,7 +310,7 @@ public:
 	OutputHandler* GetOutputHandler() const { return output_handler; }
 
 	/**
-	 * Associates an OutputHandler with the connnection.
+	 * Associates an OutputHandler with the connection.
 	 *
 	 * @param handler The handler.
 	 */
@@ -330,7 +330,7 @@ public:
 	void SetSignature(const zeek::detail::Rule* sig) { signature = sig; }
 
 	/**
-	 * Signals the analyzer to skip all further input processsing. The \a
+	 * Signals the analyzer to skip all further input processing. The \a
 	 * Next*() methods check this flag and discard the input if its set.
 	 *
 	 * @param do_skip If true, further processing will be skipped.
@@ -373,7 +373,7 @@ public:
 
 	/**
 	 * Returns a textual description of the analyzer's type. This is
-	 * what's passed to the constructor and usally corresponds to the
+	 * what's passed to the constructor and usually corresponds to the
 	 * protocol name, e.g., "HTTP".
 	 */
 	const char* GetAnalyzerName() const;
@@ -392,7 +392,7 @@ public:
 	 * the same type already exists or is prevented, the one passed in is
 	 * silently discarded.
 	 *
-	 * @param analyzer The ananlyzer to add. Takes ownership.
+	 * @param analyzer The analyzer to add. Takes ownership.
 	 * @return false if analyzer type was already a child or prevented, else true.
 	 */
 	bool AddChildAnalyzer(Analyzer* analyzer) { return AddChildAnalyzer(analyzer, true); }
@@ -469,7 +469,7 @@ public:
 	 * Recursively searches all (direct or indirect) childs of the
 	 * analyzer for an analyzer of a given type.
 	 *
-	 * @param name The naem of the analyzer type to search (e.g.,
+	 * @param name The name of the analyzer type to search (e.g.,
 	 * "HTTP").
 	 *
 	 * @return The first analyzer of the given type found, or null if
@@ -571,7 +571,7 @@ public:
 	 * TODO: The above comment needs updating, there's no BuildConnVal()
 	 * anymore -VP
 	 *
-	 * @param conn_val The connenction value being updated.
+	 * @param conn_val The connection value being updated.
 	 */
 	virtual void UpdateConnVal(RecordVal* conn_val);
 
@@ -617,7 +617,7 @@ protected:
 	friend class zeek::packet_analysis::IP::IPBasedAnalyzer;
 
 	/**
-	 * Return a string represantation of an analyzer, containing its name
+	 * Return a string representation of an analyzer, containing its name
 	 * and ID.
 	 */
 	static std::string fmt_analyzer(const Analyzer* a)
@@ -642,7 +642,7 @@ protected:
 	 * @param  t The absolute time when the timer will fire.
 	 *
 	 * @param do_expire If true, the timer will also fire when Zeek
-	 * terminates even if \a t has not been reache yet.
+	 * terminates even if \a t has not been reached yet.
 	 *
 	 * @param type The timer's type.
 	 */
@@ -677,12 +677,12 @@ protected:
 	SupportAnalyzer* FirstSupportAnalyzer(bool orig);
 
 	/**
-	 * Adds a a new child analyzer with the option whether to intialize
+	 * Adds a a new child analyzer with the option whether to initialize
 	 * it. This is an internal method.
 	 *
 	 * @param analyzer The analyzer to add. Takes ownership.
 	 *
-	 * @param init If true, Init() will be calle.d
+	 * @param init If true, Init() will be called.
 	 * @return false if analyzer type was already a child, else true.
 	 */
 	bool AddChildAnalyzer(Analyzer* analyzer, bool init);

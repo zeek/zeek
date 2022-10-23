@@ -147,7 +147,7 @@ public:
 	 * Disables the writer frontend. From now on, all method calls that
 	 * would normally send message over to the backend, turn into no-ops.
 	 * Note though that it does not stop the backend itself, use Stop()
-	 * to do thast as well (this method is primarily for use as callback
+	 * to do that as well (this method is primarily for use as callback
 	 * when the backend wants to disable the frontend).
 	 *
 	 * Disabled frontend will eventually be discarded by the

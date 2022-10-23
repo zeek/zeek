@@ -225,7 +225,7 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals)
 	write_buffer[write_buffer_pos++] = vals;
 
 	if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || run_state::terminating )
-		// Buffer full (or no bufferin desired or termiating).
+		// Buffer full (or no buffering desired or terminating).
 		FlushWriteBuffer();
 	}
 

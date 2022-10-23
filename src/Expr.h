@@ -955,7 +955,7 @@ public:
 	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
-	// Reduce to simplifed LHS form, i.e., a reference to only a name.
+	// Reduce to simplified LHS form, i.e., a reference to only a name.
 	StmtPtr ReduceToLHS(Reducer* c);
 	};
 

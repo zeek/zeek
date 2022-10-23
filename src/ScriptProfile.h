@@ -85,7 +85,7 @@ private:
 	uint64_t memory = 0;
 	};
 
-// Manages all of the profile instances assocaited with a given script.
+// Manages all of the profile instances associated with a given script.
 
 class ScriptProfile : public ScriptProfileStats
 	{
@@ -102,7 +102,7 @@ public:
 			loc = *body->GetLocationInfo();
 		}
 
-	// Constructor used for the special case of non-script acocunting.
+	// Constructor used for the special case of non-script accounting.
 	ScriptProfile() : ScriptProfileStats("non-scripts")
 		{
 		func = nullptr;

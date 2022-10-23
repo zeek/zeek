@@ -68,7 +68,7 @@ public:
 
 	/**
 	 * Cancels any active receiver requests to be informed about a
-	 * partilar object's modifications.
+	 * particular object's modifications.
 	 *
 	 * @param m object to no longer track.
 	 */

@@ -2957,7 +2957,7 @@ export {
 		unicode		   : bool;
 		## The server supports large files with 64 bit offsets
 		large_files	   : bool;
-		## The server supports the SMBs particilar to the NT LM 0.12 dialect. Implies nt_find.
+		## The server supports the SMBs particular to the NT LM 0.12 dialect. Implies nt_find.
 		nt_smbs		   : bool;
 
 		## The server supports remote admin API requests via DCE-RPC

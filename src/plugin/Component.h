@@ -93,7 +93,7 @@ public:
 	const std::string& Name() const { return name; }
 
 	/**
-	 * Returns a canonocalized version of the components's name.  The
+	 * Returns a canonicalized version of the components's name.  The
 	 * returned name is derived from what's passed to the constructor but
 	 * upper-cased and transformed to allow being part of a script-level
 	 * ID.

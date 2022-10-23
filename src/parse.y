@@ -1051,7 +1051,7 @@ enum_body_list:
 enum_body_elem:
 		/* TODO: We could also define this as TOK_ID '=' expr, (or
 		   TOK_ID '=' = TOK_ID) so that we can return more descriptive
-		   error messages if someboy tries to use constant variables as
+		   error messages if somebody tries to use constant variables as
 		   enumerator.
 		*/
 		TOK_ID '=' TOK_CONSTANT opt_deprecated

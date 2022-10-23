@@ -26,7 +26,7 @@ type NTP_PDU(is_orig: bool) = record {
 } &byteorder=bigendian &exportsourcedata;
 
 # This is the most common type of message, corresponding to modes 1-5
-# This kind of msg are used for normal operation of syncronization
+# This kind of msg are used for normal operation of synchronization
 # See RFC 5905 for details
 type NTP_std_msg = record {
 	stratum:   uint8;

@@ -5178,7 +5178,7 @@ module NTP;
 export {
 	## NTP standard message as defined in :rfc:`5905` for modes 1-5
 	## This record contains the standard fields used by the NTP protocol
-	## for standard syncronization operations.
+	## for standard synchronization operations.
 	type NTP::StandardMessage: record {
 		## This value mainly identifies the type of server (primary server,
 		## secondary server, etc.). Possible values, as in :rfc:`5905`, are:
@@ -5331,7 +5331,7 @@ export {
 		##   * 6 - NTP control message
 		##   * 7 - reserved for private use
 		mode:           count;
-		## If mode 1-5, the standard fields for syncronization operations are
+		## If mode 1-5, the standard fields for synchronization operations are
 		## here.  See :rfc:`5905`
 		std_msg:        NTP::StandardMessage &optional;
 		## If mode 6, the fields for control operations are here.

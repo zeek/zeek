@@ -4219,7 +4219,7 @@ type PE::SectionHeader: record {
 	ptr_to_line_nums : count;
 	## The number of relocation entries for the section.
 	num_of_relocs    : count;
-	## The number of line-number entrie for the section.
+	## The number of line-number entries for the section.
 	num_of_line_nums : count;
 	## Bit-flags that describe the characteristics of the section.
 	characteristics  : set[count];

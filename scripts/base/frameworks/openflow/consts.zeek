@@ -126,7 +126,7 @@ export {
 	const INVALID_COOKIE = 0x7fffffffffffffff;
 	# Openflow physical port definitions
 	## Send the packet out the input port. This
-	## virual port must be explicitly used in
+	## virtual port must be explicitly used in
 	## order to send back out of the input port.
 	const OFPP_IN_PORT = 0xfffffff8;
 	## Perform actions in flow table.

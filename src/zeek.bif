@@ -4436,7 +4436,7 @@ function lookup_asn%(a: addr%) : count &deprecated="Remove in v6.1.  Functionali
 	return zeek::val_mgr->Count(0);
 	%}
 
-## Performs an lookup of AS numbe & organization of an IP address.
+## Performs an lookup of AS number & organization of an IP address.
 ## Requires Zeek to be built with ``libmaxminddb``.
 ##
 ## a: The IP address to lookup.

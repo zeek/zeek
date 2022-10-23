@@ -1714,7 +1714,7 @@ String* unescape_URI(const u_char* line, const u_char* line_end, analyzer::Analy
 				// Decode escaping like this: %u00AE
 				// The W3C rejected escaping this way, and
 				// there is no RFC that specifies it.
-				// Appparently there is some software doing
+				// Apparently there is some software doing
 				// this sort of 4 byte unicode encoding anyway.
 				// Likely causing an increase in it's use is
 				// the third edition of the ECMAScript spec

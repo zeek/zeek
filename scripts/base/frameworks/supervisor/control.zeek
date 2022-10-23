@@ -74,7 +74,7 @@ export {
 	##
 	## reqid: an arbitrary string that will be directly echoed in the response
 	##
-	## node: the name of the node to destory or empty string to mean "all
+	## node: the name of the node to destroy or empty string to mean "all
 	##       nodes".
 	global SupervisorControl::destroy_request: event(reqid: string, node: string);
 

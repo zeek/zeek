@@ -163,7 +163,7 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 ## Note that decrement operations can lead to false negatives if used on a counting bloom-filter
 ## that exceeded the width of its counter.
 ##
-## bf: The coubting bloom filter handle.
+## bf: The counting bloom filter handle.
 ##
 ## x: The element to decrement
 ##

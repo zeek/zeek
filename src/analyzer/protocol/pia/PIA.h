@@ -28,7 +28,7 @@ public:
 	virtual ~PIA();
 
 	// Called when PIA wants to put an Analyzer in charge.  rule is the
-	// signature that triggered the activitation, if any.
+	// signature that triggered the activation, if any.
 	virtual void ActivateAnalyzer(zeek::Tag tag, const zeek::detail::Rule* rule = nullptr) = 0;
 
 	// Called when PIA wants to remove an Analyzer.

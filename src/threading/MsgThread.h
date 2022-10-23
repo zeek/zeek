@@ -391,7 +391,7 @@ public:
 	/**
 	 * Callback that must be overridden for processing a message.
 	 */
-	virtual bool Process() = 0; // Thread will be terminated if returngin false.
+	virtual bool Process() = 0; // Thread will be terminated if returning false.
 
 protected:
 	/**

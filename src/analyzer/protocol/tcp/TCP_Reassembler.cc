@@ -286,7 +286,7 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper)
 
 	// ### Note: the original code did not check whether blocks have
 	// already been delivered, but not ACK'ed, and therefore still
-	// must be kept in the reassember.
+	// must be kept in the reassembler.
 
 	// We are to match any undelivered data, from last_reassem_seq to
 	// min(last_block->upper, up_to_seq).

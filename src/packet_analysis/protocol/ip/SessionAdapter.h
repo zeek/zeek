@@ -90,7 +90,7 @@ public:
 	/**
 	 * Helper to raise a \c packet_contents event.
 	 *
-	 * @param data The dass to pass to the event.
+	 * @param data The data to pass to the event.
 	 *
 	 * @param len The length of \a data.
 	 */

@@ -2168,7 +2168,7 @@ Changed Functionality
   ``DPD::max_violations`` and ``DPD::ignore_violations``.
 
 - The scan detection script, ``policy/misc/scan``, is no longer loaded by
-  default in ``site/local.zeek`` due to it frequenty causing performance issues.
+  default in ``site/local.zeek`` due to it frequently causing performance issues.
 
 Removed Functionality
 ---------------------

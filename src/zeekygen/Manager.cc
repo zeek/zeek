@@ -36,7 +36,7 @@ static void WarnMissingScript(const char* type, const zeek::detail::ID* id, cons
 	if ( script == "<command line>" )
 		return;
 
-	DbgAndWarn(util::fmt("Can't generate Zeekygen doumentation for %s %s, "
+	DbgAndWarn(util::fmt("Can't generate Zeekygen documentation for %s %s, "
 	                     "lookup of %s failed",
 	                     type, id->Name(), script.c_str()));
 	}
@@ -249,7 +249,7 @@ void Manager::StartType(zeek::detail::IDPtr id)
 
 	if ( id->GetLocationInfo() == &zeek::detail::no_location )
 		{
-		DbgAndWarn(util::fmt("Can't generate zeekygen doumentation for %s, "
+		DbgAndWarn(util::fmt("Can't generate zeekygen documentation for %s, "
 		                     "no location available",
 		                     id->Name()));
 		return;
@@ -341,7 +341,7 @@ void Manager::RecordField(const zeek::detail::ID* id, const TypeDecl* field, con
 
 	if ( ! idd )
 		{
-		DbgAndWarn(util::fmt("Can't generate zeekygen doumentation for "
+		DbgAndWarn(util::fmt("Can't generate zeekygen documentation for "
 		                     "record field %s, unknown record: %s",
 		                     field->id, id->Name()));
 		return;
@@ -368,7 +368,7 @@ void Manager::Redef(const zeek::detail::ID* id, const string& path, zeek::detail
 
 	if ( ! id_info )
 		{
-		DbgAndWarn(util::fmt("Can't generate zeekygen doumentation for "
+		DbgAndWarn(util::fmt("Can't generate zeekygen documentation for "
 		                     "redef of %s, identifier lookup failed",
 		                     id->Name()));
 		return;

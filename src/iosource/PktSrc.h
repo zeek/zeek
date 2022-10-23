@@ -149,7 +149,7 @@ public:
 	 */
 	bool GetCurrentPacket(const Packet** hdr);
 
-	// PacketSource interace for derived classes to override.
+	// PacketSource interface for derived classes to override.
 
 	/**
 	 * Precompiles a filter and associates a given index with it. The

@@ -642,7 +642,7 @@ protected:
 	 * @param  t The absolute time when the timer will fire.
 	 *
 	 * @param do_expire If true, the timer will also fire when Zeek
-	 * terminates even if \a t has not been reache yet.
+	 * terminates even if \a t has not been reached yet.
 	 *
 	 * @param type The timer's type.
 	 */

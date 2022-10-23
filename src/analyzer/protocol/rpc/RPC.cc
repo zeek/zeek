@@ -509,7 +509,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 			}
 
 		// Now lets see whether data points to the beginning of a RPC
-		// frame. If the resync processs is successful, we should be
+		// frame. If the resync processes is successful, we should be
 		// at the beginning of a frame.
 
 		if ( len < 12 )

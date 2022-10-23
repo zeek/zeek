@@ -1922,7 +1922,7 @@ void WhenInfo::Build(StmtPtr ws)
 	// in that the condition needs to return a boolean, whereas the body
 	// and timeout *might* return a value (for "return when") constructs,
 	// or might not (for vanilla "when").  We address that issue by
-	// (1) making the return type be "any", and (2) introducing elsehwere
+	// (1) making the return type be "any", and (2) introducing elsewhere
 	// the notion of functions marked as being allowed to have bare
 	// returns (no associated expression) even though they have a return
 	// type (to deal with the vanilla "when" case).

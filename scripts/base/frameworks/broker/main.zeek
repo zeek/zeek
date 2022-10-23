@@ -131,7 +131,7 @@ export {
 	## Whether calling :zeek:see:`Broker::peer` will register the Broker
 	## system as an I/O source that will block the process from shutting
 	## down.  For example, set this to false when you are reading pcaps,
-	## but also want to initaiate a Broker peering and still shutdown after
+	## but also want to initiate a Broker peering and still shutdown after
 	## done reading the pcap.
 	option peer_counts_as_iosource = T;
 

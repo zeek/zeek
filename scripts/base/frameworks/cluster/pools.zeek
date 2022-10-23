@@ -29,7 +29,7 @@ export {
 		## The maximum number of nodes that may belong to the pool.
 		## If not set, then all available nodes will be added to the pool,
 		## else the cluster framework will automatically limit the pool
-		## membership according to the threshhold.
+		## membership according to the threshold.
 		max_nodes: count &optional;
 		## Whether the pool requires exclusive access to nodes.  If true,
 		## then *max_nodes* nodes will not be assigned to any other pool.

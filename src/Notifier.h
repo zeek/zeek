@@ -60,7 +60,7 @@ public:
 	 * modification. The arguments to the method must match what was
 	 * originally registered.
 	 *
-	 * @param m object to no loger track.
+	 * @param m object to no longer track.
 	 *
 	 * @param r receiver to no longer notify.
 	 */
@@ -70,7 +70,7 @@ public:
 	 * Cancels any active receiver requests to be informed about a
 	 * partilar object's modifications.
 	 *
-	 * @param m object to no loger track.
+	 * @param m object to no longer track.
 	 */
 	void Unregister(Modifiable* m);
 

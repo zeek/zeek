@@ -105,7 +105,7 @@ public:
 	 *        This parameter only has any effect for the first DataIn call of each
 	 *        file. It is ignored for all subsequent calls.
 	 * @return a unique file ID string which, in certain contexts, may be
-	 *         cached and passed back in to a subsequent function call in order
+	 *         cached and passed back into a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
@@ -131,7 +131,7 @@ public:
 	 *        disabled.
 	 *        This parameter is only used for the first bit of data for each file.
 	 * @return a unique file ID string which, in certain contexts, may be
-	 *         cached and passed back in to a subsequent function call in order
+	 *         cached and passed back into a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associated file is not going to be analyzed further.
@@ -201,7 +201,7 @@ public:
 
 	/**
 	 * Signal a gap in the file data stream.
-	 * @param offset number of bytes in to file at which missing chunk starts.
+	 * @param offset number of bytes into file at which missing chunk starts.
 	 * @param len length in bytes of the missing chunk of file data.
 	 * @param tag network protocol over which the file data is transferred.
 	 * @param conn network connection over which the file data is transferred.
@@ -210,7 +210,7 @@ public:
 	 * @param precomputed_file_id may be set to a previous return value in order to
 	 *        bypass costly file handle lookups.
 	 * @return a unique file ID string which, in certain contexts, may be
-	 *         cached and passed back in to a subsequent function call in order
+	 *         cached and passed back into a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.
@@ -228,7 +228,7 @@ public:
 	 * @param precomputed_file_id may be set to a previous return value in order to
 	 *        bypass costly file handle lookups.
 	 * @return a unique file ID string which, in certain contexts, may be
-	 *         cached and passed back in to a subsequent function call in order
+	 *         cached and passed back into a subsequent function call in order
 	 *         to avoid costly file handle lookups (which have to go through
 	 *         the \c get_file_handle script-layer event).  An empty string
 	 *         indicates the associate file is not going to be analyzed further.

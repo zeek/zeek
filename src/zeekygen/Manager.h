@@ -102,7 +102,7 @@ public:
 	void ScriptDependency(const std::string& path, const std::string& dep);
 
 	/**
-	 * Register a module usage (script may export identifiers in to the
+	 * Register a module usage (script may export identifiers into the
 	 * module namespace).
 	 * @param path Absolute path to a Zeek script.
 	 * @param module The module which script given by \a path is using.

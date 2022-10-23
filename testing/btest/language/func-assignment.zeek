@@ -32,7 +32,7 @@ event zeek_init()
 		{ return to_upper(str); };
 	print test_sf$f(test_sf$s);
 
-	# Func arg names shouldn't factor in to the type check.
+	# Func arg names shouldn't factor into the type check.
 	test_sf$f = function(s: string): string
 		{ return to_upper(s); };
 	print test_sf$f(test_sf$s);

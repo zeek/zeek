@@ -200,7 +200,7 @@ inline T& require_data_type(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail:
 	return require_data_type<T>(opaque_field_to_data(v, f), tag, f);
 	}
 
-// Copying data in to iterator vals is not the fastest approach, but safer...
+// Copying data into iterator vals is not the fastest approach, but safer...
 
 class SetIterator : public zeek::OpaqueVal
 	{

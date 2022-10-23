@@ -1303,7 +1303,7 @@ redef SMB::statuses += {
 	[0xC0190014] = [$id="TRANSACTION_NOT_REQUESTED", $desc="The caller has called a response API, but the response is not expected because the transaction manager did not issue the corresponding request to the caller."],
 	[0xC0190015] = [$id="TRANSACTION_ALREADY_ABORTED", $desc="It is too late to perform the requested operation, because the transaction has already been aborted."],
 	[0xC0190016] = [$id="TRANSACTION_ALREADY_COMMITTED", $desc="It is too late to perform the requested operation, because the transaction has already been committed."],
-	[0xC0190017] = [$id="TRANSACTION_INVALID_MARSHALL_BUFFER", $desc="The buffer passed in to NtPushTransaction or NtPullTransaction is not in a valid format."],
+	[0xC0190017] = [$id="TRANSACTION_INVALID_MARSHALL_BUFFER", $desc="The buffer passed into NtPushTransaction or NtPullTransaction is not in a valid format."],
 	[0xC0190018] = [$id="CURRENT_TRANSACTION_NOT_VALID", $desc="The current transaction context associated with the thread is not a valid handle to a transaction object."],
 	[0xC0190019] = [$id="LOG_GROWTH_FAILED", $desc="An attempt to create space in the transactional resource manager's log failed. The failure status has been recorded in the event log."],
 	[0xC0190021] = [$id="OBJECT_NO_LONGER_EXISTS", $desc="The object (file, stream, or link) that corresponds to the handle has been deleted by a transaction savepoint rollback."],

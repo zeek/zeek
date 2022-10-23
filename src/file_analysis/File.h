@@ -156,7 +156,7 @@ public:
 
 	/**
 	 * Inform attached analyzers about a gap in file stream.
-	 * @param offset number of bytes in to file at which missing chunk starts.
+	 * @param offset number of bytes into file at which missing chunk starts.
 	 * @param len length in bytes of the missing chunk of file data.
 	 */
 	void Gap(uint64_t offset, uint64_t len);

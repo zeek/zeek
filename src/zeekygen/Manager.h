@@ -141,7 +141,7 @@ public:
 	 * @param id The identifier being redef'd.
 	 * @param path Absolute path to a Zeek script doing the redef.
 	 * @param ic The initialization class that was used (e.g. =, +=, -=).
-	 * @param init_expr The intiialization expression that was used.
+	 * @param init_expr The initialization expression that was used.
 	 */
 	void Redef(const zeek::detail::ID* id, const std::string& path, zeek::detail::InitClass ic,
 	           zeek::detail::ExprPtr init_expr);

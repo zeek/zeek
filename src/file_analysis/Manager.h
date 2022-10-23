@@ -48,7 +48,7 @@ public:
 	~Manager();
 
 	/**
-	 * First-stage initializion of the manager. This is called early on
+	 * First-stage initialization of the manager. This is called early on
 	 * during Zeek's initialization, before any scripts are processed.
 	 */
 	void InitPreScript();

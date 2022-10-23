@@ -601,7 +601,7 @@ void Analyzer::RemoveSupportAnalyzer(SupportAnalyzer* analyzer)
 
 	// We mark the analyzer as being removed here, which will prevent it
 	// from being used further. However, we don't actually delete it
-	// before the parent gets destroyed. While we woulc do that, it's a
+	// before the parent gets destroyed. While we could do that, it's a
 	// bit tricky to do at the right time and it doesn't seem worth the
 	// trouble.
 	analyzer->removing = true;

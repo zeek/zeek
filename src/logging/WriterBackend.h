@@ -240,7 +240,7 @@ public:
 	 *
 	 * @param open: The timestamp when the original file was opened.
 	 *
-	 * @param close: The timestamp when the origina file was closed.
+	 * @param close: The timestamp when the original file was closed.
 	 *
 	 * @param terminating: True if the original rotation request occurred
 	 * due to the main Zeek process shutting down.

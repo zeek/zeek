@@ -19,7 +19,7 @@ purpose SSH key with read-only permissions.  Here's how it can be set up:
 2. Add contents of ``cirrus-key.pub`` as a new key on GitHub:
    https://github.com/zeek/zeek-testing-private/settings/keys
 
-3. Generate a new Orgnaization-Level Secured Variable in Cirrus CI settings at
+3. Generate a new Organization-Level Secured Variable in Cirrus CI settings at
    https://cirrus-ci.com/settings/github/zeek.  The value of the secured
    variable is the base64-encoded private key, and can be obtained from the
    output of the command: ``base64 cirrus-key``.

@@ -1386,7 +1386,7 @@ type StatusEle = record {
 # g101v3
 type BCD_Large = record {
 	value_low: uint32;
-	vlaue_high: uint32;
+	value_high: uint32;
 } &byteorder = littleendian;
 
 # authentication g120

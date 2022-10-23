@@ -617,7 +617,7 @@ protected:
 	friend class zeek::packet_analysis::IP::IPBasedAnalyzer;
 
 	/**
-	 * Return a string represantation of an analyzer, containing its name
+	 * Return a string representation of an analyzer, containing its name
 	 * and ID.
 	 */
 	static std::string fmt_analyzer(const Analyzer* a)

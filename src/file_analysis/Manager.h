@@ -330,7 +330,7 @@ public:
 	 * chunk of data.
 	 * @param data A chunk of bytes to match magic MIME signatures against.
 	 * @param len The number of bytes in \a data.
-	 * @param rval An optional pre-existing structure in which to insert
+	 * @param rval An optional preexisting structure in which to insert
 	 *             new matches.  If it's a null pointer, an object is
 	 *             allocated and returned from the method.
 	 * @return Set of all matching file magic signatures, which may be

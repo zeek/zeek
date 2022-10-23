@@ -282,7 +282,7 @@ public:
 	 *              RuleMatcher::InitFileMagic()
 	 * @param data Chunk of data to match signatures against.
 	 * @param len Length of \a data in bytes.
-	 * @param matches An optional pre-existing match result object to
+	 * @param matches An optional preexisting match result object to
 	 *                modify with additional matches.  If it's a null
 	 *                pointer, one will be instantiated and returned from
 	 *                this method.

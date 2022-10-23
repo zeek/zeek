@@ -1926,7 +1926,7 @@ Changed Functionality
   ``local.zeek``.  If you have a ``local.bro`` file from a previous
   installation, possibly with customizations made to it, the new
   version of Zeek will install a ``local.zeek`` file that is a symlink
-  to the pre-existing ``local.bro``.  In that case, you may want to
+  to the preexisting ``local.bro``.  In that case, you may want to
   just copy ``local.bro`` into the new ``local.zeek`` location to
   avoid confusion, but things are otherwise meant to work properly
   without intervention.

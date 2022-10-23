@@ -540,7 +540,7 @@ if ( FTS_FOUND )
 endif ()
 
 # Any headers that are possibly bundled in the Zeek source-tree and that are supposed
-# to have priority over any pre-existing/system-wide headers need to appear early in
+# to have priority over any preexisting/system-wide headers need to appear early in
 # compiler search path.
 include_directories(BEFORE ${broker_includes})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/highwayhash)

@@ -21,7 +21,7 @@
 //    Traditionally, the DNP3 Application Layer in serial links contains a
 //    "DNP3 Application Layer Fragment". The data that is parsed by the end
 //    device and then executed. As the "DNP3 Application Layer Fragment" can
-//    be long (>255 bytes), it may be trunkcated and carried in different
+//    be long (>255 bytes), it may be truncated and carried in different
 //    DNP3 Application Layer of more than one DNP3 packets.
 //
 //    So we may find a long DNP3 Application Layer Fragment to be transmitted in the following

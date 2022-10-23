@@ -16,7 +16,7 @@ namespace zeek::threading::formatter
 	{
 
 // If the value we'd write out would match exactly the a reserved string, we
-// escape the first character so that the output won't be ambigious. If this
+// escape the first character so that the output won't be ambiguous. If this
 // function returns true, it has added an escaped version of data to desc.
 static inline bool escapeReservedContent(ODesc* desc, const string& reserved, const char* data,
                                          int size)

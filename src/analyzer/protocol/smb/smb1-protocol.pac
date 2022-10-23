@@ -135,8 +135,8 @@ type SMB_Message(header: SMB_Header, offset: uint16, command: uint8, is_orig: bo
 };
 
 type SMB_andx_command(header: SMB_Header, is_orig: bool, offset: uint16, command: uint8) = case command of {
-	0xff    -> no_futher_commands : empty;
-	default -> message            : SMB_Message(header, offset, command, is_orig);
+	0xff    -> no_further_commands : empty;
+	default -> message             : SMB_Message(header, offset, command, is_orig);
 };
 
 type SMB_Message_Request(header: SMB_Header, offset: uint16, command: uint8, is_orig: bool) = case command of {

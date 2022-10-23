@@ -851,7 +851,7 @@ event Management::Agent::API::deploy_response(reqid: string, results: Management
 		delete req$deploy_state$requests[areq$id];
 
 	# If there are any pending requests to the agents, we're
-	# done: we respond once every agent has responed (or we time out).
+	# done: we respond once every agent has responded (or we time out).
 	if ( |req$deploy_state$requests| > 0 )
 		return;
 

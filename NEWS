@@ -3016,7 +3016,7 @@ Bro 2.5.4 primarily fixes security issues:
   array parsing, with potential impact to all Bro's BinPAC-generated
   analyzers in the form of buffer over-reads or other invalid memory
   accesses depending on whether a particular analyzer incorrectly
-  assumed that the evaulated-array-length expression is actually the
+  assumed that the evaluated-array-length expression is actually the
   number of elements that were parsed out from the input.
 
 * The NCP analyzer (not enabled by default and also updated to actually

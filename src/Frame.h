@@ -247,7 +247,7 @@ private:
 	/** The arguments to the function that this Frame is associated with. */
 	const zeek::Args* func_args;
 
-	/** The next statement to be evaluted in the context of this frame. */
+	/** The next statement to be evaluated in the context of this frame. */
 	Stmt* next_stmt;
 
 	trigger::TriggerPtr trigger;

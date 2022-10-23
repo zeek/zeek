@@ -469,7 +469,7 @@ public:
 	 * Recursively searches all (direct or indirect) childs of the
 	 * analyzer for an analyzer of a given type.
 	 *
-	 * @param name The naem of the analyzer type to search (e.g.,
+	 * @param name The name of the analyzer type to search (e.g.,
 	 * "HTTP").
 	 *
 	 * @return The first analyzer of the given type found, or null if

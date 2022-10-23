@@ -162,7 +162,7 @@ public:
 	 * @param config A string map containing additional configuration options
 	 * for the reader.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Init(int num_fields, const threading::Field* const* fields);
 
@@ -173,7 +173,7 @@ public:
 	 *
 	 * An backend can choose to ignore this.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Update();
 
@@ -248,7 +248,7 @@ protected:
 	 * called.
 	 *
 	 * A reader implementation must override this method. If it returns
-	 * false, it will be assumed that a fatal error has occured that
+	 * false, it will be assumed that a fatal error has occurred that
 	 * prevents the reader from further operation; it will then be
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
@@ -284,7 +284,7 @@ protected:
 	 * the current input reading mode.
 	 *
 	 * If it returns false, it will be assumed that a fatal error has
-	 * occured that prevents the reader from further operation; it will
+	 * occurred that prevents the reader from further operation; it will
 	 * then be disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error to indicate what happened.
 	 */

@@ -471,7 +471,7 @@ Changed Functionality
   filter.
 
 - Log messages about errors in input files are now more informative about where
-  errors occured.
+  errors occurred.
 
 - The ``--enable-zeek-client`` configure flag has been removed and is now the
   default. The new ``--disable-zeek-client`` flag allows users to skip

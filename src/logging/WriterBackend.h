@@ -144,7 +144,7 @@ public:
 	 *
 	 * @param frontend_name The name of the front-end writer implementation.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Init(int num_fields, const threading::Field* const* fields);
 
@@ -158,10 +158,10 @@ public:
 	 * types must match with the field passed to Init(). The method
 	 * takes ownership of \a vals..
 	 *
-	 * Returns false if an error occured, in which case the writer must
+	 * Returns false if an error occurred, in which case the writer must
 	 * not be used any further.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Write(int num_fields, int num_writes, threading::Value*** vals);
 
@@ -172,7 +172,7 @@ public:
 	 * @param enabled False if buffering is to be disabled (by default
 	 * it's on).
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool SetBuf(bool enabled);
 
@@ -182,7 +182,7 @@ public:
 	 *
 	 * @param network_time The network time when the flush was triggered.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Flush(double network_time);
 
@@ -190,7 +190,7 @@ public:
 	 * Triggers rotation, if the writer supports that. (If not, it will
 	 * be ignored).
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Rotate(const char* rotated_path, double open, double close, bool terminating);
 
@@ -242,7 +242,7 @@ public:
 	 *
 	 * @param close: The timestamp when the origina file was closed.
 	 *
-	 * @param terminating: True if the original rotation request occured
+	 * @param terminating: True if the original rotation request occurred
 	 * due to the main Zeek process shutting down.
 	 */
 	bool FinishedRotation(const char* new_name, const char* old_name, double open, double close,
@@ -275,7 +275,7 @@ protected:
 	 * Writer-specific initialization method.
 	 *
 	 * A writer implementation must override this method. If it returns
-	 * false, it will be assumed that a fatal error has occured that
+	 * false, it will be assumed that a fatal error has occurred that
 	 * prevents the writer from further operation; it will then be
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
@@ -288,7 +288,7 @@ protected:
 	 * entry.
 	 *
 	 * A writer implementation must override this method. If it returns
-	 * false, it will be assumed that a fatal error has occured that
+	 * false, it will be assumed that a fatal error has occurred that
 	 * prevents the writer from further operation; it will then be
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
@@ -309,7 +309,7 @@ protected:
 	 * ignore calls if buffering doesn't align with its semantics.
 	 *
 	 * If the method returns false, it will be assumed that a fatal error
-	 * has occured that prevents the writer from further operation; it
+	 * has occurred that prevents the writer from further operation; it
 	 * will then be disabled and eventually deleted. When returning
 	 * false, an implementation should also call Error() to indicate what
 	 * happened.
@@ -323,7 +323,7 @@ protected:
 	 * ignore calls if flushing doesn't align with its semantics.
 	 *
 	 * If the method returns false, it will be assumed that a fatal error
-	 * has occured that prevents the writer from further operation; it
+	 * has occurred that prevents the writer from further operation; it
 	 * will then be disabled and eventually deleted. When returning
 	 * false, an implementation should also call Error() to indicate what
 	 * happened.
@@ -346,7 +346,7 @@ protected:
 	 * still needs to call FinishedRotation() though.
 	 *
 	 * If the method returns false, it will be assumed that a fatal error
-	 * has occured that prevents the writer from further operation; it
+	 * has occurred that prevents the writer from further operation; it
 	 * will then be disabled and eventually deleted. When returning
 	 * false, an implementation should also call Error() to indicate what
 	 * happened.

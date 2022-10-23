@@ -325,7 +325,7 @@ protected:
 	 * this method will happen with \a DoneWithPacket() in between.
 	 *
 	 * @return True if a packet is available and *pkt* filled in. False
-	 * if not packet is available or an error occured (which must be
+	 * if not packet is available or an error occurred (which must be
 	 * flagged via Error()).
 	 */
 	virtual bool ExtractNextPacket(Packet* pkt) = 0;

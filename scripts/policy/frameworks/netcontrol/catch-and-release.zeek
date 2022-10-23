@@ -51,7 +51,7 @@ export {
 
 	## The record type that is used for representing and logging
 	type CatchReleaseInfo: record {
-		## The absolute time indicating when the action for this log-line occured.
+		## The absolute time indicating when the action for this log-line occurred.
 		ts: time &log;
 		## The rule id that this log line refers to.
 		rule_id: string &log &optional;

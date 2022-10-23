@@ -872,7 +872,7 @@ redef SMB::statuses += {
 	[0xC0000366] = [$id="DEVICE_ENUMERATION_ERROR", $desc="The device encountered an error while applying power or reading the device configuration. This may be caused by a failure of your hardware or by a poor connection."],
 	[0xC0000368] = [$id="MOUNT_POINT_NOT_RESOLVED", $desc="The create operation failed because the name contained at least one mount point that resolves to a volume to which the specified device object is not attached."],
 	[0xC0000369] = [$id="INVALID_DEVICE_OBJECT_PARAMETER", $desc="The device object parameter is either not a valid device object or is not attached to the volume that is specified by the file name."],
-	[0xC000036A] = [$id="MCA_OCCURED", $desc="A machine check error has occurred. Check the system event log for additional information."],
+	[0xC000036A] = [$id="MCA_OCCURRED", $desc="A machine check error has occurred. Check the system event log for additional information."],
 	[0xC000036B] = [$id="DRIVER_BLOCKED_CRITICAL", $desc="Driver %2 has been blocked from loading."],
 	[0xC000036C] = [$id="DRIVER_BLOCKED", $desc="Driver %2 has been blocked from loading."],
 	[0xC000036D] = [$id="DRIVER_DATABASE_ERROR", $desc="There was error [%2] processing the driver database."],

@@ -15,7 +15,7 @@ export {
 
 	## Represents the data in config.log.
 	type Info: record {
-		## Timestamp at which the configuration change occured.
+		## Timestamp at which the configuration change occurred.
 		ts: time &log;
 		## ID of the value that was changed.
 		id: string &log;

@@ -109,7 +109,7 @@ export {
 		path: string;		##< Original path value.
 		open: time;		##< Time when opened.
 		close: time;		##< Time when closed.
-		terminating: bool;	##< True if rotation occured due to Zeek shutting down.
+		terminating: bool;	##< True if rotation occurred due to Zeek shutting down.
 	};
 
 	## The function type for log rotation post processors.

@@ -1846,7 +1846,7 @@ New Functionality
       print n; # prints 4
 
   These anonymous functions can also be serialized over Broker with
-  their closures. In order to be serialzed over Broker the receiving
+  their closures. In order to be serialized over Broker the receiving
   script needs to have an identical version of the function declared.
   For the above example, a receiving script would need to have
   declared a function

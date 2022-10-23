@@ -99,7 +99,7 @@ string SQLite::GetTableType(int arg_type, int arg_subtype)
 	return type;
 	}
 
-// returns true true in case of error
+// returns true in case of error
 bool SQLite::checkError(int code)
 	{
 	if ( code != SQLITE_OK && code != SQLITE_DONE )

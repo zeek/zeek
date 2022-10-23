@@ -908,7 +908,7 @@ void TCPSessionAdapter::UpdateInactiveState(double t, analyzer::tcp::TCP_Endpoin
 		else if ( flags.ACK() && peer->state == analyzer::tcp::TCP_ENDPOINT_ESTABLISHED )
 			{
 			// No SYN packet from originator but SYN/ACK from
-			// responder, and now a pure ACK. Problably means we
+			// responder, and now a pure ACK. Probably means we
 			// just missed that initial SYN. Let's not treat it
 			// as partial and instead establish the connection.
 			endpoint->SetState(analyzer::tcp::TCP_ENDPOINT_ESTABLISHED);

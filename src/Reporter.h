@@ -77,7 +77,7 @@ public:
 	Reporter(bool abort_on_scripting_errors);
 	~Reporter();
 
-	// Initialize reporter-sepcific options	that are defined in script-layer.
+	// Initialize reporter-specific options	that are defined in script-layer.
 	void InitOptions();
 
 	// Report an informational message, nothing that needs specific

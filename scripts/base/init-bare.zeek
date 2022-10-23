@@ -4101,7 +4101,7 @@ type PE::DOSHeader: record {
 	num_reloc_items          : count;
 	## Number of paragraphs in the header.
 	header_in_paragraphs     : count;
-	## Number of paragraps of additional memory that the program will need.
+	## Number of paragraphs of additional memory that the program will need.
 	min_extra_paragraphs     : count;
 	## Maximum number of paragraphs of additional memory.
 	max_extra_paragraphs     : count;

@@ -135,7 +135,7 @@ protected:
 
 	/**
 	 * Remove an analyzer instance from the set.
-	 * @param tag enumarator which specifies type of the analyzer to remove,
+	 * @param tag enumerator which specifies type of the analyzer to remove,
 	 *        just used for debugging messages.
 	 * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
 	 */

@@ -106,7 +106,7 @@ private:
 /**
  * Definition of a log value, i.e., a entry logged by a stream.
  *
- * This struct essentialy represents a serialization of a Val instance (for
+ * This struct essentially represents a serialization of a Val instance (for
  * those Vals supported).
  */
 struct Value

@@ -298,7 +298,7 @@ private:
 	block_type extra_bits() const;
 
 	/**
-	 * If the number of bits in the vector are not not a multiple of
+	 * If the number of bits in the vector are not a multiple of
 	 * bitvector::bits_per_block, then the last block exhibits unused bits which
 	 * this function resets.
 	 */

@@ -3175,7 +3175,7 @@ New Functionality
   STARTTLS sessions, handing them over to TLS analysis. These analyzers
   do not yet analyze any further IMAP/XMPP content.
 
-- New funtionality has been added to the SSL/TLS analyzer:
+- New functionality has been added to the SSL/TLS analyzer:
 
   - Bro now supports (draft) TLS 1.3.
 

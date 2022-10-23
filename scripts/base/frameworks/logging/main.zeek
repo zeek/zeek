@@ -685,7 +685,7 @@ function Log::rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationPath
 	# The reason for branching here is historical:
 	# the default format path before the intro of Log::rotation_format_func
 	# always separated the path from open-time using a '-', but ASCII's
-	# default postprocessor chose to rename using a '.' separaor.  It also
+	# default postprocessor chose to rename using a '.' separator.  It also
 	# chose a different date format.
 	if ( ri$postprocessor == __default_rotation_postprocessor &&
 	    ri$writer == WRITER_ASCII &&

@@ -227,7 +227,7 @@ global stats_keys: table[string] of set[Key] &read_expire=1min
 		return 0secs;
 		};
 
-# This variable is maintained by manager nodes to track how many "dones" they
+# This variable is maintained by manager nodes to track how many "nodes" they
 # collected per collection unique id.  Once the number of results for a uid
 # matches the number of peer nodes that results should be coming from, the
 # result is written out and deleted from here.

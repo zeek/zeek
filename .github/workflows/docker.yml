@@ -61,7 +61,7 @@ jobs:
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.RELEASE_VERSION }}
         run: |
-          # Translate the Github reference into a tag name.
+          # Translate the GitHub reference into a tag name.
           #
           # - `release` tag maps to `zeek:latest`
           # - `v*` tag (excluding `v*-dev` tags) maps to `zeek:RELEASE_VERSION`

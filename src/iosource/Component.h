@@ -39,7 +39,7 @@ protected:
 	/**
 	 * Constructor to use by derived classes.
 	 *
-	 * @param type The type of the componnent.
+	 * @param type The type of the component.
 	 *
 	 * @param name A descriptive name for the component.  This name must
 	 * be unique across all components of this type.

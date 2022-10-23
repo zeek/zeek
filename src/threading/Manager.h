@@ -79,7 +79,7 @@ public:
 
 	/**
 	 * Returns the number of currently active threads. This counts all
-	 * threads that are not yet joined, includingt any potentially in
+	 * threads that are not yet joined, including any potentially in
 	 * Terminating() state.
 	 */
 	int NumThreads() const { return all_threads.size(); }

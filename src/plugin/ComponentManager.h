@@ -308,7 +308,7 @@ void ComponentManager<C>::RegisterComponent(C* component, const std::string& pre
 	components_by_tag.insert(std::make_pair(component->Tag(), component));
 	components_by_val.insert(std::make_pair(component->Tag().AsVal()->InternalInt(), component));
 
-	// Install an identfier for enum value
+	// Install an identifier for enum value
 	std::string id = util::fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true,
 	                       nullptr);

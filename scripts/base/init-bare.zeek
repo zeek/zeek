@@ -1172,7 +1172,7 @@ const tcp_max_above_hole_without_any_acks = 16384 &redef;
 const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
 ## Number of TCP segments to buffer beyond what's been acknowledged already
-## to detect retransmission inconsistencies. Zero disables any additonal
+## to detect retransmission inconsistencies. Zero disables any additional
 ## buffering.
 const tcp_max_old_segments = 0 &redef;
 

@@ -53,7 +53,7 @@ namespace analyzer
  * instantantiates new analyzers on demand. For new connections, the manager
  * sets up their initial analyzer tree, including adding the right \c PIA,
  * respecting well-known ports, and tracking any analyzers specifically
- * scheduled for individidual connections.
+ * scheduled for individual connections.
  */
 class Manager : public plugin::ComponentManager<Component>
 	{

@@ -76,7 +76,7 @@ public:
 
 private:
 	// Makes one pass over the statements, removing assignments
-	// corresponding to temporaries (because those can be propagted).
+	// corresponding to temporaries (because those can be propagated).
 	// "iter" is the iteration count of how often we've done such passes,
 	// with the first pass being numbered 1.
 	//

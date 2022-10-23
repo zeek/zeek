@@ -1758,7 +1758,7 @@ void Manager::ProcessError(broker::error_view err)
 	else
 		{
 
-		reporter->Warning("Unknown Broker error code %u: mapped to unspecificed enum value ",
+		reporter->Warning("Unknown Broker error code %u: mapped to unspecified enum value ",
 		                  static_cast<unsigned>(int_code));
 		ec = BifEnum::Broker::ErrorCode::UNSPECIFIED;
 		}

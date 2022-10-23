@@ -1580,7 +1580,7 @@ redef SMB::statuses += {
 	[0xC01E050C] = [$id="GRAPHICS_OPM_INVALID_HANDLE", $desc="The function failed because the caller passed in an invalid OPM user-mode handle."],
 	[0xC01E050D] = [$id="GRAPHICS_PVP_NO_MONITORS_CORRESPOND_TO_DISPLAY_DEVICE", $desc="This function failed because the GDI device passed to it did not have any monitors associated with it."],
 	[0xC01E050E] = [$id="GRAPHICS_PVP_INVALID_CERTIFICATE_LENGTH", $desc="A certificate could not be returned because the certificate buffer passed to the function was too small."],
-	[0xC01E050F] = [$id="GRAPHICS_OPM_SPANNING_MODE_ENABLED", $desc="DxgkDdiOpmCreateProtectedOutput() could not create a protected output because the video present yarget is in spanning mode."],
+	[0xC01E050F] = [$id="GRAPHICS_OPM_SPANNING_MODE_ENABLED", $desc="DxgkDdiOpmCreateProtectedOutput() could not create a protected output because the video present target is in spanning mode."],
 	[0xC01E0510] = [$id="GRAPHICS_OPM_THEATER_MODE_ENABLED", $desc="DxgkDdiOpmCreateProtectedOutput() could not create a protected output because the video present target is in theater mode."],
 	[0xC01E0511] = [$id="GRAPHICS_PVP_HFS_FAILED", $desc="The function call failed because the display adapter's hardware functionality scan (HFS) failed to validate the graphics hardware."],
 	[0xC01E0512] = [$id="GRAPHICS_OPM_INVALID_SRM", $desc="The HDCP SRM passed to this function did not comply with section 5 of the HDCP 1.1 specification."],

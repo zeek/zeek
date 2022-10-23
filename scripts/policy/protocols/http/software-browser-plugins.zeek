@@ -53,7 +53,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
 	# If a Flash was detected, it has to be logged considering the user agent.
 	if ( is_orig && c$http?$flash_version )
 		{
-		# AdobeAIR contains a seperate Flash, which should be emphasized.
+		# AdobeAIR contains a separate Flash, which should be emphasized.
 		# Note: We assume that the user agent header was not reset by the app.
 		if( c$http?$user_agent )
 			{

@@ -83,7 +83,7 @@ public:
 	void EnableStream(DebugStream stream) { streams[int(stream)].enabled = true; }
 	void DisableStream(DebugStream stream) { streams[int(stream)].enabled = false; }
 
-	// Takes comma-seperated list of stream prefixes.
+	// Takes comma-separated list of stream prefixes.
 	void EnableStreams(const char* streams);
 
 	// Check the enabled streams for invalid ones.

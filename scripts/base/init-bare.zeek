@@ -4180,7 +4180,7 @@ type PE::OptionalHeader: record {
 	major_subsys_version    : count;
 	## The minor version of the subsystem required to run this file.
 	minor_subsys_version    : count;
-	## The size (in bytes) of the iamge as the image is loaded in memory.
+	## The size (in bytes) of the image as the image is loaded in memory.
 	size_of_image           : count;
 	## The size (in bytes) of the headers, rounded up to file_alignment.
 	size_of_headers         : count;

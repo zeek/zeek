@@ -1295,7 +1295,7 @@ type File_Spec_Str = record {
 type Dev_Store = record {
 	overflow: uint8;
 	obj_group: uint8;
-	variatiion: uint8;
+	variation: uint8;
 } &byteorder = littleendian;
 
 # device profile g82

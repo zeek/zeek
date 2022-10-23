@@ -128,7 +128,7 @@ private:
 /**
  * Component description for plugins providing a PktDumper for packet output.
  *
- * PktDumpers aren't IOSurces but we locate them here to keep them along with
+ * PktDumpers aren't IOSources but we locate them here to keep them along with
  * the PktSrc.
  */
 class PktDumperComponent : public plugin::Component

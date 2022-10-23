@@ -682,7 +682,7 @@ protected:
 	 *
 	 * @param analyzer The analyzer to add. Takes ownership.
 	 *
-	 * @param init If true, Init() will be calle.d
+	 * @param init If true, Init() will be called.
 	 * @return false if analyzer type was already a child, else true.
 	 */
 	bool AddChildAnalyzer(Analyzer* analyzer, bool init);

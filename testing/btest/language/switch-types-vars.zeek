@@ -31,7 +31,7 @@ function switch_one(v: any)
 
 		break;
 	default:
-		print "Somethign else!";
+		print "Something else!";
 		break;
 	}
 	}

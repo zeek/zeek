@@ -42,7 +42,7 @@ using BloomFilterValPtr = IntrusivePtr<BloomFilterVal>;
 
 /**
  * Singleton that registers all available all available types of opaque
- * values. This faciliates their serialization into Broker values.
+ * values. This facilitates their serialization into Broker values.
  */
 class OpaqueMgr
 	{

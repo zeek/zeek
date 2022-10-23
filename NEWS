@@ -2941,7 +2941,7 @@ Deprecated Functionality
 
 - The old communication system is now deprecated and scheduled for
   removal with the next Bro release. This includes the "communication"
-  framework, the ``&sychronized`` attributes, and the existing
+  framework, the ``&synchronized`` attributes, and the existing
   communication-related BiFs. Use Broker instead.
 
 - The infrastructure for serializing Bro values into a binary

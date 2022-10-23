@@ -190,7 +190,7 @@ const char* String::CheckString() const
 
 char* String::Render(int format, int* len) const
 	{
-	// Maxmimum character expansion is as \xHH, so a factor of 4.
+	// Maximum character expansion is as \xHH, so a factor of 4.
 	char* s = new char[n * 4 + 1]; // +1 is for final '\0'
 	char* sp = s;
 	int tmp_len;

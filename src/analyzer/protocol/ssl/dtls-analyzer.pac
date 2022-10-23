@@ -6,7 +6,7 @@ refine connection SSL_Conn += {
 		struct message_info {
 			uint64 message_first_sequence; // the minumum dtls sequence number for this handshake fragment
 			bool first_sequence_seen; // did we actually see the fragment with the smallest number
-			uint64 message_last_sequence; // the mazimum dtls sequence number for this handshake fragment
+			uint64 message_last_sequence; // the maximum dtls sequence number for this handshake fragment
 			uint16 message_handshake_sequence; // the handshake sequence number of this handshake (to identify)
 			uint32 message_length; // data length of this handshake (data in buffer)
 			uint32 message_sequence_seen; // a bitfield that shows which sequence numbers we already saw, offset from first_seq.

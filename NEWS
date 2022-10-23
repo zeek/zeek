@@ -2396,7 +2396,7 @@ New Functionality
 
   When using BroControl, the function of proxies has changed with
   Broker. If you are upgrading and have configured more than one proxy
-  currenty, we recommend going back down to a single proxy node now.
+  currently, we recommend going back down to a single proxy node now.
   That should be fine unless you are using custom scripts doing
   significant data distribution through the new cluster framework.
 

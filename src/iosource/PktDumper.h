@@ -52,7 +52,7 @@ public:
 
 	/**
 	 * Returns if the dumper has encountered an error, returns a
-	 * corresponding error message. Returns an emoty string otherwise.
+	 * corresponding error message. Returns an empty string otherwise.
 	 */
 	const char* ErrorMsg() const;
 

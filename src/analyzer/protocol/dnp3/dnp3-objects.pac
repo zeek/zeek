@@ -207,14 +207,14 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x2202 -> ai_dead_32: empty;
 		0x2203 -> ai_dead_sp: empty;
 
-	# analog ouput status g40
+	# analog output status g40
 		0x2800 -> aos_default: empty;
 		0x2801 -> aos_32: empty;
 		0x2802 -> aos_16: empty;
 		0x2803 -> aos_sp: empty;
 		0x2804 -> aos_dp: empty;
 
-	# analog ouput g41
+	# analog output g41
 		0x2901 -> ao_32: empty;
 		0x2902 -> ao_16: empty;
 		0x2903 -> ao_sp: empty;
@@ -502,13 +502,13 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x2202 -> ai_dead_32: uint32;
 		0x2203 -> ai_dead_sp: uint32;
 
-	# analog ouput status g40
+	# analog output status g40
 		0x2801 -> aos_32: AnaOutStatus32;
 		0x2802 -> aos_16: AnaOutStatus16;
 		0x2803 -> aos_sp: AnaOutStatusSP;
 		0x2804 -> aos_dp: AnaOutStatusDP;
 
-	# analog ouput g41
+	# analog output g41
 		0x2901 -> ao_32: AnaOut32;
 		0x2902 -> ao_16: AnaOut16;
 		0x2903 -> ao_sp: AnaOutSP;

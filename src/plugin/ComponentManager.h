@@ -95,7 +95,7 @@ public:
 	 *
 	 * @param name A component's canonical name.
 	 * @return The component's tag, or a tag representing an error if
-	 * no such component assoicated with the name exists.
+	 * no such component associated with the name exists.
 	 */
 	zeek::Tag GetComponentTag(const std::string& name) const;
 
@@ -104,7 +104,7 @@ public:
 	 *
 	 * @param v A component's enum value.
 	 * @return The component's tag, or a tag representing an error if
-	 * no such component assoicated with the value exists.
+	 * no such component associated with the value exists.
 	 */
 	zeek::Tag GetComponentTag(Val* v) const;
 

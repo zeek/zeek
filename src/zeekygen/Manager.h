@@ -199,7 +199,7 @@ public:
 	/**
 	 * @param name Name of a Zeek script package ("normalized" to be a path
 	 * relative to a component within ZEEKPATH).
-	 * @return a package info object assocated with \a name or a null pointer
+	 * @return a package info object associated with \a name or a null pointer
 	 * if it's not a known package name.
 	 */
 	PackageInfo* GetPackageInfo(const std::string& name) const { return packages.GetInfo(name); }

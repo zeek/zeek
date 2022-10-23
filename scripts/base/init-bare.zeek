@@ -157,7 +157,7 @@ type PacketSource: record {
 	path: string;
 	## The data link-layer type of the packet source.
 	link_type: int;
-	## The netmask assoicated with the source or ``NETMASK_UNKNOWN``.
+	## The netmask associated with the source or ``NETMASK_UNKNOWN``.
 	netmask: count;
 };
 

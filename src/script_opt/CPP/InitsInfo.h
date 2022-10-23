@@ -519,7 +519,7 @@ protected:
 	std::string wrapper_class;
 	};
 
-// Information for registering the class/function assocaited with a lambda.
+// Information for registering the class/function associated with a lambda.
 class LambdaRegistrationInfo : public CPP_InitInfo
 	{
 public:

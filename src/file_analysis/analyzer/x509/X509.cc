@@ -280,7 +280,7 @@ X509_STORE* X509::GetRootStore(TableVal* root_certs)
 		X509_free(x);
 		}
 
-	// Save the newly constructed certificate store into the cacheing map.
+	// Save the newly constructed certificate store into the caching map.
 	x509_stores[root_certs] = ctx;
 
 	return ctx;

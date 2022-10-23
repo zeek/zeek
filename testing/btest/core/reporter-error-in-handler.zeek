@@ -1,5 +1,5 @@
 #
-# This test procudes a recursive error: the error handler is itself broken. Rather
+# This test produces a recursive error: the error handler is itself broken. Rather
 # than looping indefinitely, the error inside the handler should reported to stderr.
 #
 # @TEST-EXEC: zeek -b %INPUT >output 2>err

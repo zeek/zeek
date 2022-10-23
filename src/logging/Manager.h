@@ -88,7 +88,7 @@ public:
 	bool RemoveStream(EnumVal* id);
 
 	/**
-	 * Enables a log log stream.
+	 * Enables a log stream.
 	 *
 	 * @param id  The enum value corresponding the log stream.
 	 *

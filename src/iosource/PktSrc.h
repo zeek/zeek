@@ -338,7 +338,7 @@ protected:
 
 	/**
 	 * Performs the actual filter compilation. This can be overridden to
-	 * provide a different implementation of the compiilation called by
+	 * provide a different implementation of the compilation called by
 	 * PrecompileBPFFilter(). This is primarily used by the pcap source
 	 * use a different version of BPF_Filter::Compile;
 	 *

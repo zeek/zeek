@@ -1522,7 +1522,7 @@ function order%(v: any, ...%) : index_vec
 ## arguments can be of any type. For example, ``cat("foo", 3, T)`` returns
 ## ``"foo3T"``.
 ##
-## Returns: A string concatentation of all arguments.
+## Returns: A string concatenation of all arguments.
 function cat%(...%): string
 	%{
 	zeek::ODesc d;

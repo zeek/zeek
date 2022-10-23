@@ -1888,7 +1888,7 @@ const TypePtr& VectorType::Yield() const
 	// Work around the fact that we use void internally to mark a vector
 	// as being unspecified. When looking at its yield type, we need to
 	// return any as that's what other code historically expects for type
-	// comparisions.
+	// comparisons.
 	if ( IsUnspecifiedVector() )
 		return zeek::base_type(TYPE_ANY);
 

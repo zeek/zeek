@@ -993,7 +993,7 @@ public:
 	void DisableChangeNotifications() { in_change_func = true; }
 
 	/**
-	 * Re-enables change notifcations after being disabled by DisableChangeNotifications.
+	 * Re-enables change notifications after being disabled by DisableChangeNotifications.
 	 */
 	void EnableChangeNotifications() { in_change_func = false; }
 

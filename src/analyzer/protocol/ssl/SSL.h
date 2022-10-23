@@ -129,7 +129,7 @@ protected:
 
 	/**
 	 * TLS 1.2 pseudo random function (PRF) used to expand the pre-master secret and derive keys.
-	 * The seed is obtained by concatinating rnd1 and rnd2.
+	 * The seed is obtained by concatenating rnd1 and rnd2.
 	 *
 	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
 	 * ciphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).

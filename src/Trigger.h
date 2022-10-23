@@ -101,7 +101,7 @@ public:
 	// later to avoid race conditions.
 	void Modified(zeek::notifier::detail::Modifiable* m) override;
 
-	// Overridden from notifer::Receiver.  If we're still waiting
+	// Overridden from notifier::Receiver.  If we're still waiting
 	// on an ID/Val to be modified at termination time, we can't hope
 	// for any further progress to be made, so just Unref ourselves.
 	void Terminate() override;

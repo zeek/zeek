@@ -18,7 +18,7 @@ type myrec: record {
 function foo(mr: myrec)
 	{
 	print "foo start";
-	# Unitialized field access: unwind out of current event handler body
+	# Uninitialized field access: unwind out of current event handler body
 	print mr$f;
 	# Unreachable
 	print "foo done";

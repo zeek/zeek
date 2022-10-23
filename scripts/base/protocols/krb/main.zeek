@@ -54,7 +54,7 @@ export {
 	option ignored_errors: set[string] = {
 		# This will significantly increase the noisiness of the log.
 		# However, one attack is to iterate over principals, looking
-		# for ones that don't require preauth, and then performn
+		# for ones that don't require preauth, and then perform
 		# an offline attack on that ticket. To detect that attack,
 		# log NEEDED_PREAUTH.
 		"NEEDED_PREAUTH",

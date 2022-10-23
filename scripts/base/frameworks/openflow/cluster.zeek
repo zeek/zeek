@@ -108,7 +108,7 @@ function unregister_controller(controller: Controller)
 
 function lookup_controller(name: string): vector of Controller
 	{
-	# we only run the on the manager. Otherwhise we don't have a mapping or state -> return empty
+	# we only run the on the manager. Otherwise we don't have a mapping or state -> return empty
 	if ( Cluster::local_node_type() != Cluster::MANAGER )
 		return vector();
 

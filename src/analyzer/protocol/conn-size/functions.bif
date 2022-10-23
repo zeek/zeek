@@ -26,7 +26,7 @@ static zeek::analyzer::Analyzer* GetConnsizeAnalyzer(zeek::Val* cid)
 ##
 ## threshold: Threshold in bytes.
 ##
-## is_orig: If true, threshold is set for bytes from originator, otherwhise for bytes from responder.
+## is_orig: If true, threshold is set for bytes from originator, otherwise for bytes from responder.
 ##
 ## .. zeek:see:: set_current_conn_packets_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
 ##               get_current_conn_bytes_threshold get_current_conn_packets_threshold
@@ -50,7 +50,7 @@ function set_current_conn_bytes_threshold%(cid: conn_id, threshold: count, is_or
 ##
 ## threshold: Threshold in packets.
 ##
-## is_orig: If true, threshold is set for packets from originator, otherwhise for packets from responder.
+## is_orig: If true, threshold is set for packets from originator, otherwise for packets from responder.
 ##
 ## .. zeek:see:: set_current_conn_bytes_threshold conn_bytes_threshold_crossed conn_packets_threshold_crossed
 ##               get_current_conn_bytes_threshold get_current_conn_packets_threshold
@@ -92,7 +92,7 @@ function set_current_conn_duration_threshold%(cid: conn_id, threshold: interval%
 ##
 ## cid: The connection id.
 ##
-## is_orig: If true, threshold of originator, otherwhise threshold of responder.
+## is_orig: If true, threshold of originator, otherwise threshold of responder.
 ##
 ## Returns: 0 if no threshold is set or the threshold in bytes
 ##
@@ -112,7 +112,7 @@ function get_current_conn_bytes_threshold%(cid: conn_id, is_orig: bool%): count
 ##
 ## cid: The connection id.
 ##
-## is_orig: If true, threshold of originator, otherwhise threshold of responder.
+## is_orig: If true, threshold of originator, otherwise threshold of responder.
 ##
 ## Returns: 0 if no threshold is set or the threshold in packets
 ##

@@ -83,7 +83,7 @@ public:
 
 	/**
 	 * Merges the argument cardinality counter with this one. The error
-	 * margins of both counters have to be the same, otherwhise the merge
+	 * margins of both counters have to be the same, otherwise the merge
 	 * operation will not be carried out.
 	 *
 	 * @param c Cardinality counter to merge into the current counter.

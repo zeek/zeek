@@ -481,7 +481,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 		if ( pos == 0 && errno != 0 )
 			break;
 
-		// researching everything each time is a bit... cpu-intensive. But otherwhise we have
+		// researching everything each time is a bit... cpu-intensive. But otherwise we have
 		// to deal with situations where the separator is multi-character and split over multiple
 		// reads...
 		int found = util::strstr_n(pos, (unsigned char*)buf.get(), separator.size(),

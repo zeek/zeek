@@ -1047,7 +1047,7 @@ function rule_error_impl(r: Rule, p: PluginState, msg: string &default="") &is_u
 	else
 		{
 		# error during insertion. Meh. If we are the only plugin, remove the rule again.
-		# Otherwhise - keep it, minus us.
+		# Otherwise - keep it, minus us.
 		delete rule$_plugin_ids[p$_id];
 		if ( |rule$_plugin_ids| == 0 )
 			{

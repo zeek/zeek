@@ -18,7 +18,7 @@ export {
 	};
 }
 
-# Do not disable analyzers after detection - otherwhise we will not notice
+# Do not disable analyzers after detection - otherwise we will not notice
 # encrypted attacks.
 redef SSL::disable_analyzer_after_detection=F;
 

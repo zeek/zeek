@@ -27,7 +27,7 @@ zeek::StringValPtr utf16_to_utf8_val(zeek::Connection* conn, const bytestring& u
 	// here, so make a copy.
 	auto utf16_copy_buf = std::make_unique<UTF16[]>(utf16.length()); // Twice as much memory than necessary.
 	auto utf16_copy = utf16_copy_buf.get();
-	memset(utf16_copy, 0, sizeof(UTF16) * utf16.length()); // needs to be set to 0, otherwhise we have uninitialized memory issues when utf16.length is odd.
+	memset(utf16_copy, 0, sizeof(UTF16) * utf16.length()); // needs to be set to 0, otherwise we have uninitialized memory issues when utf16.length is odd.
 	memcpy(utf16_copy, utf16.begin(), utf16.length());
 
 	const char* utf16_copy_end = reinterpret_cast<const char*>(utf16_copy) + utf16.length();

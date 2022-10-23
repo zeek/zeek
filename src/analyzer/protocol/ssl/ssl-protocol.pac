@@ -183,7 +183,7 @@ refine connection SSL_Conn += {
 	function determine_ssl_record_layer(head0 : uint8, head1 : uint8,
 					head2 : uint8, head3: uint8, head4: uint8, is_orig: bool) : int
 		%{
-		// stop processing if we already had a protocol violation or otherwhise
+		// stop processing if we already had a protocol violation or otherwise
 		// decided that we do not want to parse anymore. Just setting skip is not
 		// enough for the data that is already in the pipe.
 		if ( zeek_analyzer()->Skipping() )

@@ -30,7 +30,7 @@ export {
 	## Warn if the DH key length is smaller than the certificate key length. This is
 	## potentially unsafe because it gives a wrong impression of safety due to the
 	## certificate key length. However, it is very common and cannot be avoided in some
-	## settings (e.g. with old jave clients).
+	## settings (e.g. with old java clients).
 	option notify_dh_length_shorter_cert_length = T;
 
 	## Warn if a server negotiates a SSL session with a protocol version smaller than

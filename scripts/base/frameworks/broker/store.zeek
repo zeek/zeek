@@ -351,7 +351,7 @@ export {
 	                     e: interval &default=0sec) : bool;
 
 	## Returns a set with all of a store's keys. The results reflect a snapshot
-	## in time that may diverge from reality soon afterwards.   When acessing
+	## in time that may diverge from reality soon afterwards.   When accessing
 	## any of the element, it may no longer actually be there. The function is
 	## also expensive for large stores, as it copies the complete set.
 	##

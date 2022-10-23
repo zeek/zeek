@@ -10,7 +10,7 @@
 #include "zeek/script_opt/ScriptOpt.h"
 
 // We structure the compiler for generating C++ versions of Zeek script
-// bodies maily as a single large class.  While we divide the compiler's
+// bodies mainly as a single large class.  While we divide the compiler's
 // functionality into a number of groups (see below), these interact with
 // one another, and in particular with various member variables, enough
 // so that it's not clear there's benefit to further splitting the

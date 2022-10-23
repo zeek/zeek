@@ -102,7 +102,7 @@ public:
 			loc = *body->GetLocationInfo();
 		}
 
-	// Constructor used for the special case of non-script acocunting.
+	// Constructor used for the special case of non-script accounting.
 	ScriptProfile() : ScriptProfileStats("non-scripts")
 		{
 		func = nullptr;

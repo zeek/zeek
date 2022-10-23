@@ -4637,7 +4637,7 @@ export {
 	type SNMP::BulkPDU: record {
 		request_id:      int;
 		non_repeaters:   count;
-		max_repititions: count;
+		max_repetitions: count;
 		bindings:        SNMP::Bindings;
 	};
 }

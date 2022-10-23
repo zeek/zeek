@@ -5,7 +5,7 @@ snmp_get_bulk_request
   [community=]
     request_id:      1817072941
     non_repeaters:   0
-    max_repititions: 0
+    max_repetitions: 0
     oid: 1.3.6.1.2.1.1.5.0
     value (tag=0x05): <unspecified>
 snmp_response

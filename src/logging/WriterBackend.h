@@ -155,7 +155,7 @@ public:
 	 * value must match what was passed to Init().
 	 *
 	 * @param An array of size \a num_fields with the log values. Their
-	 * types musst match with the field passed to Init(). The method
+	 * types must match with the field passed to Init(). The method
 	 * takes ownership of \a vals..
 	 *
 	 * Returns false if an error occured, in which case the writer must

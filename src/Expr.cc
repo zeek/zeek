@@ -452,7 +452,7 @@ void Expr::AddTag(ODesc* d) const
 		d->AddSP(expr_name(Tag()));
 	}
 
-void Expr::Canonicize() { }
+void Expr::Canonicalize() { }
 
 void Expr::SetType(TypePtr t)
 	{
@@ -1670,7 +1670,7 @@ AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 		}
 	}
 
-void AddExpr::Canonicize()
+void AddExpr::Canonicalize()
 	{
 	if ( expr_greater(op2.get(), op1.get()) ||
 	     (op1->GetType()->Tag() == TYPE_INTERVAL && op2->GetType()->Tag() == TYPE_TIME) ||
@@ -1902,7 +1902,7 @@ TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	Canonicize();
+	Canonicalize();
 
 	TypeTag bt1 = op1->GetType()->Tag();
 
@@ -1929,7 +1929,7 @@ TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	CheckScalarAggOp();
 	}
 
-void TimesExpr::Canonicize()
+void TimesExpr::Canonicalize()
 	{
 	if ( expr_greater(op2.get(), op1.get()) || op2->GetType()->Tag() == TYPE_INTERVAL ||
 	     (op2->IsConst() && ! is_vector(op2->ExprVal()) && ! op1->IsConst()) )
@@ -2247,7 +2247,7 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	Canonicize();
+	Canonicalize();
 
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
@@ -2317,7 +2317,7 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	CheckScalarAggOp();
 	}
 
-void EqExpr::Canonicize()
+void EqExpr::Canonicalize()
 	{
 	if ( op2->GetType()->Tag() == TYPE_PATTERN )
 		SwapOps();
@@ -2362,7 +2362,7 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	Canonicize();
+	Canonicalize();
 
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
@@ -2399,7 +2399,7 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	CheckScalarAggOp();
 	}
 
-void RelExpr::Canonicize()
+void RelExpr::Canonicalize()
 	{
 	if ( tag == EXPR_GT )
 		{

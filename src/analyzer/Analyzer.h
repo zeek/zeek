@@ -61,7 +61,7 @@ using ID = uint32_t;
 using analyzer_timer_func = void (Analyzer::*)(double t);
 
 /**
- * Class to receive processed output from an anlyzer.
+ * Class to receive processed output from an analyzer.
  */
 class OutputHandler
 	{
@@ -392,7 +392,7 @@ public:
 	 * the same type already exists or is prevented, the one passed in is
 	 * silently discarded.
 	 *
-	 * @param analyzer The ananlyzer to add. Takes ownership.
+	 * @param analyzer The analyzer to add. Takes ownership.
 	 * @return false if analyzer type was already a child or prevented, else true.
 	 */
 	bool AddChildAnalyzer(Analyzer* analyzer) { return AddChildAnalyzer(analyzer, true); }

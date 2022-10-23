@@ -45,7 +45,7 @@ public:
 	virtual bool IsReuse(double t, const u_char* pkt);
 
 	/**
-	 * Pure virtual method to allow extra session analzyers to be added to this analyzer's
+	 * Pure virtual method to allow extra session analyzers to be added to this analyzer's
 	 * tree of children. This is used by analyzer::Manager when creating the session analyzer
 	 * tree.
 	 */

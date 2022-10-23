@@ -925,7 +925,7 @@ event Pcap::file_done%(path: string%);
 ## Generated when a packet analyzer attempts to forward a protocol that it doesn't
 ## know how to handle.
 ##
-## analzyer_name: The string name of the analyzer attempting to forward the protocol
+## analyzer_name: The string name of the analyzer attempting to forward the protocol
 ##
 ## protocol: The identifier of the protocol being forwarded
 ##

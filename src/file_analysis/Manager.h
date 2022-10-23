@@ -290,7 +290,7 @@ public:
 	File* LookupFile(const std::string& file_id) const;
 
 	/**
-	 * Queue attachment of an analzer to the file identifier.  Multiple
+	 * Queue attachment of an analyzer to the file identifier.  Multiple
 	 * analyzers of a given type can be attached per file identifier at a time
 	 * as long as the arguments differ.
 	 * @param file_id the file identifier/hash.
@@ -319,8 +319,8 @@ public:
 	/**
 	 * Instantiates a new file analyzer instance for the file.
 	 * @param tag The file analyzer's tag.
-	 * @param args The file analzer argument/option values.
-	 * @param f The file analzer is to be associated with.
+	 * @param args The file analyzer argument/option values.
+	 * @param f The file analyzer is to be associated with.
 	 * @return The new analyzer instance or null if tag is invalid.
 	 */
 	Analyzer* InstantiateAnalyzer(const Tag& tag, RecordValPtr args, File* f) const;

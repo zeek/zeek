@@ -134,7 +134,7 @@ public:
 	void DisableAllAnalyzers();
 
 	/**
-	 * Returns the tag associated with an analyer name, or the tag
+	 * Returns the tag associated with an analyzer name, or the tag
 	 * associated with an error if no such analyzer exists.
 	 *
 	 * @param name The canonical analyzer name to check.
@@ -186,7 +186,7 @@ public:
 	bool RegisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port);
 
 	/**
-	 * Unregisters a well-known port for an anlyzers.
+	 * Unregisters a well-known port for an analyzers.
 	 *
 	 * @param tag The analyzer's tag as an enum of script type \c
 	 * Tag.
@@ -200,7 +200,7 @@ public:
 	bool UnregisterAnalyzerForPort(EnumVal* tag, PortVal* port);
 
 	/**
-	 * Unregisters a well-known port for an anlyzers.
+	 * Unregisters a well-known port for an analyzers.
 	 *
 	 * @param tag The analyzer's tag.
 	 *

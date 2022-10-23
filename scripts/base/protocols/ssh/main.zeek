@@ -125,7 +125,7 @@ redef record Info += {
 	# Store capabilities from the first host for
 	# comparison with the second (internal use)
 	capabilities: Capabilities &optional;
-	## Analzyer ID
+	## Analyzer ID
 	analyzer_id: count         &optional;
 };
 

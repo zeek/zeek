@@ -223,7 +223,7 @@ New Functionality
 - Added support for parsing TCP option 27, and fixed validation of lengths for
   TCP options 28, 29, and 34.
 
-- Added new packet-analzyer to handle the DLT_LINUX_SLL2 PCAP link type.
+- Added new packet-analyzer to handle the DLT_LINUX_SLL2 PCAP link type.
 
 Changed Functionality
 ---------------------
@@ -3492,7 +3492,7 @@ New Functionality
   most circumstances, logs a lot more more information about SSH
   sessions, supports v1, and introduces the intelligence type
   ``Intel::PUBKEY_HASH`` and location ``SSH::IN_SERVER_HOST_KEY``. The
-  analayzer also generates a set of additional events
+  analyzer also generates a set of additional events
   (``ssh_auth_successful``, ``ssh_auth_failed``, ``ssh_auth_attempted``,
   ``ssh_auth_result``, ``ssh_capabilities``, ``ssh2_server_host_key``,
   ``ssh1_server_host_key``, ``ssh_encrypted_packet``,

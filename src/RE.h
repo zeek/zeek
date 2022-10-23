@@ -99,7 +99,7 @@ public:
 	bool MatchAll(const char* s);
 	bool MatchAll(const String* s);
 
-	// Compiles a set of regular expressions simultaniously.
+	// Compiles a set of regular expressions simultaneously.
 	// 'idx' contains indices associated with the expressions.
 	// On matching, the set of indices is returned which correspond
 	// to the matching expressions.  (idx must not contain zeros).

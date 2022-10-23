@@ -362,7 +362,7 @@ private:
 namespace detail
 	{
 /**
- * State used to initalialize and talk to the Supervisor Stem process.
+ * State used to initialize and talk to the Supervisor Stem process.
  */
 struct SupervisorStemHandle
 	{

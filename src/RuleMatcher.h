@@ -263,7 +263,7 @@ public:
 	bool ReadFiles(const std::vector<SignatureFile>& files);
 
 	/**
-	 * Inititialize a state object for matching file magic signatures.
+	 * Initialize a state object for matching file magic signatures.
 	 * @return A state object that can be used for file magic mime type
 	 *         identification.
 	 */

@@ -380,7 +380,7 @@ static bool write_random_seeds(const char* write_file, uint32_t seed,
 	return true;
 	}
 
-static bool zeek_rand_determistic = false;
+static bool zeek_rand_deterministic = false;
 static long int zeek_rand_state = 0;
 static bool first_seed_saved = false;
 static unsigned int first_seed = 0;
@@ -388,14 +388,14 @@ static unsigned int first_seed = 0;
 static void zeek_srandom(unsigned int seed, bool deterministic)
 	{
 	zeek_rand_state = seed == 0 ? 1 : seed;
-	zeek_rand_determistic = deterministic;
+	zeek_rand_deterministic = deterministic;
 
 	srandom(seed);
 	}
 
 void seed_random(unsigned int seed)
 	{
-	if ( zeek_rand_determistic )
+	if ( zeek_rand_deterministic )
 		zeek_rand_state = seed == 0 ? 1 : seed;
 	else
 		srandom(seed);
@@ -493,7 +493,7 @@ unsigned int initial_seed()
 
 bool have_random_seed()
 	{
-	return zeek_rand_determistic;
+	return zeek_rand_deterministic;
 	}
 
 constexpr uint32_t zeek_prng_mod = 2147483647;
@@ -501,7 +501,7 @@ constexpr uint32_t zeek_prng_max = zeek_prng_mod - 1;
 
 long int max_random()
 	{
-	return zeek_rand_determistic ? zeek_prng_max : RAND_MAX;
+	return zeek_rand_deterministic ? zeek_prng_max : RAND_MAX;
 	}
 
 long int prng(long int state)
@@ -529,7 +529,7 @@ long int prng(long int state)
 
 long int random_number()
 	{
-	if ( ! zeek_rand_determistic )
+	if ( ! zeek_rand_deterministic )
 		return random(); // Use system PRNG.
 
 	zeek_rand_state = detail::prng(zeek_rand_state);
@@ -2120,7 +2120,7 @@ uint64_t calculate_unique_id(size_t pool)
 			++uid_instance; // Now it's larger than zero.
 			}
 		else
-			// Generate determistic UIDs for each individual pool.
+			// Generate deterministic UIDs for each individual pool.
 			uid_instance = pool;
 
 		// Our instance is unique.  Huzzah.

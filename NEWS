@@ -606,7 +606,7 @@ New Functionality
 - A new external testsuite, https://github.com/zeek/zeek-testing-cluster,
   focuses on testing the emerging controller framework. It leverages the new
   official Zeek Docker image for building docker-compose test setups, driven via
-  btest. The Github CI setup now includes a workflow that deploys and runs this
+  btest. The GitHub CI setup now includes a workflow that deploys and runs this
   testsuite.
 
 - The GRE analyzer now supports the Aruba WLAN protocol type.

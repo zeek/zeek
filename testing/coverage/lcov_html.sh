@@ -119,7 +119,7 @@ verify_run "which lcov" \
 echo -n "Creating tracefile for output generation... "
 verify_run "lcov --no-external --capture --directory . --output-file $COVERAGE_FILE"
 
-# 5. Remove a number of 3rdparty and "extra" files that shoudln't be included in the
+# 5. Remove a number of 3rdparty and "extra" files that shouldn't be included in the
 # Zeek coverage numbers.
 for TARGET in $REMOVE_TARGETS; do
     echo -n "Getting rid of $TARGET files from tracefile... "

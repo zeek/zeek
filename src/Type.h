@@ -785,7 +785,7 @@ public:
 
 	// The value of this name is set to val. Once a value has been
 	// explicitly assigned using this method, no further names can be
-	// added that aren't likewise explicitly initalized.
+	// added that aren't likewise explicitly initialized.
 	void AddName(const std::string& module_name, const char* name, zeek_int_t val, bool is_export,
 	             detail::Expr* deprecation = nullptr, bool from_redef = false);
 

@@ -77,7 +77,7 @@ public:
 
 	/**
 	 * Do initialization that needs to happen after scripts are parsed.
-	 * This is primarly dependency resolution/filtering.
+	 * This is primarily dependency resolution/filtering.
 	 */
 	void InitPostScript();
 

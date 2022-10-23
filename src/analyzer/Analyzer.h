@@ -293,7 +293,7 @@ public:
 
 	/**
 	 * Returns the analyzer instance's internal ID. These IDs are unique
-	 * across all analyzer instantiated and can thus be used to indentify
+	 * across all analyzer instantiated and can thus be used to identify
 	 * a specific instance.
 	 */
 	ID GetID() const { return id; }

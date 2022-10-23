@@ -3752,7 +3752,7 @@ New Functionality
 
 - StartTLS is now supported for SMTP and POP3.
 
-- The X509 analyzer can now perform OSCP validation.
+- The X509 analyzer can now perform OCSP validation.
 
 - Bro now has analyzers for SNMP and Radius, which produce corresponding
   snmp.log and radius.log output (as well as various events of course).

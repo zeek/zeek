@@ -326,7 +326,7 @@ protected:
 	 *
 	 * @return True if a packet is available and *pkt* filled in. False
 	 * if not packet is available or an error occured (which must be
-	 * flageed via Error()).
+	 * flagged via Error()).
 	 */
 	virtual bool ExtractNextPacket(Packet* pkt) = 0;
 

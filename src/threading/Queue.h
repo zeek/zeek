@@ -33,7 +33,7 @@ public:
 	 * Constructor.
 	 *
 	 * reader, writer: The corresponding threads. This is for checking
-	 * whether they have terminated so that we can abort I/O opeations.
+	 * whether they have terminated so that we can abort I/O operations.
 	 * Can be left null for the main thread.
 	 */
 	Queue(BasicThread* arg_reader, BasicThread* arg_writer);

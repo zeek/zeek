@@ -3978,7 +3978,7 @@ type dns_svcb_rr: record {
 
 # DNS answer types.
 #
-# .. zeek:see:: dns_answerr
+# .. zeek:see:: dns_answer
 #
 # todo:: use enum to make them autodoc'able
 const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.

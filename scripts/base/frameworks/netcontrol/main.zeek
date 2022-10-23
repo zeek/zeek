@@ -55,7 +55,7 @@ export {
 	##
 	## t: How long to whitelist it, with 0 being indefinitely.
 	##
-	## location: An optional string describing whitelist was triddered.
+	## location: An optional string describing whitelist was triggered.
 	##
 	## Returns: The id of the inserted rule on success and zero on failure.
 	global whitelist_address: function(a: addr, t: interval, location: string &default="") : string;
@@ -66,7 +66,7 @@ export {
 	##
 	## t: How long to whitelist it, with 0 being indefinitely.
 	##
-	## location: An optional string describing whitelist was triddered.
+	## location: An optional string describing whitelist was triggered.
 	##
 	## Returns: The id of the inserted rule on success and zero on failure.
 	global whitelist_subnet: function(s: subnet, t: interval, location: string &default="") : string;

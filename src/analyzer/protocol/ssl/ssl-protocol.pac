@@ -171,7 +171,7 @@ refine connection SSL_Conn += {
 		// some sort of TLS1.3. So - let's do it this way round instead.
 		if ( negotiated_version != SSLv20 && negotiated_version != SSLv30 && negotiated_version != TLSv10 && negotiated_version != TLSv11 && negotiated_version != TLSv12 )
 			{
-			// well, it seems like this is a TLS 1.3 (or equivalent) applicatio data packet. Let's enable encryption
+			// well, it seems like this is a TLS 1.3 (or equivalent) application data packet. Let's enable encryption
 			// and handle it as encrypted.
 			startEncryption(is_orig);
 			return STATE_ENCRYPTED;

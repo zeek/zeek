@@ -3443,7 +3443,7 @@ export {
 
 	type SMB2::NegotiateContextValues: vector of SMB2::NegotiateContextValue;
 
-	## The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
+	## The response to an SMB2 *negotiate* request, which is used by the client to notify the server
 	## what dialects of the SMB2 protocol the client understands.
 	##
 	## For more information, see MS-SMB2:2.2.4

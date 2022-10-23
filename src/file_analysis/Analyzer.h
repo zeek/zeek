@@ -171,7 +171,7 @@ protected:
 	 * @param arg_tag the tag defining the analyzer's type.
 	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifying
 	 *        tunable options, if any, related to a particular analyzer type.
-	 * @param arg_file the file to which the the analyzer is being attached.
+	 * @param arg_file the file to which the analyzer is being attached.
 	 */
 	Analyzer(zeek::Tag arg_tag, RecordValPtr arg_args, File* arg_file);
 
@@ -182,7 +182,7 @@ protected:
 	 *
 	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifying
 	 *        tunable options, if any, related to a particular analyzer type.
-	 * @param arg_file the file to which the the analyzer is being attached.
+	 * @param arg_file the file to which the analyzer is being attached.
 	 */
 	Analyzer(RecordValPtr arg_args, File* arg_file);
 

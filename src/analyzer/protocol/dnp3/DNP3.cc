@@ -227,7 +227,7 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 			if ( res < 0 )
 				return false;
 
-			// Parse the the application layer data.
+			// Parse the application layer data.
 			if ( ! ParseAppLayer(endp) )
 				return false;
 

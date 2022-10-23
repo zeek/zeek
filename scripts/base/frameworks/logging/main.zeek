@@ -151,7 +151,7 @@ export {
 		## will generally fail.
 		dir: string &default = default_rotation_dir;
 
-		## A base name to use for the the rotated log.  Log writers may later
+		## A base name to use for the rotated log.  Log writers may later
 		## append a file extension of their choosing to this user-chosen
 		## base (e.g. if using the default ASCII writer and you want
 		## rotated files of the format "foo-<date>.log", then this basename

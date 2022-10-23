@@ -166,7 +166,7 @@ struct type_name_getter
  * @param v a Broker::Data value.
  * @param f used to get location information on error.
  * @return a reference to the wrapped Broker data value.  A runtime interpreter
- * exception is thrown if the the optional opaque value of \a v is not set.
+ * exception is thrown if the optional opaque value of \a v is not set.
  */
 broker::data& opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f);
 

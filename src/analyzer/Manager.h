@@ -272,7 +272,7 @@ public:
 	 * @param orig The connection's anticipated originator address. 0 can
 	 * be used as a wildcard matching any originator.
 	 *
-	 * @param resp The The connection's anticipated responder address (no
+	 * @param resp The connection's anticipated responder address (no
 	 * wilcard).
 	 *
 	 * @param resp_p The connection's anticipated responder port.

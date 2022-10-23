@@ -497,7 +497,7 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 		// record attributes) for further analysis.  Likewise, when
 		// doing the profile merges above we may have noted lambda
 		// expressions.  Analyze these, and iteratively any further
-		// expressions that that analysis uncovers.
+		// expressions that the analysis uncovers.
 		DrainPendingExprs();
 
 		// We now have all the information we need to form definitive,

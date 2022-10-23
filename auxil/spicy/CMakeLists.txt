@@ -16,7 +16,7 @@ set(BISON_ROOT ${dir}/..)
 
 # We currently only support building against statically linked Spicy libraries.
 # This is due to global state held in the Spicy and HILTI runtime libraries. If
-# we would like Spicy dynamically this global state would end up the the final
+# we would like Spicy dynamically this global state would end up the final
 # binary once via the static link of the runtime libraries into Zeek (needed to
 # make sure we can e.g., load arbitrary HLTO files), and once as a link
 # dependency of spicy-plugin. This can lead to e.g. consistency issues during

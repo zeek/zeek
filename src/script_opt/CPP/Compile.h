@@ -509,7 +509,7 @@ private:
 	                      const IDPList* lambda_ids, const ProfileFunc* pf);
 
 	// Inspects the given profile to find the i'th parameter (starting
-	// at 0).  Returns nil if the profile indicates that that parameter
+	// at 0).  Returns nil if the profile indicates that the parameter
 	// is not used by the function.
 	const ID* FindParam(int i, const ProfileFunc* pf);
 

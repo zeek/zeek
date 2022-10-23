@@ -297,7 +297,7 @@ protected:
 	                     threading::Value** vals) = 0;
 
 	/**
-	 * Writer-specific method implementing a change of fthe buffering
+	 * Writer-specific method implementing a change of the buffering
 	 * state.  If buffering is disabled, the writer should attempt to
 	 * write out information as quickly as possible even if doing so may
 	 * have a performance impact. If enabled (which is the default), it

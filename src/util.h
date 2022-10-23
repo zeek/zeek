@@ -86,7 +86,7 @@ using bro_uint_t [[deprecated("Remove in v6.1. Use zeek_uint_t.")]] = zeek_uint_
 extern char* strcasestr(const char* s, const char* find);
 #endif
 
-// This is used by the patricia code and so it remains outside of hte namespace.
+// This is used by the patricia code and so it remains outside of the namespace.
 extern "C" void out_of_memory(const char* where);
 
 namespace zeek
@@ -261,7 +261,7 @@ void terminate_processing();
 
 // Sets the current status of the Zeek process to the given string.
 // If the option --status-file has been set, this is written into
-// the the corresponding file.  Otherwise, the function is a no-op.
+// the corresponding file.  Otherwise, the function is a no-op.
 void set_processing_status(const char* status, const char* reason);
 
 // Renames the given file to a new temporary name, and opens a new file with

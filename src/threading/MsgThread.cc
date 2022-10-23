@@ -105,7 +105,7 @@ private:
 	Type type;
 	};
 
-// A message from the the child to the main process, requesting suicide.
+// A message from the child to the main process, requesting suicide.
 class KillMeMessage final : public OutputMessage<MsgThread>
 	{
 public:

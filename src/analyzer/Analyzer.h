@@ -101,7 +101,7 @@ public:
  * SupportAnalyzer. All analyzer input first passes through this list of
  * support analyzers, which can perform arbitrary preprocessing.
  *
- * When overiding any of the class' methods, always make sure to call the
+ * When overriding any of the class' methods, always make sure to call the
  * base-class version first.
  */
 class Analyzer

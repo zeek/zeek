@@ -130,7 +130,7 @@
       field3: :zeek:type:`ZeekygenExample::SimpleRecord`
          Zeekygen automatically tracks types
          and cross-references are automatically
-         inserted in to generated docs.
+         inserted into generated docs.
 
       msg: :zeek:type:`string` :zeek:attr:`&default` = ``"blah"`` :zeek:attr:`&optional`
          Attributes are self-documenting.

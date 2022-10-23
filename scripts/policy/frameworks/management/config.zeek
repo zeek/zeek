@@ -17,12 +17,12 @@ export {
 	## running.
 	const role = Management::NONE &redef;
 
-	## The fallback listen address if more specific adddresses, such as
+	## The fallback listen address if more specific addresses, such as
 	## the controller's :zeek:see:`Management::Controller::listen_address`
 	## remains empty. Unless redefined, this listens on all interfaces.
 	const default_address = "0.0.0.0" &redef;
 
-	## The retry interval for Broker connnects. Defaults to a more
+	## The retry interval for Broker connects. Defaults to a more
 	## aggressive value compared to Broker's 30s.
 	const connect_retry = 1sec &redef;
 

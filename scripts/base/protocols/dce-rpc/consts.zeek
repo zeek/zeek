@@ -2733,7 +2733,7 @@ export {
 		["e33c0cc4-0482-101a-bc0c-02608c6ba218",0x05] = "I_nsi_entry_object_inq_done",
 		["e33c0cc4-0482-101a-bc0c-02608c6ba218",0x06] = "I_nsi_entry_object_inq_begin",
 
-		# lsacap - MSDN Ref: Central Access Policy Identifier Retreival Protocol [ms-capr]
+		# lsacap - MSDN Ref: Central Access Policy Identifier Retrieval Protocol [ms-capr]
 		["afc07e2e-311c-4435-808c-c483ffeec7c9",0x00] = "LsarGetAvailableCAPIDs",
 
 		# NetEventForwarder - MSDN Ref: Live Remote Event Capture Protocol [ms-lrec]

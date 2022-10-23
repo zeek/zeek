@@ -51,7 +51,7 @@ export {
 
 	## The record type that is used for representing and logging
 	type CatchReleaseInfo: record {
-		## The absolute time indicating when the action for this log-line occured.
+		## The absolute time indicating when the action for this log-line occurred.
 		ts: time &log;
 		## The rule id that this log line refers to.
 		rule_id: string &log &optional;
@@ -59,7 +59,7 @@ export {
 		ip: addr &log;
 		## The action that was taken in this log-line.
 		action: CatchReleaseActions &log;
-		## The current block_interaval (for how long the address is blocked).
+		## The current block_interval (for how long the address is blocked).
 		block_interval: interval &log &optional;
 		## The current watch_interval (for how long the address will be watched and re-block if it reappears).
 		watch_interval: interval &log &optional;

@@ -83,7 +83,7 @@ export {
 	const IP_IPIP = 0x04;
 	# Internet Stream Protocol (RFC1190;RFC1819)
 	const IP_ST = 0x05;
-	# Tansmission Control Protocol (RFC793)
+	# Transmission Control Protocol (RFC793)
 	const IP_TCP = 0x06;
 	# Core-based trees (RFC2189)
 	const IP_CBT = 0x07;
@@ -126,7 +126,7 @@ export {
 	const INVALID_COOKIE = 0x7fffffffffffffff;
 	# Openflow physical port definitions
 	## Send the packet out the input port. This
-	## virual port must be explicitly used in
+	## virtual port must be explicitly used in
 	## order to send back out of the input port.
 	const OFPP_IN_PORT = 0xfffffff8;
 	## Perform actions in flow table.

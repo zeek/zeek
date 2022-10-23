@@ -15,7 +15,7 @@ export {
 		id: string &log;
 		## Hash algorithm used to generate issuerNameHash and issuerKeyHash.
 		hashAlgorithm: string &log;
-		## Hash of the issuer's distingueshed name.
+		## Hash of the issuer's distinguished name.
 		issuerNameHash: string &log;
 		## Hash of the issuer's public key.
 		issuerKeyHash: string &log;

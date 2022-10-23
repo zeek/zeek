@@ -71,7 +71,7 @@ event Control::configuration_update_request()
 
 	# Don't need to do anything in particular here, it's just indicating that
 	# the configuration is going to be updated.  This event could be handled
-	# by other scripts if they need to do some ancilliary processing if
+	# by other scripts if they need to do some ancillary processing if
 	# redef-able consts are modified at runtime.
 	event Control::configuration_update_response();
 	}

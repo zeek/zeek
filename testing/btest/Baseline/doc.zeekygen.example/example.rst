@@ -11,7 +11,7 @@ the script's raw source code and comparing to the HTML-rendered
 version.
 
 Comments in the from ``##!`` are meant to summarize the script's
-purpose.  They are transferred directly in to the generated
+purpose.  They are transferred directly into the generated
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 (reST) document associated with the script.
 
@@ -174,7 +174,7 @@ Types
       field3: :zeek:type:`ZeekygenExample::SimpleRecord`
          Zeekygen automatically tracks types
          and cross-references are automatically
-         inserted in to generated docs.
+         inserted into generated docs.
 
       msg: :zeek:type:`string` :zeek:attr:`&default` = ``"blah"`` :zeek:attr:`&optional`
          Attributes are self-documenting.

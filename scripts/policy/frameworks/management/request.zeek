@@ -15,7 +15,7 @@ export {
 	## :zeek:see:`Management::Request::finish` clears the state when
 	## a corresponding response event comes in, or the state times out.
 	type Request: record {
-		## Each request has a hopfully unique ID provided by the requester.
+		## Each request has a hopefully unique ID provided by the requester.
 		id: string;
 
 		## For requests that result based upon another request (such as when
@@ -51,7 +51,7 @@ export {
 	## ensure response to the client.
 	const timeout_interval = 10sec &redef;
 
-	## A token request that serves as a null/nonexistant request.
+	## A token request that serves as a null/nonexistent request.
 	global null_req = Request($id="", $finished=T);
 
 	## This function establishes request state.
@@ -71,7 +71,7 @@ export {
 	## its internal state. When the request does not exist, this does
 	## nothing.
 	##
-	## reqid: the ID of the request state to releaase.
+	## reqid: the ID of the request state to release.
 	##
 	global finish: function(reqid: string): bool;
 

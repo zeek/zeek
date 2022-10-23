@@ -157,7 +157,7 @@ export {
 	## Returns: the result of the query.
 	global get: function(h: opaque of Broker::Store, k: any): QueryResult;
 
-	## Insert a key-value pair in to the store, but only if the key does not
+	## Insert a key-value pair into the store, but only if the key does not
 	## already exist.
 	##
 	## h: the handle of the store to modify.
@@ -190,7 +190,7 @@ export {
 	global get_index_from_value: function(h: opaque of Broker::Store,
 	                                      k: any, i: any): QueryResult;
 
-	## Insert a key-value pair in to the store.
+	## Insert a key-value pair into the store.
 	##
 	## h: the handle of the store to modify.
 	##
@@ -351,7 +351,7 @@ export {
 	                     e: interval &default=0sec) : bool;
 
 	## Returns a set with all of a store's keys. The results reflect a snapshot
-	## in time that may diverge from reality soon afterwards.   When acessing
+	## in time that may diverge from reality soon afterwards.   When accessing
 	## any of the element, it may no longer actually be there. The function is
 	## also expensive for large stores, as it copies the complete set.
 	##

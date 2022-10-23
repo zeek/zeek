@@ -32,7 +32,7 @@ event Dir::monitor_ev(dir: string, last_files: set[string],
 		{
 		if ( result$exit_code != 0 )
 			{
-			Reporter::warning(fmt("Requested monitoring of non-existent directory (%s).", dir));
+			Reporter::warning(fmt("Requested monitoring of nonexistent directory (%s).", dir));
 			return;
 			}
 

@@ -276,7 +276,7 @@ export {
 
 	## This event is generated when a notice begins to be suppressed.
 	##
-	## ts: time indicating then when the notice to be suppressed occured.
+	## ts: time indicating then when the notice to be suppressed occurred.
 	##
 	## suppress_for: length of time that this notice should be suppressed.
 	##
@@ -288,7 +288,7 @@ export {
 	## This is an internal event that is used to broadcast the begin_suppression
 	## event over a cluster.
 	##
-	## ts: time indicating then when the notice to be suppressed occured.
+	## ts: time indicating then when the notice to be suppressed occurred.
 	##
 	## suppress_for: length of time that this notice should be suppressed.
 	##

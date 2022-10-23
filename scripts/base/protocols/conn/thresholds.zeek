@@ -53,7 +53,7 @@ export {
 	##
 	## threshold: Threshold in bytes to remove.
 	##
-	## is_orig: If true, threshold is removed for packets from originator, otherwhise for packets from responder.
+	## is_orig: If true, threshold is removed for packets from originator, otherwise for packets from responder.
 	##
 	## Returns: T on success, F on failure.
 	global delete_bytes_threshold: function(c: connection, threshold: count, is_orig: bool): bool;

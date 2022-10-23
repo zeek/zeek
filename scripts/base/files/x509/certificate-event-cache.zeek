@@ -53,7 +53,7 @@ event zeek_init() &priority=5
 hook x509_certificate_cache_replay(f: fa_file, e: X509::Info, sha256: string)
 	{
 	# we encountered a cached cert. The X509 analyzer will skip it. Let's raise all the events that it typically
-	# raises by ourselfes.
+	# raises by ourselves.
 
 	# first - let's checked if it already has an x509 record. That would mean that someone raised the file_hash event
 	# several times for the certificate - in which case we bail out.

@@ -44,7 +44,7 @@ function want_pp() : bool
 		&& (mail_dest != "" || mail_dest_pretty_printed != ""));
 	}
 
-# Opens and intializes the output file.
+# Opens and initializes the output file.
 function pp_open()
 	{
 	if ( pp_alarms_open )

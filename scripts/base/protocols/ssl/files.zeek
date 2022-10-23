@@ -6,7 +6,7 @@
 module SSL;
 
 export {
-	## Set this to true to includd the server certificate subject and
+	## Set this to true to include the server certificate subject and
 	## issuer from the SSL log file. This information is still available
 	## in x509.log.
 	const log_include_server_certificate_subject_issuer = F &redef;
@@ -80,7 +80,7 @@ function describe_file(f: fa_file): string
 	# we do not know when this function is called (hence, if the data structures
 	# are already populated).
 	#
-	# Just return a bit of our connection information and hope that that is good enough.
+	# Just return a bit of our connection information and hope that is good enough.
 	for ( _, c in f$conns )
 		{
 		if ( c?$ssl )

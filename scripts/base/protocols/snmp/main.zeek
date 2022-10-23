@@ -18,7 +18,7 @@ export {
 		## The connection's 5-tuple of addresses/ports (ports inherently
 		## include transport protocol information)
 		id: conn_id &log;
-		## The amount of time between the first packet beloning to
+		## The amount of time between the first packet belonging to
 		## the SNMP session and the latest one seen.
 		duration: interval &log &default=0secs;
 		## The version of SNMP being used.

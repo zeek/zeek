@@ -1,6 +1,6 @@
 ##! Perform validation of stapled OCSP responses.
 #!
-#! Note: this _only_ performs validation of stapled OCSP responsed. It does
+#! Note: this _only_ performs validation of stapled OCSP responded. It does
 #! not validate OCSP responses that are retrieved via HTTP, because we do not
 #! have a mapping to certificates.
 

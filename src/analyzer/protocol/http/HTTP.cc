@@ -510,7 +510,7 @@ void HTTP_Entity::SubmitAllHeaders()
 		// the size of the content to deliver "plainly" may be unknown
 		// and just leaving it in that mode indefinitely screws up the
 		// detection of multipart boundaries.
-		http_message->content_line->SupressWeirds(true);
+		http_message->content_line->SuppressWeirds(true);
 		http_message->content_line->SetCRLFAsEOL(0);
 		}
 
@@ -695,7 +695,7 @@ void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity)
 	if ( entity->Parent() &&
 	     entity->Parent()->MIMEContentType() == analyzer::mime::CONTENT_TYPE_MULTIPART )
 		{
-		content_line->SupressWeirds(false);
+		content_line->SuppressWeirds(false);
 		content_line->SetCRLFAsEOL();
 		}
 

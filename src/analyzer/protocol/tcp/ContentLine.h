@@ -20,7 +20,7 @@ public:
 	                     int max_line_length = DEFAULT_MAX_LINE_LENGTH);
 	~ContentLine_Analyzer() override;
 
-	void SupressWeirds(bool enable) { suppress_weirds = enable; }
+	void SuppressWeirds(bool enable) { suppress_weirds = enable; }
 
 	// If enabled, flag (first) line with embedded NUL. Default off.
 	void SetIsNULSensitive(bool enable) { flag_NULs = enable; }

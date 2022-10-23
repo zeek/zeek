@@ -385,7 +385,7 @@ private:
 	// then the BiF is also used in a non-call context.
 	void AddBiF(const ID* b, bool is_var);
 
-	// Register the given global name.  "suffix" distinguishs particular
+	// Register the given global name.  "suffix" distinguishes particular
 	// types of globals, such as the names of bifs, global (non-function)
 	// variables, or compiled Zeek functions.
 	bool AddGlobal(const std::string& g, const char* suffix);

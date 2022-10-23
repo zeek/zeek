@@ -168,7 +168,7 @@ protected:
 	// client and server sequence number, used for TLS 1.2 decryption
 	int c_seq;
 	int s_seq;
-	// secret, for decyption
+	// secret, for decryption
 	std::string secret;
 	// derived keys, for decryption
 	std::vector<u_char> keys;

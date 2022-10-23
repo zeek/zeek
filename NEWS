@@ -3489,7 +3489,7 @@ New Functionality
 
 - Bro now features a completely rewritten, enhanced SSH analyzer.  The
   new analyzer is able to determine if logins failed or succeeded in
-  most circumstances, logs a lot more more information about SSH
+  most circumstances, logs a lot more information about SSH
   sessions, supports v1, and introduces the intelligence type
   ``Intel::PUBKEY_HASH`` and location ``SSH::IN_SERVER_HOST_KEY``. The
   analyzer also generates a set of additional events

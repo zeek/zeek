@@ -43,7 +43,7 @@ export {
 		ty: EntityType;			##< Type of entity.
 		conn: conn_id &optional;	##< Used with :zeek:enum:`NetControl::CONNECTION`.
 		flow: Flow &optional;	##< Used with :zeek:enum:`NetControl::FLOW`.
-		ip: subnet &optional;		##< Used with :zeek:enum:`NetControl::ADDRESS` to specifiy a CIDR subnet.
+		ip: subnet &optional;		##< Used with :zeek:enum:`NetControl::ADDRESS` to specify a CIDR subnet.
 		mac: string &optional;		##< Used with :zeek:enum:`NetControl::MAC`.
 	};
 

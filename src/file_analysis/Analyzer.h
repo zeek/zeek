@@ -169,7 +169,7 @@ protected:
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
 	 * @param arg_tag the tag defining the analyzer's type.
-	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifiying
+	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifying
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */
@@ -180,7 +180,7 @@ protected:
 	 * As this version of the constructor does not receive a name or tag,
 	 * SetAnalyzerTag() must be called before the instance can be used.
 	 *
-	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifiying
+	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifying
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.
 	 */

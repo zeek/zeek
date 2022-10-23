@@ -46,7 +46,7 @@ event zeek_init()
 	bloomfilter_add(bf_cnt, 0);
 	print bloomfilter_lookup(bf_copy, 0);
 	print bloomfilter_lookup(bf_copy, 42);
-	# check that typefication transfered.
+	# check that typefication transferred.
 	bloomfilter_add(bf_copy, 0.5); # causes stderr output "error: incompatible Bloom filter types"
 
 	print "============ Hashes";

@@ -122,7 +122,7 @@ event zeek_init() &priority=5
 	# We use MIME types internally to distinguish between user and CA certificates.
 	# The first certificate in a connection always gets tagged as user-cert, all
 	# following certificates get tagged as CA certificates. Certificates gotten via
-	# other means (e.g. identified from HTTP traffic when they are transfered in plain
+	# other means (e.g. identified from HTTP traffic when they are transferred in plain
 	# text) get tagged as application/pkix-cert.
 	Files::register_for_mime_type(Files::ANALYZER_X509, "application/x-x509-user-cert");
 	Files::register_for_mime_type(Files::ANALYZER_X509, "application/x-x509-ca-cert");

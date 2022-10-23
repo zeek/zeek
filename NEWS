@@ -1072,7 +1072,7 @@ New Functionality
   An example of a set with composite index is ``set[string, count, count]``.
 
 - Sumstats now allows manual epochs. If an ``epoch`` interval of 0 is specified,
-  epochs will have to be manually ended by callis ``SumStats::next_epoch``. This
+  epochs will have to be manually ended by calling ``SumStats::next_epoch``. This
   can be convenient because epochs can be synced to other events.
 
 - The Zeek distribution now includes Zeek's package manager, zkg. Its

@@ -247,7 +247,7 @@ extern uint32_t extract_uint32(const u_char* data);
 
 // Endian conversions for double.
 // This is certainly not a very clean solution but should work on the
-// major platforms. Alternativly, we could use a string format or the
+// major platforms. Alternatively, we could use a string format or the
 // XDR library.
 
 #ifdef WORDS_BIGENDIAN

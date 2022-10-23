@@ -493,7 +493,7 @@ private:
 	using dynamic_plugin_map = std::map<std::string, std::string>;
 	dynamic_plugin_map dynamic_plugins;
 
-	// We temporarliy buffer scripts to load to get them to load in the
+	// We temporarily buffer scripts to load to get them to load in the
 	// right order.
 	using file_list = std::list<std::string>;
 	file_list scripts_to_load;

@@ -54,7 +54,7 @@ export {
 		init: function(state: PluginState) &optional;
 
 		## One-time finalization function called when a plugin is shutdown; no further
-		## functions will be called afterwords.
+		## functions will be called afterwards.
 		done: function(state: PluginState) &optional;
 
 		## Implements the add_rule() operation. If the plugin accepts the rule,

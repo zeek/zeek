@@ -336,7 +336,7 @@ protected:
 	 * Writer-specific method implementing log rotation.  Most directly
 	 * this only applies to writers writing into files, which should then
 	 * close the current file and open a new one.  However, a writer may
-	 * also trigger other apppropiate actions if semantics are similar.
+	 * also trigger other appropriate actions if semantics are similar.
 	 * Once rotation has finished, the implementation *must* call
 	 * FinishedRotation() to signal the log manager that potential
 	 * postprocessors can now run.

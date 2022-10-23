@@ -87,7 +87,7 @@ event ocsp_response_bytes%(f: fa_file, status: string, version: count, responder
 ##
 ## revokeTime: Time the certificate was revoked, 0 if not revoked.
 ##
-## revokeTeason: Reason certificate was revoked; empty string if not revoked or not specified.
+## revokeReason: Reason certificate was revoked; empty string if not revoked or not specified.
 ##
 ## thisUpdate: Time this response was generated.
 ##

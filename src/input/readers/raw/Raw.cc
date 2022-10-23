@@ -418,7 +418,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		Error(
 			Fmt("Filter for raw reader contains wrong number of fields -- got %d, expected %d. "
 		        "Filters for the raw reader contain one string field when used in normal mode and "
-		        "one string and one bool fields when using execute mode with stderr capuring. "
+		        "one string and one bool fields when using execute mode with stderr capturing. "
 		        "Filter ignored.",
 		        num_fields, want_fields));
 		return false;

@@ -904,7 +904,7 @@ function rule_expire_impl(r: Rule, p: PluginState) &priority=-5 &is_used
 	if ( p$_id in rule$_no_expire_plugins )
 		{
 		# in this case - don't log anything, just remove the plugin from the rule
-		# and cleaup
+		# and cleanup
 		delete rule$_active_plugin_ids[p$_id];
 		delete rule$_no_expire_plugins[p$_id];
 		rule_cleanup(rule);

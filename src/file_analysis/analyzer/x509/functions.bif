@@ -24,7 +24,7 @@ static zeek::RecordValPtr x509_result_record(uint64_t num, const char* reason, z
 	return rrecord;
 	}
 
-// get all cretificates starting at the second one (assuming the first one is the host certificate)
+// get all certificates starting at the second one (assuming the first one is the host certificate)
 STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 	{
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();

@@ -169,7 +169,7 @@ export {
 
 	## Response to a :zeek:see:`Management::Agent::API::restart_request`
 	## event. The agent sends this back to the controller when the
-	## Supervisor has restarted all nodes affected, or a timoeut occurs.
+	## Supervisor has restarted all nodes affected, or a timeout occurs.
 	##
 	## reqid: the request identifier used in the request event.
 	##

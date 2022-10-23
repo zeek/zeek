@@ -2502,7 +2502,7 @@ export {
 		fh: string;	##< File handle to write to.
 		offset: count;	##< Offset in file.
 		size: count;	##< Number of bytes to write.
-		stable: stable_how_t;	##< How and when data is commited.
+		stable: stable_how_t;	##< How and when data is committed.
 		data: string &optional;	##< The actual data; not implemented yet.
 	};
 
@@ -2541,7 +2541,7 @@ export {
 		preattr: wcc_attr_t &optional;	##< Pre operation attributes.
 		postattr: fattr_t &optional;	##< Post operation attributes.
 		size: count &optional;	##< Size.
-		commited: stable_how_t &optional;	##< TODO.
+		committed: stable_how_t &optional;	##< TODO.
 		verf: count &optional;	##< Write verifier cookie.
 	};
 

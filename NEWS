@@ -1701,7 +1701,7 @@ Removed Functionality
 
 - Removed the ``current_conns_extern`` field from the ConnStats record
   type. Zeek only maintains a single timer manager now, and without the
-  manager tags that came with multiple tiemr managers, we don't track
+  manager tags that came with multiple timer managers, we don't track
   whether a connection is external anymore.
 
 Deprecated Functionality

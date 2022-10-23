@@ -39,7 +39,7 @@ type DNP3_Request = record {
 		INITIALIZE_APPL -> initilize_appl: Request_Objects(app_header.function_code)[];
 		START_APPL -> start_appl: Request_Objects(app_header.function_code)[];
 		STOP_APPL -> stop_appl: Request_Objects(app_header.function_code)[];
-		SAVE_CONFIG -> save_config: empty;  # depracated
+		SAVE_CONFIG -> save_config: empty;  # deprecated
 		ENABLE_UNSOLICITED -> enable_unsolicited: Request_Objects(app_header.function_code)[];
 		DISABLE_UNSOLICITED -> disable_unsolicited: Request_Objects(app_header.function_code)[];
 		ASSIGN_CLASS -> assign_class: Request_Objects(app_header.function_code)[];

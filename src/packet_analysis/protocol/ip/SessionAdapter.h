@@ -54,7 +54,7 @@ public:
 	/**
 	 * Associates a file with the analyzer in which to record all
 	 * analyzed input. This must only be called with derived classes that
-	 * overide the method; the default implementation will abort.
+	 * override the method; the default implementation will abort.
 	 *
 	 * @param direction One of the CONTENTS_* constants indicating which
 	 * direction of the input stream is to be recorded.
@@ -66,7 +66,7 @@ public:
 
 	/**
 	 * Returns an associated contents file, if any.  This must only be
-	 * called with derived classes that overide the method; the default
+	 * called with derived classes that override the method; the default
 	 * implementation will abort.
 	 *
 	 * @param direction One of the CONTENTS_* constants indicating which

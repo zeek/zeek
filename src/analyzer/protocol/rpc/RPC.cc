@@ -471,7 +471,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig)
 	// starts at a packet boundary).
 	//
 	// If we see a frame start that makes sense (direction and frame
-	// lenght seem ok), we try to read (skip over) the next RPC message.
+	// length seem ok), we try to read (skip over) the next RPC message.
 	// If this is successfull and we the place we are seems like a valid
 	// start of a RPC msg (direction and frame length seem ok). We assume
 	// that we have successfully resync'ed.

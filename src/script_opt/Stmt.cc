@@ -306,7 +306,7 @@ bool IfStmt::NoFlowAfter(bool ignore_break) const
 	if ( s1 && s2 )
 		return s1->NoFlowAfter(ignore_break) && s2->NoFlowAfter(ignore_break);
 
-	// Assuming the test isn't constant, the non-existent branch
+	// Assuming the test isn't constant, the nonexistent branch
 	// could be picked, so flow definitely continues afterwards.
 	// (Constant branches will be pruned during reduciton.)
 	return false;

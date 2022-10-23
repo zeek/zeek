@@ -846,7 +846,7 @@ public:
 	 * @return  The value associated with the index.  If the index doesn't
 	 * exist, this is a nullptr.  For sets that don't really contain associated
 	 * values, a placeholder value is returned to differentiate it from
-	 * non-existent index (nullptr), but otherwise has no meaning in relation
+	 * nonexistent index (nullptr), but otherwise has no meaning in relation
 	 * to the set's contents.
 	 */
 	const ValPtr& Find(const ValPtr& index);
@@ -857,7 +857,7 @@ public:
 	 * @param index  The index to lookup in the table.
 	 * @return  The value associated with the index.  If the index doesn't
 	 * exist, instead returns the &default value.  If there's no &default
-	 * attribute, then nullptr is still returned for non-existent index.
+	 * attribute, then nullptr is still returned for nonexistent index.
 	 */
 	ValPtr FindOrDefault(const ValPtr& index);
 
@@ -899,7 +899,7 @@ public:
 	 *        may have invalidated existing iterators.
 	 * @return  The value associated with the index if it exists, else nullptr.
 	 * For a sets that don't really contain associated values, a placeholder
-	 * value is returned to differentiate it from non-existent index (nullptr),
+	 * value is returned to differentiate it from nonexistent index (nullptr),
 	 * but otherwise has no meaning in relation to the set's contents.
 	 */
 	ValPtr Remove(const Val& index, bool broker_forward = true,

@@ -17,7 +17,7 @@ export {
 		## Time when the proxy connection was first detected.
 		ts:               time            &log;
 		## Unique ID for the tunnel - may correspond to connection uid
-		## or be non-existent.
+		## or be nonexistent.
 		uid:              string          &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id         &log;

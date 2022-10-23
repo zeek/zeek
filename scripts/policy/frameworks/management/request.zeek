@@ -51,7 +51,7 @@ export {
 	## ensure response to the client.
 	const timeout_interval = 10sec &redef;
 
-	## A token request that serves as a null/nonexistant request.
+	## A token request that serves as a null/nonexistent request.
 	global null_req = Request($id="", $finished=T);
 
 	## This function establishes request state.

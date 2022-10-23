@@ -208,7 +208,7 @@ void remove_element__CPP(TableValPtr aggr, ListValPtr indices)
 // A helper function that takes a parallel vectors of attribute tags
 // and values and returns a collective AttributesPtr corresponding to
 // those instantiated attributes.  For attributes that don't have
-// associated expressions, the correspoinding value should be nil.
+// associated expressions, the corresponding value should be nil.
 static AttributesPtr build_attrs__CPP(vector<int> attr_tags, vector<ValPtr> attr_vals)
 	{
 	vector<AttrPtr> attrs;

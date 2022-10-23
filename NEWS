@@ -4004,7 +4004,7 @@ New Functionality
         opaque of topk
         opaque of bloomfilter
 
-  These go along with the corrsponding BiF functions ``md5_*``,
+  These go along with the corresponding BiF functions ``md5_*``,
   ``sha1_*``, ``sha256_*``, ``entropy_*``, etc. . Note that where
   these functions existed before, they have changed their signatures
   to work with opaques types rather than global state.

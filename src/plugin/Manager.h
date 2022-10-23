@@ -208,7 +208,7 @@ public:
 	 * for it. Normally a plugin receives events through HookQueueEvent()
 	 * only if Zeek actually has code to execute for it. By calling this
 	 * method, the plugin tells Zeek to raise the event even if there's no
-	 * correspondong handler; it will then go into HookQueueEvent() just as
+	 * corresponding handler; it will then go into HookQueueEvent() just as
 	 * any other.
 	 *
 	 * @param handler The event being interested in.

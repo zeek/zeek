@@ -118,7 +118,7 @@ private:
 	// Add an ID into an existing set of UDs.
 	void AddID(UDs uds, const ID* id) const;
 
-	// Returns a new use-def corresonding to the given one, but
+	// Returns a new use-def corresponding to the given one, but
 	// with the definition of "id" removed.
 	UDs RemoveID(const ID* id, const UDs& uds);
 

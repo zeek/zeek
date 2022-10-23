@@ -888,7 +888,7 @@ protected:
 	 * Registers interest in an event, even if there's no handler for it.
 	 * Normally a plugin receives events through HookQueueEvent() only if Zeek
 	 * actually has code to execute for it. By calling this method, the
-	 * plugin tells Zeek to raise the event even if there's no correspondong
+	 * plugin tells Zeek to raise the event even if there's no corresponding
 	 * handler; it will then go into HookQueueEvent() just as any other.
 	 *
 	 * @param handler The event handler being interested in.

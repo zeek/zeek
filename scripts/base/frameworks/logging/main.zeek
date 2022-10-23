@@ -579,7 +579,7 @@ export {
 	## log write, prior to iterating over the stream's associated filters.
 	## As with filter-specific hooks, breaking from the hook vetoes writing
 	## of the given log record. Note that filter-level policy hooks still get
-	## invoked after the global hook vetos, but they cannot "un-veto" the write.
+	## invoked after the global hook vetoes, but they cannot "un-veto" the write.
 	global log_stream_policy: Log::StreamPolicyHook;
 }
 

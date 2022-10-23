@@ -1683,7 +1683,7 @@ String* unescape_URI(const u_char* line, const u_char* line_end, analyzer::Analy
 			else if ( line + 1 == line_end )
 				{
 				// % + one character at end of line. Log weird
-				// and just add to unescpaped URI.
+				// and just add to unescaped URI.
 				*URI_p++ = '%';
 				*URI_p++ = *line;
 				if ( analyzer )

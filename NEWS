@@ -3873,7 +3873,7 @@ New Functionality
 
   Scripts are provided at ``policy/frameworks/intel/seen`` that
   provide a broad set of sources of data to feed into the intel
-  framwork to be matched.
+  framework to be matched.
 
 - A new file analysis framework moves most of the processing of file
   content from script-land into the core, where it belongs. See

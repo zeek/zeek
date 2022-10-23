@@ -2769,7 +2769,7 @@ export {
 		## If set, requests and identify level token
 		negotiate_identify         : bool;
 		## If set, requests usage of NTLM v2 session security
-		## Note: NTML v2 session security is actually NTLM v1
+		## Note: NTLM v2 session security is actually NTLM v1
 		negotiate_extended_sessionsecurity : bool;
 		## If set, TargetName must be a server name
 		target_type_server         : bool;

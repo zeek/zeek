@@ -87,7 +87,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 	searched_dirs.emplace(canon_path);
 
-	// Check if it's a plugin dirctory.
+	// Check if it's a plugin directory.
 
 	const std::string magic = dir + "/__bro_plugin__";
 

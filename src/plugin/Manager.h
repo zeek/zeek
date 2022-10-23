@@ -273,7 +273,7 @@ public:
 	 * If the plugins takes over by returning 1, there are two cases: if the
 	 * second tuple element remains unset, the plugin handled the loading
 	 * completely internally; the caller must not process it any further.
-	 * Alternatively, the plugin may optionally return the acutal content to
+	 * Alternatively, the plugin may optionally return the actual content to
 	 * use for the file as a string through the tuple's second element. If so,
 	 * the caller must ignore the file on disk and use that provided content
 	 * instead (including when there's actually no physical file in place on

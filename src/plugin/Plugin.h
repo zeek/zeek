@@ -974,7 +974,7 @@ protected:
 	 * the file normally. If the plugins takes over by returning 1, there are
 	 * two cases: if the second tuple element remains unset, the plugin handled
 	 * the loading completely internally; Zeek will not do anything further with
-	 * it. Alternatively, the plugin may optionally return the acutal content
+	 * it. Alternatively, the plugin may optionally return the actual content
 	 * to use for the file as a string through the tuple's second element. If
 	 * so, Zeek will ignore the file on disk and use that provided content
 	 * instead (including when there's actually no physical file in place on

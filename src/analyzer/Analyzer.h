@@ -677,7 +677,7 @@ protected:
 	SupportAnalyzer* FirstSupportAnalyzer(bool orig);
 
 	/**
-	 * Adds a a new child analyzer with the option whether to intialize
+	 * Adds a a new child analyzer with the option whether to initialize
 	 * it. This is an internal method.
 	 *
 	 * @param analyzer The analyzer to add. Takes ownership.

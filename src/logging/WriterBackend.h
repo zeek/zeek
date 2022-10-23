@@ -272,7 +272,7 @@ protected:
 	friend class FinishMessage;
 
 	/**
-	 * Writer-specific intialization method.
+	 * Writer-specific initialization method.
 	 *
 	 * A writer implementation must override this method. If it returns
 	 * false, it will be assumed that a fatal error has occured that

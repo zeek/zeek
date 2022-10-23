@@ -243,7 +243,7 @@ protected:
 	// Methods that have to be overwritten by the individual readers
 
 	/**
-	 * Reader-specific intialization method. Note that data may only be
+	 * Reader-specific initialization method. Note that data may only be
 	 * read from the input source after the Init() function has been
 	 * called.
 	 *

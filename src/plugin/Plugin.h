@@ -970,7 +970,7 @@ protected:
 	 * must be 1 if the plugin takes over loading the file (see below); 0 if
 	 * the plugin wanted to take over the file but had trouble loading it
 	 * (processing will abort in this case, and the plugin should have printed
-	 * an error message); and -1 if the plugin wants Zeek to proceeed processing
+	 * an error message); and -1 if the plugin wants Zeek to proceed processing
 	 * the file normally. If the plugins takes over by returning 1, there are
 	 * two cases: if the second tuple element remains unset, the plugin handled
 	 * the loading completely internally; Zeek will not do anything further with

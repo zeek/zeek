@@ -350,7 +350,7 @@ static int get_ttl(unsigned char* abuf, int alen, int* ttl)
 
 /**
  * Called in response to ares_getaddrinfo requests. Builds a hostent structure from
- * the result data and sends it to the DNS manager via Addresult().
+ * the result data and sends it to the DNS manager via AddResult().
  */
 static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinfo* result)
 	{

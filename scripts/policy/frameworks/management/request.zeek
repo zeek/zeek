@@ -71,7 +71,7 @@ export {
 	## its internal state. When the request does not exist, this does
 	## nothing.
 	##
-	## reqid: the ID of the request state to releaase.
+	## reqid: the ID of the request state to release.
 	##
 	global finish: function(reqid: string): bool;
 

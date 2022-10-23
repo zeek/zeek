@@ -168,7 +168,7 @@ public:
 protected:
 	/**
 	 * Constructor.  Only derived classes are meant to be instantiated.
-	 * @param arg_tag the tag definining the analyzer's type.
+	 * @param arg_tag the tag defining the analyzer's type.
 	 * @param arg_args an \c AnalyzerArgs (script-layer type) value specifiying
 	 *        tunable options, if any, related to a particular analyzer type.
 	 * @param arg_file the file to which the the analyzer is being attached.

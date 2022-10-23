@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b %INPUT 2>&1 | grep -v termination | sort | uniq | wc -l | awk '{print $1}' >output
 # @TEST-EXEC: btest-diff output
 
-# In old version, the event would keep triggering endlessely, with the network
+# In old version, the event would keep triggering endlessly, with the network
 # time not moving forward and Zeek not terminating.
 # 
 # Note that the output will not be 20 because we still execute two rounds

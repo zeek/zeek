@@ -10,7 +10,7 @@
          []
 
 
-   Yield type is documented/cross-referenced for primitize types.
+   Yield type is documented/cross-referenced for primitive types.
 
 .. zeek:id:: test_vector1
    :source-code: <...>/vectors.zeek 14 14

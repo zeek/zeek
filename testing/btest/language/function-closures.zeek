@@ -47,7 +47,7 @@ function make_lambda(start: count): function(): count
 
 event zeek_init() &priority=10
 	{
-	# just checking use of unitialized locals "works" (doesn't crash)
+	# just checking use of uninitialized locals "works" (doesn't crash)
 	local one = make_lambda(1);
 	local two = make_lambda(2);
 	}

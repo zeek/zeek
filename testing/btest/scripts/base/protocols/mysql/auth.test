@@ -1,4 +1,4 @@
-# This tests that successful/unsuccesful auth attempts get logged correctly
+# This tests that successful/unsuccessful auth attempts get logged correctly
 
 # @TEST-EXEC: zeek -b -r $TRACES/mysql/auth.trace %INPUT
 # @TEST-EXEC: btest-diff mysql.log

@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
-# All various container contructors should work at both global and local scope.
+# All various container constructors should work at both global and local scope.
 
 global gt1: table[port] of count = table( [1/tcp] = 1, [2/tcp] = 2, [3/tcp] = 3 );
 global gs1: set[port] = set( 1/tcp, 2/tcp, 3/tcp );

@@ -7,7 +7,7 @@ global my_alphabet: string = "!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwx
 
 print encode_base64("bro");
 print encode_base64("bro", default_alphabet);
-print encode_base64("bro", ""); # should use default alpabet
+print encode_base64("bro", ""); # should use default alphabet
 print encode_base64("bro", my_alphabet);
 
 print encode_base64("padding");

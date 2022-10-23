@@ -35,7 +35,7 @@ for ( i in t )
 print t;
 
 for ( i in t )
-	# Trying to delete a non-existent element within in a loop does not
+	# Trying to delete a nonexistent element within in a loop does not
 	# actually modify membership, so does not trigger a warning.
 	delete t[0];
 
@@ -67,7 +67,7 @@ for ( n in s )
 print s;
 
 for ( n in s )
-	# Trying to delete a non-existent element within in a loop does not
+	# Trying to delete a nonexistent element within in a loop does not
 	# actually modify membership, so does not trigger a warning.
 	delete s[0];
 

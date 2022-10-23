@@ -1,5 +1,5 @@
 #
-# In "normal" test mode, connection uids should be determistic.
+# In "normal" test mode, connection uids should be deterministic.
 #
 # @TEST-EXEC: zeek -b -D -C -r $TRACES/wikipedia.trace %INPUT >output
 # @TEST-EXEC: btest-diff output

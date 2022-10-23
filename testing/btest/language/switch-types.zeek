@@ -11,7 +11,7 @@ function switch_one(v: any): string
 	case type bool, type addr:
 		return "Bool or address!";
 	default:
-		return "Somethign else!";
+		return "Something else!";
 	}
 	}
 

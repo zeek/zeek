@@ -10,7 +10,7 @@ type TestRecord: record {
     field2: count;
 };
 
-## Yield type is documented/cross-referenced for primitize types.
+## Yield type is documented/cross-referenced for primitive types.
 global test_vector0: vector of string;
 
 ## Yield type is documented/cross-referenced for composite types.

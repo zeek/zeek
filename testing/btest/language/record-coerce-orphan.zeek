@@ -14,7 +14,7 @@ function myfunc(rec: myrec)
 
 event zeek_init()
 	{
-	# Orhpaned fields in a record coercion reflect a programming error, like a typo, so should
+	# Orphaned fields in a record coercion reflect a programming error, like a typo, so should
 	# be reported at parse-time to prevent unexpected run-time behavior.
 	local rec: myrec = [$a="test", $b=42, $wtf=1sec];
 	print rec;

@@ -68,7 +68,7 @@ print fmt("Count %s: %d", c, |c|);
 # type, so this wraps to a very large number.  It may be more intuitive if it
 # were to coerce to a signed integer, but it can also be more favorable to
 # simply have consistent behavior across arbitrary arithmetic expressions even
-# if that may result in occassional, unintended overflow/wrapping.
+# if that may result in occasional, unintended overflow/wrapping.
 print fmt("Expr: %d", |5 - 9|);
 # Same arithmetic on signed integers is likely what's originally intended.
 print fmt("Signed Expr: %d", |+5 - +9|);
@@ -101,7 +101,7 @@ print fmt("Record %s: %d", r, |r|);
 
 # Size of set: returns number of elements in set.
 # Don't print the set, as its order depends on the seeding of the hash
-# fnction, and it's not worth the trouble to normalize it.
+# function, and it's not worth the trouble to normalize it.
 print fmt("Set: %d", |si|);
 
 # Size of string: returns string length.

@@ -1,5 +1,5 @@
 # This crashes with ZAM because it explicitly violates typing, which happens
-# to work in the intepreter, but isn't sound.
+# to work in the interpreter, but isn't sound.
 #
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 #

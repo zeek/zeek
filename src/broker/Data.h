@@ -176,7 +176,7 @@ broker::data& opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f);
  * @param d a Broker data value to get variant data out of.
  * @param tag a Zeek tag which corresponds to T (just used for error reporting).
  * @param f used to get location information on error.
- * @return a refrence to the requested type in the variant Broker data.
+ * @return a reference to the requested type in the variant Broker data.
  * A runtime interpret exception is thrown if trying to access a type which
  * is not currently stored in the Broker data.
  */

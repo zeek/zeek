@@ -60,7 +60,7 @@
 //
 //     0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB
 //
-//     Each field is a byte; LSB: least significant byte; MSB: most significatn byte.
+//     Each field is a byte; LSB: least significant byte; MSB: most significant byte.
 //
 //     "Len" indicates the length of the byte stream right after this field
 //     (excluding CRC fields) in the current DNP3 packet.

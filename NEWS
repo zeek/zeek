@@ -1614,7 +1614,7 @@ Changed Functionality
 
 - A C++17-capable compiler and CMake 3.0+ are now required to compile Zeek
 
-- The backwards-compatibility wrappers & work-arounds introduced in 3.0
+- The backwards-compatibility wrappers & workarounds introduced in 3.0
   for the "Bro to Zeek rename" have either changed their operation, or in some
   cases been removed. Generally, anything that reported a
   naming-related warning in 3.0 now aborts with a corresponding error

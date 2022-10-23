@@ -861,7 +861,7 @@ type AnalogInput16woFlag = record {
 	value: int16;
 } &byteorder = littleendian;
 
-# group: 30; variation: 5; singple precision 32 bit
+# group: 30; variation: 5; single precision 32 bit
 type AnalogInputSPwFlag = record {
 	flag: uint8;
 	value: uint32;
@@ -951,7 +951,7 @@ type AnalogInput16wTime = record {
 	time48: bytestring &length = 6;
 } &byteorder = littleendian;
 
-# group: 32; variation: 5; singple precision 32 bit
+# group: 32; variation: 5; single precision 32 bit
 type AnalogInputSPwoTime = record {
 	flag: uint8;
 	value: uint32;

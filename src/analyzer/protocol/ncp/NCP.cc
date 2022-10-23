@@ -195,7 +195,7 @@ void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig
 		{
 		// Assume NCP frames align with packet boundary.
 		if ( (IsOrig() && len < 22) || (! IsOrig() && len < 16) )
-			{ // ignore small fragmeents
+			{ // ignore small fragments
 			return;
 			}
 

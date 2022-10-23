@@ -1070,7 +1070,7 @@ enum_body_elem:
 	|	TOK_ID '=' '-' TOK_CONSTANT
 			{
 			// We only accept counts as enumerator, but we want to return a nice
-			// error message if users triy to use a negative integer (will also
+			// error message if users try to use a negative integer (will also
 			// catch other cases, but that's fine.)
 			reporter->Error("enumerator is not a count constant");
 			}

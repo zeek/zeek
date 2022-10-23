@@ -46,7 +46,7 @@ enum DebugStream
 	DBG_ANALYZER, // Analyzer framework
 	DBG_PACKET_ANALYSIS, // Packet analysis
 	DBG_FILE_ANALYSIS, // File analysis
-	DBG_TM, // Time-machine packet input via Brocolli
+	DBG_TM, // Time-machine packet input via Broccoli
 	DBG_LOGGING, // Logging streams
 	DBG_INPUT, // Input streams
 	DBG_THREADING, // Threading system

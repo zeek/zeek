@@ -193,7 +193,7 @@ void Manager::ModuleUsage(const string& path, const string& module)
 		return;
 
 	if ( path == "<command line>" )
-		// This is a moudle defined on the command line.
+		// This is a module defined on the command line.
 		return;
 
 	string name = normalize_script_path(path);

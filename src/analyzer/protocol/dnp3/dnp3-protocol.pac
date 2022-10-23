@@ -20,7 +20,7 @@ type DNP3_Request = record {
 	addin_header: Header_Block;  ## added by Hui Lin in Zeek code
 	app_header: DNP3_Application_Request_Header;
 	data: case ( app_header.function_code ) of {
-		CONFIRM -> none_coonfirm: empty;
+		CONFIRM -> none_confirm: empty;
 		READ -> read_requests: Request_Objects(app_header.function_code)[];
 		WRITE -> write_requests: Request_Objects(app_header.function_code)[];
 		SELECT -> select_requests: Request_Objects(app_header.function_code)[];

@@ -24,7 +24,7 @@
 #include <errno.h>
 #include <string_view>
 
-#ifdef MSVC
+#ifdef _MSC_VER
 #include <filesystem>
 #else
 #include <libgen.h>
@@ -52,8 +52,8 @@ void include_file(const char *filename);
 
 std::string do_dirname(std::string_view s)
 	{
-#ifdef MSVC
-	return std::filesystem::path(path).parent_path().string();
+#ifdef _MSC_VER
+	return std::filesystem::path(s).parent_path().string();
 #else
 	std::unique_ptr<char[]> tmp{new char[s.size()+1]};
 	strncpy(tmp.get(), s.data(), s.size());

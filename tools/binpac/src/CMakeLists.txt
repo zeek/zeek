@@ -106,7 +106,7 @@ set(binpac_SRCS
 add_executable(binpac ${binpac_SRCS})
 
 if ( MSVC )
-    target_link_libraries(binpac PRIVATE zeek_windows)
+    target_link_libraries(binpac PRIVATE libunistd)
 endif()
 
 install(TARGETS binpac DESTINATION bin)

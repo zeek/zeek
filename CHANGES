@@ -1,3 +1,7 @@
+5.2.0-dev.134 | 2022-10-24 08:10:06 -0700
+
+  * Re-enable ci-based benchmarking (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.131 | 2022-10-21 16:29:14 -0700
 
   * Remove external CAF build for Coverity setup (Christian Kreibich, Corelight)

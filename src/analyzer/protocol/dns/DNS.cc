@@ -823,8 +823,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 
 			case TYPE_TCP_KA:
 				{
-				EDNS_TCP_KEEPALIVE edns_tcp_keepalive{.keepalive_timeout_omitted = true,
-				                                      .keepalive_timeout = 0};
+				EDNS_TCP_KEEPALIVE edns_tcp_keepalive{true, 0};
 				if ( option_len == 0 || option_len == 2 )
 					{
 					// 0 bytes is permitted by RFC 7828, showing that the timeout value is
@@ -1736,11 +1735,8 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 		name_end = target_name + 1;
 		}
 
-	SVCB_DATA svcb_data = {
-		.svc_priority = svc_priority,
-		.target_name = make_intrusive<StringVal>(
-			new String(target_name, name_end - target_name, true)),
-	};
+	SVCB_DATA svcb_data = {svc_priority, make_intrusive<StringVal>(new String(
+											 target_name, name_end - target_name, true))};
 
 	// TODO: parse svcparams
 	// we consume all the remaining raw data (svc params) but do nothing.

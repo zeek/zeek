@@ -43,7 +43,6 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include <iostream>
 #include <random>
 
 #include "zeek/3rdparty/ConvertUTF.h"
@@ -259,16 +258,6 @@ const char* fmt_access_time(double t)
 	time_t time = (time_t)t;
 	struct tm ts;
 
-	if (!time)
-	{
-		// Use wall clock.
-		struct timeval tv = { 0 };
-		if (gettimeofday(&tv, 0) < 0)
-			reporter->InternalError("unable to gettimeofday");
-		else
-			time = tv.tv_sec;
-	}
-
 	if ( ! localtime_r(&time, &ts) )
 		{
 		reporter->InternalError("unable to get time");
@@ -447,7 +436,6 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
 		pos += sizeof(struct timeval) / sizeof(uint32_t);
 
 		// use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
-#ifndef _MSC_VER
 #if defined(O_NONBLOCK)
 		int fd = open("/dev/urandom", O_RDONLY | O_NONBLOCK);
 #elif defined(O_NDELAY)
@@ -469,12 +457,6 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
 				// systems due to a lack of entropy.
 				errno = 0;
 			}
-#endif
-		// C++ random device implementation in MSVC is sufficient for this purpose.
-		thread_local std::mt19937 gen(std::random_device{}());
-		while ( pos < zeek::detail::KeyedHash::SEED_INIT_SIZE ) {
-			buf[pos++] = (uint32_t)gen();
-		}
 #endif
 
 		if ( pos < zeek::detail::KeyedHash::SEED_INIT_SIZE )
@@ -1638,16 +1620,15 @@ const char* vfmt(const char* format, va_list al)
 	va_copy(alc, al);
 	int n = vsnprintf(buf, buf_len, format, al);
 
-	if ( (unsigned int)n >= buf_len )
+	if ( n < 0 && buf_len < 1024 * 1024 )
 		{ // Not enough room, grow the buffer.
-		buf_len = n + 32;
+		buf_len += 32;
 		buf = (char*)safe_realloc(buf, buf_len);
-
-		n = vsnprintf(buf, buf_len, format, alc);
-
-		if ( (unsigned int)n >= buf_len )
-			reporter->InternalError("confusion reformatting in fmt()");
+		n = vsnprintf(buf, buf_len, format, al);
 		}
+
+	if ( n < 0 )
+		reporter->InternalError("confusion reformatting in fmt()");
 
 	va_end(alc);
 	return buf;
@@ -1792,7 +1773,7 @@ string zeek_prefixes()
 	for ( const auto& prefix : zeek::detail::zeek_script_prefixes )
 		{
 		if ( ! rval.empty() )
-			rval.append(zeek_path_list_separator);
+			rval.append(path_list_separator);
 		rval.append(prefix);
 		}
 
@@ -2006,7 +1987,7 @@ static string find_file_in_path(const string& filename, const string& path,
 string find_file(const string& filename, const string& path_set, const string& opt_ext)
 	{
 	vector<string> paths;
-	tokenize_string(path_set, zeek_path_list_separator, &paths);
+	tokenize_string(path_set, path_list_separator, &paths);
 
 	vector<string> ext;
 	if ( ! opt_ext.empty() )
@@ -2026,7 +2007,7 @@ string find_file(const string& filename, const string& path_set, const string& o
 string find_script_file(const string& filename, const string& path_set)
 	{
 	vector<string> paths;
-	tokenize_string(path_set, zeek_path_list_separator, &paths);
+	tokenize_string(path_set, path_list_separator, &paths);
 
 	vector<string> ext = {".zeek"};
 

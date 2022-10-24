@@ -13,12 +13,12 @@
 
 #include "zeek/util.h"
 
-#define DBG_LOG(stream, ...)                                 \
-	if ( ::zeek::detail::debug_logger.IsEnabled(stream) )    \
+#define DBG_LOG(stream, ...)                                                                       \
+	if ( ::zeek::detail::debug_logger.IsEnabled(stream) )                                          \
 	::zeek::detail::debug_logger.Log(stream, __VA_ARGS__)
-#define DBG_LOG_VERBOSE(stream, ...)                         \
-	if ( ::zeek::detail::debug_logger.IsVerbose() &&         \
-	     ::zeek::detail::debug_logger.IsEnabled(stream) )    \
+#define DBG_LOG_VERBOSE(stream, ...)                                                               \
+	if ( ::zeek::detail::debug_logger.IsVerbose() &&                                               \
+	     ::zeek::detail::debug_logger.IsEnabled(stream) )                                          \
 	::zeek::detail::debug_logger.Log(stream, __VA_ARGS__)
 #define DBG_PUSH(stream) ::zeek::detail::debug_logger.PushIndent(stream)
 #define DBG_POP(stream) ::zeek::detail::debug_logger.PopIndent(stream)

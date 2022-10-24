@@ -28,6 +28,12 @@ struct NewRef
 	};
 
 /**
+ * This has to be forward decalred and known here in order for us to be able
+ * cast this in the `Unref` function.
+ */
+class OpaqueVal;
+
+/**
  * An intrusive, reference counting smart pointer implementation. Much like
  * @c std::shared_ptr, this smart pointer models shared ownership of an object
  * through a pointer. Several @c IntrusivePtr instances may point to the same
@@ -113,7 +119,14 @@ public:
 	~IntrusivePtr()
 		{
 		if ( ptr_ )
-			Unref((zeek::Obj*)ptr_);
+			{
+			// Specializing `OpaqueVal` as MSVC compiler does not detect it
+			// inheriting from `zeek::Obj` so we have to do that manually.
+			if constexpr ( std::is_same_v<T, OpaqueVal> )
+				Unref(reinterpret_cast<zeek::Obj*>(ptr_));
+			else
+				Unref(ptr_);
+			}
 		}
 
 	void swap(IntrusivePtr& other) noexcept { std::swap(ptr_, other.ptr_); }

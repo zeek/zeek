@@ -5,6 +5,7 @@
 #include <dirent.h>
 #if !defined(_MSC_VER)
 #include <dlfcn.h>
+#include <glob.h>
 #endif
 #include <sys/stat.h>
 #include <cerrno>
@@ -163,8 +164,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 	{
 #if defined(_MSC_VER)
 	return false;
-#endif
-
+#else
 	errors->clear(); // caller should pass it in empty, but just to be sure
 
 	dynamic_plugin_map::iterator m = dynamic_plugins.find(util::strtolower(name));
@@ -218,51 +218,30 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 		}
 
 	// Load shared libraries.
-	string dydir = dir + "/lib";
-	const char *dyext = "." HOST_ARCHITECTURE DYNAMIC_PLUGIN_SUFFIX;
 
-	DBG_LOG(DBG_PLUGINS, "  Searching for shared libraries in %s with extension %s", dydir.c_str(), dyext);
+	string dypattern = dir + "/lib/*." + HOST_ARCHITECTURE + DYNAMIC_PLUGIN_SUFFIX;
 
-	DIR* d = opendir(dydir.c_str());
+	DBG_LOG(DBG_PLUGINS, "  Searching for shared libraries %s", dypattern.c_str());
 
-	if ( ! d )
+	glob_t gl;
+
+	if ( glob(dypattern.c_str(), 0, 0, &gl) == 0 )
 		{
-		DBG_LOG(DBG_PLUGINS, "Cannot open directory %s", dydir.c_str());
-		return true;
-		}
-
-	struct dirent *dp;
-
-	while ( (dp = readdir(d)) )
-		{
-		if ( strlen(dp->d_name) >= strlen(dyext)
-		    && zeek::util::streq(dp->d_name + strlen(dp->d_name) - strlen(dyext), dyext) )
+		for ( size_t i = 0; i < gl.gl_pathc; i++ )
 			{
-		    string path = dydir + "/" + dp->d_name;
+			const char* path = gl.gl_pathv[i];
 
-		    current_plugin = nullptr;
-			current_dir = dydir.c_str();
-		    current_sopath = path.c_str();
-#if defined(_MSC_VER)
-		    void* hdl = LoadLibraryA(path.c_str());
-#else
-		    void* hdl = dlopen(path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
-#endif
-		    current_dir = nullptr;
-		    current_sopath = nullptr;
+			current_plugin = nullptr;
+			current_dir = dir.c_str();
+			current_sopath = path;
+			void* hdl = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+			current_dir = nullptr;
+			current_sopath = nullptr;
 
 			if ( ! hdl )
 				{
-			    const char* err = nullptr;
-#if defined(_MSC_VER)
-			    char buf[65535];
-			    const int flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
-			    if ( FormatMessageA(flags, nullptr, GetLastError(), 0, buf, sizeof(buf), nullptr ) )
-				    err = buf;
-#else
-			    err = dlerror();
-#endif
-			    errors->push_back(util::fmt("cannot load plugin library %s: %s", path.c_str(),
+				const char* err = dlerror();
+				errors->push_back(util::fmt("cannot load plugin library %s: %s", path,
 				                            err ? err : "<unknown error>"));
 				continue;
 				}
@@ -270,7 +249,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			if ( ! current_plugin )
 				{
 				errors->push_back(
-					util::fmt("load plugin library %s did not instantiate a plugin", path.c_str()));
+					util::fmt("load plugin library %s did not instantiate a plugin", path));
 				continue;
 				}
 
@@ -282,10 +261,10 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			plugins_by_path.insert(
 				std::make_pair(util::detail::normalize_path(dir), current_plugin));
 
-		    // We execute the pre-script initialization here; this in
-		    // fact could be *during* script initialization if we got
-		    // triggered via @load-plugin.
-		    current_plugin->InitPreScript();
+			// We execute the pre-script initialization here; this in
+			// fact could be *during* script initialization if we got
+			// triggered via @load-plugin.
+			current_plugin->InitPreScript();
 
 			// Make sure the name the plugin reports is consistent with
 			// what we expect from its magic file.
@@ -297,20 +276,19 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 				}
 
 			current_plugin = nullptr;
-			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path.c_str());
+			DBG_LOG(DBG_PLUGINS, "  Loaded %s", path);
 			}
+
+		globfree(&gl);
 
 		if ( ! errors->empty() )
 			return false;
 		}
 
-	closedir(d);
-
-	if ( current_plugin == nullptr )
+	else
 		{
 		DBG_LOG(DBG_PLUGINS, "  No shared library found");
 		}
-
 
 	// Add the "scripts" and "bif" directories to ZEEKPATH.
 	std::string scripts = dir + "scripts";
@@ -353,6 +331,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 	m->second.clear();
 
 	return true;
+#endif
 	}
 
 void Manager::ActivateDynamicPlugin(const std::string& name)
@@ -373,7 +352,10 @@ void Manager::ActivateDynamicPlugins(bool all)
 
 	// Activate plugins that were specifically requested.
 	for ( const auto& x : requested_plugins )
-		plugins_to_activate.emplace(x, false);
+		{
+		if ( ! x.empty() )
+		     plugins_to_activate.emplace(x, false);
+		}
 
 	// Activate plugins that our environment tells us to.
 	vector<string> p;

@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <unistd.h>
-
 #include "zeek/zeek-config.h"
+
+#include <unistd.h>
 
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"

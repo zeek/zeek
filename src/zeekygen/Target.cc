@@ -2,9 +2,7 @@
 
 #include "zeek/zeekygen/Target.h"
 
-#ifndef _MSC_VER
 #include <fts.h>
-#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -492,8 +490,6 @@ vector<string> dir_contents_recursive(string dir)
 	scan_path[0] = dir_copy;
 	scan_path[1] = NULL;
 
-	// Zeekygen isn't supported in Windows, due to missing FTS library.
-#ifndef _MSC_VER
 	FTS* fts = fts_open(scan_path, FTS_NOCHDIR, 0);
 
 	if ( ! fts )
@@ -520,7 +516,6 @@ vector<string> dir_contents_recursive(string dir)
 
 	delete[] scan_path;
 	delete[] dir_copy;
-#endif
 	return rval;
 	}
 

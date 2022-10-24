@@ -1,23 +1,21 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <unistd.h>
-
 #include "zeek/Options.h"
 
 #include "zeek/zeek-config.h"
-
-#include "zeek/ScriptProfile.h"
-#include "zeek/script_opt/ScriptOpt.h"
 
 #if defined(HAVE_GETOPT_H) && ! defined(_MSC_VER)
 #include <getopt.h>
 #endif
 
+#include <unistd.h>
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
 
+#include "zeek/3rdparty/bsd-getopt-long.h"
+#include "zeek/ScriptProfile.h"
 #include "zeek/logging/writers/ascii/Ascii.h"
 #include "zeek/script_opt/ScriptOpt.h"
 

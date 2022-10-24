@@ -16,8 +16,6 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 # Windows: Configure runtime and dependencies
 if ( MSVC )
-    cmake_policy(SET CMP0091 NEW)
-
     # Remove existing runtime flags
     set(CompilerFlags
         CMAKE_CXX_FLAGS
@@ -81,12 +79,6 @@ if ( MSVC )
     # Set ZLib to point at the right variable.
     find_package(ZLIB)
     set(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
-
-    # Set Kqueue to point at the right variable.
-    find_package(kqueue)
-    set(LIBKQUEUE_ROOT_DIR "${kqueue_INCLUDES}/../")
-    set(LIBKQUEUE_INCLUDE_DIRS ${kqueue_INCLUDES})
-    set(LIBKQUEUE_LIBRARIES ${kqueue_LIBS})
 
     # Set CAres
     find_package(c-ares)

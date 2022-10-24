@@ -107,7 +107,7 @@ bool PcapDumper::Dump(const Packet* pkt)
 		return false;
 
 	// Reconstitute the pcap_pkthdr.
-	const struct pcap_pkthdr phdr = {.ts = pkt->ts, .caplen = pkt->cap_len, .len = pkt->len};
+	const struct pcap_pkthdr phdr = {pkt->ts, pkt->cap_len, pkt->len};
 
 	pcap_dump((u_char*)dumper, &phdr, pkt->data);
 	pcap_dump_flush(dumper);

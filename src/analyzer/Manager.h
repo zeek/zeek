@@ -402,7 +402,7 @@ extern analyzer::Manager* analyzer_mgr;
 	DBG_LOG(zeek::DBG_ANALYZER, "%s " txt,                                                         \
 	        fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(),               \
 	                    ntohs(conn->RespPort())));
-#define DBG_ANALYZER_ARGS(conn, fmt, ...)                                                      \
+#define DBG_ANALYZER_ARGS(conn, fmt, ...)                                                          \
 	DBG_LOG(zeek::DBG_ANALYZER, "%s " fmt,                                                         \
 	        fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(),               \
 	                    ntohs(conn->RespPort())),                                                  \

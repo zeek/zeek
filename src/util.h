@@ -40,10 +40,6 @@
 #endif
 #endif
 
-#ifdef _MSC_VER
-#include <pthread.h>
-#endif
-
 #ifdef DEBUG
 
 #include <cassert>

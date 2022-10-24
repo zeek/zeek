@@ -13,6 +13,7 @@
 #include <fstream>
 
 #include "zeek/3rdparty/doctest.h"
+#include "zeek/Obj.h"
 #include "zeek/Reporter.h"
 #include "zeek/util.h"
 
@@ -1137,8 +1138,8 @@ int Dictionary::LookupIndex(const void* key, int key_size, detail::hash_t hash, 
 // Insert
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key,
-                         bool* iterators_invalidated)
+void* Dictionary::Insert(void* key, uint64_t key_size, detail::hash_t hash, void* val,
+                         bool copy_key, bool* iterators_invalidated)
 	{
 	ASSERT_VALID(this);
 
@@ -1148,6 +1149,21 @@ void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val
 		Init();
 
 	void* v = nullptr;
+
+	if ( key_size > detail::DictEntry::MAX_KEY_SIZE )
+		{
+		// If the key is bigger than something that will fit in a DictEntry, report a
+		// RuntimeError. This will throw an exception. If this call came from a script
+		// context, it'll cause the script interpreter to unwind and stop the script
+		// execution. If called elsewhere, Zeek will likely abort due to an unhandled
+		// exception. This is all entirely intentional. since if you got to this point
+		// something went really wrong with your input data.
+		auto loc = detail::GetCurrentLocation();
+		reporter->RuntimeError(&loc,
+		                       "Attempted to create DictEntry with excessively large key, "
+		                       "truncating key (%" PRIu64 " > %d)",
+		                       key_size, detail::DictEntry::MAX_KEY_SIZE);
+		}
 
 	// Look to see if this key is already in the table. If found, insert_position is the
 	// position of the existing element. If not, insert_position is where it'll be inserted

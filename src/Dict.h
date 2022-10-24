@@ -86,6 +86,10 @@ public:
 	// store it as a pointer. This avoids extra allocations if we can help it.
 	uint32_t key_size = 0;
 
+	// The maximum value of the key size above. This allows Dictionary to truncate keys before
+	// they get stored into an entry to avoid weird overflow errors.
+	static constexpr uint32_t MAX_KEY_SIZE = UINT32_MAX;
+
 	// Lower 4 bytes of the 8-byte hash, which is used to calculate the position in the table.
 	uint32_t hash = 0;
 
@@ -291,7 +295,7 @@ public:
 	// manage as needed.
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
-	void* Insert(void* key, int key_size, detail::hash_t hash, void* val, bool copy_key,
+	void* Insert(void* key, uint64_t key_size, detail::hash_t hash, void* val, bool copy_key,
 	             bool* iterators_invalidated = nullptr);
 
 	// Removes the given element.  Returns a pointer to the element in

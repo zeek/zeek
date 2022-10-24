@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "zeek/Hash.h"
+#include "zeek/Obj.h"
 #include "zeek/Reporter.h"
 
 // Type for function to be called when deleting elements.
@@ -94,6 +95,10 @@ public:
 	// The size of the key. Less than 8 bytes we'll store directly in the entry, otherwise we'll
 	// store it as a pointer. This avoids extra allocations if we can help it.
 	uint32_t key_size = 0;
+
+	// The maximum value of the key size above. This allows Dictionary to truncate keys before
+	// they get stored into an entry to avoid weird overflow errors.
+	static constexpr uint32_t MAX_KEY_SIZE = UINT32_MAX;
 
 	// Lower 4 bytes of the 8-byte hash, which is used to calculate the position in the table.
 	uint32_t hash = 0;
@@ -584,7 +589,7 @@ public:
 	// manage as needed.
 	// If iterators_invalidated is supplied, its value is set to true
 	// if the removal may have invalidated any existing iterators.
-	T* Insert(void* key, int key_size, detail::hash_t hash, T* val, bool copy_key,
+	T* Insert(void* key, uint64_t key_size, detail::hash_t hash, T* val, bool copy_key,
 	          bool* iterators_invalidated = nullptr)
 		{
 		ASSERT_VALID(this);
@@ -595,6 +600,21 @@ public:
 			Init();
 
 		T* v = nullptr;
+
+		if ( key_size > detail::DictEntry<T>::MAX_KEY_SIZE )
+			{
+			// If the key is bigger than something that will fit in a DictEntry, report a
+			// RuntimeError. This will throw an exception. If this call came from a script
+			// context, it'll cause the script interpreter to unwind and stop the script
+			// execution. If called elsewhere, Zeek will likely abort due to an unhandled
+			// exception. This is all entirely intentional. since if you got to this point
+			// something went really wrong with your input data.
+			auto loc = detail::GetCurrentLocation();
+			reporter->RuntimeError(&loc,
+			                       "Attempted to create DictEntry with excessively large key, "
+			                       "truncating key (%" PRIu64 " > %d)",
+			                       key_size, detail::DictEntry<T>::MAX_KEY_SIZE);
+			}
 
 		// Look to see if this key is already in the table. If found, insert_position is the
 		// position of the existing element. If not, insert_position is where it'll be inserted

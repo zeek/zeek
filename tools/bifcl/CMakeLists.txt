@@ -53,7 +53,7 @@ set(bifcl_SRCS
 add_executable(bifcl ${bifcl_SRCS})
 
 if (MSVC)
-    target_link_libraries(bifcl PRIVATE zeek_windows)
+    target_link_libraries(bifcl PRIVATE libunistd)
 endif()
 
 install(TARGETS bifcl DESTINATION bin)

@@ -915,7 +915,12 @@ expr:
 				if ( id->IsDeprecated() )
 					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
 
-				if ( ! id->GetType() )
+				if ( id->IsBlank() )
+					{
+					$$ = new NameExpr(std::move(id));
+					$$->SetError("blank identifier used in expression");
+					}
+				else if ( ! id->GetType() )
 					{
 					id->Error("undeclared variable");
 					id->SetType(error_type());
@@ -1330,7 +1335,10 @@ decl:
 
 	|	TOK_OPTION def_global_id opt_type init_class opt_init opt_attr ';'
 			{
-			build_global($2, $3, $4, $5, $6, VAR_OPTION);
+			if ( $2->IsBlank() )
+				$2->Error("blank identifier used as option");
+			else
+				build_global($2, $3, $4, $5, $6, VAR_OPTION);
 			}
 
 	|	TOK_CONST def_global_id opt_type init_class opt_init opt_attr ';'
@@ -1873,6 +1881,7 @@ stmt:
 	|	TOK_CONST local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @6);
+
 			$$ = build_local($2, $3, $4, $5, $6, VAR_CONST, ! $8).release();
 			}
 
@@ -2093,10 +2102,10 @@ local_id:
 
 			if ( $$ )
 				{
-				if ( $$->IsGlobal() )
+				if ( $$->IsGlobal() && ! $$->IsBlank() )
 					$$->Error("already a global identifier");
 
-				if ( $$->IsConst() )
+				if ( $$->IsConst() && ! $$->IsBlank() )
  					$$->Error("already a const identifier");
 
 				delete [] $1;

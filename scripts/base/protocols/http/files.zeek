@@ -40,7 +40,7 @@ function describe_file(f: fa_file): string
 	if ( f$source != "HTTP" )
 		return "";
 
-	for ( cid, c in f$conns )
+	for ( _, c in f$conns )
 		{
 		if ( c?$http )
 			return build_url_http(c$http);

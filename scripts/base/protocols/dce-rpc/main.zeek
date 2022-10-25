@@ -222,7 +222,7 @@ hook finalize_dce_rpc(c: connection)
 		return;
 
 	# TODO: Go through any remaining dce_rpc requests that haven't been processed with replies.
-	for ( i, x in c$dce_rpc_backing )
+	for ( _, x in c$dce_rpc_backing )
 		{
 		set_state(c, x);
 

@@ -1221,7 +1221,17 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 		{
 		const auto& indices = e->GetType()->AsTableType()->GetIndexTypes();
 
-		if ( static_cast<int>(indices.size()) != loop_vars->length() )
+		if ( loop_vars->length() == 1 && (*loop_vars)[0]->IsBlank() )
+			{
+			// Special case support for looping with a single loop_var
+			// ignoring the full index of a table.
+			//
+			//     for ( _, value )
+			//         ...
+			//
+			return;
+			}
+		else if ( static_cast<int>(indices.size()) != loop_vars->length() )
 			{
 			e->Error("wrong index size");
 			return;
@@ -1233,7 +1243,10 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 			const auto& lv = (*loop_vars)[i];
 			const auto& lvt = lv->GetType();
 
-			if ( lvt )
+			if ( lv->IsBlank() )
+				continue;
+
+			else if ( lvt )
 				{
 				if ( ! same_type(lvt, ind_type) )
 					lvt->Error("type clash in iteration", ind_type.get());
@@ -1254,11 +1267,16 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 			return;
 			}
 
-		const auto& t = (*loop_vars)[0]->GetType();
+		const auto& lv = (*loop_vars)[0];
+		const auto& t = lv->GetType();
 
-		if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_COUNT), INIT_NONE, nullptr,
-			          nullptr, VAR_REGULAR);
+		if ( lv->IsBlank() )
+			{
+			// nop
+			}
+		else if ( ! t )
+			add_local({NewRef{}, lv}, base_type(TYPE_COUNT), INIT_NONE, nullptr, nullptr,
+			          VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
 			{
@@ -1275,9 +1293,14 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 			return;
 			}
 
-		const auto& t = (*loop_vars)[0]->GetType();
+		const auto& lv = (*loop_vars)[0];
+		const auto& t = lv->GetType();
 
-		if ( ! t )
+		if ( lv->IsBlank() )
+			{
+			// nop
+			}
+		else if ( ! t )
 			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_NONE, nullptr,
 			          nullptr, VAR_REGULAR);
 
@@ -1312,7 +1335,10 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
 		}
 
 	// Verify value_vars type if it's already been defined
-	if ( value_var->GetType() )
+	if ( value_var->IsBlank() )
+		value_var = ID::nil;
+
+	else if ( value_var->GetType() )
 		{
 		if ( ! same_type(value_var->GetType(), yield_type) )
 			value_var->GetType()->Error("type clash in iteration", yield_type.get());
@@ -1340,17 +1366,30 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 		if ( ! loop_vals->Length() )
 			return nullptr;
 
+		// If there are only blank loop_vars (iterating over just the values),
+		// we can avoid the RecreateIndex() overhead.
+		bool all_loop_vars_blank = true;
+		for ( const auto* lv : *loop_vars )
+			all_loop_vars_blank &= lv->IsBlank();
+
 		for ( const auto& lve : *loop_vals )
 			{
 			auto k = lve.GetHashKey();
 			auto* current_tev = lve.value;
-			auto ind_lv = tv->RecreateIndex(*k);
 
 			if ( value_var )
 				f->SetElement(value_var, current_tev->GetVal());
 
-			for ( int i = 0; i < ind_lv->Length(); i++ )
-				f->SetElement((*loop_vars)[i], ind_lv->Idx(i));
+			if ( ! all_loop_vars_blank )
+				{
+				auto ind_lv = tv->RecreateIndex(*k);
+				for ( int i = 0; i < ind_lv->Length(); i++ )
+					{
+					const auto* lv = (*loop_vars)[i];
+					if ( ! lv->IsBlank() )
+						f->SetElement(lv, ind_lv->Idx(i));
+					}
+				}
 
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
@@ -1375,7 +1414,10 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 			if ( value_var )
 				f->SetElement(value_var, vv->ValAt(i));
 
-			f->SetElement((*loop_vars)[0], val_mgr->Count(i));
+			const auto* lv = (*loop_vars)[0];
+			if ( ! lv->IsBlank() )
+				f->SetElement(lv, val_mgr->Count(i));
+
 			flow = FLOW_NEXT;
 			ret = body->Exec(f, flow);
 

@@ -1,3 +1,29 @@
+5.2.0-dev.140 | 2022-10-25 12:34:39 +0200
+
+  * scripts: Migrate table iteration to blank identifiers (Arne Welzel, Corelight)
+
+  * Introduce special treatment for the blank identifier _ (Arne Welzel, Corelight)
+
+    Mostly: Do not instantiate variables within for loops and allow
+    reusing differently typed blanks which previously wasn't possible.
+
+  * Management framework: bump zeek-client and cluster testsuite (Christian Kreibich, Corelight)
+
+  * Add new zeek-client dependency to Dockerfile: python3-websocket (Christian Kreibich, Corelight)
+
+    This is a required dependency of zeek-client, and available as a .deb on Debian.
+
+  * Management framework: add websocket support to controller (Christian Kreibich, Corelight)
+
+    The controller now listens on an additional port, defaulting to 2149, for Broker
+    connections via websockets. Configuration works as for the existing traditional
+    Broker port (2150), via ZEEK_CONTROLLER_WEBSOCKET_ADDR and
+    ZEEK_CONTROLLER_WEBSOCKET_PORT environment variables, as well as corresponding
+    redef'able constants.
+
+    To disable the websockets feature, leave ZEEK_CONTROLLER_WEBSOCKET_PORT unset
+    and redefine Management::Controller::default_port_websocket to 0/unknown.
+
 5.2.0-dev.134 | 2022-10-24 08:10:06 -0700
 
   * Re-enable ci-based benchmarking (Tim Wojtulewicz, Corelight)

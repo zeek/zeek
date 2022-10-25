@@ -369,7 +369,7 @@ hook finalize_ftp(c: connection)
 	{
 	if ( ! c?$ftp ) return;
 
-	for ( ca, cmdarg in c$ftp$pending_commands )
+	for ( _, cmdarg in c$ftp$pending_commands )
 		{
 		c$ftp$cmdarg = cmdarg;
 		ftp_message(c$ftp);

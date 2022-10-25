@@ -246,7 +246,7 @@ function expire_host_data(data: table[addr] of MetaDataTable, idx: addr): interv
 	{
 	local meta_tbl: MetaDataTable = data[idx];
 	local metas: set[MetaData];
-	for ( src, md in meta_tbl )
+	for ( _, md in meta_tbl )
 		add metas[md];
 
 	return expire_item(cat(idx), ADDR, metas);
@@ -256,7 +256,7 @@ function expire_subnet_data(data: table[subnet] of MetaDataTable, idx: subnet): 
 	{
 	local meta_tbl: MetaDataTable = data[idx];
 	local metas: set[MetaData];
-	for ( src, md in meta_tbl )
+	for ( _, md in meta_tbl )
 		add metas[md];
 
 	return expire_item(cat(idx), SUBNET, metas);
@@ -270,7 +270,7 @@ function expire_string_data(data: table[string, Type] of MetaDataTable, idx: any
 
 	local meta_tbl: MetaDataTable = data[indicator, indicator_type];
 	local metas: set[MetaData];
-	for ( src, md in meta_tbl )
+	for ( _, md in meta_tbl )
 		add metas[md];
 
 	return expire_item(indicator, indicator_type, metas);
@@ -317,7 +317,7 @@ function get_items(s: Seen): set[Item]
 		if ( s$host in data_store$host_data )
 			{
 			mt = data_store$host_data[s$host];
-			for ( m, md in mt )
+			for ( _, md in mt )
 				{
 				add return_data[Item($indicator=cat(s$host), $indicator_type=ADDR, $meta=md)];
 				}
@@ -327,7 +327,7 @@ function get_items(s: Seen): set[Item]
 		nets = filter_subnet_table(addr_to_subnet(s$host), data_store$subnet_data);
 		for ( n, mt in nets )
 			{
-				for ( m, md in mt )
+				for ( _, md in mt )
 					{
 					add return_data[Item($indicator=cat(n), $indicator_type=SUBNET, $meta=md)];
 					}

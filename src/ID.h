@@ -105,6 +105,7 @@ public:
 
 	void SetOption();
 	bool IsOption() const { return is_option; }
+	bool IsBlank() const { return is_blank; };
 
 	void SetEnumConst() { is_enum_const = true; }
 	bool IsEnumConst() const { return is_enum_const; }
@@ -162,7 +163,7 @@ protected:
 	bool is_export;
 	bool infer_return_type;
 	TypePtr type;
-	bool is_const, is_enum_const, is_type, is_option;
+	bool is_const, is_enum_const, is_type, is_option, is_blank;
 	int offset;
 	ValPtr val;
 	AttributesPtr attrs;

@@ -209,7 +209,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 		init = expand_op(cast_intrusive<ListExpr>(init), init_t);
 		}
 
-	if ( id->GetType() )
+	if ( id->GetType() && ! id->IsBlank() )
 		{
 		if ( id->IsRedefinable() || (! init && attr && ! IsFunc(id->GetType()->Tag())) )
 			{
@@ -247,7 +247,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 			t = id->GetType();
 		}
 
-	if ( id->GetType() && id->GetType()->Tag() != TYPE_ERROR )
+	if ( id->GetType() && id->GetType()->Tag() != TYPE_ERROR && ! id->IsBlank() )
 		{
 		if ( dt != VAR_REDEF && (! init || ! do_init || (! t && ! (t = init_type(init)))) )
 			{

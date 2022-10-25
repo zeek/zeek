@@ -24,7 +24,7 @@ event file_new(f: fa_file) &priority=5
 	if ( ! f?$bof_buffer ) return;
 	if ( ! f?$conns ) return;
 
-	for ( cid, c in f$conns )
+	for ( _, c in f$conns )
 		{
 		if ( ! c?$smtp ) next;
 

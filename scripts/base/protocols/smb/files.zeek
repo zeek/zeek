@@ -39,7 +39,7 @@ function describe_file(f: fa_file): string
 	if ( f$source != "SMB" )
 		return "";
 
-	for ( cid, c in f$conns )
+	for ( _, c in f$conns )
 		{
 		if ( c?$smb_state && c$smb_state?$current_file && c$smb_state$current_file?$name )
 			return c$smb_state$current_file$name;

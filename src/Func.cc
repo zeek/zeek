@@ -121,9 +121,16 @@ std::string render_call_stack()
 	return rval;
 	}
 
+void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
+                   size_t new_frame_size, int priority)
+	{
+	std::set<EventGroupPtr> groups;
+	AddBody(new_body, new_inits, new_frame_size, priority, groups);
+	}
+
 void Func::AddBody(detail::StmtPtr /* new_body */,
                    const std::vector<detail::IDPtr>& /* new_inits */, size_t /* new_frame_size */,
-                   int /* priority */)
+                   int /* priority */, const std::set<EventGroupPtr>& /* groups */)
 	{
 	Internal("Func::AddBody called");
 	}
@@ -271,22 +278,11 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 namespace detail
 	{
 
-ScriptFunc::ScriptFunc(const IDPtr& arg_id, StmtPtr arg_body, const std::vector<IDPtr>& aggr_inits,
-                       size_t arg_frame_size, int priority)
-	: Func(SCRIPT_FUNC)
+ScriptFunc::ScriptFunc(const IDPtr& arg_id) : Func(SCRIPT_FUNC)
 	{
 	name = arg_id->Name();
 	type = arg_id->GetType<zeek::FuncType>();
-	frame_size = arg_frame_size;
-
-	if ( arg_body )
-		{
-		Body b;
-		b.stmts = AddInits(std::move(arg_body), aggr_inits);
-		current_body = b.stmts;
-		current_priority = b.priority = priority;
-		bodies.push_back(b);
-		}
+	frame_size = 0;
 	}
 
 ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> bs,
@@ -383,6 +379,9 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 
 	for ( const auto& body : bodies )
 		{
+		if ( body.disabled )
+			continue;
+
 		if ( sample_logger )
 			sample_logger->LocationSeen(body.stmts->GetLocationInfo());
 
@@ -530,14 +529,14 @@ void ScriptFunc::SetCaptures(Frame* f)
 	}
 
 void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits,
-                         size_t new_frame_size, int priority)
+                         size_t new_frame_size, int priority, const std::set<EventGroupPtr>& groups)
 	{
 	if ( new_frame_size > frame_size )
 		frame_size = new_frame_size;
 
-	auto num_args = GetType()->Params()->NumFields();
+	auto num_args = static_cast<size_t>(GetType()->Params()->NumFields());
 
-	if ( num_args > static_cast<int>(frame_size) )
+	if ( num_args > frame_size )
 		frame_size = num_args;
 
 	new_body = AddInits(std::move(new_body), new_inits);
@@ -551,6 +550,7 @@ void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits,
 
 	Body b;
 	b.stmts = new_body;
+	b.groups = groups;
 	current_body = new_body;
 	current_priority = b.priority = priority;
 
@@ -788,7 +788,7 @@ static int get_func_priority(const std::vector<AttrPtr>& attrs)
 
 	for ( const auto& a : attrs )
 		{
-		if ( a->Tag() == ATTR_DEPRECATED || a->Tag() == ATTR_IS_USED )
+		if ( a->Tag() == ATTR_DEPRECATED || a->Tag() == ATTR_IS_USED || a->Tag() == ATTR_GROUP )
 			continue;
 
 		if ( a->Tag() != ATTR_PRIORITY )
@@ -817,7 +817,42 @@ static int get_func_priority(const std::vector<AttrPtr>& attrs)
 	return priority;
 	}
 
-function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body)
+// Get a function's groups from its Scope's attributes. Errors if it sees any
+// problems with the group tag.  get_func_priority() checks for illegal
+// attributes, so we don't do this here.
+static std::set<EventGroupPtr> get_func_groups(const std::vector<AttrPtr>& attrs)
+	{
+	std::set<EventGroupPtr> groups;
+
+	for ( const auto& a : attrs )
+		{
+		if ( a->Tag() != ATTR_GROUP )
+			continue;
+
+		auto v = a->GetExpr()->Eval(nullptr);
+
+		if ( ! v )
+			{
+			a->Error("cannot evaluate attribute expression");
+			continue;
+			}
+
+		if ( ! IsString(v->GetType()->Tag()) )
+			{
+			a->Error("expression is not of string type");
+			continue;
+			}
+
+		auto group = event_registry->RegisterGroup(EventGroupKind::Attribute,
+		                                           v->AsStringVal()->ToStdStringView());
+		groups.insert(group);
+		}
+
+	return groups;
+	}
+
+function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body,
+                                           const std::string& module_name)
 	{
 	frame_size = scope->Length();
 	inits = scope->GetInits();
@@ -830,6 +865,8 @@ function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body)
 	if ( attrs )
 		{
 		priority = get_func_priority(*attrs);
+
+		groups = get_func_groups(*attrs);
 
 		for ( const auto& a : *attrs )
 			if ( a->Tag() == ATTR_IS_USED )
@@ -845,6 +882,16 @@ function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body)
 		priority = 0;
 
 	this->body = std::move(body);
+	this->module_name = module_name;
+
+	// Implicit module event groups for events and hooks.
+	auto flavor = id->GetType<zeek::FuncType>()->Flavor();
+	if ( flavor == FUNC_FLAVOR_EVENT || flavor == FUNC_FLAVOR_HOOK )
+		{
+		auto module_group = event_registry->RegisterGroup(EventGroupKind::Module,
+		                                                  this->module_name);
+		groups.insert(module_group);
+		}
 	}
 
 static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind)

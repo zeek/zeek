@@ -5581,3 +5581,88 @@ function is_packet_analyzer%(atype: AllAnalyzers::Tag%) : bool
 	auto val = atype->AsEnumVal();
 	return val_mgr->Bool(zeek::packet_mgr->Lookup(val) != nullptr);
 	%}
+
+%%{ // C segment
+
+static bool enable_event_group(zeek::EventGroupKind kind, const char *group)
+	{
+	auto g = zeek::event_registry->LookupGroup(kind, group);
+	if ( ! g )
+		{
+		zeek::emit_builtin_error(zeek::util::fmt("no such event group: %s", group));
+		return false;
+		}
+
+	g->Enable();
+	return true;
+	}
+
+static bool disable_event_group(zeek::EventGroupKind kind, const char *group)
+	{
+	auto g = zeek::event_registry->LookupGroup(kind, group);
+	if ( ! g )
+		{
+		zeek::emit_builtin_error(zeek::util::fmt("no such event group: %s", group));
+		return false;
+		}
+
+	g->Disable();
+	return true;
+	}
+
+%%}
+
+## Enabled the given event group.
+##
+## All event and hook handlers with a matching :zeek:attr:`&group` attribute
+## will be enabled if this group was the last disabled group of these handlers.
+##
+## group: The group to enable.
+##
+## .. zeek:see:: disable_event_group
+function enable_event_group%(group: string%) : bool
+	%{
+	return zeek::val_mgr->Bool(enable_event_group(zeek::EventGroupKind::Attribute,
+	                                              group->CheckString()));
+	%}
+
+## Disabled the given event group.
+##
+## All event and hook handlers with a matching :zeek:attr:`&group` attribute
+## will be disabled if not already disabled through another group.
+##
+## group: The group to disable.
+##
+## .. zeek:see:: enable_event_group
+function disable_event_group%(group: string%) : bool
+	%{
+	return zeek::val_mgr->Bool(disable_event_group(zeek::EventGroupKind::Attribute,
+	                                               group->CheckString()));
+	%}
+
+## Enable all event handlers and hooks in the given module.
+##
+## All event handlers and hooks defined in the given module will be enabled
+## if not disabled otherwise through an event group.
+##
+## module_name: The module to enable.
+##
+## .. zeek:see:: disable_module_events enable_event_group disable_event_group
+function enable_module_events%(module_name: string%) : bool
+	%{
+	return zeek::val_mgr->Bool(enable_event_group(zeek::EventGroupKind::Module,
+	                                              module_name->CheckString()));
+	%}
+
+## Disable all event handlers and hooks in the given module.
+##
+## All event handlers and hooks defined in the given module will be disabled.
+##
+## module_name: The module to disable.
+##
+## .. zeek:see:: enable_module_events enable_event_group disable_event_group
+function disable_module_events%(module_name: string%) : bool
+	%{
+	return zeek::val_mgr->Bool(disable_event_group(zeek::EventGroupKind::Module,
+	                                               module_name->CheckString()));
+	%}

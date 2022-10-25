@@ -391,8 +391,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 		// For events, add a function value (without any body) here so that
 		// we can later access the ID even if no implementations have been
 		// defined.
-		std::vector<IDPtr> inits;
-		auto f = make_intrusive<ScriptFunc>(id, nullptr, inits, 0, 0);
+		auto f = make_intrusive<ScriptFunc>(id);
 		id->SetVal(make_intrusive<FuncVal>(std::move(f)));
 		}
 	}
@@ -825,7 +824,7 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 // with this variable set can find flaws in the duplication machinery.
 static bool duplicate_ASTs = getenv("ZEEK_DUPLICATE_ASTS");
 
-void end_func(StmtPtr body, bool free_of_conditionals)
+void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 	{
 	if ( duplicate_ASTs && reporter->Errors() == 0 )
 		// Only try duplication in the absence of errors.  If errors
@@ -842,23 +841,25 @@ void end_func(StmtPtr body, bool free_of_conditionals)
 	oi->num_stmts = Stmt::GetNumStmts();
 	oi->num_exprs = Expr::GetNumExprs();
 
-	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body));
-
-	if ( ingredients->id->HasVal() )
-		ingredients->id->GetVal()->AsFunc()->AddBody(
-			ingredients->body, ingredients->inits, ingredients->frame_size, ingredients->priority);
-	else
+	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body),
+	                                                          module_name);
+	if ( ! ingredients->id->HasVal() )
 		{
-		auto f = make_intrusive<ScriptFunc>(ingredients->id, ingredients->body, ingredients->inits,
-		                                    ingredients->frame_size, ingredients->priority);
-
+		auto f = make_intrusive<ScriptFunc>(ingredients->id);
 		ingredients->id->SetVal(make_intrusive<FuncVal>(std::move(f)));
 		ingredients->id->SetConst();
 		}
 
+	ingredients->id->GetVal()->AsFunc()->AddBody(ingredients->body, ingredients->inits,
+	                                             ingredients->frame_size, ingredients->priority,
+	                                             ingredients->groups);
+
 	auto func_ptr = cast_intrusive<FuncVal>(ingredients->id->GetVal())->AsFuncPtr();
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);
 	func->SetScope(ingredients->scope);
+
+	for ( const auto& group : ingredients->groups )
+		group->AddFunc(func);
 
 	analyze_func(std::move(func));
 

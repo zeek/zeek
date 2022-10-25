@@ -1,3 +1,11 @@
+5.2.0-dev.142 | 2022-10-25 12:37:16 +0200
+
+  * enum_names: Support naming types with a string (Arne Welzel, Corelight)
+
+    Add support to enum_names() to transparently lookup the type if a string
+    is provided. This is similar in how record_fields() behaves when being
+    passed a string.
+
 5.2.0-dev.140 | 2022-10-25 12:34:39 +0200
 
   * scripts: Migrate table iteration to blank identifiers (Arne Welzel, Corelight)

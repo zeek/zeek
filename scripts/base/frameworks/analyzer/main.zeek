@@ -149,6 +149,16 @@ export {
 	## Analyzer::register_for_port(s) and packet analyzers can add to this
 	## using PacketAnalyzer::register_for_port(s).
 	global ports: table[AllAnalyzers::Tag] of set[port];
+
+	## A set of protocol, packet or file analyzer tags requested to
+	## be enabled during startup.
+	##
+	## By default, all analyzers in Zeek are enabled. When all analyzers
+	## are disabled through :zeek:see:`Analyzer::disable_all`, this set
+	## set allows to record analyzers to be enabled during Zeek startup.
+	##
+	## This set can be added to via :zeek:see:`redef`.
+	global requested_analyzers: set[AllAnalyzers::Tag] = {} &redef;
 }
 
 @load base/bif/analyzer.bif
@@ -162,6 +172,12 @@ event zeek_init() &priority=5
 
 	for ( a in disabled_analyzers )
 		disable_analyzer(a);
+	}
+
+event zeek_init() &priority=-5
+	{
+	for ( a in requested_analyzers )
+		Analyzer::enable_analyzer(a);
 	}
 
 function enable_analyzer(tag: AllAnalyzers::Tag) : bool

@@ -150,6 +150,11 @@ New Functionality
   ``ssh2_gh_gex_init``, ``ssh2_gss_init``, ssh2_rsa_secret``) to detect
   when SSH client and server roles are reversed.
 
+- Analyzers found in the new ``Analyzer::requested_analyzers`` set will be
+  enabled at ``zeek_init()`` time. The set can be populated via :zeek:see:`redef`.
+  This change only has an effect in settings where ``Analyzer::disable_all``
+  is changed to ``T``. By default, all analyzers continue to be enabled.
+
 Changed Functionality
 ---------------------
 

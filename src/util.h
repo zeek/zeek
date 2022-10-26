@@ -32,12 +32,10 @@
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <ctime>
-#else
-#ifdef HAVE_SYS_TIME_H
+#elif defined(HAVE_SYS_TIME_H)
 #include <sys/time.h>
 #else
 #include <ctime>
-#endif
 #endif
 
 #ifdef DEBUG
@@ -49,6 +47,9 @@
 #define DEBUG_fputs fputs
 
 #else
+#ifdef MSTCPIP_ASSERT_UNDEFINED
+#undef ASSERT
+#endif
 
 #define ASSERT(x)
 #define DEBUG_MSG(...)
@@ -64,6 +65,11 @@ extern HeapLeakChecker* heap_checker;
 
 #include <stdint.h>
 
+extern "C"
+	{
+#include "zeek/3rdparty/modp_numtoa.h"
+	}
+
 #ifdef HAVE_LINUX
 #include <pthread.h>
 #include <sys/prctl.h>
@@ -73,21 +79,17 @@ extern HeapLeakChecker* heap_checker;
 #include <pthread_np.h>
 #endif
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
+#include <pthread.h>
+#include <filesystem>
+namespace zeek { namespace filesystem = std::filesystem; }
 inline constexpr std::string_view path_list_separator = ";";
 #else
-inline constexpr std::string_view path_list_separator = ":";
-#endif
-
-extern "C"
-	{
-#include "zeek/3rdparty/modp_numtoa.h"
-	}
-
-#if defined(_MSC_VER)
-#include <filesystem>
-#else
+// Expose ghc::filesystem as zeek::filesystem until we can
+// switch to std::filesystem on all platforms.
 #include "zeek/3rdparty/ghc/filesystem.hpp"
+namespace zeek { namespace filesystem = ghc::filesystem; }
+inline constexpr std::string_view path_list_separator = ":";
 #endif
 
 using zeek_int_t = int64_t;
@@ -108,13 +110,7 @@ namespace zeek
 class ODesc;
 class RecordVal;
 
-// Expose ghc::filesystem as zeek::filesystem until we can
-// switch to std::filesystem on all platforms.
-#if defined(_MSC_VER)
-namespace filesystem = std::filesystem;
-#else
-namespace filesystem = ghc::filesystem;
-#endif
+
 
 namespace util
 	{

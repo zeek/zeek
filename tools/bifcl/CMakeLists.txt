@@ -53,6 +53,11 @@ set(bifcl_SRCS
 add_executable(bifcl ${bifcl_SRCS})
 
 if (MSVC)
+    # If building separately from zeek, we need to add the libunistd subdirectory so
+    # that linking doesn't fail.
+    if ("${CMAKE_PROJECT_NAME}" STREQUAL "BifCl")
+        add_subdirectory(auxil/libunistd EXCLUDE_FROM_ALL)
+    endif()
     target_link_libraries(bifcl PRIVATE libunistd)
 endif()
 

@@ -1,3 +1,9 @@
+5.2.0-dev.150 | 2022-10-26 16:48:18 -0700
+
+  * Include in Jan's AF_PACKET plugin as builtin plugin (Arne Welzel, Corelight)
+
+  * Update doc submodule. (Robin Sommer, Corelight)
+
 5.2.0-dev.147 | 2022-10-26 11:37:24 +0200
 
   * GH-2272: Use `json_escape_utf8` in broker debug output (AmazingPP)

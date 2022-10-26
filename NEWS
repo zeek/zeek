@@ -91,6 +91,12 @@ New Functionality
   implemented in a given module can be toggled with ``disable_module_events()``
   and ``enable_module_events()``.
 
+- On Linux, the AF_PACKET packet source plugin (https://github.com/zeek/zeek-af_packet-plugin)
+  is included as builtin plugin by default. To select this packet source, prefix
+  the interface name with ``af_packet``.
+
+	zeek -i af_packet::eth0
+
 Changed Functionality
 ---------------------
 

@@ -1,0 +1,10 @@
+#!/bin/sh
+if [ "$(uname -s)" != "Linux" ]; then
+    exit 1
+fi
+
+if grep -q "DISABLE_AF_PACKET:BOOL=true" "${BUILD}"/CMakeCache.txt; then
+    exit 1
+fi
+
+exit 0

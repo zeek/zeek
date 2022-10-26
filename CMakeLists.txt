@@ -589,6 +589,16 @@ endif()
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
+if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
+    if ( NOT DISABLE_AF_PACKET )
+        if ( NOT AF_PACKET_PLUGIN_PATH )
+            set(AF_PACKET_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeek-af_packet-plugin)
+        endif ()
+
+        string(APPEND ZEEK_INCLUDE_PLUGINS ";${AF_PACKET_PLUGIN_PATH}")
+    endif ()
+endif ()
+
 set(DEFAULT_ZEEKPATH .:${ZEEK_SCRIPT_INSTALL_PATH}:${ZEEK_SCRIPT_INSTALL_PATH}/policy:${ZEEK_SCRIPT_INSTALL_PATH}/site:${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
 
 if ( NOT BINARY_PACKAGING_MODE )

@@ -14,8 +14,8 @@ zeek::plugin::Configuration Plugin::Configure()
 	zeek::plugin::Configuration config;
 	config.name = "Zeek::AF_Packet";
 	config.description = "Packet acquisition via AF_Packet";
-	config.version.major = 3;
-	config.version.minor = 2;
+	config.version.major = 4;
+	config.version.minor = 0;
 	config.version.patch = 0;
 	return config;
 	}

@@ -22,7 +22,7 @@ The following will compile and install the AF_Packet plugin alongside Zeek::
 If everything built and installed correctly, you should see this::
 
     # zeek -NN Zeek::AF_Packet
-    Zeek::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 3.2.0)
+    Zeek::AF_Packet - Packet acquisition via AF_Packet (dynamic, version 4.0.0)
     [Packet Source] AF_PacketReader (interface prefix "af_packet"; supports live input)
     [Type] AF_Packet::FanoutMode
     [Type] AF_Packet::ChecksumMode

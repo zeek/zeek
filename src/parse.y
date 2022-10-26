@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 205
+%expect 211
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -27,7 +27,7 @@
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_RAW_OUTPUT TOK_ATTR_ON_CHANGE TOK_ATTR_BROKER_STORE
 %token TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX TOK_ATTR_BACKEND
-%token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER
+%token TOK_ATTR_PRIORITY TOK_ATTR_LOG TOK_ATTR_ERROR_HANDLER TOK_ATTR_GROUP
 %token TOK_ATTR_TYPE_COLUMN TOK_ATTR_DEPRECATED
 %token TOK_ATTR_IS_ASSIGNED TOK_ATTR_IS_USED TOK_ATTR_ORDERED
 
@@ -1496,7 +1496,7 @@ func_body:
 			     conditional_epoch > func_hdr_cond_epoch )
 				free_of_conditionals = false;
 
-			end_func({AdoptRef{}, $3}, free_of_conditionals);
+			end_func({AdoptRef{}, $3}, current_module.c_str(), free_of_conditionals);
 			}
 	;
 
@@ -1526,7 +1526,7 @@ lambda_body:
 			// Gather the ingredients for a Func from the
 			// current scope.
 			auto ingredients = std::make_unique<function_ingredients>(
-				current_scope(), IntrusivePtr{AdoptRef{}, $3});
+				current_scope(), IntrusivePtr{AdoptRef{}, $3}, current_module.c_str());
 			auto outer_ids = gather_outer_ids(pop_scope(), ingredients->body);
 
 			$$ = new LambdaExpr(std::move(ingredients), std::move(outer_ids));
@@ -1714,6 +1714,8 @@ attr:
 			{ $$ = new Attr(ATTR_RAW_OUTPUT); }
 	|	TOK_ATTR_PRIORITY '=' expr
 			{ $$ = new Attr(ATTR_PRIORITY, {AdoptRef{}, $3}); }
+	|	TOK_ATTR_GROUP '=' expr
+			{ $$ = new Attr(ATTR_GROUP, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_TYPE_COLUMN '=' expr
 			{ $$ = new Attr(ATTR_TYPE_COLUMN, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_LOG

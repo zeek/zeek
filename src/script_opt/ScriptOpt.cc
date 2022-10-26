@@ -59,7 +59,8 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 	auto sc = current_scope();
 	std::vector<IDPtr> empty_inits;
 	StmtPtr stmts_p{NewRef{}, stmts};
-	global_stmts = make_intrusive<ScriptFunc>(id, stmts_p, empty_inits, sc->Length(), 0);
+	global_stmts = make_intrusive<ScriptFunc>(id);
+	global_stmts->AddBody(stmts_p, empty_inits, sc->Length());
 
 	funcs.emplace_back(global_stmts, sc, stmts_p, 0);
 

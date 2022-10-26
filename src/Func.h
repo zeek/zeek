@@ -47,6 +47,9 @@ class ScriptFunc;
 
 	} // namespace detail
 
+class EventGroup;
+using EventGroupPtr = std::shared_ptr<EventGroup>;
+
 class Func;
 using FuncPtr = IntrusivePtr<Func>;
 
@@ -70,6 +73,11 @@ public:
 		{
 		detail::StmtPtr stmts;
 		int priority;
+		std::set<EventGroupPtr> groups;
+		// If any of the groups are disabled, this body is disabled.
+		// The disabled field is updated from EventGroup instances.
+		bool disabled = false;
+
 		bool operator<(const Body& other) const
 			{
 			return priority > other.priority;
@@ -98,6 +106,11 @@ public:
 		auto zargs = zeek::Args{std::forward<Args>(args)...};
 		return Invoke(&zargs);
 		}
+
+	// Add a new event handler to an existing function (event).
+	virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
+	                     size_t new_frame_size, int priority,
+	                     const std::set<EventGroupPtr>& groups);
 
 	// Add a new event handler to an existing function (event).
 	virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
@@ -134,6 +147,10 @@ protected:
 	Kind kind = SCRIPT_FUNC;
 	FuncTypePtr type;
 	std::string name;
+
+private:
+	// EventGroup updates Func::Body.disabled
+	friend class EventGroup;
 	};
 
 namespace detail
@@ -142,8 +159,7 @@ namespace detail
 class ScriptFunc : public Func
 	{
 public:
-	ScriptFunc(const IDPtr& id, StmtPtr body, const std::vector<IDPtr>& inits, size_t frame_size,
-	           int priority);
+	ScriptFunc(const IDPtr& id);
 
 	// For compiled scripts.
 	ScriptFunc(std::string name, FuncTypePtr ft, std::vector<StmtPtr> bodies,
@@ -196,8 +212,11 @@ public:
 	 */
 	bool DeserializeCaptures(const broker::vector& data);
 
-	void AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, size_t new_frame_size,
-	             int priority) override;
+	using Func::AddBody;
+
+	void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
+	             size_t new_frame_size, int priority,
+	             const std::set<EventGroupPtr>& groups) override;
 
 	/**
 	 * Replaces the given current instance of a function body with
@@ -310,14 +329,16 @@ struct function_ingredients
 
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(ScopePtr scope, StmtPtr body);
+	function_ingredients(ScopePtr scope, StmtPtr body, const std::string& module_name);
 
 	IDPtr id;
 	StmtPtr body;
+	std::string module_name; // current module name where function body is defined
 	std::vector<IDPtr> inits;
-	int frame_size = 0;
+	size_t frame_size = 0;
 	int priority = 0;
 	ScopePtr scope;
+	std::set<EventGroupPtr> groups;
 	};
 
 extern std::vector<CallInfo> call_stack;

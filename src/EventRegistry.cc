@@ -146,4 +146,69 @@ void EventRegistry::ActivateAllHandlers()
 		}
 	}
 
+EventGroupPtr EventRegistry::RegisterGroup(EventGroupKind kind, std::string_view name)
+	{
+	auto key = std::pair{kind, std::string{name}};
+	if ( const auto& it = event_groups.find(key); it != event_groups.end() )
+		return it->second;
+
+	auto group = std::make_shared<EventGroup>(kind, name);
+	return event_groups.emplace(key, group).first->second;
+	}
+
+EventGroupPtr EventRegistry::LookupGroup(EventGroupKind kind, std::string_view name)
+	{
+	auto key = std::pair{kind, std::string{name}};
+	if ( const auto& it = event_groups.find(key); it != event_groups.end() )
+		return it->second;
+
+	return nullptr;
+	}
+
+EventGroup::EventGroup(EventGroupKind kind, std::string_view name) : kind(kind), name(name) { }
+
+EventGroup::~EventGroup() noexcept { }
+
+// Run through all ScriptFunc instances associated with this group and
+// update their bodies after a group's enable/disable state has changed.
+//
+// EventGroup is private friend with Func, so fiddeling with the bodies
+// directly works and keeps the logic away from Func for now.
+void EventGroup::UpdateFuncBodies()
+	{
+	static auto is_disabled = [](const auto& g)
+	{
+		return g->IsDisabled();
+	};
+
+	for ( const auto& func : funcs )
+		for ( auto& b : func->bodies )
+			b.disabled = std::any_of(b.groups.cbegin(), b.groups.cend(), is_disabled);
+	}
+
+void EventGroup::Enable()
+	{
+	if ( enabled )
+		return;
+
+	enabled = true;
+
+	UpdateFuncBodies();
+	}
+
+void EventGroup::Disable()
+	{
+	if ( ! enabled )
+		return;
+
+	enabled = false;
+
+	UpdateFuncBodies();
+	}
+
+void EventGroup::AddFunc(detail::ScriptFuncPtr f)
+	{
+	funcs.insert(f);
+	}
+
 	} // namespace zeek

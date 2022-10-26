@@ -70,6 +70,27 @@ New Functionality
   As noted under breaking changes, the blank identifier ``_`` cannot be
   referenced in expression anymore.
 
+- Re-introduce event groups. Allow the ``&group`` attribute on event and hook
+  handlers for annotating them with one or more event groups. These groups
+  can be disabled and enable during runtime. Disabling an event group implies
+  disabling all event and hook handlers that are part of it.
+
+  The main difference to a previous implementation in (very) old Zeek versions
+  is its granularity: It is now possible to toggle individual event handlers
+  (event handler bodies). The original implementation worked at the level of
+  events, disabling or enabling all event handlers for a given event at once.
+  Additionally, support for hooks was added as these are structurally similar
+  to events.
+
+  The BIFs ``disable_event_group()`` and ``enable_event_group()`` are
+  re-instantiated and allow controlling event groups based on the group
+  attribute.
+
+  Additionally, event and hook handlers are implicitly placed into event
+  module groups based on the module they are implemented in. All events
+  implemented in a given module can be toggled with ``disable_module_events()``
+  and ``enable_module_events()``.
+
 Changed Functionality
 ---------------------
 

@@ -97,6 +97,10 @@ New Functionality
 
 	zeek -i af_packet::eth0
 
+- Usage of ``break`` and ``next`` statements is now validated. It was previously
+  possible to place these outside of ``for``, ``while`` or ``switch``
+  statements without any error indication.
+
 Changed Functionality
 ---------------------
 

@@ -331,6 +331,7 @@ set(MAIN_SRCS
     Scope.cc
     ScriptCoverageManager.cc
     ScriptProfile.cc
+    ScriptValidation.cc
     SerializationFormat.cc
     SmithWaterman.cc
     Stats.cc

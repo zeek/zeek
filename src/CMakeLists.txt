@@ -5,7 +5,10 @@ include_directories(BEFORE
                     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
-# Force creation of includes symlink
+# Force creation of includes symlink. This can't just be in the src directory
+# because MSVC will end up with an include loop.
+execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/include")
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
                 ".."
                 "${CMAKE_CURRENT_SOURCE_DIR}/include/zeek")

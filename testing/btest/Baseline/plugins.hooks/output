@@ -935,6 +935,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./site, <...>/site.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./smb1-main, <...>/smb1-main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./smb2-main, <...>/smb2-main.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./statistics.bif.zeek, <...>/statistics.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./std-dev, <...>/std-dev.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./store, <...>/store.zeek) -> -1
@@ -1320,6 +1321,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./site, <...>/site.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./smb1-main, <...>/smb1-main.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./smb2-main, <...>/smb2-main.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./statistics.bif.zeek, <...>/statistics.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./std-dev, <...>/std-dev.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./store, <...>/store.zeek) -> (-1, <no content>)
@@ -2451,6 +2453,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./site, <...>/site.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./smb1-main, <...>/smb1-main.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./smb2-main, <...>/smb2-main.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./statistics.bif.zeek, <...>/statistics.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./std-dev, <...>/std-dev.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./store, <...>/store.zeek)
@@ -2836,6 +2839,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./site, <...>/site.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./smb1-main, <...>/smb1-main.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./smb2-main, <...>/smb2-main.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./statistics.bif.zeek, <...>/statistics.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./std-dev, <...>/std-dev.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./store, <...>/store.zeek)
@@ -3977,6 +3981,7 @@
 0.000000 | HookLoadFile  ./site <...>/site.zeek
 0.000000 | HookLoadFile  ./smb1-main <...>/smb1-main.zeek
 0.000000 | HookLoadFile  ./smb2-main <...>/smb2-main.zeek
+0.000000 | HookLoadFile  ./statistics.bif.zeek <...>/statistics.bif.zeek
 0.000000 | HookLoadFile  ./stats.bif.zeek <...>/stats.bif.zeek
 0.000000 | HookLoadFile  ./std-dev <...>/std-dev.zeek
 0.000000 | HookLoadFile  ./store <...>/store.zeek
@@ -4362,6 +4367,7 @@
 0.000000 | HookLoadFileExtended ./site <...>/site.zeek
 0.000000 | HookLoadFileExtended ./smb1-main <...>/smb1-main.zeek
 0.000000 | HookLoadFileExtended ./smb2-main <...>/smb2-main.zeek
+0.000000 | HookLoadFileExtended ./statistics.bif.zeek <...>/statistics.bif.zeek
 0.000000 | HookLoadFileExtended ./stats.bif.zeek <...>/stats.bif.zeek
 0.000000 | HookLoadFileExtended ./std-dev <...>/std-dev.zeek
 0.000000 | HookLoadFileExtended ./store <...>/store.zeek

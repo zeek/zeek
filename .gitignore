@@ -24,3 +24,5 @@ out/
 .vs/
 .vscode/
 CMakeSettings.json
+
+src/include

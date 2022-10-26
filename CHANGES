@@ -1,3 +1,7 @@
+5.2.0-dev.147 | 2022-10-26 11:37:24 +0200
+
+  * GH-2272: Use `json_escape_utf8` in broker debug output (AmazingPP)
+
 5.2.0-dev.145 | 2022-10-26 10:51:05 +0200
 
   * Reintroduce event groups. (Arne Welzel, Corelight)

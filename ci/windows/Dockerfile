@@ -12,12 +12,12 @@ RUN [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePoin
 # Install prerequisites
 RUN choco install -y --no-progress visualstudio2019buildtools --version=16.11.11.0
 RUN choco install -y --no-progress visualstudio2019-workload-vctools --version=1.0.0 --package-parameters '--add Microsoft.VisualStudio.Component.VC.ATLMFC'
-RUN choco install conan -y
-RUN choco install sed -y
-RUN choco install winflexbison3 -y
-RUN choco install msysgit -y
-RUN choco install python -y
-RUN choco install openssl -y
+RUN choco install -y --no-progress conan
+RUN choco install -y --no-progress sed
+RUN choco install -y --no-progress winflexbison3
+RUN choco install -y --no-progress msysgit
+RUN choco install -y --no-progress python
+RUN choco install -y --no-progress openssl
 
 # Set working environment.
 SHELL [ "cmd", "/c" ]

@@ -1540,29 +1540,50 @@ function cat%(...%): string
 ## Concatenates all arguments, with a separator placed between each one. This
 ## function is similar to :zeek:id:`cat`, but places a separator between each
 ## given argument. If any of the variable arguments is an empty string it is
-## replaced by a given default string instead.
-##
-## sep: The separator to place between each argument.
-##
-## def: The default string to use when an argument is the empty string.
+## replaced by the given default string instead. This function takes at least
+## two arguments. The first argument is the separator *sep* placed between
+## each argument, the second argument is the default string *def* used when
+## an argument is the empty string.
 ##
 ## Returns: A concatenation of all arguments with *sep* between each one and
 ##          empty strings replaced with *def*.
 ##
 ## .. zeek:see:: cat string_cat
-function cat_sep%(sep: string, def: string, ...%): string
+function cat_sep%(...%): string
 	%{
+	if ( @ARGC@ < 2 )
+		{
+		zeek::emit_builtin_error(zeek::util::fmt("cat_sep() takes at least 2 arguments, got %ld",
+		                                         @ARGC@));
+		return nullptr;
+		}
+
+	zeek::ValPtr sep_arg = @ARG@[0];
+	zeek::ValPtr def_arg = @ARG@[1];
+
+	if ( sep_arg->GetType()->Tag() != zeek::TYPE_STRING )
+		{
+		zeek::emit_builtin_error(zeek::util::fmt("expected type string for separator, got %s",
+		                                         zeek::type_name(sep_arg->GetType()->Tag())));
+		return nullptr;
+		}
+
+	if ( def_arg->GetType()->Tag() != zeek::TYPE_STRING )
+		{
+		zeek::emit_builtin_error(zeek::util::fmt("expected type string for default, got %s",
+		                                         zeek::type_name(def_arg->GetType()->Tag())));
+		return nullptr;
+		}
+
+	zeek::StringVal* sep = sep_arg->AsStringVal();
+	zeek::StringVal* def = def_arg->AsStringVal();
+
 	zeek::ODesc d;
 	d.SetStyle(RAW_STYLE);
-
 	int pre_size = 0;
 
-	for ( auto i = 0u; i < @ARG@.size(); ++i )
+	for ( auto i = 2u; i < @ARGC@; ++i )
 		{
-		// Skip named parameters.
-		if ( i < 2 )
-			continue;
-
 		if ( i > 2 )
 			d.Add(sep->CheckString(), 0);
 

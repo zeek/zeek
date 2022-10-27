@@ -107,6 +107,9 @@ Changed Functionality
 - The parameter given to ``enum_names()`` can now be a string naming the
   enum type, rather than the type itself.
 
+- Passing non-string ``sep`` and ``def`` arguments to ``cat_sep()`` isn't a
+  fatal error anymore. More descriptive error messages are produced, too.
+
 Deprecated Functionality
 ------------------------
 

@@ -12,13 +12,12 @@ RUN [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePoin
 # Install prerequisites
 RUN choco install -y --no-progress visualstudio2019buildtools --version=16.11.11.0
 RUN choco install -y --no-progress visualstudio2019-workload-vctools --version=1.0.0 --package-parameters '--add Microsoft.VisualStudio.Component.VC.ATLMFC'
-RUN choco install powershell-core -y
 RUN choco install conan -y
 RUN choco install sed -y
-RUN choco install winflexbison -y
-# Can't install a proper msys2 because it caused console hanging in the container during docker build.
+RUN choco install winflexbison3 -y
 RUN choco install msysgit -y
 RUN choco install python -y
+RUN choco install openssl -y
 
 # Set working environment.
 SHELL [ "cmd", "/c" ]
@@ -28,4 +27,4 @@ RUN mkdir C:\build
 WORKDIR C:\build
 
 # This entry point starts the developer command prompt and launches the PowerShell shell.
-ENTRYPOINT ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\Common7\\Tools\\VsDevCmd.bat", "-arch=x64", "&&", "pwsh.exe", "-NoLogo", "-ExecutionPolicy", "Unrestricted"]
+ENTRYPOINT ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\Common7\\Tools\\VsDevCmd.bat", "-arch=x64", "&&", "powershell.exe", "-NoLogo", "-ExecutionPolicy", "Unrestricted"]

@@ -10,6 +10,7 @@ endif()
 project(Zeek C CXX)
 
 option(ZEEK_STANDALONE "Is Zeek compiled stand-alone or embedded in a parent project." ON)
+option(ENABLE_ZEEK_UNIT_TESTS "Should the doctest unit tests be built?" ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})

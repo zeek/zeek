@@ -1613,6 +1613,8 @@ void TestDNS_Mgr::Process()
 
 TEST_CASE("dns_mgr priming" * doctest::skip(true))
 	{
+	// TODO: This test uses mkdtemp, which isn't available on Windows.
+#ifndef _MSC_VER
 	char prefix[] = "/tmp/zeek-unit-test-XXXXXX";
 	auto tmpdir = mkdtemp(prefix);
 
@@ -1658,6 +1660,7 @@ TEST_CASE("dns_mgr priming" * doctest::skip(true))
 	// Clean up cache file and the temp directory
 	unlink(mgr2.CacheFile().c_str());
 	rmdir(tmpdir);
+#endif
 	}
 
 TEST_CASE("dns_mgr alternate server" * doctest::skip(true))

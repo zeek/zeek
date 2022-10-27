@@ -1,6 +1,6 @@
 #
-# @TEST-EXEC: zeek -b %INPUT 
-# @TEST-EXEC: cat ssh.log | egrep -v '#open|#close' >ssh.log.tmp && mv ssh.log.tmp ssh.log
+# @TEST-EXEC: zeek -b %INPUT
+# @TEST-EXEC: cat ssh.log | grep -E -v '#open|#close' >ssh.log.tmp && mv ssh.log.tmp ssh.log
 # @TEST-EXEC: btest-diff ssh.log
 
 redef LogAscii::separator = "||";
@@ -28,6 +28,5 @@ event zeek_init()
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="US"]);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="fa||ure", $country="UK"]);
 	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="su||ess", $country="BR"]);
-	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);	
+	Log::write(SSH::LOG, [$t=network_time(), $id=cid, $status="failure", $country="MX"]);
 }
-

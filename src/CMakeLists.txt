@@ -489,10 +489,18 @@ elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
        ../auxil/highwayhash/highwayhash/hh_vsx.cc
   )
 elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
+  if (MSVC)
+    set(_avx_flag /arch:AVX2)
+    set(_sse_flag /d2archSSE42)
+  else()
+    set(_avx_flag -mavx2)
+    set(_sse_flag -msse4.1)
+  endif()
+
   set_source_files_properties(../auxil/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
-                              -mavx2)
+                              ${_avx_flag})
   set_source_files_properties(../auxil/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS
-                              -msse4.1)
+                              ${_sse_flag})
 
   list(APPEND HH_SRCS
       ../auxil/highwayhash/highwayhash/hh_avx2.cc

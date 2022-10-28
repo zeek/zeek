@@ -1,3 +1,9 @@
+5.2.0-dev.162 | 2022-10-28 16:54:23 -0700
+
+  * GH-2425: cat_sep: Make fully vararg and do explicit runtime type checks (Arne Welzel, Corelight)
+
+  * Update cmake submodule (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.159 | 2022-10-28 15:44:57 -0700
 
   * Update Spicy to the latest development snapshot. (Benjamin Bannier, Corelight)

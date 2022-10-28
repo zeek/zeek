@@ -17,6 +17,8 @@ event zeek_init()
 	print cat_sep("|", "<empty>", a, b, c);
 
 	print cat_sep("|", "<empty>");
-	
+
+	print cat_sep("|", "<empty>", "");
+
 	print cat_sep("|", "<empty>", "", b, c);
 	}

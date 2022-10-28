@@ -103,11 +103,12 @@ if ( MSVC )
 
     # Disable Spicy as it is not yet supported in Windows.
     set(DISABLE_SPICY true)
+
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 else ()
     include(GNUInstallDirs)
 endif ()
 
-set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 if ( CMAKE_SYSTEM_NAME STREQUAL Linux )
     set(CMAKE_DL_LIBS pthread ${CMAKE_DL_LIBS})
 endif ()

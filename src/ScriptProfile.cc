@@ -102,7 +102,7 @@ ScriptProfileMgr::~ScriptProfileMgr()
 		auto& fp = fs.second;
 		auto n = func->GetBodies().size();
 		if ( n > 1 )
-			fprintf(f, "%s\t%lu-locations\t%s\t%d\t%.06f\t%0.6f\t%" PRIu64 "\t%lld\n",
+			fprintf(f, "%s\t%zu-locations\t%s\t%d\t%.06f\t%0.6f\t%" PRIu64 "\t%lld\n",
 			        fp.Name().c_str(), n, func->GetType()->FlavorString().c_str(), fp.NumCalls(),
 			        fp.CPUTime(), 0.0, fp.Memory(), 0LL);
 		}

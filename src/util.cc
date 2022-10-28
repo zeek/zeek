@@ -1128,9 +1128,9 @@ TEST_CASE("util streq")
 	CHECK(streq("abcd", "efgh") == false);
 	}
 
-int streq(const char* s1, const char* s2)
+bool streq(const char* s1, const char* s2)
 	{
-	return ! strcmp(s1, s2);
+	return strcmp(s1, s2) == 0;
 	}
 
 bool starts_with(std::string_view s, std::string_view beginning)
@@ -2282,8 +2282,8 @@ const void* memory_align(const void* ptr, size_t size)
 
 	const char* buf = reinterpret_cast<const char*>(ptr);
 	size_t mask = size - 1; // Assume size is a power of 2.
-	unsigned long l_ptr = reinterpret_cast<unsigned long>(ptr);
-	unsigned long offset = l_ptr & mask;
+	intptr_t l_ptr = reinterpret_cast<intptr_t>(ptr);
+	ptrdiff_t offset = l_ptr & mask;
 
 	if ( offset > 0 )
 		return reinterpret_cast<const void*>(buf - offset + size);
@@ -2322,7 +2322,7 @@ void* memory_align_and_pad(void* ptr, size_t size)
 
 	char* buf = reinterpret_cast<char*>(ptr);
 	size_t mask = size - 1;
-	while ( (reinterpret_cast<unsigned long>(buf) & mask) != 0 )
+	while ( (reinterpret_cast<intptr_t>(buf) & mask) != 0 )
 		// Not aligned - zero pad.
 		*buf++ = '\0';
 

@@ -271,20 +271,19 @@ extern const char* ZEEK_VERSION_FUNCTION();
 	#endif
 #endif
 
-// FreeBSD doesn't support LeakSanitizer
 #if defined(ZEEK_ASAN) && !defined(__FreeBSD__)
-	#include <sanitizer/lsan_interface.h>
-	#define ZEEK_LSAN_CHECK(x) __lsan_do_leak_check(x)
-	#define ZEEK_LSAN_ENABLE(x) __lsan_enable(x)
-	#define ZEEK_LSAN_IGNORE(x) __lsan_ignore_object(x)
-	#define ZEEK_LSAN_DISABLE(x) __lsan_disable(x)
-	#define ZEEK_LSAN_DISABLE_SCOPE(x) __lsan::ScopedDisabler x
+    #include <sanitizer/lsan_interface.h>
+    #define ZEEK_LSAN_CHECK(...) __lsan_do_leak_check(__VA_ARGS__)
+    #define ZEEK_LSAN_ENABLE(...) __lsan_enable(__VA_ARGS__)
+    #define ZEEK_LSAN_IGNORE(...) __lsan_ignore_object(__VA_ARGS__)
+    #define ZEEK_LSAN_DISABLE(...) __lsan_disable(__VA_ARGS__)
+    #define ZEEK_LSAN_DISABLE_SCOPE(...) __lsan::ScopedDisabler __VA_ARGS__
 #else
-	#define ZEEK_LSAN_CHECK(x)
-	#define ZEEK_LSAN_ENABLE(x)
-	#define ZEEK_LSAN_IGNORE(x)
-	#define ZEEK_LSAN_DISABLE(x)
-	#define ZEEK_LSAN_DISABLE_SCOPE(x)
+    #define ZEEK_LSAN_CHECK(...)
+    #define ZEEK_LSAN_ENABLE(...)
+    #define ZEEK_LSAN_IGNORE(...)
+    #define ZEEK_LSAN_DISABLE(...)
+    #define ZEEK_LSAN_DISABLE_SCOPE(...)
 #endif
 
 // This part is dependent on calling configure with '--sanitizers=thread'

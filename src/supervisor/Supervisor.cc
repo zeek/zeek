@@ -1249,7 +1249,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	const auto& affinity_val = node->GetField("cpu_affinity");
 
 	if ( affinity_val )
-		rval.cpu_affinity = affinity_val->AsInt();
+		rval.cpu_affinity = static_cast<int>(affinity_val->AsInt());
 
 	const auto& bare_mode_val = node->GetField("bare_mode");
 

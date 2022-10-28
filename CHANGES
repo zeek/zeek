@@ -1,3 +1,7 @@
+5.2.0-dev.154 | 2022-10-27 17:09:55 -0700
+
+  * egrep reported as obsolete by opensuse-tumbleweed builds (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.150 | 2022-10-26 16:48:18 -0700
 
   * Include in Jan's AF_PACKET plugin as builtin plugin (Arne Welzel, Corelight)

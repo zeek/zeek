@@ -20,8 +20,8 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
-all_loads=$(egrep "#[[:space:]]*@load.*" $1 | sed 's/#[[:space:]]*@load[[:space:]]*//g')
-zeekygen_loads=$(egrep "@load.*" $2 | sed 's/@load[[:space:]]*//g')
+all_loads=$(grep -E "#[[:space:]]*@load.*" $1 | sed 's/#[[:space:]]*@load[[:space:]]*//g')
+zeekygen_loads=$(grep -E "@load.*" $2 | sed 's/@load[[:space:]]*//g')
 
 for f in $all_loads; do
     echo "$zeekygen_loads" | grep -q $f || error_msg "$f not loaded in zeekygen/__load__.zeek"

@@ -42,7 +42,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <filesystem>
 #include <random>
 
 #include "zeek/3rdparty/ConvertUTF.h"

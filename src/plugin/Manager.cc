@@ -359,10 +359,14 @@ void Manager::ActivateDynamicPlugins(bool all)
 
 	// Activate plugins that our environment tells us to.
 	vector<string> p;
-	util::tokenize_string(util::zeek_plugin_activate(), ",", &p);
+	std::string plugin_activate = util::zeek_plugin_activate();
+	if ( ! plugin_activate.empty() )
+		{
+		util::tokenize_string(util::zeek_plugin_activate(), ",", &p);
 
-	for ( const auto& x : p )
-		plugins_to_activate.emplace(x, true);
+		for ( const auto& x : p )
+			plugins_to_activate.emplace(x, true);
+		}
 
 	if ( all )
 		{

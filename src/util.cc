@@ -778,7 +778,7 @@ std::string get_exe_path(const std::string& invocation)
 		// Absolute path
 		return invocation;
 
-	if ( invocation_path.is_relative() )
+	if ( invocation_path.is_relative() && invocation_path.has_parent_path() )
 		{
 		// Relative path
 		char cwd[PATH_MAX];
@@ -1620,7 +1620,7 @@ const char* fmt_bytes(const char* data, int len)
 const char* vfmt(const char* format, va_list al)
 	{
 	static char* buf = nullptr;
-	static unsigned int buf_len = 1024;
+	static int buf_len = 1024;
 
 	if ( ! buf )
 		buf = (char*)safe_malloc(buf_len);

@@ -1,3 +1,7 @@
+5.2.0-dev.156 | 2022-10-27 17:11:13 -0700
+
+  * Bump spicy-plugin to v1.3.21. (Benjamin Bannier, Corelight)
+
 5.2.0-dev.154 | 2022-10-27 17:09:55 -0700
 
   * egrep reported as obsolete by opensuse-tumbleweed builds (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,9 @@
+5.1.0-rc1.7 | 2022-10-27 17:20:51 -0700
+
+  * Bump spicy-plugin to v1.3.21. (Benjamin Bannier, Corelight)
+
+  * Update broker to latest master [nomail] (Tim Wojtulewicz, Corelight)
+
 5.1.0-rc1.4 | 2022-10-07 09:04:14 -0700
 
   * Update CT log list.

@@ -101,6 +101,9 @@ New Functionality
   possible to place these outside of ``for``, ``while`` or ``switch``
   statements without any error indication.
 
+- Add two BIFs ``get_identifier_declaring_script()`` and ``get_record_field_declaring_script()``
+  to query the declaring scripts for identifiers and record fields from Zeek scripts.
+
 Changed Functionality
 ---------------------
 

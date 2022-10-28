@@ -21,7 +21,7 @@ static zeek::StringValPtr comments_to_val(const vector<string>& comments)
 ## name: a script-level identifier for which to retrieve comments.
 ##
 ## Returns: comments associated with *name*.  If *name* is not a known
-##          identifier, an empty string is returned.
+##          script-level identifier, an empty string is returned.
 function get_identifier_comments%(name: string%): string
 	%{
 	using namespace zeekygen;
@@ -31,6 +31,26 @@ function get_identifier_comments%(name: string%): string
 		return zeek::val_mgr->EmptyString();
 
 	return comments_to_val(d->GetComments());
+	%}
+
+## Retrieve the declaring script associated with an identifier
+## (e.g. a variable or type).
+##
+## name: a script-level identifier
+##
+## Returns: declaring script associated with *name*. If *name* is not a known
+##          script-level identifier, an empty string is returned.
+##
+## .. zeek:see:: get_record_field_declaring_script
+function get_identifier_declaring_script%(name: string%): string
+	%{
+	using namespace zeekygen;
+	zeek::zeekygen::detail::IdentifierInfo* d = zeek::detail::zeekygen_mgr->GetIdentifierInfo(name->CheckString());
+
+	if ( ! d )
+		return zeek::val_mgr->EmptyString();
+
+	return zeek::make_intrusive<zeek::StringVal>(d->GetDeclaringScript()->Name());
 	%}
 
 ## Retrieve the Zeekygen-style summary comments (``##!``) associated with
@@ -73,12 +93,12 @@ function get_package_readme%(name: string%): string
 
 ## Retrieve the Zeekygen-style comments (``##``) associated with a record field.
 ##
-## name: the name of a record type and a field within it formatted like
-##       a typical record field access: "<record_type>$<field>".
+## name: the name of a script-level record type and a field within it formatted
+##       like a typical record field access: "<record_type>$<field>".
 ##
 ## Returns: comments associated with the record field.  If *name* does
-##          not point to a known record type or a known field within a record
-##          type, an empty string is returned.
+##          not point to a known script-level record type or a known field within
+##          a record type, an empty string is returned.
 function get_record_field_comments%(name: string%): string
 	%{
 	using namespace zeekygen;
@@ -97,4 +117,37 @@ function get_record_field_comments%(name: string%): string
 
 	string field = accessor.substr(i + 1);
 	return comments_to_val(d->GetFieldComments(field));
+	%}
+
+## Retrieve the declaring script associated with a record field.
+##
+## The declaring script for a field is different from the declaring script
+## of the record type itself when fields were added via redef.
+##
+## name: the name of a script-level record type and a field within it formatted
+##       like a typical record field access: "<record_type>$<field>".
+##
+## Returns: the declaring script associated with the record field.  If *name* does
+##          not point to a known script-level record type or a known field within
+##          a record type, an empty string is returned.
+##
+## .. zeek:see:: get_identifier_declaring_script
+function get_record_field_declaring_script%(name: string%): string
+	%{
+	using namespace zeekygen;
+	string accessor = name->CheckString();
+	size_t i = accessor.find('$');
+
+	if ( i > accessor.size() - 2 )
+		return zeek::val_mgr->EmptyString();
+
+	string id = accessor.substr(0, i);
+
+	zeek::zeekygen::detail::IdentifierInfo* d = zeek::detail::zeekygen_mgr->GetIdentifierInfo(id);
+
+	if ( ! d )
+		return zeek::val_mgr->EmptyString();
+
+	string field = accessor.substr(i + 1);
+	return zeek::make_intrusive<zeek::StringVal>(d->GetDeclaringScriptForField(field));
 	%}

@@ -362,6 +362,17 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const
 	const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
 	call_stack.emplace_back(CallInfo{call_expr, this, *args});
 
+	// If a script function is ever invoked with more arguments than it has
+	// parameters log an error and return. Most likely a "variadic function"
+	// that only has a single any parameter and is excluded from static type
+	// checking is involved. This should otherwise not be possible to hit.
+	auto num_params = static_cast<size_t>(GetType()->Params()->NumFields());
+	if ( args->size() > num_params )
+		{
+		emit_builtin_exception("too many arguments for function call");
+		return nullptr;
+		}
+
 	if ( etm && Flavor() == FUNC_FLAVOR_EVENT )
 		etm->StartEvent(this, args);
 

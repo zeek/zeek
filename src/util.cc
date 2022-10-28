@@ -672,7 +672,7 @@ string normalize_path(std::string_view path)
 	{
 		stringPath.erase(0, 2);
 	}
-	return std::filesystem::path(stringPath).lexically_normal().string();
+	return zeek::filesystem::path(stringPath).lexically_normal().string();
 #else
 	if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos )
 		{
@@ -772,7 +772,7 @@ std::string get_exe_path(const std::string& invocation)
 	{
 	if ( invocation.empty() )
 		return "";
-	std::filesystem::path invocation_path(invocation);
+	zeek::filesystem::path invocation_path(invocation);
 
 	if ( invocation_path.is_absolute() || invocation_path.root_directory() == "~" )
 		// Absolute path
@@ -789,7 +789,7 @@ std::string get_exe_path(const std::string& invocation)
 			exit(1);
 			}
 
-		return (std::filesystem::path(cwd) / invocation_path).string();
+		return (zeek::filesystem::path(cwd) / invocation_path).string();
 		}
 
 	auto path = getenv("PATH");
@@ -1967,7 +1967,7 @@ static string find_file_in_path(const string& filename, const string& path,
 	if ( filename.empty() )
 		return string();
 
-	std::filesystem::path filepath(filename);
+	zeek::filesystem::path filepath(filename);
 
 	// If file name is an absolute path, searching within *path* is pointless.
 	if ( filepath.is_absolute() )
@@ -1978,7 +1978,7 @@ static string find_file_in_path(const string& filename, const string& path,
 			return string();
 		}
 
-	auto abs_path = (std::filesystem::path(path) / filepath).string();
+	auto abs_path = (zeek::filesystem::path(path) / filepath).string();
 
 	if ( ! opt_ext.empty() )
 		{

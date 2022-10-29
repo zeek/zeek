@@ -8,6 +8,7 @@ extern "C" {
 }
 #include <stdint.h>
 #include <stdexcept>
+#include <string>
 
 #define TPACKET_VERSION TPACKET_V3
 

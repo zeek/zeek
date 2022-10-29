@@ -12,6 +12,7 @@ namespace zeek::detail
 extern int watchdog_interval;
 
 extern int max_timer_expires;
+extern bool expire_all_timers;
 
 extern int ignore_checksums;
 extern int partial_connection_ok;

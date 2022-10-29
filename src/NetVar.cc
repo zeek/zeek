@@ -112,6 +112,7 @@ namespace zeek::detail
 int watchdog_interval;
 
 int max_timer_expires;
+bool expire_all_timers;
 
 int ignore_checksums;
 int partial_connection_ok;
@@ -301,6 +302,7 @@ void init_net_var()
 	watchdog_interval = int(id::find_val("watchdog_interval")->AsInterval());
 
 	max_timer_expires = id::find_val("max_timer_expires")->AsCount();
+	expire_all_timers = id::find_val("expire_all_timers")->AsBool();
 
 	mime_segment_length = id::find_val("mime_segment_length")->AsCount();
 	mime_segment_overlap_length = id::find_val("mime_segment_overlap_length")->AsCount();

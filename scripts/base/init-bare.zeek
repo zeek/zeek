@@ -2098,9 +2098,12 @@ const watchdog_interval = 10 sec &redef;
 
 ## The maximum number of timers to expire after processing each new
 ## packet.  The value trades off spreading out the timer expiration load
-## with possibly having to hold state longer.  A value of 0 means
-## "process all expired timers with each new packet".
+## with possibly having to hold state longer.
 const max_timer_expires = 300 &redef;
+
+## If true, :zeek:see:`max_timer_expires` is ignored and all expired timers
+## are processed with each new packet.
+const expire_all_timers = F &redef;
 
 # These need to match the definitions in Login.h.
 #

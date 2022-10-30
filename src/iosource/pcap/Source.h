@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <unistd.h>
 
 extern "C"
 	{

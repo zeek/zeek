@@ -1,12 +1,11 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <unistd.h>
-#include <sys/socket.h>
-
 #include "zeek/iosource/BPF_Program.h"
 
 #include "zeek/zeek-config.h"
 
+#include <unistd.h>
+#include <sys/socket.h>
 #include <cstring>
 
 #include "zeek/util.h"

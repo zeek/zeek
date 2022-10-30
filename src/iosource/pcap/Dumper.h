@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <unistd.h>
+
 extern "C"
 	{
 #include <pcap.h>

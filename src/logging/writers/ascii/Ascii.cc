@@ -910,17 +910,12 @@ string Ascii::Timestamp(double t)
 	time_t teatime = time_t(t);
 
 	if ( ! teatime )
-		{
-		// Use wall clock.
-		struct timeval tv;
-		if ( gettimeofday(&tv, 0) < 0 )
-			Error("gettimeofday failed");
-		else
-			teatime = tv.tv_sec;
-		}
+		teatime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
 	struct tm tmbuf;
 	struct tm* tm = localtime_r(&teatime, &tmbuf);
+	if ( tm == nullptr )
+		Error(util::fmt("localtime_r failed: %s", strerror(errno)));
 
 	char tmp[128];
 	const char* const date_fmt = "%Y-%m-%d-%H-%M-%S";

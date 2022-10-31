@@ -216,6 +216,9 @@ void IPBasedAnalyzer::BuildSessionAnalyzerTree(Connection* conn)
 			}
 		}
 
+	// Make analyzers added above through known ports visible via GetChildren()
+	root->AppendNewChildren();
+
 	root->AddExtraAnalyzers(conn);
 
 	if ( pia )

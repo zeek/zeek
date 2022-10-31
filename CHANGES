@@ -1,3 +1,21 @@
+5.2.0-dev.169 | 2022-10-31 15:18:04 -0700
+
+  * bifs/record_fields: Include actual enum name in type_name (Arne Welzel, Corelight)
+
+    One more from @stevesmoot. The record_fields() BIF produced "enum" as
+    type_name for fields of type enum.
+
+    Extend container_type_name() to append the actual name of the enum.
+
+    This is changing the format and may break consumers, but those are
+    likely in a category that are happy to adapt. Not having the actual
+    enum name available wasn't very helpful.
+
+    We could alternatively render only the actual type_name without the
+    prefixed "enum", but that isn't how it's done for record types currently
+    and it would make it more difficult to decide which subsequent BIFs to
+    use for further introspection, like enum_names().
+
 5.2.0-dev.167 | 2022-10-31 14:57:21 -0700
 
   * IPBasedAnalyzer/TCPSessionAdapter: Fix TCP reassembly decision for known port analyzers (Arne Welzel, Corelight)

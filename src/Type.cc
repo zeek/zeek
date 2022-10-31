@@ -1235,6 +1235,8 @@ static string container_type_name(const Type* ft)
 			s += container_type_name(ft->Yield().get());
 			}
 		}
+	else if ( ft->Tag() == TYPE_ENUM )
+		s = "enum " + ft->GetName();
 	else
 		s = type_name(ft->Tag());
 	return s;

@@ -1,3 +1,24 @@
+5.2.0-dev.167 | 2022-10-31 14:57:21 -0700
+
+  * IPBasedAnalyzer/TCPSessionAdapter: Fix TCP reassembly decision for known port analyzers (Arne Welzel, Corelight)
+
+    This seems to be an age-old bug. Reported by mchen on discourse [1].
+
+    The TCPSessionAdapter decides in AddExtraAnalyzers() whether to enable
+    reassembly or not. When dpd_reassemble_first_packets is F, this boils down to
+    ! GetChildren().empty(). The intention being that if any analyzers have been
+    added to the connection based on known ports, reassembly is to be enabled.
+
+    However, GetChildren() does not take into account new_children and so
+    ! GetChildren().empty() is always false here and reassembly solely
+    based on dpd_reassemble_first_packets=F (or the tcp_content... options).
+    Ouch.
+
+    Call AppendNewChildren() before AddExtraAnalyzers() as a fix. Without this,
+    the new test does not produce an http.log and service "http" isn't in conn.log.
+
+    [1] https://community.zeek.org/t/how-to-activate-an-application-layer-analyzer-when-signature-dpd-reassemble-first-packets-is-off/6763
+
 5.2.0-dev.162 | 2022-10-28 16:54:23 -0700
 
   * GH-2425: cat_sep: Make fully vararg and do explicit runtime type checks (Arne Welzel, Corelight)

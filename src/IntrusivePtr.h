@@ -28,7 +28,7 @@ struct NewRef
 	};
 
 /**
- * This has to be forward decalred and known here in order for us to be able
+ * This has to be forward declared and known here in order for us to be able
  * cast this in the `Unref` function.
  */
 class OpaqueVal;

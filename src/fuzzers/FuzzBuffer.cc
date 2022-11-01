@@ -2,11 +2,11 @@
 #define _GNU_SOURCE
 #endif
 
+#include "zeek/fuzzers/FuzzBuffer.h"
+
 #ifdef _MSC_VER
 #include <mem.h>
 #endif
-
-#include "zeek/fuzzers/FuzzBuffer.h"
 
 #include <cstring>
 

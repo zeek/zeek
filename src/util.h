@@ -110,8 +110,6 @@ namespace zeek
 class ODesc;
 class RecordVal;
 
-
-
 namespace util
 	{
 namespace detail

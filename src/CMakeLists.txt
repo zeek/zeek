@@ -491,6 +491,7 @@ elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
 elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
   if (MSVC)
     set(_avx_flag /arch:AVX2)
+    # Using an undocumentd compiler flag: https://stackoverflow.com/questions/64053597/how-do-i-enable-sse4-1-and-sse3-but-not-avx-in-msvc/69328426#69328426
     set(_sse_flag /d2archSSE42)
   else()
     set(_avx_flag -mavx2)

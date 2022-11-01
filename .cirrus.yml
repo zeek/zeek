@@ -59,7 +59,7 @@ ci_template: &CI_TEMPLATE
   only_if: >
     ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-    ( $CIRRUS_REPO_NAME == 'ms-zeek' &&
+    ( $CIRRUS_REPO_NAME == 'zeek' &&
       (
       $CIRRUS_BRANCH == 'master' ||
       $CIRRUS_BRANCH =~ 'release/.*'

@@ -162,6 +162,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,
                                             std::vector<std::string>* errors)
 	{
+// Loading dynamic plugins is not currently supported on Windows platform.
 #if defined(_MSC_VER)
 	return false;
 #else

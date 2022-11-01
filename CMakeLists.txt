@@ -103,23 +103,8 @@ if ( MSVC )
 
     # Disable Spicy as it is not yet supported in Windows.
     set(DISABLE_SPICY true)
-
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 else ()
     include(GNUInstallDirs)
-endif ()
-
-if ( CMAKE_SYSTEM_NAME STREQUAL Linux )
-    set(CMAKE_DL_LIBS pthread ${CMAKE_DL_LIBS})
-endif ()
-
-if ( NOT CMAKE_INSTALL_LIBDIR )
-    # Currently, some sub-projects may use GNUInstallDirs.cmake to choose the
-    # library install dir, while others just default to "lib".  For sake of
-    # consistency, this just overrides the former to always use "lib" in case
-    # it would have chosen something else, like "lib64", but a thing for the
-    # future may be to standardize all sub-projects to use GNUInstallDirs.
-    set(CMAKE_INSTALL_LIBDIR lib)
 endif ()
 
 include(cmake/CommonCMakeConfig.cmake)

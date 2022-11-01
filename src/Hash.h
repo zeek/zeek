@@ -372,7 +372,7 @@ protected:
 	void Set(double d);
 	void Set(const void* p);
 
-		union {
+	union {
 		bool b;
 		int i;
 		zeek_int_t bi;

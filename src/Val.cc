@@ -3962,7 +3962,6 @@ ValManager::ValManager()
 
 	for ( auto i = 0u; i < PREALLOCATED_INTS; ++i )
 		ints[i] = Val::MakeInt(PREALLOCATED_INT_LOWEST + i);
-
 	}
 
 const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type)
@@ -3975,9 +3974,7 @@ const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type)
 
 	std::pair key{port_num, port_type};
 	if ( ports.find(key) == ports.end() )
-		{
 		ports[key] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(port_num, port_type))};
-		}
 
 	return ports[key];
 	}

@@ -995,12 +995,14 @@ std::optional<SupervisedNode> Stem::Poll()
 		node_pollfd_indices[name] = pfd_idx;
 
 		if ( node.stdout_pipe.pipe )
-			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(node.stdout_pipe.pipe->ReadFD()), POLLIN, 0};
+			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(node.stdout_pipe.pipe->ReadFD()),
+			                   POLLIN, 0};
 		else
 			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(-1), POLLIN, 0};
 
 		if ( node.stderr_pipe.pipe )
-			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(node.stderr_pipe.pipe->ReadFD()), POLLIN, 0};
+			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(node.stderr_pipe.pipe->ReadFD()),
+			                   POLLIN, 0};
 		else
 			pfds[pfd_idx++] = {static_cast<decltype(pollfd::fd)>(-1), POLLIN, 0};
 		}

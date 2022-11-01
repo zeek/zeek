@@ -40,9 +40,9 @@
 #include <algorithm>
 #include <array>
 #include <iostream>
+#include <random>
 #include <string>
 #include <vector>
-#include <random>
 
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/3rdparty/doctest.h"
@@ -662,15 +662,16 @@ TEST_CASE("util normalize_path")
 string normalize_path(std::string_view path)
 	{
 #ifdef _MSC_VER
-	if (0 == path.compare(zeek::detail::ScannedFile::canonical_stdin_path)) {
+	if ( 0 == path.compare(zeek::detail::ScannedFile::canonical_stdin_path) )
+		{
 		return string(path);
-	}
+		}
 	// "//" interferes with std::weakly_canonical
 	string stringPath = string(path);
-	if (stringPath._Starts_with("//"))
-	{
+	if ( stringPath._Starts_with("//") )
+		{
 		stringPath.erase(0, 2);
-	}
+		}
 	return zeek::filesystem::path(stringPath).lexically_normal().string();
 #else
 	if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos )
@@ -1805,37 +1806,35 @@ FILE* open_file(const string& path, const string& mode)
 	return rval;
 	}
 
-TEST_CASE("util path ops")
-	{
+TEST_CASE("util path ops"){
 #ifdef _MSC_VER
-	// TODO: adapt these tests to Windows paths
+// TODO: adapt these tests to Windows paths
 #else
-	SUBCASE("SafeDirname")
-		{
-		SafeDirname d("/this/is/a/path", false);
-		CHECK(d.result == "/this/is/a");
+	SUBCASE("SafeDirname"){SafeDirname d("/this/is/a/path", false);
+CHECK(d.result == "/this/is/a");
 
-		SafeDirname d2("invalid", false);
-		CHECK(d2.result == ".");
+SafeDirname d2("invalid", false);
+CHECK(d2.result == ".");
 
-		SafeDirname d3("./filename", false);
-		CHECK(d2.result == ".");
-		}
-
-	SUBCASE("SafeBasename")
-		{
-		SafeBasename b("/this/is/a/path", false);
-		CHECK(b.result == "path");
-		CHECK(! b.error);
-
-		SafeBasename b2("justafile", false);
-		CHECK(b2.result == "justafile");
-		CHECK(! b2.error);
-		}
-#endif
+SafeDirname d3("./filename", false);
+CHECK(d2.result == ".");
 	}
 
-SafeDirname::SafeDirname(const char* path, bool error_aborts) : SafePathOp()
+SUBCASE("SafeBasename")
+	{
+	SafeBasename b("/this/is/a/path", false);
+	CHECK(b.result == "path");
+	CHECK(! b.error);
+
+	SafeBasename b2("justafile", false);
+	CHECK(b2.result == "justafile");
+	CHECK(! b2.error);
+	}
+#endif
+}
+
+SafeDirname::SafeDirname(const char* path, bool error_aborts)
+	: SafePathOp()
 	{
 	DoFunc(path ? path : "", error_aborts);
 	}

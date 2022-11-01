@@ -63,7 +63,7 @@ string SQLite::GetTableType(int arg_type, int arg_subtype)
 		case TYPE_INT:
 		case TYPE_COUNT:
 		case TYPE_PORT: // note that we do not save the protocol at the moment. Just like in the
-		                // case of the ascii-writer
+	                // case of the ascii-writer
 			type = "integer";
 			break;
 

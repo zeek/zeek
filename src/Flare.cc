@@ -12,19 +12,18 @@
 
 #include <winsock2.h>
 
-#define fatalError(...)					\
-do							\
-	{						\
-	if ( reporter )					\
-		reporter->FatalError(__VA_ARGS__);	\
-	else						\
-		{					\
-		fprintf(stderr, __VA_ARGS__);		\
-		fprintf(stderr, "\n");			\
-		_exit(1);				\
-		}					\
-	}						\
-while (0)
+#define fatalError(...)                                                                            \
+	do                                                                                             \
+		{                                                                                          \
+		if ( reporter )                                                                            \
+			reporter->FatalError(__VA_ARGS__);                                                     \
+		else                                                                                       \
+			{                                                                                      \
+			fprintf(stderr, __VA_ARGS__);                                                          \
+			fprintf(stderr, "\n");                                                                 \
+			_exit(1);                                                                              \
+			}                                                                                      \
+		} while ( 0 )
 
 #endif
 
@@ -39,28 +38,28 @@ Flare::Flare()
 #else
 	{
 	WSADATA wsaData;
-	if ( WSAStartup(MAKEWORD(2,2), &wsaData) != 0 )
+	if ( WSAStartup(MAKEWORD(2, 2), &wsaData) != 0 )
 		fatalError("WSAStartup failure: %d", WSAGetLastError());
 
 	recvfd = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, nullptr, 0,
-			   WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
-	if ( recvfd == (int) INVALID_SOCKET )
+	                   WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
+	if ( recvfd == (int)INVALID_SOCKET )
 		fatalError("WSASocket failure: %d", WSAGetLastError());
 	sendfd = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, nullptr, 0,
-			   WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
-	if ( sendfd == (int) INVALID_SOCKET )
+	                   WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
+	if ( sendfd == (int)INVALID_SOCKET )
 		fatalError("WSASocket failure: %d", WSAGetLastError());
 
 	sockaddr_in sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sin_family = AF_INET;
 	sa.sin_addr.s_addr = inet_addr("127.0.0.1");
-	if ( bind(recvfd, (sockaddr*) &sa, sizeof(sa)) == SOCKET_ERROR )
+	if ( bind(recvfd, (sockaddr*)&sa, sizeof(sa)) == SOCKET_ERROR )
 		fatalError("bind failure: %d", WSAGetLastError());
 	int salen = sizeof(sa);
-	if ( getsockname(recvfd, (sockaddr*) &sa, &salen) == SOCKET_ERROR )
+	if ( getsockname(recvfd, (sockaddr*)&sa, &salen) == SOCKET_ERROR )
 		fatalError("getsockname failure: %d", WSAGetLastError());
-	if ( connect(sendfd, (sockaddr*) &sa, sizeof(sa)) == SOCKET_ERROR )
+	if ( connect(sendfd, (sockaddr*)&sa, sizeof(sa)) == SOCKET_ERROR )
 		fatalError("connect failure: %d", WSAGetLastError());
 	}
 #endif

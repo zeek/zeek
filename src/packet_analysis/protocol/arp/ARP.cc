@@ -94,7 +94,7 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	auto ah = (const struct arp_pkthdr*)data;
 
 	// Check the size.
-	size_t min_length = (ar_tpa(ah) - (caddr_t) data) + ah->ar_pln;
+	size_t min_length = (ar_tpa(ah) - (caddr_t)data) + ah->ar_pln;
 	if ( min_length > len )
 		{
 		Weird("truncated_ARP", packet);

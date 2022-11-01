@@ -26,9 +26,13 @@ public:
 	 */
 	int FD() const
 #if ! defined(_MSC_VER)
-		{ return pipe.ReadFD(); }
+		{
+		return pipe.ReadFD();
+		}
 #else
-		{ return recvfd; }
+		{
+		return recvfd;
+		}
 #endif
 
 	/**

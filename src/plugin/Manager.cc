@@ -3,7 +3,7 @@
 #include "zeek/plugin/Manager.h"
 
 #include <dirent.h>
-#if !defined(_MSC_VER)
+#if ! defined(_MSC_VER)
 #include <dlfcn.h>
 #include <glob.h>
 #endif
@@ -355,7 +355,7 @@ void Manager::ActivateDynamicPlugins(bool all)
 	for ( const auto& x : requested_plugins )
 		{
 		if ( ! x.empty() )
-		     plugins_to_activate.emplace(x, false);
+			plugins_to_activate.emplace(x, false);
 		}
 
 	// Activate plugins that our environment tells us to.

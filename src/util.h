@@ -16,7 +16,6 @@
 
 #include <libgen.h>
 #include <unistd.h>
-
 #include <array>
 #include <cinttypes>
 #include <cstdarg>
@@ -82,13 +81,19 @@ extern "C"
 #ifdef _MSC_VER
 #include <pthread.h>
 #include <filesystem>
-namespace zeek { namespace filesystem = std::filesystem; }
+namespace zeek
+	{
+namespace filesystem = std::filesystem;
+	}
 inline constexpr std::string_view path_list_separator = ";";
 #else
 // Expose ghc::filesystem as zeek::filesystem until we can
 // switch to std::filesystem on all platforms.
 #include "zeek/3rdparty/ghc/filesystem.hpp"
-namespace zeek { namespace filesystem = ghc::filesystem; }
+namespace zeek
+	{
+namespace filesystem = ghc::filesystem;
+	}
 inline constexpr std::string_view path_list_separator = ":";
 #endif
 

@@ -4,6 +4,7 @@
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff http.log
 
+@load base/frameworks/dpd
 @load base/frameworks/tunnels
 @load base/protocols/conn
 @load base/protocols/http

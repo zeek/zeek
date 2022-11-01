@@ -5,5 +5,6 @@
 
 redef dpd_reassemble_first_packets = F;
 
+@load base/frameworks/dpd
 @load base/protocols/conn
 @load base/protocols/http

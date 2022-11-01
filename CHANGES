@@ -1,3 +1,17 @@
+5.2.0-dev.171 | 2022-11-01 07:47:41 -0700
+
+  * Func: Do not crash on va_args confusion for script funcs (Arne Welzel, Corelight)
+
+    Script and BIF functions with a single any parameter are excluded from
+    type checking regarding arguments. This makes it possible to call a
+    ScriptFunc with more arguments than it actually has parameters and frame
+    space for, causing heap-buffer-overflows.
+
+    This change runtime checks expected parameters and provided arguments
+    and short-circuits execution as well as logging runtime expression errors.
+
+    Fixes #2446
+
 5.2.0-dev.169 | 2022-10-31 15:18:04 -0700
 
   * bifs/record_fields: Include actual enum name in type_name (Arne Welzel, Corelight)

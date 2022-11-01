@@ -8,7 +8,7 @@
 
 #include "zeek/Reporter.h"
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 
 #include <winsock2.h>
 
@@ -31,10 +31,8 @@ namespace zeek::detail
 	{
 
 Flare::Flare()
-#if ! defined(_MSC_VER)
-	: pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK)
-	{
-	}
+#ifndef _MSC_VER
+	: pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK){}
 #else
 	{
 	WSADATA wsaData;
@@ -64,7 +62,7 @@ Flare::Flare()
 	}
 #endif
 
-[[noreturn]] static void bad_pipe_op(const char* which, bool signal_safe)
+	  [[noreturn]] static void bad_pipe_op(const char* which, bool signal_safe)
 	{
 	if ( signal_safe )
 		abort();
@@ -87,7 +85,7 @@ void Flare::Fire(bool signal_safe)
 
 	for ( ;; )
 		{
-#if ! defined(_MSC_VER)
+#ifndef _MSC_VER
 		int n = write(pipe.WriteFD(), &tmp, 1);
 
 #else
@@ -99,7 +97,7 @@ void Flare::Fire(bool signal_safe)
 
 		if ( n < 0 )
 			{
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 			errno = WSAGetLastError();
 			bad_pipe_op("send", signal_safe);
 #endif
@@ -125,7 +123,7 @@ int Flare::Extinguish(bool signal_safe)
 
 	for ( ;; )
 		{
-#if ! defined(_MSC_VER)
+#ifndef _MSC_VER
 		int n = read(pipe.ReadFD(), &tmp, sizeof(tmp));
 #else
 		int n = recv(recvfd, tmp, sizeof(tmp), 0);
@@ -136,7 +134,7 @@ int Flare::Extinguish(bool signal_safe)
 			// Pipe may not be empty yet: try again.
 			continue;
 			}
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 		if ( WSAGetLastError() == WSAEWOULDBLOCK )
 			break;
 		errno = WSAGetLastError();

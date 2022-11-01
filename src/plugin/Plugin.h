@@ -25,7 +25,7 @@ struct Field;
 namespace zeek
 	{
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #undef VOID
 #endif
 

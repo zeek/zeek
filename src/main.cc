@@ -9,13 +9,13 @@
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/zeek-setup.h"
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #include <fcntl.h> // For _O_BINARY.
 #endif
 
 int main(int argc, char** argv)
 	{
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 	_setmode(_fileno(stdout), _O_BINARY);
 	_setmode(_fileno(stderr), _O_BINARY);
 #endif

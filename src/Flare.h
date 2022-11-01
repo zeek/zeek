@@ -2,7 +2,7 @@
 
 #pragma once
 
-#if ! defined(_MSC_VER)
+#ifndef _MSC_VER
 #include "Pipe.h"
 #endif
 
@@ -25,7 +25,7 @@ public:
 	 *         Fire()'d and not yet Extinguished()'d.
 	 */
 	int FD() const
-#if ! defined(_MSC_VER)
+#ifndef _MSC_VER
 		{
 		return pipe.ReadFD();
 		}
@@ -52,7 +52,7 @@ public:
 	int Extinguish(bool signal_safe = false);
 
 private:
-#if ! defined(_MSC_VER)
+#ifndef _MSC_VER
 	Pipe pipe;
 #else
 	int sendfd, recvfd;

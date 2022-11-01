@@ -3,7 +3,7 @@
 #include "zeek/plugin/Manager.h"
 
 #include <dirent.h>
-#if ! defined(_MSC_VER)
+#ifndef _MSC_VER
 #include <dlfcn.h>
 #include <glob.h>
 #endif
@@ -163,7 +163,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
                                             std::vector<std::string>* errors)
 	{
 // Loading dynamic plugins is not currently supported on Windows platform.
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 	return false;
 #else
 	errors->clear(); // caller should pass it in empty, but just to be sure

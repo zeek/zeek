@@ -42,15 +42,27 @@ constexpr uint32_t HASH_MASK = 0xFFFFFFFF; // only lower 32 bits.
 // 2 for debug. 16 is best for a release build.
 constexpr uint8_t DICT_REMAP_ENTRIES = 16;
 
-// Load factor = 1 - 0.5 ^ LOAD_FACTOR_BITS. 0.75 is the optimal value for release builds.
-constexpr uint8_t DICT_LOAD_FACTOR_BITS = 2;
+// 100 for size < 1 << DICT_THRESHOLD_BITS + DICT_THRESHOLD_BITS;
+// 75 for larger sizes
+// 25 for min load factor.
+constexpr int MIN_DICT_LOAD_FACTOR_100 = 25;
+constexpr int DICT_LOAD_FACTOR_100 = 75;
+
+// when space_distance is greater than SPACE_DISTANCE_THRESHOLD, double the size unless the load
+// factor is already lower than MIN_DICT_LOAD_FACTOR_100.
+constexpr int SPACE_DISTANCE_THRESHOLD = 32;
+
+// To ignore occasional faraway spaces. only when space_distance_samples are above
+// MIN_SPACE_DISTANCE_SAMPLES, we consider space_distance is not by chance.
+constexpr int MIN_SPACE_DISTANCE_SAMPLES = 128;
 
 // Default number of hash buckets in dictionary.  The dictionary will
 // increase the size of the hash table as needed.
 constexpr uint8_t DEFAULT_DICT_SIZE = 0;
 
-// When log2_buckets > DICT_THRESHOLD_BITS, DICT_LOAD_FACTOR_BITS becomes effective.
-// Basically if dict size < 2^DICT_THRESHOLD_BITS + n, we size up only if necessary.
+// When log2_buckets > DICT_THRESHOLD_BITS, DICT_LOAD_FACTOR_BITS becomes
+// effective.  Basically if dict size < 2^DICT_THRESHOLD_BITS +
+// DICT_THRESHOLD_BITS, we size up only if necessary.
 constexpr uint8_t DICT_THRESHOLD_BITS = 3;
 
 // The value of an iteration cookie is the bucket and offset within the
@@ -531,6 +543,10 @@ private:
 	int num_entries = 0;
 	int max_entries = 0;
 	uint64_t cum_entries = 0;
+
+	uint32_t space_distance_samples = 0;
+	// how far the space is
+	int64_t space_distance_sum = 0;
 
 	dict_delete_func delete_func = nullptr;
 	detail::DictEntry* table = nullptr;

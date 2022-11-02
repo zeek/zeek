@@ -634,14 +634,15 @@ int Dictionary::Capacity(bool expected) const
 
 int Dictionary::ThresholdEntries() const
 	{
-	// Increase the size of the dictionary when it is 75% full. However, when the dictionary
-	// is small ( <= 20 elements ), only resize it when it's 100% full. The dictionary will
-	// always resize when the current insertion causes it to be full. This ensures that the
-	// current insertion should always be successful.
+	// Increase the size of the dictionary when it is 75% full. However, when
+	// the dictionary is small ( bucket_capacity <= 2^3+3=11 elements ), only
+	// resize it when it's 100% full. The dictionary will always resize when the
+	// current insertion causes it to be full. This ensures that the current
+	// insertion should always be successful.
 	int capacity = Capacity();
 	if ( log2_buckets <= detail::DICT_THRESHOLD_BITS )
-		return capacity; // 20 or less elements, 1.0, only size up when necessary.
-	return capacity - (capacity >> detail::DICT_LOAD_FACTOR_BITS);
+		return capacity;
+	return capacity * detail::DICT_LOAD_FACTOR_100 / 100;
 	}
 
 detail::hash_t Dictionary::FibHash(detail::hash_t h) const
@@ -1217,6 +1218,13 @@ void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val
 			max_entries = num_entries;
 		if ( num_entries > ThresholdEntries() )
 			SizeUp();
+		// if space_distance is too great, performance decreases. we need to sizeup for
+		// performance.
+		else if ( space_distance_samples > detail::MIN_SPACE_DISTANCE_SAMPLES &&
+		          space_distance_sum >
+		              uint64_t(space_distance_samples) * detail::SPACE_DISTANCE_THRESHOLD &&
+		          int(num_entries) > detail::MIN_DICT_LOAD_FACTOR_100 * Capacity() / 100 )
+			SizeUp();
 		}
 
 	// Remap after insert can adjust asap to shorten period of mixed table.
@@ -1231,9 +1239,9 @@ void* Dictionary::Insert(void* key, int key_size, detail::hash_t hash, void* val
 /// e.distance is adjusted to be the one at insert_position.
 void Dictionary::InsertRelocateAndAdjust(detail::DictEntry& entry, int insert_position)
 	{
-#ifdef ZEEK_DICT_DEBUG
+#ifdef DEBUG
 	entry.bucket = BucketByHash(entry.hash, log2_buckets);
-#endif // ZEEK_DICT_DEBUG
+#endif // DEBUG
 	int last_affected_position = insert_position;
 	InsertAndRelocate(entry, insert_position, &last_affected_position);
 
@@ -1358,9 +1366,13 @@ void Dictionary::SizeUp()
 
 	// another remap starts.
 	remaps++; // used in Lookup() to cover SizeUp with incomplete remaps.
-	ASSERT(
-		remaps <=
-		log2_buckets); // because we only sizeUp, one direction. we know the previous log2_buckets.
+
+	// because we only sizeUp, one direction. we know the previous log2_buckets.
+	ASSERT(remaps <= log2_buckets);
+
+	// reset performance metrics.
+	space_distance_sum = 0;
+	space_distance_samples = 0;
 	}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1554,9 +1566,9 @@ bool Dictionary::Remap(int position, int* new_position)
 		return false;
 	detail::DictEntry entry = RemoveAndRelocate(
 		position); // no iteration cookies to adjust, no need for last_affected_position.
-#ifdef ZEEK_DICT_DEBUG
+#ifdef DEBUG
 	entry.bucket = expected;
-#endif // ZEEK_DICT_DEBUG
+#endif // DEBUG
 
 	// find insert position.
 	int insert_position = EndOfClusterByBucket(expected);

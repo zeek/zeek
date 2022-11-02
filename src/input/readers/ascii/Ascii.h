@@ -32,6 +32,8 @@ struct FieldMapping
 	FieldMapping(const FieldMapping& arg);
 	FieldMapping() = default;
 
+	FieldMapping& operator=(const FieldMapping& arg);
+
 	FieldMapping subType();
 	};
 

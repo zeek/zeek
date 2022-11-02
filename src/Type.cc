@@ -947,6 +947,20 @@ TypeDecl::~TypeDecl()
 	delete[] id;
 	}
 
+TypeDecl& TypeDecl::operator=(const TypeDecl& other)
+	{
+	if ( this == &other )
+		return *this;
+
+	type = other.type;
+	attrs = other.attrs;
+
+	delete[] id;
+	id = util::copy_string(other.id);
+
+	return *this;
+	}
+
 void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 	{
 	d->Add(id);

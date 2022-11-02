@@ -1,3 +1,15 @@
+5.0.2-7 | 2022-11-02 07:48:53 -0700
+
+  * Fix a couple of failing tests from recent cherry-picks (Tim Wojtulewicz, Corelight)
+
+  * Add toplevel build dir to `PATH` for dev helper scripts. (Benjamin Bannier, Corelight)
+
+  * IPBasedAnalyzer/TCPSessionAdapter: Fix TCP reassembly decision for known port analyzers (Arne Welzel, Corelight)
+
+  * packet_analysis: Do not raise analyzer_confirmation per-packet for tunnels (Arne Welzel, Corelight)
+
+  * fix for deprecated when's where the inner frame is larger than the outer frame (Vern Paxson, Corelight)
+
 5.0.2 | 2022-09-19 11:56:36 -0700
 
   * Release 5.0.2.

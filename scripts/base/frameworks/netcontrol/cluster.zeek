@@ -53,7 +53,7 @@ function add_rule(r: Rule) : string
 		return add_rule_impl(r);
 	else
 		{
-		# We sync rule entities accross the cluster, so we
+		# We sync rule entities across the cluster, so we
 		# actually can test if the rule already exists. If yes,
 		# refuse insertion already at the node.
 

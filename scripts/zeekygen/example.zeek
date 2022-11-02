@@ -4,7 +4,7 @@
 ##! version.
 ##!
 ##! Comments in the from ``##!`` are meant to summarize the script's
-##! purpose.  They are transferred directly in to the generated
+##! purpose.  They are transferred directly into the generated
 ##! `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 ##! (reST) document associated with the script.
 ##!
@@ -66,7 +66,7 @@ redef enum Notice::Type += {
 
 # All redefs are automatically tracked.  Comments of the "##" form can be use
 # to further document it, but in some cases, like here, they wouldn't be
-# ading any interesting information that's not implicit.
+# adding any interesting information that's not implicit.
 redef enum Log::ID += { LOG };
 
 # Only identifiers declared in an export section will show up in generated docs.
@@ -112,7 +112,7 @@ export {
 		field2: bool;                ##< Toggles something.
 		field3: SimpleRecord;        ##< Zeekygen automatically tracks types
 		                             ##< and cross-references are automatically
-		                             ##< inserted in to generated docs.
+		                             ##< inserted into generated docs.
 		msg: string &default="blah"; ##< Attributes are self-documenting.
 	} &redef;
 

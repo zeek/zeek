@@ -20,7 +20,7 @@ extra scripts needed or used by the documentation process.
    version.
    
    Comments in the from ``##!`` are meant to summarize the script's
-   purpose.  They are transferred directly in to the generated
+   purpose.  They are transferred directly into the generated
    `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
    (reST) document associated with the script.
    

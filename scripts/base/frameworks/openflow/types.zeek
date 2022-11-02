@@ -102,7 +102,7 @@ export {
 		hard_timeout: count &default=0;
 		## Priority level of flow entry.
 		priority: count &default=0;
-		## For OFPFC_DELETE* commands, require matching entried to include
+		## For OFPFC_DELETE* commands, require matching entry to include
 		## this as an output port/group. OFPP_ANY/OFPG_ANY means no restrictions.
 		out_port: count &optional;
 		out_group: count &optional;

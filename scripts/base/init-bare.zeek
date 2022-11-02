@@ -157,7 +157,7 @@ type PacketSource: record {
 	path: string;
 	## The data link-layer type of the packet source.
 	link_type: int;
-	## The netmask assoicated with the source or ``NETMASK_UNKNOWN``.
+	## The netmask associated with the source or ``NETMASK_UNKNOWN``.
 	netmask: count;
 };
 
@@ -195,7 +195,7 @@ type flow_id : record {
 	src_h: addr;	##< The source IP address.
 	src_p: port;	##< The source port number.
 	dst_h: addr;	##< The destination IP address.
-	dst_p: port;	##< The desintation port number.
+	dst_p: port;	##< The destination port number.
 } &log;
 
 ## Specifics about an ICMP conversation. ICMP events typically pass this in
@@ -1172,7 +1172,7 @@ const tcp_max_above_hole_without_any_acks = 16384 &redef;
 const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 
 ## Number of TCP segments to buffer beyond what's been acknowledged already
-## to detect retransmission inconsistencies. Zero disables any additonal
+## to detect retransmission inconsistencies. Zero disables any additional
 ## buffering.
 const tcp_max_old_segments = 0 &redef;
 
@@ -2502,7 +2502,7 @@ export {
 		fh: string;	##< File handle to write to.
 		offset: count;	##< Offset in file.
 		size: count;	##< Number of bytes to write.
-		stable: stable_how_t;	##< How and when data is commited.
+		stable: stable_how_t;	##< How and when data is committed.
 		data: string &optional;	##< The actual data; not implemented yet.
 	};
 
@@ -2769,7 +2769,7 @@ export {
 		## If set, requests and identify level token
 		negotiate_identify         : bool;
 		## If set, requests usage of NTLM v2 session security
-		## Note: NTML v2 session security is actually NTLM v1
+		## Note: NTLM v2 session security is actually NTLM v1
 		negotiate_extended_sessionsecurity : bool;
 		## If set, TargetName must be a server name
 		target_type_server         : bool;
@@ -2957,7 +2957,7 @@ export {
 		unicode		   : bool;
 		## The server supports large files with 64 bit offsets
 		large_files	   : bool;
-		## The server supports the SMBs particilar to the NT LM 0.12 dialect. Implies nt_find.
+		## The server supports the SMBs particular to the NT LM 0.12 dialect. Implies nt_find.
 		nt_smbs		   : bool;
 
 		## The server supports remote admin API requests via DCE-RPC
@@ -3245,7 +3245,7 @@ export {
 		info_level			: count;
 		## Specify whether to search for directories or files
 		search_storage_type	: count;
-		## The string to serch for (note: may contain wildcards)
+		## The string to search for (note: may contain wildcards)
 		file_name			: string;
 	};
 
@@ -3443,7 +3443,7 @@ export {
 
 	type SMB2::NegotiateContextValues: vector of SMB2::NegotiateContextValue;
 
-	## The response to an SMB2 *negotiate* request, which is used by tghe client to notify the server
+	## The response to an SMB2 *negotiate* request, which is used by the client to notify the server
 	## what dialects of the SMB2 protocol the client understands.
 	##
 	## For more information, see MS-SMB2:2.2.4
@@ -3569,7 +3569,7 @@ export {
 
 	## This information class is used to query or set extended attribute (EA) information for a file.
 	##
-	## For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+	## For more information, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
 	##
 	type SMB2::FileEA: record {
 		## Specifies the extended attribute name
@@ -3580,7 +3580,7 @@ export {
 
 	## A vector of extended attribute (EA) information for a file.
 	##
-	## For more infomation, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
+	## For more information, see MS-SMB2:2.2.39 and MS-FSCC:2.4.15
 	##
 	type SMB2::FileEAs: vector of SMB2::FileEA;
 
@@ -3978,7 +3978,7 @@ type dns_svcb_rr: record {
 
 # DNS answer types.
 #
-# .. zeek:see:: dns_answerr
+# .. zeek:see:: dns_answer
 #
 # todo:: use enum to make them autodoc'able
 const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.
@@ -4101,7 +4101,7 @@ type PE::DOSHeader: record {
 	num_reloc_items          : count;
 	## Number of paragraphs in the header.
 	header_in_paragraphs     : count;
-	## Number of paragraps of additional memory that the program will need.
+	## Number of paragraphs of additional memory that the program will need.
 	min_extra_paragraphs     : count;
 	## Maximum number of paragraphs of additional memory.
 	max_extra_paragraphs     : count;
@@ -4180,7 +4180,7 @@ type PE::OptionalHeader: record {
 	major_subsys_version    : count;
 	## The minor version of the subsystem required to run this file.
 	minor_subsys_version    : count;
-	## The size (in bytes) of the iamge as the image is loaded in memory.
+	## The size (in bytes) of the image as the image is loaded in memory.
 	size_of_image           : count;
 	## The size (in bytes) of the headers, rounded up to file_alignment.
 	size_of_headers         : count;
@@ -4219,7 +4219,7 @@ type PE::SectionHeader: record {
 	ptr_to_line_nums : count;
 	## The number of relocation entries for the section.
 	num_of_relocs    : count;
-	## The number of line-number entrie for the section.
+	## The number of line-number entries for the section.
 	num_of_line_nums : count;
 	## Bit-flags that describe the characteristics of the section.
 	characteristics  : set[count];
@@ -4720,7 +4720,7 @@ export {
 		## The message type (20 for SAFE_MSG)
 		msg_type	: count;
 		## The application-specific data that is being passed
-		## from the sender to the reciever
+		## from the sender to the receiver
 		data		: string;
 		## Current time from the sender of the message
 		timestamp	: time &optional;
@@ -5178,7 +5178,7 @@ module NTP;
 export {
 	## NTP standard message as defined in :rfc:`5905` for modes 1-5
 	## This record contains the standard fields used by the NTP protocol
-	## for standard syncronization operations.
+	## for standard synchronization operations.
 	type NTP::StandardMessage: record {
 		## This value mainly identifies the type of server (primary server,
 		## secondary server, etc.). Possible values, as in :rfc:`5905`, are:
@@ -5294,7 +5294,7 @@ export {
 		sequence:       count;
 		## The number of the implementation this request code
 		## is defined by.  An implementation number of zero is used
-		## for requst codes/data formats which all implementations
+		## for request codes/data formats which all implementations
 		## agree on.  Implementation number 255 is reserved (for
 		## extensions, in case we run out).
 		implementation: count;
@@ -5331,7 +5331,7 @@ export {
 		##   * 6 - NTP control message
 		##   * 7 - reserved for private use
 		mode:           count;
-		## If mode 1-5, the standard fields for syncronization operations are
+		## If mode 1-5, the standard fields for synchronization operations are
 		## here.  See :rfc:`5905`
 		std_msg:        NTP::StandardMessage &optional;
 		## If mode 6, the fields for control operations are here.
@@ -5490,7 +5490,7 @@ export {
 	const flowbuffer_capacity_max = 10 * 1024 * 1024 &redef;
 
 	## The initial capacity, in bytes, that will be allocated to the BinPAC
-	## flowbuffer of a given connection/analyzer.  If the buffer buffer is
+	## flowbuffer of a given connection/analyzer.  If the buffer is
 	## later contracted, its capacity is also reduced to this size.
 	const flowbuffer_capacity_min = 512 &redef;
 

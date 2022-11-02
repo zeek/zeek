@@ -55,7 +55,7 @@ export {
 	##
 	## t: How long to whitelist it, with 0 being indefinitely.
 	##
-	## location: An optional string describing whitelist was triddered.
+	## location: An optional string describing whitelist was triggered.
 	##
 	## Returns: The id of the inserted rule on success and zero on failure.
 	global whitelist_address: function(a: addr, t: interval, location: string &default="") : string;
@@ -66,7 +66,7 @@ export {
 	##
 	## t: How long to whitelist it, with 0 being indefinitely.
 	##
-	## location: An optional string describing whitelist was triddered.
+	## location: An optional string describing whitelist was triggered.
 	##
 	## Returns: The id of the inserted rule on success and zero on failure.
 	global whitelist_subnet: function(s: subnet, t: interval, location: string &default="") : string;
@@ -904,7 +904,7 @@ function rule_expire_impl(r: Rule, p: PluginState) &priority=-5 &is_used
 	if ( p$_id in rule$_no_expire_plugins )
 		{
 		# in this case - don't log anything, just remove the plugin from the rule
-		# and cleaup
+		# and cleanup
 		delete rule$_active_plugin_ids[p$_id];
 		delete rule$_no_expire_plugins[p$_id];
 		rule_cleanup(rule);
@@ -1047,7 +1047,7 @@ function rule_error_impl(r: Rule, p: PluginState, msg: string &default="") &is_u
 	else
 		{
 		# error during insertion. Meh. If we are the only plugin, remove the rule again.
-		# Otherwhise - keep it, minus us.
+		# Otherwise - keep it, minus us.
 		delete rule$_plugin_ids[p$_id];
 		if ( |rule$_plugin_ids| == 0 )
 			{

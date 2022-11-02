@@ -6,7 +6,7 @@
 @load base/files/x509
 
 redef record X509::Info += {
-	## Base64 endoded X.509 certificate.
+	## Base64 encoded X.509 certificate.
 	cert: string &log &optional;
 };
 

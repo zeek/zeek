@@ -28,7 +28,7 @@ export {
 		version:         count        &log &optional;
 		## Authentication result (T=success, F=failure, unset=unknown)
 		auth_success:    bool         &log &optional;
-		## The number of authentication attemps we observed. There's always
+		## The number of authentication attempts we observed. There's always
 		## at least one, since some servers might support no authentication at all.
 		## It's important to note that not all of these are failures, since
 		## some servers require two-factor auth (e.g. password AND pubkey)
@@ -125,7 +125,7 @@ redef record Info += {
 	# Store capabilities from the first host for
 	# comparison with the second (internal use)
 	capabilities: Capabilities &optional;
-	## Analzyer ID
+	## Analyzer ID
 	analyzer_id: count         &optional;
 };
 

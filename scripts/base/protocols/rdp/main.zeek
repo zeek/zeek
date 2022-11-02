@@ -21,7 +21,7 @@ export {
 		## This is typically a username.
 		cookie:                string  &log &optional;
 		## Status result for the connection.  It's a mix between
-		## RDP negotation failure messages and GCC server create
+		## RDP negotiation failure messages and GCC server create
 		## response messages.
 		result:                string  &log &optional;
 		## Security protocol chosen by the server.

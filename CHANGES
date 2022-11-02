@@ -1,3 +1,7 @@
+5.2.0-dev.175 | 2022-11-02 16:54:57 -0700
+
+  * Spelling fixes: scripts (Josh Soref)
+
 5.2.0-dev.173 | 2022-11-02 10:45:34 +0100
 
   * GH-2440: parse.y: Traverse AST post parsing to detect break/next

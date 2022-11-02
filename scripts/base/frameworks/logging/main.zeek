@@ -109,7 +109,7 @@ export {
 		path: string;		##< Original path value.
 		open: time;		##< Time when opened.
 		close: time;		##< Time when closed.
-		terminating: bool;	##< True if rotation occured due to Zeek shutting down.
+		terminating: bool;	##< True if rotation occurred due to Zeek shutting down.
 	};
 
 	## The function type for log rotation post processors.
@@ -151,7 +151,7 @@ export {
 		## will generally fail.
 		dir: string &default = default_rotation_dir;
 
-		## A base name to use for the the rotated log.  Log writers may later
+		## A base name to use for the rotated log.  Log writers may later
 		## append a file extension of their choosing to this user-chosen
 		## base (e.g. if using the default ASCII writer and you want
 		## rotated files of the format "foo-<date>.log", then this basename
@@ -579,7 +579,7 @@ export {
 	## log write, prior to iterating over the stream's associated filters.
 	## As with filter-specific hooks, breaking from the hook vetoes writing
 	## of the given log record. Note that filter-level policy hooks still get
-	## invoked after the global hook vetos, but they cannot "un-veto" the write.
+	## invoked after the global hook vetoes, but they cannot "un-veto" the write.
 	global log_stream_policy: Log::StreamPolicyHook;
 }
 
@@ -685,7 +685,7 @@ function Log::rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationPath
 	# The reason for branching here is historical:
 	# the default format path before the intro of Log::rotation_format_func
 	# always separated the path from open-time using a '-', but ASCII's
-	# default postprocessor chose to rename using a '.' separaor.  It also
+	# default postprocessor chose to rename using a '.' separator.  It also
 	# chose a different date format.
 	if ( ri$postprocessor == __default_rotation_postprocessor &&
 	    ri$writer == WRITER_ASCII &&

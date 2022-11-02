@@ -33,7 +33,7 @@ export {
 	## keys: key material
 	global add_keys: event(client_random: string, keys: string);
 
-	## This event can be triggered, e.g., via Broker to add known secrets to the TLS secret datbase.
+	## This event can be triggered, e.g., via Broker to add known secrets to the TLS secret database.
 	##
 	## client_random: client random for which the secret is set
 	##

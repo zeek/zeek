@@ -54,7 +54,7 @@ export {
 		init: function(state: PluginState) &optional;
 
 		## One-time finalization function called when a plugin is shutdown; no further
-		## functions will be called afterwords.
+		## functions will be called afterwards.
 		done: function(state: PluginState) &optional;
 
 		## Implements the add_rule() operation. If the plugin accepts the rule,
@@ -74,7 +74,7 @@ export {
 	## Table for a plugin to store instance-specific configuration information.
 	##
 	## Note, it would be nicer to pass the Plugin instance to all the below, instead
-	## of this state table. However Zeek's type resolver has trouble with refering to a
+	## of this state table. However Zeek's type resolver has trouble with referring to a
 	## record type from inside itself.
 	redef record PluginState += {
 		## The plugin that the state belongs to. (Defined separately

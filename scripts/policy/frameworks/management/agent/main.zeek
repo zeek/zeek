@@ -49,7 +49,7 @@ export {
 		requests: set[string] &default=set();
 	};
 
-	## Request state for restart requests, tracking eceived responses.
+	## Request state for restart requests, tracking received responses.
 	type RestartState: record {
 		## Request state for every node the agent asks the Supervisor
 		## to restart.
@@ -820,7 +820,7 @@ event Management::Agent::API::node_dispatch_request(reqid: string, action: vecto
 			res = Management::Result($reqid=reqid,
 			    $instance = Management::Agent::get_name(),
 			    $success = F,
-			    $error = fmt("cluster node %s not in runnning state", node),
+			    $error = fmt("cluster node %s not in running state", node),
 			    $node=node);
 			req$results += res;
 			}

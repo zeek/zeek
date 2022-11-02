@@ -480,13 +480,13 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
 	std::vector<InstLabel> case_start;
 
 	PushFallThroughs();
-	for ( auto c : *cases )
+	for ( auto sw_case : *cases )
 		{
 		auto start = GoToTargetBeyond(body_end);
 		ResolveFallThroughs(start);
 		case_start.push_back(start);
 		PushFallThroughs();
-		body_end = CompileStmt(c->Body());
+		body_end = CompileStmt(sw_case->Body());
 		}
 
 	auto sw_end = GoToTargetBeyond(body_end);

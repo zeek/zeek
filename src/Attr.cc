@@ -388,10 +388,10 @@ void Attributes::CheckAttr(Attr* a)
 
 			int num_expires = 0;
 
-			for ( const auto& a : attrs )
+			for ( const auto& at : attrs )
 				{
-				if ( a->Tag() == ATTR_EXPIRE_READ || a->Tag() == ATTR_EXPIRE_WRITE ||
-				     a->Tag() == ATTR_EXPIRE_CREATE )
+				if ( at->Tag() == ATTR_EXPIRE_READ || at->Tag() == ATTR_EXPIRE_WRITE ||
+				     at->Tag() == ATTR_EXPIRE_CREATE )
 					num_expires++;
 				}
 

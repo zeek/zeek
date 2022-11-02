@@ -1005,8 +1005,8 @@ StmtPtr CatchReturnStmt::DoReduce(Reducer* c)
 
 		if ( ret_e_dup->Tag() == EXPR_CONST )
 			{
-			auto c = ret_e_dup->AsConstExpr();
-			rv_dup->AsNameExpr()->Id()->GetOptInfo()->SetConst(c);
+			auto ce = ret_e_dup->AsConstExpr();
+			rv_dup->AsNameExpr()->Id()->GetOptInfo()->SetConst(ce);
 			}
 
 		return assign_stmt;

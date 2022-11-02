@@ -1396,13 +1396,13 @@ TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 	if ( ! run_state::is_parsing )
 		return;
 
-	for ( const auto& t : table_type->GetIndexTypes() )
+	for ( const auto& it : table_type->GetIndexTypes() )
 		{
 		std::set<RecordType*> found;
 		std::set<const RecordType*> analyzed_records;
 		// TODO: this likely doesn't have to be repeated for each new TableVal,
 		//       can remember the resulting dependencies per TableType
-		find_nested_record_types(t, &found, &analyzed_records);
+		find_nested_record_types(it, &found, &analyzed_records);
 
 		for ( auto rt : found )
 			parse_time_table_record_dependencies[rt].emplace_back(NewRef{}, this);

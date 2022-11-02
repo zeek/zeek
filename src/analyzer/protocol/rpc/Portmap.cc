@@ -94,11 +94,11 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 		case PMAPPROC_SET:
 			if ( success )
 				{
-				uint32_t status = extract_XDR_uint32(buf, n);
+				uint32_t proc_status = extract_XDR_uint32(buf, n);
 				if ( ! buf )
 					return false;
 
-				reply = val_mgr->Bool(status);
+				reply = val_mgr->Bool(proc_status);
 				event = pm_request_set;
 				}
 			else
@@ -109,11 +109,11 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
 		case PMAPPROC_UNSET:
 			if ( success )
 				{
-				uint32_t status = extract_XDR_uint32(buf, n);
+				uint32_t proc_status = extract_XDR_uint32(buf, n);
 				if ( ! buf )
 					return false;
 
-				reply = val_mgr->Bool(status);
+				reply = val_mgr->Bool(proc_status);
 				event = pm_request_unset;
 				}
 			else

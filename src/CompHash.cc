@@ -333,9 +333,10 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
 						{
 						ValPtr v;
 						Attributes* a = rt->FieldDecl(i)->attrs.get();
-						bool optional = (a && a->Find(ATTR_OPTIONAL));
+						bool is_optional = (a && a->Find(ATTR_OPTIONAL));
 
-						if ( ! RecoverOneVal(hk, rt->GetFieldType(i).get(), &v, optional, false) )
+						if ( ! RecoverOneVal(hk, rt->GetFieldType(i).get(), &v, is_optional,
+						                     false) )
 							{
 							*pval = nullptr;
 							return false;
@@ -345,7 +346,7 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
 						// abort() and broken the call tree that clang-tidy is relying on to
 						// get the error described.
 						// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.Branch)
-						if ( ! (v || optional) )
+						if ( ! (v || is_optional) )
 							{
 							reporter->InternalError(
 								"didn't recover expected number of fields from HashKey");

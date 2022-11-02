@@ -256,8 +256,8 @@ ExprListStmt::ExprListStmt(StmtTag t, ListExprPtr arg_l) : Stmt(t), l(std::move(
 	const ExprPList& e = l->Exprs();
 	for ( const auto& expr : e )
 		{
-		const auto& t = expr->GetType();
-		if ( ! t || t->Tag() == TYPE_VOID )
+		const auto& et = expr->GetType();
+		if ( ! et || et->Tag() == TYPE_VOID )
 			Error("value of type void illegal");
 		}
 

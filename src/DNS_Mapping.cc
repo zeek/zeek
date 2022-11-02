@@ -296,8 +296,8 @@ TEST_CASE("dns_mapping init addr")
 
 TEST_CASE("dns_mapping save reload")
 	{
-	// TODO: this test uses fmemopen and mkdtemp, both of which aren't available on
-	// Windows. We'll have to figure out another way to do this test there.
+		// TODO: this test uses fmemopen and mkdtemp, both of which aren't available on
+		// Windows. We'll have to figure out another way to do this test there.
 #ifndef _MSC_VER
 	IPAddr addr("1.2.3.4");
 	in4_addr in4;

@@ -32,7 +32,9 @@ namespace zeek::detail
 
 Flare::Flare()
 #ifndef _MSC_VER
-	: pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK){}
+	: pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK)
+	{
+	}
 #else
 	{
 	WSADATA wsaData;
@@ -62,7 +64,7 @@ Flare::Flare()
 	}
 #endif
 
-	  [[noreturn]] static void bad_pipe_op(const char* which, bool signal_safe)
+[[noreturn]] static void bad_pipe_op(const char* which, bool signal_safe)
 	{
 	if ( signal_safe )
 		abort();

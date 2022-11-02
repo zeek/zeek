@@ -661,7 +661,7 @@ public:
 
 private:
 	Type type;
-	union {
+		union {
 		bool bool_;
 		double double_;
 		const Event* event;

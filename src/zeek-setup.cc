@@ -887,228 +887,229 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 #ifdef USE_PERFTOOLS_DEBUG
 		}
 #endif
-	set_signal_mask(false);
+		set_signal_mask(false);
 
-	if ( reporter->Errors() > 0 )
-		{
-		early_shutdown();
-		exit(1);
-		}
-
-	reporter->InitOptions();
-	KeyedHash::InitOptions();
-	zeekygen_mgr->GenerateDocs();
-
-	if ( options.pcap_filter )
-		{
-		const auto& id = global_scope()->Find("cmd_line_bpf_filter");
-
-		if ( ! id )
-			reporter->InternalError("global cmd_line_bpf_filter not defined");
-
-		id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
-		}
-
-	std::vector<SignatureFile> all_signature_files;
-
-	// Append signature files given on the command line
-	for ( const auto& sf : options.signature_files )
-		all_signature_files.emplace_back(sf);
-
-	// Append signature files defined in "signature_files" script option
-	for ( auto&& sf : get_script_signature_files() )
-		all_signature_files.emplace_back(std::move(sf));
-
-	// Append signature files defined in @load-sigs
-	for ( const auto& sf : zeek::detail::sig_files )
-		all_signature_files.emplace_back(sf);
-
-	if ( ! all_signature_files.empty() )
-		{
-		rule_matcher = new RuleMatcher(options.signature_re_level);
-		if ( ! rule_matcher->ReadFiles(all_signature_files) )
+		if ( reporter->Errors() > 0 )
 			{
 			early_shutdown();
 			exit(1);
 			}
 
-		if ( options.print_signature_debug_info )
-			rule_matcher->PrintDebug();
+		reporter->InitOptions();
+		KeyedHash::InitOptions();
+		zeekygen_mgr->GenerateDocs();
 
-		file_mgr->InitMagic();
-		}
-
-	if ( g_policy_debug )
-		// ### Add support for debug command file.
-		dbg_init_debugger(nullptr);
-
-	if ( ! options.pcap_file && ! options.interface )
-		{
-		const auto& interfaces_val = id::find_val("interfaces");
-		if ( interfaces_val )
+		if ( options.pcap_filter )
 			{
-			char* interfaces_str = interfaces_val->AsString()->Render();
+			const auto& id = global_scope()->Find("cmd_line_bpf_filter");
 
-			if ( interfaces_str[0] != '\0' )
-				options.interface = interfaces_str;
+			if ( ! id )
+				reporter->InternalError("global cmd_line_bpf_filter not defined");
 
-			delete[] interfaces_str;
+			id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
 			}
-		}
 
-	if ( options.parse_only )
-		{
-		if ( analysis_options.usage_issues > 0 )
-			analyze_scripts(options.no_unused_warnings);
+		std::vector<SignatureFile> all_signature_files;
 
-		early_shutdown();
-		exit(reporter->Errors() != 0);
-		}
+		// Append signature files given on the command line
+		for ( const auto& sf : options.signature_files )
+			all_signature_files.emplace_back(sf);
 
-	auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
+		// Append signature files defined in "signature_files" script option
+		for ( auto&& sf : get_script_signature_files() )
+			all_signature_files.emplace_back(std::move(sf));
 
-	analyze_scripts(options.no_unused_warnings);
+		// Append signature files defined in @load-sigs
+		for ( const auto& sf : zeek::detail::sig_files )
+			all_signature_files.emplace_back(sf);
 
-	if ( analysis_options.report_recursive )
-		{
-		// This option is report-and-exit.
-		early_shutdown();
-		exit(0);
-		}
+		if ( ! all_signature_files.empty() )
+			{
+			rule_matcher = new RuleMatcher(options.signature_re_level);
+			if ( ! rule_matcher->ReadFiles(all_signature_files) )
+				{
+				early_shutdown();
+				exit(1);
+				}
 
-	if ( dns_type != DNS_PRIME )
-		run_state::detail::init_run(options.interface, options.pcap_file, options.pcap_output_file,
-		                            options.use_watchdog);
+			if ( options.print_signature_debug_info )
+				rule_matcher->PrintDebug();
 
-	if ( ! g_policy_debug )
-		{
-		(void)setsignal(SIGTERM, sig_handler);
-		(void)setsignal(SIGINT, sig_handler);
-		(void)setsignal(SIGPIPE, SIG_IGN);
-		}
+			file_mgr->InitMagic();
+			}
 
-	// Cooperate with nohup(1).
-	if ( (oldhandler = setsignal(SIGHUP, sig_handler)) != SIG_DFL )
-		(void)setsignal(SIGHUP, oldhandler);
+		if ( g_policy_debug )
+			// ### Add support for debug command file.
+			dbg_init_debugger(nullptr);
 
-	// If we were priming the DNS cache (i.e. -P was passed as an argument), flush anything
-	// remaining to be resolved and save the cache to disk. We can just exit now because
-	// we've done everything we need to do. The run loop isn't started in this case, so
-	// nothing else should be happening.
-	if ( dns_type == DNS_PRIME )
-		{
-		dns_mgr->Resolve();
+		if ( ! options.pcap_file && ! options.interface )
+			{
+			const auto& interfaces_val = id::find_val("interfaces");
+			if ( interfaces_val )
+				{
+				char* interfaces_str = interfaces_val->AsString()->Render();
 
-		if ( ! dns_mgr->Save() )
-			reporter->FatalError("can't update DNS cache");
+				if ( interfaces_str[0] != '\0' )
+					options.interface = interfaces_str;
 
+				delete[] interfaces_str;
+				}
+			}
+
+		if ( options.parse_only )
+			{
+			if ( analysis_options.usage_issues > 0 )
+				analyze_scripts(options.no_unused_warnings);
+
+			early_shutdown();
+			exit(reporter->Errors() != 0);
+			}
+
+		auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
+
+		analyze_scripts(options.no_unused_warnings);
+
+		if ( analysis_options.report_recursive )
+			{
+			// This option is report-and-exit.
+			early_shutdown();
+			exit(0);
+			}
+
+		if ( dns_type != DNS_PRIME )
+			run_state::detail::init_run(options.interface, options.pcap_file,
+			                            options.pcap_output_file, options.use_watchdog);
+
+		if ( ! g_policy_debug )
+			{
+			(void)setsignal(SIGTERM, sig_handler);
+			(void)setsignal(SIGINT, sig_handler);
+			(void)setsignal(SIGPIPE, SIG_IGN);
+			}
+
+		// Cooperate with nohup(1).
+		if ( (oldhandler = setsignal(SIGHUP, sig_handler)) != SIG_DFL )
+			(void)setsignal(SIGHUP, oldhandler);
+
+		// If we were priming the DNS cache (i.e. -P was passed as an argument), flush anything
+		// remaining to be resolved and save the cache to disk. We can just exit now because
+		// we've done everything we need to do. The run loop isn't started in this case, so
+		// nothing else should be happening.
+		if ( dns_type == DNS_PRIME )
+			{
+			dns_mgr->Resolve();
+
+			if ( ! dns_mgr->Save() )
+				reporter->FatalError("can't update DNS cache");
+
+			event_mgr.Drain();
+			early_shutdown();
+			exit(0);
+			}
+
+		// Print the ID.
+		if ( options.identifier_to_print )
+			{
+			const auto& id = global_scope()->Find(*options.identifier_to_print);
+			if ( ! id )
+				reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
+
+			ODesc desc;
+			desc.SetQuotes(true);
+			desc.SetIncludeStats(true);
+			id->DescribeExtended(&desc);
+
+			fprintf(stdout, "%s\n", desc.Description());
+			early_shutdown();
+			exit(0);
+			}
+
+		if ( profiling_interval > 0 )
+			{
+			const auto& profiling_file = id::find_val("profiling_file");
+			profiling_logger = std::make_shared<ProfileLogger>(profiling_file->AsFile(),
+			                                                   profiling_interval);
+
+			if ( segment_profiling )
+				segment_logger = profiling_logger;
+			}
+
+		if ( ! run_state::reading_live && ! run_state::reading_traces )
+			// Set up network_time to track real-time, since
+			// we don't have any other source for it.
+			run_state::detail::update_network_time(util::current_time());
+
+		if ( CPP_activation_hook )
+			(*CPP_activation_hook)();
+
+		if ( zeek_init )
+			event_mgr.Enqueue(zeek_init, Args{});
+
+		EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
+
+		if ( ! dead_handlers.empty() && check_for_unused_event_handlers )
+			{
+			for ( const string& handler : dead_handlers )
+				reporter->Warning("event handler never invoked: %s", handler.c_str());
+			}
+
+		// Enable LeakSanitizer before zeek_init() and even before executing
+		// top-level statements.  Even though it's not bad if a leak happens only
+		// once at initialization, we have to assume that script-layer code causing
+		// such a leak can be placed in any arbitrary event handler and potentially
+		// cause more severe problems.
+		ZEEK_LSAN_ENABLE();
+
+		if ( init_stmts )
+			{
+			StmtFlowType flow;
+			Frame f(init_stmts->Scope()->Length(), nullptr, nullptr);
+			g_frame_stack.push_back(&f);
+
+			try
+				{
+				init_stmts->Body()->Exec(&f, flow);
+				}
+			catch ( InterpreterException& )
+				{
+				reporter->FatalError("failed to execute script statements at top-level scope");
+				}
+
+			g_frame_stack.pop_back();
+			}
+
+		if ( options.ignore_checksums )
+			ignore_checksums = 1;
+
+		if ( zeek_script_loaded )
+			{
+			// Queue events reporting loaded scripts.
+			for ( const auto& file : zeek::detail::files_scanned )
+				{
+				if ( file.skipped )
+					continue;
+
+				event_mgr.Enqueue(zeek_script_loaded, make_intrusive<StringVal>(file.name.c_str()),
+				                  val_mgr->Count(file.include_level));
+				}
+			}
+
+		reporter->ReportViaEvents(true);
+
+		// Drain the event queue here to support the protocols framework configuring DPM
 		event_mgr.Drain();
-		early_shutdown();
-		exit(0);
-		}
 
-	// Print the ID.
-	if ( options.identifier_to_print )
-		{
-		const auto& id = global_scope()->Find(*options.identifier_to_print);
-		if ( ! id )
-			reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
+		if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
+			reporter->FatalError("errors occurred while initializing");
 
-		ODesc desc;
-		desc.SetQuotes(true);
-		desc.SetIncludeStats(true);
-		id->DescribeExtended(&desc);
+		run_state::detail::zeek_init_done = true;
+		packet_mgr->DumpDebug();
+		analyzer_mgr->DumpDebug();
 
-		fprintf(stdout, "%s\n", desc.Description());
-		early_shutdown();
-		exit(0);
-		}
+		run_state::detail::have_pending_timers = ! run_state::reading_traces &&
+		                                         timer_mgr->Size() > 0;
 
-	if ( profiling_interval > 0 )
-		{
-		const auto& profiling_file = id::find_val("profiling_file");
-		profiling_logger = std::make_shared<ProfileLogger>(profiling_file->AsFile(),
-		                                                   profiling_interval);
-
-		if ( segment_profiling )
-			segment_logger = profiling_logger;
-		}
-
-	if ( ! run_state::reading_live && ! run_state::reading_traces )
-		// Set up network_time to track real-time, since
-		// we don't have any other source for it.
-		run_state::detail::update_network_time(util::current_time());
-
-	if ( CPP_activation_hook )
-		(*CPP_activation_hook)();
-
-	if ( zeek_init )
-		event_mgr.Enqueue(zeek_init, Args{});
-
-	EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
-
-	if ( ! dead_handlers.empty() && check_for_unused_event_handlers )
-		{
-		for ( const string& handler : dead_handlers )
-			reporter->Warning("event handler never invoked: %s", handler.c_str());
-		}
-
-	// Enable LeakSanitizer before zeek_init() and even before executing
-	// top-level statements.  Even though it's not bad if a leak happens only
-	// once at initialization, we have to assume that script-layer code causing
-	// such a leak can be placed in any arbitrary event handler and potentially
-	// cause more severe problems.
-	ZEEK_LSAN_ENABLE();
-
-	if ( init_stmts )
-		{
-		StmtFlowType flow;
-		Frame f(init_stmts->Scope()->Length(), nullptr, nullptr);
-		g_frame_stack.push_back(&f);
-
-		try
-			{
-			init_stmts->Body()->Exec(&f, flow);
-			}
-		catch ( InterpreterException& )
-			{
-			reporter->FatalError("failed to execute script statements at top-level scope");
-			}
-
-		g_frame_stack.pop_back();
-		}
-
-	if ( options.ignore_checksums )
-		ignore_checksums = 1;
-
-	if ( zeek_script_loaded )
-		{
-		// Queue events reporting loaded scripts.
-		for ( const auto& file : zeek::detail::files_scanned )
-			{
-			if ( file.skipped )
-				continue;
-
-			event_mgr.Enqueue(zeek_script_loaded, make_intrusive<StringVal>(file.name.c_str()),
-			                  val_mgr->Count(file.include_level));
-			}
-		}
-
-	reporter->ReportViaEvents(true);
-
-	// Drain the event queue here to support the protocols framework configuring DPM
-	event_mgr.Drain();
-
-	if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
-		reporter->FatalError("errors occurred while initializing");
-
-	run_state::detail::zeek_init_done = true;
-	packet_mgr->DumpDebug();
-	analyzer_mgr->DumpDebug();
-
-	run_state::detail::have_pending_timers = ! run_state::reading_traces && timer_mgr->Size() > 0;
-
-	return {0, std::move(options)};
+		return {0, std::move(options)};
 	}
 
 int cleanup(bool did_run_loop)

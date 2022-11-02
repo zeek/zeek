@@ -546,7 +546,7 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len, bool set_nex
 		total_len -= cur_len;
 
 		} while ( current_type != IPPROTO_FRAGMENT && current_type != IPPROTO_ESP &&
-	          current_type != IPPROTO_MOBILITY && isIPv6ExtHeader(next_type) );
+		          current_type != IPPROTO_MOBILITY && isIPv6ExtHeader(next_type) );
 	}
 
 bool IPv6_Hdr_Chain::IsFragment() const

@@ -631,7 +631,7 @@ string flatten_script_name(const string& name, const string& prefix)
 TEST_CASE("util normalize_path")
 	{
 #ifdef _MSC_VER
-	// TODO: adapt these tests to Windows
+		// TODO: adapt these tests to Windows
 #else
 	CHECK(normalize_path("/1/2/3") == "/1/2/3");
 	CHECK(normalize_path("/1/./2/3") == "/1/2/3");
@@ -2737,7 +2737,7 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
 TEST_CASE("util filesystem")
 	{
 #ifdef _MSC_VER
-	// TODO: adapt these tests to Windows paths
+		// TODO: adapt these tests to Windows paths
 #else
 	zeek::filesystem::path path1("/a/b");
 	CHECK(path1.is_absolute());

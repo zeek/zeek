@@ -111,7 +111,7 @@ static std::string prefix_basename_with(const std::string& path, const std::stri
 TEST_CASE("writers.ascii prefix_basename_with")
 	{
 #ifdef _MSC_VER
-	// TODO: adapt this test to Windows paths
+		// TODO: adapt this test to Windows paths
 #else
 	CHECK(prefix_basename_with("a/conn.log", ".shadow.") == "a/.shadow.conn.log");
 	CHECK(prefix_basename_with("/a/conn.log", ".shadow.") == "/a/.shadow.conn.log");

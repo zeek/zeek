@@ -64,7 +64,7 @@ struct ip6_ext
 
 struct ip6_hdr
 	{
-	union {
+		union {
 		struct ip6_hdrctl
 			{
 			uint32_t ip6_un1_flow; /* 4 bits version, 8 bits TC, 20 bits
@@ -335,7 +335,7 @@ inline float htonf(float f)
 inline uint64_t ntohll(uint64_t i)
 	{
 	u_char c;
-	union {
+		union {
 		uint64_t i;
 		u_char c[8];
 		} x;

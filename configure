@@ -114,6 +114,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --osx-sysroot=PATH     path to the OS X SDK to compile against
     --osx-min-version=VER  minimum OS X version (the deployment target)
 
+    --display-cmake        don't create build configuration, just output final CMake invocation
+
   Influential Environment Variables (only on first invocation
   per build directory):
     CC                     C compiler command
@@ -160,6 +162,7 @@ remove_cache_entry() {
 builddir=build
 prefix=/usr/local/zeek
 CMakeCacheEntries=""
+display_cmake=0
 append_cache_entry CMAKE_INSTALL_PREFIX PATH $prefix
 append_cache_entry ZEEK_ROOT_DIR PATH $prefix
 append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
@@ -409,6 +412,9 @@ while [ $# -ne 0 ]; do
         --osx-min-version=*)
             append_cache_entry CMAKE_OSX_DEPLOYMENT_TARGET STRING $optarg
             ;;
+        --display-cmake)
+            display_cmake=1
+            ;;
         *)
             echo "Invalid option '$1'.  Try $0 --help to see available options."
             exit 1
@@ -458,10 +464,17 @@ cd $builddir
 echo "Using $(cmake --version | head -1)"
 echo
 if [ -n "$CMakeGenerator" ]; then
-    "$CMakeCommand" -G "$CMakeGenerator" $CMakeCacheEntries $sourcedir
+    cmake="${CMakeCommand} -G ${CMakeGenerator} ${CMakeCacheEntries} ${sourcedir}"
 else
-    "$CMakeCommand" $CMakeCacheEntries $sourcedir
+    cmake="${CMakeCommand} ${CMakeCacheEntries} ${sourcedir}"
 fi
+
+if [ "${display_cmake}" = 1 ]; then
+    echo "${cmake}"
+    exit 0
+fi
+
+eval ${cmake} 2>&1
 
 echo "# This is the command used to configure this build" >config.status
 echo $command >>config.status

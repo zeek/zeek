@@ -99,6 +99,7 @@
 #include "zeek/Scope.h"
 #include "zeek/Reporter.h"
 #include "zeek/ScriptCoverageManager.h"
+#include "zeek/ScriptValidation.h"
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/module_util.h"
 #include "zeek/IntrusivePtr.h"
@@ -217,8 +218,8 @@ static void parse_redef_record_field(ID* id, const char* field, InitClass ic,
 	if ( ! decl->attrs )
 		if ( ic == INIT_EXTRA )
 			decl->attrs = make_intrusive<detail::Attributes>(decl->type,
-															 true /* in_record */,
-															 false /* is_global */);
+			                                                 true /* in_record */,
+			                                                 false /* is_global */);
 
 	for ( const auto& attr : *attrs )
 		{
@@ -398,6 +399,11 @@ zeek:
 				stmts->AsStmtList()->Stmts().push_back($3);
 			else
 				stmts = $3;
+
+			// Do some further validation on the parsed AST unless
+			// we already know there were errors.
+			if ( zeek::reporter->Errors() == 0 )
+				zeek::detail::script_validation();
 
 			// Any objects creates from here on out should not
 			// have file positions associated with them.

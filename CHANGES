@@ -1,3 +1,8 @@
+5.2.0-dev.173 | 2022-11-02 10:45:34 +0100
+
+  * GH-2440: parse.y: Traverse AST post parsing to detect break/next
+    usage issues (Arne Welzel, Corelight)
+
 5.2.0-dev.171 | 2022-11-01 07:47:41 -0700
 
   * Func: Do not crash on va_args confusion for script funcs (Arne Welzel, Corelight)

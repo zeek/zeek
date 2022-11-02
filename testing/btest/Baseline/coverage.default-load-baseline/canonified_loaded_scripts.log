@@ -82,6 +82,8 @@ scripts/base/init-bare.zeek
     scripts/base/packet-protocols/gtpv1/__load__.zeek
       scripts/base/packet-protocols/gtpv1/main.zeek
         build/scripts/base/bif/plugins/Zeek_GTPv1.functions.bif.zeek
+build/scripts/builtin-plugins/__preload__.zeek
+  build/scripts/builtin-plugins/Zeek_Spicy/__preload__.zeek
 scripts/base/init-frameworks-and-bifs.zeek
   scripts/base/frameworks/logging/__load__.zeek
     scripts/base/frameworks/logging/main.zeek
@@ -447,8 +449,6 @@ scripts/base/init-default.zeek
   scripts/base/misc/find-checksum-offloading.zeek
   scripts/base/misc/find-filtered-trace.zeek
   build/scripts/base/misc/installation.zeek
-build/scripts/builtin-plugins/__preload__.zeek
-  build/scripts/builtin-plugins/Zeek_Spicy/__preload__.zeek
 build/scripts/builtin-plugins/__load__.zeek
   build/scripts/builtin-plugins/Zeek_Spicy/__load__.zeek
     build/scripts/builtin-plugins/Zeek_Spicy/Zeek/Spicy/bare.zeek

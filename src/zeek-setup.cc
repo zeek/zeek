@@ -648,6 +648,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	zeekygen_mgr = new zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);
 
 	add_essential_input_file("base/init-bare.zeek");
+	add_essential_input_file("builtin-plugins/__preload__.zeek");
 	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
 
 	if ( ! options.bare_mode )
@@ -660,7 +661,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			add_input_file("base/init-default.zeek");
 		}
 
-	add_input_file("builtin-plugins/__preload__.zeek");
 	add_input_file("builtin-plugins/__load__.zeek");
 
 	plugin_mgr->SearchDynamicPlugins(util::zeek_plugin_path());

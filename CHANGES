@@ -1,3 +1,7 @@
+5.2.0-dev.177 | 2022-11-03 08:56:24 -0700
+
+  * Add Ubuntu 22.10 to ci (Johanna Amann, Corelight)
+
 5.2.0-dev.175 | 2022-11-02 16:54:57 -0700
 
   * Spelling fixes: scripts (Josh Soref)

@@ -24,7 +24,6 @@ static zeek::StringValPtr comments_to_val(const vector<string>& comments)
 ##          script-level identifier, an empty string is returned.
 function get_identifier_comments%(name: string%): string
 	%{
-	using namespace zeekygen;
 	zeek::zeekygen::detail::IdentifierInfo* d = zeek::detail::zeekygen_mgr->GetIdentifierInfo(name->CheckString());
 
 	if ( ! d )
@@ -44,7 +43,6 @@ function get_identifier_comments%(name: string%): string
 ## .. zeek:see:: get_record_field_declaring_script
 function get_identifier_declaring_script%(name: string%): string
 	%{
-	using namespace zeekygen;
 	zeek::zeekygen::detail::IdentifierInfo* d = zeek::detail::zeekygen_mgr->GetIdentifierInfo(name->CheckString());
 
 	if ( ! d )
@@ -64,7 +62,6 @@ function get_identifier_declaring_script%(name: string%): string
 ##          *name* is not a known script, an empty string is returned.
 function get_script_comments%(name: string%): string
 	%{
-	using namespace zeekygen;
 	zeek::zeekygen::detail::ScriptInfo* d = zeek::detail::zeekygen_mgr->GetScriptInfo(name->CheckString());
 
 	if ( ! d )
@@ -82,7 +79,6 @@ function get_script_comments%(name: string%): string
 ##          package, an empty string is returned.
 function get_package_readme%(name: string%): string
 	%{
-	using namespace zeekygen;
 	zeek::zeekygen::detail::PackageInfo* d = zeek::detail::zeekygen_mgr->GetPackageInfo(name->CheckString());
 
 	if ( ! d )
@@ -101,7 +97,6 @@ function get_package_readme%(name: string%): string
 ##          a record type, an empty string is returned.
 function get_record_field_comments%(name: string%): string
 	%{
-	using namespace zeekygen;
 	string accessor = name->CheckString();
 	size_t i = accessor.find('$');
 
@@ -134,7 +129,6 @@ function get_record_field_comments%(name: string%): string
 ## .. zeek:see:: get_identifier_declaring_script
 function get_record_field_declaring_script%(name: string%): string
 	%{
-	using namespace zeekygen;
 	string accessor = name->CheckString();
 	size_t i = accessor.find('$');
 

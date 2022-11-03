@@ -463,10 +463,10 @@ refine flow DHCP_Flow += {
 	function process_par_req_list_option(v: OptionValue): bool
 		%{
 		auto params = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
-		int num_parms = ${v.par_req_list}->size();
+		int num_params = ${v.par_req_list}->size();
 		vector<uint8>* plist = ${v.par_req_list};
 
-		for ( int i = 0; i < num_parms; ++i )
+		for ( int i = 0; i < num_params; ++i )
 			{
 			uint8 param = (*plist)[i];
 			params->Assign(i, zeek::val_mgr->Count(param));

@@ -420,7 +420,7 @@ FindRequiredPackage(FLEX)
 FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
-if ( NOT WIN32 )
+if ( NOT MSVC )
     FindRequiredPackage(BIND)
 endif ()
 FindRequiredPackage(ZLIB)
@@ -733,7 +733,7 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
 endif ()
 
 set(DEFAULT_ZEEKPATH_PATHS . ${ZEEK_SCRIPT_INSTALL_PATH} ${ZEEK_SCRIPT_INSTALL_PATH}/policy ${ZEEK_SCRIPT_INSTALL_PATH}/site ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
-if ( WIN32 )
+if ( MSVC )
     list(JOIN DEFAULT_ZEEKPATH_PATHS ";" DEFAULT_ZEEKPATH)
 else ()
     list(JOIN DEFAULT_ZEEKPATH_PATHS ":" DEFAULT_ZEEKPATH)
@@ -791,7 +791,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/zeek
         USE_SOURCE_PERMISSIONS
         PATTERN ".git" EXCLUDE)
 
-if ( NOT WIN32 )
+if ( NOT MSVC )
   # Install wrapper script for Bro-to-Zeek renaming.
   include(InstallShellScript)
   include(InstallSymlink)

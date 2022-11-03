@@ -1,3 +1,11 @@
+5.2.0-dev.186 | 2022-11-03 09:21:35 -0700
+
+  * Add a missing deletion in ZAM code (Tim Wojtulewicz, Corelight)
+
+  * Add a couple of mising assignment operators to match copy constructors (Tim Wojtulewicz, Corelight)
+
+  * Fix a bunch of variable shadowing issues from LGTM (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.182 | 2022-11-03 08:57:39 -0700
 
   * Add configure --display-cmake argument (Tim Wojtulewicz, Corelight)

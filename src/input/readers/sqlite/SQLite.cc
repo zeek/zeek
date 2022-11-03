@@ -207,9 +207,9 @@ Value* SQLite::EntryToVal(sqlite3_stmt* st, const threading::Field* field, int p
 			{
 			const char* text = (const char*)sqlite3_column_text(st, pos);
 			std::string s(text, sqlite3_column_bytes(st, pos));
-			int pos = s.find('/');
-			int width = atoi(s.substr(pos + 1).c_str());
-			std::string addr = s.substr(0, pos);
+			size_t slash_pos = s.find('/');
+			int width = atoi(s.substr(slash_pos + 1).c_str());
+			std::string addr = s.substr(0, slash_pos);
 
 			val->val.subnet_val.prefix = io->ParseAddr(addr);
 			val->val.subnet_val.length = width;

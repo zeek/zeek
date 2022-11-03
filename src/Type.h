@@ -583,6 +583,8 @@ public:
 	TypeDecl(const TypeDecl& other);
 	~TypeDecl();
 
+	TypeDecl& operator=(const TypeDecl& other);
+
 	const detail::AttrPtr& GetAttr(detail::AttrTag a) const
 		{
 		return attrs ? attrs->Find(a) : detail::Attr::nil;

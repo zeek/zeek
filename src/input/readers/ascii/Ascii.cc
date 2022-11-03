@@ -47,6 +47,21 @@ FieldMapping FieldMapping::subType()
 	return FieldMapping(name, subtype, position);
 	}
 
+FieldMapping& FieldMapping::operator=(const FieldMapping& arg)
+	{
+	if ( this == &arg )
+		return *this;
+
+	name = arg.name;
+	type = arg.type;
+	subtype = arg.subtype;
+	present = arg.present;
+	position = arg.position;
+	secondary_position = arg.secondary_position;
+
+	return *this;
+	}
+
 Ascii::Ascii(ReaderFrontend* frontend) : ReaderBackend(frontend)
 	{
 	mtime = 0;

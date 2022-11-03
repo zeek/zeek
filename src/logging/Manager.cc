@@ -1209,9 +1209,9 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
 	if ( ! found_filter_match )
 		{
-		const auto& id = zeek::detail::global_scope()->Find("Log::default_rotation_interval");
+		const auto& interval = zeek::detail::global_scope()->Find("Log::default_rotation_interval");
 		assert(id);
-		winfo->interval = id->GetVal()->AsInterval();
+		winfo->interval = interval->GetVal()->AsInterval();
 
 		if ( winfo->info->post_proc_func && strlen(winfo->info->post_proc_func) )
 			{

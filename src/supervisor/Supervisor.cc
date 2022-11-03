@@ -1173,8 +1173,8 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
 		ss.pipe = std::make_unique<detail::PipePair>(FD_CLOEXEC, O_NONBLOCK, fds);
 		ss.parent_pid = stem_ppid;
 
-		Stem stem{std::move(ss)};
-		supervised_node = stem.Run();
+		Stem new_stem{std::move(ss)};
+		supervised_node = new_stem.Run();
 		return {};
 		}
 
@@ -1195,8 +1195,8 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
 
 	if ( pid == 0 )
 		{
-		Stem stem{std::move(ss)};
-		supervised_node = stem.Run();
+		Stem new_stem{std::move(ss)};
+		supervised_node = new_stem.Run();
 		return {};
 		}
 

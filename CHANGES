@@ -1,3 +1,13 @@
+5.2.0-dev.189 | 2022-11-04 09:15:57 -0700
+
+  * fuzzer-setup: Update ZEEKPATH to align with DEFAULT_ZEEKPATH (Arne Welzel, Corelight)
+
+    The util-config.h file uses @DEFAULT_ZEEKPATH@ which includes the
+    builtin-plugins directory. Do the same change for the fuzzers so
+    that scripts from builtin plugins can be found.
+
+    Fixes #2540
+
 5.2.0-dev.186 | 2022-11-03 09:21:35 -0700
 
   * Add a missing deletion in ZAM code (Tim Wojtulewicz, Corelight)

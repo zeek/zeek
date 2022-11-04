@@ -22,7 +22,8 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 		auto fuzzer_dir = zeek::util::SafeDirname(fuzzer_path).result;
 		std::string fs = zeek::util::fmt("%s/%s", fuzzer_dir.data(), oss_fuzz_scripts);
 		auto p = fs.data();
-		auto oss_fuzz_zeekpath = zeek::util::fmt(".:%s:%s/policy:%s/site", p, p, p);
+		auto oss_fuzz_zeekpath = zeek::util::fmt(".:%s:%s/policy:%s/site:%s/builtin-plugins", p, p,
+		                                         p, p);
 
 		if ( setenv("ZEEKPATH", oss_fuzz_zeekpath, true) == -1 )
 			abort();

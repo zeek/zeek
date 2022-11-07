@@ -167,6 +167,7 @@ set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_SUBDIR_DEPS CACHE INTERNAL "subdir dependencies" FORCE)
 set(bro_PLUGIN_LIBS CACHE INTERNAL "plugin libraries" FORCE)
 set(bro_PLUGIN_DEPS CACHE INTERNAL "plugin dependencies" FORCE)
+set(bro_PLUGIN_LINK_LIBS CACHE INTERNAL "plugin link libraries" FORCE)
 
 add_subdirectory(analyzer)
 add_subdirectory(packet_analysis)
@@ -194,11 +195,6 @@ foreach (plugin_dir ${BUILTIN_PLUGIN_LIST})
     if(IS_DIRECTORY "${plugin_dir}/cmake")
         set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${plugin_dir}/cmake")
     endif()
-
-    # Setup the include path for built source artifacts.
-    include_directories(AFTER
-                        ${plugin_dir}/src
-                        ${CMAKE_CURRENT_BINARY_DIR}/builtin-plugins/${plugin_name})
 
     add_subdirectory(${plugin_dir} ${CMAKE_CURRENT_BINARY_DIR}/builtin-plugins/${plugin_name})
 endforeach()
@@ -514,7 +510,7 @@ add_executable(zeek main.cc
                ${bro_SUBDIR_LIBS}
                ${bro_PLUGIN_LIBS}
 )
-target_link_libraries(zeek ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+target_link_libraries(zeek ${bro_PLUGIN_LINK_LIBS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 # Export symbols from zeek executable for use by plugins
 set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
 

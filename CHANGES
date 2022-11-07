@@ -1,3 +1,41 @@
+5.2.0-dev.195 | 2022-11-07 11:22:31 +0100
+
+  * zeek-setup: Load builtin-plugins/__preload__.zeek before initializing bifs (Arne Welzel, Corelight)
+
+    Prevent errors as follows with the bro-http2 plugin.
+
+        error in /mitrecnd_HTTP2.events.bif.zeek, line 95: identifier not defined: http2_stream_stat
+        error in /mitrecnd_HTTP2.events.bif.zeek, line 363: identifier not defined: http2_settings
+        internal error in /mitrecnd_HTTP2.events.bif.zeek, line 460: Failed to find type named: http2_settings_unrecognized_table
+
+  * GH-2483: cmake: Introduce bro_PLUGIN_LINK_LIBS and add to link command. (Arne Welzel, Corelight)
+
+    When using --include-plugins with plugins that depend other libraries
+    using zeek_plugin_link_library(), these libraries were stashed into
+    bro_SUBDIR_LIBS that is used in add_executable(). However, that does not
+    work for shared libraries.
+
+    Explicitly track library dependencies in bro_PLUGIN_LINK_LIBS now and
+    use target_link_libraries() with Zeek (there's a change in cmake to
+    make zeek_plugin_link_library() populate bro_PLUGIN_LINK_LIBS instead).
+
+    Currently, zeekdeps needs to come after bro_PLUGIN_LINK_LIBS due to how
+    spicy-plugin (and other external plugins) fiddle with zeekdeps in order
+    to stash dependencies into the PARENT_SCOPE.
+
+    bro_PLUGIN_LINK_LIBS will continue to work with static libraries.
+
+    The failure occurred when attempting to include bro-http2 [1].
+
+    Fixes #2483
+
+    [1] https://github.com/MITRECND/bro-http2
+
+  * cmake: Do not use include_directories() for included plugins (Arne Welzel, Corelight)
+
+    There's a cmake repo change that does the include_directories() in
+    zeek_plugin_begin() unconditionally instead.
+
 5.2.0-dev.189 | 2022-11-04 09:15:57 -0700
 
   * fuzzer-setup: Update ZEEKPATH to align with DEFAULT_ZEEKPATH (Arne Welzel, Corelight)

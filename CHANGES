@@ -1,3 +1,10 @@
+5.2.0-dev.198 | 2022-11-07 11:47:53 +0100
+
+  * Bump documentation.
+
+  * GH-2528: cluster: Add warning about cluster-layout.zeek content
+    (Arne Welzel, Corelight)
+
 5.2.0-dev.195 | 2022-11-07 11:22:31 +0100
 
   * zeek-setup: Load builtin-plugins/__preload__.zeek before initializing bifs (Arne Welzel, Corelight)

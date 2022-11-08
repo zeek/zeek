@@ -80,6 +80,7 @@ public:
 
 protected:
 	friend class analyzer::tcp::TCP_ApplicationAnalyzer;
+	friend class analyzer::tcp::TCP_Endpoint;
 	friend class analyzer::tcp::TCP_Reassembler;
 	friend class analyzer::pia::PIA_TCP;
 	friend class packet_analysis::TCP::TCPAnalyzer;
@@ -95,6 +96,7 @@ protected:
 	bool IsReuse(double t, const u_char* pkt) override;
 
 	void SetPartialStatus(analyzer::tcp::TCP_Flags flags, bool is_orig);
+	void SetFirstPacketSeen(bool is_orig);
 
 	// Update the state machine of the TCPs based on the activity.  This
 	// includes our pseudo-states such as TCP_ENDPOINT_PARTIAL.

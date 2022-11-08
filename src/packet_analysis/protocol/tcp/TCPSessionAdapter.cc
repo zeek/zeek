@@ -787,6 +787,11 @@ void TCPSessionAdapter::SetPartialStatus(analyzer::tcp::TCP_Flags flags, bool is
 		}
 	}
 
+void TCPSessionAdapter::SetFirstPacketSeen(bool is_orig)
+	{
+	first_packet_seen |= (is_orig ? ORIG : RESP);
+	}
+
 void TCPSessionAdapter::UpdateInactiveState(double t, analyzer::tcp::TCP_Endpoint* endpoint,
                                             analyzer::tcp::TCP_Endpoint* peer, uint32_t base_seq,
                                             uint32_t ack_seq, int len, bool is_orig,
@@ -829,6 +834,7 @@ void TCPSessionAdapter::UpdateInactiveState(double t, analyzer::tcp::TCP_Endpoin
 				is_partial = 0;
 				Conn()->FlipRoles();
 				peer->SetState(analyzer::tcp::TCP_ENDPOINT_ESTABLISHED);
+				SetFirstPacketSeen(true);
 				}
 
 			else
@@ -913,6 +919,7 @@ void TCPSessionAdapter::UpdateInactiveState(double t, analyzer::tcp::TCP_Endpoin
 			// as partial and instead establish the connection.
 			endpoint->SetState(analyzer::tcp::TCP_ENDPOINT_ESTABLISHED);
 			is_partial = 0;
+			SetFirstPacketSeen(is_orig);
 			}
 
 		else

@@ -3,6 +3,70 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.3
+==========
+
+This release fixes the following security issues:
+
+- Fix an issue where a specially-crafted FTP packet can cause Zeek to spend
+  large amounts of time attempting to search for valid commands in the data
+  stream. Due to the possibility of receiving these packets from remote hosts,
+  this is a DoS risk.
+
+- Fix a possible overflow in the Zeek dictionary code that may lead to a memory
+  leak. Due to the possibility of this happening with packets received from the
+  network, this is a potential DoS vulnerability.
+
+- Fix an issue where a specially-crafted packet can cause Zeek to spend large
+  amounts of time reporting analyzer violations. Due to the possibility of
+  receiving these packets from remote hosts, this is a DoS risk.
+
+- Fix a possible assert and crash in the HTTP analyzer when receiving a
+  specially-crafted packet. Due to the possibility of receiving these packets
+  from remote hosts, this is a DoS risk.
+
+- Fix an issue where a specially-crafted HTTP or SMTP packet can cause Zeek to
+  spend a large amount of time attempting to search for filenames within the
+  packet data. Due to the possibility of receiving these packets from remote
+  hosts, this is a DoS risk.
+
+- Fix two separate possible crashes when converting processed IP headers for
+  logging via the raw_packet event handlers. Due to the possibility of receiving
+  these packets from remote hosts, this is a DoS risk. This event handler is not
+  enabled by default, so this can be considered low-priority.
+
+This release fixes the following bugs:
+
+- Fix a possible crash with ``when`` statements where lambda captures of local
+  variables sometimes overflowed the frame counter.
+
+- Reduced the amount of ``analyzer_confirmation`` events that are raised for
+  packets that contain tunnels.
+
+- Fix a long-standing bug where TCP reassembly would not function correctly
+  for some analyzers if ``dpd_reassemble_first_packets`` was set to false.
+
+- Fix a performance bug in the Zeek dictionary code in certain cases, such as
+  copying a large number of entries from one dictionary into another.
+
+- Fix a performance issue when inserting large numbers of elements into a Broker
+  store when ``Broker::scheduler_policy`` is set to ``stealing``.
+
+- Fix a Broker performance issue when distributing large amounts of data from
+  the input framework to proxies/workers at startup.
+
+- Fix an issue with messaging between proxies and workers that resulted in error
+  messages being reported.
+
+- Updated the list of DNS type strings to reflect the correct mappings. Note
+  that the following mappings where changed:
+  - type 30 is now NXT instead of EID
+  - type 31 is now EID instead of NIMLOC
+  - type 32 is now NIMLOC instead of NB> NB was originally defined in RFC 1002,
+    but was later made obsolete and replaced by NIMLOC. Similarly, type 33 was
+    originally defined as NBSTAT, but was replaced by SRV (Zeek had this one
+    correct already).
+
 Zeek 5.0.2
 ==========
 

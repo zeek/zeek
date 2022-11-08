@@ -6,6 +6,7 @@ btest_tools_dir=@ZEEK_CONFIG_BTEST_TOOLS_DIR@
 build_type=@CMAKE_BUILD_TYPE_LOWER@
 cmake_dir=@CMAKE_INSTALL_PREFIX@/share/zeek/cmake
 config_dir=@ZEEK_ETC_INSTALL_DIR@
+have_spicy=@USE_SPICY_ANALYZERS@
 include_dir=@CMAKE_INSTALL_PREFIX@/include
 lib_dir=@CMAKE_INSTALL_FULL_LIBDIR@
 plugin_dir=@BRO_PLUGIN_INSTALL_PATH@
@@ -64,6 +65,10 @@ Toplevel installation directories for third-party components:
 
   --binpac_root         BinPAC compiler
   --broker_root         Broker communication framework
+
+Feature tests:
+
+  --have-spicy-analyzers  Prints 'yes' if built-in Spicy analyzers are available; exit code reflects result
 "
 }
 
@@ -102,6 +107,15 @@ while [ $# -ne 0 ]; do
             ;;
         --config_dir)
             echo $config_dir
+            ;;
+        --have-spicy-analyzers)
+            if [ "$have_spicy" = "yes" ]; then
+                echo "yes"
+                exit 0
+            else
+                echo "no"
+                exit 1
+            fi
             ;;
         --include_dir)
             echo $include_dir

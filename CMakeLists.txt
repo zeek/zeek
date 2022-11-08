@@ -547,14 +547,17 @@ else ()
 endif ()
 
 if ( NOT DISABLE_SPICY )
+    set(USE_SPICY_ANALYZERS yes)
+
     if ( NOT SPICY_ROOT_DIR )
+        set(HAVE_SPICY yes) # evaluated by Spicy plugin build
+
         add_subdirectory(auxil/spicy)
 
         # Set variables used by the spicy-plugin build since we are building Spicy
         # as part of Zeek so spicy-plugin cannot use `spicy-config` at configure
         # time to set these.
         set(SPICY_CONFIG "<builtin>")
-        set(HAVE_SPICY "YES")
         set(SPICY_HAVE_TOOLCHAIN "YES")
         set(SPICY_INCLUDE_DIRS_RUNTIME
             ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/hilti/runtime/include
@@ -564,6 +567,10 @@ if ( NOT DISABLE_SPICY )
             ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/hilti/toolchain/include
             ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/spicy/toolchain/include)
         set(SPICY_LIBRARY spicy)
+        set(HILTI_LIBRARY_RT hilti-rt)
+        set(HILTI_LIBRARY_RT_DEBUG hilti-rt-debug)
+        set(SPICY_LIBRARY_RT spicy-rt)
+        set(SPICY_LIBRARY_RT_DEBUG spicy-rt-debug)
 
         # Needed only for logging from CMake configure phase.
         get_directory_property(
@@ -586,11 +593,19 @@ if ( NOT DISABLE_SPICY )
     endif ()
 
     if ( NOT SPICY_PLUGIN_PATH )
+        set(_spicy_plugin "included")
         set(SPICY_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/spicy-plugin)
     endif ()
 
+    set(SPICY_PLUGIN_BINARY_PATH ${CMAKE_BINARY_DIR}/src/builtin-plugins/spicy-plugin)
     string(APPEND ZEEK_INCLUDE_PLUGINS ";${SPICY_PLUGIN_PATH}")
+else ()
+    set(HAVE_SPICY no) # evaluated by Spicy plugin build
+    set(USE_SPICY_ANALYZERS no)
 endif ()
+
+set(USE_SPICY_ANALYZERS "${USE_SPICY_ANALYZERS}" CACHE BOOL "Use built-in Spicy analyzers")
+include(BuiltInSpicyAnalyzer)
 
 include_directories(BEFORE
                     ${PCAP_INCLUDE_DIR}
@@ -866,26 +881,6 @@ if ( NOT DISABLE_SPICY )
     add_dependencies(zeek spicyz)
 
     if ( NOT SPICY_ROOT_DIR )
-        list(APPEND _spicy_rt_libs spicy-rt hilti-rt)
-
-        # Use the debug runtime libraries if we are building a debug Zeek.
-        if ( SPICY_BUILD_MODE STREQUAL "Debug" )
-            list(TRANSFORM _spicy_rt_libs APPEND "-debug")
-        endif ()
-
-        # If we build spicy-plugin into Zeek we also need to build the Spicy
-        # runtime dependencies into Zeek. Since no matter how Spicy itself was
-        # linked this is always a static library, link the object files so we
-        # get all symbols and can resolve all potential dependencies of
-        # HLTO files at runtime.
-        #
-        # TODO(bbannier): Conceptually cleaner would be linking the runtime
-        # objects into spicy-plugin and then inherit that up to zeek, but it
-        # seems this does not work reliable (due incomplete support for object
-        # libraries in CMake?).
-        list(TRANSFORM _spicy_rt_libs APPEND "-objects")
-        target_link_libraries(zeek ${_spicy_rt_libs})
-
         # Make sure we build targets of spicy-plugin after the `spicy` target.
         add_dependencies(plugin-Zeek-Spicy spicy)
         add_dependencies(spicyz spicy)
@@ -959,6 +954,33 @@ if ( GEN_ZAM_EXE_PATH )
     set(_gen_zam_exe_path ${GEN_ZAM_EXE_PATH})
 endif ()
 
+set(_spicy "included")
+if ( DISABLE_SPICY )
+    set(_spicy "disabled")
+elseif ( SPICY_ROOT_DIR )
+    set(_spicy "external (${SPICY_ROOT_DIR})")
+endif ()
+
+if ( DISABLE_SPICY )
+    set(_spicy_plugin "disabled")
+elseif ( "${_spicy_plugin}" STREQUAL "" )
+    set(_spicy_plugin "external (${SPICY_PLUGIN_PATH})")
+endif ()
+
+if ( ZEEK_LEGACY_ANALYZERS )
+    list(JOIN ZEEK_LEGACY_ANALYZERS ", " _legacy_analyzers)
+    set(_legacy_analyzers  "\n          - Using unmaintained legacy analyzers for: ${_legacy_analyzers}")
+endif ()
+
+if ( ZEEK_SKIPPED_ANALYZERS )
+    list(JOIN ZEEK_SKIPPED_ANALYZERS ", " _skipped_analyzers)
+    set(_skipped_analyzers "\n          - Skipping analyzers: ${_skipped_analyzers}")
+endif ()
+
+if ( ZEEK_LEGACY_ANALYZERS OR ZEEK_SKIPPED_ANALYZERS )
+    set(_analyzer_warning "\n\n[Warning] Some analyzers are not available due to lack of Spicy:${_legacy_analyzers}${_skipped_analyzers}")
+endif ()
+
 message(
     "\n====================|  Zeek Build Summary  |===================="
     "\n"
@@ -993,6 +1015,9 @@ message(
     "\nBTest tooling:     ${_install_btest_tools_msg}"
     "\nGen-ZAM:           ${_gen_zam_exe_path}"
     "\nzkg:               ${INSTALL_ZKG}"
+    "\nSpicy:             ${_spicy}"
+    "\nSpicy plugin:      ${_spicy_plugin}"
+    "\nSpicy analyzers:   ${USE_SPICY_ANALYZERS}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"
     "\nKerberos:          ${USE_KRB5}"
@@ -1003,6 +1028,7 @@ message(
     "\n"
     "\nFuzz Targets:      ${ZEEK_ENABLE_FUZZERS}"
     "\nFuzz Engine:       ${ZEEK_FUZZING_ENGINE}"
+    "${_analyzer_warning}"
     "\n"
     "\n================================================================\n"
 )

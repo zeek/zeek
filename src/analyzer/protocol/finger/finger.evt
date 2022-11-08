@@ -1,0 +1,10 @@
+# Copyright (c) 2022 by the Zeek Project. See LICENSE for details.
+
+protocol analyzer Finger over TCP:
+    parse originator with Finger::Request,
+    parse responder with Finger::Reply;
+
+import Finger;
+
+on Finger::Request -> event finger_request($conn, self.whois, self.user, self.host);
+on Finger::ReplyLine if ( |self.data| != 0 ) -> event finger_reply($conn, self.data);

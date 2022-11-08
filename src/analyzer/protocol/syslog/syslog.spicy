@@ -1,0 +1,32 @@
+# Copyright (c) 2022 by the Zeek Project. See LICENSE for details.
+
+module Syslog;
+
+import spicy;
+
+public type Message = unit {
+    switch {
+        -> prio: Priority;
+        -> void;
+    };
+
+    msg: bytes &eod;
+
+    on %done {
+        spicy::accept_input();
+
+        if ( self?.prio ) {
+            self.severity = (self.prio.value & 0x07);
+            self.facility = (self.prio.value & 0x03f8) >> 3;
+        }
+    }
+
+    var severity: uint64 = 999; # default per legacy analyzer
+    var facility: uint64 = 999; # default per legacy analyzer
+};
+
+type Priority = unit {
+    : b"<";
+    value: /[[:digit:]]+/ &convert=$$.to_uint();
+    : b">";
+};

@@ -1,0 +1,8 @@
+# Copyright (c) 2022 by the Zeek Project. See LICENSE for details.
+
+protocol analyzer Syslog over UDP:
+    parse with Syslog::Message;
+
+import Syslog;
+
+on Syslog::Message -> event syslog_message($conn, self.facility, self.severity, self.msg);

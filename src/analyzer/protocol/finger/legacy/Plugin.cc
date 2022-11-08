@@ -3,7 +3,7 @@
 #include "zeek/plugin/Plugin.h"
 
 #include "zeek/analyzer/Component.h"
-#include "zeek/analyzer/protocol/finger/Finger.h"
+#include "zeek/analyzer/protocol/finger/legacy/Finger.h"
 
 namespace zeek::plugin::detail::Zeek_Finger
 	{

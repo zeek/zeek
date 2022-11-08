@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# Replace absolute paths in Spicy error message with the basename. This is more
+# restrictive than diff-remove-abspath to avoid catching other stuff.
+
+if [ $(uname) == "Linux" ]; then
+    sed="sed -r"
+else
+    sed="sed -E"
+fi
+
+$sed 's#/([^:/]{1,}/){1,}([^:/]{1,}\.spicy[:,])#<...>/\2#g'

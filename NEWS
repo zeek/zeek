@@ -184,6 +184,15 @@ Changed Functionality
 
 - Fixed ``bytestring_to_count`` to handle 3-, 5-, 6-, and 7-byte strings.
 
+- Updated the list of DNS type strings to reflect the correct mappings. Note
+  that the following mappings where changed:
+  - type 30 is now NXT instead of EID
+  - type 31 is now EID instead of NIMLOC
+  - type 32 is now NIMLOC instead of NB> NB was originally defined in RFC 1002,
+    but was later made obsolete and replaced by NIMLOC. Similarly, type 33 was
+    originally defined as NBSTAT, but was replaced by SRV (Zeek had this one
+    correct already).
+
 Removed Functionality
 ---------------------
 

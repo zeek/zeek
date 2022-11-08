@@ -1,3 +1,30 @@
+5.1.0 | 2022-11-08 11:41:12 -0700
+
+  * {http,smtp}/entities: Align header regexes with extract_filename_from_content_disposition() (Arne Welzel, Corelight)
+
+  * analyzer/HTTP: Call TCP_ApplicationAnalyzer::Done() after RequestMade()/ReplyMade() (Arne Welzel, Corelight)
+
+  * test: Add btest verifying max_analyzer_violations functionality (Arne Welzel, Corelight)
+
+    The pcap has been generated roughly based on the example found on wikipedia
+    with some added garbled response after the STAT command from the client.
+
+  * analyzer: Cap analyzer violations at 1000 per analyzer instance (Arne Welzel, Corelight)
+
+  * Report an error if a key is too big for a DictEntry (Tim Wojtulewicz, Corelight)
+
+  * Use larger size variable for DictEntry key_size to avoid overflows with big keys (Tim Wojtulewicz, Corelight)
+
+  * ftp: Limit pending commands to FTP::max_pending_commands (default 20) (Arne Welzel, Corelight)
+
+  * Update baselines after AnalyzePacket changes (Arne Welzel, Corelight)
+
+    Mainly, for bad headers we do not (can not) put addresses into
+    the log anymore. Some were rather obviously bogus previously
+    already.
+
+  * protocol/ip: Only attach IP_Hdr to Packet if valid (Arne Welzel, Corelight)
+
 5.1.0-rc1.12 | 2022-11-07 10:52:41 -0700
 
   * Bump spicy-1.5.2 and spicy-plugin-1.3.22. (Benjamin Bannier, Corelight)

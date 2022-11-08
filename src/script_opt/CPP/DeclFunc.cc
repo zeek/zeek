@@ -101,13 +101,9 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
 		compiled_funcs.emplace(fname);
 		}
 
-	auto h = pf->HashVal();
-
-	body_hashes[fname] = h;
+	body_hashes[fname] = pf->HashVal();
 	body_priorities[fname] = priority;
 	body_names.emplace(body.get(), fname);
-
-	total_hash = merge_p_hashes(total_hash, h);
 	}
 
 void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname,

@@ -811,11 +811,14 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		{
 		auto id = (*loop_vars)[i];
 
-		if ( body_pf.Locals().count(id) == 0 )
+		if ( body_pf.Locals().count(id) == 0 || id->IsBlank() )
 			++num_unused;
 
-		aux->loop_vars.push_back(FrameSlot(id));
-		aux->loop_var_types.push_back(id->GetType());
+		int slot = id->IsBlank() ? -1 : FrameSlot(id);
+		aux->loop_vars.push_back(slot);
+		auto& t = id->GetType();
+		aux->loop_var_types.push_back(t);
+		aux->lvt_is_managed.push_back(ZVal::IsManagedType(t));
 		}
 
 	bool no_loop_vars = (num_unused == loop_vars->length());
@@ -874,19 +877,37 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 	auto init_end = AddInst(z);
 	auto iter_head = StartingBlock();
 
+	int slot = loop_var->IsBlank() ? -1 : FrameSlot(loop_var);
+
 	if ( value_var )
 		{
-		z = ZInstI(OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV, FrameSlot(loop_var), FrameSlot(value_var),
-		           iter_slot, 0);
+		if ( slot >= 0 )
+			{
+			z = ZInstI(OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV, slot, FrameSlot(value_var), iter_slot, 0);
+			z.op_type = OP_VVVV_I3_I4;
+			}
+		else
+			{
+			z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_VVV, FrameSlot(value_var), iter_slot, 0);
+			z.op_type = OP_VVV_I2_I3;
+			}
+
 		z.t = value_var->GetType();
 		z.is_managed = ZVal::IsManagedType(z.t);
-		z.op_type = OP_VVVV_I3_I4;
 		}
 
 	else
 		{
-		z = ZInstI(OP_NEXT_VECTOR_ITER_VVV, FrameSlot(loop_var), iter_slot, 0);
-		z.op_type = OP_VVV_I2_I3;
+		if ( slot >= 0 )
+			{
+			z = ZInstI(OP_NEXT_VECTOR_ITER_VVV, slot, iter_slot, 0);
+			z.op_type = OP_VVV_I2_I3;
+			}
+		else
+			{
+			z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_VV, iter_slot, 0);
+			z.op_type = OP_VV_I1_I2;
+			}
 		}
 
 	return FinishLoop(iter_head, z, f->LoopBody(), iter_slot, false);
@@ -918,9 +939,17 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const Expr* e)
 	auto init_end = AddInst(z);
 	auto iter_head = StartingBlock();
 
-	z = ZInstI(OP_NEXT_STRING_ITER_VVV, FrameSlot(loop_var), iter_slot, 0);
-	z.is_managed = true;
-	z.op_type = OP_VVV_I2_I3;
+	if ( loop_var->IsBlank() )
+		{
+		z = ZInstI(OP_NEXT_STRING_BLANK_ITER_VV, iter_slot, 0);
+		z.op_type = OP_VV_I1_I2;
+		}
+	else
+		{
+		z = ZInstI(OP_NEXT_STRING_ITER_VVV, FrameSlot(loop_var), iter_slot, 0);
+		z.op_type = OP_VVV_I2_I3;
+		z.is_managed = true;
+		}
 
 	return FinishLoop(iter_head, z, f->LoopBody(), iter_slot, false);
 	}

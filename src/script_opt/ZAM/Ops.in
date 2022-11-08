@@ -1743,22 +1743,33 @@ op1-read
 eval	auto& vv = frame[z.v1].vector_val->RawVec();
 	step_iters[z.v2].InitLoop(vv);
 
+macro NextVectorIterCore(info, branch)
+	auto& si = step_iters[info];
+	if ( si.IsDoneIterating() )
+		BRANCH(branch)
+	const auto& vv = *si.vv;
+	if ( ! vv[si.iter] )
+		{ /* Account for vector hole.  Re-execute for next position. */
+		si.IterFinished();
+		--pc;	/* so we then increment to here again */
+		break;
+		}
+
 internal-op Next-Vector-Iter
 # v1 = iteration variable
 # v2 = iteration info
 # v3 = branch target if loop done
 type VVV
-eval	auto& si = step_iters[z.v2];
-	if ( si.IsDoneIterating() )
-		BRANCH(v3)
-	const auto& vv = *si.vv;
-	if ( ! vv[si.iter] )
-		{ // Account for vector hole.  Re-execute for next position.
-		si.IterFinished();
-		--pc;	// so we then increment to here again
-		break;
-		}
+eval	NextVectorIterCore(z.v2, v3)
 	frame[z.v1].uint_val = si.iter;
+	si.IterFinished();
+
+internal-op Next-Vector-Blank-Iter
+# v1 = iteration info
+# v2 = branch target if loop done
+op1-internal
+type VV
+eval	NextVectorIterCore(z.v1, v2)
 	si.IterFinished();
 
 internal-op Next-Vector-Iter-Val-Var
@@ -1768,21 +1779,24 @@ internal-op Next-Vector-Iter-Val-Var
 # v4 = branch target if loop done
 op1-read-write
 type VVVV
-eval	auto& si = step_iters[z.v3];
-	if ( si.IsDoneIterating() )
-		BRANCH(v4)
-	const auto& vv = *si.vv;
-	if ( ! vv[si.iter] )
-		{ // Account for vector hole.  Re-execute for next position.
-		si.IterFinished();
-		--pc;	// so we then increment to here again
-		break;
-		}
+eval	NextVectorIterCore(z.v3, v4)
 	frame[z.v1].uint_val = si.iter;
 	if ( z.is_managed )
 		frame[z.v2] = BuildVal(vv[si.iter]->ToVal(z.t), z.t);
 	else
 		frame[z.v2] = *vv[si.iter];
+	si.IterFinished();
+
+internal-op Next-Vector-Blank-Iter-Val-Var
+# v1 = value variable
+# v2 = iteration info
+# v3 = branch target if loop done
+type VVV
+eval	NextVectorIterCore(z.v2, v3)
+	if ( z.is_managed )
+		frame[z.v1] = BuildVal(vv[si.iter]->ToVal(z.t), z.t);
+	else
+		frame[z.v1] = *vv[si.iter];
 	si.IterFinished();
 
 
@@ -1807,6 +1821,16 @@ eval	auto& si = step_iters[z.v2];
 	auto sv = new StringVal(1, bytes);
 	Unref(frame[z.v1].string_val);
 	frame[z.v1].string_val = sv;
+	si.IterFinished();
+
+internal-op Next-String-Blank-Iter
+# v1 = iteration info
+# v2 = branch target if loop done
+op1-internal
+type VV
+eval	auto& si = step_iters[z.v1];
+	if ( si.IsDoneIterating() )
+		BRANCH(v2)
 	si.IterFinished();
 
 internal-op End-Table-Loop

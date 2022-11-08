@@ -278,6 +278,7 @@ static void init_options()
 	check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
 	check_env_opt("ZEEK_REPORT_CPP", analysis_options.report_CPP);
 	check_env_opt("ZEEK_USE_CPP", analysis_options.use_CPP);
+	check_env_opt("ZEEK_ALLOW_COND", analysis_options.allow_cond);
 
 	if ( analysis_options.gen_standalone_CPP || analysis_options.add_CPP )
 		analysis_options.gen_CPP = true;
@@ -287,6 +288,10 @@ static void init_options()
 
 	if ( analysis_options.use_CPP && generating_CPP )
 		reporter->FatalError("generating C++ incompatible with using C++");
+
+	if ( analysis_options.allow_cond && ! analysis_options.gen_standalone_CPP )
+		reporter->FatalError(
+			"\"-O allow-cond\" only relevant when also using \"-O gen-standalone-C++\"");
 
 	auto usage = getenv("ZEEK_USAGE_ISSUES");
 

@@ -73,9 +73,8 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 	working_dir = buf;
 
-	GenProlog();
-
 	unordered_set<string> filenames_reported_as_skipped;
+	bool had_to_skip = false;
 
 	// Determine which functions we can call directly, and reuse
 	// previously compiled instances of those if present.
@@ -84,11 +83,19 @@ void CPPCompile::Compile(bool report_uncompilable)
 		const auto& f = func.Func();
 
 		auto& ofiles = analysis_options.only_files;
+		auto allow_cond = analysis_options.allow_cond;
+
 		string fn = func.Body()->GetLocationInfo()->filename;
 
-		if ( ! func.ShouldSkip() && ! ofiles.empty() && files_with_conditionals.count(fn) > 0 )
+		if ( ! allow_cond && ! func.ShouldSkip() && ! ofiles.empty() &&
+		     files_with_conditionals.count(fn) > 0 )
 			{
-			if ( filenames_reported_as_skipped.count(fn) == 0 )
+			if ( report_uncompilable )
+				reporter->Warning(
+					"%s cannot be compiled to C++ due to source file %s having conditional code",
+					f->Name(), fn.c_str());
+
+			else if ( filenames_reported_as_skipped.count(fn) == 0 )
 				{
 				reporter->Warning(
 					"skipping compilation of files in %s due to presence of conditional code",
@@ -96,6 +103,7 @@ void CPPCompile::Compile(bool report_uncompilable)
 				filenames_reported_as_skipped.insert(fn);
 				}
 
+			had_to_skip = true;
 			func.SetSkip(true);
 			}
 
@@ -114,16 +122,29 @@ void CPPCompile::Compile(bool report_uncompilable)
 			}
 		else
 			{
-			if ( reason && standalone )
-				reporter->Error("%s cannot be compiled to standalone C++ due to %s", f->Name(),
-				                reason);
-
-			else if ( reason && report_uncompilable )
-				fprintf(stderr, "%s cannot be compiled to C++ due to %s\n", f->Name(), reason);
+			if ( reason && report_uncompilable )
+				{
+				had_to_skip = true;
+				reporter->Warning("%s cannot be compiled to C++ due to %s", f->Name(), reason);
+				}
 
 			not_fully_compilable.insert(f->Name());
 			}
 		}
+
+	if ( standalone && had_to_skip )
+		reporter->FatalError(
+			"aborting standalone compilation to C++ due to having to skip some functions");
+
+	// Generate a hash unique for this compilation.
+	for ( const auto& func : funcs )
+		if ( ! func.ShouldSkip() )
+			total_hash = merge_p_hashes(total_hash, func.Profile()->HashVal());
+
+	auto t = util::current_time();
+	total_hash = merge_p_hashes(total_hash, hash<double>{}(t));
+
+	GenProlog();
 
 	// Track all of the types we'll be using.
 	for ( const auto& t : pfs.RepTypes() )
@@ -213,7 +234,7 @@ void CPPCompile::GenProlog()
 		Emit("#include \"zeek/script_opt/CPP/Runtime.h\"\n");
 
 	Emit("namespace zeek::detail { //\n");
-	Emit("namespace CPP_%s { // %s\n", Fmt(addl_tag), working_dir);
+	Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), working_dir);
 
 	// The following might-or-might-not wind up being populated/used.
 	Emit("std::vector<int> field_mapping;");

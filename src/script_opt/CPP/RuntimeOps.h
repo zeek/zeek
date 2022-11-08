@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "zeek/Frame.h"
 #include "zeek/Val.h"
 #include "zeek/script_opt/CPP/Func.h"
 
@@ -46,6 +47,7 @@ extern ValPtr when_index_slice__CPP(VectorVal* vec, const ListVal* lv);
 // but (2) needing to have the address of that vector.
 inline ValPtr invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame)
 	{
+	frame->SetOnlyCall(nullptr);
 	return f->Invoke(&args, frame);
 	}
 

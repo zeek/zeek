@@ -162,7 +162,7 @@ about associated expressions/statements, making them hard to puzzle out.
 This could be fixed, but would add execution overhead in passing around
 the necessary strings / `Location` objects.
 
-* To avoid subtle bugs, the compiler will refrain from compiling script elements (functions, hooks, event handlers) that include conditional code.  In addition, when using `--optimize-files` it will not compile any functions appearing in a source file that includes conditional code (even if it's not in a function body).
+* To avoid subtle bugs, the compiler will refrain from compiling script elements (functions, hooks, event handlers) that include conditional code.  In addition, when using `--optimize-files` it will not compile any functions appearing in a source file that includes conditional code (even if it's not in a function body).  You can override this refusal with `-O allow-cond`.
 
 * Code compiled with `-O gen-standalone-C++` will not execute any global
 statements when invoked using the "stand-in" script.  The right fix for
@@ -170,7 +170,7 @@ this is to shift from encapsulating global statements in a pseudo-function,
 as currently done, to instead be in a pseudo-event handler.
 
 * Code compiled with `-O gen-standalone-C++` likely has bugs if that
-code requires initializing a global variable that specifies extend fields in
+code requires initializing a global variable that specifies extending fields in
 an extensible record (i.e., fields added using `redef`).
 
 * If a lambda generates an event that is not otherwise referred to, that

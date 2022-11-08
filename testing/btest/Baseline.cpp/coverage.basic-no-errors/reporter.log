@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	level	message	location
 #types	time	enum	string	string
-XXXXXXXXXX.XXXXXX	Reporter::INFO	Hello, Zeek!	<...>/pp-alarms.zeek, line 100
+XXXXXXXXXX.XXXXXX	Reporter::INFO	Hello, Zeek!	(empty)
 #close XXXX-XX-XX-XX-XX-XX

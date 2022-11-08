@@ -110,6 +110,10 @@ struct AnalyOpt
 
 	// If true, report on available C++ bodies.
 	bool report_CPP = false;
+
+	// If true, allow standalone compilation in the presence of
+	// conditional code.
+	bool allow_cond = false;
 	};
 
 extern AnalyOpt analysis_options;

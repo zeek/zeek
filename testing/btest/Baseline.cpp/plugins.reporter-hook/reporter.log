@@ -7,8 +7,8 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	level	message	location
 #types	time	enum	string	string
-XXXXXXXXXX.XXXXXX	Reporter::INFO	Some Info	<...>/main.zeek, lines 517-518
-XXXXXXXXXX.XXXXXX	Reporter::WARNING	A warning	<...>/main.zeek, lines 517-518
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	An Error	<...>/main.zeek, lines 517-518
+XXXXXXXXXX.XXXXXX	Reporter::INFO	Some Info	(empty)
+XXXXXXXXXX.XXXXXX	Reporter::WARNING	A warning	(empty)
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	An Error	(empty)
 XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing	(empty)
 #close XXXX-XX-XX-XX-XX-XX

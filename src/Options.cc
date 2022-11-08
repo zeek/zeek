@@ -206,13 +206,15 @@ static void print_analysis_help()
 
 	fprintf(stderr, "\n--optimize options when generating C++:\n");
 	fprintf(stderr, "    add-C++	add C++ script bodies to existing generated code\n");
+	fprintf(
+		stderr,
+		"    allow-cond	allow standalone compilation of functions influenced by conditionals\n");
 	fprintf(stderr, "    gen-C++	generate C++ script bodies\n");
 	fprintf(stderr, "    gen-standalone-C++	generate \"standalone\" C++ script bodies\n");
 	fprintf(stderr, "    help	print this list\n");
 	fprintf(stderr, "    report-C++	report available C++ script bodies and exit\n");
 	fprintf(stderr, "    report-uncompilable	print names of functions that can't be compiled\n");
 	fprintf(stderr, "    use-C++	use available C++ script bodies\n");
-	fprintf(stderr, "\n  experimental options for incremental compilation:\n");
 	}
 
 static void set_analysis_option(const char* opt, Options& opts)
@@ -240,6 +242,8 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.activate = a_o.dump_ZAM = true;
 	else if ( util::streq(opt, "add-C++") )
 		a_o.add_CPP = true;
+	else if ( util::streq(opt, "allow-cond") )
+		a_o.allow_cond = true;
 	else if ( util::streq(opt, "gen-C++") )
 		a_o.gen_CPP = true;
 	else if ( util::streq(opt, "gen-standalone-C++") )

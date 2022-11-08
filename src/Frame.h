@@ -194,6 +194,7 @@ public:
 		call = arg_call;
 		SetTriggerAssoc((void*)call);
 		}
+	void SetOnlyCall(const CallExpr* arg_call) { call = arg_call; }
 	const CallExpr* GetCall() const { return call; }
 
 	void SetTriggerAssoc(const void* arg_assoc) { assoc = arg_assoc; }

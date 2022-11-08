@@ -499,13 +499,16 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
 	Emit("auto* current_tev__CPP = lve__CPP.value;");
 	Emit("auto ind_lv__CPP = tv__CPP->RecreateIndex(*k__CPP);");
 
-	if ( value_var )
+	if ( value_var && ! value_var->IsBlank() )
 		Emit("%s = %s;", IDName(value_var),
 		     GenericValPtrToGT("current_tev__CPP->GetVal()", value_var->GetType(), GEN_NATIVE));
 
 	for ( int i = 0; i < loop_vars->length(); ++i )
 		{
 		auto var = (*loop_vars)[i];
+		if ( var->IsBlank() )
+			continue;
+
 		const auto& v_t = var->GetType();
 		auto acc = NativeAccessor(v_t);
 
@@ -526,9 +529,12 @@ void CPPCompile::GenForOverVector(const ExprPtr& vec, const IDPtr& value_var,
 
 	Emit("if ( ! vv__CPP->Has(i__CPP) ) continue;");
 
-	Emit("%s = i__CPP;", IDName((*loop_vars)[0]));
+	auto lv0 = (*loop_vars)[0];
 
-	if ( value_var )
+	if ( ! lv0->IsBlank() )
+		Emit("%s = i__CPP;", IDName(lv0));
+
+	if ( value_var && ! value_var->IsBlank() )
 		{
 		auto vv = IDName(value_var);
 		auto access = "vv__CPP->ValAt(i__CPP)";
@@ -545,7 +551,10 @@ void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars)
 	StartBlock();
 
 	Emit("auto sv__CPP = make_intrusive<StringVal>(1, (const char*) sval__CPP->Bytes() + i__CPP);");
-	Emit("%s = std::move(sv__CPP);", IDName((*loop_vars)[0]));
+
+	auto lv0 = (*loop_vars)[0];
+	if ( ! lv0->IsBlank() )
+		Emit("%s = std::move(sv__CPP);", IDName(lv0));
 	}
 
 	} // zeek::detail

@@ -860,6 +860,12 @@ public:
 	 */
 	void ForwardUndelivered(uint64_t seq, int len, bool orig) override;
 
+	/**
+	 * Signals that Zeek has flipped the direction of the connection, meaning
+	 * that originator and responder state need to be swapped.
+	 */
+	void FlipRoles() override { orig = ! orig; }
+
 protected:
 	friend class Analyzer;
 

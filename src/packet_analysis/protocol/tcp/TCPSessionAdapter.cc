@@ -1162,6 +1162,9 @@ void TCPSessionAdapter::FlipRoles()
 	orig = tmp_ep;
 	orig->is_orig = ! orig->is_orig;
 	resp->is_orig = ! resp->is_orig;
+	first_packet_seen = ((first_packet_seen & ORIG) ? RESP : 0) |
+	                    ((first_packet_seen & RESP) ? ORIG : 0);
+	is_partial = 0; // resetting, it may be re-established later
 	}
 
 void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val)

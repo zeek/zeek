@@ -1,3 +1,7 @@
+5.2.0-dev.215 | 2022-11-09 11:03:43 -0700
+
+  * Configure script: drop --with-caf, add -D option (Dominik Charousset, Corelight)
+
 5.2.0-dev.213 | 2022-11-09 08:51:08 -0700
 
   * Update cmake submodule to remove STATIC_KQUEUE variable (Tim Wojtulewicz)

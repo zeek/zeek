@@ -83,8 +83,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-bison=PATH      path to bison executable
     --with-broker=PATH     path to Broker install root
                            (Zeek uses an embedded version by default)
-    --with-caf=PATH        path to C++ Actor Framework install root
-                           (a Broker dependency that is embedded by default)
     --with-gen-zam=PATH    path to Gen-ZAM code generator
                            (Zeek uses an embedded version by default)
     --with-flex=PATH       path to flex executable
@@ -115,6 +113,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --osx-min-version=VER  minimum OS X version (the deployment target)
 
     --display-cmake        don't create build configuration, just output final CMake invocation
+
+  Advanced Options (for developers):
+    -D PARAM               passes a parameter directly to CMake
 
   Influential Environment Variables (only on first invocation
   per build directory):
@@ -194,6 +195,14 @@ while [ $# -ne 0 ]; do
         --help | -h)
             echo "${usage}" 1>&2
             exit 1
+            ;;
+        -D)
+            shift
+            if [ $# -eq 0 ]; then
+                echo "Error: -D requires an argument."
+                exit 1
+            fi
+            CMakeCacheEntries="$CMakeCacheEntries -D $1"
             ;;
         --cmake=*)
             CMakeCommand=$optarg

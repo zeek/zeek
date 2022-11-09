@@ -1,3 +1,11 @@
+5.2.0-dev.213 | 2022-11-09 08:51:08 -0700
+
+  * Update cmake submodule to remove STATIC_KQUEUE variable (Tim Wojtulewicz)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
+  * Update zeek-testing-private commit hash (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.209 | 2022-11-08 16:44:48 -0700
 
   * {http,smtp}/entities: Align header regexes with extract_filename_from_content_disposition() (Arne Welzel, Corelight)

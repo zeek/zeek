@@ -339,7 +339,7 @@ public:
 	const PortValPtr& Port(uint32_t port_num);
 
 private:
-	std::map<std::pair<uint32_t, TransportProto>, PortValPtr> ports;
+	std::unordered_map<uint32_t, PortValPtr> ports;
 	std::array<ValPtr, PREALLOCATED_COUNTS> counts;
 	std::array<ValPtr, PREALLOCATED_INTS> ints;
 	StringValPtr empty_string;

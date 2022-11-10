@@ -52,6 +52,8 @@ void EventHandler::SetFunc(FuncPtr f)
 
 void EventHandler::Call(Args* vl, bool no_remote)
 	{
+	call_count++;
+
 	if ( new_event )
 		NewEvent(vl);
 

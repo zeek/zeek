@@ -52,6 +52,8 @@ public:
 	void SetGenerateAlways() { generate_always = true; }
 	bool GenerateAlways() const { return generate_always; }
 
+	uint64_t CallCount() const { return call_count; }
+
 private:
 	void NewEvent(zeek::Args* vl); // Raise new_event() meta event.
 
@@ -62,6 +64,7 @@ private:
 	bool enabled;
 	bool error_handler; // this handler reports error messages.
 	bool generate_always;
+	uint64_t call_count = 0;
 
 	std::unordered_set<std::string> auto_publish;
 	};

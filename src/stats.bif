@@ -484,3 +484,28 @@ function get_reporter_stats%(%): ReporterStats
 
 	return r;
 	%}
+
+function get_event_handler_call_counts%(%): EventNameStats
+  %{
+	auto rval = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<VectorType>("EventNameStats"));
+	const auto& recordType = zeek::id::find_type<RecordType>("EventNameCounter");
+
+	int i = 0;
+	const auto& events = event_registry->UsedHandlers();
+	for ( const auto& name : events )
+		{
+		auto handler = event_registry->Lookup(name);
+		auto call_count = handler->CallCount();
+
+		if ( call_count > 0 )
+			{
+			auto eventStatRecord = zeek::make_intrusive<zeek::RecordVal>(recordType);
+			eventStatRecord->Assign(0, zeek::make_intrusive<zeek::StringVal>(name));
+			eventStatRecord->Assign(1, zeek::val_mgr->Count(handler->CallCount()));
+			rval->Assign(i, std::move(eventStatRecord));
+			i++;
+			}
+		}
+
+	return rval;
+	%}

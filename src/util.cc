@@ -2038,9 +2038,15 @@ RETSIGTYPE sig_handler(int signo);
 double current_time(bool real)
 	{
 	struct timeval tv;
+#ifdef _MSC_VER
+	auto now = std::chrono::system_clock::now();
+	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+	tv.tv_sec = ms.count() / 1000;
+	tv.tv_usec = (ms.count() % 1000) * 1000;
+#else
 	if ( gettimeofday(&tv, 0) < 0 )
 		reporter->InternalError("gettimeofday failed in current_time()");
-
+#endif
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
 	if ( ! run_state::pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )

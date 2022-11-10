@@ -426,7 +426,7 @@ protected:
 	void AddTag(ODesc* d) const;
 
 	// Puts the expression in canonical form.
-	virtual void Canonicize();
+	virtual void Canonicalize();
 
 	void SetType(TypePtr t);
 
@@ -747,7 +747,7 @@ class AddExpr final : public BinaryExpr
 	{
 public:
 	AddExpr(ExprPtr op1, ExprPtr op2);
-	void Canonicize() override;
+	void Canonicalize() override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -809,7 +809,7 @@ class TimesExpr final : public BinaryExpr
 	{
 public:
 	TimesExpr(ExprPtr op1, ExprPtr op2);
-	void Canonicize() override;
+	void Canonicalize() override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -874,7 +874,7 @@ class EqExpr final : public BinaryExpr
 	{
 public:
 	EqExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
-	void Canonicize() override;
+	void Canonicalize() override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -890,7 +890,7 @@ class RelExpr final : public BinaryExpr
 	{
 public:
 	RelExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
-	void Canonicize() override;
+	void Canonicalize() override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;

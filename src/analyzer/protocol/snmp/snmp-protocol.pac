@@ -153,7 +153,7 @@ type TrapPDU(header: Header) = record {
 type GetBulkRequestPDU(header: Header) = record {
 	request_id:         ASN1Integer;
 	non_repeaters:      ASN1Integer;
-	max_repititions:    ASN1Integer;
+	max_repetitions:    ASN1Integer;
 	var_bindings:       VarBindList;
 };
 

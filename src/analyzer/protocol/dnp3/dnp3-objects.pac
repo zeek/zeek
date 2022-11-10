@@ -317,7 +317,7 @@ type Request_Data_Object(function_code: uint8, qualifier_field: uint8, object_ty
 		0x7801 -> challenge: AuthChallenge(prefix.prefix_value);
 		0x7802 -> reply: AuthReply(prefix.prefix_value);
 		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value);
-		0x7804 -> seesionKeyRequest: uint16;
+		0x7804 -> sessionKeyRequest: uint16;
 		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value);
 		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value);
 		0x7807 -> error: AuthError(prefix.prefix_value);
@@ -598,7 +598,7 @@ type Response_Data_Object(function_code: uint8, qualifier_field: uint8, object_t
 		0x7801 -> challenge: AuthChallenge(prefix.prefix_value);
 		0x7802 -> reply: AuthReply(prefix.prefix_value);
 		0x7803 -> aggrRequest: AuthAggrRequest(prefix.prefix_value);
-		0x7804 -> seesionKeyRequest: uint16;
+		0x7804 -> sessionKeyRequest: uint16;
 		0x7805 -> status: AuthSessionKeyStatus(prefix.prefix_value);
 		0x7806 -> keyChange: AuthSessionKeyChange(prefix.prefix_value);
 		0x7807 -> error: AuthError(prefix.prefix_value);
@@ -1295,7 +1295,7 @@ type File_Spec_Str = record {
 type Dev_Store = record {
 	overflow: uint8;
 	obj_group: uint8;
-	variatiion: uint8;
+	variation: uint8;
 } &byteorder = littleendian;
 
 # device profile g82
@@ -1386,7 +1386,7 @@ type StatusEle = record {
 # g101v3
 type BCD_Large = record {
 	value_low: uint32;
-	vlaue_high: uint32;
+	value_high: uint32;
 } &byteorder = littleendian;
 
 # authentication g120

@@ -1,6 +1,6 @@
 enum SMB_MailSlot_opcode {
 	HOST_ANNOUNCEMENT		= 1,
-	ANNOUCEMENT_REQUEST	= 2,
+	ANNOUNCEMENT_REQUEST	= 2,
 	REQUEST_ELECTION		= 8,
 	GET_BACKUP_LIST_REQUEST = 9,
 	GET_BACKUP_LIST_RESPONSE	= 10,
@@ -20,7 +20,7 @@ type SMB_MailSlot_message( unicode: bool, byte_count: uint16 ) = record {
 
 type SMB_MailSlot_command(unicode: bool, code: uint8, byte_count: uint16 ) = case code of {
 	HOST_ANNOUNCEMENT		-> announce : SMB_MailSlot_host_announcement(unicode);
-	ANNOUCEMENT_REQUEST	-> announce_req : SMB_MailSlot_announcement_request(unicode);
+	ANNOUNCEMENT_REQUEST	-> announce_req : SMB_MailSlot_announcement_request(unicode);
 	REQUEST_ELECTION		-> election_req : SMB_MailSlot_request_election(unicode);
 	GET_BACKUP_LIST_REQUEST -> get_backup_req : SMB_MailSlot_get_backup_list_request(unicode);
 	GET_BACKUP_LIST_RESPONSE	-> get_backup_resp : SMB_MailSlot_get_backup_list_response(unicode);

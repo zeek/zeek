@@ -485,6 +485,11 @@ function get_reporter_stats%(%): ReporterStats
 	return r;
 	%}
 
+## Returns a list of event handlers that were called and the number of times
+## each was called.
+##
+## Returns: A record with event call statistics.
+##
 function get_event_handler_call_counts%(%): EventNameStats
   %{
 	auto rval = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<VectorType>("EventNameStats"));

@@ -204,14 +204,16 @@ void File::SetBuf(bool arg_buffered)
 
 #ifndef _MSC_VER
 	if ( setvbuf(f, NULL, arg_buffered ? _IOFBF : _IOLBF, 0) != 0 )
+		reporter->Error("setvbuf failed");
 #else
 	// TODO: this turns off buffering altogether because Windows wants us to pass a valid
 	// buffer and length if we're going to pass one of the other modes. We need to
 	// investigate the performance ramifications of this.
 	if ( setvbuf(f, NULL, _IONBF, 0) != 0 )
-#endif reporter->Error("setvbuf failed");
+		reporter->Error("setvbuf failed");
+#endif
 
-		buffered = arg_buffered;
+	buffered = arg_buffered;
 	}
 
 bool File::Close()

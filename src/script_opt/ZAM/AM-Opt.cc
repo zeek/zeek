@@ -368,6 +368,10 @@ void ZAMCompiler::ComputeFrameLifetimes()
 
 				for ( auto v : iter_vars )
 					{
+					if ( v < 0 )
+						// This happens for '_' dummy
+						continue;
+
 					CheckSlotAssignment(v, inst);
 
 					// Also mark it as usage throughout the
@@ -410,6 +414,13 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				}
 				break;
 
+			case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_VVV:
+				{
+				auto depth = inst->loop_depth;
+				ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
+				}
+				break;
+
 			case OP_NEXT_VECTOR_ITER_VVV:
 			case OP_NEXT_STRING_ITER_VVV:
 				// Sometimes loops are written that don't actually
@@ -421,6 +432,10 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				// optimization hardly seems worth the trouble, though,
 				// given the presumed rarity of such loops.
 				ExtendLifetime(inst->v1, EndOfLoop(inst, inst->loop_depth));
+				break;
+
+			case OP_NEXT_VECTOR_BLANK_ITER_VV:
+			case OP_NEXT_STRING_BLANK_ITER_VV:
 				break;
 
 			case OP_INIT_TABLE_LOOP_VV:
@@ -573,7 +588,9 @@ void ZAMCompiler::ReMapFrame()
 				auto& iter_vars = inst->aux->loop_vars;
 				for ( auto& v : iter_vars )
 					{
-					ASSERT(v >= 0 && v < n1_slots);
+					if ( v < 0 )
+						continue;
+					ASSERT(v < n1_slots);
 					v = frame1_to_frame2[v];
 					}
 				}

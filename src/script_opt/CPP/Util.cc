@@ -28,7 +28,7 @@ string Fmt(double d)
 
 string scope_prefix(const string& scope)
 	{
-	return string("zeek::detail::CPP_") + scope + "::";
+	return "zeek::detail::CPP_" + scope;
 	}
 
 string scope_prefix(int scope)
@@ -38,6 +38,9 @@ string scope_prefix(int scope)
 
 bool is_CPP_compilable(const ProfileFunc* pf, const char** reason)
 	{
+	if ( analysis_options.allow_cond )
+		return true;
+
 	auto body = pf->ProfiledBody();
 	if ( body && ! body->GetOptInfo()->is_free_of_conditionals )
 		{

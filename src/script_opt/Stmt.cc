@@ -600,7 +600,7 @@ bool ForStmt::IsReduced(Reducer* c) const
 	if ( ! c->IDsAreReduced(loop_vars) )
 		return false;
 
-	if ( value_var && ! c->ID_IsReduced(value_var) )
+	if ( value_var && (value_var->IsBlank() || ! c->ID_IsReduced(value_var)) )
 		return false;
 
 	return body->IsReduced(c);
@@ -608,6 +608,13 @@ bool ForStmt::IsReduced(Reducer* c) const
 
 StmtPtr ForStmt::DoReduce(Reducer* c)
 	{
+	if ( value_var && value_var->IsBlank() )
+		{
+		auto no_vv = make_intrusive<ForStmt>(loop_vars, e);
+		no_vv->AddBody(body);
+		return TransformMe(no_vv, c);
+		}
+
 	StmtPtr red_e_stmt;
 
 	if ( c->Optimizing() )

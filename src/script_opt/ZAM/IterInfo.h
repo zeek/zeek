@@ -52,10 +52,13 @@ public:
 		for ( int i = 0; i < ind_lv->Length(); ++i )
 			{
 			ValPtr ind_lv_p = ind_lv->Idx(i);
-			auto& var = frame[aux->loop_vars[i]];
-			auto& t = aux->loop_var_types[i];
-			if ( ZVal::IsManagedType(t) )
+			auto lv = aux->loop_vars[i];
+			if ( lv < 0 )
+				continue;
+			auto& var = frame[lv];
+			if ( aux->lvt_is_managed[i] )
 				ZVal::DeleteManagedType(var);
+			auto& t = aux->loop_var_types[i];
 			var = ZVal(ind_lv_p, t);
 			}
 

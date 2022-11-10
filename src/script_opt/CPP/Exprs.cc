@@ -305,11 +305,13 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 		auto f_id = f->AsNameExpr()->Id();
 		const auto& params = f_id->GetType()->AsFuncType()->Params();
 		auto id_name = f_id->Name();
+		auto nargs = args_l->Exprs().length();
 
 		bool is_compiled = compiled_simple_funcs.count(id_name) > 0;
 		bool was_compiled = hashed_funcs.count(id_name) > 0;
+		bool is_variadic = params->NumFields() == 1 && nargs != 1;
 
-		if ( ! is_async && (is_compiled || was_compiled) )
+		if ( ! is_async && ! is_variadic && (is_compiled || was_compiled) )
 			{ // Can call directly.
 			string fname;
 
@@ -318,7 +320,7 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 			else
 				fname = compiled_simple_funcs[id_name];
 
-			if ( args_l->Exprs().length() > 0 )
+			if ( nargs > 0 )
 				gen = fname + "(" + GenArgs(params, args_l) + ", f__CPP)";
 			else
 				gen = fname + "(f__CPP)";
@@ -1097,6 +1099,10 @@ string CPPCompile::GenDirectAssign(const ExprPtr& lhs, const string& rhs_native,
                                    const string& rhs_val_ptr, GenType gt, bool top_level)
 	{
 	auto n = lhs->AsNameExpr()->Id();
+
+	if ( n->IsBlank() )
+		return rhs_native;
+
 	auto name = IDNameStr(n);
 
 	string gen;

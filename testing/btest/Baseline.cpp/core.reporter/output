@@ -2,9 +2,9 @@
 pre test-info
 warning: pre test-warning
 error: pre test-error
-<...>/main.zeek, lines 517-518: init test-info
-warning in <...>/main.zeek, lines 517-518: init test-warning
-error in <...>/main.zeek, lines 517-518: init test-error
+init test-info
+warning: init test-warning
+error: init test-error
 done test-info
 warning: done test-warning
 error: done test-error

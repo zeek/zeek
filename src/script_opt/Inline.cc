@@ -180,6 +180,11 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	if ( function->GetKind() != Func::SCRIPT_FUNC )
 		return c;
 
+	// Check for mismatches in argument count due to single-arg-of-type-any
+	// loophole used for variadic BiFs.
+	if ( function->GetType()->Params()->NumFields() == 1 && c->Args()->Exprs().size() != 1 )
+		return c;
+
 	auto func_vf = static_cast<ScriptFunc*>(function);
 
 	if ( inline_ables.count(func_vf) == 0 )

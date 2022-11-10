@@ -15,7 +15,7 @@ The maintenance workflow:
     to check in updates to the list of how the compiler currently fares
     on various btests (see end of this doc):
 
-	Wed Oct 12 11:36:46 PDT 2022
+	Mon Nov  7 14:30:51 PST 2022
 
 2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.
@@ -62,23 +62,19 @@ These BTests won't successfully run due to the indicated issue:
 	bad-constructor - uses a complex old-style constructor that
 		should be updated
 	bad-when - deliberately has old-style "when" without captures
+	cond - not compilable due to the presence of conditional code
 	deprecated - uses deprecated features not support for -O gen-C++
 	test-glitch - fails because of how we do testing: the first -O gen-C++
 		pass leaves httpd running, which causes the second -O use-C++
 		pass to fail when it tries to start up a new httpd
-	opaque - needs a global whose value is (or contains) an opaque value,
-		not currently supported
 	skipped - test can be skipped due to environmental reasons (e.g.,
 		whether we have a certain Kerberos setup)
 
 Database Of Known Issues (keep sorted)
 
 ../testing/btest/bifs/table_values.zeek bad-constructor
-../testing/btest/language/alternate-event-hook-prototypes.zeek deprecated
-../testing/btest/language/redef-same-prefixtable-idx.zeek deprecated
-../testing/btest/language/table-redef.zeek deprecated
-../testing/btest/language/when-aggregates.zeek bad-when
 ../testing/btest/scripts/base/protocols/krb/smb2_krb.test skipped
 ../testing/btest/scripts/base/protocols/krb/smb2_krb_nokeytab.test skipped
 ../testing/btest/scripts/base/utils/active-http.test test-glitch
+../testing/btest/scripts/policy/frameworks/dpd/packet-segment-logging.zeek cond
 ../testing/btest/scripts/policy/misc/dump-events.zeek skipped

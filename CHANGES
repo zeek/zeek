@@ -1,3 +1,16 @@
+5.2.0-dev.232 | 2022-11-09 18:23:11 -0700
+
+  * Script optimization maintenance and updates: (Vern Paxson, Corelight)
+      maintenance fixes for variadic run-time checks, '_' placeholder identifier
+      "-O allow-cond" permits compiling scripts to C++ when influenced by @if conditionals
+      more robust standalone compile-to-C++ properties
+      fix for nested "when" statements
+      test suite updates
+
+  * spelling: Fixes in pac files and functional changes in src directory (Josh Soref)
+
+    Signed-off-by: Josh Soref <2119212+jsoref@users.noreply.github.com>
+
 5.2.0-dev.215 | 2022-11-09 11:03:43 -0700
 
   * Configure script: drop --with-caf, add -D option (Dominik Charousset, Corelight)

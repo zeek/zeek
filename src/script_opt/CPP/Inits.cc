@@ -338,14 +338,7 @@ void CPPCompile::GenStandaloneActivation()
 
 void CPPCompile::GenLoad()
 	{
-	// First, generate a hash unique to this compilation.
-	auto t = util::current_time();
-	auto th = hash<double>{}(t);
-
-	total_hash = merge_p_hashes(total_hash, th);
-
 	Emit("register_scripts__CPP(%s, standalone_init__CPP);", Fmt(total_hash));
-
 	printf("global init_CPP_%llu = load_CPP(%llu);\n", total_hash, total_hash);
 	}
 

@@ -38,19 +38,19 @@ public:
 	explicit operator bool() const;
 
 	void SetUsed() { used = true; }
-	bool Used() { return used; }
+	bool Used() const { return used; }
 
 	// Handlers marked as error handlers will not be called recursively to
 	// avoid infinite loops if they trigger a similar error themselves.
 	void SetErrorHandler() { error_handler = true; }
-	bool ErrorHandler() { return error_handler; }
+	bool ErrorHandler() const { return error_handler; }
 
 	void SetEnable(bool arg_enable) { enabled = arg_enable; }
 
 	// Flags the event as interesting even if there is no body defined. In
 	// particular, this will then still pass the event on to plugins.
 	void SetGenerateAlways() { generate_always = true; }
-	bool GenerateAlways() { return generate_always; }
+	bool GenerateAlways() const { return generate_always; }
 
 private:
 	void NewEvent(zeek::Args* vl); // Raise new_event() meta event.

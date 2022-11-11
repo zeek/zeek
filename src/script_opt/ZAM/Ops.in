@@ -179,7 +179,7 @@
 # 	field-op	the operation is a direct assignment to a record field
 #
 # 	includes-field-op	the operation should include a version
-# 				that assigs to a record field as well as a
+# 				that assigns to a record field as well as a
 # 				version for assigning to a frame variable
 #
 # 	indirect-call	the operation represents an indirect call (through

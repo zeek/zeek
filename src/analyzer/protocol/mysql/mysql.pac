@@ -29,7 +29,7 @@ flow MySQL_Flow(is_orig: bool) {
 	# There are two options here: flowunit or datagram.
 	# flowunit = MySQL_PDU(is_orig) withcontext(connection, this);
 	flowunit = MySQL_PDU(is_orig) withcontext(connection, this);
-	# Using flowunit will cause the anlayzer to buffer incremental input.
+	# Using flowunit will cause the analyzer to buffer incremental input.
 	# This is needed for &oneline and &length. If you don't need this, you'll
 	# get better performance with datagram.
 };

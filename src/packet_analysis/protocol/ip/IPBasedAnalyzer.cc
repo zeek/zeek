@@ -63,7 +63,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 	if ( ! conn )
 		return false;
 
-	// If we successfuly made a connection for this packet that means it'll eventually
+	// If we successfully made a connection for this packet that means it'll eventually
 	// get logged, which means we can mark this packet as having been processed.
 	pkt->processed = true;
 

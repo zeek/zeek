@@ -99,7 +99,7 @@ public:
 	 * @param is_live True if \a path represents a live interface, false
 	 * for a file.
 	 *
-	 * @return The new packet source, or null if an error occured.
+	 * @return The new packet source, or null if an error occurred.
 	 */
 	PktSrc* OpenPktSrc(const std::string& path, bool is_live);
 

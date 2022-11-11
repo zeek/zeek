@@ -171,7 +171,7 @@ refine connection SSL_Conn += {
 		// some sort of TLS1.3. So - let's do it this way round instead.
 		if ( negotiated_version != SSLv20 && negotiated_version != SSLv30 && negotiated_version != TLSv10 && negotiated_version != TLSv11 && negotiated_version != TLSv12 )
 			{
-			// well, it seems like this is a TLS 1.3 (or equivalent) applicatio data packet. Let's enable encryption
+			// well, it seems like this is a TLS 1.3 (or equivalent) application data packet. Let's enable encryption
 			// and handle it as encrypted.
 			startEncryption(is_orig);
 			return STATE_ENCRYPTED;
@@ -183,7 +183,7 @@ refine connection SSL_Conn += {
 	function determine_ssl_record_layer(head0 : uint8, head1 : uint8,
 					head2 : uint8, head3: uint8, head4: uint8, is_orig: bool) : int
 		%{
-		// stop processing if we already had a protocol violation or otherwhise
+		// stop processing if we already had a protocol violation or otherwise
 		// decided that we do not want to parse anymore. Just setting skip is not
 		// enough for the data that is already in the pipe.
 		if ( zeek_analyzer()->Skipping() )

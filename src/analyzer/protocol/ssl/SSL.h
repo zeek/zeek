@@ -65,7 +65,7 @@ public:
 	 * connection. (For TLS 1.2 this is the pre-master secret)
 	 *
 	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
-	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
+	 * ciphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param len Length of the secret bytes
 	 *
@@ -78,7 +78,7 @@ public:
 	 * TLS application data in the connection.
 	 *
 	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
-	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
+	 * ciphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param keys The key buffer as derived via TLS PRF (for
 	 * AES_GCM this should be 72 bytes in length)
@@ -90,7 +90,7 @@ public:
 	 * TLS application data in the connection.
 	 *
 	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
-	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
+	 * ciphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param keys The key buffer as derived via TLS PRF (for
 	 * AES_GCM this should be 72 bytes in length)
@@ -110,7 +110,7 @@ protected:
 	 * Try to decrypt TLS application data from a packet. Requires secret or keys to be set prior.
 	 *
 	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
-	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
+	 * ciphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param len Length of the encrypted bytes to decrypt
 	 *
@@ -129,10 +129,10 @@ protected:
 
 	/**
 	 * TLS 1.2 pseudo random function (PRF) used to expand the pre-master secret and derive keys.
-	 * The seed is obtained by concatinating rnd1 and rnd2.
+	 * The seed is obtained by concatenating rnd1 and rnd2.
 	 *
 	 * Please note that these functions currently are hardcoded to only work with a single TLS 1.2
-	 * cuphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
+	 * ciphersuite (TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384).
 	 *
 	 * @param secret Secret as defined in the TLS RFC
 	 *
@@ -168,7 +168,7 @@ protected:
 	// client and server sequence number, used for TLS 1.2 decryption
 	int c_seq;
 	int s_seq;
-	// secret, for decyption
+	// secret, for decryption
 	std::string secret;
 	// derived keys, for decryption
 	std::vector<u_char> keys;

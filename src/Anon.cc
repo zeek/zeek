@@ -171,7 +171,7 @@ bool AnonymizeIPAddr_A50::PreservePrefix(ipaddr32_t input, int num_bits)
 
 	if ( ! before_anonymization )
 		{
-		reporter->Error("prefix perservation specified after anonymization begun");
+		reporter->Error("prefix preservation specified after anonymization begun");
 		return false;
 		}
 

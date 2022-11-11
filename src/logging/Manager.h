@@ -88,7 +88,7 @@ public:
 	bool RemoveStream(EnumVal* id);
 
 	/**
-	 * Enables a log log stream.
+	 * Enables a log stream.
 	 *
 	 * @param id  The enum value corresponding the log stream.
 	 *
@@ -148,7 +148,7 @@ public:
 	 *
 	 * @param id  The enum value corresponding the log stream.
 	 *
-	 * @param colums A record of the type defined for the stream's
+	 * @param columns A record of the type defined for the stream's
 	 * columns.
 	 *
 	 * This methods corresponds directly to the internal BiF defined in

@@ -518,7 +518,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data)
 				if ( last_char == '\r' )
 					{
 					if ( CRLFAsEOL() & CR_as_EOL )
-						// we already emited, skip
+						// we already emitted, skip
 						;
 					else
 						{

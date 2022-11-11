@@ -1176,7 +1176,7 @@ broker::data& opaque_field_to_data(RecordVal* v, zeek::detail::Frame* f)
 	if ( ! d )
 		reporter->RuntimeError(f->GetCallLocation(), "Broker::Data's opaque field is not set");
 
-	// RuntimeError throws an exception which causes this line to never exceute.
+	// RuntimeError throws an exception which causes this line to never execute.
 	// NOLINTNEXTLINE(clang-analyzer-core.uninitialized.UndefReturn)
 	return static_cast<DataVal*>(d.get())->data;
 	}

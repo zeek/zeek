@@ -42,7 +42,7 @@ public:
 	 * @param args the \c AnalyzerArgs value which represents the analyzer.
 	 * @param file the file to which the analyzer will be attached.
 	 * @return the new DataEvent analyzer instance or a null pointer if
-	 *         no "chunk_event" or "stream_event" field was specfied in \a args.
+	 *         no "chunk_event" or "stream_event" field was specified in \a args.
 	 */
 	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file);
 

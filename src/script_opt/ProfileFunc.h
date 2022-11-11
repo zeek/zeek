@@ -42,7 +42,7 @@ namespace zeek::detail
 	{
 
 // The type used to represent hashes.  We use the mnemonic "p_hash" as
-// short for "profile hash", to avoid confusion with hashes used elsehwere
+// short for "profile hash", to avoid confusion with hashes used elsewhere
 // in Zeek (which are for the most part keyed, a property we explicitly
 // do not want).
 using p_hash_type = unsigned long long;

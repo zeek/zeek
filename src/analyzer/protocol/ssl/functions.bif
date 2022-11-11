@@ -6,7 +6,7 @@
 %%}
 
 ## Sets if the SSL analyzer should consider the connection established (handshake
-## finished succesfully).
+## finished successfully).
 ##
 ## c: The SSL connection.
 ##

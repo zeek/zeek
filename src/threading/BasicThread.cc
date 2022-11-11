@@ -155,7 +155,7 @@ void BasicThread::Join()
 void BasicThread::Kill()
 	{
 	// We don't *really* kill the thread here because that leads to race
-	// conditions. Instead we set a flag that parts of the the code need
+	// conditions. Instead we set a flag that parts of the code need
 	// to check and get out of any loops they might be in.
 	terminating = true;
 	killed = true;

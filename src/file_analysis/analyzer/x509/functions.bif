@@ -24,7 +24,7 @@ static zeek::RecordValPtr x509_result_record(uint64_t num, const char* reason, z
 	return rrecord;
 	}
 
-// get all cretificates starting at the second one (assuming the first one is the host certificate)
+// get all certificates starting at the second one (assuming the first one is the host certificate)
 STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 	{
 	STACK_OF(X509)* untrusted_certs = sk_X509_new_null();
@@ -83,7 +83,7 @@ X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
 		return X509_find_by_subject(const_cast<STACK_OF(X509)*>(certs),
 									const_cast<X509_NAME*>(name));
 
-	// Just like OpenSSL, we just support SHA-1 lookups and bail out otherwhise.
+	// Just like OpenSSL, we just support SHA-1 lookups and bail out otherwise.
 	if ( key->length != SHA_DIGEST_LENGTH )
 		return 0;
 
@@ -660,7 +660,7 @@ x509_verify_chainerror:
 ##                  This only has to be provided if the SCT was encountered in an X.509
 ##                  certificate extension; in that case, it is necessary for validation.
 ##
-## Returns: T if the validation could be performed succesfully, F otherwhise.
+## Returns: T if the validation could be performed successfully, F otherwise.
 ##
 ## .. zeek:see:: ssl_extension_signed_certificate_timestamp
 ##              x509_ocsp_ext_signed_certificate_timestamp

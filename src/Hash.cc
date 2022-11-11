@@ -592,7 +592,7 @@ bool HashKey::Equal(const void* other_key, size_t other_size, hash_t other_hash)
 		return true;
 
 	// If either key is nullptr, return false. If they were both nullptr, it
-	// would have fallen in to the above block already.
+	// would have fallen into the above block already.
 	if ( key == nullptr || other_key == nullptr )
 		return false;
 

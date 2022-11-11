@@ -85,7 +85,7 @@ protected:
  *
  * @param outer_pkt The packet containing the encapsulation. This packet should contain
  * @param encap_index A return value for the current index into the encapsulation stack.
- * This is returned to allow analzyers to know what point in the stack they were operating
+ * This is returned to allow analyzers to know what point in the stack they were operating
  * on as the packet analysis chain unwinds as it returns.
  * @param encap_stack Tracks the encapsulations as the new encapsulations are discovered
  * in the inner packets.

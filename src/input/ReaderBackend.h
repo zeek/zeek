@@ -162,7 +162,7 @@ public:
 	 * @param config A string map containing additional configuration options
 	 * for the reader.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Init(int num_fields, const threading::Field* const* fields);
 
@@ -173,7 +173,7 @@ public:
 	 *
 	 * An backend can choose to ignore this.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Update();
 
@@ -243,12 +243,12 @@ protected:
 	// Methods that have to be overwritten by the individual readers
 
 	/**
-	 * Reader-specific intialization method. Note that data may only be
+	 * Reader-specific initialization method. Note that data may only be
 	 * read from the input source after the Init() function has been
 	 * called.
 	 *
 	 * A reader implementation must override this method. If it returns
-	 * false, it will be assumed that a fatal error has occured that
+	 * false, it will be assumed that a fatal error has occurred that
 	 * prevents the reader from further operation; it will then be
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
@@ -258,7 +258,7 @@ protected:
 	 * Note that derived classes don't need to store the values passed in
 	 * here if other methods need them to; the \a ReaderBackend class
 	 * provides accessor methods to get them later, and they are passed
-	 * in here only for convinience.
+	 * in here only for convenience.
 	 */
 	virtual bool DoInit(const ReaderInfo& info, int arg_num_fields,
 	                    const threading::Field* const* fields) = 0;
@@ -284,7 +284,7 @@ protected:
 	 * the current input reading mode.
 	 *
 	 * If it returns false, it will be assumed that a fatal error has
-	 * occured that prevents the reader from further operation; it will
+	 * occurred that prevents the reader from further operation; it will
 	 * then be disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error to indicate what happened.
 	 */

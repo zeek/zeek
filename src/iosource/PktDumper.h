@@ -52,7 +52,7 @@ public:
 
 	/**
 	 * Returns if the dumper has encountered an error, returns a
-	 * corresponding error message. Returns an emoty string otherwise.
+	 * corresponding error message. Returns an empty string otherwise.
 	 */
 	const char* ErrorMsg() const;
 
@@ -104,7 +104,7 @@ protected:
 
 	/**
 	 * Called from the implementations of \a Open() to signal that the
-	 * source has been successully opened.
+	 * source has been successfully opened.
 	 *
 	 * @param props A properties instance describing the now open source.
 	 */

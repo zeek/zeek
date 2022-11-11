@@ -230,7 +230,7 @@ void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip)
 			ip4_hdr = new IP_Hdr(ip4, false);
 			}
 
-		// Locals used to avoid potentil alignment problems
+		// Locals used to avoid potential alignment problems
 		// with some archs/compilers when grabbing the address
 		// of the struct member directly in the following.
 		in_addr tmp_src;

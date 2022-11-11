@@ -692,7 +692,7 @@ event dns_DS%(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr%);
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## binds: The parsed RDATA of BIND-Signeing state record.
+## binds: The parsed RDATA of BIND-Signing state record.
 event dns_BINDS%(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_rr%);
 
 ## Generated for DNS replies of type *BINDS*. For replies with multiple answers,
@@ -705,7 +705,7 @@ event dns_BINDS%(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_
 ##
 ## ans: The type-independent part of the parsed answer record.
 ##
-## binds: The parsed RDATA of BIND-Signeing state record.
+## binds: The parsed RDATA of BIND-Signing state record.
 event dns_SSHFP%(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fptype: count, fingerprint: string%);
 
 ## Generated for DNS replies of type *LOC*. For replies with multiple answers,

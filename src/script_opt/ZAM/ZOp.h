@@ -21,7 +21,7 @@ enum ZOp
 // V: one of the instruction's integer values, treated as a frame slot
 // C: the instruction's associated constant
 // I1/I2/I3/I4: the instruction's integer value, used directly (not as a slot)
-// FRAME: a slot in the (intrepreter) Frame object
+// FRAME: a slot in the (interpreter) Frame object
 // X: no operands
 enum ZAMOpType
 	{

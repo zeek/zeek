@@ -236,7 +236,7 @@ public:
 	BifItem(const BifItem& other);
 
 	/**
-	 * Assigment operator.
+	 * Assignment operator.
 	 */
 	BifItem& operator=(const BifItem& other);
 
@@ -770,7 +770,7 @@ public:
 
 	/**
 	 * Registers an individual BiF that the plugin defines. The
-	 * information is for informational purpuses only and will show up in
+	 * information is for informational purposes only and will show up in
 	 * the result of BifItems() as well as in the Describe() output.
 	 * Another way to add this information is via overriding
 	 * CustomBifItems().
@@ -778,7 +778,7 @@ public:
 	 * Note that this method is rarely the right one to use. As it's for
 	 * informational purposes only, the plugin still needs to register
 	 * the BiF items themselves with the corresponding Zeek parts. Doing
-	 * so can be tricky, and it's recommned to instead define BiF items
+	 * so can be tricky, and it's recommend to instead define BiF items
 	 * in separate *.bif files that the plugin then pulls in. If defined
 	 * there, one does *not* need to call this method.
 	 *
@@ -888,7 +888,7 @@ protected:
 	 * Registers interest in an event, even if there's no handler for it.
 	 * Normally a plugin receives events through HookQueueEvent() only if Zeek
 	 * actually has code to execute for it. By calling this method, the
-	 * plugin tells Zeek to raise the event even if there's no correspondong
+	 * plugin tells Zeek to raise the event even if there's no corresponding
 	 * handler; it will then go into HookQueueEvent() just as any other.
 	 *
 	 * @param handler The event handler being interested in.
@@ -970,11 +970,11 @@ protected:
 	 * must be 1 if the plugin takes over loading the file (see below); 0 if
 	 * the plugin wanted to take over the file but had trouble loading it
 	 * (processing will abort in this case, and the plugin should have printed
-	 * an error message); and -1 if the plugin wants Zeek to proceeed processing
+	 * an error message); and -1 if the plugin wants Zeek to proceed processing
 	 * the file normally. If the plugins takes over by returning 1, there are
 	 * two cases: if the second tuple element remains unset, the plugin handled
 	 * the loading completely internally; Zeek will not do anything further with
-	 * it. Alternatively, the plugin may optionally return the acutal content
+	 * it. Alternatively, the plugin may optionally return the actual content
 	 * to use for the file as a string through the tuple's second element. If
 	 * so, Zeek will ignore the file on disk and use that provided content
 	 * instead (including when there's actually no physical file in place on
@@ -1082,7 +1082,7 @@ protected:
 	 * causes a log line to be written. It will _not_ be called on the logger
 	 * node. The function will be called each for every instantiated writer.
 	 *
-	 * @param writer The name of the writer being insantiated.
+	 * @param writer The name of the writer being instantiated.
 	 *
 	 * @param instantiating_filter Name of the filter causing the
 	 *        writer instantiation.
@@ -1195,7 +1195,7 @@ private:
 	virtual Configuration Configure() = 0;
 
 	/**
-	 * Intializes the plugin's internal configuration. Called by the
+	 * Initializes the plugin's internal configuration. Called by the
 	 * manager before anything else.
 	 */
 	void DoConfigure();

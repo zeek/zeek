@@ -948,7 +948,7 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec,
 					}
 				}
 
-			reporter->Error("Incompatible type \"%s\" in type definition for for field \"%s\" in "
+			reporter->Error("Incompatible type \"%s\" in type definition for field \"%s\" in "
 			                "ReaderFrontend",
 			                type_name(rec->GetFieldType(i)->Tag()), name.c_str());
 			return false;
@@ -1206,7 +1206,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals)
 		// seen before
 		if ( stream->num_val_fields == 0 || h->valhash == valhash )
 			{
-			// ok, exact duplicate, move entry to new dicrionary and do nothing else.
+			// ok, exact duplicate, move entry to new dictionary and do nothing else.
 			stream->lastDict->Remove(idxhash);
 			stream->currDict->Insert(idxhash, h);
 			delete idxhash;
@@ -1248,7 +1248,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals)
 		predidx = ValueToRecordVal(i, vals, stream->itype, &startpos, pred_convert_error);
 
 		// if we encountered a convert error here - just continue as we would have without
-		// emitting the event. I do not really think that that can happen just here and not
+		// emitting the event. I do not really think that can happen just here and not
 		// at the top-level. But - this is safe.
 		if ( ! pred_convert_error )
 			{

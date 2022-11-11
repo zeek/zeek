@@ -1,3 +1,9 @@
+5.2.0-dev.234 | 2022-11-11 12:48:20 -0700
+
+  * Spelling src (Josh Soref)
+
+    Signed-off-by: Josh Soref <2119212+jsoref@users.noreply.github.com>
+
 5.2.0-dev.232 | 2022-11-09 18:23:11 -0700
 
   * Script optimization maintenance and updates: (Vern Paxson, Corelight)

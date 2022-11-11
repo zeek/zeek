@@ -1522,7 +1522,7 @@ function order%(v: any, ...%) : index_vec
 ## arguments can be of any type. For example, ``cat("foo", 3, T)`` returns
 ## ``"foo3T"``.
 ##
-## Returns: A string concatentation of all arguments.
+## Returns: A string concatenation of all arguments.
 function cat%(...%): string
 	%{
 	zeek::ODesc d;
@@ -4463,7 +4463,7 @@ function lookup_asn%(a: addr%) : count &deprecated="Remove in v6.1.  Functionali
 	return zeek::val_mgr->Count(0);
 	%}
 
-## Performs an lookup of AS numbe & organization of an IP address.
+## Performs an lookup of AS number & organization of an IP address.
 ## Requires Zeek to be built with ``libmaxminddb``.
 ##
 ## a: The IP address to lookup.
@@ -4532,7 +4532,7 @@ function lookup_autonomous_system%(a: addr%) : geo_autonomous_system
 
 ## Calculates distance between two geographic locations using the haversine
 ## formula.  Latitudes and longitudes must be given in degrees, where southern
-## hemispere latitudes are negative and western hemisphere longitudes are
+## hemisphere latitudes are negative and western hemisphere longitudes are
 ## negative.
 ##
 ## lat1: Latitude (in degrees) of location 1.

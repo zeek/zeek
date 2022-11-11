@@ -23,7 +23,7 @@ void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	{
 	func_flavor = f->Flavor();
 
-	// Establish the outermost barrior and associated set of
+	// Establish the outermost barrier and associated set of
 	// identifiers.
 	barrier_blocks.push_back(0);
 	modified_IDs.push_back({});

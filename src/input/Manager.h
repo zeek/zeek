@@ -188,7 +188,7 @@ private:
 	bool CreateStream(Stream*, RecordVal* description);
 
 	// Check if the types of the error_ev event are correct. If table is
-	// true, check for tablestream type, otherwhise check for eventstream
+	// true, check for tablestream type, otherwise check for eventstream
 	// type.
 	bool CheckErrorEventTypes(const std::string& stream_name, const Func* error_event,
 	                          bool table) const;

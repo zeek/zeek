@@ -45,7 +45,7 @@ protected:
 
 	// Compute the size of the composite key.  If v is non-nil then
 	// the value is computed for the particular list of values.
-	// Returns 0 if the key has an indeterminant size (if v not given),
+	// Returns 0 if the key has an indeterminate size (if v not given),
 	// or if v doesn't match the index type (if given).
 	bool ReserveKeySize(HashKey& hk, const Val* v, bool type_check, bool calc_static_size) const;
 

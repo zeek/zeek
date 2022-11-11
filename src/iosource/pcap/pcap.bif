@@ -34,7 +34,7 @@ function precompile_pcap_filter%(id: PcapFilterID, s: string%): bool
 	if ( id->AsEnum() >= 100 )
 		{
 		// We use a vector as underlying data structure for fast
-		// lookups and limit the ID space so that that doesn't grow too
+		// lookups and limit the ID space so that it doesn't grow too
 		// large.
 		zeek::emit_builtin_error(
 			zeek::util::fmt("PCAP filter ids must remain below 100 (is %" PRId64 ")", id->AsInt()));

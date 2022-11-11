@@ -54,7 +54,7 @@ private:
 	std::list<Stmt*> stmts;
 
 	/**
-	 * Indicates whether new statments will not be considered as part of
+	 * Indicates whether new statements will not be considered as part of
 	 * coverage statistics because it was marked with the @no-test tag.
 	 */
 	uint32_t ignoring;

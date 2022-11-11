@@ -49,7 +49,7 @@ public:
 	 * @param m object to track. Does not take ownership, but the object
 	 * will automatically unregister itself on destruction.
 	 *
-	 * @param r receiver to notify on changes. Does not take ownershop,
+	 * @param r receiver to notify on changes. Does not take ownership,
 	 * the receiver must remain valid as long as the registration stays
 	 * in place.
 	 */
@@ -60,7 +60,7 @@ public:
 	 * modification. The arguments to the method must match what was
 	 * originally registered.
 	 *
-	 * @param m object to no loger track.
+	 * @param m object to no longer track.
 	 *
 	 * @param r receiver to no longer notify.
 	 */
@@ -68,9 +68,9 @@ public:
 
 	/**
 	 * Cancels any active receiver requests to be informed about a
-	 * partilar object's modifications.
+	 * particular object's modifications.
 	 *
-	 * @param m object to no loger track.
+	 * @param m object to no longer track.
 	 */
 	void Unregister(Modifiable* m);
 

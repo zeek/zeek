@@ -27,7 +27,7 @@ public:
 	 *
 	 * @param factory A factory function to instantiate instances of the
 	 * readers's class, which must be derived directly or indirectly from
-	 * input::ReaderBackend. This is typically a static \c Instatiate()
+	 * input::ReaderBackend. This is typically a static \c Instantiate()
 	 * method inside the class that just allocates and returns a new
 	 * instance.
 	 */
@@ -52,7 +52,7 @@ public:
 
 protected:
 	/**
-	 * Overriden from plugin::Component.
+	 * Overridden from plugin::Component.
 	 */
 	void DoDescribe(ODesc* d) const override;
 

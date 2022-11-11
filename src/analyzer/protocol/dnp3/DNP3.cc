@@ -21,7 +21,7 @@
 //    Traditionally, the DNP3 Application Layer in serial links contains a
 //    "DNP3 Application Layer Fragment". The data that is parsed by the end
 //    device and then executed. As the "DNP3 Application Layer Fragment" can
-//    be long (>255 bytes), it may be trunkcated and carried in different
+//    be long (>255 bytes), it may be truncated and carried in different
 //    DNP3 Application Layer of more than one DNP3 packets.
 //
 //    So we may find a long DNP3 Application Layer Fragment to be transmitted in the following
@@ -44,7 +44,7 @@
 // Layer used in serial link as Pseudo Link Layer, Pseudo Transport Layer and
 // Pseudo Application Layer.
 //
-// For a long DNP3 application layer fragment, we may find it tramistted
+// For a long DNP3 application layer fragment, we may find it transmitted
 // over IP network in the following format:
 //
 //     Network Packet #1 : TCP Header | DNP3 Pseudo Link Layer | DNP3 Pseudo Transport Layer | DNP3
@@ -60,7 +60,7 @@
 //
 //     0x05 0x64 Len Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB CRC_LSB CRC_MSB
 //
-//     Each field is a byte; LSB: least significant byte; MSB: most significatn byte.
+//     Each field is a byte; LSB: least significant byte; MSB: most significant byte.
 //
 //     "Len" indicates the length of the byte stream right after this field
 //     (excluding CRC fields) in the current DNP3 packet.
@@ -93,7 +93,7 @@
 // DNP3 Packet :  DNP3 Pseudo Data Link Layer : DNP3 Pseudo Transport Layer : DNP3 Pseudo
 // Application Layer
 //                                   ||                                    ||
-//                                   || (length field)                     || (original paylad byte
+//                                   || (length field)                     || (original payload byte
 //                                   stream)
 //                                   \/                                    \/
 //                DNP3 Additional Header              :                  Reassembled DNP3 Pseudo
@@ -227,7 +227,7 @@ bool DNP3_Base::ProcessData(int len, const u_char* data, bool orig)
 			if ( res < 0 )
 				return false;
 
-			// Parse the the application layer data.
+			// Parse the application layer data.
 			if ( ! ParseAppLayer(endp) )
 				return false;
 

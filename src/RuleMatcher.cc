@@ -406,7 +406,7 @@ void RuleMatcher::BuildRulesTree()
 
 void RuleMatcher::InsertRuleIntoTree(Rule* r, int testnr, RuleHdrTest* dest, int level)
 	{
-	// Initiliaze the preconditions
+	// Initialize the preconditions
 	for ( const auto& pc : r->preconds )
 		{
 		auto entry = rules_by_id.find(pc->id);

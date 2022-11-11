@@ -78,7 +78,7 @@ struct Field
 	 * @param fmt The serialization format to use. The format handles
 	 * low-level I/O.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Read(zeek::detail::SerializationFormat* fmt);
 
@@ -88,7 +88,7 @@ struct Field
 	 * @param fmt The serialization format to use. The format handles
 	 * low-level I/O.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Write(zeek::detail::SerializationFormat* fmt) const;
 
@@ -106,7 +106,7 @@ private:
 /**
  * Definition of a log value, i.e., a entry logged by a stream.
  *
- * This struct essentialy represents a serialization of a Val instance (for
+ * This struct essentially represents a serialization of a Val instance (for
  * those Vals supported).
  */
 struct Value
@@ -211,7 +211,7 @@ struct Value
 	 *
 	 * @param fmt The serialization format to use. The format handles low-level I/O.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Read(zeek::detail::SerializationFormat* fmt);
 
@@ -221,7 +221,7 @@ struct Value
 	 * @param fmt The serialization format to use. The format handles
 	 * low-level I/O.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Write(zeek::detail::SerializationFormat* fmt) const;
 

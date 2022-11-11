@@ -180,12 +180,12 @@ public:
 	bool IsConnectionClose() { return connection_close; }
 	int HTTP_ReplyCode() const { return reply_code; };
 
-	// Overriden from Analyzer.
+	// Overridden from Analyzer.
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overriden from analyzer::tcp::TCP_ApplicationAnalyzer
+	// Overridden from analyzer::tcp::TCP_ApplicationAnalyzer
 	void EndpointEOF(bool is_orig) override;
 	void ConnectionFinished(bool half_finished) override;
 	void ConnectionReset() override;

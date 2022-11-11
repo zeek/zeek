@@ -99,7 +99,7 @@ public:
 	/**
 	 * @param tcp_seq_num A 32-bit TCP sequence space number.
 	 * @param wraparounds Number of times a 32-bit sequence space has wrapped.
-	 * @return \a tcp_seq_num expanded out in to a 64-bit sequence space,
+	 * @return \a tcp_seq_num expanded out into a 64-bit sequence space,
 	 *         accounting for the number of times the 32-bit space overflowed.
 	 */
 	static uint64_t ToFullSeqSpace(uint32_t tcp_seq_num, uint32_t wraparounds)
@@ -110,7 +110,7 @@ public:
 	/**
 	 * @param tcp_seq_num A 32-bit TCP sequence space number.
 	 * @param wraparounds Number of times a 32-bit sequence space has wrapped.
-	 * @return \a tcp_seq_num expanded out in to a 64-bit sequence space,
+	 * @return \a tcp_seq_num expanded out into a 64-bit sequence space,
 	 *         accounting for the number of times the 32-bit space overflowed
 	 *         and relative to the starting sequence number for this endpoint.
 	 */

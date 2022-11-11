@@ -806,7 +806,7 @@ type SupportedVersions(rec: HandshakeRecord) = record {
 	versions: uint16[] &until($input.length() == 0);
 } &length=length+1;
 
-# If the server sends it, this is the authorative version. Set it.
+# If the server sends it, this is the authoritative version. Set it.
 type OneSupportedVersion(rec: HandshakeRecord) = record {
 	version: uint16;
 } &let {

@@ -42,7 +42,7 @@ using BloomFilterValPtr = IntrusivePtr<BloomFilterVal>;
 
 /**
  * Singleton that registers all available all available types of opaque
- * values. This faciliates their serialization into Broker values.
+ * values. This facilitates their serialization into Broker values.
  */
 class OpaqueMgr
 	{
@@ -146,7 +146,7 @@ protected:
 	virtual broker::expected<broker::data> DoSerialize() const = 0;
 
 	/**
-	 * Must be overridden to recreate the the derived class' state from a
+	 * Must be overridden to recreate the derived class' state from a
 	 * serialization.
 	 *
 	 * @return true if successful.

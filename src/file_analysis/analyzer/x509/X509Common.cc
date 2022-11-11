@@ -193,7 +193,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* 
 void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
 	{
 	// Ok, signed certificate timestamps are a bit of an odd case out; we don't
-	// want to use the (basically nonexistant) OpenSSL functionality to parse them.
+	// want to use the (basically nonexistent) OpenSSL functionality to parse them.
 	// Instead we have our own, self-written binpac parser to parse just them,
 	// which we will initialize here and tear down immediately again.
 

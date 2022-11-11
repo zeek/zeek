@@ -95,7 +95,7 @@ public:
 	 *
 	 * @param name A component's canonical name.
 	 * @return The component's tag, or a tag representing an error if
-	 * no such component assoicated with the name exists.
+	 * no such component associated with the name exists.
 	 */
 	zeek::Tag GetComponentTag(const std::string& name) const;
 
@@ -104,7 +104,7 @@ public:
 	 *
 	 * @param v A component's enum value.
 	 * @return The component's tag, or a tag representing an error if
-	 * no such component assoicated with the value exists.
+	 * no such component associated with the value exists.
 	 */
 	zeek::Tag GetComponentTag(Val* v) const;
 
@@ -308,7 +308,7 @@ void ComponentManager<C>::RegisterComponent(C* component, const std::string& pre
 	components_by_tag.insert(std::make_pair(component->Tag(), component));
 	components_by_val.insert(std::make_pair(component->Tag().AsVal()->InternalInt(), component));
 
-	// Install an identfier for enum value
+	// Install an identifier for enum value
 	std::string id = util::fmt("%s%s", prefix.c_str(), cname.c_str());
 	tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true,
 	                       nullptr);

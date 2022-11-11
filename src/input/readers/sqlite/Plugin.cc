@@ -22,4 +22,4 @@ public:
 		}
 	} plugin;
 
-	} // namespae zeek::plugin::detail::Zeek_SQLiteReader
+	} // namespace zeek::plugin::detail::Zeek_SQLiteReader

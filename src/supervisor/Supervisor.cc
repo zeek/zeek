@@ -59,7 +59,7 @@ namespace
 struct Stem
 	{
 	/**
-	 * State used to initalialize the Stem process.
+	 * State used to initialize the Stem process.
 	 */
 	struct State
 		{

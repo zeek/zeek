@@ -514,7 +514,7 @@ void Attributes::CheckAttr(Attr* a)
 				}
 
 			// Only support atomic types for the moment, unless
-			// explicitly overriden
+			// explicitly overridden
 			if ( ! type->AsTableType()->IsSet() &&
 			     ! input::Manager::IsCompatibleType(type->AsTableType()->Yield().get(), true) &&
 			     ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )
@@ -549,7 +549,7 @@ void Attributes::CheckAttr(Attr* a)
 				}
 
 			// Only support atomic types for the moment, unless
-			// explicitly overriden
+			// explicitly overridden
 			if ( ! type->AsTableType()->IsSet() &&
 			     ! input::Manager::IsCompatibleType(type->AsTableType()->Yield().get(), true) &&
 			     ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )

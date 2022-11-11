@@ -96,7 +96,7 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 ## cells: The number of cells of the underlying counter vector. As there's
 ##        no single answer to what's the best parameterization for a
 ##        counting Bloom filter, we refer to the Bloom filter literature
-##        here for choosing an appropiate value.
+##        here for choosing an appropriate value.
 ##
 ## max: The maximum counter value associated with each element
 ##      described by *w = ceil(log_2(max))* bits. Each bit in the underlying
@@ -163,7 +163,7 @@ function bloomfilter_add%(bf: opaque of bloomfilter, x: any%): any
 ## Note that decrement operations can lead to false negatives if used on a counting bloom-filter
 ## that exceeded the width of its counter.
 ##
-## bf: The coubting bloom filter handle.
+## bf: The counting bloom filter handle.
 ##
 ## x: The element to decrement
 ##

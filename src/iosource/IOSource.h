@@ -59,7 +59,7 @@ public:
 	 * overridden by source classes where they have a timeout value
 	 * that can wake up the poll.
 	 *
-	 * Must be overriden by derived classes.
+	 * Must be overridden by derived classes.
 	 *
 	 * @return A value for the next time that the source thinks the
 	 * poll should time out in seconds from the current time. Return

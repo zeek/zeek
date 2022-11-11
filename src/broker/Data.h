@@ -166,7 +166,7 @@ struct type_name_getter
  * @param v a Broker::Data value.
  * @param f used to get location information on error.
  * @return a reference to the wrapped Broker data value.  A runtime interpreter
- * exception is thrown if the the optional opaque value of \a v is not set.
+ * exception is thrown if the optional opaque value of \a v is not set.
  */
 broker::data& opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f);
 
@@ -176,7 +176,7 @@ broker::data& opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f);
  * @param d a Broker data value to get variant data out of.
  * @param tag a Zeek tag which corresponds to T (just used for error reporting).
  * @param f used to get location information on error.
- * @return a refrence to the requested type in the variant Broker data.
+ * @return a reference to the requested type in the variant Broker data.
  * A runtime interpret exception is thrown if trying to access a type which
  * is not currently stored in the Broker data.
  */
@@ -200,7 +200,7 @@ inline T& require_data_type(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail:
 	return require_data_type<T>(opaque_field_to_data(v, f), tag, f);
 	}
 
-// Copying data in to iterator vals is not the fastest approach, but safer...
+// Copying data into iterator vals is not the fastest approach, but safer...
 
 class SetIterator : public zeek::OpaqueVal
 	{

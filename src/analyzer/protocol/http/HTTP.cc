@@ -246,7 +246,7 @@ bool HTTP_Entity::Undelivered(int64_t len)
 		          expect_data_length);
 		}
 
-	// Don't propogate an entity (file) gap if we're still in the headers,
+	// Don't propagate an entity (file) gap if we're still in the headers,
 	// or the body length was declared to be zero.
 	if ( (end_of_data && in_header) || body_length == 0 )
 		return false;
@@ -1687,7 +1687,7 @@ String* unescape_URI(const u_char* line, const u_char* line_end, analyzer::Analy
 			else if ( line + 1 == line_end )
 				{
 				// % + one character at end of line. Log weird
-				// and just add to unescpaped URI.
+				// and just add to unescaped URI.
 				*URI_p++ = '%';
 				*URI_p++ = *line;
 				if ( analyzer )
@@ -1718,7 +1718,7 @@ String* unescape_URI(const u_char* line, const u_char* line_end, analyzer::Analy
 				// Decode escaping like this: %u00AE
 				// The W3C rejected escaping this way, and
 				// there is no RFC that specifies it.
-				// Appparently there is some software doing
+				// Apparently there is some software doing
 				// this sort of 4 byte unicode encoding anyway.
 				// Likely causing an increase in it's use is
 				// the third edition of the ECMAScript spec

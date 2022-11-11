@@ -25,7 +25,7 @@ cmd: dcStep
 names: step s
 resume: true
 repeatable: true
-help: Step to following statements, stepping in to function calls
+help: Step to following statements, stepping into function calls
 
 cmd: dcContinue
 names: continue c

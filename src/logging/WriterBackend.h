@@ -144,7 +144,7 @@ public:
 	 *
 	 * @param frontend_name The name of the front-end writer implementation.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Init(int num_fields, const threading::Field* const* fields);
 
@@ -155,13 +155,13 @@ public:
 	 * value must match what was passed to Init().
 	 *
 	 * @param An array of size \a num_fields with the log values. Their
-	 * types musst match with the field passed to Init(). The method
+	 * types must match with the field passed to Init(). The method
 	 * takes ownership of \a vals..
 	 *
-	 * Returns false if an error occured, in which case the writer must
+	 * Returns false if an error occurred, in which case the writer must
 	 * not be used any further.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Write(int num_fields, int num_writes, threading::Value*** vals);
 
@@ -172,7 +172,7 @@ public:
 	 * @param enabled False if buffering is to be disabled (by default
 	 * it's on).
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool SetBuf(bool enabled);
 
@@ -182,7 +182,7 @@ public:
 	 *
 	 * @param network_time The network time when the flush was triggered.
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Flush(double network_time);
 
@@ -190,7 +190,7 @@ public:
 	 * Triggers rotation, if the writer supports that. (If not, it will
 	 * be ignored).
 	 *
-	 * @return False if an error occured.
+	 * @return False if an error occurred.
 	 */
 	bool Rotate(const char* rotated_path, double open, double close, bool terminating);
 
@@ -240,9 +240,9 @@ public:
 	 *
 	 * @param open: The timestamp when the original file was opened.
 	 *
-	 * @param close: The timestamp when the origina file was closed.
+	 * @param close: The timestamp when the original file was closed.
 	 *
-	 * @param terminating: True if the original rotation request occured
+	 * @param terminating: True if the original rotation request occurred
 	 * due to the main Zeek process shutting down.
 	 */
 	bool FinishedRotation(const char* new_name, const char* old_name, double open, double close,
@@ -272,10 +272,10 @@ protected:
 	friend class FinishMessage;
 
 	/**
-	 * Writer-specific intialization method.
+	 * Writer-specific initialization method.
 	 *
 	 * A writer implementation must override this method. If it returns
-	 * false, it will be assumed that a fatal error has occured that
+	 * false, it will be assumed that a fatal error has occurred that
 	 * prevents the writer from further operation; it will then be
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
@@ -288,7 +288,7 @@ protected:
 	 * entry.
 	 *
 	 * A writer implementation must override this method. If it returns
-	 * false, it will be assumed that a fatal error has occured that
+	 * false, it will be assumed that a fatal error has occurred that
 	 * prevents the writer from further operation; it will then be
 	 * disabled and eventually deleted. When returning false, an
 	 * implementation should also call Error() to indicate what happened.
@@ -297,7 +297,7 @@ protected:
 	                     threading::Value** vals) = 0;
 
 	/**
-	 * Writer-specific method implementing a change of fthe buffering
+	 * Writer-specific method implementing a change of the buffering
 	 * state.  If buffering is disabled, the writer should attempt to
 	 * write out information as quickly as possible even if doing so may
 	 * have a performance impact. If enabled (which is the default), it
@@ -309,7 +309,7 @@ protected:
 	 * ignore calls if buffering doesn't align with its semantics.
 	 *
 	 * If the method returns false, it will be assumed that a fatal error
-	 * has occured that prevents the writer from further operation; it
+	 * has occurred that prevents the writer from further operation; it
 	 * will then be disabled and eventually deleted. When returning
 	 * false, an implementation should also call Error() to indicate what
 	 * happened.
@@ -323,7 +323,7 @@ protected:
 	 * ignore calls if flushing doesn't align with its semantics.
 	 *
 	 * If the method returns false, it will be assumed that a fatal error
-	 * has occured that prevents the writer from further operation; it
+	 * has occurred that prevents the writer from further operation; it
 	 * will then be disabled and eventually deleted. When returning
 	 * false, an implementation should also call Error() to indicate what
 	 * happened.
@@ -336,7 +336,7 @@ protected:
 	 * Writer-specific method implementing log rotation.  Most directly
 	 * this only applies to writers writing into files, which should then
 	 * close the current file and open a new one.  However, a writer may
-	 * also trigger other apppropiate actions if semantics are similar.
+	 * also trigger other appropriate actions if semantics are similar.
 	 * Once rotation has finished, the implementation *must* call
 	 * FinishedRotation() to signal the log manager that potential
 	 * postprocessors can now run.
@@ -346,7 +346,7 @@ protected:
 	 * still needs to call FinishedRotation() though.
 	 *
 	 * If the method returns false, it will be assumed that a fatal error
-	 * has occured that prevents the writer from further operation; it
+	 * has occurred that prevents the writer from further operation; it
 	 * will then be disabled and eventually deleted. When returning
 	 * false, an implementation should also call Error() to indicate what
 	 * happened.
@@ -363,7 +363,7 @@ protected:
 	 * @param close The network time when the *current* file was closed.
 	 *
 	 * @param terminating Indicates whether the rotation request occurs
-	 * due the main Zeek prcoess terminating (and not because we've
+	 * due the main Zeek process terminating (and not because we've
 	 * reached a regularly scheduled time for rotation).
 	 */
 	virtual bool DoRotate(const char* rotated_path, double open, double close,

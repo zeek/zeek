@@ -235,7 +235,7 @@ struct DNSKEY_DATA
 	unsigned short dflags; // 16 : ExtractShort(data, len)
 	unsigned short dalgorithm; // 8
 	unsigned short dprotocol; // 8
-	String* public_key; // Variable lenght Public Key
+	String* public_key; // Variable length Public Key
 	};
 
 struct NSEC3_DATA
@@ -264,7 +264,7 @@ struct DS_DATA
 	unsigned short key_tag; // 16 : ExtractShort(data, len)
 	unsigned short algorithm; // 8
 	unsigned short digest_type; // 8
-	String* digest_val; // Variable lenght Digest of DNSKEY RR
+	String* digest_val; // Variable length Digest of DNSKEY RR
 	};
 
 struct BINDS_DATA
@@ -317,7 +317,7 @@ public:
 	int opcode; ///< query type, see DNS_Opcode
 	int rcode; ///< return code, see DNS_Code
 	int QR; ///< query record flag
-	int AA; ///< authoritiave answer flag
+	int AA; ///< authoritative answer flag
 	int TC; ///< truncated - size > 512 bytes for udp
 	int RD; ///< recursion desired
 	int RA; ///< recursion available

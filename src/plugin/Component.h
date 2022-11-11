@@ -49,7 +49,7 @@ public:
 	/**
 	 * Constructor.
 	 *
-	 * @param type The type of the compoment.
+	 * @param type The type of the component.
 	 *
 	 * @param name A descriptive name for the component.  This name must
 	 * be unique across all components of the same type.
@@ -83,17 +83,17 @@ public:
 	virtual void Initialize() { }
 
 	/**
-	 * Returns the compoment's type.
+	 * Returns the component's type.
 	 */
 	component::Type Type() const { return type; }
 
 	/**
-	 * Returns the compoment's name.
+	 * Returns the component's name.
 	 */
 	const std::string& Name() const { return name; }
 
 	/**
-	 * Returns a canonocalized version of the components's name.  The
+	 * Returns a canonicalized version of the components's name.  The
 	 * returned name is derived from what's passed to the constructor but
 	 * upper-cased and transformed to allow being part of a script-level
 	 * ID.

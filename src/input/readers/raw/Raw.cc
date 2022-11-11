@@ -418,7 +418,7 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 		Error(
 			Fmt("Filter for raw reader contains wrong number of fields -- got %d, expected %d. "
 		        "Filters for the raw reader contain one string field when used in normal mode and "
-		        "one string and one bool fields when using execute mode with stderr capuring. "
+		        "one string and one bool fields when using execute mode with stderr capturing. "
 		        "Filter ignored.",
 		        num_fields, want_fields));
 		return false;
@@ -481,7 +481,7 @@ int64_t Raw::GetLine(FILE* arg_file)
 		if ( pos == 0 && errno != 0 )
 			break;
 
-		// researching everything each time is a bit... cpu-intensive. But otherwhise we have
+		// researching everything each time is a bit... cpu-intensive. But otherwise we have
 		// to deal with situations where the separator is multi-character and split over multiple
 		// reads...
 		int found = util::strstr_n(pos, (unsigned char*)buf.get(), separator.size(),

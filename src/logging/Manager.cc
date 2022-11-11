@@ -726,7 +726,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 		auto v = log_stream_policy_hook->Invoke(columns, IntrusivePtr{NewRef{}, id});
 		if ( v && ! v->AsBool() )
 			{
-			// We recod the fact that this hook is vetoing
+			// We record the fact that this hook is vetoing
 			// the write, but continue on to the filter-
 			// level hooks to allow them to run anyway.
 			// They cannot "un-veto".

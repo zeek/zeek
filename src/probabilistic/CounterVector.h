@@ -134,7 +134,7 @@ public:
 
 	/**
 	 * Converts a counter vector into a BitVector. Each cell that has a value
-	 * of 1 or more set is set in the BitVector; otherwhise the bit remains unset.
+	 * of 1 or more set is set in the BitVector; otherwise the bit remains unset.
 	 *
 	 * @return The newly created BitVector
 	 */

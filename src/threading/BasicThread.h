@@ -209,7 +209,7 @@ private:
 	uint32_t buf_len;
 	char* buf;
 
-	// For implementating Strerror().
+	// For implementing Strerror().
 	char* strerr_buffer;
 
 	static uint64_t thread_counter;

@@ -462,7 +462,7 @@ void ValTrace::ComputeTableDelta(const ValTrace* prev, DeltaVector& deltas) cons
 
 	// We can't compare pointers for the indices because they're
 	// new objects generated afresh by TableVal::ToMap.  So we do
-	// explict full comparisons for equality, distinguishing values
+	// explicit full comparisons for equality, distinguishing values
 	// newly added, common to both, or (implicitly) removed.  We'll
 	// then go through the common to check them further.
 	//
@@ -561,7 +561,7 @@ void ValTrace::ComputeVectorDelta(const ValTrace* prev, DeltaVector& deltas) con
 		return;
 		}
 
-	// Look for existing entries that need reassigment.
+	// Look for existing entries that need reassignment.
 	auto i = 0U;
 	for ( ; i < prev_n; ++i )
 		{

@@ -797,9 +797,9 @@ type ReporterStats: record {
 ## .. zeek:see:: get_event_handler_call_counts
 type EventNameCounter: record {
 	## Name of the zeek event.
-	name: 			string 	&log;
-	## Times it was queued, as captured by event hook.
-	times_queued: 	count 	&log;
+	name: string &log;
+	## Times it was called, as counted by the event handlers.
+	times_called: count &log;
 } &log;
 type EventNameStats: vector of EventNameCounter;
 

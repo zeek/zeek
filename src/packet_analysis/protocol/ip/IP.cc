@@ -63,7 +63,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			}
 
 		ip_hdr = std::make_shared<IP_Hdr>((const struct ip6_hdr*)data, false,
-		                                          static_cast<int>(len));
+		                                  static_cast<int>(len));
 		packet->l3_proto = L3_IPV6;
 		}
 	else

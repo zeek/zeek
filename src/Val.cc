@@ -3974,7 +3974,8 @@ const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type)
 
 	uint32_t port_masked = PortVal::Mask(port_num, port_type);
 	if ( ports.find(port_masked) == ports.end() )
-		ports[port_masked] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(port_num, port_type))};
+		ports[port_masked] = IntrusivePtr{AdoptRef{},
+		                                  new PortVal(PortVal::Mask(port_num, port_type))};
 
 	return ports[port_masked];
 	}

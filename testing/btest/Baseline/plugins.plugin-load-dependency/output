@@ -9,7 +9,6 @@ Testing::Plugin2 - Plugin2 provides a load dependency for Plugin1 and Plugin3 (d
 in Plugin1
 in Plugin2
 
-Statistics - Statistics module (built-in)
 Testing::Plugin1 - Plugin1 has a load dependency on Plugin2 (dynamic, version 1.0.0)
 Testing::Plugin2 - Plugin2 provides a load dependency for Plugin1 and Plugin3 (dynamic, version 1.0.0)
 Testing::Plugin3 - Plugin3 has a load dependency on Plugin2 (dynamic, version 1.0.0)

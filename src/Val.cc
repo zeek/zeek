@@ -3972,10 +3972,11 @@ const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type)
 		port_num = 0;
 		}
 
-	if ( ports.find(port_num) == ports.end() )
-		ports[port_num] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(port_num, port_type))};
+	uint32_t port_masked = PortVal::Mask(port_num, port_type);
+	if ( ports.find(port_masked) == ports.end() )
+		ports[port_masked] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(port_num, port_type))};
 
-	return ports[port_num];
+	return ports[port_masked];
 	}
 
 const PortValPtr& ValManager::Port(uint32_t port_num)

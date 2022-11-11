@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <unistd.h>
 #include <cstdlib>
 
 #include "zeek/util.h" // for zeek_int_t

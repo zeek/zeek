@@ -16,7 +16,9 @@
 #include <list>
 #include <optional>
 
+#ifdef USE_SQLITE
 #include "zeek/3rdparty/sqlite3.h"
+#endif
 
 #define DOCTEST_CONFIG_IMPLEMENT
 
@@ -200,7 +202,12 @@ std::shared_ptr<zeek::detail::SampleLogger> zeek::detail::sample_logger;
 zeek::detail::FragmentManager* zeek::detail::fragment_mgr = nullptr;
 
 int signal_val = 0;
+#ifdef _MSC_VER
+char version[] = VERSION;
+#else
 extern char version[];
+#endif
+
 const char* zeek::detail::command_line_policy = nullptr;
 vector<string> zeek::detail::params;
 set<string> requested_plugins;
@@ -636,11 +643,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
 	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
 	// and Solaris provide /dev/urandom).
-
+#ifdef USE_SQLITE
 	int r = sqlite3_initialize();
 
 	if ( r != SQLITE_OK )
 		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
+#endif
 
 	timer_mgr = new TimerMgr();
 
@@ -1112,7 +1120,9 @@ int cleanup(bool did_run_loop)
 	run_state::detail::delete_run();
 	terminate_zeek();
 
+#ifdef USE_SQLITE
 	sqlite3_shutdown();
+#endif
 
 	do_ssl_deinit();
 

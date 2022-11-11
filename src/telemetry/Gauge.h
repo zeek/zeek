@@ -73,7 +73,7 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(IntGauge other) const noexcept { return hdl == other.hdl; }
+	constexpr bool IsSameAs(const IntGauge& other) const noexcept { return hdl == other.hdl; }
 
 private:
 	using Handle = broker::telemetry::int_gauge_hdl*;
@@ -88,13 +88,13 @@ private:
  * @return Whether @p lhs and @p rhs refer to the same object.
  * @note compare their @c value instead to check for equality.
  */
-constexpr bool operator==(IntGauge lhs, IntGauge rhs) noexcept
+constexpr bool operator==(const IntGauge& lhs, const IntGauge& rhs) noexcept
 	{
 	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates IntGauge
-constexpr bool operator!=(IntGauge lhs, IntGauge rhs) noexcept
+constexpr bool operator!=(const IntGauge& lhs, const IntGauge& rhs) noexcept
 	{
 	return ! (lhs == rhs);
 	}
@@ -180,7 +180,7 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(DblGauge other) const noexcept { return hdl == other.hdl; }
+	constexpr bool IsSameAs(const DblGauge& other) const noexcept { return hdl == other.hdl; }
 
 private:
 	using Handle = broker::telemetry::dbl_gauge_hdl*;
@@ -195,13 +195,13 @@ private:
  * @return Whether @p lhs and @p rhs refer to the same object.
  * @note compare their @c value instead to check for equality.
  */
-constexpr bool operator==(DblGauge lhs, DblGauge rhs) noexcept
+constexpr bool operator==(const DblGauge& lhs, const DblGauge& rhs) noexcept
 	{
 	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates DblGauge
-constexpr bool operator!=(DblGauge lhs, DblGauge rhs) noexcept
+constexpr bool operator!=(const DblGauge& lhs, const DblGauge& rhs) noexcept
 	{
 	return ! (lhs == rhs);
 	}

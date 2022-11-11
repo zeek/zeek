@@ -1,3 +1,7 @@
+5.2.0-dev.307 | 2022-11-11 15:13:47 -0700
+
+  * Merged support for Microsoft Windows (Tomer Lev, Elad Solomon, Microsoft)
+
 5.2.0-dev.234 | 2022-11-11 12:48:20 -0700
 
   * Spelling src (Josh Soref)

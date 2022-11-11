@@ -1,8 +1,17 @@
 include_directories(BEFORE
                     ${CMAKE_CURRENT_SOURCE_DIR}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/include
                     ${CMAKE_CURRENT_BINARY_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}/include
 )
+
+# Force creation of includes symlink. This can't just be in the src directory
+# because MSVC will end up with an include loop.
+execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/include")
+execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                ".."
+                "${CMAKE_CURRENT_SOURCE_DIR}/include/zeek")
 
 # Allows header file inclusion via zeek/ within the build tree
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
@@ -31,9 +40,9 @@ configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 # - deletes instances of 'extern char.*getenv' in inFile
 # - writes results to outFile and adds it to list TRANSFORMED_BISON_OUTPUTS
 macro(REPLACE_YY_PREFIX_TARGET inFile outFile yylexPrefix yyPrefix)
-    set(args "'/extern char.*getenv/d")
+    set(args "\"/extern char.*getenv/d")
     set(args "${args}\;s/yylex/${yylexPrefix}lex/")
-    set(args "${args}\;s/yy/${yyPrefix}/g'" < ${inFile} > ${outFile})
+    set(args "${args}\;s/yy/${yyPrefix}/g\"" < ${inFile} > ${outFile})
     add_custom_command(OUTPUT ${outFile}
                        COMMAND ${SED_EXE}
                        ARGS ${args}
@@ -48,6 +57,12 @@ endmacro(REPLACE_YY_PREFIX_TARGET)
 
 set(BISON_FLAGS "--debug")
 
+if ( MSVC )
+    set(SIGN_COMPARE_FLAG "/wd4018")
+else()
+    set(SIGN_COMPARE_FLAG "-Wno-sign-compare")
+endif()
+
 # BIF parser/scanner
 bison_target(BIFParser builtin-func.y
              ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
@@ -56,7 +71,7 @@ bison_target(BIFParser builtin-func.y
              COMPILE_FLAGS "${BISON_FLAGS}")
 flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)
-set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
+set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 # Rule parser/scanner
 bison_target(RuleParser rule-parse.y
@@ -72,7 +87,7 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.h
                          rules_ rules_)
 flex_target(RuleScanner rule-scan.l ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
             COMPILE_FLAGS "-Prules_")
-set_property(SOURCE rule-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
+set_property(SOURCE rule-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 # RE parser/scanner
 bison_target(REParser re-parse.y
@@ -86,7 +101,7 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc
 flex_target(REScanner re-scan.l ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
             COMPILE_FLAGS "-Pre_")
 add_flex_bison_dependency(REScanner REParser)
-set_property(SOURCE re-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
+set_property(SOURCE re-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 # Parser/Scanner
 bison_target(Parser parse.y
@@ -99,12 +114,14 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc
                          zeek yy)
 flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
             COMPILE_FLAGS "-Pzeek")
-set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
+set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 ########################################################################
 ## bifcl-dependent targets
 
 include(BifCl)
+
+set(SUPERVISOR_SRCS supervisor/Supervisor.cc Pipe.cc)
 
 set(BIF_SRCS
     zeek.bif
@@ -139,9 +156,9 @@ endforeach ()
 include(BinPAC)
 
 set(BINPAC_AUXSRC
-    ${PROJECT_SOURCE_DIR}/src/binpac.pac
-    ${PROJECT_SOURCE_DIR}/src/zeek.pac
-    ${PROJECT_SOURCE_DIR}/src/binpac_zeek.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/binpac.pac
+    ${CMAKE_CURRENT_SOURCE_DIR}/zeek.pac
+    ${CMAKE_CURRENT_SOURCE_DIR}/binpac_zeek.h
 )
 
 binpac_target(binpac-lib.pac)
@@ -162,6 +179,8 @@ gen_zam_target(${GEN_ZAM_SRC})
 ########################################################################
 ## Including subdirectories.
 ########################################################################
+
+option(USE_SQLITE "Should Zeek use SQLite?" ON)
 
 set(bro_SUBDIR_LIBS CACHE INTERNAL "subdir libraries" FORCE)
 set(bro_SUBDIR_DEPS CACHE INTERNAL "subdir dependencies" FORCE)
@@ -258,6 +277,11 @@ set(_gen_zeek_script_cpp ${CMAKE_CURRENT_BINARY_DIR}/../CPP-gen.cc)
 add_custom_command(OUTPUT ${_gen_zeek_script_cpp}
 		   COMMAND ${CMAKE_COMMAND} -E touch ${_gen_zeek_script_cpp})
 
+if (!MSVC)
+    set_source_files_properties(legacy-netvar-init.cc PROPERTIES COMPILE_FLAGS
+                                -Wno-deprecated-declarations)
+endif()
+
 set(MAIN_SRCS
     digest.cc
     net_util.cc
@@ -311,7 +335,6 @@ set(MAIN_SRCS
     Options.cc
     Overflow.cc
     PacketFilter.cc
-    Pipe.cc
     PolicyFile.cc
     PrefixTable.cc
     PriorityQueue.cc
@@ -346,7 +369,7 @@ set(MAIN_SRCS
     ZeekString.cc
     ZVal.cc
 
-    supervisor/Supervisor.cc
+    ${SUPERVISOR_SRCS}
 
     threading/BasicThread.cc
     threading/Formatter.cc
@@ -422,7 +445,7 @@ set(THIRD_PARTY_SRCS
     3rdparty/modp_numtoa.c
     3rdparty/patricia.c
     3rdparty/setsignal.c
-    3rdparty/sqlite3.c
+    $<$<BOOL:USE_SQLITE>:3rdparty/sqlite3.c>
     3rdparty/strsep.c
 )
 
@@ -465,10 +488,19 @@ elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
        ../auxil/highwayhash/highwayhash/hh_vsx.cc
   )
 elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
+  if (MSVC)
+    set(_avx_flag /arch:AVX2)
+    # Using an undocumentd compiler flag: https://stackoverflow.com/questions/64053597/how-do-i-enable-sse4-1-and-sse3-but-not-avx-in-msvc/69328426#69328426
+    set(_sse_flag /d2archSSE42)
+  else()
+    set(_avx_flag -mavx2)
+    set(_sse_flag -msse4.1)
+  endif()
+
   set_source_files_properties(../auxil/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
-                              -mavx2)
+                              ${_avx_flag})
   set_source_files_properties(../auxil/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS
-                              -msse4.1)
+                              ${_sse_flag})
 
   list(APPEND HH_SRCS
       ../auxil/highwayhash/highwayhash/hh_avx2.cc
@@ -504,23 +536,58 @@ collect_headers(zeek_HEADERS ${zeek_SRCS})
 
 add_library(zeek_objs OBJECT ${zeek_SRCS})
 
-add_executable(zeek main.cc
-               $<TARGET_OBJECTS:zeek_objs>
-               ${zeek_HEADERS}
-               ${bro_SUBDIR_LIBS}
-               ${bro_PLUGIN_LIBS}
-)
-target_link_libraries(zeek ${bro_PLUGIN_LINK_LIBS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
-# Export symbols from zeek executable for use by plugins
-set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
+if (ZEEK_STANDALONE)
+    add_executable(zeek main.cc
+                $<TARGET_OBJECTS:zeek_objs>
+                ${zeek_HEADERS}
+                ${bro_SUBDIR_LIBS}
+                ${bro_PLUGIN_LIBS}
+    )
+    target_link_libraries(zeek ${bro_PLUGIN_LINK_LIBS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
-install(TARGETS zeek DESTINATION bin)
+    # Export symbols from zeek executable for use by plugins
+    set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
 
-set(BRO_EXE zeek
-    CACHE STRING "Zeek executable binary" FORCE)
+    if ( MSVC )
+        set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    endif ()
 
-set(BRO_EXE_PATH ${CMAKE_CURRENT_BINARY_DIR}/zeek
-    CACHE STRING "Path to Zeek executable binary" FORCE)
+    install(TARGETS zeek RUNTIME DESTINATION bin)
+
+    set(BRO_EXE zeek
+        CACHE STRING "Zeek executable binary" FORCE)
+
+    set(BRO_EXE_PATH ${CMAKE_CURRENT_BINARY_DIR}/zeek
+        CACHE STRING "Path to Zeek executable binary" FORCE)
+endif()
+
+if (NOT ZEEK_STANDALONE OR CONAN_EXPORTED)
+    add_library(libzeek STATIC $<TARGET_OBJECTS:zeek_objs>
+                                ${zeek_HEADERS}
+                                ${bro_SUBDIR_LIBS}
+                                ${bro_PLUGIN_LIBS})
+
+    target_link_libraries(libzeek PUBLIC ${zeekdeps}
+                                      ${CMAKE_THREAD_LIBS_INIT}
+                                      ${CMAKE_DL_LIBS}
+                                      ${bro_SUBDIR_LIBS}
+                                      ${bro_PLUGIN_LIBS})
+
+    target_include_directories(libzeek PUBLIC
+                                    ${CMAKE_SOURCE_DIR}/zeek/src
+                                    ${CMAKE_SOURCE_DIR}/zeek/src/include
+                                    ${CMAKE_BINARY_DIR}
+                                    ${CMAKE_BINARY_DIR}/zeek/src
+                                    ${CMAKE_BINARY_DIR}/zeek/src/include)
+
+    install(TARGETS libzeek LIBRARY DESTINATION lib)
+endif()
+
+if ( NOT WIN32 )
+    # Install wrapper script for Bro-to-Zeek renaming.
+    include(InstallSymlink)
+    InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro")
+endif ()
 
 # Target to create all the autogenerated files.
 add_custom_target(generate_outputs_stage1)
@@ -567,7 +634,15 @@ install(CODE "
 
 # Make sure to escape a bunch of special characters in the path before trying to use it as a
 # regular expression below.
-string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" escaped_path "${CMAKE_CURRENT_SOURCE_DIR}/zeek")
+string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" escaped_include_path "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
+
+if (WIN32)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/windows/usr.include/
+            DESTINATION include/
+            FILES_MATCHING
+            PATTERN "*.h"
+    )
+endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/zeek
@@ -576,7 +651,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         PATTERN "*.pac"
         PATTERN "3rdparty/*" EXCLUDE
         # The "zeek -> ." symlink isn't needed in the install-tree
-        REGEX "^${escaped_path}$" EXCLUDE
+        REGEX "${escaped_include_path}$" EXCLUDE
 
 	# FILES_MATCHING creates empty directories:
 	# https://gitlab.kitware.com/cmake/cmake/-/issues/17122
@@ -592,6 +667,8 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
         PATTERN "*.bif.netvar_h"
         PATTERN "*.bif.h"
         PATTERN "CMakeFiles" EXCLUDE
+        # The "include/zeek -> .." symlink isn't needed in the install-tree
+        REGEX "${escaped_include_path}$" EXCLUDE
 )
 
 install(FILES
@@ -602,7 +679,7 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/modp_numtoa.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/patricia.h
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/setsignal.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h
+        $<$<BOOL:USE_SQLITE>:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h>
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/doctest.h
         DESTINATION include/zeek/3rdparty
 )

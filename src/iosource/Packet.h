@@ -11,6 +11,8 @@
 using pkt_timeval = bpf_timeval;
 #else
 using pkt_timeval = struct timeval;
+#include <sys/socket.h>
+#include <sys/time.h>
 #endif
 
 #include <pcap.h> // For DLT_ constants

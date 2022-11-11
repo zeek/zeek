@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "zeek/zeek-config.h"
+
 #include <sys/types.h>
 #include <chrono>
 #include <cstdint>
@@ -143,18 +145,26 @@ public:
 	 */
 	struct NodeConfig
 		{
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 		// This block exists because the default implementations
 		// themselves trigger deprecation warnings for accessing the
 		// "scripts" field. It can go when we remove that deprecation.
 		NodeConfig() = default;
+#ifndef _MSC_VER
+		// MSVC throws this error when specifing this constructor:
+		// error C2580: multiple versions of a defaulted special member functions are not allowed
 		NodeConfig(NodeConfig&) = default;
+#endif
 		NodeConfig(const NodeConfig&) = default;
 		NodeConfig(NodeConfig&&) = default;
 		~NodeConfig() = default;
 		NodeConfig& operator=(const NodeConfig&) = default;
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 		/**
 		 * Create configuration from script-layer record value.

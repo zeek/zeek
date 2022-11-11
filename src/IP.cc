@@ -66,8 +66,8 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 			static auto ip6_hdr_type = id::find_type<RecordType>("ip6_hdr");
 			rv = make_intrusive<RecordVal>(ip6_hdr_type);
 			const struct ip6_hdr* ip6 = (const struct ip6_hdr*)data;
-			rv->Assign(0, (ntohl(ip6->ip6_flow) & 0x0ff00000) >> 20);
-			rv->Assign(1, ntohl(ip6->ip6_flow) & 0x000fffff);
+			rv->Assign(0, static_cast<uint32_t>(ntohl(ip6->ip6_flow) & 0x0ff00000) >> 20);
+			rv->Assign(1, static_cast<uint32_t>(ntohl(ip6->ip6_flow) & 0x000fffff));
 			rv->Assign(2, ntohs(ip6->ip6_plen));
 			rv->Assign(3, ip6->ip6_nxt);
 			rv->Assign(4, ip6->ip6_hlim);
@@ -127,7 +127,7 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 			rv->Assign(2, (ntohs(frag->ip6f_offlg) & 0xfff8) >> 3);
 			rv->Assign(3, (ntohs(frag->ip6f_offlg) & 0x0006) >> 1);
 			rv->Assign(4, static_cast<bool>(ntohs(frag->ip6f_offlg) & 0x0001));
-			rv->Assign(5, ntohl(frag->ip6f_ident));
+			rv->Assign(5, static_cast<uint32_t>(ntohl(frag->ip6f_ident)));
 			}
 			break;
 
@@ -138,13 +138,13 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 			rv->Assign(0, ((ip6_ext*)data)->ip6e_nxt);
 			rv->Assign(1, ((ip6_ext*)data)->ip6e_len);
 			rv->Assign(2, ntohs(((uint16_t*)data)[1]));
-			rv->Assign(3, ntohl(((uint32_t*)data)[1]));
+			rv->Assign(3, static_cast<uint32_t>(ntohl(((uint32_t*)data)[1])));
 
 			if ( Length() >= 12 )
 				{
 				// Sequence Number and ICV fields can only be extracted if
 				// Payload Len was non-zero for this header.
-				rv->Assign(4, ntohl(((uint32_t*)data)[2]));
+				rv->Assign(4, static_cast<uint32_t>(ntohl(((uint32_t*)data)[2])));
 				uint16_t off = 3 * sizeof(uint32_t);
 				rv->Assign(5, new String(data + off, Length() - off, true));
 				}
@@ -156,8 +156,8 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 			static auto ip6_esp_type = id::find_type<RecordType>("ip6_esp");
 			rv = make_intrusive<RecordVal>(ip6_esp_type);
 			const uint32_t* esp = (const uint32_t*)data;
-			rv->Assign(0, ntohl(esp[0]));
-			rv->Assign(1, ntohl(esp[1]));
+			rv->Assign(0, static_cast<uint32_t>(ntohl(esp[0])));
+			rv->Assign(1, static_cast<uint32_t>(ntohl(esp[1])));
 			}
 			break;
 
@@ -401,8 +401,8 @@ RecordValPtr IP_Hdr::ToPktHdrVal(RecordValPtr pkt_hdr, int sindex) const
 
 			tcp_hdr->Assign(0, val_mgr->Port(ntohs(tp->th_sport), TRANSPORT_TCP));
 			tcp_hdr->Assign(1, val_mgr->Port(ntohs(tp->th_dport), TRANSPORT_TCP));
-			tcp_hdr->Assign(2, ntohl(tp->th_seq));
-			tcp_hdr->Assign(3, ntohl(tp->th_ack));
+			tcp_hdr->Assign(2, static_cast<uint32_t>(ntohl(tp->th_seq)));
+			tcp_hdr->Assign(3, static_cast<uint32_t>(ntohl(tp->th_ack)));
 			tcp_hdr->Assign(4, tcp_hdr_len);
 			tcp_hdr->Assign(5, data_len);
 			tcp_hdr->Assign(6, tp->th_x2);

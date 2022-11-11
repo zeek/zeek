@@ -12,6 +12,8 @@
 
 #ifdef HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>
+#else
+#include "net_util.h" // for struct ip6_hdr
 #endif
 
 #include <vector>

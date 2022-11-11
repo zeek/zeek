@@ -15,6 +15,7 @@
 #endif
 
 #include <libgen.h>
+#include <unistd.h>
 #include <array>
 #include <cinttypes>
 #include <cstdarg>
@@ -30,12 +31,10 @@
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <ctime>
-#else
-#ifdef HAVE_SYS_TIME_H
+#elif defined(HAVE_SYS_TIME_H)
 #include <sys/time.h>
 #else
 #include <ctime>
-#endif
 #endif
 
 #ifdef DEBUG
@@ -43,14 +42,17 @@
 #include <cassert>
 
 #define ASSERT(x) assert(x)
-#define DEBUG_MSG(x...) fprintf(stderr, x)
+#define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)
 #define DEBUG_fputs fputs
 
 #else
+#ifdef MSTCPIP_ASSERT_UNDEFINED
+#undef ASSERT
+#endif
 
 #define ASSERT(x)
-#define DEBUG_MSG(x...)
-#define DEBUG_fputs(x...)
+#define DEBUG_MSG(...)
+#define DEBUG_fputs(...)
 
 #endif
 
@@ -60,9 +62,15 @@
 extern HeapLeakChecker* heap_checker;
 #endif
 
-#include <pthread.h>
+#include <stdint.h>
+
+extern "C"
+	{
+#include "zeek/3rdparty/modp_numtoa.h"
+	}
 
 #ifdef HAVE_LINUX
+#include <pthread.h>
 #include <sys/prctl.h>
 #endif
 
@@ -70,12 +78,24 @@ extern HeapLeakChecker* heap_checker;
 #include <pthread_np.h>
 #endif
 
-extern "C"
+#ifdef _MSC_VER
+#include <pthread.h>
+#include <filesystem>
+namespace zeek
 	{
-#include "zeek/3rdparty/modp_numtoa.h"
+namespace filesystem = std::filesystem;
 	}
-
+inline constexpr std::string_view path_list_separator = ";";
+#else
+// Expose ghc::filesystem as zeek::filesystem until we can
+// switch to std::filesystem on all platforms.
 #include "zeek/3rdparty/ghc/filesystem.hpp"
+namespace zeek
+	{
+namespace filesystem = ghc::filesystem;
+	}
+inline constexpr std::string_view path_list_separator = ":";
+#endif
 
 using zeek_int_t = int64_t;
 using zeek_uint_t = uint64_t;
@@ -94,10 +114,6 @@ namespace zeek
 
 class ODesc;
 class RecordVal;
-
-// Expose ghc::filesystem as zeek::filesystem until we can
-// switch to std::filesystem.
-namespace filesystem = ghc::filesystem;
 
 namespace util
 	{
@@ -318,7 +334,7 @@ std::vector<std::string>* tokenize_string(std::string_view input, std::string_vi
 std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
 
 extern char* copy_string(const char* s);
-extern int streq(const char* s1, const char* s2);
+extern bool streq(const char* s1, const char* s2);
 extern bool starts_with(std::string_view s, std::string_view beginning);
 extern bool ends_with(std::string_view s, std::string_view ending);
 

@@ -1,6 +1,7 @@
 # Ignore anything prefixed with build since people
 # tend to name all of their build directories prefixed that way.
 build*
+!ci/windows/build.cmd
 
 tmp
 *.gcov
@@ -17,3 +18,12 @@ cmake-build-*
 
 # clangd
 .cache
+
+out/
+
+# Visual Studio
+.vs/
+.vscode/
+CMakeSettings.json
+
+src/include

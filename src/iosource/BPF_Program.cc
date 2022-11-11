@@ -4,6 +4,11 @@
 
 #include "zeek/zeek-config.h"
 
+// clang-format off
+// Include order is required here for a working build on Windows.
+#include <unistd.h>
+#include <sys/socket.h>
+// clang-format on
 #include <cstring>
 
 #include "zeek/util.h"

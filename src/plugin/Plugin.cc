@@ -383,10 +383,14 @@ void Plugin::RequestEvent(EventHandlerPtr handler)
 
 void Plugin::RequestBroObjDtor(Obj* obj)
 	{
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	plugin_mgr->RequestBroObjDtor(obj, this);
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 	}
 
 void Plugin::RequestObjDtor(Obj* obj)

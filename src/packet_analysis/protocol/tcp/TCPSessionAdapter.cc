@@ -1791,8 +1791,8 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 					// timestamps
 					if ( length == 10 )
 						{
-						auto send = ntohl(*reinterpret_cast<const uint32_t*>(o + 2));
-						auto echo = ntohl(*reinterpret_cast<const uint32_t*>(o + 6));
+						uint32_t send = ntohl(*reinterpret_cast<const uint32_t*>(o + 2));
+						uint32_t echo = ntohl(*reinterpret_cast<const uint32_t*>(o + 6));
 						option_record->Assign(6, send);
 						option_record->Assign(7, echo);
 						}
@@ -1809,7 +1809,7 @@ int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig)
 						{
 						auto rate = o[2];
 						auto ttl_diff = o[3];
-						auto qs_nonce = ntohl(*reinterpret_cast<const uint32_t*>(o + 4));
+						uint32_t qs_nonce = ntohl(*reinterpret_cast<const uint32_t*>(o + 4));
 						option_record->Assign(8, rate);
 						option_record->Assign(9, ttl_diff);
 						option_record->Assign(10, qs_nonce);

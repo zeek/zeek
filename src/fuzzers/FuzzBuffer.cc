@@ -4,6 +4,10 @@
 
 #include "zeek/fuzzers/FuzzBuffer.h"
 
+#ifdef _MSC_VER
+#include <mem.h>
+#endif
+
 #include <cstring>
 
 namespace zeek::detail

@@ -792,6 +792,17 @@ type ReporterStats: record {
 	weirds_by_type:	table[string] of count;
 };
 
+## Statistics about how many times each event name is queued.
+##
+## .. zeek:see:: get_event_handler_call_counts
+type EventNameCounter: record {
+	## Name of the zeek event.
+	name: 			string 	&log;
+	## Times it was queued, as captured by event hook.
+	times_queued: 	count 	&log;
+} &log;
+type EventNameStats: vector of EventNameCounter;
+
 ## Table type used to map variable names to their memory allocation.
 ##
 ## .. todo:: We need this type definition only for declaring builtin functions

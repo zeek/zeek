@@ -57,7 +57,7 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(IntCounter other) const noexcept { return hdl == other.hdl; }
+	constexpr bool IsSameAs(const IntCounter& other) const noexcept { return hdl == other.hdl; }
 
 private:
 	using Handle = broker::telemetry::int_counter_hdl*;
@@ -72,13 +72,13 @@ private:
  * @return Whether @p lhs and @p rhs refer to the same object.
  * @note compare their @c value instead to check for equality.
  */
-constexpr bool operator==(IntCounter lhs, IntCounter rhs) noexcept
+constexpr bool operator==(const IntCounter& lhs, const IntCounter& rhs) noexcept
 	{
 	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates IntCounter
-constexpr bool operator!=(IntCounter lhs, IntCounter rhs) noexcept
+constexpr bool operator!=(const IntCounter& lhs, const IntCounter& rhs) noexcept
 	{
 	return ! (lhs == rhs);
 	}
@@ -155,7 +155,7 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same counter.
 	 */
-	constexpr bool IsSameAs(DblCounter other) const noexcept { return hdl == other.hdl; }
+	constexpr bool IsSameAs(const DblCounter& other) const noexcept { return hdl == other.hdl; }
 
 private:
 	using Handle = broker::telemetry::dbl_counter_hdl*;
@@ -170,13 +170,13 @@ private:
  * @return Whether @p lhs and @p rhs refer to the same object.
  * @note compare their @c value instead to check for equality.
  */
-constexpr bool operator==(DblCounter lhs, DblCounter rhs) noexcept
+constexpr bool operator==(const DblCounter& lhs, const DblCounter& rhs) noexcept
 	{
 	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates DblCounter
-constexpr bool operator!=(DblCounter lhs, DblCounter rhs) noexcept
+constexpr bool operator!=(const DblCounter& lhs, const DblCounter& rhs) noexcept
 	{
 	return ! (lhs == rhs);
 	}

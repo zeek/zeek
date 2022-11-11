@@ -298,9 +298,15 @@ protected:
 class ValManager
 	{
 public:
+#ifdef _MSC_VER
+	static constexpr zeek_uint_t PREALLOCATED_COUNTS = 1;
+	static constexpr zeek_uint_t PREALLOCATED_INTS = 1;
+	static constexpr zeek_int_t PREALLOCATED_INT_LOWEST = 0;
+#else
 	static constexpr zeek_uint_t PREALLOCATED_COUNTS = 4096;
 	static constexpr zeek_uint_t PREALLOCATED_INTS = 512;
 	static constexpr zeek_int_t PREALLOCATED_INT_LOWEST = -255;
+#endif
 	static constexpr zeek_int_t PREALLOCATED_INT_HIGHEST = PREALLOCATED_INT_LOWEST +
 	                                                       PREALLOCATED_INTS - 1;
 
@@ -327,13 +333,13 @@ public:
 	inline const StringValPtr& EmptyString() const { return empty_string; }
 
 	// Port number given in host order.
-	const PortValPtr& Port(uint32_t port_num, TransportProto port_type) const;
+	const PortValPtr& Port(uint32_t port_num, TransportProto port_type);
 
 	// Host-order port number already masked with port space protocol mask.
-	const PortValPtr& Port(uint32_t port_num) const;
+	const PortValPtr& Port(uint32_t port_num);
 
 private:
-	std::array<std::array<PortValPtr, 65536>, NUM_PORT_SPACES> ports;
+	std::unordered_map<uint32_t, PortValPtr> ports;
 	std::array<ValPtr, PREALLOCATED_COUNTS> counts;
 	std::array<ValPtr, PREALLOCATED_INTS> ints;
 	StringValPtr empty_string;
@@ -1124,15 +1130,18 @@ public:
 		AddedField(field);
 		}
 
-	void Assign(int field, int new_val)
+	// For int types, we provide both [u]int32_t and [u]int64_t versions for
+	// convenience, since sometimes the caller has one rather than the other.
+	void Assign(int field, int32_t new_val)
 		{
 		(*record_val)[field] = ZVal(zeek_int_t(new_val));
 		AddedField(field);
 		}
-
-	// For unsigned, we provide both uint32_t and uint64_t versions
-	// for convenience, since sometimes the caller has one rather
-	// than the other.
+	void Assign(int field, int64_t new_val)
+		{
+		(*record_val)[field] = ZVal(zeek_int_t(new_val));
+		AddedField(field);
+		}
 	void Assign(int field, uint32_t new_val)
 		{
 		(*record_val)[field] = ZVal(zeek_uint_t(new_val));

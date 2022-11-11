@@ -357,3 +357,23 @@ ubsan_sanitizer_task:
 #     CXXFLAGS: -DZEEK_DICT_DEBUG
 #     ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
 #     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
+
+windows_task:
+  # 2 hour timeout just for potential of building Docker image taking a while
+  timeout_in: 120m
+  windows_container:
+    # image: cirrusci/windowsservercore:cmake
+    # image: zeekurity/broker-ci-windows:latest
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+    cpu: 8
+    # Not allowed to request less than 8GB for an 8 CPU Windows VM.
+    memory: 8GB
+  sync_submodules_script: git submodule update --recursive --init
+  prepare_script: ci/windows/prepare.cmd
+  build_script: ci/windows/build.cmd
+  test_script: ci/windows/test.cmd
+  env:
+    ZEEK_CI_CPUS: 8
+    # Give verbose error output on a test failure.
+    CTEST_OUTPUT_ON_FAILURE: 1

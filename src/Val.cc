@@ -3962,18 +3962,9 @@ ValManager::ValManager()
 
 	for ( auto i = 0u; i < PREALLOCATED_INTS; ++i )
 		ints[i] = Val::MakeInt(PREALLOCATED_INT_LOWEST + i);
-
-	for ( auto i = 0u; i < ports.size(); ++i )
-		{
-		auto& arr = ports[i];
-		auto port_type = (TransportProto)i;
-
-		for ( auto j = 0u; j < arr.size(); ++j )
-			arr[j] = IntrusivePtr{AdoptRef{}, new PortVal(PortVal::Mask(j, port_type))};
-		}
 	}
 
-const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type) const
+const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type)
 	{
 	if ( port_num >= 65536 )
 		{
@@ -3981,10 +3972,15 @@ const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type) 
 		port_num = 0;
 		}
 
-	return ports[port_type][port_num];
+	uint32_t port_masked = PortVal::Mask(port_num, port_type);
+	if ( ports.find(port_masked) == ports.end() )
+		ports[port_masked] = IntrusivePtr{AdoptRef{},
+		                                  new PortVal(PortVal::Mask(port_num, port_type))};
+
+	return ports[port_masked];
 	}
 
-const PortValPtr& ValManager::Port(uint32_t port_num) const
+const PortValPtr& ValManager::Port(uint32_t port_num)
 	{
 	auto mask = port_num & PORT_SPACE_MASK;
 	port_num &= ~PORT_SPACE_MASK;

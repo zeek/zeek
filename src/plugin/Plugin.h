@@ -25,6 +25,10 @@ struct Field;
 namespace zeek
 	{
 
+#ifdef _MSC_VER
+#undef VOID
+#endif
+
 // Increase this when making incompatible changes to the plugin API. Note
 // that the constant is never used in C code. It's picked up on by CMake.
 constexpr int PLUGIN_API_VERSION = 7;
@@ -116,17 +120,23 @@ public:
 	// We force this to inline so that the API version gets hardcoded
 	// into the external plugin. (Technically, it's not a "force", just a
 	// strong hint.). The attribute seems generally available.
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	inline Configuration() __attribute__((always_inline))
 		{
 		bro_version = ZEEK_PLUGIN_ZEEK_VERSION;
 		zeek_version = ZEEK_PLUGIN_ZEEK_VERSION;
 		}
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	Configuration(Configuration&& c)
 		{
 		bro_version = std::move(c.bro_version);
@@ -136,10 +146,14 @@ public:
 		description = std::move(c.description);
 		version = std::move(c.version);
 		}
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	Configuration(const Configuration& c)
 		{
 		bro_version = c.bro_version;
@@ -149,10 +163,14 @@ public:
 		description = c.description;
 		version = c.version;
 		}
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	Configuration& operator=(Configuration&& c)
 		{
 		bro_version = std::move(c.bro_version);
@@ -164,10 +182,14 @@ public:
 
 		return *this;
 		}
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	Configuration& operator=(const Configuration& c)
 		{
 		bro_version = c.bro_version;
@@ -179,12 +201,18 @@ public:
 
 		return *this;
 		}
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	~Configuration() { }
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 	/**
 	 * One can assign ZEEK_PLUGIN_ZEEK_VERSION to this to catch

@@ -48,9 +48,10 @@ void BasicThread::SetName(const char* arg_name)
 
 void BasicThread::SetOSName(const char* arg_name)
 	{
-	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value,
-	              "libstdc++ doesn't use pthread_t");
-	util::detail::set_thread_name(arg_name, thread.native_handle());
+	// Do it only if libc++ supports pthread_t.
+	if constexpr ( std::is_same<std::thread::native_handle_type, pthread_t>::value )
+		zeek::util::detail::set_thread_name(arg_name,
+		                                    reinterpret_cast<pthread_t>(thread.native_handle()));
 	}
 
 const char* BasicThread::Fmt(const char* format, ...)
@@ -172,10 +173,9 @@ void BasicThread::Done()
 
 void* BasicThread::launcher(void* arg)
 	{
-	static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value,
-	              "libstdc++ doesn't use pthread_t");
 	BasicThread* thread = (BasicThread*)arg;
 
+#ifndef _MSC_VER
 	// Block signals in thread. We handle signals only in the main
 	// process.
 	sigset_t mask_set;
@@ -190,6 +190,7 @@ void* BasicThread::launcher(void* arg)
 	sigdelset(&mask_set, SIGBUS);
 	int res = pthread_sigmask(SIG_BLOCK, &mask_set, 0);
 	assert(res == 0);
+#endif
 
 	// Run thread's main function.
 	thread->Run();

@@ -85,7 +85,7 @@ private:
 
 	bool NextStmtIsValid() { return stmt_depths[STMT_FOR] > 0 || stmt_depths[STMT_WHILE] > 0; }
 
-	std::unordered_map<const StmtTag, int> stmt_depths;
+	std::unordered_map<StmtTag, int> stmt_depths;
 	int hook_depth = 0;
 	};
 

@@ -6,6 +6,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "Obj.h"
+
 namespace zeek
 	{
 
@@ -24,6 +26,12 @@ struct AdoptRef
 struct NewRef
 	{
 	};
+
+/**
+ * This has to be forward declared and known here in order for us to be able
+ * cast this in the `Unref` function.
+ */
+class OpaqueVal;
 
 /**
  * An intrusive, reference counting smart pointer implementation. Much like
@@ -111,7 +119,14 @@ public:
 	~IntrusivePtr()
 		{
 		if ( ptr_ )
-			Unref(ptr_);
+			{
+			// Specializing `OpaqueVal` as MSVC compiler does not detect it
+			// inheriting from `zeek::Obj` so we have to do that manually.
+			if constexpr ( std::is_same_v<T, OpaqueVal> )
+				Unref(reinterpret_cast<zeek::Obj*>(ptr_));
+			else
+				Unref(ptr_);
+			}
 		}
 
 	void swap(IntrusivePtr& other) noexcept { std::swap(ptr_, other.ptr_); }

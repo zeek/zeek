@@ -2,13 +2,23 @@
 
 #include "zeek/zeek-config.h"
 
+#include <unistd.h>
+
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/zeek-setup.h"
 
+#ifdef _MSC_VER
+#include <fcntl.h> // For _O_BINARY.
+#endif
+
 int main(int argc, char** argv)
 	{
+#ifdef _MSC_VER
+	_setmode(_fileno(stdout), _O_BINARY);
+	_setmode(_fileno(stderr), _O_BINARY);
+#endif
 	auto time_start = zeek::util::current_time(true);
 	auto setup_result = zeek::detail::setup(argc, argv);
 
@@ -41,7 +51,6 @@ int main(int argc, char** argv)
 			zeek::detail::timer_mgr->Add(new zeek::detail::ParentProcessCheckTimer(1, 1));
 
 		double time_net_start = zeek::util::current_time(true);
-		;
 
 		uint64_t mem_net_start_total;
 		uint64_t mem_net_start_malloced;

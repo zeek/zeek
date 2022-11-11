@@ -94,7 +94,7 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	auto ah = (const struct arp_pkthdr*)data;
 
 	// Check the size.
-	size_t min_length = (ar_tpa(ah) - (char*)data) + ah->ar_pln;
+	size_t min_length = (ar_tpa(ah) - (caddr_t)data) + ah->ar_pln;
 	if ( min_length > len )
 		{
 		Weird("truncated_ARP", packet);
@@ -149,7 +149,7 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		}
 
 	// Check MAC src address = ARP sender MAC address.
-	if ( memcmp(packet->l2_src, ar_sha(ah), ah->ar_hln) != 0 )
+	if ( memcmp(packet->l2_src, (const char*)ar_sha(ah), ah->ar_hln) != 0 )
 		{
 		BadARPEvent(ah, "weird-arp-sha");
 		return false;
@@ -219,9 +219,9 @@ void ARPAnalyzer::BadARPEvent(const struct arp_pkthdr* hdr, const char* fmt, ...
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
 
-	event_mgr.Enqueue(bad_arp, ToAddrVal(ar_spa(hdr), hdr->ar_pln),
+	event_mgr.Enqueue(bad_arp, ToAddrVal(reinterpret_cast<const u_char*>(ar_spa(hdr)), hdr->ar_pln),
 	                  ToEthAddrStr(reinterpret_cast<const u_char*>(ar_sha(hdr)), hdr->ar_hln),
-	                  ToAddrVal(ar_tpa(hdr), hdr->ar_pln),
+	                  ToAddrVal(reinterpret_cast<const u_char*>(ar_tpa(hdr)), hdr->ar_pln),
 	                  ToEthAddrStr(reinterpret_cast<const u_char*>(ar_tha(hdr)), hdr->ar_hln),
 	                  zeek::make_intrusive<zeek::StringVal>(msg));
 	}

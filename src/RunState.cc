@@ -40,10 +40,12 @@ extern "C"
 #include "zeek/plugin/Manager.h"
 #include "zeek/session/Manager.h"
 
+#ifndef _MSC_VER
 extern "C"
 	{
 	extern int select(int, fd_set*, fd_set*, fd_set*, struct timeval*);
 	}
+#endif
 
 static double last_watchdog_proc_time = 0.0; // value of above during last watchdog
 extern int signal_val;

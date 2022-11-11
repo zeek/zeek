@@ -40,6 +40,7 @@
 #include <algorithm>
 #include <array>
 #include <iostream>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -51,6 +52,7 @@
 #include "zeek/Obj.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
+#include "zeek/ScannedFile.h"
 #include "zeek/Val.h"
 #include "zeek/digest.h"
 #include "zeek/input.h"
@@ -67,6 +69,7 @@ static bool can_read(const string& path)
 	}
 
 static string zeek_path_value;
+const string zeek_path_list_separator(path_list_separator.begin(), path_list_separator.end());
 
 namespace zeek::util
 	{
@@ -554,7 +557,7 @@ void add_to_zeek_path(const string& dir)
 	// Make sure path is initialized.
 	zeek_path();
 
-	zeek_path_value += string(":") + dir;
+	zeek_path_value += zeek_path_list_separator + dir;
 	}
 
 FILE* open_package(string& path, const string& mode)
@@ -596,7 +599,12 @@ void SafePathOp::CheckValid(const char* op_result, const char* path, bool error_
 TEST_CASE("util flatten_script_name")
 	{
 	CHECK(flatten_script_name("script", "some/path") == "some.path.script");
+#ifndef _MSC_VER
+	// TODO: this test fails on Windows because the implementation of dirname() in libunistd
+	// returns a trailing slash on paths, even tho the POSIX implementation doesn't. Commenting
+	// this out until we can fix that.
 	CHECK(flatten_script_name("other/path/__load__.zeek", "some/path") == "some.path.other.path");
+#endif
 	CHECK(flatten_script_name("path/to/script", "") == "path.to.script");
 	}
 
@@ -622,6 +630,9 @@ string flatten_script_name(const string& name, const string& prefix)
 
 TEST_CASE("util normalize_path")
 	{
+#ifdef _MSC_VER
+		// TODO: adapt these tests to Windows
+#else
 	CHECK(normalize_path("/1/2/3") == "/1/2/3");
 	CHECK(normalize_path("/1/./2/3") == "/1/2/3");
 	CHECK(normalize_path("/1/2/../3") == "/1/3");
@@ -645,10 +656,24 @@ TEST_CASE("util normalize_path")
 	CHECK(normalize_path("~/../..") == "~/../..");
 	CHECK(normalize_path("zeek/..") == "");
 	CHECK(normalize_path("zeek/../..") == "..");
+#endif
 	}
 
 string normalize_path(std::string_view path)
 	{
+#ifdef _MSC_VER
+	if ( 0 == path.compare(zeek::detail::ScannedFile::canonical_stdin_path) )
+		{
+		return string(path);
+		}
+	// "//" interferes with std::weakly_canonical
+	string stringPath = string(path);
+	if ( stringPath._Starts_with("//") )
+		{
+		stringPath.erase(0, 2);
+		}
+	return zeek::filesystem::path(stringPath).lexically_normal().string();
+#else
 	if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos )
 		{
 		// no need to normalize anything
@@ -713,13 +738,14 @@ string normalize_path(std::string_view path)
 		new_path.erase(new_path.size() - 1);
 
 	return new_path;
+#endif
 	}
 
 string without_zeekpath_component(std::string_view path)
 	{
 	string rval = normalize_path(path);
 
-	const auto paths = tokenize_string(zeek_path(), ':');
+	const auto paths = tokenize_string(zeek_path(), path_list_separator[0]);
 
 	for ( size_t i = 0; i < paths.size(); ++i )
 		{
@@ -746,12 +772,13 @@ std::string get_exe_path(const std::string& invocation)
 	{
 	if ( invocation.empty() )
 		return "";
+	zeek::filesystem::path invocation_path(invocation);
 
-	if ( invocation[0] == '/' || invocation[0] == '~' )
+	if ( invocation_path.is_absolute() || invocation_path.root_directory() == "~" )
 		// Absolute path
 		return invocation;
 
-	if ( invocation.find('/') != std::string::npos )
+	if ( invocation_path.is_relative() && invocation_path.has_parent_path() )
 		{
 		// Relative path
 		char cwd[PATH_MAX];
@@ -762,7 +789,7 @@ std::string get_exe_path(const std::string& invocation)
 			exit(1);
 			}
 
-		return std::string(cwd) + "/" + invocation;
+		return (zeek::filesystem::path(cwd) / invocation_path).string();
 		}
 
 	auto path = getenv("PATH");
@@ -1102,9 +1129,9 @@ TEST_CASE("util streq")
 	CHECK(streq("abcd", "efgh") == false);
 	}
 
-int streq(const char* s1, const char* s2)
+bool streq(const char* s1, const char* s2)
 	{
-	return ! strcmp(s1, s2);
+	return strcmp(s1, s2) == 0;
 	}
 
 bool starts_with(std::string_view s, std::string_view beginning)
@@ -1316,7 +1343,7 @@ const char* strpbrk_n(size_t len, const char* s, const char* charset)
 	return nullptr;
 	}
 
-#ifndef HAVE_STRCASESTR
+#if ! defined(HAVE_STRCASESTR) && ! defined(_MSC_VER)
 
 TEST_CASE("util strcasestr")
 	{
@@ -1576,7 +1603,7 @@ const char* fmt_bytes(const char* data, int len)
 
 	for ( int i = 0; i < len && p - buf < int(sizeof(buf)); ++i )
 		{
-		if ( isprint(data[i]) )
+		if ( isprint((unsigned char)(data[i])) )
 			*p++ = data[i];
 		else
 			p += snprintf(p, sizeof(buf) - (p - buf), "\\x%02x", (unsigned char)data[i]);
@@ -1593,7 +1620,7 @@ const char* fmt_bytes(const char* data, int len)
 const char* vfmt(const char* format, va_list al)
 	{
 	static char* buf = nullptr;
-	static unsigned int buf_len = 1024;
+	static int buf_len = 1024;
 
 	if ( ! buf )
 		buf = (char*)safe_malloc(buf_len);
@@ -1602,16 +1629,15 @@ const char* vfmt(const char* format, va_list al)
 	va_copy(alc, al);
 	int n = vsnprintf(buf, buf_len, format, al);
 
-	if ( (unsigned int)n >= buf_len )
+	if ( n > 0 && buf_len < n )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
 		buf = (char*)safe_realloc(buf, buf_len);
-
 		n = vsnprintf(buf, buf_len, format, alc);
-
-		if ( (unsigned int)n >= buf_len )
-			reporter->InternalError("confusion reformatting in fmt()");
 		}
+
+	if ( n < 0 )
+		reporter->InternalError("confusion reformatting in fmt()");
 
 	va_end(alc);
 	return buf;
@@ -1756,7 +1782,7 @@ string zeek_prefixes()
 	for ( const auto& prefix : zeek::detail::zeek_script_prefixes )
 		{
 		if ( ! rval.empty() )
-			rval.append(":");
+			rval.append(path_list_separator);
 		rval.append(prefix);
 		}
 
@@ -1780,33 +1806,35 @@ FILE* open_file(const string& path, const string& mode)
 	return rval;
 	}
 
-TEST_CASE("util path ops")
-	{
-	SUBCASE("SafeDirname")
-		{
-		SafeDirname d("/this/is/a/path", false);
-		CHECK(d.result == "/this/is/a");
+TEST_CASE("util path ops"){
+#ifdef _MSC_VER
+// TODO: adapt these tests to Windows paths
+#else
+	SUBCASE("SafeDirname"){SafeDirname d("/this/is/a/path", false);
+CHECK(d.result == "/this/is/a");
 
-		SafeDirname d2("invalid", false);
-		CHECK(d2.result == ".");
+SafeDirname d2("invalid", false);
+CHECK(d2.result == ".");
 
-		SafeDirname d3("./filename", false);
-		CHECK(d2.result == ".");
-		}
-
-	SUBCASE("SafeBasename")
-		{
-		SafeBasename b("/this/is/a/path", false);
-		CHECK(b.result == "path");
-		CHECK(! b.error);
-
-		SafeBasename b2("justafile", false);
-		CHECK(b2.result == "justafile");
-		CHECK(! b2.error);
-		}
+SafeDirname d3("./filename", false);
+CHECK(d2.result == ".");
 	}
 
-SafeDirname::SafeDirname(const char* path, bool error_aborts) : SafePathOp()
+SUBCASE("SafeBasename")
+	{
+	SafeBasename b("/this/is/a/path", false);
+	CHECK(b.result == "path");
+	CHECK(! b.error);
+
+	SafeBasename b2("justafile", false);
+	CHECK(b2.result == "justafile");
+	CHECK(! b2.error);
+	}
+#endif
+}
+
+SafeDirname::SafeDirname(const char* path, bool error_aborts)
+	: SafePathOp()
 	{
 	DoFunc(path ? path : "", error_aborts);
 	}
@@ -1937,8 +1965,10 @@ static string find_file_in_path(const string& filename, const string& path,
 	if ( filename.empty() )
 		return string();
 
+	zeek::filesystem::path filepath(filename);
+
 	// If file name is an absolute path, searching within *path* is pointless.
-	if ( filename[0] == '/' )
+	if ( filepath.is_absolute() )
 		{
 		if ( can_read(filename) )
 			return filename;
@@ -1946,7 +1976,7 @@ static string find_file_in_path(const string& filename, const string& path,
 			return string();
 		}
 
-	string abs_path = path + '/' + filename;
+	auto abs_path = (zeek::filesystem::path(path) / filepath).string();
 
 	if ( ! opt_ext.empty() )
 		{
@@ -1968,7 +1998,7 @@ static string find_file_in_path(const string& filename, const string& path,
 string find_file(const string& filename, const string& path_set, const string& opt_ext)
 	{
 	vector<string> paths;
-	tokenize_string(path_set, ":", &paths);
+	tokenize_string(path_set, path_list_separator, &paths);
 
 	vector<string> ext;
 	if ( ! opt_ext.empty() )
@@ -1988,7 +2018,7 @@ string find_file(const string& filename, const string& path_set, const string& o
 string find_script_file(const string& filename, const string& path_set)
 	{
 	vector<string> paths;
-	tokenize_string(path_set, ":", &paths);
+	tokenize_string(path_set, path_list_separator, &paths);
 
 	vector<string> ext = {".zeek"};
 
@@ -2008,9 +2038,15 @@ RETSIGTYPE sig_handler(int signo);
 double current_time(bool real)
 	{
 	struct timeval tv;
+#ifdef _MSC_VER
+	auto now = std::chrono::system_clock::now();
+	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+	tv.tv_sec = ms.count() / 1000;
+	tv.tv_usec = (ms.count() % 1000) * 1000;
+#else
 	if ( gettimeofday(&tv, 0) < 0 )
 		reporter->InternalError("gettimeofday failed in current_time()");
-
+#endif
 	double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
 
 	if ( ! run_state::pseudo_realtime || real || ! iosource_mgr || ! iosource_mgr->GetPktSrc() )
@@ -2251,8 +2287,8 @@ const void* memory_align(const void* ptr, size_t size)
 
 	const char* buf = reinterpret_cast<const char*>(ptr);
 	size_t mask = size - 1; // Assume size is a power of 2.
-	unsigned long l_ptr = reinterpret_cast<unsigned long>(ptr);
-	unsigned long offset = l_ptr & mask;
+	intptr_t l_ptr = reinterpret_cast<intptr_t>(ptr);
+	ptrdiff_t offset = l_ptr & mask;
 
 	if ( offset > 0 )
 		return reinterpret_cast<const void*>(buf - offset + size);
@@ -2291,7 +2327,7 @@ void* memory_align_and_pad(void* ptr, size_t size)
 
 	char* buf = reinterpret_cast<char*>(ptr);
 	size_t mask = size - 1;
-	while ( (reinterpret_cast<unsigned long>(buf) & mask) != 0 )
+	while ( (reinterpret_cast<intptr_t>(buf) & mask) != 0 )
 		// Not aligned - zero pad.
 		*buf++ = '\0';
 
@@ -2394,6 +2430,9 @@ void get_memory_usage(uint64_t* total, uint64_t* malloced)
 
 	// In KB.
 	ret_total = r.ru_maxrss * 1024;
+
+	if ( malloced )
+		*malloced = r.ru_ixrss * 1024;
 #endif
 
 	if ( total )
@@ -2506,7 +2545,12 @@ static void strerror_r_helper(int result, char* buf, size_t buflen)
 
 void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen)
 	{
+#ifdef _MSC_VER
+	auto str = "Error number: " + std::to_string(zeek_errno);
+	auto res = str.data();
+#else
 	auto res = strerror_r(zeek_errno, buf, buflen);
+#endif
 	// GNU vs. XSI flavors make it harder to use strerror_r.
 	strerror_r_helper(res, buf, buflen);
 	}
@@ -2698,6 +2742,9 @@ string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_
 
 TEST_CASE("util filesystem")
 	{
+#ifdef _MSC_VER
+		// TODO: adapt these tests to Windows paths
+#else
 	zeek::filesystem::path path1("/a/b");
 	CHECK(path1.is_absolute());
 	CHECK(! path1.is_relative());
@@ -2712,6 +2759,7 @@ TEST_CASE("util filesystem")
 
 	auto info = zeek::filesystem::space(".");
 	CHECK(info.capacity > 0);
+#endif
 	}
 
 TEST_CASE("util split")

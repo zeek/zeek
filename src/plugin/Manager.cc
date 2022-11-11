@@ -3,8 +3,10 @@
 #include "zeek/plugin/Manager.h"
 
 #include <dirent.h>
+#ifndef _MSC_VER
 #include <dlfcn.h>
 #include <glob.h>
+#endif
 #include <sys/stat.h>
 #include <cerrno>
 #include <climits> // for PATH_MAX
@@ -56,13 +58,13 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 	if ( dir.empty() )
 		return;
 
-	if ( dir.find(':') != string::npos )
+	if ( dir.find(path_list_separator) != string::npos )
 		{
 		// Split at ":".
 		std::stringstream s(dir);
 		std::string d;
 
-		while ( std::getline(s, d, ':') )
+		while ( std::getline(s, d, path_list_separator[0]) )
 			SearchDynamicPlugins(d);
 
 		return;
@@ -160,6 +162,10 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_not_found,
                                             std::vector<std::string>* errors)
 	{
+// Loading dynamic plugins is not currently supported on Windows platform.
+#ifdef _MSC_VER
+	return false;
+#else
 	errors->clear(); // caller should pass it in empty, but just to be sure
 
 	dynamic_plugin_map::iterator m = dynamic_plugins.find(util::strtolower(name));
@@ -326,6 +332,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 	m->second.clear();
 
 	return true;
+#endif
 	}
 
 void Manager::ActivateDynamicPlugin(const std::string& name)
@@ -346,14 +353,21 @@ void Manager::ActivateDynamicPlugins(bool all)
 
 	// Activate plugins that were specifically requested.
 	for ( const auto& x : requested_plugins )
-		plugins_to_activate.emplace(x, false);
+		{
+		if ( ! x.empty() )
+			plugins_to_activate.emplace(x, false);
+		}
 
 	// Activate plugins that our environment tells us to.
 	vector<string> p;
-	util::tokenize_string(util::zeek_plugin_activate(), ",", &p);
+	std::string plugin_activate = util::zeek_plugin_activate();
+	if ( ! plugin_activate.empty() )
+		{
+		util::tokenize_string(util::zeek_plugin_activate(), ",", &p);
 
-	for ( const auto& x : p )
-		plugins_to_activate.emplace(x, true);
+		for ( const auto& x : p )
+			plugins_to_activate.emplace(x, true);
+		}
 
 	if ( all )
 		{
@@ -911,32 +925,48 @@ void Manager::HookBroObjDtor(void* obj) const
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
 		args.push_back(HookArgument(obj));
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 		MetaHookPre(HOOK_BRO_OBJ_DTOR, args);
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 		}
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 	hook_list* l = hooks[HOOK_BRO_OBJ_DTOR];
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 
 	if ( l )
 		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
 			{
 			Plugin* p = (*i).second;
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 			p->HookBroObjDtor(obj);
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 			}
 
 	if ( HavePluginForHook(META_HOOK_POST) )
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
 	}
 
 void Manager::HookObjDtor(void* obj) const

@@ -1,4 +1,6 @@
 
 add_subdirectory(ascii)
 add_subdirectory(none)
-add_subdirectory(sqlite)
+if (USE_SQLITE)
+    add_subdirectory(sqlite)
+endif()

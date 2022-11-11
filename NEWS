@@ -23,6 +23,17 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Experimental support added for building and running Zeek on Microsoft Windows
+  environments. This is considered experimental due to the fact that our
+  standard testing setup (btest) doesn't run properly on Windows. This will be
+  fixed in the future. In the meantime we have done some basic testing against
+  builds done with Visual Studio 2019. Information on how to build on Windows is
+  available in the Zeek documentation. Note also that Spicy is currently
+  unsupported and will be fixed in the future.
+
+  The Zeek team wants to give a huge thank you to the team at Microsoft for all
+  of their effort in completing this port.
+
 - New ``analyzer_confirmation_info`` and ``analyzer_violation_info``
   events with accompanying record types ``AnalyzerConfirmationInfo``
   and ``AnalyzerViolationInfo`` have been added. These supersede

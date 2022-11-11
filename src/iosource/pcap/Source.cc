@@ -160,7 +160,9 @@ void PcapSource::OpenLive()
 	Info(util::fmt("pcap bufsize = %d\n", ((struct pcap*)pd)->bufsize));
 #endif
 
+#ifndef _MSC_VER
 	props.selectable_fd = pcap_get_selectable_fd(pd);
+#endif
 
 	props.link_type = pcap_datalink(pd);
 	props.is_live = true;

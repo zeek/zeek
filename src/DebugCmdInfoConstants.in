@@ -1,6 +1,6 @@
 // This invalid entry should always be first
 cmd: dcInvalid
-names: 
+names: _
 resume: false
 help: This function should not be called
 repeatable: false

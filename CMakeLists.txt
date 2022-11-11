@@ -2,9 +2,110 @@
 # auxil/zeek-aux/plugin-support/skeleton/CMakeLists.txt
 cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 
+if ( WIN32 )
+    # Enable usage of CMAKE_MSVC_RUNTIME_LIBRARY variable
+    cmake_policy(SET CMP0091 NEW)
+endif()
+
 project(Zeek C CXX)
 
-include(GNUInstallDirs)
+option(ZEEK_STANDALONE "Is Zeek compiled stand-alone or embedded in a parent project." ON)
+option(ENABLE_ZEEK_UNIT_TESTS "Should the doctest unit tests be built?" ON)
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
+
+# Windows: Configure runtime and dependencies
+if ( MSVC )
+    # Remove existing runtime flags
+    set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_RELWITHDEBINFO
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        CMAKE_C_FLAGS_RELWITHDEBINFO
+    )
+    foreach(CompilerFlag ${CompilerFlags})
+        string(REGEX REPLACE "[/|-]MDd" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]MD" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]MTd" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]MT" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]Zi" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]W3" "" ${CompilerFlag} "${${CompilerFlag}}")
+        string(REGEX REPLACE "[/|-]W4" "" ${CompilerFlag} "${${CompilerFlag}}")
+    endforeach()
+
+    # Set compilation flags for Windows
+    add_compile_options(
+        /guard:cf # required by CheckCFlags
+        /Z7)      # required by CheckCFlags
+
+    add_link_options(
+        /debug:full # required by CheckCFlags
+    )
+
+    # Set always to static runtime
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY_FLAG "MTd")
+    else ()
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY_FLAG "MT")
+    endif ()
+
+    set(OPENSSL_USE_STATIC_LIBS true)
+    set(OPENSSL_MSVC_STATIC_RT true)
+
+    if ( ZEEK_STANDALONE )
+        include(${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
+        conan_cmake_autodetect(settings)
+        # Install packages from conanfile
+        conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}/ci/windows/conanfile_windows.txt
+                            BUILD missing
+                            SETTINGS ${settings})
+    endif()
+
+    # Set LibPCAP to point to libpcap binaries.
+    find_package(libpcap)
+    set(PCAP_ROOT_DIR "${libpcap_LIB_DIRS}/../")
+    set(PCAP_INCLUDE_DIR ${libpcap_INCLUDES})
+    set(PCAP_LIBRARY ${libpcap_LIBS})
+    set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)
+
+    # Set ZLib to point at the right variable.
+    find_package(ZLIB)
+    set(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+
+    # Set CAres
+    find_package(c-ares)
+    set(HAVE_CARES true) # Disable FindCAres cmake file
+    include_directories(BEFORE ${c-ares_INCLUDE_DIRS})
+    set(zeekdeps ${zeekdeps} ${c-ares_LIBRARIES})
+    add_definitions(-DCARES_STATICLIB)
+
+    add_subdirectory(auxil/libunistd)
+    set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
+    include_directories(BEFORE ${UNISTD_INCLUDES})
+    # Required for `check_include_files` to operate correctly
+    list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTD_INCLUDES})
+    list(APPEND zeekdeps libunistd libregex)
+
+    # Set CMAKE flags for supported windows build.
+    set(DISABLE_PYTHON_BINDINGS true)
+    set(BROKER_DISABLE_TESTS true)
+    set(BROKER_DISABLE_DOC_EXAMPLES true)
+    add_definitions(-DDOCTEST_CONFIG_NO_MULTITHREADING)
+
+    # Disable Spicy as it is not yet supported in Windows.
+    set(DISABLE_SPICY true)
+else ()
+    include(GNUInstallDirs)
+endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/FindClangTidy.cmake)
@@ -63,6 +164,21 @@ if (ZEEK_PLUGIN_DIR)
 else ()
     set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_LIBDIR_PATH}/plugins
         CACHE STRING "Installation path for plugins" FORCE)
+endif()
+
+set(bro_plugin_install_path "${BRO_PLUGIN_INSTALL_PATH}")
+set(cmake_binary_dir "${CMAKE_BINARY_DIR}")
+set(cmake_current_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
+set(cmake_install_prefix "${CMAKE_INSTALL_PREFIX}")
+set(cmake_source_dir "${CMAKE_SOURCE_DIR}")
+set(zeek_script_install_path "${ZEEK_SCRIPT_INSTALL_PATH}")
+if ( MSVC )
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" bro_plugin_install_path "${bro_plugin_install_path}")
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir "${cmake_current_binary_dir}")
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_install_prefix "${cmake_install_prefix}")
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_source_dir "${cmake_source_dir}")
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" zeek_script_install_path "${zeek_script_install_path}")
 endif ()
 
 if ( NOT ZEEK_ETC_INSTALL_DIR )
@@ -79,6 +195,10 @@ endif ()
 
 if ( NOT ZEEK_LOG_DIR )
     set(ZEEK_LOG_DIR ${ZEEK_ROOT_DIR}/logs)
+endif ()
+
+if ( NOT MSVC )
+    set(HAVE_SUPERVISOR true)
 endif ()
 
 install(DIRECTORY DESTINATION ${ZEEK_ETC_INSTALL_DIR})
@@ -300,7 +420,9 @@ FindRequiredPackage(FLEX)
 FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
-FindRequiredPackage(BIND)
+if ( NOT MSVC )
+    FindRequiredPackage(BIND)
+endif ()
 FindRequiredPackage(ZLIB)
 
 # Installation directory for the distribution's Python modules. An
@@ -325,6 +447,9 @@ set(PY_MOD_INSTALL_DIR ${py_mod_install_dir}
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+    if ( MSVC )
+        set(BUILD_STATIC_BINPAC true)
+    endif()
 
     if ( BUILD_STATIC_BINPAC )
       set(ENABLE_STATIC_ONLY true)
@@ -381,6 +506,11 @@ if ( PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN} )
 endif ()
 
 add_subdirectory(auxil/paraglob)
+if ( MSVC )
+    cmake_policy(SET CMP0079 NEW)
+    target_link_libraries(paraglob shlwapi)
+    set(BROKER_DISABLE_TOOLS true)
+endif ()
 set(zeekdeps ${zeekdeps} paraglob)
 
 if ( Broker_ROOT )
@@ -397,6 +527,9 @@ else ()
   endif ()
 
   set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+  if ( MSVC )
+    set(BUILD_STATIC_BROKER true)
+  endif()
 
   if ( BUILD_STATIC_BROKER )
     set(ENABLE_STATIC_ONLY true)
@@ -599,7 +732,12 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
     endif ()
 endif ()
 
-set(DEFAULT_ZEEKPATH .:${ZEEK_SCRIPT_INSTALL_PATH}:${ZEEK_SCRIPT_INSTALL_PATH}/policy:${ZEEK_SCRIPT_INSTALL_PATH}/site:${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
+set(DEFAULT_ZEEKPATH_PATHS . ${ZEEK_SCRIPT_INSTALL_PATH} ${ZEEK_SCRIPT_INSTALL_PATH}/policy ${ZEEK_SCRIPT_INSTALL_PATH}/site ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
+if ( MSVC )
+    list(JOIN DEFAULT_ZEEKPATH_PATHS ";" DEFAULT_ZEEKPATH)
+else ()
+    list(JOIN DEFAULT_ZEEKPATH_PATHS ":" DEFAULT_ZEEKPATH)
+endif ()
 
 if ( NOT BINARY_PACKAGING_MODE )
     set(ZEEK_DIST ${PROJECT_SOURCE_DIR})
@@ -653,11 +791,13 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/zeek
         USE_SOURCE_PERMISSIONS
         PATTERN ".git" EXCLUDE)
 
-# Install wrapper script for Bro-to-Zeek renaming.
-include(InstallShellScript)
-include(InstallSymlink)
-InstallShellScript("bin" "zeek-wrapper.in" "zeek-wrapper")
-InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro-config")
+if ( NOT MSVC )
+  # Install wrapper script for Bro-to-Zeek renaming.
+  include(InstallShellScript)
+  include(InstallSymlink)
+  InstallShellScript("bin" "zeek-wrapper.in" "zeek-wrapper")
+  InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro-config")
+endif ()
 
 ########################################################################
 ## zkg configuration

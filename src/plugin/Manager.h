@@ -77,7 +77,7 @@ public:
 	 * This must be called only before InitPluginsPreScript().
 	 *
 	 * @param dir The directory to search for plugins. Multiple directories
-	 * can be given by splitting them with ':'.
+	 * can be given by separating them with zeek::util::path_list_separator.
 	 */
 	void SearchDynamicPlugins(const std::string& dir);
 

@@ -3,6 +3,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include <unistd.h>
 #include <atomic>
 #include <cstdint>
 #include <iosfwd>

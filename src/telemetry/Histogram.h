@@ -60,7 +60,7 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same histogram.
 	 */
-	constexpr bool IsSameAs(IntHistogram other) const noexcept { return hdl == other.hdl; }
+	constexpr bool IsSameAs(const IntHistogram& other) const noexcept { return hdl == other.hdl; }
 
 private:
 	using Handle = broker::telemetry::int_histogram_hdl*;
@@ -74,13 +74,13 @@ private:
  * Checks whether two @ref IntHistogram handles are identical.
  * @return Whether @p lhs and @p rhs refer to the same object.
  */
-constexpr bool operator==(IntHistogram lhs, IntHistogram rhs) noexcept
+constexpr bool operator==(const IntHistogram& lhs, const IntHistogram& rhs) noexcept
 	{
 	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates IntHistogram
-constexpr bool operator!=(IntHistogram lhs, IntHistogram rhs) noexcept
+constexpr bool operator!=(const IntHistogram& lhs, const IntHistogram& rhs) noexcept
 	{
 	return ! (lhs == rhs);
 	}
@@ -165,7 +165,7 @@ public:
 	/**
 	 * @return Whether @c this and @p other refer to the same histogram.
 	 */
-	constexpr bool IsSameAs(DblHistogram other) const noexcept { return hdl == other.hdl; }
+	constexpr bool IsSameAs(const DblHistogram& other) const noexcept { return hdl == other.hdl; }
 
 private:
 	using Handle = broker::telemetry::dbl_histogram_hdl*;
@@ -179,13 +179,13 @@ private:
  * Checks whether two @ref DblHistogram handles are identical.
  * @return Whether @p lhs and @p rhs refer to the same object.
  */
-constexpr bool operator==(DblHistogram lhs, DblHistogram rhs) noexcept
+constexpr bool operator==(const DblHistogram& lhs, const DblHistogram& rhs) noexcept
 	{
 	return lhs.IsSameAs(rhs);
 	}
 
 /// @relates DblHistogram
-constexpr bool operator!=(DblHistogram lhs, DblHistogram rhs) noexcept
+constexpr bool operator!=(const DblHistogram& lhs, const DblHistogram& rhs) noexcept
 	{
 	return ! (lhs == rhs);
 	}

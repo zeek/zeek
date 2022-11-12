@@ -1343,20 +1343,7 @@ const char* strpbrk_n(size_t len, const char* s, const char* charset)
 	return nullptr;
 	}
 
-#if ! defined(HAVE_STRCASESTR) && ! defined(_MSC_VER)
-
-TEST_CASE("util strcasestr")
-	{
-	const char* s = "this is a string";
-	const char* out = strcasestr(s, "is");
-	CHECK(strcmp(out, "is a string") == 0);
-
-	const char* out2 = strcasestr(s, "IS");
-	CHECK(strcmp(out2, "is a string") == 0);
-
-	const char* out3 = strcasestr(s, "not there");
-	CHECK(strcmp(out2, s) == 0);
-	}
+#if ! defined(HAVE_STRCASESTR)
 
 // This code is derived from software contributed to BSD by Chris Torek.
 char* strcasestr(const char* s, const char* find)
@@ -1384,6 +1371,20 @@ char* strcasestr(const char* s, const char* find)
 
 	return (char*)s;
 	}
+
+TEST_CASE("util strcasestr")
+	{
+	const char* s = "this is a string";
+	const char* out = strcasestr(s, "is");
+	CHECK(strcmp(out, "is a string") == 0);
+
+	const char* out2 = strcasestr(s, "IS");
+	CHECK(strcmp(out2, "is a string") == 0);
+
+	const char* out3 = strcasestr(s, "not there");
+	CHECK(strcmp(out2, s) == 0);
+	}
+
 #endif
 
 TEST_CASE("util atoi_n")

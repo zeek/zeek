@@ -1,3 +1,7 @@
+5.2.0-dev.315 | 2022-11-14 13:19:33 -0700
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.313 | 2022-11-14 09:41:06 -0700
 
   * Re-enable strcasestr on Windows, fix linking error (Tim Wojtulewicz)

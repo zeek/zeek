@@ -1,3 +1,13 @@
+5.2.0-dev.313 | 2022-11-14 09:41:06 -0700
+
+  * Re-enable strcasestr on Windows, fix linking error (Tim Wojtulewicz)
+
+  * Minor renaming changes to event handler stats bif, plus a test (Tim Wojtulewicz, Corelight)
+
+  * Remove unneeded forward-declaration of select() (Tim Wojtulewicz, Corelight)
+
+  * Rework setting adding ports to map slightly (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.307 | 2022-11-11 15:13:47 -0700
 
   * Merged support for Microsoft Windows (Tomer Lev, Elad Solomon, Microsoft)

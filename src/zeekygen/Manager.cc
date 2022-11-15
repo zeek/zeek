@@ -122,34 +122,37 @@ void Manager::Script(const string& path)
 	if ( disabled )
 		return;
 
+	string normalized_path = util::detail::normalize_path(path);
 	string name = normalize_script_path(path);
 
-	if ( scripts.GetInfo(name) )
+	if ( scripts.GetInfo(normalized_path) )
 		{
-		DbgAndWarn(util::fmt("Duplicate Zeekygen script documentation: %s", name.c_str()));
+		DbgAndWarn(util::fmt("Duplicate Zeekygen script documentation: %s (%s)", name.c_str(),
+		                     normalized_path.c_str()));
 		return;
 		}
 
 	ScriptInfo* info = new ScriptInfo(name, path);
-	scripts.map[name] = info;
+	scripts.map[normalized_path] = info;
 	all_info.push_back(info);
-	DBG_LOG(DBG_ZEEKYGEN, "Made ScriptInfo %s", name.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Made ScriptInfo %s (%s)", name.c_str(), normalized_path.c_str());
 
 	if ( ! info->IsPkgLoader() )
 		return;
 
-	name = util::SafeDirname(name).result;
+	string package_name = util::SafeDirname(name).result;
+	string normalized_package_name = util::SafeDirname(normalized_path.c_str()).result;
 
-	if ( packages.GetInfo(name) )
+	if ( packages.GetInfo(normalized_package_name) )
 		{
 		DbgAndWarn(util::fmt("Duplicate Zeekygen package documentation: %s", name.c_str()));
 		return;
 		}
 
-	PackageInfo* pkginfo = new PackageInfo(name);
-	packages.map[name] = pkginfo;
+	PackageInfo* pkginfo = new PackageInfo(package_name);
+	packages.map[normalized_package_name] = pkginfo;
 	all_info.push_back(pkginfo);
-	DBG_LOG(DBG_ZEEKYGEN, "Made PackageInfo %s", name.c_str());
+	DBG_LOG(DBG_ZEEKYGEN, "Made PackageInfo %s", package_name.c_str());
 	}
 
 void Manager::ScriptDependency(const string& path, const string& dep)
@@ -167,15 +170,16 @@ void Manager::ScriptDependency(const string& path, const string& dep)
 		return;
 		}
 
+	string normalized_path = util::detail::normalize_path(path);
 	string name = normalize_script_path(path);
 	string depname = normalize_script_path(dep);
-	ScriptInfo* script_info = scripts.GetInfo(name);
+	ScriptInfo* script_info = scripts.GetInfo(normalized_path);
 
 	if ( ! script_info )
 		{
 		DbgAndWarn(util::fmt("Failed to add Zeekygen script doc dependency %s "
-		                     "for %s",
-		                     depname.c_str(), name.c_str()));
+		                     "for %s (%s)",
+		                     depname.c_str(), name.c_str(), normalized_path.c_str()));
 		return;
 		}
 
@@ -196,13 +200,14 @@ void Manager::ModuleUsage(const string& path, const string& module)
 		// This is a module defined on the command line.
 		return;
 
+	string normalized_path = util::detail::normalize_path(path);
 	string name = normalize_script_path(path);
-	ScriptInfo* script_info = scripts.GetInfo(name);
+	ScriptInfo* script_info = scripts.GetInfo(normalized_path);
 
 	if ( ! script_info )
 		{
-		DbgAndWarn(util::fmt("Failed to add Zeekygen module usage %s in %s", module.c_str(),
-		                     name.c_str()));
+		DbgAndWarn(util::fmt("Failed to add Zeekygen module usage %s in %s (%s)", module.c_str(),
+		                     name.c_str(), normalized_path.c_str()));
 		return;
 		}
 
@@ -256,7 +261,8 @@ void Manager::StartType(zeek::detail::IDPtr id)
 		}
 
 	string script = normalize_script_path(id->GetLocationInfo()->filename);
-	ScriptInfo* script_info = scripts.GetInfo(script);
+	string script_normalized = util::detail::normalize_path(id->GetLocationInfo()->filename);
+	ScriptInfo* script_info = scripts.GetInfo(script_normalized);
 
 	if ( ! script_info )
 		{
@@ -319,7 +325,8 @@ void Manager::Identifier(zeek::detail::IDPtr id, bool from_redef)
 		}
 
 	string script = normalize_script_path(id->GetLocationInfo()->filename);
-	ScriptInfo* script_info = scripts.GetInfo(script);
+	string script_normalized = util::detail::normalize_path(id->GetLocationInfo()->filename);
+	ScriptInfo* script_info = scripts.GetInfo(script_normalized);
 
 	if ( ! script_info )
 		{
@@ -374,12 +381,13 @@ void Manager::Redef(const zeek::detail::ID* id, const string& path, zeek::detail
 		return;
 		}
 
+	string from_normalized_path = util::detail::normalize_path(path);
 	string from_script = normalize_script_path(path);
-	ScriptInfo* script_info = scripts.GetInfo(from_script);
+	ScriptInfo* script_info = scripts.GetInfo(from_normalized_path);
 
 	if ( ! script_info )
 		{
-		WarnMissingScript("redef", id, from_script);
+		WarnMissingScript("redef", id, from_normalized_path);
 		return;
 		}
 
@@ -400,14 +408,15 @@ void Manager::SummaryComment(const string& script, const string& comment)
 	if ( disabled )
 		return;
 
+	string normalized_path = util::detail::normalize_path(script);
 	string name = normalize_script_path(script);
-	ScriptInfo* info = scripts.GetInfo(name);
+	ScriptInfo* info = scripts.GetInfo(normalized_path);
 
 	if ( info )
 		info->AddComment(RemoveLeadingSpace(comment));
 	else
-		DbgAndWarn(util::fmt("Lookup of script %s failed for summary comment %s", name.c_str(),
-		                     comment.c_str()));
+		DbgAndWarn(util::fmt("Lookup of script %s (%s) failed for summary comment %s", name.c_str(),
+		                     normalized_path.c_str(), comment.c_str()));
 	}
 
 void Manager::PreComment(const string& comment)

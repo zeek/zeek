@@ -337,6 +337,15 @@ type ftp_port: record {
 	valid: bool;	##< True if format was right. Only then are *h* and *p* valid.
 };
 
+
+module FTP;
+
+## Limits the size of commands accepted by the FTP analyzer. Longer commands
+## raise a FTP_max_command_length_exceeded weird and are discarded.
+const max_command_length = 100 &redef;
+
+module GLOBAL;
+
 ## Statistics about what a TCP endpoint sent.
 ##
 ## .. zeek:see:: conn_stats

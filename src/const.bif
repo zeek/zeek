@@ -11,6 +11,8 @@ const exit_only_after_terminate: bool;
 const digest_salt: string;
 const max_analyzer_violations: count;
 
+const FTP::max_command_length: count;
+
 const NFS3::return_data: bool;
 const NFS3::return_data_max: count;
 const NFS3::return_data_first_only: bool;

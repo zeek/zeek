@@ -96,6 +96,17 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			// Weird("FTP command missing", end_of_line - orig_line, orig_line);
 			cmd_str = new StringVal("<missing>");
 			}
+		else if ( BifConst::FTP::max_command_length > 0 &&
+		          static_cast<bro_uint_t>(cmd_len) > BifConst::FTP::max_command_length )
+			{
+			// If the FTP command is unusually long, log a weird if the analyzer
+			// has previously been confirmed, but otherwise just ignore the whole
+			// line and move on to the next.
+			if ( AnalyzerConfirmed() )
+				Weird("FTP_max_command_length_exceeded", util::fmt("%d", cmd_len));
+
+			return;
+			}
 		else
 			cmd_str = (new StringVal(cmd_len, cmd))->ToUpper();
 

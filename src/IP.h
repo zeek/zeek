@@ -149,6 +149,9 @@ public:
 protected:
 	uint8_t type;
 	const u_char* data;
+
+private:
+	bool IsOptionTruncated(uint16_t off) const;
 	};
 
 class IPv6_Hdr_Chain

@@ -16,11 +16,22 @@
 namespace zeek
 	{
 
+bool IPv6_Hdr::IsOptionTruncated(uint16_t off) const
+	{
+	if ( Length() < off )
+		{
+		reporter->Weird("truncated_IPv6_option");
+		return true;
+		}
+
+	return false;
+	}
+
 static VectorValPtr BuildOptionsVal(const u_char* data, int len)
 	{
 	auto vv = make_intrusive<VectorVal>(id::find_type<VectorType>("ip6_options"));
 
-	while ( static_cast<size_t>(len) >= sizeof(struct ip6_opt) )
+	while ( len > 0 && static_cast<size_t>(len) >= sizeof(struct ip6_opt) )
 		{
 		static auto ip6_option_type = id::find_type<RecordType>("ip6_option");
 		const struct ip6_opt* opt = (const struct ip6_opt*)data;
@@ -77,30 +88,40 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 
 		case IPPROTO_HOPOPTS:
 			{
+			uint16_t off = 2 * sizeof(uint8_t);
+			if ( IsOptionTruncated(off) )
+				return nullptr;
+
 			static auto ip6_hopopts_type = id::find_type<RecordType>("ip6_hopopts");
 			rv = make_intrusive<RecordVal>(ip6_hopopts_type);
 			const struct ip6_hbh* hbh = (const struct ip6_hbh*)data;
 			rv->Assign(0, hbh->ip6h_nxt);
 			rv->Assign(1, hbh->ip6h_len);
-			uint16_t off = 2 * sizeof(uint8_t);
 			rv->Assign(2, BuildOptionsVal(data + off, Length() - off));
 			}
 			break;
 
 		case IPPROTO_DSTOPTS:
 			{
+			uint16_t off = 2 * sizeof(uint8_t);
+			if ( IsOptionTruncated(off) )
+				return nullptr;
+
 			static auto ip6_dstopts_type = id::find_type<RecordType>("ip6_dstopts");
 			rv = make_intrusive<RecordVal>(ip6_dstopts_type);
 			const struct ip6_dest* dst = (const struct ip6_dest*)data;
 			rv->Assign(0, dst->ip6d_nxt);
 			rv->Assign(1, dst->ip6d_len);
-			uint16_t off = 2 * sizeof(uint8_t);
 			rv->Assign(2, BuildOptionsVal(data + off, Length() - off));
 			}
 			break;
 
 		case IPPROTO_ROUTING:
 			{
+			uint16_t off = 4 * sizeof(uint8_t);
+			if ( IsOptionTruncated(off) )
+				return nullptr;
+
 			static auto ip6_routing_type = id::find_type<RecordType>("ip6_routing");
 			rv = make_intrusive<RecordVal>(ip6_routing_type);
 			const struct ip6_rthdr* rt = (const struct ip6_rthdr*)data;
@@ -108,7 +129,6 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 			rv->Assign(1, rt->ip6r_len);
 			rv->Assign(2, rt->ip6r_type);
 			rv->Assign(3, rt->ip6r_segleft);
-			uint16_t off = 4 * sizeof(uint8_t);
 			rv->Assign(4, new String(data + off, Length() - off, true));
 			}
 			break;
@@ -188,20 +208,26 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 				{
 				case 0:
 					{
+					off += sizeof(uint16_t);
+					if ( IsOptionTruncated(off) )
+						break;
+
 					auto m = make_intrusive<RecordVal>(ip6_mob_brr_type);
 					m->Assign(0, ntohs(*((uint16_t*)msg_data)));
-					off += sizeof(uint16_t);
 					m->Assign(1, BuildOptionsVal(data + off, Length() - off));
 					msg->Assign(1, std::move(m));
-					}
 					break;
+					}
 
 				case 1:
 					{
+					off += sizeof(uint16_t) + sizeof(uint64_t);
+					if ( IsOptionTruncated(off) )
+						break;
+
 					auto m = make_intrusive<RecordVal>(ip6_mob_hoti_type);
 					m->Assign(0, ntohs(*((uint16_t*)msg_data)));
 					m->Assign(1, ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t)))));
-					off += sizeof(uint16_t) + sizeof(uint64_t);
 					m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 					msg->Assign(2, std::move(m));
 					break;
@@ -209,10 +235,13 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 
 				case 2:
 					{
+					off += sizeof(uint16_t) + sizeof(uint64_t);
+					if ( IsOptionTruncated(off) )
+						break;
+
 					auto m = make_intrusive<RecordVal>(ip6_mob_coti_type);
 					m->Assign(0, ntohs(*((uint16_t*)msg_data)));
 					m->Assign(1, ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t)))));
-					off += sizeof(uint16_t) + sizeof(uint64_t);
 					m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 					msg->Assign(3, std::move(m));
 					break;
@@ -220,12 +249,15 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 
 				case 3:
 					{
+					off += sizeof(uint16_t) + 2 * sizeof(uint64_t);
+					if ( IsOptionTruncated(off) )
+						break;
+
 					auto m = make_intrusive<RecordVal>(ip6_mob_hot_type);
 					m->Assign(0, ntohs(*((uint16_t*)msg_data)));
 					m->Assign(1, ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t)))));
 					m->Assign(
 						2, ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t) + sizeof(uint64_t)))));
-					off += sizeof(uint16_t) + 2 * sizeof(uint64_t);
 					m->Assign(3, BuildOptionsVal(data + off, Length() - off));
 					msg->Assign(4, std::move(m));
 					break;
@@ -233,12 +265,15 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 
 				case 4:
 					{
+					off += sizeof(uint16_t) + 2 * sizeof(uint64_t);
+					if ( IsOptionTruncated(off) )
+						break;
+
 					auto m = make_intrusive<RecordVal>(ip6_mob_cot_type);
 					m->Assign(0, ntohs(*((uint16_t*)msg_data)));
 					m->Assign(1, ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t)))));
 					m->Assign(
 						2, ntohll(*((uint64_t*)(msg_data + sizeof(uint16_t) + sizeof(uint64_t)))));
-					off += sizeof(uint16_t) + 2 * sizeof(uint64_t);
 					m->Assign(3, BuildOptionsVal(data + off, Length() - off));
 					msg->Assign(5, std::move(m));
 					break;
@@ -246,6 +281,10 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 
 				case 5:
 					{
+					off += 3 * sizeof(uint16_t);
+					if ( IsOptionTruncated(off) )
+						break;
+
 					auto m = make_intrusive<RecordVal>(ip6_mob_bu_type);
 					m->Assign(0, ntohs(*((uint16_t*)msg_data)));
 					m->Assign(1, static_cast<bool>(
@@ -257,7 +296,6 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 					m->Assign(4, static_cast<bool>(
 									 ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))) & 0x1000));
 					m->Assign(5, ntohs(*((uint16_t*)(msg_data + 2 * sizeof(uint16_t)))));
-					off += 3 * sizeof(uint16_t);
 					m->Assign(6, BuildOptionsVal(data + off, Length() - off));
 					msg->Assign(6, std::move(m));
 					break;
@@ -265,13 +303,16 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 
 				case 6:
 					{
+					off += 3 * sizeof(uint16_t);
+					if ( IsOptionTruncated(off) )
+						break;
+
 					auto m = make_intrusive<RecordVal>(ip6_mob_back_type);
 					m->Assign(0, *((uint8_t*)msg_data));
 					m->Assign(1,
 					          static_cast<bool>(*((uint8_t*)(msg_data + sizeof(uint8_t))) & 0x80));
 					m->Assign(2, ntohs(*((uint16_t*)(msg_data + sizeof(uint16_t)))));
 					m->Assign(3, ntohs(*((uint16_t*)(msg_data + 2 * sizeof(uint16_t)))));
-					off += 3 * sizeof(uint16_t);
 					m->Assign(4, BuildOptionsVal(data + off, Length() - off));
 					msg->Assign(7, std::move(m));
 					break;
@@ -279,11 +320,14 @@ RecordValPtr IPv6_Hdr::ToVal(VectorValPtr chain) const
 
 				case 7:
 					{
+					off += sizeof(uint16_t) + sizeof(in6_addr);
+					if ( IsOptionTruncated(off) )
+						break;
+
 					auto m = make_intrusive<RecordVal>(ip6_mob_be_type);
 					m->Assign(0, *((uint8_t*)msg_data));
 					const in6_addr* hoa = (const in6_addr*)(msg_data + sizeof(uint16_t));
 					m->Assign(1, make_intrusive<AddrVal>(IPAddr(*hoa)));
-					off += sizeof(uint16_t) + sizeof(in6_addr);
 					m->Assign(2, BuildOptionsVal(data + off, Length() - off));
 					msg->Assign(8, std::move(m));
 					break;

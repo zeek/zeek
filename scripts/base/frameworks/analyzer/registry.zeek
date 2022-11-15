@@ -85,10 +85,50 @@ export {
 	global disable_analyzer_log: function(atype: AllAnalyzers::Tag, id: Log::ID);
 
 	## Disable a log, possibly also disabling involved event handlers
-	## if any were eegistered with the registry.
+	## if any were registered with the registry.
 	global disable_log: function(id: Log::ID);
 
 	const non_analyzer_log_streams: set[Log::ID] = { } &redef;
+
+	## A set of analyzer tags without protocol logs.
+	const protocol_analyzers_without_logs: set[AllAnalyzers::Tag] = { } &redef;
+
+	## A set of analyzer tags without protocol logs.
+	const protocol_support_analyzers: set[AllAnalyzers::Tag] = {
+		Analyzer::ANALYZER_CONNSIZE,
+		Analyzer::ANALYZER_CONTENTLINE,
+		Analyzer::ANALYZER_NETBIOSSSN,
+		Analyzer::ANALYZER_NVT,
+		Analyzer::ANALYZER_TCPSTATS,
+		Analyzer::ANALYZER_ZIP,
+
+		# The content ones
+		Analyzer::ANALYZER_CONTENTS,
+		Analyzer::ANALYZER_CONTENTS_DNS,
+		Analyzer::ANALYZER_CONTENTS_NCP,
+		Analyzer::ANALYZER_CONTENTS_NETBIOSSSN,
+		Analyzer::ANALYZER_CONTENTS_NFS,
+		Analyzer::ANALYZER_CONTENTS_RLOGIN,
+		Analyzer::ANALYZER_CONTENTS_RPC,
+		Analyzer::ANALYZER_CONTENTS_RSH,
+		Analyzer::ANALYZER_CONTENTS_SMB,
+	} &redef;
+
+	const file_support_analyzers: set[AllAnalyzers::Tag] = {
+		Files::ANALYZER_ENTROPY,
+		Files::ANALYZER_DATA_EVENT,
+		Files::ANALYZER_EXTRACT,
+		Files::ANALYZER_MD5,
+		Files::ANALYZER_SHA1,
+		Files::ANALYZER_SHA256,
+	} &redef;
+
+	const misc_analyzers: set[AllAnalyzers::Tag] = {
+		Analyzer::ANALYZER_PIA_TCP,
+		Analyzer::ANALYZER_PIA_UDP,
+		Analyzer::ANALYZER_TCP,
+		Analyzer::ANALYZER_UDP,
+	} &redef;
 }
 
 global analyzer_infos: table[AllAnalyzers::Tag] of AnalyzerInfo;
@@ -192,7 +232,11 @@ event zeek_init() &priority=-1000
 
 		local atype = Analyzer::get_tag(name);
 
-		if ( atype !in analyzer_infos )
+		if ( atype !in analyzer_infos
+		     && atype !in protocol_analyzers_without_logs
+		     && atype !in protocol_support_analyzers
+		     && atype !in file_support_analyzers
+		     && atype !in misc_analyzers )
 			{
 			# Skip the packet ones for now.
 			if ( analyzer_class(atype) != PACKET )
@@ -212,7 +256,7 @@ event zeek_init() &priority=-2000
 	for ( id, __ in Log::active_streams )
 		{
 		if ( id !in log_infos  && id !in non_analyzer_log_streams )
-			print "Untracked stream", id;
+			print "Untracked log stream", id;
 		}
 	}
 
@@ -254,8 +298,8 @@ module Examples;
 # Mostly here to stop logging these, but also provides a summary of log
 # streams that are not directly attached to a specific analyzer.
 redef Analyzer::Registry::non_analyzer_log_streams += { Broker::LOG };
-redef Analyzer::Registry::non_analyzer_log_streams += { Cluster::LOG };
 redef Analyzer::Registry::non_analyzer_log_streams += { CaptureLoss::LOG };
+redef Analyzer::Registry::non_analyzer_log_streams += { Cluster::LOG };
 redef Analyzer::Registry::non_analyzer_log_streams += { Config::LOG };
 redef Analyzer::Registry::non_analyzer_log_streams += { DPD::LOG };
 redef Analyzer::Registry::non_analyzer_log_streams += { NetControl::DROP_LOG};
@@ -281,25 +325,27 @@ redef Analyzer::Registry::non_analyzer_log_streams += { Tunnel::LOG };
 redef Analyzer::Registry::non_analyzer_log_streams += { Conn::LOG };
 
 
+# Wonder how much coverage those analyzers get.
+# BNUTELLA, BITTORRENT, XMPP
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_BITTORRENT };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_BITTORRENTTRACKER };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_FINGER };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_GNUTELLA };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_ICMP };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_IDENT };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_IMAP };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_LOGIN };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_MOUNT };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_NCP};
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_NFS };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_POP3 };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_PORTMAPPER };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_RLOGIN };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_RSH };
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_TELNET };
+# Only for TLS analyzer...
+redef Analyzer::Registry::protocol_analyzers_without_logs += { Analyzer::ANALYZER_XMPP };
 
-# There are also analyzers for which we don't provide logs
-# ANALYZER_POP3
-# ANALYZER_IMAP
-# ANALYZER_FINGER
-# ANALYZER_XMPP
-# ANALYZER_GNUTELLA
-# Files::ANALYZER_RSH
-# ANALYZER_NFS
-
-# Then there are some "support" analyzers
-#
-# Files::ANALYZER_ENTROPY
-# Files::ANALYZER_DATA_EVENT
-# Files::ANALYZER_MD5
-# Files::ANALYZER_SHA1
-# Files::ANALYZER_SHA256
-# Files::ANALYZER_CONNSIZE
-#
 # There's also a number of "CONTENTS_" analyzers (?) that I don't know
 # what they mean yet CONTENTS_NFS, CONTENTS_RLOGIN, CONTENTS_NCP, CONTENTS_RSH.
 
@@ -308,8 +354,6 @@ redef Analyzer::Registry::non_analyzer_log_streams += { Conn::LOG };
 # logs?
 event zeek_init()
 	{
-	# This is showing some ideas. Each analyzer would to it local
-	# to its own scripts.
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_SYSLOG, Syslog::LOG);
 
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_HTTP, HTTP::LOG,
@@ -345,6 +389,8 @@ event zeek_init()
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_MQTT, MQTT::SUBSCRIBE_LOG);
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_MYSQL, mysql::LOG);
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_NTLM, NTLM::LOG);
+	Analyzer::Registry::register_relationship(Analyzer::ANALYZER_NTLM,
+	                                          Analyzer::ANALYZER_GSSAPI);
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_NTP, NTP::LOG);
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_RADIUS, RADIUS::LOG);
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_RDP, RDP::LOG);
@@ -357,7 +403,10 @@ event zeek_init()
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_SNMP, SNMP::LOG);
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_SOCKS, SOCKS::LOG);
 	Analyzer::Registry::register_log(Analyzer::ANALYZER_SSH, SSH::LOG);
+	Analyzer::Registry::register_log(Analyzer::ANALYZER_KRB_TCP, KRB::LOG);
 	Analyzer::Registry::register_log(Files::ANALYZER_OCSP_REPLY, OCSP::LOG);
+	Analyzer::Registry::register_relationship(Files::ANALYZER_OCSP_REQUEST,
+	                                          Files::ANALYZER_OCSP_REPLY);
 	Analyzer::Registry::register_log(Files::ANALYZER_PE, PE::LOG);
 	Analyzer::Registry::register_log(Files::ANALYZER_X509, X509::LOG);
 	}

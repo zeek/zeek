@@ -146,6 +146,16 @@ std::string normalize_script_path(std::string_view path)
 		{
 		auto rval = util::detail::normalize_path(path);
 		auto prefix = util::SafeBasename(p->PluginDirectory()).result;
+
+		// Collision avoidance when there's no _ in the plugin basename such
+		// as when using ./build within a plugin checkout for testing. Include
+		// the parent in the normalized path assuming it's unique.
+		if ( prefix.find('_') == std::string::npos )
+			{
+			auto parent = util::SafeBasename(util::SafeDirname(p->PluginDirectory()).result).result;
+			prefix = parent + "/" + prefix;
+			}
+
 		return prefix + "/" + rval.substr(p->PluginDirectory().size() + 1);
 		}
 

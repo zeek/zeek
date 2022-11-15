@@ -794,7 +794,7 @@ type ReporterStats: record {
 
 ## Statistics about how many times each event name is queued.
 ##
-## .. zeek:see:: get_event_handler_call_counts
+## .. zeek:see:: get_event_handler_stats
 type EventNameCounter: record {
 	## Name of the zeek event.
 	name: string &log;

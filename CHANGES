@@ -1,3 +1,7 @@
+5.2.0-dev.317 | 2022-11-15 11:34:47 -0700
+
+  * init-bare: Fix zeek:see after bif renaming (Arne Welzel, Corelight)
+
 5.2.0-dev.315 | 2022-11-14 13:19:33 -0700
 
   * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)

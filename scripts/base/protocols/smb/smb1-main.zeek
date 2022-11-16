@@ -89,9 +89,10 @@ event smb1_negotiate_response(c: connection, hdr: SMB1::Header, response: SMB1::
 	{
 	if ( c$smb_state$current_cmd?$smb1_offered_dialects )
 		{
-		if ( response?$ntlm )
+		local offered_dialects = c$smb_state$current_cmd$smb1_offered_dialects;
+		if ( response?$ntlm && response$ntlm$dialect_index < |offered_dialects| )
 			{
-			c$smb_state$current_cmd$argument = c$smb_state$current_cmd$smb1_offered_dialects[response$ntlm$dialect_index];
+			c$smb_state$current_cmd$argument = offered_dialects[response$ntlm$dialect_index];
 			}
 
 		delete c$smb_state$current_cmd$smb1_offered_dialects;

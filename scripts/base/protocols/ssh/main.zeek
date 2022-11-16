@@ -249,7 +249,7 @@ event ssh_auth_attempted(c: connection, authenticated: bool) &priority=5
 	c$ssh$auth_success = authenticated;
 	c$ssh$auth_attempts += 1;
 
-	if ( authenticated && disable_analyzer_after_detection )
+	if ( authenticated && disable_analyzer_after_detection && c$ssh?$analyzer_id )
 		disable_analyzer(c$id, c$ssh$analyzer_id);
 	}
 

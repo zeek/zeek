@@ -1,3 +1,9 @@
+5.2.0-dev.324 | 2022-11-16 14:53:35 -0700
+
+  * spelling: github (Josh Soref)
+
+    Signed-off-by: Josh Soref <2119212+jsoref@users.noreply.github.com>
+
 5.2.0-dev.322 | 2022-11-16 14:51:35 -0700
 
   * smb1: Ensure existence of dialect_index in offered dialects (Arne Welzel, Corelight)

@@ -119,7 +119,7 @@ jobs:
 
       - name: Send email
         # Only send notifications for scheduled runs. Runs from pull requests
-        # show failures in the Github UI.
+        # show failures in the GitHub UI.
         if: failure() && github.event_name == 'schedule'
         uses: dawidd6/action-send-mail@v3.7.0
         with:
@@ -127,7 +127,7 @@ jobs:
           server_port: ${{secrets.SMTP_PORT}}
           username: ${{secrets.SMTP_USER}}
           password: ${{secrets.SMTP_PASS}}
-          subject: generate-docs Github Action failed!
+          subject: generate-docs GitHub Action failed!
           body: generate-docs job of ${{github.repository}} Failed! See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.
           to: ${{secrets.MAIL_TO}}
-          from: Github Actions <${{secrets.MAIL_FROM}}>
+          from: GitHub Actions <${{secrets.MAIL_FROM}}>

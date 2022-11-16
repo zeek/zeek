@@ -1,3 +1,7 @@
+5.2.0-dev.320 | 2022-11-16 14:50:58 -0700
+
+  * ssh: Test for c$ssh$analyzer_id existence (Arne Welzel, Corelight)
+
 5.2.0-dev.317 | 2022-11-15 11:34:47 -0700
 
   * init-bare: Fix zeek:see after bif renaming (Arne Welzel, Corelight)

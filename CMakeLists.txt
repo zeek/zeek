@@ -863,6 +863,10 @@ CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER
 CheckOptionalBuildSources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 if ( NOT DISABLE_SPICY )
+    # The `zeek` binary implicitly depends on the driver object file built
+    # as part of `spicy`; make that dependency explicit.
+    add_dependencies(zeek spicyz)
+
     if ( NOT SPICY_ROOT_DIR )
         list(APPEND _spicy_rt_libs spicy-rt hilti-rt)
 

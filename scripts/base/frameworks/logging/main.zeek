@@ -373,6 +373,21 @@ export {
 		## New Filters created for this stream will inherit
 		## this policy hook, unless they provide their own.
 		policy: PolicyHook &optional;
+
+		## Event groups associated with this stream that are disabled
+		## when :zeek:see:`Log::disable_stream` is invoked and
+		## re-enabled during :zeek:see:`Log::enable_stream`.
+		##
+		## This field can be used to short-circuit event handlers that
+		## are solely responsible for logging functionality at runtime
+		## when a log stream is disabled.
+		##
+		## This field allows for both, attribute event groups and module
+		## event groups. If the given group names exists as attribute
+		## or module or either event group, they are disabled when the
+		## log stream is disabled and enabled when the stream is
+		## enabled again.
+		event_groups: set[string] &default=set();
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.
@@ -733,6 +748,19 @@ function remove_stream(id: ID) : bool
 function disable_stream(id: ID) : bool
 	{
 	delete active_streams[id];
+
+	if ( id in all_streams )
+		{
+		for ( group in all_streams[id]$event_groups )
+			{
+			if ( has_module_events(group) )
+				disable_module_events(group);
+
+			if ( has_event_group(group) )
+				disable_event_group(group);
+			}
+		}
+
 	return __disable_stream(id);
 	}
 
@@ -742,7 +770,17 @@ function enable_stream(id: ID) : bool
 		return F;
 
 	if ( id in all_streams )
+		{
 		active_streams[id] = all_streams[id];
+		for ( group in all_streams[id]$event_groups )
+			{
+			if ( has_module_events(group) )
+				enable_module_events(group);
+
+			if ( has_event_group(group) )
+				enable_event_group(group);
+			}
+		}
 
 	return T;
 	}

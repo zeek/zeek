@@ -161,9 +161,12 @@ redef record connection += {
 const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
 redef likely_server_ports += { ports };
 
+global event_group_logging = "DNS::dns-logging";
+
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns, $path="dns", $policy=log_policy]);
+	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns, $path="dns",
+	                              $policy=log_policy, $event_groups=set(event_group_logging)]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, ports);
 	}
 
@@ -344,7 +347,7 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 		}
 	}
 
-event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
+event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5 &group=event_group_logging
 	{
 	if ( msg$opcode != 0 )
 		# Currently only standard queries are tracked.
@@ -353,7 +356,7 @@ event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &prior
 	hook set_session(c, msg, ! msg$QR);
 	}
 
-hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5
+hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) &priority=5 &group=event_group_logging
 	{
 	if ( msg$opcode != 0 )
 		# Currently only standard queries are tracked.
@@ -395,7 +398,7 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 		}
 	}
 
-event dns_end(c: connection, msg: dns_msg) &priority=5
+event dns_end(c: connection, msg: dns_msg) &priority=5 &group=event_group_logging
 	{
 	if ( ! c?$dns )
 		return;
@@ -406,7 +409,7 @@ event dns_end(c: connection, msg: dns_msg) &priority=5
 		c$dns$saw_query = T;
 	}
 
-event dns_end(c: connection, msg: dns_msg) &priority=-5
+event dns_end(c: connection, msg: dns_msg) &priority=-5 &group=event_group_logging
 	{
 	if ( c?$dns && c$dns$saw_reply && c$dns$saw_query )
 		{
@@ -415,7 +418,7 @@ event dns_end(c: connection, msg: dns_msg) &priority=-5
 		}
 	}
 
-event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
+event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5 &group=event_group_logging
 	{
 	if ( msg$opcode != 0 )
 		# Currently only standard queries are tracked.
@@ -450,17 +453,17 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	}
 
 
-event dns_unknown_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
+event dns_unknown_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, fmt("<unknown type=%s>", ans$qtype));
 	}
 
-event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
+event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
-event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec) &priority=5
+event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec) &priority=5 &group=event_group_logging
 	{
 	local txt_strings: string = "";
 
@@ -475,7 +478,7 @@ event dns_TXT_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_v
 	hook DNS::do_reply(c, msg, ans, txt_strings);
 	}
 
-event dns_SPF_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec) &priority=5
+event dns_SPF_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_vec) &priority=5 &group=event_group_logging
 	{
 	local spf_strings: string = "";
 
@@ -490,48 +493,48 @@ event dns_SPF_reply(c: connection, msg: dns_msg, ans: dns_answer, strs: string_v
 	hook DNS::do_reply(c, msg, ans, spf_strings);
 	}
 
-event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
+event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
-event dns_A6_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5
+event dns_A6_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, fmt("%s", a));
 	}
 
-event dns_NS_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
+event dns_NS_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, name);
 	}
 
-event dns_CNAME_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
+event dns_CNAME_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, name);
 	}
 
 event dns_MX_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string,
-                   preference: count) &priority=5
+                   preference: count) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, name);
 	}
 
-event dns_PTR_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5
+event dns_PTR_reply(c: connection, msg: dns_msg, ans: dns_answer, name: string) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, name);
 	}
 
-event dns_SOA_reply(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa) &priority=5
+event dns_SOA_reply(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, soa$mname);
 	}
 
-event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5
+event dns_WKS_reply(c: connection, msg: dns_msg, ans: dns_answer) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, "");
 	}
 
-event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count) &priority=5
+event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, target);
 	}
@@ -556,7 +559,7 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string
 #
 #	}
 
-event dns_RRSIG(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rrsig_rr) &priority=5
+event dns_RRSIG(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rrsig_rr) &priority=5 &group=event_group_logging
 	{
 	local s: string;
 	s = fmt("RRSIG %s %s", rrsig$type_covered,
@@ -564,55 +567,55 @@ event dns_RRSIG(c: connection, msg: dns_msg, ans: dns_answer, rrsig: dns_rrsig_r
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 
-event dns_DNSKEY(c: connection, msg: dns_msg, ans: dns_answer, dnskey: dns_dnskey_rr) &priority=5
+event dns_DNSKEY(c: connection, msg: dns_msg, ans: dns_answer, dnskey: dns_dnskey_rr) &priority=5 &group=event_group_logging
 	{
 	local s: string;
 	s = fmt("DNSKEY %s", dnskey$algorithm);
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 
-event dns_NSEC(c: connection, msg: dns_msg, ans: dns_answer, next_name: string, bitmaps: string_vec) &priority=5
+event dns_NSEC(c: connection, msg: dns_msg, ans: dns_answer, next_name: string, bitmaps: string_vec) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, fmt("NSEC %s %s", ans$query, next_name));
 	}
 
-event dns_NSEC3(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_nsec3_rr) &priority=5
+event dns_NSEC3(c: connection, msg: dns_msg, ans: dns_answer, nsec3: dns_nsec3_rr) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, "NSEC3");
 	}
 
-event dns_NSEC3PARAM(c: connection, msg: dns_msg, ans: dns_answer, nsec3param: dns_nsec3param_rr) &priority=5
+event dns_NSEC3PARAM(c: connection, msg: dns_msg, ans: dns_answer, nsec3param: dns_nsec3param_rr) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, "NSEC3PARAM");
 	}
 
-event dns_DS(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr) &priority=5
+event dns_DS(c: connection, msg: dns_msg, ans: dns_answer, ds: dns_ds_rr) &priority=5 &group=event_group_logging
 	{
 	local s: string;
 	s = fmt("DS %s %s", ds$algorithm, ds$digest_type);
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 
-event dns_BINDS(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_rr) &priority=5
+event dns_BINDS(c: connection, msg: dns_msg, ans: dns_answer, binds: dns_binds_rr) &priority=5 &group=event_group_logging
 	{
 	hook DNS::do_reply(c, msg, ans, "BIND9 signing signal");
 	}
 
-event dns_SSHFP(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fptype: count, fingerprint: string) &priority=5
+event dns_SSHFP(c: connection, msg: dns_msg, ans: dns_answer, algo: count, fptype: count, fingerprint: string) &priority=5 &group=event_group_logging
 	{
 	local s: string;
 	s = fmt("SSHFP: %s", bytestring_to_hexstr(fingerprint));
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 
-event dns_LOC(c: connection, msg: dns_msg, ans: dns_answer, loc: dns_loc_rr) &priority=5
+event dns_LOC(c: connection, msg: dns_msg, ans: dns_answer, loc: dns_loc_rr) &priority=5 &group=event_group_logging
 	{
 	local s: string;
 	s = fmt("LOC:  %d %d %d", loc$size, loc$horiz_pre, loc$vert_pre);
 	hook DNS::do_reply(c, msg, ans, s);
 	}
 
-event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5
+event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qclass: count) &priority=5 &group=event_group_logging
 	{
 	if ( c?$dns )
 		c$dns$rejected = T;

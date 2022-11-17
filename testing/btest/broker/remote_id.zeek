@@ -48,7 +48,7 @@ event check_var()
 
 event zeek_init()
 	{
-	print "intial val", test_var;
+	print "initial val", test_var;
 	Broker::subscribe("zeek/ids");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}

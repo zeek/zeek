@@ -112,7 +112,7 @@ event zeek_init()
 	ip = "2001:db8:0:0:0:FFFF:192.168.0.5";
 	print is_valid_ip(ip);
 
-	# hybrid ipv6-ipv4 address with zero ommission should work
+	# hybrid ipv6-ipv4 address with zero omission should work
 	ip = "2001:db8::FFFF:192.168.0.5";
 	print is_valid_ip(ip);
 

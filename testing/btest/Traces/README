@@ -1,5 +1,5 @@
 These are the trace files that are used by the Zeek test suite.
 
-Note to maintainers: please take care when modyfing/removing files from here.
+Note to maintainers: please take care when modifying/removing files from here.
 We install these traces with the Zeek distribution and external packages might
 depend on them for tests.

@@ -7,10 +7,10 @@ global my_alphabet: string = "!#$%&/(),-.:;<>@[]^ `_{|}~abcdefghijklmnopqrstuvwx
 
 print decode_base64("YnJv");
 print decode_base64("YnJv", default_alphabet);
-print decode_base64("YnJv", ""); # should use default alpabet
+print decode_base64("YnJv", ""); # should use default alphabet
 print decode_base64("}n-v", my_alphabet);
 
 print decode_base64("YnJv");
 print decode_base64("YnJv", default_alphabet);
-print decode_base64("YnJv", ""); # should use default alpabet
+print decode_base64("YnJv", ""); # should use default alphabet
 print decode_base64("}n-v", my_alphabet);

@@ -34,7 +34,7 @@ global n = 0;
 function send_event()
     {
     local event_count = 1;
-    # log fails to be looked up because of a missing print statment
+    # log fails to be looked up because of a missing print statement
     # functions must have the same name on both ends of broker.
     local log : myfunctype = function(c: count) : function(d: count) : count
         {

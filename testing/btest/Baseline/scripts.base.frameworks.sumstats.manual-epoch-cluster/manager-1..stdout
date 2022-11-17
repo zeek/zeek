@@ -5,7 +5,7 @@ Host: 10.10.10.10 - num:1 - sum:5.0 - avg:5.0 - max:5.0 - min:5.0 - var:0.0 - st
 Host: 6.5.4.3 - num:2 - sum:6.0 - avg:3.0 - max:5.0 - min:1.0 - var:8.0 - std_dev:2.8 - unique:2 - hllunique:2
 Host: 7.2.1.5 - num:2 - sum:145.0 - avg:72.5 - max:91.0 - min:54.0 - var:684.5 - std_dev:26.2 - unique:2 - hllunique:2
 Performing first epoch, no observations
-Performing second epoch with overvations
+Performing second epoch with observations
 Sending ready for data
 epoch finished, F
 epoch finished, T

@@ -82,7 +82,7 @@ event ready_for_data()
 
 event second_test()
 	{
-	print "Performing second epoch with overvations";
+	print "Performing second epoch with observations";
 	local ret = SumStats::next_epoch("test");
 	if ( ! ret )
 		print "Return value false";

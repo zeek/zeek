@@ -4,7 +4,7 @@
 
 # The 'when' implementation historically performed an AST-traversal to locate
 # any index-expressions like `x[9]` and evaluated them so that it could
-# register the assocated value as something for which it needs to receive
+# register the associated value as something for which it needs to receive
 # "modification" notifications.
 #
 # Evaluating arbitrary expressions during an AST-traversal like that ignores

@@ -36,7 +36,7 @@ event run_test()
 			}
 
 		# Grumble grumble, ActiveHTTP actually joins away the \n characters
-		# from the the response. Not sure how that's helpful. We simply
+		# from the response. Not sure how that's helpful. We simply
 		# grep out the zeek_version_info{...}  endpoint="..." pieces and
 		# expect one for each node to exist as a smoke test.
 		local version_infos = find_all(response$body, /zeek_version_info\{[^}]+\}/);

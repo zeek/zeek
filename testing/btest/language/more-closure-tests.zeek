@@ -92,7 +92,7 @@ event zeek_init()
     print "expect [8, 16, 24]";
     print map_1(times_eight, test);
 
-    # things like this are only possible becuse we allow functions to
+    # things like this are only possible because we allow functions to
     # mutate their closures.
     local thunder= make_dog("thunder", 10);
     thunder("get name", "");

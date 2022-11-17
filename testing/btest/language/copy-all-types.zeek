@@ -110,7 +110,7 @@ function compare_otr(a: TestRecord, b: TestRecord): bool
 	if ( same_object(a$i2, b$i2) )
 		return F;
 
-	# check that we restroe that i1 & i2 point to same object
+	# check that we restore that i1 & i2 point to same object
 	if ( ! same_object(a$i1, a$i2) )
 		return F;
 	if ( ! same_object(b$i1, b$i2) )
@@ -151,7 +151,7 @@ event zeek_init()
 
 	local pat1 = /.*PATTERN.*/;
 	local pat2 = copy(pat1);
-	# patterns cannot be directoy compared
+	# patterns cannot be directly compared
 	if ( same_object(pat1, pat2) )
 		print "FAIL P1";
 	if ( ! ( pat1 == "PATTERN" ) )

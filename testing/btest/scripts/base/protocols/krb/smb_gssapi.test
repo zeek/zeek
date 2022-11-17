@@ -1,6 +1,6 @@
 # This test verifies that GSSAPI is correctly passing events to
 #   the Kerberos analyzer.  The specific trace example is a
-#   SMB authentication event and therfore relies on the SMB
+#   SMB authentication event and therefore relies on the SMB
 #   analyzer as well.
 
 # @TEST-EXEC: zeek -b -C -r $TRACES/krb/smb_gssapi.trace %INPUT

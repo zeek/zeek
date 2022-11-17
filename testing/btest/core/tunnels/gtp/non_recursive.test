@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff out
 
 # In telecoms there is never a GTP tunnel within another GTP tunnel.
-# So if we find inside a GTP tunnel anohter IP/UDP packet with port 2152,
+# So if we find inside a GTP tunnel another IP/UDP packet with port 2152,
 # it is just a UDP packet, but not another GTP tunnel.
 
 event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string)

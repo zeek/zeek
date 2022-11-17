@@ -21,8 +21,8 @@ event line(description: Input::EventDescription, tpe: Input::Event, s: string, i
 	if ( is_stderr ) 
 		{
 		# work around localized error messages. and if some localization does not include the filename... well... that would be bad :)
-		if ( strstr(s, "nonexistant") > 0 ) 
-			line_output += "<stderr output contained nonexistant>";
+		if ( strstr(s, "nonexistent") > 0 ) 
+			line_output += "<stderr output contained nonexistent>";
 		else
 			line_output += "<unexpected/weird error localization>";
 		}
@@ -61,7 +61,7 @@ event zeek_init()
 	};
 
 	outfile = open("../out");
-	Input::add_event([$source="ls ../mydir ../nonexistant ../nonexistant2 ../nonexistant3 |",
+	Input::add_event([$source="ls ../mydir ../nonexistent ../nonexistent2 ../nonexistent3 |",
 	                 $reader=Input::READER_RAW, $name="input",
 	                 $fields=Val, $ev=line, $want_record=F,
 	                 $config=config_strings, $mode=Input::STREAM]);

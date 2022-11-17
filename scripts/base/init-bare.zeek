@@ -2871,6 +2871,8 @@ export {
 	type NTLM::Challenge: record {
 		## The negotiate flags
 		flags       : NTLM::NegotiateFlags;
+		## A 64-bit value that contains the NTLM challenge.
+		challenge   : count;
 		## The server authentication realm. If the server is
 		## domain-joined, the name of the domain. Otherwise
 		## the server name. See flags.target_type_domain
@@ -2895,6 +2897,8 @@ export {
 		session_key : string &optional;
 		## The Windows version information, if supplied
 		version     : NTLM::Version &optional;
+		## The client's response for the challenge
+		response    : string &optional;
 	};
 }
 

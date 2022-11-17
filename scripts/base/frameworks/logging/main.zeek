@@ -373,6 +373,20 @@ export {
 		## New Filters created for this stream will inherit
 		## this policy hook, unless they provide their own.
 		policy: PolicyHook &optional;
+
+		## Attribute event groups to be disabled when this stream is
+		## disabled and re-enabled when the stream is enabled.
+		event_groups: set[string] &default=set();
+
+		## TBD
+		## Should we maybe have an EventGroup type so that the
+		## above could be of type set[EventGroup] and the groups
+		## instantiated with EventGroup($kind=MODULE, name="DNS") ?
+		##
+		## Module event groups to disable when this stream is
+		## disabled and re-enabled when the stream is enabled.
+		# module_event_groups: set[string] &optional;
+
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.
@@ -733,6 +747,13 @@ function remove_stream(id: ID) : bool
 function disable_stream(id: ID) : bool
 	{
 	delete active_streams[id];
+
+	if ( id in all_streams )
+		{
+		for ( group in all_streams[id]$event_groups )
+			disable_event_group(group);
+		}
+
 	return __disable_stream(id);
 	}
 
@@ -742,7 +763,11 @@ function enable_stream(id: ID) : bool
 		return F;
 
 	if ( id in all_streams )
+		{
 		active_streams[id] = all_streams[id];
+		for ( group in all_streams[id]$event_groups )
+			disable_event_group(group);
+		}
 
 	return T;
 	}

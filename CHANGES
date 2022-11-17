@@ -1,3 +1,7 @@
+5.2.0-dev.334 | 2022-11-17 11:34:41 -0700
+
+  * Make dependency of `zeek` on spicy-plugin's driver object file explicit. (Benjamin Bannier, Corelight)
+
 5.2.0-dev.332 | 2022-11-17 11:31:23 -0700
 
   * Spelling NEWS & CMakeLists.txt (Josh Soref)

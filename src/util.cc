@@ -1630,7 +1630,7 @@ const char* vfmt(const char* format, va_list al)
 	va_copy(alc, al);
 	int n = vsnprintf(buf, buf_len, format, al);
 
-	if ( n > 0 && buf_len < n )
+	if ( n > 0 && buf_len <= n )
 		{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
 		buf = (char*)safe_realloc(buf, buf_len);

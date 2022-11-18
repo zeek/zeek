@@ -1230,6 +1230,18 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 		return -1;
 		}
 
+	// If we determined HTTP/0.9 (no HTTP/ in the request line), assert that
+	// minimally we have an URI and a 3 character method (HTTP 0.9 only
+	// supports GET). If that doesn't hold, probably not HTTP or very stange.
+	if ( request_version.major == 0 && request_version.minor == 9 )
+		{
+		bool maybe_get_method = (end_of_method - line) >= 3;
+		bool has_uri = request_URI && request_URI->Len() > 0;
+
+		if ( ! maybe_get_method || ! has_uri )
+			goto error;
+		}
+
 	request_method = make_intrusive<StringVal>(end_of_method - line, line);
 
 	Conn()->Match(zeek::detail::Rule::HTTP_REQUEST,

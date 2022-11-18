@@ -4661,7 +4661,8 @@ export {
 	type SNMP::BulkPDU: record {
 		request_id:      int;
 		non_repeaters:   count;
-		max_repititions: count;
+		max_repititions: count &deprecated="Remove in v6.1. Use max_repetitions instead";
+		max_repetitions: count;
 		bindings:        SNMP::Bindings;
 	};
 }

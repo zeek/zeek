@@ -45,7 +45,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
     terminate();
     }
 
-event pong(msg: string, n: count)
+event pong(msg: string, n: count) &is_used
     {
     print fmt("sender got pong: %s, %s", msg, n);
     send_event();

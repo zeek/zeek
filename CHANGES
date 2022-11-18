@@ -1,3 +1,7 @@
+5.2.0-dev.345 | 2022-11-18 09:41:08 -0700
+
+  * Fix warning in broker.web-socket-events btest (Dominik Charousset, Corelight)
+
 5.2.0-dev.343 | 2022-11-18 09:40:51 -0700
 
   * Fix the strcasestr unit test (Tim Wojtulewicz)

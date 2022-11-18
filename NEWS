@@ -138,6 +138,10 @@ Changed Functionality
   DPD ``max_violations`` script-level logic has a chance to run and disable
   the problematic analyzer.
 
+- The TCP analyzer now continues processing payload for some
+  connections missing initial packets where it would previously have
+  stopped. This fixes a few cases where we already had the logic to
+  continue in place, but we still ended up considering them partial.
 
 Deprecated Functionality
 ------------------------

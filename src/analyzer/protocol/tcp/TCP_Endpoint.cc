@@ -275,9 +275,11 @@ bool TCP_Endpoint::CheckHistory(uint32_t mask, char code)
 		// since if those elicit anything, it should be a RST.
 		//
 		// Thus, at this stage we go ahead and flip the connection.
-		// We then fix up the history (which will initially be "H^").
+		// We then fix up the history (which will initially be "H^") and
+		// pretend we have actually seen that missing first packet.
 		conn->FlipRoles();
 		conn->ReplaceHistory("^h");
+		tcp_analyzer->SetFirstPacketSeen(true);
 		}
 
 	if ( ! IsOrig() )

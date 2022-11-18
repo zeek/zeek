@@ -1,3 +1,24 @@
+5.2.0-dev.339 | 2022-11-18 11:49:47 +0100
+
+  * GH-2426: Fixing productive connections with missing SYN still considered partial after flipping direction. (Robin Sommer, Corelight)
+
+    In https://github.com/zeek/zeek/pull/2191, we added endpoint flipping
+    for cases where a connection starts with a SYN/ACK followed by ACK or
+    data. The goal was to treat the connection as productive and go ahead
+    and parse it. But the TCP analyzer could continue to consider it
+    partial after flipping, meaning that app layers would bail out. #2426
+    shows such a case: HTTP gets correctly activated after flipping
+    through content inspection, but it won't process anything because
+    `IsPartial()` returns true. As the is-partial state reflects
+    whether we saw the first packets each in direction, this patch now
+    overrides that state for the originally missing SYN after flipping.
+
+    We actually had the same problem at a couple of other locations already
+    as well. One of that only happened to work because of the originally
+    inconsistent state flipping that was fixed in the previous commit. The
+    corresponding unit test now broke after that change. This commit
+    updates that logic as well to override the state.
+
 5.2.0-dev.336 | 2022-11-17 16:28:40 -0800
 
   * Publish container images to ECR in addition to docker.io. (Benjamin Bannier, Corelight)

@@ -1,3 +1,7 @@
+5.2.0-dev.336 | 2022-11-17 16:28:40 -0800
+
+  * Publish container images to ECR in addition to docker.io. (Benjamin Bannier, Corelight)
+
 5.2.0-dev.334 | 2022-11-17 11:34:41 -0700
 
   * Make dependency of `zeek` on spicy-plugin's driver object file explicit. (Benjamin Bannier, Corelight)

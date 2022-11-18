@@ -1,3 +1,7 @@
+5.2.0-dev.343 | 2022-11-18 09:40:51 -0700
+
+  * Fix the strcasestr unit test (Tim Wojtulewicz)
+
 5.2.0-dev.341 | 2022-11-18 09:40:30 -0700
 
   * spelling: repetitions (Josh Soref)

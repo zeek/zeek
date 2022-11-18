@@ -1375,14 +1375,14 @@ char* strcasestr(const char* s, const char* find)
 TEST_CASE("util strcasestr")
 	{
 	const char* s = "this is a string";
-	const char* out = strcasestr(s, "is");
+	const char* out = strcasestr(s, "is a");
 	CHECK(strcmp(out, "is a string") == 0);
 
-	const char* out2 = strcasestr(s, "IS");
+	const char* out2 = strcasestr(s, "Is A");
 	CHECK(strcmp(out2, "is a string") == 0);
 
 	const char* out3 = strcasestr(s, "not there");
-	CHECK(strcmp(out2, s) == 0);
+	CHECK(out3 == nullptr);
 	}
 
 #endif

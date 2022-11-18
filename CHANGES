@@ -1,3 +1,7 @@
+5.2.0-dev.347 | 2022-11-18 09:41:44 -0700
+
+  * docker/ecr: Push into zeek/zeek, not zeekurity/zeek (Arne Welzel, Corelight)
+
 5.2.0-dev.345 | 2022-11-18 09:41:08 -0700
 
   * Fix warning in broker.web-socket-events btest (Dominik Charousset, Corelight)

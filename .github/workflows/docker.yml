@@ -106,7 +106,7 @@ jobs:
             CONFFLAGS=${{ env.CONFFLAGS }}
           push: true
           tags: |
-            public.ecr.aws/zeekurity/${{ steps.target.outputs.tag }}
+            public.ecr.aws/zeek/${{ steps.target.outputs.tag }}
             docker.io/zeekurity/${{ steps.target.outputs.tag }}
 
       - name: Preserve image artifact

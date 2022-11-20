@@ -49,7 +49,15 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr)
 
 	const auto& e = a->GetExpr();
 	if ( e && ! IsSimpleInitExpr(e) )
-		init_exprs.AddKey(e, p_hash(e));
+		{
+		auto h = p_hash(e);
+
+		// Include the type in the hash, otherwise expressions
+		// like "vector()" are ambiguous.
+		h = merge_p_hashes(h, p_hash(e->GetType()));
+
+		init_exprs.AddKey(e, h);
+		}
 
 	auto gi = make_shared<AttrInfo>(this, attr);
 	attr_info->AddInstance(gi);

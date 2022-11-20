@@ -35,9 +35,8 @@ public:
 	bool HasKey(const T* key) const { return map.count(key) > 0; }
 	bool HasKey(IntrusivePtr<T> key) const { return HasKey(key.get()); }
 
-	// Only adds the key if it's not already present.  If a hash
-	// is provided, then refrains from computing it.
-	void AddKey(IntrusivePtr<T> key, p_hash_type h = 0);
+	// Only adds the key if it's not already present.
+	void AddKey(IntrusivePtr<T> key, p_hash_type h);
 
 	void AddInitInfo(const T* rep, std::shared_ptr<CPP_InitInfo> gi) { gi_s[rep] = std::move(gi); }
 
@@ -58,9 +57,6 @@ public:
 	const T* GetRep(IntrusivePtr<T> key) { return GetRep(key.get()); }
 
 private:
-	// Compute a hash for the given key.
-	p_hash_type Hash(IntrusivePtr<T> key) const;
-
 	// Maps keys to internal representations (i.e., hashes).
 	std::unordered_map<const T*, p_hash_type> map;
 

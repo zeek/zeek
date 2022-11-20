@@ -29,15 +29,7 @@ function load_CPP%(h: count%): bool
 		return zeek::val_mgr->False();
 		}
 
-	// Ensure that any compiled scripts are used.  If instead
-	// the AST is used, then when we activate the standalone
-	// scripts, they won't be able to avoid installing redundant
-	// event handlers.
-	detail::analysis_options.use_CPP = true;
-
-	// Mark this script as one we should activate after loading
-	// compiled scripts.
-	detail::standalone_activations.push_back(cb->second);
+	(*cb->second)();
 
 	return zeek::val_mgr->True();
 	%}

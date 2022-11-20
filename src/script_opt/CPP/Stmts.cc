@@ -11,6 +11,10 @@ using namespace std;
 
 void CPPCompile::GenStmt(const Stmt* s)
 	{
+	auto loc = s->GetLocationInfo();
+	if ( loc != &detail::no_location && s->Tag() != STMT_LIST )
+		Emit("// %s:%s", loc->filename, to_string(loc->first_line));
+
 	switch ( s->Tag() )
 		{
 		case STMT_INIT:

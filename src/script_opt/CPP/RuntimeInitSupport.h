@@ -23,12 +23,6 @@ using CPP_init_func = void (*)();
 // Tracks the initialization hooks for different compilation runs.
 extern std::vector<CPP_init_func> CPP_init_funcs;
 
-// Tracks the activation hooks for different "standalone" compilations.
-extern std::vector<CPP_init_func> CPP_activation_funcs;
-
-// Activates all previously registered standalone code.
-extern void activate__CPPs();
-
 // Registers the given global type, if not already present.
 extern void register_type__CPP(TypePtr t, const std::string& name);
 
@@ -38,6 +32,10 @@ extern void register_type__CPP(TypePtr t, const std::string& name);
 // function body is going to be used.
 extern void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
                                std::vector<std::string> events, void (*finish_init)());
+
+// Same but for standalone function bodies.
+extern void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
+                                          std::vector<std::string> events, void (*finish_init)());
 
 // Registers a lambda body as associated with the given hash.  Includes
 // the name of the lambda (so it can be made available as a quasi-global

@@ -869,7 +869,13 @@ string CPPCompile::GenUnary(const Expr* e, GenType gt, const char* op, const cha
 	if ( e->GetType()->Tag() == TYPE_VECTOR )
 		return GenVectorOp(e, GenExpr(e->GetOp1(), GEN_NATIVE), vec_op);
 
-	return NativeToGT(string(op) + "(" + GenExpr(e->GetOp1(), GEN_NATIVE) + ")", e->GetType(), gt);
+	// Look for coercions that the interpreter does implicitly.
+	auto op1 = e->GetOp1();
+	if ( op1->GetType()->Tag() == TYPE_COUNT &&
+	     (e->Tag() == EXPR_POSITIVE || e->Tag() == EXPR_NEGATE) )
+		op1 = make_intrusive<ArithCoerceExpr>(op1, TYPE_INT);
+
+	return NativeToGT(string(op) + "(" + GenExpr(op1, GEN_NATIVE) + ")", e->GetType(), gt);
 	}
 
 string CPPCompile::GenBinary(const Expr* e, GenType gt, const char* op, const char* vec_op)

@@ -147,6 +147,9 @@ const ports = {
 };
 redef likely_server_ports += { ports };
 
+global event_group_logging = "HTTP::http-logging";
+global event_group_logging_instance = EventGroup($kind=EVENT_GROUP_ATTRIBUTE, $name=event_group_logging);
+
 # Initialize the HTTP logging stream and ports.
 event zeek_init() &priority=5
 	{
@@ -196,7 +199,7 @@ function set_state(c: connection, is_orig: bool)
 	}
 
 event http_request(c: connection, method: string, original_URI: string,
-                   unescaped_URI: string, version: string) &priority=5
+                   unescaped_URI: string, version: string) &priority=5 &group=event_group_logging
 	{
 	if ( ! c?$http_state )
 		{
@@ -215,7 +218,7 @@ event http_request(c: connection, method: string, original_URI: string,
 		Reporter::conn_weird("unknown_HTTP_method", c, method);
 	}
 
-event http_reply(c: connection, version: string, code: count, reason: string) &priority=5
+event http_reply(c: connection, version: string, code: count, reason: string) &priority=5 &group=event_group_logging
 	{
 	if ( ! c?$http_state )
 		{
@@ -244,6 +247,11 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		c$http$info_msg = reason;
 		}
 
+	# XXX: This is disabled with event_group_logging.
+	#
+	# Outside of tracking this completely separately from logging not
+	# sure what to do here. This might also be something that could be
+	# done further down in the core?
 	if ( c$http?$method && c$http$method == "CONNECT" && code == 200 )
 		{
 		# Copy this conn_id and set the orig_p to zero because in the case of CONNECT
@@ -256,7 +264,7 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		}
 	}
 
-event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5
+event http_header(c: connection, is_orig: bool, name: string, value: string) &priority=5 &group=event_group_logging
 	{
 	set_state(c, is_orig);
 
@@ -309,7 +317,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 		}
 	}
 
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = 5 &group=event_group_logging
 	{
 	set_state(c, is_orig);
 
@@ -319,7 +327,7 @@ event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &
 		c$http$response_body_len = stat$body_length;
 	}
 
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = -5
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &priority = -5 &group=event_group_logging
 	{
 	# The reply body is done so we're ready to log.
 	if ( ! is_orig )
@@ -347,4 +355,3 @@ hook finalize_http(c: connection)
 			}
 		}
 	}
-

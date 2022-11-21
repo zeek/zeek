@@ -192,12 +192,13 @@ const dtls_ports = { 443/udp };
 redef likely_server_ports += { ssl_ports, dtls_ports };
 
 global event_group_logging = "SSL::ssl-logging";
+global event_group_logging_instance = EventGroup($kind=EVENT_GROUP_ATTRIBUTE, $name=event_group_logging);
 
 # Priority needs to be higher than priority of zeek_init in ssl/files.zeek
 event zeek_init() &priority=6
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl",
-	                              $policy=log_policy, $event_groups=set(event_group_logging)]);
+	                              $policy=log_policy, $event_groups=set(event_group_logging_instance)]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
 	}

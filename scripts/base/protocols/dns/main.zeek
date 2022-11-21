@@ -162,11 +162,12 @@ const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
 redef likely_server_ports += { ports };
 
 global event_group_logging = "DNS::dns-logging";
+global event_group_logging_instance = EventGroup($kind=EVENT_GROUP_ATTRIBUTE, $name=event_group_logging);
 
 event zeek_init() &priority=5
 	{
 	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns, $path="dns",
-	                              $policy=log_policy, $event_groups=set(event_group_logging)]);
+	                              $policy=log_policy, $event_groups=set(event_group_logging_instance)]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, ports);
 	}
 

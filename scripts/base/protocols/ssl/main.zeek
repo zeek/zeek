@@ -507,8 +507,8 @@ hook finalize_ssl(c: connection)
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5
 	{
 	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
-		local c = info$c;
 		{
+		local c = info$c;
 		if ( ! c?$ssl_state )
 			c$ssl_state = State();
 

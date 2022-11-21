@@ -143,15 +143,16 @@ refine connection NTLM_Conn += {
 
 		auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTLM::Challenge);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
+		result->Assign(1, ${val.challenge});
 
 		if ( ${val}->has_target_name() )
-			result->Assign(1, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.target_name.string.data}));
+			result->Assign(2, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.target_name.string.data}));
 
 		if ( ${val}->has_version() )
-			result->Assign(2, build_version_record(${val.version}));
+			result->Assign(3, build_version_record(${val.version}));
 
 		if ( ${val}->has_target_info() )
-			result->Assign(3, {zeek::AdoptRef{}, build_av_record(${val.target_info},  ${val.target_info_fields.length})});
+			result->Assign(4, {zeek::AdoptRef{}, build_av_record(${val.target_info},  ${val.target_info_fields.length})});
 
 		zeek::BifEvent::enqueue_ntlm_challenge(zeek_analyzer(),
 		                                 zeek_analyzer()->Conn(),
@@ -182,6 +183,9 @@ refine connection NTLM_Conn += {
 
 		if ( ${val}->has_version() )
 			result->Assign(5, build_version_record(${val.version}));
+
+		if ( ${val}->has_response() )
+			result->Assign(6, to_stringval(${val.response.string.data}));
 
 		zeek::BifEvent::enqueue_ntlm_authenticate(zeek_analyzer(),
 		                                    zeek_analyzer()->Conn(),

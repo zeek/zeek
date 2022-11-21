@@ -58,6 +58,7 @@ type NTLM_Authenticate(offset: uint16) = record {
 } &let {
 	absolute_offset       : uint16 = offsetof(payload) + offset;
 	version               : NTLM_Version withinput payload &if(flags.negotiate_version && (absolute_offset < min(min(min(domain_name_fields.offset, user_name_fields.offset), workstation_fields.offset), encrypted_session_key_fields.offset)));
+	response              : NTLM_String(nt_challenge_response_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(nt_challenge_response_fields.length > 0);
 	domain_name           : NTLM_String(domain_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(domain_name_fields.length > 0);
 	user_name             : NTLM_String(user_name_fields, absolute_offset, flags.negotiate_unicode) withinput payload &if(user_name_fields.length > 0);
 	workstation           : NTLM_String(workstation_fields, absolute_offset , flags.negotiate_unicode) withinput payload &if(workstation_fields.length > 0);

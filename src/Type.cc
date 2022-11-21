@@ -63,6 +63,11 @@ const char* type_name(TypeTag t)
 	return type_names[int(t)];
 	}
 
+// Given two types, returns the "merge", in which promotable types
+// are promoted to the maximum of the two.  Returns nil (and generates
+// an error message) if the types are incompatible.
+static TypePtr merge_types(const TypePtr& t1, const TypePtr& t2);
+
 Type::Type(TypeTag t, bool arg_base_type)
 	: tag(t), internal_tag(to_internal_type_tag(tag)), is_network_order(zeek::is_network_order(t)),
 	  base_type(arg_base_type)
@@ -2673,7 +2678,7 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 		}
 	}
 
-TypePtr merge_type_list(detail::ListExpr* elements)
+TypePtr maximal_type(detail::ListExpr* elements)
 	{
 	TypeList* tl_type = elements->GetType()->AsTypeList();
 	const auto& tl = tl_type->GetTypes();
@@ -2690,7 +2695,21 @@ TypePtr merge_type_list(detail::ListExpr* elements)
 		return t;
 
 	for ( size_t i = 1; t && i < tl.size(); ++i )
-		t = merge_types(t, tl[i]);
+		{
+		auto& tl_i = tl[i];
+
+		if ( t == tl_i )
+			continue;
+
+		if ( BothArithmetic(t->Tag(), tl_i->Tag()) )
+			t = merge_types(t, tl_i);
+
+		else if ( t->Tag() == TYPE_ENUM && tl_i->Tag() == TYPE_ENUM )
+			t = merge_enum_types(t.get(), tl_i.get());
+
+		else if ( ! same_type(t, tl_i) )
+			t = nullptr;
+		}
 
 	if ( ! t )
 		reporter->Error("inconsistent types in list");

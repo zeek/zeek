@@ -923,15 +923,10 @@ extern Type* flatten_type(Type* t);
 // Returns the "maximum" of two type tags, in a type-promotion sense.
 extern TypeTag max_type(TypeTag t1, TypeTag t2);
 
-// Given two types, returns the "merge", in which promotable types
-// are promoted to the maximum of the two.  Returns nil (and generates
-// an error message) if the types are incompatible.
-TypePtr merge_types(const TypePtr& t1, const TypePtr& t2);
-
-// Given a list of expressions, returns a (ref'd) type reflecting
-// a merged type consistent across all of them, or nil if this
-// cannot be done.
-TypePtr merge_type_list(detail::ListExpr* elements);
+// Given a list of expressions, returns the maximal type consistent across
+// all of them, or nil if this cannot be done.  "Maximal" incorporates
+// notions of arithmetic coercion, but otherwise requires type-equivalence.
+TypePtr maximal_type(detail::ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
 TypePtr init_type(const detail::ExprPtr& init);

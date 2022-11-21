@@ -186,6 +186,8 @@ const dtls_ports = { 443/udp };
 
 redef likely_server_ports += { ssl_ports, dtls_ports };
 
+global event_group_logging = "SSL::ssl-logging";
+
 # Priority needs to be higher than priority of zeek_init in ssl/files.zeek
 event zeek_init() &priority=6
 	{
@@ -259,7 +261,7 @@ function finish(c: connection, remove_analyzer: bool)
 			delete c$ssl$analyzer_id;
 	}
 
-event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec) &priority=5
+event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 
@@ -271,7 +273,7 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 		}
 	}
 
-event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
+event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 
@@ -287,7 +289,7 @@ event ssl_server_hello(c: connection, version: count, record_version: count, pos
 		c$ssl$resumed = T;
 	}
 
-event ssl_extension_supported_versions(c: connection, is_client: bool, versions: index_vec)
+event ssl_extension_supported_versions(c: connection, is_client: bool, versions: index_vec) &group=event_group_logging
 	{
 	if ( is_client || |versions| != 1 )
 		return;
@@ -298,14 +300,14 @@ event ssl_extension_supported_versions(c: connection, is_client: bool, versions:
 	c$ssl$version = version_strings[versions[0]];
 	}
 
-event ssl_ecdh_server_params(c: connection, curve: count, point: string) &priority=5
+event ssl_ecdh_server_params(c: connection, curve: count, point: string) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 
 	c$ssl$curve = ec_curves[curve];
 	}
 
-event ssl_extension_key_share(c: connection, is_client: bool, curves: index_vec)
+event ssl_extension_key_share(c: connection, is_client: bool, curves: index_vec) &group=event_group_logging
 	{
 	if ( is_client || |curves| != 1 )
 		return;
@@ -314,7 +316,7 @@ event ssl_extension_key_share(c: connection, is_client: bool, curves: index_vec)
 	c$ssl$curve = ec_curves[curves[0]];
 	}
 
-event ssl_extension_server_name(c: connection, is_client: bool, names: string_vec) &priority=5
+event ssl_extension_server_name(c: connection, is_client: bool, names: string_vec) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 
@@ -326,7 +328,7 @@ event ssl_extension_server_name(c: connection, is_client: bool, names: string_ve
 		}
 	}
 
-event ssl_extension_application_layer_protocol_negotiation(c: connection, is_client: bool, protocols: string_vec)
+event ssl_extension_application_layer_protocol_negotiation(c: connection, is_client: bool, protocols: string_vec) &group=event_group_logging
 	{
 	set_session(c);
 
@@ -337,14 +339,14 @@ event ssl_extension_application_layer_protocol_negotiation(c: connection, is_cli
 		c$ssl$next_protocol = protocols[0];
 	}
 
-event ssl_connection_flipped(c: connection)
+event ssl_connection_flipped(c: connection) &group=event_group_logging
 	{
 	set_session(c);
 
 	c$ssl$ssl_history += "^";
 	}
 
-event ssl_handshake_message(c: connection, is_client: bool, msg_type: count, length: count) &priority=5
+event ssl_handshake_message(c: connection, is_client: bool, msg_type: count, length: count) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 
@@ -423,7 +425,7 @@ event ssl_handshake_message(c: connection, is_client: bool, msg_type: count, len
 
 # Extension event is fired _before_ the respective client or server hello.
 # Important for client_ticket_empty_session_seen.
-event ssl_extension(c: connection, is_client: bool, code: count, val: string) &priority=5
+event ssl_extension(c: connection, is_client: bool, code: count, val: string) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 
@@ -439,7 +441,7 @@ event ssl_extension(c: connection, is_client: bool, code: count, val: string) &p
 		c$ssl$resumed = T;
 	}
 
-event ssl_change_cipher_spec(c: connection, is_client: bool) &priority=5
+event ssl_change_cipher_spec(c: connection, is_client: bool) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 	add_to_history(c, is_client, "i");
@@ -448,7 +450,7 @@ event ssl_change_cipher_spec(c: connection, is_client: bool) &priority=5
 		c$ssl$resumed = T;
 	}
 
-event ssl_alert(c: connection, is_client: bool, level: count, desc: count) &priority=5
+event ssl_alert(c: connection, is_client: bool, level: count, desc: count) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 	add_to_history(c, is_client, "l");
@@ -456,29 +458,29 @@ event ssl_alert(c: connection, is_client: bool, level: count, desc: count) &prio
 	c$ssl$last_alert = alert_descriptions[desc];
 	}
 
-event ssl_heartbeat(c: connection, is_client: bool, length: count, heartbeat_type: count, payload_length: count, payload: string)
+event ssl_heartbeat(c: connection, is_client: bool, length: count, heartbeat_type: count, payload_length: count, payload: string) &group=event_group_logging
 	{
 	set_session(c);
 	add_to_history(c, is_client, "b");
 	}
 
-event ssl_established(c: connection) &priority=7
+event ssl_established(c: connection) &priority=7 &group=event_group_logging
 	{
 	c$ssl$established = T;
 	}
 
-event ssl_established(c: connection) &priority=20
+event ssl_established(c: connection) &priority=20 &group=event_group_logging
 	{
 	set_session(c);
 	hook ssl_finishing(c);
 	}
 
-event ssl_established(c: connection) &priority=-5
+event ssl_established(c: connection) &priority=-5 &group=event_group_logging
 	{
 	finish(c, T);
 	}
 
-hook finalize_ssl(c: connection)
+hook finalize_ssl(c: connection) &group=event_group_logging
 	{
 	if ( ! c?$ssl )
 		return;
@@ -490,7 +492,7 @@ hook finalize_ssl(c: connection)
 	finish(c, F);
 	}
 
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5 &group=event_group_logging
 	{
 	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
 		{
@@ -499,7 +501,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 		}
 	}
 
-event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count) &priority=5
+event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count) &priority=5 &group=event_group_logging
 	{
 	set_session(c);
 
@@ -510,7 +512,7 @@ event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, 
 	Weird::weird(wi);
 	}
 
-event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5 &group=event_group_logging
 	{
 	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
 		if ( info$c?$ssl )

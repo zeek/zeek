@@ -124,7 +124,7 @@ event zeek_init() &priority=5
 		}
 	}
 
-event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5 &group=event_group_logging
 	{
 	if ( ! f?$conns || |f$conns| != 1 )
 		return;
@@ -159,7 +159,7 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
 		c$ssl$cert_chain += f$info;
 	}
 
-hook ssl_finishing(c: connection) &priority=20
+hook ssl_finishing(c: connection) &priority=20 &group=event_group_logging
 	{
 	if ( c$ssl?$cert_chain)
 		for ( i in c$ssl$cert_chain )

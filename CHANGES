@@ -1,3 +1,7 @@
+5.2.0-dev.352 | 2022-11-21 09:10:28 -0700
+
+  * Fix logic error in vfmt() when growing the buffer (Michael Dopheide)
+
 5.2.0-dev.350 | 2022-11-21 09:09:09 -0700
 
   * Added NTLM challenge and response (nadavkluger)

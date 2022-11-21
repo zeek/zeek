@@ -47,6 +47,6 @@ event ssl_encrypted_data(c: connection, is_client: bool, record_version: count, 
 	++c$ssl$encrypted_data;
 	print "encrypted_data", c$id, is_client, content_type, length, c$ssl$encrypted_data;
 
-	if ( c$ssl?$analyzer_id && c$ssl$encrypted_data >= encrypted_data_wanted )
-		disable_analyzer(c$id, c$ssl$analyzer_id);
+	if ( c?$ssl_state && c$ssl_state?$analyzer_id && c$ssl$encrypted_data >= encrypted_data_wanted )
+		disable_analyzer(c$id, c$ssl_state$analyzer_id);
 	}

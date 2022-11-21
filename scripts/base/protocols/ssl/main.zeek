@@ -57,11 +57,6 @@ export {
 		## next protocol extension, if present.
 		next_protocol:    string           &log &optional;
 
-		## The analyzer ID used for the analyzer instance attached
-		## to each connection.  It is not used for logging since it's a
-		## meaningless arbitrary number.
-		analyzer_id:      count            &optional;
-
 		## Flag to indicate if this ssl session has been established
 		## successfully, or if it was aborted during the handshake.
 		established:      bool             &log &default=F;
@@ -109,6 +104,15 @@ export {
 		## ======  ====================================================
 		##
 		ssl_history:          string &log &default="";
+	};
+
+	## Structure to maintain SSL specific state. Currently only the
+	## analyzer_id as it's used for functionality other than logging.
+	type State: record {
+		## The analyzer ID used for the SSL analyzer instance attached
+		## to the connection.  Used for disabling the analyzer after
+		## the handshake completed.
+		analyzer_id: count &optional;
 	};
 
 	## The default root CA bundle.  By default, the mozilla-ca-list.zeek
@@ -166,6 +170,7 @@ export {
 
 redef record connection += {
 	ssl: Info &optional;
+	ssl_state: State &optional;
 };
 
 redef record Info += {
@@ -191,7 +196,8 @@ global event_group_logging = "SSL::ssl-logging";
 # Priority needs to be higher than priority of zeek_init in ssl/files.zeek
 event zeek_init() &priority=6
 	{
-	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl", $policy=log_policy]);
+	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl",
+	                              $policy=log_policy, $event_groups=set(event_group_logging)]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
 	}
@@ -255,10 +261,12 @@ function log_record(info: Info)
 # connections.
 function finish(c: connection, remove_analyzer: bool)
 	{
-	log_record(c$ssl);
-	if ( remove_analyzer && disable_analyzer_after_detection && c?$ssl && c$ssl?$analyzer_id )
-		if ( disable_analyzer(c$id, c$ssl$analyzer_id) )
-			delete c$ssl$analyzer_id;
+	if ( c?$ssl )
+		log_record(c$ssl);
+
+	if ( remove_analyzer && disable_analyzer_after_detection && c?$ssl_state && c$ssl_state?$analyzer_id )
+		if ( disable_analyzer(c$id, c$ssl_state$analyzer_id ) )
+			delete c$ssl_state$analyzer_id;
 	}
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec) &priority=5 &group=event_group_logging
@@ -475,12 +483,13 @@ event ssl_established(c: connection) &priority=20 &group=event_group_logging
 	hook ssl_finishing(c);
 	}
 
-event ssl_established(c: connection) &priority=-5 &group=event_group_logging
+# Handler for actually logging and disabling the analyzer if disable_analyzer_after_detection is T.
+event ssl_established(c: connection) &priority=-5
 	{
 	finish(c, T);
 	}
 
-hook finalize_ssl(c: connection) &group=event_group_logging
+hook finalize_ssl(c: connection)
 	{
 	if ( ! c?$ssl )
 		return;
@@ -492,12 +501,17 @@ hook finalize_ssl(c: connection) &group=event_group_logging
 	finish(c, F);
 	}
 
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5 &group=event_group_logging
+# Remember the analyzer_id for disabling the analyzer once the connection
+# is established.
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5
 	{
 	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
+		local c = info$c;
 		{
-		set_session(info$c);
-		info$c$ssl$analyzer_id = info$aid;
+		if ( ! c?$ssl_state )
+			c$ssl_state = State();
+
+		c$ssl_state$analyzer_id = info$aid;
 		}
 	}
 
@@ -512,9 +526,8 @@ event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, 
 	Weird::weird(wi);
 	}
 
-event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5 &group=event_group_logging
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5
 	{
 	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
-		if ( info$c?$ssl )
-			finish(info$c, T);
+		finish(info$c, T);
 	}

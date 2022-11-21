@@ -2346,6 +2346,24 @@ type AnalyzerViolationInfo: record {
 const max_analyzer_violations = 1000 &redef;
 
 
+## The different kinds of available event groups.
+type EventGroupKind: enum {
+	EVENT_GROUP_ATTRIBUTE,
+	EVENT_GROUP_MODULE,
+};
+
+## An EventGroup.
+##
+## This is mostly for internal structuring of scripts. The BIFs to
+## disable and enable event groups imply their type.
+##
+## .. zeek:see enable_event_group, disable_event_group, enable_module_events, disable_module_event
+type EventGroup: record {
+	kind: EventGroupKind;
+	name: string;
+};
+
+
 module NFS3;
 
 export {

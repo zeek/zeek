@@ -374,19 +374,9 @@ export {
 		## this policy hook, unless they provide their own.
 		policy: PolicyHook &optional;
 
-		## Attribute event groups to be disabled when this stream is
-		## disabled and re-enabled when the stream is enabled.
-		event_groups: set[string] &default=set();
-
-		## TBD
-		## Should we maybe have an EventGroup type so that the
-		## above could be of type set[EventGroup] and the groups
-		## instantiated with EventGroup($kind=MODULE, name="DNS") ?
-		##
-		## Module event groups to disable when this stream is
-		## disabled and re-enabled when the stream is enabled.
-		# module_event_groups: set[string] &optional;
-
+		## Event groups to be disabled when this stream is disabled
+		## and re-enabled when the stream is enabled.
+		event_groups: set[EventGroup] &default=set();
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.
@@ -751,7 +741,16 @@ function disable_stream(id: ID) : bool
 	if ( id in all_streams )
 		{
 		for ( group in all_streams[id]$event_groups )
-			disable_event_group(group);
+			{
+			switch ( group$kind ) {
+			case EVENT_GROUP_ATTRIBUTE:
+				disable_event_group(group$name);
+				break;
+			case EVENT_GROUP_MODULE:
+				disable_module_events(group$name);
+				break;
+			}
+			}
 		}
 
 	return __disable_stream(id);
@@ -766,7 +765,16 @@ function enable_stream(id: ID) : bool
 		{
 		active_streams[id] = all_streams[id];
 		for ( group in all_streams[id]$event_groups )
-			disable_event_group(group);
+			{
+			switch ( group$kind ) {
+			case EVENT_GROUP_ATTRIBUTE:
+				enable_event_group(group$name);
+				break;
+			case EVENT_GROUP_MODULE:
+				enable_module_events(group$name);
+				break;
+			}
+			}
 		}
 
 	return T;

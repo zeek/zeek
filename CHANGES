@@ -1,3 +1,11 @@
+5.2.0-dev.363 | 2022-11-22 15:49:10 -0800
+
+  * zeekygen.bif: Drop using namespace zeekygen (Arne Welzel, Corelight)
+
+  * zeekygen: Add BIFs to access declaring scripts (Arne Welzel, Corelight)
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.359 | 2022-11-22 12:27:54 -0700
 
   * Add additional length checking to IPv6::ToVal (Tim Wojtulewicz, Corelight)

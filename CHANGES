@@ -1,3 +1,7 @@
+5.2.0-dev.359 | 2022-11-22 12:27:54 -0700
+
+  * Add additional length checking to IPv6::ToVal (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.357 | 2022-11-22 12:27:26 -0700
 
   * ftp: Introduce FTP::max_command_length (Arne Welzel, Corelight)

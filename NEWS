@@ -3,6 +3,34 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.4
+==========
+
+This release fixes the following security issues:
+
+- A specially-crafted series of HTTP 0.9 packets can cause Zeek to spend large
+  amounts of time processing the packets. Due to the possibility of receiving
+  these packets from remote hosts, this is a DoS risk. The fix included is to
+  report a weird and an analyzer violation for streams that include such
+  malformed packets.
+
+- A specially-crafted FTP packet can cause Zeek to spend large amounts of time
+  processing the command. Due to the possibility of receiving these packets from
+  remote hosts, this is a DoS risk. The fix included is to cap FTP commands at
+  100 bytes and report a weird for violations.
+
+- A specially-crafted IPv6 packet can cause Zeek to overflow memory and
+  potentially crash. Due to the possibility of receiving these packets from
+  remote hosts, this is a DoS risk. The fix included is better length checking
+  and reporting a weird for violations.
+
+This release fixes the following bugs:
+
+- Fix a potential stall in Broker’s internal data pipeline. This bug was
+  manifesting itself as logging completely stopping on certain combinations of
+  system configuration (number of workers) and the amount of data being received
+  from the network.
+
 Zeek 5.0.3
 ==========
 

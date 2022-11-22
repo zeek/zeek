@@ -7,7 +7,7 @@ error in <...>/init-mismatch.zeek, line 14: table constructor element lacks '=' 
 error in <...>/init-mismatch.zeek, line 17: empty list in untyped initialization ()
 error in <...>/init-mismatch.zeek, line 23: cannot expand constructor elements using a value that depends on local variables (subnets)
 error in <...>/init-mismatch.zeek, line 23: type clash in assignment (my_subnets = set(foo, subnets))
-error in <...>/init-mismatch.zeek, line 26: invalid constructor list on RHS of assignment (c += 2, 4)
+error in <...>/init-mismatch.zeek, line 26: requires arithmetic operands (c + 2, 4)
 error in <...>/init-mismatch.zeek, line 27: constructor list not allowed for -= operations on vectors (v -= 3, 5)
 error in <...>/init-mismatch.zeek, line 29: RHS type mismatch for table/set += (s1 += s2)
 error in <...>/init-mismatch.zeek, line 30: RHS type mismatch for table/set -= (s1 -= s2)

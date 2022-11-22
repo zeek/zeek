@@ -572,7 +572,22 @@ expr:
 	|	expr TOK_ADD_TO rhs
 			{
 			set_location(@1, @3);
-			$$ = new AddToExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+
+			ExprPtr lhs = {AdoptRef{}, $1};
+			ExprPtr rhs = {AdoptRef{}, $3};
+			auto tag1 = $1->GetType()->Tag();
+
+			if ( IsArithmetic($1->GetType()->Tag()) )
+				{
+				ExprPtr sum = make_intrusive<AddExpr>(lhs, rhs);
+
+				if ( sum->GetType()->Tag() != tag1 )
+					sum = make_intrusive<ArithCoerceExpr>(sum, tag1);
+
+				$$ = new AssignExpr(lhs, sum, false);
+				}
+			else
+				$$ = new AddToExpr(lhs, rhs);
 			}
 
 	|	expr '-' expr
@@ -584,7 +599,22 @@ expr:
 	|	expr TOK_REMOVE_FROM rhs
 			{
 			set_location(@1, @3);
-			$$ = new RemoveFromExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+
+			ExprPtr lhs = {AdoptRef{}, $1};
+			ExprPtr rhs = {AdoptRef{}, $3};
+			auto tag1 = $1->GetType()->Tag();
+
+			if ( IsArithmetic(tag1) )
+				{
+				ExprPtr sum = make_intrusive<SubExpr>(lhs, rhs);
+
+				if ( sum->GetType()->Tag() != tag1 )
+					sum = make_intrusive<ArithCoerceExpr>(sum, tag1);
+
+				$$ = new AssignExpr(lhs, sum, false);
+				}
+			else
+				$$ = new RemoveFromExpr(lhs, rhs);
 			}
 
 	|	expr '*' expr

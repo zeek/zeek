@@ -1,3 +1,15 @@
+5.2.0-dev.357 | 2022-11-22 12:27:26 -0700
+
+  * ftp: Introduce FTP::max_command_length (Arne Welzel, Corelight)
+
+    oss-fuzz produced FTP traffic with a ~550KB long FTP command. Cap FTP command
+    length at 100 bytes, log a weird if a command is larger than that and move
+    on to the next. Likely it's not actual FTP traffic, but raising an
+    analyzer violation would allow clients an easy way to disable the analyzer
+    by sending an overly long command.
+
+    The added test PCAP was generated using a fake Python socket server/client.
+
 5.2.0-dev.355 | 2022-11-22 12:26:50 -0700
 
   * http: Heuristic around rejecting malformed HTTP/0.9 traffic (Arne Welzel, Corelight)

@@ -1,3 +1,11 @@
+5.2.0-dev.355 | 2022-11-22 12:26:50 -0700
+
+  * http: Heuristic around rejecting malformed HTTP/0.9 traffic (Arne Welzel, Corelight)
+
+    oss-fuzz generated "HTTP traffic" containing 250k+ sequences of "T<space>\r\r"
+    which Zeek then logged as individual HTTP requests. Add a heuristic to bail
+    on such request lines. It's a bit specific to the test case, but should work.
+
 5.2.0-dev.352 | 2022-11-21 09:10:28 -0700
 
   * Fix logic error in vfmt() when growing the buffer (Michael Dopheide)

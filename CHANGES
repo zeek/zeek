@@ -1,3 +1,29 @@
+5.1.1 | 2022-11-22 09:17:43 -0700
+
+  * Release 5.1.1.
+
+  * Update CHANGES, VERSION, and NEWS for 5.1.1 release (Tim Wojtulewicz, Corelight)
+
+  * http: Heuristic around rejecting malformed HTTP/0.9 traffic (Arne Welzel, Corelight)
+
+    oss-fuzz generated "HTTP traffic" containing 250k+ sequences of "T<space>\r\r"
+    which Zeek then logged as individual HTTP requests. Add a heuristic to bail
+    on such request lines. It's a bit specific to the test case, but should work.
+
+  * ftp: Introduce FTP::max_command_length (Arne Welzel, Corelight)
+
+    oss-fuzz produced FTP traffic with a ~550KB long FTP command. Cap FTP command
+    length at 100 bytes, log a weird if a command is larger than that and move
+    on to the next. Likely it's not actual FTP traffic, but raising an
+    analyzer violation would allow clients an easy way to disable the analyzer
+    by sending an overly long command.
+
+    The added test PCAP was generated using a fake Python socket server/client.
+
+  * Add additional length checking to IPv6::ToVal (Tim Wojtulewicz, Corelight)
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 5.1.0 | 2022-11-08 11:41:12 -0700
 
   * {http,smtp}/entities: Align header regexes with extract_filename_from_content_disposition() (Arne Welzel, Corelight)

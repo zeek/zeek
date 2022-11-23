@@ -355,6 +355,8 @@ event file_transferred(c: connection, prefix: string, descr: string,
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
 		{
+		# XXX: Does this work or is sensible in a cluster environment?
+		#      ftp_data_expected may just be a copy and never logged?
 		local s = ftp_data_expected[id$resp_h, id$resp_p];
 		s$mime_type = split_string1(mime_type, /;/)[0];
 		}

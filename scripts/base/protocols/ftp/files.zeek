@@ -58,6 +58,12 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		return;
 
 	local ftp = ftp_data_expected[c$id$resp_h, c$id$resp_p];
+
+	# XXX: Does that even work in a cluster environment? And if yes,
+	#      where is it logged? The ftp object we pulled out of
+	#      ftp_data_expected is just a copy we may have received
+	#      from the worker with the control connection (which is also
+	#      the worker that will log it).
 	ftp$fuid = f$id;
 
 	f$ftp = ftp;

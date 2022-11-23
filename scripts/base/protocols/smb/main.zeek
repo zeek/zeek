@@ -6,7 +6,6 @@ module SMB;
 
 export {
 	redef enum Log::ID += {
-		AUTH_LOG,
 		MAPPING_LOG,
 		FILES_LOG
 	};

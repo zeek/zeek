@@ -68,9 +68,13 @@ redef record connection += {
 const ports = { 21/tcp, 2811/tcp };
 redef likely_server_ports += { ports };
 
+global event_group_logging = "FTP::ftp-logging";
+global event_group_logging_instance = EventGroup($kind=EVENT_GROUP_ATTRIBUTE, $name=event_group_logging);
+
 event zeek_init() &priority=5
 	{
-	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp, $path="ftp", $policy=log_policy]);
+	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp, $path="ftp",
+	                              $policy=log_policy, $event_groups=set(event_group_logging_instance)]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, ports);
 	}
 
@@ -218,7 +222,7 @@ function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 @endif
 	}
 
-event ftp_request(c: connection, command: string, arg: string) &priority=5
+event ftp_request(c: connection, command: string, arg: string) &priority=5 &group=event_group_logging
 	{
 	# Write out the previous command when a new command is seen.
 	# The downside here is that commands definitely aren't logged until the
@@ -265,7 +269,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 	}
 
 
-event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=5
+event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=5 &group=event_group_logging
 	{
 	set_ftp_session(c);
 	c$ftp$cmdarg = get_pending_cmd(c$ftp$pending_commands, code, msg);
@@ -346,7 +350,7 @@ event scheduled_analyzer_applied(c: connection, a: Analyzer::Tag) &priority=10
 	}
 
 event file_transferred(c: connection, prefix: string, descr: string,
-			mime_type: string) &priority=5
+			mime_type: string) &priority=5 &group=event_group_logging
 	{
 	local id = c$id;
 	if ( [id$resp_h, id$resp_p] in ftp_data_expected )
@@ -356,7 +360,7 @@ event file_transferred(c: connection, prefix: string, descr: string,
 		}
 	}
 
-event connection_reused(c: connection) &priority=5
+event connection_reused(c: connection) &priority=5 &group=event_group_logging
 	{
 	if ( "ftp-data" in c$service )
 		c$ftp_data_reuse = T;

@@ -52,7 +52,7 @@ event zeek_init() &priority=5
 	                          $describe        = FTP::describe_file]);
 	}
 
-event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5 &group=event_group_logging
 	{
 	if ( [c$id$resp_h, c$id$resp_p] !in ftp_data_expected )
 		return;
@@ -63,7 +63,7 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	f$ftp = ftp;
 	}
 
-event file_sniff(f: fa_file, meta: fa_metadata) &priority=5
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=5 &group=event_group_logging
 	{
 	if ( ! f?$ftp )
 		return;

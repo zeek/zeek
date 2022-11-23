@@ -63,6 +63,14 @@ event zeek_init()
 	local doubleconvert2 = myrecord($dd = -5);
 	print(doubleconvert2$dd);
 	print(type_name(doubleconvert2$dd));
+
+	local cnt = 5;
+	cnt += +2;
+	print cnt;
+	print type_name(cnt);
+	cnt -= -3;
+	print cnt;
+	print type_name(cnt);
 	}
 
 event zeek_init()

@@ -18,7 +18,6 @@ event smb2_message(c: connection, hdr: SMB2::Header, is_orig: bool) &priority=5
 		local state: SMB::State;
 		state$fid_map = table();
 		state$tid_map = table();
-		state$uid_map = table();
 		state$pending_cmds = table();
 		state$pipe_map = table();
 		c$smb_state = state;

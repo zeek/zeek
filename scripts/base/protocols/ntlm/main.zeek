@@ -36,9 +36,6 @@ export {
 		## has already been logged.
 		done: bool  &default=F;
 	};
-
-	## NTLM finalization hook.  Remaining NTLM info may get logged when it's called.
-	global finalize_ntlm: Conn::RemovalHook;
 }
 
 redef DPD::ignore_violations += { Analyzer::ANALYZER_NTLM };
@@ -47,10 +44,25 @@ redef record connection += {
 	ntlm: Info &optional;
 };
 
+# This disables all events and hook handlers within the NTLM::Logging
+# module when the log stream is disabled.
+#
+# TBD: Is this the better pattern?
+global event_group_logging = "NTLM::Logging";
+global event_group_logging_instance = EventGroup($kind=EVENT_GROUP_MODULE , $name=event_group_logging);
+
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NTLM::LOG, [$columns=Info, $path="ntlm", $policy=log_policy]);
+	Log::create_stream(NTLM::LOG, [$columns=Info, $path="ntlm",
+	                              $policy=log_policy, $event_groups=set(event_group_logging_instance)]);
 	}
+
+module NTLM::Logging;
+
+export {
+	## NTLM finalization hook.  Remaining NTLM info may get logged when it's called.
+	global finalize_ntlm: Conn::RemovalHook;
+}
 
 function set_session(c: connection)
 	{

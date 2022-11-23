@@ -63,11 +63,6 @@ const char* type_name(TypeTag t)
 	return type_names[int(t)];
 	}
 
-// Given two types, returns the "merge", in which promotable types
-// are promoted to the maximum of the two.  Returns nil (and generates
-// an error message) if the types are incompatible.
-static TypePtr merge_types(const TypePtr& t1, const TypePtr& t2);
-
 Type::Type(TypeTag t, bool arg_base_type)
 	: tag(t), internal_tag(to_internal_type_tag(tag)), is_network_order(zeek::is_network_order(t)),
 	  base_type(arg_base_type)
@@ -2696,7 +2691,7 @@ TypePtr maximal_type(detail::ListExpr* elements)
 
 	for ( size_t i = 1; t && i < tl.size(); ++i )
 		{
-		auto& tl_i = tl[i];
+		const auto& tl_i = tl[i];
 
 		if ( t == tl_i )
 			continue;

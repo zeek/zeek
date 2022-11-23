@@ -180,10 +180,30 @@ redef record FileInfo += {
 const ports = { 139/tcp, 445/tcp };
 redef likely_server_ports += { ports };
 
+# Disable module SMB1 and SMB2 when either of the logging streams is
+# disabled.
+
+# XXX: The assumption being smb_files and smb_mapping are disabled
+#      at the same time.
+#
+# XXX: Anyone re-opening these modules and implementing more handlers
+#      in them will also get disabled. That would be better with
+#      SMB1::Logging and SMB2::Logging.
+global event_group_logging_instances = set(
+	EventGroup($kind=EVENT_GROUP_ATTRIBUTE, $name="SMB::smb-files-logging"),
+	EventGroup($kind=EVENT_GROUP_MODULE, $name="SMB1"),
+	EventGroup($kind=EVENT_GROUP_MODULE, $name="SMB2")
+);
+
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo, $path="smb_files", $policy=log_policy_files]);
-	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo, $path="smb_mapping", $policy=log_policy_mapping]);
+	Log::create_stream(SMB::FILES_LOG, [$columns=SMB::FileInfo, $path="smb_files",
+	                                    $policy=log_policy_files,
+	                                    $event_groups=event_group_logging_instances]);
+
+	Log::create_stream(SMB::MAPPING_LOG, [$columns=SMB::TreeInfo, $path="smb_mapping",
+	                                      $policy=log_policy_mapping,
+	                                      $event_groups=event_group_logging_instances]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, ports);
 	}
@@ -230,13 +250,13 @@ function write_file_log(state: State)
 		}
 	}
 
-event smb_pipe_connect_heuristic(c: connection) &priority=5
+event smb_pipe_connect_heuristic(c: connection) &priority=5 &group="SMB::smb-files-logging"
 	{
 	c$smb_state$current_tree$path = "<unknown>";
 	c$smb_state$current_tree$share_type = "PIPE";
 	}
 
-event file_state_remove(f: fa_file) &priority=-5
+event file_state_remove(f: fa_file) &priority=-5 &group="SMB::smb-files-logging"
 	{
 	if ( f$source != "SMB" )
 		return;

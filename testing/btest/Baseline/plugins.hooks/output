@@ -268,8 +268,8 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb, policy=RFB::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip, policy=SIP::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp, policy=SMTP::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp, policy=SNMP::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks, policy=SOCKS::log_policy, event_groups={}])) -> <no result>
@@ -454,8 +454,8 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb, policy=RFB::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip, policy=SIP::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp, policy=SMTP::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp, policy=SNMP::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks, policy=SOCKS::log_policy, event_groups={}])) -> <no result>
@@ -1784,8 +1784,8 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb, policy=RFB::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip, policy=SIP::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={}]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp, policy=SMTP::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp, policy=SNMP::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks, policy=SOCKS::log_policy, event_groups={}]))
@@ -1970,8 +1970,8 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb, policy=RFB::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip, policy=SIP::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={}]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp, policy=SMTP::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp, policy=SNMP::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks, policy=SOCKS::log_policy, event_groups={}]))
@@ -3299,8 +3299,8 @@
 0.000000 | HookCallFunction Log::__create_stream(RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb, policy=RFB::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip, policy=SIP::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={}])
+0.000000 | HookCallFunction Log::__create_stream(SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}])
+0.000000 | HookCallFunction Log::__create_stream(SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}])
 0.000000 | HookCallFunction Log::__create_stream(SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp, policy=SMTP::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp, policy=SNMP::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks, policy=SOCKS::log_policy, event_groups={}])
@@ -3485,8 +3485,8 @@
 0.000000 | HookCallFunction Log::create_stream(RFB::LOG, [columns=RFB::Info, ev=RFB::log_rfb, path=rfb, policy=RFB::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(SIP::LOG, [columns=SIP::Info, ev=SIP::log_sip, path=sip, policy=SIP::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={}])
+0.000000 | HookCallFunction Log::create_stream(SMB::FILES_LOG, [columns=SMB::FileInfo, ev=<uninitialized>, path=smb_files, policy=SMB::log_policy_files, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}])
+0.000000 | HookCallFunction Log::create_stream(SMB::MAPPING_LOG, [columns=SMB::TreeInfo, ev=<uninitialized>, path=smb_mapping, policy=SMB::log_policy_mapping, event_groups={[kind=EVENT_GROUP_MODULE, name=SMB1],[kind=EVENT_GROUP_MODULE, name=SMB2],[kind=EVENT_GROUP_ATTRIBUTE, name=SMB::smb-files-logging]}])
 0.000000 | HookCallFunction Log::create_stream(SMTP::LOG, [columns=SMTP::Info, ev=SMTP::log_smtp, path=smtp, policy=SMTP::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(SNMP::LOG, [columns=SNMP::Info, ev=SNMP::log_snmp, path=snmp, policy=SNMP::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(SOCKS::LOG, [columns=SOCKS::Info, ev=SOCKS::log_socks, path=socks, policy=SOCKS::log_policy, event_groups={}])

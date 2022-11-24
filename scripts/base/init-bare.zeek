@@ -2116,8 +2116,8 @@ global discarder_check_icmp: function(p: pkt_hdr): bool;
 ## Zeek's watchdog interval.
 const watchdog_interval = 10 sec &redef;
 
-## The maximum number of timers to expire after processing each new
-## packet.  The value trades off spreading out the timer expiration load
+## The maximum number of expired timers to process after processing each new
+## packet. The value trades off spreading out the timer expiration load
 ## with possibly having to hold state longer.  A value of 0 means
 ## "process all expired timers with each new packet".
 const max_timer_expires = 300 &redef;

@@ -146,6 +146,7 @@ static int in_enum_redef = 0;
 bool resolving_global_ID = false;
 bool defining_global_ID = false;
 std::vector<int> saved_in_init;
+static int expr_list_has_opt_comma = 0;
 
 std::vector<std::set<const ID*>> locals_at_this_scope;
 static std::unordered_set<const ID*> out_of_scope_locals;
@@ -719,7 +720,16 @@ expr:
 			$$ = new CondExpr({AdoptRef{}, $1}, {AdoptRef{}, $3}, {AdoptRef{}, $5});
 			}
 
-	|	expr '=' rhs
+	|	expr '='
+			{
+			// Prevent usage of trailing commas on the left-hand
+			// side of list expressions (e.g. in table inits).
+			if ( $1->Tag() == EXPR_LIST && expr_list_has_opt_comma )
+				$1->Error("incorrect syntax for list expression "
+				          "on left-hand side of assignment: "
+				          "trailing comma not allowed");
+			}
+		rhs
 			{
 			set_location(@1, @3);
 
@@ -728,7 +738,7 @@ expr:
 				                      " in arbitrary expression contexts, only"
 				                      " as a statement");
 
-			$$ = get_assign_expr({AdoptRef{}, $1}, {AdoptRef{}, $3}, in_init).release();
+			$$ = get_assign_expr({AdoptRef{}, $1}, {AdoptRef{}, $4}, in_init).release();
 			}
 
 	|	TOK_WHEN_LOCAL local_id '=' rhs
@@ -787,7 +797,7 @@ expr:
 			        ExprPtr{AdoptRef{}, $3}));
 			}
 
-	|	'[' expr_list ']'
+	|	'[' opt_expr_list ']'
 			{
 			set_location(@1, @3);
 
@@ -795,7 +805,8 @@ expr:
 
 			// If every expression in the list is a field assignment,
 			// then treat it as a record constructor, else as a list
-			// used for an initializer.
+			// used for an initializer. Interpret no expressions
+			// as an empty record constructor.
 
 			for ( int i = 0; i < $2->Exprs().length(); ++i )
 				{
@@ -811,13 +822,6 @@ expr:
 			else
 				$$ = $2;
 			}
-
-	|	'[' ']'
-			{
-			// We interpret this as an empty record constructor.
-			$$ = new RecordConstructorExpr(make_intrusive<ListExpr>());
-			}
-
 
 	|	TOK_RECORD '(' expr_list ')'
 			{
@@ -1044,7 +1048,7 @@ rhs:		'{' { ++in_init; } rhs_expr_list '}'
 	|	expr
 	;
 
-rhs_expr_list: expr_list opt_comma
+rhs_expr_list: expr_list expr_list_opt_comma
 	|
 		{ $$ = new ListExpr(); }
 	;
@@ -1059,12 +1063,13 @@ expr_list:
 	|	expr
 			{
 			set_location(@1);
+			expr_list_has_opt_comma = 0;
 			$$ = new ListExpr({AdoptRef{}, $1});
 			}
 	;
 
 opt_expr_list:
-		expr_list
+		expr_list expr_list_opt_comma
 	|
 		{ $$ = new ListExpr(); }
 	;
@@ -2259,7 +2264,7 @@ opt_deprecated:
 			{ $$ = nullptr; }
 	;
 
-opt_comma: ','
+expr_list_opt_comma: ',' { expr_list_has_opt_comma = 1; }
 	|
 	;
 

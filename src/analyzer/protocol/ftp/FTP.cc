@@ -63,6 +63,20 @@ static uint32_t get_reply_code(int len, const char* line)
 		return 0;
 	}
 
+// The minimal length of an FTP command is 3 characters (PWD, MKD,
+// RMD, ...) and should only contain printable ascii.
+static bool is_ftp_cmd(int len, const char* s)
+	{
+	if ( len < 3 )
+		return false;
+
+	for ( int i = 0; i < len; i++ )
+		if ( ! isprint(s[i]) || isspace(s[i]) )
+			return false;
+
+	return true;
+	}
+
 void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
@@ -91,10 +105,13 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 		util::get_word(end_of_line - line, line, cmd_len, cmd);
 		line = util::skip_whitespace(line + cmd_len, end_of_line);
 
-		if ( cmd_len == 0 )
+		if ( ! is_ftp_cmd(cmd_len, cmd) )
 			{
-			// Weird("FTP command missing", end_of_line - orig_line, orig_line);
-			cmd_str = new StringVal("<missing>");
+			if ( AnalyzerConfirmed() )
+				Weird("FTP_invalid_command");
+
+			// Ignore the whole line.
+			return;
 			}
 		else if ( BifConst::FTP::max_command_length > 0 &&
 		          static_cast<zeek_uint_t>(cmd_len) > BifConst::FTP::max_command_length )

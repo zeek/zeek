@@ -34,6 +34,14 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 	if ( [c$id$resp_h, c$id$resp_p] !in dcc_expected_transfers )
 		return;
 
+	# XXX: Does this have the same issue as FTP in a cluster? Where is
+	#      that IRC::Info object that is being modified here logged if
+	#      it's on a different worker then the one where the IRC connection
+	#      was.
+	#
+	# This should happen via file_new -> log_dcc over in dcc-send, but
+	# that's too late I think.
+	#
 	local irc = dcc_expected_transfers[c$id$resp_h, c$id$resp_p];
 	irc$fuid = f$id;
 	if ( irc?$dcc_file_name )

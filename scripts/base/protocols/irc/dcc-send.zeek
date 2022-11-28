@@ -31,7 +31,7 @@ export {
 	global finalize_irc_data: Conn::RemovalHook;
 }
 
-global dcc_expected_transfers: table[addr, port] of Info &read_expire=5mins;
+global dcc_expected_transfers: table[addr, port] of IRC::Info &read_expire=5mins;
 
 function dcc_relay_topic(): string &is_used
 	{
@@ -44,7 +44,7 @@ function dcc_relay_topic(): string &is_used
 	return rval;
 	}
 
-event dcc_transfer_add(host: addr, p: port, info: Info) &is_used
+event dcc_transfer_add(host: addr, p: port, info: IRC::Info) &is_used
 	{
 @if ( Cluster::local_node_type() == Cluster::PROXY ||
       Cluster::local_node_type() == Cluster::MANAGER )
@@ -103,10 +103,11 @@ event file_new(f: fa_file) &priority=-5
 		log_dcc(f);
 	}
 
+# XXX: Putting IRC::irc-files-logging on this also disables file extraction.
 event irc_dcc_message(c: connection, is_orig: bool,
 			prefix: string, target: string,
 			dcc_type: string, argument: string,
-			address: addr, dest_port: count, size: count) &priority=5
+			address: addr, dest_port: count, size: count) &priority=5 &group="IRC::irc-files-logging"
 	{
 	set_session(c);
 	if ( dcc_type != "SEND" )

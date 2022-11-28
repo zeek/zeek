@@ -33,6 +33,8 @@ export {
 	## Event that can be handled to access the IRC record as it is sent on
 	## to the logging framework.
 	global irc_log: event(rec: Info);
+
+	global set_session: function(c: connection);
 }
 
 redef record connection += {
@@ -43,15 +45,21 @@ redef record connection += {
 const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
 redef likely_server_ports += { ports };
 
+global event_group_logging_instances = set(
+	EventGroup($kind=EVENT_GROUP_MODULE , $name="IRC::Logging"),
+	EventGroup($kind=EVENT_GROUP_ATTRIBUTE, $name="IRC::irc-files-logging")
+);
+
 event zeek_init() &priority=5
 	{
-	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log, $path="irc", $policy=log_policy]);
+	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log, $path="irc",
+	                   $policy=log_policy, $event_groups=event_group_logging_instances]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_IRC, ports);
 	}
 
 function new_session(c: connection): Info
 	{
-	local info: Info;
+	local info: IRC::Info;
 	info$ts = network_time();
 	info$uid = c$uid;
 	info$id = c$id;
@@ -66,9 +74,11 @@ function set_session(c: connection)
 	c$irc$ts=network_time();
 	}
 
+module IRC::Logging;
+
 event irc_nick_message(c: connection, is_orig: bool, who: string, newnick: string) &priority=5
 	{
-	set_session(c);
+	IRC::set_session(c);
 	if ( is_orig )
 		{
 		c$irc$command = "NICK";
@@ -87,7 +97,7 @@ event irc_nick_message(c: connection, is_orig: bool, who: string, newnick: strin
 
 event irc_user_message(c: connection, is_orig: bool, user: string, host: string, server: string, real_name: string) &priority=5
 	{
-	set_session(c);
+	IRC::set_session(c);
 	if ( is_orig )
 		{
 		c$irc$command = "USER";
@@ -107,7 +117,7 @@ event irc_user_message(c: connection, is_orig: bool, user: string, host: string,
 
 event irc_join_message(c: connection, is_orig: bool, info_list: irc_join_list) &priority=5
 	{
-	set_session(c);
+	IRC::set_session(c);
 	if ( is_orig )
 		c$irc$command = "JOIN";
 	}

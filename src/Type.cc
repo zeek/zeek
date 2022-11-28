@@ -2673,6 +2673,31 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 		}
 	}
 
+TypePtr merge_type_list(detail::ListExpr* elements)
+	{
+	TypeList* tl_type = elements->GetType()->AsTypeList();
+	const auto& tl = tl_type->GetTypes();
+
+	if ( tl.size() < 1 )
+		{
+		reporter->Error("no type can be inferred for empty list");
+		return nullptr;
+		}
+
+	auto t = tl[0];
+
+	if ( tl.size() == 1 )
+		return t;
+
+	for ( size_t i = 1; t && i < tl.size(); ++i )
+		t = merge_types(t, tl[i]);
+
+	if ( ! t )
+		reporter->Error("inconsistent types in list");
+
+	return t;
+	}
+
 TypePtr maximal_type(detail::ListExpr* elements)
 	{
 	TypeList* tl_type = elements->GetType()->AsTypeList();

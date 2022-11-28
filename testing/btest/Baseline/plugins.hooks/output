@@ -248,7 +248,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp, policy=FTP::log_policy, event_groups={[kind=EVENT_GROUP_ATTRIBUTE, name=FTP::ftp-logging]}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy{ if ((F == X509::log_x509_in_files_log) && (X509 in X509::rec$analyzers)) break }, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={[kind=EVENT_GROUP_MODULE, name=IRC::Logging],[kind=EVENT_GROUP_ATTRIBUTE, name=IRC::irc-files-logging]}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel, policy=Intel::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos, policy=KRB::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus, policy=Modbus::log_policy, event_groups={}])) -> <no result>
@@ -434,7 +434,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp, policy=FTP::log_policy, event_groups={[kind=EVENT_GROUP_ATTRIBUTE, name=FTP::ftp-logging]}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy{ if ((F == X509::log_x509_in_files_log) && (X509 in X509::rec$analyzers)) break }, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={[kind=EVENT_GROUP_MODULE, name=IRC::Logging],[kind=EVENT_GROUP_ATTRIBUTE, name=IRC::irc-files-logging]}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel, policy=Intel::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos, policy=KRB::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus, policy=Modbus::log_policy, event_groups={}])) -> <no result>
@@ -1764,7 +1764,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp, policy=FTP::log_policy, event_groups={[kind=EVENT_GROUP_ATTRIBUTE, name=FTP::ftp-logging]}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy{ if ((F == X509::log_x509_in_files_log) && (X509 in X509::rec$analyzers)) break }, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={}]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={[kind=EVENT_GROUP_MODULE, name=IRC::Logging],[kind=EVENT_GROUP_ATTRIBUTE, name=IRC::irc-files-logging]}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel, policy=Intel::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos, policy=KRB::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus, policy=Modbus::log_policy, event_groups={}]))
@@ -1950,7 +1950,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp, policy=FTP::log_policy, event_groups={[kind=EVENT_GROUP_ATTRIBUTE, name=FTP::ftp-logging]}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy{ if ((F == X509::log_x509_in_files_log) && (X509 in X509::rec$analyzers)) break }, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={}]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={[kind=EVENT_GROUP_MODULE, name=IRC::Logging],[kind=EVENT_GROUP_ATTRIBUTE, name=IRC::irc-files-logging]}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel, policy=Intel::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos, policy=KRB::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus, policy=Modbus::log_policy, event_groups={}]))
@@ -3279,7 +3279,7 @@
 0.000000 | HookCallFunction Log::__create_stream(FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp, policy=FTP::log_policy, event_groups={[kind=EVENT_GROUP_ATTRIBUTE, name=FTP::ftp-logging]}])
 0.000000 | HookCallFunction Log::__create_stream(Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy{ if ((F == X509::log_x509_in_files_log) && (X509 in X509::rec$analyzers)) break }, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={}])
+0.000000 | HookCallFunction Log::__create_stream(IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={[kind=EVENT_GROUP_MODULE, name=IRC::Logging],[kind=EVENT_GROUP_ATTRIBUTE, name=IRC::irc-files-logging]}])
 0.000000 | HookCallFunction Log::__create_stream(Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel, policy=Intel::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos, policy=KRB::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus, policy=Modbus::log_policy, event_groups={}])
@@ -3465,7 +3465,7 @@
 0.000000 | HookCallFunction Log::create_stream(FTP::LOG, [columns=FTP::Info, ev=FTP::log_ftp, path=ftp, policy=FTP::log_policy, event_groups={[kind=EVENT_GROUP_ATTRIBUTE, name=FTP::ftp-logging]}])
 0.000000 | HookCallFunction Log::create_stream(Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy{ if ((F == X509::log_x509_in_files_log) && (X509 in X509::rec$analyzers)) break }, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={}])
+0.000000 | HookCallFunction Log::create_stream(IRC::LOG, [columns=IRC::Info, ev=IRC::irc_log, path=irc, policy=IRC::log_policy, event_groups={[kind=EVENT_GROUP_MODULE, name=IRC::Logging],[kind=EVENT_GROUP_ATTRIBUTE, name=IRC::irc-files-logging]}])
 0.000000 | HookCallFunction Log::create_stream(Intel::LOG, [columns=Intel::Info, ev=Intel::log_intel, path=intel, policy=Intel::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(KRB::LOG, [columns=KRB::Info, ev=KRB::log_krb, path=kerberos, policy=KRB::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(Modbus::LOG, [columns=Modbus::Info, ev=Modbus::log_modbus, path=modbus, policy=Modbus::log_policy, event_groups={}])

@@ -166,25 +166,39 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig)
 			}
 		else
 			{ // a new reply
-			if ( reply_code > 0 && length > 3 && line[3] == '-' )
+			cont_resp = 0;
+
+			if ( reply_code == 0 )
+				{
+				AnalyzerViolation("non-numeric reply code", (const char*)data, length);
+				return;
+				}
+			else if ( reply_code < 100 )
+				{
+				AnalyzerViolation("invalid reply code", (const char*)data, length);
+				return;
+				}
+			else if ( length > 3 && line[3] == '-' )
 				{ // a continued reply
 				pending_reply = reply_code;
 				line = util::skip_whitespace(line + 4, end_of_line);
 				cont_resp = 1;
 				}
+			else if ( length > 3 && line[3] != ' ' )
+				{
+				// This is a proper reply code, but there's no space after
+				// the reply code even though the line is long enough.
+				AnalyzerViolation("invalid reply line", (const char*)data, length);
+				return;
+				}
 			else
 				{ // a self-contained reply
-				if ( reply_code > 0 )
-					line += 3;
-				else
-					AnalyzerViolation("non-numeric reply code", (const char*)data, length);
+				line += 3;
 
 				if ( line < end_of_line )
 					line = util::skip_whitespace(line, end_of_line);
 				else
 					line = end_of_line;
-
-				cont_resp = 0;
 				}
 			}
 

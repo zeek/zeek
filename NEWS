@@ -146,6 +146,15 @@ Changed Functionality
   stopped. This fixes a few cases where we already had the logic to
   continue in place, but we still ended up considering them partial.
 
+- Count underflows via ``--c`` or subtract from statements (``c = c - 1``) are
+  now consistently warned about. Previously, underflows through ``--c`` were
+  treated as runtime errors, while "subtract from" underflows were silently
+  accepted. The following (surprising behavior) now causes a warning, too:
+
+	$ zeek -e 'print 1 - 2'
+	expression warning in <command line>, line 1: count underflow (1 - 2)
+	18446744073709551615
+
 Deprecated Functionality
 ------------------------
 

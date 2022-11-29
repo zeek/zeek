@@ -888,6 +888,10 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 		case EXPR_SUB:
 		case EXPR_REMOVE_FROM:
 			DO_FOLD(-);
+			// When subtracting and the result is larger than the left
+			// operand we mostly likely underflowed and log a warning.
+			if ( is_unsigned && u3 > u1 )
+				reporter->ExprRuntimeWarning(this, "count underflow");
 			break;
 		case EXPR_TIMES:
 			DO_FOLD(*);
@@ -1447,7 +1451,7 @@ ValPtr IncrExpr::DoSingleEval(Frame* f, Val* v) const
 		--k;
 
 		if ( k < 0 && v->GetType()->InternalType() == TYPE_INTERNAL_UNSIGNED )
-			RuntimeError("count underflow");
+			reporter->ExprRuntimeWarning(this, "count underflow");
 		}
 
 	const auto& ret_type = IsVector(GetType()->Tag()) ? GetType()->Yield() : GetType();

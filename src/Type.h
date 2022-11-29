@@ -931,7 +931,13 @@ TypePtr merge_types(const TypePtr& t1, const TypePtr& t2);
 // Given a list of expressions, returns a (ref'd) type reflecting
 // a merged type consistent across all of them, or nil if this
 // cannot be done.
-TypePtr merge_type_list(detail::ListExpr* elements);
+[[deprecated("Remove in v6.1. Use maximal_type() if possible. See GH-2604.")]] TypePtr
+merge_type_list(detail::ListExpr* elements);
+
+// Given a list of expressions, returns the maximal type consistent across
+// all of them, or nil if this cannot be done.  "Maximal" incorporates
+// notions of arithmetic coercion, but otherwise requires type-equivalence.
+TypePtr maximal_type(detail::ListExpr* elements);
 
 // Given an expression, infer its type when used for an initialization.
 TypePtr init_type(const detail::ExprPtr& init);

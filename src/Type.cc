@@ -2698,6 +2698,45 @@ TypePtr merge_type_list(detail::ListExpr* elements)
 	return t;
 	}
 
+TypePtr maximal_type(detail::ListExpr* elements)
+	{
+	TypeList* tl_type = elements->GetType()->AsTypeList();
+	const auto& tl = tl_type->GetTypes();
+
+	if ( tl.size() < 1 )
+		{
+		reporter->Error("no type can be inferred for empty list");
+		return nullptr;
+		}
+
+	auto t = tl[0];
+
+	if ( tl.size() == 1 )
+		return t;
+
+	for ( size_t i = 1; t && i < tl.size(); ++i )
+		{
+		const auto& tl_i = tl[i];
+
+		if ( t == tl_i )
+			continue;
+
+		if ( BothArithmetic(t->Tag(), tl_i->Tag()) )
+			t = merge_types(t, tl_i);
+
+		else if ( t->Tag() == TYPE_ENUM && tl_i->Tag() == TYPE_ENUM )
+			t = merge_enum_types(t.get(), tl_i.get());
+
+		else if ( ! same_type(t, tl_i) )
+			t = nullptr;
+		}
+
+	if ( ! t )
+		reporter->Error("inconsistent types in list");
+
+	return t;
+	}
+
 // Reduces an aggregate type.
 static Type* reduce_type(Type* t)
 	{

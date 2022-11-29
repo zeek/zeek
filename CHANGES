@@ -1,3 +1,11 @@
+5.2.0-dev.371 | 2022-11-28 17:37:28 -0800
+
+  * provide deprecated version of merge_type_list() (Vern Paxson, Corelight)
+
+  * keep merge_types() externally available; address reviewing suggestion (Vern Paxson, Corelight)
+
+  * change vector constructors to require direct type equivalence for non-arithmetics (Vern Paxson, Corelight)
+
 5.2.0-dev.365 | 2022-11-22 21:15:42 -0800
 
   * Type coercion fix: transform +=/-= operators with arithmetic targets to explict assignments (Vern Paxson, Corelight)

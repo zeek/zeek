@@ -168,6 +168,10 @@ Deprecated Functionality
 
 	redef Analyzer::disabled_analyzers += { PacketAnalyzer::ANALYZER_GRE };
 
+- The ``zeek::merge_type_list()`` function has been deprecated. Please consider
+  the partially compatible and saner ``zeek::maximal_type()`` instead. See
+  GH-2604 for context.
+
 Zeek 5.1.0
 ==========
 

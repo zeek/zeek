@@ -3977,7 +3977,7 @@ VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list, TypeP
 			return;
 			}
 
-		if ( auto t = merge_type_list(op->AsListExpr()) )
+		if ( auto t = maximal_type(op->AsListExpr()) )
 			SetType(make_intrusive<VectorType>(std::move(t)));
 		else
 			{

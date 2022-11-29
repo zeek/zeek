@@ -51,3 +51,30 @@ event zeek_init()
 
 	print d;
 	}
+
+type recursive: record {
+	placeholder: bool;
+};
+
+redef record recursive += { rec: table[count] of recursive &optional; };
+
+function connT(c: connection, r: recursive): bool
+	{
+	return T;
+	}
+
+function connF(c: connection, r: recursive): bool
+	{
+	return F;
+	}
+
+function connMaybe(c: connection, r: recursive): bool
+	{
+	return c$id$orig_p < c$id$resp_p;
+	}
+
+event zeek_init()
+	{
+	local v = vector(connT, connF, connMaybe);
+	print v;
+	}

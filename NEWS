@@ -146,6 +146,9 @@ Changed Functionality
   stopped. This fixes a few cases where we already had the logic to
   continue in place, but we still ended up considering them partial.
 
+- The MQTT scripts registering the analyzer and DPD signatures have
+  been moved from the policy folder to base and are loaded by default.
+
 Deprecated Functionality
 ------------------------
 

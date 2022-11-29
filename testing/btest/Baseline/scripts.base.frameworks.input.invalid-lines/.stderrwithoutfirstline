@@ -5,6 +5,8 @@ error: ../input.log/Input::READER_ASCII: ../input.log, line 5: Init failed
 error: ../input.log/Input::READER_ASCII: ../input.log, line 5: Not enough fields in line 'T	-41	SSH::LOG	21	123	tcp	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30' of ../input.log. Found 15 fields, want positions 17 and -1
 error: ../input.log/Input::READER_ASCII: ../input.log, line 5: terminating thread
 received termination signal
+warning: ../input.log, line 10: Value 'EMPTY' for stream 'ssh' is not a valid enum.
+warning: ../input.log, line 11: Value '' for stream 'ssh' is not a valid enum.
 warning: ../input.log/Input::READER_ASCII: ../input.log, line 5: Not enough fields in line 'T	-41	SSH::LOG	21	123	tcp	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30' of ../input.log. Found 15 fields, want positions 17 and -1
 warning: ../input.log/Input::READER_ASCII: ../input.log, line 7: Tried to parse invalid/unknown protocol: whatever
 warning: ../input.log/Input::READER_ASCII: ../input.log, line 8: Bad address: 342.2.3.4

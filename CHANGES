@@ -1,3 +1,9 @@
+5.2.0-dev.376 | 2022-11-29 14:53:41 -0800
+
+  * smb: Drop references to uid_map in state. (Arne Welzel, Corelight)
+
+  * smb: Drop AUTH_LOG (Arne Welzel, Corelight)
+
 5.2.0-dev.373 | 2022-11-29 12:12:34 -0800
 
   * CI: add Fedora 37 (Christian Kreibich, Corelight)

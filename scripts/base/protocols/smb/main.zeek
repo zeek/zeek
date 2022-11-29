@@ -6,7 +6,6 @@ module SMB;
 
 export {
 	redef enum Log::ID += {
-		AUTH_LOG,
 		MAPPING_LOG,
 		FILES_LOG
 	};
@@ -145,8 +144,6 @@ export {
 		fid_map      : table[count] of FileInfo  &optional;
 		## Tree map to retrieve tree information based on the tree ID.
 		tid_map      : table[count] of TreeInfo  &optional;
-		## User map to retrieve user name based on the user ID.
-		uid_map      : table[count] of string    &optional;
 		## Pipe map to retrieve UUID based on the file ID of a pipe.
 		pipe_map     : table[count] of string    &optional;
 

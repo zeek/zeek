@@ -14,7 +14,6 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 		local state: SMB::State;
 		state$fid_map = table();
 		state$tid_map = table();
-		state$uid_map = table();
 		state$pipe_map = table();
 		state$pending_cmds = table();
 		c$smb_state = state;
@@ -24,11 +23,6 @@ event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=5
 	local tid = hdr$tid;
 	local uid = hdr$uid;
 	local mid = hdr$mid;
-
-	if ( uid in smb_state$uid_map )
-		{
-		smb_state$current_cmd$username = smb_state$uid_map[uid];
-		}
 
 	if ( tid !in smb_state$tid_map )
 		{

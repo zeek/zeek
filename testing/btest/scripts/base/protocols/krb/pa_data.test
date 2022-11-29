@@ -1,0 +1,16 @@
+# This test prints all pa_data in krb_as_request() handlers
+
+# @TEST-EXEC: zeek -b -r $TRACES/krb/kinit.trace %INPUT > output
+# @TEST-EXEC: btest-diff output
+
+@load base/protocols/krb
+
+event krb_as_request(c: connection, msg: KRB::KDC_Request)
+       {
+       if ( |msg$pa_data| > 0 )
+               {
+               print "as_request with pa_adata", c$uid;
+               for ( _, pa in msg$pa_data )
+                       print pa;
+               }
+       }

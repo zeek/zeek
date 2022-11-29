@@ -32,8 +32,13 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 				// will be generated as separate event
 				break;
 			case PA_ENC_TIMESTAMP:
-				// encrypted timestamp is unreadable
+				{
+				auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
+				type_val->Assign(0, data_type);
+				type_val->Assign(1, to_stringval(element->pa_data_element()->pa_enc_ts()->ciphertext()->encoding()->content()));
+				vv->Assign(vv->Size(), std::move(type_val));
 				break;
+				}
 			case PA_PW_SALT:
 				{
 				auto type_val = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::KRB::Type_Value);
@@ -185,6 +190,7 @@ type KRB_PA_Data(is_orig: bool, pkt_type: uint8) = record {
 # Each pre-auth element
 type KRB_PA_Data_Element(is_orig: bool, type: int64, length: uint64) = case type of {
 	PA_TGS_REQ       -> pa_tgs_req	: KRB_PA_AP_REQ_wrapper(is_orig);
+	PA_ENC_TIMESTAMP -> pa_enc_ts   : KRB_Encrypted_Data &length=length;
 	PA_PW_SALT       -> pa_pw_salt	: ASN1OctetString;
 	PA_PW_AS_REQ	   -> pa_pk_as_req	: KRB_PA_PK_AS_Req &length=length;
 	PA_PW_AS_REP	   -> pa_pk_as_rep	: KRB_PA_PK_AS_Rep &length=length;

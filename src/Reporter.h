@@ -112,6 +112,10 @@ public:
 	[[noreturn]] void RuntimeError(const detail::Location* location, const char* fmt, ...)
 		__attribute__((format(printf, 3, 4)));
 
+	// Report a rutnime warning in evaluating a Zeek script expression.
+	void ExprRuntimeWarning(const detail::Expr* expr, const char* fmt, ...)
+		__attribute__((format(printf, 3, 4)));
+
 	// Report a runtime error in executing a compiled script. This
 	// function will not return but raise an InterpreterException.
 	[[noreturn]] void CPPRuntimeError(const char* fmt, ...) __attribute__((format(printf, 2, 3)));

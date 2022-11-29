@@ -274,14 +274,7 @@ void Expr::AssignToIndex(ValPtr v1, ValPtr v2, ValPtr v3) const
 	                                 iterators_invalidated);
 
 	if ( iterators_invalidated )
-		{
-		ODesc d;
-		Describe(&d);
-		reporter->PushLocation(GetLocationInfo());
-		reporter->Warning("possible loop/iterator invalidation caused by expression: %s",
-		                  d.Description());
-		reporter->PopLocation();
-		}
+		reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");
 
 	if ( error_msg )
 		RuntimeErrorWithCallStack(error_msg);
@@ -2974,14 +2967,7 @@ void IndexExpr::Add(Frame* f)
 	v1->AsTableVal()->Assign(std::move(v2), nullptr, true, &iterators_invalidated);
 
 	if ( iterators_invalidated )
-		{
-		ODesc d;
-		Describe(&d);
-		reporter->PushLocation(GetLocationInfo());
-		reporter->Warning("possible loop/iterator invalidation caused by expression: %s",
-		                  d.Description());
-		reporter->PopLocation();
-		}
+		reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");
 	}
 
 void IndexExpr::Delete(Frame* f)
@@ -3003,14 +2989,7 @@ void IndexExpr::Delete(Frame* f)
 	v1->AsTableVal()->Remove(*v2, true, &iterators_invalidated);
 
 	if ( iterators_invalidated )
-		{
-		ODesc d;
-		Describe(&d);
-		reporter->PushLocation(GetLocationInfo());
-		reporter->Warning("possible loop/iterator invalidation caused by expression: %s",
-		                  d.Description());
-		reporter->PopLocation();
-		}
+		reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");
 	}
 
 ExprPtr IndexExpr::MakeLvalue()

@@ -1339,7 +1339,10 @@ void HTTP_Analyzer::SetVersion(HTTP_VersionNumber* version, HTTP_VersionNumber n
 		*version = new_version;
 
 	else if ( *version != new_version )
+		{
 		Weird("HTTP_version_mismatch");
+		*version = new_version;
+		}
 
 	if ( version->major > 1 || (version->major == 1 && version->minor > 0) )
 		keep_alive = 1;

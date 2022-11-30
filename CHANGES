@@ -1,3 +1,7 @@
+5.2.0-dev.393 | 2022-11-30 09:42:00 -0800
+
+  * GH-846: Expand Conn::Info$duration comment to clarify TCP end-of-connection handling (Christian Kreibich, Corelight)
+
 5.2.0-dev.391 | 2022-11-30 15:37:57 +0000
 
   * script optimization fixes: (Vern Paxson, Corelight)

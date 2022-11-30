@@ -30,8 +30,16 @@ export {
 		## An identification of an application protocol being sent over
 		## the connection.
 		service:      string          &log &optional;
-		## How long the connection lasted.  For 3-way or 4-way connection
-		## tear-downs, this will not include the final ACK.
+		## How long the connection lasted.
+		##
+		## .. note:: The duration doesn't cover trailing "non-productive"
+		##    TCP packets (i.e., ones not contributing new stream payload)
+		##    once a direction is closed.  For example, for regular
+		##    3-way/4-way connection tear-downs it doesn't include the
+		##    final ACK.  The reason is largely historic: this approach
+		##    allows more accurate computation of connection data rates.
+		##    Zeek does however reflect such trailing packets in the
+		##    connection history.
 		duration:     interval        &log &optional;
 		## The number of payload bytes the originator sent. For TCP
 		## this is taken from sequence numbers and might be inaccurate

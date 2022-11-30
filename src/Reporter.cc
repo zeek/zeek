@@ -174,6 +174,21 @@ void Reporter::ExprRuntimeError(const detail::Expr* expr, const char* fmt, ...)
 	throw InterpreterException();
 	}
 
+void Reporter::ExprRuntimeWarning(const detail::Expr* expr, const char* fmt, ...)
+	{
+	ODesc d;
+	expr->Describe(&d);
+
+	PushLocation(expr->GetLocationInfo());
+	va_list ap;
+	va_start(ap, fmt);
+	FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+	DoLog("expression warning", reporter_warning, out, nullptr, nullptr, true, true,
+	      d.Description(), fmt, ap);
+	va_end(ap);
+	PopLocation();
+	}
+
 void Reporter::RuntimeError(const detail::Location* location, const char* fmt, ...)
 	{
 	++errors;

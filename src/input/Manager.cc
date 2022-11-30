@@ -2417,8 +2417,16 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type,
 			zeek_int_t index = request_type->AsEnumType()->Lookup(module, var.c_str());
 			if ( index == -1 )
 				{
-				Warning(i, "Value '%s' for stream '%s' is not a valid enum.", enum_string.c_str(),
-				        i->name.c_str());
+				auto source = i->reader->Info().source;
+				auto file_pos = val->GetFileLineNumber();
+
+				const char* warning = zeek::util::fmt(
+					"Value '%s' for stream '%s' is not a valid enum.", enum_string.c_str(),
+					i->name.c_str());
+				if ( source && file_pos != -1 )
+					Warning(i, "%s, line %d: %s", source, file_pos, warning);
+				else
+					Warning(i, "%s", warning);
 
 				have_error = true;
 				return nullptr;

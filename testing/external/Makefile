@@ -30,10 +30,10 @@ coverage:
 update-timing:
 	@for repo in $(REPOS); do ( cd $$repo && echo "Updating timing for '$$repo' repo:" && make update-timing ); done
 
-sync-commits:
+update-commit-hashes sync-commits:
 	for repo in $(REPOS); do ./scripts/sync-commit $$repo; done
 
-sync-repos:
+checkout-repos sync-repos:
 	for repo in $(REPOS); do ./scripts/sync-repo $$repo; done
 
 .PHONY: all brief init pull push status coverage

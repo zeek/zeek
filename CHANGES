@@ -1,4 +1,4 @@
-5.2.0-dev.389 | 2022-11-30 13:45:24 +0000
+5.2.0-dev.391 | 2022-11-30 15:37:57 +0000
 
   * script optimization fixes: (Vern Paxson, Corelight)
      new initialization model for standalone C++ scripts

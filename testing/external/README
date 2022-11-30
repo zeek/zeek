@@ -60,9 +60,9 @@ the local Zeek codebase to a particular version of the testsuites. Normally we'd
 use git submodules, but cloning the testsuites with the rest of the distribution
 isn't always desirable or feasible. We resort to "manual submodules": a file
 "commit-hash.<testsuite-name>" in this directory contains the commit hash to use
-for the respective testsuite. The Makefile target "sync-repos" brings the local
-repositories in line with commit files, while "sync-commits" updates the commit
-files for locally available testsuites to their HEAD commits.
+for the respective testsuite. The Makefile target "checkout-repos" brings the local
+repositories in line with the commit files, while "update-commit-hashes" updates
+the commit files for locally available testsuites to their HEAD commits.
 
 Updating Baseline
 -----------------

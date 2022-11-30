@@ -11,7 +11,6 @@ namespace zeek::detail
 using namespace std;
 
 vector<CPP_init_func> CPP_init_funcs;
-vector<CPP_init_func> CPP_activation_funcs;
 
 // Calls all of the initialization hooks, in the order they were added.
 void init_CPPs()
@@ -20,18 +19,6 @@ void init_CPPs()
 
 	if ( need_init )
 		for ( auto f : CPP_init_funcs )
-			f();
-
-	need_init = false;
-	}
-
-// Calls all of the registered activation hooks for standalone code.
-void activate__CPPs()
-	{
-	static bool need_init = true;
-
-	if ( need_init )
-		for ( auto f : CPP_activation_funcs )
 			f();
 
 	need_init = false;
@@ -66,6 +53,16 @@ void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<
                         void (*finish_init)())
 	{
 	compiled_scripts[hash] = {move(body), priority, move(events), finish_init};
+	}
+
+static unordered_map<p_hash_type, CompiledScript> compiled_standalone_scripts;
+
+void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
+                                   vector<string> events, void (*finish_init)())
+	{
+	// For standalone scripts we don't actually need finish_init, but
+	// we keep it for symmetry with compiled_scripts.
+	compiled_standalone_scripts[hash] = {move(body), priority, move(events), finish_init};
 	}
 
 void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t,
@@ -111,6 +108,13 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 		fg->SetType(ft);
 		}
 
+	if ( ! fg->GetAttr(ATTR_IS_USED) )
+		{
+		vector<AttrPtr> used_attr;
+		used_attr.emplace_back(make_intrusive<Attr>(ATTR_IS_USED));
+		fg->AddAttrs(make_intrusive<Attributes>(used_attr, nullptr, false, true));
+		}
+
 	auto v = fg->GetVal();
 	if ( ! v )
 		{ // Create it.
@@ -123,19 +127,6 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 		}
 
 	auto f = v->AsFunc();
-	const auto& bodies = f->GetBodies();
-
-	// Track hashes of compiled bodies already associated with f.
-	unordered_set<p_hash_type> existing_CPP_bodies;
-	for ( auto& b : bodies )
-		{
-		auto s = b.stmts;
-		if ( s->Tag() != STMT_CPP )
-			continue;
-
-		const auto& cpp_s = cast_intrusive<CPPStmt>(s);
-		existing_CPP_bodies.insert(cpp_s->GetHash());
-		}
 
 	// Events we need to register.
 	unordered_set<string> events;
@@ -148,15 +139,9 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 
 	for ( auto h : hashes )
 		{
-		if ( existing_CPP_bodies.count(h) > 0 )
-			// We're presumably running with the original script,
-			// and have already incorporated this compiled body
-			// into f.
-			continue;
-
 		// Add in the new body.
-		auto csi = compiled_scripts.find(h);
-		ASSERT(csi != compiled_scripts.end());
+		auto csi = compiled_standalone_scripts.find(h);
+		ASSERT(csi != compiled_standalone_scripts.end());
 		auto cs = csi->second;
 
 		f->AddBody(cs.body, no_inits, num_params, cs.priority);

@@ -15,7 +15,7 @@ using namespace std;
 unordered_map<p_hash_type, CompiledScript> compiled_scripts;
 unordered_map<string, unordered_set<p_hash_type>> added_bodies;
 unordered_map<p_hash_type, void (*)()> standalone_callbacks;
-vector<void (*)()> standalone_activations;
+vector<void (*)()> standalone_finalizations;
 
 void CPPFunc::Describe(ODesc* d) const
 	{

@@ -72,11 +72,16 @@ int ZAMCompiler::InternalAddVal(ZInstAux* zi, int i, Expr* e)
 		auto& indices = e->GetOp1()->AsListExpr()->Exprs();
 		auto val = e->GetOp2();
 		int width = indices.length();
+		int num_vals;
 
 		for ( int j = 0; j < width; ++j )
-			ASSERT(InternalAddVal(zi, i + j, indices[j]) == 1);
+			{
+			num_vals = InternalAddVal(zi, i + j, indices[j]);
+			ASSERT(num_vals == 1);
+			}
 
-		ASSERT(InternalAddVal(zi, i + width, val.get()) == 1);
+		num_vals = InternalAddVal(zi, i + width, val.get());
+		ASSERT(num_vals == 1);
 
 		return width + 1;
 		}
@@ -87,7 +92,10 @@ int ZAMCompiler::InternalAddVal(ZInstAux* zi, int i, Expr* e)
 		int width = indices.length();
 
 		for ( int j = 0; j < width; ++j )
-			ASSERT(InternalAddVal(zi, i + j, indices[j]) == 1);
+			{
+			int num_vals = InternalAddVal(zi, i + j, indices[j]);
+			ASSERT(num_vals == 1);
+			}
 
 		return width;
 		}

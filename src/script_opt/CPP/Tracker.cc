@@ -16,9 +16,6 @@ template <class T> void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h
 	if ( HasKey(key) )
 		return;
 
-	if ( h == 0 )
-		h = Hash(key);
-
 	if ( map2.count(h) == 0 )
 		{
 		auto index = keys.size();
@@ -55,16 +52,6 @@ template <class T> string CPPTracker<T>::KeyName(const T* key)
 		full_name = base_name + "_" + ind + "__CPP";
 
 	return full_name;
-	}
-
-template <class T> p_hash_type CPPTracker<T>::Hash(IntrusivePtr<T> key) const
-	{
-	ODesc d;
-	d.SetDeterminism(true);
-	key->Describe(&d);
-	string desc = d.Description();
-	auto h = hash<string>{}(base_name + desc);
-	return p_hash_type(h);
 	}
 
 // Instantiate the templates we'll need.

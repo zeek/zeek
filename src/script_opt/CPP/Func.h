@@ -119,9 +119,8 @@ extern std::unordered_map<std::string, std::unordered_set<p_hash_type>> added_bo
 // Maps hashes to standalone script initialization callbacks.
 extern std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
 
-// Standalone callbacks marked for activation by calls to the
-// load_CPP() BiF.
-extern std::vector<void (*)()> standalone_activations;
+// Callbacks to finalize initialization of standalone compiled scripts.
+extern std::vector<void (*)()> standalone_finalizations;
 
 	} // namespace detail
 

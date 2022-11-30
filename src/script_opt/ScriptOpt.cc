@@ -418,13 +418,8 @@ static void use_CPP()
 			}
 		}
 
-	if ( num_used == 0 && standalone_activations.empty() )
+	if ( num_used == 0 )
 		reporter->FatalError("no C++ functions found to use");
-
-	// Now that we've loaded all of the compiled scripts
-	// relevant for the AST, activate standalone ones.
-	for ( auto cb : standalone_activations )
-		(*cb)();
 	}
 
 static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
@@ -528,13 +523,12 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 
 void analyze_scripts(bool no_unused_warnings)
 	{
-	static bool did_init = false;
+	init_options();
 
-	if ( ! did_init )
-		{
-		init_options();
-		did_init = true;
-		}
+	// Any standalone compiled scripts have already been instantiated
+	// at this point, but may require post-loading-of-scripts finalization.
+	for ( auto cb : standalone_finalizations )
+		(*cb)();
 
 	std::unique_ptr<UsageAnalyzer> ua;
 	if ( ! no_unused_warnings )

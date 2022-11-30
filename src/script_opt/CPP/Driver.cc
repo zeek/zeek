@@ -494,13 +494,18 @@ void CPPCompile::GenFinishInit()
 	Emit("\tfield_mapping.push_back(fm.ComputeOffset(&im));");
 
 	NL();
-	Emit("load_BiFs__CPP();");
 
 	if ( standalone )
-		{
-		NL();
+		// BiFs need to be loaded later, because the main
+		// initialization finishes upon loading of the activation
+		// script, rather than after all scripts have been parsed
+		// and BiFs have been loaded.
 		Emit("init_globals__CPP();");
-		}
+	else
+		// For non-standalone, we're only initializing after all
+		// scripts have been parsed and BiFs loaded, so it's fine
+		// to go ahead and do so now.
+		Emit("load_BiFs__CPP();");
 
 	EndBlock();
 	}
@@ -513,7 +518,9 @@ void CPPCompile::GenRegisterBodies()
 	Emit("for ( auto& b : CPP__bodies_to_register )");
 	StartBlock();
 	Emit("auto f = make_intrusive<CPPDynStmt>(b.func_name.c_str(), b.func, b.type_signature);");
-	Emit("register_body__CPP(f, b.priority, b.h, b.events, finish_init__CPP);");
+
+	auto reg = standalone ? "register_standalone_body" : "register_body";
+	Emit("%s__CPP(f, b.priority, b.h, b.events, finish_init__CPP);", reg);
 	EndBlock();
 
 	EndBlock();

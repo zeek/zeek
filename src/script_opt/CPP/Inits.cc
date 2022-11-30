@@ -331,8 +331,8 @@ void CPPCompile::GenStandaloneActivation()
 	Emit("void standalone_init__CPP()");
 	StartBlock();
 	Emit("init__CPP();");
-	Emit("CPP_activation_funcs.push_back(standalone_activation__CPP);");
-	Emit("CPP_activation_hook = activate__CPPs;");
+	Emit("standalone_activation__CPP();");
+	Emit("standalone_finalizations.push_back(load_BiFs__CPP);");
 	EndBlock();
 	}
 

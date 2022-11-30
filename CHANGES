@@ -1,3 +1,33 @@
+5.2.0-dev.389 | 2022-11-30 13:45:24 +0000
+
+  * script optimization fixes: (Vern Paxson, Corelight)
+     new initialization model for standalone C++ scripts
+     type coercion fix
+     ZAM fix for compiling using C++ optimizer
+     disambiguate empty constructors
+
+  * TimerMgr: Add back max_timer_expires=0 special case (Arne Welzel, Corelight)
+
+    Fixes #2514.
+
+  * Add btest for expiration of all pending timers. (Jan Grashoefer, Corelight)
+
+  * input: Add location info for invalid enums (Arne Welzel, Corelight)
+
+    Fixes #2613
+
+  * mqtt: Move from policy/ into base/ (Arne Welzel, Corelight)
+
+    Register dpd signatures and the analyzer when running in default mode.
+
+    Closes #2583
+
+  * Expr: Warn on count underflow for c -= 1 and c = c - 1 (Arne Welzel, Corelight)
+
+    Closes #2486
+
+  * Reporter: Add ExprRuntimeWarning() (Arne Welzel, Corelight)
+
 5.2.0-dev.376 | 2022-11-29 14:53:41 -0800
 
   * smb: Drop references to uid_map in state. (Arne Welzel, Corelight)

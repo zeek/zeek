@@ -155,6 +155,9 @@ Changed Functionality
 	expression warning in <command line>, line 1: count underflow (1 - 2)
 	18446744073709551615
 
+- The MQTT scripts registering the analyzer and DPD signatures have
+  been moved from the policy folder to base and are loaded by default.
+
 Deprecated Functionality
 ------------------------
 

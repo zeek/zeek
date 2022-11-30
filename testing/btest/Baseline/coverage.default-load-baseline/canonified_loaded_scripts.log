@@ -397,6 +397,7 @@ scripts/base/init-default.zeek
     scripts/base/protocols/modbus/main.zeek
   scripts/base/protocols/mqtt/__load__.zeek
     scripts/base/protocols/mqtt/consts.zeek
+    scripts/base/protocols/mqtt/main.zeek
   scripts/base/protocols/mysql/__load__.zeek
     scripts/base/protocols/mysql/main.zeek
       scripts/base/protocols/mysql/consts.zeek

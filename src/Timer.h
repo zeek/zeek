@@ -84,7 +84,8 @@ public:
 	void Add(Timer* timer);
 
 	/**
-	 * Advance the clock to time t, expiring at most max_expire timers.
+	 * Advance the clock to time t, dispatching at most max_expire expired
+	 * timers, or all expired timers if dispatch_all_expired is set.
 	 *
 	 * @param t the new time.
 	 * @param max_expire the maximum number of timers to expire.
@@ -152,6 +153,9 @@ private:
 	double last_advance;
 
 	int num_expired;
+	// Flag to indicate if Advance() should dispatch all expired timers
+	// for the max_timer_expires=0 case.
+	bool dispatch_all_expired = false;
 
 	size_t peak_size = 0;
 	size_t cumulative_num = 0;

@@ -111,6 +111,8 @@ void TimerMgr::InitPostScript()
 	{
 	if ( iosource_mgr )
 		iosource_mgr->Register(this, true);
+
+	dispatch_all_expired = zeek::detail::max_timer_expires == 0;
 	}
 
 void TimerMgr::Add(Timer* timer)
@@ -142,7 +144,8 @@ void TimerMgr::Expire()
 int TimerMgr::DoAdvance(double new_t, int max_expire)
 	{
 	Timer* timer = Top();
-	for ( num_expired = 0; (num_expired < max_expire) && timer && timer->Time() <= new_t;
+	for ( num_expired = 0;
+	      (num_expired < max_expire || dispatch_all_expired) && timer && timer->Time() <= new_t;
 	      ++num_expired )
 		{
 		last_timestamp = timer->Time();

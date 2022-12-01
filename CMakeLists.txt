@@ -548,6 +548,7 @@ endif ()
 
 if ( NOT DISABLE_SPICY )
     if ( NOT SPICY_ROOT_DIR )
+        set(USE_GOLD OFF)
         add_subdirectory(auxil/spicy)
 
         # Set variables used by the spicy-plugin build since we are building Spicy

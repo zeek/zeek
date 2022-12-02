@@ -158,6 +158,9 @@ Changed Functionality
 - The MQTT scripts registering the analyzer and DPD signatures have
   been moved from the policy folder to base and are loaded by default.
 
+- Notices created for files transferred over multiple connections will now be
+  associated with one of the connections rather than none.
+
 Deprecated Functionality
 ------------------------
 

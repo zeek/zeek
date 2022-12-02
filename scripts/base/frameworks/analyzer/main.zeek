@@ -88,6 +88,16 @@ export {
 	## Returns: The analyzer name corresponding to the tag.
 	global name: function(tag: Analyzer::Tag) : string;
 
+	## Check whether the given analyzer name exists.
+	##
+	## This can be used before calling :zeek:see:`Analyzer::get_tag` to
+	## verify that the given name as string is a valid analyzer name.
+	##
+	## name: The analyzer name.
+	##
+	## Returns: True if the given name is a valid analyzer, else false.
+	global has_tag: function(name: string): bool;
+
 	## Translates an analyzer's name to a tag enum value.
 	##
 	## name: The analyzer name.
@@ -214,6 +224,11 @@ function all_registered_ports(): table[AllAnalyzers::Tag] of set[port]
 function name(atype: AllAnalyzers::Tag) : string
 	{
 	return __name(atype);
+	}
+
+function has_tag(name: string): bool
+	{
+	return __has_tag(name);
 	}
 
 function get_tag(name: string): AllAnalyzers::Tag

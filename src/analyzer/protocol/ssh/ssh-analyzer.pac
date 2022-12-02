@@ -120,6 +120,50 @@ refine flow SSH_Flow += {
 		return true;
 		%}
 
+	function proc_ssh2_ecc_init(is_orig: bool): bool
+		%{
+		if ( ssh2_ecc_init )
+			{
+			zeek::BifEvent::enqueue_ssh2_ecc_init(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				is_orig);
+			}
+		return true;
+		%}
+
+	function proc_ssh2_dh_gex_init(is_orig: bool): bool
+		%{
+		if ( ssh2_dh_gex_init )
+			{
+			zeek::BifEvent::enqueue_ssh2_dh_gex_init(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				is_orig);
+			}
+		return true;
+		%}
+
+
+	function proc_ssh2_gss_init(is_orig: bool): bool
+		%{
+		if ( ssh2_gss_init )
+			{
+			zeek::BifEvent::enqueue_ssh2_gss_init(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				is_orig);
+			}
+		return true;
+		%}
+
+	function proc_ssh2_rsa_secret(is_orig: bool): bool
+		%{
+		if ( ssh2_rsa_secret )
+			{
+			zeek::BifEvent::enqueue_ssh2_rsa_secret(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				is_orig);
+			}
+		return true;
+		%}
 
 	function proc_ssh2_dh_gex_group(msg: SSH2_DH_GEX_GROUP): bool
 		%{
@@ -257,11 +301,24 @@ refine typeattr SSH2_DH_GEX_GROUP += &let {
 
 refine typeattr SSH2_ECC_REPLY += &let {
 	proc_k: bool = $context.flow.proc_ssh2_server_host_key(k_s.val);
-	proc_q: bool = $context.flow.proc_ssh2_ecc_key(q_s.val, false);
+	proc_q: bool = $context.flow.proc_ssh2_ecc_key(q_s.val, is_orig);
 };
 
 refine typeattr SSH2_ECC_INIT += &let {
-	proc: bool = $context.flow.proc_ssh2_ecc_key(q_c.val, true);
+	proc: bool = $context.flow.proc_ssh2_ecc_key(q_c.val, is_orig);
+	proc_init: bool = $context.flow.proc_ssh2_ecc_init(is_orig);
+};
+
+refine typeattr SSH2_DH_GEX_INIT += &let {
+	proc_init: bool = $context.flow.proc_ssh2_dh_gex_init(is_orig);
+};
+
+refine typeattr SSH2_GSS_INIT += &let {
+	proc_init: bool = $context.flow.proc_ssh2_gss_init(is_orig);
+};
+
+refine typeattr SSH2_RSA_SECRET += &let {
+	proc_init: bool = $context.flow.proc_ssh2_rsa_secret(is_orig);
 };
 
 refine typeattr SSH1_PUBLIC_KEY += &let {

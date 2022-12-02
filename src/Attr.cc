@@ -223,7 +223,7 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 
 		return new_tag == ATTR_LOG || new_tag == ATTR_OPTIONAL || new_tag == ATTR_REDEF ||
 		       new_tag == ATTR_BROKER_STORE_ALLOW_COMPLEX || new_tag == ATTR_RAW_OUTPUT ||
-		       new_tag == ATTR_ERROR_HANDLER;
+		       new_tag == ATTR_ERROR_HANDLER || new_tag == ATTR_IS_USED;
 	};
 
 	// A `redef` is allowed to overwrite an existing attribute instead of

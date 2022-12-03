@@ -81,6 +81,31 @@ New Functionality
   As noted under breaking changes, the blank identifier ``_`` cannot be
   referenced in expression anymore.
 
+- It is now possible to put trailing commas within table, vector, set and record
+  construction. For example, the following code is now valid, which can make
+  for more uniform style and smaller diffs.
+
+	local vec = vector(
+		"1",
+		"2",
+	);
+
+	local tab: table[string] of count = [
+		["a"] = 1,
+		["b"] = 2,
+	];
+
+  Function calls and record constructors can have a trailing comma after the
+  last argument.
+
+	Analyzer::schedule_analyzer(
+		chan$orig_h,
+		chan$resp_h,
+		chan$resp_p,
+		Analyzer::ANALYZER_FTP_DATA,
+		5mins,
+	);
+
 - Re-introduce event groups. Allow the ``&group`` attribute on event and hook
   handlers for annotating them with one or more event groups. These groups
   can be disabled and enable during runtime. Disabling an event group implies

@@ -1,3 +1,9 @@
+5.2.0-dev.398 | 2022-12-02 18:39:01 -0800
+
+  * parse.y: Allow trailing commas for table, set, vector and record construction (Arne Welzel, Corelight)
+
+  * ci/alpine: Use musl-fts-dev rather than fts-dev (Arne Welzel, Corelight)
+
 5.2.0-dev.393 | 2022-11-30 09:42:00 -0800
 
   * GH-846: Expand Conn::Info$duration comment to clarify TCP end-of-connection handling (Christian Kreibich, Corelight)

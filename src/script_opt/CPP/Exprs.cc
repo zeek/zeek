@@ -1136,7 +1136,11 @@ string CPPCompile::GenDirectAssign(const ExprPtr& lhs, const string& rhs_native,
 			}
 		}
 	else
+		{
 		gen = name + " = " + rhs_native;
+		if ( ! top_level )
+			gen = NativeToGT("(" + gen + ")", n->GetType(), gt);
+		}
 
 	return gen;
 	}

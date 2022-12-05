@@ -209,6 +209,9 @@ Deprecated Functionality
   the partially compatible and saner ``zeek::maximal_type()`` instead. See
   GH-2604 for context.
 
+- The pre-authentication data field (pa_data) available in certain Kerberos
+  events now exposes the (encrypted) PA-ENC-TIMESTAMP field (padata-type=2).
+
 Zeek 5.1.0
 ==========
 

@@ -79,8 +79,8 @@ event zeek_init()
 	print "tab6", type_name(tab6), tab6;
 
 	local tab7 = table(
-		["a", "b"] = [1, 2, ],
-		["c", "d"] = [3, 4, ],
+		["a", "b"] = set(1, 2, ),
+		["c", "d"] = set(3, 4, ),
 	);
 	print "tab7", type_name(tab7), tab7;
 

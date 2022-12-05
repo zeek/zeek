@@ -116,6 +116,7 @@ public:
 	bool IsRedefinable() const;
 
 	void SetAttrs(AttributesPtr attr);
+	void AddAttr(AttrPtr a, bool is_redef = false);
 	void AddAttrs(AttributesPtr attr, bool is_redef = false);
 	void RemoveAttr(AttrTag a);
 	void UpdateValAttrs();

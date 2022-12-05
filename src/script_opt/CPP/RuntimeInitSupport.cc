@@ -109,11 +109,7 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 		}
 
 	if ( ! fg->GetAttr(ATTR_IS_USED) )
-		{
-		vector<AttrPtr> used_attr;
-		used_attr.emplace_back(make_intrusive<Attr>(ATTR_IS_USED));
-		fg->AddAttrs(make_intrusive<Attributes>(used_attr, nullptr, false, true));
-		}
+		fg->AddAttr(make_intrusive<Attr>(ATTR_IS_USED));
 
 	auto v = fg->GetVal();
 	if ( ! v )

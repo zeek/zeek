@@ -1,3 +1,9 @@
+5.2.0-dev.401 | 2022-12-04 18:36:56 -0800
+
+  * ID: Add AddAttr() helper (Arne Welzel, Corelight)
+
+  * GH-2628: Attr: Duplicated &is_used is allowed (Arne Welzel, Corelight)
+
 5.2.0-dev.398 | 2022-12-02 18:39:01 -0800
 
   * parse.y: Allow trailing commas for table, set, vector and record construction (Arne Welzel, Corelight)

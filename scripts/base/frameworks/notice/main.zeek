@@ -600,11 +600,13 @@ function create_file_info(f: fa_file): Notice::FileInfo
 	if ( f?$info && f$info?$mime_type )
 		fi$mime = f$info$mime_type;
 
-	if ( f?$conns && |f$conns| == 1 )
+	# If a file is transferred over multiple connections, just pick one.
+	if ( f?$conns && |f$conns| > 0 )
 		for ( id, c in f$conns )
 			{
 			fi$cid = id;
 			fi$cuid = c$uid;
+			break;
 			}
 
 	return fi;
@@ -624,8 +626,12 @@ function populate_file_info2(fi: Notice::FileInfo, n: Notice::Info)
 		n$file_mime_type = fi$mime;
 
 	n$file_desc = fi$desc;
-	n$id = fi$cid;
-	n$uid = fi$cuid;
+
+	if ( fi?$cid )
+		n$id = fi$cid;
+
+	if ( fi?$cuid )
+		n$uid = fi$cuid;
 	}
 
 # This is run synchronously as a function before all of the other

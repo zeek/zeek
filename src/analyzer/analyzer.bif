@@ -53,16 +53,28 @@ function __name%(atype: AllAnalyzers::Tag%) : string
 	return component->CanonicalNameVal();
 	%}
 
+%%{
+static zeek::plugin::Component* component_for_name(const char* name)
+	{
+	zeek::plugin::Component* component = zeek::analyzer_mgr->Lookup(name);
+	if ( ! component )
+		component = zeek::packet_mgr->Lookup(name);
+	if ( ! component )
+		component = zeek::file_mgr->Lookup(name);
+
+	return component;
+	}
+%%}
+
 function __tag%(name: string%) : AllAnalyzers::Tag
 	%{
-	auto val = name->CheckString();
-
-	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
-	if ( ! component )
-		component = zeek::packet_mgr->Lookup(val);
-	if ( ! component )
-		component = zeek::file_mgr->Lookup(val);
-
+	plugin::Component* component = component_for_name(name->CheckString());
 	zeek::Tag t = component ? component->Tag() : zeek::Tag();
 	return t.AsVal();
+	%}
+
+function __has_tag%(name: string%) : bool
+	%{
+	plugin::Component* component = component_for_name(name->CheckString());
+	return zeek::val_mgr->Bool(component != nullptr);
 	%}

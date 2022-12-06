@@ -1,3 +1,19 @@
+5.2.0-dev.411 | 2022-12-06 12:15:42 +0100
+
+  * GH-2547: ContentLine: Fix spelling of "suppress", deprecate SupressWeirds() (Arne Welzel, Corelight)
+
+  * GH-2577: zeekygen/normalize_script_path: Special case plugin dirnames without _ (Arne Welzel, Corelight)
+
+    In normal installations, a plugin's basename has an underscore in it
+    to separate the namespace from the plugin name. E.g Zeek_Spicy. When
+    there is no underscore, this is most likely due to ./build being
+    picked up when using ZEEK_PLUGIN_PATH. The basename ends-up "build"
+    and is susceptible to collisions.
+
+    Prepend one parent directory as a heuristic to make this scenario less
+    likely, assuming ./build is usually below a repository checkout that
+    uniquely identifies the plugin.
+
 5.2.0-dev.407 | 2022-12-06 10:01:45 +0100
 
   * Added several events for detailed info on the SSH2 key init directions (Joost Jansen)

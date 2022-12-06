@@ -499,6 +499,9 @@ function all_registered_mime_types(): table[Files::Tag] of set[string]
 
 function describe(f: fa_file): string
 	{
+	if ( ! Analyzer::has_tag(f$source) )
+		return "";
+
 	local tag = Analyzer::get_tag(f$source);
 	if ( tag !in registered_protocols )
 		return "";

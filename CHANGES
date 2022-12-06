@@ -1,3 +1,20 @@
+5.2.0-dev.414 | 2022-12-06 12:21:44 +0100
+
+  * analyzer/files: handle non-analyzer names in describe_file() (Arne Welzel, Corelight)
+
+    When a fa_file object is created through the use of Input::add_analysis(),
+    the fa_file's source is likely not valid representation of an analyzer's
+    tag and a Files::describe() should not error and instead return an empty
+    description.
+
+  * frameworks/notice: Handle fa_file with no or more than a single connection better (Arne Welzel, Corelight)
+
+    * When a file is transferred over multiple connection, have
+      create_file_info() just pick the first one instead of none.
+
+    * Do not unconditionally assume cid and cuid as set on a
+      Notice::FileInfo object.
+
 5.2.0-dev.411 | 2022-12-06 12:15:42 +0100
 
   * GH-2547: ContentLine: Fix spelling of "suppress", deprecate SupressWeirds() (Arne Welzel, Corelight)

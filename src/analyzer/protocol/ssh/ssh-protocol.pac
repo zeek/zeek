@@ -130,7 +130,7 @@ type SSH2_KEXINIT(length: uint32, is_orig: bool) = record {
 # KEX_DH exchanges
 
 type SSH2_Key_Exchange_DH_Message(is_orig: bool, msg_type: uint8, length: uint32) = case msg_type of {
-	SSH_MSG_KEXDH_INIT  -> init   : SSH2_DH_GEX_INIT(length);
+	SSH_MSG_KEXDH_INIT  -> init   : SSH2_DH_GEX_INIT(length, is_orig);
 	SSH_MSG_KEXDH_REPLY -> reply  : SSH2_DH_GEX_REPLY(length);
 	default             -> unknown: bytestring &length=length &transient;
 };
@@ -141,7 +141,7 @@ type SSH2_Key_Exchange_DH_GEX_Message(is_orig: bool, msg_type: uint8, length: ui
 	SSH_MSG_KEX_DH_GEX_REQUEST_OLD -> request_old : SSH2_DH_GEX_REQUEST_OLD;
 	SSH_MSG_KEX_DH_GEX_REQUEST     -> request     : SSH2_DH_GEX_REQUEST;
 	SSH_MSG_KEX_DH_GEX_GROUP       -> group       : SSH2_DH_GEX_GROUP(length);
-	SSH_MSG_KEX_DH_GEX_INIT        -> init        : SSH2_DH_GEX_INIT(length);
+	SSH_MSG_KEX_DH_GEX_INIT        -> init        : SSH2_DH_GEX_INIT(length, is_orig);
 	SSH_MSG_KEX_DH_GEX_REPLY       -> reply       : SSH2_DH_GEX_REPLY(length);
 	default                        -> unknown     : bytestring &length=length &transient;
 };
@@ -161,7 +161,7 @@ type SSH2_DH_GEX_GROUP(length: uint32) = record {
 	g : ssh_string;
 } &length=length;
 
-type SSH2_DH_GEX_INIT(length: uint32) = record {
+type SSH2_DH_GEX_INIT(length: uint32, is_orig: bool) = record {
 	e : ssh_string;
 } &length=length;
 
@@ -175,7 +175,7 @@ type SSH2_DH_GEX_REPLY(length: uint32) = record {
 
 type SSH2_Key_Exchange_RSA_Message(is_orig: bool, msg_type: uint8, length: uint32) = case msg_type of {
 	SSH_MSG_KEXRSA_PUBKEY -> pubkey : SSH2_RSA_PUBKEY(length);
-	SSH_MSG_KEXRSA_SECRET -> secret : SSH2_RSA_SECRET(length);
+	SSH_MSG_KEXRSA_SECRET -> secret : SSH2_RSA_SECRET(length, is_orig);
 	SSH_MSG_KEXRSA_DONE   -> done   : SSH2_RSA_DONE(length);
 };
 
@@ -184,7 +184,7 @@ type SSH2_RSA_PUBKEY(length: uint32) = record {
 	k_t : ssh_string;
 } &length=length;
 
-type SSH2_RSA_SECRET(length: uint32) = record {
+type SSH2_RSA_SECRET(length: uint32, is_orig: bool) = record {
 	encrypted_payload : ssh_string;
 } &length=length;
 
@@ -195,7 +195,7 @@ type SSH2_RSA_DONE(length: uint32) = record {
 # KEX_GSS exchanges
 
 type SSH2_Key_Exchange_GSS_Message(is_orig: bool, msg_type: uint8, length: uint32) = case msg_type of {
-	SSH_MSG_KEXGSS_INIT     -> init     : SSH2_GSS_INIT(length);
+	SSH_MSG_KEXGSS_INIT     -> init     : SSH2_GSS_INIT(length, is_orig);
 	SSH_MSG_KEXGSS_CONTINUE -> cont     : SSH2_GSS_CONTINUE(length);
 	SSH_MSG_KEXGSS_COMPLETE -> complete : SSH2_GSS_COMPLETE(length);
 	SSH_MSG_KEXGSS_HOSTKEY  -> hostkey  : SSH2_GSS_HOSTKEY(length);
@@ -204,7 +204,7 @@ type SSH2_Key_Exchange_GSS_Message(is_orig: bool, msg_type: uint8, length: uint3
 	SSH_MSG_KEXGSS_GROUP    -> group    : SSH2_DH_GEX_GROUP(length);
 };
 
-type SSH2_GSS_INIT(length: uint32) = record {
+type SSH2_GSS_INIT(length: uint32, is_orig: bool) = record {
 	output_token : ssh_string;
 	e            : ssh_string;
 } &length=length;
@@ -237,19 +237,19 @@ type SSH2_GSS_ERROR(length: uint32) = record {
 # KEX_ECDH and KEX_ECMQV exchanges
 
 type SSH2_Key_Exchange_ECC_Message(is_orig: bool, msg_type: uint8, length: uint32) = case msg_type of {
-	SSH_MSG_KEX_ECDH_INIT  -> init  : SSH2_ECC_INIT(length);
-	SSH_MSG_KEX_ECDH_REPLY -> reply : SSH2_ECC_REPLY(length);
+	SSH_MSG_KEX_ECDH_INIT  -> init  : SSH2_ECC_INIT(length, is_orig);
+	SSH_MSG_KEX_ECDH_REPLY -> reply : SSH2_ECC_REPLY(length, is_orig);
 };
 
 # This deviates from the RFC. SSH_MSG_KEX_ECDH_INIT and
 # SSH_MSG_KEX_ECMQV_INIT can be parsed the same way.
-type SSH2_ECC_INIT(length: uint32) = record {
+type SSH2_ECC_INIT(length: uint32, is_orig: bool) = record {
 	q_c : ssh_string;
 };
 
 # This deviates from the RFC. SSH_MSG_KEX_ECDH_REPLY and
 # SSH_MSG_KEX_ECMQV_REPLY can be parsed the same way.
-type SSH2_ECC_REPLY(length: uint32) = record {
+type SSH2_ECC_REPLY(length: uint32, is_orig: bool) = record {
 	k_s       : ssh_string;
 	q_s       : ssh_string;
 	signature : ssh_string;

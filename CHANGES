@@ -1,3 +1,7 @@
+5.2.0-dev.407 | 2022-12-06 10:01:45 +0100
+
+  * Added several events for detailed info on the SSH2 key init directions (Joost Jansen)
+
 5.2.0-dev.404 | 2022-12-05 10:33:53 +0100
 
   * Expose PA_ENC_TIMESTAMP to script land (nadavkluger)

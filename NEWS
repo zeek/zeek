@@ -140,6 +140,10 @@ New Functionality
 - Add two BIFs ``get_identifier_declaring_script()`` and ``get_record_field_declaring_script()``
   to query the declaring scripts for identifiers and record fields from Zeek scripts.
 
+- Extend the SSH analyzer to produce new events (``ssh2_ecc_init``,
+  ``ssh2_gh_gex_init``, ``ssh2_gss_init``, ssh2_rsa_secret``) to detect
+  when SSH client and server roles are reversed.
+
 Changed Functionality
 ---------------------
 

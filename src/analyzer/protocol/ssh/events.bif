@@ -7,11 +7,12 @@
 ##
 ## version: The identification string
 ##
-## .. zeek:see:: ssh_client_version ssh_auth_successful ssh_auth_failed
-##    ssh_auth_result ssh_auth_attempted ssh_capabilities
-##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
-##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
-##    ssh2_ecc_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh_server_version%(c: connection, version: string%);
 
 ## An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
@@ -23,11 +24,12 @@ event ssh_server_version%(c: connection, version: string%);
 ##
 ## version: The identification string
 ##
-## .. zeek:see:: ssh_server_version ssh_auth_successful ssh_auth_failed
-##    ssh_auth_result ssh_auth_attempted ssh_capabilities
-##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
-##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
-##    ssh2_ecc_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh_client_version%(c: connection, version: string%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -45,10 +47,11 @@ event ssh_client_version%(c: connection, version: string%);
 ##    unauthenticated access, which some servers support.
 ##
 ## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
-##    ssh_auth_result ssh_auth_attempted ssh_capabilities
-##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
-##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
-##    ssh2_ecc_key
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -74,11 +77,12 @@ event ssh_auth_successful%(c: connection, auth_method_none: bool%);
 ## authenticated: This is true if the analyzer detected a
 ##    successful connection from the authentication attempt.
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh_auth_attempted%(c: connection, authenticated: bool%);
 
 ## During the initial :abbr:`SSH (Secure Shell)` key exchange, each
@@ -96,11 +100,12 @@ event ssh_auth_attempted%(c: connection, authenticated: bool%);
 ## capabilities: The list of algorithms and languages that the sender
 ##    advertises support for, in order of preference.
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-##    ssh_auth_attempted ssh2_server_host_key ssh1_server_host_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabilities%);
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
@@ -113,11 +118,12 @@ event ssh_capabilities%(c: connection, cookie: string, capabilities: SSH::Capabi
 ## key: The server's public host key. Note that this is the public key
 ##    itself, and not just the fingerprint or hash.
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-##    ssh_auth_attempted ssh_capabilities ssh1_server_host_key
-##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_attempted ssh_capabilities
+##    ssh2_server_host_key ssh1_server_host_key ssh_server_host_key
+##    ssh_encrypted_packet ssh2_dh_server_params ssh2_gss_error
+##    ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init ssh2_gss_init
+##    ssh2_rsa_secret
 event ssh2_server_host_key%(c: connection, key: string%);
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
@@ -139,11 +145,12 @@ event ssh2_server_host_key%(c: connection, key: string%);
 ##
 ## exponent: The exponent of the server's public host key.
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh1_server_host_key%(c: connection, modulus: string, exponent: string%);
 
 ## During the :abbr:`SSH (Secure Shell)` key exchange, the server
@@ -167,11 +174,12 @@ event ssh1_server_host_key%(c: connection, modulus: string, exponent: string%);
 ##       by other traditional tools, ``ssh``, ``ssh-keygen``, etc, and is the
 ##       hexadecimal representation of all 16 MD5 hash bytes delimited by colons.
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
-##    ssh1_server_host_key ssh_encrypted_packet ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh_server_host_key%(c: connection, hash: string%);
 
 ## This event is generated when an :abbr:`SSH (Secure Shell)`
@@ -189,11 +197,12 @@ event ssh_server_host_key%(c: connection, hash: string%);
 ## len: The length of the :abbr:`SSH (Secure Shell)` payload, in
 ##    bytes. Note that this ignores reassembly, as this is unknown.
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
-##    ssh1_server_host_key ssh_server_host_key ssh2_dh_server_params
-##    ssh2_gss_error ssh2_ecc_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 
 ## Generated if the connection uses a Diffie-Hellman Group Exchange
@@ -207,11 +216,12 @@ event ssh_encrypted_packet%(c: connection, orig: bool, len: count%);
 ##
 ## q: The DH generator.
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
-##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
-##    ssh2_gss_error ssh2_ecc_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh2_dh_server_params%(c: connection, p: string, q: string%);
 
 ## In the event of a GSS-API error on the server, the server MAY send
@@ -227,11 +237,12 @@ event ssh2_dh_server_params%(c: connection, p: string, q: string%);
 ##
 ## err_msg: Detailed human-readable error message
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
-##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
-##    ssh2_dh_server_params ssh2_ecc_key
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, err_msg: string%);
 
 ## The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
@@ -241,15 +252,87 @@ event ssh2_gss_error%(c: connection, major_status: count, minor_status: count, e
 ## server's ephemeral public key is seen. For more information, see:
 ## :rfc:`5656#section-4`.
 ##
-## c: The connection
+## c: The connection.
 ##
 ## is_orig: Did this message come from the originator?
 ##
 ## q: The ephemeral public key
 ##
-## .. zeek:see:: ssh_server_version ssh_client_version
-##    ssh_auth_successful ssh_auth_failed ssh_auth_result
-##    ssh_auth_attempted ssh_capabilities ssh2_server_host_key
-##    ssh1_server_host_key ssh_server_host_key ssh_encrypted_packet
-##    ssh2_dh_server_params ssh2_gss_error
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
 event ssh2_ecc_key%(c: connection, is_orig: bool, q: string%);
+
+## The :abbr:`ECDH (Elliptic Curve Diffie-Hellman)` and
+## :abbr:`ECMQV (Elliptic Curve Menezes-Qu-Vanstone)` key exchange
+## algorithms use two ephemeral key pairs to generate a shared
+## secret. This event is generated when either the SSH_MSG_KEX_ECDH_INIT
+## or SSH_MSG_ECMQV_INIT message is observed. By definition, these need
+## to originate from the client and not from the server.
+## For more information, see:
+## :rfc:`5656#section-4`.
+##
+## c: The connection.
+##
+## is_orig: Did this message come from the originator?
+##
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
+event ssh2_ecc_init%(c: connection, is_orig: bool%);
+
+## Generated if the connection uses a Diffie-Hellman Group Exchange
+## key exchange method. This event contains the direction of the key
+## exchange setup, which is indicated by the the SSH_MSG_KEX_DH_GEX_INIT
+## message as defined in :rfc:`4419#section-3`.
+##
+## c: The connection.
+##
+## is_orig: Did this message come from the originator?
+##
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
+event ssh2_dh_gex_init%(c: connection, is_orig: bool%);
+
+## In the event of a GSS-API key exchange, this event is raised on
+## SSH_MSG_KEXGSS_INIT message.
+## For more information see :rfc:`4462#section-2.1`.
+##
+## c: The connection.
+##
+## is_orig: Did this message come from the originator?
+##
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
+event ssh2_gss_init%(c: connection, is_orig: bool%);
+
+## In the event of a GSS-API key exchange, this event is raised on
+## SSH_MSG_KEXRSA_PUBKEY message. This message is sent first by the server,
+## after which the server will respond with a SSH_MSG_KEXRSA_SECRET message.
+## For more information see :rfc:`4432#section-4`.
+##
+## c: The connection.
+##
+## is_orig: Did this message come from the originator?
+##
+## .. zeek:see:: ssh_server_version ssh_client_version ssh_auth_failed
+##    ssh_auth_result ssh_auth_successful ssh_auth_attempted
+##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
+##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
+##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
+##    ssh2_gss_init ssh2_rsa_secret
+event ssh2_rsa_secret%(c: connection, is_orig: bool%);

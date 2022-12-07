@@ -5631,6 +5631,10 @@ static bool disable_event_group(zeek::EventGroupKind kind, const char *group)
 	return true;
 	}
 
+static bool has_event_group(zeek::EventGroupKind kind, const char *group)
+	{
+	return zeek::event_registry->LookupGroup(kind, group) != nullptr;
+	}
 %%}
 
 ## Enabled the given event group.
@@ -5640,7 +5644,8 @@ static bool disable_event_group(zeek::EventGroupKind kind, const char *group)
 ##
 ## group: The group to enable.
 ##
-## .. zeek:see:: disable_event_group
+## .. zeek:see:: enable_event_group disable_event_group has_event_group
+##               enable_module_events disable_module_events has_module_events
 function enable_event_group%(group: string%) : bool
 	%{
 	return zeek::val_mgr->Bool(enable_event_group(zeek::EventGroupKind::Attribute,
@@ -5654,11 +5659,24 @@ function enable_event_group%(group: string%) : bool
 ##
 ## group: The group to disable.
 ##
-## .. zeek:see:: enable_event_group
+## .. zeek:see:: enable_event_group disable_event_group has_event_group
+##               enable_module_events disable_module_events has_module_events
 function disable_event_group%(group: string%) : bool
 	%{
 	return zeek::val_mgr->Bool(disable_event_group(zeek::EventGroupKind::Attribute,
 	                                               group->CheckString()));
+	%}
+
+## Does an attribute event group with this name exist?
+##
+## group: The group name.
+##
+## .. zeek:see:: enable_event_group disable_event_group has_event_group
+##               enable_module_events disable_module_events has_module_events
+function has_event_group%(group: string%) : bool
+	%{
+	return zeek::val_mgr->Bool(has_event_group(zeek::EventGroupKind::Attribute,
+	                                           group->CheckString()));
 	%}
 
 ## Enable all event handlers and hooks in the given module.
@@ -5668,7 +5686,8 @@ function disable_event_group%(group: string%) : bool
 ##
 ## module_name: The module to enable.
 ##
-## .. zeek:see:: disable_module_events enable_event_group disable_event_group
+## .. zeek:see:: enable_event_group disable_event_group has_event_group
+##               enable_module_events disable_module_events has_module_events
 function enable_module_events%(module_name: string%) : bool
 	%{
 	return zeek::val_mgr->Bool(enable_event_group(zeek::EventGroupKind::Module,
@@ -5681,9 +5700,22 @@ function enable_module_events%(module_name: string%) : bool
 ##
 ## module_name: The module to disable.
 ##
-## .. zeek:see:: enable_module_events enable_event_group disable_event_group
+## .. zeek:see:: enable_event_group disable_event_group has_event_group
+##               enable_module_events disable_module_events has_module_events
 function disable_module_events%(module_name: string%) : bool
 	%{
 	return zeek::val_mgr->Bool(disable_event_group(zeek::EventGroupKind::Module,
 	                                               module_name->CheckString()));
+	%}
+
+## Does a module event group with this name exist?
+##
+## group: The group name.
+##
+## .. zeek:see:: enable_event_group disable_event_group has_event_group
+##               enable_module_events disable_module_events has_module_events
+function has_module_events%(group: string%) : bool
+	%{
+	return zeek::val_mgr->Bool(has_event_group(zeek::EventGroupKind::Module,
+	                                           group->CheckString()));
 	%}

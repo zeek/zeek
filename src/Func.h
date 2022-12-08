@@ -88,6 +88,11 @@ public:
 	bool HasBodies() const { return bodies.size(); }
 
 	/**
+	 * Are there bodies and is any one of them enabled?
+	 */
+	bool HasEnabledBodies() const { return bodies.size() && has_enabled_bodies; };
+
+	/**
 	 * Calls a Zeek function.
 	 * @param args  the list of arguments to the function call.
 	 * @param parent  the frame from which the function is being called.
@@ -149,8 +154,11 @@ protected:
 	std::string name;
 
 private:
-	// EventGroup updates Func::Body.disabled
+	// EventGroup updates Func::Body.disabled and has_enabled_bodies.
+	// This is friend/private with EventGroup here so that we do not
+	// expose accessors in the zeek:: public interface.
 	friend class EventGroup;
+	bool has_enabled_bodies = true;
 	};
 
 namespace detail

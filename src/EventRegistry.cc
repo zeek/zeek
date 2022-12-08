@@ -1,5 +1,7 @@
 #include "zeek/EventRegistry.h"
 
+#include <algorithm>
+
 #include "zeek/EventHandler.h"
 #include "zeek/Func.h"
 #include "zeek/RE.h"
@@ -181,19 +183,32 @@ EventGroup::~EventGroup() noexcept { }
 
 // Run through all ScriptFunc instances associated with this group and
 // update their bodies after a group's enable/disable state has changed.
+// Once that has completed, also update the Func's has_enabled_bodies
+// setting based on the new state of its bodies.
 //
 // EventGroup is private friend with Func, so fiddling with the bodies
-// directly works and keeps the logic away from Func for now.
+// and private members works and keeps the logic out of Func and away
+// from the public zeek:: namespace.
 void EventGroup::UpdateFuncBodies()
 	{
-	static auto is_disabled = [](const auto& g)
+	static auto is_group_disabled = [](const auto& g)
 	{
 		return g->IsDisabled();
 	};
 
-	for ( const auto& func : funcs )
+	for ( auto& func : funcs )
+		{
+		const auto& bodies = func->GetBodies();
 		for ( auto& b : func->bodies )
-			b.disabled = std::any_of(b.groups.cbegin(), b.groups.cend(), is_disabled);
+			b.disabled = std::any_of(b.groups.cbegin(), b.groups.cend(), is_group_disabled);
+
+		static auto is_body_enabled = [](const auto& b)
+		{
+			return ! b.disabled;
+		};
+		func->has_enabled_bodies = std::any_of(func->bodies.cbegin(), func->bodies.cend(),
+		                                       is_body_enabled);
+		}
 	}
 
 void EventGroup::Enable()

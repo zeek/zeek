@@ -24,7 +24,8 @@ EventHandler::EventHandler(std::string arg_name)
 
 EventHandler::operator bool() const
 	{
-	return enabled && ((local && local->HasBodies()) || generate_always || ! auto_publish.empty());
+	return enabled &&
+	       ((local && local->HasEnabledBodies()) || generate_always || ! auto_publish.empty());
 	}
 
 const FuncTypePtr& EventHandler::GetType(bool check_export)

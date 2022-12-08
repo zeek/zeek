@@ -49,7 +49,10 @@ public:
 
 	// Flags the event as interesting even if there is no body defined. In
 	// particular, this will then still pass the event on to plugins.
-	void SetGenerateAlways() { generate_always = true; }
+	void SetGenerateAlways(bool arg_generate_always = true)
+		{
+		generate_always = arg_generate_always;
+		}
 	bool GenerateAlways() const { return generate_always; }
 
 	uint64_t CallCount() const { return call_count; }

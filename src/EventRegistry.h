@@ -90,6 +90,11 @@ public:
 	void ActivateAllHandlers();
 
 	/**
+	 * Undo the ActivateAllHandlers() action.
+	 */
+	void ResetActivateAllHandlers();
+
+	/**
 	 * Lookup or register a new event group.
 	 *
 	 * @return Pointer to the group.

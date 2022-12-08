@@ -166,6 +166,8 @@
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Config::set_value, <frame>, (DumpEvents::dump_all_events, F, )) -> <no result>
+0.000000   MetaHookPost  CallFunction(Config::set_value, <frame>, (DumpEvents::enable, F, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_analyzer_add_callback, <frame>, (Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/pkix-cert)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-ca-cert)) -> <no result>
@@ -495,6 +497,8 @@
 0.000000   MetaHookPost  CallFunction(NetControl::check_plugins, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(NetControl::init, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set, <frame>, (DumpEvents::dump_all_events, F, )) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set, <frame>, (DumpEvents::enable, F, )) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_method, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0)) -> <no result>
@@ -522,6 +526,12 @@
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (DPD::ignore_violations_after, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (DPD::max_violations, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Dir::polling_interval, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (DumpEvents::dump_all_events, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (DumpEvents::dump_all_events, lambda_<1498690042196124057>{ if (DumpEvents::new_value) generate_all_events()elsereset_generate_all_events()return (DumpEvents::new_value)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (DumpEvents::enable, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (DumpEvents::enable, lambda_<4181887500250565617>{ if (DumpEvents::new_value) enable_module_events(DumpEvents)elsedisable_module_events(DumpEvents)return (DumpEvents::new_value)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (DumpEvents::include, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (DumpEvents::include_args, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (FTP::cmd_reply_code, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (FTP::default_capture_password, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (FTP::guest_ids, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
@@ -733,6 +743,7 @@
 0.000000   MetaHookPost  CallFunction(bare_mode, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(cat, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(current_time, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(disable_module_events, <frame>, (DumpEvents)) -> <no result>
 0.000000   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
@@ -740,8 +751,11 @@
 0.000000   MetaHookPost  CallFunction(gsub, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(is_file_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
+0.000000   MetaHookPost  CallFunction(lambda_<1498690042196124057>, <null>, (DumpEvents::dump_all_events, F)) -> <no result>
+0.000000   MetaHookPost  CallFunction(lambda_<4181887500250565617>, <null>, (DumpEvents::enable, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(lstrip, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(new_event, <null>, (zeek_init, [])) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (3544/udp)) -> <no result>
@@ -750,6 +764,7 @@
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_live_traffic, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(reset_generate_all_events, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
 0.000000   MetaHookPost  CallFunction(split_string1, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
@@ -1026,6 +1041,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/dnp3, <...>/dnp3) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/dns, <...>/dns) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/dump-events, <...>/dump-events.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/email, <...>/email.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ethernet, <...>/ethernet) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/event.bif, <...>/event.bif.zeek) -> -1
@@ -1412,6 +1428,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dnp3, <...>/dnp3) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dns, <...>/dns) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/dump-events, <...>/dump-events.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/email, <...>/email.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ethernet, <...>/ethernet) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/event.bif, <...>/event.bif.zeek) -> (-1, <no content>)
@@ -1705,6 +1722,8 @@
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F]))
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F]))
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F]))
+0.000000   MetaHookPre   CallFunction(Config::set_value, <frame>, (DumpEvents::dump_all_events, F, ))
+0.000000   MetaHookPre   CallFunction(Config::set_value, <frame>, (DumpEvents::enable, F, ))
 0.000000   MetaHookPre   CallFunction(Files::register_analyzer_add_callback, <frame>, (Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)}))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/pkix-cert))
 0.000000   MetaHookPre   CallFunction(Files::register_for_mime_type, <frame>, (Files::ANALYZER_MD5, application/x-x509-ca-cert))
@@ -2034,6 +2053,8 @@
 0.000000   MetaHookPre   CallFunction(NetControl::check_plugins, <frame>, ())
 0.000000   MetaHookPre   CallFunction(NetControl::init, <null>, ())
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Option::set, <frame>, (DumpEvents::dump_all_events, F, ))
+0.000000   MetaHookPre   CallFunction(Option::set, <frame>, (DumpEvents::enable, F, ))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_method, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0))
@@ -2061,6 +2082,12 @@
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (DPD::ignore_violations_after, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (DPD::max_violations, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Dir::polling_interval, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (DumpEvents::dump_all_events, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (DumpEvents::dump_all_events, lambda_<1498690042196124057>{ if (DumpEvents::new_value) generate_all_events()elsereset_generate_all_events()return (DumpEvents::new_value)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (DumpEvents::enable, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (DumpEvents::enable, lambda_<4181887500250565617>{ if (DumpEvents::new_value) enable_module_events(DumpEvents)elsedisable_module_events(DumpEvents)return (DumpEvents::new_value)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (DumpEvents::include, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (DumpEvents::include_args, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (FTP::cmd_reply_code, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (FTP::default_capture_password, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (FTP::guest_ids, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
@@ -2272,6 +2299,7 @@
 0.000000   MetaHookPre   CallFunction(bare_mode, <null>, ())
 0.000000   MetaHookPre   CallFunction(cat, ..., ...)
 0.000000   MetaHookPre   CallFunction(current_time, <frame>, ())
+0.000000   MetaHookPre   CallFunction(disable_module_events, <frame>, (DumpEvents))
 0.000000   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
@@ -2279,8 +2307,11 @@
 0.000000   MetaHookPre   CallFunction(gsub, ..., ...)
 0.000000   MetaHookPre   CallFunction(is_file_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
+0.000000   MetaHookPre   CallFunction(lambda_<1498690042196124057>, <null>, (DumpEvents::dump_all_events, F))
+0.000000   MetaHookPre   CallFunction(lambda_<4181887500250565617>, <null>, (DumpEvents::enable, F))
 0.000000   MetaHookPre   CallFunction(lstrip, ..., ...)
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
+0.000000   MetaHookPre   CallFunction(new_event, <null>, (zeek_init, []))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2123/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2152/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (3544/udp))
@@ -2289,6 +2320,7 @@
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (6081/udp))
 0.000000   MetaHookPre   CallFunction(reading_live_traffic, <frame>, ())
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
+0.000000   MetaHookPre   CallFunction(reset_generate_all_events, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
 0.000000   MetaHookPre   CallFunction(split_string1, ..., ...)
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
@@ -2565,6 +2597,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/dnp3, <...>/dnp3)
 0.000000   MetaHookPre   LoadFile(0, base<...>/dns, <...>/dns)
+0.000000   MetaHookPre   LoadFile(0, base<...>/dump-events, <...>/dump-events.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/email, <...>/email.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ethernet, <...>/ethernet)
 0.000000   MetaHookPre   LoadFile(0, base<...>/event.bif, <...>/event.bif.zeek)
@@ -2951,6 +2984,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/directions-and-hosts, <...>/directions-and-hosts.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dnp3, <...>/dnp3)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dns, <...>/dns)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/dump-events, <...>/dump-events.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/email, <...>/email.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ethernet, <...>/ethernet)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/event.bif, <...>/event.bif.zeek)
@@ -3243,6 +3277,8 @@
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/worker, node_type=Cluster::WORKER, max_nodes=<uninitialized>, exclusive=F])
+0.000000 | HookCallFunction Config::set_value(DumpEvents::dump_all_events, F, )
+0.000000 | HookCallFunction Config::set_value(DumpEvents::enable, F, )
 0.000000 | HookCallFunction Files::register_analyzer_add_callback(Files::ANALYZER_EXTRACT, FileExtract::on_add{ if (!FileExtract::args?$extract_filename) FileExtract::args$extract_filename = cat(extract-, FileExtract::f$last_active, -, FileExtract::f$source, -, FileExtract::f$id)FileExtract::f$info$extracted = FileExtract::args$extract_filenameFileExtract::args$extract_filename = build_path_compressed(FileExtract::prefix, FileExtract::args$extract_filename)FileExtract::f$info$extracted_cutoff = Fmkdir(FileExtract::prefix)})
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/pkix-cert)
 0.000000 | HookCallFunction Files::register_for_mime_type(Files::ANALYZER_MD5, application/x-x509-ca-cert)
@@ -3572,6 +3608,8 @@
 0.000000 | HookCallFunction NetControl::check_plugins()
 0.000000 | HookCallFunction NetControl::init()
 0.000000 | HookCallFunction Notice::want_pp()
+0.000000 | HookCallFunction Option::set(DumpEvents::dump_all_events, F, )
+0.000000 | HookCallFunction Option::set(DumpEvents::enable, F, )
 0.000000 | HookCallFunction Option::set_change_handler(ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(ActiveHTTP::default_method, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0)
@@ -3599,6 +3637,12 @@
 0.000000 | HookCallFunction Option::set_change_handler(DPD::ignore_violations_after, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(DPD::max_violations, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Dir::polling_interval, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(DumpEvents::dump_all_events, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(DumpEvents::dump_all_events, lambda_<1498690042196124057>{ if (DumpEvents::new_value) generate_all_events()elsereset_generate_all_events()return (DumpEvents::new_value)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(DumpEvents::enable, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(DumpEvents::enable, lambda_<4181887500250565617>{ if (DumpEvents::new_value) enable_module_events(DumpEvents)elsedisable_module_events(DumpEvents)return (DumpEvents::new_value)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(DumpEvents::include, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(DumpEvents::include_args, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(FTP::cmd_reply_code, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(FTP::default_capture_password, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(FTP::guest_ids, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
@@ -3810,6 +3854,7 @@
 0.000000 | HookCallFunction bare_mode()
 0.000000 | HookCallFunction cat(...)
 0.000000 | HookCallFunction current_time()
+0.000000 | HookCallFunction disable_module_events(DumpEvents)
 0.000000 | HookCallFunction filter_change_tracking()
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
@@ -3817,8 +3862,11 @@
 0.000000 | HookCallFunction gsub(...)
 0.000000 | HookCallFunction is_file_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction is_packet_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
+0.000000 | HookCallFunction lambda_<1498690042196124057>(DumpEvents::dump_all_events, F)
+0.000000 | HookCallFunction lambda_<4181887500250565617>(DumpEvents::enable, F)
 0.000000 | HookCallFunction lstrip(...)
 0.000000 | HookCallFunction network_time()
+0.000000 | HookCallFunction new_event(zeek_init, [])
 0.000000 | HookCallFunction port_to_count(2123/udp)
 0.000000 | HookCallFunction port_to_count(2152/udp)
 0.000000 | HookCallFunction port_to_count(3544/udp)
@@ -3827,6 +3875,7 @@
 0.000000 | HookCallFunction port_to_count(6081/udp)
 0.000000 | HookCallFunction reading_live_traffic()
 0.000000 | HookCallFunction reading_traces()
+0.000000 | HookCallFunction reset_generate_all_events()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
 0.000000 | HookCallFunction split_string1(...)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
@@ -4115,6 +4164,7 @@
 0.000000 | HookLoadFile  base<...>/directions-and-hosts <...>/directions-and-hosts.zeek
 0.000000 | HookLoadFile  base<...>/dnp3 <...>/dnp3
 0.000000 | HookLoadFile  base<...>/dns <...>/dns
+0.000000 | HookLoadFile  base<...>/dump-events <...>/dump-events.zeek
 0.000000 | HookLoadFile  base<...>/email <...>/email.zeek
 0.000000 | HookLoadFile  base<...>/ethernet <...>/ethernet
 0.000000 | HookLoadFile  base<...>/event.bif <...>/event.bif.zeek
@@ -4501,6 +4551,7 @@
 0.000000 | HookLoadFileExtended base<...>/directions-and-hosts <...>/directions-and-hosts.zeek
 0.000000 | HookLoadFileExtended base<...>/dnp3 <...>/dnp3
 0.000000 | HookLoadFileExtended base<...>/dns <...>/dns
+0.000000 | HookLoadFileExtended base<...>/dump-events <...>/dump-events.zeek
 0.000000 | HookLoadFileExtended base<...>/email <...>/email.zeek
 0.000000 | HookLoadFileExtended base<...>/ethernet <...>/ethernet
 0.000000 | HookLoadFileExtended base<...>/event.bif <...>/event.bif.zeek

@@ -76,7 +76,6 @@
 @load misc/capture-loss.zeek
 @load misc/detect-traceroute/__load__.zeek
 @load misc/detect-traceroute/main.zeek
-# @load misc/dump-events.zeek
 @load misc/load-balancing.zeek
 @load misc/loaded-scripts.zeek
 @load misc/profiling.zeek

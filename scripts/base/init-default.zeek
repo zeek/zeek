@@ -79,6 +79,7 @@
 @load base/files/extract
 @load base/files/x509
 
+@load base/misc/dump-events
 @load base/misc/find-checksum-offloading
 @load base/misc/find-filtered-trace
 @load base/misc/installation

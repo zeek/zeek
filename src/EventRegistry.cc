@@ -146,6 +146,16 @@ void EventRegistry::ActivateAllHandlers()
 		}
 	}
 
+void EventRegistry::ResetActivateAllHandlers()
+	{
+	auto event_names = AllHandlers();
+	for ( const auto& name : event_names )
+		{
+		if ( auto event = Lookup(name) )
+			event->SetGenerateAlways(false);
+		}
+	}
+
 EventGroupPtr EventRegistry::RegisterGroup(EventGroupKind kind, std::string_view name)
 	{
 	auto key = std::pair{kind, std::string{name}};

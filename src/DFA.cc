@@ -11,8 +11,6 @@
 namespace zeek::detail
 	{
 
-unsigned int DFA_State::transition_counter = 0;
-
 DFA_State::DFA_State(int arg_state_num, const EquivClass* ec, NFA_state_list* arg_nfa_states,
                      AcceptingSet* arg_accept)
 	{

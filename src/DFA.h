@@ -68,8 +68,6 @@ protected:
 	NFA_state_list* nfa_states;
 	EquivClass* meta_ec; // which ec's make same transition
 	DFA_State* mark;
-
-	static unsigned int transition_counter; // see Xtion()
 	};
 
 using DigestStr = std::basic_string<u_char>;

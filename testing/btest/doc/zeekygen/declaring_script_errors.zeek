@@ -1,4 +1,5 @@
 # @TEST-DOC: Test zeekygen declaring script functions error/empty cases.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; zeek -b `basename %INPUT` >out
 # @TEST-EXEC: btest-diff out

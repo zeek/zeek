@@ -1,3 +1,9 @@
+5.2.0-dev.422 | 2022-12-09 16:07:47 +0100
+
+  * maintenance updates for -O C++ (Vern Paxson, Corelight)
+
+  * maintenance updates for -O ZAM (Vern Paxson, Corelight)
+
 5.2.0-dev.418 | 2022-12-08 10:28:01 +0100
 
   * dfa: Remove transition_counter (Arne Welzel, Corelight)

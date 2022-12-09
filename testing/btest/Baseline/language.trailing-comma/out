@@ -38,9 +38,15 @@ tab6, table[string,string] of vector of count, {
 [a, b] = [1, 2],
 [c, d] = [3, 4]
 }
-tab7, table[string,string] of list of count,count, {
-[a, b] = 1, 2,
-[c, d] = 3, 4
+tab7, table[string,string] of set[count], {
+[a, b] = {
+2,
+1
+},
+[c, d] = {
+4,
+3
+}
 }
 tab8, table[MyRecord] of count, {
 [[a=c, b=d]] = 43,

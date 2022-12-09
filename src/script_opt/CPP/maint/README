@@ -15,7 +15,7 @@ The maintenance workflow:
     to check in updates to the list of how the compiler currently fares
     on various btests (see end of this doc):
 
-	Mon Nov  7 14:30:51 PST 2022
+	Sat Dec  3 13:20:43 PST 2022
 
 2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.
@@ -69,12 +69,18 @@ These BTests won't successfully run due to the indicated issue:
 		pass to fail when it tries to start up a new httpd
 	skipped - test can be skipped due to environmental reasons (e.g.,
 		whether we have a certain Kerberos setup)
+	start-next - test uses @TEST-START-NEXT.  As long as the diagnostic
+		output doesn't have errors for language.blank-local-4, it's ok
+	race? - appears to have a race condition, can fail even when
+		running with interpreter, and can pass with -O C++
 
-Database Of Known Issues (keep sorted)
+Database Of Known Issues
 
-../testing/btest/bifs/table_values.zeek bad-constructor
+../testing/btest/language/blank-local.zeek start-next
+../testing/btest/language/when-aggregates.zeek bad-when
 ../testing/btest/scripts/base/protocols/krb/smb2_krb.test skipped
 ../testing/btest/scripts/base/protocols/krb/smb2_krb_nokeytab.test skipped
 ../testing/btest/scripts/base/utils/active-http.test test-glitch
 ../testing/btest/scripts/policy/frameworks/dpd/packet-segment-logging.zeek cond
 ../testing/btest/scripts/policy/misc/dump-events.zeek skipped
+../testing/btest/supervisor/revive-leaf.zeek race?

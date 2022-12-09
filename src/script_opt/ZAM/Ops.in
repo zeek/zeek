@@ -344,7 +344,10 @@ eval	--frame[z.v1].int_val;
 op DecrU
 op1-read-write
 type V
-eval	--frame[z.v1].uint_val;
+eval	auto& u = frame[z.v1].uint_val;
+	if ( u == 0 )
+		ZAM_run_time_warning(z.loc, "count underflow");
+	--u;
 
 unary-op AppendTo
 # Note, even though it feels like appending both reads and modifies
@@ -1559,6 +1562,9 @@ type CiH
 op1-read
 eval	EvalScheduleArgs(z.c, z.v1,)
 
+macro QueueEvent(eh, args)
+	if ( *eh )
+		event_mgr.Enqueue(eh, std::move(args));
 
 op Event
 type HL
@@ -1566,19 +1572,19 @@ op1-read
 custom-method return CompileEvent(h, l);
 eval	ValVec args;
 	z.aux->FillValVec(args, frame);
-	event_mgr.Enqueue(z.event_handler, std::move(args));
+	QueueEvent(z.event_handler, args);
 
 internal-op Event0
 type X
 eval	ValVec args(0);
-	event_mgr.Enqueue(z.event_handler, std::move(args));
+	QueueEvent(z.event_handler, args);
 
 internal-op Event1
 type V
 op1-read
 eval	ValVec args(1);
 	args[0] = frame[z.v1].ToVal(z.t);
-	event_mgr.Enqueue(z.event_handler, std::move(args));
+	QueueEvent(z.event_handler, args);
 
 internal-op Event2
 type VV
@@ -1586,7 +1592,7 @@ op1-read
 eval	ValVec args(2);
 	args[0] = frame[z.v1].ToVal(z.t);
 	args[1] = frame[z.v2].ToVal(z.t2);
-	event_mgr.Enqueue(z.event_handler, std::move(args));
+	QueueEvent(z.event_handler, args);
 
 internal-op Event3
 type VVV
@@ -1596,7 +1602,7 @@ eval	ValVec args(3);
 	args[1] = frame[z.v2].ToVal(z.t2);
 	auto types = z.aux->types;
 	args[2] = frame[z.v3].ToVal(types[2]);
-	event_mgr.Enqueue(z.event_handler, std::move(args));
+	QueueEvent(z.event_handler, args);
 
 internal-op Event4
 type VVVV
@@ -1607,7 +1613,7 @@ eval	ValVec args(4);
 	auto types = z.aux->types;
 	args[2] = frame[z.v3].ToVal(types[2]);
 	args[3] = frame[z.v4].ToVal(types[3]);
-	event_mgr.Enqueue(z.event_handler, std::move(args));
+	QueueEvent(z.event_handler, args);
 
 
 op Return

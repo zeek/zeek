@@ -303,7 +303,7 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
 		bodies.push_back(b);
 		}
 
-	sort(bodies.begin(), bodies.end());
+	std::stable_sort(bodies.begin(), bodies.end());
 
 	if ( ! bodies.empty() )
 		{
@@ -566,7 +566,7 @@ void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits,
 	current_priority = b.priority = priority;
 
 	bodies.push_back(b);
-	sort(bodies.begin(), bodies.end());
+	std::stable_sort(bodies.begin(), bodies.end());
 	}
 
 void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)

@@ -1,0 +1,19 @@
+# Just two traces with MySQL running in Amazon RDS tls1.3 and tls1.2
+
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/tls-12-amazon-rds.trace %INPUT
+# @TEST-EXEC: mkdir tls-12 && mv *log tls-12
+#
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/tls-13-amazon-rds.trace %INPUT
+# @TEST-EXEC: mkdir tls-13 && mv *log tls-13
+#
+# @TEST-EXEC: btest-diff tls-12/conn.log
+# #TEST-EXEC: btest-diff tls-12/ssl.log
+# #TEST-EXEC: btest-diff tls-12/x509.log
+#
+# @TEST-EXEC: btest-diff tls-13/conn.log
+# #TEST-EXEC: btest-diff tls-13/ssl.log
+# #TEST-EXEC: ! test -f tls-13/x509.log
+
+@load base/protocols/conn
+@load base/protocols/mysql
+@load base/protocols/ssl

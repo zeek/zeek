@@ -1,0 +1,7 @@
+# Running with mysql --skip-ssl...
+
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/plain-amazon-rds.trace %INPUT
+#
+# @TEST-EXEC: btest-diff mysql.log
+
+@load base/protocols/mysql

@@ -93,7 +93,8 @@ jobs:
             CONFFLAGS=${{ env.CONFFLAGS }}
           push: true
           tags: |
-            zeekurity/${{ steps.target.outputs.tag }}
+            docker.io/zeekurity/${{ steps.target.outputs.tag }}
+            docker.io/zeek/${{ steps.target.outputs.tag }}
 
       - name: Preserve image artifact
         uses: actions/upload-artifact@v2

@@ -207,9 +207,6 @@ install(DIRECTORY DESTINATION ${ZEEK_SPOOL_DIR})
 install(DIRECTORY DESTINATION ${ZEEK_LOG_DIR})
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
-execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
-                "${CMAKE_CURRENT_BINARY_DIR}/zeek-wrapper.in"
-                "${CMAKE_CURRENT_BINARY_DIR}/bro-path-dev")
 
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
      "export ZEEKPATH=`${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev`\n"
@@ -795,8 +792,6 @@ if ( NOT MSVC )
   # Install wrapper script for Bro-to-Zeek renaming.
   include(InstallShellScript)
   include(InstallSymlink)
-  InstallShellScript("bin" "zeek-wrapper.in" "zeek-wrapper")
-  InstallSymlink("${CMAKE_INSTALL_PREFIX}/bin/zeek-wrapper" "${CMAKE_INSTALL_PREFIX}/bin/bro-config")
 endif ()
 
 ########################################################################

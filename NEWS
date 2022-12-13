@@ -127,6 +127,12 @@ New Functionality
   implemented in a given module can be toggled with ``disable_module_events()``
   and ``enable_module_events()``.
 
+- Extend the ``Logging::Stream`` record with an ``event_groups`` field and
+  toggle these during ``Log::disable_stream`` and ``Log::enable_stream``
+  invocations. This allows for explicit/manual opt-in performance optimizations
+  by turning off event handlers at runtime that are only needed for log
+  generation.
+
 - On Linux, the AF_PACKET packet source plugin (https://github.com/zeek/zeek-af_packet-plugin)
   is included as builtin plugin by default. To select this packet source, prefix
   the interface name with ``af_packet``.

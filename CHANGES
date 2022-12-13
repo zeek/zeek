@@ -1,3 +1,19 @@
+5.2.0-dev.427 | 2022-12-13 11:37:47 +0100
+
+  * logging: Add event_groups to Stream (Arne Welzel, Corelight)
+
+    This commit adds an optional event_groups field to the Logging::Stream record
+    to associated event groups with logging streams.
+
+    This can be used to disable all event groups of a logging stream when it is
+    disabled. It does require making an explicit connection between the
+    logging stream and the involved groups, however.
+
+  * zeek.bif: Add has_event_group() / has_module_events() (Arne Welzel, Corelight)
+
+    Introduce helpers to determine if a given attribute or module event
+    group exists given a string.
+
 5.2.0-dev.422 | 2022-12-09 16:07:47 +0100
 
   * maintenance updates for -O C++ (Vern Paxson, Corelight)

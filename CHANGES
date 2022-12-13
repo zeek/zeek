@@ -1,3 +1,9 @@
+5.2.0-dev.432 | 2022-12-13 10:25:21 -0700
+
+  * Bump Spicy and spicy-plugin to latest releases. (Benjamin Bannier, Corelight)
+
+    This bumps Spicy to 1.6.0 and spicy-plugin to 1.4.2.
+
 5.2.0-dev.430 | 2022-12-13 11:50:47 +0100
 
   * Func: Use std::stable_sort() for sorting bodies by priority (Arne Welzel, Corelight)

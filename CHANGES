@@ -1,3 +1,7 @@
+5.2.0-dev.430 | 2022-12-13 11:50:47 +0100
+
+  * Func: Use std::stable_sort() for sorting bodies by priority (Arne Welzel, Corelight)
+
 5.2.0-dev.427 | 2022-12-13 11:37:47 +0100
 
   * logging: Add event_groups to Stream (Arne Welzel, Corelight)

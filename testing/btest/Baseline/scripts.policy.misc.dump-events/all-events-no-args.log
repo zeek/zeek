@@ -4,11 +4,12 @@
          0.000000 filter_change_tracking
 XXXXXXXXXX.XXXXXX Broker::log_flush
 XXXXXXXXXX.XXXXXX ChecksumOffloading::check
+XXXXXXXXXX.XXXXXX run_sync_hook
 XXXXXXXXXX.XXXXXX filter_change_tracking
 XXXXXXXXXX.XXXXXX new_connection
 XXXXXXXXXX.XXXXXX dns_message
 XXXXXXXXXX.XXXXXX dns_request
-XXXXXXXXXX.XXXXXX analyzer_confirmation
+XXXXXXXXXX.XXXXXX analyzer_confirmation_info
 XXXXXXXXXX.XXXXXX dns_end
 XXXXXXXXXX.XXXXXX dns_message
 XXXXXXXXXX.XXXXXX dns_CNAME_reply
@@ -19,7 +20,7 @@ XXXXXXXXXX.XXXXXX connection_established
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_reply
-XXXXXXXXXX.XXXXXX analyzer_confirmation
+XXXXXXXXXX.XXXXXX analyzer_confirmation_info
 XXXXXXXXXX.XXXXXX smtp_request
 XXXXXXXXXX.XXXXXX Broker::log_flush
 XXXXXXXXXX.XXXXXX smtp_reply
@@ -108,6 +109,7 @@ XXXXXXXXXX.XXXXXX smtp_request
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX Broker::log_flush
 XXXXXXXXXX.XXXXXX new_connection
+XXXXXXXXXX.XXXXXX run_sync_hook
 XXXXXXXXXX.XXXXXX ChecksumOffloading::check
 XXXXXXXXXX.XXXXXX connection_state_remove
 XXXXXXXXXX.XXXXXX Broker::log_flush
@@ -117,10 +119,11 @@ XXXXXXXXXX.XXXXXX connection_state_remove
 XXXXXXXXXX.XXXXXX filter_change_tracking
 XXXXXXXXXX.XXXXXX new_connection
 XXXXXXXXXX.XXXXXX Broker::log_flush
+XXXXXXXXXX.XXXXXX run_sync_hook
 XXXXXXXXXX.XXXXXX new_connection
 XXXXXXXXXX.XXXXXX connection_established
 XXXXXXXXXX.XXXXXX smtp_reply
-XXXXXXXXXX.XXXXXX analyzer_confirmation
+XXXXXXXXXX.XXXXXX analyzer_confirmation_info
 XXXXXXXXXX.XXXXXX smtp_request
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_reply
@@ -162,6 +165,7 @@ XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX smtp_request
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX Broker::log_flush
+XXXXXXXXXX.XXXXXX run_sync_hook
 XXXXXXXXXX.XXXXXX new_connection
 XXXXXXXXXX.XXXXXX new_connection
 XXXXXXXXXX.XXXXXX new_connection
@@ -173,7 +177,7 @@ XXXXXXXXXX.XXXXXX ssl_extension
 XXXXXXXXXX.XXXXXX ssl_extension
 XXXXXXXXXX.XXXXXX ssl_extension
 XXXXXXXXXX.XXXXXX ssl_extension
-XXXXXXXXXX.XXXXXX analyzer_confirmation
+XXXXXXXXXX.XXXXXX analyzer_confirmation_info
 XXXXXXXXXX.XXXXXX ssl_client_hello
 XXXXXXXXXX.XXXXXX ssl_handshake_message
 XXXXXXXXXX.XXXXXX ssl_plaintext_data
@@ -227,6 +231,7 @@ XXXXXXXXXX.XXXXXX ssl_plaintext_data
 XXXXXXXXXX.XXXXXX ssl_established
 XXXXXXXXXX.XXXXXX net_done
 XXXXXXXXXX.XXXXXX Broker::log_flush
+XXXXXXXXXX.XXXXXX run_sync_hook
 XXXXXXXXXX.XXXXXX filter_change_tracking
 XXXXXXXXXX.XXXXXX connection_state_remove
 XXXXXXXXXX.XXXXXX connection_state_remove

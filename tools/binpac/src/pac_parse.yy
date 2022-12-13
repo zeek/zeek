@@ -1068,17 +1068,17 @@ const ID* current_decl_id = 0;
 
 int yyerror(const char msg[])
 	{
-	char* msgbuf = 
-		new char[strlen(msg) + yyleng + 64];
+	auto n = strlen(msg) + yyleng + 64;
+	char* msgbuf = new char[n];
 
 	if ( ! yychar || ! yytext || yytext[0] == '\0' )
-		sprintf(msgbuf, "%s, at end of file", msg);
+		snprintf(msgbuf, n, "%s, at end of file", msg);
 
 	else if ( yytext[0] == '\n' )
-		sprintf(msgbuf, "%s, on previous line", msg);
+		snprintf(msgbuf, n, "%s, on previous line", msg);
 
 	else
-		sprintf(msgbuf, "%s, at or near \"%s\"", msg, yytext);
+		snprintf(msgbuf, n, "%s, at or near \"%s\"", msg, yytext);
 
 	/*
 	extern int column;

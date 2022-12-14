@@ -1,3 +1,7 @@
+5.2.0-dev.435 | 2022-12-13 21:51:24 -0800
+
+  * Docker Hub: Push images to zeek/zeek and zeek/zeek-dev (Arne Welzel, Corelight)
+
 5.2.0-dev.432 | 2022-12-13 10:25:21 -0700
 
   * Bump Spicy and spicy-plugin to latest releases. (Benjamin Bannier, Corelight)

@@ -22,3 +22,8 @@ hook Telemetry::log_policy(rec: Telemetry::Info, id: Log::ID, filter: Log::Filte
 	if ( rec$prefix == "zeek" && rec$name == "version_info" )
 		break;
 	}
+
+# The IMAP analyzer includes absolute filenames in its error messages,
+# exclude it for now from analyzer.log.
+# https://github.com/zeek/zeek/issues/2659
+redef Analyzer::Logging::ignore_analyzers += { Analyzer::ANALYZER_IMAP };

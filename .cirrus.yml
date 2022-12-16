@@ -51,7 +51,7 @@ sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
   # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
   greedy: true
 
-ci_template: &CI_TEMPLATE
+branch_whitelist: &BRANCH_WHITELIST
   # Rules for skipping builds:
   # - Don't do darwin builds on zeek-security repo because they use up a ton of compute credits.
   # - Always build PRs, but not if they come from dependabot
@@ -65,6 +65,9 @@ ci_template: &CI_TEMPLATE
       $CIRRUS_BRANCH =~ 'release/.*'
       )
     ) )
+
+ci_template: &CI_TEMPLATE
+  << : *BRANCH_WHITELIST
 
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.
@@ -384,3 +387,4 @@ windows_task:
     ZEEK_CI_CPUS: 8
     # Give verbose error output on a test failure.
     CTEST_OUTPUT_ON_FAILURE: 1
+  << : *BRANCH_WHITELIST

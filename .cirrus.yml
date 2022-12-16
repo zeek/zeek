@@ -264,16 +264,16 @@ alpine_task:
 
 # Apple doesn't publish official long-term support timelines.
 # We aim to support both the current and previous macOS release.
-macos_monterey_task:
+macos_ventura_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-base:latest
+    image: ghcr.io/cirruslabs/macos-ventura-base:latest
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
 
-macos_big_sur_task:
+macos_monterey_task:
   macos_instance:
-    image: big-sur-xcode-12.5
+    image: ghcr.io/cirruslabs/macos-monterey-base:latest
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT

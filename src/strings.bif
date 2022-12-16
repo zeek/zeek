@@ -733,7 +733,7 @@ function string_to_ascii_hex%(s: string%): string
 	const u_char* sp = s->Bytes();
 
 	for ( int i = 0; i < s->Len(); ++i )
-		sprintf(x + i * 2, "%02x", sp[i]);
+		snprintf(x + i * 2, 3, "%02x", sp[i]);
 
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, (u_char*) x, s->Len() * 2));
 	%}

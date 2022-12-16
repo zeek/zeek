@@ -992,7 +992,7 @@ public:
 		if ( binary )
 			{
 			char key = char(random() % 26) + 'A';
-			sprintf(key_file, "%d.%d-%c.key", Length(), max_distance, key);
+			snprintf(key_file, 100, "%d.%d-%c.key", Length(), max_distance, key);
 			std::ofstream f(key_file, std::ios::binary | std::ios::out | std::ios::trunc);
 			for ( int idx = 0; idx < Capacity(); idx++ )
 				if ( ! table[idx].Empty() )
@@ -1005,7 +1005,7 @@ public:
 		else
 			{
 			char key = char(random() % 26) + 'A';
-			sprintf(key_file, "%d.%d-%d.ckey", Length(), max_distance, key);
+			snprintf(key_file, 100, "%d.%d-%d.ckey", Length(), max_distance, key);
 			std::ofstream f(key_file, std::ios::out | std::ios::trunc);
 			for ( int idx = 0; idx < Capacity(); idx++ )
 				if ( ! table[idx].Empty() )

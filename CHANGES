@@ -1,3 +1,7 @@
+5.2.0-dev.437 | 2022-12-16 08:16:30 -0700
+
+  * GH-2637: Re-remove the bro symlink wrapper (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.435 | 2022-12-13 21:51:24 -0800
 
   * Docker Hub: Push images to zeek/zeek and zeek/zeek-dev (Arne Welzel, Corelight)

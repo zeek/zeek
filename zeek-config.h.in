@@ -54,6 +54,9 @@
 /* Define if libpcap supports pcap_dump_open_append(). */
 #cmakedefine HAVE_PCAP_DUMP_OPEN_APPEND
 
+/* Define if the pcap library is winpcap or npcap */
+#cmakedefine HAVE_WPCAP
+
 /* line editing & history powers */
 #cmakedefine HAVE_READLINE
 

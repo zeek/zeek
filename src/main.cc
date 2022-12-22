@@ -11,6 +11,37 @@
 
 #ifdef _MSC_VER
 #include <fcntl.h> // For _O_BINARY.
+
+// By default, Windows only looks in the System32 directory for dlls. Npcap installs
+// into System32\Npcap, so we have to add that path to the search path for DLLs or
+// the process won't find it. This is annoying, but it's how the Npcap project
+// recommends we do it. See https://npcap.com/guide/npcap-devguide.html#npcap-feature-native
+// for further info.
+static void init_npcap_dll_path()
+	{
+#ifdef HAVE_WPCAP
+	BOOL(WINAPI * SetDllDirectory)(LPCTSTR);
+	char sysdir_name[512];
+	int len;
+
+	SetDllDirectory = (BOOL(WINAPI*)(LPCTSTR))GetProcAddress(GetModuleHandle("kernel32.dll"),
+	                                                         "SetDllDirectoryA");
+	if ( SetDllDirectory == NULL )
+		{
+		fprintf(stderr, "Error in SetDllDirectory");
+		}
+	else
+		{
+		len = GetSystemDirectory(sysdir_name, 480); //	be safe
+		if ( ! len )
+			fprintf(stderr, "Error in GetSystemDirectory (%d)", GetLastError());
+		strcat(sysdir_name, "\\Npcap");
+		if ( SetDllDirectory(sysdir_name) == 0 )
+			fprintf(stderr, "Error in SetDllDirectory(\"System32\\Npcap\")");
+		}
+#endif
+	}
+
 #endif
 
 int main(int argc, char** argv)
@@ -18,7 +49,10 @@ int main(int argc, char** argv)
 #ifdef _MSC_VER
 	_setmode(_fileno(stdout), _O_BINARY);
 	_setmode(_fileno(stderr), _O_BINARY);
+
+	init_npcap_dll_path();
 #endif
+
 	auto time_start = zeek::util::current_time(true);
 	auto setup_result = zeek::detail::setup(argc, argv);
 

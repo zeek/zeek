@@ -71,10 +71,13 @@ if ( MSVC )
     endif()
 
     # Set LibPCAP to point to libpcap binaries.
-    find_package(libpcap)
-    set(PCAP_ROOT_DIR "${libpcap_LIB_DIRS}/../")
-    set(PCAP_INCLUDE_DIR ${libpcap_INCLUDES})
-    set(PCAP_LIBRARY ${libpcap_LIBS})
+    if ( NOT PCAP_ROOT_DIR )
+        find_package(libpcap)
+        set(PCAP_ROOT_DIR "${libpcap_LIB_DIRS}/../")
+        set(PCAP_INCLUDE_DIR ${libpcap_INCLUDES})
+        set(PCAP_LIBRARY ${libpcap_LIBS})
+    endif()
+
     set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)
 
     # Set ZLib to point at the right variable.

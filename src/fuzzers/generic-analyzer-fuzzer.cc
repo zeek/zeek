@@ -40,6 +40,12 @@ static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 	auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn);
 	auto* pia = new zeek::analyzer::pia::PIA_TCP(conn);
 	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(TOSTRING(ZEEK_FUZZ_ANALYZER), conn);
+	if ( ! a )
+		{
+		fprintf(stderr, "Unknown or unsupported analyzer %s found\n", TOSTRING(ZEEK_FUZZ_ANALYZER));
+		abort();
+		}
+
 	tcp->AddChildAnalyzer(a);
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());
 	conn->SetSessionAdapter(tcp, pia);

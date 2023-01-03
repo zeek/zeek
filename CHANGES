@@ -1,3 +1,9 @@
+5.2.0-dev.442 | 2023-01-03 12:09:10 -0700
+
+  * CI: avoid doing Windows builds with every push (Tim Wojtulewicz, Corelight)
+
+  * CI: drop macOS Big Sur, add macOS Ventura (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.437 | 2022-12-16 08:16:30 -0700
 
   * GH-2637: Re-remove the bro symlink wrapper (Tim Wojtulewicz, Corelight)

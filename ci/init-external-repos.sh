@@ -51,7 +51,13 @@ if [[ -n "${CIRRUS_CI}" ]] && [[ "${CIRRUS_REPO_OWNER}" == "zeek" ]] && [[ ! -d 
 
     banner "Trying to clone zeek-testing-private git repo"
     echo "${ZEEK_TESTING_PRIVATE_SSH_KEY}" >cirrus_key.b64
-    base64 -d cirrus_key.b64 >cirrus_key
+    if [ "${CIRRUS_TASK_NAME}" == "macos_ventura" ]; then
+        # The base64 command provided with macOS Ventura requires an argument
+        # to pass the input filename
+        base64 -d -i cirrus_key.b64 >cirrus_key
+    else
+        base64 -d cirrus_key.b64 >cirrus_key
+    fi
     rm cirrus_key.b64
     chmod 600 cirrus_key
     git --version

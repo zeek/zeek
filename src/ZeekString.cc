@@ -215,7 +215,7 @@ char* String::Render(int format, int* len) const
 
 			*sp++ = '\\';
 			*sp++ = 'x';
-			sprintf(hex_fmt, "%02x", b[i]);
+			snprintf(hex_fmt, 16, "%02x", b[i]);
 			*sp++ = hex_fmt[0];
 			*sp++ = hex_fmt[1];
 			}

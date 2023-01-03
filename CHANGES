@@ -1,3 +1,11 @@
+5.2.0-dev.447 | 2023-01-03 15:44:39 -0700
+
+  * Fix sprintf warnings on macOS (Tim Wojtulewicz, Corelight)
+
+    The most recent compiler update for macOS marked sprintf as
+    deprecated, so we started getting warnings from all of the places
+    that use it.
+
 5.2.0-dev.445 | 2023-01-03 12:10:20 -0700
 
   * Update COPYING to 2023 (Tim Wojtulewicz, Corelight)

@@ -231,16 +231,17 @@ void DFA_State::Dump(FILE* f, DFA_Machine* m)
 			if ( xtions[i] != s )
 				break;
 
-		char xbuf[512];
+		constexpr int xbuf_size = 512;
+		char* xbuf = new char[xbuf_size];
 
 		int r = m->Rep(sym);
 		if ( ! r )
 			r = '.';
 
 		if ( i == sym + 1 )
-			sprintf(xbuf, "'%c'", r);
+			snprintf(xbuf, xbuf_size, "'%c'", r);
 		else
-			sprintf(xbuf, "'%c'-'%c'", r, m->Rep(i - 1));
+			snprintf(xbuf, xbuf_size, "'%c'-'%c'", r, m->Rep(i - 1));
 
 		if ( s == DFA_UNCOMPUTED_STATE_PTR )
 			fprintf(f, "%stransition on %s to <uncomputed>", ++num_trans == 1 ? "\t" : "\n\t",
@@ -248,6 +249,8 @@ void DFA_State::Dump(FILE* f, DFA_Machine* m)
 		else
 			fprintf(f, "%stransition on %s to state %d", ++num_trans == 1 ? "\t" : "\n\t", xbuf,
 			        s->StateNum());
+
+		delete[] xbuf;
 
 		sym = i - 1;
 		}

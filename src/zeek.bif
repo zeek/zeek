@@ -452,9 +452,10 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 static int do_system(const char* s)
 	{
 	const char* system_fmt = "(%s) 1>&2 &";	// output to stderr
-	char* cmd = new char[strlen(system_fmt) + strlen(s) + 1];
+	auto cmd_len = strlen(system_fmt) + strlen(s) + 1;
+	char* cmd = new char[cmd_len];
 
-	sprintf(cmd, system_fmt, s);
+	snprintf(cmd, cmd_len, system_fmt, s);
 	int status = system(cmd);
 	delete [] cmd;
 

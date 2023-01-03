@@ -1,3 +1,13 @@
+5.2.0-dev.445 | 2023-01-03 12:10:20 -0700
+
+  * Update COPYING to 2023 (Tim Wojtulewicz, Corelight)
+
+  * Rename COPYING.3rdparty to COPYING-3rdparty (Tim Wojtulewicz, Corelight)
+
+    This keeps GitHub from being confused about this file being part of
+    the repository's license, and thus not displaying the proper linkage
+    to our actual COPYING file.
+
 5.2.0-dev.442 | 2023-01-03 12:09:10 -0700
 
   * CI: avoid doing Windows builds with every push (Tim Wojtulewicz, Corelight)

@@ -96,3 +96,40 @@ add_generic_analyzer_fuzz_target(http)
 add_generic_analyzer_fuzz_target(imap)
 add_generic_analyzer_fuzz_target(pop3)
 add_generic_analyzer_fuzz_target(smtp)
+
+add_generic_analyzer_fuzz_target(dce_rpc)
+add_generic_analyzer_fuzz_target(dhcp)
+add_generic_analyzer_fuzz_target(dnp3_tcp)
+add_generic_analyzer_fuzz_target(irc)
+add_generic_analyzer_fuzz_target(modbus)
+add_generic_analyzer_fuzz_target(mqtt)
+add_generic_analyzer_fuzz_target(mysql)
+add_generic_analyzer_fuzz_target(ncp)
+add_generic_analyzer_fuzz_target(ntp)
+add_generic_analyzer_fuzz_target(radius)
+add_generic_analyzer_fuzz_target(rdp)
+add_generic_analyzer_fuzz_target(rdpeudp)
+add_generic_analyzer_fuzz_target(rfb)
+add_generic_analyzer_fuzz_target(mount)      #rpc
+add_generic_analyzer_fuzz_target(nfs)        #rpc
+add_generic_analyzer_fuzz_target(portmapper) #rpc
+add_generic_analyzer_fuzz_target(sip)
+add_generic_analyzer_fuzz_target(smb)
+add_generic_analyzer_fuzz_target(snmp)
+add_generic_analyzer_fuzz_target(ssh)
+add_generic_analyzer_fuzz_target(syslog)
+
+#add_generic_analyzer_fuzz_target(finger)  # no pcap files
+#add_generic_analyzer_fuzz_target(gssapi)  # only samples are embedded in smb
+#add_generic_analyzer_fuzz_target(ident)   # no pcap files
+#add_generic_analyzer_fuzz_target(krb)     # should these just be handled by smb?
+#add_generic_analyzer_fuzz_target(krb_tcp) # should these just be handled by smb?
+#add_generic_analyzer_fuzz_target(rsh)     # login - no pcap files
+#add_generic_analyzer_fuzz_target(rlogin)  # login - no pcap files
+#add_generic_analyzer_fuzz_target(telnet)  # login - no pcap files
+#add_generic_analyzer_fuzz_target(netbios) # no pcap files
+#add_generic_analyzer_fuzz_target(ntlm)    # only samples are embedded in dce-rpc or smb
+#add_generic_analyzer_fuzz_target(xdr)     # rpc - no pcap files
+#add_generic_analyzer_fuzz_target(sip_tcp) # unnecessary?
+#add_generic_analyzer_fuzz_target(socks)   # can this one be tested by adding SOCKS pkts to the HTTP corpus?
+#add_generic_analyzer_fuzz_target(xmpp)    # no pcap files

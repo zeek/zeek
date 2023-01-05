@@ -1,3 +1,9 @@
+5.2.0-dev.453 | 2023-01-05 09:53:47 -0700
+
+  * Add error and abort if fuzzer requested is not found (Tim Wojtulewicz, Corelight)
+
+  * Add a bunch of new fuzzers and corpus data (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.450 | 2023-01-05 12:12:13 +0100
 
   * EventRegistry/Func: Disable events when all bodies are disabled (Arne Welzel, Corelight)

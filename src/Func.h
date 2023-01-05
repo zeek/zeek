@@ -85,7 +85,14 @@ public:
 		};
 
 	const std::vector<Body>& GetBodies() const { return bodies; }
-	bool HasBodies() const { return bodies.size(); }
+	bool HasBodies() const { return ! bodies.empty(); }
+
+	/**
+	 * Are there bodies and is any one of them enabled?
+	 *
+	 * @return  true if bodies exist and at least one is enabled.
+	 */
+	bool HasEnabledBodies() const { return ! bodies.empty() && has_enabled_bodies; };
 
 	/**
 	 * Calls a Zeek function.
@@ -149,8 +156,11 @@ protected:
 	std::string name;
 
 private:
-	// EventGroup updates Func::Body.disabled
+	// EventGroup updates Func::Body.disabled and has_enabled_bodies.
+	// This is friend/private with EventGroup here so that we do not
+	// expose accessors in the zeek:: public interface.
 	friend class EventGroup;
+	bool has_enabled_bodies = true;
 	};
 
 namespace detail

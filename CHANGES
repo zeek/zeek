@@ -1,3 +1,12 @@
+5.2.0-dev.450 | 2023-01-05 12:12:13 +0100
+
+  * EventRegistry/Func: Disable events when all bodies are disabled (Arne Welzel, Corelight)
+
+    Add state to Func for tracking if any enabled bodies exist which
+    allows us to propagate it up to the EventHandler::bool() operator.
+    In turn, when all bodies of an event's Func have been runtime disabled,
+    the event itself will not be invoked anymore.
+
 5.2.0-dev.447 | 2023-01-03 15:44:39 -0700
 
   * Fix sprintf warnings on macOS (Tim Wojtulewicz, Corelight)

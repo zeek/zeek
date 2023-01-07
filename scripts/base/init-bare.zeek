@@ -3516,10 +3516,10 @@ export {
 	type SMB2::Fscontrol: record {
 		## minimum amount of free disk space required to begin document filtering
 		free_space_start_filtering : int;
-		## minimum amount of free disk space required to continue document filtering
+		## minimum amount of free disk space required to continue filtering documents and merging word lists
 		free_space_threshold       : int;
-		## minimum amount of free disk space required to continue document filtering
-		free_space_threshold       : int;
+		## minimum amount of free disk space required to continue content filtering
+		free_space_stop_filtering  : int;
 		## default per-user disk quota
 		delete_quota_threshold     : count;
 		## default per-user disk limit

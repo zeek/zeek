@@ -1,0 +1,11 @@
+# @TEST-EXEC: zeek -r $TRACES/smb/smb2_fscontrol.pcap %INPUT > out
+# @TEST-EXEC: btest-diff out
+
+@load base/protocols/smb
+
+event smb2_file_fscontrol(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, fs_control: SMB2::Fscontrol)
+    {
+    print hdr;
+    print file_id;
+    print fs_control;
+    }

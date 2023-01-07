@@ -545,7 +545,17 @@ endif ()
 
 if ( NOT DISABLE_SPICY )
     if ( NOT SPICY_ROOT_DIR )
+        # Spicy's variable defining shared-build status has generic name. To
+        # avoid clashing with an unrelated variable we set it only temporarily.
+        set(BUILD_SHARED_LIBS_SAVED ${BUILD_SHARED_LIBS})
+        if ( BUILD_STATIC_SPICY )
+            set(BUILD_SHARED_LIBS false)
+        else ()
+            set(BUILD_SHARED_LIBS true)
+        endif ()
         add_subdirectory(auxil/spicy)
+        set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_SAVED})
+        unset(BUILD_SHARED_LIBS_SAVED)
 
         # Set variables used by the spicy-plugin build since we are building Spicy
         # as part of Zeek so spicy-plugin cannot use `spicy-config` at configure

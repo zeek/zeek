@@ -1064,7 +1064,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 
 	if ( field_ids.count(td->id) != 0 )
 		{
-		reporter->Error("Duplicate field '%s' found in record definition\n", td->id);
+		reporter->Error("duplicate field '%s' found in record definition", td->id);
 		return;
 		}
 	else
@@ -1336,6 +1336,10 @@ void RecordType::Create(std::vector<std::optional<ZVal>>& r) const
 	for ( int i = 0; i < n; ++i )
 		{
 		auto& init = field_inits[i];
+
+		if ( ! init )
+			// This can happen due to error propagation.
+			continue;
 
 		ZVal r_i;
 

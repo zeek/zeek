@@ -22,7 +22,7 @@ set(BISON_ROOT ${dir}/..)
 # dependency of spicy-plugin. This can lead to e.g. consistency issues during
 # execution or the problem during teardown where the same global might be
 # cleaned up multiple times.
-set(BUILD_SHARED_LIBS OFF)
+set(BUILD_SHARED_LIBS ON) # FIXME(bbannier):
 
 # Spicy uses slightly less strict warnings than Zeek proper. Mute a few warnings for Spicy.
 # NOTE: Compiler flags are inherited down the directory tree, so in order to

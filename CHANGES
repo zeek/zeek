@@ -1,3 +1,17 @@
+5.0.5 | 2023-01-09 10:02:52 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 5.0.5 release (Tim Wojtulewicz, Corelight)
+
+  * CI: drop macOS Big Sur, add macOS Ventura (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 555f705e2db263757c7c6ac580afcaf20c299065)
+
+  * Switch macOS Monterey build to new m1-based VM (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit a927c4a998f2cefb136d9d1e712f6e441b3e6720)
+
+  * Update broker submodule to version 2.3.6 [nomail] (Tim Wojtulewicz, Corelight)
+
 5.0.4 | 2022-11-22 09:05:55 -0700
 
   * Update CHANGES, VERSION, and NEWS for 5.0.4 release (Tim Wojtulewicz, Corelight)

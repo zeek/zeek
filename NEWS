@@ -3,6 +3,14 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.5
+==========
+
+This release fixes the following bugs:
+
+- Update broker to version 2.3.6. This broker release fixes some failures when
+  building against Python 3.11 and above.
+
 Zeek 5.0.4
 ==========
 

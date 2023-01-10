@@ -155,6 +155,11 @@ New Functionality
   This change only has an effect in settings where ``Analyzer::disable_all``
   is changed to ``T``. By default, all analyzers continue to be enabled.
 
+- A new ``analyzer.log`` was added to log all analyzer violations and
+  optionally analyzer confirmations. This log can be useful during development
+  of new analyzers as well as for collecting operational data in production
+  environments.
+
 Changed Functionality
 ---------------------
 

@@ -7,6 +7,8 @@
 @load base/frameworks/broker
 @load base/frameworks/supervisor
 @load base/frameworks/input
+@load base/frameworks/cluster
+@load base/frameworks/config
 @load base/frameworks/analyzer
 @load base/frameworks/files
 

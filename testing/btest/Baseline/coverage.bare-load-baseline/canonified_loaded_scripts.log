@@ -114,8 +114,19 @@ scripts/base/init-frameworks-and-bifs.zeek
     scripts/base/frameworks/input/readers/binary.zeek
     scripts/base/frameworks/input/readers/config.zeek
     scripts/base/frameworks/input/readers/sqlite.zeek
+  scripts/base/frameworks/cluster/__load__.zeek
+    scripts/base/frameworks/cluster/main.zeek
+      scripts/base/frameworks/control/__load__.zeek
+        scripts/base/frameworks/control/main.zeek
+    scripts/base/frameworks/cluster/pools.zeek
+      scripts/base/utils/hash_hrw.zeek
+  scripts/base/frameworks/config/__load__.zeek
+    scripts/base/frameworks/config/main.zeek
+    scripts/base/frameworks/config/input.zeek
+    scripts/base/frameworks/config/weird.zeek
   scripts/base/frameworks/analyzer/__load__.zeek
     scripts/base/frameworks/analyzer/dpd.zeek
+    scripts/base/frameworks/analyzer/logging.zeek
   scripts/base/frameworks/files/__load__.zeek
     scripts/base/frameworks/files/main.zeek
       scripts/base/utils/site.zeek

@@ -192,6 +192,7 @@
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SMTP, [get_file_handle=SMTP::get_file_handle{ return (cat(Analyzer::ANALYZER_SMTP, SMTP::c$start_time, SMTP::c$smtp$trans_depth, SMTP::c$smtp_state$mime_depth))}, describe=SMTP::describe_file{ <init> SMTP::c{ if (SMTP::f$source != SMTP) return ()for ([SMTP::_] in SMTP::f$conns) { return (SMTP::describe(SMTP::c$smtp))}return ()}}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::c{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::_] in SSL::f$conns) { if (SSL::c?$ssl) { return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(FilteredTraceDetection::should_detect, <null>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
@@ -242,6 +243,7 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (X509::LOG, [name=default, writer=Log::WRITER_ASCII, path=x509, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}])) -> <no result>
@@ -291,7 +293,9 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy, event_groups={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__enable_stream, <frame>, (Analyzer::Logging::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Analyzer::Logging::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Config::LOG)) -> <no result>
@@ -341,6 +345,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Weird::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (X509::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (mysql::LOG)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
@@ -391,6 +396,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (X509::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Analyzer::Logging::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Broker::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Cluster::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Config::LOG, default)) -> <no result>
@@ -440,6 +446,7 @@
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Weird::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (X509::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (mysql::LOG, default)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}])) -> <no result>
@@ -489,6 +496,7 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy, event_groups={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::enable_stream, <frame>, (Analyzer::Logging::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::get_filter, <frame>, (SSL::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::log_stream_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>])) -> <no result>
@@ -497,6 +505,12 @@
 0.000000   MetaHookPost  CallFunction(Notice::want_pp, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_method, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::enable, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::enable, lambda_<2645182068207650863>{ if (Analyzer::Logging::new_value) Log::enable_stream(Analyzer::Logging::LOG)elseLog::disable_stream(Analyzer::Logging::LOG)return (Analyzer::Logging::new_value)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::failure_data_max_size, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::ignore_analyzers, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::include_confirmations, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::include_confirmations, lambda_<15261139872714441626>{ if (Analyzer::Logging::new_value) enable_event_group(Analyzer::Logging::include_confirmations)elsedisable_event_group(Analyzer::Logging::include_confirmations)return (Analyzer::Logging::new_value)}, 0)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0)) -> <no result>
@@ -733,13 +747,19 @@
 0.000000   MetaHookPost  CallFunction(bare_mode, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(cat, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(current_time, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations)) -> <no result>
+0.000000   MetaHookPost  CallFunction(enable_module_events, <frame>, (Analyzer::Logging)) -> <no result>
 0.000000   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(global_options, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(gsub, ..., ...) -> <no result>
+0.000000   MetaHookPost  CallFunction(has_event_group, <frame>, (Analyzer::Logging)) -> <no result>
+0.000000   MetaHookPost  CallFunction(has_module_events, <frame>, (Analyzer::Logging)) -> <no result>
 0.000000   MetaHookPost  CallFunction(is_file_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
+0.000000   MetaHookPost  CallFunction(lambda_<15261139872714441626>, <frame>, (Analyzer::Logging::include_confirmations, F)) -> <no result>
+0.000000   MetaHookPost  CallFunction(lambda_<2645182068207650863>, <frame>, (Analyzer::Logging::enable, T)) -> <no result>
 0.000000   MetaHookPost  CallFunction(lstrip, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(network_time, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2123/udp)) -> <no result>
@@ -925,6 +945,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./last, <...>/last.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./log, <...>/log.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./log-ocsp, <...>/log-ocsp.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./logging, <...>/logging.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./logging.bif.zeek, <...>/logging.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./magic, <...>/magic) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./main, <...>/main.zeek) -> -1
@@ -1311,6 +1332,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./last, <...>/last.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./log, <...>/log.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./log-ocsp, <...>/log-ocsp.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./logging, <...>/logging.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./logging.bif.zeek, <...>/logging.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./magic, <...>/magic) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./main, <...>/main.zeek) -> (-1, <no content>)
@@ -1731,6 +1753,7 @@
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SMTP, [get_file_handle=SMTP::get_file_handle{ return (cat(Analyzer::ANALYZER_SMTP, SMTP::c$start_time, SMTP::c$smtp$trans_depth, SMTP::c$smtp_state$mime_depth))}, describe=SMTP::describe_file{ <init> SMTP::c{ if (SMTP::f$source != SMTP) return ()for ([SMTP::_] in SMTP::f$conns) { return (SMTP::describe(SMTP::c$smtp))}return ()}}]))
 0.000000   MetaHookPre   CallFunction(Files::register_protocol, <frame>, (Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::c{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::_] in SSL::f$conns) { if (SSL::c?$ssl) { return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}]))
 0.000000   MetaHookPre   CallFunction(FilteredTraceDetection::should_detect, <null>, ())
+0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
@@ -1781,6 +1804,7 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (X509::LOG, [name=default, writer=Log::WRITER_ASCII, path=x509, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}]))
@@ -1830,7 +1854,9 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy, event_groups={}]))
+0.000000   MetaHookPre   CallFunction(Log::__enable_stream, <frame>, (Analyzer::Logging::LOG))
 0.000000   MetaHookPre   CallFunction(Log::__write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Analyzer::Logging::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Config::LOG))
@@ -1880,6 +1906,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Weird::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (X509::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (mysql::LOG))
+0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Config::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
@@ -1930,6 +1957,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (X509::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (mysql::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
+0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Analyzer::Logging::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Broker::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Cluster::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Config::LOG, default))
@@ -1979,6 +2007,7 @@
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Weird::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (X509::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (mysql::LOG, default))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}]))
@@ -2028,6 +2057,7 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy, event_groups={}]))
+0.000000   MetaHookPre   CallFunction(Log::enable_stream, <frame>, (Analyzer::Logging::LOG))
 0.000000   MetaHookPre   CallFunction(Log::get_filter, <frame>, (SSL::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::log_stream_policy, <null>, ([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG))
 0.000000   MetaHookPre   CallFunction(Log::write, <frame>, (PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>]))
@@ -2036,6 +2066,12 @@
 0.000000   MetaHookPre   CallFunction(Notice::want_pp, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (ActiveHTTP::default_method, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::enable, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::enable, lambda_<2645182068207650863>{ if (Analyzer::Logging::new_value) Log::enable_stream(Analyzer::Logging::LOG)elseLog::disable_stream(Analyzer::Logging::LOG)return (Analyzer::Logging::new_value)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::failure_data_max_size, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::ignore_analyzers, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::include_confirmations, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::include_confirmations, lambda_<15261139872714441626>{ if (Analyzer::Logging::new_value) enable_event_group(Analyzer::Logging::include_confirmations)elsedisable_event_group(Analyzer::Logging::include_confirmations)return (Analyzer::Logging::new_value)}, 0))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0))
@@ -2272,13 +2308,19 @@
 0.000000   MetaHookPre   CallFunction(bare_mode, <null>, ())
 0.000000   MetaHookPre   CallFunction(cat, ..., ...)
 0.000000   MetaHookPre   CallFunction(current_time, <frame>, ())
+0.000000   MetaHookPre   CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations))
+0.000000   MetaHookPre   CallFunction(enable_module_events, <frame>, (Analyzer::Logging))
 0.000000   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
 0.000000   MetaHookPre   CallFunction(global_options, <frame>, ())
 0.000000   MetaHookPre   CallFunction(gsub, ..., ...)
+0.000000   MetaHookPre   CallFunction(has_event_group, <frame>, (Analyzer::Logging))
+0.000000   MetaHookPre   CallFunction(has_module_events, <frame>, (Analyzer::Logging))
 0.000000   MetaHookPre   CallFunction(is_file_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
+0.000000   MetaHookPre   CallFunction(lambda_<15261139872714441626>, <frame>, (Analyzer::Logging::include_confirmations, F))
+0.000000   MetaHookPre   CallFunction(lambda_<2645182068207650863>, <frame>, (Analyzer::Logging::enable, T))
 0.000000   MetaHookPre   CallFunction(lstrip, ..., ...)
 0.000000   MetaHookPre   CallFunction(network_time, <frame>, ())
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2123/udp))
@@ -2464,6 +2506,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./last, <...>/last.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./log, <...>/log.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./log-ocsp, <...>/log-ocsp.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./logging, <...>/logging.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./logging.bif.zeek, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./magic, <...>/magic)
 0.000000   MetaHookPre   LoadFile(0, ./main, <...>/main.zeek)
@@ -2850,6 +2893,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./last, <...>/last.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./log, <...>/log.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./log-ocsp, <...>/log-ocsp.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./logging, <...>/logging.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./logging.bif.zeek, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./magic, <...>/magic)
 0.000000   MetaHookPre   LoadFileExtended(0, ./main, <...>/main.zeek)
@@ -3269,6 +3313,7 @@
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_SMTP, [get_file_handle=SMTP::get_file_handle{ return (cat(Analyzer::ANALYZER_SMTP, SMTP::c$start_time, SMTP::c$smtp$trans_depth, SMTP::c$smtp_state$mime_depth))}, describe=SMTP::describe_file{ <init> SMTP::c{ if (SMTP::f$source != SMTP) return ()for ([SMTP::_] in SMTP::f$conns) { return (SMTP::describe(SMTP::c$smtp))}return ()}}])
 0.000000 | HookCallFunction Files::register_protocol(Analyzer::ANALYZER_SSL, [get_file_handle=SSL::get_file_handle{ return ()}, describe=SSL::describe_file{ <init> SSL::c{ if (SSL::f$source != SSL || !SSL::f?$info || !SSL::f$info?$x509 || !SSL::f$info$x509?$certificate) return ()for ([SSL::_] in SSL::f$conns) { if (SSL::c?$ssl) { return (cat(SSL::c$id$resp_h, :, SSL::c$id$resp_p))}}return (cat(Serial: , SSL::f$info$x509$certificate$serial,  Subject: , SSL::f$info$x509$certificate$subject,  Issuer: , SSL::f$info$x509$certificate$issuer))}}])
 0.000000 | HookCallFunction FilteredTraceDetection::should_detect()
+0.000000 | HookCallFunction Log::__add_filter(Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=analyzer, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=broker, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, path=cluster, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Config::LOG, [name=default, writer=Log::WRITER_ASCII, path=config, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
@@ -3319,6 +3364,7 @@
 0.000000 | HookCallFunction Log::__add_filter(Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(X509::LOG, [name=default, writer=Log::WRITER_ASCII, path=x509, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(mysql::LOG, [name=default, writer=Log::WRITER_ASCII, path=mysql, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
+0.000000 | HookCallFunction Log::__create_stream(Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])
 0.000000 | HookCallFunction Log::__create_stream(Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}])
@@ -3368,7 +3414,9 @@
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy, event_groups={}])
+0.000000 | HookCallFunction Log::__enable_stream(Analyzer::Logging::LOG)
 0.000000 | HookCallFunction Log::__write(PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>])
+0.000000 | HookCallFunction Log::add_default_filter(Analyzer::Logging::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Config::LOG)
@@ -3418,6 +3466,7 @@
 0.000000 | HookCallFunction Log::add_default_filter(Weird::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(X509::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(mysql::LOG)
+0.000000 | HookCallFunction Log::add_filter(Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Broker::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Cluster::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Config::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
@@ -3468,6 +3517,7 @@
 0.000000 | HookCallFunction Log::add_filter(Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(X509::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(mysql::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
+0.000000 | HookCallFunction Log::add_stream_filters(Analyzer::Logging::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Broker::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Cluster::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Config::LOG, default)
@@ -3517,6 +3567,7 @@
 0.000000 | HookCallFunction Log::add_stream_filters(Weird::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(X509::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(mysql::LOG, default)
+0.000000 | HookCallFunction Log::create_stream(Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])
 0.000000 | HookCallFunction Log::create_stream(Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}])
@@ -3566,6 +3617,7 @@
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(X509::LOG, [columns=X509::Info, ev=X509::log_x509, path=x509, policy=X509::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(mysql::LOG, [columns=MySQL::Info, ev=MySQL::log_mysql, path=mysql, policy=MySQL::log_policy, event_groups={}])
+0.000000 | HookCallFunction Log::enable_stream(Analyzer::Logging::LOG)
 0.000000 | HookCallFunction Log::get_filter(SSL::LOG, default)
 0.000000 | HookCallFunction Log::log_stream_policy([ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>], PacketFilter::LOG)
 0.000000 | HookCallFunction Log::write(PacketFilter::LOG, [ts=XXXXXXXXXX.XXXXXX, node=zeek, filter=ip or not ip, init=T, success=T, failure_reason=<uninitialized>])
@@ -3574,6 +3626,12 @@
 0.000000 | HookCallFunction Notice::want_pp()
 0.000000 | HookCallFunction Option::set_change_handler(ActiveHTTP::default_max_time, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(ActiveHTTP::default_method, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::enable, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::enable, lambda_<2645182068207650863>{ if (Analyzer::Logging::new_value) Log::enable_stream(Analyzer::Logging::LOG)elseLog::disable_stream(Analyzer::Logging::LOG)return (Analyzer::Logging::new_value)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::failure_data_max_size, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::ignore_analyzers, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::include_confirmations, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::include_confirmations, lambda_<15261139872714441626>{ if (Analyzer::Logging::new_value) enable_event_group(Analyzer::Logging::include_confirmations)elsedisable_event_group(Analyzer::Logging::include_confirmations)return (Analyzer::Logging::new_value)}, 0)
 0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0)
 0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_endpoint_name, Config::config_option_changed{ Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0)
@@ -3810,13 +3868,19 @@
 0.000000 | HookCallFunction bare_mode()
 0.000000 | HookCallFunction cat(...)
 0.000000 | HookCallFunction current_time()
+0.000000 | HookCallFunction disable_event_group(Analyzer::Logging::include_confirmations)
+0.000000 | HookCallFunction enable_module_events(Analyzer::Logging)
 0.000000 | HookCallFunction filter_change_tracking()
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
 0.000000 | HookCallFunction global_options()
 0.000000 | HookCallFunction gsub(...)
+0.000000 | HookCallFunction has_event_group(Analyzer::Logging)
+0.000000 | HookCallFunction has_module_events(Analyzer::Logging)
 0.000000 | HookCallFunction is_file_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction is_packet_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
+0.000000 | HookCallFunction lambda_<15261139872714441626>(Analyzer::Logging::include_confirmations, F)
+0.000000 | HookCallFunction lambda_<2645182068207650863>(Analyzer::Logging::enable, T)
 0.000000 | HookCallFunction lstrip(...)
 0.000000 | HookCallFunction network_time()
 0.000000 | HookCallFunction port_to_count(2123/udp)
@@ -4011,6 +4075,7 @@
 0.000000 | HookLoadFile  ./libmagic <...>/libmagic.sig
 0.000000 | HookLoadFile  ./log <...>/log.zeek
 0.000000 | HookLoadFile  ./log-ocsp <...>/log-ocsp.zeek
+0.000000 | HookLoadFile  ./logging <...>/logging.zeek
 0.000000 | HookLoadFile  ./logging.bif.zeek <...>/logging.bif.zeek
 0.000000 | HookLoadFile  ./magic <...>/magic
 0.000000 | HookLoadFile  ./main <...>/main.zeek
@@ -4397,6 +4462,7 @@
 0.000000 | HookLoadFileExtended ./libmagic <...>/libmagic.sig
 0.000000 | HookLoadFileExtended ./log <...>/log.zeek
 0.000000 | HookLoadFileExtended ./log-ocsp <...>/log-ocsp.zeek
+0.000000 | HookLoadFileExtended ./logging <...>/logging.zeek
 0.000000 | HookLoadFileExtended ./logging.bif.zeek <...>/logging.bif.zeek
 0.000000 | HookLoadFileExtended ./magic <...>/magic
 0.000000 | HookLoadFileExtended ./main <...>/main.zeek

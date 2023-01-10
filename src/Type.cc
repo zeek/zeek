@@ -1062,22 +1062,25 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	ASSERT(field == field_inits.size());
 	ASSERT(field == managed_fields.size());
 
-	if ( field_ids.count(td->id) != 0 )
-		{
-		reporter->Error("Duplicate field '%s' found in record definition\n", td->id);
-		return;
-		}
-	else
-		{
-		field_ids.insert(std::string(td->id));
-		}
-
 	managed_fields.push_back(ZVal::IsManagedType(td->type));
 
 	auto init = new FieldInit();
 	init->init_type = FieldInit::R_INIT_NONE;
 
 	init->attrs = td->attrs;
+
+	// We defer error-checking until here so that we can keep field_inits
+	// and managed_fields correctly tracking the associated fields.
+
+	if ( field_ids.count(td->id) != 0 )
+		{
+		reporter->Error("duplicate field '%s' found in record definition", td->id);
+		field_inits.push_back(init);
+		return;
+		}
+
+	field_ids.insert(std::string(td->id));
+
 	auto a = init->attrs;
 
 	auto type = td->type;
@@ -1335,7 +1338,11 @@ void RecordType::Create(std::vector<std::optional<ZVal>>& r) const
 
 	for ( int i = 0; i < n; ++i )
 		{
-		auto& init = field_inits[i];
+		auto* init = field_inits[i];
+
+		if ( ! init )
+			// This can happen due to error propagation.
+			continue;
 
 		ZVal r_i;
 

@@ -1,3 +1,39 @@
+5.2.0-dev.464 | 2023-01-10 10:25:28 +0100
+
+  * Expand docstrings of file_new and file_over_new_connection events (Christian Kreibich, Corelight)
+
+  * GH-2031: analyzer: Add analyzer.log for logging violations/confirmations (Arne Welzel, Corelight)
+
+    By default this only logs all the violations, regardless of the
+    confirmation state (for which there's still dpd.log). It includes
+    packet, protocol and file analyzers.
+
+    This uses options, change handlers and event groups for toggling
+    the functionality at runtime.
+
+  * GH-2647: intel/seen/file-names: Use file_over_new_connection() (Arne Welzel, Corelight)
+
+    The seen/file-names script relies on f$info$filename to be populated.
+    For HTTP and other network protocols, however, this field is only
+    populated during file_over_new_connection() that's running after
+    file_new().
+
+    Use the file_new() event only for files without connections and
+    file_over_new_connection() implies that f$conns is populated, anyway.
+
+    Special case SMB to avoid finding files twice, because there's a
+    custom implementation in seen/smb-filenames.zeek.
+
+  * scripts/analyzer: Introduce Analyzer::requested_analyzers (Arne Welzel, Corelight)
+
+    In certain deployment scenarios, all analyzers are disabled by default.
+    However, conditionally/optionally loaded scripts may rely on analyzers
+    functioning and declare a request for them.
+
+    Add a global set set to the Analyzer module where external scripts can record
+    their requirement/request for a certain analyzer. Analyzers found in this
+    set are enabled at zeek_init() time.
+
 5.2.0-dev.453 | 2023-01-05 09:53:47 -0700
 
   * Add error and abort if fuzzer requested is not found (Tim Wojtulewicz, Corelight)

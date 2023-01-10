@@ -737,8 +737,14 @@ event event_queue_flush_point%(%);
 ## .. zeek:see:: set_file_handle
 event get_file_handle%(tag: Analyzer::Tag, c: connection, is_orig: bool%);
 
-## Indicates that an analysis of a new file has begun. The analysis can be
-## augmented at this time via :zeek:see:`Files::add_analyzer`.
+## Indicates that analysis of a new file has begun.  The analysis can be
+## augmented at this time via :zeek:see:`Files::add_analyzer`.  This event
+## triggers once when Zeek first establishes state for the file.  Zeek does not
+## base identity on content (it cannot, since analysis has only just begun), but
+## on the relevant protocol analyzer's notion of file identity as per the
+## :zeek:see:`get_file_handle`/:zeek:see:`set_file_handle` mechanism.  That is,
+## Zeek triggers this event whenever a protocol analyzer thinks it's
+## encountering a new file.
 ##
 ## f: The file.
 ##
@@ -746,8 +752,13 @@ event get_file_handle%(tag: Analyzer::Tag, c: connection, is_orig: bool%);
 ##    file_sniff file_state_remove
 event file_new%(f: fa_file%);
 
-## Indicates that a file has been seen being transferred over a connection
-## different from the original.
+## Indicates that Zeek has begun to observe a file for the first time on the
+## given connection.  This is similar to :zeek:see:`file_new`, but also triggers
+## once on each subsequent connection in which the relevant protocol analyzer
+## encounters any part of the file.  As with :zeek:see:`file_new`, the protocol
+## analyzer defines file identity.  When Zeek encounters a file for the first
+## time, it first triggers :zeek:see:`file_new`, then
+## :zeek:see:`file_over_new_connection`.
 ##
 ## f: The file.
 ##

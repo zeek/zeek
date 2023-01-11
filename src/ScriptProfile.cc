@@ -177,7 +177,10 @@ void activate_script_profiling(const char* fn)
 		{
 		f = fopen(fn, "w");
 		if ( ! f )
-			reporter->FatalError("can't open %s to record scripting profile", fn);
+			{
+			fprintf(stderr, "ERROR: Can't open %s to record scripting profile\n", fn);
+			exit(1);
+			}
 		}
 	else
 		f = stdout;

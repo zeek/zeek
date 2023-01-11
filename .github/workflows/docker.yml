@@ -54,7 +54,7 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "::set-output name=RELEASE_VERSION::$(cat VERSION)"
+        run: echo "RELEASE_VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
 
       - name: Compute target tag
         id: target
@@ -69,11 +69,11 @@ jobs:
           #
           # Any other refs are not published below.
           if [ "${GITHUB_REF}" = "refs/tags/release" ]; then
-            echo "::set-output name=tag::zeek:latest"
+            echo "tag=zeek:latest" >> $GITHUB_OUTPUT
           elif [ "${GITHUB_REF}" = "refs/heads/master" ]; then
-            echo "::set-output name=tag::zeek-dev:latest"
+            echo "tag=zeek-dev:latest" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF}" = refs/tags/v* ]] && [[ "${GITHUB_REF}" != refs/tags/v*-dev ]]; then
-            echo "::set-output name=tag::zeek:${RELEASE_VERSION}"
+            echo "tag=zeek:${RELEASE_VERSION}" >> $GITHUB_OUTPUT
           fi
 
       - name: Login to ECR

@@ -543,6 +543,15 @@ if (ZEEK_STANDALONE)
                 ${bro_SUBDIR_LIBS}
                 ${bro_PLUGIN_LIBS}
     )
+
+    # npcap/winpcap need to be loaded in delayed mode so that we can set the load path
+    # correctly at runtime. See https://npcap.com/guide/npcap-devguide.html#npcap-feature-native
+    # for why this is necessary.
+    if ( MSVC AND HAVE_WPCAP )
+        set(zeekdeps ${zeekdeps} delayimp.lib)
+        set_target_properties(zeek PROPERTIES LINK_FLAGS "/DELAYLOAD:wpcap.dll")
+    endif()
+
     target_link_libraries(zeek ${bro_PLUGIN_LINK_LIBS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
     # Export symbols from zeek executable for use by plugins

@@ -43,7 +43,7 @@ export {
 	};
 
 	## Enable logging of analyzer violations and optionally confirmations
-	## when :zeek::see:`Analyzer::Logging::include_confirmations` is set.
+	## when :zeek:see:`Analyzer::Logging::include_confirmations` is set.
 	option enable = T;
 
 	## Enable analyzer_confirmation. They are usually less interesting

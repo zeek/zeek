@@ -28,7 +28,7 @@ jobs:
       TEST_TAG: zeek:latest
       CONFFLAGS: --generator=Ninja --build-type=Release
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
 
@@ -134,7 +134,7 @@ jobs:
       # Grab the sources so we have access to btest. Could also use pip, but it
       # seems appealing to be using the in-tree version of btest. btest is in a
       # submodule; we check it out selectively to save time.
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@v3
       - name: Check out btest
         run: git submodule update --init ./auxil/btest
 
@@ -156,7 +156,7 @@ jobs:
           echo "TESTSUITE_COMMIT=$(cat ./testing/external/commit-hash.zeek-testing-cluster)" >> $GITHUB_ENV
 
       - name: Retrieve cluster testsuite
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v3
         with:
           repository: zeek/zeek-testing-cluster
           path: testing/external/zeek-testing-cluster

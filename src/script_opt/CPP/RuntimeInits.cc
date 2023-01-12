@@ -488,10 +488,32 @@ int CPP_EnumMapping::ComputeOffset(InitsManager* im) const
 void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec */,
                               int /* offset */) const
 	{
-	global = lookup_global__CPP(name, im->Types(type), exported);
+	auto& t = im->Types(type);
+	global = lookup_global__CPP(name, t, exported);
 
-	if ( ! global->HasVal() && val >= 0 )
-		global->SetVal(im->ConstVals(val));
+	if ( ! global->HasVal() )
+		{
+		if ( val >= 0 )
+			// Have explicit initialization value.
+			global->SetVal(im->ConstVals(val));
+
+		else if ( t->Tag() == TYPE_FUNC && ! func_with_no_val )
+			{
+			// Create a matching value so that this global can
+			// be used in other initializations.  The code here
+			// mirrors that in activate_bodies__CPP().
+			auto fn = global->Name();
+			auto ft = cast_intrusive<FuncType>(t);
+
+			vector<StmtPtr> no_bodies;
+			vector<int> no_priorities;
+
+			auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies, no_priorities);
+
+			auto v = make_intrusive<FuncVal>(move(sf));
+			global->SetVal(v);
+			}
+		}
 
 	if ( attrs >= 0 )
 		global->SetAttrs(im->Attributes(attrs));

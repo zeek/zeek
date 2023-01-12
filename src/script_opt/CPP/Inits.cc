@@ -313,7 +313,6 @@ void CPPCompile::GenStandaloneActivation()
 
 		auto var = extract_var_name(fn);
 		auto mod = extract_module_name(fn);
-		module_names.insert(mod);
 
 		auto fid = lookup_ID(var.c_str(), mod.c_str(), false, true, false);
 		if ( ! fid )

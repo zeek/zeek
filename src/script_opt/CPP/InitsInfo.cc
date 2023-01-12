@@ -350,6 +350,11 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
 
 	exported = g->IsExport();
 	val = ValElem(c, nullptr); // empty because we initialize dynamically
+
+	if ( gt->Tag() == TYPE_FUNC && ! g->GetVal() )
+		// Remember this peculiarity so we can recreate it for
+		// error-behavior-compatibility.
+		func_with_no_val = true;
 	}
 
 void GlobalInitInfo::InitializerVals(std::vector<std::string>& ivs) const
@@ -360,6 +365,7 @@ void GlobalInitInfo::InitializerVals(std::vector<std::string>& ivs) const
 	ivs.push_back(Fmt(attrs));
 	ivs.push_back(val);
 	ivs.push_back(Fmt(exported));
+	ivs.push_back(Fmt(func_with_no_val));
 	}
 
 CallExprInitInfo::CallExprInitInfo(CPPCompile* c, ExprPtr _e, string _e_name, string _wrapper_class)

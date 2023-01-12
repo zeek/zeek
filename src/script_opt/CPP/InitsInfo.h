@@ -492,6 +492,7 @@ protected:
 	int attrs;
 	std::string val;
 	bool exported;
+	bool func_with_no_val = false; // needed to handle some error situations
 	};
 
 // Information for initializing an item corresponding to a Zeek function

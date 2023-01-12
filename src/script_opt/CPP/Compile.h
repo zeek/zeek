@@ -345,11 +345,6 @@ private:
 	// Maps functions (not hooks or events) to upstream compiled names.
 	std::unordered_map<std::string, std::string> hashed_funcs;
 
-	// Tracks all of the module names used in activate_bodies__CPP()
-	// calls, to ensure all of the global names of compiled-to-standalone
-	// functions are available to subsequent scripts.
-	std::unordered_set<std::string> module_names;
-
 	// If non-zero, provides a tag used for auxiliary/additional
 	// compilation units.
 	int addl_tag = 0;

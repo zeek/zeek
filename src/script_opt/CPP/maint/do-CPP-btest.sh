@@ -1,6 +1,6 @@
 #! /bin/sh
 
-rm -f CPP-gen.cc
+rm -f CPP-gen.cc src/zeek
 
 cp zeek.HOLD src/zeek || (
     echo Need to create clean zeek.HOLD

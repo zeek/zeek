@@ -495,17 +495,14 @@ void CPPCompile::GenFinishInit()
 
 	NL();
 
+	Emit("load_BiFs__CPP();");
+
 	if ( standalone )
-		// BiFs need to be loaded later, because the main
-		// initialization finishes upon loading of the activation
+		// Note, BiFs will also be loaded again later, because the
+		// main initialization finishes upon loading of the activation
 		// script, rather than after all scripts have been parsed
-		// and BiFs have been loaded.
+		// and plugins (with BiFs) have been loaded.
 		Emit("init_globals__CPP();");
-	else
-		// For non-standalone, we're only initializing after all
-		// scripts have been parsed and BiFs loaded, so it's fine
-		// to go ahead and do so now.
-		Emit("load_BiFs__CPP();");
 
 	EndBlock();
 	}

@@ -1,3 +1,7 @@
+5.2.0-dev.478 | 2023-01-12 09:41:11 +0100
+
+  * fix for crashes when record definitions repeat a field name (Vern Paxson, Corelight)
+
 5.2.0-dev.476 | 2023-01-11 17:00:32 -0800
 
   * CI updates (Christian Kreibich, Corelight)

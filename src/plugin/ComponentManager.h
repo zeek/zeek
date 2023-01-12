@@ -151,7 +151,7 @@ private:
 
 	std::map<std::string, C*> components_by_name;
 	std::map<zeek::Tag, C*> components_by_tag;
-	std::map<int, C*> components_by_val;
+	std::map<zeek_int_t, C*> components_by_val;
 	};
 
 template <class C>
@@ -288,7 +288,8 @@ template <class C> C* ComponentManager<C>::Lookup(const zeek::Tag& tag) const
 
 template <class C> C* ComponentManager<C>::Lookup(EnumVal* val) const
 	{
-	typename std::map<int, C*>::const_iterator i = components_by_val.find(val->InternalInt());
+	typename std::map<zeek_int_t, C*>::const_iterator i = components_by_val.find(
+		val->InternalInt());
 	return i != components_by_val.end() ? i->second : nullptr;
 	}
 

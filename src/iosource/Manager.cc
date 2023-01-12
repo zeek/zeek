@@ -89,8 +89,17 @@ Manager::~Manager()
 
 	pkt_dumpers.clear();
 
+#ifndef _MSC_VER
+	// There's a bug here with builds on Windows that causes an assertion with debug builds
+	// related to libkqueue returning a zero for the file descriptor. The assert happens
+	// because something else has already closed FD zero by the time we get here, and Windows
+	// doesn't like that very much. We only do this close when shutting down, so it should
+	// be fine to just skip it.
+	//
+	// See https://github.com/mheily/libkqueue/issues/151 for more details.
 	if ( event_queue != -1 )
 		close(event_queue);
+#endif
 	}
 
 void Manager::InitPostScript()

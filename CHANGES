@@ -1,3 +1,19 @@
+5.2.0-dev.476 | 2023-01-11 17:00:32 -0800
+
+  * CI updates (Christian Kreibich, Corelight)
+
+    - remove Fedora 35, now EOL
+    - avoid deprecated ::set-output use
+    - move action/checkout use to v3
+
+  * Bump zeek-archiver, zeek-af_packet-plugin, and doc submodules (Christian Kreibich, Corelight)
+
+  * Fixes to support the Npcap library on Windows (Tim Wojtulewicz, Corelight)
+
+  * GH-2645: fix for crash when specifying an unwriteable file to --profile-scripts (GH-2645) (Vern Paxson, Corelight)
+
+  * Fix a docstring typo (Christian Kreibich, Corelight)
+
 5.2.0-dev.464 | 2023-01-10 10:25:28 +0100
 
   * Expand docstrings of file_new and file_over_new_connection events (Christian Kreibich, Corelight)

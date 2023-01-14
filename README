@@ -85,9 +85,20 @@ License
 Zeek comes with a BSD license, allowing for free use with virtually no
 restrictions. You can find it in COPYING.
 
+Tooling
+-------
+
+We use the following tooling to help discover issues to fix, amongst a number of
+others.
+
+- Clang-Tidy [5]
+- Coverity [6]
+- PVS-Studio - static analyzer for C, C++, C#, and Java code [7]
 
 [1] https://www.zeek.org/documentation/index.html
 [2] https://docs.zeek.org/en/stable/install/install.html
 [3] https://www.zeek.org/development/index.html
 [4] https://www.zeek.org/community/index.html
-
+[5] https://clang.llvm.org/extra/clang-tidy/
+[6] https://scan.coverity.com/projects/bro
+[7] https://pvs-studio.com/en/pvs-studio/?utm_source=github&utm_medium=organic&utm_campaign=open_source

@@ -120,9 +120,9 @@ public:
 
 	// -- subviews -------------------------------------------------------------
 
-	constexpr Span subspan(size_t offset, size_t num_elements) const
+	constexpr Span subspan(size_t offset, size_t count) const
 		{
-		return {memory_block + offset, num_elements};
+		return {memory_block + offset, count};
 		}
 
 	constexpr Span subspan(size_t offset) const
@@ -130,12 +130,9 @@ public:
 		return {memory_block + offset, num_elements - offset};
 		}
 
-	constexpr Span first(size_t num_elements) const { return {memory_block, num_elements}; }
+	constexpr Span first(size_t count) const { return {memory_block, count}; }
 
-	constexpr Span last(size_t num_elements) const
-		{
-		return subspan(num_elements - num_elements, num_elements);
-		}
+	constexpr Span last(size_t count) const { return subspan(num_elements - count, num_elements); }
 
 private:
 	// -- member variables -----------------------------------------------------

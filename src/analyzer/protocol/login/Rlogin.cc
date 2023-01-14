@@ -139,17 +139,17 @@ void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 					{
 					// Unknown control, or we're confused.
 					// Put back what we've consumed.
-					unsigned char buf[64];
+					unsigned char unknown_buf[64];
 					int n = 0;
-					buf[n++] = '\xff';
-					buf[n++] = '\xff';
+					unknown_buf[n++] = '\xff';
+					unknown_buf[n++] = '\xff';
 
 					if ( state == RLOGIN_WINDOW_CHANGE_S2 )
-						buf[n++] = 's';
+						unknown_buf[n++] = 's';
 
 					state = RLOGIN_UNKNOWN;
 
-					DoDeliver(n, buf);
+					DoDeliver(n, unknown_buf);
 					}
 				break;
 

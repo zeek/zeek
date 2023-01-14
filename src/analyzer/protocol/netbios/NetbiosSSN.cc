@@ -187,7 +187,7 @@ void NetbiosSSN_Interpreter::ParseMessageUDP(const u_char* data, int len, bool i
 
 void NetbiosSSN_Interpreter::ParseSessionMsg(const u_char* data, int len, bool is_query)
 	{
-	if ( len < 4 || strncmp((const char*)data, "\xffSMB", 4) )
+	if ( len < 4 || strncmp((const char*)data, "\xffSMB", 4) != 0 )
 		{
 		// This should be an event, too.
 		analyzer->Weird("netbios_raw_session_msg");

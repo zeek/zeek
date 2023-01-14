@@ -2066,7 +2066,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 
 			// If one is a set and one isn't, they shouldn't
 			// be considered the same type.
-			if ( (t1->IsSet() && ! t2->IsSet()) || (t2->IsSet() && ! t1->IsSet()) )
+			if ( t1->IsSet() != t2->IsSet() )
 				return false;
 
 			const auto& y1 = t1->Yield();

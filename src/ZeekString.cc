@@ -148,7 +148,7 @@ void String::Set(std::string_view str)
 	{
 	Reset();
 
-	if ( str.data() )
+	if ( ! str.empty() )
 		{
 		n = str.size();
 		b = new u_char[n + 1];

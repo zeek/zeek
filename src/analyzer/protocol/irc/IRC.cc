@@ -436,7 +436,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 				// Remove nick name.
 				parts.erase(parts.begin());
 
-				if ( parts.size() > 0 && parts[0][0] == ':' )
+				if ( parts[0][0] == ':' )
 					parts[0] = parts[0].substr(1);
 
 				auto set = make_intrusive<TableVal>(id::string_set);
@@ -586,7 +586,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 		// Check for DCC messages.
 		if ( message.size() > 3 && message.substr(0, 3) == "DCC" )
 			{
-			if ( message.size() > 0 && message[message.size() - 1] == 1 )
+			if ( message[message.size() - 1] == 1 )
 				message = message.substr(0, message.size() - 1);
 
 			vector<string> parts = SplitWords(message, ' ');

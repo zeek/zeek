@@ -23,13 +23,13 @@ protected:
 
 	struct Endpoint
 		{
-		u_char buffer[MAX_BUFFER_SIZE];
-		int buffer_len;
-		bool in_hdr;
-		int tpflags;
-		int pkt_length;
-		int pkt_cnt;
-		bool encountered_first_chunk;
+		u_char buffer[MAX_BUFFER_SIZE] = {0};
+		int buffer_len = 0;
+		bool in_hdr = false;
+		int tpflags = 0;
+		int pkt_length = 0;
+		int pkt_cnt = 0;
+		bool encountered_first_chunk = false;
 		};
 
 	bool ProcessData(int len, const u_char* data, bool orig);

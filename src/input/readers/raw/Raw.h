@@ -78,7 +78,7 @@ private:
 
 	int64_t offset;
 
-	int pipes[6];
+	int pipes[6] = {-1};
 	pid_t childpid;
 
 	enum IoChannels

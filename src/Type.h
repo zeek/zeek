@@ -725,12 +725,12 @@ protected:
 	std::vector<bool> managed_fields;
 
 	// Number of fields in the type.
-	int num_fields;
+	int num_fields = 0;
 
 	// Number of fields in the type when originally declared.
-	int num_orig_fields;
+	int num_orig_fields = 0;
 
-	type_decl_list* types;
+	type_decl_list* types = nullptr;
 	std::set<std::string> field_ids;
 	};
 

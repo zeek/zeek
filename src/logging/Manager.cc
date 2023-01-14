@@ -90,7 +90,7 @@ struct Manager::Stream
 
 	WriterMap writers; // Writers indexed by id/path pair.
 
-	bool enable_remote;
+	bool enable_remote = false;
 
 	~Stream();
 	};

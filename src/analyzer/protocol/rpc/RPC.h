@@ -99,15 +99,15 @@ protected:
 	uint32_t cred_flavor, stamp;
 	uint32_t uid, gid;
 	std::vector<int> auxgids;
-	uint32_t verf_flavor;
+	uint32_t verf_flavor = 0;
 	u_char* call_buf; // copy of original call buffer
 	std::string machinename;
 	double start_time;
 	double last_time;
-	int rpc_len; // size of the full RPC call, incl. xid and msg_type
-	int call_n; // size of call buf
-	int header_len; // size of data before the arguments
-	bool valid_call; // whether call was well-formed
+	int rpc_len = 0; // size of the full RPC call, incl. xid and msg_type
+	int call_n = 0; // size of call buf
+	int header_len = 0; // size of data before the arguments
+	bool valid_call = true; // whether call was well-formed
 
 	ValPtr v; // single (perhaps compound) value corresponding to call
 	};

@@ -1001,7 +1001,7 @@ public:
 		R_INIT_RECORD, // field requires a new record
 		R_INIT_TABLE, // field requires a new table/set
 		R_INIT_VECTOR, // field requires a new vector
-		} init_type;
+		} init_type = R_INIT_NONE;
 
 	bool def_coerce = false; // whether coercion's required
 

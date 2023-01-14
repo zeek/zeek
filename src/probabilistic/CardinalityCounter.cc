@@ -158,7 +158,7 @@ double CardinalityCounter::Size() const
 	answer = 1 / answer;
 	answer = (alpha_m * m * m * answer);
 
-	if ( answer <= 5.0 * (m / 2) )
+	if ( answer <= 5.0 * (((double)m) / 2) )
 		return m * log(((double)m) / V);
 
 	else if ( answer <= (pow(2, 64) / 30) )

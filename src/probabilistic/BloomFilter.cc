@@ -70,6 +70,10 @@ std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data)
 		case Counting:
 			bf = std::unique_ptr<BloomFilter>(new CountingBloomFilter());
 			break;
+
+		default:
+			reporter->Error("found invalid bloom filter type");
+			return nullptr;
 		}
 
 	if ( ! bf->DoUnserialize((*v)[2]) )

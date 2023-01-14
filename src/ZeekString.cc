@@ -77,6 +77,9 @@ void String::Reset()
 
 const String& String::operator=(const String& bs)
 	{
+	if ( this == &bs )
+		return *this;
+
 	Reset();
 	n = bs.n;
 	b = new u_char[n + 1];

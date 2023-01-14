@@ -100,9 +100,9 @@ TEST_CASE("list iteration")
 TEST_CASE("plists")
 	{
 	zeek::PList<int> list;
-	list.push_back(new int(1));
-	list.push_back(new int(2));
-	list.push_back(new int(3));
+	list.push_back(new int{1});
+	list.push_back(new int{2});
+	list.push_back(new int{3});
 
 	CHECK(*list[0] == 1);
 

@@ -883,7 +883,7 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx)
 		return false;
 
 	case_label_value_map[v] = idx;
-	case_label_hash_map.Insert(hk.get(), new int(idx));
+	case_label_hash_map.Insert(hk.get(), new int{idx});
 	return true;
 	}
 

@@ -234,11 +234,11 @@ protected:
 		};
 
 	void Init() override;
-	virtual bool CheckResync(int& len, const u_char*& data, bool orig);
+	bool CheckResync(int& len, const u_char*& data, bool orig);
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	virtual void NeedResync()
+	void NeedResync()
 		{
 		resync_state = NEED_RESYNC;
 		resync_toskip = 0;

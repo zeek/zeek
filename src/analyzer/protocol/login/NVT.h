@@ -172,10 +172,10 @@ protected:
 	void DeliverChunk(int& len, const u_char*& data);
 
 	void ScanOption(int& len, const u_char*& data);
-	virtual void SawOption(unsigned int code);
-	virtual void SawOption(unsigned int code, unsigned int subcode);
-	virtual void SawSubOption(const char* opt, int len);
-	virtual void BadOptionTermination(unsigned int code);
+	void SawOption(unsigned int code);
+	void SawOption(unsigned int code, unsigned int subcode);
+	void SawSubOption(const char* opt, int len);
+	void BadOptionTermination(unsigned int code);
 	const char* PeerAuthName() const;
 
 	NVT_Analyzer* peer = nullptr;

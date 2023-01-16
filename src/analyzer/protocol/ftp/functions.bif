@@ -87,12 +87,10 @@ static zeek::ValPtr parse_eftp(const char* line)
 					}
 
 				std::string s(line, nptr-line); // extract IP address
-				zeek::IPAddr tmp(s);
-				// on error, "tmp" will have all 128 bits zero
-				if ( tmp == addr )
-					good = 0;
-
-				addr = tmp;
+				struct in6_addr result;
+				good = zeek::IPAddr::ConvertString(s.c_str(), &result) ? 1 : 0;
+				if ( good )
+					addr = zeek::IPAddr(result);
 				}
 
 			line = strchr(line, delimiter);
@@ -103,8 +101,13 @@ static zeek::ValPtr parse_eftp(const char* line)
 				port = strtol(line, &next_delim, 10);
 				if ( *next_delim != delimiter )
 					good = 0;
-				}
 
+				if ( port < 0 || port > 65535 )
+					{
+					port = 0;
+					good = 0;
+					}
+				}
 			}
 
 		}

@@ -3,7 +3,7 @@ name: Check and publish Docker images
 on:
   pull_request:
   push:
-    branches: [master]
+    branches: [master, topic/awelzel/2675-arm64-containers]
     tags:
       - 'v*'
       - '!v*-dev'

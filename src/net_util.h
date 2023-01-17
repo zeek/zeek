@@ -283,7 +283,6 @@ inline uint64_t htonll(uint64_t i)
 
 #else
 
-#ifndef _MSC_VER
 inline double ntohd(double d)
 	{
 	assert(sizeof(d) == 8);
@@ -329,7 +328,6 @@ inline float htonf(float f)
 	{
 	return ntohf(f);
 	}
-#endif
 
 #ifndef HAVE_BYTEORDER_64
 inline uint64_t ntohll(uint64_t i)

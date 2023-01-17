@@ -32,6 +32,22 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: Compute target platforms for container images
+        id: target_platforms
+        run: |
+          # Only build arm64 for tagged releases or pushes to master.
+          ALL_PLATFORMS="platform=linux/amd64,linux/arm64"
+          if [ "${GITHUB_REF}" = "refs/tags/release" ]; then
+            echo "${ALL_PLATFORMS}" >> $GITHUB_OUTPUT
+          elif [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+            echo "${ALL_PLATFORMS}" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF}" = refs/tags/v* ]] && [[ "${GITHUB_REF}" != refs/tags/v*-dev ]]; then
+            echo "${ALL_PLATFORMS}" >> $GITHUB_OUTPUT
+          else
+            # Just linux/amd64 for branches
+            echo "platform=linux/amd64" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -44,13 +60,17 @@ jobs:
         with:
           context: ./
           file: docker/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ steps.target_platforms.outputs.platform }}
           build-args: |
             CONFFLAGS=${{ env.CONFFLAGS }}
           tags: ${{ env.TEST_TAG }}
 
+      # Can not do load: true above because we might be using multiple
+      # platforms and that's not supported currently:
       # https://github.com/docker/buildx/issues/59#issuecomment-616050491
-      - name: Load image on runner architecture for running tests
+      #
+      # Should be cached.
+      - name: Load image with runner architecture for tests
         uses: docker/build-push-action@v3
         with:
           context: ./
@@ -116,7 +136,7 @@ jobs:
         with:
           context: ./
           file: docker/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ steps.target_platforms.outputs.platform }}
           build-args: |
             CONFFLAGS=${{ env.CONFFLAGS }}
           push: true

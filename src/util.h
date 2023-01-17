@@ -41,6 +41,9 @@
 
 #include <cassert>
 
+#ifdef ASSERT
+#undef ASSERT
+#endif
 #define ASSERT(x) assert(x)
 #define DEBUG_MSG(...) fprintf(stderr, __VA_ARGS__)
 #define DEBUG_fputs fputs

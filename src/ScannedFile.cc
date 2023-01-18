@@ -21,14 +21,13 @@ ScannedFile::ScannedFile(int arg_include_level, std::string arg_name, bool arg_s
 		canonical_path = canonical_stdin_path;
 	else
 		{
-		char buf[PATH_MAX];
-		auto res = realpath(name.data(), buf);
+		std::error_code ec;
+		auto canon = filesystem::canonical(name, ec);
+		if ( ec )
+			zeek::reporter->FatalError("failed to get canonical path of %s: %s", name.data(),
+			                           ec.message().c_str());
 
-		if ( ! res )
-			zeek::reporter->FatalError("failed to get realpath() of %s: %s", name.data(),
-			                           strerror(errno));
-
-		canonical_path = res;
+		canonical_path = canon.string();
 		}
 	}
 

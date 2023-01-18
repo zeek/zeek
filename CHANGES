@@ -1,3 +1,14 @@
+5.2.0-dev.483 | 2023-01-18 17:12:57 +0100
+
+  * Fix ZAM memory leak as reported in #2634 (Vern Paxson, Corelight)
+
+  * bifs/parse_eftp: Prevent reporter warnings/errors on invalid input (Arne Welzel, Corelight)
+
+    When passing invalid IPs or an out-of range port to parse_eftp()
+    a warning or error was generated on stderr (in addition to setting
+    the $valid field to F). Prevent the output by adding safe-guarding
+    and using IPAddr::ConvertString() instead.
+
 5.2.0-dev.478 | 2023-01-12 09:41:11 +0100
 
   * fix for crashes when record definitions repeat a field name (Vern Paxson, Corelight)

@@ -2207,15 +2207,18 @@ macro Cat1Op(val)
 	auto& v1 = frame[z.v1];
 	ZVal::DeleteManagedType(v1);
 	v1 = val;
+
+macro Cat1OpRef(val)
+	Cat1Op(val)
 	zeek::Ref(v1.string_val);
 
 internal-op Cat1
 type VC
-eval	Cat1Op(z.c)
+eval	Cat1OpRef(z.c)
 
 internal-op Cat1
 type VV
-eval	Cat1Op(frame[z.v2])
+eval	Cat1OpRef(frame[z.v2])
 
 macro Cat1FullVal(val)
 	Cat1Op(ZVal(ZAM_val_cat(val.ToVal(z.t))))

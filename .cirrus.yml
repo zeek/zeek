@@ -133,6 +133,8 @@ env:
   CCACHE_DIR: /tmp/ccache
   CCACHE_COMPRESS: 1
 
+  ZEEK_IMAGE_REPO: zeek
+
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
@@ -381,3 +383,86 @@ windows_task:
     # Give verbose error output on a test failure.
     CTEST_OUTPUT_ON_FAILURE: 1
   << : *BRANCH_WHITELIST
+
+
+# General idea: Build container images for amd64 and arm64 in separate
+# docker_builder tasks, then use a third docker_builder task to collect
+# the produced images (through CIRRUS_HTTP_CACHE), push them into
+# zeek/zeek-multiarch on Docker Hub and create a manifest in zeek/zeek
+# tagged as latest or a tag.
+#
+# We've previously tried docker buildx with qemu, but at least within
+# a GitHub action the emulated arm64 build on the amd64 VMs would take
+# > 6 hours. Using separate builders on Cirrus allows us build natively
+# and much faster.
+docker_build_script_template: &DOCKER_BUILD_SCRIPT_TEMPLATE
+    - git submodule update --init --recursive
+    - set -x; cd docker && docker build -f Dockerfile --tag ${IMAGE_TAG} ..
+    - set -x; docker save $IMAGE_TAG | zstd > image.zst
+    - curl -v -X POST --data-binary @image.zst http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-${CIRRUS_ARCH}
+arm64_docker_builder:
+  env:
+    CIRRUS_ARCH: arm64
+    CIRRUS_LOG_TIMESTAMP: true
+    CONFFLAGS: --generator=Ninja --build-type=Release
+  set_image_tag_script: echo "IMAGE_TAG=${ZEEK_IMAGE_REPO}/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
+  build_script:
+    << : *DOCKER_BUILD_SCRIPT_TEMPLATE
+
+amd64_docker_builder:
+  env:
+    CIRRUS_LOG_TIMESTAMP: true
+    CONFFLAGS: --generator=Ninja --build-type=Release
+  set_image_tag_script: echo "IMAGE_TAG=${ZEEK_IMAGE_REPO}/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
+  build_script:
+    << : *DOCKER_BUILD_SCRIPT_TEMPLATE
+
+
+create_manifest_docker_builder:
+  # Only push master builds or when on a release branch and tagged.
+  only_if: >
+    ( $CIRRUS_REPO_NAME == 'zeek' &&
+      (
+        $CIRRUS_BRANCH == 'master' ||
+        $CIRRUS_BRANCH == 'topic/awelzel/2675-arm64-containers-on-cirrus' ||
+        ( $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG != '')
+      )
+    )
+  env:
+    CIRRUS_LOG_TIMESTAMP: true
+    DOCKER_USERNAME: ENCRYPTED[7ecd9c29dafa6200b715dbff116a7d169ef3b19f0587c8dd8abf7be346b431424a824468532198cbdf97c86a0ffd4df0]
+    DOCKER_PASSWORD: ENCRYPTED[dcd1eb93c1b974951a3b5303e64d257522ecac367dc7b73eb8104652d51d24cbdd020e793a0fa6f41ce5dc6a245ef310]
+  login_script: docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+  set_image_tag_script: |
+    # If we have a CIRRUS_TAG, use that for the tags to push the architectures,
+    # otherwise use latest. Basically we push the arch images as zeek/zeek-multiarch:<arch>-<latest|v1.2.3>
+    # and then create a manifest of the form zeek/zeek:$(cat VERSION).
+    if [ -n "${CIRRUS_TAG}" ]; then
+      echo "IMAGE_NAME=zeek" >> $CIRRUS_ENV
+      echo "IMAGE_TAG=${CIRRUS_TAG}" >> $CIRRUS_ENV
+      # TODO: Remove this hunk - here for testing
+    elif [ "$${CIRRUS_BRANCH}" = "topic/awelzel/2675-arm64-containers-on-cirrus"; then
+      echo "IMAGE_NAME=zeek-next" >> $CIRRUS_ENV
+      echo "IMAGE_TAG=latest" >> $CIRRUS_ENV
+    else
+      echo "IMAGE_NAME=zeek-dev" >> $CIRRUS_ENV
+      echo "IMAGE_TAG=latest" >> $CIRRUS_ENV
+    fi
+    echo "MANIFEST_TAG=$(cat VERSION)" >> $CIRRUS_ENV
+  build_script:
+    # Fetch and load the images
+    - set -x; curl -v -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-arm64
+    - set -x; curl -v -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-amd64
+    - set -x; zstd -d < ${CIRRUS_BUILD_ID}-image-arm64 | docker load
+    - set -x; zstd -d < ${CIRRUS_BUILD_ID}-image-amd64 | docker load
+
+    - set -x; docker tag ${ZEEK_IMAGE_REPO}/zeek-multiarch:arm64 ${ZEEK_IMAGE_REPO}/zeek-multiarch:arm64-${IMAGE_TAG}
+    - set -x; docker tag ${ZEEK_IMAGE_REPO}/zeek-multiarch:amd64 ${ZEEK_IMAGE_REPO}/zeek-multiarch:amd64-${IMAGE_TAG}
+    - set -x; docker push ${ZEEK_IMAGE_REPO}/zeek-multiarch:arm64-${IMAGE_TAG}
+    - set -x; docker push ${ZEEK_IMAGE_REPO}/zeek-multiarch:amd64-${IMAGE_TAG}
+
+    - set -x; docker manifest create ${ZEEK_IMAGE_REPO}/$IMAGE_NAME:${MANIFEST_TAG} ${ZEEK_IMAGE_REPO}/zeek-multiarch:arm64-${IMAGE_TAG} ${ZEEK_IMAGE_REPO}/zeek-multiarch:amd64-${IMAGE_TAG}
+    - set -x; docker manifest push ${ZEEK_IMAGE_REPO}/$IMAGE_NAME:${MANIFEST_TAG}
+  depends_on:
+    - arm64_docker_builder
+    - amd64_docker_builder

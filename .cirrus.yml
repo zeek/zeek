@@ -382,3 +382,95 @@ windows_task:
     CTEST_OUTPUT_ON_FAILURE: 1
   << : *BRANCH_WHITELIST
   << : *SKIP_TASK_ON_PR
+
+
+# Container images
+#
+# Use two separate tasks to build images for amd64 and arm64.
+# Use use a third docker_builder task to collect the produced images
+# (through CIRRUS_HTTP_CACHE) and push them to the registry as
+# zeek/zeek:v1.2.3-<arch> or zeek/zeek-dev:latest-<arch> tags. Once
+# pushed, create a manifest for zeek/zeek:v1.2.3 or zeek/zeek-dev:latest
+# that includes the just pushed architecture specific images.
+#
+# We've previously tried using docker buildx with QEMU using GitHub
+# actions. The emulated arm64 build on the amd64 VMs they provide took
+# more than 6 hours and timed out. Using separate builders on Cirrus allows
+# us build natively and much faster at the expense of the docker manifest
+# wrangling (and not being able to use the nice GitHub actions).
+docker_build_template: &DOCKER_BUILD_TEMPLATE
+  set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
+  build_script:
+    - git submodule update --init --recursive
+    - set -x; cd docker && docker build -f Dockerfile --tag ${IMAGE_TAG} ..
+    - set -x; docker save $IMAGE_TAG | zstd > image.zst
+    - curl -v -X POST --data-binary @image.zst http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-${CIRRUS_ARCH}
+
+arm64_container_image_docker_builder:
+  env:
+    CIRRUS_ARCH: arm64
+  << : *DOCKER_BUILD_TEMPLATE
+
+amd64_container_image_docker_builder:
+  << : *DOCKER_BUILD_TEMPLATE
+
+container_image_manifest_docker_builder:
+  cpu: 1
+  # Push master builds to zeek/zeek-dev, or tagged release branches to zeek/zeek
+  only_if: >
+    ( $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' &&
+      ( $CIRRUS_BRANCH == 'master' ||
+        ( $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG != '')
+      )
+    )
+  env:
+    DOCKER_USERNAME: ENCRYPTED[!505b3dee552a395730a7e79e6aab280ffbe1b84ec62ae7616774dfefe104e34f896d2e20ce3ad701f338987c13c33533!]
+    DOCKER_PASSWORD: ENCRYPTED[!6c4b2f6f0e5379ef1091719cc5d2d74c90cfd2665ac786942033d6d924597ffb95dbbc1df45a30cc9ddeec76c07ac620!]
+    AWS_ECR_ACCESS_KEY_ID: ENCRYPTED[!eff52f6442e1bc78bce5b15a23546344df41bf519f6201924cb70c7af12db23f442c0e5f2b3687c2d856ceb11fcb8c49!]
+    AWS_ECR_SECRET_ACCESS_KEY: ENCRYPTED[!748bc302dd196140a5fa8e89c9efd148882dc846d4e723787d2de152eb136fa98e8dea7e6d2d6779d94f72dd3c088228!]
+  login_script: |
+    docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+    AWS_ACCESS_KEY_ID=$AWS_ECR_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_ECR_SECRET_ACCESS_KEY aws ecr-public get-login-password --region us-east-1 | \
+        docker login --username AWS $AWS_ECR_USERNAME --password-stdin public.ecr.aws
+  set_image_tag_script: |
+    # If we have a CIRRUS_TAG, use the value in VERSION to push the multiarch
+    # images, otherwise use latest. Basically we push the arch images as
+    #    zeek/zeek:1.2.3-<amd64|arm64> or
+    #    zeek/zeek-dev:latest-<amd64|arm64>
+    # and using these, create a manifest of the form zeek/zeek:${CIRRUS_TAG}
+    # for tags, or zeek/zeek-dev:latest for pushes to master.
+    if [ -n "${CIRRUS_TAG}" ]; then
+      echo "MANIFEST_NAME=zeek" >> $CIRRUS_ENV
+      echo "MANIFEST_TAG=$(cat VERSION)" >> $CIRRUS_ENV
+      echo "ARCH_IMAGE_TAG=$(cat VERSION)" >> $CIRRUS_ENV
+      echo "ARCH_IMAGE_NAME=zeek"  >> $CIRRUS_ENV
+    elif [ "${CIRRUS_BRANCH}" = "master" ]; then
+      echo "MANIFEST_NAME=zeek-dev" >> $CIRRUS_ENV
+      echo "MANIFEST_TAG=latest"  >> $CIRRUS_ENV
+      echo "ARCH_IMAGE_NAME=zeek-dev"  >> $CIRRUS_ENV
+      echo "ARCH_IMAGE_TAG=latest" >> $CIRRUS_ENV
+    # Hunk for testing and pushing into zeek/zeek-next. Make sure
+    # to allow the branch in the above only_if attribute of this task.
+    # elif [ "${CIRRUS_BRANCH}" = "topic/awelzel/2674-arm64-containers-on-cirrus" ]; then
+    #  echo "MANIFEST_NAME=zeek-next" >> $CIRRUS_ENV
+    #  echo "MANIFEST_TAG=latest"  >> $CIRRUS_ENV
+    #  echo "ARCH_IMAGE_NAME=zeek-next"  >> $CIRRUS_ENV
+    #  echo "ARCH_IMAGE_TAG=latest" >> $CIRRUS_ENV
+    else
+      echo "Bad tag/branch for container_image_manifest"
+      env
+      exit 1
+    fi
+  build_script:
+    # Fetch and load the images from the previous tasks
+    - set -x; curl -v -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-arm64
+    - set -x; curl -v -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-amd64
+    - set -x; zstd -d < ${CIRRUS_BUILD_ID}-image-arm64 | docker load
+    - set -x; zstd -d < ${CIRRUS_BUILD_ID}-image-amd64 | docker load
+
+    - ./ci/container-images-tag-and-push.sh
+
+    - REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
+  depends_on:
+    - arm64_container_image
+    - amd64_container_image

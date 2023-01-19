@@ -325,6 +325,7 @@ private:
 
 	int errors;
 	bool via_events;
+	bool syslog_open;
 	int in_error_handler;
 	bool info_to_stderr;
 	bool warnings_to_stderr;

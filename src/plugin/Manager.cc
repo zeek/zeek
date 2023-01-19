@@ -76,13 +76,16 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		return;
 		}
 
-	char canon_path[PATH_MAX];
-	if ( ! realpath(dir.data(), canon_path) )
+	std::error_code ec;
+	auto canon = filesystem::canonical(dir, ec);
+	if ( ec )
 		{
-		DBG_LOG(DBG_PLUGINS, "skip dynamic plugin search in %s, realpath failed: %s", dir.data(),
-		        strerror(errno));
+		DBG_LOG(DBG_PLUGINS, "skip dynamic plugin search in %s, making path canonical failed: %s",
+		        dir.data(), ec.message().c_str());
 		return;
 		}
+
+	std::string canon_path = canon.string();
 
 	if ( searched_dirs.count(canon_path) )
 		return;

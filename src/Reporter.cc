@@ -59,7 +59,7 @@ Reporter::Reporter(bool arg_abort_on_scripting_errors)
 	weird_sampling_duration = 0;
 	weird_sampling_threshold = 0;
 
-	openlog("bro", 0, LOG_LOCAL5);
+	syslog_open = false;
 	}
 
 Reporter::~Reporter()
@@ -264,6 +264,12 @@ void Reporter::Syslog(const char* fmt, ...)
 	{
 	if ( run_state::reading_traces )
 		return;
+
+	if ( ! syslog_open )
+		{
+		openlog("bro", 0, LOG_LOCAL5);
+		syslog_open = true;
+		}
 
 	va_list ap;
 	va_start(ap, fmt);

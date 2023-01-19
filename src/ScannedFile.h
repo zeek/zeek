@@ -12,7 +12,7 @@ namespace zeek::detail
 	{
 
 // Script file we have already scanned (or are in the process of scanning).
-// They are identified by normalized realpath.
+// They are identified by normalized canonical path.
 class ScannedFile
 	{
 
@@ -30,7 +30,7 @@ public:
 	bool skipped; // This ScannedFile was @unload'd.
 	bool prefixes_checked; // If loading prefixes for this file has been tried.
 	std::string name;
-	std::string canonical_path; // normalized, absolute path via realpath()
+	std::string canonical_path; // normalized, absolute path via std::filesystem::canonical()
 
 	static auto constexpr canonical_stdin_path = "<stdin>";
 	};

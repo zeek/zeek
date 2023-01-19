@@ -1,3 +1,49 @@
+5.2.0-dev.499 | 2023-01-19 09:14:07 -0700
+
+  * Reduce startup time on Windows by using std::filesystem::canonical (Tim Wojtulewicz)
+
+    realpath() apparently doesn't handle Windows symlinks very well. This
+    causes plugin::Manager and ScannedFile to rescan a bunch of extra
+    paths that they should be skipping. This commit reduces the startup
+    time on Windows by 3-4 seconds (~8.5s to ~5s).
+
+  * Fix diff-remove-abspath to ignore Windows drive letters (Tim Wojtulewicz)
+
+  * Re-enable the float/double versions of hton{d,f} on Windows (Tim Wojtulewicz)
+
+  * Make sure the DEBUG flag is defined when building in debug mode (Tim Wojtulewicz)
+
+    MSVC uses _DEBUG, unlike all of the other compilers, so we aren't
+    properly enabling/disabling varying bits of code that are dependent
+    on DEBUG being defined.
+
+  * Don't close the kqueue manually on shutdown on Windows (Tim Wojtulewicz)
+
+  * Fix MSVC compiler warning due to a type mismatch (Tim Wojtulewicz)
+
+  * GH-2565: Update libunistd submodule to fix builds on VS2022 (Tim Wojtulewicz)
+
+  * GH-2641: Lazy-load syslog to avoid creating bro.log on Windows (Tim Wojtulewicz)
+
+  * Use newer diff on Alpine for --strip-trailing-ci (Tim Wojtulewicz, Corelight)
+
+  * Update btest submodule to version that supports Windows (Tim Wojtulewicz)
+
+  * Use pathsep btest value in btest.cfg (Tim Wojtulewicz)
+
+  * Use build_dir btest value in btest.cfg (Tim Wojtulewicz)
+
+  * Fix zeek-path-dev.sh creation to better support Windows (Tim Wojtulewicz)
+
+  * Remove outdated distributions from CI. (Johanna Amann, Corelight)
+
+    Fedora 35: CI folder was forgotten during removal
+
+    Opensuse Leap 15.3: EOL was 2022
+
+    Openssl-3: No longer necessary, since part of distributions (e.g. Ubuntu
+    22.10)
+
 5.2.0-dev.483 | 2023-01-18 17:12:57 +0100
 
   * Fix ZAM memory leak as reported in #2634 (Vern Paxson, Corelight)

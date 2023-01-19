@@ -188,6 +188,13 @@ event rdp_client_core_data(c: connection, data: RDP::ClientCoreData) &priority=5
 	set_session(c);
 
 	c$rdp$keyboard_layout       = RDP::languages[data$keyboard_layout];
+	
+	if (c$rdp$keyboard_layout == fmt("keyboard-%d", data$keyboard_layout))
+		{
+		c$rdp$keyboard_layout = RDP::languages[data$keyboard_layout & 0xffff];
+		c$rdp$keyboard_layout = c$rdp$keyboard_layout + " (Best Guess)";
+		}
+	
 	c$rdp$client_build          = RDP::builds[data$client_build];
 	c$rdp$client_name           = data$client_name;
 	c$rdp$client_dig_product_id = data$dig_product_id;

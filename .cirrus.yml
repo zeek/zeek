@@ -142,8 +142,8 @@ fedora37_task:
       container:
         # Fedora 37 EOL: Around Dec 2024
         dockerfile: ci/fedora-37/Dockerfile
-  env:
-    CIRRUS_ARCH: amd64
+        env:
+          CIRRUS_ARCH: amd64
   << : *CI_TEMPLATE
 
  ubuntu2210_task:

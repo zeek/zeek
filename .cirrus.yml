@@ -142,15 +142,20 @@ fedora37_task:
       container:
         # Fedora 37 EOL: Around Dec 2024
         dockerfile: ci/fedora-37/Dockerfile
+  env:
+    CIRRUS_ARCH: amd64
   << : *CI_TEMPLATE
 
-# ubuntu2210_task:
-#   container:
-#     # Ubuntu 22.10 EOL: July 2023
-#     dockerfile: ci/ubuntu-22.10/Dockerfile
-#     << : *RESOURCES_TEMPLATE
-#   << : *CI_TEMPLATE
-# 
+ ubuntu2210_task:
+  persistent_worker:
+    isolation:
+       container:
+        env:
+          CIRRUS_ARCH: amd64
+         # Ubuntu 22.10 EOL: July 2023
+         dockerfile: ci/ubuntu-22.10/Dockerfile
+   << : *CI_TEMPLATE
+
 # ubuntu22_task:
 #   container:
 #     # Ubuntu 22.04 EOL: April 2027

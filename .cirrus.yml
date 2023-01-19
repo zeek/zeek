@@ -138,10 +138,10 @@ env:
 
 fedora37_task:
   persistent_worker:
-  isolation:
-    container:
-      # Fedora 37 EOL: Around Dec 2024
-      dockerfile: ci/fedora-37/Dockerfile
+    isolation:
+      container:
+        # Fedora 37 EOL: Around Dec 2024
+        dockerfile: ci/fedora-37/Dockerfile
   << : *CI_TEMPLATE
 
 # ubuntu2210_task:

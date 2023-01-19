@@ -143,7 +143,6 @@ export {
 		[31748] = "Chinese - Traditional",
 		[1155] = "Corsican",
 		[4122] = "Croatian (Bosnia/Herzegovina)",
-		[4122] = "Croatian (Latin) - Bosnia and Herzegovina",
 		[1050] = "Croatian",
 		[66565] = "Czech (QWERTY)",
 		[132101] = "Czech Programmers",

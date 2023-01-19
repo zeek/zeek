@@ -146,15 +146,15 @@ fedora37_task:
           CIRRUS_ARCH: amd64
   << : *CI_TEMPLATE
 
-ubuntu2210_task:
-  persistent_worker:
-    isolation:
-       container:
-         # Ubuntu 22.10 EOL: July 2023
-         dockerfile: ci/ubuntu-22.10/Dockerfile
-  env:
-    CIRRUS_ARCH: amd64
-   << : *CI_TEMPLATE
+# ubuntu2210_task:
+#   persistent_worker:
+#     isolation:
+#        container:
+#          # Ubuntu 22.10 EOL: July 2023
+#          dockerfile: ci/ubuntu-22.10/Dockerfile
+#   env:
+#     CIRRUS_ARCH: amd64
+#    << : *CI_TEMPLATE
 
 # ubuntu22_task:
 #   container:

@@ -144,6 +144,7 @@ fedora37_task:
         dockerfile: ci/fedora-37/Dockerfile
   env:
     CIRRUS_ARCH: amd64
+  platform: amd64
   << : *CI_TEMPLATE
 
 # ubuntu2210_task:

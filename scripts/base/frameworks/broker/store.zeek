@@ -57,12 +57,62 @@ export {
 		SQLITE,
 	};
 
+	# Behavior when the backend is found to be corrupt or
+	# failing and there's a possibility to get back to
+	# working by wiping/deleting state. For example, a
+	# corrupted SQLite database can be deleted.
+	type FailureMode: enum {
+		FAIL,
+		DELETE,
+	};
+
+	type SQLiteSynchronous: enum {
+		SQLITE_SYNCHRONOUS_OFF,
+		SQLITE_SYNCHRONOUS_NORMAL,
+		SQLITE_SYNCHRONOUS_FULL,
+		SQLITE_SYNCHRONOUS_EXTRA,
+	};
+
+	type SQLiteJournalMode: enum {
+		SQLITE_JOURNAL_MODE_DELETE,
+		SQLITE_JOURNAL_MODE_WAL,
+	};
+
 	## Options to tune the SQLite storage backend.
 	type SQLiteOptions: record {
 		## File system path of the database.
 		## If left empty, will be derived from the name of the store,
 		## and use the '.sqlite' file suffix.
 		path: string &default = "";
+
+		# If set, run PRAGMA synchronous= with the provided value
+		# after connecting to the SQLite database. See the SQLite
+		# documentation for more details around performance and
+		# data safety trade offs.
+		synchronous: SQLiteSynchronous &optional;
+
+		# If set, run PRAGMA journal_mode= with the provided value
+		# after connecting to the SQLite database. See the SQLite
+		# documentation for more details around performance and
+		# data safety trade offs and interaction with the PRAGMA
+		# synchronous value.
+		journal_mode: SQLiteJournalMode &optional;
+
+		# What to do when the database is found corrupt during
+		# initialization. When this is set to DELETE, the old
+		# file is deleted to allow creation of a new and empty
+		# database. By default, an error is reported, the corrupt
+		# database left in place and the data store in a
+		# non-functional state.
+		failure_mode: FailureMode &default=FAIL;
+
+		# Run PRAGMA integrity_check after opening the database
+		# and fail according to ``failure_mode``. Running PRAGMA
+		# integrity_check may take a non-negligible amount of time,
+		# so you are advised to experiment with the expected sizes
+		# of your databases if that is acceptable. Corrupted databases
+		# should be reliably detected when this setting this ``T``.
+		integrity_check: bool &default=F;
 	};
 
 	## Options to tune the particular storage backends.

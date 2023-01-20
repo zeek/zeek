@@ -57,12 +57,62 @@ export {
 		SQLITE,
 	};
 
+	## Behavior when the SQLite database file is found to be corrupt
+	## or otherwise fails to open or initialize.
+	type SQLiteFailureMode: enum {
+		SQLITE_FAILURE_MODE_FAIL,   ##< Fail during initialization.
+		SQLITE_FAILURE_MODE_DELETE, ##< Attempt to delete the database file and retry.
+	};
+
+	## Values supported for SQLite's PRAGMA synchronous statement.
+	type SQLiteSynchronous: enum {
+		SQLITE_SYNCHRONOUS_OFF,
+		SQLITE_SYNCHRONOUS_NORMAL,
+		SQLITE_SYNCHRONOUS_FULL,
+		SQLITE_SYNCHRONOUS_EXTRA,
+	};
+
+	## Values supported for SQLite's PRAGMA journal_mode statement.
+	type SQLiteJournalMode: enum {
+		SQLITE_JOURNAL_MODE_DELETE,
+		SQLITE_JOURNAL_MODE_WAL,
+	};
+
 	## Options to tune the SQLite storage backend.
 	type SQLiteOptions: record {
 		## File system path of the database.
 		## If left empty, will be derived from the name of the store,
 		## and use the '.sqlite' file suffix.
 		path: string &default = "";
+
+		## If set, runs the PRAGMA synchronous statement with the
+		## provided value after connecting to the SQLite database. See
+		## `SQLite's synchronous documentation <https://www.sqlite.org/pragma.html#pragma_synchronous>`_
+		## for more details around performance and data safety trade offs.
+		synchronous: SQLiteSynchronous &optional;
+
+		## If set, runs the PRAGMA journal_mode statement with the
+		## provided value after connecting to the SQLite database. See
+		## `SQLite's journal_mode documentation <https://www.sqlite.org/pragma.html#pragma_journal_mode>`_
+		## for more details around performance, data safety trade offs
+		## and interaction with the PRAGMA synchronous statement.
+		journal_mode: SQLiteJournalMode &optional;
+
+		## What to do when the database is found corrupt during
+		## initialization. When set to SQLITE_FAILURE_MODE_DELETE,
+		## the old file is deleted to allow creation of a new and empty
+		## database. By default, an error is reported, the corrupt
+		## database file left in place and the data store is in a
+		## non-functional state.
+		failure_mode: SQLiteFailureMode &default=SQLITE_FAILURE_MODE_FAIL;
+
+		## When true, run the PRAGMA integrity_check statement after
+		## opening the database and fail according to ``failure_mode``.
+		## PRAGMA integrity_check may take a non-negligible amount of time,
+		## so you are advised to experiment with the expected sizes
+		## of your databases if that is acceptable. Corrupted databases
+		## should be reliably detected when this setting is ``T``.
+		integrity_check: bool &default=F;
 	};
 
 	## Options to tune the particular storage backends.

@@ -1,0 +1,31 @@
+# Note: this config is used for builtin dynamic plugins outside of the source
+#       tree of Zeek. Plugins refer back to the Zeek source tree since they need
+#       access to some parts of Zeek that we don't install.
+
+# For finding zeek-plugin-create-package.sh and zeek-plugin-install-package.sh.
+set(ZEEK_PLUGIN_SCRIPTS_PATH "@ZEEK_PLUGIN_SCRIPTS_PATH@")
+
+# For finding Zeek sources.
+set(ZEEK_SOURCE_DIR "@ZEEK_SOURCE_DIR@")
+
+# For having a binpac target available. Guarded to shield against including this
+# file multiple times.
+if (NOT TARGET Zeek::BinPAC)
+    add_executable(Zeek::BinPAC IMPORTED)
+    set_property(TARGET Zeek::BinPAC PROPERTY
+                 IMPORTED_LOCATION "@BINPAC_EXE_PATH@")
+endif ()
+
+# For having a bifcl target available. Guarded to shield against including this
+# file multiple times.
+if (NOT TARGET Zeek::BifCl)
+    add_executable(Zeek::BifCl IMPORTED)
+    set_property(TARGET Zeek::BifCl PROPERTY
+                 IMPORTED_LOCATION "@BIFCL_EXE_PATH@")
+endif ()
+
+# TODO: using BIFCL_EXE_PATH and BINPAC_EXE_PATH does not play well with
+#       multi-configuration generators. We currently hard-code these paths in
+#       the main CMakeLists.txt instead of dynamically fetching the right thing.
+#       A better solution would be either using find_program here or
+#       `file(GENERATE ...)` from the main CMake file.

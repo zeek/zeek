@@ -1,10 +1,3 @@
-include_directories(BEFORE
-                    ${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include
-                    ${CMAKE_CURRENT_BINARY_DIR}
-                    ${CMAKE_CURRENT_BINARY_DIR}/include
-)
-
 # Force creation of includes symlink. This can't just be in the src directory
 # because MSVC will end up with an include loop.
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
@@ -20,16 +13,17 @@ execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
                 ".."
                 "${CMAKE_CURRENT_BINARY_DIR}/include/zeek")
 
-# This collects generated bif and pac files from subdirectories.
-set(bro_ALL_GENERATED_OUTPUTS  CACHE INTERNAL "automatically generated files" FORCE)
+# Add symlink as include directory with priority over other directories.
+target_include_directories(
+    zeek_internal
+    BEFORE
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
 
-# This collects bif inputs that we'll load automatically.
-set(bro_AUTO_BIFS     CACHE INTERNAL "BIFs for automatic inclusion" FORCE)
-set(bro_REGISTER_BIFS CACHE INTERNAL "BIFs for automatic registering" FORCE)
-
-set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in base distribution of Zeek" FORCE)
-set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in Zeek plugins" FORCE)
-
+# Generate version files.
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 
@@ -62,16 +56,6 @@ if ( MSVC )
 else()
     set(SIGN_COMPARE_FLAG "-Wno-sign-compare")
 endif()
-
-# BIF parser/scanner
-bison_target(BIFParser builtin-func.y
-             ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc
-             HEADER ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
-             #VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.output
-             COMPILE_FLAGS "${BISON_FLAGS}")
-flex_target(BIFScanner builtin-func.l ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
-add_flex_bison_dependency(BIFScanner BIFParser)
-set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
 # Rule parser/scanner
 bison_target(RuleParser rule-parse.y
@@ -116,6 +100,21 @@ flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
             COMPILE_FLAGS "-Pzeek")
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
+# Add a dependency for the generated files to zeek_autogen_files.
+add_custom_target(
+    zeek_bison_outputs
+    DEPENDS
+        ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
+        ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
+        ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
+        ${CMAKE_CURRENT_BINARY_DIR}/scan.cc
+)
+add_dependencies(zeek_autogen_files zeek_bison_outputs)
+
 ########################################################################
 ## bifcl-dependent targets
 
@@ -150,6 +149,9 @@ foreach (bift ${BIF_SRCS})
     bif_target(${bift} "standard")
 endforeach ()
 
+# The auto-generated BIF headers land in the current binary dir.
+# target_include_directories(zeek_objs PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+
 ########################################################################
 ## BinPAC-dependent targets
 
@@ -163,9 +165,11 @@ set(BINPAC_AUXSRC
 
 binpac_target(binpac-lib.pac)
 list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
+# add_dependencies(zeek_objs ${BINPAC_BUILD_TARGET})
 
 binpac_target(binpac_zeek-lib.pac)
 list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
+# add_dependencies(zeek_objs ${BINPAC_BUILD_TARGET})
 
 ########################################################################
 ## Gen-ZAM setup
@@ -272,6 +276,13 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
                    COMMENT "[Python] Processing debug commands"
                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
+add_custom_target(
+  zeek_debugcmd_gen
+  DEPENDS
+    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
+    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
+)
+add_dependencies(zeek_autogen_files zeek_debugcmd_gen)
 
 set(_gen_zeek_script_cpp ${CMAKE_CURRENT_BINARY_DIR}/../CPP-gen.cc)
 add_custom_command(OUTPUT ${_gen_zeek_script_cpp}
@@ -404,7 +415,7 @@ set(MAIN_SRCS
     script_opt/CPP/Util.cc
     script_opt/CPP/Vars.cc
 
-    ${_gen_zeek_script_cpp}
+    # TODO: needed? ${_gen_zeek_script_cpp}
 
     script_opt/Expr.cc
     script_opt/GenIDDefs.cc
@@ -450,16 +461,18 @@ set(THIRD_PARTY_SRCS
 )
 
 # Highwayhash. Highwayhash is a bit special since it has architecture dependent code...
-
-set(HH_SRCS
-    ../auxil/highwayhash/highwayhash/sip_hash.cc
-    ../auxil/highwayhash/highwayhash/sip_tree_hash.cc
-    ../auxil/highwayhash/highwayhash/scalar_sip_tree_hash.cc
-    ../auxil/highwayhash/highwayhash/arch_specific.cc
-    ../auxil/highwayhash/highwayhash/instruction_sets.cc
-    ../auxil/highwayhash/highwayhash/nanobenchmark.cc
-    ../auxil/highwayhash/highwayhash/os_specific.cc
-    ../auxil/highwayhash/highwayhash/hh_portable.cc
+set(hhash_dir ${PROJECT_SOURCE_DIR}/auxil/highwayhash/highwayhash)
+zeek_add_subdir_library(
+    hhash
+    SOURCES
+        ${hhash_dir}/sip_hash.cc
+        ${hhash_dir}/sip_tree_hash.cc
+        ${hhash_dir}/scalar_sip_tree_hash.cc
+        ${hhash_dir}/arch_specific.cc
+        ${hhash_dir}/instruction_sets.cc
+        ${hhash_dir}/nanobenchmark.cc
+        ${hhash_dir}/os_specific.cc
+        ${hhash_dir}/hh_portable.cc
 )
 
 if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
@@ -472,22 +485,27 @@ if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
   " test_arm_neon)
 
   if (test_arm_neon)
-    list(APPEND HH_SRCS ../auxil/highwayhash/highwayhash/hh_neon.cc)
+    target_sources(zeek_hhash_obj ${hhash_dir}/hh_neon.cc)
   endif ()
-
-  set_source_files_properties(${HH_SRCS} PROPERTIES COMPILE_FLAGS
-                              -mfloat-abi=hard -march=armv7-a -mfpu=neon)
+  target_compile_options(
+    zeek_hhash_obj
+    PRIVATE
+      -mfloat-abi=hard
+      -march=armv7-a
+      -mfpu=neon
+  )
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
-  list(APPEND HH_SRCS
-       ../auxil/highwayhash/highwayhash/hh_neon.cc
-  )
+  target_sources(zeek_hhash_obj ${hhash_dir}/hh_neon.cc)
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
-  set_source_files_properties(../auxil/highwayhash/highwayhash/hh_vsx.cc PROPERTIES COMPILE_FLAGS
+  target_sources(zeek_hhash_obj ${hhash_dir}/hh_vsx.cc)
+  set_source_files_properties(${hhash_dir}/hh_vsx.cc PROPERTIES COMPILE_FLAGS
                               -mvsx)
-  list(APPEND HH_SRCS
-       ../auxil/highwayhash/highwayhash/hh_vsx.cc
-  )
 elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
+  target_sources(
+    zeek_hhash_obj
+    PRIVATE
+    ${hhash_dir}/hh_avx2.cc
+    ${hhash_dir}/hh_sse41.cc)
   if (MSVC)
     set(_avx_flag /arch:AVX2)
     # Using an undocumentd compiler flag: https://stackoverflow.com/questions/64053597/how-do-i-enable-sse4-1-and-sse3-but-not-avx-in-msvc/69328426#69328426
@@ -497,15 +515,10 @@ elseif(${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
     set(_sse_flag -msse4.1)
   endif()
 
-  set_source_files_properties(../auxil/highwayhash/highwayhash/hh_avx2.cc PROPERTIES COMPILE_FLAGS
+  set_source_files_properties(${hhash_dir}/hh_avx2.cc PROPERTIES COMPILE_FLAGS
                               ${_avx_flag})
-  set_source_files_properties(../auxil/highwayhash/highwayhash/hh_sse41.cc PROPERTIES COMPILE_FLAGS
+  set_source_files_properties(${hhash_dir}/hh_sse41.cc PROPERTIES COMPILE_FLAGS
                               ${_sse_flag})
-
-  list(APPEND HH_SRCS
-      ../auxil/highwayhash/highwayhash/hh_avx2.cc
-      ../auxil/highwayhash/highwayhash/hh_sse41.cc
-  )
 endif ()
 
 set(zeek_SRCS
@@ -525,96 +538,79 @@ set(zeek_SRCS
     ${FLEX_Scanner_OUTPUTS}
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
-    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h
     ${THIRD_PARTY_SRCS}
-    ${HH_SRCS}
     ${MAIN_SRCS}
 )
 
 collect_headers(zeek_HEADERS ${zeek_SRCS})
 
-add_library(zeek_objs OBJECT ${zeek_SRCS})
+# Add the sources for the core functionality.
+add_library(zeek_src_obj OBJECT ${zeek_SRCS})
+target_link_libraries(zeek_src_obj PRIVATE $<BUILD_INTERFACE:zeek_internal>)
+add_dependencies(zeek_src_obj zeek_autogen_files)
+add_clang_tidy_files(${zeek_SRCS})
+zeek_add_obj_lib(zeek_src_obj)
 
-if (ZEEK_STANDALONE)
-    add_executable(zeek main.cc
-                $<TARGET_OBJECTS:zeek_objs>
-                ${zeek_HEADERS}
-                ${bro_SUBDIR_LIBS}
-                ${bro_PLUGIN_LIBS}
+if (TARGET zeek_exe)
+    target_sources(
+        zeek_exe
+        PRIVATE
+            main.cc
+            ${zeek_HEADERS}
+            ${bro_SUBDIR_LIBS}
+            ${bro_PLUGIN_LIBS})
+    target_link_libraries(
+        zeek_exe
+        PRIVATE
+            ${bro_PLUGIN_LINK_LIBS}
+            ${zeekdeps}
+            ${CMAKE_THREAD_LIBS_INIT}
+            ${CMAKE_DL_LIBS}
     )
 
     # npcap/winpcap need to be loaded in delayed mode so that we can set the load path
     # correctly at runtime. See https://npcap.com/guide/npcap-devguide.html#npcap-feature-native
     # for why this is necessary.
     if ( MSVC AND HAVE_WPCAP )
-        set(zeekdeps ${zeekdeps} delayimp.lib)
-        set_target_properties(zeek PROPERTIES LINK_FLAGS "/DELAYLOAD:wpcap.dll")
+        target_link_libraries(zeek_exe delayimp.lib)
+        set_target_properties(zeek_exe PROPERTIES LINK_FLAGS "/DELAYLOAD:wpcap.dll")
     endif()
 
-    target_link_libraries(zeek ${bro_PLUGIN_LINK_LIBS} ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
-
     # Export symbols from zeek executable for use by plugins
-    set_target_properties(zeek PROPERTIES ENABLE_EXPORTS TRUE)
+    set_target_properties(zeek_exe PROPERTIES ENABLE_EXPORTS ON)
 
     if ( MSVC )
-        set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
+        set_target_properties(zeek_exe PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif ()
-
-    install(TARGETS zeek RUNTIME DESTINATION bin)
-
-    set(BRO_EXE zeek
-        CACHE STRING "Zeek executable binary" FORCE)
-
-    set(BRO_EXE_PATH ${CMAKE_CURRENT_BINARY_DIR}/zeek
-        CACHE STRING "Path to Zeek executable binary" FORCE)
 endif()
 
-if (NOT ZEEK_STANDALONE OR CONAN_EXPORTED)
-    add_library(libzeek STATIC $<TARGET_OBJECTS:zeek_objs>
-                                ${zeek_HEADERS}
-                                ${bro_SUBDIR_LIBS}
-                                ${bro_PLUGIN_LIBS})
+if (TARGET zeek_lib)
+    target_sources(
+        zeek_lib
+        PRIVATE
+            ${zeek_HEADERS}
+            ${bro_SUBDIR_LIBS}
+            ${bro_PLUGIN_LIBS})
 
-    target_link_libraries(libzeek PUBLIC ${zeekdeps}
-                                      ${CMAKE_THREAD_LIBS_INIT}
-                                      ${CMAKE_DL_LIBS}
-                                      ${bro_SUBDIR_LIBS}
-                                      ${bro_PLUGIN_LIBS})
+    target_link_libraries(
+        zeek_lib
+        PUBLIC
+          ${zeekdeps}
+          ${CMAKE_THREAD_LIBS_INIT}
+          ${CMAKE_DL_LIBS}
+          ${bro_SUBDIR_LIBS}
+          ${bro_PLUGIN_LIBS}
+    )
 
-    target_include_directories(libzeek PUBLIC
+    target_include_directories(zeek_lib PUBLIC
                                     ${CMAKE_SOURCE_DIR}/zeek/src
                                     ${CMAKE_SOURCE_DIR}/zeek/src/include
                                     ${CMAKE_BINARY_DIR}
                                     ${CMAKE_BINARY_DIR}/zeek/src
                                     ${CMAKE_BINARY_DIR}/zeek/src/include)
 
-    install(TARGETS libzeek LIBRARY DESTINATION lib)
 endif()
-
-# Target to create all the autogenerated files.
-add_custom_target(generate_outputs_stage1)
-add_dependencies(generate_outputs_stage1 ${bro_ALL_GENERATED_OUTPUTS})
-
-# Target to create the joint includes files that pull in the bif code.
-bro_bif_create_includes(generate_outputs_stage2a ${CMAKE_CURRENT_BINARY_DIR} "${bro_AUTO_BIFS}")
-bro_bif_create_register(generate_outputs_stage2b ${CMAKE_CURRENT_BINARY_DIR} "${bro_REGISTER_BIFS}")
-add_dependencies(generate_outputs_stage2a generate_outputs_stage1)
-add_dependencies(generate_outputs_stage2b generate_outputs_stage1)
-
-# Global target to trigger creation of autogenerated code.
-add_custom_target(generate_outputs)
-add_dependencies(generate_outputs generate_outputs_stage2a generate_outputs_stage2b)
-
-# Build __load__.zeek files for standard *.bif.zeek.
-bro_bif_create_loader(bif_loader "${bro_BASE_BIF_SCRIPTS}")
-add_dependencies(bif_loader ${bro_PLUGIN_DEPS} ${bro_SUBDIR_DEPS})
-add_dependencies(zeek_objs bif_loader)
-
-# Build __load__.zeek files for plugins/*.bif.zeek.
-bro_bif_create_loader(bif_loader_plugins "${bro_PLUGIN_BIF_SCRIPTS}")
-add_dependencies(bif_loader_plugins ${bro_PLUGIN_DEPS} ${bro_SUBDIR_DEPS})
-add_dependencies(zeek_objs bif_loader_plugins)
 
 # Install *.bif.zeek.
 install(DIRECTORY ${PROJECT_BINARY_DIR}/scripts/base/bif DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/base)

@@ -1,26 +1,29 @@
-include(ZeekPlugin)
-
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}
-                           ${CMAKE_CURRENT_BINARY_DIR})
-
-zeek_plugin_begin(Zeek KRB)
-zeek_plugin_cc(Plugin.cc)
-zeek_plugin_cc(KRB.cc)
-zeek_plugin_cc(KRB_TCP.cc)
-zeek_plugin_bif(types.bif)
-zeek_plugin_bif(events.bif)
-zeek_plugin_pac(krb.pac krb-protocol.pac krb-analyzer.pac
-	krb-asn1.pac
-	krb-defs.pac
-	krb-types.pac
-	krb-padata.pac
-	../asn1/asn1.pac
+zeek_add_plugin(
+    Zeek
+    KRB
+    SOURCES
+        Plugin.cc
+        KRB.cc
+        KRB_TCP.cc
+    BIFS
+        types.bif
+        events.bif
+    PAC
+        krb.pac
+        krb-protocol.pac
+        krb-analyzer.pac
+        krb-asn1.pac
+        krb-defs.pac
+        krb-types.pac
+        krb-padata.pac
+        ../asn1/asn1.pac
+    PAC
+        krb_TCP.pac
+        krb-protocol.pac
+        krb-analyzer.pac
+        krb-asn1.pac
+        krb-defs.pac
+        krb-types.pac
+        krb-padata.pac
+        ../asn1/asn1.pac
 )
-zeek_plugin_pac(krb_TCP.pac krb-protocol.pac krb-analyzer.pac
-	krb-asn1.pac
-	krb-defs.pac
-    krb-types.pac
-	krb-padata.pac
-	../asn1/asn1.pac
-)
-zeek_plugin_end()

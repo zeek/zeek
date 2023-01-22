@@ -1,16 +1,8 @@
-include(ZeekSubdir)
-
-include_directories(BEFORE
-                    ${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_BINARY_DIR}
+zeek_add_subdir_library(
+    telemetry
+    SOURCES
+        Manager.cc
 )
 
-set(telemetry_SRCS
-    Manager.cc
-)
-
+# Treat BIFs as builtin (alternative mode).
 bif_target(telemetry.bif)
-
-bro_add_subdir_library(telemetry ${telemetry_SRCS})
-add_dependencies(bro_telemetry generate_outputs)
-

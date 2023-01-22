@@ -1,22 +1,20 @@
-
-include(ZeekSubdir)
-
-include_directories(BEFORE
-                    ${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_BINARY_DIR}
+zeek_add_subdir_library(
+    probabilistic
+    SOURCES
+        BitVector.cc
+        BloomFilter.cc
+        CardinalityCounter.cc
+        CounterVector.cc
+        Hasher.cc
+        Topk.cc
 )
 
-set(probabilistic_SRCS
-    BitVector.cc
-    BloomFilter.cc
-    CardinalityCounter.cc
-    CounterVector.cc
-    Hasher.cc
-    Topk.cc)
-
-bif_target(bloom-filter.bif)
-bif_target(cardinality-counter.bif)
-bif_target(top-k.bif)
-bro_add_subdir_library(probabilistic ${probabilistic_SRCS})
-
-add_dependencies(bro_probabilistic generate_outputs)
+# Treat BIFs as builtin (alternative mode).
+set(bifs
+    bloom-filter.bif
+    cardinality-counter.bif
+    top-k.bif
+)
+foreach ( bif ${bifs} )
+    bif_target(${bif})
+endforeach()

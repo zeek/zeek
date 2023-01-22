@@ -1,13 +1,10 @@
-
-include(ZeekPlugin)
-
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-include_directories(AFTER ${CMAKE_CURRENT_BINARY_DIR}/../dce-rpc)
-include_directories(AFTER ${CMAKE_CURRENT_BINARY_DIR}/../smb)
-
-zeek_plugin_begin(Zeek NetBIOS)
-zeek_plugin_cc(NetbiosSSN.cc Plugin.cc)
-zeek_plugin_bif(events.bif)
-zeek_plugin_bif(functions.bif)
-zeek_plugin_end()
-
+zeek_add_plugin(
+    Zeek
+    NetBIOS
+    SOURCES
+        NetbiosSSN.cc
+        Plugin.cc
+    BIFS
+        events.bif
+        functions.bif
+)

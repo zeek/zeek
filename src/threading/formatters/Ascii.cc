@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "threading/formatters/Ascii.h"
+#include "zeek/threading/formatters/Ascii.h"
 
 #include "zeek/zeek-config.h"
 

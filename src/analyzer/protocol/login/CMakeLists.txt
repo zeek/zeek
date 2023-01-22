@@ -1,10 +1,14 @@
-
-include(ZeekPlugin)
-
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-
-zeek_plugin_begin(Zeek Login)
-zeek_plugin_cc(Login.cc RSH.cc Telnet.cc Rlogin.cc NVT.cc Plugin.cc)
-zeek_plugin_bif(events.bif)
-zeek_plugin_bif(functions.bif)
-zeek_plugin_end()
+zeek_add_plugin(
+    Zeek
+    Login
+    SOURCES
+        Login.cc
+        RSH.cc
+        Telnet.cc
+        Rlogin.cc
+        NVT.cc
+        Plugin.cc
+    BIFS
+        events.bif
+        functions.bif
+)

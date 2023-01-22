@@ -1,8 +1,7 @@
-
-include(ZeekPlugin)
-
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-
-zeek_plugin_begin(PacketAnalyzer VLAN)
-zeek_plugin_cc(VLAN.cc Plugin.cc)
-zeek_plugin_end()
+zeek_add_plugin(
+    PacketAnalyzer
+    VLAN
+    SOURCES
+        VLAN.cc
+        Plugin.cc
+)

@@ -10,6 +10,7 @@ const non_fd_timeout: interval;
 
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/iosource/PktSrc.h"
 %%}
 
 ## Precompiles a PCAP filter and binds it to a given identifier.

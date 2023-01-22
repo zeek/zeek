@@ -1,0 +1,34 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Note: ZeekPluginConfig only exists on the build interface to pull in
+#       additional variables and dependencies for building dynamic plugins.
+if ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/ZeekPluginConfig.cmake" )
+    include("${CMAKE_CURRENT_LIST_DIR}/ZeekPluginConfig.cmake")
+endif ()
+
+set(CMAKE_THREAD_PREFER_PTHREAD ON)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_dependency(Threads REQUIRED)
+
+find_dependency(OpenSSL REQUIRED)
+
+# In our MSVC build, we have these extra dependencies from Conan.
+if ( MSVC )
+    find_dependency(libpcap)
+    find_dependency(ZLIB)
+    find_dependency(c-ares)
+endif ()
+
+if ( NOT "@ZEEK_HAS_STATIC_BROKER@" )
+    # Always force using the package config file since users might still have
+    # a legacy FindBroker.cmake in their system.
+    find_dependency(Broker REQUIRED CONFIG)
+endif ()
+
+foreach ( dep @ZEEK_INSTALL_DEPENDENCIES@ )
+  find_dependency(${dep} REQUIRED)
+endforeach (  )
+
+include("${CMAKE_CURRENT_LIST_DIR}/ZeekTargets.cmake")

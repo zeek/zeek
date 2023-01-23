@@ -14,7 +14,7 @@ dockerfile_task:
   persistent_worker:
     isolation:
       container:
-        dockerfile: ci/fedora-37/Dockerfile
+        dockerfile: ./Dockerfile
         cpu: 0.5
         memory: 512
         volumes:

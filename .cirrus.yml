@@ -15,13 +15,11 @@ dockerfile_task:
     isolation:
       container:
         dockerfile: ./Dockerfile
-        cpu: 0.5
-        memory: 512
+        cpu: 1
+        memory: 5GB
         volumes:
           - /root/.ccache:/root/.ccache
 
-  resources:
-    docker: 1
   script: uname -a
 
   env:

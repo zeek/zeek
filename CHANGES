@@ -1,3 +1,15 @@
+5.1.1-3 | 2023-01-23 13:44:49 -0700
+
+  * Bump spicy to v1.5.3. (Benjamin Bannier, Corelight)
+
+  * Docker Hub: Push images to zeek/zeek and zeek/zeek-dev (Arne Welzel, Corelight)
+
+    We may want to copy some of the current feature and lts releases
+    over to zeek/zeek by hand, but for now see if pushing works out
+    for zeek/zeek-dev, mainly.
+
+    (cherry picked from commit 0206bfe05b9a8036dc04c5837dab06b51713fde8)
+
 5.1.1 | 2022-11-22 09:17:43 -0700
 
   * Release 5.1.1.

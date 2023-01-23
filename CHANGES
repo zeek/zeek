@@ -1,3 +1,9 @@
+5.2.0-dev.504 | 2023-01-23 09:37:47 -0700
+
+  * Update RDP Keyboard Languages (jeff-bb)
+
+    Using additional sources to add more languages / locales. Changed sort order to match other sections.
+
 5.2.0-dev.499 | 2023-01-19 09:14:07 -0700
 
   * Reduce startup time on Windows by using std::filesystem::canonical (Tim Wojtulewicz)

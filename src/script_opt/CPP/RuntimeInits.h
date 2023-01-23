@@ -405,9 +405,9 @@ class CPP_GlobalInit : public CPP_Init<void*>
 	{
 public:
 	CPP_GlobalInit(IDPtr& _global, const char* _name, int _type, int _attrs, int _val,
-	               bool _exported)
+	               bool _exported, bool _func_with_no_val)
 		: CPP_Init<void*>(), global(_global), name(_name), type(_type), attrs(_attrs), val(_val),
-		  exported(_exported)
+		  exported(_exported), func_with_no_val(_func_with_no_val)
 		{
 		}
 
@@ -421,6 +421,7 @@ protected:
 	int attrs;
 	int val;
 	bool exported;
+	bool func_with_no_val;
 	};
 
 // Abstract class for constructing a CallExpr to evaluate a Zeek expression.
@@ -534,7 +535,15 @@ public:
 		{
 		}
 
-	void ResolveBiF() const { bif_func = lookup_bif__CPP(bif_name.c_str()); }
+	void ResolveBiF() const
+		{
+		// We allow a BiF to be resolved multiple times.  This is to
+		// support plugins that might load BiFs that aren't initially
+		// available, and also global initializations that might
+		// require (other) BiFs that *are* initially available.
+		if ( ! bif_func )
+			bif_func = lookup_bif__CPP(bif_name.c_str());
+		}
 
 protected:
 	zeek::Func*& bif_func; // where to store the pointer to the BiF

@@ -1,3 +1,11 @@
+5.2.0-dev.510 | 2023-01-23 14:35:14 -0700
+
+  * Maintenance updates for -O gen-C++ / -O gen-standalone-C++ (Vern Paxson, Corelight)
+      fixes for using BiFs in standalone global initializations
+      avoiding redundant global initializations
+      updates to maintenance scripts and notes
+      removal of an unused member variable
+
 5.2.0-dev.508 | 2023-01-23 12:48:06 -0700
 
   * Log raw keyboard value on best guess (jeff-bb)

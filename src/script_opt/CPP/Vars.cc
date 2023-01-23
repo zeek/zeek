@@ -55,21 +55,28 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g)
 	{
 	auto gg = global_gis.find(g);
 
-	if ( gg == global_gis.end() )
-		{
-		auto gn = string(g->Name());
-
-		if ( globals.count(gn) == 0 )
-			// Create a name for it.
-			(void)IDNameStr(g);
-
-		auto gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
-		global_id_info->AddInstance(gi);
-		global_gis[g] = gi;
-		return gi;
-		}
-	else
+	if ( gg != global_gis.end() )
 		return gg->second;
+
+	auto gn = string(g->Name());
+
+	if ( globals.count(gn) == 0 )
+		{
+		// Create a name for it.
+		(void)IDNameStr(g);
+
+		// That call may have created the initializer, in which
+		// case no need to repeat it.
+		gg = global_gis.find(g);
+		if ( gg != global_gis.end() )
+			return gg->second;
+		}
+
+	auto gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
+	global_id_info->AddInstance(gi);
+	global_gis[g] = gi;
+
+	return gi;
 	}
 
 void CPPCompile::AddBiF(const ID* b, bool is_var)

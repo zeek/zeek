@@ -169,7 +169,7 @@ IDPtr lookup_global__CPP(const char* g, const TypePtr& t, bool exported)
 Func* lookup_bif__CPP(const char* bif)
 	{
 	auto b = lookup_ID(bif, GLOBAL_MODULE_NAME, false, false, false);
-	return b ? b->GetVal()->AsFunc() : nullptr;
+	return (b && b->GetVal()) ? b->GetVal()->AsFunc() : nullptr;
 	}
 
 FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> hashes,

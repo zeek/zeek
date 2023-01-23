@@ -195,7 +195,7 @@ event rdp_client_core_data(c: connection, data: RDP::ClientCoreData) &priority=5
 		{
 		if (data$keyboard_layout & 0xffff in RDP::languages)
 			{
-			c$rdp$keyboard_layout = fmt("%s (Best Guess)", RDP::languages[data$keyboard_layout & 0xffff]);
+			c$rdp$keyboard_layout = fmt("%s (Best Guess of %d)", RDP::languages[data$keyboard_layout & 0xffff], data$keyboard_layout);
 			}
 		else
 			{

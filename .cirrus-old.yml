@@ -1,0 +1,173 @@
+##################################################################################
+# Please note:                                                                   #
+#                                                                                #
+# After updating this file, please also update CI column of the support matrix   #
+# at https://github.com/zeek/zeek/wiki/Zeek-Operating-System-Support-Matrix      #
+##################################################################################
+
+cpus: &CPUS 4
+btest_jobs: &BTEST_JOBS 4
+btest_retries: &BTEST_RETRIES 2
+memory: &MEMORY 12GB
+
+config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
+static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
+ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
+tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
+openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
+
+resources_template: &RESOURCES_TEMPLATE
+  cpu: *CPUS
+  memory: *MEMORY
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
+
+macos_environment: &MACOS_ENVIRONMENT
+  # https://medium.com/cirruslabs/new-macos-task-execution-architecture-for-cirrus-ci-604250627c94
+  # suggests we can go faster here:
+  env:
+    ZEEK_CI_CPUS: 12
+    ZEEK_CI_BTEST_JOBS: 12
+    # No permission to write to default location of /zeek
+    CIRRUS_WORKING_DIR: /tmp/zeek
+
+freebsd_resources_template: &FREEBSD_RESOURCES_TEMPLATE
+  cpu: 8
+  # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
+  memory: 8GB
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
+
+freebsd_environment: &FREEBSD_ENVIRONMENT
+  env:
+    ZEEK_CI_CPUS: 8
+    ZEEK_CI_BTEST_JOBS: 8
+
+sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
+  cpu: 4
+  # Sanitizers uses a lot more memory than a typical config.
+  memory: 12GB
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
+
+branch_whitelist: &BRANCH_WHITELIST
+  # Rules for skipping builds:
+  # - Don't do darwin builds on zeek-security repo because they use up a ton of compute credits.
+  # - Always build PRs, but not if they come from dependabot
+  # - Always build master and release/* builds from the main repo
+  only_if: >
+    ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
+    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
+    ( $CIRRUS_REPO_NAME == 'zeek' &&
+      (
+      $CIRRUS_BRANCH == 'master' ||
+      $CIRRUS_BRANCH =~ 'release/.*'
+      )
+    ) )
+
+ci_template: &CI_TEMPLATE
+  << : *BRANCH_WHITELIST
+
+  # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
+  # tasks, so may as well ask for full time.
+  timeout_in: 120m
+
+  sync_submodules_script: git submodule update --recursive --init
+
+  get_external_pcaps_cache:
+    folder: testing/external/zeek-testing-traces
+    fingerprint_script: echo zeek-testing-traces
+    populate_script: ./ci/init-external-repos.sh
+    reupload_on_changes: true
+
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo ccache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
+  init_external_repos_script: ./ci/init-external-repos.sh
+
+  build_script: ./ci/build.sh
+  test_script: ./ci/test.sh
+
+  on_failure:
+    upload_btest_tmp_dir_artifacts:
+      path: "testing/**/tmp.tar.gz"
+  always:
+    upload_btest_xml_results_artifacts:
+      path: "testing/**/btest-results.xml"
+      type: text/xml
+      format: junit
+    upload_btest_html_results_artifacts:
+      path: "testing/**/btest-results.html"
+      type: text/html
+    cache_statistics_script:
+      ccache --show-stats
+
+env:
+  CIRRUS_WORKING_DIR: /zeek
+  ZEEK_CI_CPUS: *CPUS
+  ZEEK_CI_BTEST_JOBS: *BTEST_JOBS
+  ZEEK_CI_BTEST_RETRIES: *BTEST_RETRIES
+  ZEEK_CI_CONFIGURE_FLAGS: *CONFIG
+  # This is a single-purpose, read-only GitHub deploy key (SSH private key) for
+  # the zeek-testing-private repository.
+  ZEEK_TESTING_PRIVATE_SSH_KEY: ENCRYPTED[!dbdba93df9c166f926480cebff52dab303589257b3b3ee53aa392021aff2881ed9aafefef26aa9a1b71a49d663d1361c!]
+
+  # This is the key used to create HMAC auth keys for the benchmark script. This
+  # was generated by creating a new key using openssl, and then running sha256
+  # on it.
+  ZEEK_BENCHMARK_HMAC_KEY: ENCRYPTED[363e79b9942f348e53ab1f39f6ac8f7118bea2f4228ad1ef7b55981d3ef8d26dd756872f600ff40f2d7dcadb71f88513]
+
+  # This is the https endpoint host and port used for benchmarking. It's kept
+  # encrypted as a security measure to avoid leaking the host's information.
+  ZEEK_BENCHMARK_HOST: ENCRYPTED[380bf93de174db123387289dc6cb443ec341aab30befe43fe2f43634f86995b29a4571674092cdafb39308eaee65050d]
+  ZEEK_BENCHMARK_PORT: ENCRYPTED[b97fabf4d6bd5eef107c8469c5cb2c44e0107d89c220f43e7d1e7bdfb32dbdc2620855fee8e5a8d889458d5a6ac3e5c7]
+
+  # The repo token used for uploading data to Coveralls.io
+  ZEEK_COVERALLS_REPO_TOKEN: ENCRYPTED[7ffd1e041f848f02b62f5abc7fda8a5a8a1561fbb2b46d88cefb67c74408ddeef6ea6f3b279c7953ca14ae9b4d050e2d]
+
+  CCACHE_BASEDIR: $CIRRUS_WORKING_DIR
+  CCACHE_DIR: /tmp/ccache
+  CCACHE_COMPRESS: 1
+
+# Linux EOL timelines: https://linuxlifecycle.com/
+# Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
+
+fedora37_task:
+  persistent_worker:
+    isolation:
+      container:
+        # Fedora 37 EOL: Around Dec 2024
+        dockerfile: ci/fedora-37/Dockerfile
+  env:
+    CIRRUS_ARCH: amd64
+  platform: amd64
+  << : *CI_TEMPLATE
+
+# ubuntu2210_task:
+#   persistent_worker:
+#     isolation:
+#        container:
+#          # Ubuntu 22.10 EOL: July 2023
+#          dockerfile: ci/ubuntu-22.10/Dockerfile
+#   env:
+#     CIRRUS_ARCH: amd64
+#    << : *CI_TEMPLATE
+
+# ubuntu22_task:
+#   container:
+#     # Ubuntu 22.04 EOL: April 2027
+#     dockerfile: ci/ubuntu-22.04/Dockerfile
+#     << : *RESOURCES_TEMPLATE
+#   << : *CI_TEMPLATE
+#   env:
+#     ZEEK_CI_CREATE_ARTIFACT: 1
+#   upload_binary_artifacts:
+#     path: build.tgz
+#   benchmark_script: ./ci/benchmark.sh
+
+
+

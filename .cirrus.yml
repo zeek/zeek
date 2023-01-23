@@ -24,3 +24,4 @@ dockerfile_task:
 
   env:
     CIRRUS_ARCH: amd64
+    CIRRUS_OS: linux

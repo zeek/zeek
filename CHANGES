@@ -1,3 +1,7 @@
+5.0.5-2 | 2023-01-23 13:07:41 -0700
+
+  * Bump spicy to v1.5.3. (Benjamin Bannier, Corelight)
+
 5.0.5 | 2023-01-09 10:02:52 -0700
 
   * Update CHANGES, VERSION, and NEWS for 5.0.5 release (Tim Wojtulewicz, Corelight)

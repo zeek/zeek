@@ -23,4 +23,4 @@ dockerfile_task:
   script: uname -a
 
   env:
-    CIRRUS_ARCH: arm64
+    CIRRUS_ARCH: amd64

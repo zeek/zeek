@@ -1,3 +1,26 @@
+5.2.0-dev.508 | 2023-01-23 12:48:06 -0700
+
+  * Log raw keyboard value on best guess (jeff-bb)
+
+  * Avoid excessive fmt calls, return default behavior on unknown (jeff-bb)
+
+    Using "in" to query the language const. This also handles the case of not
+    having a best guess and continue using the existing behavior.
+    
+    Given
+    keyboard_layout = 1033 (0x0409), "keyboard-English - United States"
+    keyboard_layout = 66569 (0x00010409), "keyboard-English - United States (Best Guess)"
+    keyboard_layout = 12345 (0x3039), "keyboard-12345"
+
+  * "Best Guess" unknown keyboard / language variants (jeff-bb)
+
+    If the lookup table does not have an entry, it will just log as the raw
+    decimal language/keyboard code. With this change, if we do not have an entry
+    in the lookup table, we'll look at the low order / 4 least significant bits
+    to see if we have a match. The high order / 4 most significant bits are
+    flags/modifiers to the base language/keyboard code. We'll append that it is
+    a "Best Guess"
+
 5.2.0-dev.504 | 2023-01-23 09:37:47 -0700
 
   * Update RDP Keyboard Languages (jeff-bb)

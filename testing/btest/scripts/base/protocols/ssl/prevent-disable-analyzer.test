@@ -17,7 +17,7 @@ global encrypted_data_wanted = 4;
 
 # Prevent disabling the SSL analyzer for this connection until we've seen encrypted_data_wanted
 # encrypted data events on it. Our ssl_encrypted_data event handler has the inverse condition.
-hook disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count)
+hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count)
 	{
 	print "disabling_analyzer", c$id, atype, aid;
 	if ( atype != Analyzer::ANALYZER_SSL || ! c?$ssl )
@@ -37,9 +37,9 @@ event ssl_established(c: connection)
 	print "established", c$id;
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
 	{
-	print "analyzer_confirmation", c$id, atype, aid;
+	print "analyzer_confirmation", info$c$id, atype, info$aid;
 	}
 
 event ssl_encrypted_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count)

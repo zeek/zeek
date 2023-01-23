@@ -213,6 +213,9 @@ Deprecated Functionality
   deprecated in favor of the more generic ``analyzer_confirmation_info`` and
   ``analyzer_violation_info`` events.
 
+- The global ``disabling_analyzer()`` hook has been deprecated and replaced
+  with ``Analyzer::disabling_analyzer()`` that has the same semantics.
+
 - The const values for toggling individual tunnel packet analyzers have
   been deprecated in favor of using ``Analyzer::disable_analyzer()``
   directly. This affects:

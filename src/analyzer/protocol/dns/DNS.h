@@ -321,7 +321,9 @@ public:
 	int TC; ///< truncated - size > 512 bytes for udp
 	int RD; ///< recursion desired
 	int RA; ///< recursion available
-	int Z; ///< zero - this 3 bit field *must* be zero
+	int Z; ///< 3 bit field (includes AD and CD)
+	int AD; ///< authentic data
+	int CD; ///< checking disabled
 	int qdcount; ///< number of questions
 	int ancount; ///< number of answers
 	int nscount; ///< number of authority RRs

@@ -20,7 +20,8 @@ dockerfile_task:
         volumes:
           - /root/.ccache:/root/.ccache
 
-  resources: {}
+  resources:
+    docker: 1
   script: uname -a
 
   env:

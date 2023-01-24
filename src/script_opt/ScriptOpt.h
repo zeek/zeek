@@ -102,9 +102,6 @@ struct AnalyOpt
 	// of the corresponding script, and not activated by default).
 	bool gen_standalone_CPP = false;
 
-	// Generate C++ that's added to existing generated code.
-	bool add_CPP = false;
-
 	// If true, use C++ bodies if available.
 	bool use_CPP = false;
 

@@ -127,7 +127,7 @@ class CPPCompile
 	{
 public:
 	CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs, const std::string& gen_name,
-	           bool add, bool _standalone, bool report_uncompilable);
+	           bool _standalone, bool report_uncompilable);
 	~CPPCompile();
 
 	// Constructing a CPPCompile object does all of the compilation.
@@ -345,10 +345,6 @@ private:
 	// Maps functions (not hooks or events) to upstream compiled names.
 	std::unordered_map<std::string, std::string> hashed_funcs;
 
-	// If non-zero, provides a tag used for auxiliary/additional
-	// compilation units.
-	int addl_tag = 0;
-
 	// If true, the generated code should run "standalone".
 	bool standalone = false;
 
@@ -358,10 +354,6 @@ private:
 	// compilation time, which is why these are "seatbelts" and
 	// likely not important to make distinct).
 	p_hash_type total_hash = 0;
-
-	// Working directory in which we're compiling.  Used to quasi-locate
-	// error messages when doing test-suite "add-C++" crunches.
-	std::string working_dir;
 
 	//
 	// End of methods related to script/C++ variables.

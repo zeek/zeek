@@ -1,3 +1,7 @@
+5.2.0-dev.513 | 2023-01-24 09:01:42 -0700
+
+  * Add test for new handling of unknown RDP keyboards (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.510 | 2023-01-23 14:35:14 -0700
 
   * Maintenance updates for -O gen-C++ / -O gen-standalone-C++ (Vern Paxson, Corelight)

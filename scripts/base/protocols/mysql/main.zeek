@@ -112,6 +112,25 @@ event mysql_error(c: connection, code: count, msg: string) &priority=-5
 		}
 	}
 
+event mysql_eof(c: connection, is_intermediate: bool) &priority=-5
+	{
+	if ( is_intermediate )
+		return;
+
+	if ( c?$mysql )
+		{
+		# We don't have more information, so just
+		# place what mysql_ok() would've done.
+		if ( ! c$mysql?$success )
+			c$mysql$success = T;
+		if ( ! c$mysql?$rows )
+			c$mysql$rows = 0;
+
+		Log::write(mysql::LOG, c$mysql);
+		delete c$mysql;
+		}
+	}
+
 event mysql_ok(c: connection, affected_rows: count) &priority=5
 	{
 	if ( c?$mysql )

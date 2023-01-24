@@ -65,19 +65,19 @@ refine flow MySQL_Flow += {
 		return true;
 		%}
 
+	function proc_eof_packet(msg: EOF_Packet): bool
+		%{
+		if ( mysql_eof )
+			zeek::BifEvent::enqueue_mysql_eof(connection()->zeek_analyzer(),
+			                                  connection()->zeek_analyzer()->Conn(),
+			                                  ${msg.typ} == EOF_INTERMEDIATE);
+		return true;
+		%}
+
 	function proc_resultset(msg: Resultset): bool
 		%{
-		if ( connection()->get_results_seen() == 1 )
-			{
-			// This is a bit fake...
-			if ( mysql_ok )
-				zeek::BifEvent::enqueue_mysql_ok(connection()->zeek_analyzer(),
-				                           connection()->zeek_analyzer()->Conn(),
-				                           0);
-			}
-
 		if ( ${msg.is_eof} )
-			return true;
+			return true;  // Raised through proc_eof_packet()
 
 		if ( ! mysql_result_row )
 			return true;
@@ -125,6 +125,10 @@ refine typeattr ERR_Packet += &let {
 
 refine typeattr OK_Packet += &let {
 	proc = $context.flow.proc_ok_packet(this);
+};
+
+refine typeattr EOF_Packet += &let {
+	proc = $context.flow.proc_eof_packet(this);
 };
 
 refine typeattr Resultset += &let {

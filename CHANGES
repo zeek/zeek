@@ -1,3 +1,7 @@
+5.2.0-dev.515 | 2023-01-25 08:19:02 -0700
+
+  * Fix CI benchmark script to properly urlencode arguments (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.513 | 2023-01-24 09:01:42 -0700
 
   * Add test for new handling of unknown RDP keyboards (Tim Wojtulewicz, Corelight)

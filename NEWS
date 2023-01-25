@@ -59,24 +59,24 @@ New Functionality
   The Zeek team wants to give a huge thank you to the team at Microsoft for all
   of their effort in completing this port.
 
-- New ``analyzer_confirmation_info`` and ``analyzer_violation_info``
-  events with accompanying record types ``AnalyzerConfirmationInfo``
-  and ``AnalyzerViolationInfo`` have been added. These supersede
-  ``analyzer_confirmation`` and ``analyzer_violation``, which have
-  been deprecated.
+- New ``analyzer_confirmation_info`` and ``analyzer_violation_info`` events with
+  accompanying record types ``AnalyzerConfirmationInfo`` and
+  ``AnalyzerViolationInfo`` have been added. These supersede
+  ``analyzer_confirmation`` and ``analyzer_violation``, which have been
+  deprecated.
 
-- Added helpers to determine protocol, packet or file analyzer based
-  on ``AllAnalyzers::Tag`` values named ``is_protocol_analyzer()``,
+- Added helpers to determine protocol, packet or file analyzer based on
+  ``AllAnalyzers::Tag`` values named ``is_protocol_analyzer()``,
   ``is_packet_analyzer()`` and ``is_file_analyzer()``.
 
-- File analyzers can now raise analyzer violations to the script-layer via
-  the new ``AnalyzerViolation()`` method.
+- File analyzers can now raise analyzer violations to the script-layer via the
+  new ``AnalyzerViolation()`` method.
 
-- Packet and file analyzers can now be disabled and enabled at runtime using
-  the ``Analyzer::enable_analyzer()`` and ``Analyzer::disable_analyzer()``
-  wrappers. While initially for protocol analyzers only, these have
-  been extended to work for packet and file analyzers. This now allows to
-  leverage ``Analyzer::disabled_analyzers`` for these kinds of analyzers.
+- Packet and file analyzers can now be disabled and enabled at runtime using the
+  ``Analyzer::enable_analyzer()`` and ``Analyzer::disable_analyzer()``
+  wrappers. While initially for protocol analyzers only, these have been
+  extended to work for packet and file analyzers. This now allows to leverage
+  ``Analyzer::disabled_analyzers`` for these kinds of analyzers.
 
 - The blank identifier ``_`` can now be used to ignore loop variables of
   different types without type clash errors. This allows to do the following
@@ -97,8 +97,8 @@ New Functionality
 	for ( _, v in tab )
 		print v;
 
-  It's also possible ignore individual indices of different types with the
-  blank identifier ``_`` as follows:
+  It's also possible ignore individual indices of different types with the blank
+  identifier ``_`` as follows:
 
 	for ( [_, i, _], v in tab )
 		print i, v;
@@ -107,8 +107,8 @@ New Functionality
   referenced in expression anymore.
 
 - It is now possible to put trailing commas within table, vector, set and record
-  construction. For example, the following code is now valid, which can make
-  for more uniform style and smaller diffs.
+  construction. For example, the following code is now valid, which can make for
+  more uniform style and smaller diffs.
 
 	local vec = vector(
 		"1",
@@ -132,25 +132,25 @@ New Functionality
 	);
 
 - Re-introduce event groups. Allow the ``&group`` attribute on event and hook
-  handlers for annotating them with one or more event groups. These groups
-  can be disabled and enable during runtime. Disabling an event group implies
+  handlers for annotating them with one or more event groups. These groups can
+  be disabled and enable during runtime. Disabling an event group implies
   disabling all event and hook handlers that are part of it.
 
   The main difference to a previous implementation in (very) old Zeek versions
   is its granularity: It is now possible to toggle individual event handlers
   (event handler bodies). The original implementation worked at the level of
   events, disabling or enabling all event handlers for a given event at once.
-  Additionally, support for hooks was added as these are structurally similar
-  to events.
+  Additionally, support for hooks was added as these are structurally similar to
+  events.
 
   The BIFs ``disable_event_group()`` and ``enable_event_group()`` are
   re-instantiated and allow controlling event groups based on the group
   attribute.
 
-  Additionally, event and hook handlers are implicitly placed into event
-  module groups based on the module they are implemented in. All events
-  implemented in a given module can be toggled with ``disable_module_events()``
-  and ``enable_module_events()``.
+  Additionally, event and hook handlers are implicitly placed into event module
+  groups based on the module they are implemented in. All events implemented in
+  a given module can be toggled with ``disable_module_events()`` and
+  ``enable_module_events()``.
 
 - Extend the ``Logging::Stream`` record with an ``event_groups`` field and
   toggle these during ``Log::disable_stream`` and ``Log::enable_stream``
@@ -158,31 +158,34 @@ New Functionality
   by turning off event handlers at runtime that are only needed for log
   generation.
 
-- On Linux, the AF_PACKET packet source plugin (https://github.com/zeek/zeek-af_packet-plugin)
-  is included as a builtin plugin by default. To select this packet source, prefix
-  the interface name with ``af_packet``.
+- On Linux, the AF_PACKET packet source plugin
+  (https://github.com/zeek/zeek-af_packet-plugin) is included as a builtin
+  plugin by default. To select this packet source, prefix the interface name
+  with ``af_packet``.
 
 	zeek -i af_packet::eth0
 
 - Usage of ``break`` and ``next`` statements is now validated. It was previously
-  possible to place these outside of ``for``, ``while`` or ``switch``
-  statements without any error indication.
+  possible to place these outside of ``for``, ``while`` or ``switch`` statements
+  without any error indication.
 
-- Add two BIFs ``get_identifier_declaring_script()`` and ``get_record_field_declaring_script()``
-  to query the declaring scripts for identifiers and record fields from Zeek scripts.
+- Add two BIFs ``get_identifier_declaring_script()`` and
+  ``get_record_field_declaring_script()`` to query the declaring scripts for
+  identifiers and record fields from Zeek scripts.
 
 - Extend the SSH analyzer to produce new events (``ssh2_ecc_init``,
-  ``ssh2_gh_gex_init``, ``ssh2_gss_init``, ssh2_rsa_secret``) to detect
-  when SSH client and server roles are reversed.
+  ``ssh2_gh_gex_init``, ``ssh2_gss_init``, ssh2_rsa_secret``) to detect when SSH
+  client and server roles are reversed.
 
 - Analyzers found in the new ``Analyzer::requested_analyzers`` set will be
-  enabled at ``zeek_init()`` time. The set can be populated via :zeek:see:`redef`.
-  This change only has an effect in settings where ``Analyzer::disable_all``
-  is changed to ``T``. By default, all analyzers continue to be enabled.
+  enabled at ``zeek_init()`` time. The set can be populated via
+  :zeek:see:`redef`.  This change only has an effect in settings where
+  ``Analyzer::disable_all`` is changed to ``T``. By default, all analyzers
+  continue to be enabled.
 
-- A new ``analyzer.log`` was added to log all analyzer violations and
-  optionally analyzer confirmations. This log can be useful during development
-  of new analyzers as well as for collecting operational data in production
+- A new ``analyzer.log`` was added to log all analyzer violations and optionally
+  analyzer confirmations. This log can be useful during development of new
+  analyzers as well as for collecting operational data in production
   environments.
 
 - Expose configurability of for SQLite's synchronous and journal_mode PRAGMAs
@@ -214,28 +217,29 @@ New Functionality
 Changed Functionality
 ---------------------
 
-- Violations for packet analyzers that have sessions attached with them
-  will be raised once only. Further, analyzer confirmations are not raised
-  after a violation.
+- Violations for packet analyzers that have sessions attached with them will be
+  raised once only. Further, analyzer confirmations are not raised after a
+  violation.
 
-- The parameter given to ``enum_names()`` can now be a string naming the
-  enum type, rather than the type itself.
+- The parameter given to ``enum_names()`` can now be a string naming the enum
+  type, rather than the type itself.
 
-- The ``type_name`` of enum types produced by ``record_fields()`` now
-  includes the actual type name rather than just ``"enum"``.
+- The ``type_name`` of enum types produced by ``record_fields()`` now includes
+  the actual type name rather than just ``"enum"``.
 
 - Passing non-string ``sep`` and ``def`` arguments to ``cat_sep()`` isn't a
   fatal error anymore. More descriptive error messages are produced, too.
 
 - The number of analyzer violation events that can be raised by protocol
-  analyzer instances is now capped by the const ``max_analyzer_violation_events``.
+  analyzer instances is now capped by the const
+  ``max_analyzer_violation_events``.
 
 - The number of analyzer violation events that can be raised by protocol and
-  file analyzer instances is now capped by the const ``max_analyzer_violation_events``.
-  Its default is 1000 and the main purpose is to prevent analyzers from
-  scheduling too many ``analyzer_violation_info`` events before the
-  DPD ``max_violations`` script-level logic has a chance to run and disable
-  the problematic analyzer.
+  file analyzer instances is now capped by the const
+  ``max_analyzer_violation_events``.  Its default is 1000 and the main purpose
+  is to prevent analyzers from scheduling too many ``analyzer_violation_info``
+  events before the DPD ``max_violations`` script-level logic has a chance to
+  run and disable the problematic analyzer.
 
 - The TCP analyzer now continues processing payload for some
   connections missing initial packets where it would previously have
@@ -251,8 +255,8 @@ Changed Functionality
 	expression warning in <command line>, line 1: count underflow (1 - 2)
 	18446744073709551615
 
-- The MQTT scripts registering the analyzer and DPD signatures have
-  been moved from the policy folder to base and are loaded by default.
+- The MQTT scripts registering the analyzer and DPD signatures have been moved
+  from the policy folder to base and are loaded by default.
 
 - Notices created for files transferred over multiple connections will now be
   associated with one of the connections rather than none.
@@ -274,9 +278,9 @@ Deprecated Functionality
   deprecated in favor of the more generic ``analyzer_confirmation_info`` and
   ``analyzer_violation_info`` events.
 
-- The const values for toggling individual tunnel packet analyzers have
-  been deprecated in favor of using ``Analyzer::disable_analyzer()``
-  directly. This affects:
+- The const values for toggling individual tunnel packet analyzers have been
+  deprecated in favor of using ``Analyzer::disable_analyzer()`` directly. This
+  affects:
 
 	Tunnel::enable_ip
 	Tunnel::enable_ayiya

@@ -25,6 +25,22 @@ Breaking Changes
   adapted accordingly. Users of ``mysql_ok()`` likely need to switch to
   ``mysql_eof()``.
 
+- Zeek will now exit at startup if an external plugin (e.g. from a package) is
+  discovered to have the same name as a built-in plugin. See below for the
+  change regarding the AF_PACKET plugin now being built-in for an example of
+  this potentially being triggered.
+
+- DNS query type strings were updated to match the current standardized list of
+  strings. This changes the string reported for a small subset of query types:
+
+	30: Changed from "EID" to "NXT"
+	31: Changed from "NIMLOC" to "EID"
+	32: Changed from "NB" to "NIMLOC"
+
+- The ``--with-caf`` option for the ``configure`` script was removed. Broker now
+  requires specific versions of CAF per Zeek release, and passing an
+  externally-built version of CAF often lead to build failures.
+
 New Functionality
 -----------------
 
@@ -35,6 +51,10 @@ New Functionality
   builds done with Visual Studio 2019. Information on how to build on Windows is
   available in the Zeek documentation. Note also that Spicy is currently
   unsupported and will be fixed in the future.
+
+  The feature as checked into the repository is not considered production-ready.
+  There are many bugs to squash and features to improve, and we will be steadily
+  fixing things over the next few months.
 
   The Zeek team wants to give a huge thank you to the team at Microsoft for all
   of their effort in completing this port.
@@ -139,7 +159,7 @@ New Functionality
   generation.
 
 - On Linux, the AF_PACKET packet source plugin (https://github.com/zeek/zeek-af_packet-plugin)
-  is included as builtin plugin by default. To select this packet source, prefix
+  is included as a builtin plugin by default. To select this packet source, prefix
   the interface name with ``af_packet``.
 
 	zeek -i af_packet::eth0
@@ -173,6 +193,23 @@ New Functionality
 
   Additionally, add integrity_check and failure_mode options to support
   detecting and deleting corrupted SQLite database at store initialization.
+
+- A new ``join_string_set`` BIF was added, replacing the existing script-level
+  version from utils/strings.zeek.
+
+- A new ``&ordered`` attribute for tables and sets was added. This attribute
+  causes iteration over a table/set to return elements in the order of their
+  insertion.
+
+- A new ``-D`` argument was added to the ``configure`` script to allow passing
+  parameters directly to the underlying CMake call.
+
+- Added parsing for the challenge and response fields to the NTLM analyzer.
+
+- A new ``FTP::max_command_length`` value was added to script-land, defaulting
+  to 100. This value is used by the FTP analyzer to limit the size of commands
+  accepted by the analyzer. A ``FTP_max_command_length_exceeded`` weird is
+  raised for any violations of that length.
 
 Changed Functionality
 ---------------------
@@ -223,6 +260,13 @@ Changed Functionality
 - The MySQL analyzer has been switched to parse in little endian. This avoids
   analyzer violations due to out of bound errors for length encoded strings.
 
+- Non-fatal errors when setting up BPF filtering will no longer cause Zeek to
+  exit, but instead will log the error in reporter.log and continue processing.
+
+- The languages reported for the ``keyboard_layout`` field in rdp.log were
+  updated to match the current standardized set of languages. Unknown layout
+  values now attempt to fallback to a "parent" layout if one is available.
+
 Deprecated Functionality
 ------------------------
 
@@ -251,6 +295,11 @@ Deprecated Functionality
 
 - The pre-authentication data field (pa_data) available in certain Kerberos
   events now exposes the (encrypted) PA-ENC-TIMESTAMP field (padata-type=2).
+
+- The ``SupressWeirds()`` method in the ContentLine analyzer was deprecated in
+  favor of the correctly-spelled ``SuppressWeirds()`` method.
+
+- The `bro` symlink has finally been removed.
 
 Zeek 5.1.0
 ==========

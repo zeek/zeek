@@ -1,3 +1,7 @@
+5.2.0-dev.521 | 2023-01-25 14:11:03 -0700
+
+  * removed -O add-C++ option and updated documentation (Vern Paxson, Corelight)
+
 5.2.0-dev.519 | 2023-01-25 11:12:15 -0700
 
   * GH-2684: Stop violating VXLAN for forwarding failures (Tim Wojtulewicz, Corelight)

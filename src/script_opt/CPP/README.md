@@ -108,40 +108,8 @@ On the other hand, it's possible (not yet established) that code created
 using `gen-C++` can be made to compile significantly faster than
 standalone code.
 
-Another option, `-O add-C++`, instead _appends_ the generated code to existing C++ in `CPP-gen.cc`.
-You can use this option repeatedly for different scripts and then
-compile the collection _en masse_.
-
-There are additional workflows relating to running the test suite, which
-we document only briefly here as they're likely going to change or go away
-, as it's not clear they're actually needed.
-
-* `non-embedded-build`  
-Builds `zeek` without any embedded compiled-to-C++ scripts.
-* `bare-embedded-build`  
-Builds `zeek` with the `-b` "bare-mode" scripts compiled in.
-* `full-embedded-build`  
-Builds `zeek` with the default scripts compiled in.
-
-<br>
-
-* `eval-test-suite`  
-Runs the test suite using the `cpp` alternative over the given set of tests.
-* `test-suite-build`  
-Incrementally compiles to `CPP-gen-addl.h` code for the given test suite elements.
-
-<br>
-
-* `single-test.sh`  
-Builds the given btest test as a single `add-C++` add-on and then runs it.
-* `single-full-test.sh`  
-Builds the given btest test from scratch as a self-contained `zeek`, and runs it.
-* `update-single-test.sh`  
-Given an already-compiled `zeek` for the given test, updates its `cpp` test suite alternative.
-
-Some of these scripts could be made less messy if `btest` supported
-a "dry run" option that reported the executions it would do for a given
-test without actually undertaking them.
+There are additional workflows relating to running the test suite: see
+`src/script_opt/CPP/maint/README`.
 
 <br>
 

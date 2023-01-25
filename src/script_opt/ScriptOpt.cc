@@ -272,7 +272,6 @@ static void init_options()
 	check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 
 	// Compile-to-C++-related options.
-	check_env_opt("ZEEK_ADD_CPP", analysis_options.add_CPP);
 	check_env_opt("ZEEK_GEN_CPP", analysis_options.gen_CPP);
 	check_env_opt("ZEEK_GEN_STANDALONE_CPP", analysis_options.gen_standalone_CPP);
 	check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
@@ -280,7 +279,7 @@ static void init_options()
 	check_env_opt("ZEEK_USE_CPP", analysis_options.use_CPP);
 	check_env_opt("ZEEK_ALLOW_COND", analysis_options.allow_cond);
 
-	if ( analysis_options.gen_standalone_CPP || analysis_options.add_CPP )
+	if ( analysis_options.gen_standalone_CPP )
 		analysis_options.gen_CPP = true;
 
 	if ( analysis_options.gen_CPP )
@@ -426,11 +425,10 @@ static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs)
 	{
 	const auto gen_name = CPP_dir + "CPP-gen.cc";
 
-	const bool add = analysis_options.add_CPP;
 	const bool standalone = analysis_options.gen_standalone_CPP;
 	const bool report = analysis_options.report_uncompilable;
 
-	CPPCompile cpp(funcs, *pfs, gen_name, add, standalone, report);
+	CPPCompile cpp(funcs, *pfs, gen_name, standalone, report);
 	}
 
 static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)

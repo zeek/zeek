@@ -15,44 +15,17 @@ namespace zeek::detail
 using namespace std;
 
 CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const string& gen_name,
-                       bool add, bool _standalone, bool report_uncompilable)
+                       bool _standalone, bool report_uncompilable)
 	: funcs(_funcs), pfs(_pfs), standalone(_standalone)
 	{
 	auto target_name = gen_name.c_str();
-	auto mode = add ? "a" : "w";
 
-	write_file = fopen(target_name, mode);
+	write_file = fopen(target_name, "w");
 	if ( ! write_file )
 		{
 		reporter->Error("can't open C++ target file %s", target_name);
 		exit(1);
 		}
-
-	if ( add )
-		{
-		// We need a unique number to associate with the name
-		// space for the code we're adding.  A convenient way to
-		// generate this safely is to use the present size of the
-		// file we're appending to.  That guarantees that every
-		// incremental compilation will wind up with a different
-		// number.
-		struct stat st;
-		if ( fstat(fileno(write_file), &st) != 0 )
-			{
-			char buf[256];
-			util::zeek_strerror_r(errno, buf, sizeof(buf));
-			reporter->Error("fstat failed on %s: %s", target_name, buf);
-			exit(1);
-			}
-
-		// We use a value of "0" to mean "we're not appending,
-		// we're generating from scratch", so make sure we're
-		// distinct from that.
-		addl_tag = st.st_size + 1;
-		}
-
-	else
-		addl_tag = 0;
 
 	Compile(report_uncompilable);
 	}
@@ -64,15 +37,6 @@ CPPCompile::~CPPCompile()
 
 void CPPCompile::Compile(bool report_uncompilable)
 	{
-	// Get the working directory so we can use it in diagnostic messages
-	// as a way to identify this compilation.  Only germane when doing
-	// incremental compilation (particularly of the test suite).
-	char buf[8192];
-	if ( ! getcwd(buf, sizeof buf) )
-		reporter->FatalError("getcwd failed: %s", strerror(errno));
-
-	working_dir = buf;
-
 	unordered_set<string> filenames_reported_as_skipped;
 	bool had_to_skip = false;
 
@@ -228,13 +192,16 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 void CPPCompile::GenProlog()
 	{
-	if ( addl_tag <= 1 )
-		// This is either a compilation via gen-C++, or
-		// one using add-C++ and an empty CPP-gen.cc file.
-		Emit("#include \"zeek/script_opt/CPP/Runtime.h\"\n");
+	Emit("#include \"zeek/script_opt/CPP/Runtime.h\"\n");
+
+	// Get the working directory for annotating the output to help
+	// with debugging.
+	char working_dir[8192];
+	if ( ! getcwd(working_dir, sizeof working_dir) )
+		reporter->FatalError("getcwd failed: %s", strerror(errno));
 
 	Emit("namespace zeek::detail { //\n");
-	Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), working_dir);
+	Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), string(working_dir));
 
 	// The following might-or-might-not wind up being populated/used.
 	Emit("std::vector<int> field_mapping;");
@@ -390,7 +357,7 @@ void CPPCompile::GenEpilog()
 
 	GenInitHook();
 
-	Emit("} // %s\n\n", scope_prefix(addl_tag));
+	Emit("} //\n\n");
 	Emit("} // zeek::detail");
 	}
 

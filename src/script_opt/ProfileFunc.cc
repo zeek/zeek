@@ -23,49 +23,6 @@ p_hash_type p_hash(const Obj* o)
 	return p_hash(d.Description());
 	}
 
-// Returns a filename associated with the given function body.  Used to
-// provide distinctness to identical function bodies seen in separate,
-// potentially conflicting incremental compilations.  An example of this
-// is a function named foo() that calls bar(), for which in two different
-// compilation contexts bar() has differing semantics, even though foo()'s
-// (shallow) semantics are the same.
-static std::string script_specific_filename(const Stmt* body)
-	{
-	// The specific filename is taken from the location filename, making
-	// it absolute if necessary.
-	auto body_loc = body->GetLocationInfo();
-	auto bl_f = body_loc->filename;
-	ASSERT(bl_f != nullptr);
-
-	if ( (bl_f[0] != '.' && bl_f[0] != '/') ||
-	     (bl_f[0] == '.' && (bl_f[1] == '/' || (bl_f[1] == '.' && bl_f[2] == '/'))) )
-		{
-		// Add working directory to avoid collisions over the
-		// same relative name.
-		static std::string working_dir;
-		if ( working_dir.empty() )
-			{
-			char buf[8192];
-			if ( ! getcwd(buf, sizeof buf) )
-				reporter->InternalError("getcwd failed: %s", strerror(errno));
-
-			working_dir = buf;
-			}
-
-		return working_dir + "/" + bl_f;
-		}
-
-	return bl_f;
-	}
-
-// Returns a incremental-compilation-specific hash for the given function
-// body, given its non-specific hash is "generic_hash".
-static p_hash_type script_specific_hash(const Stmt* body, p_hash_type generic_hash)
-	{
-	auto bl_f = script_specific_filename(body);
-	return merge_p_hashes(generic_hash, p_hash(bl_f));
-	}
-
 ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields)
 	{
 	profiled_func = func;
@@ -716,9 +673,6 @@ void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf)
 	h = merge_p_hashes(h, p_hash("addl"));
 	for ( auto i : pf->AdditionalHashes() )
 		h = merge_p_hashes(h, i);
-
-	if ( ! pf->Stmts().empty() )
-		h = script_specific_hash(pf->Stmts()[0], h);
 
 	pf->SetHashVal(h);
 	}

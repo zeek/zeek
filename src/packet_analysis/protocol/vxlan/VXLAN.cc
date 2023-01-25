@@ -58,8 +58,6 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 				                                    ec->ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
 			}
 		}
-	else
-		AnalyzerViolation("VXLAN invalid inner packet", packet->session);
 
 	return fwd_ret_val;
 	}

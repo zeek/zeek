@@ -1,3 +1,7 @@
+5.2.0-dev.519 | 2023-01-25 11:12:15 -0700
+
+  * GH-2684: Stop violating VXLAN for forwarding failures (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.515 | 2023-01-25 08:19:02 -0700
 
   * Fix CI benchmark script to properly urlencode arguments (Tim Wojtulewicz, Corelight)

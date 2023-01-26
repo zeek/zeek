@@ -1088,7 +1088,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	auto def_attr = a ? a->Find(detail::ATTR_DEFAULT) : nullptr;
 	auto def_expr = def_attr ? def_attr->GetExpr() : nullptr;
 
-	if ( def_expr )
+	if ( def_expr && ! IsErrorType(type->Tag()) )
 		{
 		if ( type->Tag() == TYPE_RECORD && def_expr->GetType()->Tag() == TYPE_RECORD &&
 		     ! same_type(def_expr->GetType(), type) )

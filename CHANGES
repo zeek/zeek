@@ -1,3 +1,14 @@
+5.2.0-dev.523 | 2023-01-26 14:37:35 +0100
+
+  * cirrus: Introduce SKIP_TASK_ON_PR (Arne Welzel, Corelight)
+
+    Limit the number of tasks we run on PRs to only a subset instead of
+    the full set to reduce the amount of resources we use for PRs. Labeling
+    a PR with "fullci" can be used enable running all tasks.
+
+    This removes a total of 14 task execution from PRs by default at the cost of
+    needing to monitor master builds more closely for distro specific breakage.
+
 5.2.0-dev.521 | 2023-01-25 14:11:03 -0700
 
   * removed -O add-C++ option and updated documentation (Vern Paxson, Corelight)

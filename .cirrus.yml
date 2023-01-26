@@ -66,6 +66,12 @@ branch_whitelist: &BRANCH_WHITELIST
       )
     ) )
 
+skip_task_on_pr: &SKIP_TASK_ON_PR
+  # Skip this task on PRs if it does not have the fullci label,
+  # it continues to run for direct pushes to master/release.
+  skip: >
+    ($CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ '.*fullci.*')
+
 ci_template: &CI_TEMPLATE
   << : *BRANCH_WHITELIST
 
@@ -136,19 +142,20 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
-fedora36_task:
-  container:
-    # Fedora 36 EOL: Around May 2023
-    dockerfile: ci/fedora-36/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
 fedora37_task:
   container:
     # Fedora 37 EOL: Around Dec 2024
     dockerfile: ci/fedora-37/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+
+fedora36_task:
+  container:
+    # Fedora 36 EOL: Around May 2023
+    dockerfile: ci/fedora-36/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 centosstream9_task:
   container:
@@ -163,6 +170,7 @@ centosstream8_task:
     dockerfile: ci/centos-stream-8/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 centos7_task:
   container:
@@ -170,6 +178,7 @@ centos7_task:
     dockerfile: ci/centos-7/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 debian11_task:
   container:
@@ -185,6 +194,7 @@ debian11_static_task:
     dockerfile: ci/debian-11/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
 
@@ -194,6 +204,7 @@ debian10_task:
     dockerfile: ci/debian-10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 opensuse_leap_15_4_task:
   container:
@@ -208,6 +219,7 @@ opensuse_tumbleweed_task:
     dockerfile: ci/opensuse-tumbleweed/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 ubuntu2210_task:
   container:
@@ -215,6 +227,7 @@ ubuntu2210_task:
     dockerfile: ci/ubuntu-22.10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 ubuntu22_task:
   container:
@@ -234,6 +247,7 @@ ubuntu20_task:
     dockerfile: ci/ubuntu-20.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 ubuntu18_task:
   container:
@@ -241,6 +255,7 @@ ubuntu18_task:
     dockerfile: ci/ubuntu-18.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 alpine_task:
   container:
@@ -266,6 +281,7 @@ macos_monterey_task:
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
+  << : *SKIP_TASK_ON_PR
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:
@@ -288,6 +304,7 @@ freebsd13_task:
 
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   << : *FREEBSD_ENVIRONMENT
 
 freebsd12_task:
@@ -298,6 +315,7 @@ freebsd12_task:
 
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   << : *FREEBSD_ENVIRONMENT
 
 asan_sanitizer_task:
@@ -322,6 +340,7 @@ ubsan_sanitizer_task:
     << : *SANITIZERS_RESOURCE_TEMPLATE
 
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
     CXXFLAGS: -DZEEK_DICT_DEBUG
@@ -363,3 +382,4 @@ windows_task:
     # Give verbose error output on a test failure.
     CTEST_OUTPUT_ON_FAILURE: 1
   << : *BRANCH_WHITELIST
+  << : *SKIP_TASK_ON_PR

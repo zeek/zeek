@@ -1,3 +1,7 @@
+5.2.0-dev.534 | 2023-01-26 20:06:24 +0100
+
+  * Tame error reporting and abort() for undefined types (Arne Welzel, Corelight)
+
 5.2.0-dev.532 | 2023-01-26 10:55:02 -0700
 
   * Bump spicy to v1.6.1. (Benjamin Bannier, Corelight)

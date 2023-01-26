@@ -243,8 +243,9 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef)
 	// We only check the attribute after we've added it, to facilitate
 	// generating error messages via Attributes::Describe.  If the
 	// instantiator of the object specified a null type, however, then
-	// that's a signal to skip the checking.
-	if ( type )
+	// that's a signal to skip the checking. If the type is error,
+	// there's no point checking attributes either.
+	if ( type && ! IsErrorType(type->Tag()) )
 		CheckAttr(attr.get());
 
 	// For ADD_FUNC or DEL_FUNC, add in an implicit REDEF, since

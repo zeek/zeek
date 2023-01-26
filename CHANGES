@@ -1,3 +1,16 @@
+5.2.0-dev.530 | 2023-01-26 09:44:36 -0700
+
+  * Update external testing repo commit hashes for Teredo changes (Tim Wojtulewicz, Corelight)
+
+  * Update scripts.base.frameworks.analyzer.logging btest to use a different trace file (Tim Wojtulewicz, Corelight)
+
+  * Update btest baselines due to reduced calls to UID::Set (Tim Wojtulewicz, Corelight)
+
+    UID::Set is called by AnalyzerViolation, and since Teredo isn't calling nearly
+    as many of those anymore the UIDs used by other calls changed as well.
+
+  * Rework TeredoAnalzyer::DetectProtocol to not catch as many packets (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.525 | 2023-01-26 09:11:45 -0700
 
   * GH-2669: Give script location for type clash in for-loop construction (Tim Wojtulewicz, Corelight)

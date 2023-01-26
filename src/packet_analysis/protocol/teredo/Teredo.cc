@@ -146,7 +146,7 @@ TeredoAnalyzer::TeredoAnalyzer() : zeek::packet_analysis::Analyzer("TEREDO")
 
 	pattern_re = std::make_unique<zeek::detail::Specific_RE_Matcher>(zeek::detail::MATCH_EXACTLY,
 	                                                                 true);
-	pattern_re->AddPat("^(\\x00\\x00)|(\\x00\\x01)|([\\x60-\\x6f].{7}((\\x20\\x01\\x00\\x00)).{28})"
+	pattern_re->AddPat("^([\\x60-\\x6f].{7}((\\x20\\x01\\x00\\x00)).{28})"
 	                   "|([\\x60-\\x6f].{23}((\\x20\\x01\\x00\\x00))).{12}");
 	pattern_re->Compile();
 	}
@@ -270,10 +270,60 @@ bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* pac
 	if ( ! BifConst::Tunnel::enable_teredo )
 		return false;
 
-	if ( ! pattern_re->Match(data, len) )
+	// Do some fast checks that must be true before moving to more complicated ones.
+	// Mostly this avoids doing the regex below if we can help it.
+	if ( (len < 40) ||
+	     (((data[0] >> 4) != 6) && ((data[0] != 0x00) || (data[1] != 0x00 && data[1] != 0x01))) )
 		return false;
 
-	return true;
+	if ( pattern_re->Match(data, len) )
+		return true;
+
+	uint16_t val = data[1];
+
+	if ( val == 1 )
+		{
+		// If the second byte is 0x01, this is an authentication header. Grab
+		// the length of the client identifier and the length of the
+		// authentication block, and make sure that we have enough data to
+		// include them with an IPv6 header.
+
+		uint8_t client_id_length = data[2];
+		uint8_t auth_length = data[3];
+
+		// There's 9 bytes at the end of the header for a nonce value and a
+		// confirmation byte. That plus the 4 bytes we've looked at already
+		// makes 13 bytes.
+		data += 13 + client_id_length + auth_length;
+		len -= 13 + client_id_length + auth_length;
+
+		if ( len < 40 )
+			return false;
+
+		// Get the next two octets after the authentication header, which
+		// should be an origin identification header.
+		val = htons(*(reinterpret_cast<const uint16_t*>(data)));
+		}
+
+	if ( val == 0 )
+		{
+		// If the second byte is zero (or we're coming out of an authentication
+		// header), we're in an origin identification header. Skip over it, and
+		// verify there's enough data after it to find an IPv6 header.
+		data += 8;
+		len -= 8;
+
+		if ( len < 40 )
+			return false;
+
+		// Double check that the next byte in the header contains an IPv6
+		// version number.
+		val = data[0] >> 4;
+		if ( val == 6 )
+			return true;
+		}
+
+	return false;
 	}
 
 	} // namespace zeek::packet_analysis::teredo

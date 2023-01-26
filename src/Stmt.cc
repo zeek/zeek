@@ -1249,7 +1249,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 			else if ( lvt )
 				{
 				if ( ! same_type(lvt, ind_type) )
-					lvt->Error("type clash in iteration", ind_type.get());
+					e->Error("type clash in iteration", lvt.get());
 				}
 
 			else
@@ -1341,7 +1341,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
 	else if ( value_var->GetType() )
 		{
 		if ( ! same_type(value_var->GetType(), yield_type) )
-			value_var->GetType()->Error("type clash in iteration", yield_type.get());
+			e->Error("type clash in iteration", value_var->GetType().get());
 		}
 	else
 		add_local(value_var, yield_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);

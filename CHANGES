@@ -1,3 +1,7 @@
+5.2.0-dev.525 | 2023-01-26 09:11:45 -0700
+
+  * GH-2669: Give script location for type clash in for-loop construction (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.523 | 2023-01-26 14:37:35 +0100
 
   * cirrus: Introduce SKIP_TASK_ON_PR (Arne Welzel, Corelight)

@@ -7,6 +7,9 @@ jobs:
     if: github.repository == 'zeek/zeek'
     runs-on: ubuntu-latest
     steps:
+      - name: Show the event
+        run: cat "$GITHUB_EVENT_PATH" || true
+
       - name: Send CI Email Notification
         uses: zeek/ci-email-action@master
         env:

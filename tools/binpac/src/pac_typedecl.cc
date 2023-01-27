@@ -121,7 +121,7 @@ void TypeDecl::GenCode(Output* out_h, Output* out_cc)
 
 	// The first line of class definition
 	out_h->println("");
-	out_h->print("class %s", class_name().c_str());
+	out_h->print("class %s final", class_name().c_str());
 	bool first = true;
 	vector<string>::iterator i;
 	for ( i = (&base_classes)->begin(); i != (&base_classes)->end(); ++i )
@@ -334,8 +334,8 @@ void TypeDecl::GenParseFunc(Output* out_h, Output* out_cc)
 		out_h->println("// 2. If the input is not complete but the type supports");
 		out_h->println("//    incremental input, returns number of input bytes + 1");
 		out_h->println("//    (%s - %s + 1).",
-			env->LValue(end_of_data), 
-			env->LValue(begin_of_data)); 
+			env->LValue(end_of_data),
+			env->LValue(begin_of_data));
 		out_h->println("// 3. An exception will be thrown on error.");
 		}
 #endif

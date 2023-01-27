@@ -206,6 +206,7 @@ export {
 		["SMB_parsing_error"]                   = ACTION_LOG,
 		["no_smb_session_using_parsesambamsg"]  = ACTION_LOG,
 		["smb_andx_command_failed_to_parse"]    = ACTION_LOG,
+		["smb_tree_connect_andx_response_without_tree"] = ACTION_LOG_PER_CONN,
 		["transaction_subcmd_missing"]          = ACTION_LOG,
 		["successful_RPC_reply_to_invalid_request"] = ACTION_NOTICE_PER_ORIG,
 		["SYN_after_close"]                     = ACTION_LOG,

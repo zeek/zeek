@@ -1,3 +1,12 @@
+5.2.0-dev.557 | 2023-01-27 13:24:58 -0700
+
+  * smb1: Prevent accessing uninitialized referenced_tree (Arne Welzel, Corelight)
+
+    The added pcap was created from an OSS Fuzz test case and is borderline
+    valid SMB traffic, but it triggered a scripting error.
+
+    Closes #2726
+
 5.2.0-dev.553 | 2023-01-27 13:23:09 -0700
 
   * Add tooling section to README (Tim Wojtulewicz, Corelight)

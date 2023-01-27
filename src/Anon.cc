@@ -276,11 +276,12 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
 	// the parent of the two new ones.
 
 	Node* down[2];
-
-	if ( ! (down[0] = new_node()) )
+	down[0] = new_node();
+	if ( ! down[0] )
 		return nullptr;
 
-	if ( ! (down[1] = new_node()) )
+	down[1] = new_node();
+	if ( ! down[1] )
 		{
 		free_node(down[0]);
 		return nullptr;

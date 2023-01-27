@@ -642,7 +642,6 @@ void DNS_Mgr::InitSource()
 		servers.next = NULL;
 
 		auto dns_resolver_addr = IPAddr(dns_resolver);
-		struct sockaddr_storage ss = {0};
 
 		if ( dns_resolver_addr.GetFamily() == IPv4 )
 			{
@@ -651,12 +650,12 @@ void DNS_Mgr::InitSource()
 			}
 		else
 			{
-			struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
-			sa->sin6_family = AF_INET6;
-			dns_resolver_addr.CopyIPv6(&sa->sin6_addr);
+			struct sockaddr_in6 sa = {0};
+			sa.sin6_family = AF_INET6;
+			dns_resolver_addr.CopyIPv6(&sa.sin6_addr);
 
 			servers.family = AF_INET6;
-			memcpy(&(servers.addr.addr6), &sa->sin6_addr, sizeof(ares_in6_addr));
+			memcpy(&(servers.addr.addr6), &sa.sin6_addr, sizeof(ares_in6_addr));
 			}
 
 		ares_set_servers(channel, &servers);

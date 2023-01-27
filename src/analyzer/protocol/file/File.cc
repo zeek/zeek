@@ -14,7 +14,6 @@ namespace zeek::analyzer::file
 File_Analyzer::File_Analyzer(const char* name, Connection* conn)
 	: TCP_ApplicationAnalyzer(name, conn)
 	{
-	buffer_len = 0;
 	}
 
 void File_Analyzer::DeliverStream(int len, const u_char* data, bool orig)

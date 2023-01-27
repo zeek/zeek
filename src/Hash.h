@@ -232,7 +232,7 @@ constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 class HashKey
 	{
 public:
-	explicit HashKey() { }
+	explicit HashKey() { key_u.u32 = 0; }
 	explicit HashKey(bool b);
 	explicit HashKey(int i);
 	explicit HashKey(zeek_int_t bi);

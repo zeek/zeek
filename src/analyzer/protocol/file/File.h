@@ -27,8 +27,8 @@ protected:
 	void Identify();
 
 	static const int BUFFER_SIZE = 1024;
-	char buffer[BUFFER_SIZE];
-	int buffer_len;
+	char buffer[BUFFER_SIZE] = {0};
+	int buffer_len = 0;
 	std::string file_id_orig;
 	std::string file_id_resp;
 	};

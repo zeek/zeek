@@ -143,7 +143,7 @@ public:
 	bool DoInferReturnType() const { return infer_return_type; }
 	void SetInferReturnType(bool infer) { infer_return_type = infer; }
 
-	virtual TraversalCode Traverse(TraversalCallback* cb) const;
+	TraversalCode Traverse(TraversalCallback* cb) const;
 
 	bool HasOptionHandlers() const { return ! option_handlers.empty(); }
 

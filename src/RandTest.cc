@@ -79,7 +79,6 @@ void RandTest::add(const void* buf, int bufl)
 		if ( sccfirst )
 			{
 			sccfirst = 0;
-			scclast = 0;
 			sccu0 = oc;
 			}
 		else
@@ -98,17 +97,15 @@ void RandTest::end(double* r_ent, double* r_chisq, double* r_mean, double* r_mon
                    double* r_scc)
 	{
 	int i;
-	double ent, chisq, scc, datasum;
-	ent = 0.0;
-	chisq = 0.0;
-	scc = 0.0;
-	datasum = 0.0;
+	double ent = 0.0;
+	double chisq = 0.0;
+	double datasum = 0.0;
 	double prob[256]; /* Probabilities per bin for entropy */
 
 	/* Complete calculation of serial correlation coefficient */
 	scct1 = scct1 + scclast * sccu0;
 	scct2 = scct2 * scct2;
-	scc = totalc * scct3 - scct2;
+	double scc = totalc * scct3 - scct2;
 	if ( scc == 0.0 )
 		scc = -100000;
 	else

@@ -108,17 +108,17 @@ protected:
 	// Raises a file_opened event.
 	void RaiseOpenEvent();
 
-	FILE* f;
+	FILE* f = nullptr;
 	TypePtr t;
-	char* name;
-	char* access;
-	detail::Attributes* attrs;
-	double open_time;
-	bool is_open; // whether the file is open in a general sense
-	bool buffered;
-	bool raw_output;
+	char* name = nullptr;
+	char* access = nullptr;
+	detail::Attributes* attrs = nullptr;
+	double open_time = 0.0;
+	bool is_open = false; // whether the file is open in a general sense
+	bool buffered = false;
+	bool raw_output = false;
 
-	static const int MIN_BUFFER_SIZE = 1024;
+	static constexpr int MIN_BUFFER_SIZE = 1024;
 
 private:
 	static std::list<std::pair<std::string, File*>> open_files;

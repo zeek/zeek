@@ -417,9 +417,48 @@ public:
 		curr = dict->GetNextRobustIteration(this);
 		}
 
-	RobustDictIterator(const RobustDictIterator& other) : curr(nullptr)
+	RobustDictIterator(const RobustDictIterator& other) : curr(nullptr), dict(nullptr)
 		{
+		*this = other;
+		}
+
+	RobustDictIterator(RobustDictIterator&& other) noexcept : curr(nullptr), dict(nullptr)
+		{
+		*this = other;
+		}
+
+	~RobustDictIterator() { Complete(); }
+
+	reference operator*() { return curr; }
+	pointer operator->() { return &curr; }
+
+	RobustDictIterator& operator++()
+		{
+		curr = dict->GetNextRobustIteration(this);
+		return *this;
+		}
+
+	RobustDictIterator operator++(int)
+		{
+		auto temp(*this);
+		++*this;
+		return temp;
+		}
+
+	RobustDictIterator& operator=(const RobustDictIterator& other)
+		{
+		if ( this == &other )
+			return *this;
+
+		delete inserted;
+		inserted = nullptr;
+
+		delete visited;
+		visited = nullptr;
+
 		dict = nullptr;
+		curr.Clear();
+		next = -1;
 
 		if ( other.dict )
 			{
@@ -441,11 +480,21 @@ public:
 
 			curr = other.curr;
 			}
+
+		return *this;
 		}
 
-	RobustDictIterator(RobustDictIterator&& other) noexcept : curr(nullptr)
+	RobustDictIterator& operator=(RobustDictIterator&& other) noexcept
 		{
+		delete inserted;
+		inserted = nullptr;
+
+		delete visited;
+		visited = nullptr;
+
 		dict = nullptr;
+		curr.Clear();
+		next = -1;
 
 		if ( other.dict )
 			{
@@ -462,24 +511,8 @@ public:
 
 			curr = std::move(other.curr);
 			}
-		}
 
-	~RobustDictIterator() { Complete(); }
-
-	reference operator*() { return curr; }
-	pointer operator->() { return &curr; }
-
-	RobustDictIterator& operator++()
-		{
-		curr = dict->GetNextRobustIteration(this);
 		return *this;
-		}
-
-	RobustDictIterator operator++(int)
-		{
-		auto temp(*this);
-		++*this;
-		return temp;
 		}
 
 	bool operator==(const RobustDictIterator& that) const { return curr == that.curr; }
@@ -612,7 +645,7 @@ public:
 			auto loc = detail::GetCurrentLocation();
 			reporter->RuntimeError(&loc,
 			                       "Attempted to create DictEntry with excessively large key, "
-			                       "truncating key (%" PRIu64 " > %d)",
+			                       "truncating key (%" PRIu64 " > %u)",
 			                       key_size, detail::DictEntry<T>::MAX_KEY_SIZE);
 			}
 

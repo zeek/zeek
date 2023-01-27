@@ -349,7 +349,7 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 	// Read seeds for hmac-md5/siphash/highwayhash.
 	for ( auto& v : buf )
 		{
-		int tmp;
+		uint32_t tmp;
 		if ( fscanf(f, "%u", &tmp) != 1 )
 			{
 			fclose(f);

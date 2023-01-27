@@ -3006,7 +3006,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		{
 		uint16_t value = 0;
 
-		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+		if ( host_bigendian == is_le )
 			{
 			char buf[sizeof(uint16_t)];
 			memset(buf, 0, sizeof(uint16_t));
@@ -3031,7 +3031,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		char buf[sizeof(uint32_t)];
 		memset(buf, 0, sizeof(uint32_t));
 
-		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+		if ( host_bigendian == is_le )
 			{
 			char *d = &buf[sizeof(uint32_t)-1];
 
@@ -3061,7 +3061,7 @@ function bytestring_to_count%(s: string, is_le: bool &default=F%): count
 		char buf[sizeof(uint64_t)];
 		memset(buf, 0, sizeof(uint64_t));
 
-		if ( (host_bigendian && is_le) || (! host_bigendian && ! is_le) )
+		if ( host_bigendian == is_le )
 			{
 			char *d = &buf[sizeof(uint64_t)-1];
 

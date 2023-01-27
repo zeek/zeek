@@ -83,7 +83,7 @@ public:
 	uint64_t DataSeq() const { return LastReassemSeq(); }
 
 	void DeliverBlock(uint64_t seq, int len, const u_char* data);
-	virtual void Deliver(uint64_t seq, int len, const u_char* data);
+	void Deliver(uint64_t seq, int len, const u_char* data);
 
 	TCP_Endpoint* Endpoint() { return endp; }
 	const TCP_Endpoint* Endpoint() const { return endp; }

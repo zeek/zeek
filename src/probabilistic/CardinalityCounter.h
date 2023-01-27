@@ -168,7 +168,7 @@ private:
 	 * error is 1.04/sqrt(m), so the actual cardinality will be the
 	 * estimate +/- 1.04/sqrt(m) with approximately 68% probability.
 	 */
-	uint64_t m;
+	uint64_t m = 0;
 
 	/**
 	 * These are the actual buckets that are storing an estimate of the
@@ -184,9 +184,9 @@ private:
 	 * buckets that are 0 and this is used in the small error correction.
 	 * alpha_m is a multiplicative constant used in the algorithm.
 	 */
-	uint64_t V;
-	double alpha_m;
-	int p; // the log2 of m
+	uint64_t V = 0;
+	double alpha_m = 0.0;
+	int p = 0; // the log2 of m
 	};
 
 	} // namespace zeek::probabilistic::detail

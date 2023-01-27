@@ -630,7 +630,7 @@ Plugin* Manager::LookupPluginByPath(std::string_view _path)
 static bool hook_cmp(std::pair<int, Plugin*> a, std::pair<int, Plugin*> b)
 	{
 	if ( a.first == b.first )
-		return util::strtolower(a.second->Name()) < util::strtolower(a.second->Name());
+		return util::strtolower(a.second->Name()) < util::strtolower(b.second->Name());
 
 	// Reverse sort.
 	return a.first > b.first;

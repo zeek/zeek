@@ -130,8 +130,8 @@ protected:
 	virtual HasherType Type() const = 0;
 
 private:
-	size_t k;
-	seed_t seed;
+	size_t k = 0;
+	seed_t seed = {0};
 	};
 
 /**

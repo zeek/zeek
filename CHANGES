@@ -1,3 +1,23 @@
+5.2.0-dev.553 | 2023-01-27 13:23:09 -0700
+
+  * Add tooling section to README (Tim Wojtulewicz, Corelight)
+
+  * A bunch of other minor issues reported by PVS-Studio (Tim Wojtulewicz, Corelight)
+
+  * Simplify setup of IPv6 DNS resolvers (Tim Wojtulewicz, Corelight)
+
+  * Add missing assignment operators to RobustDictIterator (Tim Wojtulewicz, Corelight)
+
+  * Fix some member-variable shadowing issues (Tim Wojtulewicz, Corelight)
+
+  * Fix/simplify some if statement comparisons (Tim Wojtulewicz, Corelight)
+
+  * Fix a few minor int pointer value initializations (Tim Wojtulewicz, Corelight)
+
+  * Fix a bunch of missing class member initializations (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary virtual specifiers from final classes (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.543 | 2023-01-27 12:08:28 -0700
 
   * Add a few extra length checks to Teredo::DetectProtocol (Tim Wojtulewicz, Corelight)

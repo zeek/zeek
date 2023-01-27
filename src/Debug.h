@@ -137,7 +137,7 @@ public:
 
 protected:
 	Location loc;
-	Stmt* stmt;
+	Stmt* stmt = nullptr;
 	};
 
 extern bool g_policy_debug; // enable debugging facility

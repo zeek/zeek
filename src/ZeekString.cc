@@ -77,6 +77,9 @@ void String::Reset()
 
 const String& String::operator=(const String& bs)
 	{
+	if ( this == &bs )
+		return *this;
+
 	Reset();
 	n = bs.n;
 	b = new u_char[n + 1];
@@ -148,7 +151,7 @@ void String::Set(std::string_view str)
 	{
 	Reset();
 
-	if ( str.data() )
+	if ( ! str.empty() )
 		{
 		n = str.size();
 		b = new u_char[n + 1];

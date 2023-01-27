@@ -1558,7 +1558,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
 	{
 	bool is_set = table_type->IsSet();
 
-	if ( (is_set && new_val) || (! is_set && ! new_val) )
+	if ( is_set == (bool)new_val )
 		InternalWarning("bad set/table in TableVal::Assign");
 
 	TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));

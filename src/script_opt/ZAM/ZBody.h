@@ -73,7 +73,7 @@ private:
 	const char* func_name = nullptr;
 
 	const ZInst* insts = nullptr;
-	unsigned int ninst;
+	unsigned int ninst = 0;
 
 	FrameReMap frame_denizens;
 	int frame_size;

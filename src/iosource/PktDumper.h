@@ -99,7 +99,7 @@ protected:
 	struct Properties
 		{
 		std::string path;
-		double open_time;
+		double open_time = 0.0;
 		};
 
 	/**

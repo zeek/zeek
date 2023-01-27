@@ -107,6 +107,15 @@ event smb1_tree_connect_andx_request(c: connection, hdr: SMB1::Header, path: str
 
 event smb1_tree_connect_andx_response(c: connection, hdr: SMB1::Header, service: string, native_file_system: string) &priority=5
 	{
+	# If the current_cmd does not have a referenced tree, then likely we
+	# missed the  SMB_COM_TREE_CONNECT_ANDX. Report a weird and stop.
+	if ( ! c$smb_state$current_cmd?$referenced_tree )
+		{
+		local addl = fmt("current_cmd=%s", c$smb_state$current_cmd$command);
+		Reporter::conn_weird("smb_tree_connect_andx_response_without_tree", c, addl);
+		return;
+		}
+
 	c$smb_state$current_cmd$referenced_tree$service = service;
 	if ( service == "IPC" )
 		c$smb_state$current_cmd$referenced_tree$share_type = "PIPE";

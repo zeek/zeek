@@ -5,5 +5,12 @@
 # @TEST-EXEC: touch mysql.log
 # @TEST-EXEC: zeek -b -r $TRACES/mysql/encrypted.trace %INPUT
 # @TEST-EXEC: btest-diff mysql.log
+#
+# Ensure the connection was handed off by peaking into some other logs.
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff x509.log
 
+@load base/protocols/conn
 @load base/protocols/mysql
+@load base/protocols/ssl

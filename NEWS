@@ -165,6 +165,11 @@ New Functionality
   of new analyzers as well as for collecting operational data in production
   environments.
 
+- The MySQL analyzer has been extended to detect when client and server negotiate
+  to use a SSL encrypted session. This allows analysis of the subsequent SSL
+  handshake. The service field for encrypted MySQL connections in the conn.log
+  will have entries for both, mysql and ssl.
+
 Changed Functionality
 ---------------------
 

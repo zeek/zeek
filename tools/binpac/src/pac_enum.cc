@@ -32,7 +32,7 @@ EnumDecl::EnumDecl(ID* id, EnumList* enumlist) : Decl(id, ENUM), enumlist_(enuml
 	{
 	ID* type_id = id->clone();
 	datatype_ = new ExternType(type_id, ExternType::NUMBER);
-	extern_typedecl_ = new TypeDecl(type_id, 0, datatype_);
+	extern_typedecl_ = new TypeDecl(type_id, nullptr, datatype_);
 	}
 
 EnumDecl::~EnumDecl()

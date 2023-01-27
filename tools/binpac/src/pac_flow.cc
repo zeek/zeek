@@ -18,9 +18,9 @@
 FlowDecl::FlowDecl(ID* id, ParamList* params, AnalyzerElementList* elemlist)
 	: AnalyzerDecl(id, FLOW, params)
 	{
-	dataunit_ = 0;
-	conn_decl_ = 0;
-	flow_buffer_var_field_ = 0;
+	dataunit_ = nullptr;
+	conn_decl_ = nullptr;
+	flow_buffer_var_field_ = nullptr;
 	AddElements(elemlist);
 	}
 
@@ -30,13 +30,13 @@ FlowDecl::~FlowDecl()
 	delete dataunit_;
 	}
 
-ParameterizedType* FlowDecl::flow_buffer_type_ = 0;
+ParameterizedType* FlowDecl::flow_buffer_type_ = nullptr;
 
 ParameterizedType* FlowDecl::flow_buffer_type()
 	{
 	if ( ! flow_buffer_type_ )
 		{
-		flow_buffer_type_ = new ParameterizedType(new ID(kFlowBufferClass), 0);
+		flow_buffer_type_ = new ParameterizedType(new ID(kFlowBufferClass), nullptr);
 		}
 	return flow_buffer_type_;
 	}
@@ -141,7 +141,7 @@ void FlowDecl::GenEOFFunc(Output* out_h, Output* out_cc)
 
 	foreach (i, AnalyzerHelperList, eof_helpers_)
 		{
-		(*i)->GenCode(0, out_cc, this);
+		(*i)->GenCode(nullptr, out_cc, this);
 		}
 
 	if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT )
@@ -268,7 +268,7 @@ void FlowDecl::GenCodeFlowUnit(Output* out_cc)
 	out_cc->println("}");
 	out_cc->dec_indent();
 
-	DataPtr data(env_, 0, 0);
+	DataPtr data(env_, nullptr, 0);
 	unit_datatype->GenParseCode(out_cc, env_, data, 0);
 
 	out_cc->println("if ( %s )", unit_datatype->parsing_complete(env_).c_str());

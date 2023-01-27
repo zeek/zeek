@@ -16,8 +16,8 @@ bool Attr::RequiresAnalyzerContext() const
 
 void Attr::init()
 	{
-	expr_ = 0;
-	seqend_ = 0;
+	expr_ = nullptr;
+	seqend_ = nullptr;
 	delete_expr_ = false;
 	}
 

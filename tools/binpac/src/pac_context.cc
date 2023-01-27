@@ -16,7 +16,7 @@ ContextField::ContextField(ID* id, Type* type)
 	{
 	}
 
-AnalyzerContextDecl* AnalyzerContextDecl::current_analyzer_context_ = 0;
+AnalyzerContextDecl* AnalyzerContextDecl::current_analyzer_context_ = nullptr;
 
 namespace
 	{
@@ -38,7 +38,7 @@ AnalyzerContextDecl::AnalyzerContextDecl(ID* id, ContextFieldList* context_field
                new DummyType())
 	{
 	context_name_id_ = id;
-	if ( current_analyzer_context_ != 0 )
+	if ( current_analyzer_context_ != nullptr )
 		{
 		throw Exception(this, strfmt("multiple declaration of analyzer context; "
 		                             "the previous one is `%s'",
@@ -49,7 +49,7 @@ AnalyzerContextDecl::AnalyzerContextDecl(ID* id, ContextFieldList* context_field
 
 	context_fields_ = context_fields;
 
-	param_type_ = new ParameterizedType(id_->clone(), 0);
+	param_type_ = new ParameterizedType(id_->clone(), nullptr);
 
 	flow_buffer_added_ = false;
 

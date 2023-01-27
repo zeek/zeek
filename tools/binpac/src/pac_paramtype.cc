@@ -50,7 +50,7 @@ Type* ParameterizedType::MemberDataType(const ID* member_id) const
 	{
 	Type* ref_type = TypeDecl::LookUpType(type_id_);
 	if ( ! ref_type )
-		return 0;
+		return nullptr;
 	return ref_type->MemberDataType(member_id);
 	}
 

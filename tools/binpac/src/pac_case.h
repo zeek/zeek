@@ -39,7 +39,7 @@ public:
 protected:
 	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags);
 	void GenDynamicSize(Output* out, Env* env, const DataPtr& data);
-	Type* DoClone() const { return 0; }
+	Type* DoClone() const { return nullptr; }
 	void DoMarkIncrementalInput();
 
 	bool ByteOrderSensitive() const;

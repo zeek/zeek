@@ -15,7 +15,7 @@
 CaseType::CaseType(Expr* index_expr, CaseFieldList* cases)
 	: Type(CASE), index_expr_(index_expr), cases_(cases) 
 	{
-	index_var_ = 0;
+	index_var_ = nullptr;
 	foreach (i, CaseFieldList, cases_)
 		AddField(*i);
 	}
@@ -55,7 +55,7 @@ Type* CaseType::ValueType() const
 		return c->type();
 		}
 	ASSERT(0);
-	return 0;
+	return nullptr;
 	}
 
 string CaseType::DefaultValue() const
@@ -70,11 +70,11 @@ void CaseType::Prepare(Env* env, int flags)
 	index_var_ = new ID(strfmt("%s_case_index", value_var()->Name()));
 	// Unable to get the type for index_var_ at this moment, but we'll
 	// generate the right type based on index_expr_ later.
-	env->AddID(index_var_, MEMBER_VAR, 0);
+	env->AddID(index_var_, MEMBER_VAR, nullptr);
 
 	// Sort the cases_ to put the default case at the end of the list
 	CaseFieldList::iterator default_case_it = cases_->end(); // to avoid warning
-	CaseField* default_case = 0;
+	CaseField* default_case = nullptr;
 
 	foreach (i, CaseFieldList, cases_)
 		{
@@ -173,7 +173,7 @@ void CaseType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int
 	foreach (i, CaseFieldList, cases_)
 		{
 		CaseField* c = *i;
-		c->GenParseCode(out_cc, env, data, compute_size_var ? size_var() : 0);
+		c->GenParseCode(out_cc, env, data, compute_size_var ? size_var() : nullptr);
 		if ( c->IsDefaultCase() )
 			has_default_case = true;
 		}
@@ -249,8 +249,8 @@ CaseField::CaseField(ExprList* index, ID* id, Type* type)
 	{
 	ASSERT(type_);
 	type_->set_value_var(id, MEMBER_VAR);
-	case_type_ = 0;
-	index_var_ = 0;
+	case_type_ = nullptr;
+	index_var_ = nullptr;
 	}
 
 CaseField::~CaseField()

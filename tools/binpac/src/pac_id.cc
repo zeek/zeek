@@ -7,34 +7,34 @@
 #include "pac_type.h"
 #include "pac_utils.h"
 
-const ID* default_value_var = 0;
-const ID* null_id = 0;
-const ID* null_byteseg_id = 0;
-const ID* null_decl_id = 0;
-const ID* begin_of_data = 0;
-const ID* end_of_data = 0;
-const ID* len_of_data = 0;
-const ID* byteorder_id = 0;
-const ID* bigendian_id = 0;
-const ID* littleendian_id = 0;
-const ID* unspecified_byteorder_id = 0;
-const ID* const_true_id = 0;
-const ID* const_false_id = 0;
-const ID* analyzer_context_id = 0;
-const ID* context_macro_id = 0;
-const ID* this_id = 0;
-const ID* sourcedata_id = 0;
-const ID* connection_id = 0;
-const ID* upflow_id = 0;
-const ID* downflow_id = 0;
-const ID* dataunit_id = 0;
-const ID* flow_buffer_id = 0;
-const ID* element_macro_id = 0;
-const ID* input_macro_id = 0;
-const ID* cxt_connection_id = 0;
-const ID* cxt_flow_id = 0;
-const ID* parsing_state_id = 0;
-const ID* buffering_state_id = 0;
+const ID* default_value_var = nullptr;
+const ID* null_id = nullptr;
+const ID* null_byteseg_id = nullptr;
+const ID* null_decl_id = nullptr;
+const ID* begin_of_data = nullptr;
+const ID* end_of_data = nullptr;
+const ID* len_of_data = nullptr;
+const ID* byteorder_id = nullptr;
+const ID* bigendian_id = nullptr;
+const ID* littleendian_id = nullptr;
+const ID* unspecified_byteorder_id = nullptr;
+const ID* const_true_id = nullptr;
+const ID* const_false_id = nullptr;
+const ID* analyzer_context_id = nullptr;
+const ID* context_macro_id = nullptr;
+const ID* this_id = nullptr;
+const ID* sourcedata_id = nullptr;
+const ID* connection_id = nullptr;
+const ID* upflow_id = nullptr;
+const ID* downflow_id = nullptr;
+const ID* dataunit_id = nullptr;
+const ID* flow_buffer_id = nullptr;
+const ID* element_macro_id = nullptr;
+const ID* input_macro_id = nullptr;
+const ID* cxt_connection_id = nullptr;
+const ID* cxt_flow_id = nullptr;
+const ID* parsing_state_id = nullptr;
+const ID* buffering_state_id = nullptr;
 
 int ID::anonymous_id_seq = 0;
 
@@ -48,7 +48,7 @@ ID* ID::NewAnonymousID(const string& prefix)
 IDRecord::IDRecord(Env* arg_env, const ID* arg_id, IDType arg_id_type)
 	: env(arg_env), id(arg_id), id_type(arg_id_type)
 	{
-	eval = 0;
+	eval = nullptr;
 	evaluated = in_evaluation = false;
 	setfunc = ""; // except for STATE_VAR
 	switch ( id_type )
@@ -91,10 +91,11 @@ IDRecord::IDRecord(Env* arg_env, const ID* arg_id, IDType arg_id_type)
 			lvalue = "@FUNC_PARAM@";
 			break;
 		}
-	data_type = 0;
-	field = 0;
+
+	data_type = nullptr;
+	field = nullptr;
 	constant = constant_set = false;
-	macro = 0;
+	macro = nullptr;
 	}
 
 IDRecord::~IDRecord() { }
@@ -156,7 +157,7 @@ void IDRecord::Evaluate(Output* out, Env* env)
 const char* IDRecord::RValue() const
 	{
 	if ( id_type == MACRO )
-		return macro->EvalExpr(0, env);
+		return macro->EvalExpr(nullptr, env);
 
 	if ( id_type == TEMP_VAR && ! evaluated )
 		throw ExceptionIDNotEvaluated(id);
@@ -238,7 +239,7 @@ IDRecord* Env::lookup(const ID* id, bool recursive, bool raise_exception) const
 	if ( raise_exception )
 		throw ExceptionIDNotFound(id);
 	else
-		return 0;
+		return nullptr;
 	}
 
 IDType Env::GetIDType(const ID* id) const
@@ -334,7 +335,7 @@ Type* Env::GetDataType(const ID* id) const
 	if ( r )
 		return r->GetDataType();
 	else
-		return 0;  
+		return nullptr;
 	}
 
 string Env::DataTypeStr(const ID* id) const
@@ -405,11 +406,11 @@ void init_builtin_identifiers()
 
 Env* global_env()
 	{
-	static Env* the_global_env = 0;
+	static Env* the_global_env = nullptr;
 
 	if ( ! the_global_env )
 		{
-		the_global_env = new Env(0, 0);
+		the_global_env = new Env(nullptr, nullptr);
 
 		// These two are defined in binpac.h, so we do not need to
 		// generate code for them.

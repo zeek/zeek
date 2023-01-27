@@ -15,18 +15,19 @@
 const char* StringType::kStringTypeName = "bytestring";
 const char* StringType::kConstStringTypeName = "const_bytestring";
 
-StringType::StringType(StringTypeEnum anystr) : Type(STRING), type_(ANYSTR), str_(0), regex_(0)
+StringType::StringType(StringTypeEnum anystr)
+	: Type(STRING), type_(ANYSTR), str_(nullptr), regex_(nullptr)
 	{
 	ASSERT(anystr == ANYSTR);
 	init();
 	}
 
-StringType::StringType(ConstString* str) : Type(STRING), type_(CSTR), str_(str), regex_(0)
+StringType::StringType(ConstString* str) : Type(STRING), type_(CSTR), str_(str), regex_(nullptr)
 	{
 	init();
 	}
 
-StringType::StringType(RegEx* regex) : Type(STRING), type_(REGEX), str_(0), regex_(regex)
+StringType::StringType(RegEx* regex) : Type(STRING), type_(REGEX), str_(nullptr), regex_(regex)
 	{
 	ASSERT(regex_);
 	init();
@@ -34,7 +35,7 @@ StringType::StringType(RegEx* regex) : Type(STRING), type_(REGEX), str_(0), rege
 
 void StringType::init()
 	{
-	string_length_var_field_ = 0;
+	string_length_var_field_ = nullptr;
 	elem_datatype_ = new BuiltInType(BuiltInType::UINT8);
 	}
 
@@ -67,7 +68,7 @@ Type* StringType::DoClone() const
 			break;
 		default:
 			ASSERT(0);
-			return 0;
+			return nullptr;
 		}
 
 	return clone;
@@ -206,7 +207,7 @@ int StringType::StaticSize(Env* env) const
 
 const ID* StringType::string_length_var() const
 	{
-	return string_length_var_field_ ? string_length_var_field_->id() : 0;
+	return string_length_var_field_ ? string_length_var_field_->id() : nullptr;
 	}
 
 void StringType::GenDynamicSize(Output* out_cc, Env* env, const DataPtr& data)

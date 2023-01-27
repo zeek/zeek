@@ -37,13 +37,13 @@ ArrayType::ArrayType(Type* elemtype, Expr* length)
 
 void ArrayType::init()
 	{
-	arraylength_var_field_ = 0;
-	elem_it_var_field_ = 0;
-	elem_var_field_ = 0;
-	elem_dataptr_var_field_ = 0;
-	elem_input_var_field_ = 0;
+	arraylength_var_field_ = nullptr;
+	elem_it_var_field_ = nullptr;
+	elem_var_field_ = nullptr;
+	elem_dataptr_var_field_ = nullptr;
+	elem_input_var_field_ = nullptr;
 
-	elem_dataptr_until_expr_ = 0;
+	elem_dataptr_until_expr_ = nullptr;
 
 	end_of_array_loop_label_ = "@@@";
 
@@ -51,9 +51,9 @@ void ArrayType::init()
 
 	datatype_str_ = strfmt("%s *", vector_str_.c_str());
 
-	attr_generic_until_expr_ = 0;
-	attr_until_element_expr_ = 0;
-	attr_until_input_expr_ = 0;
+	attr_generic_until_expr_ = nullptr;
+	attr_until_element_expr_ = nullptr;
+	attr_until_input_expr_ = nullptr;
 	}
 
 ArrayType::~ArrayType()
@@ -71,7 +71,7 @@ Type* ArrayType::DoClone() const
 	{
 	Type* elemtype = elemtype_->Clone();
 	if ( ! elemtype )
-		return 0;
+		return nullptr;
 	return new ArrayType(elemtype, length_);
 	}
 
@@ -100,27 +100,27 @@ string ArrayType::EvalElement(const string& array, const string& index) const
 
 const ID* ArrayType::arraylength_var() const
 	{
-	return arraylength_var_field_ ? arraylength_var_field_->id() : 0;
+	return arraylength_var_field_ ? arraylength_var_field_->id() : nullptr;
 	}
 
 const ID* ArrayType::elem_it_var() const
 	{
-	return elem_it_var_field_ ? elem_it_var_field_->id() : 0;
+	return elem_it_var_field_ ? elem_it_var_field_->id() : nullptr;
 	}
 
 const ID* ArrayType::elem_var() const
 	{
-	return elem_var_field_ ? elem_var_field_->id() : 0;
+	return elem_var_field_ ? elem_var_field_->id() : nullptr;
 	}
 
 const ID* ArrayType::elem_dataptr_var() const
 	{
-	return elem_dataptr_var_field_ ? elem_dataptr_var_field_->id() : 0;
+	return elem_dataptr_var_field_ ? elem_dataptr_var_field_->id() : nullptr;
 	}
 
 const ID* ArrayType::elem_input_var() const
 	{
-	return elem_input_var_field_ ? elem_input_var_field_->id() : 0;
+	return elem_input_var_field_ ? elem_input_var_field_->id() : nullptr;
 	}
 
 void ArrayType::ProcessAttr(Attr* a)
@@ -499,7 +499,7 @@ void ArrayType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, in
 
 	ASSERT(elem_it_var());
 
-	DataPtr elem_data(env, 0, 0);
+	DataPtr elem_data(env, nullptr, 0);
 
 	if ( elem_dataptr_var() )
 		{
@@ -554,7 +554,7 @@ void ArrayType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, in
 	if ( elem_dataptr_var() )
 		{
 		out_cc->println("%s += %s;", env->LValue(elem_dataptr_var()),
-		                elemtype_->DataSize(0, env, elem_data).c_str());
+		                elemtype_->DataSize(nullptr, env, elem_data).c_str());
 		out_cc->println("BINPAC_ASSERT(%s <= %s);", env->RValue(elem_dataptr_var()),
 		                env->RValue(end_of_data));
 		}

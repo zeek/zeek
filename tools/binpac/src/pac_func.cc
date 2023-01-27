@@ -7,10 +7,10 @@
 #include "pac_type.h"
 
 Function::Function(ID* id, Type* type, ParamList* params)
-	: id_(id), type_(type), params_(params), expr_(0), code_(0)
+	: id_(id), type_(type), params_(params), expr_(nullptr), code_(nullptr)
 	{
-	analyzer_decl_ = 0;
-	env_ = 0;
+	analyzer_decl_ = nullptr;
+	env_ = nullptr;
 	}
 
 Function::~Function()

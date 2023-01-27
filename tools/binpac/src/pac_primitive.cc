@@ -8,13 +8,13 @@
 string PPVal::ToCode(Env* env)
 	{
 	ASSERT(expr_);
-	return string(expr_->EvalExpr(0, env));
+	return string(expr_->EvalExpr(nullptr, env));
 	}
 
 string PPSet::ToCode(Env* env)
 	{
 	ASSERT(expr_);
-	return expr_->SetFunc(0, env);
+	return expr_->SetFunc(nullptr, env);
 	}
 
 string PPType::ToCode(Env* env)
@@ -30,5 +30,5 @@ string PPConstDef::ToCode(Env* env)
 	env->SetEvaluated(id_);
 
 	string type_str = type->DataTypeStr();
-	return strfmt("%s %s = %s", type_str.c_str(), env->LValue(id_), expr_->EvalExpr(0, env));
+	return strfmt("%s %s = %s", type_str.c_str(), env->LValue(id_), expr_->EvalExpr(nullptr, env));
 	}

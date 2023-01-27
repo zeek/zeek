@@ -25,7 +25,7 @@ static const char* basic_pactype_name[] = {
 #define TYPE_DEF(name, pactype, ctype, size) pactype,
 #include "pac_type.def"
 #undef TYPE_DEF
-	0,
+	nullptr,
 };
 
 void BuiltInType::static_init()
@@ -49,7 +49,7 @@ static const char* basic_ctype_name[] = {
 #define TYPE_DEF(name, pactype, ctype, size) ctype,
 #include "pac_type.def"
 #undef TYPE_DEF
-	0,
+	nullptr,
 };
 
 bool BuiltInType::DefineValueVar() const

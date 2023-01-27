@@ -22,8 +22,8 @@ bool FLAGS_quiet = false;
 string FLAGS_output_directory;
 vector<string> FLAGS_include_directories;
 
-Output* header_output = 0;
-Output* source_output = 0;
+Output* header_output = nullptr;
+Output* source_output = nullptr;
 
 void add_to_include_directories(string dirs)
 	{
@@ -182,8 +182,8 @@ int compile(const char* filename)
 		exit(1);
 		}
 
-	header_output = 0;
-	source_output = 0;
+	header_output = nullptr;
+	source_output = nullptr;
 	input_filename = "";
 	fclose(fp_input);
 

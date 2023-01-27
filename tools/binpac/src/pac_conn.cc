@@ -13,9 +13,9 @@
 ConnDecl::ConnDecl(ID* conn_id, ParamList* params, AnalyzerElementList* elemlist)
 	: AnalyzerDecl(conn_id, CONN, params)
 	{
-	flows_[0] = flows_[1] = 0;
+	flows_[0] = flows_[1] = nullptr;
 	AddElements(elemlist);
-	data_type_ = new ParameterizedType(conn_id->clone(), 0);
+	data_type_ = new ParameterizedType(conn_id->clone(), nullptr);
 	}
 
 ConnDecl::~ConnDecl()
@@ -92,7 +92,7 @@ void ConnDecl::GenEOFFunc(Output* out_h, Output* out_cc)
 
 	foreach (i, AnalyzerHelperList, eof_helpers_)
 		{
-		(*i)->GenCode(0, out_cc, this);
+		(*i)->GenCode(nullptr, out_cc, this);
 		}
 
 	out_cc->dec_indent();

@@ -11,7 +11,7 @@ Field::Field(FieldType tof, int flags, ID* id, Type* type)
 	{
 	decl_id_ = current_decl_id;
 	field_id_str_ = strfmt("%s:%s", decl_id()->Name(), id_->Name());
-	attrs_ = 0;
+	attrs_ = nullptr;
 	}
 
 Field::~Field()

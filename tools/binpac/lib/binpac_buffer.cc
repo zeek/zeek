@@ -30,10 +30,10 @@ binpac::FlowBuffer::Policy binpac::FlowBuffer::policy = {
 FlowBuffer::FlowBuffer(LineBreakStyle linebreak_style)
 	{
 	buffer_length_ = 0;
-	buffer_ = 0;
+	buffer_ = nullptr;
 
-	orig_data_begin_ = 0;
-	orig_data_end_ = 0;
+	orig_data_begin_ = nullptr;
+	orig_data_end_ = nullptr;
 
 	linebreak_style_ = linebreak_style;
 	linebreak_style_default = linebreak_style;
@@ -209,7 +209,7 @@ void FlowBuffer::DiscardData()
 	mode_ = UNKNOWN_MODE;
 	message_complete_ = false;
 	have_pending_request_ = false;
-	orig_data_begin_ = orig_data_end_ = 0;
+	orig_data_begin_ = orig_data_end_ = nullptr;
 
 	buffer_n_ = 0;
 	frame_length_ = 0;
@@ -289,7 +289,7 @@ void FlowBuffer::NewGap(int length)
 			frame_length_ = 0;
 		}
 
-	orig_data_begin_ = orig_data_end_ = 0;
+	orig_data_begin_ = orig_data_end_ = nullptr;
 	MarkOrCopy();
 	}
 

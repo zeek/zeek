@@ -30,7 +30,7 @@ AnalyzerDecl::AnalyzerDecl(ID* id, DeclType decl_type, ParamList* params)
 
 	SetAnalyzerContext();
 
-	env_ = 0;
+	env_ = nullptr;
 	}
 
 AnalyzerDecl::~AnalyzerDecl()
@@ -205,7 +205,7 @@ void AnalyzerDecl::GenInitCode(Output* out_cc)
 	TypeDecl::GenInitCode(out_cc);
 	foreach (i, AnalyzerHelperList, constructor_helpers_)
 		{
-		(*i)->GenCode(0, out_cc, this);
+		(*i)->GenCode(nullptr, out_cc, this);
 		}
 	}
 
@@ -214,7 +214,7 @@ void AnalyzerDecl::GenCleanUpCode(Output* out_cc)
 	TypeDecl::GenCleanUpCode(out_cc);
 	foreach (i, AnalyzerHelperList, destructor_helpers_)
 		{
-		(*i)->GenCode(0, out_cc, this);
+		(*i)->GenCode(nullptr, out_cc, this);
 		}
 	}
 
@@ -277,7 +277,7 @@ AnalyzerHelper::~AnalyzerHelper()
 
 void AnalyzerHelper::GenCode(Output* out_h, Output* out_cc, AnalyzerDecl* decl)
 	{
-	Output* out = 0;
+	Output* out = nullptr;
 	switch ( helper_type_ )
 		{
 		case MEMBER_DECLS:
@@ -318,7 +318,7 @@ AnalyzerFlow::AnalyzerFlow(Direction dir, ID* type_id, ExprList* params)
 
 	flow_field_ = new FlowField(flow_id, flow_type);
 
-	flow_decl_ = 0;
+	flow_decl_ = nullptr;
 	}
 
 AnalyzerFlow::~AnalyzerFlow()

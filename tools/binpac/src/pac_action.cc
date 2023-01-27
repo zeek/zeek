@@ -10,7 +10,7 @@
 
 AnalyzerAction::AnalyzerAction(ID* action_id, When when, ActionParam* param, EmbeddedCode* code)
 	: AnalyzerElement(ACTION), action_id_(action_id), when_(when), param_(param), code_(code),
-	  analyzer_(0)
+	  analyzer_(nullptr)
 	{
 	}
 

@@ -15,7 +15,7 @@
 RecordType::RecordType(RecordFieldList* record_fields) : Type(RECORD)
 	{
 	// Here we assume that the type is a standalone type.
-	value_var_ = 0;
+	value_var_ = nullptr;
 
 	// Put all fields in fields_
 	foreach (i, RecordFieldList, record_fields)
@@ -24,7 +24,7 @@ RecordType::RecordType(RecordFieldList* record_fields) : Type(RECORD)
 	// Put RecordField's in record_fields_
 	record_fields_ = record_fields;
 
-	parsing_dataptr_var_field_ = 0;
+	parsing_dataptr_var_field_ = nullptr;
 	}
 
 RecordType::~RecordType()
@@ -37,7 +37,7 @@ RecordType::~RecordType()
 
 const ID* RecordType::parsing_dataptr_var() const
 	{
-	return parsing_dataptr_var_field_ ? parsing_dataptr_var_field_->id() : 0;
+	return parsing_dataptr_var_field_ ? parsing_dataptr_var_field_->id() : nullptr;
 	}
 
 bool RecordType::DefineValueVar() const
@@ -55,7 +55,7 @@ void RecordType::Prepare(Env* env, int flags)
 	{
 	ASSERT(flags & TO_BE_PARSED);
 
-	RecordField* prev = 0;
+	RecordField* prev = nullptr;
 	int offset = 0;
 	int seq = 0;
 	foreach (i, RecordFieldList, record_fields_)
@@ -237,14 +237,14 @@ bool RecordType::ByteOrderSensitive() const
 RecordField::RecordField(FieldType tof, ID* id, Type* type)
 	: Field(tof, TYPE_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type)
 	{
-	begin_of_field_dataptr = 0;
-	end_of_field_dataptr = 0;
-	field_size_expr = 0;
-	field_offset_expr = 0;
-	end_of_field_dataptr_var = 0;
-	record_type_ = 0;
-	prev_ = 0;
-	next_ = 0;
+	begin_of_field_dataptr = nullptr;
+	end_of_field_dataptr = nullptr;
+	field_size_expr = nullptr;
+	field_offset_expr = nullptr;
+	end_of_field_dataptr_var = nullptr;
+	record_type_ = nullptr;
+	prev_ = nullptr;
+	next_ = nullptr;
 	static_offset_ = -1;
 	parsing_state_seq_ = 0;
 	boundary_checked_ = false;
@@ -399,7 +399,7 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env)
 	if ( record_type()->incremental_parsing() && prev() )
 		prev()->GenParseCode(out_cc, env);
 
-	DataPtr data(env, 0, 0);
+	DataPtr data(env, nullptr, 0);
 	if ( ! record_type()->incremental_parsing() )
 		{
 		data = getFieldBegin(out_cc, env);
@@ -499,7 +499,7 @@ bool RecordDataField::RequiresAnalyzerContext() const
 	}
 
 RecordPaddingField::RecordPaddingField(ID* id, PaddingType ptype, Expr* expr)
-	: RecordField(PADDING_FIELD, id, 0), ptype_(ptype), expr_(expr)
+	: RecordField(PADDING_FIELD, id, nullptr), ptype_(ptype), expr_(expr)
 	{
 	wordsize_ = -1;
 	}

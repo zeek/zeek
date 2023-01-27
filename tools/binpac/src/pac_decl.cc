@@ -14,10 +14,10 @@
 #include "pac_type.h"
 #include "pac_utils.h"
 
-DeclList* Decl::decl_list_ = 0;
+DeclList* Decl::decl_list_ = nullptr;
 Decl::DeclMap Decl::decl_map_;
 
-Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type), attrlist_(0)
+Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type), attrlist_(nullptr)
 	{
 	decl_map_[id_] = this;
 	if ( ! decl_list_ )
@@ -26,7 +26,7 @@ Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type), attrlis
 
 	DEBUG_MSG("Finished Decl %s\n", id_->Name());
 
-	analyzer_context_ = 0;
+	analyzer_context_ = nullptr;
 	}
 
 Decl::~Decl()
@@ -119,7 +119,7 @@ Decl* Decl::LookUpDecl(const ID* id)
 	{
 	DeclMap::iterator it = decl_map_.find(id);
 	if ( it == decl_map_.end() )
-		return 0;
+		return nullptr;
 	return it->second;
 	}
 

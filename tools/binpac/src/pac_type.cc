@@ -24,23 +24,23 @@ Type::type_map_t Type::type_map_;
 
 Type::Type(TypeType tot) : DataDepElement(DataDepElement::TYPE), tot_(tot)
 	{
-	type_decl_ = 0;
+	type_decl_ = nullptr;
 	type_decl_id_ = current_decl_id;
 	declared_as_type_ = false;
-	env_ = 0;
+	env_ = nullptr;
 	value_var_ = default_value_var;
 	ASSERT(value_var_);
 	value_var_type_ = MEMBER_VAR;
 	anonymous_value_var_ = false;
-	size_var_field_ = 0;
-	size_expr_ = 0;
+	size_var_field_ = nullptr;
+	size_expr_ = nullptr;
 	boundary_checked_ = false;
-	parsing_complete_var_field_ = 0;
-	parsing_state_var_field_ = 0;
-	buffering_state_var_field_ = 0;
-	has_value_field_ = 0;
+	parsing_complete_var_field_ = nullptr;
+	parsing_state_var_field_ = nullptr;
+	buffering_state_var_field_ = nullptr;
+	has_value_field_ = nullptr;
 
-	array_until_input_ = 0;
+	array_until_input_ = nullptr;
 
 	incremental_input_ = false;
 	buffer_input_ = false;
@@ -49,16 +49,16 @@ Type::Type(TypeType tot) : DataDepElement(DataDepElement::TYPE), tot_(tot)
 	fields_ = new FieldList();
 
 	attrs_ = new AttrList();
-	attr_byteorder_expr_ = 0;
+	attr_byteorder_expr_ = nullptr;
 	attr_checks_ = new ExprList();
 	attr_enforces_ = new ExprList();
 	attr_chunked_ = false;
 	attr_exportsourcedata_ = false;
-	attr_if_expr_ = 0;
-	attr_length_expr_ = 0;
-	attr_letfields_ = 0;
-	attr_multiline_end_ = 0;
-	attr_linebreaker_ = 0;
+	attr_if_expr_ = nullptr;
+	attr_length_expr_ = nullptr;
+	attr_letfields_ = nullptr;
+	attr_multiline_end_ = nullptr;
+	attr_linebreaker_ = nullptr;
 	attr_oneline_ = false;
 	attr_refcount_ = false;
 	attr_requires_ = new ExprList();
@@ -139,7 +139,7 @@ void Type::set_value_var(const ID* arg_id, int arg_id_type)
 
 const ID* Type::size_var() const
 	{
-	return size_var_field_ ? size_var_field_->id() : 0;
+	return size_var_field_ ? size_var_field_->id() : nullptr;
 	}
 
 void Type::AddField(Field* f)
@@ -569,7 +569,7 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags)
 		data_begin = begin_of_data;
 		}
 	else
-		data_begin = 0;
+		data_begin = nullptr;
 
 	if ( array_until_input_ )
 		{
@@ -762,7 +762,7 @@ Type* Type::MemberDataType(const ID* member_id) const
 
 Type* Type::ElementDataType() const
 	{
-	return 0;
+	return nullptr;
 	}
 
 // Returns false if it is not necessary to add size_var
@@ -968,7 +968,7 @@ bool Type::Bufferable() const
 bool Type::BufferableWithLineBreaker() const
 	{
 	// If the input is an ASCII line with a given linebreaker;
-	return attr_linebreaker_ != 0;
+	return attr_linebreaker_ != nullptr;
 	}
 
 Expr* Type::LineBreaker() const
@@ -992,7 +992,7 @@ const ID* Type::parsing_complete_var() const
 	if ( parsing_complete_var_field_ )
 		return parsing_complete_var_field_->id();
 	else
-		return 0;
+		return nullptr;
 	}
 
 string Type::parsing_complete(Env* env) const
@@ -1006,7 +1006,7 @@ const ID* Type::has_value_var() const
 	if ( has_value_field_ )
 		return has_value_field_->id();
 	else
-		return 0;
+		return nullptr;
 	}
 
 int Type::InitialBufferLength() const
@@ -1095,7 +1095,7 @@ Type* Type::LookUpByID(ID* id)
 			}
 		}
 
-	return new ParameterizedType(id, 0);
+	return new ParameterizedType(id, nullptr);
 	}
 
 void Type::AddPredefinedType(const string& type_name, Type* type)

@@ -30,7 +30,7 @@ public:
 	AnalyzerContextDecl* analyzer_context() const { return analyzer_context_; }
 
 	// NULL except for TypeDecl or AnalyzerDecl
-	virtual Env* env() const { return 0; }
+	virtual Env* env() const { return nullptr; }
 
 	virtual void Prepare() = 0;
 

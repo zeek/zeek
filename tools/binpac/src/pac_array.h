@@ -9,7 +9,7 @@
 class ArrayType : public Type
 	{
 public:
-	ArrayType(Type* arg_elemtype, Expr* arg_length = 0);
+	ArrayType(Type* arg_elemtype, Expr* arg_length = nullptr);
 	~ArrayType();
 
 	bool DefineValueVar() const;

@@ -53,16 +53,16 @@ static const char* expr_fmt[] = {
 
 void Expr::init()
 	{
-	id_ = 0;
-	num_ = 0;
-	cstr_ = 0;
-	regex_ = 0;
+	id_ = nullptr;
+	num_ = nullptr;
+	cstr_ = nullptr;
+	regex_ = nullptr;
 	num_operands_ = 0;
-	operand_[0] = 0;
-	operand_[1] = 0;
-	operand_[2] = 0;
-	args_ = 0;
-	cases_ = 0;
+	operand_[0] = nullptr;
+	operand_[1] = nullptr;
+	operand_[2] = nullptr;
+	args_ = nullptr;
+	cases_ = nullptr;
 	}
 
 Expr::Expr(ID* arg_id) : DataDepElement(EXPR)
@@ -117,7 +117,7 @@ Expr::Expr(ExprType arg_type, Expr* op1, Expr* op2) : DataDepElement(EXPR)
 	num_operands_ = 2;
 	operand_[0] = op1;
 	operand_[1] = op2;
-	operand_[2] = 0;
+	operand_[2] = nullptr;
 	orig_ = strfmt(expr_fmt[expr_type_], op1->orig(), op2->orig());
 	}
 
@@ -244,7 +244,7 @@ void Expr::GenCaseEval(Output* out_cc, Env* env)
 	out_cc->inc_indent();
 	out_cc->println("{");
 
-	CaseExpr* default_case = 0;
+	CaseExpr* default_case = nullptr;
 	foreach (i, CaseExprList, cases_)
 		{
 		CaseExpr* c = *i;
@@ -266,7 +266,7 @@ void Expr::GenCaseEval(Output* out_cc, Env* env)
 		}
 
 	// Generate the default case after all other cases
-	GenCaseStr(0, out_cc, env, switch_type);
+	GenCaseStr(nullptr, out_cc, env, switch_type);
 	out_cc->inc_indent();
 	if ( default_case )
 		{
@@ -351,14 +351,14 @@ void Expr::GenEval(Output* out_cc, Env* env)
 
 			try
 				{
-				if ( (rf = GetRecordField(id, env)) != 0 )
+				if ( (rf = GetRecordField(id, env)) != nullptr )
 					{
 					str_ = strfmt("%s", rf->FieldSize(out_cc, env));
 					}
 				}
 			catch ( ExceptionIDNotFound& e )
 				{
-				if ( (ty = TypeDecl::LookUpType(id)) != 0 )
+				if ( (ty = TypeDecl::LookUpType(id)) != nullptr )
 					{
 					int ty_size = ty->StaticSize(global_env());
 					if ( ty_size >= 0 )
@@ -461,7 +461,7 @@ Type* Expr::DataType(Env* env) const
 			// Get type of the parent
 			Type* parent_type = operand_[0]->DataType(env);
 			if ( ! parent_type )
-				return 0;
+				return nullptr;
 			data_type = parent_type->MemberDataType(operand_[1]->id());
 			}
 			break;
@@ -501,7 +501,7 @@ Type* Expr::DataType(Env* env) const
 			if ( cases_ && ! cases_->empty() )
 				{
 				Type* type1 = cases_->front()->value()->DataType(env);
-				Type* numeric_with_largest_width = 0;
+				Type* numeric_with_largest_width = nullptr;
 
 				foreach (i, CaseExprList, cases_)
 					{
@@ -544,7 +544,7 @@ Type* Expr::DataType(Env* env) const
 				data_type = numeric_with_largest_width ? numeric_with_largest_width : type1;
 				}
 			else
-				data_type = 0;
+				data_type = nullptr;
 			}
 			break;
 
@@ -575,7 +575,7 @@ Type* Expr::DataType(Env* env) const
 			break;
 
 		default:
-			data_type = 0;
+			data_type = nullptr;
 			break;
 		}
 
@@ -812,7 +812,7 @@ int Expr::MinimalHeaderSize(Env* env)
 			RecordField* rf;
 			Type* ty;
 
-			if ( (rf = GetRecordField(id, env)) != 0 )
+			if ( (rf = GetRecordField(id, env)) != nullptr )
 				{
 				if ( rf->StaticSize(env, -1) >= 0 )
 					mhs = 0;
@@ -820,7 +820,7 @@ int Expr::MinimalHeaderSize(Env* env)
 					mhs = mhs_recordfield(env, rf);
 				}
 
-			else if ( (ty = TypeDecl::LookUpType(id)) != 0 )
+			else if ( (ty = TypeDecl::LookUpType(id)) != nullptr )
 				{
 				mhs = 0;
 				}

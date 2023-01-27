@@ -113,8 +113,8 @@ void FlowDecl::GenInitCode(Output* out_cc)
 	{
 	AnalyzerDecl::GenInitCode(out_cc);
 
-	out_cc->println("%s = 0;", env_->LValue(dataunit_id));
-	out_cc->println("%s = 0;", env_->LValue(analyzer_context_id));
+	out_cc->println("%s = nullptr;", env_->LValue(dataunit_id));
+	out_cc->println("%s = nullptr;", env_->LValue(analyzer_context_id));
 
 	if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT )
 		{
@@ -147,7 +147,7 @@ void FlowDecl::GenEOFFunc(Output* out_h, Output* out_cc)
 	if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT )
 		{
 		out_cc->println("%s->set_eof();", env_->LValue(flow_buffer_id));
-		out_cc->println("%s(0, 0);", kNewData);
+		out_cc->println("%s(nullptr, nullptr);", kNewData);
 		}
 
 	out_cc->println("}");

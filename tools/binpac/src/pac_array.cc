@@ -356,7 +356,7 @@ void ArrayType::GenInitCode(Output* out_cc, Env* env)
 	{
 	// Do not initiate the array here
 	// out_cc->println("%s = new %s;", lvalue(), vector_str_.c_str());
-	out_cc->println("%s = 0;", lvalue());
+	out_cc->println("%s = nullptr;", lvalue());
 
 	Type::GenInitCode(out_cc, env);
 	if ( incremental_parsing() )
@@ -563,7 +563,7 @@ void ArrayType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, in
 		GenUntilCheck(out_cc, env, attr_until_element_expr_, false);
 
 	if ( elemtype_->IsPointerType() )
-		out_cc->println("%s = 0;", env->LValue(elem_var()));
+		out_cc->println("%s = nullptr;", env->LValue(elem_var()));
 
 	out_cc->println("}");
 	out_cc->dec_indent();
@@ -621,7 +621,7 @@ void ArrayType::GenUntilCheck(Output* out_cc, Env* env, Expr* until_expr, bool d
 		if ( delete_elem )
 			elemtype_->GenCleanUpCode(out_cc, env);
 		else
-			out_cc->println("%s = 0;", env->LValue(elem_var()));
+			out_cc->println("%s = nullptr;", env->LValue(elem_var()));
 		}
 
 	out_cc->println("goto %s;", end_of_array_loop_label_.c_str());

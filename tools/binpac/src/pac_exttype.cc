@@ -42,8 +42,11 @@ string ExternType::EvalMember(const ID* member_id) const
 
 void ExternType::GenInitCode(Output* out_cc, Env* env)
 	{
-	if ( IsNumericType() || IsPointerType() )
+	if ( IsNumericType() )
 		out_cc->println("%s = 0;", env->LValue(value_var()));
+	else if ( IsPointerType() )
+		out_cc->println("%s = nullptr;", env->LValue(value_var()));
+
 	Type::GenInitCode(out_cc, env);
 	}
 

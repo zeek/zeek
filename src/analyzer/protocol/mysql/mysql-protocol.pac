@@ -48,6 +48,7 @@ type LengthEncodedStringArg(first_byte: uint8) = record {
 		public:
 		int operator()(uint24le* num) const
 			{
+			// Convert 24bit little endian int parsed as 3 uint8 into host endianess.
 			return (num->byte1() << 16) | (num->byte2() << 8) | num->byte3();
 			}
 
@@ -145,10 +146,15 @@ enum Expected {
 	EXPECT_COLUMN_DEFINITION,
 	EXPECT_COLUMN_DEFINITION_OR_EOF,
 	EXPECT_COLUMN_COUNT,
-	EXPECT_EOF,
+	EXPECT_EOF_THEN_RESULTSET,
 	EXPECT_RESULTSET,
 	EXPECT_REST_OF_PACKET,
 	EXPECT_AUTH_SWITCH,
+};
+
+enum EOFType {
+	EOF_INTERMEDIATE,  # column definition to result row transition
+	EOF_END,
 };
 
 enum Client_Capabilities {
@@ -168,7 +174,7 @@ type MySQL_PDU(is_orig: bool) = record {
 	} &requires(state);
 } &let {
 	state: int = $context.connection.get_state();
-} &length=hdr.len &byteorder=bigendian;
+} &length=hdr.len &byteorder=littleendian;
 
 type Header = record {
 	le_len: uint24le;
@@ -229,7 +235,7 @@ type Handshake_Response_Packet = case $context.connection.get_version() of {
 	9  -> v9_response : Handshake_Response_Packet_v9;
 } &let {
 	version: uint8 = $context.connection.get_version();
-} &byteorder=bigendian;
+};
 
 type Handshake_Response_Packet_v10 = record {
 	cap_flags   : uint32;
@@ -273,7 +279,7 @@ type Command_Response(pkt_len: uint32) = case $context.connection.get_expectatio
 	EXPECT_REST_OF_PACKET           -> rest          : bytestring &restofdata;
 	EXPECT_STATUS                   -> status        : Command_Response_Status;
 	EXPECT_AUTH_SWITCH              -> auth_switch   : AuthSwitchRequest;
-	EXPECT_EOF                      -> eof           : EOFIfLegacy(pkt_len);
+	EXPECT_EOF_THEN_RESULTSET       -> eof           : EOFIfLegacyThenResultset(pkt_len);
 	default                         -> unknown       : empty;
 };
 
@@ -281,7 +287,7 @@ type Command_Response_Status = record {
 	pkt_type: uint8;
 	response: case pkt_type of {
 		0x00    -> data_ok:  OK_Packet;
-		0xfe    -> data_eof: EOF_Packet;
+		0xfe    -> data_eof: EOF_Packet(EOF_END);
 		0xff    -> data_err: ERR_Packet;
 		default -> unknown:  empty;
 	};
@@ -311,11 +317,12 @@ type ColumnDefinition = record {
 	def  : ColumnDefinition41(dummy);
 } &let {
 	update_remain     : bool = $context.connection.dec_remaining_cols();
-	update_expectation: bool = $context.connection.set_next_expected($context.connection.get_remaining_cols() > 0 ? EXPECT_COLUMN_DEFINITION : EXPECT_EOF);
+	update_expectation: bool = $context.connection.set_next_expected($context.connection.get_remaining_cols() > 0 ? EXPECT_COLUMN_DEFINITION : EXPECT_EOF_THEN_RESULTSET);
 };
 
+# Only used to indicate the end of a result, no intermediate eofs here.
 type EOFOrOK = case $context.connection.get_deprecate_eof() of {
-	false -> eof: EOF_Packet;
+	false -> eof: EOF_Packet(EOF_END);
 	true  -> ok: OK_Packet;
 };
 
@@ -333,8 +340,8 @@ type ColumnDefinitionOrEOF(pkt_len: uint32) = record {
 };
 
 
-type EOFIfLegacy(pkt_len: uint32) = case $context.connection.get_deprecate_eof() of {
-	false -> eof: EOF_Packet;
+type EOFIfLegacyThenResultset(pkt_len: uint32) = case $context.connection.get_deprecate_eof() of {
+	false -> eof: EOF_Packet_With_Marker(EOF_INTERMEDIATE);
 	true  -> resultset: Resultset(pkt_len);
 } &let {
 	update_result_seen: bool = $context.connection.set_results_seen(0);
@@ -408,9 +415,14 @@ type ERR_Packet = record {
 	update_state: bool = $context.connection.update_state(COMMAND_PHASE);
 };
 
-type EOF_Packet = record {
+type EOF_Packet(typ: EOFType) = record {
 	warnings: uint16;
 	status  : uint16;
+};
+
+type EOF_Packet_With_Marker(typ: EOFType) = record {
+	marker : uint8;
+	payload: EOF_Packet(typ);
 } &let {
 	update_state: bool = $context.connection.update_state(COMMAND_PHASE);
 };

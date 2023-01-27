@@ -1,6 +1,6 @@
-# This tests a PCAP with a few MySQL commands from the Wireshark samples.
+# Test a show engine innodb status invocation.
 
-# @TEST-EXEC: zeek -b -r $TRACES/mysql/mysql.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/mysql/mysql-show-engine-innodb-status-no-password.pcap %INPUT > out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff mysql.log
 
@@ -18,7 +18,7 @@ event mysql_eof(c: connection, is_intermediate: bool)
 
 event mysql_result_row(c: connection, row: string_vec)
 	{
-	print "mysql result row", row;
+	print "mysql result row", |row|, row[0][:70];
 	}
 
 event mysql_error(c: connection, code: count, msg: string)

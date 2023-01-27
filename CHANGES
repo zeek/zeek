@@ -1,3 +1,26 @@
+5.2.0-dev.538 | 2023-01-27 11:24:35 +0100
+
+  * testing/mysql: Add traces recorded with a free-tier MySQL instance (Arne Welzel, Corelight)
+
+  * MySQL: Fix endianness, introduce mysql_eof() event (Arne Welzel, Corelight)
+
+    We were parsing MySQL using bigendian even though the protocol is
+    specified as with "least significant byte first" [1]. This is most
+    problematic when parsing length encoded strings with 2 byte length
+    fields...
+
+    Further, I think, the EOF_Packet parsing was borked, either due to
+    testing the CLIENT_DEPRECATE_EOF with the wrong endianness, or due to
+    the workaround in Resultset processing raising mysql_ok(). Introduce a
+    new mysql_eof() that triggers for EOF_Packet's and remove the fake
+    mysql_ok() Resultset invocation to fix. Adapt the mysql script and tests
+    to account for the new event.
+
+    This is a quite backwards incompatible change on the event level, but
+    due to being quite buggy in general, doubt this matters to many.
+
+    [1] https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_basic_dt_integers.html
+
 5.2.0-dev.534 | 2023-01-26 20:06:24 +0100
 
   * Tame error reporting and abort() for undefined types (Arne Welzel, Corelight)

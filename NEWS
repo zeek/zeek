@@ -20,6 +20,11 @@ Breaking Changes
 - The blank identifier ``_`` cannot be used in expressions and options anymore.
   Outside of obfuscation exercises, this should have little real-world impact.
 
+- A new ``mysql_eof`` event has been introduced and the ``mysql_ok`` event
+  is not raised in its place or artificially anymore. The base scripts were
+  adapted accordingly. Users of ``mysql_ok()`` likely need to switch to
+  ``mysql_eof()``.
+
 New Functionality
 -----------------
 
@@ -205,6 +210,9 @@ Changed Functionality
 
 - Notices created for files transferred over multiple connections will now be
   associated with one of the connections rather than none.
+
+- The MySQL analyzer has been switched to parse in little endian. This avoids
+  analyzer violations due to out of bound errors for length encoded strings.
 
 Deprecated Functionality
 ------------------------

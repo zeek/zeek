@@ -272,8 +272,8 @@ bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* pac
 
 	// Do some fast checks that must be true before moving to more complicated ones.
 	// Mostly this avoids doing the regex below if we can help it.
-	if ( (len < 40) ||
-	     (((data[0] >> 4) != 6) && ((data[0] != 0x00) || (data[1] != 0x00 && data[1] != 0x01))) )
+	if ( (len < 40) || ((len > 8) && ((data[0] >> 4) != 6) &&
+	                    ((data[0] != 0x00) || (data[1] != 0x00 && data[1] != 0x01))) )
 		return false;
 
 	if ( pattern_re->Match(data, len) )
@@ -291,6 +291,9 @@ bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* pac
 		uint8_t client_id_length = data[2];
 		uint8_t auth_length = data[3];
 
+		if ( len < (13 + client_id_length + auth_length) )
+			return false;
+
 		// There's 9 bytes at the end of the header for a nonce value and a
 		// confirmation byte. That plus the 4 bytes we've looked at already
 		// makes 13 bytes.
@@ -307,6 +310,9 @@ bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* pac
 
 	if ( val == 0 )
 		{
+		if ( len < 8 )
+			return false;
+
 		// If the second byte is zero (or we're coming out of an authentication
 		// header), we're in an origin identification header. Skip over it, and
 		// verify there's enough data after it to find an IPv6 header.

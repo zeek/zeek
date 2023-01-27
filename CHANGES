@@ -1,3 +1,7 @@
+5.2.0-dev.543 | 2023-01-27 12:08:28 -0700
+
+  * Add a few extra length checks to Teredo::DetectProtocol (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.541 | 2023-01-27 18:44:43 +0100
 
   * github: cat the check_suite payload (Arne Welzel, Corelight)

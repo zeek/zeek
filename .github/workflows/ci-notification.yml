@@ -11,7 +11,8 @@ jobs:
         uses: zeek/ci-email-action@master
         env:
           CI_APP_NAME: "Cirrus CI"
-          BRANCH_WHITELIST: "master|release/.*"
+          BRANCH_REGEX: "master|release/.*"
+          SKIP_CONCLUSIONS: 'cancelled,neutral'
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}

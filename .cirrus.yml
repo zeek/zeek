@@ -204,7 +204,6 @@ debian10_task:
     dockerfile: ci/debian-10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
 
 opensuse_leap_15_4_task:
   container:

@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.0.1	38511	10.0.0.2	139	smb_tree_connect_andx_response_without_tree	current_cmd=WRITE_ANDX	F	zeek	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.0.1	48026	10.0.0.2	139	smb_tree_connect_andx_response_without_tree	current_cmd=WRITE_ANDX	F	zeek	-
 #close XXXX-XX-XX-XX-XX-XX

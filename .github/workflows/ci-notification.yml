@@ -15,7 +15,7 @@ jobs:
         env:
           CI_APP_NAME: "Cirrus CI"
           BRANCH_REGEX: "master|release/.*"
-          SKIP_CONCLUSIONS: 'cancelled,neutral'
+          SKIP_CONCLUSIONS: 'cancelled,neutral,skipped'
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}

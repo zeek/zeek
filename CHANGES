@@ -1,3 +1,7 @@
+5.2.0-dev.563 | 2023-01-28 09:46:59 -0700
+
+  * Enable Debian 10 builds for PRs (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.561 | 2023-01-28 08:52:32 -0700
 
   * Update smb1-OSS-fuzz-54883.pcap to have correct snaplen (Tim Wojtulewicz, Corelight)

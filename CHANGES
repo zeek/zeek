@@ -1,3 +1,12 @@
+5.2.0-dev.561 | 2023-01-28 08:52:32 -0700
+
+  * Update smb1-OSS-fuzz-54883.pcap to have correct snaplen (Tim Wojtulewicz, Corelight)
+
+  * ci-notification: No notifications for "skipped" runs [skip ci] (Arne Welzel, Corelight)
+
+    It is not useful to receive email notifications for CI runs
+    that were skipped.
+
 5.2.0-dev.557 | 2023-01-27 13:24:58 -0700
 
   * smb1: Prevent accessing uninitialized referenced_tree (Arne Welzel, Corelight)

@@ -66,19 +66,42 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type)
 
 broker::backend_options to_backend_options(broker::backend backend, RecordVal* options)
 	{
+	static auto failure_mode_type = id::find_type("Broker::SQLiteFailureMode")->AsEnumType();
+	static auto sqlite_synchronous_type = id::find_type("Broker::SQLiteSynchronous")->AsEnumType();
+	static auto sqlite_journal_mode_type = id::find_type("Broker::SQLiteJournalMode")->AsEnumType();
+
+	broker::backend_options result;
+
 	switch ( backend )
 		{
 		case broker::backend::sqlite:
 			{
-			auto path = options->GetFieldAs<RecordVal>(0)->GetFieldAs<StringVal>(0)->CheckString();
-			return {{"path", path}};
+			auto sqlite_opts = options->GetField<RecordVal>("sqlite");
+			result["path"] = sqlite_opts->GetField<StringVal>("path")->CheckString();
+
+			if ( auto synchronous = sqlite_opts->GetField<EnumVal>("synchronous") )
+				result["synchronous"] = broker::enum_value(
+					sqlite_synchronous_type->Lookup(synchronous->Get()));
+
+			if ( auto journal_mode = sqlite_opts->GetField<EnumVal>("journal_mode") )
+				result["journal_mode"] = broker::enum_value(
+					sqlite_journal_mode_type->Lookup(journal_mode->Get()));
+
+			auto failure_mode = sqlite_opts->GetField<EnumVal>("failure_mode");
+			result["failure_mode"] = broker::enum_value(
+				failure_mode_type->Lookup(failure_mode->Get()));
+
+			auto integrity_check = sqlite_opts->GetField<BoolVal>("integrity_check")->Get();
+			result["integrity_check"] = integrity_check;
+
+			break;
 			}
 
 		default:
 			break;
 		}
 
-	return broker::backend_options{};
+	return result;
 	}
 
 	} // namespace zeek::Broker

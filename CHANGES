@@ -1,3 +1,16 @@
+5.2.0-dev.566 | 2023-01-30 11:05:40 +0100
+
+  * GH-2698: broker/store: Extend SQLiteOptions around data safety and performance (Arne Welzel, Corelight)
+
+    Add configurability of synchronous and journal_mode for SQLite backed
+    Broker data stores. Setting these to synchronous=normal and journal_mode=wal
+    can significantly improve throughput at the cost of some durability in
+    the presence of power loss or OS crash. In the context of Zeek, this is
+    likely more than acceptable.
+
+    Additionally, add integrity_check and failure_mode options to support deleting
+    and re-opening a corrupted SQLite database at store creation.
+
 5.2.0-dev.563 | 2023-01-28 09:46:59 -0700
 
   * Enable Debian 10 builds for PRs (Tim Wojtulewicz, Corelight)

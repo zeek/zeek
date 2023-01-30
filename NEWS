@@ -165,6 +165,15 @@ New Functionality
   of new analyzers as well as for collecting operational data in production
   environments.
 
+- Expose configurability of for SQLite's synchronous and journal_mode PRAGMAs
+  for SQLite backed Broker data stores. Setting these to synchronous=normal
+  and journal_mode=wal can significantly improve throughput at the cost of
+  some durability in the presence of power loss or OS crash. In the context
+  of Zeek, this is likely more than acceptable.
+
+  Additionally, add integrity_check and failure_mode options to support
+  detecting and deleting corrupted SQLite database at store initialization.
+
 Changed Functionality
 ---------------------
 

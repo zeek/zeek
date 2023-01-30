@@ -6,8 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 set -e
 set -x
 
-# If we're on macOS, use --osx-sysroot to ensure we can find the SDKs from Xcode. This avoids
-# some problems with Catalina specifically, but it doesn't break anything on Big Sur either.
 if [[ "${CIRRUS_OS}" == "darwin" ]]; then
     # Starting with Monterey & Xcode 13.1 we need to help it find OpenSSL
     if [ -d /usr/local/opt/openssl@1.1/lib/pkgconfig ]; then

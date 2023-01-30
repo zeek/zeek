@@ -9,8 +9,6 @@ set -x
 # If we're on macOS, use --osx-sysroot to ensure we can find the SDKs from Xcode. This avoids
 # some problems with Catalina specifically, but it doesn't break anything on Big Sur either.
 if [[ "${CIRRUS_OS}" == "darwin" ]]; then
-    export ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --osx-sysroot=$(xcrun --show-sdk-path)"
-
     # Starting with Monterey & Xcode 13.1 we need to help it find OpenSSL
     if [ -d /usr/local/opt/openssl@1.1/lib/pkgconfig ]; then
         export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/opt/openssl@1.1/lib/pkgconfig

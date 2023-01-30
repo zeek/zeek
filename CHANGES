@@ -1,3 +1,7 @@
+5.2.0-dev.571 | 2023-01-30 13:39:01 -0700
+
+  * Remove setting osx-sysroot on macOS CI builds (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.569 | 2023-01-30 09:19:23 -0700
 
   * Whitespace cleanup in 5.2 NEWS block (Tim Wojtulewicz, Corelight)

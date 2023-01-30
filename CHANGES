@@ -1,3 +1,9 @@
+5.2.0-dev.569 | 2023-01-30 09:19:23 -0700
+
+  * Whitespace cleanup in 5.2 NEWS block (Tim Wojtulewicz, Corelight)
+
+  * Updates to the NEWS for upcoming release/5.2 branching (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.566 | 2023-01-30 11:05:40 +0100
 
   * GH-2698: broker/store: Extend SQLiteOptions around data safety and performance (Arne Welzel, Corelight)

@@ -252,7 +252,9 @@ void ArrayType::GenArrayLength(Output* out_cc, Env* env, const DataPtr& data)
 	if ( ! incremental_parsing() )
 		{
 		arraylength_var_field_->GenTempDecls(out_cc, env);
-		arraylength_var_field_->GenInitCode(out_cc, env);
+		// This is about to get initialized below, don't initialize it twice.
+		if ( ! length_ && ! attr_restofdata_ )
+			arraylength_var_field_->GenInitCode(out_cc, env);
 		}
 
 	if ( length_ )

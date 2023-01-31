@@ -6,7 +6,7 @@
 
 global msg_count: table[conn_id] of count &default=0;
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=10
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=10
 	{
 	if ( atype != Analyzer::ANALYZER_HTTP )
 		return;
@@ -15,7 +15,7 @@ event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
 	}
 
 # Prevent disabling all analyzers.
-hook disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count)
+hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count)
 	{
 	if ( msg_count[c$id] < 4 )
 		{

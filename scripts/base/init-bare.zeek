@@ -597,23 +597,32 @@ type fa_metadata: record {
 	inferred: bool &default=T;
 };
 
-## A hook taking a connection, analyzer tag and analyzer id that can be
-## used to veto disabling analyzers. Specifically, an analyzer can be prevented
-## from being disabled by using a :zeek:see:`break` statement within the hook.
-## This hook is invoked synchronously during a :zeek:see:`disable_analyzer` call.
-##
-## Scripts implementing this hook should have other logic that will eventually
-## disable the analyzer for the given connection. That is, if a script vetoes
-## disabling an analyzer, it takes responsibility for a later call to
-## :zeek:see:`disable_analyzer`, which may be never.
-##
-## c: The connection
-##
-## atype: The type / tag of the analyzer being disabled.
-##
-## aid: The analyzer ID.
-type disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count);
+## Same as :zeek:see:`Analyzer::disabling_analyzer`, but deprecated due
+## to living in the global namespace.
+type disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count) &redef &deprecated="Remove in v6.1. Use Analyzer::disabling_analyzer() instead.";
 
+module Analyzer;
+export {
+	## A hook taking a connection, analyzer tag and analyzer id that can be
+	## used to veto disabling protocol analyzers. Specifically, an analyzer
+	## can be prevented from being disabled by using a :zeek:see:`break`
+	## statement within the hook.
+	## This hook is invoked synchronously during a :zeek:see:`disable_analyzer` call.
+	##
+	## Scripts implementing this hook should have other logic that will eventually
+	## disable the analyzer for the given connection. That is, if a script vetoes
+	## disabling an analyzer, it takes responsibility for a later call to
+	## :zeek:see:`disable_analyzer`, which may be never.
+	##
+	## c: The connection
+	##
+	## atype: The type / tag of the analyzer being disabled.
+	##
+	## aid: The analyzer ID.
+	type disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count) &redef;
+}
+
+module GLOBAL;
 ## Fields of a SYN packet.
 ##
 ## .. zeek:see:: connection_SYN_packet

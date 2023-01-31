@@ -505,3 +505,30 @@ container_image_manifest_docker_builder:
   depends_on:
     - arm64_container_image
     - amd64_container_image
+
+cluster_testing_docker_builder:
+  cpu: *CPUS
+  memory: *MEMORY
+  only_if: $CIRRUS_REPO_FULL_NAME == 'zeek/zeek'
+  env:
+    CIRRUS_LOG_TIMESTAMP: true
+    # At this point, zeek-testing-cluster checks for "GITHUB_ACTION" to
+    # see if it should rebuild the Zeek image or not.
+    GITHUB_ACTION: fake
+  install_deps_script:
+    # The cluster tests depend on jq and docker_builder doesn't have that :-(
+    - apt-get -q update && apt-get install -y --no-install-recommends jq
+  sync_btest_script: git submodule update --init ./auxil/btest/
+  checkout_script:
+    - set -x; cd testing/external/ && git clone https://github.com/zeek/zeek-testing-cluster.git && make checkout-repos
+  load_image_script:
+    - curl -sSf -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-amd64
+    - zstd -d < ${CIRRUS_BUILD_ID}-image-amd64 | docker load
+    - docker tag zeek/zeek-multiarch:amd64 zeektest:latest
+  test_script:
+    - cd testing/external/zeek-testing-cluster && make
+  on_failure:
+    upload_cluster_testing_artifacts:
+      path: "testing/external/zeek-testing-cluster/.tmp/**"
+  depends_on:
+    - amd64_container_image

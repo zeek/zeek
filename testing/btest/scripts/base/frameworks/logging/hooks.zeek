@@ -2,8 +2,8 @@
 #
 # @TEST-EXEC: zeek -b test.zeek %INPUT
 # @TEST-EXEC: btest-diff test.log
-# @TEST-EXEC: test -f other.log && btest-diff other.log || true
-# @TEST-EXEC: test -f output && btest-diff output || true
+# @TEST-EXEC: if test -f other.log; then btest-diff other.log; fi
+# @TEST-EXEC: if test -f output; then btest-diff output; fi
 
 @TEST-START-FILE test.zeek
 # This provides a simple test module harness, used by all of the individual tests below.

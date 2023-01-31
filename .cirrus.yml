@@ -399,12 +399,42 @@ windows_task:
 # us build natively and much faster at the expense of the docker manifest
 # wrangling (and not being able to use the nice GitHub actions).
 docker_build_template: &DOCKER_BUILD_TEMPLATE
+  cpu: *CPUS
+  memory: *MEMORY
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
-  build_script:
-    - git submodule update --init --recursive
-    - set -x; cd docker && docker build -f Dockerfile --tag ${IMAGE_TAG} ..
-    - set -x; docker save $IMAGE_TAG | zstd > image.zst
-    - curl -v -X POST --data-binary @image.zst http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-${CIRRUS_ARCH}
+
+  env:
+    ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release
+    CIRRUS_LOG_TIMESTAMP: true
+    IMAGE_CACHE_DIR: /tmp/image-cache
+
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo ccache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+    image_cache:
+      folder: /tmp/image-cache
+      fingerprint_script: echo image-cache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
+  sync_submodules_script: git submodule update --recursive --init --recommend-shallow -j $(nproc)
+
+  prepare_builder_script:
+    - set -x
+    - mkdir -p ${IMAGE_CACHE_DIR}
+    - if [ -f ${IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${IMAGE_CACHE_DIR}/builder.zst | docker load; fi
+    - if [ -f ${IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${IMAGE_CACHE_DIR}/final.zst | docker load; fi
+    - (cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .)
+    - docker save zeek-builder:latest | zstd > ${IMAGE_CACHE_DIR}/builder.zst
+  build_zeek_script:
+    - docker run --name zeek-builder-container -e CCACHE_DIR=/tmp/ccache -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+    # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
+    - docker commit zeek-builder-container zeek-build
+  build_final_script:
+    - (cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .)
+    - docker save ${IMAGE_TAG} | zstd > ${IMAGE_CACHE_DIR}/final.zst
+    - curl -sSf -X POST --data-binary @${IMAGE_CACHE_DIR}/final.zst http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-${CIRRUS_ARCH}
 
 arm64_container_image_docker_builder:
   env:

@@ -3,6 +3,56 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.1.2
+==========
+
+This release fixes the following security issues:
+
+- A missing field in the SMB FSControl script-land record could cause a heap
+  buffer overflow when receiving packets containing those header types. Due to
+  the possibility of receiving these packets from remote hosts, this is a DoS
+  risk. The fix included is to add the missing field to the record type.
+
+- Receiving a series of packets that start with HTTP/1.0 and then switch to
+  HTTP/0.9 could cause Zeek to spend a large amount of time processing the
+  packets. Due to the possiblity of receiving these packets from remote hosts,
+  this is a DoS risk. The fix included is to ensure that the HTTP analyzer
+  switches versions correctly.
+
+- Receiving large numbers of FTP commands sequentially from the network with bad
+  data in them could cause Zeek to spend a large amount of time processing the
+  packets, and generate a large amount of events. Due to the possiblity of
+  receiving these packets from remote hosts, this is a DoS risk. The fix
+  included adds better validation for FTP command strings and request codes.
+
+This release fixes the following bugs:
+
+- Zeek could throw a scripting error when receiving SMB1 packets containing
+  connect_andx_response messages prior to receiving an associated request. A
+  new weird ``smb_tree_connect_andx_response_without_tree`` will now be raised
+  in these cases and the packet will be ignored.
+
+- A performance regression from 4.2 to 5.0 when reading pcap files related to
+  Broker's internal clock was fixed.
+
+- Notices created for files transferred over multiple connections will now be
+  associated with one of the connections rather than none.
+
+- A new ``file_over_new_connection`` event was added to the Intel framework, for
+  use when receiving files over established connections (for example, HTTP).
+  This ensures that the filename in the file info record is populated correctly.
+
+- The error message returned when trying use invalid enums in scripts now
+  correctly includes the script location.
+
+- Analyzer confirmation events are no longer raised per-packet for tunnels. This
+  greatly reduces the amount of events/log messages on networks containing a lot
+  of tunnel traffic.
+
+- The Teredo packet analyzer is now less greedy when matching packets. This
+  should greatly reduce the amount of log messages from that analyzer, as well
+  as reduce the number of analyzer violations reported by it.
+
 Zeek 5.1.1
 ==========
 

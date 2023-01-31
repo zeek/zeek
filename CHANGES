@@ -1,3 +1,135 @@
+5.1.2 | 2023-01-31 13:42:37 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 5.1.2 release (Tim Wojtulewicz, Corelight)
+
+  * Restore/rename field in SMB2::Fscontrol record type (Tim Wojtulewicz, Corelight)
+
+    b41a4bf06dc2f3a4218cfa0a95b536ec9d253917 removed a field from this record
+    because it had a duplicate name as another field. The field does need to
+    exist, but it needs the correct name.
+
+  * Update zeek-testing commit hash (Tim Wojtulewicz, Corelight)
+
+  * testing/http: http-11-request-then-cruft (Arne Welzel, Corelight)
+
+    A client sends a "proper" HTTP/1.1 request and afterwards a few T /\n\n sequences.
+    The latter ones aren't logged.
+
+  * testing/http: Add pcap extracted from m5-long external test-suite (Arne Welzel, Corelight)
+
+    This tests that the HTTP version is now updated if it changes in the
+    course of a connection.
+
+  * analyzers/http: Update request_version on subsequent SetVersion() calls (Arne Welzel, Corelight)
+
+    The #124 PR introduced special treatment when HTTP version 0.9
+    was set. With #127, a reproducer that set HTTP/1.0 in the first
+    request was created and subsequent requests wouldn't reset to
+    HTTP version 0.9.
+
+    This is subtle, but doesn't seem like things fall apart.
+
+    Improves runtime from 20 seconds to 2 seconds for the given
+    reproducer.
+
+  * testing/ftp: Add tests and pcaps with invalid reply lines (Arne Welzel, Corelight)
+
+    These have been created artificially. The tests show that for an
+    invalid reply line without a numeric code, with a numeric code < 100
+    or a numeric code not followed by a space we now raise an analyzer
+    violation and disable the analyzer.
+
+  * ftp: Harden reply handing a bit and don't raise bad replies to script-land (Arne Welzel, Corelight)
+
+    This improves runtime of the oss-fuzz generated traffic in #125.
+    Specifically, that reproducers included a 064- reply code that was
+    interpreted as needing to be continued.
+
+    Also, return after AnalyzerViolations() for server replies rather than
+    propagating bad replies them to script-land. This trusts server's to
+    generally behave according to specification.
+
+  * ftp: ignore invalid commands (Arne Welzel, Corelight)
+
+    Do not propagate wrong FTP commands to script land.
+
+  * Update btest baselines due to reduced calls to UID::Set (Tim Wojtulewicz, Corelight)
+
+    UID::Set is called by AnalyzerViolation, and since Teredo isn't calling nearly
+    as many of those anymore the UIDs used by other calls changed as well.
+
+    (cherry picked from commit a27a3532d81616617a4aa0247dec5db7db6a7ba8)
+
+  * Rework TeredoAnalzyer::DetectProtocol to not catch as many packets (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit a27a3532d81616617a4aa0247dec5db7db6a7ba8)
+
+  * analyzer/files: handle non-analyzer names in describe_file() (Arne Welzel, Corelight)
+
+    When a fa_file object is created through the use of Input::add_analysis(),
+    the fa_file's source is likely not valid representation of an analyzer's
+    tag and a Files::describe() should not error and instead return an empty
+    description.
+
+    (cherry picked from commit a349679a4c77d2808bdf8b04f1ea8552edc9714d)
+
+  * frameworks/notice: Handle fa_file with no or more than a single connection better (Arne Welzel, Corelight)
+
+    * When a file is transferred over multiple connection, have
+      create_file_info() just pick the first one instead of none.
+
+    * Do not unconditionally assume cid and cuid as set on a
+      Notice::FileInfo object.
+
+    (cherry picked from commit a349679a4c77d2808bdf8b04f1ea8552edc9714d)
+
+  * Attr: Duplicated &is_used is allowed (Arne Welzel, Corelight)
+
+    When using the same function for eval conditions in signatures, we
+    previously attempted to add &is_used multiple times to the function
+    triggering an ambiguous attribute error.
+
+    Turns out there's already a list of attributes that are accepted
+    to be used multiple times, so just add ATTR_IS_USED there.
+
+    Fixes #2628
+
+    (cherry picked from commit ef920ef3f5088fcb7a25b1411ae00e8ad116f69e)
+
+  * smb1: Prevent accessing uninitialized referenced_tree (Arne Welzel, Corelight)
+
+    (cherry picked from commit bb094e30bfe7b1f7f3acf8d879b12719a429e1fc)
+
+  * packet_analysis: Do not raise analyzer_confirmation per-packet for
+    tunnels (Arne Welzel, Corelight)
+
+    (cherry picked from commit 5e5a309b5fea7933da03069710b97c3b58f6fea8)
+
+  * intel/seen/file-names: Use file_over_new_connection() (Arne Welzel, Corelight)
+
+    (cherry picked from commit a004bdf5d950e7ef4d9c2ce7112576a76fee438a)
+
+  * Fix ZAM memory leak as reported in #2634 (Vern Paxson, Corelight)
+
+    (cherry picked from commit b4cb5e753ae5fb020ed644d911d53fab6205890a)
+
+  * bifs/parse_eftp: Prevent reporter warnings/errors on invalid input (Arne Welzel, Corelight)
+
+    When passing invalid IPs or an out-of range port to parse_eftp()
+    a warning or error was generated on stderr (in addition to setting
+    the $valid field to F). Prevent the output by adding safe-guarding
+    and using IPAddr::ConvertString() instead.
+
+    (cherry picked from commit b4cb5e753ae5fb020ed644d911d53fab6205890a)
+
+  * input: Add location info for invalid enums (Arne Welzel, Corelight)
+
+    (cherry picked from commit a7695bc784bc0bfd108dbe2c72706eabc6b8dfae)
+
+  * CI: drop macOS Big Sur, add macOS Ventura (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 555f705e2db263757c7c6ac580afcaf20c299065)
+
 5.1.1-3 | 2023-01-23 13:44:49 -0700
 
   * Bump spicy to v1.5.3. (Benjamin Bannier, Corelight)

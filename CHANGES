@@ -1,3 +1,106 @@
+5.0.6 | 2023-01-31 13:26:56 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 5.0.6 release (Tim Wojtulewicz, Corelight)
+
+  * ci/alpine: Use musl-fts-dev rather than fts-dev (Arne Welzel, Corelight)
+
+    With the release of alpine 3.17 (2022-11-22), the fts-dev package
+    was renamed to musl-fts-dev. Change it accordingly.
+
+    This is currently breaking CI in a fork of zeek/zeek. Suspect some
+    caching prevents it from breaking here currently.
+
+    Alpine 3.16 is still supported till 2024-05-23, but we're essentially
+    not doing CI testing for it anymore. Appears to be in line with the
+    comment in .cirrus.yml
+
+  * Restore/rename field in SMB2::Fscontrol record type (Tim Wojtulewicz, Corelight)
+
+    b41a4bf06dc2f3a4218cfa0a95b536ec9d253917 removed a field from this record
+    because it had a duplicate name as another field. The field does need to
+    exist, but it needs the correct name.
+
+  * testing/http: http-11-request-then-cruft (Arne Welzel, Corelight)
+
+    A client sends a "proper" HTTP/1.1 request and afterwards a few T /\n\n sequences.
+    The latter ones aren't logged.
+
+  * testing/http: Add pcap extracted from m5-long external test-suite (Arne Welzel, Corelight)
+
+    This tests that the HTTP version is now updated if it changes in the
+    course of a connection.
+
+  * analyzers/http: Update request_version on subsequent SetVersion() calls (Arne Welzel, Corelight)
+
+    The #124 PR introduced special treatment when HTTP version 0.9
+    was set. With #127, a reproducer that set HTTP/1.0 in the first
+    request was created and subsequent requests wouldn't reset to
+    HTTP version 0.9.
+
+    This is subtle, but doesn't seem like things fall apart.
+
+    Improves runtime from 20 seconds to 2 seconds for the given
+    reproducer.
+
+    Fixes #127.
+
+  * testing/ftp: Add tests and pcaps with invalid reply lines (Arne Welzel, Corelight)
+
+    These have been created artificially. The tests show that for an
+    invalid reply line without a numeric code, with a numeric code < 100
+    or a numeric code not followed by a space we now raise an analyzer
+    violation and disable the analyzer.
+
+  * ftp: Harden reply handing a bit and don't raise bad replies to script-land (Arne Welzel, Corelight)
+
+    This improves runtime of the oss-fuzz generated traffic in #125.
+    Specifically, that reproducers included a 064- reply code that was
+    interpreted as needing to be continued.
+
+    Also, return after AnalyzerViolations() for server replies rather than
+    propagating bad replies them to script-land. This trusts server's to
+    generally behave according to specification.
+
+  * ftp: ignore invalid commands (Arne Welzel, Corelight)
+
+    Do not propagate wrong FTP commands to script land.
+
+  * Update broker submodule for sim_clock::advance_time performance fix (Dominik Charousset, Corelight)
+
+  * smb1: Prevent accessing uninitialized referenced_tree (Arne Welzel, Corelight)
+
+    The added pcap was created from an OSS Fuzz test case and is borderline
+    valid SMB traffic, but it triggered a scripting error.
+
+    (cherry picked from commit bb094e30bfe7b1f7f3acf8d879b12719a429e1fc)
+
+  * analyzer/files: handle non-analyzer names in describe_file() (Arne Welzel, Corelight)
+
+    When a fa_file object is created through the use of Input::add_analysis(),
+    the fa_file's source is likely not valid representation of an analyzer's
+    tag and a Files::describe() should not error and instead return an empty
+    description.
+
+    (cherry picked from commit a349679a4c77d2808bdf8b04f1ea8552edc9714d)
+
+  * frameworks/notice: Handle fa_file with no or more than a single connection better (Arne Welzel, Corelight)
+
+    * When a file is transferred over multiple connection, have
+      create_file_info() just pick the first one instead of none.
+
+    * Do not unconditionally assume cid and cuid as set on a
+      Notice::FileInfo object.
+
+    (cherry picked from commit a349679a4c77d2808bdf8b04f1ea8552edc9714d)
+
+  * intel/seen/file-names: Use file_over_new_connection() (Arne Welzel, Corelight)
+
+    (cherry picked from commit a004bdf5d950e7ef4d9c2ce7112576a76fee438a)
+
+  * input: Add location info for invalid enums (Arne Welzel, Corelight)
+
+    (cherry picked from commit a7695bc784bc0bfd108dbe2c72706eabc6b8dfae)
+
 5.0.5-2 | 2023-01-23 13:07:41 -0700
 
   * Bump spicy to v1.5.3. (Benjamin Bannier, Corelight)

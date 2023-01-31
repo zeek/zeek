@@ -8,24 +8,24 @@ class ConnDecl : public AnalyzerDecl
 	{
 public:
 	ConnDecl(ID* conn_id, ParamList* params, AnalyzerElementList* elemlist);
-	~ConnDecl();
+	~ConnDecl() override;
 
-	void Prepare();
+	void Prepare() override;
 
 	Type* DataType() const { return data_type_; }
 
 protected:
-	void AddBaseClass(vector<string>* base_classes) const;
+	void AddBaseClass(vector<string>* base_classes) const override;
 
-	void GenProcessFunc(Output* out_h, Output* out_cc);
-	void GenGapFunc(Output* out_h, Output* out_cc);
-	void GenEOFFunc(Output* out_h, Output* out_cc);
+	void GenProcessFunc(Output* out_h, Output* out_cc) override;
+	void GenGapFunc(Output* out_h, Output* out_cc) override;
+	void GenEOFFunc(Output* out_h, Output* out_cc) override;
 
-	void GenPubDecls(Output* out_h, Output* out_cc);
-	void GenPrivDecls(Output* out_h, Output* out_cc);
+	void GenPubDecls(Output* out_h, Output* out_cc) override;
+	void GenPrivDecls(Output* out_h, Output* out_cc) override;
 
-	void ProcessFlowElement(AnalyzerFlow* flow_elem);
-	void ProcessDataUnitElement(AnalyzerDataUnit* dataunit_elem);
+	void ProcessFlowElement(AnalyzerFlow* flow_elem) override;
+	void ProcessDataUnitElement(AnalyzerDataUnit* dataunit_elem) override;
 
 	AnalyzerFlow* flows_[2];
 	Type* data_type_;

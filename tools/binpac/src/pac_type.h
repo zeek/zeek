@@ -26,7 +26,7 @@ public:
 		};
 
 	explicit Type(TypeType tot);
-	virtual ~Type();
+	~Type() override;
 
 	Type* Clone() const;
 
@@ -236,7 +236,7 @@ protected:
 	// Generate code for computing the dynamic size of the type
 	virtual void GenDynamicSize(Output* out, Env* env, const DataPtr& data) = 0;
 
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 	virtual Type* DoClone() const = 0;
 

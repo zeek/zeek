@@ -76,14 +76,14 @@ public:
 		EXTERN,
 		};
 	HelperDecl(HelperType type, ID* context_id, EmbeddedCode* code);
-	~HelperDecl();
+	~HelperDecl() override;
 
-	void Prepare();
-	void GenExternDeclaration(Output* out_h);
-	void GenForwardDeclaration(Output* out_h)
+	void Prepare() override;
+	void GenExternDeclaration(Output* out_h) override;
+	void GenForwardDeclaration(Output* out_h) override
 		{ /* do nothing */
 		}
-	void GenCode(Output* out_h, Output* out_cc);
+	void GenCode(Output* out_h, Output* out_cc) override;
 
 private:
 	HelperType helper_type_;

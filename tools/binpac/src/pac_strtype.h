@@ -17,28 +17,28 @@ public:
 	explicit StringType(StringTypeEnum anystr);
 	explicit StringType(ConstString* str);
 	explicit StringType(RegEx* regex);
-	~StringType();
+	~StringType() override;
 
-	bool DefineValueVar() const;
-	string DataTypeStr() const;
-	string DefaultValue() const { return "0"; }
-	Type* ElementDataType() const;
+	bool DefineValueVar() const override;
+	string DataTypeStr() const override;
+	string DefaultValue() const override { return "0"; }
+	Type* ElementDataType() const override;
 
-	void Prepare(Env* env, int flags);
+	void Prepare(Env* env, int flags) override;
 
-	void GenPubDecls(Output* out, Env* env);
-	void GenPrivDecls(Output* out, Env* env);
+	void GenPubDecls(Output* out, Env* env) override;
+	void GenPrivDecls(Output* out, Env* env) override;
 
-	void GenInitCode(Output* out, Env* env);
-	void GenCleanUpCode(Output* out, Env* env);
+	void GenInitCode(Output* out, Env* env) override;
+	void GenCleanUpCode(Output* out, Env* env) override;
 
-	void DoMarkIncrementalInput();
+	void DoMarkIncrementalInput() override;
 
-	int StaticSize(Env* env) const;
+	int StaticSize(Env* env) const override;
 
-	bool IsPointerType() const { return false; }
+	bool IsPointerType() const override { return false; }
 
-	void ProcessAttr(Attr* a);
+	void ProcessAttr(Attr* a) override;
 
 protected:
 	void init();
@@ -50,21 +50,21 @@ protected:
 	// Generate a string mismatch exception
 	void GenStringMismatch(Output* out_cc, Env* env, const DataPtr& data, string pattern);
 
-	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags);
+	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override;
 
 	void GenCheckingCStr(Output* out, Env* env, const DataPtr& data, const string& str_size);
 
-	void GenDynamicSize(Output* out, Env* env, const DataPtr& data);
+	void GenDynamicSize(Output* out, Env* env, const DataPtr& data) override;
 	void GenDynamicSizeAnyStr(Output* out_cc, Env* env, const DataPtr& data);
 	void GenDynamicSizeRegEx(Output* out_cc, Env* env, const DataPtr& data);
 
-	Type* DoClone() const;
+	Type* DoClone() const override;
 
 	// TODO: insensitive towards byte order till we support unicode
-	bool ByteOrderSensitive() const { return false; }
+	bool ByteOrderSensitive() const override { return false; }
 
 protected:
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 private:
 	const ID* string_length_var() const;

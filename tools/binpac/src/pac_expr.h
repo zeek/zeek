@@ -29,7 +29,7 @@ public:
 	Expr(ExprType type, Expr* op1, Expr* op2);
 	Expr(ExprType type, Expr* op1, Expr* op2, Expr* op3);
 
-	virtual ~Expr();
+	~Expr() override;
 
 	const char* orig() const { return orig_.c_str(); }
 	const ID* id() const { return id_; }
@@ -89,7 +89,7 @@ public:
 	bool RequiresAnalyzerContext() const;
 
 protected:
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 private:
 	ExprType expr_type_;
@@ -121,7 +121,7 @@ class CaseExpr : public Object, public DataDepElement
 	{
 public:
 	CaseExpr(ExprList* index, Expr* value);
-	virtual ~CaseExpr();
+	~CaseExpr() override;
 
 	ExprList* index() const { return index_; }
 	Expr* value() const { return value_; }
@@ -130,7 +130,7 @@ public:
 	bool RequiresAnalyzerContext() const;
 
 protected:
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 private:
 	ExprList* index_;

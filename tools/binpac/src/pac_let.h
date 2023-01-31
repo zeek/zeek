@@ -8,20 +8,20 @@ class LetField : public Field, Evaluatable
 	{
 public:
 	LetField(ID* arg_id, Type* type, Expr* arg_expr);
-	~LetField();
+	~LetField() override;
 
 	Expr* expr() const { return expr_; }
 
-	void Prepare(Env* env);
+	void Prepare(Env* env) override;
 
-	void GenInitCode(Output* out, Env* env);
+	void GenInitCode(Output* out, Env* env) override;
 	void GenParseCode(Output* out, Env* env);
-	void GenEval(Output* out, Env* env);
+	void GenEval(Output* out, Env* env) override;
 
-	bool RequiresAnalyzerContext() const;
+	bool RequiresAnalyzerContext() const override;
 
 protected:
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 protected:
 	Expr* expr_;
@@ -31,14 +31,14 @@ class LetDecl : public Decl, Evaluatable
 	{
 public:
 	LetDecl(ID* id, Type* type, Expr* expr);
-	~LetDecl();
+	~LetDecl() override;
 
 	Expr* expr() const { return expr_; }
 
-	void Prepare();
-	void GenForwardDeclaration(Output* out_h);
-	void GenCode(Output* out_h, Output* out_cc);
-	void GenEval(Output* out, Env* env);
+	void Prepare() override;
+	void GenForwardDeclaration(Output* out_h) override;
+	void GenCode(Output* out_h, Output* out_cc) override;
+	void GenEval(Output* out, Env* env) override;
 
 private:
 	Type* type_;

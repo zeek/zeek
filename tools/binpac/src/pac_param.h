@@ -27,8 +27,8 @@ class ParamField : public Field
 public:
 	ParamField(const Param* param);
 
-	void GenInitCode(Output* out, Env* env);
-	void GenCleanUpCode(Output* out, Env* env);
+	void GenInitCode(Output* out, Env* env) override;
+	void GenCleanUpCode(Output* out, Env* env) override;
 	};
 
 // Returns the string with a list of param declarations separated by ','.

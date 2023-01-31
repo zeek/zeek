@@ -11,41 +11,41 @@ class RecordType : public Type
 	{
 public:
 	RecordType(RecordFieldList* fields);
-	~RecordType();
+	~RecordType() override;
 
-	bool DefineValueVar() const;
-	string DataTypeStr() const;
+	bool DefineValueVar() const override;
+	string DataTypeStr() const override;
 
-	void Prepare(Env* env, int flags);
+	void Prepare(Env* env, int flags) override;
 
-	void GenPubDecls(Output* out, Env* env);
-	void GenPrivDecls(Output* out, Env* env);
+	void GenPubDecls(Output* out, Env* env) override;
+	void GenPrivDecls(Output* out, Env* env) override;
 
-	void GenInitCode(Output* out, Env* env);
-	void GenCleanUpCode(Output* out, Env* env);
+	void GenInitCode(Output* out, Env* env) override;
+	void GenCleanUpCode(Output* out, Env* env) override;
 
-	int StaticSize(Env* env) const;
+	int StaticSize(Env* env) const override;
 
-	void SetBoundaryChecked();
+	void SetBoundaryChecked() override;
 
 	const ID* parsing_dataptr_var() const;
 
-	bool IsPointerType() const
+	bool IsPointerType() const override
 		{
 		ASSERT(0);
 		return false;
 		}
 
 protected:
-	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags);
-	void GenDynamicSize(Output* out, Env* env, const DataPtr& data);
+	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override;
+	void GenDynamicSize(Output* out, Env* env, const DataPtr& data) override;
 
-	Type* DoClone() const { return nullptr; }
+	Type* DoClone() const override { return nullptr; }
 
-	void DoMarkIncrementalInput();
+	void DoMarkIncrementalInput() override;
 
-	bool DoTraverse(DataDepVisitor* visitor);
-	bool ByteOrderSensitive() const;
+	bool DoTraverse(DataDepVisitor* visitor) override;
+	bool ByteOrderSensitive() const override;
 
 private:
 	Field* parsing_dataptr_var_field_;
@@ -60,7 +60,7 @@ class RecordField : public Field
 	{
 public:
 	RecordField(FieldType tof, ID* id, Type* type);
-	~RecordField();
+	~RecordField() override;
 
 	RecordType* record_type() const { return record_type_; }
 	void set_record_type(RecordType* ty) { record_type_ = ty; }
@@ -115,26 +115,26 @@ class RecordDataField : public RecordField, public Evaluatable
 	{
 public:
 	RecordDataField(ID* arg_id, Type* arg_type);
-	~RecordDataField();
+	~RecordDataField() override;
 
 	// Instantiates abstract class Field
-	void Prepare(Env* env);
-	void GenParseCode(Output* out, Env* env);
+	void Prepare(Env* env) override;
+	void GenParseCode(Output* out, Env* env) override;
 
 	// Instantiates abstract class Evaluatable
-	void GenEval(Output* out, Env* env);
+	void GenEval(Output* out, Env* env) override;
 
-	int StaticSize(Env* env, int) const { return type()->StaticSize(env); }
+	int StaticSize(Env* env, int) const override { return type()->StaticSize(env); }
 
-	void SetBoundaryChecked();
+	void SetBoundaryChecked() override;
 
-	bool RequiresByteOrder() const { return type()->RequiresByteOrder(); }
-	bool RequiresAnalyzerContext() const;
+	bool RequiresByteOrder() const override { return type()->RequiresByteOrder(); }
+	bool RequiresAnalyzerContext() const override;
 
 protected:
-	void GenFieldEnd(Output* out, Env* env, const DataPtr& begin);
-	bool GenBoundaryCheck(Output* out_cc, Env* env);
-	bool DoTraverse(DataDepVisitor* visitor);
+	void GenFieldEnd(Output* out, Env* env, const DataPtr& begin) override;
+	bool GenBoundaryCheck(Output* out_cc, Env* env) override;
+	bool DoTraverse(DataDepVisitor* visitor) override;
 	};
 
 enum PaddingType
@@ -148,33 +148,33 @@ class RecordPaddingField : public RecordField
 	{
 public:
 	RecordPaddingField(ID* id, PaddingType ptype, Expr* expr);
-	~RecordPaddingField();
+	~RecordPaddingField() override;
 
-	void Prepare(Env* env);
+	void Prepare(Env* env) override;
 
-	void GenPubDecls(Output* out, Env* env)
+	void GenPubDecls(Output* out, Env* env) override
 		{ /* nothing */
 		}
-	void GenPrivDecls(Output* out, Env* env)
+	void GenPrivDecls(Output* out, Env* env) override
 		{ /* nothing */
 		}
 
-	void GenInitCode(Output* out, Env* env)
+	void GenInitCode(Output* out, Env* env) override
 		{ /* nothing */
 		}
-	void GenCleanUpCode(Output* out, Env* env)
+	void GenCleanUpCode(Output* out, Env* env) override
 		{ /* nothing */
 		}
-	void GenParseCode(Output* out, Env* env);
+	void GenParseCode(Output* out, Env* env) override;
 
-	int StaticSize(Env* env, int offset) const;
+	int StaticSize(Env* env, int offset) const override;
 
-	bool RequiresByteOrder() const { return false; }
+	bool RequiresByteOrder() const override { return false; }
 
 protected:
-	void GenFieldEnd(Output* out, Env* env, const DataPtr& begin);
-	bool GenBoundaryCheck(Output* out_cc, Env* env);
-	bool DoTraverse(DataDepVisitor* visitor);
+	void GenFieldEnd(Output* out, Env* env, const DataPtr& begin) override;
+	bool GenBoundaryCheck(Output* out_cc, Env* env) override;
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 private:
 	PaddingType ptype_;

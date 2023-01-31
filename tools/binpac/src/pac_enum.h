@@ -20,13 +20,13 @@ class EnumDecl : public Decl
 	{
 public:
 	EnumDecl(ID* id, EnumList* enumlist);
-	~EnumDecl();
+	~EnumDecl() override;
 
 	Type* DataType() const { return datatype_; }
 
-	void Prepare();
-	void GenForwardDeclaration(Output* out_h);
-	void GenCode(Output* out_h, Output* out_cc);
+	void Prepare() override;
+	void GenForwardDeclaration(Output* out_h) override;
+	void GenCode(Output* out_h, Output* out_cc) override;
 
 private:
 	EnumList* enumlist_;

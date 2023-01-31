@@ -22,26 +22,26 @@ public:
 
 	BITType bit_type() const { return bit_type_; }
 
-	bool IsNumericType() const;
+	bool IsNumericType() const override;
 
-	bool DefineValueVar() const;
-	string DataTypeStr() const;
-	string DefaultValue() const { return "0"; }
+	bool DefineValueVar() const override;
+	string DataTypeStr() const override;
+	string DefaultValue() const override { return "0"; }
 
-	int StaticSize(Env* env) const;
+	int StaticSize(Env* env) const override;
 
-	bool IsPointerType() const { return false; }
+	bool IsPointerType() const override { return false; }
 
-	bool ByteOrderSensitive() const { return StaticSize(0) >= 2; }
+	bool ByteOrderSensitive() const override { return StaticSize(0) >= 2; }
 
-	void GenInitCode(Output* out_cc, Env* env);
+	void GenInitCode(Output* out_cc, Env* env) override;
 
-	void DoMarkIncrementalInput();
+	void DoMarkIncrementalInput() override;
 
 protected:
-	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags);
-	void GenDynamicSize(Output* out, Env* env, const DataPtr& data);
-	Type* DoClone() const;
+	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override;
+	void GenDynamicSize(Output* out, Env* env, const DataPtr& data) override;
+	Type* DoClone() const override;
 
 	BITType bit_type_;
 

@@ -19,22 +19,22 @@ public:
 		};
 	ExternType(const ID* id, EXTType ext_type) : Type(EXTERN), id_(id), ext_type_(ext_type) { }
 
-	bool DefineValueVar() const;
-	string DataTypeStr() const;
-	int StaticSize(Env* env) const;
-	bool ByteOrderSensitive() const;
+	bool DefineValueVar() const override;
+	string DataTypeStr() const override;
+	int StaticSize(Env* env) const override;
+	bool ByteOrderSensitive() const override;
 
-	string EvalMember(const ID* member_id) const;
-	bool IsNumericType() const { return ext_type_ == NUMBER; }
-	bool IsPointerType() const { return ext_type_ == POINTER; }
+	string EvalMember(const ID* member_id) const override;
+	bool IsNumericType() const override { return ext_type_ == NUMBER; }
+	bool IsPointerType() const override { return ext_type_ == POINTER; }
 
-	void GenInitCode(Output* out_cc, Env* env);
+	void GenInitCode(Output* out_cc, Env* env) override;
 
 protected:
-	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags);
-	void GenDynamicSize(Output* out, Env* env, const DataPtr& data);
+	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override;
+	void GenDynamicSize(Output* out, Env* env, const DataPtr& data) override;
 
-	Type* DoClone() const;
+	Type* DoClone() const override;
 
 private:
 	const ID* id_;

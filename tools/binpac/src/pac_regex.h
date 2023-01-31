@@ -30,9 +30,9 @@ class RegExDecl : public Decl
 public:
 	RegExDecl(RegEx* regex);
 
-	void Prepare();
-	void GenForwardDeclaration(Output* out_h);
-	void GenCode(Output* out_h, Output* out_cc);
+	void Prepare() override;
+	void GenForwardDeclaration(Output* out_h) override;
+	void GenCode(Output* out_h, Output* out_cc) override;
 
 private:
 	RegEx* regex_;

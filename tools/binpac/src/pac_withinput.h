@@ -9,11 +9,11 @@ class WithInputField : public Field, public Evaluatable
 	{
 public:
 	WithInputField(ID* id, Type* type, InputBuffer* input);
-	virtual ~WithInputField();
+	~WithInputField() override;
 
 	InputBuffer* input() const { return input_; }
 
-	void Prepare(Env* env);
+	void Prepare(Env* env) override;
 
 	// void GenPubDecls(Output* out, Env* env);
 	// void GenPrivDecls(Output* out, Env* env);
@@ -24,12 +24,12 @@ public:
 	void GenParseCode(Output* out, Env* env);
 
 	// Instantiate the Evaluatable interface
-	void GenEval(Output* out, Env* env);
+	void GenEval(Output* out, Env* env) override;
 
-	bool RequiresAnalyzerContext() const;
+	bool RequiresAnalyzerContext() const override;
 
 protected:
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 protected:
 	InputBuffer* input_;

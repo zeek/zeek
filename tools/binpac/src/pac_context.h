@@ -33,7 +33,7 @@ class AnalyzerContextDecl : public TypeDecl
 	{
 public:
 	AnalyzerContextDecl(ID* id, ContextFieldList* context_fields);
-	~AnalyzerContextDecl();
+	~AnalyzerContextDecl() override;
 
 	void AddFlowBuffer();
 
@@ -42,8 +42,8 @@ public:
 	// The type of analyzer context as a parameter
 	ParameterizedType* param_type() const { return param_type_; }
 
-	void GenForwardDeclaration(Output* out_h);
-	void GenCode(Output* out_h, Output* out_cc);
+	void GenForwardDeclaration(Output* out_h) override;
+	void GenCode(Output* out_h, Output* out_cc) override;
 
 	void GenNamespaceBegin(Output* out) const;
 	void GenNamespaceEnd(Output* out) const;
@@ -69,35 +69,38 @@ class DummyType : public Type
 public:
 	DummyType() : Type(DUMMY) { }
 
-	bool DefineValueVar() const { return false; }
-	string DataTypeStr() const
+	bool DefineValueVar() const override { return false; }
+	string DataTypeStr() const override
 		{
 		ASSERT(0);
 		return "";
 		}
 
-	int StaticSize(Env* env) const
+	int StaticSize(Env* env) const override
 		{
 		ASSERT(0);
 		return -1;
 		}
 
-	bool ByteOrderSensitive() const { return false; }
+	bool ByteOrderSensitive() const override { return false; }
 
-	bool IsPointerType() const
+	bool IsPointerType() const override
 		{
 		ASSERT(0);
 		return false;
 		}
 
-	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) { ASSERT(0); }
+	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override
+		{
+		ASSERT(0);
+		}
 
 	// Generate code for computing the dynamic size of the type
-	void GenDynamicSize(Output* out, Env* env, const DataPtr& data) { ASSERT(0); }
+	void GenDynamicSize(Output* out, Env* env, const DataPtr& data) override { ASSERT(0); }
 
 protected:
-	Type* DoClone() const;
-	void DoMarkIncrementalInput() { ASSERT(0); }
+	Type* DoClone() const override;
+	void DoMarkIncrementalInput() override { ASSERT(0); }
 	};
 
 #endif // pac_context_h

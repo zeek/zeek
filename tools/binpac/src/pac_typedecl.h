@@ -7,12 +7,12 @@ class TypeDecl : public Decl
 	{
 public:
 	TypeDecl(ID* arg_id, ParamList* arg_params, Type* arg_type);
-	~TypeDecl();
-	void Prepare();
-	void GenForwardDeclaration(Output* out_h);
-	void GenCode(Output* out_h, Output* out_cc);
+	~TypeDecl() override;
+	void Prepare() override;
+	void GenForwardDeclaration(Output* out_h) override;
+	void GenCode(Output* out_h, Output* out_cc) override;
 
-	Env* env() const { return env_; }
+	Env* env() const override { return env_; }
 	Type* type() const { return type_; }
 	string class_name() const;
 	static Type* LookUpType(const ID* id);
@@ -20,7 +20,7 @@ public:
 protected:
 	void AddParam(Param* param);
 	virtual void AddBaseClass(vector<string>* base_classes) const { }
-	void ProcessAttr(Attr* a);
+	void ProcessAttr(Attr* a) override;
 
 	virtual void GenPubDecls(Output* out_h, Output* out_cc);
 	virtual void GenPrivDecls(Output* out_h, Output* out_cc);

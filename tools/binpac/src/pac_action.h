@@ -17,7 +17,7 @@ public:
 
 	AnalyzerAction(ID* action_id, When when, ActionParam* param, EmbeddedCode* code);
 
-	~AnalyzerAction();
+	~AnalyzerAction() override;
 
 	When when() const { return when_; }
 	ActionParam* param() const { return param_; }

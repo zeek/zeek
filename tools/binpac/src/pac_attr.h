@@ -33,7 +33,7 @@ public:
 	Attr(AttrType type, ExprList* exprlist);
 	Attr(AttrType type, SeqEnd* seqend);
 
-	virtual ~Attr();
+	~Attr() override;
 
 	AttrType type() const { return type_; }
 	Expr* expr() const { return expr_; }
@@ -42,7 +42,7 @@ public:
 	bool RequiresAnalyzerContext() const;
 
 protected:
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 protected:
 	void init();

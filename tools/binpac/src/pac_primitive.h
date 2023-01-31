@@ -31,7 +31,7 @@ public:
 	PPVal(Expr* expr) : PacPrimitive(VAL), expr_(expr) { }
 	Expr* expr() const { return expr_; }
 
-	string ToCode(Env* env);
+	string ToCode(Env* env) override;
 
 private:
 	Expr* expr_;
@@ -43,7 +43,7 @@ public:
 	PPSet(Expr* expr) : PacPrimitive(SET), expr_(expr) { }
 	Expr* expr() const { return expr_; }
 
-	string ToCode(Env* env);
+	string ToCode(Env* env) override;
 
 private:
 	Expr* expr_;
@@ -55,7 +55,7 @@ public:
 	PPType(Expr* expr) : PacPrimitive(TYPE), expr_(expr) { }
 	Expr* expr() const { return expr_; }
 
-	string ToCode(Env* env);
+	string ToCode(Env* env) override;
 
 private:
 	Expr* expr_;
@@ -68,7 +68,7 @@ public:
 	const ID* id() const { return id_; }
 	Expr* expr() const { return expr_; }
 
-	string ToCode(Env* env);
+	string ToCode(Env* env) override;
 
 private:
 	const ID* id_;

@@ -21,16 +21,16 @@ class AnalyzerDecl : public TypeDecl
 	{
 public:
 	AnalyzerDecl(ID* id, DeclType decl_type, ParamList* params);
-	~AnalyzerDecl();
+	~AnalyzerDecl() override;
 
 	void AddElements(AnalyzerElementList* elemlist);
 
-	void Prepare();
-	void GenForwardDeclaration(Output* out_h);
+	void Prepare() override;
+	void GenForwardDeclaration(Output* out_h) override;
 	// void GenCode(Output *out_h, Output *out_cc);
 
-	void GenInitCode(Output* out_cc);
-	void GenCleanUpCode(Output* out_cc);
+	void GenInitCode(Output* out_cc) override;
+	void GenCleanUpCode(Output* out_cc) override;
 
 	string class_name() const;
 	// string cookie_name() const;
@@ -41,8 +41,8 @@ protected:
 
 	// Generate public/private declarations for member functions and
 	// variables
-	void GenPubDecls(Output* out_h, Output* out_cc);
-	void GenPrivDecls(Output* out_h, Output* out_cc);
+	void GenPubDecls(Output* out_h, Output* out_cc) override;
+	void GenPrivDecls(Output* out_h, Output* out_cc) override;
 
 	// Generate the NewData() function
 	virtual void GenProcessFunc(Output* out_h, Output* out_cc) = 0;
@@ -107,7 +107,7 @@ class AnalyzerState : public AnalyzerElement
 	{
 public:
 	AnalyzerState(StateVarList* statevars) : AnalyzerElement(STATE), statevars_(statevars) { }
-	~AnalyzerState();
+	~AnalyzerState() override;
 
 	StateVarList* statevars() const { return statevars_; }
 
@@ -130,7 +130,7 @@ public:
 		: AnalyzerElement(HELPER), helper_type_(helper_type), code_(code)
 		{
 		}
-	~AnalyzerHelper();
+	~AnalyzerHelper() override;
 
 	Type helper_type() const { return helper_type_; }
 
@@ -149,7 +149,7 @@ class FlowField : public Field
 	{
 public:
 	FlowField(ID* flow_id, ParameterizedType* flow_type);
-	void GenInitCode(Output* out, Env* env);
+	void GenInitCode(Output* out, Env* env) override;
 	};
 
 class AnalyzerFlow : public AnalyzerElement
@@ -161,7 +161,7 @@ public:
 		DOWN
 		};
 	AnalyzerFlow(Direction dir, ID* type_id, ExprList* params);
-	~AnalyzerFlow();
+	~AnalyzerFlow() override;
 
 	Direction dir() const { return dir_; }
 	FlowField* flow_field() const { return flow_field_; }

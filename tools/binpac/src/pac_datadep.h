@@ -56,8 +56,8 @@ public:
 	RequiresAnalyzerContext() : requires_analyzer_context_(false) { }
 
 	// Returns whether to continue traversal
-	bool PreProcess(DataDepElement* element);
-	bool PostProcess(DataDepElement* element);
+	bool PreProcess(DataDepElement* element) override;
+	bool PostProcess(DataDepElement* element) override;
 
 	bool requires_analyzer_context() const { return requires_analyzer_context_; }
 

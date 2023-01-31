@@ -10,48 +10,48 @@ class ArrayType : public Type
 	{
 public:
 	ArrayType(Type* arg_elemtype, Expr* arg_length = nullptr);
-	~ArrayType();
+	~ArrayType() override;
 
-	bool DefineValueVar() const;
-	string DataTypeStr() const;
-	string DefaultValue() const { return "0"; }
-	Type* ElementDataType() const;
+	bool DefineValueVar() const override;
+	string DataTypeStr() const override;
+	string DefaultValue() const override { return "0"; }
+	Type* ElementDataType() const override;
 
-	string EvalElement(const string& array, const string& index) const;
+	string EvalElement(const string& array, const string& index) const override;
 
-	void ProcessAttr(Attr* a);
+	void ProcessAttr(Attr* a) override;
 
-	void Prepare(Env* env, int flags);
+	void Prepare(Env* env, int flags) override;
 
-	void GenPubDecls(Output* out, Env* env);
-	void GenPrivDecls(Output* out, Env* env);
+	void GenPubDecls(Output* out, Env* env) override;
+	void GenPrivDecls(Output* out, Env* env) override;
 
-	void GenInitCode(Output* out, Env* env);
-	void GenCleanUpCode(Output* out, Env* env);
+	void GenInitCode(Output* out, Env* env) override;
+	void GenCleanUpCode(Output* out, Env* env) override;
 
-	int StaticSize(Env* env) const;
+	int StaticSize(Env* env) const override;
 
-	void SetBoundaryChecked();
+	void SetBoundaryChecked() override;
 	void GenUntilInputCheck(Output* out_cc, Env* env);
 
-	bool IsPointerType() const { return true; }
+	bool IsPointerType() const override { return true; }
 
 protected:
 	void init();
 
-	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags);
-	void GenDynamicSize(Output* out, Env* env, const DataPtr& data);
+	void DoGenParseCode(Output* out, Env* env, const DataPtr& data, int flags) override;
+	void GenDynamicSize(Output* out, Env* env, const DataPtr& data) override;
 	void GenArrayLength(Output* out_cc, Env* env, const DataPtr& data);
 	string GenArrayInit(Output* out_cc, Env* env, bool known_array_length);
 	void GenElementAssignment(Output* out_cc, Env* env, string const& array_str, bool use_vector);
 	void GenUntilCheck(Output* out_cc, Env* env, Expr* until_condition, bool delete_elem);
 
-	bool ByteOrderSensitive() const { return elemtype_->RequiresByteOrder(); }
-	bool RequiresAnalyzerContext();
+	bool ByteOrderSensitive() const override { return elemtype_->RequiresByteOrder(); }
+	bool RequiresAnalyzerContext() override;
 
-	Type* DoClone() const;
+	Type* DoClone() const override;
 
-	void DoMarkIncrementalInput();
+	void DoMarkIncrementalInput() override;
 
 	const ID* arraylength_var() const;
 	const ID* elem_it_var() const;
@@ -60,7 +60,7 @@ protected:
 	const ID* elem_input_var() const;
 
 protected:
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 private:
 	Type* elemtype_;

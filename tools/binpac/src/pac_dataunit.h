@@ -15,7 +15,7 @@ public:
 		FLOWUNIT
 		};
 	AnalyzerDataUnit(DataUnitType type, ID* id, ExprList* type_params, ExprList* context_params);
-	~AnalyzerDataUnit();
+	~AnalyzerDataUnit() override;
 
 	void Prepare(Env* env);
 

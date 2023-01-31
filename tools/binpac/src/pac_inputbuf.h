@@ -15,7 +15,7 @@ public:
 	DataPtr GenDataBeginEnd(Output* out_cc, Env* env);
 
 protected:
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 private:
 	Expr* expr_;

@@ -12,7 +12,7 @@ public:
 	            type)
 		{
 		}
-	void GenPubDecls(Output* out, Env* env)
+	void GenPubDecls(Output* out, Env* env) override
 		{ /* do nothing */
 		}
 	};
@@ -25,7 +25,7 @@ public:
 		: Field(PUB_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type)
 		{
 		}
-	~PubVarField() { }
+	~PubVarField() override { }
 	};
 
 // A private variable
@@ -37,9 +37,9 @@ public:
 	            type)
 		{
 		}
-	~PrivVarField() { }
+	~PrivVarField() override { }
 
-	void GenPubDecls(Output* out, Env* env)
+	void GenPubDecls(Output* out, Env* env) override
 		{ /* do nothing */
 		}
 	};
@@ -51,7 +51,7 @@ public:
 		: Field(TEMP_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | NOT_CLASS_MEMBER, id, type)
 		{
 		}
-	~TempVarField() { }
+	~TempVarField() override { }
 	};
 
 #endif // pac_varfield_h

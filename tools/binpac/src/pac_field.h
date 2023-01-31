@@ -42,7 +42,7 @@ public:
 	static const int PUBLIC_READABLE = 4;
 	static const int NOT_PUBLIC_READABLE = 0;
 
-	virtual ~Field();
+	~Field() override;
 
 	FieldType tof() const { return tof_; }
 	const ID* id() const { return id_; }
@@ -70,7 +70,7 @@ protected:
 	int ValueVarType() const;
 	bool ToBeParsed() const;
 
-	bool DoTraverse(DataDepVisitor* visitor);
+	bool DoTraverse(DataDepVisitor* visitor) override;
 
 protected:
 	FieldType tof_;

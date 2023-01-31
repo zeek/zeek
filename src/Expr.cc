@@ -4101,6 +4101,20 @@ ValPtr ArithCoerceExpr::Fold(Val* v) const
 	return result;
 	}
 
+// Returns true if the record type or any of its fields have an error.
+static bool record_type_has_errors(const RecordType* rt)
+	{
+	if ( IsErrorType(rt->Tag()) )
+		return true;
+
+	if ( rt->NumFields() > 0 )
+		for ( const auto* td : *rt->Types() )
+			if ( IsErrorType(td->type->Tag()) )
+				return true;
+
+	return false;
+	}
+
 RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 	: UnaryExpr(EXPR_RECORD_COERCE, std::move(arg_op))
 	{
@@ -4119,6 +4133,12 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 		{
 		RecordType* t_r = type->AsRecordType();
 		RecordType* sub_r = op->GetType()->AsRecordType();
+
+		if ( record_type_has_errors(t_r) || record_type_has_errors(sub_r) )
+			{
+			SetError();
+			return;
+			}
 
 		int map_size = t_r->NumFields();
 		map.resize(map_size, -1); // -1 = field is not mapped
@@ -4574,7 +4594,9 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook, bool _i
 		return;
 		}
 
-	if ( ! func_type->MatchesIndex(args.get()) )
+	if ( record_type_has_errors(func_type->AsFuncType()->Params()->AsRecordType()) )
+		SetError();
+	else if ( ! func_type->MatchesIndex(args.get()) )
 		SetError("argument type mismatch in function call");
 	else
 		{
@@ -4943,7 +4965,9 @@ EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
 		return;
 		}
 
-	if ( ! func_type->MatchesIndex(args.get()) )
+	if ( record_type_has_errors(func_type->AsFuncType()->Params()->AsRecordType()) )
+		SetError();
+	else if ( ! func_type->MatchesIndex(args.get()) )
 		SetError("argument type mismatch in event invocation");
 	else
 		{

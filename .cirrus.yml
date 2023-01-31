@@ -406,35 +406,41 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   env:
     ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release
     CIRRUS_LOG_TIMESTAMP: true
-    IMAGE_CACHE_DIR: /tmp/image-cache
+    BUILDER_IMAGE_CACHE_DIR: /tmp/builder-image-cache
+    ZEEK_IMAGE_CACHE_DIR: /tmp/zeek-image-cache-${CIRRUS_ARCH}
 
   always:
     ccache_cache:
       folder: /tmp/ccache
       fingerprint_script: echo ccache-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
-    image_cache:
-      folder: /tmp/image-cache
-      fingerprint_script: echo image-cache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+
+    builder_image_cache:
+      folder: /tmp/builder-image-cache
+      fingerprint_script: echo builder-image-cache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
+    zeek_image_cache:
+      folder: /tmp/zeek-image-cache-${CIRRUS_ARCH}
+      fingerprint_key: zeek-image-cache-${CIRRUS_BUILD_ID}-${CIRRUS_ARCH}
       reupload_on_changes: true
 
   sync_submodules_script: git submodule update --recursive --init --recommend-shallow -j $(nproc)
 
   prepare_builder_script:
     - set -x
-    - mkdir -p ${IMAGE_CACHE_DIR}
-    - if [ -f ${IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${IMAGE_CACHE_DIR}/builder.zst | docker load; fi
-    - if [ -f ${IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${IMAGE_CACHE_DIR}/final.zst | docker load; fi
+    - mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
+    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load; fi
+    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
     - (cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .)
-    - docker save zeek-builder:latest | zstd > ${IMAGE_CACHE_DIR}/builder.zst
+    - docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
   build_zeek_script:
-    - docker run --name zeek-builder-container -e CCACHE_DIR=/tmp/ccache -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+    - docker run --name zeek-builder-container -e CCACHE_DIR=/tmp/ccache -e CCACHE_NOSTATS=1 -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
     # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
     - docker commit zeek-builder-container zeek-build
   build_final_script:
-    - (cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .)
-    - docker save ${IMAGE_TAG} | zstd > ${IMAGE_CACHE_DIR}/final.zst
-    - curl -sSf -X POST --data-binary @${IMAGE_CACHE_DIR}/final.zst http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-${CIRRUS_ARCH}
+    - cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
+    - docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
 
 arm64_container_image_docker_builder:
   env:
@@ -442,6 +448,8 @@ arm64_container_image_docker_builder:
   << : *DOCKER_BUILD_TEMPLATE
 
 amd64_container_image_docker_builder:
+  env:
+    CIRRUS_ARCH: amd64
   << : *DOCKER_BUILD_TEMPLATE
 
 container_image_manifest_docker_builder:
@@ -491,13 +499,21 @@ container_image_manifest_docker_builder:
       env
       exit 1
     fi
+
+  # These should've been populated by the previous jobs
+  zeek_image_arm64_cache:
+    folder: /tmp/zeek-image-cache-arm64
+    fingerprint_key: zeek-image-cache-${CIRRUS_BUILD_ID}-arm64
+
+  zeek_image_amd64_cache:
+    folder: /tmp/zeek-image-cache-amd64
+    fingerprint_key: zeek-image-cache-${CIRRUS_BUILD_ID}-amd64
+
   load_image_script:
-    # Fetch and load the images from the previous tasks
     - set -x;
-    - curl -sSf -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-arm64
-    - curl -sSf -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-amd64
-    - zstd -d < ${CIRRUS_BUILD_ID}-image-arm64 | docker load
-    - zstd -d < ${CIRRUS_BUILD_ID}-image-amd64 | docker load
+    - ls -lha /tmp/zeek-image-cache-*/
+    - zstd -d < /tmp/zeek-image-cache-arm64/final.zst | docker load
+    - zstd -d < /tmp/zeek-image-cache-amd64/final.zst | docker load
   tag_push_script:
     # Tag images and push to Docker Hub and AWS ECR
     - ./ci/container-images-tag-and-push.sh
@@ -521,9 +537,11 @@ cluster_testing_docker_builder:
   sync_btest_script: git submodule update --init ./auxil/btest/
   checkout_script:
     - set -x; cd testing/external/ && git clone https://github.com/zeek/zeek-testing-cluster.git && make checkout-repos
+  zeek_image_amd64_cache:
+    folder: /tmp/zeek-image-cache-amd64
+    fingerprint_key: zeek-image-cache-${CIRRUS_BUILD_ID}-amd64
   load_image_script:
-    - curl -sSf -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-amd64
-    - zstd -d < ${CIRRUS_BUILD_ID}-image-amd64 | docker load
+    - zstd -d < /tmp/zeek-image-cache-amd64/final.zst | docker load
     - docker tag zeek/zeek-multiarch:amd64 zeektest:latest
   test_script:
     - cd testing/external/zeek-testing-cluster && make

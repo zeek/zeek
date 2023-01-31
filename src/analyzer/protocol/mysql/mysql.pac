@@ -8,8 +8,18 @@
 %include zeek.pac
 
 %extern{
-	#include "zeek/analyzer/protocol/mysql/events.bif.h"
+
+namespace zeek::analyzer::mysql { class MySQL_Analyzer; }
+namespace binpac { namespace MySQL { class MySQL_Conn; } }
+using MySQLAnalyzer = zeek::analyzer::mysql::MySQL_Analyzer*;
+
+#include "zeek/analyzer/protocol/mysql/MySQL.h"
+
+#include "zeek/analyzer/protocol/mysql/events.bif.h"
+
 %}
+
+extern type MySQLAnalyzer;
 
 analyzer MySQL withcontext {
 	connection: MySQL_Conn;
@@ -17,7 +27,7 @@ analyzer MySQL withcontext {
 };
 
 # Our connection consists of two flows, one in each direction.
-connection MySQL_Conn(zeek_analyzer: ZeekAnalyzer) {
+connection MySQL_Conn(zeek_analyzer: MySQLAnalyzer) {
 	upflow   = MySQL_Flow(true);
 	downflow = MySQL_Flow(false);
 };

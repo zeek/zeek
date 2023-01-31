@@ -22,12 +22,19 @@ refine flow MySQL_Flow += {
 		if ( ${msg.version} == 9 || ${msg.version == 10} )
 			connection()->zeek_analyzer()->AnalyzerConfirmation();
 
+		// If the client requested SSL and didn't provide credentials, switch to SSL
+		if ( ${msg.version} == 10 && ( ${msg.v10_response.cap_flags} & CLIENT_SSL ) && ${msg.v10_response.credentials}->empty() )
+			{
+			connection()->zeek_analyzer()->StartTLS();
+			return true;
+			}
+
 		if ( mysql_handshake )
 			{
-			if ( ${msg.version} == 10 )
+			if ( ${msg.version} == 10 && ${msg.v10_response.credentials}->size() > 0 )
 				zeek::BifEvent::enqueue_mysql_handshake(connection()->zeek_analyzer(),
 				                                  connection()->zeek_analyzer()->Conn(),
-				                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.username})));
+				                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.credentials[0].username})));
 			if ( ${msg.version} == 9 )
 				zeek::BifEvent::enqueue_mysql_handshake(connection()->zeek_analyzer(),
 				                                  connection()->zeek_analyzer()->Conn(),

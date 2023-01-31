@@ -7,12 +7,12 @@
 # @TEST-EXEC: mkdir tls-13 && mv *log tls-13
 #
 # @TEST-EXEC: btest-diff tls-12/conn.log
-# #TEST-EXEC: btest-diff tls-12/ssl.log
-# #TEST-EXEC: btest-diff tls-12/x509.log
+# @TEST-EXEC: btest-diff tls-12/ssl.log
+# @TEST-EXEC: btest-diff tls-12/x509.log
 #
 # @TEST-EXEC: btest-diff tls-13/conn.log
-# #TEST-EXEC: btest-diff tls-13/ssl.log
-# #TEST-EXEC: ! test -f tls-13/x509.log
+# @TEST-EXEC: btest-diff tls-13/ssl.log
+# @TEST-EXEC: ! test -f tls-13/x509.log
 
 @load base/protocols/conn
 @load base/protocols/mysql

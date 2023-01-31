@@ -214,6 +214,11 @@ New Functionality
   accepted by the analyzer. A ``FTP_max_command_length_exceeded`` weird is
   raised for any violations of that length.
 
+- The MySQL analyzer has been extended to detect when client and server negotiate
+  to use a SSL encrypted session. This allows analysis of the subsequent SSL
+  handshake. The service field for encrypted MySQL connections in the conn.log
+  will have entries for both, mysql and ssl.
+
 Changed Functionality
 ---------------------
 

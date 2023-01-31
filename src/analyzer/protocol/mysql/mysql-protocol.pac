@@ -158,7 +158,8 @@ enum EOFType {
 };
 
 enum Client_Capabilities {
-	# Expects an OK (instead of EOF) after the resultset rows of a Text Resultset. 
+	CLIENT_SSL           = 0x00000800,
+	# Expects an OK (instead of EOF) after the resultset rows of a Text Resultset.
 	CLIENT_DEPRECATE_EOF = 0x01000000,
 };
 
@@ -237,13 +238,17 @@ type Handshake_Response_Packet = case $context.connection.get_version() of {
 	version: uint8 = $context.connection.get_version();
 };
 
+type Handshake_Credentials_v10 = record {
+	username : NUL_String;
+	password : bytestring &restofdata;
+};
+
 type Handshake_Response_Packet_v10 = record {
 	cap_flags   : uint32;
 	max_pkt_size: uint32;
 	char_set    : uint8;
 	pad         : padding[23];
-	username    : NUL_String;
-	password    : bytestring &restofdata;
+	credentials : Handshake_Credentials_v10[] &until($input.length() == 0);
 } &let {
 	deprecate_eof: bool = $context.connection.set_deprecate_eof(cap_flags & CLIENT_DEPRECATE_EOF);
 };

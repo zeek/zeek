@@ -1,3 +1,25 @@
+5.2.0-dev.579 | 2023-01-31 14:49:29 +0100
+
+  * mysql: Recognize when client/server negotiate SSL (Arne Welzel, Corelight)
+
+    This instantiates the SSL analyzer when the client requests SSL
+    so that Zeek now has a bit more visibility into encrypted MySQL
+    connections.
+
+    The pattern used is the same as in the IMAP, POP or XMPP analyzer.
+
+  * analyzer: Move disabling_analyzer() hook into Analyzer module (Arne Welzel, Corelight)
+
+    When disabling_analyzer() was introduced, it was added to the GLOBAL
+    module. The awkward side-effect is that implementing a hook handler
+    in another module requires to prefix it with GLOBAL. Alternatively, one
+    can re-open the GLOBAL module and implement the handler in that scope.
+
+    Both are not great, and prefixing with GLOBAL is ugly, so move the
+    identifier to the Analyzer module and ask users to prefix with Analyzer.
+
+  * Skip some error reporting when the record type has errors (Arne Welzel, Corelight)
+
 5.2.0-dev.571 | 2023-01-30 13:39:01 -0700
 
   * Remove setting osx-sysroot on macOS CI builds (Tim Wojtulewicz, Corelight)

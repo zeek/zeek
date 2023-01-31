@@ -383,11 +383,10 @@ void ArrayType::GenCleanUpCode(Output* out_cc, Env* env)
 		out_cc->inc_indent();
 		out_cc->println("{");
 
-		out_cc->println("for ( int i = 0; i < (int) %s->size(); ++i )", env->RValue(value_var()));
+		out_cc->println("for ( auto* %s : *%s )", env->LValue(elem_var()),
+		                env->RValue(value_var()));
 		out_cc->inc_indent();
 		out_cc->println("{");
-		out_cc->println("%s %s = (*%s)[i];", elemtype_->DataTypeStr().c_str(),
-		                env->LValue(elem_var()), lvalue());
 		elemtype_->GenCleanUpCode(out_cc, env);
 		out_cc->println("}");
 		out_cc->dec_indent();

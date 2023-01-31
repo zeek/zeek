@@ -491,15 +491,16 @@ container_image_manifest_docker_builder:
       env
       exit 1
     fi
-  build_script:
+  load_image_script:
     # Fetch and load the images from the previous tasks
-    - set -x; curl -v -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-arm64
-    - set -x; curl -v -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-amd64
-    - set -x; zstd -d < ${CIRRUS_BUILD_ID}-image-arm64 | docker load
-    - set -x; zstd -d < ${CIRRUS_BUILD_ID}-image-amd64 | docker load
-
+    - set -x;
+    - curl -sSf -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-arm64
+    - curl -sSf -O http://$CIRRUS_HTTP_CACHE_HOST/${CIRRUS_BUILD_ID}-image-amd64
+    - zstd -d < ${CIRRUS_BUILD_ID}-image-arm64 | docker load
+    - zstd -d < ${CIRRUS_BUILD_ID}-image-amd64 | docker load
+  tag_push_script:
+    # Tag images and push to Docker Hub and AWS ECR
     - ./ci/container-images-tag-and-push.sh
-
     - REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
   depends_on:
     - arm64_container_image

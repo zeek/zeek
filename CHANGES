@@ -1,3 +1,32 @@
+5.2.0-dev.602 | 2023-02-01 10:47:41 -0700
+
+  * testing/http: http-11-request-then-cruft (Arne Welzel, Corelight)
+
+    A client sends a "proper" HTTP/1.1 request and afterwards a few T /\n\n sequences.
+    The latter ones aren't logged.
+
+  * testing/http: Add pcap extracted from m5-long external test-suite (Arne Welzel, Corelight)
+
+    This tests that the HTTP version is now updated if it changes in the
+    course of a connection.
+
+  * testing/external: m57-long baseline update (Arne Welzel, Corelight)
+
+    There's a HTTP server that first replies with HTTP/1.1, then HTTP/1.0.
+    Seems actually nicer to have the real value within the log/event.
+
+  * analyzers/http: Update request_version on subsequent SetVersion() calls (Arne Welzel, Corelight)
+
+    The #124 PR introduced special treatment when HTTP version 0.9
+    was set. With #127, a reproducer that set HTTP/1.0 in the first
+    request was created and subsequent requests wouldn't reset to
+    HTTP version 0.9.
+
+    This is subtle, but doesn't seem like things fall apart.
+
+    Improves runtime from 20 seconds to 2 seconds for the given
+    reproducer.
+
 5.2.0-dev.597 | 2023-02-01 10:47:21 -0700
 
   * testing/ftp: Add tests and pcaps with invalid reply lines (Arne Welzel, Corelight)

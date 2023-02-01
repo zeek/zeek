@@ -1,0 +1,7 @@
+# @TEST-EXEC: zeek -b -r $TRACES/http/http-11-request-then-cruft.pcap %INPUT > output
+# @TEST-EXEC: btest-diff http.log
+# @TEST-EXEC: btest-diff weird.log
+# @TEST-EXEC: btest-diff dpd.log
+
+@load base/protocols/http
+@load base/frameworks/notice/weird

@@ -162,6 +162,7 @@ centosstream9_task:
     # Stream 9 EOL: Around Dec 2027
     dockerfile: ci/centos-stream-9/Dockerfile
     << : *RESOURCES_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   << : *CI_TEMPLATE
 
 centosstream8_task:
@@ -200,6 +201,7 @@ debian11_static_task:
     # Debian 11 EOL: June 2026
     dockerfile: ci/debian-11/Dockerfile
     << : *RESOURCES_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
   env:
@@ -210,6 +212,7 @@ debian10_task:
     # Debian 10 EOL: June 2024
     dockerfile: ci/debian-10/Dockerfile
     << : *RESOURCES_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   << : *CI_TEMPLATE
 
 opensuse_leap_15_4_task:
@@ -217,6 +220,7 @@ opensuse_leap_15_4_task:
     # Opensuse Leap 15.4 EOL: ~Nov 2023
     dockerfile: ci/opensuse-leap-15.4/Dockerfile
     << : *RESOURCES_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   << : *CI_TEMPLATE
 
 opensuse_tumbleweed_task:
@@ -241,6 +245,7 @@ ubuntu22_task:
     dockerfile: ci/ubuntu-22.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   env:
     ZEEK_CI_CREATE_ARTIFACT: 1
   upload_binary_artifacts:
@@ -271,6 +276,7 @@ alpine_task:
     dockerfile: ci/alpine/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 # Apple doesn't publish official long-term support timelines.
 # We aim to support both the current and previous macOS release.
@@ -279,6 +285,7 @@ macos_ventura_task:
     image: ghcr.io/cirruslabs/macos-ventura-base:latest
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   << : *MACOS_ENVIRONMENT
 
 macos_monterey_task:
@@ -300,6 +307,7 @@ freebsd14_task:
 
   prepare_script: ./ci/freebsd/prepare.sh
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   << : *FREEBSD_ENVIRONMENT
 
 freebsd13_task:
@@ -331,6 +339,7 @@ asan_sanitizer_task:
     << : *SANITIZERS_RESOURCE_TEMPLATE
 
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   test_fuzzers_script: ./ci/test-fuzzers.sh
   coverage_script: ./ci/upload-coverage.sh
   env:

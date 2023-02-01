@@ -404,7 +404,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
 
   env:
-    ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps
+    ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
     CIRRUS_LOG_TIMESTAMP: true
     BUILDER_IMAGE_CACHE_DIR: /tmp/builder-image-cache
     ZEEK_IMAGE_CACHE_DIR: /tmp/zeek-image-cache-${CIRRUS_ARCH}
@@ -441,6 +441,9 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   build_final_script:
     - cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
     - docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
+  test_script:
+    - docker tag ${IMAGE_TAG} zeek:latest
+    - make -C docker/btest
 
 arm64_container_image_docker_builder:
   env:

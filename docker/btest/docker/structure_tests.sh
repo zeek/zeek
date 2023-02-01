@@ -7,6 +7,9 @@ TEST_TAG=${TEST_TAG:-zeek:latest}
 # Check that `zeek` can be run.
 docker run --rm "${TEST_TAG}" zeek -v | sed 's/\(zeek version\) .*/\1 xxx/'
 
+# ...and load and execute some basic scripts, too.
+docker run --rm "${TEST_TAG}" zeek -e 'print fmt("zeek version %s", zeek_version())' | sed 's/\(zeek version\) .*/\1 xxx/'
+
 # Check that this is a release build.
 docker run --rm "${TEST_TAG}" zeek-config --build_type | grep -q 'release'
 

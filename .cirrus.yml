@@ -441,6 +441,9 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   build_final_script:
     - cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
     - docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
+  test_script:
+    - docker tag ${IMAGE_TAG} zeek:latest
+    - make -C docker/btest
 
 arm64_container_image_docker_builder:
   env:

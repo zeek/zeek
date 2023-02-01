@@ -14,15 +14,10 @@ endif ()
 get_filename_component(dir ${BISON_EXECUTABLE} DIRECTORY ABSOLUTE)
 set(BISON_ROOT ${dir}/..)
 
-# We currently only support building against statically linked Spicy libraries.
-# This is due to global state held in the Spicy and HILTI runtime libraries. If
-# we would like Spicy dynamically this global state would end up the the final
-# binary once via the static link of the runtime libraries into Zeek (needed to
-# make sure we can e.g., load arbitrary HLTO files), and once as a link
-# dependency of spicy-plugin. This can lead to e.g. consistency issues during
-# execution or the problem during teardown where the same global might be
-# cleaned up multiple times.
-set(BUILD_SHARED_LIBS OFF)
+if ( NOT BINARY_PACKAGING_MODE )
+   # TODO: Broker seems to always turn on static libraries. We don't want that for Spicy by default.
+   set(BUILD_SHARED_LIBS yes)
+endif ()
 
 # Spicy uses slightly less strict warnings than Zeek proper. Mute a few warnings for Spicy.
 # NOTE: Compiler flags are inherited down the directory tree, so in order to

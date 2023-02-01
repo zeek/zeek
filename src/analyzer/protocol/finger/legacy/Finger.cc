@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/analyzer/protocol/finger/Finger.h"
+#include "zeek/analyzer/protocol/finger/legacy/Finger.h"
 
 #include "zeek/zeek-config.h"
 
@@ -8,7 +8,7 @@
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
-#include "zeek/analyzer/protocol/finger/events.bif.h"
+#include "zeek/analyzer/protocol/finger/legacy/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
 namespace zeek::analyzer::finger

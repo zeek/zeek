@@ -1,6 +1,6 @@
-#include "zeek/analyzer/protocol/syslog/Syslog.h"
+#include "zeek/analyzer/protocol/syslog/legacy/Syslog.h"
 
-#include "zeek/analyzer/protocol/syslog/events.bif.h"
+#include "zeek/analyzer/protocol/syslog/legacy/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::syslog

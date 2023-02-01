@@ -2,7 +2,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include "analyzer/protocol/syslog/syslog_pac.h"
+#include "analyzer/protocol/syslog/legacy/syslog_pac.h"
 
 namespace zeek::analyzer::syslog
 	{

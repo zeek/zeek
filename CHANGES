@@ -1,3 +1,19 @@
+5.2.0-dev.593 | 2023-02-01 11:39:15 +0100
+
+  * Provide infrastructure to migrate legacy analyzers to in-tree
+    Spicy analyzers. As initial (trivial) examples, we port the Syslog
+    and Finger analyzers over to Spicy. The only user-visible change
+    is that we now detect Finger as service in `conn.log`. (Robin
+    Sommer, Corelight)
+
+  * GH-2675: Switch to building shared Spicy toolchain libraries by
+    default. Furthermore, Zeek itself no longer link against the
+    toolchain libraries itself because the Spicy plugin has removed
+    JIT support. But the other Spicy tools continue to do so, and
+    shrink in size now. (Robin Sommer, Corelight)
+
+  * Extend Zeekygen manager with method to check if it's active. (Robin Sommer, Corelight)
+
 5.2.0-dev.589 | 2023-02-01 09:02:00 +0100
 
   * cirrus/containers: Do not install btest pcaps (Arne Welzel, Corelight)

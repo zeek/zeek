@@ -3,7 +3,7 @@
 #include "zeek/plugin/Plugin.h"
 
 #include "zeek/analyzer/Component.h"
-#include "zeek/analyzer/protocol/syslog/Syslog.h"
+#include "zeek/analyzer/protocol/syslog/legacy/Syslog.h"
 
 namespace zeek::plugin::detail::Zeek_Syslog
 	{

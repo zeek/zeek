@@ -1,6 +1,2 @@
 #!/bin/sh
-if grep -q "DISABLE_SPICY:BOOL=true" "${BUILD}"/CMakeCache.txt; then
-    return 1
-else
-    true
-fi
+"${BUILD}/zeek-config" --have-spicy-analyzers >/dev/null

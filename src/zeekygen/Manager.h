@@ -215,6 +215,9 @@ public:
 	template <class T>
 	bool IsUpToDate(const std::string& target_file, const std::vector<T*>& dependencies) const;
 
+	/** Returns true if Zeekygen is enabled. */
+	bool IsEnabled() const { return ! disabled; }
+
 private:
 	using comment_buffer_t = std::vector<std::string>;
 	using comment_buffer_map_t = std::map<std::string, comment_buffer_t>;

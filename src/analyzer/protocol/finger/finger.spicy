@@ -1,0 +1,54 @@
+# Copyright (c) 2022 by the Zeek Project. See LICENSE for details.
+#
+# Giving the rare number of instances of this protocol these days, we err on the side of
+# rejecting sessions if they don't parse well.
+
+module Finger;
+
+import spicy;
+
+const OptionalWhiteSpace = /[ \t]*/;
+const NewLine    = /\r?\n/;
+
+public type Request  = unit {
+    : OptionalWhiteSpace;
+
+    switch {
+        -> : /\/W/ { self.whois = True; }
+        -> void;
+    };
+
+    : OptionalWhiteSpace;
+
+    arg: /[^\r\n]*/ &convert=$$.strip().split1(b"@") {
+        # We require valid UTF-8 to weed out binary data.
+        self.user = self.arg[0].decode();
+
+        if ( |self.arg[1]| > 0 )
+            self.host = self.arg[1].decode();
+    }
+
+    on %done  {
+        if ( |self.arg[0]| > 0 || self.whois )
+            spicy::accept_input();
+    }
+
+    var user: string;
+    var host: string;
+    var whois: bool = False;
+};
+
+type ReplyLine = unit {
+    data: /[^\r\n]*/ &convert=$$.decode(); # Require valid UTF-8 here as well.
+    : NewLine;
+
+    on %done {
+        if ( |self.data| > 10 )
+            # Require some non-trivial output to accept.
+            spicy::accept_input();
+    }
+};
+
+public type Reply  = unit {
+    : ReplyLine[];
+};

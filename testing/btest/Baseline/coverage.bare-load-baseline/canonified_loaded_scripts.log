@@ -151,7 +151,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_DNP3.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_DNS.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_File.events.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_Finger.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_FTP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_FTP.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Gnutella.events.bif.zeek
@@ -227,7 +226,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SSL.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SSL.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SSL.consts.bif.zeek
-    build/scripts/base/bif/plugins/Zeek_Syslog.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.functions.bif.zeek

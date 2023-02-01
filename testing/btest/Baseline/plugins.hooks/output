@@ -12,6 +12,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DNS, 5353/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DNS, 5355/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FINGER, 79/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
@@ -73,6 +74,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DNS, 5353/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DNS, 5355/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FINGER, 79/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp)) -> <no result>
@@ -126,6 +128,7 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNP3_TCP, {20000<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNS, {5353<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DTLS, {443/udp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FINGER, {79/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FTP, {2811<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_IMAP, {143/tcp})) -> <no result>
@@ -807,7 +810,6 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_FileExtract.events.bif.zeek, <...>/Zeek_FileExtract.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_FileExtract.functions.bif.zeek, <...>/Zeek_FileExtract.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_FileHash.events.bif.zeek, <...>/Zeek_FileHash.events.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_GTPv1.functions.bif.zeek, <...>/Zeek_GTPv1.functions.bif.zeek) -> -1
@@ -895,7 +897,6 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek) -> -1
@@ -977,6 +978,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./site, <...>/site.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./smb1-main, <...>/smb1-main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./smb2-main, <...>/smb2-main.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./spicy-events, <...>/spicy-events.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./std-dev, <...>/std-dev.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./store, <...>/store.zeek) -> -1
@@ -1058,6 +1060,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/files, <...>/files.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/finger, <...>/finger) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ftp, <...>/ftp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/geneve, <...>/geneve) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/geoip-distance, <...>/geoip-distance.zeek) -> -1
@@ -1194,7 +1197,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FileExtract.events.bif.zeek, <...>/Zeek_FileExtract.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FileExtract.functions.bif.zeek, <...>/Zeek_FileExtract.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_FileHash.events.bif.zeek, <...>/Zeek_FileHash.events.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_GTPv1.functions.bif.zeek, <...>/Zeek_GTPv1.functions.bif.zeek) -> (-1, <no content>)
@@ -1282,7 +1284,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek) -> (-1, <no content>)
@@ -1364,6 +1365,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./site, <...>/site.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./smb1-main, <...>/smb1-main.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./smb2-main, <...>/smb2-main.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./spicy-events, <...>/spicy-events.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./std-dev, <...>/std-dev.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./store, <...>/store.zeek) -> (-1, <no content>)
@@ -1445,6 +1447,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/files, <...>/files.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/finger, <...>/finger) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ftp, <...>/ftp) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/geneve, <...>/geneve) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/geoip-distance, <...>/geoip-distance.zeek) -> (-1, <no content>)
@@ -1573,6 +1576,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DNS, 5353/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DNS, 5355/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp))
+0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FINGER, 79/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::__register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1634,6 +1638,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DNS, 5353/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DNS, 5355/udp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_DTLS, 443/udp))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FINGER, 79/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 21/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_FTP, 2811/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 1080/tcp))
@@ -1687,6 +1692,7 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNP3_TCP, {20000<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DNS, {5353<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_DTLS, {443/udp}))
+0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FINGER, {79/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_FTP, {2811<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp}))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_IMAP, {143/tcp}))
@@ -2368,7 +2374,6 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_FileExtract.events.bif.zeek, <...>/Zeek_FileExtract.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_FileExtract.functions.bif.zeek, <...>/Zeek_FileExtract.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_FileHash.events.bif.zeek, <...>/Zeek_FileHash.events.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_GTPv1.functions.bif.zeek, <...>/Zeek_GTPv1.functions.bif.zeek)
@@ -2456,7 +2461,6 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek)
@@ -2538,6 +2542,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./site, <...>/site.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./smb1-main, <...>/smb1-main.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./smb2-main, <...>/smb2-main.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./spicy-events, <...>/spicy-events.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./std-dev, <...>/std-dev.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./store, <...>/store.zeek)
@@ -2619,6 +2624,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/files, <...>/files.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/finger, <...>/finger)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ftp, <...>/ftp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/geneve, <...>/geneve)
 0.000000   MetaHookPre   LoadFile(0, base<...>/geoip-distance, <...>/geoip-distance.zeek)
@@ -2755,7 +2761,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FileExtract.events.bif.zeek, <...>/Zeek_FileExtract.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FileExtract.functions.bif.zeek, <...>/Zeek_FileExtract.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_FileHash.events.bif.zeek, <...>/Zeek_FileHash.events.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Finger.events.bif.zeek, <...>/Zeek_Finger.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_GSSAPI.events.bif.zeek, <...>/Zeek_GSSAPI.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_GTPv1.events.bif.zeek, <...>/Zeek_GTPv1.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_GTPv1.functions.bif.zeek, <...>/Zeek_GTPv1.functions.bif.zeek)
@@ -2843,7 +2848,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.consts.bif.zeek, <...>/Zeek_Spicy.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.events.bif.zeek, <...>/Zeek_Spicy.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Spicy.functions.bif.zeek, <...>/Zeek_Spicy.functions.bif.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Syslog.events.bif.zeek, <...>/Zeek_Syslog.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek)
@@ -2925,6 +2929,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./site, <...>/site.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./smb1-main, <...>/smb1-main.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./smb2-main, <...>/smb2-main.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./spicy-events, <...>/spicy-events.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./std-dev, <...>/std-dev.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./store, <...>/store.zeek)
@@ -3006,6 +3011,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/files, <...>/files.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/find-checksum-offloading, <...>/find-checksum-offloading.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/find-filtered-trace, <...>/find-filtered-trace.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/finger, <...>/finger)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ftp, <...>/ftp)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/geneve, <...>/geneve)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/geoip-distance, <...>/geoip-distance.zeek)
@@ -3134,6 +3140,7 @@
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DNS, 5353/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DNS, 5355/udp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_DTLS, 443/udp)
+0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FINGER, 79/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FTP, 21/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_FTP, 2811/tcp)
 0.000000 | HookCallFunction Analyzer::__register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -3195,6 +3202,7 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DNS, 5353/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DNS, 5355/udp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_DTLS, 443/udp)
+0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FINGER, 79/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FTP, 21/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_FTP, 2811/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 1080/tcp)
@@ -3248,6 +3256,7 @@
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DNP3_TCP, {20000<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, {5353<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, {443/udp})
+0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_FINGER, {79/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, {2811<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, {80<...>/tcp})
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_IMAP, {143/tcp})
@@ -3928,7 +3937,6 @@
 0.000000 | HookLoadFile  ./Zeek_FileExtract.events.bif.zeek <...>/Zeek_FileExtract.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_FileExtract.functions.bif.zeek <...>/Zeek_FileExtract.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_FileHash.events.bif.zeek <...>/Zeek_FileHash.events.bif.zeek
-0.000000 | HookLoadFile  ./Zeek_Finger.events.bif.zeek <...>/Zeek_Finger.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_GSSAPI.events.bif.zeek <...>/Zeek_GSSAPI.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_GTPv1.events.bif.zeek <...>/Zeek_GTPv1.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_GTPv1.functions.bif.zeek <...>/Zeek_GTPv1.functions.bif.zeek
@@ -4016,7 +4024,6 @@
 0.000000 | HookLoadFile  ./Zeek_Spicy.consts.bif.zeek <...>/Zeek_Spicy.consts.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Spicy.events.bif.zeek <...>/Zeek_Spicy.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Spicy.functions.bif.zeek <...>/Zeek_Spicy.functions.bif.zeek
-0.000000 | HookLoadFile  ./Zeek_Syslog.events.bif.zeek <...>/Zeek_Syslog.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.types.bif.zeek <...>/Zeek_TCP.types.bif.zeek
@@ -4109,6 +4116,7 @@
 0.000000 | HookLoadFile  ./site <...>/site.zeek
 0.000000 | HookLoadFile  ./smb1-main <...>/smb1-main.zeek
 0.000000 | HookLoadFile  ./smb2-main <...>/smb2-main.zeek
+0.000000 | HookLoadFile  ./spicy-events <...>/spicy-events.zeek
 0.000000 | HookLoadFile  ./stats.bif.zeek <...>/stats.bif.zeek
 0.000000 | HookLoadFile  ./std-dev <...>/std-dev.zeek
 0.000000 | HookLoadFile  ./store <...>/store.zeek
@@ -4191,6 +4199,7 @@
 0.000000 | HookLoadFile  base<...>/files <...>/files.zeek
 0.000000 | HookLoadFile  base<...>/find-checksum-offloading <...>/find-checksum-offloading.zeek
 0.000000 | HookLoadFile  base<...>/find-filtered-trace <...>/find-filtered-trace.zeek
+0.000000 | HookLoadFile  base<...>/finger <...>/finger
 0.000000 | HookLoadFile  base<...>/ftp <...>/ftp
 0.000000 | HookLoadFile  base<...>/geneve <...>/geneve
 0.000000 | HookLoadFile  base<...>/geoip-distance <...>/geoip-distance.zeek
@@ -4315,7 +4324,6 @@
 0.000000 | HookLoadFileExtended ./Zeek_FileExtract.events.bif.zeek <...>/Zeek_FileExtract.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_FileExtract.functions.bif.zeek <...>/Zeek_FileExtract.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_FileHash.events.bif.zeek <...>/Zeek_FileHash.events.bif.zeek
-0.000000 | HookLoadFileExtended ./Zeek_Finger.events.bif.zeek <...>/Zeek_Finger.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_GSSAPI.events.bif.zeek <...>/Zeek_GSSAPI.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_GTPv1.events.bif.zeek <...>/Zeek_GTPv1.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_GTPv1.functions.bif.zeek <...>/Zeek_GTPv1.functions.bif.zeek
@@ -4403,7 +4411,6 @@
 0.000000 | HookLoadFileExtended ./Zeek_Spicy.consts.bif.zeek <...>/Zeek_Spicy.consts.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Spicy.events.bif.zeek <...>/Zeek_Spicy.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Spicy.functions.bif.zeek <...>/Zeek_Spicy.functions.bif.zeek
-0.000000 | HookLoadFileExtended ./Zeek_Syslog.events.bif.zeek <...>/Zeek_Syslog.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.types.bif.zeek <...>/Zeek_TCP.types.bif.zeek
@@ -4496,6 +4503,7 @@
 0.000000 | HookLoadFileExtended ./site <...>/site.zeek
 0.000000 | HookLoadFileExtended ./smb1-main <...>/smb1-main.zeek
 0.000000 | HookLoadFileExtended ./smb2-main <...>/smb2-main.zeek
+0.000000 | HookLoadFileExtended ./spicy-events <...>/spicy-events.zeek
 0.000000 | HookLoadFileExtended ./stats.bif.zeek <...>/stats.bif.zeek
 0.000000 | HookLoadFileExtended ./std-dev <...>/std-dev.zeek
 0.000000 | HookLoadFileExtended ./store <...>/store.zeek
@@ -4578,6 +4586,7 @@
 0.000000 | HookLoadFileExtended base<...>/files <...>/files.zeek
 0.000000 | HookLoadFileExtended base<...>/find-checksum-offloading <...>/find-checksum-offloading.zeek
 0.000000 | HookLoadFileExtended base<...>/find-filtered-trace <...>/find-filtered-trace.zeek
+0.000000 | HookLoadFileExtended base<...>/finger <...>/finger
 0.000000 | HookLoadFileExtended base<...>/ftp <...>/ftp
 0.000000 | HookLoadFileExtended base<...>/geneve <...>/geneve
 0.000000 | HookLoadFileExtended base<...>/geoip-distance <...>/geoip-distance.zeek

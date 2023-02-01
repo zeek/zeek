@@ -1,19 +1,28 @@
 Container image for Zeek
 ========================
 
-This directory contains a minimal container image for Zeek. This image is
-published automatically to [DockerHub](https://hub.docker.com/u/zeekurity) for
+This directory allows building a minimal container image for Zeek. This image is
+published automatically to [DockerHub](https://hub.docker.com/u/zeek) for
 releases and for commits on the `master` branch.
 
 - Images for release are published as
-  [`zeekurity/zeek`](https://hub.docker.com/r/zeekurity/zeek) with the `latest`
+  [`zeek/zeek`](https://hub.docker.com/r/zeek/zeek) with the `latest`
   tag pointing to the latest release.
 - Development images for the `master` branch are published as
-  [`zeekurity/zeek-dev`](https://hub.docker.com/r/zeekurity/zeek-dev).
+  [`zeek/zeek-dev`](https://hub.docker.com/r/zeek/zeek-dev).
 
+These images are also pushed to Amazon ECR Public Gallery under
+the [Zeek Project](https://gallery.ecr.aws/zeek).
 
 To run the image execute e.g.,:
 
-    docker run -it zeekurity/zeek
+    docker run -it zeek/zeek
 
 To build the image execute `make` from this directory.
+
+CI
+--
+
+Note, the image build process on Cirrus CI is not using the Makefile,
+but instead open-codes the invocation due to leveraging Cirrus CI caching
+and ccache heavily.

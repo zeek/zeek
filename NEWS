@@ -55,6 +55,9 @@ New Functionality
   verbose output in JSON format about the repository state and any included
   plugins.
 
+- Add logging metrics for streams (``zeek-log-stream-writes``) and writers
+  (``zeek-log-writer-writes-total``).
+
 Changed Functionality
 ---------------------
 

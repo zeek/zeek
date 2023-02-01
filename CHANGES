@@ -1,3 +1,7 @@
+5.2.0-dev.611 | 2023-02-01 15:34:22 -0700
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.609 | 2023-02-01 20:55:45 +0100
 
   * docker: Extend tests to run a very basic Zeek script (Arne Welzel, Corelight)

@@ -1,3 +1,11 @@
+5.2.0-dev.604 | 2023-02-01 10:48:03 -0700
+
+  * Restore/rename field in SMB2::Fscontrol record type (Tim Wojtulewicz, Corelight)
+
+    b41a4bf06dc2f3a4218cfa0a95b536ec9d253917 removed a field from this record
+    because it had a duplicate name as another field. The field does need to
+    exist, but it needs the correct name.
+
 5.2.0-dev.602 | 2023-02-01 10:47:41 -0700
 
   * testing/http: http-11-request-then-cruft (Arne Welzel, Corelight)

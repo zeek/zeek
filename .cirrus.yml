@@ -404,7 +404,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
 
   env:
-    ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps
+    ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
     CIRRUS_LOG_TIMESTAMP: true
     BUILDER_IMAGE_CACHE_DIR: /tmp/builder-image-cache
     ZEEK_IMAGE_CACHE_DIR: /tmp/zeek-image-cache-${CIRRUS_ARCH}

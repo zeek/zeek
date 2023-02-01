@@ -404,7 +404,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
 
   env:
-    ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release
+    ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps
     CIRRUS_LOG_TIMESTAMP: true
     BUILDER_IMAGE_CACHE_DIR: /tmp/builder-image-cache
     ZEEK_IMAGE_CACHE_DIR: /tmp/zeek-image-cache-${CIRRUS_ARCH}
@@ -432,7 +432,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
     - mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
     - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load; fi
     - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
-    - (cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .)
+    - cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .
     - docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
   build_zeek_script:
     - docker run --name zeek-builder-container -e CCACHE_DIR=/tmp/ccache -e CCACHE_NOSTATS=1 -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"

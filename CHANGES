@@ -1,3 +1,26 @@
+5.2.0-dev.597 | 2023-02-01 10:47:21 -0700
+
+  * testing/ftp: Add tests and pcaps with invalid reply lines (Arne Welzel, Corelight)
+
+    These have been created artificially. The tests show that for an
+    invalid reply line without a numeric code, with a numeric code < 100
+    or a numeric code not followed by a space we now raise an analyzer
+    violation and disable the analyzer.
+
+  * ftp: Harden reply handing a bit and don't raise bad replies to script-land (Arne Welzel, Corelight)
+
+    This improves runtime of the oss-fuzz generated traffic in #125.
+    Specifically, that reproducers included a 064- reply code that was
+    interpreted as needing to be continued.
+
+    Also, return after AnalyzerViolations() for server replies rather than
+    propagating bad replies them to script-land. This trusts server's to
+    generally behave according to specification.
+
+  * ftp: ignore invalid commands (Arne Welzel, Corelight)
+
+    Do not propagate wrong FTP commands to script land.
+
 5.2.0-dev.593 | 2023-02-01 11:39:15 +0100
 
   * Provide infrastructure to migrate legacy analyzers to in-tree

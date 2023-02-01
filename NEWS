@@ -59,6 +59,12 @@ New Functionality
   The Zeek team wants to give a huge thank you to the team at Microsoft for all
   of their effort in completing this port.
 
+- Zeek container images are now being published to zeek/zeek and zeek/zeek-dev
+  rather than zeekurity/zeek and zeekurity/zeek-dev on Docker Hub (and continue
+  to be published to public.ecr.aws) Further, container images for amd64 and
+  arm64 platforms are now available. Main driver for the latter was to allow
+  usage of the official container images on Apple's M1 systems.
+
 - New ``analyzer_confirmation_info`` and ``analyzer_violation_info`` events with
   accompanying record types ``AnalyzerConfirmationInfo`` and
   ``AnalyzerViolationInfo`` have been added. These supersede

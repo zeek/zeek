@@ -1,3 +1,19 @@
+5.2.0-dev.589 | 2023-02-01 09:02:00 +0100
+
+  * cirrus/containers: Do not install btest pcaps (Arne Welzel, Corelight)
+
+  * cirrus: Replace curl with _cache (Arne Welzel, Corelight)
+
+  * cirrus: Add cluster testing (Arne Welzel, Corelight)
+
+  * cirrus: Polish container_image_manifest_docker_builder (Arne Welzel, Corelight)
+
+  * cirrus: Use ccache for faster container builds (Arne Welzel, Corelight)
+
+  * cirrus: Add docker_builder tasks to build and push images (Arne Welzel, Corelight)
+
+  * github: No more docker workflow (Arne Welzel, Corelight)
+
 5.2.0-dev.579 | 2023-01-31 14:49:29 +0100
 
   * mysql: Recognize when client/server negotiate SSL (Arne Welzel, Corelight)

@@ -2,8 +2,8 @@
 #
 # @TEST-EXEC: zeek -b test.zeek %INPUT
 # @TEST-EXEC: btest-diff test.log
-# @TEST-EXEC: test -f other.log && btest-diff other.log || true
-# @TEST-EXEC: test -f output && btest-diff output || true
+# @TEST-EXEC: if test -f other.log; then btest-diff other.log; fi
+# @TEST-EXEC: if test -f output; then btest-diff output; fi
 
 @TEST-START-FILE test.zeek
 # This provides a simple test module harness, used by all of the individual tests below.
@@ -237,11 +237,11 @@ global output = open("output");
 
 hook Log::log_stream_policy(rec: any, id: Log::ID)
 	{
-	print output, "Log::log_stream_policy";
-
 	if ( id == Test::LOG )
 		{
 		local r: Test::Info = rec;
+
+		print output, "Log::log_stream_policy";
 
 		if ( r$status == "foo" )
 			break;
@@ -255,7 +255,8 @@ hook Test::log_policy(rec: Test::Info, id: Log::ID, filter: Log::Filter)
 
 event zeek_init()
 	{
-	local filter: Log::Filter = [$name="other"];
+	# An unrelated filter whose log we ignore:
+	local filter: Log::Filter = [$name="yetanother", $path="yetanother"];
 	Log::add_filter(Test::LOG, filter);
 
 	Log::write(Test::LOG, [$t=network_time(), $status="foo"]);

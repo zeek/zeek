@@ -1,3 +1,9 @@
+5.2.0-dev.614 | 2023-02-01 15:51:15 -0800
+
+  * Tighten the scripts.base.frameworks.logging.hooks test (Christian Kreibich, Corelight)
+
+  * Fix two btest-diff checks that couldn't fail (Christian Kreibich, Corelight)
+
 5.2.0-dev.611 | 2023-02-01 15:34:22 -0700
 
   * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)

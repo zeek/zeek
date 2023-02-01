@@ -1186,9 +1186,9 @@ const char* HTTP_Analyzer::PrefixWordMatch(const char* line, const char* end_of_
 	return line;
 	}
 
-static bool is_HTTP_token_char(char c)
+static bool is_HTTP_token_char(unsigned char c)
 	{
-	return c > 31 && c != 127 && // CTL per RFC 2616.
+	return c > 31 && c < 127 && // Exclude non-ascii and DEL/CTL per RFC 2616
 	       c != ' ' && c != '\t' && // Separators.
 	       c != '(' && c != ')' && c != '<' && c != '>' && c != '@' && c != ',' && c != ';' &&
 	       c != ':' && c != '\\' && c != '"' && c != '/' && c != '[' && c != ']' && c != '?' &&

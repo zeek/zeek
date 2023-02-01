@@ -148,6 +148,7 @@ fedora37_task:
     dockerfile: ci/fedora-37/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 fedora36_task:
   container:
@@ -187,6 +188,7 @@ debian11_task:
     dockerfile: ci/debian-11/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 arm_debian11_task:
   arm_container:
@@ -465,6 +467,7 @@ arm64_container_image_docker_builder:
   env:
     CIRRUS_ARCH: arm64
   << : *DOCKER_BUILD_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 amd64_container_image_docker_builder:
   env:

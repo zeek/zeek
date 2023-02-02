@@ -526,7 +526,6 @@ container_image_manifest_docker_builder:
     - docker tag zeek/zeek-multiarch:arm64 zeekurity/zeek-multiarch:arm64
     - docker tag zeek/zeek-multiarch:amd64 zeekurity/zeek-multiarch:amd64
     - ZEEK_IMAGE_REPO=zeekurity ./ci/container-images-tag-and-push.sh
-    - ZEEK_IMAGE_REPO=zeekurity REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
   depends_on:
     - arm64_container_image
     - amd64_container_image

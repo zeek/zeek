@@ -1,3 +1,7 @@
+5.2.0-dev.620 | 2023-02-02 12:52:40 +0100
+
+  * cirrus: There's no zeekurity repository on AWS ECR (Arne Welzel, Corelight)
+
 5.2.0-dev.619 | 2023-02-02 11:25:38 +0100
 
   * cirrus: Also push images to the zeekurity account (Arne Welzel, Corelight)

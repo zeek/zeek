@@ -1,3 +1,7 @@
+5.2.0-dev.632 | 2023-02-02 20:20:27 +0100
+
+  * btest/decode_base_errors: Avoid binary output in baseline (Arne Welzel, Corelight)
+
 5.2.0-dev.630 | 2023-02-02 18:35:21 +0100
 
   * cirrus: No container images builds or cluster testing on branches (Arne Welzel, Corelight)

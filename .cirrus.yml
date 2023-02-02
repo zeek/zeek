@@ -171,6 +171,13 @@ debian11_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+arm_debian11_task:
+  arm_container:
+    # Debian 11 EOL: June 2026
+    dockerfile: ci/debian-11/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 debian11_static_task:
   container:
     # Just use a recent/common distro to run a static compile test.

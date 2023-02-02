@@ -184,17 +184,17 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf)
 		if ( dlen >= len )
 			break;
 
-		if ( data[dlen] == '=' )
+		unsigned char c = (unsigned char)data[dlen];
+		if ( c == '=' )
 			++base64_padding;
 
-		int k = base64_table[(unsigned char)data[dlen]];
+		int k = base64_table[c];
 		if ( k >= 0 )
 			base64_group[base64_group_next++] = k;
 		else
 			{
 			if ( ++errored == 1 )
-				IllegalEncoding(
-					util::fmt("character %d ignored by Base64 decoding", (int)(data[dlen])));
+				IllegalEncoding(util::fmt("character %d ignored by Base64 decoding", (int)c));
 			}
 
 		++dlen;

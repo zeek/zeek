@@ -21,7 +21,9 @@ local encoded_names = vector(
 		"cacacacacacacacacacacacacacacaca", # empty
 		"abcd",                             # invalid length
 		"~jfdebfeebfacacacacacacacacacaaa", # invalid alphabet
-		"0jfdebfeebfacacacacacacacacacaaa");# invalid alphabet
+		"0jfdebfeebfacacacacacacacacacaaa", # invalid alphabet
+		"lpejldmeebfacacacacacacacacacaaa", # non-ascii stuff
+);
 
 for ( i in encoded_names )
 	decode_name(encoded_names[i]);

@@ -187,6 +187,13 @@ debian11_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+arm_debian11_task:
+  arm_container:
+    # Debian 11 EOL: June 2026
+    dockerfile: ci/debian-11/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 debian11_static_task:
   container:
     # Just use a recent/common distro to run a static compile test.
@@ -527,6 +534,10 @@ container_image_manifest_docker_builder:
     - docker tag zeek/zeek-multiarch:amd64 zeekurity/zeek-multiarch:amd64
     - ZEEK_IMAGE_REPO=zeekurity ./ci/container-images-tag-and-push.sh
   depends_on:
+    # Only push out the image if all the btests succeeded and the
+    # images have been built.
+    - arm_debian11
+    - debian11
     - arm64_container_image
     - amd64_container_image
 

@@ -1,3 +1,7 @@
+5.2.0-dev.615 | 2023-02-01 16:05:42 -0800
+
+  * Update btest submodule to v1.0 (Christian Kreibich, Corelight)
+
 5.2.0-dev.614 | 2023-02-01 15:51:15 -0800
 
   * Tighten the scripts.base.frameworks.logging.hooks test (Christian Kreibich, Corelight)

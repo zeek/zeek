@@ -518,9 +518,15 @@ container_image_manifest_docker_builder:
     - zstd -d < /tmp/zeek-image-cache-arm64/final.zst | docker load
     - zstd -d < /tmp/zeek-image-cache-amd64/final.zst | docker load
   tag_push_script:
-    # Tag images and push to Docker Hub and AWS ECR
+    # Tag images and push to Docker Hub and AWS ECR "zeek" account
     - ./ci/container-images-tag-and-push.sh
     - REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
+
+    # Continue to push tags to the "zeekurity" account as well.
+    - docker tag zeek/zeek-multiarch:arm64 zeekurity/zeek-multiarch:arm64
+    - docker tag zeek/zeek-multiarch:amd64 zeekurity/zeek-multiarch:amd64
+    - ZEEK_IMAGE_REPO=zeekurity ./ci/container-images-tag-and-push.sh
+    - ZEEK_IMAGE_REPO=zeekurity REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
   depends_on:
     - arm64_container_image
     - amd64_container_image

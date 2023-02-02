@@ -1,3 +1,40 @@
+5.2.0-dev.630 | 2023-02-02 18:35:21 +0100
+
+  * cirrus: No container images builds or cluster testing on branches (Arne Welzel, Corelight)
+
+  * Bump private testsuite for char handling fixes (Arne Welzel, Corelight)
+
+  * GH-2742: Base64: report byte as positive integer (Arne Welzel, Corelight)
+
+    A baseline difference between arm64 and x86 showed up. We would
+    print a wrong character as negative value on x86 due to chars
+    being signed by default. Force an unsigned interpretation which
+    is also more reasonable because we'd have never indexed the
+    base64 table with -112
+
+        -XXXXXXXXXX.XXXXXX      XXXXXXXXXXX     131.243.99.154  3288 193.159.183.138 80      base64_illegal_encoding character -112 ignored by Base64 decoding       F       zeek    -
+        +XXXXXXXXXX.XXXXXX      XXXXXXXXXXX     131.243.99.154  3288 193.159.183.138 80      base64_illegal_encoding character 144 ignored by Base64 decoding        F       zeek    -
+
+    Fixes more of #2742
+
+  * GH-2742: netbios_decode: use unsigned char for result (Arne Welzel, Corelight)
+
+    The buf[i] < 3 condition in use previously allowed all chars (signed on x86)
+    through that had the 0x80 high-bit set after reconstructing from the two
+    bytes of the netbios name, resulting in escaped non-ascii content in
+    the logs.
+
+    Fixes more of #2742
+
+  * GH-2742: analyzer/http: Do not assume char is signed (Arne Welzel, Corelight)
+
+    On aarch64, char is unsigned, so is_HTTP_token_char() allowed
+    non-ASCII stuff with the high-bit set.
+
+    Fixes part of #2742
+
+  * cirrus: Run tests in a Debian 11 container, too (Arne Welzel, Corelight)
+
 5.2.0-dev.620 | 2023-02-02 12:52:40 +0100
 
   * cirrus: There's no zeekurity repository on AWS ECR (Arne Welzel, Corelight)

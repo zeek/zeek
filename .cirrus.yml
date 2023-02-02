@@ -451,6 +451,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   test_script:
     - docker tag ${IMAGE_TAG} zeek:latest
     - make -C docker/btest
+  << : *BRANCH_WHITELIST
 
 arm64_container_image_docker_builder:
   env:
@@ -544,7 +545,6 @@ container_image_manifest_docker_builder:
 cluster_testing_docker_builder:
   cpu: *CPUS
   memory: *MEMORY
-  only_if: $CIRRUS_REPO_FULL_NAME == 'zeek/zeek'
   env:
     CIRRUS_LOG_TIMESTAMP: true
     # At this point, zeek-testing-cluster checks for "GITHUB_ACTION" to
@@ -569,3 +569,4 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
+  << : *BRANCH_WHITELIST

@@ -1,3 +1,7 @@
+5.2.0-dev.617 | 2023-02-01 16:38:41 -0800
+
+  * Bump cluster testsuite to pull in fix for test baseline race condition (Christian Kreibich, Corelight)
+
 5.2.0-dev.615 | 2023-02-01 16:05:42 -0800
 
   * Update btest submodule to v1.0 (Christian Kreibich, Corelight)

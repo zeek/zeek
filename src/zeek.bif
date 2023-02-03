@@ -5731,3 +5731,11 @@ function has_module_events%(group: string%) : bool
 	return zeek::val_mgr->Bool(has_event_group(zeek::EventGroupKind::Module,
 	                                           group->CheckString()));
 	%}
+
+## Returns true if Zeek was built with support for its in-tree Spicy analyzers
+## (which is the default).
+function have_spicy_analyzers%(%) : bool
+	%{
+	return zeek::val_mgr->Bool(USE_SPICY_ANALYZERS);
+	%}
+

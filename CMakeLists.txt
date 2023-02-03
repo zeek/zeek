@@ -978,7 +978,7 @@ if ( ZEEK_SKIPPED_ANALYZERS )
 endif ()
 
 if ( ZEEK_LEGACY_ANALYZERS OR ZEEK_SKIPPED_ANALYZERS )
-    set(_analyzer_warning "\n\n[Warning] Some analyzers are not available due to lack of Spicy:${_legacy_analyzers}${_skipped_analyzers}")
+    set(_analyzer_warning "\n\n[Warning] Some analyzers are not available due to lack of built-in Spicy support:${_legacy_analyzers}${_skipped_analyzers}")
 endif ()
 
 message(

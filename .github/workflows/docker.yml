@@ -7,8 +7,8 @@ on:
     tags:
       - 'v*'
       - '!v*-dev'
+      - 'latest'
       - 'lts'
-      - 'release'
 
 defaults:
   run:
@@ -64,13 +64,16 @@ jobs:
         run: |
           # Translate the GitHub reference into a tag name.
           #
-          # - `release` tag maps to `zeek:latest`
+          # - `latest` tag maps to `zeek:latest`
+          # - `lts` tag maps to `zeek:lts`
           # - `v*` tag (excluding `v*-dev` tags) maps to `zeek:RELEASE_VERSION`
           # - `master` branch maps to `zeek-dev:latest`
           #
           # Any other refs are not published below.
-          if [ "${GITHUB_REF}" = "refs/tags/release" ]; then
+          if [ "${GITHUB_REF}" = "refs/tags/latest" ]; then
             echo "tag=zeek:latest" >> $GITHUB_OUTPUT
+          elif [ "${GITHUB_REF}" = "refs/tags/lts" ]; then
+            echo "tag=zeek:lts" >> $GITHUB_OUTPUT
           elif [ "${GITHUB_REF}" = "refs/heads/master" ]; then
             echo "tag=zeek-dev:latest" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF}" = refs/tags/v* ]] && [[ "${GITHUB_REF}" != refs/tags/v*-dev ]]; then

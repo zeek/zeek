@@ -242,6 +242,9 @@
 /* Common IPv6 extension structure */
 #cmakedefine HAVE_IP6_EXT
 
+/* Spicy analyzers built in. */
+#cmakedefine01 USE_SPICY_ANALYZERS
+
 /* String with host architecture (e.g., "linux-x86_64") */
 #define HOST_ARCHITECTURE "@HOST_ARCHITECTURE@"
 

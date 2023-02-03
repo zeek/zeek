@@ -1,3 +1,24 @@
+5.2.0-dev.635 | 2023-02-03 16:48:18 +0100
+
+  * Add BIF `have_spicy_analyzers()`. (Robin Sommer, Corelight)
+
+    We previously used the Spicy plugin's `Spicy::available` to test for
+    Spicy support. However, having Spicy support does not necessarily mean that we
+    have built Zeek with its in-tree Spicy analyzers: the Spicy plugin
+    could have been pulled in from external. The new BIF now reliably
+    tells us whether the Spicy analyzers are available; its result
+    corresponds to what `zeek-config --have-spicy-analyzers` returns as
+    well.
+
+    We also move the two current checks over to use this BIF.
+
+    (Note: I refrained from renaming the CMake-side `USE_SPICY_ANALYERS`
+    to `HAVE_SPICY_ANALYZERS`. We should do this eventually for
+    consistency, but I didn't want to make more changes than necessary
+    right now.)
+
+  * Update package-manager submodule. (Tim Wojtulewicz, Corelight)
+
 5.2.0-dev.632 | 2023-02-02 20:20:27 +0100
 
   * btest/decode_base_errors: Avoid binary output in baseline (Arne Welzel, Corelight)

@@ -3,6 +3,9 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 6.0.0
+==========
+
 Zeek 5.2.0
 ==========
 

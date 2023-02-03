@@ -1,3 +1,7 @@
+5.2.0-dev.637 | 2023-02-03 09:05:15 -0700
+
+  * Bump spicy-plugin to latest development snapshot. (Benjamin Bannier, Corelight)
+
 5.2.0-dev.635 | 2023-02-03 16:48:18 +0100
 
   * Add BIF `have_spicy_analyzers()`. (Robin Sommer, Corelight)

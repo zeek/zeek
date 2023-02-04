@@ -6,6 +6,13 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 6.0.0
 ==========
 
+Changed Functionality
+---------------------
+
+- When ``get_file_handle()`` is invoked for an analyzer that did not register
+  an appropriate callback function, log a warning and return a generic handle
+  value based on the analyzer and connection information.
+
 Zeek 5.2.0
 ==========
 

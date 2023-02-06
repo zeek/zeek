@@ -1,6 +1,8 @@
-#
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-canonifier | $SCRIPTS/diff-remove-abspath' btest-diff weird.log
+
+@load base/frameworks/notice/weird
 
 event zeek_init()
 	{
@@ -15,4 +17,8 @@ event zeek_init()
 		print i;
 	print "-------------------";
 	print |b2|;
+
+	# Test input string length limiting.
+	local b3 = find_all(a, pat, 5);
+	print |b3|;
 	}

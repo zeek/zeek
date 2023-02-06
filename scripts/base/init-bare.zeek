@@ -5572,6 +5572,10 @@ const bits_per_uid: count = 96 &redef;
 ## to generate installation-unique file IDs (the *id* field of :zeek:see:`fa_file`).
 const digest_salt = "Please change this value." &redef;
 
+## Maximum string length allowed for calls to the :zeek:see:`find_all` and
+## :zeek:see:`find_all_ordered` BIFs.
+const max_find_all_string_length: int = 10000 &redef;
+
 global done_with_network = F;
 event net_done(t: time)
 	{ done_with_network = T; }

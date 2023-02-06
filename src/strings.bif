@@ -901,18 +901,53 @@ function safe_shell_quote%(source: string%): string
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(1, dst, j));
 	%}
 
+%%{
+static bool exceeds_max_string_length(int str_len, int max_size, zeek::detail::Frame* frame)
+	{
+	bool using_constant = false;
+	if ( max_size < 0 )
+		{
+		static auto max_find_all_string_length = zeek::id::find_val<zeek::IntVal>("max_find_all_string_length");
+		max_size = max_find_all_string_length->Get();
+		using_constant = true;
+		}
+
+	if ( max_size > 0 && str_len > max_size )
+		{
+		zeek::ODesc desc;
+		frame->GetCallLocation()->Describe(&desc);
+		std::string addl = zeek::util::fmt("%s: length %d exceeded %d", desc.Description(), str_len, max_size);
+		if ( using_constant )
+			addl.append("(from constant max_find_all_string_length");
+
+		zeek::reporter->Weird("max_find_all_string_length_exceeded", addl.c_str());
+		return true;
+		}
+
+	return false;
+	}
+%%}
+
 ## Finds all occurrences of a pattern in a string.
 ##
 ## str: The string to inspect.
 ##
 ## re: The pattern to look for in *str*.
 ##
+## max_str_size: The maximum string size allowed as input. If set to -1, this will use the
+##               :zeek:see:`max_find_all_string_length` global constant. If set to 0, this
+##               check is disabled. If the length of `str` is greater than this size, an
+##               empty set is returned.
+##
 ## Returns: The set of strings in *str* that match *re*, or the empty set.
 ##
 ## .. zeek:see: find_all_ordered find_last strstr
-function find_all%(str: string, re: pattern%) : string_set
+function find_all%(str: string, re: pattern, max_str_size: int &default=-1%) : string_set
 	%{
 	auto a = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
+
+	if ( exceeds_max_string_length(str->Len(), max_str_size, frame) )
+		return a;
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
@@ -939,12 +974,20 @@ function find_all%(str: string, re: pattern%) : string_set
 ##
 ## re: The pattern to look for in *str*.
 ##
+## max_str_size: The maximum string size allowed as input. If set to -1, this will use the
+##               :zeek:see:`max_find_all_string_length` global constant. If set to 0, this
+##               check is disabled. If the length of `str` is greater than this size, an
+##               empty set is returned.
+##
 ## Returns: All strings in *str* that match *re*, or an empty vector.
 ##
 ## .. zeek:see: find_all find_last strstr
-function find_all_ordered%(str: string, re: pattern%) : string_vec
+function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=-1%) : string_vec
 	%{
 	auto a = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+
+	if ( exceeds_max_string_length(str->Len(), max_str_size, frame) )
+		return a;
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();

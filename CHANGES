@@ -1,3 +1,29 @@
+6.0.0-dev.11 | 2023-02-06 11:13:08 -0700
+
+  * krb/smb2_krb_nokeytab: Register get_file_handle() to avoid warnings (Arne Welzel, Corelight)
+
+    Now that the common event handler logs a warning, ensure there's one
+    in place, even if it's just returning stub data.
+
+  * fuzzer-setup: Do not always generate new_event (Arne Welzel, Corelight)
+
+    new_event should never be used on production systems, so don't turn
+    it on for fuzzing either as it showed up as bottlenecks in flamegraphs.
+
+  * EventHandler: Support unsetting generate_always (Arne Welzel, Corelight)
+
+  * files/main: No empty file_ids (Arne Welzel, Corelight)
+
+    When an analyzer calls DataIn(), there's a costly callback construct
+    going through the event queue. If an analyzer does not have a
+    get_file_handle() handler installed, the produced file_id would
+    end up empty and ignored. Consequently, the get_file_handle() callback
+    was invoked for every new DataIn() invocations.
+
+    This is surprising and costly. Log a warning when this happens and
+    instead set a generically generated file handle value instead to
+    prevent the repeated get_file_handle() invocations.
+
 6.0.0-dev.6 | 2023-02-06 10:33:24 -0700
 
   * CI: Fix the ThreadSanitizer build (Tim Wojtulewicz, Corelight)

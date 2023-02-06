@@ -8,13 +8,37 @@
 # @TEST-EXEC: btest-diff .stdout
 # @TEST-EXEC: btest-diff .stderr
 
+module SMB;
+
+export {
+	global get_file_handle: function(c: connection, is_orig: bool): string;
+	global describe_file: function(f: fa_file): string;
+}
+
 global monitor_ports: set[port] = { 445/tcp, 139/tcp } &redef;
 
-event zeek_init() &priority=5{
+
+# Stubs for testing so that we don't produce a warning due
+# to missing get_file_handle() handlers for SMB.
+function get_file_handle(c: connection, is_orig: bool): string
+	{
+	return cat(c$uid);
+	}
+
+function describe_file(f: fa_file): string
+	{
+	return "";
+	}
+
+event zeek_init() &priority=5
+	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMB, monitor_ports);
-}
+	Files::register_protocol(Analyzer::ANALYZER_SMB,
+	                         [$get_file_handle = SMB::get_file_handle,
+	                          $describe        = SMB::describe_file]);
+	}
 
-event krb_ap_request(c: connection, ticket: KRB::Ticket, opts:  KRB::AP_Options){
-   print ticket?$authenticationinfo;
-}
-
+event krb_ap_request(c: connection, ticket: KRB::Ticket, opts:  KRB::AP_Options)
+	{
+	print ticket?$authenticationinfo;
+	}

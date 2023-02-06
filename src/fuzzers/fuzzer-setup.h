@@ -47,6 +47,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 	// even if they don't, because otherwise we lose a bit of coverage where if
 	// statements return false that would otherwise not.
 	zeek::event_registry->ActivateAllHandlers();
+	zeek::event_registry->Lookup("new_event")->SetGenerateAlways(false);
 
 	return 0;
 	}

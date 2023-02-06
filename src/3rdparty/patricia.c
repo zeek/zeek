@@ -51,7 +51,7 @@ UNUSED static char copyright[] = "This product includes software developed by "
 #include <math.h>       /* sin */
 #include <netinet/in.h> /* BSD, Linux: for inet_addr */
 #include <stddef.h>     /* NULL */
-#include <stdio.h>      /* sprintf, fprintf, stderr */
+#include <stdio.h>      /* snprintf, fprintf, stderr */
 #include <stdlib.h>     /* free, atol, calloc */
 #include <string.h>     /* memcpy, strchr, strlen */
 #include <sys/socket.h> /* BSD, Linux: for inet_addr */
@@ -131,6 +131,7 @@ int my_inet_pton(int af, const char *src, void *dst)
 }
 
 #define PATRICIA_MAX_THREADS 16
+#define PATRICIA_PREFIX_BUF_LEN 53
 
 /*
  * convert prefix information to ascii string with length
@@ -144,7 +145,7 @@ char *prefix_toa2x(prefix_t *prefix, char *buff, int with_len)
   if (buff == NULL) {
 
     struct buffer {
-      char buffs[PATRICIA_MAX_THREADS][48 + 5];
+      char buffs[PATRICIA_MAX_THREADS][PATRICIA_PREFIX_BUF_LEN];
       u_int i;
     } * buffp;
 
@@ -168,9 +169,9 @@ char *prefix_toa2x(prefix_t *prefix, char *buff, int with_len)
     assert(prefix->bitlen <= sizeof(struct in_addr) * 8);
     a = prefix_touchar(prefix);
     if (with_len) {
-      sprintf(buff, "%d.%d.%d.%d/%d", a[0], a[1], a[2], a[3], prefix->bitlen);
+      snprintf(buff, PATRICIA_PREFIX_BUF_LEN, "%d.%d.%d.%d/%d", a[0], a[1], a[2], a[3], prefix->bitlen);
     } else {
-      sprintf(buff, "%d.%d.%d.%d", a[0], a[1], a[2], a[3]);
+      snprintf(buff, PATRICIA_PREFIX_BUF_LEN, "%d.%d.%d.%d", a[0], a[1], a[2], a[3]);
     }
     return (buff);
   }
@@ -181,7 +182,7 @@ char *prefix_toa2x(prefix_t *prefix, char *buff, int with_len)
                           48 /* a guess value */);
     if (r && with_len) {
       assert(prefix->bitlen <= sizeof(struct in6_addr) * 8);
-      sprintf(buff + strlen(buff), "/%d", prefix->bitlen);
+      snprintf(buff + strlen(buff), PATRICIA_PREFIX_BUF_LEN-strlen(buff), "/%d", prefix->bitlen);
     }
     return (buff);
   }

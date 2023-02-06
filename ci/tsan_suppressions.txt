@@ -1,0 +1,34 @@
+# This is a list of suppressions for ThreadSanitizer. Anything listed here will be
+# ignored during testing. See https://github.com/google/sanitizers/wiki/ThreadSanitizerSuppressions
+# for documentation on how this file works.
+
+# There's a bug in libstdc++ that causes ThreadSanitizer to flag this as a data race.
+# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=77704. Ignore any reports from this
+# as it's really really noisy, and there's not much we can do to fix it.
+race:std::ctype<char>::narrow
+
+# =====================================================================
+# Everything below here are known failures in Zeek. These are here until they
+# can be fixed, just so we can get the ThreadSanitizer builds running on Cirrus
+# and catch anything new. If we can't fix something in this list (possibly the
+# sqlite ones?) split them out into a separate block above here with a comment
+# as to why.
+
+race:broker::internal::connector::run_impl
+race:caf::net::multiplexer::set_thread_id
+race:caf::action::run
+
+# This one causes supervisor.config-bare-mode to fail occasionally but not always
+signal:caf::actor_control_block::enqueue
+
+# There's a bunch of failures down inside the sqlite code itself, mostly
+# around opening the database in the SQLite input reader and the SQLite
+# logging writer.
+race:sqlite3MutexInit
+race:sqlite3Malloc
+race:sqlite3_mutex_enter
+race:sqlite3_initialize
+
+# This one isn't actually in sqlite code, but some StringVal object gets ref'd by
+# zeek::id::find_const and throws a data race.
+race:zeek::logging::writer::detail::SQLite::DoInit

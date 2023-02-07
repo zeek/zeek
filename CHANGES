@@ -1,3 +1,7 @@
+6.0.0-dev.14 | 2023-02-07 10:29:28 -0700
+
+  * Update binpac submodule for modernization fixes [nomail] (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.11 | 2023-02-06 11:13:08 -0700
 
   * krb/smb2_krb_nokeytab: Register get_file_handle() to avoid warnings (Arne Welzel, Corelight)

@@ -114,7 +114,7 @@ restrictions. You can find it [here](https://github.com/zeek/zeek/blob/master/CO
 Tooling
 -------
 
-We us the following tooling to help discover issues to fix, amongst a number of
+We use the following tooling to help discover issues to fix, amongst a number of
 others.
 
 - [Clang-Tidy](https://clang.llvm.org/extra/clang-tidy/)

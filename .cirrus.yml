@@ -412,6 +412,9 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   cpu: *CPUS
   memory: *MEMORY
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
+  only_if: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
+        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
 
   env:
     ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
@@ -454,7 +457,6 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   test_script:
     - docker tag ${IMAGE_TAG} zeek:latest
     - make -C docker/btest
-  << : *BRANCH_WHITELIST
 
 arm64_container_image_docker_builder:
   env:
@@ -472,9 +474,7 @@ container_image_manifest_docker_builder:
   only_if: >
     ( $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' &&
       ( $CIRRUS_BRANCH == 'master' ||
-        ( $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG != '')
-      )
-    )
+        $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+$' ) )
   env:
     DOCKER_USERNAME: ENCRYPTED[!505b3dee552a395730a7e79e6aab280ffbe1b84ec62ae7616774dfefe104e34f896d2e20ce3ad701f338987c13c33533!]
     DOCKER_PASSWORD: ENCRYPTED[!6c4b2f6f0e5379ef1091719cc5d2d74c90cfd2665ac786942033d6d924597ffb95dbbc1df45a30cc9ddeec76c07ac620!]
@@ -491,28 +491,61 @@ container_image_manifest_docker_builder:
     #    zeek/zeek-dev:latest-<amd64|arm64>
     # and using these, create a manifest of the form zeek/zeek:${CIRRUS_TAG}
     # for tags, or zeek/zeek-dev:latest for pushes to master.
+    set -x
     if [ -n "${CIRRUS_TAG}" ]; then
-      echo "MANIFEST_NAME=zeek" >> $CIRRUS_ENV
-      echo "MANIFEST_TAG=$(cat VERSION)" >> $CIRRUS_ENV
-      echo "ARCH_IMAGE_TAG=$(cat VERSION)" >> $CIRRUS_ENV
-      echo "ARCH_IMAGE_NAME=zeek"  >> $CIRRUS_ENV
+      echo "IMAGE_TAG=$(cat VERSION)" >> $CIRRUS_ENV
+      echo "IMAGE_NAME=zeek"  >> $CIRRUS_ENV
     elif [ "${CIRRUS_BRANCH}" = "master" ]; then
-      echo "MANIFEST_NAME=zeek-dev" >> $CIRRUS_ENV
-      echo "MANIFEST_TAG=latest"  >> $CIRRUS_ENV
-      echo "ARCH_IMAGE_NAME=zeek-dev"  >> $CIRRUS_ENV
-      echo "ARCH_IMAGE_TAG=latest" >> $CIRRUS_ENV
+      echo "IMAGE_NAME=zeek-dev"  >> $CIRRUS_ENV
+      echo "IMAGE_TAG=latest" >> $CIRRUS_ENV
     # Hunk for testing and pushing into zeek/zeek-next. Make sure
     # to allow the branch in the above only_if attribute of this task.
     # elif [ "${CIRRUS_BRANCH}" = "topic/awelzel/2674-arm64-containers-on-cirrus" ]; then
-    #  echo "MANIFEST_NAME=zeek-next" >> $CIRRUS_ENV
-    #  echo "MANIFEST_TAG=latest"  >> $CIRRUS_ENV
-    #  echo "ARCH_IMAGE_NAME=zeek-next"  >> $CIRRUS_ENV
-    #  echo "ARCH_IMAGE_TAG=latest" >> $CIRRUS_ENV
+    #  echo "IMAGE_NAME=zeek-next"  >> $CIRRUS_ENV
+    #  echo "IMAGE_TAG=latest" >> $CIRRUS_ENV
     else
       echo "Bad tag/branch for container_image_manifest"
       env
       exit 1
     fi
+
+  set_additional_manifest_tags_script: |
+    set -x
+    if [ -z "${CIRRUS_TAG}" ]; then
+      exit 0
+    fi
+
+    # Populate the checkout with all the repository information we need
+    # to determine what the current feature and lts versions are.
+    git fetch --tags origin \
+        '+refs/heads/release/*:refs/remotes/origin/release/*' \
+        '+refs/heads/master:refs/remotes/origin/master'
+
+    # Find current versions for lts and feature depending on branches and
+    # tags in the repo. sed for escaping the dot in the version for using
+    # it in the regex below to match against CIRRUS_TAG.
+    lts_ver=$(./ci/find-current-version.sh lts)
+    lts_pat="^v$(echo $lts_ver | sed 's,\.,\\.,g')\.[0-9]+\$"
+    feature_ver=$(./ci/find-current-version.sh feature)
+    feature_pat="^v$(echo $feature_ver | sed 's,\.,\\.,g')\.[0-9]+\$"
+
+    # Construct additional tags for the image. At most this will
+    # be "lts x.0 feature" for an lts branch x.0 that is currently
+    # also the latest feature branch.
+    ADDL_MANIFEST_TAGS=
+    if echo "${CIRRUS_TAG}" | grep -E "${lts_pat}"; then
+        ADDL_MANIFEST_TAGS="${ADDL_MANIFEST_TAGS} lts ${lts_ver}"
+    fi
+
+    if echo "${CIRRUS_TAG}" | grep -E "${feature_pat}"; then
+        ADDL_MANIFEST_TAGS="${ADDL_MANIFEST_TAGS} latest"
+        if [ "${feature_ver}" != "${lts_ver}" ]; then
+          ADDL_MANIFEST_TAGS="${ADDL_MANIFEST_TAGS} ${feature_ver}"
+        fi
+    fi
+
+    # Let downstream know about it.
+    echo "ADDITIONAL_MANIFEST_TAGS=${ADDL_MANIFEST_TAGS}" >> $CIRRUS_ENV
 
   # These should've been populated by the previous jobs
   zeek_image_arm64_cache:
@@ -534,20 +567,17 @@ container_image_manifest_docker_builder:
     - REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
 
     # Continue to push tags to the "zeekurity" account as well.
-    - docker tag zeek/zeek-multiarch:arm64 zeekurity/zeek-multiarch:arm64
-    - docker tag zeek/zeek-multiarch:amd64 zeekurity/zeek-multiarch:amd64
     - ZEEK_IMAGE_REPO=zeekurity ./ci/container-images-tag-and-push.sh
   depends_on:
-    # Only push out the image if all the btests succeeded and the
-    # images have been built.
-    - arm_debian11
-    - debian11
     - arm64_container_image
     - amd64_container_image
 
 cluster_testing_docker_builder:
   cpu: *CPUS
   memory: *MEMORY
+  only_if: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
+        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
   env:
     CIRRUS_LOG_TIMESTAMP: true
     # At this point, zeek-testing-cluster checks for "GITHUB_ACTION" to
@@ -572,4 +602,3 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
-  << : *BRANCH_WHITELIST

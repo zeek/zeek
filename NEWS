@@ -282,6 +282,14 @@ Changed Functionality
   updated to match the current standardized set of languages. Unknown layout
   values now attempt to fallback to a "parent" layout if one is available.
 
+- In the cluster management framework, the controller now supports Broker's
+  WebSocket data transport for communication with clients. It listens on TCP
+  port 2149 for this purpose. zeek-client now likewise uses the WebSocket
+  transport, removing its runtime dependency on the Broker library and enabling
+  standalone installation. The client still bundles with Zeek by default but is
+  now also available on PyPI and installable via ``pip install zeek-client``.
+  The documentation provides additional details.
+
 Deprecated Functionality
 ------------------------
 

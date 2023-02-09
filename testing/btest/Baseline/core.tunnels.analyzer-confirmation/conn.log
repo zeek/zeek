@@ -7,6 +7,6 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.1.200.131	50000	10.1.1.172	4789	udp	vxlan	0.627090	10203	0	S0	-	-	0	D	12	10539	0	0	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	172.16.11.201	40354	54.86.237.188	80	tcp	http	0.627052	87	9212	SF	-	-	0	ShADadFf	7	459	5	9480	CHhAvVGS1DHFjwGM9
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.1.200.131	50000	10.1.1.172	4789	udp	vxlan	0.627090	10203	0	S0	T	T	0	D	12	10539	0	0	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	172.16.11.201	40354	54.86.237.188	80	tcp	http	0.627052	87	9212	SF	T	F	0	ShADadFf	7	459	5	9480	CHhAvVGS1DHFjwGM9
 #close XXXX-XX-XX-XX-XX-XX

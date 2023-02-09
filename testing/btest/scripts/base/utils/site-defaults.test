@@ -1,0 +1,89 @@
+# This tests the relationship of Site::local_nets and Site::private_address_space.
+# The former defaults to the same values as the latter and both are config options.
+# Therefore both redefs and runtime updates only affect the respective variable,
+# not the other.
+#
+# @TEST-EXEC: zeek -b %INPUT > output
+# @TEST-EXEC: btest-diff output
+
+@TEST-START-FILE common.zeek
+function check_addr(ip: addr)
+	{
+	print fmt("%s is private: %s", ip, Site::is_private_addr(ip));
+	print fmt("%s is local: %s", ip, Site::is_local_addr(ip));
+
+	if ( ip in Site::local_nets_table )
+		print fmt("local subnet is %s", Site::local_nets_table[ip]);
+	else
+		print fmt("no local subnet");
+	}
+
+event zeek_init()
+	{
+	check_addr(10.0.0.1);
+	check_addr(1.2.3.4);
+	}
+@TEST-END-FILE
+
+# (1) The common case: 10/8 is private, implying local, and 1/8 is not.
+@load ./common
+
+@TEST-START-NEXT
+
+# (2) Removing 10/8 from private space implies we remove it from local, too.
+@load ./common
+redef Site::private_address_space -= { 10.0.0.0/8 };
+
+@TEST-START-NEXT
+
+# (3) Adding 1/8 to private space implies we add it to local, too.
+@load ./common
+redef Site::private_address_space = { 1.0.0.0/8 };
+
+@TEST-START-NEXT
+
+# (4) Adding 1/8 to local space doesn't change the private one.
+@load ./common
+redef Site::local_nets += { 1.0.0.0/8 };
+
+@TEST-START-NEXT
+
+# (5) Resetting the local space to 1/8 does not lose the private space.
+@load ./common
+redef Site::local_nets = { 1.0.0.0/8 };
+
+@TEST-START-NEXT
+
+# (6) Resetting the private space dynamically does propagate into local space.
+@load ./common
+
+event zeek_init() &priority=5
+	{
+	Config::set_value("Site::private_address_space", set(1.0.0.0/8));
+	}
+
+@TEST-START-NEXT
+
+# (7) Resetting local space dynamically does not lose the private space.
+@load ./common
+
+event zeek_init() &priority=5
+	{
+	Config::set_value("Site::local_nets", set(1.0.0.0/8));
+	}
+
+@TEST-START-NEXT
+
+# (8) Disable the private-means-local implication and verify defaults.
+@load ./common
+
+redef Site::private_address_space_is_local = F;
+
+@TEST-START-NEXT
+
+# (9) Disable the private-means-local implication and alter both.
+@load ./common
+
+redef Site::private_address_space_is_local = F;
+redef Site::private_address_space = { 1.0.0.0/8 };
+redef Site::local_nets = { 10.0.0.0/8 };

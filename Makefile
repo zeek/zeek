@@ -44,6 +44,7 @@ dist:
 	@(cd ../$(VERSION_FULL) && find . -name \.git\* | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -name \.idea -type d | xargs rm -rf)
 	@(cd ../$(VERSION_FULL) && find . -maxdepth 1 -name build\* | xargs rm -rf)
+	@python3 ./ci/collect-repo-info.py --only-git > ../$(VERSION_FULL)/repo-info.json
 	@mv ../$(VERSION_FULL) .
 	@COPYFILE_DISABLE=true tar -czf $(VERSION_FULL).tar.gz $(VERSION_FULL)
 	@echo Package: $(VERSION_FULL).tar.gz

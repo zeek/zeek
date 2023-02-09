@@ -11,3 +11,5 @@ const char* ZEEK_VERSION_FUNCTION()
 {
     return "@VERSION_C_IDENT@";
 }
+
+const char zeek_build_info[] = "@ZEEK_BUILD_INFO_ESCAPED@";

@@ -207,6 +207,7 @@ char version[] = VERSION;
 #else
 extern char version[];
 #endif
+extern const char zeek_build_info[];
 
 const char* zeek::detail::command_line_policy = nullptr;
 vector<string> zeek::detail::params;
@@ -532,6 +533,12 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( options.print_version )
 		{
 		fprintf(stdout, "%s version %s\n", argv[0], zeek_version());
+		exit(0);
+		}
+
+	if ( options.print_build_info )
+		{
+		fprintf(stdout, "%s", zeek_build_info);
 		exit(0);
 		}
 

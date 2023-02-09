@@ -30,6 +30,9 @@ set(bro_REGISTER_BIFS CACHE INTERNAL "BIFs for automatic registering" FORCE)
 set(bro_BASE_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in base distribution of Zeek" FORCE)
 set(bro_PLUGIN_BIF_SCRIPTS CACHE INTERNAL "Zeek script stubs for BIFs in Zeek plugins" FORCE)
 
+# Poor man's JSON escaping as this is rendered into a C string.
+string(REPLACE "\"" "\\\"" ZEEK_BUILD_INFO_ESCAPED "${ZEEK_BUILD_INFO}")
+string(REPLACE "\n" "\\n" ZEEK_BUILD_INFO_ESCAPED "${ZEEK_BUILD_INFO_ESCAPED}")
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
 configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 

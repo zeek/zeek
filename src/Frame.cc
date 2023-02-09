@@ -206,7 +206,9 @@ std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
 
 const detail::Location* Frame::GetCallLocation() const
 	{
-	return call ? call->GetLocationInfo() : call_loc;
+	// This is currently trivial, but we keep it as an explicit
+	// method because it can provide flexibility for compiled code.
+	return call->GetLocationInfo();
 	}
 
 void Frame::SetTrigger(trigger::TriggerPtr arg_trigger)

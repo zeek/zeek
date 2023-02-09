@@ -200,7 +200,6 @@ public:
 	void SetTriggerAssoc(const void* arg_assoc) { assoc = arg_assoc; }
 	const void* GetTriggerAssoc() const { return assoc; }
 
-	void SetCallLoc(const Location* loc) { call_loc = loc; }
 	const detail::Location* GetCallLocation() const;
 
 	void SetDelayed() { delayed = true; }
@@ -254,7 +253,6 @@ private:
 	trigger::TriggerPtr trigger;
 	const CallExpr* call = nullptr;
 	const void* assoc = nullptr;
-	const Location* call_loc = nullptr; // only needed if call is nil
 	};
 
 	} // namespace detail

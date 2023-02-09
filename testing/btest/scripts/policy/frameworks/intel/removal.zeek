@@ -18,7 +18,7 @@ redef enum Intel::Where += { SOMEWHERE };
 hook Intel::filter_item(item: Intel::Item)
 	{
 	if ( item$indicator_type == Intel::ADDR &&
-		 Site::is_local_addr(to_addr(item$indicator)) )
+		! Site::is_local_addr(to_addr(item$indicator)) )
 		break;
 	}
 
@@ -42,7 +42,7 @@ event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: 
 		}
 	}
 
-event zeek_init() &priority=+100
+event zeek_init()
 	{
 	Intel::insert([$indicator="10.0.0.1", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
 	Intel::insert([$indicator="10.0.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);

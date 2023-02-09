@@ -1,10 +1,9 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
 VERSION := $(shell cat ../VERSION)
-DOCKER ?= docker
 BUILD_IMAGE := zeek-builder:$(VERSION)
 BUILD_CONTAINER := zeek-builder-container-$(VERSION)
-ZEEK_IMAGE ?= zeek:$(VERSION)"
+ZEEK_IMAGE ?= zeek:$(VERSION)
 BUILD_DIR ?= build-docker
 ZEEK_CONFIGURE_FLAGS ?= \
 	--build-dir=$(BUILD_DIR) \

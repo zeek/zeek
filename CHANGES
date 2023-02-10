@@ -1,3 +1,9 @@
+6.0.0-dev.22 | 2023-02-10 10:25:37 +0100
+
+  * CI: Call 'brew install' for macOS to ensure we're using openssl@3 on all hosts (Tim Wojtulewicz, Corelight)
+
+  * Remove files in build/src/3rdparty from coverage reports (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.14 | 2023-02-07 10:29:28 -0700
 
   * Update binpac submodule for modernization fixes [nomail] (Tim Wojtulewicz, Corelight)

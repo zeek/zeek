@@ -147,6 +147,9 @@ function format_value(value: any) : string
 
 function config_option_changed(ID: string, new_value: any, location: string): any &is_used
 	{
+	# Some option updates reflect Zeek-internal activity and shouldn't be logged.
+	if ( location == "<skip-config-log>" )
+		return new_value;
 	local log = Info($ts=network_time(), $id=ID, $old_value=format_value(lookup_ID(ID)), $new_value=format_value(new_value));
 	if ( location != "" )
 		log$location = location;

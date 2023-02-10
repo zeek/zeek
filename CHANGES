@@ -389,7 +389,7 @@
 
     Using "in" to query the language const. This also handles the case of not
     having a best guess and continue using the existing behavior.
-    
+
     Given
     keyboard_layout = 1033 (0x0409), "keyboard-English - United States"
     keyboard_layout = 66569 (0x00010409), "keyboard-English - United States (Best Guess)"

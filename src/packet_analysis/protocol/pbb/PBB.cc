@@ -8,16 +8,16 @@ PBBAnalyzer::PBBAnalyzer() : zeek::packet_analysis::Analyzer("PBB") { }
 
 bool PBBAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	const uint8_t pbb_header_len = 18;
-	const uint8_t etype_offset = pbb_header_len - 2;
-	if ( pbb_header_len >= len )
+	if ( PBB_LEN >= len )
 		{
 		Weird("truncated_PBB_header", packet);
 		return false;
 		}
 
-	uint32_t protocol = ((data[etype_offset] << 8u) + data[etype_offset+1]);
+	uint32_t protocol = ((data[PBB_ETYPE_OFF] << 8u) + data[PBB_ETYPE_OFF + 1u]);
 	packet->eth_type = protocol;
+	packet->l2_dst = data + PBB_C_DST_OFF;
+	packet->l2_src = data + PBB_C_SRC_OFF;
 	// Skip the PBB header
-	return ForwardPacket(len - pbb_header_len, data + pbb_header_len, packet, protocol);
+	return ForwardPacket(len - PBB_LEN, data + PBB_LEN, packet, protocol);
 	}

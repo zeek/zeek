@@ -1025,6 +1025,8 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 
 	z.aux->can_change_globals = true;
 
+	z.call_expr = c;
+
 	if ( ! indirect || func_id->IsGlobal() )
 		{
 		z.aux->id_val = func_id;

@@ -350,7 +350,7 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt)
 					return Reduce(c, red_stmt);
 				}
 
-			if ( ! op1->IsReduced(c) || ! op2->IsReduced(c) )
+			if ( ! op1->IsReduced(c) || ! op2->IsSingleton(c) )
 				{
 				auto red2_stmt = ReduceToSingletons(c);
 				auto res = ReduceToConditional(c, red_stmt);

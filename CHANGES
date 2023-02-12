@@ -1,3 +1,11 @@
+6.0.0-dev.27 | 2023-02-11 22:07:31 -0700
+
+  * better error reporting when ZAM code calls a function (Vern Paxson, Corelight)
+
+  * fix for ZAM compilation of "in" expressions (Vern Paxson, Corelight)
+
+  * Update src/3rdparty submodule to get rid of some sprintf warnings (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.22 | 2023-02-10 10:25:37 +0100
 
   * CI: Call 'brew install' for macOS to ensure we're using openssl@3 on all hosts (Tim Wojtulewicz, Corelight)

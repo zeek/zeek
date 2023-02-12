@@ -127,6 +127,10 @@ public:
 	// Location associated with this instruction, for error reporting.
 	const Location* loc = nullptr;
 
+	// Interpreter call expression associated with this instruction,
+	// for error reporting and stack backtraces.
+	const CallExpr* call_expr = nullptr;
+
 	// Whether v1 represents a frame slot type for which we
 	// explicitly manage the memory.
 	bool is_managed = false;

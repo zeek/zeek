@@ -106,8 +106,7 @@ zeek_inet_ntop6(const u_char *src, char *dst, socklen_t size)
 	 * Keep this in mind if you think this function should have been coded
 	 * to use pointer overlays.  All the world's not a VAX.
 	 */
-	const int tmp_size = sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255");
-	char tmp[tmp_size], *tp;
+	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")], *tp;
 	struct { int base, len; } best, cur;
 	u_int words[NS_IN6ADDRSZ / NS_INT16SZ];
 	int i;
@@ -148,7 +147,7 @@ zeek_inet_ntop6(const u_char *src, char *dst, socklen_t size)
 	/*
 	 * Format the result.
 	 */
-	int remaining = tmp_size;
+	int remaining = sizeof(tmp);
 	tp = tmp;
 	for (i = 0; i < (NS_IN6ADDRSZ / NS_INT16SZ); i++) {
 		/* Are we inside the best run of 0x00's? */

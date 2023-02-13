@@ -11,6 +11,17 @@ GeneveAnalyzer::GeneveAnalyzer() : zeek::packet_analysis::Analyzer("Geneve") { }
 
 bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
+	// Geneve always comes from a UDP connection, which means that session should always
+	// be valid and always be a connection. Return a weird if we didn't have a session
+	// stored.
+	if ( ! packet->session )
+		{
+		Analyzer::Weird("geneve_missing_connection");
+		return false;
+		}
+	else if ( AnalyzerViolated(packet->session) )
+		return false;
+
 	if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
 		Weird("exceeded_tunnel_max_depth", packet);

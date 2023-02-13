@@ -4,6 +4,11 @@
 
 using namespace zeek::packet_analysis::PBB;
 
+constexpr int PBB_LEN = 18;
+constexpr int PBB_C_DST_OFF = 4;
+constexpr int PBB_C_SRC_OFF = 10;
+constexpr int PBB_ETYPE_OFF = 16;
+
 PBBAnalyzer::PBBAnalyzer() : zeek::packet_analysis::Analyzer("PBB") { }
 
 bool PBBAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)

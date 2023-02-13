@@ -149,7 +149,7 @@ zeek_inet_ntop6(const u_char *src, char *dst, socklen_t size)
 	 */
 	int remaining = sizeof(tmp);
 	tp = tmp;
-	for (i = 0; i < (NS_IN6ADDRSZ / NS_INT16SZ); i++) {
+	for (i = 0; i < (NS_IN6ADDRSZ / NS_INT16SZ) && remaining > 0; i++) {
 		/* Are we inside the best run of 0x00's? */
 		if (best.base != -1 && i >= best.base &&
 		    i < (best.base + best.len)) {
@@ -160,9 +160,14 @@ zeek_inet_ntop6(const u_char *src, char *dst, socklen_t size)
 				}
 			continue;
 		}
+
 		/* Are we following an initial run of 0x00s or any real hex? */
 		if (i != 0)
+			{
 			*tp++ = ':';
+			remaining--;
+			}
+
 		/* Is this address an encapsulated IPv4? */
 		if (i == 6 && best.base == 0 && (best.len == 6 ||
 		    (best.len == 7 && words[7] != 0x0001) ||
@@ -174,21 +179,39 @@ zeek_inet_ntop6(const u_char *src, char *dst, socklen_t size)
 			remaining -= strlen(tp);
 			break;
 		}
-		tp += snprintf(tp, remaining, "%x", words[i]);
-	}
-	/* Was it a trailing run of 0x00's? */
-	if (best.base != -1 && (best.base + best.len) ==
-	    (NS_IN6ADDRSZ / NS_INT16SZ))
-		*tp++ = ':';
-	*tp++ = '\0';
 
-	/*
-	 * Check for overflow, copy, and we're done.
-	 */
-	if ((socklen_t)(tp - tmp) > size) {
+		// snprintf() returns the number of characters that were written not
+		// including the null character. We can use that to increase the
+		// pointer as we're moving forward. Unfortunately, snprintf() can also
+		// return more than the value passed if it would have stepped off the
+		// end.
+		int ret = snprintf(tp, remaining, "%x" , words[i]);
+		if ( ret < remaining )
+			tp += ret;
+
+		// Even if we returned too much data, subtract from remaining so that
+		// the failure cases below get triggered.
+		remaining -= ret;
+	}
+
+	/* Was it a trailing run of 0x00's? */
+	if (remaining >= 2 &&
+	    best.base != -1 &&
+	    (best.base + best.len) == (NS_IN6ADDRSZ / NS_INT16SZ)) {
+		*tp++ = ':';
+		remaining--;
+	}
+
+	if ( remaining >= 1 ) {
+		*tp++ = '\0';
+		remaining--;
+	}
+
+	else if ( remaining <= 0 ) {
 		errno = ENOSPC;
 		return (NULL);
 	}
+
 	strcpy(dst, tmp);
 	return (dst);
 }

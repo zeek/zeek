@@ -6,6 +6,13 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 6.0.0
 ==========
 
+New Functionality
+-----------------
+
+- Introduce a new command-line option ``-V`` / ``--build-info``. It produces
+  verbose output in JSON format about the repository state and any included
+  plugins.
+
 Changed Functionality
 ---------------------
 

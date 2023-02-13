@@ -108,6 +108,7 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "       --no-unused-warnings         | suppress warnings of unused "
 	                "functions/hooks/events\n");
 	fprintf(stderr, "    -v|--version                    | print version and exit\n");
+	fprintf(stderr, "    -V|--build-info                 | print build information and exit\n");
 	fprintf(stderr, "    -w|--writefile <writefile>      | write to given tcpdump file\n");
 #ifdef DEBUG
 	fprintf(stderr, "    -B|--debug <dbgstreams>         | Enable debugging output for selected "
@@ -387,6 +388,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"writefile", required_argument, nullptr, 'w'},
 		{"usage-issues", no_argument, nullptr, 'u'},
 		{"version", no_argument, nullptr, 'v'},
+		{"build-info", no_argument, nullptr, 'V'},
 		{"no-checksums", no_argument, nullptr, 'C'},
 		{"force-dns", no_argument, nullptr, 'F'},
 		{"deterministic", no_argument, nullptr, 'D'},
@@ -421,7 +423,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:c:E:e:f:G:H:I:i:j::n:O:0:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuv",
+	util::safe_strncpy(opts, "B:c:E:e:f:G:H:I:i:j::n:O:0:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuvV",
 	                   sizeof(opts));
 
 	int op;
@@ -512,6 +514,9 @@ Options parse_cmdline(int argc, char** argv)
 				break;
 			case 'v':
 				rval.print_version = true;
+				break;
+			case 'V':
+				rval.print_build_info = true;
 				break;
 			case 'w':
 				rval.pcap_output_file = optarg;

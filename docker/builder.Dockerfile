@@ -13,6 +13,7 @@ RUN apt-get -q update \
      flex \
      g++ \
      gcc \
+     git \
      libfl2 \
      libfl-dev \
      libmaxminddb-dev \

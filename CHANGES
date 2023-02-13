@@ -1,3 +1,12 @@
+6.0.0-dev.33 | 2023-02-13 12:56:01 +0100
+
+  * GH-1405: Add zeek -V/--build-info (Arne Welzel, Corelight)
+
+    This adds a new utility called ci/collect-repo-info.py to produce a JSON
+    document that is then baked into the Zeek executable file. Further, when
+    creating a tarball via `make dist`, put a top-level repo-info.json file
+    in place that is picked when no .git directory exists.
+
 6.0.0-dev.30 | 2023-02-13 12:10:50 +0100
 
   * docker/Makefile: Remove stray quotes, unused DOCKER (Arne Welzel, Corelight)

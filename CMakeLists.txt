@@ -859,6 +859,22 @@ foreach(plugin_dir ${_build_in_plugins})
 endforeach()
 
 ########################################################################
+## Populate the ZEEK_BUILD_INFO for use in src/version.c.in
+execute_process(COMMAND "${PROJECT_SOURCE_DIR}/ci/collect-repo-info.py" "${ZEEK_INCLUDE_PLUGINS}"
+                WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+                OUTPUT_VARIABLE ZEEK_BUILD_INFO
+                RESULT_VARIABLE ZEEK_BUILD_INFO_RESULT
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+if ( NOT ZEEK_BUILD_INFO_RESULT EQUAL "0" )
+    message( FATAL_ERROR "Could not collect repository info")
+endif ()
+
+# string(JSON ... ) requires CMake 3.19, but then we could do something like:
+# string(JSON ZEEK_BUILD_INFO SET "${ZEEK_BUILD_INFO}"
+#        compile_options cxx_flags "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}")
+
+########################################################################
 ## Recurse on sub-directories
 
 add_subdirectory(src)

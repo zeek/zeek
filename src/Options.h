@@ -32,6 +32,7 @@ struct Options
 	void filter_supervised_node_options();
 
 	bool print_version = false;
+	bool print_build_info = false;
 	bool print_usage = false;
 	bool print_execution_time = false;
 	bool print_signature_debug_info = false;

@@ -1,3 +1,24 @@
+6.0.0-dev.30 | 2023-02-13 12:10:50 +0100
+
+  * docker/Makefile: Remove stray quotes, unused DOCKER (Arne Welzel, Corelight)
+
+  * cirrus/container: Polish, fix and automated pushing of images (Arne Welzel, Corelight)
+
+    * Add ci/find-current-version.sh to figure out versions of lts and
+      feature branch based on repository state.
+
+    * Do not use ZEEK_IMAGE_REPO for the local images that
+      are expected to exist.
+
+    * Only use IMAGE_NAME/IMAGE_TAG instead of the ARCH and MANIFEST
+      versions that contained the very same values
+
+    * Support and push additional tags
+
+      In addition to the lts and feature tags, also push the base version
+      tags. 5.0 or 5.1 such that someone pulling zeek/zeek:5.0 will get
+      the most recent available 5.0 patch release.
+
 6.0.0-dev.27 | 2023-02-11 22:07:31 -0700
 
   * better error reporting when ZAM code calls a function (Vern Paxson, Corelight)

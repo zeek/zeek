@@ -15,34 +15,44 @@ The maintenance workflow:
     to check in updates to the list of how the compiler currently fares
     on various btests (see end of this doc):
 
-	Thu Jan 12 14:05:26 PST 2023
+	Tue Feb 14 15:15:27 PST 2023
 
-2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
+2.  Make sure the compiler can compile and execute the base scripts:
+
+	echo | src/zeek -O gen-C++
+	ninja
+	src/zeek -O use-C++ -r some.pcap
+
+    Do this first because if it can't, you'll be making changes to the
+    compiler that you'll want to subsequent run against the test suite,
+    per the following.
+
+3.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.
 
-3.  For each such Zeek file, run "check-zeek.sh" to see whether Zeek can
+4.  For each such Zeek file, run "check-zeek.sh" to see whether Zeek can
     parse it.  This helps remove from further consideration difficult
     tests (like those that have embedded input files, or multiple separate
     scripts).
 
-4.  "mkdir CPP-test" - a directory for holding results relating to C++ testing
+5.  "mkdir CPP-test" - a directory for holding results relating to C++ testing
 
-5.  Run "check-CPP-gen.sh" for each Zeek file that passed "check-zeek.sh".
+6.  Run "check-CPP-gen.sh" for each Zeek file that passed "check-zeek.sh".
     This will generate a corresponding file in CPP-test/out* indicating whether
     "-O gen-C++" can successfully run on the input.  Presently, it should
     be able to do so for all of them, other than some exceptions noted below.
 
     This step is parallelizable, say using xargs -P 10.
 
-6.  Copy ./src/zeek to ./zeek.HOLD.  This is used to speed up recompilation used
+7.  Copy ./src/zeek to ./zeek.HOLD.  This is used to speed up recompilation used
     in the next step.  However, it's also a headache to do development to
     fix a bug and then forget to update zeek.HOLD, which means you wind up
     running the old version.  You can combat that by removing ./zeek.HOLD
     every time you start working on fixing a bug.
 
-7.  Use the appended database to remove inputs that have known issues.
+8.  Use the appended database to remove inputs that have known issues.
 
-8.  For every input that survives that pruning, run "do-CPP-btest.sh".
+9.  For every input that survives that pruning, run "do-CPP-btest.sh".
     This will generate C++ for the BTest, compile it, and run the result
     to see if it succeeds.  It populates CPP-test/diag* with the Btest
     diagnostic output (empty means success).  For non-empty output,

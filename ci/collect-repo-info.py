@@ -21,8 +21,16 @@ GIT = "git"
 logger = logging.getLogger(__name__)
 
 
-def git(*args):
-    return subprocess.check_output([GIT, *args]).decode("utf-8")
+def git(*args, **kwargs):
+    return subprocess.check_output([GIT, *args], **kwargs).decode("utf-8")
+
+
+def git_is_repo(d: pathlib.Path):
+    try:
+        git("-C", str(d), "rev-parse", "--is-inside-work-tree", stderr=subprocess.DEVNULL)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 
 def git_is_dirty(d: pathlib.Path):
@@ -111,7 +119,7 @@ def collect_plugin_info(plugin_dir: pathlib.Path):
     except FileNotFoundError:
         logger.warning("No VERSION found in %s", plugin_dir)
 
-    if (plugin_dir / ".git").exists():
+    if git_is_repo(plugin_dir):
         result.update(git_generic_info(plugin_dir))
 
     return result
@@ -151,7 +159,7 @@ def main():
     # Attempt to collect info from git first and alternatively
     # fall back to a repo-info.json file within what is assumed
     # to be a tarball.
-    if (zeek_dir / ".git").is_dir():
+    if git_is_repo(zeek_dir):
         info = collect_git_info(zeek_dir)
     elif not args.only_git:
         try:

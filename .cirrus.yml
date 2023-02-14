@@ -391,7 +391,6 @@ windows_task:
     # Give verbose error output on a test failure.
     CTEST_OUTPUT_ON_FAILURE: 1
   << : *BRANCH_WHITELIST
-  << : *SKIP_TASK_ON_PR
 
 
 # Container images

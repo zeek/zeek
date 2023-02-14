@@ -1,3 +1,18 @@
+6.0.0-dev.38 | 2023-02-14 07:35:50 -0700
+
+  * Call AnalyzerConfirmation earlier in VXLAN/Geneve analysis (Tim Wojtulewicz, Corelight)
+
+  * Add validation of session to start of AYIYA/VXLAN/Geneve analysis (Tim Wojtulewicz, Corelight)
+
+    This mimics how the Teredo analyzer is already doing it, including
+    sending a weird if the session is invalid and bailing out if the
+    protocol was already violated.
+
+  * ci/collect-repo-info.py: Recognize git worktrees, too (Arne Welzel, Corelight)
+
+    Benjamin reported ci/collect-repo-info.py failing for him in
+    Git worktrees, use `git` to actually check if we're in a repo.
+
 6.0.0-dev.33 | 2023-02-13 12:56:01 +0100
 
   * GH-1405: Add zeek -V/--build-info (Arne Welzel, Corelight)

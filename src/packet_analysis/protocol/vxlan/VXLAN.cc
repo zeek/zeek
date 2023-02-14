@@ -11,6 +11,17 @@ VXLAN_Analyzer::VXLAN_Analyzer() : zeek::packet_analysis::Analyzer("VXLAN") { }
 
 bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
+	// VXLAN always comes from a UDP connection, which means that session should always
+	// be valid and always be a connection. Return a weird if we didn't have a session
+	// stored.
+	if ( ! packet->session )
+		{
+		Analyzer::Weird("vxlan_missing_connection");
+		return false;
+		}
+	else if ( AnalyzerViolated(packet->session) )
+		return false;
+
 	if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
 		Weird("exceeded_tunnel_max_depth", packet);
@@ -36,6 +47,9 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 	len -= hdr_size;
 	data += hdr_size;
 
+	// We've successfully parsed everything, so we might as well confirm this.
+	AnalyzerConfirmation(packet->session);
+
 	int encap_index = 0;
 	auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(
 		packet, &encap_index, nullptr, len, data, DLT_RAW, BifEnum::Tunnel::VXLAN,
@@ -45,18 +59,12 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 	if ( len > hdr_size )
 		fwd_ret_val = ForwardPacket(len, data, inner_packet.get());
 
-	if ( fwd_ret_val )
+	if ( fwd_ret_val && vxlan_packet )
 		{
-		AnalyzerConfirmation(packet->session);
-
-		if ( vxlan_packet && packet->session )
-			{
-			EncapsulatingConn* ec = inner_packet->encap->At(encap_index);
-			if ( ec && ec->ip_hdr )
-				inner_packet->session->EnqueueEvent(vxlan_packet, nullptr,
-				                                    packet->session->GetVal(),
-				                                    ec->ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
-			}
+		EncapsulatingConn* ec = inner_packet->encap->At(encap_index);
+		if ( ec && ec->ip_hdr )
+			inner_packet->session->EnqueueEvent(vxlan_packet, nullptr, packet->session->GetVal(),
+			                                    ec->ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
 		}
 
 	return fwd_ret_val;

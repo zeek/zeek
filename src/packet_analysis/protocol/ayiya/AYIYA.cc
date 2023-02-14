@@ -13,6 +13,17 @@ bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
 	if ( ! BifConst::Tunnel::enable_ayiya )
 		return false;
 
+	// AYIYA always comes from a TCP or UDP connection, which means that session
+	// should always be valid and always be a connection. Return a weird if we
+	// didn't have a session stored.
+	if ( ! packet->session )
+		{
+		Analyzer::Weird("ayiya_missing_connection");
+		return false;
+		}
+	else if ( AnalyzerViolated(packet->session) )
+		return false;
+
 	if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
 		Weird("exceeded_tunnel_max_depth", packet);

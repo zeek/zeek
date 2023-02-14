@@ -11,6 +11,17 @@ GeneveAnalyzer::GeneveAnalyzer() : zeek::packet_analysis::Analyzer("Geneve") { }
 
 bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
+	// Geneve always comes from a UDP connection, which means that session should always
+	// be valid and always be a connection. Return a weird if we didn't have a session
+	// stored.
+	if ( ! packet->session )
+		{
+		Analyzer::Weird("geneve_missing_connection");
+		return false;
+		}
+	else if ( AnalyzerViolated(packet->session) )
+		return false;
+
 	if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
 		Weird("exceeded_tunnel_max_depth", packet);
@@ -59,6 +70,9 @@ bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 	len -= hdr_size;
 	data += hdr_size;
 
+	// We've successfully parsed everything, so we might as well confirm this.
+	AnalyzerConfirmation(packet->session);
+
 	int encap_index = 0;
 	auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(
 		packet, &encap_index, nullptr, len, data, DLT_RAW, BifEnum::Tunnel::GENEVE,
@@ -70,21 +84,13 @@ bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 	if ( len > hdr_size )
 		fwd_ret_val = ForwardPacket(len, data, inner_packet.get(), next_header);
 
-	if ( fwd_ret_val )
+	if ( fwd_ret_val && geneve_packet )
 		{
-		AnalyzerConfirmation(packet->session);
-
-		if ( geneve_packet && packet->session )
-			{
-			EncapsulatingConn* ec = inner_packet->encap->At(encap_index);
-			if ( ec && ec->ip_hdr )
-				inner_packet->session->EnqueueEvent(geneve_packet, nullptr,
-				                                    packet->session->GetVal(),
-				                                    ec->ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
-			}
+		EncapsulatingConn* ec = inner_packet->encap->At(encap_index);
+		if ( ec && ec->ip_hdr )
+			inner_packet->session->EnqueueEvent(geneve_packet, nullptr, packet->session->GetVal(),
+			                                    ec->ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
 		}
-	else
-		AnalyzerViolation("Geneve invalid inner packet", packet->session);
 
 	return fwd_ret_val;
 	}

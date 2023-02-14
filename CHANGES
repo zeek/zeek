@@ -1,3 +1,7 @@
+6.0.0-dev.41 | 2023-02-14 13:18:11 -0800
+
+  * Bump external zeek-testing commit hash to bring it up to master (Christian Kreibich, Corelight)
+
 6.0.0-dev.40 | 2023-02-14 07:39:06 -0700
 
   * HashKey: Do not call Describe() unconditionally in DEBUG mode (Arne Welzel, Corelight)

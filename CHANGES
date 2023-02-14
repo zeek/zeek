@@ -1,3 +1,11 @@
+6.0.0-dev.40 | 2023-02-14 07:39:06 -0700
+
+  * HashKey: Do not call Describe() unconditionally in DEBUG mode (Arne Welzel, Corelight)
+
+    An unnecessary overhead of the Hash() method was uncovered for DEBUG builds
+    due to computing a description of every HashKey() even when the DBG_HASHKEY
+    stream is not enabled. Squelch it.
+
 6.0.0-dev.38 | 2023-02-14 07:35:50 -0700
 
   * Call AnalyzerConfirmation earlier in VXLAN/Geneve analysis (Tim Wojtulewicz, Corelight)

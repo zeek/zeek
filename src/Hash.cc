@@ -213,9 +213,12 @@ hash_t HashKey::Hash() const
 	if ( hash == 0 )
 		hash = HashBytes(key, size);
 #ifdef DEBUG
-	ODesc d;
-	Describe(&d);
-	DBG_LOG(DBG_HASHKEY, "HashKey %p %s", this, d.Description());
+	if ( zeek::detail::debug_logger.IsEnabled(DBG_HASHKEY) )
+		{
+		ODesc d;
+		Describe(&d);
+		DBG_LOG(DBG_HASHKEY, "HashKey %p %s", this, d.Description());
+		}
 #endif
 	return hash;
 	}

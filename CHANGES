@@ -1,3 +1,11 @@
+5.0.6-4 | 2023-02-14 07:43:01 -0700
+
+  * Bump spicy-plugin to v1.3.23. (Benjamin Bannier, Corelight)
+
+  * CI: Call 'brew install' for macOS to ensure we're using openssl@3 on all hosts (Tim Wojtulewicz, Corelight)
+
+  * Add LTS tag to docker image builder workflow (Tim Wojtulewicz, Corelight)
+
 5.0.6 | 2023-02-01 07:51:36 -0700
 
   * Update CHANGES, VERSION, and NEWS for 5.0.6 release (Tim Wojtulewicz, Corelight)

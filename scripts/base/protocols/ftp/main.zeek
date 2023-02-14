@@ -57,6 +57,24 @@ export {
 	## sends a reply. If this value is exceeded a weird named
 	## FTP_too_many_pending_commands is logged for the connection.
 	option max_pending_commands = 20;
+
+	## Truncate the user field in the log to that many bytes to avoid
+	## excessive logging volume as this values is replicated in each
+	## of the entries related to an FTP session.
+	option max_user_length = 128;
+
+	## Truncate the password field in the log to that many bytes to avoid
+	## excessive logging volume as this values is replicated in each
+	## of the entries related to an FTP session.
+	option max_password_length = 128;
+
+	## Truncate the arg field in the log to that many bytes to avoid
+	## excessive logging volume.
+	option max_arg_length = 4096;
+
+	## Truncate the reply_msg field in the log to that many bytes to avoid
+	## excessive logging volume.
+	option max_reply_msg_length = 4096;
 }
 
 # Add the state tracking information variable to the connection record
@@ -151,14 +169,30 @@ function set_ftp_session(c: connection)
 		}
 	}
 
-function ftp_message(s: Info)
+function ftp_message(c: connection)
 	{
+	if ( ! c?$ftp ) return;
+	local s: Info = c$ftp;
 	s$ts=s$cmdarg$ts;
 	s$command=s$cmdarg$cmd;
 
 	s$arg = s$cmdarg$arg;
 	if ( s$cmdarg$cmd in file_cmds )
 		s$arg = build_url_ftp(s);
+
+	# Avoid logging arg or reply_msg that are too big.
+	if ( |s$arg| > max_arg_length )
+		{
+		Reporter::conn_weird("FTP_arg_too_long", c, cat(|s$arg|), "FTP");
+		s$arg = s$arg[:max_arg_length];
+		}
+
+	if ( s?$reply_msg && |s$reply_msg| > max_reply_msg_length )
+		{
+		Reporter::conn_weird("FTP_reply_msg_too_long", c, cat(|s$reply_msg|), "FTP");
+		s$reply_msg = s$reply_msg[:max_reply_msg_length];
+		}
+
 
 	if ( s$arg == "" )
 		delete s$arg;
@@ -228,7 +262,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 	if ( c?$ftp && c$ftp?$cmdarg && c$ftp?$reply_code )
 		{
 		remove_pending_cmd(c$ftp$pending_commands, c$ftp$cmdarg);
-		ftp_message(c$ftp);
+		ftp_message(c);
 		}
 
 	local id = c$id;
@@ -242,11 +276,25 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 				     cat(|c$ftp$pending_commands|), "FTP");
 
 	if ( command == "USER" )
+		{
+		if ( |arg| > max_user_length )
+			{
+			Reporter::conn_weird("FTP_user_too_long", c, cat(|arg|), "FTP");
+			arg = arg[:max_user_length];
+			}
+
 		c$ftp$user = arg;
-
+		}
 	else if ( command == "PASS" )
-		c$ftp$password = arg;
+		{
+		if ( |arg| > max_password_length )
+			{
+			Reporter::conn_weird("FTP_password_too_long", c, cat(|arg|), "FTP");
+			arg = arg[:max_password_length];
+			}
 
+		c$ftp$password = arg;
+		}
 	else if ( command == "PORT" || command == "EPRT" )
 		{
 		local data = (command == "PORT") ?
@@ -331,7 +379,7 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 	if ( |c$ftp$pending_commands| > 1 )
 		{
 		remove_pending_cmd(c$ftp$pending_commands, c$ftp$cmdarg);
-		ftp_message(c$ftp);
+		ftp_message(c);
 		}
 	}
 
@@ -382,6 +430,6 @@ hook finalize_ftp(c: connection)
 	for ( ca, cmdarg in c$ftp$pending_commands )
 		{
 		c$ftp$cmdarg = cmdarg;
-		ftp_message(c$ftp);
+		ftp_message(c);
 		}
 	}

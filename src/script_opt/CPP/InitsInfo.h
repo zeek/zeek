@@ -116,7 +116,7 @@ public:
 	// The largest initialization cohort of any item in this collection.
 	int MaxCohort() const { return static_cast<int>(instances.size()) - 1; }
 
-	// Returns the number of initializations in this collection that below
+	// Returns the number of initializations in this collection that belong
 	// to the given cohort c.
 	int CohortSize(int c) const { return c > MaxCohort() ? 0 : instances[c].size(); }
 
@@ -258,9 +258,8 @@ public:
 class CPP_InitInfo
 	{
 public:
-	// No constructor - basic initialization happens when the object is
-	// added via AddInstance() to a CPP_InitsInfo object, which in turn
-	// will lead to invocation of this object's SetOffset() method.
+	CPP_InitInfo(const IntrusivePtr<Obj>& _o) : o(_o.get()) { }
+	CPP_InitInfo(const Obj* _o) : o(_o) { }
 
 	virtual ~CPP_InitInfo() { }
 
@@ -282,12 +281,18 @@ public:
 	// Returns this item's initialization cohort.
 	int InitCohort() const { return init_cohort; }
 
+	// Returns this item's "final" initialization cohort.  See
+	// discussion below.
+	int FinalInitCohort() const { return final_init_cohort ? final_init_cohort : init_cohort; }
+
 	// Returns the type used for this initializer.
 	virtual std::string InitializerType() const { return "<shouldn't-be-used>"; }
 
 	// Returns values used for creating this value, one element per
 	// constructor parameter.
 	virtual void InitializerVals(std::vector<std::string>& ivs) const = 0;
+
+	const Obj* InitObj() const { return o; }
 
 protected:
 	// Returns an offset (into the run-time vector holding all Zeek
@@ -300,18 +305,27 @@ protected:
 	// value in their constructors.
 	int init_cohort = 0;
 
+	// Some initializers (record and list types, in particular) become
+	// available for other initializers to use them after the first
+	// cohort is initialized; however, the final initialization comes
+	// later.  If non-zero, this variable tracks the latter.
+	int final_init_cohort = 0;
+
 	// Tracks the collection to which this item belongs.
 	const CPP_InitsInfo* inits_collection = nullptr;
 
 	// Offset of this item in the collection, or -1 if no association.
 	int offset = -1;
+
+	// Associated object.  Used for annotating output.
+	const Obj* o;
 	};
 
 // Information associated with initializing a basic (non-compound) constant.
 class BasicConstInfo : public CPP_InitInfo
 	{
 public:
-	BasicConstInfo(std::string _val) : val(std::move(_val)) { }
+	BasicConstInfo(std::string _val) : CPP_InitInfo(nullptr), val(std::move(_val)) { }
 
 	void InitializerVals(std::vector<std::string>& ivs) const override { ivs.emplace_back(val); }
 
@@ -386,7 +400,10 @@ private:
 class PortConstInfo : public CPP_InitInfo
 	{
 public:
-	PortConstInfo(ValPtr v) : p(static_cast<UnsignedValImplementation*>(v->AsPortVal())->Get()) { }
+	PortConstInfo(ValPtr v)
+		: CPP_InitInfo(v), p(static_cast<UnsignedValImplementation*>(v->AsPortVal())->Get())
+		{
+		}
 
 	void InitializerVals(std::vector<std::string>& ivs) const override
 		{
@@ -404,7 +421,7 @@ public:
 	// The first of these is used for items with custom Zeek types,
 	// the second when the type is generic/inapplicable.
 	CompoundItemInfo(CPPCompile* c, ValPtr v);
-	CompoundItemInfo(CPPCompile* _c) : c(_c) { type = -1; }
+	CompoundItemInfo(CPPCompile* _c) : CPP_InitInfo(nullptr), c(_c) { type = -1; }
 
 	void InitializerVals(std::vector<std::string>& ivs) const override
 		{
@@ -545,7 +562,7 @@ protected:
 class AbstractTypeInfo : public CPP_InitInfo
 	{
 public:
-	AbstractTypeInfo(CPPCompile* _c, TypePtr _t) : c(_c), t(std::move(_t)) { }
+	AbstractTypeInfo(CPPCompile* _c, TypePtr _t) : CPP_InitInfo(_t), c(_c), t(std::move(_t)) { }
 
 	void InitializerVals(std::vector<std::string>& ivs) const override
 		{

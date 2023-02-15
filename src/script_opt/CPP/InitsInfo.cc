@@ -18,14 +18,14 @@ string CPP_InitsInfo::Name(int index) const
 
 void CPP_InitsInfo::AddInstance(shared_ptr<CPP_InitInfo> g)
 	{
-	auto init_cohort = g->InitCohort();
+	auto final_init_cohort = g->FinalInitCohort();
 
-	if ( static_cast<int>(instances.size()) <= init_cohort )
-		instances.resize(init_cohort + 1);
+	if ( static_cast<int>(instances.size()) <= final_init_cohort )
+		instances.resize(final_init_cohort + 1);
 
 	g->SetOffset(this, size++);
 
-	instances[init_cohort].push_back(move(g));
+	instances[final_init_cohort].push_back(move(g));
 	}
 
 string CPP_InitsInfo::Declare() const
@@ -47,9 +47,14 @@ void CPP_InitsInfo::GenerateInitializers(CPPCompile* c)
 	c->IndentUp();
 	c->Emit("{");
 
+	int n = 0;
+
 	// Add each cohort as a vector element.
 	for ( auto& cohort : instances )
 		{
+		if ( ++n > 1 )
+			c->Emit("");
+
 		c->Emit("{");
 		BuildCohort(c, cohort);
 		c->Emit("},");
@@ -83,11 +88,17 @@ void CPP_InitsInfo::BuildOffsetSet(CPPCompile* c)
 
 void CPP_InitsInfo::BuildCohort(CPPCompile* c, std::vector<std::shared_ptr<CPP_InitInfo>>& cohort)
 	{
+	int n = 0;
+
 	for ( auto& co : cohort )
 		{
 		vector<string> ivs;
+		auto o = co->InitObj();
+		if ( o )
+			c->Emit("/* #%s: Initializing %s: */", Fmt(co->Offset()), obj_desc(o));
 		co->InitializerVals(ivs);
 		BuildCohortElement(c, co->InitializerType(), ivs);
+		++n;
 		}
 	}
 
@@ -137,7 +148,7 @@ string CPP_InitInfo::ValElem(CPPCompile* c, ValPtr v)
 		return Fmt(-1);
 	}
 
-DescConstInfo::DescConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo()
+DescConstInfo::DescConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v)
 	{
 	ODesc d;
 	v->Describe(&d);
@@ -145,7 +156,7 @@ DescConstInfo::DescConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo()
 	init = Fmt(s);
 	}
 
-EnumConstInfo::EnumConstInfo(CPPCompile* c, ValPtr v)
+EnumConstInfo::EnumConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v)
 	{
 	auto ev = v->AsEnumVal();
 	auto& ev_t = ev->GetType();
@@ -154,7 +165,7 @@ EnumConstInfo::EnumConstInfo(CPPCompile* c, ValPtr v)
 	e_val = v->AsEnum();
 	}
 
-StringConstInfo::StringConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo()
+StringConstInfo::StringConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v)
 	{
 	auto s = v->AsString();
 	const char* b = (const char*)(s->Bytes());
@@ -163,7 +174,7 @@ StringConstInfo::StringConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo()
 	chars = c->TrackString(CPPEscape(b, len));
 	}
 
-PatternConstInfo::PatternConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo()
+PatternConstInfo::PatternConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v)
 	{
 	auto re = v->AsPatternVal()->Get();
 	pattern = c->TrackString(CPPEscape(re->OrigText()));
@@ -171,7 +182,7 @@ PatternConstInfo::PatternConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo()
 	is_single_line = re->IsSingleLine();
 	}
 
-CompoundItemInfo::CompoundItemInfo(CPPCompile* _c, ValPtr v) : CPP_InitInfo(), c(_c)
+CompoundItemInfo::CompoundItemInfo(CPPCompile* _c, ValPtr v) : CPP_InitInfo(v), c(_c)
 	{
 	auto& t = v->GetType();
 	type = c->TypeOffset(t);
@@ -330,7 +341,7 @@ AttrsInfo::AttrsInfo(CPPCompile* _c, const AttributesPtr& _attrs) : CompoundItem
 	}
 
 GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
-	: CPP_InitInfo(), CPP_name(move(_CPP_name))
+	: CPP_InitInfo(g), CPP_name(move(_CPP_name))
 	{
 	Zeek_name = g->Name();
 
@@ -369,7 +380,7 @@ void GlobalInitInfo::InitializerVals(std::vector<std::string>& ivs) const
 	}
 
 CallExprInitInfo::CallExprInitInfo(CPPCompile* c, ExprPtr _e, string _e_name, string _wrapper_class)
-	: e(move(_e)), e_name(move(_e_name)), wrapper_class(move(_wrapper_class))
+	: CPP_InitInfo(_e), e(move(_e)), e_name(move(_e_name)), wrapper_class(move(_wrapper_class))
 	{
 	auto gi = c->RegisterType(e->GetType());
 	init_cohort = max(init_cohort, gi->InitCohort() + 1);
@@ -378,7 +389,8 @@ CallExprInitInfo::CallExprInitInfo(CPPCompile* c, ExprPtr _e, string _e_name, st
 LambdaRegistrationInfo::LambdaRegistrationInfo(CPPCompile* c, string _name, FuncTypePtr ft,
                                                string _wrapper_class, p_hash_type _h,
                                                bool _has_captures)
-	: name(move(_name)), wrapper_class(move(_wrapper_class)), h(_h), has_captures(_has_captures)
+	: CPP_InitInfo(ft), name(move(_name)), wrapper_class(move(_wrapper_class)), h(_h),
+	  has_captures(_has_captures)
 	{
 	auto gi = c->RegisterType(ft);
 	init_cohort = max(init_cohort, gi->InitCohort() + 1);
@@ -440,22 +452,27 @@ void VectorTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 ListTypeInfo::ListTypeInfo(CPPCompile* _c, TypePtr _t)
 	: AbstractTypeInfo(_c, move(_t)), types(t->AsTypeList()->GetTypes())
 	{
+	// Note, we leave init_cohort at 0 because the skeleton of this type
+	// is built in the first cohort.
 	for ( auto& tl_i : types )
 		{
 		auto gi = c->RegisterType(tl_i);
 		if ( gi )
-			init_cohort = max(init_cohort, gi->InitCohort());
+			final_init_cohort = max(final_init_cohort, gi->InitCohort());
 		}
 
 	if ( ! types.empty() )
-		++init_cohort;
+		++final_init_cohort;
 	}
 
 void ListTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 	{
 	string type_list;
 	for ( auto& t : types )
-		ivs.emplace_back(Fmt(c->TypeOffset(t)));
+		{
+		auto iv = Fmt(c->TypeOffset(t));
+		ivs.emplace_back(iv);
+		}
 	}
 
 TableTypeInfo::TableTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))
@@ -512,6 +529,8 @@ void FuncTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 
 RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))
 	{
+	// Note, we leave init_cohort at 0 because the skeleton of this type
+	// is built in the first cohort.
 	auto r = t->AsRecordType()->Types();
 
 	if ( ! r )
@@ -523,7 +542,7 @@ RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c
 
 		auto gi = c->RegisterType(r_i->type);
 		if ( gi )
-			init_cohort = max(init_cohort, gi->InitCohort());
+			final_init_cohort = max(final_init_cohort, gi->InitCohort());
 		// else it's a recursive type, no need to adjust cohort here
 
 		field_types.push_back(r_i->type);
@@ -531,7 +550,7 @@ RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c
 		if ( r_i->attrs )
 			{
 			gi = c->RegisterAttributes(r_i->attrs);
-			init_cohort = max(init_cohort, gi->InitCohort() + 1);
+			final_init_cohort = max(final_init_cohort, gi->InitCohort() + 1);
 			field_attrs.push_back(gi->Offset());
 			}
 		else

@@ -202,12 +202,8 @@ std::shared_ptr<zeek::detail::SampleLogger> zeek::detail::sample_logger;
 zeek::detail::FragmentManager* zeek::detail::fragment_mgr = nullptr;
 
 int signal_val = 0;
-#ifdef _MSC_VER
-char version[] = VERSION;
-#else
-extern char version[];
-#endif
-extern const char zeek_build_info[];
+extern "C" char version[];
+extern "C" const char zeek_build_info[];
 
 const char* zeek::detail::command_line_policy = nullptr;
 vector<string> zeek::detail::params;

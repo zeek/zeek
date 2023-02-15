@@ -1255,7 +1255,11 @@ TableValPtr DNS_Mgr::LookupNameInCache(const std::string& name, bool cleanup_exp
 	if ( cleanup_expired && (d && d->Expired()) )
 		{
 		all_mappings.erase(it);
-		return nullptr;
+
+		// If the TTL is zero, we're immediately expiring the response. We don't want
+		// to return though because the response was valid for a brief moment in time.
+		if ( d->TTL() != 0 )
+			return nullptr;
 		}
 
 	if ( check_failed && (d && d->Failed()) )
@@ -1278,7 +1282,11 @@ StringValPtr DNS_Mgr::LookupAddrInCache(const IPAddr& addr, bool cleanup_expired
 	if ( cleanup_expired && d->Expired() )
 		{
 		all_mappings.erase(it);
-		return nullptr;
+
+		// If the TTL is zero, we're immediately expiring the response. We don't want
+		// to return though because the response was valid for a brief moment in time.
+		if ( d->TTL() != 0 )
+			return nullptr;
 		}
 	else if ( check_failed && d->Failed() )
 		{
@@ -1305,7 +1313,11 @@ StringValPtr DNS_Mgr::LookupOtherInCache(const std::string& name, int request_ty
 	if ( cleanup_expired && d->Expired() )
 		{
 		all_mappings.erase(it);
-		return nullptr;
+
+		// If the TTL is zero, we're immediately expiring the response. We don't want
+		// to return though because the response was valid for a brief moment in time.
+		if ( d->TTL() != 0 )
+			return nullptr;
 		}
 
 	if ( d->Host() )

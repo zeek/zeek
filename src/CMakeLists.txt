@@ -520,6 +520,8 @@ target_compile_features(zeek_objs PRIVATE ${ZEEK_CXX_STD})
 set_target_properties(zeek_objs PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
+target_compile_definitions(zeek_objs PRIVATE OPENTELEMETRY_STL_VERSION=2017)
+target_compile_definitions(zeek_objs PRIVATE OPENTELEMETRY_ABI_VERSION_NO=1)
 add_dependencies(zeek_objs zeek_autogen_files)
 zeek_target_link_libraries(zeek_objs)
 

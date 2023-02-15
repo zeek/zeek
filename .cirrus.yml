@@ -595,7 +595,9 @@ cluster_testing_docker_builder:
     - zstd -d < /tmp/zeek-image-cache-amd64/final.zst | docker load
     - docker tag zeek/zeek-multiarch:amd64 zeektest:latest
   test_script:
-    - cd testing/external/zeek-testing-cluster && make
+    # Invoke btest directly here. This mirrors ci/test.sh, ensures we don't
+    # accidentally build a Docker image, and enables console-level output:
+    - cd testing/external/zeek-testing-cluster && ../../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
   on_failure:
     upload_cluster_testing_artifacts:
       path: "testing/external/zeek-testing-cluster/.tmp/**"

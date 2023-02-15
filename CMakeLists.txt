@@ -860,14 +860,26 @@ endforeach()
 
 ########################################################################
 ## Populate the ZEEK_BUILD_INFO for use in src/version.c.in
-execute_process(COMMAND "${PROJECT_SOURCE_DIR}/ci/collect-repo-info.py" "${ZEEK_INCLUDE_PLUGINS}"
-                WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-                OUTPUT_VARIABLE ZEEK_BUILD_INFO
-                RESULT_VARIABLE ZEEK_BUILD_INFO_RESULT
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+if ( WIN32 )
+  # Windows installs Python to C:\Python311\python, but doesn't create a version
+  # or symlink to python3. Call python with the script directly since the shebang
+  # in the script won't work here.
+  execute_process(COMMAND "python" "${PROJECT_SOURCE_DIR}/ci/collect-repo-info.py" "${ZEEK_INCLUDE_PLUGINS}"
+                  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+                  OUTPUT_VARIABLE ZEEK_BUILD_INFO
+                  RESULT_VARIABLE ZEEK_BUILD_INFO_RESULT
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+else()
+  execute_process(COMMAND "${PROJECT_SOURCE_DIR}/ci/collect-repo-info.py" "${ZEEK_INCLUDE_PLUGINS}"
+                  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+                  OUTPUT_VARIABLE ZEEK_BUILD_INFO
+                  RESULT_VARIABLE ZEEK_BUILD_INFO_RESULT
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
 
 if ( NOT ZEEK_BUILD_INFO_RESULT EQUAL "0" )
-    message( FATAL_ERROR "Could not collect repository info")
+  message(FATAL_ERROR "Could not collect repository info")
 endif ()
 
 # string(JSON ... ) requires CMake 3.19, but then we could do something like:

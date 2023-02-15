@@ -1,3 +1,13 @@
+6.0.0-dev.52 | 2023-02-15 11:12:28 -0700
+
+  * Fix linking of zeek_build_info on Windows (Tim Wojtulewicz)
+
+  * CI: Enable Windows builds for PRs (Tim Wojtulewicz)
+
+  * Call python explicitly from cmake for collecting repo info on Windows (Tim Wojtulewicz)
+
+  * Rework zeek-inet-ntop snprintf return value handling (Tim Wojtulewicz)
+
 6.0.0-dev.47 | 2023-02-15 19:10:35 +0100
 
   * zeek-setup: Ensure telemetry_mgr is created before other managers (Arne Welzel, Corelight)

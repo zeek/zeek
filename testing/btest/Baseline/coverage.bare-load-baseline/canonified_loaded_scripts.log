@@ -58,6 +58,8 @@ scripts/base/init-bare.zeek
       scripts/base/packet-protocols/vlan/main.zeek
     scripts/base/packet-protocols/mpls/__load__.zeek
       scripts/base/packet-protocols/mpls/main.zeek
+    scripts/base/packet-protocols/pbb/__load__.zeek
+      scripts/base/packet-protocols/pbb/main.zeek
     scripts/base/packet-protocols/vntag/__load__.zeek
       scripts/base/packet-protocols/vntag/main.zeek
     scripts/base/packet-protocols/udp/__load__.zeek

@@ -170,12 +170,20 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<AttrPtr>& ivec,
 	auto tag = static_cast<AttrTag>(init_vals[0]);
 	auto ae_tag = static_cast<AttrExprType>(init_vals[1]);
 
+	if ( ae_tag == AE_NONE )
+		{
+		ivec[offset] = make_intrusive<Attr>(tag);
+		return;
+		}
+
 	ExprPtr e;
 	auto e_arg = init_vals[2];
 
 	switch ( ae_tag )
 		{
 		case AE_NONE:
+			// Shouldn't happen, per test above.
+			ASSERT(0);
 			break;
 
 		case AE_CONST:

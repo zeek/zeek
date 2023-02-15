@@ -1,3 +1,10 @@
+6.0.0-dev.45 | 2023-02-15 13:30:29 +0100
+
+  * added to C++ script compiler maintainer notes utility of starting with full base script compile (Vern Paxson, Corelight)
+
+  * fixes for order-of-initialization in scripts compiled to C++ (Vern Paxson, Corelight)
+    annotations of such initializations to tie them to the original Zeek script
+
 6.0.0-dev.41 | 2023-02-14 13:18:11 -0800
 
   * Bump external zeek-testing commit hash to bring it up to master (Christian Kreibich, Corelight)

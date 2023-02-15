@@ -2,12 +2,14 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <unordered_set>
 
 #include "zeek/Type.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
+#include "zeek/telemetry/Counter.h"
 
 namespace zeek
 	{
@@ -55,7 +57,7 @@ public:
 		}
 	bool GenerateAlways() const { return generate_always; }
 
-	uint64_t CallCount() const { return call_count; }
+	uint64_t CallCount() const { return call_count ? call_count->Value() : 0; }
 
 private:
 	void NewEvent(zeek::Args* vl); // Raise new_event() meta event.
@@ -67,7 +69,9 @@ private:
 	bool enabled;
 	bool error_handler; // this handler reports error messages.
 	bool generate_always;
-	uint64_t call_count = 0;
+
+	// Initialize this lazy, so we don't expose metrics for 0 values.
+	std::optional<zeek::telemetry::IntCounter> call_count;
 
 	std::unordered_set<std::string> auto_publish;
 	};

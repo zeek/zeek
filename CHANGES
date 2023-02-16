@@ -1,3 +1,18 @@
+6.0.0-dev.57 | 2023-02-16 15:10:33 -0700
+
+  * Move get_relative_seq and get_segment_len to public static methods (Tim Wojtulewicz, Corelight)
+
+  * CI: remove no longer needed workaround for GITHUB_ACTION env var in cluster tests (Christian Kreibich, Corelight)
+
+    This got fixed in the testsuite via zeek/zeek-testing-cluster#24.
+
+  * CI: directly invoke btest in the cluster testsuite (Christian Kreibich, Corelight)
+
+    This resembles the way we also invoke it in ci/test.sh, and "-d"'s direct
+    console output saves a roundtrip through uploaded artifacts when tests fail.
+    This skips test retries for now -- not sure we really need it for this
+    testsuite.
+
 6.0.0-dev.52 | 2023-02-15 11:12:28 -0700
 
   * Fix linking of zeek_build_info on Windows (Tim Wojtulewicz)

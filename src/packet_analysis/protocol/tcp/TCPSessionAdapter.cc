@@ -77,7 +77,7 @@ void TCPSessionAdapter::Done()
 	finished = 1;
 	}
 
-static int get_segment_len(int payload_len, analyzer::tcp::TCP_Flags flags)
+int TCPSessionAdapter::get_segment_len(int payload_len, analyzer::tcp::TCP_Flags flags)
 	{
 	int seg_len = payload_len;
 
@@ -175,8 +175,9 @@ static void init_endpoint(analyzer::tcp::TCP_Endpoint* endpoint, analyzer::tcp::
 		}
 	}
 
-static uint64_t get_relative_seq(const analyzer::tcp::TCP_Endpoint* endpoint, uint32_t cur_base,
-                                 uint32_t last, uint32_t wraps, bool* underflow)
+uint64_t TCPSessionAdapter::get_relative_seq(const analyzer::tcp::TCP_Endpoint* endpoint,
+                                             uint32_t cur_base, uint32_t last, uint32_t wraps,
+                                             bool* underflow)
 	{
 	int32_t delta = seq_delta(cur_base, last);
 

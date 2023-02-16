@@ -78,6 +78,10 @@ public:
 
 	void AddExtraAnalyzers(Connection* conn) override;
 
+	static int get_segment_len(int payload_len, analyzer::tcp::TCP_Flags flags);
+	static uint64_t get_relative_seq(const analyzer::tcp::TCP_Endpoint* endpoint, uint32_t cur_base,
+	                                 uint32_t last, uint32_t wraps, bool* underflow);
+
 protected:
 	friend class analyzer::tcp::TCP_ApplicationAnalyzer;
 	friend class analyzer::tcp::TCP_Endpoint;

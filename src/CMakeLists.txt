@@ -550,7 +550,7 @@ add_library(zeek_src_obj OBJECT ${zeek_SRCS})
 target_link_libraries(zeek_src_obj PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 add_dependencies(zeek_src_obj zeek_autogen_files)
 add_clang_tidy_files(${zeek_SRCS})
-zeek_add_obj_lib(zeek_src_obj)
+zeek_target_link_libraries(zeek_src_obj)
 
 if (TARGET zeek_exe)
     target_sources(

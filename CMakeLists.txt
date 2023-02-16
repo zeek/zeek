@@ -147,10 +147,19 @@ if (TARGET zeek_lib)
 endif()
 
 # Convenience function for adding object libraries to the main target(s).
-function(zeek_add_obj_lib obj_lib_target)
+function(zeek_target_link_libraries lib_target)
     foreach (main_target zeek_exe zeek_lib)
         if (TARGET ${main_target})
-            target_link_libraries(${main_target} PRIVATE ${obj_lib_target})
+            target_link_libraries(${main_target} PRIVATE ${lib_target})
+        endif ()
+    endforeach()
+endfunction()
+
+# Convenience function for adding a dependency to the main target(s).
+function(zeek_add_dependencies dep)
+    foreach (main_target zeek_exe zeek_lib)
+        if (TARGET ${main_target})
+            add_dependencies(${main_target} ${dep})
         endif ()
     endforeach()
 endfunction()
@@ -206,7 +215,7 @@ function(zeek_add_subdir_library name)
     endif ()
 
     # Feed into the main Zeek target(s).
-    zeek_add_obj_lib(${target_name})
+    zeek_target_link_libraries(${target_name})
 endfunction()
 
 # Convenience macros to save ourselves some typing.
@@ -1157,39 +1166,14 @@ CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER
 CheckOptionalBuildSources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 if ( NOT DISABLE_SPICY )
-    # The `zeek` binary (or `libzeek`) implicitly depends on the driver object
-    # file built as part of `spicy`; make that dependency explicit.
-    if ( TARGET zeek_exe )
-        set(spicyZeekTarget zeek_exe)
-    elseif ( TARGET zeek_lib )
-        set(spicyZeekTarget zeek_lib)
-    endif ()
-    add_dependencies(${spicyZeekTarget} spicyz)
+    # The `zeek` binary implicitly depends on the driver object file built
+    # as part of `spicy`; make that dependency explicit.
+    zeek_add_dependencies(spicyz)
 
     if ( NOT SPICY_ROOT_DIR )
-        list(APPEND _spicy_rt_libs spicy-rt hilti-rt)
-
-        # Use the debug runtime libraries if we are building a debug Zeek.
-        if ( SPICY_BUILD_MODE STREQUAL "Debug" )
-            list(TRANSFORM _spicy_rt_libs APPEND "-debug")
-        endif ()
-
-        # If we build spicy-plugin into Zeek we also need to build the Spicy
-        # runtime dependencies into Zeek. Since no matter how Spicy itself was
-        # linked this is always a static library, link the object files so we
-        # get all symbols and can resolve all potential dependencies of
-        # HLTO files at runtime.
-        #
-        # TODO(bbannier): Conceptually cleaner would be linking the runtime
-        # objects into spicy-plugin and then inherit that up to zeek, but it
-        # seems this does not work reliable (due incomplete support for object
-        # libraries in CMake?).
-        list(TRANSFORM _spicy_rt_libs APPEND "-objects")
-        target_link_libraries(${spicyZeekTarget} PUBLIC ${_spicy_rt_libs})
-
         # Make sure we build targets of spicy-plugin after the `spicy` target.
-        #add_dependencies(plugin-Zeek-Spicy spicy)
-        #add_dependencies(spicyz spicy)
+        add_dependencies(plugin-Zeek-Spicy spicy)
+        add_dependencies(spicyz spicy)
 
         # Also install spicy-plugin's CMake files into Zeek's global `cmake/` folder.
         #

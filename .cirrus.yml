@@ -579,9 +579,6 @@ cluster_testing_docker_builder:
         $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
   env:
     CIRRUS_LOG_TIMESTAMP: true
-    # At this point, zeek-testing-cluster checks for "GITHUB_ACTION" to
-    # see if it should rebuild the Zeek image or not.
-    GITHUB_ACTION: fake
   install_deps_script:
     # The cluster tests depend on jq and docker_builder doesn't have that :-(
     - apt-get -q update && apt-get install -y --no-install-recommends jq

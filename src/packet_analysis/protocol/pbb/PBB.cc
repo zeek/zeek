@@ -6,8 +6,8 @@ using namespace zeek::packet_analysis::PBB;
 
 constexpr int PBB_LEN = 18;
 constexpr int PBB_C_DST_OFF = 4;
-constexpr int PBB_C_SRC_OFF = 10;
-constexpr int PBB_ETYPE_OFF = 16;
+
+constexpr int PROTO_TEB = 0x6558;
 
 PBBAnalyzer::PBBAnalyzer() : zeek::packet_analysis::Analyzer("PBB") { }
 
@@ -19,10 +19,6 @@ bool PBBAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	uint32_t protocol = ((data[PBB_ETYPE_OFF] << 8u) + data[PBB_ETYPE_OFF + 1u]);
-	packet->eth_type = protocol;
-	packet->l2_dst = data + PBB_C_DST_OFF;
-	packet->l2_src = data + PBB_C_SRC_OFF;
-	// Skip the PBB header
-	return ForwardPacket(len - PBB_LEN, data + PBB_LEN, packet, protocol);
+	// this looks an awful lot like ethernet from here on out
+	return ForwardPacket(len - PBB_C_DST_OFF, data + PBB_C_DST_OFF, packet, PROTO_TEB);
 	}

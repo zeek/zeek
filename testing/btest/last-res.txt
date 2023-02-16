@@ -1,0 +1,10 @@
+$ rm -rf .tmp ; ../../auxil/btest/btest -j 20
+[ 50%] plugins.binpac-flowbuffer-frame-length ... failed
+[ 50%] plugins.protocol ... failed
+[ 50%] plugins.bifs-and-scripts-install ... failed
+[ 50%] plugins.bifs-and-scripts ... failed
+[ 50%] plugins.doctest-disabled ... failed
+[ 52%] plugins.hooks ... failed
+[ 99%] spicy.spicyz-aot ... failed
+[ 99%] spicy.spicyz-jit ... failed
+8 of 1375 tests failed, 4 skipped

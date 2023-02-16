@@ -579,9 +579,6 @@ cluster_testing_docker_builder:
         $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
   env:
     CIRRUS_LOG_TIMESTAMP: true
-    # At this point, zeek-testing-cluster checks for "GITHUB_ACTION" to
-    # see if it should rebuild the Zeek image or not.
-    GITHUB_ACTION: fake
   install_deps_script:
     # The cluster tests depend on jq and docker_builder doesn't have that :-(
     - apt-get -q update && apt-get install -y --no-install-recommends jq
@@ -595,7 +592,9 @@ cluster_testing_docker_builder:
     - zstd -d < /tmp/zeek-image-cache-amd64/final.zst | docker load
     - docker tag zeek/zeek-multiarch:amd64 zeektest:latest
   test_script:
-    - cd testing/external/zeek-testing-cluster && make
+    # Invoke btest directly here. This mirrors ci/test.sh, ensures we don't
+    # accidentally build a Docker image, and enables console-level output:
+    - cd testing/external/zeek-testing-cluster && ../../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
   on_failure:
     upload_cluster_testing_artifacts:
       path: "testing/external/zeek-testing-cluster/.tmp/**"

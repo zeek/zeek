@@ -1,3 +1,20 @@
+6.0.0-dev.64 | 2023-02-17 17:36:40 +0100
+
+  * TableVal: Propagate &on_change attribute through copy() (Arne Welzel, Corelight)
+
+    Mostly for consistency with &default, &expire_func and other attributes
+    being propagated through a copy(). Seems this was just missed during
+    the implementation and/or was never tested for.
+
+  * GH-2793: TableVal: Propagate &ordered through copy() (Arne Welzel, Corelight)
+
+    Copying an &ordered table or set would result in a copy that is not ordered.
+    This seems rather surprising behavior, so propagate the &ordered attribute.
+
+  * GH-2690: Type/is_supported_index_type: Deal with recursive record types (Arne Welzel, Corelight)
+
+    This plugs the issue reported in #2690, there might be more though.
+
 6.0.0-dev.57 | 2023-02-16 15:10:33 -0700
 
   * Move get_relative_seq and get_segment_len to public static methods (Tim Wojtulewicz, Corelight)

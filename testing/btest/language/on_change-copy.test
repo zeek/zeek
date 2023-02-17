@@ -1,0 +1,31 @@
+# @TEST-EXEC: zeek -b %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+module TestModule;
+
+function tbl_change(t: table[string, int] of count, tpe: TableChange, idxa: string, idxb: int, val: count)
+	{
+	print "tbl_change", idxa, idxb, val, tpe;
+	}
+
+function set_change(t: set[string], tpe: TableChange, idx: string)
+	{
+	print "set_change", idx, tpe;
+	}
+
+global t: table[string, int] of count &on_change=tbl_change;
+global s: set[string] &on_change=set_change;
+
+event zeek_init()
+	{
+	local tc = copy(t);
+	local sc = copy(s);
+	print "inserting";
+	tc["a", 1] = 5;
+	add sc["hi"];
+	print "changing";
+	tc["a", 1] = 2;
+	print "deleting";
+	delete tc["a", 1];
+	delete sc["hi"];
+	}

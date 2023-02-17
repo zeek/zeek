@@ -673,7 +673,6 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 24, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 28, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 30, PacketAnalyzer::ANALYZER_IP)) -> <no result>
-0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PBB, 25944, PacketAnalyzer::ANALYZER_ETHERNET)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPOE, 33, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPOE, 87, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPSERIAL, 33, PacketAnalyzer::ANALYZER_IP)) -> <no result>
@@ -2243,7 +2242,6 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 24, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 28, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 30, PacketAnalyzer::ANALYZER_IP))
-0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PBB, 25944, PacketAnalyzer::ANALYZER_ETHERNET))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPOE, 33, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPOE, 87, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPSERIAL, 33, PacketAnalyzer::ANALYZER_IP))
@@ -3812,7 +3810,6 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NULL, 24, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NULL, 28, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NULL, 30, PacketAnalyzer::ANALYZER_IP)
-0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PBB, 25944, PacketAnalyzer::ANALYZER_ETHERNET)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPPOE, 33, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPPOE, 87, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPPSERIAL, 33, PacketAnalyzer::ANALYZER_IP)

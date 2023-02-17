@@ -5,10 +5,10 @@
 # at https://github.com/zeek/zeek/wiki/Zeek-Operating-System-Support-Matrix      #
 ##################################################################################
 
-cpus: &CPUS 4
+cpus: &CPUS 6
 btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
-memory: &MEMORY 12GB
+memory: &MEMORY 24GB
 
 config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
 static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache
@@ -43,13 +43,6 @@ freebsd_environment: &FREEBSD_ENVIRONMENT
   env:
     ZEEK_CI_CPUS: 8
     ZEEK_CI_BTEST_JOBS: 8
-
-sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
-  cpu: 4
-  # Sanitizers uses a lot more memory than a typical config.
-  memory: 12GB
-  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-  greedy: true
 
 branch_whitelist: &BRANCH_WHITELIST
   # Rules for skipping builds:
@@ -328,7 +321,7 @@ asan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    << : *SANITIZERS_RESOURCE_TEMPLATE
+    << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
@@ -343,7 +336,7 @@ ubsan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run undefined behavior checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    << : *SANITIZERS_RESOURCE_TEMPLATE
+    << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR

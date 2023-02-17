@@ -189,6 +189,7 @@ XXXXXXXXXX.XXXXXX file_over_new_connection
 XXXXXXXXXX.XXXXXX file_sniff
 XXXXXXXXXX.XXXXXX file_hash
 XXXXXXXXXX.XXXXXX file_hash
+XXXXXXXXXX.XXXXXX file_hash
 XXXXXXXXXX.XXXXXX x509_certificate
 XXXXXXXXXX.XXXXXX x509_extension
 XXXXXXXXXX.XXXXXX x509_extension
@@ -201,11 +202,11 @@ XXXXXXXXXX.XXXXXX x509_extension
 XXXXXXXXXX.XXXXXX x509_extension
 XXXXXXXXXX.XXXXXX x509_extension
 XXXXXXXXXX.XXXXXX x509_ext_subject_alternative_name
-XXXXXXXXXX.XXXXXX file_hash
 XXXXXXXXXX.XXXXXX file_state_remove
 XXXXXXXXXX.XXXXXX file_new
 XXXXXXXXXX.XXXXXX file_over_new_connection
 XXXXXXXXXX.XXXXXX file_sniff
+XXXXXXXXXX.XXXXXX file_hash
 XXXXXXXXXX.XXXXXX file_hash
 XXXXXXXXXX.XXXXXX file_hash
 XXXXXXXXXX.XXXXXX x509_certificate
@@ -217,7 +218,6 @@ XXXXXXXXXX.XXXXXX x509_extension
 XXXXXXXXXX.XXXXXX x509_extension
 XXXXXXXXXX.XXXXXX x509_extension
 XXXXXXXXXX.XXXXXX x509_extension
-XXXXXXXXXX.XXXXXX file_hash
 XXXXXXXXXX.XXXXXX file_state_remove
 XXXXXXXXXX.XXXXXX ssl_handshake_message
 XXXXXXXXXX.XXXXXX ssl_handshake_message

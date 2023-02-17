@@ -2619,7 +2619,19 @@ double TableVal::CallExpireFunc(ListValPtr idx)
 
 ValPtr TableVal::DoClone(CloneState* state)
 	{
-	auto tv = make_intrusive<TableVal>(table_type);
+	// Propagate the &ordered attribute when cloning.
+	//
+	// Some of the attributes are dealt with later, but this one needs to be
+	// passed explicitly to the TableVal constructor so the underlying PDict
+	// is initialized ordered.
+	detail::AttributesPtr init_attrs = nullptr;
+	if ( auto ordered_attr = GetAttr(detail::ATTR_ORDERED) )
+		{
+		init_attrs = zeek::make_intrusive<detail::Attributes>(table_type, false, false);
+		init_attrs->AddAttr(ordered_attr);
+		}
+
+	auto tv = make_intrusive<TableVal>(table_type, init_attrs);
 	state->NewClone(this, tv);
 
 	const PDict<TableEntryVal>* tbl = AsTable();

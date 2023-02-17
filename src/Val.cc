@@ -2649,6 +2649,9 @@ ValPtr TableVal::DoClone(CloneState* state)
 		detail::timer_mgr->Add(tv->timer);
 		}
 
+	if ( change_func )
+		tv->change_func = change_func;
+
 	if ( expire_func )
 		tv->expire_func = expire_func;
 

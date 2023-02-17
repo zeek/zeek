@@ -20,6 +20,9 @@ Changed Functionality
   an appropriate callback function, log a warning and return a generic handle
   value based on the analyzer and connection information.
 
+- The ``&on_change`` attribute of set and tables is propagated through ``copy()``.
+
+
 Zeek 5.2.0
 ==========
 

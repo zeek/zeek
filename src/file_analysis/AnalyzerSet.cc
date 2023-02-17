@@ -20,7 +20,7 @@ static void analyzer_del_func(void* v)
 	delete a;
 	}
 
-AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
+AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file), analyzer_map(zeek::DictOrder::ORDERED)
 	{
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
 	}

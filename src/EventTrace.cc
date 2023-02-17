@@ -722,7 +722,7 @@ std::string DeltaVectorCreate::Generate(ValTraceMgr* vtm) const
 	return std::string(" = vector(") + vec + ")";
 	}
 
-EventTrace::EventTrace(const ScriptFunc* _ev, double _nt, int event_num) : ev(_ev), nt(_nt)
+EventTrace::EventTrace(const ScriptFunc* _ev, double _nt, size_t event_num) : ev(_ev), nt(_nt)
 	{
 	auto ev_name = std::regex_replace(ev->Name(), std::regex(":"), "_");
 

@@ -1,3 +1,27 @@
+5.0.6-9 | 2023-02-17 14:40:31 -0700
+
+  * Drop Debian 11 ARM build from Cirrus (Tim Wojtulewicz, Corelight)
+
+    This was added as part of the cherry-pick for fa6e01d99660e6d73d5930e245505c2414b760c8
+    but the build is failing for other reasons on Cirrus. We haven't been doing ARM builds
+    for this release yet, so it's easier to just remove it for now.
+
+  * Move get_relative_seq and get_segment_len to public static methods (Tim Wojtulewicz, Corelight)
+
+  * HashKey: Do not call Describe() unconditionally in DEBUG mode (Arne Welzel, Corelight)
+
+    An unnecessary overhead of the Hash() method was uncovered for DEBUG builds
+    due to computing a description of every HashKey() even when the DBG_HASHKEY
+    stream is not enabled. Squelch it.
+
+  * btest/decode_base_errors: Avoid binary output in baseline (Arne Welzel, Corelight)
+
+  * Base64: report byte as positive integer (Arne Welzel, Corelight)
+  
+  * netbios_decode: use unsigned char for result (Arne Welzel, Corelight)
+  
+  * analyzer/http: Do not assume char is signed (Arne Welzel, Corelight)
+
 5.0.6-4 | 2023-02-14 07:43:01 -0700
 
   * Bump spicy-plugin to v1.3.23. (Benjamin Bannier, Corelight)

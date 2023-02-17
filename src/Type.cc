@@ -7,6 +7,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <unordered_set>
 
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
@@ -469,10 +470,18 @@ detail::TraversalCode IndexType::Traverse(detail::TraversalCallback* cb) const
 	HANDLE_TC_TYPE_POST(tc);
 	}
 
-static bool is_supported_index_type(const TypePtr& t, const char** tname)
+static bool is_supported_index_type(const TypePtr& t, const char** tname,
+                                    std::unordered_set<TypePtr>& seen)
 	{
 	if ( t->InternalType() != TYPE_INTERNAL_OTHER )
 		return true;
+
+	// Handle recursive calls as good: If they turn out not
+	// to be, that should've been discovered further down.
+	if ( seen.count(t) > 0 )
+		return true;
+
+	seen.insert(t);
 
 	auto tag = t->Tag();
 
@@ -490,7 +499,7 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname)
 			auto rt = t->AsRecordType();
 
 			for ( auto i = 0; i < rt->NumFields(); ++i )
-				if ( ! is_supported_index_type(rt->GetFieldType(i), tname) )
+				if ( ! is_supported_index_type(rt->GetFieldType(i), tname, seen) )
 					return false;
 
 			return true;
@@ -499,7 +508,7 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname)
 		case TYPE_LIST:
 			{
 			for ( const auto& type : t->AsTypeList()->GetTypes() )
-				if ( ! is_supported_index_type(type, tname) )
+				if ( ! is_supported_index_type(type, tname, seen) )
 					return false;
 
 			return true;
@@ -509,7 +518,7 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname)
 			{
 			auto tt = t->AsTableType();
 
-			if ( ! is_supported_index_type(tt->GetIndices(), tname) )
+			if ( ! is_supported_index_type(tt->GetIndices(), tname, seen) )
 				return false;
 
 			const auto& yt = tt->Yield();
@@ -517,11 +526,11 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname)
 			if ( ! yt )
 				return true;
 
-			return is_supported_index_type(yt, tname);
+			return is_supported_index_type(yt, tname, seen);
 			}
 
 		case TYPE_VECTOR:
-			return is_supported_index_type(t->AsVectorType()->Yield(), tname);
+			return is_supported_index_type(t->AsVectorType()->Yield(), tname, seen);
 
 		default:
 			*tname = type_name(tag);
@@ -545,7 +554,8 @@ TableType::TableType(TypeListPtr ind, TypePtr yield)
 		if ( t == TYPE_INTERNAL_ERROR )
 			break;
 
-		if ( ! is_supported_index_type(tli, &unsupported_type_name) )
+		std::unordered_set<TypePtr> seen;
+		if ( ! is_supported_index_type(tli, &unsupported_type_name, seen) )
 			{
 			auto msg = util::fmt("index type containing '%s' is not supported",
 			                     unsupported_type_name);

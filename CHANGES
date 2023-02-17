@@ -1,3 +1,37 @@
+5.2.0-rc1.7 | 2023-02-17 09:56:29 -0700
+
+  * Trim diffed output in test `spicy.spicy-dump`. (Benjamin Bannier, Corelight)
+
+    We previously would include any and all output from stderr during
+    compilation in the test baseline. Depending on the used compiler this
+    output may contain C++ compilation warnings which are uninteresting for
+    the behavior under test.
+
+  * Bump Spicy and spicy-plugin to latest releases. (Benjamin Bannier, Corelight)
+
+  * cirrus/container: Polish, fix and automated pushing of images (Arne Welzel, Corelight)
+
+    * Add ci/find-current-version.sh to figure out versions of lts and
+      feature branch based on repository state.
+
+    * Do not use ZEEK_IMAGE_REPO for the local images that
+      are expected to exist.
+
+    * Only use IMAGE_NAME/IMAGE_TAG instead of the ARCH and MANIFEST
+      versions that contained the very same values
+
+    * Support and push additional tags
+
+      In addition to the lts and feature tags, also push the base version
+      tags. 5.0 or 5.1 such that someone pulling zeek/zeek:5.0 will get
+      the most recent available 5.0 patch release.
+
+    (cherry picked from commit 357bdc71ada1372fa690194de8dde097cf6d7b6b)
+
+  * Cover zeek-client updates in NEWS [skip ci] (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 6c0d44436c754ba0d9e1aa4c55a8c7319c21ef7d)
+
 5.2.0-rc1 | 2023-02-03 09:05:26 -0700
 
   * Release 5.2.0-rc1.

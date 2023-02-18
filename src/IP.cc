@@ -536,7 +536,8 @@ IPv6_Hdr_Chain::~IPv6_Hdr_Chain()
 	delete finalDst;
 	}
 
-void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, int total_len, bool set_next, uint16_t next)
+void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, uint64_t total_len, bool set_next,
+                          uint16_t next)
 	{
 	length = 0;
 	uint8_t current_type, next_type;

@@ -169,16 +169,16 @@ refine connection NTLM_Conn += {
 		auto result = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::NTLM::Authenticate);
 		result->Assign(0, build_negotiate_flag_record(${val.flags}));
 
-		if ( ${val}->has_domain_name() > 0 )
+		if ( ${val}->has_domain_name() )
 			result->Assign(1, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.domain_name.string.data}));
 
-		if ( ${val}->has_user_name() > 0 )
+		if ( ${val}->has_user_name() )
 			result->Assign(2, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.user_name.string.data}));
 
-		if ( ${val}->has_workstation() > 0 )
+		if ( ${val}->has_workstation() )
 			result->Assign(3, utf16_to_utf8_val(zeek_analyzer()->Conn(), ${val.workstation.string.data}));
 
-		if ( ${val}->has_encrypted_session_key() > 0 )
+		if ( ${val}->has_encrypted_session_key() )
 			result->Assign(4, to_stringval(${val.encrypted_session_key.string.data}));
 
 		if ( ${val}->has_version() )

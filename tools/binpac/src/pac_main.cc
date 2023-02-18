@@ -219,9 +219,9 @@ void usage()
 // FreeBSD doesn't support LeakSanitizer
 #if defined(USING_ASAN) && ! defined(__FreeBSD__)
 #include <sanitizer/lsan_interface.h>
-#define BINPAC_LSAN_DISABLE(x) __lsan_disable(x)
+#define BINPAC_LSAN_DISABLE() __lsan_disable()
 #else
-#define BINPAC_LSAN_DISABLE(x)
+#define BINPAC_LSAN_DISABLE()
 #endif
 
 int main(int argc, char* argv[])

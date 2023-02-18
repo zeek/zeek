@@ -8,6 +8,14 @@ set(ZEEK_PLUGIN_SCRIPTS_PATH "@ZEEK_PLUGIN_SCRIPTS_PATH@")
 # For finding Zeek sources.
 set(ZEEK_SOURCE_DIR "@ZEEK_SOURCE_DIR@")
 
+# Provide a hint to ZeekConfig.cmake where to find Broker from the build tree.
+# Note: the straightforward way would be setting `Broker_ROOT` instead, but
+#       plugins may still use CMake < 3.12.
+if (NOT "@ZEEK_HAS_EXTERNAL_BROKER@")
+  set(Broker_DIR "@ZEEK_PLUGIN_BROKER_PATH@" CACHE
+      PATH "Directory for finding Broker's package file" FORCE)
+endif ()
+
 # For having a binpac target available. Guarded to shield against including this
 # file multiple times.
 if (NOT TARGET Zeek::BinPAC)

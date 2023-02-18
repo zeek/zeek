@@ -14,14 +14,20 @@ if ( MSVC )
     find_dependency(c-ares)
 endif ()
 
-foreach ( dep @ZEEK_INSTALL_DEPENDENCIES@ )
-  find_dependency(${dep} REQUIRED)
-endforeach (  )
-
 # Pulls in ZEEK_PLUGIN_SCRIPTS_PATH. Only exists on the build interface since
 # plugins need access to the source tree.
 if ( EXISTS "${CMAKE_CURRENT_LIST_DIR}/ZeekPluginConfig.cmake" )
     include("${CMAKE_CURRENT_LIST_DIR}/ZeekPluginConfig.cmake")
 endif ()
+
+if ( NOT "@ZEEK_HAS_STATIC_BROKER@" )
+    # Always force using the package config file since users might still have
+    # a legacy FindBroker.cmake in their system.
+    find_dependency(Broker REQUIRED CONFIG)
+endif ()
+
+foreach ( dep @ZEEK_INSTALL_DEPENDENCIES@ )
+  find_dependency(${dep} REQUIRED)
+endforeach (  )
 
 include("${CMAKE_CURRENT_LIST_DIR}/ZeekTargets.cmake")

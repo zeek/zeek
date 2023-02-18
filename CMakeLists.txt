@@ -164,6 +164,14 @@ function(zeek_add_dependencies dep)
     endforeach()
 endfunction()
 
+# List for assembling all dependencies of the Zeek library target. Also needed
+# when building dynamic plugins. The content of this list is evaluated in
+# ZeekConfig.cmake.in.
+set(ZEEK_INSTALL_DEPENDENCIES "")
+macro(zeek_add_install_dependency dep)
+    list(APPEND ZEEK_INSTALL_DEPENDENCIES ${dep})
+endmacro()
+
 # Convenience function for adding an OBJECT library that feeds directly into the
 # main target(s).
 #
@@ -758,18 +766,12 @@ endif ()
 if (ENABLE_JEMALLOC)
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
         if (DEFINED JEMALLOC_ROOT_DIR)
-            # Look for jemalloc at a specific path
-            find_package(JeMalloc)
-        else()
-            # jemalloc is in the base system
-            set(JEMALLOC_FOUND true)
+            find_package(JeMalloc REQUIRED)
+            zeek_add_install_dependency(JeMalloc)
         endif()
+        # else: jemalloc is in the base system
     else()
-        find_package(JeMalloc)
-    endif()
-
-    if (NOT JEMALLOC_FOUND)
-        message(FATAL_ERROR "Could not find requested JeMalloc")
+        find_package(JeMalloc REQUIRED)
     endif()
 endif ()
 
@@ -800,16 +802,19 @@ if ( MSVC )
 endif ()
 set(zeekdeps ${zeekdeps} paraglob)
 
-if ( Broker_ROOT )
-  find_package(Broker REQUIRED PATHS "${Broker_ROOT}")
-  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
-  set(broker_includes ${BROKER_INCLUDE_DIR})
+# Note: we don't call zeek_add_install_dependency(Broker) because Broker gets
+#       some special attention in ZeekConfig.cmake.in.
+if ( Broker_ROOT OR BROKER_ROOT_DIR )
+  if ( BROKER_ROOT_DIR )
+    find_package(Broker REQUIRED CONFIG PATHS "${BROKER_ROOT_DIR}")
+  else ()
+    # Broker_ROOT is a standard CMake variable for hinting to packages. No need
+    # for passing it to `find_package`.
+    find_package(Broker REQUIRED CONFIG)
+  endif ()
+  target_link_libraries(zeek_internal INTERFACE ${BROKER_LIBRARY})
   set(ZEEK_HAS_EXTERNAL_BROKER ON)
-elseif ( BROKER_ROOT_DIR )
-  find_package(Broker REQUIRED PATHS "${BROKER_ROOT_DIR}")
-  set(zeekdeps ${zeekdeps} ${BROKER_LIBRARY})
-  set(broker_includes ${BROKER_INCLUDE_DIR})
-  set(ZEEK_HAS_EXTERNAL_BROKER ON)
+  set(ZEEK_HAS_STATIC_BROKER OFF)
 else ()
   if ( ZEEK_SANITIZERS )
     set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
@@ -828,11 +833,21 @@ else ()
   set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 
   if ( BUILD_STATIC_BROKER )
-    set(zeekdeps ${zeekdeps} broker_static)
+      target_link_libraries(zeek_internal INTERFACE broker_static)
   else()
-    set(zeekdeps ${zeekdeps} broker)
+      target_link_libraries(zeek_internal INTERFACE broker)
   endif()
-  set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
+
+  if (BUILD_STATIC_BROKER)
+    set(ZEEK_HAS_STATIC_BROKER ON)
+  else ()
+    set(ZEEK_HAS_STATIC_BROKER OFF)
+  endif ()
+  set(ZEEK_HAS_EXTERNAL_BROKER OFF)
+
+  # Tell plugins where to find the Broker CMake package in the source tree.
+  # This variable is picked up in ZeekPluginConfig.cmake.in.
+  set(ZEEK_PLUGIN_BROKER_PATH "${CMAKE_CURRENT_BINARY_DIR}/auxil/broker")
 endif ()
 
 if ( NOT DISABLE_SPICY )
@@ -924,18 +939,20 @@ set(USE_GEOIP false)
 find_package(LibMMDB)
 if (LIBMMDB_FOUND)
     set(USE_GEOIP true)
-    include_directories(BEFORE ${LibMMDB_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
+    target_include_directories(zeek_internal INTERFACE ${LibMMDB_INCLUDE_DIR})
+    target_link_libraries(zeek_internal INTERFACE ${LibMMDB_LIBRARY})
+    zeek_add_install_dependency(LibMMDB)
 endif ()
 
 set(USE_KRB5 false)
 if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
-  find_package(LibKrb5)
-  if (LIBKRB5_FOUND)
-     set(USE_KRB5 true)
-     include_directories(BEFORE ${LibKrb5_INCLUDE_DIR})
-     list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
-  endif ()
+    find_package(LibKrb5)
+    if (LibKrb5_FOUND)
+        set(USE_KRB5 true)
+        target_include_directories(zeek_internal INTERFACE ${LibKrb5_INCLUDE_DIR})
+        target_link_libraries(zeek_internal INTERFACE ${LibKrb5_LIBRARY})
+        zeek_add_install_dependency(LibKrb5)
+    endif ()
 endif ()
 
 set(HAVE_PERFTOOLS false)
@@ -946,17 +963,18 @@ if ( ENABLE_PERFTOOLS )
    find_package(GooglePerftools)
 
     if ( GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND )
+        zeek_add_install_dependency(GooglePerftools)
         set(HAVE_PERFTOOLS true)
         set(USE_PERFTOOLS_TCMALLOC true)
 
         if (ENABLE_PERFTOOLS_DEBUG)
             # Enable heap debugging with perftools.
             set(USE_PERFTOOLS_DEBUG true)
-            include_directories(BEFORE ${GooglePerftools_INCLUDE_DIR})
-            list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES_DEBUG})
+            target_include_directories(zeek_internal BEFORE INTERFACE ${GooglePerftools_INCLUDE_DIR})
+            target_link_libraries(zeek_internal INTERFACE ${GooglePerftools_LIBRARIES_DEBUG})
         else ()
             # Link in tcmalloc.
-            list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
+            target_link_libraries(zeek_internal INTERFACE ${GooglePerftools_LIBRARIES})
         endif ()
     else()
         message(FATAL_ERROR "Could not find requested Google Perftools.")
@@ -972,9 +990,10 @@ include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 # Determine if libfts is external to libc, i.e. musl
 find_package(FTS)
 if ( FTS_FOUND )
-    list(APPEND OPTLIBS ${FTS_LIBRARY})
-    include_directories(BEFORE ${FTS_INCLUDE_DIR})
     set(ZEEK_HAS_EXTERNAL_LIBFTS ON)
+    target_include_directories(zeek_internal INTERFACE ${FTS_INCLUDE_DIR})
+    target_link_libraries(zeek_internal INTERFACE ${FTS_LIBRARY})
+    zeek_add_install_dependency(FTS)
 endif ()
 
 # Any headers that are possibly bundled in the Zeek source-tree and that are supposed
@@ -992,7 +1011,6 @@ set(zeekdeps ${zeekdeps}
     ${BIND_LIBRARY}
     ${ZLIB_LIBRARY}
     ${JEMALLOC_LIBRARIES}
-    ${OPTLIBS}
 )
 
 ########################################################################
@@ -1048,7 +1066,11 @@ if ( NOT BINARY_PACKAGING_MODE )
     set(ZEEK_DIST ${PROJECT_SOURCE_DIR})
 endif ()
 
-string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+if (CMAKE_BUILD_TYPE)
+    string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+else ()
+    set(CMAKE_BUILD_TYPE_LOWER default)
+endif ()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
@@ -1215,23 +1237,6 @@ if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
     include(ConfigurePackaging)
     ConfigurePackaging(${VERSION})
 endif ()
-
-# List for assembling all dependencies for the Zeek library target. Also needed
-# when building dynamic plugins.
-set(ZEEK_INSTALL_DEPENDENCIES LibMMDB)
-
-macro(add_install_dependency var dep)
-    if (${var})
-        list(APPEND ZEEK_INSTALL_DEPENDENCIES ${dep})
-    endif ()
-endmacro()
-
-add_install_dependency(ENABLE_JEMALLOC JeMalloc)
-add_install_dependency(USE_KRB5 LibKrb5)
-add_install_dependency(ENABLE_PERFTOOLS GooglePerftools)
-add_install_dependency(ZEEK_HAS_EXTERNAL_LIBFTS FTS)
-add_install_dependency(BROKER_USE_EXTERNAL_CAF CAF)
-add_install_dependency(ZEEK_HAS_EXTERNAL_BROKER Broker)
 
 # Refers back to the "distribution prefix". This is the source tree when
 # referring to Zeek from the build directory and the "share" directory under the

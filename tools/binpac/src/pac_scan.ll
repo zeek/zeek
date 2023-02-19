@@ -1,3 +1,11 @@
+%top{
+// Include stdint.h at the start of the generated file. Typically
+// MSVC will include this header later, after the definitions of
+// the integral type macros. MSVC then complains that about the
+// redefinition of the types. Including stdint.h early avoids this.
+#include <stdint.h>
+}
+
 %{
 #include "pac_action.h"
 #include "pac_array.h"

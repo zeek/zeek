@@ -235,44 +235,19 @@ endmacro()
 
 # Windows: Configure runtime and dependencies
 if ( MSVC )
-    # Remove existing runtime flags
-    set(CompilerFlags
-        CMAKE_CXX_FLAGS
-        CMAKE_CXX_FLAGS_DEBUG
-        CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_RELWITHDEBINFO
-        CMAKE_C_FLAGS
-        CMAKE_C_FLAGS_DEBUG
-        CMAKE_C_FLAGS_RELEASE
-        CMAKE_C_FLAGS_RELWITHDEBINFO
-    )
-    foreach(CompilerFlag ${CompilerFlags})
-        string(REGEX REPLACE "[/|-]MDd" "" ${CompilerFlag} "${${CompilerFlag}}")
-        string(REGEX REPLACE "[/|-]MD" "" ${CompilerFlag} "${${CompilerFlag}}")
-        string(REGEX REPLACE "[/|-]MTd" "" ${CompilerFlag} "${${CompilerFlag}}")
-        string(REGEX REPLACE "[/|-]MT" "" ${CompilerFlag} "${${CompilerFlag}}")
-        string(REGEX REPLACE "[/|-]Zi" "" ${CompilerFlag} "${${CompilerFlag}}")
-        string(REGEX REPLACE "[/|-]W3" "" ${CompilerFlag} "${${CompilerFlag}}")
-        string(REGEX REPLACE "[/|-]W4" "" ${CompilerFlag} "${${CompilerFlag}}")
-    endforeach()
-
     # Set compilation flags for Windows
     add_zeek_internal_compile_options(
-        /guard:cf                # required by CheckCFlags
-        /Z7                      # required by CheckCFlags
-        $<$<CONFIG:Release>:/MT> # force static runtime for release builds
-        $<$<CONFIG:Debug>:/MTd>  # force static runtime for debug builds
+        /guard:cf                  # required by CheckCFlags
+        /Z7                        # required by CheckCFlags
+        $<$<CONFIG:Release>:/MT>   # force static runtime for release builds
+        $<$<CONFIG:Debug>:/MTd>    # force static runtime for debug builds
+        $<$<CONFIG:Debug>:/DDEBUG> # put debugging information into the binary
     )
 
     add_zeek_internal_link_options(
         /debug:full # required by CheckCFlags
     )
 
-    # Always use static runtime
-    add_zeek_internal_compile_options(
-        $<CONFIG:Debug>:/MTd;/DDEBUG>
-        $<CONFIG:Release>:/MT>
-    )
     add_zeek_internal_property(
       MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
     )

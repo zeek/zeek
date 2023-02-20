@@ -11,6 +11,7 @@ add_subdirectory(ieee802_11_radio)
 add_subdirectory(fddi)
 add_subdirectory(nflog)
 add_subdirectory(mpls)
+add_subdirectory(pbb)
 add_subdirectory(linux_sll)
 add_subdirectory(linux_sll2)
 

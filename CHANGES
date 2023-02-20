@@ -1,3 +1,45 @@
+6.0.0-dev.75 | 2023-02-19 19:23:50 -0700
+
+  * Update seemingly-unrelated btests (Eldon Koyle, Corelight)
+
+    For some reason, the plugin order appears to have changed in the files btests.
+
+  * Use a default analyzer (Eldon Koyle, Corelight)
+
+    Use a default analyzer instead of hardcoding a protocol number.
+
+  * Simplify PBB analyzer by using Ethernet analyzer (Eldon Koyle, Corelight)
+
+    After the first 4 bytes, this traffic actually just looks like Ethernet.
+    Rather than try to re-implement the ethernet analyzer, just check the
+    length, skip 4 bytes, and pass it on.
+
+  * Add btest for PBB and update baselines (Eldon Koyle, Corelight)
+
+  * Use constexpr instead of #define (Eldon Koyle, Corelight)
+
+  * Cleanup and add customer MAC addresses (Eldon Koyle, Corelight)
+
+     * Put c-dst/c-src in l2_dst/l2_src
+     * use #define instead of const int and move to PBB.h
+
+  * Add PBB (802.1ah) support (Eldon Koyle, Corelight)
+
+  * Bump Spicy and spicy-plugin to latest releases. (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit f27a9a62648e642cc2f6aa267d067d529487eb21)
+
+  * Trim diffed output in test `spicy.spicy-dump`. (Benjamin Bannier, Corelight)
+
+    We previously would include any and all output from stderr during
+    compilation in the test baseline. Depending on the used compiler this
+    output may contain C++ compilation warnings which are uninteresting for
+    the behavior under test.
+
+    (cherry picked from commit 5221edf474e6a8cb05a1470318c7d8007857f202)
+
+  * Update cmake and zeek-aux submodules [nomail] (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.64 | 2023-02-17 17:36:40 +0100
 
   * TableVal: Propagate &on_change attribute through copy() (Arne Welzel, Corelight)

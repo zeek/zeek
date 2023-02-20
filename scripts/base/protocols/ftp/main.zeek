@@ -316,12 +316,22 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=5
 	{
 	set_ftp_session(c);
+
+	# Skip matching up intermediate reply lines (that do not have a
+	# valid status code) with pending commands. Because they may not
+	# have a proper status code, there's little point setting whatever
+	# their reply_code and reply_msg are on the command unless to ensure
+	# c$ftp$reply_code is actually populated with "something".
+	if ( cont_resp && code == 0 && c$ftp?$reply_code )
+		return;
+
 	c$ftp$cmdarg = get_pending_cmd(c$ftp$pending_commands, code, msg);
 	c$ftp$reply_code = code;
 	c$ftp$reply_msg = msg;
 
-	# TODO: figure out what to do with continued FTP response (not used much)
-	if ( cont_resp ) return;
+	# Do not parse out information from any but the first reply line.
+	if ( cont_resp )
+		return;
 
 	# TODO: do some sort of generic clear text login processing here.
 	local response_xyz = parse_ftp_reply_code(code);

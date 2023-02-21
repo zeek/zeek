@@ -1,5 +1,5 @@
 
-#include "zeek/zeek-config.h"
+#include "zeek/zeek-version.h"
 
 char version[] = "@VERSION@";
 

@@ -1,0 +1,19 @@
+#pragma once
+
+/* Version number of package */
+#define VERSION "@VERSION@"
+
+// Zeek version number.
+// This is the result of (major * 10000 + minor * 100 + patch)
+// For example, 3.1.2 becomes 30102.
+#define ZEEK_VERSION_NUMBER @ZEEK_VERSION_NUMBER@
+
+/* A C function that has the Zeek version encoded into its name. */
+#define ZEEK_VERSION_FUNCTION zeek_version_@VERSION_C_IDENT@
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern const char* ZEEK_VERSION_FUNCTION();
+#ifdef __cplusplus
+}
+#endif

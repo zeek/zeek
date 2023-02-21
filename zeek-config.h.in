@@ -141,14 +141,6 @@
 /* Use the sqlite reader/writer. */
 #cmakedefine USE_SQLITE
 
-/* Version number of package */
-#define VERSION "@VERSION@"
-
-// Zeek version number.
-// This is the result of (major * 10000 + minor * 100 + patch)
-// For example, 3.1.2 becomes 30102.
-#define ZEEK_VERSION_NUMBER @ZEEK_VERSION_NUMBER@
-
 /* whether words are stored with the most significant byte first */
 #cmakedefine WORDS_BIGENDIAN
 
@@ -251,19 +243,18 @@
 /* String with extension of dynamic libraries (e.g., ".so") */
 #define DYNAMIC_PLUGIN_SUFFIX "@CMAKE_SHARED_MODULE_SUFFIX@"
 
-/* True if we're building outside of the main Zeek source code tree. */
+/* Set if we're building outside of the main Zeek source code tree. */
 #ifndef ZEEK_PLUGIN_INTERNAL_BUILD
-#define ZEEK_PLUGIN_INTERNAL_BUILD @ZEEK_PLUGIN_INTERNAL_BUILD@
+#define ZEEK_PLUGIN_INTERNAL_BUILD true
+#else
+// Backwards compat for external plugins, include the version
+// identifiers through zeek/zeek-version.h.
+#if ! ZEEK_PLUGIN_INTERNAL_BUILD
+#include "zeek/zeek-version.h"
 #endif
-
-/* A C function that has the Zeek version encoded into its name. */
-#define ZEEK_VERSION_FUNCTION zeek_version_@VERSION_C_IDENT@
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern const char* ZEEK_VERSION_FUNCTION();
-#ifdef __cplusplus
-}
+//
+// Not sure we can ever deprecate this without changing
+// the names.
 #endif
 
 // GCC uses __SANITIZE_ADDRESS__, Clang uses __has_feature

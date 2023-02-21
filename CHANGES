@@ -1,3 +1,21 @@
+6.0.0-dev.79 | 2023-02-21 12:28:07 -0700
+
+  * ftp: Limit user, password, arg and reply_msg column sizes in log (Arne Welzel, Corelight)
+
+    The user and password fields are replicated to each of the ftp.log
+    entries. Using a very large username (100s of KBs) allows to bloat
+    the log without actually sending much traffic. Further, limit the
+    arg and reply_msg columns to large, but not unbounded values.
+
+  * Allow async DNS responses with zero TTLs to be considered valid after expriation (Tim Wojtulewicz, Corelight)
+
+    This fixes a potential memory leak when getting responses for asnyc DNS requests
+    where the TTL value on the response is zero. We were immediately considering the
+    request as expired and never removing it from the map of requests. This lead to
+    the DNS_Mgr eventually stopping processing of async requests.
+
+  * Add max_size argument for find_all/find_all_ordered BIFs (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.75 | 2023-02-19 19:23:50 -0700
 
   * Update seemingly-unrelated btests (Eldon Koyle, Corelight)

@@ -3,6 +3,42 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.7
+==========
+
+This release fixes the following security issues:
+
+- Receiving DNS responses from async DNS requests (via the lookup_addr, etc BIF
+  methods) with the TTL set to zero could cause the DNS manager to eventually
+  stop being able to make new requests. This would lead to a memory leak that
+  causes Zeek to crash. Due to the possibility of receiving these packets from
+  remote hosts, this is a DoS risk. The fix included is to more carefully handle
+  these types of responses to allow DNS resolution to continue.
+
+- Specially-crafted FTP packets with excessively long usernames, passwords, or
+  other fields could cause log writes to use large amounts of disk space. Due to
+  the possibility of receiving these packets from remote hosts, this is a DoS
+  risk. The fix included adds new script-level options for limiting the possible
+  input length for these fields, reporting weirds when those limits are
+  exceeded.
+
+- The find_all and find_all_ordered BIF methods could take extremely large
+  amounts of time to process incoming data depending on the size of the
+  input. This has been encountered with packet input to multiple analyzers, but
+  most notably the SMTP analyzer. Due to the possibility of receiving these
+  packets from remote hosts, this is a DoS risk. The fix included adds a new
+  argument to those BIF methods allowing callers to a set a maximum size for an
+  input string to be processed. If the limit is exceeded, a weird is reported.
+
+This release fixes the following bugs:
+
+- Various issues with signed/unsigned character discrepancies on arm64 builds
+  are fixed. These caused problems in the HTTP and NetBIOS analyzers, as well
+  as Base64 decoding.
+
+- A performance degredation in debug builds involving hashing large keys for
+  Dictionaries was fixed.
+
 Zeek 5.0.6
 ==========
 

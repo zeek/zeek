@@ -1,3 +1,14 @@
+6.0.0-dev.82 | 2023-02-21 16:48:03 -0700
+
+  * parse.y: Improve error reporting of type redef (Arne Welzel, Corelight)
+
+    It's happening regularly to me that I forget the type specifier when redef'ing
+    records or enums and usually it takes me a while to figure out what's going
+    on as the errors are not descriptive. Improve the error reporting and just
+    bail as there's no sensible way to continue.
+
+    Closes #2777
+
 6.0.0-dev.79 | 2023-02-21 12:28:07 -0700
 
   * ftp: Limit user, password, arg and reply_msg column sizes in log (Arne Welzel, Corelight)

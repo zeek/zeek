@@ -1387,9 +1387,22 @@ decl:
 			build_global($2, $3, $4, $5, $6, VAR_CONST);
 			}
 
-	|	TOK_REDEF global_id opt_type init_class opt_init opt_attr ';'
+	|	TOK_REDEF global_id {
+			if ( $2->IsType() )
+				{
+				auto tag = $2->GetType()->Tag();
+				auto tstr = type_name(tag);
+				if ( tag == TYPE_RECORD || tag == TYPE_ENUM )
+					yyerror(zeek::util::fmt("redef of %s type %s is missing %s keyword",
+								tstr, $2->Name(), tstr));
+				else
+					yyerror(zeek::util::fmt("can not redef %s type %s", tstr, $2->Name()));
+
+				YYERROR;  // bail
+				}
+		} opt_type init_class opt_init opt_attr ';'
 			{
-			build_global($2, $3, $4, $5, $6, VAR_REDEF);
+			build_global($2, $4, $5, $6, $7, VAR_REDEF);
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'

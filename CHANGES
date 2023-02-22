@@ -1,3 +1,12 @@
+6.0.0-dev.94 | 2023-02-22 19:29:52 +0100
+
+  * ci/collect-repo-info: No hard dependency on git (Arne Welzel, Corelight)
+
+    The OBS builds run in an environment where no git is installed and
+    release tarballs assembled manually.
+
+    Drop the hard-requirement on git from ci/collect-repo-info.json.
+
 6.0.0-dev.92 | 2023-02-22 16:49:36 +0100
 
   * GH-2776: zeek-config: Move ZEEK_VERSION* out of zeek-config.h (Arne Welzel, Corelight)

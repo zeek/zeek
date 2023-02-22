@@ -25,6 +25,16 @@ def git(*args, **kwargs):
     return subprocess.check_output([GIT, *args], **kwargs).decode("utf-8")
 
 
+def git_available():
+    try:
+        git("--version", stderr=subprocess.DEVNULL)
+        return True
+    except OSError:
+        pass
+
+    return False
+
+
 def git_is_repo(d: pathlib.Path):
     try:
         git("-C", str(d), "rev-parse", "--is-inside-work-tree", stderr=subprocess.DEVNULL)
@@ -150,16 +160,14 @@ def main():
         logger.error("%s missing zeek-config.h.in", zeek_dir)
         return 1
 
-    try:
-        git("--version")
-    except OSError as e:
-        logger.error("No git? (%s)", str(e))
+    if args.only_git and not git_available():
+        logger.error("git not found and --only-git provided")
         return 1
 
     # Attempt to collect info from git first and alternatively
     # fall back to a repo-info.json file within what is assumed
     # to be a tarball.
-    if git_is_repo(zeek_dir):
+    if git_available() and git_is_repo(zeek_dir):
         info = collect_git_info(zeek_dir)
     elif not args.only_git:
         try:
@@ -167,10 +175,13 @@ def main():
                 info = json.load(fp)
                 info["source"] = "repo-info.json"
         except FileNotFoundError:
-            logger.error("%s is not a git repo and repo-info.json missing", zeek_dir)
+            git_info_msg = ""
+            if not git_available():
+                git_info_msg = " (git not found)"
+            logger.error("%s has no repo-info.json%s", zeek_dir, git_info_msg)
             return 1
     else:
-        logger.error("Not a git repo and --only-git provided")
+        logger.error("%s is not a git repo and --only-git provided", zeek_dir)
         return 1
 
     included_plugins_info = []

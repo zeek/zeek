@@ -1,3 +1,17 @@
+6.0.0-dev.92 | 2023-02-22 16:49:36 +0100
+
+  * GH-2776: zeek-config: Move ZEEK_VERSION* out of zeek-config.h (Arne Welzel, Corelight)
+
+    When bumping the VERSION file, everything that includes the auto-generated
+    zeek/zeek-config.h needs to rebuild and ccache usage is voided due the file
+    changing. Split the mutable version information into a new zeek-version.h
+    file to avoid this.
+
+    Further, do not include zeek-version.h within Plugin.h and avoid the reference
+    to ZEEK_VERSION_FUNCTION unless we're building an external plugin.
+
+    Closes #2776.
+
 6.0.0-dev.89 | 2023-02-22 15:51:44 +0100
 
   * Update Spicy plugin. (Robin Sommer, Corelight)

@@ -759,6 +759,9 @@ if ( NOT BINARY_PACKAGING_MODE )
 endif ()
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-version.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h DESTINATION include/zeek)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})

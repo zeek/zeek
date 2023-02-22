@@ -9,6 +9,7 @@
 #include "zeek/Var.h"
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/telemetry/Manager.h"
 
 namespace zeek
 	{
@@ -53,7 +54,16 @@ void EventHandler::SetFunc(FuncPtr f)
 
 void EventHandler::Call(Args* vl, bool no_remote)
 	{
-	call_count++;
+	if ( ! call_count )
+		{
+		static auto eh_invocations_family = telemetry_mgr->CounterFamily(
+			"zeek", "event-handler-invocations", {"name"},
+			"Number of times the given event handler was called", "1", true);
+
+		call_count = eh_invocations_family.GetOrAdd({{"name", name}});
+		}
+
+	call_count->Inc();
 
 	if ( new_event )
 		NewEvent(vl);

@@ -1,3 +1,17 @@
+6.0.0-dev.87 | 2023-02-22 12:58:05 +0100
+
+  * external/testing-setup: Less telemetry.log volume (Arne Welzel, Corelight)
+
+    For traces spanning a long time period, don't produce immense
+    amounts of logs. Also filter down the event handler invocation
+    entries to connection related events in telemetry.log.
+
+  * EventHandler: Use telemetry framework for EventHandler.call_count (Arne Welzel, Corelight)
+
+    Put the IntCounter into a std::optional rather than initializing
+    it at EventHandler construction time as that will currently expose
+    a time series per event handler through the Prometheus API.
+
 6.0.0-dev.82 | 2023-02-21 16:48:03 -0700
 
   * parse.y: Improve error reporting of type redef (Arne Welzel, Corelight)

@@ -1,5 +1,12 @@
 #include "zeek/zeek-config.h"
 
+// Starting with Zeek 6.0, zeek-config.h does not provide the
+// ZEEK_VERSION_NUMBER macro anymore when compiling a included
+// plugin. Use the new zeek/zeek-version.h header if it exists.
+#if __has_include("zeek/zeek-version.h")
+#include "zeek/zeek-version.h"
+#endif
+
 #include "AF_Packet.h"
 #include "RX_Ring.h"
 

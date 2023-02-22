@@ -25,6 +25,29 @@ Breaking Changes
   The main motivation is improved ccache effectiveness for speedier CI and
   development builds whenever a VERSION bump happens.
 
+- Custom source tarballs require a ``repo-info.json`` file.
+
+  Note, should you be using official Zeek release tarballs only, or build
+  Zeek solely from git checkouts, this does not affect you.
+
+  However, if you're building your own Zeek source tarballs, it is now required
+  that a ``repo-info.json`` file exists at the top-level. The ``dist`` target was
+  extended to add this file and official Zeek release source tarballs will
+  contain it going forward.
+
+  The following command can be used to produce ``repo-info.json``:
+
+	python3 ./ci/collect-repo-info.py --only-git > ../path/to/tarballdir/repo-info.json
+
+  This is required to support the new ``-V`` / ``--build-info`` option that
+  provides information about git submodules and included plugins used during
+  the build. The ``ci/collect-repo-info.py`` tool runs at ``./configure`` time
+  and either collects the required information from a git clone (when git is
+  installed), or otherwise uses the content of a file named ``repo-info.json``.
+
+  If you see opportunities to extend ``repo-info.json`` with further information,
+  please get in touch.
+
 New Functionality
 -----------------
 

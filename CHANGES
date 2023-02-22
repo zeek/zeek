@@ -1,3 +1,7 @@
+6.0.0-dev.89 | 2023-02-22 15:51:44 +0100
+
+  * Update Spicy plugin. (Robin Sommer, Corelight)
+
 6.0.0-dev.87 | 2023-02-22 12:58:05 +0100
 
   * external/testing-setup: Less telemetry.log volume (Arne Welzel, Corelight)

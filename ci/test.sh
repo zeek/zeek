@@ -66,7 +66,7 @@ function run_btests {
         sed -i 's/^ZEEK_PROFILER_FILE/#ZEEK_PROFILER_FILE/g' btest.cfg
     fi
 
-    ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -b -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
+    ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
     make coverage
     prep_artifacts
     popd
@@ -86,7 +86,7 @@ function run_external_btests {
     local zeek_testing_pid=""
     local zeek_testing_pid_private=""
     pushd testing/external/zeek-testing
-    ${BTEST} -d -b -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
+    ${BTEST} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
     zeek_testing_pid=$!
     popd
 
@@ -94,7 +94,7 @@ function run_external_btests {
         pushd testing/external/zeek-testing-private
         # Note that we don't use btest's "-d" flag or generate/upload any
         # artifacts to prevent leaking information about the private pcaps.
-        ${BTEST} -b -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
+        ${BTEST} -A -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
         zeek_testing_private_pid=$!
         popd
     fi

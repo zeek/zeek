@@ -1,3 +1,12 @@
+6.0.0-dev.98 | 2023-02-22 15:53:12 -0700
+
+  * Use ensurepip to install pip on FreeBSD (Tim Wojtulewicz, Corelight)
+
+    The py39-pip package is sometimes not available on FreeBSD, and using
+    ensurepip is the recommended way to install pip according to the pip
+    documentation. ensurepip should be available in every python
+    installation.
+
 6.0.0-dev.96 | 2023-02-22 14:26:29 -0700
 
   * Update benchmarker Cirrus secrets to use org-level values (Tim Wojtulewicz, Corelight)

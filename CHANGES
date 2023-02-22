@@ -1,3 +1,7 @@
+6.0.0-dev.96 | 2023-02-22 14:26:29 -0700
+
+  * Update benchmarker Cirrus secrets to use org-level values (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.94 | 2023-02-22 19:29:52 +0100
 
   * ci/collect-repo-info: No hard dependency on git (Arne Welzel, Corelight)

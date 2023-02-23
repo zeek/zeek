@@ -18,7 +18,7 @@ Extract::Extract(RecordValPtr args, file_analysis::File* file, const std::string
 	  filename(arg_filename), limit(arg_limit), depth(0)
 	{
 	char buf[128];
-	file_stream = fopen(filename.data(), "w");
+	file_stream = fopen(filename.data(), "wb");
 
 	if ( file_stream )
 		{

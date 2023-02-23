@@ -129,7 +129,7 @@ def collect_plugin_info(plugin_dir: pathlib.Path):
     except FileNotFoundError:
         logger.warning("No VERSION found in %s", plugin_dir)
 
-    if git_is_repo(plugin_dir):
+    if git_available() and git_is_repo(plugin_dir):
         result.update(git_generic_info(plugin_dir))
 
     return result

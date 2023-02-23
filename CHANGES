@@ -1,3 +1,7 @@
+6.0.0-dev.100 | 2023-02-22 17:05:56 -0700
+
+  * Use btest -A on CI to get more information about stuck tests (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.98 | 2023-02-22 15:53:12 -0700
 
   * Use ensurepip to install pip on FreeBSD (Tim Wojtulewicz, Corelight)

@@ -246,7 +246,7 @@ static void print_event_c_body(FILE* fp)
 	fprintf(fp, "\t// allocation.\n");
 	fprintf(fp, "\n");
 
-	BuiltinFuncArg* connection_arg = 0;
+	BuiltinFuncArg* connection_arg = nullptr;
 
 	fprintf(fp, "\tzeek::event_mgr.Enqueue(%s, zeek::Args{\n", decl.c_fullname.c_str());
 
@@ -258,7 +258,7 @@ static void print_event_c_body(FILE* fp)
 
 		if ( args[i]->Type() == TYPE_CONNECTION )
 			{
-			if ( connection_arg == 0 )
+			if ( connection_arg == nullptr )
 				connection_arg = args[i];
 			else
 				{
@@ -567,7 +567,7 @@ plain_head:	head_1 args arg_end opt_ws
 
 head_1:		TOK_ID opt_ws arg_begin
 			{
-			const char* method_type = 0;
+			const char* method_type = nullptr;
 			set_decl_name($1);
 
 			if ( definition_type == FUNC_DEF )

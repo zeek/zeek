@@ -139,6 +139,10 @@ env:
   CCACHE_DIR: /tmp/ccache
   CCACHE_COMPRESS: 1
 
+  # Ensure reasonable ccache pruning
+  CCACHE_MAXSIZE: 500M
+  CCACHE_MAXFILES: 20000
+
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 

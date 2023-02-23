@@ -14,9 +14,9 @@ using namespace std;
 namespace zeek::detail
 	{
 
-static int streq(const char* s1, const char* s2)
+static bool streq(const char* s1, const char* s2)
 	{
-	return ! strcmp(s1, s2);
+	return strcmp(s1, s2) == 0;
 	}
 
 TEST_CASE("module_util streq")

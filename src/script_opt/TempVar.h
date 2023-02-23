@@ -17,7 +17,7 @@ namespace zeek::detail
 class TempVar
 	{
 public:
-	TempVar(int num, const TypePtr& t, ExprPtr rhs);
+	TempVar(size_t num, const TypePtr& t, ExprPtr rhs);
 
 	const char* Name() const { return name.data(); }
 	const zeek::Type* Type() const { return type.get(); }

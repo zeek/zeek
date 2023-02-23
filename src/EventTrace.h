@@ -308,7 +308,7 @@ public:
 	// Constructed in terms of the associated script function, "network
 	// time" when the event occurred, and the position of this event
 	// within all of those being traced.
-	EventTrace(const ScriptFunc* _ev, double _nt, int event_num);
+	EventTrace(const ScriptFunc* _ev, double _nt, size_t event_num);
 
 	// Sets a string representation of the arguments (values) being
 	// passed to the event.

@@ -7,10 +7,10 @@
 namespace zeek::detail
 	{
 
-TempVar::TempVar(int num, const TypePtr& t, ExprPtr _rhs) : type(t)
+TempVar::TempVar(size_t num, const TypePtr& t, ExprPtr _rhs) : type(t)
 	{
 	char buf[8192];
-	snprintf(buf, sizeof buf, "#%d", num);
+	snprintf(buf, sizeof buf, "#%zu", num);
 	name = buf;
 	rhs = std::move(_rhs);
 	}

@@ -162,7 +162,7 @@ public:
 	/**
 	 * Initializes the header chain from an IPv6 header structure.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, int len) { Init(ip6, len, false); }
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint64_t len) { Init(ip6, len, false); }
 
 	~IPv6_Hdr_Chain();
 
@@ -250,7 +250,7 @@ protected:
 	 * Initializes the header chain from an IPv6 header structure, and replaces
 	 * the first next protocol pointer field that points to a fragment header.
 	 */
-	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16_t next, int len)
+	IPv6_Hdr_Chain(const struct ip6_hdr* ip6, uint16_t next, uint64_t len)
 		{
 		Init(ip6, len, true, next);
 		}
@@ -260,7 +260,7 @@ protected:
 	 * length, possibly setting the first next protocol pointer field that
 	 * points to a fragment header.
 	 */
-	void Init(const struct ip6_hdr* ip6, int total_len, bool set_next, uint16_t next = 0);
+	void Init(const struct ip6_hdr* ip6, uint64_t total_len, bool set_next, uint16_t next = 0);
 
 	/**
 	 * Process a routing header and allocate/remember the final destination
@@ -324,8 +324,8 @@ public:
 	 * @param c an already-constructed header chain to take ownership of.
 	 * @param reassembled whether this header is for a reassembled packet.
 	 */
-	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del, int len, const IPv6_Hdr_Chain* c = nullptr,
-	       bool reassembled = false)
+	IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del, uint64_t len,
+	       const IPv6_Hdr_Chain* c = nullptr, bool reassembled = false)
 		: ip6(arg_ip6), ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len)), del(arg_del),
 		  reassembled(reassembled)
 		{

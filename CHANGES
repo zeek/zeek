@@ -1,3 +1,21 @@
+6.0.0-dev.115 | 2023-02-23 07:40:22 -0700
+
+  * Include stdint.h early in flex files to prevent redefinition of int type macros (Tim Wojtulewicz)
+
+  * SMB: clarify a confusing line in one of the pac files (Tim Wojtulewicz)
+
+  * module_util: Change streq helper method to just return bool (Tim Wojtulewicz)
+
+  * NTLM analyzer: Don't bother checking boolean values for > 0 (Tim Wojtulewicz)
+
+  * FTP analyzer: Remove unnecessary lines from constructor (Tim Wojtulewicz)
+
+  * IP_Hdr: take length value as uint64_t instead of int (Tim Wojtulewicz)
+
+  * EventTrace: take size_t as a constructor argument instead of int (Tim Wojtulewicz)
+
+  * Change argument to Tempvar constructor to size_t, avoids conversion warning in template construction (Tim Wojtulewicz)
+
 6.0.0-dev.104 | 2023-02-23 15:18:50 +0100
 
   * ci/collect-repo-info: No hard dependency on git, take two (Arne Welzel, Corelight)

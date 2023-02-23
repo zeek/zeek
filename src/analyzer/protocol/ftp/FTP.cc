@@ -24,15 +24,11 @@ FTP_Analyzer::FTP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAna
 
 	nvt_orig = new analyzer::login::NVT_Analyzer(conn, true);
 	nvt_orig->SetIsNULSensitive(true);
-	nvt_orig->SetIsNULSensitive(true);
 	nvt_orig->SetCRLFAsEOL(LF_as_EOL);
-	nvt_orig->SetIsNULSensitive(LF_as_EOL);
 
 	nvt_resp = new analyzer::login::NVT_Analyzer(conn, false);
 	nvt_resp->SetIsNULSensitive(true);
-	nvt_resp->SetIsNULSensitive(true);
 	nvt_resp->SetCRLFAsEOL(LF_as_EOL);
-	nvt_resp->SetIsNULSensitive(LF_as_EOL);
 
 	nvt_resp->SetPeer(nvt_orig);
 	nvt_orig->SetPeer(nvt_resp);

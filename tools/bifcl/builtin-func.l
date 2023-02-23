@@ -255,7 +255,7 @@ void init_alternative_mode()
 
 	static char name[1024];
 	strncpy(name, input_filename, sizeof(name) - 1);
-	name[sizeof(name) - 1] = 0;
+	name[sizeof(name) - 1] = '\0';
 	char* dot = strchr(name, '.');
 	if ( dot )
 		*dot = '\0';
@@ -264,7 +264,7 @@ void init_alternative_mode()
 		{
 		static char plugin_canon[1024];
 		strncpy(plugin_canon, plugin, sizeof(plugin_canon) - 1);
-		plugin_canon[sizeof(plugin_canon) - 1] = 0;
+		plugin_canon[sizeof(plugin_canon) - 1] = '\0';
 		char* colon = strstr(plugin_canon, "::");
 
 		if ( colon ) {
@@ -355,10 +355,9 @@ int main(int argc, char* argv[])
 	for ( int i = optind; i < argc; i++ )
 		{
 		FILE* fp_input;
-		char* slash;
 
 		input_filename = input_filename_with_path = argv[i];
-		slash = strrchr(input_filename, '/');
+		char* slash = strrchr(input_filename, '/');
 
 		if ( (fp_input = fopen(input_filename, "r")) == NULL )
 			{

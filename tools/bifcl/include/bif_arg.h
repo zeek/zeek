@@ -13,7 +13,7 @@ enum builtin_func_arg_type
 
 extern const char* builtin_func_arg_type_bro_name[];
 
-class BuiltinFuncArg
+class BuiltinFuncArg final
 	{
 public:
 	BuiltinFuncArg(const char* arg_name, int arg_type);
@@ -29,7 +29,7 @@ public:
 	void PrintCArg(FILE* fp, int n);
 	void PrintValConstructor(FILE* fp);
 
-protected:
+private:
 	const char* name;
 	int type;
 	const char* type_str;

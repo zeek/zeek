@@ -17,7 +17,7 @@ extern int line_number;
 extern char* input_filename;
 extern char* input_filename_with_path;
 extern char* plugin;
-extern int alternative_mode;
+extern bool alternative_mode;
 
 #define print_line_directive(fp) fprintf(fp, "\n#line %d \"%s\"\n", line_number, input_filename_with_path)
 
@@ -29,7 +29,7 @@ extern FILE* fp_netvar_h;
 extern FILE* fp_netvar_def;
 extern FILE* fp_netvar_init;
 
-int in_c_code = 0;
+bool in_c_code = false;
 string current_module = GLOBAL_MODULE_NAME;
 int definition_type;
 string type_name;
@@ -686,13 +686,13 @@ body:		body_start c_body body_end
 
 c_code_begin:	/* empty */
 			{
-			in_c_code = 1;
+			in_c_code = true;
 			print_line_directive(fp_func_def);
 			}
 	;
 
 c_code_end:	/* empty */
-			{ in_c_code = 0; }
+			{ in_c_code = false; }
 	;
 
 body_start:	TOK_LPB c_code_begin

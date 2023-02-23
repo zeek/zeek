@@ -23,7 +23,7 @@ char* copy_string(const char* s)
 
 int line_number = 1;
 
-extern int in_c_code;
+extern bool in_c_code;
 
 int check_c_mode(int t)
 	{
@@ -156,7 +156,7 @@ extern int yyparse();
 char* input_filename = nullptr;
 char* input_filename_with_path = nullptr;
 char* plugin = nullptr;
-int   alternative_mode = 0;
+bool  alternative_mode = false;
 
 FILE* fp_zeek_init = nullptr;
 FILE* fp_func_def = nullptr;
@@ -339,12 +339,12 @@ int main(int argc, char* argv[])
 		{
 		switch ( opt ) {
 		case 'p':
-			alternative_mode = 1;
+			alternative_mode = true;
 			plugin = (char*) optarg;
 			break;
 
 		case 's':
-			alternative_mode = 1;
+			alternative_mode = true;
 			break;
 
 		default:

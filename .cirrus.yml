@@ -90,7 +90,7 @@ ci_template: &CI_TEMPLATE
   always:
     ccache_cache:
       folder: /tmp/ccache
-      fingerprint_script: echo ccache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      fingerprint_script: echo ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
 
   init_external_repos_script: ./ci/init-external-repos.sh
@@ -138,10 +138,17 @@ env:
   CCACHE_BASEDIR: $CIRRUS_WORKING_DIR
   CCACHE_DIR: /tmp/ccache
   CCACHE_COMPRESS: 1
-
-  # Ensure reasonable ccache pruning
-  CCACHE_MAXSIZE: 500M
+  # Ensure reasonable ccache upper limits to avoid spending
+  # too much time on pulling and pushing the cache folder.
+  # However, cache eviction with Cirrus CI is currently random
+  # due to mtime not being preserved through the cache instruction:
+  # https://github.com/cirruslabs/cirrus-ci-agent/issues/277
+  CCACHE_MAXSIZE: 1000M
   CCACHE_MAXFILES: 20000
+
+  # Increase this to flush the ccache cache. Mainly useful until there's
+  # a solution for the mtime pruning above.
+  ZEEK_CCACHE_EPOCH: 2
 
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle

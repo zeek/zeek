@@ -90,7 +90,7 @@ ci_template: &CI_TEMPLATE
   always:
     ccache_cache:
       folder: /tmp/ccache
-      fingerprint_script: echo ccache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      fingerprint_script: echo ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
 
   init_external_repos_script: ./ci/init-external-repos.sh
@@ -138,6 +138,17 @@ env:
   CCACHE_BASEDIR: $CIRRUS_WORKING_DIR
   CCACHE_DIR: /tmp/ccache
   CCACHE_COMPRESS: 1
+  # Ensure reasonable ccache upper limits to avoid spending
+  # too much time on pulling and pushing the cache folder.
+  # However, cache eviction with Cirrus CI is currently random
+  # due to mtime not being preserved through the cache instruction:
+  # https://github.com/cirruslabs/cirrus-ci-agent/issues/277
+  CCACHE_MAXSIZE: 1000M
+  CCACHE_MAXFILES: 20000
+
+  # Increase this to flush the ccache cache. Mainly useful until there's
+  # a solution for the mtime pruning above.
+  ZEEK_CCACHE_EPOCH: 2
 
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
@@ -424,7 +435,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   always:
     ccache_cache:
       folder: /tmp/ccache
-      fingerprint_script: echo ccache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      fingerprint_script: echo ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
 
     builder_image_cache:
@@ -446,10 +457,18 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
     - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
     - cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .
     - docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
-  build_zeek_script:
-    - docker run --name zeek-builder-container -e CCACHE_DIR=/tmp/ccache -e CCACHE_NOSTATS=1 -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+  build_zeek_script: |
+    set -x
+    docker run --name zeek-builder-container \
+        -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
+        -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
+        -e CCACHE_DIR=/tmp/ccache \
+        -e CCACHE_NOSTATS=1 \
+        -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest \
+        bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+
     # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
-    - docker commit zeek-builder-container zeek-build
+    docker commit zeek-builder-container zeek-build
   build_final_script:
     - cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
     - docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst

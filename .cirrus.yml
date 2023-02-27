@@ -625,11 +625,13 @@ cluster_testing_docker_builder:
     - amd64_container_image
 
 
-# Cirrus Cron triggered JOB to test zeekctl regularly such
+# Cirrus Cron triggered job to test zeekctl regularly such
 # that the baselines don't go stale.
 zeekctl_debian11_task:
+  cpu: *CPUS
+  memory: *MEMORY
   only_if: >
-    ( $CIRRUS_CRON == 'zeekctl-nightly' )
+    ($CIRRUS_CRON == 'zeekctl-nightly' || $CIRRUS_PR_LABELS !=~ '.*zeekctlci.*')
 
   container:
     # Debian 11 EOL: June 2026
@@ -649,5 +651,7 @@ zeekctl_debian11_task:
     cd auxil/zeekctl/testing
     ./Scripts/build-zeek
 
-  test_script:
-    - date
+  test_script: |
+    set -x
+    cd auxil/zeekctl/testing
+    ../../auxil/btest/btest -A -d -b -j ${BTEST_JOBS}

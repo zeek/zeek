@@ -3,6 +3,8 @@
 # Final layer containing all artifacts.
 FROM debian:bullseye-slim
 
+RUN echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries
+
 RUN apt-get -q update \
  && apt-get install -q -y --no-install-recommends \
      ca-certificates \

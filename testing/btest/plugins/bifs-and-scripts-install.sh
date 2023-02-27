@@ -40,7 +40,3 @@ function hello_plugin_world%(%): string
 
 event plugin_event%(foo: count%);
 EOF
-
-cat >activate.zeek <<EOF
-@load-plugin Demo::Foo
-EOF

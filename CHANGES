@@ -1,3 +1,15 @@
+6.0.0-dev.126 | 2023-02-27 09:52:31 +0100
+
+  * Update cmake submodule (Arne Welzel, Corelight)
+
+    To pull in zeek/cmake#62.
+
+  * cirrus: Also add ccache limits to container builds (Arne Welzel, Corelight)
+
+  * cirrus: Add an epoch to the ccache fingerprint, bump to 1000M (Arne Welzel, Corelight)
+
+  * cirrus: Cap ccache max size to 500M and max files to 20000 (Arne Welzel, Corelight)
+
 6.0.0-dev.117 | 2023-02-23 08:27:12 -0700
 
   * GH-2730: Use binary mode when opening files in Extract file analyzer (Tim Wojtulewicz)

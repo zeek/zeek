@@ -1,3 +1,10 @@
+6.0.0-dev.132 | 2023-02-27 13:47:41 -0700
+
+  * Bump zeekctl and add NEWS entries (Arne Welzel, Corelight)
+
+    These are added to the 5.2 section of NEWS. This is for backporting
+    into release/5.2.
+
 6.0.0-dev.130 | 2023-02-27 09:36:31 -0700
 
   * Update bifcl submodule [nomail] (Tim Wojtulewicz, Corelight)

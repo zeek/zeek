@@ -623,3 +623,31 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
+
+
+# Cirrus Cron triggered JOB to test zeekctl regularly such
+# that the baselines don't go stale.
+zeekctl_debian11_task:
+  only_if: >
+    ( $CIRRUS_CRON == 'zeekctl-nightly' )
+
+  container:
+    # Debian 11 EOL: June 2026
+    dockerfile: ci/debian-11/Dockerfile
+    << : *RESOURCES_TEMPLATE
+
+  sync_submodules_script: git submodule update --recursive --init
+
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo zeekctl-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
+  build_script: |
+    set -x
+    cd auxil/zeekctl/testing
+    ./Scripts/build-zeek
+
+  test_script:
+    - date

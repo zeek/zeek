@@ -79,6 +79,11 @@ Breaking Changes
   clusters running on FreeBSD, as that OS uses a different range for ephemeral
   ports.
 
+- Zeekctl support for the AF_PACKET plugin specific options (af_packet_*) has
+  been integrated into zeekctl directly. Upgrading to Zeek 5.2 with a builtin
+  AF_PACKET packet source (default on Linux) requires an upgrade of zeekctl
+  to the version bundled with Zeek to continue using these options.
+
 - The blank identifier ``_`` cannot be used in expressions and options anymore.
   Outside of obfuscation exercises, this should have little real-world impact.
 
@@ -126,6 +131,8 @@ New Functionality
   to be published to public.ecr.aws) Further, container images for amd64 and
   arm64 platforms are now available. Main driver for the latter was to allow
   usage of the official container images on Apple's M1 systems.
+
+- Zeekctl support for using ``af_packet`` as ``lb_method`` has been added.
 
 - New ``analyzer_confirmation_info`` and ``analyzer_violation_info`` events with
   accompanying record types ``AnalyzerConfirmationInfo`` and

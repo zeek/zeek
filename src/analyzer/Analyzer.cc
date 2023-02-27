@@ -5,6 +5,7 @@
 #include <binpac.h>
 #include <algorithm>
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/Event.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"
@@ -480,11 +481,11 @@ void Analyzer::PreventChildren(zeek::Tag tag)
 bool Analyzer::HasChildAnalyzer(zeek::Tag tag)
 	{
 	LOOP_OVER_CHILDREN(i)
-	if ( (*i)->tag == tag )
+	if ( (*i)->tag == tag && ! ((*i)->removing || (*i)->finished) )
 		return true;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-	if ( (*i)->tag == tag )
+	if ( (*i)->tag == tag && ! ((*i)->removing || (*i)->finished) )
 		return true;
 
 	return false;
@@ -492,7 +493,7 @@ bool Analyzer::HasChildAnalyzer(zeek::Tag tag)
 
 Analyzer* Analyzer::FindChild(ID arg_id)
 	{
-	if ( id == arg_id )
+	if ( id == arg_id && ! (removing || finished) )
 		return this;
 
 	LOOP_OVER_CHILDREN(i)
@@ -514,7 +515,7 @@ Analyzer* Analyzer::FindChild(ID arg_id)
 
 Analyzer* Analyzer::FindChild(zeek::Tag arg_tag)
 	{
-	if ( tag == arg_tag )
+	if ( tag == arg_tag && ! (removing || finished) )
 		return this;
 
 	LOOP_OVER_CHILDREN(i)
@@ -909,3 +910,41 @@ void SupportAnalyzer::ForwardUndelivered(uint64_t seq, int len, bool is_orig)
 	}
 
 	} // namespace zeek::analyzer
+
+TEST_SUITE("Analyzer management")
+	{
+	TEST_CASE("Re-add analyzer after removal")
+		{
+		// This test tries to reactivate an analyzer which was previously removed.
+		// It's a regression test for #2801.
+		REQUIRE(zeek::analyzer_mgr);
+
+		zeek::Packet p;
+		zeek::ConnTuple t;
+		auto conn = std::make_unique<zeek::Connection>(zeek::detail::ConnKey(t), 0, &t, 0, &p);
+		auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn.get());
+		conn->SetSessionAdapter(tcp, nullptr);
+
+		auto a = zeek::analyzer_mgr->InstantiateAnalyzer("SSH", conn.get());
+		REQUIRE(a);
+		auto b1 = zeek::analyzer_mgr->InstantiateAnalyzer("IMAP", a->Conn());
+		REQUIRE(b1);
+
+		tcp->AddChildAnalyzer(a);
+		a->AddChildAnalyzer(b1);
+
+		CHECK(conn->FindAnalyzer("SSH"));
+		CHECK(conn->FindAnalyzer("IMAP"));
+
+		a->RemoveChildAnalyzer(b1);
+
+		CHECK(! conn->FindAnalyzer("IMAP"));
+
+		auto b2 = zeek::analyzer_mgr->InstantiateAnalyzer("IMAP", a->Conn());
+		REQUIRE(b2);
+
+		REQUIRE(a->AddChildAnalyzer(b2));
+		CHECK(conn->FindAnalyzer("IMAP"));
+		conn->Done();
+		}
+	}

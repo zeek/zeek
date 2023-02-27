@@ -1,3 +1,7 @@
+6.0.0-dev.134 | 2023-02-27 14:48:16 -0700
+
+  * Configure apt to retry a few times on Docker image builder tasks (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.132 | 2023-02-27 13:47:41 -0700
 
   * Bump zeekctl and add NEWS entries (Arne Welzel, Corelight)

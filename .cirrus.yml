@@ -53,10 +53,12 @@ sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
 
 builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
   # Rules for skipping builds:
+  # - Do not run builds for anything that's cron triggered
   # - Don't do darwin builds on zeek-security repo because they use up a ton of compute credits.
   # - Always build PRs, but not if they come from dependabot
   # - Always build master and release/* builds from the main repo
   only_if: >
+    ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( $CIRRUS_REPO_NAME == 'zeek' &&
@@ -423,6 +425,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   memory: *MEMORY
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
   only_if: >
+    ( $CIRRUS_CRON == '' ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
         $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
 
@@ -490,6 +493,7 @@ container_image_manifest_docker_builder:
   cpu: 1
   # Push master builds to zeek/zeek-dev, or tagged release branches to zeek/zeek
   only_if: >
+    ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' &&
       ( $CIRRUS_BRANCH == 'master' ||
         $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+$' ) )

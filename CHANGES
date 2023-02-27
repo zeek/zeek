@@ -1,3 +1,7 @@
+6.0.0-dev.130 | 2023-02-27 09:36:31 -0700
+
+  * Update bifcl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.128 | 2023-02-27 12:36:09 +0100
 
   * GH-2801: Fix re-instantiation of analyzers that were just removed. (Robin Sommer, Corelight)

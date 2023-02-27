@@ -1181,8 +1181,6 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
                                       bool local, bool remote, bool from_remote,
                                       const string& instantiating_filter)
 	{
-	WriterFrontend* result = nullptr;
-
 	Stream* stream = FindStream(id);
 
 	if ( ! stream )

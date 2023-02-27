@@ -624,3 +624,40 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
+
+
+# Test zeekctl upon master and release pushes and also when
+# a PR has a zeekctlci or fullci label.
+#
+# Also triggers on CIRRUS_CRON == 'zeekctl-nightly' if that is configured
+# through the Cirrus Web UI.
+zeekctl_debian11_task:
+  cpu: *CPUS
+  memory: *MEMORY
+  only_if: >
+    ( $CIRRUS_CRON == 'zeekctl-nightly' ) ||
+    ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ '.*(zeekctlci|fullci).*' ) ||
+    ( $CIRRUS_REPO_NAME == 'zeek' && (
+        $CIRRUS_BRANCH == 'master' ||
+        $CIRRUS_BRANCH =~ 'release/.*' )
+    )
+  container:
+    # Debian 11 EOL: June 2026
+    dockerfile: ci/debian-11/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  sync_submodules_script: git submodule update --recursive --init
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo zeekctl-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+  install_iproute2_script:
+    # No iproute2 in default Zeek build container, but zeekctl tests need it.
+    - apt-get update && apt-get install -y --on-install-recommends iproute2
+  build_script:
+    - cd auxil/zeekctl/testing && ./Scripts/build-zeek
+  test_script:
+    - cd auxil/zeekctl/testing && ../../btest/btest -A -d -j ${BTEST_JOBS}
+  on_failure:
+    upload_zeekctl_testing_artifacts:
+      path: "auxil/zeekctl/testing/.tmp/**"

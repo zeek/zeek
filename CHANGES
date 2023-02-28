@@ -1,3 +1,7 @@
+6.0.0-dev.136 | 2023-02-28 09:24:34 -0700
+
+  * Add build status, slack, and discourse badges to readme (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.134 | 2023-02-27 14:48:16 -0700
 
   * Configure apt to retry a few times on Docker image builder tasks (Tim Wojtulewicz, Corelight)

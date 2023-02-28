@@ -4394,6 +4394,7 @@ export {
 		key_length: count &optional &log;	##< Key length in bits
 		exponent: string &optional &log;	##< Exponent, if RSA-certificate
 		curve: string &optional &log;	##< Curve, if EC-certificate
+		tbs_sig_alg: string; ##< Name of the signature algorithm given inside the tbsCertificate. Should be equivalent to `sig_alg`.
 	};
 
 	type Extension: record {

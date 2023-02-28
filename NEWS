@@ -55,6 +55,9 @@ New Functionality
   verbose output in JSON format about the repository state and any included
   plugins.
 
+- The X.509 certificate parser now exposes the signature type that is given inside
+  the signed portion of the certificate.
+
 Changed Functionality
 ---------------------
 

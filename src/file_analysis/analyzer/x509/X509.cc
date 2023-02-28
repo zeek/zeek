@@ -157,7 +157,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f)
 	X509_NAME_print_ex(bio, X509_get_issuer_name(ssl_cert), 0, XN_FLAG_RFC2253);
 	len = BIO_gets(bio, buf, sizeof(buf));
 	pX509Cert->Assign(3, make_intrusive<StringVal>(len, buf));
-	BIO_free(bio);
+	BIO_reset(bio);
 
 	pX509Cert->AssignTime(5, GetTimeFromAsn1(X509_get_notBefore(ssl_cert), f, reporter));
 	pX509Cert->AssignTime(6, GetTimeFromAsn1(X509_get_notAfter(ssl_cert), f, reporter));
@@ -171,6 +171,16 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f)
 		buf[0] = 0;
 
 	pX509Cert->Assign(7, buf);
+
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
+	i2a_ASN1_OBJECT(bio, ssl_cert->sig_alg->algorithm);
+#else
+	const X509_ALGOR* sigalg = X509_get0_tbs_sigalg(ssl_cert);
+	i2a_ASN1_OBJECT(bio, sigalg->algorithm);
+#endif
+	len = BIO_gets(bio, buf, sizeof(buf));
+	pX509Cert->Assign(13, make_intrusive<StringVal>(len, buf));
+	BIO_free(bio);
 
 	// Special case for RDP server certificates. For some reason some (all?) RDP server
 	// certificates like to specify their key algorithm as md5WithRSAEncryption, which

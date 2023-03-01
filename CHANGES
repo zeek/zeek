@@ -1,3 +1,7 @@
+5.2.0 | 2023-03-01 12:45:21 -0700
+
+  * GH-2801: Fix re-instantiation of analyzers that were just removed. (Robin Sommer, Corelight)
+
 5.2.0-rc2 | 2023-02-21 11:57:41 -0700
 
   * ftp: Limit user, password, arg and reply_msg column sizes in log (Arne Welzel, Corelight)

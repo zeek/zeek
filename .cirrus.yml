@@ -51,12 +51,14 @@ sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
   # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
   greedy: true
 
-branch_whitelist: &BRANCH_WHITELIST
+builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
   # Rules for skipping builds:
+  # - Do not run builds for anything that's cron triggered
   # - Don't do darwin builds on zeek-security repo because they use up a ton of compute credits.
   # - Always build PRs, but not if they come from dependabot
   # - Always build master and release/* builds from the main repo
   only_if: >
+    ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( $CIRRUS_REPO_NAME == 'zeek' &&
@@ -73,7 +75,7 @@ skip_task_on_pr: &SKIP_TASK_ON_PR
     ($CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ '.*fullci.*')
 
 ci_template: &CI_TEMPLATE
-  << : *BRANCH_WHITELIST
+  << : *BUILDS_ONLY_IF_TEMPLATE
 
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.
@@ -401,7 +403,7 @@ windows_task:
     ZEEK_CI_CPUS: 8
     # Give verbose error output on a test failure.
     CTEST_OUTPUT_ON_FAILURE: 1
-  << : *BRANCH_WHITELIST
+  << : *BUILDS_ONLY_IF_TEMPLATE
 
 
 # Container images
@@ -423,6 +425,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   memory: *MEMORY
   set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
   only_if: >
+    ( $CIRRUS_CRON == '' ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
         $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
 
@@ -490,6 +493,7 @@ container_image_manifest_docker_builder:
   cpu: 1
   # Push master builds to zeek/zeek-dev, or tagged release branches to zeek/zeek
   only_if: >
+    ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' &&
       ( $CIRRUS_BRANCH == 'master' ||
         $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+$' ) )
@@ -594,6 +598,7 @@ cluster_testing_docker_builder:
   cpu: *CPUS
   memory: *MEMORY
   only_if: >
+    ( $CIRRUS_CRON == '' ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
         $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
   env:
@@ -619,3 +624,40 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
+
+
+# Test zeekctl upon master and release pushes and also when
+# a PR has a zeekctlci or fullci label.
+#
+# Also triggers on CIRRUS_CRON == 'zeekctl-nightly' if that is configured
+# through the Cirrus Web UI.
+zeekctl_debian11_task:
+  cpu: *CPUS
+  memory: *MEMORY
+  only_if: >
+    ( $CIRRUS_CRON == 'zeekctl-nightly' ) ||
+    ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ '.*(zeekctlci|fullci).*' ) ||
+    ( $CIRRUS_REPO_NAME == 'zeek' && (
+        $CIRRUS_BRANCH == 'master' ||
+        $CIRRUS_BRANCH =~ 'release/.*' )
+    )
+  container:
+    # Debian 11 EOL: June 2026
+    dockerfile: ci/debian-11/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  sync_submodules_script: git submodule update --recursive --init
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo zeekctl-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+  install_iproute2_script:
+    # No iproute2 in default Zeek build container, but zeekctl tests need it.
+    - apt-get update && apt-get install -y --on-install-recommends iproute2
+  build_script:
+    - cd auxil/zeekctl/testing && ./Scripts/build-zeek
+  test_script:
+    - cd auxil/zeekctl/testing && ../../btest/btest -A -d -j ${BTEST_JOBS}
+  on_failure:
+    upload_zeekctl_testing_artifacts:
+      path: "auxil/zeekctl/testing/.tmp/**"

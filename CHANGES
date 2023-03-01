@@ -1,3 +1,11 @@
+6.0.0-dev.141 | 2023-03-01 10:20:59 +0100
+
+  * cirrus: Add zeekctl CI task (Arne Welzel, Corelight)
+
+    Run the zeekctl testing suite within a Debian 11 container. This runs on
+    pushes to master and release branches. Also, tagging PRs with fullci or
+    zeekctlci triggers it.
+
 6.0.0-dev.136 | 2023-02-28 09:24:34 -0700
 
   * Add build status, slack, and discourse badges to readme (Tim Wojtulewicz, Corelight)

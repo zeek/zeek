@@ -1,0 +1,6 @@
+# Tests that the tbs_sig_alg field of a certificate is succesfully parsed
+
+# @TEST-EXEC: zeek -b -r $TRACES/tls/certificate-with-sct.pcap base/protocols/ssl %INPUT
+# @TEST-EXEC: btest-diff x509.log
+
+redef record X509::Certificate$tbs_sig_alg += { &log };

@@ -27,16 +27,20 @@ hook Telemetry::log_policy(rec: Telemetry::Info, id: Log::ID, filter: Log::Filte
 		break;
 	}
 
-# Filter out veto metrics and also loaded_script logs and telemetry logs due
-# depending on the configuration (heavily).
 hook Telemetry::log_policy(rec: Telemetry::Info, id: Log::ID, filter: Log::Filter)
 	{
 	if ( rec$prefix != "zeek" )
 		return;
 
 	# Filter all event-handler-invocations entries from telemetry.log
-	# except those having something to do with connections.
+	# except those having something to do with connection_*
 	if ( rec$name == "event-handler-invocations" && /connection_.*/ !in cat(rec$label_values) )
+		break;
+
+	# Filter out the LoadedScripts stream due to platform dependent
+	# difference in the scripts loaded, and also filter out Telemetry
+	# log counts.
+	if ( rec$name == /log-.*/ && /LoadedScripts::LOG|Telemetry::LOG/ in cat(rec$label_values) )
 		break;
 	}
 

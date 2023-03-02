@@ -12,6 +12,7 @@
 #include "zeek/logging/Component.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/plugin/ComponentManager.h"
+#include "zeek/telemetry/Manager.h"
 
 namespace broker
 	{
@@ -305,6 +306,9 @@ private:
 	int rotations_pending; // Number of rotations not yet finished.
 	FuncPtr rotation_format_func;
 	FuncPtr log_stream_policy_hook;
+
+	telemetry::IntCounterFamily total_log_stream_writes_family;
+	telemetry::IntCounterFamily total_log_writer_writes_family;
 	};
 
 	} // namespace logging;

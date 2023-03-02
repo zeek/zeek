@@ -58,6 +58,9 @@ New Functionality
 - The X.509 certificate parser now exposes the signature type that is given inside
   the signed portion of the certificate.
 
+- Add logging metrics for streams (``zeek-log-stream-writes``) and writers
+  (``zeek-log-writer-writes-total``).
+
 Changed Functionality
 ---------------------
 

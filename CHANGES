@@ -1,3 +1,24 @@
+6.0.0-dev.148 | 2023-03-02 10:05:06 +0100
+
+  * logging/Manager: Remove unused variable (Arne Welzel, Corelight)
+
+  * logging: Add telemetry for streams and log writers (Arne Welzel, Corelight)
+
+    This adds one metric per log stream and one metric per log writer (path based)
+    to track the number of writes on a stream level as well as on a writer level.
+
+        $ curl -sSf localhost:8181/metrics | grep Conn
+        zeek_log_writer_writes_total{endpoint="",filter-name="default",module="HTTP",path="http",stream="HTTP::LOG",writer="Log::WRITER_SQLITE"} 1 1677497572770
+        zeek_log_stream_writes_total{endpoint="",module="HTTP",stream="HTTP::LOG"} 1 1677497572770
+
+    The initial version of this change also included metrics around log
+    write vetoes, but given no log policies exist in the default configuration
+    and they are mostly interesting for a few streams/writers only, skip this
+    for now. These can always be added by the script writer, too.
+
+    The difference between the stream level writes and concrete writers can
+    be used to deduce the number of vetoes (or errors) as a starting point.
+
 6.0.0-dev.143 | 2023-03-01 10:40:36 +0000
 
   * X.509: expose the signature type inside the tbs certificate (Johanna Amann, Corelight)

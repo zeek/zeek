@@ -1,3 +1,7 @@
+5.0.7-2 | 2023-03-02 13:49:10 -0700
+
+  * Bump spicy-plugin to v1.3.24. (Benjamin Bannier, Corelight)
+
 5.0.7 | 2023-02-21 11:13:22 -0700
 
   * ftp: Limit user, password, arg and reply_msg column sizes in log (Arne Welzel, Corelight)

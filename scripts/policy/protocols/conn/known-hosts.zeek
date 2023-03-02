@@ -28,7 +28,7 @@ export {
 	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
-	const use_host_store = T &redef;
+	const use_host_store = F &redef;
 
 	## The hosts whose existence should be logged and tracked.
 	## See :zeek:type:`Host` for possible choices.

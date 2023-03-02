@@ -37,7 +37,7 @@ export {
 	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
-	const use_service_store = T &redef;
+	const use_service_store = F &redef;
 
 	## Require UDP server to respond before considering it an "active service".
 	option service_udp_requires_response = T;

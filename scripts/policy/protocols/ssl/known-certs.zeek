@@ -37,7 +37,7 @@ export {
 	## When true, use a Broker data store, else use a regular Zeek set
 	## with keys uniformly distributed over proxy nodes in cluster
 	## operation.
-	const use_cert_store = T &redef;
+	const use_cert_store = F &redef;
 
 	type AddrCertHashPair: record {
 		host: addr;

@@ -757,6 +757,8 @@ type DNSStats: record {
 	pending:          count; ##< Current pending queries.
 	cached_hosts:     count; ##< Number of cached hosts.
 	cached_addresses: count; ##< Number of cached addresses.
+	cached_texts:     count; ##< Number of cached text entries.
+	cached_total:     count; ##< Total number of cached entries.
 };
 
 ## Statistics about number of gaps in TCP connections.

@@ -1485,6 +1485,7 @@ void DNS_Mgr::GetStats(Stats* stats)
 	stats->cached_hosts = 0;
 	stats->cached_addresses = 0;
 	stats->cached_texts = 0;
+	stats->cached_total = all_mappings.size();
 
 	for ( const auto& [key, mapping] : all_mappings )
 		{

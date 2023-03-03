@@ -259,6 +259,8 @@ function get_dns_stats%(%): DNSStats
 	r->Assign(n++, static_cast<uint64_t>(dstats.pending));
 	r->Assign(n++, static_cast<uint64_t>(dstats.cached_hosts));
 	r->Assign(n++, static_cast<uint64_t>(dstats.cached_addresses));
+	r->Assign(n++, static_cast<uint64_t>(dstats.cached_texts));
+	r->Assign(n++, static_cast<uint64_t>(dstats.cached_total));
 
 	return r;
 	%}

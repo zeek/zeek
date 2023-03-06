@@ -230,7 +230,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry CMAKE_TOOLCHAIN_FILE PATH $optarg
             ;;
         --include-plugins=*)
-            append_cache_entry ZEEK_INCLUDE_PLUGINS STRING $optarg
+            append_cache_entry ZEEK_INCLUDE_PLUGINS STRING \"$optarg\"
             ;;
         --prefix=*)
             prefix=$optarg

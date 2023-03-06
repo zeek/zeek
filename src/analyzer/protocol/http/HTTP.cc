@@ -981,8 +981,6 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				break;
 
 			case EXPECT_REQUEST_TRAILER:
-				break;
-
 			case EXPECT_REQUEST_NOTHING:
 				break;
 			}
@@ -1051,8 +1049,6 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 				break;
 
 			case EXPECT_REPLY_TRAILER:
-				break;
-
 			case EXPECT_REPLY_NOTHING:
 				break;
 			}

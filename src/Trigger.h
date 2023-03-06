@@ -162,6 +162,8 @@ public:
 	Manager();
 	~Manager();
 
+	void InitPostScript();
+
 	double GetNextTimeout() override;
 	void Process() override;
 	const char* Tag() override { return "TriggerMgr"; }

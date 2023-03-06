@@ -37,6 +37,7 @@ enum HTTP_ExpectReply
 	EXPECT_REPLY_MESSAGE,
 	EXPECT_REPLY_TRAILER,
 	EXPECT_REPLY_NOTHING,
+	EXPECT_REPLY_HTTP09,
 	};
 
 HTTP_Entity::HTTP_Entity(HTTP_Message* arg_message, analyzer::mime::MIME_Entity* parent_entity,
@@ -898,6 +899,37 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 	const char* line = reinterpret_cast<const char*>(data);
 	const char* end_of_line = line + len;
 
+	// HTTP 0.9 is just raw data directly from the server, special case.
+	if ( reply_state == EXPECT_REPLY_HTTP09 && ! is_orig )
+		{
+		if ( ! reply_message )
+			{
+			SetVersion(&reply_version, {0, 9});
+
+			if ( ! unanswered_requests.empty() )
+				{
+				AnalyzerConfirmation();
+				unanswered_requests.pop();
+				}
+
+			// Expect the server to close the connection after replying. This is used within
+			// HTTP_Message() below to switch the message into plain delivery mode (and
+			// the content_line_analyzer, but that's not used anymore).
+			connection_close = 1;
+			reply_ongoing = 1;
+
+			HTTP_Reply();
+			InitHTTPMessage(content_line_resp, reply_message, is_orig, ExpectReplyMessageBody(), 0);
+
+			// Finish header processing right way and switch into plain delivery.
+			// Need trailing_CRLF set to avoid a weird.
+			reply_message->Deliver(0, "", true);
+			}
+
+		reply_message->Deliver(len, line, false);
+		return;
+		}
+
 	analyzer::tcp::ContentLine_Analyzer* content_line = is_orig ? content_line_orig
 	                                                            : content_line_resp;
 
@@ -947,6 +979,14 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 					unanswered_requests.push(request_method);
 					HTTP_Request();
 					InitHTTPMessage(content_line, request_message, is_orig, HTTP_BODY_MAYBE, len);
+
+					// For HTTP/0.9, turn off the content_line analyzer for the
+					// responder because we expect raw data.
+					if ( request_version == HTTP_VersionNumber{0, 9} )
+						{
+						reply_state = EXPECT_REPLY_HTTP09;
+						RemoveSupportAnalyzer(content_line_resp);
+						}
 					}
 
 				else
@@ -1048,6 +1088,8 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 
 				break;
 
+			case EXPECT_REPLY_HTTP09:
+				// unreachable
 			case EXPECT_REPLY_TRAILER:
 			case EXPECT_REPLY_NOTHING:
 				break;
@@ -1229,7 +1271,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 	// If we determined HTTP/0.9 (no HTTP/ in the request line), assert that
 	// minimally we have an URI and a 3 character method (HTTP 0.9 only
 	// supports GET). If that doesn't hold, probably not HTTP or very stange.
-	if ( request_version.major == 0 && request_version.minor == 9 )
+	if ( request_version == HTTP_VersionNumber{0, 9} )
 		{
 		bool maybe_get_method = (end_of_method - line) >= 3;
 		bool has_uri = request_URI && request_URI->Len() > 0;

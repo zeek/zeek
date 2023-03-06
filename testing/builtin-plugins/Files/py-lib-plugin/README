@@ -1,0 +1,8 @@
+PyLib
+=====
+
+Embedding Python with a plugin.
+
+    zeek -e 'Python::run_simple_string("import this")'
+
+Mostly to test a link dependency of a builtin plugin.

@@ -1,0 +1,4 @@
+.tmp
+.btest.failed.dat
+diag.log
+coverage.log

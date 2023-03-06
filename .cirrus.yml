@@ -661,3 +661,49 @@ zeekctl_debian11_task:
   on_failure:
     upload_zeekctl_testing_artifacts:
       path: "auxil/zeekctl/testing/.tmp/**"
+
+# Test building Zeek with some externally maintained plugins built-in.
+# Specifically zeek-kafka and bro-http2 are interesting due to their
+# dependencies on external libraries. icsnpp-bacnet is interesting due
+# to using binpac internally and we had issues with that previously.
+#
+# This test may fail if the external upstream repos break things. Using
+# more controlled or even test plugins would be more stable. Seems nice
+# to have them as canaries though and see how that goes.
+include_plugins_debian11_task:
+  cpu: *CPUS
+  memory: *MEMORY
+  container:
+    # Debian 11 EOL: June 2026
+    dockerfile: ci/debian-11/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  sync_submodules_script: git submodule update --recursive --init
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo builtin-plugins-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+  clone_plugins_script:
+    # Unfortunately, most plugins below have some sort of condition on
+    # ZEEK_VERSION_NUMBER and that's currently broken for builtin plugins.
+    # Eventually zeek/zeek#2806 should fix it. Below we're using forks
+    # that use an explicit zeek/zeek-version.h include.
+    - git clone --single-branch  --depth 1 --branch topic/awelzel/zeek-version.h https://github.com/awelzel/bro-http2.git /tmp/bro-http2
+    - git clone --single-branch  --depth 1 --branch topic/awelzel/zeek-version.h https://github.com/awelzel/icsnpp-bacnet.git /tmp/icsnpp-bacnet
+    - git clone --single-branch  --depth 1 https://github.com/corelight/zeek-community-id.git /tmp/zeek-community-id
+    - git clone --single-branch  --depth 1 https://github.com/SeisoLLC/zeek-kafka.git /tmp/zeek-kafka
+  install_additional_dev_dependencies_script: |
+    apt-get update && apt-get install -y --no-install-recommends \
+        libbrotli-dev \
+        libnghttp2-dev \
+        librdkafka-dev
+
+  build_script: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins=/tmp/bro-http2;/tmp/zeek-kafka;/tmp/zeek-community-id;/tmp/icsnpp-bacnet" ./ci/build.sh
+
+  test_script:
+    - cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
+  on_failure:
+    upload_include_plugins_testing_artifacts:
+      path: "testing/builtin-plugins/.tmp/**"
+
+  << : *BUILDS_ONLY_IF_TEMPLATE

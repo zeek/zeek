@@ -116,6 +116,19 @@ def collect_git_info(zeek_dir: pathlib.Path):
     return info
 
 
+def read_plugin_version(plugin_dir: pathlib.Path):
+    """
+    Open the VERSION file, look for the first non empty
+    non comment line and return it.
+    """
+    with (plugin_dir / "VERSION").open() as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                return line
+    return ""
+
+
 def collect_plugin_info(plugin_dir: pathlib.Path):
     """ """
     # A plugin's name is not part of it's metadata/information, use
@@ -125,7 +138,7 @@ def collect_plugin_info(plugin_dir: pathlib.Path):
     }
 
     try:
-        result["version"] = (plugin_dir / "VERSION").read_text().strip()
+        result["version"] = read_plugin_version(plugin_dir)
     except FileNotFoundError:
         logger.warning("No VERSION found in %s", plugin_dir)
 

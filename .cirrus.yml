@@ -653,7 +653,7 @@ zeekctl_debian11_task:
       reupload_on_changes: true
   install_iproute2_script:
     # No iproute2 in default Zeek build container, but zeekctl tests need it.
-    - apt-get update && apt-get install -y --on-install-recommends iproute2
+    - apt-get update && apt-get install -y --no-install-recommends iproute2
   build_script:
     - cd auxil/zeekctl/testing && ./Scripts/build-zeek
   test_script:

@@ -398,16 +398,6 @@ class TableType : public IndexType
 public:
 	TableType(TypeListPtr ind, TypePtr yield);
 
-	// Used by script compilation to update a "stub" table type
-	// (which is specified by using a nil "ind" value in the constructor)
-	// with its actual index & yield - necessary for dealing with
-	// recursive types.
-	void SetIndexAndYield(TypeListPtr ind, TypePtr yield)
-		{
-		ind = std::move(indices);
-		yield_type = std::move(yield);
-		}
-
 	/**
 	 * Assesses whether an &expire_func attribute's function type is compatible
 	 * with this table type.

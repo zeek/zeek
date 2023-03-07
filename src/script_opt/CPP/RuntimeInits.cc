@@ -272,7 +272,7 @@ void CPP_TypeInits::PreInit(InitsManager* im, int offset, ValElemVec& init_vals)
 		}
 
 	else if ( tag == TYPE_TABLE )
-		inits_vec[offset] = make_intrusive<TableType>(nullptr, nullptr);
+		inits_vec[offset] = make_intrusive<CPPTableType>();
 
 	// else no pre-initialization needed
 	}
@@ -399,7 +399,7 @@ TypePtr CPP_TypeInits::BuildTypeList(InitsManager* im, ValElemVec& init_vals, in
 
 TypePtr CPP_TypeInits::BuildTableType(InitsManager* im, ValElemVec& init_vals, int offset) const
 	{
-	auto t = cast_intrusive<TableType>(inits_vec[offset]);
+	auto t = cast_intrusive<CPPTableType>(inits_vec[offset]);
 	ASSERT(t);
 
 	auto index = cast_intrusive<TypeList>(im->Types(init_vals[1]));

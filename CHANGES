@@ -1,3 +1,12 @@
+6.0.0-dev.155 | 2023-03-07 09:28:27 -0700
+
+  * Add trigger_mgr to iosource_mgr later during startup (Tim Wojtulewicz, Corelight)
+
+    This fixes a potential crash due to trigger_mgr getting shutdown earlier
+    than dns_mgr, and dns_mgr then trying to use it after it's been deleted.
+    This change forces the order of initialization/destruction in
+    iosource_mgr to cause dns_mgr to be deleted first.
+
 6.0.0-dev.150 | 2023-03-02 12:49:16 -0700
 
   * Default known stores to false to avoid Broker stores (Tim Wojtulewicz, Corelight)

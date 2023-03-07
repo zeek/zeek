@@ -881,8 +881,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		analyzer_mgr->InitPostScript();
 		file_mgr->InitPostScript();
 		dns_mgr->InitPostScript();
-
-		//		dns_mgr->LookupAddr("17.253.144.10");
+		trigger_mgr->InitPostScript();
 
 #ifdef USE_PERFTOOLS_DEBUG
 		}

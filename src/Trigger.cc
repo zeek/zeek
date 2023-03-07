@@ -504,12 +504,16 @@ void Trigger::Modified(notifier::detail::Modifiable* m)
 Manager::Manager() : iosource::IOSource()
 	{
 	pending = new TriggerList();
-	iosource_mgr->Register(this, true);
 	}
 
 Manager::~Manager()
 	{
 	delete pending;
+	}
+
+void Manager::InitPostScript()
+	{
+	iosource_mgr->Register(this, true);
 	}
 
 double Manager::GetNextTimeout()

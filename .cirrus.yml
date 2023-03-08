@@ -113,6 +113,9 @@ ci_template: &CI_TEMPLATE
       type: text/html
     cache_statistics_script:
       ccache --show-stats
+    ccache_prune_script:
+      # Evit some of the cached build artifacts not used in this build.
+      CCACHE_MAXSIZE=${ZEEK_CCACHE_PRUNE_SIZE} ccache -c
 
 env:
   CIRRUS_WORKING_DIR: /zeek
@@ -147,6 +150,11 @@ env:
   # https://github.com/cirruslabs/cirrus-ci-agent/issues/277
   CCACHE_MAXSIZE: 1000M
   CCACHE_MAXFILES: 20000
+
+  # Size to use when manually pruning the cache below. This size should be
+  # roughly `CCACHE_MAXSIZE - <build_size>`. This works around
+  # https://github.com/cirruslabs/cirrus-ci-agent/issues/277.
+  ZEEK_CCACHE_PRUNE_SIZE: 700M
 
   # Increase this to flush the ccache cache. Mainly useful until there's
   # a solution for the mtime pruning above.

@@ -1,3 +1,7 @@
+6.0.0-dev.167 | 2023-03-08 13:21:36 +0100
+
+  * Bump Spicy to latest main (Arne Welzel, Corelight)
+
 6.0.0-dev.165 | 2023-03-08 12:07:45 +0100
 
   * Revert "Merge branch 'topic/jgras/iosource-offline-fd' of https://github.com/J-Gras/zeek" (Arne Welzel, Corelight)

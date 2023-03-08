@@ -103,6 +103,7 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
 
 	body_hashes[fname] = pf->HashVal();
 	body_priorities[fname] = priority;
+	body_locs[fname] = body->GetLocationInfo();
 	body_names.emplace(body.get(), fname);
 	}
 
@@ -136,13 +137,19 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
 			}
 		}
 
-	Emit("%s_cl(const char* name%s) : CPPStmt(name)%s { }", fname, addl_args, inits);
+	const Obj* stmts = pf->ProfiledBody();
+	if ( ! stmts )
+		stmts = pf->ProfiledExpr();
+
+	auto loc = stmts->GetLocationInfo();
+	auto loc_info = string("\"") + loc->filename + "\", " + Fmt(loc->first_line);
+	Emit("%s_cl(const char* name%s) : CPPStmt(name, %s)%s { }", fname, addl_args, loc_info, inits);
 
 	// An additional constructor just used to generate place-holder
 	// instances, due to the mis-design that lambdas are identified
 	// by their Func objects rather than their FuncVal objects.
 	if ( lambda_ids && lambda_ids->length() > 0 )
-		Emit("%s_cl(const char* name) : CPPStmt(name) { }", fname);
+		Emit("%s_cl(const char* name) : CPPStmt(name, %s) { }", fname, loc_info);
 
 	Emit("ValPtr Exec(Frame* f, StmtFlowType& flow) override final");
 	StartBlock();
@@ -178,7 +185,8 @@ void CPPCompile::DeclareDynCPPStmt()
 	Emit("class CPPDynStmt : public CPPStmt");
 	Emit("\t{");
 	Emit("public:");
-	Emit("\tCPPDynStmt(const char* _name, void* _func, int _type_signature) : CPPStmt(_name), "
+	Emit("\tCPPDynStmt(const char* _name, void* _func, int _type_signature, const char* filename, "
+	     "int line_num) : CPPStmt(_name, filename, line_num), "
 	     "func(_func), type_signature(_type_signature) { }");
 	Emit("\tValPtr Exec(Frame* f, StmtFlowType& flow) override final;");
 	Emit("private:");

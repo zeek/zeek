@@ -1,3 +1,29 @@
+6.0.0-dev.162 | 2023-03-08 10:43:00 +0100
+
+  * extend BTest "path" canonicalization to include compiled-to-C++ variable names (Vern Paxson, Corelight)
+
+  * use a subclass of TableType for incremental construction of compiled scripts (Vern Paxson, Corelight)
+
+  * script_opt/CPP: errors, recursive type fixes, fix embedded comments (Vern Paxson, Corelight)
+
+    better (than nothing) run-time errors for compiled scripts
+    fixes for dealing with recursive types in compiled scripts
+    fix for values in compiled scripts containing embedded comment markers
+
+  * Fix for EnumVal's returning their underlying value (Vern Paxson, Corelight)
+
+    Change EnumVal()->AsEnum() to zeek_int_t.
+
+  * Manually prune CI ccache. (Benjamin Bannier, Corelight)
+
+    Since ccache in Cirrus currently does not preserve timestamps the
+    timestamp-based cache pruning implemented by ccache likely would just
+    remove random files. To work around this, this patch implements a manual
+    pruning step. This step runs after the build so that at least the files
+    used in the build should have their timestamps updated. We can then
+    force eviction of some of the unused files from the cache by cleaning
+    the cache with a size less than the maximum cache size.
+
 6.0.0-dev.155 | 2023-03-07 09:28:27 -0700
 
   * Add trigger_mgr to iosource_mgr later during startup (Tim Wojtulewicz, Corelight)

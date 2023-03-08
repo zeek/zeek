@@ -307,7 +307,7 @@ protected:
 	TypePtr BuildTypeType(InitsManager* im, ValElemVec& init_vals) const;
 	TypePtr BuildVectorType(InitsManager* im, ValElemVec& init_vals) const;
 	TypePtr BuildTypeList(InitsManager* im, ValElemVec& init_vals, int offset) const;
-	TypePtr BuildTableType(InitsManager* im, ValElemVec& init_vals) const;
+	TypePtr BuildTableType(InitsManager* im, ValElemVec& init_vals, int offset) const;
 	TypePtr BuildFuncType(InitsManager* im, ValElemVec& init_vals) const;
 	TypePtr BuildRecordType(InitsManager* im, ValElemVec& init_vals, int offset) const;
 	};
@@ -556,9 +556,11 @@ protected:
 struct CPP_RegisterBody
 	{
 	CPP_RegisterBody(std::string _func_name, void* _func, int _type_signature, int _priority,
-	                 p_hash_type _h, std::vector<std::string> _events)
+	                 p_hash_type _h, const char* _filename, int _line_num,
+	                 std::vector<std::string> _events)
 		: func_name(std::move(_func_name)), func(_func), type_signature(_type_signature),
-		  priority(_priority), h(_h), events(std::move(_events))
+		  priority(_priority), h(_h), filename(_filename), line_num(_line_num),
+		  events(std::move(_events))
 		{
 		}
 
@@ -567,6 +569,8 @@ struct CPP_RegisterBody
 	int type_signature;
 	int priority;
 	p_hash_type h;
+	const char* filename;
+	int line_num;
 	std::vector<std::string> events;
 	};
 

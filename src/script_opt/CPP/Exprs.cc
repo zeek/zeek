@@ -1336,7 +1336,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 
 	if ( ! et->HasRedefs() )
 		// Can use direct access.
-		return Fmt(v);
+		return std::to_string(v);
 
 	// Need to dynamically map the access.
 	int mapping_slot;

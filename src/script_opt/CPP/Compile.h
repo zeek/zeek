@@ -178,7 +178,6 @@ public:
 
 	// The same, for a single attribute.
 	std::shared_ptr<CPP_InitInfo> RegisterAttr(const AttrPtr& attr);
-	int AttrOffset(const AttrPtr& attr) { return GI_Offset(RegisterAttr(attr)); }
 
 	// Returns a mapping of from Attr objects to their associated
 	// initialization information.  The Attr must have previously
@@ -594,6 +593,10 @@ private:
 
 	// Maps function names to priorities, for hooks & event handlers.
 	std::unordered_map<std::string, int> body_priorities;
+
+	// Maps function names to script locations, for better-than-nothing
+	// error reporting.
+	std::unordered_map<std::string, const Location*> body_locs;
 
 	// Maps function names to events relevant to them.
 	std::unordered_map<std::string, std::vector<std::string>> body_events;

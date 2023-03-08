@@ -271,6 +271,9 @@ void CPP_TypeInits::PreInit(InitsManager* im, int offset, ValElemVec& init_vals)
 			inits_vec[offset] = get_record_type__CPP(nullptr);
 		}
 
+	else if ( tag == TYPE_TABLE )
+		inits_vec[offset] = make_intrusive<CPPTableType>();
+
 	// else no pre-initialization needed
 	}
 
@@ -320,7 +323,7 @@ void CPP_TypeInits::Generate(InitsManager* im, vector<TypePtr>& ivec, int offset
 			break;
 
 		case TYPE_TABLE:
-			t = BuildTableType(im, init_vals);
+			t = BuildTableType(im, init_vals, offset);
 			break;
 
 		case TYPE_FUNC:
@@ -394,13 +397,18 @@ TypePtr CPP_TypeInits::BuildTypeList(InitsManager* im, ValElemVec& init_vals, in
 	return tl;
 	}
 
-TypePtr CPP_TypeInits::BuildTableType(InitsManager* im, ValElemVec& init_vals) const
+TypePtr CPP_TypeInits::BuildTableType(InitsManager* im, ValElemVec& init_vals, int offset) const
 	{
+	auto t = cast_intrusive<CPPTableType>(inits_vec[offset]);
+	ASSERT(t);
+
 	auto index = cast_intrusive<TypeList>(im->Types(init_vals[1]));
 	auto yield_i = init_vals[2];
 	auto yield = yield_i >= 0 ? im->Types(yield_i) : nullptr;
 
-	return make_intrusive<TableType>(index, yield);
+	t->SetIndexAndYield(index, yield);
+
+	return t;
 	}
 
 TypePtr CPP_TypeInits::BuildFuncType(InitsManager* im, ValElemVec& init_vals) const

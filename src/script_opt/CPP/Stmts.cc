@@ -551,7 +551,7 @@ void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars)
 	{
 	Emit("auto sval__CPP = %s;", GenExpr(str, GEN_DONT_CARE));
 
-	Emit("for ( auto i__CPP = 0u; i__CPP < sval__CPP->Len(); ++i__CPP )");
+	Emit("for ( auto i__CPP = 0; i__CPP < sval__CPP->Len(); ++i__CPP )");
 	StartBlock();
 
 	Emit("auto sv__CPP = make_intrusive<StringVal>(1, (const char*) sval__CPP->Bytes() + i__CPP);");

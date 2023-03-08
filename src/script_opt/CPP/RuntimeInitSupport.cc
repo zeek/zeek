@@ -257,7 +257,7 @@ EnumTypePtr get_enum_type__CPP(const string& enum_type_name)
 		return make_intrusive<EnumType>(enum_type_name);
 	}
 
-EnumValPtr make_enum__CPP(TypePtr t, int i)
+EnumValPtr make_enum__CPP(TypePtr t, zeek_int_t i)
 	{
 	auto et = cast_intrusive<EnumType>(move(t));
 	return make_intrusive<EnumVal>(et, i);

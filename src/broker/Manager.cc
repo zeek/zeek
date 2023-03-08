@@ -729,7 +729,8 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 
 	if ( ! stream_id )
 		{
-		reporter->Error("Failed to remotely log: stream %d doesn't have name", stream->AsEnum());
+		reporter->Error("Failed to remotely log: stream %" PRId64 " doesn't have name",
+		                stream->AsEnum());
 		return false;
 		}
 
@@ -737,7 +738,8 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 
 	if ( ! writer_id )
 		{
-		reporter->Error("Failed to remotely log: writer %d doesn't have name", writer->AsEnum());
+		reporter->Error("Failed to remotely log: writer %" PRId64 " doesn't have name",
+		                writer->AsEnum());
 		return false;
 		}
 
@@ -784,7 +786,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	if ( ! stream_id )
 		{
-		reporter->Error("Failed to remotely log: stream %d doesn't have name", stream->AsEnum());
+		reporter->Error("Failed to remotely log: stream %" PRId64 " doesn't have name",
+		                stream->AsEnum());
 		return false;
 		}
 
@@ -792,7 +795,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	if ( ! writer_id )
 		{
-		reporter->Error("Failed to remotely log: writer %d doesn't have name", writer->AsEnum());
+		reporter->Error("Failed to remotely log: writer %" PRId64 " doesn't have name",
+		                writer->AsEnum());
 		return false;
 		}
 

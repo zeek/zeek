@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include <regex>
+
 #include "zeek/Desc.h"
 #include "zeek/RE.h"
 #include "zeek/ZeekString.h"
@@ -95,7 +97,16 @@ void CPP_InitsInfo::BuildCohort(CPPCompile* c, std::vector<std::shared_ptr<CPP_I
 		vector<string> ivs;
 		auto o = co->InitObj();
 		if ( o )
-			c->Emit("/* #%s: Initializing %s: */", Fmt(co->Offset()), obj_desc(o));
+			{
+			auto od = obj_desc(o);
+
+			// Escape any embedded comment characters.
+			od = regex_replace(od, std::regex("/\\*"), "<<SLASH-STAR>>");
+			od = regex_replace(od, std::regex("\\*/"), "<<STAR-SLASH>>");
+
+			c->Emit("/* #%s: Initializing %s: */", Fmt(co->Offset()), od);
+			}
+
 		co->InitializerVals(ivs);
 		BuildCohortElement(c, co->InitializerType(), ivs);
 		++n;
@@ -286,7 +297,8 @@ AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c)
 	if ( a_e )
 		{
 		auto gi = c->RegisterType(a_e->GetType());
-		init_cohort = max(init_cohort, gi->InitCohort() + 1);
+		if ( gi )
+			init_cohort = max(init_cohort, gi->InitCohort() + 1);
 
 		if ( ! CPPCompile::IsSimpleInitExpr(a_e) )
 			{
@@ -307,7 +319,7 @@ AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c)
 		else if ( a_e->Tag() == EXPR_NAME )
 			{
 			auto g = a_e->AsNameExpr()->Id();
-			auto gi = c->RegisterGlobal(g);
+			gi = c->RegisterGlobal(g);
 			init_cohort = max(init_cohort, gi->InitCohort() + 1);
 
 			vals.emplace_back(Fmt(static_cast<int>(AE_NAME)));
@@ -383,7 +395,8 @@ CallExprInitInfo::CallExprInitInfo(CPPCompile* c, ExprPtr _e, string _e_name, st
 	: CPP_InitInfo(_e), e(move(_e)), e_name(move(_e_name)), wrapper_class(move(_wrapper_class))
 	{
 	auto gi = c->RegisterType(e->GetType());
-	init_cohort = max(init_cohort, gi->InitCohort() + 1);
+	if ( gi )
+		init_cohort = max(init_cohort, gi->InitCohort() + 1);
 	}
 
 LambdaRegistrationInfo::LambdaRegistrationInfo(CPPCompile* c, string _name, FuncTypePtr ft,
@@ -477,12 +490,15 @@ void ListTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 
 TableTypeInfo::TableTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))
 	{
+	// Note, we leave init_cohort at 0 because the skeleton of this type
+	// is built in the first cohort.
+
 	auto tbl = t->AsTableType();
 
 	auto gi = c->RegisterType(tbl->GetIndices());
 	ASSERT(gi);
 	indices = gi->Offset();
-	init_cohort = gi->InitCohort();
+	final_init_cohort = gi->InitCohort();
 
 	yield = tbl->Yield();
 
@@ -490,7 +506,7 @@ TableTypeInfo::TableTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, 
 		{
 		gi = c->RegisterType(yield);
 		if ( gi )
-			init_cohort = max(init_cohort, gi->InitCohort());
+			final_init_cohort = max(final_init_cohort, gi->InitCohort());
 		}
 	}
 

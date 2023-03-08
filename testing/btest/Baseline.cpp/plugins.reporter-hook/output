@@ -2,13 +2,13 @@
 Reporter::Hook - Exercise Reporter Hook (dynamic, version 1.0.0)
     Implements Reporter (priority 0)
 
- | Hook  Some Info 
- | Hook error An Error 
- | Hook error An Error that does not show up in the log 
+ | Hook  Some Info <...>/reporter-hook.zeek (C++), line 15
+ | Hook error An Error <...>/reporter-hook.zeek (C++), line 15
+ | Hook error An Error that does not show up in the log <...>/reporter-hook.zeek (C++), line 15
  | Hook runtime error in compiled code field value missing 
- | Hook warning A warning 
-Some Info
-error: An Error
-error: An Error that does not show up in the log
+ | Hook warning A warning <...>/reporter-hook.zeek (C++), line 15
+<...>/reporter-hook.zeek (C++), line 15: Some Info
+error in <...>/reporter-hook.zeek (C++), line 15: An Error
+error in <...>/reporter-hook.zeek (C++), line 15: An Error that does not show up in the log
 runtime error in compiled code: field value missing
-warning: A warning
+warning in <...>/reporter-hook.zeek (C++), line 15: A warning

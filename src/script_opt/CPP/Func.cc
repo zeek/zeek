@@ -23,6 +23,28 @@ void CPPFunc::Describe(ODesc* d) const
 	d->Add(name);
 	}
 
+CPPStmt::CPPStmt(const char* _name, const char* filename, int line_num)
+	: Stmt(STMT_CPP), name(_name)
+	{
+	// We build a fake CallExpr node to be used for error-reporting.
+	// It doesn't matter that it matches the actual function/event/hook
+	// type-checking-wise, but it *does* need to type-check.
+	auto no_args = make_intrusive<RecordType>(nullptr);
+	auto no_yield = base_type(TYPE_VOID);
+	auto ft = make_intrusive<FuncType>(no_args, no_yield, FUNC_FLAVOR_FUNCTION);
+
+	vector<StmtPtr> no_bodies;
+	vector<int> no_priorities;
+
+	auto sf = make_intrusive<ScriptFunc>(name, ft, no_bodies, no_priorities);
+	auto fv = make_intrusive<FuncVal>(sf);
+	auto empty_args = make_intrusive<ListExpr>();
+
+	ce = make_intrusive<CallExpr>(make_intrusive<ConstExpr>(fv), empty_args);
+	Location loc(filename, line_num, line_num, 1, 1);
+	ce->SetLocationInfo(&loc);
+	}
+
 CPPLambdaFunc::CPPLambdaFunc(string _name, FuncTypePtr ft, CPPStmtPtr _l_body)
 	: ScriptFunc(move(_name), move(ft), {_l_body}, {0})
 	{

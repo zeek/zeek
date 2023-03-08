@@ -274,9 +274,6 @@ shared_ptr<CPP_InitsInfo> CPPCompile::RegisterInitInfo(const char* tag, const ch
 
 void CPPCompile::RegisterCompiledBody(const string& f)
 	{
-	auto h = body_hashes[f];
-	auto p = body_priorities[f];
-
 	// Build up an initializer of the events relevant to the function.
 	string events;
 	auto be = body_events.find(f);
@@ -293,8 +290,15 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 	auto fi = func_index.find(f);
 	ASSERT(fi != func_index.end());
 	auto type_signature = casting_index[fi->second];
-	Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, %s, std::vector<std::string>(%s)),", f, f,
-	     Fmt(type_signature), Fmt(p), Fmt(h), events);
+
+	auto h = body_hashes[f];
+	auto p = body_priorities[f];
+	auto loc = body_locs[f];
+	auto body_info = Fmt(p) + ", " + Fmt(h) + ", \"" + loc->filename + " (C++)\", " +
+	                 Fmt(loc->first_line);
+
+	Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, std::vector<std::string>(%s)),", f, f,
+	     Fmt(type_signature), body_info, events);
 	}
 
 void CPPCompile::GenEpilog()
@@ -368,6 +372,7 @@ void CPPCompile::GenCPPDynStmt()
 	StartBlock();
 
 	Emit("flow = FLOW_RETURN;");
+	Emit("f->SetOnlyCall(ce.get());");
 
 	Emit("switch ( type_signature )");
 	StartBlock();
@@ -481,7 +486,8 @@ void CPPCompile::GenRegisterBodies()
 
 	Emit("for ( auto& b : CPP__bodies_to_register )");
 	StartBlock();
-	Emit("auto f = make_intrusive<CPPDynStmt>(b.func_name.c_str(), b.func, b.type_signature);");
+	Emit("auto f = make_intrusive<CPPDynStmt>(b.func_name.c_str(), b.func, b.type_signature, "
+	     "b.filename, b.line_num);");
 
 	auto reg = standalone ? "register_standalone_body" : "register_body";
 	Emit("%s__CPP(f, b.priority, b.h, b.events, finish_init__CPP);", reg);

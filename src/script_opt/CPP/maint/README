@@ -15,7 +15,7 @@ The maintenance workflow:
     to check in updates to the list of how the compiler currently fares
     on various btests (see end of this doc):
 
-	Tue Feb 14 15:15:27 PST 2023
+	Sun Mar  5 12:02:44 PST 2023
 
 2.  Make sure the compiler can compile and execute the base scripts:
 
@@ -42,7 +42,7 @@ The maintenance workflow:
     "-O gen-C++" can successfully run on the input.  Presently, it should
     be able to do so for all of them, other than some exceptions noted below.
 
-    This step is parallelizable, say using xargs -P 10.
+    This step is parallelizable, say using xargs -P 10 -n 1.
 
 7.  Copy ./src/zeek to ./zeek.HOLD.  This is used to speed up recompilation used
     in the next step.  However, it's also a headache to do development to

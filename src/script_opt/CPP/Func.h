@@ -43,7 +43,7 @@ protected:
 class CPPStmt : public Stmt
 	{
 public:
-	CPPStmt(const char* _name) : Stmt(STMT_CPP), name(_name) { }
+	CPPStmt(const char* _name, const char* filename, int line_num);
 
 	const std::string& Name() { return name; }
 
@@ -71,6 +71,9 @@ protected:
 
 	std::string name;
 	p_hash_type hash = 0ULL;
+
+	// A pseudo AST "call" node, used to support error localization.
+	CallExprPtr ce;
 	};
 
 using CPPStmtPtr = IntrusivePtr<CPPStmt>;

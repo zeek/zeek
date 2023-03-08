@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	level	message	location
 #types	time	enum	string	string
-XXXXXXXXXX.XXXXXX	Reporter::INFO	Hello, Zeek!	(empty)
+XXXXXXXXXX.XXXXXX	Reporter::INFO	Hello, Zeek!	<...>/basic-no-errors.test (C++), line 11
 #close XXXX-XX-XX-XX-XX-XX

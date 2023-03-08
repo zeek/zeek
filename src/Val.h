@@ -155,7 +155,7 @@ public:
 
 	UNDERLYING_ACCESSOR_DECL(detail::IntValImplementation, zeek_int_t, AsInt)
 	UNDERLYING_ACCESSOR_DECL(BoolVal, bool, AsBool)
-	UNDERLYING_ACCESSOR_DECL(EnumVal, int, AsEnum)
+	UNDERLYING_ACCESSOR_DECL(EnumVal, zeek_int_t, AsEnum)
 	UNDERLYING_ACCESSOR_DECL(detail::UnsignedValImplementation, zeek_uint_t, AsCount)
 	UNDERLYING_ACCESSOR_DECL(detail::DoubleValImplementation, double, AsDouble)
 	UNDERLYING_ACCESSOR_DECL(TimeVal, double, AsTime)
@@ -1476,7 +1476,7 @@ protected:
 	friend class Val;
 	friend class EnumType;
 
-	friend EnumValPtr make_enum__CPP(TypePtr t, int i);
+	friend EnumValPtr make_enum__CPP(TypePtr t, zeek_int_t i);
 
 	template <class T, class... Ts> friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
@@ -1700,7 +1700,7 @@ private:
 
 UNDERLYING_ACCESSOR_DEF(detail::IntValImplementation, zeek_int_t, AsInt)
 UNDERLYING_ACCESSOR_DEF(BoolVal, bool, AsBool)
-UNDERLYING_ACCESSOR_DEF(EnumVal, int, AsEnum)
+UNDERLYING_ACCESSOR_DEF(EnumVal, zeek_int_t, AsEnum)
 UNDERLYING_ACCESSOR_DEF(detail::UnsignedValImplementation, zeek_uint_t, AsCount)
 UNDERLYING_ACCESSOR_DEF(detail::DoubleValImplementation, double, AsDouble)
 UNDERLYING_ACCESSOR_DEF(TimeVal, double, AsTime)

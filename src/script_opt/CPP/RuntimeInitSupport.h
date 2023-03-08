@@ -84,7 +84,7 @@ extern EnumTypePtr get_enum_type__CPP(const std::string& enum_type_name);
 
 // Returns an enum value corresponding to the given low-level value 'i'
 // in the context of the given enum type 't'.
-extern EnumValPtr make_enum__CPP(TypePtr t, int i);
+extern EnumValPtr make_enum__CPP(TypePtr t, zeek_int_t i);
 
 	} // namespace zeek::detail
 	} // namespace zeek

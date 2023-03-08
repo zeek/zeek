@@ -64,6 +64,10 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The selectable file descriptor of PktSrc instances in offline mode are now
+  registered with the IO manager. Previously, these were ignored to avoid
+  issues specific to libpcap's file descriptor.
+
 - When ``get_file_handle()`` is invoked for an analyzer that did not register
   an appropriate callback function, log a warning and return a generic handle
   value based on the analyzer and connection information.

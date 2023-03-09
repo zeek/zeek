@@ -439,9 +439,30 @@ type DhAnonServerKeyExchange(rec: HandshakeRecord) = record {
 # V3 Certificate Request (7.4.4.)
 ######################################################################
 
+type CertificateAuthorities = record {
+	certificate_authority_len: uint16;
+	certificate_authority: bytestring &length=certificate_authority_len;
+};
+
+type CertificateAuthoritiesContainer = record {
+	certificate_authorities: CertificateAuthorities[] &until($input.length() == 0);
+};
+
 # For now, ignore Certificate Request Details; just eat up message.
 type CertificateRequest(rec: HandshakeRecord) = record {
+	certificate_types_len: uint8;
+	certificate_types: uint8[certificate_types_len];
+	alg: case uses_signature_and_hashalgorithm of {
+		true -> supported_signature_algorithms: SignatureAlgorithm(rec);
+		false -> nothing: bytestring &length=0;
+	} &requires(uses_signature_and_hashalgorithm);
+	certificate_authorities_len: uint16;
+	certificate_authorities: CertificateAuthoritiesContainer &length=certificate_authorities_len;
 	cont : bytestring &restofdata &transient;
+} &let {
+	uses_signature_and_hashalgorithm : bool =
+		($context.connection.chosen_version() > TLSv11) &&
+		($context.connection.chosen_version() != DTLSv10);
 };
 
 
@@ -931,7 +952,7 @@ type PreSharedKey(rec: HandshakeRecord) = case rec.msg_type of {
 type SignatureAlgorithm(rec: HandshakeRecord) = record {
 	length: uint16;
 	supported_signature_algorithms: SignatureAndHashAlgorithm[] &until($input.length() == 0);
-}
+} &length=length+2;
 
 type EllipticCurves(rec: HandshakeRecord) = record {
 	length: uint16;

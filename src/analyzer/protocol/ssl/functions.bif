@@ -65,3 +65,35 @@ function set_keys%(c: connection, keys: string%): bool
 
 	return zeek::val_mgr->False();
 	%}
+
+## Decodes a DER-encoded distinguished name into an ASCII string,
+## using the RFC2253 representation
+##
+## dn: DER encoded distinguished name
+##
+## Returns: Ascii representation on success, empty string on failure
+##
+## .. zeek:see:: ssl_certificate_request
+function parse_distinguished_name%(dn: string%): string
+	%{
+	std::string out = "";
+	const unsigned char* in = dn->Bytes();
+
+	X509_NAME* dn_x509 = d2i_X509_NAME(nullptr, &in, dn->Len());
+	if ( ! dn_x509 )
+		{
+		// we were not able to parse. Let's return an empty string.
+		return zeek::make_intrusive<zeek::StringVal>("");
+		}
+
+	char buf[256];
+	memset(buf, 0, sizeof(buf));
+	BIO* bio = BIO_new(BIO_s_mem());
+
+	X509_NAME_print_ex(bio, dn_x509, 0, XN_FLAG_RFC2253);
+	int len = BIO_gets(bio, buf, sizeof(buf));
+	out.assign(buf, len);
+	BIO_free(bio);
+	X509_NAME_free(dn_x509);
+	return zeek::make_intrusive<zeek::StringVal>(out);
+	%}

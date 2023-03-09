@@ -58,6 +58,11 @@ New Functionality
 - The X.509 certificate parser now exposes the signature type that is given inside
   the signed portion of the certificate.
 
+- The SSL parser now parses the CertificateRequest handshake message. There is a new
+  ``ssl_certificate_request`` event and a new ``parse_distinguished_name`` function.
+  We also added the ``protocols/ssl/certificate-request-info`` policy script, that
+  adds some additional information to ``ssl.log``.
+
 - Add logging metrics for streams (``zeek-log-stream-writes``) and writers
   (``zeek-log-writer-writes-total``).
 

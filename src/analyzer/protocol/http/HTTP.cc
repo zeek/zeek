@@ -984,6 +984,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 					// responder because we expect raw data.
 					if ( request_version == HTTP_VersionNumber{0, 9} )
 						{
+						if ( request_method->ToStdString() != "GET" )
+							Weird("invalid_http_09_request_method", request_method->CheckString());
+
 						reply_state = EXPECT_REPLY_HTTP09;
 						RemoveSupportAnalyzer(content_line_resp);
 						}

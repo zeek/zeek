@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.20.80.1	50343	10.0.0.15	80	tcp	-	0.004152	9	3429	SF	-	-	0	ShADadfF	7	381	7	3801	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.20.80.1	50343	10.0.0.15	80	tcp	http	0.004152	9	3429	SF	-	-	0	ShADadfF	7	381	7	3801	-
 #close XXXX-XX-XX-XX-XX-XX

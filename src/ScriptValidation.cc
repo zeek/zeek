@@ -22,15 +22,17 @@ public:
 		if ( stmt->Tag() == STMT_BREAK && ! BreakStmtIsValid() )
 			{
 			zeek::reporter->PushLocation(stmt->GetLocationInfo());
-			zeek::reporter->Error("break statement used outside of for, while or "
-			                      "switch statement and not within a hook");
+			zeek::reporter->Warning("break statement used outside of for, while or "
+			                        "switch statement and not within a hook. "
+			                        "With v6.1 this will become an error.");
 			zeek::reporter->PopLocation();
 			}
 
 		if ( stmt->Tag() == STMT_NEXT && ! NextStmtIsValid() )
 			{
 			zeek::reporter->PushLocation(stmt->GetLocationInfo());
-			zeek::reporter->Error("next statement used outside of for or while statement");
+			zeek::reporter->Warning("next statement used outside of for or while statement. "
+			                        "With v6.1 this will become an error.");
 			zeek::reporter->PopLocation();
 			}
 

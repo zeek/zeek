@@ -1,3 +1,10 @@
+6.0.0-dev.169 | 2023-03-10 09:05:03 +0100
+
+  * ScriptValidation: Make break/next a warning until Zeek 6.1 (Arne Welzel, Corelight)
+
+    The ja3 package uses next instead of return and triggers the new
+    errors with Zeek 5.2. That seems somewhat bad.
+
 6.0.0-dev.167 | 2023-03-08 13:21:36 +0100
 
   * Bump Spicy to latest main (Arne Welzel, Corelight)

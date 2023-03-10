@@ -1,6 +1,6 @@
 # @TEST-DOC: Check break and next usage within for, while, switch and hooks.
 
-# @TEST-EXEC-FAIL: zeek -b %INPUT
+# @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 function f()
 	{

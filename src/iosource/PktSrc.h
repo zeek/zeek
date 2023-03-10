@@ -362,6 +362,8 @@ private:
 
 	bool have_packet;
 	Packet current_packet;
+	// Did the previous call to ExtractNextPacket() yield a packet.
+	bool had_packet;
 
 	// For BPF filtering support.
 	std::vector<detail::BPF_Program*> filters;

@@ -30,6 +30,8 @@ PktSrc::Properties::Properties()
 PktSrc::PktSrc()
 	{
 	have_packet = false;
+	// Small lie to make a new PktSrc look like the previous ExtractNextPacket() was successful.
+	had_packet = true;
 	errbuf = "";
 	SetClosed(true);
 	}
@@ -179,6 +181,8 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
+		had_packet = true;
+
 		if ( current_packet.time < 0 )
 			{
 			Weird("negative_packet_timestamp", &current_packet);
@@ -190,6 +194,10 @@ bool PktSrc::ExtractNextPacketInternal()
 
 		have_packet = true;
 		return true;
+		}
+	else
+		{
+		had_packet = false;
 		}
 
 	if ( run_state::pseudo_realtime && ! IsOpen() )
@@ -276,39 +284,41 @@ bool PktSrc::GetCurrentPacket(const Packet** pkt)
 
 double PktSrc::GetNextTimeout()
 	{
-	bool pkt_available = have_packet;
-
-	if ( props.selectable_fd == -1 || run_state::pseudo_realtime )
-		pkt_available = ExtractNextPacketInternal();
-
 	if ( run_state::is_processing_suspended() )
 		return -1;
 
-	// If there's no file descriptor for the source, which is the case for some interfaces like
-	// myricom, we can't rely on the polling mechanism to wait for data to be available. As gross
-	// as it is, just spin with a short timeout here so that it will continually poll the
-	// interface. The old IOSource code had a 20 microsecond timeout between calls to select()
-	// so just use that.
+	// If we're in pseudo-realtime mode, find the next time that a packet is ready
+	// and have poll block until then.
+	if ( run_state::pseudo_realtime )
+		{
+		ExtractNextPacketInternal();
+
+		// This duplicates the calculation used in run_state::check_pseudo_time().
+		double pseudo_time = current_packet.time - run_state::detail::first_timestamp;
+		double ct = (util::current_time(true) - run_state::detail::first_wallclock) *
+		            run_state::pseudo_realtime;
+		return std::max(0.0, pseudo_time - ct);
+		}
+
+	// If there's no file descriptor for the source, which is the case for some interfaces
+	// like myricom, we can't rely on the polling mechanism to wait for data to be
+	// available. As gross as it is, just spin with a short timeout here so that it will
+	// continually poll the interface. The old IOSource code had a 20 microsecond timeout
+	// between calls to select() so just use that.
+
+	// A heuristic to avoid short sleeps when a non-selectable packet source has more
+	// packets queued is to return 0.0 if the source has yielded a packet on the
+	// last call to ExtractNextPacket().
 	if ( props.selectable_fd == -1 )
 		{
-		if ( ! pkt_available && ! run_state::pseudo_realtime )
-			return 0.00002;
+		if ( have_packet || had_packet )
+			return 0.0;
+
+		return 0.00002;
 		}
-	// If we're live we want poll to do what it has to with the file descriptor. If we're not live
-	// but we're not in pseudo-realtime mode, let the loop just spin as fast as it can. If we're
-	// in pseudo-realtime mode, find the next time that a packet is ready and have poll block until
-	// then.
-	else if ( IsLive() )
-		return -1;
 
-	if ( ! run_state::pseudo_realtime )
-		return 0;
-
-	// This duplicates the calculation used in run_state::check_pseudo_time().
-	double pseudo_time = current_packet.time - run_state::detail::first_timestamp;
-	double ct = (util::current_time(true) - run_state::detail::first_wallclock) *
-	            run_state::pseudo_realtime;
-	return std::max(0.0, pseudo_time - ct);
+	// If there's an FD (offline or live) we want poll to do what it has to with it.
+	return -1.0;
 	}
 
 	} // namespace zeek::iosource

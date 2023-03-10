@@ -1,3 +1,7 @@
+6.0.0-dev.171 | 2023-03-10 15:38:04 -0700
+
+  * Pin conan to 1.58 on Windows until conan.cmake supports 2.0 (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.169 | 2023-03-10 09:05:03 +0100
 
   * ScriptValidation: Make break/next a warning until Zeek 6.1 (Arne Welzel, Corelight)

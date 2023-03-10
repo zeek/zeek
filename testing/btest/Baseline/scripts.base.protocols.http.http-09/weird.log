@@ -7,6 +7,7 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	42964	127.0.0.1	80	invalid_http_09_request_method	POST	F	zeek	HTTP
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	42968	127.0.0.1	80	bad_HTTP_request	-	F	zeek	HTTP
 XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	42970	127.0.0.1	80	bad_HTTP_request	-	F	zeek	HTTP
 XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	127.0.0.1	42972	127.0.0.1	80	bad_HTTP_request	-	F	zeek	HTTP

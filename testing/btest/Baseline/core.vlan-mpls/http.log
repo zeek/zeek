@@ -7,8 +7,6 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	42960	127.0.0.1	80	1	GET	-	/zeek.html	-	0.9	-	-	0	51	0	<empty>	-	-	(empty)	-	-	-	-	-	-	F9io3P2BHcd8Gf17a4	-	text/html
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	42960	127.0.0.1	80	2	-	-	-	-	-	-	-	0	0	-	-	-	-	(empty)	-	-	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	42964	127.0.0.1	80	1	POST	-	/zeek.html	-	0.9	-	-	0	11	0	<empty>	-	-	(empty)	-	-	-	-	-	-	FI8sW83mGRiat332Cc	-	text/plain
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	42964	127.0.0.1	80	2	-	-	-	-	-	-	-	0	0	-	-	-	-	(empty)	-	-	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	141.42.64.125	56730	125.190.109.199	80	1	GET	www.icir.org	/	-	1.1	Wget/1.10	-	0	9130	200	OK	-	-	(empty)	-	-	-	-	-	-	FYH9ib1vyzc2Ub6Rg	-	text/html
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	10.20.80.1	50343	10.0.0.15	80	1	GET	-	/	-	0.9	-	-	0	3429	0	<empty>	-	-	(empty)	-	-	-	-	-	-	FUJ4zD4d30B62GHEJe	-	text/html
 #close XXXX-XX-XX-XX-XX-XX

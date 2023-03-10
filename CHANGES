@@ -1,3 +1,32 @@
+6.0.0-dev.175 | 2023-03-10 15:50:04 -0700
+
+  * Add weird for unknown HTTP/0.9 request method (Tim Wojtulewicz, Corelight)
+
+  * Special case HTTP 0.9 early on (Tim Wojtulewicz, Corelight)
+
+    Mostly, treat HTTP0.9 completely separate. Because we're doing raw
+    delivery of a body directly, fake enough (connection_close=1, and finish
+    headers manually) so that the MIME infrastructure thinks it is seeing a
+    body.
+
+    This deals better with the body due to accounting for the first line. Also
+    it avoids the content line analyzer to strip CRLF/LF and the analyzer
+    then adding CRLF unconditionally by fully bypassing the content line
+    analyzer.
+
+    Concretely, the vlan-mpls test case contains a HTTP response with LF only,
+    but the previous implementation would use CRLF, accounting for two many bytes.
+    Same for the http.no-version test which would previously report a body
+    length of 280 and now is at 323 (which agrees with wireshark).
+
+    Further, the mime_type detection for the http-09 test case works because
+    it's now seeing the full body.
+
+    Drawback: We don't extract headers when a server actually replies with
+    a HTTP/1.1 message, but grrr, something needs to give I guess.
+
+  * Remove a couple unnecessary break statements (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.171 | 2023-03-10 15:38:04 -0700
 
   * Pin conan to 1.58 on Windows until conan.cmake supports 2.0 (Tim Wojtulewicz, Corelight)

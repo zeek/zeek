@@ -9,5 +9,5 @@
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.1.2.1	11001	10.34.0.1	23	tcp	-	2.102560	26	0	SH	-	-	0	SADF	11	470	0	0	-
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	141.42.64.125	56730	125.190.109.199	80	tcp	http	1.733303	98	9417	SF	-	-	0	ShADdFaf	12	730	10	9945	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	10.20.80.1	50343	10.0.0.15	80	tcp	-	0.004152	9	3429	SF	-	-	0	ShADadfF	7	381	7	3801	-
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	10.20.80.1	50343	10.0.0.15	80	tcp	http	0.004152	9	3429	SF	-	-	0	ShADadfF	7	381	7	3801	-
 #close XXXX-XX-XX-XX-XX-XX

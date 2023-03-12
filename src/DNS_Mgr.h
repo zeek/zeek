@@ -209,6 +209,7 @@ public:
 		unsigned long cached_hosts;
 		unsigned long cached_addresses;
 		unsigned long cached_texts;
+		unsigned long cached_total;
 		};
 
 	/**

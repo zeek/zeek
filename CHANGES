@@ -1,3 +1,11 @@
+6.0.0-dev.177 | 2023-03-12 13:09:36 -0700
+
+  * get_dns_stats: Expose total cache size and cached text entries (Arne Welzel, Corelight)
+
+    It wasn't possible from script land to determine the total size
+    of the cache table held by the DNS_Mgr. Add the total and also
+    also the TEXT entries count.
+
 6.0.0-dev.175 | 2023-03-10 15:50:04 -0700
 
   * Add weird for unknown HTTP/0.9 request method (Tim Wojtulewicz, Corelight)

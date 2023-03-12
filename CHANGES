@@ -1,3 +1,7 @@
+6.0.0-dev.179 | 2023-03-12 13:52:15 -0700
+
+  * Force rebuild of CentOS 7 CI image to pick up git install (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.177 | 2023-03-12 13:09:36 -0700
 
   * get_dns_stats: Expose total cache size and cached text entries (Arne Welzel, Corelight)

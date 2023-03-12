@@ -2,7 +2,7 @@ FROM centos:7
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20220519
+ENV DOCKERFILE_VERSION 20230312
 
 ENV FLEX_VERSION=2.6.4
 ENV FLEX_DIR=/opt/flex

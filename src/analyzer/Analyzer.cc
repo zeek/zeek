@@ -930,13 +930,13 @@ TEST_SUITE("Analyzer management")
 		auto b1 = zeek::analyzer_mgr->InstantiateAnalyzer("IMAP", a->Conn());
 		REQUIRE(b1);
 
-		tcp->AddChildAnalyzer(a);
-		a->AddChildAnalyzer(b1);
+		CHECK(tcp->AddChildAnalyzer(a));
+		CHECK(a->AddChildAnalyzer(b1));
 
 		CHECK(conn->FindAnalyzer("SSH"));
 		CHECK(conn->FindAnalyzer("IMAP"));
 
-		a->RemoveChildAnalyzer(b1);
+		CHECK(a->RemoveChildAnalyzer(b1));
 
 		CHECK(! conn->FindAnalyzer("IMAP"));
 

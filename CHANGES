@@ -1,3 +1,15 @@
+6.0.0-dev.195 | 2023-03-13 09:02:49 -0700
+
+  * dlclose() handle if the library loaded wasn't a plugin (Tim Wojtulewicz, Corelight)
+
+  * Fix uninitialized variables in Ascii writer (Tim Wojtulewicz, Corelight)
+
+  * Fix use-after-move bug in Scope constructor (Tim Wojtulewicz, Corelight)
+
+  * Add missing field initializations for ConnTuple (Tim Wojtulewicz, Corelight)
+
+  * Fix possible resource leak in analyzer unit tests (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.189 | 2023-03-13 09:55:56 +0100
 
   * Allow offline packet sources to register FDs. (Jan Grashoefer, Corelight)

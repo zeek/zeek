@@ -70,13 +70,13 @@ struct LeftoverLog
 	 * The time at which the shadow file was created.  This is used
 	 * as the log file's "opening time" for rotation purposes.
 	 */
-	time_t open_time;
+	time_t open_time = 0;
 
 	/**
 	 * Time of the log file's last modification.  This is used
 	 * as the log file's "closing time" for rotation purposes.
 	 */
-	time_t close_time;
+	time_t close_time = 0;
 
 	/**
 	 * Set the an error message explaining any error that happened while
@@ -123,7 +123,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	{
 	auto sfname = prefix_basename_with(fname, shadow_file_prefix);
 
-	LeftoverLog rval;
+	LeftoverLog rval = {};
 	rval.filename = fname;
 	rval.shadow_filename = std::move(sfname);
 

@@ -22,7 +22,7 @@ Scope::Scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> al)
 	{
 	return_type = nullptr;
 
-	if ( id )
+	if ( scope_id )
 		{
 		const auto& id_type = scope_id->GetType();
 
@@ -31,7 +31,7 @@ Scope::Scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> al)
 		else if ( id_type->Tag() != TYPE_FUNC )
 			reporter->InternalError("bad scope id");
 
-		FuncType* ft = id->GetType()->AsFuncType();
+		FuncType* ft = scope_id->GetType()->AsFuncType();
 		return_type = ft->Yield();
 		}
 	}

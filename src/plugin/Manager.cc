@@ -254,6 +254,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 				{
 				errors->push_back(
 					util::fmt("load plugin library %s did not instantiate a plugin", path));
+				dlclose(hdl);
 				continue;
 				}
 

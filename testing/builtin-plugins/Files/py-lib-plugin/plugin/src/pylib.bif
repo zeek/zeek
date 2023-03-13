@@ -1,0 +1,18 @@
+module Python;
+
+%%{
+extern "C" {
+#include <Python.h>
+}
+%%}
+
+function version%(%): string
+%{
+	return zeek::make_intrusive<zeek::StringVal>(Py_GetVersion());
+%}
+
+function run_simple_string%(s: string%): bool
+%{
+	PyRun_SimpleString(s->CheckString());
+	return zeek::val_mgr->True();
+%}

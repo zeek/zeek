@@ -425,8 +425,14 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h)
 			          first_byte_pos.c_str(), last_byte_pos.c_str(), instance_length_str.c_str());
 
 		int64_t f, l;
-		util::atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
-		util::atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
+		int fr = util::atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
+		int lr = util::atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
+		if ( fr != 1 || lr != 1 )
+			{
+			http_message->Weird("HTTP_content_range_cannot_parse");
+			return;
+			}
+
 		int64_t len = l - f + 1;
 
 		if ( DEBUG_http )

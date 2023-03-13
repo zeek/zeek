@@ -1,3 +1,17 @@
+6.0.0-dev.199 | 2023-03-13 18:40:15 +0100
+
+  * GH-2851: HTTP: Make Content-Range parsing more robust (Arne Welzel, Corelight)
+
+    This was exposed by OSS-Fuzz after the HTTP/0.9 changes in zeek/zeek#2851:
+    We do not check the result of parsing the from and last bytes of a
+    Content-Range header and would reference uninitialized values on the stack
+    if these were not valid.
+
+    This doesn't seem as bad as it sounds outside of yielding non-sensible values:
+    If the result was negative, we weird/bailed. If the result was positive, we
+    already had to treat it with suspicion anyway and the SetPlainDelivery()
+    logic accounts for that.
+
 6.0.0-dev.197 | 2023-03-13 17:54:02 +0100
 
   * GH-2851: HTTP: Reset reply_message for HTTP/0.9 (Arne Welzel, Corelight)

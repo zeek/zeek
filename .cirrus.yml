@@ -692,3 +692,4 @@ include_plugins_debian11_task:
     upload_include_plugins_testing_artifacts:
       path: "testing/builtin-plugins/.tmp/**"
   << : *BUILDS_ONLY_IF_TEMPLATE
+  << : *SKIP_TASK_ON_PR

@@ -180,10 +180,11 @@ void PcapSource::OpenOffline()
 		return;
 		}
 
-	props.selectable_fd = fileno(pcap_file(pd));
-
-	if ( props.selectable_fd < 0 )
-		InternalError("OS does not support selectable pcap fd");
+	// We don't register the file descriptor if we're in offline mode,
+	// because libpcap's file descriptor for trace files isn't a reliable
+	// way to know whether we actually have data to read.
+	// See https://github.com/the-tcpdump-group/libpcap/issues/870
+	props.selectable_fd = -1;
 
 	props.link_type = pcap_datalink(pd);
 	props.is_live = false;

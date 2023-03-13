@@ -987,6 +987,20 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig)
 						if ( request_method->ToStdString() != "GET" )
 							Weird("invalid_http_09_request_method", request_method->CheckString());
 
+						// If we already have a reply_message that means we saw
+						// an HTTP response before a request and interpreted
+						// it as HTTP/1.1 already. Reset the state here because
+						// we're removing the ContentLine support analyzer and
+						// any assumptions about expected delivery size state
+						// become invalid.
+						if ( reply_message )
+							{
+							Weird("http_09_reply_before_request");
+							reply_message->Done();
+							delete reply_message;
+							reply_message = nullptr;
+							}
+
 						reply_state = EXPECT_REPLY_HTTP09;
 						RemoveSupportAnalyzer(content_line_resp);
 						}

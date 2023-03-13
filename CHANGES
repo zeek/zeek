@@ -1,3 +1,15 @@
+6.0.0-dev.197 | 2023-03-13 17:54:02 +0100
+
+  * GH-2851: HTTP: Reset reply_message for HTTP/0.9 (Arne Welzel, Corelight)
+
+    OSS-Fuzz tickled an assert when sending a HTTP response before a HTTP/0.9
+    request. Avoid this by resetting reply_message upon seeing a HTTP/0.9 request.
+
+    PCAP was generated artificially: Server sending a reply providing a
+    Content-Length. Because HTTP/0.9 processing would remove the ContentLine
+    support analyzer, more data was delivered to the HTTP_Message than
+    expected, triggering an assert.
+
 6.0.0-dev.195 | 2023-03-13 09:02:49 -0700
 
   * dlclose() handle if the library loaded wasn't a plugin (Tim Wojtulewicz, Corelight)

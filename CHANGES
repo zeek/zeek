@@ -1,3 +1,34 @@
+6.0.0-dev.189 | 2023-03-13 09:55:56 +0100
+
+  * Allow offline packet sources to register FDs. (Jan Grashoefer, Corelight)
+
+  * GH-2039: GH-2842: PktSrc: Avoid calling ExtractNextPacketInternal() in GetNextTimeout() (Arne Welzel, Corelight)
+
+    This reworks 2aec7640dd60c3ea3cffd82461588567e406db34 (zeek/zeek#2039) to
+    avoid calling ExtractNextPacketInternal() within GetNextTimeout() for
+    the non-pseudo-realtime case. Also relates to zeek/zeek#2842.
+
+    The intention of the referenced change was to avoid a 0.00002 timeout when
+    a non-selectable packet source has more packets queued. This was implemented
+    by checking for a new packet within GetNextTimeout().
+
+    The proposed change switches to an predictive approach: Use the result of
+    the previous ExtractNextPacket() call (stored as had_packet) as an indication
+    whether more packets are to be expected.
+
+    Calling ExtractNextPacketInternal() within GetNextTimeout() may cause
+    surprising behavior as some packet source may block [1] or spent a significant
+    amount of time (e.g. applying BPF filters [2]) within ExtractNextPacket().
+    The result of GetNextTimeout() should be available immediately as guidance
+    for the main-loop and the actual work should happen within the ->Process()
+    method.
+
+    This change also attempts to separate the pseudo-realtime logic from the
+    non-pseudo-realtime in an attempt show pseudo-realtime as special.
+
+    [1] https://github.com/hosom/bro-napatech/blob/00c4d657e034927301d5f8d9bc03eca81e619699/src/Napatech.cc#L116
+    [2] https://github.com/sethhall/bro-myricom/blob/58b25c8ebac6d184ff8ff0c27f8da2b603694dab/src/Myricom.cc#L250
+
 6.0.0-dev.185 | 2023-03-13 09:38:34 +0100
 
   * GH-2837: cirrus: Add smoke testing for builtin plugins (Arne Welzel, Corelight)

@@ -157,25 +157,24 @@ void Manager::FindReadySources(ReadySources* ready)
 		if ( iosource->IsOpen() )
 			{
 			double next = iosource->GetNextTimeout();
-			bool added = false;
 
 			if ( timeout == -1 || (next >= 0.0 && next < timeout) )
 				{
 				timeout = next;
 				timeout_src = iosource;
-
-				// If a source has a zero timeout then it's ready. Just add it to the
-				// list already. Only do this if it's not time to poll though, since
-				// we don't want things in the vector passed into Poll() or it'll end
-				// up inserting duplicates.
-				if ( timeout == 0 && ! time_to_poll )
-					{
-					added = true;
-					ready->push_back({timeout_src, -1, 0});
-					}
 				}
 
-			if ( iosource == pkt_src && ! added )
+			// If a source has a zero timeout then it's ready. Just add it to the
+			// list already. Only do this if it's not time to poll though, since
+			// we don't want things in the vector passed into Poll() or it'll end
+			// up inserting duplicates. A source with a zero timeout that was not
+			// selected as the timeout_src can be safely added, whether it's time
+			// to poll or not though.
+			if ( next == 0 && (! time_to_poll || iosource != timeout_src) )
+				{
+				ready->push_back({iosource, -1, 0});
+				}
+			else if ( iosource == pkt_src )
 				{
 				if ( pkt_src->IsLive() )
 					{
@@ -183,12 +182,6 @@ void Manager::FindReadySources(ReadySources* ready)
 						// Avoid calling Poll() if we can help it since on very
 						// high-traffic networks, we spend too much time in
 						// Poll() and end up dropping packets.
-						ready->push_back({pkt_src, -1, 0});
-					}
-				else
-					{
-					if ( ! run_state::pseudo_realtime && ! time_to_poll )
-						// A pcap file is always ready to process unless it's suspended
 						ready->push_back({pkt_src, -1, 0});
 					}
 				}

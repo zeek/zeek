@@ -1,3 +1,15 @@
+6.0.0-dev.202 | 2023-03-14 10:33:32 +0100
+
+  * GH-2672: Parse DNSSEC AD and CD bits (Michael R. Torres)
+
+    Parse authentic data (AD) and checking disabled (CD) bits according to
+    RFC 2535. Leaves the Z field as-is, in case users are already handling
+    this elsewhere and depend on the value being the integer for all 3 bits.
+
+    https://www.rfc-editor.org/rfc/rfc2535#section-6.1
+
+    Fixes #2672
+
 6.0.0-dev.199 | 2023-03-13 18:40:15 +0100
 
   * GH-2851: HTTP: Make Content-Range parsing more robust (Arne Welzel, Corelight)

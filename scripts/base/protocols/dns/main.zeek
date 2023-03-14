@@ -60,9 +60,17 @@ export {
 		## The Recursion Available bit in a response message indicates
 		## that the name server supports recursive queries.
 		RA:            bool               &log &default=F;
-		## A reserved field that is usually zero in
-		## queries and responses.
+		## A reserved field that is zero in queries and responses unless
+		## using DNSSEC. This field represents the 3-bit Z field using
+		## the specification from RFC 1035.
 		Z:             count              &log &default=0;
+		## The DNSSEC Authentic Data bit in a response message indicates
+		## that the name server has authenticated all the data in the
+		## answer and authority sections.
+		AD:            bool               &log &default=F;
+		## The DNSSEC Checking Disabled bit in a query indicates that
+		## pending, non-authenticated data is acceptable to the sender
+		CD:            bool               &log &default=F;
 		## The set of resource descriptions in the query answer.
 		answers:       vector of string   &log &optional;
 		## The caching intervals of the associated RRs described by the
@@ -364,6 +372,8 @@ hook DNS::do_reply(c: connection, msg: dns_msg, ans: dns_answer, reply: string) 
 		# the request, which is not what we want to track.
 		return;
 
+	c$dns$AD = msg$AD;
+
 	if ( ans$answer_type == DNS_ANS )
 		{
 		if ( ! c$dns?$query )
@@ -428,6 +438,8 @@ event dns_request(c: connection, msg: dns_msg, query: string, qtype: count, qcla
 	c$dns$qtype       = qtype;
 	c$dns$qtype_name  = query_types[qtype];
 	c$dns$Z           = msg$Z;
+	c$dns$AD          = msg$AD;
+	c$dns$CD          = msg$CD;
 
 	# Decode netbios name queries
 	# Note: I'm ignoring the name type for now.  Not sure if this should be

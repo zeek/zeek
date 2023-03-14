@@ -15,6 +15,21 @@
 namespace zeek::detail
 	{
 
+StmtPtr Stmt::SimplifyTo(StmtPtr new_me)
+	{
+	++Stmt::num_simplifies;
+	auto orig_desc = obj_desc(this);
+	printf("simplifying stmt %s to %s\n", orig_desc.c_str(), obj_desc(new_me.get(
+)).c_str());
+	return new_me;
+	}
+
+StmtPtr Stmt::NonNilSimplify()
+       {
+       auto s = Simplify();
+       return s ? s : make_intrusive<NullStmt>();
+       }
+
 bool Stmt::IsReduced(Reducer* c) const
 	{
 	return true;
@@ -48,6 +63,14 @@ StmtPtr Stmt::TransformMe(StmtPtr new_me, Reducer* c)
 	// to ultimately resolve back to the source statement.
 	new_me->SetOriginal(ThisPtr());
 	return new_me->Reduce(c);
+	}
+
+StmtPtr ExprListStmt::Simplify()
+	{
+	auto& e = l->Exprs();
+	for ( auto i = 0; i < e.length(); ++i )
+		e.replace(i, e[i]->Simplify().release());
+	return ThisPtr();
 	}
 
 void ExprListStmt::Inline(Inliner* inl)
@@ -120,6 +143,14 @@ StmtPtr PrintStmt::DoSubclassReduce(ListExprPtr singletons, Reducer* c)
 	return new_me;
 	}
 
+StmtPtr ExprStmt::Simplify()
+	{
+	if ( e )
+		e = e->Simplify();
+
+	return ThisPtr();
+	}
+
 StmtPtr ExprStmt::Duplicate()
 	{
 	return SetSucc(new ExprStmt(e ? e->Duplicate() : nullptr));
@@ -184,6 +215,42 @@ StmtPtr ExprStmt::DoReduce(Reducer* c)
 
 	else
 		return ThisPtr();
+	}
+
+StmtPtr IfStmt::Simplify()
+	{
+	e = e->Simplify();
+
+	if ( e->Tag() == EXPR_NOT )
+		{
+		auto tmp_s = s2;
+		s2 = s1;
+		s1 = tmp_s;
+
+		e = e->SimplifyTo(e->GetOp1());
+
+		return Simplify();
+		}
+
+	if ( s1 )
+		s1 = s1->Simplify();
+	if ( s2 )
+		s2 = s2->Simplify();
+
+	if ( ! s1 && ! s2 )
+		return SimplifyTo(make_intrusive<ExprStmt>(e))->Simplify();
+
+	if ( ! e->IsConst() )
+		return ThisPtr();
+
+	auto test = e->AsConstExpr()->ValuePtr();
+	if ( test->IsOne() )
+		return SimplifyTo(s1);
+	if ( test->IsZero() )
+		return SimplifyTo(s2);
+
+	printf("confusion in IfStmt::Simplify: %s\n", obj_desc(this).c_str());
+	return ThisPtr();
 	}
 
 StmtPtr IfStmt::Duplicate()
@@ -312,6 +379,14 @@ bool IfStmt::NoFlowAfter(bool ignore_break) const
 	return false;
 	}
 
+void Case::Simplify()
+	{
+	if ( expr_cases )
+		expr_cases = cast_intrusive<ListExpr>(expr_cases->Simplify());
+
+	s = s->NonNilSimplify();
+	}
+
 IntrusivePtr<Case> Case::Duplicate()
 	{
 	if ( expr_cases )
@@ -327,6 +402,20 @@ IntrusivePtr<Case> Case::Duplicate()
 		}
 
 	return make_intrusive<Case>(nullptr, type_cases, s->Duplicate());
+	}
+
+StmtPtr SwitchStmt::Simplify()
+	{
+	e = e->Simplify();
+	for ( auto& c : *cases )
+		c->Simplify();
+
+	if ( ! e->IsConst() )
+		return ThisPtr();
+
+	printf("opportunity to optimize constant switch: %s\n", obj_desc(this).c_str());
+
+	return ThisPtr();
 	}
 
 StmtPtr SwitchStmt::Duplicate()
@@ -509,6 +598,13 @@ StmtPtr EventStmt::DoReduce(Reducer* c)
 	return ThisPtr();
 	}
 
+StmtPtr WhileStmt::Simplify()
+	{
+	loop_condition = loop_condition->Simplify();
+	body = body->NonNilSimplify();
+	return ThisPtr();
+	}
+
 StmtPtr WhileStmt::Duplicate()
 	{
 	return SetSucc(new WhileStmt(loop_condition->Duplicate(), body->Duplicate()));
@@ -561,6 +657,18 @@ StmtPtr WhileStmt::DoReduce(Reducer* c)
 		loop_cond_pred_stmt = loop_cond_pred_stmt->Reduce(c);
 
 	return ThisPtr();
+	}
+
+StmtPtr ForStmt::Simplify()
+	{
+	e = e->Simplify();
+	body = body->Simplify();
+
+	if ( body )
+		return ThisPtr();
+
+	// No body, statement reduces to evaluating the target expression.
+	return SimplifyTo(make_intrusive<ExprStmt>(e))->Simplify();
 	}
 
 StmtPtr ForStmt::Duplicate()
@@ -699,6 +807,28 @@ StmtList::StmtList(StmtPtr s1, StmtPtr s2, StmtPtr s3) : Stmt(STMT_LIST)
 		stmts->append(s2.release());
 	if ( s3 )
 		stmts->append(s3.release());
+	}
+
+StmtPtr StmtList::Simplify()
+	{
+	auto new_sl = make_intrusive<StmtList>();
+
+	for ( auto& s : Stmts() )
+		{
+		auto new_s = s->Simplify();
+		if ( new_s )
+			new_sl->Stmts().push_back(new_s.release());
+		}
+
+	auto n = new_sl->Stmts().size();
+
+	if ( n == 0 )
+		return SimplifyTo(nullptr);
+
+	if ( n == 1 )
+		return SimplifyTo({NewRef{}, Stmts()[0]});
+
+	return new_sl;
 	}
 
 StmtPtr StmtList::Duplicate()
@@ -897,6 +1027,11 @@ bool StmtList::NoFlowAfter(bool ignore_break) const
 	return false;
 	}
 
+StmtPtr InitStmt::Simplify()
+	{
+	return ThisPtr();
+	}
+
 StmtPtr InitStmt::Duplicate()
 	{
 	// Need to duplicate the initializer list since later reductions
@@ -916,6 +1051,18 @@ bool InitStmt::IsReduced(Reducer* c) const
 StmtPtr InitStmt::DoReduce(Reducer* c)
 	{
 	c->UpdateIDs(inits);
+	return ThisPtr();
+	}
+
+void WhenInfo::Simplify()
+	{
+	cond = cond->Simplify();
+	lambda = cast_intrusive<LambdaExpr>(lambda->Simplify());
+	}
+
+StmtPtr WhenStmt::Simplify()
+	{
+	wi->Simplify();
 	return ThisPtr();
 	}
 
@@ -976,6 +1123,12 @@ bool CatchReturnStmt::IsPure() const
 	{
 	// The ret_var is pure by construction.
 	return block->IsPure();
+	}
+
+StmtPtr CatchReturnStmt::Simplify()
+	{
+	block = block->NonNilSimplify();
+	return ThisPtr();
 	}
 
 StmtPtr CatchReturnStmt::Duplicate()

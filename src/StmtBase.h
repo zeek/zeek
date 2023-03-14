@@ -112,6 +112,14 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
+	// Returns a potentially simplified version of the AST node; nil if
+	// the statement can be completely removed.
+	virtual StmtPtr Simplify() { return ThisPtr(); }
+
+	// The same, but returns NullStmt rather than nil if the statement
+	// has no execution relevance.
+	StmtPtr NonNilSimplify();
+
 	// Returns a duplicate of the statement so that modifications
 	// can be made to statements from inlining function bodies - or
 	// to the originals - without affecting other instances.
@@ -188,6 +196,9 @@ public:
 protected:
 	explicit Stmt(StmtTag arg_tag);
 
+	// Helper function called for simplifying a statement.
+	StmtPtr SimplifyTo(StmtPtr new_me);
+
 	// Helper function called after reductions to perform canonical
 	// actions.
 	StmtPtr TransformMe(StmtPtr new_me, Reducer* c);
@@ -214,6 +225,9 @@ protected:
 
 	// Number of statements created thus far.
 	static int num_stmts;
+
+	// Number of simplifications.
+	static int num_simplifies;
 	};
 
 	} // namespace detail

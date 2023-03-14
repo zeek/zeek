@@ -260,6 +260,18 @@ public:
 
 	virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
+	// Returns an optimized version of the expression.
+	virtual ExprPtr Simplify() { return ThisPtr(); }
+
+	// Used to replace an expression with another.
+	ExprPtr SimplifyTo(ExprPtr new_e);
+
+	// Convenience versions of SimplifyTo.
+	ExprPtr SimplifyTo(ValPtr v);
+	ExprPtr SimplifyToZero();
+	ExprPtr SimplifyToTrue();
+	ExprPtr SimplifyToFalse();
+
 	// Returns a duplicate of the expression.
 	virtual ExprPtr Duplicate() = 0;
 
@@ -454,6 +466,9 @@ protected:
 
 	// Number of expressions created thus far.
 	static int num_exprs;
+
+	// Number of simplifications.
+	static int num_simplifies;
 	};
 
 class NameExpr final : public Expr
@@ -471,6 +486,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	bool HasNoSideEffects() const override { return true; }
 	bool IsReduced(Reducer* c) const override;
@@ -526,6 +542,8 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
+	virtual ExprPtr DoSimplify() { return ThisPtr(); }
 	ExprPtr Inline(Inliner* inl) override;
 
 	bool HasNoSideEffects() const override;
@@ -563,6 +581,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Inline(Inliner* inl) override;
 
 	bool HasNoSideEffects() const override;
@@ -604,6 +623,18 @@ protected:
 	// Same for when the constants are addresses or subnets.
 	virtual ValPtr AddrFold(Val* v1, Val* v2) const;
 	virtual ValPtr SubNetFold(Val* v1, Val* v2) const;
+
+	// Called after simplifying operands, if at least one of them is
+	// not constant (and so can't be directly Fold()'d).
+	virtual ExprPtr DoSimplify() { return ThisPtr(); }
+
+	// True if both operands are the same ... for a conservative
+	// notion of "same" (currently, just that they're the same
+	// identifier - no point checking for constants as this only
+	// gets used after folding).  More complicated expressions can
+	// get tricky if they have side-effects, though ultimately we
+	// could repurpose Reducer::SameExpr() for this.
+	bool SameOps() const;
 
 	bool BothConst() const { return op1->IsConst() && op2->IsConst(); }
 
@@ -686,6 +717,7 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 	};
 
 class NotExpr final : public UnaryExpr
@@ -700,6 +732,7 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 	};
 
 class PosExpr final : public UnaryExpr
@@ -714,6 +747,7 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 	};
 
 class NegExpr final : public UnaryExpr
@@ -728,6 +762,7 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 	};
 
 class SizeExpr final : public UnaryExpr
@@ -756,6 +791,7 @@ public:
 
 protected:
 	ExprPtr BuildSub(const ExprPtr& op1, const ExprPtr& op2);
+	ExprPtr DoSimplify() override;
 	};
 
 class AddToExpr final : public BinaryExpr
@@ -800,6 +836,7 @@ public:
 	SubExpr(ExprPtr op1, ExprPtr op2);
 
 	// Optimization-related:
+	ExprPtr DoSimplify() override;
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -812,6 +849,7 @@ public:
 	void Canonicalize() override;
 
 	// Optimization-related:
+	ExprPtr DoSimplify() override;
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -823,6 +861,7 @@ public:
 	DivideExpr(ExprPtr op1, ExprPtr op2);
 
 	// Optimization-related:
+	ExprPtr DoSimplify() override;
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -837,6 +876,7 @@ public:
 	ModExpr(ExprPtr op1, ExprPtr op2);
 
 	// Optimization-related:
+	ExprPtr DoSimplify() override;
 	ExprPtr Duplicate() override;
 	};
 
@@ -849,6 +889,7 @@ public:
 	ValPtr DoSingleEval(Frame* f, ValPtr v1, Expr* op2) const;
 
 	// Optimization-related:
+	ExprPtr DoSimplify() override;
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	bool WillTransformInConditional(Reducer* c) const override;
@@ -865,6 +906,7 @@ public:
 	BitExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 
 	// Optimization-related:
+	ExprPtr DoSimplify() override;
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -877,6 +919,7 @@ public:
 	void Canonicalize() override;
 
 	// Optimization-related:
+	ExprPtr DoSimplify() override;
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -893,6 +936,7 @@ public:
 	void Canonicalize() override;
 
 	// Optimization-related:
+	ExprPtr DoSimplify() override;
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -914,6 +958,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	ExprPtr Inline(Inliner* inl) override;
 
@@ -1147,7 +1192,6 @@ protected:
 	};
 
 // "rec?$fieldname" is true if the value of $fieldname in rec is not nil.
-// "rec?$$attrname" is true if the attribute attrname is not nil.
 class HasFieldExpr final : public UnaryExpr
 	{
 public:
@@ -1187,6 +1231,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	ExprPtr Inline(Inliner* inl) override;
 
@@ -1311,6 +1356,7 @@ public:
 protected:
 	ValPtr FoldSingleVal(ValPtr v, const TypePtr& t) const;
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 	};
 
 class RecordCoerceExpr final : public UnaryExpr
@@ -1325,6 +1371,7 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 
 	// For each super-record slot, gives subrecord slot with which to
 	// fill it.
@@ -1343,6 +1390,7 @@ public:
 	ExprPtr Duplicate() override;
 
 protected:
+	ExprPtr DoSimplify() override;
 	ValPtr Fold(Val* v) const override;
 	};
 
@@ -1356,6 +1404,7 @@ public:
 	ExprPtr Duplicate() override;
 
 protected:
+	ExprPtr DoSimplify() override;
 	ValPtr Fold(Val* v) const override;
 	};
 
@@ -1387,6 +1436,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	ExprPtr Inline(Inliner* inl) override;
 
@@ -1438,6 +1488,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	ExprPtr Inline(Inliner* inl) override;
 
@@ -1475,6 +1526,7 @@ public:
 	ScopePtr GetScope() const;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	ExprPtr Inline(Inliner* inl) override;
 
@@ -1519,6 +1571,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	ExprPtr Inline(Inliner* inl) override;
 
@@ -1547,6 +1600,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	ExprPtr Inline(Inliner* inl) override;
 
@@ -1581,6 +1635,7 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 	void ExprDescribe(ODesc* d) const override;
 	};
 
@@ -1619,6 +1674,7 @@ public:
 
 	ValPtr Eval(Frame* f) const override;
 
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 
 	bool IsReduced(Reducer* c) const override;
@@ -1718,6 +1774,7 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 
 	ExprPtr Duplicate() override;
 	};
@@ -1730,6 +1787,7 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
+	ExprPtr DoSimplify() override;
 
 	ExprPtr Duplicate() override;
 	};

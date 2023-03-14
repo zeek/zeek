@@ -60,6 +60,7 @@ const char* stmt_name(StmtTag t)
 	}
 
 int Stmt::num_stmts = 0;
+int Stmt::num_simplifies = 0;
 
 Stmt::Stmt(StmtTag arg_tag)
 	{

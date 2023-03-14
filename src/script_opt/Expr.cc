@@ -167,6 +167,26 @@ ExprPtr Expr::GetOp3() const
 void Expr::SetOp1(ExprPtr) { }
 void Expr::SetOp2(ExprPtr) { }
 void Expr::SetOp3(ExprPtr) { }
+ 
+ExprPtr Expr::SimplifyTo(ValPtr c)
+	{
+	return SimplifyTo(make_intrusive<ConstExpr>(c));
+	}
+ 
+ExprPtr Expr::SimplifyToZero()
+	{
+	return SimplifyTo(make_intrusive<ConstExpr>(val_mgr->Count(0)));
+	}
+ 
+ExprPtr Expr::SimplifyToTrue()
+	{
+	return SimplifyTo(make_intrusive<ConstExpr>(val_mgr->True()));
+	}
+ 
+ExprPtr Expr::SimplifyToFalse()
+	{
+	return SimplifyTo(make_intrusive<ConstExpr>(val_mgr->False()));
+	}
 
 bool Expr::IsReduced(Reducer* c) const
 	{
@@ -475,6 +495,22 @@ ConstExprPtr Expr::MakeZeroExpr(TypeTag t) const
 	{
 	return make_intrusive<ConstExpr>(MakeZero(t));
 	}
+ 
+ExprPtr Expr::SimplifyTo(ExprPtr new_me)
+	{
+	++Expr::num_simplifies;
+	auto orig_desc = obj_desc(this);
+	printf("simplifying expr %s to %s\n", orig_desc.c_str(), obj_desc(new_me.get()).c_str());
+	return new_me;
+	}
+
+ExprPtr NameExpr::Simplify()
+	{
+	if ( FoldableGlobal() )
+		return SimplifyTo(id->GetVal());
+
+	return ThisPtr();
+	}
 
 ExprPtr NameExpr::Duplicate()
 	{
@@ -527,6 +563,19 @@ ExprPtr ConstExpr::Duplicate()
 	return SetSucc(new ConstExpr(val));
 	}
 
+ExprPtr UnaryExpr::Simplify()
+	{
+	op = op->Simplify();
+
+	if ( op->IsConst() )
+		{
+		auto fv = Fold(op->AsConstExpr()->Value());
+		return SimplifyTo(fv);
+		}
+
+	return DoSimplify();
+	}
+
 ExprPtr UnaryExpr::Inline(Inliner* inl)
 	{
 	op = op->Inline(inl);
@@ -569,6 +618,30 @@ ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return ThisPtr();
 	else
 		return AssignToTemporary(c, red_stmt);
+	}
+
+ExprPtr BinaryExpr::Simplify()
+	{
+	op1 = op1->Simplify();
+	op2 = op2->Simplify();
+
+	if ( BothConst() )
+		{
+		auto c1 = op1->AsConstExpr()->Value();
+		auto c2 = op2->AsConstExpr()->Value();
+		auto fv = Fold(c1, c2);
+		return SimplifyTo(fv);
+		}
+
+	return DoSimplify();
+	}
+
+bool BinaryExpr::SameOps() const
+	{
+	if ( op1->Tag() != EXPR_NAME || op2->Tag() != EXPR_NAME )
+		return false;
+
+	return op1->AsNameExpr()->Id() == op2->AsNameExpr()->Id();
 	}
 
 ExprPtr BinaryExpr::Inline(Inliner* inl)
@@ -759,6 +832,14 @@ ExprPtr IncrExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 		return UnaryExpr::ReduceToSingleton(c, red_stmt);
 	}
 
+ExprPtr ComplementExpr::DoSimplify()
+	{
+	if ( op->Tag() == EXPR_COMPLEMENT )
+		return SimplifyTo(op->GetOp1());
+
+	return ThisPtr();
+	}
+
 ExprPtr ComplementExpr::Duplicate()
 	{
 	return SetSucc(new ComplementExpr(op->Duplicate()));
@@ -777,6 +858,14 @@ ExprPtr ComplementExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return UnaryExpr::Reduce(c, red_stmt);
 	}
 
+ExprPtr NotExpr::DoSimplify()
+	{
+	if ( op->Tag() == EXPR_NOT )
+		return SimplifyTo(op->GetOp1());
+
+	return ThisPtr();
+	}
+
 ExprPtr NotExpr::Duplicate()
 	{
 	return SetSucc(new NotExpr(op->Duplicate()));
@@ -784,15 +873,25 @@ ExprPtr NotExpr::Duplicate()
 
 bool NotExpr::WillTransform(Reducer* c) const
 	{
-	return op->Tag() == EXPR_NOT && Op()->GetType()->Tag() == TYPE_BOOL;
+	return op->Tag() == EXPR_NOT;
 	}
 
 ExprPtr NotExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
-	if ( op->Tag() == EXPR_NOT && Op()->GetType()->Tag() == TYPE_BOOL )
+	if ( op->Tag() == EXPR_NOT )
 		return Op()->Reduce(c, red_stmt);
 
 	return UnaryExpr::Reduce(c, red_stmt);
+	}
+
+ExprPtr PosExpr::DoSimplify()
+	{
+	if ( op->GetType()->Tag() == TYPE_COUNT )
+		// We need to keep the expression because it leads
+		// to a coercion from unsigned to signed.
+		return ThisPtr();
+
+	return op;
 	}
 
 ExprPtr PosExpr::Duplicate()
@@ -816,6 +915,14 @@ ExprPtr PosExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return op->ReduceToSingleton(c, red_stmt);
 	}
 
+ExprPtr NegExpr::DoSimplify()
+	{
+	if ( op->Tag() == EXPR_NEGATE )
+		return SimplifyTo(op->GetOp1());
+
+	return ThisPtr();
+	}
+
 ExprPtr NegExpr::Duplicate()
 	{
 	return SetSucc(new NegExpr(op->Duplicate()));
@@ -837,6 +944,41 @@ ExprPtr NegExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 ExprPtr SizeExpr::Duplicate()
 	{
 	return SetSucc(new SizeExpr(op->Duplicate()));
+	}
+
+ExprPtr AddExpr::DoSimplify()
+	{
+	if ( op1->IsZero() )
+		return SimplifyTo(op2);
+
+	if ( op2->IsZero() )
+		return SimplifyTo(op1);
+
+	auto op1_neg = op1->Tag() == EXPR_NEGATE;
+	auto op2_neg = op2->Tag() == EXPR_NEGATE;
+	if ( op1_neg || op2_neg )
+		{
+		ExprPtr rewrite;
+
+		if ( op1_neg && op2_neg )
+			{
+			auto add = make_intrusive<AddExpr>(op1->GetOp1(), op2->GetOp2());
+			rewrite = make_intrusive<NotExpr>(add);
+			}
+
+		else
+			{
+			auto sop1 = op1_neg ? op2 : op1;
+			auto sop2 = (op1_neg ? op1 : op2)->GetOp1();
+			rewrite = make_intrusive<SubExpr>(sop1, sop2);
+			}
+
+		// Need a final "simplify" because we're restructuring the
+		// expression, so new simplification rules might apply.
+		return SimplifyTo(rewrite)->Simplify();
+		}
+
+	return ThisPtr();
 	}
 
 ExprPtr AddExpr::Duplicate()
@@ -956,6 +1098,27 @@ ExprPtr AddToExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 	return op1;
 	}
 
+ExprPtr SubExpr::DoSimplify()
+	{
+	if ( op1->IsZero() )
+		return SimplifyTo(make_intrusive<NegExpr>(op2))->Simplify();
+
+	if ( op2->IsZero() )
+		return SimplifyTo(op1);
+
+	if ( op2->Tag() == EXPR_NEGATE )
+		{
+		auto rhs = op2->GetOp1();
+		auto add = make_intrusive<AddExpr>(op1, rhs);
+		return SimplifyTo(add)->Simplify();
+		}
+
+	if ( SameOps() && type->Tag() != TYPE_VECTOR && type->Tag() != TYPE_TABLE )
+		return SimplifyToZero();
+
+	return ThisPtr();
+	}
+
 ExprPtr SubExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1048,6 +1211,22 @@ ExprPtr RemoveFromExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 	return op1;
 	}
 
+ExprPtr TimesExpr::DoSimplify()
+	{
+	if ( op1->IsOne() )
+		return SimplifyTo(op2);
+
+	if ( op2->IsOne() )
+		return SimplifyTo(op1);
+
+	// Optimize integral multiplication by zero ... but not
+	// double, due to cases like Inf*0 or NaN*0.
+	if ( (op1->IsZero() || op2->IsZero()) && GetType()->Tag() != TYPE_DOUBLE )
+		return SimplifyTo(op1->IsZero() ? op1 : op2);
+
+	return ThisPtr();
+	}
+
 ExprPtr TimesExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1081,6 +1260,14 @@ ExprPtr TimesExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
 
+ExprPtr DivideExpr::DoSimplify()
+	{
+	if ( op2->IsConst() && op2->AsConstExpr()->Value()->IsOne() )
+		return SimplifyTo(op1);
+
+	return ThisPtr();
+	}
+
 ExprPtr DivideExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1102,6 +1289,17 @@ ExprPtr DivideExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
+ExprPtr ModExpr::DoSimplify()
+	{
+	if ( SameOps() )
+		return SimplifyToZero();
+
+	if ( op2->IsOne() && ! IsVector(op1->GetType()->Tag()) )
+		return SimplifyTo(val_mgr->Count(1));
+
+	return ThisPtr();
 	}
 
 ExprPtr ModExpr::Duplicate()
@@ -1162,6 +1360,54 @@ static ExprPtr build_disjunction(std::vector<ConstExprPtr>& patterns)
 		e = make_intrusive<BitExpr>(EXPR_OR, e, p);
 
 	return e;
+	}
+
+ExprPtr BoolExpr::DoSimplify()
+	{
+	IDPtr common_id = nullptr;
+	std::vector<ConstExprPtr> patterns;
+	if ( tag == EXPR_OR_OR && is_pattern_cascade(ThisPtr(), common_id, patterns) )
+		{
+		auto new_pat = build_disjunction(patterns);
+		auto new_id = make_intrusive<NameExpr>(common_id);
+		auto new_node = make_intrusive<InExpr>(new_pat, new_id);
+		return SimplifyTo(new_node);
+		}
+
+	// It's either an EXPR_AND_AND or an EXPR_OR_OR.
+
+	if ( SameOps() )
+		// Simple identity.
+		return SimplifyTo(op1);
+
+	bool is_and = (tag == EXPR_AND_AND);
+
+	if ( IsTrue(op1) )
+		return SimplifyTo(is_and ? op2 : op1);
+
+	if ( IsFalse(op1) )
+		return SimplifyTo(is_and ? op1 : op2);
+
+	bool op1_pure = op1->HasNoSideEffects();
+
+	if ( IsTrue(op2) )
+		{
+		if ( is_and || ! op1_pure )
+			return SimplifyTo(op1);
+
+		return SimplifyToTrue();
+		}
+
+	if ( IsFalse(op2) )
+		{
+		if ( ! is_and || ! op1_pure )
+			return SimplifyTo(op1);
+
+		return SimplifyToFalse();
+		}
+
+
+	return ThisPtr();
 	}
 
 ExprPtr BoolExpr::Duplicate()
@@ -1279,6 +1525,48 @@ bool BoolExpr::IsFalse(const ExprPtr& e) const
 	return c_e->Value()->IsZero();
 	}
 
+ExprPtr BitExpr::DoSimplify()
+	{
+	if ( ! IsIntegral(GetType()->Tag()) )
+		return ThisPtr();
+
+	auto zero1 = op1->IsZero();
+	auto zero2 = op2->IsZero();
+
+	if ( zero1 && zero2 )
+		// No matter the operation, the answer is zero.
+		return SimplifyToZero();
+
+	if ( zero1 || zero2 )
+		{
+		ExprPtr& zero_op = zero1 ? op1 : op2;
+		ExprPtr& non_zero_op = zero1 ? op2 : op1;
+
+		if ( tag == EXPR_AND )
+			return SimplifyToZero();
+
+		if ( tag == EXPR_OR || tag == EXPR_XOR )
+			return SimplifyTo(non_zero_op);
+
+		// LSHIFT or RSHIFT
+		if ( zero1 )
+			return SimplifyToZero();
+
+		return SimplifyTo(op1);
+		}
+
+	if ( SameOps() )
+		{
+		if ( tag == EXPR_OR || tag == EXPR_AND )
+			return SimplifyTo(op1);
+
+		if ( tag == EXPR_XOR )
+			return SimplifyToZero();
+		}
+
+	return ThisPtr();
+	}
+
 ExprPtr BitExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1335,6 +1623,14 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return BinaryExpr::Reduce(c, red_stmt);
 	}
 
+ExprPtr EqExpr::DoSimplify()
+	{
+	if ( SameOps() )
+		return tag == EXPR_EQ ? SimplifyToTrue() : SimplifyToFalse();
+
+	return ThisPtr();
+	}
+
 ExprPtr EqExpr::Duplicate()
 	{
 	auto op1_d = op1->Duplicate();
@@ -1358,6 +1654,35 @@ ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
+ExprPtr RelExpr::DoSimplify()
+	{
+	if ( SameOps() )
+		{
+		if ( tag == EXPR_LE || tag == EXPR_GE )
+			return SimplifyToTrue();
+		else
+			return SimplifyToFalse();
+		}
+
+	if ( op1->GetType()->Tag() == TYPE_COUNT && op2->IsZero() )
+		{
+		if ( tag == EXPR_LT )
+			return SimplifyToFalse();
+		else if ( tag == EXPR_GE )
+			return SimplifyToTrue();
+		}
+
+	if ( op2->GetType()->Tag() == TYPE_COUNT && op1->IsZero() )
+		{
+		if ( tag == EXPR_LE )
+			return SimplifyToTrue();
+		else if ( tag == EXPR_GT )
+			return SimplifyToFalse();
+		}
+
+	return ThisPtr();
 	}
 
 ExprPtr RelExpr::Duplicate()
@@ -1394,6 +1719,33 @@ ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		}
 
 	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
+ExprPtr CondExpr::Simplify()
+	{
+	op1 = op1->Simplify();
+	op2 = op2->Simplify();
+	op3 = op3->Simplify();
+
+	if ( op1->IsConst() )
+		return SimplifyTo(op1->IsOne() ? op2 : op3);
+
+	if ( same_singletons(op2, op3) && op1->HasNoSideEffects() )
+		return SimplifyTo(op2);
+
+	if ( op2->IsConst() && op3->IsConst() && GetType()->Tag() == TYPE_BOOL )
+		{
+		auto op2_t = op2->IsOne();
+
+		if ( op2->IsOne() )
+			// This is "var ? T : F", which can be replaced by var.
+			return SimplifyTo(op1);
+
+		// Instead we have "var ? F : T".
+		return SimplifyTo(make_intrusive<NotExpr>(op1));
+		}
+
+	return ThisPtr();
 	}
 
 ExprPtr CondExpr::Duplicate()
@@ -1912,6 +2264,12 @@ ExprPtr HasFieldExpr::Duplicate()
 	return SetSucc(new HasFieldExpr(op->Duplicate(), util::copy_string(field_name)));
 	}
 
+ExprPtr RecordConstructorExpr::Simplify()
+	{
+	op = cast_intrusive<ListExpr>(op->Simplify());
+	return ThisPtr();
+	}
+
 ExprPtr RecordConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
@@ -2158,6 +2516,28 @@ ExprPtr FieldAssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return AssignToTemporary(c, red_stmt);
 	}
 
+ExprPtr ArithCoerceExpr::DoSimplify()
+	{
+	if ( same_type(op->GetType(), type) )
+		return SimplifyTo(op);
+
+	if ( op->Tag() != EXPR_CONST )
+		return ThisPtr();
+
+	const auto& t = GetType();
+	auto cv = op->AsConstExpr()->ValuePtr();
+	const auto& ct = cv->GetType();
+
+	if ( IsArithmetic(type->Tag()) || IsArithmetic(ct->Tag()) )
+		{
+		if ( auto v = FoldSingleVal(cv, type) )
+			return SimplifyTo(v);
+
+		}
+
+	return ThisPtr();
+	}
+
 ExprPtr ArithCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
@@ -2226,10 +2606,20 @@ ExprPtr ArithCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	return AssignToTemporary(c, red_stmt);
 	}
 
+ExprPtr RecordCoerceExpr::DoSimplify()
+	{
+	return same_type(op->GetType(), type) ? SimplifyTo(op) : ThisPtr();
+	}
+
 ExprPtr RecordCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
 	return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
+	}
+
+ExprPtr TableCoerceExpr::DoSimplify()
+	{
+	return same_type(op->GetType(), type) ? SimplifyTo(op) : ThisPtr();
 	}
 
 ExprPtr TableCoerceExpr::Duplicate()
@@ -2238,10 +2628,21 @@ ExprPtr TableCoerceExpr::Duplicate()
 	return SetSucc(new TableCoerceExpr(op_dup, GetType<TableType>()));
 	}
 
+ExprPtr VectorCoerceExpr::DoSimplify()
+	{
+	return same_type(op->GetType(), type) ? SimplifyTo(op) : ThisPtr();
+	}
+
 ExprPtr VectorCoerceExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
 	return SetSucc(new VectorCoerceExpr(op_dup, GetType<VectorType>()));
+	}
+
+ExprPtr ScheduleExpr::Simplify()
+	{
+	when = when->Simplify();
+	return ThisPtr();
 	}
 
 ExprPtr ScheduleExpr::Duplicate()
@@ -2330,6 +2731,12 @@ bool InExpr::HasReducedOps(Reducer* c) const
 	return op1->HasReducedOps(c) && op2->IsSingleton(c);
 	}
 
+ExprPtr CallExpr::Simplify()
+	{
+	args = cast_intrusive<ListExpr>(args->Simplify());
+	return ThisPtr();
+	}
+
 ExprPtr CallExpr::Duplicate()
 	{
 	auto func_d = func->Duplicate();
@@ -2413,6 +2820,12 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c)
 	return MergeStmts(func_stmt, args_stmt);
 	}
 
+ExprPtr LambdaExpr::Simplify()
+	{
+	ingredients->body = ingredients->body->NonNilSimplify();
+	return ThisPtr();
+	}
+
 ExprPtr LambdaExpr::Duplicate()
 	{
 	auto ingr = std::make_unique<function_ingredients>(*ingredients);
@@ -2432,6 +2845,12 @@ ExprPtr LambdaExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return ThisPtr();
 	else
 		return AssignToTemporary(c, red_stmt);
+	}
+
+ExprPtr EventExpr::Simplify()
+	{
+	args = cast_intrusive<ListExpr>(args->Simplify());
+	return ThisPtr();
 	}
 
 ExprPtr EventExpr::Duplicate()
@@ -2472,6 +2891,12 @@ ExprPtr EventExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 StmtPtr EventExpr::ReduceToSingletons(Reducer* c)
 	{
 	return args->ReduceToSingletons(c);
+	}
+
+ExprPtr ListExpr::Simplify()
+	{
+	loop_over_list(exprs, i) exprs.replace(i, exprs[i]->Simplify().release());
+	return ThisPtr();
 	}
 
 ExprPtr ListExpr::Duplicate()
@@ -2572,6 +2997,14 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c)
 	return red_stmt;
 	}
 
+ExprPtr CastExpr::DoSimplify()
+	{
+	if ( same_type(op->GetType(), type) )
+		return SimplifyTo(op);
+
+	return ThisPtr();
+	}
+
 ExprPtr CastExpr::Duplicate()
 	{
 	return SetSucc(new CastExpr(op->Duplicate(), type));
@@ -2628,6 +3061,13 @@ ValPtr InlineExpr::Eval(Frame* f) const
 	f->AdjustOffset(-frame_offset);
 
 	return result;
+	}
+
+ExprPtr InlineExpr::Simplify()
+	{
+	args = cast_intrusive<ListExpr>(args->Simplify());
+	body = body->NonNilSimplify();
+	return ThisPtr();
 	}
 
 ExprPtr InlineExpr::Duplicate()
@@ -2970,6 +3410,19 @@ ValPtr CoerceToAnyExpr::Fold(Val* v) const
 	return {NewRef{}, v};
 	}
 
+ExprPtr CoerceToAnyExpr::DoSimplify()
+	{
+	if ( ! op->IsConst() )
+		return ThisPtr();
+
+	auto cv = op->AsConstExpr()->Value();
+
+	if ( cv->GetType()->Tag() == TYPE_ANY )
+		return SimplifyTo(op);
+
+	return ThisPtr();
+	}
+
 ExprPtr CoerceToAnyExpr::Duplicate()
 	{
 	return SetSucc(new CoerceToAnyExpr(op->Duplicate()));
@@ -2990,6 +3443,19 @@ ValPtr CoerceFromAnyExpr::Fold(Val* v) const
 		RuntimeError("incompatible \"any\" type");
 
 	return {NewRef{}, v};
+	}
+
+ExprPtr CoerceFromAnyExpr::DoSimplify()
+	{
+	if ( ! op->IsConst() )
+		return ThisPtr();
+
+	auto cv = op->AsConstExpr()->Value();
+
+	if ( same_type(type, cv->GetType()) )
+		return SimplifyTo(op);
+
+	return ThisPtr();
 	}
 
 ExprPtr CoerceFromAnyExpr::Duplicate()

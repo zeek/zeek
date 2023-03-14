@@ -113,6 +113,7 @@ const char* expr_name(ExprTag t)
 	}
 
 int Expr::num_exprs = 0;
+int Expr::num_simplifies = 0;
 
 Expr::Expr(ExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr)
 	{

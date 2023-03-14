@@ -29,6 +29,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	void Inline(Inliner* inl) override;
 
 	bool IsReduced(Reducer* c) const override;
@@ -93,6 +94,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
@@ -121,6 +123,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
@@ -159,6 +162,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const;
 
 	// Optimization-related:
+	void Simplify();
 	IntrusivePtr<Case> Duplicate();
 
 protected:
@@ -183,6 +187,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
@@ -301,6 +306,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
@@ -356,6 +362,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
@@ -471,6 +478,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
@@ -513,6 +521,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 
 	bool IsReduced(Reducer* c) const override;
@@ -535,6 +544,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override { return nullptr; }
 	StmtPtr Duplicate() override { return SetSucc(new NullStmt()); }
 
 	// Returns true if this NullStmt represents a directive (@if..., @else, @endif)
@@ -603,6 +613,8 @@ public:
 	// the associated triggers for when their values change.
 	const IDSet& WhenExprLocals() const { return when_expr_locals; }
 	const IDSet& WhenExprGlobals() const { return when_expr_globals; }
+
+	void Simplify();
 
 private:
 	// True if the "when" statement corresponds to old-style deprecated
@@ -678,6 +690,7 @@ public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
 	// Optimization-related:
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 	void Inline(Inliner* inl) override;
 
@@ -717,6 +730,7 @@ public:
 	// has "NoFlowAfter" inside the body still gets caught and we
 	// continue afterwards.
 
+	StmtPtr Simplify() override;
 	StmtPtr Duplicate() override;
 
 	void StmtDescribe(ODesc* d) const override;

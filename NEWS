@@ -61,6 +61,11 @@ New Functionality
 - Add logging metrics for streams (``zeek-log-stream-writes``) and writers
   (``zeek-log-writer-writes-total``).
 
+- The AD and CD flags are now parsed from DNS requests and responses and available
+  on the ``dns_msg`` record. The dns.log has been extended by AD and CD columns
+  with CD being populated from requests and AD being populated from replies,
+  unless there wasn't a reply.
+
 Changed Functionality
 ---------------------
 

@@ -3837,7 +3837,9 @@ type dns_msg: record {
 	TC: bool;	##< Truncated packet flag.
 	RD: bool;	##< Recursion desired flag.
 	RA: bool;	##< Recursion available flag.
-	Z: count;	##< TODO.
+	Z: count;	##< 3 bit field (includes AD and CD)
+	AD: bool;	##< authentic data
+	CD: bool;	##< checking disabled
 
 	num_queries: count;	##< Number of query records.
 	num_answers: count;	##< Number of answer records.

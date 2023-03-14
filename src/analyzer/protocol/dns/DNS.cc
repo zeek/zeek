@@ -1791,6 +1791,8 @@ DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	RD = (flags & 0x0100) != 0;
 	RA = (flags & 0x0080) != 0;
 	Z = (flags & 0x0070) >> 4;
+	AD = (flags & 0x0020) >> 5;
+	CD = (flags & 0x0010) >> 4;
 	rcode = (flags & 0x000f);
 
 	qdcount = ntohs(hdr->qdcount);
@@ -1823,10 +1825,12 @@ RecordValPtr DNS_MsgInfo::BuildHdrVal()
 	r->Assign(6, static_cast<bool>(RD));
 	r->Assign(7, static_cast<bool>(RA));
 	r->Assign(8, Z);
-	r->Assign(9, qdcount);
-	r->Assign(10, ancount);
-	r->Assign(11, nscount);
-	r->Assign(12, arcount);
+	r->Assign(9, static_cast<bool>(AD));
+	r->Assign(10, static_cast<bool>(CD));
+	r->Assign(11, qdcount);
+	r->Assign(12, ancount);
+	r->Assign(13, nscount);
+	r->Assign(14, arcount);
 
 	return r;
 	}

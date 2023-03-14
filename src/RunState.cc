@@ -352,17 +352,13 @@ void run_loop()
 			// the future on which we need to wait.
 			have_pending_timers = zeek::detail::timer_mgr->Size() > 0;
 
+		// Terminate if we're running pseudo_realtime and
+		// the interface has been closed.
 		if ( pseudo_realtime && communication_enabled )
 			{
-			auto have_active_packet_source = false;
-
 			iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
-			if ( ps && ps->IsOpen() )
-				have_active_packet_source = true;
-
-			if ( ! have_active_packet_source )
-				// Can turn off pseudo realtime now
-				pseudo_realtime = 0.0;
+			if ( ps && ! ps->IsOpen() )
+				iosource_mgr->Terminate();
 			}
 		}
 

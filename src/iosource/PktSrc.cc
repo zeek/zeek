@@ -194,12 +194,6 @@ bool PktSrc::ExtractNextPacketInternal()
 		had_packet = false;
 		}
 
-	if ( run_state::pseudo_realtime && ! IsOpen() )
-		{
-		if ( broker_mgr->Active() )
-			iosource_mgr->Terminate();
-		}
-
 	return false;
 	}
 

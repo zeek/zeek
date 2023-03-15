@@ -1,3 +1,16 @@
+6.0.0-dev.206 | 2023-03-15 10:02:52 +0100
+
+  * SSL/TLS: Parse CertificateRequest message (Johanna Amann, Corelight)
+
+    This commit introduces parsing of the CertificateRequest message in the
+    TLS handshake. It introduces a new event ssl_certificate_request, as
+    well as a new function parse_distinguished_name, which can be used to
+    parse part of the ssl_certificate_request event parameters.
+
+    This commit also introduces a new policy script, which appends
+    information about the CAs a TLS server requests in the
+    CertificateRequest message, if it sends it.
+
 6.0.0-dev.202 | 2023-03-14 10:33:32 +0100
 
   * GH-2672: Parse DNSSEC AD and CD bits (Michael R. Torres)

@@ -626,6 +626,50 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_certificate_request(rec: HandshakeRecord, req: CertificateRequest) : bool
+		%{
+		if ( ! ssl_certificate_request )
+			return true;
+
+		auto ctlist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
+		auto ctypes = ${req.certificate_types};
+
+		if ( ctypes )
+			for ( unsigned int i = 0; i < ctypes->size(); ++i)
+				ctlist->Assign(i, zeek::val_mgr->Count((*ctypes)[i]));
+
+		auto slist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("signature_and_hashalgorithm_vec"));
+		if ( ${req.uses_signature_and_hashalgorithm} )
+			{
+			auto sigalgs = ${req.supported_signature_algorithms.supported_signature_algorithms};
+
+			if ( sigalgs )
+				{
+				for ( unsigned int i = 0; i < sigalgs->size(); ++i )
+					{
+					auto el = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SSL::SignatureAndHashAlgorithm);
+					el->Assign(0, (*sigalgs)[i]->HashAlgorithm());
+					el->Assign(1, (*sigalgs)[i]->SignatureAlgorithm());
+					slist->Assign(i, std::move(el));
+					}
+				}
+			}
+
+
+		auto calist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+		auto certificate_authorities = ${req.certificate_authorities.certificate_authorities};
+		if ( certificate_authorities )
+			for ( unsigned int i = 0; i < certificate_authorities->size(); ++i )
+				{
+				auto ca = (*certificate_authorities)[i]->certificate_authority();
+				calist->Assign(i, zeek::make_intrusive<zeek::StringVal>(ca.length(), (const char*) ca.data()));
+				}
+
+		zeek::BifEvent::enqueue_ssl_certificate_request(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, ctlist, slist, calist);
+
+		return true;
+		%}
+
 };
 
 refine typeattr ClientHello += &let {
@@ -753,4 +797,8 @@ refine typeattr Handshake += &let {
 
 refine typeattr SignedCertificateTimestamp += &let {
 	proc : bool = $context.connection.proc_signedcertificatetimestamp(rec, version, logid, timestamp, digitally_signed_algorithms, digitally_signed_signature);
+};
+
+refine typeattr CertificateRequest += &let {
+	proc: bool = $context.connection.proc_certificate_request(rec, this);
 };

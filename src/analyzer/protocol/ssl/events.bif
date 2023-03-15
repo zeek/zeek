@@ -657,7 +657,7 @@ event ssl_stapled_ocsp%(c: connection, is_client: bool, response: string%);
 ##
 ## .. zeek:see:: ssl_alert ssl_established ssl_extension ssl_server_hello
 ##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
-##    ssl_change_cipher_spec ssl_connection_flipped
+##    ssl_change_cipher_spec ssl_connection_flipped ssl_certificate_request
 event ssl_handshake_message%(c: connection, is_client: bool, msg_type: count, length: count%);
 
 ## This event is raised when a SSL/TLS ChangeCipherSpec message is encountered
@@ -687,3 +687,26 @@ event ssl_change_cipher_spec%(c: connection, is_client: bool%);
 ##    ssl_session_ticket_handshake x509_certificate ssl_client_hello
 ##    ssl_handshake_message
 event ssl_connection_flipped%(c: connection%);
+
+## This event is raised, when a Certificate Request handshake message is encountered. This
+## Message can be used by a TLS server to request a client certificate.
+##
+## c: The connection.
+##
+## is_client: True if event is raised for the client side of the connection
+##            (the side that sends the client hello). This is typically equivalent
+##            with the originator, but does not have to be in all circumstances.
+##
+## certificate_types: List of the types of certificates that the client may offer.
+##
+## supported_signature_algorithms: List of hash/sighature algorithm pairs that the server
+##                                 supports, listed in descending order of preferences.
+##
+## certificate_authorities: List of distinguished names of certificate authorities that are
+##                          acceptable to the server. The individual entries are DER encoded.
+##                          :zeek:id:`parse_distinguished_name` can be used to decode the strings.
+##
+## .. zeek:see:: ssl_handshake_message x509_certificate ssl_server_hello ssl_client_hello
+##               parse_distinguished_name
+event ssl_certificate_request%(c: connection, is_client: bool, certificate_types: index_vec, supported_signature_algorithms: SSL::SignatureAndHashAlgorithm, certificate_authorities: string_vec%);
+

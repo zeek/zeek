@@ -631,7 +631,7 @@ refine connection Handshake_Conn += {
 		if ( ! ssl_certificate_request )
 			return true;
 
-		auto ctlist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("index_vec"));
+		auto ctlist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 		auto ctypes = ${req.certificate_types};
 
 		if ( ctypes )
@@ -656,11 +656,14 @@ refine connection Handshake_Conn += {
 			}
 
 
-		auto calist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("string_vec"));
+		auto calist = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 		auto certificate_authorities = ${req.certificate_authorities.certificate_authorities};
 		if ( certificate_authorities )
 			for ( unsigned int i = 0; i < certificate_authorities->size(); ++i )
-				calist->Assign(i, zeek::make_intrusive<zeek::StringVal>((*certificate_authorities)[i]->certificate_authority().length(), (const char*) (*certificate_authorities)[i]->certificate_authority().data()));
+				{
+				auto ca = (*certificate_authorities)[i]->certificate_authority();
+				calist->Assign(i, zeek::make_intrusive<zeek::StringVal>(ca.length(), (const char*) ca.data()));
+				}
 
 		zeek::BifEvent::enqueue_ssl_certificate_request(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, ctlist, slist, calist);
 

@@ -76,7 +76,6 @@ function set_keys%(c: connection, keys: string%): bool
 ## .. zeek:see:: ssl_certificate_request
 function parse_distinguished_name%(dn: string%): string
 	%{
-	std::string out = "";
 	const unsigned char* in = dn->Bytes();
 
 	X509_NAME* dn_x509 = d2i_X509_NAME(nullptr, &in, dn->Len());
@@ -92,8 +91,8 @@ function parse_distinguished_name%(dn: string%): string
 
 	X509_NAME_print_ex(bio, dn_x509, 0, XN_FLAG_RFC2253);
 	int len = BIO_gets(bio, buf, sizeof(buf));
-	out.assign(buf, len);
+	auto out = zeek::make_intrusive<zeek::StringVal>(len, buf);
 	BIO_free(bio);
 	X509_NAME_free(dn_x509);
-	return zeek::make_intrusive<zeek::StringVal>(out);
+	return out;
 	%}

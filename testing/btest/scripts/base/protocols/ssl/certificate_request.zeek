@@ -13,10 +13,10 @@ event ssl_certificate_request(c: connection, is_client: bool, certificate_types:
 	{
 	print certificate_types;
 	print supported_signature_algorithms;
-	for ( i in certificate_authorities )
+	for ( _, ca in certificate_authorities )
 		{
-		print certificate_authorities[i];
-		print parse_distinguished_name(certificate_authorities[i]);
+		print ca;
+		print parse_distinguished_name(ca);
 		}
 	print "========";
 	}

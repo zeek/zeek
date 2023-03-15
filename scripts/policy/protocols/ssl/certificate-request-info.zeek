@@ -16,8 +16,8 @@ event ssl_certificate_request(c: connection, is_client: bool, certificate_types:
 		return;
 
 	local out: vector of string = vector();
-	for ( i in certificate_authorities )
-		out[i] = parse_distinguished_name(certificate_authorities[i]);
+	for ( _, ca in certificate_authorities )
+		out += parse_distinguished_name(ca);
 
 	c$ssl$requested_client_certificate_authorities = out;
 	}

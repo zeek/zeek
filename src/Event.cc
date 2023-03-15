@@ -189,22 +189,12 @@ void EventMgr::Describe(ODesc* d) const
 
 void EventMgr::Process()
 	{
-	// If we don't have a source, or the source is closed, or we're
-	// reading live (which includes pseudo-realtime), advance the time
-	// here to the current time since otherwise it won't move forward.
-	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
-	if ( ! pkt_src || ! pkt_src->IsOpen() || run_state::reading_live )
-		run_state::detail::update_network_time(util::current_time());
-
 	queue_flare.Extinguish();
 
 	// While it semes like the most logical thing to do, we dont want
 	// to call Drain() as part of this method. It will get called at
 	// the end of net_run after all of the sources have been processed
-	// and had the opportunity to spawn new events. We could use
-	// zeek::iosource_mgr->Wakeup() instead of making EventMgr an IOSource,
-	// but then we couldn't update the time above and nothing would
-	// drive it forward.
+	// and had the opportunity to spawn new events.
 	}
 
 void EventMgr::InitPostScript()

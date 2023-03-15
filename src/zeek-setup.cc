@@ -1036,7 +1036,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 				segment_logger = profiling_logger;
 			}
 
-		if ( ! run_state::reading_live && ! run_state::reading_traces )
+		if ( ! run_state::reading_live && ! run_state::reading_traces &&
+		     id::find_const("allow_network_time_forward")->AsBool() )
 			// Set up network_time to track real-time, since
 			// we don't have any other source for it.
 			run_state::detail::update_network_time(util::current_time());

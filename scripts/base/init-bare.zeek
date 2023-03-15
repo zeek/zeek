@@ -161,6 +161,32 @@ type PacketSource: record {
 	netmask: count;
 };
 
+
+## If a packet source does not yield packets for this amount of time,
+## it is considered idle. When a packet source is found to be idle,
+## Zeek will update network_time to current time in order for timer expiration
+## to function. A packet source queueing up packets and not yielding them for
+## longer than this interval without yielding any packets will provoke
+## not-very-well-defined timer behavior.
+##
+## On Zeek workers with low packet rates, timer expiration may be delayed
+## by this many milliseconds after the last packet has been received.
+const packet_source_inactivity_timeout = 100msec &redef;
+
+## Whether Zeek will forward network_time to the current time upon
+## observing an idle packet source (or no configured packet source).
+##
+## Only set this to *F* if you really know what you're doing. Setting this to
+## *F* on non-worker systems causes :zeek:see:`network_time` to be stuck
+## at 0.0 and timer expiration will be non-functional.
+##
+## The main purpose of this option is to yield control over network time
+## to plugins or scripts via broker or other non-timer events.
+##
+## .. zeek:see:: network_time set_network_time packet_source_inactivity_timeout
+##
+const allow_network_time_forward = T &redef;
+
 ## A connection's transport-layer protocol. Note that Zeek uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {

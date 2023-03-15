@@ -68,6 +68,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-btest        don't install BTest
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-cpp-tests    don't build Zeek's C++ unit tests
+    --disable-port-prealloc disable pre-allocating the PortVal array in ValManager
     --disable-python       don't try to build python bindings for Broker
     --disable-spicy        don't include Spicy
     --disable-zeek-client  don't install Zeek cluster management client
@@ -183,6 +184,7 @@ append_cache_entry INSTALL_ZKG BOOL true
 append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
 append_cache_entry ZEEK_SANITIZERS STRING ""
 append_cache_entry ZEEK_INCLUDE_PLUGINS STRING ""
+append_cache_entry PREALLOCATE_PORT_ARRAY BOOL true
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -322,6 +324,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-cpp-tests)
             append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL false
+            ;;
+        --disable-port-prealloc)
+            append_cache_entry PREALLOCATE_PORT_ARRAY BOOL false
             ;;
         --disable-python)
             append_cache_entry DISABLE_PYTHON_BINDINGS BOOL true

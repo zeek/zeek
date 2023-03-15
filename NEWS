@@ -80,6 +80,17 @@ Changed Functionality
 
 - The ``&on_change`` attribute of set and tables is propagated through ``copy()``.
 
+- Revert back to old method of preallocting ``PortVal`` objects for all valid
+  port numbers, as it was implemented prior to the Windows port. Not
+  preallocating these objects saves a minor amount of memory for short runs of
+  Zeek, but comes at a performance cost for having to allocate the objects every
+  time a new port is seen plus do map lookups for each port. This memory savings
+  is mostly lost for long runs of Zeek, since all of the ports will likely end
+  up allocated in time.
+
+  If the version from the Windows port is desired, a new configure option
+  ``--disable-port-prealloc`` will disable the preallocation and enable the map
+  lookup version.
 
 Zeek 5.2.0
 ==========

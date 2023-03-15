@@ -3977,6 +3977,17 @@ ValManager::ValManager()
 
 	for ( auto i = 0u; i < PREALLOCATED_INTS; ++i )
 		ints[i] = Val::MakeInt(PREALLOCATED_INT_LOWEST + i);
+
+#ifdef PREALLOCATE_PORT_ARRAY
+	for ( auto i = 0u; i < ports.size(); ++i )
+		{
+		auto& arr = ports[i];
+		auto port_type = static_cast<TransportProto>(i);
+
+		for ( auto j = 0u; j < arr.size(); ++j )
+			arr[j] = make_intrusive<PortVal>(PortVal::Mask(j, port_type));
+		}
+#endif
 	}
 
 const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type)
@@ -3988,10 +3999,14 @@ const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type)
 		}
 
 	auto port_masked = PortVal::Mask(port_num, port_type);
+#ifdef PREALLOCATE_PORT_ARRAY
+	return ports[port_type][port_num];
+#else
 	if ( ports.count(port_masked) == 0 )
 		ports.insert({port_masked, make_intrusive<PortVal>(port_masked)});
 
 	return ports[port_masked];
+#endif
 	}
 
 const PortValPtr& ValManager::Port(uint32_t port_num)

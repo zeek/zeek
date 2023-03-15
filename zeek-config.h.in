@@ -147,6 +147,11 @@
 /* whether htonll/ntohll is defined in <arpa/inet.h> */
 #cmakedefine HAVE_BYTEORDER_64
 
+/* whether to preallocate the array of PortVal objects in ValManager. Doing
+   so is typically a performance increase, at the cost of a small amount of
+   memory. */
+#cmakedefine PREALLOCATE_PORT_ARRAY
+
 /* ultrix can't hack const */
 #cmakedefine NEED_ULTRIX_CONST_HACK
 #ifdef NEED_ULTRIX_CONST_HACK

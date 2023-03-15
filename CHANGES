@@ -1,3 +1,7 @@
+6.0.0-dev.210 | 2023-03-15 10:47:48 -0700
+
+  * Add configure option for preallocating PortVal objects (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.208 | 2023-03-15 14:10:07 +0100
 
   * Fix the x509-invalid-extension test on OpenSSL 3.1 (Johanna Amann, Corelight)

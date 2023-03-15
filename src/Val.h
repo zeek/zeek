@@ -339,7 +339,12 @@ public:
 	const PortValPtr& Port(uint32_t port_num);
 
 private:
+#ifdef PREALLOCATE_PORT_ARRAY
+	std::array<std::array<PortValPtr, 65536>, NUM_PORT_SPACES> ports;
+#else
 	std::unordered_map<uint32_t, PortValPtr> ports;
+#endif
+
 	std::array<ValPtr, PREALLOCATED_COUNTS> counts;
 	std::array<ValPtr, PREALLOCATED_INTS> ints;
 	StringValPtr empty_string;

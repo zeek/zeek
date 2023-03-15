@@ -3998,10 +3998,11 @@ const PortValPtr& ValManager::Port(uint32_t port_num, TransportProto port_type)
 		port_num = 0;
 		}
 
-	auto port_masked = PortVal::Mask(port_num, port_type);
 #ifdef PREALLOCATE_PORT_ARRAY
 	return ports[port_type][port_num];
 #else
+	auto port_masked = PortVal::Mask(port_num, port_type);
+
 	if ( ports.count(port_masked) == 0 )
 		ports.insert({port_masked, make_intrusive<PortVal>(port_masked)});
 

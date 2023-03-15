@@ -139,6 +139,16 @@ void PktSrc::Done()
 		Close();
 	}
 
+bool PktSrc::HasBeenIdleFor(double interval) const
+	{
+	if ( have_packet || had_packet )
+		return false;
+
+	// Take the hit of a current_time() call now.
+	double now = zeek::util::current_time(true);
+	return idle_at_wallclock < now - interval;
+	};
+
 void PktSrc::Process()
 	{
 	if ( ! IsOpen() )
@@ -191,6 +201,18 @@ bool PktSrc::ExtractNextPacketInternal()
 		}
 	else
 		{
+		// Update the idle_at timestamp the first time we've failed
+		// to extract a packet. This assumes ExtractNextPacket() is
+		// called regularly which is true for non-selectable PktSrc
+		// instances, but even for selectable ones with an FD the
+		// main-loop will call Process() on the interface regularly
+		// and detect it as idle.
+		if ( had_packet )
+			{
+			DBG_LOG(DBG_PKTIO, "source %s is idle now", props.path.c_str());
+			idle_at_wallclock = zeek::util::current_time(true);
+			}
+
 		had_packet = false;
 		}
 

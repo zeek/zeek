@@ -1,3 +1,7 @@
+5.2.0-3 | 2023-03-16 10:06:00 -0700
+
+  * Bump spicy-plugin to v1.5.2. (Arne Welzel, Corelight)
+
 5.2.0 | 2023-03-01 12:45:21 -0700
 
   * GH-2801: Fix re-instantiation of analyzers that were just removed. (Robin Sommer, Corelight)

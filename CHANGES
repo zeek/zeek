@@ -1,3 +1,17 @@
+6.0.0-dev.226 | 2023-03-16 10:18:43 +0100
+
+  * dns: Remove AD and CD flags from log (Arne Welzel, Corelight)
+
+    There was a misunderstanding whether to include them by default in
+    the dns.log, so remove them again.
+
+    There had also been a discussion and quirk that AD of a request would
+    always be overwritten by reply in the dns.log unless the reply is
+    missing. For now, let users extend dns.log themselves for what best
+    fits their requirements, rather than adding these flags by default.
+
+    Add a btest to print AD and CD flags for smoke testing still.
+
 6.0.0-dev.224 | 2023-03-15 20:02:13 -0700
 
   * Treat private address space as site-local by default (Christian Kreibich, Corelight)

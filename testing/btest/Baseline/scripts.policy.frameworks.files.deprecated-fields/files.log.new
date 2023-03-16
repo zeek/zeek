@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string
-XXXXXXXXXX.XXXXXX	FMnxxt3xjVcWNS2141	CHhAvVGS1DHFjwGM9	141.142.228.5	59856	192.150.187.43	80	HTTP	0	(empty)	text/plain	-	0.000263	-	F	4705	4705	0	0	F	-
+XXXXXXXXXX.XXXXXX	FMnxxt3xjVcWNS2141	CHhAvVGS1DHFjwGM9	141.142.228.5	59856	192.150.187.43	80	HTTP	0	(empty)	text/plain	-	0.000263	F	F	4705	4705	0	0	F	-
 #close XXXX-XX-XX-XX-XX-XX

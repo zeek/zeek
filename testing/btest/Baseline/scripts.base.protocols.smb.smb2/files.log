@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
-XXXXXXXXXX.XXXXXX	FwL5Z01az5ZsFYcHh5	CHhAvVGS1DHFjwGM9	10.0.0.11	49208	10.0.0.12	445	SMB	0	(empty)	application/pdf	WP_SMBPlugin.pdf	0.073970	-	T	1508939	-	0	0	F	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	FwL5Z01az5ZsFYcHh5	CHhAvVGS1DHFjwGM9	10.0.0.11	49208	10.0.0.12	445	SMB	0	(empty)	application/pdf	WP_SMBPlugin.pdf	0.073970	T	T	1508939	-	0	0	F	-	-	-	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX

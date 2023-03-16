@@ -9,6 +9,25 @@ Zeek 6.0.0
 Breaking Changes
 ----------------
 
+- Zeek now treats private address space (i.e., non-routable IP address ranges)
+  as local by default, matching the intuition of many users that e.g. a
+  192.168/16 IP address should show up as local in the logs. To do this, Zeek
+  automatically adds ``Site::private_address_space`` to ``Site::local_nets`` at
+  startup. Subsequent runtime updates to ``Site::private_address_space``
+  propagate to ``Site::local_nets``, while updates to the latter don't affect
+  the former.
+
+  You're free to define ``Site::local_nets`` as before and do not need to update
+  your configurations. If you added standard private address space to
+  ``Site::local_nets`` in the past, you no longer need to do so. This also
+  applies to zeekctl's ``networks.cfg`` file.
+
+  The new global Boolean ``Site::private_address_space_is_local``, true by
+  default, controls the behavior. A redef to false brings back Zeek's prior
+  behavior of considering private address space an unrelated concept, which will
+  come in handy for example when working with tests that compare results against
+  log baselines that have not yet been updated.
+
 - The zeek/zeek-config.h header does not provide the macros ZEEK_VERSION and
   ZEEK_VERSION_NUMBER anymore when compiling builtin plugins. This may affect
   external plugins included via the configure flag ``--include-plugins``

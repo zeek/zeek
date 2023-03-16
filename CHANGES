@@ -1,3 +1,17 @@
+6.0.0-dev.224 | 2023-03-15 20:02:13 -0700
+
+  * Treat private address space as site-local by default (Christian Kreibich, Corelight)
+
+    - Update NEWS to cover new Site::local_nets behavior
+    - Bump external testsuites to reflect updated baselines
+    - Add btests for new Site::local_nets behavior
+    - Update plugins.hooks baseline to reflect added config framework activity
+    - Update scripts.policy.misc.dump-events baseline
+    - Update btest baselines to reflect the use of local address ranges
+    - Tighten local-nets filtering in the logging framework's path-func-column-demote test
+    - Fix scripts.policy.frameworks.intel.removal test given address locality info
+    - Provide a mechanism to suppress logging of internal config framework activity
+
 6.0.0-dev.212 | 2023-03-16 00:41:33 +0000
 
   * Move port_masked variable inside #else block (Tim Wojtulewicz, Corelight)

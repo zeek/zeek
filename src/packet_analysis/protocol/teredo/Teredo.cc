@@ -291,7 +291,7 @@ bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* pac
 		uint8_t client_id_length = data[2];
 		uint8_t auth_length = data[3];
 
-		if ( len < (13 + client_id_length + auth_length) )
+		if ( len < (static_cast<size_t>(13) + client_id_length + auth_length) )
 			return false;
 
 		// There's 9 bytes at the end of the header for a nonce value and a

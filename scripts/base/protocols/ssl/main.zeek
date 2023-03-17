@@ -190,8 +190,8 @@ redef likely_server_ports += { ssl_ports, dtls_ports };
 event zeek_init() &priority=6
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl", $policy=log_policy]);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
-	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
+	#Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
+	#Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
 	}
 
 function set_session(c: connection)
@@ -492,11 +492,11 @@ hook finalize_ssl(c: connection)
 
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=5
 	{
-	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
-		{
-		set_session(info$c);
-		info$c$ssl$analyzer_id = info$aid;
-		}
+	#if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
+	#	{
+	#	set_session(info$c);
+	#	info$c$ssl$analyzer_id = info$aid;
+	#	}
 	}
 
 event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count) &priority=5
@@ -512,7 +512,7 @@ event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, 
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5
 	{
-	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
-		if ( info$c?$ssl )
-			finish(info$c, T);
+	# if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
+	# 	if ( info$c?$ssl )
+	# 		finish(info$c, T);
 	}

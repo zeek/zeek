@@ -150,7 +150,6 @@ static int expr_list_has_opt_comma = 0;
 
 std::vector<std::set<const ID*>> locals_at_this_scope;
 static std::unordered_set<const ID*> out_of_scope_locals;
-static std::unordered_set<const ID*> warned_about_locals;
 
 static Location func_hdr_location;
 static int func_hdr_cond_epoch = 0;
@@ -984,13 +983,8 @@ expr:
 					}
 				else
 					{
-					if ( out_of_scope_locals.count(id.get()) > 0 &&
-					     warned_about_locals.count(id.get()) == 0 )
-						{
-						// Remove in v5.1
-						reporter->Warning("use of out-of-scope local %s deprecated; move declaration to outer scope", id->Name());
-						warned_about_locals.insert(id.get());
-						}
+					if ( out_of_scope_locals.count(id.get()) > 0 )
+						id->Error("use of out-of-scope local; move declaration to outer scope");
 
 					$$ = new NameExpr(std::move(id));
 					}
@@ -1532,7 +1526,6 @@ func_body:
 
 			locals_at_this_scope.clear();
 			out_of_scope_locals.clear();
-			warned_about_locals.clear();
 			}
 
 		stmt_list

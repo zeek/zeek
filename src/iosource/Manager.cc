@@ -213,6 +213,8 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
 		}
 	else if ( ret == 0 )
 		{
+		// If a timeout_src was provided and nothing else was ready, we timed out
+		// according to the given source's timeout and can add it as ready.
 		if ( timeout_src )
 			ready->push_back({timeout_src, -1, 0});
 		}
@@ -220,6 +222,7 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
 		{
 		// kevent returns the number of events that are ready, so we only need to loop
 		// over that many of them.
+		bool timeout_src_added = false;
 		for ( int i = 0; i < ret; i++ )
 			{
 			if ( events[i].filter == EVFILT_READ )
@@ -236,7 +239,15 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
 					ready->push_back({it->second, static_cast<int>(events[i].ident),
 					                  IOSource::ProcessFlags::WRITE});
 				}
+
+			// If we added a source that is the same as the passed timeout_src, take
+			// note as to avoid adding it twice.
+			timeout_src_added |= ready->size() > 0 ? ready->back().src == timeout_src : false;
 			}
+
+		// A timeout_src with a zero timeout can be considered ready.
+		if ( timeout_src && timeout == 0.0 && ! timeout_src_added )
+			ready->push_back({timeout_src, -1, 0});
 		}
 	}
 

@@ -105,6 +105,7 @@ Manager::~Manager()
 void Manager::InitPostScript()
 	{
 	wakeup = new WakeupHandler();
+	poll_interval = BifConst::io_poll_interval_default;
 	}
 
 void Manager::RemoveAll()
@@ -401,12 +402,8 @@ void Manager::Register(PktSrc* src)
 	{
 	pkt_src = src;
 
-	// The poll interval gets defaulted to 100 which is good for cases like reading
-	// from pcap files and when there isn't a packet source, but is a little too
-	// infrequent for live sources (especially fast live sources). Set it down a
-	// little bit for those sources.
 	if ( src->IsLive() )
-		poll_interval = 10;
+		poll_interval = BifConst::io_poll_interval_live;
 	else if ( run_state::pseudo_realtime )
 		poll_interval = 1;
 

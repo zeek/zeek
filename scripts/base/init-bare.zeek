@@ -5581,6 +5581,35 @@ const digest_salt = "Please change this value." &redef;
 ## :zeek:see:`find_all_ordered` BIFs.
 const max_find_all_string_length: int = 10000 &redef;
 
+## How many rounds to go without checking IO sources with file descriptors
+## for readiness by default. This is used when reading from traces.
+##
+## Very roughly, when reading from a pcap, setting this to 100 results in
+## 100 packets being processed without checking FD based IO sources.
+##
+## .. note:: This should not be changed outside of development or when
+##    debugging problems with the main-loop, or developing features with
+##    tight main-loop interaction.
+##
+## .. zeek:see:: io_poll_interval_live
+const io_poll_interval_default = 100 &redef;
+
+## How often to check IO sources with file descriptors for readiness when
+## monitoring with a live packet source.
+##
+## The poll interval gets defaulted to 100 which is good for cases like reading
+## from pcap files and when there isn't a packet source, but is a little too
+## infrequent for live sources (especially fast live sources). Set it down a
+## little bit for those sources.
+##
+## .. note:: This should not be changed outside of development or when
+##    debugging problems with the main-loop, or developing features with
+##    tight main-loop interaction.
+##
+## .. zeek:see:: io_poll_interval_default
+const io_poll_interval_live = 10 &redef;
+
+
 global done_with_network = F;
 event net_done(t: time)
 	{ done_with_network = T; }

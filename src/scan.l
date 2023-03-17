@@ -101,11 +101,6 @@ extern std::set<std::string> module_names;
 	if ( ((result = fread(buf, 1, max_size, yyin)) == 0) && ferror(yyin) ) \
 		zeek::reporter->Error("read failed with \"%s\"", strerror(errno));
 
-static void deprecated_attr(const char* attr)
-	{
-	zeek::reporter->Warning("Use of deprecated attribute: %s", attr);
-	}
-
 static std::string find_relative_file(const std::string& filename, const std::string& ext)
 	{
 	if ( filename.empty() )

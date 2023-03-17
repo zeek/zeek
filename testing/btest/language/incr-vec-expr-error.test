@@ -1,0 +1,17 @@
+# @TEST-DOC: Support for incrementing vectors using IncrExpr has been removed.
+# @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+
+type rec: record {
+    a: count;
+    b: string;
+    c: vector of count;
+};
+
+global vec: vector of count = vector(0,0,0);
+
+global v: rec = [$a=0, $b="test", $c=vector(1,2,3)];
+
+++v$a;
+++vec;
+++v$c;

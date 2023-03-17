@@ -624,14 +624,6 @@ protected:
 
 	void ExprDescribe(ODesc* d) const override;
 
-	// Reports on if this BinaryExpr involves a scalar and aggregate
-	// type (vec, list, table, record).
-	bool IsScalarAggregateOp() const;
-
-	// Warns about deprecated scalar vector operations like
-	// `[1, 2, 3] == 1` or `["a", "b", "c"] + "a"`.
-	void CheckScalarAggOp() const;
-
 	// For assignment operations (=, +=, -=) checks for a valid
 	// expression-list on the RHS (op2), potentially transforming
 	// op2 in the process.  Returns true if the list is present

@@ -606,9 +606,8 @@ public:
 
 private:
 	// True if the "when" statement corresponds to old-style deprecated
-	// semantics (no captures, but needing captures).  Also generates
-	// the corresponding deprecation warnings, which are associated
-	// with "ws".
+	// semantics (no captures, but needing captures).  Also triggers
+	// an error associated with "ws".
 	bool IsDeprecatedSemantics(StmtPtr ws);
 
 	// Build those elements we'll need for invoking our lambda.

@@ -43,7 +43,7 @@ global ready_for_data: event();
 event on_demand()
 	{
 	local host = 7.2.1.5;
-	when ( local result = SumStats::request_key("test sumstat", [$host=host]) )
+	when [host] ( local result = SumStats::request_key("test sumstat", [$host=host]) )
 		{
 		print "SumStat key request";
 		if ( "test" in result )

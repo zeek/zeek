@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field to invalide Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20220614
+ENV DOCKERFILE_VERSION 20230413
 
 RUN apt-get update && apt-get -y install \
     bc \
@@ -20,8 +20,10 @@ RUN apt-get update && apt-get -y install \
     lcov \
     libkrb5-dev \
     libmaxminddb-dev \
+    libnode-dev \
     libpcap-dev \
     libssl-dev \
+    libuv1-dev \
     make \
     python3 \
     python3-dev \

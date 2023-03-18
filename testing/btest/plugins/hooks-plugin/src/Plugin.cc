@@ -36,6 +36,7 @@ static std::set<std::string> sanitized_functions = {
 // contains any of these keywords, no log message is generated.
 static std::set<std::string> load_file_filter = {
 	"Zeek_AF_Packet",
+	"Zeek_JavaScript",
 };
 
 static bool skip_load_file_logging_for(const std::string& s)

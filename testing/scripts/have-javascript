@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if grep -q "ZEEK_HAVE_JAVASCRIPT:INTERNAL=yes" "${BUILD}"/CMakeCache.txt; then
+    exit 0
+fi
+
+exit 1

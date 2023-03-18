@@ -1046,6 +1046,26 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
     endif ()
 endif ()
 
+if ( NOT DISABLE_JAVASCRIPT )
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/auxil/zeekjs/cmake)
+    find_package(Nodejs)
+
+    if ( NODEJS_FOUND )
+        if ( ${NODEJS_VERSION} VERSION_LESS "16.13.0" )
+            message(STATUS "Node.js version ${NODEJS_VERSION} is too old, need 16.13 or later. Not enabling JavaScript support.")
+            set(ZEEK_HAVE_JAVASCRIPT no)
+        else ()
+            set(ZEEKJS_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeekjs)
+            string(APPEND ZEEK_INCLUDE_PLUGINS ";${ZEEKJS_PLUGIN_PATH}")
+            set(ZEEK_HAVE_JAVASCRIPT yes)
+        endif ()
+    else ()
+        set(ZEEK_HAVE_JAVASCRIPT no)
+    endif ()
+endif ()
+
+set(ZEEK_HAVE_JAVASCRIPT ${ZEEK_HAVE_JAVASCRIPT} CACHE INTERNAL "Zeek has JavaScript support")
+
 set(DEFAULT_ZEEKPATH_PATHS . ${ZEEK_SCRIPT_INSTALL_PATH} ${ZEEK_SCRIPT_INSTALL_PATH}/policy ${ZEEK_SCRIPT_INSTALL_PATH}/site ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
 if ( MSVC )
     list(JOIN DEFAULT_ZEEKPATH_PATHS ";" DEFAULT_ZEEKPATH)
@@ -1378,6 +1398,7 @@ message(
     "\nSpicy:             ${_spicy}"
     "\nSpicy plugin:      ${_spicy_plugin}"
     "\nSpicy analyzers:   ${USE_SPICY_ANALYZERS}"
+    "\nJavaScript:        ${ZEEK_HAVE_JAVASCRIPT}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"
     "\nKerberos:          ${USE_KRB5}"

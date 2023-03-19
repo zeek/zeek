@@ -1,3 +1,7 @@
+6.0.0-dev.231 | 2023-03-18 17:10:33 -0700
+
+  * Update Broker for fixing #2853 (Dominik Charousset, Corelight)
+
 6.0.0-dev.229 | 2023-03-17 14:39:03 -0700
 
   * Fix integer signedness comparison warning with GCC 12.2 (Christian Kreibich, Corelight)

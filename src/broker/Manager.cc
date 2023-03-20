@@ -262,6 +262,12 @@ void Manager::InitPostScript()
 	zeek_table_db_directory =
 		get_option("Broker::table_store_db_directory")->AsString()->CheckString();
 
+	// If Zeek's forwarding of network time to wallclock time was disabled,
+	// assume that also Broker does not use realtime and instead receives
+	// time via explicit AdvanceTime() calls.
+	if ( ! get_option("allow_network_time_forward")->AsBool() )
+		use_real_time = false;
+
 	detail::opaque_of_data_type = make_intrusive<OpaqueType>("Broker::Data");
 	detail::opaque_of_set_iterator = make_intrusive<OpaqueType>("Broker::SetIterator");
 	detail::opaque_of_table_iterator = make_intrusive<OpaqueType>("Broker::TableIterator");

@@ -1,3 +1,11 @@
+6.0.0-dev.235 | 2023-03-20 10:04:55 -0700
+
+  * ci/centos-stream-8: Add which command (Arne Welzel, Corelight)
+
+  * Update zeekctl test baseline for command.peerstatus test (Tim Wojtulewicz)
+
+  * Update zeekctl test baseline for changes to Site::local_nets (Tim Wojtulewicz)
+
 6.0.0-dev.231 | 2023-03-18 17:10:33 -0700
 
   * Update Broker for fixing #2853 (Dominik Charousset, Corelight)

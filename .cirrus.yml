@@ -491,11 +491,13 @@ arm64_container_image_docker_builder:
   env:
     CIRRUS_ARCH: arm64
   << : *DOCKER_BUILD_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 amd64_container_image_docker_builder:
   env:
     CIRRUS_ARCH: amd64
   << : *DOCKER_BUILD_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 container_image_manifest_docker_builder:
   cpu: 1
@@ -632,6 +634,7 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
+  << : *SKIP_TASK_ON_PR
 
 
 # Test zeekctl upon master and release pushes and also when

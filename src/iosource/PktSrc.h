@@ -225,7 +225,6 @@ public:
 
 protected:
 	friend class Manager;
-	friend class ManagerBase;
 
 	// Methods to use by derived classes.
 

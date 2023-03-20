@@ -1,3 +1,9 @@
+5.2.0-15 | 2023-04-03 14:39:33 -0700
+
+  * ci/centos-stream-8: Add which command (Arne Welzel, Corelight)
+
+    (cherry picked from commit 79ea84e5f47d0ca818fc0f53696ec9db341beb62)
+
 5.2.0-13 | 2023-04-03 13:26:21 -0700
 
   * Consider cap len when forwarding into packet analysis. (Jan Grashoefer, Corelight)

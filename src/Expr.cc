@@ -1577,25 +1577,40 @@ ValPtr SizeExpr::Fold(Val* v) const
 	return v->SizeVal();
 	}
 
+// Fill op1 and op2 type tags into bt1 and bt2.
+//
+// If both operands are vectors, use their yield type tag. If
+// either, but not both operands, is a vector, cause an expression
+// error and return false.
+static bool get_types_from_scalars_or_vectors(Expr* e, TypeTag& bt1, TypeTag& bt2)
+	{
+	bt1 = e->GetOp1()->GetType()->Tag();
+	bt2 = e->GetOp2()->GetType()->Tag();
+
+	if ( IsVector(bt1) && IsVector(bt2) )
+		{
+		bt1 = e->GetOp1()->GetType()->AsVectorType()->Yield()->Tag();
+		bt2 = e->GetOp2()->GetType()->AsVectorType()->Yield()->Tag();
+		}
+	else if ( IsVector(bt1) || IsVector(bt2) )
+		{
+		e->Error("cannot mix vector and scalar operands");
+		e->SetError();
+		return false;
+		}
+
+	return true;
+	}
+
 AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_ADD, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt1) && IsVector(bt2) )
-		{
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
-		}
-	else if ( IsVector(bt1) || IsVector(bt2) )
-		{
-		ExprError("cannot mix vector and scalar operands");
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
 		return;
-		}
 
 	TypePtr base_result_type;
 
@@ -1749,19 +1764,9 @@ SubExpr::SubExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
 
-	TypeTag bt1 = t1->Tag();
-	TypeTag bt2 = t2->Tag();
-
-	if ( IsVector(bt1) && IsVector(bt2) )
-		{
-		bt1 = t1->AsVectorType()->Yield()->Tag();
-		bt2 = t2->AsVectorType()->Yield()->Tag();
-		}
-	else if ( IsVector(bt1) || IsVector(bt2) )
-		{
-		ExprError("cannot mix vector and scalar operands");
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
 		return;
-		}
 
 	TypePtr base_result_type;
 
@@ -1857,19 +1862,9 @@ TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	Canonicalize();
 
-	TypeTag bt1 = op1->GetType()->Tag();
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt1) && IsVector(bt2) )
-		{
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
-		}
-	else if ( IsVector(bt1) || IsVector(bt2) )
-		{
-		ExprError("cannot mix vector and scalar operands");
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
 		return;
-		}
 
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
@@ -1897,19 +1892,9 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt1) && IsVector(bt2) )
-		{
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
-		}
-	else if ( IsVector(bt1) || IsVector(bt2) )
-		{
-		ExprError("cannot mix vector and scalar operands");
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
 		return;
-		}
 
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
@@ -1917,7 +1902,7 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 			PromoteForInterval(IsArithmetic(bt1) ? op1 : op2);
 		else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 			{
-			if ( is_vector(op1) || is_vector(op2) )
+			if ( is_vector(op1) )
 				SetType(make_intrusive<VectorType>(base_type(TYPE_DOUBLE)));
 			else
 				SetType(base_type(TYPE_DOUBLE));
@@ -1967,19 +1952,9 @@ ModExpr::ModExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt1) && IsVector(bt2) )
-		{
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
-		}
-	else if ( IsVector(bt1) || IsVector(bt2) )
-		{
-		ExprError("cannot mix vector and scalar operands");
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
 		return;
-		}
 
 	if ( BothIntegral(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
@@ -1993,19 +1968,9 @@ BoolExpr::BoolExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt1) && IsVector(bt2) )
-		{
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
-		}
-	else if ( IsVector(bt1) || IsVector(bt2) )
-		{
-		ExprError("cannot mix vector and scalar operands");
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
 		return;
-		}
 
 	if ( BothBool(bt1, bt2) )
 		{
@@ -2169,19 +2134,10 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
-	TypeTag bt1 = t1->Tag();
-	TypeTag bt2 = t2->Tag();
 
-	if ( IsVector(bt1) && IsVector(bt2) )
-		{
-		bt1 = t1->AsVectorType()->Yield()->Tag();
-		bt2 = t2->AsVectorType()->Yield()->Tag();
-		}
-	else if ( IsVector(bt1) || IsVector(bt2) )
-		{
-		ExprError("cannot mix vector and scalar operands");
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
 		return;
-		}
 
 	if ( is_vector(op1) )
 		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
@@ -2287,19 +2243,10 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
-	TypeTag bt1 = t1->Tag();
-	TypeTag bt2 = t2->Tag();
 
-	if ( IsVector(bt1) && IsVector(bt2) )
-		{
-		bt1 = t1->AsVectorType()->Yield()->Tag();
-		bt2 = t2->AsVectorType()->Yield()->Tag();
-		}
-	else if ( IsVector(bt1) || IsVector(bt2) )
-		{
-		ExprError("cannot mix vector and scalar operands");
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
 		return;
-		}
 
 	if ( is_vector(op1) )
 		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));

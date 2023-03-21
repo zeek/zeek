@@ -432,4 +432,15 @@ std::string obj_desc(const Obj* o)
 	return std::string(d.Description());
 	}
 
+std::string obj_desc_short(const Obj* o)
+	{
+	static ODesc d;
+
+	d.SetShort(true);
+	d.Clear();
+	o->Describe(&d);
+
+	return std::string(d.Description());
+	}
+
 	} // namespace zeek

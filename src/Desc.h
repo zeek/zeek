@@ -230,6 +230,9 @@ protected:
 // IntrusivePtr because the latter is harder to deal with when making
 // calls from a debugger like lldb, which is the main use of this function.
 class Obj;
-extern std::string obj_desc(const Obj* o);
+std::string obj_desc(const Obj* o);
+
+// Same as obj_desc(), but ensure it is short and don't include location info.
+std::string obj_desc_short(const Obj* o);
 
 	} // namespace zeek

@@ -105,6 +105,7 @@ Manager::~Manager()
 void Manager::InitPostScript()
 	{
 	wakeup = new WakeupHandler();
+	poll_interval = BifConst::io_poll_interval_default;
 	}
 
 void Manager::RemoveAll()
@@ -157,25 +158,24 @@ void Manager::FindReadySources(ReadySources* ready)
 		if ( iosource->IsOpen() )
 			{
 			double next = iosource->GetNextTimeout();
-			bool added = false;
 
 			if ( timeout == -1 || (next >= 0.0 && next < timeout) )
 				{
 				timeout = next;
 				timeout_src = iosource;
-
-				// If a source has a zero timeout then it's ready. Just add it to the
-				// list already. Only do this if it's not time to poll though, since
-				// we don't want things in the vector passed into Poll() or it'll end
-				// up inserting duplicates.
-				if ( timeout == 0 && ! time_to_poll )
-					{
-					added = true;
-					ready->push_back({timeout_src, -1, 0});
-					}
 				}
 
-			if ( iosource == pkt_src && ! added )
+			// If a source has a zero timeout then it's ready. Just add it to the
+			// list already. Only do this if it's not time to poll though, since
+			// we don't want things in the vector passed into Poll() or it'll end
+			// up inserting duplicates. A source with a zero timeout that was not
+			// selected as the timeout_src can be safely added, whether it's time
+			// to poll or not though.
+			if ( next == 0 && (! time_to_poll || iosource != timeout_src) )
+				{
+				ready->push_back({iosource, -1, 0});
+				}
+			else if ( iosource == pkt_src )
 				{
 				if ( pkt_src->IsLive() )
 					{
@@ -183,12 +183,6 @@ void Manager::FindReadySources(ReadySources* ready)
 						// Avoid calling Poll() if we can help it since on very
 						// high-traffic networks, we spend too much time in
 						// Poll() and end up dropping packets.
-						ready->push_back({pkt_src, -1, 0});
-					}
-				else
-					{
-					if ( ! run_state::pseudo_realtime && ! time_to_poll )
-						// A pcap file is always ready to process unless it's suspended
 						ready->push_back({pkt_src, -1, 0});
 					}
 				}
@@ -220,6 +214,8 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
 		}
 	else if ( ret == 0 )
 		{
+		// If a timeout_src was provided and nothing else was ready, we timed out
+		// according to the given source's timeout and can add it as ready.
 		if ( timeout_src )
 			ready->push_back({timeout_src, -1, 0});
 		}
@@ -227,6 +223,7 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
 		{
 		// kevent returns the number of events that are ready, so we only need to loop
 		// over that many of them.
+		bool timeout_src_added = false;
 		for ( int i = 0; i < ret; i++ )
 			{
 			if ( events[i].filter == EVFILT_READ )
@@ -243,7 +240,15 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src)
 					ready->push_back({it->second, static_cast<int>(events[i].ident),
 					                  IOSource::ProcessFlags::WRITE});
 				}
+
+			// If we added a source that is the same as the passed timeout_src, take
+			// note as to avoid adding it twice.
+			timeout_src_added |= ready->size() > 0 ? ready->back().src == timeout_src : false;
 			}
+
+		// A timeout_src with a zero timeout can be considered ready.
+		if ( timeout_src && timeout == 0.0 && ! timeout_src_added )
+			ready->push_back({timeout_src, -1, 0});
 		}
 	}
 
@@ -397,12 +402,8 @@ void Manager::Register(PktSrc* src)
 	{
 	pkt_src = src;
 
-	// The poll interval gets defaulted to 100 which is good for cases like reading
-	// from pcap files and when there isn't a packet source, but is a little too
-	// infrequent for live sources (especially fast live sources). Set it down a
-	// little bit for those sources.
 	if ( src->IsLive() )
-		poll_interval = 10;
+		poll_interval = BifConst::io_poll_interval_live;
 	else if ( run_state::pseudo_realtime )
 		poll_interval = 1;
 

@@ -1,3 +1,42 @@
+6.0.0-dev.241 | 2023-03-21 10:10:50 +0100
+
+  * Add a new plugin test with verbose IO source output (Arne Welzel, Corelight)
+
+    This is mostly for documentation/verification purposes of how the IO loop
+    currently does draining and when it picks up FD based (non packet) IO
+    source. For example, it shows that currently FD based sources are processed
+    fairly delayed and that we now also process two timeout sources that are ready.
+
+  * iosource: Make poll intervals configurable (Arne Welzel, Corelight)
+
+    This probably should not be changed by users, but it's useful for
+    testing and experimentation rather than needing to recompile.
+
+    Processing 100 packets without checking an FD based IO source can
+    actually mean that FD based sources are never checked during a read
+    of a very small pcap...
+
+  * iomanager/Poll: Add zero-timeout timeout_src also when there's other events ready (Arne Welzel, Corelight)
+
+    This would generally happen the next loop iteration around anyway, but
+    seems nice to ensure a zero timeout source will be processed at the same
+    time as sources with ready FDs.
+
+  * iomanager: Collect all sources with zero timeouts as ready (Arne Welzel, Corelight)
+
+    Previously, if two iosources returned 0.0 as their timeout, only
+    one of them would be considered ready. An always ready source
+    therefore may starve other ready ones due to this and minimally
+    this behavior seems surprising.
+
+    Offline pcap sources are always ready and return 0.0 for
+    GetNextTimeout() (unless in pseudo-realtime), so we can
+    also remove the offline source special case.
+
+    One subtle side-effect of this change is that if an IO source
+    returns a 0.0 timeout *and* it's file descriptor is ready in
+    the same loop iteration, it may be processed twice.
+
 6.0.0-dev.235 | 2023-03-20 10:04:55 -0700
 
   * ci/centos-stream-8: Add which command (Arne Welzel, Corelight)

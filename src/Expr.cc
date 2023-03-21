@@ -3063,6 +3063,15 @@ void IndexExpr::ExprDescribe(ODesc* d) const
 		d->Add("]");
 	}
 
+static void report_field_deprecation(const RecordType* rt, const Expr* e, int field,
+                                     bool has_check = false)
+	{
+	reporter->Deprecation(util::fmt("%s (%s)",
+	                                rt->GetFieldDeprecationWarning(field, has_check).c_str(),
+	                                obj_desc_short(e).c_str()),
+	                      e->GetLocationInfo());
+	}
+
 FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 	: UnaryExpr(EXPR_FIELD, std::move(arg_op)), field_name(util::copy_string(arg_field_name)),
 	  td(nullptr), field(0)
@@ -3085,7 +3094,7 @@ FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 			td = rt->FieldDecl(field);
 
 			if ( rt->IsFieldDeprecated(field) )
-				Warn(rt->GetFieldDeprecationWarning(field, false).c_str());
+				report_field_deprecation(rt, this, field);
 			}
 		}
 	}
@@ -3170,7 +3179,7 @@ HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
 		if ( field < 0 )
 			ExprError("no such field in record");
 		else if ( rt->IsFieldDeprecated(field) )
-			Warn(rt->GetFieldDeprecationWarning(field, true).c_str());
+			report_field_deprecation(rt, this, field, true);
 
 		SetType(base_type(TYPE_BOOL));
 		}
@@ -3301,7 +3310,7 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 				}
 			}
 		else if ( known_rt->IsFieldDeprecated(i) )
-			Warn(known_rt->GetFieldDeprecationWarning(i, false).c_str());
+			report_field_deprecation(known_rt.get(), this, i);
 	}
 
 ValPtr RecordConstructorExpr::Eval(Frame* f) const
@@ -4092,7 +4101,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 					}
 				}
 			else if ( t_r->IsFieldDeprecated(i) )
-				Warn(t_r->GetFieldDeprecationWarning(i, false).c_str());
+				report_field_deprecation(t_r, this, i);
 			}
 		}
 	}

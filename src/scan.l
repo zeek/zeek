@@ -339,19 +339,18 @@ when	return TOK_WHEN;
 @deprecated.* {
 	auto num_files = file_stack.length();
 	auto comment = zeek::util::skip_whitespace(yytext + 11);
+	std::string loaded_from;
 
 	if ( num_files > 0 )
 		{
 		auto lf = file_stack[num_files - 1];
-
 		if ( lf->name )
-			zeek::reporter->Warning("deprecated script loaded from %s:%d %s",
-			                  lf->name, lf->line, comment);
+			loaded_from = zeek::util::fmt(" from %s:%d", lf->name, lf->line);
 		else
-			zeek::reporter->Warning("deprecated script loaded from command line arguments %s", comment);
+			loaded_from = " from command line arguments";
 		}
-	else
-		zeek::reporter->Warning("deprecated script loaded %s", comment);
+
+	zeek::reporter->Deprecation(zeek::util::fmt("deprecated script loaded%s %s", loaded_from.c_str(), comment));
 	}
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger

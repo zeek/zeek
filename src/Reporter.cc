@@ -59,6 +59,8 @@ Reporter::Reporter(bool arg_abort_on_scripting_errors)
 	weird_sampling_duration = 0;
 	weird_sampling_threshold = 0;
 
+	ignore_deprecations = false;
+
 	syslog_open = false;
 	}
 
@@ -530,6 +532,21 @@ void Reporter::Weird(const IPAddr& orig, const IPAddr& resp, const char* name, c
 	WeirdHelper(flow_weird,
 	            {new AddrVal(orig), new AddrVal(resp), new StringVal(addl), new StringVal(source)},
 	            "%s", name);
+	}
+
+void Reporter::Deprecation(std::string_view msg, const detail::Location* loc1,
+                           const detail::Location* loc2)
+	{
+	if ( ignore_deprecations )
+		return;
+
+	if ( loc1 || loc2 )
+		PushLocation(loc1, loc2);
+
+	Warning("%s", msg.data());
+
+	if ( loc1 || loc2 )
+		PopLocation();
 	}
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn,

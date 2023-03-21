@@ -112,6 +112,17 @@ Changed Functionality
   ``--disable-port-prealloc`` will disable the preallocation and enable the map
   lookup version.
 
+- The main-loop has been changed to process all ready IO sources with a
+  zero timeout in the same loop iteration. Previously, two zero-timeout
+  sources would require two main-loop iterations. Further, when the main-loop
+  is polling IO sources with file descriptors, zero timeout IO sources are
+  added to the list of sources to be processed as well.
+
+  The intervals to decide when FD based IO sources are checked for readiness
+  have been made configurable through ``io_poll_interval_default`` and
+  ``io_poll_interval_live`` for ease of testing, development and debugging
+  of the main-loop.
+
 Zeek 5.2.0
 ==========
 

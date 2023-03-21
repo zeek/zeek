@@ -1,8 +1,6 @@
 # For script optimization this test generates hard errors rather than warnings.
-# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
-# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 #
-# @TEST-EXEC: zeek -b %INPUT >out 2>err
+# @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err
 

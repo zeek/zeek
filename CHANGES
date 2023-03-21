@@ -1,3 +1,36 @@
+6.0.0-dev.250 | 2023-03-21 19:17:36 +0100
+
+  * Expr: Factor out type tag extraction (Arne Welzel, Corelight)
+
+  * Var: Add version to deprecated initialization (Arne Welzel, Corelight)
+
+    This has been added for Zeek 5.0, so mark it for removal in Zeek 6.1.
+
+  * Stmt: Error on deprecated when/local usage (Arne Welzel, Corelight)
+
+    This has been around since Zeek v4.1, so it was warned about in Zeek 5.0
+    LTS and we could've removed it with 5.1.
+
+    Also removed merge_top_scope() from the zeek::detail namespace, it's
+    unused now.
+
+    Updated the when-aggregates test somehow. I'm not quite sure what had
+    been tested there :-/
+
+  * Expr: Remove vector scalar operations (Arne Welzel, Corelight)
+
+    These seem to have been deprecated since 2018, so do it now.
+    Unfortunately the message didn't contain a version when it'll
+    be removed, but it's been long enough.
+
+  * parse.y: Make out-of-scope use errors (Arne Welzel, Corelight)
+
+    This was marked to be done in Zeek 5.1, so do it now. The message
+    didn't include a version, unfortunately, but minimally there was
+    a comment when it should happen.
+
+  * scan.l: Remove unused deprecated_attr (Arne Welzel, Corelight)
+
 6.0.0-dev.243 | 2023-03-21 16:40:35 +0100
 
   * Add pcap_file option to supervised nodes. (Jan Grashoefer, Corelight)

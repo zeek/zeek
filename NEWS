@@ -125,6 +125,18 @@ Changed Functionality
   ``io_poll_interval_live`` for ease of testing, development and debugging
   of the main-loop.
 
+Removed Functionality
+---------------------
+
+- Mixing vector and scalar operands for binary expressions, like addition,
+  multiplication, etc., is now an error.
+
+- Using deprecated ``when`` semantics without capturing variables is now an error.
+
+- Referencing local variables in a more outer scope than where they were declared
+  is now an error
+
+
 Zeek 5.2.0
 ==========
 

@@ -1933,11 +1933,10 @@ WhenInfo::WhenInfo(bool arg_is_return) : is_return(arg_is_return)
 
 void WhenInfo::Build(StmtPtr ws)
 	{
+	// This will call ws->Error() if it's deprecated and we can
+	// short-circuit.
 	if ( IsDeprecatedSemantics(ws) )
-		{
-		merge_top_scope();
 		return;
-		}
 
 	if ( ! cl )
 		{
@@ -2095,9 +2094,9 @@ bool WhenInfo::IsDeprecatedSemantics(StmtPtr ws)
 		}
 
 	std::string msg = util::fmt("\"when\" statement referring to locals without an "
-	                            "explicit [] capture is deprecated: %s",
+	                            "explicit [] capture: %s",
 	                            vars.c_str());
-	ws->Warn(msg.c_str());
+	ws->Error(msg.c_str());
 
 	return true;
 	}

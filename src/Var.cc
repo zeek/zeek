@@ -193,7 +193,8 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 		{
 		// This can happen because the grammar allows any "init_class",
 		// including none, to be followed by an expression.
-		init->Warn("initialization not preceded by =/+=/-= is deprecated");
+		// Remove in v6.1 (make an error)
+		init->Warn("Remove in v6.1. Initialization not preceded by =/+=/-= is deprecated.");
 
 		// The historical instances of these, such as the
 		// language/redef-same-prefixtable-idx.zeek btest, treat

@@ -190,20 +190,6 @@ ScopePtr pop_scope()
 	return old_top;
 	}
 
-void merge_top_scope()
-	{
-	if ( scopes.size() < 2 )
-		reporter->InternalError("scope merge underflow");
-
-	auto t = pop_scope();
-
-	for ( const auto& v : t->OrderedVars() )
-		{
-		v->SetOffset(top_scope->Length());
-		top_scope->Insert(v->Name(), v);
-		}
-	}
-
 ScopePtr current_scope()
 	{
 	return top_scope;

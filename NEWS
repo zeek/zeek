@@ -91,6 +91,8 @@ New Functionality
   ``Z`` field remains unchanged and continues to subsume the two flags, for
   backward compatibility.
 
+- The supervisor framework can now start worker nodes that read from a trace file.
+
 Changed Functionality
 ---------------------
 

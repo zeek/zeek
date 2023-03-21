@@ -1233,6 +1233,11 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 	if ( iface_val )
 		rval.interface = iface_val->AsString()->CheckString();
 
+	const auto& pcap_file_val = node->GetField("pcap_file");
+
+	if ( pcap_file_val )
+		rval.pcap_file = pcap_file_val->AsString()->CheckString();
+
 	const auto& directory_val = node->GetField("directory");
 
 	if ( directory_val )
@@ -1326,6 +1331,11 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 		if ( iface )
 			ep.interface = iface->AsStringVal()->ToStdString();
 
+		const auto& pcap_file = rv->GetField("pcap_file");
+
+		if ( pcap_file )
+			ep.pcap_file = pcap_file->AsStringVal()->ToStdString();
+
 		rval.cluster.emplace(name, std::move(ep));
 		}
 
@@ -1341,6 +1351,9 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 
 	if ( auto it = j.FindMember("interface"); it != j.MemberEnd() )
 		rval.interface = it->value.GetString();
+
+	if ( auto it = j.FindMember("pcap_file"); it != j.MemberEnd() )
+		rval.pcap_file = it->value.GetString();
 
 	if ( auto it = j.FindMember("directory"); it != j.MemberEnd() )
 		rval.directory = it->value.GetString();
@@ -1402,6 +1415,9 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 		if ( auto it = val.FindMember("interface"); it != val.MemberEnd() )
 			ep.interface = it->value.GetString();
 
+		if ( auto it = val.FindMember("pcap_file"); it != val.MemberEnd() )
+			ep.pcap_file = it->value.GetString();
+
 		rval.cluster.emplace(key, std::move(ep));
 		}
 
@@ -1422,6 +1438,9 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 
 	if ( interface )
 		rval->AssignField("interface", *interface);
+
+	if ( pcap_file )
+		rval->AssignField("pcap_file", *pcap_file);
 
 	if ( directory )
 		rval->AssignField("directory", *directory);
@@ -1498,6 +1517,9 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 
 		if ( ep.interface )
 			val->AssignField("interface", *ep.interface);
+
+		if ( ep.pcap_file )
+			val->AssignField("pcap_file", *ep.pcap_file);
 
 		cluster_val->Assign(std::move(key), std::move(val));
 		}
@@ -1666,6 +1688,9 @@ void SupervisedNode::Init(Options* options) const
 	if ( config.interface )
 		options->interface = *config.interface;
 
+	if ( config.pcap_file )
+		options->pcap_file = *config.pcap_file;
+
 	auto& stl = options->scripts_to_load;
 
 	stl.insert(stl.begin(), config.addl_base_scripts.begin(), config.addl_base_scripts.end());
@@ -1731,6 +1756,9 @@ std::string Supervisor::Create(const Supervisor::NodeConfig& node)
 
 	if ( nodes.find(node.name) != nodes.end() )
 		return util::fmt("node with name '%s' already exists", node.name.data());
+
+	if ( node.interface.has_value() && node.pcap_file.has_value() )
+		return util::fmt("node with name '%s' has interface and pcap_file set", node.name.data());
 
 	if ( node.directory )
 		{

@@ -1,3 +1,10 @@
+6.0.0-dev.243 | 2023-03-21 16:40:35 +0100
+
+  * Add pcap_file option to supervised nodes. (Jan Grashoefer, Corelight)
+
+    This allows to start Supervised nodes with a pcap_file argument
+    rather than interface.
+
 6.0.0-dev.241 | 2023-03-21 10:10:50 +0100
 
   * Add a new plugin test with verbose IO source output (Arne Welzel, Corelight)

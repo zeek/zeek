@@ -61,7 +61,7 @@ builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
     ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-    ( $CIRRUS_REPO_NAME == 'zeek' &&
+    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       (
       $CIRRUS_BRANCH == 'master' ||
       $CIRRUS_BRANCH =~ 'release/.*'

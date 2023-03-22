@@ -46,13 +46,7 @@ public:
 	bool Failed() const { return failed; }
 	bool Valid() const { return ! failed; }
 
-	bool Expired() const
-		{
-		if ( ! req_host.empty() && addrs.empty() )
-			return false; // nothing to expire
-
-		return util::current_time() > (creation_time + req_ttl);
-		}
+	bool Expired() const { return util::current_time() > (creation_time + req_ttl); }
 
 	void Merge(const DNS_MappingPtr& other);
 

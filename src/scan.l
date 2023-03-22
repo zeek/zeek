@@ -58,6 +58,8 @@ extern zeek::EnumType* cur_enum_type;
 static std::intptr_t conditional_depth = 0;
 
 zeek::detail::int_list entry_cond_depth; // @if depth upon starting file
+zeek::detail::int_list entry_pragma_stack_depth; // @pragma push depth upon starting file
+static std::vector<std::string> pragma_stack; // stack of @pragma pushes
 
 // Tracks how many conditionals there have been.  This value only
 // increases.  Its value is to support logic such as figuring out
@@ -134,6 +136,65 @@ static void start_conditional()
 
 	current_file_has_conditionals = true;
 	}
+
+static void do_pragma(const std::string& pragma)
+	{
+	static std::unordered_set <std::string> known_stack_pragmas = {
+		"ignore-deprecations",
+	};
+
+	auto parts = zeek::util::split(pragma, " ");
+	auto new_end = std::remove(parts.begin(), parts.end(), "");
+	parts.erase(new_end, parts.end());
+
+	if ( parts.empty() )
+		{
+		zeek::reporter->FatalError("@pragma without value");
+		return;
+		}
+
+	if ( parts[0] == "push" )
+		{
+			if ( parts.size() < 2 )
+				{
+				zeek::reporter->FatalError("@pragma push without value");
+				return;
+				}
+
+			if ( known_stack_pragmas.count(parts[1]) == 0 )
+				zeek::reporter->Warning("pushing unknown @pragma value '%s'", parts[1].c_str());
+
+			pragma_stack.push_back(parts[1]);
+		}
+	else if ( parts[0] == "pop" )
+		{
+		if ( pragma_stack.empty() || pragma_stack.size() == entry_pragma_stack_depth.back() )
+			{
+			zeek::reporter->FatalError("@pragma pop without active pragma");
+			return;
+			}
+
+		// Popping with a value: Verify it's popping the right thing. Not providing
+		// a pop value itself is valid. Don't return, probably blows up below anyway.
+		if ( parts.size() > 1 && pragma_stack.back() != parts[1] ) {
+			zeek::reporter->Error("@pragma pop with unexpected '%s', expected '%s'",
+			                      parts[1].c_str(), pragma_stack.back().c_str());
+		}
+
+		// Just pop anything
+		pragma_stack.pop_back();
+		}
+	else
+		{
+		zeek::reporter->Warning("Ignoring unknown pragma: '%s'", pragma.c_str());
+		}
+
+	// Cheap: Just walk the pragma_stack now to see if we should ignore deprecations.
+	bool ignore_deprecations = std::any_of(pragma_stack.cbegin(), pragma_stack.cend(),
+	                                       [](const auto& s) { return s == "ignore-deprecations"; });
+	zeek::reporter->SetIgnoreDeprecations(ignore_deprecations);
+	}
+
 
 class FileInfo {
 public:
@@ -352,6 +413,10 @@ when	return TOK_WHEN;
 
 	zeek::reporter->Deprecation(zeek::util::fmt("deprecated script loaded%s %s", loaded_from.c_str(), comment));
 	}
+
+@pragma.* {
+	do_pragma(zeek::util::skip_whitespace(yytext + 7));
+}
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
@@ -727,6 +792,7 @@ static int load_files(const char* orig_file)
 	current_file_has_conditionals = files_with_conditionals.count(filename) > 0;
 
 	entry_cond_depth.push_back(conditional_depth);
+	entry_pragma_stack_depth.push_back(pragma_stack.size());
 
 	return 1;
 	}
@@ -922,6 +988,14 @@ int yywrap()
 		if ( conditional_depth > entry_cond_depth.back() )
 			zeek::reporter->FatalError("unbalanced @if... @endif");
 		entry_cond_depth.pop_back();
+		}
+
+	if ( entry_pragma_stack_depth.size() > 0 )
+		{
+		if ( pragma_stack.size() > entry_pragma_stack_depth.back() )
+			zeek::reporter->FatalError("unbalanced @pragma push pop in file");
+
+		entry_pragma_stack_depth.pop_back();
 		}
 
 	last_filename = ::filename;

@@ -92,7 +92,7 @@ type Connect_Request(cotp: COTP) = record {
 type RDP_Negotiation_Request = record {
 	type:                uint8;
 	flags:               uint8;
-	length:              uint16; # must be set to 8
+	length:              uint16 &enforce(length == 8); # must be set to 8
 	requested_protocols: uint32;
 } &let {
 	PROTOCOL_RDP:       bool = requested_protocols & 0x00;
@@ -127,7 +127,7 @@ type Connect_Confirm_Record = record {
 
 type RDP_Negotiation_Response = record {
 	flags:               uint8;
-	length:              uint16; # must be set to 8
+	length:              uint16 &enforce(length==8); # must be set to 8
 	selected_protocol:   uint32;
 } &let {
 	# Seems to be SSL encrypted (maybe CredSSP also?)
@@ -310,10 +310,12 @@ type Server_Network_Data = record {
 	channel_count:  uint16;
 } &byteorder=littleendian;
 
+# See MS-RDPBCGR Section 2.2.1.4.3 for reasoning for the &enforce value on
+# the server_random_length field.
 type Server_Security_Data = record {
 	encryption_method:      uint32;
 	encryption_level:       uint32;
-	server_random_length:   uint32;
+	server_random_length:   uint32 &enforce((encryption_level == 0 && encryption_method == 0 && server_random_length == 0) || (server_random_length == 0x20));
 	server_cert_length:     uint32;
 	server_random:          bytestring &length=server_random_length;
 	server_certificate:     Server_Certificate &length=server_cert_length;

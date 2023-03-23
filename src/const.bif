@@ -2,6 +2,8 @@
 ##! internally.  Documentation and default values for the scripting-layer
 ##! variables themselves are found in :doc:`/scripts/base/init-bare.zeek`.
 
+const packet_source_inactivity_timeout: interval;
+const allow_network_time_forward: bool;
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
 const use_conn_size_analyzer: bool;

@@ -262,6 +262,12 @@ void Manager::InitPostScript()
 	zeek_table_db_directory =
 		get_option("Broker::table_store_db_directory")->AsString()->CheckString();
 
+	// If Zeek's forwarding of network time to wallclock time was disabled,
+	// assume that also Broker does not use realtime and instead receives
+	// time via explicit AdvanceTime() calls.
+	if ( ! get_option("allow_network_time_forward")->AsBool() )
+		use_real_time = false;
+
 	detail::opaque_of_data_type = make_intrusive<OpaqueType>("Broker::Data");
 	detail::opaque_of_set_iterator = make_intrusive<OpaqueType>("Broker::SetIterator");
 	detail::opaque_of_table_iterator = make_intrusive<OpaqueType>("Broker::TableIterator");
@@ -1140,11 +1146,6 @@ void Manager::DispatchMessage(const broker::topic& topic, broker::data msg)
 
 void Manager::Process()
 	{
-	// Ensure that time gets update before processing broker messages, or events
-	// based on them might get scheduled wrong.
-	if ( use_real_time )
-		run_state::detail::update_network_time(util::current_time());
-
 	auto messages = bstate->subscriber.poll();
 
 	bool had_input = ! messages.empty();
@@ -1221,10 +1222,16 @@ void Manager::Process()
 	if ( had_input )
 		{
 		if ( run_state::network_time == 0 )
+			{
 			// If we're getting Broker messages, but still haven't initialized
 			// run_state::network_time, may as well do so now because otherwise the
 			// broker/cluster logs will end up using timestamp 0.
-			run_state::detail::update_network_time(util::current_time());
+			//
+			// Do not do this when allow_network_time_forard is set to F
+			// with the assumption that this is unwanted behavior.
+			if ( get_option("allow_network_time_forward")->AsBool() )
+				run_state::detail::update_network_time(util::current_time());
+			}
 		}
 	}
 

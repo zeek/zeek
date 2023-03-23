@@ -137,6 +137,44 @@ void update_network_time(double new_network_time)
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
 	}
 
+// Logic to decide when updating network_time is acceptable:
+static bool should_forward_network_time()
+	{
+	// In pseudo_realtime mode, always update time once
+	// we've dispatched and processed the first packet.
+	// run_state::detail::first_timestamp is currently set
+	// in PktSrc::ExtractNextPacketInternal()
+	if ( pseudo_realtime != 0.0 && run_state::detail::first_timestamp != 0.0 )
+		return true;
+
+	if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
+		{
+		// Offline packet sources always control network time
+		// unless we're running pseudo_realtime, see above.
+		if ( ! ps->IsLive() )
+			return false;
+
+		if ( ! ps->HasBeenIdleFor(BifConst::packet_source_inactivity_timeout) )
+			return false;
+		}
+
+	// We determined that we don't have a packet source, or it is idle.
+	// Unless it has been disabled, network_time will now be moved forward.
+	return BifConst::allow_network_time_forward;
+	}
+
+static void forward_network_time_if_applicable()
+	{
+	if ( ! should_forward_network_time() )
+		return;
+
+	double now = util::current_time(true);
+	if ( now > network_time )
+		update_network_time(now);
+
+	return;
+	}
+
 void init_run(const std::optional<std::string>& interface,
               const std::optional<std::string>& pcap_input_file,
               const std::optional<std::string>& pcap_output_file, bool do_watchdog)
@@ -319,21 +357,21 @@ void run_loop()
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
 			// doesn't risk blocking on other inputs.
-			update_network_time(util::current_time());
+			//
+			// TBD: Is this actually still relevant given that the TimerMgr
+			//      is an IO source now? It'll be processed once its
+			//      GetNextTimeout() yields 0 and before that there's nothing
+			//      to expire anyway.
+			forward_network_time_if_applicable();
 			expire_timers();
+
+			// Prevent another forward_network_time_if_applicable() below
+			// even if time wasn't actually updated.
+			time_updated = true;
 			}
 
-		// Ensure that the time gets updated every pass if we're reading live.
-		// This is necessary for e.g. packet sources that don't have a selectable
-		// file descriptor. They'll always be ready on a very short timeout, but
-		// won't necessarily have a packet to process. In these case, sometimes
-		// the time won't get updated for a long time and timers don't function
-		// correctly.
-		if ( (! time_updated && reading_live) )
-			{
-			update_network_time(util::current_time());
-			expire_timers();
-			}
+		if ( ! time_updated )
+			forward_network_time_if_applicable();
 
 		event_mgr.Drain();
 
@@ -352,17 +390,13 @@ void run_loop()
 			// the future on which we need to wait.
 			have_pending_timers = zeek::detail::timer_mgr->Size() > 0;
 
+		// Terminate if we're running pseudo_realtime and
+		// the interface has been closed.
 		if ( pseudo_realtime && communication_enabled )
 			{
-			auto have_active_packet_source = false;
-
 			iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
-			if ( ps && ps->IsOpen() )
-				have_active_packet_source = true;
-
-			if ( ! have_active_packet_source )
-				// Can turn off pseudo realtime now
-				pseudo_realtime = 0.0;
+			if ( ps && ! ps->IsOpen() )
+				iosource_mgr->Terminate();
 			}
 		}
 

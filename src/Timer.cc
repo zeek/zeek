@@ -93,14 +93,6 @@ int TimerMgr::Advance(double arg_t, int max_expire)
 
 void TimerMgr::Process()
 	{
-	// If we don't have a source, or the source is closed, or we're reading live (which includes
-	// pseudo-realtime), advance the timer here to the current time since otherwise it won't
-	// move forward and the timers won't fire correctly.
-	iosource::PktSrc* pkt_src = iosource_mgr->GetPktSrc();
-	if ( ! pkt_src || ! pkt_src->IsOpen() || run_state::reading_live ||
-	     run_state::is_processing_suspended() )
-		run_state::detail::update_network_time(util::current_time());
-
 	// Just advance the timer manager based on the current network time. This won't actually
 	// change the time, but will dispatch any timers that need dispatching.
 	run_state::current_dispatched += Advance(run_state::network_time,

@@ -1,3 +1,59 @@
+6.0.0-dev.266 | 2023-03-23 13:35:28 +0100
+
+  * iosource: Remove non-existing ManagerBase friend (Arne Welzel, Corelight)
+
+  * broker::Manager: use_realtime_false when allow_network_time_forward=F (Arne Welzel, Corelight)
+
+    Run the broker in non-realtime mode when allow_network_time_forward=F.
+    This may need an extra option for really advanced use-cases, but for
+    now this seems reasonable.
+
+  * A set of tests around network time handling (Arne Welzel, Corelight)
+
+  * broker::Manager: No more network_time forwarding (Arne Welzel, Corelight)
+
+    network_time forwarding will happen in the main-loop before draining the
+    EventMgr so timers/events scheduled based on broker messages should
+    behave similarly. This also keeps network_time unaffected during
+    non pseudo-realtime trace processing.
+
+  * TimerMgr: No network_time updates in Process() (Arne Welzel, Corelight)
+
+    network_time forwarding will now happen centrally in the main loop.
+    The TimerMgr returns a valid timeout that can be waited for and will
+    trigger network_time advancement, so we don't need to do it.
+
+  * Event: No more network_time updates (Arne Welzel, Corelight)
+
+    The whole docs read like this was only used to update the
+    network_time, so there may be a follow-up to ditch EventMgr
+    even being an IOSource (which could be argued it's not IO).
+
+  * RunState: Implement forward_network_time_if_applicable() (Arne Welzel, Corelight)
+
+    Add a central place where the decision when it's okay to update network time
+    to the current time (wallclock) is. It checks for pseudo_realtime and packet
+    source existence as well as packet source idleness.
+
+    A new const &redef allows to completely disable forwarding of network time.
+
+  * PktSrc: Add HasBeenIdleFor() method (Arne Welzel, Corelight)
+
+    This method will be used by the main loop to determine if an interface
+    has become idle. Initially this will be used to determine when it is
+    acceptable to update network_time to the current time (wallclock).
+
+  * PktSrc: Move termination pseduo_realtime special case to RunState (Arne Welzel, Corelight)
+
+    This also removes setting pseduo_realtime to 0.0 in the main loop
+    when the packet source has been closed. I had tried to understand
+    the implications it actually seems, if we shutdown the iosource::Manager
+    anyway, it shouldn't and it's just confusing.
+
+  * Bump zeekctl and doc submodule for updates regarding Site::local_nets (Christian Kreibich, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 6.0.0-dev.250 | 2023-03-21 19:17:36 +0100
 
   * Expr: Factor out type tag extraction (Arne Welzel, Corelight)

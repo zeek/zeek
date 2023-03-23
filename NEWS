@@ -93,6 +93,11 @@ New Functionality
 
 - The supervisor framework can now start worker nodes that read from a trace file.
 
+- Zeek can be prevented from updating ``network_time()`` to the current time
+  by setting ``allow_network_time_forward=F``. Together with ``set_network_time()``
+  or a custom plugin, this allows control of ``network_time()`` without Zeek
+  interfering.
+
 Changed Functionality
 ---------------------
 
@@ -124,6 +129,37 @@ Changed Functionality
   have been made configurable through ``io_poll_interval_default`` and
   ``io_poll_interval_live`` for ease of testing, development and debugging
   of the main-loop.
+
+- Zeek does not arbitrarily update ``network_time()`` to current time anymore.
+  When a packet source is providing a constant stream of packets, packets
+  drive network time. Previously, Zeek updated network time to the current
+  current time in various situations, disregarding timestamps of network packets.
+  Zeek will now update ``network_time()`` only when a packet source has been
+  inactive/idle for an interval of ``packet_source_inactivity_timeout``
+  (default 100msec). When a worker process suddenly observes no packets, timer
+  expiration may initially be delayed by ``packet_source_inactivity_timeout``.
+
+- Calling ``suspend_processing()`` when reading traces does not update network
+  time to the current time anymore. Instead, Zeek keeps ``network_time()`` according
+  to the trace file. This causes scheduled events to not fire once ``suspend_processing()``
+  is called. However, this appears more sensible behavior than arbitrarily setting
+  ``network_time()`` to the current time. Processing can still be continued from
+  broker events or input readers.
+
+- Previously, Zeek would process and dispatch events for the very first packet
+  in a trace file in order to initialize time, even if ``suspend_processing()``
+  was called in a ``zeek_init()`` handler. This has been changed such that the
+  first packet will only be processed once ``continue_processing()`` has been
+  invoked again. Some background around the previous behaviour can be found
+  in GH-938. With the availability of ``network_time_init()``, this behavior
+  seems more reasonable.
+
+- If an event is scheduled with a 0.0sec timeout from a ``zeek_init()`` handler
+  that also executes a ``suspend_processing()``, the scheduled event will fire
+  immediately with ``network_time()`` still yielding ``0.0``. Previously,
+  ``network_time()`` was set to the current time. The new behavior is considered
+  more sensible with regards of determinism and in line with timers stopping
+  during a ``suspend_processing()``.
 
 Removed Functionality
 ---------------------

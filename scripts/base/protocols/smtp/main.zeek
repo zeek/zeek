@@ -2,6 +2,7 @@
 @load base/utils/directions-and-hosts
 @load base/utils/email
 @load base/protocols/conn/removal-hooks
+@load base/frameworks/notice/weird
 
 module SMTP;
 
@@ -75,6 +76,11 @@ export {
 		messages_transferred:     count     &default=0;
 
 		pending_messages:         set[Info] &optional;
+
+		trans_mail_from_seen:     bool      &default=F;
+		trans_rcpt_to_seen:       bool      &default=F;
+		invalid_transactions:     count     &default=0;
+		analyzer_id:              count     &optional;
 	};
 
 	## Direction to capture the full "Received from" path.
@@ -91,6 +97,16 @@ export {
 
 	## SMTP finalization hook.  Remaining SMTP info may get logged when it's called.
 	global finalize_smtp: Conn::RemovalHook;
+
+	## When seeing a RCPT TO or DATA command, validate that it has been
+	## preceded by a MAIL FROM or RCPT TO command, respectively, else
+	## log a weird and possibly disable the SMTP analyzer upon too
+	## many invalid transactions.
+	option mail_transaction_validation = T;
+
+	## Disable the SMTP analyzer when that many invalid transactions
+	## have been observed in an SMTP session.
+	option max_invalid_mail_transactions = 25;
 }
 
 redef record connection += {
@@ -151,6 +167,22 @@ function set_smtp_session(c: connection)
 		c$smtp = new_smtp_log(c);
 	}
 
+function mail_transaction_invalid(c: connection, addl: string)
+	{
+	Reporter::conn_weird("smtp_mail_transaction_invalid", c, addl, "SMTP");
+
+	++c$smtp_state$invalid_transactions;
+
+	if ( max_invalid_mail_transactions > 0
+	     && c$smtp_state$invalid_transactions > max_invalid_mail_transactions
+	     && c$smtp_state?$analyzer_id )
+		{
+		Reporter::conn_weird("smtp_excessive_invalid_mail_transactions", c, "", "SMTP");
+		if ( disable_analyzer(c$id, c$smtp_state$analyzer_id) )
+			delete c$smtp_state$analyzer_id;
+		}
+	}
+
 function smtp_message(c: connection)
 	{
 	if ( c$smtp$has_client_activity )
@@ -158,6 +190,15 @@ function smtp_message(c: connection)
 		Log::write(SMTP::LOG, c$smtp);
 		c$smtp = new_smtp_log(c);
 		}
+	}
+
+event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
+	{
+	if ( atype != Analyzer::ANALYZER_SMTP )
+		return;
+
+	set_smtp_session(c);
+	c$smtp_state$analyzer_id = aid;
 	}
 
 event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &priority=5
@@ -184,6 +225,13 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 			}
 
 		c$smtp$has_client_activity = T;
+		c$smtp_state$trans_rcpt_to_seen = T;
+
+		if ( mail_transaction_validation )
+			{
+			if ( ! c$smtp_state$trans_mail_from_seen )
+				mail_transaction_invalid(c, "rcpt to missing mail from");
+			}
 		}
 
 	else if ( upper_command == "MAIL" && /^[fF][rR][oO][mM]:/ in arg )
@@ -195,6 +243,23 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		if ( mailfrom != "" )
 			c$smtp$mailfrom = mailfrom;
 		c$smtp$has_client_activity = T;
+
+		c$smtp_state$trans_mail_from_seen = T;
+		c$smtp_state$trans_rcpt_to_seen = F;  # Reset state on MAIL FROM
+		}
+	else if ( upper_command == "DATA" )
+		{
+		if ( mail_transaction_validation )
+			{
+			if ( ! c$smtp_state$trans_rcpt_to_seen )  # mail from checked in rctp to
+				mail_transaction_invalid(c, "data missing rcpt to");
+			}
+		}
+	else if ( upper_command == "." )
+		{
+		# Reset state when we're seeing a .
+		c$smtp_state$trans_mail_from_seen = F;
+		c$smtp_state$trans_rcpt_to_seen = F;
 		}
 	}
 

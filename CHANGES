@@ -1,3 +1,7 @@
+6.0.0-dev.268 | 2023-03-23 13:40:26 +0100
+
+  * Ensure master/release builds run for zeek-security (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.266 | 2023-03-23 13:35:28 +0100
 
   * iosource: Remove non-existing ManagerBase friend (Arne Welzel, Corelight)

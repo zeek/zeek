@@ -3,6 +3,7 @@
 0.0, zeek_init: broker peering
 0.0, Broker::peer_added
 0.0, do_continue_processing
-1300475167.096535, network_time_init
-1300475173.475401, Pcap::file_done, <...>/wikipedia.trace
-1300475173.475401, zeek_done
+1362692526.869344, network_time_init
+1362692526.869344, new_connection, CHhAvVGS1DHFjwGM9, [orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
+1362692527.080972, Pcap::file_done, <...>/get.trace
+1362692527.080972, zeek_done

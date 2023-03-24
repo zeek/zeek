@@ -1,16 +1,13 @@
 # @TEST-DOC: Suspend pcap processing on a worker and wait for the manager to trigger continue processing via a broker message. Ensure network_time() is not initialized until continue_processing() is called.
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run manager "zeek -b ../manager.zeek"
-# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/wikipedia.trace -b ../worker.zeek"
+# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/http/get.trace -b ../worker.zeek"
 # @TEST-EXEC: btest-bg-wait 5
 
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff worker/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff manager/.stdout
 
 @TEST-START-FILE worker.zeek
-
-# If we're not setting this, broker will initialize network_time.
-redef allow_network_time_forward = F;
 
 event zeek_init()
 	{
@@ -44,6 +41,11 @@ event do_continue_processing() &is_used
 event network_time_init()
 	{
 	print network_time(), "network_time_init";
+	}
+
+event new_connection(c: connection)
+	{
+	print network_time(), "new_connection", c$uid, c$id;
 	}
 
 event Pcap::file_done(path: string)

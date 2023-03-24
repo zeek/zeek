@@ -703,19 +703,22 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
 		out_cc->println("{");
 		}
 
-	out_cc->println("// Evaluate 'let' and 'withinput' fields");
-	foreach (i, FieldList, fields_)
+	if ( ! fields_->empty() )
 		{
-		Field* f = *i;
-		if ( f->tof() == LET_FIELD )
+		out_cc->println("// Evaluate 'let' and 'withinput' fields");
+		foreach (i, FieldList, fields_)
 			{
-			LetField* lf = static_cast<LetField*>(f);
-			lf->GenParseCode(out_cc, env);
-			}
-		else if ( f->tof() == WITHINPUT_FIELD )
-			{
-			WithInputField* af = static_cast<WithInputField*>(f);
-			af->GenParseCode(out_cc, env);
+			Field* f = *i;
+			if ( f->tof() == LET_FIELD )
+				{
+				LetField* lf = static_cast<LetField*>(f);
+				lf->GenParseCode(out_cc, env);
+				}
+			else if ( f->tof() == WITHINPUT_FIELD )
+				{
+				WithInputField* af = static_cast<WithInputField*>(f);
+				af->GenParseCode(out_cc, env);
+				}
 			}
 		}
 

@@ -499,8 +499,10 @@ ConstExprPtr Expr::MakeZeroExpr(TypeTag t) const
 ExprPtr Expr::SimplifyTo(ExprPtr new_me)
 	{
 	++Expr::num_simplifies;
+
 	auto orig_desc = obj_desc(this);
 	printf("simplifying expr %s to %s\n", orig_desc.c_str(), obj_desc(new_me.get()).c_str());
+
 	return new_me;
 	}
 
@@ -860,10 +862,58 @@ ExprPtr ComplementExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 ExprPtr NotExpr::DoSimplify()
 	{
-	if ( op->Tag() == EXPR_NOT )
-		return SimplifyTo(op->GetOp1());
+	auto t = op->Tag();
+	auto sub_op_1 = op->GetOp1();	// may be nil
+	auto sub_op_2 = op->GetOp2();	// may be nil
 
-	return ThisPtr();
+	ExprPtr new_e;
+
+	switch ( t ) {
+	case EXPR_NOT:
+		new_e = sub_op_1;
+		break;
+
+	case EXPR_EQ:
+		new_e = make_intrusive<RelExpr>(EXPR_NE, sub_op_1, sub_op_2);
+		break;
+
+	case EXPR_NE:
+		new_e = make_intrusive<RelExpr>(EXPR_EQ, sub_op_1, sub_op_2);
+		break;
+
+	case EXPR_LT:
+		new_e = make_intrusive<RelExpr>(EXPR_GE, sub_op_1, sub_op_2);
+		break;
+
+	case EXPR_LE:
+		new_e = make_intrusive<RelExpr>(EXPR_GT, sub_op_1, sub_op_2);
+		break;
+
+	case EXPR_GE:
+		new_e = make_intrusive<RelExpr>(EXPR_LT, sub_op_1, sub_op_2);
+		break;
+
+	case EXPR_GT:
+		new_e = make_intrusive<RelExpr>(EXPR_LE, sub_op_1, sub_op_2);
+		break;
+
+	case EXPR_AND_AND:
+	case EXPR_OR_OR:
+		{
+		auto not_sub_op_1 = make_intrusive<NotExpr>(sub_op_1);
+		auto not_sub_op_2 = make_intrusive<NotExpr>(sub_op_2);
+		auto t2 = t == EXPR_AND_AND ? EXPR_OR_OR : EXPR_AND_AND;
+
+		new_e = make_intrusive<BoolExpr>(t2, not_sub_op_1, not_sub_op_2);
+		}
+		break;
+
+	default:
+		return ThisPtr();
+	}
+
+	new_e = new_e->Simplify();
+	return SimplifyTo(new_e);
 	}
 
 ExprPtr NotExpr::Duplicate()
@@ -2492,6 +2542,14 @@ bool VectorConstructorExpr::HasReducedOps(Reducer* c) const
 	return Op()->HasReducedOps(c);
 	}
 
+ExprPtr FieldAssignExpr::Simplify()
+	{
+	// We don't use the UnaryExpr version of this because for constant
+	// operands it'll replace the entire expression with a ConstExpr.
+	op = op->Simplify();
+	return ThisPtr();
+	}
+
 ExprPtr FieldAssignExpr::Duplicate()
 	{
 	auto op_dup = op->Duplicate();
@@ -2733,8 +2791,11 @@ bool InExpr::HasReducedOps(Reducer* c) const
 
 ExprPtr CallExpr::Simplify()
 	{
+	func = func->Simplify();
 	args = cast_intrusive<ListExpr>(args->Simplify());
-	return ThisPtr();
+
+	// if ( func->Tag() != EXPR_NAME )
+		return ThisPtr();
 	}
 
 ExprPtr CallExpr::Duplicate()

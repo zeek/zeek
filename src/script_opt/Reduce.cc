@@ -1014,4 +1014,17 @@ bool NonReduced(const Expr* perp)
 	return false;
 	}
 
+
+ScriptFuncPtr curr_func;
+std::unordered_map<std::string, std::unordered_set<std::string>> arg_fold_opps;
+std::unordered_map<std::string, std::unordered_set<std::string>> const_args;
+        
+void check_add_arg_fold_opp(const NameExprPtr& var)
+	{
+	if ( ! curr_func )
+		return;
+	}
+
+void check_for_const_args(const CallExprPtr& call);
+
 	} // zeek::detail

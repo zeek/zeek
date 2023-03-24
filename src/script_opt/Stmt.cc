@@ -18,9 +18,14 @@ namespace zeek::detail
 StmtPtr Stmt::SimplifyTo(StmtPtr new_me)
 	{
 	++Stmt::num_simplifies;
-	auto orig_desc = obj_desc(this);
-	printf("simplifying stmt %s to %s\n", orig_desc.c_str(), obj_desc(new_me.get(
-)).c_str());
+
+	if ( tag != STMT_LIST )
+		{
+		auto orig_desc = obj_desc(this);
+		auto new_desc = new_me ? obj_desc(new_me.get()) : "<null>";
+		printf("simplifying stmt %s to %s\n", orig_desc.c_str(), new_desc.c_str());
+		}
+
 	return new_me;
 	}
 
@@ -146,7 +151,11 @@ StmtPtr PrintStmt::DoSubclassReduce(ListExprPtr singletons, Reducer* c)
 StmtPtr ExprStmt::Simplify()
 	{
 	if ( e )
+		{
 		e = e->Simplify();
+		if ( tag == STMT_EXPR && e->IsPure() )
+			return SimplifyTo(nullptr);
+		}
 
 	return ThisPtr();
 	}
@@ -221,24 +230,25 @@ StmtPtr IfStmt::Simplify()
 	{
 	e = e->Simplify();
 
-	if ( e->Tag() == EXPR_NOT )
+	while ( e->Tag() == EXPR_NOT )
 		{
-		auto tmp_s = s2;
-		s2 = s1;
-		s1 = tmp_s;
-
+		std::swap(s1, s2);
 		e = e->SimplifyTo(e->GetOp1());
-
-		return Simplify();
 		}
 
-	if ( s1 )
-		s1 = s1->Simplify();
-	if ( s2 )
-		s2 = s2->Simplify();
+	auto new_s1 = s1->Simplify();
+	auto new_s2 = s2->Simplify();
 
-	if ( ! s1 && ! s2 )
+	if ( ! new_s1 && ! new_s2 )
+		{
+		if ( e->IsPure() )
+			return SimplifyTo(nullptr);
+
 		return SimplifyTo(make_intrusive<ExprStmt>(e))->Simplify();
+		}
+
+	s1 = new_s1 ? new_s1 : make_intrusive<NullStmt>();
+	s2 = new_s2 ? new_s2 : make_intrusive<NullStmt>();
 
 	if ( ! e->IsConst() )
 		return ThisPtr();
@@ -668,6 +678,9 @@ StmtPtr ForStmt::Simplify()
 		return ThisPtr();
 
 	// No body, statement reduces to evaluating the target expression.
+	if ( e->IsPure() )
+		return SimplifyTo(nullptr);
+
 	return SimplifyTo(make_intrusive<ExprStmt>(e))->Simplify();
 	}
 
@@ -826,7 +839,7 @@ StmtPtr StmtList::Simplify()
 		return SimplifyTo(nullptr);
 
 	if ( n == 1 )
-		return SimplifyTo({NewRef{}, Stmts()[0]});
+		return SimplifyTo({NewRef{}, new_sl->Stmts()[0]});
 
 	return new_sl;
 	}

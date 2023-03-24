@@ -4659,7 +4659,7 @@ bool CallExpr::IsPure() const
 	if ( IsError() )
 		return true;
 
-	if ( ! func->IsPure() )
+	if ( func->Tag() != EXPR_NAME && func->Tag() != EXPR_CONST )
 		return false;
 
 	auto func_val = func->Eval(nullptr);

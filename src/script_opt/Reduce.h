@@ -7,6 +7,8 @@
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 
+#include "zeek/script_opt/ScriptOpt.h"
+
 namespace zeek::detail
 	{
 
@@ -349,5 +351,19 @@ extern bool checking_reduction;
 
 // Used to report a non-reduced expression.
 extern bool NonReduced(const Expr* perp);
+
+// Function currently being analyzed.  Nil if it's a hook or event handler.
+extern ScriptFuncPtr curr_func;
+
+// Indexed by function name, providing a set of arguments that if constant
+// would provide folding opportunities.
+extern std::unordered_map<std::string, std::unordered_set<std::string>> arg_fold_opps;
+
+// Indexed by function name, providing a set of arguments that are constants
+// in some calls.
+extern std::unordered_map<std::string, std::unordered_set<std::string>> const_args;
+
+extern void check_add_arg_fold_opp(const NameExprPtr& var);
+extern void check_for_const_args(const CallExprPtr& call);
 
 	} // zeek::detail

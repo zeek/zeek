@@ -550,9 +550,18 @@ void analyze_scripts(bool no_unused_warnings)
 
 	for ( auto& func : funcs )
 		if ( should_analyze(func.FuncPtr(), func.Body()) )
+			{
+			func.Body()->Simplify();
 			have_one_to_do = true;
+			}
 		else
 			func.SetSkip(true);
+
+	printf("\nRe-simplifying ...\n");
+	for ( auto& func : funcs )
+		if ( should_analyze(func.FuncPtr(), func.Body()) )
+			func.Body()->Simplify();
+	printf("... done\n");
 
 	if ( ! have_one_to_do )
 		reporter->FatalError("no matching functions/files for C++ compilation");

@@ -1332,6 +1332,7 @@ public:
 	bool IsRecordElement(TypeDecl* td) const override;
 
 	// Optimization-related:
+	ExprPtr Simplify() override;
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override { return true; }
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;

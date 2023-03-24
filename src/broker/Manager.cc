@@ -534,7 +534,7 @@ void Manager::FlushPendingQueries()
 			while ( ! s.second->proxy.mailbox().empty() )
 				{
 				auto response = s.second->proxy.receive();
-				ProcessStoreResponse(s.second, move(response));
+				ProcessStoreResponse(s.second, std::move(response));
 				}
 			}
 		}
@@ -653,7 +653,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, args).c_str());
 	broker::zeek::Event ev(std::move(name), std::move(args));
-	bstate->endpoint.publish(move(topic), ev.move_data());
+	bstate->endpoint.publish(std::move(topic), ev.move_data());
 	++statistics.num_events_outgoing;
 	return true;
 	}
@@ -713,9 +713,9 @@ bool Manager::PublishIdentifier(std::string topic, std::string id)
 		return false;
 		}
 
-	broker::zeek::IdentifierUpdate msg(move(id), move(*data));
+	broker::zeek::IdentifierUpdate msg(std::move(id), std::move(*data));
 	DBG_LOG(DBG_BROKER, "Publishing id-update: %s", RenderMessage(topic, msg.as_data()).c_str());
-	bstate->endpoint.publish(move(topic), msg.move_data());
+	bstate->endpoint.publish(std::move(topic), msg.move_data());
 	++statistics.num_ids_outgoing;
 	return true;
 	}
@@ -757,23 +757,23 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer,
 	for ( auto i = 0; i < num_fields; ++i )
 		{
 		auto field_data = detail::threading_field_to_data(fields[i]);
-		fields_data.push_back(move(field_data));
+		fields_data.push_back(std::move(field_data));
 		}
 
 	std::string topic = default_log_topic_prefix + stream_id;
-	auto bstream_id = broker::enum_value(move(stream_id));
-	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::zeek::LogCreate msg(move(bstream_id), move(bwriter_id), move(writer_info),
-	                            move(fields_data));
+	auto bstream_id = broker::enum_value(std::move(stream_id));
+	auto bwriter_id = broker::enum_value(std::move(writer_id));
+	broker::zeek::LogCreate msg(std::move(bstream_id), std::move(bwriter_id),
+	                            std::move(writer_info), std::move(fields_data));
 
 	DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, msg.as_data()).c_str());
 
 	if ( peer.node != NoPeer.node )
 		// Direct message.
-		bstate->endpoint.publish(peer, move(topic), msg.move_data());
+		bstate->endpoint.publish(peer, std::move(topic), msg.move_data());
 	else
 		// Broadcast.
-		bstate->endpoint.publish(move(topic), msg.move_data());
+		bstate->endpoint.publish(std::move(topic), msg.move_data());
 
 	return true;
 	}
@@ -848,9 +848,10 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
 	std::string topic = v->AsString()->CheckString();
 
-	auto bstream_id = broker::enum_value(move(stream_id));
-	auto bwriter_id = broker::enum_value(move(writer_id));
-	broker::zeek::LogWrite msg(move(bstream_id), move(bwriter_id), move(path), move(serial_data));
+	auto bstream_id = broker::enum_value(std::move(stream_id));
+	auto bwriter_id = broker::enum_value(std::move(writer_id));
+	broker::zeek::LogWrite msg(std::move(bstream_id), std::move(bwriter_id), std::move(path),
+	                           std::move(serial_data));
 
 	DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg.as_data()).c_str());
 
@@ -942,7 +943,7 @@ bool Manager::AutoPublishEvent(string topic, Val* event)
 
 	DBG_LOG(DBG_BROKER, "Enabling auto-publishing of event %s to topic %s", handler->Name(),
 	        topic.c_str());
-	handler->AutoPublish(move(topic));
+	handler->AutoPublish(std::move(topic));
 
 	return true;
 	}
@@ -1215,7 +1216,7 @@ void Manager::Process()
 			auto responses = s.second->proxy.receive(num_available);
 
 			for ( auto& r : responses )
-				ProcessStoreResponse(s.second, move(r));
+				ProcessStoreResponse(s.second, std::move(r));
 			}
 		}
 
@@ -1875,7 +1876,7 @@ detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend 
 		it->second = name + suffix;
 		}
 
-	auto result = bstate->endpoint.attach_master(name, type, move(opts));
+	auto result = bstate->endpoint.attach_master(name, type, std::move(opts));
 	if ( ! result )
 		{
 		Error("Failed to attach master store %s:", to_string(result.error()).c_str());

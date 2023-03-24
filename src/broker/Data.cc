@@ -237,14 +237,14 @@ struct val_converter
 					if ( disambiguate )
 						{
 						// Disambiguate from composite key w/ multiple vals.
-						composite_key.emplace_back(move(item));
+						composite_key.emplace_back(std::move(item));
 						indices = &composite_key;
 						}
 					}
 				}
 			else
 				{
-				composite_key.emplace_back(move(item));
+				composite_key.emplace_back(std::move(item));
 				indices = &composite_key;
 				}
 
@@ -255,7 +255,8 @@ struct val_converter
 
 			for ( size_t i = 0; i < indices->size(); ++i )
 				{
-				auto index_val = data_to_val(move((*indices)[i]), expected_index_types[i].get());
+				auto index_val = data_to_val(std::move((*indices)[i]),
+				                             expected_index_types[i].get());
 
 				if ( ! index_val )
 					return nullptr;
@@ -292,14 +293,14 @@ struct val_converter
 					if ( disambiguate )
 						{
 						// Disambiguate from composite key w/ multiple vals.
-						composite_key.emplace_back(move(item.first));
+						composite_key.emplace_back(std::move(item.first));
 						indices = &composite_key;
 						}
 					}
 				}
 			else
 				{
-				composite_key.emplace_back(move(item.first));
+				composite_key.emplace_back(std::move(item.first));
 				indices = &composite_key;
 				}
 
@@ -310,7 +311,8 @@ struct val_converter
 
 			for ( size_t i = 0; i < indices->size(); ++i )
 				{
-				auto index_val = data_to_val(move((*indices)[i]), expected_index_types[i].get());
+				auto index_val = data_to_val(std::move((*indices)[i]),
+				                             expected_index_types[i].get());
 
 				if ( ! index_val )
 					return nullptr;
@@ -318,7 +320,7 @@ struct val_converter
 				list_val->Append(std::move(index_val));
 				}
 
-			auto value_val = data_to_val(move(item.second), tt->Yield().get());
+			auto value_val = data_to_val(std::move(item.second), tt->Yield().get());
 
 			if ( ! value_val )
 				return nullptr;
@@ -338,7 +340,7 @@ struct val_converter
 
 			for ( auto& item : a )
 				{
-				auto item_val = data_to_val(move(item), vt->Yield().get());
+				auto item_val = data_to_val(std::move(item), vt->Yield().get());
 
 				if ( ! item_val )
 					return nullptr;
@@ -364,7 +366,7 @@ struct val_converter
 			unsigned int pos = 0;
 			for ( auto& item : a )
 				{
-				auto item_val = data_to_val(move(item),
+				auto item_val = data_to_val(std::move(item),
 				                            pure ? lt->GetPureType().get() : types[pos].get());
 				pos++;
 
@@ -441,7 +443,7 @@ struct val_converter
 					continue;
 					}
 
-				auto item_val = data_to_val(move(a[idx]), rt->GetFieldType(i).get());
+				auto item_val = data_to_val(std::move(a[idx]), rt->GetFieldType(i).get());
 
 				if ( ! item_val )
 					return nullptr;
@@ -814,7 +816,7 @@ static bool data_type_check(const broker::data& d, Type* t)
 ValPtr data_to_val(broker::data d, Type* type)
 	{
 	if ( type->Tag() == TYPE_ANY )
-		return make_data_val(move(d));
+		return make_data_val(std::move(d));
 
 	return visit(val_converter{type}, d);
 	}
@@ -936,18 +938,18 @@ broker::expected<broker::data> val_to_data(const Val* v)
 					if ( ! key_part )
 						return broker::ec::invalid_data;
 
-					composite_key.emplace_back(move(*key_part));
+					composite_key.emplace_back(std::move(*key_part));
 					}
 
 				broker::data key;
 
 				if ( composite_key.size() == 1 )
-					key = move(composite_key[0]);
+					key = std::move(composite_key[0]);
 				else
-					key = move(composite_key);
+					key = std::move(composite_key);
 
 				if ( is_set )
-					get<broker::set>(rval).emplace(move(key));
+					get<broker::set>(rval).emplace(std::move(key));
 				else
 					{
 					auto val = val_to_data(te.value->GetVal().get());
@@ -955,7 +957,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 					if ( ! val )
 						return broker::ec::invalid_data;
 
-					get<broker::table>(rval).emplace(move(key), move(*val));
+					get<broker::table>(rval).emplace(std::move(key), std::move(*val));
 					}
 				}
 
@@ -979,7 +981,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 				if ( ! item )
 					return broker::ec::invalid_data;
 
-				rval.emplace_back(move(*item));
+				rval.emplace_back(std::move(*item));
 				}
 
 			return {std::move(rval)};
@@ -1004,7 +1006,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 				if ( ! item )
 					return broker::ec::invalid_data;
 
-				rval.emplace_back(move(*item));
+				rval.emplace_back(std::move(*item));
 				}
 
 			return {std::move(rval)};
@@ -1031,7 +1033,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 				if ( ! item )
 					return broker::ec::invalid_data;
 
-				rval.emplace_back(move(*item));
+				rval.emplace_back(std::move(*item));
 				}
 
 			return {std::move(rval)};
@@ -1067,7 +1069,7 @@ RecordValPtr make_data_val(Val* v)
 	auto data = val_to_data(v);
 
 	if ( data )
-		rval->Assign(0, make_intrusive<DataVal>(move(*data)));
+		rval->Assign(0, make_intrusive<DataVal>(std::move(*data)));
 	else
 		reporter->Warning("did not get a value from val_to_data");
 
@@ -1077,7 +1079,7 @@ RecordValPtr make_data_val(Val* v)
 RecordValPtr make_data_val(broker::data d)
 	{
 	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
-	rval->Assign(0, make_intrusive<DataVal>(move(d)));
+	rval->Assign(0, make_intrusive<DataVal>(std::move(d)));
 	return rval;
 	}
 

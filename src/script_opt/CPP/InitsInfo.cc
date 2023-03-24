@@ -27,7 +27,7 @@ void CPP_InitsInfo::AddInstance(shared_ptr<CPP_InitInfo> g)
 
 	g->SetOffset(this, size++);
 
-	instances[final_init_cohort].push_back(move(g));
+	instances[final_init_cohort].push_back(std::move(g));
 	}
 
 string CPP_InitsInfo::Declare() const
@@ -353,7 +353,7 @@ AttrsInfo::AttrsInfo(CPPCompile* _c, const AttributesPtr& _attrs) : CompoundItem
 	}
 
 GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
-	: CPP_InitInfo(g), CPP_name(move(_CPP_name))
+	: CPP_InitInfo(g), CPP_name(std::move(_CPP_name))
 	{
 	Zeek_name = g->Name();
 
@@ -392,7 +392,8 @@ void GlobalInitInfo::InitializerVals(std::vector<std::string>& ivs) const
 	}
 
 CallExprInitInfo::CallExprInitInfo(CPPCompile* c, ExprPtr _e, string _e_name, string _wrapper_class)
-	: CPP_InitInfo(_e), e(move(_e)), e_name(move(_e_name)), wrapper_class(move(_wrapper_class))
+	: CPP_InitInfo(_e), e(std::move(_e)), e_name(std::move(_e_name)),
+	  wrapper_class(std::move(_wrapper_class))
 	{
 	auto gi = c->RegisterType(e->GetType());
 	if ( gi )
@@ -402,7 +403,7 @@ CallExprInitInfo::CallExprInitInfo(CPPCompile* c, ExprPtr _e, string _e_name, st
 LambdaRegistrationInfo::LambdaRegistrationInfo(CPPCompile* c, string _name, FuncTypePtr ft,
                                                string _wrapper_class, p_hash_type _h,
                                                bool _has_captures)
-	: CPP_InitInfo(ft), name(move(_name)), wrapper_class(move(_wrapper_class)), h(_h),
+	: CPP_InitInfo(ft), name(std::move(_name)), wrapper_class(std::move(_wrapper_class)), h(_h),
 	  has_captures(_has_captures)
 	{
 	auto gi = c->RegisterType(ft);
@@ -436,7 +437,7 @@ void OpaqueTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 	ivs.emplace_back(Fmt(c->TrackString(t->AsOpaqueType()->Name())));
 	}
 
-TypeTypeInfo::TypeTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))
+TypeTypeInfo::TypeTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t))
 	{
 	tt = t->AsTypeType()->GetType();
 	auto gi = c->RegisterType(tt);
@@ -449,7 +450,7 @@ void TypeTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 	ivs.emplace_back(to_string(c->TypeOffset(tt)));
 	}
 
-VectorTypeInfo::VectorTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))
+VectorTypeInfo::VectorTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t))
 	{
 	yield = t->Yield();
 	auto gi = c->RegisterType(yield);
@@ -463,7 +464,7 @@ void VectorTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 	}
 
 ListTypeInfo::ListTypeInfo(CPPCompile* _c, TypePtr _t)
-	: AbstractTypeInfo(_c, move(_t)), types(t->AsTypeList()->GetTypes())
+	: AbstractTypeInfo(_c, std::move(_t)), types(t->AsTypeList()->GetTypes())
 	{
 	// Note, we leave init_cohort at 0 because the skeleton of this type
 	// is built in the first cohort.
@@ -488,7 +489,7 @@ void ListTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 		}
 	}
 
-TableTypeInfo::TableTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))
+TableTypeInfo::TableTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t))
 	{
 	// Note, we leave init_cohort at 0 because the skeleton of this type
 	// is built in the first cohort.
@@ -516,7 +517,7 @@ void TableTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 	ivs.emplace_back(Fmt(yield ? c->TypeOffset(yield) : -1));
 	}
 
-FuncTypeInfo::FuncTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))
+FuncTypeInfo::FuncTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t))
 	{
 	auto f = t->AsFuncType();
 
@@ -543,7 +544,7 @@ void FuncTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const
 	ivs.emplace_back(Fmt(static_cast<int>(flavor)));
 	}
 
-RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, move(_t))
+RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t))
 	{
 	// Note, we leave init_cohort at 0 because the skeleton of this type
 	// is built in the first cohort.

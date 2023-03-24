@@ -1352,7 +1352,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 		mapping_slot = num_ev_mappings++;
 
 		string enum_name = et->Lookup(v);
-		enum_names.emplace_back(pair(TypeOffset(t), move(enum_name)));
+		enum_names.emplace_back(pair(TypeOffset(t), std::move(enum_name)));
 
 		if ( evm != enum_val_mappings.end() )
 			{

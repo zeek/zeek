@@ -86,7 +86,7 @@ void Reporter::InitOptions()
 			auto k = wle.GetHashKey();
 			auto index = wl_val->RecreateIndex(*k);
 			std::string key = index->Idx(0)->AsString()->CheckString();
-			set->emplace(move(key));
+			set->emplace(std::move(key));
 			}
 	};
 

@@ -2,6 +2,7 @@
 
 #include "zeek/file_analysis/File.h"
 
+#include <limits>
 #include <utility>
 
 #include "zeek/Event.h"
@@ -431,6 +432,15 @@ void File::DeliverStream(const u_char* data, uint64_t len)
 
 void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	{
+	if ( std::numeric_limits<uint64_t>::max() - offset < len )
+		{
+		reporter->Weird(this, "file_offset_overflow",
+		                zeek::util::fmt("offset=%" PRIx64 " len=%" PRIx64, offset, len),
+		                GetSource().c_str());
+
+		len = std::numeric_limits<uint64_t>::max() - offset;
+		}
+
 	// Potentially handle reassembly and deliver to the stream analyzers.
 	if ( file_reassembler )
 		{

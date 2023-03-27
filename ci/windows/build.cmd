@@ -7,5 +7,6 @@ call "c:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliar
 mkdir build
 cd build
 
-cmake.exe .. -DCMAKE_BUILD_TYPE=release -DENABLE_ZEEK_UNIT_TESTS=yes -G Ninja
+cmake.exe --version
+cmake.exe .. -DCMAKE_BUILD_TYPE=release -DENABLE_ZEEK_UNIT_TESTS=yes -G Ninja -DCMAKE_TOOLCHAIN_FILE=C:\zeek\build\conan_toolchain.cmake -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
 cmake.exe --build .

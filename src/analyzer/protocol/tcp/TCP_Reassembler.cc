@@ -371,6 +371,7 @@ void TCP_Reassembler::BlockInserted(DataBlockMap::const_iterator it)
 	{
 	const auto& start_block = it->second;
 
+	assert(start_block.seq < start_block.upper);
 	if ( start_block.seq > last_reassem_seq || start_block.upper <= last_reassem_seq )
 		return;
 

@@ -1218,21 +1218,6 @@ void Manager::Process()
 				ProcessStoreResponse(s.second, move(r));
 			}
 		}
-
-	if ( had_input )
-		{
-		if ( run_state::network_time == 0 )
-			{
-			// If we're getting Broker messages, but still haven't initialized
-			// run_state::network_time, may as well do so now because otherwise the
-			// broker/cluster logs will end up using timestamp 0.
-			//
-			// Do not do this when allow_network_time_forard is set to F
-			// with the assumption that this is unwanted behavior.
-			if ( get_option("allow_network_time_forward")->AsBool() )
-				run_state::detail::update_network_time(util::current_time());
-			}
-		}
 	}
 
 void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id,

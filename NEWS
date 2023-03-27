@@ -161,6 +161,10 @@ Changed Functionality
   more sensible with regards of determinism and in line with timers stopping
   during a ``suspend_processing()``.
 
+- Broker does not initialize a 0.0 network time to current time anymore upon
+  processing input. Specifically in zeek -r scenarios, that is not the wanted
+  behaviour.
+
 Removed Functionality
 ---------------------
 

@@ -1,3 +1,28 @@
+6.0.0-dev.274 | 2023-03-27 21:32:53 +0200
+
+  * btest/broker: Add test using Python bindings and zeek -r (Arne Welzel, Corelight)
+
+    This came up in community.zeek.org as a use-case and there
+    were a few gaps and holes, so add a test showing minimally
+    the current behavior.
+
+  * Broker: Remove network time initialization (Arne Welzel, Corelight)
+
+    Remove the special case of initializing network time if it hasn't
+    happened yet. The argument about broker.log containing 0.0 timestamps
+    is more a problem of the log, not something that would justify modifying
+    network time globally. For broker.log and possibly cluster.log, it might
+    be more reasonable to use current time, anyway.
+
+    I was a bit wary about tables backed by broker stores being populated
+    with network_time set to 0.0, but there seems to exist logic and assumptions
+    that this is okay: It should be the same as if one populates a table with
+    expirations set within zeek_init().
+
+    In fact, staring a bit more, *not setting* network time might be more correct
+    as workers that don't see packets would never set zeek_start_network_time
+    which is used within the expiration computation.
+
 6.0.0-dev.271 | 2023-03-24 09:12:04 +0100
 
   * cirrus: No container images on PRs (Arne Welzel, Corelight)

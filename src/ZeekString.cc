@@ -540,9 +540,6 @@ TEST_CASE("construction")
 	CHECK_EQ(s7.Len(), 6);
 	CHECK_EQ(s7.Bytes(), text2);
 
-	// Construct a temporary reporter object for the next two tests
-	zeek::reporter = new zeek::Reporter(false);
-
 	zeek::byte_vec text3 = new u_char[7];
 	memcpy(text3, text.c_str(), 7);
 	zeek::String s8{false, text3, 6};
@@ -553,8 +550,6 @@ TEST_CASE("construction")
 	text4[2] = '\0';
 	zeek::String s9{false, text4, 6};
 	CHECK_EQ(std::string(s9.CheckString()), "<string-with-NUL>");
-
-	delete zeek::reporter;
 
 	zeek::byte_vec text5 = (zeek::byte_vec)malloc(7);
 	memcpy(text5, text.c_str(), 7);

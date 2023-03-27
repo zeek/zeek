@@ -5,8 +5,10 @@
 #include "zeek/zeek-config.h"
 
 #include <algorithm>
+#include <limits>
 
 #include "zeek/Desc.h"
+#include "zeek/Reporter.h"
 
 using std::min;
 
@@ -322,6 +324,17 @@ void Reassembler::CheckOverlap(const DataBlockList& list, uint64_t seq, uint64_t
 
 void Reassembler::NewBlock(double t, uint64_t seq, uint64_t len, const u_char* data)
 	{
+
+	// Check for overflows - this should be handled by the caller
+	// and possibly reported as a weird or violation if applicable.
+	if ( std::numeric_limits<uint64_t>::max() - seq < len )
+		{
+		zeek::reporter->InternalWarning("Reassembler::NewBlock() truncating block at seq %" PRIx64
+		                                " from length %" PRIu64 " to %" PRIu64,
+		                                seq, len, std::numeric_limits<uint64_t>::max() - seq);
+		len = std::numeric_limits<uint64_t>::max() - seq;
+		}
+
 	if ( len == 0 )
 		return;
 

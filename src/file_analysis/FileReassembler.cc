@@ -2,6 +2,7 @@
 
 #include "zeek/file_analysis/FileReassembler.h"
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/file_analysis/File.h"
 
 namespace zeek::file_analysis
@@ -46,7 +47,7 @@ uint64_t FileReassembler::FlushTo(uint64_t sequence)
 void FileReassembler::BlockInserted(DataBlockMap::const_iterator it)
 	{
 	const auto& start_block = it->second;
-
+	assert(start_block.seq < start_block.upper);
 	if ( start_block.seq > last_reassem_seq || start_block.upper <= last_reassem_seq )
 		return;
 
@@ -113,3 +114,58 @@ void FileReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n)
 	// Not doing anything here yet.
 	}
 	} // end file_analysis
+
+// Test reassembler logic through FileReassembler.
+TEST_CASE("file reassembler")
+	{
+	// Can not construct due to protected constructor.
+	class TestFile : public zeek::file_analysis::File
+		{
+	public:
+		TestFile(const std::string& file_id, const std::string& source_name)
+			: zeek::file_analysis::File(file_id, source_name)
+			{
+			}
+		};
+
+	auto f = std::make_unique<TestFile>("test_file_id", "test_source_name");
+	auto r = std::make_unique<zeek::file_analysis::FileReassembler>(f.get(), 0);
+
+	const u_char* data = (u_char*)("0123456789ABCDEF");
+
+	SUBCASE("block overlap and 64bit overflow")
+		{
+		r->NewBlock(0.0, 0xfffffffffffffff7, 3, data);
+		r->NewBlock(0.0, 0xfffffffffffffff7, 15, data);
+		r->NewBlock(0.0, 0xfffffffffffffff3, 15, data);
+
+		// 0xfffffffffffffff3 through 0xffffffffffffffff
+		CHECK_EQ(r->TotalSize(), 12);
+
+		// This previously hung with an endless loop.
+		r->Flush();
+		CHECK_FALSE(r->HasBlocks());
+		CHECK_EQ(r->TotalSize(), 0);
+		}
+
+	SUBCASE("reject NewBlock() at 64 bit limit")
+		{
+		r->NewBlock(0.0, 0xffffffffffffffff, 4, data);
+		CHECK_FALSE(r->HasBlocks());
+		CHECK_EQ(r->TotalSize(), 0);
+		}
+
+	SUBCASE("truncate NewBlock() to upper 64 bit limit")
+		{
+		r->NewBlock(0.0, 0xfffffffffffffffa, 8, data);
+		CHECK(r->HasBlocks());
+		CHECK_EQ(r->TotalSize(), 5);
+		}
+
+	SUBCASE("no truncation")
+		{
+		r->NewBlock(0.0, 0xfffffffffffffff7, 8, data);
+		CHECK(r->HasBlocks());
+		CHECK_EQ(r->TotalSize(), 8);
+		}
+	}

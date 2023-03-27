@@ -679,7 +679,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
 	     options.script_options_to_set.empty() && ! options.pcap_file && ! options.interface &&
 	     ! options.identifier_to_print && ! command_line_policy && ! options.print_plugins &&
-	     ! options.supervisor_mode && ! Supervisor::ThisNode() )
+	     ! options.supervisor_mode && ! Supervisor::ThisNode() && ! options.run_unit_tests )
 		add_input_file("-");
 
 	for ( const auto& script_option : options.script_options_to_set )
@@ -725,17 +725,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		plugin_mgr->ActivateDynamicPlugin(std::move(x));
 
 	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
-
-	// Delay the unit test until here so that plugins have been loaded.
-	if ( options.run_unit_tests )
-		{
-		set_signal_mask(false); // Allow ctrl-c to abort the tests early
-		doctest::Context context;
-		auto dargs = to_cargs(options.doctest_args);
-		context.applyCommandLine(dargs.size(), dargs.data());
-		ZEEK_LSAN_ENABLE();
-		exit(context.run());
-		}
 
 	// Print usage after plugins load so that any path extensions are properly shown.
 	if ( options.print_usage )
@@ -807,6 +796,18 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		init_general_global_var();
 		init_net_var();
 		run_bif_initializers();
+
+		// Delay the unit test until here so that plugins and script
+		// types have been fully loaded.
+		if ( options.run_unit_tests )
+			{
+			set_signal_mask(false); // Allow ctrl-c to abort the tests early
+			doctest::Context context;
+			auto dargs = to_cargs(options.doctest_args);
+			context.applyCommandLine(dargs.size(), dargs.data());
+			ZEEK_LSAN_ENABLE();
+			exit(context.run());
+			}
 
 		// Assign the script_args for command line processing in Zeek scripts.
 		if ( ! options.script_args.empty() )

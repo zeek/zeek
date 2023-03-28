@@ -1,3 +1,7 @@
+6.0.0-dev.276 | 2023-03-28 09:19:59 -0700
+
+  * Fix a bunch of -Wunqualified-std-cast-call warnings from clang 15 (Tim Wojtulewicz)
+
 6.0.0-dev.274 | 2023-03-27 21:32:53 +0200
 
   * btest/broker: Add test using Python bindings and zeek -r (Arne Welzel, Corelight)

@@ -251,7 +251,7 @@ VectorValPtr vec_op_add__CPP(VectorValPtr v, int incr)
 
 VectorValPtr vec_op_sub__CPP(VectorValPtr v, int i)
 	{
-	return vec_op_add__CPP(move(v), -i);
+	return vec_op_add__CPP(std::move(v), -i);
 	}
 
 // This function provides the core functionality.  The arguments
@@ -381,7 +381,7 @@ VectorValPtr vector_select__CPP(const VectorValPtr& v1, VectorValPtr v2, VectorV
 	for ( unsigned int i = 0; i < n; ++i )
 		{
 		auto vr_i = v1->BoolAt(i) ? v2->ValAt(i) : v3->ValAt(i);
-		v_result->Assign(i, move(vr_i));
+		v_result->Assign(i, std::move(vr_i));
 		}
 
 	return v_result;
@@ -390,7 +390,7 @@ VectorValPtr vector_select__CPP(const VectorValPtr& v1, VectorValPtr v2, VectorV
 VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ)
 	{
 	auto res_t = cast_intrusive<VectorType>(targ);
-	auto v_result = make_intrusive<VectorVal>(move(res_t));
+	auto v_result = make_intrusive<VectorVal>(std::move(res_t));
 	auto n = v->Size();
 	auto yt = targ->Yield();
 	auto ytag = yt->Tag();
@@ -455,7 +455,7 @@ VectorValPtr vector_coerce_to__CPP(const VectorValPtr& v, const TypePtr& targ)
 				reporter->InternalError("bad vector type in vector_coerce_to__CPP");
 			}
 
-		v_result->Assign(i, move(r_i));
+		v_result->Assign(i, std::move(r_i));
 		}
 
 	return v_result;

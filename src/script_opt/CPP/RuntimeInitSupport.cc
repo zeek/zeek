@@ -52,7 +52,7 @@ void register_type__CPP(TypePtr t, const string& name)
 void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events,
                         void (*finish_init)())
 	{
-	compiled_scripts[hash] = {move(body), priority, move(events), finish_init};
+	compiled_scripts[hash] = {std::move(body), priority, std::move(events), finish_init};
 	}
 
 static unordered_map<p_hash_type, CompiledScript> compiled_standalone_scripts;
@@ -62,7 +62,7 @@ void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type ha
 	{
 	// For standalone scripts we don't actually need finish_init, but
 	// we keep it for symmetry with compiled_scripts.
-	compiled_standalone_scripts[hash] = {move(body), priority, move(events), finish_init};
+	compiled_standalone_scripts[hash] = {std::move(body), priority, std::move(events), finish_init};
 	}
 
 void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t,
@@ -75,8 +75,8 @@ void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, T
 	auto func = make_intrusive<CPPLambdaFunc>(name, ft, body);
 	func->SetName(name);
 
-	auto v = make_intrusive<FuncVal>(move(func));
-	id->SetVal(move(v));
+	auto v = make_intrusive<FuncVal>(std::move(func));
+	id->SetVal(std::move(v));
 	id->SetType(ft);
 
 	// Lambdas used in initializing global functions need to
@@ -118,7 +118,7 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 		vector<int> no_priorities;
 		auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies, no_priorities);
 
-		v = make_intrusive<FuncVal>(move(sf));
+		v = make_intrusive<FuncVal>(std::move(sf));
 		fg->SetVal(v);
 		}
 
@@ -221,9 +221,10 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
 			}
 		}
 
-	auto sf = make_intrusive<ScriptFunc>(move(name), move(ft), move(bodies), move(priorities));
+	auto sf = make_intrusive<ScriptFunc>(std::move(name), std::move(ft), std::move(bodies),
+	                                     std::move(priorities));
 
-	return make_intrusive<FuncVal>(move(sf));
+	return make_intrusive<FuncVal>(std::move(sf));
 	}
 
 IDPtr find_global__CPP(const char* g)
@@ -259,7 +260,7 @@ EnumTypePtr get_enum_type__CPP(const string& enum_type_name)
 
 EnumValPtr make_enum__CPP(TypePtr t, zeek_int_t i)
 	{
-	auto et = cast_intrusive<EnumType>(move(t));
+	auto et = cast_intrusive<EnumType>(std::move(t));
 	return make_intrusive<EnumVal>(et, i);
 	}
 

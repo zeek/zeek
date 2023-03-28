@@ -46,9 +46,9 @@ CPPStmt::CPPStmt(const char* _name, const char* filename, int line_num)
 	}
 
 CPPLambdaFunc::CPPLambdaFunc(string _name, FuncTypePtr ft, CPPStmtPtr _l_body)
-	: ScriptFunc(move(_name), move(ft), {_l_body}, {0})
+	: ScriptFunc(std::move(_name), std::move(ft), {_l_body}, {0})
 	{
-	l_body = move(_l_body);
+	l_body = std::move(_l_body);
 	}
 
 broker::expected<broker::data> CPPLambdaFunc::SerializeCaptures() const
@@ -67,13 +67,13 @@ broker::expected<broker::data> CPPLambdaFunc::SerializeCaptures() const
 			return broker::ec::invalid_data;
 
 		TypeTag tag = val->GetType()->Tag();
-		broker::vector val_tuple{move(*expected), static_cast<broker::integer>(tag)};
-		body.emplace_back(move(val_tuple));
+		broker::vector val_tuple{std::move(*expected), static_cast<broker::integer>(tag)};
+		body.emplace_back(std::move(val_tuple));
 		}
 
-	rval.emplace_back(move(body));
+	rval.emplace_back(std::move(body));
 
-	return {move(rval)};
+	return {std::move(rval)};
 	}
 
 void CPPLambdaFunc::SetCaptures(Frame* f)

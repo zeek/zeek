@@ -526,7 +526,7 @@ void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec
 
 			auto sf = make_intrusive<ScriptFunc>(fn, ft, no_bodies, no_priorities);
 
-			auto v = make_intrusive<FuncVal>(move(sf));
+			auto v = make_intrusive<FuncVal>(std::move(sf));
 			global->SetVal(v);
 			}
 		}
@@ -561,7 +561,7 @@ void generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set
 			indices.push_back(i_ptr[i]);
 		i_ptr += n;
 
-		indices_set.emplace_back(move(indices));
+		indices_set.emplace_back(std::move(indices));
 		}
 	}
 

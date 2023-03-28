@@ -104,7 +104,7 @@ bool CPPCompile::AddGlobal(const string& g, const char* suffix)
 
 void CPPCompile::RegisterEvent(string ev_name)
 	{
-	body_events[body_name].emplace_back(move(ev_name));
+	body_events[body_name].emplace_back(std::move(ev_name));
 	}
 
 const string& CPPCompile::IDNameStr(const ID* id)

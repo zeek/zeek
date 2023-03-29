@@ -98,6 +98,14 @@ New Functionality
   or a custom plugin, this allows control of ``network_time()`` without Zeek
   interfering.
 
+- The AF_Packet packet sources now de-duplicates packets when capturing
+  from loopback interfaces. Previously, Zeek would report re-transmissions
+  and twice as many packets/bytes when compared to the default libpcap
+  source.
+
+- The AF_Packet packet source now reports a descriptive error when the
+  capture interface is down instead of an "Invalid argument" error.
+
 Changed Functionality
 ---------------------
 

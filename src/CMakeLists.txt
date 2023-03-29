@@ -570,7 +570,25 @@ if (ZEEK_STANDALONE)
         CACHE STRING "Zeek executable binary" FORCE)
 
     set(BRO_EXE_PATH ${CMAKE_CURRENT_BINARY_DIR}/zeek
-        CACHE STRING "Path to Zeek executable binary" FORCE)
+      CACHE STRING "Path to Zeek executable binary" FORCE)
+
+    if ( ENABLE_ZEEK_UNIT_TESTS )
+        set(_doctest_extra_args "--")
+        list(APPEND _doctest_extra_args "-L")
+        list(APPEND _doctest_extra_args "${CMAKE_SOURCE_DIR}/scripts")
+        list(APPEND _doctest_extra_args "-L")
+        list(APPEND _doctest_extra_args "${CMAKE_SOURCE_DIR}/scripts/policy")
+        list(APPEND _doctest_extra_args "-L")
+        list(APPEND _doctest_extra_args "${CMAKE_SOURCE_DIR}/scripts/site")
+        list(APPEND _doctest_extra_args "-L")
+        list(APPEND _doctest_extra_args "${CMAKE_BINARY_DIR}/scripts")
+        list(APPEND _doctest_extra_args "-L")
+        list(APPEND _doctest_extra_args "${CMAKE_BINARY_DIR}/scripts/builtin-plugins")
+
+        include(../cmake/doctest.cmake)
+        doctest_discover_tests(zeek EXTRA_ARGS ${_doctest_extra_args})
+    endif()
+
 endif()
 
 if (NOT ZEEK_STANDALONE OR CONAN_EXPORTED)

@@ -541,6 +541,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	if ( options.run_unit_tests )
 		options.deterministic_mode = true;
 
+	for ( const auto& p : options.zeek_path_additions )
+		util::detail::add_to_zeek_path(p);
+
 	auto stem = Supervisor::CreateStem(options.supervisor_mode);
 
 	if ( Supervisor::ThisNode() )

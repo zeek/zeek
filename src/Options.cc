@@ -38,6 +38,7 @@ void Options::filter_supervised_node_options()
 	debug_script_tracing_file = og.debug_script_tracing_file;
 	script_code_to_exec = og.script_code_to_exec;
 	script_prefixes = og.script_prefixes;
+	zeek_path_additions = og.zeek_path_additions;
 
 	signature_re_level = og.signature_re_level;
 	ignore_checksums = og.ignore_checksums;
@@ -122,6 +123,7 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "    -G|--load-seeds <file>          | load seeds from given file\n");
 	fprintf(stderr, "    -H|--save-seeds <file>          | save seeds to given file\n");
 	fprintf(stderr, "    -I|--print-id <ID name>         | print out given ID\n");
+	fprintf(stderr, "    -L|--add-script-path <path>     | adds path to ZEEKPATH during startup\n");
 	fprintf(stderr, "    -N|--print-plugins              | print available plugins and exit (-NN "
 	                "for verbose)\n");
 	fprintf(stderr, "    -O|--optimize <option>          | enable script optimization (use -O help "
@@ -407,6 +409,7 @@ Options parse_cmdline(int argc, char** argv)
 		{"print-id", required_argument, nullptr, 'I'},
 		{"status-file", required_argument, nullptr, 'U'},
 		{"debug", required_argument, nullptr, 'B'},
+		{"add-script-path", required_argument, nullptr, 'L'},
 
 #ifdef USE_PERFTOOLS_DEBUG
 		{"mem-leaks", no_argument, nullptr, 'm'},
@@ -423,7 +426,7 @@ Options parse_cmdline(int argc, char** argv)
 	};
 
 	char opts[256];
-	util::safe_strncpy(opts, "B:c:E:e:f:G:H:I:i:j::n:O:0:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuvV",
+	util::safe_strncpy(opts, "B:c:E:e:f:G:H:I:i:j:L:n:O:0:o:p:r:s:T:t:U:w:X:CDFMNPQSWabdhmuvV",
 	                   sizeof(opts));
 
 	int op;
@@ -556,6 +559,9 @@ Options parse_cmdline(int argc, char** argv)
 				break;
 			case 'I':
 				rval.identifier_to_print = optarg;
+				break;
+			case 'L':
+				rval.zeek_path_additions.emplace_back(optarg);
 				break;
 			case 'N':
 				++rval.print_plugins;

@@ -44,6 +44,7 @@ struct Options
 	std::optional<std::string> identifier_to_print;
 	std::optional<std::string> script_code_to_exec;
 	std::vector<std::string> script_prefixes = {""}; // "" = "no prefix"
+	std::vector<std::string> zeek_path_additions;
 
 	int signature_re_level = 4;
 	bool ignore_checksums = false;

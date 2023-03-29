@@ -59,6 +59,24 @@ void AF_PacketSource::Open()
         return;
         }
 
+	auto info = GetInterfaceInfo(props.path);
+
+	if ( ! info.Valid() )
+		{
+		Error(errno ? strerror(errno) : "unable to get interface information");
+		close(socket_fd);
+		socket_fd = -1;
+		return;
+		}
+
+	if ( ! info.IsUp() )
+		{
+		Error("interface is down");
+		close(socket_fd);
+		socket_fd = -1;
+		return;
+		}
+
 	// Create RX-ring
 	try {
 		rx_ring = new RX_Ring(socket_fd, buffer_size, block_size, block_timeout_msec);
@@ -68,20 +86,20 @@ void AF_PacketSource::Open()
 		return;
 	}
 
-    // Setup interface
-    if ( ! BindInterface() )
-        {
-        Error(errno ? strerror(errno) : "unable to bind to interface");
-        close(socket_fd);
-        return;
-        }
+	// Setup interface
+	if ( ! BindInterface(info) )
+		{
+		Error(errno ? strerror(errno) : "unable to bind to interface");
+		close(socket_fd);
+		return;
+		}
 
-    if ( ! EnablePromiscMode() )
-        {
-        Error(errno ? strerror(errno) : "unable enter promiscious mode");
-        close(socket_fd);
-        return;
-        }
+	if ( ! EnablePromiscMode(info) )
+		{
+		Error(errno ? strerror(errno) : "unable enter promiscious mode");
+		close(socket_fd);
+		return;
+		}
 
 	if ( ! ConfigureFanoutGroup(enable_fanout, enable_defrag) )
 		{
@@ -108,44 +126,52 @@ void AF_PacketSource::Open()
     Opened(props);
     }
 
-bool AF_PacketSource::BindInterface()
+AF_PacketSource::InterfaceInfo AF_PacketSource::GetInterfaceInfo(const std::string& path)
 	{
+	AF_PacketSource::InterfaceInfo info;
 	struct ifreq ifr;
+	int ret;
+
+	memset(&ifr, 0, sizeof(ifr));
+	snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", path.c_str());
+
+	ret = ioctl(socket_fd, SIOCGIFFLAGS, &ifr);
+	if ( ret < 0 )
+		return info;
+
+	info.flags = ifr.ifr_flags;
+
+	ret = ioctl(socket_fd, SIOCGIFINDEX, &ifr);
+	if ( ret < 0 )
+		return info;
+
+	info.index = ifr.ifr_ifindex;
+
+	return info;
+	}
+
+bool AF_PacketSource::BindInterface(const AF_PacketSource::InterfaceInfo& info)
+	{
 	struct sockaddr_ll saddr_ll;
 	int ret;
 
-    memset(&ifr, 0, sizeof(ifr));
-    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", props.path.c_str());
-
-    ret = ioctl(socket_fd, SIOCGIFINDEX, &ifr);
-    if ( ret < 0 )
-        return false;
-
-    memset(&saddr_ll, 0, sizeof(saddr_ll));
-    saddr_ll.sll_family = AF_PACKET;
-    saddr_ll.sll_protocol = htons(ETH_P_ALL);
-    saddr_ll.sll_ifindex = ifr.ifr_ifindex;
+	memset(&saddr_ll, 0, sizeof(saddr_ll));
+	saddr_ll.sll_family = AF_PACKET;
+	saddr_ll.sll_protocol = htons(ETH_P_ALL);
+	saddr_ll.sll_ifindex = info.index;
 
     ret = bind(socket_fd, (struct sockaddr *) &saddr_ll, sizeof(saddr_ll));
     return (ret >= 0);
     }
 
-bool AF_PacketSource::EnablePromiscMode()
+bool AF_PacketSource::EnablePromiscMode(const AF_PacketSource::InterfaceInfo& info)
 	{
-	struct ifreq ifr;
 	struct packet_mreq mreq;
 	int ret;
 
-    memset(&ifr, 0, sizeof(ifr));
-    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", props.path.c_str());
-
-    ret = ioctl(socket_fd, SIOCGIFINDEX, &ifr);
-    if ( ret < 0 )
-        return false;
-
-    memset(&mreq, 0, sizeof(mreq));
-    mreq.mr_ifindex = ifr.ifr_ifindex;
-    mreq.mr_type = PACKET_MR_PROMISC;
+	memset(&mreq, 0, sizeof(mreq));
+	mreq.mr_ifindex = info.index;
+	mreq.mr_type = PACKET_MR_PROMISC;
 
     ret = setsockopt(socket_fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
     return (ret >= 0);

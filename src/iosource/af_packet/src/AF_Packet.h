@@ -66,8 +66,17 @@ private:
 	RX_Ring *rx_ring;
 	struct pcap_pkthdr current_hdr;
 
-	bool BindInterface();
-	bool EnablePromiscMode();
+	struct InterfaceInfo {
+		int index = -1;
+		int flags = 0;
+
+		bool Valid () { return index >= 0; }
+		bool IsUp() { return flags & IFF_UP; }
+	};
+
+	InterfaceInfo GetInterfaceInfo(const std::string& path);
+	bool BindInterface(const InterfaceInfo& info);
+	bool EnablePromiscMode(const InterfaceInfo& info);
 	bool ConfigureFanoutGroup(bool enabled, bool defrag);
 	bool ConfigureHWTimestamping(bool enabled);
 	uint32_t GetFanoutMode(bool defrag);

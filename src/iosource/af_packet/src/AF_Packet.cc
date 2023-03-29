@@ -105,11 +105,11 @@ void AF_PacketSource::Open()
     Opened(props);
     }
 
-inline bool AF_PacketSource::BindInterface()
-    {
-    struct ifreq ifr;
-    struct sockaddr_ll saddr_ll;
-    int ret;
+bool AF_PacketSource::BindInterface()
+	{
+	struct ifreq ifr;
+	struct sockaddr_ll saddr_ll;
+	int ret;
 
     memset(&ifr, 0, sizeof(ifr));
     snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", props.path.c_str());
@@ -127,11 +127,11 @@ inline bool AF_PacketSource::BindInterface()
     return (ret >= 0);
     }
 
-inline bool AF_PacketSource::EnablePromiscMode()
-    {
-    struct ifreq ifr;
-    struct packet_mreq mreq;
-    int ret;
+bool AF_PacketSource::EnablePromiscMode()
+	{
+	struct ifreq ifr;
+	struct packet_mreq mreq;
+	int ret;
 
     memset(&ifr, 0, sizeof(ifr));
     snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", props.path.c_str());
@@ -148,12 +148,12 @@ inline bool AF_PacketSource::EnablePromiscMode()
     return (ret >= 0);
     }
 
-inline bool AF_PacketSource::ConfigureFanoutGroup(bool enabled, bool defrag)
-    {
-    if ( enabled )
-        {
-        uint32_t fanout_arg, fanout_id;
-        int ret;
+bool AF_PacketSource::ConfigureFanoutGroup(bool enabled, bool defrag)
+	{
+	if ( enabled )
+		{
+		uint32_t fanout_arg, fanout_id;
+		int ret;
 
         fanout_id = zeek::BifConst::AF_Packet::fanout_id;
         fanout_arg = ((fanout_id & 0xffff) | (GetFanoutMode(defrag) << 16));
@@ -167,13 +167,13 @@ inline bool AF_PacketSource::ConfigureFanoutGroup(bool enabled, bool defrag)
     return true;
     }
 
-inline bool AF_PacketSource::ConfigureHWTimestamping(bool enabled)
-    {
-    if ( enabled )
-        {
-        struct ifreq ifr;
-        struct hwtstamp_config hwts_cfg;
-        int ret, opt;
+bool AF_PacketSource::ConfigureHWTimestamping(bool enabled)
+	{
+	if ( enabled )
+		{
+		struct ifreq ifr;
+		struct hwtstamp_config hwts_cfg;
+		int ret, opt;
 
         memset(&hwts_cfg, 0, sizeof(hwts_cfg));
         hwts_cfg.tx_type = HWTSTAMP_TX_OFF;
@@ -195,9 +195,9 @@ inline bool AF_PacketSource::ConfigureHWTimestamping(bool enabled)
     return true;
     }
 
-inline uint32_t AF_PacketSource::GetFanoutMode(bool defrag)
-    {
-    uint32_t fanout_mode;
+uint32_t AF_PacketSource::GetFanoutMode(bool defrag)
+	{
+	uint32_t fanout_mode;
 
     switch ( zeek::BifConst::AF_Packet::fanout_mode->AsEnum() ) {
         case BifEnum::AF_Packet::FANOUT_CPU: fanout_mode = PACKET_FANOUT_CPU;

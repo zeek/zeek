@@ -34,6 +34,9 @@ AF_PacketSource::AF_PacketSource(const std::string& path, bool is_live)
 	props.path = path;
 	props.is_live = is_live;
 
+	socket_fd = -1;
+	rx_ring = nullptr;
+
 	checksum_mode = zeek::BifConst::AF_Packet::checksum_validation_mode->AsEnum();
 	}
 
@@ -225,13 +228,15 @@ uint32_t AF_PacketSource::GetFanoutMode(bool defrag)
     }
 
 void AF_PacketSource::Close()
-    {
-    if ( ! socket_fd )
-        return;
+	{
+	if ( socket_fd < 0 )
+		return;
 
-    delete rx_ring;
-    close(socket_fd);
-    socket_fd = 0;
+	delete rx_ring;
+	rx_ring = nullptr;
+
+	close(socket_fd);
+	socket_fd = -1;
 
     Closed();
     }

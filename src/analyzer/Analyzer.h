@@ -434,14 +434,36 @@ public:
 	 *
 	 * @param tag The type of analyzer to prevent.
 	 */
-	void PreventChildren(zeek::Tag tag);
+	void PreventChildren(const zeek::Tag& tag);
+
+	/**
+	 * Returns true if the given analyzer type is prevented from
+	 * being added as a child.
+	 *
+	 * @param tag The type of analyzer to prevent.
+	 *
+	 * @return true if the analyzer type is prevented, else false.
+	 */
+	bool IsPreventedChildAnalyzer(const zeek::Tag& tag) const;
 
 	/**
 	 * Returns true if analyzer has a direct child of a given type.
 	 *
 	 * @param tag The type of analyzer to check for.
 	 */
-	bool HasChildAnalyzer(zeek::Tag tag);
+	bool HasChildAnalyzer(const zeek::Tag& tag) const;
+
+	/**
+	 * Returns a pointer to a direct child analyzer of the given type.
+	 *
+	 * Note that the returned pointer is owned by the analyzer and may
+	 * be deleted without notification. Do not hold on to it.
+	 *
+	 * @param tag The type of the analyzer to check for.
+	 *
+	 * @return The analyzer, or null if not found.
+	 */
+	Analyzer* GetChildAnalyzer(const zeek::Tag& tag) const;
 
 	/**
 	 * Recursively searches all (direct or indirect) childs of the

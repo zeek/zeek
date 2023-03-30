@@ -386,10 +386,8 @@ void Analyzer::ForwardEndOfData(bool orig)
 bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init)
 	{
 	auto t = analyzer->GetAnalyzerTag();
-	auto it = std::find(prevented.begin(), prevented.end(), t);
-	auto prevent = (it != prevented.end());
 
-	if ( HasChildAnalyzer(t) || prevent )
+	if ( HasChildAnalyzer(t) || IsPreventedChildAnalyzer(t) )
 		{
 		analyzer->Done();
 		delete analyzer;
@@ -418,9 +416,7 @@ Analyzer* Analyzer::AddChildAnalyzer(const zeek::Tag& analyzer)
 	if ( HasChildAnalyzer(analyzer) )
 		return nullptr;
 
-	auto it = std::find(prevented.begin(), prevented.end(), analyzer);
-
-	if ( it != prevented.end() )
+	if ( IsPreventedChildAnalyzer(tag) )
 		return nullptr;
 
 	Analyzer* a = analyzer_mgr->InstantiateAnalyzer(analyzer, conn);
@@ -468,27 +464,35 @@ bool Analyzer::Remove()
 	return removing;
 	}
 
-void Analyzer::PreventChildren(zeek::Tag tag)
+void Analyzer::PreventChildren(const zeek::Tag& tag)
 	{
-	auto it = std::find(prevented.begin(), prevented.end(), tag);
-
-	if ( it != prevented.end() )
+	if ( IsPreventedChildAnalyzer(tag) )
 		return;
 
 	prevented.emplace_back(tag);
 	}
 
-bool Analyzer::HasChildAnalyzer(zeek::Tag tag)
+bool Analyzer::IsPreventedChildAnalyzer(const zeek::Tag& tag) const
+	{
+	return std::find(prevented.begin(), prevented.end(), tag) != prevented.end();
+	}
+
+bool Analyzer::HasChildAnalyzer(const zeek::Tag& tag) const
+	{
+	return GetChildAnalyzer(tag) != nullptr;
+	}
+
+Analyzer* Analyzer::GetChildAnalyzer(const zeek::Tag& tag) const
 	{
 	LOOP_OVER_CHILDREN(i)
 	if ( (*i)->tag == tag && ! ((*i)->removing || (*i)->finished) )
-		return true;
+		return *i;
 
 	LOOP_OVER_GIVEN_CHILDREN(i, new_children)
 	if ( (*i)->tag == tag && ! ((*i)->removing || (*i)->finished) )
-		return true;
+		return *i;
 
-	return false;
+	return nullptr;
 	}
 
 Analyzer* Analyzer::FindChild(ID arg_id)

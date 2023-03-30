@@ -1,3 +1,16 @@
+6.0.0-dev.280 | 2023-03-30 09:35:48 +0200
+
+  * Analyzer: Add GetChildAnalyzer() and IsPreventedChildAnalyzer() (Arne Welzel, Corelight)
+
+    GetChildAnalyzer() has the same semantics as HasChildAnalyzer(), but returns
+    the raw pointer to the child analyzer. Main issue is memory management: That
+    pointer is not guaranteed to stay valid. It might be disabled from script
+    land or otherwise removed from the analyzer tree and subsequent
+    deleted in one of the Forward* methods.
+
+    IsPreventedChildAnalyzer() provides minimal introspection for prevented
+    child analyzer tags and allows to remove some duplicated code.
+
 6.0.0-dev.278 | 2023-03-29 14:34:26 -0700
 
   * Bump Spicy and spicy-plugin to their latest development snapshots. (Benjamin Bannier, Corelight)

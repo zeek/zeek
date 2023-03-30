@@ -1,3 +1,13 @@
+6.0.0-dev.284 | 2023-03-30 09:50:57 -0700
+
+  * Reintroduce info when overriding packet analyzer mappings. (Jan Grashoefer, Corelight)
+
+    In #2464 the warning when overriding a packet analyzer mapping was
+    removed. While a warning seems indeed excessive, some info would still
+    be nice to have.
+
+  * Update Cirrus memory limits to avoid timeouts when building (Tim Wojtulewicz)
+
 6.0.0-dev.280 | 2023-03-30 09:35:48 +0200
 
   * Analyzer: Add GetChildAnalyzer() and IsPreventedChildAnalyzer() (Arne Welzel, Corelight)

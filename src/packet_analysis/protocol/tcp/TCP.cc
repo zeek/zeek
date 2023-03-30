@@ -125,7 +125,7 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	pkt->session = c;
 
 	// Send the packet back into the packet analysis framework.
-	ForwardPacket(len, data, pkt);
+	ForwardPacket(std::min(len, remaining), data, pkt);
 
 	// Call DeliverPacket on the adapter directly here. Normally we'd call ForwardPacket
 	// but this adapter does some other things in its DeliverPacket with the packet children

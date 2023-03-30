@@ -1,3 +1,11 @@
+6.0.0-dev.286 | 2023-03-30 09:52:26 -0700
+
+  * Consider cap len when forwarding into packet analysis. (Jan Grashoefer, Corelight)
+
+    When forwarding into packet analysis from TCP or UDP, the protocol's
+    length fields were trusted. This might be dangerous in case of truncated
+    packets.
+
 6.0.0-dev.284 | 2023-03-30 09:50:57 -0700
 
   * Reintroduce info when overriding packet analyzer mappings. (Jan Grashoefer, Corelight)

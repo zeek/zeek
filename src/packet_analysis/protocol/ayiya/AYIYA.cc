@@ -63,19 +63,22 @@ bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
 	len -= hdr_size;
 	data += hdr_size;
 
+	// We've successfully parsed the AYIYA part, so we might as well confirm this.
+	AnalyzerConfirmation(packet->session);
+
+	if ( len == 0 )
+		{
+		// A AYIYA header that isn't followed by a tunnelled packet seems weird.
+		Weird("ayiya_empty_packet", packet);
+		return false;
+		}
+
 	int encap_index = 0;
 	auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(
 		packet, &encap_index, nullptr, len, data, DLT_RAW, BifEnum::Tunnel::AYIYA,
 		GetAnalyzerTag());
 
-	AnalyzerConfirmation(packet->session);
-
-	// Skip the header and pass on to the next analyzer. It's possible for AYIYA to
-	// just be a header and nothing after it, so check for that case.
-	if ( len > hdr_size )
-		return ForwardPacket(len, data, inner_packet.get(), next_header);
-
-	return true;
+	return ForwardPacket(len, data, inner_packet.get(), next_header);
 	}
 
 bool AYIYAAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* packet)

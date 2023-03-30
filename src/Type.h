@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <array>
 #include <list>
 #include <map>
 #include <optional>
@@ -865,6 +866,21 @@ protected:
 
 	TypePtr yield_type;
 	};
+
+// Holds pre-allocated Type objects.
+class TypeManager
+	{
+public:
+	TypeManager();
+
+	// Get a Typelist instance with the given type tag.
+	const TypeListPtr& TypeList(TypeTag t) const;
+
+private:
+	std::array<TypeListPtr, NUM_TYPES> base_list_types;
+	};
+
+extern TypeManager* type_mgr;
 
 // True if the two types are equivalent.  If is_init is true then the test is
 // done in the context of an initialization. If match_record_field_names is

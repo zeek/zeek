@@ -1,6 +1,8 @@
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff reporter.log
 
+@load base/frameworks/reporter
+
 redef PacketAnalyzer::SKIP::skip_bytes: count = 0;
 
 event zeek_init()

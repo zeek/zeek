@@ -1,3 +1,7 @@
+6.0.0-dev.288 | 2023-03-30 13:09:18 -0700
+
+  * Add reporter framework to core.packet-analyzer-override btest (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.286 | 2023-03-30 09:52:26 -0700
 
   * Consider cap len when forwarding into packet analysis. (Jan Grashoefer, Corelight)

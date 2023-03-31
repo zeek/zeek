@@ -1,3 +1,13 @@
+6.0.0-dev.293 | 2023-03-31 10:38:45 +0200
+
+  * Add test cases for Geneve. (Jan Grashoefer, Corelight)
+
+  * Fix forwarding of tunnelled packets. (Jan Grashoefer, Corelight)
+
+    This fixes a bug for AYIYA, Geneve and VXLAN forwarding encapsulated
+    content only if it's longer than their header. A new weird is introduced
+    to indicate empty tunnels.
+
 6.0.0-dev.290 | 2023-03-31 10:33:53 +0200
 
   * Type: Add TypeManager->TypeList() and use for ListVal() (Arne Welzel, Corelight)

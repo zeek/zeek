@@ -47,19 +47,24 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 	len -= hdr_size;
 	data += hdr_size;
 
-	// We've successfully parsed everything, so we might as well confirm this.
+	// We've successfully parsed the VXLAN part, so we might as well confirm this.
 	AnalyzerConfirmation(packet->session);
+
+	if ( len == 0 )
+		{
+		// A VXLAN header that isn't followed by a tunnelled packet seems weird.
+		Weird("vxlan_empty_packet", packet);
+		return false;
+		}
 
 	int encap_index = 0;
 	auto inner_packet = packet_analysis::IPTunnel::build_inner_packet(
 		packet, &encap_index, nullptr, len, data, DLT_RAW, BifEnum::Tunnel::VXLAN,
 		GetAnalyzerTag());
 
-	bool fwd_ret_val = true;
-	if ( len > hdr_size )
-		fwd_ret_val = ForwardPacket(len, data, inner_packet.get());
+	bool analysis_succeeded = ForwardPacket(len, data, inner_packet.get());
 
-	if ( fwd_ret_val && vxlan_packet )
+	if ( analysis_succeeded && vxlan_packet )
 		{
 		EncapsulatingConn* ec = inner_packet->encap->At(encap_index);
 		if ( ec && ec->ip_hdr )
@@ -67,5 +72,5 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 			                                    ec->ip_hdr->ToPktHdrVal(), val_mgr->Count(vni));
 		}
 
-	return fwd_ret_val;
+	return analysis_succeeded;
 	}

@@ -5207,6 +5207,32 @@ export {
 	## interfaces.
 	const bufsize = 128 &redef;
 
+	## Default timeout for packet sources without file descriptors.
+	##
+	## For libpcap based packet sources that do not provide a usable
+	## file descriptor for select(), the timeout provided to the IO
+	## loop is either zero if a packet was most recently available
+	## or else this value.
+	##
+	## Depending on the expected packet rate per-worker and the amount of
+	## available packet buffer, raising this value can significantly reduce
+	## Zeek's CPU usage at the cost of a small delay before processing
+	## packets. Setting this value too high may cause packet drops due
+	## to running out of available buffer space.
+	##
+	## Increasing this value to 200usec on low-traffic Myricom based systems
+	## (5 kpps per Zeek worker) has shown a 50% reduction in CPU usage.
+	##
+	## This is an advanced setting. Do monitor dropped packets and capture
+	## loss information when changing it.
+	##
+	## .. note:: Packet sources that override ``GetNextTimeout()`` method
+	##    may not respect this value.
+	##
+	## .. zeek:see:: io_poll_interval_live
+	##
+	const non_fd_timeout = 20usec &redef;
+
 	## The definition of a "pcap interface".
 	type Interface: record {
 		## The interface/device name.

@@ -432,7 +432,8 @@ void get_final_stats()
 		std::string filtered = "";
 		if ( s.filtered )
 			{
-			double filtered_pct = s.filtered ? pct(s.filtered.value(), s.received) : 0.0;
+			double filtered_pct = s.filtered.value() > 0 ? pct(s.filtered.value(), s.received)
+			                                             : 0.0;
 			filtered = zeek::util::fmt(" %" PRIu64 " (%.2f%%) filtered", s.filtered.value(),
 			                           filtered_pct);
 			}

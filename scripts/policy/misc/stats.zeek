@@ -1,6 +1,7 @@
 ##! Log memory/packet/lag statistics.
 
 @load base/frameworks/notice
+@load base/frameworks/telemetry
 
 module Stats;
 
@@ -86,6 +87,57 @@ export {
 	## Event to catch stats as they are written to the logging stream.
 	global log_stats: event(rec: Info);
 }
+
+global bytes_received_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-received-bytes",
+    $unit="1",
+    $help_text="Total number of bytes received",
+]);
+
+global packets_received_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-received-packets",
+    $unit="1",
+    $help_text="Total number of packets received",
+]);
+
+global packets_dropped_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-dropped-packets",
+    $unit="1",
+    $help_text="Total number of packets dropped",
+]);
+
+global link_packets_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-link-packets",
+    $unit="1",
+    $help_text="Total number of packets on the packet source link before filtering",
+]);
+
+global packets_filtered_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-filtered-packets",
+    $unit="1",
+    $help_text="Total number of packets filtered",
+]);
+
+hook Telemetry::sync() {
+	local net_stats = get_net_stats();
+	Telemetry::counter_family_set(bytes_received_cf, vector(), net_stats$bytes_recvd);
+	Telemetry::counter_family_set(packets_received_cf, vector(), net_stats$pkts_recvd);
+
+	if ( reading_live_traffic() )
+		{
+		Telemetry::counter_family_set(packets_dropped_cf, vector(), net_stats$pkts_dropped);
+		Telemetry::counter_family_set(link_packets_cf, vector(), net_stats$pkts_link);
+
+		if ( net_stats?$pkts_filtered )
+			Telemetry::counter_family_set(packets_filtered_cf, vector(), net_stats$pkts_filtered);
+		}
+}
+
 
 event zeek_init() &priority=5
 	{

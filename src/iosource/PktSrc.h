@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <optional>
 #include <vector>
 
 #include "zeek/iosource/BPF_Program.h"
@@ -30,25 +31,28 @@ public:
 		/**
 		 * Packets received by source after filtering (w/o drops).
 		 */
-		uint64_t received;
+		uint64_t received = 0;
 
 		/**
 		 * Packets dropped by source.
 		 */
-		uint64_t dropped; // pkts dropped
+		uint64_t dropped = 0; // pkts dropped
 
 		/**
 		 * Total number of packets on link before filtering.
 		 * Optional, can be left unset if not available.
 		 */
-		uint64_t link;
+		uint64_t link = 0;
 
 		/**
 		 * Bytes received by source after filtering (w/o drops).
 		 */
-		uint64_t bytes_received;
+		uint64_t bytes_received = 0;
 
-		Stats() { received = dropped = link = bytes_received = 0; }
+		/**
+		 * Packets filtered by the packet source.
+		 */
+		std::optional<uint64_t> filtered;
 		};
 
 	/**

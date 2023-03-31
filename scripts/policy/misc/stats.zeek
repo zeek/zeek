@@ -34,6 +34,9 @@ export {
 		## Lag between the wall clock and packet timestamps if reading
 		## live traffic.
 		pkt_lag:       interval  &log &optional;
+		## Number of packets filtered from the link since the last
+		## stats interval if reading live traffic.
+		pkts_filtered: count     &log &optional;
 
 		## Number of events processed since the last stats interval.
 		events_proc:   count     &log;
@@ -140,6 +143,11 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 		info$pkt_lag = current_time() - nettime;
 		info$pkts_dropped = ns$pkts_dropped  - last_ns$pkts_dropped;
 		info$pkts_link = ns$pkts_link  - last_ns$pkts_link;
+
+		# This makes the assumption that if pkts_filtered is valid, it's been valid in
+		# all of the previous calls.
+		if ( ns?$pkts_filtered )
+			info$pkts_filtered = ns$pkts_filtered - last_ns$pkts_filtered;
 		}
 
 	Log::write(Stats::LOG, info);

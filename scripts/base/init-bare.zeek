@@ -678,6 +678,7 @@ type NetStats: record {
 	## be always set to zero.
 	pkts_link:    count &default=0;
 	bytes_recvd:  count &default=0;	##< Bytes received by Zeek.
+	filtered:     count &optional;  ##< Packets filtered by the packet source.
 };
 
 type ConnStats: record {

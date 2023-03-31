@@ -1981,6 +1981,22 @@ detail::TraversalCode VectorType::Traverse(detail::TraversalCallback* cb) const
 	HANDLE_TC_TYPE_POST(tc);
 	}
 
+TypeManager::TypeManager()
+	{
+	for ( auto i = 0u; i < base_list_types.size(); ++i )
+		{
+		TypeTag tag = static_cast<TypeTag>(i);
+		TypePtr pure_type = tag == TYPE_ANY ? nullptr : base_type(tag);
+		base_list_types[tag] = make_intrusive<zeek::TypeList>(pure_type);
+		}
+	}
+
+const TypeListPtr& TypeManager::TypeList(TypeTag t) const
+	{
+	assert(t >= 0 && t < NUM_TYPES);
+	return base_list_types[t];
+	}
+
 // Returns true if t1 is initialization-compatible with t2 (i.e., if an
 // initializer with type t1 can be used to initialize a value with type t2),
 // false otherwise.  Assumes that t1's tag is different from t2's.  Note

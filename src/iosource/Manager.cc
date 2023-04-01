@@ -177,13 +177,34 @@ void Manager::FindReadySources(ReadySources* ready)
 				}
 			else if ( iosource == pkt_src )
 				{
+				// Always consider a live packet source with a non-zero timeout or an FD as
+				// ready. As an optimization for the idle case, if the PktSrc's ExtractNextPacket()
+				// has not yielded packets over the past packet_source_inactivity_counter IO loop
+				// iterations, only do so once within a poll cycle for non-selectable packet sources
+				// to avoid unnecessarily calling ->Process() on a packet source when it's unlikely
+				// there will be packets available. This saves CPU time.
+				//
+				// We need to distinguish between selectable and non-selectable sources here. The
+				// former is only aded when we consider it active and it's not time to poll. We'll
+				// learn about it being ready through kqueue events otherwise anyway. For
+				// non-selectable packet sources, we include them as ready if they're likely active,
+				// or at least once every poll_interval iterations.
 				if ( pkt_src->IsLive() )
 					{
-					if ( ! time_to_poll )
-						// Avoid calling Poll() if we can help it since on very
-						// high-traffic networks, we spend too much time in
-						// Poll() and end up dropping packets.
-						ready->push_back({pkt_src, -1, 0});
+					bool pkt_src_likely_active = BifConst::packet_source_inactivity_count == 0 ||
+					                             pkt_src->GetIdleCounter() <=
+					                                 BifConst::packet_source_inactivity_count;
+
+					if ( pkt_src->props.selectable_fd >= 0 )
+						{
+						if ( pkt_src_likely_active && ! time_to_poll )
+							ready->push_back({pkt_src, -1, 0});
+						}
+					else
+						{
+						if ( pkt_src_likely_active || poll_counter == 1 || poll_interval == 1 )
+							ready->push_back({pkt_src, -1, 0});
+						}
 					}
 				}
 			}

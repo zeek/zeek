@@ -173,6 +173,17 @@ type PacketSource: record {
 ## by this many milliseconds after the last packet has been received.
 const packet_source_inactivity_timeout = 100msec &redef;
 
+## Setting to relax aggressive packet source processing.
+##
+## A packet source that has not yielded packets after this many processing
+## attempts is elected for processing less often in order to save CPU time.
+##
+## Set this value to 0 in order to disable the relaxing mechanism.
+##
+## .. zeek:see:: io_poll_interval_live Pcap::non_fd_timeout
+##
+const packet_source_inactivity_count = 4 &redef;
+
 ## Whether Zeek will forward network_time to the current time upon
 ## observing an idle packet source (or no configured packet source).
 ##

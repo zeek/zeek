@@ -31,7 +31,7 @@ PktSrc::PktSrc()
 	{
 	have_packet = false;
 	// Small lie to make a new PktSrc look like the previous ExtractNextPacket() was successful.
-	had_packet = true;
+	idle_counter = 0;
 	errbuf = "";
 	SetClosed(true);
 	}
@@ -141,7 +141,7 @@ void PktSrc::Done()
 
 bool PktSrc::HasBeenIdleFor(double interval) const
 	{
-	if ( have_packet || had_packet )
+	if ( have_packet || idle_counter == 0 )
 		return false;
 
 	// Take the hit of a current_time() call now.
@@ -185,7 +185,8 @@ bool PktSrc::ExtractNextPacketInternal()
 
 	if ( ExtractNextPacket(&current_packet) )
 		{
-		had_packet = true;
+		if ( idle_counter != 0 )
+			idle_counter = 0;
 
 		if ( current_packet.time < 0 )
 			{
@@ -207,13 +208,13 @@ bool PktSrc::ExtractNextPacketInternal()
 		// instances, but even for selectable ones with an FD the
 		// main-loop will call Process() on the interface regularly
 		// and detect it as idle.
-		if ( had_packet )
+		if ( idle_counter == 0 )
 			{
 			DBG_LOG(DBG_PKTIO, "source %s is idle now", props.path.c_str());
 			idle_at_wallclock = zeek::util::current_time(true);
 			}
 
-		had_packet = false;
+		idle_counter = std::max(idle_counter, idle_counter + 1);
 		}
 
 	return false;
@@ -321,7 +322,7 @@ double PktSrc::GetNextTimeout()
 	// last call to ExtractNextPacket().
 	if ( props.selectable_fd == -1 )
 		{
-		if ( have_packet || had_packet )
+		if ( have_packet || idle_counter == 0 )
 			return 0.0;
 
 		return BifConst::Pcap::non_fd_timeout;

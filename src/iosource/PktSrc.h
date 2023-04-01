@@ -107,6 +107,13 @@ public:
 	virtual bool HasBeenIdleFor(double interval) const;
 
 	/**
+	 * Return the number of times ExtractNextPacket() has not yielded a packet.
+	 *
+	 * @return The idle counter.
+	 */
+	uint64_t GetIdleCounter() const { return idle_counter; }
+
+	/**
 	 * If the source encountered an error, returns a corresponding error
 	 * message. Returns an empty string otherwise.
 	 */
@@ -379,8 +386,7 @@ private:
 
 	bool have_packet;
 	Packet current_packet;
-	// Did the previous call to ExtractNextPacket() yield a packet.
-	bool had_packet;
+	uint64_t idle_counter;
 
 	double idle_at_wallclock = 0.0;
 

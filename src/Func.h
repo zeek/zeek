@@ -334,16 +334,27 @@ struct CallInfo
 
 // Struct that collects all the specifics defining a Func. Used for ScriptFuncs
 // with closures.
-struct function_ingredients
+class FunctionIngredients
 	{
-
+public:
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
-	function_ingredients(ScopePtr scope, StmtPtr body, const std::string& module_name);
+	FunctionIngredients(ScopePtr scope, StmtPtr body, const std::string& module_name);
 
+	const IDPtr& GetID() const { return id; }
+
+	const StmtPtr& Body() const { return body; }
+	void SetBody(StmtPtr _body) { body = std::move(_body); }
+
+	const auto& Inits() const { return inits; }
+	size_t FrameSize() const { return frame_size; }
+	int Priority() const { return priority; }
+	const ScopePtr& Scope() const { return scope; }
+	const auto& Groups() const { return groups; }
+
+private:
 	IDPtr id;
 	StmtPtr body;
-	std::string module_name; // current module name where function body is defined
 	std::vector<IDPtr> inits;
 	size_t frame_size = 0;
 	int priority = 0;

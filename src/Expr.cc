@@ -4624,14 +4624,14 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList arg_outer_ids,
+LambdaExpr::LambdaExpr(std::unique_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
                        StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
 
-	SetType(ingredients->id->GetType());
+	SetType(ingredients->GetID()->GetType());
 
 	if ( ! CheckCaptures(when_parent) )
 		{
@@ -4641,9 +4641,9 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
-	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->id);
-	dummy_func->AddBody(ingredients->body, ingredients->inits, ingredients->frame_size,
-	                    ingredients->priority);
+	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
+	dummy_func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
+	                    ingredients->Priority());
 
 	dummy_func->SetOuterIDs(outer_ids);
 
@@ -4678,7 +4678,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 
 	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
 	lambda_id->SetVal(std::move(v));
-	lambda_id->SetType(ingredients->id->GetType());
+	lambda_id->SetType(ingredients->GetID()->GetType());
 	lambda_id->SetConst();
 	}
 
@@ -4766,14 +4766,14 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 
 ScopePtr LambdaExpr::GetScope() const
 	{
-	return ingredients->scope;
+	return ingredients->Scope();
 	}
 
 ValPtr LambdaExpr::Eval(Frame* f) const
 	{
-	auto lamb = make_intrusive<ScriptFunc>(ingredients->id);
-	lamb->AddBody(ingredients->body, ingredients->inits, ingredients->frame_size,
-	              ingredients->priority);
+	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
+	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
+	              ingredients->Priority());
 
 	lamb->CreateCaptures(f);
 
@@ -4787,7 +4787,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(expr_name(Tag()));
-	ingredients->body->Describe(d);
+	ingredients->Body()->Describe(d);
 	}
 
 TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
@@ -4802,7 +4802,7 @@ TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 	tc = lambda_id->Traverse(cb);
 	HANDLE_TC_EXPR_PRE(tc);
 
-	tc = ingredients->body->Traverse(cb);
+	tc = ingredients->Body()->Traverse(cb);
 	HANDLE_TC_EXPR_PRE(tc);
 
 	tc = cb->PostExpr(this);

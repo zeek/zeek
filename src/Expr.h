@@ -27,7 +27,7 @@ namespace detail
 
 class Frame;
 class Scope;
-struct function_ingredients;
+class FunctionIngredients;
 using IDPtr = IntrusivePtr<ID>;
 using ScopePtr = IntrusivePtr<Scope>;
 
@@ -1454,12 +1454,12 @@ protected:
 class LambdaExpr final : public Expr
 	{
 public:
-	LambdaExpr(std::unique_ptr<function_ingredients> ingredients, IDPList outer_ids,
+	LambdaExpr(std::unique_ptr<FunctionIngredients> ingredients, IDPList outer_ids,
 	           StmtPtr when_parent = nullptr);
 
 	const std::string& Name() const { return my_name; }
 	const IDPList& OuterIDs() const { return outer_ids; }
-	const function_ingredients& Ingredients() const { return *ingredients; }
+	const FunctionIngredients& Ingredients() const { return *ingredients; }
 
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -1478,7 +1478,7 @@ protected:
 private:
 	bool CheckCaptures(StmtPtr when_parent);
 
-	std::unique_ptr<function_ingredients> ingredients;
+	std::unique_ptr<FunctionIngredients> ingredients;
 	IDPtr lambda_id;
 	IDPList outer_ids;
 

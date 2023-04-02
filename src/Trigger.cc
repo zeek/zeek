@@ -99,13 +99,6 @@ protected:
 	double time;
 	};
 
-Trigger::Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* frame,
-                 bool is_return, const Location* location)
-	{
-	timeout_value = timeout;
-	Init(cond, body, timeout_stmts, frame, is_return, location);
-	}
-
 Trigger::Trigger(WhenInfo* wi, double timeout, const IDSet& _globals,
                  std::vector<ValPtr> _local_aggrs, Frame* f, const Location* loc)
 	{
@@ -114,34 +107,29 @@ Trigger::Trigger(WhenInfo* wi, double timeout, const IDSet& _globals,
 	local_aggrs = std::move(_local_aggrs);
 	have_trigger_elems = true;
 
-	Init(wi->Cond(), wi->WhenBody(), wi->TimeoutStmt(), f, wi->IsReturn(), loc);
-	}
+	cond = wi->Cond();
+	body = wi->WhenBody();
+	timeout_stmts = wi->TimeoutStmt();
+	is_return = wi->IsReturn();
 
-void Trigger::Init(ExprPtr arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts, Frame* arg_frame,
-                   bool arg_is_return, const Location* location)
-	{
-	cond = arg_cond;
-	body = arg_body;
-	timeout_stmts = arg_timeout_stmts;
 	timer = nullptr;
 	delayed = false;
 	disabled = false;
 	attached = nullptr;
-	is_return = arg_is_return;
 
 	if ( location )
 		name = util::fmt("%s:%d-%d", location->filename, location->first_line, location->last_line);
 	else
 		name = "<no-trigger-location>";
 
-	if ( arg_frame )
-		frame = arg_frame->Clone();
+	if ( f )
+		frame = f->LightClone();
 	else
 		frame = nullptr;
 
 	DBG_LOG(DBG_NOTIFIERS, "%s: instantiating", Name());
 
-	if ( is_return && frame && arg_frame )
+	if ( is_return && frame )
 		{
 		Trigger* parent = frame->GetTrigger();
 		if ( ! parent )
@@ -152,7 +140,7 @@ void Trigger::Init(ExprPtr arg_cond, StmtPtr arg_body, StmtPtr arg_timeout_stmts
 			}
 
 		parent->Attach(this);
-		arg_frame->SetDelayed();
+		f->SetDelayed();
 		}
 
 	// Make sure we don't get deleted if somebody calls a method like
@@ -262,7 +250,7 @@ bool Trigger::Eval()
 
 	try
 		{
-		f = frame->Clone();
+		f = frame->LightClone();
 		}
 	catch ( InterpreterException& )
 		{
@@ -364,7 +352,7 @@ void Trigger::Timeout()
 	if ( timeout_stmts )
 		{
 		StmtFlowType flow;
-		FramePtr f{AdoptRef{}, frame->Clone()};
+		FramePtr f{AdoptRef{}, frame->LightClone()};
 		ValPtr v;
 
 		try

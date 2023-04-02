@@ -63,9 +63,6 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s)
 		case STMT_NULL:
 			return EmptyStmt();
 
-		case STMT_WHEN:
-			return CompileWhen(static_cast<const WhenStmt*>(s));
-
 		case STMT_CHECK_ANY_LEN:
 			{
 			auto cs = static_cast<const CheckAnyLenStmt*>(s);
@@ -1123,80 +1120,6 @@ const ZAMStmt ZAMCompiler::InitTable(IDPtr id, TableType* tt, Attributes* attrs)
 	z.SetType({NewRef{}, tt});
 	z.attrs = {NewRef{}, attrs};
 	return AddInst(z);
-	}
-
-const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws)
-	{
-	auto cond = ws->Cond();
-	auto body = ws->Body();
-	auto timeout = ws->TimeoutExpr();
-	auto timeout_body = ws->TimeoutBody();
-	auto is_return = ws->IsReturn();
-
-	ZInstI z;
-
-	if ( timeout )
-		{
-		// Note, we fill in is_return by hand since it's already
-		// an int_val, doesn't need translation.
-		if ( timeout->Tag() == EXPR_CONST )
-			{
-			z = GenInst(OP_WHEN_VVVC, timeout->AsConstExpr());
-			z.op_type = OP_VVVC_I1_I2_I3;
-			z.v3 = is_return;
-			}
-		else
-			{
-			z = GenInst(OP_WHEN_VVVV, timeout->AsNameExpr());
-			z.op_type = OP_VVVV_I2_I3_I4;
-			z.v4 = is_return;
-			}
-		}
-
-	else
-		{
-		z = GenInst(OP_WHEN_VV);
-		z.op_type = OP_VV_I1_I2;
-		z.v1 = is_return;
-		}
-
-	z.e = cond.get();
-
-	auto when_eval = AddInst(z);
-
-	auto branch_past_blocks = GoToStub();
-
-	auto when_body = CompileStmt(body);
-	auto when_done = ReturnX();
-
-	if ( timeout )
-		{
-		auto t_body = CompileStmt(timeout_body);
-		auto t_done = ReturnX();
-
-		if ( timeout->Tag() == EXPR_CONST )
-			{
-			SetV1(when_eval, GoToTargetBeyond(branch_past_blocks));
-			SetV2(when_eval, GoToTargetBeyond(when_done));
-			}
-		else
-			{
-			SetV2(when_eval, GoToTargetBeyond(branch_past_blocks));
-			SetV3(when_eval, GoToTargetBeyond(when_done));
-			}
-
-		SetGoTo(branch_past_blocks, GoToTargetBeyond(t_done));
-
-		return t_done;
-		}
-
-	else
-		{
-		SetV2(when_eval, GoToTargetBeyond(branch_past_blocks));
-		SetGoTo(branch_past_blocks, GoToTargetBeyond(when_done));
-
-		return when_done;
-		}
 	}
 
 	} // zeek::detail

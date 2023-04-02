@@ -9,11 +9,7 @@ event zeek_init()
 	{
 	local make_epoch_result = function(pass_name: string): function(ts: time): time
 		{
-@if ( Version::at_least("4.1") )
 		return function [pass_name] (ts: time): time
-@else
-		return function (ts: time)
-@endif
 			{
 			print pass_name;
 			return ts;
@@ -35,11 +31,7 @@ event zeek_init()
 	{
 	local make_epoch_result = function(pass_name: string): function(ts: time): time
 		{
-@if ( Version::at_least("4.1") )
 		return function [pass_name] (ts: time): time {
-@else
-		return function (ts: time) {
-@endif
 			print pass_name;
 			return ts;
 			};

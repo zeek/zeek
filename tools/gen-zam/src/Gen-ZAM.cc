@@ -140,7 +140,7 @@ ArgsManager::ArgsManager(const vector<ZAM_OperandType>& ot, ZAM_InstClass zc)
 				}
 			}
 
-		args.emplace_back(move(arg));
+		args.emplace_back(std::move(arg));
 		}
 
 	Differentiate();
@@ -217,7 +217,7 @@ void ArgsManager::Differentiate()
 		}
 	}
 
-ZAM_OpTemplate::ZAM_OpTemplate(ZAMGen* _g, string _base_name) : g(_g), base_name(move(_base_name))
+ZAM_OpTemplate::ZAM_OpTemplate(ZAMGen* _g, string _base_name) : g(_g), base_name(std::move(_base_name))
 	{
 	// Make the base name viable in a C++ name.
 	transform(base_name.begin(), base_name.end(), base_name.begin(), dash_to_under);
@@ -1209,7 +1209,7 @@ EvalInstance::EvalInstance(ZAM_ExprType _lhs_et, ZAM_ExprType _op1_et, ZAM_ExprT
 	lhs_et = _lhs_et;
 	op1_et = _op1_et;
 	op2_et = _op2_et;
-	eval = move(_eval);
+	eval = std::move(_eval);
 	is_def = _is_def;
 	}
 
@@ -1975,7 +1975,7 @@ void ZAMGen::ReadMacro(const string& line)
 		mac.push_back(s);
 		}
 
-	macros.emplace_back(move(mac));
+	macros.emplace_back(std::move(mac));
 	}
 
 void ZAMGen::GenMacros()
@@ -2219,7 +2219,7 @@ bool ZAMGen::ParseTemplate()
 		Gripe(args_mismatch, line);
 
 	t->Build();
-	templates.emplace_back(move(t));
+	templates.emplace_back(std::move(t));
 
 	return true;
 	}

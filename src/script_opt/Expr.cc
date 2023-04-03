@@ -1544,6 +1544,9 @@ bool RefExpr::IsReduced(Reducer* c) const
 	if ( op->Tag() == EXPR_NAME )
 		return op->IsReduced(c);
 
+	if ( ! c->FullyReduce() )
+		return op->HasReducedOps(c);
+
 	return NonReduced(this);
 	}
 
@@ -1574,12 +1577,12 @@ bool RefExpr::HasReducedOps(Reducer* c) const
 
 bool RefExpr::WillTransform(Reducer* c) const
 	{
-	return op->Tag() != EXPR_NAME;
+	return c->FullyReduce() && op->Tag() != EXPR_NAME;
 	}
 
 ExprPtr RefExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
-	if ( op->Tag() == EXPR_NAME )
+	if ( op->Tag() == EXPR_NAME || ! c->FullyReduce() )
 		op = op->Reduce(c, red_stmt);
 	else
 		op = AssignToTemporary(c, red_stmt);
@@ -1589,20 +1592,25 @@ ExprPtr RefExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 StmtPtr RefExpr::ReduceToLHS(Reducer* c)
 	{
+	StmtPtr red_stmt;
+
 	if ( op->Tag() == EXPR_NAME )
 		{
-		StmtPtr red_stmt;
 		op = op->Reduce(c, red_stmt);
 		return red_stmt;
 		}
 
-	auto red_stmt1 = op->ReduceToSingletons(c);
+	red_stmt = op->ReduceToSingletons(c);
+
+	if ( ! c->FullyReduce() )
+		return red_stmt;
+
 	auto op_ref = make_intrusive<RefExpr>(op);
 
 	StmtPtr red_stmt2;
 	op = AssignToTemporary(op_ref, c, red_stmt2);
 
-	return MergeStmts(red_stmt1, red_stmt2);
+	return MergeStmts(red_stmt, red_stmt2);
 	}
 
 ExprPtr AssignExpr::Duplicate()
@@ -1642,23 +1650,31 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		return NonReduced(this);
 
 	if ( op1->Tag() == EXPR_REF && op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
-		// We are not reduced because we should instead
-		// be folded.
+		// We are not reduced because the RHS should be folded.
 		return NonReduced(this);
 
 	if ( IsTemp() )
 		return true;
 
 	if ( ! op2->HasReducedOps(c) )
+		// RHS needs reduced ops.
 		return NonReduced(this);
 
 	if ( op1->IsSingleton(c) )
+		// Simple assignment.
 		return true;
 
-	if ( op1->Tag() == EXPR_REF )
-		return op1->AsRefExprPtr()->IsReduced(c);
+	if ( op1->Tag() != EXPR_REF || ! op1->IsReduced(c) )
+		return NonReduced(this);
 
-	return NonReduced(this);
+	auto lhs = op1->AsRefExprPtr()->GetOp1();
+	if ( lhs->Tag() == EXPR_NAME )
+		return true;
+
+	if ( c->FullyReduce() || ! op2->IsSingleton(c) )
+		return NonReduced(this);
+
+	return true;
 	}
 
 bool AssignExpr::HasReducedOps(Reducer* c) const
@@ -1738,68 +1754,83 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		}
 
 	auto lhs_ref = op1->AsRefExprPtr();
+	red_stmt = MergeStmts(red_stmt, lhs_ref->ReduceToLHS(c));
+
 	auto lhs_expr = lhs_ref->GetOp1();
 
-	if ( lhs_expr->Tag() == EXPR_INDEX )
+	if ( c->FullyReduce() )
 		{
-		auto ind_e = lhs_expr->AsIndexExpr();
-
-		StmtPtr ind1_stmt;
-		StmtPtr ind2_stmt;
-		StmtPtr rhs_stmt;
-
-		auto ind1_e = ind_e->Op1()->Reduce(c, ind1_stmt);
-		auto ind2_e = ind_e->Op2()->Reduce(c, ind2_stmt);
-		auto rhs_e = op2->Reduce(c, rhs_stmt);
-
-		red_stmt = MergeStmts(MergeStmts(rhs_reduce, ind1_stmt), ind2_stmt, rhs_stmt);
-
-		auto index_assign = make_intrusive<IndexAssignExpr>(ind1_e, ind2_e, rhs_e);
-		return TransformMe(index_assign, c, red_stmt);
-		}
-
-	if ( lhs_expr->Tag() == EXPR_FIELD )
-		{
-		auto field_e = lhs_expr->AsFieldExpr();
-
-		StmtPtr lhs_stmt;
-		StmtPtr rhs_stmt;
-
-		auto lhs_e = field_e->Op()->Reduce(c, lhs_stmt);
-		auto rhs_e = op2->ReduceToFieldAssignment(c, rhs_stmt);
-
-		red_stmt = MergeStmts(rhs_reduce, lhs_stmt, rhs_stmt);
-
-		auto field_name = field_e->FieldName();
-		auto field = field_e->Field();
-		auto field_assign = make_intrusive<FieldLHSAssignExpr>(lhs_e, rhs_e, field_name, field);
-
-		return TransformMe(field_assign, c, red_stmt);
-		}
-
-	if ( lhs_expr->Tag() == EXPR_LIST )
-		{
-		auto lhs_list = lhs_expr->AsListExpr()->Exprs();
-
-		StmtPtr rhs_stmt;
-		auto rhs_e = op2->Reduce(c, rhs_stmt);
-
-		auto len = lhs_list.length();
-		auto check_stmt = make_intrusive<CheckAnyLenStmt>(rhs_e, len);
-
-		red_stmt = MergeStmts(rhs_reduce, rhs_stmt, check_stmt);
-
-		loop_over_list(lhs_list, i)
+		if ( lhs_expr->Tag() == EXPR_INDEX )
 			{
-			auto rhs_dup = rhs_e->Duplicate();
-			auto rhs = make_intrusive<AnyIndexExpr>(rhs_dup, i);
-			auto lhs = lhs_list[i]->ThisPtr();
-			auto assign = make_intrusive<AssignExpr>(lhs, rhs, false, nullptr, nullptr, false);
-			auto assign_stmt = make_intrusive<ExprStmt>(assign);
-			red_stmt = MergeStmts(red_stmt, assign_stmt);
+			auto ind_e = lhs_expr->AsIndexExpr();
+
+			StmtPtr ind1_stmt;
+			StmtPtr ind2_stmt;
+			StmtPtr rhs_stmt;
+
+			auto ind1_e = ind_e->Op1()->Reduce(c, ind1_stmt);
+			auto ind2_e = ind_e->Op2()->Reduce(c, ind2_stmt);
+			auto rhs_e = op2->Reduce(c, rhs_stmt);
+
+			red_stmt = MergeStmts(MergeStmts(rhs_reduce, ind1_stmt), ind2_stmt, rhs_stmt);
+
+			auto index_assign = make_intrusive<IndexAssignExpr>(ind1_e, ind2_e, rhs_e);
+			return TransformMe(index_assign, c, red_stmt);
 			}
 
-		return TransformMe(make_intrusive<NopExpr>(), c, red_stmt);
+		if ( lhs_expr->Tag() == EXPR_FIELD )
+			{
+			auto field_e = lhs_expr->AsFieldExpr();
+
+			StmtPtr lhs_stmt;
+			StmtPtr rhs_stmt;
+
+			auto lhs_e = field_e->Op()->Reduce(c, lhs_stmt);
+			auto rhs_e = op2->ReduceToFieldAssignment(c, rhs_stmt);
+
+			red_stmt = MergeStmts(rhs_reduce, lhs_stmt, rhs_stmt);
+
+			auto field_name = field_e->FieldName();
+			auto field = field_e->Field();
+			auto field_assign = make_intrusive<FieldLHSAssignExpr>(lhs_e, rhs_e, field_name, field);
+
+			return TransformMe(field_assign, c, red_stmt);
+			}
+
+		if ( lhs_expr->Tag() == EXPR_LIST )
+			{
+			auto lhs_list = lhs_expr->AsListExpr()->Exprs();
+
+			StmtPtr rhs_stmt;
+			auto rhs_e = op2->Reduce(c, rhs_stmt);
+
+			auto len = lhs_list.length();
+			auto check_stmt = make_intrusive<CheckAnyLenStmt>(rhs_e, len);
+
+			red_stmt = MergeStmts(rhs_reduce, rhs_stmt, check_stmt);
+
+			loop_over_list(lhs_list, i)
+				{
+				auto rhs_dup = rhs_e->Duplicate();
+				auto rhs = make_intrusive<AnyIndexExpr>(rhs_dup, i);
+				auto lhs = lhs_list[i]->ThisPtr();
+				auto assign = make_intrusive<AssignExpr>(lhs, rhs, false, nullptr, nullptr, false);
+				auto assign_stmt = make_intrusive<ExprStmt>(assign);
+				red_stmt = MergeStmts(red_stmt, assign_stmt);
+				}
+
+			return TransformMe(make_intrusive<NopExpr>(), c, red_stmt);
+			}
+		}
+
+	else if ( lhs_expr->Tag() == EXPR_INDEX || lhs_expr->Tag() == EXPR_FIELD )
+		{
+		if ( ! op2->IsSingleton(c) )
+			{
+			StmtPtr op2_red_stmt;
+			op2 = op2->ReduceToSingleton(c, op2_red_stmt);
+			red_stmt = MergeStmts(red_stmt, op2_red_stmt);
+			}
 		}
 
 	if ( op2->WillTransform(c) )
@@ -1810,7 +1841,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return ThisPtr();
 		}
 
-	red_stmt = op2->ReduceToSingletons(c);
+	red_stmt = MergeStmts(red_stmt, op2->ReduceToSingletons(c));
 
 	if ( op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
 		op2 = c->Fold(op2);
@@ -1827,6 +1858,9 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		red_stmt = MergeStmts(rhs_reduce, red_stmt, xform_stmt);
 		return ThisPtr();
 		}
+
+	if ( ! c->FullyReduce() )
+		return ThisPtr();
 
 	StmtPtr lhs_stmt = lhs_ref->ReduceToLHS(c);
 	StmtPtr rhs_stmt = op2->ReduceToSingletons(c);

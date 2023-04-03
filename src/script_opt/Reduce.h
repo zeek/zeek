@@ -16,7 +16,9 @@ class TempVar;
 class Reducer
 	{
 public:
-	Reducer() { }
+	Reducer(bool _fully_reduce) : fully_reduce(_fully_reduce) { }
+
+	bool FullyReduce() const { return fully_reduce; }
 
 	StmtPtr Reduce(StmtPtr s);
 
@@ -215,6 +217,10 @@ protected:
 	// if its value is constant at the given location then returns
 	// the corresponding ConstExpr with the value.
 	const ConstExpr* CheckForConst(const IDPtr& id, int stmt_num) const;
+
+	// Whether to do full reduction, including transformation to
+	// internal AST nodes.
+	bool fully_reduce;
 
 	// Tracks the temporary variables created during the reduction/
 	// optimization process.

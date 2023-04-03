@@ -35,10 +35,10 @@ void UseDefs::Analyze()
 	(void)PropagateUDs(body, nullptr, nullptr, false);
 	}
 
-StmtPtr UseDefs::RemoveUnused()
+StmtPtr UseDefs::RemoveUnused(bool full_reduction)
 	{
 	int iter = 0;
-	while ( RemoveUnused(++iter) )
+	while ( RemoveUnused(full_reduction, ++iter) )
 		{
 		body = rc->Reduce(body);
 		Analyze();
@@ -69,7 +69,7 @@ void UseDefs::Dump()
 		}
 	}
 
-bool UseDefs::RemoveUnused(int iter)
+bool UseDefs::RemoveUnused(bool full_reduction, int iter)
 	{
 	rc->ResetAlteredStmts();
 
@@ -128,7 +128,11 @@ bool UseDefs::RemoveUnused(int iter)
 
 		auto n = r->AsRefExprPtr()->GetOp1();
 		if ( n->Tag() != EXPR_NAME )
-			reporter->InternalError("lhs name inconsistency in UseDefs::RemoveUnused");
+			{
+			if ( full_reduction )
+				reporter->InternalError("lhs name inconsistency in UseDefs::RemoveUnused");
+			continue;
+			}
 
 		auto id = n->AsNameExpr()->Id();
 
@@ -254,23 +258,16 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			if ( e->Tag() != EXPR_ASSIGN )
 				return CreateExprUDs(s, e, succ_UDs);
 
-			// Change in use-defs as here we have a definition.
 			auto a = e->AsAssignExpr();
-			auto lhs_ref = a->GetOp1();
+			auto lhs = a->GetOp1()->GetOp1(); // move past "ref"
 
-			if ( lhs_ref->Tag() != EXPR_REF )
-				// Since we're working on reduced form ...
-				reporter->InternalError("lhs inconsistency in UseDefs::ExprUDs");
-
-			auto lhs_var = lhs_ref->GetOp1();
-			auto lhs_id = lhs_var->AsNameExpr()->Id();
-			auto lhs_UDs = RemoveID(lhs_id, succ_UDs);
-			auto rhs_UDs = ExprUDs(a->GetOp2().get());
-			auto uds = UD_Union(lhs_UDs, rhs_UDs);
+			if ( lhs->Tag() == EXPR_INDEX || lhs->Tag() == EXPR_FIELD )
+				return CreateExprUDs(s, e, succ_UDs);
 
 			if ( ! second_pass )
 				successor[s] = succ_stmt;
 
+			auto uds = PropagateAssignmentUDs(a, succ_UDs);
 			return CreateUDs(s, uds);
 			}
 
@@ -413,6 +410,39 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 		default:
 			reporter->InternalError("non-reduced statement in use-def analysis");
 		}
+	}
+
+UDs UseDefs::PropagateAssignmentUDs(const AssignExpr* a, UDs succ_UDs)
+	{
+	// Potential change in use-defs as here we have a definition.
+	auto lhs_ref = a->GetOp1();
+
+	if ( lhs_ref->Tag() != EXPR_REF )
+		// Since we're working on reduced form ...
+		reporter->InternalError("lhs inconsistency in UseDefs::ExprUDs");
+
+	auto lhs = lhs_ref->GetOp1();
+	UDs lhs_UDs = succ_UDs;
+	UDs rhs_UDs = ExprUDs(a->GetOp2().get());
+
+	if ( lhs->Tag() == EXPR_NAME )
+		{
+		auto lhs_id = lhs->AsNameExpr()->Id();
+		lhs_UDs = RemoveID(lhs_id, lhs_UDs);
+		}
+
+	else
+		{
+		// This happens for "[a, b, c] = any_val" assignments.
+		auto l = lhs->AsListExpr();
+		for ( const auto& l_e : l->Exprs() )
+			{
+			auto i_e = l_e->AsNameExpr()->Id();
+			lhs_UDs = RemoveID(i_e, lhs_UDs);
+			}
+		}
+
+	return UD_Union(lhs_UDs, rhs_UDs);
 	}
 
 UDs UseDefs::FindUsage(const Stmt* s) const
@@ -561,6 +591,7 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			AddInExprUDs(uds, e->GetOp1()->AsRefExprPtr()->GetOp1().get());
 			break;
 
+		case EXPR_INDEX:
 		case EXPR_ASSIGN: // can occur inside a table constructor
 		case EXPR_ADD_TO:
 		case EXPR_REMOVE_FROM:
@@ -573,7 +604,8 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			break;
 
 		case EXPR_FIELD:
-			// This happens for append-to-field.
+			// This happens for append-to-field, or when only
+			// doing partial reduction.
 			AddInExprUDs(uds, e->AsFieldExpr()->Op());
 			break;
 

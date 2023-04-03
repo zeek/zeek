@@ -135,6 +135,7 @@ public:
 	const StmtPtr& Body() const { return body; }
 	int Priority() const { return priority; }
 	const ProfileFunc* Profile() const { return pf.get(); }
+	ProfileFunc* ModProfile() { return pf.get(); }
 	std::shared_ptr<ProfileFunc> ProfilePtr() const { return pf; }
 
 	void SetBody(StmtPtr new_body) { body = std::move(new_body); }

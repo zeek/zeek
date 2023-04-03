@@ -165,7 +165,8 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	push_existing_scope(scope);
 
-	auto rc = std::make_shared<Reducer>();
+	bool full_reduction = ! generating_CPP;
+	auto rc = std::make_shared<Reducer>(full_reduction);
 	auto new_body = rc->Reduce(body);
 
 	if ( reporter->Errors() > 0 )
@@ -214,7 +215,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 	if ( analysis_options.dump_uds )
 		ud->Dump();
 
-	new_body = ud->RemoveUnused();
+	new_body = ud->RemoveUnused(full_reduction);
 
 	if ( new_body != body )
 		{
@@ -227,7 +228,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 	if ( new_frame_size > f->FrameSize() )
 		f->SetFrameSize(new_frame_size);
 
-	if ( analysis_options.gen_ZAM_code )
+	if ( ! generating_CPP && analysis_options.gen_ZAM_code )
 		{
 		ZAM = new ZAMCompiler(f, pf, scope, new_body, ud, rc);
 
@@ -381,6 +382,7 @@ static void use_CPP()
 	for ( auto& f : funcs )
 		{
 		auto hash = f.Profile()->HashVal();
+		// printf("hash of %s is %lld\n", f.Func()->Name(), hash);
 		auto s = compiled_scripts.find(hash);
 
 		if ( s != compiled_scripts.end() )
@@ -445,8 +447,10 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	// may have marked some of the functions as to-skip, so first clear
 	// those markings.  Once we have full compile-to-C++ and ZAM support
 	// for all Zeek language features, we can remove the re-profiling here.
+#if 0
 	for ( auto& f : funcs )
 		f.SetSkip(false);
+#endif
 
 	pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
 
@@ -561,6 +565,11 @@ void analyze_scripts(bool no_unused_warnings)
 	// profile the functions.
 	auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
 
+	std::unordered_map<const FuncInfo*, p_hash_type> func_hashes;
+	for ( auto& f : funcs )
+		if ( ! f.ShouldSkip() )
+			func_hashes[&f] = f.Profile()->HashVal();
+
 	if ( CPP_init_hook )
 		{
 		(*CPP_init_hook)();
@@ -581,17 +590,26 @@ void analyze_scripts(bool no_unused_warnings)
 		use_CPP();
 
 	if ( generating_CPP )
-		{
-		if ( analysis_options.gen_ZAM )
-			reporter->FatalError("-O ZAM and -O gen-C++ conflict");
-
-		generate_CPP(pfs);
-		exit(0);
-		}
+		analysis_options.activate = true;
 
 	// At this point we're done with C++ considerations, so instead
 	// are compiling to ZAM.
 	analyze_scripts_for_ZAM(pfs);
+
+	if ( generating_CPP )
+		{
+		if ( analysis_options.gen_ZAM )
+			reporter->FatalError("-O ZAM and -O gen-C++ conflict");
+
+		auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+
+		for ( auto& f : funcs )
+			if ( ! f.ShouldSkip() )
+				f.ModProfile()->SetHashVal(func_hashes[&f]);
+
+		generate_CPP(pfs);
+		exit(0);
+		}
 	}
 
 void profile_script_execution()

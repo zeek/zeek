@@ -148,6 +148,12 @@ string CPPCompile::Canonicalize(const char* name) const
 		if ( c == ':' || c == '-' )
 			c = '_';
 
+		if ( c == '#' )
+			{
+			cname += "__tmp";
+			continue;
+			}
+
 		cname += c;
 		}
 

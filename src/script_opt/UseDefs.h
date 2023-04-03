@@ -19,6 +19,7 @@ namespace zeek::detail
 
 class UseDefSet;
 using UDs = std::shared_ptr<UseDefSet>;
+using AssignExprPtr = IntrusivePtr<AssignExpr>;
 
 class UseDefSet
 	{
@@ -68,9 +69,12 @@ public:
 
 	// Removes assignments corresponding to unused temporaries.
 	// In the process, reports on locals that are assigned
-	// but never used.  Returns the body, which may have been
-	// changed if the original first statement has been pruned.
-	StmtPtr RemoveUnused();
+	// but never used.  The argument controls whether to expect the
+	// AST to have been fully reduced, or only partially reduced.
+	//
+	// Returns the body, which may have been changed if the original
+	// first statement has been pruned.
+	StmtPtr RemoveUnused(bool full_reduction);
 
 	void Dump();
 
@@ -81,7 +85,7 @@ private:
 	// with the first pass being numbered 1.
 	//
 	// Returns true if something was removed, false if not.
-	bool RemoveUnused(int iter);
+	bool RemoveUnused(bool full_reduction, int iter);
 
 	// For a given identifier defined at a given statement, returns
 	// whether it is unused.  If "report" is true, also reports
@@ -103,6 +107,8 @@ private:
 		return PropagateUDs(s.get(), std::move(succ_UDs), succ_stmt.get(), second_pass);
 		}
 	UDs PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bool second_pass);
+
+	UDs PropagateAssignmentUDs(const AssignExpr* a, UDs succ_UDs);
 
 	UDs FindUsage(const Stmt* s) const;
 	UDs FindSuccUsage(const Stmt* s) const;

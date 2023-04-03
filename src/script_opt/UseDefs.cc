@@ -586,6 +586,14 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			AddInExprUDs(uds, e->GetOp1().get());
 			break;
 
+		case EXPR_CALL:
+			{
+			auto ce = e->AsCallExpr();
+			AddInExprUDs(uds, ce->Func());
+			AddInExprUDs(uds, ce->Args());
+			break;
+			}
+
 		case EXPR_INCR:
 		case EXPR_DECR:
 			AddInExprUDs(uds, e->GetOp1()->AsRefExprPtr()->GetOp1().get());

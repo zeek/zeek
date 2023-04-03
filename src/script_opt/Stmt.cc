@@ -526,6 +526,12 @@ void WhileStmt::Inline(Inliner* inl)
 
 bool WhileStmt::IsReduced(Reducer* c) const
 	{
+	if ( ! body->IsReduced(c) )
+		return false;
+
+	if ( ! c->FullyReduce() )
+		return true;
+
 	// No need to check loop_cond_pred_stmt, as we create it reduced.
 	return loop_condition->IsReducedConditional(c) && body->IsReduced(c);
 	}
@@ -534,7 +540,8 @@ StmtPtr WhileStmt::DoReduce(Reducer* c)
 	{
 	if ( c->Optimizing() )
 		loop_condition = c->OptExpr(loop_condition);
-	else
+
+	else if ( c->FullyReduce() )
 		{
 		if ( IsReduced(c) )
 			{
@@ -551,6 +558,9 @@ StmtPtr WhileStmt::DoReduce(Reducer* c)
 		}
 
 	body = body->Reduce(c);
+
+	if ( ! c->FullyReduce() )
+		return ThisPtr();
 
 	// We use the more involved ExprStmt constructor here to bypass
 	// its check for whether the expression is being ignored, since
@@ -594,33 +604,37 @@ void ForStmt::Inline(Inliner* inl)
 
 bool ForStmt::IsReduced(Reducer* c) const
 	{
-	if ( ! e->IsReduced(c) )
-		return NonReduced(e.get());
+	if ( c->FullyReduce() )
+		{
+		if ( ! e->IsReduced(c) )
+			return NonReduced(e.get());
 
-	if ( ! c->IDsAreReduced(loop_vars) )
-		return false;
+		if ( ! c->IDsAreReduced(loop_vars) )
+			return false;
 
-	if ( value_var && (value_var->IsBlank() || ! c->ID_IsReduced(value_var)) )
-		return false;
+		if ( value_var && (value_var->IsBlank() || ! c->ID_IsReduced(value_var)) )
+			return false;
+		}
 
 	return body->IsReduced(c);
 	}
 
 StmtPtr ForStmt::DoReduce(Reducer* c)
 	{
-	if ( value_var && value_var->IsBlank() )
-		{
-		auto no_vv = make_intrusive<ForStmt>(loop_vars, e);
-		no_vv->AddBody(body);
-		return TransformMe(no_vv, c);
-		}
-
 	StmtPtr red_e_stmt;
 
 	if ( c->Optimizing() )
 		e = c->OptExpr(e);
-	else
+
+	else if ( c->FullyReduce() )
 		{
+		if ( value_var && value_var->IsBlank() )
+			{
+			auto no_vv = make_intrusive<ForStmt>(loop_vars, e);
+			no_vv->AddBody(body);
+			return TransformMe(no_vv, c);
+			}
+
 		e = e->Reduce(c, red_e_stmt);
 		c->UpdateIDs(loop_vars);
 

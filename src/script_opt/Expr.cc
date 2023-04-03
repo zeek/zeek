@@ -897,56 +897,59 @@ bool AddToExpr::IsReduced(Reducer* c) const
 	if ( tag == TYPE_VECTOR && same_type(t, op2->GetType()) )
 		return op1->IsReduced(c) && op2->IsReduced(c);
 
-	return NonReduced(this);
+	if ( c->FullyReduce() )
+		return NonReduced(this);
+
+	return op1->HasReducedOps(c) && op2->IsReduced(c);
 	}
 
 ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
 	auto tag = op1->GetType()->Tag();
 
-	switch ( tag )
+	if ( tag == TYPE_PATTERN || tag == TYPE_TABLE || tag == TYPE_VECTOR )
 		{
-		case TYPE_PATTERN:
-		case TYPE_TABLE:
-		case TYPE_VECTOR:
+		StmtPtr red_stmt1;
+		StmtPtr red_stmt2;
+
+		if ( tag == TYPE_PATTERN && op1->Tag() == EXPR_FIELD )
+			red_stmt1 = op1->ReduceToSingletons(c);
+		else
+			op1 = op1->Reduce(c, red_stmt1);
+
+		auto& t = op1->GetType();
+		op2 = op2->Reduce(c, red_stmt2);
+
+		red_stmt = MergeStmts(red_stmt1, red_stmt2);
+
+		if ( c->FullyReduce() && tag == TYPE_VECTOR && ! same_type(t, op2->GetType()) )
 			{
-			StmtPtr red_stmt1;
-			StmtPtr red_stmt2;
+			auto append = make_intrusive<AppendToExpr>(op1->Duplicate(), op2);
+			append->SetOriginal(ThisPtr());
 
-			if ( tag == TYPE_PATTERN && op1->Tag() == EXPR_FIELD )
-				red_stmt1 = op1->ReduceToSingletons(c);
-			else
-				op1 = op1->Reduce(c, red_stmt1);
+			auto append_stmt = make_intrusive<ExprStmt>(append);
 
-			auto& t = op1->GetType();
-			op2 = op2->Reduce(c, red_stmt2);
+			red_stmt = MergeStmts(red_stmt, append_stmt);
 
-			red_stmt = MergeStmts(red_stmt1, red_stmt2);
-
-			if ( tag == TYPE_VECTOR && ! same_type(t, op2->GetType()) )
-				{
-				auto append = make_intrusive<AppendToExpr>(op1->Duplicate(), op2);
-				append->SetOriginal(ThisPtr());
-
-				auto append_stmt = make_intrusive<ExprStmt>(append);
-
-				red_stmt = MergeStmts(red_stmt, append_stmt);
-
-				return op1;
-				}
-
-			return ThisPtr();
+			return op1;
 			}
 
-		default:
-			{
-			auto rhs = op1->AsRefExprPtr()->GetOp1();
-			auto do_incr = make_intrusive<AddExpr>(rhs->Duplicate(), op2);
-			auto assign = make_intrusive<AssignExpr>(op1, do_incr, false, nullptr, nullptr, false);
-
-			return assign->ReduceToSingleton(c, red_stmt);
-			}
+		return ThisPtr();
 		}
+
+	if ( c->FullyReduce() )
+		{
+		auto rhs = op1->AsRefExprPtr()->GetOp1();
+		auto do_incr = make_intrusive<AddExpr>(rhs->Duplicate(), op2);
+		auto assign = make_intrusive<AssignExpr>(op1, do_incr, false, nullptr, nullptr, false);
+
+		return assign->ReduceToSingleton(c, red_stmt);
+		}
+
+	red_stmt = op1->ReduceToSingletons(c);
+	op2 = op2->Reduce(c, red_stmt);
+
+	return ThisPtr();
 	}
 
 ExprPtr AddToExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
@@ -1636,18 +1639,21 @@ bool AssignExpr::IsReduced(Reducer* c) const
 		// are never reduced.
 		return false;
 
-	const auto& t1 = op1->GetType();
-	const auto& t2 = op2->GetType();
+	if ( c->FullyReduce() )
+		{
+		const auto& t1 = op1->GetType();
+		const auto& t2 = op2->GetType();
 
-	auto lhs_is_any = t1->Tag() == TYPE_ANY;
-	auto rhs_is_any = t2->Tag() == TYPE_ANY;
+		auto lhs_is_any = t1->Tag() == TYPE_ANY;
+		auto rhs_is_any = t2->Tag() == TYPE_ANY;
 
-	if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
-		return NonReduced(this);
+		if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
+			return NonReduced(this);
 
-	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
-	     t2->Yield()->Tag() == TYPE_ANY )
-		return NonReduced(this);
+		if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
+		     t2->Yield()->Tag() == TYPE_ANY )
+			return NonReduced(this);
+		}
 
 	if ( op1->Tag() == EXPR_REF && op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
 		// We are not reduced because the RHS should be folded.
@@ -1717,49 +1723,49 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return assign_val;
 		}
 
-	auto& t1 = op1->GetType();
-	auto& t2 = op2->GetType();
-
-	auto lhs_is_any = t1->Tag() == TYPE_ANY;
-	auto rhs_is_any = t2->Tag() == TYPE_ANY;
-
-	StmtPtr rhs_reduce;
-
-	if ( lhs_is_any != rhs_is_any )
-		{
-		auto op2_loc = op2->GetLocationInfo();
-
-		ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
-
-		if ( lhs_is_any )
-			{
-			if ( red_rhs->Tag() == EXPR_CONST )
-				op2 = red_rhs;
-			else
-				op2 = make_intrusive<CoerceToAnyExpr>(red_rhs);
-			}
-		else
-			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
-
-		op2->SetLocationInfo(op2_loc);
-		}
-
-	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
-	     t2->Yield()->Tag() == TYPE_ANY )
-		{
-		auto op2_loc = op2->GetLocationInfo();
-		ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
-		op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
-		op2->SetLocationInfo(op2_loc);
-		}
-
 	auto lhs_ref = op1->AsRefExprPtr();
 	red_stmt = MergeStmts(red_stmt, lhs_ref->ReduceToLHS(c));
 
 	auto lhs_expr = lhs_ref->GetOp1();
 
+	StmtPtr rhs_reduce;
+
 	if ( c->FullyReduce() )
 		{
+		auto& t1 = op1->GetType();
+		auto& t2 = op2->GetType();
+
+		auto lhs_is_any = t1->Tag() == TYPE_ANY;
+		auto rhs_is_any = t2->Tag() == TYPE_ANY;
+
+		if ( lhs_is_any != rhs_is_any )
+			{
+			auto op2_loc = op2->GetLocationInfo();
+
+			ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
+
+			if ( lhs_is_any )
+				{
+				if ( red_rhs->Tag() == EXPR_CONST )
+					op2 = red_rhs;
+				else
+					op2 = make_intrusive<CoerceToAnyExpr>(red_rhs);
+				}
+			else
+				op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
+
+			op2->SetLocationInfo(op2_loc);
+			}
+
+		if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
+		     t2->Yield()->Tag() == TYPE_ANY )
+			{
+			auto op2_loc = op2->GetLocationInfo();
+			ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
+			op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
+			op2->SetLocationInfo(op2_loc);
+			}
+
 		if ( lhs_expr->Tag() == EXPR_INDEX )
 			{
 			auto ind_e = lhs_expr->AsIndexExpr();

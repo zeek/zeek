@@ -177,13 +177,18 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 			if ( cond_pred_stmt )
 				cond_pred_stmt->Traverse(this);
 
-			// Important to traverse the condition in its version
-			// interpreted as a statement, so that when evaluating
-			// its variable usage, that's done in the context of
-			// *after* cond_pred_stmt executes, rather than as
-			// part of that execution.
 			auto cond_stmt = w->ConditionAsStmt();
-			cond_stmt->Traverse(this);
+			if ( cond_stmt )
+				// Important to traverse the condition in its
+				// version interpreted as a statement, so that
+				// when evaluating its variable usage, that's
+				// done in the context of *after*
+				// cond_pred_stmt executes, rather than as
+				// part of that execution.
+				cond_stmt->Traverse(this);
+			else
+				// Not using full reduction.
+				w->Condition()->Traverse(this);
 
 			auto body = w->Body();
 			body->Traverse(this);

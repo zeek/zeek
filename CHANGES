@@ -1,3 +1,25 @@
+6.0.0-dev.295 | 2023-04-03 13:19:20 +0200
+
+  * GH-2296: PktSrc: Introduce Pcap::non_fd_timeout (Arne Welzel, Corelight)
+
+    Increasing this value 10x has lowered CPU usage on a Myricom based
+    deployment significantly with reportedly no adverse side-effects.
+
+    After reviewing the Zeek 3 IO loop, my hunch is that previously when
+    no packets were available, we'd sleep 20usec every loop iteration after
+    calling ->Process() on the packet source. With current master ->Process()
+    is called 10 times on a packet source before going to sleep just once
+    for 20 usec. Likely this explains the increased CPU usage reported.
+
+    It's probably too risky to increase the current value, so introduce
+    a const &redef value for advanced users to tweak it. A middle ground
+    might be to lower ``io_poll_interval_live`` to 5 and increase the new
+    ``Pcap::non_fd_timeout`` setting to 100usec.
+
+    While this doesn't really fix #2296, we now have enough knobs for tweaking.
+
+    Closes #2296.
+
 6.0.0-dev.293 | 2023-03-31 10:38:45 +0200
 
   * Add test cases for Geneve. (Jan Grashoefer, Corelight)

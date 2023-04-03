@@ -98,6 +98,11 @@ New Functionality
   or a custom plugin, this allows control of ``network_time()`` without Zeek
   interfering.
 
+- The setting ``Pcap::non_fd_timeout`` can be used to configure the timeout
+  used by non-selectable packet sources in the idle case (default 20usec).
+  This value has previously been hard-coded, but increasing it can significantly
+  reduce idle CPU usage in low packet rate deployments.
+
 Changed Functionality
 ---------------------
 

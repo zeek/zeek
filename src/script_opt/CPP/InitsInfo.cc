@@ -329,6 +329,7 @@ AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c)
 		else
 			{
 			ASSERT(a_e->Tag() == EXPR_RECORD_COERCE);
+			ASSERT(gi);
 			vals.emplace_back(Fmt(static_cast<int>(AE_RECORD)));
 			vals.emplace_back(Fmt(gi->Offset()));
 			}

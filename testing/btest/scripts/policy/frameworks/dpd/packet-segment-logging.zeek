@@ -9,10 +9,8 @@ event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, re
 	print "analyzer_violation", c$id, atype, aid, reason;
 	}
 
-@if ( Version::at_least("5.1") )
 event analyzer_violation_info(tag: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
 	print "reason", info$reason;
 	print "data", fmt("%s", info$data);
 	}
-@endif

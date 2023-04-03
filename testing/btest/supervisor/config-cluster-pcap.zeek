@@ -1,4 +1,5 @@
 # @TEST-DOC: Test support for pcap_file on Supervisor::ClusterEndpoint and Supervisor::NodeConfig
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
 # @TEST-PORT: MANAGER_PORT
 # @TEST-PORT: WORKER_PORT

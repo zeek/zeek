@@ -1,3 +1,9 @@
+6.0.0-dev.303 | 2023-04-03 16:37:02 +0200
+
+  * addressed static analysis concern about possible null pointer (Vern Paxson, Corelight)
+
+  * tweaks for "-O C++" of BTest's with conditional code (Vern Paxson, Corelight)
+
 6.0.0-dev.300 | 2023-04-03 13:32:40 +0200
 
   * minor ZAM BTest baseline updates (Vern Paxson, Corelight)

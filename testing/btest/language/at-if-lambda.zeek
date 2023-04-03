@@ -1,4 +1,5 @@
 # @TEST-DOC: Regression test for #2075 from 0xxon
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff .stderr

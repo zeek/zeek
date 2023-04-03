@@ -381,7 +381,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 	if ( dt == VAR_OPTION )
 		{
-		if ( ! init )
+		if ( ! init && ! IsContainer(t->Tag()) )
 			id->Error("option variable must be initialized");
 
 		id->SetOption();

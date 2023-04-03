@@ -310,7 +310,7 @@ double PktSrc::GetNextTimeout()
 		if ( have_packet || had_packet )
 			return 0.0;
 
-		return 0.00002;
+		return BifConst::Pcap::non_fd_timeout;
 		}
 
 	// If there's an FD (offline or live) we want poll to do what it has to with it.

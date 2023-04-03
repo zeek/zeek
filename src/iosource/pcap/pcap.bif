@@ -4,6 +4,7 @@ module Pcap;
 
 const snaplen: count;
 const bufsize: count;
+const non_fd_timeout: interval;
 
 %%{
 #include <pcap.h>

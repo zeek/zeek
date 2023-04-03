@@ -1,3 +1,11 @@
+5.0.7-7 | 2023-04-03 10:22:33 -0700
+
+  * Update zeekctl submodule [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * Default known stores to false to avoid Broker stores (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from e47980143cfa40b8634655d573d059eaafd8336a)
+
 5.0.7-5 | 2023-03-16 10:05:15 -0700
 
   * Bump spicy-plugin to v1.3.26. (Arne Welzel, Corelight)

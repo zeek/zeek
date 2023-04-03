@@ -1,3 +1,93 @@
+5.2.0-13 | 2023-04-03 13:26:21 -0700
+
+  * Consider cap len when forwarding into packet analysis. (Jan Grashoefer, Corelight)
+
+    When forwarding into packet analysis from TCP or UDP, the protocol's
+    length fields were trusted. This might be dangerous in case of truncated
+    packets.
+
+    (cherry picked from commit 69b6443ddbb45cf86fbf3df9d1418b73b0c40fc9)
+
+  * Fix forwarding of tunnelled packets. (Jan Grashoefer, Corelight)
+
+    This fixes a bug for AYIYA, Geneve and VXLAN forwarding encapsulated
+    content only if it's longer than their header. A new weird is introduced
+    to indicate empty tunnels.
+
+    (cherry picked from commit 5718046b967e22ff375c55402e9a877163565719)
+
+  * Call AnalyzerConfirmation earlier in VXLAN/Geneve analysis (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit cea7fc49076ad5250243d449a5ddc26ccf0d06cb)
+
+  * Add validation of session to start of AYIYA/VXLAN/Geneve analysis (Tim Wojtulewicz, Corelight)
+
+    This mimics how the Teredo analyzer is already doing it, including
+    sending a weird if the session is invalid and bailing out if the
+    protocol was already violated.
+
+    (cherry picked from commit cea7fc49076ad5250243d449a5ddc26ccf0d06cb)
+
+  * ci/collect-repo-info.py: Recognize git worktrees, too (Arne Welzel, Corelight)
+
+    Benjamin reported ci/collect-repo-info.py failing for him in
+    Git worktrees, use `git` to actually check if we're in a repo.
+
+    (cherry picked from commit cea7fc49076ad5250243d449a5ddc26ccf0d06cb)
+
+  * Allow offline packet sources to register FDs. (Jan Grashoefer, Corelight)
+
+    (cherry picked from commit c5a9eb920c6596adbec2f3c54facb630b7e9fe34)
+
+  * GH-2039: GH-2842: PktSrc: Avoid calling ExtractNextPacketInternal() in GetNextTimeout() (Arne Welzel, Corelight)
+
+    This reworks 2aec7640dd60c3ea3cffd82461588567e406db34 (zeek/zeek#2039) to
+    avoid calling ExtractNextPacketInternal() within GetNextTimeout() for
+    the non-pseudo-realtime case. Also relates to zeek/zeek#2842.
+
+    The intention of the referenced change was to avoid a 0.00002 timeout when
+    a non-selectable packet source has more packets queued. This was implemented
+    by checking for a new packet within GetNextTimeout().
+
+    The proposed change switches to an predictive approach: Use the result of
+    the previous ExtractNextPacket() call (stored as had_packet) as an indication
+    whether more packets are to be expected.
+
+    Calling ExtractNextPacketInternal() within GetNextTimeout() may cause
+    surprising behavior as some packet source may block [1] or spent a significant
+    amount of time (e.g. applying BPF filters [2]) within ExtractNextPacket().
+    The result of GetNextTimeout() should be available immediately as guidance
+    for the main-loop and the actual work should happen within the ->Process()
+    method.
+
+    This change also attempts to separate the pseudo-realtime logic from the
+    non-pseudo-realtime in an attempt show pseudo-realtime as special.
+
+    [1] https://github.com/hosom/bro-napatech/blob/00c4d657e034927301d5f8d9bc03eca81e619699/src/Napatech.cc#L116
+    [2] https://github.com/sethhall/bro-myricom/blob/58b25c8ebac6d184ff8ff0c27f8da2b603694dab/src/Myricom.cc#L250
+
+    (cherry picked from commit c5a9eb920c6596adbec2f3c54facb630b7e9fe34)
+
+  * ScriptValidation: Make break/next a warning until Zeek 6.1 (Arne Welzel, Corelight)
+
+    The ja3 package uses next instead of return and triggers the new
+    errors with Zeek 5.2. That seems somewhat bad.
+
+    (cherry picked from commit 16bdcd27bd686d53bfab5f3b77e58ec3da757e05)
+
+  * Add trigger_mgr to iosource_mgr later during startup (Tim Wojtulewicz, Corelight)
+
+    This fixes a potential crash due to trigger_mgr getting shutdown earlier
+    than dns_mgr, and dns_mgr then trying to use it after it's been deleted.
+    This change forces the order of initialization/destruction in
+    iosource_mgr to cause dns_mgr to be deleted first.
+
+    (cherry picked from commit e9ff3899121fabc4d7081d0a6c451f3a59840044)
+
+  * Default known stores to false to avoid Broker stores (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit e47980143cfa40b8634655d573d059eaafd8336a)
+
 5.2.0-3 | 2023-03-16 10:06:00 -0700
 
   * Bump spicy-plugin to v1.5.2. (Arne Welzel, Corelight)

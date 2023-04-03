@@ -1,3 +1,170 @@
+5.0.7-19 | 2023-04-03 12:19:12 -0700
+
+  * Allow offline packet sources to register FDs. (Jan Grashoefer, Corelight)
+
+    (cherry picked from commit c5a9eb920c6596adbec2f3c54facb630b7e9fe34)
+
+  * GH-2039: GH-2842: PktSrc: Avoid calling ExtractNextPacketInternal() in GetNextTimeout() (Arne Welzel, Corelight)
+
+    This reworks 2aec7640dd60c3ea3cffd82461588567e406db34 (zeek/zeek#2039) to
+    avoid calling ExtractNextPacketInternal() within GetNextTimeout() for
+    the non-pseudo-realtime case. Also relates to zeek/zeek#2842.
+
+    The intention of the referenced change was to avoid a 0.00002 timeout when
+    a non-selectable packet source has more packets queued. This was implemented
+    by checking for a new packet within GetNextTimeout().
+
+    The proposed change switches to an predictive approach: Use the result of
+    the previous ExtractNextPacket() call (stored as had_packet) as an indication
+    whether more packets are to be expected.
+
+    Calling ExtractNextPacketInternal() within GetNextTimeout() may cause
+    surprising behavior as some packet source may block [1] or spent a significant
+    amount of time (e.g. applying BPF filters [2]) within ExtractNextPacket().
+    The result of GetNextTimeout() should be available immediately as guidance
+    for the main-loop and the actual work should happen within the ->Process()
+    method.
+
+    This change also attempts to separate the pseudo-realtime logic from the
+    non-pseudo-realtime in an attempt show pseudo-realtime as special.
+
+    [1] https://github.com/hosom/bro-napatech/blob/00c4d657e034927301d5f8d9bc03eca81e619699/src/Napatech.cc#L116
+    [2] https://github.com/sethhall/bro-myricom/blob/58b25c8ebac6d184ff8ff0c27f8da2b603694dab/src/Myricom.cc#L250
+
+    (cherry picked from commit c5a9eb920c6596adbec2f3c54facb630b7e9fe34)
+
+  * Consider cap len when forwarding into packet analysis. (Jan Grashoefer, Corelight)
+
+    When forwarding into packet analysis from TCP or UDP, the protocol's
+    length fields were trusted. This might be dangerous in case of truncated
+    packets.
+
+    (cherry picked from commit 69b6443ddbb45cf86fbf3df9d1418b73b0c40fc9)
+
+  * Fix forwarding of tunnelled packets. (Jan Grashoefer, Corelight)
+
+    This fixes a bug for AYIYA, Geneve and VXLAN forwarding encapsulated
+    content only if it's longer than their header. A new weird is introduced
+    to indicate empty tunnels.
+
+    (cherry picked from commit 5718046b967e22ff375c55402e9a877163565719)
+
+  * Call AnalyzerConfirmation earlier in VXLAN/Geneve analysis (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit cea7fc49076ad5250243d449a5ddc26ccf0d06cb)
+
+  * Add validation of session to start of AYIYA/VXLAN/Geneve analysis (Tim Wojtulewicz, Corelight)
+
+    This mimics how the Teredo analyzer is already doing it, including
+    sending a weird if the session is invalid and bailing out if the
+    protocol was already violated.
+
+    (cherry picked from commit cea7fc49076ad5250243d449a5ddc26ccf0d06cb)
+
+  * GH-2684: Stop violating VXLAN for forwarding failures (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 8d815feb34d2116965c3f5ed7a2cd15c61dcc394)
+
+  * GH-2851: HTTP: Make Content-Range parsing more robust (Arne Welzel, Corelight)
+
+    This was exposed by OSS-Fuzz after the HTTP/0.9 changes in zeek/zeek#2851:
+    We do not check the result of parsing the from and last bytes of a
+    Content-Range header and would reference uninitialized values on the stack
+    if these were not valid.
+
+    This doesn't seem as bad as it sounds outside of yielding non-sensible values:
+    If the result was negative, we weird/bailed. If the result was positive, we
+    already had to treat it with suspicion anyway and the SetPlainDelivery()
+    logic accounts for that.
+
+    (cherry picked from commit c29b98b224a00fe4c37177ac334567d6cdd3da28)
+
+  * GH-2851: HTTP: Reset reply_message for HTTP/0.9 (Arne Welzel, Corelight)
+
+    OSS-Fuzz tickled an assert when sending a HTTP response before a HTTP/0.9
+    request. Avoid this by resetting reply_message upon seeing a HTTP/0.9 request.
+
+    PCAP was generated artificially: Server sending a reply providing a
+    Content-Length. Because HTTP/0.9 processing would remove the ContentLine
+    support analyzer, more data was delivered to the HTTP_Message than
+    expected, triggering an assert.
+
+    (cherry picked from commit e62e57a7cfac0ffe8178b222a76c652233a3778e)
+
+  * Add weird for unknown HTTP/0.9 request method (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit b14cc413d886692df6d0f2a27ce4af657d9783a3)
+
+  * Special case HTTP 0.9 early on (Tim Wojtulewicz, Corelight)
+
+    Mostly, treat HTTP0.9 completely separate. Because we're doing raw
+    delivery of a body directly, fake enough (connection_close=1, and finish
+    headers manually) so that the MIME infrastructure thinks it is seeing a
+    body.
+
+    This deals better with the body due to accounting for the first line. Also
+    it avoids the content line analyzer to strip CRLF/LF and the analyzer
+    then adding CRLF unconditionally by fully bypassing the content line
+    analyzer.
+
+    Concretely, the vlan-mpls test case contains a HTTP response with LF only,
+    but the previous implementation would use CRLF, accounting for two many bytes.
+    Same for the http.no-version test which would previously report a body
+    length of 280 and now is at 323 (which agrees with wireshark).
+
+    Further, the mime_type detection for the http-09 test case works because
+    it's now seeing the full body.
+
+    Drawback: We don't extract headers when a server actually replies with
+    a HTTP/1.1 message, but grrr, something needs to give I guess.
+
+    (cherry picked from commit b14cc413d886692df6d0f2a27ce4af657d9783a3)
+
+  * Remove a couple unnecessary break statements (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit b14cc413d886692df6d0f2a27ce4af657d9783a3)
+
+  * Add test for new handling of unknown RDP keyboards (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit a82f743bcceb0187a54791173483dbcd3489142b)
+
+  * Log raw keyboard value on best guess (jeff-bb)
+
+    (cherry picked from commit 6cfb45d24f3a7b2eb178dd7b0f058d47d05bb3e2)
+
+  * Avoid excessive fmt calls, return default behavior on unknown (jeff-bb)
+
+    Using "in" to query the language const. This also handles the case of not
+    having a best guess and continue using the existing behavior.
+
+    Given
+    keyboard_layout = 1033 (0x0409), "keyboard-English - United States"
+    keyboard_layout = 66569 (0x00010409), "keyboard-English - United States (Best Guess)"
+    keyboard_layout = 12345 (0x3039), "keyboard-12345"
+
+    (cherry picked from commit 6cfb45d24f3a7b2eb178dd7b0f058d47d05bb3e2)
+
+  * "Best Guess" unknown keyboard / language variants (jeff-bb)
+
+    If the lookup table does not have an entry, it will just log as the raw
+    decimal language/keyboard code. With this change, if we do not have an entry
+    in the lookup table, we'll look at the low order / 4 least significant bits
+    to see if we have a match. The high order / 4 most significant bits are
+    flags/modifiers to the base language/keyboard code. We'll append that it is
+    a "Best Guess"
+
+    (cherry picked from commit 6cfb45d24f3a7b2eb178dd7b0f058d47d05bb3e2)
+
+  * Update RDP Keyboard Languages (jeff-bb)
+
+    Using additional sources to add more languages / locales. Changed sort order to match other sections.
+
+    (cherry picked from commit 6e59793da6bf7a8c5d83eab845bf58de0089ff44)
+
+  * GH-2801: Fix re-instantiation of analyzers that were just removed. (Robin Sommer, Corelight)
+
+    (cherry picked from commit a41e282a7d159f42f67f40778a6b16169316e630)
+
 5.0.7-7 | 2023-04-03 10:22:33 -0700
 
   * Update zeekctl submodule [nomail] [skip ci] (Tim Wojtulewicz, Corelight)

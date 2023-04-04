@@ -48,11 +48,6 @@ public:
 	// statements are executed immediately and the object is deleted
 	// right away.
 
-	// These first constructor is for the deprecated deep-copy semantics.
-	Trigger(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, double timeout, Frame* f,
-	        bool is_return, const Location* loc);
-
-	// Used for capture-list semantics.
 	Trigger(WhenInfo* wi, double timeout, const IDSet& globals, std::vector<ValPtr> local_aggrs,
 	        Frame* f, const Location* loc);
 
@@ -111,9 +106,6 @@ public:
 
 private:
 	friend class TriggerTimer;
-
-	void Init(ExprPtr cond, StmtPtr body, StmtPtr timeout_stmts, Frame* frame, bool is_return,
-	          const Location* location);
 
 	void ReInit(std::vector<ValPtr> index_expr_results);
 

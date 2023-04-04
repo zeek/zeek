@@ -1,3 +1,15 @@
+6.0.0-dev.310 | 2023-04-04 10:00:24 +0200
+
+  * test suite update for minor change in "when" error messages (Vern Paxson, Corelight)
+
+  * removed skeletal (non-functioning) "when" support from ZAM (Vern Paxson, Corelight)
+
+  * simplify WhenInfo and Trigger classes given removal of old capture semantics (Vern Paxson, Corelight)
+
+  * introduced notion of light-weight Frame clones (Vern Paxson, Corelight)
+
+  * changed function_ingredients struct to FunctionIngredients class with accessors (Vern Paxson, Corelight)
+
 6.0.0-dev.303 | 2023-04-03 16:37:02 +0200
 
   * addressed static analysis concern about possible null pointer (Vern Paxson, Corelight)

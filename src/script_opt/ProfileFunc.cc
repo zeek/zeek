@@ -51,7 +51,7 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields)
 		for ( auto oid : func->OuterIDs() )
 			captures.insert(oid);
 
-		Profile(func->GetType()->AsFuncType(), func->Ingredients().body);
+		Profile(func->GetType()->AsFuncType(), func->Ingredients().Body());
 		}
 
 	else

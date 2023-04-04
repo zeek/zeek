@@ -15,7 +15,7 @@ event zeek_init()
 		print g;
 		}
 
-	# Should generate a deprecation warning.
+	# Should generate an error.
 	when ( g > 0 )
 		{
 		print orig1;

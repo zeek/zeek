@@ -120,6 +120,17 @@ Frame* Frame::Clone() const
 	return other;
 	}
 
+Frame* Frame::CloneForTrigger() const
+	{
+	Frame* other = new Frame(0, function, func_args);
+
+	other->call = call;
+	other->assoc = assoc;
+	other->trigger = trigger;
+
+	return other;
+	}
+
 static bool val_is_func(const ValPtr& v, ScriptFunc* func)
 	{
 	if ( v->GetType()->Tag() != TYPE_FUNC )

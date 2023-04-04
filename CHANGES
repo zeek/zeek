@@ -1,3 +1,7 @@
+6.0.0-dev.312 | 2023-04-04 09:05:34 -0700
+
+  * Update gen-zam submodule for std::move warnings (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.310 | 2023-04-04 10:00:24 +0200
 
   * test suite update for minor change in "when" error messages (Vern Paxson, Corelight)

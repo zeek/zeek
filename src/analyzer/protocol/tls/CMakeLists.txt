@@ -4,5 +4,4 @@ spicy_add_analyzer(
   SOURCES
 		TLS.spicy
 		TLS.evt
-		zeek_TLS.spicy
 )

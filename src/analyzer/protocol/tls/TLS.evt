@@ -2,72 +2,74 @@ protocol analyzer TLS over TCP:
 	parse with TLS::Message,
 	port 443/tcp;
 
-import Zeek_TLS;
+import TLS;
+import zeek;
+import spicy;
 
 on TLS::ClientHello -> event ssl_client_hello($conn, self.client_version, msg.record_version, cast<time>(self.random.gmt_unix_time), self.random.random_bytes, self.session_id, self.cipher_suites, self.compression_methods);
 
 on TLS::ServerHello -> event ssl_server_hello($conn, self.server_version, msg.record_version, cast<time>(self.random.gmt_unix_time), self.random.random_bytes, self.session_id, self.cipher_suite, self.compression_method);
 
-# on TLS::EllipticCurveList -> event ssl_extension_elliptic_curves($conn, $is_orig, self.elliptic_curve_list);
-# 
-# on TLS::EcPointsFormat_extension -> event ssl_extension_ec_point_formats($conn, $is_orig, self.ec_point_format_list);
-# 
-# on TLS::ServerNameList -> event ssl_extension_server_name($conn, $is_orig, Zeek_TLS::convert_server_names(self));
-# 
-# on TLS::NewSessionTicket -> event ssl_session_ticket_handshake($conn, self.ticket_lifetime_hint, self.ticket);
-# 
-# on TLS::RecordFragment::ccs -> event ssl_change_cipher_spec($conn, $is_orig);
-# 
-# on TLS::RecordFragment::ccs if ( msg.context().ccs_seen == 2 ) -> event ssl_established($conn);
-# 
-# on TLS::Handshake_message -> event ssl_handshake_message($conn, $is_orig, self.msg_type, self.length);
-# 
-# on TLS::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, $is_orig, Zeek_TLS::convert_signature_algorithms(self));
-# 
-# on TLS::ServerHelloKeyShare -> event ssl_extension_key_share($conn, $is_orig, vector<uint16>(self.keyshare.namedgroup,));
-# 
-# on TLS::HelloRetryRequestKeyShare -> event ssl_extension_key_share($conn, $is_orig, vector<uint16>(self.namedgroup,));
-# 
-# on TLS::ClientHelloKeyShare -> event ssl_extension_key_share($conn, $is_orig, Zeek_TLS::convert_clienthellokeyshare(self));
-# 
-# on TLS::OfferedPsks -> event ssl_extension_pre_shared_key_client_hello($conn, $is_orig, Zeek_TLS::convert_identities(self.identities), Zeek_TLS::convert_binders(self.binders));
-# 
-# on TLS::SelectedPreSharedKeyIdentity -> event ssl_extension_pre_shared_key_server_hello($conn, $is_orig, self.selected_identity);
-# 
-# on TLS::ServerECDHParamsAndSignature -> event ssl_ecdh_server_params($conn, self.curve, self.point);
-# 
-# on TLS::DheServerKeyExchange -> event ssl_dh_server_params($conn, self.dh_p, self.dh_g, self.dh_Ys);
-# 
-# on TLS::DhAnonServerKeyExchange -> event ssl_dh_server_params($conn, self.dh_p, self.dh_g, self.dh_Ys);
-# 
-# on TLS::ServerKeyExchangeSignature if ( self?.algorithm ) -> event ssl_server_signature($conn, tuple(self.algorithm.hash, self.algorithm.signature), self.signature);
-# 
-# # just use nonsense values for no algorithm. Same as in the old analyzer
-# on TLS::ServerKeyExchangeSignature if ( ! self?.algorithm ) -> event ssl_server_signature($conn, tuple(256, 256), self.signature);
-# 
-# on TLS::EcdhClientKeyExchange -> event ssl_ecdh_client_params($conn, self.point);
-# 
-# on TLS::DhClientKeyExchange -> event ssl_dh_client_params($conn, self.dh_Yc);
-# 
-# on TLS::RsaClientKeyExchange -> event ssl_rsa_client_pms($conn, self.rsa_pms);
-# 
-# on TLS::ProtocolNameList -> event ssl_extension_application_layer_protocol_negotiation($conn, $is_orig, Zeek_TLS::convert_protocol_name_list(self));
-# 
-# on TLS::SignedCertificateTimestamp -> event ssl_extension_signed_certificate_timestamp($conn, $is_orig, self.version, self.logid, self.timestamp, tuple(self.digitally_signed_algorithms.hash, self.digitally_signed_algorithms.signature), self.digitally_signed_signature);
-# 
-# on TLS::SupportedVersions -> event ssl_extension_supported_versions($conn, $is_orig, self.versions);
-# 
-# on TLS::OneSupportedVersion -> event ssl_extension_supported_versions($conn, $is_orig, vector<uint16>(self.version,));
-# 
-# on TLS::PSKKeyExchangeModes -> event ssl_extension_psk_key_exchange_modes($conn, $is_orig, self.modes);
-# 
-# on TLS::Alert_message -> event ssl_alert($conn, $is_orig, self.level, self.description);
-# 
-# on TLS::Heartbeat -> event ssl_heartbeat($conn, $is_orig, length, self.tpe, self.payload_length, self.data);
-# 
-# on TLS::RecordFragment::appdata if ( msg.encrypted == False ) -> event ssl_plaintext_data($conn, $is_orig, self.version, self.content_type, self.length);
-# 
-# on TLS::RecordFragment::appdata if ( msg.encrypted == True ) -> event ssl_encrypted_data($conn, $is_orig, self.version, self.content_type, self.length);
-# 
-# on TLS::CertificateStatus -> event ssl_stapled_ocsp($conn, $is_orig, self.response);
-# 
+on TLS::EllipticCurveList -> event ssl_extension_elliptic_curves($conn, $is_orig, self.elliptic_curve_list);
+
+on TLS::EcPointsFormat_extension -> event ssl_extension_ec_point_formats($conn, $is_orig, self.ec_point_format_list);
+
+on TLS::ServerNameList -> event ssl_extension_server_name($conn, $is_orig, TLS::convert_server_names(self));
+
+on TLS::NewSessionTicket -> event ssl_session_ticket_handshake($conn, self.ticket_lifetime_hint, self.ticket);
+
+on TLS::RecordFragment::ccs -> event ssl_change_cipher_spec($conn, $is_orig);
+
+on TLS::RecordFragment::ccs if ( msg.context().ccs_seen == 2 ) -> event ssl_established($conn);
+
+on TLS::Handshake_message -> event ssl_handshake_message($conn, $is_orig, self.msg_type, self.length);
+
+on TLS::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, $is_orig, TLS::convert_signature_algorithms(self));
+
+on TLS::ServerHelloKeyShare -> event ssl_extension_key_share($conn, $is_orig, vector<uint16>(self.keyshare.namedgroup,));
+
+on TLS::HelloRetryRequestKeyShare -> event ssl_extension_key_share($conn, $is_orig, vector<uint16>(self.namedgroup,));
+
+on TLS::ClientHelloKeyShare -> event ssl_extension_key_share($conn, $is_orig, TLS::convert_clienthellokeyshare(self));
+
+on TLS::OfferedPsks -> event ssl_extension_pre_shared_key_client_hello($conn, $is_orig, TLS::convert_identities(self.identities), TLS::convert_binders(self.binders));
+
+on TLS::SelectedPreSharedKeyIdentity -> event ssl_extension_pre_shared_key_server_hello($conn, $is_orig, self.selected_identity);
+
+on TLS::ServerECDHParamsAndSignature -> event ssl_ecdh_server_params($conn, self.curve, self.point);
+
+on TLS::DheServerKeyExchange -> event ssl_dh_server_params($conn, self.dh_p, self.dh_g, self.dh_Ys);
+
+on TLS::DhAnonServerKeyExchange -> event ssl_dh_server_params($conn, self.dh_p, self.dh_g, self.dh_Ys);
+
+on TLS::ServerKeyExchangeSignature if ( self?.algorithm ) -> event ssl_server_signature($conn, tuple(self.algorithm.hash, self.algorithm.signature), self.signature);
+
+# just use nonsense values for no algorithm. Same as in the old analyzer
+on TLS::ServerKeyExchangeSignature if ( ! self?.algorithm ) -> event ssl_server_signature($conn, tuple(256, 256), self.signature);
+
+on TLS::EcdhClientKeyExchange -> event ssl_ecdh_client_params($conn, self.point);
+
+on TLS::DhClientKeyExchange -> event ssl_dh_client_params($conn, self.dh_Yc);
+
+on TLS::RsaClientKeyExchange -> event ssl_rsa_client_pms($conn, self.rsa_pms);
+
+on TLS::ProtocolNameList -> event ssl_extension_application_layer_protocol_negotiation($conn, $is_orig, TLS::convert_protocol_name_list(self));
+
+on TLS::SignedCertificateTimestamp -> event ssl_extension_signed_certificate_timestamp($conn, $is_orig, self.version, self.logid, self.timestamp, tuple(self.digitally_signed_algorithms.hash, self.digitally_signed_algorithms.signature), self.digitally_signed_signature);
+
+on TLS::SupportedVersions -> event ssl_extension_supported_versions($conn, $is_orig, self.versions);
+
+on TLS::OneSupportedVersion -> event ssl_extension_supported_versions($conn, $is_orig, vector<uint16>(self.version,));
+
+on TLS::PSKKeyExchangeModes -> event ssl_extension_psk_key_exchange_modes($conn, $is_orig, self.modes);
+
+on TLS::Alert_message -> event ssl_alert($conn, $is_orig, self.level, self.description);
+
+on TLS::Heartbeat -> event ssl_heartbeat($conn, $is_orig, length, self.tpe, self.payload_length, self.data);
+
+on TLS::RecordFragment::appdata if ( msg.encrypted == False ) -> event ssl_plaintext_data($conn, $is_orig, self.version, self.content_type, self.length);
+
+on TLS::RecordFragment::appdata if ( msg.encrypted == True ) -> event ssl_encrypted_data($conn, $is_orig, self.version, self.content_type, self.length);
+
+on TLS::CertificateStatus -> event ssl_stapled_ocsp($conn, $is_orig, self.response);
+

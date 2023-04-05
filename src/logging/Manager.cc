@@ -1561,10 +1561,19 @@ std::string Manager::FormatRotationPath(EnumValPtr writer, std::string_view path
 	ri->Assign<FuncVal>(5, std::move(postprocessor));
 
 	std::string rval;
+	ValPtr res = Val::nil;
 
 	try
 		{
-		auto res = rotation_format_func->Invoke(ri);
+		res = rotation_format_func->Invoke(ri);
+		}
+	catch ( InterpreterException& e )
+		{
+		// Will have logged something, res continues to be nil
+		}
+
+	if ( res )
+		{
 		auto rp_val = res->AsRecordVal();
 		auto dir_val = rp_val->GetFieldOrDefault(0);
 		auto prefix = rp_val->GetFieldAs<StringVal>(1)->CheckString();
@@ -1590,7 +1599,7 @@ std::string Manager::FormatRotationPath(EnumValPtr writer, std::string_view path
 		else
 			rval = util::fmt("%s/%s", dir, prefix);
 		}
-	catch ( InterpreterException& e )
+	else
 		{
 		auto rot_str = format_rotation_time_fallback((time_t)open);
 		rval = util::fmt("%.*s-%s", static_cast<int>(path.size()), path.data(), rot_str.data());

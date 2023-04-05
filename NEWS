@@ -103,6 +103,16 @@ New Functionality
   This value has previously been hard-coded, but increasing it can significantly
   reduce idle CPU usage in low packet rate deployments.
 
+- Deprecation warnings in Zeek scripts can be suppressed using
+  ``@pragma push ignore-deprecations`` followed by ``@pragma pop``.
+
+  Specifically for usages within Zeek base to allow populating a deprecated
+  field for API compatibility without triggering deprecation warnings from
+  base scripts.
+
+- The ``Reporter`` class was extended by a ``Deprecation()`` method to use
+  for logging deprecations rather than using ad-hoc ``Warning()`` calls.
+
 Changed Functionality
 ---------------------
 

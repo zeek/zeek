@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Expr.h"
 #include "zeek/Func.h"
@@ -194,7 +195,10 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 		// This can happen because the grammar allows any "init_class",
 		// including none, to be followed by an expression.
 		// Remove in v6.1 (make an error)
-		init->Warn("Remove in v6.1. Initialization not preceded by =/+=/-= is deprecated.");
+		reporter->Deprecation(
+			util::fmt("Remove in v6.1. Initialization not preceded by =/+=/-= is deprecated. (%s)",
+		              obj_desc_short(init.get()).c_str()),
+			init->GetLocationInfo());
 
 		// The historical instances of these, such as the
 		// language/redef-same-prefixtable-idx.zeek btest, treat
@@ -537,14 +541,13 @@ static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl,
 				{
 				auto msg = ad->DeprecationMessage();
 
-				if ( msg.empty() )
-					impl->Warn(
-						util::fmt("use of deprecated parameter '%s'", rval->args->FieldName(i)),
-						decl, true);
-				else
-					impl->Warn(util::fmt("use of deprecated parameter '%s': %s",
-					                     rval->args->FieldName(i), msg.data()),
-					           decl, true);
+				if ( ! msg.empty() )
+					msg = ": " + msg;
+
+				reporter->Deprecation(util::fmt("use of deprecated parameter '%s'%s (%s)",
+				                                rval->args->FieldName(i), msg.data(),
+				                                obj_desc_short(impl).c_str()),
+				                      impl->GetLocationInfo(), decl->GetLocationInfo());
 				}
 
 	return rval;
@@ -605,13 +608,13 @@ static auto get_prototype(IDPtr id, FuncTypePtr t)
 
 		if ( prototype->deprecated )
 			{
-			if ( prototype->deprecation_msg.empty() )
-				t->Warn(util::fmt("use of deprecated '%s' prototype", id->Name()),
-				        prototype->args.get(), true);
-			else
-				t->Warn(util::fmt("use of deprecated '%s' prototype: %s", id->Name(),
-				                  prototype->deprecation_msg.data()),
-				        prototype->args.get(), true);
+			auto msg = prototype->deprecation_msg;
+			if ( ! msg.empty() )
+				msg = ": " + msg;
+
+			reporter->Deprecation(util::fmt("use of deprecated '%s' prototype%s (%s)", id->Name(),
+			                                msg.c_str(), obj_desc_short(t.get()).c_str()),
+			                      t->GetLocationInfo(), prototype->args->GetLocationInfo());
 			}
 		}
 

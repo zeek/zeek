@@ -1,3 +1,33 @@
+6.0.0-dev.317 | 2023-04-05 10:39:22 +0200
+
+  * scan.l: Support @pragma, specifically push/pop ignore-deprecations (Arne Welzel, Corelight)
+
+    This allows to ignore-deprecations as follows:
+
+        @pragma push ignore-deprecations
+        print r$deprecated;
+        @pragma pop
+
+    A bit of infrastructure is put in place for the push and pop, but
+    nothing overly generalized for future pragmas.
+
+  * Switch deprecations to reporter->Deprecation() (Arne Welzel, Corelight)
+
+    Removes a bit of reliance around the magic DoLog() rendering at the
+    cost of needing to open-code some of it. The new obj_desc_short()
+    helper makes that acceptable, though.
+
+  * Reporter: Add dedicated Deprecation() method (Arne Welzel, Corelight)
+
+    Minimally, provide a way to funnel all deprecations through
+    reporter->Deprecation() instead of various Warning() invocations.
+
+  * Desc: Add obj_desc_short() (Arne Welzel, Corelight)
+
+    Same as obj_desc() but use the short version and do not include the
+    location information by default. New method instead of bool parameters
+    for readability.
+
 6.0.0-dev.312 | 2023-04-04 09:05:34 -0700
 
   * Update gen-zam submodule for std::move warnings (Tim Wojtulewicz, Corelight)

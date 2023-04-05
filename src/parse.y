@@ -952,7 +952,7 @@ expr:
 			else
 				{
 				if ( id->IsDeprecated() )
-					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+					reporter->Deprecation(id->GetDeprecationWarning());
 
 				if ( id->IsBlank() )
 					{
@@ -1286,7 +1286,7 @@ type:
 				Ref($$);
 
 				if ( $1->IsDeprecated() )
-					reporter->Warning("%s", $1->GetDeprecationWarning().c_str());
+					reporter->Deprecation($1->GetDeprecationWarning());
 				}
 			}
 	;
@@ -1995,7 +1995,7 @@ event:
 					}
 
 				if ( id->IsDeprecated() )
-					reporter->Warning("%s", id->GetDeprecationWarning().c_str());
+					reporter->Deprecation(id->GetDeprecationWarning());
 
 				$$ = new EventExpr(id->Name(), {AdoptRef{}, $3});
 				}
@@ -2202,7 +2202,7 @@ global_or_event_id:
 
 					if ( t->Tag() != TYPE_FUNC ||
 					     t->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
-						reporter->Warning("%s", $$->GetDeprecationWarning().c_str());
+						reporter->Deprecation($$->GetDeprecationWarning());
 					}
 
 				delete [] $1;

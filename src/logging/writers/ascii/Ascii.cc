@@ -385,7 +385,7 @@ bool Ascii::InitFilterOptions()
 			// This doesn't play nice with leftover log rotation
 			// and log rotation in general. There's no documentation
 			// or a test for this specifically, so deprecate it.
-			reporter->Warning("Remove in v6.1. Per writer logdir is deprecated.");
+			reporter->Deprecation("Remove in v6.1. Per writer logdir is deprecated.");
 			logdir.assign(i->second);
 			}
 		}

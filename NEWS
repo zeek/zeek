@@ -147,6 +147,9 @@ New Functionality
   seen on link, and packets filtered) are now reported to the Telemetry
   framework, under the ``zeek_net`` prefix.
 
+- Environment variables for the execution of log rotation postprocessors can
+  be set via ``Log::default_rotation_postprocessor_cmd_env``.
+
 Changed Functionality
 ---------------------
 

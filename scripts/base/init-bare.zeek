@@ -669,15 +669,16 @@ type SYN_packet: record {
 ##
 ## .. zeek:see:: get_net_stats
 type NetStats: record {
-	pkts_recvd:   count &default=0;	##< Packets received by Zeek.
-	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
+	pkts_recvd:    count &default=0; ##< Packets received by Zeek.
+	pkts_dropped:  count &default=0; ##< Packets reported dropped by the system.
 	## Packets seen on the link. Note that this may differ
 	## from *pkts_recvd* because of a potential capture_filter. See
 	## :doc:`/scripts/base/frameworks/packet-filter/main.zeek`. Depending on the
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
-	pkts_link:    count &default=0;
-	bytes_recvd:  count &default=0;	##< Bytes received by Zeek.
+	pkts_link:     count &default=0;
+	bytes_recvd:   count &default=0; ##< Bytes received by Zeek.
+	pkts_filtered: count &optional;  ##< Packets filtered by the packet source.
 };
 
 type ConnStats: record {

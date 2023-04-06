@@ -414,20 +414,34 @@ void get_final_stats()
 		{
 		iosource::PktSrc::Stats s;
 		ps->Statistics(&s);
-		double dropped_pct = s.dropped > 0.0
-		                         ? ((double)s.dropped / ((double)s.received + (double)s.dropped)) *
-		                               100.0
-		                         : 0.0;
+
+		auto pct = [](uint64_t v, uint64_t received)
+		{
+			return (static_cast<double>(v) /
+			        (static_cast<double>(v) + static_cast<double>(received))) *
+			       100;
+		};
+
+		double dropped_pct = s.dropped > 0 ? pct(s.dropped, s.received) : 0.0;
 
 		uint64_t not_processed = packet_mgr->GetUnprocessedCount();
 		double unprocessed_pct = not_processed > 0
 		                             ? ((double)not_processed / (double)s.received) * 100.0
 		                             : 0.0;
 
+		std::string filtered = "";
+		if ( s.filtered )
+			{
+			double filtered_pct = s.filtered.value() > 0 ? pct(s.filtered.value(), s.received)
+			                                             : 0.0;
+			filtered = zeek::util::fmt(" %" PRIu64 " (%.2f%%) filtered", s.filtered.value(),
+			                           filtered_pct);
+			}
+
 		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64
-		               " (%.2f%%) dropped, %" PRIu64 " (%.2f%%) not processed",
+		               " (%.2f%%) dropped, %" PRIu64 " (%.2f%%) not processed%s",
 		               s.received, ps->Path().c_str(), s.dropped, dropped_pct, not_processed,
-		               unprocessed_pct);
+		               unprocessed_pct, filtered.c_str());
 		}
 	}
 

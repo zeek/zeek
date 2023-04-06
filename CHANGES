@@ -1,3 +1,16 @@
+6.0.0-dev.323 | 2023-04-06 13:46:28 -0700
+
+  * Add NEWS entries for filtered packet statistics and telemetry (Tim Wojtulewicz, Corelight)
+
+  * Report packet statistics via the telemetry framework (Tim Wojtulewicz, Corelight)
+
+  * Add optional packet filtered statistics for packet sources (Tim Wojtulewicz, Corelight)
+
+  * ci: Add debian-12 / bookworm (Arne Welzel, Corelight)
+
+    The next version of Debian (bookworm) had a hard-freeze on
+    2023-03-16. Seems reasonable to have it in CI now.
+
 6.0.0-dev.317 | 2023-04-05 10:39:22 +0200
 
   * scan.l: Support @pragma, specifically push/pop ignore-deprecations (Arne Welzel, Corelight)

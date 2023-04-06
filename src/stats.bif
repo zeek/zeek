@@ -39,28 +39,21 @@ zeek::RecordTypePtr ReporterStats;
 ##              get_reporter_stats
 function get_net_stats%(%): NetStats
 	%{
-	uint64_t recv = 0;
-	uint64_t drop = 0;
-	uint64_t link = 0;
-	uint64_t bytes_recv = 0;
+	struct zeek::iosource::PktSrc::Stats stat;
 
 	if ( zeek::iosource::PktSrc* ps = zeek::iosource_mgr->GetPktSrc() )
-		{
-		struct zeek::iosource::PktSrc::Stats stat;
 		ps->Statistics(&stat);
-		recv += stat.received;
-		drop += stat.dropped;
-		link += stat.link;
-		bytes_recv += stat.bytes_received;
-		}
 
 	auto r = zeek::make_intrusive<zeek::RecordVal>(NetStats);
 	int n = 0;
 
-	r->Assign(n++, recv);
-	r->Assign(n++, drop);
-	r->Assign(n++, link);
-	r->Assign(n++, bytes_recv);
+	r->Assign(n++, stat.received);
+	r->Assign(n++, stat.dropped);
+	r->Assign(n++, stat.link);
+	r->Assign(n++, stat.bytes_received);
+
+	if ( stat.filtered )
+		r->Assign(n++, stat.filtered.value());
 
 	return r;
 	%}

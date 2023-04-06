@@ -113,6 +113,17 @@ New Functionality
 - The ``Reporter`` class was extended by a ``Deprecation()`` method to use
   for logging deprecations rather than using ad-hoc ``Warning()`` calls.
 
+- A new field was added to the network statistics record type for reporting the
+  number of packets that were filtered by the network interface before handing
+  them to Zeek. This field can be filled in by the individual packet source
+  plugin implementations. The default pcap packet source does not provide this
+  information because the data is not always available from the various versions
+  of libpcap.
+
+- Packet statistics (packets recieved, packets dropped, bytes received, packets
+  seen on link, and packets filtered) are now reported to the Telemetry
+  framework, under the ``zeek_net`` prefix.
+
 Changed Functionality
 ---------------------
 

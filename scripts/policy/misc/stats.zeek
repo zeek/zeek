@@ -1,6 +1,7 @@
 ##! Log memory/packet/lag statistics.
 
 @load base/frameworks/notice
+@load base/frameworks/telemetry
 
 module Stats;
 
@@ -34,6 +35,9 @@ export {
 		## Lag between the wall clock and packet timestamps if reading
 		## live traffic.
 		pkt_lag:       interval  &log &optional;
+		## Number of packets filtered from the link since the last
+		## stats interval if reading live traffic.
+		pkts_filtered: count     &log &optional;
 
 		## Number of events processed since the last stats interval.
 		events_proc:   count     &log;
@@ -83,6 +87,57 @@ export {
 	## Event to catch stats as they are written to the logging stream.
 	global log_stats: event(rec: Info);
 }
+
+global bytes_received_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-received-bytes",
+    $unit="1",
+    $help_text="Total number of bytes received",
+]);
+
+global packets_received_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-received-packets",
+    $unit="1",
+    $help_text="Total number of packets received",
+]);
+
+global packets_dropped_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-dropped-packets",
+    $unit="1",
+    $help_text="Total number of packets dropped",
+]);
+
+global link_packets_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-link-packets",
+    $unit="1",
+    $help_text="Total number of packets on the packet source link before filtering",
+]);
+
+global packets_filtered_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="net-filtered-packets",
+    $unit="1",
+    $help_text="Total number of packets filtered",
+]);
+
+hook Telemetry::sync() {
+	local net_stats = get_net_stats();
+	Telemetry::counter_family_set(bytes_received_cf, vector(), net_stats$bytes_recvd);
+	Telemetry::counter_family_set(packets_received_cf, vector(), net_stats$pkts_recvd);
+
+	if ( reading_live_traffic() )
+		{
+		Telemetry::counter_family_set(packets_dropped_cf, vector(), net_stats$pkts_dropped);
+		Telemetry::counter_family_set(link_packets_cf, vector(), net_stats$pkts_link);
+
+		if ( net_stats?$pkts_filtered )
+			Telemetry::counter_family_set(packets_filtered_cf, vector(), net_stats$pkts_filtered);
+		}
+}
+
 
 event zeek_init() &priority=5
 	{
@@ -140,6 +195,11 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 		info$pkt_lag = current_time() - nettime;
 		info$pkts_dropped = ns$pkts_dropped  - last_ns$pkts_dropped;
 		info$pkts_link = ns$pkts_link  - last_ns$pkts_link;
+
+		# This makes the assumption that if pkts_filtered is valid, it's been valid in
+		# all of the previous calls.
+		if ( ns?$pkts_filtered )
+			info$pkts_filtered = ns$pkts_filtered - last_ns$pkts_filtered;
 		}
 
 	Log::write(Stats::LOG, info);

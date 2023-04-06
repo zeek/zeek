@@ -402,12 +402,16 @@ void Manager::Register(PktSrc* src)
 	{
 	pkt_src = src;
 
+	Register(src, false);
+
+	// Once we know if the source is live or not, adapt the
+	// poll_interval accordingly.
+	//
+	// Note that src->IsLive() is only valid after calling Register().
 	if ( src->IsLive() )
 		poll_interval = BifConst::io_poll_interval_live;
 	else if ( run_state::pseudo_realtime )
 		poll_interval = 1;
-
-	Register(src, false);
 	}
 
 static std::pair<std::string, std::string> split_prefix(std::string path)

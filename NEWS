@@ -180,6 +180,10 @@ Changed Functionality
   processing input. Specifically in zeek -r scenarios, that is not the wanted
   behaviour.
 
+- The IO loop's poll interval is now correctly reduced from 100 to 10 for
+  live packet sources. This should lower CPU usage for deployments with
+  non-selectable packet sources.
+
 Removed Functionality
 ---------------------
 

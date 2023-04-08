@@ -1,3 +1,9 @@
+5.2.0-18 | 2023-04-08 11:37:03 -0700
+
+  * Fix a long-standing bug in the math around continue_processing (Tim Wojtulewicz, Corelight)
+
+  * Add is_processing_suspended BIF (Tim Wojtulewicz, Corelight)
+
 5.2.0-15 | 2023-04-03 14:39:33 -0700
 
   * ci/centos-stream-8: Add which command (Arne Welzel, Corelight)

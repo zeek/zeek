@@ -1,3 +1,9 @@
+5.0.7-23 | 2023-04-08 11:30:01 -0700
+
+  * Fix a long-standing bug in the math around continue_processing (Tim Wojtulewicz, Corelight)
+
+  * Add is_processing_suspended BIF (Tim Wojtulewicz, Corelight)
+
 5.0.7-19 | 2023-04-03 12:19:12 -0700
 
   * Allow offline packet sources to register FDs. (Jan Grashoefer, Corelight)

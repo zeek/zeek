@@ -3,6 +3,40 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.8
+==========
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- Data stores used by the known-{hosts,certs,services} policies now default to
+  using local stores instead of Broker stores. This change was made to avoid
+  some performance issues with those stores on high-traffic networks.
+
+- The VXLAN and Geneve report analyzer confirmations once their protocols have
+  been fully parsed, but before attempting to forward to the tunneled packets to
+  other analyzers. This should make the confirmation of these protocols more
+  consistent.
+
+- New wierds were added to the AYIYA, Geneve, and VXLAN analyzers
+  (``ayiya_empty_packet``, ``geneve_empty_packet``, and
+  ``vxlan_empty_packet``). These are reported when packets containing these
+  protocols do not have any further data after the tunnel header.
+
+- A new script-level option ``Pcap::non_fd_timeout`` was added to allow
+  fine-tuning the amount of time to sleep on each IO loop when using a packet
+  source that doesn't provide a file descriptor (e.g. Myricom). The option
+  defaults to 20 microseconds. Tuning this option can greatly reduce the amount
+  of CPU time used by Zeek on low-traffic networks, but may also increase the
+  number of dropped packets if set to too high of a value.
+
+- Avoid attempting to retrieve packets during every loop for a packet source,
+  instead switching to a predictive approach that keeps track of whether or
+  not that packet source has previously seen traffic. This improves performance
+  somewhat, especially on traffic links and on certain packet sources that may
+  block when traffic isn't available.
+
 Zeek 5.0.7
 ==========
 

@@ -1220,9 +1220,7 @@ void ListVal::Append(ValPtr v)
 			Internal("heterogeneous list in ListVal::Append");
 		}
 
-	const auto& vt = v->GetType();
 	vals.emplace_back(std::move(v));
-	type->AsTypeList()->Append(vt);
 	}
 
 TableValPtr ListVal::ToSetVal() const

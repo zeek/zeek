@@ -1988,12 +1988,16 @@ TypeManager::TypeManager()
 		TypeTag tag = static_cast<TypeTag>(i);
 		TypePtr pure_type = tag == TYPE_ANY ? nullptr : base_type(tag);
 		base_list_types[tag] = make_intrusive<zeek::TypeList>(pure_type);
+		base_list_types[tag]->Append(pure_type);
 		}
 	}
 
 const TypeListPtr& TypeManager::TypeList(TypeTag t) const
 	{
 	assert(t >= 0 && t < NUM_TYPES);
+	// This assert is to catch type lists mutation due to
+	// AsTypeList() removal of const being a dangerous trap.
+	assert(base_list_types[t]->GetTypes().size() == 1);
 	return base_list_types[t];
 	}
 

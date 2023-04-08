@@ -493,12 +493,13 @@ void continue_processing()
 		detail::current_wallclock = util::current_time(true);
 		}
 
-	--_processing_suspended;
+	if ( _processing_suspended > 0 )
+		--_processing_suspended;
 	}
 
 bool is_processing_suspended()
 	{
-	return _processing_suspended;
+	return _processing_suspended > 0;
 	}
 
 	} // namespace zeek::run_state

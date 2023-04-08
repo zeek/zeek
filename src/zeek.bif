@@ -5387,6 +5387,7 @@ function is_remote_event%(%) : bool
 ## (*pseudo-realtime* mode).
 ##
 ## .. zeek:see:: continue_processing
+##               is_processing_suspended
 function suspend_processing%(%) : any
 	%{
 	zeek::run_state::suspend_processing();
@@ -5396,10 +5397,20 @@ function suspend_processing%(%) : any
 ## Resumes Zeek's packet processing.
 ##
 ## .. zeek:see:: suspend_processing
+##               is_processing_suspended
 function continue_processing%(%) : any
 	%{
 	zeek::run_state::continue_processing();
 	return nullptr;
+	%}
+
+## Returns whether or not processing is currently suspended.
+##
+## .. zeek:see:: suspend_processing
+##               continue_processing
+function is_processing_suspended%(%): bool
+	%{
+	return zeek::val_mgr->Bool(zeek::run_state::is_processing_suspended());
 	%}
 
 # ===========================================================================
@@ -5738,4 +5749,3 @@ function have_spicy_analyzers%(%) : bool
 	%{
 	return zeek::val_mgr->Bool(USE_SPICY_ANALYZERS);
 	%}
-

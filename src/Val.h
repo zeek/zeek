@@ -52,8 +52,14 @@ class HashKey;
 
 class ValTrace;
 class ZBody;
+class CPPRuntime;
 
 	} // namespace detail
+
+namespace logging
+	{
+class Manager;
+	}
 
 namespace run_state
 	{
@@ -1403,8 +1409,10 @@ public:
 	static void DoneParsing();
 
 protected:
+	friend class zeek::logging::Manager;
 	friend class zeek::detail::ValTrace;
 	friend class zeek::detail::ZBody;
+	friend class zeek::detail::CPPRuntime;
 
 	RecordValPtr DoCoerceTo(RecordTypePtr other, bool allow_orphaning) const;
 

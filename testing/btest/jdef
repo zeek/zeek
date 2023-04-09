@@ -1,0 +1,16 @@
+core/dict-iteration-expire1.zeek
+Baseline/language.table-type-checking/out
+Baseline/language.attr-default-global-set-error/out
+language/rec-table-default.zeek
+language/table-record-idx-redef.zeek
+language/record-recursive-table.zeek
+language/record-extension.zeek
+language/table-init-attrs.zeek
+language/vector-coerce-expr.zeek
+language/delete-field-set.zeek
+language/default-params.zeek
+language/record-default-coercion.zeek
+language/attr-default-global-set-error.zeek
+scripts/base/files/x509/signed_certificate_timestamp.test
+scripts/base/protocols/ssl/signed_certificate_timestamp.test
+doc/record-attr-check.zeek

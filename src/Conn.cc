@@ -225,13 +225,13 @@ const RecordValPtr& Connection::GetVal()
 
 		TransportProto prot_type = ConnTransport();
 
-		auto id_val = make_intrusive<RecordVal>(id::conn_id);
+		auto id_val = conn_val->GetField<RecordVal>(0);
 		id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
 		id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
 		id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
 		id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
 
-		auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
+		auto orig_endp = conn_val->GetField<RecordVal>(1);
 		orig_endp->Assign(0, 0);
 		orig_endp->Assign(1, 0);
 		orig_endp->Assign(4, orig_flow_label);
@@ -242,7 +242,7 @@ const RecordValPtr& Connection::GetVal()
 		if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
 			orig_endp->Assign(5, fmt_mac(orig_l2_addr, l2_len));
 
-		auto resp_endp = make_intrusive<RecordVal>(id::endpoint);
+		auto resp_endp = conn_val->GetField<RecordVal>(2);
 		resp_endp->Assign(0, 0);
 		resp_endp->Assign(1, 0);
 		resp_endp->Assign(4, resp_flow_label);
@@ -250,11 +250,7 @@ const RecordValPtr& Connection::GetVal()
 		if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
 			resp_endp->Assign(5, fmt_mac(resp_l2_addr, l2_len));
 
-		conn_val->Assign(0, std::move(id_val));
-		conn_val->Assign(1, std::move(orig_endp));
-		conn_val->Assign(2, std::move(resp_endp));
-		// 3 and 4 are set below.
-		conn_val->Assign(5, make_intrusive<TableVal>(id::string_set)); // service
+		// 3 and 4 are set below.  No need to set 5.
 		conn_val->Assign(6, val_mgr->EmptyString()); // history
 
 		if ( ! uid )

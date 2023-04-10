@@ -1077,7 +1077,6 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty)
 		case TYPE_TABLE:
 			{
 			auto tbl = val->AsTable();
-			auto tbl_t = cast_intrusive<TableType>(tbl->GetType());
 			auto set = tbl->ToPureListVal();
 
 			if ( ! set )
@@ -1085,7 +1084,9 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty)
 				// already. Just keep going by making something up.
 				set = make_intrusive<ListVal>(TYPE_INT);
 
+			auto tbl_t = cast_intrusive<TableType>(tbl->GetType());
 			auto& set_t = tbl_t->GetIndexTypes()[0];
+			bool is_managed = ZVal::IsManagedType(set_t);
 
 			lval->val.set_val.size = set->Length();
 			lval->val.set_val.vals = new threading::Value*[lval->val.set_val.size];
@@ -1094,6 +1095,8 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty)
 				{
 				std::optional<ZVal> s_i = ZVal(set->Idx(i), set_t);
 				lval->val.set_val.vals[i] = ValToLogVal(s_i, set_t.get());
+				if ( is_managed )
+					ZVal::DeleteManagedType(*s_i);
 				}
 
 			break;

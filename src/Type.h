@@ -714,8 +714,6 @@ public:
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:
-	friend zeek::RecordVal;
-
 	RecordType() { types = nullptr; }
 
 	void AddField(unsigned int field, const TypeDecl* td);

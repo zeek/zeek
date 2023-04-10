@@ -10,6 +10,7 @@ namespace zeek
 	{
 
 class AddrVal;
+class EnumVal;
 class File;
 class Func;
 class ListVal;

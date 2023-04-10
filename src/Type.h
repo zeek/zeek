@@ -15,14 +15,15 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
 #include "zeek/Traverse.h"
+#include "zeek/ZVal.h"
 #include "zeek/ZeekList.h"
 
 namespace zeek
 	{
 
 class Val;
-union ZVal;
 class EnumVal;
+class RecordVal;
 class TableVal;
 using ValPtr = IntrusivePtr<Val>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
@@ -600,10 +601,16 @@ public:
 
 using type_decl_list = PList<TypeDecl>;
 
-// The following tracks how to initialize a given field.  We don't define
-// it here because it requires pulling in a bunch of low-level headers that
-// would be nice to avoid.
-class FieldInit;
+// The following tracks how to initialize a given field.
+
+class FieldInit
+	{
+public:
+	virtual ~FieldInit() { }
+
+	// Return the initialization value of the field.
+	virtual ZVal Generate() const = 0;
+	};
 
 class RecordType final : public Type
 	{
@@ -683,12 +690,8 @@ public:
 
 	void AddFieldsDirectly(const type_decl_list& types, bool add_log_attr = false);
 
-	/**
-	 *
-	 * Populates a new instance of the record with its initial values.
-	 * @param r  The record's underlying value vector.
-	 */
-	void Create(std::vector<std::optional<ZVal>>& r) const;
+	const auto& FieldInits() const { return field_inits; }
+	const auto& FieldExprInits() const { return field_expr_inits; }
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
@@ -711,6 +714,8 @@ public:
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:
+	friend zeek::RecordVal;
+
 	RecordType() { types = nullptr; }
 
 	void AddField(unsigned int field, const TypeDecl* td);
@@ -719,7 +724,15 @@ protected:
 
 	// Maps each field to how to initialize it.  Uses pointers due to
 	// keeping the FieldInit definition private to Type.cc (see above).
-	std::vector<FieldInit*> field_inits;
+	std::vector<std::optional<FieldInit*>> field_inits;
+
+	// Holds initializations defined in terms of evaluating expressions,
+	// in <fieldoffset, init> pairs (we use pairs instead of a vector
+	// with per-field expressions because such expressions are not often
+	// used).  These need to be evaluated at record construction time,
+	// rather than deferring until first use, because the value of the
+	// expression can change between the two.
+	std::vector<std::pair<int, const FieldInit*>> field_expr_inits;
 
 	// If we were willing to bound the size of records, then we could
 	// use std::bitset here instead.

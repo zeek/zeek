@@ -1179,9 +1179,10 @@ public:
 
 	void Assign(int field, StringVal* new_val)
 		{
-		if ( HasField(field) )
-			ZVal::DeleteManagedType(*(*record_val)[field]);
-		(*record_val)[field] = ZVal(new_val);
+		auto& fv = (*record_val)[field];
+		if ( fv )
+			ZVal::DeleteManagedType(*fv);
+		fv = ZVal(new_val);
 		AddedField(field);
 		}
 	void Assign(int field, const char* new_val) { Assign(field, new StringVal(new_val)); }
@@ -1194,7 +1195,7 @@ public:
 	 */
 	template <class T> void AssignField(const char* field_name, T&& val)
 		{
-		int idx = GetType()->AsRecordType()->FieldOffset(field_name);
+		int idx = rt->FieldOffset(field_name);
 		if ( idx < 0 )
 			reporter->InternalError("missing record field: %s", field_name);
 		Assign(idx, std::forward<T>(val));
@@ -1212,7 +1213,13 @@ public:
 	 * @param field  The field index to retrieve.
 	 * @return  Whether there's a value for the given field index.
 	 */
-	bool HasField(int field) const { return (*record_val)[field] ? true : false; }
+	bool HasField(int field) const
+		{
+		if ( (*record_val)[field] )
+			return true;
+
+		return bool(rt->FieldInits()[field]);
+		}
 
 	/**
 	 * Returns true if the given field is in the record, false if
@@ -1222,7 +1229,7 @@ public:
 	 */
 	bool HasField(const char* field) const
 		{
-		int idx = GetType()->AsRecordType()->FieldOffset(field);
+		int idx = rt->FieldOffset(field);
 		return (idx != -1) && HasField(idx);
 		}
 
@@ -1233,10 +1240,17 @@ public:
 	 */
 	ValPtr GetField(int field) const
 		{
-		if ( ! HasField(field) )
-			return nullptr;
+		auto& fv = (*record_val)[field];
+		if ( ! fv )
+			{
+			const auto& fi = rt->FieldInits()[field];
+			if ( ! fi )
+				return nullptr;
 
-		return (*record_val)[field]->ToVal(rt->GetFieldType(field));
+			fv = (*fi)->Generate();
+			}
+
+		return fv->ToVal(rt->GetFieldType(field));
 		}
 
 	/**
@@ -1364,7 +1378,7 @@ public:
 
 	template <typename T> auto GetFieldAs(const char* field) const
 		{
-		int idx = GetType()->AsRecordType()->FieldOffset(field);
+		int idx = rt->FieldOffset(field);
 
 		if ( idx < 0 )
 			reporter->InternalError("missing record field: %s", field);
@@ -1437,7 +1451,18 @@ protected:
 	// Caller assumes responsibility for memory management.  The first
 	// version allows manipulation of whether the field is present at all.
 	// The second version ensures that the optional value is present.
-	std::optional<ZVal>& RawOptField(int field) { return (*record_val)[field]; }
+	std::optional<ZVal>& RawOptField(int field)
+		{
+		auto& f = (*record_val)[field];
+		if ( ! f )
+			{
+			const auto& fi = rt->FieldInits()[field];
+			if ( fi )
+				f = (*fi)->Generate();
+			}
+
+		return f;
+		}
 
 	ZVal& RawField(int field)
 		{
@@ -1459,8 +1484,9 @@ protected:
 private:
 	void DeleteFieldIfManaged(unsigned int field)
 		{
-		if ( HasField(field) && IsManaged(field) )
-			ZVal::DeleteManagedType(*(*record_val)[field]);
+		auto& f = (*record_val)[field];
+		if ( f && IsManaged(field) )
+			ZVal::DeleteManagedType(*f);
 		}
 
 	bool IsManaged(unsigned int offset) const { return is_managed[offset]; }

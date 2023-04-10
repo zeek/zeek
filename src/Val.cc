@@ -2756,25 +2756,32 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 
 	int n = rt->NumFields();
 
-	record_val = new std::vector<std::optional<ZVal>>;
-	record_val->reserve(n);
-
 	if ( run_state::is_parsing )
 		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
+	record_val = new std::vector<std::optional<ZVal>>;
+
 	if ( init_fields )
 		{
-		try
+		record_val->resize(n);
+
+		for ( auto& e : rt->FieldExprInits() )
 			{
-			rt->Create(*record_val);
-			}
-		catch ( InterpreterException& e )
-			{
-			if ( run_state::is_parsing )
-				parse_time_records[rt.get()].pop_back();
-			throw;
+			try
+				{
+				(*record_val)[e.first] = e.second->Generate();
+				}
+			catch ( InterpreterException& e )
+				{
+				if ( run_state::is_parsing )
+					parse_time_records[rt.get()].pop_back();
+				throw;
+				}
 			}
 		}
+
+	else
+		record_val->reserve(n);
 	}
 
 RecordVal::~RecordVal()
@@ -2782,8 +2789,11 @@ RecordVal::~RecordVal()
 	auto n = record_val->size();
 
 	for ( unsigned int i = 0; i < n; ++i )
-		if ( HasField(i) && IsManaged(i) )
-			ZVal::DeleteManagedType(*(*record_val)[i]);
+		{
+		auto f_i = (*record_val)[i];
+		if ( f_i && IsManaged(i) )
+			ZVal::DeleteManagedType(*f_i);
+		}
 
 	delete record_val;
 	}
@@ -2809,12 +2819,13 @@ void RecordVal::Assign(int field, ValPtr new_val)
 
 void RecordVal::Remove(int field)
 	{
-	if ( HasField(field) )
+	auto& f_i = (*record_val)[field];
+	if ( f_i )
 		{
 		if ( IsManaged(field) )
-			ZVal::DeleteManagedType(*(*record_val)[field]);
+			ZVal::DeleteManagedType(*f_i);
 
-		(*record_val)[field] = std::nullopt;
+		f_i = std::nullopt;
 
 		Modified();
 		}

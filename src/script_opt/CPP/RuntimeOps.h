@@ -5,7 +5,7 @@
 #pragma once
 
 #include "zeek/Frame.h"
-#include "zeek/Val.h"
+#include "zeek/OpaqueVal.h"
 #include "zeek/script_opt/CPP/Func.h"
 
 namespace zeek
@@ -15,6 +15,12 @@ using SubNetValPtr = IntrusivePtr<zeek::SubNetVal>;
 
 namespace detail
 	{
+
+class CPPRuntime
+	{
+public:
+	static auto RawOptField(const RecordValPtr& rv, int field) { return rv->RawOptField(field); }
+	};
 
 // Returns the concatenation of the given strings.
 extern StringValPtr str_concat__CPP(const String* s1, const String* s2);
@@ -108,6 +114,42 @@ inline ValPtr field_access__CPP(const RecordValPtr& rec, int field)
 
 	return v;
 	}
+
+#define NATIVE_FIELD_ACCESS(type, zaccessor, vaccessor)                                            \
+	inline type field_access_##type##__CPP(const RecordValPtr& r, int field)                       \
+		{                                                                                          \
+		auto rv = CPPRuntime::RawOptField(r, field);                                               \
+		if ( rv )                                                                                  \
+			return (*rv).zaccessor();                                                              \
+		return field_access__CPP(r, field)->vaccessor();                                           \
+		}
+
+NATIVE_FIELD_ACCESS(bool, AsInt, AsBool)
+NATIVE_FIELD_ACCESS(int, AsInt, AsInt)
+NATIVE_FIELD_ACCESS(zeek_int_t, AsInt, AsInt)
+NATIVE_FIELD_ACCESS(zeek_uint_t, AsCount, AsCount)
+NATIVE_FIELD_ACCESS(double, AsDouble, AsDouble)
+
+#define VP_FIELD_ACCESS(type, zaccessor)                                                           \
+	inline type##Ptr field_access_##type##__CPP(const RecordValPtr& r, int field)                  \
+		{                                                                                          \
+		auto rv = CPPRuntime::RawOptField(r, field);                                               \
+		if ( rv )                                                                                  \
+			return {NewRef{}, rv->zaccessor()};                                                    \
+		return cast_intrusive<type>(field_access__CPP(r, field));                                  \
+		}
+
+VP_FIELD_ACCESS(StringVal, AsString)
+VP_FIELD_ACCESS(AddrVal, AsAddr)
+VP_FIELD_ACCESS(SubNetVal, AsSubNet)
+VP_FIELD_ACCESS(ListVal, AsList)
+VP_FIELD_ACCESS(OpaqueVal, AsOpaque)
+VP_FIELD_ACCESS(PatternVal, AsPattern)
+VP_FIELD_ACCESS(TableVal, AsTable)
+VP_FIELD_ACCESS(RecordVal, AsRecord)
+VP_FIELD_ACCESS(VectorVal, AsVector)
+VP_FIELD_ACCESS(TypeVal, AsType)
+VP_FIELD_ACCESS(Val, AsAny)
 
 // Each of the following executes the assignment "v1[v2] = v3" for
 // tables/vectors/strings.

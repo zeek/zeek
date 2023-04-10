@@ -8,6 +8,44 @@ Zeek 5.0.8
 
 This release fixes the following security issues:
 
+- A specially-crafted stream of FTP packets containing a command reply with many
+  intermediate lines can cause Zeek to spend a large amount of time processing
+  data. Due to the possibility of receiving these packets from remote hosts,
+  this is a DoS risk. The fix included is to ignore intermediate lines of
+  multiline replies, as they do not contain status data and can’t generally be
+  matched to a corresponding command.
+
+- A specially-crafted set of packets containing extremely large file offsets
+  cause cause the reassembler code to allocate large amounts of memory. Due to
+  the possibility of receiving these packets from remote hosts, this is a DoS
+  risk. This was seen originally with the SMB analyzer, but could be reproduced
+  with the HTTP analyzer as well. The fix included adds some additional length
+  checking to avoid integer overflows in the calculations involving those
+  offsets.
+
+- The DNS manager does not correctly expire responses that don’t contain any
+  data, such those containing NXDOMAIN or NODATA status codes. This can lead to
+  Zeek allocating large amounts of memory for these responses and never
+  deallocating them. This is a DoS risk as it is possible to cause Zeek to
+  repeatedly make DNS lookups to hostnames that will always return these
+  responses. The fix included removes the check for whether empty responses
+  should be expired, instead always allowing them to expire once they have hit
+  their TTL.
+
+- A specially-crafted stream of RDP packets can cause Zeek to spend large
+  amounts of time processing data. Due to the possibility of receiving these
+  packets from remote hosts, this is a DoS risk. The fix included here is two
+  parts. The first adds some additional length checking to the RDP analyzer for
+  protocol validation. The second is to remove the use of the PIA analyzer when
+  processing internal packets, instead sending all encrypted packet data
+  directly to the SSL analyzer.
+
+- A specially-crafted stream of SMTP packets can cause Zeek to spend large
+  amounts of time processing data. Due to the possibility of receiving these
+  packets from remote hosts, this is a DoS risk. The fix included adds some
+  validation of the order that SMTP commands are received, ensuring that they
+  are received in the proper order.
+
 This release fixes the following bugs:
 
 - Data stores used by the known-{hosts,certs,services} policies now default to

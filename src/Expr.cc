@@ -4215,6 +4215,10 @@ TableCoerceExpr::TableCoerceExpr(ExprPtr arg_op, TableTypePtr tt, bool type_chec
 			SetError();
 			return;
 			}
+
+		if ( op->Tag() == EXPR_TABLE_COERCE && op->GetType() == tt )
+			// Avoid double-coercion.
+			op = op->GetOp1();
 		}
 
 	SetType(std::move(tt));

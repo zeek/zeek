@@ -205,6 +205,8 @@ export {
 		["RST_with_data"]                       = ACTION_LOG,
 		["SSL_many_server_names"]               = ACTION_LOG,
 		["simultaneous_open"]                   = ACTION_LOG_PER_CONN,
+		["smtp_mail_transaction_invalid"]       = ACTION_LOG_PER_CONN,
+		["smtp_excessive_invalid_mail_transactions"] = ACTION_LOG_PER_CONN,
 		["spontaneous_FIN"]                     = ACTION_IGNORE,
 		["spontaneous_RST"]                     = ACTION_IGNORE,
 		["SMB_parsing_error"]                   = ACTION_LOG,

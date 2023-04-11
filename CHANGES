@@ -1,3 +1,33 @@
+6.0.0-dev.339 | 2023-04-11 15:16:15 -0700
+
+  * smtp: Validate mail transaction and disable SMTP analyzer if excessive (Arne Welzel, Corelight)
+
+    An invalid mail transaction is determined as
+
+    * RCPT TO command without a preceding MAIL FROM
+    * a DATA command without a preceding RCPT TO
+
+    and logged as a weird.
+
+    The testing pcap for invalid mail transactions was produced with a Python
+    script against a local exim4 configured to accept more errors and unknown
+    commands than 3 by default:
+
+        # exim4.conf.template
+        smtp_max_synprot_errors = 100
+        smtp_max_unknown_commands = 100
+
+    See also: https://www.rfc-editor.org/rfc/rfc5321#section-3.3
+
+  * generic-analyzer-fuzzer: Detect disable_analyzer() from scripts (Arne Welzel, Corelight)
+
+    Test if the analyzer is removed from the TCPSessionAdapter during
+    event processing. If we don't do this, we continue feeding the analyzer
+    even if scripts decided to disable the analyzer.
+
+    The analyzer instance isn't flagged as disabled itself, so we need
+    to look at the parent's children.
+
 6.0.0-dev.336 | 2023-04-11 14:50:47 -0700
 
   * ftp/main: Special case for intermediate reply lines (Arne Welzel, Corelight)

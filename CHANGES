@@ -1,3 +1,99 @@
+5.0.8 | 2023-04-11 11:50:33 -0700
+
+  * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz)
+
+  * Update CHANGES, VERSION, and NEWS for v5.0.8 (Tim Wojtulewicz, Corelight)
+
+  * smtp: Validate mail transaction and disable SMTP analyzer if excessive (Arne Welzel, Corelight)
+
+    An invalid mail transaction is determined as
+
+    * RCPT TO command without a preceding MAIL FROM
+    * a DATA command without a preceding RCPT TO
+
+    and logged as a weird.
+
+    The testing pcap for invalid mail transactions was produced with a Python
+    script against a local exim4 configured to accept more errors and unknown
+    commands than 3 by default:
+
+        # exim4.conf.template
+        smtp_max_synprot_errors = 100
+        smtp_max_unknown_commands = 100
+
+    See also: https://www.rfc-editor.org/rfc/rfc5321#section-3.3
+
+  * generic-analyzer-fuzzer: Detect disable_analyzer() from scripts (Arne Welzel, Corelight)
+
+    Test if the analyzer is removed from the TCPSessionAdapter during
+    event processing. If we don't do this, we continue feeding the analyzer
+    even if scripts decided to disable the analyzer.
+
+    The analyzer instance isn't flagged as disabled itself, so we need
+    to look at the parent's children.
+
+  * RDP: Instantiate SSL analyzer instead of PIA (Tim Wojtulewicz, Corelight)
+
+  * RDP: add some enforcement to required values based on MS-RDPBCGR docs (Tim Wojtulewicz, Corelight)
+
+  * file_analysis/File: Report overflowing chunks as weird and discard/truncate (Arne Welzel, Corelight)
+
+    This is one level above the Reassembler where we still have information
+    about the file and source. A weird entry may looks as follows:
+
+        1679759398.237353  ... file_offset_overflow    FXPLGt4SeMmlMKahJc: offset=fffffffffffffff7 len=10      F       zeek    HTTP
+
+  * Reassem: Reject blocks overflowing 64bit upper (Arne Welzel, Corelight)
+
+    The reassembler logic isn't wrap around safe, so just truncate or
+    reject such blocks. For files specifically, a byte offset in the
+    2**64 bytes represents 16EiB which is the maximum size supported
+    by BTRFS or NTFS (and probably nothing we'd ever see in practice).
+
+  * zeek-setup: Load scrips before running unit tests (Arne Welzel, Corelight)
+
+    It is currently not possible to call a->Conn()->GetVal() or construct a
+    zeek/file_analysis/File object from within doctests, as these quickly
+    reference the unpopulated zeek::id namespace to construct Val objects
+    of various types, making it hard write basic tests without completely
+    re-organizing.
+
+    Move running of the unit tests after parsing the scripts, so it is possible
+    for some basic exercising of File objects within tests.
+
+  * ftp/main: Special case for intermediate reply lines (Arne Welzel, Corelight)
+
+    The medium.trace in the private external test suite contains one
+    session/server that violates the multi-line reply protocol and
+    happened to work out fairly well regardless due to how we looked
+    up the pending commands unconditionally before.
+
+    Continue to match up reply lines that "look like they contain status codes"
+    even if cont_resp = T. This still improves runtime for the OSS-Fuzz
+    generated test case and keeps the external baselines valid.
+
+    The affected session can be extracted as follows:
+
+        zcat Traces/medium.trace.gz | tcpdump -r  - 'port 1491 and port 21'
+
+    We could push this into the analyzer, too, minimally the RFC says:
+
+        > If an intermediary line begins with a 3-digit number, the Server
+        > must pad the front  to avoid confusion.
+
+  * ftp/main: Skip get_pending_command() for intermediate reply lines (Arne Welzel, Corelight)
+
+    Intermediate lines of multiline replies usually do not contain valid status
+    codes (even if servers may opt to include them). Their content may be anything
+    and likely unrelated to the original command. There's little reason for us
+    trying to match them with a corresponding command.
+
+    OSS-Fuzz generated a large command reply with very many intermediate lines
+    which caused long processing times due to matching every line with all
+    currently pending commands.
+    This is a DoS vector against Zeek. The new ipv6-multiline-reply.trace and
+    ipv6-retr-samba.trace files have been extracted from the external ipv6.trace.
+
 5.0.7-23 | 2023-04-08 11:30:01 -0700
 
   * Fix a long-standing bug in the math around continue_processing (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,30 @@
+6.0.0-dev.348 | 2023-04-11 15:30:45 -0700
+
+  * file_analysis/File: Report overflowing chunks as weird and discard/truncate (Arne Welzel, Corelight)
+
+    This is one level above the Reassembler where we still have information
+    about the file and source. A weird entry may looks as follows:
+
+        1679759398.237353  ... file_offset_overflow    FXPLGt4SeMmlMKahJc: offset=fffffffffffffff7 len=10      F       zeek    HTTP
+
+  * Reassem: Reject blocks overflowing 64bit upper (Arne Welzel, Corelight)
+
+    The reassembler logic isn't wrap around safe, so just truncate or
+    reject such blocks. For files specifically, a byte offset in the
+    2**64 bytes represents 16EiB which is the maximum size supported
+    by BTRFS or NTFS (and probably nothing we'd ever see in practice).
+
+  * zeek-setup: Load scrips before running unit tests (Arne Welzel, Corelight)
+
+    It is currently not possible to call a->Conn()->GetVal() or construct a
+    zeek/file_analysis/File object from within doctests, as these quickly
+    reference the unpopulated zeek::id namespace to construct Val objects
+    of various types, making it hard write basic tests without completely
+    re-organizing.
+
+    Move running of the unit tests after parsing the scripts, so it is possible
+    for some basic exercising of File objects within tests.
+
 6.0.0-dev.344 | 2023-04-11 15:23:42 -0700
 
   * RDP: Instantiate SSL analyzer instead of PIA (Tim Wojtulewicz, Corelight)

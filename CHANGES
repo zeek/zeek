@@ -1,3 +1,17 @@
+6.0.0-dev.333 | 2023-04-11 12:05:29 -0700
+
+  * Add cstdint to WeirdState.h to fix compilation error on gcc13 (Tim Wojtulewicz, Corelight)
+
+  * Ignore -Wchanges-meaning warning in Spicy (Tim Wojtulewicz, Corelight)
+
+    This fixes a build failure with GCC 13. It's meant as a short-term fix to avoid
+    the failure in Zeek, but probably should be fixed more correctly upstream in
+    the Spicy repo.
+
+  * Update broker submodule to pull in GCC 13 fix (Tim Wojtulewicz, Corelight)
+
+  * CI: Force rebuild of OpenSUSE Tumbleweed VM to pick up GCC 13 (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.327 | 2023-04-08 11:22:57 -0700
 
   * Fix a long-standing bug in the math around continue_processing (Tim Wojtulewicz, Corelight)

@@ -24,7 +24,7 @@ endif ()
 # set these flags we do need a customizable subdirectory above the Spicy
 # sources.
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-braces")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla -Wno-changes-meaning")
 
 # The script generating precompiled headers for Spicy expects a different build
 # system layout than provided for a bundled Spicy, disable it.

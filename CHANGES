@@ -1,3 +1,7 @@
+6.0.0-dev.341 | 2023-04-11 15:16:39 -0700
+
+  * Stop skipping expiration of empty DNS mappings (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.339 | 2023-04-11 15:16:15 -0700
 
   * smtp: Validate mail transaction and disable SMTP analyzer if excessive (Arne Welzel, Corelight)

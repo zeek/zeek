@@ -1,3 +1,9 @@
+6.0.0-dev.344 | 2023-04-11 15:23:42 -0700
+
+  * RDP: Instantiate SSL analyzer instead of PIA (Tim Wojtulewicz, Corelight)
+
+  * RDP: add some enforcement to required values based on MS-RDPBCGR docs (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.341 | 2023-04-11 15:16:39 -0700
 
   * Stop skipping expiration of empty DNS mappings (Tim Wojtulewicz, Corelight)

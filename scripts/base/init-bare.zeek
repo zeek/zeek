@@ -5146,8 +5146,6 @@ export {
 	## .. note:: Packet sources that override ``GetNextTimeout()`` method
 	##    may not respect this value.
 	##
-	## .. zeek:see:: io_poll_interval_live
-	##
 	const non_fd_timeout = 20usec &redef;
 
 	## The definition of a "pcap interface".

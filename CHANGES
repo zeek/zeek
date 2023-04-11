@@ -1,3 +1,7 @@
+6.0.0-dev.350 | 2023-04-11 15:41:31 -0700
+
+  * Only use -Wno-changes-meaning if it exists (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.348 | 2023-04-11 15:30:45 -0700
 
   * file_analysis/File: Report overflowing chunks as weird and discard/truncate (Arne Welzel, Corelight)

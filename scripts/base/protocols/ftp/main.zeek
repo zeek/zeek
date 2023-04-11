@@ -316,12 +316,58 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &priority=5
 	{
 	set_ftp_session(c);
+
+	# Skip matching up intermediate reply lines (that do not have a
+	# valid status code) with pending commands. Because they may not
+	# have a proper status code, there's little point setting whatever
+	# their reply_code and reply_msg are on the command.
+	#
+	# There's a quirk: Some FTP servers return(ed?) replies like the
+	# following, violating the multi-line reply protocol:
+	#
+	#  c: STOR intermol.ps
+	#  s: 150 Opening ASCII mode data connection for 'intermol.ps'.
+	#  s: 230- WARNING! 4 bare linefeeds received in ASCII mode
+	#  s:    File may not have transferred correctly.
+	#  s: 226 Transfer complete.
+	#
+	# This is a multiline response started with 230-, but never finalized
+	# with the same status code. It should have been completed with
+	# "230 <some final message>", but instead was completed with "226 ...".
+	# This confuses our parser, returning cont_resp = T for all following
+	# server messages. This caused a regression as the current command wasn't
+	# updated for logging.
+	#
+	# The regex below is a best effort to keep existing behavior
+	# in face of such traffic. It matches on messages that look
+	# like valid status codes (starting with 3 digits followed by
+	# at least 10 ASCII characters).
+	#
+	# There's the following in RFC 959, so in the future we could push
+	# the detection/logic down into the parser instead of here.
+	#
+	#   If an intermediary line begins with a 3-digit number, the Server
+	#   must pad the front to avoid confusion.
+	#
+	if ( cont_resp && code == 0 && c$ftp?$reply_code )
+		{
+		if ( /^[1-9][0-9]{2} [[:print:]]{10}.*/ !in msg )
+			return;
+		else
+			{
+			# This might be worth a weird, but not sure it's
+			# worth it and how trigger happy it could be.
+			# Reporter::conn_weird("FTP_intermediate_line_with_reply_code", c, msg, "FTP");
+			}
+		}
+
 	c$ftp$cmdarg = get_pending_cmd(c$ftp$pending_commands, code, msg);
 	c$ftp$reply_code = code;
 	c$ftp$reply_msg = msg;
 
-	# TODO: figure out what to do with continued FTP response (not used much)
-	if ( cont_resp ) return;
+	# Do not parse out information from any but the first reply line.
+	if ( cont_resp )
+		return;
 
 	# TODO: do some sort of generic clear text login processing here.
 	local response_xyz = parse_ftp_reply_code(code);

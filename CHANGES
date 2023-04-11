@@ -1,3 +1,38 @@
+6.0.0-dev.336 | 2023-04-11 14:50:47 -0700
+
+  * ftp/main: Special case for intermediate reply lines (Arne Welzel, Corelight)
+
+    The medium.trace in the private external test suite contains one
+    session/server that violates the multi-line reply protocol and
+    happened to work out fairly well regardless due to how we looked
+    up the pending commands unconditionally before.
+
+    Continue to match up reply lines that "look like they contain status codes"
+    even if cont_resp = T. This still improves runtime for the OSS-Fuzz
+    generated test case and keeps the external baselines valid.
+
+    The affected session can be extracted as follows:
+
+        zcat Traces/medium.trace.gz | tcpdump -r  - 'port 1491 and port 21'
+
+    We could push this into the analyzer, too, minimally the RFC says:
+
+        > If an intermediary line begins with a 3-digit number, the Server
+        > must pad the front  to avoid confusion.
+
+  * ftp/main: Skip get_pending_command() for intermediate reply lines (Arne Welzel, Corelight)
+
+    Intermediate lines of multiline replies usually do not contain valid status
+    codes (even if servers may opt to include them). Their content may be anything
+    and likely unrelated to the original command. There's little reason for us
+    trying to match them with a corresponding command.
+
+    OSS-Fuzz generated a large command reply with very many intermediate lines
+    which caused long processing times due to matching every line with all
+    currently pending commands.
+    This is a DoS vector against Zeek. The new ipv6-multiline-reply.trace and
+    ipv6-retr-samba.trace files have been extracted from the external ipv6.trace.
+
 6.0.0-dev.333 | 2023-04-11 12:05:29 -0700
 
   * Add cstdint to WeirdState.h to fix compilation error on gcc13 (Tim Wojtulewicz, Corelight)

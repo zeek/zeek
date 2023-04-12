@@ -181,9 +181,12 @@ bool Config::DoUpdate()
 		unseen_options.insert(i.first);
 		}
 
+	std::string re_str = Fmt(
+		"^([^[:blank:]]+)[[:blank:]]+([^[:blank:]](.*[^[:blank:]%c])?)?[[:blank:]%c]*$",
+		set_separator[0], set_separator[0]);
+
 	regex_t re;
-	if ( regcomp(&re, "^([^[:blank:]]+)[[:blank:]]+([^[:blank:]](.*[^[:blank:]])?)?[[:blank:]]*$",
-	             REG_EXTENDED) )
+	if ( regcomp(&re, re_str.c_str(), REG_EXTENDED) )
 		{
 		Error(Fmt("Failed to compile regex."));
 		return true;

@@ -27,6 +27,7 @@ testsub [2607:f8b0:4002:801::]/48
 testinterval 60
 testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
+test_set a,b,c,
 test_vector 1,2,3,4,5,6
 test_set 
 test_set -

@@ -1,3 +1,29 @@
+6.0.0-dev.353 | 2023-04-12 13:23:29 -0700
+
+  * iosource/Manager: Fix poll_interval updating using not-yet valid IsLive() (Arne Welzel, Corelight)
+
+    Testing io_poll_interval_live tweaks with @dopheide-esnet on a Myricom based
+    system to reduce CPU usage showed no visible effect.
+
+    It turns out, the pkt_src->IsLive() call used to update poll_interval is only
+    valid *after* calling ->Register() with the source. The conditional updating
+    of the poll_interval introduced in 4fa3e4b9b4d78e6f20f42b9dbd85216403be07db
+    never worked out how it was intended to.
+
+    The fix ensures that
+
+    * we actually use a poll_interval of 10 in the live case
+    * changing io_poll_interval_live does have an effect
+
+    This is a bit of a major change due to lowering the default poll_interval
+    by a magnitude, but that seemed to have been the intention always. It's also
+    tunable via redef, so worst case it can be adapted via configuration.
+
+    As reference, with the default a Pcap::non_fd_timeout of 20usec *and* a
+    poll_interval of 100, theoretically we'd be trying to ask a non-selectable
+    packet source 500000 per second for a new packet. This is not a likely packet
+    rate that a single worker would currently observe or manage to process.
+
 6.0.0-dev.350 | 2023-04-11 15:41:31 -0700
 
   * Only use -Wno-changes-meaning if it exists (Tim Wojtulewicz, Corelight)

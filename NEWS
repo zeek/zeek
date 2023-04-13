@@ -195,6 +195,13 @@ Changed Functionality
   live packet sources. This should lower CPU usage for deployments with
   non-selectable packet sources.
 
+- Zeek's CMake scaffolding has received an overhaul for modernizing the build
+  system and to make it easier to maintain going forward. Plugins can now use a
+  declarative interface for adding all sources, BIFs, etc. in one block instead
+  of using the previous begin/end functions. However, the old functions still
+  exist for backwards compatibility. Since Zeek uses newer CMake features now,
+  plugin authors should also raise their minimum required CMake version to 3.15.
+
 Removed Functionality
 ---------------------
 

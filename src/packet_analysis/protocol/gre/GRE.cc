@@ -149,31 +149,10 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				return false;
 				}
 			}
-
-		else if ( proto_typ == 0x8200 )
+		else
 			{
-			// ARUBA. Following headers seem like they're always a 26-byte 802.11 QoS header, then
-			// an 8-byte LLC header, then IPv4. There's very little in the way of documentation
-			// for ARUBA's header format. This is all based on the one sample file we have that
-			// contains it.
-			if ( len > gre_len + 34 )
-				{
-				gre_link_type = DLT_EN10MB;
-				erspan_len = 34;
-
-				// TODO: fix this, but it's gonna require quite a bit more surgery to the GRE
-				// analyzer to make it more independent from the IPTunnel analyzer.
-				// Setting gre_version to 1 here tricks the IPTunnel analyzer into treating the
-				// first header as IP instead of Ethernet which it does by default when
-				// gre_version is 0.
-				gre_version = 1;
-				proto = (data[gre_len + 34] & 0xF0) >> 4;
-				}
-			else
-				{
-				Weird("truncated_GRE", packet);
-				return false;
-				}
+			// Otherwise let the packet analysis forwarding handle it.
+			proto = proto_typ;
 			}
 		}
 
@@ -189,9 +168,8 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( flags_ver & 0x4000 )
 		{
-		// RFC 2784 deprecates the variable length routing field
-		// specified by RFC 1701. It could be parsed here, but easiest
-		// to just skip for now.
+		// RFC 2784 deprecates the variable length routing field specified by RFC 1701. It could be
+		// parsed here, but easiest to just skip for now.
 		Weird("gre_routing", packet);
 		return false;
 		}
@@ -209,7 +187,9 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	if ( gre_version == 1 && proto_typ != 0x8200 )
+	// For GRE version 1/PPP, reset the protocol based on a value from the PPP header.
+	// TODO: where are these two values defined?
+	if ( gre_version == 1 )
 		{
 		uint16_t ppp_proto = ntohs(*((uint16_t*)(data + gre_len + 2)));
 
@@ -225,15 +205,16 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	data += gre_len + ppp_len + erspan_len;
 	len -= gre_len + ppp_len + erspan_len;
 
-	// Treat GRE tunnel like IP tunnels, fallthrough to logic below now
-	// that GRE header is stripped and only payload packet remains.
-	// The only thing different is the tunnel type enum value to use.
+	// Treat GRE tunnel like IP tunnels, fallthrough to logic below now that GRE header is stripped
+	// and only payload packet remains.  The only thing different is the tunnel type enum value to
+	// use.
 	packet->tunnel_type = BifEnum::Tunnel::GRE;
 	packet->gre_version = gre_version;
 	packet->gre_link_type = gre_link_type;
 	packet->proto = proto;
 
-	ForwardPacket(len, data, packet);
+	// This will default to forwarding into IP Tunnel unless something custom is set up.
+	ForwardPacket(len, data, packet, proto);
 
 	return true;
 	}

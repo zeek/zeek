@@ -163,9 +163,6 @@ export {
 	};
 
 	## A function that one may use to customize log file rotation paths.
-	## Note that the "fname" field of the *ri* argument is always an
-	## empty string for the purpose of this function call (i.e. the full
-	## file name is not determined yet).
 	const rotation_format_func: function(ri: RotationFmtInfo): RotationPath &redef;
 
 	## Default naming format for timestamps embedded into filenames.

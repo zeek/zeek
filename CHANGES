@@ -1,3 +1,11 @@
+6.0.0-dev.355 | 2023-04-13 09:24:19 +0200
+
+  * logging/Manager: Fix crash for rotation format function not returning (Arne Welzel, Corelight)
+
+    While working on a rotation format function, ran into Zeek crashing
+    when not returning a value from it, fix and recover the same way as
+    for scripting errors.
+
 6.0.0-dev.353 | 2023-04-12 13:23:29 -0700
 
   * iosource/Manager: Fix poll_interval updating using not-yet valid IsLive() (Arne Welzel, Corelight)

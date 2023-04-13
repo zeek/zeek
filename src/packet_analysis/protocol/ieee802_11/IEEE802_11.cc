@@ -26,18 +26,21 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 	if ( (fc_80211 >> 4) & 0x04 )
 		return false;
 
-	// 'To DS' and 'From DS' flags set indicate use of the 4th
-	// address field.
+	// 'To DS' and 'From DS' flags set indicate use of the 4th address field.
 	if ( (data[1] & 0x03) == 0x03 )
 		len_80211 += packet->L2_ADDR_LEN;
 
 	// Look for the QoS indicator bit.
 	if ( (fc_80211 >> 4) & 0x08 )
 		{
-		// Skip in case of A-MSDU subframes indicated by QoS
-		// control field.
+		// Skip in case of A-MSDU subframes indicated by QoS control field.
 		if ( data[len_80211] & 0x80 )
 			return false;
+
+		// Check for the protected bit. This means the data is encrypted and we can't
+		// do anything with it.
+		if ( data[1] & 0x40 )
+			return true;
 
 		len_80211 += 2;
 		}
@@ -48,8 +51,7 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 		return false;
 		}
 
-	// Determine link-layer addresses based
-	// on 'To DS' and 'From DS' flags
+	// Determine link-layer addresses based on 'To DS' and 'From DS' flags
 	switch ( data[1] & 0x03 )
 		{
 		case 0x00:
@@ -83,10 +85,9 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 		return false;
 		}
 
-	// Check that the DSAP and SSAP are both SNAP and that the control
-	// field indicates that this is an unnumbered frame.
-	// The organization code (24bits) needs to also be zero to
-	// indicate that this is encapsulated ethernet.
+	// Check that the DSAP and SSAP are both SNAP and that the control field indicates that this is
+	// an unnumbered frame.  The organization code (24bits) needs to also be zero to indicate that
+	// this is encapsulated ethernet.
 	if ( data[0] == 0xAA && data[1] == 0xAA && data[2] == 0x03 && data[3] == 0 && data[4] == 0 &&
 	     data[5] == 0 )
 		{
@@ -94,9 +95,8 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 		}
 	else
 		{
-		// If this is a logical link control frame without the
-		// possibility of having a protocol we care about, we'll
-		// just skip it for now.
+		// If this is a logical link control frame without the possibility of having a protocol we
+		// care about, we'll just skip it for now.
 		return false;
 		}
 

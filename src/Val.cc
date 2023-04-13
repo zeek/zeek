@@ -1188,7 +1188,10 @@ ValPtr PatternVal::DoClone(CloneState* state)
 	return state->NewClone(this, make_intrusive<PatternVal>(re));
 	}
 
-ListVal::ListVal(TypeTag t) : Val(type_mgr->TypeList(t)), tag(t) { }
+ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullptr : base_type(t)))
+	{
+	tag = t;
+	}
 
 ListVal::~ListVal() { }
 

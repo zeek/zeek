@@ -2,11 +2,11 @@
 
 #include "zeek/input/readers/config/Config.h"
 
+#include <regex.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <cerrno>
-#include <regex>
 #include <sstream>
 #include <unordered_set>
 
@@ -181,34 +181,31 @@ bool Config::DoUpdate()
 		unseen_options.insert(i.first);
 		}
 
-	std::regex re;
-	try
+	std::string re_str = Fmt(
+		"^([^[:blank:]]+)[[:blank:]]+([^[:blank:]](.*[^[:blank:]%c])?)?[[:blank:]%c]*$",
+		set_separator[0], set_separator[0]);
+
+	regex_t re;
+	if ( regcomp(&re, re_str.c_str(), REG_EXTENDED) )
 		{
-		std::string re_str = Fmt(
-			"^([^[:blank:]]+)[[:blank:]]+([^[:blank:]](.*[^[:blank:]%c])?)?[[:blank:]%c]*$",
-			set_separator[0], set_separator[0]);
-		re.assign(re_str, std::regex::extended);
-		}
-	catch ( const std::regex_error& e )
-		{
-		Error(Fmt("Failed to compile regex: %s", e.what()));
+		Error(Fmt("Failed to compile regex."));
 		return true;
 		}
 
 	while ( GetLine(line) )
 		{
-		std::smatch match;
-		if ( ! std::regex_match(line, match, re) )
+		regmatch_t match[3];
+		if ( regexec(&re, line.c_str(), 3, match, 0) )
 			{
 			Warning(
 				Fmt("Could not parse '%s'; line has invalid format. Ignoring line.", line.c_str()));
 			continue;
 			}
 
-		std::string key = match[1].str();
+		std::string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
 		std::string value;
-		if ( match.size() > 2 )
-			value = match[2].str();
+		if ( match[2].rm_so > 0 )
+			value = line.substr(match[2].rm_so, match[2].rm_eo - match[2].rm_so);
 
 		auto typeit = option_types.find(key);
 		if ( typeit == option_types.end() )
@@ -288,6 +285,8 @@ bool Config::DoUpdate()
 			SendEvent("InputConfig::new_value", 4, vals);
 			}
 		}
+
+	regfree(&re);
 
 	if ( Info().mode != MODE_STREAM )
 		EndCurrentSend();

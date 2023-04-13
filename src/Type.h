@@ -1024,7 +1024,7 @@ inline bool IsString(TypeTag t)
 	return (t == TYPE_STRING);
 	}
 
-// True if the given type is a container aggregate.
+// True if the given type is an aggregate.
 inline bool IsAggr(TypeTag tag)
 	{
 	return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD;
@@ -1036,6 +1036,12 @@ inline bool IsAggr(const Type* t)
 inline bool IsAggr(const TypePtr& t)
 	{
 	return IsAggr(t->Tag());
+	}
+
+// True if the given type is a container.
+inline bool IsContainer(TypeTag tag)
+	{
+	return tag == TYPE_VECTOR || tag == TYPE_TABLE;
 	}
 
 // True if the given type tag corresponds to the error type.

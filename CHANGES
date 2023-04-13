@@ -1,3 +1,7 @@
+6.0.0-dev.361 | 2023-04-13 09:05:31 -0700
+
+  * GH-2920: Don't warn on uninitialized container options (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.359 | 2023-04-13 08:57:22 -0700
 
   * Reimplement fixes to handle commas at the end of config parser lines (Tim Wojtulewicz, Corelight)

@@ -15,8 +15,6 @@ public:
 		{
 		AddComponent(
 			new zeek::analyzer::Component("FTP_Data", zeek::analyzer::file::FTP_Data::Instantiate));
-		AddComponent(
-			new zeek::analyzer::Component("IRC_Data", zeek::analyzer::file::IRC_Data::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::File";

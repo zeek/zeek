@@ -19,7 +19,7 @@
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 ##
 ## .. note:: This event is generated only for messages that originate
 ##    at the client-side. Commands coming in from remote trigger
@@ -49,7 +49,7 @@ event irc_request%(c: connection, is_orig: bool, prefix: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_reply%(c: connection, is_orig: bool, prefix: string,
 			code: count, params: string%);
 
@@ -73,7 +73,7 @@ event irc_reply%(c: connection, is_orig: bool, prefix: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message  irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 ##
 ## .. note::
 ##
@@ -102,7 +102,7 @@ event irc_message%(c: connection, is_orig: bool, prefix: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_quit_message%(c: connection, is_orig: bool, nick: string, message: string%);
 
 ## Generated for IRC messages of type *privmsg*. This event is generated for
@@ -126,7 +126,7 @@ event irc_quit_message%(c: connection, is_orig: bool, nick: string, message: str
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_privmsg_message%(c: connection, is_orig: bool, source: string,
 				target: string, message: string%);
 
@@ -151,7 +151,7 @@ event irc_privmsg_message%(c: connection, is_orig: bool, source: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message  irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_notice_message%(c: connection, is_orig: bool, source: string,
 				target: string, message: string%);
 
@@ -176,7 +176,7 @@ event irc_notice_message%(c: connection, is_orig: bool, source: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_squery_message%(c: connection, is_orig: bool, source: string,
 				target: string, message: string%);
 
@@ -197,7 +197,7 @@ event irc_squery_message%(c: connection, is_orig: bool, source: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_join_message%(c: connection, is_orig: bool, info_list: irc_join_list%);
 
 ## Generated for IRC messages of type *part*. This event is generated for
@@ -221,7 +221,7 @@ event irc_join_message%(c: connection, is_orig: bool, info_list: irc_join_list%)
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_part_message%(c: connection, is_orig: bool, nick: string,
 				chans: string_set, message: string%);
 
@@ -244,7 +244,7 @@ event irc_part_message%(c: connection, is_orig: bool, nick: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_nick_message%(c: connection, is_orig: bool, who: string, newnick: string%);
 
 ## Generated when a server rejects an IRC nickname.
@@ -261,7 +261,7 @@ event irc_nick_message%(c: connection, is_orig: bool, who: string, newnick: stri
 ##    irc_global_users  irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_invalid_nick%(c: connection, is_orig: bool%);
 
 ## Generated for an IRC reply of type *luserclient*.
@@ -284,7 +284,7 @@ event irc_invalid_nick%(c: connection, is_orig: bool%);
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_network_info%(c: connection, is_orig: bool, users: count,
 				services: count, servers: count%);
 
@@ -308,7 +308,7 @@ event irc_network_info%(c: connection, is_orig: bool, users: count,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_server_info%(c: connection, is_orig: bool, users: count,
 				services: count, servers: count%);
 
@@ -328,7 +328,7 @@ event irc_server_info%(c: connection, is_orig: bool, users: count,
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_channel_info%(c: connection, is_orig: bool, chans: count%);
 
 ## Generated for an IRC reply of type *whoreply*.
@@ -363,7 +363,7 @@ event irc_channel_info%(c: connection, is_orig: bool, chans: count%);
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_who_line%(c: connection, is_orig: bool, target_nick: string,
 				channel: string, user: string, host: string,
 				server: string, nick: string, params: string,
@@ -390,7 +390,7 @@ event irc_who_line%(c: connection, is_orig: bool, target_nick: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message  irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_names_info%(c: connection, is_orig: bool, c_type: string,
 				channel: string, users: string_set%);
 
@@ -410,7 +410,7 @@ event irc_names_info%(c: connection, is_orig: bool, c_type: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_whois_operator_line%(c: connection, is_orig: bool, nick: string%);
 
 ## Generated for an IRC reply of type *whoischannels*.
@@ -431,7 +431,7 @@ event irc_whois_operator_line%(c: connection, is_orig: bool, nick: string%);
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_whois_channel_line%(c: connection, is_orig: bool, nick: string,
 				chans: string_set%);
 
@@ -457,7 +457,7 @@ event irc_whois_channel_line%(c: connection, is_orig: bool, nick: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_whois_user_line%(c: connection, is_orig: bool, nick: string,
 				user: string, host: string, real_name: string%);
 
@@ -478,7 +478,7 @@ event irc_whois_user_line%(c: connection, is_orig: bool, nick: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_oper_response%(c: connection, is_orig: bool, got_oper: bool%);
 
 ## Generated for an IRC reply of type *globalusers*.
@@ -500,7 +500,7 @@ event irc_oper_response%(c: connection, is_orig: bool, got_oper: bool%);
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_global_users%(c: connection, is_orig: bool, prefix: string, msg: string%);
 
 ## Generated for an IRC reply of type *topic*.
@@ -521,7 +521,7 @@ event irc_global_users%(c: connection, is_orig: bool, prefix: string, msg: strin
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_channel_topic%(c: connection, is_orig: bool, channel: string, topic: string%);
 
 ## Generated for IRC messages of type *who*. This event is generated for
@@ -543,7 +543,7 @@ event irc_channel_topic%(c: connection, is_orig: bool, channel: string, topic: s
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_who_message%(c: connection, is_orig: bool, mask: string, oper: bool%);
 
 ## Generated for IRC messages of type *whois*. This event is generated for
@@ -565,7 +565,7 @@ event irc_who_message%(c: connection, is_orig: bool, mask: string, oper: bool%);
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_whois_message%(c: connection, is_orig: bool, server: string, users: string%);
 
 ## Generated for IRC messages of type *oper*. This event is generated for
@@ -587,7 +587,7 @@ event irc_whois_message%(c: connection, is_orig: bool, server: string, users: st
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message  irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_oper_message%(c: connection, is_orig: bool, user: string, password: string%);
 
 ## Generated for IRC messages of type *kick*. This event is generated for
@@ -614,7 +614,7 @@ event irc_oper_message%(c: connection, is_orig: bool, user: string, password: st
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_kick_message%(c: connection, is_orig: bool, prefix: string,
 			chans: string, users: string, comment: string%);
 
@@ -638,7 +638,7 @@ event irc_kick_message%(c: connection, is_orig: bool, prefix: string,
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_error_message%(c: connection, is_orig: bool, prefix: string, message: string%);
 
 ## Generated for IRC messages of type *invite*. This event is generated for
@@ -663,7 +663,7 @@ event irc_error_message%(c: connection, is_orig: bool, prefix: string, message: 
 ##    irc_global_users irc_invalid_nick  irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_invite_message%(c: connection, is_orig: bool, prefix: string,
 				nickname: string, channel: string%);
 
@@ -687,7 +687,7 @@ event irc_invite_message%(c: connection, is_orig: bool, prefix: string,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message  irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_mode_message%(c: connection, is_orig: bool, prefix: string, params: string%);
 
 ## Generated for IRC messages of type *squit*. This event is generated for
@@ -712,7 +712,7 @@ event irc_mode_message%(c: connection, is_orig: bool, prefix: string, params: st
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_squit_message%(c: connection, is_orig: bool, prefix: string,
 				server: string, message: string%);
 
@@ -721,6 +721,9 @@ event irc_squit_message%(c: connection, is_orig: bool, prefix: string,
 ##
 ## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
+##
+## See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
+## information about the DCC.
 ##
 ## c: The connection.
 ##
@@ -746,11 +749,31 @@ event irc_squit_message%(c: connection, is_orig: bool, prefix: string,
 ##    irc_invalid_nick irc_invite_message irc_join_message irc_kick_message
 ##    irc_message irc_mode_message irc_names_info irc_network_info irc_nick_message
 ##    irc_notice_message irc_oper_message irc_oper_response irc_part_message
-##    irc_password_message
+##    irc_password_message irc_dcc_send_ack
 event irc_dcc_message%(c: connection, is_orig: bool,
 				prefix: string, target: string,
 				dcc_type: string, argument: string,
 				address: addr, dest_port: count, size: count%);
+
+## Generated for IRC messages of type *dcc*. This event is generated for
+## DCC SEND acknowledge message.
+##
+## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## information about the IRC protocol.
+##
+## See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
+## information about the DCC.
+##
+## c: The connection.
+##
+## bytes_received: The total number of bytes that client have been received.
+##
+## .. zeek:see:: irc_channel_info irc_channel_topic irc_dcc_message irc_error_message
+##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
+##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
+##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
+##    irc_part_message irc_password_message
+event irc_dcc_send_ack%(c: connection, bytes_received: count%);
 
 ## Generated for IRC messages of type *user*. This event is generated for
 ## messages coming from both the client and the server.
@@ -775,7 +798,7 @@ event irc_dcc_message%(c: connection, is_orig: bool,
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message irc_password_message
+##    irc_part_message irc_password_message irc_dcc_send_ack
 event irc_user_message%(c: connection, is_orig: bool, user: string, host: string, server: string, real_name: string%);
 
 ## Generated for IRC messages of type *password*. This event is generated for
@@ -795,7 +818,7 @@ event irc_user_message%(c: connection, is_orig: bool, user: string, host: string
 ##    irc_global_users irc_invalid_nick irc_invite_message irc_join_message
 ##    irc_kick_message irc_message irc_mode_message irc_names_info irc_network_info
 ##    irc_nick_message irc_notice_message irc_oper_message irc_oper_response
-##    irc_part_message
+##    irc_part_message irc_dcc_send_ack
 event irc_password_message%(c: connection, is_orig: bool, password: string%);
 
 ## Generated if an IRC connection switched to TLS using STARTTLS. After this

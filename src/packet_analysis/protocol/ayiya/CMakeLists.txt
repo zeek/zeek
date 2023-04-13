@@ -1,5 +1,7 @@
-include(ZeekPlugin)
-
-zeek_plugin_begin(Zeek AYIYA)
-zeek_plugin_cc(AYIYA.cc Plugin.cc)
-zeek_plugin_end()
+zeek_add_plugin(
+    Zeek
+    AYIYA
+    SOURCES
+        AYIYA.cc
+        Plugin.cc
+)

@@ -1,3 +1,15 @@
+6.0.0-dev.359 | 2023-04-13 08:57:22 -0700
+
+  * Reimplement fixes to handle commas at the end of config parser lines (Tim Wojtulewicz, Corelight)
+
+  * Revert "Convert config framework to use std::regex" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 65ee2287e9b74f861872d9e16b9c11fb300cfabd.
+
+  * Revert "GH-636: Fix regex to handle commas at the end of config parser lines" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 05bb50978905a6c3132b20eb2cfd246715f91356.
+
 6.0.0-dev.355 | 2023-04-13 09:24:19 +0200
 
   * logging/Manager: Fix crash for rotation format function not returning (Arne Welzel, Corelight)

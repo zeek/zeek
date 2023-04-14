@@ -172,7 +172,6 @@ void do_ssl_deinit()
 	} // namespace
 #endif
 
-zeek::TypeManager* zeek::type_mgr = nullptr;
 zeek::ValManager* zeek::val_mgr = nullptr;
 zeek::packet_analysis::Manager* zeek::packet_mgr = nullptr;
 zeek::analyzer::Manager* zeek::analyzer_mgr = nullptr;
@@ -438,7 +437,6 @@ static void terminate_zeek()
 	delete session_mgr;
 	delete fragment_mgr;
 	delete telemetry_mgr;
-	delete type_mgr;
 
 	// free the global scope
 	pop_scope();
@@ -595,7 +593,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	run_state::zeek_start_time = util::current_time(true);
 
-	type_mgr = new TypeManager();
 	val_mgr = new ValManager();
 	reporter = new Reporter(options.abort_on_scripting_errors);
 	thread_mgr = new threading::Manager();

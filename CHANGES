@@ -1,3 +1,12 @@
+6.0.0-dev.367 | 2023-04-14 10:32:17 +0200
+
+  * Revert "Type: Add TypeManager->TypeList() and use for ListVal()" (Arne Welzel, Corelight)
+
+    This reverts commit 24c606b4df92f9871964c5bcb2fe90e43a177b1f.
+
+    This commit introduced a memory leak due to ListVal::Append() modifying
+    the cached TYPE_ANY type list.
+
 6.0.0-dev.364 | 2023-04-13 15:54:00 -0700
 
   * Add NEWS entry for the CMake changes (Dominik Charousset, Corelight)

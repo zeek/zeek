@@ -20,6 +20,9 @@ public:
 		{
 		return std::make_shared<IEEE802_11Analyzer>();
 		}
+
+private:
+	bool HandleInnerPacket(size_t len, const uint8_t* data, Packet* packet) const;
 	};
 
 	}

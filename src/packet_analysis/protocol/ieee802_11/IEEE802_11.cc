@@ -17,6 +17,7 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 		}
 
 	u_char fc_80211 = data[0]; // Frame Control field
+	bool is_amsdu = false;
 
 	// Skip non-data frame types (management & control).
 	if ( ! ((fc_80211 >> 2) & 0x02) )
@@ -33,9 +34,9 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 	// Look for the QoS indicator bit.
 	if ( (fc_80211 >> 4) & 0x08 )
 		{
-		// Skip in case of A-MSDU subframes indicated by QoS control field.
-		if ( data[len_80211] & 0x80 )
-			return false;
+		// Store off whether this is an A-MSDU header, which indicates that there are
+		// mulitple packets following the 802.11 header.
+		is_amsdu = (data[len_80211] & 0x80) == 0x80;
 
 		// Check for the protected bit. This means the data is encrypted and we can't
 		// do anything with it.
@@ -75,13 +76,78 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 			break;
 		}
 
-	// skip 802.11 data header
+	// skip the 802.11 data header
 	data += len_80211;
+	len -= len_80211;
 
-	len_80211 += 8;
-	if ( len_80211 >= len )
+	if ( ! is_amsdu )
 		{
-		Weird("truncated_802_11_header", packet);
+		return HandleInnerPacket(len, data, packet);
+		}
+	else
+		{
+		size_t amsdu_padding = 0;
+		size_t encap_index = packet->encap ? packet->encap->Depth() : 0;
+
+		while ( len > 0 )
+			{
+			if ( len < 14 )
+				{
+				Weird("truncated_802_11_amsdu_header", packet);
+				return false;
+				}
+
+			// This is the length of everything after the A-MSDU subframe header.
+			size_t amsdu_len = (data[12] << 8) + data[13];
+			if ( len < amsdu_len )
+				{
+				Weird("truncated_802_11_amsdu_packet", packet);
+				return false;
+				}
+
+			// Skip the A-MSDU subframe header. This should place us at the start of an LLC header.
+			data += 14;
+			len -= 14;
+
+			if ( ! HandleInnerPacket(amsdu_len, data, packet) )
+				{
+				Weird("invalid_802_11_amsdu_inner_packet", packet);
+				return false;
+				}
+
+			data += amsdu_len;
+			len -= amsdu_len;
+
+			// Each A-MSDU subframe is padded by up to 3 bytes to make a multiple of 4. This padding
+			// isn't included in the length field value. The padding also doesn't happen with the
+			// last subframe, so check to see that we can even subtract it. Unfortunately, there
+			// isn't a frame counter in the header so we just have trust that it all works out.
+			amsdu_padding = amsdu_len % 4;
+			if ( len >= amsdu_padding )
+				{
+				data += amsdu_padding;
+				len -= amsdu_padding;
+				}
+
+			// Pop encapsuations back up to the level where we started processing so that the next
+			// subframe gets the same encapsulation stack.
+			if ( packet->encap )
+				{
+				while ( packet->encap->Depth() > encap_index )
+					packet->encap->Pop();
+				}
+			}
+
+		return true;
+		}
+	}
+
+bool IEEE802_11Analyzer::HandleInnerPacket(size_t len, const uint8_t* data, Packet* packet) const
+	{
+	// Make sure there's room for an LLC header.
+	if ( len < 8 )
+		{
+		Weird("truncated_802_11_llc_header", packet);
 		return false;
 		}
 
@@ -92,6 +158,7 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 	     data[5] == 0 )
 		{
 		data += 6;
+		len -= 6;
 		}
 	else
 		{
@@ -100,11 +167,13 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 		return false;
 		}
 
+	// Get the protocol and skip the rest of the LLC header.
 	uint32_t protocol = (data[0] << 8) + data[1];
 	data += 2;
+	len -= 2;
 
 	if ( packet->tunnel_type == BifEnum::Tunnel::NONE )
-		return ForwardPacket(len - len_80211, data, packet, protocol);
+		return ForwardPacket(len, data, packet, protocol);
 	else
 		{
 		// For tunneled packets, reset the packet's protocol based on the one in the LLC header.
@@ -114,6 +183,6 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 		else if ( protocol == 0x86DD )
 			packet->proto = IPPROTO_IPV6;
 
-		return ForwardPacket(len - len_80211, data, packet, packet->proto);
+		return ForwardPacket(len, data, packet, packet->proto);
 		}
 	}

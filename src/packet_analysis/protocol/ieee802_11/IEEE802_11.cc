@@ -103,5 +103,17 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 	uint32_t protocol = (data[0] << 8) + data[1];
 	data += 2;
 
-	return ForwardPacket(len - len_80211, data, packet, protocol);
+	if ( packet->tunnel_type == BifEnum::Tunnel::NONE )
+		return ForwardPacket(len - len_80211, data, packet, protocol);
+	else
+		{
+		// For tunneled packets, reset the packet's protocol based on the one in the LLC header.
+		// This makes sure that the IP analyzer can process it correctly.
+		if ( protocol == 0x0800 )
+			packet->proto = IPPROTO_IPV4;
+		else if ( protocol == 0x86DD )
+			packet->proto = IPPROTO_IPV6;
+
+		return ForwardPacket(len - len_80211, data, packet, packet->proto);
+		}
 	}

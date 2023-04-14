@@ -6,10 +6,16 @@
 include(MacDependencyPaths)
 
 # For finding zeek-plugin-create-package.sh and zeek-plugin-install-package.sh.
-set(ZEEK_PLUGIN_SCRIPTS_PATH "@ZEEK_PLUGIN_SCRIPTS_PATH@")
+if ( NOT ZEEK_PLUGIN_SCRIPTS_PATH )
+  set(ZEEK_PLUGIN_SCRIPTS_PATH "@ZEEK_PLUGIN_SCRIPTS_PATH@"
+      CACHE PATH "Path to utility shell scripts." FORCE)
+endif ()
 
 # For finding Zeek sources.
-set(ZEEK_SOURCE_DIR "@ZEEK_SOURCE_DIR@")
+if ( NOT ZEEK_SOURCE_DIR )
+  set(ZEEK_SOURCE_DIR "@ZEEK_SOURCE_DIR@"
+      CACHE PATH "Path to the Zeek source tree." FORCE)
+endif ()
 
 # Provide a hint to ZeekConfig.cmake where to find Broker from the build tree.
 # Note: the straightforward way would be setting `Broker_ROOT` instead, but

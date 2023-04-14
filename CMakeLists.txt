@@ -13,6 +13,7 @@ option(ZEEK_STANDALONE "Build Zeek as stand-alone binary?" ON)
 option(ENABLE_ZEEK_UNIT_TESTS "Build the C++ (doctest) unit tests?" ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON
     CACHE INTERNAL "Write JSON compile commands database")
+set(ZEEK_CXX_STD cxx_std_17 CACHE STRING "The C++ standard to use.")
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
@@ -133,7 +134,7 @@ add_library(zeek_internal INTERFACE)
 add_library(Zeek::Internal ALIAS zeek_internal)
 set_target_properties(zeek_internal PROPERTIES EXPORT_NAME Internal)
 install(TARGETS zeek_internal EXPORT ZeekTargets)
-target_compile_features(zeek_internal INTERFACE cxx_std_17)
+target_compile_features(zeek_internal INTERFACE ${ZEEK_CXX_STD})
 
 # Target for bundling the creation of auto-generated files.
 add_custom_target(zeek_autogen_files)
@@ -212,24 +213,23 @@ function(zeek_add_dependencies dep)
 endfunction()
 
 # Interface library for propagating extra flags and include paths to dynamically
-# loaded plugins.
+# loaded plugins. Also propagates include paths and C++17 mode on the install
+# interface.
 add_library(zeek_dynamic_plugin_base INTERFACE)
 target_link_libraries(zeek_dynamic_plugin_base
     INTERFACE
         $<BUILD_INTERFACE:zeek_internal>)
 target_include_directories(zeek_dynamic_plugin_base
     INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+target_compile_features(zeek_dynamic_plugin_base INTERFACE ${ZEEK_CXX_STD})
 add_library(Zeek::DynamicPluginBase ALIAS zeek_dynamic_plugin_base)
 set_target_properties(
     zeek_dynamic_plugin_base PROPERTIES
     EXPORT_NAME DynamicPluginBase)
 install(TARGETS zeek_dynamic_plugin_base EXPORT ZeekTargets)
-
-# Tell dynamic plugins where to find scripts such as
-# zeek-plugin-create-package.sh.
-set(ZEEK_PLUGIN_SCRIPTS_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # On macOS, we need to tell the linker that the modules are allowed to have
 # undefined symbols.
@@ -426,6 +426,7 @@ set(cmake_current_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 set(cmake_install_prefix "${CMAKE_INSTALL_PREFIX}")
 set(cmake_source_dir "${CMAKE_SOURCE_DIR}")
 set(zeek_script_install_path "${ZEEK_SCRIPT_INSTALL_PATH}")
+set(ZEEK_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share/zeek/cmake")
 if ( MSVC )
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" bro_plugin_install_path "${bro_plugin_install_path}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
@@ -1290,7 +1291,7 @@ configure_file(src/ZeekPluginConfig.cmake.in ZeekPluginConfig.cmake @ONLY)
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ZeekConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake"
-  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Zeek")
+  INSTALL_DESTINATION "${ZEEK_CMAKE_INSTALL_DIR}")
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
   VERSION ${ZEEK_VERSION_NUMBER}
@@ -1299,17 +1300,22 @@ write_basic_package_version_file(
 # Write the CMake targets file.
 export(EXPORT ZeekTargets FILE ZeekTargets.cmake NAMESPACE Zeek::)
 
-# TODO: Check whether installing these does not break any of our packages.
-# install(
-#   FILES
-#     "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake"
-#     "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
-#   DESTINATION
-#     "${CMAKE_INSTALL_LIBDIR}/cmake/Zeek")
-# install(
-#   EXPORT ZeekTargets
-#   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Zeek"
-#   NAMESPACE Zeek::)
+# Write the bootstrap file for dynamic plugins. Needed by ZeekPlugin.cmake.
+configure_file(src/ZeekPluginBootstrap.cmake.in ZeekPluginBootstrap.cmake @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ZeekPluginBootstrap.cmake"
+        DESTINATION "${ZEEK_CMAKE_INSTALL_DIR}")
+
+install(
+  FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
+  DESTINATION
+    "${ZEEK_CMAKE_INSTALL_DIR}")
+
+install(
+  EXPORT ZeekTargets
+  DESTINATION "${ZEEK_CMAKE_INSTALL_DIR}"
+  NAMESPACE Zeek::)
 
 ########################################################################
 ## Build Summary

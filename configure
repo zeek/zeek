@@ -325,6 +325,9 @@ while [ $# -ne 0 ]; do
         --disable-cpp-tests)
             append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL false
             ;;
+        --disable-javascript)
+            append_cache_entry DISABLE_JAVASCRIPT BOOL true
+            ;;
         --disable-port-prealloc)
             append_cache_entry PREALLOCATE_PORT_ARRAY BOOL false
             ;;

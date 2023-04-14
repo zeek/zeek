@@ -14,5 +14,5 @@
 # @TEST-EXEC: cat loaded_scripts.log | grep -E -v '#' | awk 'NR>0{print $1}' | sed -e ':a' -e '$!N' -e 's/^\(.*\).*\n\1.*/\1/' -e 'ta' >prefix
 # @TEST-EXEC: (test -L $BUILD && basename $(readlink $BUILD) || basename $BUILD) >buildprefix
 # @TEST-EXEC: cat loaded_scripts.log | sed "s#`cat buildprefix`#build#g" | sed "s#`cat prefix`##g" >prefix_canonified_loaded_scripts.log
-# @TEST-EXEC: grep -v 'Zeek_AF_Packet' prefix_canonified_loaded_scripts.log > canonified_loaded_scripts.log
+# @TEST-EXEC: grep -E -v 'Zeek_(AF_Packet|JavaScript)' prefix_canonified_loaded_scripts.log > canonified_loaded_scripts.log
 # @TEST-EXEC: btest-diff canonified_loaded_scripts.log

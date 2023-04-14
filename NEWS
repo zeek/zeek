@@ -70,6 +70,29 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Experimental JavaScript support added:
+
+	/* hello.js */
+	zeek.on('zeek_init', () => {
+	  console.log('Hello, Zeek!');
+	});
+
+	$ zeek ./hello.js
+	Hello, Zeek!
+
+  When a recent version of the libnode package is installed, the externally
+  maintained ZeekJS plugin (https://github.com/corelight/zeekjs) is automatically
+  included as a builtin plugin. This allows Zeek to load and execute execute
+  JavaScript code located in ``.js`` or ``.cjs`` files. When no such files are
+  passed to Zeek, the JavaScript engine and Node.js environment aren't initialized
+  and there is no runtime impact.
+
+  The Linux distributions Fedora 37, Ubuntu 22.10 and the upcoming Debian 12
+  release provide suitable packages. On other platforms, Node.js can be built
+  from source with the ``--shared`` option.
+
+  To disable this functionality, pass ``--disable-javascript`` to configure.
+
 - Introduce a new command-line option ``-V`` / ``--build-info``. It produces
   verbose output in JSON format about the repository state and any included
   plugins.

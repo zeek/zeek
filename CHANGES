@@ -1,3 +1,37 @@
+6.0.0-dev.371 | 2023-04-14 13:02:35 +0200
+
+  * ci/debian-11: Install libnode-dev, too (Arne Welzel, Corelight)
+
+    Debian 11 doesn't have a new enough libnode version, so JavaScript
+    should not be attempted to be built.
+
+  * CMakeLists: Convert string append to list append (Arne Welzel, Corelight)
+
+    Seems the builtin plugins started with string(APPEND ...) and that
+    was copied over. Make it list(APPEND ...) instead.
+
+  * Add experimental JavaScript support when libnode is available (Arne Welzel, Corelight)
+
+        zeek.on('zeek_init', () => {
+            console.log('Hello, Zeek!');
+        });
+
+    For interaction with external systems and HTTP APIs, JavaScript and the
+    Node.js ecosystem beat Zeek script. Make it more easily accessible by
+    including ZeekJS with Zeek directly.
+
+    When a recent enough libnode version is found on the build system, ZeekJS is
+    added as a builtin plugin. This behavior can be disabled via
+    ``--disable-javascript``. Linux distributions providing such a package are
+    Ubuntu (22.10) and Debian (testing/bookworm) as libnode-dev.
+    Fedora provides it as nodejs-devel.
+
+    This plugin takes over loading of .js or .cjs files. When no such files
+    are provided to Zeek, Node and the V8 engine are not initialized and
+    should not get into the way.
+
+    This should be considered experimental.
+
 6.0.0-dev.367 | 2023-04-14 10:32:17 +0200
 
   * Revert "Type: Add TypeManager->TypeList() and use for ListVal()" (Arne Welzel, Corelight)

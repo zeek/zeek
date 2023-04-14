@@ -67,7 +67,7 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
 	ip_hdr.reset();
 
 	proto = -1;
-	tunnel_type = BifEnum::Tunnel::IP;
+	tunnel_type = BifEnum::Tunnel::NONE;
 	gre_version = -1;
 	gre_link_type = DLT_RAW;
 

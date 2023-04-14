@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/protocol/ip/IP.h"
 
+#include <netinet/in.h>
+
 #include "zeek/Discard.h"
 #include "zeek/Event.h"
 #include "zeek/Frag.h"
@@ -268,6 +270,11 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		packet->cap_len = orig_cap_len;
 		return false;
 		}
+
+	// If the next protocol is a tunneled type, set the tunnel_type field in the packet to IP
+	// so that it gets handled correctly.
+	if ( proto == IPPROTO_IPV4 || proto == IPPROTO_IPV6 )
+		packet->tunnel_type = BifEnum::Tunnel::IP;
 
 	switch ( proto )
 		{

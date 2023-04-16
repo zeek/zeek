@@ -690,9 +690,6 @@ public:
 
 	void AddFieldsDirectly(const type_decl_list& types, bool add_log_attr = false);
 
-	const auto& FieldInits() const { return field_inits; }
-	const auto& FieldExprInits() const { return field_expr_inits; }
-
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
@@ -720,17 +717,22 @@ protected:
 
 	void DoDescribe(ODesc* d) const override;
 
-	// Maps each field to how to initialize it.  Uses pointers due to
-	// keeping the FieldInit definition private to Type.cc (see above).
-	std::vector<std::optional<FieldInit*>> field_inits;
+	// Field initializations that can be deferred to first access,
+	// beneficial for fields that are separately iniitialized prior
+	// to first access.
+	std::vector<std::optional<std::unique_ptr<FieldInit>>> deferred_inits;
 
-	// Holds initializations defined in terms of evaluating expressions,
-	// in <fieldoffset, init> pairs (we use pairs instead of a vector
-	// with per-field expressions because such expressions are not often
-	// used).  These need to be evaluated at record construction time,
-	// rather than deferring until first use, because the value of the
-	// expression can change between the two.
-	std::vector<std::pair<int, const FieldInit*>> field_expr_inits;
+	// Field initializations that need to be done upon record creation,
+	// rather than deferred.  These are expressions whose value might
+	// change if computed later.
+	//
+	// Such initializations are uncommon, so we represent them using
+	// <fieldoffset, init> pairs.
+	std::vector<std::pair<int, std::unique_ptr<FieldInit>>> creation_inits;
+
+	friend zeek::RecordVal;
+	const auto& DeferredInits() const { return deferred_inits; }
+	const auto& CreationInits() const { return creation_inits; }
 
 	// If we were willing to bound the size of records, then we could
 	// use std::bitset here instead.

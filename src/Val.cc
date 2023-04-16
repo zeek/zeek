@@ -2765,7 +2765,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 		{
 		record_val->resize(n);
 
-		for ( auto& e : rt->FieldExprInits() )
+		for ( auto& e : rt->CreationInits() )
 			{
 			try
 				{

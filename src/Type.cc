@@ -992,6 +992,7 @@ void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
+// A record field initialization that directly assigns a fixed value ...
 class DirectFieldInit final : public FieldInit
 	{
 public:
@@ -1003,6 +1004,7 @@ private:
 	ZVal init_val;
 	};
 
+// ... the same, but for a value that needs memory management.
 class DirectManagedFieldInit final : public FieldInit
 	{
 public:
@@ -1019,6 +1021,7 @@ private:
 	ZVal init_val;
 	};
 
+// A record field initialization that's done by evaluating an expression.
 class ExprFieldInit final : public FieldInit
 	{
 public:
@@ -1053,6 +1056,8 @@ private:
 	RecordTypePtr coerce_type; // non-nil iff coercion is required
 	};
 
+// A record field initialization where the field is initialized to an
+// empty/default record of the given type.
 class RecordFieldInit final : public FieldInit
 	{
 public:
@@ -1064,6 +1069,8 @@ private:
 	RecordTypePtr init_type;
 	};
 
+// A record field initialization where the field is initialized to an
+// empty table of the given type.
 class TableFieldInit final : public FieldInit
 	{
 public:
@@ -1079,6 +1086,8 @@ private:
 	detail::AttributesPtr attrs;
 	};
 
+// A record field initialization where the field is initialized to an
+// empty vector of the given type.
 class VectorFieldInit final : public FieldInit
 	{
 public:
@@ -1125,26 +1134,22 @@ RecordType::~RecordType()
 
 		delete types;
 		}
-
-	for ( auto fi : field_inits )
-		if ( fi )
-			delete *fi;
 	}
 
 void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	{
-	ASSERT(field == field_inits.size());
+	ASSERT(field == deferred_inits.size());
 	ASSERT(field == managed_fields.size());
 
 	managed_fields.push_back(ZVal::IsManagedType(td->type));
 
-	// We defer error-checking until here so that we can keep field_inits
+	// We defer error-checking until here so that we can keep deferred_inits
 	// and managed_fields correctly tracking the associated fields.
 
 	if ( field_ids.count(td->id) != 0 )
 		{
 		reporter->Error("duplicate field '%s' found in record definition", td->id);
-		field_inits.push_back(std::nullopt);
+		deferred_inits.push_back(std::nullopt);
 		return;
 		}
 
@@ -1156,7 +1161,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	auto def_attr = a ? a->Find(detail::ATTR_DEFAULT) : nullptr;
 	auto def_expr = def_attr ? def_attr->GetExpr() : nullptr;
 
-	std::optional<FieldInit*> init;
+	std::optional<std::unique_ptr<FieldInit>> init;
 
 	if ( def_expr && ! IsErrorType(type->Tag()) )
 		{
@@ -1166,15 +1171,15 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 			auto zv = ZVal(v, type);
 
 			if ( ZVal::IsManagedType(type) )
-				init = new DirectManagedFieldInit(zv);
+				init = std::make_unique<DirectManagedFieldInit>(zv);
 			else
-				init = new DirectFieldInit(zv);
+				init = std::make_unique<DirectFieldInit>(zv);
 			}
 
 		else
 			{
-			auto efi = new ExprFieldInit(def_expr, type);
-			field_expr_inits.emplace_back(std::make_pair(field, efi));
+			auto efi = std::make_unique<ExprFieldInit>(def_expr, type);
+			creation_inits.emplace_back(std::make_pair(field, std::move(efi)));
 			}
 		}
 
@@ -1183,16 +1188,16 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 		TypeTag tag = type->Tag();
 
 		if ( tag == TYPE_RECORD )
-			init = new RecordFieldInit(cast_intrusive<RecordType>(type));
+			init = std::make_unique<RecordFieldInit>(cast_intrusive<RecordType>(type));
 
 		else if ( tag == TYPE_TABLE )
-			init = new TableFieldInit(cast_intrusive<TableType>(type), a);
+			init = std::make_unique<TableFieldInit>(cast_intrusive<TableType>(type), a);
 
 		else if ( tag == TYPE_VECTOR )
-			init = new VectorFieldInit(cast_intrusive<VectorType>(type));
+			init = std::make_unique<VectorFieldInit>(cast_intrusive<VectorType>(type));
 		}
 
-	field_inits.push_back(init);
+	deferred_inits.push_back(std::move(init));
 	}
 
 bool RecordType::HasField(const char* field) const

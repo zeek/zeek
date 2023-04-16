@@ -1218,7 +1218,7 @@ public:
 		if ( (*record_val)[field] )
 			return true;
 
-		return bool(rt->FieldInits()[field]);
+		return bool(rt->DeferredInits()[field]);
 		}
 
 	/**
@@ -1243,7 +1243,7 @@ public:
 		auto& fv = (*record_val)[field];
 		if ( ! fv )
 			{
-			const auto& fi = rt->FieldInits()[field];
+			const auto& fi = rt->DeferredInits()[field];
 			if ( ! fi )
 				return nullptr;
 
@@ -1456,7 +1456,7 @@ protected:
 		auto& f = (*record_val)[field];
 		if ( ! f )
 			{
-			const auto& fi = rt->FieldInits()[field];
+			const auto& fi = rt->DeferredInits()[field];
 			if ( fi )
 				f = (*fi)->Generate();
 			}

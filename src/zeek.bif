@@ -5576,10 +5576,50 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 ##
 ## returns: a JSON formatted string.
 ##
-## .. zeek:see:: fmt cat cat_sep string_cat print_raw
+## .. zeek:see:: fmt cat cat_sep string_cat print_raw from_json
 function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/%): string
 	%{
 	return val->ToJSON(only_loggable, field_escape_pattern);
+	%}
+
+## A function to convert a JSON string into arbitrary Zeek data.
+##
+## json_str: The JSON string.
+##
+## t: Type of zeek data.
+##
+## returns: A value of type t.
+##
+## .. zeek:see:: to_json
+function from_json%(json_str: string, t: any%): from_json_result
+	%{
+	static auto result_type = zeek::id::find_type<RecordType>("from_json_result");
+	static auto v_idx = result_type->FieldOffset("v");
+	static auto valid_idx = result_type->FieldOffset("valid");
+
+	auto rval = zeek::make_intrusive<RecordVal>(result_type);
+
+	if ( t->GetType()->Tag() != zeek::TYPE_TYPE )
+		{
+		rval->Assign(valid_idx, false);
+		zeek::emit_builtin_error("from_json() requires a type argument");
+		return rval;
+		}
+	
+	auto res = zeek::ValFromJSON(json_str->ToStdStringView(), t->AsType()->AsTypeType()->GetType());
+
+	if ( auto val = std::get_if<zeek::ValPtr>(&res) )
+		{
+		rval->Assign(v_idx, *val);
+		rval->Assign(valid_idx, true);
+		}
+	else
+		{
+		rval->Assign(valid_idx, false);
+		zeek::emit_builtin_error(std::get<std::string>(res).c_str());
+		}
+
+	return rval;
 	%}
 
 ## Compresses a given path by removing '..'s and the parent directory it

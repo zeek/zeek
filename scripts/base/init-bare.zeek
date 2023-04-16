@@ -1093,6 +1093,14 @@ type entropy_test_result: record {
 	serial_correlation: double;	##< Serial correlation coefficient.
 };
 
+## Return type for from_json BIF.
+##
+## .. zeek:see:: from_json
+type from_json_result: record { 
+	v: any &optional;	##< Parsed value.
+	valid: bool;	##< True if parsing was successful.
+};
+
 # TCP values for :zeek:see:`endpoint` *state* field.
 # todo:: these should go into an enum to make them autodoc'able.
 const TCP_INACTIVE = 0;	##< Endpoint is still inactive.

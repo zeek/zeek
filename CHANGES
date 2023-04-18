@@ -1,3 +1,15 @@
+6.0.0-dev.373 | 2023-04-18 11:11:44 -0700
+
+  * log-caching-cluster: Wait for X509::known_log_certs to populate (Arne Welzel, Corelight)
+
+    The known_log_certs table is populated asynchronously via broker after a
+    Broker::peer_added. It may take a variable amount of time depending on where
+    we run this test and it has been observed flaky specifically for the
+    arm_debian11 task. Instead of racing, give worker-2 3 seconds for receiving
+    the expected table content before continuing.
+
+    Fixes #2885
+
 6.0.0-dev.371 | 2023-04-14 13:02:35 +0200
 
   * ci/debian-11: Install libnode-dev, too (Arne Welzel, Corelight)

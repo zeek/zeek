@@ -41,7 +41,20 @@ event zeek_init()
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
-	continue_processing();
+	if ( /worker-2/ in Cluster::node )
+	       {
+	       when ( |X509::known_log_certs| >= 3 )
+			{
+			continue_processing();
+			}
+		timeout 3sec
+			{
+			Reporter::error("Timeout waiting for X509::known_log_certs to be populated!");
+			terminate();
+			}
+	       }
+	else
+	       continue_processing();
 	}
 @endif
 

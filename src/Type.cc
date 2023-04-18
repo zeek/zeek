@@ -992,6 +992,9 @@ void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const
 		}
 	}
 
+namespace detail
+	{
+
 // A record field initialization that directly assigns a fixed value ...
 class DirectFieldInit final : public FieldInit
 	{
@@ -1099,6 +1102,8 @@ private:
 	VectorTypePtr init_type;
 	};
 
+	} // namespace detail
+
 RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 	{
 	types = arg_types;
@@ -1149,7 +1154,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	if ( field_ids.count(td->id) != 0 )
 		{
 		reporter->Error("duplicate field '%s' found in record definition", td->id);
-		deferred_inits.push_back(std::nullopt);
+		deferred_inits.push_back(nullptr);
 		return;
 		}
 
@@ -1161,7 +1166,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	auto def_attr = a ? a->Find(detail::ATTR_DEFAULT) : nullptr;
 	auto def_expr = def_attr ? def_attr->GetExpr() : nullptr;
 
-	std::optional<std::unique_ptr<FieldInit>> init;
+	std::unique_ptr<detail::FieldInit> init;
 
 	if ( def_expr && ! IsErrorType(type->Tag()) )
 		{
@@ -1171,14 +1176,14 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 			auto zv = ZVal(v, type);
 
 			if ( ZVal::IsManagedType(type) )
-				init = std::make_unique<DirectManagedFieldInit>(zv);
+				init = std::make_unique<detail::DirectManagedFieldInit>(zv);
 			else
-				init = std::make_unique<DirectFieldInit>(zv);
+				init = std::make_unique<detail::DirectFieldInit>(zv);
 			}
 
 		else
 			{
-			auto efi = std::make_unique<ExprFieldInit>(def_expr, type);
+			auto efi = std::make_unique<detail::ExprFieldInit>(def_expr, type);
 			creation_inits.emplace_back(std::make_pair(field, std::move(efi)));
 			}
 		}
@@ -1188,13 +1193,13 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 		TypeTag tag = type->Tag();
 
 		if ( tag == TYPE_RECORD )
-			init = std::make_unique<RecordFieldInit>(cast_intrusive<RecordType>(type));
+			init = std::make_unique<detail::RecordFieldInit>(cast_intrusive<RecordType>(type));
 
 		else if ( tag == TYPE_TABLE )
-			init = std::make_unique<TableFieldInit>(cast_intrusive<TableType>(type), a);
+			init = std::make_unique<detail::TableFieldInit>(cast_intrusive<TableType>(type), a);
 
 		else if ( tag == TYPE_VECTOR )
-			init = std::make_unique<VectorFieldInit>(cast_intrusive<VectorType>(type));
+			init = std::make_unique<detail::VectorFieldInit>(cast_intrusive<VectorType>(type));
 		}
 
 	deferred_inits.push_back(std::move(init));
@@ -1390,6 +1395,18 @@ void RecordType::AddFieldsDirectly(const type_decl_list& others, bool add_log_at
 		}
 
 	num_fields = types->length();
+	}
+
+void RecordType::Create(std::vector<std::optional<ZVal>>& r) const
+	{
+	for ( auto& di : deferred_inits )
+		if ( di )
+			r.push_back(di->Generate());
+		else
+			r.push_back(std::nullopt);
+
+	for ( auto& ci : creation_inits )
+		r[ci.first] = ci.second->Generate();
 	}
 
 void RecordType::DescribeFields(ODesc* d) const

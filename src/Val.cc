@@ -2778,6 +2778,14 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 				throw;
 				}
 			}
+
+		// The following is just for testing the deprecated Create()
+		// call, and can be removed with 6.1.  We leave it commented
+		// out so we don't get deprecation warnings when building.
+#if 0
+		std::vector<std::optional<ZVal>> testing;
+		rt->Create(testing);
+#endif
 		}
 
 	else

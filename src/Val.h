@@ -1218,7 +1218,7 @@ public:
 		if ( (*record_val)[field] )
 			return true;
 
-		return bool(rt->DeferredInits()[field]);
+		return rt->DeferredInits()[field] != nullptr;
 		}
 
 	/**
@@ -1247,7 +1247,7 @@ public:
 			if ( ! fi )
 				return nullptr;
 
-			fv = (*fi)->Generate();
+			fv = fi->Generate();
 			}
 
 		return fv->ToVal(rt->GetFieldType(field));
@@ -1458,7 +1458,7 @@ protected:
 			{
 			const auto& fi = rt->DeferredInits()[field];
 			if ( fi )
-				f = (*fi)->Generate();
+				f = fi->Generate();
 			}
 
 		return f;

@@ -10,6 +10,9 @@ export {
 		arg:  string &default="";
 		## Counter to track how many commands have been executed.
 		seq:  count &default=0;
+		## Flag indicating if the arg of this CmdArg has been used
+		## to update cwd of c$ftp.
+		cwd_consumed: bool &default=F;
 	};
 
 	## Structure for tracking pending commands in the event that the client

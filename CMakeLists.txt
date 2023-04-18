@@ -426,7 +426,6 @@ set(cmake_current_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 set(cmake_install_prefix "${CMAKE_INSTALL_PREFIX}")
 set(cmake_source_dir "${CMAKE_SOURCE_DIR}")
 set(zeek_script_install_path "${ZEEK_SCRIPT_INSTALL_PATH}")
-set(ZEEK_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share/zeek/cmake")
 if ( MSVC )
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" bro_plugin_install_path "${bro_plugin_install_path}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
@@ -435,6 +434,9 @@ if ( MSVC )
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_source_dir "${cmake_source_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" zeek_script_install_path "${zeek_script_install_path}")
 endif ()
+
+# Set the path where we install the ZeekConfig.cmake file and related files.
+set(ZEEK_CMAKE_CONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/zeek/cmake")
 
 if ( NOT ZEEK_ETC_INSTALL_DIR )
     set(ZEEK_ETC_INSTALL_DIR ${ZEEK_ROOT_DIR}/etc)
@@ -502,6 +504,7 @@ string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
 if(ENABLE_DEBUG)
     set(VERSION_C_IDENT "${VERSION_C_IDENT}_debug")
     target_compile_definitions(zeek_internal INTERFACE DEBUG)
+    target_compile_definitions(zeek_dynamic_plugin_base INTERFACE DEBUG)
 endif()
 
 if ( NOT BINARY_PACKAGING_MODE )
@@ -1291,7 +1294,7 @@ configure_file(src/ZeekPluginConfig.cmake.in ZeekPluginConfig.cmake @ONLY)
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/ZeekConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake"
-  INSTALL_DESTINATION "${ZEEK_CMAKE_INSTALL_DIR}")
+  INSTALL_DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}")
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
   VERSION ${ZEEK_VERSION_NUMBER}
@@ -1303,18 +1306,18 @@ export(EXPORT ZeekTargets FILE ZeekTargets.cmake NAMESPACE Zeek::)
 # Write the bootstrap file for dynamic plugins. Needed by ZeekPlugin.cmake.
 configure_file(src/ZeekPluginBootstrap.cmake.in ZeekPluginBootstrap.cmake @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ZeekPluginBootstrap.cmake"
-        DESTINATION "${ZEEK_CMAKE_INSTALL_DIR}")
+        DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}")
 
 install(
   FILES
     "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
   DESTINATION
-    "${ZEEK_CMAKE_INSTALL_DIR}")
+    "${ZEEK_CMAKE_CONFIG_DIR}")
 
 install(
   EXPORT ZeekTargets
-  DESTINATION "${ZEEK_CMAKE_INSTALL_DIR}"
+  DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}"
   NAMESPACE Zeek::)
 
 ########################################################################

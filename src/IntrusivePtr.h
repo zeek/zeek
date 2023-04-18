@@ -121,10 +121,10 @@ public:
 		{
 		if ( ptr_ )
 			{
-			// Specializing `Val` subclasses that the MSVC compiler
-			// does not detect as inheriting from `zeek::Obj`
+			// For some `Val` subclasses the MSVC compiler does
+			// not detect them as inheriting from `zeek::Obj`,
 			// so we have to do that manually.
-			if constexpr ( std::is_same_v<T, OpaqueVal> || std::is_same_v<T, TypeVal> )
+			if constexpr ( std::is_base_of_v<Obj, T> )
 				Unref(reinterpret_cast<zeek::Obj*>(ptr_));
 			else
 				Unref(ptr_);

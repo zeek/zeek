@@ -37,11 +37,8 @@ int check_c_mode(int t)
 
 WS	[ \t]+
 OWS	[ \t]*
- /* Note, bifcl only accepts a single "::" in IDs while the policy
-    layer acceptes multiple. (But the policy layer doesn't have
-	a hierachy. */
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
-ID	{IDCOMPONENT}(::{IDCOMPONENT})?
+ID	{IDCOMPONENT}(::{IDCOMPONENT})*
 ESCSEQ	(\\([^\n]|[0-7]+|x[[:xdigit:]]+))
 DEC [[:digit:]]+
 HEX	[0-9a-fA-F]+

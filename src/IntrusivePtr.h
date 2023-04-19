@@ -28,11 +28,10 @@ struct NewRef
 	};
 
 /**
- * These have to be forward-declared and known here in order for us to be able
- * cast them in the `Unref` function.
+ * This has to be forward declared and known here in order for us to be able
+ * cast this in the `Unref` function.
  */
 class OpaqueVal;
-class TypeVal;
 
 /**
  * An intrusive, reference counting smart pointer implementation. Much like
@@ -121,10 +120,9 @@ public:
 		{
 		if ( ptr_ )
 			{
-			// For some `Val` subclasses the MSVC compiler does
-			// not detect them as inheriting from `zeek::Obj`,
-			// so we have to do that manually.
-			if constexpr ( std::is_base_of_v<Obj, T> )
+			// Specializing `OpaqueVal` as MSVC compiler does not detect it
+			// inheriting from `zeek::Obj` so we have to do that manually.
+			if constexpr ( std::is_same_v<T, OpaqueVal> )
 				Unref(reinterpret_cast<zeek::Obj*>(ptr_));
 			else
 				Unref(ptr_);

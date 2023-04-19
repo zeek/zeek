@@ -15,13 +15,13 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
 #include "zeek/Traverse.h"
-#include "zeek/ZVal.h"
 #include "zeek/ZeekList.h"
 
 namespace zeek
 	{
 
 class Val;
+union ZVal;
 class EnumVal;
 class RecordVal;
 class TableVal;

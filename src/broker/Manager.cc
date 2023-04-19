@@ -652,7 +652,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 		return true;
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, args).c_str());
-	broker::zeek::Event ev(std::move(name), std::move(args));
+	broker::zeek::Event ev(std::move(name), std::move(args), run_state::network_time);
 	bstate->endpoint.publish(std::move(topic), ev.move_data());
 	++statistics.num_events_outgoing;
 	return true;
@@ -1386,8 +1386,15 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 
 	auto name = std::move(ev.name());
 	auto args = std::move(ev.args());
+	double ts;
 
-	DBG_LOG(DBG_BROKER, "Process event: %s %s", name.data(), RenderMessage(args).data());
+	if ( auto ev_ts = ev.ts() )
+		broker::convert(*ev_ts, ts);
+	else
+		// Default to current network time, if the received event did not contain a timestamp.
+		ts = run_state::network_time;
+
+	DBG_LOG(DBG_BROKER, "Process event: %s (%.6f) %s", name.data(), ts, RenderMessage(args).data());
 	++statistics.num_events_incoming;
 	auto handler = event_registry->Lookup(name);
 
@@ -1469,7 +1476,7 @@ void Manager::ProcessEvent(const broker::topic& topic, broker::zeek::Event ev)
 		}
 
 	if ( vl.size() == args.size() )
-		event_mgr.Enqueue(handler, std::move(vl), util::detail::SOURCE_BROKER);
+		event_mgr.Enqueue(handler, std::move(vl), util::detail::SOURCE_BROKER, 0, nullptr, ts);
 	}
 
 bool Manager::ProcessLogCreate(broker::zeek::LogCreate lc)

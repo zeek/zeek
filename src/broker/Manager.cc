@@ -643,7 +643,7 @@ std::string Manager::NodeID() const
 	return to_string(bstate->endpoint.node_id());
 	}
 
-bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
+bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts)
 	{
 	if ( bstate->endpoint.is_shutdown() )
 		return true;
@@ -652,7 +652,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args)
 		return true;
 
 	DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, args).c_str());
-	broker::zeek::Event ev(std::move(name), std::move(args), run_state::network_time);
+	broker::zeek::Event ev(std::move(name), std::move(args), broker::to_timestamp(ts));
 	bstate->endpoint.publish(std::move(topic), ev.move_data());
 	++statistics.num_events_outgoing;
 	return true;
@@ -681,7 +681,10 @@ bool Manager::PublishEvent(string topic, RecordVal* args)
 		xs.emplace_back(data_val->data);
 		}
 
-	return PublishEvent(std::move(topic), event_name, std::move(xs));
+	// At this point we come from script-land. This means that publishing of the event was
+	// explicitly triggered. Hence, the timestamp is set to the current network time. This also
+	// means that timestamping cannot be manipulated from script-land for now.
+	return PublishEvent(std::move(topic), event_name, std::move(xs), run_state::network_time);
 	}
 
 bool Manager::PublishIdentifier(std::string topic, std::string id)

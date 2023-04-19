@@ -17,7 +17,7 @@ void ScriptProfile::StartActivation()
 	start_stats.SetStats(util::curr_CPU_time(), start_memory);
 	}
 
-void ScriptProfile::EndActivation()
+void ScriptProfile::EndActivation(const std::string& stack)
 	{
 	uint64_t end_memory;
 	util::get_memory_usage(&end_memory, nullptr);
@@ -25,7 +25,7 @@ void ScriptProfile::EndActivation()
 	delta_stats.SetStats(util::curr_CPU_time() - start_stats.CPUTime(),
 	                     end_memory - start_stats.Memory());
 
-	AddIn(&delta_stats, false);
+	AddIn(&delta_stats, false, stack);
 	}
 
 void ScriptProfile::ChildFinished(const ScriptProfile* child)
@@ -33,7 +33,7 @@ void ScriptProfile::ChildFinished(const ScriptProfile* child)
 	child_stats.AddIn(child->DeltaCPUTime(), child->DeltaMemory());
 	}
 
-void ScriptProfile::Report(FILE* f) const
+void ScriptProfile::Report(FILE* f, bool with_traces) const
 	{
 	std::string l;
 
@@ -46,10 +46,50 @@ void ScriptProfile::Report(FILE* f) const
 		l = std::string(loc.filename) + ":" + std::to_string(loc.first_line);
 
 	std::string ftype = is_BiF ? "BiF" : func->GetType()->FlavorString();
+	std::string call_stacks;
 
-	fprintf(f, "%s\t%s\t%s\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%" PRIu64 "\n", Name().c_str(),
+	if ( with_traces )
+		{
+		std::string calls, counts, cpu, memory;
+
+		for ( const auto& [s, stats] : Stacks() )
+			{
+			calls += util::fmt("%s|", s.c_str());
+			counts += util::fmt("%d|", stats.call_count);
+			cpu += util::fmt("%f|", stats.cpu_time);
+			memory += util::fmt("%llu|", stats.memory);
+			}
+
+		calls.pop_back();
+		counts.pop_back();
+		cpu.pop_back();
+		memory.pop_back();
+
+		call_stacks = util::fmt("\t%s\t%s\t%s\t%s", calls.c_str(), counts.c_str(), cpu.c_str(),
+		                        memory.c_str());
+		}
+
+	fprintf(f, "%s\t%s\t%s\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%" PRIu64 "\t%s\n", Name().c_str(),
 	        l.c_str(), ftype.c_str(), NumCalls(), CPUTime(), child_stats.CPUTime(), Memory(),
-	        child_stats.Memory());
+	        child_stats.Memory(), call_stacks.c_str());
+	}
+
+void ScriptProfileStats::AddIn(const ScriptProfileStats* eps, bool bump_num_calls,
+                               const std::string& stack)
+	{
+	if ( bump_num_calls )
+		ncalls += eps->NumCalls();
+
+	CPU_time += eps->CPUTime();
+	memory += eps->Memory();
+
+	if ( ! stack.empty() )
+		{
+		auto& data = stacks[stack];
+		data.call_count++;
+		data.cpu_time += eps->CPUTime();
+		data.memory += eps->Memory();
+		}
 	}
 
 ScriptProfileMgr::ScriptProfileMgr(FILE* _f) : f(_f), non_scripts()
@@ -67,14 +107,28 @@ ScriptProfileMgr::~ScriptProfileMgr()
 	ScriptProfileStats BiF_stats;
 	std::unordered_map<const Func*, ScriptProfileStats> func_stats;
 
+	std::string call_stack_header;
+	std::string call_stack_types;
+	std::string call_stack_nulls;
+
+	if ( with_traces )
+		{
+		call_stack_header = "\tstacks\tstack_calls\tstack_CPU\tstack_memory";
+		call_stack_types = "\tstring\tstring\tstring\tstring";
+		call_stack_nulls = "\t-\t-\t-\t-";
+		}
+
 	fprintf(f,
-	        "#fields\tfunction\tlocation\ttype\tncall\ttot_CPU\tchild_CPU\ttot_Mem\tchild_Mem\n");
-	fprintf(f, "#types\tstring\tstring\tstring\tcount\tinterval\tinterval\tcount\tcount\n");
+	        "#fields\tfunction\tlocation\ttype\tncall\ttot_CPU\tchild_CPU\ttot_Mem\tchild_"
+	        "Mem%s\n",
+	        call_stack_header.c_str());
+	fprintf(f, "#types\tstring\tstring\tstring\tcount\tinterval\tinterval\tcount\tcount%s\n",
+	        call_stack_types.c_str());
 
 	for ( auto o : objs )
 		{
 		auto p = profiles[o].get();
-		profiles[o]->Report(f);
+		profiles[o]->Report(f, with_traces);
 
 		total_stats.AddInstance();
 		total_stats.AddIn(p);
@@ -102,21 +156,22 @@ ScriptProfileMgr::~ScriptProfileMgr()
 		auto& fp = fs.second;
 		auto n = func->GetBodies().size();
 		if ( n > 1 )
-			fprintf(f, "%s\t%zu-locations\t%s\t%d\t%.06f\t%0.6f\t%" PRIu64 "\t%lld\n",
+			fprintf(f, "%s\t%zu-locations\t%s\t%d\t%.06f\t%0.6f\t%" PRIu64 "\t%lld%s\n",
 			        fp.Name().c_str(), n, func->GetType()->FlavorString().c_str(), fp.NumCalls(),
-			        fp.CPUTime(), 0.0, fp.Memory(), 0LL);
+			        fp.CPUTime(), 0.0, fp.Memory(), 0LL, call_stack_nulls.c_str());
 		}
 
-	fprintf(f, "all-BiFs\t%d-locations\tBiF\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld\n",
+	fprintf(f, "all-BiFs\t%d-locations\tBiF\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld%s\n",
 	        BiF_stats.NumInstances(), BiF_stats.NumCalls(), BiF_stats.CPUTime(), 0.0,
-	        BiF_stats.Memory(), 0LL);
+	        BiF_stats.Memory(), 0LL, call_stack_nulls.c_str());
 
-	fprintf(f, "total\t%d-locations\tTOTAL\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld\n",
+	fprintf(f, "total\t%d-locations\tTOTAL\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld%s\n",
 	        total_stats.NumInstances(), total_stats.NumCalls(), total_stats.CPUTime(), 0.0,
-	        total_stats.Memory(), 0LL);
+	        total_stats.Memory(), 0LL, call_stack_nulls.c_str());
 
-	fprintf(f, "non-scripts\t<no-location>\tTOTAL\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld\n",
-	        non_scripts.NumCalls(), non_scripts.CPUTime(), 0.0, non_scripts.Memory(), 0LL);
+	fprintf(f, "non-scripts\t<no-location>\tTOTAL\t%d\t%.06f\t%.06f\t%" PRIu64 "\t%lld%s\n",
+	        non_scripts.NumCalls(), non_scripts.CPUTime(), 0.0, non_scripts.Memory(), 0LL,
+	        call_stack_nulls.c_str());
 
 	if ( f != stdout )
 		fclose(f);
@@ -152,9 +207,17 @@ void ScriptProfileMgr::EndInvocation()
 	{
 	ASSERT(! call_stack.empty());
 	auto ep = call_stack.back();
+
 	call_stack.pop_back();
 
-	ep->EndActivation();
+	std::string stack_string = ep->Name();
+	for ( const auto& sep : call_stack )
+		{
+		stack_string.append(";");
+		stack_string.append(sep->Name());
+		}
+
+	ep->EndActivation(stack_string);
 
 	if ( call_stack.empty() )
 		non_scripts.StartActivation();
@@ -169,7 +232,7 @@ std::unique_ptr<ScriptProfileMgr> spm;
 
 	} // namespace zeek::detail
 
-void activate_script_profiling(const char* fn)
+void activate_script_profiling(const char* fn, bool with_traces)
 	{
 	FILE* f;
 
@@ -186,6 +249,9 @@ void activate_script_profiling(const char* fn)
 		f = stdout;
 
 	detail::spm = std::make_unique<detail::ScriptProfileMgr>(f);
+
+	if ( with_traces )
+		detail::spm->EnableTraces();
 	}
 
 	} // namespace zeek

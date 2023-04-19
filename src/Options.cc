@@ -147,6 +147,9 @@ void usage(const char* prog, int code)
 	fprintf(
 		stderr,
 		"    --profile-scripts[=file]        | profile scripts to given file (default stdout)\n");
+	fprintf(stderr,
+	        "    --profile-script-call-stacks    | add call stacks to profile output (requires "
+	        "--profile-scripts)\n");
 	fprintf(stderr, "    --pseudo-realtime[=<speedup>]   | enable pseudo-realtime for performance "
 	                "evaluation (default 1)\n");
 	fprintf(stderr, "    -j|--jobs                       | enable supervisor mode\n");
@@ -369,7 +372,12 @@ Options parse_cmdline(int argc, char** argv)
 		}
 
 	int profile_scripts = 0;
+	int profile_script_call_stacks = 0;
+	std::string profile_filename;
 	int no_unused_warnings = 0;
+
+	bool enable_script_profile = false;
+	bool enable_script_profile_call_stacks = false;
 
 	struct option long_opts[] = {
 		{"parse-only", no_argument, nullptr, 'a'},
@@ -414,6 +422,7 @@ Options parse_cmdline(int argc, char** argv)
 #endif
 
 		{"profile-scripts", optional_argument, &profile_scripts, 1},
+		{"profile-script-call-stacks", optional_argument, &profile_script_call_stacks, 1},
 		{"no-unused-warnings", no_argument, &no_unused_warnings, 1},
 		{"pseudo-realtime", optional_argument, nullptr, '~'},
 		{"jobs", optional_argument, nullptr, 'j'},
@@ -618,8 +627,15 @@ Options parse_cmdline(int argc, char** argv)
 				// a short-option equivalent.
 				if ( profile_scripts )
 					{
-					activate_script_profiling(optarg);
+					profile_filename = optarg ? optarg : "";
+					enable_script_profile = true;
 					profile_scripts = 0;
+					}
+
+				if ( profile_script_call_stacks )
+					{
+					enable_script_profile_call_stacks = true;
+					profile_script_call_stacks = 0;
 					}
 
 				if ( no_unused_warnings )
@@ -631,6 +647,17 @@ Options parse_cmdline(int argc, char** argv)
 				usage(zargs[0], 1);
 				break;
 			}
+
+	if ( ! enable_script_profile && enable_script_profile_call_stacks )
+		fprintf(
+			stderr,
+			"ERROR: --profile-scripts-traces requires --profile-scripts to be passed as well.\n");
+
+	if ( enable_script_profile )
+		{
+		activate_script_profiling(profile_filename.empty() ? nullptr : profile_filename.c_str(),
+		                          enable_script_profile_call_stacks);
+		}
 
 	// Process remaining arguments. X=Y arguments indicate script
 	// variable/parameter assignments. X::Y arguments indicate plugins to

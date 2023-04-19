@@ -22,6 +22,13 @@ namespace detail
 class ScriptProfileStats
 	{
 public:
+	struct StackData
+		{
+		int call_count = 0;
+		double cpu_time = 0.0;
+		uint64_t memory = 0;
+		};
+
 	ScriptProfileStats() = default;
 	ScriptProfileStats(std::string arg_name) : name(std::move(arg_name)) { }
 
@@ -46,19 +53,16 @@ public:
 	double CPUTime() const { return CPU_time; }
 	uint64_t Memory() const { return memory; }
 
+	// Stacks for all of the calls plus counters.
+	std::unordered_map<std::string, StackData> Stacks() const { return stacks; }
+
 	// Used to count instances in an aggregate.
 	void AddInstance() { ++ninstances; }
 
 	// Fold into this profile another profile.  Second argument controls
 	// whether the folding should include increasing the number of calls.
-	void AddIn(const ScriptProfileStats* eps, bool bump_num_calls = true)
-		{
-		if ( bump_num_calls )
-			ncalls += eps->NumCalls();
-
-		CPU_time += eps->CPUTime();
-		memory += eps->Memory();
-		}
+	void AddIn(const ScriptProfileStats* eps, bool bump_num_calls = true,
+	           const std::string& stack = "");
 
 	// Accumulate a single instance of CPU & memory usage.
 	void AddIn(double delta_CPU_time, uint64_t delta_memory)
@@ -83,6 +87,7 @@ private:
 	int ncalls = 0;
 	double CPU_time = 0.0;
 	uint64_t memory = 0;
+	std::unordered_map<std::string, StackData> stacks;
 	};
 
 // Manages all of the profile instances associated with a given script.
@@ -111,7 +116,7 @@ public:
 
 	// Called to register the beginning/end of an execution instance.
 	void StartActivation();
-	void EndActivation();
+	void EndActivation(const std::string& stack = "");
 
 	// Called when a child instance finishes.
 	void ChildFinished(const ScriptProfile* child);
@@ -121,7 +126,7 @@ public:
 	uint64_t DeltaMemory() const { return delta_stats.Memory(); }
 
 	// Write the profile to the given file.
-	void Report(FILE* f) const;
+	void Report(FILE* f, bool with_traces) const;
 
 private:
 	// We store "func" as a FuncPtr to ensure it sticks around when
@@ -157,6 +162,8 @@ public:
 	void StartInvocation(const Func* f, const detail::StmtPtr& body = nullptr);
 	void EndInvocation();
 
+	void EnableTraces() { with_traces = true; }
+
 private:
 	FILE* f; // where to write the profile
 
@@ -178,6 +185,8 @@ private:
 	// Tracks the objects encountered.  Used to generate a consistent
 	// and more natural printing order.
 	std::vector<const Obj*> objs;
+
+	bool with_traces = false;
 	};
 
 // If non-nil, script profiling is active.
@@ -187,6 +196,6 @@ extern std::unique_ptr<ScriptProfileMgr> spm;
 
 // Called to turn on script profiling to the given file.  If nil, writes
 // the profile to stdout.
-extern void activate_script_profiling(const char* fn);
+extern void activate_script_profiling(const char* fn, bool with_traces);
 
 	} // namespace zeek

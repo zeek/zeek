@@ -1,13 +1,13 @@
 module PacketAnalyzer::ETHERNET;
 
-export {
-	## IEEE 802.2 SNAP analyzer
-	global snap_analyzer: PacketAnalyzer::Tag &redef;
-	## Novell raw IEEE 802.3 analyzer
-	global novell_raw_analyzer: PacketAnalyzer::Tag &redef;
-	## IEEE 802.2 LLC analyzer
-	global llc_analyzer: PacketAnalyzer::Tag &redef;
-}
+export
+	{
+	# We use some magic numbers here to denote these. The values here are outside the range of the
+	# standard ethertypes, which should always be above 1536.
+	const SNAP_FORWARDING_KEY : count = 0x0001;
+	const NOVELL_FORWARDING_KEY : count = 0x0002;
+	const LLC_FORWARDING_KEY : count = 0x0003;
+	}
 
 event zeek_init() &priority=20
 	{
@@ -22,4 +22,11 @@ event zeek_init() &priority=20
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 0x9100, PacketAnalyzer::ANALYZER_VLAN);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 0x8864, PacketAnalyzer::ANALYZER_PPPOE);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 0x8926, PacketAnalyzer::ANALYZER_VNTAG);
+
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, SNAP_FORWARDING_KEY,
+	                                         PacketAnalyzer::ANALYZER_SNAP);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, NOVELL_FORWARDING_KEY,
+	                                         PacketAnalyzer::ANALYZER_NOVELL_802_3);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, LLC_FORWARDING_KEY,
+	                                         PacketAnalyzer::ANALYZER_LLC);
 	}

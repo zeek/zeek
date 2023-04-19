@@ -635,8 +635,11 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 1, PacketAnalyzer::ANALYZER_SNAP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 2, PacketAnalyzer::ANALYZER_NOVELL_802_3)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 3, PacketAnalyzer::ANALYZER_LLC)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 33024, PacketAnalyzer::ANALYZER_VLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34525, PacketAnalyzer::ANALYZER_IP)) -> <no result>
@@ -2247,8 +2250,11 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 1, PacketAnalyzer::ANALYZER_SNAP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 2, PacketAnalyzer::ANALYZER_NOVELL_802_3))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 2054, PacketAnalyzer::ANALYZER_ARP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 3, PacketAnalyzer::ANALYZER_LLC))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 32821, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 33024, PacketAnalyzer::ANALYZER_VLAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ETHERNET, 34525, PacketAnalyzer::ANALYZER_IP))
@@ -3858,8 +3864,11 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_AYIYA, 4, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_AYIYA, 41, PacketAnalyzer::ANALYZER_IP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 1, PacketAnalyzer::ANALYZER_SNAP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 2, PacketAnalyzer::ANALYZER_NOVELL_802_3)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 2054, PacketAnalyzer::ANALYZER_ARP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 3, PacketAnalyzer::ANALYZER_LLC)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 32821, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 33024, PacketAnalyzer::ANALYZER_VLAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ETHERNET, 34525, PacketAnalyzer::ANALYZER_IP)

@@ -79,6 +79,11 @@ ARPAnalyzer::ARPAnalyzer() : zeek::packet_analysis::Analyzer("ARP") { }
 #define ARPOP_INVREPLY ARPOP_InREPLY
 #endif
 
+// Windows doesn't define this value.
+#ifndef ARPHRD_IEEE802
+#define ARPHRD_IEEE802 6
+#endif
+
 bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
 	packet->l3_proto = L3_ARP;
@@ -110,6 +115,7 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	switch ( ntohs(ah->ar_hrd) )
 		{
 		case ARPHRD_ETHER:
+		case ARPHRD_IEEE802:
 			if ( ah->ar_hln != 6 )
 				{
 				// don't know how to handle the opcode

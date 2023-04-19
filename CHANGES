@@ -1,3 +1,24 @@
+6.0.0-dev.385 | 2023-04-19 11:58:09 +0200
+
+  * different fix for MSVC compiler issues (Vern Paxson, Corelight)
+
+  * more general approach for addressing MSVC compiler issues with IntrusivePtr (Vern Paxson, Corelight)
+
+  * restored RecordType::Create, now marked as deprecated (Vern Paxson, Corelight)
+    tidying of namespaces and private class members
+    simplification of flagging record field initializations that should be skipped
+    address peculiar MSVC compilation complaint for IntrusivePtr's
+
+  * clarifications and tidying for record field initializations (Vern Paxson, Corelight)
+
+  * optimize record construction by deferring initializations of aggregates (Vern Paxson, Corelight)
+
+  * compile-scripts-to-C++ speedups by switching to raw record access (Vern Paxson, Corelight)
+
+  * logging speedup by switching to raw record access (Vern Paxson, Corelight)
+
+  * remove redundant record coercions (Vern Paxson, Corelight)
+
 6.0.0-dev.376 | 2023-04-19 10:14:02 +0200
 
   * Improve CMake variables, update cmake submodule (Dominik Charousset, Corelight)

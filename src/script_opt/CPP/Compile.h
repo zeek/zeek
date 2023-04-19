@@ -820,7 +820,8 @@ private:
 	std::string GenIndexAssign(const ExprPtr& lhs, const ExprPtr& rhs,
 	                           const std::string& rhs_val_ptr, GenType gt, bool top_level);
 	std::string GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs,
-	                           const std::string& rhs_val_ptr, GenType gt, bool top_level);
+	                           const std::string& rhs_native, const std::string& rhs_val_ptr,
+	                           GenType gt, bool top_level);
 	std::string GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs);
 
 	// Support for element-by-element vector operations.

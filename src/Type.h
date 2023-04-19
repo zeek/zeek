@@ -22,6 +22,7 @@ namespace zeek
 class Val;
 union ZVal;
 class EnumVal;
+class RecordVal;
 class TableVal;
 using ValPtr = IntrusivePtr<Val>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
@@ -34,6 +35,16 @@ class Expr;
 class ListExpr;
 class Attributes;
 using ListExprPtr = IntrusivePtr<ListExpr>;
+
+// The following tracks how to initialize a given record field.
+class FieldInit
+	{
+public:
+	virtual ~FieldInit() { }
+
+	// Return the initialization value of the field.
+	virtual ZVal Generate() const = 0;
+	};
 
 	} // namespace detail
 
@@ -599,11 +610,6 @@ public:
 
 using type_decl_list = PList<TypeDecl>;
 
-// The following tracks how to initialize a given field.  We don't define
-// it here because it requires pulling in a bunch of low-level headers that
-// would be nice to avoid.
-class FieldInit;
-
 class RecordType final : public Type
 	{
 public:
@@ -687,7 +693,9 @@ public:
 	 * Populates a new instance of the record with its initial values.
 	 * @param r  The record's underlying value vector.
 	 */
-	void Create(std::vector<std::optional<ZVal>>& r) const;
+	[[deprecated("Remove in v6.1. Construct a corresponding RecordVal and build vector from "
+	             "GetFieldAs() calls.")]] void
+	Create(std::vector<std::optional<ZVal>>& r) const;
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
@@ -709,16 +717,29 @@ public:
 
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
-protected:
+private:
 	RecordType() { types = nullptr; }
 
 	void AddField(unsigned int field, const TypeDecl* td);
 
 	void DoDescribe(ODesc* d) const override;
 
-	// Maps each field to how to initialize it.  Uses pointers due to
-	// keeping the FieldInit definition private to Type.cc (see above).
-	std::vector<FieldInit*> field_inits;
+	// Field initializations that can be deferred to first access,
+	// beneficial for fields that are separately initialized prior
+	// to first access.  Nil pointers mean "skip initializing the field".
+	std::vector<std::unique_ptr<detail::FieldInit>> deferred_inits;
+
+	// Field initializations that need to be done upon record creation,
+	// rather than deferred.  These are expressions whose value might
+	// change if computed later.
+	//
+	// Such initializations are uncommon, so we represent them using
+	// <fieldoffset, init> pairs.
+	std::vector<std::pair<int, std::unique_ptr<detail::FieldInit>>> creation_inits;
+
+	friend zeek::RecordVal;
+	const auto& DeferredInits() const { return deferred_inits; }
+	const auto& CreationInits() const { return creation_inits; }
 
 	// If we were willing to bound the size of records, then we could
 	// use std::bitset here instead.

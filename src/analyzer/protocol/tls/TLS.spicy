@@ -539,11 +539,23 @@ type Share = unit {
   var chosen_version_sh: uint16;
   var chosen_cipher: uint16;
   var ccs_seen: uint8;
+  var invalid_dtls_version_count: uint32;
+  var skipping: bool;
 
   on %init {
     self.ccs_seen = 0;
+    self.invalid_dtls_version_count = 0;
+    self.skipping = False;
   }
 };
+
+#public type TLSMessage = unit {
+# m: Message(False);
+#};
+#
+#public type DTLSMessage = unit {
+# m: Message(True);
+#};
 
 public type Message = unit {
   %context = Share;
@@ -552,33 +564,67 @@ public type Message = unit {
   sink alertsink;
   var record_version: uint16;
   var encrypted : bool = False;
+  var dtls : bool = False;
 
   on %init {
     self.handshakesink.connect(new Handshake(self));
     self.alertsink.connect(new Alert);
   }
 
-  fragment : RecordFragment(self.handshakesink, self.alertsink, self)[];
+  fragment : RecordFragmentChoice(self.handshakesink, self.alertsink, self)[];
+  # : bytes &eod if ( self.context().skipping );
 };
 
-type RecordFragment = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
+type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
+  switch ( msg.dtls ) {
+    True -> dtlsfragment : DTLSRecordFragment(handshakesink, alertsink, msg);
+    False -> tlsfragment : TLSRecordFragment(handshakesink, alertsink, msg);
+  };
+};
+
+type TLSRecordFragment = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
   content_type: uint8; # &convert=ContentType($$);
   version: uint16;
-  length: uint16;
-  switch ( ContentType(self.content_type) ) {
-    ContentType::handshake -> : bytes &size=self.length -> handshakesink;
-    ContentType::application_data -> appdata : bytes &size=self.length;
-    ContentType::change_cipher_spec -> ccs : bytes &size=self.length;
-    ContentType::heartbeat -> hn: Heartbeat(self.length);
-    ContentType::alert -> :bytes &size=self.length -> alertsink;
-    * -> unhandled : bytes &size=self.length;
-  };
+  record: PlaintextRecord(self.content_type, handshakesink, alertsink, msg);
 
   on content_type {
     print "Content type", self.content_type;
   }
+  on version {
+    msg.record_version = self.version;
+  }
+};
+
+type DTLSRecordFragment = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
+  content_type: uint8; # &convert=ContentType($$);
+  version: uint16;
+# the epoch signalizes that a changecipherspec message has been received. Hence, everything with
+# an epoch > 0 should be encrypted
+  epoch: uint16;
+  sequence_number: bytes &size=6; # uint48
+  record: PlaintextRecord(self.content_type, handshakesink, alertsink, msg);
+
+  on content_type {
+    print "Content type", self.content_type;
+  }
+  on version {
+    msg.record_version = self.version;
+  }
+};
+
+type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message) {
+  length: uint16;
+  switch ( ContentType(content_type) ) {
+    ContentType::handshake -> : bytes &size=self.length -> handshakesink;
+    ContentType::application_data -> appdata : bytes &size=self.length;
+    ContentType::change_cipher_spec -> ccs : bytes &size=self.length;
+    ContentType::heartbeat -> hn: Heartbeat(self.length);
+    ContentType::alert -> : bytes &size=self.length -> alertsink;
+    * -> unhandled : bytes &size=self.length;
+  };
+
   on unhandled {
-    print "Unhandled content type", self.content_type;
+    print "Unhandled content type", content_type;
   }
   on ccs {
     # ignore duplicate ccs
@@ -589,11 +635,8 @@ type RecordFragment = unit(handshakesink: sink, alertsink: sink, inout msg: Mess
       handshakesink.close();
       alertsink.close();
       msg.encrypted = True;
- #     msg.context().ccs_seen++;
+      msg.context().ccs_seen++;
     }
-  }
-  on version {
-    msg.record_version = self.version;
   }
 };
 
@@ -613,8 +656,7 @@ type Alert_message = unit {
   description: uint8; # &convert=AlertDescription($$);
 };
 
-public type Handshake = unit(inout msg: Message) {
-%context = Share;
+type Handshake = unit(inout msg: Message) {
   handshakes: Handshake_message(msg)[];
 };
 
@@ -640,11 +682,11 @@ type Handshake_message = unit(inout msg: Message) {
     * -> unhandled : bytes &size=self.length;
   };
 
-  on msg_type {
-    print self.msg_type;
-  }
   on %done {
     print self;
+  }
+  on msg_type {
+    print "Handshake message", self.msg_type;
   }
   on unhandled {
     print "Unhandled handshake message of type ", self.msg_type;
@@ -674,7 +716,7 @@ type HelloVerifyRequest = unit {
 };
 
 type CertificateStatus = unit {
-  status_type: uint8;
+  status_type: uint8; # 1 = ocsp, everything else is undefined
   length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network);
   response: bytes &size=self.length;
 };
@@ -699,7 +741,8 @@ type ClientHello = unit(len: uint64, msg: Message) {
 
 type ServerHello = unit(len: uint64, inout msg: Message) {
   server_version: uint16;
-  random: Random;
+  random_bytes: bytes &size=32;
+  gmt_unix_time: uint32 &parse-from=self.random_bytes;
   session_id_length: uint8;
   session_id: bytes &size=self.session_id_length;
   cipher_suite: uint16;
@@ -729,7 +772,7 @@ type Extension = unit(client_hello: bool) {
     Extensions::renegotiation_info -> renegotiation_info: RenegotiationInfo;
     Extensions::server_name -> server_name: ServerNameList if ( self.length > 0 );
     Extensions::application_layer_protocol_negotiation -> application_layer_protocol_negotiation: ProtocolNameList;
-    Extensions::status_request -> status_request: StatusRequest(self.length);
+    Extensions::status_request -> status_request: StatusRequest(self.length) if ( self.length > 0 );
     Extensions::signed_certificate_timestamp -> signed_certificate_timestamp: SignedCertificateTimestampList if ( self.length > 0 );
     Extensions::key_share_old -> key_share_old: KeyShare(client_hello, self.length);
     Extensions::key_share -> key_share: KeyShare(client_hello, self.length);
@@ -739,6 +782,9 @@ type Extension = unit(client_hello: bool) {
     * -> unknown : bytes &size=self.length;
   };
 
+  on code {
+    print "Extension", self.code;
+  }
   on unknown {
     print "Unknown extension", self.code;
   }
@@ -1125,7 +1171,7 @@ type EcdheServerKeyExchange = unit(len: uint64, msg: Message) {
   };
 };
 
-function uses_signature_and_hashalgorithm(msg: Message) : bool
+public function uses_signature_and_hashalgorithm(msg: Message) : bool
   {
   # larger TLS11 and not DTLSv10
   if ( msg.context().chosen_version_sh > 0x0302 && msg.context().chosen_version_sh != 0xFEFF )
@@ -1471,6 +1517,11 @@ public function convert_signature_algorithms(sa: TLS::SignatureAlgorithms) : vec
   return out;
 }
 
+public function create_empty_sigmature_algorithms() : vector<tuple<HashAlgorithm: uint8, SignatureAlgorithm: uint8>> {
+  local out: vector<tuple<uint8, uint8>>;
+  return out;
+}
+
 public function convert_clienthellokeyshare(ks: TLS::ClientHelloKeyShare) : vector<uint16> {
   local out: vector<uint16>;
 
@@ -1503,6 +1554,13 @@ public function convert_protocol_name_list(pns: TLS::ProtocolNameList) : vector<
   return out;
 }
 
+public function convert_certificate_authorities(c: TLS::CertificateRequest) : vector<bytes> {
+  local out: vector<bytes>;
+  for ( i in c.certificate_authorities )
+    out.push_back(i.certificate_authority);
+  return out;
+}
+
 on TLS::ClientHello::%done {
   spicy::accept_input();
 }
@@ -1524,10 +1582,10 @@ on TLS::Certificate::%done {
   for ( i in self.certificate_list )
     {
     if ( first )
-			zeek::file_begin("application/x-x509-user-cert");
-		else
-			zeek::file_begin("application/x-x509-ca-cert");
-		zeek::file_data_in(i.cert);
+      zeek::file_begin("application/x-x509-user-cert");
+    else
+      zeek::file_begin("application/x-x509-ca-cert");
+    zeek::file_data_in(i.cert);
     zeek::file_end();
     first = False;
     }

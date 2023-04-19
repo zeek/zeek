@@ -2,13 +2,17 @@ protocol analyzer TLS over TCP:
 	parse with TLS::Message,
 	port 443/tcp;
 
+# protocol analyzer DTLS over UDP:
+# 	parse with TLS::DTLSMessage,
+# 	port 443/udp;
+
 import TLS;
 import zeek;
 import spicy;
 
 on TLS::ClientHello -> event ssl_client_hello($conn, self.client_version, msg.record_version, cast<time>(self.random.gmt_unix_time), self.random.random_bytes, self.session_id, self.cipher_suites, self.compression_methods);
 
-on TLS::ServerHello -> event ssl_server_hello($conn, self.server_version, msg.record_version, cast<time>(self.random.gmt_unix_time), self.random.random_bytes, self.session_id, self.cipher_suite, self.compression_method);
+on TLS::ServerHello -> event ssl_server_hello($conn, self.server_version, msg.record_version, cast<time>(self.gmt_unix_time), self.random_bytes, self.session_id, self.cipher_suite, self.compression_method);
 
 on TLS::EllipticCurveList -> event ssl_extension_elliptic_curves($conn, $is_orig, self.elliptic_curve_list);
 
@@ -18,9 +22,10 @@ on TLS::ServerNameList -> event ssl_extension_server_name($conn, $is_orig, TLS::
 
 on TLS::NewSessionTicket -> event ssl_session_ticket_handshake($conn, self.ticket_lifetime_hint, self.ticket);
 
-on TLS::RecordFragment::ccs -> event ssl_change_cipher_spec($conn, $is_orig);
-
-on TLS::RecordFragment::ccs if ( msg.context().ccs_seen == 2 ) -> event ssl_established($conn);
+on TLS::PlaintextRecord::ccs -> event ssl_change_cipher_spec($conn, $is_orig);
+on TLS::PlaintextRecord::ccs if ( msg.context().ccs_seen == 2 ) -> event ssl_established($conn);
+on TLS::PlaintextRecord::appdata if ( msg.encrypted == False ) -> event ssl_plaintext_data($conn, $is_orig, msg.record_version, content_type, self.length);
+on TLS::PlaintextRecord::appdata if ( msg.encrypted == True ) -> event ssl_encrypted_data($conn, $is_orig, msg.record_version, content_type, self.length);
 
 on TLS::Handshake_message -> event ssl_handshake_message($conn, $is_orig, self.msg_type, self.length);
 
@@ -67,9 +72,7 @@ on TLS::Alert_message -> event ssl_alert($conn, $is_orig, self.level, self.descr
 
 on TLS::Heartbeat -> event ssl_heartbeat($conn, $is_orig, length, self.tpe, self.payload_length, self.data);
 
-on TLS::RecordFragment::appdata if ( msg.encrypted == False ) -> event ssl_plaintext_data($conn, $is_orig, self.version, self.content_type, self.length);
-
-on TLS::RecordFragment::appdata if ( msg.encrypted == True ) -> event ssl_encrypted_data($conn, $is_orig, self.version, self.content_type, self.length);
-
 on TLS::CertificateStatus -> event ssl_stapled_ocsp($conn, $is_orig, self.response);
 
+on TLS::CertificateRequest if ( TLS::uses_signature_and_hashalgorithm(msg) ) -> event ssl_certificate_request($conn, $is_orig, self.certificate_types, TLS::convert_signature_algorithms(self.supported_signature_algorithms), TLS::convert_certificate_authorities(self));
+on TLS::CertificateRequest if ( ! TLS::uses_signature_and_hashalgorithm(msg) ) -> event ssl_certificate_request($conn, $is_orig, self.certificate_types, TLS::create_empty_sigmature_algorithms(), TLS::convert_certificate_authorities(self));

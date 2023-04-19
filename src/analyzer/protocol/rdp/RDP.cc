@@ -13,7 +13,6 @@ RDP_Analyzer::RDP_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyz
 	interp = new binpac::RDP::RDP_Conn(this);
 
 	had_gap = false;
-	ssl = nullptr;
 	}
 
 RDP_Analyzer::~RDP_Analyzer()
@@ -54,18 +53,18 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 		// 0x03-0x04 is CredSSP which is effectively SSL/TLS
 		if ( interp->encryption_method() > 0x00 )
 			{
-			if ( ! ssl )
-				{
-				ssl = new analyzer::ssl::SSL_Analyzer(Conn());
-				if ( ! AddChildAnalyzer(ssl) )
-					{
-					reporter->AnalyzerError(this, "failed to add TCP child analyzer "
-					                              "to RDP analyzer: already exists");
-					return;
-					}
-				}
+			/*			if ( ! ssl )
+			                {
+			                ssl = new analyzer::ssl::SSL_Analyzer(Conn());
+			                if ( ! AddChildAnalyzer(ssl) )
+			                    {
+			                    reporter->AnalyzerError(this, "failed to add TCP child analyzer "
+			                                                  "to RDP analyzer: already exists");
+			                    return;
+			                    }
+			                }
 
-			ForwardStream(len, data, orig);
+			            ForwardStream(len, data, orig); */
 			}
 		else
 			{

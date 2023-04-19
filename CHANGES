@@ -1,3 +1,21 @@
+6.0.0-dev.391 | 2023-04-19 19:48:50 +0200
+
+  * zeek.bif: Remove cat_sep() fully var_arg changes (Arne Welzel, Corelight)
+
+    These were introduced to better catch type violations at runtime. With
+    bifcl doing these checks, revert to a better documented version.
+
+  * GH-2935: broker/messaging: Runtime type checks for pool (Arne Welzel, Corelight)
+
+    publish_hrw() and publish_rr() are excluded from type checking due to their
+    variadic nature. Passing a wrong type for the pool argument previously triggered
+    an abort, now the result is runtime errors. This isn't great, but it's
+    better than crashing Zeek.
+
+    Closes #2935
+
+  * bifcl: Bump for runtime-type checks in var_arg bifs (Arne Welzel, Corelight)
+
 6.0.0-dev.387 | 2023-04-19 09:01:32 -0700
 
   * Add call stacks to script profiler output (Tim Wojtulewicz, Corelight)

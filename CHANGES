@@ -1,3 +1,20 @@
+6.0.0-dev.376 | 2023-04-19 10:14:02 +0200
+
+  * Improve CMake variables, update cmake submodule (Dominik Charousset, Corelight)
+
+  * Fix builds with plugins that use zeek-config (Dominik Charousset, Corelight)
+
+    When building plugins externally with `zeek-config` (as opposed to using
+    `ZEEK_DIST`), they point into the install prefix. There, we add a new
+    file `ZeekPluginBootstrap.cmake` that helps `ZeekPlugin.cmake` to find
+    everything else it needs from there.
+
+    Our template for plugins generates a `configure` script that sets
+    various variables with values from `zeek-config`. We only need
+    `BROKER_ROOT_DIR` with the new bootstrapping logic. Everything else, we
+    can get from the new bootstrapping file and from the CMake package file
+    for Zeek.
+
 6.0.0-dev.373 | 2023-04-18 11:11:44 -0700
 
   * log-caching-cluster: Wait for X509::known_log_certs to populate (Arne Welzel, Corelight)

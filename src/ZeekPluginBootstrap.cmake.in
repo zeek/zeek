@@ -1,0 +1,15 @@
+# This script is installed alongside ZeekPlugin.cmake for passing variables from
+# the CMake configuration step to plugins.
+
+# Allows scripts such as ZeekPlugin.cmake to locate the Zeek CMake package.
+set(ZEEK_CMAKE_CONFIG_DIR "@ZEEK_CMAKE_CONFIG_DIR@"
+    CACHE PATH "Internal Zeek variable: the CMake package path for Zeek." FORCE)
+
+# Allows scripts to locate files in the Zeek install tree.
+set(ZEEK_CMAKE_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@"
+    CACHE PATH "Internal Zeek variable: CMAKE_INSTALL_PREFIX of Zeek." FORCE)
+
+# Set ZEEK_PLUGIN_SCRIPTS_PATH for ZeekPlugin.cmake. We install the scripts into
+# the package directory.
+set(ZEEK_PLUGIN_SCRIPTS_PATH "${ZEEK_CMAKE_CONFIG_DIR}"
+    CACHE PATH "Path to utility scripts for building Zeek plugins." FORCE)

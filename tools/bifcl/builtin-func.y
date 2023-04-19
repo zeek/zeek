@@ -708,8 +708,8 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\tif ( %s->size() != %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
-					"\t\treporter->Error(\"%s() takes exactly %d argument(s)\");\n",
-					decl.zeek_fullname.c_str(), argc);
+					"\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes exactly %d argument(s), got %%lu\", %s->size()));\n",
+					decl.zeek_fullname.c_str(), argc, arg_list_name);
 				fprintf(fp_func_def, "\t\treturn nullptr;\n");
 				fprintf(fp_func_def, "\t\t}\n");
 				}
@@ -718,14 +718,14 @@ body_start:	TOK_LPB c_code_begin
 				fprintf(fp_func_def, "\tif ( %s->size() < %d )\n", arg_list_name, argc);
 				fprintf(fp_func_def, "\t\t{\n");
 				fprintf(fp_func_def,
-					"\t\treporter->Error(\"%s() takes at least %d argument(s)\");\n",
-					decl.zeek_fullname.c_str(), argc);
+					"\t\tzeek::emit_builtin_error(zeek::util::fmt(\"%s() takes at least %d argument(s), got %%lu\", %s->size()));\n",
+					decl.zeek_fullname.c_str(), argc, arg_list_name);
 				fprintf(fp_func_def, "\t\treturn nullptr;\n");
 				fprintf(fp_func_def, "\t\t}\n");
 				}
 
 			for ( int i = 0; i < (int) args.size(); ++i )
-				args[i]->PrintCDef(fp_func_def, i + implicit_arg);
+				args[i]->PrintCDef(fp_func_def, i + implicit_arg, var_arg);
 			print_line_directive(fp_func_def);
 			}
 	;

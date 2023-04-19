@@ -9,6 +9,7 @@ using namespace std;
 
 static struct
 	{
+	const char* type_enum;
 	const char* bif_type;
 	const char* zeek_type;
 	const char* c_type;
@@ -21,8 +22,8 @@ static struct
 	} builtin_func_arg_type[] = {
 #define DEFINE_BIF_TYPE(id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart,   \
                         cast_smart, constructor, ctor_smart)                                       \
-	{bif_type,       zeek_type,  c_type,      c_type_smart, accessor,                              \
-	 accessor_smart, cast_smart, constructor, ctor_smart},
+	{#id,      bif_type,       zeek_type,  c_type,      c_type_smart,                              \
+	 accessor, accessor_smart, cast_smart, constructor, ctor_smart},
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
 	};
@@ -58,8 +59,24 @@ void BuiltinFuncArg::PrintZeek(FILE* fp)
 	fprintf(fp, "%s: %s%s %s", name, builtin_func_arg_type[type].zeek_type, type_str, attr_str);
 	}
 
-void BuiltinFuncArg::PrintCDef(FILE* fp, int n)
+void BuiltinFuncArg::PrintCDef(FILE* fp, int n, bool runtime_type_check)
 	{
+	// Generate a runtime type-check pre-amble for types we understand
+	if ( runtime_type_check && type != TYPE_OTHER && type != TYPE_ANY )
+		{
+		fprintf(fp, "\t\t{\n");
+		fprintf(fp, "\t\t// Runtime type check for %s argument\n", name);
+		fprintf(fp, "\t\tzeek::TypeTag __tag = (*%s)[%d]->GetType()->Tag();\n", arg_list_name, n);
+		fprintf(fp, "\t\tif ( __tag != %s )\n", builtin_func_arg_type[type].type_enum);
+		fprintf(fp, "\t\t\t{\n");
+		fprintf(fp,
+		        "\t\t\tzeek::emit_builtin_error(zeek::util::fmt(\"expected type %s for %s, got "
+		        "%%s\", zeek::type_name(__tag)));\n",
+		        builtin_func_arg_type[type].zeek_type, name);
+		fprintf(fp, "\t\t\treturn nullptr;\n");
+		fprintf(fp, "\t\t\t}\n");
+		fprintf(fp, "\t\t}\n");
+		}
 	fprintf(fp, "\t%s %s = (%s) (", builtin_func_arg_type[type].c_type, name,
 	        builtin_func_arg_type[type].c_type);
 

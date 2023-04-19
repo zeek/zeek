@@ -25,7 +25,7 @@ public:
 	int Type() const { return type; }
 
 	void PrintZeek(FILE* fp);
-	void PrintCDef(FILE* fp, int n);
+	void PrintCDef(FILE* fp, int n, bool runtime_type_check = false);
 	void PrintCArg(FILE* fp, int n);
 	void PrintValConstructor(FILE* fp);
 

@@ -92,9 +92,9 @@ EventMgr::~EventMgr()
 	}
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src,
-                       analyzer::ID aid, Obj* obj)
+                       analyzer::ID aid, Obj* obj, double ts)
 	{
-	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
+	QueueEvent(new Event(h, std::move(vl), src, aid, obj, ts));
 	}
 
 void EventMgr::QueueEvent(Event* event)

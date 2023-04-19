@@ -73,10 +73,12 @@ public:
 	 * @param aid  identifies the protocol analyzer generating the event.
 	 * @param obj  an arbitrary object to use as a "cookie" or just hold a
 	 * reference to until dispatching the event.
+	 * @param ts  timestamp at which the event is intended to be executed
+	 * (defaults to current network time).
 	 */
 	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
 	             util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0,
-	             Obj* obj = nullptr);
+	             Obj* obj = nullptr, double ts = run_state::network_time);
 
 	/**
 	 * A version of Enqueue() taking a variable number of arguments.
@@ -103,7 +105,8 @@ public:
 	analyzer::ID CurrentAnalyzer() const { return current_aid; }
 
 	// Returns the timestamp of the last raised event. The timestamp reflects the network time
-	// the event was created.
+	// the event was intended to be executed. For scheduled events, this is the time the event
+	// was scheduled to. For any other event, this is the time when the event was created.
 	double CurrentEventTime() const { return current_ts; }
 
 	int Size() const { return num_events_queued - num_events_dispatched; }

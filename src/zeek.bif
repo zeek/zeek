@@ -355,7 +355,9 @@ function set_network_time%(nt: time%): bool
 	%}
 
 ## Returns the timestamp of the last raised event. The timestamp reflects the
-## network time the event was created.
+## network time the event was intended to be executed. For scheduled events,
+## this is the time the event was scheduled for. For any other event, this is
+## the time when the event was created.
 ##
 ## Returns: The timestamp of the last raised event.
 ##

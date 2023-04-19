@@ -23,6 +23,9 @@
 #include "zeek/logging/Manager.h"
 #include "zeek/packet_analysis/Manager.h"
 
+// For reading_live and reading_traces
+#include "zeek/RunState.h"
+
 namespace zeek::detail
 	{
 

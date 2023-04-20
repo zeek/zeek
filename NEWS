@@ -67,10 +67,16 @@ Breaking Changes
   If you see opportunities to extend ``repo-info.json`` with further information,
   please get in touch.
 
+- Plugin authors should raise the minimum required CMake version to 3.15 to
+  ensure compatibility with new CMake scaffolding included in this
+  release. Older versions will trigger a warning at configuration time and,
+  depending on the functionality included in the plugin, may trigger subsequent
+  errors during configuration or build.
+
 New Functionality
 -----------------
 
-- Experimental JavaScript support added:
+- Zeek now features experimental JavaScript support:
 
 	/* hello.js */
 	zeek.on('zeek_init', () => {
@@ -80,15 +86,16 @@ New Functionality
 	$ zeek ./hello.js
 	Hello, Zeek!
 
-  When a recent version of the libnode package is installed, the externally
-  maintained ZeekJS plugin (https://github.com/corelight/zeekjs) is automatically
-  included as a builtin plugin. This allows Zeek to load and execute execute
-  JavaScript code located in ``.js`` or ``.cjs`` files. When no such files are
-  passed to Zeek, the JavaScript engine and Node.js environment aren't initialized
-  and there is no runtime impact.
+  When building Zeek on a system that features a recent (16.13+) version of the
+  libnode package with development headers, Zeek automatically includes the
+  externally-maintained ZeekJS plugin (https://github.com/corelight/zeekjs) as a
+  builtin plugin. This allows Zeek to load and execute JavaScript code located
+  in ``.js`` or ``.cjs`` files. When no such files are passed to Zeek, the
+  JavaScript engine and Node.js environment aren't initialized and there is no
+  runtime impact.
 
-  The Linux distributions Fedora 37, Ubuntu 22.10 and the upcoming Debian 12
-  release provide suitable packages. On other platforms, Node.js can be built
+  The Linux distributions Fedora 37 & 38, Ubuntu 22.10, and the upcoming Debian
+  12 release provide suitable packages. On other platforms, Node.js can be built
   from source with the ``--shared`` option.
 
   To disable this functionality, pass ``--disable-javascript`` to configure.
@@ -126,24 +133,23 @@ New Functionality
   This value has previously been hard-coded, but increasing it can significantly
   reduce idle CPU usage in low packet rate deployments.
 
-- Deprecation warnings in Zeek scripts can be suppressed using
-  ``@pragma push ignore-deprecations`` followed by ``@pragma pop``.
-
-  Specifically for usages within Zeek base to allow populating a deprecated
-  field for API compatibility without triggering deprecation warnings from
-  base scripts.
+- Zeek now supports a new ``@pragma`` directive. It currently allows suppressing
+  deprecation warnings in Zeek scripts by opening with
+  ``@pragma push ignore-deprecations`` and closing with ``@pragma pop``.
+  This particularly helps in situations where use of the Zeek base scripts, for
+  example to populate a deprecated field for API compatibility, would otherwise
+  trigger deprecation warnings.
 
 - The ``Reporter`` class was extended by a ``Deprecation()`` method to use
   for logging deprecations rather than using ad-hoc ``Warning()`` calls.
 
-- A new field was added to the network statistics record type for reporting the
-  number of packets that were filtered by the network interface before handing
-  them to Zeek. This field can be filled in by the individual packet source
-  plugin implementations. The default pcap packet source does not provide this
-  information because the data is not always available from the various versions
-  of libpcap.
+- The network statistics record type features a new ``pkts_filtered`` field for
+  reporting the number of packets that the interface filtered before hand-off to
+  Zeek. Packet source implementations are free to fill this field as
+  feasible. The default pcap packet source does not provide this information
+  because its availability depends on the libpcap version.
 
-- Packet statistics (packets recieved, packets dropped, bytes received, packets
+- Packet statistics (packets received, packets dropped, bytes received, packets
   seen on link, and packets filtered) are now reported to the Telemetry
   framework, under the ``zeek_net`` prefix.
 
@@ -156,7 +162,7 @@ Changed Functionality
 
 - The ``&on_change`` attribute of set and tables is propagated through ``copy()``.
 
-- Revert back to old method of preallocting ``PortVal`` objects for all valid
+- Revert back to old method of preallocating ``PortVal`` objects for all valid
   port numbers, as it was implemented prior to the Windows port. Not
   preallocating these objects saves a minor amount of memory for short runs of
   Zeek, but comes at a performance cost for having to allocate the objects every
@@ -174,45 +180,45 @@ Changed Functionality
   is polling IO sources with file descriptors, zero timeout IO sources are
   added to the list of sources to be processed as well.
 
-  The intervals to decide when FD based IO sources are checked for readiness
+  The intervals to decide when Zeek checks FD-based IO sources for readiness
   have been made configurable through ``io_poll_interval_default`` and
   ``io_poll_interval_live`` for ease of testing, development and debugging
   of the main-loop.
 
 - Zeek does not arbitrarily update ``network_time()`` to current time anymore.
   When a packet source is providing a constant stream of packets, packets
-  drive network time. Previously, Zeek updated network time to the current
-  current time in various situations, disregarding timestamps of network packets.
+  drive network time. Previously, Zeek updated network time to current
+  time in various situations, disregarding timestamps of network packets.
   Zeek will now update ``network_time()`` only when a packet source has been
   inactive/idle for an interval of ``packet_source_inactivity_timeout``
   (default 100msec). When a worker process suddenly observes no packets, timer
   expiration may initially be delayed by ``packet_source_inactivity_timeout``.
 
 - Calling ``suspend_processing()`` when reading traces does not update network
-  time to the current time anymore. Instead, Zeek keeps ``network_time()`` according
-  to the trace file. This causes scheduled events to not fire once ``suspend_processing()``
-  is called. However, this appears more sensible behavior than arbitrarily setting
-  ``network_time()`` to the current time. Processing can still be continued from
-  broker events or input readers.
+  time to the current time anymore. Instead, Zeek keeps ``network_time()``
+  according to the trace file. This causes scheduled events to not fire once
+  ``suspend_processing()`` is called, which seems more reasonable than
+  arbitrarily setting ``network_time()`` to current time. Processing can still
+  be continued from broker events or input readers.
 
 - Previously, Zeek would process and dispatch events for the very first packet
   in a trace file in order to initialize time, even if ``suspend_processing()``
   was called in a ``zeek_init()`` handler. This has been changed such that the
   first packet will only be processed once ``continue_processing()`` has been
-  invoked again. Some background around the previous behaviour can be found
-  in GH-938. With the availability of ``network_time_init()``, this behavior
-  seems more reasonable.
+  invoked again. Some background around the previous behavior can be found
+  in GH-938. Given that the ``network_time_init()`` event explicitly signals
+  initialization of network time, this behavior seems more reasonable.
 
 - If an event is scheduled with a 0.0sec timeout from a ``zeek_init()`` handler
-  that also executes a ``suspend_processing()``, the scheduled event will fire
+  that also invokes ``suspend_processing()``, the scheduled event will fire
   immediately with ``network_time()`` still yielding ``0.0``. Previously,
-  ``network_time()`` was set to the current time. The new behavior is considered
-  more sensible with regards of determinism and in line with timers stopping
-  during a ``suspend_processing()``.
+  ``network_time()`` was set to the current time. The new behavior provides
+  more deterministic operation and aligns with timers stopping during a
+  ``suspend_processing()``.
 
-- Broker does not initialize a 0.0 network time to current time anymore upon
-  processing input. Specifically in zeek -r scenarios, that is not the wanted
-  behaviour.
+- Broker no longer initializes network time to current time when processing
+  input. Particularly in combination with pcap processing this was not desirable
+  behavior.
 
 - The IO loop's poll interval is now correctly reduced from 100 to 10 for
   live packet sources. This should lower CPU usage for deployments with
@@ -221,9 +227,10 @@ Changed Functionality
 - Zeek's CMake scaffolding has received an overhaul for modernizing the build
   system and to make it easier to maintain going forward. Plugins can now use a
   declarative interface for adding all sources, BIFs, etc. in one block instead
-  of using the previous begin/end functions. However, the old functions still
-  exist for backwards compatibility. Since Zeek uses newer CMake features now,
-  plugin authors should also raise their minimum required CMake version to 3.15.
+  of using the previous begin/end functions. While the old plugin functions
+  still exist for backward compatibility, the underlying codebase requires newer
+  CMake features. Plugin authors should raise their minimum required CMake
+  version to 3.15, to match Zeek's.
 
 Removed Functionality
 ---------------------

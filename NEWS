@@ -116,6 +116,10 @@ New Functionality
   ``make-archive-name`` script and using the new ``ZEEK_ARG_LOG_SUFFIX``
   environment variable.
 
+- A supervisor controlled Zeek cluster is now multi-logger aware. This avoids
+  loggers overwriting each others log files within a single log-queue directory.
+  By default, a logger's name is appended to the rotated logs by zeek-archiver.
+
 - Introduce a new command-line option ``-V`` / ``--build-info``. It produces
   verbose output in JSON format about the repository state and any included
   plugins.

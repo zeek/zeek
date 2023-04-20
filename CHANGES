@@ -1,3 +1,9 @@
+6.0.0-dev.394 | 2023-04-20 16:03:45 -0700
+
+  * Edit pass over the current 6.0 NEWS entries. (Christian Kreibich, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 6.0.0-dev.391 | 2023-04-19 19:48:50 +0200
 
   * zeek.bif: Remove cat_sep() fully var_arg changes (Arne Welzel, Corelight)

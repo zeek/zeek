@@ -153,6 +153,32 @@ New Functionality
   seen on link, and packets filtered) are now reported to the Telemetry
   framework, under the ``zeek_net`` prefix.
 
+- Zeek's cluster framework provides the new ``get_node_count(node_type: NodeType)``
+  function to obtain the number of nodes for a given node type as defined in the
+  cluster layout. Furthermore, ``broadcast_topics`` was added as a collection of
+  broker topics that can be used to reach all nodes in a cluster.
+
+- The new ``Cluster::Experimental`` namespace has been introduced to Zeek's cluster
+  framework to provide experimental features. Based on practical experiences and the
+  adoption of an experimental feature, it may become a regular feature or be removed
+  in future releases. Experimental features are loaded via:
+  ``@load policy/frameworks/cluster/experimental``
+
+- Zeek's cluster framework provides two new experimental events:
+
+  - ``cluster_started``: This event will be broadcasted from the manager once all
+    cluster-level connections have been established based on the given cluster layout.
+    If any node restarts (including the manager itself), the event will neither be
+    rebroadcasted nor raised locally for the restarted node.
+
+  - ``node_fully_connected``: This event will be sent to the manager and raised
+    locally once a cluster node has successfully conducted cluster-level handshakes
+    for all its outgoing connections to other cluster nodes based on the given cluster
+    layout.
+
+  Note: There is no tracking of cluster node connectivity. Thus, there is no guarantee
+  that all peerings still exist at the time of these events being raised.
+
 Changed Functionality
 ---------------------
 
@@ -242,6 +268,14 @@ Removed Functionality
 
 - Referencing local variables in a more outer scope than where they were declared
   is now an error
+
+Deprecated Functionality
+------------------------
+
+- The cluster framework's ``worker_count`` has been deprecated in favor of the
+  new function ``get_active_node_count(node_type: NodeType)`` that can be used
+  to obtain the number of nodes of a given type the calling node is currently
+  connected to.
 
 
 Zeek 5.2.0

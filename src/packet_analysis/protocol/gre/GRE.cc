@@ -67,7 +67,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	unsigned int eth_len = 0;
 	unsigned int gre_len = gre_header_len(flags_ver);
-	unsigned int ppp_len = gre_version == 1 ? 4 : 0;
+	unsigned int pptp_len = gre_version == 1 ? 4 : 0;
 	unsigned int erspan_len = 0;
 
 	if ( gre_version != 0 && gre_version != 1 )
@@ -160,7 +160,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		{
 		if ( proto_typ != 0x880b )
 			{
-			// Enhanced GRE payload must be PPP.
+			// Enhanced GRE payload must be PPTP.
 			Weird("egre_protocol_type", packet, util::fmt("proto=%d", proto_typ));
 			return false;
 			}
@@ -181,29 +181,29 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	if ( len < gre_len + ppp_len + eth_len + erspan_len )
+	if ( len < gre_len + pptp_len + eth_len + erspan_len )
 		{
 		Weird("truncated_GRE", packet);
 		return false;
 		}
 
-	// For GRE version 1/PPP, reset the protocol based on a value from the PPP header.
+	// For GRE version 1/PPTP, reset the protocol based on a value from the PPTP header.
 	// TODO: where are these two values defined?
 	if ( gre_version == 1 )
 		{
-		uint16_t ppp_proto = ntohs(*((uint16_t*)(data + gre_len + 2)));
+		uint16_t pptp_proto = ntohs(*((uint16_t*)(data + gre_len + 2)));
 
-		if ( ppp_proto != 0x0021 && ppp_proto != 0x0057 )
+		if ( pptp_proto != 0x0021 && pptp_proto != 0x0057 )
 			{
 			Weird("non_ip_packet_in_encap", packet);
 			return false;
 			}
 
-		proto = (ppp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
+		proto = (pptp_proto == 0x0021) ? IPPROTO_IPV4 : IPPROTO_IPV6;
 		}
 
-	data += gre_len + ppp_len + erspan_len;
-	len -= gre_len + ppp_len + erspan_len;
+	data += gre_len + pptp_len + erspan_len;
+	len -= gre_len + pptp_len + erspan_len;
 
 	// Treat GRE tunnel like IP tunnels, fallthrough to logic below now that GRE header is stripped
 	// and only payload packet remains.  The only thing different is the tunnel type enum value to

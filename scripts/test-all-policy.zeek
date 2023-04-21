@@ -11,6 +11,8 @@
 
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
+@load frameworks/cluster/experimental.zeek
+@load frameworks/cluster/nodes-experimental/manager.zeek
 @load frameworks/management/agent/__load__.zeek
 @load frameworks/management/agent/api.zeek
 @load frameworks/management/agent/boot.zeek

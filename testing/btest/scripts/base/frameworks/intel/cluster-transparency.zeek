@@ -32,7 +32,8 @@ redef Log::default_rotation_interval=0sec;
 event Cluster::node_up(name: string, id: string)
 	{
 	# Insert the data once both workers are connected.
-	if ( Cluster::local_node_type() == Cluster::MANAGER && Cluster::worker_count == 2 )
+	if ( Cluster::local_node_type() == Cluster::MANAGER &&
+		 Cluster::get_active_node_count(Cluster::WORKER) == 2 )
 		{
 		Intel::insert([$indicator="1.2.3.4", $indicator_type=Intel::ADDR, $meta=[$source="manager"]]);
 		}

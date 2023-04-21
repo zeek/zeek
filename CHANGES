@@ -1,3 +1,19 @@
+6.0.0-dev.402 | 2023-04-21 14:04:52 -0700
+
+  * Update NEWS to cover cluster framework changes. (Jan Grashoefer, Corelight)
+
+  * Add cluster_started restart tests. (Jan Grashoefer, Corelight)
+
+  * Add basic cluster_started tests. (Jan Grashoefer, Corelight)
+
+  * Add cluster_started and node_fully_connected events. (Jan Grashoefer, Corelight)
+
+  * Add hook into cluster connection setup. (Jan Grashoefer, Corelight)
+
+  * Add broadcast_topics set. (Jan Grashoefer, Corelight)
+
+  * Generalize Cluster::worker_count. (Jan Grashoefer, Corelight)
+
 6.0.0-dev.394 | 2023-04-20 16:03:45 -0700
 
   * Edit pass over the current 6.0 NEWS entries. (Christian Kreibich, Corelight)

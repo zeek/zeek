@@ -191,6 +191,12 @@ export {
 		id: string                &optional;
 	};
 
+	## Record to represent a cluster node including its name.
+	type NamedNode: record {
+		name: string;
+		node: Node;
+	};
+
 	## This function can be called at any time to determine if the cluster
 	## framework is being enabled for this run.
 	##
@@ -280,11 +286,6 @@ export {
 
 # Track active nodes per type.
 global active_node_ids: table[NodeType] of set[string];
-
-type NamedNode: record {
-	name: string;
-	node: Node;
-};
 
 function nodes_with_type(node_type: NodeType): vector of NamedNode
 	{

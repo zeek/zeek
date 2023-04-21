@@ -7,6 +7,15 @@
 
 module Cluster;
 
+export {
+	## This hook is called when the local node connects to other nodes based on
+	## the given cluster layout. Breaking from the hook will prevent connection
+	## establishment.
+	##
+	## connectee: The node to connect to.
+	global connect_node_hook: hook(connectee: NamedNode);
+}
+
 function connect_peer(node_type: NodeType, node_name: string)
 	{
 	local nn = nodes_with_type(node_type);
@@ -17,12 +26,15 @@ function connect_peer(node_type: NodeType, node_name: string)
 
 		if ( n$name != node_name )
 			next;
+		if ( ! hook connect_node_hook(n) )
+			return;
 
 		local status = Broker::peer(cat(n$node$ip), n$node$p,
 		                            Cluster::retry_interval);
 		Cluster::log(fmt("initiate peering with %s:%s, retry=%s, status=%s",
 		                 n$node$ip, n$node$p, Cluster::retry_interval,
 		                 status));
+		return;
 		}
 	}
 
@@ -33,6 +45,10 @@ function connect_peers_with_type(node_type: NodeType)
 	for ( i in nn )
 		{
 		local n = nn[i];
+
+		if ( ! hook connect_node_hook(n) )
+			next;
+
 		local status = Broker::peer(cat(n$node$ip), n$node$p,
 		                            Cluster::retry_interval);
 		Cluster::log(fmt("initiate peering with %s:%s, retry=%s, status=%s",

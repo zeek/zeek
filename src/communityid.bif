@@ -1,0 +1,130 @@
+%%{ // C segment
+#include "zeek/IPAddr.h"
+#include "zeek/Val.h"
+#include "zeek/digest.h"
+#include "zeek/packet_analysis/protocol/icmp/ICMP.h"
+%%}
+
+## Compute the Community ID hash (v1) from a connection identifier.
+##
+## cid: The identifier of the connection for which to compute the community-id.
+##
+## Returns: The Community ID hash of the connection identifier as string.
+##
+function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool &default=T%): string
+%{
+    const auto *cid_rec = cid->AsRecordVal();
+
+    uint16_t hash_seed = htons(seed);
+    const uint32_t *hash_src_addr = 0;
+    const uint32_t *hash_dst_addr = 0;
+    uint8_t hash_proto = 0;
+    uint8_t hash_padbyte = 0;
+    uint16_t hash_src_port = 0;
+    uint16_t hash_dst_port = 0;
+
+    const auto& orig_addr = cid_rec->GetFieldAs<zeek::AddrVal>(0);
+    const auto& orig_port = cid_rec->GetFieldAs<zeek::PortVal>(1);
+    const auto& resp_addr = cid_rec->GetFieldAs<zeek::AddrVal>(2);
+    const auto& resp_port = cid_rec->GetFieldAs<zeek::PortVal>(3);
+
+    bool is_ipv4 = orig_addr.GetBytes(&hash_src_addr) == 1;
+    resp_addr.GetBytes(&hash_dst_addr);
+    TransportProto proto = orig_port->PortType();
+
+    // Zeek's transport protocol aliases different underlying
+    // protocols, particularly IPv4's and v6's ICMP...
+    switch (proto) {
+        case TRANSPORT_TCP:
+            hash_proto = IPPROTO_TCP;
+            break;
+        case TRANSPORT_UDP:
+            hash_proto = IPPROTO_UDP;
+            break;
+        case TRANSPORT_ICMP:
+            if (is_ipv4)
+                hash_proto = IPPROTO_ICMP;
+            else
+                hash_proto = IPPROTO_ICMPV6;
+
+            break;
+        case TRANSPORT_UNKNOWN:
+            emit_builtin_error("CommunityID: unknown transport layer", cid);
+            return zeek::make_intrusive<zeek::StringVal>("");
+        default:
+            emit_builtin_error("CommunityID: unhandled transport layer", cid);
+            return zeek::make_intrusive<zeek::StringVal>("");
+    }
+
+    hash_src_port = htons((uint16_t) orig_port->Port());
+    hash_dst_port = htons((uint16_t) resp_port->Port());
+
+    // XXX: resolve whether we should copy is_one_way into the
+    // Connection instance at construction time, along with the other
+    // ConnID fields (see Conn.cc around line 125).
+    // awelzel: Maybe the is_one_way should be just a helper?
+
+    bool is_one_way = false;
+
+    if (TRANSPORT_ICMP == proto) {
+        if (is_ipv4)
+            zeek::packet_analysis::ICMP::ICMP4_counterpart(ntohs(hash_src_port),
+                                                           ntohs(hash_dst_port),
+                                                           is_one_way);
+        else
+            zeek::packet_analysis::ICMP::ICMP6_counterpart(ntohs(hash_src_port),
+                                                  ntohs(hash_dst_port),
+                                                  is_one_way);
+    }
+
+    if (is_one_way || zeek::addr_port_canon_lt(orig_addr, hash_src_port,
+                                               resp_addr, hash_dst_port)) {
+        // All good, no need to flip
+    } else {
+        // Need to flip endpoints for hashing.
+        std::swap(hash_src_addr, hash_dst_addr);
+        std::swap(hash_src_port, hash_dst_port);
+    }
+
+    auto digest_update = [](EVP_MD_CTX *ctx, const void* data, unsigned long len) {
+        zeek::detail::hash_update(ctx, data, len);
+        return len;
+    };
+
+    int dlen = 0;
+    auto *ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA1);
+
+    dlen += digest_update(ctx, &hash_seed, 2);
+    dlen += digest_update(ctx, hash_src_addr, is_ipv4 ? 4 : 16);
+    dlen += digest_update(ctx, hash_dst_addr, is_ipv4 ? 4 : 16);
+    dlen += digest_update(ctx, &hash_proto, 1);
+    dlen += digest_update(ctx, &hash_padbyte, 1);
+    dlen += digest_update(ctx, &hash_src_port, 2);
+    dlen += digest_update(ctx, &hash_dst_port, 2);
+
+    u_char digest[SHA_DIGEST_LENGTH];
+    zeek::detail::hash_final(ctx, digest);
+
+    // We currently have no real versioning/hash configuration logic,
+    // so we simply prefix "1:" to the hash.
+    std::string ver("1:");
+    zeek::String *res = 0;
+
+    if (do_base64) {
+        char *outbuf = 0;
+        int outlen = 0;
+
+        zeek::detail::Base64Converter enc{nullptr};
+        enc.Encode(SHA_DIGEST_LENGTH, digest, &outlen, &outbuf);
+        res = new zeek::String(ver + std::string(outbuf, outlen));
+        // When given outlen = 0, the Encode() method creates the
+        // buffer it returns as outbuf, so we must delete it.
+        delete[] outbuf;
+    } else {
+        // The following returns a static buffer; no need to delete.
+        const char *ascii_digest = zeek::detail::sha1_digest_print(digest);
+        res = new zeek::String(ver + ascii_digest);
+    }
+
+    return zeek::make_intrusive<zeek::StringVal>(res);
+%}

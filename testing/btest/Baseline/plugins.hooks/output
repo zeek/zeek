@@ -933,6 +933,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./const-dos-error, <...>/const-dos-error.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./const-nt-status, <...>/const-nt-status.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./const.bif.zeek, <...>/const.bif.zeek) -> -1
@@ -1050,6 +1051,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/broker, <...>/broker) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/cluster, <...>/cluster) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/comm.bif, <...>/comm.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/communityid.bif, <...>/communityid.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/config, <...>/config) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/conn, <...>/conn) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/conn-ids, <...>/conn-ids.zeek) -> -1
@@ -1321,6 +1323,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./const-dos-error, <...>/const-dos-error.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./const-nt-status, <...>/const-nt-status.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./const.bif.zeek, <...>/const.bif.zeek) -> (-1, <no content>)
@@ -1438,6 +1441,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/broker, <...>/broker) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/cluster, <...>/cluster) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/comm.bif, <...>/comm.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/communityid.bif, <...>/communityid.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/config, <...>/config) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/conn, <...>/conn) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/conn-ids, <...>/conn-ids.zeek) -> (-1, <no content>)
@@ -2513,6 +2517,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./const-dos-error, <...>/const-dos-error.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./const-nt-status, <...>/const-nt-status.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./const.bif.zeek, <...>/const.bif.zeek)
@@ -2630,6 +2635,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/broker, <...>/broker)
 0.000000   MetaHookPre   LoadFile(0, base<...>/cluster, <...>/cluster)
 0.000000   MetaHookPre   LoadFile(0, base<...>/comm.bif, <...>/comm.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/communityid.bif, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/config, <...>/config)
 0.000000   MetaHookPre   LoadFile(0, base<...>/conn, <...>/conn)
 0.000000   MetaHookPre   LoadFile(0, base<...>/conn-ids, <...>/conn-ids.zeek)
@@ -2901,6 +2907,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./const-dos-error, <...>/const-dos-error.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./const-nt-status, <...>/const-nt-status.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./const.bif.zeek, <...>/const.bif.zeek)
@@ -3018,6 +3025,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/broker, <...>/broker)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/cluster, <...>/cluster)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/comm.bif, <...>/comm.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/communityid.bif, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/config, <...>/config)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/conn, <...>/conn)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/conn-ids, <...>/conn-ids.zeek)
@@ -4094,6 +4102,7 @@
 0.000000 | HookLoadFile  ./cardinality-counter.bif.zeek <...>/cardinality-counter.bif.zeek
 0.000000 | HookLoadFile  ./certificate-event-cache <...>/certificate-event-cache.zeek
 0.000000 | HookLoadFile  ./comm.bif.zeek <...>/comm.bif.zeek
+0.000000 | HookLoadFile  ./communityid.bif.zeek <...>/communityid.bif.zeek
 0.000000 | HookLoadFile  ./const-dos-error <...>/const-dos-error.zeek
 0.000000 | HookLoadFile  ./const-nt-status <...>/const-nt-status.zeek
 0.000000 | HookLoadFile  ./const.bif.zeek <...>/const.bif.zeek
@@ -4221,6 +4230,7 @@
 0.000000 | HookLoadFile  base<...>/broker <...>/broker
 0.000000 | HookLoadFile  base<...>/cluster <...>/cluster
 0.000000 | HookLoadFile  base<...>/comm.bif <...>/comm.bif.zeek
+0.000000 | HookLoadFile  base<...>/communityid.bif <...>/communityid.bif.zeek
 0.000000 | HookLoadFile  base<...>/config <...>/config
 0.000000 | HookLoadFile  base<...>/conn <...>/conn
 0.000000 | HookLoadFile  base<...>/conn-ids <...>/conn-ids.zeek
@@ -4482,6 +4492,7 @@
 0.000000 | HookLoadFileExtended ./cardinality-counter.bif.zeek <...>/cardinality-counter.bif.zeek
 0.000000 | HookLoadFileExtended ./certificate-event-cache <...>/certificate-event-cache.zeek
 0.000000 | HookLoadFileExtended ./comm.bif.zeek <...>/comm.bif.zeek
+0.000000 | HookLoadFileExtended ./communityid.bif.zeek <...>/communityid.bif.zeek
 0.000000 | HookLoadFileExtended ./const-dos-error <...>/const-dos-error.zeek
 0.000000 | HookLoadFileExtended ./const-nt-status <...>/const-nt-status.zeek
 0.000000 | HookLoadFileExtended ./const.bif.zeek <...>/const.bif.zeek
@@ -4609,6 +4620,7 @@
 0.000000 | HookLoadFileExtended base<...>/broker <...>/broker
 0.000000 | HookLoadFileExtended base<...>/cluster <...>/cluster
 0.000000 | HookLoadFileExtended base<...>/comm.bif <...>/comm.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/communityid.bif <...>/communityid.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/config <...>/config
 0.000000 | HookLoadFileExtended base<...>/conn <...>/conn
 0.000000 | HookLoadFileExtended base<...>/conn-ids <...>/conn-ids.zeek

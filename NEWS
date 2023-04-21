@@ -100,6 +100,11 @@ New Functionality
 
   To disable this functionality, pass ``--disable-javascript`` to configure.
 
+- Zeek now provides native "Community ID" support with a new bif called
+  ``community_id_v1()``. Two policy scripts ``protocols/conn/community-id-logging``
+   and ``frameworks/notice/community-id`` extend the respective logs with a
+  community_id similar to what the external zeek-community-id plugin provides.
+
 - Introduce a new command-line option ``-V`` / ``--build-info``. It produces
   verbose output in JSON format about the repository state and any included
   plugins.

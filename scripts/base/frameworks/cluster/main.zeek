@@ -44,6 +44,13 @@ export {
 	## time machine nodes in a cluster.  Used with broker-enabled cluster communication.
 	const time_machine_topic = "zeek/cluster/time_machine" &redef;
 
+	## A set of topic names to be used for broadcasting messages that are
+	## relevant to all nodes in a cluster. Currently, there is not a common
+	## topic to broadcast to, because enabling implicit Broker forwarding would
+	## cause a routing loop for this topic.
+	const broadcast_topics = { logger_topic, manager_topic, proxy_topic,
+		worker_topic, time_machine_topic };
+
 	## The topic prefix used for exchanging messages that are relevant to
 	## a named node in a cluster.  Used with broker-enabled cluster communication.
 	const node_topic_prefix = "zeek/cluster/node/" &redef;

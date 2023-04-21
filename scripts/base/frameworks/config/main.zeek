@@ -59,14 +59,8 @@ global Config::cluster_set_option: event(ID: string, val: any, location: string)
 
 function broadcast_option(ID: string, val: any, location: string) &is_used
 	{
-	# There's not currently a common topic to broadcast to as then enabling
-	# implicit Broker forwarding would cause a routing loop.
-	Broker::publish(Cluster::worker_topic, Config::cluster_set_option,
-	                ID, val, location);
-	Broker::publish(Cluster::proxy_topic, Config::cluster_set_option,
-	                ID, val, location);
-	Broker::publish(Cluster::logger_topic, Config::cluster_set_option,
-	                ID, val, location);
+	for ( topic in Cluster::broadcast_topics )
+		Broker::publish(topic, Config::cluster_set_option, ID, val, location);
 	}
 
 event Config::cluster_set_option(ID: string, val: any, location: string)

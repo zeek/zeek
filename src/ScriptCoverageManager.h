@@ -5,12 +5,14 @@
 #include <string>
 #include <utility>
 
+#include "zeek/ID.h"
+#include "zeek/StmtBase.h"
 #include "zeek/util.h"
 
 namespace zeek::detail
 	{
 
-class Stmt;
+using ObjPtr = IntrusivePtr<Obj>;
 
 /**
  * A simple class for managing stats of Zeek script coverage across Zeek runs.
@@ -19,7 +21,7 @@ class ScriptCoverageManager
 	{
 public:
 	ScriptCoverageManager();
-	virtual ~ScriptCoverageManager();
+	virtual ~ScriptCoverageManager() = default;
 
 	/**
 	 * Imports Zeek script Stmt usage information from file pointed to by
@@ -46,12 +48,18 @@ public:
 	void DecIgnoreDepth() { ignoring--; }
 
 	void AddStmt(Stmt* s);
+	void AddFunction(IDPtr func_id, StmtPtr body);
 
 private:
 	/**
 	 * The current, global ScriptCoverageManager instance creates this list at parse-time.
 	 */
-	std::list<Stmt*> stmts;
+	std::list<StmtPtr> stmts;
+
+	/**
+	 * A similar list for tracking functions and their bodies.
+	 */
+	std::list<std::pair<IDPtr, StmtPtr>> func_instances;
 
 	/**
 	 * Indicates whether new statements will not be considered as part of
@@ -88,6 +96,17 @@ private:
 				c = ' ';
 			}
 		};
+
+	/**
+	 * Tracks the usage of a given object with a given description
+	 * and a given coverage count.
+	 */
+	void TrackUsage(const ObjPtr& obj, std::string desc, uint64_t cnt);
+
+	/**
+	 * Reports a single coverage instance.
+	 */
+	void Report(FILE* f, uint64_t cnt, std::string loc, std::string desc);
 	};
 
 extern ScriptCoverageManager script_coverage_mgr;

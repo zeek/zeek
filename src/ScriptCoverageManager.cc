@@ -10,8 +10,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
-#include "zeek/Stmt.h"
-#include "zeek/util.h"
+#include "zeek/Type.h"
 
 using namespace std;
 
@@ -20,19 +19,17 @@ namespace zeek::detail
 
 ScriptCoverageManager::ScriptCoverageManager() : ignoring(0), delim('\t') { }
 
-ScriptCoverageManager::~ScriptCoverageManager()
-	{
-	for ( auto& s : stmts )
-		Unref(s);
-	}
-
 void ScriptCoverageManager::AddStmt(Stmt* s)
 	{
 	if ( ignoring != 0 )
 		return;
 
-	Ref(s);
-	stmts.push_back(s);
+	stmts.push_back({NewRef{}, s});
+	}
+
+void ScriptCoverageManager::AddFunction(IDPtr func_id, StmtPtr body)
+	{
+	func_instances.push_back({func_id, body});
 	}
 
 bool ScriptCoverageManager::ReadStats()
@@ -127,31 +124,47 @@ bool ScriptCoverageManager::WriteStats()
 		return false;
 		}
 
-	for ( auto s : stmts )
+	for ( auto& s : stmts )
 		{
-		ODesc location_info;
-		s->GetLocationInfo()->Describe(&location_info);
 		ODesc desc_info;
 		s->Describe(&desc_info);
-		string desc(desc_info.Description());
-		canonicalize_desc cd{delim};
-		for_each(desc.begin(), desc.end(), cd);
-		pair<string, string> location_desc(location_info.Description(), desc);
-		if ( usage_map.find(location_desc) != usage_map.end() )
-			usage_map[location_desc] += s->GetAccessCount();
-		else
-			usage_map[location_desc] = s->GetAccessCount();
+		TrackUsage(s, desc_info.Description(), s->GetAccessCount());
 		}
 
-	map<pair<string, string>, uint64_t>::const_iterator it;
-	for ( auto& um : usage_map )
+	for ( auto& [func, body] : func_instances )
 		{
-		fprintf(f, "%" PRIu64 "%c%s%c%s\n", um.second, delim, um.first.first.c_str(), delim,
-		        um.first.second.c_str());
+		auto ft = func->GetType<FuncType>();
+		auto desc = ft->FlavorString() + " " + func->Name() + " BODY";
+
+		TrackUsage(body, desc, body->GetAccessCount());
 		}
+
+	for ( auto& [location_info, cnt] : usage_map )
+		Report(f, cnt, location_info.first, location_info.second);
 
 	fclose(f);
 	return true;
+	}
+
+void ScriptCoverageManager::TrackUsage(const ObjPtr& obj, std::string desc, uint64_t cnt)
+	{
+	ODesc location_info;
+	obj->GetLocationInfo()->Describe(&location_info);
+
+	static canonicalize_desc cd{delim};
+	for_each(desc.begin(), desc.end(), cd);
+
+	pair<string, string> location_desc(location_info.Description(), desc);
+
+	if ( usage_map.find(location_desc) != usage_map.end() )
+		usage_map[location_desc] += cnt;
+	else
+		usage_map[location_desc] = cnt;
+	}
+
+void ScriptCoverageManager::Report(FILE* f, uint64_t cnt, std::string loc, std::string desc)
+	{
+	fprintf(f, "%" PRIu64 "%c%s%c%s\n", cnt, delim, loc.c_str(), delim, desc.c_str());
 	}
 
 	} // namespace zeek::detail

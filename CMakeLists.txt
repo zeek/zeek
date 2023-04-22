@@ -412,22 +412,17 @@ get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
 # plugins, etc.
 set(ZEEK_LIBDIR_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/zeek)
 
-if (ZEEK_PLUGIN_DIR)
-    set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_PLUGIN_DIR}
-        CACHE STRING "Installation path for plugins" FORCE)
-else ()
-    set(BRO_PLUGIN_INSTALL_PATH ${ZEEK_LIBDIR_PATH}/plugins
+if (NOT ZEEK_PLUGIN_DIR)
+    set(ZEEK_PLUGIN_DIR ${ZEEK_LIBDIR_PATH}/plugins
         CACHE STRING "Installation path for plugins" FORCE)
 endif()
 
-set(bro_plugin_install_path "${BRO_PLUGIN_INSTALL_PATH}")
 set(cmake_binary_dir "${CMAKE_BINARY_DIR}")
 set(cmake_current_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 set(cmake_install_prefix "${CMAKE_INSTALL_PREFIX}")
 set(cmake_source_dir "${CMAKE_SOURCE_DIR}")
 set(zeek_script_install_path "${ZEEK_SCRIPT_INSTALL_PATH}")
 if ( MSVC )
-    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" bro_plugin_install_path "${bro_plugin_install_path}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir "${cmake_current_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_install_prefix "${cmake_install_prefix}")
@@ -1379,7 +1374,7 @@ message(
     "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
     "\nConfig file dir:   ${ZEEK_ETC_INSTALL_DIR}"
     "\nLog dir:           ${ZEEK_LOG_DIR}"
-    "\nPlugin dir:        ${BRO_PLUGIN_INSTALL_PATH}"
+    "\nPlugin dir:        ${ZEEK_PLUGIN_DIR}"
     "\nPython module dir: ${PY_MOD_INSTALL_DIR}"
     "\nScript dir:        ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nSpool dir:         ${ZEEK_SPOOL_DIR}"

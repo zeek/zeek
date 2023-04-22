@@ -5,6 +5,10 @@
 set(ZEEK_CMAKE_CONFIG_DIR "@ZEEK_CMAKE_CONFIG_DIR@"
     CACHE PATH "Internal Zeek variable: the CMake package path for Zeek." FORCE)
 
+# Tells ZeekPlugin.cmake where to install plugins.
+set(ZEEK_PLUGIN_DIR "@ZEEK_PLUGIN_DIR@"
+    CACHE PATH "Internal Zeek variable: the directory for installing Zeek plugins." FORCE)
+
 # Allows scripts to locate files in the Zeek install tree.
 set(ZEEK_CMAKE_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@"
     CACHE PATH "Internal Zeek variable: CMAKE_INSTALL_PREFIX of Zeek." FORCE)

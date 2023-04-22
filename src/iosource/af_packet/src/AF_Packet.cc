@@ -295,7 +295,7 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt)
         pkt->Init(props.link_type, &current_hdr.ts, current_hdr.caplen, current_hdr.len, data);
 
 		if ( packet->tp_status & TP_STATUS_VLAN_VALID )
-			pkt->vlan = packet->hv1.tp_vlan_tci;
+			pkt->vlan = packet->hv1.tp_vlan_tci & 0x0fff;
 
 #if ZEEK_VERSION_NUMBER >= 50100
 		switch ( checksum_mode )

@@ -1,3 +1,7 @@
+6.0.0-dev.412 | 2023-04-24 10:33:29 +0200
+
+  * Fix install directory for plugins (Dominik Charousset, Corelight)
+
 6.0.0-dev.410 | 2023-04-24 09:46:59 +0200
 
   * policy: Import zeek-community-id scripts into protocols/conn frameworks/notice (Christian Kreibich, Corelight)

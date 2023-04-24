@@ -593,7 +593,7 @@ zeek_include_directories(
 install(DIRECTORY ${PROJECT_BINARY_DIR}/scripts/base/bif DESTINATION ${ZEEK_SCRIPT_INSTALL_PATH}/base)
 
 # Create plugin directory at install time.
-install(DIRECTORY DESTINATION ${BRO_PLUGIN_INSTALL_PATH})
+install(DIRECTORY DESTINATION ${ZEEK_PLUGIN_DIR})
 
 # Make clean removes the bif directory.
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${PROJECT_BINARY_DIR}/scripts/base/bif)

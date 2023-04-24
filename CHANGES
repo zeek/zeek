@@ -1,3 +1,11 @@
+6.0.0-dev.414 | 2023-04-24 14:36:32 +0200
+
+  * cmake: Fixup BRO_PLUGIN_INSTALL_PATH references (Arne Welzel, Corelight)
+
+    Commit 19cbb328a9b4598b71e0aa092bf8a03732da8d63 removed setting of
+    BRO_PLUGIN_INSTALL_PATH in favor of ZEEK_PLUGIN_DIR. Replace left-over
+    references the former.
+
 6.0.0-dev.412 | 2023-04-24 10:33:29 +0200
 
   * Fix install directory for plugins (Dominik Charousset, Corelight)

@@ -149,6 +149,23 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				return false;
 				}
 			}
+		else if ( ((proto_typ & 0x8200) == 0x8200 && (proto_typ & 0x0F) == 0) ||
+		          ((proto_typ & 0x8300) == 0x8300 && (proto_typ & 0x0F) == 0 &&
+		           (proto_typ <= 0x8370)) ||
+		          (proto_typ == 0x9000) )
+			{
+			// ARUBA: Set gre_link_type to IEEE802.11 so the IPTUNNEL analyzer uses
+			// that to instantiate the fake tunnel packet, otherwise it'd be using
+			// DLT_RAW which is not correct for ARUBA.
+			if ( len <= gre_len )
+				{
+				Weird("truncated_GRE", packet);
+				return false;
+				}
+
+			gre_link_type = DLT_IEEE802_11;
+			proto = proto_typ;
+			}
 		else
 			{
 			// Otherwise let the packet analysis forwarding handle it.

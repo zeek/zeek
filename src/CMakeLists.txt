@@ -123,6 +123,7 @@ set(SUPERVISOR_SRCS supervisor/Supervisor.cc Pipe.cc)
 
 set(BIF_SRCS
     zeek.bif
+    communityid.bif
     stats.bif
     event.bif
     const.bif

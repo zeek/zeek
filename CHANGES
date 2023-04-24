@@ -1,3 +1,30 @@
+6.0.0-dev.410 | 2023-04-24 09:46:59 +0200
+
+  * policy: Import zeek-community-id scripts into protocols/conn frameworks/notice (Christian Kreibich, Corelight)
+
+  * Add community_id_v1() based on corelight/zeek-community-id (Christian Kreibich, Corelight)
+
+    "Community ID" has become an established flow hash for connection correlation
+    across different monitoring and storage systems. Other NSMs have had native
+    and built-in support for Community ID since late 2018. And even though the
+    roots of "Community ID" are very close to Zeek, Zeek itself has never provided
+    out-of-the-box support and instead required users to install an external plugin.
+
+    While we try to make that installation as easy as possible, an external plugin
+    always sets the bar higher for an initial setup and can be intimidating.
+    It also requires a rebuild operation of the plugin during upgrades. Nothing
+    overly complicated, but somewhat unnecessary for such popular functionality.
+
+    This isn't a 1:1 import. The options are parameters and the "verbose"
+    functionality  has been removed. Further, instead of a `connection`
+    record, the new bif works with `conn_id`, allowing computation of the
+    hash with little effort on the command line:
+
+        $ zeek -e 'print community_id_v1([$orig_h=1.2.3.4, $orig_p=1024/tcp, $resp_h=5.6.7.8, $resp_p=80/tcp])'
+        1:RcCrCS5fwYUeIzgDDx64EN3+okU
+
+    Reference: https://github.com/corelight/zeek-community-id/
+
 6.0.0-dev.405 | 2023-04-24 09:23:01 +0200
 
   * file_analysis/Manager: Remove RunState.h include (Arne Welzel, Corelight)

@@ -90,6 +90,9 @@ redef digest_salt = "Please change this value.";
 # Extend email alerting to include hostnames
 @load policy/frameworks/notice/extend-email/hostnames
 
+# Extend the notice.log with Community ID hashes
+# @load policy/frameworks/notice/community-id
+
 # Enable logging of telemetry data into telemetry.log and
 # telemetry_histogram.log.
 @load frameworks/telemetry/log
@@ -97,6 +100,10 @@ redef digest_salt = "Please change this value.";
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling
 # this might impact performance a bit.
 # @load policy/protocols/ssl/heartbleed
+
+# Uncomment the following line to enable logging of Community ID hashes in
+# the conn.log file.
+# @load policy/protocols/conn/community-id-logging
 
 # Uncomment the following line to enable logging of connection VLANs. Enabling
 # this adds two VLAN fields to the conn.log file.

@@ -695,7 +695,7 @@ include_plugins_debian11_task:
       folder: /tmp/ccache
       fingerprint_script: echo builtin-plugins-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
-  build_script: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='/zeek/testing/builtin-plugins/Files/protocol-plugin;/zeek/testing/builtin-plugins/Files/py-lib-plugin'" ./ci/build.sh
+  build_script: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='/zeek/testing/builtin-plugins/Files/protocol-plugin;/zeek/testing/builtin-plugins/Files/py-lib-plugin;/zeek/testing/builtin-plugins/Files/zeek-version-plugin'" ./ci/build.sh
   test_script:
     - cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
   on_failure:

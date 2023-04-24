@@ -1,3 +1,16 @@
+6.0.0-dev.405 | 2023-04-24 09:23:01 +0200
+
+  * file_analysis/Manager: Remove RunState.h include (Arne Welzel, Corelight)
+
+    The file_analysis/Manager.h header only needs run_state::terminating, so
+    declare just that similar to what Val.h does. This breaks ZBody compilation
+    due to OP_READING_LIVE_TRAFFIC_V and OP_READING_TRACES_V accessing
+    run-state::reading_live and run_state::reading_traces. Add the include to
+    ZBody.cc as a fix.
+
+    This may break external plugins, too, but then they didn't have the
+    right includes setup to begin with.
+
 6.0.0-dev.402 | 2023-04-21 14:04:52 -0700
 
   * Update NEWS to cover cluster framework changes. (Jan Grashoefer, Corelight)

@@ -73,6 +73,8 @@ Breaking Changes
   depending on the functionality included in the plugin, may trigger subsequent
   errors during configuration or build.
 
+- The IRC_Data analyzer declaration has been moved to protocols/irc/IRC.h.
+
 New Functionality
 -----------------
 
@@ -267,6 +269,13 @@ Changed Functionality
   still exist for backward compatibility, the underlying codebase requires newer
   CMake features. Plugin authors should raise their minimum required CMake
   version to 3.15, to match Zeek's.
+
+- The IRC data analyzer does not extract DCC acknowledgements to files anymore.
+  Instead, ``irc_dcc_send_ack`` is raised with the bytes acknowledged by the
+  recipient.
+
+- The IRC base script now use ``file_sniff()`` instead of ``file_new()`` for
+  DCC file transfers to capture ``fuid`` and inferred MIME type in irc.log.
 
 Removed Functionality
 ---------------------

@@ -34,8 +34,15 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
 
 	if ( protocol <= 1500 )
 		{
-		// We use magic numbers here to denote the protocols for the forwarding. We know these
-		// numbers should be valid because any others used should be > 1500, as above.
+		// Skip over the VLAN header
+		len -= 4;
+		data += 4;
+
+		if ( len < protocol )
+			{
+			Weird("truncated_vlan_frame", packet);
+			return false;
+			}
 
 		if ( data[0] == 0xAA && data[1] == 0xAA )
 			// IEEE 802.2 SNAP

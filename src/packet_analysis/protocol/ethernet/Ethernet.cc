@@ -53,18 +53,16 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	// Other ethernet frame types
 	if ( protocol <= 1500 )
 		{
-		if ( 16 >= len )
+		len -= 14;
+		data += 14;
+
+		if ( len < protocol )
 			{
 			Weird("truncated_ethernet_frame", packet);
 			return false;
 			}
 
-		len -= 14;
-		data += 14;
-
-		// Let specialized analyzers take over for non Ethernet II frames. We use magic numbers here
-		// to denote the protocols for the forwarding. We know these numbers should be valid because
-		// any others used should be >= 1536, as above.
+		// Let specialized analyzers take over for non Ethernet II frames.
 		if ( data[0] == 0xAA && data[1] == 0xAA )
 			// IEEE 802.2 SNAP
 			return ForwardPacket(len, data, packet, snap_forwarding_key);

@@ -5,5 +5,5 @@ zeek = https://github.com/zeek/packages
 [paths]
 state_dir = @ZEEK_ZKG_STATE_DIR@
 script_dir = @ZEEK_SCRIPT_INSTALL_PATH@/site
-plugin_dir = @BRO_PLUGIN_INSTALL_PATH@
+plugin_dir = @ZEEK_PLUGIN_DIR@
 bin_dir = @CMAKE_INSTALL_PREFIX@/bin

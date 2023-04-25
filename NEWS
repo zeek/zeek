@@ -277,6 +277,10 @@ Changed Functionality
 - The IRC base script now use ``file_sniff()`` instead of ``file_new()`` for
   DCC file transfers to capture ``fuid`` and inferred MIME type in irc.log.
 
+- The vlan field reported by the AF_PACKET packet source is now properly
+  masked to exclude PCP and DEI bits. Previously, these bits were included
+  and could cause invalid vlan values > 4095 to be reported.
+
 Removed Functionality
 ---------------------
 

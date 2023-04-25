@@ -16,7 +16,7 @@ export {
 	global cluster_netcontrol_delete_rule: event(id: string, reason: string);
 }
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_added);
@@ -93,7 +93,7 @@ function remove_rule(id: string, reason: string &default="") : bool
 		}
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 event NetControl::cluster_netcontrol_delete_rule(id: string, reason: string)
 	{
 	delete_rule_impl(id, reason);
@@ -147,7 +147,7 @@ event rule_error(r: Rule, p: PluginState, msg: string) &priority=-5
 @endif
 
 # Workers use the events to keep track in their local state tables
-@if ( Cluster::local_node_type() != Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() != Cluster::MANAGER )
 
 event rule_new(r: Rule) &priority=5
 	{

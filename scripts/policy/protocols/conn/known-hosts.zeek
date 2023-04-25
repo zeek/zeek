@@ -96,6 +96,10 @@ event Known::host_found(info: HostsInfo)
 		}
 	}
 
+const should_log_host =
+	! Cluster::is_enabled() ||
+	Cluster::local_node_type() == Cluster::PROXY;
+
 event known_host_add(info: HostsInfo)
 	{
 	if ( use_host_store )
@@ -106,10 +110,8 @@ event known_host_add(info: HostsInfo)
 
 	add Known::hosts[info$host];
 
-	@if ( ! Cluster::is_enabled() ||
-	      Cluster::local_node_type() == Cluster::PROXY )
+	if ( should_log_host )
 		Log::write(Known::HOSTS_LOG, info);
-	@endif
 	}
 
 event Cluster::node_up(name: string, id: string)

@@ -59,7 +59,7 @@ export {
 # intermediate updates so they don't overwhelm the manager.
 global recent_global_view_keys: set[string, Key] &create_expire=1min;
 
-@if ( Cluster::local_node_type() != Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() != Cluster::MANAGER )
 
 event zeek_init() &priority=100
 	{
@@ -207,7 +207,7 @@ function request_key(ss_name: string, key: Key): Result
 @endif
 
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 event zeek_init() &priority=100
 	{

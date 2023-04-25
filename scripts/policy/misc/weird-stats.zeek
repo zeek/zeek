@@ -77,7 +77,7 @@ function observe_weird_stats()
 		                  SumStats::Observation($dbl=(v + 0.0)));
 	}
 
-@if ( Cluster::is_enabled() )
+@activate-if ( Cluster::is_enabled() )
 
 # I'm not sure if this is a hack or not: the manager will generate this
 # event at the end of its epoch so workers can handle it just in time to

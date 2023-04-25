@@ -153,16 +153,17 @@ function pretty_print_alarm(out: file, n: Info)
 	{
 	local pdescr = "";
 
-@if ( Cluster::is_enabled() )
-	pdescr = "local";
+	if ( Cluster::is_enabled() )
+		{
+		pdescr = "local";
 
-	if ( n?$peer_descr )
-		pdescr = n$peer_descr;
-	else if ( n?$peer_name )
-		pdescr = n$peer_name;
+		if ( n?$peer_descr )
+			pdescr = n$peer_descr;
+		else if ( n?$peer_name )
+			pdescr = n$peer_name;
 
-	pdescr = fmt("<%s> ", pdescr);
-@endif
+		pdescr = fmt("<%s> ", pdescr);
+		}
 
 	local msg = fmt( "%s%s", pdescr, n$msg);
 

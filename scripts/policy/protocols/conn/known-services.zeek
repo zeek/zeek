@@ -144,6 +144,10 @@ event service_info_commit(info: ServicesInfo)
 		}
 	}
 
+const should_log_service =
+	! Cluster::is_enabled() ||
+	Cluster::local_node_type() == Cluster::PROXY;
+
 event known_service_add(info: ServicesInfo)
 	{
 	if ( Known::use_service_store )
@@ -172,10 +176,8 @@ event known_service_add(info: ServicesInfo)
 			}
 		}
 
-	@if ( ! Cluster::is_enabled() ||
-	      Cluster::local_node_type() == Cluster::PROXY )
+	if ( should_log_service )
 		Log::write(Known::SERVICES_LOG, info_to_log);
-	@endif
 	}
 
 event Cluster::node_up(name: string, id: string)

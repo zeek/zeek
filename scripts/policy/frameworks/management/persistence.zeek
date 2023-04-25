@@ -8,7 +8,7 @@
 
 # For testing, keep persistent state local to the current working directory,
 # and disable log rotation.
-@if ( getenv("ZEEK_MANAGEMENT_TESTING") != "" )
+@activate-if ( getenv("ZEEK_MANAGEMENT_TESTING") != "" )
 
 redef Management::spool_dir = ".";
 redef Management::state_dir = ".";
@@ -21,7 +21,7 @@ redef Log::default_rotation_interval = 0 secs;
 # config with the Supervisor; see base/frameworks/cluster/nodes/logger.zeek.
 redef Log::default_rotation_dir = build_path(Management::get_spool_dir(), "log-queue");
 
-@if ( getenv("ZEEK_MANAGEMENT_NODE") != "" )
+@activate-if ( getenv("ZEEK_MANAGEMENT_NODE") != "" )
 
 # Management agents and controllers don't have loggers, nor their configuration,
 # so establish a similar one here:

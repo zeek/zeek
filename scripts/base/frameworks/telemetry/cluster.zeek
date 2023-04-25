@@ -12,7 +12,7 @@
 redef Broker::metrics_export_endpoint_name = Cluster::node;
 
 # The manager opens port 9911 and imports metrics from all nodes by default.
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 redef Broker::metrics_port = 9911/tcp;
 redef Broker::metrics_import_topics = vector("zeek/cluster/metrics/");
 

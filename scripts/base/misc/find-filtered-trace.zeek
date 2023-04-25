@@ -28,7 +28,7 @@ function should_detect(): bool &is_used
 	return F;
 	}
 
-@if ( should_detect() )
+@activate-if ( should_detect() )
 
 global saw_tcp_conn_with_data: bool = F;
 global saw_a_tcp_conn: bool = F;

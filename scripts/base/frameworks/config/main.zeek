@@ -47,7 +47,6 @@ export {
 	global set_value: function(ID: string, val: any, location: string &default = ""): bool;
 }
 
-@if ( Cluster::is_enabled() )
 type OptionCacheValue: record {
 	val: any;
 	location: string;
@@ -56,6 +55,8 @@ type OptionCacheValue: record {
 global option_cache: table[string] of OptionCacheValue;
 
 global Config::cluster_set_option: event(ID: string, val: any, location: string);
+
+@activate-if ( Cluster::is_enabled() )
 
 function broadcast_option(ID: string, val: any, location: string) &is_used
 	{
@@ -69,12 +70,13 @@ function broadcast_option(ID: string, val: any, location: string) &is_used
 	                ID, val, location);
 	}
 
-event Config::cluster_set_option(ID: string, val: any, location: string)
+event Config::cluster_set_option(ID: string, val: any, location: string) &is_used
 	{
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-	option_cache[ID] = OptionCacheValue($val=val, $location=location);
-	broadcast_option(ID, val, location);
-@endif
+	if ( Cluster::local_node_type() == Cluster::MANAGER )
+		{
+		option_cache[ID] = OptionCacheValue($val=val, $location=location);
+		broadcast_option(ID, val, location);
+		}
 
 	Option::set(ID, val, location);
 	}
@@ -91,13 +93,14 @@ function set_value(ID: string, val: any, location: string &default = ""): bool
 	if ( ! Option::set(ID, val, location) )
 		return F;
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-	option_cache[ID] = OptionCacheValue($val=val, $location=location);
-	broadcast_option(ID, val, location);
-@else
-	Broker::publish(Cluster::manager_topic, Config::cluster_set_option,
-	                ID, val, location);
-@endif
+	if ( Cluster::local_node_type() == Cluster::MANAGER )
+		{
+		option_cache[ID] = OptionCacheValue($val=val, $location=location);
+		broadcast_option(ID, val, location);
+		}
+	else
+		Broker::publish(Cluster::manager_topic, Config::cluster_set_option,
+				ID, val, location);
 
 	return T;
 	}
@@ -108,7 +111,7 @@ function set_value(ID: string, val: any, location: string &default = ""): bool
 	}
 @endif # Cluster::is_enabled
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 # Handling of new worker nodes.
 event Cluster::node_up(name: string, id: string) &priority=-10
 	{
@@ -162,10 +165,9 @@ event zeek_init() &priority=10
 	Log::create_stream(LOG, [$columns=Info, $ev=log_config, $path="config", $policy=log_policy]);
 
 	# Limit logging to the manager - everyone else just feeds off it.
-@if ( !Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
-	# Iterate over all existing options and add ourselves as change handlers
-	# with a low priority so that we can log the changes.
-	for ( opt in global_options() )
-		Option::set_change_handler(opt, config_option_changed, -100);
-@endif
+	if ( !Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
+		# Iterate over all existing options and add ourselves as change handlers
+		# with a low priority so that we can log the changes.
+		for ( opt in global_options() )
+			Option::set_change_handler(opt, config_option_changed, -100);
 	}

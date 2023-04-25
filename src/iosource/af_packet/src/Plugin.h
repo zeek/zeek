@@ -1,6 +1,4 @@
-
-#ifndef ZEEK_PLUGIN_ZEEK_AF_PACKET
-#define ZEEK_PLUGIN_ZEEK_AF_PACKET
+#pragma once
 
 #include <zeek/plugin/Plugin.h>
 
@@ -16,5 +14,3 @@ protected:
 extern Plugin plugin;
 
 }
-
-#endif

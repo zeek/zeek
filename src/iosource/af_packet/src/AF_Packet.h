@@ -1,7 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#ifndef IOSOURCE_PKTSRC_AF_PACKET_SOURCE_H
-#define IOSOURCE_PKTSRC_AF_PACKET_SOURCE_H
+#pragma once
 
 extern "C" {
 #include <sys/types.h>
@@ -83,5 +82,3 @@ private:
 };
 
 }
-
-#endif

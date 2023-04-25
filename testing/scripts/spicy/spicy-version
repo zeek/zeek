@@ -1,0 +1,14 @@
+#! /bin/sh
+#
+# Two usages:
+#     - Without argument, prints out the numerical Spicy version.
+#     - With a numerical Spicy version in $1, exit with true iff we have at least that version.
+
+base=${TEST_BASE-$(cd $(dirname $0)/.. && pwd)}
+nversion=$(spicy-config --version-number)
+
+if [ $# = 0 ]; then
+    echo "${nversion}"
+else
+    test "${nversion}" -ge "$1"
+fi

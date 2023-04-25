@@ -43,6 +43,7 @@
 @load base/frameworks/openflow
 @load base/frameworks/netcontrol
 @load base/frameworks/telemetry
+@load base/frameworks/spicy
 
 @load base/protocols/conn
 @load base/protocols/dce-rpc

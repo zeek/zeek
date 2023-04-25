@@ -1,0 +1,7 @@
+#! /bin/sh
+#
+# Wrapper around Zeek to set environment.
+
+base=$(cd $(dirname $0)/.. && pwd)
+
+LD_PRELOAD=${ZEEK_LD_PRELOAD} DYLD_INSERT_LIBRARIES=${ZEEK_LD_PRELOAD} ASAN_OPTIONS=detect_leaks=0:detect_odr_violation=0 zeek $@

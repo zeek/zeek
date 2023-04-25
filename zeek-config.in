@@ -32,6 +32,7 @@ add_path() {
     echo "$1:$2"
 }
 
+# When changing any of these, also update "src/spicy/spicyz/config.h.in".
 include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_PCAP_INCLUDE_DIR@")
 include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_ZLIB_INCLUDE_DIR@")
 include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_OPENSSL_INCLUDE_DIR@")

@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+#
+# A diff canonifier that sorts all lines but keeps all comments
+# at the top. It also adds a note at the beginning as a reminder
+# that the output has been sorted.
+
+if [ "$TMP" == "" ]; then
+    TMP=/tmp
+fi
+
+tmp=$TMP/$(basename $0).$$.tmp
+
+cat >$tmp
+
+echo "### NOTE: This file has been sorted with $(basename $0)."
+cat $tmp | grep ^#
+cat $tmp | grep -v ^# | sort -s
+
+rm -f $tmp

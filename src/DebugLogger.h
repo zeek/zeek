@@ -57,6 +57,7 @@ enum DebugStream
 	DBG_SCRIPTS, // Script initialization
 	DBG_SUPERVISOR, // Process supervisor
 	DBG_HASHKEY, // HashKey buffers
+	DBG_SPICY, // Spicy functionality
 
 	NUM_DBGS // Has to be last
 	};

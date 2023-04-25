@@ -1010,6 +1010,17 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			exit(0);
 			}
 
+		if ( options.ignore_checksums )
+			{
+			const auto& id = global_scope()->Find("ignore_checksums");
+
+			if ( ! id )
+				reporter->InternalError("global ignore_checksums not defined");
+
+			id->SetVal(zeek::val_mgr->True());
+			ignore_checksums = 1;
+			}
+
 		// Print the ID.
 		if ( options.identifier_to_print )
 			{
@@ -1081,9 +1092,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 			g_frame_stack.pop_back();
 			}
-
-		if ( options.ignore_checksums )
-			ignore_checksums = 1;
 
 		if ( zeek_script_loaded )
 			{

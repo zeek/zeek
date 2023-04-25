@@ -1,0 +1,43 @@
+# This verifies the interaction between the -C flag and the script-layer
+# ignore_checksums global.
+#
+# Normal use: checksums not ignored, weird-event triggers
+# @TEST-EXEC: zeek -b -r $TRACES/chksums/ip4-bad-chksum.pcap %INPUT >out1
+# @TEST-EXEC: btest-diff out1
+#
+# Redef to T works: checksums now ignored, no weird-event.
+# @TEST-EXEC: zeek -b -r $TRACES/chksums/ip4-bad-chksum.pcap %INPUT ignore_checksums=T >out2
+# @TEST-EXEC: btest-diff out2
+#
+# "-C" leads to ignore_checksum = T.
+# @TEST-EXEC: zeek -C -b -r $TRACES/chksums/ip4-bad-chksum.pcap %INPUT >out3
+# @TEST-EXEC: btest-diff out3
+#
+# "-C" has final say over CLI-based redef.
+# @TEST-EXEC: zeek -C -b -r $TRACES/chksums/ip4-bad-chksum.pcap %INPUT ignore_checksums=F >out4
+# @TEST-EXEC: btest-diff out4
+#
+# "-C" applies before global statements, including those given at CLI.
+# @TEST-EXEC: zeek -C -e 'print ignore_checksums' >out5
+# @TEST-EXEC: btest-diff out5
+#
+# "-C" applies after declarations, including those given at the CLI.
+# @TEST-EXEC: zeek -C -e 'redef ignore_checksums=F' %INPUT >out6
+# @TEST-EXEC: btest-diff out6
+#
+# "-C" applies before the print-id feature.
+# @TEST-EXEC: zeek -C -I ignore_checksums >out7
+# @TEST-EXEC: btest-diff out7
+
+@load base/frameworks/notice/weird
+
+event zeek_init()
+	{
+	print ignore_checksums;
+	}
+
+event flow_weird(name: string, src: addr, dst: addr, addl: string, source: string)
+	{
+	if ( name == "bad_IP_checksum" )
+		print name;
+	}

@@ -1,3 +1,9 @@
+6.0.0-dev.421 | 2023-04-25 12:39:01 +0200
+
+  * Given the -C flag, set script-layer ignore_checksums to true. (Christian Kreibich, Corelight)
+
+  * Remove references to bro_broker in broker/Manager.h (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.416 | 2023-04-24 18:22:27 +0200
 
   * Add irc_dcc_send_ack event and fix missing fields (Fupeng Zhao)

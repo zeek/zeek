@@ -277,6 +277,9 @@ Changed Functionality
 - The IRC base script now use ``file_sniff()`` instead of ``file_new()`` for
   DCC file transfers to capture ``fuid`` and inferred MIME type in irc.log.
 
+- The ``ignore_checksums`` script variable now reflects the correct value
+  when using the ``-C`` command-line flag.
+
 Removed Functionality
 ---------------------
 

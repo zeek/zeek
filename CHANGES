@@ -1,3 +1,735 @@
+6.0.0-dev.421 | 2023-04-25 12:39:01 +0200
+
+  * Given the -C flag, set script-layer ignore_checksums to true. (Christian Kreibich, Corelight)
+
+  * Remove references to bro_broker in broker/Manager.h (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.416 | 2023-04-24 18:22:27 +0200
+
+  * Add irc_dcc_send_ack event and fix missing fields (Fupeng Zhao)
+
+6.0.0-dev.414 | 2023-04-24 14:36:32 +0200
+
+  * cmake: Fixup BRO_PLUGIN_INSTALL_PATH references (Arne Welzel, Corelight)
+
+    Commit 19cbb328a9b4598b71e0aa092bf8a03732da8d63 removed setting of
+    BRO_PLUGIN_INSTALL_PATH in favor of ZEEK_PLUGIN_DIR. Replace left-over
+    references the former.
+
+6.0.0-dev.412 | 2023-04-24 10:33:29 +0200
+
+  * Fix install directory for plugins (Dominik Charousset, Corelight)
+
+6.0.0-dev.410 | 2023-04-24 09:46:59 +0200
+
+  * policy: Import zeek-community-id scripts into protocols/conn frameworks/notice (Christian Kreibich, Corelight)
+
+  * Add community_id_v1() based on corelight/zeek-community-id (Christian Kreibich, Corelight)
+
+    "Community ID" has become an established flow hash for connection correlation
+    across different monitoring and storage systems. Other NSMs have had native
+    and built-in support for Community ID since late 2018. And even though the
+    roots of "Community ID" are very close to Zeek, Zeek itself has never provided
+    out-of-the-box support and instead required users to install an external plugin.
+
+    While we try to make that installation as easy as possible, an external plugin
+    always sets the bar higher for an initial setup and can be intimidating.
+    It also requires a rebuild operation of the plugin during upgrades. Nothing
+    overly complicated, but somewhat unnecessary for such popular functionality.
+
+    This isn't a 1:1 import. The options are parameters and the "verbose"
+    functionality  has been removed. Further, instead of a `connection`
+    record, the new bif works with `conn_id`, allowing computation of the
+    hash with little effort on the command line:
+
+        $ zeek -e 'print community_id_v1([$orig_h=1.2.3.4, $orig_p=1024/tcp, $resp_h=5.6.7.8, $resp_p=80/tcp])'
+        1:RcCrCS5fwYUeIzgDDx64EN3+okU
+
+    Reference: https://github.com/corelight/zeek-community-id/
+
+6.0.0-dev.405 | 2023-04-24 09:23:01 +0200
+
+  * file_analysis/Manager: Remove RunState.h include (Arne Welzel, Corelight)
+
+    The file_analysis/Manager.h header only needs run_state::terminating, so
+    declare just that similar to what Val.h does. This breaks ZBody compilation
+    due to OP_READING_LIVE_TRAFFIC_V and OP_READING_TRACES_V accessing
+    run-state::reading_live and run_state::reading_traces. Add the include to
+    ZBody.cc as a fix.
+
+    This may break external plugins, too, but then they didn't have the
+    right includes setup to begin with.
+
+6.0.0-dev.402 | 2023-04-21 14:04:52 -0700
+
+  * Update NEWS to cover cluster framework changes. (Jan Grashoefer, Corelight)
+
+  * Add cluster_started restart tests. (Jan Grashoefer, Corelight)
+
+  * Add basic cluster_started tests. (Jan Grashoefer, Corelight)
+
+  * Add cluster_started and node_fully_connected events. (Jan Grashoefer, Corelight)
+
+  * Add hook into cluster connection setup. (Jan Grashoefer, Corelight)
+
+  * Add broadcast_topics set. (Jan Grashoefer, Corelight)
+
+  * Generalize Cluster::worker_count. (Jan Grashoefer, Corelight)
+
+6.0.0-dev.394 | 2023-04-20 16:03:45 -0700
+
+  * Edit pass over the current 6.0 NEWS entries. (Christian Kreibich, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
+6.0.0-dev.391 | 2023-04-19 19:48:50 +0200
+
+  * zeek.bif: Remove cat_sep() fully var_arg changes (Arne Welzel, Corelight)
+
+    These were introduced to better catch type violations at runtime. With
+    bifcl doing these checks, revert to a better documented version.
+
+  * GH-2935: broker/messaging: Runtime type checks for pool (Arne Welzel, Corelight)
+
+    publish_hrw() and publish_rr() are excluded from type checking due to their
+    variadic nature. Passing a wrong type for the pool argument previously triggered
+    an abort, now the result is runtime errors. This isn't great, but it's
+    better than crashing Zeek.
+
+    Closes #2935
+
+  * bifcl: Bump for runtime-type checks in var_arg bifs (Arne Welzel, Corelight)
+
+6.0.0-dev.387 | 2023-04-19 09:01:32 -0700
+
+  * Add call stacks to script profiler output (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.385 | 2023-04-19 11:58:09 +0200
+
+  * different fix for MSVC compiler issues (Vern Paxson, Corelight)
+
+  * more general approach for addressing MSVC compiler issues with IntrusivePtr (Vern Paxson, Corelight)
+
+  * restored RecordType::Create, now marked as deprecated (Vern Paxson, Corelight)
+    tidying of namespaces and private class members
+    simplification of flagging record field initializations that should be skipped
+    address peculiar MSVC compilation complaint for IntrusivePtr's
+
+  * clarifications and tidying for record field initializations (Vern Paxson, Corelight)
+
+  * optimize record construction by deferring initializations of aggregates (Vern Paxson, Corelight)
+
+  * compile-scripts-to-C++ speedups by switching to raw record access (Vern Paxson, Corelight)
+
+  * logging speedup by switching to raw record access (Vern Paxson, Corelight)
+
+  * remove redundant record coercions (Vern Paxson, Corelight)
+
+6.0.0-dev.376 | 2023-04-19 10:14:02 +0200
+
+  * Improve CMake variables, update cmake submodule (Dominik Charousset, Corelight)
+
+  * Fix builds with plugins that use zeek-config (Dominik Charousset, Corelight)
+
+    When building plugins externally with `zeek-config` (as opposed to using
+    `ZEEK_DIST`), they point into the install prefix. There, we add a new
+    file `ZeekPluginBootstrap.cmake` that helps `ZeekPlugin.cmake` to find
+    everything else it needs from there.
+
+    Our template for plugins generates a `configure` script that sets
+    various variables with values from `zeek-config`. We only need
+    `BROKER_ROOT_DIR` with the new bootstrapping logic. Everything else, we
+    can get from the new bootstrapping file and from the CMake package file
+    for Zeek.
+
+6.0.0-dev.373 | 2023-04-18 11:11:44 -0700
+
+  * log-caching-cluster: Wait for X509::known_log_certs to populate (Arne Welzel, Corelight)
+
+    The known_log_certs table is populated asynchronously via broker after a
+    Broker::peer_added. It may take a variable amount of time depending on where
+    we run this test and it has been observed flaky specifically for the
+    arm_debian11 task. Instead of racing, give worker-2 3 seconds for receiving
+    the expected table content before continuing.
+
+    Fixes #2885
+
+6.0.0-dev.371 | 2023-04-14 13:02:35 +0200
+
+  * ci/debian-11: Install libnode-dev, too (Arne Welzel, Corelight)
+
+    Debian 11 doesn't have a new enough libnode version, so JavaScript
+    should not be attempted to be built.
+
+  * CMakeLists: Convert string append to list append (Arne Welzel, Corelight)
+
+    Seems the builtin plugins started with string(APPEND ...) and that
+    was copied over. Make it list(APPEND ...) instead.
+
+  * Add experimental JavaScript support when libnode is available (Arne Welzel, Corelight)
+
+        zeek.on('zeek_init', () => {
+            console.log('Hello, Zeek!');
+        });
+
+    For interaction with external systems and HTTP APIs, JavaScript and the
+    Node.js ecosystem beat Zeek script. Make it more easily accessible by
+    including ZeekJS with Zeek directly.
+
+    When a recent enough libnode version is found on the build system, ZeekJS is
+    added as a builtin plugin. This behavior can be disabled via
+    ``--disable-javascript``. Linux distributions providing such a package are
+    Ubuntu (22.10) and Debian (testing/bookworm) as libnode-dev.
+    Fedora provides it as nodejs-devel.
+
+    This plugin takes over loading of .js or .cjs files. When no such files
+    are provided to Zeek, Node and the V8 engine are not initialized and
+    should not get into the way.
+
+    This should be considered experimental.
+
+6.0.0-dev.367 | 2023-04-14 10:32:17 +0200
+
+  * Revert "Type: Add TypeManager->TypeList() and use for ListVal()" (Arne Welzel, Corelight)
+
+    This reverts commit 24c606b4df92f9871964c5bcb2fe90e43a177b1f.
+
+    This commit introduced a memory leak due to ListVal::Append() modifying
+    the cached TYPE_ANY type list.
+
+6.0.0-dev.364 | 2023-04-13 15:54:00 -0700
+
+  * Add NEWS entry for the CMake changes (Dominik Charousset, Corelight)
+
+  * Redesign subdir-libs and plugin scaffolding (Dominik Charousset, Corelight)
+
+6.0.0-dev.361 | 2023-04-13 09:05:31 -0700
+
+  * GH-2920: Don't warn on uninitialized container options (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.359 | 2023-04-13 08:57:22 -0700
+
+  * Reimplement fixes to handle commas at the end of config parser lines (Tim Wojtulewicz, Corelight)
+
+  * Revert "Convert config framework to use std::regex" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 65ee2287e9b74f861872d9e16b9c11fb300cfabd.
+
+  * Revert "GH-636: Fix regex to handle commas at the end of config parser lines" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 05bb50978905a6c3132b20eb2cfd246715f91356.
+
+6.0.0-dev.355 | 2023-04-13 09:24:19 +0200
+
+  * logging/Manager: Fix crash for rotation format function not returning (Arne Welzel, Corelight)
+
+    While working on a rotation format function, ran into Zeek crashing
+    when not returning a value from it, fix and recover the same way as
+    for scripting errors.
+
+6.0.0-dev.353 | 2023-04-12 13:23:29 -0700
+
+  * iosource/Manager: Fix poll_interval updating using not-yet valid IsLive() (Arne Welzel, Corelight)
+
+    Testing io_poll_interval_live tweaks with @dopheide-esnet on a Myricom based
+    system to reduce CPU usage showed no visible effect.
+
+    It turns out, the pkt_src->IsLive() call used to update poll_interval is only
+    valid *after* calling ->Register() with the source. The conditional updating
+    of the poll_interval introduced in 4fa3e4b9b4d78e6f20f42b9dbd85216403be07db
+    never worked out how it was intended to.
+
+    The fix ensures that
+
+    * we actually use a poll_interval of 10 in the live case
+    * changing io_poll_interval_live does have an effect
+
+    This is a bit of a major change due to lowering the default poll_interval
+    by a magnitude, but that seemed to have been the intention always. It's also
+    tunable via redef, so worst case it can be adapted via configuration.
+
+    As reference, with the default a Pcap::non_fd_timeout of 20usec *and* a
+    poll_interval of 100, theoretically we'd be trying to ask a non-selectable
+    packet source 500000 per second for a new packet. This is not a likely packet
+    rate that a single worker would currently observe or manage to process.
+
+6.0.0-dev.350 | 2023-04-11 15:41:31 -0700
+
+  * Only use -Wno-changes-meaning if it exists (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.348 | 2023-04-11 15:30:45 -0700
+
+  * file_analysis/File: Report overflowing chunks as weird and discard/truncate (Arne Welzel, Corelight)
+
+    This is one level above the Reassembler where we still have information
+    about the file and source. A weird entry may looks as follows:
+
+        1679759398.237353  ... file_offset_overflow    FXPLGt4SeMmlMKahJc: offset=fffffffffffffff7 len=10      F       zeek    HTTP
+
+  * Reassem: Reject blocks overflowing 64bit upper (Arne Welzel, Corelight)
+
+    The reassembler logic isn't wrap around safe, so just truncate or
+    reject such blocks. For files specifically, a byte offset in the
+    2**64 bytes represents 16EiB which is the maximum size supported
+    by BTRFS or NTFS (and probably nothing we'd ever see in practice).
+
+  * zeek-setup: Load scrips before running unit tests (Arne Welzel, Corelight)
+
+    It is currently not possible to call a->Conn()->GetVal() or construct a
+    zeek/file_analysis/File object from within doctests, as these quickly
+    reference the unpopulated zeek::id namespace to construct Val objects
+    of various types, making it hard write basic tests without completely
+    re-organizing.
+
+    Move running of the unit tests after parsing the scripts, so it is possible
+    for some basic exercising of File objects within tests.
+
+6.0.0-dev.344 | 2023-04-11 15:23:42 -0700
+
+  * RDP: Instantiate SSL analyzer instead of PIA (Tim Wojtulewicz, Corelight)
+
+  * RDP: add some enforcement to required values based on MS-RDPBCGR docs (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.341 | 2023-04-11 15:16:39 -0700
+
+  * Stop skipping expiration of empty DNS mappings (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.339 | 2023-04-11 15:16:15 -0700
+
+  * smtp: Validate mail transaction and disable SMTP analyzer if excessive (Arne Welzel, Corelight)
+
+    An invalid mail transaction is determined as
+
+    * RCPT TO command without a preceding MAIL FROM
+    * a DATA command without a preceding RCPT TO
+
+    and logged as a weird.
+
+    The testing pcap for invalid mail transactions was produced with a Python
+    script against a local exim4 configured to accept more errors and unknown
+    commands than 3 by default:
+
+        # exim4.conf.template
+        smtp_max_synprot_errors = 100
+        smtp_max_unknown_commands = 100
+
+    See also: https://www.rfc-editor.org/rfc/rfc5321#section-3.3
+
+  * generic-analyzer-fuzzer: Detect disable_analyzer() from scripts (Arne Welzel, Corelight)
+
+    Test if the analyzer is removed from the TCPSessionAdapter during
+    event processing. If we don't do this, we continue feeding the analyzer
+    even if scripts decided to disable the analyzer.
+
+    The analyzer instance isn't flagged as disabled itself, so we need
+    to look at the parent's children.
+
+6.0.0-dev.336 | 2023-04-11 14:50:47 -0700
+
+  * ftp/main: Special case for intermediate reply lines (Arne Welzel, Corelight)
+
+    The medium.trace in the private external test suite contains one
+    session/server that violates the multi-line reply protocol and
+    happened to work out fairly well regardless due to how we looked
+    up the pending commands unconditionally before.
+
+    Continue to match up reply lines that "look like they contain status codes"
+    even if cont_resp = T. This still improves runtime for the OSS-Fuzz
+    generated test case and keeps the external baselines valid.
+
+    The affected session can be extracted as follows:
+
+        zcat Traces/medium.trace.gz | tcpdump -r  - 'port 1491 and port 21'
+
+    We could push this into the analyzer, too, minimally the RFC says:
+
+        > If an intermediary line begins with a 3-digit number, the Server
+        > must pad the front  to avoid confusion.
+
+  * ftp/main: Skip get_pending_command() for intermediate reply lines (Arne Welzel, Corelight)
+
+    Intermediate lines of multiline replies usually do not contain valid status
+    codes (even if servers may opt to include them). Their content may be anything
+    and likely unrelated to the original command. There's little reason for us
+    trying to match them with a corresponding command.
+
+    OSS-Fuzz generated a large command reply with very many intermediate lines
+    which caused long processing times due to matching every line with all
+    currently pending commands.
+    This is a DoS vector against Zeek. The new ipv6-multiline-reply.trace and
+    ipv6-retr-samba.trace files have been extracted from the external ipv6.trace.
+
+6.0.0-dev.333 | 2023-04-11 12:05:29 -0700
+
+  * Add cstdint to WeirdState.h to fix compilation error on gcc13 (Tim Wojtulewicz, Corelight)
+
+  * Ignore -Wchanges-meaning warning in Spicy (Tim Wojtulewicz, Corelight)
+
+    This fixes a build failure with GCC 13. It's meant as a short-term fix to avoid
+    the failure in Zeek, but probably should be fixed more correctly upstream in
+    the Spicy repo.
+
+  * Update broker submodule to pull in GCC 13 fix (Tim Wojtulewicz, Corelight)
+
+  * CI: Force rebuild of OpenSUSE Tumbleweed VM to pick up GCC 13 (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.327 | 2023-04-08 11:22:57 -0700
+
+  * Fix a long-standing bug in the math around continue_processing (Tim Wojtulewicz, Corelight)
+
+  * Add is_processing_suspended BIF (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.323 | 2023-04-06 13:46:28 -0700
+
+  * Add NEWS entries for filtered packet statistics and telemetry (Tim Wojtulewicz, Corelight)
+
+  * Report packet statistics via the telemetry framework (Tim Wojtulewicz, Corelight)
+
+  * Add optional packet filtered statistics for packet sources (Tim Wojtulewicz, Corelight)
+
+  * ci: Add debian-12 / bookworm (Arne Welzel, Corelight)
+
+    The next version of Debian (bookworm) had a hard-freeze on
+    2023-03-16. Seems reasonable to have it in CI now.
+
+6.0.0-dev.317 | 2023-04-05 10:39:22 +0200
+
+  * scan.l: Support @pragma, specifically push/pop ignore-deprecations (Arne Welzel, Corelight)
+
+    This allows to ignore-deprecations as follows:
+
+        @pragma push ignore-deprecations
+        print r$deprecated;
+        @pragma pop
+
+    A bit of infrastructure is put in place for the push and pop, but
+    nothing overly generalized for future pragmas.
+
+  * Switch deprecations to reporter->Deprecation() (Arne Welzel, Corelight)
+
+    Removes a bit of reliance around the magic DoLog() rendering at the
+    cost of needing to open-code some of it. The new obj_desc_short()
+    helper makes that acceptable, though.
+
+  * Reporter: Add dedicated Deprecation() method (Arne Welzel, Corelight)
+
+    Minimally, provide a way to funnel all deprecations through
+    reporter->Deprecation() instead of various Warning() invocations.
+
+  * Desc: Add obj_desc_short() (Arne Welzel, Corelight)
+
+    Same as obj_desc() but use the short version and do not include the
+    location information by default. New method instead of bool parameters
+    for readability.
+
+6.0.0-dev.312 | 2023-04-04 09:05:34 -0700
+
+  * Update gen-zam submodule for std::move warnings (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.310 | 2023-04-04 10:00:24 +0200
+
+  * test suite update for minor change in "when" error messages (Vern Paxson, Corelight)
+
+  * removed skeletal (non-functioning) "when" support from ZAM (Vern Paxson, Corelight)
+
+  * simplify WhenInfo and Trigger classes given removal of old capture semantics (Vern Paxson, Corelight)
+
+  * introduced notion of light-weight Frame clones (Vern Paxson, Corelight)
+
+  * changed function_ingredients struct to FunctionIngredients class with accessors (Vern Paxson, Corelight)
+
+6.0.0-dev.303 | 2023-04-03 16:37:02 +0200
+
+  * addressed static analysis concern about possible null pointer (Vern Paxson, Corelight)
+
+  * tweaks for "-O C++" of BTest's with conditional code (Vern Paxson, Corelight)
+
+6.0.0-dev.300 | 2023-04-03 13:32:40 +0200
+
+  * minor ZAM BTest baseline updates (Vern Paxson, Corelight)
+
+  * fixed type mismatch for ssl_certificate_request event (Vern Paxson, Corelight)
+
+  * skip ZAM optimization of invalid scripts (Vern Paxson, Corelight)
+
+  * extended script validation to be call-able on a per-function basis (Vern Paxson, Corelight)
+
+6.0.0-dev.295 | 2023-04-03 13:19:20 +0200
+
+  * GH-2296: PktSrc: Introduce Pcap::non_fd_timeout (Arne Welzel, Corelight)
+
+    Increasing this value 10x has lowered CPU usage on a Myricom based
+    deployment significantly with reportedly no adverse side-effects.
+
+    After reviewing the Zeek 3 IO loop, my hunch is that previously when
+    no packets were available, we'd sleep 20usec every loop iteration after
+    calling ->Process() on the packet source. With current master ->Process()
+    is called 10 times on a packet source before going to sleep just once
+    for 20 usec. Likely this explains the increased CPU usage reported.
+
+    It's probably too risky to increase the current value, so introduce
+    a const &redef value for advanced users to tweak it. A middle ground
+    might be to lower ``io_poll_interval_live`` to 5 and increase the new
+    ``Pcap::non_fd_timeout`` setting to 100usec.
+
+    While this doesn't really fix #2296, we now have enough knobs for tweaking.
+
+    Closes #2296.
+
+6.0.0-dev.293 | 2023-03-31 10:38:45 +0200
+
+  * Add test cases for Geneve. (Jan Grashoefer, Corelight)
+
+  * Fix forwarding of tunnelled packets. (Jan Grashoefer, Corelight)
+
+    This fixes a bug for AYIYA, Geneve and VXLAN forwarding encapsulated
+    content only if it's longer than their header. A new weird is introduced
+    to indicate empty tunnels.
+
+6.0.0-dev.290 | 2023-03-31 10:33:53 +0200
+
+  * Type: Add TypeManager->TypeList() and use for ListVal() (Arne Welzel, Corelight)
+
+    It turns out that for every ListVal we construct, we also allocate
+    and construct a new TypeList instance, even though they are all the
+    same. Pre-create and cache the type instances in a new TypeManager.
+
+    The following script runs ~10% faster for me after this change.
+
+        global tbl: table[string] of string;
+        global i = 0;
+        while ( ++i < 10000000 )
+            tbl["a"] = "a";
+
+6.0.0-dev.288 | 2023-03-30 13:09:18 -0700
+
+  * Add reporter framework to core.packet-analyzer-override btest (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.286 | 2023-03-30 09:52:26 -0700
+
+  * Consider cap len when forwarding into packet analysis. (Jan Grashoefer, Corelight)
+
+    When forwarding into packet analysis from TCP or UDP, the protocol's
+    length fields were trusted. This might be dangerous in case of truncated
+    packets.
+
+6.0.0-dev.284 | 2023-03-30 09:50:57 -0700
+
+  * Reintroduce info when overriding packet analyzer mappings. (Jan Grashoefer, Corelight)
+
+    In #2464 the warning when overriding a packet analyzer mapping was
+    removed. While a warning seems indeed excessive, some info would still
+    be nice to have.
+
+  * Update Cirrus memory limits to avoid timeouts when building (Tim Wojtulewicz)
+
+6.0.0-dev.280 | 2023-03-30 09:35:48 +0200
+
+  * Analyzer: Add GetChildAnalyzer() and IsPreventedChildAnalyzer() (Arne Welzel, Corelight)
+
+    GetChildAnalyzer() has the same semantics as HasChildAnalyzer(), but returns
+    the raw pointer to the child analyzer. Main issue is memory management: That
+    pointer is not guaranteed to stay valid. It might be disabled from script
+    land or otherwise removed from the analyzer tree and subsequent
+    deleted in one of the Forward* methods.
+
+    IsPreventedChildAnalyzer() provides minimal introspection for prevented
+    child analyzer tags and allows to remove some duplicated code.
+
+6.0.0-dev.278 | 2023-03-29 14:34:26 -0700
+
+  * Bump Spicy and spicy-plugin to their latest development snapshots. (Benjamin Bannier, Corelight)
+
+6.0.0-dev.276 | 2023-03-28 09:19:59 -0700
+
+  * Fix a bunch of -Wunqualified-std-cast-call warnings from clang 15 (Tim Wojtulewicz)
+
+6.0.0-dev.274 | 2023-03-27 21:32:53 +0200
+
+  * btest/broker: Add test using Python bindings and zeek -r (Arne Welzel, Corelight)
+
+    This came up in community.zeek.org as a use-case and there
+    were a few gaps and holes, so add a test showing minimally
+    the current behavior.
+
+  * Broker: Remove network time initialization (Arne Welzel, Corelight)
+
+    Remove the special case of initializing network time if it hasn't
+    happened yet. The argument about broker.log containing 0.0 timestamps
+    is more a problem of the log, not something that would justify modifying
+    network time globally. For broker.log and possibly cluster.log, it might
+    be more reasonable to use current time, anyway.
+
+    I was a bit wary about tables backed by broker stores being populated
+    with network_time set to 0.0, but there seems to exist logic and assumptions
+    that this is okay: It should be the same as if one populates a table with
+    expirations set within zeek_init().
+
+    In fact, staring a bit more, *not setting* network time might be more correct
+    as workers that don't see packets would never set zeek_start_network_time
+    which is used within the expiration computation.
+
+6.0.0-dev.271 | 2023-03-24 09:12:04 +0100
+
+  * cirrus: No container images on PRs (Arne Welzel, Corelight)
+
+6.0.0-dev.268 | 2023-03-23 13:40:26 +0100
+
+  * Ensure master/release builds run for zeek-security (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.266 | 2023-03-23 13:35:28 +0100
+
+  * iosource: Remove non-existing ManagerBase friend (Arne Welzel, Corelight)
+
+  * broker::Manager: use_realtime_false when allow_network_time_forward=F (Arne Welzel, Corelight)
+
+    Run the broker in non-realtime mode when allow_network_time_forward=F.
+    This may need an extra option for really advanced use-cases, but for
+    now this seems reasonable.
+
+  * A set of tests around network time handling (Arne Welzel, Corelight)
+
+  * broker::Manager: No more network_time forwarding (Arne Welzel, Corelight)
+
+    network_time forwarding will happen in the main-loop before draining the
+    EventMgr so timers/events scheduled based on broker messages should
+    behave similarly. This also keeps network_time unaffected during
+    non pseudo-realtime trace processing.
+
+  * TimerMgr: No network_time updates in Process() (Arne Welzel, Corelight)
+
+    network_time forwarding will now happen centrally in the main loop.
+    The TimerMgr returns a valid timeout that can be waited for and will
+    trigger network_time advancement, so we don't need to do it.
+
+  * Event: No more network_time updates (Arne Welzel, Corelight)
+
+    The whole docs read like this was only used to update the
+    network_time, so there may be a follow-up to ditch EventMgr
+    even being an IOSource (which could be argued it's not IO).
+
+  * RunState: Implement forward_network_time_if_applicable() (Arne Welzel, Corelight)
+
+    Add a central place where the decision when it's okay to update network time
+    to the current time (wallclock) is. It checks for pseudo_realtime and packet
+    source existence as well as packet source idleness.
+
+    A new const &redef allows to completely disable forwarding of network time.
+
+  * PktSrc: Add HasBeenIdleFor() method (Arne Welzel, Corelight)
+
+    This method will be used by the main loop to determine if an interface
+    has become idle. Initially this will be used to determine when it is
+    acceptable to update network_time to the current time (wallclock).
+
+  * PktSrc: Move termination pseduo_realtime special case to RunState (Arne Welzel, Corelight)
+
+    This also removes setting pseduo_realtime to 0.0 in the main loop
+    when the packet source has been closed. I had tried to understand
+    the implications it actually seems, if we shutdown the iosource::Manager
+    anyway, it shouldn't and it's just confusing.
+
+  * Bump zeekctl and doc submodule for updates regarding Site::local_nets (Christian Kreibich, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
+6.0.0-dev.250 | 2023-03-21 19:17:36 +0100
+
+  * Expr: Factor out type tag extraction (Arne Welzel, Corelight)
+
+  * Var: Add version to deprecated initialization (Arne Welzel, Corelight)
+
+    This has been added for Zeek 5.0, so mark it for removal in Zeek 6.1.
+
+  * Stmt: Error on deprecated when/local usage (Arne Welzel, Corelight)
+
+    This has been around since Zeek v4.1, so it was warned about in Zeek 5.0
+    LTS and we could've removed it with 5.1.
+
+    Also removed merge_top_scope() from the zeek::detail namespace, it's
+    unused now.
+
+    Updated the when-aggregates test somehow. I'm not quite sure what had
+    been tested there :-/
+
+  * Expr: Remove vector scalar operations (Arne Welzel, Corelight)
+
+    These seem to have been deprecated since 2018, so do it now.
+    Unfortunately the message didn't contain a version when it'll
+    be removed, but it's been long enough.
+
+  * parse.y: Make out-of-scope use errors (Arne Welzel, Corelight)
+
+    This was marked to be done in Zeek 5.1, so do it now. The message
+    didn't include a version, unfortunately, but minimally there was
+    a comment when it should happen.
+
+  * scan.l: Remove unused deprecated_attr (Arne Welzel, Corelight)
+
+6.0.0-dev.243 | 2023-03-21 16:40:35 +0100
+
+  * Add pcap_file option to supervised nodes. (Jan Grashoefer, Corelight)
+
+    This allows to start Supervised nodes with a pcap_file argument
+    rather than interface.
+
+6.0.0-dev.241 | 2023-03-21 10:10:50 +0100
+
+  * Add a new plugin test with verbose IO source output (Arne Welzel, Corelight)
+
+    This is mostly for documentation/verification purposes of how the IO loop
+    currently does draining and when it picks up FD based (non packet) IO
+    source. For example, it shows that currently FD based sources are processed
+    fairly delayed and that we now also process two timeout sources that are ready.
+
+  * iosource: Make poll intervals configurable (Arne Welzel, Corelight)
+
+    This probably should not be changed by users, but it's useful for
+    testing and experimentation rather than needing to recompile.
+
+    Processing 100 packets without checking an FD based IO source can
+    actually mean that FD based sources are never checked during a read
+    of a very small pcap...
+
+  * iomanager/Poll: Add zero-timeout timeout_src also when there's other events ready (Arne Welzel, Corelight)
+
+    This would generally happen the next loop iteration around anyway, but
+    seems nice to ensure a zero timeout source will be processed at the same
+    time as sources with ready FDs.
+
+  * iomanager: Collect all sources with zero timeouts as ready (Arne Welzel, Corelight)
+
+    Previously, if two iosources returned 0.0 as their timeout, only
+    one of them would be considered ready. An always ready source
+    therefore may starve other ready ones due to this and minimally
+    this behavior seems surprising.
+
+    Offline pcap sources are always ready and return 0.0 for
+    GetNextTimeout() (unless in pseudo-realtime), so we can
+    also remove the offline source special case.
+
+    One subtle side-effect of this change is that if an IO source
+    returns a 0.0 timeout *and* it's file descriptor is ready in
+    the same loop iteration, it may be processed twice.
+
+6.0.0-dev.235 | 2023-03-20 10:04:55 -0700
+
+  * ci/centos-stream-8: Add which command (Arne Welzel, Corelight)
+
+  * Update zeekctl test baseline for command.peerstatus test (Tim Wojtulewicz)
+
+  * Update zeekctl test baseline for changes to Site::local_nets (Tim Wojtulewicz)
+
+6.0.0-dev.231 | 2023-03-18 17:10:33 -0700
+
+  * Update Broker for fixing #2853 (Dominik Charousset, Corelight)
+
+6.0.0-dev.229 | 2023-03-17 14:39:03 -0700
+
+  * Fix integer signedness comparison warning with GCC 12.2 (Christian Kreibich, Corelight)
+
+  * Update doc submodule (zeek-bot)
+
 6.0.0-dev.226 | 2023-03-16 10:18:43 +0100
 
   * dns: Remove AD and CD flags from log (Arne Welzel, Corelight)

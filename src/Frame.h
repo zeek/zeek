@@ -158,6 +158,13 @@ public:
 	Frame* Clone() const;
 
 	/**
+	 * Creates a copy of the frame that just includes its trigger context.
+	 *
+	 * @return a partial copy of this frame.
+	 */
+	Frame* CloneForTrigger() const;
+
+	/**
 	 * Serializes the frame in support of copy semantics for lambdas:
 	 *
 	 * [ "CopyFrame", serialized_values ]

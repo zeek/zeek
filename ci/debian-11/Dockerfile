@@ -17,8 +17,10 @@ RUN apt-get update && apt-get -y install \
     gcc \
     git \
     libkrb5-dev \
+    libnode-dev \
     libpcap-dev \
     libssl-dev \
+    libuv1-dev \
     make \
     python3 \
     python3-dev \

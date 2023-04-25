@@ -93,10 +93,6 @@ extern void push_existing_scope(ScopePtr scope);
 // Returns the one popped off.
 extern ScopePtr pop_scope();
 
-// Merges the elements of the current scope with the one surrounding it,
-// popping it in the process.
-extern void merge_top_scope();
-
 extern ScopePtr current_scope();
 extern ScopePtr global_scope();
 

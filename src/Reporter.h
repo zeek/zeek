@@ -133,6 +133,13 @@ public:
 	void Weird(const IPAddr& orig, const IPAddr& resp, const char* name, const char* addl = "",
 	           const char* source = ""); // Raises flow_weird().
 
+	// Report a deprecation. The message should contain a version.
+	void Deprecation(std::string_view msg, const detail::Location* loc1 = nullptr,
+	                 const detail::Location* loc2 = nullptr);
+
+	// Whether or not deprecations are logged when calling Deprecation()
+	void SetIgnoreDeprecations(bool arg) { ignore_deprecations = arg; }
+
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
 	void Syslog(const char* fmt, ...) FMT_ATTR;
@@ -345,6 +352,8 @@ private:
 	uint64_t weird_sampling_threshold;
 	uint64_t weird_sampling_rate;
 	double weird_sampling_duration;
+
+	bool ignore_deprecations;
 	};
 
 extern Reporter* reporter;

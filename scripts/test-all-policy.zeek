@@ -11,6 +11,8 @@
 
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
+@load frameworks/cluster/experimental.zeek
+@load frameworks/cluster/nodes-experimental/manager.zeek
 @load frameworks/management/agent/__load__.zeek
 @load frameworks/management/agent/api.zeek
 @load frameworks/management/agent/boot.zeek
@@ -64,6 +66,7 @@
 @load frameworks/files/hash-all-files.zeek
 @load frameworks/notice/__load__.zeek
 @load frameworks/notice/actions/drop.zeek
+@load frameworks/notice/community-id.zeek
 @load frameworks/notice/extend-email/hostnames.zeek
 @load files/x509/disable-certificate-events-known-certs.zeek
 @load frameworks/packet-filter/shunt.zeek
@@ -85,6 +88,7 @@
 @load misc/weird-stats.zeek
 @load misc/trim-trace-file.zeek
 @load misc/unknown-protocols.zeek
+@load protocols/conn/community-id-logging.zeek
 @load protocols/conn/known-hosts.zeek
 @load protocols/conn/known-services.zeek
 @load protocols/conn/mac-logging.zeek

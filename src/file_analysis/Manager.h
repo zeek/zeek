@@ -7,7 +7,6 @@
 #include <string>
 
 #include "zeek/RuleMatcher.h"
-#include "zeek/RunState.h"
 #include "zeek/Tag.h"
 #include "zeek/file_analysis/Component.h"
 #include "zeek/file_analysis/FileTimer.h"
@@ -18,6 +17,13 @@ namespace zeek
 
 class TableVal;
 class VectorVal;
+
+namespace run_state
+	{
+
+extern bool terminating;
+
+	} // namespace run_state
 
 namespace analyzer
 	{

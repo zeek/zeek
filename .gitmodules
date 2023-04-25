@@ -73,3 +73,6 @@
 [submodule "auxil/libunistd"]
 	path = auxil/libunistd
 	url = https://github.com/zeek/libunistd
+[submodule "auxil/zeekjs"]
+	path = auxil/zeekjs
+	url = https://github.com/corelight/zeekjs.git

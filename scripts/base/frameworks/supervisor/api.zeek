@@ -27,6 +27,9 @@ export {
 		## The interface name from which the node will read/analyze packets.
 		## Typically used by worker nodes.
 		interface: string &optional;
+		## The PCAP file name from which the node will read/analyze packets.
+		## Typically used by worker nodes.
+		pcap_file: string &optional;
 	};
 
 	## Configuration options that influence behavior of a supervised Zeek node.
@@ -36,6 +39,8 @@ export {
 		name: string;
 		## The interface name from which the node will read/analyze packets.
 		interface: string &optional;
+		## The PCAP file name from which the node will read/analyze packets.
+		pcap_file: string &optional;
 		## The working directory that the node should use.
 		directory: string &optional;
 		## The filename/path to which the node's stdout will be redirected.

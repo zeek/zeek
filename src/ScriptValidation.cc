@@ -12,6 +12,8 @@ namespace zeek::detail
 class BreakNextScriptValidation : public TraversalCallback
 	{
 public:
+	BreakNextScriptValidation(bool _report) : report(_report) { }
+
 	TraversalCode PreStmt(const Stmt* stmt)
 		{
 		if ( ! StmtIsRelevant(stmt) )
@@ -20,21 +22,13 @@ public:
 		stmt_depths[stmt->Tag()] += 1;
 
 		if ( stmt->Tag() == STMT_BREAK && ! BreakStmtIsValid() )
-			{
-			zeek::reporter->PushLocation(stmt->GetLocationInfo());
-			zeek::reporter->Warning("break statement used outside of for, while or "
-			                        "switch statement and not within a hook. "
-			                        "With v6.1 this will become an error.");
-			zeek::reporter->PopLocation();
-			}
+			Report(stmt, "break statement used outside of for, while or "
+			             "switch statement and not within a hook. "
+			             "With v6.1 this will become an error.");
 
 		if ( stmt->Tag() == STMT_NEXT && ! NextStmtIsValid() )
-			{
-			zeek::reporter->PushLocation(stmt->GetLocationInfo());
-			zeek::reporter->Warning("next statement used outside of for or while statement. "
-			                        "With v6.1 this will become an error.");
-			zeek::reporter->PopLocation();
-			}
+			Report(stmt, "next statement used outside of for or while statement. "
+			             "With v6.1 this will become an error.");
 
 		return TC_CONTINUE;
 		}
@@ -71,6 +65,8 @@ public:
 		return TC_CONTINUE;
 		}
 
+	bool IsValid() const { return valid_script; }
+
 private:
 	bool StmtIsRelevant(const Stmt* stmt)
 		{
@@ -87,13 +83,35 @@ private:
 
 	bool NextStmtIsValid() { return stmt_depths[STMT_FOR] > 0 || stmt_depths[STMT_WHILE] > 0; }
 
+	void Report(const Stmt* stmt, const char* msg)
+		{
+		if ( report )
+			{
+			zeek::reporter->PushLocation(stmt->GetLocationInfo());
+			zeek::reporter->Warning("%s", msg);
+			zeek::reporter->PopLocation();
+			}
+
+		valid_script = false;
+		}
+
 	std::unordered_map<StmtTag, int> stmt_depths;
 	int hook_depth = 0;
+	bool report; // whether to report problems via "reporter"
+	bool valid_script = true;
 	};
 
 void script_validation()
 	{
-	zeek::detail::BreakNextScriptValidation bn_cb;
-	zeek::detail::traverse_all(&bn_cb);
+	BreakNextScriptValidation bn_cb(true);
+	traverse_all(&bn_cb);
 	}
+
+bool script_is_valid(const Stmt* stmt)
+	{
+	BreakNextScriptValidation bn_cb(false);
+	stmt->Traverse(&bn_cb);
+	return bn_cb.IsValid();
+	}
+
 	}

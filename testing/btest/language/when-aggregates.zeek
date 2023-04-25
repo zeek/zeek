@@ -8,7 +8,7 @@ global g = 0;
 
 function async_foo1(arg: r) : r
 	{
-	return when ( g > 0 )
+	return when [copy arg] ( g > 0 )
 		{
 		arg$x = 99;
 		return r($x = 11, $y = 12);
@@ -29,7 +29,7 @@ event zeek_init()
 	local orig1 = r($x = 1, $y = 2);
 	local orig2 = copy(orig1);
 
-	when ( g == 1 && local resp1 = async_foo1(orig1) )
+	when [copy orig1] ( g == 1 && local resp1 = async_foo1(orig1) )
 		{
 		++g;
 		print orig1, resp1;
@@ -41,10 +41,12 @@ event zeek_init()
 		print orig2, resp2;
 		}
 
+	# The when within async_foo2 does not copy, so orig3 and orig4
+	# within the when body are modified with.
 	local orig3 = r($x = 111, $y = 222);
 	local orig4 = copy(orig3);
 
-	when ( g == 3 && local resp4 = async_foo2(orig3) )
+	when [copy orig3] ( g == 3 && local resp4 = async_foo2(orig3) )
 		{
 		++g;
 		print orig3, resp4;

@@ -218,7 +218,7 @@ function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::
 	try
 		{
 		auto& prev = table.at(*k);
-		auto rval = zeek::Broker::detail::make_data_val(move(prev));
+		auto rval = zeek::Broker::detail::make_data_val(std::move(prev));
 		prev = std::move(*v);
 		return rval;
 		}
@@ -248,7 +248,7 @@ function Broker::__table_remove%(t: Broker::Data, key: any%): Broker::Data
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 	else
 		{
-		auto rval = zeek::Broker::detail::make_data_val(move(it->second));
+		auto rval = zeek::Broker::detail::make_data_val(std::move(it->second));
 		table.erase(it);
 		return rval;
 		}
@@ -369,7 +369,7 @@ function Broker::__vector_replace%(v: Broker::Data, idx: count, d: any%): Broker
 	if ( idx >= vec.size() )
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
-	auto rval = zeek::Broker::detail::make_data_val(move(vec[idx]));
+	auto rval = zeek::Broker::detail::make_data_val(std::move(vec[idx]));
 	vec[idx] = std::move(*item);
 	return rval;
 	%}
@@ -382,7 +382,7 @@ function Broker::__vector_remove%(v: Broker::Data, idx: count%): Broker::Data
 	if ( idx >= vec.size() )
 		return zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::Broker::Data);
 
-	auto rval = zeek::Broker::detail::make_data_val(move(vec[idx]));
+	auto rval = zeek::Broker::detail::make_data_val(std::move(vec[idx]));
 	vec.erase(vec.begin() + idx);
 	return rval;
 	%}

@@ -64,12 +64,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(zeek_fuzzer_standalone OBJECT standalone-driver.cc)
 
-add_library(zeek_fuzzer_shared SHARED
-            $<TARGET_OBJECTS:zeek_objs>
-            ${bro_SUBDIR_LIBS}
-            ${bro_PLUGIN_LIBS}
-            FuzzBuffer.cc
-)
+target_sources(zeek_fuzzer_shared PRIVATE FuzzBuffer.cc)
 
 set(zeek_fuzzer_shared_deps)
 
@@ -83,8 +78,7 @@ foreach(_dep ${zeekdeps} )
     endif ()
 endforeach ()
 
-target_link_libraries(zeek_fuzzer_shared
-                      ${bro_PLUGIN_LINK_LIBS}
+target_link_libraries(zeek_fuzzer_shared PUBLIC
                       ${zeek_fuzzer_shared_deps}
                       ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 

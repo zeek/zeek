@@ -550,8 +550,7 @@ private:
 class WhenInfo
 	{
 public:
-	// Takes ownership of the CaptureList, which if nil signifies
-	// old-style frame semantics.
+	// Takes ownership of the CaptureList.
 	WhenInfo(ExprPtr cond, FuncType::CaptureList* cl, bool is_return);
 
 	// Constructor used by script optimization to create a stub.
@@ -582,17 +581,19 @@ public:
 	void Instantiate(Frame* f);
 	void Instantiate(ValPtr func);
 
-	// For old-style semantics, the following simply return the
-	// individual "when" components.  For capture semantics, however,
-	// these instead return different invocations of a lambda that
-	// manages the captures.
+	// Return the original components used to construct the "when".
+	const ExprPtr& OrigCond() const { return cond; }
+	const StmtPtr& OrigBody() const { return s; }
+	const ExprPtr& OrigTimeout() const { return timeout; }
+	const StmtPtr& OrigTimeoutStmt() const { return timeout_s; }
+
+	// Return different invocations of a lambda that manages the captures.
 	ExprPtr Cond();
 	StmtPtr WhenBody();
+	StmtPtr TimeoutStmt();
 
 	ExprPtr TimeoutExpr() const { return timeout; }
 	double TimeoutVal(Frame* f);
-
-	StmtPtr TimeoutStmt();
 
 	FuncType::CaptureList* Captures() { return cl; }
 
@@ -605,19 +606,13 @@ public:
 	const IDSet& WhenExprGlobals() const { return when_expr_globals; }
 
 private:
-	// True if the "when" statement corresponds to old-style deprecated
-	// semantics (no captures, but needing captures).  Also generates
-	// the corresponding deprecation warnings, which are associated
-	// with "ws".
-	bool IsDeprecatedSemantics(StmtPtr ws);
-
 	// Build those elements we'll need for invoking our lambda.
 	void BuildInvokeElems();
 
 	ExprPtr cond;
 	StmtPtr s;
-	ExprPtr timeout;
 	StmtPtr timeout_s;
+	ExprPtr timeout;
 	FuncType::CaptureList* cl;
 
 	bool is_return = false;
@@ -649,10 +644,6 @@ private:
 
 	// Locals introduced via "local" in the "when" clause itself.
 	IDSet when_new_locals;
-
-	// Used for identifying deprecated instances.  Holds all of the local
-	// variables in the scope prior to parsing the "when" statement.
-	std::map<std::string, IDPtr, std::less<>> prior_vars;
 	};
 
 class WhenStmt final : public Stmt

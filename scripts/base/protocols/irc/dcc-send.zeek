@@ -97,7 +97,7 @@ function log_dcc(f: fa_file)
 		}
 	}
 
-event file_new(f: fa_file) &priority=-5
+event file_sniff(f: fa_file, meta: fa_metadata) &priority=-5
 	{
 	if ( f$source == "IRC_DATA" )
 		log_dcc(f);

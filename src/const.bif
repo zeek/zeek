@@ -2,6 +2,8 @@
 ##! internally.  Documentation and default values for the scripting-layer
 ##! variables themselves are found in :doc:`/scripts/base/init-bare.zeek`.
 
+const packet_source_inactivity_timeout: interval;
+const allow_network_time_forward: bool;
 const ignore_keep_alive_rexmit: bool;
 const skip_http_data: bool;
 const use_conn_size_analyzer: bool;
@@ -10,6 +12,9 @@ const report_gaps_for_partial: bool;
 const exit_only_after_terminate: bool;
 const digest_salt: string;
 const max_analyzer_violations: count;
+
+const io_poll_interval_default: count;
+const io_poll_interval_live: count;
 
 const FTP::max_command_length: count;
 

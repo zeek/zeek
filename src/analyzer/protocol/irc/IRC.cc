@@ -12,7 +12,10 @@
 
 using namespace std;
 
-namespace zeek::analyzer::irc
+namespace zeek::analyzer
+	{
+
+namespace irc
 	{
 
 IRC_Analyzer::IRC_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("IRC", conn)
@@ -1128,4 +1131,44 @@ vector<string> IRC_Analyzer::SplitWords(const string& input, char split)
 	return words;
 	}
 
-	} // namespace zeek::analyzer::irc
+	} // namespace irc
+
+namespace file
+	{
+
+void IRC_Data::DeliverStream(int len, const u_char* data, bool orig)
+	{
+	// Bytes from originator are acknowledgements
+	if ( ! orig )
+		File_Analyzer::DeliverStream(len, data, orig);
+	else
+		{
+		constexpr auto ack_len = sizeof(uint32_t);
+
+		if ( len % ack_len != 0 )
+			{
+			Weird("irc_invalid_dcc_send_ack");
+			return;
+			}
+
+		if ( irc_dcc_send_ack )
+			{
+			for ( int i = 0; i < len; i += ack_len )
+				{
+				EnqueueConnEvent(
+					irc_dcc_send_ack, ConnVal(),
+					val_mgr->Count(ntohl(*reinterpret_cast<const uint32_t*>(data + i))));
+				}
+			}
+		}
+	}
+
+void IRC_Data::Undelivered(uint64_t seq, int len, bool orig)
+	{
+	if ( ! orig )
+		File_Analyzer::Undelivered(seq, len, orig);
+	}
+
+	} // namespace file
+
+	} // namespace zeek::analyzer

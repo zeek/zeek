@@ -1,0 +1,69 @@
+# Note: this config is used for builtin dynamic plugins outside of the source
+#       tree of Zeek. Plugins refer back to the Zeek source tree since they need
+#       access to some parts of Zeek that we don't install.
+
+# Pull in some path magic that Zeek uses as well.
+include(MacDependencyPaths)
+
+# For finding zeek-plugin-create-package.sh and zeek-plugin-install-package.sh.
+if ( NOT ZEEK_PLUGIN_SCRIPTS_PATH )
+  set(ZEEK_PLUGIN_SCRIPTS_PATH "@ZEEK_PLUGIN_SCRIPTS_PATH@"
+      CACHE PATH "Path to utility shell scripts." FORCE)
+endif ()
+
+# Path for installing plugins.
+if ( NOT ZEEK_PLUGIN_DIR )
+  set(ZEEK_PLUGIN_DIR "@ZEEK_PLUGIN_DIR@"
+      CACHE STRING "Installation path for plugins" FORCE)
+endif ()
+
+# For finding Zeek sources.
+if ( NOT ZEEK_SOURCE_DIR )
+  set(ZEEK_SOURCE_DIR "@ZEEK_SOURCE_DIR@"
+      CACHE PATH "Path to the Zeek source tree." FORCE)
+endif ()
+
+# Provide a hint to ZeekConfig.cmake where to find Broker from the build tree.
+# Note: the straightforward way would be setting `Broker_ROOT` instead, but
+#       plugins may still use CMake < 3.12.
+if (NOT "@ZEEK_HAS_EXTERNAL_BROKER@")
+  set(Broker_DIR "@ZEEK_PLUGIN_BROKER_PATH@" CACHE
+      PATH "Directory for finding Broker's package file" FORCE)
+endif ()
+
+# Provide hint to the plugins where to find standard packages by passing along
+# user-defined values.
+set(ZeekOpenSSLHint "@ZeekOpenSSLHint@")
+if (ZeekOpenSSLHint AND NOT OPENSSL_ROOT_DIR)
+    set(OPENSSL_ROOT_DIR "${ZeekOpenSSLHint}" CACHE
+        PATH "Directory hint for finding OpenSSL" FORCE)
+endif ()
+
+# Force PKG_CONFIG_PATH environment variable to reflect what we've used when
+# building Zeek.
+set(ZeekPkgConfigPath "@ZeekPkgConfigPath@")
+if (ZeekPkgConfigPath)
+    set(ENV{PKG_CONFIG_PATH} "${ZeekPkgConfigPath}")
+endif ()
+
+# For having a binpac target available. Guarded to shield against including this
+# file multiple times.
+if (NOT TARGET Zeek::BinPAC)
+    add_executable(Zeek::BinPAC IMPORTED)
+    set_property(TARGET Zeek::BinPAC PROPERTY
+                 IMPORTED_LOCATION "@BINPAC_EXE_PATH@")
+endif ()
+
+# For having a bifcl target available. Guarded to shield against including this
+# file multiple times.
+if (NOT TARGET Zeek::BifCl)
+    add_executable(Zeek::BifCl IMPORTED)
+    set_property(TARGET Zeek::BifCl PROPERTY
+                 IMPORTED_LOCATION "@BIFCL_EXE_PATH@")
+endif ()
+
+# TODO: using BIFCL_EXE_PATH and BINPAC_EXE_PATH does not play well with
+#       multi-configuration generators. We currently hard-code these paths in
+#       the main CMakeLists.txt instead of dynamically fetching the right thing.
+#       A better solution would be either using find_program here or
+#       `file(GENERATE ...)` from the main CMake file.

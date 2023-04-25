@@ -153,8 +153,8 @@ public:
 
 	/**
 	 * Remove a remote peering.
-	 * @param addr the address used in bro_broker::Manager::Peer().
-	 * @param port the port used in bro_broker::Manager::Peer().
+	 * @param addr the address used in zeek::Broker::Manager::Peer().
+	 * @param port the port used in zeek::Broker::Manager::Peer().
 	 */
 	void Unpeer(const std::string& addr, uint16_t port);
 
@@ -243,8 +243,8 @@ public:
 
 	/**
 	 * Stop automatically sending an event to peers upon local dispatch.
-	 * @param topic a topic originally given to bro_broker::Manager::AutoPublish().
-	 * @param event an event originally given to bro_broker::Manager::AutoPublish().
+	 * @param topic a topic originally given to zeek::Broker::Manager::AutoPublish().
+	 * @param event an event originally given to zeek::Broker::Manager::AutoPublish().
 	 * @return true if automatic events will no occur for the topic/event pair.
 	 */
 	bool AutoUnpublishEvent(const std::string& topic, Val* event);
@@ -282,7 +282,7 @@ public:
 	/**
 	 * Unregister interest in peer event messages.
 	 * @param topic_prefix a prefix previously supplied to a successful call
-	 * to bro_broker::Manager::Subscribe() or bro_broker::Manager::Forward().
+	 * to zeek::Broker::Manager::Subscribe() or zeek::Broker::Manager::Forward().
 	 * @return true if interest in topic prefix is no longer advertised.
 	 */
 	bool Unsubscribe(const std::string& topic_prefix);
@@ -329,8 +329,7 @@ public:
 	/**
 	 * Register a Zeek table that is associated with a Broker store that is backing it. This
 	 * causes all changes that happen to the Broker store in the future to be applied to theZzeek
-	 * table.
-	 * A single Broker store can only be forwarded to a single table.
+	 * table. A single Broker store can only be forwarded to a single table.
 	 * @param name name of the Broker store.
 	 * @param table pointer to the table/set that is being backed.
 	 * @return true on success, false if the named store is already being forwarded.

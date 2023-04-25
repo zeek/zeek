@@ -3,11 +3,13 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <optional>
 #include <vector>
 
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/iosource/Packet.h"
+#include "zeek/telemetry/Manager.h"
 
 struct pcap_pkthdr;
 
@@ -30,25 +32,28 @@ public:
 		/**
 		 * Packets received by source after filtering (w/o drops).
 		 */
-		uint64_t received;
+		uint64_t received = 0;
 
 		/**
 		 * Packets dropped by source.
 		 */
-		uint64_t dropped; // pkts dropped
+		uint64_t dropped = 0; // pkts dropped
 
 		/**
 		 * Total number of packets on link before filtering.
 		 * Optional, can be left unset if not available.
 		 */
-		uint64_t link;
+		uint64_t link = 0;
 
 		/**
 		 * Bytes received by source after filtering (w/o drops).
 		 */
-		uint64_t bytes_received;
+		uint64_t bytes_received = 0;
 
-		Stats() { received = dropped = link = bytes_received = 0; }
+		/**
+		 * Packets filtered by the packet source.
+		 */
+		std::optional<uint64_t> filtered;
 		};
 
 	/**
@@ -87,6 +92,24 @@ public:
 	 * Returns true if the source has flagged an error.
 	 */
 	bool IsError() const;
+
+	/**
+	 * Return true if the source has been observed idle for the given
+	 * wallclock interval.
+	 *
+	 * The default implementation looks at failing ExtractNextPacket() calls
+	 * and keeps the wallclock timestamp when there was no packet available.
+	 * The source is considered idle when there has not been a packet since
+	 * \a interval seconds.
+	 *
+	 * Alternative implementations may check internally buffered packets
+	 * or queue lengths.
+	 *
+	 * @param interval Interval in seconds.
+	 *
+	 * @return True if the source has been idle for \a interval seconds.
+	 */
+	virtual bool HasBeenIdleFor(double interval) const;
 
 	/**
 	 * If the source encountered an error, returns a corresponding error
@@ -207,7 +230,6 @@ public:
 
 protected:
 	friend class Manager;
-	friend class ManagerBase;
 
 	// Methods to use by derived classes.
 
@@ -364,6 +386,8 @@ private:
 	Packet current_packet;
 	// Did the previous call to ExtractNextPacket() yield a packet.
 	bool had_packet;
+
+	double idle_at_wallclock = 0.0;
 
 	// For BPF filtering support.
 	std::vector<detail::BPF_Program*> filters;

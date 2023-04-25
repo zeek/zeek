@@ -6,6 +6,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/ScriptValidation.h"
 #include "zeek/ZeekString.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
@@ -30,6 +31,14 @@ bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason)
 		{
 		if ( reason )
 			*reason = "use of \"when\"";
+		return false;
+		}
+
+	auto b = pf->ProfiledBody();
+	if ( b && ! script_is_valid(b) )
+		{
+		if ( reason )
+			*reason = "invalid script body";
 		return false;
 		}
 

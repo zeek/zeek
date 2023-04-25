@@ -26,6 +26,15 @@ endif ()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-braces")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-vla")
 
+# GCC 13 adds a new flag to check whether a symbol changes meaning. Due to an issue in one
+# of the dependencies used by Spicy, this causes Zeek to fail to build on that compiler.
+# Until this is fixed, ignore that warning, but check to to make sure the flag exists first.
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-Wno-changes-meaning" _has_no_changes_meaning_flag)
+if ( _has_no_changes_meaning_flag )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-changes-meaning")
+endif ()
+
 # The script generating precompiled headers for Spicy expects a different build
 # system layout than provided for a bundled Spicy, disable it.
 set(HILTI_DEV_PRECOMPILE_HEADERS OFF)

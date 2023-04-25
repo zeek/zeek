@@ -9,7 +9,7 @@
 @load base/protocols/ssl
 @load base/protocols/mysql
 
-event ssl_certificate_request(c: connection, is_client: bool, certificate_types: index_vec, supported_signature_algorithms: SSL::SignatureAndHashAlgorithm, certificate_authorities: string_vec)
+event ssl_certificate_request(c: connection, is_client: bool, certificate_types: index_vec, supported_signature_algorithms: signature_and_hashalgorithm_vec, certificate_authorities: string_vec)
 	{
 	print certificate_types;
 	print supported_signature_algorithms;

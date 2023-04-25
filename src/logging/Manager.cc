@@ -973,11 +973,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg)
 	return true;
 	}
 
-threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
+threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty)
 	{
-	if ( ! ty )
-		ty = val->GetType().get();
-
 	if ( ! val )
 		return new threading::Value(ty->Tag(), false);
 
@@ -987,12 +984,12 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 		{
 		case TYPE_BOOL:
 		case TYPE_INT:
-			lval->val.int_val = val->InternalInt();
+			lval->val.int_val = val->AsInt();
 			break;
 
 		case TYPE_ENUM:
 			{
-			const char* s = val->GetType()->AsEnumType()->Lookup(val->InternalInt());
+			const char* s = ty->AsEnumType()->Lookup(val->AsInt());
 
 			if ( s )
 				{
@@ -1002,7 +999,8 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 
 			else
 				{
-				val->GetType()->Error("enum type does not contain value", val);
+				auto err_msg = "enum type does not contain value:" + std::to_string(val->AsInt());
+				ty->Error(err_msg.c_str());
 				lval->val.string_val.data = util::copy_string("");
 				lval->val.string_val.length = 0;
 				}
@@ -1010,31 +1008,44 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 			}
 
 		case TYPE_COUNT:
-			lval->val.uint_val = val->InternalUnsigned();
+			lval->val.uint_val = val->AsCount();
 			break;
 
 		case TYPE_PORT:
-			lval->val.port_val.port = val->AsPortVal()->Port();
-			lval->val.port_val.proto = val->AsPortVal()->PortType();
+			{
+			auto p = val->AsCount();
+
+			auto pt = TRANSPORT_UNKNOWN;
+			auto pm = p & PORT_SPACE_MASK;
+			if ( pm == TCP_PORT_MASK )
+				pt = TRANSPORT_TCP;
+			else if ( pm == UDP_PORT_MASK )
+				pt = TRANSPORT_UDP;
+			else if ( pm == ICMP_PORT_MASK )
+				pt = TRANSPORT_ICMP;
+
+			lval->val.port_val.port = p & ~PORT_SPACE_MASK;
+			lval->val.port_val.proto = pt;
 			break;
+			}
 
 		case TYPE_SUBNET:
-			val->AsSubNet().ConvertToThreadingValue(&lval->val.subnet_val);
+			val->AsSubNet()->Get().ConvertToThreadingValue(&lval->val.subnet_val);
 			break;
 
 		case TYPE_ADDR:
-			val->AsAddr().ConvertToThreadingValue(&lval->val.addr_val);
+			val->AsAddr()->Get().ConvertToThreadingValue(&lval->val.addr_val);
 			break;
 
 		case TYPE_DOUBLE:
 		case TYPE_TIME:
 		case TYPE_INTERVAL:
-			lval->val.double_val = val->InternalDouble();
+			lval->val.double_val = val->AsDouble();
 			break;
 
 		case TYPE_STRING:
 			{
-			const String* s = val->AsString();
+			const String* s = val->AsString()->AsString();
 			char* buf = new char[s->Len()];
 			memcpy(buf, s->Bytes(), s->Len());
 
@@ -1065,31 +1076,44 @@ threading::Value* Manager::ValToLogVal(Val* val, Type* ty)
 
 		case TYPE_TABLE:
 			{
-			auto set = val->AsTableVal()->ToPureListVal();
+			auto tbl = val->AsTable();
+			auto set = tbl->ToPureListVal();
+
 			if ( ! set )
 				// ToPureListVal has reported an internal warning
 				// already. Just keep going by making something up.
 				set = make_intrusive<ListVal>(TYPE_INT);
 
+			auto tbl_t = cast_intrusive<TableType>(tbl->GetType());
+			auto& set_t = tbl_t->GetIndexTypes()[0];
+			bool is_managed = ZVal::IsManagedType(set_t);
+
 			lval->val.set_val.size = set->Length();
 			lval->val.set_val.vals = new threading::Value*[lval->val.set_val.size];
 
 			for ( zeek_int_t i = 0; i < lval->val.set_val.size; i++ )
-				lval->val.set_val.vals[i] = ValToLogVal(set->Idx(i).get());
+				{
+				std::optional<ZVal> s_i = ZVal(set->Idx(i), set_t);
+				lval->val.set_val.vals[i] = ValToLogVal(s_i, set_t.get());
+				if ( is_managed )
+					ZVal::DeleteManagedType(*s_i);
+				}
 
 			break;
 			}
 
 		case TYPE_VECTOR:
 			{
-			VectorVal* vec = val->AsVectorVal();
+			VectorVal* vec = val->AsVector();
 			lval->val.vector_val.size = vec->Size();
 			lval->val.vector_val.vals = new threading::Value*[lval->val.vector_val.size];
 
+			auto& vv = vec->RawVec();
+			auto& vt = vec->GetType()->Yield();
+
 			for ( zeek_int_t i = 0; i < lval->val.vector_val.size; i++ )
 				{
-				lval->val.vector_val.vals[i] = ValToLogVal(vec->ValAt(i).get(),
-				                                           vec->GetType()->Yield().get());
+				lval->val.vector_val.vals[i] = ValToLogVal((*vv)[i], vt.get());
 				}
 
 			break;
@@ -1118,7 +1142,8 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter, R
 
 	for ( int i = 0; i < filter->num_fields; ++i )
 		{
-		Val* val;
+		std::optional<ZVal> val;
+		Type* vt;
 		if ( i < filter->num_ext_fields )
 			{
 			if ( ! ext_rec )
@@ -1128,21 +1153,23 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter, R
 				continue;
 				}
 
-			val = ext_rec.get();
+			val = ZVal(ext_rec.get());
+			vt = ext_rec->GetType().get();
 			}
 		else
-			val = columns;
+			{
+			val = ZVal(columns);
+			vt = columns->GetType().get();
+			}
 
 		// For each field, first find the right value, which can
 		// potentially be nested inside other records.
 		list<int>& indices = filter->indices[i];
 
-		ValPtr val_ptr;
-
 		for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j )
 			{
-			val_ptr = val->AsRecordVal()->GetField(*j);
-			val = val_ptr.get();
+			auto vr = val->AsRecord();
+			val = vr->RawOptField(*j);
 
 			if ( ! val )
 				{
@@ -1150,10 +1177,12 @@ threading::Value** Manager::RecordToFilterVals(Stream* stream, Filter* filter, R
 				vals[i] = new threading::Value(filter->fields[i]->type, false);
 				break;
 				}
+
+			vt = cast_intrusive<RecordType>(vr->GetType())->GetFieldType(*j).get();
 			}
 
 		if ( val )
-			vals[i] = ValToLogVal(val);
+			vals[i] = ValToLogVal(val, vt);
 		}
 
 	return vals;
@@ -1561,10 +1590,19 @@ std::string Manager::FormatRotationPath(EnumValPtr writer, std::string_view path
 	ri->Assign<FuncVal>(5, std::move(postprocessor));
 
 	std::string rval;
+	ValPtr res = Val::nil;
 
 	try
 		{
-		auto res = rotation_format_func->Invoke(ri);
+		res = rotation_format_func->Invoke(ri);
+		}
+	catch ( InterpreterException& e )
+		{
+		// Will have logged something, res continues to be nil
+		}
+
+	if ( res )
+		{
 		auto rp_val = res->AsRecordVal();
 		auto dir_val = rp_val->GetFieldOrDefault(0);
 		auto prefix = rp_val->GetFieldAs<StringVal>(1)->CheckString();
@@ -1590,7 +1628,7 @@ std::string Manager::FormatRotationPath(EnumValPtr writer, std::string_view path
 		else
 			rval = util::fmt("%s/%s", dir, prefix);
 		}
-	catch ( InterpreterException& e )
+	else
 		{
 		auto rot_str = format_rotation_time_fallback((time_t)open);
 		rval = util::fmt("%.*s-%s", static_cast<int>(path.size()), path.data(), rot_str.data());

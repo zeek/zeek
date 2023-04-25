@@ -161,6 +161,32 @@ type PacketSource: record {
 	netmask: count;
 };
 
+
+## If a packet source does not yield packets for this amount of time,
+## it is considered idle. When a packet source is found to be idle,
+## Zeek will update network_time to current time in order for timer expiration
+## to function. A packet source queueing up packets and not yielding them for
+## longer than this interval without yielding any packets will provoke
+## not-very-well-defined timer behavior.
+##
+## On Zeek workers with low packet rates, timer expiration may be delayed
+## by this many milliseconds after the last packet has been received.
+const packet_source_inactivity_timeout = 100msec &redef;
+
+## Whether Zeek will forward network_time to the current time upon
+## observing an idle packet source (or no configured packet source).
+##
+## Only set this to *F* if you really know what you're doing. Setting this to
+## *F* on non-worker systems causes :zeek:see:`network_time` to be stuck
+## at 0.0 and timer expiration will be non-functional.
+##
+## The main purpose of this option is to yield control over network time
+## to plugins or scripts via broker or other non-timer events.
+##
+## .. zeek:see:: network_time set_network_time packet_source_inactivity_timeout
+##
+const allow_network_time_forward = T &redef;
+
 ## A connection's transport-layer protocol. Note that Zeek uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {
@@ -643,15 +669,16 @@ type SYN_packet: record {
 ##
 ## .. zeek:see:: get_net_stats
 type NetStats: record {
-	pkts_recvd:   count &default=0;	##< Packets received by Zeek.
-	pkts_dropped: count &default=0;	##< Packets reported dropped by the system.
+	pkts_recvd:    count &default=0; ##< Packets received by Zeek.
+	pkts_dropped:  count &default=0; ##< Packets reported dropped by the system.
 	## Packets seen on the link. Note that this may differ
 	## from *pkts_recvd* because of a potential capture_filter. See
 	## :doc:`/scripts/base/frameworks/packet-filter/main.zeek`. Depending on the
 	## packet capture system, this value may not be available and will then
 	## be always set to zero.
-	pkts_link:    count &default=0;
-	bytes_recvd:  count &default=0;	##< Bytes received by Zeek.
+	pkts_link:     count &default=0;
+	bytes_recvd:   count &default=0; ##< Bytes received by Zeek.
+	pkts_filtered: count &optional;  ##< Packets filtered by the packet source.
 };
 
 type ConnStats: record {
@@ -2007,6 +2034,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 
 # Prototypes of Zeek built-in functions.
 @load base/bif/zeek.bif
+@load base/bif/communityid.bif
 @load base/bif/stats.bif
 @load base/bif/reporter.bif
 @load base/bif/strings.bif
@@ -5181,6 +5209,32 @@ export {
 	## interfaces.
 	const bufsize = 128 &redef;
 
+	## Default timeout for packet sources without file descriptors.
+	##
+	## For libpcap based packet sources that do not provide a usable
+	## file descriptor for select(), the timeout provided to the IO
+	## loop is either zero if a packet was most recently available
+	## or else this value.
+	##
+	## Depending on the expected packet rate per-worker and the amount of
+	## available packet buffer, raising this value can significantly reduce
+	## Zeek's CPU usage at the cost of a small delay before processing
+	## packets. Setting this value too high may cause packet drops due
+	## to running out of available buffer space.
+	##
+	## Increasing this value to 200usec on low-traffic Myricom based systems
+	## (5 kpps per Zeek worker) has shown a 50% reduction in CPU usage.
+	##
+	## This is an advanced setting. Do monitor dropped packets and capture
+	## loss information when changing it.
+	##
+	## .. note:: Packet sources that override ``GetNextTimeout()`` method
+	##    may not respect this value.
+	##
+	## .. zeek:see:: io_poll_interval_live
+	##
+	const non_fd_timeout = 20usec &redef;
+
 	## The definition of a "pcap interface".
 	type Interface: record {
 		## The interface/device name.
@@ -5580,6 +5634,35 @@ const digest_salt = "Please change this value." &redef;
 ## Maximum string length allowed for calls to the :zeek:see:`find_all` and
 ## :zeek:see:`find_all_ordered` BIFs.
 const max_find_all_string_length: int = 10000 &redef;
+
+## How many rounds to go without checking IO sources with file descriptors
+## for readiness by default. This is used when reading from traces.
+##
+## Very roughly, when reading from a pcap, setting this to 100 results in
+## 100 packets being processed without checking FD based IO sources.
+##
+## .. note:: This should not be changed outside of development or when
+##    debugging problems with the main-loop, or developing features with
+##    tight main-loop interaction.
+##
+## .. zeek:see:: io_poll_interval_live
+const io_poll_interval_default = 100 &redef;
+
+## How often to check IO sources with file descriptors for readiness when
+## monitoring with a live packet source.
+##
+## The poll interval gets defaulted to 100 which is good for cases like reading
+## from pcap files and when there isn't a packet source, but is a little too
+## infrequent for live sources (especially fast live sources). Set it down a
+## little bit for those sources.
+##
+## .. note:: This should not be changed outside of development or when
+##    debugging problems with the main-loop, or developing features with
+##    tight main-loop interaction.
+##
+## .. zeek:see:: io_poll_interval_default
+const io_poll_interval_live = 10 &redef;
+
 
 global done_with_network = F;
 event net_done(t: time)

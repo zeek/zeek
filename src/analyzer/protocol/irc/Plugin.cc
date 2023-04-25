@@ -15,6 +15,8 @@ public:
 		{
 		AddComponent(
 			new zeek::analyzer::Component("IRC", zeek::analyzer::irc::IRC_Analyzer::Instantiate));
+		AddComponent(
+			new zeek::analyzer::Component("IRC_Data", zeek::analyzer::file::IRC_Data::Instantiate));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::IRC";

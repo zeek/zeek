@@ -6,17 +6,9 @@
 
 redef test_file_analysis_source = "IRC_DATA";
 
-global first: bool = T;
-
 function myfile(f: fa_file): string
 	{
-	if ( first )
-		{
-		first = F;
-		return "thefile";
-		}
-	else
-		return "";
+	return "thefile";
 	}
 
 redef test_get_file_name = myfile;

@@ -1287,25 +1287,6 @@ void BinaryExpr::PromoteForInterval(ExprPtr& op)
 		op = make_intrusive<ArithCoerceExpr>(op, TYPE_DOUBLE);
 	}
 
-bool BinaryExpr::IsScalarAggregateOp() const
-	{
-	const bool is_vec1 = IsAggr(op1->GetType()->Tag()) || is_list(op1);
-	const bool is_vec2 = IsAggr(op2->GetType()->Tag()) || is_list(op2);
-	const bool either_vec = is_vec1 || is_vec2;
-	const bool both_vec = is_vec1 && is_vec2;
-
-	return either_vec && ! both_vec;
-	}
-
-void BinaryExpr::CheckScalarAggOp() const
-	{
-	if ( ! IsError() && IsScalarAggregateOp() )
-		{
-		reporter->Warning("mixing vector and scalar operands is deprecated (%s) (%s)",
-		                  type_name(op1->GetType()->Tag()), type_name(op2->GetType()->Tag()));
-		}
-	}
-
 bool BinaryExpr::CheckForRHSList()
 	{
 	if ( op2->Tag() != EXPR_LIST )
@@ -1420,24 +1401,10 @@ IncrExpr::IncrExpr(ExprTag arg_tag, ExprPtr arg_op) : UnaryExpr(arg_tag, arg_op-
 		return;
 
 	const auto& t = op->GetType();
-
-	if ( IsVector(t->Tag()) )
-		{
-		if ( ! IsIntegral(t->AsVectorType()->Yield()->Tag()) )
-			ExprError("vector elements must be integral for increment operator");
-		else
-			{
-			reporter->Warning("increment/decrement operations for vectors deprecated");
-			SetType(t);
-			}
-		}
+	if ( ! IsIntegral(t->Tag()) )
+		ExprError("requires an integral operand");
 	else
-		{
-		if ( ! IsIntegral(t->Tag()) )
-			ExprError("requires an integral operand");
-		else
-			SetType(t);
-		}
+		SetType(t);
 	}
 
 ValPtr IncrExpr::DoSingleEval(Frame* f, Val* v) const
@@ -1469,26 +1436,9 @@ ValPtr IncrExpr::Eval(Frame* f) const
 	if ( ! v )
 		return nullptr;
 
-	if ( is_vector(v) )
-		{
-		VectorValPtr v_vec{NewRef{}, v->AsVectorVal()};
-
-		for ( unsigned int i = 0; i < v_vec->Size(); ++i )
-			{
-			auto elt = v_vec->ValAt(i);
-			if ( elt )
-				v_vec->Assign(i, DoSingleEval(f, elt.get()));
-			}
-
-		op->Assign(f, std::move(v_vec));
-		return v;
-		}
-	else
-		{
-		auto new_v = DoSingleEval(f, v.get());
-		op->Assign(f, new_v);
-		return new_v;
-		}
+	auto new_v = DoSingleEval(f, v.get());
+	op->Assign(f, new_v);
+	return new_v;
 	}
 
 ComplementExpr::ComplementExpr(ExprPtr arg_op) : UnaryExpr(EXPR_COMPLEMENT, std::move(arg_op))
@@ -1627,21 +1577,40 @@ ValPtr SizeExpr::Fold(Val* v) const
 	return v->SizeVal();
 	}
 
+// Fill op1 and op2 type tags into bt1 and bt2.
+//
+// If both operands are vectors, use their yield type tag. If
+// either, but not both operands, is a vector, cause an expression
+// error and return false.
+static bool get_types_from_scalars_or_vectors(Expr* e, TypeTag& bt1, TypeTag& bt2)
+	{
+	bt1 = e->GetOp1()->GetType()->Tag();
+	bt2 = e->GetOp2()->GetType()->Tag();
+
+	if ( IsVector(bt1) && IsVector(bt2) )
+		{
+		bt1 = e->GetOp1()->GetType()->AsVectorType()->Yield()->Tag();
+		bt2 = e->GetOp2()->GetType()->AsVectorType()->Yield()->Tag();
+		}
+	else if ( IsVector(bt1) || IsVector(bt2) )
+		{
+		e->Error("cannot mix vector and scalar operands");
+		e->SetError();
+		return false;
+		}
+
+	return true;
+	}
+
 AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	: BinaryExpr(EXPR_ADD, std::move(arg_op1), std::move(arg_op2))
 	{
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-
-	if ( IsVector(bt1) )
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt2) )
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
 
 	TypePtr base_result_type;
 
@@ -1656,11 +1625,9 @@ AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	else
 		ExprError("requires arithmetic operands");
 
-	CheckScalarAggOp();
-
 	if ( base_result_type )
 		{
-		if ( is_vector(op1) || is_vector(op2) )
+		if ( is_vector(op1) )
 			SetType(make_intrusive<VectorType>(std::move(base_result_type)));
 		else
 			SetType(std::move(base_result_type));
@@ -1797,13 +1764,9 @@ SubExpr::SubExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
 
-	TypeTag bt1 = t1->Tag();
-	if ( IsVector(bt1) )
-		bt1 = t1->AsVectorType()->Yield()->Tag();
-
-	TypeTag bt2 = t2->Tag();
-	if ( IsVector(bt2) )
-		bt2 = t2->AsVectorType()->Yield()->Tag();
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
 
 	TypePtr base_result_type;
 
@@ -1827,11 +1790,9 @@ SubExpr::SubExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	else
 		ExprError("requires arithmetic operands");
 
-	CheckScalarAggOp();
-
 	if ( base_result_type )
 		{
-		if ( is_vector(op1) || is_vector(op2) )
+		if ( is_vector(op1) )
 			SetType(make_intrusive<VectorType>(std::move(base_result_type)));
 		else
 			SetType(std::move(base_result_type));
@@ -1901,15 +1862,9 @@ TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	Canonicalize();
 
-	TypeTag bt1 = op1->GetType()->Tag();
-
-	if ( IsVector(bt1) )
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt2) )
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
 
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
@@ -1922,8 +1877,6 @@ TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else
 		ExprError("requires arithmetic operands");
-
-	CheckScalarAggOp();
 	}
 
 void TimesExpr::Canonicalize()
@@ -1939,15 +1892,9 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-
-	if ( IsVector(bt1) )
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt2) )
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
 
 	if ( bt1 == TYPE_INTERVAL || bt2 == TYPE_INTERVAL )
 		{
@@ -1955,7 +1902,7 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 			PromoteForInterval(IsArithmetic(bt1) ? op1 : op2);
 		else if ( bt1 == TYPE_INTERVAL && bt2 == TYPE_INTERVAL )
 			{
-			if ( is_vector(op1) || is_vector(op2) )
+			if ( is_vector(op1) )
 				SetType(make_intrusive<VectorType>(base_type(TYPE_DOUBLE)));
 			else
 				SetType(base_type(TYPE_DOUBLE));
@@ -1972,8 +1919,6 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	else
 		ExprError("requires arithmetic operands");
-
-	CheckScalarAggOp();
 	}
 
 ValPtr DivideExpr::AddrFold(Val* v1, Val* v2) const
@@ -2007,22 +1952,14 @@ ModExpr::ModExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-
-	if ( IsVector(bt1) )
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt2) )
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
 
 	if ( BothIntegral(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 	else
 		ExprError("requires integral operands");
-
-	CheckScalarAggOp();
 	}
 
 BoolExpr::BoolExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
@@ -2031,24 +1968,14 @@ BoolExpr::BoolExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	if ( IsError() )
 		return;
 
-	TypeTag bt1 = op1->GetType()->Tag();
-
-	if ( IsVector(bt1) )
-		bt1 = op1->GetType()->AsVectorType()->Yield()->Tag();
-
-	TypeTag bt2 = op2->GetType()->Tag();
-
-	if ( IsVector(bt2) )
-		bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
 
 	if ( BothBool(bt1, bt2) )
 		{
-		if ( is_vector(op1) || is_vector(op2) )
-			{
-			if ( ! (is_vector(op1) && is_vector(op2)) )
-				reporter->Warning("mixing vector and scalar operands is deprecated");
+		if ( is_vector(op1) )
 			SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
-			}
 		else
 			SetType(base_type(TYPE_BOOL));
 		}
@@ -2095,46 +2022,7 @@ ValPtr BoolExpr::Eval(Frame* f) const
 	if ( ! is_vec1 && ! is_vec2 )
 		return DoSingleEval(f, std::move(v1), op2.get());
 
-	// Handle scalar op vector  or  vector op scalar
-	// We can't short-circuit everything since we need to eval
-	// a vector in order to find out its length.
-	if ( ! (is_vec1 && is_vec2) )
-		{ // Only one is a vector.
-		ValPtr scalar_v;
-		VectorValPtr vector_v;
-
-		if ( is_vec1 )
-			{
-			scalar_v = op2->Eval(f);
-			vector_v = {AdoptRef{}, v1.release()->AsVectorVal()};
-			}
-		else
-			{
-			scalar_v = std::move(v1);
-			vector_v = {AdoptRef{}, op2->Eval(f).release()->AsVectorVal()};
-			}
-
-		if ( ! scalar_v || ! vector_v )
-			return nullptr;
-
-		VectorValPtr result;
-
-		// It's either an EXPR_AND_AND or an EXPR_OR_OR.
-		bool is_and = (tag == EXPR_AND_AND);
-
-		if ( scalar_v->IsZero() == is_and )
-			{
-			result = make_intrusive<VectorVal>(GetType<VectorType>());
-			result->Resize(vector_v->Size());
-			result->AssignRepeat(0, result->Size(), std::move(scalar_v));
-			}
-		else
-			result = std::move(vector_v);
-
-		return result;
-		}
-
-	// Only case remaining: both are vectors.
+	// Both are vectors.
 	auto v2 = op2->Eval(f);
 
 	if ( ! v2 )
@@ -2206,8 +2094,6 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 		return; // because following scalar check isn't apt
 		}
 
-	CheckScalarAggOp();
-
 	if ( (bt1 == TYPE_COUNT) && (bt2 == TYPE_COUNT) )
 		{
 		if ( is_vector(op1) || is_vector(op2) )
@@ -2249,15 +2135,11 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
 
-	TypeTag bt1 = t1->Tag();
-	if ( IsVector(bt1) )
-		bt1 = t1->AsVectorType()->Yield()->Tag();
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
 
-	TypeTag bt2 = t2->Tag();
-	if ( IsVector(bt2) )
-		bt2 = t2->AsVectorType()->Yield()->Tag();
-
-	if ( is_vector(op1) || is_vector(op2) )
+	if ( is_vector(op1) )
 		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
 	else
 		SetType(base_type(TYPE_BOOL));
@@ -2310,8 +2192,6 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 
 	else
 		ExprError("type clash in comparison");
-
-	CheckScalarAggOp();
 	}
 
 void EqExpr::Canonicalize()
@@ -2364,15 +2244,11 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	const auto& t1 = op1->GetType();
 	const auto& t2 = op2->GetType();
 
-	TypeTag bt1 = t1->Tag();
-	if ( IsVector(bt1) )
-		bt1 = t1->AsVectorType()->Yield()->Tag();
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
 
-	TypeTag bt2 = t2->Tag();
-	if ( IsVector(bt2) )
-		bt2 = t2->AsVectorType()->Yield()->Tag();
-
-	if ( is_vector(op1) || is_vector(op2) )
+	if ( is_vector(op1) )
 		SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
 	else
 		SetType(base_type(TYPE_BOOL));
@@ -2392,8 +2268,6 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 	else if ( bt1 != TYPE_TIME && bt1 != TYPE_INTERVAL && bt1 != TYPE_PORT && bt1 != TYPE_ADDR &&
 	          bt1 != TYPE_STRING )
 		ExprError("illegal comparison");
-
-	CheckScalarAggOp();
 	}
 
 void RelExpr::Canonicalize()
@@ -3189,6 +3063,15 @@ void IndexExpr::ExprDescribe(ODesc* d) const
 		d->Add("]");
 	}
 
+static void report_field_deprecation(const RecordType* rt, const Expr* e, int field,
+                                     bool has_check = false)
+	{
+	reporter->Deprecation(util::fmt("%s (%s)",
+	                                rt->GetFieldDeprecationWarning(field, has_check).c_str(),
+	                                obj_desc_short(e).c_str()),
+	                      e->GetLocationInfo());
+	}
+
 FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 	: UnaryExpr(EXPR_FIELD, std::move(arg_op)), field_name(util::copy_string(arg_field_name)),
 	  td(nullptr), field(0)
@@ -3211,7 +3094,7 @@ FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 			td = rt->FieldDecl(field);
 
 			if ( rt->IsFieldDeprecated(field) )
-				Warn(rt->GetFieldDeprecationWarning(field, false).c_str());
+				report_field_deprecation(rt, this, field);
 			}
 		}
 	}
@@ -3296,7 +3179,7 @@ HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
 		if ( field < 0 )
 			ExprError("no such field in record");
 		else if ( rt->IsFieldDeprecated(field) )
-			Warn(rt->GetFieldDeprecationWarning(field, true).c_str());
+			report_field_deprecation(rt, this, field, true);
 
 		SetType(base_type(TYPE_BOOL));
 		}
@@ -3427,7 +3310,7 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 				}
 			}
 		else if ( known_rt->IsFieldDeprecated(i) )
-			Warn(known_rt->GetFieldDeprecationWarning(i, false).c_str());
+			report_field_deprecation(known_rt.get(), this, i);
 	}
 
 ValPtr RecordConstructorExpr::Eval(Frame* f) const
@@ -4218,7 +4101,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r)
 					}
 				}
 			else if ( t_r->IsFieldDeprecated(i) )
-				Warn(t_r->GetFieldDeprecationWarning(i, false).c_str());
+				report_field_deprecation(t_r, this, i);
 			}
 		}
 	}
@@ -4332,6 +4215,10 @@ TableCoerceExpr::TableCoerceExpr(ExprPtr arg_op, TableTypePtr tt, bool type_chec
 			SetError();
 			return;
 			}
+
+		if ( op->Tag() == EXPR_TABLE_COERCE && op->GetType() == tt )
+			// Avoid double-coercion.
+			op = op->GetOp1();
 		}
 
 	SetType(std::move(tt));
@@ -4750,14 +4637,14 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList arg_outer_ids,
+LambdaExpr::LambdaExpr(std::unique_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
                        StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
 
-	SetType(ingredients->id->GetType());
+	SetType(ingredients->GetID()->GetType());
 
 	if ( ! CheckCaptures(when_parent) )
 		{
@@ -4767,9 +4654,9 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
-	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->id);
-	dummy_func->AddBody(ingredients->body, ingredients->inits, ingredients->frame_size,
-	                    ingredients->priority);
+	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
+	dummy_func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
+	                    ingredients->Priority());
 
 	dummy_func->SetOuterIDs(outer_ids);
 
@@ -4804,7 +4691,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<function_ingredients> arg_ing, IDPList ar
 
 	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
 	lambda_id->SetVal(std::move(v));
-	lambda_id->SetType(ingredients->id->GetType());
+	lambda_id->SetType(ingredients->GetID()->GetType());
 	lambda_id->SetConst();
 	}
 
@@ -4892,14 +4779,14 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 
 ScopePtr LambdaExpr::GetScope() const
 	{
-	return ingredients->scope;
+	return ingredients->Scope();
 	}
 
 ValPtr LambdaExpr::Eval(Frame* f) const
 	{
-	auto lamb = make_intrusive<ScriptFunc>(ingredients->id);
-	lamb->AddBody(ingredients->body, ingredients->inits, ingredients->frame_size,
-	              ingredients->priority);
+	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
+	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
+	              ingredients->Priority());
 
 	lamb->CreateCaptures(f);
 
@@ -4913,7 +4800,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(expr_name(Tag()));
-	ingredients->body->Describe(d);
+	ingredients->Body()->Describe(d);
 	}
 
 TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
@@ -4928,7 +4815,7 @@ TraversalCode LambdaExpr::Traverse(TraversalCallback* cb) const
 	tc = lambda_id->Traverse(cb);
 	HANDLE_TC_EXPR_PRE(tc);
 
-	tc = ingredients->body->Traverse(cb);
+	tc = ingredients->Body()->Traverse(cb);
 	HANDLE_TC_EXPR_PRE(tc);
 
 	tc = cb->PostExpr(this);

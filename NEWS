@@ -67,8 +67,50 @@ Breaking Changes
   If you see opportunities to extend ``repo-info.json`` with further information,
   please get in touch.
 
+- Plugin authors should raise the minimum required CMake version to 3.15 to
+  ensure compatibility with new CMake scaffolding included in this
+  release. Older versions will trigger a warning at configuration time and,
+  depending on the functionality included in the plugin, may trigger subsequent
+  errors during configuration or build.
+
+- The IRC_Data analyzer declaration has been moved to protocols/irc/IRC.h.
+
 New Functionality
 -----------------
+
+- Zeek now features experimental JavaScript support:
+
+	/* hello.js */
+	zeek.on('zeek_init', () => {
+	  console.log('Hello, Zeek!');
+	});
+
+	$ zeek ./hello.js
+	Hello, Zeek!
+
+  When building Zeek on a system that features a recent (16.13+) version of the
+  libnode package with development headers, Zeek automatically includes the
+  externally-maintained ZeekJS plugin (https://github.com/corelight/zeekjs) as a
+  builtin plugin. This allows Zeek to load and execute JavaScript code located
+  in ``.js`` or ``.cjs`` files. When no such files are passed to Zeek, the
+  JavaScript engine and Node.js environment aren't initialized and there is no
+  runtime impact.
+
+  The Linux distributions Fedora 37 & 38, Ubuntu 22.10, and the upcoming Debian
+  12 release provide suitable packages. On other platforms, Node.js can be built
+  from source with the ``--shared`` option.
+
+  To disable this functionality, pass ``--disable-javascript`` to configure.
+
+- Zeek now provides native "Community ID" support with a new bif called
+  ``community_id_v1()``. Two policy scripts ``protocols/conn/community-id-logging``
+   and ``frameworks/notice/community-id`` extend the respective logs with a
+  ``community_id`` field the same way as the external zeek-community-id plugin
+  provides. A main difference to the external ``hash_conn()`` bif is that the
+  ``community_id_v1()`` takes a ``conn_id`` record instead of a ``connection``.
+
+  Loading the new policy scripts and using the external zeek-community-id
+  plugin at the same time is unsupported.
 
 - Introduce a new command-line option ``-V`` / ``--build-info``. It produces
   verbose output in JSON format about the repository state and any included
@@ -91,6 +133,64 @@ New Functionality
   ``Z`` field remains unchanged and continues to subsume the two flags, for
   backward compatibility.
 
+- The supervisor framework can now start worker nodes that read from a trace file.
+
+- Zeek can be prevented from updating ``network_time()`` to the current time
+  by setting ``allow_network_time_forward=F``. Together with ``set_network_time()``
+  or a custom plugin, this allows control of ``network_time()`` without Zeek
+  interfering.
+
+- The setting ``Pcap::non_fd_timeout`` can be used to configure the timeout
+  used by non-selectable packet sources in the idle case (default 20usec).
+  This value has previously been hard-coded, but increasing it can significantly
+  reduce idle CPU usage in low packet rate deployments.
+
+- Zeek now supports a new ``@pragma`` directive. It currently allows suppressing
+  deprecation warnings in Zeek scripts by opening with
+  ``@pragma push ignore-deprecations`` and closing with ``@pragma pop``.
+  This particularly helps in situations where use of the Zeek base scripts, for
+  example to populate a deprecated field for API compatibility, would otherwise
+  trigger deprecation warnings.
+
+- The ``Reporter`` class was extended by a ``Deprecation()`` method to use
+  for logging deprecations rather than using ad-hoc ``Warning()`` calls.
+
+- The network statistics record type features a new ``pkts_filtered`` field for
+  reporting the number of packets that the interface filtered before hand-off to
+  Zeek. Packet source implementations are free to fill this field as
+  feasible. The default pcap packet source does not provide this information
+  because its availability depends on the libpcap version.
+
+- Packet statistics (packets received, packets dropped, bytes received, packets
+  seen on link, and packets filtered) are now reported to the Telemetry
+  framework, under the ``zeek_net`` prefix.
+
+- Zeek's cluster framework provides the new ``get_node_count(node_type: NodeType)``
+  function to obtain the number of nodes for a given node type as defined in the
+  cluster layout. Furthermore, ``broadcast_topics`` was added as a collection of
+  broker topics that can be used to reach all nodes in a cluster.
+
+- The new ``Cluster::Experimental`` namespace has been introduced to Zeek's cluster
+  framework to provide experimental features. Based on practical experiences and the
+  adoption of an experimental feature, it may become a regular feature or be removed
+  in future releases. Experimental features are loaded via:
+  ``@load policy/frameworks/cluster/experimental``
+
+- Zeek's cluster framework provides two new experimental events:
+
+  - ``cluster_started``: This event will be broadcasted from the manager once all
+    cluster-level connections have been established based on the given cluster layout.
+    If any node restarts (including the manager itself), the event will neither be
+    rebroadcasted nor raised locally for the restarted node.
+
+  - ``node_fully_connected``: This event will be sent to the manager and raised
+    locally once a cluster node has successfully conducted cluster-level handshakes
+    for all its outgoing connections to other cluster nodes based on the given cluster
+    layout.
+
+  Note: There is no tracking of cluster node connectivity. Thus, there is no guarantee
+  that all peerings still exist at the time of these events being raised.
+
 Changed Functionality
 ---------------------
 
@@ -100,7 +200,7 @@ Changed Functionality
 
 - The ``&on_change`` attribute of set and tables is propagated through ``copy()``.
 
-- Revert back to old method of preallocting ``PortVal`` objects for all valid
+- Revert back to old method of preallocating ``PortVal`` objects for all valid
   port numbers, as it was implemented prior to the Windows port. Not
   preallocating these objects saves a minor amount of memory for short runs of
   Zeek, but comes at a performance cost for having to allocate the objects every
@@ -111,6 +211,94 @@ Changed Functionality
   If the version from the Windows port is desired, a new configure option
   ``--disable-port-prealloc`` will disable the preallocation and enable the map
   lookup version.
+
+- The main-loop has been changed to process all ready IO sources with a
+  zero timeout in the same loop iteration. Previously, two zero-timeout
+  sources would require two main-loop iterations. Further, when the main-loop
+  is polling IO sources with file descriptors, zero timeout IO sources are
+  added to the list of sources to be processed as well.
+
+  The intervals to decide when Zeek checks FD-based IO sources for readiness
+  have been made configurable through ``io_poll_interval_default`` and
+  ``io_poll_interval_live`` for ease of testing, development and debugging
+  of the main-loop.
+
+- Zeek does not arbitrarily update ``network_time()`` to current time anymore.
+  When a packet source is providing a constant stream of packets, packets
+  drive network time. Previously, Zeek updated network time to current
+  time in various situations, disregarding timestamps of network packets.
+  Zeek will now update ``network_time()`` only when a packet source has been
+  inactive/idle for an interval of ``packet_source_inactivity_timeout``
+  (default 100msec). When a worker process suddenly observes no packets, timer
+  expiration may initially be delayed by ``packet_source_inactivity_timeout``.
+
+- Calling ``suspend_processing()`` when reading traces does not update network
+  time to the current time anymore. Instead, Zeek keeps ``network_time()``
+  according to the trace file. This causes scheduled events to not fire once
+  ``suspend_processing()`` is called, which seems more reasonable than
+  arbitrarily setting ``network_time()`` to current time. Processing can still
+  be continued from broker events or input readers.
+
+- Previously, Zeek would process and dispatch events for the very first packet
+  in a trace file in order to initialize time, even if ``suspend_processing()``
+  was called in a ``zeek_init()`` handler. This has been changed such that the
+  first packet will only be processed once ``continue_processing()`` has been
+  invoked again. Some background around the previous behavior can be found
+  in GH-938. Given that the ``network_time_init()`` event explicitly signals
+  initialization of network time, this behavior seems more reasonable.
+
+- If an event is scheduled with a 0.0sec timeout from a ``zeek_init()`` handler
+  that also invokes ``suspend_processing()``, the scheduled event will fire
+  immediately with ``network_time()`` still yielding ``0.0``. Previously,
+  ``network_time()`` was set to the current time. The new behavior provides
+  more deterministic operation and aligns with timers stopping during a
+  ``suspend_processing()``.
+
+- Broker no longer initializes network time to current time when processing
+  input. Particularly in combination with pcap processing this was not desirable
+  behavior.
+
+- The IO loop's poll interval is now correctly reduced from 100 to 10 for
+  live packet sources. This should lower CPU usage for deployments with
+  non-selectable packet sources.
+
+- Zeek's CMake scaffolding has received an overhaul for modernizing the build
+  system and to make it easier to maintain going forward. Plugins can now use a
+  declarative interface for adding all sources, BIFs, etc. in one block instead
+  of using the previous begin/end functions. While the old plugin functions
+  still exist for backward compatibility, the underlying codebase requires newer
+  CMake features. Plugin authors should raise their minimum required CMake
+  version to 3.15, to match Zeek's.
+
+- The IRC data analyzer does not extract DCC acknowledgements to files anymore.
+  Instead, ``irc_dcc_send_ack`` is raised with the bytes acknowledged by the
+  recipient.
+
+- The IRC base script now use ``file_sniff()`` instead of ``file_new()`` for
+  DCC file transfers to capture ``fuid`` and inferred MIME type in irc.log.
+
+- The ``ignore_checksums`` script variable now reflects the correct value
+  when using the ``-C`` command-line flag.
+
+Removed Functionality
+---------------------
+
+- Mixing vector and scalar operands for binary expressions, like addition,
+  multiplication, etc., is now an error.
+
+- Using deprecated ``when`` semantics without capturing variables is now an error.
+
+- Referencing local variables in a more outer scope than where they were declared
+  is now an error
+
+Deprecated Functionality
+------------------------
+
+- The cluster framework's ``worker_count`` has been deprecated in favor of the
+  new function ``get_active_node_count(node_type: NodeType)`` that can be used
+  to obtain the number of nodes of a given type the calling node is currently
+  connected to.
+
 
 Zeek 5.2.0
 ==========

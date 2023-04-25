@@ -44,6 +44,13 @@ export {
 	## time machine nodes in a cluster.  Used with broker-enabled cluster communication.
 	const time_machine_topic = "zeek/cluster/time_machine" &redef;
 
+	## A set of topic names to be used for broadcasting messages that are
+	## relevant to all nodes in a cluster. Currently, there is not a common
+	## topic to broadcast to, because enabling implicit Broker forwarding would
+	## cause a routing loop for this topic.
+	const broadcast_topics = { logger_topic, manager_topic, proxy_topic,
+		worker_topic, time_machine_topic };
+
 	## The topic prefix used for exchanging messages that are relevant to
 	## a named node in a cluster.  Used with broker-enabled cluster communication.
 	const node_topic_prefix = "zeek/cluster/node/" &redef;
@@ -184,6 +191,12 @@ export {
 		id: string                &optional;
 	};
 
+	## Record to represent a cluster node including its name.
+	type NamedNode: record {
+		name: string;
+		node: Node;
+	};
+
 	## This function can be called at any time to determine if the cluster
 	## framework is being enabled for this run.
 	##
@@ -202,7 +215,7 @@ export {
 	## and it's maintained internally by the cluster framework.  It's
 	## primarily intended for use by managers to find out how many workers
 	## should be responding to requests.
-	global worker_count: count = 0;
+	global worker_count: count = 0 &deprecated="Remove in v6.1. Active worker count can be obtained via get_active_node_count(Cluster::WORKER)";
 
 	## The cluster layout definition.  This should be placed into a filter
 	## named cluster-layout.zeek somewhere in the ZEEKPATH.  It will be
@@ -211,6 +224,15 @@ export {
 	## The table is typically indexed by node names/labels (e.g. "manager"
 	## or "worker-1").
 	const nodes: table[string] of Node = {} &redef;
+
+	## Returns the number of nodes defined in the cluster layout for a given
+	## node type.
+	global get_node_count: function(node_type: NodeType): count;
+
+	## Returns the number of nodes per type, the calling node is currently
+	## connected to. This is primarily intended for use by the manager to find
+	## out how many nodes should be responding to requests.
+	global get_active_node_count: function(node_type: NodeType): count;
 
 	## Indicates whether or not the manager will act as the logger and receive
 	## logs.  This value should be set in the cluster-layout.zeek script (the
@@ -262,35 +284,41 @@ export {
 	global nodeid_topic: function(id: string): string;
 }
 
-global active_worker_ids: set[string] = set();
-
-type NamedNode: record {
-	name: string;
-	node: Node;
-};
+# Track active nodes per type.
+global active_node_ids: table[NodeType] of set[string];
 
 function nodes_with_type(node_type: NodeType): vector of NamedNode
 	{
 	local rval: vector of NamedNode = vector();
-	local names: vector of string = vector();
 
-	for ( name in Cluster::nodes )
-		names += name;
-
-	names = sort(names, strcmp);
-
-	for ( i in names )
+	for ( name, n in Cluster::nodes )
 		{
-		name = names[i];
-		local n = Cluster::nodes[name];
-
 		if ( n$node_type != node_type )
 			next;
 
 		rval += NamedNode($name=name, $node=n);
 		}
 
-	return rval;
+	return sort(rval, function(n1: NamedNode, n2: NamedNode): int
+		{ return strcmp(n1$name, n2$name); });
+	}
+
+function Cluster::get_node_count(node_type: NodeType): count
+	{
+	local cnt = 0;
+
+	for ( _, n in nodes )
+		{
+		if ( n$node_type == node_type )
+			++cnt;
+		}
+
+	return cnt;
+	}
+
+function Cluster::get_active_node_count(node_type: NodeType): count
+	{
+	return |active_node_ids[node_type]|;
 	}
 
 function is_enabled(): bool
@@ -319,6 +347,8 @@ function nodeid_topic(id: string): string
 	return nodeid_topic_prefix + id + "/";
 	}
 
+@if ( Cluster::is_enabled() )
+
 event Cluster::hello(name: string, id: string) &priority=10
 	{
 	if ( name !in nodes )
@@ -341,11 +371,14 @@ event Cluster::hello(name: string, id: string) &priority=10
 	n$id = id;
 	Cluster::log(fmt("got hello from %s (%s)", name, id));
 
+	if ( n$node_type !in active_node_ids )
+		active_node_ids[n$node_type] = set();
+	add active_node_ids[n$node_type][id];
+
+@pragma push ignore-deprecations
 	if ( n$node_type == WORKER )
-		{
-		add active_worker_ids[id];
-		worker_count = |active_worker_ids|;
-		}
+		worker_count = |active_node_ids[WORKER]|;
+@pragma pop ignore-deprecations
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=10
@@ -365,12 +398,12 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 			{
 			Cluster::log(fmt("node down: %s", node_name));
 			delete n$id;
+			delete active_node_ids[n$node_type][endpoint$id];
 
+@pragma push ignore-deprecations
 			if ( n$node_type == WORKER )
-				{
-				delete active_worker_ids[endpoint$id];
-				worker_count = |active_worker_ids|;
-				}
+				worker_count = |active_node_ids[WORKER]|;
+@pragma pop ignore-deprecations
 
 			event Cluster::node_down(node_name, endpoint$id);
 			break;
@@ -389,6 +422,8 @@ event zeek_init() &priority=5
 
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster", $policy=log_policy]);
 	}
+
+@endif
 
 function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo
 	{

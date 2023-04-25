@@ -43,7 +43,7 @@ ListValPtr index_val__CPP(vector<ValPtr> indices)
 
 ValPtr index_table__CPP(const TableValPtr& t, vector<ValPtr> indices)
 	{
-	auto v = t->FindOrDefault(index_val__CPP(move(indices)));
+	auto v = t->FindOrDefault(index_val__CPP(std::move(indices)));
 	if ( ! v )
 		reporter->CPPRuntimeError("no such index");
 	return v;
@@ -59,7 +59,7 @@ ValPtr index_vec__CPP(const VectorValPtr& vec, int index)
 
 ValPtr index_string__CPP(const StringValPtr& svp, vector<ValPtr> indices)
 	{
-	return index_string(svp->AsString(), index_val__CPP(move(indices)).get());
+	return index_string(svp->AsString(), index_val__CPP(std::move(indices)).get());
 	}
 
 ValPtr when_index_table__CPP(const TableValPtr& t, vector<ValPtr> indices)
@@ -168,7 +168,7 @@ static void check_iterators__CPP(bool invalid)
 template <typename T> ValPtr assign_to_index__CPP(T v1, ValPtr v2, ValPtr v3)
 	{
 	bool iterators_invalidated = false;
-	auto err_msg = assign_to_index(move(v1), move(v2), v3, iterators_invalidated);
+	auto err_msg = assign_to_index(std::move(v1), std::move(v2), v3, iterators_invalidated);
 
 	check_iterators__CPP(iterators_invalidated);
 
@@ -180,15 +180,15 @@ template <typename T> ValPtr assign_to_index__CPP(T v1, ValPtr v2, ValPtr v3)
 
 ValPtr assign_to_index__CPP(TableValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<TableValPtr>(move(v1), move(v2), move(v3));
+	return assign_to_index__CPP<TableValPtr>(std::move(v1), std::move(v2), std::move(v3));
 	}
 ValPtr assign_to_index__CPP(VectorValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<VectorValPtr>(move(v1), move(v2), move(v3));
+	return assign_to_index__CPP<VectorValPtr>(std::move(v1), std::move(v2), std::move(v3));
 	}
 ValPtr assign_to_index__CPP(StringValPtr v1, ValPtr v2, ValPtr v3)
 	{
-	return assign_to_index__CPP<StringValPtr>(move(v1), move(v2), move(v3));
+	return assign_to_index__CPP<StringValPtr>(std::move(v1), std::move(v2), std::move(v3));
 	}
 
 void add_element__CPP(TableValPtr aggr, ListValPtr indices)
@@ -225,17 +225,17 @@ static AttributesPtr build_attrs__CPP(vector<int> attr_tags, vector<ValPtr> attr
 		attrs.emplace_back(make_intrusive<Attr>(t_i, e));
 		}
 
-	return make_intrusive<Attributes>(move(attrs), nullptr, false, false);
+	return make_intrusive<Attributes>(std::move(attrs), nullptr, false, false);
 	}
 
 TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t, vector<int> attr_tags,
                                  vector<ValPtr> attr_vals)
 	{
-	auto attrs = build_attrs__CPP(move(attr_tags), move(attr_vals));
-	auto aggr = make_intrusive<TableVal>(move(t), move(attrs));
+	auto attrs = build_attrs__CPP(std::move(attr_tags), std::move(attr_vals));
+	auto aggr = make_intrusive<TableVal>(std::move(t), std::move(attrs));
 
 	for ( auto& elem : elements )
-		aggr->Assign(move(elem), nullptr);
+		aggr->Assign(std::move(elem), nullptr);
 
 	return aggr;
 	}
@@ -246,14 +246,14 @@ TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals, 
 	const auto& yt = t->Yield();
 	auto n = indices.size();
 
-	auto attrs = build_attrs__CPP(move(attr_tags), move(attr_vals));
-	auto aggr = make_intrusive<TableVal>(move(t), move(attrs));
+	auto attrs = build_attrs__CPP(std::move(attr_tags), std::move(attr_vals));
+	auto aggr = make_intrusive<TableVal>(std::move(t), std::move(attrs));
 
 	for ( auto i = 0u; i < n; ++i )
 		{
 		auto v = check_and_promote(vals[i], yt, true);
 		if ( v )
-			aggr->Assign(move(indices[i]), move(v));
+			aggr->Assign(std::move(indices[i]), std::move(v));
 		}
 
 	return aggr;
@@ -261,7 +261,7 @@ TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals, 
 
 void assign_attrs__CPP(IDPtr id, std::vector<int> attr_tags, std::vector<ValPtr> attr_vals)
 	{
-	id->SetAttrs(build_attrs__CPP(move(attr_tags), move(attr_vals)));
+	id->SetAttrs(build_attrs__CPP(std::move(attr_tags), std::move(attr_vals)));
 	}
 
 RecordValPtr record_constructor__CPP(vector<ValPtr> vals, RecordTypePtr t)
@@ -309,7 +309,7 @@ RecordValPtr record_constructor_map__CPP(vector<ValPtr> vals, vector<int> map, R
 
 VectorValPtr vector_constructor__CPP(vector<ValPtr> vals, VectorTypePtr t)
 	{
-	auto vv = make_intrusive<VectorVal>(move(t));
+	auto vv = make_intrusive<VectorVal>(std::move(t));
 	auto n = vals.size();
 
 	for ( auto i = 0u; i < n; ++i )
@@ -321,7 +321,7 @@ VectorValPtr vector_constructor__CPP(vector<ValPtr> vals, VectorTypePtr t)
 ValPtr schedule__CPP(double dt, EventHandlerPtr event, vector<ValPtr> args)
 	{
 	if ( ! run_state::terminating )
-		timer_mgr->Add(new ScheduleTimer(event, move(args), dt));
+		timer_mgr->Add(new ScheduleTimer(event, std::move(args), dt));
 
 	return nullptr;
 	}

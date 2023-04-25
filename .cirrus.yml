@@ -8,7 +8,7 @@
 cpus: &CPUS 4
 btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
-memory: &MEMORY 12GB
+memory: &MEMORY 16GB
 
 config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
 static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache
@@ -61,7 +61,7 @@ builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
     ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-    ( $CIRRUS_REPO_NAME == 'zeek' &&
+    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       (
       $CIRRUS_BRANCH == 'master' ||
       $CIRRUS_BRANCH =~ 'release/.*'
@@ -201,6 +201,14 @@ centos7_task:
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
 
+debian12_task:
+  container:
+    # Debian 12 (bookworm) EOL: (not yet released)
+    dockerfile: ci/debian-12/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
+
 debian11_task:
   container:
     # Debian 11 EOL: June 2026
@@ -254,7 +262,6 @@ ubuntu2210_task:
     dockerfile: ci/ubuntu-22.10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
 
 ubuntu22_task:
   container:
@@ -491,11 +498,13 @@ arm64_container_image_docker_builder:
   env:
     CIRRUS_ARCH: arm64
   << : *DOCKER_BUILD_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 amd64_container_image_docker_builder:
   env:
     CIRRUS_ARCH: amd64
   << : *DOCKER_BUILD_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 container_image_manifest_docker_builder:
   cpu: 1
@@ -632,6 +641,7 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
+  << : *SKIP_TASK_ON_PR
 
 
 # Test zeekctl upon master and release pushes and also when

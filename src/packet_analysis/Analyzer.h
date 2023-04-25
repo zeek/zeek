@@ -237,8 +237,9 @@ protected:
 	 * Triggers analysis of the encapsulated packet. The encapsulated protocol
 	 * is determined using the given identifier.
 	 *
+	 * @param len The length of the data left to analyze.
+	 * @param data Pointer to the payload in the raw packet left to analyze.
 	 * @param packet The packet to analyze.
-	 * @param data Reference to the payload pointer into the raw packet.
 	 * @param identifier The identifier of the encapsulated protocol.
 	 *
 	 * @return false if the analysis failed, else true.
@@ -249,8 +250,9 @@ protected:
 	 * Triggers default analysis of the encapsulated packet if the default analyzer
 	 * is set.
 	 *
+	 * @param len The length of the data left to analyze.
+	 * @param data Pointer to the payload in the raw packet left to analyze.
 	 * @param packet The packet to analyze.
-	 * @param data Reference to the payload pointer into the raw packet.
 	 *
 	 * @return false if the analysis failed, else true.
 	 */

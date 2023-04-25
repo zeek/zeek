@@ -295,7 +295,6 @@ function handle_end_of_result_collection(uid: string, ss_name: string, key: Key,
 		return;
 		}
 
-	#print fmt("worker_count:%d :: done_with:%d", Cluster::worker_count, done_with[uid]);
 	local ss = stats_store[ss_name];
 	local ir = key_requests[uid];
 	if ( check_thresholds(ss, key, ir, 1.0) )
@@ -357,7 +356,7 @@ event SumStats::send_no_key(uid: string, ss_name: string)
 		done_with[uid] = 0;
 
 	++done_with[uid];
-	if ( Cluster::worker_count == done_with[uid] )
+	if ( Cluster::get_active_node_count(Cluster::WORKER) == done_with[uid] )
 		{
 		delete done_with[uid];
 
@@ -394,7 +393,7 @@ event SumStats::send_a_key(uid: string, ss_name: string, key: Key)
 		add stats_keys[uid][key];
 
 	++done_with[uid];
-	if ( Cluster::worker_count == done_with[uid] )
+	if ( Cluster::get_active_node_count(Cluster::WORKER) == done_with[uid] )
 		{
 		delete done_with[uid];
 
@@ -437,7 +436,7 @@ event SumStats::cluster_send_result(uid: string, ss_name: string, key: Key, resu
 	++done_with[uid];
 
 	if ( uid !in dynamic_requests &&
-	     uid in done_with && Cluster::worker_count == done_with[uid] )
+	     uid in done_with && Cluster::get_active_node_count(Cluster::WORKER) == done_with[uid] )
 		{
 		handle_end_of_result_collection(uid, ss_name, key, cleanup);
 
@@ -481,7 +480,8 @@ function request_key(ss_name: string, key: Key): Result
 	add dynamic_requests[uid];
 
 	event SumStats::cluster_get_result(uid, ss_name, key, F);
-	return when [uid, ss_name, key] ( uid in done_with && Cluster::worker_count == done_with[uid] )
+	return when [uid, ss_name, key] ( uid in done_with &&
+		Cluster::get_active_node_count(Cluster::WORKER) == done_with[uid] )
 		{
 		#print "done with request_key";
 		local result = key_requests[uid];

@@ -216,7 +216,7 @@ private:
 	int zero_timeout_count = 0;
 	WakeupHandler* wakeup = nullptr;
 	int poll_counter = 0;
-	int poll_interval = 100;
+	int poll_interval = 0; // Set in InitPostScript() based on const value.
 
 	int event_queue = -1;
 	std::map<int, IOSource*> fd_map;

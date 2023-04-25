@@ -46,7 +46,8 @@ global sent_data = F;
 
 event Cluster::node_up(name: string, id: string)
 	{
-	if ( Cluster::local_node_type() == Cluster::PROXY && Cluster::worker_count == 2 )
+	if ( Cluster::local_node_type() == Cluster::PROXY &&
+		 Cluster::get_active_node_count(Cluster::WORKER) == 2 )
 		{
 		# Make the proxy tell the manager explicitly when both workers
 		# have checked in. The cluster framework normally generates this
@@ -63,7 +64,8 @@ event Cluster::node_up(name: string, id: string)
 
 		# Insert data once both workers and the proxy are connected, and
 		# the proxy has indicated that it too has both workers connected.
-		if ( Cluster::worker_count == 2 && Cluster::proxy_pool$alive_count == 1 && proxy_ready )
+		if ( Cluster::get_active_node_count(Cluster::WORKER) == 2 &&
+			 Cluster::proxy_pool$alive_count == 1 && proxy_ready )
 			Intel::insert([$indicator="1.2.3.4", $indicator_type=Intel::ADDR, $meta=[$source="manager"]]);
 		}
 	}

@@ -57,3 +57,34 @@ Nachos,
 dx3d51,
 TooFast
 }
+irc_dcc_send_ack, 1400
+irc_dcc_send_ack, 2800
+irc_dcc_send_ack, 4200
+irc_dcc_send_ack, 5600
+irc_dcc_send_ack, 7000
+irc_dcc_send_ack, 8400
+irc_dcc_send_ack, 9800
+irc_dcc_send_ack, 11200
+irc_dcc_send_ack, 12288
+irc_dcc_send_ack, 13688
+irc_dcc_send_ack, 15088
+irc_dcc_send_ack, 16384
+irc_dcc_send_ack, 17784
+irc_dcc_send_ack, 19184
+irc_dcc_send_ack, 20480
+irc_dcc_send_ack, 21880
+irc_dcc_send_ack, 23280
+irc_dcc_send_ack, 24576
+irc_dcc_send_ack, 25976
+irc_dcc_send_ack, 27376
+irc_dcc_send_ack, 28672
+irc_dcc_send_ack, 30072
+irc_dcc_send_ack, 31472
+irc_dcc_send_ack, 32768
+irc_dcc_send_ack, 34168
+irc_dcc_send_ack, 35568
+irc_dcc_send_ack, 36864
+irc_dcc_send_ack, 38264
+irc_dcc_send_ack, 39664
+irc_dcc_send_ack, 40960
+irc_dcc_send_ack, 42208

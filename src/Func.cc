@@ -44,6 +44,7 @@
 // break what symbols are available when, which keeps the build from breaking.
 // clang-format off
 #include "zeek.bif.func_h"
+#include "communityid.bif.func_h"
 #include "stats.bif.func_h"
 #include "reporter.bif.func_h"
 #include "strings.bif.func_h"
@@ -53,6 +54,7 @@
 #include "CPP-load.bif.func_h"
 
 #include "zeek.bif.func_def"
+#include "communityid.bif.func_def"
 #include "stats.bif.func_def"
 #include "reporter.bif.func_def"
 #include "strings.bif.func_def"
@@ -862,16 +864,18 @@ static std::set<EventGroupPtr> get_func_groups(const std::vector<AttrPtr>& attrs
 	return groups;
 	}
 
-function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body,
-                                           const std::string& module_name)
+FunctionIngredients::FunctionIngredients(ScopePtr _scope, StmtPtr _body,
+                                         const std::string& module_name)
 	{
+	scope = std::move(_scope);
+	body = std::move(_body);
+
 	frame_size = scope->Length();
 	inits = scope->GetInits();
 
-	this->scope = std::move(scope);
-	id = this->scope->GetID();
+	id = scope->GetID();
 
-	const auto& attrs = this->scope->Attrs();
+	const auto& attrs = scope->Attrs();
 
 	if ( attrs )
 		{
@@ -890,15 +894,11 @@ function_ingredients::function_ingredients(ScopePtr scope, StmtPtr body,
 	else
 		priority = 0;
 
-	this->body = std::move(body);
-	this->module_name = module_name;
-
 	// Implicit module event groups for events and hooks.
 	auto flavor = id->GetType<zeek::FuncType>()->Flavor();
 	if ( flavor == FUNC_FLAVOR_EVENT || flavor == FUNC_FLAVOR_HOOK )
 		{
-		auto module_group = event_registry->RegisterGroup(EventGroupKind::Module,
-		                                                  this->module_name);
+		auto module_group = event_registry->RegisterGroup(EventGroupKind::Module, module_name);
 		groups.insert(module_group);
 		}
 	}
@@ -1038,6 +1038,7 @@ void init_primary_bifs()
 	var_sizes = id::find_type("var_sizes")->AsTableType();
 
 #include "CPP-load.bif.func_init"
+#include "communityid.bif.func_init"
 #include "option.bif.func_init"
 #include "packet_analysis.bif.func_init"
 #include "reporter.bif.func_init"

@@ -33,14 +33,6 @@ protected:
 	std::string file_id_resp;
 	};
 
-class IRC_Data : public File_Analyzer
-	{
-public:
-	explicit IRC_Data(Connection* conn) : File_Analyzer("IRC_Data", conn) { }
-
-	static Analyzer* Instantiate(Connection* conn) { return new IRC_Data(conn); }
-	};
-
 class FTP_Data : public File_Analyzer
 	{
 public:

@@ -708,5 +708,5 @@ event ssl_connection_flipped%(c: connection%);
 ##
 ## .. zeek:see:: ssl_handshake_message x509_certificate ssl_server_hello ssl_client_hello
 ##               parse_distinguished_name
-event ssl_certificate_request%(c: connection, is_client: bool, certificate_types: index_vec, supported_signature_algorithms: SSL::SignatureAndHashAlgorithm, certificate_authorities: string_vec%);
+event ssl_certificate_request%(c: connection, is_client: bool, certificate_types: index_vec, supported_signature_algorithms: signature_and_hashalgorithm_vec, certificate_authorities: string_vec%);
 

@@ -138,6 +138,11 @@ public:
 		 * Typically used by worker nodes.
 		 */
 		std::optional<std::string> interface;
+		/**
+		 * The PCAP file name from which the node read/analyze packets.
+		 * Typically used by worker nodes.
+		 */
+		std::optional<std::string> pcap_file;
 		};
 
 	/**
@@ -199,6 +204,10 @@ public:
 		 * The interface name from which the node should read/analyze packets.
 		 */
 		std::optional<std::string> interface;
+		/**
+		 * The PCAP file name from which the node should read/analyze packets.
+		 */
+		std::optional<std::string> pcap_file;
 		/**
 		 * The working directory that should be used by the node.
 		 */

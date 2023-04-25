@@ -396,13 +396,35 @@ string CPPCompile::GenInExpr(const Expr* e, GenType gt)
 
 string CPPCompile::GenFieldExpr(const FieldExpr* fe, GenType gt)
 	{
+	auto& t = fe->GetType();
 	auto r = fe->GetOp1();
 	auto f = fe->Field();
 	auto f_s = GenField(r, f);
 
-	auto gen = string("field_access__CPP(") + GenExpr(r, GEN_VAL_PTR) + ", " + f_s + ")";
+	string gen;
 
-	return GenericValPtrToGT(gen, fe->GetType(), gt);
+	if ( IsNativeType(t) )
+		{
+		auto nt = TypeName(t);
+		gen = string("field_access_") + nt + "__CPP(" + GenExpr(r, GEN_VAL_PTR) + ", " + f_s + ")";
+		return NativeToGT(gen, t, gt);
+		}
+
+	switch ( t->Tag() )
+		{
+		case TYPE_FILE:
+		case TYPE_FUNC:
+		case TYPE_VOID:
+			gen = string("field_access__CPP(") + GenExpr(r, GEN_VAL_PTR) + ", " + f_s + ")";
+			return GenericValPtrToGT(gen, t, gt);
+
+		default:
+			{
+			auto nt = TypeName(t);
+			return string("field_access_") + nt + "__CPP(" + GenExpr(r, GEN_VAL_PTR) + ", " + f_s +
+			       ")";
+			}
+		}
 	}
 
 string CPPCompile::GenHasFieldExpr(const HasFieldExpr* hfe, GenType gt)
@@ -411,8 +433,7 @@ string CPPCompile::GenHasFieldExpr(const HasFieldExpr* hfe, GenType gt)
 	auto f = hfe->Field();
 	auto f_s = GenField(r, f);
 
-	// Need to use accessors for native types.
-	auto gen = string("(") + GenExpr(r, GEN_DONT_CARE) + "->GetField(" + f_s + ") != nullptr)";
+	auto gen = GenExpr(r, GEN_DONT_CARE) + "->HasField(" + f_s + ")";
 
 	return NativeToGT(gen, hfe->GetType(), gt);
 	}
@@ -1090,7 +1111,7 @@ string CPPCompile::GenAssign(const ExprPtr& lhs, const ExprPtr& rhs, const strin
 			return GenIndexAssign(lhs, rhs, rhs_val_ptr, gt, top_level);
 
 		case EXPR_FIELD:
-			return GenFieldAssign(lhs, rhs, rhs_val_ptr, gt, top_level);
+			return GenFieldAssign(lhs, rhs, rhs_native, rhs_val_ptr, gt, top_level);
 
 		case EXPR_LIST:
 			return GenListAssign(lhs, rhs);
@@ -1159,20 +1180,24 @@ string CPPCompile::GenIndexAssign(const ExprPtr& lhs, const ExprPtr& rhs, const 
 	return gen;
 	}
 
-string CPPCompile::GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs, const string& rhs_val_ptr,
-                                  GenType gt, bool top_level)
+string CPPCompile::GenFieldAssign(const ExprPtr& lhs, const ExprPtr& rhs, const string& rhs_native,
+                                  const string& rhs_val_ptr, GenType gt, bool top_level)
 	{
 	auto rec = lhs->GetOp1();
 	auto rec_gen = GenExpr(rec, GEN_VAL_PTR);
 	auto field = GenField(rec, lhs->AsFieldExpr()->Field());
 
-	if ( top_level )
-		return rec_gen + "->Assign(" + field + ", " + rhs_val_ptr + ")";
-	else
+	if ( ! top_level )
 		{
 		auto gen = string("assign_field__CPP(") + rec_gen + ", " + field + ", " + rhs_val_ptr + ")";
 		return GenericValPtrToGT(gen, rhs->GetType(), gt);
 		}
+
+	auto rt = rhs ? rhs->GetType() : nullptr;
+	if ( rt && (IsNativeType(rt) || rt->Tag() == TYPE_STRING) )
+		return rec_gen + "->Assign(" + field + ", " + rhs_native + ")";
+	else
+		return rec_gen + "->Assign(" + field + ", " + rhs_val_ptr + ")";
 	}
 
 string CPPCompile::GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs)
@@ -1352,7 +1377,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 		mapping_slot = num_ev_mappings++;
 
 		string enum_name = et->Lookup(v);
-		enum_names.emplace_back(pair(TypeOffset(t), move(enum_name)));
+		enum_names.emplace_back(pair(TypeOffset(t), std::move(enum_name)));
 
 		if ( evm != enum_val_mappings.end() )
 			{

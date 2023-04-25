@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Expr.h"
 #include "zeek/Func.h"
@@ -193,7 +194,11 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 		{
 		// This can happen because the grammar allows any "init_class",
 		// including none, to be followed by an expression.
-		init->Warn("initialization not preceded by =/+=/-= is deprecated");
+		// Remove in v6.1 (make an error)
+		reporter->Deprecation(
+			util::fmt("Remove in v6.1. Initialization not preceded by =/+=/-= is deprecated. (%s)",
+		              obj_desc_short(init.get()).c_str()),
+			init->GetLocationInfo());
 
 		// The historical instances of these, such as the
 		// language/redef-same-prefixtable-idx.zeek btest, treat
@@ -376,7 +381,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 	if ( dt == VAR_OPTION )
 		{
-		if ( ! init )
+		if ( ! init && ! IsContainer(t->Tag()) )
 			id->Error("option variable must be initialized");
 
 		id->SetOption();
@@ -536,14 +541,13 @@ static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl,
 				{
 				auto msg = ad->DeprecationMessage();
 
-				if ( msg.empty() )
-					impl->Warn(
-						util::fmt("use of deprecated parameter '%s'", rval->args->FieldName(i)),
-						decl, true);
-				else
-					impl->Warn(util::fmt("use of deprecated parameter '%s': %s",
-					                     rval->args->FieldName(i), msg.data()),
-					           decl, true);
+				if ( ! msg.empty() )
+					msg = ": " + msg;
+
+				reporter->Deprecation(util::fmt("use of deprecated parameter '%s'%s (%s)",
+				                                rval->args->FieldName(i), msg.data(),
+				                                obj_desc_short(impl).c_str()),
+				                      impl->GetLocationInfo(), decl->GetLocationInfo());
 				}
 
 	return rval;
@@ -604,13 +608,13 @@ static auto get_prototype(IDPtr id, FuncTypePtr t)
 
 		if ( prototype->deprecated )
 			{
-			if ( prototype->deprecation_msg.empty() )
-				t->Warn(util::fmt("use of deprecated '%s' prototype", id->Name()),
-				        prototype->args.get(), true);
-			else
-				t->Warn(util::fmt("use of deprecated '%s' prototype: %s", id->Name(),
-				                  prototype->deprecation_msg.data()),
-				        prototype->args.get(), true);
+			auto msg = prototype->deprecation_msg;
+			if ( ! msg.empty() )
+				msg = ": " + msg;
+
+			reporter->Deprecation(util::fmt("use of deprecated '%s' prototype%s (%s)", id->Name(),
+			                                msg.c_str(), obj_desc_short(t.get()).c_str()),
+			                      t->GetLocationInfo(), prototype->args->GetLocationInfo());
 			}
 		}
 
@@ -841,24 +845,25 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 	oi->num_stmts = Stmt::GetNumStmts();
 	oi->num_exprs = Expr::GetNumExprs();
 
-	auto ingredients = std::make_unique<function_ingredients>(pop_scope(), std::move(body),
-	                                                          module_name);
-	if ( ! ingredients->id->HasVal() )
+	auto ingredients = std::make_unique<FunctionIngredients>(pop_scope(), std::move(body),
+	                                                         module_name);
+	auto id = ingredients->GetID();
+	if ( ! id->HasVal() )
 		{
-		auto f = make_intrusive<ScriptFunc>(ingredients->id);
-		ingredients->id->SetVal(make_intrusive<FuncVal>(std::move(f)));
-		ingredients->id->SetConst();
+		auto f = make_intrusive<ScriptFunc>(id);
+		id->SetVal(make_intrusive<FuncVal>(std::move(f)));
+		id->SetConst();
 		}
 
-	ingredients->id->GetVal()->AsFunc()->AddBody(ingredients->body, ingredients->inits,
-	                                             ingredients->frame_size, ingredients->priority,
-	                                             ingredients->groups);
+	id->GetVal()->AsFunc()->AddBody(ingredients->Body(), ingredients->Inits(),
+	                                ingredients->FrameSize(), ingredients->Priority(),
+	                                ingredients->Groups());
 
-	auto func_ptr = cast_intrusive<FuncVal>(ingredients->id->GetVal())->AsFuncPtr();
+	auto func_ptr = cast_intrusive<FuncVal>(id->GetVal())->AsFuncPtr();
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);
-	func->SetScope(ingredients->scope);
+	func->SetScope(ingredients->Scope());
 
-	for ( const auto& group : ingredients->groups )
+	for ( const auto& group : ingredients->Groups() )
 		group->AddFunc(func);
 
 	analyze_func(std::move(func));

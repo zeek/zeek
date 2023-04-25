@@ -94,7 +94,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 event die()
 	{
 	terminate();

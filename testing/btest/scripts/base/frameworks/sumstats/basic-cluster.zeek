@@ -77,7 +77,7 @@ event ready_for_data()
 	did_data = T;
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 event zeek_init() &priority=100
 	{

@@ -32,7 +32,7 @@ redef Log::default_rotation_interval=0sec;
 
 module Intel;
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 redef Intel::read_files += { "../intel.dat" };
 @endif
 

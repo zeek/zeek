@@ -38,14 +38,14 @@ global n = 0;
 
 event ready_for_data()
 	{
-@if ( Cluster::node == "manager-1" )
-	Config::set_value("testcount", 1);
-@endif
+	if ( Cluster::node == "manager-1" )
+		Config::set_value("testcount", 1);
 
-@if ( Cluster::node == "worker-1" )
-	Config::set_value("testport", 44/tcp);
-	Config::set_value("teststring", "b", "comment");
-@endif
+	if ( Cluster::node == "worker-1" )
+		{
+		Config::set_value("testport", 44/tcp);
+		Config::set_value("teststring", "b", "comment");
+		}
 	}
 
 global option_changed_count = 0;
@@ -72,7 +72,7 @@ event zeek_init() &priority=5
 	Option::set_change_handler("testcount", option_changed, -100);
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
 event Cluster::node_up(name: string, id: string) &priority=-5

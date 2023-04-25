@@ -18,7 +18,7 @@ redef Cluster::nodes = {
 @load base/protocols/http
 @load base/frameworks/cluster
 
-@if ( Cluster::node == "worker-1" )
+@activate-if ( Cluster::node == "worker-1" )
 redef exit_only_after_terminate = T;
 @endif
 

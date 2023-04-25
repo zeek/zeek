@@ -22,7 +22,7 @@ redef Management::Agent::name = "agent";
 # Tell the agent where to locate the controller.
 redef Management::Agent::controller = [$address="127.0.0.1", $bound_port=to_port(getenv("ZEEK_CONTROLLER_PORT"))];
 
-@if ( Supervisor::is_supervised() )
+@activate-if ( Supervisor::is_supervised() )
 
 @load policy/frameworks/management/agent/api
 

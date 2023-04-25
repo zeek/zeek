@@ -106,7 +106,7 @@ event ready_for_data()
 	did_data = T;
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)

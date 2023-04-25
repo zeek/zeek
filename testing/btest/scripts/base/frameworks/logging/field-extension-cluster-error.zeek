@@ -20,7 +20,7 @@ redef Cluster::nodes = {
 @load base/frameworks/reporter
 @load base/protocols/conn
 
-@if ( Cluster::node == "worker-1" )
+@activate-if ( Cluster::node == "worker-1" )
 redef exit_only_after_terminate = T;
 @endif
 

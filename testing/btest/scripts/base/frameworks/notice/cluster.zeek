@@ -47,7 +47,7 @@ event ready()
 	schedule 2secs { terminate_me() };
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
 

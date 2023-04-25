@@ -26,7 +26,7 @@ redef exit_only_after_terminate = T;
 
 @load base/frameworks/netcontrol
 
-@if ( Cluster::local_node_type() == Cluster::WORKER )
+@activate-if ( Cluster::local_node_type() == Cluster::WORKER )
 event zeek_init()
 	{
 	suspend_processing();

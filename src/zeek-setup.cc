@@ -23,6 +23,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 
 #include "zeek/3rdparty/doctest.h"
+#include "zeek/ActivationManager.h"
 #include "zeek/Anon.h"
 #include "zeek/DFA.h"
 #include "zeek/DNS_Mgr.h"
@@ -180,6 +181,7 @@ zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
 zeek::detail::RuleMatcher* zeek::detail::rule_matcher = nullptr;
 zeek::detail::DNS_Mgr* zeek::detail::dns_mgr = nullptr;
 zeek::detail::TimerMgr* zeek::detail::timer_mgr = nullptr;
+zeek::detail::ActivationManager* zeek::detail::activation_mgr = nullptr;
 
 zeek::logging::Manager* zeek::log_mgr = nullptr;
 zeek::threading::Manager* zeek::thread_mgr = nullptr;
@@ -712,6 +714,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new Broker::Manager(broker_real_time);
 	trigger_mgr = new trigger::Manager();
+	activation_mgr = new ActivationManager();
 
 	plugin_mgr->InitPreScript();
 	file_mgr->InitPreScript();

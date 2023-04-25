@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "zeek/ActivationManager.h"
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Expr.h"
@@ -17,6 +18,7 @@
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
+#include "zeek/input.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/StmtOptInfo.h"
@@ -710,6 +712,8 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 	else if ( is_redef )
 		id->Error("redef of not-previously-declared value");
 
+	bool skip_activation = ! activation_mgr->IsActivated();
+
 	if ( id->HasVal() )
 		{
 		FunctionFlavor id_flavor = id->GetVal()->AsFunc()->Flavor();
@@ -728,7 +732,7 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 				break;
 
 			case FUNC_FLAVOR_FUNCTION:
-				if ( ! id->IsRedefinable() )
+				if ( ! id->IsRedefinable() && ! skip_activation )
 					id->Error("already defined", t.get());
 				break;
 
@@ -752,12 +756,15 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 		if ( ! check_params(i, prototype, args, canon_args, module_name) )
 			break;
 
-	if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(), ATTR_DEPRECATED) )
-		current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
+	if ( ! skip_activation )
+		{
+		if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(), ATTR_DEPRECATED) )
+			current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
 
-	// Reset the AST node statistics to track afresh for this function.
-	Stmt::ResetNumStmts();
-	Expr::ResetNumExprs();
+		// Reset the AST node statistics to track afresh for this function.
+		Stmt::ResetNumStmts();
+		Expr::ResetNumExprs();
+		}
 	}
 
 class OuterIDBindingFinder : public TraversalCallback
@@ -853,20 +860,22 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 		auto f = make_intrusive<ScriptFunc>(id);
 		id->SetVal(make_intrusive<FuncVal>(std::move(f)));
 		id->SetConst();
+		activation_mgr->AddingGlobalVal(id);
 		}
-
-	id->GetVal()->AsFunc()->AddBody(ingredients->Body(), ingredients->Inits(),
-	                                ingredients->FrameSize(), ingredients->Priority(),
-	                                ingredients->Groups());
 
 	auto func_ptr = cast_intrusive<FuncVal>(id->GetVal())->AsFuncPtr();
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);
 	func->SetScope(ingredients->Scope());
 
-	for ( const auto& group : ingredients->Groups() )
-		group->AddFunc(func);
+	if ( activation_mgr->IsActivated() )
+		{
+		func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(), ingredients->Priority(), ingredients->Groups());
 
-	analyze_func(std::move(func));
+		for ( const auto& group : ingredients->Groups() )
+			group->AddFunc(func);
+
+		analyze_func(std::move(func));
+		}
 
 	// Note: ideally, something would take ownership of this memory until the
 	// end of script execution, but that's essentially the same as the

@@ -37,10 +37,22 @@ public:
 
 	const IDPtr& Find(std::string_view name) const;
 
-	template <typename N, typename I> void Insert(N&& name, I&& id)
+	void Insert(std::string name, IDPtr id)
 		{
-		local[std::forward<N>(name)] = std::forward<I>(id);
-		ordered_vars.push_back(std::forward<I>(id));
+		local[name] = id;
+		ordered_vars.push_back(id);
+		}
+
+	void RemoveGlobal(std::string name, IDPtr /* gid */)
+		{
+		local.erase(name);
+
+		// We could remove the identifier from ordered_vars, but for
+		// now we skip doing so because (1) the only removals we do are
+		// for global scope (per the method name), and the only use
+		// of ordered_vars is for traversing function parameters
+		// (i.e., non-global scope), and (2) it would be a pain to
+		// do so given the current data structure.
 		}
 
 	const IDPtr& GetID() const { return scope_id; }
@@ -86,6 +98,7 @@ extern const IDPtr& lookup_ID(const char* name, const char* module, bool no_glob
                               bool same_module_only = false, bool check_export = true);
 
 extern IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool is_export);
+void remove_global_ID(const IDPtr& gid);
 
 extern void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs);
 extern void push_existing_scope(ScopePtr scope);

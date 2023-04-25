@@ -5,10 +5,10 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 211
+%expect 212
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
-%token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
+%token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATACTIVATEIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_OPTION TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
@@ -98,6 +98,7 @@
 #include "zeek/RE.h"
 #include "zeek/Scope.h"
 #include "zeek/Reporter.h"
+#include "zeek/ActivationManager.h"
 #include "zeek/ScriptCoverageManager.h"
 #include "zeek/ScriptValidation.h"
 #include "zeek/zeekygen/Manager.h"
@@ -140,6 +141,7 @@ extern int in_when_cond;
 
 static int in_hook = 0;
 int in_init = 0;
+int in_body = 0;
 int in_record = 0;
 static int in_record_redef = 0;
 static int in_enum_redef = 0;
@@ -1396,7 +1398,8 @@ decl:
 				}
 		} opt_type init_class opt_init opt_attr ';'
 			{
-			build_global($2, $4, $5, $6, $7, VAR_REDEF);
+			if ( activation_mgr->IsActivated() )
+				build_global($2, $4, $5, $6, $7, VAR_REDEF);
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
@@ -1465,7 +1468,13 @@ conditional_list:
 
 conditional:
 		TOK_ATIF '(' expr ')'
-			{ do_atif($3); }
+			{ do_atif($3, false); }
+	|	TOK_ATACTIVATEIF '(' expr ')'
+			{
+			if ( in_body )
+				reporter->Error("@activate-if cannot appear inside a function body");
+			do_atif($3, true);
+			}
 	|	TOK_ATIFDEF '(' TOK_ID ')'
 			{ do_atifdef($3); }
 	|	TOK_ATIFNDEF '(' TOK_ID ')'
@@ -1488,13 +1497,6 @@ func_hdr:
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{
-			const char* name = $2->Name();
-			if ( util::streq("bro_init", name) || util::streq("bro_done", name) || util::streq("bro_script_loaded", name) )
-				{
-				auto base = std::string(name).substr(4);
-				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
-				}
-
 			begin_func({NewRef{}, $2}, current_module.c_str(),
 				                     FUNC_FLAVOR_EVENT, false, {NewRef{}, $3},
 			                         std::unique_ptr<std::vector<AttrPtr>>{$4});
@@ -1523,6 +1525,7 @@ func_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+			++in_body;
 
 			locals_at_this_scope.clear();
 			out_of_scope_locals.clear();
@@ -1532,6 +1535,7 @@ func_body:
 			{
 			in_init = saved_in_init.back();
 			saved_in_init.pop_back();
+			--in_body;
 			}
 
 		'}'
@@ -1552,12 +1556,14 @@ lambda_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+			++in_body;
 			}
 
 		stmt_list
 			{
 			in_init = saved_in_init.back();
 			saved_in_init.pop_back();
+			--in_body;
 			}
 
 		'}'
@@ -2214,8 +2220,10 @@ global_or_event_id:
 					resolving_global_ID ?
 						current_module.c_str() : 0;
 
-				$$ = install_ID($1, module_name,
-				                              true, is_export).release();
+				auto gid = install_ID($1, module_name,
+				                              true, is_export);
+				activation_mgr->CreatingGlobalID(gid);
+				$$ = gid.release();
 				}
 			}
 	;

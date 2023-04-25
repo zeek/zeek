@@ -43,9 +43,6 @@ event Cluster::node_up(name: string, id: string)
 # has to be distributed.
 event Intel::new_item(item: Item) &priority=5
 	{
-	# If the workers are reading the intel files directly, do nothing.
-	if ( Intel::read_files_on_workers )
-		return;
 	local pt = Cluster::rr_topic(Cluster::proxy_pool, "intel_insert_rr_key");
 
 	if ( pt == "" )

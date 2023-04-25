@@ -507,7 +507,8 @@ function _insert(item: Item, first_dispatch: bool &default = T)
 		is_new = insert_meta_data(item);
 		}
 
-	if ( first_dispatch && is_new )
+	if ( !Intel::read_files_on_workers && first_dispatch && is_new )
+		# If workers aren't reading intel directly,
 		# Announce a (possibly) new item if this is the first dispatch and
 		# we know it is new or have to assume that on a worker.
 		event Intel::new_item(item);

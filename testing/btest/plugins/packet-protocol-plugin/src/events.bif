@@ -1,3 +1,2 @@
 
 event raw_layer_message%(message: string, protocol: count%);
-event llc_demo_message%(dsap: count, ssap: count, control: count%);

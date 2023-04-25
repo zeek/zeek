@@ -1,3 +1,17 @@
+6.0.0-dev.437 | 2023-04-25 13:07:57 -0700
+
+  * Update docs and NEWS to include LLC, SNAP, and Novell packet analyzers (Tim Wojtulewicz)
+
+  * Fix length checks in VLAN/Ethernet analyzers for non-ethertype protocols (Tim Wojtulewicz, Corelight)
+
+  * Add forwarding from VLAN analyzer into LLC, SNAP, and Novell 802.3 analyzers (Tim Wojtulewicz, Corelight)
+
+  * Remove non-standard way of forwarding out of the Ethernet analyzer (Tim Wojtulewicz, Corelight)
+
+  * Add basic LLC, SNAP, and Novell 802.3 packet analyzers (Tim Wojtulewicz, Corelight)
+
+  * ARP: add support for IEEE802 hardware type (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.430 | 2023-04-25 11:37:44 -0700
 
   * Merge branch 'topic/timw/2167-aruba-expansion' (Tim Wojtulewicz)

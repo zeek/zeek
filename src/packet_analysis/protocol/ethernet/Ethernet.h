@@ -14,7 +14,6 @@ public:
 	EthernetAnalyzer();
 	~EthernetAnalyzer() override = default;
 
-	void Initialize() override;
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
@@ -23,9 +22,9 @@ public:
 		}
 
 private:
-	AnalyzerPtr SNAPAnalyzer = nullptr;
-	AnalyzerPtr NovellRawAnalyzer = nullptr;
-	AnalyzerPtr LLCAnalyzer = nullptr;
+	zeek_uint_t snap_forwarding_key = 0;
+	zeek_uint_t novell_forwarding_key = 0;
+	zeek_uint_t llc_forwarding_key = 0;
 	};
 
 	}

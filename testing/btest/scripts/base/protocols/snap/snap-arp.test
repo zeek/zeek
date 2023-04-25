@@ -1,0 +1,12 @@
+# @TEST-EXEC: zeek -b -r $TRACES/snap-arp.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+event arp_request(mac_src: string, mac_dst: string, SPA: addr, SHA: string, TPA: addr, THA: string)
+	{
+	print mac_src, mac_dst, SPA, SHA, TPA, THA;
+	}
+
+event arp_reply(mac_src: string, mac_dst: string, SPA: addr, SHA: string, TPA: addr, THA: string)
+	{
+	print mac_src, mac_dst, SPA, SHA, TPA, THA;
+	}

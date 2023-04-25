@@ -196,6 +196,9 @@ New Functionality
   recognize CCMP-encrypted packets. These encrypted packets are currently
   dropped to Zeek's inability to do anything with them.
 
+- Add packet analzyers for LLC, SNAP, and Novell 802.3, called from the Ethernet
+  and VLAN analyzers by default.
+
 Changed Functionality
 ---------------------
 

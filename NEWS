@@ -191,6 +191,11 @@ New Functionality
   Note: There is no tracking of cluster node connectivity. Thus, there is no guarantee
   that all peerings still exist at the time of these events being raised.
 
+- The IEEE 802.11 packet analyzer gains the ability to parse encapsulated A-MSDU
+  packets, instead of just dropping them. It also gains the ability to properly
+  recognize CCMP-encrypted packets. These encrypted packets are currently
+  dropped to Zeek's inability to do anything with them.
+
 Changed Functionality
 ---------------------
 
@@ -279,6 +284,9 @@ Changed Functionality
 
 - The ``ignore_checksums`` script variable now reflects the correct value
   when using the ``-C`` command-line flag.
+
+- Support for ARUBA GRE tunnels now covers all of the known protocol type values
+  for those tunnels.
 
 Removed Functionality
 ---------------------

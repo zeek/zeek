@@ -1,3 +1,39 @@
+6.0.0-dev.430 | 2023-04-25 11:37:44 -0700
+
+  * Merge branch 'topic/timw/2167-aruba-expansion' (Tim Wojtulewicz)
+
+    * topic/timw/2167-aruba-expansion:
+      Add NEWS entry about 802.11 and ARUBA changes
+      Remove workaround for tunnels from IEEE 802.11 analyzer
+      PPP in the GRE analyzer is actually PP*T*P
+      Add support for 802.11 A-MSDU aggregates
+      Fix IEEE 802.11 analyzer to properly forward tunneled packets
+      Fix IEEE 802.11 analyzer to skip packets with the Protected bit enabled
+      Expand support for Aruba protocol types in GRE analyzer
+      Default tunnel_type in iosource::Packet to NONE
+
+  * Add NEWS entry about 802.11 and ARUBA changes (Tim Wojtulewicz)
+
+  * Remove workaround for tunnels from IEEE 802.11 analyzer (Tim Wojtulewicz, Corelight)
+
+  * PPP in the GRE analyzer is actually PP*T*P (Tim Wojtulewicz, Corelight)
+
+  * Add support for 802.11 A-MSDU aggregates (Tim Wojtulewicz, Corelight)
+
+  * Fix IEEE 802.11 analyzer to properly forward tunneled packets (Tim Wojtulewicz, Corelight)
+
+    This mostly happens with Aruba, but could possibly happen with other tunnels too.
+
+  * Fix IEEE 802.11 analyzer to skip packets with the Protected bit enabled (Tim Wojtulewicz, Corelight)
+
+  * Expand support for Aruba protocol types in GRE analyzer (Tim Wojtulewicz, Corelight)
+
+    This also fixes the GRE analyzer to forward into the IEEE 802.11 analyzer
+    if it encounters Aruba packets with the proper protocol types. This way
+    the QoS header can be handled correctly.
+
+  * Default tunnel_type in iosource::Packet to NONE (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.421 | 2023-04-25 12:39:01 +0200
 
   * Given the -C flag, set script-layer ignore_checksums to true. (Christian Kreibich, Corelight)

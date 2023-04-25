@@ -5,7 +5,7 @@
 extern "C" {
 #include <linux/if_packet.h> // AF_PACKET, etc.
 }
-#include <stdint.h>
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 

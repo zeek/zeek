@@ -2,9 +2,9 @@ protocol analyzer TLS over TCP:
 	parse with TLS::Message,
 	port 443/tcp;
 
-# protocol analyzer DTLS over UDP:
-# 	parse with TLS::DTLSMessage,
-# 	port 443/udp;
+ protocol analyzer DTLS over UDP:
+ 	parse with TLS::Message,
+ 	port 443/udp;
 
 import TLS;
 import zeek;
@@ -12,7 +12,8 @@ import spicy;
 
 on TLS::ClientHello -> event ssl_client_hello($conn, self.client_version, msg.record_version, cast<time>(self.random.gmt_unix_time), self.random.random_bytes, self.session_id, self.cipher_suites, self.compression_methods);
 
-on TLS::ServerHello -> event ssl_server_hello($conn, self.server_version, msg.record_version, cast<time>(self.gmt_unix_time), self.random_bytes, self.session_id, self.cipher_suite, self.compression_method);
+on TLS::ServerHello -> event ssl_server_hello($conn, server_version, msg.record_version, cast<time>(self.gmt_unix_time), self.random_bytes, self.session_id, self.cipher_suite, self.compression_method);
+on TLS::ServerHelloOneThree -> event ssl_server_hello($conn, server_version, msg.record_version, cast<time>(self.gmt_unix_time), self.random_bytes, "", self.cipher_suite, 0);
 
 on TLS::EllipticCurveList -> event ssl_extension_elliptic_curves($conn, $is_orig, self.elliptic_curve_list);
 

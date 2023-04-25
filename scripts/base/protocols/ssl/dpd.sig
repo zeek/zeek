@@ -14,9 +14,9 @@ signature dpd_tls_client {
   enable "tls"
 }
 
-# signature dpd_dtls_client {
-#   ip-proto == udp
-# 	# Client hello.
-# 	payload /^\x16\xfe[\xff\xfd]\x00\x00\x00\x00\x00\x00\x00...\x01...........\xfe[\xff\xfd].*/
-# 	enable "dtls"
-# }
+signature dpd_dtls_client {
+  ip-proto == udp
+	# Client hello.
+	payload /^\x16\xfe[\xff\xfd]\x00\x00\x00\x00\x00\x00\x00...\x01...........\xfe[\xff\xfd].*/
+	enable "dtls"
+}

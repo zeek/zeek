@@ -163,8 +163,25 @@ type TLSVersion = enum {
   SSLv3  = 0x0300,
   TLSv10 = 0x0301,
   TLSv11 = 0x0302,
-  TLSv12 = 0x0303
+  TLSv12 = 0x0303,
+  DTLSv10   = 0xFEFF,
+  # DTLSv11 does not exist.
+  DTLSv12   = 0xFEFD,
+  DTLSv13   = 0xFEFC
 };
+
+const UNKNOWN_VERSION : uint16 = 0x0000;
+const SSLv2 = 0x0002;
+const SSLv3  = 0x0300;
+const TLSv10 = 0x0301;
+const TLSv11 = 0x0302;
+const TLSv12 = 0x0303;
+const TLSv13 = 0x0304;
+const TLSv13_draft = 0x7F00;
+const DTLSv10 = 0xFEFF;
+# DTLSv11 does not exist.
+const DTLSv12 = 0xFEFD;
+const DTLSv13 = 0xFEFC;
 
 type ClientCertificateType = enum {
   rsa_sign = 1, dss_sign = 2, rsa_fixed_dh = 3, dss_fixed_dh = 4,
@@ -536,26 +553,52 @@ type TLSCiphers = enum {
 };
 
 type Share = unit {
+  # version as seen in server_hello (for signature and hash-alg choice)
   var chosen_version_sh: uint16;
+  # parsed version, can be used to distinguished tls 1.3
+  var parsed_version: uint16;
+  # set to true if chosen version is identified as a tls 1.3 version
+  var tls_13: bool;
   var chosen_cipher: uint16;
   var ccs_seen: uint8;
   var invalid_dtls_version_count: uint32;
-  var skipping: bool;
+#  var skipping: bool;
 
   on %init {
     self.ccs_seen = 0;
     self.invalid_dtls_version_count = 0;
-    self.skipping = False;
+    self.tls_13 = False;
+    self.parsed_version = UNKNOWN_VERSION;
   }
 };
 
-#public type TLSMessage = unit {
-# m: Message(False);
-#};
-#
-#public type DTLSMessage = unit {
-# m: Message(True);
-#};
+# This function is called several times in certain circumstances.
+# If it is called twice, it is first called due to the supported_versions
+# field in the server hello - and then again due to the outer version in
+# the server hello. So - once we have a version here, let's just stick
+# with it.
+function set_version(version: uint16, inout msg: Message) : bool {
+  if ( msg.context().parsed_version != UNKNOWN_VERSION )
+    return False;
+
+  msg.context().parsed_version = version;
+  if ( version == TLSv13 || version/0xFF == 0x7F )
+    msg.context().tls_13 = True;
+
+  return True;
+}
+
+# public type TLSMessage = unit {
+#  %context = Share;
+# 
+#  m: Message(False);
+# };
+# 
+# public type DTLSMessage = unit {
+#  %context = Share;
+# 
+#  m: Message(True);
+# };
 
 public type Message = unit {
   %context = Share;
@@ -564,52 +607,55 @@ public type Message = unit {
   sink alertsink;
   var record_version: uint16;
   var encrypted : bool = False;
-  var dtls : bool = False;
+  var dtls: bool = False;
 
   on %init {
     self.handshakesink.connect(new Handshake(self));
     self.alertsink.connect(new Alert);
+    print "top-level init";
   }
 
   fragment : RecordFragmentChoice(self.handshakesink, self.alertsink, self)[];
   # : bytes &eod if ( self.context().skipping );
 };
 
-type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
-  switch ( msg.dtls ) {
-    True -> dtlsfragment : DTLSRecordFragment(handshakesink, alertsink, msg);
-    False -> tlsfragment : TLSRecordFragment(handshakesink, alertsink, msg);
-  };
-};
+function is_dtls_version(version: uint16) : bool {
+  if ( version == DTLSv10 || version == DTLSv12 )
+    return True;
 
-type TLSRecordFragment = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
+  return False;
+}
+
+type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
   content_type: uint8; # &convert=ContentType($$);
   version: uint16;
-  record: PlaintextRecord(self.content_type, handshakesink, alertsink, msg);
+
+  switch ( is_dtls_version(self.version) ) {
+    True -> dtlsfragment : DTLSRecordFragment(self.content_type, handshakesink, alertsink, msg);
+    False -> tlsfragment : TLSRecordFragment(self.content_type, handshakesink, alertsink, msg);
+  };
 
   on content_type {
     print "Content type", self.content_type;
   }
   on version {
     msg.record_version = self.version;
+    if ( is_dtls_version(self.version) ) {
+      msg.dtls = True;
+    }
   }
 };
 
-type DTLSRecordFragment = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
-  content_type: uint8; # &convert=ContentType($$);
-  version: uint16;
+type TLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message) {
+  record: PlaintextRecord(content_type, handshakesink, alertsink, msg);
+};
+
+type DTLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message) {
 # the epoch signalizes that a changecipherspec message has been received. Hence, everything with
 # an epoch > 0 should be encrypted
   epoch: uint16;
   sequence_number: bytes &size=6; # uint48
-  record: PlaintextRecord(self.content_type, handshakesink, alertsink, msg);
-
-  on content_type {
-    print "Content type", self.content_type;
-  }
-  on version {
-    msg.record_version = self.version;
-  }
+  record: PlaintextRecord(content_type, handshakesink, alertsink, msg);
 };
 
 type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message) {
@@ -665,13 +711,16 @@ type Handshake_message = unit(inout msg: Message) {
   # msg_type: uint8 &parse-from=self.msg_type_raw &convert=HandshakeType($$);
   # msg_type: uint8 &convert=HandshakeType($$);
   length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network);
+  # TODO: in theory, we need a reassembly step here for DTLS...
+  fragment_offset: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network) if (msg.dtls);
+  fragment_length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network) if (msg.dtls);
 
   switch ( HandshakeType(self.msg_type) ) {
     HandshakeType::client_hello -> client_hello: ClientHello(self.length, msg);
     HandshakeType::server_hello_done,
     HandshakeType::hello_request -> : bytes &size=self.length; # Fixme: alert if length != 0
     HandshakeType::hello_verify_request -> hello_verify_request: HelloVerifyRequest;
-    HandshakeType::server_hello -> server_hello: ServerHello(self.length, msg);
+    HandshakeType::server_hello -> server_hello: ServerHelloChoice(self.length, msg);
     HandshakeType::certificate -> certificate: Certificate;
     HandshakeType::certificate_request -> certificate_request: CertificateRequest(msg);
     HandshakeType::certificate_verify -> : bytes &size=self.length; # opaque encrypted data
@@ -726,21 +775,75 @@ type Random = unit {
   random_bytes: bytes &size=28;
 };
 
-type ClientHello = unit(len: uint64, msg: Message) {
+type ClientHelloCookie = unit {
+  cookie_len: uint8;
+  cookie: bytes &size=self.cookie_len;
+};
+
+type ClientHello = unit(len: uint64, inout msg: Message) {
   client_version: uint16;
   random: Random;
   session_id_length: uint8;
   session_id: bytes &size=self.session_id_length;
+  dtls_cookie: ClientHelloCookie if (self.client_version == DTLSv10 || self.client_version == DTLSv12);
   cipher_suites_length: uint16;
   cipher_suites: uint16[self.cipher_suites_length/2];
   compression_methods_length: uint8;
   compression_methods: uint8[self.compression_methods_length];
   extensions_length: uint16 if ( len > self.offset() );
-  extensions: Extension(True)[] &size=self.extensions_length if ( len > self.offset() );
+  extensions: Extension(msg, True)[] &size=self.extensions_length if ( len > self.offset() );
+
+  on %error(emsg: string) {
+    print "Error in client hello", emsg;
+    print self;
+  }
 };
 
-type ServerHello = unit(len: uint64, inout msg: Message) {
-  server_version: uint16;
+# Draft versions of TLS 1.3 had a diffent server hello - distinguish here
+type ServerHelloChoice = unit(len: uint64, inout msg: Message) {
+  sv : bitfield(16) {
+    server_version0: 0..7;
+    server_version1: 8..15;
+    server_version: 0..15;
+  };
+  var parsed_version: uint16;
+
+  switch ( self.parsed_version ) {
+    TLSv13, TLSv13_draft, 0x7F00 -> : ServerHelloOneThree(len, msg, self.sv.server_version);
+    * -> : ServerHello(len, msg, self.sv.server_version);
+  };
+
+  on sv {
+    print "Got server version", self.sv.server_version0, self.sv.server_version1, self.sv.server_version;
+    msg.context().chosen_version_sh = self.sv.server_version;
+    set_version(self.sv.server_version, msg);
+    print "set chosen version", self.sv.server_version, msg.context().chosen_version_sh;
+
+    if ( self.sv.server_version1 == 0x7F ) {
+      print "TLS 13 draft";
+      # map any draft version to draft 00
+      self.parsed_version = 0x7F00;
+    } else {
+      self.parsed_version = self.sv.server_version;
+    }
+  }
+};
+
+# Draft versions of TLS 1.3 had a diffent server hello.
+type ServerHelloOneThree = unit(len: uint64, inout msg: Message, server_version: uint16) {
+  random_bytes: bytes &size=32;
+  gmt_unix_time: uint32 &parse-from=self.random_bytes;
+  cipher_suite: uint16;
+  extensions_length: uint16 if ( len > self.offset() );
+  extensions: Extension(msg, False)[] &size=self.extensions_length if ( len > self.offset() );
+
+  on cipher_suite {
+    msg.context().chosen_cipher = self.cipher_suite;
+    print "set chosen cipher", self.cipher_suite, msg.context().chosen_cipher;
+  }
+};
+
+type ServerHello = unit(len: uint64, inout msg: Message, server_version: uint16) {
   random_bytes: bytes &size=32;
   gmt_unix_time: uint32 &parse-from=self.random_bytes;
   session_id_length: uint8;
@@ -748,37 +851,39 @@ type ServerHello = unit(len: uint64, inout msg: Message) {
   cipher_suite: uint16;
   compression_method: uint8;
   extensions_length: uint16 if ( len > self.offset() );
-  extensions: Extension(False)[] &size=self.extensions_length if ( len > self.offset() );
+  extensions: Extension(msg, False)[] &size=self.extensions_length if ( len > self.offset() );
 
   on cipher_suite {
     msg.context().chosen_cipher = self.cipher_suite;
+    print "set chosen cipher", self.cipher_suite, msg.context().chosen_cipher;
   }
-  on server_version {
-    msg.context().chosen_version_sh = self.server_version;
+  on %error(emsg: string) {
+    print "Error in server hello", emsg;
+    print self;
   }
 };
 
-type Extension = unit(client_hello: bool) {
+type Extension = unit(inout msg: Message, client_hello: bool) {
   code: uint16 &convert=Extensions($$);
   length: uint16;
 
   switch ( self.code ) {
     # Extensions::next_protocol_negotiation -> :bytes &size=self.extension_size; # alert if != 0
-    Extensions::ec_point_formats -> ec_point_formats: EcPointsFormat_extension;
-    Extensions::supported_groups -> elliptic_curves: EllipticCurveList;
+    Extensions::ec_point_formats -> ec_point_formats: EcPointsFormat_extension if ( self.length > 0 );
+    Extensions::supported_groups -> elliptic_curves: EllipticCurveList if ( self.length > 0 );
     Extensions::SessionTicket_TLS -> ticket_data: bytes &size=self.length; # ticket data
-    Extensions::heartbeat -> heartbeat: uint8 &convert=HeartbeatMode($$);
-    Extensions::signature_algorithms -> signature_algorithms: SignatureAlgorithms;
-    Extensions::renegotiation_info -> renegotiation_info: RenegotiationInfo;
+    Extensions::heartbeat -> heartbeat: uint8 &convert=HeartbeatMode($$) if ( self.length > 0 );
+    Extensions::signature_algorithms -> signature_algorithms: SignatureAlgorithms if ( self.length > 0 );
+    Extensions::renegotiation_info -> renegotiation_info: RenegotiationInfo if ( self.length > 0 );
     Extensions::server_name -> server_name: ServerNameList if ( self.length > 0 );
-    Extensions::application_layer_protocol_negotiation -> application_layer_protocol_negotiation: ProtocolNameList;
+    Extensions::application_layer_protocol_negotiation -> application_layer_protocol_negotiation: ProtocolNameList if ( self.length > 0 );
     Extensions::status_request -> status_request: StatusRequest(self.length) if ( self.length > 0 );
     Extensions::signed_certificate_timestamp -> signed_certificate_timestamp: SignedCertificateTimestampList if ( self.length > 0 );
-    Extensions::key_share_old -> key_share_old: KeyShare(client_hello, self.length);
-    Extensions::key_share -> key_share: KeyShare(client_hello, self.length);
-    Extensions::supported_versions -> supported_versions: SupportedVersionsSelector(client_hello);
-    Extensions::psk_key_exchange_modes -> psk_key_exchange_modes: PSKKeyExchangeModes;
-    Extensions::pre_shared_key -> pre_shared_key: PreSharedKey(client_hello);
+    Extensions::key_share_old -> key_share_old: KeyShare(client_hello, self.length) if ( self.length > 0 );
+    Extensions::key_share -> key_share: KeyShare(client_hello, self.length) if ( self.length > 0 );
+    Extensions::supported_versions -> supported_versions: SupportedVersionsSelector(msg, client_hello) if ( self.length > 0 );
+    Extensions::psk_key_exchange_modes -> psk_key_exchange_modes: PSKKeyExchangeModes if ( self.length > 0 );
+    Extensions::pre_shared_key -> pre_shared_key: PreSharedKey(client_hello) if ( self.length > 0 );
     * -> unknown : bytes &size=self.length;
   };
 
@@ -787,6 +892,9 @@ type Extension = unit(client_hello: bool) {
   }
   on unknown {
     print "Unknown extension", self.code;
+  }
+  on %error(emsg: string) {
+    print "Error parsing extension with code", self.code, emsg;
   }
 };
 
@@ -832,10 +940,10 @@ type PSKKeyExchangeModes = unit {
   modes: uint8[self.length];
 };
 
-type SupportedVersionsSelector = unit(client_hello: bool) {
+type SupportedVersionsSelector = unit(inout msg: Message, client_hello: bool) {
   switch (client_hello ) {
     True -> a: SupportedVersions;
-    False -> b: OneSupportedVersion;
+    False -> b: OneSupportedVersion(msg);
   };
 };
 
@@ -845,8 +953,12 @@ type SupportedVersions = unit {
 };
 
 # If the server sends it, this is the authorative version. Set it.
-type OneSupportedVersion = unit {
+type OneSupportedVersion = unit(inout msg: Message) {
   version: uint16;
+
+  on version {
+    set_version(self.version, msg);
+  }
 };
 
 type KeyShareEntry = unit {
@@ -1174,7 +1286,7 @@ type EcdheServerKeyExchange = unit(len: uint64, msg: Message) {
 public function uses_signature_and_hashalgorithm(msg: Message) : bool
   {
   # larger TLS11 and not DTLSv10
-  if ( msg.context().chosen_version_sh > 0x0302 && msg.context().chosen_version_sh != 0xFEFF )
+  if ( msg.context().chosen_version_sh > TLSv11 && msg.context().chosen_version_sh != DTLSv10 )
     return True;
 
   return False;

@@ -33,7 +33,7 @@ event Cluster::node_up(name: string, id: string)
 	# When a worker connects, send it the complete minimal data store unless
 	# we turned off that feature. The store will be kept up to date after
 	# this by the insert_indicator event.
-	if ( send_store_on_node_up && name in Cluster::nodes && Cluster::nodes[name]$node_type == Cluster::WORKER )
+	if ( !Intel::read_files_on_workers && send_store_on_node_up && name in Cluster::nodes && Cluster::nodes[name]$node_type == Cluster::WORKER )
 		{
 		Broker::publish_id(Cluster::node_topic(name), "Intel::min_data_store");
 		}
@@ -43,6 +43,9 @@ event Cluster::node_up(name: string, id: string)
 # has to be distributed.
 event Intel::new_item(item: Item) &priority=5
 	{
+	# If the workers are reading the intel files directly, do nothing.
+	if ( Intel::read_files_on_workers )
+		return;
 	local pt = Cluster::rr_topic(Cluster::proxy_pool, "intel_insert_rr_key");
 
 	if ( pt == "" )

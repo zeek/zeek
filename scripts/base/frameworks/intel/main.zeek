@@ -185,6 +185,10 @@ export {
 	global filter_item: hook(item: Intel::Item);
 
 	global log_intel: event(rec: Info);
+
+	## If intel files as present on the worker nodes and should be read
+	## directly instead of being distributed via broker.
+	const read_files_on_workers = F &redef;
 }
 
 # Internal handler for matches with no metadata available.

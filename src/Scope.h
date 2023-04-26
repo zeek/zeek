@@ -98,7 +98,6 @@ extern const IDPtr& lookup_ID(const char* name, const char* module, bool no_glob
                               bool same_module_only = false, bool check_export = true);
 
 extern IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool is_export);
-void remove_global_ID(const IDPtr& gid);
 
 extern void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs);
 extern void push_existing_scope(ScopePtr scope);

@@ -18,7 +18,6 @@
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
-#include "zeek/input.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/StmtOptInfo.h"
@@ -406,16 +405,10 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 void add_global(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
                 std::unique_ptr<std::vector<AttrPtr>> attr, DeclType dt)
 	{
-	bool do_init = true;
-
 	if ( dt == VAR_REDEF && ! activation_mgr->AddingRedef(id, c, init, attr) )
-		{ // make sure we don't change anything
-		init = nullptr;
-		attr = nullptr;
-		do_init = false;
-		}
-
-	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, do_init);
+		make_var(id, std::move(t), c, nullptr, nullptr, dt, false);
+	else
+		make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
 
 StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init,

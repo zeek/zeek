@@ -32,8 +32,6 @@ extern void reject_directive(zeek::detail::Stmt* s);
 extern void do_doc_token_start();
 extern void do_doc_token_stop();
 
-extern bool is_activated();
-
 extern int line_number;
 extern const char* filename;
 

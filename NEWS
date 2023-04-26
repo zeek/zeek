@@ -291,6 +291,10 @@ Changed Functionality
 - Support for ARUBA GRE tunnels now covers all of the known protocol type values
   for those tunnels.
 
+- The vlan field reported by the AF_PACKET packet source is now properly
+  masked to exclude PCP and DEI bits. Previously, these bits were included
+  and could cause invalid vlan values > 4095 to be reported.
+
 Removed Functionality
 ---------------------
 

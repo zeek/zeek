@@ -1,3 +1,16 @@
+6.0.0-dev.441 | 2023-04-26 15:37:59 +0200
+
+  * Update AF-Packet submodule (Arne Welzel, Corelight)
+
+    Include Tim's cleanup and modernization fixes, too.
+
+  * Update AF-Packet submodule (Arne Welzel, Corelight)
+
+    * Mask VLAN ID from tp_vlan_tci field to fix vlan > 4095 reported by Zeek
+      when PCP and/or DEI bits are set.
+    * Descriptive error message when interface is down. Instead of
+      "Invalid argument", Zeek now reports "interface is down".
+
 6.0.0-dev.437 | 2023-04-25 13:07:57 -0700
 
   * Update docs and NEWS to include LLC, SNAP, and Novell packet analyzers (Tim Wojtulewicz)

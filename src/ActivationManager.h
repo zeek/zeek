@@ -142,6 +142,8 @@ public:
 		return activation_stack.empty() || activation_stack.back()->IsActivated();
 		}
 
+	int ActivationDepth() const { return static_cast<int>(activation_stack.size()); }
+
 	void Start(ExprPtr cond, bool activate, int cond_depth);
 	void SwitchToElse();
 	void End();

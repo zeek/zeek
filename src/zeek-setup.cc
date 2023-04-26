@@ -659,6 +659,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
 	zeekygen_mgr = new zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);
+	activation_mgr = std::make_unique<ActivationManager>();
 
 	add_essential_input_file("base/init-bare.zeek");
 	add_essential_input_file("builtin-plugins/__preload__.zeek");
@@ -714,7 +715,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new Broker::Manager(broker_real_time);
 	trigger_mgr = new trigger::Manager();
-	activation_mgr = std::make_unique<ActivationManager>();
 
 	plugin_mgr->InitPreScript();
 	file_mgr->InitPreScript();

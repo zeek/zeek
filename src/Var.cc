@@ -234,7 +234,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 			{
 			if ( IsFunc(id->GetType()->Tag()) )
 				add_prototype(id, t.get(), attr.get(), init);
-			else
+			else if ( activation_mgr->IsActivated() )
 				id->Error("already defined", init.get());
 
 			return;
@@ -405,10 +405,13 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 void add_global(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
                 std::unique_ptr<std::vector<AttrPtr>> attr, DeclType dt)
 	{
+	bool do_init = activation_mgr->IsActivated();
+
 	if ( dt == VAR_REDEF && ! activation_mgr->AddingRedef(id, c, init, attr) )
-		make_var(id, std::move(t), c, nullptr, nullptr, dt, false);
-	else
-		make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
+		// Don't actually change the attributes.
+		attr = nullptr;
+
+	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, do_init);
 	}
 
 StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init,

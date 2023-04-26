@@ -57,6 +57,7 @@ extern zeek::EnumType* cur_enum_type;
 static int conditional_depth = 0;
 
 zeek::detail::int_list entry_cond_depth; // @if depth upon starting file
+zeek::detail::int_list entry_act_depth; // @activate-if depth upon starting file
 zeek::detail::int_list entry_pragma_stack_depth; // @pragma push depth upon starting file
 static std::vector<std::string> pragma_stack; // stack of @pragma pushes
 
@@ -801,6 +802,7 @@ static int load_files(const char* orig_file)
 	current_file_has_conditionals = files_with_conditionals.count(filename) > 0;
 
 	entry_cond_depth.push_back(conditional_depth);
+	entry_act_depth.push_back(activation_mgr->ActivationDepth());
 	entry_pragma_stack_depth.push_back(pragma_stack.size());
 
 	return 1;
@@ -940,7 +942,10 @@ void do_atendif()
 	{
 	if ( activation_mgr->InsideConditional(conditional_depth) )
 		{ // We're ending an @activate-if.
-		activation_mgr->End();
+		if ( activation_mgr->ActivationDepth() <= entry_act_depth.back() )
+			zeek::reporter->Error("unbalanced @activate-if... @endif");
+		else
+			activation_mgr->End();
 		return;
 		}
 
@@ -1024,6 +1029,13 @@ int yywrap()
 		if ( conditional_depth > entry_cond_depth.back() )
 			zeek::reporter->FatalError("unbalanced @if... @endif");
 		entry_cond_depth.pop_back();
+		}
+
+	if ( entry_act_depth.size() > 0 )
+		{
+		if ( activation_mgr->ActivationDepth() > entry_act_depth.back() )
+			zeek::reporter->FatalError("unbalanced @activate-if... @endif");
+		entry_act_depth.pop_back();
 		}
 
 	if ( entry_pragma_stack_depth.size() > 0 )

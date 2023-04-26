@@ -406,7 +406,16 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 void add_global(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
                 std::unique_ptr<std::vector<AttrPtr>> attr, DeclType dt)
 	{
-	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
+	bool do_init = true;
+
+	if ( dt == VAR_REDEF && ! activation_mgr->AddingRedef(id, c, init, attr) )
+		{ // make sure we don't change anything
+		init = nullptr;
+		attr = nullptr;
+		do_init = false;
+		}
+
+	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, do_init);
 	}
 
 StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init,
@@ -726,7 +735,7 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 
 			case FUNC_FLAVOR_EVENT:
 			case FUNC_FLAVOR_HOOK:
-				if ( is_redef )
+				if ( is_redef && activation_mgr->RedefingHandler(id) )
 					// Clear out value so it will be replaced.
 					id->SetVal(nullptr);
 				break;
@@ -852,7 +861,7 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 	oi->num_stmts = Stmt::GetNumStmts();
 	oi->num_exprs = Expr::GetNumExprs();
 
-	auto ingredients = std::make_unique<FunctionIngredients>(pop_scope(), std::move(body),
+	auto ingredients = std::make_shared<FunctionIngredients>(pop_scope(), std::move(body),
 	                                                         module_name);
 	auto id = ingredients->GetID();
 	if ( ! id->HasVal() )
@@ -867,20 +876,16 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);
 	func->SetScope(ingredients->Scope());
 
-	if ( activation_mgr->IsActivated() )
+	if ( activation_mgr->AddingBody(id, ingredients) )
 		{
-		func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(), ingredients->Priority(), ingredients->Groups());
+		func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
+		              ingredients->Priority(), ingredients->Groups());
 
 		for ( const auto& group : ingredients->Groups() )
 			group->AddFunc(func);
 
 		analyze_func(std::move(func));
 		}
-
-	// Note: ideally, something would take ownership of this memory until the
-	// end of script execution, but that's essentially the same as the
-	// lifetime of the process at the moment, so ok to "leak" it.
-	ingredients.release();
 	}
 
 IDPList gather_outer_ids(ScopePtr scope, StmtPtr body)

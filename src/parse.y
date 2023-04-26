@@ -1398,34 +1398,53 @@ decl:
 				}
 		} opt_type init_class opt_init opt_attr ';'
 			{
-			if ( activation_mgr->IsActivated() )
-				build_global($2, $4, $5, $6, $7, VAR_REDEF);
+			build_global($2, $4, $5, $6, $7, VAR_REDEF);
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
-			{ ++in_enum_redef; parse_redef_enum($3); zeekygen_mgr->Redef($3, ::filename); }
+			{
+			++in_enum_redef;
+			parse_redef_enum($3);
+			zeekygen_mgr->Redef($3, ::filename);
+			}
 		enum_body '}' ';'
 			{
+			if ( activation_mgr->InsideConditional() )
+				$3->Error("enum redef cannot appear inside @activate-if");
 			--in_enum_redef;
 			// Zeekygen already grabbed new enum IDs as the type created them.
 			}
 
 	|	TOK_REDEF TOK_RECORD  global_id '$' TOK_ID
-			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename, INIT_EXTRA); }
+			{
+			cur_decl_type_id = $3;
+			zeekygen_mgr->Redef($3, ::filename, INIT_EXTRA);
+			}
 		TOK_ADD_TO '{' attr_list '}' ';'
 			{
+			if ( activation_mgr->InsideConditional() )
+				$3->Error("record redef cannot appear inside @activate-if");
 			cur_decl_type_id = 0;
 			parse_redef_record_field($3, $5, INIT_EXTRA, std::unique_ptr<std::vector<AttrPtr>>($9));
 			}
+
 	|	TOK_REDEF TOK_RECORD  global_id '$' TOK_ID
-			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename, INIT_REMOVE); }
+			{
+			cur_decl_type_id = $3;
+			zeekygen_mgr->Redef($3, ::filename, INIT_REMOVE);
+			}
 		TOK_REMOVE_FROM '{' attr_list '}' ';'
 			{
+			if ( activation_mgr->InsideConditional() )
+				$3->Error("record redef cannot appear inside @activate-if");
 			cur_decl_type_id = 0;
 			parse_redef_record_field($3, $5, INIT_REMOVE, std::unique_ptr<std::vector<AttrPtr>>($9));
 			}
 	|	TOK_REDEF TOK_RECORD global_id
-			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename); }
+			{
+			cur_decl_type_id = $3;
+			zeekygen_mgr->Redef($3, ::filename);
+			}
 		TOK_ADD_TO '{'
 			{ ++in_record; ++in_record_redef; }
 		type_decl_list
@@ -1436,6 +1455,8 @@ decl:
 
 			if ( ! $3->GetType() )
 				$3->Error("unknown identifier");
+			else if ( activation_mgr->InsideConditional() )
+				$3->Error("record redef cannot appear inside @activate-if");
 			else
 				extend_record($3, std::unique_ptr<type_decl_list>($8),
 				              std::unique_ptr<std::vector<AttrPtr>>($11));

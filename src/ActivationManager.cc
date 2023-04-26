@@ -10,6 +10,7 @@ namespace zeek::detail
 void ActivationEvent::Dump(int indent_level) const
 	{
 	Indent(indent_level);
+
 	switch ( et )
 		{
 		case AE_COND:
@@ -34,6 +35,7 @@ void ActivationEvent::Dump(int indent_level) const
 
 	if ( id )
 		printf(" ID=%s", obj_desc(id.get()).c_str());
+
 	if ( expr )
 		printf(" expr=%s", obj_desc(expr.get()).c_str());
 
@@ -83,7 +85,7 @@ Activation::~Activation()
 void Activation::ResetGlobals()
 	{
 	if ( ! is_activated )
-		{
+		{ // undo changes we temporarily introduced
 		for ( auto& gv : global_vals )
 			gv->SetVal(nullptr);
 
@@ -128,6 +130,7 @@ void ActivationManager::SwitchToElse()
 
 void ActivationManager::End()
 	{
+	ASSERT(! activation_stack.empty());
 	activation_stack.pop_back();
 	}
 
@@ -178,6 +181,7 @@ bool ActivationManager::RedefingHandler(const IDPtr& id)
 
 	auto hr = std::make_shared<ActivationEvent>(AE_HANDLER_REDEF);
 	hr->AddID(id);
+
 	activation_stack.back()->CondEvent()->AddSubEvent(std::move(hr));
 
 	return IsActivated();
@@ -191,6 +195,7 @@ bool ActivationManager::AddingBody(IDPtr func, std::shared_ptr<FunctionIngredien
 	auto b = std::make_shared<ActivationEvent>(AE_BODY);
 	b->AddID(func);
 	b->AddIngredients(std::move(ingr));
+
 	activation_stack.back()->CondEvent()->AddSubEvent(std::move(b));
 
 	return IsActivated();

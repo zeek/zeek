@@ -11,7 +11,7 @@
 # @TEST-EXEC: btest-diff manager-1/notice.log
 
 @load base/frameworks/notice
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -63,14 +63,9 @@ event Notice::begin_suppression(ts: time, suppress_for: interval, note: Notice::
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 
-global peer_count = 0;
-
-event Cluster::node_up(name: string, id: string)
+event Cluster::Experimental::cluster_started()
 	{
-	peer_count = peer_count + 1;
-
-	if ( peer_count == 3 )
-		Broker::publish(Cluster::node_topic("worker-2"), do_notice);
+	Broker::publish(Cluster::node_topic("worker-2"), do_notice);
 	}
 
 global proceed_count = 0;

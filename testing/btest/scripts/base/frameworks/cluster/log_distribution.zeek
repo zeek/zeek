@@ -14,7 +14,7 @@
 # @TEST-EXEC: btest-diff logger-1/test.log
 # @TEST-EXEC: btest-diff logger-10/test.log
 
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::manager_is_logger = F;
@@ -42,7 +42,6 @@ event zeek_init() &priority=5
 	Log::create_stream(Test::LOG, [$columns=Info, $path="test"]);
 	}
 
-global peer_count = 0;
 global c = 0;
 
 event go_away()
@@ -63,23 +62,17 @@ event do_count()
 		schedule 0.01sec { do_count() };
 	}
 
-event Cluster::node_up(name: string, id: string)
+event Cluster::Experimental::cluster_started()
 	{
-	print "node_up", name;
-	++peer_count;
+	if ( Cluster::node != "worker-1" )
+		return;
 
-	if ( Cluster::node == "worker-1" && peer_count == 3 )
-		{
-		Cluster::logger_pool$rr_key_seq["Cluster::rr_log_topic"] = 0;
-		schedule 0.25sec { do_count() };
-		}
+	Cluster::logger_pool$rr_key_seq["Cluster::rr_log_topic"] = 0;
+	schedule 0.25sec { do_count() };
 	}
 
 event Cluster::node_down(name: string, id: string)
 	{
-	print "node_down", name;
-	--peer_count;
-
 	if ( name == "worker-1" )
 		schedule 2sec { go_away() };
 	}

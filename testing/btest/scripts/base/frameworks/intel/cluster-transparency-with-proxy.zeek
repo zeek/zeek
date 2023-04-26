@@ -26,7 +26,7 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 @load base/frameworks/intel
 
 module Intel;
@@ -41,33 +41,12 @@ redef Intel::send_store_on_node_up = F;
 
 global log_writes = 0;
 global worker_data = 0;
-global proxy_ready = F;
 global sent_data = F;
 
-event Cluster::node_up(name: string, id: string)
+event Cluster::Experimental::cluster_started()
 	{
-	if ( Cluster::local_node_type() == Cluster::PROXY &&
-		 Cluster::get_active_node_count(Cluster::WORKER) == 2 )
-		{
-		# Make the proxy tell the manager explicitly when both workers
-		# have checked in. The cluster framework normally generates this
-		# event with the Broker ID as second argument. We borrow the
-		# event to signal readiness, using recognizable arguments.
-		Broker::publish(Cluster::manager_topic, Cluster::node_up, Cluster::node, Cluster::node);
-		return;
-		}
-
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
-		{
-		if ( name == "proxy-1" && id == "proxy-1" )
-			proxy_ready = T;
-
-		# Insert data once both workers and the proxy are connected, and
-		# the proxy has indicated that it too has both workers connected.
-		if ( Cluster::get_active_node_count(Cluster::WORKER) == 2 &&
-			 Cluster::proxy_pool$alive_count == 1 && proxy_ready )
-			Intel::insert([$indicator="1.2.3.4", $indicator_type=Intel::ADDR, $meta=[$source="manager"]]);
-		}
+		Intel::insert([$indicator="1.2.3.4", $indicator_type=Intel::ADDR, $meta=[$source="manager"]]);
 	}
 
 # Watch for new indicators sent to workers.

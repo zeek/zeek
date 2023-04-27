@@ -252,6 +252,7 @@ void Manager::InitPostScript()
 	{
 	DBG_LOG(DBG_BROKER, "Initializing");
 
+	iosource_use_zero_timeout = get_option("Broker::iosource_use_zero_timeout")->AsBool();
 	log_batch_size = get_option("Broker::log_batch_size")->AsCount();
 	default_log_topic_prefix =
 		get_option("Broker::default_log_topic_prefix")->AsString()->CheckString();
@@ -1219,6 +1220,14 @@ void Manager::Process()
 				ProcessStoreResponse(s.second, std::move(r));
 			}
 		}
+	}
+
+double Manager::GetNextTimeout()
+	{
+	if ( ! iosource_use_zero_timeout )
+		return -1;
+
+	return bstate->subscriber.available() > 0 ? 0 : -1;
 	}
 
 void Manager::ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id,

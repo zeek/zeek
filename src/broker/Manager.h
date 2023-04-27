@@ -444,7 +444,7 @@ private:
 	// IOSource interface overrides:
 	void Process() override;
 	const char* Tag() override { return "Broker::Manager"; }
-	double GetNextTimeout() override { return -1; }
+	double GetNextTimeout() override;
 
 	struct LogBuffer
 		{
@@ -481,6 +481,7 @@ private:
 
 	uint16_t bound_port;
 	bool use_real_time;
+	bool iosource_use_zero_timeout;
 	int peer_count;
 
 	size_t log_batch_size;

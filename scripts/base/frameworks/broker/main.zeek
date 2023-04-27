@@ -135,6 +135,15 @@ export {
 	## done reading the pcap.
 	option peer_counts_as_iosource = T;
 
+	## Configure the Broker manager to use zero-timeouts to indicate readiness.
+	##
+	## By default, Zeek's IO loop will process the Broker manager's IO source
+	## only every :zeek:see:`io_poll_interval_live` or :zeek:see:`io_poll_interval_default`
+	## iterations. In certain circumstances, this results in significant Broker
+	## message processing delays. Setting this value to T causes the Broker
+	## manager to be processed immediately in the next IO loop iteration.
+	const iosource_use_zero_timeout = F &redef;
+
 	## Port for Broker's metric exporter. Setting this to a valid TCP port causes
 	## Broker to make metrics available to Prometheus scrapers via HTTP. Zeek
 	## overrides any value provided in zeek_init or earlier at startup if the

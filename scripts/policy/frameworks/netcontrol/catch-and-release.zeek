@@ -229,9 +229,9 @@ global blocks: table[addr] of BlockInfo = {}
 	&expire_func=per_block_interval;
 
 
-@if ( Cluster::is_enabled() )
+@activate-if ( have_cluster )
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( is_mgr )
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, NetControl::catch_release_block_new);
@@ -263,7 +263,7 @@ function cr_check_rule(r: Rule): bool
 		return F;
 	}
 
-@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
+@activate-if ( single_enforcement_point )
 
 event rule_added(r: Rule, p: PluginState, msg: string)
 	{
@@ -301,7 +301,7 @@ event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 
 @endif
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( is_mgr )
 event catch_release_add(a: addr, location: string)
 	{
 	drop_address_catch_release(a, location);
@@ -318,7 +318,7 @@ event catch_release_encountered(a: addr)
 	}
 @endif
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+@activate-if ( is_not_mgr )
 event catch_release_block_new(a: addr, b: BlockInfo)
 	{
 	blocks[a] = b;
@@ -331,7 +331,7 @@ event catch_release_block_delete(a: addr)
 	}
 @endif
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( is_mgr )
 @endif
 
 function get_catch_release_info(a: addr): BlockInfo

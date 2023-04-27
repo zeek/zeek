@@ -47,7 +47,6 @@ export {
 	global set_value: function(ID: string, val: any, location: string &default = ""): bool;
 }
 
-@if ( Cluster::is_enabled() )
 type OptionCacheValue: record {
 	val: any;
 	location: string;
@@ -56,6 +55,8 @@ type OptionCacheValue: record {
 global option_cache: table[string] of OptionCacheValue;
 
 global Config::cluster_set_option: event(ID: string, val: any, location: string);
+
+@activate-if ( Cluster::is_enabled() )
 
 function broadcast_option(ID: string, val: any, location: string)
 	{
@@ -104,7 +105,7 @@ function set_value(ID: string, val: any, location: string &default = ""): bool
 	}
 @endif # Cluster::is_enabled
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 # Handling of new worker nodes.
 event Cluster::node_up(name: string, id: string) &priority=-10
 	{

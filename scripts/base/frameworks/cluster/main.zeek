@@ -347,7 +347,7 @@ function nodeid_topic(id: string): string
 	return nodeid_topic_prefix + id + "/";
 	}
 
-@if ( Cluster::is_enabled() )
+@activate-if ( Cluster::is_enabled() )
 
 event Cluster::hello(name: string, id: string) &priority=10
 	{

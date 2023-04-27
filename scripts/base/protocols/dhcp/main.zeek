@@ -134,7 +134,7 @@ event zeek_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 
-@if ( Cluster::is_enabled() )
+@activate-if ( Cluster::is_enabled() )
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, DHCP::aggregate_msgs);
@@ -180,7 +180,7 @@ global join_data: table[count] of Info = table()
 
 
 
-@if ( ! Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( ! Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )
 # We are handling this event at priority 1000 because we really want
 # the DHCP::log_info global to be set correctly before a user might try
 # to access it.

@@ -552,7 +552,7 @@ event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type,
 	suppressing[note, identifier] = suppress_until;
 	}
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, Notice::begin_suppression);
@@ -566,7 +566,7 @@ event Notice::manager_begin_suppression(ts: time, suppress_for: interval, note: 
 	}
 @endif
 
-@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+@activate-if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, Notice::manager_begin_suppression);

@@ -1,3 +1,9 @@
+6.0.0-dev.457 | 2023-04-27 11:25:45 -0700
+
+  * Modify Windows test cmd file to actually run tests (Tim Wojtulewicz)
+
+  * Add template file and cmake call for zeek-path setup on Windows (Tim Wojtulewicz)
+
 6.0.0-dev.453 | 2023-04-27 13:22:43 +0200
 
   * Revert putting plugins into a fresh scope for now (Dominik Charousset, Corelight)

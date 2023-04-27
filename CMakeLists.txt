@@ -423,6 +423,10 @@ set(cmake_install_prefix "${CMAKE_INSTALL_PREFIX}")
 set(cmake_source_dir "${CMAKE_SOURCE_DIR}")
 set(zeek_script_install_path "${ZEEK_SCRIPT_INSTALL_PATH}")
 if ( MSVC )
+    # This has to happen before we modify the paths below so that
+    # the pure Windows paths are stored in the output file.
+    configure_file(zeek-path-dev.bat.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
+
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir "${cmake_current_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_install_prefix "${cmake_install_prefix}")

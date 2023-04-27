@@ -248,18 +248,9 @@
 /* String with extension of dynamic libraries (e.g., ".so") */
 #define DYNAMIC_PLUGIN_SUFFIX "@CMAKE_SHARED_MODULE_SUFFIX@"
 
-/* Set if we're building outside of the main Zeek source code tree. */
-#ifndef ZEEK_PLUGIN_INTERNAL_BUILD
-#define ZEEK_PLUGIN_INTERNAL_BUILD true
-#else
-// Backwards compat for external plugins, include the version
-// identifiers through zeek/zeek-version.h.
-#if ! ZEEK_PLUGIN_INTERNAL_BUILD
+// For builtin plugins, we don't want to include zeek-version.h.
+#ifndef ZEEK_CONFIG_SKIP_VERSION_H
 #include "zeek/zeek-version.h"
-#endif
-//
-// Not sure we can ever deprecate this without changing
-// the names.
 #endif
 
 // GCC uses __SANITIZE_ADDRESS__, Clang uses __has_feature

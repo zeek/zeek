@@ -1,3 +1,14 @@
+6.0.0-dev.453 | 2023-04-27 13:22:43 +0200
+
+  * Revert putting plugins into a fresh scope for now (Dominik Charousset, Corelight)
+
+  * Propagate zeek-version.h skip via CMake properties (Dominik Charousset, Corelight)
+
+    Add a define for `ZEEK_CONFIG_SKIP_VERSION_H` to static plugins as well
+    as to dynamic plugins that we build alongside Zeek. When including
+    `zeek-config.h` with this macro defined, the header skips including
+    `zeek-version.h`.
+
 6.0.0-dev.449 | 2023-04-27 12:16:46 +0200
 
   * Bump zeekctl to multi-logger version (Arne Welzel, Corelight)

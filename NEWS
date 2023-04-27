@@ -28,22 +28,6 @@ Breaking Changes
   come in handy for example when working with tests that compare results against
   log baselines that have not yet been updated.
 
-- The zeek/zeek-config.h header does not provide the macros ZEEK_VERSION and
-  ZEEK_VERSION_NUMBER anymore when compiling builtin plugins. This may affect
-  external plugins included via the configure flag ``--include-plugins``
-  referencing these macros. A suggested update for these plugins is adding
-  the following snippet:
-
-	#if __has_include("zeek/zeek-version.h")
-	#include "zeek/zeek-version.h"
-	#endif
-
-  External plugins that are built out-of-tree, e.g. via ``zkg`` are not
-  affected by this change.
-
-  The main motivation is improved ccache effectiveness for speedier CI and
-  development builds whenever a VERSION bump happens.
-
 - Custom source tarballs require a ``repo-info.json`` file.
 
   Note, should you be using official Zeek release tarballs only, or build

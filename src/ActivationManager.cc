@@ -91,8 +91,9 @@ void Activation::ResetGlobals()
 
 		auto gs = global_scope();
 
-		for ( auto& gid : global_IDs )
-			gs->RemoveGlobal(gid->Name(), gid);
+		if ( gs )
+			for ( auto& gid : global_IDs )
+				gs->RemoveGlobal(gid->Name(), gid);
 		}
 
 	global_vals.clear();

@@ -300,6 +300,6 @@ private:
 	std::vector<std::shared_ptr<ActivationEvent>> activation_events;
 	};
 
-extern std::unique_ptr<ActivationManager> activation_mgr;
+extern ActivationManager* activation_mgr;
 
 	} // namespace zeek::detail

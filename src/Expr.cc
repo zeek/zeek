@@ -3187,7 +3187,7 @@ HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
 
 HasFieldExpr::~HasFieldExpr()
 	{
-	delete field_name;
+	delete[] field_name;
 	}
 
 ValPtr HasFieldExpr::Fold(Val* v) const

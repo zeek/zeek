@@ -181,7 +181,7 @@ zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
 zeek::detail::RuleMatcher* zeek::detail::rule_matcher = nullptr;
 zeek::detail::DNS_Mgr* zeek::detail::dns_mgr = nullptr;
 zeek::detail::TimerMgr* zeek::detail::timer_mgr = nullptr;
-std::unique_ptr<zeek::detail::ActivationManager> zeek::detail::activation_mgr;
+zeek::detail::ActivationManager* zeek::detail::activation_mgr;
 
 zeek::logging::Manager* zeek::log_mgr = nullptr;
 zeek::threading::Manager* zeek::thread_mgr = nullptr;
@@ -439,6 +439,7 @@ static void terminate_zeek()
 	delete session_mgr;
 	delete fragment_mgr;
 	delete telemetry_mgr;
+	delete activation_mgr;
 
 	// free the global scope
 	pop_scope();
@@ -659,7 +660,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
 	zeekygen_mgr = new zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);
-	activation_mgr = std::make_unique<ActivationManager>();
+	activation_mgr = new ActivationManager();
 
 	add_essential_input_file("base/init-bare.zeek");
 	add_essential_input_file("builtin-plugins/__preload__.zeek");

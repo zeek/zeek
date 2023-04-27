@@ -33,7 +33,8 @@ function run_zeek {
 
     if [ $? -ne 0 ]; then
         echo "Failed running zeek with zeekygen config file $conf_file"
-        echo "See stderr in $zeek_error_file"
+        echo "Content of $zeek_error_file follows"
+        cat $zeek_error_file
         exit 1
     fi
 }

@@ -26,7 +26,7 @@ redef Log::default_rotation_interval = 0secs;
 
 global hll_data: event(data: opaque of cardinality);
 
-@if ( Cluster::local_node_type() == Cluster::WORKER )
+@activate-if ( Cluster::local_node_type() == Cluster::WORKER )
 
 event zeek_init()
 	{
@@ -89,7 +89,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 
 @endif
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global result_count = 0;
 global hll: opaque of cardinality;

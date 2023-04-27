@@ -43,7 +43,7 @@ event zeek_init()
 	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
 	}
 
-@if ( Cluster::node == "worker-1" )
+@activate-if ( Cluster::node == "worker-1" )
 event ready_for_data()
 	{
 	Config::set_value("testport", 44/tcp);
@@ -69,7 +69,7 @@ event zeek_init() &priority=5
 	Option::set_change_handler("teststring", option_changed, -100);
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@activate-if ( Cluster::local_node_type() == Cluster::MANAGER )
 
 global peer_count = 0;
 event Cluster::node_up(name: string, id: string)

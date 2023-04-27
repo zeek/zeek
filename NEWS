@@ -297,6 +297,9 @@ Changed Functionality
   masked to exclude PCP and DEI bits. Previously, these bits were included
   and could cause invalid vlan values > 4095 to be reported.
 
+- Libpcap based packet source now avoids the 32bit wraparound of link and
+  dropped packet counters as reported by users.
+
 Removed Functionality
 ---------------------
 

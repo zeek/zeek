@@ -23,6 +23,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 
 #include "zeek/3rdparty/doctest.h"
+#include "zeek/ActivationManager.h"
 #include "zeek/Anon.h"
 #include "zeek/DFA.h"
 #include "zeek/DNS_Mgr.h"
@@ -180,6 +181,7 @@ zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
 zeek::detail::RuleMatcher* zeek::detail::rule_matcher = nullptr;
 zeek::detail::DNS_Mgr* zeek::detail::dns_mgr = nullptr;
 zeek::detail::TimerMgr* zeek::detail::timer_mgr = nullptr;
+std::unique_ptr<zeek::detail::ActivationManager> zeek::detail::activation_mgr;
 
 zeek::logging::Manager* zeek::log_mgr = nullptr;
 zeek::threading::Manager* zeek::thread_mgr = nullptr;
@@ -657,6 +659,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
 	zeekygen_mgr = new zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);
+	activation_mgr = std::make_unique<ActivationManager>();
 
 	add_essential_input_file("base/init-bare.zeek");
 	add_essential_input_file("builtin-plugins/__preload__.zeek");

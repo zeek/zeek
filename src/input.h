@@ -23,7 +23,7 @@ extern void add_to_name_list(char* s, char delim, zeek::name_list& nl);
 
 extern void begin_RE();
 
-extern void do_atif(zeek::detail::Expr* expr);
+extern void do_atif(zeek::detail::Expr* expr, bool is_activate);
 extern void do_atifdef(const char* id);
 extern void do_atifndef(const char* id);
 extern void do_atelse();

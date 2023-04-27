@@ -5,10 +5,10 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 211
+%expect 212
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
-%token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
+%token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATACTIVATEIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_OPTION TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
@@ -98,6 +98,7 @@
 #include "zeek/RE.h"
 #include "zeek/Scope.h"
 #include "zeek/Reporter.h"
+#include "zeek/ActivationManager.h"
 #include "zeek/ScriptCoverageManager.h"
 #include "zeek/ScriptValidation.h"
 #include "zeek/zeekygen/Manager.h"
@@ -139,16 +140,19 @@ extern const char* g_curr_debug_error;
 extern int in_when_cond;
 
 static int in_hook = 0;
-int in_init = 0;
-int in_record = 0;
+static int in_init = 0;
+static int in_body = 0;
+static int in_global_stmts = 0;
+static int in_record = 0;
 static int in_record_redef = 0;
 static int in_enum_redef = 0;
-bool resolving_global_ID = false;
-bool defining_global_ID = false;
-std::vector<int> saved_in_init;
+static bool resolving_global_ID = false;
+static bool defining_global_ID = false;
+static bool is_activated = true;
+static std::vector<int> saved_in_init;
 static int expr_list_has_opt_comma = 0;
 
-std::vector<std::set<const ID*>> locals_at_this_scope;
+static std::vector<std::set<const ID*>> locals_at_this_scope;
 static std::unordered_set<const ID*> out_of_scope_locals;
 
 static Location func_hdr_location;
@@ -321,6 +325,9 @@ static void build_global(ID* id, Type* t, InitClass ic, Expr* e,
 
 	add_global(id_ptr, std::move(t_ptr), ic, e_ptr, std::move(attrs_ptr), dt);
 
+	if ( ! activation_mgr->IsActivated() )
+		return;
+
 	if ( dt == VAR_REDEF )
 		zeekygen_mgr->Redef(id, ::filename, ic, std::move(e_ptr));
 	else
@@ -392,9 +399,13 @@ zeek:
 			auto loc = zeek::detail::GetCurrentLocation();
 			if ( loc.filename )
 				set_location(loc);
+
+			++in_global_stmts;
 			}
 		stmt_list
 			{
+			--in_global_stmts;
+
 			if ( stmts )
 				stmts->AsStmtList()->Stmts().push_back($3);
 			else
@@ -1400,29 +1411,49 @@ decl:
 			}
 
 	|	TOK_REDEF TOK_ENUM global_id TOK_ADD_TO '{'
-			{ ++in_enum_redef; parse_redef_enum($3); zeekygen_mgr->Redef($3, ::filename); }
+			{
+			++in_enum_redef;
+			parse_redef_enum($3);
+			zeekygen_mgr->Redef($3, ::filename);
+			}
 		enum_body '}' ';'
 			{
+			if ( activation_mgr->InsideConditional() )
+				reporter->Error("enum redef cannot appear inside @activate-if");
 			--in_enum_redef;
 			// Zeekygen already grabbed new enum IDs as the type created them.
 			}
 
 	|	TOK_REDEF TOK_RECORD  global_id '$' TOK_ID
-			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename, INIT_EXTRA); }
+			{
+			cur_decl_type_id = $3;
+			zeekygen_mgr->Redef($3, ::filename, INIT_EXTRA);
+			}
 		TOK_ADD_TO '{' attr_list '}' ';'
 			{
+			if ( activation_mgr->InsideConditional() )
+				reporter->Error("record redef cannot appear inside @activate-if");
 			cur_decl_type_id = 0;
 			parse_redef_record_field($3, $5, INIT_EXTRA, std::unique_ptr<std::vector<AttrPtr>>($9));
 			}
+
 	|	TOK_REDEF TOK_RECORD  global_id '$' TOK_ID
-			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename, INIT_REMOVE); }
+			{
+			cur_decl_type_id = $3;
+			zeekygen_mgr->Redef($3, ::filename, INIT_REMOVE);
+			}
 		TOK_REMOVE_FROM '{' attr_list '}' ';'
 			{
+			if ( activation_mgr->InsideConditional() )
+				reporter->Error("record redef cannot appear inside @activate-if");
 			cur_decl_type_id = 0;
 			parse_redef_record_field($3, $5, INIT_REMOVE, std::unique_ptr<std::vector<AttrPtr>>($9));
 			}
 	|	TOK_REDEF TOK_RECORD global_id
-			{ cur_decl_type_id = $3; zeekygen_mgr->Redef($3, ::filename); }
+			{
+			cur_decl_type_id = $3;
+			zeekygen_mgr->Redef($3, ::filename);
+			}
 		TOK_ADD_TO '{'
 			{ ++in_record; ++in_record_redef; }
 		type_decl_list
@@ -1433,6 +1464,8 @@ decl:
 
 			if ( ! $3->GetType() )
 				$3->Error("unknown identifier");
+			else if ( activation_mgr->InsideConditional() )
+				reporter->Error("record redef cannot appear inside @activate-if");
 			else
 				extend_record($3, std::unique_ptr<type_decl_list>($8),
 				              std::unique_ptr<std::vector<AttrPtr>>($11));
@@ -1465,7 +1498,13 @@ conditional_list:
 
 conditional:
 		TOK_ATIF '(' expr ')'
-			{ do_atif($3); }
+			{ do_atif($3, false); }
+	|	TOK_ATACTIVATEIF '(' expr ')'
+			{
+			if ( in_body )
+				reporter->Error("@activate-if cannot appear inside a function body");
+			do_atif($3, true);
+			}
 	|	TOK_ATIFDEF '(' TOK_ID ')'
 			{ do_atifdef($3); }
 	|	TOK_ATIFNDEF '(' TOK_ID ')'
@@ -1523,6 +1562,7 @@ func_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+			++in_body;
 
 			locals_at_this_scope.clear();
 			out_of_scope_locals.clear();
@@ -1532,6 +1572,7 @@ func_body:
 			{
 			in_init = saved_in_init.back();
 			saved_in_init.pop_back();
+			--in_body;
 			}
 
 		'}'
@@ -1552,12 +1593,14 @@ lambda_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
+			++in_body;
 			}
 
 		stmt_list
 			{
 			in_init = saved_in_init.back();
 			saved_in_init.pop_back();
+			--in_body;
 			}
 
 		'}'
@@ -1970,11 +2013,21 @@ stmt:
 	;
 
 stmt_list:
-		stmt_list stmt
+		stmt_list { is_activated = activation_mgr->IsActivated(); } stmt
 			{
-			set_location(@1, @2);
-			$1->AsStmtList()->Stmts().push_back($2);
-			$1->UpdateLocationEndInfo(@2);
+			set_location(@1, @3);
+
+			// We can't simply test activation_mgr->IsActivated()
+			// here because the parser can wind up looking ahead
+			// to the @endif token and restoring activation that
+			// in fact was off for the statement.  So we capture
+			// the activation state prior to parsing the statement
+			// in "is_activated" and test that instead.
+			if ( ! in_global_stmts || is_activated )
+				{
+				$1->AsStmtList()->Stmts().push_back($3);
+				$1->UpdateLocationEndInfo(@3);
+				}
 			}
 	|
 			{ $$ = new StmtList(); }
@@ -2214,8 +2267,10 @@ global_or_event_id:
 					resolving_global_ID ?
 						current_module.c_str() : 0;
 
-				$$ = install_ID($1, module_name,
-				                              true, is_export).release();
+				auto gid = install_ID($1, module_name,
+				                              true, is_export);
+				activation_mgr->CreatingGlobalID(gid);
+				$$ = gid.release();
 				}
 			}
 	;

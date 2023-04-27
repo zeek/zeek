@@ -29,8 +29,6 @@
 #include "zeek/DNS_Mgr.h"
 #include "zeek/Expr.h"
 #include "zeek/Func.h"
-#include "zeek/Stmt.h"
-#include "zeek/IntrusivePtr.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
 #include "zeek/Debug.h"
@@ -41,6 +39,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/module_util.h"
 #include "zeek/ScannedFile.h"
+#include "zeek/ActivationManager.h"
 
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/zeekygen/Manager.h"
@@ -55,9 +54,10 @@ extern YYLTYPE yylloc;	// holds start line and column of token
 extern zeek::EnumType* cur_enum_type;
 
 // Track the @if... depth.
-static std::intptr_t conditional_depth = 0;
+static int conditional_depth = 0;
 
 zeek::detail::int_list entry_cond_depth; // @if depth upon starting file
+zeek::detail::int_list entry_act_depth; // @activate-if depth upon starting file
 zeek::detail::int_list entry_pragma_stack_depth; // @pragma push depth upon starting file
 static std::vector<std::string> pragma_stack; // stack of @pragma pushes
 
@@ -127,6 +127,9 @@ static std::string find_relative_script_file(const std::string& filename)
 
 static void start_conditional()
 	{
+	if ( activation_mgr->InsideConditional() )
+		zeek::reporter->Warning("@conditional inside @activate-if");
+
 	++conditional_depth;
 	++conditional_epoch;
 
@@ -155,17 +158,18 @@ static void do_pragma(const std::string& pragma)
 
 	if ( parts[0] == "push" )
 		{
-			if ( parts.size() < 2 )
-				{
-				zeek::reporter->FatalError("@pragma push without value");
-				return;
-				}
+		if ( parts.size() < 2 )
+			{
+			zeek::reporter->FatalError("@pragma push without value");
+			return;
+			}
 
-			if ( known_stack_pragmas.count(parts[1]) == 0 )
-				zeek::reporter->Warning("pushing unknown @pragma value '%s'", parts[1].c_str());
+		if ( known_stack_pragmas.count(parts[1]) == 0 )
+			zeek::reporter->Warning("pushing unknown @pragma value '%s'", parts[1].c_str());
 
-			pragma_stack.push_back(parts[1]);
+		pragma_stack.push_back(parts[1]);
 		}
+
 	else if ( parts[0] == "pop" )
 		{
 		if ( pragma_stack.empty() || pragma_stack.size() == entry_pragma_stack_depth.back() )
@@ -176,10 +180,11 @@ static void do_pragma(const std::string& pragma)
 
 		// Popping with a value: Verify it's popping the right thing. Not providing
 		// a pop value itself is valid. Don't return, probably blows up below anyway.
-		if ( parts.size() > 1 && pragma_stack.back() != parts[1] ) {
+		if ( parts.size() > 1 && pragma_stack.back() != parts[1] )
+			{
 			zeek::reporter->Error("@pragma pop with unexpected '%s', expected '%s'",
 			                      parts[1].c_str(), pragma_stack.back().c_str());
-		}
+			}
 
 		// Just pop anything
 		pragma_stack.pop_back();
@@ -518,12 +523,17 @@ when	return TOK_WHEN;
 	}
 
 @if	return TOK_ATIF;
+@activate-if	return TOK_ATACTIVATEIF;
 @ifdef	return TOK_ATIFDEF;
 @ifndef	return TOK_ATIFNDEF;
 @else   return TOK_ATELSE;
 @endif	do_atendif();
 
 <IGNORE>@if	start_conditional();
+<IGNORE>@activate-if	{
+		zeek::reporter->Warning("@activate-if inside regular @if");
+		start_conditional();
+		}
 <IGNORE>@ifdef	start_conditional();
 <IGNORE>@ifndef	start_conditional();
 <IGNORE>@else   return TOK_ATELSE;
@@ -792,6 +802,7 @@ static int load_files(const char* orig_file)
 	current_file_has_conditionals = files_with_conditionals.count(filename) > 0;
 
 	entry_cond_depth.push_back(conditional_depth);
+	entry_act_depth.push_back(activation_mgr->ActivationDepth());
 	entry_pragma_stack_depth.push_back(pragma_stack.size());
 
 	return 1;
@@ -836,10 +847,8 @@ static void resume_processing()
 	BEGIN(INITIAL);
 	}
 
-void do_atif(zeek::detail::Expr* expr)
+void do_atif(zeek::detail::Expr* expr, bool is_activate)
 	{
-	start_conditional();
-
 	LocalNameFinder cb;
 	expr->Traverse(&cb);
 	zeek::ValPtr val;
@@ -855,11 +864,28 @@ void do_atif(zeek::detail::Expr* expr)
 	if ( ! val )
 		{
 		expr->Error("invalid expression in @if");
+
+		if ( ! is_activate )
+			start_conditional();
+
 		return;
 		}
 
-	if ( ! val->AsBool() )
-		begin_ignoring();
+	bool is_true = val->AsBool();
+
+	if ( is_activate )
+		{
+		if ( conditional_depth > 0 )
+			zeek::reporter->Warning("@activate-if inside conditional");
+		activation_mgr->Start({zeek::NewRef{}, expr}, is_true, conditional_depth);
+		}
+	else
+		{
+		start_conditional();
+
+		if ( ! is_true )
+			begin_ignoring();
+		}
 	}
 
 void do_atifdef(const char* id)
@@ -894,6 +920,12 @@ void do_atifndef(const char *id)
 
 void do_atelse()
 	{
+	if ( activation_mgr->InsideConditional(conditional_depth) )
+		{ // This is the @else corresponding to an @activate-if.
+		activation_mgr->SwitchToElse();
+		return;
+		}
+
 	if ( conditional_depth == 0 )
 		zeek::reporter->Error("@else without @if...");
 
@@ -908,6 +940,15 @@ void do_atelse()
 
 void do_atendif()
 	{
+	if ( activation_mgr->InsideConditional(conditional_depth) )
+		{ // We're ending an @activate-if.
+		if ( activation_mgr->ActivationDepth() <= entry_act_depth.back() )
+			zeek::reporter->Error("unbalanced @activate-if... @endif");
+		else
+			activation_mgr->End();
+		return;
+		}
+
 	if ( conditional_depth <= entry_cond_depth.back() )
 		zeek::reporter->Error("unbalanced @if... @endif");
 
@@ -988,6 +1029,13 @@ int yywrap()
 		if ( conditional_depth > entry_cond_depth.back() )
 			zeek::reporter->FatalError("unbalanced @if... @endif");
 		entry_cond_depth.pop_back();
+		}
+
+	if ( entry_act_depth.size() > 0 )
+		{
+		if ( activation_mgr->ActivationDepth() > entry_act_depth.back() )
+			zeek::reporter->FatalError("unbalanced @activate-if... @endif");
+		entry_act_depth.pop_back();
 		}
 
 	if ( entry_pragma_stack_depth.size() > 0 )

@@ -1,3 +1,13 @@
+6.0.0-dev.449 | 2023-04-27 12:16:46 +0200
+
+  * Bump zeekctl to multi-logger version (Arne Welzel, Corelight)
+
+  * logging: Support rotation_postprocessor_command_env (Arne Welzel, Corelight)
+
+    This new table provides a mechanism to add environment variables to the
+    postprocessor execution. Use case is from ZeekControl to inject a suffix
+    to be used when running with multiple logger.
+
 6.0.0-dev.445 | 2023-04-27 09:08:45 +0200
 
   * Update ZeekJS submodule to 0.9.0 (Arne Welzel, Corelight)

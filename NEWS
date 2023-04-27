@@ -112,6 +112,21 @@ New Functionality
   Loading the new policy scripts and using the external zeek-community-id
   plugin at the same time is unsupported.
 
+- ZeekControl is now multi-logger aware. When multiple logger nodes are configured
+  in ZeekControl's node.cfg, by default the log archival logic adds a logger's name
+  as suffix to the rotated file name:
+
+	stats.11:18:57-11:19:00-logger-1.log.gz
+	stats.11:18:57-11:19:00-logger-2.log.gz
+
+  Previously, in a multi-logger setup, individual logger processes would overwrite
+  each others log files during rotation, causing data loss.
+
+  For setups with a single logger, there's no change in behavior. The naming
+  of the final logs can be customized by providing an alternative
+  ``make-archive-name`` script and using the new ``ZEEK_ARG_LOG_SUFFIX``
+  environment variable.
+
 - Introduce a new command-line option ``-V`` / ``--build-info``. It produces
   verbose output in JSON format about the repository state and any included
   plugins.
@@ -198,6 +213,9 @@ New Functionality
 
 - Add packet analzyers for LLC, SNAP, and Novell 802.3, called from the Ethernet
   and VLAN analyzers by default.
+
+- Environment variables for the execution of log rotation postprocessors can
+  be set via ``Log::default_rotation_postprocessor_cmd_env``.
 
 Changed Functionality
 ---------------------

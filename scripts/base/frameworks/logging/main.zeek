@@ -172,6 +172,14 @@ export {
 	## Default shell command to run on rotated files. Empty for none.
 	const default_rotation_postprocessor_cmd = "" &redef;
 
+	## This table contains environment variables to be used for the
+	## :zeek:see:`Log::default_rotation_postprocessor_cmd` command
+	## when executed via :zeek:see:`Log::run_rotation_postprocessor_cmd`.
+	##
+	## The entries in this table will be prepended with ``ZEEK_ARG_``
+	## as done by :zeek:see:`system_env`.
+	option default_rotation_postprocessor_cmd_env: table[string] of string = {};
+
 	## Specifies the default postprocessor function per writer type.
 	## Entries in this table are initialized by each writer type.
 	const default_rotation_postprocessors: table[Writer] of function(info: RotationInfo) : bool &redef;
@@ -578,6 +586,7 @@ export {
 	##          to postprocess a rotated log file.
 	##
 	## .. zeek:see:: Log::default_rotation_date_format
+	##    Log::default_rotation_postprocessor_cmd_env
 	##    Log::default_rotation_postprocessor_cmd
 	##    Log::default_rotation_postprocessors
 	global run_rotation_postprocessor_cmd: function(info: RotationInfo, npath: string) : bool;
@@ -654,8 +663,7 @@ function default_path_func(id: ID, path: string, rec: any) : string
 		return to_lower(id_str);
 	}
 
-# Run post-processor on file. If there isn't any postprocessor defined,
-# we move the file to a nicer name.
+# Run post-processor on file.
 function run_rotation_postprocessor_cmd(info: RotationInfo, npath: string) : bool
 	{
 	local pp_cmd = default_rotation_postprocessor_cmd;
@@ -668,11 +676,15 @@ function run_rotation_postprocessor_cmd(info: RotationInfo, npath: string) : boo
 
 	# The date format is hard-coded here to provide a standardized
 	# script interface.
-	system(fmt("%s %s %s %s %s %d %s",
-               pp_cmd, safe_shell_quote(npath), safe_shell_quote(info$path),
-               strftime("%y-%m-%d_%H.%M.%S", info$open),
-               strftime("%y-%m-%d_%H.%M.%S", info$close),
-               info$terminating, writer));
+	#
+	# Note that system_env() does not clear the environment, it only
+	# adds entries from the given table. Unusual, but useful here.
+	system_env(fmt("%s %s %s %s %s %d %s",
+	               pp_cmd, safe_shell_quote(npath), safe_shell_quote(info$path),
+	               strftime("%y-%m-%d_%H.%M.%S", info$open),
+	               strftime("%y-%m-%d_%H.%M.%S", info$close),
+	               info$terminating, writer),
+	           Log::default_rotation_postprocessor_cmd_env);
 
 	return T;
 	}

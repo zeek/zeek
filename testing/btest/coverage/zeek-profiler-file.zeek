@@ -15,9 +15,19 @@
 @TEST-START-FILE profiling-test1.zeek
 event new_connection(c: connection)
 	{ print "new conn"; }
+
+@activate-if ( F )
+event new_connection(c: connection)
+	{ print "hidden new conn"; }
+@endif
 @TEST-END-FILE
 
 @TEST-START-FILE profiling-test2.zeek
 event new_connection(c: connection)
 	{ print "new conn"; }
+
+@activate-if ( F )
+event new_connection(c: connection)
+	{ print "hidden new conn"; }
+@endif
 @TEST-END-FILE

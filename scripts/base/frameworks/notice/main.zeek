@@ -539,9 +539,9 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 		{
 		event Notice::begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
 		suppressing[n$note, n$identifier] = n$ts + n$suppress_for;
-@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-		event Notice::manager_begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
-@endif
+
+		if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+			event Notice::manager_begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
 		}
 	}
 
@@ -644,13 +644,14 @@ function apply_policy(n: Notice::Info)
 	if ( ! n?$ts )
 		n$ts = network_time();
 
-@if ( Cluster::is_enabled() )
-	if ( ! n?$peer_name )
-		n$peer_name = Cluster::node;
+	if ( Cluster::is_enabled() )
+		{
+		if ( ! n?$peer_name )
+			n$peer_name = Cluster::node;
 
-	if ( ! n?$peer_descr )
-		n$peer_descr = Cluster::node;
-@endif
+		if ( ! n?$peer_descr )
+			n$peer_descr = Cluster::node;
+		}
 
 	if ( n?$f )
 		populate_file_info(n$f, n);

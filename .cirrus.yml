@@ -163,17 +163,17 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
+fedora38_task:
+  container:
+    # Fedora 38 EOL: Around May 2024
+    dockerfile: ci/fedora-38/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 fedora37_task:
   container:
     # Fedora 37 EOL: Around Dec 2024
     dockerfile: ci/fedora-37/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-fedora36_task:
-  container:
-    # Fedora 36 EOL: Around May 2023
-    dockerfile: ci/fedora-36/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR

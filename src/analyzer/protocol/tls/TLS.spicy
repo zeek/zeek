@@ -577,13 +577,13 @@ type Share = unit {
 # field in the server hello - and then again due to the outer version in
 # the server hello. So - once we have a version here, let's just stick
 # with it.
-function set_version(version: uint16, inout msg: Message) : bool {
-  if ( msg.context().parsed_version != UNKNOWN_VERSION )
+function set_version(version: uint16, inout sh: Share) : bool {
+  if ( sh.parsed_version != UNKNOWN_VERSION )
     return False;
 
-  msg.context().parsed_version = version;
+  sh.parsed_version = version;
   if ( version == TLSv13 || version/0xFF == 0x7F )
-    msg.context().tls_13 = True;
+    sh.tls_13 = True;
 
   return True;
 }
@@ -610,12 +610,12 @@ public type Message = unit {
   var dtls: bool = False;
 
   on %init {
-    self.handshakesink.connect(new Handshake(self));
+    self.handshakesink.connect(new Handshake(self, self.context()));
     self.alertsink.connect(new Alert);
     print "top-level init";
   }
 
-  fragment : RecordFragmentChoice(self.handshakesink, self.alertsink, self)[];
+  fragment : RecordFragmentChoice(self.handshakesink, self.alertsink, self, self.context())[];
   # : bytes &eod if ( self.context().skipping );
 };
 
@@ -626,13 +626,13 @@ function is_dtls_version(version: uint16) : bool {
   return False;
 }
 
-type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg: Message) {
+type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
   content_type: uint8; # &convert=ContentType($$);
   version: uint16;
 
   switch ( is_dtls_version(self.version) ) {
-    True -> dtlsfragment : DTLSRecordFragment(self.content_type, handshakesink, alertsink, msg);
-    False -> tlsfragment : TLSRecordFragment(self.content_type, handshakesink, alertsink, msg);
+    True -> dtlsfragment : DTLSRecordFragment(self.content_type, handshakesink, alertsink, msg, sh);
+    False -> tlsfragment : TLSRecordFragment(self.content_type, handshakesink, alertsink, msg, sh);
   };
 
   on content_type {
@@ -646,19 +646,19 @@ type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg
   }
 };
 
-type TLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message) {
-  record: PlaintextRecord(content_type, handshakesink, alertsink, msg);
+type TLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
+  record: PlaintextRecord(content_type, handshakesink, alertsink, msg, sh);
 };
 
-type DTLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message) {
+type DTLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
 # the epoch signalizes that a changecipherspec message has been received. Hence, everything with
 # an epoch > 0 should be encrypted
   epoch: uint16;
   sequence_number: bytes &size=6; # uint48
-  record: PlaintextRecord(content_type, handshakesink, alertsink, msg);
+  record: PlaintextRecord(content_type, handshakesink, alertsink, msg, sh);
 };
 
-type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message) {
+type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
   length: uint16;
   switch ( ContentType(content_type) ) {
     ContentType::handshake -> : bytes &size=self.length -> handshakesink;
@@ -681,7 +681,7 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink:
       handshakesink.close();
       alertsink.close();
       msg.encrypted = True;
-      msg.context().ccs_seen++;
+      sh.ccs_seen++;
     }
   }
 };
@@ -702,11 +702,11 @@ type Alert_message = unit {
   description: uint8; # &convert=AlertDescription($$);
 };
 
-type Handshake = unit(inout msg: Message) {
-  handshakes: Handshake_message(msg)[];
+type Handshake = unit(inout msg: Message, inout sh: Share&) {
+  handshakes: Handshake_message(msg, sh)[];
 };
 
-type Handshake_message = unit(inout msg: Message) {
+type Handshake_message = unit(inout msg: Message, inout sh: Share) {
   msg_type: uint8;
   # msg_type: uint8 &parse-from=self.msg_type_raw &convert=HandshakeType($$);
   # msg_type: uint8 &convert=HandshakeType($$);
@@ -716,16 +716,16 @@ type Handshake_message = unit(inout msg: Message) {
   fragment_length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network) if (msg.dtls);
 
   switch ( HandshakeType(self.msg_type) ) {
-    HandshakeType::client_hello -> client_hello: ClientHello(self.length, msg);
+    HandshakeType::client_hello -> client_hello: ClientHello(self.length, msg, sh);
     HandshakeType::server_hello_done,
     HandshakeType::hello_request -> : bytes &size=self.length; # Fixme: alert if length != 0
     HandshakeType::hello_verify_request -> hello_verify_request: HelloVerifyRequest;
-    HandshakeType::server_hello -> server_hello: ServerHelloChoice(self.length, msg);
+    HandshakeType::server_hello -> server_hello: ServerHelloChoice(self.length, msg, sh);
     HandshakeType::certificate -> certificate: Certificate;
-    HandshakeType::certificate_request -> certificate_request: CertificateRequest(msg);
+    HandshakeType::certificate_request -> certificate_request: CertificateRequest(sh);
     HandshakeType::certificate_verify -> : bytes &size=self.length; # opaque encrypted data
-    HandshakeType::client_key_exchange -> client_key_exchange: ClientKeyExchange(msg, self.length);
-    HandshakeType::server_key_exchange -> server_key_exchange: ServerKeyExchange(msg, self.length);
+    HandshakeType::client_key_exchange -> client_key_exchange: ClientKeyExchange(sh, self.length);
+    HandshakeType::server_key_exchange -> server_key_exchange: ServerKeyExchange(sh, self.length);
     HandshakeType::NewSessionTicket -> session_ticket: NewSessionTicket;
     HandshakeType::certificate_status -> certificate_status: CertificateStatus;
     * -> unhandled : bytes &size=self.length;
@@ -742,10 +742,10 @@ type Handshake_message = unit(inout msg: Message) {
   }
 };
 
-type CertificateRequest = unit(msg: Message) {
+type CertificateRequest = unit(sh: Share) {
   certificate_types_len: uint8;
   certificate_types: uint8[self.certificate_types_len];
-  switch ( uses_signature_and_hashalgorithm(msg) ) {
+  switch ( uses_signature_and_hashalgorithm(sh) ) {
     True -> supported_signature_algorithms: SignatureAlgorithms;
     False -> : bytes &size=0;
   };
@@ -780,7 +780,7 @@ type ClientHelloCookie = unit {
   cookie: bytes &size=self.cookie_len;
 };
 
-type ClientHello = unit(len: uint64, inout msg: Message) {
+type ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
   client_version: uint16;
   random: Random;
   session_id_length: uint8;
@@ -791,7 +791,7 @@ type ClientHello = unit(len: uint64, inout msg: Message) {
   compression_methods_length: uint8;
   compression_methods: uint8[self.compression_methods_length];
   extensions_length: uint16 if ( len > self.offset() );
-  extensions: Extension(msg, True)[] &size=self.extensions_length if ( len > self.offset() );
+  extensions: Extension(sh, True)[] &size=self.extensions_length if ( len > self.offset() );
 
   on %error(emsg: string) {
     print "Error in client hello", emsg;
@@ -800,7 +800,7 @@ type ClientHello = unit(len: uint64, inout msg: Message) {
 };
 
 # Draft versions of TLS 1.3 had a diffent server hello - distinguish here
-type ServerHelloChoice = unit(len: uint64, inout msg: Message) {
+type ServerHelloChoice = unit(len: uint64, msg: Message, inout sh: Share) {
   sv : bitfield(16) {
     server_version0: 0..7;
     server_version1: 8..15;
@@ -809,15 +809,15 @@ type ServerHelloChoice = unit(len: uint64, inout msg: Message) {
   var parsed_version: uint16;
 
   switch ( self.parsed_version ) {
-    TLSv13, TLSv13_draft, 0x7F00 -> : ServerHelloOneThree(len, msg, self.sv.server_version);
-    * -> : ServerHello(len, msg, self.sv.server_version);
+    TLSv13, TLSv13_draft, 0x7F00 -> : ServerHelloOneThree(len, msg, sh, self.sv.server_version);
+    * -> : ServerHello(len, msg, sh, self.sv.server_version);
   };
 
   on sv {
     print "Got server version", self.sv.server_version0, self.sv.server_version1, self.sv.server_version;
-    msg.context().chosen_version_sh = self.sv.server_version;
-    set_version(self.sv.server_version, msg);
-    print "set chosen version", self.sv.server_version, msg.context().chosen_version_sh;
+    sh.chosen_version_sh = self.sv.server_version;
+    set_version(self.sv.server_version, sh);
+    print "set chosen version", self.sv.server_version, sh.chosen_version_sh;
 
     if ( self.sv.server_version1 == 0x7F ) {
       print "TLS 13 draft";
@@ -830,20 +830,20 @@ type ServerHelloChoice = unit(len: uint64, inout msg: Message) {
 };
 
 # Draft versions of TLS 1.3 had a diffent server hello.
-type ServerHelloOneThree = unit(len: uint64, inout msg: Message, server_version: uint16) {
+type ServerHelloOneThree = unit(len: uint64, msg: Message, inout sh: Share, server_version: uint16) {
   random_bytes: bytes &size=32;
   gmt_unix_time: uint32 &parse-from=self.random_bytes;
   cipher_suite: uint16;
   extensions_length: uint16 if ( len > self.offset() );
-  extensions: Extension(msg, False)[] &size=self.extensions_length if ( len > self.offset() );
+  extensions: Extension(sh, False)[] &size=self.extensions_length if ( len > self.offset() );
 
   on cipher_suite {
-    msg.context().chosen_cipher = self.cipher_suite;
-    print "set chosen cipher", self.cipher_suite, msg.context().chosen_cipher;
+    sh.chosen_cipher = self.cipher_suite;
+    print "set chosen cipher", self.cipher_suite, sh.chosen_cipher;
   }
 };
 
-type ServerHello = unit(len: uint64, inout msg: Message, server_version: uint16) {
+type ServerHello = unit(len: uint64, msg: Message, inout sh: Share, server_version: uint16) {
   random_bytes: bytes &size=32;
   gmt_unix_time: uint32 &parse-from=self.random_bytes;
   session_id_length: uint8;
@@ -851,11 +851,11 @@ type ServerHello = unit(len: uint64, inout msg: Message, server_version: uint16)
   cipher_suite: uint16;
   compression_method: uint8;
   extensions_length: uint16 if ( len > self.offset() );
-  extensions: Extension(msg, False)[] &size=self.extensions_length if ( len > self.offset() );
+  extensions: Extension(sh, False)[] &size=self.extensions_length if ( len > self.offset() );
 
   on cipher_suite {
-    msg.context().chosen_cipher = self.cipher_suite;
-    print "set chosen cipher", self.cipher_suite, msg.context().chosen_cipher;
+    sh.chosen_cipher = self.cipher_suite;
+    print "set chosen cipher", self.cipher_suite, sh.chosen_cipher;
   }
   on %error(emsg: string) {
     print "Error in server hello", emsg;
@@ -863,7 +863,7 @@ type ServerHello = unit(len: uint64, inout msg: Message, server_version: uint16)
   }
 };
 
-type Extension = unit(inout msg: Message, client_hello: bool) {
+type Extension = unit(inout sh: Share, client_hello: bool) {
   code: uint16 &convert=Extensions($$);
   length: uint16;
 
@@ -881,7 +881,7 @@ type Extension = unit(inout msg: Message, client_hello: bool) {
     Extensions::signed_certificate_timestamp -> signed_certificate_timestamp: SignedCertificateTimestampList if ( self.length > 0 );
     Extensions::key_share_old -> key_share_old: KeyShare(client_hello, self.length) if ( self.length > 0 );
     Extensions::key_share -> key_share: KeyShare(client_hello, self.length) if ( self.length > 0 );
-    Extensions::supported_versions -> supported_versions: SupportedVersionsSelector(msg, client_hello) if ( self.length > 0 );
+    Extensions::supported_versions -> supported_versions: SupportedVersionsSelector(sh, client_hello) if ( self.length > 0 );
     Extensions::psk_key_exchange_modes -> psk_key_exchange_modes: PSKKeyExchangeModes if ( self.length > 0 );
     Extensions::pre_shared_key -> pre_shared_key: PreSharedKey(client_hello) if ( self.length > 0 );
     * -> unknown : bytes &size=self.length;
@@ -940,10 +940,10 @@ type PSKKeyExchangeModes = unit {
   modes: uint8[self.length];
 };
 
-type SupportedVersionsSelector = unit(inout msg: Message, client_hello: bool) {
+type SupportedVersionsSelector = unit(inout sh: Share, client_hello: bool) {
   switch (client_hello ) {
     True -> a: SupportedVersions;
-    False -> b: OneSupportedVersion(msg);
+    False -> b: OneSupportedVersion(sh);
   };
 };
 
@@ -953,11 +953,11 @@ type SupportedVersions = unit {
 };
 
 # If the server sends it, this is the authorative version. Set it.
-type OneSupportedVersion = unit(inout msg: Message) {
+type OneSupportedVersion = unit(inout sh: Share) {
   version: uint16;
 
   on version {
-    set_version(self.version, msg);
+    set_version(self.version, sh);
   }
 };
 
@@ -1083,8 +1083,8 @@ type RenegotiationInfo = unit {
 # signature over those values for non-anonymous exchanges. The server key
 # exchange messages is only sent for ECDHE, ECDH-anon, DHE, and DH-anon cipher
 # suites.
-type ServerKeyExchange = unit(msg: Message, len: uint64) {
-  switch ( TLSCiphers(msg.context().chosen_cipher) ) {
+type ServerKeyExchange = unit(sh: Share, len: uint64) {
+  switch ( TLSCiphers(sh.chosen_cipher) ) {
     # ECDHE suites
     TLSCiphers::TLS_ECDHE_ECDSA_WITH_NULL_SHA,
     TLSCiphers::TLS_ECDHE_ECDSA_WITH_RC4_128_SHA,
@@ -1145,7 +1145,7 @@ type ServerKeyExchange = unit(msg: Message, len: uint64) {
     TLSCiphers::TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384,
     TLSCiphers::TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256,
     TLSCiphers::TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256
-      -> ecdhe_server_key_exchange : EcdheServerKeyExchange(len, msg);
+      -> ecdhe_server_key_exchange : EcdheServerKeyExchange(len, sh);
 
     # ECDH-anon suites
     TLSCiphers::TLS_ECDH_ANON_WITH_NULL_SHA,
@@ -1235,7 +1235,7 @@ type ServerKeyExchange = unit(msg: Message, len: uint64) {
     TLSCiphers::TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256_OLD,
     TLSCiphers::TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
     TLSCiphers::TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256
-      -> dhe_server_key_exchange : DheServerKeyExchange(msg);
+      -> dhe_server_key_exchange : DheServerKeyExchange(sh);
 
     # DH-anon suites
     TLSCiphers::TLS_DH_ANON_EXPORT_WITH_RC4_40_MD5,
@@ -1271,29 +1271,29 @@ type ServerKeyExchange = unit(msg: Message, len: uint64) {
 # Parse an ECDHE ServerKeyExchange message, which contains a signature over the
 # parameters. Parsing explicit curve parameters from the server is not
 # currently supported.
-type EcdheServerKeyExchange = unit(len: uint64, msg: Message) {
+type EcdheServerKeyExchange = unit(len: uint64, sh: Share) {
   curve_type: uint8;
   switch ( ECCurveType(self.curve_type) ) {
     ECCurveType::NAMED_CURVE ->
       {
       params: ServerECDHParamsAndSignature;
-      signed_params: ServerKeyExchangeSignature(msg);
+      signed_params: ServerKeyExchangeSignature(sh);
       }
     * -> : bytes &size=len-1;
   };
 };
 
-public function uses_signature_and_hashalgorithm(msg: Message) : bool
+public function uses_signature_and_hashalgorithm(sh: Share) : bool
   {
   # larger TLS11 and not DTLSv10
-  if ( msg.context().chosen_version_sh > TLSv11 && msg.context().chosen_version_sh != DTLSv10 )
+  if ( sh.chosen_version_sh > TLSv11 && sh.chosen_version_sh != DTLSv10 )
     return True;
 
   return False;
   }
 
-type ServerKeyExchangeSignature = unit(msg: Message) {
-  switch ( uses_signature_and_hashalgorithm(msg) ) {
+type ServerKeyExchangeSignature = unit(sh: Share) {
+  switch ( uses_signature_and_hashalgorithm(sh) ) {
     True -> algorithm: SignatureAndHashAlgorithm;
     False -> : bytes &size=0;
   };
@@ -1320,14 +1320,14 @@ type ServerECDHParamsAndSignature = unit {
 
 # Parse a DHE ServerKeyExchange message, which contains a signature over the
 # parameters.
-type DheServerKeyExchange = unit(msg: Message) {
+type DheServerKeyExchange = unit(sh: Share) {
   dh_p_length: uint16;
   dh_p: bytes &size=self.dh_p_length;
   dh_g_length: uint16;
   dh_g: bytes &size=self.dh_g_length;
   dh_Ys_length: uint16;
   dh_Ys: bytes &size=self.dh_Ys_length;
-  signed_params: ServerKeyExchangeSignature(msg);
+  signed_params: ServerKeyExchangeSignature(sh);
 };
 
 # Parse a DH-anon ServerKeyExchange message, which does not contain a
@@ -1347,8 +1347,8 @@ type DhAnonServerKeyExchange = unit(len: uint64) {
 # consists of the client public finite-field Diffie-Hellman value. For ECDH,
 # ECDH-anon, and ECDHE cipher suites, this consists of the client public
 # elliptic curve point.
-type ClientKeyExchange = unit(msg: Message, len: uint64) {
-  switch ( TLSCiphers(msg.context().chosen_cipher) ) {
+type ClientKeyExchange = unit(sh: Share, len: uint64) {
+  switch ( TLSCiphers(sh.chosen_cipher) ) {
     # RSA suites
     TLSCiphers::TLS_RSA_WITH_NULL_MD5,
     TLSCiphers::TLS_RSA_WITH_NULL_SHA,

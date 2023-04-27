@@ -75,5 +75,5 @@ on TLS::Heartbeat -> event ssl_heartbeat($conn, $is_orig, length, self.tpe, self
 
 on TLS::CertificateStatus -> event ssl_stapled_ocsp($conn, $is_orig, self.response);
 
-on TLS::CertificateRequest if ( TLS::uses_signature_and_hashalgorithm(msg) ) -> event ssl_certificate_request($conn, $is_orig, self.certificate_types, TLS::convert_signature_algorithms(self.supported_signature_algorithms), TLS::convert_certificate_authorities(self));
-on TLS::CertificateRequest if ( ! TLS::uses_signature_and_hashalgorithm(msg) ) -> event ssl_certificate_request($conn, $is_orig, self.certificate_types, TLS::create_empty_sigmature_algorithms(), TLS::convert_certificate_authorities(self));
+on TLS::CertificateRequest if ( TLS::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, $is_orig, self.certificate_types, TLS::convert_signature_algorithms(self.supported_signature_algorithms), TLS::convert_certificate_authorities(self));
+on TLS::CertificateRequest if ( ! TLS::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, $is_orig, self.certificate_types, TLS::create_empty_sigmature_algorithms(), TLS::convert_certificate_authorities(self));

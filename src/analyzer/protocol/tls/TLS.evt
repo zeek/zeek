@@ -15,32 +15,32 @@ on TLS::ClientHello -> event ssl_client_hello($conn, self.client_version, msg.re
 on TLS::ServerHello -> event ssl_server_hello($conn, server_version, msg.record_version, cast<time>(self.gmt_unix_time), self.random_bytes, self.session_id, self.cipher_suite, self.compression_method);
 on TLS::ServerHelloOneThree -> event ssl_server_hello($conn, server_version, msg.record_version, cast<time>(self.gmt_unix_time), self.random_bytes, "", self.cipher_suite, 0);
 
-on TLS::EllipticCurveList -> event ssl_extension_elliptic_curves($conn, $is_orig, self.elliptic_curve_list);
+on TLS::EllipticCurveList -> event ssl_extension_elliptic_curves($conn, TLS::get_direction(sh), self.elliptic_curve_list);
 
-on TLS::EcPointsFormat_extension -> event ssl_extension_ec_point_formats($conn, $is_orig, self.ec_point_format_list);
+on TLS::EcPointsFormat_extension -> event ssl_extension_ec_point_formats($conn, TLS::get_direction(sh), self.ec_point_format_list);
 
-on TLS::ServerNameList -> event ssl_extension_server_name($conn, $is_orig, TLS::convert_server_names(self));
+on TLS::ServerNameList -> event ssl_extension_server_name($conn, TLS::get_direction(sh), TLS::convert_server_names(self));
 
 on TLS::NewSessionTicket -> event ssl_session_ticket_handshake($conn, self.ticket_lifetime_hint, self.ticket);
 
 on TLS::PlaintextRecord::ccs -> event ssl_change_cipher_spec($conn, $is_orig);
 on TLS::PlaintextRecord::ccs if ( msg.context().ccs_seen == 2 ) -> event ssl_established($conn);
-on TLS::PlaintextRecord::appdata if ( msg.encrypted == False ) -> event ssl_plaintext_data($conn, $is_orig, msg.record_version, content_type, self.length);
-on TLS::PlaintextRecord::appdata if ( msg.encrypted == True ) -> event ssl_encrypted_data($conn, $is_orig, msg.record_version, content_type, self.length);
+on TLS::PlaintextRecord::appdata if ( msg.encrypted == False ) -> event ssl_plaintext_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
+on TLS::PlaintextRecord::appdata if ( msg.encrypted == True ) -> event ssl_encrypted_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
 
-on TLS::Handshake_message -> event ssl_handshake_message($conn, $is_orig, self.msg_type, self.length);
+on TLS::Handshake_message -> event ssl_handshake_message($conn, TLS::get_direction(sh), self.msg_type, self.length);
 
-on TLS::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, $is_orig, TLS::convert_signature_algorithms(self));
+on TLS::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, TLS::get_direction(sh), TLS::convert_signature_algorithms(self));
 
-on TLS::ServerHelloKeyShare -> event ssl_extension_key_share($conn, $is_orig, vector<uint16>(self.keyshare.namedgroup,));
+on TLS::ServerHelloKeyShare -> event ssl_extension_key_share($conn, TLS::get_direction(sh), vector<uint16>(self.keyshare.namedgroup,));
 
-on TLS::HelloRetryRequestKeyShare -> event ssl_extension_key_share($conn, $is_orig, vector<uint16>(self.namedgroup,));
+on TLS::HelloRetryRequestKeyShare -> event ssl_extension_key_share($conn, TLS::get_direction(sh), vector<uint16>(self.namedgroup,));
 
-on TLS::ClientHelloKeyShare -> event ssl_extension_key_share($conn, $is_orig, TLS::convert_clienthellokeyshare(self));
+on TLS::ClientHelloKeyShare -> event ssl_extension_key_share($conn, TLS::get_direction(sh), TLS::convert_clienthellokeyshare(self));
 
-on TLS::OfferedPsks -> event ssl_extension_pre_shared_key_client_hello($conn, $is_orig, TLS::convert_identities(self.identities), TLS::convert_binders(self.binders));
+on TLS::OfferedPsks -> event ssl_extension_pre_shared_key_client_hello($conn, TLS::get_direction(sh), TLS::convert_identities(self.identities), TLS::convert_binders(self.binders));
 
-on TLS::SelectedPreSharedKeyIdentity -> event ssl_extension_pre_shared_key_server_hello($conn, $is_orig, self.selected_identity);
+on TLS::SelectedPreSharedKeyIdentity -> event ssl_extension_pre_shared_key_server_hello($conn, TLS::get_direction(sh), self.selected_identity);
 
 on TLS::ServerECDHParamsAndSignature -> event ssl_ecdh_server_params($conn, self.curve, self.point);
 
@@ -59,21 +59,23 @@ on TLS::DhClientKeyExchange -> event ssl_dh_client_params($conn, self.dh_Yc);
 
 on TLS::RsaClientKeyExchange -> event ssl_rsa_client_pms($conn, self.rsa_pms);
 
-on TLS::ProtocolNameList -> event ssl_extension_application_layer_protocol_negotiation($conn, $is_orig, TLS::convert_protocol_name_list(self));
+on TLS::ProtocolNameList -> event ssl_extension_application_layer_protocol_negotiation($conn, TLS::get_direction(sh), TLS::convert_protocol_name_list(self));
 
-on TLS::SignedCertificateTimestamp -> event ssl_extension_signed_certificate_timestamp($conn, $is_orig, self.version, self.logid, self.timestamp, tuple(self.digitally_signed_algorithms.hash, self.digitally_signed_algorithms.signature), self.digitally_signed_signature);
+on TLS::SignedCertificateTimestamp -> event ssl_extension_signed_certificate_timestamp($conn, TLS::get_direction(sh), self.version, self.logid, self.timestamp, tuple(self.digitally_signed_algorithms.hash, self.digitally_signed_algorithms.signature), self.digitally_signed_signature);
 
-on TLS::SupportedVersions -> event ssl_extension_supported_versions($conn, $is_orig, self.versions);
+on TLS::SupportedVersions -> event ssl_extension_supported_versions($conn, TLS::get_direction(sh), self.versions);
 
-on TLS::OneSupportedVersion -> event ssl_extension_supported_versions($conn, $is_orig, vector<uint16>(self.version,));
+on TLS::OneSupportedVersion -> event ssl_extension_supported_versions($conn, TLS::get_direction(sh), vector<uint16>(self.version,));
 
-on TLS::PSKKeyExchangeModes -> event ssl_extension_psk_key_exchange_modes($conn, $is_orig, self.modes);
+on TLS::PSKKeyExchangeModes -> event ssl_extension_psk_key_exchange_modes($conn, TLS::get_direction(sh), self.modes);
 
-on TLS::Alert_message -> event ssl_alert($conn, $is_orig, self.level, self.description);
+on TLS::Alert_message -> event ssl_alert($conn, TLS::get_direction(sh), self.level, self.description);
 
-on TLS::Heartbeat -> event ssl_heartbeat($conn, $is_orig, length, self.tpe, self.payload_length, self.data);
+on TLS::Heartbeat -> event ssl_heartbeat($conn, TLS::get_direction(sh), length, self.tpe, self.payload_length, self.data);
 
 on TLS::CertificateStatus -> event ssl_stapled_ocsp($conn, $is_orig, self.response);
 
-on TLS::CertificateRequest if ( TLS::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, $is_orig, self.certificate_types, TLS::convert_signature_algorithms(self.supported_signature_algorithms), TLS::convert_certificate_authorities(self));
-on TLS::CertificateRequest if ( ! TLS::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, $is_orig, self.certificate_types, TLS::create_empty_sigmature_algorithms(), TLS::convert_certificate_authorities(self));
+on TLS::CertificateRequest if ( TLS::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, TLS::get_direction(sh), self.certificate_types, TLS::convert_signature_algorithms(self.supported_signature_algorithms), TLS::convert_certificate_authorities(self));
+on TLS::CertificateRequest if ( ! TLS::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, TLS::get_direction(sh), self.certificate_types, TLS::create_empty_sigmature_algorithms(), TLS::convert_certificate_authorities(self));
+
+on TLS::DirectionCheck::%done if ( self.was_flipped ) -> event ssl_connection_flipped($conn);

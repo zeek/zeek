@@ -553,6 +553,9 @@ type TLSCiphers = enum {
 };
 
 type Share = unit {
+  # is the direction not the normal way round?
+  var flipped: bool;
+  var flip_already_alerted: bool;
   # version as seen in server_hello (for signature and hash-alg choice)
   var chosen_version_sh: uint16;
   # parsed version, can be used to distinguished tls 1.3
@@ -569,6 +572,8 @@ type Share = unit {
     self.invalid_dtls_version_count = 0;
     self.tls_13 = False;
     self.parsed_version = UNKNOWN_VERSION;
+    self.flipped = False;
+    self.flip_already_alerted = False;
   }
 };
 
@@ -611,7 +616,7 @@ public type Message = unit {
 
   on %init {
     self.handshakesink.connect(new Handshake(self, self.context()));
-    self.alertsink.connect(new Alert);
+    self.alertsink.connect(new Alert(self.context()));
     print "top-level init";
   }
 
@@ -664,7 +669,7 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink:
     ContentType::handshake -> : bytes &size=self.length -> handshakesink;
     ContentType::application_data -> appdata : bytes &size=self.length;
     ContentType::change_cipher_spec -> ccs : bytes &size=self.length;
-    ContentType::heartbeat -> hn: Heartbeat(self.length);
+    ContentType::heartbeat -> hn: Heartbeat(sh, self.length);
     ContentType::alert -> : bytes &size=self.length -> alertsink;
     * -> unhandled : bytes &size=self.length;
   };
@@ -686,18 +691,18 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink:
   }
 };
 
-type Heartbeat = unit(length: uint16) {
+type Heartbeat = unit(sh: Share, length: uint16) {
   tpe : uint8;
   payload_length : uint16; # don't trust this one - there might still be people testing.
   data: bytes &size=(length-3);
 };
 
 # note - this will mostly be garbage because it is encrypted.
-public type Alert = unit {
-  alerts: Alert_message[];
+public type Alert = unit(sh: Share&) {
+  alerts: Alert_message(sh)[];
 };
 
-type Alert_message = unit {
+type Alert_message = unit(sh: Share) {
   level: uint8; # &convert=AlertLevel($$);
   description: uint8; # &convert=AlertDescription($$);
 };
@@ -716,9 +721,9 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
   fragment_length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network) if (msg.dtls);
 
   switch ( HandshakeType(self.msg_type) ) {
+    HandshakeType::hello_request -> hr: HelloRequest(sh);
     HandshakeType::client_hello -> client_hello: ClientHello(self.length, msg, sh);
-    HandshakeType::server_hello_done,
-    HandshakeType::hello_request -> : bytes &size=self.length; # Fixme: alert if length != 0
+    HandshakeType::server_hello_done -> : bytes &size=self.length; # Fixme: alert if length != 0
     HandshakeType::hello_verify_request -> hello_verify_request: HelloVerifyRequest;
     HandshakeType::server_hello -> server_hello: ServerHelloChoice(self.length, msg, sh);
     HandshakeType::certificate -> certificate: Certificate;
@@ -742,11 +747,24 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
   }
 };
 
+type HelloRequest = unit(inout sh: Share) {
+  # empty
+  direction_check: DirectionCheck(sh, False);  # should be sent by responder
+};
+
+type DirectionCheck = unit(inout sh: Share, desired: bool) {
+  var was_flipped: bool;
+
+  on %init {
+    self.was_flipped = check_direction(sh, desired);
+  }
+};
+
 type CertificateRequest = unit(sh: Share) {
   certificate_types_len: uint8;
   certificate_types: uint8[self.certificate_types_len];
   switch ( uses_signature_and_hashalgorithm(sh) ) {
-    True -> supported_signature_algorithms: SignatureAlgorithms;
+    True -> supported_signature_algorithms: SignatureAlgorithms(sh);
     False -> : bytes &size=0;
   };
   certificate_authorities_len: uint16;
@@ -781,6 +799,7 @@ type ClientHelloCookie = unit {
 };
 
 type ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
+  direction_check: DirectionCheck(sh, True);  # should be sent by originator
   client_version: uint16;
   random: Random;
   session_id_length: uint8;
@@ -801,6 +820,7 @@ type ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
 
 # Draft versions of TLS 1.3 had a diffent server hello - distinguish here
 type ServerHelloChoice = unit(len: uint64, msg: Message, inout sh: Share) {
+  direction_check: DirectionCheck(sh, False);  # should be sent by responder
   sv : bitfield(16) {
     server_version0: 0..7;
     server_version1: 8..15;
@@ -869,21 +889,21 @@ type Extension = unit(inout sh: Share, client_hello: bool) {
 
   switch ( self.code ) {
     # Extensions::next_protocol_negotiation -> :bytes &size=self.extension_size; # alert if != 0
-    Extensions::ec_point_formats -> ec_point_formats: EcPointsFormat_extension if ( self.length > 0 );
-    Extensions::supported_groups -> elliptic_curves: EllipticCurveList if ( self.length > 0 );
+    Extensions::ec_point_formats -> ec_point_formats: EcPointsFormat_extension(sh) if ( self.length > 0 );
+    Extensions::supported_groups -> elliptic_curves: EllipticCurveList(sh) if ( self.length > 0 );
     Extensions::SessionTicket_TLS -> ticket_data: bytes &size=self.length; # ticket data
     Extensions::heartbeat -> heartbeat: uint8 &convert=HeartbeatMode($$) if ( self.length > 0 );
-    Extensions::signature_algorithms -> signature_algorithms: SignatureAlgorithms if ( self.length > 0 );
+    Extensions::signature_algorithms -> signature_algorithms: SignatureAlgorithms(sh) if ( self.length > 0 );
     Extensions::renegotiation_info -> renegotiation_info: RenegotiationInfo if ( self.length > 0 );
-    Extensions::server_name -> server_name: ServerNameList if ( self.length > 0 );
-    Extensions::application_layer_protocol_negotiation -> application_layer_protocol_negotiation: ProtocolNameList if ( self.length > 0 );
+    Extensions::server_name -> server_name: ServerNameList(sh) if ( self.length > 0 );
+    Extensions::application_layer_protocol_negotiation -> application_layer_protocol_negotiation: ProtocolNameList(sh) if ( self.length > 0 );
     Extensions::status_request -> status_request: StatusRequest(self.length) if ( self.length > 0 );
-    Extensions::signed_certificate_timestamp -> signed_certificate_timestamp: SignedCertificateTimestampList if ( self.length > 0 );
-    Extensions::key_share_old -> key_share_old: KeyShare(client_hello, self.length) if ( self.length > 0 );
-    Extensions::key_share -> key_share: KeyShare(client_hello, self.length) if ( self.length > 0 );
+    Extensions::signed_certificate_timestamp -> signed_certificate_timestamp: SignedCertificateTimestampList(sh) if ( self.length > 0 );
+    Extensions::key_share_old -> key_share_old: KeyShare(client_hello, sh, self.length) if ( self.length > 0 );
+    Extensions::key_share -> key_share: KeyShare(client_hello, sh, self.length) if ( self.length > 0 );
     Extensions::supported_versions -> supported_versions: SupportedVersionsSelector(sh, client_hello) if ( self.length > 0 );
-    Extensions::psk_key_exchange_modes -> psk_key_exchange_modes: PSKKeyExchangeModes if ( self.length > 0 );
-    Extensions::pre_shared_key -> pre_shared_key: PreSharedKey(client_hello) if ( self.length > 0 );
+    Extensions::psk_key_exchange_modes -> psk_key_exchange_modes: PSKKeyExchangeModes(sh) if ( self.length > 0 );
+    Extensions::pre_shared_key -> pre_shared_key: PreSharedKey(sh, client_hello) if ( self.length > 0 );
     * -> unknown : bytes &size=self.length;
   };
 
@@ -898,7 +918,7 @@ type Extension = unit(inout sh: Share, client_hello: bool) {
   }
 };
 
-type SelectedPreSharedKeyIdentity = unit {
+type SelectedPreSharedKeyIdentity = unit(sh: Share) {
   selected_identity: uint16;
 };
 
@@ -923,31 +943,31 @@ type PSKBindersList = unit {
   binders: PSKBinder[] &size=self.length;
 };
 
-type OfferedPsks = unit {
+type OfferedPsks = unit(sh: Share) {
   identities: PSKIdentitiesList;
   binders: PSKBindersList;
 };
 
-type PreSharedKey = unit(client_hello: bool) {
+type PreSharedKey = unit(sh: Share, client_hello: bool) {
   switch ( client_hello ) {
-    True -> offered_psks : OfferedPsks;
-    False -> selected_identity : SelectedPreSharedKeyIdentity;
+    True -> offered_psks : OfferedPsks(sh);
+    False -> selected_identity : SelectedPreSharedKeyIdentity(sh);
   };
 };
 
-type PSKKeyExchangeModes = unit {
+type PSKKeyExchangeModes = unit(sh: Share) {
   length: uint8;
   modes: uint8[self.length];
 };
 
 type SupportedVersionsSelector = unit(inout sh: Share, client_hello: bool) {
   switch (client_hello ) {
-    True -> a: SupportedVersions;
+    True -> a: SupportedVersions(sh);
     False -> b: OneSupportedVersion(sh);
   };
 };
 
-type SupportedVersions = unit {
+type SupportedVersions = unit(sh: Share) {
   length: uint8;
   versions: uint16[self.length/2];
 };
@@ -967,39 +987,39 @@ type KeyShareEntry = unit {
   key_exchange: bytes &size=self.key_exchange_length;
 };
 
-type ServerHelloKeyShare = unit {
+type ServerHelloKeyShare = unit(sh: Share) {
   keyshare : KeyShareEntry;
 };
 
-type HelloRetryRequestKeyShare = unit {
+type HelloRetryRequestKeyShare = unit(sh: Share) {
   namedgroup : uint16;
 };
 
-type ServerHelloKeyShareChoice = unit(length: uint16) {
+type ServerHelloKeyShareChoice = unit(sh: Share, length: uint16) {
   switch ( length ) {
-    2 -> hrr : HelloRetryRequestKeyShare;
-    * -> server : ServerHelloKeyShare;
+    2 -> hrr : HelloRetryRequestKeyShare(sh);
+    * -> server : ServerHelloKeyShare(sh);
    };
 };
 
-type ClientHelloKeyShare = unit {
+type ClientHelloKeyShare = unit(sh: Share) {
   length: uint16;
   keyshares : KeyShareEntry[] &size=self.length;
 };
 
-type KeyShare = unit(client_hello: bool, length: uint16) {
+type KeyShare = unit(client_hello: bool, sh: Share, length: uint16) {
   switch (client_hello ) {
-    True -> client_hello_keyshare : ClientHelloKeyShare;
-    False -> server_hello_keyshare : ServerHelloKeyShareChoice(length);
+    True -> client_hello_keyshare : ClientHelloKeyShare(sh);
+    False -> server_hello_keyshare : ServerHelloKeyShareChoice(sh, length);
   };
 };
 
-type SignedCertificateTimestampList = unit {
+type SignedCertificateTimestampList = unit(sh: Share) {
   length: uint16;
-  SCTs: SignedCertificateTimestamp[] &size=self.length;
+  SCTs: SignedCertificateTimestamp(sh)[] &size=self.length;
 };
 
-type SignedCertificateTimestamp = unit {
+type SignedCertificateTimestamp = unit(sh: Share) {
   # before - framing
   length: uint16;
   # from here: SignedCertificateTimestamp
@@ -1032,7 +1052,7 @@ type ProtocolName = unit {
   name: bytes &size=self.length;
 };
 
-type ProtocolNameList = unit {
+type ProtocolNameList = unit(sh: Share) {
   length: uint16;
   protocol_name_list: ProtocolName[] &size=self.length;
 };
@@ -1049,22 +1069,22 @@ type ServerName = unit {
   };
 };
 
-type ServerNameList = unit {
+type ServerNameList = unit(sh: Share) {
   length: uint16;
   server_name_list: ServerName[] &size=self.length;
 };
 
-type EcPointsFormat_extension = unit {
+type EcPointsFormat_extension = unit(sh: Share) {
   length: uint8;
   ec_point_format_list: uint8[self.length];
 };
 
-type EllipticCurveList = unit {
+type EllipticCurveList = unit(sh: Share) {
   length: uint16;
   elliptic_curve_list: uint16[self.length/2]; # when possible - convert to enum
 };
 
-type SignatureAlgorithms = unit {
+type SignatureAlgorithms = unit(sh: Share) {
   length: uint16;
   supported_signature_algorithms: SignatureAndHashAlgorithm[] &size=self.length;
 };
@@ -1671,6 +1691,31 @@ public function convert_certificate_authorities(c: TLS::CertificateRequest) : ve
   for ( i in c.certificate_authorities )
     out.push_back(i.certificate_authority);
   return out;
+}
+
+public function get_direction(sh: Share) : bool {
+  return zeek::is_orig();
+}
+
+# If this function returns True, you have to send the ssl_connection_flipped event!
+public function check_direction(inout sh: Share, desired: bool) : bool {
+  if ( sh.flipped ) {
+    if ( desired == zeek::is_orig() ) {
+      # well, I guess we get to flip it back - and alert on this
+      sh.flipped = False;
+      if ( ! sh.flip_already_alerted ) {
+        sh.flip_already_alerted = True;
+        zeek::weird("SSL_unclear_connection_direction");
+      }
+      return True;
+    } 
+  } else {
+    if ( desired != zeek::is_orig() ) {
+      sh.flipped = True;
+      return True;
+    }
+  }
+  return False;
 }
 
 on TLS::ClientHello::%done {

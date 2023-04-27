@@ -1,3 +1,13 @@
+6.0.0-dev.445 | 2023-04-27 09:08:45 +0200
+
+  * Update ZeekJS submodule to 0.9.0 (Arne Welzel, Corelight)
+
+    * Performance improvements for the Redis Log::log_stream_policy example
+      around PortVal wrapping and caching field offsets for property lookups.
+    * Debug output is now channeled through PLUGIN_DBG_LOG() and available via
+      zeek -B plugin-Zeek-JavaScript instead of unconditionally on stderr.
+    * Reduced CMake output when Node.js isn't found
+
 6.0.0-dev.443 | 2023-04-26 12:42:48 -0700
 
   * extend ZEEK_PROFILER_FILE profiling to include summaries for functions/hooks/event handlers (Vern Paxson, Corelight)

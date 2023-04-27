@@ -891,6 +891,7 @@ type record_field: record {
 	## :zeek:see:`record_fields` (if it has one).
 	value: any &optional;
 	default_val: any &optional;	##< The value of the :zeek:attr:`&default` attribute if defined.
+	optional: bool;	##< True if the field is :zeek:attr:`&optional`, else false.
 };
 
 ## Table type used to map record field declarations to meta-information

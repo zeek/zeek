@@ -292,6 +292,7 @@ set(MAIN_SRCS
     module_util.cc
     zeek-affinity.cc
     zeek-setup.cc
+    ActivationManager.cc
     Anon.cc
     Attr.cc
     Base64.cc

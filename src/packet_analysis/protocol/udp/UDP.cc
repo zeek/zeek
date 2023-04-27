@@ -223,7 +223,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	// port here because the orig/resp should have already swapped around based on
 	// likely_server_ports. This also prevents us from processing things twice if protocol
 	// detection has to be used.
-	ForwardPacket(std::min(len, remaining), data, pkt, ntohs(c->RespPort()));
+	ForwardPacket(len, data, pkt, ntohs(c->RespPort()));
 
 	// Also try sending it into session analysis.
 	if ( remaining >= len )

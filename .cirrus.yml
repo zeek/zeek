@@ -253,8 +253,9 @@ opensuse_tumbleweed_task:
     # Opensuse Tumbleweed has no EOL
     dockerfile: ci/opensuse-tumbleweed/Dockerfile
     << : *RESOURCES_TEMPLATE
+  prepare_script: ./ci/opensuse-tumbleweed/prepare.sh
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
+#  << : *SKIP_TASK_ON_PR
 
 ubuntu2210_task:
   container:

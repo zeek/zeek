@@ -227,7 +227,13 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	// Also try sending it into session analysis.
 	if ( remaining >= len )
+		{
+		// Adjust the remaining by the difference between len and caplen in the packet, since
+		// we might not actually have all of the data available.
+		if ( pkt->cap_len < pkt->len )
+			remaining -= (pkt->len - pkt->cap_len);
 		adapter->ForwardPacket(len, data, is_orig, -1, ip.get(), remaining);
+		}
 	}
 
 bool UDPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)

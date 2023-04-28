@@ -1,3 +1,30 @@
+6.0.0-dev.467 | 2023-04-28 10:01:13 +0200
+
+  * GH-2791: pcap/Source: Allow more than 32bit for link and dropped stats (Arne Welzel, Corelight)
+
+    The PktSrc::Stats object works with 64bit unsigned integers. Unfortunately,
+    libpcap's struct pcap_stat is using 32bit values and users have reported
+    the wrapping of these values being visible in their stats.log roughly every
+    7.5 hours (~160kpps).
+
+    This change moves tracking of link and drop counters into the PktSrc::Stats
+    object (like is done for received and bytes_received) and updates them
+    on a call to PcapSource::Statistics() with the difference to the
+    previous stats values to prevent the wrap from becoming visible to
+    script land.
+
+    This doesn't cover the case of the stats counters wrapping around multiple
+    times between two invocations of PktSrc::Statistics(). With the default
+    interval of 5 minutes for the stats script, this seems acceptable.
+
+    Closes #2791.
+
+  * record_fields: Include information about optionality of fields (Arne Welzel, Corelight)
+
+    This was reported as a wish for log schema generation, so add it...
+
+  * Fix a few warnings from recent changes (Tim Wojtulewicz)
+
 6.0.0-dev.461 | 2023-04-28 09:37:08 +0200
 
   * Simplify btests using cluster_started event. (Jan Grashoefer, Corelight)

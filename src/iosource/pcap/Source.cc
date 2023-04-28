@@ -4,6 +4,8 @@
 
 #include "zeek/zeek-config.h"
 
+#include "zeek/3rdparty/doctest.h"
+
 #ifdef HAVE_PCAP_INT_H
 #include <pcap-int.h>
 #endif
@@ -326,6 +328,23 @@ bool PcapSource::SetFilter(int index)
 	return true;
 	}
 
+// Given two pcap_stat structures, compute the difference of linked and dropped
+// and add it to the given Stats object.
+static void update_pktsrc_stats(PktSrc::Stats* stats, const struct pcap_stat* now,
+                                const struct pcap_stat* prev)
+	{
+	decltype(now->ps_drop) ps_drop_diff = 0;
+	decltype(now->ps_recv) ps_recv_diff = 0;
+
+	// This is subtraction of unsigned ints: It's not undefined
+	// and results in modulo arithmetic.
+	ps_recv_diff = now->ps_recv - prev->ps_recv;
+	ps_drop_diff = now->ps_drop - prev->ps_drop;
+
+	stats->link += ps_recv_diff;
+	stats->dropped += ps_drop_diff;
+	}
+
 void PcapSource::Statistics(Stats* s)
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
@@ -344,11 +363,13 @@ void PcapSource::Statistics(Stats* s)
 
 		else
 			{
-			s->dropped = pstat.ps_drop;
-			s->link = pstat.ps_recv;
+			update_pktsrc_stats(&stats, &pstat, &prev_pstat);
+			prev_pstat = pstat;
 			}
 		}
 
+	s->link = stats.link;
+	s->dropped = stats.dropped;
 	s->received = stats.received;
 	s->bytes_received = stats.bytes_received;
 
@@ -374,6 +395,69 @@ void PcapSource::PcapError(const char* where)
 iosource::PktSrc* PcapSource::Instantiate(const std::string& path, bool is_live)
 	{
 	return new PcapSource(path, is_live);
+	}
+
+TEST_CASE("pcap source update_pktsrc_stats")
+	{
+	PktSrc::Stats stats;
+	struct pcap_stat now = {0};
+	struct pcap_stat prev = {0};
+
+	SUBCASE("all zero")
+		{
+		update_pktsrc_stats(&stats, &now, &prev);
+		CHECK(stats.link == 0);
+		CHECK(stats.dropped == 0);
+		}
+
+	SUBCASE("no overflow")
+		{
+		now.ps_recv = 7;
+		now.ps_drop = 3;
+		update_pktsrc_stats(&stats, &now, &prev);
+		CHECK(stats.link == 7);
+		CHECK(stats.dropped == 3);
+		}
+
+	SUBCASE("no overflow prev")
+		{
+		stats.link = 2;
+		stats.dropped = 1;
+		prev.ps_recv = 2;
+		prev.ps_drop = 1;
+		now.ps_recv = 7;
+		now.ps_drop = 3;
+
+		update_pktsrc_stats(&stats, &now, &prev);
+		CHECK(stats.link == 7);
+		CHECK(stats.dropped == 3);
+		}
+
+	SUBCASE("overflow")
+		{
+		prev.ps_recv = 4294967295;
+		prev.ps_drop = 4294967294;
+		now.ps_recv = 0;
+		now.ps_drop = 1;
+
+		update_pktsrc_stats(&stats, &now, &prev);
+		CHECK(stats.link == 1);
+		CHECK(stats.dropped == 3);
+		}
+
+	SUBCASE("overflow 2")
+		{
+		stats.link = 4294967295;
+		stats.dropped = 4294967294;
+		prev.ps_recv = 4294967295;
+		prev.ps_drop = 4294967294;
+		now.ps_recv = 10;
+		now.ps_drop = 3;
+
+		update_pktsrc_stats(&stats, &now, &prev);
+		CHECK(stats.link == 4294967306); // 2**32 - 1 + 11
+		CHECK(stats.dropped == 4294967299); // 2**32 - 2 + 5
+		}
 	}
 
 	} // namespace zeek::iosource::pcap

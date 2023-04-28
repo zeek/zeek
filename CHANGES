@@ -1,3 +1,9 @@
+6.0.0-dev.470 | 2023-04-28 16:33:46 -0700
+
+  * CI: Automatically update opensuse-tumbleweed (Tim Wojtulewicz, Corelight)
+
+  * CI: Remove Fedora 36, add Fedora 38 (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.467 | 2023-04-28 10:01:13 +0200
 
   * GH-2791: pcap/Source: Allow more than 32bit for link and dropped stats (Arne Welzel, Corelight)

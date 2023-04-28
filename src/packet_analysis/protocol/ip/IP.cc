@@ -93,7 +93,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( packet->len < total_len + hdr_size )
 		{
-		Weird("truncated_IPv6", packet);
+		Weird("truncated_IP_len", packet);
 		return false;
 		}
 

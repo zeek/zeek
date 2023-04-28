@@ -22,21 +22,18 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 @load base/frameworks/intel
 
 module Intel;
 
 redef Log::default_rotation_interval=0sec;
 
-event Cluster::node_up(name: string, id: string)
+event Cluster::Experimental::cluster_started()
 	{
 	# Insert the data once both workers are connected.
-	if ( Cluster::local_node_type() == Cluster::MANAGER &&
-		 Cluster::get_active_node_count(Cluster::WORKER) == 2 )
-		{
+	if ( Cluster::local_node_type() == Cluster::MANAGER )
 		Intel::insert([$indicator="1.2.3.4", $indicator_type=Intel::ADDR, $meta=[$source="manager"]]);
-		}
 	}
 
 global log_writes = 0;

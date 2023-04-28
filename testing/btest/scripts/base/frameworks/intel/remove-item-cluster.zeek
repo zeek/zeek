@@ -9,7 +9,7 @@
 # @TEST-EXEC: btest-diff manager-1/intel.log
 
 @load base/frameworks/intel
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 
 # @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -41,8 +41,11 @@ event test_manager()
 	Broker::publish(Cluster::worker_topic, test_worker);
 	}
 
-event ready()
+event Cluster::Experimental::cluster_started()
 	{
+	if ( Cluster::node != "manager-1" )
+		return;
+
 	# Insert the data once all workers are connected.
 	Intel::insert([$indicator="192.168.0.1", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
 	Intel::insert([$indicator="192.168.0.2", $indicator_type=Intel::ADDR, $meta=[$source="source1"]]);
@@ -52,12 +55,6 @@ event ready()
 	Intel::insert([$indicator="10.10.10.10", $indicator_type=Intel::ADDR, $meta=[$source="end"]]);
 
 	event test_manager();
-	}
-
-event Cluster::node_up(name: string, id: string)
-	{
-	if ( Cluster::node == "worker-1" )
-		Broker::publish(Cluster::manager_topic, ready);
 	}
 
 event Intel::remove_item(item: Item, purge_indicator: bool)

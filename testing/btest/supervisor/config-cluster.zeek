@@ -11,14 +11,13 @@
 # @TEST-EXEC: btest-diff zeek/worker-1/stdout
 # @TEST-EXEC: btest-diff zeek/proxy-1/stdout
 
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 
 # So the supervised node doesn't terminate right away.
 redef exit_only_after_terminate=T;
 
 global supervisor_output_file: file;
 global topic = "test-topic";
-global peer_count = 0;
 
 event shutdown()
 	{
@@ -65,19 +64,10 @@ event zeek_init()
 		}
 	}
 
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
+event Cluster::Experimental::cluster_started()
 	{
-	++peer_count;
-
-	if ( Supervisor::is_supervised() )
-		{
-		if ( Cluster::node == "manager" && peer_count == 4 )
-			Broker::publish(topic, shutdown);
-		}
-	}
-
-event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
-	{
+	if ( Cluster::node == "manager" )
+		Broker::publish(topic, shutdown);
 	}
 
 event zeek_done()

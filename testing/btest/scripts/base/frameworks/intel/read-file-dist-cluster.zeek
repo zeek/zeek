@@ -28,6 +28,7 @@ e@mail.com	Intel::EMAIL	source1	Phishing email source	http://some-data-distribut
 
 @load base/frameworks/control
 @load base/frameworks/intel
+@load policy/frameworks/cluster/experimental
 redef Log::default_rotation_interval=0sec;
 
 module Intel;
@@ -55,31 +56,16 @@ event do_it()
 		Broker::publish(Cluster::node_topic("manager-1"), do_it);
 	}
 
-global hi_count = 0;
-
 event start_it()
 	{
 	Broker::publish(Cluster::node_topic("worker-1"), do_it);
 	}
 
-event hi()
+event Cluster::Experimental::cluster_started()
 	{
 	if ( Cluster::node == "manager-1" )
-		{
-		++hi_count;
-
-		if ( hi_count == 2 )
-			# Give more time for intel distribution.
-			schedule 1sec { start_it() };
-		}
-	else
-		Broker::publish(Cluster::node_topic("manager-1"), hi);
-	}
-
-event Cluster::node_up(name: string, id: string) &priority=-100
-	{
-	if ( Cluster::node == "manager-1" )
-		Broker::publish(Cluster::node_topic(name), hi);
+		# Give more time for intel distribution.
+		schedule 1sec { start_it() };
 	}
 
 event do_terminate()

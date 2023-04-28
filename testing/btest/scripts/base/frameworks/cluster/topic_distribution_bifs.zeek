@@ -12,19 +12,16 @@
 # @TEST-EXEC: btest-diff proxy-1/.stdout
 # @TEST-EXEC: btest-diff proxy-2/.stdout
 
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
 	["proxy-2"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $interface="eth0"],
-	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT5")), $manager="manager-1", $interface="eth1"],
 };
 @TEST-END-FILE
 
-global proxy_count = 0;
 global q = 0;
 
 event go_away()
@@ -59,20 +56,14 @@ function send_stuff(heading: string)
 										distributed_event_rr, v[i]);
 	}
 
-event Cluster::node_up(name: string, id: string)
+event Cluster::Experimental::cluster_started()
 	{
 	if ( Cluster::node != "manager-1" )
 		return;
 
-	if ( name == "proxy-1" || name == "proxy-2" )
-		++proxy_count;
-
-	if ( proxy_count == 2 )	
-		{
-		send_stuff("1st stuff");
-		local e = Broker::make_event(go_away);
-		Broker::publish(Cluster::node_topic("proxy-1"), e);
-		}
+	send_stuff("1st stuff");
+	local e = Broker::make_event(go_away);
+	Broker::publish(Cluster::node_topic("proxy-1"), e);
 	}
 
 event Cluster::node_down(name: string, id: string)

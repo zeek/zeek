@@ -10,7 +10,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff manager-1/.stdout
 
 @load base/frameworks/sumstats
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -95,7 +95,7 @@ event send_ready_for_data()
 	}
 
 
-event cont_test()
+event Cluster::Experimental::cluster_started()
 	{
 	print "Performing first epoch, no observations";
 	local ret = SumStats::next_epoch("test");
@@ -108,16 +108,6 @@ event cont_test()
 event zeek_init() &priority=100
 	{
 	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
-	}
-
-global peer_count = 0;
-
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
-	{
-	++peer_count;
-
-	if ( peer_count == 2 )
-		event cont_test();
 	}
 
 @endif

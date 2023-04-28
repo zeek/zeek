@@ -1,3 +1,7 @@
+6.0.0-dev.461 | 2023-04-28 09:37:08 +0200
+
+  * Simplify btests using cluster_started event. (Jan Grashoefer, Corelight)
+
 6.0.0-dev.457 | 2023-04-27 11:25:45 -0700
 
   * Modify Windows test cmd file to actually run tests (Tim Wojtulewicz)

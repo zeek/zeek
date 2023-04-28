@@ -178,11 +178,16 @@ std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
 	{
 	auto inner_pkt = std::make_unique<Packet>();
 
+	// Use the original packet's caplen difference to calculate a new caplen for the inner
+	// packet. Previously we just used the len for both values but that's likely not correct
+	// in most cases.
+	uint32_t cap_len = len - (outer_pkt->len - outer_pkt->cap_len);
+
 	pkt_timeval ts;
 	ts.tv_sec = static_cast<time_t>(run_state::current_timestamp);
 	ts.tv_usec = static_cast<suseconds_t>(
 		(run_state::current_timestamp - static_cast<double>(ts.tv_sec)) * 1000000);
-	inner_pkt->Init(link_type, &ts, len, len, data);
+	inner_pkt->Init(link_type, &ts, cap_len, len, data);
 
 	*encap_index = 0;
 	if ( outer_pkt->session )

@@ -109,7 +109,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	auto validate_checksum = ! run_state::current_pkt->l4_checksummed &&
 	                         ! zeek::detail::ignore_checksums &&
 	                         ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) &&
-	                         remaining >= len;
+	                         remaining >= len && pkt->len <= pkt->cap_len;
 
 	constexpr auto vxlan_len = 8;
 	constexpr auto eth_len = 14;

@@ -27,7 +27,7 @@ XXXXXXXXXX.XXXXXX	-	-	-	-	-	truncated_IP	-	F	zeek	IP
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	-	-	-	-	-	truncated_IPv6	-	F	zeek	IP
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	truncated_IP_len	-	F	zeek	IP
 #close XXXX-XX-XX-XX-XX-XX
 #separator \x09
 #set_separator	,

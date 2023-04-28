@@ -18,7 +18,7 @@ bool LLCAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// If the control field doesn't have an unnumbered PDU, the header is actually 4
 	// bytes long. Whether this is unnumbered is denoted by the last two bits being
 	// set.
-	int llc_header_len = 3;
+	size_t llc_header_len = 3;
 	if ( (data[2] & 0x03) != 0x03 )
 		llc_header_len++;
 

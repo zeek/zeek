@@ -52,7 +52,9 @@ event zeek_init()
     local t: record_field_table;
     t = record_fields(x);
     print t;
-    print t["c"]?$value;
+    print "c value", t["c"]?$value;
+    print "c default ", t["c"]?$default_val;
+    print "c optional", t["c"]$optional;
 
     t = record_fields(x$e);
     print t;

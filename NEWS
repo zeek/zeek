@@ -201,6 +201,9 @@ New Functionality
 - Environment variables for the execution of log rotation postprocessors can
   be set via ``Log::default_rotation_postprocessor_cmd_env``.
 
+- The ``record_field`` record was extended by ``optional`` and ``record_fields()``
+  can now be used to determine the optionality of record fields.
+
 Changed Functionality
 ---------------------
 

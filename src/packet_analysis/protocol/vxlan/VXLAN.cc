@@ -62,7 +62,7 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 		packet, &encap_index, nullptr, len, data, DLT_RAW, BifEnum::Tunnel::VXLAN,
 		GetAnalyzerTag());
 
-	bool analysis_succeeded = ForwardPacket(len, data, inner_packet.get());
+	bool analysis_succeeded = ForwardPacket(inner_packet->cap_len, data, inner_packet.get());
 
 	if ( analysis_succeeded && vxlan_packet )
 		{

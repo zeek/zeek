@@ -12,6 +12,9 @@ command="$0 $*"
 usage="\
 Usage: $0 [OPTION]... [VAR=VALUE]...
 
+  -h, --help                    display this help and exit
+  --show-config                 display the most relevant config parameters of an existing build
+
   Build Options:
     --cmake=PATH                custom path to a CMake binary
     --builddir=DIR              place build files in directory [build]
@@ -149,42 +152,10 @@ append_cache_entry() {
     CMakeCacheEntries="$CMakeCacheEntries -D $1:$2=$3"
 }
 
-# Function to remove a CMake cache entry definition from the
-# CMakeCacheEntries variable
-#   $1 is the cache entry variable name
-remove_cache_entry() {
-    CMakeCacheEntries="$CMakeCacheEntries -U $1"
-
-    # Even with -U, cmake still warns by default if
-    # added previously with -D.
-    CMakeCacheEntries="$CMakeCacheEntries --no-warn-unused-cli"
-}
-
 # set defaults
 builddir=build
-prefix=/usr/local/zeek
 CMakeCacheEntries=""
 display_cmake=0
-append_cache_entry CMAKE_INSTALL_PREFIX PATH $prefix
-append_cache_entry ZEEK_ROOT_DIR PATH $prefix
-append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
-append_cache_entry ZEEK_ETC_INSTALL_DIR PATH $prefix/etc
-append_cache_entry ENABLE_DEBUG BOOL false
-append_cache_entry ENABLE_PERFTOOLS BOOL false
-append_cache_entry ENABLE_JEMALLOC BOOL false
-append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL true
-append_cache_entry BUILD_SHARED_LIBS BOOL true
-append_cache_entry INSTALL_AUX_TOOLS BOOL true
-append_cache_entry INSTALL_BTEST BOOL true
-append_cache_entry INSTALL_BTEST_PCAPS BOOL true
-append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL true
-append_cache_entry INSTALL_ZEEK_CLIENT BOOL true
-append_cache_entry INSTALL_ZEEKCTL BOOL true
-append_cache_entry INSTALL_ZKG BOOL true
-append_cache_entry CPACK_SOURCE_IGNORE_FILES STRING
-append_cache_entry ZEEK_SANITIZERS STRING ""
-append_cache_entry ZEEK_INCLUDE_PLUGINS STRING ""
-append_cache_entry PREALLOCATE_PORT_ARRAY BOOL true
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -197,6 +168,14 @@ while [ $# -ne 0 ]; do
         --help | -h)
             echo "${usage}" 1>&2
             exit 1
+            ;;
+        --show-config)
+            if [ ! -f "$builddir/CMakeCache.txt" ]; then
+                echo "Error: no CMake build found under '$builddir'." 1>&2
+                exit 1
+            fi
+            grep -E "^ENABLE_|^ZEEK_|^INSTALL_|^CMAKE_INSTALL_PRE|^CMAKE_C.*_FLAGS|^CMAKE_BUILD" "$builddir/CMakeCache.txt" | grep -v ':INTERNAL'
+            exit 0
             ;;
         -D)
             shift
@@ -217,10 +196,6 @@ while [ $# -ne 0 ]; do
             ;;
         --build-type=*)
             append_cache_entry CMAKE_BUILD_TYPE STRING $optarg
-
-            if [ $(echo "$optarg" | tr [:upper:] [:lower:]) = "debug" ]; then
-                append_cache_entry ENABLE_DEBUG BOOL true
-            fi
             ;;
         --generator=*)
             CMakeGenerator="$optarg"
@@ -235,9 +210,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry ZEEK_INCLUDE_PLUGINS STRING \"$optarg\"
             ;;
         --prefix=*)
-            prefix=$optarg
             append_cache_entry CMAKE_INSTALL_PREFIX PATH $optarg
-            append_cache_entry ZEEK_ROOT_DIR PATH $optarg
             ;;
         --libdir=*)
             append_cache_entry CMAKE_INSTALL_LIBDIR PATH $optarg
@@ -452,14 +425,6 @@ if [ -z "$CMakeCommand" ]; then
         echo "Note: pass --cmake=PATH to use cmake in non-standard locations."
         exit 1
     fi
-fi
-
-if [ "$user_set_scriptdir" != "true" ]; then
-    append_cache_entry ZEEK_SCRIPT_INSTALL_PATH STRING $prefix/share/zeek
-fi
-
-if [ "$user_set_conffilesdir" != "true" ]; then
-    append_cache_entry ZEEK_ETC_INSTALL_DIR PATH $prefix/etc
 fi
 
 if [ -d $builddir ]; then

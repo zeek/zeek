@@ -1732,8 +1732,12 @@ type ip4_hdr: record {
 	tos: count;		##< Type of service.
 	len: count;		##< Total length.
 	id: count;		##< Identification.
+	DF: bool;		##< True if the packet's *don't fragment* flag is set.
+	MF: bool;		##< True if the packet's *more fragments* flag is set.
+	offset: count;		##< Fragment offset.
 	ttl: count;		##< Time to live.
 	p: count;		##< Protocol.
+	sum: count;		##< Checksum.
 	src: addr;		##< Source address.
 	dst: addr;		##< Destination address.
 };

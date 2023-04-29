@@ -3,14 +3,14 @@
 0.0, zeek_post
 0.0, one_line, first line
 1467818432.675392, network_time_init
-1467818432.675392, raw_packet, [hl=20, tos=0, len=78, id=55704, ttl=64, p=17, src=192.168.56.11, dst=192.168.56.12]
-1467818432.675732, raw_packet, [hl=20, tos=0, len=78, id=38782, ttl=64, p=17, src=192.168.56.12, dst=192.168.56.11]
-1467818432.676047, raw_packet, [hl=20, tos=0, len=134, id=55705, ttl=64, p=17, src=192.168.56.11, dst=192.168.56.12]
-1467818432.676385, raw_packet, [hl=20, tos=0, len=134, id=38783, ttl=64, p=17, src=192.168.56.12, dst=192.168.56.11]
-1467818433.677322, raw_packet, [hl=20, tos=0, len=134, id=55737, ttl=64, p=17, src=192.168.56.11, dst=192.168.56.12]
-1467818433.677452, raw_packet, [hl=20, tos=0, len=134, id=39026, ttl=64, p=17, src=192.168.56.12, dst=192.168.56.11]
-1467818434.678483, raw_packet, [hl=20, tos=0, len=134, id=55959, ttl=64, p=17, src=192.168.56.11, dst=192.168.56.12]
-1467818434.678691, raw_packet, [hl=20, tos=0, len=134, id=39224, ttl=64, p=17, src=192.168.56.12, dst=192.168.56.11]
-1467818435.680481, raw_packet, [hl=20, tos=0, len=134, id=56032, ttl=64, p=17, src=192.168.56.11, dst=192.168.56.12]
-1467818435.680663, raw_packet, [hl=20, tos=0, len=134, id=39359, ttl=64, p=17, src=192.168.56.12, dst=192.168.56.11]
+1467818432.675392, raw_packet, [hl=20, tos=0, len=78, id=55704, DF=T, MF=F, offset=0, ttl=64, p=17, sum=28574, src=192.168.56.11, dst=192.168.56.12]
+1467818432.675732, raw_packet, [hl=20, tos=0, len=78, id=38782, DF=T, MF=F, offset=0, ttl=64, p=17, sum=45496, src=192.168.56.12, dst=192.168.56.11]
+1467818432.676047, raw_packet, [hl=20, tos=0, len=134, id=55705, DF=T, MF=F, offset=0, ttl=64, p=17, sum=28517, src=192.168.56.11, dst=192.168.56.12]
+1467818432.676385, raw_packet, [hl=20, tos=0, len=134, id=38783, DF=T, MF=F, offset=0, ttl=64, p=17, sum=45439, src=192.168.56.12, dst=192.168.56.11]
+1467818433.677322, raw_packet, [hl=20, tos=0, len=134, id=55737, DF=T, MF=F, offset=0, ttl=64, p=17, sum=28485, src=192.168.56.11, dst=192.168.56.12]
+1467818433.677452, raw_packet, [hl=20, tos=0, len=134, id=39026, DF=T, MF=F, offset=0, ttl=64, p=17, sum=45196, src=192.168.56.12, dst=192.168.56.11]
+1467818434.678483, raw_packet, [hl=20, tos=0, len=134, id=55959, DF=T, MF=F, offset=0, ttl=64, p=17, sum=28263, src=192.168.56.11, dst=192.168.56.12]
+1467818434.678691, raw_packet, [hl=20, tos=0, len=134, id=39224, DF=T, MF=F, offset=0, ttl=64, p=17, sum=44998, src=192.168.56.12, dst=192.168.56.11]
+1467818435.680481, raw_packet, [hl=20, tos=0, len=134, id=56032, DF=T, MF=F, offset=0, ttl=64, p=17, sum=28190, src=192.168.56.11, dst=192.168.56.12]
+1467818435.680663, raw_packet, [hl=20, tos=0, len=134, id=39359, DF=T, MF=F, offset=0, ttl=64, p=17, sum=44863, src=192.168.56.12, dst=192.168.56.11]
 1467818435.680663, zeek_done

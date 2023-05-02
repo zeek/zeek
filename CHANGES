@@ -1,3 +1,19 @@
+6.0.0-dev.480 | 2023-05-02 20:28:55 +0200
+
+  * ip4_hdr: Add DF, MF, offset and sum fields (Arne Welzel, Corelight)
+
+    For low-level packet analysis use-cases, these fields are currently
+    not script-land accessible via raw_packet() or so. They are accessible
+    on the icmp_context record, but not on the actual ip4_hdr record, so
+    add them.
+
+  * GH-2991: unload: Fix unloading of packages (Arne Welzel, Corelight)
+
+    @ynadji found that unloading packages doesn't work due to @unload not
+    resolving the __load__.zeek file within a directory like @load does.
+
+    Fixes #2991
+
 6.0.0-dev.476 | 2023-05-02 11:12:44 -0700
 
   * Use workaround for setvbuf on Windows in DebugLogger/Extract file analyzer (Tim Wojtulewicz)

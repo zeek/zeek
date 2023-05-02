@@ -204,6 +204,9 @@ New Functionality
 - The ``record_field`` record was extended by ``optional`` and ``record_fields()``
   can now be used to determine the optionality of record fields.
 
+- The ``ip4_hdr`` record was extended by ``DF``, ``MF``, ``offset`` and ``sum``
+  to aid packet-level analysis use-cases.
+
 Changed Functionality
 ---------------------
 

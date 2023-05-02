@@ -489,6 +489,16 @@ when	return TOK_WHEN;
 	const char* file = zeek::util::skip_whitespace(yytext + 7);
 	std::string path = find_relative_script_file(file);
 
+	if ( ! path.empty() && zeek::util::is_dir(path.c_str()) )
+		{
+		// open_package() appends __load__.zeek to path and verifies existence
+		FILE *f = zeek::util::detail::open_package(path);
+		if (f)
+			fclose(f);
+		else
+			path = "";
+		}
+
 	if ( path.empty() )
 		zeek::reporter->Error("failed find file associated with @unload %s", file);
 	else

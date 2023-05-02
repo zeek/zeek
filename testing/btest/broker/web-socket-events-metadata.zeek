@@ -9,10 +9,11 @@
 # @TEST-EXEC: btest-bg-run server "zeek -b %INPUT >output"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py >output"
 #
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 5
 # @TEST-EXEC: btest-diff client/output
-# @TEST-EXEC: btest-diff server/output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff server/output
 
+redef allow_network_time_forward = F;
 redef exit_only_after_terminate = T;
 redef Broker::disable_ssl = T;
 
@@ -22,6 +23,8 @@ global ping: event(msg: string, c: count);
 
 event zeek_init()
     {
+    # Tue 18 Apr 2023 12:13:14 PM UTC
+    set_network_time(double_to_time(1681819994.0));
     Broker::subscribe("/zeek/event/my_topic");
     Broker::listen_websocket("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
@@ -47,13 +50,15 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 
 event pong(msg: string, n: count) &is_used
     {
-    print fmt("sender got pong: %s, %s", msg, n);
+    print fmt("sender got pong: %s, %s network_time=%s current_event_time=%s",
+              msg, n, network_time(), current_event_time());
+    set_network_time(network_time() + 10sec);
     send_event();
     }
 
 
 @TEST-START-FILE client.py
-import asyncio, websockets, os, time, json, sys
+import asyncio, datetime, websockets, os, time, json, sys
 
 ws_port = os.environ['BROKER_PORT'].split('/')[0]
 ws_url = 'ws://localhost:%s/v1/messages/json' % ws_port
@@ -95,19 +100,34 @@ async def do_run():
             msg = await ws.recv()
             msg = json.loads(msg)
             if not 'type' in msg or msg['type'] != 'data-message':
+                print("unexpected type", msg)
+                continue
+            ping = msg['data'][2]['data']
+            if len(ping) < 3:
+                print("no metadata on event")
                 continue
 
-            ping = msg['data'][2]['data']
             name = ping[0]['data']
             args = [x['data'] for x in ping[1]['data']]
-            print(name, args)
+            metadata = ping[2]['data']
+            print(name, "args", args, "metadata", metadata)
 
             # send pong
-            pong = [broker_value('string', 'pong'),
-                    broker_value('vector', [
+            dt = datetime.datetime.utcfromtimestamp(1681819994 + args[1])
+            ts_str = dt.isoformat('T', 'milliseconds')
+            pong = [
+                broker_value('string', 'pong'),
+                broker_value('vector', [
                     broker_value('string', args[0]),
-                    broker_value('count', args[1])
-                    ])]
+                    broker_value('count', args[1]),
+                ]),
+                broker_value('vector', [
+                    broker_value('vector', [
+                        broker_value('count', 1),  # network_timestamp
+                        broker_value('timestamp', ts_str),
+                    ]),
+                ]),
+           ]
 
             ev = [broker_value('count', 1), broker_value('count', 1), broker_value('vector', pong)]
             msg = {

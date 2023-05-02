@@ -305,6 +305,8 @@ double parse_rotate_base_time(const char* rotate_base_time);
 // This function is thread-safe.
 double calc_next_rotate(double current, double rotate_interval, double base);
 
+int setvbuf(FILE* stream, char* buf, int type, size_t size);
+
 	} // namespace detail
 
 template <class T> void delete_each(T* t)

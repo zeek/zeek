@@ -996,6 +996,18 @@ void set_thread_name(const char* name, pthread_t tid)
 #endif
 	}
 
+int setvbuf(FILE* stream, char* buf, int type, size_t size)
+	{
+#ifndef _MSC_VER
+	return ::setvbuf(stream, NULL, type, size);
+#else
+	// TODO: this turns off buffering altogether because Windows wants us to pass a valid
+	// buffer and length if we're going to pass one of the other modes. We need to
+	// investigate the performance ramifications of this.
+	return ::setvbuf(stream, NULL, _IONBF, 0);
+#endif
+	}
+
 	} // namespace detail
 
 TEST_CASE("util get_unescaped_string")

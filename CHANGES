@@ -1,3 +1,9 @@
+6.0.0-dev.476 | 2023-05-02 11:12:44 -0700
+
+  * Use workaround for setvbuf on Windows in DebugLogger/Extract file analyzer (Tim Wojtulewicz)
+
+  * Add ifdef'd implementation of setvbuf to zeek::util (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.473 | 2023-05-02 09:42:19 -0700
 
   * Fix smith-waterman sorting to follow correct Compare semantics (Tim Wojtulewicz)

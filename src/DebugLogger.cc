@@ -56,7 +56,7 @@ void DebugLogger::OpenDebugLog(const char* filename)
 				}
 			}
 
-		setvbuf(file, NULL, _IOLBF, 0);
+		util::detail::setvbuf(file, NULL, _IOLBF, 0);
 		}
 	else
 		file = stderr;

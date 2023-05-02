@@ -1,3 +1,7 @@
+6.0.0-dev.473 | 2023-05-02 09:42:19 -0700
+
+  * Fix smith-waterman sorting to follow correct Compare semantics (Tim Wojtulewicz)
+
 6.0.0-dev.470 | 2023-04-28 16:33:46 -0700
 
   * CI: Automatically update opensuse-tumbleweed (Tim Wojtulewicz, Corelight)

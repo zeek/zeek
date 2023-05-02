@@ -66,7 +66,7 @@ set(ZEEK_CXX_STD cxx_std_17 CACHE STRING "The C++ standard to use.")
 
 set(ZEEK_SANITIZERS "" CACHE STRING "Sanitizers to use when building.")
 
-set(CPACK_SOURCE_IGNORE_FILES "" CACHE STRING "CPack source ignore files.")
+set(CPACK_SOURCE_IGNORE_FILES "" CACHE STRING "Files to be ignored by CPack")
 
 set(ZEEK_INCLUDE_PLUGINS "" CACHE STRING "Extra plugins to add to the build.")
 

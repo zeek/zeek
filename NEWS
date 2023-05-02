@@ -59,6 +59,11 @@ Breaking Changes
 
 - The IRC_Data analyzer declaration has been moved to protocols/irc/IRC.h.
 
+- The error message returned when using ``bro_init``, ``bro_done``, and
+  ``bro_script_loaded`` events is now removed.  removed. Usage of these events
+  has returned that error during script parsing for a few years, and time has
+  come to finally remove it.
+
 New Functionality
 -----------------
 

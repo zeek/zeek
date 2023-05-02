@@ -174,7 +174,7 @@ while [ $# -ne 0 ]; do
                 echo "Error: no CMake build found under '$builddir'." 1>&2
                 exit 1
             fi
-            grep -E "^ENABLE_|^ZEEK_|^INSTALL_|^CMAKE_INSTALL_PRE|^CMAKE_C.*_FLAGS|^CMAKE_BUILD" "$builddir/CMakeCache.txt" | grep -v ':INTERNAL'
+            grep -E "^ENABLE_|^ZEEK_|^INSTALL_|^CMAKE_INSTALL_PRE|^CMAKE_C.*_FLAGS|^CMAKE_C.*_COMPILER|^CMAKE_BUILD" "$builddir/CMakeCache.txt" | grep -v ':INTERNAL'
             exit 0
             ;;
         -D)

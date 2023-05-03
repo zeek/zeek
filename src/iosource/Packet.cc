@@ -115,8 +115,18 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
 		l2_hdr->Assign(0, BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_ETHERNET));
-		l2_hdr->Assign(3, FmtEUI48(data + 6)); // src
-		l2_hdr->Assign(4, FmtEUI48(data)); // dst
+
+		// FmtEUI48 needs at least 6 bytes to print out the mac address, plus 6 bytes for
+		// skipping over the destination address.
+		if ( cap_len >= 12 )
+			l2_hdr->Assign(3, FmtEUI48(data + 6)); // src
+		else
+			l2_hdr->Assign(3, "00:00:00:00:00:00");
+
+		if ( cap_len >= 6 )
+			l2_hdr->Assign(4, FmtEUI48(data)); // dst
+		else
+			l2_hdr->Assign(4, "00:00:00:00:00:00");
 
 		if ( vlan )
 			l2_hdr->Assign(5, vlan);

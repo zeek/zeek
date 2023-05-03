@@ -499,6 +499,15 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 		}
 	}
 
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=5
+	{
+	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
+		{
+		# analyzer errored out; prevent us from trying to remove it later
+		delete info$c$ssl$analyzer_id;
+		}
+	}
+
 event ssl_plaintext_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count) &priority=5
 	{
 	set_session(c);

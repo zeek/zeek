@@ -2,7 +2,7 @@ FROM opensuse/tumbleweed
 
 # A version field to invalide Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20220705
+ENV DOCKERFILE_VERSION 20230502
 
 RUN zypper refresh \
  && zypper in -y \

@@ -31,6 +31,12 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 	if ( (data[1] & 0x03) == 0x03 )
 		len_80211 += packet->L2_ADDR_LEN;
 
+	if ( len_80211 >= len )
+		{
+		Weird("truncated_802_11_header", packet);
+		return false;
+		}
+
 	// Look for the QoS indicator bit.
 	if ( (fc_80211 >> 4) & 0x08 )
 		{

@@ -1,3 +1,7 @@
+6.0.0-dev.487 | 2023-05-03 09:30:55 -0700
+
+  * Add additional length check to IEEE 802.11 analyzer (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.484 | 2023-05-03 14:18:03 +0100
 
   * SSL: do not try to disable failed analyzer (Johanna Amann, Corelight)

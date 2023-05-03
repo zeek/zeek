@@ -138,6 +138,31 @@ refine connection SSL_Conn += {
 
 		return true;
 		%}
+
+		function proc_unified_record(is_orig: bool, ur: UnifiedRecord) : bool
+			%{
+			// we don't have a CCS packet anymore - so let's just assume the connection is established once we have seen a packet from each direction.
+			if ( is_orig )
+				client_state_ = STATE_ENCRYPTED;
+			else
+				server_state_ = STATE_ENCRYPTED;
+
+			if ( client_state_ == STATE_ENCRYPTED && server_state_ == STATE_ENCRYPTED && established_ == false )
+				{
+				established_ = true;
+				if ( ssl_established )
+					zeek::BifEvent::enqueue_ssl_established(zeek_analyzer(), zeek_analyzer()->Conn());
+				}
+
+			if ( ssl_encrypted_data )
+				{
+				// FIXME: swallow is not quite the correct length, because we are not parsing the entire header
+				zeek::BifEvent::enqueue_ssl_encrypted_data(zeek_analyzer(),
+					zeek_analyzer()->Conn(), is_orig ^ zeek_analyzer()->GetFlipped(), DTLSv13, APPLICATION_DATA, ur->swallow().length());
+				}
+
+			return true;
+			%}
 };
 
 refine typeattr SSLRecord += &let {
@@ -146,4 +171,8 @@ refine typeattr SSLRecord += &let {
 
 refine typeattr Handshake += &let {
 	proc: bool = $context.connection.proc_handshake(rec, this);
+};
+
+refine typeattr UnifiedRecord += &let {
+	proc: bool = $context.connection.proc_unified_record(is_orig, this);
 };

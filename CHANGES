@@ -1,3 +1,12 @@
+5.0.8-3 | 2023-05-02 17:02:57 -0700
+
+  * Drop Spicy stderr from tests. (Benjamin Bannier, Corelight)
+
+    The stream usually contains non-fatal compiler diagnostics which are not
+    relevant for the behavior under test.
+
+  * Bump Spicy to latest release. (Benjamin Bannier, Corelight)
+
 5.0.8 | 2023-04-11 11:50:33 -0700
 
   * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz)

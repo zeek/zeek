@@ -3,7 +3,7 @@
 # @TEST-REQUIRES: $SCRIPTS/have-spicy
 # @TEST-EXEC: ${BUILD}/src/builtin-plugins/spicy-plugin/bin/spicyz test.spicy test.evt -o test.hlto
 # @TEST-EXEC: zeek -NN test.hlto | grep -q ANALYZER_SPICY_TEST
-# @TEST-EXEC: zeek -r ${TRACES}/http/post.trace test.zeek test.hlto "Spicy::enable_print = T;" >>output 2>&1
+# @TEST-EXEC: zeek -r ${TRACES}/http/post.trace test.zeek test.hlto "Spicy::enable_print = T;" >>output
 # @TEST-EXEC: btest-diff output
 
 # @TEST-START-FILE test.spicy

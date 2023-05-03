@@ -306,6 +306,11 @@ Changed Functionality
 - Libpcap based packet source now avoids the 32bit wraparound of link and
   dropped packet counters as reported by users.
 
+- The `ssl_history` field in ssl.log indicates that the letter `j` is reserved
+  for hello retry requests. However, this logging was never fully implemented;
+  instead, hello retry requests were logged like as a server hello (with the letter
+  `s`). This oversight was fixed, and hello retry requests are now correctly logged.
+
 Removed Functionality
 ---------------------
 

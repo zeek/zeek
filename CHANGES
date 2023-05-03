@@ -1,3 +1,16 @@
+6.0.0-dev.484 | 2023-05-03 14:18:03 +0100
+
+  * SSL: do not try to disable failed analyzer (Johanna Amann, Corelight)
+
+    Currently, if a TLS/DTLS analyzer fails with a protocol violation, we
+    will still try to remove the analyzer later, which results in the
+    following error message:
+
+    error: connection does not have analyzer specified to disable
+
+    Now, instead we don't try removing the analyzer anymore, after a
+    violation occurred.
+
 6.0.0-dev.480 | 2023-05-02 20:28:55 +0200
 
   * ip4_hdr: Add DF, MF, offset and sum fields (Arne Welzel, Corelight)

@@ -130,10 +130,24 @@
 
 refine flow NTP_Flow += {
 
+	%member{
+		bool flipped_;
+	%}
+
+	%init{
+		flipped_ = false;
+	%}
 
 	function proc_ntp_message(msg: NTP_PDU): bool
 		%{
 		connection()->zeek_analyzer()->AnalyzerConfirmation();
+
+		// Flip roles for SERVER mode message from orig or a CLIENT mode message from resp.
+		if ( ((${msg.mode} == SERVER && is_orig()) || (${msg.mode} == CLIENT && ! is_orig())) && ! flipped_ )
+			{
+			connection()->zeek_analyzer()->Conn()->FlipRoles();
+			flipped_ = true;
+			}
 
 		if ( ! ntp_message )
 			return false;

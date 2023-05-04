@@ -9,12 +9,68 @@ endif()
 
 project(Zeek C CXX)
 
+
+# We want to set ENABLE_DEBUG to ON by default if the build type is Debug.
+set(ENABLE_DEBUG_DEFAULT OFF)
+if ( NOT GENERATOR_IS_MULTI_CONFIG )
+  string(TOLOWER "${CMAKE_BUILD_TYPE}" build_type_lower)
+  if ( build_type_lower STREQUAL "debug" )
+    set(ENABLE_DEBUG_DEFAULT ON)
+  endif ()
+  unset(build_type_lower)
+endif ()
+
+# On UNIX, install additional Zeek tools by default and build shared objects.
+if ( NOT WIN32 )
+  set(ZEEK_INSTALL_TOOLS_DEFAULT ON)
+  option(BUILD_SHARED_LIBS "Build targets as shared libraries." ON)
+else ()
+  set(ZEEK_INSTALL_TOOLS_DEFAULT OFF)
+endif ()
+
+# CMake options (Boolean flags).
+option(ENABLE_DEBUG "Build Zeek with additional debugging support." ${ENABLE_DEBUG_DEFAULT})
+option(ENABLE_JEMALLOC "Link against jemalloc." OFF)
+option(ENABLE_PERFTOOLS "Build with support for Google perftools." OFF)
+option(ENABLE_ZEEK_UNIT_TESTS "Build the C++ unit tests." ON)
+option(INSTALL_AUX_TOOLS "Install additional tools from auxil." ${ZEEK_INSTALL_TOOLS_DEFAULT})
+option(INSTALL_BTEST "Install btest alongside Zeek." ${ZEEK_INSTALL_TOOLS_DEFAULT})
+option(INSTALL_BTEST_PCAPS "Install pcap files for testing." ${ZEEK_INSTALL_TOOLS_DEFAULT})
+option(INSTALL_ZEEKCTL "Install zeekctl." ${ZEEK_INSTALL_TOOLS_DEFAULT})
+option(INSTALL_ZEEK_ARCHIVER "Install the zeek-archiver." ${ZEEK_INSTALL_TOOLS_DEFAULT})
+option(INSTALL_ZEEK_CLIENT "Install the zeek-client." ${ZEEK_INSTALL_TOOLS_DEFAULT})
+option(INSTALL_ZKG "Install zkg." ${ZEEK_INSTALL_TOOLS_DEFAULT})
+option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
 option(ZEEK_STANDALONE "Build Zeek as stand-alone binary?" ON)
-option(ENABLE_ZEEK_UNIT_TESTS "Build the C++ (doctest) unit tests?" ON)
+
+# Non-boolean options.
+if ( NOT WIN32 )
+    if ( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+        set(CMAKE_INSTALL_PREFIX "/usr/local/zeek"
+            CACHE PATH "Install directory used by install()." FORCE)
+    endif ()
+    # On windows, this defaults to "c:/Program Files/${PROJECT_NAME}":
+    # https://cmake.org/cmake/help/v3.15/variable/CMAKE_INSTALL_PREFIX.html.
+endif ()
+
+set(ZEEK_SCRIPT_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/share/zeek"
+    CACHE PATH "Install directory for Zeek scripts.")
+
+set(ZEEK_ETC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/etc"
+    CACHE PATH "Install directory for Zeek configuration files.")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON
-    CACHE INTERNAL "Write JSON compile commands database")
+    CACHE INTERNAL "Whether to write a JSON compile commands database")
+
 set(ZEEK_CXX_STD cxx_std_17 CACHE STRING "The C++ standard to use.")
 
+set(ZEEK_SANITIZERS "" CACHE STRING "Sanitizers to use when building.")
+
+set(CPACK_SOURCE_IGNORE_FILES "" CACHE STRING "Files to be ignored by CPack")
+
+set(ZEEK_INCLUDE_PLUGINS "" CACHE STRING "Extra plugins to add to the build.")
+
+# Look into the build tree for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 

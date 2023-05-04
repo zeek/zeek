@@ -1,3 +1,19 @@
+6.0.0-dev.503 | 2023-05-04 10:56:33 -0700
+
+  * Include compiler in --show-config output (Dominik Charousset, Corelight)
+
+  * Fix CMake option defaults on Windows (Dominik Charousset, Corelight)
+
+  * Move build defaults from configure to CMake (Dominik Charousset, Corelight)
+
+    Moving the defaults for build variables from the `configure` script to
+    `CMakeLists.txt` gives the same default behavior on platforms where the
+    `configure` script is not available (Windows) and also allows a pure
+    CMake-based work flow (e.g., the standard `cmake -S . -B build`) without
+    having to manually adjust the defaults.
+
+    The `configure` script also becomes much simpler as a result.
+
 6.0.0-dev.498 | 2023-05-04 09:30:18 +0200
 
   * scripts/smb2-main: Reset script-level state upon smb2_discarded_messages_state() (Arne Welzel, Corelight)

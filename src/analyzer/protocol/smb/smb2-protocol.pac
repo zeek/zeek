@@ -230,6 +230,16 @@ refine connection SMB_Conn += {
 		%{
 		if ( is_orig )
 			{
+			if ( zeek::BifConst::SMB::max_pending_messages > 0 &&
+			     smb2_request_tree_id.size() >= zeek::BifConst::SMB::max_pending_messages )
+				{
+				if ( smb2_discarded_messages_state )
+					zeek::BifEvent::enqueue_smb2_discarded_messages_state(zeek_analyzer(), zeek_analyzer()->Conn(),
+					                                                     zeek::make_intrusive<zeek::StringVal>("tree"));
+
+				smb2_request_tree_id.clear();
+				}
+
 			// Store the tree_id
 			smb2_request_tree_id[${h.message_id}] = ${h.tree_id};
 			}

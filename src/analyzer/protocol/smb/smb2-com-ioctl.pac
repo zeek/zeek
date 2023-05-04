@@ -17,6 +17,17 @@ refine connection SMB_Conn += {
 
 	function proc_smb2_ioctl_request(val: SMB2_ioctl_request) : bool
 		%{
+		if ( zeek::BifConst::SMB::max_pending_messages > 0 &&
+		     smb2_ioctl_fids.size() >= zeek::BifConst::SMB::max_pending_messages )
+			{
+			if ( smb2_discarded_messages_state )
+				zeek::BifEvent::enqueue_smb2_discarded_messages_state(zeek_analyzer(), zeek_analyzer()->Conn(),
+				                                                     zeek::make_intrusive<zeek::StringVal>("ioctl"));
+
+
+			smb2_ioctl_fids.clear();
+			}
+
 		smb2_ioctl_fids[${val.header.message_id}] = ${val.file_id.persistent} + ${val.file_id._volatile};
 		return true;
 		%}

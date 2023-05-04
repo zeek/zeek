@@ -15,3 +15,16 @@
 ##
 ## .. zeek:see:: smb1_message
 event smb2_message%(c: connection, hdr: SMB2::Header, is_orig: bool%);
+
+## Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
+## version 2 connections for which pending read, ioctl or tree requests exceeds
+## the :zeek:see:`SMB::max_pending_messages` setting. This event indicates either
+## traffic loss, traffic load-balancing issues, or failures to parse or match
+## SMB responses with SMB requests. When this event is raised, internal per-connection
+## parser state has been reset.
+##
+## c: The affected connection.
+##
+## state: String describing what kind of state was affected.
+##        One of read, ioctl or tree.
+event smb2_discarded_messages_state%(c: connection, state: string%);

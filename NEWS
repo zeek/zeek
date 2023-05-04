@@ -212,6 +212,10 @@ New Functionality
 - The ``ip4_hdr`` record was extended by ``DF``, ``MF``, ``offset`` and ``sum``
   to aid packet-level analysis use-cases.
 
+- The new ``HOOK_DISPATCH_EVENT`` hook has been introduced. In contrast to the
+  existing ``HOOK_ENQUEUE_EVENT``, this hook is called when an event from the
+  event queue is about to be actually executed.
+
 Changed Functionality
 ---------------------
 

@@ -212,6 +212,11 @@ New Functionality
 - The ``ip4_hdr`` record was extended by ``DF``, ``MF``, ``offset`` and ``sum``
   to aid packet-level analysis use-cases.
 
+- The NTP analyzer now recognizes when client and server mode messages disagree
+  with the notion of "originator" and "responder" and flips the connection. This
+  can happen in packet loss or packet re-ordering scenarios. Such connections will
+  have a ``^`` added to their history.
+
 Changed Functionality
 ---------------------
 

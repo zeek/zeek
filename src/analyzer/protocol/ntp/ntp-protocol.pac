@@ -1,5 +1,14 @@
 # This is the common part in the header format.
 # See RFC 5905 for details
+enum NTP_Mode {
+	SYMMETRIC_ACTIVE = 1,
+	SYMMETRIC_PASSIVE = 2,
+	CLIENT = 3,
+	SERVER = 4,
+	BROADCAST_SERVER = 5,
+	BROADCAST_CLIENT = 6,
+};
+
 type NTP_PDU(is_orig: bool) = record {
 	# The first byte of the NTP header contains the leap indicator,
 	# the version and the mode

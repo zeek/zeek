@@ -1,3 +1,13 @@
+6.0.0-dev.505 | 2023-05-04 20:08:33 +0200
+
+  * GH-2998: NTP: Detect out-of-order packets (Arne Welzel, Corelight)
+
+    The NTP mode provides us with the identity of the endpoints. For the
+    simple CLIENT / SERVER modes, flip the connection if we detect
+    orig/resp disagreeing with what the message says. This mainly
+    results in the history getting a ^ and the ntp.log / conn.log
+    showing the corrected endpoints.
+
 6.0.0-dev.503 | 2023-05-04 10:56:33 -0700
 
   * Include compiler in --show-config output (Dominik Charousset, Corelight)

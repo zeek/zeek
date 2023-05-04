@@ -1,3 +1,11 @@
+5.0.8-7 | 2023-05-04 10:13:20 -0700
+
+  * Add cstdint include to WeirdState.h for GCC 13 support (Tim Wojtulewicz, Corelight)
+
+  * Update CAF for GCC 13 fixes (Tim Wojtulewicz, Corelight)
+
+  * Bump the OpenSUSE Tumbleweed CI image to get gcc 13 (Tim Wojtulewicz, Corelight)
+
 5.0.8-3 | 2023-05-02 17:02:57 -0700
 
   * Drop Spicy stderr from tests. (Benjamin Bannier, Corelight)

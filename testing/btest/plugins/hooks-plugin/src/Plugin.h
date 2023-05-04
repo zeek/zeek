@@ -18,6 +18,7 @@ protected:
 	                                               zeek::detail::Frame* parent,
 	                                               zeek::Args* args) override;
 	bool HookQueueEvent(zeek::Event* event) override;
+	bool HookDispatchEvent(zeek::Event* event, bool no_remote) override;
 	void HookDrainEvents() override;
 	void HookUpdateNetworkTime(double network_time) override;
 	void HookBroObjDtor(void* obj) override;

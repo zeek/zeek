@@ -54,6 +54,7 @@ zeek::plugin::Configuration Plugin::Configure()
 	EnableHook(zeek::plugin::HOOK_LOAD_FILE_EXT);
 	EnableHook(zeek::plugin::HOOK_CALL_FUNCTION);
 	EnableHook(zeek::plugin::HOOK_QUEUE_EVENT);
+	EnableHook(zeek::plugin::HOOK_DISPATCH_EVENT);
 	EnableHook(zeek::plugin::HOOK_DRAIN_EVENTS);
 	EnableHook(zeek::plugin::HOOK_UPDATE_NETWORK_TIME);
 	EnableHook(zeek::plugin::META_HOOK_PRE);
@@ -169,6 +170,17 @@ bool Plugin::HookQueueEvent(zeek::Event* event)
 		RequestBroObjDtor(event);
 		i = 1;
 		}
+
+	return false;
+	}
+
+bool Plugin::HookDispatchEvent(zeek::Event* event, bool no_remote)
+	{
+	zeek::ODesc d;
+	d.SetShort();
+	zeek::plugin::HookArgument(event).Describe(&d);
+	fprintf(stderr, "%.6f %-15s %s [%s]\n", zeek::run_state::network_time, "| HookDispatchEvent",
+	        d.Description(), no_remote ? "no remote" : "remote");
 
 	return false;
 	}

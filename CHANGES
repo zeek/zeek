@@ -1,3 +1,29 @@
+6.0.0-dev.498 | 2023-05-04 09:30:18 +0200
+
+  * scripts/smb2-main: Reset script-level state upon smb2_discarded_messages_state() (Arne Welzel, Corelight)
+
+    This is similar to what the external corelight/zeek-smb-clear-state script
+    does, but leverages the smb2_discarded_messages_state() event instead of
+    regularly checking on the state of SMB connections.
+
+    The pcap was created using the dperson/samba container image and mounting
+    a share with Linux's CIFS filesystem, then copying the content of a
+    directory with 100 files. The test uses a BPF filter to imitate mostly
+    "half-duplex" traffic.
+
+  * smb2: Limit per-connection read/ioctl/tree state (Arne Welzel, Corelight)
+
+    Users on Slack observed memory growth in an environment with a lot of
+    SMB traffic. jeprof memory profiling pointed at the offset and fid maps
+    kept per-connection for smb2 read requests.
+
+    These maps can grow unbounded if responses are seen before requests, there's
+    packet drops, just one side of the connection is visible, or we fail to parse
+    responses properly.
+
+    Forcefully wipe out these maps when they grow too large and raise
+    smb2_discarded_messages_state() to notify script land about this.
+
 6.0.0-dev.493 | 2023-05-03 11:13:15 -0700
 
   * Update Mozilla CA and Google CT lists (Johanna Amann, Corelight)

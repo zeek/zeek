@@ -44,6 +44,13 @@ export {
 		PRINT_CLOSE,
 	};
 
+	## Whether to reset a connection's SMB script state whenever a
+	## :zeek:see:`smb2_discarded_messages_state` event is raised.
+	##
+	## This setting protects from unbounded script state growth in
+	## environments with high capture loss or traffic anomalies.
+	option enable_clear_script_state = T;
+
 	## This record is for the smb_files.log
 	type FileInfo: record {
 		## Time when the file was first discovered.

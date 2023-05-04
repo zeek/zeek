@@ -210,6 +210,7 @@ export {
 		["spontaneous_FIN"]                     = ACTION_IGNORE,
 		["spontaneous_RST"]                     = ACTION_IGNORE,
 		["SMB_parsing_error"]                   = ACTION_LOG,
+		["SMB_discarded_messages_state"]        = ACTION_LOG,
 		["no_smb_session_using_parsesambamsg"]  = ACTION_LOG,
 		["smb_andx_command_failed_to_parse"]    = ACTION_LOG,
 		["smb_tree_connect_andx_response_without_tree"] = ACTION_LOG_PER_CONN,

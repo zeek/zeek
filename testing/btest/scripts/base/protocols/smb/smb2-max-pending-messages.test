@@ -1,0 +1,18 @@
+# @TEST-DOC: Pcap contains 100 file transfers (read requests), force BPF filtering such that the responses aren't seen and we have state growth. Verify a low SMB::max_pending_messages triggers, logs a weird and that script-land message state is reset.
+# @TEST-EXEC: zeek -b -C -r $TRACES/smb/smb2_100_small_files.pcap -f 'src port not 445 or tcp[tcpflags] & (tcp-syn|tcp-fin|tcp-rst) != 0' %INPUT >out
+# @TEST-EXEC: btest-diff weird.log
+# @TEST-EXEC: btest-diff out
+
+@load base/protocols/smb
+
+redef SMB::max_pending_messages = 20;
+
+event smb2_discarded_messages_state(c: connection, request: string) &priority=10
+	{
+	print "smb2_discarded_messages_state before", request, |c$smb_state$pending_cmds|;
+	}
+
+event smb2_discarded_messages_state(c: connection, request: string) &priority=-10
+	{
+	print "smb2_discarded_messages_state after", request, |c$smb_state$pending_cmds|;
+	}

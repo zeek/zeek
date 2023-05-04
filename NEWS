@@ -316,6 +316,16 @@ Changed Functionality
   instead, hello retry requests were logged like as a server hello (with the letter
   `s`). This oversight was fixed, and hello retry requests are now correctly logged.
 
+- When per-connection SMB parser state (read offsets, tree ids, ...) exceeds
+  ``SMB::max_pending_messages`` (default 1000), Zeek discards such per-connection
+  state and raises a new ``smb2_discarded_messages_state()`` event. This event is
+  used to reset script-layer SMB state. This change provides protection against
+  unbounded state growth due to partial or one-sided SMB connections.
+
+  Setting ``SMB::max_pending_messages`` to 0 can be used to switch back to the
+  previous behavior of not discarding state. Setting ``SMB::enable_state_clear``
+  to ``F`` skips the script-layer state clearing logic.
+
 Removed Functionality
 ---------------------
 

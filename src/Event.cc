@@ -48,6 +48,16 @@ void Event::Dispatch(bool no_remote)
 	if ( src == util::detail::SOURCE_BROKER )
 		no_remote = true;
 
+	bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_DISPATCH_EVENT, HookDispatchEvent(this, no_remote),
+	                                    false);
+	if ( done )
+		{
+		if ( obj )
+			Unref(obj);
+
+		return;
+		}
+
 	if ( handler->ErrorHandler() )
 		reporter->BeginErrorHandler();
 

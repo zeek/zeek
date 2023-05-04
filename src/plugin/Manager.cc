@@ -852,6 +852,39 @@ bool Manager::HookQueueEvent(Event* event) const
 	return result;
 	}
 
+bool Manager::HookDispatchEvent(Event* event, bool no_remote) const
+	{
+	HookArgumentList args;
+
+	if ( HavePluginForHook(META_HOOK_PRE) )
+		{
+		args.push_back(HookArgument(event));
+		args.push_back(HookArgument(no_remote));
+		MetaHookPre(HOOK_DISPATCH_EVENT, args);
+		}
+
+	hook_list* l = hooks[HOOK_DISPATCH_EVENT];
+
+	bool result = false;
+
+	if ( l )
+		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
+			{
+			Plugin* p = (*i).second;
+
+			if ( p->HookDispatchEvent(event, no_remote) )
+				{
+				result = true;
+				break;
+				}
+			}
+
+	if ( HavePluginForHook(META_HOOK_POST) )
+		MetaHookPost(HOOK_DISPATCH_EVENT, args, HookArgument(result));
+
+	return result;
+	}
+
 void Manager::HookDrainEvents() const
 	{
 	HookArgumentList args;

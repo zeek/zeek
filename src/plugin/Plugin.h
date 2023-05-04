@@ -73,6 +73,7 @@ enum HookType
 	HOOK_LOAD_FILE_EXT, //< Activates Plugin::HookLoadFileExtended().
 	HOOK_CALL_FUNCTION, //< Activates Plugin::HookCallFunction().
 	HOOK_QUEUE_EVENT, //< Activates Plugin::HookQueueEvent().
+	HOOK_DISPATCH_EVENT, //< Activates Plugin::HookDispatchEvent().
 	HOOK_DRAIN_EVENTS, //< Activates Plugin::HookDrainEvents().
 	HOOK_UPDATE_NETWORK_TIME, //< Activates Plugin::HookUpdateNetworkTime().
 	HOOK_BRO_OBJ_DTOR [[deprecated("Remove in v6.1. Use HOOK_OBJ_DTOR.")]],
@@ -1064,6 +1065,27 @@ protected:
 	 * not do anything further with it. False otherwise.
 	 */
 	virtual bool HookQueueEvent(Event* event);
+
+	/**
+	 * Hook into dispatching of an event. Whenever a queued event is about to
+	 * be executed, it first gives all plugins with this hook enabled a chance
+	 * to handle the execution otherwise. A plugin can either just inspect the
+	 * event, or prevent the event from executing its event handler.
+	 *
+	 * The default implementation never handles the dispatching in any way.
+	 *
+	 * @param event The event to be dispatched. The method can modify it in
+	 * place as long as it ensures matching types and correct reference
+	 * counting.
+	 *
+	 * @param no_remote True if the event should not be auto-published to
+	 * remote peers (e.g., if the event itself was received from remote).
+	 *
+	 * @return True if the plugin took over executing the event; in that case
+	 * the event's implementation will skip calling its handler. False
+	 * otherwise.
+	 */
+	virtual bool HookDispatchEvent(Event* event, bool no_remote);
 
 	/**
 	 * Hook into event queue draining. This method will be called

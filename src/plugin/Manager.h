@@ -312,6 +312,17 @@ public:
 	bool HookQueueEvent(Event* event) const;
 
 	/**
+	 * Hook that filters the dispatching of an event.
+	 *
+	 * @param event The event to be executed; it may be modified.
+	 *
+	 * @param no_remote True if the event should not be auto-published.
+	 *
+	 * @return Returns true if a plugin handled the dispatching.
+	 */
+	bool HookDispatchEvent(Event* event, bool no_remote) const;
+
+	/**
 	 * Hook that informs plugins about an update in network time.
 	 *
 	 * @param network_time The new network time.

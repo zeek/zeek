@@ -25,6 +25,7 @@ const char* hook_name(HookType h)
 		"LoadFileExtended",
 		"CallFunction",
 		"QueueEvent",
+		"DispatchEvent",
 		"DrainEvents",
 		"UpdateNetworkTime",
 		"BroObjDtor",
@@ -417,6 +418,11 @@ std::pair<bool, ValPtr> Plugin::HookFunctionCall(const Func* func, zeek::detail:
 	}
 
 bool Plugin::HookQueueEvent(Event* event)
+	{
+	return false;
+	}
+
+bool Plugin::HookDispatchEvent(Event* event, bool no_remote)
 	{
 	return false;
 	}

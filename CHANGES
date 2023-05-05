@@ -1,3 +1,12 @@
+6.0.0-dev.511 | 2023-05-05 21:04:11 +0200
+
+  * Revert "Skip version.h by default for Zeek sources" (Arne Welzel, Corelight)
+
+    This reverts commit 8246baf25c692b658e7a39527f6652e37f5b5095.
+
+    Actually fails the include_plugins CI test and I had just
+    opened another related issue.
+
 6.0.0-dev.510 | 2023-05-05 20:14:21 +0200
 
   * Skip version.h by default for Zeek sources (Dominik Charousset, Corelight)

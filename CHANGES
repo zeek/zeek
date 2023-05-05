@@ -1,3 +1,13 @@
+6.0.0-dev.516 | 2023-05-05 14:08:15 -0700
+
+  * BTest baseline updates for -O gen-C++ (Vern Paxson, Corelight)
+
+  * updates to C++ maintenance scripts to better handle uncompilable BTests (Vern Paxson, Corelight)
+
+  * added ZEEK_REPORT_UNCOMPILABLE environment variable for "-O report-uncompilable" (Vern Paxson, Corelight)
+
+  * BTest baseline updates for ZAM (Vern Paxson, Corelight)
+
 6.0.0-dev.511 | 2023-05-05 21:04:11 +0200
 
   * Revert "Skip version.h by default for Zeek sources" (Arne Welzel, Corelight)

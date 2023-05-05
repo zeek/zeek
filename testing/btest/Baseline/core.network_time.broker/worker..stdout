@@ -17,7 +17,7 @@
 44.750, timer_tick, 13, 45.0
 45.000, timer, second timer (3 sec)
 45.000, timer_tick, 14, 45.25
-45.250, timer, third timer (3.5 sec)
+45.250, timer, third timer (3.25 sec)
 45.250, timer_tick, 15, 45.5
 45.500, timer_tick, 16, 45.75
 45.750, timer_tick, 17, 46.0

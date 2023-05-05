@@ -23,3 +23,14 @@ redef Log::default_rotation_interval = 24 hrs;
 ## Use the cluster's delete-log script.
 redef Log::default_rotation_postprocessor_cmd = "delete-log";
 @endif
+
+event zeek_init()
+	{
+	if ( Cluster::get_node_count(Cluster::PROXY) == 0 )
+		{
+		Reporter::warning("No proxy nodes configured for this Zeek cluster. "
+		                  + "The software framework as well as certain external "
+		                  + "scripts rely on the presence of proxy nodes to function "
+		                  + "properly and should be considered required.");
+		}
+	}

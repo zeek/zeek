@@ -10,7 +10,7 @@ gen_out=CPP-test/gen.$abbr
         echo "fail"
         exit 1
     fi
-    if grep -E -q '(deprecated.*(when|vector))|skipping|cannot compile|no matching functions' $gen_out; then
+    if grep -E -q '(deprecated.*(when|vector))|skipping|cannot be compiled|cannot compile|no matching functions' $gen_out; then
         echo "fail"
         exit 1
     fi

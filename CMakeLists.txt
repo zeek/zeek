@@ -192,6 +192,11 @@ set_target_properties(zeek_internal PROPERTIES EXPORT_NAME Internal)
 install(TARGETS zeek_internal EXPORT ZeekTargets)
 target_compile_features(zeek_internal INTERFACE ${ZEEK_CXX_STD})
 
+# Skip including the version.h header from the zeek-config.h header. This is
+# mainly to optimize build times on CI by making sure the compiler cache remains
+# valid for longer.
+target_compile_definitions(zeek_internal INTERFACE ZEEK_CONFIG_SKIP_VERSION_H)
+
 # Target for bundling the creation of auto-generated files.
 add_custom_target(zeek_autogen_files)
 

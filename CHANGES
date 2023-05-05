@@ -1,3 +1,7 @@
+6.0.0-dev.510 | 2023-05-05 20:14:21 +0200
+
+  * Skip version.h by default for Zeek sources (Dominik Charousset, Corelight)
+
 6.0.0-dev.508 | 2023-05-05 08:48:10 -0700
 
   * generate-docs: Only update submodule pointer during scheduled builds (Tim Wojtulewicz, Corelight)

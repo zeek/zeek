@@ -130,10 +130,12 @@ public:
 #endif
 	inline Configuration() __attribute__((always_inline))
 		{
-// Only bake in a ZEEK_PLUGIN_ZEEK_VERSION reference into external
-// plugins. The internal ones are in the same binary so the runtime
-// link check shouldn't be needed and we can avoid ccache busting.
-#if defined(ZEEK_PLUGIN_INTERNAL_BUILD) && ! ZEEK_PLUGIN_INTERNAL_BUILD
+// Only bake in a ZEEK_PLUGIN_ZEEK_VERSION reference into external plugins. The
+// internal ones are in the same binary so the runtime link check shouldn't be
+// needed and we can avoid ccache busting. The define gets set in the
+// CMakeLists.txt file for the Zeek::Internal target, which only exists when
+// building Zeek itself.
+#ifndef ZEEK_PLUGIN_SKIP_VERSION_CHECK
 		bro_version = ZEEK_PLUGIN_ZEEK_VERSION;
 		zeek_version = ZEEK_PLUGIN_ZEEK_VERSION;
 #endif

@@ -2,30 +2,29 @@
 # auxil/zeek-aux/plugin-support/skeleton/CMakeLists.txt
 cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 
-if ( WIN32 )
+if (WIN32)
     # Enable usage of CMAKE_MSVC_RUNTIME_LIBRARY variable
     cmake_policy(SET CMP0091 NEW)
-endif()
+endif ()
 
 project(Zeek C CXX)
 
-
 # We want to set ENABLE_DEBUG to ON by default if the build type is Debug.
 set(ENABLE_DEBUG_DEFAULT OFF)
-if ( NOT GENERATOR_IS_MULTI_CONFIG )
-  string(TOLOWER "${CMAKE_BUILD_TYPE}" build_type_lower)
-  if ( build_type_lower STREQUAL "debug" )
-    set(ENABLE_DEBUG_DEFAULT ON)
-  endif ()
-  unset(build_type_lower)
+if (NOT GENERATOR_IS_MULTI_CONFIG)
+    string(TOLOWER "${CMAKE_BUILD_TYPE}" build_type_lower)
+    if (build_type_lower STREQUAL "debug")
+        set(ENABLE_DEBUG_DEFAULT ON)
+    endif ()
+    unset(build_type_lower)
 endif ()
 
 # On UNIX, install additional Zeek tools by default and build shared objects.
-if ( NOT WIN32 )
-  set(ZEEK_INSTALL_TOOLS_DEFAULT ON)
-  option(BUILD_SHARED_LIBS "Build targets as shared libraries." ON)
+if (NOT WIN32)
+    set(ZEEK_INSTALL_TOOLS_DEFAULT ON)
+    option(BUILD_SHARED_LIBS "Build targets as shared libraries." ON)
 else ()
-  set(ZEEK_INSTALL_TOOLS_DEFAULT OFF)
+    set(ZEEK_INSTALL_TOOLS_DEFAULT OFF)
 endif ()
 
 # CMake options (Boolean flags).
@@ -44,8 +43,8 @@ option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
 option(ZEEK_STANDALONE "Build Zeek as stand-alone binary?" ON)
 
 # Non-boolean options.
-if ( NOT WIN32 )
-    if ( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+if (NOT WIN32)
+    if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
         set(CMAKE_INSTALL_PREFIX "/usr/local/zeek"
             CACHE PATH "Install directory used by install()." FORCE)
     endif ()
@@ -59,8 +58,8 @@ set(ZEEK_SCRIPT_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/share/zeek"
 set(ZEEK_ETC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/etc"
     CACHE PATH "Install directory for Zeek configuration files.")
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON
-    CACHE INTERNAL "Whether to write a JSON compile commands database")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL
+                                           "Whether to write a JSON compile commands database")
 
 set(ZEEK_CXX_STD cxx_std_17 CACHE STRING "The C++ standard to use.")
 
@@ -75,7 +74,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 # Windows: Configure runtime and dependencies
-if ( MSVC )
+if (MSVC)
     # Remove existing runtime flags
     set(CompilerFlags
         CMAKE_CXX_FLAGS
@@ -85,9 +84,8 @@ if ( MSVC )
         CMAKE_C_FLAGS
         CMAKE_C_FLAGS_DEBUG
         CMAKE_C_FLAGS_RELEASE
-        CMAKE_C_FLAGS_RELWITHDEBINFO
-    )
-    foreach(CompilerFlag ${CompilerFlags})
+        CMAKE_C_FLAGS_RELWITHDEBINFO)
+    foreach (CompilerFlag ${CompilerFlags})
         string(REGEX REPLACE "[/|-]MDd" "" ${CompilerFlag} "${${CompilerFlag}}")
         string(REGEX REPLACE "[/|-]MD" "" ${CompilerFlag} "${${CompilerFlag}}")
         string(REGEX REPLACE "[/|-]MTd" "" ${CompilerFlag} "${${CompilerFlag}}")
@@ -95,15 +93,13 @@ if ( MSVC )
         string(REGEX REPLACE "[/|-]Zi" "" ${CompilerFlag} "${${CompilerFlag}}")
         string(REGEX REPLACE "[/|-]W3" "" ${CompilerFlag} "${${CompilerFlag}}")
         string(REGEX REPLACE "[/|-]W4" "" ${CompilerFlag} "${${CompilerFlag}}")
-    endforeach()
+    endforeach ()
 
     # Set compilation flags for Windows
-    add_compile_options(
-        /guard:cf # required by CheckCFlags
-        /Z7)      # required by CheckCFlags
+    add_compile_options(/guard:cf # required by CheckCFlags
+                        /Z7) # required by CheckCFlags
 
-    add_link_options(
-        /debug:full # required by CheckCFlags
+    add_link_options(/debug:full # required by CheckCFlags
     )
 
     # Set always to static runtime
@@ -120,22 +116,21 @@ if ( MSVC )
     set(OPENSSL_USE_STATIC_LIBS true)
     set(OPENSSL_MSVC_STATIC_RT true)
 
-    if ( ZEEK_STANDALONE )
+    if (ZEEK_STANDALONE)
         include(${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
         conan_cmake_autodetect(settings)
         # Install packages from conanfile
         conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}/ci/windows/conanfile_windows.txt
-                            BUILD missing
-                            SETTINGS ${settings})
-    endif()
+                            BUILD missing SETTINGS ${settings})
+    endif ()
 
     # Set LibPCAP to point to libpcap binaries.
-    if ( NOT PCAP_ROOT_DIR )
+    if (NOT PCAP_ROOT_DIR)
         find_package(libpcap)
         set(PCAP_ROOT_DIR "${libpcap_LIB_DIRS}/../")
         set(PCAP_INCLUDE_DIR ${libpcap_INCLUDES})
         set(PCAP_LIBRARY ${libpcap_LIBS})
-    endif()
+    endif ()
 
     set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)
 
@@ -151,7 +146,8 @@ if ( MSVC )
     add_definitions(-DCARES_STATICLIB)
 
     add_subdirectory(auxil/libunistd)
-    set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
+    set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd
+                        ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
     include_directories(BEFORE ${UNISTD_INCLUDES})
     # Required for `check_include_files` to operate correctly
     list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTD_INCLUDES})
@@ -173,8 +169,8 @@ include(cmake/CommonCMakeConfig.cmake)
 include(cmake/FindClangTidy.cmake)
 include(cmake/CheckCompilerArch.cmake)
 
-########################################################################
-## Main targets and utilities.
+# ##############################################################################
+# Main targets and utilities.
 
 # Variable for referring back to Zeek's top-level source dir. Used for plugins
 # to tell them where to find the Zeek headers.
@@ -184,8 +180,8 @@ set(ZEEK_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 # zeek-plugin-create-package.sh. Needed by ZeekPluginConfig.cmake.in.
 set(ZEEK_PLUGIN_SCRIPTS_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-# Our C++17 base target for propagating compiler and linker flags.
-# Note: for now, we only use it for passing library dependencies around.
+# Our C++17 base target for propagating compiler and linker flags. Note: for
+# now, we only use it for passing library dependencies around.
 add_library(zeek_internal INTERFACE)
 add_library(Zeek::Internal ALIAS zeek_internal)
 set_target_properties(zeek_internal PROPERTIES EXPORT_NAME Internal)
@@ -204,11 +200,11 @@ if (ZEEK_STANDALONE)
     set_target_properties(zeek_exe PROPERTIES RUNTIME_OUTPUT_NAME zeek)
     if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
         set_target_properties(zeek_exe PROPERTIES RUNTIME_OUTPUT_DIRECTORY src)
-    endif()
+    endif ()
     install(TARGETS zeek_exe RUNTIME DESTINATION bin)
     # Export symbols from zeek executable for use by plugins
     set_target_properties(zeek_exe PROPERTIES ENABLE_EXPORTS ON)
-    if ( MSVC )
+    if (MSVC)
         set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif ()
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
@@ -219,7 +215,7 @@ if (ZEEK_STANDALONE)
     endif ()
 else ()
     add_library(zeek_lib STATIC)
-endif()
+endif ()
 
 if (TARGET zeek_lib)
     target_link_libraries(zeek_lib PRIVATE $<BUILD_INTERFACE:zeek_internal>)
@@ -227,15 +223,15 @@ if (TARGET zeek_lib)
     set_target_properties(zeek_lib PROPERTIES RUNTIME_OUTPUT_NAME libzeek)
     if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
         set_target_properties(zeek_lie PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
-    endif()
+    endif ()
     install(TARGETS zeek_lib LIBRARY DESTINATION lib)
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_lib_access PRIVATE)
-endif()
+endif ()
 
 # When building our fuzzers, we also need one extra top-level target that
 # bundles all of our object libraries and other dependencies.
-if ( ZEEK_ENABLE_FUZZERS )
+if (ZEEK_ENABLE_FUZZERS)
     add_library(zeek_fuzzer_shared SHARED)
     target_link_libraries(zeek_fuzzer_shared PUBLIC $<BUILD_INTERFACE:zeek_internal>)
     # Tell zeek_target_link_libraries to add library dependencies as PUBLIC.
@@ -243,15 +239,15 @@ if ( ZEEK_ENABLE_FUZZERS )
 endif ()
 
 # Convenience function for adding library dependencies to the main target(s).
-function(zeek_target_link_libraries lib_target)
+function (zeek_target_link_libraries lib_target)
     foreach (name zeek_exe zeek_lib zeek_fuzzer_shared)
         if (TARGET ${name})
             target_link_libraries(${name} ${${name}_access} ${lib_target})
         endif ()
-    endforeach()
-endfunction()
+    endforeach ()
+endfunction ()
 
-function(zeek_include_directories)
+function (zeek_include_directories)
     foreach (name zeek_exe zeek_lib zeek_fuzzer_shared)
         if (TARGET ${name})
             target_include_directories(${name} ${${name}_access} ${ARGN})
@@ -260,53 +256,40 @@ function(zeek_include_directories)
 endfunction ()
 
 # Convenience function for adding a dependency to the main target(s).
-function(zeek_add_dependencies dep)
+function (zeek_add_dependencies dep)
     foreach (name zeek_exe zeek_lib zeek_fuzzer_shared)
         if (TARGET ${name})
             add_dependencies(${name} ${dep})
         endif ()
-    endforeach()
-endfunction()
+    endforeach ()
+endfunction ()
 
 # Interface library for propagating extra flags and include paths to dynamically
 # loaded plugins. Also propagates include paths and C++17 mode on the install
 # interface.
 add_library(zeek_dynamic_plugin_base INTERFACE)
-target_link_libraries(zeek_dynamic_plugin_base
-    INTERFACE
-        $<BUILD_INTERFACE:zeek_internal>)
-target_include_directories(zeek_dynamic_plugin_base
-    INTERFACE
-        $<INSTALL_INTERFACE:include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+target_link_libraries(zeek_dynamic_plugin_base INTERFACE $<BUILD_INTERFACE:zeek_internal>)
+target_include_directories(
+    zeek_dynamic_plugin_base
+    INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 target_compile_features(zeek_dynamic_plugin_base INTERFACE ${ZEEK_CXX_STD})
 add_library(Zeek::DynamicPluginBase ALIAS zeek_dynamic_plugin_base)
-set_target_properties(
-    zeek_dynamic_plugin_base PROPERTIES
-    EXPORT_NAME DynamicPluginBase)
+set_target_properties(zeek_dynamic_plugin_base PROPERTIES EXPORT_NAME DynamicPluginBase)
 install(TARGETS zeek_dynamic_plugin_base EXPORT ZeekTargets)
 
 # On macOS, we need to tell the linker that the modules are allowed to have
 # undefined symbols.
 if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    target_link_options(
-        zeek_dynamic_plugin_base
-        INTERFACE
-            -undefined
-            dynamic_lookup
-            -Wl,-bind_at_load)
+    target_link_options(zeek_dynamic_plugin_base INTERFACE -undefined dynamic_lookup
+                        -Wl,-bind_at_load)
 endif ()
 
-function(add_zeek_dynamic_plugin_build_interface_include_directories)
-    foreach ( path ${ARGV} )
-        target_include_directories(
-            zeek_dynamic_plugin_base
-            INTERFACE
-                $<BUILD_INTERFACE:${path}>
-        )
+function (add_zeek_dynamic_plugin_build_interface_include_directories)
+    foreach (path ${ARGV})
+        target_include_directories(zeek_dynamic_plugin_base INTERFACE $<BUILD_INTERFACE:${path}>)
     endforeach ()
-endfunction()
+endfunction ()
 
 add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/src/include
@@ -317,28 +300,20 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
-    ${CMAKE_BINARY_DIR}/auxil/broker/include
-)
+    ${CMAKE_BINARY_DIR}/auxil/broker/include)
 
 # Convenience function for adding an OBJECT library that feeds directly into the
 # main target(s).
 #
-# Usage:
-# zeek_add_subdir_library(
-#   <name>
-#   SOURCES ...
-#   [INCLUDE_DIRS ...]
-#   [DEPENDENCIES ...]
-#   [INTERNAL_DEPENDENCIES ...]
-#   [BIFS ...]
-# )
-function(zeek_add_subdir_library name)
+# Usage: zeek_add_subdir_library( <name> SOURCES ... [INCLUDE_DIRS ...]
+# [DEPENDENCIES ...] [INTERNAL_DEPENDENCIES ...] [BIFS ...] )
+function (zeek_add_subdir_library name)
     # Parse arguments.
     set(fn_varargs INCLUDE_DIRS DEPENDENCIES INTERNAL_DEPENDENCIES SOURCES BIFS)
     cmake_parse_arguments(FN_ARGS "" "" "${fn_varargs}" ${ARGN})
     if (NOT FN_ARGS_SOURCES)
         message(FATAL_ERROR "zeek_add_subdir_library called without any SOURCES")
-    endif()
+    endif ()
 
     # Create target and add the sources.
     set(target_name "zeek_${name}_obj")
@@ -349,82 +324,68 @@ function(zeek_add_subdir_library name)
 
     # Take care of compiling BIFs.
     if (FN_ARGS_BIFS)
-        foreach ( bif ${FN_ARGS_BIFS} )
-              # Generate the target and add the extra dependency.
-              bif_target(${bif})
+        foreach (bif ${FN_ARGS_BIFS})
+            # Generate the target and add the extra dependency.
+            bif_target(${bif})
         endforeach ()
-    endif()
+    endif ()
 
     # Optionally add include directories and extra dependencies.
-    if ( FN_ARGS_INCLUDE_DIRS )
-        target_include_directories(
-            ${target_name}
-            BEFORE
-            PRIVATE
-              ${FN_ARGS_INCLUDE_DIRS})
+    if (FN_ARGS_INCLUDE_DIRS)
+        target_include_directories(${target_name} BEFORE PRIVATE ${FN_ARGS_INCLUDE_DIRS})
     endif ()
-    if ( FN_ARGS_DEPENDENCIES )
+    if (FN_ARGS_DEPENDENCIES)
         target_link_libraries(${target_name} PRIVATE ${FN_ARGS_DEPENDENCIES})
     endif ()
-    if ( FN_ARGS_INTERNAL_DEPENDENCIES )
-         add_dependencies(${target_name} ${FN_ARGS_INTERNAL_DEPENDENCIES})
+    if (FN_ARGS_INTERNAL_DEPENDENCIES)
+        add_dependencies(${target_name} ${FN_ARGS_INTERNAL_DEPENDENCIES})
     endif ()
 
     # Feed into the main Zeek target(s).
     zeek_target_link_libraries(${target_name})
-endfunction()
+endfunction ()
 
-########################################################################
-## Utility function for forcing CMake to re-run if files change on disk.
+# ##############################################################################
+# Utility function for forcing CMake to re-run if files change on disk.
 
-function(zeek_watch_files)
-    set_property(
-        DIRECTORY
-        APPEND
-        PROPERTY CMAKE_CONFIGURE_DEPENDS ${ARGN}
-    )
-endfunction()
+function (zeek_watch_files)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${ARGN})
+endfunction ()
 
-########################################################################
-## Create empty __load__.zeek stubs (override pre-existing ones).
+# ##############################################################################
+# Create empty __load__.zeek stubs (override pre-existing ones).
 
-function(zeek_create_load_script_stubs)
+function (zeek_create_load_script_stubs)
     set(file_comment "# Warning, this is an autogenerated file!\n")
-    foreach ( fpath ${ARGN} )
+    foreach (fpath ${ARGN})
         file(WRITE "${CMAKE_BINARY_DIR}/${fpath}" "${file_comment}")
         zeek_watch_files("${CMAKE_BINARY_DIR}/${fpath}")
     endforeach ()
 endfunction ()
 
 # Note: these files are filled from BifCl.cmake via `file(APPEND ...)`
-zeek_create_load_script_stubs(
-    scripts/builtin-plugins/__load__.zeek
-    scripts/base/bif/plugins/__load__.zeek
-    scripts/base/bif/__load__.zeek
-)
+zeek_create_load_script_stubs(scripts/builtin-plugins/__load__.zeek
+                              scripts/base/bif/plugins/__load__.zeek scripts/base/bif/__load__.zeek)
 
-########################################################################
-## Create empty __all__*.cc stubs (override pre-existing ones).
+# ##############################################################################
+# Create empty __all__*.cc stubs (override pre-existing ones).
 
-function(zeek_create_bif_autogen_stubs)
+function (zeek_create_bif_autogen_stubs)
     set(file_comment "// Warning, this is an autogenerated file!\n")
-    foreach ( fpath ${ARGN} )
+    foreach (fpath ${ARGN})
         file(WRITE "${CMAKE_BINARY_DIR}/${fpath}" "${file_comment}")
         zeek_watch_files("${CMAKE_BINARY_DIR}/${fpath}")
     endforeach ()
 endfunction ()
 
 # Note: these files are filled from BifCl.cmake via `file(APPEND ...)`.
-zeek_create_bif_autogen_stubs(
-    src/__all__.bif.cc
-    src/__all__.bif.init.cc
-    src/__all__.bif.register.cc
-)
+zeek_create_bif_autogen_stubs(src/__all__.bif.cc src/__all__.bif.init.cc
+                              src/__all__.bif.register.cc)
 
-########################################################################
-## Project/Build Configuration
+# ##############################################################################
+# Project/Build Configuration
 
-if ( ZEEK_ENABLE_FUZZERS )
+if (ZEEK_ENABLE_FUZZERS)
     # Fuzzers use shared lib to save disk space, so need -fPIC on everything
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif ()
@@ -436,15 +397,15 @@ else ()
     add_definitions(-DDOCTEST_CONFIG_DISABLE)
 endif ()
 
-if ( ENABLE_CCACHE )
+if (ENABLE_CCACHE)
     find_program(CCACHE_PROGRAM ccache)
 
-    if ( NOT CCACHE_PROGRAM )
+    if (NOT CCACHE_PROGRAM)
         message(FATAL_ERROR "ccache not found")
     endif ()
 
     message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
-    set(CMAKE_C_COMPILER_LAUNCHER   ${CCACHE_PROGRAM})
+    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
     set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif ()
 
@@ -459,57 +420,59 @@ if (NOT ZEEK_MAN_INSTALL_PATH)
     set(ZEEK_MAN_INSTALL_PATH ${ZEEK_ROOT_DIR}/share/man)
 endif ()
 
-# sanitize the Zeek script install directory into an absolute path
-# (CMake is confused by ~ as a representation of home directory)
-get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH}
-    ABSOLUTE)
+# sanitize the Zeek script install directory into an absolute path (CMake is
+# confused by ~ as a representation of home directory)
+get_filename_component(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_SCRIPT_INSTALL_PATH} ABSOLUTE)
 
-# A folder for library-like Zeek-specific things: Python modules, Zeek
-# plugins, etc.
+# A folder for library-like Zeek-specific things: Python modules, Zeek plugins,
+# etc.
 set(ZEEK_LIBDIR_PATH ${CMAKE_INSTALL_FULL_LIBDIR}/zeek)
 
 if (NOT ZEEK_PLUGIN_DIR)
-    set(ZEEK_PLUGIN_DIR ${ZEEK_LIBDIR_PATH}/plugins
-        CACHE STRING "Installation path for plugins" FORCE)
-endif()
+    set(ZEEK_PLUGIN_DIR ${ZEEK_LIBDIR_PATH}/plugins CACHE STRING "Installation path for plugins"
+                                                          FORCE)
+endif ()
 
 set(cmake_binary_dir "${CMAKE_BINARY_DIR}")
 set(cmake_current_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
 set(cmake_install_prefix "${CMAKE_INSTALL_PREFIX}")
 set(cmake_source_dir "${CMAKE_SOURCE_DIR}")
 set(zeek_script_install_path "${ZEEK_SCRIPT_INSTALL_PATH}")
-if ( MSVC )
-    # This has to happen before we modify the paths below so that
-    # the pure Windows paths are stored in the output file.
+if (MSVC)
+    # This has to happen before we modify the paths below so that the pure Windows
+    # paths are stored in the output file.
     configure_file(zeek-path-dev.bat.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
 
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
-    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir "${cmake_current_binary_dir}")
-    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_install_prefix "${cmake_install_prefix}")
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir
+                         "${cmake_current_binary_dir}")
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_install_prefix
+                         "${cmake_install_prefix}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_source_dir "${cmake_source_dir}")
-    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" zeek_script_install_path "${zeek_script_install_path}")
+    string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" zeek_script_install_path
+                         "${zeek_script_install_path}")
 endif ()
 
 # Set the path where we install the ZeekConfig.cmake file and related files.
 set(ZEEK_CMAKE_CONFIG_DIR "${CMAKE_INSTALL_PREFIX}/share/zeek/cmake")
 
-if ( NOT ZEEK_ETC_INSTALL_DIR )
+if (NOT ZEEK_ETC_INSTALL_DIR)
     set(ZEEK_ETC_INSTALL_DIR ${ZEEK_ROOT_DIR}/etc)
 endif ()
 
-if ( NOT ZEEK_STATE_DIR )
+if (NOT ZEEK_STATE_DIR)
     set(ZEEK_STATE_DIR ${ZEEK_ROOT_DIR}/var/lib)
 endif ()
 
-if ( NOT ZEEK_SPOOL_DIR )
+if (NOT ZEEK_SPOOL_DIR)
     set(ZEEK_SPOOL_DIR ${ZEEK_ROOT_DIR}/spool)
 endif ()
 
-if ( NOT ZEEK_LOG_DIR )
+if (NOT ZEEK_LOG_DIR)
     set(ZEEK_LOG_DIR ${ZEEK_ROOT_DIR}/logs)
 endif ()
 
-if ( NOT MSVC )
+if (NOT MSVC)
     set(HAVE_SUPERVISOR true)
 endif ()
 
@@ -520,25 +483,28 @@ install(DIRECTORY DESTINATION ${ZEEK_LOG_DIR})
 
 configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
-     "export ZEEKPATH=`${cmake_binary_dir}/zeek-path-dev`\n"
-     "export ZEEK_PLUGIN_PATH=\"${cmake_binary_dir}/src\":$\{ZEEK_PLUGIN_PATH\}\n"
-     "export PATH=\"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/builtin-plugins/spicy-plugin/bin\":$\{PATH\}\n"
-     "export SPICY_PATH=`${cmake_binary_dir}/spicy-path`\n"
-     "export HILTI_CXX_INCLUDE_DIRS=`${cmake_binary_dir}/hilti-cxx-include-dirs`\n")
+file(
+    WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
+    "export ZEEKPATH=`${cmake_binary_dir}/zeek-path-dev`\n"
+    "export ZEEK_PLUGIN_PATH=\"${cmake_binary_dir}/src\":$\{ZEEK_PLUGIN_PATH\}\n"
+    "export PATH=\"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/builtin-plugins/spicy-plugin/bin\":$\{PATH\}\n"
+    "export SPICY_PATH=`${cmake_binary_dir}/spicy-path`\n"
+    "export HILTI_CXX_INCLUDE_DIRS=`${cmake_binary_dir}/hilti-cxx-include-dirs`\n")
 
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
-     "setenv ZEEKPATH `${cmake_binary_dir}/zeek-path-dev`\n"
-     "setenv ZEEK_PLUGIN_PATH \"${cmake_binary_dir}/src\":$\{ZEEK_PLUGIN_PATH\}\n"
-     "setenv PATH \"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/builtin-plugins/spicy-plugin/bin\":$\{PATH\}\n"
-     "setenv SPICY_PATH \"`${cmake_binary_dir}/spicy-path`\"\n"
-     "setenv HILTI_CXX_INCLUDE_DIRS \"`${cmake_binary_dir}/hilti-cxx-include-dirs`\"\n")
+file(
+    WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
+    "setenv ZEEKPATH `${cmake_binary_dir}/zeek-path-dev`\n"
+    "setenv ZEEK_PLUGIN_PATH \"${cmake_binary_dir}/src\":$\{ZEEK_PLUGIN_PATH\}\n"
+    "setenv PATH \"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/builtin-plugins/spicy-plugin/bin\":$\{PATH\}\n"
+    "setenv SPICY_PATH \"`${cmake_binary_dir}/spicy-path`\"\n"
+    "setenv HILTI_CXX_INCLUDE_DIRS \"`${cmake_binary_dir}/hilti-cxx-include-dirs`\"\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
-execute_process(COMMAND grep "^constexpr int PLUGIN_API_VERSION"
-                INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h
-                OUTPUT_VARIABLE API_VERSION
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(
+    COMMAND grep "^constexpr int PLUGIN_API_VERSION"
+    INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h
+    OUTPUT_VARIABLE API_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 string(REGEX MATCH "^constexpr int PLUGIN_API_VERSION = ([0-9]+);" API_VERSION "${API_VERSION}")
 set(API_VERSION "${CMAKE_MATCH_1}")
@@ -556,15 +522,16 @@ set(VERSION_C_IDENT "${VERSION}_plugin_${API_VERSION}")
 string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
 string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
 
-if(ENABLE_DEBUG)
+if (ENABLE_DEBUG)
     set(VERSION_C_IDENT "${VERSION_C_IDENT}_debug")
     target_compile_definitions(zeek_internal INTERFACE DEBUG)
     target_compile_definitions(zeek_dynamic_plugin_base INTERFACE DEBUG)
-endif()
+endif ()
 
-if ( NOT BINARY_PACKAGING_MODE )
-    macro(_make_install_dir_symlink _target _link)
-      install(CODE "
+if (NOT BINARY_PACKAGING_MODE)
+    macro (_make_install_dir_symlink _target _link)
+        install(
+            CODE "
         if ( \"\$ENV{DESTDIR}\" STREQUAL \"\" )
           if ( EXISTS \"${_target}\" AND NOT EXISTS \"${_link}\" )
             message(STATUS \"WARNING: installed ${_link} as symlink to ${_target}\")
@@ -573,84 +540,91 @@ if ( NOT BINARY_PACKAGING_MODE )
           endif ()
         endif ()
       ")
-    endmacro()
+    endmacro ()
 
-    if ( "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local/zeek" )
-        # If we're installing into the default prefix, check if the
-        # old default prefix already exists and symlink to it.
-        # This is done to help keep custom user configuration/installation
-        # if they're upgrading from a version before Zeek 3.0.
+    if ("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local/zeek")
+        # If we're installing into the default prefix, check if the old default
+        # prefix already exists and symlink to it. This is done to help keep custom
+        # user configuration/installation if they're upgrading from a version before
+        # Zeek 3.0.
         _make_install_dir_symlink("/usr/local/bro" "/usr/local/zeek")
     endif ()
 
-    # Check whether we need to symlink directories used by versions
-    # before Zeek 3.0.
-    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/include/bro" "${CMAKE_INSTALL_PREFIX}/include/zeek")
-    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/share/bro" "${CMAKE_INSTALL_PREFIX}/share/zeek")
+    # Check whether we need to symlink directories used by versions before Zeek
+    # 3.0.
+    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/include/bro"
+                              "${CMAKE_INSTALL_PREFIX}/include/zeek")
+    _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/share/bro"
+                              "${CMAKE_INSTALL_PREFIX}/share/zeek")
     _make_install_dir_symlink("${CMAKE_INSTALL_PREFIX}/lib/bro" "${CMAKE_INSTALL_FULL_LIBDIR}/zeek")
 endif ()
 
-if ( ZEEK_SANITIZERS )
+if (ZEEK_SANITIZERS)
     # Check the thread library info early as setting compiler flags seems to
-    # interfere with the detection and cause CMAKE_THREAD_LIBS_INIT to not
-    # include -lpthread when it should.
+    # interfere with the detection and cause CMAKE_THREAD_LIBS_INIT to not include
+    # -lpthread when it should.
     find_package(Threads)
 
     string(REPLACE "," " " _sanitizer_args "${ZEEK_SANITIZERS}")
     separate_arguments(_sanitizer_args)
     set(ZEEK_SANITIZERS "")
 
-    foreach ( _sanitizer ${_sanitizer_args} )
-        if ( ZEEK_SANITIZERS )
+    foreach (_sanitizer ${_sanitizer_args})
+        if (ZEEK_SANITIZERS)
             set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS},")
         endif ()
 
-        if ( _sanitizer STREQUAL "thread" )
+        if (_sanitizer STREQUAL "thread")
             set(ZEEK_TSAN true)
         endif ()
 
-        if ( NOT _sanitizer STREQUAL "undefined" )
+        if (NOT _sanitizer STREQUAL "undefined")
             set(ZEEK_SANITIZERS "${ZEEK_SANITIZERS}${_sanitizer}")
             continue()
         endif ()
 
-        if ( NOT DEFINED ZEEK_SANITIZER_UB_CHECKS )
-            if ( DEFINED ENV{ZEEK_TAILORED_UB_CHECKS} )
+        if (NOT DEFINED ZEEK_SANITIZER_UB_CHECKS)
+            if (DEFINED ENV{ZEEK_TAILORED_UB_CHECKS})
                 # list(APPEND _check_list "alignment") # TODO: fix associated errors
                 list(APPEND _check_list "bool")
                 # list(APPEND _check_list "builtin") # Not implemented in older GCCs
-                list(APPEND _check_list "bounds") # Covers both array/local bounds options below
+                list(APPEND _check_list "bounds") # Covers both array/local bounds
+                                                  # options below
                 # list(APPEND _check_list "array-bounds") # Not implemented by GCC
-                # list(APPEND _check_list "local-bounds") # Not normally part of "undefined"
+                # list(APPEND _check_list "local-bounds") # Not normally part of
+                # "undefined"
                 list(APPEND _check_list "enum")
                 list(APPEND _check_list "float-cast-overflow")
                 list(APPEND _check_list "float-divide-by-zero")
                 # list(APPEND _check_list "function") # Not implemented by GCC
-                # list(APPEND _check_list "implicit-unsigned-integer-truncation") # Not truly UB
-                # list(APPEND _check_list "implicit-signed-integer-truncation") # Not truly UB
-                # list(APPEND _check_list "implicit-integer-sign-change") # Not truly UB
+                # list(APPEND _check_list "implicit-unsigned-integer-truncation") # Not
+                # truly UB list(APPEND _check_list "implicit-signed-integer-truncation")
+                # # Not truly UB list(APPEND _check_list "implicit-integer-sign-change")
+                # # Not truly UB
                 list(APPEND _check_list "integer-divide-by-zero")
                 list(APPEND _check_list "nonnull-attribute")
                 list(APPEND _check_list "null")
-                # list(APPEND _check_list "nullability-arg") # Not normally part of "undefined"
-                # list(APPEND _check_list "nullability-assign") # Not normally part of "undefined"
-                # list(APPEND _check_list "nullability-return") # Not normally part of "undefined"
-                # list(APPEND _check_list "objc-cast") # Not truly UB
-                # list(APPEND _check_list "pointer-overflow") # Not implemented in older GCCs
+                # list(APPEND _check_list "nullability-arg") # Not normally part of
+                # "undefined" list(APPEND _check_list "nullability-assign") # Not
+                # normally part of "undefined" list(APPEND _check_list
+                # "nullability-return") # Not normally part of "undefined" list(APPEND
+                # _check_list "objc-cast") # Not truly UB list(APPEND _check_list
+                # "pointer-overflow") # Not implemented in older GCCs
                 list(APPEND _check_list "return")
                 list(APPEND _check_list "returns-nonnull-attribute")
                 list(APPEND _check_list "shift")
-                # list(APPEND _check_list "unsigned-shift-base") # Not implemented by GCC
+                # list(APPEND _check_list "unsigned-shift-base") # Not implemented by
+                # GCC
                 list(APPEND _check_list "signed-integer-overflow")
                 list(APPEND _check_list "unreachable")
                 # list(APPEND _check_list "unsigned-integer-overflow") # Not truly UB
                 list(APPEND _check_list "vla-bound")
                 list(APPEND _check_list "vptr")
 
-                # Clang complains if this one is defined and the optimizer is set to -O0. We
-                # only set that optimization level if NO_OPTIMIZATIONS is passed, so disable
-                # the option if that's set.
-                if ( NOT DEFINED ENV{NO_OPTIMIZATIONS} )
+                # Clang complains if this one is defined and the optimizer is set to
+                # -O0. We only set that optimization level if NO_OPTIMIZATIONS is
+                # passed, so disable the option if that's set.
+                if (NOT DEFINED ENV{NO_OPTIMIZATIONS})
                     list(APPEND _check_list "object-size")
                 endif ()
 
@@ -666,52 +640,54 @@ if ( ZEEK_SANITIZERS )
 
     set(_sanitizer_flags "-fsanitize=${ZEEK_SANITIZERS}")
 
-    # The linker command used by check_cxx_compiler_flag requires you to also pass the sanitizer to
-    # it or it fails. The best way to do this is to set CMAKE_REQUIRED_LINK_OPTIONS, but save off a
-    # copy of it so it can be reset back to what it was previously afterwards.
+    # The linker command used by check_cxx_compiler_flag requires you to also pass
+    # the sanitizer to it or it fails. The best way to do this is to set
+    # CMAKE_REQUIRED_LINK_OPTIONS, but save off a copy of it so it can be reset
+    # back to what it was previously afterwards.
     set(_temp_link_options ${CMAKE_REQUIRED_LINK_OPTIONS})
     list(APPEND CMAKE_REQUIRED_LINK_OPTIONS ${_sanitizer_flags})
     include(CheckCXXCompilerFlag)
     check_cxx_compiler_flag(${_sanitizer_flags} COMPILER_SUPPORTS_SANITIZERS)
-    if ( NOT COMPILER_SUPPORTS_SANITIZERS )
-      message(FATAL_ERROR "Invalid sanitizer compiler flags: ${_sanitizer_flags}")
-    endif()
+    if (NOT COMPILER_SUPPORTS_SANITIZERS)
+        message(FATAL_ERROR "Invalid sanitizer compiler flags: ${_sanitizer_flags}")
+    endif ()
     set(CMAKE_REQUIRED_LINK_OPTIONS ${_temp_link_options})
 
-    if ( ZEEK_SANITIZER_UB_CHECKS )
-        set(_sanitizer_flags "${_sanitizer_flags} -fno-sanitize-recover=${ZEEK_SANITIZER_UB_CHECKS}")
+    if (ZEEK_SANITIZER_UB_CHECKS)
+        set(_sanitizer_flags
+            "${_sanitizer_flags} -fno-sanitize-recover=${ZEEK_SANITIZER_UB_CHECKS}")
     endif ()
 
     set(_sanitizer_flags "${_sanitizer_flags} -fno-omit-frame-pointer")
     set(_sanitizer_flags "${_sanitizer_flags} -fno-optimize-sibling-calls")
 
-    if ( NOT DEFINED ZEEK_SANITIZER_OPTIMIZATIONS )
-        if ( DEFINED ENV{NO_OPTIMIZATIONS} )
+    if (NOT DEFINED ZEEK_SANITIZER_OPTIMIZATIONS)
+        if (DEFINED ENV{NO_OPTIMIZATIONS})
             # Using -O1 is generally the suggestion to get more reasonable
-            # performance.  The one downside is it that the compiler may
-            # optimize out code that otherwise generates an error/leak in a -O0
-            # build, but that should be rare and users mostly will not be
-            # running unoptimized builds in production anyway.
+            # performance.  The one downside is it that the compiler may optimize out
+            # code that otherwise generates an error/leak in a -O0 build, but that
+            # should be rare and users mostly will not be running unoptimized builds
+            # in production anyway.
             set(ZEEK_SANITIZER_OPTIMIZATIONS false CACHE INTERNAL "" FORCE)
         else ()
             set(ZEEK_SANITIZER_OPTIMIZATIONS true CACHE INTERNAL "" FORCE)
         endif ()
     endif ()
 
-    if ( ZEEK_SANITIZER_OPTIMIZATIONS )
+    if (ZEEK_SANITIZER_OPTIMIZATIONS)
         set(_sanitizer_flags "${_sanitizer_flags} -O1")
     endif ()
 
-    # Technically, the we also need to use the compiler to drive linking and
-    # give the sanitizer flags there, too.  However, CMake, by default, uses
-    # the compiler for linking and so the automatically flags get used.  See
+    # Technically, the we also need to use the compiler to drive linking and give
+    # the sanitizer flags there, too.  However, CMake, by default, uses the
+    # compiler for linking and so the automatically flags get used.  See
     # https://cmake.org/pipermail/cmake/2014-August/058268.html
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_sanitizer_flags}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_sanitizer_flags}")
-endif()
+endif ()
 
-########################################################################
-## Dependency Configuration
+# ##############################################################################
+# Dependency Configuration
 
 include(FindRequiredPackage)
 
@@ -731,14 +707,14 @@ FindRequiredPackage(FLEX)
 FindRequiredPackage(BISON)
 FindRequiredPackage(PCAP)
 FindRequiredPackage(OpenSSL)
-if ( NOT MSVC )
+if (NOT MSVC)
     FindRequiredPackage(BIND)
 endif ()
 FindRequiredPackage(ZLIB)
 
 # Forward user-defined hint for OpenSSL to the plugins. Use a cache variable to
-# make sure this variable survives CMake re-runs.
-# Note: This variable is picked up in ZeekPluginConfig.cmake.in.
+# make sure this variable survives CMake re-runs. Note: This variable is picked
+# up in ZeekPluginConfig.cmake.in.
 if (OPENSSL_ROOT_DIR)
     set(ZeekOpenSSLHint "${OPENSSL_ROOT_DIR}" CACHE INTERNAL "" FORCE)
 elseif (DEFINED ENV{OPENSSL_ROOT_DIR})
@@ -746,18 +722,17 @@ elseif (DEFINED ENV{OPENSSL_ROOT_DIR})
 endif ()
 
 # Forward PKG_CONFIG_PATH to the plugins. Use a cache variable to make sure this
-# variable survives CMake re-runs.
-# Note: This variable is picked up in ZeekPluginConfig.cmake.in.
+# variable survives CMake re-runs. Note: This variable is picked up in
+# ZeekPluginConfig.cmake.in.
 if (DEFINED ENV{PKG_CONFIG_PATH})
     set(ZeekPkgConfigPath "$ENV{PKG_CONFIG_PATH}" CACHE INTERNAL "" FORCE)
 endif ()
 
-# Installation directory for the distribution's Python modules. An
-# override via configure's --python-dir wins, specifying a directory
-# explicitly. Next is --python-prefix, which includes a versioned
-# Python folder as the --prefix option in distutils does. Next
-# consider a distutils --home style override via --python-home, and
-# finally default to "zeek/python" in our libdir.
+# Installation directory for the distribution's Python modules. An override via
+# configure's --python-dir wins, specifying a directory explicitly. Next is
+# --python-prefix, which includes a versioned Python folder as the --prefix
+# option in distutils does. Next consider a distutils --home style override via
+# --python-home, and finally default to "zeek/python" in our libdir.
 if (ZEEK_PYTHON_DIR)
     set(py_mod_install_dir ${ZEEK_PYTHON_DIR})
 elseif (ZEEK_PYTHON_PREFIX)
@@ -768,25 +743,25 @@ elseif (ZEEK_PYTHON_HOME)
 else ()
     set(py_mod_install_dir ${ZEEK_LIBDIR_PATH}/python)
 endif ()
-set(PY_MOD_INSTALL_DIR ${py_mod_install_dir}
-    CACHE STRING "Installation path for Python modules" FORCE)
+set(PY_MOD_INSTALL_DIR ${py_mod_install_dir} CACHE STRING "Installation path for Python modules"
+                                                   FORCE)
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
 
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
-    if ( MSVC )
+    if (MSVC)
         set(BUILD_STATIC_BINPAC true)
-    endif()
+    endif ()
 
-    if ( BUILD_STATIC_BINPAC )
-      set(ENABLE_STATIC_ONLY true)
-    endif()
+    if (BUILD_STATIC_BINPAC)
+        set(ENABLE_STATIC_ONLY true)
+    endif ()
 
     add_subdirectory(auxil/binpac)
     set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 
-    # FIXME: avoid hard-coding a path for multi-config generator support.
-    # See the TODO in ZeekPluginConfig.cmake.in.
+    # FIXME: avoid hard-coding a path for multi-config generator support. See the
+    # TODO in ZeekPluginConfig.cmake.in.
     set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
 endif ()
 FindRequiredPackage(BinPAC)
@@ -794,22 +769,21 @@ FindRequiredPackage(BinPAC)
 # Add an alias (used by our plugin setup).
 add_executable(Zeek::BinPAC ALIAS binpac)
 
-if ( NOT BIFCL_EXE_PATH )
+if (NOT BIFCL_EXE_PATH)
     add_subdirectory(auxil/bifcl)
     add_executable(Zeek::BifCl ALIAS bifcl)
-    # FIXME: avoid hard-coding a path for multi-config generator support.
-    # See the TODO in ZeekPluginConfig.cmake.in.
+    # FIXME: avoid hard-coding a path for multi-config generator support. See the
+    # TODO in ZeekPluginConfig.cmake.in.
     set(BIFCL_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/bifcl/bifcl${CMAKE_EXECUTABLE_SUFFIX}")
     set(_bifcl_exe_path "included")
-else ( )
+else ()
     add_executable(Zeek::BifCl IMPORTED)
-    set_property(TARGET Zeek::BifCl PROPERTY
-                 IMPORTED_LOCATION "${BIFCL_EXE_PATH}")
+    set_property(TARGET Zeek::BifCl PROPERTY IMPORTED_LOCATION "${BIFCL_EXE_PATH}")
     set(_bifcl_exe_path "BIFCL_EXE_PATH")
 endif ()
 
-if ( NOT GEN_ZAM_EXE_PATH )
-  add_subdirectory(auxil/gen-zam)
+if (NOT GEN_ZAM_EXE_PATH)
+    add_subdirectory(auxil/gen-zam)
 endif ()
 
 if (ENABLE_JEMALLOC)
@@ -817,20 +791,20 @@ if (ENABLE_JEMALLOC)
         if (DEFINED JEMALLOC_ROOT_DIR)
             # Look for jemalloc at a specific path
             find_package(JeMalloc)
-        else()
+        else ()
             # jemalloc is in the base system
             set(JEMALLOC_FOUND true)
-        endif()
-    else()
+        endif ()
+    else ()
         find_package(JeMalloc)
-    endif()
+    endif ()
 
     if (NOT JEMALLOC_FOUND)
         message(FATAL_ERROR "Could not find requested JeMalloc")
-    endif()
+    endif ()
 endif ()
 
-if ( BISON_VERSION AND BISON_VERSION VERSION_LESS 2.5 )
+if (BISON_VERSION AND BISON_VERSION VERSION_LESS 2.5)
     set(MISSING_PREREQS true)
     list(APPEND MISSING_PREREQ_DESCS
          " Could not find prerequisite package Bison >= 2.5, found: ${BISON_VERSION}")
@@ -845,12 +819,12 @@ endif ()
 
 set(ZEEK_PYTHON_MIN 3.5.0)
 
-if ( PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN} )
+if (PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN})
     message(FATAL_ERROR "Python ${ZEEK_PYTHON_MIN} or greater is required.")
 endif ()
 
 add_subdirectory(auxil/paraglob)
-if ( MSVC )
+if (MSVC)
     cmake_policy(SET CMP0079 NEW)
     target_link_libraries(paraglob shlwapi)
     set(BROKER_DISABLE_TOOLS true)
@@ -858,56 +832,54 @@ endif ()
 set(zeekdeps ${zeekdeps} paraglob)
 
 # Note: Broker gets some special attention in ZeekConfig.cmake.in.
-if ( Broker_ROOT )
-  find_package(Broker REQUIRED CONFIG)
-  list(APPEND zeekdeps ${BROKER_LIBRARY})
-  set(broker_includes ${BROKER_INCLUDE_DIR})
-  set(ZEEK_HAS_EXTERNAL_BROKER ON)
-  set(ZEEK_HAS_STATIC_BROKER OFF)
-else ()
-  if ( ZEEK_SANITIZERS )
-    set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
-  endif ()
-
-  set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
-  if ( MSVC )
-    set(BUILD_STATIC_BROKER true)
-  endif()
-
-  if ( BUILD_STATIC_BROKER )
-    set(ENABLE_STATIC_ONLY true)
-  endif()
-
-  add_subdirectory(auxil/broker)
-  set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-  if ( BUILD_STATIC_BROKER )
-      list(APPEND zeekdeps broker_static)
-  else()
-      list(APPEND zeekdeps broker)
-  endif()
-
-  set(
-    broker_includes
-    ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include
-    ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
-
-  if (BUILD_STATIC_BROKER)
-    set(ZEEK_HAS_STATIC_BROKER ON)
-  else ()
+if (Broker_ROOT)
+    find_package(Broker REQUIRED CONFIG)
+    list(APPEND zeekdeps ${BROKER_LIBRARY})
+    set(broker_includes ${BROKER_INCLUDE_DIR})
+    set(ZEEK_HAS_EXTERNAL_BROKER ON)
     set(ZEEK_HAS_STATIC_BROKER OFF)
-  endif ()
-  set(ZEEK_HAS_EXTERNAL_BROKER OFF)
+else ()
+    if (ZEEK_SANITIZERS)
+        set(BROKER_SANITIZERS ${ZEEK_SANITIZERS})
+    endif ()
 
-  # Tell plugins where to find the Broker CMake package in the source tree.
-  # This variable is picked up in ZeekPluginConfig.cmake.in.
-  set(ZEEK_PLUGIN_BROKER_PATH "${CMAKE_CURRENT_BINARY_DIR}/auxil/broker")
+    set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
+    if (MSVC)
+        set(BUILD_STATIC_BROKER true)
+    endif ()
+
+    if (BUILD_STATIC_BROKER)
+        set(ENABLE_STATIC_ONLY true)
+    endif ()
+
+    add_subdirectory(auxil/broker)
+    set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
+
+    if (BUILD_STATIC_BROKER)
+        list(APPEND zeekdeps broker_static)
+    else ()
+        list(APPEND zeekdeps broker)
+    endif ()
+
+    set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include
+                        ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
+
+    if (BUILD_STATIC_BROKER)
+        set(ZEEK_HAS_STATIC_BROKER ON)
+    else ()
+        set(ZEEK_HAS_STATIC_BROKER OFF)
+    endif ()
+    set(ZEEK_HAS_EXTERNAL_BROKER OFF)
+
+    # Tell plugins where to find the Broker CMake package in the source tree. This
+    # variable is picked up in ZeekPluginConfig.cmake.in.
+    set(ZEEK_PLUGIN_BROKER_PATH "${CMAKE_CURRENT_BINARY_DIR}/auxil/broker")
 endif ()
 
-if ( NOT DISABLE_SPICY )
+if (NOT DISABLE_SPICY)
     set(USE_SPICY_ANALYZERS yes)
 
-    if ( NOT SPICY_ROOT_DIR )
+    if (NOT SPICY_ROOT_DIR)
         set(HAVE_SPICY yes) # evaluated by Spicy plugin build
 
         add_subdirectory(auxil/spicy)
@@ -931,26 +903,19 @@ if ( NOT DISABLE_SPICY )
         set(SPICY_LIBRARY_RT_DEBUG spicy-rt-debug)
 
         # Needed only for logging from CMake configure phase.
+        get_directory_property(SPICY_VERSION DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
+                                                       DEFINITION SPICY_VERSION)
         get_directory_property(
-            SPICY_VERSION
-            DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
-            DEFINITION SPICY_VERSION)
-        get_directory_property(
-            SPICY_VERSION_NUMBER
-            DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
-            DEFINITION SPICY_VERSION_NUMBER)
-        get_directory_property(
-            SPICY_PREFIX
-            DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
-            DEFINITION CMAKE_INSTALL_PREFIX)
-        get_directory_property(
-            SPICY_BUILD_MODE
-            DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
-            DEFINITION CMAKE_BUILD_TYPE)
+            SPICY_VERSION_NUMBER DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy DEFINITION
+                                           SPICY_VERSION_NUMBER)
+        get_directory_property(SPICY_PREFIX DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
+                                                      DEFINITION CMAKE_INSTALL_PREFIX)
+        get_directory_property(SPICY_BUILD_MODE DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
+                                                          DEFINITION CMAKE_BUILD_TYPE)
         set(SPICYC "<bundled>")
     endif ()
 
-    if ( NOT SPICY_PLUGIN_PATH )
+    if (NOT SPICY_PLUGIN_PATH)
         set(_spicy_plugin "included")
         set(SPICY_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/spicy-plugin)
     endif ()
@@ -965,13 +930,8 @@ endif ()
 set(USE_SPICY_ANALYZERS "${USE_SPICY_ANALYZERS}" CACHE BOOL "Use built-in Spicy analyzers")
 include(BuiltInSpicyAnalyzer)
 
-include_directories(BEFORE
-                    ${PCAP_INCLUDE_DIR}
-                    ${BIND_INCLUDE_DIR}
-                    ${BinPAC_INCLUDE_DIR}
-                    ${ZLIB_INCLUDE_DIR}
-                    ${JEMALLOC_INCLUDE_DIR}
-)
+include_directories(BEFORE ${PCAP_INCLUDE_DIR} ${BIND_INCLUDE_DIR} ${BinPAC_INCLUDE_DIR}
+                    ${ZLIB_INCLUDE_DIR} ${JEMALLOC_INCLUDE_DIR})
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include/rapidjson
         DESTINATION include/zeek/3rdparty/rapidjson/include)
@@ -982,10 +942,12 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc
 # Create 3rdparty/ghc within the build directory so that the include for
 # "zeek/3rdparty/ghc/filesystem.hpp" works within the build tree.
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
-                "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/")
-execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
-                "${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc"
-                "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/ghc")
+                        "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/")
+execute_process(
+    COMMAND
+        "${CMAKE_COMMAND}" -E create_symlink
+        "${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc"
+        "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/ghc")
 
 # Optional Dependencies
 
@@ -998,23 +960,23 @@ if (LIBMMDB_FOUND)
 endif ()
 
 set(USE_KRB5 false)
-if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
-  find_package(LibKrb5)
-  if (LIBKRB5_FOUND)
-     set(USE_KRB5 true)
-     include_directories(BEFORE ${LibKrb5_INCLUDE_DIR})
-     list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
-  endif ()
+if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
+    find_package(LibKrb5)
+    if (LIBKRB5_FOUND)
+        set(USE_KRB5 true)
+        include_directories(BEFORE ${LibKrb5_INCLUDE_DIR})
+        list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
+    endif ()
 endif ()
 
 set(HAVE_PERFTOOLS false)
 set(USE_PERFTOOLS_DEBUG false)
 set(USE_PERFTOOLS_TCMALLOC false)
 
-if ( ENABLE_PERFTOOLS )
-   find_package(GooglePerftools)
+if (ENABLE_PERFTOOLS)
+    find_package(GooglePerftools)
 
-    if ( GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND )
+    if (GOOGLEPERFTOOLS_FOUND OR TCMALLOC_FOUND)
         set(HAVE_PERFTOOLS true)
         set(USE_PERFTOOLS_TCMALLOC true)
 
@@ -1027,44 +989,44 @@ if ( ENABLE_PERFTOOLS )
             # Link in tcmalloc.
             list(APPEND OPTLIBS ${GooglePerftools_LIBRARIES})
         endif ()
-    else()
+    else ()
         message(FATAL_ERROR "Could not find requested Google Perftools.")
     endif ()
 endif ()
 
-# Making sure any non-standard OpenSSL includes get searched earlier
-# than other dependencies which tend to be in standard system locations
-# and thus cause the system OpenSSL headers to still be picked up even
-# if one specifies --with-openssl (which may be common).
+# Making sure any non-standard OpenSSL includes get searched earlier than other
+# dependencies which tend to be in standard system locations and thus cause the
+# system OpenSSL headers to still be picked up even if one specifies
+# --with-openssl (which may be common).
 include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
 
 # Determine if libfts is external to libc, i.e. musl
 find_package(FTS)
-if ( FTS_FOUND )
+if (FTS_FOUND)
     list(APPEND OPTLIBS ${FTS_LIBRARY})
     include_directories(BEFORE ${FTS_INCLUDE_DIR})
 endif ()
 
-# Any headers that are possibly bundled in the Zeek source-tree and that are supposed
-# to have priority over any preexisting/system-wide headers need to appear early in
-# compiler search path.
+# Any headers that are possibly bundled in the Zeek source-tree and that are
+# supposed to have priority over any preexisting/system-wide headers need to
+# appear early in compiler search path.
 include_directories(BEFORE ${broker_includes})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/highwayhash)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/paraglob/include)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include)
 
-set(zeekdeps ${zeekdeps}
+set(zeekdeps
+    ${zeekdeps}
     ${BinPAC_LIBRARY}
     ${PCAP_LIBRARY}
     ${OPENSSL_LIBRARIES}
     ${BIND_LIBRARY}
     ${ZLIB_LIBRARY}
     ${JEMALLOC_LIBRARIES}
-    ${OPTLIBS}
-)
+    ${OPTLIBS})
 
-########################################################################
-## System Introspection
+# ##############################################################################
+# System Introspection
 
 include(TestBigEndian)
 test_big_endian(WORDS_BIGENDIAN)
@@ -1085,19 +1047,19 @@ include(FindKqueue)
 include(FindCAres)
 include_directories(BEFORE "auxil/out_ptr/include")
 
-if ( (OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0") )
-  set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
-endif()
-if ( (OPENSSL_VERSION VERSION_EQUAL "3.0.0") OR (OPENSSL_VERSION VERSION_GREATER "3.0.0") )
-  set(ZEEK_HAVE_OPENSSL_3_0 true CACHE INTERNAL "" FORCE)
-endif()
+if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))
+    set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)
+endif ()
+if ((OPENSSL_VERSION VERSION_EQUAL "3.0.0") OR (OPENSSL_VERSION VERSION_GREATER "3.0.0"))
+    set(ZEEK_HAVE_OPENSSL_3_0 true CACHE INTERNAL "" FORCE)
+endif ()
 
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
-if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
-    if ( NOT DISABLE_AF_PACKET )
-        if ( NOT AF_PACKET_PLUGIN_PATH )
+if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
+    if (NOT DISABLE_AF_PACKET)
+        if (NOT AF_PACKET_PLUGIN_PATH)
             set(AF_PACKET_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeek-af_packet-plugin)
         endif ()
 
@@ -1105,13 +1067,16 @@ if ( ${CMAKE_SYSTEM_NAME} MATCHES Linux )
     endif ()
 endif ()
 
-if ( NOT DISABLE_JAVASCRIPT )
+if (NOT DISABLE_JAVASCRIPT)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/auxil/zeekjs/cmake)
     find_package(Nodejs)
 
-    if ( NODEJS_FOUND )
-        if ( ${NODEJS_VERSION} VERSION_LESS "16.13.0" )
-            message(STATUS "Node.js version ${NODEJS_VERSION} is too old, need 16.13 or later. Not enabling JavaScript support.")
+    if (NODEJS_FOUND)
+        if (${NODEJS_VERSION} VERSION_LESS "16.13.0")
+            message(
+                STATUS
+                    "Node.js version ${NODEJS_VERSION} is too old, need 16.13 or later. Not enabling JavaScript support."
+            )
             set(ZEEK_HAVE_JAVASCRIPT no)
         else ()
             set(ZEEKJS_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeekjs)
@@ -1125,14 +1090,16 @@ endif ()
 
 set(ZEEK_HAVE_JAVASCRIPT ${ZEEK_HAVE_JAVASCRIPT} CACHE INTERNAL "Zeek has JavaScript support")
 
-set(DEFAULT_ZEEKPATH_PATHS . ${ZEEK_SCRIPT_INSTALL_PATH} ${ZEEK_SCRIPT_INSTALL_PATH}/policy ${ZEEK_SCRIPT_INSTALL_PATH}/site ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
-if ( MSVC )
+set(DEFAULT_ZEEKPATH_PATHS
+    . ${ZEEK_SCRIPT_INSTALL_PATH} ${ZEEK_SCRIPT_INSTALL_PATH}/policy
+    ${ZEEK_SCRIPT_INSTALL_PATH}/site ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
+if (MSVC)
     list(JOIN DEFAULT_ZEEKPATH_PATHS ";" DEFAULT_ZEEKPATH)
 else ()
     list(JOIN DEFAULT_ZEEKPATH_PATHS ":" DEFAULT_ZEEKPATH)
 endif ()
 
-if ( NOT BINARY_PACKAGING_MODE )
+if (NOT BINARY_PACKAGING_MODE)
     set(ZEEK_DIST ${PROJECT_SOURCE_DIR})
 endif ()
 
@@ -1144,131 +1111,134 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
-execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink
-                "."
-                "${CMAKE_CURRENT_BINARY_DIR}/zeek")
+execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink "." "${CMAKE_CURRENT_BINARY_DIR}/zeek")
 
-if ( BinPAC_ROOT_DIR )
-  set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
+if (BinPAC_ROOT_DIR)
+    set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
 else ()
-  set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${ZEEK_ROOT_DIR})
+    set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${ZEEK_ROOT_DIR})
 endif ()
 
-if ( BROKER_ROOT_DIR )
-  set(ZEEK_CONFIG_BROKER_ROOT_DIR ${BROKER_ROOT_DIR})
+if (BROKER_ROOT_DIR)
+    set(ZEEK_CONFIG_BROKER_ROOT_DIR ${BROKER_ROOT_DIR})
 else ()
-  set(ZEEK_CONFIG_BROKER_ROOT_DIR ${ZEEK_ROOT_DIR})
+    set(ZEEK_CONFIG_BROKER_ROOT_DIR ${ZEEK_ROOT_DIR})
 endif ()
 
-if ( PCAP_INCLUDE_DIR )
+if (PCAP_INCLUDE_DIR)
     set(ZEEK_CONFIG_PCAP_INCLUDE_DIR ${PCAP_INCLUDE_DIR})
 endif ()
-if ( ZLIB_INCLUDE_DIR )
+if (ZLIB_INCLUDE_DIR)
     set(ZEEK_CONFIG_ZLIB_INCLUDE_DIR ${ZLIB_INCLUDE_DIR})
 endif ()
-if ( OPENSSL_INCLUDE_DIR )
+if (OPENSSL_INCLUDE_DIR)
     set(ZEEK_CONFIG_OPENSSL_INCLUDE_DIR ${OPENSSL_INCLUDE_DIR})
 endif ()
-if ( LibKrb5_INCLUDE_DIR )
+if (LibKrb5_INCLUDE_DIR)
     set(ZEEK_CONFIG_LibKrb5_INCLUDE_DIR ${LibKrb5_INCLUDE_DIR})
 endif ()
-if ( GooglePerftools_INCLUDE_DIR )
+if (GooglePerftools_INCLUDE_DIR)
     set(ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR ${GooglePerftools_INCLUDE_DIR})
 endif ()
 
 set(ZEEK_CONFIG_BTEST_TOOLS_DIR ${ZEEK_ROOT_DIR}/share/btest)
 install(DIRECTORY DESTINATION ${ZEEK_CONFIG_BTEST_TOOLS_DIR})
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in
-               ${CMAKE_CURRENT_BINARY_DIR}/zeek-config @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-config
+               @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake DESTINATION share/zeek
-        USE_SOURCE_PERMISSIONS
-        PATTERN ".git" EXCLUDE)
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+    DESTINATION share/zeek
+    USE_SOURCE_PERMISSIONS
+    PATTERN ".git" EXCLUDE)
 
-if ( NOT MSVC )
-  # Install wrapper script for Bro-to-Zeek renaming.
-  include(InstallShellScript)
-  include(InstallSymlink)
+if (NOT MSVC)
+    # Install wrapper script for Bro-to-Zeek renaming.
+    include(InstallShellScript)
+    include(InstallSymlink)
 endif ()
 
-########################################################################
-## zkg configuration
+# ##############################################################################
+# zkg configuration
 
-if ( INSTALL_ZKG )
-    # An etc/zkg directory for zkg's config file simplifies zkg's
-    # config file code.
+if (INSTALL_ZKG)
+    # An etc/zkg directory for zkg's config file simplifies zkg's config file
+    # code.
     set(ZEEK_ZKG_CONFIG_DIR "${ZEEK_ETC_INSTALL_DIR}/zkg")
     set(ZEEK_ZKG_STATE_DIR "${ZEEK_STATE_DIR}/zkg")
 
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/zkg-config.in
-        ${CMAKE_CURRENT_BINARY_DIR}/zkg-config @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zkg-config.in ${CMAKE_CURRENT_BINARY_DIR}/zkg-config
+                   @ONLY)
 
     install(DIRECTORY DESTINATION var/lib/zkg)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config
-        DESTINATION ${ZEEK_ZKG_CONFIG_DIR} RENAME config)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config DESTINATION ${ZEEK_ZKG_CONFIG_DIR}
+            RENAME config)
 endif ()
 
-########################################################################
-## Look for external plugins to build in
+# ##############################################################################
+# Look for external plugins to build in
 
 string(REPLACE "," " " _build_in_plugins "${ZEEK_INCLUDE_PLUGINS}")
 separate_arguments(_build_in_plugins)
-foreach(plugin_dir ${_build_in_plugins})
-    if ( NOT IS_ABSOLUTE "${plugin_dir}/CMakeLists.txt" )
-      message(FATAL_ERROR "Plugins to build in need to be defined with absolute path! ${plugin_dir}")
-    endif()
+foreach (plugin_dir ${_build_in_plugins})
+    if (NOT IS_ABSOLUTE "${plugin_dir}/CMakeLists.txt")
+        message(
+            FATAL_ERROR "Plugins to build in need to be defined with absolute path! ${plugin_dir}")
+    endif ()
 
-    if ( NOT EXISTS "${plugin_dir}/CMakeLists.txt" )
-      message(FATAL_ERROR "No plugin found at ${plugin_dir}!")
-    endif()
+    if (NOT EXISTS "${plugin_dir}/CMakeLists.txt")
+        message(FATAL_ERROR "No plugin found at ${plugin_dir}!")
+    endif ()
 
     get_filename_component(plugin_name ${plugin_dir} NAME)
 
-    # Create a list of plugin directories that will then be added in the src/CMakeLists.txt
+    # Create a list of plugin directories that will then be added in the
+    # src/CMakeLists.txt
     list(APPEND BUILTIN_PLUGIN_LIST ${plugin_dir})
 
     message(STATUS "  Building in plugin: ${plugin_name} (${plugin_dir})")
 
-    if ( "${ZEEK_BUILTIN_PLUGINS}" STREQUAL "" )
+    if ("${ZEEK_BUILTIN_PLUGINS}" STREQUAL "")
         set(ZEEK_BUILTIN_PLUGINS ${plugin_name})
     else ()
         set(ZEEK_BUILTIN_PLUGINS "${ZEEK_BUILTIN_PLUGINS}, ${plugin_name}")
     endif ()
-endforeach()
+endforeach ()
 
-########################################################################
-## Populate the ZEEK_BUILD_INFO for use in src/version.c.in
+# ##############################################################################
+# Populate the ZEEK_BUILD_INFO for use in src/version.c.in
 
-if ( WIN32 )
-  # Windows installs Python to C:\Python311\python, but doesn't create a version
-  # or symlink to python3. Call python with the script directly since the shebang
-  # in the script won't work here.
-  execute_process(COMMAND "python" "${PROJECT_SOURCE_DIR}/ci/collect-repo-info.py" "${ZEEK_INCLUDE_PLUGINS}"
-                  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-                  OUTPUT_VARIABLE ZEEK_BUILD_INFO
-                  RESULT_VARIABLE ZEEK_BUILD_INFO_RESULT
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-else()
-  execute_process(COMMAND "${PROJECT_SOURCE_DIR}/ci/collect-repo-info.py" "${ZEEK_INCLUDE_PLUGINS}"
-                  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-                  OUTPUT_VARIABLE ZEEK_BUILD_INFO
-                  RESULT_VARIABLE ZEEK_BUILD_INFO_RESULT
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif()
+if (WIN32)
+    # Windows installs Python to C:\Python311\python, but doesn't create a version
+    # or symlink to python3. Call python with the script directly since the
+    # shebang in the script won't work here.
+    execute_process(
+        COMMAND "python" "${PROJECT_SOURCE_DIR}/ci/collect-repo-info.py" "${ZEEK_INCLUDE_PLUGINS}"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE ZEEK_BUILD_INFO
+        RESULT_VARIABLE ZEEK_BUILD_INFO_RESULT
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+else ()
+    execute_process(
+        COMMAND "${PROJECT_SOURCE_DIR}/ci/collect-repo-info.py" "${ZEEK_INCLUDE_PLUGINS}"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE ZEEK_BUILD_INFO
+        RESULT_VARIABLE ZEEK_BUILD_INFO_RESULT
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif ()
 
-if ( NOT ZEEK_BUILD_INFO_RESULT EQUAL "0" )
-  message(FATAL_ERROR "Could not collect repository info")
+if (NOT ZEEK_BUILD_INFO_RESULT EQUAL "0")
+    message(FATAL_ERROR "Could not collect repository info")
 endif ()
 
 # string(JSON ... ) requires CMake 3.19, but then we could do something like:
-# string(JSON ZEEK_BUILD_INFO SET "${ZEEK_BUILD_INFO}"
-#        compile_options cxx_flags "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}")
+# string(JSON ZEEK_BUILD_INFO SET "${ZEEK_BUILD_INFO}" compile_options cxx_flags
+# "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}")
 
-########################################################################
-## Recurse on sub-directories
+# ##############################################################################
+# Recurse on sub-directories
 
 add_subdirectory(src)
 add_subdirectory(scripts)
@@ -1277,30 +1247,30 @@ add_subdirectory(testing)
 
 include(CheckOptionalBuildSources)
 
-CheckOptionalBuildSources(auxil/btest BTest INSTALL_BTEST)
-CheckOptionalBuildSources(auxil/package-manager ZKG INSTALL_ZKG)
-CheckOptionalBuildSources(auxil/zeekctl   ZeekControl INSTALL_ZEEKCTL)
-CheckOptionalBuildSources(auxil/zeek-aux  Zeek-Aux  INSTALL_AUX_TOOLS)
-CheckOptionalBuildSources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
-CheckOptionalBuildSources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
+checkoptionalbuildsources(auxil/btest BTest INSTALL_BTEST)
+checkoptionalbuildsources(auxil/package-manager ZKG INSTALL_ZKG)
+checkoptionalbuildsources(auxil/zeekctl ZeekControl INSTALL_ZEEKCTL)
+checkoptionalbuildsources(auxil/zeek-aux Zeek-Aux INSTALL_AUX_TOOLS)
+checkoptionalbuildsources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
+checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
-if ( NOT DISABLE_SPICY )
-    # The `zeek` binary implicitly depends on the driver object file built
-    # as part of `spicy`; make that dependency explicit.
+if (NOT DISABLE_SPICY)
+    # The `zeek` binary implicitly depends on the driver object file built as part
+    # of `spicy`; make that dependency explicit.
     zeek_add_dependencies(spicyz)
 
-    if ( NOT SPICY_ROOT_DIR )
+    if (NOT SPICY_ROOT_DIR)
         # Make sure we build targets of spicy-plugin after the `spicy` target.
         add_dependencies(plugin-Zeek-Spicy spicy)
         add_dependencies(spicyz spicy)
 
-        # Also install spicy-plugin's CMake files into Zeek's global `cmake/` folder.
+        # Also install spicy-plugin's CMake files into Zeek's global `cmake/`
+        # folder.
         #
         # NOTE: We do not install spicy-plugin's `FindZeek.cmake` since another
         # version of this file is already provided by Zeek.
         install(FILES auxil/spicy-plugin/cmake/ZeekSpicyAnalyzerSupport.cmake
-                      auxil/spicy-plugin/cmake/FindSpicy.cmake
-                DESTINATION share/zeek/cmake)
+                      auxil/spicy-plugin/cmake/FindSpicy.cmake DESTINATION share/zeek/cmake)
     endif ()
 endif ()
 
@@ -1308,28 +1278,28 @@ endif ()
 # scripts work in any build configuration. If we do not include Spicy these
 # files have no actual effect.
 #
-# Spicy JIT relies on the path of the current executable to figure out
-# whether it is run from a build or an install tree. This assumption
-# gets broken for e.g., `spicyz` when running from the build tree
-# (probably fixable), and also when JIT'ing directly from a `zeek`
-# invocation (much harder to fix). Instead we generate shell
-# definitions to support running and using Spicy or spicy-plugin
-# functionality in the build tree, including JIT'ing directly from
+# Spicy JIT relies on the path of the current executable to figure out whether
+# it is run from a build or an install tree. This assumption gets broken for
+# e.g., `spicyz` when running from the build tree (probably fixable), and also
+# when JIT'ing directly from a `zeek` invocation (much harder to fix). Instead
+# we generate shell definitions to support running and using Spicy or
+# spicy-plugin functionality in the build tree, including JIT'ing directly from
 # Zeek.
 configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/hilti-cxx-include-dirs.in ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/hilti-cxx-include-dirs.in
+               ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
 
-########################################################################
-## Packaging Setup
+# ##############################################################################
+# Packaging Setup
 
-if ( INSTALL_ZEEKCTL OR INSTALL_ZKG OR INSTALL_ZEEK_CLIENT )
+if (INSTALL_ZEEKCTL OR INSTALL_ZKG OR INSTALL_ZEEK_CLIENT)
     # CPack RPM Generator may not automatically detect this
     set(CPACK_RPM_PACKAGE_REQUIRES "python >= ${ZEEK_PYTHON_MIN}")
 endif ()
 
-# If this CMake project is a sub-project of another, we will not
-# configure the generic packaging because CPack will fail in the case
-# that the parent project has already configured packaging
+# If this CMake project is a sub-project of another, we will not configure the
+# generic packaging because CPack will fail in the case that the parent project
+# has already configured packaging
 if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
     include(ConfigurePackaging)
     ConfigurePackaging(${VERSION})
@@ -1338,22 +1308,18 @@ endif ()
 # Refers back to the "distribution prefix". This is the source tree when
 # referring to Zeek from the build directory and the "share" directory under the
 # install preifx otherwise.
-set(ZEEK_DIST_PREFIX
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_DATAROOTDIR}/foo/bar>)
+set(ZEEK_DIST_PREFIX $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+                     $<INSTALL_INTERFACE:${CMAKE_INSTALL_DATAROOTDIR}/foo/bar>)
 
 # Generate extra config file for the dynamic plugins.
 configure_file(src/ZeekPluginConfig.cmake.in ZeekPluginConfig.cmake @ONLY)
 
 # Write the CMake package and version files.
 configure_package_config_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/ZeekConfig.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake"
-  INSTALL_DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}")
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
-  VERSION ${ZEEK_VERSION_NUMBER}
-  COMPATIBILITY ExactVersion)
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ZeekConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake" INSTALL_DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}")
+write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
+                                 VERSION ${ZEEK_VERSION_NUMBER} COMPATIBILITY ExactVersion)
 
 # Write the CMake targets file.
 export(EXPORT ZeekTargets FILE ZeekTargets.cmake NAMESPACE Zeek::)
@@ -1363,66 +1329,63 @@ configure_file(src/ZeekPluginBootstrap.cmake.in ZeekPluginBootstrap.cmake @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ZeekPluginBootstrap.cmake"
         DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}")
 
-install(
-  FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
-  DESTINATION
-    "${ZEEK_CMAKE_CONFIG_DIR}")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfig.cmake"
+              "${CMAKE_CURRENT_BINARY_DIR}/ZeekConfigVersion.cmake"
+        DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}")
 
-install(
-  EXPORT ZeekTargets
-  DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}"
-  NAMESPACE Zeek::)
+install(EXPORT ZeekTargets DESTINATION "${ZEEK_CMAKE_CONFIG_DIR}" NAMESPACE Zeek::)
 
-########################################################################
-## Build Summary
+# ##############################################################################
+# Build Summary
 
 if (CMAKE_BUILD_TYPE)
     string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
 endif ()
 
-if ( INSTALL_BTEST_PCAPS )
+if (INSTALL_BTEST_PCAPS)
     set(_install_btest_tools_msg "all")
 else ()
     set(_install_btest_tools_msg "no pcaps")
 endif ()
 
 set(_binpac_exe_path "included")
-if ( BINPAC_EXE_PATH )
+if (BINPAC_EXE_PATH)
     set(_binpac_exe_path ${BINPAC_EXE_PATH})
 endif ()
 
 set(_gen_zam_exe_path "included")
-if ( GEN_ZAM_EXE_PATH )
+if (GEN_ZAM_EXE_PATH)
     set(_gen_zam_exe_path ${GEN_ZAM_EXE_PATH})
 endif ()
 
 set(_spicy "included")
-if ( DISABLE_SPICY )
+if (DISABLE_SPICY)
     set(_spicy "disabled")
-elseif ( SPICY_ROOT_DIR )
+elseif (SPICY_ROOT_DIR)
     set(_spicy "external (${SPICY_ROOT_DIR})")
 endif ()
 
-if ( DISABLE_SPICY )
+if (DISABLE_SPICY)
     set(_spicy_plugin "disabled")
-elseif ( "${_spicy_plugin}" STREQUAL "" )
+elseif ("${_spicy_plugin}" STREQUAL "")
     set(_spicy_plugin "external (${SPICY_PLUGIN_PATH})")
 endif ()
 
-if ( ZEEK_LEGACY_ANALYZERS )
+if (ZEEK_LEGACY_ANALYZERS)
     list(JOIN ZEEK_LEGACY_ANALYZERS ", " _legacy_analyzers)
-    set(_legacy_analyzers  "\n          - Using unmaintained legacy analyzers for: ${_legacy_analyzers}")
+    set(_legacy_analyzers
+        "\n          - Using unmaintained legacy analyzers for: ${_legacy_analyzers}")
 endif ()
 
-if ( ZEEK_SKIPPED_ANALYZERS )
+if (ZEEK_SKIPPED_ANALYZERS)
     list(JOIN ZEEK_SKIPPED_ANALYZERS ", " _skipped_analyzers)
     set(_skipped_analyzers "\n          - Skipping analyzers: ${_skipped_analyzers}")
 endif ()
 
-if ( ZEEK_LEGACY_ANALYZERS OR ZEEK_SKIPPED_ANALYZERS )
-    set(_analyzer_warning "\n\n[Warning] Some analyzers are not available due to lack of built-in Spicy support:${_legacy_analyzers}${_skipped_analyzers}")
+if (ZEEK_LEGACY_ANALYZERS OR ZEEK_SKIPPED_ANALYZERS)
+    set(_analyzer_warning
+        "\n\n[Warning] Some analyzers are not available due to lack of built-in Spicy support:${_legacy_analyzers}${_skipped_analyzers}"
+    )
 endif ()
 
 message(
@@ -1475,7 +1438,6 @@ message(
     "\nFuzz Engine:       ${ZEEK_FUZZING_ENGINE}"
     "${_analyzer_warning}"
     "\n"
-    "\n================================================================\n"
-)
+    "\n================================================================\n")
 
 include(UserChangedWarning)

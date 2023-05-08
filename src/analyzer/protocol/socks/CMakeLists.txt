@@ -2,12 +2,11 @@ zeek_add_plugin(
     Zeek
     SOCKS
     SOURCES
-        SOCKS.cc
-        Plugin.cc
+    SOCKS.cc
+    Plugin.cc
     BIFS
-        events.bif
+    events.bif
     PAC
-        socks.pac
-        socks-protocol.pac
-        socks-analyzer.pac
-)
+    socks.pac
+    socks-protocol.pac
+    socks-analyzer.pac)

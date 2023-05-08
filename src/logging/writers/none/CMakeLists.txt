@@ -2,8 +2,7 @@ zeek_add_plugin(
     Zeek
     NoneWriter
     SOURCES
-        None.cc
-        Plugin.cc
+    None.cc
+    Plugin.cc
     BIFS
-        none.bif
-)
+    none.bif)

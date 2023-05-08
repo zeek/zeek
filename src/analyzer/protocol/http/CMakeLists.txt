@@ -2,9 +2,8 @@ zeek_add_plugin(
     Zeek
     HTTP
     SOURCES
-        HTTP.cc
-        Plugin.cc
+    HTTP.cc
+    Plugin.cc
     BIFS
-        events.bif
-        functions.bif
-)
+    events.bif
+    functions.bif)

@@ -2,12 +2,11 @@ zeek_add_plugin(
     Zeek
     RADIUS
     SOURCES
-        RADIUS.cc
-        Plugin.cc
+    RADIUS.cc
+    Plugin.cc
     BIFS
-        events.bif
+    events.bif
     PAC
-        radius.pac
-        radius-analyzer.pac
-        radius-protocol.pac
-)
+    radius.pac
+    radius-analyzer.pac
+    radius-protocol.pac)

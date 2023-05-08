@@ -2,12 +2,11 @@ zeek_add_plugin(
     Zeek
     Modbus
     SOURCES
-        Modbus.cc
-        Plugin.cc
+    Modbus.cc
+    Plugin.cc
     BIFS
-        events.bif
+    events.bif
     PAC
-        modbus.pac
-        modbus-analyzer.pac
-        modbus-protocol.pac
-)
+    modbus.pac
+    modbus-analyzer.pac
+    modbus-protocol.pac)

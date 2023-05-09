@@ -2,9 +2,8 @@ zeek_add_plugin(
     Zeek
     SMTP
     SOURCES
-        SMTP.cc
-        Plugin.cc
+    SMTP.cc
+    Plugin.cc
     BIFS
-        events.bif
-        functions.bif
-)
+    events.bif
+    functions.bif)

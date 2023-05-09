@@ -2,12 +2,11 @@ zeek_add_plugin(
     Zeek
     Syslog
     SOURCES
-        Syslog.cc
-        Plugin.cc
+    Syslog.cc
+    Plugin.cc
     BIFS
-        events.bif
+    events.bif
     PAC
-        syslog.pac
-        syslog-analyzer.pac
-        syslog-protocol.pac
-)
+    syslog.pac
+    syslog-analyzer.pac
+    syslog-protocol.pac)

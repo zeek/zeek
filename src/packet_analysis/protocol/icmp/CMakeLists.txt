@@ -2,9 +2,8 @@ zeek_add_plugin(
     Zeek
     ICMP
     SOURCES
-        ICMP.cc
-        ICMPSessionAdapter.cc
-        Plugin.cc
+    ICMP.cc
+    ICMPSessionAdapter.cc
+    Plugin.cc
     BIFS
-        events.bif
-)
+    events.bif)

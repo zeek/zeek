@@ -2,13 +2,12 @@ zeek_add_plugin(
     Zeek
     BitTorrent
     SOURCES
-        BitTorrent.cc
-        BitTorrentTracker.cc
-        Plugin.cc
+    BitTorrent.cc
+    BitTorrentTracker.cc
+    Plugin.cc
     BIFS
-        events.bif
+    events.bif
     PAC
-        bittorrent.pac
-        bittorrent-analyzer.pac
-        bittorrent-protocol.pac
-)
+    bittorrent.pac
+    bittorrent-analyzer.pac
+    bittorrent-protocol.pac)

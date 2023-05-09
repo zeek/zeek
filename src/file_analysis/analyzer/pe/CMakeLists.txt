@@ -2,15 +2,14 @@ zeek_add_plugin(
     Zeek
     PE
     SOURCES
-        PE.cc
-        Plugin.cc
+    PE.cc
+    Plugin.cc
     BIFS
-        events.bif
+    events.bif
     PAC
-        pe.pac
-        pe-analyzer.pac
-        pe-file-headers.pac
-        pe-file-idata.pac
-        pe-file.pac
-        pe-file-types.pac
-)
+    pe.pac
+    pe-analyzer.pac
+    pe-file-headers.pac
+    pe-file-idata.pac
+    pe-file.pac
+    pe-file-types.pac)

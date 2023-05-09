@@ -1,3 +1,9 @@
+6.0.0-dev.525 | 2023-05-09 09:05:51 -0700
+
+  * Use the same rules as cmake submodule to reformat Zeek (Tim Wojtulewicz, Corelight)
+
+  * Update cmake submodule after reformat (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.522 | 2023-05-09 15:19:43 +0200
 
   * cluster/supervisor: Multi-logger awareness (Arne Welzel, Corelight)

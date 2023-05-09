@@ -1,3 +1,7 @@
+6.0.0-dev.529 | 2023-05-09 12:54:28 -0700
+
+  * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.527 | 2023-05-09 19:11:00 +0200
 
   * GH-2930: zeek.bif: Add log2() and ceil() (Arne Welzel, Corelight)

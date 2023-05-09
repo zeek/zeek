@@ -1,3 +1,22 @@
+6.0.0-dev.522 | 2023-05-09 15:19:43 +0200
+
+  * cluster/supervisor: Multi-logger awareness (Arne Welzel, Corelight)
+
+    When multiple loggers are configured in a Supervisor controlled cluster
+    configuration, encode extra information into the rotated filename to
+    identify which logger produced the log.
+
+    This is similar to the approach taken for ZeekControl, re-using the
+    log_suffix terminology, but as there's only a single zeek-archiver
+    process and no postprocessors and no other side-channel for additional
+    information, we encode extra metadata into the filename. zeek-archiver
+    is extended to recognize the special metadata part of the filename.
+
+    This also solves the issue that multiple loggers in a supervisor setup
+    overwrite each others log files within a single log-queue directory.
+
+  * Bump zeek-archiver submodule (Arne Welzel, Corelight)
+
 6.0.0-dev.519 | 2023-05-09 11:03:32 +0200
 
   * Fixup Val.h/Val.cc: Actually move ValFromJSON into zeek::detail (Arne Welzel, Corelight)

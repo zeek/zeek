@@ -122,12 +122,16 @@ New Functionality
 	stats.11:18:57-11:19:00-logger-2.log.gz
 
   Previously, in a multi-logger setup, individual logger processes would overwrite
-  each others log files during rotation, causing data loss.
+  each other's log files during rotation, causing data loss.
 
   For setups with a single logger, there's no change in behavior. The naming
   of the final logs can be customized by providing an alternative
   ``make-archive-name`` script and using the new ``ZEEK_ARG_LOG_SUFFIX``
   environment variable.
+
+- A supervisor controlled Zeek cluster is now multi-logger aware. This avoids
+  loggers overwriting each other's log files within a single log-queue directory.
+  By default, a logger's name is appended to the rotated logs by zeek-archiver.
 
 - Introduce a new command-line option ``-V`` / ``--build-info``. It produces
   verbose output in JSON format about the repository state and any included

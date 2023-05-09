@@ -1795,9 +1795,12 @@ extern bool can_cast_value_to_type(const Val* v, Type* t);
 // specific instance later.
 extern bool can_cast_value_to_type(const Type* s, Type* t);
 
+namespace detail
+	{
 // Parses a JSON string into arbitrary Zeek data using std::variant to simulate functional exception
 // handling. Returns a ValPtr if parsing was successful, or a std::string containing an error
 // message if an error occurred.
 extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t);
+	}
 
 	} // namespace zeek

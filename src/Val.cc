@@ -1379,7 +1379,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 		}
 	}
 
-std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t)
+std::variant<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t)
 	{
 	rapidjson::Document doc;
 	rapidjson::ParseResult ok = doc.Parse(json_str.data(), json_str.length());

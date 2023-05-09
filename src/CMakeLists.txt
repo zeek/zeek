@@ -47,8 +47,8 @@ endif ()
 
 # Rule parser/scanner
 bison_target(
-    RuleParser rule-parse.y ${CMAKE_CURRENT_BINARY_DIR}/rup.cc HEADER
-    ${CMAKE_CURRENT_BINARY_DIR}/rup.h
+    RuleParser rule-parse.y ${CMAKE_CURRENT_BINARY_DIR}/rup.cc
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/rup.h
     # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/rule_parse.output
     COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rup.cc
@@ -61,9 +61,9 @@ set_property(SOURCE rule-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_CO
 
 # RE parser/scanner
 bison_target(
-    REParser re-parse.y ${CMAKE_CURRENT_BINARY_DIR}/rep.cc HEADER
-    ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-    # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
+    REParser re-parse.y ${CMAKE_CURRENT_BINARY_DIR}/rep.cc
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
+                 # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/re_parse.output
     COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/rep.cc ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
                          re_ RE_)
@@ -73,7 +73,8 @@ set_property(SOURCE re-scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMP
 
 # Parser/Scanner
 bison_target(
-    Parser parse.y ${CMAKE_CURRENT_BINARY_DIR}/p.cc HEADER ${CMAKE_CURRENT_BINARY_DIR}/zeekparse.h
+    Parser parse.y ${CMAKE_CURRENT_BINARY_DIR}/p.cc
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/zeekparse.h
     # VERBOSE ${CMAKE_CURRENT_BINARY_DIR}/parse.output
     COMPILE_FLAGS "${BISON_FLAGS}")
 replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc ${CMAKE_CURRENT_BINARY_DIR}/parse.cc zeek

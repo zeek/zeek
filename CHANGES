@@ -1,3 +1,16 @@
+6.0.0-dev.533 | 2023-05-09 13:38:37 -0700
+
+  * core.network_time.broker: Test reliability improvement (Arne Welzel, Corelight)
+
+    I wasn't able to reproduce this locally, but after looking at
+    -B main-loop,tm for a bit it dawned that if the manager is sending
+    ticks too fast, the Broker IO source may consume two ticks in one go
+    before expiring timers and that would explain the observed baseline
+    differences.
+
+    Solve this by removing the reliance on realtime delays and switch to
+    a request-reply pattern instead.
+
 6.0.0-dev.531 | 2023-05-09 13:38:15 -0700
 
   * ci: Add public-ecr-vacuum.sh (Arne Welzel, Corelight)

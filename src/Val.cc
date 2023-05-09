@@ -6,6 +6,9 @@
 
 #include <netdb.h>
 #include <netinet/in.h>
+#define RAPIDJSON_HAS_STDSTRING 1
+#include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
 #include <sys/param.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -1059,6 +1062,333 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
 	r[0] = '\0';
 
 	return make_intrusive<StringVal>(new String(true, result, r - result));
+	}
+
+static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t)
+	{
+	auto mismatch_err = [t, &j]()
+	{
+		std::string json_type;
+		switch ( j.GetType() )
+			{
+			case rapidjson::Type::kNullType:
+				json_type = "null";
+				break;
+			case rapidjson::Type::kFalseType:
+			case rapidjson::Type::kTrueType:
+				json_type = "bool";
+				break;
+			case rapidjson::Type::kObjectType:
+				json_type = "object";
+				break;
+			case rapidjson::Type::kArrayType:
+				json_type = "array";
+				break;
+			case rapidjson::Type::kStringType:
+				json_type = "string";
+				break;
+			case rapidjson::Type::kNumberType:
+				json_type = "number";
+				break;
+			default:
+				json_type = "unknown";
+			}
+
+		return util::fmt("cannot convert JSON type '%s' to Zeek type '%s'", json_type.c_str(),
+		                 type_name(t->Tag()));
+	};
+
+	if ( j.IsNull() )
+		return Val::nil;
+
+	switch ( t->Tag() )
+		{
+		case TYPE_BOOL:
+			{
+			if ( ! j.IsBool() )
+				return mismatch_err();
+
+			return val_mgr->Bool(j.GetBool());
+			}
+
+		case TYPE_INT:
+			{
+			if ( ! j.IsInt64() )
+				return mismatch_err();
+
+			return val_mgr->Int(j.GetInt64());
+			}
+
+		case TYPE_COUNT:
+			{
+			if ( ! j.IsUint64() )
+				return mismatch_err();
+
+			return val_mgr->Count(j.GetUint64());
+			}
+
+		case TYPE_TIME:
+			{
+			if ( ! j.IsNumber() )
+				return mismatch_err();
+
+			return make_intrusive<TimeVal>(j.GetDouble());
+			}
+
+		case TYPE_DOUBLE:
+			{
+			if ( ! j.IsNumber() )
+				return mismatch_err();
+
+			return make_intrusive<DoubleVal>(j.GetDouble());
+			}
+
+		case TYPE_INTERVAL:
+			{
+			if ( ! j.IsNumber() )
+				return mismatch_err();
+
+			return make_intrusive<IntervalVal>(j.GetDouble());
+			}
+
+		case TYPE_PORT:
+			{
+			if ( ! j.IsString() )
+				return mismatch_err();
+
+			int port = 0;
+			if ( j.GetStringLength() > 0 && j.GetStringLength() < 10 )
+				{
+				char* slash;
+				errno = 0;
+				port = strtol(j.GetString(), &slash, 10);
+				if ( ! errno )
+					{
+					++slash;
+					if ( util::streq(slash, "tcp") )
+						return val_mgr->Port(port, TRANSPORT_TCP);
+					else if ( util::streq(slash, "udp") )
+						return val_mgr->Port(port, TRANSPORT_UDP);
+					else if ( util::streq(slash, "icmp") )
+						return val_mgr->Port(port, TRANSPORT_ICMP);
+					else if ( util::streq(slash, "unknown") )
+						return val_mgr->Port(port, TRANSPORT_UNKNOWN);
+					}
+				}
+
+			return "wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp|unknown)/";
+			}
+
+		case TYPE_PATTERN:
+			{
+			if ( ! j.IsString() )
+				return mismatch_err();
+
+			std::string candidate(j.GetString(), j.GetStringLength());
+			if ( candidate.size() > 2 && candidate.front() == candidate.back() &&
+			     candidate.back() == '/' )
+				{
+				// Remove the '/'s
+				candidate.erase(0, 1);
+				candidate.erase(candidate.size() - 1);
+				}
+
+			auto re = std::make_unique<RE_Matcher>(candidate.c_str());
+			if ( ! re->Compile() )
+				return "error compiling pattern";
+
+			return make_intrusive<PatternVal>(re.release());
+			}
+
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+			{
+			if ( ! j.IsString() )
+				return mismatch_err();
+
+			int width = 0;
+			std::string candidate;
+
+			if ( t->Tag() == TYPE_ADDR )
+				candidate = std::string(j.GetString(), j.GetStringLength());
+			else
+				{
+				std::string_view subnet_sv(j.GetString(), j.GetStringLength());
+				auto pos = subnet_sv.find('/');
+				if ( pos == subnet_sv.npos )
+					return util::fmt("invalid value for subnet: '%s'", j.GetString());
+
+				candidate = std::string(j.GetString(), pos);
+
+				errno = 0;
+				char* end;
+				width = strtol(subnet_sv.data() + pos + 1, &end, 10);
+				if ( subnet_sv.data() + pos + 1 == end || errno )
+					return util::fmt("invalid value for subnet: '%s'", j.GetString());
+				}
+
+			if ( candidate.front() == '[' )
+				candidate.erase(0, 1);
+			if ( candidate.back() == ']' )
+				candidate.erase(candidate.size() - 1);
+
+			if ( t->Tag() == TYPE_ADDR )
+				return make_intrusive<AddrVal>(candidate);
+			else
+				return make_intrusive<SubNetVal>(candidate.c_str(), width);
+			}
+
+		case TYPE_ENUM:
+			{
+			if ( ! j.IsString() )
+				return mismatch_err();
+
+			auto et = t->AsEnumType();
+			auto intval = et->Lookup({j.GetString(), j.GetStringLength()});
+
+			if ( intval < 0 )
+				return util::fmt("'%s' is not a valid enum for '%s'.", j.GetString(),
+				                 et->GetName().c_str());
+
+			return et->GetEnumVal(intval);
+			}
+
+		case TYPE_STRING:
+			{
+			if ( ! j.IsString() )
+				return mismatch_err();
+
+			return make_intrusive<StringVal>(j.GetStringLength(), j.GetString());
+			}
+
+		case TYPE_TABLE:
+			{
+			if ( ! j.IsArray() )
+				return mismatch_err();
+
+			if ( ! t->IsSet() )
+				return util::fmt("tables are not supported");
+
+			auto tt = t->AsSetType();
+			auto tl = tt->GetIndices();
+			auto tv = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
+
+			for ( const auto& item : j.GetArray() )
+				{
+				std::variant<ValPtr, std::string> v;
+
+				if ( tl->GetTypes().size() == 1 )
+					v = BuildVal(item, tl->GetPureType());
+				else
+					v = BuildVal(item, tl);
+
+				if ( ! get_if<ValPtr>(&v) )
+					return v;
+
+				if ( ! std::get<ValPtr>(v) )
+					continue;
+
+				tv->Assign(std::move(std::get<ValPtr>(v)), nullptr);
+				}
+
+			return tv;
+			}
+
+		case TYPE_RECORD:
+			{
+			if ( ! j.IsObject() )
+				return mismatch_err();
+
+			auto rt = t->AsRecordType();
+			auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
+			for ( int i = 0; i < rt->NumFields(); ++i )
+				{
+				auto td_i = rt->FieldDecl(i);
+				auto m_it = j.FindMember(td_i->id);
+				bool has_member = m_it != j.MemberEnd();
+				bool member_is_null = has_member && m_it->value.IsNull();
+
+				if ( ! has_member || member_is_null )
+					{
+					if ( ! td_i->GetAttr(detail::ATTR_OPTIONAL) &&
+					     ! td_i->GetAttr(detail::ATTR_DEFAULT) )
+						return util::fmt("required field %s$%s is %s in JSON", t->GetName().c_str(),
+						                 td_i->id, member_is_null ? "null" : "missing");
+
+					continue;
+					}
+
+				auto v = BuildVal(m_it->value, td_i->type);
+				if ( ! get_if<ValPtr>(&v) )
+					return v;
+
+				rv->Assign(i, std::move(std::get<ValPtr>(v)));
+				}
+
+			return rv;
+			}
+
+		case TYPE_LIST:
+			{
+			if ( ! j.IsArray() )
+				return mismatch_err();
+
+			auto lt = t->AsTypeList();
+
+			if ( j.GetArray().Size() < lt->GetTypes().size() )
+				return "index type doesn't match";
+
+			auto lv = make_intrusive<ListVal>(TYPE_ANY);
+
+			for ( size_t i = 0; i < lt->GetTypes().size(); i++ )
+				{
+				auto v = BuildVal(j.GetArray()[i], lt->GetTypes()[i]);
+				if ( ! get_if<ValPtr>(&v) )
+					return v;
+
+				lv->Append(std::move(std::get<ValPtr>(v)));
+				}
+
+			return lv;
+			}
+
+		case TYPE_VECTOR:
+			{
+			if ( ! j.IsArray() )
+				return mismatch_err();
+
+			auto vt = t->AsVectorType();
+			auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
+			for ( const auto& item : j.GetArray() )
+				{
+				auto v = BuildVal(item, vt->Yield());
+				if ( ! get_if<ValPtr>(&v) )
+					return v;
+
+				if ( ! std::get<ValPtr>(v) )
+					continue;
+
+				vv->Assign(vv->Size(), std::move(std::get<ValPtr>(v)));
+				}
+
+			return vv;
+			}
+
+		default:
+			return util::fmt("type '%s' unsupport", type_name(t->Tag()));
+		}
+	}
+
+std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t)
+	{
+	rapidjson::Document doc;
+	rapidjson::ParseResult ok = doc.Parse(json_str.data(), json_str.length());
+
+	if ( ! ok )
+		return util::fmt("JSON parse error: %s Offset: %lu", rapidjson::GetParseError_En(ok.Code()),
+		                 ok.Offset());
+
+	return BuildVal(doc, t);
 	}
 
 ValPtr StringVal::DoClone(CloneState* state)

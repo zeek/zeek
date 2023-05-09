@@ -91,6 +91,19 @@ New Functionality
 
   To disable this functionality, pass ``--disable-javascript`` to configure.
 
+- A new bif ``from_json()`` can be used to parse JSON strings into records.
+
+	type A: record { a: addr; };
+	local p = from_json({\"a\": \"192.168.0.1\"}", A);
+	if ( p$valid )
+		print (p$v as A)
+
+  Implicit conversion from JSON to Zeek types is implemented for bool, int, count,
+  real, interval (number as seconds) and time (number as unix timestamp), port
+  (strings in "80/tcp" notation), patterns, addr, subnet, enum, sets, vectors
+  and records similar to the rules of the input framework. Optional or default
+  record fields are allowed to be missing or null in the input.
+
 - Zeek now provides native "Community ID" support with a new bif called
   ``community_id_v1()``. Two policy scripts ``protocols/conn/community-id-logging``
    and ``frameworks/notice/community-id`` extend the respective logs with a

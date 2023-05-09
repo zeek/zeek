@@ -1,3 +1,7 @@
+6.0.0-dev.518 | 2023-05-09 10:19:46 +0200
+
+  * Implement from_json bif (Fupeng Zhao)
+
 6.0.0-dev.516 | 2023-05-05 14:08:15 -0700
 
   * BTest baseline updates for -O gen-C++ (Vern Paxson, Corelight)

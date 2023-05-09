@@ -234,6 +234,8 @@ New Functionality
   can happen in packet loss or packet re-ordering scenarios. Such connections will
   have a ``^`` added to their history.
 
+- New bifs for ``ceil()`` and ``log2()`` have been added.
+
 Changed Functionality
 ---------------------
 

@@ -1,3 +1,7 @@
+6.0.0-dev.527 | 2023-05-09 19:11:00 +0200
+
+  * GH-2930: zeek.bif: Add log2() and ceil() (Arne Welzel, Corelight)
+
 6.0.0-dev.525 | 2023-05-09 09:05:51 -0700
 
   * Use the same rules as cmake submodule to reformat Zeek (Tim Wojtulewicz, Corelight)

@@ -58,6 +58,7 @@
 #include "zeek/input.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
+#include "zeek/supervisor/Supervisor.h"
 
 using namespace std;
 
@@ -2164,6 +2165,24 @@ uint64_t calculate_unique_id(size_t pool)
 			unique.pool = (uint64_t)pool;
 			unique.pid = getpid();
 			unique.rnd = static_cast<int>(detail::random_number());
+
+			uid_instance = zeek::detail::HashKey::HashBytes(&unique, sizeof(unique));
+			++uid_instance; // Now it's larger than zero.
+			}
+		else if ( zeek::Supervisor::ThisNode() )
+			{
+			// Enable individually randomized uids for all supervised stuff.
+			auto node_conf = zeek::Supervisor::ThisNode()->config;
+
+			struct
+				{
+				char name[120];
+				uint64_t pool;
+				} unique;
+
+			strncpy(unique.name, node_conf.name.c_str(), sizeof(unique.name));
+			unique.name[sizeof(unique.name) - 1] = '\0';
+			unique.pool = (uint64_t)pool;
 
 			uid_instance = zeek::detail::HashKey::HashBytes(&unique, sizeof(unique));
 			++uid_instance; // Now it's larger than zero.

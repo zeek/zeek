@@ -13,8 +13,10 @@
 
 // Avoid ccache busting of Plugin.h for internal plugins by
 // only including zeek/zeek-version.h if we're building an
-// external plugin.
-#if defined(ZEEK_PLUGIN_INTERNAL_BUILD) && ! ZEEK_PLUGIN_INTERNAL_BUILD
+// external plugin. The define gets set in the CMakeLists.txt file
+// for the Zeek::Internal target, which only exists when
+// building Zeek itself.
+#ifndef ZEEK_PLUGIN_SKIP_VERSION_CHECK
 #include "zeek/zeek-version.h"
 // Remove the BRO define in v6.1.
 #define BRO_PLUGIN_BRO_VERSION ZEEK_VERSION_FUNCTION

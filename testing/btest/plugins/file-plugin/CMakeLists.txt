@@ -1,7 +1,7 @@
 
 project(Zeek-Plugin-Demo-Foo)
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.15)
 
 if ( NOT BRO_DIST )
     message(FATAL_ERROR "BRO_DIST not set")

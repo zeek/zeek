@@ -166,8 +166,8 @@ void usage(const char* prog, int code)
 	        util::zeek_prefixes().c_str());
 	fprintf(stderr, "    $ZEEK_DNS_FAKE                  | disable DNS lookups (%s)\n",
 	        fake_dns() ? "on" : "off");
-	fprintf(stderr, "    $ZEEK_SEED                      | list of space separated seeds (%s)\n",
-	        getenv("ZEEK_SEED") ? "set" : "not set");
+	fprintf(stderr, "    $ZEEK_SEED_VALUES               | list of space separated seeds (%s)\n",
+	        getenv("ZEEK_SEED_VALUES") ? "set" : "not set");
 	fprintf(stderr, "    $ZEEK_SEED_FILE                 | file to load seeds from (not set)\n");
 	fprintf(stderr, "    $ZEEK_LOG_SUFFIX                | ASCII log file extension (.%s)\n",
 	        logging::writer::detail::Ascii::LogExt().c_str());

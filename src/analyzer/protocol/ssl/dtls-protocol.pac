@@ -24,15 +24,24 @@ type SSLRecordSwitch(is_orig: bool) = record {
 
 type UnifiedRecord(firstbyte: uint8, is_orig: bool) = record {
 	# sequence_number: bytestring &length=(sequence_number_length?2:1);
-	# lets just ignore eveything for now. We have very limited example
-	# data, and it is hard to parse the CID due to variable length.
+	# If we have a CID, we do currently not try to parse anything, as the connection
+	# ID is variable length, with the length not given in this packet (but only in the hello message
+	# of the opposite side of the direction).
+	seqnum: case with_cid of {
+		false -> sequence_number: bytestring &length=(sequence_number_length?2:1);
+		true -> nothing1: bytestring &length=0;
+	} &requires(sequence_number_length) &requires(with_cid);
+	lenthfield: case (with_cid == false && length_present == true) of {
+		true -> length: uint16;
+		false -> nothing2: bytestring &length=0;
+	} &requires(length_present) &requires(with_cid);
 	swallow: bytestring &restofdata;
 } &let {
 	with_cid: bool = ((firstbyte&0x10)==0x10);
 	sequence_number_length: bool = ((firstbyte&0x08)==0x08);
-	lengh_present: bool = ((firstbyte&0x04)==0x04);
+	length_present: bool = ((firstbyte&0x04)==0x04);
 	epoch_low_bits: uint8 = (firstbyte&0x03);
-};
+} &byteorder = bigendian;
 
 type SSLRecord(content_type: uint8, is_orig: bool) = record {
 	version: uint16;

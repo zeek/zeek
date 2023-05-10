@@ -156,7 +156,9 @@ refine connection SSL_Conn += {
 
 			if ( ssl_encrypted_data )
 				{
-				// FIXME: swallow is not quite the correct length, because we are not parsing the entire header
+				// In case a CID is given, swallow is not quite the correct length, because we are not parsing the entire header. This is not entirely
+				// trivial to work around, and the workaround won't work in all cases - and it might also not matter.
+				// We also have more potentially interesting information (the sequence number) - which we don't currently give to scriptland.
 				zeek::BifEvent::enqueue_ssl_encrypted_data(zeek_analyzer(),
 					zeek_analyzer()->Conn(), is_orig ^ zeek_analyzer()->GetFlipped(), DTLSv13, APPLICATION_DATA, ur->swallow().length());
 				}

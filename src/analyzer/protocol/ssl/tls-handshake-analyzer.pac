@@ -670,6 +670,17 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 
+	function proc_connection_id(rec: HandshakeRecord, cid: bytestring) : bool
+		%{
+		if ( ! ssl_extension_connection_id )
+			return true;
+
+		auto cid_string = zeek::make_intrusive<zeek::StringVal>(cid.length(), (const char*) cid.data());
+		zeek::BifEvent::enqueue_ssl_extension_connection_id(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, cid_string);
+
+		return true;
+		%}
+
 };
 
 refine typeattr ClientHello += &let {
@@ -801,4 +812,8 @@ refine typeattr SignedCertificateTimestamp += &let {
 
 refine typeattr CertificateRequest += &let {
 	proc: bool = $context.connection.proc_certificate_request(rec, this);
+};
+
+refine typeattr ConnectionId += &let {
+	proc: bool = $context.connection.proc_connection_id(rec, cid);
 };

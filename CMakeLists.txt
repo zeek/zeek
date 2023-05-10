@@ -282,9 +282,6 @@ endfunction()
 # loaded plugins. Also propagates include paths and C++17 mode on the install
 # interface.
 add_library(zeek_dynamic_plugin_base INTERFACE)
-target_link_libraries(zeek_dynamic_plugin_base
-    INTERFACE
-        $<BUILD_INTERFACE:zeek_internal>)
 target_include_directories(zeek_dynamic_plugin_base
     INTERFACE
         $<INSTALL_INTERFACE:include>

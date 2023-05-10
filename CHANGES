@@ -1,3 +1,169 @@
+6.0.0-dev.533 | 2023-05-09 13:38:37 -0700
+
+  * core.network_time.broker: Test reliability improvement (Arne Welzel, Corelight)
+
+    I wasn't able to reproduce this locally, but after looking at
+    -B main-loop,tm for a bit it dawned that if the manager is sending
+    ticks too fast, the Broker IO source may consume two ticks in one go
+    before expiring timers and that would explain the observed baseline
+    differences.
+
+    Solve this by removing the reliance on realtime delays and switch to
+    a request-reply pattern instead.
+
+6.0.0-dev.531 | 2023-05-09 13:38:15 -0700
+
+  * ci: Add public-ecr-vacuum.sh (Arne Welzel, Corelight)
+
+6.0.0-dev.529 | 2023-05-09 12:54:28 -0700
+
+  * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.527 | 2023-05-09 19:11:00 +0200
+
+  * GH-2930: zeek.bif: Add log2() and ceil() (Arne Welzel, Corelight)
+
+6.0.0-dev.525 | 2023-05-09 09:05:51 -0700
+
+  * Use the same rules as cmake submodule to reformat Zeek (Tim Wojtulewicz, Corelight)
+
+  * Update cmake submodule after reformat (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.522 | 2023-05-09 15:19:43 +0200
+
+  * cluster/supervisor: Multi-logger awareness (Arne Welzel, Corelight)
+
+    When multiple loggers are configured in a Supervisor controlled cluster
+    configuration, encode extra information into the rotated filename to
+    identify which logger produced the log.
+
+    This is similar to the approach taken for ZeekControl, re-using the
+    log_suffix terminology, but as there's only a single zeek-archiver
+    process and no postprocessors and no other side-channel for additional
+    information, we encode extra metadata into the filename. zeek-archiver
+    is extended to recognize the special metadata part of the filename.
+
+    This also solves the issue that multiple loggers in a supervisor setup
+    overwrite each others log files within a single log-queue directory.
+
+  * Bump zeek-archiver submodule (Arne Welzel, Corelight)
+
+6.0.0-dev.519 | 2023-05-09 11:03:32 +0200
+
+  * Fixup Val.h/Val.cc: Actually move ValFromJSON into zeek::detail (Arne Welzel, Corelight)
+
+6.0.0-dev.518 | 2023-05-09 10:19:46 +0200
+
+  * Implement from_json bif (Fupeng Zhao)
+
+6.0.0-dev.516 | 2023-05-05 14:08:15 -0700
+
+  * BTest baseline updates for -O gen-C++ (Vern Paxson, Corelight)
+
+  * updates to C++ maintenance scripts to better handle uncompilable BTests (Vern Paxson, Corelight)
+
+  * added ZEEK_REPORT_UNCOMPILABLE environment variable for "-O report-uncompilable" (Vern Paxson, Corelight)
+
+  * BTest baseline updates for ZAM (Vern Paxson, Corelight)
+
+6.0.0-dev.511 | 2023-05-05 21:04:11 +0200
+
+  * Revert "Skip version.h by default for Zeek sources" (Arne Welzel, Corelight)
+
+    This reverts commit 8246baf25c692b658e7a39527f6652e37f5b5095.
+
+    Actually fails the include_plugins CI test and I had just
+    opened another related issue.
+
+6.0.0-dev.510 | 2023-05-05 20:14:21 +0200
+
+  * Skip version.h by default for Zeek sources (Dominik Charousset, Corelight)
+
+6.0.0-dev.508 | 2023-05-05 08:48:10 -0700
+
+  * generate-docs: Only update submodule pointer during scheduled builds (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.505 | 2023-05-04 20:08:33 +0200
+
+  * GH-2998: NTP: Detect out-of-order packets (Arne Welzel, Corelight)
+
+    The NTP mode provides us with the identity of the endpoints. For the
+    simple CLIENT / SERVER modes, flip the connection if we detect
+    orig/resp disagreeing with what the message says. This mainly
+    results in the history getting a ^ and the ntp.log / conn.log
+    showing the corrected endpoints.
+
+6.0.0-dev.503 | 2023-05-04 10:56:33 -0700
+
+  * Include compiler in --show-config output (Dominik Charousset, Corelight)
+
+  * Fix CMake option defaults on Windows (Dominik Charousset, Corelight)
+
+  * Move build defaults from configure to CMake (Dominik Charousset, Corelight)
+
+    Moving the defaults for build variables from the `configure` script to
+    `CMakeLists.txt` gives the same default behavior on platforms where the
+    `configure` script is not available (Windows) and also allows a pure
+    CMake-based work flow (e.g., the standard `cmake -S . -B build`) without
+    having to manually adjust the defaults.
+
+    The `configure` script also becomes much simpler as a result.
+
+6.0.0-dev.498 | 2023-05-04 09:30:18 +0200
+
+  * scripts/smb2-main: Reset script-level state upon smb2_discarded_messages_state() (Arne Welzel, Corelight)
+
+    This is similar to what the external corelight/zeek-smb-clear-state script
+    does, but leverages the smb2_discarded_messages_state() event instead of
+    regularly checking on the state of SMB connections.
+
+    The pcap was created using the dperson/samba container image and mounting
+    a share with Linux's CIFS filesystem, then copying the content of a
+    directory with 100 files. The test uses a BPF filter to imitate mostly
+    "half-duplex" traffic.
+
+  * smb2: Limit per-connection read/ioctl/tree state (Arne Welzel, Corelight)
+
+    Users on Slack observed memory growth in an environment with a lot of
+    SMB traffic. jeprof memory profiling pointed at the offset and fid maps
+    kept per-connection for smb2 read requests.
+
+    These maps can grow unbounded if responses are seen before requests, there's
+    packet drops, just one side of the connection is visible, or we fail to parse
+    responses properly.
+
+    Forcefully wipe out these maps when they grow too large and raise
+    smb2_discarded_messages_state() to notify script land about this.
+
+6.0.0-dev.493 | 2023-05-03 11:13:15 -0700
+
+  * Update Mozilla CA and Google CT lists (Johanna Amann, Corelight)
+
+6.0.0-dev.491 | 2023-05-03 09:31:36 -0700
+
+  * Surround string assignments in zeek-config in quotes (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.489 | 2023-05-03 09:31:19 -0700
+
+  * Remove parser error message for bro_init, et al (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.487 | 2023-05-03 09:30:55 -0700
+
+  * Add additional length check to IEEE 802.11 analyzer (Tim Wojtulewicz, Corelight)
+
+6.0.0-dev.484 | 2023-05-03 14:18:03 +0100
+
+  * SSL: do not try to disable failed analyzer (Johanna Amann, Corelight)
+
+    Currently, if a TLS/DTLS analyzer fails with a protocol violation, we
+    will still try to remove the analyzer later, which results in the
+    following error message:
+
+    error: connection does not have analyzer specified to disable
+
+    Now, instead we don't try removing the analyzer anymore, after a
+    violation occurred.
+
 6.0.0-dev.480 | 2023-05-02 20:28:55 +0200
 
   * ip4_hdr: Add DF, MF, offset and sum fields (Arne Welzel, Corelight)

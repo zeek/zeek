@@ -1,0 +1,80 @@
+{
+    "parse": {
+	"additional_commands": {
+            "CheckIPProto": {
+		"kwargs": {
+                    "_proto": "*"
+		}
+            },
+            "CheckType": {
+		"kwargs": {
+                    "_type": "*",
+                    "_alt_type": "*",
+                    "_var": "*"
+		}
+            },
+	    "SetPackageVersion": {
+		"kwargs": {
+		    "_version": "*"
+		}
+	    },
+	    "SetPackageFileName": {
+		"kwargs": {
+		    "_version": "*"
+		}
+	    },
+	    "SetPackageInstallScripts": {
+		"kwargs": {
+		    "VERSION": "*"
+		}
+	    },
+	    "ConfigurePackaging": {
+		"kwargs": {
+		    "_version": "*"
+		}
+	    },
+	    "SetPackageGenerators": {},
+	    "SetPackageMetadata": {},
+	    "FindRequiredPackage": {
+		"kwargs": {
+		    "packageName": "*"
+		}
+	    },
+	    "InstallClobberImmune": {
+		"kwargs": {
+		    "_srcfile": "*",
+		    "_dstfile": "*"
+		}
+	    },
+	    "InstallPackageConfigFile": {
+		"kwargs": {
+		    "_srcfile": "*",
+		    "_dstdir": "*",
+		    "_dstfilename": "*"
+		}
+	    },
+	    "InstallShellScript": {
+		"kwargs": {
+		    "_srcfile": "*",
+		    "_dstfile": "*"
+		}
+	    },
+	    "InstallSymLink": {
+		"kwargs": {
+		    "_filepath": "*",
+		    "_sympath": "*"
+		}
+	    }
+	}
+    },
+    "format": {
+	"line_width": 100,
+	"tab_size": 4,
+	"separate_ctrl_name_with_space": true,
+	"max_subgroups_hwrap": 3,
+	"line_ending": "unix"
+    },
+    "markup": {
+	"enable_markup": false
+    }
+}

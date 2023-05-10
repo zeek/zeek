@@ -1,9 +1,8 @@
 spicy_add_analyzer(
-  NAME
+    NAME
     Finger
-  SOURCES
+    SOURCES
     finger.spicy
     finger.evt
-  LEGACY
-    legacy
-)
+    LEGACY
+    legacy)

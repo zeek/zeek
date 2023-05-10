@@ -1094,6 +1094,14 @@ type entropy_test_result: record {
 	serial_correlation: double;	##< Serial correlation coefficient.
 };
 
+## Return type for from_json BIF.
+##
+## .. zeek:see:: from_json
+type from_json_result: record { 
+	v: any &optional;	##< Parsed value.
+	valid: bool;	##< True if parsing was successful.
+};
+
 # TCP values for :zeek:see:`endpoint` *state* field.
 # todo:: these should go into an enum to make them autodoc'able.
 const TCP_INACTIVE = 0;	##< Endpoint is still inactive.
@@ -2988,6 +2996,16 @@ export {
 	##
 	## .. zeek:see:: smb_pipe_connect_heuristic
 	const SMB::pipe_filenames: set[string] &redef;
+
+	## The maximum number of messages for which to retain state
+	## about offsets, fids, or tree ids within the parser. When
+	## the limit is reached, internal parser state is discarded
+	## and :zeek:see:`smb2_discarded_messages_state` raised.
+	##
+	## Setting this to zero will disable the functionality.
+	##
+	## .. zeek:see:: smb2_discarded_messages_state
+	const SMB::max_pending_messages = 1000 &redef;
 }
 
 module SMB1;

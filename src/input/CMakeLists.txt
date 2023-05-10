@@ -1,12 +1,11 @@
 zeek_add_subdir_library(
     input
     SOURCES
-        Component.cc
-        Manager.cc
-        ReaderBackend.cc
-        ReaderFrontend.cc
+    Component.cc
+    Manager.cc
+    ReaderBackend.cc
+    ReaderFrontend.cc
     BIFS
-        input.bif
-)
+    input.bif)
 
 add_subdirectory(readers)

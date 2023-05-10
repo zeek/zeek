@@ -14,6 +14,11 @@ event zeek_init()
 	print floor(c);
 	print floor(d);
 
+	print ceil(a);
+	print ceil(b);
+	print ceil(c);
+	print ceil(d);
+
 	print sqrt(a);
 
 	print exp(a);
@@ -21,6 +26,8 @@ event zeek_init()
 	print ln(a);
 
 	print log10(a);
+
+	print log2(a);
 
 	print pow(a, b);
 	}

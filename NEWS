@@ -59,6 +59,11 @@ Breaking Changes
 
 - The IRC_Data analyzer declaration has been moved to protocols/irc/IRC.h.
 
+- The error message returned when using ``bro_init``, ``bro_done``, and
+  ``bro_script_loaded`` events is now removed.  removed. Usage of these events
+  has returned that error during script parsing for a few years, and time has
+  come to finally remove it.
+
 New Functionality
 -----------------
 
@@ -86,6 +91,19 @@ New Functionality
 
   To disable this functionality, pass ``--disable-javascript`` to configure.
 
+- A new bif ``from_json()`` can be used to parse JSON strings into records.
+
+	type A: record { a: addr; };
+	local p = from_json({\"a\": \"192.168.0.1\"}", A);
+	if ( p$valid )
+		print (p$v as A)
+
+  Implicit conversion from JSON to Zeek types is implemented for bool, int, count,
+  real, interval (number as seconds) and time (number as unix timestamp), port
+  (strings in "80/tcp" notation), patterns, addr, subnet, enum, sets, vectors
+  and records similar to the rules of the input framework. Optional or default
+  record fields are allowed to be missing or null in the input.
+
 - Zeek now provides native "Community ID" support with a new bif called
   ``community_id_v1()``. Two policy scripts ``protocols/conn/community-id-logging``
    and ``frameworks/notice/community-id`` extend the respective logs with a
@@ -104,12 +122,16 @@ New Functionality
 	stats.11:18:57-11:19:00-logger-2.log.gz
 
   Previously, in a multi-logger setup, individual logger processes would overwrite
-  each others log files during rotation, causing data loss.
+  each other's log files during rotation, causing data loss.
 
   For setups with a single logger, there's no change in behavior. The naming
   of the final logs can be customized by providing an alternative
   ``make-archive-name`` script and using the new ``ZEEK_ARG_LOG_SUFFIX``
   environment variable.
+
+- A supervisor controlled Zeek cluster is now multi-logger aware. This avoids
+  loggers overwriting each other's log files within a single log-queue directory.
+  By default, a logger's name is appended to the rotated logs by zeek-archiver.
 
 - Introduce a new command-line option ``-V`` / ``--build-info``. It produces
   verbose output in JSON format about the repository state and any included
@@ -211,6 +233,13 @@ New Functionality
   messages being correctly parsed and raising the typical SSL/TLS events, the biggest
   visible change is the newly added ``ssl_extension_connection_id`` event.
 
+- The NTP analyzer now recognizes when client and server mode messages disagree
+  with the notion of "originator" and "responder" and flips the connection. This
+  can happen in packet loss or packet re-ordering scenarios. Such connections will
+  have a ``^`` added to their history.
+
+- New bifs for ``ceil()`` and ``log2()`` have been added.
+
 Changed Functionality
 ---------------------
 
@@ -310,8 +339,20 @@ Changed Functionality
 - Libpcap based packet source now avoids the 32bit wraparound of link and
   dropped packet counters as reported by users.
 
-- The ``ssl_history`` field of ``ssl.log`` now correctly logs Hello Retry Request
-  messages. Before, they were incorrectly logged as Server Hellos.
+- The `ssl_history` field in ssl.log indicates that the letter `j` is reserved
+  for hello retry requests. However, this logging was never fully implemented;
+  instead, hello retry requests were logged like as a server hello (with the letter
+  `s`). This oversight was fixed, and hello retry requests are now correctly logged.
+
+- When per-connection SMB parser state (read offsets, tree ids, ...) exceeds
+  ``SMB::max_pending_messages`` (default 1000), Zeek discards such per-connection
+  state and raises a new ``smb2_discarded_messages_state()`` event. This event is
+  used to reset script-layer SMB state. This change provides protection against
+  unbounded state growth due to partial or one-sided SMB connections.
+
+  Setting ``SMB::max_pending_messages`` to 0 can be used to switch back to the
+  previous behavior of not discarding state. Setting ``SMB::enable_state_clear``
+  to ``F`` skips the script-layer state clearing logic.
 
 Removed Functionality
 ---------------------

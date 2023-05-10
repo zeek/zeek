@@ -612,6 +612,21 @@ container_image_manifest_docker_builder:
     - arm64_container_image
     - amd64_container_image
 
+# Once we've published new images in container_image_manifest, remove any untagged
+# images from the public ECR repository to stay within free-tier bounds.
+public_ecr_cleanup_docker_builder:
+  cpu: 1
+  only_if: >
+    $CIRRUS_CRON == '' && $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' && $CIRRUS_BRANCH == 'master'
+  env:
+    AWS_ACCESS_KEY_ID: ENCRYPTED[!eff52f6442e1bc78bce5b15a23546344df41bf519f6201924cb70c7af12db23f442c0e5f2b3687c2d856ceb11fcb8c49!]
+    AWS_SECRET_ACCESS_KEY: ENCRYPTED[!748bc302dd196140a5fa8e89c9efd148882dc846d4e723787d2de152eb136fa98e8dea7e6d2d6779d94f72dd3c088228!]
+    AWS_REGION: us-east-1
+  cleanup_script:
+    - ./ci/public-ecr-cleanup.sh
+  depends_on:
+    - container_image_manifest
+
 cluster_testing_docker_builder:
   cpu: *CPUS
   memory: *MEMORY

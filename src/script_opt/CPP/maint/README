@@ -11,13 +11,7 @@ If you make changes to the scripts, format them using
 
 The maintenance workflow:
 
-1.  Update this timestamp, so this file will be changed and you'll remember
-    to check in updates to the list of how the compiler currently fares
-    on various btests (see end of this doc):
-
-	Sun Mar  5 12:02:44 PST 2023
-
-2.  Make sure the compiler can compile and execute the base scripts:
+1.  Make sure the compiler can compile and execute the base scripts:
 
 	echo | src/zeek -O gen-C++
 	ninja
@@ -27,32 +21,30 @@ The maintenance workflow:
     compiler that you'll want to subsequent run against the test suite,
     per the following.
 
-3.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
+2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.
 
-4.  For each such Zeek file, run "check-zeek.sh" to see whether Zeek can
+3.  For each such Zeek file, run "check-zeek.sh" to see whether Zeek can
     parse it.  This helps remove from further consideration difficult
     tests (like those that have embedded input files, or multiple separate
     scripts).
 
-5.  "mkdir CPP-test" - a directory for holding results relating to C++ testing
+4.  "mkdir CPP-test" - a directory for holding results relating to C++ testing
 
-6.  Run "check-CPP-gen.sh" for each Zeek file that passed "check-zeek.sh".
+5.  Run "check-CPP-gen.sh" for each Zeek file that passed "check-zeek.sh".
     This will generate a corresponding file in CPP-test/out* indicating whether
     "-O gen-C++" can successfully run on the input.  Presently, it should
-    be able to do so for all of them, other than some exceptions noted below.
+    be able to do so for all of them.
 
     This step is parallelizable, say using xargs -P 10 -n 1.
 
-7.  Copy ./src/zeek to ./zeek.HOLD.  This is used to speed up recompilation used
+6.  Copy ./src/zeek to ./zeek.HOLD.  This is used to speed up recompilation used
     in the next step.  However, it's also a headache to do development to
     fix a bug and then forget to update zeek.HOLD, which means you wind up
     running the old version.  You can combat that by removing ./zeek.HOLD
     every time you start working on fixing a bug.
 
-8.  Use the appended database to remove inputs that have known issues.
-
-9.  For every input that survives that pruning, run "do-CPP-btest.sh".
+7.  For every input that survives that pruning, run "do-CPP-btest.sh".
     This will generate C++ for the BTest, compile it, and run the result
     to see if it succeeds.  It populates CPP-test/diag* with the Btest
     diagnostic output (empty means success).  For non-empty output,
@@ -67,32 +59,12 @@ The maintenance workflow:
     does btest, for displaying differences or updating the baseline
     (which is Baseline.cpp).
 
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+FYI:
+    There are two tests that in the past have demonstrated possible
+    variations due to presumed race conditions:
 
-These BTests won't successfully run due to the indicated issue:
+	../testing/btest/scripts/base/utils/active-http.test
+	../testing/btest/supervisor/revive-leaf.zeek
 
-	bad-constructor - uses a complex old-style constructor that
-		should be updated
-	bad-when - deliberately has old-style "when" without captures
-	cond - not compilable due to the presence of conditional code
-	deprecated - uses deprecated features not support for -O gen-C++
-	test-glitch - fails because of how we do testing: the first -O gen-C++
-		pass leaves httpd running, which causes the second -O use-C++
-		pass to fail when it tries to start up a new httpd
-	skipped - test can be skipped due to environmental reasons (e.g.,
-		whether we have a certain Kerberos setup)
-	start-next - test uses @TEST-START-NEXT.  As long as the diagnostic
-		output doesn't have errors for language.blank-local-4, it's ok
-	race? - appears to have a race condition, can fail even when
-		running with interpreter, and can pass with -O C++
-
-Database Of Known Issues
-
-../testing/btest/language/blank-local.zeek start-next
-../testing/btest/language/when-aggregates.zeek bad-when
-../testing/btest/scripts/base/protocols/krb/smb2_krb.test skipped
-../testing/btest/scripts/base/protocols/krb/smb2_krb_nokeytab.test skipped
-../testing/btest/scripts/base/utils/active-http.test test-glitch
-../testing/btest/scripts/policy/frameworks/dpd/packet-segment-logging.zeek cond
-../testing/btest/scripts/policy/misc/dump-events.zeek skipped
-../testing/btest/supervisor/revive-leaf.zeek race?
+    These haven't shown up in a while, as of May 2023, so we can remove
+    the above if they continue to not show up.

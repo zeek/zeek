@@ -528,5 +528,9 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	{
 	if ( atype == Analyzer::ANALYZER_SSL || atype == Analyzer::ANALYZER_DTLS )
 		if ( info$c?$ssl )
-			finish(info$c, T);
+			{
+			# analyzer errored out; prevent us from trying to remove it later
+			delete info$c$ssl$analyzer_id;
+			finish(info$c, F);
+			}
 	}

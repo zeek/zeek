@@ -1,3 +1,12 @@
+6.0.0-dev.544 | 2023-05-11 00:01:20 +0200
+
+  * GH-3028: policy/community-id: Do not use new_connection() (Arne Welzel, Corelight)
+
+    Issue #3028 tracks how a flipped connections reset a connection's value
+    including any state set during new_connection(). For the time being,
+    update community-id functionality back to the original connection_state_remove()
+    approach to avoid missing community_ids on flipped connections.
+
 6.0.0-dev.541 | 2023-05-10 23:16:24 +0200
 
   * testing/zeek-version-link: Assume nm is there (Arne Welzel, Corelight)

@@ -328,17 +328,9 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	zeek::detail::internal_md5(digest, 16, digest);
 	}
 
-static bool read_random_seeds(const char* read_file, uint32_t* seed,
+static bool read_random_seeds(FILE* f, uint32_t* seed,
                               std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
 	{
-	FILE* f = nullptr;
-
-	if ( ! (f = fopen(read_file, "r")) )
-		{
-		reporter->Warning("Could not open seed file '%s': %s", read_file, strerror(errno));
-		return false;
-		}
-
 	// Read seed for srandom().
 	if ( fscanf(f, "%u", seed) != 1 )
 		{
@@ -404,19 +396,35 @@ void seed_random(unsigned int seed)
 		srandom(seed);
 	}
 
-void init_random_seed(const char* read_file, const char* write_file, bool use_empty_seeds)
+void init_random_seed(const char* read_file, const char* write_file, bool use_empty_seeds,
+                      std::string seed_string)
 	{
 	std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE> buf = {};
 	size_t pos = 0; // accumulates entropy
 	bool seeds_done = false;
 	uint32_t seed = 0;
 
+	FILE* seed_file = nullptr;
+
 	if ( read_file )
 		{
-		if ( ! read_random_seeds(read_file, &seed, buf) )
-			reporter->FatalError("Could not load seeds from file '%s'.\n", read_file);
-		else
-			seeds_done = true;
+		if ( ! (seed_file = fopen(read_file, "r")) )
+			reporter->FatalError("Could not open seed file '%s': %s", read_file, strerror(errno));
+		}
+	else if ( ! seed_string.empty() )
+		{
+		if ( ! (seed_file = fmemopen(seed_string.data(), seed_string.size(), "r")) )
+			reporter->FatalError("Could not create seed file from string: %s", strerror(errno));
+		}
+
+	if ( seed_file )
+		{
+		// fclose() in read_random_seeds()...
+		if ( ! read_random_seeds(seed_file, &seed, buf) )
+			reporter->FatalError("Could not load seeds from file '%s'",
+			                     read_file ? read_file : "<seed string>");
+
+		seeds_done = true;
 		}
 	else if ( use_empty_seeds )
 		seeds_done = true;

@@ -138,12 +138,15 @@ extern bool ensure_dir(const char* dirname);
 
 extern void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
 
-// Initializes RNGs for zeek::random_number() and MD5 usage.  If load_file is given,
-// the seeds (both random & MD5) are loaded from that file.  This takes
-// precedence over the "use_empty_seeds" argument, which just
-// zero-initializes all seed values.  If write_file is given, the seeds are
+// Initializes RNGs for zeek::random_number() and hmac-md5/siphash/highwayhash usage.
+// If load_file is given, the seeds (both random & hashes) are loaded from that file.  This
+// takes precedence over the "seed_string and "use_empty_seeds" arguments. The content of
+// "seed_string" is used as seeds if not empty next. Otherwise, when "use_empty_seeds" is
+// set it zero-initializes all seed values. If neither of these provides initial seed values,
+// platform specific random data is used as seeds. If write_file is given, the seeds are
 // written to that file.
-extern void init_random_seed(const char* load_file, const char* write_file, bool use_empty_seeds);
+extern void init_random_seed(const char* load_file, const char* write_file, bool use_empty_seeds,
+                             std::string seed_string = {});
 
 // Retrieves the initial seed computed after the very first call to
 // init_random_seed(). Repeated calls to init_random_seed() will not affect

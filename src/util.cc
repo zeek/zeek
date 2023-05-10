@@ -39,8 +39,11 @@
 
 #include <algorithm>
 #include <array>
+#include <fstream>
 #include <iostream>
+#include <istream>
 #include <random>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -328,50 +331,52 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 	zeek::detail::internal_md5(digest, 16, digest);
 	}
 
-static bool read_random_seeds(FILE* f, uint32_t* seed,
+static bool read_random_seeds(std::istream& is, uint32_t* seed,
                               std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
 	{
 	// Read seed for srandom().
-	if ( fscanf(f, "%u", seed) != 1 )
-		{
-		fclose(f);
+	uint32_t tmp;
+	is >> tmp;
+	if ( is.fail() )
 		return false;
-		}
+
+	*seed = tmp;
 
 	// Read seeds for hmac-md5/siphash/highwayhash.
 	for ( auto& v : buf )
 		{
-		uint32_t tmp;
-		if ( fscanf(f, "%u", &tmp) != 1 )
-			{
-			fclose(f);
+		is >> tmp;
+		if ( is.fail() )
 			return false;
-			}
 
 		v = tmp;
 		}
 
-	fclose(f);
 	return true;
 	}
 
-static bool write_random_seeds(const char* write_file, uint32_t seed,
-                               std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
+static bool
+write_random_seeds(const char* write_file, uint32_t seed,
+                   const std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
 	{
-	FILE* f = nullptr;
-
-	if ( ! (f = fopen(write_file, "w+")) )
+	std::ofstream ofs(write_file, std::ios::out | std::ios::trunc);
+	if ( ! ofs.is_open() )
 		{
 		reporter->Warning("Could not create seed file '%s': %s", write_file, strerror(errno));
 		return false;
 		}
 
-	fprintf(f, "%u\n", seed);
+	ofs << seed << std::endl;
+	if ( ofs.fail() )
+		return false;
 
 	for ( const auto& v : buf )
-		fprintf(f, "%u\n", v);
+		{
+		ofs << v << std::endl;
+		if ( ofs.fail() )
+			return false;
+		}
 
-	fclose(f);
 	return true;
 	}
 
@@ -397,30 +402,32 @@ void seed_random(unsigned int seed)
 	}
 
 void init_random_seed(const char* read_file, const char* write_file, bool use_empty_seeds,
-                      std::string seed_string)
+                      const std::string& seed_string)
 	{
 	std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE> buf = {};
 	size_t pos = 0; // accumulates entropy
 	bool seeds_done = false;
 	uint32_t seed = 0;
 
-	FILE* seed_file = nullptr;
+	std::unique_ptr<std::istream> is;
 
 	if ( read_file )
 		{
-		if ( ! (seed_file = fopen(read_file, "r")) )
+		auto ifs = std::make_unique<std::ifstream>(read_file);
+		if ( ! ifs->is_open() )
 			reporter->FatalError("Could not open seed file '%s': %s", read_file, strerror(errno));
+
+		is = std::move(ifs);
 		}
 	else if ( ! seed_string.empty() )
 		{
-		if ( ! (seed_file = fmemopen(seed_string.data(), seed_string.size(), "r")) )
-			reporter->FatalError("Could not create seed file from string: %s", strerror(errno));
+		auto ss = std::make_unique<std::istringstream>(seed_string);
+		is = std::move(ss);
 		}
 
-	if ( seed_file )
+	if ( is )
 		{
-		// fclose() in read_random_seeds()...
-		if ( ! read_random_seeds(seed_file, &seed, buf) )
+		if ( ! read_random_seeds(*is, &seed, buf) )
 			reporter->FatalError("Could not load seeds from file '%s'",
 			                     read_file ? read_file : "<seed string>");
 

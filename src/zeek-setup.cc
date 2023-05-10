@@ -630,16 +630,16 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		}
 
 	std::string seed_string;
-	if ( auto* seed_env = getenv("ZEEK_SEED") )
+	if ( const auto* seed_env = getenv("ZEEK_SEED") )
 		seed_string = seed_env;
 
 	const char* seed_load_file = getenv("ZEEK_SEED_FILE");
 
-	if ( seed_load_file && *seed_load_file && ! seed_string.empty())
-		reporter->FatalError("can't use ZEEK_SEED and ZEEK_SEED_FILE together");
-
 	if ( options.random_seed_input_file )
 		seed_load_file = options.random_seed_input_file->data();
+
+	if ( seed_load_file && *seed_load_file && ! seed_string.empty() )
+		reporter->FatalError("can't use ZEEK_SEED together with ZEEK_SEED_FILE or -G");
 
 	util::detail::init_random_seed(
 		(seed_load_file && *seed_load_file ? seed_load_file : nullptr),

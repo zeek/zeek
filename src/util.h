@@ -146,7 +146,7 @@ extern void hmac_md5(size_t size, const unsigned char* bytes, unsigned char dige
 // platform specific random data is used as seeds. If write_file is given, the seeds are
 // written to that file.
 extern void init_random_seed(const char* load_file, const char* write_file, bool use_empty_seeds,
-                             std::string seed_string = {});
+                             const std::string& seed_string = {});
 
 // Retrieves the initial seed computed after the very first call to
 // init_random_seed(). Repeated calls to init_random_seed() will not affect

@@ -1,3 +1,17 @@
+6.0.0-dev.541 | 2023-05-10 23:16:24 +0200
+
+  * testing/zeek-version-link: Assume nm is there (Arne Welzel, Corelight)
+
+  * Drop dependency for zeek_dynamic_plugin_base (Dominik Charousset, Corelight)
+
+  * Fixup ifdef check in Plugin.h (Arne Welzel, Corelight)
+
+  * Update cmake_minimum_required() in test plugins (Arne Welzel, Corelight)
+
+  * testing: Add zeek-version-link tests (Arne Welzel, Corelight)
+
+  * Clean up ZEEK_CONFIG_SKIP_VERSION_H issues (Dominik Charousset, Corelight)
+
 6.0.0-dev.533 | 2023-05-09 13:38:37 -0700
 
   * core.network_time.broker: Test reliability improvement (Arne Welzel, Corelight)

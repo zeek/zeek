@@ -188,6 +188,9 @@ set_target_properties(zeek_internal PROPERTIES EXPORT_NAME Internal)
 install(TARGETS zeek_internal EXPORT ZeekTargets)
 target_compile_features(zeek_internal INTERFACE ${ZEEK_CXX_STD})
 
+# Skip "link-time version check" in Plugin.h for plugins that we bake in.
+target_compile_definitions(zeek_internal INTERFACE ZEEK_PLUGIN_SKIP_VERSION_CHECK)
+
 # Target for bundling the creation of auto-generated files.
 add_custom_target(zeek_autogen_files)
 
@@ -238,6 +241,13 @@ if (ZEEK_ENABLE_FUZZERS)
     set(zeek_fuzzer_shared_access PUBLIC)
 endif ()
 
+# Set ZEEK_CONFIG_SKIP_VERSION_H for our main in-source targets.
+foreach (name zeek_exe zeek_lib zeek_fuzzer_shared)
+    if (TARGET ${name})
+        target_compile_definitions(${name} PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
+    endif ()
+endforeach ()
+
 # Convenience function for adding library dependencies to the main target(s).
 function (zeek_target_link_libraries lib_target)
     foreach (name zeek_exe zeek_lib zeek_fuzzer_shared)
@@ -268,7 +278,6 @@ endfunction ()
 # loaded plugins. Also propagates include paths and C++17 mode on the install
 # interface.
 add_library(zeek_dynamic_plugin_base INTERFACE)
-target_link_libraries(zeek_dynamic_plugin_base INTERFACE $<BUILD_INTERFACE:zeek_internal>)
 target_include_directories(
     zeek_dynamic_plugin_base
     INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -318,6 +327,7 @@ function (zeek_add_subdir_library name)
     # Create target and add the sources.
     set(target_name "zeek_${name}_obj")
     add_library(${target_name} OBJECT ${FN_ARGS_SOURCES})
+    target_compile_definitions(${target_name} PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
     add_dependencies(${target_name} zeek_autogen_files)
     target_link_libraries(${target_name} PRIVATE $<BUILD_INTERFACE:zeek_internal>)
     add_clang_tidy_files(${FN_ARGS_SOURCES})

@@ -811,11 +811,17 @@ type SSLExtension(rec: HandshakeRecord) = record {
 		EXT_SUPPORTED_VERSIONS -> supported_versions_selector: SupportedVersionsSelector(rec, data_len)[] &until($element == 0 || $element != 0);
 		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == 0 || $element != 0);
 		EXT_PRE_SHARED_KEY -> pre_shared_key: PreSharedKey(rec)[] &until($element == 0 || $element != 0);
+		EXT_CONNECTION_ID -> connection_id: ConnectionId(rec)[] &until($element == 0 || $element != 0);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
 
 %include tls-handshake-signed_certificate_timestamp.pac
+
+type ConnectionId(rec: HandshakeRecord) = record {
+	length: uint8;
+	cid: bytestring &length=length;
+};
 
 type SupportedVersionsSelector(rec: HandshakeRecord, data_len: uint16) = case ( rec.is_orig ^ $context.connection.flipped() ) of {
 	true -> a: SupportedVersions(rec);

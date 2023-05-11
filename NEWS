@@ -242,6 +242,10 @@ New Functionality
 - The ``ip4_hdr`` record was extended by ``DF``, ``MF``, ``offset`` and ``sum``
   to aid packet-level analysis use-cases.
 
+- Zeek now supports parsing the recently standardized DTLS 1.3. Besides the protocol
+  messages being correctly parsed and raising the typical SSL/TLS events, the biggest
+  visible change is the newly added ``ssl_extension_connection_id`` event.
+
 - The NTP analyzer now recognizes when client and server mode messages disagree
   with the notion of "originator" and "responder" and flips the connection. This
   can happen in packet loss or packet re-ordering scenarios. Such connections will

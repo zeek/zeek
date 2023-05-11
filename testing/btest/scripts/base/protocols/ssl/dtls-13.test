@@ -1,0 +1,30 @@
+# This tests a normal SSL connection and the log it outputs.
+
+# @TEST-EXEC: zeek -C -r $TRACES/tls/dtls13-wolfssl.pcap %INPUT
+# @TEST-EXEC: cp ssl.log ssl-all.log
+# @TEST-EXEC: echo "start CID test"
+# @TEST-EXEC: zeek -C -r $TRACES/tls/dtls13-cid.pcap %INPUT
+# @TEST-EXEC: cat ssl.log >> ssl-all.log
+# @TEST-EXEC: btest-diff ssl-all.log
+# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: test ! -f dpd.log
+
+event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
+	{
+	print "CH", c$id, version, record_version;
+	}
+
+event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count)
+	{
+	print "SH", c$id, version, record_version;
+	}
+
+event ssl_extension_connection_id(c: connection, is_client: bool, cid: string)
+	{
+	print "CID", c$id, is_client, cid;
+	}
+
+event ssl_encrypted_data(c: connection, is_client: bool, record_version: count, content_type: count, length: count)
+	{
+	print "Encrypted", c$id, is_client, record_version, content_type, length;
+	}

@@ -1,3 +1,33 @@
+6.0.0-dev.559 | 2023-05-11 15:01:44 +0100
+
+  * Add DTLSv1.3 support (Johanna Amann, Corelight)
+
+    DTLSv1.3 changes the DTLS record format, introducing a completely new
+    unified header - which is a first for DTLS.
+
+    In case connection IDs are used, parsing of the unified header
+    is skipped. This is due to the fact, that the header then contains a
+    variable length element, with the length of the element not given in the
+    header. Instead, the length is given in the client/server hello message
+    of the opposite side of the connection (which we might have missed).
+
+    Furthermore, parsing is not of a high importance, since we are not
+    passing the connection ID, or any of the other parsed values of the
+    unified header into scriptland.
+
+  * SSL: Fix logging of Hello Retry Requests (Johanna Amann, Corelight)
+
+    It turns out that we never logged hello retry requests correctly in the
+    ssl_history field.
+
+    Hello retry requests are (in their final version) signaled by a specific
+    random value in the server random.
+
+    This commit fixes this oversight, and hello retry requests are now
+    correctly logged as such.
+
+  * remote_event_ts_compat: Fix NETWORK_TIMESTAMP to NetworkTimestamp (Arne Welzel, Corelight)
+
 6.0.0-dev.551 | 2023-05-11 14:00:31 +0200
 
   * Add compatibility tests for timestamped events. (Jan Grashoefer, Corelight)

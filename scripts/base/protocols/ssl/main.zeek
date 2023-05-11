@@ -68,6 +68,9 @@ export {
 		## Flag to indicate if this record already has been logged, to
 		## prevent duplicates.
 		logged:           bool             &default=F;
+		## Flag to indicate that we have seen a Hello Retry request message.
+		## Used internally for ssl_history logging
+		hrr_seen:         bool             &default=F;
 
 		## SSL history showing which types of packets we received in which order.
 		## Letters have the following meaning with client-sent letters being capitalized:
@@ -283,6 +286,10 @@ event ssl_server_hello(c: connection, version: count, record_version: count, pos
 		}
 	c$ssl$cipher = cipher_desc[cipher];
 
+	# Check if this is a hello retry request. A magic value in the random is used to signal this
+	if ( server_random == "\xCF\x21\xAD\x74\xE5\x9A\x61\x11\xBE\x1D\x8C\x02\x1E\x65\xB8\x91\xC2\xA2\x11\x16\x7A\xBB\x8C\x5E\x07\x9E\x09\xE2\xC8\xA8\x33\x9C" )
+		c$ssl$hrr_seen = T;
+
 	if ( c$ssl?$session_id && c$ssl$session_id == bytestring_to_hexstr(session_id) && c$ssl$version_num/0xFF != 0x7F && c$ssl$version_num != TLSv13 )
 		c$ssl$resumed = T;
 	}
@@ -360,7 +367,14 @@ event ssl_handshake_message(c: connection, is_client: bool, msg_type: count, len
 			add_to_history(c, is_client, "c");
 			break;
 		case SSL::SERVER_HELLO:
-			add_to_history(c, is_client, "s");
+			if ( c$ssl$hrr_seen )
+				{
+				# the server_hello event is raised first, and sets the flag
+				add_to_history(c, is_client, "j");
+				c$ssl$hrr_seen = F;
+				}
+			else
+				add_to_history(c, is_client, "s");
 			break;
 		case SSL::HELLO_VERIFY_REQUEST:
 			add_to_history(c, is_client, "v");

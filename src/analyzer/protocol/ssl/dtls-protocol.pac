@@ -16,14 +16,13 @@ type DTLSPDU(is_orig: bool) = record {
 type SSLRecordSwitch(is_orig: bool) = record {
 	firstbyte: uint8;
 
-	cont: case $context.connection.choose_record_type(firstbyte) of {
+	cont: case $context.connection.is_unified_record(firstbyte) of {
 		false -> rec: SSLRecord(firstbyte, is_orig);
 		true -> unified: UnifiedRecord(firstbyte, is_orig);
 	};
 };
 
 type UnifiedRecord(firstbyte: uint8, is_orig: bool) = record {
-	# sequence_number: bytestring &length=(sequence_number_length?2:1);
 	# If we have a CID, we do currently not try to parse anything, as the connection
 	# ID is variable length, with the length not given in this packet (but only in the hello message
 	# of the opposite side of the direction).
@@ -31,7 +30,7 @@ type UnifiedRecord(firstbyte: uint8, is_orig: bool) = record {
 		false -> sequence_number: bytestring &length=(sequence_number_length?2:1);
 		true -> nothing1: bytestring &length=0;
 	} &requires(sequence_number_length) &requires(with_cid);
-	lenthfield: case (with_cid == false && length_present == true) of {
+	lengthfield: case (with_cid == false && length_present == true) of {
 		true -> length: uint16;
 		false -> nothing2: bytestring &length=0;
 	} &requires(length_present) &requires(with_cid);
@@ -118,11 +117,9 @@ refine connection SSL_Conn += {
 		}
 		%}
 
-		function choose_record_type(firstbyte: uint8): bool
+		function is_unified_record(firstbyte: uint8): bool
 			%{
 			uint16_t negotiated_version = zeek_analyzer()->GetNegotiatedVersion();
-			if ( negotiated_version == DTLSv13 && ( (firstbyte & 0x20) == 0x20 ) )
-				return true;
-			return false;
+			return negotiated_version == DTLSv13 && ( (firstbyte & 0xE0) == 0x20 );
 			%}
 };

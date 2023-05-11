@@ -82,7 +82,7 @@ with broker.Endpoint() as ep, \
 	print("send event with timestamp")
 	ts = datetime.datetime.fromtimestamp(23.0, broker.utc)
 	metadata = {
-		broker.zeek.Metadata.NETWORK_TIMESTAMP: ts,
+		broker.zeek.MetadataType.NetworkTimestamp: ts,
 	}
 	my_event = broker.zeek.Event("my_event", "with ts", metadata=metadata)
 	ep.publish(broker_topic, my_event)

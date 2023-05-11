@@ -9,9 +9,6 @@ else
     sed="sed -E"
 fi
 
-# File IDs changed between Zeek 3.1 and 3.2.
-
 ${sed} 's/^ *#(open|close).(19|20)..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g' |
-    ${sed} 's/F[A-Za-z0-9]{14,17}/XXXXXXXXXXXXXXXXX/g' |
     $(dirname $0)/diff-remove-timestamps |
     $(dirname $0)/diff-remove-abspath

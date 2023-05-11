@@ -18,11 +18,16 @@ using namespace zeek::spicy::rt;
 void EndpointState::debug(const std::string& msg) { spicy::rt::debug(_cookie, msg); }
 
 static auto create_endpoint(bool is_orig, analyzer::Analyzer* analyzer, ::spicy::rt::driver::ParsingType type) {
+    static uint64_t id_counter = 0;
+
+    ++id_counter;
+
     cookie::ProtocolAnalyzer cookie{.analyzer = analyzer,
                                     .is_orig = is_orig,
-                                    .fstate_orig = cookie::FileStateStack(hilti::rt::fmt("%x.orig", analyzer->GetID())),
+                                    .fstate_orig =
+                                        cookie::FileStateStack(hilti::rt::fmt("%" PRIx64 ".orig", id_counter)),
                                     .fstate_resp =
-                                        cookie::FileStateStack(hilti::rt::fmt("%x.resp", analyzer->GetID()))};
+                                        cookie::FileStateStack(hilti::rt::fmt("%" PRIx64 ".resp", id_counter))};
 
     // Cannot get parser here yet, analyzer may not have been fully set up.
     return EndpointState(std::move(cookie), type);

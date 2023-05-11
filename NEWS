@@ -91,6 +91,19 @@ New Functionality
 
   To disable this functionality, pass ``--disable-javascript`` to configure.
 
+- Zeek events now hold network timestamps. For scheduled events, the timestamp
+  represents the network time for which the event was scheduled for, otherwise
+  it is the network time at event creation. A new bif ``current_event_time()``
+  allows to retrieve the current event's network timestamp within the script-layer.
+
+  When Zeek sends events via Broker to other nodes in a cluster, an event's network
+  timestamp is attached to the Broker messages. On a receiving Zeek node executing a
+  handler for a remote event, ``current_event_time()`` returns the network time of
+  the sending node at the time the event was created.
+
+  The Broker level implementation allows to exchange arbitrary event metadata, but
+  Zeek's script and C++ APIs currently only expose network timestamp functionality.
+
 - A new bif ``from_json()`` can be used to parse JSON strings into records.
 
 	type A: record { a: addr; };

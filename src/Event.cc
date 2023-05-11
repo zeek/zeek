@@ -7,7 +7,6 @@
 #include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/NetVar.h"
-#include "zeek/RunState.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
@@ -19,10 +18,10 @@ zeek::EventMgr zeek::event_mgr;
 namespace zeek
 	{
 
-Event::Event(EventHandlerPtr arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
-             analyzer::ID arg_aid, Obj* arg_obj)
-	: handler(arg_handler), args(std::move(arg_args)), src(arg_src), aid(arg_aid), obj(arg_obj),
-	  next_event(nullptr)
+Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args,
+             util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
+	: handler(arg_handler), args(std::move(arg_args)), src(arg_src), aid(arg_aid), ts(arg_ts),
+	  obj(arg_obj), next_event(nullptr)
 	{
 	if ( obj )
 		Ref(obj);
@@ -53,7 +52,7 @@ void Event::Dispatch(bool no_remote)
 
 	try
 		{
-		handler->Call(&args, no_remote);
+		handler->Call(&args, no_remote, ts);
 		}
 
 	catch ( InterpreterException& e )
@@ -74,6 +73,7 @@ EventMgr::EventMgr()
 	head = tail = nullptr;
 	current_src = util::detail::SOURCE_LOCAL;
 	current_aid = 0;
+	current_ts = 0;
 	src_val = nullptr;
 	draining = false;
 	}
@@ -91,9 +91,9 @@ EventMgr::~EventMgr()
 	}
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src,
-                       analyzer::ID aid, Obj* obj)
+                       analyzer::ID aid, Obj* obj, double ts)
 	{
-	QueueEvent(new Event(h, std::move(vl), src, aid, obj));
+	QueueEvent(new Event(h, std::move(vl), src, aid, obj, ts));
 	}
 
 void EventMgr::QueueEvent(Event* event)
@@ -120,6 +120,8 @@ void EventMgr::QueueEvent(Event* event)
 void EventMgr::Dispatch(Event* event, bool no_remote)
 	{
 	current_src = event->Source();
+	current_aid = event->Analyzer();
+	current_ts = event->Time();
 	event->Dispatch(no_remote);
 	Unref(event);
 	}
@@ -154,6 +156,7 @@ void EventMgr::Drain()
 
 			current_src = current->Source();
 			current_aid = current->Analyzer();
+			current_ts = current->Time();
 			current->Dispatch();
 			Unref(current);
 

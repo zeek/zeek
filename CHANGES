@@ -1,3 +1,18 @@
+6.0.0-dev.551 | 2023-05-11 14:00:31 +0200
+
+  * Add compatibility tests for timestamped events. (Jan Grashoefer, Corelight)
+
+    This adds compatibility tests for receiving non-timestamped events as
+    well as providing timestamps via broker websockets.
+
+  * Add timestamps to auto published broker events. (Jan Grashoefer, Corelight)
+
+  * Add timestamps to manually published broker events. (Jan Grashoefer, Corelight)
+
+  * Annotate scheduled events with intended timestamp. (Jan Grashoefer, Corelight)
+
+  * Add timestamp to events. (Jan Grashoefer, Corelight)
+
 6.0.0-dev.544 | 2023-05-11 00:01:20 +0200
 
   * GH-3028: policy/community-id: Do not use new_connection() (Arne Welzel, Corelight)

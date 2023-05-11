@@ -4279,7 +4279,8 @@ ScheduleTimer::~ScheduleTimer() { }
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	{
 	if ( event )
-		event_mgr.Enqueue(event, std::move(args));
+		event_mgr.Enqueue(event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr,
+		                  this->Time());
 	}
 
 ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)

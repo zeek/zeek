@@ -14,6 +14,11 @@
 namespace zeek
 	{
 
+namespace run_state
+	{
+extern double network_time;
+	} // namespace run_state
+
 class Func;
 using FuncPtr = IntrusivePtr<Func>;
 
@@ -34,7 +39,7 @@ public:
 
 	void AutoUnpublish(const std::string& topic) { auto_publish.erase(topic); }
 
-	void Call(zeek::Args* vl, bool no_remote = false);
+	void Call(zeek::Args* vl, bool no_remote = false, double ts = run_state::network_time);
 
 	// Returns true if there is at least one local or remote handler.
 	explicit operator bool() const;

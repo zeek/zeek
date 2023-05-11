@@ -354,6 +354,19 @@ function set_network_time%(nt: time%): bool
 	return zeek::val_mgr->True();
 	%}
 
+## Returns the timestamp of the last raised event. The timestamp reflects the
+## network time the event was intended to be executed. For scheduled events,
+## this is the time the event was scheduled for. For any other event, this is
+## the time when the event was created.
+##
+## Returns: The timestamp of the last raised event.
+##
+## .. zeek:see:: current_time set_network_time
+function current_event_time%(%): time
+	%{
+	return zeek::make_intrusive<zeek::TimeVal>(zeek::event_mgr.CurrentEventTime());
+	%}
+
 ## Returns a system environment variable.
 ##
 ## var: The name of the variable whose value to request.

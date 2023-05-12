@@ -4,6 +4,8 @@
 #include <cstdlib>
 
 #include "zeek/Event.h"
+#include "zeek/EventRegistry.h"
+#include "zeek/Options.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/session/Manager.h"
@@ -37,6 +39,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 	options.deterministic_mode = true;
 	options.ignore_checksums = true;
 	options.abort_on_scripting_errors = true;
+	options.dns_mode = zeek::detail::DNS_MgrMode::DNS_FAKE;
 
 	if ( zeek::detail::setup(*argc, *argv, &options).code )
 		abort();

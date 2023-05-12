@@ -1,3 +1,15 @@
+6.0.0-dev.570 | 2023-05-12 23:29:09 +0200
+
+  * Introduce ZEEK_SEED_VALUES environment variable (Arne Welzel, Corelight)
+
+    For "individually different but deterministic" runs specifying Zeek's
+    seed as an environment variable eases setups as one can avoid creating
+    extra seed files for each of the individual processes.
+
+    It is an error to specify the new ZEEK_SEED_VALUES variable together
+    with the existing ZEEK_SEED_FILE and -G. ZEEK_SEED takes precedence over
+    deterministic mode (-D) like ZEEK_SEED_FILE does today already.
+
 6.0.0-dev.568 | 2023-05-12 13:41:55 -0700
 
   * enhancements for event-tracing: (Vern Paxson, Corelight)

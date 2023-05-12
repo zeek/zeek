@@ -253,6 +253,10 @@ New Functionality
 
 - New bifs for ``ceil()`` and ``log2()`` have been added.
 
+- Seeds for deterministic processing can now also be set through a new environment
+  variable called ``ZEEK_SEED_VALUES``. The format is expected to contain 21
+  positive numbers separated by spaces.
+
 Changed Functionality
 ---------------------
 

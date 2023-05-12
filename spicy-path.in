@@ -4,7 +4,7 @@
 # Spicy tooling in the build tree.
 
 PATHS=.
-PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/spicy/lib
-PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/hilti/lib
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/lib
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/hilti/lib
 
 echo $PATHS

@@ -1185,24 +1185,32 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
     const GlueCompiler* gc;
 
     std::set<hilti::ID> zeek_types;
-    std::optional<hilti::ID> id;
+    std::vector<std::optional<hilti::ID>> ids = {};
+
+    // Returns current ID, if any.
+    auto id() const { return ids.empty() ? std::nullopt : ids.back(); }
+
+    // Returns namespace of top-level ID, if any.
+    auto namespace_() const {
+        return (! ids.empty() && ids.front().has_value()) ? ids.front()->namespace_() : hilti::ID();
+    }
 
     result_t base_type(const char* tag) { return builder::call("zeek_rt::create_base_type", {builder::id(tag)}); }
 
     result_t createZeekType(const hilti::Type& t, const std::optional<hilti::ID>& id_ = {}) {
         if ( id_ )
-            id = id_;
+            ids.push_back(id_);
         else if ( auto x = t.typeID() )
-            id = *x;
+            ids.push_back(*x);
         else
-            id = std::nullopt;
+            ids.push_back(std::nullopt);
 
-        if ( id ) {
+        if ( id() ) {
             // Avoid infinite recursion.
-            if ( zeek_types.count(*id) )
+            if ( zeek_types.count(*id()) )
                 return hilti::result::Error("type is self-recursive");
 
-            zeek_types.insert(*id);
+            zeek_types.insert(*id());
         }
 
         auto x = dispatch(t);
@@ -1210,7 +1218,11 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             return hilti::result::Error(
                 hilti::util::fmt("no support for automatic conversion into a Zeek type (%s)", t.typename_()));
 
-        zeek_types.erase(*id);
+        if ( id() )
+            zeek_types.erase(*id());
+
+        ids.pop_back();
+
         return *x;
     }
 
@@ -1226,14 +1238,14 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
     result_t operator()(const hilti::type::UnsignedInteger& t) { return base_type("zeek_rt::ZeekTypeTag::Count"); }
 
     result_t operator()(const hilti::type::Enum& t) {
-        assert(id);
+        assert(id());
 
         auto labels = hilti::rt::transform(t.labels(), [](const auto& l) {
             return builder::tuple({builder::string(l.get().id()), builder::integer(l.get().value())});
         });
 
-        return builder::call("zeek_rt::create_enum_type", {builder::string(id->namespace_()),
-                                                           builder::string(id->local()), builder::vector(labels)});
+        return builder::call("zeek_rt::create_enum_type", {builder::string(id()->namespace_()),
+                                                           builder::string(id()->local()), builder::vector(labels)});
     }
 
     result_t operator()(const hilti::type::Map& t) {
@@ -1259,7 +1271,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
     }
 
     result_t operator()(const hilti::type::Struct& t) {
-        assert(id);
+        assert(id());
 
         std::vector<hilti::Expression> fields;
         for ( const auto& f : t.fields() ) {
@@ -1270,8 +1282,8 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             fields.emplace_back(builder::tuple({builder::string(f.id()), *ztype, builder::bool_(f.isOptional())}));
         }
 
-        return builder::call("zeek_rt::create_record_type", {builder::string(id->namespace_()),
-                                                             builder::string(id->local()), builder::vector(fields)});
+        return builder::call("zeek_rt::create_record_type", {builder::string(id()->namespace_()),
+                                                             builder::string(id()->local()), builder::vector(fields)});
     }
 
     result_t operator()(const hilti::type::Tuple& t) {
@@ -1287,12 +1299,30 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             fields.emplace_back(builder::tuple({builder::string(*f.id()), *ztype, builder::bool_(false)}));
         }
 
-        return builder::call("zeek_rt::create_record_type", {builder::string(id->namespace_()),
-                                                             builder::string(id->local()), builder::vector(fields)});
+        hilti::ID local;
+        hilti::ID ns;
+
+        if ( auto id_ = id() ) {
+            local = id_->local();
+            ns = id_->namespace_();
+        }
+        else {
+            // Invent a (hopefully unique) name for the Zeek-side record type
+            // so that we can handle anonymous tuple types.
+            static uint64_t i = 0;
+            local = hilti::util::
+                fmt("__spicy_tuple_%u"
+                    "_%" PRIu64,
+                    static_cast<unsigned int>(getpid()), ++i);
+            ns = namespace_();
+        }
+
+        return builder::call("zeek_rt::create_record_type",
+                             {builder::string(ns), builder::string(local), builder::vector(fields)});
     }
 
     result_t operator()(const ::spicy::type::Unit& t) {
-        assert(id);
+        assert(id());
 
         std::vector<hilti::Expression> fields;
         for ( const auto& f : gc->recordFields(t) ) {
@@ -1304,8 +1334,8 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
                 builder::tuple({builder::string(std::get<0>(f)), *ztype, builder::bool_(std::get<2>(f))}));
         }
 
-        return builder::call("zeek_rt::create_record_type", {builder::string(id->namespace_()),
-                                                             builder::string(id->local()), builder::vector(fields)});
+        return builder::call("zeek_rt::create_record_type", {builder::string(id()->namespace_()),
+                                                             builder::string(id()->local()), builder::vector(fields)});
     }
 
     result_t operator()(const hilti::type::Vector& t) {
@@ -1319,7 +1349,8 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
 } // namespace
 
 hilti::Result<hilti::Expression> GlueCompiler::createZeekType(const hilti::Type& t, const hilti::ID& id) const {
-    return VisitorZeekType(this).createZeekType(t, id);
+    auto v = VisitorZeekType(this);
+    return v.createZeekType(t, id);
 }
 
 namespace {

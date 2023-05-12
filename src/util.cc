@@ -25,6 +25,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <sstream>
 
 #if defined(HAVE_MALLINFO) || defined(HAVE_MALLINFO2)
 #include <malloc.h>
@@ -383,6 +384,23 @@ static bool write_random_seeds(const char* write_file, uint32_t seed,
 	return true;
 	}
 
+// Same as read_random_seeds() but takes seeds from a space separated string instead.
+static bool fill_random_seeds(const std::string& seed_string, uint32_t* seed,
+                              std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf)
+	{
+	stringstream ss{seed_string};
+	if ( ! (ss >> *seed) )
+		return false;
+
+	for ( auto& v : buf )
+		{
+		if ( ! (ss >> v) )
+			return false;
+		}
+
+	return true;
+	}
+
 static bool zeek_rand_deterministic = false;
 static long int zeek_rand_state = 0;
 static bool first_seed_saved = false;
@@ -404,7 +422,8 @@ void seed_random(unsigned int seed)
 		srandom(seed);
 	}
 
-void init_random_seed(const char* read_file, const char* write_file, bool use_empty_seeds)
+void init_random_seed(const char* read_file, const char* write_file, bool use_empty_seeds,
+                      const std::string& seed_string)
 	{
 	std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE> buf = {};
 	size_t pos = 0; // accumulates entropy
@@ -414,7 +433,14 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
 	if ( read_file )
 		{
 		if ( ! read_random_seeds(read_file, &seed, buf) )
-			reporter->FatalError("Could not load seeds from file '%s'.\n", read_file);
+			reporter->FatalError("Could not load seeds from file '%s'.", read_file);
+		else
+			seeds_done = true;
+		}
+	else if ( ! seed_string.empty() )
+		{
+		if ( ! fill_random_seeds(seed_string, &seed, buf) )
+			reporter->FatalError("Could not load seeds from string");
 		else
 			seeds_done = true;
 		}

@@ -859,6 +859,11 @@ void SupportAnalyzer::ForwardPacket(int len, const u_char* data, bool is_orig, u
 		return;
 		}
 
+	// If the parent is being removed or has finished, there's little point
+	// for a support analyzers to move packets forward.
+	if ( Parent()->Removing() || Parent()->IsFinished() )
+		return;
+
 	SupportAnalyzer* next_sibling = Sibling(true);
 
 	if ( next_sibling )
@@ -878,6 +883,11 @@ void SupportAnalyzer::ForwardStream(int len, const u_char* data, bool is_orig)
 		GetOutputHandler()->DeliverStream(len, data, is_orig);
 		return;
 		}
+
+	// If the parent is being removed or has finished, there's little point
+	// for a support analyzers to move stream data forward.
+	if ( Parent()->Removing() || Parent()->IsFinished() )
+		return;
 
 	SupportAnalyzer* next_sibling = Sibling(true);
 

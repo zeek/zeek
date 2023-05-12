@@ -34,6 +34,8 @@ void yyerror(const char msg[]);
 %type <ccl_val> TOK_CCL ccl full_ccl
 %type <mach_val> re singleton series string
 
+%destructor { delete $$; } <mach_val>
+
 %%
 flexrule	:	re
 			{ $1->AddAccept(1); zeek::detail::nfa = $1; }
@@ -50,18 +52,18 @@ re		:  re '|' series
 		;
 
 series		:  series singleton
-			{ $1->AppendMachine($2); }
+			{ $1->AppendMachine($2); $$ = $1; }
 		|  singleton
 		;
 
 singleton	:  singleton '*'
-			{ $1->MakeClosure(); }
+			{ $1->MakeClosure(); $$ = $1; }
 
 		|  singleton '+'
-			{ $1->MakePositiveClosure(); }
+			{ $1->MakePositiveClosure(); $$ = $1; }
 
 		|  singleton '?'
-			{ $1->MakeOptional(); }
+			{ $1->MakeOptional(); $$ = $1; }
 
 		|  singleton '{' TOK_NUMBER ',' TOK_NUMBER '}'
 			{
@@ -95,6 +97,8 @@ singleton	:  singleton '*'
 				$1->MakeClosure();
 			else
 				$1->MakeRepl($3, NO_UPPER_BOUND);
+
+			$$ = $1;
 			}
 
 		|  singleton '{' TOK_NUMBER '}'
@@ -239,6 +243,7 @@ string		:  string TOK_CHAR
 			// of "escaping" out of insensitivity
 			// if needed.
 			$1->AppendState(new zeek::detail::NFA_State($2, zeek::detail::rem->EC()));
+			$$ = $1;
 			}
 
 		|

@@ -1,3 +1,60 @@
+6.0.0-dev.611 | 2023-05-19 09:37:39 -0700
+
+  * files: Warn once for missing get_file_handle() (Arne Welzel, Corelight)
+
+    Repeating the message for every new call to get_file_handle() is not
+    very useful. It's pretty much an analyzer configuration issue so logging
+    it once should be enough.
+
+  * MIME: Re-use cur_entity_id for EndOfFile() (Arne Welzel, Corelight)
+
+    If DataIn() was called and a cur_entity_id (file_id) has been produced
+    previously, re-use it for calls to EndOfFile(). This avoids a costly
+    event_mgr.Drain() when we already have that information. It should be safer,
+    too, as `get_file_handle()` in script may generate a different ID and
+    thereby de-synchronizing.
+
+  * zeek-fuzzer-setup: Configure fake DNS (Arne Welzel, Corelight)
+
+    I'm not sure if we somehow set this for oss-fuzz through the environment,
+    but didn't find anything obvious.
+
+    Running oss-fuzz reproducers locally can triggers lookups to malware.hash.cymru.com
+    and potentially other domains due to loading local.zeek.
+
+  * SupportAnalyzer: Stop delivering to disabled parent analyzer (Arne Welzel, Corelight)
+
+    When the parent of a support analyzer has been disabled, short-circuit
+    delivering stream or packet data to it.
+
+    The specific scenario this avoids is the Content-Line analyzer continuing
+    to feed data lines into an disabled SMTP analyzer in turn creating more
+    events.
+
+    This is primarily useful for our fuzzing setup where data chunks up to 1MB
+    are generated and fed into the analyzer pipeline. In the real-world, chunk
+    sizes are usually bounded to packet size. Certain TCP reassembly constellations
+    may trigger these scenarios, however.
+
+    Closes #168
+
+  * Add length checking to ToRawPktHdrVal for truncated packets (Tim Wojtulewicz, Corelight)
+
+  * ftp: No unbounded directory command re-use (Arne Welzel, Corelight)
+
+    OSS-Fuzz generated traffic containing a CWD command with a single very large
+    path argument (427kb) starting with ".___/` \x00\x00...", This is followed
+    by a large number of ftp replies with code 250. The directory logic in
+    ftp_reply() would match every incoming reply with the one pending CWD command,
+    triggering path buildup ending with something 120MB in size.
+
+    Protect from re-using a directory command by setting a flag in the
+    CmdArg record when it was consumed for the path traversal logic.
+
+    This doesn't prevent unbounded path build-up generally, but does prevent the
+    amplification of a single large command with very many small ftp_replies.
+    Re-using a pending path command seems like a bug as well.
+
 6.0.0-dev.605 | 2023-05-18 08:54:41 -0700
 
   * Fix CMake ordering issue leaving configuration paths unset. (Robin Sommer, Corelight)

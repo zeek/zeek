@@ -1245,19 +1245,8 @@ checkoptionalbuildsources(auxil/zeek-aux Zeek-Aux INSTALL_AUX_TOOLS)
 checkoptionalbuildsources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
 checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
-# Always generate helper scripts referenced in e.g., `zeek-path-dev.*` so the
-# scripts work in any build configuration. If we do not include Spicy these
-# files have no actual effect.
-#
-# Spicy JIT relies on the path of the current executable to figure out whether
-# it is run from a build or an install tree. This assumption gets broken for
-# e.g., `spicyz` when running from the build tree (probably fixable), and also
-# when JIT'ing directly from a `zeek` invocation (much harder to fix). Instead
-# we generate shell definitions to support running and using Spicy or
-# spicy-plugin functionality in the build tree, including JIT'ing directly from
-# Zeek.
-#
-# TODO: Do we still need these?
+# Generate Spicy helper scripts referenced in e.g., `zeek-path-dev.*`. These
+# set Spicy-side environment variables to run it out of the build directory.
 configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/hilti-cxx-include-dirs.in
                ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)

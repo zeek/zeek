@@ -511,10 +511,22 @@ function describe(f: fa_file): string
 	return handler$describe(f);
 	}
 
+# Only warn once about un-registered get_file_handle()
+global missing_get_file_handle_warned: table[Files::Tag] of bool &default=F;
+
 event get_file_handle(tag: Files::Tag, c: connection, is_orig: bool) &priority=5
 	{
 	if ( tag !in registered_protocols )
+		{
+		if ( ! missing_get_file_handle_warned[tag] )
+			{
+			missing_get_file_handle_warned[tag] = T;
+			Reporter::warning(fmt("get_file_handle() handler missing for %s", tag));
+			}
+
+		set_file_handle(fmt("%s-fallback-%s-%s-%s", tag, c$uid, is_orig, network_time()));
 		return;
+		}
 
 	local handler = registered_protocols[tag];
 	set_file_handle(handler$get_file_handle(c, is_orig));

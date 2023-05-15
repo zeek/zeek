@@ -165,16 +165,11 @@ public:
 	Frame* CloneForTrigger() const;
 
 	/**
-	 * Serializes the frame used for lambda captures:
-	 *
-	 * [ "CopyFrame", serialized_values ]
-	 *
-	 * where serialized_values are two-element vectors. A serialized_value
-	 * has the result of calling broker::data_to_val on the value in the
-	 * first index, and an integer representing that value's type in the
-	 * second index.
+	 * Serializes the frame (only done for lambda/when captures) as a
+	 * sequence of two-element vectors, the first element reflecting
+	 * the frame value, the second its type.
 	 */
-	broker::expected<broker::data> SerializeCapturesFrame();
+	broker::expected<broker::data> Serialize();
 
 	/**
 	 * Instantiates a Frame from a serialized one.
@@ -234,7 +229,7 @@ private:
 	 */
 	int current_offset;
 
-	/** Frame used for captures (if any) with copy semantics. */
+	/** Frame used for lambda/when captures. */
 	Frame* captures;
 
 	/** Maps IDs to offsets into the "captures" frame.  If the ID

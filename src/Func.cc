@@ -628,7 +628,7 @@ FuncPtr ScriptFunc::DoClone()
 broker::expected<broker::data> ScriptFunc::SerializeCaptures() const
 	{
 	if ( captures_frame )
-		return captures_frame->SerializeCapturesFrame();
+		return captures_frame->Serialize();
 
 	// No captures, return an empty vector.
 	return broker::vector{};

@@ -211,7 +211,7 @@ def main():
     zkg_provides_info = copy.deepcopy(included_plugins_info)
     # Hardcode the former spicy-plugin so that zkg knows Spicy is available.
     zkg_provides_info.append({"name": "spicy-plugin", "version": info["version"].split("-")[0]})
-    info["zkg_provides"] = zkg_provides_info
+    info["zkg"] = {"provides": zkg_provides_info}
 
     json_str = json.dumps(info, indent=2, sort_keys=True)
     print(json_str)

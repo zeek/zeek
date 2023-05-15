@@ -1,4 +1,4 @@
-# Saves all input traffic in Spicy's batch format.
+##! Saves all input traffic in Spicy's batch format.
 
 module SpicyBatch;
 

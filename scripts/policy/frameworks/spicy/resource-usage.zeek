@@ -1,3 +1,5 @@
+##! Logs Spicy-related resource usage continously for debugging purposes.
+
 module Spicy;
 
 event print_usage()

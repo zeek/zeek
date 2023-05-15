@@ -72,6 +72,8 @@
 @load frameworks/packet-filter/shunt.zeek
 @load frameworks/software/version-changes.zeek
 @load frameworks/software/vulnerable.zeek
+# @load frameworks/spicy/record-spicy-batch.zeek
+# @load frameworks/spicy/resource-usage.zeek
 @load frameworks/software/windows-version-detection.zeek
 @load frameworks/telemetry/log.zeek
 @load integration/collective-intel/__load__.zeek

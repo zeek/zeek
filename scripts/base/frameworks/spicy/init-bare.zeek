@@ -23,7 +23,8 @@ export {
 # doc-options-end
 
 # doc-types-start
-    ## Result type for `Spicy::resource_usage()`.
+    ## Result type for `Spicy::resource_usage()`. The values reflect resource
+    ## usage as reported by the Spicy runtime system.
     type ResourceUsage: record {
         user_time : interval;           ##< user CPU time of the Zeek process
         system_time :interval;          ##< system CPU time of the Zeek process

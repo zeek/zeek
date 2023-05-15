@@ -10,8 +10,6 @@
 -./frameworks/netcontrol/cluster.zeek
 -./frameworks/openflow/cluster.zeek
 -./frameworks/packet-filter/cluster.zeek
--./frameworks/spicy/misc/record-spicy-batch.zeek
--./frameworks/spicy/misc/resource-usage.zeek
 -./frameworks/sumstats/cluster.zeek
 -./frameworks/telemetry/cluster.zeek
 -./init-supervisor.zeek

@@ -13,8 +13,8 @@ RUN zypper refresh \
     diffutils \
     findutils \
     flex \
-    gcc \
-    gcc-c++ \
+    gcc12 \
+    gcc12-c++ \
     git \
     gzip \
     libopenssl-devel \

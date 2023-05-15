@@ -17,6 +17,7 @@
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/Plugin.h"
+#include "zeek/spicy/spicyz/config.h" // include for Spicy version
 
 // Macro helper to report Spicy debug messages. This forwards to
 // to both the Zeek logger and the Spicy runtime logger.

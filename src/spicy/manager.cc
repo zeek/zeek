@@ -8,7 +8,6 @@
 #include <exception>
 #include <utility>
 
-#include <hilti/rt/autogen/version.h>
 #include <hilti/rt/configuration.h>
 #include <hilti/rt/filesystem.h>
 #include <hilti/rt/fmt.h>

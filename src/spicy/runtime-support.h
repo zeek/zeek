@@ -22,6 +22,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/spicy/cookie.h"
+#include "zeek/spicy/manager.h"
 
 namespace zeek::spicy::rt {
 

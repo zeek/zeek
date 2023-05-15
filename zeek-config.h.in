@@ -301,6 +301,3 @@
 
 /* compiled with Spicy support */
 #cmakedefine HAVE_SPICY
-
-// Version of Spicy that we are compiling against.
-#define SPICY_VERSION_NUMBER ${SPICY_VERSION_NUMBER}

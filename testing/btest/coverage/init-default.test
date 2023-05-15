@@ -7,6 +7,9 @@
 # (e.g. cluster operation), and in such cases, the missing_loads baseline
 # can be adjusted to tolerate that.
 
+# Require Spicy, otherwise baselines change.
+# @TEST-REQUIRES: have-spicy
+
 #@TEST-EXEC: test -d $DIST/scripts/base
 #@TEST-EXEC: test -e $DIST/scripts/base/init-default.zeek
 #@TEST-EXEC: ( cd $DIST/scripts/base && find . -name '*.zeek' ) | sort >"all scripts found"

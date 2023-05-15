@@ -801,6 +801,7 @@
 0.000000   MetaHookPost  CallFunction(gsub, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(has_event_group, <frame>, (Analyzer::Logging)) -> <no result>
 0.000000   MetaHookPost  CallFunction(has_module_events, <frame>, (Analyzer::Logging)) -> <no result>
+0.000000   MetaHookPost  CallFunction(have_spicy, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(have_spicy_analyzers, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(is_file_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
@@ -2414,6 +2415,7 @@
 0.000000   MetaHookPre   CallFunction(gsub, ..., ...)
 0.000000   MetaHookPre   CallFunction(has_event_group, <frame>, (Analyzer::Logging))
 0.000000   MetaHookPre   CallFunction(has_module_events, <frame>, (Analyzer::Logging))
+0.000000   MetaHookPre   CallFunction(have_spicy, <null>, ())
 0.000000   MetaHookPre   CallFunction(have_spicy_analyzers, <null>, ())
 0.000000   MetaHookPre   CallFunction(is_file_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
@@ -4026,6 +4028,7 @@
 0.000000 | HookCallFunction gsub(...)
 0.000000 | HookCallFunction has_event_group(Analyzer::Logging)
 0.000000 | HookCallFunction has_module_events(Analyzer::Logging)
+0.000000 | HookCallFunction have_spicy()
 0.000000 | HookCallFunction have_spicy_analyzers()
 0.000000 | HookCallFunction is_file_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction is_packet_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)

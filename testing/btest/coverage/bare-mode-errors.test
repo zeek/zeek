@@ -4,6 +4,9 @@
 # Commonly, this test may fail if one forgets to @load some base/ scripts
 # when writing a new zeek scripts.
 #
+# Require Spicy, otherwise its scripts cannot be loaded.
+# @TEST-REQUIRES: have-spicy
+#
 # @TEST-EXEC: test -d $DIST/scripts
 # @TEST-EXEC: for script in `find $DIST/scripts/ -name \*\.zeek`; do zeek -b --parse-only $script >>errors 2>&1; done
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="grep -v -e 'Use the external.*bro-simple-scan package' -e 'The MQTT scripts have been moved out of policy/' | $SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-sort" btest-diff errors

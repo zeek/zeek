@@ -43,7 +43,10 @@
 @load base/frameworks/openflow
 @load base/frameworks/netcontrol
 @load base/frameworks/telemetry
+
+@if ( have_spicy() )
 @load base/frameworks/spicy
+@endif
 
 @load base/protocols/conn
 @load base/protocols/dce-rpc

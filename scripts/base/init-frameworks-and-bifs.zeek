@@ -17,7 +17,9 @@
 # Load BiFs defined by plugins.
 @load base/bif/plugins
 
+@if ( have_spicy() )
 @load base/frameworks/spicy/init-framework
+@endif
 
 # This sets up secondary/subdir BIFs such that they can be used by any
 # further scripts within their global initializations and is intended to be

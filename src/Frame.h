@@ -165,7 +165,7 @@ public:
 	Frame* CloneForTrigger() const;
 
 	/**
-	 * Serializes the frame in support of copy semantics for lambdas:
+	 * Serializes the frame used for lambda captures:
 	 *
 	 * [ "CopyFrame", serialized_values ]
 	 *
@@ -174,7 +174,7 @@ public:
 	 * first index, and an integer representing that value's type in the
 	 * second index.
 	 */
-	broker::expected<broker::data> SerializeCopyFrame();
+	broker::expected<broker::data> SerializeCapturesFrame();
 
 	/**
 	 * Instantiates a Frame from a serialized one.
@@ -182,13 +182,8 @@ public:
 	 * @return a pair in which the first item is the status of the serialization;
 	 * and the second is the unserialized frame with reference count +1, or
 	 * null if the serialization wasn't successful.
-	 *
-	 * The *captures* argument, if non-nil, specifies that the frame
-	 * reflects captures with copy-semantics rather than deprecated
-	 * reference semantics.
 	 */
-	static std::pair<bool, FramePtr>
-	Unserialize(const broker::vector& data, const std::optional<FuncType::CaptureList>& captures);
+	static std::pair<bool, FramePtr> Unserialize(const broker::vector& data);
 
 	// If the frame is run in the context of a trigger condition evaluation,
 	// the trigger needs to be registered.

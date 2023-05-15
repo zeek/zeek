@@ -595,7 +595,7 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)
 
 bool ScriptFunc::DeserializeCaptures(const broker::vector& data)
 	{
-	auto result = Frame::Unserialize(data, GetType()->GetCaptures());
+	auto result = Frame::Unserialize(data);
 
 	ASSERT(result.first);
 
@@ -628,7 +628,7 @@ FuncPtr ScriptFunc::DoClone()
 broker::expected<broker::data> ScriptFunc::SerializeCaptures() const
 	{
 	if ( captures_frame )
-		return captures_frame->SerializeCopyFrame();
+		return captures_frame->SerializeCapturesFrame();
 
 	// No captures, return an empty vector.
 	return broker::vector{};

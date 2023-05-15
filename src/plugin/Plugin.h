@@ -810,13 +810,6 @@ public:
 	void Describe(ODesc* d) const;
 
 	/**
-	 * Registers a component.
-	 *
-	 * @param c The component. The method takes ownership.
-	 */
-	void AddComponent(Component* c);
-
-	/**
 	 * Registers an individual BiF that the plugin defines. The
 	 * information is for informational purposes only and will show up in
 	 * the result of BifItems() as well as in the Describe() output.
@@ -884,6 +877,13 @@ protected:
 	 * classes; they must however call the parent's implementation.
 	 */
 	virtual void Done();
+
+	/**
+	 * Registers a component.
+	 *
+	 * @param c The component. The method takes ownership.
+	 */
+	void AddComponent(Component* c);
 
 	/**
 	 * Calls the Initialize() function of all components.

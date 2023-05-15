@@ -64,10 +64,8 @@ XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX file_new
 XXXXXXXXXX.XXXXXX file_over_new_connection
 XXXXXXXXXX.XXXXXX mime_end_entity
-XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX file_sniff
 XXXXXXXXXX.XXXXXX file_state_remove
-XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX mime_begin_entity
 XXXXXXXXXX.XXXXXX mime_one_header
 XXXXXXXXXX.XXXXXX mime_one_header
@@ -75,10 +73,8 @@ XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX file_new
 XXXXXXXXXX.XXXXXX file_over_new_connection
 XXXXXXXXXX.XXXXXX mime_end_entity
-XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX file_sniff
 XXXXXXXXXX.XXXXXX file_state_remove
-XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX mime_end_entity
 XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX get_file_handle
@@ -93,9 +89,7 @@ XXXXXXXXXX.XXXXXX new_connection
 XXXXXXXXXX.XXXXXX file_sniff
 XXXXXXXXXX.XXXXXX Broker::log_flush
 XXXXXXXXXX.XXXXXX mime_end_entity
-XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX file_state_remove
-XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX mime_end_entity
 XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX get_file_handle
@@ -153,10 +147,8 @@ XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX file_new
 XXXXXXXXXX.XXXXXX file_over_new_connection
 XXXXXXXXXX.XXXXXX mime_end_entity
-XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX file_sniff
 XXXXXXXXXX.XXXXXX file_state_remove
-XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX get_file_handle
 XXXXXXXXXX.XXXXXX smtp_request

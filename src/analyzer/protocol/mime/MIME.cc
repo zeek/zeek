@@ -1412,7 +1412,11 @@ void MIME_Mail::EndEntity(MIME_Entity* /* entity */)
 	if ( mime_end_entity )
 		analyzer->EnqueueConnEvent(mime_end_entity, analyzer->ConnVal());
 
-	file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+	if ( ! cur_entity_id.empty() )
+		file_mgr->EndOfFile(cur_entity_id);
+	else
+		file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
+
 	cur_entity_id.clear();
 	}
 

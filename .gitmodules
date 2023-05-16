@@ -59,7 +59,7 @@
 	path = auxil/out_ptr
 	url = https://github.com/soasis/out_ptr.git
 [submodule "auxil/spicy"]
-	path = auxil/spicy/spicy
+	path = auxil/spicy
 	url = https://github.com/zeek/spicy
 [submodule "auxil/filesystem"]
 	path = auxil/filesystem

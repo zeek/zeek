@@ -497,7 +497,7 @@ file(
     WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
     "export ZEEKPATH=`${cmake_binary_dir}/zeek-path-dev`\n"
     "export ZEEK_PLUGIN_PATH=\"${cmake_binary_dir}/src\":$\{ZEEK_PLUGIN_PATH\}\n"
-    "export PATH=\"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
+    "export PATH=\"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
     "export SPICY_PATH=`${cmake_binary_dir}/spicy-path`\n"
     "export HILTI_CXX_INCLUDE_DIRS=`${cmake_binary_dir}/hilti-cxx-include-dirs`\n"
     "export ZEEK_SPICY_LIBRARY_PATH=${cmake_source_dir}/scripts/spicy\n")
@@ -506,7 +506,7 @@ file(
     WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
     "setenv ZEEKPATH `${cmake_binary_dir}/zeek-path-dev`\n"
     "setenv ZEEK_PLUGIN_PATH \"${cmake_binary_dir}/src\":$\{ZEEK_PLUGIN_PATH\}\n"
-    "setenv PATH \"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
+    "setenv PATH \"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
     "setenv SPICY_PATH \"`${cmake_binary_dir}/spicy-path`\"\n"
     "setenv HILTI_CXX_INCLUDE_DIRS \"`${cmake_binary_dir}/hilti-cxx-include-dirs`\"\n"
     "setenv ZEEK_SPICY_LIBRARY_PATH \"${cmake_source_dir}/scripts/spicy\"\n")
@@ -724,6 +724,11 @@ if (NOT MSVC)
 endif ()
 FindRequiredPackage(ZLIB)
 
+if (NOT BINARY_PACKAGING_MODE)
+    # TODO: Broker seems to always turn on static libraries. We don't want that for Spicy by default.
+    set(BUILD_SHARED_LIBS yes)
+endif ()
+
 # Forward user-defined hint for OpenSSL to the plugins. Use a cache variable to
 # make sure this variable survives CMake re-runs. Note: This variable is picked
 # up in ZeekPluginConfig.cmake.in.
@@ -899,13 +904,26 @@ if (NOT DISABLE_SPICY)
 
         spicy_print_summary()
     else ()
-        set(HAVE_SPICY yes)
-        add_subdirectory(auxil/spicy)
-        zeek_add_dependencies(spicy)
+        # Spicy needs the full prefix for Flex and Bison while Zeek captures
+        # only the paths to the executables. Derive the prefixes from the
+        # binary paths under the assumption that their bindir is under their
+        # prefix (which also implies that one such prefix even exists).
+        get_filename_component(dir ${FLEX_EXECUTABLE} DIRECTORY ABSOLUTE)
+        set(FLEX_ROOT ${dir}/..)
 
-        get_directory_property(
-            SPICY_VERSION_NUMBER DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy DEFINITION
-                                           SPICY_VERSION_NUMBER)
+        get_filename_component(dir ${BISON_EXECUTABLE} DIRECTORY ABSOLUTE)
+        set(BISON_ROOT ${dir}/..)
+
+        # The script generating precompiled headers for Spicy expects a
+        # different build system layout than provided for a bundled Spicy,
+        # disable it.
+        set(HILTI_DEV_PRECOMPILE_HEADERS OFF)
+
+        add_subdirectory(auxil/spicy)
+        include(ConfigureSpicyBuild) # set some options different for building Spicy
+
+        zeek_add_dependencies(spicy)
+        set(HAVE_SPICY yes)
     endif ()
 
     set(USE_SPICY_ANALYZERS yes)
@@ -1247,8 +1265,8 @@ checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 # Generate Spicy helper scripts referenced in e.g., `zeek-path-dev.*`. These
 # set Spicy-side environment variables to run it out of the build directory.
-configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/hilti-cxx-include-dirs.in
+configure_file(${CMAKE_SOURCE_DIR}/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/hilti-cxx-include-dirs.in
                ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
 
 # ##############################################################################

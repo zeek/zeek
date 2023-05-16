@@ -1,3 +1,8 @@
+6.0.0-dev.589 | 2023-05-16 12:15:07 +0200
+
+  * Move Spicy submodule from `auxil/spicy/spicy` to `auxil/spicy`.
+    (Robin Sommer, Corelight)
+
 6.0.0-dev.587 | 2023-05-16 11:40:40 +0200
 
   * Integrate Spicy plugin into Zeek proper. (Robin Sommer, Corelight)

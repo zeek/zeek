@@ -5,9 +5,9 @@
 # variable `HILTI_CXX_INCLUDE_DIRS`.
 
 # Paths to support compiling Spicy parsers in the build tree.
-PATHS=@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/hilti/runtime/include
-PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/spicy/runtime/include
-PATHS=$PATHS:@CMAKE_BINARY_DIR@/auxil/spicy/spicy/include
+PATHS=@CMAKE_SOURCE_DIR@/auxil/spicy/hilti/runtime/include
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/runtime/include
+PATHS=$PATHS:@CMAKE_BINARY_DIR@/auxil/spicy/include
 
 # Paths to support compiling against a build tree Zeek.
 PATHS=$PATHS:@CMAKE_BINARY_DIR@

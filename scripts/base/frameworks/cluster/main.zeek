@@ -285,7 +285,7 @@ export {
 }
 
 # Track active nodes per type.
-global active_node_ids: table[NodeType] of set[string];
+global active_node_ids: table[NodeType] of set[string] &default=set();
 
 function nodes_with_type(node_type: NodeType): vector of NamedNode
 	{

@@ -5811,8 +5811,19 @@ function has_module_events%(group: string%) : bool
 	                                           group->CheckString()));
 	%}
 
+## Returns true if Zeek was built with support for using Spicy analyzers (which
+# is the default).
+function have_spicy%(%) : bool
+	%{
+#ifdef HAVE_SPICY
+	return zeek::val_mgr->Bool(true);
+#else
+	return zeek::val_mgr->Bool(false);
+#endif
+	%}
+
 ## Returns true if Zeek was built with support for its in-tree Spicy analyzers
-## (which is the default).
+## (which is the default if Spicy support is available).
 function have_spicy_analyzers%(%) : bool
 	%{
 	return zeek::val_mgr->Bool(USE_SPICY_ANALYZERS);

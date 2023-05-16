@@ -1,0 +1,3 @@
+[orig_h=192.150.186.169, orig_p=55587/udp, resp_h=192.150.186.8, resp_p=53/udp], [id=29622, opcode=0, rcode=0, QR=F, AA=F, TC=F, RD=T, RA=F, Z=0, num_queries=1, num_answers=0, num_auth=0, num_addl=0], www.heise.de, 1, 1
+[orig_h=192.150.186.169, orig_p=55588/udp, resp_h=192.150.186.8, resp_p=53/udp], [id=15429, opcode=0, rcode=0, QR=F, AA=F, TC=F, RD=T, RA=F, Z=0, num_queries=1, num_answers=0, num_auth=0, num_addl=0], www.google.com, 1, 1
+[orig_h=192.150.186.169, orig_p=55589/udp, resp_h=192.150.186.8, resp_p=53/udp], [id=27360, opcode=0, rcode=0, QR=F, AA=F, TC=F, RD=T, RA=F, Z=0, num_queries=1, num_answers=0, num_auth=0, num_addl=0], www.net.in.tum.de, 1, 1

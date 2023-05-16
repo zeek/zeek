@@ -1,0 +1,20 @@
+#! /bin/sh
+#
+# Two usages:
+#     - Without argument, prints out the numerical Zeek version.
+#     - With a numerical Zeek version in $1, exit with true iff we have at least that version.
+
+base=$(cd $(dirname $0)/.. && pwd)
+
+version=$(zeek-config --version)
+major=$(echo ${version} | cut -d . -f 1)
+minor=$(echo ${version} | cut -d . -f 2)
+patch=$(echo ${version} | cut -d . -f 3)
+
+nversion=$((${major} * 10000 + ${minor} * 100 + ${patch}))
+
+if [ $# = 0 ]; then
+    echo "${nversion}"
+else
+    test "${nversion}" -ge "$1"
+fi

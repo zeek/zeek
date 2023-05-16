@@ -5702,3 +5702,7 @@ event net_done(t: time)
 @endif
 
 @load base/packet-protocols
+
+@if ( have_spicy() )
+@load base/frameworks/spicy/init-bare
+@endif

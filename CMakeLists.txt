@@ -497,17 +497,19 @@ file(
     WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
     "export ZEEKPATH=`${cmake_binary_dir}/zeek-path-dev`\n"
     "export ZEEK_PLUGIN_PATH=\"${cmake_binary_dir}/src\":$\{ZEEK_PLUGIN_PATH\}\n"
-    "export PATH=\"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/builtin-plugins/spicy-plugin/bin\":$\{PATH\}\n"
+    "export PATH=\"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
     "export SPICY_PATH=`${cmake_binary_dir}/spicy-path`\n"
-    "export HILTI_CXX_INCLUDE_DIRS=`${cmake_binary_dir}/hilti-cxx-include-dirs`\n")
+    "export HILTI_CXX_INCLUDE_DIRS=`${cmake_binary_dir}/hilti-cxx-include-dirs`\n"
+    "export ZEEK_SPICY_LIBRARY_PATH=${cmake_source_dir}/scripts/spicy\n")
 
 file(
     WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
     "setenv ZEEKPATH `${cmake_binary_dir}/zeek-path-dev`\n"
     "setenv ZEEK_PLUGIN_PATH \"${cmake_binary_dir}/src\":$\{ZEEK_PLUGIN_PATH\}\n"
-    "setenv PATH \"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/builtin-plugins/spicy-plugin/bin\":$\{PATH\}\n"
+    "setenv PATH \"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
     "setenv SPICY_PATH \"`${cmake_binary_dir}/spicy-path`\"\n"
-    "setenv HILTI_CXX_INCLUDE_DIRS \"`${cmake_binary_dir}/hilti-cxx-include-dirs`\"\n")
+    "setenv HILTI_CXX_INCLUDE_DIRS \"`${cmake_binary_dir}/hilti-cxx-include-dirs`\"\n"
+    "setenv ZEEK_SPICY_LIBRARY_PATH \"${cmake_source_dir}/scripts/spicy\"\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 execute_process(
@@ -887,53 +889,28 @@ else ()
 endif ()
 
 if (NOT DISABLE_SPICY)
-    set(USE_SPICY_ANALYZERS yes)
+    if (SPICY_ROOT_DIR)
+        find_package(Spicy REQUIRED) # will set HAVE_SPICY
+        spicy_require_version("1.8.0")
 
-    if (NOT SPICY_ROOT_DIR)
-        set(HAVE_SPICY yes) # evaluated by Spicy plugin build
+        if (NOT SPICY_HAVE_TOOLCHAIN)
+            message(FATAL_ERROR "Spicy not built with toolchain support")
+        endif ()
 
+        spicy_print_summary()
+    else ()
+        set(HAVE_SPICY yes)
         add_subdirectory(auxil/spicy)
+        zeek_add_dependencies(spicy)
 
-        # Set variables used by the spicy-plugin build since we are building Spicy
-        # as part of Zeek so spicy-plugin cannot use `spicy-config` at configure
-        # time to set these.
-        set(SPICY_CONFIG "<builtin>")
-        set(SPICY_HAVE_TOOLCHAIN "YES")
-        set(SPICY_INCLUDE_DIRS_RUNTIME
-            ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/hilti/runtime/include
-            ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/spicy/runtime/include
-            ${PROJECT_BINARY_DIR}/auxil/spicy/spicy/include)
-        set(SPICY_INCLUDE_DIRS_TOOLCHAIN
-            ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/hilti/toolchain/include
-            ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy/spicy/toolchain/include)
-        set(SPICY_LIBRARY spicy)
-        set(HILTI_LIBRARY_RT hilti-rt)
-        set(HILTI_LIBRARY_RT_DEBUG hilti-rt-debug)
-        set(SPICY_LIBRARY_RT spicy-rt)
-        set(SPICY_LIBRARY_RT_DEBUG spicy-rt-debug)
-
-        # Needed only for logging from CMake configure phase.
-        get_directory_property(SPICY_VERSION DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
-                                                       DEFINITION SPICY_VERSION)
         get_directory_property(
             SPICY_VERSION_NUMBER DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy DEFINITION
                                            SPICY_VERSION_NUMBER)
-        get_directory_property(SPICY_PREFIX DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
-                                                      DEFINITION CMAKE_INSTALL_PREFIX)
-        get_directory_property(SPICY_BUILD_MODE DIRECTORY ${PROJECT_SOURCE_DIR}/auxil/spicy/spicy
-                                                          DEFINITION CMAKE_BUILD_TYPE)
-        set(SPICYC "<bundled>")
     endif ()
 
-    if (NOT SPICY_PLUGIN_PATH)
-        set(_spicy_plugin "included")
-        set(SPICY_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/spicy-plugin)
-    endif ()
-
-    set(SPICY_PLUGIN_BINARY_PATH ${CMAKE_BINARY_DIR}/src/builtin-plugins/spicy-plugin)
-    list(APPEND ZEEK_INCLUDE_PLUGINS ${SPICY_PLUGIN_PATH})
+    set(USE_SPICY_ANALYZERS yes)
 else ()
-    set(HAVE_SPICY no) # evaluated by Spicy plugin build
+    set(HAVE_SPICY no)
     set(USE_SPICY_ANALYZERS no)
 endif ()
 
@@ -1255,6 +1232,10 @@ add_subdirectory(scripts)
 add_subdirectory(man)
 add_subdirectory(testing)
 
+if (NOT DISABLE_SPICY)
+    zeek_add_dependencies(spicyz)
+endif ()
+
 include(CheckOptionalBuildSources)
 
 checkoptionalbuildsources(auxil/btest BTest INSTALL_BTEST)
@@ -1264,37 +1245,8 @@ checkoptionalbuildsources(auxil/zeek-aux Zeek-Aux INSTALL_AUX_TOOLS)
 checkoptionalbuildsources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
 checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
-if (NOT DISABLE_SPICY)
-    # The `zeek` binary implicitly depends on the driver object file built as part
-    # of `spicy`; make that dependency explicit.
-    zeek_add_dependencies(spicyz)
-
-    if (NOT SPICY_ROOT_DIR)
-        # Make sure we build targets of spicy-plugin after the `spicy` target.
-        add_dependencies(plugin-Zeek-Spicy spicy)
-        add_dependencies(spicyz spicy)
-
-        # Also install spicy-plugin's CMake files into Zeek's global `cmake/`
-        # folder.
-        #
-        # NOTE: We do not install spicy-plugin's `FindZeek.cmake` since another
-        # version of this file is already provided by Zeek.
-        install(FILES auxil/spicy-plugin/cmake/ZeekSpicyAnalyzerSupport.cmake
-                      auxil/spicy-plugin/cmake/FindSpicy.cmake DESTINATION share/zeek/cmake)
-    endif ()
-endif ()
-
-# Always generate helper scripts referenced in e.g., `zeek-path-dev.*` so the
-# scripts work in any build configuration. If we do not include Spicy these
-# files have no actual effect.
-#
-# Spicy JIT relies on the path of the current executable to figure out whether
-# it is run from a build or an install tree. This assumption gets broken for
-# e.g., `spicyz` when running from the build tree (probably fixable), and also
-# when JIT'ing directly from a `zeek` invocation (much harder to fix). Instead
-# we generate shell definitions to support running and using Spicy or
-# spicy-plugin functionality in the build tree, including JIT'ing directly from
-# Zeek.
+# Generate Spicy helper scripts referenced in e.g., `zeek-path-dev.*`. These
+# set Spicy-side environment variables to run it out of the build directory.
 configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/auxil/spicy/hilti-cxx-include-dirs.in
                ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
@@ -1375,12 +1327,6 @@ elseif (SPICY_ROOT_DIR)
     set(_spicy "external (${SPICY_ROOT_DIR})")
 endif ()
 
-if (DISABLE_SPICY)
-    set(_spicy_plugin "disabled")
-elseif ("${_spicy_plugin}" STREQUAL "")
-    set(_spicy_plugin "external (${SPICY_PLUGIN_PATH})")
-endif ()
-
 if (ZEEK_LEGACY_ANALYZERS)
     list(JOIN ZEEK_LEGACY_ANALYZERS ", " _legacy_analyzers)
     set(_legacy_analyzers
@@ -1394,7 +1340,7 @@ endif ()
 
 if (ZEEK_LEGACY_ANALYZERS OR ZEEK_SKIPPED_ANALYZERS)
     set(_analyzer_warning
-        "\n\n[Warning] Some analyzers are not available due to lack of built-in Spicy support:${_legacy_analyzers}${_skipped_analyzers}"
+        "\n\n[Warning] Some analyzers are not available due to lack of Spicy support:${_legacy_analyzers}${_skipped_analyzers}"
     )
 endif ()
 
@@ -1412,6 +1358,7 @@ message(
     "\nScript dir:        ${ZEEK_SCRIPT_INSTALL_PATH}"
     "\nSpool dir:         ${ZEEK_SPOOL_DIR}"
     "\nState dir:         ${ZEEK_STATE_DIR}"
+    "\nSpicy modules dir: ${ZEEK_SPICY_MODULE_PATH}"
     "\n"
     "\nDebug mode:        ${ENABLE_DEBUG}"
     "\nUnit tests:        ${ENABLE_ZEEK_UNIT_TESTS}"
@@ -1433,7 +1380,6 @@ message(
     "\nGen-ZAM:           ${_gen_zam_exe_path}"
     "\nzkg:               ${INSTALL_ZKG}"
     "\nSpicy:             ${_spicy}"
-    "\nSpicy plugin:      ${_spicy_plugin}"
     "\nSpicy analyzers:   ${USE_SPICY_ANALYZERS}"
     "\nJavaScript:        ${ZEEK_HAVE_JAVASCRIPT}"
     "\n"

@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+#
+# Remove unstable pieces in Zeek logs.
+
+# Get us "modern" regexps with sed.
+if [ $(uname) == "Linux" ]; then
+    sed="sed -r"
+else
+    sed="sed -E"
+fi
+
+${sed} 's/^ *#(open|close).(19|20)..-..-..-..-..-..$/#\1 XXXX-XX-XX-XX-XX-XX/g' |
+    $(dirname $0)/diff-sort |
+    $(dirname $0)/diff-remove-timestamps |
+    $(dirname $0)/diff-remove-abspath

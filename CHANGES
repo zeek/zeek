@@ -1,3 +1,57 @@
+6.0.0-dev.587 | 2023-05-16 11:40:40 +0200
+
+  * Integrate Spicy plugin into Zeek proper. (Robin Sommer, Corelight)
+
+    The plugin code is now a part of Zeek, located inside the standard
+    `src/` tree. Going forward, we will maintain it here and phase out
+    the external plugin.
+
+    The integration reflects the `spicy-plugin` code as of
+    `d8c296b81cc2a11`.
+
+    In addition to moving the code into Zeek's source tree, this comes
+    with a couple small functional changes:
+
+    - `spicyz` no longer tries to infer if it's running from the build
+      directory. Instead `ZEEK_SPICY_LIBRARY` can be set to a custom
+      location. `zeek-set-path.sh` does that now.
+
+    - ZEEK_CONFIG can be set to change what `spicyz -z` print out. This is
+      primarily for backwards compatibility.
+
+    The minimum Spicy version is now 1.8 (i.e., current `main` branch
+    at the time of merge).
+
+    For now, this all remains backwards compatible with the current
+    `zkg` analyzer templates so that they work with both external and
+    integrated Spicy support. Later, once we don't need to support any
+    external Spicy plugin versions anymore, we can clean up the
+    templates as well.
+
+  * Add `zkg_provides` to `--build-info`. (Robin Sommer, Corelight)
+
+    This makes dependencies explicit that Zeek provides built-in for
+    `zkg`. It's in support of
+    https://github.com/zeek/package-manager/pull/157.
+
+    For now, `zkg_provides` contains the same data as `included_plugins`
+    plus an entry for `spicy-plugin`.
+
+  * Fix Spicy tuple type conversion. (Robin Sommer, Corelight)
+
+    With an anonymous Spicy-side tuple type, we'd be missing an ID to
+    create a Zeek-side record, leading to undefined behavior. To still
+    support this case, we now make up an ID. In addition, we also could
+    end up not correctly tracking type ID during conversion; using a stack
+    now to handle recursion correctly.
+
+  * Fix generation of Spicy's file IDs. (Robin Sommer, Corelight)
+
+    They weren't stable, and potentially repetitive.
+  * Modernize plugin test. (Robin Sommer, Corelight)
+
+    Not using the `zeek/` include style could lead to path problems.
+
 6.0.0-dev.570 | 2023-05-12 23:29:09 +0200
 
   * Introduce ZEEK_SEED_VALUES environment variable (Arne Welzel, Corelight)

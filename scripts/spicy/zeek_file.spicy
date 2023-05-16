@@ -1,0 +1,31 @@
+# Copyright (c) 2020-2021 by the Zeek Project. See LICENSE for details.
+#
+# TODO: This code would ideally just be a part of zeek.spicy, but that would
+# come with compilation overhead currently even if not used, see
+# https://github.com/zeek/spicy/issues/301.
+
+module zeek_file;
+
+import zeek;
+
+## Convenience wrapper for passing content into Zeek's file analysis.
+## After connecting an instance of this unit type to a sink, all data
+## sent to the sink will be passed on to Zeek as a file.
+##
+## mime_type: MIME type of the file's content, if known; will be passed on to Zeek
+## size: Total number of bytes the file contains, if known; will be passed on to Zeek
+public type File = unit(mime_type: optional<string> = Null, size: optional<uint64> = Null) {
+    on %init {
+       self.fid = zeek::file_begin(mime_type);
+
+       if ( size )
+           zeek::file_set_size(*size, self.fid);
+    }
+
+    : bytes &chunked &eod { zeek::file_data_in($$, self.fid); }
+
+    on %finally { zeek::file_end(self.fid); }
+
+    ## Zeek-side file ID
+    var fid: string;
+};

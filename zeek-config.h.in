@@ -298,3 +298,6 @@
 #else
 	#define ZEEK_DISABLE_TSAN
 #endif
+
+/* compiled with Spicy support */
+#cmakedefine HAVE_SPICY

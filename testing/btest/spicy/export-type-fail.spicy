@@ -1,0 +1,35 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-DOC: Failure cases for `export`
+#
+# @TEST-EXEC-FAIL: spicyz -d foo.spicy foo.evt -o foo.hlto >output 2>&1
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output
+
+# @TEST-START-FILE foo.spicy
+module Test;
+
+type X = unit {
+    y: Y; # self-recursive
+};
+
+type Y = unit {
+    x: X;
+};
+
+type Z = unit {
+    var x: tuple<bytes, addr>; # names missing
+};
+
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.evt
+
+export Test::X;
+export Test::Z;
+export Test::DOES_NOT_EXIST;
+export NOT_SCOPED;
+
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.zeek
+# @TEST-END-FILE

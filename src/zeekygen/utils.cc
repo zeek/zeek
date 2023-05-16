@@ -70,7 +70,7 @@ bool prettify_params(string& s)
 			if ( identifier == "Returns" )
 				subst = ":returns";
 			else
-				subst = ":" + identifier;
+				subst = ":param " + identifier;
 
 			s.replace(identifier_start_pos, identifier.size(), subst);
 			return true;

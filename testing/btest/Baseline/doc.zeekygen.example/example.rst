@@ -260,7 +260,7 @@ Events
    link.  Use the see role instead: :zeek:see:`ZeekygenExample::a_function`.
    
 
-   :name: Describe the argument here.
+   :param name: Describe the argument here.
 
 Functions
 #########
@@ -275,11 +275,11 @@ Functions
    empty comments is optional, but improves readability of script.
    
 
-   :tag: Function arguments can be described
+   :param tag: Function arguments can be described
         like this.
    
 
-   :msg: Another param.
+   :param msg: Another param.
    
 
    :returns: Describe the return type here.

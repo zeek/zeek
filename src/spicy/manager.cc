@@ -31,7 +31,7 @@
 #include "zeek/spicy/file-analyzer.h"
 #include "zeek/spicy/packet-analyzer.h"
 #include "zeek/spicy/protocol-analyzer.h"
-#include "zeek/util-config.h"
+#include "zeek/zeek-config-paths.h"
 
 using namespace zeek;
 using namespace zeek::spicy;

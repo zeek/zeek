@@ -1,3 +1,20 @@
+6.0.0-dev.592 | 2023-05-17 09:02:09 +0200
+
+  * zeekygen: Render function parameters as :param x: instead of :x: (Arne Welzel, Corelight)
+
+    We're currently rendering parameter descriptions from .bif file into
+    the .rst as follows:
+
+        :cid: The connection identifier.
+
+        :aid: The analyzer ID.
+
+    Switch this to :param cid: instead so that we can have Sphinx deal with
+    this as param docfield and group all parameters into a single section.
+
+    Currently, having the bare :cid: style causes sphinx to treat it as an
+    unknown field type, capitalize it and render it.
+
 6.0.0-dev.589 | 2023-05-16 12:15:07 +0200
 
   * Move Spicy submodule from `auxil/spicy/spicy` to `auxil/spicy`.

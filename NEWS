@@ -371,6 +371,10 @@ Changed Functionality
   previous behavior of not discarding state. Setting ``SMB::enable_state_clear``
   to ``F`` skips the script-layer state clearing logic.
 
+- Function parameters are rendered by Zeekygen as ``:param x`` rather than just
+  ``:x:``. This allows to group parameters Zeek's documentation.
+
+
 Removed Functionality
 ---------------------
 

@@ -1,3 +1,7 @@
+6.0.0-dev.595 | 2023-05-17 10:36:22 +0200
+
+  * Fix get_active_node_count for node types not present. (Jan Grashoefer, Corelight)
+
 6.0.0-dev.592 | 2023-05-17 09:02:09 +0200
 
   * zeekygen: Render function parameters as :param x: instead of :x: (Arne Welzel, Corelight)

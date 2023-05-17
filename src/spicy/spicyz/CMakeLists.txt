@@ -1,6 +1,7 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
 configure_file(config.h.in config.h)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/config.h DESTINATION include/zeek/spicy/spicyz)
 
 add_executable(spicyz driver.cc glue-compiler.cc main.cc)
 target_compile_options(spicyz PRIVATE "-Wall")

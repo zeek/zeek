@@ -4,7 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include "util-config.h"
+#include "zeek/zeek-config-paths.h"
 
 #ifdef HAVE_DARWIN
 #include <mach/mach_init.h>

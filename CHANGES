@@ -1,3 +1,16 @@
+6.0.0-dev.602 | 2023-05-17 16:10:57 +0200
+
+  * Add license header to zeek-config*.h and zeek-version.h (Arne Welzel, Corelight)
+
+  * Rename util-config.h to zeek-config-paths.h and install it (Arne Welzel, Corelight)
+
+    The util-config.h has never been installed previously. Skimming the history,
+    it was only meant for inclusion from util.cc, hence the name. Now that it's
+    included from some other headers, rename it to align with what it
+    contains and install it, too.
+
+  * Ensure spicyz/config.h is installed (Arne Welzel, Corelight)
+
 6.0.0-dev.598 | 2023-05-17 12:46:23 +0200
 
   * Introduce environment variables to override more paths configured

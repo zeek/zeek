@@ -16,7 +16,6 @@ execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink ".."
 string(REPLACE "\"" "\\\"" ZEEK_BUILD_INFO_ESCAPED "${ZEEK_BUILD_INFO}")
 string(REPLACE "\n" "\\n" ZEEK_BUILD_INFO_ESCAPED "${ZEEK_BUILD_INFO_ESCAPED}")
 configure_file(version.c.in ${CMAKE_CURRENT_BINARY_DIR}/version.c)
-configure_file(util-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/util-config.h)
 
 # This creates a custom command to transform a bison output file (inFile) into
 # outFile in order to avoid symbol conflicts: - replaces instances of 'yylex' in

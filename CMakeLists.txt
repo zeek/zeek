@@ -1112,10 +1112,16 @@ string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-version.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h DESTINATION include/zeek)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
-include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config-paths.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/zeek-config-paths.h)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config-paths.h DESTINATION include/zeek)
+
+include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink "." "${CMAKE_CURRENT_BINARY_DIR}/zeek")
 
 if (BinPAC_ROOT_DIR)

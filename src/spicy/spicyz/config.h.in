@@ -6,7 +6,7 @@
 
 #include <hilti/rt/filesystem.h>
 
-#include "zeek/util-config.h"
+#include "zeek/zeek-config-paths.h"
 
 namespace zeek::spicy::configuration {
 

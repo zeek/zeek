@@ -1,3 +1,7 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
+#pragma once
+
 #define ZEEK_SCRIPT_INSTALL_PATH "@ZEEK_SCRIPT_INSTALL_PATH@"
 #define BRO_PLUGIN_INSTALL_PATH "@ZEEK_PLUGIN_DIR@"
 #define ZEEK_PLUGIN_INSTALL_PATH "@ZEEK_PLUGIN_DIR@"

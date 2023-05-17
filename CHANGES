@@ -1,3 +1,18 @@
+5.0.8-10 | 2023-05-17 16:57:57 -0700
+
+  * Update CHANGES, VERSION, and NEWS (Tim Wojtulewicz, Corelight)
+
+  * Add cstdint include to WeirdState.h for GCC 13 support (Tim Wojtulewicz, Corelight)
+
+  * Update CAF for GCC 13 fixes (Tim Wojtulewicz, Corelight)
+
+  * Drop Spicy stderr from tests. (Benjamin Bannier, Corelight)
+
+    The stream usually contains non-fatal compiler diagnostics which are not
+    relevant for the behavior under test.
+
+  * Bump Spicy to latest release. (Benjamin Bannier, Corelight)
+
 5.0.8-7 | 2023-05-04 10:13:20 -0700
 
   * Add cstdint include to WeirdState.h for GCC 13 support (Tim Wojtulewicz, Corelight)
@@ -339,9 +354,9 @@
   * btest/decode_base_errors: Avoid binary output in baseline (Arne Welzel, Corelight)
 
   * Base64: report byte as positive integer (Arne Welzel, Corelight)
-  
+
   * netbios_decode: use unsigned char for result (Arne Welzel, Corelight)
-  
+
   * analyzer/http: Do not assume char is signed (Arne Welzel, Corelight)
 
 5.0.6-4 | 2023-02-14 07:43:01 -0700

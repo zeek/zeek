@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #pragma once
 
 /* Old libpcap versions (< 0.6.1) need defining pcap_freecode and

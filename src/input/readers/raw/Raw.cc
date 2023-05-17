@@ -291,7 +291,7 @@ bool Raw::OpenInput()
 			return false;
 			}
 
-		if ( Info().mode == MODE_STREAM )
+		if ( Info().mode == MODE_STREAM || Info().mode == MODE_REREAD )
 			{
 			struct stat sb;
 			if ( fstat(fileno(file.get()), &sb) == -1 )
@@ -300,6 +300,8 @@ bool Raw::OpenInput()
 				Error(Fmt("Could not get fstat for %s", fname.c_str()));
 				return false;
 				}
+
+			mtime = sb.st_mtime;
 			ino = sb.st_ino;
 			dev = sb.st_dev;
 			}
@@ -587,7 +589,7 @@ bool Raw::DoUpdate()
 					return false;
 					}
 
-				if ( sb.st_ino == ino && sb.st_mtime == mtime )
+				if ( sb.st_dev == dev && sb.st_ino == ino && sb.st_mtime == mtime )
 					// no change
 					return true;
 

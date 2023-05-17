@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "zeek/util-config.h"
-
 #include <string>
 
 #include <hilti/rt/filesystem.h>
+
+#include "zeek/util-config.h"
 
 namespace zeek::spicy::configuration {
 
@@ -26,21 +26,21 @@ static inline void add_path(std::string& old_path, const path& new_path) {
 }
 } // namespace
 
-inline const auto InstallBinDir() { return path("${CMAKE_INSTALL_PREFIX}") / "${CMAKE_INSTALL_BINDIR}"; }
-
-inline const auto LibraryPath() {
-    path base;
-
-    if ( auto custom_base = getenv("ZEEK_SPICY_LIBRARY_PATH"); custom_base && *custom_base )
-        base = path(custom_base);
+static path get_env_path_or(const char* name, const char* default_) {
+    assert(std::strlen(default_) != 0);
+    if ( auto p = hilti::rt::getenv(name); p && ! p->empty() )
+        return path(*p);
     else
-        base = path("@ZEEK_SPICY_LIBRARY_PATH@");
-
-    return hilti::rt::filesystem::weakly_canonical(base);
+        return default_;
 }
 
-inline const auto ModulePath() { return path("@ZEEK_SPICY_MODULE_PATH@"); }
-inline const auto DataPath() { return path("@ZEEK_SPICY_DATA_PATH@"); }
+inline const auto InstallBinDir() { return path("${CMAKE_INSTALL_PREFIX}") / "${CMAKE_INSTALL_BINDIR}"; }
+
+inline const auto LibraryPath() { return get_env_path_or("ZEEK_SPICY_LIBRARY_PATH", "@ZEEK_SPICY_LIBRARY_PATH@"); }
+
+inline const auto ModulePath() { return get_env_path_or("ZEEK_SPICY_MODULE_PATH", "@ZEEK_SPICY_MODULE_PATH@"); }
+
+inline const auto DataPath() { return get_env_path_or("ZEEK_SPICY_DATA_PATH", "@ZEEK_SPICY_DATA_PATH@"); }
 
 inline const auto CxxZeekIncludesDirectories() {
     std::string includes;

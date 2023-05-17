@@ -79,7 +79,7 @@ jobs:
           key: 'docs-gen-${{ github.job }}'
 
       - name: Configure
-        run: ./configure --disable-broker-tests --disable-cpp-tests --disable-spicy --ccache
+        run: ./configure --disable-broker-tests --disable-cpp-tests --disable-af-packet --ccache
 
       - name: Build
         run: cd build && make -j $(nproc)

@@ -1,7 +1,5 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
-add_subdirectory(spicyz)
-
 zeek_add_subdir_library(
     spicy
     INTERNAL_DEPENDENCIES
@@ -27,3 +25,5 @@ set(ZEEK_SPICY_LIBRARY_PATH "${CMAKE_INSTALL_FULL_DATADIR}/zeek/spicy" CACHE PAT
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/scripts/spicy/" DESTINATION "${ZEEK_SPICY_LIBRARY_PATH}")
 
 set(ZEEK_SPICY_DATA_PATH "${CMAKE_INSTALL_FULL_DATADIR}/zeek" CACHE PATH "")
+
+add_subdirectory(spicyz)

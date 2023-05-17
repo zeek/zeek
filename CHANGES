@@ -1,3 +1,13 @@
+6.0.0-dev.598 | 2023-05-17 12:46:23 +0200
+
+  * Introduce environment variables to override more paths configured
+    into `spicyz` (`ZEEK_SPICY_DATA_PATH`, `ZEEK_SPICY_MODULE_PATH`).
+    (Robin Sommer, Corelight).
+
+  * Fix an ordering issue in Spicy support's CMake config. This led to
+    variables left unset inside the subdirectory. (Robin Sommer,
+    Corelight)
+
 6.0.0-dev.595 | 2023-05-17 10:36:22 +0200
 
   * Fix get_active_node_count for node types not present. (Jan Grashoefer, Corelight)

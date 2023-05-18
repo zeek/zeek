@@ -1,3 +1,7 @@
+6.0.0-dev.605 | 2023-05-18 08:54:41 -0700
+
+  * Fix CMake ordering issue leaving configuration paths unset. (Robin Sommer, Corelight)
+
 6.0.0-dev.602 | 2023-05-17 16:10:57 +0200
 
   * Add license header to zeek-config*.h and zeek-version.h (Arne Welzel, Corelight)

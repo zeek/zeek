@@ -8,6 +8,33 @@ Zeek 5.2.2
 
 This release fixes the following security issues:
 
+- A specially-crafted series of FTP packets with a CMD command with a large path
+  followed by a very large number of replies could cause Zeek to spend a long
+  time processing the data. Due to the possibility of receiving these packets
+  from remote hosts, this is a DoS risk. The fix included prevents Zeek from
+  reusing the CMD command if it was already consumed by path-traversal logic.
+
+- A specially-crafted with a truncated header can cause Zeek to overflow memory
+  and potentially crash. Due to the possibility of receiving these packets from
+  remote hosts, this is a DoS risk. This overflow requires implementing the
+  raw_packet event handler which isn’t implemented by default, which makes the
+  risk of this issue low. The fix included adds additional length checking
+  during handling of raw_packet events.
+
+- A specially-crafted series of SMTP packets can cause Zeek to generate a very
+  large number of events and take a long time to process them. Zeek correctly
+  disables the SMTP analyzer while processing these packets but continues to
+  feed packets to it, generating more events. Due to the possibility of
+  receiving these packets from remote hosts, this is a DoS risk. The fix
+  included prevents an analyzer from calling another analyzer that has already
+  been disabled for a connection.
+
+- A specially-crafted series of POP3 packets containing MIME data can cause Zeek
+  to spend a long time dealing with each individual file ID. Due to the
+  possibility of receiving these packets from remote hosts, this is a DoS
+  risk. The fix included attempts to reuse an existing file ID for a connection
+  instead of recreating it each pass through the MIME analyzer.
+
 This release fixes the following bugs:
 
 - The config parser implements handling of commas at the end of input files in a

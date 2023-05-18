@@ -1,3 +1,19 @@
+5.2.1-5 | 2023-05-17 17:06:12 -0700
+
+  * Force gcc12 on OpenSuse Tumbleweed to avoid gcc13 changes (Tim Wojtulewicz, Corelight)
+
+  * Update af_packet plugin submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Reimplement fixes to handle commas at the end of config parser lines (Tim Wojtulewicz, Corelight)
+
+  * Revert "Convert config framework to use std::regex" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 65ee2287e9b74f861872d9e16b9c11fb300cfabd.
+
+  * Revert "GH-636: Fix regex to handle commas at the end of config parser lines" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 05bb50978905a6c3132b20eb2cfd246715f91356.
+
 5.2.1 | 2023-04-11 12:29:16 -0700
 
   * Update CHANGES, VERSION, and NEWS for v5.2.1 (Tim Wojtulewicz, Corelight)

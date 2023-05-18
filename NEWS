@@ -3,6 +3,23 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.2.2
+==========
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- The config parser implements handling of commas at the end of input files in a
+  safer way now, avoiding some crashes on Linux systems during parsing.
+
+- The AF_Packet plugin wasn't properly masking the tp_vlan_tci values received
+  from the kernel, and so could return invalid values for the VLAN ID reported
+  to Zeek. The value is now correctly masked.
+
+- The AF_Packet plugin now checks whether the interface is up during setup,
+  ensuring that a more useful error message is reported.
+
 Zeek 5.2.1
 ==========
 

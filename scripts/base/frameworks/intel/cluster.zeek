@@ -17,11 +17,11 @@ global insert_indicator: event(item: Item) &is_used;
 const send_store_on_node_up = T &redef;
 
 # If this process is not a manager process, we don't want the full metadata.
-@if ( Cluster::local_node_type() != Cluster::MANAGER )
+@if ( Cluster::local_node_type() != Cluster::MANAGER ) &analyze
 redef have_full_data = F;
 @endif
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::local_node_type() == Cluster::MANAGER ) &analyze
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, remove_indicator);
@@ -73,7 +73,7 @@ event Intel::match_remote(s: Seen) &priority=5
 	}
 @endif
 
-@if ( Cluster::local_node_type() == Cluster::WORKER )
+@if ( Cluster::local_node_type() == Cluster::WORKER ) &analyze
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::manager_topic, match_remote);
@@ -94,7 +94,7 @@ event Intel::insert_indicator(item: Intel::Item) &priority=5
 	}
 @endif
 
-@if ( Cluster::local_node_type() == Cluster::PROXY )
+@if ( Cluster::local_node_type() == Cluster::PROXY ) &analyze
 event Intel::insert_indicator(item: Intel::Item) &priority=5
 	{
 	# Just forwarding from manager to workers.

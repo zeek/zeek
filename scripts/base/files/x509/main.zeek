@@ -143,10 +143,8 @@ event zeek_init() &priority=5
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/x-x509-ca-cert");
 	Files::register_for_mime_type(Files::ANALYZER_SHA256, "application/pkix-cert");
 
-@if ( Cluster::is_enabled() )
-	if ( known_log_certs_use_broker )
+	if ( Cluster::is_enabled() && known_log_certs_use_broker )
 		known_log_certs = known_log_certs_with_broker;
-@endif
 	}
 
 hook Files::log_policy(rec: Files::Info, id: Log::ID, filter: Log::Filter) &priority=5

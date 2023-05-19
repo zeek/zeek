@@ -13,7 +13,7 @@ export {
 	global cluster_flow_clear: event(name: string);
 }
 
-@if ( Cluster::local_node_type() != Cluster::MANAGER )
+@if ( Cluster::local_node_type() != Cluster::MANAGER ) &analyze
 # Workers need ability to forward commands to manager.
 event zeek_init()
 	{
@@ -49,7 +49,7 @@ function flow_clear(controller: Controller): bool
 	return T;
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::local_node_type() == Cluster::MANAGER ) &analyze
 event OpenFlow::cluster_flow_mod(name: string, match: ofp_match, flow_mod: ofp_flow_mod)
 	{
 	if ( name !in name_to_controller )

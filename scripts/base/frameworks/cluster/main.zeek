@@ -347,7 +347,7 @@ function nodeid_topic(id: string): string
 	return nodeid_topic_prefix + id + "/";
 	}
 
-@if ( Cluster::is_enabled() )
+@if ( Cluster::is_enabled() ) &analyze
 
 event Cluster::hello(name: string, id: string) &priority=10
 	{
@@ -383,9 +383,6 @@ event Cluster::hello(name: string, id: string) &priority=10
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=10
 	{
-	if ( ! Cluster::is_enabled() )
-		return;
-
 	local e = Broker::make_event(Cluster::hello, node, Broker::node_id());
 	Broker::publish(nodeid_topic(endpoint$id), e);
 	}

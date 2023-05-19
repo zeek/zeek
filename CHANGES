@@ -1,4 +1,4 @@
-5.2.2 | 2023-05-18 12:58:54 -0700
+5.2.2 | 2023-05-19 07:54:25 -0700
 
   * files: Warn once for missing get_file_handle() (Arne Welzel, Corelight)
 

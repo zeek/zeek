@@ -46,6 +46,19 @@ const IDPtr& Scope::Find(std::string_view name) const
 	return ID::nil;
 	}
 
+void Scope::RemoveGlobal(std::string name, IDPtr /* gid */)
+	{
+	ASSERT(this == global_scope());
+
+	local.erase(name);
+
+	// We could remove the identifier from ordered_vars, but for now
+	// we skip doing so because (1) the only removals we do are for global
+	// scope (per the method name), and the only use of ordered_vars is
+	// for traversing function parameters (i.e., non-global scope), and
+	// (2) it would be a pain to do so given the current data structure.
+	}
+
 IDPtr Scope::GenerateTemporary(const char* name)
 	{
 	return make_intrusive<ID>(name, SCOPE_FUNCTION, false);

@@ -43,7 +43,7 @@ event zeek_init()
 	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
 	}
 
-@if ( Cluster::node == "worker-1" )
+@if ( Cluster::node == "worker-1" ) &analyze
 event Cluster::Experimental::cluster_started()
 	{
 	Config::set_value("testport", 44/tcp);

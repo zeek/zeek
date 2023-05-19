@@ -21,7 +21,7 @@ redef Log::default_rotation_interval = 0secs;
 
 global of_controller: OpenFlow::Controller;
 
-@if ( Cluster::local_node_type() == Cluster::WORKER )
+@if ( Cluster::local_node_type() == Cluster::WORKER ) &analyze
 event zeek_init()
 	{
 	suspend_processing();

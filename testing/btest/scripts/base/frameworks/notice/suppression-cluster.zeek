@@ -61,7 +61,7 @@ event Notice::begin_suppression(ts: time, suppress_for: interval, note: Notice::
 		Broker::publish(Cluster::node_topic("manager-1"), proceed);
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::local_node_type() == Cluster::MANAGER ) &analyze
 
 event Cluster::Experimental::cluster_started()
 	{

@@ -1,3 +1,7 @@
+6.0.0-dev.614 | 2023-05-19 10:51:35 -0700
+
+  * Allow plugins to call find_package(Zeek) (Dominik Charousset)
+
 6.0.0-dev.611 | 2023-05-19 09:37:39 -0700
 
   * files: Warn once for missing get_file_handle() (Arne Welzel, Corelight)

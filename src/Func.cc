@@ -316,6 +316,15 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
 
 ScriptFunc::~ScriptFunc()
 	{
+	if ( captures_vec )
+		{
+		auto& cvec = *captures_vec;
+		auto& captures = *type->GetCaptures();
+		for ( int i = 0; i < captures.size(); ++i )
+			if ( captures[i].IsManaged() )
+				ZVal::DeleteManagedType(cvec[i]);
+		}
+
 	delete captures_frame;
 	delete captures_offset_mapping;
 	}
@@ -508,19 +517,25 @@ void ScriptFunc::CreateCaptures(Frame* f)
 	int offset = 0;
 	for ( const auto& c : *captures )
 		{
-		auto v = f->GetElementByID(c.id);
+		auto v = f->GetElementByID(c.Id());
 
 		if ( v )
 			{
-			if ( c.deep_copy || ! v->Modifiable() )
+			if ( c.IsDeepCopy() || ! v->Modifiable() )
 				v = v->Clone();
 
 			captures_frame->SetElement(offset, std::move(v));
 			}
 
-		(*captures_offset_mapping)[c.id->Name()] = offset;
+		(*captures_offset_mapping)[c.Id()->Name()] = offset;
 		++offset;
 		}
+	}
+
+void ScriptFunc::CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec)
+	{
+	ASSERT(cvec->size() == type->GetCaptures()->size());
+	captures_vec = std::move(cvec);
 	}
 
 void ScriptFunc::SetCaptures(Frame* f)
@@ -536,7 +551,7 @@ void ScriptFunc::SetCaptures(Frame* f)
 	int offset = 0;
 	for ( const auto& c : *captures )
 		{
-		(*captures_offset_mapping)[c.id->Name()] = offset;
+		(*captures_offset_mapping)[c.Id()->Name()] = offset;
 		++offset;
 		}
 	}

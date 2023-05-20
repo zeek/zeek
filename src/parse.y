@@ -1639,9 +1639,7 @@ capture:
 
 			delete [] $2;
 
-			$$ = new FuncType::Capture;
-			$$->id = id;
-			$$->deep_copy = $1;
+			$$ = new FuncType::Capture(id, $1);
 			}
 	;
 

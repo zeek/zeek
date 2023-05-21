@@ -614,7 +614,28 @@ bool ScriptFunc::DeserializeCaptures(const broker::vector& data)
 
 	ASSERT(result.first);
 
-	SetCaptures(result.second.release());
+	auto& f = result.second;
+
+	if ( bodies[0].stmts->Tag() == STMT_ZAM )
+		{
+		auto& captures = *type->GetCaptures();
+		int n = f->FrameSize();
+
+		ASSERT(captures.size() == n);
+
+		auto cvec = std::make_unique<std::vector<ZVal>>();
+
+		for ( int i = 0; i < n; ++i )
+			{
+			auto& f_i = f->GetElement(i);
+			cvec->push_back(ZVal(f_i, captures[i].Id()->GetType()));
+			}
+
+		CreateCaptures(std::move(cvec));
+		}
+
+	else
+		SetCaptures(f.release());
 
 	return true;
 	}
@@ -642,6 +663,22 @@ FuncPtr ScriptFunc::DoClone()
 
 broker::expected<broker::data> ScriptFunc::SerializeCaptures() const
 	{
+	if ( captures_vec )
+		{
+		auto& cv = *captures_vec;
+		auto& captures = *type->GetCaptures();
+		int n = captures_vec->size();
+		auto temp_frame = new Frame(n, this, nullptr);
+
+		for ( int i = 0; i < n; ++i )
+			{
+			auto c_i = cv[i].ToVal(captures[i].Id()->GetType());
+			temp_frame->SetElement(i, c_i);
+			}
+
+		return temp_frame->Serialize();
+		}
+
 	if ( captures_frame )
 		return captures_frame->Serialize();
 

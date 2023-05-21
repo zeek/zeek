@@ -54,6 +54,13 @@ public:
 	Frame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
 
 	/**
+	 * Returns the size of the frame.
+	 *
+	 * @return the number of elements in the frame.
+	 */
+	int FrameSize() const { return size; }
+
+	/**
 	 * @param n the index to get.
 	 * @return the value at index *n* of the underlying array.
 	 */

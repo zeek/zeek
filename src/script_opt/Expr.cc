@@ -2415,7 +2415,7 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c)
 
 ExprPtr LambdaExpr::Duplicate()
 	{
-	auto ingr = std::make_unique<FunctionIngredients>(*ingredients);
+	auto ingr = std::make_shared<FunctionIngredients>(*ingredients);
 	ingr->SetBody(ingr->Body()->Duplicate());
 	return SetSucc(new LambdaExpr(std::move(ingr), outer_ids));
 	}

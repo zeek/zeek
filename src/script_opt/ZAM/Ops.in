@@ -2025,6 +2025,16 @@ eval	flow = FLOW_BREAK;
 	pc = end_pc;
 	continue;
 
+internal-op Lambda0
+type V
+eval	auto& aux = z.aux;
+	auto& ingredients = aux->ingredients;
+	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
+	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
+	              ingredients->Priority());
+	lamb->SetName(aux->lambda_name.c_str());
+	ZVal::DeleteManagedType(frame[z.v1]);
+	frame[z.v1].func_val = lamb.release();
 
 ########################################
 # Built-in Functions

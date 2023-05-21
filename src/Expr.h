@@ -1454,12 +1454,12 @@ protected:
 class LambdaExpr final : public Expr
 	{
 public:
-	LambdaExpr(std::unique_ptr<FunctionIngredients> ingredients, IDPList outer_ids,
+	LambdaExpr(std::shared_ptr<FunctionIngredients> ingredients, IDPList outer_ids,
 	           StmtPtr when_parent = nullptr);
 
 	const std::string& Name() const { return my_name; }
 	const IDPList& OuterIDs() const { return outer_ids; }
-	const FunctionIngredients& Ingredients() const { return *ingredients; }
+	const auto Ingredients() const { return ingredients; }
 
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -1478,7 +1478,7 @@ protected:
 private:
 	bool CheckCaptures(StmtPtr when_parent);
 
-	std::unique_ptr<FunctionIngredients> ingredients;
+	std::shared_ptr<FunctionIngredients> ingredients;
 	IDPtr lambda_id;
 	IDPList outer_ids;
 

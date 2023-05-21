@@ -870,11 +870,6 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 		group->AddFunc(func);
 
 	analyze_func(std::move(func));
-
-	// Note: ideally, something would take ownership of this memory until the
-	// end of script execution, but that's essentially the same as the
-	// lifetime of the process at the moment, so ok to "leak" it.
-	ingredients.release();
 	}
 
 IDPList gather_outer_ids(ScopePtr scope, StmtPtr body)

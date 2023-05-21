@@ -4638,14 +4638,15 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
+LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
                        StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
 
-	SetType(ingredients->GetID()->GetType());
+	auto& ingr_t = ingredients->GetID()->GetType();
+	SetType(ingr_t);
 
 	if ( ! CheckCaptures(when_parent) )
 		{
@@ -4692,7 +4693,7 @@ LambdaExpr::LambdaExpr(std::unique_ptr<FunctionIngredients> arg_ing, IDPList arg
 
 	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
 	lambda_id->SetVal(std::move(v));
-	lambda_id->SetType(ingredients->GetID()->GetType());
+	lambda_id->SetType(std::move(ingr_t));
 	lambda_id->SetConst();
 	}
 

@@ -20,13 +20,6 @@ bool ZAM_error = false;
 
 bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason)
 	{
-	if ( pf->NumLambdas() > 0 )
-		{
-		if ( reason )
-			*reason = "use of lambda";
-		return false;
-		}
-
 	if ( pf->NumWhenStmts() > 0 )
 		{
 		if ( reason )

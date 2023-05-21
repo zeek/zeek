@@ -176,12 +176,6 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 	auto r2 = rhs->GetOp2();
 	auto r3 = rhs->GetOp3();
 
-	if ( rhs->Tag() == EXPR_LAMBDA )
-		{
-		// reporter->Error("lambda expressions not supported for compiling");
-		return ErrorStmt();
-		}
-
 	if ( rhs->Tag() == EXPR_NAME )
 		return AssignVV(lhs, rhs->AsNameExpr());
 
@@ -212,6 +206,9 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 
 	if ( rhs->Tag() == EXPR_ANY_INDEX )
 		return AnyIndexVVi(lhs, r1->AsNameExpr(), rhs->AsAnyIndexExpr()->Index());
+
+	if ( rhs->Tag() == EXPR_LAMBDA )
+		return BuildLambda(lhs, rhs->AsLambdaExpr());
 
 	if ( rhs->Tag() == EXPR_COND && r1->GetType()->Tag() == TYPE_VECTOR )
 		return Bool_Vec_CondVVVV(lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr());
@@ -745,6 +742,38 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 	z.CheckIfManaged(n1->GetType());
 
 	return AddInst(z);
+	}
+
+const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le)
+	{
+	auto lt = le->GetType()->AsFuncType();
+	auto& captures = lt->GetCaptures();
+	int ncaptures = captures ? captures->size() : 0;
+
+	auto& name = le->Name();
+	auto ingr = le->Ingredients();
+
+	auto aux = new ZInstAux(ncaptures);
+	aux->ingredients = ingr;
+	aux->lambda_name = le->Name();
+
+	auto z = ZInstI(OP_LAMBDA0_V, Frame1Slot(n, OP1_WRITE));
+	z.aux = aux;
+	return AddInst(z);
+
+#if 0
+	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
+	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
+	              ingredients->Priority());
+
+	lamb->CreateCaptures(f);
+
+	// Set name to corresponding dummy func.
+	// Allows for lookups by the receiver.
+	lamb->SetName(my_name.c_str());
+
+	return make_intrusive<FuncVal>(std::move(lamb));
+#endif
 	}
 
 const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e)

@@ -412,6 +412,12 @@ public:
 	ValPtr* constants = nullptr;
 	TypePtr* types = nullptr;
 
+	// Ingredients associated with lambdas ...
+	std::shared_ptr<FunctionIngredients> ingredients;
+
+	// ... and its name.
+	std::string lambda_name;
+
 	// A parallel array for the cat() built-in replacement.
 	std::unique_ptr<CatArg>* cat_args = nullptr;
 

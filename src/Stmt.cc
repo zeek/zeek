@@ -1974,7 +1974,7 @@ void WhenInfo::Build(StmtPtr ws)
 
 	auto shebang = make_intrusive<StmtList>(do_test, do_bodies, dummy_return);
 
-	auto ingredients = std::make_unique<FunctionIngredients>(current_scope(), shebang,
+	auto ingredients = std::make_shared<FunctionIngredients>(current_scope(), shebang,
 	                                                         current_module);
 	auto outer_ids = gather_outer_ids(pop_scope(), ingredients->Body());
 

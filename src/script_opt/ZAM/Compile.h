@@ -224,6 +224,8 @@ private:
 	const ZAMStmt CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2_type,
 	                           const ListExpr* l);
 
+	const ZAMStmt BuildLambda(const NameExpr* n, LambdaExpr* le);
+
 	// Second argument is which instruction slot holds the branch target.
 	const ZAMStmt GenCond(const Expr* e, int& branch_v);
 

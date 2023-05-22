@@ -1,3 +1,12 @@
+6.0.0-dev.617 | 2023-05-22 10:14:27 +0200
+
+  * Fix CMAKE_BUILD_TYPE_LOWER definition-vs-use ordering problem (Christian Kreibich, Corelight)
+
+    It needs to be defined by the time we create zeek-config, which happens before
+    its current definition. To avoid a redundant TOLOWER when we check for presence
+    of --enable-debug at the beginning, this also switches this to a case-unadjusted
+    comparison to "Debug", which we use elsewhere in the file too.
+
 6.0.0-dev.614 | 2023-05-19 10:51:35 -0700
 
   * Allow plugins to call find_package(Zeek) (Dominik Charousset)

@@ -11,12 +11,8 @@ project(Zeek C CXX)
 
 # We want to set ENABLE_DEBUG to ON by default if the build type is Debug.
 set(ENABLE_DEBUG_DEFAULT OFF)
-if (NOT GENERATOR_IS_MULTI_CONFIG)
-    string(TOLOWER "${CMAKE_BUILD_TYPE}" build_type_lower)
-    if (build_type_lower STREQUAL "debug")
-        set(ENABLE_DEBUG_DEFAULT ON)
-    endif ()
-    unset(build_type_lower)
+if (NOT GENERATOR_IS_MULTI_CONFIG AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(ENABLE_DEBUG_DEFAULT ON)
 endif ()
 
 # On UNIX, install additional Zeek tools by default and build shared objects.
@@ -168,6 +164,8 @@ endif ()
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/FindClangTidy.cmake)
 include(cmake/CheckCompilerArch.cmake)
+
+string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 
 # ##############################################################################
 # Main targets and utilities.
@@ -1262,7 +1260,6 @@ configure_file(${CMAKE_SOURCE_DIR}/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path 
 configure_file(${CMAKE_SOURCE_DIR}/hilti-cxx-include-dirs.in
                ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
 
-string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-version.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h DESTINATION include/zeek)

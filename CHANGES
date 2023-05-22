@@ -1,3 +1,25 @@
+6.0.0-dev.620 | 2023-05-22 16:34:06 -0700
+
+  * btest/input/raw: Fix reread test (Arne Welzel, Corelight)
+
+    This seems to have relied on the reading file twice behavior simply
+    testing that 16 lines are observed. Switch to using two separate
+    files and doing a system("mv ...") to trigger the REREAD logic, there's
+    not force_update() needed and it wouldn't do anything if the file
+    hadn't changed anyway.
+
+  * input/Raw: Avoid reading file twice in MODE_REREAD (Arne Welzel, Corelight)
+
+    Found while writing documentation and being confused why
+    all lines and end_of_data() arrive twice during startup.
+
+    The test is a bit fuzzy, but does fail reliably without
+    the changes to Raw.cc
+
+    Also fix not checking dev in the MODE_REREAD path.
+
+    Closes #3053
+
 6.0.0-dev.617 | 2023-05-22 10:14:27 +0200
 
   * Fix CMAKE_BUILD_TYPE_LOWER definition-vs-use ordering problem (Christian Kreibich, Corelight)

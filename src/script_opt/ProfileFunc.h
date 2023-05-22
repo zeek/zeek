@@ -100,6 +100,8 @@ public:
 	const IDSet& Globals() const { return globals; }
 	const IDSet& AllGlobals() const { return all_globals; }
 	const IDSet& Locals() const { return locals; }
+	const IDSet& Captures() const { return captures; }
+	const auto& CapturesOffsets() const { return captures_offsets; }
 	const IDSet& WhenLocals() const { return when_locals; }
 	const IDSet& Params() const { return params; }
 	const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
@@ -207,6 +209,9 @@ protected:
 
 	// If we're profiling a lambda function, this holds the captures.
 	IDSet captures;
+
+	// This maps capture identifiers to their offsets.
+	std::map<const ID*, int> captures_offsets;
 
 	// Constants seen in the function.
 	std::vector<const ConstExpr*> constants;

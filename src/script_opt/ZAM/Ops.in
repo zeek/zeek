@@ -2003,11 +2003,40 @@ eval	auto& v = frame[z.v1].type_val;
 	auto t = globals[z.v2].id->GetType();
 	v = new TypeVal(t, true);
 
+internal-op Load-Capture
+type VV
+eval	frame[z.v1] = f->GetFunction()->GetCapturesVec()[z.v2];
+
+internal-op Load-Managed-Capture
+type VV
+eval	auto& lhs = frame[z.v1];
+	auto& rhs = f->GetFunction()->GetCapturesVec()[z.v2];
+	ZVal::DeleteManagedType(lhs);
+	lhs = rhs;
+	rhs.ClearManagedVal();
+
 internal-op Store-Global
 op1-internal
 type V
 eval	auto& g = globals[z.v1];
 	g.id->SetVal(frame[g.slot].ToVal(z.t));
+
+# Both of these have the LHS as v2 not v1, to keep with existing
+# conventions of OP_VV_I2 op type (as opposed ot OP_VV_I1_V2, which doesn't
+# currently exist, and would be a pain to add).
+internal-op Store-Capture
+op1-read
+type VV
+eval	f->GetFunction()->GetCapturesVec()[z.v2] = frame[z.v1];
+
+internal-op Store-Managed-Capture
+op1-read
+type VV
+eval	auto& lhs = f->GetFunction()->GetCapturesVec()[z.v2];
+	auto& rhs = frame[z.v1];
+	zeek::Ref(rhs.ManagedVal());
+	ZVal::DeleteManagedType(lhs);
+	lhs = rhs;
 
 
 internal-op Copy-To
@@ -2028,10 +2057,10 @@ eval	flow = FLOW_BREAK;
 internal-op Lambda0
 type V
 eval	auto& aux = z.aux;
-	auto& ingredients = aux->ingredients;
-	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
-	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-	              ingredients->Priority());
+	auto& ingr = aux->ingredients;
+	auto lamb = make_intrusive<ScriptFunc>(ingr->GetID());
+	lamb->AddBody(ingr->Body(), ingr->Inits(), ingr->FrameSize(),
+	              ingr->Priority());
 	lamb->SetName(aux->lambda_name.c_str());
 	ZVal::DeleteManagedType(frame[z.v1]);
 	frame[z.v1].func_val = lamb.release();

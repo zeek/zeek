@@ -647,6 +647,11 @@ bool ZInstI::IsGlobalLoad() const
 	return global_ops.count(op) > 0;
 	}
 
+bool ZInstI::IsCaptureLoad() const
+	{
+	return op == OP_LOAD_CAPTURE_VV || op == OP_LOAD_MANAGED_CAPTURE_VV;
+	}
+
 void ZInstI::InitConst(const ConstExpr* ce)
 	{
 	auto v = ce->ValuePtr();

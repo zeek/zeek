@@ -258,9 +258,9 @@ bool ZAMCompiler::PruneUnused()
 			KillInst(i);
 			}
 
-		if ( inst->IsGlobalLoad() )
+		if ( inst->IsNonLocalLoad() )
 			{
-			// Any straight-line load of the same global
+			// Any straight-line load of the same global/capture
 			// is redundant.
 			for ( unsigned int j = i + 1; j < insts1.size(); ++j )
 				{
@@ -280,11 +280,11 @@ bool ZAMCompiler::PruneUnused()
 				if ( i1->aux && i1->aux->can_change_globals )
 					break;
 
-				if ( ! i1->IsGlobalLoad() )
+				if ( ! i1->IsNonLocalLoad() )
 					continue;
 
 				if ( i1->v2 == inst->v2 )
-					{ // Same global
+					{ // Same global/capture
 					did_prune = true;
 					KillInst(i1);
 					}
@@ -299,9 +299,10 @@ bool ZAMCompiler::PruneUnused()
 			// Variable is used, keep assignment.
 			continue;
 
-		if ( frame_denizens[slot]->IsGlobal() )
+		auto& id = frame_denizens[slot];
+		if ( id->IsGlobal() || IsCapture(id) )
 			{
-			// Extend the global's range to the end of the
+			// Extend the global/capture's range to the end of the
 			// function.
 			denizen_ending[slot] = insts1.back();
 			continue;

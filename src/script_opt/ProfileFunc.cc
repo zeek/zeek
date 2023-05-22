@@ -48,8 +48,13 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields)
 		{
 		auto func = e->AsLambdaExpr();
 
+		int offset = 0;
+
 		for ( auto oid : func->OuterIDs() )
+			{
 			captures.insert(oid);
+			captures_offsets[oid] = offset++;
+			}
 
 		Profile(func->GetType()->AsFuncType(), func->Ingredients()->Body());
 		}

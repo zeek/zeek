@@ -757,10 +757,14 @@ const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le)
 	aux->ingredients = ingr;
 	aux->lambda_name = le->Name();
 
-	auto z = ZInstI(OP_LAMBDA0_V, Frame1Slot(n, OP1_WRITE));
-	z.aux = aux;
-	return AddInst(z);
+	if ( ncaptures == 0 )
+		{
+		auto z = ZInstI(OP_LAMBDA0_V, Frame1Slot(n, OP1_WRITE));
+		z.aux = aux;
+		return AddInst(z);
+		}
 
+	assert(0);
 #if 0
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
 	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
@@ -1062,19 +1066,6 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 
 		if ( ! indirect )
 			z.func = func_id->GetVal()->AsFunc();
-		}
-
-	if ( n )
-		{
-		auto id = n->Id();
-		if ( id->IsGlobal() )
-			{
-			AddInst(z);
-			auto global_slot = global_id_to_info[id];
-			z = ZInstI(OP_STORE_GLOBAL_V, global_slot);
-			z.op_type = OP_V_I1;
-			z.t = globalsI[global_slot].id->GetType();
-			}
 		}
 
 	return AddInst(z);

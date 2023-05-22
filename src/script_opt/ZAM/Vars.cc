@@ -24,6 +24,17 @@ bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
 	return ! usage || ! usage->HasID(id.get());
 	}
 
+bool ZAMCompiler::IsCapture(const ID* id) const
+	{
+	auto c = pf->CapturesOffsets();
+	return c.find(id) != c.end();
+	}
+
+int ZAMCompiler::CaptureOffset(const ID* id) const
+	{
+	return pf->CapturesOffsets().find(id)->second;
+	}
+
 void ZAMCompiler::LoadParam(const ID* id)
 	{
 	if ( id->IsType() )
@@ -69,6 +80,23 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id)
 	return AddInst(z);
 	}
 
+const ZAMStmt ZAMCompiler::LoadCapture(const ID* id)
+	{
+	ZOp op;
+
+	if ( ZVal::IsManagedType(id->GetType()) )
+		op = OP_LOAD_MANAGED_CAPTURE_VV;
+	else
+		op = OP_LOAD_CAPTURE_VV;
+
+	auto slot = RawSlot(id);
+
+	ZInstI z(op, slot, CaptureOffset(id));
+	z.op_type = OP_VV_I2;
+
+	return AddInst(z);
+	}
+
 int ZAMCompiler::AddToFrame(const ID* id)
 	{
 	frame_layout1[id] = frame_sizeI;
@@ -81,40 +109,34 @@ int ZAMCompiler::FrameSlot(const ID* id)
 	auto slot = RawSlot(id);
 
 	if ( id->IsGlobal() )
-		(void)LoadGlobal(frame_denizens[slot]);
+		(void)LoadGlobal(id);
+
+	else if ( IsCapture(id) )
+		(void)LoadCapture(id);
 
 	return slot;
 	}
 
 int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 	{
-	auto slot = RawSlot(id);
+	if ( fl == OP1_READ )
+		return FrameSlot(id);
 
-	switch ( fl )
-		{
-		case OP1_READ:
-			if ( id->IsGlobal() )
-				(void)LoadGlobal(frame_denizens[slot]);
-			break;
+	if ( fl == OP1_INTERNAL )
+		return RawSlot(id);
 
-		case OP1_WRITE:
-			if ( id->IsGlobal() )
-				pending_global_store = global_id_to_info[id];
-			break;
+	ASSERT(fl == OP1_WRITE || fl == OP1_READ_WRITE);
 
-		case OP1_READ_WRITE:
-			if ( id->IsGlobal() )
-				{
-				(void)LoadGlobal(frame_denizens[slot]);
-				pending_global_store = global_id_to_info[id];
-				}
-			break;
+	if ( id->IsGlobal() )
+		pending_global_store = global_id_to_info[id];
 
-		case OP1_INTERNAL:
-			break;
-		}
+	else if ( IsCapture(id) )
+		pending_capture_store = CaptureOffset(id);
 
-	return slot;
+	if ( fl == OP1_READ_WRITE )
+		return FrameSlot(id);
+	else
+		return RawSlot(id);
 	}
 
 int ZAMCompiler::RawSlot(const ID* id)

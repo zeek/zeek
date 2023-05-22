@@ -146,17 +146,40 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst)
 
 	top_main_inst = insts1.size() - 1;
 
-	if ( pending_global_store < 0 )
-		return ZAMStmt(top_main_inst);
+	if ( pending_global_store >= 0 )
+		{
+		auto gs = pending_global_store;
+		pending_global_store = -1;
 
-	auto global_slot = pending_global_store;
-	pending_global_store = -1;
+		auto store_inst = ZInstI(OP_STORE_GLOBAL_V, gs);
+		store_inst.op_type = OP_V_I1;
+		store_inst.t = globalsI[gs].id->GetType();
 
-	auto store_inst = ZInstI(OP_STORE_GLOBAL_V, global_slot);
-	store_inst.op_type = OP_V_I1;
-	store_inst.t = globalsI[global_slot].id->GetType();
+		return AddInst(store_inst);
+		}
 
-	return AddInst(store_inst);
+	if ( pending_capture_store >= 0 )
+		{
+		auto cs = pending_capture_store;
+		pending_capture_store = -1;
+
+		auto& cv = *func->GetType()->AsFuncType()->GetCaptures();
+		auto& c_id = cv[cs].Id();
+
+		ZOp op;
+
+		if ( ZVal::IsManagedType(c_id->GetType()) )
+			op = OP_STORE_MANAGED_CAPTURE_VV;
+		else
+			op = OP_STORE_CAPTURE_VV;
+
+		auto store_inst = ZInstI(op, CaptureOffset(c_id), cs);
+		store_inst.op_type = OP_VV_I2;
+
+		return AddInst(store_inst);
+		}
+
+	return ZAMStmt(top_main_inst);
 	}
 
 const Stmt* ZAMCompiler::LastStmt(const Stmt* s) const

@@ -247,9 +247,17 @@ public:
 	// the ZAM frame.
 	bool IsGlobalLoad() const;
 
+	// True if the instruction corresponds to loading a capture into
+	// the ZAM frame.
+	bool IsCaptureLoad() const;
+
+	// True if the instruction does not correspond to a load from the
+	// ZAM frame.
+	bool IsNonLocalLoad() const { return IsGlobalLoad() || IsCaptureLoad(); }
+
 	// True if the instruction corresponds to some sort of load,
-	// either from the interpreter frame or of a global.
-	bool IsLoad() const { return op_type == OP_VV_FRAME || IsGlobalLoad(); }
+	// either from the interpreter frame or of a global/capture.
+	bool IsLoad() const { return op_type == OP_VV_FRAME || IsNonLocalLoad(); }
 
 	// True if the instruction corresponds to storing a global.
 	bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_V; }

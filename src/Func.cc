@@ -668,7 +668,7 @@ broker::expected<broker::data> ScriptFunc::SerializeCaptures() const
 		auto& cv = *captures_vec;
 		auto& captures = *type->GetCaptures();
 		int n = captures_vec->size();
-		auto temp_frame = new Frame(n, this, nullptr);
+		auto temp_frame = make_intrusive<Frame>(n, this, nullptr);
 
 		for ( int i = 0; i < n; ++i )
 			{

@@ -1,3 +1,7 @@
+6.0.0-dev.622 | 2023-05-22 16:38:56 -0700
+
+  * Revert part of previous CMake debug type fix (Tim Wojtulewicz)
+
 6.0.0-dev.620 | 2023-05-22 16:34:06 -0700
 
   * btest/input/raw: Fix reread test (Arne Welzel, Corelight)

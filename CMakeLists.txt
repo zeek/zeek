@@ -11,8 +11,12 @@ project(Zeek C CXX)
 
 # We want to set ENABLE_DEBUG to ON by default if the build type is Debug.
 set(ENABLE_DEBUG_DEFAULT OFF)
-if (NOT GENERATOR_IS_MULTI_CONFIG AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(ENABLE_DEBUG_DEFAULT ON)
+if (NOT GENERATOR_IS_MULTI_CONFIG)
+    string(TOLOWER "${CMAKE_BUILD_TYPE}" _build_type_lower)
+    if (_build_type_lower STREQUAL "debug")
+        set(ENABLE_DEBUG_DEFAULT ON)
+    endif ()
+    unset(_build_type_lower)
 endif ()
 
 # On UNIX, install additional Zeek tools by default and build shared objects.

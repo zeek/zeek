@@ -205,6 +205,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				}
 
 			packet->cap_len = total_len + hdr_size;
+			// Assumes reassembled packet has wire length == capture length.
+			packet->len = packet->cap_len;
 			}
 		}
 

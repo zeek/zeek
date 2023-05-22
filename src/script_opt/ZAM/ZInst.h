@@ -325,6 +325,7 @@ public:
 			slots = ints = new int[n];
 			constants = new ValPtr[n];
 			types = new TypePtr[n];
+			is_managed = new bool[n];
 			}
 		}
 
@@ -333,6 +334,7 @@ public:
 		delete[] ints;
 		delete[] constants;
 		delete[] types;
+		delete[] is_managed;
 		delete[] cat_args;
 		}
 
@@ -392,6 +394,7 @@ public:
 		ints[i] = slot;
 		constants[i] = nullptr;
 		types[i] = t;
+		is_managed[i] = t ? ZVal::IsManagedType(t) : false;
 		}
 
 	// Same but for constants.
@@ -400,6 +403,7 @@ public:
 		ints[i] = -1;
 		constants[i] = c;
 		types[i] = nullptr;
+		is_managed[i] = false;
 		}
 
 	// Member variables.  We could add accessors for manipulating
@@ -412,13 +416,16 @@ public:
 	// if not, it's nil).
 	//
 	// We track associated types, too, enabling us to use
-	// ZVal::ToVal to convert frame slots or constants to ValPtr's.
+	// ZVal::ToVal to convert frame slots or constants to ValPtr's;
+	// and, as a performance optimization, whether those types
+	// indicate the slot needs to be managed.
 
 	int n; // size of arrays
 	int* slots = nullptr; // either nil or points to ints
 	int* ints = nullptr;
 	ValPtr* constants = nullptr;
 	TypePtr* types = nullptr;
+	bool* is_managed = nullptr;
 
 	// Ingredients associated with lambdas ...
 	std::shared_ptr<FunctionIngredients> ingredients;

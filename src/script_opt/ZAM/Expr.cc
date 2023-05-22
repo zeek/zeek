@@ -750,34 +750,19 @@ const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le)
 	auto& captures = lt->GetCaptures();
 	int ncaptures = captures ? captures->size() : 0;
 
-	auto& name = le->Name();
-	auto ingr = le->Ingredients();
-
 	auto aux = new ZInstAux(ncaptures);
-	aux->ingredients = ingr;
+	aux->ingredients = le->Ingredients();
 	aux->lambda_name = le->Name();
 
-	if ( ncaptures == 0 )
+	for ( int i = 0; i < ncaptures; ++i )
 		{
-		auto z = ZInstI(OP_LAMBDA0_V, Frame1Slot(n, OP1_WRITE));
-		z.aux = aux;
-		return AddInst(z);
+		auto& id_i = (*captures)[i].Id();
+		aux->Add(i, FrameSlot(id_i), id_i->GetType());
 		}
 
-	assert(0);
-#if 0
-	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
-	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-	              ingredients->Priority());
-
-	lamb->CreateCaptures(f);
-
-	// Set name to corresponding dummy func.
-	// Allows for lookups by the receiver.
-	lamb->SetName(my_name.c_str());
-
-	return make_intrusive<FuncVal>(std::move(lamb));
-#endif
+	auto z = ZInstI(OP_LAMBDA_V, Frame1Slot(n, OP1_WRITE));
+	z.aux = aux;
+	return AddInst(z);
 	}
 
 const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e)

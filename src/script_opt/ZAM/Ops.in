@@ -2054,7 +2054,7 @@ eval	flow = FLOW_BREAK;
 	pc = end_pc;
 	continue;
 
-internal-op Lambda0
+internal-op Lambda
 type V
 eval	auto& aux = z.aux;
 	auto& ingr = aux->ingredients;
@@ -2062,6 +2062,18 @@ eval	auto& aux = z.aux;
 	lamb->AddBody(ingr->Body(), ingr->Inits(), ingr->FrameSize(),
 	              ingr->Priority());
 	lamb->SetName(aux->lambda_name.c_str());
+	if ( aux->n > 0 )
+		{
+		auto captures = std::make_unique<std::vector<ZVal>>();
+		for ( auto i = 0; i < aux->n; ++i )
+			{
+			auto& cp = frame[aux->slots[i]];
+			if ( aux->is_managed[i] )
+				zeek::Ref(cp.ManagedVal());
+			captures->push_back(cp);
+			}
+		lamb->CreateCaptures(std::move(captures));
+		}
 	ZVal::DeleteManagedType(frame[z.v1]);
 	frame[z.v1].func_val = lamb.release();
 

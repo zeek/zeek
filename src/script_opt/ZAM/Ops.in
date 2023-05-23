@@ -2059,8 +2059,7 @@ type V
 eval	auto& aux = z.aux;
 	auto& ingr = aux->ingredients;
 	auto lamb = make_intrusive<ScriptFunc>(ingr->GetID());
-	lamb->AddBody(ingr->Body(), ingr->Inits(), ingr->FrameSize(),
-	              ingr->Priority());
+	lamb->AddBody(*ingr);
 	lamb->SetName(aux->lambda_name.c_str());
 	if ( aux->n > 0 )
 		{

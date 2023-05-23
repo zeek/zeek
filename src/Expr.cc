@@ -4657,8 +4657,7 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
 	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
-	dummy_func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-	                    ingredients->Priority());
+	dummy_func->AddBody(*ingredients);
 
 	dummy_func->SetOuterIDs(outer_ids);
 
@@ -4787,9 +4786,7 @@ ScopePtr LambdaExpr::GetScope() const
 ValPtr LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
-	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-	              ingredients->Priority());
-
+	lamb->AddBody(*ingredients);
 	lamb->CreateCaptures(f);
 
 	// Set name to corresponding dummy func.

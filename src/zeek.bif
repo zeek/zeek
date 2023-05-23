@@ -4710,6 +4710,16 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 		return zeek::val_mgr->False();
 		}
 
+	// If a user passed the analyzer ID of a root analyzer like TCP or UDP
+	// report an error but don't do anything. This likely is a scripting
+	// error as it should not be possible to get access to the analyzer id
+	// of a root analyzer without probing for it.
+	if ( ! a->Parent() )
+		{
+		zeek::reporter->Error("root analyzer %s cannot be removed", a->GetAnalyzerName());
+		return zeek::val_mgr->False();
+		}
+
 	// Remove in v6.1: Global disabling_analyzer is to be removed.
 	static auto disabling_analyzer_hook = id::find_func("disabling_analyzer");
 	static auto analyzer_disabling_analyzer_hook = id::find_func("Analyzer::disabling_analyzer");

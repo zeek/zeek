@@ -161,6 +161,18 @@ New Functionality
 - Add logging metrics for streams (``zeek-log-stream-writes``) and writers
   (``zeek-log-writer-writes-total``).
 
+- Add networking metrics via the telemetry framework. These are enabled
+  when the ``misc/stats`` script is loaded.
+
+	zeek-net-dropped-packets
+	zeek-net-link-packets
+	zeek-net-received-bytes
+	zeek-net-packet-lag-seconds
+	zeek-net-received-packets-total
+
+  Except for lag, metrics originate from the ``get_net_stats()`` bif and are
+  updated through the ``Telemetry::sync()`` hook every 15 seconds by default.
+
 - The DNS analyzer now parses RFC 2535's AD ("authentic data") and CD ("checking
   disabled") flags from DNS requests and responses,  making them available in
   the ``dns_msg`` record provided by many of the ``dns_*`` events. The existing

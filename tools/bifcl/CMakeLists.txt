@@ -33,8 +33,7 @@ set(BISON_FLAGS "--debug")
 # BIF parser/scanner
 bison_target(BIFParser builtin-func.y
              ${BifCl_BINARY_DIR}/bif_parse.cc
-             HEADER ${BifCl_BINARY_DIR}/bif_parse.h
-             #VERBOSE ${BifCl_BINARY_DIR}/bif_parse.output
+             DEFINES_FILE ${BifCl_BINARY_DIR}/bif_parse.h
              COMPILE_FLAGS "${BISON_FLAGS}")
 flex_target(BIFScanner builtin-func.l ${BifCl_BINARY_DIR}/bif_lex.cc)
 add_flex_bison_dependency(BIFScanner BIFParser)

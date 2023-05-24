@@ -80,3 +80,5 @@ hole in vector of managed types, 5, [[a=T], [a=T], , , [a=T]]
 hole in vector of managed types after replacing slice, 3, [[a=T], [a=T], ]
 left shift (PASS)
 right shift (PASS)
+negative index (PASS)
+negative index (PASS)

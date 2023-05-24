@@ -223,4 +223,10 @@ event zeek_init()
 	local v23 = v6 >> four_ones;
 	test_case( "left shift", all_set(v22 == vector(20, 40, 60, 80)) );
 	test_case( "right shift", all_set(v23 == vector(5, 10, 15, 20)) );
+
+	# negative indices
+	local v24 = vector( 1, 2, 3, 4, 5 );
+	test_case( "negative index", v24[-1] == 5 );
+	test_case( "negative index", v24[-3] == 3 );
+
 }

@@ -127,16 +127,19 @@ int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 
 	ASSERT(fl == OP1_WRITE || fl == OP1_READ_WRITE);
 
+	// Important: get the slot *before* tracking non-locals, so we don't
+	// prematurely generate a Store for the read/write case.
+	auto slot = fl == OP1_READ_WRITE ? FrameSlot(id) : RawSlot(id);
+
 	if ( id->IsGlobal() )
 		pending_global_store = global_id_to_info[id];
 
 	else if ( IsCapture(id) )
 		pending_capture_store = CaptureOffset(id);
 
-	if ( fl == OP1_READ_WRITE )
-		return FrameSlot(id);
-	else
-		return RawSlot(id);
+	ASSERT(pending_global_store == -1 || pending_capture_store == -1);
+
+	return slot;
 	}
 
 int ZAMCompiler::RawSlot(const ID* id)

@@ -146,6 +146,8 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst)
 
 	top_main_inst = insts1.size() - 1;
 
+	ASSERT(pending_global_store == -1 || pending_capture_store == -1);
+
 	if ( pending_global_store >= 0 )
 		{
 		auto gs = pending_global_store;
@@ -173,7 +175,7 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst)
 		else
 			op = OP_STORE_CAPTURE_VV;
 
-		auto store_inst = ZInstI(op, CaptureOffset(c_id), cs);
+		auto store_inst = ZInstI(op, RawSlot(c_id.get()), cs);
 		store_inst.op_type = OP_VV_I2;
 
 		return AddInst(store_inst);

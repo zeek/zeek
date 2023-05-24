@@ -277,7 +277,7 @@ bool ZAMCompiler::PruneUnused()
 					// Inbound branch ends block.
 					break;
 
-				if ( i1->aux && i1->aux->can_change_globals )
+				if ( i1->aux && i1->aux->can_change_non_locals )
 					break;
 
 				if ( ! i1->IsNonLocalLoad() )

@@ -439,10 +439,10 @@ public:
 	// Used for accessing function names.
 	const ID* id_val = nullptr;
 
-	// Whether the instruction can lead to globals changing.
-	// Currently only needed by the optimizer, but convenient
-	// to store here.
-	bool can_change_globals = false;
+	// Whether the instruction can lead to globals/captures changing.
+	// Currently only needed by the optimizer, but convenient to
+	// store here.
+	bool can_change_non_locals = false;
 
 	// The following is only used for OP_CONSTRUCT_KNOWN_RECORD_V,
 	// to map elements in slots/constants/types to record field offsets.

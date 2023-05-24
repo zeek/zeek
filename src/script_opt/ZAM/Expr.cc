@@ -1041,7 +1041,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 	if ( ! z.aux )
 		z.aux = new ZInstAux(0);
 
-	z.aux->can_change_globals = true;
+	z.aux->can_change_non_locals = true;
 
 	z.call_expr = c;
 

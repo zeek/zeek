@@ -539,8 +539,28 @@ void ScriptFunc::CreateCaptures(Frame* f)
 
 void ScriptFunc::CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec)
 	{
-	ASSERT(cvec->size() == type->GetCaptures()->size());
+	const auto& captures = *type->GetCaptures();
+
+	ASSERT(cvec->size() == captures.size());
+
 	captures_vec = std::move(cvec);
+
+	auto n = captures.size();
+	for ( auto i = 0U; i < n; ++i )
+		{
+		auto& c_i = captures[i];
+		auto& cv_i = (*captures_vec)[i];
+
+		if ( c_i.IsDeepCopy() )
+			{
+			auto& t = c_i.Id()->GetType();
+			auto new_cv_i = cv_i.ToVal(t)->Clone();
+			if ( c_i.IsManaged() )
+				ZVal::DeleteManagedType(cv_i);
+
+			cv_i = ZVal(new_cv_i, t);
+			}
+		}
 	}
 
 void ScriptFunc::SetCaptures(Frame* f)

@@ -196,7 +196,7 @@ public:
 	 * different from the method above, which uses its argument to
 	 * compute the captures, rather than here where they are pre-computed.
 	 *
-	 * Assumes any deep copies have already been made.
+	 * Makes deep copies if required.
 	 *
 	 * @param cvec  a vector of ZVal's corresponding to the captures.
 	 */

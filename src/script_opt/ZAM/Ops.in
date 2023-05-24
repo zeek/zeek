@@ -2011,9 +2011,9 @@ internal-op Load-Managed-Capture
 type VV
 eval	auto& lhs = frame[z.v1];
 	auto& rhs = f->GetFunction()->GetCapturesVec()[z.v2];
+	zeek::Ref(rhs.ManagedVal());
 	ZVal::DeleteManagedType(lhs);
 	lhs = rhs;
-	rhs.ClearManagedVal();
 
 internal-op Store-Global
 op1-internal

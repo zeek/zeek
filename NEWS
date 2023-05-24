@@ -386,6 +386,11 @@ Changed Functionality
 - Fix ``disable_analyzer()`` builtin function crashing when attempting to
   disable connection's root analyzers.
 
+- Zeek script vectors now support negative indices.
+
+	local v = vector(1, 2, 3);
+	print v[-1];  # prints 3
+
 - Function parameters are rendered by Zeekygen as ``:param x`` rather than just
   ``:x:``. This allows to group parameters Zeek's documentation.
 

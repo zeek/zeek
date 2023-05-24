@@ -1459,7 +1459,12 @@ public:
 
 	const std::string& Name() const { return my_name; }
 	const IDPList& OuterIDs() const { return outer_ids; }
-	const auto Ingredients() const { return ingredients; }
+
+	// The following is non-const so the body can be updated by
+	// script optimization.
+	std::shared_ptr<FunctionIngredients> Ingredients() const { return ingredients; }
+
+	void ReplaceBody(StmtPtr new_body) const;
 
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;

@@ -442,12 +442,39 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		}
 
 	// Re-profile the functions, now without worrying about compatibility
-	// with compilation to C++.  Note that the first profiling pass earlier
-	// may have marked some of the functions as to-skip, so first clear
-	// those markings.  Once we have full compile-to-C++ and ZAM support
-	// for all Zeek language features, we can remove the re-profiling here.
+	// with compilation to C++.
+
+	// The first profiling pass earlier may have marked some of the
+	// functions as to-skip, so clear those markings.
 	for ( auto& f : funcs )
 		f.SetSkip(false);
+
+	// Find all the lambda bodies and create proxy functions for them
+	// so we can compile them, too.  Note that when profiling them we
+	// may find yet more lambdas.
+	std::unordered_set<const LambdaExpr*> lambdas_to_do = pfs->Lambdas();
+	std::unordered_map<const ScriptFunc*, const LambdaExpr*> lambdas;
+
+	while ( ! lambdas_to_do.empty() )
+		{
+		auto batch = lambdas_to_do;
+		lambdas_to_do.clear();
+
+		for ( auto& l : batch )
+			{
+			auto ingr = l->Ingredients();
+			auto f = make_intrusive<ScriptFunc>(ingr->GetID());
+			f->AddBody(*ingr);
+
+			lambdas[f.get()] = l;
+
+			funcs.emplace_back(f, ingr->Scope(), ingr->Body(), 0);
+
+			ProfileFunc pf(ingr->Body().get());
+			auto& new_l = pf.Lambdas();
+			lambdas_to_do.insert(new_l.begin(), new_l.end());
+			}
+		}
 
 	pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
 
@@ -496,21 +523,33 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	for ( auto& f : funcs )
 		{
 		auto func = f.Func();
+		auto lambda_func = lambdas.find(func);
+		bool is_lambda = lambda_func != lambdas.end();
 
-		if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
+		if ( ! is_lambda )
 			{
-			if ( ! should_analyze(f.FuncPtr(), f.Body()) )
-				continue;
-			}
+			if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
+				{
+				if ( ! should_analyze(f.FuncPtr(), f.Body()) )
+					continue;
+				}
 
-		else if ( ! analysis_options.compile_all && inl && inl->WasInlined(func) &&
-		          func_used_indirectly.count(func) == 0 )
-			// No need to compile as it won't be called directly.
-			continue;
+			else if ( ! analysis_options.compile_all && inl && inl->WasInlined(func) &&
+				  func_used_indirectly.count(func) == 0 )
+				{
+				// No need to compile as it won't be
+				// called directly.
+				continue;
+				}
+			}
 
 		auto new_body = f.Body();
 		optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
 		f.SetBody(new_body);
+
+		if ( is_lambda )
+			lambda_func->second->ReplaceBody(new_body);
+
 		did_one = true;
 		}
 

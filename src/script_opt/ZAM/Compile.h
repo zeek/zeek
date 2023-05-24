@@ -92,6 +92,7 @@ private:
 	void Init();
 	void InitGlobals();
 	void InitArgs();
+	void InitCaptures();
 	void InitLocals();
 	void TrackMemoryManagement();
 

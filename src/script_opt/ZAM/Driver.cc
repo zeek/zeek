@@ -33,6 +33,7 @@ void ZAMCompiler::Init()
 	{
 	InitGlobals();
 	InitArgs();
+	InitCaptures();
 	InitLocals();
 
 #if 0
@@ -90,6 +91,12 @@ void ZAMCompiler::InitArgs()
 		}
 
 	pop_scope();
+	}
+
+void ZAMCompiler::InitCaptures()
+	{
+	for ( auto c : pf->Captures() )
+		(void)AddToFrame(c);
 	}
 
 void ZAMCompiler::InitLocals()

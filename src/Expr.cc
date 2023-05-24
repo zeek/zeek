@@ -4658,7 +4658,6 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	// when broker provides a closure.
 	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
 	dummy_func->AddBody(*ingredients);
-
 	dummy_func->SetOuterIDs(outer_ids);
 
 	// Get the body's "string" representation.
@@ -4694,6 +4693,11 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	lambda_id->SetVal(std::move(v));
 	lambda_id->SetType(std::move(ingr_t));
 	lambda_id->SetConst();
+	}
+
+void LambdaExpr::ReplaceBody(StmtPtr new_body) const
+	{
+	ingredients->SetBody(new_body);
 	}
 
 bool LambdaExpr::CheckCaptures(StmtPtr when_parent)

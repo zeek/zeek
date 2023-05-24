@@ -28,7 +28,23 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
 	profiled_func = func;
 	profiled_body = body.get();
 	abs_rec_fields = _abs_rec_fields;
-	Profile(func->GetType().get(), body);
+
+	auto ft = func->GetType()->AsFuncType();
+	auto& fcaps = ft->GetCaptures();
+
+	if ( fcaps )
+		{
+		int offset = 0;
+
+		for ( auto& c : *fcaps )
+			{
+			auto cid = c.Id().get();
+			captures.insert(cid);
+			captures_offsets[cid] = offset++;
+			}
+		}
+
+	Profile(ft, body);
 	}
 
 ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields)

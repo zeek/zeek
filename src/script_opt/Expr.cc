@@ -2416,7 +2416,15 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c)
 ExprPtr LambdaExpr::Duplicate()
 	{
 	auto ingr = std::make_shared<FunctionIngredients>(*ingredients);
-	ingr->SetBody(ingr->Body()->Duplicate());
+
+	// Note, we don't duplicate the body.  This is because (1) script
+	// optimization does not recursively compile lambda bodies, but
+	// rather tracks them separately, and (2) if we duplicate it, then
+	// we have to somehow ensure we still track the duplicated version
+	// so we can compile it, which gets complicated because we need
+	// to identify lambdas up front, while duplicatino for inlining
+	// only happens after that point.
+
 	return SetSucc(new LambdaExpr(std::move(ingr), outer_ids));
 	}
 

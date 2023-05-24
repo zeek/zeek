@@ -649,6 +649,9 @@ FuncPtr ScriptFunc::DoClone()
 	{
 	// ScriptFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
+	//
+	// We don't use make_intrusive<> directly because we're accessing
+	// a protected constructor.
 	auto other = IntrusivePtr{AdoptRef{}, new ScriptFunc()};
 
 	CopyStateInto(other.get());
@@ -661,6 +664,22 @@ FuncPtr ScriptFunc::DoClone()
 		other->captures_frame = captures_frame->Clone();
 		other->captures_offset_mapping = new OffsetMap;
 		*other->captures_offset_mapping = *captures_offset_mapping;
+		}
+
+	if ( captures_vec )
+		{
+		auto cv_i = captures_vec->begin();
+		auto cv_copy = std::make_unique<std::vector<ZVal>>();
+		for ( auto& c : *type->GetCaptures() )
+			{
+			cv_copy->push_back(*cv_i);
+			++cv_i;
+
+			if ( c.IsManaged() )
+				Ref(cv_copy->back().ManagedVal());
+			}
+
+		other->captures_vec = std::move(cv_copy);
 		}
 
 	return other;

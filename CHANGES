@@ -1,3 +1,9 @@
+6.0.0-dev.636 | 2023-05-24 09:41:01 +0200
+
+  * stats: Add zeek-net-packet-lag-seconds metric (Arne Welzel, Corelight)
+
+  * GH-3060: Support negative index lookups for vectors (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.628 | 2023-05-23 19:32:05 +0200
 
   * ci: Disable openh264 repository on tumbleweed (Arne Welzel, Corelight)

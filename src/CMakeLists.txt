@@ -511,6 +511,7 @@ collect_headers(zeek_HEADERS ${zeek_SRCS})
 
 add_library(zeek_objs OBJECT ${zeek_SRCS})
 target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
+target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
 add_clang_tidy_files(${zeek_SRCS})
 zeek_target_link_libraries(zeek_objs)

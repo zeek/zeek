@@ -83,13 +83,17 @@ protected:
  * builds a new packet object containing the encapsulated/tunneled packet, as well
  * as adding to the associated encapsulation stack for the tunnel.
  *
+ * The wire length (pkt->len) of the inner packet is computed based on the wire length
+ * of the outer packet and the differences in capture lengths.
+ *
  * @param outer_pkt The packet containing the encapsulation. This packet should contain
  * @param encap_index A return value for the current index into the encapsulation stack.
  * This is returned to allow analyzers to know what point in the stack they were operating
  * on as the packet analysis chain unwinds as it returns.
  * @param encap_stack Tracks the encapsulations as the new encapsulations are discovered
  * in the inner packets.
- * @param len The byte length of the packet data containing in the inner packet.
+ * @param inner_cap_len The byte length of the packet data contained in the inner packet.
+ * Also used as capture length for the inner packet.
  * @param data A pointer to the first byte of the inner packet.
  * @param link_type The link type (DLT_*) for the outer packet. If not known, DLT_RAW can
  * be passed for this value.

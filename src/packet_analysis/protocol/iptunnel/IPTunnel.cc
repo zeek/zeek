@@ -182,7 +182,11 @@ std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
 	assert(outer_pkt->len >= outer_pkt->cap_len - inner_cap_len);
 
 	// Compute the wire length of the inner packet based on the wire length of
-	// the outer and the difference in cap len's.
+	// the outer and the difference in capture lengths. This ensures that for
+	// truncated packets the wire length of the inner packet stays intact. Wire
+	// length may be greater than data available for truncated packets. However,
+	// analyzers do validate lengths found in headers with the wire length
+	// of the packet and keeping it consistent avoids violations.
 	uint32_t consumed_len = outer_pkt->cap_len - inner_cap_len;
 	uint32_t inner_wire_len = outer_pkt->len - consumed_len;
 

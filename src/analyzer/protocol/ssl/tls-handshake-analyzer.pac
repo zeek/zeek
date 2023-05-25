@@ -676,7 +676,7 @@ refine connection Handshake_Conn += {
 			return true;
 
 		auto cid_string = zeek::make_intrusive<zeek::StringVal>(cid.length(), (const char*) cid.data());
-		zeek::BifEvent::enqueue_ssl_extension_connection_id(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, cid_string);
+		zeek::BifEvent::enqueue_ssl_extension_connection_id(zeek_analyzer(), zeek_analyzer()->Conn(), ${rec.is_orig} ^ flipped_, std::move(cid_string));
 
 		return true;
 		%}

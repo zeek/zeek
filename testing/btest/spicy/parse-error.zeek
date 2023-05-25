@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o test.hlto test.evt test.spicy
+# @TEST-EXEC: spicyz -d -o test.hlto test.evt test.spicy
 # @TEST-EXEC: HILTI_DEBUG=zeek zeek -r ${TRACES}/ssh/single-conn.trace misc/dump-events test.hlto %INPUT
 # Zeek versions differ in their quoting of the newline character in dpd.log (two slashes vs one).
 # @TEST-EXEC: cat dpd.log | sed 's#\\\\#\\#g' >dpd.log.tmp && mv dpd.log.tmp dpd.log

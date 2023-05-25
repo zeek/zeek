@@ -1,11 +1,11 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -L . -o a.hlto a.spicy
-# @TEST-EXEC: spicyz -L . -o b.hlto b.spicy
+# @TEST-EXEC: spicyz -L . -d -o a.hlto a.spicy
+# @TEST-EXEC: spicyz -L . -d -o b.hlto b.spicy
 # @TEST-EXEC: zeek a.hlto b.hlto
 #
-# @TEST-EXEC: spicyz -o a.hlto a.spicy common.spicy
-# @TEST-EXEC: spicyz -o b.hlto b.spicy common.spicy
+# @TEST-EXEC: spicyz -d -o a.hlto a.spicy common.spicy
+# @TEST-EXEC: spicyz -d -o b.hlto b.spicy common.spicy
 # @TEST-EXEC: zeek a.hlto b.hlto
 #
 # @TEST-DOC: Regression test for #177.

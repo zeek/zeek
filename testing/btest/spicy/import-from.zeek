@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: mkdir -p a/b/c && mv y.spicy a/b/c
-# @TEST-EXEC: spicyz -o test.hlto ssh.spicy ./ssh.evt
+# @TEST-EXEC: spicyz -d -o test.hlto ssh.spicy ./ssh.evt
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace  test.hlto %INPUT >output
 # @TEST-EXEC: btest-diff output
 

@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o analyzer.hlto analyzer.spicy analyzer.evt
+# @TEST-EXEC: spicyz -d -o analyzer.hlto analyzer.spicy analyzer.evt
 # @TEST-EXEC: zeek -Cr ${TRACES}/spicy/gap-recovery.pcap analyzer.hlto Spicy::enable_print=T >output 2>&1
 # @TEST-EXEC: if spicy-version 10503; then btest-diff output; else OUT=output-before-spicy-issue-1303; mv output "$OUT"; btest-diff "$OUT"; fi
 #

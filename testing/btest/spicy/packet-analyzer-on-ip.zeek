@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o test.hlto spicy/raw-layer.pcap.spicy spicy/raw-layer.pcap.evt
+# @TEST-EXEC: spicyz -d -o test.hlto spicy/raw-layer.pcap.spicy spicy/raw-layer.pcap.evt
 # @TEST-EXEC: zeek -r ${TRACES}/dns/proto255.pcap test.hlto %INPUT >output
 # @TEST-EXEC: btest-diff output
 

@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o test.hlto test.evt test.spicy
+# @TEST-EXEC: spicyz -d -o test.hlto test.evt test.spicy
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto Zeek/Spicy/misc/resource-usage | sed 's/=[^ ]*/=XXX/g' >output
 # @TEST-EXEC: btest-diff output
 #

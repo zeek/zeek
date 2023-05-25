@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o export.hlto export.spicy export.evt >>output
+# @TEST-EXEC: spicyz -d -o export.hlto export.spicy export.evt >>output
 # @TEST-EXEC: zeek export.hlto %INPUT >>output
 #
 # Zeek 5.0 doesn't include the ID when printing the enum type

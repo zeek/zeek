@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o text.hlto text.spicy ./text.evt
+# @TEST-EXEC: spicyz -d -o text.hlto text.spicy ./text.evt
 # @TEST-EXEC: zeek -r ${TRACES}/http/post.trace text.hlto %INPUT Spicy::enable_print=T | sort -k 3 >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat files.log | zeek-cut source analyzers filename mime_type >files

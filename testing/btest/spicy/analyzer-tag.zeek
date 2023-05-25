@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o ssh.hlto ssh.spicy ./ssh.evt
+# @TEST-EXEC: spicyz -d -o ssh.hlto ssh.spicy ./ssh.evt
 # @TEST-EXEC: zeek -b Zeek::Spicy ssh.hlto %INPUT >>output
 # @TEST-EXEC: echo >>output
 # @TEST-EXEC: zeek -b Zeek::Spicy %INPUT >>output

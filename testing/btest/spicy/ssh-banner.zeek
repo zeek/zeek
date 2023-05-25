@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o ssh.hlto ssh.spicy ./ssh.evt
+# @TEST-EXEC: spicyz -d -o ssh.hlto ssh.spicy ./ssh.evt
 # @TEST-EXEC: echo === confirmation >>output
 # @TEST-EXEC: zeek -b -r ${TRACES}/ssh/single-conn.trace -s ./ssh.sig Zeek::Spicy base/frameworks/notice/weird ssh.hlto %INPUT ./extern.zeek | sort >>output
 # @TEST-EXEC: btest-diff weird.log

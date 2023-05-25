@@ -1,3 +1,15 @@
+6.0.0-dev.641 | 2023-05-25 09:03:08 -0700
+
+  * Speed up Spicy-related tests. (Benjamin Bannier, Corelight)
+
+    This patch changes invocations of `spicyz` and similar Spicy tools in
+    tests which perform compilation to use debug mode via passing `-d`. This
+    in turn leads to Spicy compiling generated C++ code in debug as opposed
+    to release mode which typically seems to require less CPU time and RAM.
+    For a local test running with `btest -j 16` and no caching via
+    `HILTI_CXX_COMPILER_LAUNCER` this sped up running of BTests under
+    `spicy/` by about 40s on my machine (120s vs 160s).
+
 6.0.0-dev.636 | 2023-05-24 09:41:01 +0200
 
   * stats: Add zeek-net-packet-lag-seconds metric (Arne Welzel, Corelight)

@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o pe.hlto pe.spicy zeek_pe.spicy pe.evt
+# @TEST-EXEC: spicyz -d -o pe.hlto pe.spicy zeek_pe.spicy pe.evt
 # @TEST-EXEC: zeek -r ${TRACES}/pe/pe-single.trace pe.hlto %INPUT ENABLE=T
 # @TEST-EXEC: cat files.log | zeek-cut source analyzers filename mime_type >>output
 # @TEST-EXEC: zeek -r ${TRACES}/pe/pe-single.trace pe.hlto %INPUT ENABLE=F

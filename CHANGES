@@ -1,3 +1,15 @@
+6.0.0-dev.643 | 2023-05-25 09:03:40 -0700
+
+  * btest.cfg: Set HILTI_CXX_COMPILER_LAUNCHER based on build/CMakeCache.txt (Arne Welzel, Corelight)
+
+    If CMakeCache.txt indicates the Zeek build was done with ccache,
+    take the CCACHE_PROGRAM:FILEPATH= line and populate the
+    HILTI_CXX_COMPILER_LAUNCHER environment.
+
+    For local development with ccache, this speeds up the spicy tests
+    significantly after the initial run without knowing or needing know
+    that setting HILTI_CXX_COMPILER_LAUNCHER would've helped.
+
 6.0.0-dev.641 | 2023-05-25 09:03:08 -0700
 
   * Speed up Spicy-related tests. (Benjamin Bannier, Corelight)

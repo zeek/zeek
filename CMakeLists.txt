@@ -96,8 +96,10 @@ if (MSVC)
     endforeach ()
 
     # Set compilation flags for Windows
-    add_compile_options(/guard:cf # required by CheckCFlags
-                        /Z7) # required by CheckCFlags
+    add_compile_options(
+        /guard:cf # required by CheckCFlags
+        /Z7 # required by CheckCFlags
+        /J) # Similar to -funsigned-char on other platforms
 
     add_link_options(/debug:full # required by CheckCFlags
     )
@@ -149,6 +151,7 @@ if (MSVC)
     set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd
                         ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
     include_directories(BEFORE ${UNISTD_INCLUDES})
+
     # Required for `check_include_files` to operate correctly
     list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTD_INCLUDES})
     list(APPEND zeekdeps libunistd libregex)

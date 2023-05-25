@@ -450,6 +450,7 @@ public:
 	ReturnStmt(ExprPtr e, bool ignored);
 
 	// Optimization-related:
+	bool IsReduced(Reducer* c) const override;
 	StmtPtr DoReduce(Reducer* c) override;
 
 	bool NoFlowAfter(bool ignore_break) const override { return true; }

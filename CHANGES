@@ -1,3 +1,44 @@
+6.0.0-dev.654 | 2023-05-25 20:01:37 +0200
+
+  * Address wire/capture length feedback (Arne Welzel, Corelight)
+
+  * packet_analysis/TCP: Do not use untrusted len for DeliverPacket() (Arne Welzel, Corelight)
+
+    We should not be passing the untrusted TCP header length into
+    DeliverPacket(). Also, DeliverPacket() cap len parameter should
+    be the capture length of the packet, not remaining data.
+
+  * GH-2683: Add regression test using pcap from GH-2683 (Arne Welzel, Corelight)
+
+  * Add btest to test Geneve->VXLAN->Truncated inner packet (Tim Wojtulewicz, Corelight)
+
+  * IP: Update packet->len with accumulated fragment size (Arne Welzel, Corelight)
+
+    With packet->len representing the wire length and other places
+    relying on it, ensure it's updated for fragments as well. This
+    assumes non-truncated fragments right now. Otherwise we'd need
+    to teach the FragmentReassembler to somehow track this independently
+    but it would be a mess.
+
+  * UDP: Forward any remaining data (also empty) to session-analysis (Arne Welzel, Corelight)
+
+    The protocol analyzers are prepared to receive truncated data and
+    this way we give analyzers a chance to look at data. We previously
+    allowed empty data being passed: When len ended up 0 and remaining
+    was 0 too.
+
+  * IPTunnel: Compute inner wire length based on cap_len differences. (Arne Welzel, Corelight)
+
+  * IP: fix weird name to not be ipv6 specific (Tim Wojtulewicz, Corelight)
+
+  * UDP: don't validate checksum if caplen < len (Tim Wojtulewicz, Corelight)
+
+    This may happen with truncated packets and will cause asan builds to bail out
+    before the packet can be forwarded along. The TCP analyzer already has this
+    check, but it's missing for UDP.
+
+  * PIA: Modernize how struct initialization is done (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.643 | 2023-05-25 09:03:40 -0700
 
   * btest.cfg: Set HILTI_CXX_COMPILER_LAUNCHER based on build/CMakeCache.txt (Arne Welzel, Corelight)

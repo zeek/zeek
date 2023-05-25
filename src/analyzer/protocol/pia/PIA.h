@@ -60,29 +60,22 @@ protected:
 	// sequence numbers for TCP) and chunks of a reassembled stream.
 	struct DataBlock
 		{
-		IP_Hdr* ip;
-		const u_char* data;
-		bool is_orig;
-		int len;
-		uint64_t seq;
-		DataBlock* next;
+		IP_Hdr* ip = nullptr;
+		const u_char* data = nullptr;
+		bool is_orig = false;
+		size_t len = 0;
+		size_t cap_len = 0;
+		uint64_t seq = 0;
+		DataBlock* next = nullptr;
 		};
 
 	struct Buffer
 		{
-		Buffer()
-			{
-			head = tail = nullptr;
-			size = 0;
-			chunks = 0;
-			state = INIT;
-			}
-
-		DataBlock* head;
-		DataBlock* tail;
-		int64_t size;
-		int64_t chunks;
-		State state;
+		DataBlock* head = nullptr;
+		DataBlock* tail = nullptr;
+		int64_t size = 0;
+		int64_t chunks = 0;
+		State state = INIT;
 		};
 
 	void AddToBuffer(Buffer* buffer, uint64_t seq, int len, const u_char* data, bool is_orig,

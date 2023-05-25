@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o test.hlto test.spicy test.evt
+# @TEST-EXEC: spicyz -d -o test.hlto test.spicy test.evt
 # @TEST-EXEC: zeek -b -r ${TRACES}/dns/long-connection.pcap Zeek::Spicy test.hlto base/protocols/conn %INPUT
 # @TEST-EXEC: cat conn.log | zeek-cut uid -C > conn.log2 && mv conn.log2 conn.log
 # @TEST-EXEC: btest-diff conn.log

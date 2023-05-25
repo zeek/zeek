@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o x.hlto tupleenum.spicy ./tupleenum.evt
+# @TEST-EXEC: spicyz -d -o x.hlto tupleenum.spicy ./tupleenum.evt
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace x.hlto %INPUT >>output
 # @TEST-EXEC: zeek -NN x.hlto | grep TestEnum >>output
 #

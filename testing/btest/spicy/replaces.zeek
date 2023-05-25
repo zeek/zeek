@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: mkdir -p modules
-# @TEST-EXEC: spicyz -o modules/ssh.hlto ssh.spicy ./ssh.evt
+# @TEST-EXEC: spicyz -d -o modules/ssh.hlto ssh.spicy ./ssh.evt
 # @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/single-conn.trace %INPUT | sort >output
 # @TEST-EXEC: btest-diff output
 #

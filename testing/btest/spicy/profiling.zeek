@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -Z -o ssh.hlto ssh.spicy ./ssh.evt
+# @TEST-EXEC: spicyz -Z -d -o ssh.hlto ssh.spicy ./ssh.evt
 # @TEST-EXEC: zeek -b -r ${TRACES}/ssh/single-conn.trace Zeek::Spicy ssh.hlto %INPUT Spicy::enable_profiling=T >output 2>prof.log.raw
 # @TEST-EXEC: cat prof.log.raw | awk '{print $1, $2}' | egrep -v 'zeek/rt/debug|zeek/rt/internal_handler' >prof.log
 # @TEST-EXEC: btest-diff output

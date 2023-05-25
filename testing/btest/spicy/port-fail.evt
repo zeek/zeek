@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC-FAIL: spicyz %INPUT -o x.hlto >output 2>&1
+# @TEST-EXEC-FAIL: spicyz %INPUT -d -o x.hlto >output 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output
 
 protocol analyzer spicy::SSH over TCP:

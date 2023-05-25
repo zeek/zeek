@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -o my-ethernet.hlto my-ethernet.spicy my-ethernet.evt
+# @TEST-EXEC: spicyz -d -o my-ethernet.hlto my-ethernet.spicy my-ethernet.evt
 # @TEST-EXEC: zeek -r ${TRACES}/dns53.pcap my-ethernet.hlto %INPUT ENABLE=T >output-on
 # @TEST-EXEC: zeek -r ${TRACES}/dns53.pcap my-ethernet.hlto %INPUT ENABLE=F >output-off
 # @TEST-EXEC: btest-diff output-on

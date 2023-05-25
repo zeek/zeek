@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC-FAIL: spicyz -o test.hlto %INPUT test.spicy >output 2>&1
+# @TEST-EXEC-FAIL: spicyz -d -o test.hlto %INPUT test.spicy >output 2>&1
 # @TEST-EXEC:      TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output
 #
 # @TEST-DOC: In EVT, provide access to hooks arguments

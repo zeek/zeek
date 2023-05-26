@@ -11,7 +11,7 @@
 
 redef Log::default_rotation_interval = 0sec;
 
-@if ( Supervisor::is_supervisor() )
+@if ( Supervisor::is_supervisor() ) &analyze
 
 redef SupervisorControl::enable_listen = T;
 

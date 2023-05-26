@@ -544,11 +544,10 @@ function found(id: conn_id, info: Info): bool
 		return F;
 		}
 
-	@if ( Cluster::is_enabled() )
+	if ( Cluster::is_enabled() )
 		Cluster::publish_hrw(Cluster::proxy_pool, info$host, Software::new, info);
-	@else
+	else
 		event Software::new(info);
-	@endif
 
 	return T;
 	}

@@ -78,7 +78,7 @@ event ready_for_data()
 	did_data = T;
 	}
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
+@if ( Cluster::local_node_type() == Cluster::MANAGER ) &analyze
 
 event second_test()
 	{

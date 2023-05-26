@@ -35,7 +35,7 @@ event terminate_me() {
 	terminate();
 }
 
-@if ( Cluster::local_node_type() == Cluster::WORKER )
+@if ( Cluster::local_node_type() == Cluster::WORKER ) &analyze
 event zeek_init()
 	{
 	suspend_processing();

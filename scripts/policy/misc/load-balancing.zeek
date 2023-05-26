@@ -26,7 +26,7 @@ export {
 	};
 }
 
-@if ( Cluster::is_enabled() )
+@if ( Cluster::is_enabled() ) &analyze
 
 event zeek_init() &priority=5
 	{

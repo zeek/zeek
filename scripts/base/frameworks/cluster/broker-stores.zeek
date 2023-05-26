@@ -18,11 +18,11 @@ export {
 
 # If we are not the manager, disable automatically generating masters. We will attach
 # clones instead.
-@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER ) &analyze
 redef Broker::table_store_master = F;
 @endif
 
-@if ( Broker::table_store_master )
+@if ( Broker::table_store_master ) &analyze
 
 global broker_backed_ids: set[string];
 

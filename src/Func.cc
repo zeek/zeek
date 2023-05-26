@@ -512,12 +512,23 @@ void ScriptFunc::CreateCaptures(Frame* f)
 	if ( ! captures )
 		return;
 
-	// Create a private Frame to hold the values of captured variables,
-	// and a mapping from those variables to their offsets in the Frame.
-	delete captures_frame;
-	delete captures_offset_mapping;
-	captures_frame = new Frame(captures->size(), this, nullptr);
-	captures_offset_mapping = new OffsetMap;
+ASSERT(f);
+
+	// Create *either* a private Frame to hold the values of captured
+	// variables, and a mapping from those variables to their offsets
+	// in the Frame; *or* a ZVal frame if this script has a ZAM-compiled
+	// body.
+	ASSERT(bodies.size() == 1);
+
+	if ( bodies[0].stmts->Tag() == STMT_ZAM )
+		captures_vec = std::make_unique<std::vector<ZVal>>();
+	else
+		{
+		delete captures_frame;
+		delete captures_offset_mapping;
+		captures_frame = new Frame(captures->size(), this, nullptr);
+		captures_offset_mapping = new OffsetMap;
+		}
 
 	int offset = 0;
 	for ( const auto& c : *captures )
@@ -529,10 +540,15 @@ void ScriptFunc::CreateCaptures(Frame* f)
 			if ( c.IsDeepCopy() || ! v->Modifiable() )
 				v = v->Clone();
 
-			captures_frame->SetElement(offset, std::move(v));
+			if ( captures_vec )
+				captures_vec->push_back(ZVal(std::move(v), v->GetType()));
+			else
+				captures_frame->SetElement(offset, std::move(v));
 			}
 
-		(*captures_offset_mapping)[c.Id()->Name()] = offset;
+		if ( ! captures_vec )
+			(*captures_offset_mapping)[c.Id()->Name()] = offset;
+
 		++offset;
 		}
 	}
@@ -542,6 +558,7 @@ void ScriptFunc::CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec)
 	const auto& captures = *type->GetCaptures();
 
 	ASSERT(cvec->size() == captures.size());
+	ASSERT(bodies.size() == 1 && bodies[0].stmts->Tag() == STMT_ZAM);
 
 	captures_vec = std::move(cvec);
 

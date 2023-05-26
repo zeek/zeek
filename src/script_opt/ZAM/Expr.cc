@@ -746,6 +746,11 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 
 const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le)
 	{
+	return BuildLambda(Frame1Slot(n, OP1_WRITE), le);
+	}
+
+const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
+	{
 	auto lt = le->GetType()->AsFuncType();
 	auto& captures = lt->GetCaptures();
 	int ncaptures = captures ? captures->size() : 0;
@@ -760,7 +765,7 @@ const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le)
 		aux->Add(i, FrameSlot(id_i), id_i->GetType());
 		}
 
-	auto z = ZInstI(OP_LAMBDA_V, Frame1Slot(n, OP1_WRITE));
+	auto z = ZInstI(OP_LAMBDA_V, n_slot);
 	z.aux = aux;
 	return AddInst(z);
 	}
@@ -1066,6 +1071,31 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e)
 	z.aux = InternalBuildVals(con, width + 1);
 	z.t = tt;
 	z.attrs = e->AsTableConstructorExpr()->GetAttrs();
+
+	auto zstmt = AddInst(z);
+
+	auto def_attr = z.attrs ? z.attrs->Find(ATTR_DEFAULT) : nullptr;
+	if ( ! def_attr || def_attr->GetExpr()->Tag() != EXPR_LAMBDA )
+		return zstmt;
+
+	auto def_lambda = def_attr->GetExpr()->AsLambdaExpr();
+	auto dl_t = def_lambda->GetType()->AsFuncType();
+	auto& captures = dl_t->GetCaptures();
+
+	if ( ! captures )
+		return zstmt;
+
+	// What a pain.  The table's default value is a lambda that has
+	// captures.  The semantics of this are that the captures are
+	// evaluated at table-construction time.  We need to build the
+	// lambda and assign it as the table's default.
+
+	auto slot = NewSlot(true); // since func_val's are managed
+	(void)BuildLambda(slot, def_lambda);
+
+	z = GenInst(OP_SET_TABLE_DEFAULT_LAMBDA_VV, n, slot);
+	z.op_type = OP_VV;
+	z.t = def_lambda->GetType();
 
 	return AddInst(z);
 	}

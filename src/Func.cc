@@ -512,8 +512,6 @@ void ScriptFunc::CreateCaptures(Frame* f)
 	if ( ! captures )
 		return;
 
-ASSERT(f);
-
 	// Create *either* a private Frame to hold the values of captured
 	// variables, and a mapping from those variables to their offsets
 	// in the Frame; *or* a ZVal frame if this script has a ZAM-compiled

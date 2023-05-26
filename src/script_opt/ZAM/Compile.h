@@ -226,6 +226,7 @@ private:
 	                           const ListExpr* l);
 
 	const ZAMStmt BuildLambda(const NameExpr* n, LambdaExpr* le);
+	const ZAMStmt BuildLambda(int n_slot, LambdaExpr* le);
 
 	// Second argument is which instruction slot holds the branch target.
 	const ZAMStmt GenCond(const Expr* e, int& branch_v);

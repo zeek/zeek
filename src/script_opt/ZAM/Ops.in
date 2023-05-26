@@ -1088,6 +1088,15 @@ eval	ConstructTableOrSetPre()
 		}
 	ConstructTableOrSetPost()
 
+# When tables are constructed, if their &default is a lambda with captures
+# then we need to explicitly set up the default.
+internal-op Set-Table-Default-Lambda
+type VV
+op1-read
+eval	auto& tbl = frame[z.v1].table_val;
+	auto lambda = frame[z.v2].ToVal(z.t);
+	tbl->InitDefaultVal(lambda);
+
 direct-unary-op Set-Constructor ConstructSet
 
 internal-op Construct-Set

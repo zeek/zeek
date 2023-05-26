@@ -482,6 +482,19 @@ UDs UseDefs::ExprUDs(const Expr* e)
 			break;
 			}
 
+		case EXPR_TABLE_CONSTRUCTOR:
+			{
+			auto t = static_cast<const TableConstructorExpr*>(e);
+			AddInExprUDs(uds, t->GetOp1().get());
+
+			auto def_attr = t->GetAttrs()->Find(ATTR_DEFAULT);
+			auto& def_expr = def_attr ? def_attr->GetExpr() : nullptr;
+			if ( def_expr && def_expr->Tag() == EXPR_LAMBDA )
+				uds = ExprUDs(def_expr.get());
+
+			break;
+			}
+
 		case EXPR_CONST:
 			break;
 

@@ -2747,6 +2747,11 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 	def_val = def_attr->GetExpr()->Eval(f);
 	}
 
+void TableVal::InitDefaultVal(ValPtr _def_val)
+	{
+	def_val = std::move(_def_val);
+	}
+
 void TableVal::InitTimer(double delay)
 	{
 	timer = new TableValTimer(this, run_state::network_time + delay);

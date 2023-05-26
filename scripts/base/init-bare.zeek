@@ -623,10 +623,6 @@ type fa_metadata: record {
 	inferred: bool &default=T;
 };
 
-## Same as :zeek:see:`Analyzer::disabling_analyzer`, but deprecated due
-## to living in the global namespace.
-type disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count) &redef &deprecated="Remove in v6.1. Use Analyzer::disabling_analyzer() instead.";
-
 module Analyzer;
 export {
 	## A hook taking a connection, analyzer tag and analyzer id that can be
@@ -1136,7 +1132,7 @@ type entropy_test_result: record {
 ## Return type for from_json BIF.
 ##
 ## .. zeek:see:: from_json
-type from_json_result: record { 
+type from_json_result: record {
 	v: any &optional;	##< Parsed value.
 	valid: bool;	##< True if parsing was successful.
 };
@@ -4780,7 +4776,6 @@ export {
 	type SNMP::BulkPDU: record {
 		request_id:      int;
 		non_repeaters:   count;
-		max_repititions: count &deprecated="Remove in v6.1. Use max_repetitions instead";
 		max_repetitions: count;
 		bindings:        SNMP::Bindings;
 	};
@@ -5200,21 +5195,6 @@ export {
 	## The maximum depth of a tunnel to decapsulate until giving up.
 	## Setting this to zero will disable all types of tunnel decapsulation.
 	const max_depth: count = 2 &redef;
-
-	## Toggle whether to do IPv{4,6}-in-IPv{4,6} decapsulation.
-	const enable_ip = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
-	## Toggle whether to do IPv{4,6}-in-AYIYA decapsulation.
-	const enable_ayiya = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
-	## Toggle whether to do IPv6-in-Teredo decapsulation.
-	const enable_teredo = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
-	## Toggle whether to do GTPv1 decapsulation.
-	const enable_gtpv1 = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
-	## Toggle whether to do GRE decapsulation.
-	const enable_gre = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing

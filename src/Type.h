@@ -688,15 +688,6 @@ public:
 
 	void AddFieldsDirectly(const type_decl_list& types, bool add_log_attr = false);
 
-	/**
-	 *
-	 * Populates a new instance of the record with its initial values.
-	 * @param r  The record's underlying value vector.
-	 */
-	[[deprecated("Remove in v6.1. Construct a corresponding RecordVal and build vector from "
-	             "GetFieldAs() calls.")]] void
-	Create(std::vector<std::optional<ZVal>>& r) const;
-
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
 	void DescribeFields(ODesc* d) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
@@ -948,12 +939,6 @@ extern TypeTag max_type(TypeTag t1, TypeTag t2);
 // are promoted to the maximum of the two.  Returns nil (and generates
 // an error message) if the types are incompatible.
 TypePtr merge_types(const TypePtr& t1, const TypePtr& t2);
-
-// Given a list of expressions, returns a (ref'd) type reflecting
-// a merged type consistent across all of them, or nil if this
-// cannot be done.
-[[deprecated("Remove in v6.1. Use maximal_type() if possible. See GH-2604.")]] TypePtr
-merge_type_list(detail::ListExpr* elements);
 
 // Given a list of expressions, returns the maximal type consistent across
 // all of them, or nil if this cannot be done.  "Maximal" incorporates

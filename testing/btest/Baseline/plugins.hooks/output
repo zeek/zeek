@@ -4858,7 +4858,6 @@
 0.000000 | HookQueueEvent NetControl::init()
 0.000000 | HookQueueEvent filter_change_tracking()
 0.000000 | HookQueueEvent zeek_init()
-XXXXXXXXXX.XXXXXX   MetaHookPost  BroObjDtor(<void ptr>) -> <void>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Broker::__flush_logs, <frame>, ()) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Broker::flush_logs, <frame>, ()) -> <no result>
 XXXXXXXXXX.XXXXXX   MetaHookPost  CallFunction(Broker::log_flush, <null>, ()) -> <no result>
@@ -4877,7 +4876,6 @@ XXXXXXXXXX.XXXXXX   MetaHookPost  QueueEvent(new_connection([id=[orig_h=141.142.
 XXXXXXXXXX.XXXXXX   MetaHookPost  QueueEvent(run_sync_hook()) -> false
 XXXXXXXXXX.XXXXXX   MetaHookPost  SetupAnalyzerTree(XXXXXXXXXX.XXXXXX(XXXXXXXXXX.XXXXXX) TCP 141.142.228.5:59856 -> 192.150.187.43:80) -> <void>
 XXXXXXXXXX.XXXXXX   MetaHookPost  UpdateNetworkTime(XXXXXXXXXX.XXXXXX) -> <void>
-XXXXXXXXXX.XXXXXX   MetaHookPre   BroObjDtor(<void ptr>)
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(Broker::__flush_logs, <frame>, ())
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(Broker::flush_logs, <frame>, ())
 XXXXXXXXXX.XXXXXX   MetaHookPre   CallFunction(Broker::log_flush, <null>, ())
@@ -4896,7 +4894,6 @@ XXXXXXXXXX.XXXXXX   MetaHookPre   QueueEvent(new_connection([id=[orig_h=141.142.
 XXXXXXXXXX.XXXXXX   MetaHookPre   QueueEvent(run_sync_hook())
 XXXXXXXXXX.XXXXXX   MetaHookPre   SetupAnalyzerTree(XXXXXXXXXX.XXXXXX(XXXXXXXXXX.XXXXXX) TCP 141.142.228.5:59856 -> 192.150.187.43:80)
 XXXXXXXXXX.XXXXXX   MetaHookPre   UpdateNetworkTime(XXXXXXXXXX.XXXXXX)
-XXXXXXXXXX.XXXXXX  | HookBroObjDtor
 XXXXXXXXXX.XXXXXX  | HookObjDtor  
 XXXXXXXXXX.XXXXXX  | HookUpdateNetworkTime XXXXXXXXXX.XXXXXX
 XXXXXXXXXX.XXXXXX | HookCallFunction Broker::__flush_logs()

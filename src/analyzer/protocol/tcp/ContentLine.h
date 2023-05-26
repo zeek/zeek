@@ -22,11 +22,6 @@ public:
 
 	void SuppressWeirds(bool enable) { suppress_weirds = enable; };
 
-	[[deprecated("Remove in v6.1. Use SuppressWeirds() instead.")]] void SupressWeirds(bool enable)
-		{
-		SuppressWeirds(enable);
-		}
-
 	// If enabled, flag (first) line with embedded NUL. Default off.
 	void SetIsNULSensitive(bool enable) { flag_NULs = enable; }
 

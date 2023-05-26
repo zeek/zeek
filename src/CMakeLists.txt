@@ -422,7 +422,6 @@ set(MAIN_SRCS
     digest.h)
 
 set(THIRD_PARTY_SRCS
-    3rdparty/bro_inet_ntop.c # Remove in v6.1.
     3rdparty/zeek_inet_ntop.c
     3rdparty/bsd-getopt-long.c
     3rdparty/ConvertUTF.c
@@ -622,7 +621,6 @@ install(
 
 install(
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ConvertUTF.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bro_inet_ntop.h # Remove in v6.1
           ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/zeek_inet_ntop.h
           ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bsd-getopt-long.h
           ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/modp_numtoa.h

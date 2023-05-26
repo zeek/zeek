@@ -195,9 +195,7 @@ zeek::RecordValPtr build_bulk_pdu(const GetBulkRequestPDU* pdu)
 	rv->Assign(0, asn1_integer_to_val(pdu->request_id(), zeek::TYPE_INT));
 	rv->Assign(1, asn1_integer_to_val(pdu->non_repeaters(), zeek::TYPE_COUNT));
 	rv->Assign(2, asn1_integer_to_val(pdu->max_repetitions(), zeek::TYPE_COUNT));
-	// Remove in v6.1: Misspelled repititions/repetitions backwards compat
-	rv->Assign(3, asn1_integer_to_val(pdu->max_repetitions(), zeek::TYPE_COUNT));
-	rv->Assign(4, build_bindings(pdu->var_bindings()));
+	rv->Assign(3, build_bindings(pdu->var_bindings()));
 	return rv;
 	}
 %}

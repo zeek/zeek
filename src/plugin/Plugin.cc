@@ -27,7 +27,6 @@ const char* hook_name(HookType h)
 		"QueueEvent",
 		"DrainEvents",
 		"UpdateNetworkTime",
-		"BroObjDtor",
 		"SetupAnalyzerTree",
 		"LogInit",
 		"LogWrite",
@@ -381,18 +380,6 @@ void Plugin::RequestEvent(EventHandlerPtr handler)
 	plugin_mgr->RequestEvent(handler, this);
 	}
 
-void Plugin::RequestBroObjDtor(Obj* obj)
-	{
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-	plugin_mgr->RequestBroObjDtor(obj, this);
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-	}
-
 void Plugin::RequestObjDtor(Obj* obj)
 	{
 	plugin_mgr->RequestObjDtor(obj, this);
@@ -426,8 +413,6 @@ void Plugin::HookDrainEvents() { }
 void Plugin::HookUpdateNetworkTime(double network_time) { }
 
 void Plugin::HookSetupAnalyzerTree(Connection* conn) { }
-
-void Plugin::HookBroObjDtor(void* obj) { }
 
 void Plugin::HookObjDtor(void* obj) { }
 

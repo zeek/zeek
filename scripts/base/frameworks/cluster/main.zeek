@@ -211,12 +211,6 @@ export {
 	## Returns: The :zeek:type:`Cluster::NodeType` the calling node acts as.
 	global local_node_type: function(): NodeType;
 
-	## This gives the value for the number of workers currently connected to,
-	## and it's maintained internally by the cluster framework.  It's
-	## primarily intended for use by managers to find out how many workers
-	## should be responding to requests.
-	global worker_count: count = 0 &deprecated="Remove in v6.1. Active worker count can be obtained via get_active_node_count(Cluster::WORKER)";
-
 	## The cluster layout definition.  This should be placed into a filter
 	## named cluster-layout.zeek somewhere in the ZEEKPATH.  It will be
 	## automatically loaded if the CLUSTER_NODE environment variable is set.
@@ -372,11 +366,6 @@ event Cluster::hello(name: string, id: string) &priority=10
 	if ( n$node_type !in active_node_ids )
 		active_node_ids[n$node_type] = set();
 	add active_node_ids[n$node_type][id];
-
-@pragma push ignore-deprecations
-	if ( n$node_type == WORKER )
-		worker_count = get_active_node_count(WORKER);
-@pragma pop ignore-deprecations
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=10
@@ -397,11 +386,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 			Cluster::log(fmt("node down: %s", node_name));
 			delete n$id;
 			delete active_node_ids[n$node_type][endpoint$id];
-
-@pragma push ignore-deprecations
-			if ( n$node_type == WORKER )
-				worker_count = get_active_node_count(WORKER);
-@pragma pop ignore-deprecations
 
 			event Cluster::node_down(node_name, endpoint$id);
 			break;

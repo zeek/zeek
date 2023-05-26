@@ -98,5 +98,3 @@ inline UID& UID::operator=(const UID& other)
 	}
 
 	} // namespace zeek
-
-constexpr int BRO_UID_LEN [[deprecated("Remove in v6.1. Use zeek::UID_LEN")]] = zeek::UID_LEN;

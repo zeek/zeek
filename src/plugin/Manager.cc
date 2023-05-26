@@ -699,11 +699,6 @@ void Manager::RequestEvent(EventHandlerPtr handler, Plugin* plugin)
 	handler->SetGenerateAlways();
 	}
 
-void Manager::RequestBroObjDtor(Obj* obj, Plugin* plugin)
-	{
-	obj->NotifyPluginsOnDtor();
-	}
-
 void Manager::RequestObjDtor(Obj* obj, Plugin* plugin)
 	{
 	obj->NotifyPluginsOnDtor();
@@ -920,57 +915,6 @@ void Manager::HookUpdateNetworkTime(double network_time) const
 
 	if ( HavePluginForHook(META_HOOK_POST) )
 		MetaHookPost(HOOK_UPDATE_NETWORK_TIME, args, HookArgument());
-	}
-
-void Manager::HookBroObjDtor(void* obj) const
-	{
-	HookArgumentList args;
-
-	if ( HavePluginForHook(META_HOOK_PRE) )
-		{
-		args.push_back(HookArgument(obj));
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-		MetaHookPre(HOOK_BRO_OBJ_DTOR, args);
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-		}
-
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-	hook_list* l = hooks[HOOK_BRO_OBJ_DTOR];
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
-	if ( l )
-		for ( hook_list::iterator i = l->begin(); i != l->end(); ++i )
-			{
-			Plugin* p = (*i).second;
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-			p->HookBroObjDtor(obj);
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-			}
-
-	if ( HavePluginForHook(META_HOOK_POST) )
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-		MetaHookPost(HOOK_BRO_OBJ_DTOR, args, HookArgument());
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 	}
 
 void Manager::HookObjDtor(void* obj) const

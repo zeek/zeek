@@ -1,3 +1,7 @@
+6.0.0-dev.662 | 2023-05-26 20:51:43 +0200
+
+  * Update ZeekJS submodule to 0.9.1 (Arne Welzel, Corelight)
+
 6.0.0-dev.660 | 2023-05-26 10:03:29 +0200
 
   * CMakeLists: Skip zeek-version.h include for zeek_objs, too (Arne Welzel, Corelight)

@@ -917,9 +917,9 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 	int call_case = nargs;
 
 	bool indirect = ! func_id->IsGlobal() || ! func_id->GetVal();
-	bool is_when = c->IsInWhen();
+	bool in_when = c->IsInWhen();
 
-	if ( indirect || is_when )
+	if ( indirect || in_when )
 		call_case = -1; // force default of some flavor of CallN
 
 	auto nt = n ? n->GetType()->Tag() : TYPE_VOID;
@@ -997,7 +997,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 				break;
 
 			default:
-				if ( is_when )
+				if ( in_when )
 					{
 					if ( indirect )
 						op = OP_WHENINDCALLN_VV;
@@ -1015,7 +1015,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 
 		if ( n )
 			{
-			if ( ! is_when )
+			if ( ! in_when )
 				op = AssignmentFlavor(op, nt);
 
 			auto n_slot = Frame1Slot(n, OP1_WRITE);
@@ -1062,8 +1062,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 
 	z.call_expr = c;
 
-	if ( n )
-		// Only needed for in_when ...
+	if ( in_when )
 		z.SetType(n->GetType());
 
 	if ( ! indirect || func_id->IsGlobal() )

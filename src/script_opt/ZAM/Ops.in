@@ -998,8 +998,7 @@ eval	EvalTableIndex(z.aux->ToListVal(frame))
 	AssignV1(BuildVal(v, z.t))
 
 macro EvalTableIndex(index)
-	auto v2 = index;
-	auto v = frame[z.v2].table_val->FindOrDefault(v2);
+	auto v = frame[z.v2].table_val->FindOrDefault(index);
 	if ( ! v )
 		{
 		ZAM_run_time_error(z.loc, "no such index");

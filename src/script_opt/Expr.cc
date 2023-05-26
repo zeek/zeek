@@ -2342,7 +2342,7 @@ ExprPtr CallExpr::Duplicate()
 	auto func_type = func->GetType();
 	auto in_hook = func_type->AsFuncType()->Flavor() == FUNC_FLAVOR_HOOK;
 
-	return SetSucc(new CallExpr(func_d, args_d, in_hook));
+	return SetSucc(new CallExpr(func_d, args_d, in_hook, in_when));
 	}
 
 ExprPtr CallExpr::Inline(Inliner* inl)

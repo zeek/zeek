@@ -77,7 +77,7 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id)
 	z.aux = new ZInstAux(0);
 	z.aux->id_val = id;
 
-	return AddInst(z);
+	return AddInst(z, true);
 	}
 
 const ZAMStmt ZAMCompiler::LoadCapture(const ID* id)
@@ -94,7 +94,7 @@ const ZAMStmt ZAMCompiler::LoadCapture(const ID* id)
 	ZInstI z(op, slot, CaptureOffset(id));
 	z.op_type = OP_VV_I2;
 
-	return AddInst(z);
+	return AddInst(z, true);
 	}
 
 int ZAMCompiler::AddToFrame(const ID* id)

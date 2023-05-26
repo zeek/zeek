@@ -128,7 +128,7 @@ int ZAMCompiler::InternalAddVal(ZInstAux* zi, int i, Expr* e)
 	return 1;
 	}
 
-const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst)
+const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local)
 	{
 	ZInstI* i;
 
@@ -145,6 +145,9 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst)
 	insts1.push_back(i);
 
 	top_main_inst = insts1.size() - 1;
+
+	if ( suppress_non_local )
+		return ZAMStmt(top_main_inst);
 
 	ASSERT(pending_global_store == -1 || pending_capture_store == -1);
 

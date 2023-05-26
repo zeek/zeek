@@ -1,3 +1,13 @@
+6.0.0-dev.660 | 2023-05-26 10:03:29 +0200
+
+  * CMakeLists: Skip zeek-version.h include for zeek_objs, too (Arne Welzel, Corelight)
+
+    I've continued to see somewhat slower builds after Zeek version bumps. It
+    appears files covered by zeek_objs didn't have -DZEEK_CONFIG_SKIP_VERSION_H
+    set causing ccache invalidation after a version bump.
+
+  * Bump cluster testsuite to latest main (Arne Welzel, Corelight)
+
 6.0.0-dev.657 | 2023-05-25 19:49:20 -0700
 
   * Fix minor type-clash warning on Windows (Tim Wojtulewicz)

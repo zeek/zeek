@@ -539,10 +539,13 @@ void ScriptFunc::CreateCaptures(Frame* f)
 				v = v->Clone();
 
 			if ( captures_vec )
-				captures_vec->push_back(ZVal(std::move(v), v->GetType()));
+				captures_vec->push_back(ZVal(v, v->GetType()));
 			else
 				captures_frame->SetElement(offset, std::move(v));
 			}
+
+		else if ( captures_vec )
+			captures_vec->push_back(ZVal());
 
 		if ( ! captures_vec )
 			(*captures_offset_mapping)[c.Id()->Name()] = offset;

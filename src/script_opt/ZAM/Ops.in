@@ -947,11 +947,19 @@ eval	EvalIndexVecIntSelect(z.c, frame[z.v2])
 
 op Index
 type VVL
-custom-method return CompileIndex(n1, n2, l);
+custom-method return CompileIndex(n1, n2, l, false);
 
 op Index
 type VCL
-custom-method return CompileIndex(n, c, l);
+custom-method return CompileIndex(n, c, l, false);
+
+op WhenIndex
+type VVL
+custom-method return CompileIndex(n1, n2, l, true);
+
+op WhenIndex
+type VCL
+custom-method return CompileIndex(n, c, l, true);
 
 internal-op Index-Vec
 type VVV
@@ -995,6 +1003,13 @@ eval	auto vec = frame[z.v2].vector_val;
 internal-op Table-Index
 type VV
 eval	EvalTableIndex(z.aux->ToListVal(frame))
+	AssignV1(BuildVal(v, z.t))
+
+internal-op When-Table-Index
+type VV
+eval	EvalTableIndex(z.aux->ToListVal(frame))
+	if ( IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
 	AssignV1(BuildVal(v, z.t))
 
 macro EvalTableIndex(index)

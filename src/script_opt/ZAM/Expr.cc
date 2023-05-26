@@ -282,7 +282,18 @@ const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const Index
 		                  : IndexVecIntSelectVVV(lhs, n, index);
 		}
 
-	return const_aggr ? IndexVCL(lhs, con, indexes_expr) : IndexVVL(lhs, n, indexes_expr);
+	if ( rhs->IsInsideWhen() )
+		{
+		if ( const_aggr )
+			return WhenIndexVCL(lhs, con, indexes_expr);
+		else
+			return WhenIndexVVL(lhs, n, indexes_expr);
+		}
+
+	if ( const_aggr )
+		return IndexVCL(lhs, con, indexes_expr);
+	else
+		return IndexVVL(lhs, n, indexes_expr);
 	}
 
 const ZAMStmt ZAMCompiler::CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e)
@@ -613,26 +624,26 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, 
 	return AddInst(z);
 	}
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)
+const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l, bool in_when)
 	{
-	return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l);
+	return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l, in_when);
 	}
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l)
+const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l, bool in_when)
 	{
 	auto tmp = TempForConst(c);
-	return CompileIndex(n, tmp, c->GetType(), l);
+	return CompileIndex(n, tmp, c->GetType(), l, in_when);
 	}
 
 const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2t,
-                                        const ListExpr* l)
+                                        const ListExpr* l, bool in_when)
 	{
 	ZInstI z;
 
 	int n = l->Exprs().length();
 	auto n2tag = n2t->Tag();
 
-	if ( n == 1 )
+	if ( n == 1 && ! in_when )
 		{
 		auto ind = l->Exprs()[0];
 		auto var_ind = ind->Tag() == EXPR_NAME;
@@ -723,7 +734,7 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 			break;
 
 		case TYPE_TABLE:
-			op = OP_TABLE_INDEX_VV;
+			op = in_when ? OP_WHEN_TABLE_INDEX_VV : OP_TABLE_INDEX_VV;
 			z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
 			z.SetType(n1->GetType());
 			break;

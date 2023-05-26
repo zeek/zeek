@@ -383,16 +383,20 @@ bool ZInstI::IsDirectAssignment() const
 
 	switch ( op )
 		{
-		case OP_ASSIGN_VV_N:
 		case OP_ASSIGN_VV_A:
+		case OP_ASSIGN_VV_D:
+		case OP_ASSIGN_VV_F:
+		case OP_ASSIGN_VV_I:
+		case OP_ASSIGN_VV_L:
+		case OP_ASSIGN_VV_N:
 		case OP_ASSIGN_VV_O:
 		case OP_ASSIGN_VV_P:
 		case OP_ASSIGN_VV_R:
 		case OP_ASSIGN_VV_S:
-		case OP_ASSIGN_VV_F:
 		case OP_ASSIGN_VV_T:
+		case OP_ASSIGN_VV_U:
 		case OP_ASSIGN_VV_V:
-		case OP_ASSIGN_VV_L:
+		case OP_ASSIGN_VV_a:
 		case OP_ASSIGN_VV_f:
 		case OP_ASSIGN_VV_t:
 		case OP_ASSIGN_VV:

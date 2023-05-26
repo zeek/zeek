@@ -985,7 +985,7 @@ bool GlueCompiler::PopulateEvents() {
             }
         }
 
-        ev.unit_type = std::move(uinfo.type.as<::spicy::type::Unit>());
+        ev.unit_type = uinfo.type.as<::spicy::type::Unit>();
         ev.unit_module_id = uinfo.module_id;
         ev.unit_module_path = uinfo.module_path;
 

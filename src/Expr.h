@@ -1460,12 +1460,6 @@ public:
 	const std::string& Name() const { return my_name; }
 	const IDPList& OuterIDs() const { return outer_ids; }
 
-	// The following is non-const so the body can be updated by
-	// script optimization.
-	std::shared_ptr<FunctionIngredients> Ingredients() const { return ingredients; }
-
-	void ReplaceBody(StmtPtr new_body) const;
-
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1474,6 +1468,13 @@ public:
 	// Optimization-related:
 	ExprPtr Duplicate() override;
 	ExprPtr Inline(Inliner* inl) override;
+
+	// The following is non-const so the body can be updated by
+	// script optimization.
+	std::shared_ptr<FunctionIngredients> Ingredients() const { return ingredients; }
+
+	// Updates the lambda to reflect based on a new, optimized instancde.
+	void UpdateFrom(const ScriptFunc* new_func) const;
 
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 

@@ -4695,11 +4695,6 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	lambda_id->SetConst();
 	}
 
-void LambdaExpr::ReplaceBody(StmtPtr new_body) const
-	{
-	ingredients->SetBody(new_body);
-	}
-
 bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 	{
 	auto ft = type->AsFuncType();

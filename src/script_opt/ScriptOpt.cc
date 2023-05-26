@@ -452,8 +452,17 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	// Find all the lambda bodies and create proxy functions for them
 	// so we can compile them, too.  Note that when profiling them we
 	// may find yet more lambdas.
-	std::unordered_set<const LambdaExpr*> lambdas_to_do = pfs->Lambdas();
+	//
+	// We skip this if we're not actually compiling, since if we just
+	// inline without compilation (only done for debugging) we'd need
+	// to seperately fix up their frame sizes, which is a bit of a pain
+	// for little gain.
+	std::unordered_set<const LambdaExpr*> lambdas_to_do;
 	std::unordered_map<const ScriptFunc*, const LambdaExpr*> lambdas;
+
+	if ( analysis_options.activate )
+		// We'll be compiling, so worth tracking lambdas.
+		lambdas_to_do = pfs->Lambdas();
 
 	while ( ! lambdas_to_do.empty() )
 		{
@@ -548,7 +557,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		f.SetBody(new_body);
 
 		if ( is_lambda )
-			lambda_func->second->ReplaceBody(new_body);
+			lambda_func->second->UpdateFrom(func);
 
 		did_one = true;
 		}

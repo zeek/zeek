@@ -2452,6 +2452,12 @@ ExprPtr LambdaExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		return AssignToTemporary(c, red_stmt);
 	}
 
+void LambdaExpr::UpdateFrom(const ScriptFunc* new_func) const
+	{
+	ingredients->SetBody(new_func->GetBodies()[0].stmts);
+	ingredients->SetFrameSize(new_func->FrameSize());
+	}
+
 ExprPtr EventExpr::Duplicate()
 	{
 	auto args_d = args->Duplicate()->AsListExprPtr();

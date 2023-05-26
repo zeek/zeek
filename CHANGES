@@ -1,3 +1,9 @@
+6.0.0-dev.657 | 2023-05-25 19:49:20 -0700
+
+  * Fix minor type-clash warning on Windows (Tim Wojtulewicz)
+
+  * Fix Coverity warning involving object copy in TLS binpac code (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.654 | 2023-05-25 20:01:37 +0200
 
   * Address wire/capture length feedback (Arne Welzel, Corelight)

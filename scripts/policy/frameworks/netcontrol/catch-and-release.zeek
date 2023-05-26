@@ -198,11 +198,11 @@ function populate_log_record(ip: addr, bi: BlockInfo, action: CatchReleaseAction
 	return log;
 	}
 
-const have_cluster = Cluster::is_enabled();
-const is_mgr = have_cluster && Cluster::local_node_type() == Cluster::MANAGER;
-const is_not_mgr = have_cluster && Cluster::local_node_type() != Cluster::MANAGER;
+const cluster_is_enabled = Cluster::is_enabled();
+const is_mgr = cluster_is_enabled && Cluster::local_node_type() == Cluster::MANAGER;
+const is_not_mgr = cluster_is_enabled && Cluster::local_node_type() != Cluster::MANAGER;
 
-const single_enforcement_point = ! have_cluster || is_mgr;
+const single_enforcement_point = ! cluster_is_enabled || is_mgr;
 
 function per_block_interval(t: table[addr] of BlockInfo, idx: addr): interval
 	{
@@ -229,7 +229,7 @@ global blocks: table[addr] of BlockInfo = {}
 	&expire_func=per_block_interval;
 
 
-@if ( have_cluster ) &analyze
+@if ( cluster_is_enabled ) &analyze
 
 @if ( is_mgr ) &analyze
 event zeek_init()

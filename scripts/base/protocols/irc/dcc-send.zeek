@@ -44,7 +44,7 @@ function dcc_relay_topic(): string &is_used
 	return rval;
 	}
 
-const have_cluster = Cluster::is_enabled();
+const cluster_is_enabled = Cluster::is_enabled();
 const should_publish =
 	Cluster::local_node_type() == Cluster::PROXY ||
 	Cluster::local_node_type() == Cluster::MANAGER;
@@ -92,7 +92,7 @@ function log_dcc(f: fa_file)
 
 		delete dcc_expected_transfers[cid$resp_h, cid$resp_p];
 
-		if ( have_cluster )
+		if ( cluster_is_enabled )
 			Broker::publish(dcc_relay_topic(), dcc_transfer_remove,
 					cid$resp_h, cid$resp_p);
 		return;
@@ -119,7 +119,7 @@ event irc_dcc_message(c: connection, is_orig: bool,
 	Analyzer::schedule_analyzer(0.0.0.0, address, p, Analyzer::ANALYZER_IRC_DATA, 5 min);
 	dcc_expected_transfers[address, p] = c$irc;
 
-	if ( have_cluster )
+	if ( cluster_is_enabled )
 		Broker::publish(dcc_relay_topic(), dcc_transfer_add, address, p, c$irc);
 	}
 
@@ -139,7 +139,7 @@ hook finalize_irc_data(c: connection)
 		{
 		delete dcc_expected_transfers[c$id$resp_h, c$id$resp_p];
 
-		if ( have_cluster )
+		if ( cluster_is_enabled )
 			Broker::publish(dcc_relay_topic(), dcc_transfer_remove,
 					c$id$resp_h, c$id$resp_p);
 		}

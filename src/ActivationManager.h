@@ -16,7 +16,7 @@ using AttrVec = std::unique_ptr<std::vector<AttrPtr>>;
 class ActivationManager;
 
 /**
- * Expresses an event (with one of the above types) occurring during an
+ * Expresses an event (of one of the AE_Type types below) occurring during an
  * @if &analyze.  Events reflect what *could* have happened rather than
  * what *did* happen, so events will be present even for @if &analyze blocks
  * that were skipped due to their condition evaluating to false.
@@ -111,7 +111,7 @@ public:
 		CurrSubEvents().push_back(std::move(ae));
 		}
 
-	// Changes this events accrural of subevents to correspond to its
+	// Changes this event's accrual of subevents to correspond to its
 	// "else" branch rather than its main/true branch.
 	void SwitchToElse()
 		{
@@ -159,7 +159,7 @@ public:
 	Activation(ExprPtr cond, bool _is_activated, bool _parent_activated, int _cond_depth);
 	~Activation();
 
-	// True if we're in the part of the @activiate-if conditional for
+	// True if we're in the part of the @if &analyze conditional for
 	// which we should be incorporating statements (making changes to
 	// globals, adding function bodies, etc.).
 	bool IsActivated() const { return is_activated; }
@@ -257,7 +257,7 @@ public:
 	// integer to match similar other structures in the scanner.
 	int ActivationDepth() const { return static_cast<int>(activation_stack.size()); }
 
-	// Tells the manager to being a new @if &analyze conditional.
+	// Tells the manager to begin a new @if &analyze conditional.
 	// "cond" is the associated condition, "activate" reflects whether
 	// the condition is true, and "cond_depth" is the depth of any
 	// parent @if constructs.

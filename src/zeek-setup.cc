@@ -184,7 +184,7 @@ zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
 zeek::detail::RuleMatcher* zeek::detail::rule_matcher = nullptr;
 zeek::detail::DNS_Mgr* zeek::detail::dns_mgr = nullptr;
 zeek::detail::TimerMgr* zeek::detail::timer_mgr = nullptr;
-zeek::detail::ActivationManager* zeek::detail::activation_mgr;
+zeek::detail::ActivationManager* zeek::detail::activation_mgr = nullptr;
 
 zeek::logging::Manager* zeek::log_mgr = nullptr;
 zeek::threading::Manager* zeek::thread_mgr = nullptr;

@@ -61,9 +61,9 @@ export {
 
 global intermediate_cache: table[string] of vector of opaque of x509;
 
-const have_cluster = Cluster::is_enabled();
+const cluster_is_enabled = Cluster::is_enabled();
 
-@if ( have_cluster ) &analyze
+@if ( cluster_is_enabled ) &analyze
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, SSL::intermediate_add);
@@ -74,18 +74,18 @@ event zeek_init()
 function add_to_cache(key: string, value: vector of opaque of x509)
 	{
 	intermediate_cache[key] = value;
-	if ( have_cluster )
+	if ( cluster_is_enabled )
 		event SSL::new_intermediate(key, value);
 	}
 
-@if ( have_cluster && Cluster::local_node_type() != Cluster::MANAGER ) &analyze
+@if ( cluster_is_enabled && Cluster::local_node_type() != Cluster::MANAGER ) &analyze
 event SSL::intermediate_add(key: string, value: vector of opaque of x509)
 	{
 	intermediate_cache[key] = value;
 	}
 @endif
 
-@if ( have_cluster && Cluster::local_node_type() == Cluster::MANAGER ) &analyze
+@if ( cluster_is_enabled && Cluster::local_node_type() == Cluster::MANAGER ) &analyze
 event SSL::new_intermediate(key: string, value: vector of opaque of x509)
 	{
 	if ( key in intermediate_cache )

@@ -5,10 +5,10 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 212
+%expect 211
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
-%token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATACTIVATEIF TOK_ATIFDEF TOK_ATIFNDEF
+%token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_OPTION TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
@@ -1512,12 +1512,6 @@ conditional:
 		TOK_ATIF '(' expr ')'
 			{ do_atif($3, false); }
 	|	TOK_ATIF '(' expr TOK_ATTR_ANALYZE
-			{
-			if ( in_body )
-				reporter->Error("@if &analyze cannot appear inside a function body");
-			do_atif($3, true);
-			}
-	|	TOK_ATACTIVATEIF '(' expr ')'
 			{
 			if ( in_body )
 				reporter->Error("@if &analyze cannot appear inside a function body");

@@ -216,7 +216,7 @@ function ftp_message(c: connection)
 	delete s$data_channel;
 	}
 
-const have_cluster = Cluster::is_enabled();
+const cluster_is_enabled = Cluster::is_enabled();
 const should_publish =
 	Cluster::local_node_type() == Cluster::PROXY ||
 	Cluster::local_node_type() == Cluster::MANAGER;
@@ -250,7 +250,7 @@ function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p,
 	                            Analyzer::ANALYZER_FTP_DATA,
 	                            5mins);
-	if ( have_cluster )
+	if ( cluster_is_enabled )
 		Broker::publish(ftp_relay_topic(), sync_add_expected_data, minimize_info(s), chan);
 	}
 
@@ -466,7 +466,7 @@ hook finalize_ftp_data(c: connection)
 	if ( [c$id$resp_h, c$id$resp_p] in ftp_data_expected )
 		{
 		delete ftp_data_expected[c$id$resp_h, c$id$resp_p];
-		if ( have_cluster )
+		if ( cluster_is_enabled )
 			Broker::publish(ftp_relay_topic(), sync_remove_expected_data, c$id$resp_h, c$id$resp_p);
 		}
 	}

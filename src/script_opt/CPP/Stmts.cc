@@ -446,7 +446,7 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 		{
 		Emit("ValPtr retval = {NewRef{}, curr_t->Lookup(curr_assoc)};");
 		Emit("if ( ! retval )");
-		Emit("\tthrow DelayedCallException();");
+		Emit("\tthrow CPPDelayedCallException();");
 		Emit("return %s;", GenericValPtrToGT("retval", ret_type, GEN_NATIVE));
 		}
 

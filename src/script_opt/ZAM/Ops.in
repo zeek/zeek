@@ -1532,6 +1532,42 @@ assign-val v
 indirect-call
 num-call-args n
 
+# A call made in a "when" context.  These always have assignment targets.
+# To keep things simple, we just use one generic flavor (for N arguments,
+# doing a less-streamlined-but-simpler Val-based assignment).
+macro WhenCall(func)
+	auto& lhs = frame[z.v1];
+	auto trigger = f->GetTrigger();
+	Val* v = trigger ? trigger->Lookup(z.call_expr) : nullptr;
+	if ( ! v )
+		{
+		auto aux = z.aux;
+		auto n = aux->n;
+		std::vector<ValPtr> args;
+		for ( auto i = 0; i < n; ++i )
+			args.push_back(aux->ToVal(frame, i));
+		f->SetCall(z.call_expr);
+		auto v = func->Invoke(&args, f);
+		if ( ! v )
+			throw ZAMDelayedCallException();
+		}
+	if ( z.is_managed )
+		ZVal::DeleteManagedType(lhs);
+	lhs = ZVal({NewRef{}, v}, z.t);
+
+internal-op WhenCallN
+type V
+side-effects
+eval	WhenCall(z.func)
+
+internal-op WhenIndCallN
+type VV
+side-effects
+eval	auto sel = z.v2;
+	auto func = (sel < 0) ? z.aux->id_val->GetVal()->AsFunc() : frame[sel].AsFunc();
+	WhenCall(func)
+
+
 ########## Statements ##########
 
 macro EvalScheduleArgs(time, is_delta, build_args)

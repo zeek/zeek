@@ -101,7 +101,7 @@ ValPtr when_invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame, void* c
 
 	auto res = f->Invoke(&args, frame);
 	if ( ! res )
-		throw DelayedCallException();
+		throw CPPDelayedCallException();
 
 	return res;
 	}

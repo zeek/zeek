@@ -31,6 +31,11 @@ namespace zeek::detail
 
 using std::vector;
 
+// Thrown when a call inside a "when" delays.
+class ZAMDelayedCallException : public InterpreterException
+	{
+	};
+
 static bool did_init = false;
 
 // Count of how often each type of ZOP executed, and how much CPU it

@@ -710,11 +710,11 @@ FuncPtr ScriptFunc::DoClone()
 		auto cv_copy = std::make_unique<std::vector<ZVal>>();
 		for ( auto& c : *type->GetCaptures() )
 			{
-			cv_copy->push_back(*cv_i);
+			// Need to clone cv_i.
+			auto& t_i = c.Id()->GetType();
+			auto cv_i_val = cv_i->ToVal(t_i)->Clone();
+			cv_copy->push_back(ZVal(cv_i_val, t_i));
 			++cv_i;
-
-			if ( c.IsManaged() )
-				Ref(cv_copy->back().ManagedVal());
 			}
 
 		other->captures_vec = std::move(cv_copy);

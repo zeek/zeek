@@ -208,7 +208,8 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	rc->SetReadyToOptimize();
 
-	auto ud = std::make_shared<UseDefs>(body, rc);
+	auto ft = cast_intrusive<FuncType>(f->GetType());
+	auto ud = std::make_shared<UseDefs>(body, rc, ft);
 	ud->Analyze();
 
 	if ( analysis_options.dump_uds )

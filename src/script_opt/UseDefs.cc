@@ -17,10 +17,11 @@ void UseDefSet::Dump() const
 		printf(" %s", u->Name());
 	}
 
-UseDefs::UseDefs(StmtPtr _body, std::shared_ptr<Reducer> _rc)
+UseDefs::UseDefs(StmtPtr _body, std::shared_ptr<Reducer> _rc, FuncTypePtr _ft)
 	{
 	body = std::move(_body);
 	rc = std::move(_rc);
+	ft = std::move(_ft);
 	}
 
 void UseDefs::Analyze()
@@ -163,6 +164,13 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
 	{
 	if ( id->IsGlobal() )
 		return false;
+
+	if ( auto& captures = ft->GetCaptures() )
+		{
+		for ( auto& c : *captures )
+			if ( c.Id() == id )
+				return false;
+		}
 
 	auto uds = FindSuccUsage(s);
 	if ( ! uds || ! uds->HasID(id) )

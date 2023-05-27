@@ -1555,6 +1555,7 @@ macro WhenCall(func)
 	auto& lhs = frame[z.v1];
 	auto trigger = f->GetTrigger();
 	Val* v = trigger ? trigger->Lookup(z.call_expr) : nullptr;
+	ValPtr vp;
 	if ( ! v )
 		{
 		auto aux = z.aux;
@@ -1563,13 +1564,15 @@ macro WhenCall(func)
 		for ( auto i = 0; i < n; ++i )
 			args.push_back(aux->ToVal(frame, i));
 		f->SetCall(z.call_expr);
-		auto v = func->Invoke(&args, f);
-		if ( ! v )
+		vp = func->Invoke(&args, f);
+		if ( ! vp )
 			throw ZAMDelayedCallException();
 		}
+	else
+		vp = {NewRef{}, v};
 	if ( z.is_managed )
 		ZVal::DeleteManagedType(lhs);
-	lhs = ZVal({NewRef{}, v}, z.t);
+	lhs = ZVal(vp, z.t);
 
 internal-op WhenCallN
 type V

@@ -992,13 +992,36 @@ internal-op Index-Any-VecC
 type VVV
 eval	EvalIndexAnyVec(z.v3)
 
-internal-op Index-Vec-Slice
-type VV
-eval	auto vec = frame[z.v2].vector_val;
+macro	WhenIndexResCheck()
+	auto& res = frame[z.v1].vector_val;
+	if ( res && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.push_back({NewRef{}, res});
+
+internal-op When-Index-Vec
+type VVV
+eval	EvalIndexAnyVec(frame[z.v3].uint_val)
+	WhenIndexResCheck()
+
+internal-op When-Index-VecC
+type VVV
+eval	EvalIndexAnyVec(z.v3)
+	WhenIndexResCheck()
+
+macro	EvalVecSlice()
+	auto vec = frame[z.v2].vector_val;
 	auto lv = z.aux->ToListVal(frame);
 	auto v = index_slice(vec, lv.get());
 	Unref(frame[z.v1].vector_val);
 	frame[z.v1].vector_val = v.release();
+
+internal-op Index-Vec-Slice
+type VV
+eval	EvalVecSlice()
+
+internal-op When-Index-Vec-Slice
+type VV
+eval	EvalVecSlice()
+	WhenIndexResCheck()
 
 internal-op Table-Index
 type VV

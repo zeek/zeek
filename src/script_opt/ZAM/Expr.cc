@@ -685,12 +685,28 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV : OP_INDEX_VEC_VVV;
+
+				ZOp zop;
+				if ( in_when )
+					zop = OP_WHEN_INDEX_VEC_VVV;
+				else if ( is_any )
+					zop = OP_INDEX_ANY_VEC_VVV;
+				else
+					zop = OP_INDEX_VEC_VVV;
+
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, n3_slot);
 				}
 			else
 				{
-				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV : OP_INDEX_VECC_VVV;
+				ZOp zop;
+
+				if ( in_when )
+					zop = OP_WHEN_INDEX_VECC_VVV;
+				else if ( is_any )
+					zop = OP_INDEX_ANY_VECC_VVV;
+				else
+					zop = OP_INDEX_VECC_VVV;
+
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}
@@ -728,7 +744,7 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 	switch ( n2tag )
 		{
 		case TYPE_VECTOR:
-			op = OP_INDEX_VEC_SLICE_VV;
+			op = in_when ? OP_WHEN_INDEX_VEC_SLICE_VV : OP_INDEX_VEC_SLICE_VV;
 			z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
 			z.SetType(n2t);
 			break;

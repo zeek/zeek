@@ -539,7 +539,9 @@ void ScriptFunc::CreateCaptures(Frame* f)
 				v = v->Clone();
 
 			if ( captures_vec )
-				captures_vec->push_back(ZVal(v, v->GetType()));
+				// Don't use v->GetType() here, as that might
+				// be "any" and we need to convert.
+				captures_vec->push_back(ZVal(v, c.Id()->GetType()));
 			else
 				captures_frame->SetElement(offset, std::move(v));
 			}

@@ -165,6 +165,11 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 		// We don't inline indirect calls.
 		return c;
 
+	if ( c->IsInWhen() )
+		// Don't inline these, as doing so requires propagating
+		// the in-when attribute to the inlined function body.
+		return c;
+
 	auto n = f->AsNameExpr();
 	auto func = n->Id();
 

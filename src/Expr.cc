@@ -4639,7 +4639,7 @@ void CallExpr::ExprDescribe(ODesc* d) const
 	}
 
 LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
-                       StmtPtr when_parent)
+                       std::string name, StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
@@ -4656,32 +4656,14 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
-	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
+	dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
 	dummy_func->AddBody(*ingredients);
 	dummy_func->SetOuterIDs(outer_ids);
 
-	// Get the body's "string" representation.
-	ODesc d;
-	dummy_func->Describe(&d);
-
-	for ( ;; )
-		{
-		hash128_t h;
-		KeyedHash::Hash128(d.Bytes(), d.Len(), &h);
-
-		my_name = "lambda_<" + std::to_string(h[0]) + ">";
-		auto fullname = make_full_var_name(current_module.data(), my_name.data());
-		const auto& id = global_scope()->Find(fullname);
-
-		if ( id )
-			// Just try again to make a unique lambda name.
-			// If two peer processes need to agree on the same
-			// lambda name, this assumes they're loading the same
-			// scripts and thus have the same hash collisions.
-			d.Add(" ");
-		else
-			break;
-		}
+	if ( name.empty() )
+		BuildName();
+	else
+		my_name = name;
 
 	// Install that in the global_scope
 	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
@@ -4689,7 +4671,7 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	// Update lamb's name
 	dummy_func->SetName(my_name.c_str());
 
-	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
+	auto v = make_intrusive<FuncVal>(dummy_func);
 	lambda_id->SetVal(std::move(v));
 	lambda_id->SetType(std::move(ingr_t));
 	lambda_id->SetConst();
@@ -4775,6 +4757,32 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 		}
 
 	return true;
+	}
+
+void LambdaExpr::BuildName()
+	{
+	// Get the body's "string" representation.
+	ODesc d;
+	dummy_func->Describe(&d);
+
+	for ( ;; )
+		{
+		hash128_t h;
+		KeyedHash::Hash128(d.Bytes(), d.Len(), &h);
+
+		my_name = "lambda_<" + std::to_string(h[0]) + ">";
+		auto fullname = make_full_var_name(current_module.data(), my_name.data());
+		const auto& id = global_scope()->Find(fullname);
+
+		if ( id )
+			// Just try again to make a unique lambda name.
+			// If two peer processes need to agree on the same
+			// lambda name, this assumes they're loading the same
+			// scripts and thus have the same hash collisions.
+			d.Add(" ");
+		else
+			break;
+		}
 	}
 
 ScopePtr LambdaExpr::GetScope() const

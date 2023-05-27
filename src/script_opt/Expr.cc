@@ -2435,7 +2435,9 @@ ExprPtr LambdaExpr::Duplicate()
 	// to identify lambdas up front, while duplicatino for inlining
 	// only happens after that point.
 
-	return SetSucc(new LambdaExpr(std::move(ingr), outer_ids));
+	auto l = new LambdaExpr(std::move(ingr), outer_ids, my_name);
+
+	return SetSucc(l);
 	}
 
 ExprPtr LambdaExpr::Inline(Inliner* inl)
@@ -2454,8 +2456,11 @@ ExprPtr LambdaExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 void LambdaExpr::UpdateFrom(const ScriptFunc* new_func) const
 	{
-	ingredients->SetBody(new_func->GetBodies()[0].stmts);
+	auto& new_body = new_func->GetBodies()[0].stmts;
+	ingredients->SetBody(new_body);
 	ingredients->SetFrameSize(new_func->FrameSize());
+
+	dummy_func->ReplaceBody(dummy_func->CurrentBody(), new_body);
 	}
 
 ExprPtr EventExpr::Duplicate()

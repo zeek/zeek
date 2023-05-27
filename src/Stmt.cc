@@ -1978,7 +1978,7 @@ void WhenInfo::Build(StmtPtr ws)
 	                                                         current_module);
 	auto outer_ids = gather_outer_ids(pop_scope(), ingredients->Body());
 
-	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), ws);
+	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), "", ws);
 	}
 
 void WhenInfo::Instantiate(Frame* f)

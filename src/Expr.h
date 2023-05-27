@@ -30,6 +30,7 @@ class Scope;
 class FunctionIngredients;
 using IDPtr = IntrusivePtr<ID>;
 using ScopePtr = IntrusivePtr<Scope>;
+using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 
 enum ExprTag : int
 	{
@@ -1455,9 +1456,10 @@ class LambdaExpr final : public Expr
 	{
 public:
 	LambdaExpr(std::shared_ptr<FunctionIngredients> ingredients, IDPList outer_ids,
-	           StmtPtr when_parent = nullptr);
+	           std::string name = "", StmtPtr when_parent = nullptr);
 
 	const std::string& Name() const { return my_name; }
+
 	const IDPList& OuterIDs() const { return outer_ids; }
 
 	ValPtr Eval(Frame* f) const override;
@@ -1473,7 +1475,7 @@ public:
 	// script optimization.
 	std::shared_ptr<FunctionIngredients> Ingredients() const { return ingredients; }
 
-	// Updates the lambda to reflect based on a new, optimized instancde.
+	// Updates the lambda to reflect a new, optimized instance.
 	void UpdateFrom(const ScriptFunc* new_func) const;
 
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
@@ -1483,8 +1485,10 @@ protected:
 
 private:
 	bool CheckCaptures(StmtPtr when_parent);
+	void BuildName();
 
 	std::shared_ptr<FunctionIngredients> ingredients;
+	ScriptFuncPtr dummy_func;
 	IDPtr lambda_id;
 	IDPList outer_ids;
 

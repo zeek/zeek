@@ -1550,6 +1550,8 @@ num-call-args n
 # To keep things simple, we just use one generic flavor (for N arguments,
 # doing a less-streamlined-but-simpler Val-based assignment).
 macro WhenCall(func)
+	if ( ! func )
+		throw ZAMDelayedCallException();
 	auto& lhs = frame[z.v1];
 	auto trigger = f->GetTrigger();
 	Val* v = trigger ? trigger->Lookup(z.call_expr) : nullptr;

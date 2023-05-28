@@ -220,6 +220,9 @@ public:
 	// True if this instruction is of the form "v1 = v2".
 	bool IsDirectAssignment() const;
 
+	// True if this instruction includes captures in its aux slots.
+	bool HasCaptures() const;
+
 	// True if this instruction has side effects when executed, so
 	// should not be pruned even if it has a dead assignment.
 	bool HasSideEffects() const;
@@ -432,6 +435,10 @@ public:
 
 	// ... and its name.
 	std::string lambda_name;
+
+	// For "when" statements.  Needs to be non-const so we can
+	// Instantiate() it as needed.
+	WhenInfo* wi;
 
 	// A parallel array for the cat() built-in replacement.
 	std::unique_ptr<CatArg>* cat_args = nullptr;

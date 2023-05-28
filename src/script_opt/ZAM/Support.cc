@@ -20,13 +20,6 @@ bool ZAM_error = false;
 
 bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason)
 	{
-	if ( pf->NumWhenStmts() > 0 )
-		{
-		if ( reason )
-			*reason = "use of \"when\"";
-		return false;
-		}
-
 	auto b = pf->ProfiledBody();
 	if ( b && ! script_is_valid(b) )
 		{

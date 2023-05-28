@@ -2039,6 +2039,31 @@ eval	auto tt = cast_intrusive<TableType>(z.t);
 	Unref(frame[z.v1].table_val);
 	frame[z.v1].table_val = t;
 
+op When
+type V
+op1-read
+eval	BuildWhen(-1.0)
+
+op When-Timeout
+type VV
+op1-read
+eval	BuildWhen(frame[z.v2].double_val)
+
+op When-Timeout
+type VC
+op1-read
+eval	BuildWhen(z.c.double_val)
+
+macro BuildWhen(timeout)
+	auto& aux = z.aux;
+	auto wi = aux->wi;
+	FuncPtr func{NewRef{}, frame[z.v1].func_val};
+	auto lambda = make_intrusive<FuncVal>(func);
+	wi->Instantiate(lambda);
+	std::vector<ValPtr> local_aggrs;
+	for ( int i = 0; i < aux->n; ++i )
+		local_aggrs.push_back(aux->ToVal(frame, i));
+	new trigger::Trigger(wi, timeout, wi->WhenExprGlobals(), local_aggrs, f, z.loc);
 
 ########################################
 # Internal

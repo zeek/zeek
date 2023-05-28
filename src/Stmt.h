@@ -663,7 +663,7 @@ public:
 	StmtPtr TimeoutBody() const { return wi->TimeoutStmt(); }
 	bool IsReturn() const { return wi->IsReturn(); }
 
-	const WhenInfo* Info() const { return wi; }
+	WhenInfo* Info() const { return wi; }
 
 	void StmtDescribe(ODesc* d) const override;
 

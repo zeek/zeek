@@ -112,9 +112,8 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 
 			auto w = s->AsWhenStmt();
 			auto wi = w->Info();
-			auto wl = wi ? wi->Lambda() : nullptr;
-			if ( wl )
-				lambdas.push_back(wl.get());
+			auto wl = wi->Lambda();
+			lambdas.push_back(wi->Lambda().get());
 			}
 			break;
 
@@ -192,6 +191,11 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			auto n = e->AsNameExpr();
 			auto id = n->Id();
 
+			// Turns out that NameExpr's can be constructed using a
+			// different Type* than that of the identifier itself,
+			// so be sure we track the latter too.
+			TrackType(id->GetType());
+
 			if ( id->IsGlobal() )
 				{
 				globals.insert(id);
@@ -200,30 +204,24 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 				const auto& t = id->GetType();
 				if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
 					events.insert(id->Name());
+
+				break;
 				}
 
-			else
-				{
-				// This is a tad ugly.  Unfortunately due to the
-				// weird way that Zeek function *declarations* work,
-				// there's no reliable way to get the list of
-				// parameters for a function *definition*, since
-				// they can have different names than what's present
-				// in the declaration.  So we identify them directly,
-				// by knowing that they come at the beginning of the
-				// frame ... and being careful to avoid misconfusing
-				// a lambda capture with a low frame offset as a
-				// parameter.
-				if ( captures.count(id) == 0 && id->Offset() < num_params )
-					params.insert(id);
+			// This is a tad ugly.  Unfortunately due to the
+			// weird way that Zeek function *declarations* work,
+			// there's no reliable way to get the list of
+			// parameters for a function *definition*, since
+			// they can have different names than what's present
+			// in the declaration.  So we identify them directly,
+			// by knowing that they come at the beginning of the
+			// frame ... and being careful to avoid misconfusing
+			// a lambda capture with a low frame offset as a
+			// parameter.
+			if ( captures.count(id) == 0 && id->Offset() < num_params )
+				params.insert(id);
 
-				locals.insert(id);
-				}
-
-			// Turns out that NameExpr's can be constructed using a
-			// different Type* than that of the identifier itself,
-			// so be sure we track the latter too.
-			TrackType(id->GetType());
+			locals.insert(id);
 
 			break;
 			}

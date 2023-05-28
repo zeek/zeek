@@ -407,6 +407,21 @@ bool ZInstI::IsDirectAssignment() const
 		}
 	}
 
+bool ZInstI::HasCaptures() const
+	{
+	switch ( op )
+		{
+		case OP_LAMBDA_V:
+		case OP_WHEN_V:
+		case OP_WHEN_TIMEOUT_VV:
+		case OP_WHEN_TIMEOUT_VC:
+			return true;
+
+		default:
+			return false;
+		}
+	}
+
 bool ZInstI::HasSideEffects() const
 	{
 	return op_side_effects[op];

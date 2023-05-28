@@ -138,6 +138,7 @@ private:
 	const ZAMStmt CompileCatchReturn(const CatchReturnStmt* cr);
 	const ZAMStmt CompileStmts(const StmtList* sl);
 	const ZAMStmt CompileInit(const InitStmt* is);
+	const ZAMStmt CompileWhen(const WhenStmt* ws);
 
 	const ZAMStmt CompileNext() { return GenGoTo(nexts.back()); }
 	const ZAMStmt CompileBreak() { return GenGoTo(breaks.back()); }

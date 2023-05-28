@@ -468,6 +468,21 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				break;
 				}
 
+			case OP_LAMBDA_V:
+			case OP_WHEN_V:
+			case OP_WHEN_TIMEOUT_VV:
+			case OP_WHEN_TIMEOUT_VC:
+				{
+				int n = inst->aux->n;
+				auto& slots = inst->aux->slots;
+				for ( int i = 0; i < n; ++i )
+					{
+					CheckSlotAssignment(slots[i], inst);
+					ExtendLifetime(slots[i], inst);
+					}
+				break;
+				}
+
 			default:
 				// Look for slots in auxiliary information.
 				auto aux = inst->aux;
@@ -761,7 +776,6 @@ void ZAMCompiler::ReMapVar(const ID* id, int slot, zeek_uint_t inst)
 void ZAMCompiler::CheckSlotAssignment(int slot, const ZInstI* inst)
 	{
 	ASSERT(slot >= 0 && static_cast<zeek_uint_t>(slot) < frame_denizens.size());
-
 	// We construct temporaries such that their values are never used
 	// earlier than their definitions in loop bodies.  For other
 	// denizens, however, they can be, so in those cases we expand the
@@ -943,6 +957,29 @@ bool ZAMCompiler::VarIsAssigned(int slot, const ZInstI* i) const
 
 		// Otherwise fall through, since that flavor of iterate
 		// *does* also assign to slot 1.
+		}
+
+	if ( i->HasCaptures() )
+		{
+		auto& aux = i->aux;
+		auto& slots = aux->slots;
+		int n = aux->n;
+		for ( int i = 0; i < n; ++i )
+			if ( slots[i] == slot )
+				{
+				// Ideally we'd only treat this as an
+				// assignment if the variable is an aggregate
+				// (which is implicitly always initialized)
+				// and not otherwise. However, the captures
+				// can also include "when" locals, which might
+				// not be aggregates, so give non-aggregates
+				// a pass.
+				printf("found variable to be assigned\n");
+				return true;
+				}
+
+		// There's no point to falling through given the current
+		// implementation, but also no harm.
 		}
 
 	if ( i->op == OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV && i->v2 == slot )

@@ -660,12 +660,9 @@ StmtPtr ReturnStmt::DoReduce(Reducer* c)
 		return ThisPtr();
 
 	if ( c->Optimizing() )
-		{
 		e = c->OptExpr(e);
-		return ThisPtr();
-		}
 
-	if ( ! e->IsSingleton(c) )
+	else if ( ! e->IsSingleton(c) )
 		{
 		StmtPtr red_e_stmt;
 		e = e->ReduceToSingleton(c, red_e_stmt);
@@ -952,9 +949,33 @@ void WhenStmt::Inline(Inliner* inl)
 
 bool WhenStmt::IsReduced(Reducer* c) const
 	{
-	// We consider these always reduced because they're not
-	// candidates for any further optimization.
-	return true;
+	if ( ! wi->TimeoutExpr() )
+		return true;
+
+	return wi->TimeoutExpr()->IsReduced(c);
+	}
+
+StmtPtr WhenStmt::DoReduce(Reducer* c)
+	{
+	auto e = wi->TimeoutExpr();
+
+	if ( c->Optimizing() )
+		wi->SetTimeoutExpr(c->OptExpr(e));
+
+	else if ( ! e->IsSingleton(c) )
+		{
+		StmtPtr red_e_stmt;
+		auto new_e = e->ReduceToSingleton(c, red_e_stmt);
+		wi->SetTimeoutExpr(new_e);
+
+		if ( red_e_stmt )
+			{
+			auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
+			return TransformMe(s, c);
+			}
+		}
+
+	return ThisPtr();
 	}
 
 CatchReturnStmt::CatchReturnStmt(StmtPtr _block, NameExprPtr _ret_var) : Stmt(STMT_CATCH_RETURN)

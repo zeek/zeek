@@ -196,12 +196,6 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 			return TC_ABORTSTMT;
 			}
 
-		case STMT_WHEN:
-			{
-			// ### punt on these for now, need to reflect on bindings.
-			return TC_ABORTSTMT;
-			}
-
 		default:
 			return TC_CONTINUE;
 		}

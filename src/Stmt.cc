@@ -2132,32 +2132,13 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	auto wl = wi->Lambda();
+	tc = wi->Lambda()->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
 
-	if ( wl )
+	auto e = wi->TimeoutExpr();
+	if ( e )
 		{
-		tc = wl->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-		}
-
-	else
-		{
-		tc = wi->OrigCond()->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-
-		tc = wi->OrigBody()->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-
-		if ( wi->OrigTimeoutStmt() )
-			{
-			tc = wi->OrigTimeoutStmt()->Traverse(cb);
-			HANDLE_TC_STMT_PRE(tc);
-			}
-		}
-
-	if ( wi->OrigTimeout() )
-		{
-		tc = wi->OrigTimeout()->Traverse(cb);
+		tc = e->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 

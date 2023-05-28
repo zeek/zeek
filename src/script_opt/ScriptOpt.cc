@@ -217,6 +217,9 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	new_body = ud->RemoveUnused();
 
+	if ( analysis_options.dump_xform )
+		printf("Post removal of unused: %s\n", obj_desc(new_body.get()).c_str());
+
 	if ( new_body != body )
 		{
 		f->ReplaceBody(body, new_body);

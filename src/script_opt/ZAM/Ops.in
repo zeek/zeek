@@ -2179,7 +2179,9 @@ eval	auto& aux = z.aux;
 		for ( auto i = 0; i < aux->n; ++i )
 			{
 			auto& cp = frame[aux->slots[i]];
-			if ( aux->is_managed[i] )
+			// The capture can be nil in the case of "when"
+			// locals.
+			if ( aux->is_managed[i] && cp.ManagedVal() )
 				zeek::Ref(cp.ManagedVal());
 			captures->push_back(cp);
 			}

@@ -594,6 +594,7 @@ public:
 	StmtPtr TimeoutStmt();
 
 	ExprPtr TimeoutExpr() const { return timeout; }
+	void SetTimeoutExpr(ExprPtr e) { timeout = std::move(e); }
 	double TimeoutVal(Frame* f);
 
 	FuncType::CaptureList* Captures() { return cl; }
@@ -674,6 +675,7 @@ public:
 	void Inline(Inliner* inl) override;
 
 	bool IsReduced(Reducer* c) const override;
+	StmtPtr DoReduce(Reducer* c) override;
 
 private:
 	WhenInfo* wi;

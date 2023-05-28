@@ -20,7 +20,7 @@ import foo;
 
 protocol analyzer FOO over TCP:
     parse with foo::X,
-    port 1/tcp-40000/tcp;
+    port 80/tcp;
 
 export foo::X;
 

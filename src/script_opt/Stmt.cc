@@ -959,6 +959,9 @@ StmtPtr WhenStmt::DoReduce(Reducer* c)
 	{
 	auto e = wi->TimeoutExpr();
 
+	if ( ! e )
+		return ThisPtr();
+
 	if ( c->Optimizing() )
 		wi->SetTimeoutExpr(c->OptExpr(e));
 

@@ -2062,7 +2062,11 @@ macro BuildWhen(timeout)
 	wi->Instantiate(lambda);
 	std::vector<ValPtr> local_aggrs;
 	for ( int i = 0; i < aux->n; ++i )
-		local_aggrs.push_back(aux->ToVal(frame, i));
+		{
+		auto v = aux->ToVal(frame, i);
+		if ( v )
+			local_aggrs.push_back(v);
+		}
 	new trigger::Trigger(wi, timeout, wi->WhenExprGlobals(), local_aggrs, f, z.loc);
 
 ########################################

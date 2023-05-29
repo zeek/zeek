@@ -291,9 +291,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			auto true_UDs = PropagateUDs(i->TrueBranch(), succ_UDs, succ_stmt, second_pass);
 			auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs, succ_stmt, second_pass);
 
-			auto uds = CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
-
-			return uds;
+			return CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
 			}
 
 		case STMT_INIT:
@@ -306,7 +304,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			{
 			auto w = s->AsWhenStmt();
 			auto wi = w->Info();
-			auto uds = ExprUDs(wi->Lambda().get());
+			auto uds = UD_Union(succ_UDs, ExprUDs(wi->Lambda().get()));
 
 			auto timeout = wi->TimeoutExpr();
 			if ( timeout )

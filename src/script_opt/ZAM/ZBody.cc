@@ -293,6 +293,9 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 
 	flow = FLOW_RETURN; // can be over-written by a Hook-Break
 
+	// Clear any leftover error state.
+	ZAM_error = false;
+
 	while ( pc < end_pc && ! ZAM_error )
 		{
 		auto& z = insts[pc];
@@ -368,9 +371,6 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 
 		delete[] frame;
 		}
-
-	// Clear any error state.
-	ZAM_error = false;
 
 	return result;
 	}

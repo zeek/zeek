@@ -1,0 +1,42 @@
+# @TEST-DOC: Start each node type and ensure there are no unexpected warnings to be seen
+#
+# @TEST-PORT: BROKER_PORT1
+# @TEST-PORT: BROKER_PORT2
+# @TEST-PORT: BROKER_PORT3
+# @TEST-PORT: BROKER_PORT4
+#
+# @TEST-EXEC: CLUSTER_NODE=manager zeek %INPUT
+# @TEST-EXEC: CLUSTER_NODE=logger-1 zeek %INPUT
+# @TEST-EXEC: CLUSTER_NODE=proxy-1 zeek %INPUT
+# @TEST-EXEC: CLUSTER_NODE=worker-1 zeek %INPUT
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v "scan.zeek.*deprecated script" | $SCRIPTS/diff-remove-abspath' btest-diff .stderr
+
+@load base/frameworks/cluster
+@load misc/loaded-scripts
+
+@load test-all-policy
+
+@TEST-START-FILE cluster-layout.zeek
+redef Cluster::nodes = {
+	["manager"]  = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
+	["logger-1"] = [$node_type=Cluster::LOGGER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager"],
+	["proxy-1"]  = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager"],
+	["worker-1"] = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager"],
+};
+
+@TEST-END-FILE
+
+# Make this a single-node cluster-layout so no connection attempts happen
+# to other nodes.
+redef Cluster::nodes = {
+	[Cluster::node] = Cluster::nodes[Cluster::node],
+};
+
+# Avoid rotation commands to be executed.
+redef Log::default_rotation_interval = 0sec;
+
+event zeek_init()
+	{
+	print Cluster::node, "zeek_init()";
+	terminate();
+	}

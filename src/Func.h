@@ -373,6 +373,8 @@ public:
 	const StmtPtr& Body() const { return body; }
 
 	const auto& Inits() const { return inits; }
+	void ClearInits() { inits.clear(); }
+
 	size_t FrameSize() const { return frame_size; }
 	int Priority() const { return priority; }
 	const ScopePtr& Scope() const { return scope; }

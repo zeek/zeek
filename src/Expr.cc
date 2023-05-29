@@ -4657,8 +4657,14 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	// Install a dummy version of the function globally for use only
 	// when broker provides a closure.
 	dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
-	dummy_func->AddBody(*ingredients);
 	dummy_func->SetOuterIDs(outer_ids);
+
+	// When we build the body, it will get updated with initialization
+	// statements.  Update the ingredients to reflect the new body,
+	// and no more need for initializers.
+	dummy_func->AddBody(*ingredients);
+	ingredients->SetBody(dummy_func->GetBodies()[0].stmts);
+	ingredients->ClearInits();
 
 	if ( name.empty() )
 		BuildName();

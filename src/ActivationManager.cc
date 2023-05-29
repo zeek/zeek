@@ -74,7 +74,7 @@ Activation::Activation(ExprPtr cond, bool _is_activated, bool _parent_activated,
 	cond_depth = _cond_depth;
 
 	cond_event = std::make_shared<ActivationEvent>(ActivationEvent::COND);
-	cond_event->AddExpr(cond);
+	cond_event->AddExpr(std::move(cond));
 	}
 
 Activation::~Activation()
@@ -167,7 +167,7 @@ void ActivationManager::AddingRedef(const IDPtr& id, InitClass c, ExprPtr init, 
 	auto r = std::make_shared<ActivationEvent>(ActivationEvent::REDEF);
 	r->AddID(id);
 	r->AddInitClass(c);
-	r->AddExpr(init);
+	r->AddExpr(std::move(init));
 	r->AddAttrs(attrs);
 
 	activation_stack.back()->CondEvent()->AddSubEvent(std::move(r));
@@ -190,7 +190,7 @@ void ActivationManager::AddingBody(IDPtr func, std::shared_ptr<FunctionIngredien
 		return;
 
 	auto b = std::make_shared<ActivationEvent>(ActivationEvent::BODY);
-	b->AddID(func);
+	b->AddID(std::move(func));
 	b->AddIngredients(std::move(ingr));
 
 	activation_stack.back()->CondEvent()->AddSubEvent(std::move(b));

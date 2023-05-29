@@ -244,7 +244,7 @@ event zeek_init()
 
 @endif
 
-function cr_check_rule(r: Rule): bool
+function cr_check_rule(r: Rule): bool &is_used
 	{
 	if ( r$ty == DROP && r$entity$ty == ADDRESS )
 		{

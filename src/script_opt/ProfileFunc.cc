@@ -114,6 +114,9 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 			auto wi = w->Info();
 			auto wl = wi->Lambda();
 			lambdas.push_back(wi->Lambda().get());
+
+			for ( auto wl : wi->WhenNewLocals() )
+				when_locals.insert(wl);
 			}
 			break;
 
@@ -389,16 +392,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 			const auto& attrs = tc->GetAttrs();
 
 			if ( attrs )
-				{
 				constructor_attrs.insert(attrs.get());
-
-				auto def_expr = attrs->Find(ATTR_DEFAULT);
-				if ( def_expr && def_expr->GetExpr()->Tag() == EXPR_LAMBDA )
-					{
-					auto l = def_expr->GetExpr()->AsLambdaExpr();
-					lambdas.push_back(l);
-					}
-				}
 			}
 			break;
 

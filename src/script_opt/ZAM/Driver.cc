@@ -36,18 +36,6 @@ void ZAMCompiler::Init()
 	InitCaptures();
 	InitLocals();
 
-#if 0
-	// Complain about unused aggregates ... but not if we're inlining,
-	// as that can lead to optimizations where they wind up being unused
-	// but the original logic for using them was sound.
-	if ( ! analysis_options.inliner )
-		for ( auto a : pf->Inits() )
-			{
-			if ( pf->Locals().find(a) == pf->Locals().end() )
-				reporter->Warning("%s unused", a->Name());
-			}
-#endif
-
 	TrackMemoryManagement();
 
 	non_recursive = non_recursive_funcs.count(func) > 0;
@@ -105,6 +93,9 @@ void ZAMCompiler::InitLocals()
 	for ( auto l : pf->Locals() )
 		{
 		if ( IsCapture(l) )
+			continue;
+
+		if ( pf->WhenLocals().count(l) > 0 )
 			continue;
 
 		auto non_const_l = const_cast<ID*>(l);
@@ -213,11 +204,6 @@ StmtPtr ZAMCompiler::CompileBody()
 
 	// Could erase insts1 here to recover memory, but it's handy
 	// for debugging.
-
-#if 0
-	if ( non_recursive )
-		func->UseStaticFrame();
-#endif
 
 	auto zb = make_intrusive<ZBody>(func->Name(), this);
 	zb->SetInsts(insts2);

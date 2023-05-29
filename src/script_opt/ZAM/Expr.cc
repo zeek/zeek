@@ -4,6 +4,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail
@@ -789,6 +790,10 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
 	for ( int i = 0; i < ncaptures; ++i )
 		{
 		auto& id_i = (*captures)[i].Id();
+
+		if ( pf->WhenLocals().count(id_i.get()) > 0 )
+			continue;
+
 		aux->Add(i, FrameSlot(id_i), id_i->GetType());
 		}
 

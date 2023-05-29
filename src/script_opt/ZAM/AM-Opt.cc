@@ -469,17 +469,12 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				}
 
 			case OP_LAMBDA_V:
-			case OP_WHEN_V:
-			case OP_WHEN_TIMEOUT_VV:
-			case OP_WHEN_TIMEOUT_VC:
 				{
-				int n = inst->aux->n;
-				auto& slots = inst->aux->slots;
+				auto aux = inst->aux;
+				int n = aux->n;
+				auto& slots = aux->slots;
 				for ( int i = 0; i < n; ++i )
-					{
-					CheckSlotAssignment(slots[i], inst);
-					ExtendLifetime(slots[i], inst);
-					}
+					ExtendLifetime(slots[i], EndOfLoop(inst, 1));
 				break;
 				}
 
@@ -489,12 +484,14 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				if ( ! aux || ! aux->slots )
 					break;
 
-				for ( auto j = 0; j < aux->n; ++j )
+				int n = aux->n;
+				auto& slots = aux->slots;
+				for ( auto j = 0; j < n; ++j )
 					{
-					if ( aux->slots[j] < 0 )
+					if ( slots[j] < 0 )
 						continue;
 
-					ExtendLifetime(aux->slots[j], EndOfLoop(inst, 1));
+					ExtendLifetime(slots[j], EndOfLoop(inst, 1));
 					}
 				break;
 			}

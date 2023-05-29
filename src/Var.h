@@ -38,7 +38,7 @@ extern void add_global(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 extern StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init,
                          std::unique_ptr<std::vector<AttrPtr>> attr, DeclType dt);
 
-extern ExprPtr add_and_assign_local(IDPtr id, ExprPtr init, ValPtr val = nullptr);
+extern ExprPtr add_and_assign_local(IDPtr id, ExprPtr init, ValPtr val);
 
 extern void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr);
 

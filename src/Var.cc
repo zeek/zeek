@@ -800,18 +800,19 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	if ( expr->Tag() != EXPR_NAME )
 		return TC_CONTINUE;
 
-	auto* e = static_cast<const NameExpr*>(expr);
+	auto e = static_cast<const NameExpr*>(expr);
+	auto id = e->Id();
 
-	if ( e->Id()->IsGlobal() )
+	if ( id->IsGlobal() )
 		return TC_CONTINUE;
 
 	for ( const auto& scope : scopes )
-		if ( scope->Find(e->Id()->Name()) )
+		if ( scope->Find(id->Name()) )
 			// Shadowing is not allowed, so if it's found at inner scope, it's
 			// not something we have to worry about also being at outer scope.
 			return TC_CONTINUE;
 
-	outer_id_references.insert(e->Id());
+	outer_id_references.insert(id);
 	return TC_CONTINUE;
 	}
 

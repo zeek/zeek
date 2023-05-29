@@ -607,6 +607,9 @@ public:
 	const IDSet& WhenExprLocals() const { return when_expr_locals; }
 	const IDSet& WhenExprGlobals() const { return when_expr_globals; }
 
+	// The locals introduced in the conditional expression.
+	const IDSet& WhenNewLocals() const { return when_new_locals; }
+
 private:
 	// Build those elements we'll need for invoking our lambda.
 	void BuildInvokeElems();

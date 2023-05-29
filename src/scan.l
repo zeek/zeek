@@ -448,71 +448,83 @@ when	return TOK_WHEN;
 	}
 
 @load{WS}{FILE}	{
-	const char* new_file = zeek::util::skip_whitespace(yytext + 5);	// Skip "@load".
-	std::string loader = ::filename;  // load_files may change ::filename, save copy
-	std::string loading = find_relative_script_file(new_file);
-	(void) load_files(new_file);
-	zeek::detail::zeekygen_mgr->ScriptDependency(loader, loading);
+        if ( activation_mgr->IsActivated() )
+		{
+		const char* new_file = zeek::util::skip_whitespace(yytext + 5);	// Skip "@load".
+		std::string loader = ::filename;  // load_files may change ::filename, save copy
+		std::string loading = find_relative_script_file(new_file);
+		(void) load_files(new_file);
+		zeek::detail::zeekygen_mgr->ScriptDependency(loader, loading);
+		}
 	}
 
 @load-sigs{WS}{FILE} {
-	const char* file = zeek::util::skip_whitespace(yytext + 10);
-	std::string path = find_relative_file(file, ".sig");
-	sig_files.emplace_back(file, path, GetCurrentLocation());
+        if ( activation_mgr->IsActivated() )
+		{
+		const char* file = zeek::util::skip_whitespace(yytext + 10);
+		std::string path = find_relative_file(file, ".sig");
+		sig_files.emplace_back(file, path, GetCurrentLocation());
+		}
 	}
 
 @load-plugin{WS}{ID} {
-	const char* plugin = zeek::util::skip_whitespace(yytext + 12);
-	std::pair<int, std::optional<std::string>> rc;
-	rc.first = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::PLUGIN, plugin, ""), -1);
-	if ( rc.first < 0 )
-		rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE_EXT, HookLoadFileExtended(zeek::plugin::Plugin::PLUGIN, plugin, ""), std::make_pair(-1, std::nullopt));
+	if ( activation_mgr->IsActivated() )
+		{
+		const char* plugin = zeek::util::skip_whitespace(yytext + 12);
+		std::pair<int, std::optional<std::string>> rc;
+		rc.first = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE, HookLoadFile(zeek::plugin::Plugin::PLUGIN, plugin, ""), -1);
+		if ( rc.first < 0 )
+			rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE_EXT, HookLoadFileExtended(zeek::plugin::Plugin::PLUGIN, plugin, ""), std::make_pair(-1, std::nullopt));
 
-	switch ( rc.first ) {
-	case -1:
-		// No plugin in charge of this file. (We ignore any returned content.)
-		zeek::plugin_mgr->ActivateDynamicPlugin(plugin);
-		break;
+		switch ( rc.first ) {
+		case -1:
+			// No plugin in charge of this file. (We ignore any returned content.)
+			zeek::plugin_mgr->ActivateDynamicPlugin(plugin);
+			break;
 
-	case 0:
-		if ( ! zeek::reporter->Errors() )
-			zeek::reporter->Error("Plugin reported error loading plugin %s", plugin);
+		case 0:
+			if ( ! zeek::reporter->Errors() )
+				zeek::reporter->Error("Plugin reported error loading plugin %s", plugin);
 
-		exit(1);
-		break;
+			exit(1);
+			break;
 
-	case 1:
-		// A plugin took care of it, just skip.
-		break;
+		case 1:
+			// A plugin took care of it, just skip.
+			break;
 
-	default:
-		assert(false);
-		break;
-	}
+		default:
+			assert(false);
+			break;
+		}
+		}
 }
 
 @unload{WS}{FILE}	{
 	// Skip "@unload".
-	const char* file = zeek::util::skip_whitespace(yytext + 7);
-	std::string path = find_relative_script_file(file);
-
-	if ( ! path.empty() && zeek::util::is_dir(path.c_str()) )
+	if ( activation_mgr->IsActivated() )
 		{
-		// open_package() appends __load__.zeek to path and verifies existence
-		FILE *f = zeek::util::detail::open_package(path);
-		if (f)
-			fclose(f);
+		const char* file = zeek::util::skip_whitespace(yytext + 7);
+		std::string path = find_relative_script_file(file);
+
+		if ( ! path.empty() && zeek::util::is_dir(path.c_str()) )
+			{
+			// open_package() appends __load__.zeek to path and verifies existence
+			FILE *f = zeek::util::detail::open_package(path);
+			if (f)
+				fclose(f);
+			else
+				path = "";
+			}
+
+		if ( path.empty() )
+			zeek::reporter->Error("failed find file associated with @unload %s", file);
 		else
-			path = "";
-		}
-
-	if ( path.empty() )
-		zeek::reporter->Error("failed find file associated with @unload %s", file);
-	else
-		{
-		// All we have to do is pretend we've already scanned it.
-		zeek::detail::ScannedFile sf(file_stack.length(), std::move(path), true);
-		zeek::detail::files_scanned.push_back(std::move(sf));
+			{
+			// All we have to do is pretend we've already scanned it.
+			zeek::detail::ScannedFile sf(file_stack.length(), std::move(path), true);
+			zeek::detail::files_scanned.push_back(std::move(sf));
+			}
 		}
 	}
 

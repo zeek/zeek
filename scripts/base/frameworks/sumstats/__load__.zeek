@@ -5,7 +5,7 @@
 @load base/frameworks/cluster
 
 # Load either the cluster support script or the non-cluster support script.
-@if ( Cluster::is_enabled() )
+@if ( Cluster::is_enabled() ) &analyze
 @load ./cluster
 @else
 @load ./non-cluster

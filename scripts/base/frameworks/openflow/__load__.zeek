@@ -6,7 +6,7 @@
 # The cluster framework must be loaded first.
 @load base/frameworks/cluster
 
-@if ( Cluster::is_enabled() )
+@if ( Cluster::is_enabled() ) &analyze
 @load ./cluster
 @else
 @load ./non-cluster

@@ -792,9 +792,9 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
 		auto& id_i = (*captures)[i].Id();
 
 		if ( pf->WhenLocals().count(id_i.get()) > 0 )
-			continue;
-
-		aux->Add(i, FrameSlot(id_i), id_i->GetType());
+			aux->Add(i, nullptr);
+		else
+			aux->Add(i, FrameSlot(id_i), id_i->GetType());
 		}
 
 	auto z = ZInstI(OP_LAMBDA_V, n_slot);

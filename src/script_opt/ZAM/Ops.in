@@ -2182,12 +2182,17 @@ eval	auto& aux = z.aux;
 		auto captures = std::make_unique<std::vector<ZVal>>();
 		for ( auto i = 0; i < aux->n; ++i )
 			{
-			auto& cp = frame[aux->slots[i]];
-			// The capture can be nil in the case of "when"
-			// locals.
-			if ( aux->is_managed[i] && cp.ManagedVal() )
-				zeek::Ref(cp.ManagedVal());
-			captures->push_back(cp);
+			auto slot = aux->slots[i];
+			if ( slot >= 0 )
+				{
+				auto& cp = frame[aux->slots[i]];
+				if ( aux->is_managed[i] )
+					zeek::Ref(cp.ManagedVal());
+				captures->push_back(cp);
+				}
+			else
+				// Used for when-locals.
+				captures->push_back(ZVal());
 			}
 		lamb->CreateCaptures(std::move(captures));
 		}

@@ -1147,6 +1147,13 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws)
 
 	z.aux = aux;
 
+	if ( ws->IsReturn() )
+		{
+		(void)AddInst(z);
+		z = ZInstI(OP_RETURN_C);
+		z.c = ZVal();
+		}
+
 	return AddInst(z);
 	}
 

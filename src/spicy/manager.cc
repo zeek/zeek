@@ -6,6 +6,7 @@
 #include <glob.h>
 
 #include <exception>
+#include <limits>
 #include <utility>
 
 #include <hilti/rt/configuration.h>
@@ -47,9 +48,9 @@ static std::pair<std::string, std::string> parseID(const std::string& s) {
 Manager::~Manager() {}
 
 void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
-                                       const hilti::rt::Vector<hilti::rt::Port>& ports, const std::string& parser_orig,
-                                       const std::string& parser_resp, const std::string& replaces,
-                                       const std::string& linker_scope) {
+                                       const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
+                                       const std::string& parser_orig, const std::string& parser_resp,
+                                       const std::string& replaces, const std::string& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy protocol analyzer %s", name));
 
     ProtocolAnalyzerInfo info;
@@ -683,9 +684,19 @@ void Manager::InitPostScript() {
         if ( ! tag )
             reporter->InternalError("cannot get analyzer tag for '%s'", p.name_analyzer.c_str());
 
-        for ( auto port : p.ports ) {
-            SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for port %s", port));
-            analyzer_mgr->RegisterAnalyzerForPort(tag, transport_protocol(port), port.port());
+        for ( const auto& ports : p.ports ) {
+            const auto proto = ports.begin.protocol();
+
+            // Port ranges are closed intervals.
+            for ( auto port = ports.begin.port(); port <= ports.end.port(); ++port ) {
+                const auto port_ = hilti::rt::Port(port, proto);
+                SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for port %s", port_));
+                analyzer_mgr->RegisterAnalyzerForPort(tag, transport_protocol(port_), port);
+
+                // Explicitly prevent overflow.
+                if ( port == std::numeric_limits<decltype(port)>::max() )
+                    break;
+            }
         }
 
         if ( p.parser_resp ) {

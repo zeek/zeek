@@ -23,6 +23,7 @@
 #include "zeek/Desc.h"
 #include "zeek/spicy/cookie.h"
 #include "zeek/spicy/manager.h"
+#include "zeek/spicy/port-range.h"
 
 namespace zeek::spicy::rt {
 
@@ -93,9 +94,9 @@ public:
  * plugin's runtime.
  */
 void register_protocol_analyzer(const std::string& name, hilti::rt::Protocol proto,
-                                const hilti::rt::Vector<hilti::rt::Port>& ports, const std::string& parser_orig,
-                                const std::string& parser_resp, const std::string& replaces,
-                                const std::string& linker_scope);
+                                const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
+                                const std::string& parser_orig, const std::string& parser_resp,
+                                const std::string& replaces, const std::string& linker_scope);
 
 /**
  * Registers a Spicy file analyzer with its EVT meta information with the

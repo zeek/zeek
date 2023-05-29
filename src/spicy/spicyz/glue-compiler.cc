@@ -16,6 +16,7 @@
 #include <spicy/global.h>
 
 #include "config.h"
+#include "zeek/spicy/port-range.h"
 
 using namespace zeek::spicy;
 
@@ -279,7 +280,7 @@ static hilti::rt::Port extract_port(const std::string& chunk, size_t* i) {
     return {static_cast<uint16_t>(port), proto};
 }
 
-static std::vector<hilti::rt::Port> extract_ports(const std::string& chunk, size_t* i) {
+static ::zeek::spicy::rt::PortRange extract_port_range(const std::string& chunk, size_t* i) {
     auto start = extract_port(chunk, i);
     auto end = std::optional<hilti::rt::Port>();
 
@@ -296,16 +297,11 @@ static std::vector<hilti::rt::Port> extract_ports(const std::string& chunk, size
             throw ParseError("start of port range cannot be after its end");
     }
 
-    std::vector<hilti::rt::Port> result;
+    if ( ! end )
+        // EVT port ranges are a closed interval, but rt are half-closed.
+        end = hilti::rt::Port(start.port() + 1, start.protocol());
 
-    // Port ranges are a closed interval.
-    for ( auto port = start.port(); ! end || port <= end->port(); ++port ) {
-        result.emplace_back(port, start.protocol());
-        if ( ! end )
-            break;
-    }
-
-    return result;
+    return {start, *end};
 }
 
 void GlueCompiler::Init(Driver* driver, int zeek_version) {
@@ -609,8 +605,7 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
             eat_token(chunk, &i, "{");
 
             while ( true ) {
-                auto ports = extract_ports(chunk, &i);
-                a.ports.insert(a.ports.end(), ports.begin(), ports.end());
+                a.ports.push_back(extract_port_range(chunk, &i));
 
                 if ( looking_at(chunk, i, "}") ) {
                     eat_token(chunk, &i, "}");
@@ -623,8 +618,7 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
 
         else if ( looking_at(chunk, i, "port") ) {
             eat_token(chunk, &i, "port");
-            auto ports = extract_ports(chunk, &i);
-            a.ports.insert(a.ports.end(), ports.begin(), ports.end());
+            a.ports.push_back(extract_port_range(chunk, &i));
         }
 
         else if ( looking_at(chunk, i, "replaces") ) {
@@ -855,11 +849,16 @@ bool GlueCompiler::compile() {
             default: hilti::logger().internalError("unexpected protocol");
         }
 
-        preinit_body.addCall("zeek_rt::register_protocol_analyzer",
-                             {builder::string(a.name), builder::id(protocol),
-                              builder::vector(hilti::util::transform(a.ports, [](auto p) { return builder::port(p); })),
-                              builder::string(a.unit_name_orig), builder::string(a.unit_name_resp),
-                              builder::string(a.replaces), _linker_scope()});
+        preinit_body.addCall(
+            "zeek_rt::register_protocol_analyzer",
+            {builder::string(a.name), builder::id(protocol),
+             builder::vector(hilti::util::transform(
+                 a.ports,
+                 [](const auto& p) {
+                     return builder::call("zeek_rt::make_port_range", {builder::port(p.begin), builder::port(p.end)});
+                 })),
+             builder::string(a.unit_name_orig), builder::string(a.unit_name_resp), builder::string(a.replaces),
+             _linker_scope()});
     }
 
     for ( auto& a : _file_analyzers ) {

@@ -21,9 +21,9 @@ using namespace zeek;
 using namespace zeek::spicy;
 
 void rt::register_protocol_analyzer(const std::string& name, hilti::rt::Protocol proto,
-                                    const hilti::rt::Vector<hilti::rt::Port>& ports, const std::string& parser_orig,
-                                    const std::string& parser_resp, const std::string& replaces,
-                                    const std::string& linker_scope) {
+                                    const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
+                                    const std::string& parser_orig, const std::string& parser_resp,
+                                    const std::string& replaces, const std::string& linker_scope) {
     auto _ = hilti::rt::profiler::start("zeek/rt/register_protocol_analyzer");
     spicy_mgr->registerProtocolAnalyzer(name, proto, ports, parser_orig, parser_resp, replaces, linker_scope);
 }

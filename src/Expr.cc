@@ -4,6 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include "zeek/ActivationManager.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -4690,16 +4691,22 @@ LambdaExpr::LambdaExpr(std::unique_ptr<FunctionIngredients> arg_ing, IDPList arg
 			break;
 		}
 
-	// Install that in the global_scope
-	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
+	// Install that in the global_scope iff activated.
+	//
+	// XXX: Not sure this is quite right, this may break
+	// usage analysis of a deactivated @if &analyze branch.
+	if ( activation_mgr->IsActivated() )
+		{
+		lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
-	// Update lamb's name
-	dummy_func->SetName(my_name.c_str());
+		// Update lamb's name
+		dummy_func->SetName(my_name.c_str());
 
-	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
-	lambda_id->SetVal(std::move(v));
-	lambda_id->SetType(ingredients->GetID()->GetType());
-	lambda_id->SetConst();
+		auto v = make_intrusive<FuncVal>(std::move(dummy_func));
+		lambda_id->SetVal(std::move(v));
+		lambda_id->SetType(ingredients->GetID()->GetType());
+		lambda_id->SetConst();
+		}
 	}
 
 bool LambdaExpr::CheckCaptures(StmtPtr when_parent)

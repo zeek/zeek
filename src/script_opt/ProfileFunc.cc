@@ -112,8 +112,6 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s)
 
 			auto w = s->AsWhenStmt();
 			auto wi = w->Info();
-			auto wl = wi->Lambda();
-			lambdas.push_back(wi->Lambda().get());
 
 			for ( auto wl : wi->WhenNewLocals() )
 				when_locals.insert(wl);

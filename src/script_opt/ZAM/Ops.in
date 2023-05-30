@@ -12,7 +12,7 @@
 # The Gen-ZAM utility processes this file to generate numerous C++ inclusion
 # files that are then compiled into Zeek.  These files span the range of (1)
 # hooks that enable run-time generation of ZAM code to execute ASTs (which
-# have first been transformed to "reduced" form, (2) specifications of the
+# have first been transformed to "reduced" form), (2) specifications of the
 # properties of the different instructions, (3) code to evaluate (execute)
 # each instruction, and (4) macros (C++ #define's) to aid in writing that
 # code.  See Gen-ZAM.h for a list of the different inclusion files.
@@ -2177,6 +2177,7 @@ type V
 eval	auto& aux = z.aux;
 	auto& ingr = aux->ingredients;
 	auto lamb = make_intrusive<ScriptFunc>(ingr->GetID());
+	ASSERT(ingr->Body()->Tag() == STMT_ZAM);
 	lamb->AddBody(*ingr);
 	lamb->SetName(aux->lambda_name.c_str());
 	if ( aux->n > 0 )

@@ -448,6 +448,8 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	// Re-profile the functions, now without worrying about compatibility
 	// with compilation to C++.
 
+	pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
+
 	// The first profiling pass earlier may have marked some of the
 	// functions as to-skip, so clear those markings.
 	for ( auto& f : funcs )
@@ -489,6 +491,8 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 			}
 		}
 
+	// Oof, we need to profile YET AGAIN to make sure we get a coherent
+	// picture including the lambdas.
 	pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
 
 	bool report_recursive = analysis_options.report_recursive;
@@ -645,6 +649,9 @@ void analyze_scripts(bool no_unused_warnings)
 	// At this point we're done with C++ considerations, so instead
 	// are compiling to ZAM.
 	analyze_scripts_for_ZAM(pfs);
+
+	if ( reporter->Errors() > 0 )
+		reporter->FatalError("Optimized script execution aborted due to errors");
 	}
 
 void profile_script_execution()

@@ -1469,7 +1469,6 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
-	ExprPtr Inline(Inliner* inl) override;
 
 	// The following is non-const so the body can be updated by
 	// script optimization.

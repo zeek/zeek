@@ -2432,18 +2432,12 @@ ExprPtr LambdaExpr::Duplicate()
 	// rather tracks them separately, and (2) if we duplicate it, then
 	// we have to somehow ensure we still track the duplicated version
 	// so we can compile it, which gets complicated because we need
-	// to identify lambdas up front, while duplicatino for inlining
+	// to identify lambdas up front, while duplication for inlining
 	// only happens after that point.
 
 	auto l = new LambdaExpr(std::move(ingr), outer_ids, my_name);
 
 	return SetSucc(l);
-	}
-
-ExprPtr LambdaExpr::Inline(Inliner* inl)
-	{
-	// Don't inline these, we currently don't get the closure right.
-	return ThisPtr();
 	}
 
 ExprPtr LambdaExpr::Reduce(Reducer* c, StmtPtr& red_stmt)

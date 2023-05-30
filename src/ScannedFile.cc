@@ -13,9 +13,9 @@ std::list<ScannedFile> files_scanned;
 std::vector<SignatureFile> sig_files;
 
 ScannedFile::ScannedFile(int arg_include_level, std::string arg_name, bool arg_skipped,
-                         bool arg_prefixes_checked)
+                         bool arg_prefixes_checked, bool arg_activated)
 	: include_level(arg_include_level), skipped(arg_skipped),
-	  prefixes_checked(arg_prefixes_checked), name(std::move(arg_name))
+	  prefixes_checked(arg_prefixes_checked), name(std::move(arg_name)), activated(arg_activated)
 	{
 	if ( name == canonical_stdin_path )
 		canonical_path = canonical_stdin_path;
@@ -36,11 +36,15 @@ bool ScannedFile::AlreadyScanned() const
 	auto rval = false;
 
 	for ( const auto& it : files_scanned )
-		if ( it.canonical_path == canonical_path )
+		{
+		// Matching canonical path and either the file has been loaded activated,
+		// or this file has the same activation state.
+		if ( it.canonical_path == canonical_path && (it.activated || activated == it.activated) )
 			{
 			rval = true;
 			break;
 			}
+		}
 
 	DBG_LOG(zeek::DBG_SCRIPTS, "AlreadyScanned result (%d) %s", rval, canonical_path.data());
 	return rval;

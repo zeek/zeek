@@ -448,14 +448,11 @@ when	return TOK_WHEN;
 	}
 
 @load{WS}{FILE}	{
-        if ( activation_mgr->IsActivated() )
-		{
-		const char* new_file = zeek::util::skip_whitespace(yytext + 5);	// Skip "@load".
-		std::string loader = ::filename;  // load_files may change ::filename, save copy
-		std::string loading = find_relative_script_file(new_file);
-		(void) load_files(new_file);
-		zeek::detail::zeekygen_mgr->ScriptDependency(loader, loading);
-		}
+	const char* new_file = zeek::util::skip_whitespace(yytext + 5);	// Skip "@load".
+	std::string loader = ::filename;  // load_files may change ::filename, save copy
+	std::string loading = find_relative_script_file(new_file);
+	(void) load_files(new_file);
+	zeek::detail::zeekygen_mgr->ScriptDependency(loader, loading);
 	}
 
 @load-sigs{WS}{FILE} {
@@ -767,7 +764,8 @@ static int load_files(const char* orig_file)
 				zeek::reporter->FatalError("can't open %s", file_path.c_str());
 			}
 
-		zeek::detail::ScannedFile sf(file_stack.length(), file_path);
+		zeek::detail::ScannedFile sf(file_stack.length(), file_path, false /* skipped */,
+		                             false /* prefixes_checked */, activation_mgr->IsActivated());
 		if ( sf.AlreadyScanned() )
 			{
 			if ( rc.first == -1 && f != stdin )

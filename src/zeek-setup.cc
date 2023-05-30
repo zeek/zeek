@@ -1124,6 +1124,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 				if ( file.skipped )
 					continue;
 
+				if ( ! file.activated )
+					continue;
+
 				event_mgr.Enqueue(zeek_script_loaded, make_intrusive<StringVal>(file.name.c_str()),
 				                  val_mgr->Count(file.include_level));
 				}

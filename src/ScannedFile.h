@@ -18,11 +18,12 @@ class ScannedFile
 
 public:
 	ScannedFile(int arg_include_level, std::string arg_name, bool arg_skipped = false,
-	            bool arg_prefixes_checked = false);
+	            bool arg_prefixes_checked = false, bool arg_activated = true);
 
 	/**
-	 * Compares the canonical path of this file against every canonical path
-	 * in files_scanned and returns whether there's any match.
+	 * Compares the canonical path of this file and its activation state
+	 * against every canonical path in files_scanned and returns whether
+	 * there's any match.
 	 */
 	bool AlreadyScanned() const;
 
@@ -31,6 +32,7 @@ public:
 	bool prefixes_checked; // If loading prefixes for this file has been tried.
 	std::string name;
 	std::string canonical_path; // normalized, absolute path via std::filesystem::canonical()
+	bool activated; // if @load for this scanned file happened when activated.
 
 	static auto constexpr canonical_stdin_path = "<stdin>";
 	};

@@ -770,7 +770,9 @@
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::UNIQUE, lambda_<11310474105220719698>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::VARIANCE, lambda_<5978956599776442208>{ if (1 < SumStats::rv$num) SumStats::rv$var_s = SumStats::rv$var_s + ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average})) -> <no result>
 0.000000   MetaHookPost  CallFunction(SumStats::register_observe_plugins, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Supervisor::__is_supervised, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Supervisor::__is_supervisor, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Supervisor::is_supervised, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Supervisor::is_supervisor, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_counter_family, <frame>, (zeek, telemetry_counter_usage_error, [], This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., 1, T)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_gauge_family, <frame>, (zeek, telemetry_gauge_usage_error, [], This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero., 1, F)) -> <no result>
@@ -957,8 +959,10 @@
 0.000000   MetaHookPost  LoadFile(0, ./average, <...>/average.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./broker, <...>/broker.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./broker-stores.zeek, <...>/broker-stores.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./cluster, <...>/cluster.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./const-dos-error, <...>/const-dos-error.zeek) -> -1
@@ -1015,6 +1019,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./ryu, <...>/ryu.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./sample, <...>/sample.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./scp, <...>/scp.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./setup-connections, <...>/setup-connections.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./sftp, <...>/sftp.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./shunt, <...>/shunt.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./site, <...>/site.zeek) -> -1
@@ -1048,11 +1053,15 @@
 0.000000   MetaHookPost  LoadFile(0, .<...>/binary, <...>/binary.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/config, <...>/config.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/email_admin, <...>/email_admin.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/logger, <...>/logger.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/manager, <...>/manager.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/none, <...>/none.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/page, <...>/page.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/pp-alarms, <...>/pp-alarms.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/proxy, <...>/proxy.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/raw, <...>/raw.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, .<...>/sqlite, <...>/sqlite.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, .<...>/worker, <...>/worker.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/__load__.zeek, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/__preload__.zeek, <...>/__preload__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, <...>/hooks.zeek, <...>/hooks.zeek) -> -1
@@ -1204,6 +1213,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, misc/trim-trace-file, <...>/trim-trace-file.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, s1.sig, ./s1.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./archive, <...>/archive.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./audio, <...>/audio.sig) -> -1
@@ -1347,8 +1357,10 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./average, <...>/average.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./broker, <...>/broker.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./broker-stores.zeek, <...>/broker-stores.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./cluster, <...>/cluster.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./const-dos-error, <...>/const-dos-error.zeek) -> (-1, <no content>)
@@ -1405,6 +1417,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./ryu, <...>/ryu.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./sample, <...>/sample.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./scp, <...>/scp.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./setup-connections, <...>/setup-connections.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./sftp, <...>/sftp.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./shunt, <...>/shunt.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./site, <...>/site.zeek) -> (-1, <no content>)
@@ -1438,11 +1451,15 @@
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/binary, <...>/binary.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/config, <...>/config.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/email_admin, <...>/email_admin.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/logger, <...>/logger.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/manager, <...>/manager.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/none, <...>/none.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/page, <...>/page.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/pp-alarms, <...>/pp-alarms.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/proxy, <...>/proxy.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/raw, <...>/raw.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, .<...>/sqlite, <...>/sqlite.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, .<...>/worker, <...>/worker.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, <...>/__load__.zeek, <...>/__load__.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, <...>/__preload__.zeek, <...>/__preload__.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, <...>/hooks.zeek, <...>/hooks.zeek) -> (-1, <no content>)
@@ -1594,6 +1611,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/zeek.bif, <...>/zeek.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, misc/trim-trace-file, <...>/trim-trace-file.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, s1.sig, ./s1.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, ./archive, <...>/archive.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, ./audio, <...>/audio.sig) -> (-1, <no content>)
@@ -2384,7 +2402,9 @@
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::UNIQUE, lambda_<11310474105220719698>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugin, <frame>, (SumStats::VARIANCE, lambda_<5978956599776442208>{ if (1 < SumStats::rv$num) SumStats::rv$var_s = SumStats::rv$var_s + ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average}))
 0.000000   MetaHookPre   CallFunction(SumStats::register_observe_plugins, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Supervisor::__is_supervised, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Supervisor::__is_supervisor, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Supervisor::is_supervised, <null>, ())
 0.000000   MetaHookPre   CallFunction(Supervisor::is_supervisor, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_counter_family, <frame>, (zeek, telemetry_counter_usage_error, [], This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., 1, T))
 0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_gauge_family, <frame>, (zeek, telemetry_gauge_usage_error, [], This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero., 1, F))
@@ -2571,8 +2591,10 @@
 0.000000   MetaHookPre   LoadFile(0, ./average, <...>/average.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./broker, <...>/broker.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./broker-stores.zeek, <...>/broker-stores.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./cluster, <...>/cluster.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./const-dos-error, <...>/const-dos-error.zeek)
@@ -2629,6 +2651,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./ryu, <...>/ryu.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./sample, <...>/sample.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./scp, <...>/scp.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./setup-connections, <...>/setup-connections.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./sftp, <...>/sftp.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./shunt, <...>/shunt.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./site, <...>/site.zeek)
@@ -2662,11 +2685,15 @@
 0.000000   MetaHookPre   LoadFile(0, .<...>/binary, <...>/binary.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/config, <...>/config.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/email_admin, <...>/email_admin.zeek)
+0.000000   MetaHookPre   LoadFile(0, .<...>/logger, <...>/logger.zeek)
+0.000000   MetaHookPre   LoadFile(0, .<...>/manager, <...>/manager.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/none, <...>/none.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/page, <...>/page.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/pp-alarms, <...>/pp-alarms.zeek)
+0.000000   MetaHookPre   LoadFile(0, .<...>/proxy, <...>/proxy.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/raw, <...>/raw.zeek)
 0.000000   MetaHookPre   LoadFile(0, .<...>/sqlite, <...>/sqlite.zeek)
+0.000000   MetaHookPre   LoadFile(0, .<...>/worker, <...>/worker.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/__preload__.zeek, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFile(0, <...>/hooks.zeek, <...>/hooks.zeek)
@@ -2818,6 +2845,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/zeek.bif, <...>/zeek.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFile(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek)
+0.000000   MetaHookPre   LoadFile(0, misc/trim-trace-file, <...>/trim-trace-file.zeek)
 0.000000   MetaHookPre   LoadFile(0, s1.sig, ./s1.sig)
 0.000000   MetaHookPre   LoadFile(1, ./archive, <...>/archive.sig)
 0.000000   MetaHookPre   LoadFile(1, ./audio, <...>/audio.sig)
@@ -2961,8 +2989,10 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./average, <...>/average.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./broker, <...>/broker.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./broker-stores.zeek, <...>/broker-stores.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./certificate-event-cache, <...>/certificate-event-cache.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./cluster, <...>/cluster.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./const-dos-error, <...>/const-dos-error.zeek)
@@ -3019,6 +3049,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./ryu, <...>/ryu.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./sample, <...>/sample.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./scp, <...>/scp.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./setup-connections, <...>/setup-connections.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./sftp, <...>/sftp.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./shunt, <...>/shunt.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./site, <...>/site.zeek)
@@ -3052,11 +3083,15 @@
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/binary, <...>/binary.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/config, <...>/config.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/email_admin, <...>/email_admin.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/logger, <...>/logger.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/manager, <...>/manager.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/none, <...>/none.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/page, <...>/page.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/pp-alarms, <...>/pp-alarms.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/proxy, <...>/proxy.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/raw, <...>/raw.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, .<...>/sqlite, <...>/sqlite.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, .<...>/worker, <...>/worker.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, <...>/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, <...>/__preload__.zeek, <...>/__preload__.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, <...>/hooks.zeek, <...>/hooks.zeek)
@@ -3208,6 +3243,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/zeek.bif, <...>/zeek.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, builtin-plugins/__load__.zeek, <...>/__load__.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, builtin-plugins/__preload__.zeek, <...>/__preload__.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, misc/trim-trace-file, <...>/trim-trace-file.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, s1.sig, ./s1.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, ./archive, <...>/archive.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, ./audio, <...>/audio.sig)
@@ -3997,7 +4033,9 @@
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::UNIQUE, lambda_<11310474105220719698>{ if (!SumStats::rv?$unique_vals) SumStats::rv$unique_vals = (coerce set() to set[SumStats::Observation])if (SumStats::r?$unique_max) SumStats::rv$unique_max = SumStats::r$unique_maxif (!SumStats::r?$unique_max || sizeofSumStats::rv$unique_vals <= SumStats::r$unique_max) add SumStats::rv$unique_vals[SumStats::obs]SumStats::rv$unique = sizeofSumStats::rv$unique_vals})
 0.000000 | HookCallFunction SumStats::register_observe_plugin(SumStats::VARIANCE, lambda_<5978956599776442208>{ if (1 < SumStats::rv$num) SumStats::rv$var_s = SumStats::rv$var_s + ((SumStats::val - SumStats::rv$prev_avg) * (SumStats::val - SumStats::rv$average))SumStats::calc_variance(SumStats::rv)SumStats::rv$prev_avg = SumStats::rv$average})
 0.000000 | HookCallFunction SumStats::register_observe_plugins()
+0.000000 | HookCallFunction Supervisor::__is_supervised()
 0.000000 | HookCallFunction Supervisor::__is_supervisor()
+0.000000 | HookCallFunction Supervisor::is_supervised()
 0.000000 | HookCallFunction Supervisor::is_supervisor()
 0.000000 | HookCallFunction Telemetry::__dbl_counter_family(zeek, telemetry_counter_usage_error, [], This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., 1, T)
 0.000000 | HookCallFunction Telemetry::__dbl_gauge_family(zeek, telemetry_gauge_usage_error, [], This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero., 1, F)
@@ -4186,8 +4224,10 @@
 0.000000 | HookLoadFile  ./average <...>/average.zeek
 0.000000 | HookLoadFile  ./bloom-filter.bif.zeek <...>/bloom-filter.bif.zeek
 0.000000 | HookLoadFile  ./broker <...>/broker.zeek
+0.000000 | HookLoadFile  ./broker-stores.zeek <...>/broker-stores.zeek
 0.000000 | HookLoadFile  ./cardinality-counter.bif.zeek <...>/cardinality-counter.bif.zeek
 0.000000 | HookLoadFile  ./certificate-event-cache <...>/certificate-event-cache.zeek
+0.000000 | HookLoadFile  ./cluster <...>/cluster.zeek
 0.000000 | HookLoadFile  ./comm.bif.zeek <...>/comm.bif.zeek
 0.000000 | HookLoadFile  ./communityid.bif.zeek <...>/communityid.bif.zeek
 0.000000 | HookLoadFile  ./const-dos-error <...>/const-dos-error.zeek
@@ -4253,6 +4293,7 @@
 0.000000 | HookLoadFile  ./ryu <...>/ryu.zeek
 0.000000 | HookLoadFile  ./sample <...>/sample.zeek
 0.000000 | HookLoadFile  ./scp <...>/scp.zeek
+0.000000 | HookLoadFile  ./setup-connections <...>/setup-connections.zeek
 0.000000 | HookLoadFile  ./sftp <...>/sftp.zeek
 0.000000 | HookLoadFile  ./shunt <...>/shunt.zeek
 0.000000 | HookLoadFile  ./site <...>/site.zeek
@@ -4287,11 +4328,15 @@
 0.000000 | HookLoadFile  .<...>/binary <...>/binary.zeek
 0.000000 | HookLoadFile  .<...>/config <...>/config.zeek
 0.000000 | HookLoadFile  .<...>/email_admin <...>/email_admin.zeek
+0.000000 | HookLoadFile  .<...>/logger <...>/logger.zeek
+0.000000 | HookLoadFile  .<...>/manager <...>/manager.zeek
 0.000000 | HookLoadFile  .<...>/none <...>/none.zeek
 0.000000 | HookLoadFile  .<...>/page <...>/page.zeek
 0.000000 | HookLoadFile  .<...>/pp-alarms <...>/pp-alarms.zeek
+0.000000 | HookLoadFile  .<...>/proxy <...>/proxy.zeek
 0.000000 | HookLoadFile  .<...>/raw <...>/raw.zeek
 0.000000 | HookLoadFile  .<...>/sqlite <...>/sqlite.zeek
+0.000000 | HookLoadFile  .<...>/worker <...>/worker.zeek
 0.000000 | HookLoadFile  <...>/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLoadFile  <...>/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFile  <...>/hooks.zeek <...>/hooks.zeek
@@ -4443,6 +4488,7 @@
 0.000000 | HookLoadFile  base<...>/zeek.bif <...>/zeek.bif.zeek
 0.000000 | HookLoadFile  builtin-plugins/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLoadFile  builtin-plugins/__preload__.zeek <...>/__preload__.zeek
+0.000000 | HookLoadFile  misc/trim-trace-file <...>/trim-trace-file.zeek
 0.000000 | HookLoadFile  s1.sig ./s1.sig
 0.000000 | HookLoadFile  s2 ./s2.sig
 0.000000 | HookLoadFileExtended ../main <...>/main.zeek
@@ -4576,8 +4622,10 @@
 0.000000 | HookLoadFileExtended ./average <...>/average.zeek
 0.000000 | HookLoadFileExtended ./bloom-filter.bif.zeek <...>/bloom-filter.bif.zeek
 0.000000 | HookLoadFileExtended ./broker <...>/broker.zeek
+0.000000 | HookLoadFileExtended ./broker-stores.zeek <...>/broker-stores.zeek
 0.000000 | HookLoadFileExtended ./cardinality-counter.bif.zeek <...>/cardinality-counter.bif.zeek
 0.000000 | HookLoadFileExtended ./certificate-event-cache <...>/certificate-event-cache.zeek
+0.000000 | HookLoadFileExtended ./cluster <...>/cluster.zeek
 0.000000 | HookLoadFileExtended ./comm.bif.zeek <...>/comm.bif.zeek
 0.000000 | HookLoadFileExtended ./communityid.bif.zeek <...>/communityid.bif.zeek
 0.000000 | HookLoadFileExtended ./const-dos-error <...>/const-dos-error.zeek
@@ -4643,6 +4691,7 @@
 0.000000 | HookLoadFileExtended ./ryu <...>/ryu.zeek
 0.000000 | HookLoadFileExtended ./sample <...>/sample.zeek
 0.000000 | HookLoadFileExtended ./scp <...>/scp.zeek
+0.000000 | HookLoadFileExtended ./setup-connections <...>/setup-connections.zeek
 0.000000 | HookLoadFileExtended ./sftp <...>/sftp.zeek
 0.000000 | HookLoadFileExtended ./shunt <...>/shunt.zeek
 0.000000 | HookLoadFileExtended ./site <...>/site.zeek
@@ -4677,11 +4726,15 @@
 0.000000 | HookLoadFileExtended .<...>/binary <...>/binary.zeek
 0.000000 | HookLoadFileExtended .<...>/config <...>/config.zeek
 0.000000 | HookLoadFileExtended .<...>/email_admin <...>/email_admin.zeek
+0.000000 | HookLoadFileExtended .<...>/logger <...>/logger.zeek
+0.000000 | HookLoadFileExtended .<...>/manager <...>/manager.zeek
 0.000000 | HookLoadFileExtended .<...>/none <...>/none.zeek
 0.000000 | HookLoadFileExtended .<...>/page <...>/page.zeek
 0.000000 | HookLoadFileExtended .<...>/pp-alarms <...>/pp-alarms.zeek
+0.000000 | HookLoadFileExtended .<...>/proxy <...>/proxy.zeek
 0.000000 | HookLoadFileExtended .<...>/raw <...>/raw.zeek
 0.000000 | HookLoadFileExtended .<...>/sqlite <...>/sqlite.zeek
+0.000000 | HookLoadFileExtended .<...>/worker <...>/worker.zeek
 0.000000 | HookLoadFileExtended <...>/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLoadFileExtended <...>/__preload__.zeek <...>/__preload__.zeek
 0.000000 | HookLoadFileExtended <...>/hooks.zeek <...>/hooks.zeek
@@ -4833,6 +4886,7 @@
 0.000000 | HookLoadFileExtended base<...>/zeek.bif <...>/zeek.bif.zeek
 0.000000 | HookLoadFileExtended builtin-plugins/__load__.zeek <...>/__load__.zeek
 0.000000 | HookLoadFileExtended builtin-plugins/__preload__.zeek <...>/__preload__.zeek
+0.000000 | HookLoadFileExtended misc/trim-trace-file <...>/trim-trace-file.zeek
 0.000000 | HookLoadFileExtended s1.sig ./s1.sig
 0.000000 | HookLoadFileExtended s2 ./s2.sig
 0.000000 | HookLogInit   packet_filter 1/1 {ts (time), node (string), filter (string), init (bool), success (bool), failure_reason (string)}

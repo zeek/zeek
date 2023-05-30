@@ -1579,20 +1579,22 @@ macro WhenCall(func)
 	auto trigger = f->GetTrigger();
 	Val* v = trigger ? trigger->Lookup(z.call_expr) : nullptr;
 	ValPtr vp;
-	if ( ! v )
+	if ( v )
+		vp = {NewRef{}, v};
+	else
 		{
 		auto aux = z.aux;
+		auto current_assoc = f->GetTriggerAssoc();
 		auto n = aux->n;
 		std::vector<ValPtr> args;
 		for ( auto i = 0; i < n; ++i )
 			args.push_back(aux->ToVal(frame, i));
 		f->SetCall(z.call_expr);
 		vp = func->Invoke(&args, f);
+		f->SetTriggerAssoc(current_assoc);
 		if ( ! vp )
 			throw ZAMDelayedCallException();
 		}
-	else
-		vp = {NewRef{}, v};
 	if ( z.is_managed )
 		ZVal::DeleteManagedType(lhs);
 	lhs = ZVal(vp, z.t);

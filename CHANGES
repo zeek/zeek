@@ -1,3 +1,13 @@
+6.1.0-dev.4 | 2023-05-31 13:48:49 -0700
+
+  * Update bifcl, binpac, and broker repos for cmake changes (Tim Wojtulewicz)
+
+  * bison_target argument changes from HEADER to DEFINES_FILE (Tim Wojtulewicz, Corelight)
+
+  * Update cmake submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Start of 6.1.0 development (Tim Wojtulewicz, Corelight)
+
 6.0.0-dev.683 | 2023-05-31 09:50:46 +0200
 
   * Simplify code generated for Spicy analyzer port ranges. (Benjamin Bannier, Corelight)

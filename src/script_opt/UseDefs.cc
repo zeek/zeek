@@ -601,6 +601,14 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			AddInExprUDs(uds, e->AsFieldExpr()->Op());
 			break;
 
+		case EXPR_LAMBDA:
+			{
+			auto outer_ids = e->AsLambdaExpr()->OuterIDs();
+			for ( auto& i : outer_ids )
+				AddID(uds, i);
+			break;
+			}
+
 		case EXPR_CONST:
 			// Nothing to do.
 			break;

@@ -139,7 +139,6 @@ void Inliner::Analyze()
 		if  ( f.Profile()->NumLambdas() > 0 || f.Profile()->NumWhenStmts() > 0 )
 			continue;
 
-		printf("inlining %s\n", func->Name());
 		inline_ables.insert(func);
 		}
 

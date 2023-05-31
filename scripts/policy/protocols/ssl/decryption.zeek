@@ -41,15 +41,16 @@ export {
 	global add_secret: event(client_random: string, secrets: string);
 }
 
+@if ( keylog_file == "" )
+# If a keylog file was given via an environment variable, let's disable secret expiration - that does not
+# make sense for pcaps.
 global secrets: table[string] of string = {} &redef;
 global keys: table[string] of string = {} &redef;
-
-@if ( keylog_file != "" ) &analyze
-# If a keylog file was given directly (not via an environment variable),
-# set up secret expiration (which doesn't make sense for PCAPs).
-redef secrets &read_expire=secret_expiration;
-redef keys &read_expire=secret_expiration;
+@else
+global secrets: table[string] of string = {} &read_expire=secret_expiration &redef;
+global keys: table[string] of string = {} &read_expire=secret_expiration &redef;
 @endif
+
 
 redef record SSL::Info += {
 	# Decryption uses client_random as identifier

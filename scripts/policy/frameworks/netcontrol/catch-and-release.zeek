@@ -198,25 +198,21 @@ function populate_log_record(ip: addr, bi: BlockInfo, action: CatchReleaseAction
 	return log;
 	}
 
-const cluster_is_enabled = Cluster::is_enabled();
-const is_mgr = cluster_is_enabled && Cluster::local_node_type() == Cluster::MANAGER;
-const is_not_mgr = cluster_is_enabled && Cluster::local_node_type() != Cluster::MANAGER;
-
-const single_enforcement_point = ! cluster_is_enabled || is_mgr;
-
 function per_block_interval(t: table[addr] of BlockInfo, idx: addr): interval
 	{
 	local remaining_time = t[idx]$watch_until - network_time();
 	if ( remaining_time < 0secs )
 		remaining_time = 0secs;
 
-	if ( single_enforcement_point && remaining_time == 0 secs )
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
+	if ( remaining_time == 0secs )
 		{
 		local log = populate_log_record(idx, t[idx], FORGOTTEN);
 		Log::write(CATCH_RELEASE, log);
 
 		event NetControl::catch_release_forgotten(idx, t[idx]);
 		}
+@endif
 
 	return remaining_time;
 	}
@@ -229,9 +225,9 @@ global blocks: table[addr] of BlockInfo = {}
 	&expire_func=per_block_interval;
 
 
-@if ( cluster_is_enabled ) &analyze
+@if ( Cluster::is_enabled() )
 
-@if ( is_mgr ) &analyze
+@if ( Cluster::local_node_type() == Cluster::MANAGER )
 event zeek_init()
 	{
 	Broker::auto_publish(Cluster::worker_topic, NetControl::catch_release_block_new);
@@ -263,7 +259,7 @@ function cr_check_rule(r: Rule): bool
 		return F;
 	}
 
-@if ( single_enforcement_point ) &analyze
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 
 event rule_added(r: Rule, p: PluginState, msg: string)
 	{
@@ -301,7 +297,7 @@ event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 
 @endif
 
-@if ( is_mgr ) &analyze
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 event catch_release_add(a: addr, location: string)
 	{
 	drop_address_catch_release(a, location);
@@ -318,7 +314,7 @@ event catch_release_encountered(a: addr)
 	}
 @endif
 
-@if ( is_not_mgr ) &analyze
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 event catch_release_block_new(a: addr, b: BlockInfo)
 	{
 	blocks[a] = b;
@@ -331,7 +327,7 @@ event catch_release_block_delete(a: addr)
 	}
 @endif
 
-@if ( is_mgr ) &analyze
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 @endif
 
 function get_catch_release_info(a: addr): BlockInfo
@@ -364,50 +360,46 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 		bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $current_interval=0, $current_block_id=r$id);
 		if ( location != "" )
 			bi$location = location;
-
-		if ( single_enforcement_point )
-			{
-			log = populate_log_record(a, bi, ADDED);
-			log$message = "Address already blocked outside of catch-and-release. Catch and release will monitor and only actively block if it appears in network traffic.";
-			Log::write(CATCH_RELEASE, log);
-			blocks[a] = bi;
-			event NetControl::catch_release_block_new(a, bi);
-			}
-
-		if ( is_not_mgr )
-			event NetControl::catch_release_add(a, location);
-
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
+		log = populate_log_record(a, bi, ADDED);
+		log$message = "Address already blocked outside of catch-and-release. Catch and release will monitor and only actively block if it appears in network traffic.";
+		Log::write(CATCH_RELEASE, log);
+		blocks[a] = bi;
+		event NetControl::catch_release_block_new(a, bi);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+		event NetControl::catch_release_add(a, location);
+@endif
 		return bi;
 		}
 
 	local block_interval = catch_release_intervals[0];
 
-	if ( single_enforcement_point )
-		{
-		local ret = drop_address(a, block_interval, location);
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled()  && Cluster::local_node_type() == Cluster::MANAGER ) )
+	local ret = drop_address(a, block_interval, location);
 
-		if ( ret != "" )
-			{
-			bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id=ret);
-			if ( location != "" )
-				bi$location = location;
-			blocks[a] = bi;
-			event NetControl::catch_release_block_new(a, bi);
-			blocks[a] = bi;
-			log = populate_log_record(a, bi, DROP_REQUESTED);
-			Log::write(CATCH_RELEASE, log);
-			return bi;
-			}
-		Reporter::error(fmt("Catch and release could not add block for %s; failing.", a));
-		return BlockInfo($watch_until=double_to_time(0), $current_interval=0, $current_block_id="");
-		}
-
-	if ( is_not_mgr )
+	if ( ret != "" )
 		{
-		bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id="");
-		event NetControl::catch_release_add(a, location);
+		bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id=ret);
+		if ( location != "" )
+			bi$location = location;
+		blocks[a] = bi;
+		event NetControl::catch_release_block_new(a, bi);
+		blocks[a] = bi;
+		log = populate_log_record(a, bi, DROP_REQUESTED);
+		Log::write(CATCH_RELEASE, log);
 		return bi;
 		}
+	Reporter::error(fmt("Catch and release could not add block for %s; failing.", a));
+	return BlockInfo($watch_until=double_to_time(0), $current_interval=0, $current_block_id="");
+@endif
+
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+	bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id="");
+	event NetControl::catch_release_add(a, location);
+	return bi;
+@endif
+
 	}
 
 function unblock_address_catch_release(a: addr, reason: string &default=""): bool
@@ -415,22 +407,22 @@ function unblock_address_catch_release(a: addr, reason: string &default=""): boo
 	if ( a !in blocks )
 		return F;
 
-	if ( single_enforcement_point )
-		{
-		local bi = blocks[a];
-		local log = populate_log_record(a, bi, UNBLOCK);
-		if ( reason != "" )
-			log$message = reason;
-		Log::write(CATCH_RELEASE, log);
-		delete blocks[a];
-		if ( bi?$block_until && bi$block_until > network_time() && bi$current_block_id != "" )
-			remove_rule(bi$current_block_id, reason);
-		}
-
-	if ( is_mgr )
-		event NetControl::catch_release_block_delete(a);
-	else if ( is_not_mgr )
-		event NetControl::catch_release_delete(a, reason);
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
+	local bi = blocks[a];
+	local log = populate_log_record(a, bi, UNBLOCK);
+	if ( reason != "" )
+		log$message = reason;
+	Log::write(CATCH_RELEASE, log);
+	delete blocks[a];
+	if ( bi?$block_until && bi$block_until > network_time() && bi$current_block_id != "" )
+		remove_rule(bi$current_block_id, reason);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+	event NetControl::catch_release_block_delete(a);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+	event NetControl::catch_release_delete(a, reason);
+@endif
 
 	return T;
 	}
@@ -439,66 +431,66 @@ function catch_release_seen(a: addr)
 	{
 	if ( a in blocks )
 		{
+@if ( ! Cluster::is_enabled() || ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER ) )
 		local bi = blocks[a];
+		local log: CatchReleaseInfo;
+		local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
 
-		if ( single_enforcement_point )
+		if ( [e,DROP] in rule_entities )
 			{
-			local log: CatchReleaseInfo;
-			local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
-
-			if ( [e,DROP] in rule_entities )
-				{
-				if ( catch_release_warn_blocked_ip_encountered == F )
-					return;
-
-				# This should be blocked - block has not been applied yet by hardware? Ignore for the moment...
-				log = populate_log_record(a, bi, INFO);
-				log$action = INFO;
-				log$message = "Block seen while in rule_entities. No action taken.";
-				Log::write(CATCH_RELEASE, log);
+			if ( catch_release_warn_blocked_ip_encountered == F )
 				return;
-				}
 
-			# ok, this one returned again while still in the backoff period.
-
-			local try = bi$current_interval;
-			if ( (try+1) in catch_release_intervals )
-				++try;
-
-			bi$current_interval = try;
-			if ( (try+1) in catch_release_intervals )
-				bi$watch_until = network_time() + catch_release_intervals[try+1];
-			else
-				bi$watch_until = network_time() + catch_release_intervals[try];
-
-			bi$block_until = network_time() + catch_release_intervals[try];
-			++bi$num_reblocked;
-
-			local block_interval = catch_release_intervals[try];
-			local location = "";
-			if ( bi?$location )
-				location = bi$location;
-			local drop = drop_address(a, block_interval, fmt("Re-drop by catch-and-release: %s", location));
-			bi$current_block_id = drop;
-
-			blocks[a] = bi;
-
-			log = populate_log_record(a, bi, SEEN_AGAIN);
+			# This should be blocked - block has not been applied yet by hardware? Ignore for the moment...
+			log = populate_log_record(a, bi, INFO);
+			log$action = INFO;
+			log$message = "Block seen while in rule_entities. No action taken.";
 			Log::write(CATCH_RELEASE, log);
+			return;
 			}
 
-		if ( is_mgr )
-			event NetControl::catch_release_block_new(a, bi);
+		# ok, this one returned again while still in the backoff period.
 
-		else if ( is_not_mgr )
-			{
-			if ( a in catch_release_recently_notified )
-				return;
+		local try = bi$current_interval;
+		if ( (try+1) in catch_release_intervals )
+			++try;
 
-			event NetControl::catch_release_encountered(a);
-			add catch_release_recently_notified[a];
-			}
+		bi$current_interval = try;
+		if ( (try+1) in catch_release_intervals )
+			bi$watch_until = network_time() + catch_release_intervals[try+1];
+		else
+			bi$watch_until = network_time() + catch_release_intervals[try];
+
+		bi$block_until = network_time() + catch_release_intervals[try];
+		++bi$num_reblocked;
+
+		local block_interval = catch_release_intervals[try];
+		local location = "";
+		if ( bi?$location )
+			location = bi$location;
+		local drop = drop_address(a, block_interval, fmt("Re-drop by catch-and-release: %s", location));
+		bi$current_block_id = drop;
+
+		blocks[a] = bi;
+
+		log = populate_log_record(a, bi, SEEN_AGAIN);
+		Log::write(CATCH_RELEASE, log);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+	event NetControl::catch_release_block_new(a, bi);
+@endif
+@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+	if ( a in catch_release_recently_notified )
+		return;
+
+	event NetControl::catch_release_encountered(a);
+	add catch_release_recently_notified[a];
+@endif
+
+		return;
 		}
+
+	return;
 	}
 
 event new_connection(c: connection)

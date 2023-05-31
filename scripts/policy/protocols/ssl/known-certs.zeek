@@ -108,10 +108,6 @@ event Known::cert_found(info: CertsInfo, hash: string)
 		}
     }
 
-const should_log_cert =
-	! Cluster::is_enabled() ||
-	Cluster::local_node_type() == Cluster::PROXY;
-
 event known_cert_add(info: CertsInfo, hash: string)
 	{
 	if ( Known::use_cert_store )
@@ -122,8 +118,10 @@ event known_cert_add(info: CertsInfo, hash: string)
 
 	add Known::certs[info$host, hash];
 
-	if ( should_log_cert )
+	@if ( ! Cluster::is_enabled() ||
+	      Cluster::local_node_type() == Cluster::PROXY )
 		Log::write(Known::CERTS_LOG, info);
+	@endif
 	}
 
 event Known::cert_found(info: CertsInfo, hash: string)

@@ -64,7 +64,7 @@ function archiver_rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationP
 	return rval;
 	}
 
-@if ( Supervisor::is_supervised() ) &analyze
+@if ( Supervisor::is_supervised() )
 
 redef Log::default_rotation_dir = "log-queue";
 

@@ -66,7 +66,7 @@ event run_test()
 		}
 	}
 
-@if ( Cluster::node == "manager-1" ) &analyze
+@if ( Cluster::node == "manager-1" )
 # Use a dynamic metrics port for testing to avoid colliding on 9911/tcp
 # when running tests in parallel.
 global orig_metrics_port = Broker::metrics_port;

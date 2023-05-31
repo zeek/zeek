@@ -37,14 +37,11 @@ public:
 
 	const IDPtr& Find(std::string_view name) const;
 
-	void Insert(std::string name, IDPtr id)
+	template <typename N, typename I> void Insert(N&& name, I&& id)
 		{
-		local[name] = id;
-		ordered_vars.push_back(id);
+		local[std::forward<N>(name)] = std::forward<I>(id);
+		ordered_vars.push_back(std::forward<I>(id));
 		}
-
-	// Must only be called for the global scope.
-	void RemoveGlobal(std::string name, IDPtr gid);
 
 	const IDPtr& GetID() const { return scope_id; }
 

@@ -6,7 +6,6 @@
 
 #include <memory>
 
-#include "zeek/ActivationManager.h"
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Expr.h"
@@ -235,7 +234,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 			{
 			if ( IsFunc(id->GetType()->Tag()) )
 				add_prototype(id, t.get(), attr.get(), init);
-			else if ( activation_mgr->IsActivated() )
+			else
 				id->Error("already defined", init.get());
 
 			return;
@@ -406,18 +405,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 void add_global(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
                 std::unique_ptr<std::vector<AttrPtr>> attr, DeclType dt)
 	{
-	bool do_init = activation_mgr->IsActivated();
-
-	if ( dt == VAR_REDEF )
-		{
-		activation_mgr->AddingRedef(id, c, init, attr);
-
-		if ( ! do_init )
-			// Don't actually change the attributes.
-			attr = nullptr;
-		}
-
-	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, do_init);
+	make_var(id, std::move(t), c, std::move(init), std::move(attr), dt, true);
 	}
 
 StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init,
@@ -723,8 +711,6 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 	else if ( is_redef )
 		id->Error("redef of not-previously-declared value");
 
-	bool is_activated = activation_mgr->IsActivated();
-
 	if ( id->HasVal() )
 		{
 		FunctionFlavor id_flavor = id->GetVal()->AsFunc()->Flavor();
@@ -738,17 +724,12 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 			case FUNC_FLAVOR_EVENT:
 			case FUNC_FLAVOR_HOOK:
 				if ( is_redef )
-					{
-					activation_mgr->RedefingHandler(id);
-
-					if ( ! is_activated )
-						// Clear out value so it will be replaced.
-						id->SetVal(nullptr);
-					}
+					// Clear out value so it will be replaced.
+					id->SetVal(nullptr);
 				break;
 
 			case FUNC_FLAVOR_FUNCTION:
-				if ( ! id->IsRedefinable() && is_activated )
+				if ( ! id->IsRedefinable() )
 					id->Error("already defined", t.get());
 				break;
 
@@ -772,15 +753,12 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
 		if ( ! check_params(i, prototype, args, canon_args, module_name) )
 			break;
 
-	if ( is_activated )
-		{
-		if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(), ATTR_DEPRECATED) )
-			current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
+	if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(), ATTR_DEPRECATED) )
+		current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
 
-		// Reset the AST node statistics to track afresh for this function.
-		Stmt::ResetNumStmts();
-		Expr::ResetNumExprs();
-		}
+	// Reset the AST node statistics to track afresh for this function.
+	Stmt::ResetNumStmts();
+	Expr::ResetNumExprs();
 	}
 
 class OuterIDBindingFinder : public TraversalCallback
@@ -868,7 +846,7 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 	oi->num_stmts = Stmt::GetNumStmts();
 	oi->num_exprs = Expr::GetNumExprs();
 
-	auto ingredients = std::make_shared<FunctionIngredients>(pop_scope(), std::move(body),
+	auto ingredients = std::make_unique<FunctionIngredients>(pop_scope(), std::move(body),
 	                                                         module_name);
 	auto id = ingredients->GetID();
 	if ( ! id->HasVal() )
@@ -876,8 +854,11 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 		auto f = make_intrusive<ScriptFunc>(id);
 		id->SetVal(make_intrusive<FuncVal>(std::move(f)));
 		id->SetConst();
-		activation_mgr->AddingGlobalVal(id);
 		}
+
+	id->GetVal()->AsFunc()->AddBody(ingredients->Body(), ingredients->Inits(),
+	                                ingredients->FrameSize(), ingredients->Priority(),
+	                                ingredients->Groups());
 
 	script_coverage_mgr.AddFunction(id, ingredients->Body());
 
@@ -885,18 +866,15 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);
 	func->SetScope(ingredients->Scope());
 
-	activation_mgr->AddingBody(id, ingredients);
+	for ( const auto& group : ingredients->Groups() )
+		group->AddFunc(func);
 
-	if ( activation_mgr->IsActivated() )
-		{
-		func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-		              ingredients->Priority(), ingredients->Groups());
+	analyze_func(std::move(func));
 
-		for ( const auto& group : ingredients->Groups() )
-			group->AddFunc(func);
-
-		analyze_func(std::move(func));
-		}
+	// Note: ideally, something would take ownership of this memory until the
+	// end of script execution, but that's essentially the same as the
+	// lifetime of the process at the moment, so ok to "leak" it.
+	ingredients.release();
 	}
 
 IDPList gather_outer_ids(ScopePtr scope, StmtPtr body)

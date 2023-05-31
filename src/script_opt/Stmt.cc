@@ -941,12 +941,6 @@ StmtPtr WhenStmt::Duplicate()
 	return SetSucc(new WhenStmt(wi));
 	}
 
-void WhenStmt::Inline(Inliner* inl)
-	{
-	// Don't inline, since we currently don't correctly capture
-	// the frames of closures.
-	}
-
 bool WhenStmt::IsReduced(Reducer* c) const
 	{
 	if ( ! wi->TimeoutExpr() )

@@ -675,7 +675,6 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
-	void Inline(Inliner* inl) override;
 
 	bool IsReduced(Reducer* c) const override;
 	StmtPtr DoReduce(Reducer* c) override;

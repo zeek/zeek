@@ -700,7 +700,7 @@ TypePtr SetType::ShallowClone()
 SetType::~SetType() = default;
 
 FuncType::Capture::Capture(detail::IDPtr _id, bool _deep_copy)
-: id(std::move(_id)), deep_copy(_deep_copy)
+	: id(std::move(_id)), deep_copy(_deep_copy)
 	{
 	is_managed = id ? ZVal::IsManagedType(id->GetType()) : false;
 	}

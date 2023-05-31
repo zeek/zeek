@@ -625,12 +625,14 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, 
 	return AddInst(z);
 	}
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l, bool in_when)
+const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l,
+                                        bool in_when)
 	{
 	return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l, in_when);
 	}
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l, bool in_when)
+const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l,
+                                        bool in_when)
 	{
 	auto tmp = TempForConst(c);
 	return CompileIndex(n, tmp, c->GetType(), l, in_when);

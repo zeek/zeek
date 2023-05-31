@@ -283,8 +283,7 @@ bool ZAMCompiler::PruneUnused()
 				if ( ! i1->IsNonLocalLoad() )
 					continue;
 
-				if ( i1->v2 == inst->v2 &&
-				     i1->IsGlobalLoad() == inst->IsGlobalLoad() )
+				if ( i1->v2 == inst->v2 && i1->IsGlobalLoad() == inst->IsGlobalLoad() )
 					{ // Same global/capture
 					did_prune = true;
 					KillInst(i1);

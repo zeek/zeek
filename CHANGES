@@ -1,3 +1,27 @@
+6.0.0-dev.683 | 2023-05-31 09:50:46 +0200
+
+  * Simplify code generated for Spicy analyzer port ranges. (Benjamin Bannier, Corelight)
+
+    We previously would reprent port ranges from EVT files element-wise.
+    This can potentially generate a lot of code (all on a single line
+    though) which some versions of GCC seem to have trouble with, and which
+    also causes JIT overhead.
+
+    With this patch we switch to directly representing ranges. Single ports
+    are represented as ranges `[start, start]`.
+
+    Closes #3094.
+
+  * catch-and-release: Mark cr_check_rule as is_used (Arne Welzel, Corelight)
+
+  * Add test-all-policy-cluster (Arne Welzel, Corelight)
+
+    After the introduction of @if ... analyze, a lot of warnings were
+    triggered due to nested @if and @if .. analyze usage.
+
+    Add a test for coverage of all policy scripts in cluster mode
+    for the usual node types so this does not happen again.
+
 6.0.0-dev.662 | 2023-05-26 20:51:43 +0200
 
   * Update ZeekJS submodule to 0.9.1 (Arne Welzel, Corelight)

@@ -245,7 +245,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 	double t = analysis_options.profile_ZAM ? util::curr_CPU_time() : 0.0;
 #endif
 
-	auto val = DoExec(f, 0, flow);
+	auto val = DoExec(f, flow);
 
 #ifdef DEBUG
 	if ( analysis_options.profile_ZAM )
@@ -255,10 +255,10 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 	return val;
 	}
 
-ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
+ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow)
 	{
-	int pc = start_pc;
-	const int end_pc = ninst;
+	int pc = 0;
+	static const int end_pc = ninst;
 
 	// Return value, or nil if none.
 	const ZVal* ret_u = nullptr;
@@ -464,25 +464,6 @@ void ZBody::StmtDescribe(ODesc* d) const
 	}
 
 TraversalCode ZBody::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
-ValPtr ZAMResumption::Exec(Frame* f, StmtFlowType& flow)
-	{
-	return am->DoExec(f, xfer_pc, flow);
-	}
-
-void ZAMResumption::StmtDescribe(ODesc* d) const
-	{
-	d->Add("<resumption of compiled code>");
-	}
-
-TraversalCode ZAMResumption::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);

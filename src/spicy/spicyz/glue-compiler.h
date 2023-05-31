@@ -27,6 +27,7 @@
 #include <spicy/ast/types/unit.h>
 
 #include "driver.h"
+#include "zeek/spicy/port-range.h"
 
 namespace spicy::rt {
 struct Parser;
@@ -42,7 +43,7 @@ struct ProtocolAnalyzer {
     hilti::Location location;                                  /**< Location where the analyzer was defined. */
     hilti::ID name;                                            /**< Name of the analyzer. */
     hilti::rt::Protocol protocol = hilti::rt::Protocol::Undef; /**< The transport layer the analyzer uses. */
-    std::vector<hilti::rt::Port> ports;                        /**< The ports associated with the analyzer. */
+    std::vector<::zeek::spicy::rt::PortRange> ports;           /**< The ports associated with the analyzer. */
     hilti::ID unit_name_orig; /**< The fully-qualified name of the unit type to parse the originator
                                  side. */
     hilti::ID unit_name_resp; /**< The fully-qualified name of the unit type to parse the originator

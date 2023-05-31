@@ -17,6 +17,7 @@
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/Plugin.h"
+#include "zeek/spicy/port-range.h"
 #include "zeek/spicy/spicyz/config.h" // include for Spicy version
 
 // Macro helper to report Spicy debug messages. This forwards to
@@ -81,9 +82,9 @@ public:
      * registration
      */
     void registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
-                                  const hilti::rt::Vector<hilti::rt::Port>& ports, const std::string& parser_orig,
-                                  const std::string& parser_resp, const std::string& replaces,
-                                  const std::string& linker_scope);
+                                  const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
+                                  const std::string& parser_orig, const std::string& parser_resp,
+                                  const std::string& replaces, const std::string& linker_scope);
 
     /**
      * Runtime method to register a file analyzer with its Zeek-side
@@ -325,7 +326,7 @@ private:
         std::string name_parser_resp;
         std::string name_replaces;
         hilti::rt::Protocol protocol = hilti::rt::Protocol::Undef;
-        hilti::rt::Vector<hilti::rt::Port> ports;
+        hilti::rt::Vector<::zeek::spicy::rt::PortRange> ports;
         std::string linker_scope;
 
         // Computed and available once the analyzer has been registered.

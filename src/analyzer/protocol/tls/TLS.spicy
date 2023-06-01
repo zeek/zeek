@@ -566,6 +566,8 @@ type Share = unit {
   var ccs_seen: uint8;
   var invalid_dtls_version_count: uint32;
 #  var skipping: bool;
+  var client_encrypted: bool;
+  var server_encrypted: bool;
 
   on %init {
     self.ccs_seen = 0;
@@ -574,8 +576,38 @@ type Share = unit {
     self.parsed_version = UNKNOWN_VERSION;
     self.flipped = False;
     self.flip_already_alerted = False;
+    self.server_encrypted = False;
+    self.client_encrypted = False;
   }
 };
+
+function get_encrypted(sh: Share) : bool {
+  if ( get_direction(sh) )
+    return sh.client_encrypted;
+  else
+    return sh.server_encrypted;
+}
+
+function startEncryption(handshakesink: sink, alertsink: sink, inout sh: Share) {
+  local old_state: bool;
+
+  if ( get_direction(sh) ) {
+    old_state = sh.client_encrypted;
+    sh.client_encrypted = True;
+  } else {
+    old_state = sh.server_encrypted;
+    sh.server_encrypted = True;
+  }
+
+  # let's see if it was not encrypted in the past....
+  if ( old_state == False ) {
+    # disconnect the sinks here? probably yes...
+    print "Closing sink";
+    handshakesink.close();
+    alertsink.close();
+    sh.ccs_seen++; # do we need this?
+  }
+}
 
 # This function is called several times in certain circumstances.
 # If it is called twice, it is first called due to the supported_versions
@@ -595,13 +627,13 @@ function set_version(version: uint16, inout sh: Share) : bool {
 
 # public type TLSMessage = unit {
 #  %context = Share;
-# 
+#
 #  m: Message(False);
 # };
-# 
+#
 # public type DTLSMessage = unit {
 #  %context = Share;
-# 
+#
 #  m: Message(True);
 # };
 
@@ -611,7 +643,6 @@ public type Message = unit {
   sink handshakesink;
   sink alertsink;
   var record_version: uint16;
-  var encrypted : bool = False;
   var dtls: bool = False;
 
   on %init {
@@ -651,6 +682,8 @@ type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg
   }
 };
 
+
+
 type TLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
   record: PlaintextRecord(content_type, handshakesink, alertsink, msg, sh);
 };
@@ -665,9 +698,15 @@ type DTLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsi
 
 type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
   length: uint16;
+  var encrypted: bool = determine_encryption_on(self, handshakesink, alertsink, msg, sh);
   switch ( ContentType(content_type) ) {
     ContentType::handshake -> : bytes &size=self.length -> handshakesink;
-    ContentType::application_data -> appdata : bytes &size=self.length;
+    ContentType::application_data -> {
+      switch ( self.encrypted ) {
+        False -> appdata: bytes &size=self.length;
+        True -> cryptdata: bytes &size=self.length;
+      };
+    }
     ContentType::change_cipher_spec -> ccs : bytes &size=self.length;
     ContentType::heartbeat -> hn: Heartbeat(sh, self.length);
     ContentType::alert -> : bytes &size=self.length -> alertsink;
@@ -677,19 +716,58 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink:
   on unhandled {
     print "Unhandled content type", content_type;
   }
+
   on ccs {
-    # ignore duplicate ccs
-    if ( ! msg.encrypted ) {
-      # everything in this connection will be encrypted from now on.
-      # close all sinks
-      print "Closing sink";
-      handshakesink.close();
-      alertsink.close();
-      msg.encrypted = True;
-      sh.ccs_seen++;
-    }
+    # I know this looks a bit weird. Basically - in TLS 1.3, CCS is meaningless
+    # fluff that just is used to pretend to TLS 1.2 devices listening in that
+    # yes, this is TLS. Since we want to know which packets come after this,
+    # and since we do have special handling for TLS 1.3 - let's ignore it in
+    # that case.
+    if ( sh.tls_13 )
+      return;
+
+    startEncryption(handshakesink, alertsink, sh);
   }
 };
+
+## So - this falls a bit under the envelope of dirty hack - but I don't
+## really have a better idea. This function determines if a packet should
+## be handled as an encrypted or as a plaintext packet.
+##
+## For TLS 1.2 and below - this is relatively straightforward. Everything
+## that arrives before CCS (Change Cipher Spec) is a plaintext record. And
+## everything that arrives after CCS will be encrypted.
+##
+## TLS 1.3, however, messes this up a bunch. Some clients still choose to
+## send a CCS message. The message, however, is pretty much meaningless
+## from a protocol perspective - and just ignored by the other side. Also -
+## it is not necessary to send it and some implementations just don't.
+##
+## So - what we do here is that we enable the encrypted flag when we get
+## the first application data in a connection that negotiated TLS 1.3.
+##
+## This is correct insofar as the packet will be encrypted. We sadly loose
+## a bit of context here - we can't really say when we get the first packet
+## that uses the final cryptographic key material - and will contain content
+## data. We just don't have that information available in TLS 1.3 anymore.
+function determine_encryption_on(pr: PlaintextRecord, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) : bool {
+    if ( get_encrypted(sh) )
+      return True;
+
+    ## let's ignore 0-length packets
+    if ( pr.length == 0 )
+      return False;
+
+    ## in theory, we should check for TLS13 or draft-TLS13 instead of doing the reverse.
+    ## But - people use weird version numbers. And all of those weird version numbers are
+    ## some sort of TLS1.3. So - let's do it this way round instead.
+    if ( sh.tls_13 ) {
+      startEncryption(handshakesink, alertsink, sh);
+      return True;
+    }
+
+  return False;
+}
 
 type Heartbeat = unit(sh: Share, length: uint16) {
   tpe : uint8;
@@ -930,7 +1008,7 @@ type PSKIdentity = unit {
 
 type PSKIdentitiesList = unit {
   length: uint16;
-  identities: PSKIdentity[self.length/2];
+  identities: PSKIdentity[] &size=self.length;
 };
 
 type PSKBinder = unit {
@@ -1693,8 +1771,12 @@ public function convert_certificate_authorities(c: TLS::CertificateRequest) : ve
   return out;
 }
 
+# returns true for the "client"
 public function get_direction(sh: Share) : bool {
-  return zeek::is_orig();
+  if ( sh.flipped )
+    return !zeek::is_orig();
+  else
+    return zeek::is_orig();
 }
 
 # If this function returns True, you have to send the ssl_connection_flipped event!
@@ -1708,7 +1790,7 @@ public function check_direction(inout sh: Share, desired: bool) : bool {
         zeek::weird("SSL_unclear_connection_direction");
       }
       return True;
-    } 
+    }
   } else {
     if ( desired != zeek::is_orig() ) {
       sh.flipped = True;

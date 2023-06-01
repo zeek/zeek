@@ -1462,6 +1462,11 @@ public:
 
 	const IDPList& OuterIDs() const { return outer_ids; }
 
+	// Lambda's potentially have their own private copy of captures,
+	// to enable updates to the set during script optimization.
+	using CaptureList = std::vector<FuncType::Capture>;
+	const std::optional<CaptureList>& GetCaptures() const { return captures; }
+
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -1474,19 +1479,28 @@ public:
 
 	const std::shared_ptr<FunctionIngredients>& Ingredients() const { return ingredients; }
 
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
+	// Constructor used for script optimization.
+	LambdaExpr(LambdaExpr* orig);
+
 	void ExprDescribe(ODesc* d) const override;
 
 private:
 	bool CheckCaptures(StmtPtr when_parent);
 	void BuildName();
 
+	void UpdateCaptures(Reducer* c);
+
 	std::shared_ptr<FunctionIngredients> ingredients;
 	ScriptFuncPtr master_func;
 	IDPtr lambda_id;
 	IDPList outer_ids;
+	std::optional<CaptureList> captures;
 
 	std::string my_name;
 	};

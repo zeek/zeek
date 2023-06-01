@@ -460,6 +460,7 @@ UDs UseDefs::ExprUDs(const Expr* e)
 	switch ( e->Tag() )
 		{
 		case EXPR_NAME:
+		case EXPR_LAMBDA:
 			AddInExprUDs(uds, e);
 			break;
 
@@ -508,16 +509,6 @@ UDs UseDefs::ExprUDs(const Expr* e)
 
 		case EXPR_CONST:
 			break;
-
-		case EXPR_LAMBDA:
-			{
-			auto l = static_cast<const LambdaExpr*>(e);
-			auto ids = l->OuterIDs();
-
-			for ( const auto& id : ids )
-				AddID(uds, id);
-			break;
-			}
 
 		case EXPR_CALL:
 			{

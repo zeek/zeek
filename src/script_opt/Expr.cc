@@ -2425,27 +2425,51 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c)
 
 ExprPtr LambdaExpr::Duplicate()
 	{
-	auto ingr = std::make_shared<FunctionIngredients>(*ingredients);
+	return SetSucc(new LambdaExpr(this));
+	}
 
-	// Note, we don't duplicate the body.  This is because (1) script
-	// optimization does not recursively compile lambda bodies, but
-	// rather tracks them separately, and (2) if we duplicate it, then
-	// we have to somehow ensure we still track the duplicated version
-	// so we can compile it, which gets complicated because we need
-	// to identify lambdas up front, while duplication for inlining
-	// only happens after that point.
+bool LambdaExpr::IsReduced(Reducer* c) const
+	{
+	if ( ! captures )
+		return true;
 
-	auto l = new LambdaExpr(std::move(ingr), outer_ids, my_name);
+	for ( auto& cp : *captures )
+		if ( ! c->ID_IsReduced(cp.Id()) )
+			return false;
 
-	return SetSucc(l);
+	return true;
+	}
+
+bool LambdaExpr::HasReducedOps(Reducer* c) const
+	{
+	return IsReduced(c);
 	}
 
 ExprPtr LambdaExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
 	if ( c->Optimizing() )
 		return ThisPtr();
-	else
-		return AssignToTemporary(c, red_stmt);
+
+	UpdateCaptures(c);
+
+	return AssignToTemporary(c, red_stmt);
+	}
+
+StmtPtr LambdaExpr::ReduceToSingletons(Reducer* c)
+	{
+	UpdateCaptures(c);
+	return nullptr;
+	}
+
+void LambdaExpr::UpdateCaptures(Reducer* c)
+	{
+	if ( captures )
+		{
+		for ( auto& cp : *captures )
+			cp.SetID(c->UpdateID(cp.Id()));
+
+		c->UpdateIDs(&outer_ids);
+		}
 	}
 
 ExprPtr EventExpr::Duplicate()

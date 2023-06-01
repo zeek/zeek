@@ -781,8 +781,7 @@ const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le)
 
 const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
 	{
-	auto lt = le->GetType()->AsFuncType();
-	auto& captures = lt->GetCaptures();
+	auto& captures = le->GetCaptures();
 	int ncaptures = captures ? captures->size() : 0;
 
 	auto aux = new ZInstAux(ncaptures);

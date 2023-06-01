@@ -4646,7 +4646,7 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
 
-	auto& ingr_t = ingredients->GetID()->GetType();
+	auto ingr_t = ingredients->GetID()->GetType<FuncType>();
 	SetType(ingr_t);
 
 	if ( ! CheckCaptures(when_parent) )
@@ -4681,10 +4681,34 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 
 	auto v = make_intrusive<FuncVal>(master_func);
 	lambda_id->SetVal(std::move(v));
-	lambda_id->SetType(std::move(ingr_t));
+	lambda_id->SetType(ingr_t);
 	lambda_id->SetConst();
 
+	captures = ingr_t->GetCaptures();
+
 	analyze_lambda(this);
+	}
+
+LambdaExpr::LambdaExpr(LambdaExpr* orig)
+	: Expr(EXPR_LAMBDA)
+	{
+	master_func = orig->master_func;
+	ingredients = orig->ingredients;
+	lambda_id = orig->lambda_id;
+
+	// We need to have our own copies of the outer IDs and captures so
+	// we can rename them when inlined.
+	for ( auto i : orig->outer_ids )
+		outer_ids.append(i);
+
+	if ( orig->captures )
+		{
+		captures = std::vector<FuncType::Capture>{};
+		for ( auto& c : *orig->captures )
+			captures->push_back(c);
+		}
+
+	SetType(orig->GetType());
 	}
 
 bool LambdaExpr::CheckCaptures(StmtPtr when_parent)

@@ -520,6 +520,9 @@ public:
 		bool IsDeepCopy() const { return deep_copy; }
 		bool IsManaged() const { return is_managed; }
 
+		// For script optimization:
+		void SetID(detail::IDPtr new_id) { id = std::move(new_id); }
+
 	private:
 		detail::IDPtr id;
 		bool deep_copy;

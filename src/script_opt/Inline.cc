@@ -136,7 +136,7 @@ void Inliner::Analyze()
 		// duplicate lambda bodies (see LambdaExpr::Duplicate() for
 		// why that is).
 
-		if ( f.Profile()->NumLambdas() > 0 || f.Profile()->NumWhenStmts() > 0 )
+		if ( f.Profile()->NumWhenStmts() > 0 )
 			continue;
 
 		inline_ables.insert(func);

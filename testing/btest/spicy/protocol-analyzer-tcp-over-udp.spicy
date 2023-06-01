@@ -1,0 +1,28 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o test.hlto %INPUT ./foo.evt
+# @TEST-EXEC: zeek -Cr ${TRACES}/ssh/ssh-over-udp.pcap test.hlto
+# @TEST-EXEC: btest-diff ssh.log
+#
+# @TEST-DOC: Pass data from inside a UDP analyzer to a Zeek analyzers that works on top of TCP. Regression tests for #92 and also #91.
+#
+
+module Foo;
+
+import spicy;
+import zeek;
+
+public type Bar = unit {
+    on %init { zeek::protocol_begin("SSH"); }
+    data: bytes &eod { zeek::protocol_data_in(zeek::is_orig(), $$); }
+};
+
+# @TEST-START-FILE foo.evt
+
+import zeek;
+
+protocol analyzer spicy::Foo over UDP:
+    parse with Foo::Bar,
+    port 1234/udp;
+
+# @TEST-END-FILE

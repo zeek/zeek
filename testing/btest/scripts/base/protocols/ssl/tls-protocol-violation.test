@@ -1,0 +1,5 @@
+# This tests that no error messages are output when a protocol violation occurs
+
+# @TEST-EXEC: zeek -C -r $TRACES/tls/tls1.2-protocol-violation.pcap %INPUT
+# @TEST-EXEC: test -f dpd.log
+# @TEST-EXEC: btest-diff .stderr

@@ -23,7 +23,7 @@ Extract::Extract(RecordValPtr args, file_analysis::File* file, const std::string
 	if ( file_stream )
 		{
 		// Try to ensure full buffering.
-		if ( setvbuf(file_stream, nullptr, _IOFBF, BUFSIZ) )
+		if ( util::detail::setvbuf(file_stream, nullptr, _IOFBF, BUFSIZ) )
 			{
 			util::zeek_strerror_r(errno, buf, sizeof(buf));
 			reporter->Warning("cannot set buffering mode for %s: %s", filename.data(), buf);

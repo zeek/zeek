@@ -249,6 +249,11 @@ public:
 		return nullptr;
 		}
 
+	/**
+	 * Pops the last element off the encapsulation stack.
+	 */
+	void Pop();
+
 protected:
 	std::vector<EncapsulatingConn>* conns;
 	};

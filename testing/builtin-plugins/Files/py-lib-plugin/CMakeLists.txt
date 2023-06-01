@@ -20,12 +20,12 @@ include_directories(BEFORE ${PYTHON_INCLUDE_DIR})
 zeek_plugin_begin(Zeek PyLib)
 
 file(GLOB cc_files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "plugin/src/*.cc")
-foreach(file ${cc_files})
+foreach (file ${cc_files})
     zeek_plugin_cc(${file})
 endforeach ()
 
 file(GLOB bif_files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "plugin/src/*.bif")
-foreach(file ${bif_files})
+foreach (file ${bif_files})
     zeek_plugin_bif(${file})
 endforeach ()
 

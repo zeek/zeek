@@ -1,0 +1,6 @@
+#! /usr/bin/env bash
+#
+# Remove unstable pieces in Zeek logs produced by thge Spicy tests.
+
+$(dirname $0)/diff-remove-timestamps |
+    $(dirname $0)/diff-remove-abspath

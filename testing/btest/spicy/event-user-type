@@ -1,0 +1,43 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d foo.spicy foo.evt -o foo.hlto
+# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap foo.hlto foo.zeek >output 2>&1
+# @TEST-EXEC: btest-diff output
+#
+# @TEST-DOC: Validate that one can pass a user-specified type in an event handler. This is a regression test for #142, plus now a test for "export".
+
+# @TEST-START-FILE foo.spicy
+module foo;
+
+global n: uint64 = 0;
+
+public type X = unit { y: Y; };
+
+type Y = unit {
+    var n: uint64;
+    on %init {
+        n += 1;
+        self.n = n;
+    }
+    y: bytes &until=b"\x0a";
+};
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.evt
+protocol analyzer spicy::foo over UDP:
+    parse with foo::X,
+    ports { 12345/udp, 31337/udp };
+
+import foo;
+
+export foo::Y;
+
+on foo::X -> event foo::X($conn, $is_orig, self.y);
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.zeek
+event foo::X(c: connection, is_orig: bool, y: foo::Y)
+{
+	print fmt("is_orig=%d y=%s", is_orig, y);
+}
+# @TEST-END-FILE

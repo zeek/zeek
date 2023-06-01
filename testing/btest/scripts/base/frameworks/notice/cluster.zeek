@@ -8,7 +8,7 @@
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff manager-1/notice.log
 
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 @load base/frameworks/notice
 
 @TEST-START-FILE cluster-layout.zeek
@@ -25,11 +25,6 @@ redef enum Notice::Type += {
 	Test_Notice,
 };
 
-event Cluster::node_down(name: string, id: string)
-	{
-	terminate();
-	}
-
 event delayed_notice()
 	{
 	if ( Cluster::node == "worker-1" )
@@ -41,27 +36,16 @@ event terminate_me()
 	terminate();
 	}
 
-event ready()
+event Cluster::Experimental::cluster_started()
 	{
+	if ( Cluster::node != "worker-1" )
+		return;
+
 	schedule 1secs { delayed_notice() };
 	schedule 2secs { terminate_me() };
-	}
-
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-
-global peer_count = 0;
-
-event Cluster::node_up(name: string, id: string)
-	{
-	peer_count = peer_count + 1;
-
-	if ( peer_count == 2 )
-		Broker::publish(Cluster::worker_topic, ready);
 	}
 
 event Cluster::node_down(name: string, id: string)
 	{
 	terminate();
 	}
-
-@endif

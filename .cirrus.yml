@@ -160,20 +160,23 @@ env:
   # a solution for the mtime pruning above.
   ZEEK_CCACHE_EPOCH: 2
 
+  # Cache Spicy JIT results.
+  HILTI_CXX_COMPILER_LAUNCHER: ccache
+
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
+
+fedora38_task:
+  container:
+    # Fedora 38 EOL: Around May 2024
+    dockerfile: ci/fedora-38/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
 
 fedora37_task:
   container:
     # Fedora 37 EOL: Around Dec 2024
     dockerfile: ci/fedora-37/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-fedora36_task:
-  container:
-    # Fedora 36 EOL: Around May 2023
-    dockerfile: ci/fedora-36/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
@@ -253,8 +256,9 @@ opensuse_tumbleweed_task:
     # Opensuse Tumbleweed has no EOL
     dockerfile: ci/opensuse-tumbleweed/Dockerfile
     << : *RESOURCES_TEMPLATE
+  prepare_script: ./ci/opensuse-tumbleweed/prepare.sh
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
+#  << : *SKIP_TASK_ON_PR
 
 ubuntu2210_task:
   container:
@@ -611,6 +615,21 @@ container_image_manifest_docker_builder:
     - arm64_container_image
     - amd64_container_image
 
+# Once we've published new images in container_image_manifest, remove any untagged
+# images from the public ECR repository to stay within free-tier bounds.
+public_ecr_cleanup_docker_builder:
+  cpu: 1
+  only_if: >
+    $CIRRUS_CRON == '' && $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' && $CIRRUS_BRANCH == 'master'
+  env:
+    AWS_ACCESS_KEY_ID: ENCRYPTED[!eff52f6442e1bc78bce5b15a23546344df41bf519f6201924cb70c7af12db23f442c0e5f2b3687c2d856ceb11fcb8c49!]
+    AWS_SECRET_ACCESS_KEY: ENCRYPTED[!748bc302dd196140a5fa8e89c9efd148882dc846d4e723787d2de152eb136fa98e8dea7e6d2d6779d94f72dd3c088228!]
+    AWS_REGION: us-east-1
+  cleanup_script:
+    - ./ci/public-ecr-cleanup.sh
+  depends_on:
+    - container_image_manifest
+
 cluster_testing_docker_builder:
   cpu: *CPUS
   memory: *MEMORY
@@ -695,7 +714,7 @@ include_plugins_debian11_task:
       folder: /tmp/ccache
       fingerprint_script: echo builtin-plugins-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
-  build_script: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='/zeek/testing/builtin-plugins/Files/protocol-plugin;/zeek/testing/builtin-plugins/Files/py-lib-plugin'" ./ci/build.sh
+  build_script: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='/zeek/testing/builtin-plugins/Files/protocol-plugin;/zeek/testing/builtin-plugins/Files/py-lib-plugin;/zeek/testing/builtin-plugins/Files/zeek-version-plugin'" ./ci/build.sh
   test_script:
     - cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
   on_failure:

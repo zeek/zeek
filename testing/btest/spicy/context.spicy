@@ -1,0 +1,50 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o x.hlto %INPUT ./ssh.evt
+# @TEST-EXEC: zeek -b -r ${TRACES}/ssh/single-conn.trace Zeek::Spicy x.hlto Spicy::enable_print=T >output
+# @TEST-EXEC: btest-diff output
+#
+# @TEST-DOC: Check that the Zeek plugin passes a (and the same) %context object to both sides of a connection.
+
+module SSH;
+
+type Banner = unit {
+    magic   : /SSH-/;
+    version : /[^-]*/;
+    dash    : /-/;
+    software: /[^\r\n]*/;
+};
+
+type Context = tuple<orig_version: bytes, resp_version: bytes>;
+
+function print_if_we_have_seen_both_sides(ctx: Context&) {
+    if ( |ctx.orig_version| && |ctx.resp_version| )
+        print ctx;
+}
+
+public type Originator = unit {
+    %context = Context;
+
+    banner: Banner {
+        self.context().orig_version += self.banner.version;
+    }
+    on %done { print_if_we_have_seen_both_sides(self.context()); }
+};
+
+public type Responder = unit {
+    %context = Context;
+
+    banner: Banner {
+        self.context().resp_version += self.banner.version;
+    }
+
+    on %done { print_if_we_have_seen_both_sides(self.context()); }
+};
+
+
+# @TEST-START-FILE ssh.evt
+protocol analyzer spicy::SSH over TCP:
+    port 22/tcp,
+    parse originator with SSH::Originator,
+    parse responder with SSH::Responder;
+# @TEST-END-FILE

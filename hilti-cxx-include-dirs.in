@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Computes CXX flags for Spicy compilation in the build tree. The value
+# computed by this script can be injected into Spicy JIT via the environment
+# variable `HILTI_CXX_INCLUDE_DIRS`.
+
+# Paths to support compiling Spicy parsers in the build tree.
+PATHS=@CMAKE_SOURCE_DIR@/auxil/spicy/hilti/runtime/include
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/runtime/include
+PATHS=$PATHS:@CMAKE_BINARY_DIR@/auxil/spicy/include
+
+# Paths to support compiling against a build tree Zeek.
+PATHS=$PATHS:@CMAKE_BINARY_DIR@
+PATHS=$PATHS:@CMAKE_BINARY_DIR@/src
+PATHS=$PATHS:@CMAKE_BINARY_DIR@/src/include
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/src
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/src/include
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/broker/include/
+
+echo $PATHS

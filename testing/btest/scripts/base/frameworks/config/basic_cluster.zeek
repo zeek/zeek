@@ -12,7 +12,7 @@
 # @TEST-EXEC: btest-diff manager-1/config.log
 
 @load base/frameworks/config
-
+@load policy/frameworks/cluster/experimental
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
@@ -44,7 +44,7 @@ event zeek_init()
 	}
 
 @if ( Cluster::node == "worker-1" )
-event ready_for_data()
+event Cluster::Experimental::cluster_started()
 	{
 	Config::set_value("testport", 44/tcp);
 	Config::set_value("teststring", "b", "comment");
@@ -68,15 +68,3 @@ event zeek_init() &priority=5
 	Option::set_change_handler("testport", option_changed, -100);
 	Option::set_change_handler("teststring", option_changed, -100);
 	}
-
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-
-global peer_count = 0;
-event Cluster::node_up(name: string, id: string)
-	{
-	++peer_count;
-	if ( peer_count == 2 )
-		event ready_for_data();
-	}
-
-@endif

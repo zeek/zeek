@@ -407,8 +407,10 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			}
 		}
 
-	if ( [c$ftp$cmdarg$cmd, code] in directory_cmds )
+	if ( [c$ftp$cmdarg$cmd, code] in directory_cmds && ! c$ftp$cmdarg$cwd_consumed )
 		{
+		c$ftp$cmdarg$cwd_consumed = T;
+
 		if ( c$ftp$cmdarg$cmd == "CWD" )
 			c$ftp$cwd = build_path_compressed(c$ftp$cwd, c$ftp$cmdarg$arg);
 

@@ -264,8 +264,16 @@ public:
 	DeltaVectorCreate(const ValTrace* _vt) : ValDelta(_vt) { }
 
 	std::string Generate(ValTraceMgr* vtm) const override;
+	};
 
-private:
+// Captures the notion of creating a value with an unsupported type
+// (like "opaque").
+class DeltaUnsupportedCreate : public ValDelta
+	{
+public:
+	DeltaUnsupportedCreate(const ValTrace* _vt) : ValDelta(_vt) { }
+
+	std::string Generate(ValTraceMgr* vtm) const override;
 	};
 
 // Manages the changes to (or creation of) a variable used to represent
@@ -385,6 +393,19 @@ public:
 	// needs to be global (because it's used across multiple events).
 	bool IsGlobal(const ValPtr& v) const { return globals.count(v.get()) > 0; }
 
+	// Returns or sets the "base time" from which eligible times are
+	// transformed into offsets rather than maintained as absolute
+	// values.
+	double GetBaseTime() const { return base_time; }
+	void SetBaseTime(double bt) { base_time = bt; }
+
+	// Returns a Zeek script representation of the given "time" value.
+	// This might be relative to base_time or might be absolute.
+	std::string TimeConstant(double t);
+
+	// Returns the array of per-type-tag constants.
+	const auto& GetConstants() const { return constants; }
+
 private:
 	// Traces the given value, which we may-or-may-not have seen before.
 	void AddVal(ValPtr v);
@@ -404,6 +425,17 @@ private:
 	// Create and track a script variable associated with the given value.
 	void TrackVar(const Val* vt);
 
+	// Generates a name for a value.
+	std::string GenValName(const ValPtr& v);
+
+	// True if the given value is an unspecified (and empty set,
+	// table, or vector appearing as a constant rather than an
+	// already-typed value).
+	bool IsUnspecifiedAggregate(const ValPtr& v) const;
+
+	// True if the given value has an unsupported type.
+	bool IsUnsupported(const Val* v) const;
+
 	// Maps values to their associated traces.
 	std::unordered_map<const Val*, std::shared_ptr<ValTrace>> val_map;
 
@@ -422,6 +454,15 @@ private:
 	// Tracks which values have associated script variables that need
 	// to be global.
 	std::unordered_set<const Val*> globals;
+
+	// Indexed by type tag, stores an ordered set of all of the distinct
+	// representations of constants of that type.
+	std::array<std::set<std::string>, NUM_TYPES> constants;
+
+	// If non-zero, then we've established a "base time" and will report
+	// time constants as offsets from it (when reasonable, i.e., no
+	// negative offsets, and base_time can't be too close to 0.0).
+	double base_time = 0.0;
 
 	// The event we're currently tracing.
 	std::shared_ptr<EventTrace> curr_ev;

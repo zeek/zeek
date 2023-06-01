@@ -183,9 +183,11 @@ public:
 	 * of this topic name.
 	 * @param name the name of the event
 	 * @param args the event's arguments
+	 * @param ts the timestamp the event is intended to be executed
 	 * @return true if the message is sent successfully.
 	 */
-	bool PublishEvent(std::string topic, std::string name, broker::vector args);
+	bool PublishEvent(std::string topic, std::string name, broker::vector args,
+	                  double ts = run_state::network_time);
 
 	/**
 	 * Send an event to any interested peers.
@@ -193,7 +195,8 @@ public:
 	 * Peers advertise interest by registering a subscription to some prefix
 	 * of this topic name.
 	 * @param ev the event and its arguments to send to peers, in the form of
-	 * a Broker::Event record type.
+	 * a Broker::Event record type. The timestamp for the event is set to the
+	 * current network time.
 	 * @return true if the message is sent successfully.
 	 */
 	bool PublishEvent(std::string topic, RecordVal* ev);

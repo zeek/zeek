@@ -1,0 +1,13 @@
+#! /bin/sh
+#
+# Two usages:
+#     - Without argument, prints out the numerical Spicy version.
+#     - With a numerical Spicy version in $1, exit with true iff we have at least that version.
+
+version=$(spicy-config --version-number)
+
+if [ $# = 0 ]; then
+    echo "${version}"
+else
+    test "${version}" -ge "$1"
+fi

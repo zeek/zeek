@@ -84,7 +84,7 @@ async def do_run():
         except Exception as e:
             if not connected:
                 print('failed to connect to %s, try again (%s)' % (ws_url, e), file=sys.stderr)
-                time.sleep(1)
+                await asyncio.sleep(1)
                 continue
             else:
                 print('exception: %s' % e, file=sys.stderr)

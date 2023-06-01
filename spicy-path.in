@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Computes a value for the environment variable `SPICY_PATH` for execution of
+# Spicy tooling in the build tree.
+
+PATHS=.
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/lib
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/hilti/lib
+
+echo $PATHS

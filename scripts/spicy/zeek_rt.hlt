@@ -1,0 +1,46 @@
+
+module zeek_rt {
+
+import hilti;
+
+%cxx-include = "zeek/spicy/runtime-support.h";
+
+public type Val = __library_type("::zeek::ValPtr");
+public type BroType = __library_type("::zeek::TypePtr");
+public type EventHandlerPtr = __library_type("::zeek::EventHandlerPtr");
+public type PortRange = __library_type("::zeek::spicy::rt::PortRange");
+
+declare public PortRange make_port_range(port begin_, port end_) &cxxname="zeek::spicy::rt::make_port_range" &have_prototype;
+
+type ZeekTypeTag = enum {
+    Addr, Any, Bool, Count, Double, Enum, Error, File, Func, Int, Interval, List, Opaque, Pattern, Port, Record, String, Subnet, Table, Time, Type, Vector, Void
+} &cxxname="::zeek::spicy::rt::ZeekTypeTag";
+
+declare public void register_protocol_analyzer(string name, hilti::Protocol protocol, vector<PortRange> ports, string parser_orig, string parser_resp, string replaces, string linker_scope) &cxxname="zeek::spicy::rt::register_protocol_analyzer" &have_prototype;
+declare public void register_file_analyzer(string name, vector<string> mime_types, string parser, string replaces, string linker_scope) &cxxname="zeek::spicy::rt::register_file_analyzer" &have_prototype;
+declare public void register_packet_analyzer(string name, string parser, string replaces, string linker_scope) &cxxname="zeek::spicy::rt::register_packet_analyzer" &have_prototype;
+declare public void register_type(string ns, string id, BroType t) &cxxname="zeek::spicy::rt::register_type" &have_prototype;
+
+declare public bool have_handler(EventHandlerPtr handler) &cxxname="zeek::spicy::rt::have_handler" &have_prototype;
+declare public EventHandlerPtr internal_handler(string event) &cxxname="zeek::spicy::rt::internal_handler" &have_prototype;
+declare public void install_handler(string event) &cxxname="zeek::spicy::rt::install_handler" &have_prototype;
+
+declare public void raise_event(EventHandlerPtr handler, vector<Val> args) &cxxname="zeek::spicy::rt::raise_event" &have_prototype;
+declare public BroType event_arg_type(EventHandlerPtr handler, uint<64> idx) &cxxname="zeek::spicy::rt::event_arg_type" &have_prototype;
+declare public Val to_val(any x, BroType target) &cxxname="zeek::spicy::rt::to_val" &have_prototype;
+
+type RecordField = tuple<string, BroType, bool>; # (ID, type, optional)
+declare public BroType create_base_type(ZeekTypeTag tag) &cxxname="zeek::spicy::rt::create_base_type" &have_prototype;
+declare public BroType create_enum_type(string ns, string id, vector<tuple<string, int<64>>> labels) &cxxname="zeek::spicy::rt::create_enum_type" &have_prototype;
+declare public BroType create_record_type(string ns, string id, vector<RecordField> fields) &cxxname="zeek::spicy::rt::create_record_type" &have_prototype;
+declare public BroType create_table_type(BroType key, optional<BroType> value = Null) &cxxname="zeek::spicy::rt::create_table_type" &have_prototype;
+declare public BroType create_vector_type(BroType elem) &cxxname="zeek::spicy::rt::create_vector_type" &have_prototype;
+
+declare public Val current_conn() &cxxname="zeek::spicy::rt::current_conn" &have_prototype;
+declare public Val current_file() &cxxname="zeek::spicy::rt::current_file" &have_prototype;
+declare public Val current_packet() &cxxname="zeek::spicy::rt::current_packet" &have_prototype;
+declare public Val current_is_orig() &cxxname="zeek::spicy::rt::current_is_orig" &have_prototype;
+
+declare public void debug(string msg) &cxxname="zeek::spicy::rt::debug" &have_prototype;
+
+}

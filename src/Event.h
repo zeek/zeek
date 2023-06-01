@@ -15,14 +15,19 @@
 namespace zeek
 	{
 
+namespace run_state
+	{
+extern double network_time;
+	} // namespace run_state
+
 class EventMgr;
 
 class Event final : public Obj
 	{
 public:
-	Event(EventHandlerPtr handler, zeek::Args args,
+	Event(const EventHandlerPtr& handler, zeek::Args args,
 	      util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0,
-	      Obj* obj = nullptr);
+	      Obj* obj = nullptr, double ts = run_state::network_time);
 
 	void SetNext(Event* n) { next_event = n; }
 	Event* NextEvent() const { return next_event; }
@@ -31,6 +36,7 @@ public:
 	analyzer::ID Analyzer() const { return aid; }
 	EventHandlerPtr Handler() const { return handler; }
 	const zeek::Args& Args() const { return args; }
+	double Time() const { return ts; }
 
 	void Describe(ODesc* d) const override;
 
@@ -45,6 +51,7 @@ protected:
 	zeek::Args args;
 	util::detail::SourceID src;
 	analyzer::ID aid;
+	double ts;
 	Obj* obj;
 	Event* next_event;
 	};
@@ -66,10 +73,12 @@ public:
 	 * @param aid  identifies the protocol analyzer generating the event.
 	 * @param obj  an arbitrary object to use as a "cookie" or just hold a
 	 * reference to until dispatching the event.
+	 * @param ts  timestamp at which the event is intended to be executed
+	 * (defaults to current network time).
 	 */
 	void Enqueue(const EventHandlerPtr& h, zeek::Args vl,
 	             util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0,
-	             Obj* obj = nullptr);
+	             Obj* obj = nullptr, double ts = run_state::network_time);
 
 	/**
 	 * A version of Enqueue() taking a variable number of arguments.
@@ -95,6 +104,11 @@ public:
 	// non-analyzer event.
 	analyzer::ID CurrentAnalyzer() const { return current_aid; }
 
+	// Returns the timestamp of the last raised event. The timestamp reflects the network time
+	// the event was intended to be executed. For scheduled events, this is the time the event
+	// was scheduled to. For any other event, this is the time when the event was created.
+	double CurrentEventTime() const { return current_ts; }
+
 	int Size() const { return num_events_queued - num_events_dispatched; }
 
 	void Describe(ODesc* d) const override;
@@ -114,6 +128,7 @@ protected:
 	Event* tail;
 	util::detail::SourceID current_src;
 	analyzer::ID current_aid;
+	double current_ts;
 	RecordVal* src_val;
 	bool draining;
 	detail::Flare queue_flare;

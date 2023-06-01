@@ -57,7 +57,7 @@ void ScriptProfile::Report(FILE* f, bool with_traces) const
 			calls += util::fmt("%s|", s.c_str());
 			counts += util::fmt("%d|", stats.call_count);
 			cpu += util::fmt("%f|", stats.cpu_time);
-			memory += util::fmt("%llu|", stats.memory);
+			memory += util::fmt("%" PRIu64 "|", stats.memory);
 			}
 
 		calls.pop_back();

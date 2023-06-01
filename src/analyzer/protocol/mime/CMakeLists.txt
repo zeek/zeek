@@ -7,8 +7,7 @@ zeek_add_plugin(
     Zeek
     MIME
     SOURCES
-        MIME.cc
-        Plugin.cc
+    MIME.cc
+    Plugin.cc
     BIFS
-        events.bif
-)
+    events.bif)

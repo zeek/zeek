@@ -1,9 +1,8 @@
 zeek_add_plugin(
     Zeek
-        AsciiWriter
+    AsciiWriter
     SOURCES
-        Ascii.cc
-        Plugin.cc
+    Ascii.cc
+    Plugin.cc
     BIFS
-        ascii.bif
-)
+    ascii.bif)

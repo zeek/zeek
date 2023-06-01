@@ -250,7 +250,7 @@ public:
 	 * the type of tunnel. It is used to pass the tunnel type between the
 	 * packet analyzers during analysis.
 	 */
-	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::IP;
+	BifEnum::Tunnel::Type tunnel_type = BifEnum::Tunnel::NONE;
 
 	/**
 	 * If the packet contains a GRE tunnel, this field will contain the

@@ -52,7 +52,7 @@ void EventHandler::SetFunc(FuncPtr f)
 	local = std::move(f);
 	}
 
-void EventHandler::Call(Args* vl, bool no_remote)
+void EventHandler::Call(Args* vl, bool no_remote, double ts)
 	{
 	if ( ! call_count )
 		{
@@ -100,10 +100,10 @@ void EventHandler::Call(Args* vl, bool no_remote)
 					++it;
 
 					if ( it != auto_publish.end() )
-						broker_mgr->PublishEvent(topic, Name(), xs);
+						broker_mgr->PublishEvent(topic, Name(), xs, ts);
 					else
 						{
-						broker_mgr->PublishEvent(topic, Name(), std::move(xs));
+						broker_mgr->PublishEvent(topic, Name(), std::move(xs), ts);
 						break;
 						}
 					}

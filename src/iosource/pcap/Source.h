@@ -43,6 +43,7 @@ private:
 	Stats stats;
 
 	pcap_t* pd;
+	struct pcap_stat prev_pstat = {0};
 	};
 
 	} // namespace zeek::iosource::pcap

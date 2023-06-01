@@ -1348,6 +1348,7 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 		nr->Assign(1, logged);
 		nr->Assign(2, std::move(fv));
 		nr->Assign(3, FieldDefault(i));
+		nr->Assign(4, fd->GetAttr(detail::ATTR_OPTIONAL) != detail::Attr::nil);
 		auto field_name = make_intrusive<StringVal>(FieldName(i));
 		rval->Assign(std::move(field_name), std::move(nr));
 		}

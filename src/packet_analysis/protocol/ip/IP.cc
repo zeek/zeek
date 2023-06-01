@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/protocol/ip/IP.h"
 
+#include <netinet/in.h>
+
 #include "zeek/Discard.h"
 #include "zeek/Event.h"
 #include "zeek/Frag.h"
@@ -91,7 +93,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 	if ( packet->len < total_len + hdr_size )
 		{
-		Weird("truncated_IPv6", packet);
+		Weird("truncated_IP_len", packet);
 		return false;
 		}
 
@@ -203,6 +205,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 				}
 
 			packet->cap_len = total_len + hdr_size;
+			// Assumes reassembled packet has wire length == capture length.
+			packet->len = packet->cap_len;
 			}
 		}
 
@@ -268,6 +272,11 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		packet->cap_len = orig_cap_len;
 		return false;
 		}
+
+	// If the next protocol is a tunneled type, set the tunnel_type field in the packet to IP
+	// so that it gets handled correctly.
+	if ( proto == IPPROTO_IPV4 || proto == IPPROTO_IPV6 )
+		packet->tunnel_type = BifEnum::Tunnel::IP;
 
 	switch ( proto )
 		{

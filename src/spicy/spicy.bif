@@ -1,0 +1,62 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module Spicy;
+
+%%{
+    #include "zeek/spicy/manager.h"
+%%}
+
+# Constant for testing if Spicy is available.
+const available: bool;
+
+# Show output of Spicy print statements.
+const enable_print: bool;
+
+# Record and display profiling information.
+const enable_profiling: bool;
+
+# abort() instead of throwing HILTI # exceptions.
+const abort_on_exceptions: bool;
+
+# Include backtraces when reporting unhandled exceptions.
+const show_backtraces: bool;
+
+# Maximum depth of recursive file analysis.
+const max_file_depth: count;
+
+event max_file_depth_exceeded%(f: fa_file, args: Files::AnalyzerArgs, limit: count%);
+
+function Spicy::__toggle_analyzer%(tag: any, enable: bool%) : bool
+        %{
+        if ( tag->GetType()->Tag() != TYPE_ENUM ) {
+            zeek::reporter->Warning("Spicy::disable_analyzer() must receive an analyzer tag");
+            return val_mgr->Bool(false);
+            }
+
+        bool result = spicy_mgr->toggleAnalyzer(tag->AsEnumVal(), enable);
+        if ( ! result )
+            zeek::reporter->Warning("could not toggle Spicy analyzer");
+
+        return val_mgr->Bool(result);
+        %}
+
+type ResourceUsage: record;
+
+function Spicy::__resource_usage%(%) : Spicy::ResourceUsage
+    %{
+    auto ru = hilti::rt::resource_usage();
+
+    auto r = zeek::make_intrusive<zeek::RecordVal>(BifType::Record::Spicy::ResourceUsage);
+    int n = 0;
+    r->Assign(n++, ru.user_time);
+    r->Assign(n++, ru.system_time);
+    r->Assign(n++, ru.memory_heap);
+    r->Assign(n++, ru.num_fibers);
+    r->Assign(n++, ru.max_fibers);
+#if SPICY_VERSION_NUMBER >= 10800
+    r->Assign(n++, ru.max_fiber_stack_size);
+#endif
+    r->Assign(n++, ru.cached_fibers);
+
+    return r;
+    %}

@@ -15,7 +15,6 @@
 # @TEST-EXEC: btest-bg-wait 40
 # @TEST-EXEC: btest-diff manager-1/.stdout
 
-@load base/frameworks/cluster
 @load policy/frameworks/cluster/experimental
 
 @TEST-START-FILE cluster-layout.zeek

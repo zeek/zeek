@@ -10,7 +10,7 @@
 # @TEST-EXEC: btest-diff manager-1/.stdout
 #
 
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 @load base/frameworks/sumstats
 
 @TEST-START-FILE cluster-layout.zeek
@@ -38,8 +38,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-global ready_for_data: event();
-
 event on_demand()
 	{
 	local host = 7.2.1.5;
@@ -63,7 +61,7 @@ event ready_to_demand()
 		event on_demand();
 	}
 
-event ready_for_data()
+event Cluster::Experimental::cluster_started()
 	{
 	if ( Cluster::node == "worker-1" )
 		{
@@ -82,15 +80,3 @@ event ready_for_data()
 
 	Broker::publish(Cluster::manager_topic, ready_to_demand);
 	}
-
-global peer_count = 0;
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
-	{
-	if ( Cluster::node != "manager-1" )
-		return;
-
-	++peer_count;
-	if ( peer_count == 2 )
-		Broker::publish(Cluster::worker_topic, ready_for_data);
-	}
-

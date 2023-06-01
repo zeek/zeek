@@ -1,0 +1,26 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o test.hlto %INPUT ./udp-test.evt
+# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap test.hlto Spicy::enable_print=T >output
+# @TEST-EXEC: btest-diff output
+
+module Test;
+
+import zeek;
+
+# Before any processing has started the network time should be zero.
+assert(zeek::network_time() == time(0));
+
+public type Message = unit {
+    data: bytes &eod {
+        # For real traffic we would expect the network time to increase as we progress.
+        print zeek::network_time().nanoseconds();
+    }
+};
+
+# @TEST-START-FILE udp-test.evt
+protocol analyzer spicy::TEST over UDP:
+    parse with Test::Message,
+    port 11337/udp-11340/udp,
+    ports {31337/udp-31340/udp};
+# @TEST-END-FILE

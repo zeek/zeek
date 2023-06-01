@@ -213,12 +213,16 @@ void ValTrace::ComputeDelta(const ValTrace* prev, DeltaVector& deltas) const
 			// use the constant representation instead.
 			break;
 
+		case TYPE_ANY:
 		case TYPE_FILE:
 		case TYPE_OPAQUE:
-		case TYPE_ANY:
-			// These we have no way of creating as constants.
-			reporter->Error("cannot generate an event trace for an event of type %s",
-			                type_name(tag));
+			// If we have a previous instance, we can ignore this
+			// one, because we know it's equivalent (due to the
+			// test at the beginning of this method), and it's
+			// not meaningful to recurse inside it looking for
+			// interior changes.
+			if ( ! prev )
+				deltas.emplace_back(std::make_unique<DeltaUnsupportedCreate>(this));
 			break;
 
 		case TYPE_LIST:
@@ -241,6 +245,13 @@ void ValTrace::ComputeDelta(const ValTrace* prev, DeltaVector& deltas) const
 			if ( prev )
 				ComputeTableDelta(prev, deltas);
 
+			else if ( GetType()->AsTableType()->IsUnspecifiedTable() )
+				// For unspecified values, we generate them
+				// as empty constructors, because we don't
+				// know their yield type and thus can't
+				// create variables corresponding to them.
+				break;
+
 			else if ( t->Yield() )
 				deltas.emplace_back(std::make_unique<DeltaTableCreate>(this));
 			else
@@ -250,6 +261,11 @@ void ValTrace::ComputeDelta(const ValTrace* prev, DeltaVector& deltas) const
 		case TYPE_VECTOR:
 			if ( prev )
 				ComputeVectorDelta(prev, deltas);
+
+			else if ( GetType()->AsVectorType()->IsUnspecifiedVector() )
+				// See above for empty tables/sets.
+				break;
+
 			else
 				deltas.emplace_back(std::make_unique<DeltaVectorCreate>(this));
 			break;
@@ -722,6 +738,11 @@ std::string DeltaVectorCreate::Generate(ValTraceMgr* vtm) const
 	return std::string(" = vector(") + vec + ")";
 	}
 
+std::string DeltaUnsupportedCreate::Generate(ValTraceMgr* vtm) const
+	{
+	return " = UNSUPPORTED " + obj_desc_short(vt->GetVal()->GetType().get());
+	}
+
 EventTrace::EventTrace(const ScriptFunc* _ev, double _nt, size_t event_num) : ev(_ev), nt(_nt)
 	{
 	auto ev_name = std::regex_replace(ev->Name(), std::regex(":"), "_");
@@ -770,12 +791,18 @@ void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, st
 		fprintf(f, "\t");
 
 		auto& val = d.GetVal();
+		bool define_local = d.IsFirstDef() && ! vtm.IsGlobal(val);
 
-		if ( d.IsFirstDef() && ! vtm.IsGlobal(val) )
+		if ( define_local )
 			fprintf(f, "local ");
 
 		if ( d.NeedsLHS() )
+			{
 			fprintf(f, "%s", vtm.ValName(val).c_str());
+
+			if ( define_local )
+				fprintf(f, ": %s", obj_desc_short(val->GetType().get()).c_str());
+			}
 
 		auto anno = offset < num_pre ? " # from script" : "";
 
@@ -798,7 +825,8 @@ void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, st
 		}
 	else
 		{
-		fprintf(f, "\tset_network_time(double_to_time(%.06f));\n", nt);
+		auto tm = vtm.TimeConstant(nt);
+		fprintf(f, "\tset_network_time(%s);\n", tm.c_str());
 		fprintf(f, "\tevent __EventTrace::%s();\n", successor.c_str());
 		}
 
@@ -870,64 +898,26 @@ const std::string& ValTraceMgr::ValName(const ValPtr& v)
 	{
 	auto find = val_names.find(v.get());
 	if ( find == val_names.end() )
-		{
-		if ( IsAggr(v->GetType()) )
-			{ // Aggregate shouldn't exist; create it
-			ASSERT(val_map.count(v.get()) == 0);
-			NewVal(v);
-			find = val_names.find(v.get());
-			}
-
-		else
-			{ // Non-aggregate can be expressed using a constant
-			auto tag = v->GetType()->Tag();
-			std::string rep;
-
-			if ( tag == TYPE_STRING )
-				{
-				auto s = v->AsStringVal();
-				rep = escape_string(s->Bytes(), s->Len());
-				}
-
-			else if ( tag == TYPE_LIST )
-				{
-				auto lv = cast_intrusive<ListVal>(v);
-				for ( auto& v_i : lv->Vals() )
-					{
-					if ( ! rep.empty() )
-						rep += ", ";
-
-					rep += ValName(v_i);
-					}
-				}
-
-			else if ( tag == TYPE_FUNC )
-				rep = v->AsFunc()->Name();
-
-			else if ( tag == TYPE_TIME )
-				rep = std::string("double_to_time(") + std::to_string(v->AsDouble()) + ")";
-
-			else if ( tag == TYPE_INTERVAL )
-				rep = std::string("double_to_interval(") + std::to_string(v->AsDouble()) + ")";
-
-			else
-				{
-				ODesc d;
-				v->Describe(&d);
-				rep = d.Description();
-				}
-
-			val_names[v.get()] = rep;
-			vals.push_back(v);
-			find = val_names.find(v.get());
-			}
-
-		ASSERT(find != val_names.end());
-		}
+		find = val_names.insert({v.get(), GenValName(v)}).first;
 
 	ValUsed(v);
 
 	return find->second;
+	}
+
+std::string ValTraceMgr::TimeConstant(double t)
+	{
+	if ( t < std::max(base_time, 1e6) )
+		return "double_to_time(" + std::to_string(t) + ")";
+
+	if ( ! base_time )
+		base_time = t;
+
+	if ( t == base_time )
+		return "double_to_time(__base_time)";
+
+	t -= base_time;
+	return "double_to_time(__base_time + " + std::to_string(t) + ")";
 	}
 
 void ValTraceMgr::AddVal(ValPtr v)
@@ -1003,14 +993,141 @@ void ValTraceMgr::AssessChange(const ValTrace* vt, const ValTrace* prev_vt)
 		}
 
 	auto& v = vt->GetVal();
-	if ( IsAggr(v->GetType()) )
+	if ( IsAggr(v->GetType()) && (prev_vt || ! IsUnspecifiedAggregate(v)) )
 		ValUsed(vt->GetVal());
 	}
 
 void ValTraceMgr::TrackVar(const Val* v)
 	{
-	auto val_name = std::string("__val") + std::to_string(num_vars++);
+	std::string base_name = IsUnsupported(v) ? "UNSUPPORTED" : "val";
+	auto val_name = "__" + base_name + std::to_string(num_vars++);
 	val_names[v] = val_name;
+	}
+
+std::string ValTraceMgr::GenValName(const ValPtr& v)
+	{
+	if ( IsAggr(v->GetType()) && ! IsUnspecifiedAggregate(v) )
+		{ // Aggregate shouldn't exist; create it
+		ASSERT(val_map.count(v.get()) == 0);
+		NewVal(v);
+		return val_names[v.get()];
+		}
+
+	// Non-aggregate (or unspecified aggregate) can be expressed using
+	// a constant.
+	auto t = v->GetType();
+	auto tag = t->Tag();
+	std::string rep;
+	bool track_constant = false;
+
+	switch ( tag )
+		{
+		case TYPE_STRING:
+			{
+			auto s = v->AsStringVal();
+			rep = escape_string(s->Bytes(), s->Len());
+			track_constant = s->Len() > 0;
+			break;
+			}
+
+		case TYPE_LIST:
+			{
+			auto lv = cast_intrusive<ListVal>(v);
+			for ( auto& v_i : lv->Vals() )
+				{
+				if ( ! rep.empty() )
+					rep += ", ";
+
+				rep += ValName(v_i);
+				}
+			break;
+			}
+
+		case TYPE_FUNC:
+			rep = v->AsFunc()->Name();
+			break;
+
+		case TYPE_TIME:
+			{
+			auto tm = v->AsDouble();
+			rep = TimeConstant(tm);
+
+			if ( tm > 0.0 && rep.find("__base_time") == std::string::npos )
+				// We're not representing it using base_time.
+				track_constant = true;
+
+			break;
+			}
+
+		case TYPE_INTERVAL:
+			rep = "double_to_interval(" + std::to_string(v->AsDouble()) + ")";
+			break;
+
+		case TYPE_TABLE:
+			rep = t->Yield() ? "table()" : "set()";
+			break;
+
+		case TYPE_VECTOR:
+			rep = "vector()";
+			break;
+
+		case TYPE_PATTERN:
+		case TYPE_PORT:
+		case TYPE_ADDR:
+		case TYPE_SUBNET:
+			{
+			ODesc d;
+			v->Describe(&d);
+			rep = d.Description();
+			track_constant = true;
+
+			if ( tag == TYPE_ADDR || tag == TYPE_SUBNET )
+				{
+				// Fix up deficiency that IPv6 addresses are
+				// described without surrounding []'s.
+				const auto& addr = tag == TYPE_ADDR ? v->AsAddr() : v->AsSubNet().Prefix();
+				if ( addr.GetFamily() == IPv6 )
+					rep = "[" + rep + "]";
+				}
+			}
+			break;
+
+		default:
+			{
+			ODesc d;
+			v->Describe(&d);
+			rep = d.Description();
+			}
+		}
+
+	val_names[v.get()] = rep;
+	vals.push_back(v);
+
+	if ( track_constant )
+		constants[tag].insert(rep);
+
+	std::array<std::string, NUM_TYPES> constants;
+
+	return rep;
+	}
+
+bool ValTraceMgr::IsUnspecifiedAggregate(const ValPtr& v) const
+	{
+	auto t = v->GetType()->Tag();
+
+	if ( t == TYPE_TABLE && v->GetType<TableType>()->IsUnspecifiedTable() )
+		return true;
+
+	if ( t == TYPE_VECTOR && v->GetType<VectorType>()->IsUnspecifiedVector() )
+		return true;
+
+	return false;
+	}
+
+bool ValTraceMgr::IsUnsupported(const Val* v) const
+	{
+	auto t = v->GetType()->Tag();
+	return t == TYPE_ANY || t == TYPE_FILE || t == TYPE_OPAQUE;
 	}
 
 EventTraceMgr::EventTraceMgr(const std::string& trace_file)
@@ -1026,6 +1143,11 @@ EventTraceMgr::~EventTraceMgr()
 		return;
 
 	fprintf(f, "module __EventTrace;\n\n");
+
+	auto bt = vtm.GetBaseTime();
+
+	if ( bt )
+		fprintf(f, "global __base_time = %.06f;\n\n", bt);
 
 	for ( auto& e : events )
 		fprintf(f, "global %s: event();\n", e->GetName());
@@ -1044,6 +1166,22 @@ EventTraceMgr::~EventTraceMgr()
 		events[i]->Generate(f, vtm, predecessor.get(), successor);
 		}
 
+	const auto& constants = vtm.GetConstants();
+
+	for ( auto tag = 0; tag < NUM_TYPES; ++tag )
+		{
+		auto& c_t = constants[tag];
+		if ( c_t.empty() && (tag != TYPE_TIME || ! bt) )
+			continue;
+
+		fprintf(f, "\n# constants of type %s:\n", type_name(TypeTag(tag)));
+		if ( tag == TYPE_TIME && bt )
+			fprintf(f, "#\t__base_time = %.06f\n", bt);
+
+		for ( auto& c : c_t )
+			fprintf(f, "#\t%s\n", c.c_str());
+		}
+
 	fclose(f);
 	}
 
@@ -1053,8 +1191,11 @@ void EventTraceMgr::StartEvent(const ScriptFunc* ev, const zeek::Args* args)
 		return;
 
 	auto nt = run_state::network_time;
-	if ( nt == 0.0 )
+	if ( nt == 0.0 || util::streq(ev->Name(), "zeek_init") )
 		return;
+
+	if ( ! vtm.GetBaseTime() )
+		vtm.SetBaseTime(nt);
 
 	auto et = std::make_shared<EventTrace>(ev, nt, events.size());
 	events.emplace_back(et);
@@ -1067,7 +1208,7 @@ void EventTraceMgr::EndEvent(const ScriptFunc* ev, const zeek::Args* args)
 	if ( script_events.count(ev->Name()) > 0 )
 		return;
 
-	if ( run_state::network_time > 0.0 )
+	if ( run_state::network_time > 0.0 && ! util::streq(ev->Name(), "zeek_init") )
 		vtm.FinishCurrentEvent(args);
 	}
 

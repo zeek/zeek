@@ -154,7 +154,7 @@ public:
 	/**
 	 * Passes packet input to the analyzer for processing. The analyzer
 	 * will process the input with any support analyzers first and then
-	 * forward the data to DeliverStream(), which derived classes can
+	 * forward the data to DeliverPacket(), which derived classes can
 	 * override.
 	 *
 	 * Note that there is a separate method for stream input,
@@ -254,7 +254,7 @@ public:
 
 	/**
 	 * Hook for accessing packet input for parsing. This is called by
-	 * NextDeliverPacket() and can be overridden by derived classes.
+	 * NextPacket() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
@@ -262,7 +262,7 @@ public:
 
 	/**
 	 * Hook for accessing stream input for parsing. This is called by
-	 * NextDeliverStream() and can be overridden by derived classes.
+	 * NextStream() and can be overridden by derived classes.
 	 * Parameters are the same.
 	 */
 	virtual void DeliverStream(int len, const u_char* data, bool orig);

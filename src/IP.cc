@@ -390,10 +390,14 @@ RecordValPtr IP_Hdr::ToIPHdrVal() const
 		rval->Assign(1, ip4->ip_tos);
 		rval->Assign(2, ntohs(ip4->ip_len));
 		rval->Assign(3, ntohs(ip4->ip_id));
-		rval->Assign(4, ip4->ip_ttl);
-		rval->Assign(5, ip4->ip_p);
-		rval->Assign(6, make_intrusive<AddrVal>(ip4->ip_src.s_addr));
-		rval->Assign(7, make_intrusive<AddrVal>(ip4->ip_dst.s_addr));
+		rval->Assign(4, DF());
+		rval->Assign(5, MF());
+		rval->Assign(6, FragOffset()); // 13 bit offset as multiple of 8
+		rval->Assign(7, ip4->ip_ttl);
+		rval->Assign(8, ip4->ip_p);
+		rval->Assign(9, ntohs(ip4->ip_sum));
+		rval->Assign(10, make_intrusive<AddrVal>(ip4->ip_src.s_addr));
+		rval->Assign(11, make_intrusive<AddrVal>(ip4->ip_dst.s_addr));
 		}
 	else
 		{

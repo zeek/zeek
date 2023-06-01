@@ -7,9 +7,9 @@
    This is a global function declaration.
    
 
-   :i: First param.
+   :param i: First param.
 
-   :j: Second param.
+   :param j: Second param.
    
 
    :returns: A string.
@@ -23,9 +23,9 @@
          This is a record field function.
          
 
-         :i: First param.
+         :param i: First param.
 
-         :j: Second param.
+         :param j: Second param.
          
 
          :returns: A string.

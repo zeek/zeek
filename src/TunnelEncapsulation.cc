@@ -3,6 +3,7 @@
 #include "zeek/TunnelEncapsulation.h"
 
 #include "zeek/Conn.h"
+#include "zeek/Reporter.h"
 #include "zeek/util.h"
 
 namespace zeek
@@ -54,6 +55,17 @@ bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2)
 		}
 
 	return true;
+	}
+
+void EncapsulationStack::Pop()
+	{
+	if ( Depth() == 0 )
+		{
+		reporter->InternalWarning("Attempted to pop from empty EncapsulationStack\n");
+		return;
+		}
+
+	conns->pop_back();
 	}
 
 	} // namespace zeek

@@ -29,5 +29,5 @@ tok 0: Accept (27/0, T)
 tok 1: e^M^JAccept (22/15, T)
 tok 2: Accept (27/29, T)
 xxAAxxAAxx - yyyyyAAyyyyy:
-tok 0: AA (2/5, T)
-tok 1: AA (6/5, T)
+tok 0: AA (6/5, T)
+tok 1: AA (2/5, T)

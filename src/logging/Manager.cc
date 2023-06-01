@@ -91,7 +91,7 @@ struct Manager::Stream
 	Func* policy = nullptr;
 	list<Filter*> filters;
 
-	using WriterPathPair = pair<int, string>;
+	using WriterPathPair = pair<zeek_int_t, string>;
 	using WriterMap = map<WriterPathPair, WriterInfo*>;
 
 	WriterMap writers; // Writers indexed by id/path pair.

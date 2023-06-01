@@ -34,7 +34,13 @@ jobs:
         with:
           submodules: "recursive"
 
+      # Only reset the submodule pointer for scheduled builds. The reason to do
+      # this is to pick up any merge commits or anything that may have been
+      # missed in a merge, but not have any actual content. We don't want to do
+      # it otherwise because PRs should just use the submodule they're pointing
+      # at.
       - name: Switch doc submodule to master
+        if: github.event_name == 'schedule'
         run: cd doc && git checkout master
 
       - name: Fetch Dependencies

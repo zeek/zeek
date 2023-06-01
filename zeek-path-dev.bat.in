@@ -1,0 +1,8 @@
+:: Sets up the basic environment needed to run Zeek from a Windows command prompt (not bash!).
+:: This is needed in order to run unit tests on Cirrus.
+::
+:: The ZEEKPATH line here should be kept in sync with the zeek-path-dev.in file.
+::
+
+@set ZEEKPATH=.;${cmake_source_dir}/scripts;${cmake_source_dir}/scripts/policy;${cmake_source_dir}/scripts/site;${cmake_binary_dir}/scripts;${cmake_binary_dir}/scripts/builtin-plugins
+@set ZEEK_PLUGIN_PATH=${cmake_binary_dir}/src}

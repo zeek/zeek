@@ -20,6 +20,11 @@ public:
 		{
 		return std::make_shared<VLANAnalyzer>();
 		}
+
+private:
+	zeek_uint_t snap_forwarding_key = 0;
+	zeek_uint_t novell_forwarding_key = 0;
+	zeek_uint_t llc_forwarding_key = 0;
 	};
 
 	}

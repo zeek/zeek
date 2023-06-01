@@ -6,15 +6,12 @@
 
 using namespace zeek::packet_analysis::Ethernet;
 
-EthernetAnalyzer::EthernetAnalyzer() : zeek::packet_analysis::Analyzer("Ethernet") { }
-
-void EthernetAnalyzer::Initialize()
+EthernetAnalyzer::EthernetAnalyzer() : zeek::packet_analysis::Analyzer("Ethernet")
 	{
-	Analyzer::Initialize();
-
-	SNAPAnalyzer = LoadAnalyzer("snap_analyzer");
-	NovellRawAnalyzer = LoadAnalyzer("novell_raw_analyzer");
-	LLCAnalyzer = LoadAnalyzer("llc_analyzer");
+	snap_forwarding_key = id::find_val("PacketAnalyzer::ETHERNET::SNAP_FORWARDING_KEY")->AsCount();
+	novell_forwarding_key =
+		id::find_val("PacketAnalyzer::ETHERNET::NOVELL_FORWARDING_KEY")->AsCount();
+	llc_forwarding_key = id::find_val("PacketAnalyzer::ETHERNET::LLC_FORWARDING_KEY")->AsCount();
 	}
 
 bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
@@ -56,31 +53,25 @@ bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	// Other ethernet frame types
 	if ( protocol <= 1500 )
 		{
-		if ( 16 >= len )
+		len -= 14;
+		data += 14;
+
+		if ( len < protocol )
 			{
 			Weird("truncated_ethernet_frame", packet);
 			return false;
 			}
 
 		// Let specialized analyzers take over for non Ethernet II frames.
-		// Note that pdata remains at the start of the ethernet frame.
-
-		AnalyzerPtr eth_analyzer = nullptr;
-
-		if ( data[14] == 0xAA && data[15] == 0xAA )
+		if ( data[0] == 0xAA && data[1] == 0xAA )
 			// IEEE 802.2 SNAP
-			eth_analyzer = SNAPAnalyzer;
-		else if ( data[14] == 0xFF && data[15] == 0xFF )
+			return ForwardPacket(len, data, packet, snap_forwarding_key);
+		else if ( data[0] == 0xFF && data[1] == 0xFF )
 			// Novell raw IEEE 802.3
-			eth_analyzer = NovellRawAnalyzer;
+			return ForwardPacket(len, data, packet, novell_forwarding_key);
 		else
 			// IEEE 802.2 LLC
-			eth_analyzer = LLCAnalyzer;
-
-		if ( eth_analyzer )
-			return eth_analyzer->AnalyzePacket(len, data, packet);
-
-		return true;
+			return ForwardPacket(len, data, packet, llc_forwarding_key);
 		}
 
 	// Undefined (1500 < EtherType < 1536)

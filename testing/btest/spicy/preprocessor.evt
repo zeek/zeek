@@ -1,0 +1,40 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -D zeek -d -o x.hlto %INPUT 2>output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output
+
+protocol analyzer YES_1 over TCP: parse with X;
+
+@if ZEEK_VERSION >= 30000
+    protocol analyzer YES_2 over TCP: parse with X;
+@endif
+
+@if ZEEK_VERSION < 90000
+    protocol analyzer YES_3 over TCP: parse with X;
+@endif
+
+@if ZEEK_VERSION >= 30000
+    protocol analyzer YES_4 over TCP: parse with X;
+@else
+    protocol analyzer NO_4 over TCP: parse with X;
+@endif
+
+@if ZEEK_VERSION < 30000
+    protocol analyzer NO_5 over TCP: parse with X;
+@else
+    protocol analyzer YES_5 over TCP: parse with X;
+@endif
+
+@if ZEEK_VERSION >= 20000
+    @if ZEEK_VERSION >= 90000
+        protocol analyzer NO_6 over TCP: parse with X;
+    @else
+        protocol analyzer YES_6 over TCP: parse with X;
+    @endif
+@else
+    @if ZEEK_VERSION < 90000
+        protocol analyzer YES_7 over TCP: parse with X;
+    @else
+        protocol analyzer NO_7 over TCP: parse with X;
+    @endif
+@endif

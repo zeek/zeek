@@ -318,7 +318,7 @@ function Cluster::get_node_count(node_type: NodeType): count
 
 function Cluster::get_active_node_count(node_type: NodeType): count
 	{
-	return |active_node_ids[node_type]|;
+	return node_type in active_node_ids ? |active_node_ids[node_type]| : 0;
 	}
 
 function is_enabled(): bool
@@ -377,7 +377,7 @@ event Cluster::hello(name: string, id: string) &priority=10
 
 @pragma push ignore-deprecations
 	if ( n$node_type == WORKER )
-		worker_count = |active_node_ids[WORKER]|;
+		worker_count = get_active_node_count(WORKER);
 @pragma pop ignore-deprecations
 	}
 
@@ -402,7 +402,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 
 @pragma push ignore-deprecations
 			if ( n$node_type == WORKER )
-				worker_count = |active_node_ids[WORKER]|;
+				worker_count = get_active_node_count(WORKER);
 @pragma pop ignore-deprecations
 
 			event Cluster::node_down(node_name, endpoint$id);

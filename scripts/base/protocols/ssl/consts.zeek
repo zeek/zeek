@@ -11,6 +11,7 @@ export {
 	const DTLSv10 = 0xFEFF;
 	# DTLSv11 does not exist
 	const DTLSv12 = 0xFEFD;
+	const DTLSv13 = 0xFEFC;
 
 	## Mapping between the constants and string values for SSL/TLS versions.
 	const version_strings: table[count] of string = {
@@ -21,7 +22,8 @@ export {
 		[TLSv12] = "TLSv12",
 		[TLSv13] = "TLSv13",
 		[DTLSv10] = "DTLSv10",
-		[DTLSv12] = "DTLSv12"
+		[DTLSv12] = "DTLSv12",
+		[DTLSv13] = "DTLSv13"
 	} &default=function(i: count):string
 		{
 		if ( i/0xFF == 0x7F ) # TLS 1.3 draft

@@ -14,6 +14,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
+#include "zeek/ScriptCoverageManager.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
@@ -858,6 +859,8 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 	id->GetVal()->AsFunc()->AddBody(ingredients->Body(), ingredients->Inits(),
 	                                ingredients->FrameSize(), ingredients->Priority(),
 	                                ingredients->Groups());
+
+	script_coverage_mgr.AddFunction(id, ingredients->Body());
 
 	auto func_ptr = cast_intrusive<FuncVal>(id->GetVal())->AsFuncPtr();
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);

@@ -1,9 +1,8 @@
 spicy_add_analyzer(
-  NAME
+    NAME
     Syslog
-  SOURCES
+    SOURCES
     syslog.spicy
     syslog.evt
-  LEGACY
-    legacy
-)
+    LEGACY
+    legacy)

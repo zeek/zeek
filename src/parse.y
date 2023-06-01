@@ -1488,13 +1488,6 @@ func_hdr:
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{
-			const char* name = $2->Name();
-			if ( util::streq("bro_init", name) || util::streq("bro_done", name) || util::streq("bro_script_loaded", name) )
-				{
-				auto base = std::string(name).substr(4);
-				reporter->Error("event %s() is no longer available, use zeek_%s() instead", name, base.c_str());
-				}
-
 			begin_func({NewRef{}, $2}, current_module.c_str(),
 				                     FUNC_FLAVOR_EVENT, false, {NewRef{}, $3},
 			                         std::unique_ptr<std::vector<AttrPtr>>{$4});

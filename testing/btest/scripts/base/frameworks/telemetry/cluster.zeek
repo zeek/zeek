@@ -19,7 +19,16 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff manager-1/.stdout
 
-@load base/frameworks/cluster
+@TEST-START-FILE cluster-layout.zeek
+redef Cluster::nodes = {
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
+	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
+	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
+	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $interface="eth0"],
+};
+@TEST-END-FILE
+
+@load policy/frameworks/cluster/experimental
 @load base/frameworks/telemetry
 @load base/utils/active-http
 
@@ -57,8 +66,6 @@ event run_test()
 		}
 	}
 
-global node_count = 0;
-
 @if ( Cluster::node == "manager-1" )
 # Use a dynamic metrics port for testing to avoid colliding on 9911/tcp
 # when running tests in parallel.
@@ -70,14 +77,11 @@ event zeek_init()
 	print Cluster::node, "original Broker::metrics_port", orig_metrics_port;
 	}
 
-event Cluster::node_up(name: string, id: string)
+event Cluster::Experimental::cluster_started()
 	{
-	++node_count;
-	# Run the test after all nodes are up and metrics_export_interval
+	# Run the test once all nodes are up and metrics_export_interval
 	# has passed at least once.
-	if ( Cluster::node == "manager-1" )
-		if ( node_count == 3 )
-			schedule 2 * Broker::metrics_export_interval { run_test() };
+	schedule 2 * Broker::metrics_export_interval { run_test() };
 	}
 @endif
 
@@ -87,12 +91,3 @@ event Cluster::node_down(name: string, id: string)
 	print fmt("node_down on %s", Cluster::node);
 	terminate();
 	}
-
-@TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
-	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $interface="eth0"],
-};
-@TEST-END-FILE

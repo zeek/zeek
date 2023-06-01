@@ -13,6 +13,11 @@
 @load policy/misc/dump-events.zeek
 @load policy/protocols/conn/speculative-service.zeek
 
+@if ( have_spicy() )
+@load frameworks/spicy/record-spicy-batch.zeek
+@load frameworks/spicy/resource-usage.zeek
+@endif
+
 @load ./example.zeek
 
 event zeek_init()

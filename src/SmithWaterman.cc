@@ -172,10 +172,7 @@ bool SubstringCmp::operator()(const Substring* bst1, const Substring* bst2) cons
 		return false;
 		}
 
-	if ( bst1->GetAlignments()[_index].index <= bst2->GetAlignments()[_index].index )
-		return true;
-
-	return false;
+	return (bst1->GetAlignments()[_index].index < bst2->GetAlignments()[_index].index);
 	}
 
 // A node in Smith-Waterman's dynamic programming matrix.  Each node

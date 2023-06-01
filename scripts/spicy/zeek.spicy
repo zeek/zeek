@@ -1,0 +1,157 @@
+# Copyright (c) 2020-2021 by the Zeek Project. See LICENSE for details.
+
+module zeek;
+
+# Note: Retain the formatting here, doc/scripts/autogen-spicy-lib is picking up on that.
+
+%cxx-include = "zeek/spicy/runtime-support.h";
+
+## [Deprecated] Triggers a DPD protocol confirmation for the current connection.
+##
+## This function has been deprecated and will be removed. Use ``spicy::accept_input``
+## instead, which will have the same effect with Zeek.
+public function confirm_protocol() : void &cxxname="zeek::spicy::rt::confirm_protocol";
+
+## [Deprecated] Triggers a DPD protocol violation for the current connection.
+##
+## This function has been deprecated and will be removed. Use ``spicy::decline_input``
+## instead, which will have the same effect with Zeek.
+public function reject_protocol(reason: string) : void &cxxname="zeek::spicy::rt::reject_protocol";
+
+## Reports a "weird" to Zeek. This should be used with similar semantics as in
+## Zeek: something quite unexpected happening at the protocol level, which however
+## does not prevent us from continuing to process the connection.
+##
+## id: the name of the weird, which (just like in Zeek) should be a *static*
+## string identifying the situation reported (e.g., ``unexpected_command``).
+##
+## addl: additional information to record along with the weird
+public function weird(id: string, addl: string = "") &cxxname="zeek::spicy::rt::weird";
+
+## Returns true if we're currently parsing the originator side of a connection.
+public function is_orig() : bool &cxxname="zeek::spicy::rt::is_orig";
+
+## Returns the current connection's UID.
+public function uid() : string &cxxname="zeek::spicy::rt::uid";
+
+## Returns the current connection's 4-tuple ID.
+public function conn_id() : tuple<orig_h: addr, orig_p: port, resp_h: addr, resp_p: port> &cxxname="zeek::spicy::rt::conn_id";
+
+## Instructs Zeek to flip the directionality of the current connection.
+public function flip_roles() : void &cxxname="zeek::spicy::rt::flip_roles";
+
+## Returns the number of packets seen so far on the current side of the current connection.
+public function number_packets() : uint64 &cxxname="zeek::spicy::rt::number_packets";
+
+## Opaque handle to a protocol analyzer.
+public type ProtocolHandle = __library_type("zeek::spicy::rt::ProtocolHandle");
+
+## Adds a Zeek-side child protocol analyzer to the current connection.
+##
+## If the same analyzer was added previously with protocol_handle_get_or_create or
+## protocol_begin with same argument, and not closed with protocol_handle_close
+## or protocol_end, no new analyzer will be added.
+##
+## See `protocol_handle_get_or_create` for the error semantics of this function.
+##
+## analyzer: type of analyzer to instantiate, specified through its Zeek-side
+## name (similar to what Zeek's signature action `enable` takes); if not
+## specified, Zeek will perform its usual dynamic protocol detection to figure
+## out how to parse the data (the latter will work only for TCP protocols, though.)
+public function protocol_begin(analyzer: optional<string> = Null) : void &cxxname="zeek::spicy::rt::protocol_begin";
+
+## Gets a handle to a Zeek-side child protocol analyzer for the current connection.
+##
+## If no such child exists it will be added; otherwise a handle to the
+## existing child protocol analyzer will be returned.
+##
+## This function will return an error
+##
+## - if not called from a protocol analyzer, or
+## - the requested child protocol analyzer is unknown, or
+## - creation of a child analyzer of the requested type was prevented by a
+##   previous call of `disable_analyzer` with `prevent=T`
+##
+## analyzer: type of analyzer to instantiate, specified through its Zeek-side
+## name (similar to what Zeek's signature action `enable` takes).
+public function protocol_handle_get_or_create(analyzer: string) : ProtocolHandle &cxxname="zeek::spicy::rt::protocol_handle_get_or_create";
+
+## Forwards protocol data to all previously instantiated Zeek-side child protocol analyzers.
+##
+## is_orig: true to feed the data to the child's originator side, false for the responder
+## data: chunk of data to forward to child analyzer
+## h: optional handle to the child analyzer to forward data into, else forward to all child analyzers
+public function protocol_data_in(is_orig: bool, data: bytes, h: optional<ProtocolHandle> = Null) : void &cxxname="zeek::spicy::rt::protocol_data_in";
+
+## Signals a gap in input data to all previously instantiated Zeek-side child protocol analyzers.
+##
+## is_orig: true to signal gap to the child's originator side, false for the responder
+## offset: start offset of gap in input stream
+## len: size of gap
+## h: optional handle to the child analyzer signal a gap to, else signal to all child analyzers
+public function protocol_gap(is_orig: bool, offset: uint64, len: uint64, h: optional<ProtocolHandle> = Null) : void &cxxname="zeek::spicy::rt::protocol_gap";
+
+## Signals end-of-data to all previously instantiated Zeek-side child protocol
+## analyzers and removes them.
+public function protocol_end() : void &cxxname="zeek::spicy::rt::protocol_end";
+
+## Signals end-of-data to the given child analyzer and removes it.
+##
+## The given handle must be live, i.e., it must not have been used in a
+## previous protocol_handle_close call, and must not have been live when
+## protocol_end was called. If the handle is not live a runtime error will
+## be triggered.
+##
+## handle: handle to the child analyzer to remove
+public function protocol_handle_close(handle: ProtocolHandle): void &cxxname="zeek::spicy::rt::protocol_handle_close";
+
+## Signals the beginning of a file to Zeek's file analysis, associating it with the current connection.
+## Optionally, a mime type can be provided. It will be passed on to Zeek's file analysis framework.
+## Returns the Zeek-side file ID of the new file.
+public function file_begin(mime_type: optional<string> = Null) : string &cxxname="zeek::spicy::rt::file_begin";
+
+## Returns the current file's FUID.
+public function fuid() : string &cxxname="zeek::spicy::rt::fuid";
+
+## Terminates the currently active Zeek-side session, flushing all state. Any
+## subsequent activity will start a new session from scratch. This can only be
+## called from inside a protocol analyzer.
+public function terminate_session() : void &cxxname="zeek::spicy::rt::terminate_session";
+
+## Signals the expected size of a file to Zeek's file analysis.
+##
+## size: expected size of file
+## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
+public function file_set_size(size: uint64, fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_set_size";
+
+## Passes file content on to Zeek's file analysis.
+##
+## data: chunk of raw data to pass into analysis
+## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
+public function file_data_in(data: bytes, fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_data_in";
+
+## Passes file content at a specific offset on to Zeek's file analysis.
+##
+## data: chunk of raw data to pass into analysis
+## offset: position in file where data starts
+## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
+public function file_data_in_at_offset(data: bytes, offset: uint64, fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_data_in_at_offset";
+
+## Signals a gap in a file to Zeek's file analysis.
+##
+## offset: position in file where gap starts
+## len: size of gap
+## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
+public function file_gap(offset: uint64, len: uint64, fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_gap";
+
+## Signals the end of a file to Zeek's file analysis.
+##
+## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
+public function file_end(fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_end";
+
+## Inside a packet analyzer, forwards what data remains after parsing the top-level unit
+## on to another analyzer. The index specifies the target, per the current dispatcher table.
+public function forward_packet(identifier: uint32) : void &cxxname="zeek::spicy::rt::forward_packet";
+
+## Gets the network time from Zeek.
+public function network_time() : time &cxxname="zeek::spicy::rt::network_time";

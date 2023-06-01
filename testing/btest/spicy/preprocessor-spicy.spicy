@@ -1,0 +1,61 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: echo == spicyz >>output
+# @TEST-EXEC: spicyz -c x %INPUT
+# @TEST-EXEC: cat x_Foo.cc | grep print >>output
+#
+# @TEST-EXEC: btest-diff output
+#
+# @TEST-DOC: Test various Spicy preprocessor constructs
+#
+# Same test is part of Spicy itself as well, with different results.
+
+module Foo;
+
+@if   HAVE_ZEEK
+print "have zeek";
+@else
+print "not have zeek";
+@endif
+
+@if   !   HAVE_ZEEK
+print "not have zeek";
+@endif
+
+@if SPICY_VERSION
+print "have spicy version";
+@endif
+
+@if SPICY_VERSION    >=    400
+print "have spicy version >= 0.4";
+@endif
+
+@if SPICY_VERSION >= 40000
+print "have spicy version >= 4";
+@endif
+
+@if ! SPICY_VERSION >= 40000
+print "not have spicy version >= 4";
+@endif
+
+@if    UNKNOWiN
+no valid Spicy syntax here.
+@endif
+
+@if HAVE_ZEEK
+    @if ZEEK_VERSION > 10000
+    print "have zeek and zeek version > 1.0";
+    @else
+    print "have zeek but zeek version < 1.0";
+    @endif
+@else
+    print "have not zeek";
+@endif
+
+@if   HAVE_ZEEK
+    @if ZEEK_VERSION < 10000
+    print "have zeek and zeek version < 1.0";
+    @endif
+@else
+    print "have not zeek";
+@endif

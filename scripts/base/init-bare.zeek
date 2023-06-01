@@ -891,6 +891,7 @@ type record_field: record {
 	## :zeek:see:`record_fields` (if it has one).
 	value: any &optional;
 	default_val: any &optional;	##< The value of the :zeek:attr:`&default` attribute if defined.
+	optional: bool;	##< True if the field is :zeek:attr:`&optional`, else false.
 };
 
 ## Table type used to map record field declarations to meta-information
@@ -1091,6 +1092,14 @@ type entropy_test_result: record {
 	mean: double;	##< Arithmetic Mean.
 	monte_carlo_pi: double;	##< Monte-carlo value for pi.
 	serial_correlation: double;	##< Serial correlation coefficient.
+};
+
+## Return type for from_json BIF.
+##
+## .. zeek:see:: from_json
+type from_json_result: record { 
+	v: any &optional;	##< Parsed value.
+	valid: bool;	##< True if parsing was successful.
 };
 
 # TCP values for :zeek:see:`endpoint` *state* field.
@@ -1731,8 +1740,12 @@ type ip4_hdr: record {
 	tos: count;		##< Type of service.
 	len: count;		##< Total length.
 	id: count;		##< Identification.
+	DF: bool;		##< True if the packet's *don't fragment* flag is set.
+	MF: bool;		##< True if the packet's *more fragments* flag is set.
+	offset: count;		##< Fragment offset.
 	ttl: count;		##< Time to live.
 	p: count;		##< Protocol.
+	sum: count;		##< Checksum.
 	src: addr;		##< Source address.
 	dst: addr;		##< Destination address.
 };
@@ -2983,6 +2996,16 @@ export {
 	##
 	## .. zeek:see:: smb_pipe_connect_heuristic
 	const SMB::pipe_filenames: set[string] &redef;
+
+	## The maximum number of messages for which to retain state
+	## about offsets, fids, or tree ids within the parser. When
+	## the limit is reached, internal parser state is discarded
+	## and :zeek:see:`smb2_discarded_messages_state` raised.
+	##
+	## Setting this to zero will disable the functionality.
+	##
+	## .. zeek:see:: smb2_discarded_messages_state
+	const SMB::max_pending_messages = 1000 &redef;
 }
 
 module SMB1;
@@ -5679,3 +5702,7 @@ event net_done(t: time)
 @endif
 
 @load base/packet-protocols
+
+@if ( have_spicy() )
+@load base/frameworks/spicy/init-bare
+@endif

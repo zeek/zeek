@@ -1,0 +1,21 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o test.hlto %INPUT test.evt
+# @TEST-EXEC: zeek -b -r ${TRACES}/ssh/single-conn.trace Zeek::Spicy test.hlto Spicy::enable_print=T >>output
+# @TEST-EXEC: zeek -b -r ${TRACES}/ftp/ipv6.trace Zeek::Spicy test.hlto Spicy::enable_print=T >>output
+# @TEST-EXEC: btest-diff output
+
+module Test;
+
+import zeek;
+
+public type Foo = unit {
+    on %init { print zeek::conn_id(); }
+    x : /./;
+};
+
+# @TEST-START-FILE test.evt
+protocol analyzer spicy::Test over TCP:
+    port 21/tcp-22/tcp,
+    parse originator with Test::Foo;
+# @TEST-END-FILE

@@ -1,0 +1,67 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
+#pragma once
+
+#include <string>
+
+#include <hilti/rt/filesystem.h>
+
+#include "zeek/zeek-config-paths.h"
+
+namespace zeek::spicy::configuration {
+
+using path = hilti::rt::filesystem::path;
+
+namespace {
+
+// This mimics zeek-config to get the Zeek include directories.
+static inline void add_path(std::string& old_path, const path& new_path) {
+    if ( new_path.empty() )
+        return;
+
+    if ( ! old_path.empty() )
+        old_path += ":";
+
+    old_path += new_path.native();
+}
+} // namespace
+
+static path get_env_path_or(const char* name, const char* default_) {
+    assert(std::strlen(default_) != 0);
+    if ( auto p = hilti::rt::getenv(name); p && ! p->empty() )
+        return path(*p);
+    else
+        return default_;
+}
+
+inline const auto InstallBinDir() { return path("${CMAKE_INSTALL_PREFIX}") / "${CMAKE_INSTALL_BINDIR}"; }
+
+inline const auto LibraryPath() { return get_env_path_or("ZEEK_SPICY_LIBRARY_PATH", "@ZEEK_SPICY_LIBRARY_PATH@"); }
+
+inline const auto ModulePath() { return get_env_path_or("ZEEK_SPICY_MODULE_PATH", "@ZEEK_SPICY_MODULE_PATH@"); }
+
+inline const auto DataPath() { return get_env_path_or("ZEEK_SPICY_DATA_PATH", "@ZEEK_SPICY_DATA_PATH@"); }
+
+inline const auto CxxZeekIncludesDirectories() {
+    std::string includes;
+    add_path(includes, path("${CMAKE_INSTALL_PREFIX}") / "${CMAKE_INSTALL_INCLUDEDIR}");
+
+    // When changing any of the following, also update "zeek-config.in".
+    add_path(includes, "${ZEEK_CONFIG_PCAP_INCLUDE_DIR}");
+    add_path(includes, "${ZEEK_CONFIG_ZLIB_INCLUDE_DIR}");
+    add_path(includes, "${ZEEK_CONFIG_OPENSSL_INCLUDE_DIR}");
+    add_path(includes, "${ZEEK_CONFIG_LibKrb5_INCLUDE_DIR}");
+    add_path(includes, "${ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR}");
+
+    return includes;
+}
+
+// Version of Spicy that we are compiling against.
+#cmakedefine SPICY_VERSION_NUMBER ${SPICY_VERSION_NUMBER}
+#cmakedefine ZEEK_VERSION_NUMBER ${ZEEK_VERSION_NUMBER}
+
+inline const auto SpicyVersion = "${SPICY_VERSION}";
+inline const auto ZeekVersion = "${VERSION}";
+inline const auto InstallPrefix = path("${CMAKE_INSTALL_PREFIX}");
+
+} // namespace zeek::spicy::configuration

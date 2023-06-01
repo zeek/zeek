@@ -65,6 +65,9 @@
 #include "zeek/plugin/Manager.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/session/Manager.h"
+#ifdef HAVE_SPICY
+#include "zeek/spicy/manager.h"
+#endif
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
@@ -191,6 +194,9 @@ zeek::Broker::Manager* zeek::broker_mgr = nullptr;
 zeek::telemetry::Manager* zeek::telemetry_mgr = nullptr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
 zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
+#ifdef HAVE_SPICY
+zeek::spicy::Manager* zeek::spicy_mgr = nullptr;
+#endif
 
 std::vector<std::string> zeek::detail::zeek_script_prefixes;
 zeek::detail::Stmt* zeek::detail::stmts = nullptr;
@@ -437,6 +443,9 @@ static void terminate_zeek()
 	delete session_mgr;
 	delete fragment_mgr;
 	delete telemetry_mgr;
+#ifdef HAVE_SPICY
+	delete spicy_mgr;
+#endif
 
 	// free the global scope
 	pop_scope();
@@ -629,15 +638,22 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		supervisor_mgr = new Supervisor(std::move(cfg), std::move(*stem));
 		}
 
+	std::string seed_string;
+	if ( const auto* seed_env = getenv("ZEEK_SEED_VALUES") )
+		seed_string = seed_env;
+
 	const char* seed_load_file = getenv("ZEEK_SEED_FILE");
 
 	if ( options.random_seed_input_file )
 		seed_load_file = options.random_seed_input_file->data();
 
+	if ( seed_load_file && *seed_load_file && ! seed_string.empty() )
+		reporter->FatalError("can't use ZEEK_SEED_VALUES together with ZEEK_SEED_FILE or -G");
+
 	util::detail::init_random_seed(
 		(seed_load_file && *seed_load_file ? seed_load_file : nullptr),
 		options.random_seed_output_file ? options.random_seed_output_file->data() : nullptr,
-		options.deterministic_mode);
+		options.deterministic_mode, seed_string);
 	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
 	init_hash_function();
 
@@ -712,6 +728,9 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
 	broker_mgr = new Broker::Manager(broker_real_time);
 	trigger_mgr = new trigger::Manager();
+#ifdef HAVE_SPICY
+	spicy_mgr = new spicy::Manager(); // registers as plugin with the plugin manager
+#endif
 
 	plugin_mgr->InitPreScript();
 	file_mgr->InitPreScript();

@@ -1,0 +1,34 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC-FAIL: spicyz -d -o test.hlto %INPUT test.spicy >output 2>&1
+# @TEST-EXEC:      TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output
+#
+# @TEST-DOC: In EVT, provide access to hooks arguments
+
+# @TEST-START-FILE test.spicy
+module SSH;
+public type Banner = unit {};
+# @TEST-END-FILE
+
+# Wrong/unknown. parameter type
+on SSH::Banner::%error(msg: bytes) -> event Banner::error(msg);
+
+# @TEST-START-NEXT
+# Wrong signature
+on SSH::Banner::%error(msg: string, foo: uint64) -> event Banner::error(msg);
+
+# @TEST-START-NEXT
+# Wrong signature
+on SSH::Banner::%error(msg: uint64) -> event Banner::error(msg);
+
+# @TEST-START-NEXT
+# Syntax error
+on SSH::Banner::%error(msg: string,) -> event Banner::error(msg);
+
+# @TEST-START-NEXT
+# Syntax error
+on SSH::Banner::%error(,msg: string) -> event Banner::error(msg);
+
+# @TEST-START-NEXT
+# Syntax error
+on SSH::Banner::%error(msg) -> event Banner::error(msg);

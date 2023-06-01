@@ -77,6 +77,7 @@ function version_ok(vers : uint16) : bool
 	case TLSv13:
 	case DTLSv10:
 	case DTLSv12:
+	case DTLSv13:
 		return true;
 
 	default:
@@ -121,7 +122,8 @@ enum SSLVersions {
 
 	DTLSv10   = 0xFEFF,
 	# DTLSv11 does not exist.
-	DTLSv12   = 0xFEFD
+	DTLSv12   = 0xFEFD,
+	DTLSv13   = 0xFEFC
 };
 
 enum SSLExtensions {
@@ -155,6 +157,7 @@ enum SSLExtensions {
 	EXT_CERTIFICATE_AUTHORITIES = 47,
 	EXT_OID_FILTERS = 48,
 	EXT_KEY_SHARE = 51,
+	EXT_CONNECTION_ID = 54,
 	EXT_NEXT_PROTOCOL_NEGOTIATION = 13172,
 	EXT_ORIGIN_BOUND_CERTIFICATES = 13175,
 	EXT_ENCRYPTED_CLIENT_CERTIFICATES = 13180,

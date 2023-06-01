@@ -1,3 +1,6 @@
+# Skip for C++ testing, since not all of the tests use the same script.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
 # This verifies the interaction between the -C flag and the script-layer
 # ignore_checksums global.
 #

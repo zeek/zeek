@@ -11,6 +11,8 @@
 
 redef allow_network_time_forward = F;
 
+global timer_tock: event();
+
 event zeek_init()
 	{
 	print network_time(), "zeek_init: broker peering";
@@ -34,7 +36,8 @@ event timer(s: string)
 	print fmt("%.3f", network_time()), "timer", s;
 	}
 
-# The manager tells us our network_time.
+# The manager sends timer_tick() with the network time to the worker which
+# replies back with a timer_tock().
 global received_ticks = 0;
 event timer_tick(ts: time) &is_used
 	{
@@ -48,9 +51,11 @@ event timer_tick(ts: time) &is_used
 		{
 		schedule 0.5sec { timer("first timer (1 sec)") };
 		schedule 3sec { timer("second timer (3 sec)") };
-		schedule 3.25sec { timer("third timer (3.5 sec)") };
+		schedule 3.25sec { timer("third timer (3.25 sec)") };
 		schedule 5sec { timer("fourth timer (10 sec)") };
 		}
+
+	Broker::publish("zeek/event/my_topic", timer_tock);
 
 	if ( received_ticks == 30 )
 		terminate();
@@ -74,20 +79,21 @@ event zeek_init()
 	{
 	print "manager: listening";
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
+	Broker::subscribe("zeek/event/my_topic");
 	}
 
-event local_tick() {
+# Received from the worker once it has processed the tick.
+event timer_tock() &is_used
+	{
 	fake_network_time = fake_network_time + double_to_interval(0.25);
 	Broker::publish("zeek/event/my_topic", timer_tick, fake_network_time);
-	schedule 0.05 sec { local_tick() };
-}
+	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
-        {
-        print "manager: peer added, publishing do_continue_processing";
+	{
+	print "manager: peer added, publishing timer_tick() events";
 	Broker::publish("zeek/event/my_topic", timer_tick, fake_network_time);
-	schedule 0.05 sec { local_tick() };
-        }
+	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{

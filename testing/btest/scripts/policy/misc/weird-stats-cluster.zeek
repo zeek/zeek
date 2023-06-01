@@ -18,7 +18,7 @@ redef Cluster::nodes = {
 @TEST-END-FILE
 
 @load misc/weird-stats
-@load base/frameworks/cluster
+@load policy/frameworks/cluster/experimental
 
 redef Cluster::retry_interval = 1sec;
 redef Broker::default_listen_retry = 1sec;
@@ -44,8 +44,11 @@ event ready_again()
 	schedule 5secs { terminate_me() };
 	}
 
-event ready_for_data()
+event Cluster::Experimental::cluster_started()
 	{
+	if ( Cluster::node == "manager-1" )
+		return;
+
 	local n = 0;
 
 	if ( Cluster::node == "worker-1" )
@@ -70,18 +73,3 @@ event ready_for_data()
 
 	schedule 5secs { ready_again() };
 	}
-
-
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-
-global peer_count = 0;
-
-event Cluster::node_up(name: string, id: string)
-	{
-	++peer_count;
-
-	if ( peer_count == 2 )
-		Broker::publish(Cluster::worker_topic, ready_for_data);
-	}
-
-@endif

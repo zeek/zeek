@@ -130,7 +130,8 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	// Call DeliverPacket on the adapter directly here. Normally we'd call ForwardPacket
 	// but this adapter does some other things in its DeliverPacket with the packet children
 	// analyzers.
-	adapter->DeliverPacket(len, data, is_orig, adapter->LastRelDataSeq(), ip.get(), remaining);
+	adapter->DeliverPacket(remaining, data, is_orig, adapter->LastRelDataSeq(), ip.get(),
+	                       pkt->cap_len);
 	}
 
 const struct tcphdr* TCPAnalyzer::ExtractTCP_Header(const u_char*& data, int& len, int& remaining,

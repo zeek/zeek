@@ -2932,7 +2932,13 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const
 			const ListVal* lv = v2->AsListVal();
 
 			if ( lv->Length() == 1 )
-				v = vect->ValAt(lv->Idx(0)->CoerceToUnsigned());
+				{
+				auto index = lv->Idx(0)->CoerceToInt();
+				if ( index < 0 )
+					index = vect->Size() + index;
+
+				v = vect->ValAt(index);
+				}
 			else
 				return index_slice(vect, lv);
 			}
@@ -4279,7 +4285,8 @@ ScheduleTimer::~ScheduleTimer() { }
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	{
 	if ( event )
-		event_mgr.Enqueue(event, std::move(args));
+		event_mgr.Enqueue(event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr,
+		                  this->Time());
 	}
 
 ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)

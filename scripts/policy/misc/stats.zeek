@@ -123,21 +123,32 @@ global packets_filtered_cf = Telemetry::register_counter_family([
     $help_text="Total number of packets filtered",
 ]);
 
+global packet_lag_gf = Telemetry::register_gauge_family([
+    $prefix="zeek",
+    $name="net-packet-lag",
+    $unit="seconds",
+    $help_text="Difference of network time and wallclock time in seconds.",
+]);
+
+global no_labels: vector of string;
+
 hook Telemetry::sync() {
 	local net_stats = get_net_stats();
-	Telemetry::counter_family_set(bytes_received_cf, vector(), net_stats$bytes_recvd);
-	Telemetry::counter_family_set(packets_received_cf, vector(), net_stats$pkts_recvd);
+	Telemetry::counter_family_set(bytes_received_cf, no_labels, net_stats$bytes_recvd);
+	Telemetry::counter_family_set(packets_received_cf, no_labels, net_stats$pkts_recvd);
 
 	if ( reading_live_traffic() )
 		{
-		Telemetry::counter_family_set(packets_dropped_cf, vector(), net_stats$pkts_dropped);
-		Telemetry::counter_family_set(link_packets_cf, vector(), net_stats$pkts_link);
+		Telemetry::counter_family_set(packets_dropped_cf, no_labels, net_stats$pkts_dropped);
+		Telemetry::counter_family_set(link_packets_cf, no_labels, net_stats$pkts_link);
 
 		if ( net_stats?$pkts_filtered )
-			Telemetry::counter_family_set(packets_filtered_cf, vector(), net_stats$pkts_filtered);
+			Telemetry::counter_family_set(packets_filtered_cf, no_labels, net_stats$pkts_filtered);
+
+		Telemetry::gauge_family_set(packet_lag_gf, no_labels,
+		                            interval_to_double(current_time() - network_time()));
 		}
 }
-
 
 event zeek_init() &priority=5
 	{

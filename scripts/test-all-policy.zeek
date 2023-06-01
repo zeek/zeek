@@ -62,7 +62,6 @@
 @load frameworks/intel/seen/where-locations.zeek
 @load frameworks/intel/seen/x509.zeek
 @load frameworks/netcontrol/catch-and-release.zeek
-@load frameworks/files/deprecated-txhosts-rxhosts-connuids.zeek
 @load frameworks/files/detect-MHR.zeek
 @load frameworks/files/entropy-test-all-files.zeek
 #@load frameworks/files/extract-all-files.zeek
@@ -88,7 +87,6 @@
 @load misc/load-balancing.zeek
 @load misc/loaded-scripts.zeek
 @load misc/profiling.zeek
-@load misc/scan.zeek
 @load misc/stats.zeek
 @load misc/weird-stats.zeek
 @load misc/trim-trace-file.zeek
@@ -119,7 +117,6 @@
 @load protocols/krb/ticket-logging.zeek
 @load protocols/modbus/known-masters-slaves.zeek
 @load protocols/modbus/track-memmap.zeek
-#@load protocols/mqtt/__load__.zeek
 @load protocols/mysql/software.zeek
 @load protocols/rdp/indicate_ssl.zeek
 @load protocols/smb/log-cmds.zeek

@@ -4695,6 +4695,7 @@ LambdaExpr::LambdaExpr(LambdaExpr* orig)
 	master_func = orig->master_func;
 	ingredients = orig->ingredients;
 	lambda_id = orig->lambda_id;
+	my_name = orig->my_name;
 
 	// We need to have our own copies of the outer IDs and captures so
 	// we can rename them when inlined.

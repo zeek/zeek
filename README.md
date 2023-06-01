@@ -20,7 +20,7 @@ Follow us on Twitter at [@zeekurity](https://twitter.com/zeekurity).
 [![Coverage Status](https://coveralls.io/repos/github/zeek/zeek/badge.svg?branch=master)](https://coveralls.io/github/zeek/zeek?branch=master)
 [![Build Status](https://img.shields.io/cirrus/github/zeek/zeek)](https://cirrus-ci.com/github/zeek/zeek)
 
-[![Slack](https://img.shields.io/badge/slack-@zeek-brightgreen.svg?logo=slack)](https://join.slack.com/t/zeekorg/shared_invite/zt-1ev1nr7z4-rEVSsaIzYzFWpdgh2I6ZOg)
+[![Slack](https://img.shields.io/badge/slack-@zeek-brightgreen.svg?logo=slack)](https://zeek.org/slack)
 [![Discourse](https://img.shields.io/discourse/status?server=https%3A%2F%2Fcommunity.zeek.org)](https://community.zeek.org)
 
 </h4>

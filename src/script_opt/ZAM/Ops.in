@@ -2172,13 +2172,15 @@ eval	flow = FLOW_BREAK;
 	pc = end_pc;
 	continue;
 
+# Slot 2 gives frame size.
 internal-op Lambda
-type V
+type VV
 eval	auto& aux = z.aux;
-	auto& ingr = aux->ingredients;
-	auto lamb = make_intrusive<ScriptFunc>(ingr->GetID());
-	ASSERT(ingr->Body()->Tag() == STMT_ZAM);
-	lamb->AddBody(*ingr);
+	auto& master_func = aux->master_func;
+	auto& body = master_func->GetBodies()[0].stmts;
+	ASSERT(body->Tag() == STMT_ZAM);
+	auto lamb = make_intrusive<ScriptFunc>(aux->id_val);
+	lamb->AddBody(body, z.v2);
 	lamb->SetName(aux->lambda_name.c_str());
 	if ( aux->n > 0 )
 		{

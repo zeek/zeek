@@ -411,7 +411,7 @@ bool ZInstI::HasCaptures() const
 	{
 	switch ( op )
 		{
-		case OP_LAMBDA_V:
+		case OP_LAMBDA_VV:
 		case OP_WHEN_V:
 		case OP_WHEN_TIMEOUT_VV:
 		case OP_WHEN_TIMEOUT_VC:

@@ -117,12 +117,13 @@ public:
 
 	// Various ways to add a new event handler to an existing function
 	// (event).
-	void AddBody(const detail::FunctionIngredients& ingr);
+	void AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_body = nullptr);
 	virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
 	                     size_t new_frame_size, int priority,
 	                     const std::set<EventGroupPtr>& groups);
-	virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
+	void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
 	                     size_t new_frame_size, int priority = 0);
+	void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
 
 	virtual void SetScope(detail::ScopePtr newscope);
 	virtual detail::ScopePtr GetScope() const { return scope; }
@@ -171,6 +172,7 @@ class ScriptFunc : public Func
 	{
 public:
 	ScriptFunc(const IDPtr& id);
+	ScriptFunc(const ID* id);
 
 	// For compiled scripts.
 	ScriptFunc(std::string name, FuncTypePtr ft, std::vector<StmtPtr> bodies,
@@ -380,9 +382,8 @@ public:
 	const ScopePtr& Scope() const { return scope; }
 	const auto& Groups() const { return groups; }
 
-	// These are used by script optimization to update lambda ingredients
+	// Used by script optimization to update lambda ingredients
 	// after compilation.
-	void SetBody(StmtPtr _body) { body = std::move(_body); }
 	void SetFrameSize(size_t _frame_size) { frame_size = std::move(_frame_size); }
 
 private:

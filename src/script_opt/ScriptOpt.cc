@@ -36,13 +36,22 @@ static ZAMCompiler* ZAM = nullptr;
 static bool generating_CPP = false;
 static std::string CPP_dir; // where to generate C++ code
 
+static std::unordered_set<const ScriptFunc*> lambdas;
 static ScriptFuncPtr global_stmts;
 
 void analyze_func(ScriptFuncPtr f)
 	{
 	// Even if we're analyzing only a subset of the scripts, we still
 	// track all functions here because the inliner will need the full list.
+	ASSERT(f->GetScope());
 	funcs.emplace_back(f, f->GetScope(), f->CurrentBody(), f->CurrentPriority());
+	}
+
+void analyze_lambda(LambdaExpr* l)
+	{
+	auto& mf = l->MasterFunc();
+	analyze_func(mf);
+	lambdas.insert(mf.get());
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)
@@ -448,51 +457,11 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	// Re-profile the functions, now without worrying about compatibility
 	// with compilation to C++.
 
-	pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
-
 	// The first profiling pass earlier may have marked some of the
 	// functions as to-skip, so clear those markings.
 	for ( auto& f : funcs )
 		f.SetSkip(false);
 
-	// Find all the lambda bodies and create proxy functions for them
-	// so we can compile them, too.  Note that when profiling them we
-	// may find yet more lambdas.
-	//
-	// We skip this if we're not actually compiling, since if we just
-	// inline without compilation (only done for debugging) we'd need
-	// to seperately fix up their frame sizes, which is a bit of a pain
-	// for little gain.
-	std::unordered_set<const LambdaExpr*> lambdas_to_do;
-	std::unordered_map<const ScriptFunc*, const LambdaExpr*> lambdas;
-
-	if ( analysis_options.activate )
-		// We'll be compiling, so worth tracking lambdas.
-		lambdas_to_do = pfs->Lambdas();
-
-	while ( ! lambdas_to_do.empty() )
-		{
-		auto batch = lambdas_to_do;
-		lambdas_to_do.clear();
-
-		for ( auto& l : batch )
-			{
-			auto ingr = l->Ingredients();
-			auto f = make_intrusive<ScriptFunc>(ingr->GetID());
-			f->AddBody(*ingr);
-
-			lambdas[f.get()] = l;
-
-			funcs.emplace_back(f, ingr->Scope(), ingr->Body(), 0);
-
-			ProfileFunc pf(ingr->Body().get());
-			auto& new_l = pf.Lambdas();
-			lambdas_to_do.insert(new_l.begin(), new_l.end());
-			}
-		}
-
-	// Oof, we need to profile YET AGAIN to make sure we get a coherent
-	// picture including the lambdas.
 	pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
 
 	bool report_recursive = analysis_options.report_recursive;
@@ -540,32 +509,24 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	for ( auto& f : funcs )
 		{
 		auto func = f.Func();
-		auto lambda_func = lambdas.find(func);
-		bool is_lambda = lambda_func != lambdas.end();
+		bool is_lambda = lambdas.count(func) > 0;
 
-		if ( ! is_lambda )
+		if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
 			{
-			if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
-				{
-				if ( ! should_analyze(f.FuncPtr(), f.Body()) )
-					continue;
-				}
-
-			else if ( ! analysis_options.compile_all && inl && inl->WasInlined(func) &&
-			          func_used_indirectly.count(func) == 0 )
-				{
-				// No need to compile as it won't be
-				// called directly.
+			if ( ! should_analyze(f.FuncPtr(), f.Body()) )
 				continue;
-				}
+			}
+
+		else if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasInlined(func) &&
+			  func_used_indirectly.count(func) == 0 )
+			{
+			// No need to compile as it won't be called directly.
+			continue;
 			}
 
 		auto new_body = f.Body();
 		optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
 		f.SetBody(new_body);
-
-		if ( is_lambda )
-			lambda_func->second->UpdateFrom(func);
 
 		did_one = true;
 		}

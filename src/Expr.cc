@@ -25,6 +25,7 @@
 #include "zeek/digest.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek::detail
 	{
@@ -4654,16 +4655,17 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 		return;
 		}
 
-	// Install a dummy version of the function globally for use only
-	// when broker provides a closure.
-	dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
-	dummy_func->SetOuterIDs(outer_ids);
+	// Install a master version of the function globally.  This is used
+	// by both broker (for transmitting closures) and script optimization
+	// (replacing its AST body with a compiled one).
+	master_func = make_intrusive<ScriptFunc>(ingredients->GetID());
+	master_func->SetOuterIDs(outer_ids);
 
 	// When we build the body, it will get updated with initialization
 	// statements.  Update the ingredients to reflect the new body,
 	// and no more need for initializers.
-	dummy_func->AddBody(*ingredients);
-	ingredients->SetBody(dummy_func->GetBodies()[0].stmts);
+	master_func->AddBody(*ingredients);
+	master_func->SetScope(ingredients->Scope());
 	ingredients->ClearInits();
 
 	if ( name.empty() )
@@ -4675,12 +4677,14 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	dummy_func->SetName(my_name.c_str());
+	master_func->SetName(my_name.c_str());
 
-	auto v = make_intrusive<FuncVal>(dummy_func);
+	auto v = make_intrusive<FuncVal>(master_func);
 	lambda_id->SetVal(std::move(v));
 	lambda_id->SetType(std::move(ingr_t));
 	lambda_id->SetConst();
+
+	analyze_lambda(this);
 	}
 
 bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
@@ -4769,7 +4773,7 @@ void LambdaExpr::BuildName()
 	{
 	// Get the body's "string" representation.
 	ODesc d;
-	dummy_func->Describe(&d);
+	master_func->Describe(&d);
 
 	for ( ;; )
 		{
@@ -4799,10 +4803,23 @@ ScopePtr LambdaExpr::GetScope() const
 ValPtr LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
-	lamb->AddBody(*ingredients);
+
+	StmtPtr body = master_func->GetBodies()[0].stmts;
+
+	if ( run_state::is_parsing )
+		// We're evaluating this lambda at parse time, which happens
+		// for initializations.  If we're doing script optimization
+		// then the current version of the body might be left in an
+		// inconsistent state (e.g., if it's replaced with ZAM code)
+		// causing problems if we execute this lambda subsequently.
+		// To avoid that problem, we duplicate the AST so it's
+		// distinct.
+		body = body->Duplicate();
+
+	lamb->AddBody(*ingredients, body);
 	lamb->CreateCaptures(f);
 
-	// Set name to corresponding dummy func.
+	// Set name to corresponding master func.
 	// Allows for lookups by the receiver.
 	lamb->SetName(my_name.c_str());
 

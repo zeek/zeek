@@ -786,8 +786,9 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
 	int ncaptures = captures ? captures->size() : 0;
 
 	auto aux = new ZInstAux(ncaptures);
-	aux->ingredients = le->Ingredients();
+	aux->master_func = le->MasterFunc();
 	aux->lambda_name = le->Name();
+	aux->id_val = le->Ingredients()->GetID().get();
 
 	for ( int i = 0; i < ncaptures; ++i )
 		{
@@ -799,8 +800,10 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
 			aux->Add(i, FrameSlot(id_i), id_i->GetType());
 		}
 
-	auto z = ZInstI(OP_LAMBDA_V, n_slot);
+	auto z = ZInstI(OP_LAMBDA_VV, n_slot, le->MasterFunc()->FrameSize());
+	z.op_type = OP_VV_I2;
 	z.aux = aux;
+
 	return AddInst(z);
 	}
 

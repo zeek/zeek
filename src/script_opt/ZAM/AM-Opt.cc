@@ -467,7 +467,7 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				break;
 				}
 
-			case OP_LAMBDA_V:
+			case OP_LAMBDA_VV:
 				{
 				auto aux = inst->aux;
 				int n = aux->n;

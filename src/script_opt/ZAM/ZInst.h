@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/Desc.h"
+#include "zeek/Func.h"
 #include "zeek/script_opt/ZAM/BuiltInSupport.h"
 #include "zeek/script_opt/ZAM/Support.h"
 #include "zeek/script_opt/ZAM/ZOp.h"
@@ -431,7 +432,7 @@ public:
 	bool* is_managed = nullptr;
 
 	// Ingredients associated with lambdas ...
-	std::shared_ptr<FunctionIngredients> ingredients;
+	ScriptFuncPtr master_func;
 
 	// ... and its name.
 	std::string lambda_name;

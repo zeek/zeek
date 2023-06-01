@@ -1470,12 +1470,9 @@ public:
 	// Optimization-related:
 	ExprPtr Duplicate() override;
 
-	// The following is non-const so the body can be updated by
-	// script optimization.
-	std::shared_ptr<FunctionIngredients> Ingredients() const { return ingredients; }
+	const ScriptFuncPtr& MasterFunc() const { return master_func; }
 
-	// Updates the lambda to reflect a new, optimized instance.
-	void UpdateFrom(const ScriptFunc* new_func) const;
+	const std::shared_ptr<FunctionIngredients>& Ingredients() const { return ingredients; }
 
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
@@ -1487,7 +1484,7 @@ private:
 	void BuildName();
 
 	std::shared_ptr<FunctionIngredients> ingredients;
-	ScriptFuncPtr dummy_func;
+	ScriptFuncPtr master_func;
 	IDPtr lambda_id;
 	IDPList outer_ids;
 

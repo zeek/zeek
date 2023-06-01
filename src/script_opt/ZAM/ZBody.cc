@@ -193,10 +193,10 @@ ZBody::~ZBody()
 
 void ZBody::SetInsts(vector<ZInst*>& _insts)
 	{
-	ninst = _insts.size();
-	auto insts_copy = new ZInst[ninst];
+	end_pc = _insts.size();
+	auto insts_copy = new ZInst[end_pc];
 
-	for ( auto i = 0U; i < ninst; ++i )
+	for ( auto i = 0U; i < end_pc; ++i )
 		insts_copy[i] = *_insts[i];
 
 	insts = insts_copy;
@@ -206,10 +206,10 @@ void ZBody::SetInsts(vector<ZInst*>& _insts)
 
 void ZBody::SetInsts(vector<ZInstI*>& instsI)
 	{
-	ninst = instsI.size();
-	auto insts_copy = new ZInst[ninst];
+	end_pc = instsI.size();
+	auto insts_copy = new ZInst[end_pc];
 
-	for ( auto i = 0U; i < ninst; ++i )
+	for ( auto i = 0U; i < end_pc; ++i )
 		{
 		auto& iI = *instsI[i];
 		insts_copy[i] = iI;
@@ -228,7 +228,7 @@ void ZBody::InitProfile()
 		{
 		inst_count = new vector<int>;
 		inst_CPU = new vector<double>;
-		for ( auto i = 0U; i < ninst; ++i )
+		for ( auto i = 0U; i < end_pc; ++i )
 			{
 			inst_count->push_back(0);
 			inst_CPU->push_back(0.0);
@@ -258,7 +258,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow)
 	{
 	int pc = 0;
-	static const int end_pc = ninst;
 
 	// Return value, or nil if none.
 	const ZVal* ret_u = nullptr;
@@ -449,7 +448,7 @@ void ZBody::Dump() const
 
 	printf("Final code:\n");
 
-	for ( unsigned i = 0; i < ninst; ++i )
+	for ( unsigned i = 0; i < end_pc; ++i )
 		{
 		auto& inst = insts[i];
 		printf("%d: ", i);

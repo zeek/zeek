@@ -123,9 +123,12 @@ std::string render_call_stack()
 	return rval;
 	}
 
-void Func::AddBody(const detail::FunctionIngredients& ingr)
+void Func::AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_body)
 	{
-	AddBody(ingr.Body(), ingr.Inits(), ingr.FrameSize(), ingr.Priority(), ingr.Groups());
+	if ( ! new_body )
+		new_body = ingr.Body();
+
+	AddBody(new_body, ingr.Inits(), ingr.FrameSize(), ingr.Priority(), ingr.Groups());
 	}
 
 void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
@@ -133,6 +136,13 @@ void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& n
 	{
 	std::set<EventGroupPtr> groups;
 	AddBody(new_body, new_inits, new_frame_size, priority, groups);
+	}
+
+void Func::AddBody(detail::StmtPtr new_body, size_t new_frame_size)
+	{
+	std::vector<detail::IDPtr> no_inits;
+	std::set<EventGroupPtr> no_groups;
+	AddBody(new_body, no_inits, new_frame_size, 0, no_groups);
 	}
 
 void Func::AddBody(detail::StmtPtr /* new_body */,
@@ -285,10 +295,13 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 namespace detail
 	{
 
-ScriptFunc::ScriptFunc(const IDPtr& arg_id) : Func(SCRIPT_FUNC)
+ScriptFunc::ScriptFunc(const IDPtr& id) :
+ScriptFunc::ScriptFunc(id.get()) {}
+
+ScriptFunc::ScriptFunc(const ID* id) : Func(SCRIPT_FUNC)
 	{
-	name = arg_id->Name();
-	type = arg_id->GetType<zeek::FuncType>();
+	name = id->Name();
+	type = id->GetType<zeek::FuncType>();
 	frame_size = 0;
 	}
 
@@ -296,6 +309,7 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
                        std::vector<int> priorities)
 	{
 	name = std::move(_name);
+printf("building ScriptFunc #2 %s\n", name.c_str());
 	frame_size = ft->ParamList()->GetTypes().size();
 	type = std::move(ft);
 

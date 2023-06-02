@@ -264,13 +264,7 @@ void Ascii::InitConfigOptions()
 	gzip_file_extension.assign((const char*)BifConst::LogAscii::gzip_file_extension->Bytes(),
 	                           BifConst::LogAscii::gzip_file_extension->Len());
 
-	// Remove in v6.1: LogAscii::logdir should be gone in favor
-	// of using Log::default_logdir.
-	logdir.assign((const char*)BifConst::LogAscii::logdir->Bytes(),
-	              BifConst::LogAscii::logdir->Len());
-
-	if ( logdir.empty() )
-		logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
+	logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
 	}
 
 bool Ascii::InitFilterOptions()
@@ -379,15 +373,6 @@ bool Ascii::InitFilterOptions()
 
 		else if ( strcmp(i->first, "gzip_file_extension") == 0 )
 			gzip_file_extension.assign(i->second);
-
-		else if ( strcmp(i->first, "logdir") == 0 )
-			{
-			// This doesn't play nice with leftover log rotation
-			// and log rotation in general. There's no documentation
-			// or a test for this specifically, so deprecate it.
-			reporter->Deprecation("Remove in v6.1. Per writer logdir is deprecated.");
-			logdir.assign(i->second);
-			}
 		}
 
 	if ( ! InitFormatter() )
@@ -763,16 +748,12 @@ static std::vector<LeftoverLog> find_leftover_logs()
 	auto prefix_len = strlen(shadow_file_prefix);
 	auto default_logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
 
-	// Find any .shadow files within LogAscii::logdir, Log::default_logdir
-	// or otherwise search in the current working directory.
+	// Find any .shadow files within Log::default_logdir or otherwise search in
+	// the current working directory.
 	auto logdir = zeek::filesystem::current_path();
 
 	if ( ! default_logdir.empty() )
 		logdir = zeek::filesystem::absolute(default_logdir);
-
-	// Remove LogAscii::logdir fallback in v6.1.
-	if ( BifConst::LogAscii::logdir->Len() > 0 )
-		logdir = zeek::filesystem::absolute(BifConst::LogAscii::logdir->ToStdString());
 
 	auto d = opendir(logdir.string().c_str());
 	struct dirent* dp;

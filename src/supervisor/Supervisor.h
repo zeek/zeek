@@ -240,11 +240,6 @@ public:
 		 */
 		std::vector<std::string> addl_user_scripts;
 		/**
-		 * The former name for addl_user_scripts, now deprecated.
-		 */
-		std::vector<std::string> scripts
-			[[deprecated("Remove in v6.1. Use NodeConfig::addl_user_scripts.")]];
-		/**
 		 * Environment variables and values  to define in the node.
 		 */
 		std::map<std::string, std::string> env;

@@ -4696,6 +4696,7 @@ LambdaExpr::LambdaExpr(LambdaExpr* orig)
 	ingredients = orig->ingredients;
 	lambda_id = orig->lambda_id;
 	my_name = orig->my_name;
+	private_captures = orig->private_captures;
 
 	// We need to have our own copies of the outer IDs and captures so
 	// we can rename them when inlined.
@@ -4854,6 +4855,22 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(expr_name(Tag()));
+
+	if ( captures && d->IsReadable() )
+		{
+		d->Add("[");
+
+		for ( auto& c : *captures )
+			{
+			if ( &c != &(*captures)[0] )
+				d->AddSP(", ");
+
+			d->Add(c.Id()->Name());
+			}
+
+		d->Add("]");
+		}
+
 	ingredients->Body()->Describe(d);
 	}
 

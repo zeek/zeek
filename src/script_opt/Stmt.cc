@@ -924,25 +924,49 @@ StmtPtr InitStmt::DoReduce(Reducer* c)
 	return ThisPtr();
 	}
 
-StmtPtr WhenStmt::Duplicate()
+bool WhenInfo::HasUnreducedIDs(Reducer* c) const
 	{
-	FuncType::CaptureList* cl_dup = nullptr;
-
-	if ( wi->Captures() )
+	for ( auto& cp : *cl )
 		{
-		cl_dup = new FuncType::CaptureList;
-		*cl_dup = *wi->Captures();
+		auto cid = cp.Id();
+
+		if ( when_new_locals.count(cid.get()) == 0 && ! c->ID_IsReduced(cp.Id()) )
+			return true;
 		}
 
-	auto new_wi = new WhenInfo(Cond(), cl_dup, IsReturn());
-	new_wi->AddBody(Body());
-	new_wi->AddTimeout(TimeoutExpr(), TimeoutBody());
+	for ( auto& l : when_expr_locals )
+		if ( ! c->ID_IsReduced(l) )
+			return true;
 
-	return SetSucc(new WhenStmt(wi));
+	return false;
+	}
+
+void WhenInfo::UpdateIDs(Reducer* c)
+	{
+	for ( auto& cp : *cl )
+		{
+		auto& cid = cp.Id();
+		if ( when_new_locals.count(cid.get()) == 0 )
+			cp.SetID(c->UpdateID(cid));
+		}
+
+	for ( auto& l : when_expr_locals )
+		l = c->UpdateID(l);
+	}
+
+StmtPtr WhenStmt::Duplicate()
+	{
+	return SetSucc(new WhenStmt(new WhenInfo(wi)));
 	}
 
 bool WhenStmt::IsReduced(Reducer* c) const
 	{
+	if ( wi->HasUnreducedIDs(c) )
+		return false;
+
+	if ( ! wi->Lambda()->IsReduced(c) )
+		return false;
+
 	if ( ! wi->TimeoutExpr() )
 		return true;
 
@@ -951,6 +975,12 @@ bool WhenStmt::IsReduced(Reducer* c) const
 
 StmtPtr WhenStmt::DoReduce(Reducer* c)
 	{
+	if ( ! c->Optimizing() )
+		{
+		wi->UpdateIDs(c);
+		(void)wi->Lambda()->ReduceToSingletons(c);
+		}
+
 	auto e = wi->TimeoutExpr();
 
 	if ( ! e )

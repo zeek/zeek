@@ -28,6 +28,7 @@ namespace detail
 class Frame;
 class Scope;
 class FunctionIngredients;
+class WhenInfo;
 using IDPtr = IntrusivePtr<ID>;
 using ScopePtr = IntrusivePtr<Scope>;
 using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
@@ -1491,6 +1492,15 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 private:
+	friend class WhenInfo;
+
+	// "Private" captures are captures that correspond to "when"
+	// condition locals.  These aren't true captures in that they
+	// don't come from the outer frame when the lambda is constructed,
+	// but they otherwise behave like captures in that they persist
+	// across function invocations.
+	void SetPrivateCaptures(const IDSet& pcaps) { private_captures = pcaps; }
+
 	bool CheckCaptures(StmtPtr when_parent);
 	void BuildName();
 
@@ -1501,6 +1511,7 @@ private:
 	IDPtr lambda_id;
 	IDPList outer_ids;
 	std::optional<CaptureList> captures;
+	IDSet private_captures;
 
 	std::string my_name;
 	};

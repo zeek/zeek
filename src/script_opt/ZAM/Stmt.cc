@@ -1111,7 +1111,7 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws)
 	auto lambda = NewSlot(true);
 	(void)BuildLambda(lambda, wi->Lambda().get());
 
-	std::vector<const ID*> local_aggr_slots;
+	std::vector<IDPtr> local_aggr_slots;
 	for ( auto& l : wi->WhenExprLocals() )
 		if ( IsAggr(l->GetType()->Tag()) )
 			local_aggr_slots.push_back(l);

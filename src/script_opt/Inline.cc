@@ -129,16 +129,6 @@ void Inliner::Analyze()
 		if ( body->Tag() == STMT_CPP )
 			continue;
 
-		// ... that don't use lambdas or when's, since for those,
-		// if they have closures then we need to rename the
-		// corresponding ID's *inside* their bodies, which won't
-		// work if they're inlined multiple times since we don't
-		// duplicate lambda bodies (see LambdaExpr::Duplicate() for
-		// why that is).
-
-		if ( f.Profile()->NumWhenStmts() > 0 )
-			continue;
-
 		inline_ables.insert(func);
 		}
 

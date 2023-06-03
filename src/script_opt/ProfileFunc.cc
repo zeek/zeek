@@ -370,7 +370,12 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e)
 					params.insert(i);
 				}
 
-			// Avoid recursing into the body.
+			// In general, we don't want to recurse into the body.
+			// However, we still want to *profile* it so we can
+			// identify calls within it.
+			ProfileFunc body_pf(l->Ingredients()->Body().get(), false);
+			script_calls.insert(body_pf.ScriptCalls().begin(), body_pf.ScriptCalls().end());
+
 			return TC_ABORTSTMT;
 			}
 

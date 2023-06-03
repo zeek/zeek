@@ -2140,7 +2140,7 @@ eval	auto& g = globals[z.v1];
 	g.id->SetVal(frame[g.slot].ToVal(z.t));
 
 # Both of these have the LHS as v2 not v1, to keep with existing
-# conventions of OP_VV_I2 op type (as opposed ot OP_VV_I1_V2, which doesn't
+# conventions of OP_VV_I2 op type (as opposed to OP_VV_I1_V2, which doesn't
 # currently exist, and would be a pain to add).
 internal-op Store-Capture
 op1-read

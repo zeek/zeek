@@ -229,7 +229,8 @@ protected:
 	// The same, but in a deterministic order, with duplicates removed.
 	std::vector<const Type*> ordered_types;
 
-	// Script functions that this script calls.
+	// Script functions that this script calls.  Includes calls made
+	// by lambdas and when bodies, as the goal is to identify recursion.
 	std::unordered_set<ScriptFunc*> script_calls;
 
 	// Same for BiF's, though for them we record the corresponding global

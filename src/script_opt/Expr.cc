@@ -2434,8 +2434,13 @@ bool LambdaExpr::IsReduced(Reducer* c) const
 		return true;
 
 	for ( auto& cp : *captures )
-		if ( ! c->ID_IsReduced(cp.Id()) )
-			return false;
+		{
+		auto& cid = cp.Id();
+
+		if ( private_captures.count(cid.get()) == 0 &&
+		     ! c->ID_IsReduced(cid) )
+			return NonReduced(this);
+		}
 
 	return true;
 	}
@@ -2466,7 +2471,12 @@ void LambdaExpr::UpdateCaptures(Reducer* c)
 	if ( captures )
 		{
 		for ( auto& cp : *captures )
-			cp.SetID(c->UpdateID(cp.Id()));
+			{
+			auto& cid = cp.Id();
+
+			if ( private_captures.count(cid.get()) == 0 )
+				cp.SetID(c->UpdateID(cid));
+			}
 
 		c->UpdateIDs(&outer_ids);
 		}
@@ -2737,6 +2747,13 @@ void InlineExpr::ExprDescribe(ODesc* d) const
 		{
 		d->Add("inline(");
 		args->Describe(d);
+		d->Add(")(");
+		for ( auto& p : params )
+			{
+			if ( &p != &params[0] )
+				d->AddSP(",");
+			d->Add(p->Name());
+			}
 		d->Add("){");
 		body->Describe(d);
 		d->Add("}");

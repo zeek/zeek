@@ -51,9 +51,13 @@ ValPtr index_table__CPP(const TableValPtr& t, vector<ValPtr> indices)
 
 ValPtr index_vec__CPP(const VectorValPtr& vec, int index)
 	{
+	if ( index < 0 )
+		index += vec->Size();
+
 	auto v = vec->ValAt(index);
 	if ( ! v )
 		reporter->CPPRuntimeError("no such index");
+
 	return v;
 	}
 

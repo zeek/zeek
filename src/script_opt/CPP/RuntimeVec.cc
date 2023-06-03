@@ -26,12 +26,17 @@ static bool check_vec_sizes__CPP(const VectorValPtr& v1, const VectorValPtr& v2)
 // (for example, adding one vector of "interval" to another), which
 // we want to do using the low-level representations.  We'll later
 // convert the vector to the high-level representation if needed.
-static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt)
+//
+// One exception: for booleans ("is_bool" is true), we use those directly.
+static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt, bool is_bool = false)
 	{
 	switch ( vt->Yield()->InternalType() )
 		{
 		case TYPE_INTERNAL_INT:
-			return make_intrusive<VectorType>(base_type(TYPE_INT));
+			{
+			auto base_tag = is_bool ? TYPE_BOOL : TYPE_INT;
+			return make_intrusive<VectorType>(base_type(base_tag));
+			}
 
 		case TYPE_INTERNAL_UNSIGNED:
 			return make_intrusive<VectorType>(base_type(TYPE_COUNT));
@@ -119,36 +124,27 @@ VEC_OP1(comp, ~, )
 		}
 
 // Analogous to VEC_OP1, instantiates a function for a given binary operation,
-// which might-or-might-not be supported for low-level "double" types.
+// with customimzable kernels for "int" and "double" operations.
 // This version is for operations whose result type is the same as the
 // operand type.
-#define VEC_OP2(name, op, double_kernel, zero_check)                                               \
+#define VEC_OP2(name, op, int_kernel, double_kernel, zero_check, is_bool)                          \
 	VectorValPtr vec_op_##name##__CPP(const VectorValPtr& v1, const VectorValPtr& v2)              \
 		{                                                                                          \
 		if ( ! check_vec_sizes__CPP(v1, v2) )                                                      \
 			return nullptr;                                                                        \
                                                                                                    \
-		auto vt = base_vector_type__CPP(v1->GetType<VectorType>());                                \
+		auto vt = base_vector_type__CPP(v1->GetType<VectorType>(), is_bool);                       \
 		auto v_result = make_intrusive<VectorVal>(vt);                                             \
                                                                                                    \
 		switch ( vt->Yield()->InternalType() )                                                     \
 			{                                                                                      \
-			case TYPE_INTERNAL_INT:                                                                \
-				{                                                                                  \
-				if ( vt->Yield()->Tag() == TYPE_BOOL )                                             \
-					VEC_OP2_KERNEL(AsBool, BoolVal, op, zero_check)                                \
-				else                                                                               \
-					VEC_OP2_KERNEL(AsInt, IntVal, op, zero_check)                                  \
-				break;                                                                             \
-				}                                                                                  \
-                                                                                                   \
 			case TYPE_INTERNAL_UNSIGNED:                                                           \
 				{                                                                                  \
 				VEC_OP2_KERNEL(AsCount, CountVal, op, zero_check)                                  \
 				break;                                                                             \
 				}                                                                                  \
                                                                                                    \
-				double_kernel                                                                      \
+				int_kernel double_kernel                                                           \
                                                                                                    \
 					default : break;                                                               \
 			}                                                                                      \
@@ -156,9 +152,29 @@ VEC_OP1(comp, ~, )
 		return v_result;                                                                           \
 		}
 
+// Instantiates a regular int_kernal for a binary operation.
+#define VEC_OP2_WITH_INT(name, op, double_kernel, zero_check)                                      \
+	VEC_OP2(                                                                                       \
+		name, op, case TYPE_INTERNAL_INT                                                           \
+		: {                                                                                        \
+			VEC_OP2_KERNEL(AsInt, IntVal, op, zero_check)                                          \
+			break;                                                                                 \
+		},                                                                                         \
+		double_kernel, zero_check, false)
+
+// Instantiates an int_kernal for boolean operations.
+#define VEC_OP2_WITH_BOOL(name, op, zero_check)                                                    \
+	VEC_OP2(                                                                                       \
+		name, op, case TYPE_INTERNAL_INT                                                           \
+		: {                                                                                        \
+			VEC_OP2_KERNEL(AsBool, BoolVal, op, zero_check)                                        \
+			break;                                                                                 \
+		},                                                                                         \
+		, zero_check, true)
+
 // Instantiates a double_kernel for a binary operation.
 #define VEC_OP2_WITH_DOUBLE(name, op, zero_check)                                                  \
-	VEC_OP2(                                                                                       \
+	VEC_OP2_WITH_INT(                                                                              \
 		name, op, case TYPE_INTERNAL_DOUBLE                                                        \
 		: {                                                                                        \
 			VEC_OP2_KERNEL(AsDouble, DoubleVal, op, zero_check)                                    \
@@ -171,14 +187,14 @@ VEC_OP2_WITH_DOUBLE(add, +, 0)
 VEC_OP2_WITH_DOUBLE(sub, -, 0)
 VEC_OP2_WITH_DOUBLE(mul, *, 0)
 VEC_OP2_WITH_DOUBLE(div, /, 1)
-VEC_OP2(mod, %, , 1)
-VEC_OP2(and, &, , 0)
-VEC_OP2(or, |, , 0)
-VEC_OP2(xor, ^, , 0)
-VEC_OP2(andand, &&, , 0)
-VEC_OP2(oror, ||, , 0)
-VEC_OP2(lshift, <<, , 0)
-VEC_OP2(rshift, >>, , 0)
+VEC_OP2_WITH_INT(mod, %, , 1)
+VEC_OP2_WITH_INT(and, &, , 0)
+VEC_OP2_WITH_INT(or, |, , 0)
+VEC_OP2_WITH_INT(xor, ^, , 0)
+VEC_OP2_WITH_BOOL(andand, &&, 0)
+VEC_OP2_WITH_BOOL(oror, ||, 0)
+VEC_OP2_WITH_INT(lshift, <<, , 0)
+VEC_OP2_WITH_INT(rshift, >>, , 0)
 
 // A version of VEC_OP2 that instead supports relational operations, so
 // the result type is always vector-of-bool.

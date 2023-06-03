@@ -48,12 +48,28 @@ extern ValPtr when_index_vec__CPP(const VectorValPtr& vec, int index);
 // custom one for those occurring inside a "when" clause.
 extern ValPtr when_index_slice__CPP(VectorVal* vec, const ListVal* lv);
 
+// Calls out to the given script or BiF function, which does not return
+// a value.
+inline ValPtr invoke_void__CPP(Func* f, std::vector<ValPtr> args, Frame* frame)
+	{
+	return f->Invoke(&args, frame);
+	}
+
+// Used for error propagation by failed calls.
+class CPPInterpreterException : public InterpreterException
+	{
+	};
+
 // Calls out to the given script or BiF function.  A separate function because
 // of the need to (1) construct the "args" vector using {} initializers,
 // but (2) needing to have the address of that vector.
 inline ValPtr invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame)
 	{
-	return f->Invoke(&args, frame);
+	auto v = f->Invoke(&args, frame);
+	if ( ! v )
+		throw CPPInterpreterException();
+
+	return v;
 	}
 
 // The same, but raises an interpreter exception if the function does

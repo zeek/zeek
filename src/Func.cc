@@ -308,7 +308,6 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
                        std::vector<int> priorities)
 	{
 	name = std::move(_name);
-	printf("building ScriptFunc #2 %s\n", name.c_str());
 	frame_size = ft->ParamList()->GetTypes().size();
 	type = std::move(ft);
 

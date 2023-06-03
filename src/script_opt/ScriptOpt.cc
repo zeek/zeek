@@ -37,6 +37,7 @@ static bool generating_CPP = false;
 static std::string CPP_dir; // where to generate C++ code
 
 static std::unordered_set<const ScriptFunc*> lambdas;
+static std::unordered_set<const ScriptFunc*> when_lambdas;
 static ScriptFuncPtr global_stmts;
 
 void analyze_func(ScriptFuncPtr f)
@@ -52,6 +53,16 @@ void analyze_lambda(LambdaExpr* l)
 	auto& mf = l->MasterFunc();
 	analyze_func(mf);
 	lambdas.insert(mf.get());
+	}
+
+void analyze_when_lambda(LambdaExpr* l)
+	{
+	when_lambdas.insert(l->MasterFunc().get());
+	}
+
+bool is_when_lambda(const ScriptFunc* f)
+	{
+	return when_lambdas.count(f) > 0;
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)

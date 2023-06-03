@@ -2020,6 +2020,8 @@ void WhenInfo::Build(StmtPtr ws)
 
 	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), "", ws);
 	lambda->SetPrivateCaptures(when_new_locals);
+
+	analyze_when_lambda(lambda.get());
 	}
 
 void WhenInfo::Instantiate(Frame* f)

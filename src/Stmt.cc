@@ -1895,7 +1895,7 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 	param_id->SetType(count_t);
 	}
 
-WhenInfo::WhenInfo(WhenInfo* orig)
+WhenInfo::WhenInfo(const WhenInfo* orig)
 	{
 	if ( orig->cl )
 		{

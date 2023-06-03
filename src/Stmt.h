@@ -555,7 +555,7 @@ public:
 	WhenInfo(ExprPtr cond, FuncType::CaptureList* cl, bool is_return);
 
 	// Used for duplication to support inlining.
-	WhenInfo(WhenInfo* orig);
+	WhenInfo(const WhenInfo* orig);
 
 	// Constructor used by script optimization to create a stub.
 	WhenInfo(bool is_return);

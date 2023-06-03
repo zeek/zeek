@@ -2437,8 +2437,7 @@ bool LambdaExpr::IsReduced(Reducer* c) const
 		{
 		auto& cid = cp.Id();
 
-		if ( private_captures.count(cid.get()) == 0 &&
-		     ! c->ID_IsReduced(cid) )
+		if ( private_captures.count(cid.get()) == 0 && ! c->ID_IsReduced(cid) )
 			return NonReduced(this);
 		}
 

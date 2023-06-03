@@ -295,8 +295,7 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 namespace detail
 	{
 
-ScriptFunc::ScriptFunc(const IDPtr& id) :
-ScriptFunc::ScriptFunc(id.get()) {}
+ScriptFunc::ScriptFunc(const IDPtr& id) : ScriptFunc::ScriptFunc(id.get()) { }
 
 ScriptFunc::ScriptFunc(const ID* id) : Func(SCRIPT_FUNC)
 	{
@@ -309,7 +308,7 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
                        std::vector<int> priorities)
 	{
 	name = std::move(_name);
-printf("building ScriptFunc #2 %s\n", name.c_str());
+	printf("building ScriptFunc #2 %s\n", name.c_str());
 	frame_size = ft->ParamList()->GetTypes().size();
 	type = std::move(ft);
 

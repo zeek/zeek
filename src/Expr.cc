@@ -4689,8 +4689,7 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	analyze_lambda(this);
 	}
 
-LambdaExpr::LambdaExpr(LambdaExpr* orig)
-	: Expr(EXPR_LAMBDA)
+LambdaExpr::LambdaExpr(LambdaExpr* orig) : Expr(EXPR_LAMBDA)
 	{
 	master_func = orig->master_func;
 	ingredients = orig->ingredients;

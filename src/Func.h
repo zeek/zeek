@@ -122,7 +122,7 @@ public:
 	                     size_t new_frame_size, int priority,
 	                     const std::set<EventGroupPtr>& groups);
 	void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
-	                     size_t new_frame_size, int priority = 0);
+	             size_t new_frame_size, int priority = 0);
 	void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
 
 	virtual void SetScope(detail::ScopePtr newscope);

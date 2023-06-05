@@ -1,3 +1,9 @@
+6.1.0-dev.8 | 2023-06-05 14:16:53 +0200
+
+  * Update zeekctl for pysubnetree/patricia upgrade (Tim Wojtulewicz, Corelight)
+
+  * Update link to slack in README.md (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.4 | 2023-05-31 13:48:49 -0700
 
   * Update bifcl, binpac, and broker repos for cmake changes (Tim Wojtulewicz)

@@ -54,6 +54,7 @@ const char* stmt_name(StmtTag t)
 		"ZAM",
 		"ZAM-resumption",
 		"null",
+		"assert",
 	};
 
 	return stmt_names[int(t)];
@@ -1859,6 +1860,134 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
+
+	tc = cb->PostStmt(this);
+	HANDLE_TC_STMT_POST(tc);
+	}
+
+AssertStmt::AssertStmt(ExprPtr arg_cond, ExprPtr arg_msg)
+	: Stmt(STMT_ASSERT), cond(std::move(arg_cond)), msg(std::move(arg_msg))
+	{
+	if ( ! IsBool(cond->GetType()->Tag()) )
+		cond->Error("conditional must be boolean");
+
+	if ( msg && ! IsString(msg->GetType()->Tag()) )
+		msg->Error("message must be string");
+	}
+
+ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow)
+	{
+	RegisterAccess();
+	flow = FLOW_NEXT;
+
+	static auto assertion_failure_hook = id::find_func("assertion_failure");
+	static auto assertion_result_hook = id::find_func("assertion_result");
+
+	bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
+	bool run_failure_hook = assertion_failure_hook && assertion_failure_hook->HasEnabledBodies();
+
+	auto assert_result = cond->Eval(f)->AsBool();
+
+	if ( assert_result && ! run_result_hook )
+		return Val::nil;
+
+	// Textual representation of cond from the AST.
+	static zeek::ODesc desc;
+	desc.Clear();
+	desc.SetShort(true);
+	desc.SetQuotes(true);
+	cond->Describe(&desc);
+	auto cond_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(), (const char*)desc.Bytes());
+
+	zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
+	if ( msg )
+		{
+		// Eval() may fail if expression assumes assert
+		// condition is F, but we still try to get it for
+		// the assertion_result hook.
+		try
+			{
+			msg_val = cast_intrusive<zeek::StringVal>(msg->Eval(f));
+			}
+		catch ( InterpreterException& e )
+			{
+			desc.Clear();
+			desc.Add("<error eval ");
+			msg->Describe(&desc);
+			desc.Add(">");
+			msg_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(), (const char*)desc.Bytes());
+			}
+		}
+
+	VectorValPtr bt = nullptr;
+	if ( run_result_hook || run_failure_hook )
+		{
+		bt = get_current_script_backtrace();
+		auto assert_elem = make_backtrace_element("assert", MakeEmptyCallArgumentVector(),
+		                                          GetLocationInfo());
+		bt->Insert(0, assert_elem);
+		}
+
+	if ( run_result_hook )
+		assertion_result_hook->Invoke(zeek::val_mgr->Bool(assert_result), cond_val, msg_val, bt);
+
+	if ( assert_result )
+		return Val::nil;
+
+	// Run the installed failure hooks, or log a default message.
+	if ( run_failure_hook )
+		assertion_failure_hook->Invoke(cond_val, msg_val, bt);
+	else
+		{
+		std::string reporter_msg = util::fmt("assertion failure: %s", cond_val->CheckString());
+		if ( msg_val->Len() > 0 )
+			reporter_msg += util::fmt(" (%s)", msg_val->CheckString());
+
+		reporter->PushLocation(GetLocationInfo());
+		reporter->Error("%s", reporter_msg.c_str());
+		reporter->PopLocation();
+		}
+
+	throw InterpreterException();
+	}
+
+void AssertStmt::StmtDescribe(ODesc* d) const
+	{
+	Stmt::StmtDescribe(d);
+
+	// Quoting strings looks better when describing assert
+	// statements. So turn it on explicitly.
+	//
+	// E.g., md5_hash("") ends up as md5_hash() without quoting.
+	auto orig_quotes = d->WantQuotes();
+	d->SetQuotes(true);
+
+	cond->Describe(d);
+
+	if ( msg )
+		{
+		d->Add(",");
+		d->SP();
+		msg->Describe(d);
+		}
+
+	DescribeDone(d);
+
+	d->SetQuotes(orig_quotes);
+	}
+
+TraversalCode AssertStmt::Traverse(TraversalCallback* cb) const
+	{
+	TraversalCode tc = cb->PreStmt(this);
+	HANDLE_TC_STMT_PRE(tc);
+
+	tc = cond->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
+	if ( msg )
+		{
+		tc = msg->Traverse(cb);
+		HANDLE_TC_STMT_PRE(tc);
+		}
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);

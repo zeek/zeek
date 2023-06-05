@@ -919,6 +919,12 @@ StmtPtr InitStmt::DoReduce(Reducer* c)
 	return ThisPtr();
 	}
 
+StmtPtr AssertStmt::Duplicate()
+	{
+	// Is this right?
+	return SetSucc(new AssertStmt(cond->Duplicate(), msg ? msg->Duplicate() : nullptr));
+	}
+
 StmtPtr WhenStmt::Duplicate()
 	{
 	FuncType::CaptureList* cl_dup = nullptr;

@@ -29,6 +29,7 @@ namespace detail
 class CompositeHash;
 class Frame;
 
+class AssertStmt;
 class CatchReturnStmt;
 class ExprStmt;
 class ForStmt;
@@ -94,6 +95,7 @@ public:
 	const WhenStmt* AsWhenStmt() const;
 	const SwitchStmt* AsSwitchStmt() const;
 	const NullStmt* AsNullStmt() const;
+	const AssertStmt* AsAssertStmt() const;
 
 	void RegisterAccess() const
 		{

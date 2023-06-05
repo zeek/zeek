@@ -942,6 +942,42 @@ type BacktraceElement: record {
 ## .. zeek:see:: backtrace print_backtrace
 type Backtrace: vector of BacktraceElement;
 
+## A hook that is invoked when an assert statement fails.
+##
+## If no such hook is implemented, a default reporter error message is
+## logged similar to how scripting errors are reported.
+##
+## If assertion_failure hook handlers exist, the default reporter error
+## message is suppressed to allow for customized error messaging.
+##
+## cond: The string representation of the condition.
+##
+## msg: Evaluated message as string given to the assert statement.
+##
+## bt: Backtrace of the assertion error. The top element will contain
+##     the location of the assert statement that failed.
+##
+## .. zeek:see:: assertion_result
+type assertion_failure: hook(cond: string, msg: string, bt: Backtrace);
+
+## A hook that is invoked with the result of every assert statement.
+##
+## This is a potentially expensive hook meant to be used by testing
+## frameworks to summarize assert results. In a production setup,
+## this hook is likely deterimental to performance.
+##
+## result: The result of evaluating **cond**.
+##
+## cond: The string representation of the condition.
+##
+## msg: Evaluated message as string given to the assert statement.
+##
+## bt: Backtrace of the assertion error. The top element will contain
+##     the location of the assert statement that failed.
+##
+## .. zeek:see:: assertion_failure
+type assertion_result: hook(result: bool, cond: string, msg: string, bt: Backtrace);
+
 # todo:: Do we still need these here? Can they move into the packet filter
 # framework?
 #

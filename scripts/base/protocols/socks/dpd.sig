@@ -40,9 +40,7 @@ signature dpd_socks5_server {
 	requires-reverse-signature dpd_socks5_client
 	# Watch for a single authentication method to be chosen by the server or
 	# the server to indicate the no authentication is required.
-	payload /^\x05(\x00|\x01[\x00\x01\x02])/
+	payload /^\x05[\x00\x01\x02\xff]/
 	tcp-state responder
 	enable "socks"
 }
-
-

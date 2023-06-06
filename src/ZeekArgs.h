@@ -39,4 +39,11 @@ Args val_list_to_args(const ValPList& vl);
  */
 VectorValPtr MakeCallArgumentVector(const Args& vals, const RecordTypePtr& types);
 
+/**
+ * Creates an empty "call_argument_vector" vector.
+ *
+ * @return empty vector of script-level type "call_argument_vector"
+ */
+VectorValPtr MakeEmptyCallArgumentVector();
+
 	} // namespace zeek

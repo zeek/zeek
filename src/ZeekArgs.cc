@@ -52,4 +52,10 @@ VectorValPtr MakeCallArgumentVector(const Args& vals, const RecordTypePtr& types
 	return rval;
 	}
 
+VectorValPtr MakeEmptyCallArgumentVector()
+	{
+	static auto call_argument_vector = id::find_type<VectorType>("call_argument_vector");
+	return make_intrusive<VectorVal>(call_argument_vector);
+	}
+
 	} // namespace zeek

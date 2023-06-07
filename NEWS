@@ -9,8 +9,27 @@ Zeek 6.1.0
 Breaking Changes
 ----------------
 
+* ``assert`` is now a reserved keyword for the new ``assert`` statement.
+
 New Functionality
 -----------------
+
+- Added a new ``assert`` statement for assertion based testing and asserting
+  runtime state.
+
+	assert <expr: bool>[, <message: string>];
+
+  This statement comes with two hooks. First, ``assertion_failure()`` that
+  is invoked for every failing assert statement. Second, ``assertion_result()``
+  which is invoked for every assert statement and its outcome. The latter allows
+  to construct a summary of failing and passing assert statements. Both hooks
+  receive the location and call stack for the ``assert`` statement via a
+  ``Backtrace`` vector.
+
+  A failing assert will abort execution of the current event handler similar
+  to scripting errors. By default, a reporter error message is logged. Using
+  the break statement within ``assertion_failure()`` or ``assertion_result()``
+  allows to suppress the default message.
 
 Changed Functionality
 ---------------------

@@ -1,3 +1,13 @@
+6.1.0-dev.13 | 2023-06-09 11:03:54 +0200
+
+  * ci/windows: choco --localonly is gone (Arne Welzel, Corelight)
+
+    choco 2.0 is now used after some caching changes on the Cirrus side [1]
+    and the --localonly flag is gone from choco [2], remove its usage.
+
+    [1] https://github.com/cirruslabs/cirrus-ci-docs/issues/1174#issuecomment-1580928673
+    [2] https://docs.chocolatey.org/en-us/guides/upgrading-to-chocolatey-v2-v6#the-list-command-now-lists-local-packages-only-and-the-local-only-and-lo-options-have-been-removed
+
 6.1.0-dev.8 | 2023-06-05 14:16:53 +0200
 
   * Update zeekctl for pysubnetree/patricia upgrade (Tim Wojtulewicz, Corelight)

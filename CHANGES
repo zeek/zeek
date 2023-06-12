@@ -1,3 +1,7 @@
+6.1.0-dev.25 | 2023-06-12 15:27:20 -0700
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.23 | 2023-06-12 11:06:34 -0700
 
   * Bump `auxil/spicy`. (Benjamin Bannier, Corelight)

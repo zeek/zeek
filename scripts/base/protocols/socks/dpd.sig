@@ -31,7 +31,7 @@ signature dpd_socks4_reverse_server {
 signature dpd_socks5_client {
 	ip-proto == tcp
 	# Watch for a few authentication methods to reduce false positives.
-	payload /^\x05.[\x00\x01\x02]/
+	payload /^\x05.[\x00\x01\x02\x03\x05\x06\x07\x08\x09]/
 	tcp-state originator
 }
 
@@ -40,9 +40,23 @@ signature dpd_socks5_server {
 	requires-reverse-signature dpd_socks5_client
 	# Watch for a single authentication method to be chosen by the server or
 	# the server to indicate the no authentication is required.
-	payload /^\x05(\x00|\x01[\x00\x01\x02])/
+	# From wikipedia:
+	# 0x00: No authentication
+	# 0x01: GSSAPI (RFC 1961)
+	# 0x02: Username/password (RFC 1929)
+	# 0x03–0x7F: methods assigned by IANA[11]
+	# 0x03: Challenge-Handshake Authentication Protocol
+	# 0x04: Unassigned
+	# 0x05: Challenge-Response Authentication Method
+	# 0x06: Secure Sockets Layer
+	# 0x07: NDS Authentication
+	# 0x08: Multi-Authentication Framework
+	# 0x09: JSON Parameter Block
+	# 0x0A–0x7F: Unassigned
+	# 0x80–0xFE: methods reserved for private use
+	#
+	# Keep in sync with dpd_socks5_client, 0xff is "no acceptable methods"
+	payload /^\x05[\x00\x01\x02\x03\x05\x06\x07\x08\x09\xff]/
 	tcp-state responder
 	enable "socks"
 }
-
-

@@ -1,3 +1,19 @@
+6.1.0-dev.16 | 2023-06-12 10:56:55 -0700
+
+  * socks/dpd: Add newer auth methods (Arne Welzel, Corelight)
+
+    The IANA has allocated a few more authentication methods, minimally
+    extend the signature to catch those.
+
+  * socks/dpd: Fix socks5_server side signature (Arne Welzel, Corelight)
+
+    The server replies with \x05 and identifier for the chosen method.
+    Not quite sure what the previous signature meant capture.
+
+    See also: https://datatracker.ietf.org/doc/html/rfc1928#section-3
+
+    Closes #3099.
+
 6.1.0-dev.13 | 2023-06-09 11:03:54 +0200
 
   * ci/windows: choco --localonly is gone (Arne Welzel, Corelight)

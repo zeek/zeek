@@ -347,8 +347,6 @@ function nodeid_topic(id: string): string
 	return nodeid_topic_prefix + id + "/";
 	}
 
-@if ( Cluster::is_enabled() )
-
 event Cluster::hello(name: string, id: string) &priority=10
 	{
 	if ( name !in nodes )
@@ -422,8 +420,6 @@ event zeek_init() &priority=5
 
 	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster", $policy=log_policy]);
 	}
-
-@endif
 
 function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo
 	{

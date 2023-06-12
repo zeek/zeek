@@ -1,3 +1,32 @@
+6.1.0-dev.19 | 2023-06-12 11:04:42 -0700
+
+  * test-all-policy: Do not load nodes-experimental/manager.zeek (Arne Welzel, Corelight)
+
+    Turns out loading this script in non-cluster mode uses Cluster::log()
+    and creates cluster.log in the external baselines saying "cluster
+    started". Do not load it into test-all-policy.zeek and instead rely
+    on the new test-all-policy-cluster.test to load it transitively
+    when running as manager for basic checking.
+
+  * cluster/main: Remove extra @if ( Cluster::is_enabled() ) (Arne Welzel, Corelight)
+
+    These have been discussed in the context of "@if &analyze" [1] and
+    am much in favor for not disabling/removing ~100 lines (more than
+    fits on a single terminal) out from the middle of a file. There's no
+    performance impact for having these handlers enabled unconditionally.
+    Also, any future work on "@if &analyze" will look at them again which
+    we could also skip.
+
+    This also reverts back to the behavior where the Cluster::LOG stream
+    is created even in non cluster setups like in previous Zeek versions.
+    As long as no one writes to it there's essentially no difference. If
+    someone does write to Cluster::LOG, I'd argue not black holing these
+    messages is better. Schema generators using Log::active_streams will
+    continue to discover Cluster::LOG even if they run in non-cluster
+    mode.
+
+    https://github.com/zeek/zeek/pull/3062#discussion_r1200498905
+
 6.1.0-dev.16 | 2023-06-12 10:56:55 -0700
 
   * socks/dpd: Add newer auth methods (Arne Welzel, Corelight)

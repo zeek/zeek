@@ -12,7 +12,10 @@
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
 @load frameworks/cluster/experimental.zeek
-@load frameworks/cluster/nodes-experimental/manager.zeek
+# Loaded via the above through test-all-policy-cluster.test
+# when running as a manager, creates cluster.log entries
+# even in non-cluster mode if loaded like the below.
+# @load frameworks/cluster/nodes-experimental/manager.zeek
 @load frameworks/management/agent/__load__.zeek
 @load frameworks/management/agent/api.zeek
 @load frameworks/management/agent/boot.zeek

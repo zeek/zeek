@@ -26,7 +26,7 @@ export {
 }
 
 redef record ResultVal += {
-	# Internal use only.  This is not meant to be publically available
+	# Internal use only.  This is not meant to be publicly available
 	# because probabilistic data structures have to be examined using
 	# specialized bifs.
 	card: opaque of cardinality &optional;

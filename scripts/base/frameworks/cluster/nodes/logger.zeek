@@ -41,7 +41,7 @@ function archiver_encode_log_metadata(tbl: table[string] of string): string
 	local metadata_vec: vector of string;
 	for ( k, v in tbl )
 		{
-		if ( |v| == 0 )  # Assume concious decision to skip this entry.
+		if ( |v| == 0 )  # Assume conscious decision to skip this entry.
 			next;
 
 		if ( /[,=]/ in k || /[,=]/ in v )

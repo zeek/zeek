@@ -653,7 +653,7 @@ bool Manager::CreateTableStream(RecordVal* fval)
 	if ( ! CheckErrorEventTypes(stream_name, error_event, true) )
 		return false;
 
-	vector<Field*> fieldsV; // vector, because we don't know the length beforehands
+	vector<Field*> fieldsV; // vector, because we don't know the length beforehand
 
 	bool status = (! UnrollRecordType(&fieldsV, idx, "", false));
 

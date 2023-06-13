@@ -198,7 +198,7 @@ protected:
 	bool initialized; // True if initialized.
 	bool buf; // True if buffering is enabled (default).
 	bool local; // True if logging locally.
-	bool remote; // True if loggin remotely.
+	bool remote; // True if logging remotely.
 
 	const char* name; // Descriptive name of the
 	WriterBackend::WriterInfo* info; // The writer information.

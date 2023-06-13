@@ -167,7 +167,7 @@ export {
 	##
 	## For example, a search for 192.168.17.0/8 will reveal a rule that exists for
 	## 192.168.0.0/16, since this rule affects the subnet. However, it will not reveal
-	## a more specific rule for 192.168.17.1/32, which does not directy affect the whole
+	## a more specific rule for 192.168.17.1/32, which does not directly affect the whole
 	## subnet.
 	##
 	## This function works on both the manager and workers of a cluster. Note that on

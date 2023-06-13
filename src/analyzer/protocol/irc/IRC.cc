@@ -1079,7 +1079,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig)
 
 void IRC_Analyzer::StartTLS()
 	{
-	// STARTTLS was succesful. Remove support analyzers, add SSL
+	// STARTTLS was successful. Remove support analyzers, add SSL
 	// analyzer, and throw event signifying the change.
 	starttls = true;
 

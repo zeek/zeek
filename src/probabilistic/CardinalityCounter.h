@@ -136,7 +136,7 @@ private:
 	 * Define x = 2*(log(1.04*k/error)/log(2)). Then b is the ceiling of x.
 	 *
 	 * After that initial estimate, the value of b is increased until the
-	 * standard deviation falls within the specified valud.
+	 * standard deviation falls within the specified value.
 	 *
 	 * @param error error margin
 	 *

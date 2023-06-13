@@ -1375,7 +1375,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 			}
 
 		default:
-			return util::fmt("type '%s' unsupport", type_name(t->Tag()));
+			return util::fmt("type '%s' unsupported", type_name(t->Tag()));
 		}
 	}
 
@@ -2425,7 +2425,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					{
 					if ( attrs->Find(detail::ATTR_EXPIRE_CREATE) )
 						{
-						// for create expiry, we have to substract the already elapsed time from
+						// for create expiry, we have to subtract the already elapsed time from
 						// the expiry.
 						auto e = expire_time -
 						         (run_state::network_time - new_entry_val->ExpireAccessTime());
@@ -2720,7 +2720,7 @@ void TableVal::Describe(ODesc* d) const
 
 void TableVal::InitDefaultFunc(detail::Frame* f)
 	{
-	// Value aready initialized.
+	// Value already initialized.
 	if ( def_val )
 		return;
 

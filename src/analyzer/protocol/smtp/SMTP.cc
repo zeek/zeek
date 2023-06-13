@@ -384,7 +384,7 @@ void SMTP_Analyzer::NewCmd(int cmd_code)
 
 void SMTP_Analyzer::StartTLS()
 	{
-	// STARTTLS was succesful. Remove SMTP support analyzers, add SSL
+	// STARTTLS was successful. Remove SMTP support analyzers, add SSL
 	// analyzer, and throw event signifying the change.
 	state = detail::SMTP_IN_TLS;
 	expect_sender = expect_recver = true;

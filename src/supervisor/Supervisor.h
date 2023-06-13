@@ -159,7 +159,7 @@ public:
 		// "scripts" field. It can go when we remove that deprecation.
 		NodeConfig() = default;
 #ifndef _MSC_VER
-		// MSVC throws this error when specifing this constructor:
+		// MSVC throws this error when specifying this constructor:
 		// error C2580: multiple versions of a defaulted special member functions are not allowed
 		NodeConfig(NodeConfig&) = default;
 #endif

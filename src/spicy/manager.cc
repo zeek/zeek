@@ -201,7 +201,7 @@ void Manager::registerPacketAnalyzer(const std::string& name, const std::string&
     ::zeek::detail::zeekygen_mgr->Script(info.name_zeekygen);
     ::zeek::detail::set_location(makeLocation(info.name_zeekygen));
 
-    // TODO: Should Zeek do this? It has run component intialization at
+    // TODO: Should Zeek do this? It has run component initialization at
     // this point already, so ours won't get initialized anymore.
     c->Initialize();
 

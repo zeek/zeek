@@ -409,7 +409,7 @@ function split_string%(str: string, re: pattern%): string_vec
 ## re: The pattern describing the separator to split *str* in two pieces.
 ##
 ## Returns: An array of strings with two elements in which the first represents
-##          the substring in *str* up to the first occurence of *re*, and the
+##          the substring in *str* up to the first occurrence of *re*, and the
 ##          second everything after *re*. An array of one string is returned
 ##          when *s* cannot be split.
 ##
@@ -474,7 +474,7 @@ function split_string_n%(str: string, re: pattern,
 ##
 ## repl: The string that replaces *re*.
 ##
-## Returns: A copy of *str* with the first occurence of *re* replaced with
+## Returns: A copy of *str* with the first occurrence of *re* replaced with
 ##          *repl*.
 ##
 ## .. zeek:see:: gsub subst_string

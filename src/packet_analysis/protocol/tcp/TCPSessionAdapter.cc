@@ -1356,7 +1356,7 @@ void TCPSessionAdapter::ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint,
 	const analyzer::analyzer_list& children(GetChildren());
 	LOOP_OVER_CONST_CHILDREN(i)
 	// Using this type of cast here is nasty (will crash if
-	// we inadvertantly have a child analyzer that's not a
+	// we inadvertently have a child analyzer that's not a
 	// TCP_ApplicationAnalyzer), but we have to ...
 	static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(*i)->ConnectionClosed(endpoint, peer,
 	                                                                           gen_event);

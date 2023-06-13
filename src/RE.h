@@ -167,7 +167,7 @@ public:
 
 	const AcceptingMatchSet& AcceptedMatches() const { return accepted_matches; }
 
-	// Returns the number of bytes feeded into the matcher so far
+	// Returns the number of bytes fed into the matcher so far
 	int Length() { return current_pos; }
 
 	// Returns true if this inputs leads to at least one new match.

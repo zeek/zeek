@@ -775,7 +775,7 @@ type FrozenCounter16woFlag = record {
 
 # g21v11 and g21v12 are obsolete
 
-# Conter event g22
+# Counter event g22
 
 # g22v1
 type CounterEve32wFlag = record {
@@ -807,7 +807,7 @@ type CounterEve16wFlagTime = record {
 
 # g22v7 g22v8 obsolete
 
-# Conter event g23
+# Counter event g23
 
 # g23v1
 type FrozenCounterEve32wFlag = record {

@@ -260,7 +260,7 @@ New Functionality
   recognize CCMP-encrypted packets. These encrypted packets are currently
   dropped to Zeek's inability to do anything with them.
 
-- Add packet analzyers for LLC, SNAP, and Novell 802.3, called from the Ethernet
+- Add packet analyzers for LLC, SNAP, and Novell 802.3, called from the Ethernet
   and VLAN analyzers by default.
 
 - Environment variables for the execution of log rotation postprocessors can
@@ -2381,7 +2381,7 @@ Changed Functionality
   - The IOSource API changed fairly wildly. The ``GetFds()`` and
     ``NextTimestamp`` methods no longer exist. If you had previously
     implemented a custom IOSource, you will need to look at the new API
-    and make changes to your code to accomodate it. This does not include
+    and make changes to your code to accommodate it. This does not include
     packet sources, which should remain functional with little to no
     changes, since the entirety of the changes should be in ``PktSrc``.
 
@@ -4033,7 +4033,7 @@ Changed Functionality
 
     - HTTP
 
-        Removed 'filename' field (which was seldomly used).
+        Removed 'filename' field (which was seldom used).
 
         New 'orig_filenames' and 'resp_filenames' fields which each
         contain a vector of filenames seen in entities transferred.
@@ -5019,7 +5019,7 @@ New Functionality
   Instead of adding a separate worker entry in node.cfg for each Bro
   worker process on each worker host, it is now possible to just
   specify the number of worker processes on each host and BroControl
-  configures everything correctly (including any necessary enviroment
+  configures everything correctly (including any necessary environment
   variables for the balancers).
 
   This change adds three new keywords to the node.cfg file (to be used

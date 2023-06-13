@@ -18,9 +18,11 @@ RUN apt-get -q update \
      git \
      libfl2 \
      libfl-dev \
+     libnode-dev \
      libmaxminddb-dev \
      libpcap-dev \
      libssl-dev \
+     libuv1-dev \
      libz-dev \
      make \
      python3-minimal \

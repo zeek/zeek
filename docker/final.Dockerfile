@@ -10,9 +10,11 @@ RUN apt-get -q update \
      ca-certificates \
      git \
      libmaxminddb0 \
+     libnode108 \
      libpython3.11 \
      libpcap0.8 \
      libssl3 \
+     libuv1 \
      libz1 \
      python3-minimal \
      python3-git \

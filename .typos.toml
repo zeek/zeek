@@ -1,0 +1,71 @@
+[default]
+extend-ignore-re = [
+    "#.*MSDN Ref.*\\[ms-oaut\\]",
+    # seh too close to she
+    "registered SEH to support IDL",
+    # ALLO is a valid FTP command
+    "\"ALLO\".*200",
+    "des-ede3-cbc-Env-OID",
+    "Remove in v6.1.*SupressWeird",
+    "max_repititions:.*Remove in v6.1",
+    # On purpose
+    "\"THE NETBIOS NAM\"",
+    # NFS stuff.
+    "commited: stable_how_t &optional",
+    # script_opt uses "ot" a lot, but it's very close to "to", so
+    # don't want to add it as identifier. Match some patterns.
+    "ASSERT\\(ot == OP_.*",
+    "ot->InternalType",
+    "ot->Tag\\(\\) == TYPE_.*",
+    "auto.* ot =",
+    "ot = OP_.*",
+    "if \\( ot == OP_.*",
+    "ot->Yield\\(\\)->InternalType\\(\\)",
+    "switch \\( ot \\)",
+    "\\(ZAMOpType ot\\)",
+
+    # News stuff
+    "SupressWeirds.*deprecated",
+    "\"BaR\"",
+    "\"xFoObar\"",
+    "\"FoO\"",
+]
+
+extend-ignore-identifiers-re = [
+    "TLS_.*_EDE.*_.*",
+    "SSL.*_EDE.*_.*",
+    "_3DES_EDE_CBC_SHA",
+    "GOST_R_.*",
+    "icmp6_nd_.*",
+    "ND_ROUTER_.*",
+    "ND_NEIGHBOR_.*",
+    ".*_ND_option.*",
+]
+
+[default.extend-identifiers]
+BuildNDOptionsVal = "BuildNDOptionsVal"
+ESC_SER = "ESC_SER"
+MCA_OCCURED = "MCA_OCCURED"
+MNT3ERR_ACCES = "MNT3ERR_ACCES"
+ND_QUEUE_OVERFLOW = "ND_QUEUE_OVERFLOW"
+ND_REDIRECT = "ND_REDIRECT"
+NED_ACK = "NED_ACK"
+NFS3ERR_ACCES = "NFS3ERR_ACCES"
+NO_SEH = "NO_SEH"
+OP_SWITCHS_VVV = "OP_SWITCHS_VVV"
+O_WRONLY = "O_WRONLY"
+RPC_NT_CALL_FAILED_DNE = "RPC_NT_CALL_FAILED_DNE"
+RpcAddPrintProvidor = "RpcAddPrintProvidor"
+RpcDeletePrintProvidor = "RpcDeletePrintProvidor"
+THA = "THA"
+ar_tha = "ar_tha"
+have_2nd = "have_2nd"
+ot1 = "ot1"
+ot2 = "ot2"
+uses_seh = "uses_seh"
+
+[default.extend-words]
+caf = "caf"
+helo = "helo"
+# Seems we use this in the management framework
+requestor = "requestor"

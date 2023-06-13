@@ -1928,16 +1928,22 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow)
 		bt->Insert(0, assert_elem);
 		}
 
+	// Breaking from either the assertion_failure() or assertion_result()
+	// hook can be used to suppress the default log message.
+	bool report_error = true;
+
 	if ( run_result_hook )
-		assertion_result_hook->Invoke(zeek::val_mgr->Bool(assert_result), cond_val, msg_val, bt);
+		report_error &= assertion_result_hook
+		                    ->Invoke(zeek::val_mgr->Bool(assert_result), cond_val, msg_val, bt)
+		                    ->AsBool();
 
 	if ( assert_result )
 		return Val::nil;
 
-	// Run the installed failure hooks, or log a default message.
 	if ( run_failure_hook )
-		assertion_failure_hook->Invoke(cond_val, msg_val, bt);
-	else
+		report_error &= assertion_failure_hook->Invoke(cond_val, msg_val, bt)->AsBool();
+
+	if ( report_error )
 		{
 		std::string reporter_msg = util::fmt("assertion failure: %s", cond_val->CheckString());
 		if ( msg_val->Len() > 0 )

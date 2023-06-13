@@ -944,11 +944,10 @@ type Backtrace: vector of BacktraceElement;
 
 ## A hook that is invoked when an assert statement fails.
 ##
-## If no such hook is implemented, a default reporter error message is
-## logged similar to how scripting errors are reported.
-##
-## If assertion_failure hook handlers exist, the default reporter error
-## message is suppressed to allow for customized error messaging.
+## By default, a reporter error message is logged describing the failing
+## assert similarly to how scripting errors are reported after invoking
+## this hook. Using the :zeek:see:`break` statement in an assertion_failure
+## hook handler allows to suppress this message.
 ##
 ## cond: The string representation of the condition.
 ##
@@ -964,7 +963,11 @@ type assertion_failure: hook(cond: string, msg: string, bt: Backtrace);
 ##
 ## This is a potentially expensive hook meant to be used by testing
 ## frameworks to summarize assert results. In a production setup,
-## this hook is likely deterimental to performance.
+## this hook is likely detrimental to performance.
+##
+## Using the :zeek:see:`break` statement within an assertion_failure hook
+## handler allows to suppress the reporter error message generated for
+## failing assert statements.
 ##
 ## result: The result of evaluating **cond**.
 ##

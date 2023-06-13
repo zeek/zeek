@@ -4,7 +4,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
-# Hook calls break after logging out some information.
+# Hook is not calling break: Reporter log is produced.
 hook assertion_failure(cond: string, msg: string, bt: Backtrace)
 	{
 	print "assertion_failure", cond, msg, bt[0]$file_location, bt[0]$line_location;
@@ -17,7 +17,7 @@ event zeek_init()
 	}
 
 @TEST-START-NEXT
-# Test the backtrace location
+# Test the backtrace location, also calling break to suppress reporter log.
 hook assertion_failure(cond: string, msg: string, bt: Backtrace)
 	{
 	print "assertion_failure", cond, msg;
@@ -29,6 +29,8 @@ hook assertion_failure(cond: string, msg: string, bt: Backtrace)
 		print fmt("%s%s %s:%s", indent, e$function_name, file_name, line_number);
 		indent = fmt("%s ", indent);
 		}
+
+	break;
 	}
 
 
@@ -102,6 +104,7 @@ hook assertion_failure(cond: string, msg: string, bt: Backtrace)
 	          cond, |msg| > 0 ? " - " : "", msg);
 
 	++assertion_failures;
+	break;
 	}
 
 hook assertion_result(result: bool, cond: string, msg: string, bt: Backtrace)
@@ -170,11 +173,11 @@ event zeek_done()
 	}
 
 @TEST-START-NEXT
-# Only implementing assertion_result() falls back to default
-# reporter errors.
+# Breaking in assertion_result() also suppresses the reporter errors.
 hook assertion_result(result: bool, cond: string, msg: string, bt: Backtrace)
 	{
 	print "assertion_result", result, cond, msg, bt[0]$file_location, bt[0]$line_location;
+	break;
 	}
 
 event zeek_init()

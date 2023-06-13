@@ -1,3 +1,19 @@
+6.1.0-dev.28 | 2023-06-13 17:33:31 +0200
+
+  * GH-3112: cluster/logger: Fix leftover-log-rotation in multi-logger setups (Arne Welzel, Corelight)
+
+    Populating log_metadata during zeek_init() is too late for the
+    leftover-log-rotation functionality, so do it at script parse time.
+
+    Also, prepend archiver_ to the log_metadata table and encoding function
+    due to being in the global namespace and to align with the
+    archiver_rotation_format_func. This hasn't been in a released
+    version yet, so fine to rename still.
+
+    Closes #3112
+
+  * cluster/logger: Fix global var reference (Arne Welzel, Corelight)
+
 6.1.0-dev.25 | 2023-06-12 15:27:20 -0700
 
   * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)

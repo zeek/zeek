@@ -454,11 +454,6 @@ function cmp_versions(v1: Version, v2: Version): int
 	return 0;
 	}
 
-function software_endpoint_name(id: conn_id, host: addr): string &deprecated="Remove in v6.1.  Usage testing indicates this function is unused."
-	{
-	return fmt("%s %s", host, (host == id$orig_h ? "client" : "server"));
-	}
-
 # Convert a version into a string "a.b.c-x".  Marked "&is_used" because
 # while the base scripts don't call it, the optional policy/ scripts do.
 function software_fmt_version(v: Version): string &is_used

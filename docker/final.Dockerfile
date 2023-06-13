@@ -1,7 +1,7 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
 # Final layer containing all artifacts.
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 RUN echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries
 
@@ -10,9 +10,9 @@ RUN apt-get -q update \
      ca-certificates \
      git \
      libmaxminddb0 \
-     libpython3.9 \
+     libpython3.11 \
      libpcap0.8 \
-     libssl1.1 \
+     libssl3 \
      libz1 \
      python3-minimal \
      python3-git \

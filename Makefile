@@ -8,7 +8,6 @@
 BUILD=build
 REPO=$$(cd $(CURDIR) && basename $$(git config --get remote.origin.url | sed 's/^[^:]*://g'))
 VERSION_FULL=$(REPO)-$$(cd $(CURDIR) && cat VERSION)
-VERSION_MIN=$(REPO)-$$(cd $(CURDIR) && cat VERSION)-minimal
 GITDIR=$$(test -f .git && echo $$(cut -d" " -f2 .git) || echo .git)
 
 all: configured
@@ -48,11 +47,7 @@ dist:
 	@mv ../$(VERSION_FULL) .
 	@COPYFILE_DISABLE=true tar -czf $(VERSION_FULL).tar.gz $(VERSION_FULL)
 	@echo Package: $(VERSION_FULL).tar.gz
-	@mv $(VERSION_FULL) $(VERSION_MIN)
-	@(cd $(VERSION_MIN) && for i in auxil/*; do rm -rf $$i/*; done)
-	@COPYFILE_DISABLE=true tar -czf $(VERSION_MIN).tar.gz $(VERSION_MIN)
-	@echo Package: $(VERSION_MIN).tar.gz
-	@rm -rf $(VERSION_MIN)
+	@rm -rf $(VERSION_FULL)
 
 distclean:
 	rm -rf $(BUILD)

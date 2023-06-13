@@ -1,3 +1,17 @@
+6.0.0-rc2.12 | 2023-06-15 15:20:20 -0700
+
+  * GH-3112: cluster/logger: Fix leftover-log-rotation in multi-logger setups (Arne Welzel, Corelight)
+
+    Populating log_metadata during zeek_init() is too late for the
+    leftover-log-rotation functionality, so do it at script parse time.
+
+    Also, prepend archiver_ to the log_metadata table and encoding function
+    due to being in the global namespace and to align with the
+    archiver_rotation_format_func. This hasn't been in a released
+    version yet, so fine to rename still.
+
+  * cluster/logger: Fix global var reference (Arne Welzel, Corelight)
+
 6.0.0-rc2.10 | 2023-06-15 13:16:56 -0700
 
   * Force -std=c++17 mode for plugin targets, remove use of RequireCXX17.cmake (Tim Wojtulewicz, Corelight)

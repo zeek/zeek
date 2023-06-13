@@ -1,3 +1,14 @@
+6.1.0-dev.30 | 2023-06-13 11:28:26 -0700
+
+  * tests: Do not use archiver_rotation_format_func as postprocessor (Arne Welzel, Corelight)
+
+    This test triggered ubsan by putting a function with the wrong type
+    as a post-processor into the .shadow file. Don't do that.
+
+    Likely Zeek should provide a better error message, but hand-crafting
+    .shadow files isn't what is normally done and this is to fix the
+    master build for now.
+
 6.1.0-dev.28 | 2023-06-13 17:33:31 +0200
 
   * GH-3112: cluster/logger: Fix leftover-log-rotation in multi-logger setups (Arne Welzel, Corelight)

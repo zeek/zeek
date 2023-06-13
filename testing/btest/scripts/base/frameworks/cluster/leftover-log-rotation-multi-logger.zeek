@@ -1,11 +1,11 @@
 # @TEST-DOC: Ensure that left-over log rotation tags the logger name on as well.
 
 # @TEST-EXEC: echo ".log" >> .shadow.conn.log
-# @TEST-EXEC: echo "archiver_rotation_format_func" >> .shadow.conn.log
+# @TEST-EXEC: echo "" >> .shadow.conn.log
 # @TEST-EXEC: echo "leftover conn log" > conn.log
 
 # @TEST-EXEC: echo ".log" >> .shadow.dns.log
-# @TEST-EXEC: echo "archiver_rotation_format_func" >> .shadow.dns.log
+# @TEST-EXEC: echo "" >> .shadow.dns.log
 # @TEST-EXEC: echo "leftover dns log" > dns.log
 
 # Start Zeek as cluster node logger-2.

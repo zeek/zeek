@@ -384,31 +384,6 @@ event analyzer_confirmation_info%(atype: AllAnalyzers::Tag, info: AnalyzerConfir
 ## .. zeek:see:: is_protocol_analyzer is_packet_analyzer is_file_analyzer
 event analyzer_violation_info%(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo%);
 
-## Generated when a protocol analyzer confirms that a connection is indeed
-## using that protocol. Zeek's dynamic protocol detection heuristically activates
-## analyzers as soon as it believes a connection *could* be using a particular
-## protocol. It is then left to the corresponding analyzer to verify whether
-## that is indeed the case; if so, this event will be generated.
-##
-## c: The connection.
-##
-## atype: The type of the analyzer confirming that its protocol is in
-##        use. The value is one of the ``Analyzer::ANALYZER_*`` constants. For example,
-##        ``Analyzer::ANALYZER_HTTP`` means the HTTP analyzer determined that it's indeed
-##        parsing an HTTP connection.
-##
-## aid:   A unique integer ID identifying the specific *instance* of the
-##        analyzer *atype*  that is analyzing the connection ``c``. The ID can
-##        be used to reference the analyzer when using builtin functions like
-##        :zeek:id:`disable_analyzer`.
-##
-## .. note::
-##
-##    Zeek's default scripts use this event to determine the ``service`` column
-##    of :zeek:type:`Conn::Info`: once confirmed, the protocol will be listed
-##    there (and thus in ``conn.log``).
-event analyzer_confirmation%(c: connection, atype: AllAnalyzers::Tag, aid: count%) &deprecated="Remove in 6.1. Use the generic analyzer_confirmation_info event instead.";
-
 ## Generated if a DPD signature matched but the DPD buffer is already exhausted
 ## and thus the analyzer could not be attached. While this does not confirm
 ## that a protocol is actually used, it allows to retain that information.
@@ -422,35 +397,6 @@ event analyzer_confirmation%(c: connection, atype: AllAnalyzers::Tag, aid: count
 ##
 ## .. zeek:see:: dpd_buffer_size dpd_max_packets
 event protocol_late_match%(c: connection, atype: Analyzer::Tag%);
-
-## Generated when a protocol analyzer determines that a connection it is parsing
-## is not conforming to the protocol it expects. Zeek's dynamic protocol
-## detection heuristically activates analyzers as soon as it believes a
-## connection *could* be using a particular protocol. It is then left to the
-## corresponding analyzer to verify whether that is indeed the case; if not,
-## the analyzer will trigger this event.
-##
-## c: The connection.
-##
-## atype: The type of the analyzer confirming that its protocol is in
-##        use. The value is one of the ``Analyzer::ANALYZER_*`` constants. For example,
-##        ``Analyzer::ANALYZER_HTTP`` means the HTTP analyzer determined that it's indeed
-##        parsing an HTTP connection.
-##
-## aid:   A unique integer ID identifying the specific *instance* of the
-##        analyzer *atype*  that is analyzing the connection ``c``. The ID can
-##        be used to reference the analyzer when using builtin functions like
-##        :zeek:id:`disable_analyzer`.
-##
-## reason: TODO.
-##
-## .. note::
-##
-##    Zeek's default scripts use this event to disable an analyzer via
-##    :zeek:id:`disable_analyzer` if it's parsing the wrong protocol. That's
-##    however a script-level decision and not done automatically by the event
-##    engine.
-event analyzer_violation%(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string%) &deprecated="Remove in 6.1. Use the generic analyzer_violation_info event instead.";
 
 ## Generated when a TCP connection terminated, passing on statistics about the
 ## two endpoints. This event is always generated when Zeek flushes the internal

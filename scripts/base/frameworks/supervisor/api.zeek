@@ -56,9 +56,6 @@ export {
 		## Additional script filenames/paths that the node should load
 		## after any user-specified scripts.
 		addl_user_scripts: vector of string &default = vector();
-		## The former name of addl_user_scripts.
-		scripts: vector of string &default = vector()
-		    &deprecated="Remove in 6.1. Use the addl_user_scripts field instead.";
 		## Environment variables to define in the supervised node.
 		env: table[string] of string &default=table();
 		## A cpu/core number to which the node will try to pin itself.

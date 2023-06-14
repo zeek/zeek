@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/mqtt.pcap %INPUT > out
 # @TEST-EXEC: btest-diff out
 
-@load policy/protocols/mqtt
+@load base/protocols/mqtt
 @load base/frameworks/config
 
 event mqtt_publish(c: connection, is_orig: bool, msg_id: count, msg: MQTT::PublishMsg)

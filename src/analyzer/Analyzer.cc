@@ -696,11 +696,6 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag)
 	event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
 	}
 
-void Analyzer::EnqueueAnalyzerConfirmation(const zeek::Tag& arg_tag)
-	{
-	event_mgr.Enqueue(analyzer_confirmation, ConnVal(), arg_tag.AsVal(), val_mgr->Count(id));
-	}
-
 void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
 	{
 	if ( analyzer_confirmed )
@@ -712,9 +707,6 @@ void Analyzer::AnalyzerConfirmation(zeek::Tag arg_tag)
 
 	if ( analyzer_confirmation_info )
 		EnqueueAnalyzerConfirmationInfo(effective_tag);
-
-	if ( analyzer_confirmation )
-		EnqueueAnalyzerConfirmation(effective_tag);
 	}
 
 void Analyzer::EnqueueAnalyzerViolationInfo(const char* reason, const char* data, int len,
@@ -736,25 +728,6 @@ void Analyzer::EnqueueAnalyzerViolationInfo(const char* reason, const char* data
 	event_mgr.Enqueue(analyzer_violation_info, arg_tag.AsVal(), info);
 	}
 
-void Analyzer::EnqueueAnalyzerViolation(const char* reason, const char* data, int len,
-                                        const zeek::Tag& arg_tag)
-	{
-	StringValPtr r;
-
-	if ( data && len )
-		{
-		const char* tmp = util::copy_string(reason);
-		r = make_intrusive<StringVal>(util::fmt(
-			"%s [%s%s]", tmp, util::fmt_bytes(data, min(40, len)), len > 40 ? "..." : ""));
-		delete[] tmp;
-		}
-	else
-		r = make_intrusive<StringVal>(reason);
-
-	event_mgr.Enqueue(analyzer_violation, ConnVal(), arg_tag.AsVal(), val_mgr->Count(id),
-	                  std::move(r));
-	}
-
 void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, zeek::Tag arg_tag)
 	{
 	const auto& effective_tag = arg_tag ? arg_tag : tag;
@@ -771,9 +744,6 @@ void Analyzer::AnalyzerViolation(const char* reason, const char* data, int len, 
 
 	if ( analyzer_violation_info )
 		EnqueueAnalyzerViolationInfo(reason, data, len, effective_tag);
-
-	if ( analyzer_violation )
-		EnqueueAnalyzerViolation(reason, data, len, effective_tag);
 	}
 
 void Analyzer::AddTimer(analyzer_timer_func timer, double t, bool do_expire,

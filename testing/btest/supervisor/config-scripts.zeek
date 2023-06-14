@@ -27,8 +27,7 @@ event zeek_init()
 		print supervisor_output_file, "supervisor zeek_init()";
 		local sn = Supervisor::NodeConfig($name="grault",
 		    $addl_base_scripts=vector("../addl_base_script.zeek"),
-		    $addl_user_scripts=vector("../addl_user_script.zeek"),
-		    $scripts=vector("../script.zeek"));
+		    $addl_user_scripts=vector("../addl_user_script.zeek"));
 		local res = Supervisor::create(sn);
 
 		if ( res != "" )

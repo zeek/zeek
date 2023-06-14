@@ -14,9 +14,9 @@ event ssh::banner(c: connection, is_orig: bool, version: string, software: strin
 	print "SSH banner", c$id, is_orig, version, software;
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
     {
-    print atype, aid;
+    print atype, info$aid;
     }
 
 # @TEST-START-FILE ssh.spicy

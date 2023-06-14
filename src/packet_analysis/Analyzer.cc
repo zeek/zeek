@@ -185,11 +185,6 @@ void Analyzer::EnqueueAnalyzerConfirmationInfo(session::Session* session, const 
 	event_mgr.Enqueue(analyzer_confirmation_info, arg_tag.AsVal(), info);
 	}
 
-void Analyzer::EnqueueAnalyzerConfirmation(session::Session* session, const zeek::Tag& arg_tag)
-	{
-	event_mgr.Enqueue(analyzer_confirmation, session->GetVal(), arg_tag.AsVal(), val_mgr->Count(0));
-	}
-
 void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag)
 	{
 	const auto& effective_tag = arg_tag ? arg_tag : GetAnalyzerTag();
@@ -208,9 +203,6 @@ void Analyzer::AnalyzerConfirmation(session::Session* session, zeek::Tag arg_tag
 
 	if ( analyzer_confirmation_info )
 		EnqueueAnalyzerConfirmationInfo(session, effective_tag);
-
-	if ( analyzer_confirmation )
-		EnqueueAnalyzerConfirmation(session, effective_tag);
 	}
 
 void Analyzer::EnqueueAnalyzerViolationInfo(session::Session* session, const char* reason,
@@ -230,24 +222,6 @@ void Analyzer::EnqueueAnalyzerViolationInfo(session::Session* session, const cha
 	event_mgr.Enqueue(analyzer_violation_info, arg_tag.AsVal(), info);
 	}
 
-void Analyzer::EnqueueAnalyzerViolation(session::Session* session, const char* reason,
-                                        const char* data, int len, const zeek::Tag& arg_tag)
-	{
-	StringValPtr r;
-	if ( data && len )
-		{
-		const char* tmp = util::copy_string(reason);
-		r = make_intrusive<StringVal>(util::fmt(
-			"%s [%s%s]", tmp, util::fmt_bytes(data, std::min(40, len)), len > 40 ? "..." : ""));
-		delete[] tmp;
-		}
-	else
-		r = make_intrusive<StringVal>(reason);
-
-	event_mgr.Enqueue(analyzer_violation, session->GetVal(), arg_tag.AsVal(), val_mgr->Count(0),
-	                  std::move(r));
-	}
-
 void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, const char* data,
                                  int len, zeek::Tag arg_tag)
 	{
@@ -263,9 +237,6 @@ void Analyzer::AnalyzerViolation(const char* reason, session::Session* session, 
 
 	if ( analyzer_violation_info )
 		EnqueueAnalyzerViolationInfo(session, reason, data, len, effective_tag);
-
-	if ( analyzer_violation )
-		EnqueueAnalyzerViolation(session, reason, data, len, effective_tag);
 	}
 
 	} // namespace zeek::packet_analysis

@@ -1398,18 +1398,6 @@ void RecordType::AddFieldsDirectly(const type_decl_list& others, bool add_log_at
 	num_fields = types->length();
 	}
 
-void RecordType::Create(std::vector<std::optional<ZVal>>& r) const
-	{
-	for ( auto& di : deferred_inits )
-		if ( di )
-			r.push_back(di->Generate());
-		else
-			r.push_back(std::nullopt);
-
-	for ( auto& ci : creation_inits )
-		r[ci.first] = ci.second->Generate();
-	}
-
 void RecordType::DescribeFields(ODesc* d) const
 	{
 	if ( d->IsReadable() )
@@ -2690,31 +2678,6 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2)
 			reporter->InternalError("bad type in merge_types()");
 			return nullptr;
 		}
-	}
-
-TypePtr merge_type_list(detail::ListExpr* elements)
-	{
-	TypeList* tl_type = elements->GetType()->AsTypeList();
-	const auto& tl = tl_type->GetTypes();
-
-	if ( tl.size() < 1 )
-		{
-		reporter->Error("no type can be inferred for empty list");
-		return nullptr;
-		}
-
-	auto t = tl[0];
-
-	if ( tl.size() == 1 )
-		return t;
-
-	for ( size_t i = 1; t && i < tl.size(); ++i )
-		t = merge_types(t, tl[i]);
-
-	if ( ! t )
-		reporter->Error("inconsistent types in list");
-
-	return t;
 	}
 
 TypePtr maximal_type(detail::ListExpr* elements)

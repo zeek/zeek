@@ -46,12 +46,6 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 		return false;
 		}
 
-	if ( ! BifConst::Tunnel::enable_gre )
-		{
-		Weird("GRE_tunnel", packet);
-		return false;
-		}
-
 	if ( len < gre_header_len() )
 		{
 		Weird("truncated_GRE", packet);

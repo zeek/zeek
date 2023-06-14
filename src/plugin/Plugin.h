@@ -18,8 +18,6 @@
 // building Zeek itself.
 #ifndef ZEEK_PLUGIN_SKIP_VERSION_CHECK
 #include "zeek/zeek-version.h"
-// Remove the BRO define in v6.1.
-#define BRO_PLUGIN_BRO_VERSION ZEEK_VERSION_FUNCTION
 #define ZEEK_PLUGIN_ZEEK_VERSION ZEEK_VERSION_FUNCTION
 #endif
 
@@ -77,7 +75,6 @@ enum HookType
 	HOOK_QUEUE_EVENT, //< Activates Plugin::HookQueueEvent().
 	HOOK_DRAIN_EVENTS, //< Activates Plugin::HookDrainEvents().
 	HOOK_UPDATE_NETWORK_TIME, //< Activates Plugin::HookUpdateNetworkTime().
-	HOOK_BRO_OBJ_DTOR [[deprecated("Remove in v6.1. Use HOOK_OBJ_DTOR.")]],
 	HOOK_SETUP_ANALYZER_TREE, //< Activates Plugin::HookAddToAnalyzerTree().
 	HOOK_LOG_INIT, //< Activates Plugin::HookLogInit().
 	HOOK_LOG_WRITE, //< Activates Plugin::HookLogWrite().
@@ -126,10 +123,6 @@ public:
 	// We force this to inline so that the API version gets hardcoded
 	// into the external plugin. (Technically, it's not a "force", just a
 	// strong hint.). The attribute seems generally available.
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 	inline Configuration() __attribute__((always_inline))
 		{
 // Only bake in a ZEEK_PLUGIN_ZEEK_VERSION reference into external plugins. The
@@ -138,55 +131,30 @@ public:
 // CMakeLists.txt file for the Zeek::Internal target, which only exists when
 // building Zeek itself.
 #ifndef ZEEK_PLUGIN_SKIP_VERSION_CHECK
-		bro_version = ZEEK_PLUGIN_ZEEK_VERSION;
 		zeek_version = ZEEK_PLUGIN_ZEEK_VERSION;
 #endif
 		}
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 	Configuration(Configuration&& c)
 		{
-		bro_version = std::move(c.bro_version);
 		zeek_version = std::move(c.zeek_version);
 
 		name = std::move(c.name);
 		description = std::move(c.description);
 		version = std::move(c.version);
 		}
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 	Configuration(const Configuration& c)
 		{
-		bro_version = c.bro_version;
 		zeek_version = c.zeek_version;
 
 		name = c.name;
 		description = c.description;
 		version = c.version;
 		}
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 	Configuration& operator=(Configuration&& c)
 		{
-		bro_version = std::move(c.bro_version);
 		zeek_version = std::move(c.zeek_version);
 
 		name = std::move(c.name);
@@ -195,17 +163,9 @@ public:
 
 		return *this;
 		}
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 	Configuration& operator=(const Configuration& c)
 		{
-		bro_version = c.bro_version;
 		zeek_version = c.zeek_version;
 
 		name = c.name;
@@ -214,24 +174,8 @@ public:
 
 		return *this;
 		}
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
 	~Configuration() { }
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
-	/**
-	 * One can assign ZEEK_PLUGIN_ZEEK_VERSION to this to catch
-	 * version mismatches at link(!) time.
-	 */
-	[[deprecated("Remove in v6.1. Use zeek_version.")]] std::function<const char*()> bro_version;
 
 	/**
 	 * One can assign ZEEK_PLUGIN_ZEEK_VERSION to this to catch
@@ -847,11 +791,6 @@ public:
 	 */
 	bool LoadZeekFile(const std::string& file);
 
-	[[deprecated("Remove in v6.1. Use LoadZeekFile.")]] bool LoadBroFile(const std::string& file)
-		{
-		return LoadZeekFile(file);
-		}
-
 protected:
 	friend class Manager;
 
@@ -935,17 +874,6 @@ protected:
 	 * @param handler The event handler being interested in.
 	 */
 	void RequestEvent(EventHandlerPtr handler);
-
-	/**
-	 * Registers interest in the destruction of a Obj instance. When
-	 * Zeek's reference counting triggers the objects destructor to run,
-	 * \a HookBroObjDtor will be called.
-	 *
-	 * Note that this can get expensive if triggered for many objects.
-	 *
-	 * @param obj The object being interested in.
-	 */
-	[[deprecated("Remove in v6.1. Use RequestObjDtor.")]] void RequestBroObjDtor(Obj* obj);
 
 	/**
 	 * Registers interest in the destruction of a Obj instance. When
@@ -1091,18 +1019,6 @@ protected:
 	 * @param conn The connection.
 	 */
 	virtual void HookSetupAnalyzerTree(Connection* conn);
-
-	/**
-	 * Hook for destruction of objects registered with
-	 * RequestBroObjDtor(). When Zeek's reference counting triggers the
-	 * objects destructor to run, this method will be run. It may also
-	 * run for other objects that this plugin has not registered for.
-	 *
-	 * @param obj A pointer to the object being destroyed. Note that the
-	 * object is already considered invalid and the pointer must not be
-	 * dereferenced.
-	 */
-	[[deprecated("Remove in v6.1. Use HookObjDtor.")]] virtual void HookBroObjDtor(void* obj);
 
 	/**
 	 * Hook for destruction of objects registered with
@@ -1276,8 +1192,3 @@ private:
 
 	} // namespace plugin
 	} // namespace zeek
-
-// Increase this when making incompatible changes to the plugin API. Note
-// that the constant is never used in C code. It's picked up on by CMake.
-constexpr int BRO_PLUGIN_API_VERSION
-	[[deprecated("Remove in v6.1. Use zeek::PLUGIN_API_VERSION")]] = zeek::PLUGIN_API_VERSION;

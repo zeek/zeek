@@ -148,13 +148,6 @@ event zeek_init() &priority=5
 	Log::create_stream(Signatures::LOG, [$columns=Info, $ev=log_signature, $path="signatures", $policy=log_policy]);
 	}
 
-# Returns true if the given signature has already been triggered for the given
-# [orig, resp] pair.
-function has_signature_matched(id: string, orig: addr, resp: addr): bool &deprecated="Remove in v6.1.  Usage testing indicates this function is unused."
-	{
-	return [orig, resp] in vert_table ? id in vert_table[orig, resp] : F;
-	}
-
 event sig_summary(orig: addr, id: string, msg: string)
 	{
 	NOTICE([$note=Signature_Summary, $src=orig,

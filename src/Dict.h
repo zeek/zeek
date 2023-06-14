@@ -169,13 +169,6 @@ public:
 		       0 == memcmp(GetKey(), arg_key, key_size);
 		}
 
-	template <typename V>
-	[[deprecated("Remove in v6.1. Access the value in the entry directly.")]] T* GetValue() const
-		{
-		static_assert(std::is_same_v<T*, V>, "Type of DictEntry and type requested are different");
-		return value;
-		}
-
 	bool operator==(const DictEntry& r) const { return Equal(r.GetKey(), r.key_size, r.hash); }
 	bool operator!=(const DictEntry& r) const { return ! Equal(r.GetKey(), r.key_size, r.hash); }
 	};

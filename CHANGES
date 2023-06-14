@@ -1,3 +1,23 @@
+6.1.0-dev.66 | 2023-06-14 10:09:46 -0700
+
+  * Change table initialization deprecation to error (Tim Wojtulewicz, Corelight)
+
+  * Remove 5.2 deprecation we missed (Tim Wojtulewicz, Corelight)
+
+  * Remove Supervisor::NodeConfig (6.1 deprecation) (Tim Wojtulewicz, Corelight)
+
+  * Remove LogAscii::logdir (6.1 deprecation) (Tim Wojtulewicz, Corelight)
+
+  * Make break/next/continue outside loops an error (6.1 deprecation) (Tim Wojtulewicz, Corelight)
+
+  * Remove analyzer_confirmation/analyzer_violation events (6.1 deprecation) (Tim Wojtulewicz, Corelight)
+
+  * Remove full scripts marked as 6.1 deprecations (Tim Wojtulewicz, Corelight)
+
+  * Remove script functions marked as unused (6.1 deprecations) (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecations tagged for v6.1 (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.54 | 2023-06-14 18:55:27 +0200
 
   * docker: Add libnode to enable JavaScript support (Arne Welzel, Corelight)

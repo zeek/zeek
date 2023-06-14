@@ -102,8 +102,6 @@ inline constexpr std::string_view path_list_separator = ":";
 
 using zeek_int_t = int64_t;
 using zeek_uint_t = uint64_t;
-using bro_int_t [[deprecated("Remove in v6.1. Use zeek_int_t.")]] = zeek_int_t;
-using bro_uint_t [[deprecated("Remove in v6.1. Use zeek_uint_t.")]] = zeek_uint_t;
 
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);

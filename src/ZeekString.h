@@ -104,9 +104,6 @@ public:
 	static constexpr int ZEEK_STRING_LITERAL = // as in a Zeek string literal
 		ESC_ESC | ESC_QUOT | ESC_HEX;
 
-	static constexpr int BRO_STRING_LITERAL
-		[[deprecated("Remove in v6.1. Use ZEEK_STRING_LITERAL.")]] = ZEEK_STRING_LITERAL;
-
 	// Renders a string into a newly allocated character array that
 	// you have to delete[].  You can combine the render styles given
 	// above to achieve the representation you desire.  If you pass a

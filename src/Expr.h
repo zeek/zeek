@@ -106,8 +106,6 @@ enum ExprTag : int
 #define NUM_EXPRS (int(EXPR_NOP) + 1)
 	};
 
-using BroExprTag [[deprecated("Remove in v6.1. Use ExprTag.")]] = ExprTag;
-
 extern const char* expr_name(ExprTag t);
 
 class AddToExpr;

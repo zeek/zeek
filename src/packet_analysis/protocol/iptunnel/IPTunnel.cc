@@ -28,12 +28,6 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 		return false;
 		}
 
-	if ( ! BifConst::Tunnel::enable_ip )
-		{
-		Weird("IP_tunnel", packet);
-		return false;
-		}
-
 	if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth )
 		{
 		Weird("exceeded_tunnel_max_depth", packet);

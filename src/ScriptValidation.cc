@@ -22,13 +22,11 @@ public:
 		stmt_depths[stmt->Tag()] += 1;
 
 		if ( stmt->Tag() == STMT_BREAK && ! BreakStmtIsValid() )
-			Report(stmt, "break statement used outside of for, while or "
-			             "switch statement and not within a hook. "
-			             "With v6.1 this will become an error.");
+			Error(stmt, "break statement used outside of for, while or "
+			            "switch statement and not within a hook.");
 
 		if ( stmt->Tag() == STMT_NEXT && ! NextStmtIsValid() )
-			Report(stmt, "next statement used outside of for or while statement. "
-			             "With v6.1 this will become an error.");
+			Error(stmt, "next statement used outside of for or while statement.");
 
 		return TC_CONTINUE;
 		}

@@ -737,16 +737,9 @@ private:
 	// Internal helper to raise analyzer_confirmation events
 	void EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag);
 
-	// Remove in v6.1 - internal helper to raise analyzer_confirmation
-	void EnqueueAnalyzerConfirmation(const zeek::Tag& arg_tag);
-
 	// Internal helper to raise analyzer_violation_info
 	void EnqueueAnalyzerViolationInfo(const char* reason, const char* data, int len,
 	                                  const zeek::Tag& arg_tag);
-
-	// Remove in v6.1 - internal helper to raise analyzer_violation
-	void EnqueueAnalyzerViolation(const char* reason, const char* data, int len,
-	                              const zeek::Tag& arg_tag);
 
 	zeek::Tag tag;
 	ID id;

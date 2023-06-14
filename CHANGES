@@ -1,3 +1,7 @@
+6.0.0-rc2.2 | 2023-06-14 09:27:06 -0700
+
+  * Bump `auxil/spicy`. (Benjamin Bannier, Corelight)
+
 6.0.0-rc2 | 2023-06-12 15:45:49 -0700
 
   * test-all-policy: Do not load nodes-experimental/manager.zeek (Arne Welzel, Corelight)

@@ -112,10 +112,10 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		if ( name.empty() )
 			reporter->FatalError("empty plugin magic file %s", magic.c_str());
 
-		if ( dynamic_plugins.find(lower_name) != dynamic_plugins.end() )
+		if ( const auto& other = dynamic_plugins.find(lower_name); other != dynamic_plugins.end() )
 			{
-			DBG_LOG(DBG_PLUGINS, "Found already known plugin %s in %s, ignoring", name.c_str(),
-			        dir.c_str());
+			reporter->Warning("ignoring dynamic plugin %s from %s, already found in %s",
+			                  name.c_str(), dir.c_str(), other->second.c_str());
 			return;
 			}
 

@@ -1,3 +1,11 @@
+6.1.0-dev.50 | 2023-06-14 09:25:58 -0700
+
+  * Fix usage of realpath on macOS, instead preferring grealpath (Tim Wojtulewicz, Corelight)
+
+  * Don't generate minimal tarball anymore (Tim Wojtulewicz, Corelight)
+
+  * NEWS: Fix enumeration in Breaking Changes (Arne Welzel, Corelight)
+
 6.1.0-dev.46 | 2023-06-14 12:59:41 +0200
 
   * all: Fix typos identified by typos pre-commit hook (Arne Welzel, Corelight)

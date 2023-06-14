@@ -9,7 +9,7 @@ Zeek 6.1.0
 Breaking Changes
 ----------------
 
-* ``assert`` is now a reserved keyword for the new ``assert`` statement.
+- ``assert`` is now a reserved keyword for the new ``assert`` statement.
 
 New Functionality
 -----------------

@@ -1,3 +1,9 @@
+6.1.0-dev.54 | 2023-06-14 18:55:27 +0200
+
+  * docker: Add libnode to enable JavaScript support (Arne Welzel, Corelight)
+
+  * docker: Bump images to Debian 12 (Arne Welzel, Corelight)
+
 6.1.0-dev.50 | 2023-06-14 09:25:58 -0700
 
   * Fix usage of realpath on macOS, instead preferring grealpath (Tim Wojtulewicz, Corelight)

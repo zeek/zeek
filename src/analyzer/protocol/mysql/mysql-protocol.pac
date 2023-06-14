@@ -48,7 +48,7 @@ type LengthEncodedStringArg(first_byte: uint8) = record {
 		public:
 		int operator()(uint24le* num) const
 			{
-			// Convert 24bit little endian int parsed as 3 uint8 into host endianess.
+			// Convert 24bit little endian int parsed as 3 uint8 into host endianness.
 			return (num->byte1() << 16) | (num->byte2() << 8) | num->byte3();
 			}
 

@@ -3,7 +3,7 @@
 // Classes for traversing functions and their body ASTs to build up profiles
 // of the various elements (types, globals, locals, lambdas, etc.) that appear.
 // These profiles enable script optimization to make decisions regarding
-// compilability and how to efficiently provide run-time components.
+// compatibility and how to efficiently provide run-time components.
 // For all of the following, we use the term "function" to refer to a single
 // ScriptFunc/body pair, so an event handler or hook with multiple bodies
 // is treated as multiple distinct "function"'s.

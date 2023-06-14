@@ -178,7 +178,7 @@ void ProfileLogger::Log()
 	DNS_Mgr::Stats dstats;
 	dns_mgr->GetStats(&dstats);
 
-	file->Write(util::fmt("%.06f DNS_Mgr: requests=%lu succesful=%lu failed=%lu pending=%lu "
+	file->Write(util::fmt("%.06f DNS_Mgr: requests=%lu successful=%lu failed=%lu pending=%lu "
 	                      "cached_hosts=%lu cached_addrs=%lu\n",
 	                      run_state::network_time, dstats.requests, dstats.successful,
 	                      dstats.failed, dstats.pending, dstats.cached_hosts,

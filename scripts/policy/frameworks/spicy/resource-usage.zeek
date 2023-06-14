@@ -1,4 +1,4 @@
-##! Logs Spicy-related resource usage continously for debugging purposes.
+##! Logs Spicy-related resource usage continuously for debugging purposes.
 
 module Spicy;
 

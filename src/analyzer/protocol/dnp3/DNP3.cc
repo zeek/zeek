@@ -66,13 +66,13 @@
 //     (excluding CRC fields) in the current DNP3 packet.
 //
 // Since "Len" is of size one byte, the largest length it can represent is
-// 255 bytes. The larget DNP3 Application Layer size is "255 - 5 + size of
+// 255 bytes. The largest DNP3 Application Layer size is "255 - 5 + size of
 // all CRC fields". "minus 5" is coming from the 5 bytes after "Len" field in
 // the DNP3 Link Layer, i.e. Ctrl Dest_LSB Dest_MSB Src_LSB Src_MSB Hence,
 // the largest size of a DNP3 Packet (DNP3 Data Link Layer : DNP3 Transport
 // Layer : DNP3 Application Layer) can only be 292 bytes.
 //
-// The "Len" field indicates the length of of a single chunk of DNP3 Psuedo
+// The "Len" field indicates the length of of a single chunk of DNP3 Pseudo
 // Application Layer data instead of the whole DNP3 Application Layer
 // Fragment. However, we can not know the whole length of the DNP3
 // Application Layer Fragment (which Binpac would normally need) until all

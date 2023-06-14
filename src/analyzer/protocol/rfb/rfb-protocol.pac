@@ -224,8 +224,8 @@ type PixelData(encoding: int32, x: uint16, y: uint16, w: uint16, h: uint16) = ca
 	  15   -> trle: PD_TRLE;
 	  16   -> zrle: PD_ZRLE;
 	# TODO: binpac is not happy with negative values here
-	#-239   -> cursor_pseudo: PD_PsuedoCursor;
-	#-223   -> desktop_size: PD_PsuedoDesktopSize;
+	#-239   -> cursor_pseudo: PD_PseudoCursor;
+	#-223   -> desktop_size: PD_PseudoDesktopSize;
 };
 
 type PD_Raw(w: uint16, h: uint16) = record {
@@ -266,12 +266,12 @@ type PD_ZRLE = record {
 	zlib_data: bytestring &length=len &transient;
 } &length=(4 + len);
 
-type PD_PsuedoCursor(w: uint16, h: uint16) = record {
+type PD_PseudoCursor(w: uint16, h: uint16) = record {
 	pixels: bytestring &length=(w * h * $context.connection.get_bytes_per_pixel()) &transient;
 	bitmask: bytestring &length=(h * ((w + 7) / 8)) &transient;
 } &length=(w * h * $context.connection.get_bytes_per_pixel()) + (h * ((w + 7) / 8))
 
-type PD_PsuedoDesktopSize = record {
+type PD_PseudoDesktopSize = record {
 	# Actually no further data
 	nothing: empty;
 } &length=0;

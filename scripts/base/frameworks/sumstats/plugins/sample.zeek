@@ -26,7 +26,7 @@ export {
 }
 
 redef record ResultVal += {
-	# Internal use only.  This is not meant to be publically available
+	# Internal use only.  This is not meant to be publicly available
 	# and just a copy of num_samples from the Reducer. Needed for
 	# availability in the compose hook.
 	num_samples: count &default=0;

@@ -41,7 +41,7 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 	if ( (fc_80211 >> 4) & 0x08 )
 		{
 		// Store off whether this is an A-MSDU header, which indicates that there are
-		// mulitple packets following the 802.11 header.
+		// multiple packets following the 802.11 header.
 		is_amsdu = (data[len_80211] & 0x80) == 0x80;
 
 		// Check for the protected bit. This means the data is encrypted and we can't

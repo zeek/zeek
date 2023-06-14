@@ -263,7 +263,7 @@ protected:
 		uint32_t netmask;
 
 		/**
-		 * True if the source is reading live inout, false for
+		 * True if the source is reading live input, false for
 		 * working offline.
 		 */
 		bool is_live;

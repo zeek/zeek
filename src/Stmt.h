@@ -636,7 +636,7 @@ private:
 
 	bool is_return = false;
 
-	// The name of parameter passed ot the lambda.
+	// The name of parameter passed to the lambda.
 	std::string lambda_param_id;
 
 	// The expression for constructing the lambda, and its type.

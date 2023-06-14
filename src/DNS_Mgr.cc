@@ -1554,7 +1554,7 @@ TableValPtr DNS_Mgr::empty_addr_set()
 
 // Unit testing coverage for the DNS_Mgr code, including making actual DNS requests to
 // test responses and timeouts. Note that all of these tests are marked with the skip
-// decorator, since they take some time to run and this slows down local developement. To
+// decorator, since they take some time to run and this slows down local development. To
 // run them manually, pass the --no-skip flag when running tests. These tests are
 // run automatically as part of CI builds.
 
@@ -1605,7 +1605,7 @@ public:
 
 /**
  * Derived testing version of DNS_Mgr so that the Process() method can be exposed
- * publically. If new unit tests are added, this class should be used over using
+ * publicly. If new unit tests are added, this class should be used over using
  * DNS_Mgr directly.
  */
 class TestDNS_Mgr final : public DNS_Mgr

@@ -23,3 +23,9 @@ repos:
   hooks:
   - id: cmake-format
     exclude: '^auxil/.*$'
+
+- repo: https://github.com/crate-ci/typos
+  rev: v1.15.0
+  hooks:
+    - id: typos
+      exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES)$'

@@ -806,7 +806,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 
 void POP3_Analyzer::StartTLS()
 	{
-	// STARTTLS was succesful. Remove support analyzers, add SSL
+	// STARTTLS was successful. Remove support analyzers, add SSL
 	// analyzer, and throw event signifying the change.
 	RemoveSupportAnalyzer(cl_orig);
 	RemoveSupportAnalyzer(cl_resp);

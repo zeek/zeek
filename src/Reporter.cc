@@ -557,7 +557,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 
 	int size = sizeof(tmp);
 	char* buffer = tmp;
-	char* alloced = nullptr;
+	char* allocated = nullptr;
 
 	std::string loc_str;
 
@@ -621,7 +621,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 
 		// Enlarge buffer;
 		size *= 2;
-		buffer = alloced = (char*)realloc(alloced, size);
+		buffer = allocated = (char*)realloc(allocated, size);
 
 		if ( ! buffer )
 			FatalError("out of memory in Reporter");
@@ -740,8 +740,8 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 #endif
 		}
 
-	if ( alloced )
-		free(alloced);
+	if ( allocated )
+		free(allocated);
 	}
 
 bool Reporter::EmitToStderr(bool flag)

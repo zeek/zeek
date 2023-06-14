@@ -485,7 +485,7 @@ int dbg_shutdown_debugger()
 // by the operation argument; the additional arguments are put in the
 // supplied vector.
 //
-// Parse the string into individual tokens, similarily to how shell
+// Parse the string into individual tokens, similarly to how shell
 // would do it.
 
 void tokenize(const char* cstr, string& operation, vector<string>& arguments)

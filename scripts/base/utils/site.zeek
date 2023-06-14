@@ -167,7 +167,7 @@ export {
 	global get_emails: function(a: addr): string;
 }
 
-# Please ignore, this is an interally used variable.
+# Please ignore, this is an internally used variable.
 global local_dns_suffix_regex: pattern = /MATCH_NOTHING/;
 global local_dns_neighbor_suffix_regex: pattern = /MATCH_NOTHING/;
 

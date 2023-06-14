@@ -20,7 +20,7 @@ public:
 	PcapDumper(const std::string& path, bool append);
 	~PcapDumper() override;
 
-	static PktDumper* Instantiate(const std::string& path, bool appen);
+	static PktDumper* Instantiate(const std::string& path, bool append);
 
 protected:
 	// PktDumper interface.

@@ -30,7 +30,7 @@ static struct option long_driver_options[] = {{"abort-on-exceptions", required_a
                                               {"output-c++-files", no_argument, nullptr, 'x'},
                                               {"print-module-path", no_argument, nullptr, 'M'},
                                               {"print-plugin-path", no_argument, nullptr,
-                                               'P'}, // for backwards compatiblity
+                                               'P'}, // for backwards compatibility
                                               {"print-prefix-path", no_argument, nullptr, 'p'},
                                               {"print-zeek-config", no_argument, nullptr, 'z'},
                                               {"report-times", required_argument, nullptr, 'R'},

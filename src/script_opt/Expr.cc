@@ -414,7 +414,7 @@ ExprPtr Expr::AssignToTemporary(ExprPtr e, Reducer* c, StmtPtr& red_stmt)
 
 	// Important: our result is not result_tmp, but a duplicate of it.
 	// This is important because subsequent passes that associate
-	// information with Expr's need to not mis-associate that
+	// information with Expr's need to not misassociate that
 	// information with both the assignment creating the temporary,
 	// and the subsequent use of the temporary.
 	return result_tmp->Duplicate();

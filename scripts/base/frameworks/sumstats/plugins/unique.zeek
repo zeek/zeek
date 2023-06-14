@@ -28,7 +28,7 @@ redef record ResultVal += {
 	# set in the reducer.
 	unique_max: count &optional;
 
-	# Internal use only.  This is not meant to be publically available
+	# Internal use only.  This is not meant to be publicly available
 	# because we don't want to trust that we can inspect the values
 	# since we will likely move to a probabilistic data structure in the future.
 	# TODO: in the future this will optionally be a hyperloglog structure

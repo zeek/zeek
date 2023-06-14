@@ -92,7 +92,7 @@ public:
 
 	void Describe(ODesc* d) const override;
 
-	// Overidden from Notifier.  We queue the trigger and evaluate it
+	// Overridden from Notifier.  We queue the trigger and evaluate it
 	// later to avoid race conditions.
 	void Modified(zeek::notifier::detail::Modifiable* m) override;
 

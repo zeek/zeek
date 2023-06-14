@@ -191,7 +191,7 @@ protected:
 	std::pair<const char*, size_t> FirstEscapeLoc(const char* bytes, size_t n);
 
 	/**
-	 * @param start start of string to check for starting with an espace
+	 * @param start start of string to check for starting with an escape
 	 *              sequence.
 	 * @param end one byte past the last character in the string.
 	 * @return The number of bytes in the escape sequence that the string

@@ -363,7 +363,7 @@ extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 int strstr_n(const int big_len, const unsigned char* big, const int little_len,
              const unsigned char* little);
 
-// Replaces all occurences of *o* in *s* with *n*.
+// Replaces all occurrences of *o* in *s* with *n*.
 extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);
 
 // Remove all leading and trailing white space from string.

@@ -33,8 +33,8 @@ refine connection SSL_Conn += {
 
 			for ( unsigned int i = 0; i < cipher_suites.size(); ++i )
 				{
-				auto ciph = zeek::val_mgr->Count(cipher_suites[i]);
-				cipher_vec->Assign(i, ciph);
+				auto cipher = zeek::val_mgr->Count(cipher_suites[i]);
+				cipher_vec->Assign(i, std::move(cipher));
 				}
 
 			auto comp_vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);

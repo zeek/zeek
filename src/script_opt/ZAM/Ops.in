@@ -438,7 +438,7 @@ macro EvalCast(rhs)
 	else
 		ZAM_run_time_error(z.loc, error.c_str());
 
-# Cast an "any" type to the given type.  Only needed for type-based swith
+# Cast an "any" type to the given type.  Only needed for type-based switch
 # statements.
 internal-op Cast-Any
 type VV

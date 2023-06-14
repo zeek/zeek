@@ -1,3 +1,14 @@
+6.1.0-dev.46 | 2023-06-14 12:59:41 +0200
+
+  * all: Fix typos identified by typos pre-commit hook (Arne Welzel, Corelight)
+
+  * NEWS typo fixes (Arne Welzel, Corelight)
+
+  * Start with a typos pre-commit file (Arne Welzel, Corelight)
+
+    Inspired by Spicy and me creating typos everywhere. Some of the
+    suggestions are also very reasonable.
+
 6.1.0-dev.42 | 2023-06-14 12:51:08 +0200
 
   * NEWS: Small section about assert statement (Arne Welzel, Corelight)

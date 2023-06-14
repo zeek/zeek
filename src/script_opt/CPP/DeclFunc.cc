@@ -146,7 +146,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
 	Emit("%s_cl(const char* name%s) : CPPStmt(name, %s)%s { }", fname, addl_args, loc_info, inits);
 
 	// An additional constructor just used to generate place-holder
-	// instances, due to the mis-design that lambdas are identified
+	// instances, due to the misdesign that lambdas are identified
 	// by their Func objects rather than their FuncVal objects.
 	if ( lambda_ids && lambda_ids->length() > 0 )
 		Emit("%s_cl(const char* name) : CPPStmt(name, %s) { }", fname, loc_info);

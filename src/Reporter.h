@@ -31,6 +31,7 @@ using StringValPtr = IntrusivePtr<StringVal>;
 namespace detail
 	{
 
+class AssertStmt;
 class Location;
 class Expr;
 
@@ -59,6 +60,7 @@ class InterpreterException : public ReporterException
 	{
 protected:
 	friend class Reporter;
+	friend class detail::AssertStmt;
 	InterpreterException() { }
 	};
 

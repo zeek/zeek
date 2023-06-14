@@ -1,3 +1,26 @@
+6.1.0-dev.42 | 2023-06-14 12:51:08 +0200
+
+  * NEWS: Small section about assert statement (Arne Welzel, Corelight)
+
+  * Stmt: Rework assertion hooks break semantics (Arne Welzel, Corelight)
+
+    Using break in either of the hooks allows to suppress the default reporter
+    error message rather than suppressing solely based on the existence of an
+    assertion_failure() handler.
+
+  * Stmt: Introduce assert statement and related hooks (Arne Welzel, Corelight)
+
+    including two hooks called assertion_failure() and assertion_result() for
+    customization and tracking of assertion results.
+
+  * ZeekArgs: Helper for empty arguments (Arne Welzel, Corelight)
+
+  * Reporter: Allow AssertStmt to throw InterpreterException (Arne Welzel, Corelight)
+
+  * Lift backtrace() code into Func.{h,cc} (Arne Welzel, Corelight)
+
+    This is to be re-used by the assertion facility.
+
 6.1.0-dev.32 | 2023-06-13 11:29:36 -0700
 
   * Clarify subitem relationship in CMake configure summary. (Benjamin Bannier, Corelight)

@@ -32,8 +32,9 @@ enum StmtTag
 	STMT_CPP, // compiled C++
 	STMT_ZAM, // a ZAM function body
 	STMT_ZAM_RESUMPTION, // resumes ZAM execution for "when" statements
-	STMT_NULL
-#define NUM_STMTS (int(STMT_NULL) + 1)
+	STMT_NULL,
+	STMT_ASSERT,
+#define NUM_STMTS (int(STMT_ASSERT) + 1)
 	};
 
 enum StmtFlowType

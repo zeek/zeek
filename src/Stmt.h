@@ -544,6 +544,25 @@ private:
 	bool is_directive;
 	};
 
+class AssertStmt final : public Stmt
+	{
+public:
+	explicit AssertStmt(ExprPtr cond, ExprPtr msg = nullptr);
+
+	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
+
+	void StmtDescribe(ODesc* d) const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
+
+private:
+	ExprPtr cond;
+	ExprPtr msg;
+	};
+
 // A helper class for tracking all of the information associated with
 // a "when" statement, and constructing the necessary components in support
 // of lambda-style captures.

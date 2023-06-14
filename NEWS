@@ -272,6 +272,9 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The base distribution of the Zeek container images has been upgraded to
+  Debian 12 "bookworm" and JavaScript support was enabled.
+
 - When ``get_file_handle()`` is invoked for an analyzer that did not register
   an appropriate callback function, log a warning and return a generic handle
   value based on the analyzer and connection information.

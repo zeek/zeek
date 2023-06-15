@@ -301,7 +301,7 @@ Options parse_cmdline(int argc, char** argv)
 		fprintf(stderr, "ERROR: C++ unit tests are disabled for this build.\n"
 		                "       Please re-compile with ENABLE_ZEEK_UNIT_TESTS "
 		                "to run the C++ unit tests.\n");
-		usage(argv[0], 1);
+		exit(1);
 #endif
 
 		auto is_separator = [](const char* cstr)

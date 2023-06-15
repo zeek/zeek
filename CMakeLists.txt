@@ -313,6 +313,11 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
     ${CMAKE_BINARY_DIR}/auxil/broker/include)
 
+# threading/formatters/JSON.h includes rapidjson headers and may be used
+# by external plugins, extend the include path.
+target_include_directories(zeek_dynamic_plugin_base SYSTEM
+                           INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/rapidjson/include>)
+
 # Convenience function for adding an OBJECT library that feeds directly into the
 # main target(s).
 #

@@ -283,6 +283,8 @@ export {
 		["86d35949-83c9-4044-b424-db363231fd0c",0x0f] = "SchRpcScheduledRuntimes",
 		["86d35949-83c9-4044-b424-db363231fd0c",0x10] = "SchRpcGetLastRunInfo",
 		["86d35949-83c9-4044-b424-db363231fd0c",0x11] = "SchRpcGetTaskInfo",
+		["86d35949-83c9-4044-b424-db363231fd0c",0x12] = "SchRpcGetNumberOfMissedRuns",
+		["86d35949-83c9-4044-b424-db363231fd0c",0x13] = "SchRpcEnableTask",
 
 		# IObjectExporter
 		["99fcfec4-5260-101b-bbcb-00aa0021347a",0x00] = "ResolveOxid",
@@ -306,6 +308,16 @@ export {
 		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x07] = "NspiDNToEph",
 		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x08] = "NspiGetPropList",
 		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x09] = "NspiGetProps",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x0a] = "NspiCompareMIds",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x0b] = "NspiModProps",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x0c] = "NspiGetSpecialTable",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x0d] = "NspiGetTemplateInfo",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x0e] = "NspiModLinkAtt",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x10] = "NspiQueryColumns",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x11] = "NspiGetNamesFromIDs",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x12] = "NspiGetIDsFromNames",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x13] = "NspiResolveNames",
+		["f5cc5a18-4264-101a-8c59-08002b2f8426",0x14] = "NspiResolveNamesW",
 
 		# IWbemServices
 		["9556dc99-828c-11cf-a37e-00aa003240c7",0x03] = "OpenNamespace",
@@ -611,6 +623,12 @@ export {
 		["12345678-1234-abcd-ef00-0123456789ab",0x66] = "RpcCorePrinterDriverInstalled",
 		["12345678-1234-abcd-ef00-0123456789ab",0x67] = "RpcGetPrinterDriverPackagePath",
 		["12345678-1234-abcd-ef00-0123456789ab",0x68] = "RpcReportJobProcessingProgress",
+		["12345678-1234-abcd-ef00-0123456789ab",0x6e] = "RpcGetJobNamedPropertyValue",
+		["12345678-1234-abcd-ef00-0123456789ab",0x6f] = "RpcSetJobNamedProperty",
+		["12345678-1234-abcd-ef00-0123456789ab",0x70] = "RpcDeleteJobNamedProperty",
+		["12345678-1234-abcd-ef00-0123456789ab",0x71] = "RpcEnumJobNamedProperties",
+		["12345678-1234-abcd-ef00-0123456789ab",0x74] = "RpcLogJobInfoForBranchOffice",
+
 
 		["4b324fc8-1670-01d3-1278-5a47bf6ee188",0x00] = "NetrCharDevEnum",
 		["4b324fc8-1670-01d3-1278-5a47bf6ee188",0x01] = "NetrCharDevGetInfo",
@@ -740,6 +758,7 @@ export {
 		["12345778-1234-abcd-ef00-0123456789ac",0x43] = "SamrValidatePassword",
 		["12345778-1234-abcd-ef00-0123456789ac",0x44] = "SamrQueryLocalizableAccountsInDomain",
 		["12345778-1234-abcd-ef00-0123456789ac",0x45] = "SamrPerformGenericOperation",
+		["12345778-1234-abcd-ef00-0123456789ac",0x49] = "SamrUnicodeChangePasswordUser4",
 
 		["338cd001-2244-31f1-aaaa-900038001003",0x00] = "OpenClassesRoot",
 		["338cd001-2244-31f1-aaaa-900038001003",0x01] = "OpenCurrentUser",
@@ -847,6 +866,9 @@ export {
 		["367abb81-9844-35f1-ad32-98f038001003",0x34] = "ScSendPnPMessage",
 		["367abb81-9844-35f1-ad32-98f038001003",0x35] = "ScValidatePnPService",
 		["367abb81-9844-35f1-ad32-98f038001003",0x36] = "ScOpenServiceStatusHandle",
+		["367abb81-9844-35f1-ad32-98f038001003",0x38] = "QueryServiceConfigEx",
+		["367abb81-9844-35f1-ad32-98f038001003",0x3c] = "CreateWowService",
+		["367abb81-9844-35f1-ad32-98f038001003",0x40] = "OpenSCManager2",
 
 		# browser
 		["6bffd098-a112-3610-9833-012892020162",0x00] = "BrowserrServerEnum",
@@ -1132,6 +1154,8 @@ export {
 		["82273fdc-e32a-18c3-3f78-827929dc23ea",0x16] = "ElfrGetLogInformation",
 		["82273fdc-e32a-18c3-3f78-827929dc23ea",0x17] = "ElfrFlushEL",
 		["82273fdc-e32a-18c3-3f78-827929dc23ea",0x18] = "ElfrReportEventAndSourceW",
+		["82273fdc-e32a-18c3-3f78-827929dc23ea",0x19] = "ElfrReportEventExW",
+		["82273fdc-e32a-18c3-3f78-827929dc23ea",0x1a] = "ElfrReportEventExA",
 
 		# ISeclogon
 		["12b81e99-f207-4a4c-85d3-77b42f76fd14",0x00] = "SeclCreateProcessWithLogonW",
@@ -1265,7 +1289,9 @@ export {
 		["12345778-1234-abcd-ef00-0123456789ab",0x5c] = "CredReadByTokenHandle",
 		["12345778-1234-abcd-ef00-0123456789ab",0x5d] = "CredrRestoreCredentials",
 		["12345778-1234-abcd-ef00-0123456789ab",0x5e] = "CredrBackupCredentials",
-
+		["12345778-1234-abcd-ef00-0123456789ab",0x81] = "LsarCreateTrustedDomainEx3",
+		["12345778-1234-abcd-ef00-0123456789ab",0x82] = "LsarOpenPolicy3",
+		["12345778-1234-abcd-ef00-0123456789ab",0x85] = "LsarSetForestTrustInformation2",
 		# msgsvc
 		["17fdd703-1827-4e34-79d4-24a55c53bb37",0x00] = "NetrMessageNameAdd",
 		["17fdd703-1827-4e34-79d4-24a55c53bb37",0x01] = "NetrMessageNameEnum",
@@ -1363,6 +1389,15 @@ export {
 		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x07] = "DnssrvComplexOperation2",
 		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x08] = "DnssrvEnumRecords2",
 		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x09] = "DnssrvUpdateRecord2",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x0a] = "DnssrvUpdateRecord3",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x0b] = "DnssrvEnumRecords3",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x0c] = "DnssrvOperation3",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x0d] = "DnssrvQuery3",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x0e] = "DnssrvComplexOperation3",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x0f] = "DnssrvOperation4",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x10] = "DnssrvQuery4",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x11] = "DnssrvUpdateRecord4",
+		["50abc2a4-574d-40b3-9d66-ee4fd5fba076",0x12] = "DnssrvEnumRecords4",
 
 		# lls_license
 		["57674cd0-5200-11ce-a897-08002b2e9c6d",0x00] = "LlsrLicenseRequestW",
@@ -1487,6 +1522,9 @@ export {
 		["4fc742e0-4a10-11cf-8273-00aa004ae673",0x14] = "NetrDfsRemove2",
 		["4fc742e0-4a10-11cf-8273-00aa004ae673",0x15] = "NetrDfsEnumEx",
 		["4fc742e0-4a10-11cf-8273-00aa004ae673",0x16] = "NetrDfsSetInfo2",
+		["4fc742e0-4a10-11cf-8273-00aa004ae673",0x17] = "NetrDfsAddRootTarget",
+		["4fc742e0-4a10-11cf-8273-00aa004ae673",0x18] = "NetrDfsRemoveRootTarget",
+		["4fc742e0-4a10-11cf-8273-00aa004ae673",0x19] = "NetrDfsGetSupportedNamespaceVersion",
 
 		# sfcapi
 		["83da7c00-e84f-11d2-9807-00c04f8ec850",0x00] = "SfcSrv_GetNextProtectedFile",
@@ -1609,6 +1647,12 @@ export {
 		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x16] = "DRSReplicaVerifyObjects",
 		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x17] = "DRSGetObjectExistence",
 		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x18] = "DRSQuerySitesByCost",
+		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x19] = "IDL_DRSInitDemotion",
+		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x1a] = "IDL_DRSReplicaDemotion",
+		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x1b] = "IDL_DRSFinishDemotion",
+		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x1c] = "IDL_DRSAddCloneDC",
+		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x1d] = "IDL_DRSWriteNgcKey",
+		["e3514235-4b06-11d1-ab04-00c04fc2dcd2",0x1e] = "IDL_DRSReadNgcKey",
 
 		# winspipe
 		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x00] = "R_WinsRecordAction",
@@ -1628,9 +1672,12 @@ export {
 		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x0e] = "R_WinsGetBrowserNames_Old",
 		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x0f] = "R_WinsDeleteWins",
 		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x10] = "R_WinsSetFlags",
-		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x11] = "R_WinsGetDbRecsByName",
-		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x12] = "R_WinsStatusWHdl",
-		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x13] = "R_WinsDoScavengingNew",
+		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x11] = "R_WinsGetBrowserNames",
+		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x12] = "R_WinsGetDbRecsByName",
+		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x13] = "R_WinsStatusNew",
+		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x14] = "R_WinsStatusWHdl",
+		["45f52c28-7f9f-101a-b52b-08002b2efabe",0x15] = "R_WinsDoScavengingNew",
+
 
 		# mgmt
 		["afa8bd80-7d8a-11c9-bef4-08002b102989",0x00] = "inq_if_ids",
@@ -1761,6 +1808,64 @@ export {
 		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x6A] = "ApiClusterControl",
 		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x6B] = "ApiUnblockGetNotifyCall",
 		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x6C] = "ApiSetServiceAccountPassword",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x6D] = "ApiSetResourceDependencyExpression",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x6E] = "ApiGetResourceDependencyExpression",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x70] = "ApiGetResourceNetworkName",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x71] = "ApiExecuteBatch",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x72] = "ApiCreateBatchPort",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x73] = "ApiGetBatchNotification",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x74] = "ApiCloseBatchPort",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x75] = "ApiOpenClusterEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x76] = "ApiOpenNodeEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x77] = "ApiOpenGroupEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x78] = "ApiOpenResourceEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x79] = "ApiOpenNetworkEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x7A] = "ApiOpenNetInterfaceEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x7B] = "ApiChangeCsvState",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x7C] = "ApiCreateNodeEnumEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x7D] = "ApiCreateEnumEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x7E] = "ApiPauseNodeEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x7F] = "ApiPauseNodeWithDrainTarget",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x80] = "ApiResumeNodeEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x81] = "ApiCreateGroupEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x82] = "ApiOnlineGroupEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x83] = "ApiOfflineGroupEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x84] = "ApiMoveGroupEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x85] = "ApiMoveGroupToNodeEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x86] = "ApiCancelClusterGroupOperation",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x87] = "ApiOnlineResourceEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x88] = "ApiOfflineResourceEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x89] = "ApiCreateNotifyV2",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x8A] = "ApiAddNotifyV2",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x8B] = "ApiGetNotifyV2",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x8F] = "ApiCreateGroupEnum",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x90] = "ApiCreateResourceEnum",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x91] = "ApiExecuteReadBatch",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x92] = "ApiRestartResource",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x93] = "ApiGetNotifyAsync",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x9B] = "ApiAddNotifyResourceTypeV2",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0x9D] = "ApiExecuteReadBatchEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xA3] = "ApiCreateGroupSet",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xA4] = "ApiOpenGroupSet",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xA5] = "ApiCloseGroupSet",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xA6] = "ApiDeleteGroupSet",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xA7] = "ApiAddGroupToGroupSet",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xA8] = "ApiRemoveGroupFromGroupSet",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xA9] = "ApiMoveGroupToGroupSet",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xAB] = "ApiAddGroupSetDependency",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xAC] = "ApiAddGroupToGroupSetDependency",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xAD] = "ApiNodeGroupSetControl",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xAE] = "ApiGroupSetControl",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xAF] = "ApiSetGroupDependencyExpression",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB0] = "ApiRemoveClusterGroupDependency",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB1] = "ApiSetGroupSetDependencyExpression",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB2] = "ApiRemoveGroupSetDependency",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB3] = "ApiRemoveClusterGroupToGroupSetDependency",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB4] = "ApiCreateGroupSetEnum",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB5] = "ApiCreateNetInterfaceEnum",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB6] = "ApiChangeCsvStateEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB7] = "ApiAddGroupToGroupSetEx",
+		["b97db8b2-4c63-11cf-bff6-08002be23f2f",0xB8] = "ApiChangeResourceGroupEx",
 
 		# dhcpsrv - MSDN Ref: DHCP Server Mgmt Protocol [ms-dhcpm]
 		["6bffd098-a112-3610-9833-46c3f874532d",0x00] = "R_DhcpCreateSubnet",
@@ -2219,7 +2324,7 @@ export {
 		["00020401-0000-0000-c000-000000000046",0x12] = "GetContainingTypeLib",
 
 		# IDMNotify - MSDN Ref: Disk Mgmt Remote Protocol [ms-dmrp]
-		["d2d79df7-3400-11d0-b40b-00aa005ff586",0x00] = "ObjectsChanged",
+		["d2d79df7-3400-11d0-b40b-00aa005ff586",0x03] = "ObjectsChanged",
 
 		# IDMRemoteServer - MSDN Ref: Disk Mgmt Remote Protocol [ms-dmrp]
 		["3a410f21-553f-11d1-8e5e-00a0c92c9d5d",0x03] = "CreateRemoteObject",

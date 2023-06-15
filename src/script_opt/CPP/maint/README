@@ -34,7 +34,9 @@ The maintenance workflow:
 5.  Run "check-CPP-gen.sh" for each Zeek file that passed "check-zeek.sh".
     This will generate a corresponding file in CPP-test/out* indicating whether
     "-O gen-C++" can successfully run on the input.  Presently, it should
-    be able to do so for all of them.
+    be able to do so for all of them except a few that have conditional code,
+    which I've left active (no @TEST-REQUIRES to prune) given hopes of
+    soon being able to support (most) conditional code for C++ compilation.
 
     This step is parallelizable, say using xargs -P 10 -n 1.
 

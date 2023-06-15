@@ -1,3 +1,7 @@
+6.1.0-dev.93 | 2023-06-15 16:25:50 -0700
+
+  * -O gen-C++ refinements for BiF failures, negative vector indices, boolean vector operations (Vern Paxson, Corelight)
+
 6.1.0-dev.91 | 2023-06-15 14:21:03 -0700
 
   * ZAM bug fix for incorrect management of global variables (Vern Paxson, Corelight)

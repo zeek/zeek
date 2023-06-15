@@ -558,6 +558,9 @@ public:
 	// Optimization-related:
 	StmtPtr Duplicate() override;
 
+	bool IsReduced(Reducer* c) const override;
+	StmtPtr DoReduce(Reducer* c) override;
+
 private:
 	ExprPtr cond;
 	ExprPtr msg;

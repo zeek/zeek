@@ -1,3 +1,19 @@
+6.1.0-dev.91 | 2023-06-15 14:21:03 -0700
+
+  * ZAM bug fix for incorrect management of global variables (Vern Paxson, Corelight)
+
+  * ZAM bug fix (simplification) for nested inline functions that don't do anything (Vern Paxson, Corelight)
+
+  * ZAM support for negative vector indices (Vern Paxson, Corelight)
+
+  * ZAM ignores new "assert" statement (Vern Paxson, Corelight)
+
+  * fixes for doing "script validation" to check for ZAM compile-ability (Vern Paxson, Corelight)
+
+  * tweak for Broker BTest that needs a delay for ZAM (Vern Paxson, Corelight)
+
+  * BTest to check for invalid negative vector indices (Vern Paxson, Corelight)
+
 6.1.0-dev.80 | 2023-06-15 12:15:29 -0700
 
   * Force -std=c++17 mode for plugin targets, remove use of RequireCXX17.cmake (Tim Wojtulewicz, Corelight)

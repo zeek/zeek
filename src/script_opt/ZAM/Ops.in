@@ -960,8 +960,10 @@ eval	EvalIndexVec(frame[z.v3].uint_val)
 macro EvalIndexVec(index)
 	auto vv = frame[z.v2].vector_val->RawVec();
 	const auto& vec = *vv;
-	zeek_uint_t ind = index;
-	if ( ind >= vv->size() )
+	zeek_int_t ind = index;
+	if ( ind < 0 )
+		ind += vv->size();
+	if ( ind < 0 || ind >= vv->size() )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
 
@@ -975,8 +977,10 @@ eval	EvalIndexAnyVec(frame[z.v3].uint_val)
 
 macro EvalIndexAnyVec(index)
 	auto vv = frame[z.v2].vector_val;
-	zeek_uint_t ind = index;
-	if ( ind >= vv->Size() )
+	zeek_int_t ind = index;
+	if ( ind < 0 )
+		ind += vv->Size();
+	if ( ind < 0 || ind >= vv->Size() )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(ZVal(vv->ValAt(ind).release()))
 

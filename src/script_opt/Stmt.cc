@@ -924,6 +924,16 @@ StmtPtr AssertStmt::Duplicate()
 	return SetSucc(new AssertStmt(cond->Duplicate(), msg ? msg->Duplicate() : nullptr));
 	}
 
+bool AssertStmt::IsReduced(Reducer* c) const
+	{
+	return false;
+	}
+
+StmtPtr AssertStmt::DoReduce(Reducer* c)
+	{
+	return make_intrusive<NullStmt>();
+	}
+
 StmtPtr WhenStmt::Duplicate()
 	{
 	FuncType::CaptureList* cl_dup = nullptr;

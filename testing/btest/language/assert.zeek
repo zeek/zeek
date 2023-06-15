@@ -1,5 +1,8 @@
 # @TEST-DOC: Assert statement behavior testing without an assertion_failure() hook.
 #
+# Doesn't make sense for ZAM as it ignores assert's.
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
+#
 # @TEST-EXEC-FAIL: unset ZEEK_ALLOW_INIT_ERRORS; zeek -b %INPUT >out 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 

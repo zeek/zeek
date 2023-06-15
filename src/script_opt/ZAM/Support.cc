@@ -35,7 +35,8 @@ bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason)
 		}
 
 	auto b = pf->ProfiledBody();
-	if ( b && ! script_is_valid(b) )
+	auto is_hook = pf->ProfiledFunc()->Flavor() == FUNC_FLAVOR_HOOK;
+	if ( b && ! script_is_valid(b, is_hook) )
 		{
 		if ( reason )
 			*reason = "invalid script body";

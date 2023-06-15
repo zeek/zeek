@@ -61,7 +61,7 @@ of course this varies for different users.
 
 ### Deficiencies to eventually fix:
 
-* Error messages in compiled scripts often lack important identifying
+* Error messages in compiled scripts have diminished identifying
 information.
 
 * The optimizer assumes you have ensured initialization of your variables.
@@ -75,12 +75,11 @@ of the expression are modified by compiled scripts.
 
 ### Incompatibilities:
 
+* ZAM ignores `assert` statements.
+
 * When printing scripts (such as in some error messages), the names of
 variables often reflect internal temporaries rather than the original
 variables.
-
-* The deprecated feature of intermixing vectors and scalars in operations
-(e.g., `v2 = v1 * 3`) is not supported.
 
 * The `same_object()` BiF will always deem two non-container values as
 different.

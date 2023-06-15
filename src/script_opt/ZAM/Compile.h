@@ -333,7 +333,10 @@ private:
 	// Returns how many values were added.
 	int InternalAddVal(ZInstAux* zi, int i, Expr* e);
 
-	const ZAMStmt AddInst(const ZInstI& inst);
+	// Adds the given instruction to the ZAM program.  The second
+	// argument, if true, suppresses generation of any pending
+	// global/capture store for this instruction.
+	const ZAMStmt AddInst(const ZInstI& inst, bool suppress_non_local = false);
 
 	// Returns the statement just before the given one.
 	ZAMStmt PrevStmt(const ZAMStmt s);

@@ -13,8 +13,12 @@ class Stmt;
 void script_validation();
 
 /**
- * Returns true if the given script statement (body) is valid.
+ * Returns true if the given script statement (body) is valid.  The
+ * second argument indicates whether the statement is the body of a hook.
+ *
+ * Unlike script_validation(), does not report any errors, just returns
+ * whether they are present.
  */
-bool script_is_valid(const Stmt* s);
+bool script_is_valid(const Stmt* s, bool is_in_hook);
 
 	}

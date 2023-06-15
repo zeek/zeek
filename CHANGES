@@ -1,3 +1,9 @@
+6.1.0-dev.96 | 2023-06-15 16:27:36 -0700
+
+  * Update dce-rpc constants (Tim Wojtulewicz, Corelight)
+
+  * Update external testing repo hashes to current master commits (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.93 | 2023-06-15 16:25:50 -0700
 
   * -O gen-C++ refinements for BiF failures, negative vector indices, boolean vector operations (Vern Paxson, Corelight)

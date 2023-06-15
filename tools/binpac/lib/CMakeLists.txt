@@ -27,7 +27,9 @@ set(binpac_lib_SRCS
 
 if ( ENABLE_SHARED )
   add_library(binpac_lib SHARED ${binpac_lib_SRCS})
+  target_compile_features(binpac_lib PRIVATE cxx_std_17)
   set_target_properties(binpac_lib PROPERTIES
+                        CXX_EXTENSIONS OFF
                         SOVERSION ${BINPAC_SOVERSION}
                         VERSION ${BINPAC_VERSION_MAJOR}.${BINPAC_VERSION_MINOR}
                         MACOSX_RPATH true
@@ -37,7 +39,10 @@ endif ()
 
 if ( ENABLE_STATIC )
   add_library(binpac_static STATIC ${binpac_lib_SRCS})
-  set_target_properties(binpac_static PROPERTIES OUTPUT_NAME binpac)
+  target_compile_features(binpac_static PRIVATE cxx_std_17)
+  set_target_properties(binpac_static PROPERTIES
+                        CXX_EXTENSIONS OFF
+                        OUTPUT_NAME binpac)
   install(TARGETS binpac_static DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif ()
 

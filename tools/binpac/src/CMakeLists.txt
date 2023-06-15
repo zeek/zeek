@@ -8,7 +8,6 @@ if (MSVC)
 else()
     set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 endif()
-include(RequireCXX17)
 
 include_directories(${PROJECT_SOURCE_DIR}/src
                     ${PROJECT_BINARY_DIR}/src)
@@ -103,6 +102,8 @@ set(binpac_SRCS
 )
 
 add_executable(binpac ${binpac_SRCS})
+target_compile_features(binpac PRIVATE cxx_std_17)
+set_target_properties(binpac PROPERTIES CXX_EXTENSIONS OFF)
 
 if ( MSVC )
     # If building separately from zeek, we need to add the libunistd subdirectory so

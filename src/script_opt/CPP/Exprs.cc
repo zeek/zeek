@@ -114,7 +114,7 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level)
 		case EXPR_COND:
 			return GenCondExpr(e, gt);
 		case EXPR_CALL:
-			return GenCallExpr(e->AsCallExpr(), gt);
+			return GenCallExpr(e->AsCallExpr(), gt, top_level);
 		case EXPR_LIST:
 			return GenListExpr(e, gt, false);
 		case EXPR_IN:
@@ -291,7 +291,7 @@ string CPPCompile::GenCondExpr(const Expr* e, GenType gt)
 	return string("(") + gen1 + ") ? (" + gen2 + ") : (" + gen3 + ")";
 	}
 
-string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
+string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level)
 	{
 	const auto& t = c->GetType();
 	auto f = c->Func();
@@ -347,7 +347,18 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 		// Indirect call.
 		gen = string("(") + gen + ")->AsFunc()";
 
-	string invoke_func = is_async ? "when_invoke__CPP" : "invoke__CPP";
+	string invoke_func;
+
+	if ( is_async )
+		invoke_func = "when_invoke__CPP";
+	else if ( t->Tag() == TYPE_VOID )
+		{
+		ASSERT(top_level);
+		invoke_func = "invoke_void__CPP";
+		}
+	else
+		invoke_func = "invoke__CPP";
+
 	auto args_list = string(", {") + GenExpr(args_l, GEN_VAL_PTR) + "}";
 	auto invoker = invoke_func + "(" + gen + args_list + ", f__CPP";
 
@@ -355,6 +366,10 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt)
 		invoker += ", (void*) &" + body_name;
 
 	invoker += ")";
+
+	if ( top_level )
+		// No need to use accessor.
+		return invoker;
 
 	if ( IsNativeType(t) && gt != GEN_VAL_PTR )
 		return invoker + NativeAccessor(t);

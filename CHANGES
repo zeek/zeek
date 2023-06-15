@@ -1,3 +1,35 @@
+6.1.0-dev.76 | 2023-06-15 18:36:25 +0200
+
+  * plugin/Manager: Warn when plugin with the same name is found (Arne Welzel, Corelight)
+
+    This was brought up on Slack as a potential source of confusion during
+    development as it's not visible when plugin directories are ignored outside
+    of looking into the plugin debug stream. I'd actually prefer to just
+    FatalError() this, but a warning seems reasonably visible for interactive
+    usage.
+
+  * Options: Do not output full usage on --test error (Arne Welzel, Corelight)
+
+    ...mostly because the usage output is very long and the actual useful
+    error message scrolls off the screen.
+
+  * GH-3090: CMakeLists: Propagate DOCTEST defines to external plugins (Arne Welzel, Corelight)
+
+    If Zeek has not been built with doctest enabled then it's not easy
+    to run a plugin's tests (and if they really wanted to they could
+    again undef the DOCTEST_CONFIG_DISABLE and provide their own doctest
+    main() implementation.
+
+  * GH-3090: CMakeLists: Add rapidjson/include to zeek_dynamic_plugin_base (Arne Welzel, Corelight)
+
+    threading/formatters/JSON.h has a rapidjson include. Extend the
+    include directories of external plugins so they are setup to find
+    these in Zeek's install tree.
+
+  * GH-3090: ZeekPluginBootstrap: Encode Zeek's CMAKE_BUILD_TYPE (Arne Welzel, Corelight)
+
+    ...and bump cmake to have plugin's make use of it.
+
 6.1.0-dev.66 | 2023-06-14 10:09:46 -0700
 
   * Change table initialization deprecation to error (Tim Wojtulewicz, Corelight)

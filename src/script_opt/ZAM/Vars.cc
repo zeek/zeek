@@ -66,7 +66,7 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id)
 	z.aux = new ZInstAux(0);
 	z.aux->id_val = id;
 
-	return AddInst(z);
+	return AddInst(z, true);
 	}
 
 int ZAMCompiler::AddToFrame(const ID* id)
@@ -81,38 +81,27 @@ int ZAMCompiler::FrameSlot(const ID* id)
 	auto slot = RawSlot(id);
 
 	if ( id->IsGlobal() )
-		(void)LoadGlobal(frame_denizens[slot]);
+		(void)LoadGlobal(id);
 
 	return slot;
 	}
 
 int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 	{
-	auto slot = RawSlot(id);
+	if ( fl == OP1_READ )
+		return FrameSlot(id);
 
-	switch ( fl )
-		{
-		case OP1_READ:
-			if ( id->IsGlobal() )
-				(void)LoadGlobal(frame_denizens[slot]);
-			break;
+	if ( fl == OP1_INTERNAL )
+		return RawSlot(id);
 
-		case OP1_WRITE:
-			if ( id->IsGlobal() )
-				pending_global_store = global_id_to_info[id];
-			break;
+	ASSERT(fl == OP1_WRITE || fl == OP1_READ_WRITE);
 
-		case OP1_READ_WRITE:
-			if ( id->IsGlobal() )
-				{
-				(void)LoadGlobal(frame_denizens[slot]);
-				pending_global_store = global_id_to_info[id];
-				}
-			break;
+	// Important: get the slot *before* tracking non-locals, so we don't
+	// prematurely generate a Store for the read/write case.
+	auto slot = fl == OP1_READ_WRITE ? FrameSlot(id) : RawSlot(id);
 
-		case OP1_INTERNAL:
-			break;
-		}
+	if ( id->IsGlobal() )
+		pending_global_store = global_id_to_info[id];
 
 	return slot;
 	}

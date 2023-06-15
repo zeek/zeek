@@ -1047,14 +1047,7 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr)
 
 	ResolveCatchReturns(GoToTargetBeyond(block_end));
 
-	// If control flow runs off the end of the block, then we need
-	// to consider sync'ing globals at that point.
-	auto block_last = LastStmt(block.get());
-
-	if ( block_last->Tag() == STMT_RETURN )
-		return block_end;
-
-	return top_main_inst;
+	return block_end;
 	}
 
 const ZAMStmt ZAMCompiler::CompileStmts(const StmtList* ws)

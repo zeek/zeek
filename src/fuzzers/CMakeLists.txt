@@ -31,6 +31,8 @@ string(REGEX MATCH ".*\\.a$" _have_static_bind_lib "${BIND_LIBRARY}")
 
 macro (SETUP_FUZZ_TARGET _fuzz_target _fuzz_source)
     add_executable(${_fuzz_target} ${_fuzz_source} ${ARGN})
+    target_compile_features(${_fuzz_target} PRIVATE "${ZEEK_CXX_STD}")
+    set_target_properties(${_fuzz_target} PROPERTIES CXX_EXTENSIONS OFF)
     target_link_libraries(${_fuzz_target} zeek_fuzzer_shared)
 
     if (_have_static_bind_lib)
@@ -62,6 +64,8 @@ endmacro ()
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(zeek_fuzzer_standalone OBJECT standalone-driver.cc)
+target_compile_features(zeek_fuzzer_standalone PRIVATE "${ZEEK_CXX_STD}")
+set_target_properties(zeek_fuzzer_standalone PROPERTIES CXX_EXTENSIONS OFF)
 
 target_sources(zeek_fuzzer_shared PRIVATE FuzzBuffer.cc)
 

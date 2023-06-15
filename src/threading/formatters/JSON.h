@@ -3,10 +3,17 @@
 #pragma once
 
 #define RAPIDJSON_HAS_STDSTRING 1
+// Remove in v7.1 when removing NullDoubleWriter below and also remove
+// rapidjson include tweaks from  CMake's dynamic_plugin_base target.
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 
 #include "zeek/threading/Formatter.h"
+
+namespace zeek::json::detail
+	{
+class NullDoubleWriter;
+	}
 
 namespace zeek::threading::formatter
 	{
@@ -38,7 +45,8 @@ public:
 	class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer>
 		{
 	public:
-		NullDoubleWriter(rapidjson::StringBuffer& stream)
+		[[deprecated("Remove in v7.1 - This is an implementation detail.")]] NullDoubleWriter(
+			rapidjson::StringBuffer& stream)
 			: rapidjson::Writer<rapidjson::StringBuffer>(stream)
 			{
 			}
@@ -46,7 +54,8 @@ public:
 		};
 
 private:
-	void BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& name = "") const;
+	void BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val,
+	               const std::string& name = "") const;
 
 	TimeFormat timestamps;
 	bool surrounding_braces;

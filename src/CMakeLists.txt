@@ -602,6 +602,8 @@ install(
     PATTERN "*.h"
     PATTERN "*.pac"
     PATTERN "3rdparty/*" EXCLUDE
+    # Headers used only during build
+    PATTERN "threading/formatters/detail" EXCLUDE
     # The "zeek -> ." symlink isn't needed in the install-tree
     REGEX "${escaped_include_path}$" EXCLUDE
     # FILES_MATCHING creates empty directories:

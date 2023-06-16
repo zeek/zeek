@@ -1,3 +1,9 @@
+6.1.0-dev.100 | 2023-06-15 21:13:46 -0700
+
+  * Update external testing hashes for 6.1 deprecation changes (Tim Wojtulewicz, Corelight)
+
+  * Remove leftover baseline files from 6.1 deprecation removal (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.96 | 2023-06-15 16:27:36 -0700
 
   * Update dce-rpc constants (Tim Wojtulewicz, Corelight)

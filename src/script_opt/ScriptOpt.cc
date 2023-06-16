@@ -216,6 +216,9 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	new_body = ud->RemoveUnused();
 
+	if ( analysis_options.dump_xform )
+		printf("Post removal of unused: %s\n", obj_desc(new_body.get()).c_str());
+
 	if ( new_body != body )
 		{
 		f->ReplaceBody(body, new_body);
@@ -593,6 +596,9 @@ void analyze_scripts(bool no_unused_warnings)
 	// At this point we're done with C++ considerations, so instead
 	// are compiling to ZAM.
 	analyze_scripts_for_ZAM(pfs);
+
+	if ( reporter->Errors() > 0 )
+		reporter->FatalError("Optimized script execution aborted due to errors");
 	}
 
 void profile_script_execution()

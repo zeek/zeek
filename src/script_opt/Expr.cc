@@ -2709,6 +2709,13 @@ void InlineExpr::ExprDescribe(ODesc* d) const
 		{
 		d->Add("inline(");
 		args->Describe(d);
+		d->Add(")(");
+		for ( auto& p : params )
+			{
+			if ( &p != &params[0] )
+				d->AddSP(",");
+			d->Add(p->Name());
+			}
 		d->Add("){");
 		body->Describe(d);
 		d->Add("}");

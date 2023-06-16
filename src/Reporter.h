@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <stdarg.h>
+#include <stdio.h>
 #include <list>
 #include <map>
 #include <string>
@@ -11,14 +11,20 @@
 #include <unordered_set>
 #include <utility>
 
+#include "zeek/Desc.h"
+#include "zeek/Event.h"
+#include "zeek/RunState.h"
 #include "zeek/ZeekList.h"
 #include "zeek/net_util.h"
+
+extern zeek::EventHandlerPtr reporter_info;
+extern zeek::EventHandlerPtr reporter_warning;
+extern zeek::EventHandlerPtr reporter_error;
 
 namespace zeek
 	{
 
 class Connection;
-class EventHandlerPtr;
 class RecordVal;
 class StringVal;
 class IPAddr;
@@ -84,43 +90,110 @@ public:
 
 	// Report an informational message, nothing that needs specific
 	// attention.
-	void Info(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args> void Info(const char* fmt, Args&&... args)
+		{
+		FILE* out = EmitToStderr(info_to_stderr) ? stderr : nullptr;
+		DoLog("", reporter_info, out, nullptr, nullptr, true, true, "", fmt, args...);
+		}
 
 	// Report a warning that may indicate a problem.
-	void Warning(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args> void Warning(const char* fmt, Args&&... args)
+		{
+		FILE* out = EmitToStderr(info_to_stderr) ? stderr : nullptr;
+		DoLog("warning", reporter_warning, out, nullptr, nullptr, true, true, "", fmt, args...);
+		}
 
 	// Report a non-fatal error. Processing proceeds normally after the error
 	// has been reported.
-	void Error(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args> void Error(const char* fmt, Args&&... args)
+		{
+		++errors;
+		FILE* out = EmitToStderr(info_to_stderr) ? stderr : nullptr;
+		DoLog("error", reporter_error, out, nullptr, nullptr, true, true, "", fmt, args...);
+		}
 
 	// Returns the number of errors reported so far.
 	int Errors() { return errors; }
 
 	// Report a fatal error. Zeek will terminate after the message has been
 	// reported.
-	[[noreturn]] void FatalError(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args> [[noreturn]] void FatalError(const char* fmt, Args&&... args)
+		{
+		// Always log to stderr.
+		DoLog("fatal error", nullptr, stderr, nullptr, nullptr, true, false, "", fmt, args...);
+		util::detail::set_processing_status("TERMINATED", "fatal_error");
+		fflush(stderr);
+		fflush(stdout);
+		_exit(1);
+		}
 
 	// Report a fatal error. Zeek will terminate after the message has been
 	// reported and always generate a core dump.
-	[[noreturn]] void FatalErrorWithCore(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args>
+	[[noreturn]] void FatalErrorWithCore(const char* fmt, Args&&... args)
+		{
+		// Always log to stderr.
+		DoLog("fatal error", nullptr, stderr, nullptr, nullptr, true, false, "", fmt, args...);
+		util::detail::set_processing_status("TERMINATED", "fatal_error");
+		abort();
+		}
 
 	// Report a runtime error in evaluating a Zeek script expression. This
 	// function will not return but raise an InterpreterException.
-	[[noreturn]] void ExprRuntimeError(const detail::Expr* expr, const char* fmt, ...)
-		__attribute__((format(printf, 3, 4)));
+	template <typename... Args>
+	[[noreturn]] void ExprRuntimeError(const detail::Expr* expr, const char* fmt, Args&&... args)
+		{
+		++errors;
+
+		ODesc d;
+		DescribeExpr(expr, d);
+		FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+		DoLog("expression error", reporter_error, out, nullptr, nullptr, true, true,
+		      d.Description(), fmt, args...);
+		PopLocation();
+		throw InterpreterException();
+		}
 
 	// Report a runtime error in evaluating a Zeek script expression. This
 	// function will not return but raise an InterpreterException.
-	[[noreturn]] void RuntimeError(const detail::Location* location, const char* fmt, ...)
-		__attribute__((format(printf, 3, 4)));
+	template <typename... Args>
+	[[noreturn]] void RuntimeError(const detail::Location* location, const char* fmt,
+	                               Args&&... args)
+		{
+		++errors;
+		PushLocation(location);
+		FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+		DoLog("runtime error", reporter_error, out, nullptr, nullptr, true, true, "", fmt, args...);
+		PopLocation();
+		throw InterpreterException();
+		}
 
 	// Report a rutnime warning in evaluating a Zeek script expression.
-	void ExprRuntimeWarning(const detail::Expr* expr, const char* fmt, ...)
-		__attribute__((format(printf, 3, 4)));
+	template <typename... Args>
+	void ExprRuntimeWarning(const detail::Expr* expr, const char* fmt, Args&&... args)
+		{
+		ODesc d;
+		DescribeExpr(expr, d);
+		FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+		DoLog("expression warning", reporter_warning, out, nullptr, nullptr, true, true,
+		      d.Description(), fmt, args...);
+		PopLocation();
+		}
 
 	// Report a runtime error in executing a compiled script. This
 	// function will not return but raise an InterpreterException.
-	[[noreturn]] void CPPRuntimeError(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
+	template <typename... Args> [[noreturn]] void CPPRuntimeError(const char* fmt, Args&&... args)
+		{
+		++errors;
+		FILE* out = EmitToStderr(errors_to_stderr) ? stderr : nullptr;
+		DoLog("runtime error in compiled code", reporter_error, out, nullptr, nullptr, true, true,
+		      "", fmt, args...);
+
+		if ( abort_on_scripting_errors )
+			abort();
+
+		throw InterpreterException();
+		}
 
 	// Report a traffic weirdness, i.e., an unexpected protocol situation
 	// that may lead to incorrectly processing a connection.
@@ -144,21 +217,49 @@ public:
 
 	// Syslog a message. This methods does nothing if we're running
 	// offline from a trace.
-	void Syslog(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args> void Syslog(const char* fmt, Args&&... args)
+		{
+		if ( run_state::reading_traces )
+			return;
+
+		char* buf;
+		asprintf(&buf, fmt, std::forward<Args>(args)...);
+		DoSyslog(buf);
+		free(buf);
+		}
 
 	// Report about a potential internal problem. Zeek will continue
 	// normally.
-	void InternalWarning(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args> void InternalWarning(const char* fmt, Args&&... args)
+		{
+		FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+		// TODO: would be nice to also log a call stack.
+		DoLog("internal warning", reporter_warning, out, nullptr, nullptr, true, true, "", fmt,
+		      args...);
+		}
 
 	// Report an internal program error. Zeek will terminate with a core
 	// dump after the message has been reported.
-	[[noreturn]] void InternalError(const char* fmt, ...) FMT_ATTR;
+	template <typename... Args> [[noreturn]] void InternalError(const char* fmt, Args&&... args)
+		{
+		// Always log to stderr.
+		DoLog("internal error", nullptr, stderr, nullptr, nullptr, true, false, "", fmt, args...);
+		util::detail::set_processing_status("TERMINATED", "internal_error");
+		abort();
+		}
 
 	// Report an analyzer error. That analyzer will be set to not process
 	// any further input, but Zeek otherwise continues normally.
-	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, ...)
-		__attribute__((format(printf, 3, 4)));
-	;
+	template <typename... Args>
+	void AnalyzerError(analyzer::Analyzer* a, const char* fmt, Args&&... args)
+		{
+		SetAnalyzerSkip(a);
+
+		// Always log to stderr.
+		// TODO: would be nice to also log a call stack.
+		DoLog("analyzer error", reporter_error, stderr, nullptr, nullptr, true, true, "", fmt,
+		      args...);
+		}
 
 	// Toggle whether non-fatal messages should be reported through the
 	// scripting layer rather on standard output. Fatal errors are always
@@ -172,7 +273,7 @@ public:
 	void PushLocation(const detail::Location* location)
 		{
 		locations.push_back(
-			std::pair<const detail::Location*, const detail::Location*>(location, 0));
+			std::pair<const detail::Location*, const detail::Location*>(location, nullptr));
 		}
 
 	void PushLocation(const detail::Location* loc1, const detail::Location* loc2)
@@ -300,15 +401,126 @@ public:
 		}
 
 private:
-	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn,
-	           ValPList* addl, bool location, bool time, const char* postfix, const char* fmt,
-	           va_list ap) __attribute__((format(printf, 10, 0)));
+	void SetAnalyzerSkip(analyzer::Analyzer* a) const;
 
-	// WeirdHelper doesn't really have to be variadic, but it calls DoLog
-	// and that takes va_list anyway.
-	void WeirdHelper(EventHandlerPtr event, ValPList vl, const char* fmt_name, ...)
-		__attribute__((format(printf, 4, 5)));
-	;
+	void DoSyslog(std::string_view msg);
+
+	std::string BuildLogLocationString() const;
+
+	void DoLogEvents(std::string_view prefix, EventHandlerPtr event, Connection* conn,
+	                 ValPList* addl, bool location, bool time, std::string_view buffer,
+	                 std::string_view loc_str) const;
+
+	void DescribeExpr(const detail::Expr* expr, ODesc& d);
+
+	template <typename... Args>
+	void DoLog(std::string_view prefix, EventHandlerPtr event, FILE* out, Connection* conn,
+	           ValPList* addl, bool location, bool time, std::string_view postfix,
+	           std::string_view fmt, Args&&... args)
+		{
+		static char tmp[512];
+		size_t size = sizeof(tmp);
+		char* buffer = tmp;
+		char* allocated = nullptr;
+
+		std::string loc_str;
+		if ( location )
+			loc_str = BuildLogLocationString();
+
+		while ( true )
+			{
+			int n;
+
+			if constexpr ( sizeof...(args) > 0 )
+				n = snprintf(buffer, size, fmt.data(), std::forward<Args>(args)...);
+			else
+				n = snprintf(buffer, size, "%s", fmt.data());
+
+			if ( ! postfix.empty() )
+				n += postfix.size() + 10;
+
+			if ( n > -1 && n < size )
+				// We had enough space;
+				break;
+
+			// Enlarge buffer;
+			size *= 2;
+			buffer = allocated = (char*)realloc(allocated, size);
+
+			if ( ! buffer )
+				FatalError("out of memory in Reporter");
+			}
+
+		if ( ! postfix.empty() )
+			// Note, if you change this fmt string, adjust the additional
+			// buffer size above.
+			snprintf(buffer + strlen(buffer), size - strlen(buffer), " (%s)", postfix.data());
+
+		DoLogEvents(prefix, event, conn, addl, location, time, buffer, loc_str);
+
+		if ( out )
+			{
+			std::string s = "";
+
+			if ( run_state::zeek_start_network_time != 0.0 )
+				{
+				char tmp[32];
+				snprintf(tmp, 32, "%.6f", run_state::network_time);
+				s += std::string(tmp) + " ";
+				}
+
+			if ( ! prefix.empty() )
+				{
+				if ( loc_str != "" )
+					s += std::string(prefix) + " in " + loc_str + ": ";
+				else
+					s += std::string(prefix) + ": ";
+				}
+
+			else
+				{
+				if ( loc_str != "" )
+					s += loc_str + ": ";
+				}
+
+			s += buffer;
+
+#ifdef ENABLE_ZEEK_UNIT_TESTS
+			if ( doctest::is_running_in_test )
+				{
+				try
+					{
+					MESSAGE(s);
+					}
+				catch ( const doctest::detail::TestFailureException& e )
+					{
+					// If doctest throws an exception, just write the string out to stdout
+					// like normal, just so it's captured somewhere.
+					fprintf(out, "%s\n", s.c_str());
+					}
+				}
+			else
+				{
+#endif
+				s += "\n";
+				fprintf(out, "%s", s.c_str());
+#ifdef ENABLE_ZEEK_UNIT_TESTS
+				}
+#endif
+			}
+
+		if ( allocated )
+			free(allocated);
+		}
+
+	// WeirdHelper doesn't really have to be variadic, but it calls DoLog and that's variadic
+	// anyway.
+	template <typename... Args>
+	void WeirdHelper(EventHandlerPtr event, ValPList vl, const char* fmt_name, Args&&... args)
+		{
+		DoLog("weird", event, nullptr, nullptr, &vl, false, false, "", fmt_name, args...);
+		}
+
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
 		{

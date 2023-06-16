@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 
+#include "zeek/RunState.h"
 #include "zeek/util.h"
 
 #define DBG_LOG(stream, ...)                                                                       \
@@ -74,9 +75,47 @@ public:
 
 	void OpenDebugLog(const char* filename = 0);
 
-	void Log(DebugStream stream, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
-	void Log(const plugin::Plugin& plugin, const char* fmt, ...)
-		__attribute__((format(printf, 3, 4)));
+	template <typename... Args> void Log(DebugStream stream, const char* fmt, Args&&... args) const
+		{
+		Stream* g = &streams[int(stream)];
+
+		if ( ! g->enabled )
+			return;
+
+		fprintf(file, "%17.06f/%17.06f [%s] ", run_state::network_time, util::current_time(true),
+		        g->prefix);
+
+		for ( int i = g->indent; i > 0; --i )
+			fputs("   ", file);
+
+		if constexpr ( sizeof...(args) > 0 )
+			fprintf(file, fmt, std::forward<Args>(args)...);
+		else
+			fprintf(file, "%s", fmt);
+
+		fputc('\n', file);
+		fflush(file);
+		}
+
+	template <typename... Args>
+	void Log(const plugin::Plugin& plugin, const char* fmt, Args&&... args) const
+		{
+		std::string tok = PluginStreamName(GetPluginName(plugin));
+
+		if ( enabled_streams.find(tok) == enabled_streams.end() )
+			return;
+
+		fprintf(file, "%17.06f/%17.06f [plugin %s] ", run_state::network_time,
+		        util::current_time(true), GetPluginName(plugin));
+
+		if constexpr ( sizeof...(args) > 0 )
+			fprintf(file, fmt, std::forward<Args>(args)...);
+		else
+			fprintf(file, "%s", fmt);
+
+		fputc('\n', file);
+		fflush(file);
+		}
 
 	void PushIndent(DebugStream stream) { ++streams[int(stream)].indent; }
 	void PopIndent(DebugStream stream) { --streams[int(stream)].indent; }
@@ -88,14 +127,14 @@ public:
 	void EnableStreams(const char* streams);
 
 	// Check the enabled streams for invalid ones.
-	bool CheckStreams(const std::set<std::string>& plugin_names);
+	bool CheckStreams(const std::set<std::string>& plugin_names) const;
 
 	bool IsEnabled(DebugStream stream) const { return streams[int(stream)].enabled; }
 
 	void SetVerbose(bool arg_verbose) { verbose = arg_verbose; }
 	bool IsVerbose() const { return verbose; }
 
-	void ShowStreamsHelp();
+	void ShowStreamsHelp() const;
 
 private:
 	FILE* file;
@@ -112,10 +151,12 @@ private:
 
 	static Stream streams[NUM_DBGS];
 
-	const std::string PluginStreamName(const std::string& plugin_name)
+	std::string PluginStreamName(const std::string& plugin_name) const
 		{
 		return "plugin-" + util::strreplace(plugin_name, "::", "-");
 		}
+
+	std::string GetPluginName(const plugin::Plugin& plugin) const;
 	};
 
 extern DebugLogger debug_logger;

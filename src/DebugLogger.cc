@@ -61,7 +61,7 @@ void DebugLogger::OpenDebugLog(const char* filename)
 		file = stderr;
 	}
 
-void DebugLogger::ShowStreamsHelp()
+void DebugLogger::ShowStreamsHelp() const
 	{
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Enable debug output into debug.log with -B <streams>.\n");
@@ -143,7 +143,7 @@ void DebugLogger::EnableStreams(const char* s)
 	delete[] tmp;
 	}
 
-bool DebugLogger::CheckStreams(const std::set<std::string>& plugin_names)
+bool DebugLogger::CheckStreams(const std::set<std::string>& plugin_names) const
 	{
 	bool ok = true;
 
@@ -166,45 +166,9 @@ bool DebugLogger::CheckStreams(const std::set<std::string>& plugin_names)
 	return ok;
 	}
 
-void DebugLogger::Log(DebugStream stream, const char* fmt, ...)
+std::string DebugLogger::GetPluginName(const plugin::Plugin& plugin) const
 	{
-	Stream* g = &streams[int(stream)];
-
-	if ( ! g->enabled )
-		return;
-
-	fprintf(file, "%17.06f/%17.06f [%s] ", run_state::network_time, util::current_time(true),
-	        g->prefix);
-
-	for ( int i = g->indent; i > 0; --i )
-		fputs("   ", file);
-
-	va_list ap;
-	va_start(ap, fmt);
-	vfprintf(file, fmt, ap);
-	va_end(ap);
-
-	fputc('\n', file);
-	fflush(file);
-	}
-
-void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...)
-	{
-	std::string tok = PluginStreamName(plugin.Name());
-
-	if ( enabled_streams.find(tok) == enabled_streams.end() )
-		return;
-
-	fprintf(file, "%17.06f/%17.06f [plugin %s] ", run_state::network_time, util::current_time(true),
-	        plugin.Name().c_str());
-
-	va_list ap;
-	va_start(ap, fmt);
-	vfprintf(file, fmt, ap);
-	va_end(ap);
-
-	fputc('\n', file);
-	fflush(file);
+	return plugin.Name();
 	}
 
 	} // namespace zeek::detail

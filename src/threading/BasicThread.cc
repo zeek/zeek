@@ -10,9 +10,6 @@
 
 namespace zeek::threading
 	{
-
-static const int STD_FMT_BUF_LEN = 2048;
-
 uint64_t BasicThread::thread_counter = 0;
 
 BasicThread::BasicThread()
@@ -52,34 +49,6 @@ void BasicThread::SetOSName(const char* arg_name)
 	if constexpr ( std::is_same<std::thread::native_handle_type, pthread_t>::value )
 		zeek::util::detail::set_thread_name(arg_name,
 		                                    reinterpret_cast<pthread_t>(thread.native_handle()));
-	}
-
-const char* BasicThread::Fmt(const char* format, ...)
-	{
-	if ( buf_len > 10 * STD_FMT_BUF_LEN )
-		{
-		// Shrink back to normal.
-		buf = (char*)util::safe_realloc(buf, STD_FMT_BUF_LEN);
-		buf_len = STD_FMT_BUF_LEN;
-		}
-
-	va_list al;
-	va_start(al, format);
-	int n = vsnprintf(buf, buf_len, format, al);
-	va_end(al);
-
-	if ( (unsigned int)n >= buf_len )
-		{ // Not enough room, grow the buffer.
-		buf_len = n + 32;
-		buf = (char*)util::safe_realloc(buf, buf_len);
-
-		// Is it portable to restart?
-		va_start(al, format);
-		n = vsnprintf(buf, buf_len, format, al);
-		va_end(al);
-		}
-
-	return buf;
 	}
 
 const char* BasicThread::Strerror(int err)

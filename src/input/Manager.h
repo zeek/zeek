@@ -249,9 +249,20 @@ private:
 
 	// Internally signal errors, warnings, etc.
 	// These are sent on to input scriptland and reporter.log
-	void Info(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
-	void Warning(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
-	void Error(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
+	template <typename... Args> void Info(const Stream* i, const char* fmt, Args&&... args) const
+		{
+		ErrorHandler(i, ErrorType::INFO, true, fmt, args...);
+		}
+
+	template <typename... Args> void Warning(const Stream* i, const char* fmt, Args&&... args) const
+		{
+		ErrorHandler(i, ErrorType::WARNING, true, fmt, args...);
+		}
+
+	template <typename... Args> void Error(const Stream* i, const char* fmt, Args&&... args) const
+		{
+		ErrorHandler(i, ErrorType::ERROR, true, fmt, args...);
+		}
 
 	enum class ErrorType
 		{
@@ -259,10 +270,31 @@ private:
 		WARNING,
 		ERROR
 		};
-	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const
-		__attribute__((format(printf, 5, 6)));
+
+	template <typename... Args>
 	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt,
-	                  va_list ap) const __attribute__((format(printf, 5, 0)));
+	                  Args&&... args) const
+		{
+		char* buf;
+
+		int n;
+		if constexpr ( sizeof...(args) > 0 )
+			n = asprintf(&buf, fmt, std::forward<Args>(args)...);
+		else
+			n = asprintf(&buf, "%s", fmt);
+
+		if ( n < 0 || buf == nullptr )
+			{
+			reporter->InternalError("Could not format error message %s for stream %s", fmt,
+			                        i->name.c_str());
+			return;
+			}
+
+		DoErrorHandler(i, et, reporter_send, buf);
+		free(buf);
+		}
+
+	void DoErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* buf) const;
 
 	Stream* FindStream(const std::string& name) const;
 	Stream* FindStream(ReaderFrontend* reader) const;
@@ -272,6 +304,30 @@ private:
 		TABLE_STREAM,
 		EVENT_STREAM,
 		ANALYSIS_STREAM
+		};
+
+	/**
+	 * Base stuff that every stream can do.
+	 */
+	class Stream
+		{
+	public:
+		std::string name;
+		bool removed;
+
+		StreamType stream_type; // to distinguish between event and table streams
+
+		EnumVal* type;
+		ReaderFrontend* reader;
+		TableVal* config;
+		EventHandlerPtr error_event;
+
+		RecordVal* description;
+
+		virtual ~Stream();
+
+	protected:
+		Stream(StreamType t);
 		};
 
 	std::map<ReaderFrontend*, Stream*> readers;

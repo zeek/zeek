@@ -67,12 +67,26 @@ public:
 	void TraceOn();
 	void TraceOff();
 
-	int LogTrace(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
-	;
+	template <typename... Args> int LogTrace(const char* fmt, Args&&... args)
+		{
+		LogTraceHelper();
+
+		int retval;
+		if constexpr ( sizeof...(args) > 0 )
+			retval = fprintf(trace_file, fmt, std::forward<Args>(args)...);
+		else
+			retval = fprintf(trace_file, "%s", fmt);
+
+		fflush(trace_file);
+		return retval;
+		}
 
 protected:
 	bool dbgtrace; // print an execution trace
 	FILE* trace_file;
+
+private:
+	void LogTraceHelper();
 	};
 
 extern TraceState g_trace_state;
@@ -193,7 +207,13 @@ extern Frame* g_dbg_locals; // variables created within debugger context
 extern std::map<std::string, Filemap*> g_dbgfilemaps; // filename => filemap
 
 // Perhaps add a code/priority argument to do selective output.
-int debug_msg(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
+template <typename... Args> int debug_msg(const char* fmt, Args&&... args)
+	{
+	if constexpr ( sizeof...(args) > 0 )
+		return fprintf(stderr, fmt, std::forward<Args>(args)...);
+	else
+		return fprintf(stderr, "%s", fmt);
+	}
 
 	} // namespace detail
 	} // namespace zeek

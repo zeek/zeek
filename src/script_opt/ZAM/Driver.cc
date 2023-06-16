@@ -33,19 +33,8 @@ void ZAMCompiler::Init()
 	{
 	InitGlobals();
 	InitArgs();
+	InitCaptures();
 	InitLocals();
-
-#if 0
-	// Complain about unused aggregates ... but not if we're inlining,
-	// as that can lead to optimizations where they wind up being unused
-	// but the original logic for using them was sound.
-	if ( ! analysis_options.inliner )
-		for ( auto a : pf->Inits() )
-			{
-			if ( pf->Locals().find(a) == pf->Locals().end() )
-				reporter->Warning("%s unused", a->Name());
-			}
-#endif
 
 	TrackMemoryManagement();
 
@@ -215,11 +204,6 @@ StmtPtr ZAMCompiler::CompileBody()
 
 	// Could erase insts1 here to recover memory, but it's handy
 	// for debugging.
-
-#if 0
-	if ( non_recursive )
-		func->UseStaticFrame();
-#endif
 
 	auto zb = make_intrusive<ZBody>(func->Name(), this);
 	zb->SetInsts(insts2);

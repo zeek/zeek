@@ -459,14 +459,6 @@ private:
 	const ZInstI* BeginningOfLoop(const ZInstI* inst, int depth) const;
 	const ZInstI* EndOfLoop(const ZInstI* inst, int depth) const;
 
-	// True if any statement other than a frame sync assigns to the
-	// given slot.
-	bool VarIsAssigned(int slot) const;
-
-	// True if the given statement assigns to the given slot, and
-	// it's not a frame sync.
-	bool VarIsAssigned(int slot, const ZInstI* i) const;
-
 	// True if any statement other than a frame sync uses the given slot.
 	bool VarIsUsed(int slot) const;
 

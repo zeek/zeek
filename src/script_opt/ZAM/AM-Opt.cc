@@ -927,47 +927,6 @@ const ZInstI* ZAMCompiler::EndOfLoop(const ZInstI* inst, int depth) const
 	return insts1[i];
 	}
 
-bool ZAMCompiler::VarIsAssigned(int slot) const
-	{
-	for ( auto& inst : insts1 )
-		if ( inst->live && VarIsAssigned(slot, inst) )
-			return true;
-
-	return false;
-	}
-
-bool ZAMCompiler::VarIsAssigned(int slot, const ZInstI* i) const
-	{
-	// Special-case for table iterators, which assign to a bunch
-	// of variables but they're not immediately visible in the
-	// instruction layout.
-	if ( i->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV || i->op == OP_NEXT_TABLE_ITER_VV )
-		{
-		auto& iter_vars = i->aux->loop_vars;
-		for ( auto v : iter_vars )
-			if ( v == slot )
-				return true;
-
-		if ( i->op != OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
-			return false;
-
-		// Otherwise fall through, since that flavor of iterate
-		// *does* also assign to slot 1.
-		}
-
-	if ( i->op == OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV && i->v2 == slot )
-		return true;
-
-	if ( i->op_type == OP_VV_FRAME )
-		// We don't want to consider these as assigning to the
-		// variable, since the point of this method is to figure
-		// out which variables don't need storing to the frame
-		// because their internal value is never modified.
-		return false;
-
-	return i->AssignsToSlot1() && i->v1 == slot;
-	}
-
 bool ZAMCompiler::VarIsUsed(int slot) const
 	{
 	for ( auto& inst : insts1 )

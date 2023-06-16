@@ -193,10 +193,10 @@ ZBody::~ZBody()
 
 void ZBody::SetInsts(vector<ZInst*>& _insts)
 	{
-	ninst = _insts.size();
-	auto insts_copy = new ZInst[ninst];
+	end_pc = _insts.size();
+	auto insts_copy = new ZInst[end_pc];
 
-	for ( auto i = 0U; i < ninst; ++i )
+	for ( auto i = 0U; i < end_pc; ++i )
 		insts_copy[i] = *_insts[i];
 
 	insts = insts_copy;
@@ -206,10 +206,10 @@ void ZBody::SetInsts(vector<ZInst*>& _insts)
 
 void ZBody::SetInsts(vector<ZInstI*>& instsI)
 	{
-	ninst = instsI.size();
-	auto insts_copy = new ZInst[ninst];
+	end_pc = instsI.size();
+	auto insts_copy = new ZInst[end_pc];
 
-	for ( auto i = 0U; i < ninst; ++i )
+	for ( auto i = 0U; i < end_pc; ++i )
 		{
 		auto& iI = *instsI[i];
 		insts_copy[i] = iI;
@@ -228,7 +228,7 @@ void ZBody::InitProfile()
 		{
 		inst_count = new vector<int>;
 		inst_CPU = new vector<double>;
-		for ( auto i = 0U; i < ninst; ++i )
+		for ( auto i = 0U; i < end_pc; ++i )
 			{
 			inst_count->push_back(0);
 			inst_CPU->push_back(0.0);
@@ -245,7 +245,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 	double t = analysis_options.profile_ZAM ? util::curr_CPU_time() : 0.0;
 #endif
 
-	auto val = DoExec(f, 0, flow);
+	auto val = DoExec(f, flow);
 
 #ifdef DEBUG
 	if ( analysis_options.profile_ZAM )
@@ -255,10 +255,9 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 	return val;
 	}
 
-ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
+ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow)
 	{
-	int pc = start_pc;
-	const int end_pc = ninst;
+	int pc = 0;
 
 	// Return value, or nil if none.
 	const ZVal* ret_u = nullptr;
@@ -292,6 +291,9 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 		}
 
 	flow = FLOW_RETURN; // can be over-written by a Hook-Break
+
+	// Clear any leftover error state.
+	ZAM_error = false;
 
 	while ( pc < end_pc && ! ZAM_error )
 		{
@@ -368,9 +370,6 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 
 		delete[] frame;
 		}
-
-	// Clear any error state.
-	ZAM_error = false;
 
 	return result;
 	}
@@ -449,7 +448,7 @@ void ZBody::Dump() const
 
 	printf("Final code:\n");
 
-	for ( unsigned i = 0; i < ninst; ++i )
+	for ( unsigned i = 0; i < end_pc; ++i )
 		{
 		auto& inst = insts[i];
 		printf("%d: ", i);
@@ -464,25 +463,6 @@ void ZBody::StmtDescribe(ODesc* d) const
 	}
 
 TraversalCode ZBody::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
-ValPtr ZAMResumption::Exec(Frame* f, StmtFlowType& flow)
-	{
-	return am->DoExec(f, xfer_pc, flow);
-	}
-
-void ZAMResumption::StmtDescribe(ODesc* d) const
-	{
-	d->Add("<resumption of compiled code>");
-	}
-
-TraversalCode ZAMResumption::Traverse(TraversalCallback* cb) const
 	{
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);

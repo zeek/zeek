@@ -31,7 +31,6 @@ enum StmtTag
 	STMT_CHECK_ANY_LEN, // internal reduced statement
 	STMT_CPP, // compiled C++
 	STMT_ZAM, // a ZAM function body
-	STMT_ZAM_RESUMPTION, // resumes ZAM execution for "when" statements
 	STMT_NULL,
 	STMT_ASSERT,
 #define NUM_STMTS (int(STMT_ASSERT) + 1)

@@ -52,7 +52,6 @@ const char* stmt_name(StmtTag t)
 		"check-any-length",
 		"compiled-C++",
 		"ZAM",
-		"ZAM-resumption",
 		"null",
 		"assert",
 	};

@@ -138,7 +138,6 @@ public:
 	std::shared_ptr<ProfileFunc> ProfilePtr() const { return pf; }
 
 	void SetBody(StmtPtr new_body) { body = std::move(new_body); }
-	// void SetProfile(std::shared_ptr<ProfileFunc> _pf);
 	void SetProfile(std::shared_ptr<ProfileFunc> _pf) { pf = std::move(_pf); }
 
 	// The following provide a way of marking FuncInfo's as

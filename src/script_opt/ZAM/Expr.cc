@@ -283,7 +283,18 @@ const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const Index
 		                  : IndexVecIntSelectVVV(lhs, n, index);
 		}
 
-	return const_aggr ? IndexVCL(lhs, con, indexes_expr) : IndexVVL(lhs, n, indexes_expr);
+	if ( rhs->IsInsideWhen() )
+		{
+		if ( const_aggr )
+			return WhenIndexVCL(lhs, con, indexes_expr);
+		else
+			return WhenIndexVVL(lhs, n, indexes_expr);
+		}
+
+	if ( const_aggr )
+		return IndexVCL(lhs, con, indexes_expr);
+	else
+		return IndexVVL(lhs, n, indexes_expr);
 	}
 
 const ZAMStmt ZAMCompiler::CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e)
@@ -614,26 +625,28 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, 
 	return AddInst(z);
 	}
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)
+const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l,
+                                        bool in_when)
 	{
-	return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l);
+	return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l, in_when);
 	}
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l)
+const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l,
+                                        bool in_when)
 	{
 	auto tmp = TempForConst(c);
-	return CompileIndex(n, tmp, c->GetType(), l);
+	return CompileIndex(n, tmp, c->GetType(), l, in_when);
 	}
 
 const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2t,
-                                        const ListExpr* l)
+                                        const ListExpr* l, bool in_when)
 	{
 	ZInstI z;
 
 	int n = l->Exprs().length();
 	auto n2tag = n2t->Tag();
 
-	if ( n == 1 )
+	if ( n == 1 && ! in_when )
 		{
 		auto ind = l->Exprs()[0];
 		auto var_ind = ind->Tag() == EXPR_NAME;
@@ -675,12 +688,28 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV : OP_INDEX_VEC_VVV;
+
+				ZOp zop;
+				if ( in_when )
+					zop = OP_WHEN_INDEX_VEC_VVV;
+				else if ( is_any )
+					zop = OP_INDEX_ANY_VEC_VVV;
+				else
+					zop = OP_INDEX_VEC_VVV;
+
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, n3_slot);
 				}
 			else
 				{
-				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV : OP_INDEX_VECC_VVV;
+				ZOp zop;
+
+				if ( in_when )
+					zop = OP_WHEN_INDEX_VECC_VVV;
+				else if ( is_any )
+					zop = OP_INDEX_ANY_VECC_VVV;
+				else
+					zop = OP_INDEX_VECC_VVV;
+
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}
@@ -718,13 +747,13 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 	switch ( n2tag )
 		{
 		case TYPE_VECTOR:
-			op = OP_INDEX_VEC_SLICE_VV;
+			op = in_when ? OP_WHEN_INDEX_VEC_SLICE_VV : OP_INDEX_VEC_SLICE_VV;
 			z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
 			z.SetType(n2t);
 			break;
 
 		case TYPE_TABLE:
-			op = OP_TABLE_INDEX_VV;
+			op = in_when ? OP_WHEN_TABLE_INDEX_VV : OP_TABLE_INDEX_VV;
 			z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
 			z.SetType(n1->GetType());
 			break;
@@ -924,9 +953,10 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 	int call_case = nargs;
 
 	bool indirect = ! func_id->IsGlobal() || ! func_id->GetVal();
+	bool in_when = c->IsInWhen();
 
-	if ( indirect )
-		call_case = -1; // force default of CallN
+	if ( indirect || in_when )
+		call_case = -1; // force default of some flavor of CallN
 
 	auto nt = n ? n->GetType()->Tag() : TYPE_VOID;
 	auto n_slot = n ? Frame1Slot(n, OP1_WRITE) : -1;
@@ -1003,8 +1033,17 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 				break;
 
 			default:
-				if ( indirect )
+				if ( in_when )
+					{
+					if ( indirect )
+						op = OP_WHENINDCALLN_VV;
+					else
+						op = OP_WHENCALLN_V;
+					}
+
+				else if ( indirect )
 					op = n ? OP_INDCALLN_VV : OP_INDCALLN_V;
+
 				else
 					op = n ? OP_CALLN_V : OP_CALLN_X;
 				break;
@@ -1012,7 +1051,9 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 
 		if ( n )
 			{
-			op = AssignmentFlavor(op, nt);
+			if ( ! in_when )
+				op = AssignmentFlavor(op, nt);
+
 			auto n_slot = Frame1Slot(n, OP1_WRITE);
 
 			if ( indirect )

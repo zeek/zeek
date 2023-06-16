@@ -947,11 +947,19 @@ eval	EvalIndexVecIntSelect(z.c, frame[z.v2])
 
 op Index
 type VVL
-custom-method return CompileIndex(n1, n2, l);
+custom-method return CompileIndex(n1, n2, l, false);
 
 op Index
 type VCL
-custom-method return CompileIndex(n, c, l);
+custom-method return CompileIndex(n, c, l, false);
+
+op WhenIndex
+type VVL
+custom-method return CompileIndex(n1, n2, l, true);
+
+op WhenIndex
+type VCL
+custom-method return CompileIndex(n, c, l, true);
 
 internal-op Index-Vec
 type VVV
@@ -988,22 +996,51 @@ internal-op Index-Any-VecC
 type VVV
 eval	EvalIndexAnyVec(z.v3)
 
-internal-op Index-Vec-Slice
-type VV
-eval	auto vec = frame[z.v2].vector_val;
+macro	WhenIndexResCheck()
+	auto& res = frame[z.v1].vector_val;
+	if ( res && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.push_back({NewRef{}, res});
+
+internal-op When-Index-Vec
+type VVV
+eval	EvalIndexAnyVec(frame[z.v3].uint_val)
+	WhenIndexResCheck()
+
+internal-op When-Index-VecC
+type VVV
+eval	EvalIndexAnyVec(z.v3)
+	WhenIndexResCheck()
+
+macro	EvalVecSlice()
+	auto vec = frame[z.v2].vector_val;
 	auto lv = z.aux->ToListVal(frame);
 	auto v = index_slice(vec, lv.get());
 	Unref(frame[z.v1].vector_val);
 	frame[z.v1].vector_val = v.release();
+
+internal-op Index-Vec-Slice
+type VV
+eval	EvalVecSlice()
+
+internal-op When-Index-Vec-Slice
+type VV
+eval	EvalVecSlice()
+	WhenIndexResCheck()
 
 internal-op Table-Index
 type VV
 eval	EvalTableIndex(z.aux->ToListVal(frame))
 	AssignV1(BuildVal(v, z.t))
 
+internal-op When-Table-Index
+type VV
+eval	EvalTableIndex(z.aux->ToListVal(frame))
+	if ( IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	AssignV1(BuildVal(v, z.t))
+
 macro EvalTableIndex(index)
-	auto v2 = index;
-	auto v = frame[z.v2].table_val->FindOrDefault(v2);
+	auto v = frame[z.v2].table_val->FindOrDefault(index);
 	if ( ! v )
 		{
 		ZAM_run_time_error(z.loc, "no such index");
@@ -1536,6 +1573,49 @@ assign-val v
 indirect-call
 num-call-args n
 
+# A call made in a "when" context.  These always have assignment targets.
+# To keep things simple, we just use one generic flavor (for N arguments,
+# doing a less-streamlined-but-simpler Val-based assignment).
+macro WhenCall(func)
+	if ( ! func )
+		throw ZAMDelayedCallException();
+	auto& lhs = frame[z.v1];
+	auto trigger = f->GetTrigger();
+	Val* v = trigger ? trigger->Lookup(z.call_expr) : nullptr;
+	ValPtr vp;
+	if ( v )
+		vp = {NewRef{}, v};
+	else
+		{
+		auto aux = z.aux;
+		auto current_assoc = f->GetTriggerAssoc();
+		auto n = aux->n;
+		std::vector<ValPtr> args;
+		for ( auto i = 0; i < n; ++i )
+			args.push_back(aux->ToVal(frame, i));
+		f->SetCall(z.call_expr);
+		vp = func->Invoke(&args, f);
+		f->SetTriggerAssoc(current_assoc);
+		if ( ! vp )
+			throw ZAMDelayedCallException();
+		}
+	if ( z.is_managed )
+		ZVal::DeleteManagedType(lhs);
+	lhs = ZVal(vp, z.t);
+
+internal-op WhenCallN
+type V
+side-effects
+eval	WhenCall(z.func)
+
+internal-op WhenIndCallN
+type VV
+side-effects
+eval	auto sel = z.v2;
+	auto func = (sel < 0) ? z.aux->id_val->GetVal()->AsFunc() : frame[sel].AsFunc();
+	WhenCall(func)
+
+
 ########## Statements ##########
 
 macro EvalScheduleArgs(time, is_delta, build_args)
@@ -1965,6 +2045,35 @@ eval	auto tt = cast_intrusive<TableType>(z.t);
 	Unref(frame[z.v1].table_val);
 	frame[z.v1].table_val = t;
 
+op When
+type V
+op1-read
+eval	BuildWhen(-1.0)
+
+op When-Timeout
+type VV
+op1-read
+eval	BuildWhen(frame[z.v2].double_val)
+
+op When-Timeout
+type VC
+op1-read
+eval	BuildWhen(z.c.double_val)
+
+macro BuildWhen(timeout)
+	auto& aux = z.aux;
+	auto wi = aux->wi;
+	FuncPtr func{NewRef{}, frame[z.v1].func_val};
+	auto lambda = make_intrusive<FuncVal>(func);
+	wi->Instantiate(lambda);
+	std::vector<ValPtr> local_aggrs;
+	for ( int i = 0; i < aux->n; ++i )
+		{
+		auto v = aux->ToVal(frame, i);
+		if ( v )
+			local_aggrs.push_back(v);
+		}
+	new trigger::Trigger(wi, timeout, wi->WhenExprGlobals(), local_aggrs, f, z.loc);
 
 ########################################
 # Internal

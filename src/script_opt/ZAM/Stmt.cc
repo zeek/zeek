@@ -60,6 +60,9 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s)
 		case STMT_INIT:
 			return CompileInit(static_cast<const InitStmt*>(s));
 
+		case STMT_WHEN:
+			return CompileWhen(static_cast<const WhenStmt*>(s));
+
 		case STMT_NULL:
 			return EmptyStmt();
 
@@ -1091,6 +1094,60 @@ const ZAMStmt ZAMCompiler::CompileInit(const InitStmt* is)
 		}
 
 	return last;
+	}
+
+const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws)
+	{
+	auto wi = ws->Info();
+	auto timeout = wi->TimeoutExpr();
+
+	auto lambda = NewSlot(true);
+	(void)BuildLambda(lambda, wi->Lambda().get());
+
+	std::vector<IDPtr> local_aggr_slots;
+	for ( auto& l : wi->WhenExprLocals() )
+		if ( IsAggr(l->GetType()->Tag()) )
+			local_aggr_slots.push_back(l);
+
+	int n = local_aggr_slots.size();
+	auto aux = new ZInstAux(n);
+	aux->wi = wi;
+
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto la = local_aggr_slots[i];
+		aux->Add(i, FrameSlot(la), la->GetType());
+		}
+
+	ZInstI z;
+
+	if ( timeout )
+		{
+		if ( timeout->Tag() == EXPR_NAME )
+			{
+			auto ns = FrameSlot(timeout->AsNameExpr());
+			z = ZInstI(OP_WHEN_TIMEOUT_VV, lambda, ns);
+			}
+		else
+			{
+			ASSERT(timeout->Tag() == EXPR_CONST);
+			z = ZInstI(OP_WHEN_TIMEOUT_VC, lambda, timeout->AsConstExpr());
+			}
+		}
+
+	else
+		z = ZInstI(OP_WHEN_V, lambda);
+
+	z.aux = aux;
+
+	if ( ws->IsReturn() )
+		{
+		(void)AddInst(z);
+		z = ZInstI(OP_RETURN_C);
+		z.c = ZVal();
+		}
+
+	return AddInst(z);
 	}
 
 const ZAMStmt ZAMCompiler::InitRecord(IDPtr id, RecordType* rt)

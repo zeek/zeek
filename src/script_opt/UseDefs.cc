@@ -301,13 +301,17 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			return UseUDs(s, succ_UDs);
 
 		case STMT_WHEN:
-			// ### Once we support compiling functions with "when"
-			// statements in them, we'll need to revisit this.
-			// For now, we don't worry about it (because the current
-			// "when" body semantics of deep-copy frames has different
-			// implications than potentially switching those shallow-copy
-			// frames).
-			return UseUDs(s, succ_UDs);
+			{
+			auto w = s->AsWhenStmt();
+			auto wi = w->Info();
+			auto uds = UD_Union(succ_UDs, ExprUDs(wi->Lambda().get()));
+
+			auto timeout = wi->TimeoutExpr();
+			if ( timeout )
+				uds = UD_Union(uds, ExprUDs(timeout.get()));
+
+			return CreateUDs(s, uds);
+			}
 
 		case STMT_SWITCH:
 			{

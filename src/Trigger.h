@@ -81,6 +81,8 @@ public:
 	// if the Val is null or it's disabled.  The cache is managed using
 	// void*'s so that the value can be associated with either a CallExpr
 	// (for interpreted execution) or a C++ function (for compiled-to-C++).
+	//
+	// Lookup() returned value must be Ref()'d if you want to hang onto it.
 	bool Cache(const void* obj, Val* val);
 	Val* Lookup(const void* obj);
 

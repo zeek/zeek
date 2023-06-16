@@ -273,6 +273,7 @@ protected:
 	/**
 	 * Uses the given frame for captures, and generates the
 	 * mapping from captured variables to offsets in the frame.
+	 * Virtual so it can be modified for script optimization uses.
 	 *
 	 * @param f  the frame holding the values of capture variables
 	 */

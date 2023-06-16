@@ -608,6 +608,9 @@ FuncPtr ScriptFunc::DoClone()
 	{
 	// ScriptFunc could hold a closure. In this case a clone of it must
 	// store a copy of this closure.
+	//
+	// We don't use make_intrusive<> directly because we're accessing
+	// a protected constructor.
 	auto other = IntrusivePtr{AdoptRef{}, new ScriptFunc()};
 
 	CopyStateInto(other.get());

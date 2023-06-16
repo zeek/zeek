@@ -58,7 +58,6 @@ private:
 	               const std::string& name = "") const;
 
 	TimeFormat timestamps;
-	bool surrounding_braces;
 	bool include_unset_fields;
 	};
 

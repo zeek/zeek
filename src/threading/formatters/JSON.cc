@@ -31,9 +31,8 @@ bool JSON::NullDoubleWriter::Double(double d)
 	}
 
 JSON::JSON(MsgThread* t, TimeFormat tf, bool arg_include_unset_fields)
-	: Formatter(t), surrounding_braces(true), include_unset_fields(arg_include_unset_fields)
+	: Formatter(t), timestamps(tf), include_unset_fields(arg_include_unset_fields)
 	{
-	timestamps = tf;
 	}
 
 JSON::~JSON() { }

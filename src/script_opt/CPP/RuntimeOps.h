@@ -80,7 +80,7 @@ inline ValPtr invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame)
 extern ValPtr when_invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame, void* caller_addr);
 
 // Thrown when a call inside a "when" delays.
-class DelayedCallException : public InterpreterException
+class CPPDelayedCallException : public InterpreterException
 	{
 	};
 

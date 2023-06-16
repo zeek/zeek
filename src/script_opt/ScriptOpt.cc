@@ -36,13 +36,33 @@ static ZAMCompiler* ZAM = nullptr;
 static bool generating_CPP = false;
 static std::string CPP_dir; // where to generate C++ code
 
+static std::unordered_set<const ScriptFunc*> lambdas;
+static std::unordered_set<const ScriptFunc*> when_lambdas;
 static ScriptFuncPtr global_stmts;
 
 void analyze_func(ScriptFuncPtr f)
 	{
 	// Even if we're analyzing only a subset of the scripts, we still
 	// track all functions here because the inliner will need the full list.
+	ASSERT(f->GetScope());
 	funcs.emplace_back(f, f->GetScope(), f->CurrentBody(), f->CurrentPriority());
+	}
+
+void analyze_lambda(LambdaExpr* l)
+	{
+	auto& mf = l->MasterFunc();
+	analyze_func(mf);
+	lambdas.insert(mf.get());
+	}
+
+void analyze_when_lambda(LambdaExpr* l)
+	{
+	when_lambdas.insert(l->MasterFunc().get());
+	}
+
+bool is_when_lambda(const ScriptFunc* f)
+	{
+	return when_lambdas.count(f) > 0;
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)
@@ -208,7 +228,8 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	rc->SetReadyToOptimize();
 
-	auto ud = std::make_shared<UseDefs>(body, rc);
+	auto ft = cast_intrusive<FuncType>(f->GetType());
+	auto ud = std::make_shared<UseDefs>(body, rc, ft);
 	ud->Analyze();
 
 	if ( analysis_options.dump_uds )
@@ -445,10 +466,10 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		}
 
 	// Re-profile the functions, now without worrying about compatibility
-	// with compilation to C++.  Note that the first profiling pass earlier
-	// may have marked some of the functions as to-skip, so first clear
-	// those markings.  Once we have full compile-to-C++ and ZAM support
-	// for all Zeek language features, we can remove the re-profiling here.
+	// with compilation to C++.
+
+	// The first profiling pass earlier may have marked some of the
+	// functions as to-skip, so clear those markings.
 	for ( auto& f : funcs )
 		f.SetSkip(false);
 
@@ -499,6 +520,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	for ( auto& f : funcs )
 		{
 		auto func = f.Func();
+		bool is_lambda = lambdas.count(func) > 0;
 
 		if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
 			{
@@ -506,14 +528,17 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 				continue;
 			}
 
-		else if ( ! analysis_options.compile_all && inl && inl->WasInlined(func) &&
+		else if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasInlined(func) &&
 		          func_used_indirectly.count(func) == 0 )
+			{
 			// No need to compile as it won't be called directly.
 			continue;
+			}
 
 		auto new_body = f.Body();
 		optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
 		f.SetBody(new_body);
+
 		did_one = true;
 		}
 

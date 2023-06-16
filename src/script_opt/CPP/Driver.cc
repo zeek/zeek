@@ -77,6 +77,12 @@ void CPPCompile::Compile(bool report_uncompilable)
 			continue;
 			}
 
+		if ( is_when_lambda(f) )
+			{
+			func.SetSkip(true);
+			continue;
+			}
+
 		const char* reason;
 		if ( IsCompilable(func, &reason) )
 			{

@@ -168,6 +168,16 @@ extern std::unordered_set<const Func*> non_recursive_funcs;
 // Analyze a given function for optimization.
 extern void analyze_func(ScriptFuncPtr f);
 
+// Same, for lambdas.
+extern void analyze_lambda(LambdaExpr* f);
+
+// Same, for lambdas used in "when" statements.  For these, analyze_lambda()
+// has already been called.
+extern void analyze_when_lambda(LambdaExpr* f);
+
+// Whether a given script function is a "when" lambda.
+extern bool is_when_lambda(const ScriptFunc* f);
+
 // Analyze the given top-level statement(s) for optimization.  Returns
 // a pointer to a FuncInfo for an argument-less quasi-function that can
 // be Invoked, or its body executed directly, to execute the statements.

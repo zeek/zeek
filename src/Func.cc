@@ -123,6 +123,14 @@ std::string render_call_stack()
 	return rval;
 	}
 
+void Func::AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_body)
+	{
+	if ( ! new_body )
+		new_body = ingr.Body();
+
+	AddBody(new_body, ingr.Inits(), ingr.FrameSize(), ingr.Priority(), ingr.Groups());
+	}
+
 void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
                    size_t new_frame_size, int priority)
 	{

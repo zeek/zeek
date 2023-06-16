@@ -845,9 +845,7 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 		id->SetConst();
 		}
 
-	id->GetVal()->AsFunc()->AddBody(ingredients->Body(), ingredients->Inits(),
-	                                ingredients->FrameSize(), ingredients->Priority(),
-	                                ingredients->Groups());
+	id->GetVal()->AsFunc()->AddBody(*ingredients);
 
 	script_coverage_mgr.AddFunction(id, ingredients->Body());
 

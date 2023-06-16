@@ -646,21 +646,26 @@ StmtPtr ReturnStmt::Duplicate()
 
 ReturnStmt::ReturnStmt(ExprPtr arg_e, bool ignored) : ExprStmt(STMT_RETURN, std::move(arg_e)) { }
 
+bool ReturnStmt::IsReduced(Reducer* c) const
+	{
+	if ( ! e || e->IsSingleton(c) )
+		return true;
+
+	return NonReduced(e.get());
+	}
+
 StmtPtr ReturnStmt::DoReduce(Reducer* c)
 	{
 	if ( ! e )
 		return ThisPtr();
 
 	if ( c->Optimizing() )
-		{
 		e = c->OptExpr(e);
-		return ThisPtr();
-		}
 
-	if ( ! e->IsSingleton(c) )
+	else if ( ! e->IsSingleton(c) )
 		{
 		StmtPtr red_e_stmt;
-		e = e->Reduce(c, red_e_stmt);
+		e = e->ReduceToSingleton(c, red_e_stmt);
 
 		if ( red_e_stmt )
 			{

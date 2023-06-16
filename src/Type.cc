@@ -788,9 +788,12 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args, bool is_init, bool do
 	if ( my_args.size() != args.size() )
 		{
 		if ( do_warn )
+			{
 			Warn(util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
 			               args.size(), my_args.size()));
-		const_cast<FuncType*>(this)->reported_error = true;
+			const_cast<FuncType*>(this)->reported_error = true;
+			}
+
 		return false;
 		}
 

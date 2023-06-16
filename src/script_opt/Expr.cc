@@ -1851,7 +1851,12 @@ ExprPtr AssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt)
 	if ( val )
 		return make_intrusive<ConstExpr>(val);
 
-	return op1->AsRefExprPtr()->GetOp1();
+	auto lhs = op1->AsRefExprPtr()->GetOp1();
+	StmtPtr lhs_stmt;
+	auto new_op1 = lhs->ReduceToSingleton(c, lhs_stmt);
+	red_stmt = MergeStmts(red_stmt, lhs_stmt);
+
+	return new_op1;
 	}
 
 ExprPtr IndexSliceAssignExpr::Duplicate()
@@ -2368,7 +2373,14 @@ bool CallExpr::HasReducedOps(Reducer* c) const
 	if ( ! func->IsSingleton(c) )
 		return NonReduced(this);
 
-	return args->HasReducedOps(c);
+	// We don't use args->HasReducedOps() here because for ListExpr's
+	// the method has some special-casing that isn't germane for calls.
+
+	for ( const auto& expr : args->Exprs() )
+		if ( ! expr->IsSingleton(c) )
+			return false;
+
+	return true;
 	}
 
 ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
@@ -2386,9 +2398,7 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( ! func->IsSingleton(c) )
 		func = func->ReduceToSingleton(c, red_stmt);
 
-	StmtPtr red2_stmt;
-	// We assume that ListExpr won't transform itself fundamentally.
-	(void)args->Reduce(c, red2_stmt);
+	StmtPtr red2_stmt = args->ReduceToSingletons(c);
 
 	// ### could check here for (1) pure function, and (2) all
 	// arguments constants, and call it to fold right now.
@@ -2558,11 +2568,14 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c)
 
 	loop_over_list(exprs, i)
 		{
-		if ( exprs[i]->IsSingleton(c) )
+		auto& e_i = exprs[i];
+
+		if ( e_i->IsSingleton(c) )
 			continue;
 
 		StmtPtr e_stmt;
-		auto old = exprs.replace(i, exprs[i]->Reduce(c, e_stmt).release());
+		auto new_e_i = e_i->ReduceToSingleton(c, e_stmt);
+		auto old = exprs.replace(i, new_e_i.release());
 		Unref(old);
 
 		if ( e_stmt )

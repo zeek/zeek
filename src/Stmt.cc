@@ -1925,7 +1925,7 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow)
 		bt = get_current_script_backtrace();
 		auto assert_elem = make_backtrace_element("assert", MakeEmptyCallArgumentVector(),
 		                                          GetLocationInfo());
-		bt->Insert(0, assert_elem);
+		bt->Insert(0, std::move(assert_elem));
 		}
 
 	// Breaking from either the assertion_failure() or assertion_result()

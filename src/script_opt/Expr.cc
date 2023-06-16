@@ -2425,23 +2425,60 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c)
 
 ExprPtr LambdaExpr::Duplicate()
 	{
-	auto ingr = std::make_unique<FunctionIngredients>(*ingredients);
-	ingr->SetBody(ingr->Body()->Duplicate());
-	return SetSucc(new LambdaExpr(std::move(ingr), outer_ids));
+	return SetSucc(new LambdaExpr(this));
 	}
 
-ExprPtr LambdaExpr::Inline(Inliner* inl)
+bool LambdaExpr::IsReduced(Reducer* c) const
 	{
-	// Don't inline these, we currently don't get the closure right.
-	return ThisPtr();
+	if ( ! captures )
+		return true;
+
+	for ( auto& cp : *captures )
+		{
+		auto& cid = cp.Id();
+
+		if ( private_captures.count(cid.get()) == 0 && ! c->ID_IsReduced(cid) )
+			return NonReduced(this);
+		}
+
+	return true;
+	}
+
+bool LambdaExpr::HasReducedOps(Reducer* c) const
+	{
+	return IsReduced(c);
 	}
 
 ExprPtr LambdaExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
 	if ( c->Optimizing() )
 		return ThisPtr();
-	else
-		return AssignToTemporary(c, red_stmt);
+
+	UpdateCaptures(c);
+
+	return AssignToTemporary(c, red_stmt);
+	}
+
+StmtPtr LambdaExpr::ReduceToSingletons(Reducer* c)
+	{
+	UpdateCaptures(c);
+	return nullptr;
+	}
+
+void LambdaExpr::UpdateCaptures(Reducer* c)
+	{
+	if ( captures )
+		{
+		for ( auto& cp : *captures )
+			{
+			auto& cid = cp.Id();
+
+			if ( private_captures.count(cid.get()) == 0 )
+				cp.SetID(c->UpdateID(cid));
+			}
+
+		c->UpdateIDs(&outer_ids);
+		}
 	}
 
 ExprPtr EventExpr::Duplicate()

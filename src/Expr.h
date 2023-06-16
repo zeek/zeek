@@ -28,8 +28,10 @@ namespace detail
 class Frame;
 class Scope;
 class FunctionIngredients;
+class WhenInfo;
 using IDPtr = IntrusivePtr<ID>;
 using ScopePtr = IntrusivePtr<Scope>;
+using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 
 enum ExprTag : int
 	{
@@ -1452,12 +1454,17 @@ protected:
 class LambdaExpr final : public Expr
 	{
 public:
-	LambdaExpr(std::unique_ptr<FunctionIngredients> ingredients, IDPList outer_ids,
-	           StmtPtr when_parent = nullptr);
+	LambdaExpr(std::shared_ptr<FunctionIngredients> ingredients, IDPList outer_ids,
+	           std::string name = "", StmtPtr when_parent = nullptr);
 
 	const std::string& Name() const { return my_name; }
+
 	const IDPList& OuterIDs() const { return outer_ids; }
-	const FunctionIngredients& Ingredients() const { return *ingredients; }
+
+	// Lambda's potentially have their own private copy of captures,
+	// to enable updates to the set during script optimization.
+	using CaptureList = std::vector<FuncType::Capture>;
+	const std::optional<CaptureList>& GetCaptures() const { return captures; }
 
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -1466,19 +1473,43 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
-	ExprPtr Inline(Inliner* inl) override;
 
+	const ScriptFuncPtr& MasterFunc() const { return master_func; }
+
+	const std::shared_ptr<FunctionIngredients>& Ingredients() const { return ingredients; }
+
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
+	// Constructor used for script optimization.
+	LambdaExpr(LambdaExpr* orig);
+
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	bool CheckCaptures(StmtPtr when_parent);
+	friend class WhenInfo;
 
-	std::unique_ptr<FunctionIngredients> ingredients;
+	// "Private" captures are captures that correspond to "when"
+	// condition locals.  These aren't true captures in that they
+	// don't come from the outer frame when the lambda is constructed,
+	// but they otherwise behave like captures in that they persist
+	// across function invocations.
+	void SetPrivateCaptures(const IDSet& pcaps) { private_captures = pcaps; }
+
+	bool CheckCaptures(StmtPtr when_parent);
+	void BuildName();
+
+	void UpdateCaptures(Reducer* c);
+
+	std::shared_ptr<FunctionIngredients> ingredients;
+	ScriptFuncPtr master_func;
 	IDPtr lambda_id;
 	IDPList outer_ids;
+	std::optional<CaptureList> captures;
+	IDSet private_captures;
 
 	std::string my_name;
 	};

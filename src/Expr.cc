@@ -4644,14 +4644,15 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
-                       StmtPtr when_parent)
+LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
+                       std::string name, StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
 
-	SetType(ingredients->GetID()->GetType());
+	auto ingr_t = ingredients->GetID()->GetType<FuncType>();
+	SetType(ingr_t);
 
 	if ( ! CheckCaptures(when_parent) )
 		{
@@ -4659,47 +4660,61 @@ LambdaExpr::LambdaExpr(std::unique_ptr<FunctionIngredients> arg_ing, IDPList arg
 		return;
 		}
 
-	// Install a dummy version of the function globally for use only
-	// when broker provides a closure.
-	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
-	dummy_func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-	                    ingredients->Priority());
+	// Install a master version of the function globally.  This is used
+	// by both broker (for transmitting closures) and script optimization
+	// (replacing its AST body with a compiled one).
+	master_func = make_intrusive<ScriptFunc>(ingredients->GetID());
+	master_func->SetOuterIDs(outer_ids);
 
-	dummy_func->SetOuterIDs(outer_ids);
+	// When we build the body, it will get updated with initialization
+	// statements.  Update the ingredients to reflect the new body,
+	// and no more need for initializers.
+	master_func->AddBody(*ingredients);
+	master_func->SetScope(ingredients->Scope());
+	ingredients->ClearInits();
 
-	// Get the body's "string" representation.
-	ODesc d;
-	dummy_func->Describe(&d);
-
-	for ( ;; )
-		{
-		hash128_t h;
-		KeyedHash::Hash128(d.Bytes(), d.Len(), &h);
-
-		my_name = "lambda_<" + std::to_string(h[0]) + ">";
-		auto fullname = make_full_var_name(current_module.data(), my_name.data());
-		const auto& id = global_scope()->Find(fullname);
-
-		if ( id )
-			// Just try again to make a unique lambda name.
-			// If two peer processes need to agree on the same
-			// lambda name, this assumes they're loading the same
-			// scripts and thus have the same hash collisions.
-			d.Add(" ");
-		else
-			break;
-		}
+	if ( name.empty() )
+		BuildName();
+	else
+		my_name = name;
 
 	// Install that in the global_scope
 	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	dummy_func->SetName(my_name.c_str());
+	master_func->SetName(my_name.c_str());
 
-	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
+	auto v = make_intrusive<FuncVal>(master_func);
 	lambda_id->SetVal(std::move(v));
-	lambda_id->SetType(ingredients->GetID()->GetType());
+	lambda_id->SetType(ingr_t);
 	lambda_id->SetConst();
+
+	captures = ingr_t->GetCaptures();
+
+	analyze_lambda(this);
+	}
+
+LambdaExpr::LambdaExpr(LambdaExpr* orig) : Expr(EXPR_LAMBDA)
+	{
+	master_func = orig->master_func;
+	ingredients = orig->ingredients;
+	lambda_id = orig->lambda_id;
+	my_name = orig->my_name;
+	private_captures = orig->private_captures;
+
+	// We need to have our own copies of the outer IDs and captures so
+	// we can rename them when inlined.
+	for ( auto i : orig->outer_ids )
+		outer_ids.append(i);
+
+	if ( orig->captures )
+		{
+		captures = std::vector<FuncType::Capture>{};
+		for ( auto& c : *orig->captures )
+			captures->push_back(c);
+		}
+
+	SetType(orig->GetType());
 	}
 
 bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
@@ -4784,6 +4799,32 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 	return true;
 	}
 
+void LambdaExpr::BuildName()
+	{
+	// Get the body's "string" representation.
+	ODesc d;
+	master_func->Describe(&d);
+
+	for ( ;; )
+		{
+		hash128_t h;
+		KeyedHash::Hash128(d.Bytes(), d.Len(), &h);
+
+		my_name = "lambda_<" + std::to_string(h[0]) + ">";
+		auto fullname = make_full_var_name(current_module.data(), my_name.data());
+		const auto& id = global_scope()->Find(fullname);
+
+		if ( id )
+			// Just try again to make a unique lambda name.
+			// If two peer processes need to agree on the same
+			// lambda name, this assumes they're loading the same
+			// scripts and thus have the same hash collisions.
+			d.Add(" ");
+		else
+			break;
+		}
+	}
+
 ScopePtr LambdaExpr::GetScope() const
 	{
 	return ingredients->Scope();
@@ -4792,12 +4833,23 @@ ScopePtr LambdaExpr::GetScope() const
 ValPtr LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
-	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-	              ingredients->Priority());
 
+	StmtPtr body = master_func->GetBodies()[0].stmts;
+
+	if ( run_state::is_parsing )
+		// We're evaluating this lambda at parse time, which happens
+		// for initializations.  If we're doing script optimization
+		// then the current version of the body might be left in an
+		// inconsistent state (e.g., if it's replaced with ZAM code)
+		// causing problems if we execute this lambda subsequently.
+		// To avoid that problem, we duplicate the AST so it's
+		// distinct.
+		body = body->Duplicate();
+
+	lamb->AddBody(*ingredients, body);
 	lamb->CreateCaptures(f);
 
-	// Set name to corresponding dummy func.
+	// Set name to corresponding master func.
 	// Allows for lookups by the receiver.
 	lamb->SetName(my_name.c_str());
 
@@ -4807,6 +4859,22 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(expr_name(Tag()));
+
+	if ( captures && d->IsReadable() )
+		{
+		d->Add("[");
+
+		for ( auto& c : *captures )
+			{
+			if ( &c != &(*captures)[0] )
+				d->AddSP(", ");
+
+			d->Add(c.Id()->Name());
+			}
+
+		d->Add("]");
+		}
+
 	ingredients->Body()->Describe(d);
 	}
 

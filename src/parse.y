@@ -1566,7 +1566,7 @@ lambda_body:
 
 			// Gather the ingredients for a Func from the
 			// current scope.
-			auto ingredients = std::make_unique<FunctionIngredients>(
+			auto ingredients = std::make_shared<FunctionIngredients>(
 				current_scope(), IntrusivePtr{AdoptRef{}, $3}, current_module.c_str());
 			auto outer_ids = gather_outer_ids(pop_scope(), ingredients->Body());
 

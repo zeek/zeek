@@ -324,6 +324,15 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
 
 ScriptFunc::~ScriptFunc()
 	{
+	if ( captures_vec )
+		{
+		auto& cvec = *captures_vec;
+		auto& captures = *type->GetCaptures();
+		for ( int i = 0; i < captures.size(); ++i )
+			if ( captures[i].IsManaged() )
+				ZVal::DeleteManagedType(cvec[i]);
+		}
+
 	delete captures_frame;
 	delete captures_offset_mapping;
 	}
@@ -506,28 +515,74 @@ void ScriptFunc::CreateCaptures(Frame* f)
 	if ( ! captures )
 		return;
 
-	// Create a private Frame to hold the values of captured variables,
-	// and a mapping from those variables to their offsets in the Frame.
-	delete captures_frame;
-	delete captures_offset_mapping;
-	captures_frame = new Frame(captures->size(), this, nullptr);
-	captures_offset_mapping = new OffsetMap;
+	// Create *either* a private Frame to hold the values of captured
+	// variables, and a mapping from those variables to their offsets
+	// in the Frame; *or* a ZVal frame if this script has a ZAM-compiled
+	// body.
+	ASSERT(bodies.size() == 1);
+
+	if ( bodies[0].stmts->Tag() == STMT_ZAM )
+		captures_vec = std::make_unique<std::vector<ZVal>>();
+	else
+		{
+		delete captures_frame;
+		delete captures_offset_mapping;
+		captures_frame = new Frame(captures->size(), this, nullptr);
+		captures_offset_mapping = new OffsetMap;
+		}
 
 	int offset = 0;
 	for ( const auto& c : *captures )
 		{
-		auto v = f->GetElementByID(c.id);
+		auto v = f->GetElementByID(c.Id());
 
 		if ( v )
 			{
-			if ( c.deep_copy || ! v->Modifiable() )
+			if ( c.IsDeepCopy() || ! v->Modifiable() )
 				v = v->Clone();
 
-			captures_frame->SetElement(offset, std::move(v));
+			if ( captures_vec )
+				// Don't use v->GetType() here, as that might
+				// be "any" and we need to convert.
+				captures_vec->push_back(ZVal(v, c.Id()->GetType()));
+			else
+				captures_frame->SetElement(offset, std::move(v));
 			}
 
-		(*captures_offset_mapping)[c.id->Name()] = offset;
+		else if ( captures_vec )
+			captures_vec->push_back(ZVal());
+
+		if ( ! captures_vec )
+			(*captures_offset_mapping)[c.Id()->Name()] = offset;
+
 		++offset;
+		}
+	}
+
+void ScriptFunc::CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec)
+	{
+	const auto& captures = *type->GetCaptures();
+
+	ASSERT(cvec->size() == captures.size());
+	ASSERT(bodies.size() == 1 && bodies[0].stmts->Tag() == STMT_ZAM);
+
+	captures_vec = std::move(cvec);
+
+	auto n = captures.size();
+	for ( auto i = 0U; i < n; ++i )
+		{
+		auto& c_i = captures[i];
+		auto& cv_i = (*captures_vec)[i];
+
+		if ( c_i.IsDeepCopy() )
+			{
+			auto& t = c_i.Id()->GetType();
+			auto new_cv_i = cv_i.ToVal(t)->Clone();
+			if ( c_i.IsManaged() )
+				ZVal::DeleteManagedType(cv_i);
+
+			cv_i = ZVal(new_cv_i, t);
+			}
 		}
 	}
 
@@ -544,7 +599,7 @@ void ScriptFunc::SetCaptures(Frame* f)
 	int offset = 0;
 	for ( const auto& c : *captures )
 		{
-		(*captures_offset_mapping)[c.id->Name()] = offset;
+		(*captures_offset_mapping)[c.Id()->Name()] = offset;
 		++offset;
 		}
 	}
@@ -633,13 +688,45 @@ FuncPtr ScriptFunc::DoClone()
 		*other->captures_offset_mapping = *captures_offset_mapping;
 		}
 
+	if ( captures_vec )
+		{
+		auto cv_i = captures_vec->begin();
+		auto cv_copy = std::make_unique<std::vector<ZVal>>();
+		for ( auto& c : *type->GetCaptures() )
+			{
+			// Need to clone cv_i.
+			auto& t_i = c.Id()->GetType();
+			auto cv_i_val = cv_i->ToVal(t_i)->Clone();
+			cv_copy->push_back(ZVal(cv_i_val, t_i));
+			++cv_i;
+			}
+
+		other->captures_vec = std::move(cv_copy);
+		}
+
 	return other;
 	}
 
 broker::expected<broker::data> ScriptFunc::SerializeCaptures() const
 	{
+	if ( captures_vec )
+		{
+		auto& cv = *captures_vec;
+		auto& captures = *type->GetCaptures();
+		int n = captures_vec->size();
+		auto temp_frame = make_intrusive<Frame>(n, this, nullptr);
+
+		for ( int i = 0; i < n; ++i )
+			{
+			auto c_i = cv[i].ToVal(captures[i].Id()->GetType());
+			temp_frame->SetElement(i, c_i);
+			}
+
+		return temp_frame->Serialize();
+		}
+
 	if ( captures_frame )
-		return captures_frame->SerializeCopyFrame();
+		return captures_frame->Serialize();
 
 	// No captures, return an empty vector.
 	return broker::vector{};

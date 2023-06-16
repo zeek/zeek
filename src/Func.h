@@ -193,12 +193,35 @@ public:
 	void CreateCaptures(Frame* f);
 
 	/**
+	 * Uses the given set of ZVal's for captures.  Note that this is
+	 * different from the method above, which uses its argument to
+	 * compute the captures, rather than here where they are pre-computed.
+	 *
+	 * Makes deep copies if required.
+	 *
+	 * @param cvec  a vector of ZVal's corresponding to the captures.
+	 */
+	void CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec);
+
+	/**
 	 * Returns the frame associated with this function for tracking
 	 * captures, or nil if there isn't one.
 	 *
 	 * @return internal frame kept by the function for persisting captures
 	 */
 	Frame* GetCapturesFrame() const { return captures_frame; }
+
+	/**
+	 * Returns the set of ZVal's used for captures.  It's okay to modify
+	 * these as long as memory-management is done for managed entries.
+	 *
+	 * @return internal vector of ZVal's kept for persisting captures
+	 */
+	auto& GetCapturesVec() const
+		{
+		ASSERT(captures_vec);
+		return *captures_vec;
+		}
 
 	// Same definition as in Frame.h.
 	using OffsetMap = std::unordered_map<std::string, int>;
@@ -293,6 +316,9 @@ private:
 	Frame* captures_frame = nullptr;
 
 	OffsetMap* captures_offset_mapping = nullptr;
+
+	// Captures when using ZVal block instead of a Frame.
+	std::unique_ptr<std::vector<ZVal>> captures_vec;
 
 	// The most recently added/updated body ...
 	StmtPtr current_body;

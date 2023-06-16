@@ -4,6 +4,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail
@@ -176,12 +177,6 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 	auto r2 = rhs->GetOp2();
 	auto r3 = rhs->GetOp3();
 
-	if ( rhs->Tag() == EXPR_LAMBDA )
-		{
-		// reporter->Error("lambda expressions not supported for compiling");
-		return ErrorStmt();
-		}
-
 	if ( rhs->Tag() == EXPR_NAME )
 		return AssignVV(lhs, rhs->AsNameExpr());
 
@@ -212,6 +207,9 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 
 	if ( rhs->Tag() == EXPR_ANY_INDEX )
 		return AnyIndexVVi(lhs, r1->AsNameExpr(), rhs->AsAnyIndexExpr()->Index());
+
+	if ( rhs->Tag() == EXPR_LAMBDA )
+		return BuildLambda(lhs, rhs->AsLambdaExpr());
 
 	if ( rhs->Tag() == EXPR_COND && r1->GetType()->Tag() == TYPE_VECTOR )
 		return Bool_Vec_CondVVVV(lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr());
@@ -747,6 +745,38 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 	return AddInst(z);
 	}
 
+const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le)
+	{
+	return BuildLambda(Frame1Slot(n, OP1_WRITE), le);
+	}
+
+const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
+	{
+	auto& captures = le->GetCaptures();
+	int ncaptures = captures ? captures->size() : 0;
+
+	auto aux = new ZInstAux(ncaptures);
+	aux->master_func = le->MasterFunc();
+	aux->lambda_name = le->Name();
+	aux->id_val = le->Ingredients()->GetID().get();
+
+	for ( int i = 0; i < ncaptures; ++i )
+		{
+		auto& id_i = (*captures)[i].Id();
+
+		if ( pf->WhenLocals().count(id_i.get()) > 0 )
+			aux->Add(i, nullptr);
+		else
+			aux->Add(i, FrameSlot(id_i), id_i->GetType());
+		}
+
+	auto z = ZInstI(OP_LAMBDA_VV, n_slot, le->MasterFunc()->FrameSize());
+	z.op_type = OP_VV_I2;
+	z.aux = aux;
+
+	return AddInst(z);
+	}
+
 const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e)
 	{
 	auto index_assign = e->AsIndexAssignExpr();
@@ -1061,6 +1091,31 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e)
 	z.aux = InternalBuildVals(con, width + 1);
 	z.t = tt;
 	z.attrs = e->AsTableConstructorExpr()->GetAttrs();
+
+	auto zstmt = AddInst(z);
+
+	auto def_attr = z.attrs ? z.attrs->Find(ATTR_DEFAULT) : nullptr;
+	if ( ! def_attr || def_attr->GetExpr()->Tag() != EXPR_LAMBDA )
+		return zstmt;
+
+	auto def_lambda = def_attr->GetExpr()->AsLambdaExpr();
+	auto dl_t = def_lambda->GetType()->AsFuncType();
+	auto& captures = dl_t->GetCaptures();
+
+	if ( ! captures )
+		return zstmt;
+
+	// What a pain.  The table's default value is a lambda that has
+	// captures.  The semantics of this are that the captures are
+	// evaluated at table-construction time.  We need to build the
+	// lambda and assign it as the table's default.
+
+	auto slot = NewSlot(true); // since func_val's are managed
+	(void)BuildLambda(slot, def_lambda);
+
+	z = GenInst(OP_SET_TABLE_DEFAULT_LAMBDA_VV, n, slot);
+	z.op_type = OP_VV;
+	z.t = def_lambda->GetType();
 
 	return AddInst(z);
 	}

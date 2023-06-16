@@ -1092,6 +1092,15 @@ eval	ConstructTableOrSetPre()
 		}
 	ConstructTableOrSetPost()
 
+# When tables are constructed, if their &default is a lambda with captures
+# then we need to explicitly set up the default.
+internal-op Set-Table-Default-Lambda
+type VV
+op1-read
+eval	auto& tbl = frame[z.v1].table_val;
+	auto lambda = frame[z.v2].ToVal(z.t);
+	tbl->InitDefaultVal(lambda);
+
 direct-unary-op Set-Constructor ConstructSet
 
 internal-op Construct-Set
@@ -2007,11 +2016,40 @@ eval	auto& v = frame[z.v1].type_val;
 	auto t = globals[z.v2].id->GetType();
 	v = new TypeVal(t, true);
 
+internal-op Load-Capture
+type VV
+eval	frame[z.v1] = f->GetFunction()->GetCapturesVec()[z.v2];
+
+internal-op Load-Managed-Capture
+type VV
+eval	auto& lhs = frame[z.v1];
+	auto& rhs = f->GetFunction()->GetCapturesVec()[z.v2];
+	zeek::Ref(rhs.ManagedVal());
+	ZVal::DeleteManagedType(lhs);
+	lhs = rhs;
+
 internal-op Store-Global
 op1-internal
 type V
 eval	auto& g = globals[z.v1];
 	g.id->SetVal(frame[g.slot].ToVal(z.t));
+
+# Both of these have the LHS as v2 not v1, to keep with existing
+# conventions of OP_VV_I2 op type (as opposed to OP_VV_I1_V2, which doesn't
+# currently exist, and would be a pain to add).
+internal-op Store-Capture
+op1-read
+type VV
+eval	f->GetFunction()->GetCapturesVec()[z.v2] = frame[z.v1];
+
+internal-op Store-Managed-Capture
+op1-read
+type VV
+eval	auto& lhs = f->GetFunction()->GetCapturesVec()[z.v2];
+	auto& rhs = frame[z.v1];
+	zeek::Ref(rhs.ManagedVal());
+	ZVal::DeleteManagedType(lhs);
+	lhs = rhs;
 
 
 internal-op Copy-To
@@ -2029,6 +2067,37 @@ eval	flow = FLOW_BREAK;
 	pc = end_pc;
 	continue;
 
+# Slot 2 gives frame size.
+internal-op Lambda
+type VV
+eval	auto& aux = z.aux;
+	auto& master_func = aux->master_func;
+	auto& body = master_func->GetBodies()[0].stmts;
+	ASSERT(body->Tag() == STMT_ZAM);
+	auto lamb = make_intrusive<ScriptFunc>(aux->id_val);
+	lamb->AddBody(body, z.v2);
+	lamb->SetName(aux->lambda_name.c_str());
+	if ( aux->n > 0 )
+		{
+		auto captures = std::make_unique<std::vector<ZVal>>();
+		for ( auto i = 0; i < aux->n; ++i )
+			{
+			auto slot = aux->slots[i];
+			if ( slot >= 0 )
+				{
+				auto& cp = frame[aux->slots[i]];
+				if ( aux->is_managed[i] )
+					zeek::Ref(cp.ManagedVal());
+				captures->push_back(cp);
+				}
+			else
+				// Used for when-locals.
+				captures->push_back(ZVal());
+			}
+		lamb->CreateCaptures(std::move(captures));
+		}
+	ZVal::DeleteManagedType(frame[z.v1]);
+	frame[z.v1].func_val = lamb.release();
 
 ########################################
 # Built-in Functions

@@ -17,10 +17,11 @@ void UseDefSet::Dump() const
 		printf(" %s", u->Name());
 	}
 
-UseDefs::UseDefs(StmtPtr _body, std::shared_ptr<Reducer> _rc)
+UseDefs::UseDefs(StmtPtr _body, std::shared_ptr<Reducer> _rc, FuncTypePtr _ft)
 	{
 	body = std::move(_body);
 	rc = std::move(_rc);
+	ft = std::move(_ft);
 	}
 
 void UseDefs::Analyze()
@@ -164,6 +165,13 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
 	if ( id->IsGlobal() )
 		return false;
 
+	if ( auto& captures = ft->GetCaptures() )
+		{
+		for ( auto& c : *captures )
+			if ( c.Id() == id )
+				return false;
+		}
+
 	auto uds = FindSuccUsage(s);
 	if ( ! uds || ! uds->HasID(id) )
 		{
@@ -283,9 +291,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			auto true_UDs = PropagateUDs(i->TrueBranch(), succ_UDs, succ_stmt, second_pass);
 			auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs, succ_stmt, second_pass);
 
-			auto uds = CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
-
-			return uds;
+			return CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
 			}
 
 		case STMT_INIT:
@@ -450,6 +456,7 @@ UDs UseDefs::ExprUDs(const Expr* e)
 	switch ( e->Tag() )
 		{
 		case EXPR_NAME:
+		case EXPR_LAMBDA:
 			AddInExprUDs(uds, e);
 			break;
 
@@ -482,18 +489,22 @@ UDs UseDefs::ExprUDs(const Expr* e)
 			break;
 			}
 
-		case EXPR_CONST:
-			break;
-
-		case EXPR_LAMBDA:
+		case EXPR_TABLE_CONSTRUCTOR:
 			{
-			auto l = static_cast<const LambdaExpr*>(e);
-			auto ids = l->OuterIDs();
+			auto t = static_cast<const TableConstructorExpr*>(e);
+			AddInExprUDs(uds, t->GetOp1().get());
 
-			for ( const auto& id : ids )
-				AddID(uds, id);
+			auto& t_attrs = t->GetAttrs();
+			auto def_attr = t_attrs ? t_attrs->Find(ATTR_DEFAULT) : nullptr;
+			auto& def_expr = def_attr ? def_attr->GetExpr() : nullptr;
+			if ( def_expr && def_expr->Tag() == EXPR_LAMBDA )
+				uds = ExprUDs(def_expr.get());
+
 			break;
 			}
+
+		case EXPR_CONST:
+			break;
 
 		case EXPR_CALL:
 			{
@@ -576,6 +587,14 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			// This happens for append-to-field.
 			AddInExprUDs(uds, e->AsFieldExpr()->Op());
 			break;
+
+		case EXPR_LAMBDA:
+			{
+			auto outer_ids = e->AsLambdaExpr()->OuterIDs();
+			for ( auto& i : outer_ids )
+				AddID(uds, i);
+			break;
+			}
 
 		case EXPR_CONST:
 			// Nothing to do.

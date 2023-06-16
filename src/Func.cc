@@ -138,6 +138,13 @@ void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& n
 	AddBody(new_body, new_inits, new_frame_size, priority, groups);
 	}
 
+void Func::AddBody(detail::StmtPtr new_body, size_t new_frame_size)
+	{
+	std::vector<detail::IDPtr> no_inits;
+	std::set<EventGroupPtr> no_groups;
+	AddBody(new_body, no_inits, new_frame_size, 0, no_groups);
+	}
+
 void Func::AddBody(detail::StmtPtr /* new_body */,
                    const std::vector<detail::IDPtr>& /* new_inits */, size_t /* new_frame_size */,
                    int /* priority */, const std::set<EventGroupPtr>& /* groups */)
@@ -288,10 +295,12 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 namespace detail
 	{
 
-ScriptFunc::ScriptFunc(const IDPtr& arg_id) : Func(SCRIPT_FUNC)
+ScriptFunc::ScriptFunc(const IDPtr& id) : ScriptFunc::ScriptFunc(id.get()) { }
+
+ScriptFunc::ScriptFunc(const ID* id) : Func(SCRIPT_FUNC)
 	{
-	name = arg_id->Name();
-	type = arg_id->GetType<zeek::FuncType>();
+	name = id->Name();
+	type = id->GetType<zeek::FuncType>();
 	frame_size = 0;
 	}
 
@@ -658,11 +667,32 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body)
 
 bool ScriptFunc::DeserializeCaptures(const broker::vector& data)
 	{
-	auto result = Frame::Unserialize(data, GetType()->GetCaptures());
+	auto result = Frame::Unserialize(data);
 
 	ASSERT(result.first);
 
-	SetCaptures(result.second.release());
+	auto& f = result.second;
+
+	if ( bodies[0].stmts->Tag() == STMT_ZAM )
+		{
+		auto& captures = *type->GetCaptures();
+		int n = f->FrameSize();
+
+		ASSERT(captures.size() == n);
+
+		auto cvec = std::make_unique<std::vector<ZVal>>();
+
+		for ( int i = 0; i < n; ++i )
+			{
+			auto& f_i = f->GetElement(i);
+			cvec->push_back(ZVal(f_i, captures[i].Id()->GetType()));
+			}
+
+		CreateCaptures(std::move(cvec));
+		}
+
+	else
+		SetCaptures(f.release());
 
 	return true;
 	}

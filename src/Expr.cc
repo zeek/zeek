@@ -25,6 +25,7 @@
 #include "zeek/digest.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek::detail
 	{

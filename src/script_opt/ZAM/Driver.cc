@@ -92,12 +92,25 @@ void ZAMCompiler::InitArgs()
 	pop_scope();
 	}
 
+void ZAMCompiler::InitCaptures()
+	{
+	for ( auto c : pf->Captures() )
+		(void)AddToFrame(c);
+	}
+
 void ZAMCompiler::InitLocals()
 	{
 	// Assign slots for locals (which includes temporaries).
 	for ( auto l : pf->Locals() )
 		{
+		if ( IsCapture(l) )
+			continue;
+
+		if ( pf->WhenLocals().count(l) > 0 )
+			continue;
+
 		auto non_const_l = const_cast<ID*>(l);
+
 		// Don't add locals that were already added because they're
 		// parameters.
 		//

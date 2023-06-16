@@ -92,6 +92,7 @@ private:
 	void Init();
 	void InitGlobals();
 	void InitArgs();
+	void InitCaptures();
 	void InitLocals();
 	void TrackMemoryManagement();
 
@@ -350,8 +351,15 @@ private:
 
 	bool IsUnused(const IDPtr& id, const Stmt* where) const;
 
+	bool IsCapture(const IDPtr& id) const { return IsCapture(id.get()); }
+	bool IsCapture(const ID* id) const;
+
+	int CaptureOffset(const IDPtr& id) const { return IsCapture(id.get()); }
+	int CaptureOffset(const ID* id) const;
+
 	void LoadParam(const ID* id);
 	const ZAMStmt LoadGlobal(const ID* id);
+	const ZAMStmt LoadCapture(const ID* id);
 
 	int AddToFrame(const ID*);
 
@@ -599,8 +607,10 @@ private:
 
 	// Used for communication between Frame1Slot and a subsequent
 	// AddInst.  If >= 0, then upon adding the next instruction,
-	// it should be followed by Store-Global for the given slot.
+	// it should be followed by Store-Global or Store-Capture for
+	// the given slot.
 	int pending_global_store = -1;
+	int pending_capture_store = -1;
 	};
 
 // Invokes after compiling all of the function bodies.

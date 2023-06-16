@@ -51,7 +51,7 @@ class Reducer;
 class UseDefs
 	{
 public:
-	UseDefs(StmtPtr body, std::shared_ptr<Reducer> rc);
+	UseDefs(StmtPtr body, std::shared_ptr<Reducer> rc, FuncTypePtr ft);
 
 	// Does a full pass over the function body's AST.  We can wind
 	// up doing this multiple times because when we use use-defs to
@@ -173,6 +173,7 @@ private:
 
 	StmtPtr body;
 	std::shared_ptr<Reducer> rc;
+	FuncTypePtr ft;
 	};
 
 	} // zeek::detail

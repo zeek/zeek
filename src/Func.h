@@ -172,6 +172,7 @@ class ScriptFunc : public Func
 	{
 public:
 	ScriptFunc(const IDPtr& id);
+	ScriptFunc(const ID* id);
 
 	// For compiled scripts.
 	ScriptFunc(std::string name, FuncTypePtr ft, std::vector<StmtPtr> bodies,

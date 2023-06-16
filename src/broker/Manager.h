@@ -13,6 +13,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
@@ -442,7 +443,19 @@ private:
 	// when a master/clone is created.
 	void BrokerStoreToZeekTable(const std::string& name, const detail::StoreHandleVal* handle);
 
-	void Error(const char* format, ...) __attribute__((format(printf, 2, 3)));
+	template <typename... Args> void Error(const char* format, Args&&... args)
+		{
+		std::string msg;
+		if constexpr ( sizeof...(args) > 0 )
+			msg = util::fmt(format, args...);
+		else
+			msg = util::fmt("%s", format);
+
+		if ( script_scope )
+			zeek::emit_builtin_error(msg.c_str());
+		else
+			reporter->Error("%s", msg.c_str());
+		}
 
 	// IOSource interface overrides:
 	void Process() override;

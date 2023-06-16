@@ -344,13 +344,18 @@ public:
 	const IDPtr& GetID() const { return id; }
 
 	const StmtPtr& Body() const { return body; }
-	void SetBody(StmtPtr _body) { body = std::move(_body); }
 
 	const auto& Inits() const { return inits; }
+	void ClearInits() { inits.clear(); }
+
 	size_t FrameSize() const { return frame_size; }
 	int Priority() const { return priority; }
 	const ScopePtr& Scope() const { return scope; }
 	const auto& Groups() const { return groups; }
+
+	// Used by script optimization to update lambda ingredients
+	// after compilation.
+	void SetFrameSize(size_t _frame_size) { frame_size = std::move(_frame_size); }
 
 private:
 	IDPtr id;

@@ -576,6 +576,9 @@ public:
 	// Takes ownership of the CaptureList.
 	WhenInfo(ExprPtr cond, FuncType::CaptureList* cl, bool is_return);
 
+	// Used for duplication to support inlining.
+	WhenInfo(const WhenInfo* orig);
+
 	// Constructor used by script optimization to create a stub.
 	WhenInfo(bool is_return);
 
@@ -616,6 +619,7 @@ public:
 	StmtPtr TimeoutStmt();
 
 	ExprPtr TimeoutExpr() const { return timeout; }
+	void SetTimeoutExpr(ExprPtr e) { timeout = std::move(e); }
 	double TimeoutVal(Frame* f);
 
 	FuncType::CaptureList* Captures() { return cl; }
@@ -625,10 +629,22 @@ public:
 	// The locals and globals used in the conditional expression
 	// (other than newly introduced locals), necessary for registering
 	// the associated triggers for when their values change.
-	const IDSet& WhenExprLocals() const { return when_expr_locals; }
-	const IDSet& WhenExprGlobals() const { return when_expr_globals; }
+	const auto& WhenExprLocals() const { return when_expr_locals; }
+	const auto& WhenExprGlobals() const { return when_expr_globals; }
+
+	// The locals introduced in the conditional expression.
+	const auto& WhenNewLocals() const { return when_new_locals; }
+
+	// Used for script optimization when in-lining needs to revise
+	// identifiers.
+	bool HasUnreducedIDs(Reducer* c) const;
+	void UpdateIDs(Reducer* c);
 
 private:
+	// Profile the original AST elements to extract things like
+	// globals and locals used.
+	void BuildProfile();
+
 	// Build those elements we'll need for invoking our lambda.
 	void BuildInvokeElems();
 
@@ -640,8 +656,10 @@ private:
 
 	bool is_return = false;
 
-	// The name of parameter passed to the lambda.
+	// The name of parameter passed to the lambda, and the corresponding
+	// identifier.
 	std::string lambda_param_id;
+	IDPtr param_id;
 
 	// The expression for constructing the lambda, and its type.
 	LambdaExprPtr lambda;
@@ -662,7 +680,7 @@ private:
 	ConstExprPtr two_const;
 	ConstExprPtr three_const;
 
-	IDSet when_expr_locals;
+	std::vector<IDPtr> when_expr_locals;
 	IDSet when_expr_globals;
 
 	// Locals introduced via "local" in the "when" clause itself.
@@ -685,7 +703,7 @@ public:
 	StmtPtr TimeoutBody() const { return wi->TimeoutStmt(); }
 	bool IsReturn() const { return wi->IsReturn(); }
 
-	const WhenInfo* Info() const { return wi; }
+	WhenInfo* Info() const { return wi; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -693,9 +711,9 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
-	void Inline(Inliner* inl) override;
 
 	bool IsReduced(Reducer* c) const override;
+	StmtPtr DoReduce(Reducer* c) override;
 
 private:
 	WhenInfo* wi;

@@ -2005,9 +2005,68 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 	if ( ! cl )
 		cl = new zeek::FuncType::CaptureList;
 
+	BuildProfile();
+
+	// Create the internal lambda we'll use to manage the captures.
+	static int num_params = 0; // to ensure each is distinct
+	lambda_param_id = util::fmt("when-param-%d", ++num_params);
+
+	auto param_list = new type_decl_list();
+	auto count_t = base_type(TYPE_COUNT);
+	param_list->push_back(new TypeDecl(util::copy_string(lambda_param_id.c_str()), count_t));
+	auto params = make_intrusive<RecordType>(param_list);
+
+	lambda_ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY), FUNC_FLAVOR_FUNCTION);
+
+	if ( ! is_return )
+		lambda_ft->SetExpressionlessReturnOkay(true);
+
+	lambda_ft->SetCaptures(*cl);
+
+	auto id = current_scope()->GenerateTemporary("when-internal");
+	id->SetType(lambda_ft);
+	push_scope(std::move(id), nullptr);
+
+	param_id = install_ID(lambda_param_id.c_str(), current_module.c_str(), false, false);
+	param_id->SetType(count_t);
+	}
+
+WhenInfo::WhenInfo(const WhenInfo* orig)
+	{
+	if ( orig->cl )
+		{
+		cl = new FuncType::CaptureList;
+		*cl = *orig->cl;
+		}
+
+	cond = orig->OrigCond()->Duplicate();
+
+	// We don't duplicate these, as they'll be compiled separately.
+	s = orig->OrigBody();
+	timeout_s = orig->OrigBody();
+
+	timeout = orig->OrigTimeout();
+	if ( timeout )
+		timeout = timeout->Duplicate();
+
+	lambda = cast_intrusive<LambdaExpr>(orig->Lambda()->Duplicate());
+
+	is_return = orig->IsReturn();
+
+	BuildProfile();
+	}
+
+WhenInfo::WhenInfo(bool arg_is_return) : is_return(arg_is_return)
+	{
+	cl = new zeek::FuncType::CaptureList;
+	BuildInvokeElems();
+	}
+
+void WhenInfo::BuildProfile()
+	{
 	ProfileFunc cond_pf(cond.get());
 
-	when_expr_locals = cond_pf.Locals();
+	auto when_expr_locals_set = cond_pf.Locals();
 	when_expr_globals = cond_pf.AllGlobals();
 	when_new_locals = cond_pf.WhenLocals();
 
@@ -2032,41 +2091,20 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 
 		// In addition, don't treat them as external locals that
 		// existed at the onset.
-		when_expr_locals.erase(wl);
+		when_expr_locals_set.erase(wl);
 		}
 
-	// Create the internal lambda we'll use to manage the captures.
-	static int num_params = 0; // to ensure each is distinct
-	lambda_param_id = util::fmt("when-param-%d", ++num_params);
-
-	auto param_list = new type_decl_list();
-	auto count_t = base_type(TYPE_COUNT);
-	param_list->push_back(new TypeDecl(util::copy_string(lambda_param_id.c_str()), count_t));
-	auto params = make_intrusive<RecordType>(param_list);
-
-	lambda_ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY), FUNC_FLAVOR_FUNCTION);
-
-	if ( ! is_return )
-		lambda_ft->SetExpressionlessReturnOkay(true);
-
-	auto id = current_scope()->GenerateTemporary("when-internal");
-	id->SetType(lambda_ft);
-	push_scope(std::move(id), nullptr);
-
-	auto arg_id = install_ID(lambda_param_id.c_str(), current_module.c_str(), false, false);
-	arg_id->SetType(count_t);
-	}
-
-WhenInfo::WhenInfo(bool arg_is_return) : is_return(arg_is_return)
-	{
-	cl = new zeek::FuncType::CaptureList;
-	BuildInvokeElems();
+	for ( auto& w : when_expr_locals_set )
+		{
+		// We need IDPtr versions of the locals so we can manipulate
+		// them during script optimization.
+		auto non_const_w = const_cast<ID*>(w);
+		when_expr_locals.push_back({NewRef{}, non_const_w});
+		}
 	}
 
 void WhenInfo::Build(StmtPtr ws)
 	{
-	lambda_ft->SetCaptures(*cl);
-
 	// Our general strategy is to construct a single lambda (so that
 	// the values of captures are shared across all of its elements)
 	// that's used for all three of the "when" components: condition,
@@ -2086,10 +2124,13 @@ void WhenInfo::Build(StmtPtr ws)
 	// First, the constants we'll need.
 	BuildInvokeElems();
 
+	if ( lambda )
+		// No need to build the lambda.
+		return;
+
 	auto true_const = make_intrusive<ConstExpr>(val_mgr->True());
 
 	// Access to the parameter that selects which action we're doing.
-	auto param_id = lookup_ID(lambda_param_id.c_str(), current_module.c_str());
 	ASSERT(param_id);
 	auto param = make_intrusive<NameExpr>(param_id);
 
@@ -2109,11 +2150,14 @@ void WhenInfo::Build(StmtPtr ws)
 
 	auto shebang = make_intrusive<StmtList>(do_test, do_bodies, dummy_return);
 
-	auto ingredients = std::make_unique<FunctionIngredients>(current_scope(), shebang,
+	auto ingredients = std::make_shared<FunctionIngredients>(current_scope(), shebang,
 	                                                         current_module);
 	auto outer_ids = gather_outer_ids(pop_scope(), ingredients->Body());
 
-	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), ws);
+	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), "", ws);
+	lambda->SetPrivateCaptures(when_new_locals);
+
+	analyze_when_lambda(lambda.get());
 	}
 
 void WhenInfo::Instantiate(Frame* f)
@@ -2205,8 +2249,7 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 	std::vector<ValPtr> local_aggrs;
 	for ( auto& l : wi->WhenExprLocals() )
 		{
-		IDPtr l_ptr = {NewRef{}, const_cast<ID*>(l)};
-		auto v = f->GetElementByID(l_ptr);
+		auto v = f->GetElementByID(l);
 		if ( v && v->Modifiable() )
 			local_aggrs.emplace_back(std::move(v));
 		}
@@ -2225,6 +2268,23 @@ bool WhenStmt::IsPure() const
 void WhenStmt::StmtDescribe(ODesc* d) const
 	{
 	Stmt::StmtDescribe(d);
+
+	auto cl = wi->Captures();
+	if ( d->IsReadable() && ! cl->empty() )
+		{
+		d->Add("[");
+		for ( auto& c : *cl )
+			{
+			if ( &c != &(*cl)[0] )
+				d->AddSP(",");
+
+			if ( c.IsDeepCopy() )
+				d->Add("copy ");
+
+			d->Add(c.Id()->Name());
+			}
+		d->Add("]");
+		}
 
 	if ( d->IsReadable() )
 		d->Add("(");
@@ -2267,32 +2327,13 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	auto wl = wi->Lambda();
+	tc = wi->Lambda()->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
 
-	if ( wl )
+	auto e = wi->TimeoutExpr();
+	if ( e )
 		{
-		tc = wl->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-		}
-
-	else
-		{
-		tc = wi->OrigCond()->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-
-		tc = wi->OrigBody()->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-
-		if ( wi->OrigTimeoutStmt() )
-			{
-			tc = wi->OrigTimeoutStmt()->Traverse(cb);
-			HANDLE_TC_STMT_PRE(tc);
-			}
-		}
-
-	if ( wi->OrigTimeout() )
-		{
-		tc = wi->OrigTimeout()->Traverse(cb);
+		tc = e->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 

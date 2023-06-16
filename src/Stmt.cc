@@ -2018,7 +2018,7 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 		bool is_present = false;
 
 		for ( auto& c : *cl )
-			if ( c.id == wl )
+			if ( c.Id() == wl )
 				{
 				is_present = true;
 				break;

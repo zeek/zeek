@@ -4726,7 +4726,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 
 	for ( const auto& c : *captures )
 		{
-		auto cid = c.id.get();
+		auto cid = c.Id().get();
 
 		if ( ! cid )
 			// This happens for undefined/inappropriate
@@ -4768,7 +4768,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 
 	for ( const auto& c : *captures )
 		{
-		auto cid = c.id.get();
+		auto cid = c.Id().get();
 		if ( cid && capture_is_matched.count(cid) == 0 )
 			{
 			auto msg = util::fmt("%s is captured but not used inside %s", cid->Name(), desc);

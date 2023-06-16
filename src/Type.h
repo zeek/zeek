@@ -511,10 +511,22 @@ public:
 	/**
 	 * A single lambda "capture" (outer variable used in a lambda's body).
 	 */
-	struct Capture
+	class Capture
 		{
+	public:
+		Capture(detail::IDPtr _id, bool _deep_copy);
+
+		auto& Id() const { return id; }
+		bool IsDeepCopy() const { return deep_copy; }
+		bool IsManaged() const { return is_managed; }
+
+		// For script optimization:
+		void SetID(detail::IDPtr new_id) { id = std::move(new_id); }
+
+	private:
 		detail::IDPtr id;
 		bool deep_copy;
+		bool is_managed;
 		};
 
 	using CaptureList = std::vector<Capture>;

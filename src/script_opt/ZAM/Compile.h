@@ -220,10 +220,15 @@ private:
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const ListExpr* l, const NameExpr* n2,
 	                            const ConstExpr* c);
 
-	const ZAMStmt CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l);
-	const ZAMStmt CompileIndex(const NameExpr* n1, const ConstExpr* c, const ListExpr* l);
+	const ZAMStmt CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l,
+	                           bool in_when);
+	const ZAMStmt CompileIndex(const NameExpr* n1, const ConstExpr* c, const ListExpr* l,
+	                           bool in_when);
 	const ZAMStmt CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2_type,
-	                           const ListExpr* l);
+	                           const ListExpr* l, bool in_when);
+
+	const ZAMStmt BuildLambda(const NameExpr* n, LambdaExpr* le);
+	const ZAMStmt BuildLambda(int n_slot, LambdaExpr* le);
 
 	// Second argument is which instruction slot holds the branch target.
 	const ZAMStmt GenCond(const Expr* e, int& branch_v);

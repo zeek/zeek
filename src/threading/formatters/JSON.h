@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <memory>
+
 #define RAPIDJSON_HAS_STDSTRING 1
 // Remove in v7.1 when removing NullDoubleWriter below and also remove
 // rapidjson include tweaks from  CMake's dynamic_plugin_base target.
@@ -46,11 +48,11 @@ public:
 		{
 	public:
 		[[deprecated("Remove in v7.1 - This is an implementation detail.")]] NullDoubleWriter(
-			rapidjson::StringBuffer& stream)
-			: rapidjson::Writer<rapidjson::StringBuffer>(stream)
-			{
-			}
+			rapidjson::StringBuffer& stream);
 		bool Double(double d);
+
+	private:
+		std::unique_ptr<json::detail::NullDoubleWriter> writer;
 		};
 
 private:

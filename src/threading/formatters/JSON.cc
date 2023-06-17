@@ -22,12 +22,14 @@ namespace zeek::threading::formatter
 	{
 
 // For deprecated NullDoubleWriter
+JSON::NullDoubleWriter::NullDoubleWriter(rapidjson::StringBuffer& stream)
+	: writer(std::make_unique<zeek::json::detail::NullDoubleWriter>(stream))
+	{
+	}
+
 bool JSON::NullDoubleWriter::Double(double d)
 	{
-	if ( rapidjson::internal::Double(d).IsNanOrInf() )
-		return rapidjson::Writer<rapidjson::StringBuffer>::Null();
-
-	return rapidjson::Writer<rapidjson::StringBuffer>::Double(d);
+	return writer->Double(d);
 	}
 
 JSON::JSON(MsgThread* t, TimeFormat tf, bool arg_include_unset_fields)

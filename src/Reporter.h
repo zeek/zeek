@@ -223,7 +223,11 @@ public:
 			return;
 
 		char* buf;
+#ifdef HAVE_ASPRINTF
 		asprintf(&buf, fmt, std::forward<Args>(args)...);
+#else
+		util::asprintf(&buf, fmt, std::forward<Args>(args)...);
+#endif
 		DoSyslog(buf);
 		free(buf);
 		}

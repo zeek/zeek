@@ -271,6 +271,12 @@ private:
 		ERROR
 		};
 
+#ifdef HAVE_ASPRINTF
+#define zeek_asprintf asprintf
+#else
+#define zeek_asprintf util::asprintf
+#endif
+
 	template <typename... Args>
 	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt,
 	                  Args&&... args) const
@@ -279,9 +285,9 @@ private:
 
 		int n;
 		if constexpr ( sizeof...(args) > 0 )
-			n = asprintf(&buf, fmt, std::forward<Args>(args)...);
+			n = zeek_asprintf(&buf, fmt, std::forward<Args>(args)...);
 		else
-			n = asprintf(&buf, "%s", fmt);
+			n = zeek_asprintf(&buf, "%s", fmt);
 
 		if ( n < 0 || buf == nullptr )
 			{

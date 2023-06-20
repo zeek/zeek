@@ -77,6 +77,9 @@
 /* Define if you have the `strsep' function. */
 #cmakedefine HAVE_STRSEP
 
+/* Define if you have the 'asprintf' function. */
+#cmakedefine HAVE_ASPRINTF
+
 /* Define if you have the <sys/ethernet.h> header file. */
 #cmakedefine HAVE_SYS_ETHERNET_H
 

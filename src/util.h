@@ -668,5 +668,19 @@ inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* del
 	return split(std::wstring_view(s), std::wstring_view(delim));
 	}
 
+#ifndef HAVE_ASPRINTF
+
+inline int asprintf(char** strp, const char* format, ...)
+	{
+	va_list ap;
+	va_start(ap, format);
+	int retval = vasprintf(strp, format, ap);
+	va_end(ap);
+
+	return retval;
+	}
+
+#endif
+
 	} // namespace util
 	} // namespace zeek

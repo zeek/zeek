@@ -1,3 +1,9 @@
+6.1.0-dev.110 | 2023-06-21 15:36:32 -0700
+
+  * Update zeekjs submodule (Tim Wojtulewicz, Corelight)
+
+  * Update broker submodule (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.108 | 2023-06-21 15:33:50 -0700
 
   * telemetry: Disable metrics centralization by default (Arne Welzel, Corelight)

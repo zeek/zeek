@@ -29,6 +29,7 @@ redef Cluster::nodes = {
 @TEST-END-FILE
 
 @load policy/frameworks/cluster/experimental
+@load policy/frameworks/telemetry/prometheus
 @load base/frameworks/telemetry
 @load base/utils/active-http
 

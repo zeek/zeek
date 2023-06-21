@@ -31,6 +31,10 @@ New Functionality
   the break statement within ``assertion_failure()`` or ``assertion_result()``
   allows to suppress the default message.
 
+- The ``from_json()`` function now takes an optional key_func argument to
+  normalize JSON object key names. This can be useful if the keys in a JSON
+  object are not valid Zeek identifiers or reserved keywords.
+
 Changed Functionality
 ---------------------
 

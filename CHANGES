@@ -1,3 +1,15 @@
+6.0.0-rc2.17 | 2023-06-21 11:46:48 -0700
+
+  * cirrus: Stop pushing container images to zeekurity (Arne Welzel, Corelight)
+
+    Closes #3143
+
+  * CI: Force rebuild of tumbleweed VM to pick up newer version of python (Tim Wojtulewicz, Corelight)
+
+    The version of python included in the existing VM doesn't have the sqlite
+    module included for some reason. Forcing the VM to rebuild installs python311
+    which does include it, fixing a build failure.
+
 6.0.0-rc2.12 | 2023-06-15 15:20:20 -0700
 
   * GH-3112: cluster/logger: Fix leftover-log-rotation in multi-logger setups (Arne Welzel, Corelight)

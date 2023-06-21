@@ -1,3 +1,13 @@
+6.1.0-dev.108 | 2023-06-21 15:33:50 -0700
+
+  * telemetry: Disable metrics centralization by default (Arne Welzel, Corelight)
+
+    Move the telemetry/cluster.zeek file over into policy/frameworks/telemetry/prometheus.zeek.
+
+    Mention it in local.zeek.
+
+    Relates to zeek/broker#366.
+
 6.1.0-dev.106 | 2023-06-21 15:33:24 -0700
 
   * GSSAPI: basic support for MIC/WRAP tokens (Johanna Amann, Corelight)

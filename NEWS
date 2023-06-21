@@ -28,6 +28,22 @@ Breaking Changes
   come in handy for example when working with tests that compare results against
   log baselines that have not yet been updated.
 
+- Telemetry centralization and Prometheus exposition is not enabled by default
+  anymore. Previously, the manager node would open port 9911/tcp by default and
+  import all metrics from other nodes. For large clusters, the current implementation
+  introduces significant processing overhead on the manager even if the Prometheus
+  functionality is not used. While inconvenient, disable this functionality
+  (assumed to be used by few as of now) by default to preserve resources.
+
+  The script to enable centralization and the Prometheus endpoint is now
+  located in the ``policy/`` folder. Re-enable the old functionality with:
+
+	@load frameworks/telemetry/prometheus
+
+  You may experiment with increasing ``Broker::metrics_export_interval``
+  (default 1s) to reduce the extra overhead and communication at the expense
+  of stale metrics.
+
 - Custom source tarballs require a ``repo-info.json`` file.
 
   Note, should you be using official Zeek release tarballs only, or build

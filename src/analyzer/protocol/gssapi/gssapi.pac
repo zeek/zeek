@@ -23,7 +23,7 @@ connection GSSAPI_Conn(zeek_analyzer: ZeekAnalyzer) {
 
 # Now we define the flow:
 flow GSSAPI_Flow(is_orig: bool) {
-	datagram = GSSAPI_NEG_TOKEN(is_orig) withcontext(connection, this);
+	datagram = GSSAPI_SELECT(is_orig) withcontext(connection, this);
 };
 
 %include gssapi-analyzer.pac

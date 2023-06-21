@@ -1,3 +1,11 @@
+6.1.0-dev.106 | 2023-06-21 15:33:24 -0700
+
+  * GSSAPI: basic support for MIC/WRAP tokens (Johanna Amann, Corelight)
+
+    When MIC/WRAP tokens are encountered, we now skip the message, instead
+    of raising a parse error. The data in the messages is encrypted - so it
+    does not seem work to raise an event at the moment.
+
 6.1.0-dev.104 | 2023-06-20 10:15:24 -0700
 
   * CI: Force rebuild of tumbleweed VM to pick up newer version of python (Tim Wojtulewicz, Corelight)

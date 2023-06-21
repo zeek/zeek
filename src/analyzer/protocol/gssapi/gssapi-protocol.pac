@@ -1,6 +1,16 @@
-
-type GSSAPI_NEG_TOKEN(is_orig: bool) = record {
+type GSSAPI_SELECT(is_orig: bool) = record {
 	wrapper  : ASN1EncodingMeta;
+	token: case tok_id of {
+		0x0404 -> mic_blob: bytestring &restofdata;
+		0x0504 -> wrap_blob: bytestring &restofdata;
+		default -> neg_token: GSSAPI_NEG_TOKEN(is_orig, is_init);
+	} &requires(is_init) &requires(tok_id);
+} &let {
+	is_init: bool = wrapper.tag == 0x60;
+	tok_id: uint32 = (wrapper.tag << 8) | wrapper.len;
+} &byteorder=littleendian;
+
+type GSSAPI_NEG_TOKEN(is_orig: bool, is_init: bool) = record {
 	have_oid : case is_init of {
 		true  -> oid    : ASN1Encoding;
 		false -> no_oid : empty;
@@ -13,8 +23,6 @@ type GSSAPI_NEG_TOKEN(is_orig: bool) = record {
 		true  -> init : GSSAPI_NEG_TOKEN_INIT;
 		false -> resp : GSSAPI_NEG_TOKEN_RESP;
 	};
-} &let {
-	is_init: bool = wrapper.tag == 0x60;
 } &byteorder=littleendian;
 
 type GSSAPI_NEG_TOKEN_INIT = record {

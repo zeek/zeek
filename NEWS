@@ -110,6 +110,10 @@ Breaking Changes
   depending on the functionality included in the plugin, may trigger subsequent
   errors during configuration or build.
 
+- Zeek container images are not pushed to the zeekurity organization anymore.
+  Please switch to using the ``zeek/zeek`` image on DockerHub, or the images
+  published to ``public.ecr.aws/zeek/zeek``.
+
 - The IRC_Data analyzer declaration has been moved to protocols/irc/IRC.h.
 
 - The error message returned when using ``bro_init``, ``bro_done``, and

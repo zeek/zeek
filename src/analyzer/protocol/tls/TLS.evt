@@ -25,8 +25,9 @@ on TLS::NewSessionTicket -> event ssl_session_ticket_handshake($conn, self.ticke
 
 on TLS::PlaintextRecord::ccs -> event ssl_change_cipher_spec($conn, $is_orig);
 on TLS::PlaintextRecord::ccs if ( msg.context().ccs_seen == 2 ) -> event ssl_established($conn);
-on TLS::PlaintextRecord::appdata if ( self.encrypted == False ) -> event ssl_plaintext_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
-on TLS::PlaintextRecord::appdata if ( self.encrypted == True ) -> event ssl_encrypted_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
+on TLS::PlaintextRecord::trigger_one if ( sh.both_sides_encrypted_first_time == True ) -> event ssl_established($conn);
+on TLS::PlaintextRecord::trigger_two if ( self.encrypted == False ) -> event ssl_plaintext_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
+on TLS::PlaintextRecord::trigger_two if ( self.encrypted == True ) -> event ssl_encrypted_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
 
 on TLS::Handshake_message -> event ssl_handshake_message($conn, TLS::get_direction(sh), self.msg_type, self.length);
 

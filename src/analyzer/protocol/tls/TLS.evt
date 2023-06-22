@@ -29,6 +29,8 @@ on TLS::PlaintextRecord::trigger_one if ( sh.both_sides_encrypted_first_time == 
 on TLS::PlaintextRecord::trigger_two if ( self.encrypted == False ) -> event ssl_plaintext_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
 on TLS::PlaintextRecord::trigger_two if ( self.encrypted == True ) -> event ssl_encrypted_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
 
+on TLS::Extension -> event ssl_extension($conn, TLS::get_direction(sh), self.code, self.raw);
+
 on TLS::Handshake_message -> event ssl_handshake_message($conn, TLS::get_direction(sh), self.msg_type, self.length);
 
 on TLS::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, TLS::get_direction(sh), TLS::convert_signature_algorithms(self));

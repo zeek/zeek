@@ -980,10 +980,13 @@ type ServerHello = unit(len: uint64, msg: Message, inout sh: Share, server_versi
 };
 
 type Extension = unit(inout sh: Share, client_hello: bool) {
-  code: uint16 &convert=Extensions($$);
+  code: uint16;
   length: uint16;
+  # position is re-set, just after parsing raw, so that the remainder of the unit can parse the raw data.
+  # raw data is needed for an event.
+  raw: bytes &size=self.length;
 
-  switch ( self.code ) {
+  switch ( Extensions(self.code) ) {
     # Extensions::next_protocol_negotiation -> :bytes &size=self.extension_size; # alert if != 0
     Extensions::ec_point_formats -> ec_point_formats: EcPointsFormat_extension(sh) if ( self.length > 0 );
     Extensions::supported_groups -> elliptic_curves: EllipticCurveList(sh) if ( self.length > 0 );
@@ -1011,6 +1014,9 @@ type Extension = unit(inout sh: Share, client_hello: bool) {
   }
   on %error(emsg: string) {
     print "Error parsing extension with code", self.code, emsg;
+  }
+  on raw {
+    self.set_input(self.input()+4);
   }
 };
 

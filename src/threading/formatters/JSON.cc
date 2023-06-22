@@ -16,22 +16,25 @@
 
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"
+#include "zeek/threading/formatters/detail/json.h"
 
 namespace zeek::threading::formatter
 	{
 
+// For deprecated NullDoubleWriter
+JSON::NullDoubleWriter::NullDoubleWriter(rapidjson::StringBuffer& stream)
+	: writer(std::make_unique<zeek::json::detail::NullDoubleWriter>(stream))
+	{
+	}
+
 bool JSON::NullDoubleWriter::Double(double d)
 	{
-	if ( rapidjson::internal::Double(d).IsNanOrInf() )
-		return rapidjson::Writer<rapidjson::StringBuffer>::Null();
-
-	return rapidjson::Writer<rapidjson::StringBuffer>::Double(d);
+	return writer->Double(d);
 	}
 
 JSON::JSON(MsgThread* t, TimeFormat tf, bool arg_include_unset_fields)
-	: Formatter(t), surrounding_braces(true), include_unset_fields(arg_include_unset_fields)
+	: Formatter(t), timestamps(tf), include_unset_fields(arg_include_unset_fields)
 	{
-	timestamps = tf;
 	}
 
 JSON::~JSON() { }
@@ -39,7 +42,7 @@ JSON::~JSON() { }
 bool JSON::Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const
 	{
 	rapidjson::StringBuffer buffer;
-	NullDoubleWriter writer(buffer);
+	zeek::json::detail::NullDoubleWriter writer(buffer);
 
 	writer.StartObject();
 
@@ -68,7 +71,7 @@ bool JSON::Describe(ODesc* desc, Value* val, const std::string& name) const
 
 	rapidjson::Document doc;
 	rapidjson::StringBuffer buffer;
-	NullDoubleWriter writer(buffer);
+	zeek::json::detail::NullDoubleWriter writer(buffer);
 
 	writer.StartObject();
 	BuildJSON(writer, val, name);
@@ -85,7 +88,8 @@ Value* JSON::ParseValue(const std::string& s, const std::string& name, TypeTag t
 	return nullptr;
 	}
 
-void JSON::BuildJSON(NullDoubleWriter& writer, Value* val, const std::string& name) const
+void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val,
+                     const std::string& name) const
 	{
 	if ( ! name.empty() )
 		writer.Key(name);

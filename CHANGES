@@ -1,3 +1,36 @@
+6.1.0-dev.115 | 2023-06-21 17:45:35 -0700
+
+  * formatters/JSON: Make JSON::NullDoubleWriter use zeek::json::detail version (Arne Welzel, Corelight)
+
+    Not using inheritance and preferring composition to avoid including the
+    detail/json.h header do an indirection via a unique_ptr and then just
+    re-use the Double() implementation.
+
+  * formatters/JSON: Remove surrounding_braces (Arne Welzel, Corelight)
+
+    This seems to have become unused 4 years ago with 9b76e8faf44e90c41f33f24b18900a50f0840c5a,
+    remove it.
+
+  * formatters/JSON: Prepare to remove rapidjson from installed Zeek headers (Arne Welzel, Corelight)
+
+    threading/formatters/JSON.h currently includes rapidjson headers for declaring
+    the NullDoubleWriter. This appears mostly an internal detail, but
+    results in the situation that 1) we need to ship rapidjson headers with
+    the Zeek install tree and 2) taking care that external plugins are able
+    to find these headers should they include formatters/JSON.h.
+
+    There are currently no other Zeek headers that include rapidjson, so this
+    seems very unfortunate and self-inflicted given it's not actually required.
+
+    Attempt to hide this implementation detail with the goal to remove the
+    rapidjson includes with v7.1 and then also stop bundling and exposing
+    the include path to external plugins.
+
+    The NullDoubleWriter implementation moves into a new formatters/detail/json.h
+    header which is not installed.
+
+    Closes #3128
+
 6.1.0-dev.110 | 2023-06-21 15:36:32 -0700
 
   * Update zeekjs submodule (Tim Wojtulewicz, Corelight)

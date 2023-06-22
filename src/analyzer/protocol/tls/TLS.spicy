@@ -569,6 +569,7 @@ type Share = unit {
   var client_encrypted: bool;
   var server_encrypted: bool;
   var both_sides_encrypted_first_time: bool;
+  var established: bool;
 
   on %init {
     self.ccs_seen = 0;
@@ -580,6 +581,7 @@ type Share = unit {
     self.server_encrypted = False;
     self.client_encrypted = False;
     self.both_sides_encrypted_first_time = False;
+    self.established = False;
   }
 };
 
@@ -611,6 +613,7 @@ function startEncryption(inout handshakesink: sink, inout alertsink: sink, inout
     if ( sh.client_encrypted && sh.server_encrypted ) {
       print "Encrypted first time";
       sh.both_sides_encrypted_first_time = True;
+      sh.established = True;
     }
   }
 }
@@ -702,8 +705,8 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink:
   length: uint16;
   var encrypted: bool;
   # convenient triggers to hang stuff in the evt file from. Two of them for event ordering :)
-  trigger_one: bytes &size=0;
-  trigger_two: bytes &size=0;
+  trigger_zero: void;
+  trigger_one: void;
   switch ( ContentType(content_type) ) {
     ContentType::handshake -> : bytes &size=self.length -> handshakesink;
     ContentType::application_data -> {
@@ -717,6 +720,8 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink:
     ContentType::alert -> : bytes &size=self.length -> alertsink;
     * -> unhandled : bytes &size=self.length;
   };
+  trigger_two: void;
+  trigger_three: void;
 
   on unhandled {
     print "Unhandled content type", content_type;

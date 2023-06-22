@@ -24,14 +24,16 @@ on TLS::ServerNameList -> event ssl_extension_server_name($conn, TLS::get_direct
 on TLS::NewSessionTicket -> event ssl_session_ticket_handshake($conn, self.ticket_lifetime_hint, self.ticket);
 
 on TLS::PlaintextRecord::ccs -> event ssl_change_cipher_spec($conn, $is_orig);
-on TLS::PlaintextRecord::ccs if ( msg.context().ccs_seen == 2 ) -> event ssl_established($conn);
+# weird trigger for event ordering
+on TLS::PlaintextRecord::%done if ( msg.context().ccs_seen == 2 && content_type == 20 ) -> event ssl_established($conn);
+on TLS::PlaintextRecord::trigger_zero if ( content_type == 23 && sh.tls_13 == True && ( sh.established == False || sh.both_sides_encrypted_first_time ) ) -> event ssl_probable_encrypted_handshake_message($conn, TLS::get_direction(sh), self.length);
 on TLS::PlaintextRecord::trigger_one if ( sh.both_sides_encrypted_first_time == True ) -> event ssl_established($conn);
 on TLS::PlaintextRecord::trigger_two if ( self.encrypted == False ) -> event ssl_plaintext_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
 on TLS::PlaintextRecord::trigger_two if ( self.encrypted == True ) -> event ssl_encrypted_data($conn, TLS::get_direction(sh), msg.record_version, content_type, self.length);
 
 on TLS::Extension -> event ssl_extension($conn, TLS::get_direction(sh), self.code, self.raw);
 
-on TLS::Handshake_message -> event ssl_handshake_message($conn, TLS::get_direction(sh), self.msg_type, self.length);
+on TLS::Handshake_message::length -> event ssl_handshake_message($conn, TLS::get_direction(sh), self.msg_type, self.length);
 
 on TLS::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, TLS::get_direction(sh), TLS::convert_signature_algorithms(self));
 

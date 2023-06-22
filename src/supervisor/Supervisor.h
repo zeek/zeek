@@ -159,7 +159,7 @@ public:
 		// "scripts" field. It can go when we remove that deprecation.
 		NodeConfig() = default;
 #ifndef _MSC_VER
-		// MSVC throws this error when specifing this constructor:
+		// MSVC throws this error when specifying this constructor:
 		// error C2580: multiple versions of a defaulted special member functions are not allowed
 		NodeConfig(NodeConfig&) = default;
 #endif
@@ -239,11 +239,6 @@ public:
 		 * after any user-specified scripts.
 		 */
 		std::vector<std::string> addl_user_scripts;
-		/**
-		 * The former name for addl_user_scripts, now deprecated.
-		 */
-		std::vector<std::string> scripts
-			[[deprecated("Remove in v6.1. Use NodeConfig::addl_user_scripts.")]];
 		/**
 		 * Environment variables and values  to define in the node.
 		 */

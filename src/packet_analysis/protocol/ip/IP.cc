@@ -87,7 +87,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			total_len = packet->cap_len - hdr_size;
 		else
 			// If this is caused by segmentation offloading, the checksum will
-			// also be incorrect. If checksum validation is enabled - jus tbail here.
+			// also be incorrect. If checksum validation is enabled - just bail here.
 			return false;
 		}
 

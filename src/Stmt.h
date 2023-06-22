@@ -544,6 +544,28 @@ private:
 	bool is_directive;
 	};
 
+class AssertStmt final : public Stmt
+	{
+public:
+	explicit AssertStmt(ExprPtr cond, ExprPtr msg = nullptr);
+
+	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
+
+	void StmtDescribe(ODesc* d) const override;
+
+	TraversalCode Traverse(TraversalCallback* cb) const override;
+
+	// Optimization-related:
+	StmtPtr Duplicate() override;
+
+	bool IsReduced(Reducer* c) const override;
+	StmtPtr DoReduce(Reducer* c) override;
+
+private:
+	ExprPtr cond;
+	ExprPtr msg;
+	};
+
 // A helper class for tracking all of the information associated with
 // a "when" statement, and constructing the necessary components in support
 // of lambda-style captures.
@@ -617,7 +639,7 @@ private:
 
 	bool is_return = false;
 
-	// The name of parameter passed ot the lambda.
+	// The name of parameter passed to the lambda.
 	std::string lambda_param_id;
 
 	// The expression for constructing the lambda, and its type.

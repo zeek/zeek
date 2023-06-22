@@ -9,8 +9,27 @@ Zeek 6.1.0
 Breaking Changes
 ----------------
 
+- ``assert`` is now a reserved keyword for the new ``assert`` statement.
+
 New Functionality
 -----------------
+
+- Added a new ``assert`` statement for assertion based testing and asserting
+  runtime state.
+
+	assert <expr: bool>[, <message: string>];
+
+  This statement comes with two hooks. First, ``assertion_failure()`` that
+  is invoked for every failing assert statement. Second, ``assertion_result()``
+  which is invoked for every assert statement and its outcome. The latter allows
+  to construct a summary of failing and passing assert statements. Both hooks
+  receive the location and call stack for the ``assert`` statement via a
+  ``Backtrace`` vector.
+
+  A failing assert will abort execution of the current event handler similar
+  to scripting errors. By default, a reporter error message is logged. Using
+  the break statement within ``assertion_failure()`` or ``assertion_result()``
+  allows to suppress the default message.
 
 Changed Functionality
 ---------------------
@@ -45,6 +64,22 @@ Breaking Changes
   behavior of considering private address space an unrelated concept, which will
   come in handy for example when working with tests that compare results against
   log baselines that have not yet been updated.
+
+- Telemetry centralization and Prometheus exposition is not enabled by default
+  anymore. Previously, the manager node would open port 9911/tcp by default and
+  import all metrics from other nodes. For large clusters, the current implementation
+  introduces significant processing overhead on the manager even if the Prometheus
+  functionality is not used. While inconvenient, disable this functionality
+  (assumed to be used by few as of now) by default to preserve resources.
+
+  The script to enable centralization and the Prometheus endpoint is now
+  located in the ``policy/`` folder. Re-enable the old functionality with:
+
+	@load frameworks/telemetry/prometheus
+
+  You may experiment with increasing ``Broker::metrics_export_interval``
+  (default 1s) to reduce the extra overhead and communication at the expense
+  of stale metrics.
 
 - Custom source tarballs require a ``repo-info.json`` file.
 
@@ -108,6 +143,19 @@ New Functionality
   from source with the ``--shared`` option.
 
   To disable this functionality, pass ``--disable-javascript`` to configure.
+
+- Zeek now comes with Spicy support built in, meaning it can now
+  leverage any analyzers written in Spicy out of the box. While the
+  interface layer connecting Zeek and Spicy used to be implemented
+  through an external Zeek plugin, that code has now moved into the
+  Zeek code base itself. We also added infrastructure to Zeek that
+  enables its built-in standard analyzers to use Spicy instead of
+  Binpac. As initial (simple) examples, Zeek's Syslog and Finger
+  analyzers are now implemented in Spicy. While their legacy versions
+  remain available as fallbacks for now in case Spicy gets explicitly
+  disabled at build time, their use is deprecated and their code won't
+  be maintained any further. (Some of these Spicy updates were part of
+  Zeek 5.2 already, but hadn't been included in its NEWS section.)
 
 - Zeek events now hold network timestamps. For scheduled events, the timestamp
   represents the network time for which the event was scheduled for, otherwise
@@ -260,7 +308,7 @@ New Functionality
   recognize CCMP-encrypted packets. These encrypted packets are currently
   dropped to Zeek's inability to do anything with them.
 
-- Add packet analzyers for LLC, SNAP, and Novell 802.3, called from the Ethernet
+- Add packet analyzers for LLC, SNAP, and Novell 802.3, called from the Ethernet
   and VLAN analyzers by default.
 
 - Environment variables for the execution of log rotation postprocessors can
@@ -289,6 +337,9 @@ New Functionality
 
 Changed Functionality
 ---------------------
+
+- The base distribution of the Zeek container images has been upgraded to
+  Debian 12 "bookworm" and JavaScript support was enabled.
 
 - When ``get_file_handle()`` is invoked for an analyzer that did not register
   an appropriate callback function, log a warning and return a generic handle
@@ -2381,7 +2432,7 @@ Changed Functionality
   - The IOSource API changed fairly wildly. The ``GetFds()`` and
     ``NextTimestamp`` methods no longer exist. If you had previously
     implemented a custom IOSource, you will need to look at the new API
-    and make changes to your code to accomodate it. This does not include
+    and make changes to your code to accommodate it. This does not include
     packet sources, which should remain functional with little to no
     changes, since the entirety of the changes should be in ``PktSrc``.
 
@@ -4033,7 +4084,7 @@ Changed Functionality
 
     - HTTP
 
-        Removed 'filename' field (which was seldomly used).
+        Removed 'filename' field (which was seldom used).
 
         New 'orig_filenames' and 'resp_filenames' fields which each
         contain a vector of filenames seen in entities transferred.
@@ -5019,7 +5070,7 @@ New Functionality
   Instead of adding a separate worker entry in node.cfg for each Bro
   worker process on each worker host, it is now possible to just
   specify the number of worker processes on each host and BroControl
-  configures everything correctly (including any necessary enviroment
+  configures everything correctly (including any necessary environment
   variables for the balancers).
 
   This change adds three new keywords to the node.cfg file (to be used

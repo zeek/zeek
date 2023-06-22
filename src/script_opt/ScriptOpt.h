@@ -43,7 +43,7 @@ struct AnalyOpt
 	// Whether to analyze scripts.
 	bool activate = false;
 
-	// If true, compile all compileable functions, even those that
+	// If true, compile all compilable functions, even those that
 	// are inlined.  Mainly useful for ensuring compatibility for
 	// some tests in the test suite.
 	bool compile_all = false;

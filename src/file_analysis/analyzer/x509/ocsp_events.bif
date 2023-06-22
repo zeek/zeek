@@ -39,7 +39,7 @@ event ocsp_request_certificate%(f: fa_file, hashAlgorithm: string, issuerNameHas
 ##
 ## f: The file.
 ##
-## status: The status of the OCSP response (e.g. succesful, malformedRequest, tryLater).
+## status: The status of the OCSP response (e.g. successful, malformedRequest, tryLater).
 ##
 ## .. zeek:see:: ocsp_request ocsp_request_certificate
 ##              ocsp_response_bytes ocsp_response_certificate ocsp_extension
@@ -52,7 +52,7 @@ event ocsp_response_status%(f: fa_file, status: string%);
 ##
 ## f: The file.
 ##
-## status: The status of the OCSP response (e.g. succesful, malformedRequest, tryLater).
+## status: The status of the OCSP response (e.g. successful, malformedRequest, tryLater).
 ##
 ## version: Version of the OCSP response (typically - for version 1).
 ##

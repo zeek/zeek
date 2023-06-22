@@ -1293,7 +1293,7 @@ int HTTP_Analyzer::HTTP_RequestLine(const char* line, const char* end_of_line)
 
 	// If we determined HTTP/0.9 (no HTTP/ in the request line), assert that
 	// minimally we have an URI and a 3 character method (HTTP 0.9 only
-	// supports GET). If that doesn't hold, probably not HTTP or very stange.
+	// supports GET). If that doesn't hold, probably not HTTP or very strange.
 	if ( request_version == HTTP_VersionNumber{0, 9} )
 		{
 		bool maybe_get_method = (end_of_method - line) >= 3;

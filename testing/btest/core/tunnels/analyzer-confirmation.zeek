@@ -8,12 +8,12 @@
 @load base/protocols/conn
 @load base/protocols/http
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
+event analyzer_confirmation_info(tag: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
 	{
-	print "analyzer_confirmation", c$uid, c$id, aid;
+	print "analyzer_confirmation", info$c$uid, info$c$id, info$aid;
 	}
 
-event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string)
+event analyzer_violation_info(tag: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
-	print "analyzer_violation", c$uid, c$id, aid, reason;
+	print "analyzer_violation", info$c$uid, info$c$id, info$aid, info$reason;
 	}

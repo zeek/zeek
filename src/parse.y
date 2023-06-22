@@ -7,7 +7,7 @@
 
 %expect 211
 
-%token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY
+%token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY TOK_ASSERT
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_OPTION TOK_CONST
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_DEFAULT TOK_DELETE
@@ -78,6 +78,7 @@
 %type <captures> capture_list opt_captures when_captures
 %type <when_clause> when_head when_start when_clause
 %type <re_modes> TOK_PATTERN_END
+%type <expr> opt_assert_msg
 
 %{
 #include <cstdlib>
@@ -1802,6 +1803,11 @@ stmt:
 			    script_coverage_mgr.DecIgnoreDepth();
 			}
 
+	|	TOK_ASSERT expr opt_assert_msg ';'
+			{
+			$$ = new AssertStmt(IntrusivePtr{AdoptRef{}, $2}, {AdoptRef{}, $3});
+			}
+
 	|	TOK_PRINT expr_list ';' opt_no_test
 			{
 			set_location(@1, @3);
@@ -2226,6 +2232,13 @@ resolve_id:
 
 			delete [] $1;
 			}
+	;
+
+opt_assert_msg:
+		',' expr
+			{ $$ = $2; }
+	|
+			{ $$ = nullptr; }
 	;
 
 opt_no_test:

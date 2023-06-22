@@ -17,3 +17,7 @@ set(ZEEK_CMAKE_INSTALL_PREFIX "@CMAKE_INSTALL_PREFIX@"
 # the package directory.
 set(ZEEK_PLUGIN_SCRIPTS_PATH "${ZEEK_CMAKE_CONFIG_DIR}"
     CACHE PATH "Path to utility scripts for building Zeek plugins." FORCE)
+
+# The CMAKE_BUILD_TYPE type to use for external plugins if not overridden.
+set(ZEEK_CMAKE_BUILD_TYPE "@CMAKE_BUILD_TYPE@"
+    CACHE PATH "Internal Zeek variable: CMAKE_BUILD_TYPE of Zeek." FORCE)

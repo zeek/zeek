@@ -1,6 +1,6 @@
 #
 # @TEST-EXEC: mkdir logdir
-# @TEST-EXEC: zeek -b %INPUT LogAscii::logdir=logdir
+# @TEST-EXEC: zeek -b %INPUT Log::default_logdir=logdir
 # @TEST-EXEC: cat logdir/ssh.log | grep -v PREFIX.*20..- >ssh-filtered.log
 # @TEST-EXEC: btest-diff ssh-filtered.log
 

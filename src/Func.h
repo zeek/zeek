@@ -364,6 +364,25 @@ private:
 
 extern std::vector<CallInfo> call_stack;
 
+/**
+ * Create a single BacktraceElement record val.
+ *
+ * @param name the name of the function.
+ * @param args call argument vector created by MakeCallArgumentVector().
+ * @param loc optional location information of the caller.
+ *
+ * @return record value representing a BacktraceElement.
+ */
+zeek::RecordValPtr make_backtrace_element(std::string_view name, const VectorValPtr args,
+                                          const zeek::detail::Location* loc);
+
+/**
+ * Create a Zeek script Backtrace of the current script call_stack.
+ *
+ * @return VectorValPtr containing BacktraceElement entries.
+ */
+zeek::VectorValPtr get_current_script_backtrace();
+
 // This is set to true after the built-in functions have been initialized.
 extern bool did_builtin_init;
 extern std::vector<void (*)()> bif_initializers;

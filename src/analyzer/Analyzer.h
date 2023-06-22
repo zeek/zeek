@@ -466,7 +466,7 @@ public:
 	Analyzer* GetChildAnalyzer(const zeek::Tag& tag) const;
 
 	/**
-	 * Recursively searches all (direct or indirect) childs of the
+	 * Recursively searches all (direct or indirect) children of the
 	 * analyzer for an analyzer with a specific ID.
 	 *
 	 * @param id The analyzer id to search. This is the ID that GetID()
@@ -477,7 +477,7 @@ public:
 	virtual Analyzer* FindChild(ID id);
 
 	/**
-	 * Recursively searches all (direct or indirect) childs of the
+	 * Recursively searches all (direct or indirect) children of the
 	 * analyzer for an analyzer of a given type.
 	 *
 	 * @param tag The analyzer type to search.
@@ -488,7 +488,7 @@ public:
 	virtual Analyzer* FindChild(zeek::Tag tag);
 
 	/**
-	 * Recursively searches all (direct or indirect) childs of the
+	 * Recursively searches all (direct or indirect) children of the
 	 * analyzer for an analyzer of a given type.
 	 *
 	 * @param name The name of the analyzer type to search (e.g.,
@@ -737,16 +737,9 @@ private:
 	// Internal helper to raise analyzer_confirmation events
 	void EnqueueAnalyzerConfirmationInfo(const zeek::Tag& arg_tag);
 
-	// Remove in v6.1 - internal helper to raise analyzer_confirmation
-	void EnqueueAnalyzerConfirmation(const zeek::Tag& arg_tag);
-
 	// Internal helper to raise analyzer_violation_info
 	void EnqueueAnalyzerViolationInfo(const char* reason, const char* data, int len,
 	                                  const zeek::Tag& arg_tag);
-
-	// Remove in v6.1 - internal helper to raise analyzer_violation
-	void EnqueueAnalyzerViolation(const char* reason, const char* data, int len,
-	                              const zeek::Tag& arg_tag);
 
 	zeek::Tag tag;
 	ID id;

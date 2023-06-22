@@ -91,10 +91,10 @@ type V2ServerHello(rec: SSLRecord) = record {
 	#cert_type : uint8;
 	server_version : uint16;
 	cert_len : uint16;
-	ciph_len : uint16;
+	ciphers_len : uint16;
 	conn_id_len : uint16;
 	cert_data : bytestring &length = cert_len;
-	ciphers : uint24[ciph_len/3];
+	ciphers : uint24[ciphers_len/3];
 	conn_id_data : bytestring &length = conn_id_len;
 } &let {
 	session_id_hit : uint8 = rec.head3;

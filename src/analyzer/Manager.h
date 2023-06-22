@@ -297,7 +297,7 @@ public:
 	 * @param init True if the newly added analyzers should be
 	 * immediately initialized.
 	 *
-	 * @param root If given, the scheduled analyzers will become childs
+	 * @param root If given, the scheduled analyzers will become children
 	 * of this; if not given the connection's root analyzer is used
 	 * instead.
 	 *

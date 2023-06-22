@@ -422,7 +422,6 @@ set(MAIN_SRCS
     digest.h)
 
 set(THIRD_PARTY_SRCS
-    3rdparty/bro_inet_ntop.c # Remove in v6.1.
     3rdparty/zeek_inet_ntop.c
     3rdparty/bsd-getopt-long.c
     3rdparty/ConvertUTF.c
@@ -511,6 +510,8 @@ set(zeek_SRCS
 collect_headers(zeek_HEADERS ${zeek_SRCS})
 
 add_library(zeek_objs OBJECT ${zeek_SRCS})
+target_compile_features(zeek_objs PRIVATE ${ZEEK_CXX_STD})
+set_target_properties(zeek_objs PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
@@ -601,6 +602,8 @@ install(
     PATTERN "*.h"
     PATTERN "*.pac"
     PATTERN "3rdparty/*" EXCLUDE
+    # Headers used only during build
+    PATTERN "threading/formatters/detail" EXCLUDE
     # The "zeek -> ." symlink isn't needed in the install-tree
     REGEX "${escaped_include_path}$" EXCLUDE
     # FILES_MATCHING creates empty directories:
@@ -622,7 +625,6 @@ install(
 
 install(
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ConvertUTF.h
-          ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bro_inet_ntop.h # Remove in v6.1
           ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/zeek_inet_ntop.h
           ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/bsd-getopt-long.h
           ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/modp_numtoa.h

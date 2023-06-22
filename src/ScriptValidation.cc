@@ -23,12 +23,10 @@ public:
 
 		if ( stmt->Tag() == STMT_BREAK && ! BreakStmtIsValid() )
 			Report(stmt, "break statement used outside of for, while or "
-			             "switch statement and not within a hook. "
-			             "With v6.1 this will become an error.");
+			             "switch statement and not within a hook.");
 
 		if ( stmt->Tag() == STMT_NEXT && ! NextStmtIsValid() )
-			Report(stmt, "next statement used outside of for or while statement. "
-			             "With v6.1 this will become an error.");
+			Report(stmt, "next statement used outside of for or while statement.");
 
 		return TC_CONTINUE;
 		}
@@ -65,6 +63,8 @@ public:
 		return TC_CONTINUE;
 		}
 
+	void SetHookDepth(int hd) { hook_depth = hd; }
+
 	bool IsValid() const { return valid_script; }
 
 private:
@@ -86,11 +86,7 @@ private:
 	void Report(const Stmt* stmt, const char* msg)
 		{
 		if ( report )
-			{
-			zeek::reporter->PushLocation(stmt->GetLocationInfo());
-			zeek::reporter->Warning("%s", msg);
-			zeek::reporter->PopLocation();
-			}
+			Error(stmt, msg);
 
 		valid_script = false;
 		}
@@ -107,10 +103,15 @@ void script_validation()
 	traverse_all(&bn_cb);
 	}
 
-bool script_is_valid(const Stmt* stmt)
+bool script_is_valid(const Stmt* stmt, bool is_in_hook)
 	{
 	BreakNextScriptValidation bn_cb(false);
+
+	if ( is_in_hook )
+		bn_cb.SetHookDepth(1);
+
 	stmt->Traverse(&bn_cb);
+
 	return bn_cb.IsValid();
 	}
 

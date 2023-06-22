@@ -17,16 +17,16 @@ event ssh::banner(c: connection, is_orig: bool, version: string, software: strin
 	print "SSH banner", c$id, is_orig, version, software;
 	}
 
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count)
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
 	{
 	if ( atype == Analyzer::ANALYZER_SPICY_SSH )
 	    print "confirm", atype;
 	}
 
-event analyzer_violation(c: connection, atype: AllAnalyzers::Tag, aid: count, reason: string)
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
 	if ( atype == Analyzer::ANALYZER_SPICY_SSH )
-	    print "violation", atype, reason;
+	    print "violation", atype, info$reason;
 	}
 
 # @TEST-START-FILE extern.zeek

@@ -72,7 +72,7 @@ enum RR_Type
 	TYPE_NSEC3 = 50,
 	TYPE_NSEC3PARAM = 51, ///< Contains the NSEC3 parameters (RFC 5155)
 	TYPE_SVCB =
-	64, ///< SerViCe Binding (RFC draft:
+	64, ///< Service Binding (RFC draft:
 	    ///< https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-1.1)
 	TYPE_HTTPS = 65, ///< HTTPS record (HTTPS specific SVCB resource record)
 	// Obsoleted

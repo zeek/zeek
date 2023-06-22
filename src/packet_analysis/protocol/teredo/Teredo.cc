@@ -153,9 +153,6 @@ TeredoAnalyzer::TeredoAnalyzer() : zeek::packet_analysis::Analyzer("TEREDO")
 
 bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	if ( ! BifConst::Tunnel::enable_teredo )
-		return false;
-
 	// Teredo always comes from a UDP connection, which means that session should always
 	// be valid and always be a connection. Store this off for the span of the
 	// processing so that it can be used for other things. Return a weird if we didn't
@@ -267,9 +264,6 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 
 bool TeredoAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* packet)
 	{
-	if ( ! BifConst::Tunnel::enable_teredo )
-		return false;
-
 	// Do some fast checks that must be true before moving to more complicated ones.
 	// Mostly this avoids doing the regex below if we can help it.
 	if ( (len < 40) || ((len > 8) && ((data[0] >> 4) != 6) &&

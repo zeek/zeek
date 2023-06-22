@@ -17,4 +17,3 @@ const json_timestamps: JSON::TimestampFormat;
 const json_include_unset_fields: bool;
 const gzip_level: count;
 const gzip_file_extension: string;
-const logdir: string;

@@ -10,9 +10,6 @@ AYIYAAnalyzer::AYIYAAnalyzer() : zeek::packet_analysis::Analyzer("AYIYA") { }
 
 bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	{
-	if ( ! BifConst::Tunnel::enable_ayiya )
-		return false;
-
 	// AYIYA always comes from a TCP or UDP connection, which means that session
 	// should always be valid and always be a connection. Return a weird if we
 	// didn't have a session stored.
@@ -83,9 +80,6 @@ bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
 
 bool AYIYAAnalyzer::DetectProtocol(size_t len, const uint8_t* data, Packet* packet)
 	{
-	if ( ! BifConst::Tunnel::enable_ayiya )
-		return false;
-
 	// These magic numbers are based on the old DPD entry, which was based on... something?
 	return len >= 3 && data[1] == 0x52 && data[2] == 0x11;
 	}

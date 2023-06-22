@@ -72,7 +72,7 @@ private:
 	 * \brief Splits a string into its words which are separated by
 	 * the split character.
 	 *
-	 * \param input string which will be splitted
+	 * \param input string which will be split
 	 * \param split character which separates the words
 	 * \return vector containing words
 	 */

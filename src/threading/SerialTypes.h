@@ -138,7 +138,7 @@ struct Value
 
 	// A small note for handling subnet values: Subnet values emitted from
 	// the logging framework will always have a length that is based on the
-	// internal IPv6 representation (so you have to substract 96 from it to
+	// internal IPv6 representation (so you have to subtract 96 from it to
 	// get the correct value for IPv4).
 	// However, the Input framework expects the "normal" length for an IPv4
 	// address (so do not add 96 to it), because the underlying constructors

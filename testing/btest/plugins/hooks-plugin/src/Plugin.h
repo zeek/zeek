@@ -20,7 +20,6 @@ protected:
 	bool HookQueueEvent(zeek::Event* event) override;
 	void HookDrainEvents() override;
 	void HookUpdateNetworkTime(double network_time) override;
-	void HookBroObjDtor(void* obj) override;
 	void HookObjDtor(void* obj) override;
 	void HookLogInit(const std::string& writer, const std::string& instantiating_filter, bool local,
 	                 bool remote, const zeek::logging::WriterBackend::WriterInfo& info,

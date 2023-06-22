@@ -1279,21 +1279,6 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 		rval.addl_user_scripts.emplace_back(std::move(script));
 		}
 
-	auto scripts_val = node->GetField("scripts")->AsVectorVal();
-
-	for ( auto i = 0u; i < scripts_val->Size(); ++i )
-		{
-		auto script = scripts_val->StringValAt(i)->ToStdString();
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-		rval.scripts.emplace_back(std::move(script));
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-		}
-
 	auto env_table_val = node->GetField("env")->AsTableVal();
 	auto env_table = env_table_val->AsTable();
 
@@ -1380,18 +1365,6 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json)
 	for ( auto it = addl_user_scripts.Begin(); it != addl_user_scripts.End(); ++it )
 		rval.addl_user_scripts.emplace_back(it->GetString());
 
-	auto& scripts = j["scripts"];
-
-	for ( auto it = scripts.Begin(); it != scripts.End(); ++it )
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-		rval.scripts.emplace_back(it->GetString());
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-
 	auto& env = j["env"];
 
 	for ( auto it = env.MemberBegin(); it != env.MemberEnd(); ++it )
@@ -1472,21 +1445,6 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const
 		addl_user_scripts_val->Assign(addl_user_scripts_val->Size(), make_intrusive<StringVal>(s));
 
 	rval->AssignField("addl_user_scripts", std::move(addl_user_scripts_val));
-
-	auto st = rt->GetFieldType<VectorType>("scripts");
-	auto scripts_val = make_intrusive<VectorVal>(std::move(st));
-
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-	for ( const auto& s : scripts )
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-		scripts_val->Assign(scripts_val->Size(), make_intrusive<StringVal>(s));
-
-	rval->AssignField("scripts", std::move(scripts_val));
 
 	auto et = rt->GetFieldType<TableType>("env");
 	auto env_val = make_intrusive<TableVal>(std::move(et));
@@ -1695,14 +1653,6 @@ void SupervisedNode::Init(Options* options) const
 
 	stl.insert(stl.begin(), config.addl_base_scripts.begin(), config.addl_base_scripts.end());
 	stl.insert(stl.end(), config.addl_user_scripts.begin(), config.addl_user_scripts.end());
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-	stl.insert(stl.end(), config.scripts.begin(), config.scripts.end());
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 	}
 
 RecordValPtr Supervisor::Status(std::string_view node_name)

@@ -83,7 +83,7 @@ public:
 	 *
 	 * @param pkt The packet to record.
 	 *
-	 * @return True if succesful, false otherwise (in which case \a
+	 * @return True if successful, false otherwise (in which case \a
 	 * Error() must have been called.)
 	 */
 	virtual bool Dump(const Packet* pkt) = 0;

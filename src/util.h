@@ -102,8 +102,6 @@ inline constexpr std::string_view path_list_separator = ":";
 
 using zeek_int_t = int64_t;
 using zeek_uint_t = uint64_t;
-using bro_int_t [[deprecated("Remove in v6.1. Use zeek_int_t.")]] = zeek_int_t;
-using bro_uint_t [[deprecated("Remove in v6.1. Use zeek_uint_t.")]] = zeek_uint_t;
 
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);
@@ -363,7 +361,7 @@ extern const char* strpbrk_n(size_t len, const char* s, const char* charset);
 int strstr_n(const int big_len, const unsigned char* big, const int little_len,
              const unsigned char* little);
 
-// Replaces all occurences of *o* in *s* with *n*.
+// Replaces all occurrences of *o* in *s* with *n*.
 extern std::string strreplace(const std::string& s, const std::string& o, const std::string& n);
 
 // Remove all leading and trailing white space from string.

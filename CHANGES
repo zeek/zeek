@@ -1,3 +1,308 @@
+6.1.0-dev.115 | 2023-06-21 17:45:35 -0700
+
+  * formatters/JSON: Make JSON::NullDoubleWriter use zeek::json::detail version (Arne Welzel, Corelight)
+
+    Not using inheritance and preferring composition to avoid including the
+    detail/json.h header do an indirection via a unique_ptr and then just
+    re-use the Double() implementation.
+
+  * formatters/JSON: Remove surrounding_braces (Arne Welzel, Corelight)
+
+    This seems to have become unused 4 years ago with 9b76e8faf44e90c41f33f24b18900a50f0840c5a,
+    remove it.
+
+  * formatters/JSON: Prepare to remove rapidjson from installed Zeek headers (Arne Welzel, Corelight)
+
+    threading/formatters/JSON.h currently includes rapidjson headers for declaring
+    the NullDoubleWriter. This appears mostly an internal detail, but
+    results in the situation that 1) we need to ship rapidjson headers with
+    the Zeek install tree and 2) taking care that external plugins are able
+    to find these headers should they include formatters/JSON.h.
+
+    There are currently no other Zeek headers that include rapidjson, so this
+    seems very unfortunate and self-inflicted given it's not actually required.
+
+    Attempt to hide this implementation detail with the goal to remove the
+    rapidjson includes with v7.1 and then also stop bundling and exposing
+    the include path to external plugins.
+
+    The NullDoubleWriter implementation moves into a new formatters/detail/json.h
+    header which is not installed.
+
+    Closes #3128
+
+6.1.0-dev.110 | 2023-06-21 15:36:32 -0700
+
+  * Update zeekjs submodule (Tim Wojtulewicz, Corelight)
+
+  * Update broker submodule (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.108 | 2023-06-21 15:33:50 -0700
+
+  * telemetry: Disable metrics centralization by default (Arne Welzel, Corelight)
+
+    Move the telemetry/cluster.zeek file over into policy/frameworks/telemetry/prometheus.zeek.
+
+    Mention it in local.zeek.
+
+    Relates to zeek/broker#366.
+
+6.1.0-dev.106 | 2023-06-21 15:33:24 -0700
+
+  * GSSAPI: basic support for MIC/WRAP tokens (Johanna Amann, Corelight)
+
+    When MIC/WRAP tokens are encountered, we now skip the message, instead
+    of raising a parse error. The data in the messages is encrypted - so it
+    does not seem work to raise an event at the moment.
+
+6.1.0-dev.104 | 2023-06-20 10:15:24 -0700
+
+  * CI: Force rebuild of tumbleweed VM to pick up newer version of python (Tim Wojtulewicz, Corelight)
+
+    The version of python included in the existing VM doesn't have the sqlite
+    module included for some reason. Forcing the VM to rebuild installs python311
+    which does include it, fixing a build failure.
+
+  * Stmt/Assert: Use std::move() for backtrace element (Arne Welzel, Corelight)
+
+6.1.0-dev.100 | 2023-06-15 21:13:46 -0700
+
+  * Update external testing hashes for 6.1 deprecation changes (Tim Wojtulewicz, Corelight)
+
+  * Remove leftover baseline files from 6.1 deprecation removal (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.96 | 2023-06-15 16:27:36 -0700
+
+  * Update dce-rpc constants (Tim Wojtulewicz, Corelight)
+
+  * Update external testing repo hashes to current master commits (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.93 | 2023-06-15 16:25:50 -0700
+
+  * -O gen-C++ refinements for BiF failures, negative vector indices, boolean vector operations (Vern Paxson, Corelight)
+
+6.1.0-dev.91 | 2023-06-15 14:21:03 -0700
+
+  * ZAM bug fix for incorrect management of global variables (Vern Paxson, Corelight)
+
+  * ZAM bug fix (simplification) for nested inline functions that don't do anything (Vern Paxson, Corelight)
+
+  * ZAM support for negative vector indices (Vern Paxson, Corelight)
+
+  * ZAM ignores new "assert" statement (Vern Paxson, Corelight)
+
+  * fixes for doing "script validation" to check for ZAM compile-ability (Vern Paxson, Corelight)
+
+  * tweak for Broker BTest that needs a delay for ZAM (Vern Paxson, Corelight)
+
+  * BTest to check for invalid negative vector indices (Vern Paxson, Corelight)
+
+6.1.0-dev.80 | 2023-06-15 12:15:29 -0700
+
+  * Force -std=c++17 mode for plugin targets, remove use of RequireCXX17.cmake (Tim Wojtulewicz, Corelight)
+
+  * Add Spicy updates to NEWS for 6.0. (Robin Sommer, Corelight)
+
+6.1.0-dev.76 | 2023-06-15 18:36:25 +0200
+
+  * plugin/Manager: Warn when plugin with the same name is found (Arne Welzel, Corelight)
+
+    This was brought up on Slack as a potential source of confusion during
+    development as it's not visible when plugin directories are ignored outside
+    of looking into the plugin debug stream. I'd actually prefer to just
+    FatalError() this, but a warning seems reasonably visible for interactive
+    usage.
+
+  * Options: Do not output full usage on --test error (Arne Welzel, Corelight)
+
+    ...mostly because the usage output is very long and the actual useful
+    error message scrolls off the screen.
+
+  * GH-3090: CMakeLists: Propagate DOCTEST defines to external plugins (Arne Welzel, Corelight)
+
+    If Zeek has not been built with doctest enabled then it's not easy
+    to run a plugin's tests (and if they really wanted to they could
+    again undef the DOCTEST_CONFIG_DISABLE and provide their own doctest
+    main() implementation.
+
+  * GH-3090: CMakeLists: Add rapidjson/include to zeek_dynamic_plugin_base (Arne Welzel, Corelight)
+
+    threading/formatters/JSON.h has a rapidjson include. Extend the
+    include directories of external plugins so they are setup to find
+    these in Zeek's install tree.
+
+  * GH-3090: ZeekPluginBootstrap: Encode Zeek's CMAKE_BUILD_TYPE (Arne Welzel, Corelight)
+
+    ...and bump cmake to have plugin's make use of it.
+
+6.1.0-dev.66 | 2023-06-14 10:09:46 -0700
+
+  * Change table initialization deprecation to error (Tim Wojtulewicz, Corelight)
+
+  * Remove 5.2 deprecation we missed (Tim Wojtulewicz, Corelight)
+
+  * Remove Supervisor::NodeConfig (6.1 deprecation) (Tim Wojtulewicz, Corelight)
+
+  * Remove LogAscii::logdir (6.1 deprecation) (Tim Wojtulewicz, Corelight)
+
+  * Make break/next/continue outside loops an error (6.1 deprecation) (Tim Wojtulewicz, Corelight)
+
+  * Remove analyzer_confirmation/analyzer_violation events (6.1 deprecation) (Tim Wojtulewicz, Corelight)
+
+  * Remove full scripts marked as 6.1 deprecations (Tim Wojtulewicz, Corelight)
+
+  * Remove script functions marked as unused (6.1 deprecations) (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecations tagged for v6.1 (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.54 | 2023-06-14 18:55:27 +0200
+
+  * docker: Add libnode to enable JavaScript support (Arne Welzel, Corelight)
+
+  * docker: Bump images to Debian 12 (Arne Welzel, Corelight)
+
+6.1.0-dev.50 | 2023-06-14 09:25:58 -0700
+
+  * Fix usage of realpath on macOS, instead preferring grealpath (Tim Wojtulewicz, Corelight)
+
+  * Don't generate minimal tarball anymore (Tim Wojtulewicz, Corelight)
+
+  * NEWS: Fix enumeration in Breaking Changes (Arne Welzel, Corelight)
+
+6.1.0-dev.46 | 2023-06-14 12:59:41 +0200
+
+  * all: Fix typos identified by typos pre-commit hook (Arne Welzel, Corelight)
+
+  * NEWS typo fixes (Arne Welzel, Corelight)
+
+  * Start with a typos pre-commit file (Arne Welzel, Corelight)
+
+    Inspired by Spicy and me creating typos everywhere. Some of the
+    suggestions are also very reasonable.
+
+6.1.0-dev.42 | 2023-06-14 12:51:08 +0200
+
+  * NEWS: Small section about assert statement (Arne Welzel, Corelight)
+
+  * Stmt: Rework assertion hooks break semantics (Arne Welzel, Corelight)
+
+    Using break in either of the hooks allows to suppress the default reporter
+    error message rather than suppressing solely based on the existence of an
+    assertion_failure() handler.
+
+  * Stmt: Introduce assert statement and related hooks (Arne Welzel, Corelight)
+
+    including two hooks called assertion_failure() and assertion_result() for
+    customization and tracking of assertion results.
+
+  * ZeekArgs: Helper for empty arguments (Arne Welzel, Corelight)
+
+  * Reporter: Allow AssertStmt to throw InterpreterException (Arne Welzel, Corelight)
+
+  * Lift backtrace() code into Func.{h,cc} (Arne Welzel, Corelight)
+
+    This is to be re-used by the assertion facility.
+
+6.1.0-dev.32 | 2023-06-13 11:29:36 -0700
+
+  * Clarify subitem relationship in CMake configure summary. (Benjamin Bannier, Corelight)
+
+6.1.0-dev.30 | 2023-06-13 11:28:26 -0700
+
+  * tests: Do not use archiver_rotation_format_func as postprocessor (Arne Welzel, Corelight)
+
+    This test triggered ubsan by putting a function with the wrong type
+    as a post-processor into the .shadow file. Don't do that.
+
+    Likely Zeek should provide a better error message, but hand-crafting
+    .shadow files isn't what is normally done and this is to fix the
+    master build for now.
+
+6.1.0-dev.28 | 2023-06-13 17:33:31 +0200
+
+  * GH-3112: cluster/logger: Fix leftover-log-rotation in multi-logger setups (Arne Welzel, Corelight)
+
+    Populating log_metadata during zeek_init() is too late for the
+    leftover-log-rotation functionality, so do it at script parse time.
+
+    Also, prepend archiver_ to the log_metadata table and encoding function
+    due to being in the global namespace and to align with the
+    archiver_rotation_format_func. This hasn't been in a released
+    version yet, so fine to rename still.
+
+    Closes #3112
+
+  * cluster/logger: Fix global var reference (Arne Welzel, Corelight)
+
+6.1.0-dev.25 | 2023-06-12 15:27:20 -0700
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.23 | 2023-06-12 11:06:34 -0700
+
+  * Bump `auxil/spicy`. (Benjamin Bannier, Corelight)
+
+6.1.0-dev.19 | 2023-06-12 11:04:42 -0700
+
+  * test-all-policy: Do not load nodes-experimental/manager.zeek (Arne Welzel, Corelight)
+
+    Turns out loading this script in non-cluster mode uses Cluster::log()
+    and creates cluster.log in the external baselines saying "cluster
+    started". Do not load it into test-all-policy.zeek and instead rely
+    on the new test-all-policy-cluster.test to load it transitively
+    when running as manager for basic checking.
+
+  * cluster/main: Remove extra @if ( Cluster::is_enabled() ) (Arne Welzel, Corelight)
+
+    These have been discussed in the context of "@if &analyze" [1] and
+    am much in favor for not disabling/removing ~100 lines (more than
+    fits on a single terminal) out from the middle of a file. There's no
+    performance impact for having these handlers enabled unconditionally.
+    Also, any future work on "@if &analyze" will look at them again which
+    we could also skip.
+
+    This also reverts back to the behavior where the Cluster::LOG stream
+    is created even in non cluster setups like in previous Zeek versions.
+    As long as no one writes to it there's essentially no difference. If
+    someone does write to Cluster::LOG, I'd argue not black holing these
+    messages is better. Schema generators using Log::active_streams will
+    continue to discover Cluster::LOG even if they run in non-cluster
+    mode.
+
+    https://github.com/zeek/zeek/pull/3062#discussion_r1200498905
+
+6.1.0-dev.16 | 2023-06-12 10:56:55 -0700
+
+  * socks/dpd: Add newer auth methods (Arne Welzel, Corelight)
+
+    The IANA has allocated a few more authentication methods, minimally
+    extend the signature to catch those.
+
+  * socks/dpd: Fix socks5_server side signature (Arne Welzel, Corelight)
+
+    The server replies with \x05 and identifier for the chosen method.
+    Not quite sure what the previous signature meant capture.
+
+    See also: https://datatracker.ietf.org/doc/html/rfc1928#section-3
+
+    Closes #3099.
+
+6.1.0-dev.13 | 2023-06-09 11:03:54 +0200
+
+  * ci/windows: choco --localonly is gone (Arne Welzel, Corelight)
+
+    choco 2.0 is now used after some caching changes on the Cirrus side [1]
+    and the --localonly flag is gone from choco [2], remove its usage.
+
+    [1] https://github.com/cirruslabs/cirrus-ci-docs/issues/1174#issuecomment-1580928673
+    [2] https://docs.chocolatey.org/en-us/guides/upgrading-to-chocolatey-v2-v6#the-list-command-now-lists-local-packages-only-and-the-local-only-and-lo-options-have-been-removed
+
+6.1.0-dev.8 | 2023-06-05 14:16:53 +0200
+
+  * Update zeekctl for pysubnetree/patricia upgrade (Tim Wojtulewicz, Corelight)
+
+  * Update link to slack in README.md (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.4 | 2023-05-31 13:48:49 -0700
 
   * Update bifcl, binpac, and broker repos for cmake changes (Tim Wojtulewicz)

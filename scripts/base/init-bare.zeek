@@ -623,10 +623,6 @@ type fa_metadata: record {
 	inferred: bool &default=T;
 };
 
-## Same as :zeek:see:`Analyzer::disabling_analyzer`, but deprecated due
-## to living in the global namespace.
-type disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count) &redef &deprecated="Remove in v6.1. Use Analyzer::disabling_analyzer() instead.";
-
 module Analyzer;
 export {
 	## A hook taking a connection, analyzer tag and analyzer id that can be
@@ -942,6 +938,45 @@ type BacktraceElement: record {
 ## .. zeek:see:: backtrace print_backtrace
 type Backtrace: vector of BacktraceElement;
 
+## A hook that is invoked when an assert statement fails.
+##
+## By default, a reporter error message is logged describing the failing
+## assert similarly to how scripting errors are reported after invoking
+## this hook. Using the :zeek:see:`break` statement in an assertion_failure
+## hook handler allows to suppress this message.
+##
+## cond: The string representation of the condition.
+##
+## msg: Evaluated message as string given to the assert statement.
+##
+## bt: Backtrace of the assertion error. The top element will contain
+##     the location of the assert statement that failed.
+##
+## .. zeek:see:: assertion_result
+type assertion_failure: hook(cond: string, msg: string, bt: Backtrace);
+
+## A hook that is invoked with the result of every assert statement.
+##
+## This is a potentially expensive hook meant to be used by testing
+## frameworks to summarize assert results. In a production setup,
+## this hook is likely detrimental to performance.
+##
+## Using the :zeek:see:`break` statement within an assertion_failure hook
+## handler allows to suppress the reporter error message generated for
+## failing assert statements.
+##
+## result: The result of evaluating **cond**.
+##
+## cond: The string representation of the condition.
+##
+## msg: Evaluated message as string given to the assert statement.
+##
+## bt: Backtrace of the assertion error. The top element will contain
+##     the location of the assert statement that failed.
+##
+## .. zeek:see:: assertion_failure
+type assertion_result: hook(result: bool, cond: string, msg: string, bt: Backtrace);
+
 # todo:: Do we still need these here? Can they move into the packet filter
 # framework?
 #
@@ -1097,7 +1132,7 @@ type entropy_test_result: record {
 ## Return type for from_json BIF.
 ##
 ## .. zeek:see:: from_json
-type from_json_result: record { 
+type from_json_result: record {
 	v: any &optional;	##< Parsed value.
 	valid: bool;	##< True if parsing was successful.
 };
@@ -4741,7 +4776,6 @@ export {
 	type SNMP::BulkPDU: record {
 		request_id:      int;
 		non_repeaters:   count;
-		max_repititions: count &deprecated="Remove in v6.1. Use max_repetitions instead";
 		max_repetitions: count;
 		bindings:        SNMP::Bindings;
 	};
@@ -5162,31 +5196,16 @@ export {
 	## Setting this to zero will disable all types of tunnel decapsulation.
 	const max_depth: count = 2 &redef;
 
-	## Toggle whether to do IPv{4,6}-in-IPv{4,6} decapsulation.
-	const enable_ip = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
-	## Toggle whether to do IPv{4,6}-in-AYIYA decapsulation.
-	const enable_ayiya = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
-	## Toggle whether to do IPv6-in-Teredo decapsulation.
-	const enable_teredo = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
-	## Toggle whether to do GTPv1 decapsulation.
-	const enable_gtpv1 = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
-	## Toggle whether to do GRE decapsulation.
-	const enable_gre = T &redef &deprecated="Remove in v6.1. Tunnel analyzers can be toggled with enable_analyzer()/disable_analyzer() or disabled through Analyzer::disabled_analyzers";
-
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing
-	## a :zeek:see:`analyzer_confirmation`.  If it's false, the first
+	## a :zeek:see:`analyzer_confirmation_info`.  If it's false, the first
 	## occurrence of a packet with valid Teredo encapsulation causes a
 	## confirmation.
 	const delay_teredo_confirmation = T &redef;
 
 	## With this set, the GTP analyzer waits until the most-recent upflow
 	## and downflow packets are a valid GTPv1 encapsulation before
-	## issuing :zeek:see:`analyzer_confirmation`.  If it's false, the
+	## issuing :zeek:see:`analyzer_confirmation_info`.  If it's false, the
 	## first occurrence of a packet with valid GTPv1 encapsulation causes
 	## confirmation.  Since the same inner connection can be carried
 	## differing outer upflow/downflow connections, setting to false

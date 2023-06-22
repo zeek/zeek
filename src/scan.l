@@ -321,6 +321,7 @@ add	return TOK_ADD;
 addr	return TOK_ADDR;
 any	return TOK_ANY;
 as	return TOK_AS;
+assert	return TOK_ASSERT;
 bool	return TOK_BOOL;
 break	return TOK_BREAK;
 case	return TOK_CASE;

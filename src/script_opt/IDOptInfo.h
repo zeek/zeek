@@ -59,10 +59,10 @@ public:
 	// (= more inner) block level.
 	int BlockLevel() const { return block_level; }
 
-	// True if in the region the identifer could be defined.
+	// True if in the region the identifier could be defined.
 	bool MaybeDefined() const { return maybe_defined; }
 
-	// Returns (or sets) the statement after which the identifer is
+	// Returns (or sets) the statement after which the identifier is
 	// (definitely) defined, or NO_DEF if it doesn't have a definite
 	// point of definition.
 	int DefinedAfter() const { return defined; }
@@ -198,7 +198,7 @@ public:
 	// the block.
 	void ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow);
 
-	// All of these regard the identifer's state just *prior* to
+	// All of these regard the identifier's state just *prior* to
 	// executing the given statement.
 	bool IsPossiblyDefinedBefore(const Stmt* s);
 	bool IsDefinedBefore(const Stmt* s);

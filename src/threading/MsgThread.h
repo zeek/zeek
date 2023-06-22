@@ -232,7 +232,7 @@ protected:
 	 *
 	 * This is method is called regularly by the threading::Manager.
 	 *
-	 * @return The message, wth ownership passed to caller. Returns null
+	 * @return The message, with ownership passed to caller. Returns null
 	 * if the queue is empty.
 	 */
 	BasicOutputMessage* RetrieveOut();
@@ -298,7 +298,7 @@ private:
 	 *
 	 * Must only be called by the child thread.
 	 *
-	 * @return The message, wth ownership passed to caller. Returns null
+	 * @return The message, with ownership passed to caller. Returns null
 	 * if the queue is empty.
 	 */
 	BasicInputMessage* RetrieveIn();

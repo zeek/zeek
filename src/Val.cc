@@ -39,7 +39,7 @@
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/broker/Store.h"
-#include "zeek/threading/formatters/JSON.h"
+#include "zeek/threading/formatters/detail/json.h"
 
 using namespace std;
 
@@ -404,8 +404,8 @@ TableValPtr Val::GetRecordFields()
 
 // This is a static method in this file to avoid including rapidjson's headers in Val.h because
 // they're huge.
-static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val* val,
-                      bool only_loggable = false, RE_Matcher* re = nullptr, const string& key = "")
+static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool only_loggable = false,
+                      RE_Matcher* re = nullptr, const string& key = "")
 	{
 	if ( ! key.empty() )
 		writer.Key(key);
@@ -509,7 +509,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 				else
 					{
 					rapidjson::StringBuffer buffer;
-					threading::formatter::JSON::NullDoubleWriter key_writer(buffer);
+					json::detail::NullDoubleWriter key_writer(buffer);
 					BuildJSON(key_writer, entry_key, only_loggable, re);
 					string key_str = buffer.GetString();
 
@@ -612,7 +612,7 @@ static void BuildJSON(threading::formatter::JSON::NullDoubleWriter& writer, Val*
 StringValPtr Val::ToJSON(bool only_loggable, RE_Matcher* re)
 	{
 	rapidjson::StringBuffer buffer;
-	threading::formatter::JSON::NullDoubleWriter writer(buffer);
+	json::detail::NullDoubleWriter writer(buffer);
 
 	BuildJSON(writer, this, only_loggable, re, "");
 
@@ -1375,7 +1375,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 			}
 
 		default:
-			return util::fmt("type '%s' unsupport", type_name(t->Tag()));
+			return util::fmt("type '%s' unsupported", type_name(t->Tag()));
 		}
 	}
 
@@ -2425,7 +2425,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
 					{
 					if ( attrs->Find(detail::ATTR_EXPIRE_CREATE) )
 						{
-						// for create expiry, we have to substract the already elapsed time from
+						// for create expiry, we have to subtract the already elapsed time from
 						// the expiry.
 						auto e = expire_time -
 						         (run_state::network_time - new_entry_val->ExpireAccessTime());
@@ -2720,7 +2720,7 @@ void TableVal::Describe(ODesc* d) const
 
 void TableVal::InitDefaultFunc(detail::Frame* f)
 	{
-	// Value aready initialized.
+	// Value already initialized.
 	if ( def_val )
 		return;
 

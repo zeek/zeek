@@ -130,9 +130,9 @@ bool File::UpdateConnectionFields(Connection* conn, bool is_orig)
 
 	if ( ! conns )
 		{
-		auto ect = empty_connection_table();
-		conns = ect;
-		val->Assign(conns_idx, std::move(ect));
+		auto empty_conn_table = empty_connection_table();
+		conns = empty_conn_table;
+		val->Assign(conns_idx, std::move(empty_conn_table));
 		}
 
 	auto idx = get_conn_id_val(conn);

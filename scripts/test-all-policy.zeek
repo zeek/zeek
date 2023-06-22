@@ -12,7 +12,10 @@
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
 @load frameworks/cluster/experimental.zeek
-@load frameworks/cluster/nodes-experimental/manager.zeek
+# Loaded via the above through test-all-policy-cluster.test
+# when running as a manager, creates cluster.log entries
+# even in non-cluster mode if loaded like the below.
+# @load frameworks/cluster/nodes-experimental/manager.zeek
 @load frameworks/management/agent/__load__.zeek
 @load frameworks/management/agent/api.zeek
 @load frameworks/management/agent/boot.zeek
@@ -59,7 +62,6 @@
 @load frameworks/intel/seen/where-locations.zeek
 @load frameworks/intel/seen/x509.zeek
 @load frameworks/netcontrol/catch-and-release.zeek
-@load frameworks/files/deprecated-txhosts-rxhosts-connuids.zeek
 @load frameworks/files/detect-MHR.zeek
 @load frameworks/files/entropy-test-all-files.zeek
 #@load frameworks/files/extract-all-files.zeek
@@ -75,6 +77,7 @@
 # @load frameworks/spicy/record-spicy-batch.zeek
 # @load frameworks/spicy/resource-usage.zeek
 @load frameworks/software/windows-version-detection.zeek
+@load frameworks/telemetry/prometheus.zeek
 @load frameworks/telemetry/log.zeek
 @load integration/collective-intel/__load__.zeek
 @load integration/collective-intel/main.zeek
@@ -85,7 +88,6 @@
 @load misc/load-balancing.zeek
 @load misc/loaded-scripts.zeek
 @load misc/profiling.zeek
-@load misc/scan.zeek
 @load misc/stats.zeek
 @load misc/weird-stats.zeek
 @load misc/trim-trace-file.zeek
@@ -116,7 +118,6 @@
 @load protocols/krb/ticket-logging.zeek
 @load protocols/modbus/known-masters-slaves.zeek
 @load protocols/modbus/track-memmap.zeek
-#@load protocols/mqtt/__load__.zeek
 @load protocols/mysql/software.zeek
 @load protocols/rdp/indicate_ssl.zeek
 @load protocols/smb/log-cmds.zeek

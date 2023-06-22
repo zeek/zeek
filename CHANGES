@@ -1,3 +1,7 @@
+6.0.0-rc3 | 2023-06-22 10:18:33 -0700
+
+  * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz)
+
 6.0.0-rc2.21 | 2023-06-21 15:44:19 -0700
 
   * Update zeekjs to version 0.9.3 (Tim Wojtulewicz, Corelight)

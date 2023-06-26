@@ -464,7 +464,8 @@ set(zeek_script_install_path "${ZEEK_SCRIPT_INSTALL_PATH}")
 if (MSVC)
     # This has to happen before we modify the paths below so that the pure Windows
     # paths are stored in the output file.
-    configure_file(zeek-path-dev.bat.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
+    configure_file(cmake_templates/zeek-path-dev.bat.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
 
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir
@@ -504,7 +505,7 @@ install(DIRECTORY DESTINATION ${ZEEK_STATE_DIR})
 install(DIRECTORY DESTINATION ${ZEEK_SPOOL_DIR})
 install(DIRECTORY DESTINATION ${ZEEK_LOG_DIR})
 
-configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
+configure_file(cmake_templates/zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 
 file(
     WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
@@ -1154,8 +1155,8 @@ endif ()
 set(ZEEK_CONFIG_BTEST_TOOLS_DIR ${ZEEK_ROOT_DIR}/share/btest)
 install(DIRECTORY DESTINATION ${ZEEK_CONFIG_BTEST_TOOLS_DIR})
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-config
-               @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zeek-config.in
+               ${CMAKE_CURRENT_BINARY_DIR}/zeek-config @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
 
 install(
@@ -1179,8 +1180,8 @@ if (INSTALL_ZKG)
     set(ZEEK_ZKG_CONFIG_DIR "${ZEEK_ETC_INSTALL_DIR}/zkg")
     set(ZEEK_ZKG_STATE_DIR "${ZEEK_STATE_DIR}/zkg")
 
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zkg-config.in ${CMAKE_CURRENT_BINARY_DIR}/zkg-config
-                   @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zkg-config.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/zkg-config @ONLY)
 
     install(DIRECTORY DESTINATION var/lib/zkg)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config DESTINATION ${ZEEK_ZKG_CONFIG_DIR}
@@ -1270,19 +1271,20 @@ checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 # Generate Spicy helper scripts referenced in e.g., `zeek-path-dev.*`. These
 # set Spicy-side environment variables to run it out of the build directory.
-configure_file(${CMAKE_SOURCE_DIR}/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/hilti-cxx-include-dirs.in
+configure_file(${CMAKE_SOURCE_DIR}/cmake_templates/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path
+               @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/cmake_templates/hilti-cxx-include-dirs.in
                ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-version.h.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zeek-version.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h DESTINATION include/zeek)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config-paths.h.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zeek-config-paths.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config-paths.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config-paths.h DESTINATION include/zeek)
 

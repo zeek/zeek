@@ -13,7 +13,7 @@ redef record Info += {
 
 # Add the link-layer addresses to the SSL::Info structure.
 event ssl_extension(c: connection, is_client: bool, code: count, val: string)
-{
+	{
 	if ( c$orig?$l2_addr )
 		c$ssl$orig_l2_addr = c$orig$l2_addr;
 

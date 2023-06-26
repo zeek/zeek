@@ -38,7 +38,8 @@ bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
 		len -= 4;
 		data += 4;
 
-		if ( len < protocol )
+		// Need at least two bytes to check the packet types below.
+		if ( len < 2 )
 			{
 			Weird("truncated_vlan_frame", packet);
 			return false;

@@ -11,11 +11,9 @@ redef record Info += {
 	resp_l2_addr: string	&log &optional;
 };
 
-# Add the link-layer addresses to the SSL::Info structure after the connection
-# has been removed. This ensures it's only done once, and is done before the
-# connection information is written to the log.
-event connection_state_remove(c: connection)
-	{
+# Add the link-layer addresses to the SSL::Info structure.
+event ssl_extension(c: connection, is_client: bool, code: count, val: string)
+{
 	if ( c$orig?$l2_addr )
 		c$ssl$orig_l2_addr = c$orig$l2_addr;
 

@@ -11,11 +11,9 @@ redef record Info += {
 	resp_l2_addr: string	&log &optional;
 };
 
-# Add the link-layer addresses to the HTTP::Info structure after the connection
-# has been removed. This ensures it's only done once, and is done before the
-# connection information is written to the log.
-event connection_state_remove(c: connection)
-	{
+# Add the link-layer addresses to the HTTP::Info structure.
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
+{
 	if ( c$orig?$l2_addr )
 		c$http$orig_l2_addr = c$orig$l2_addr;
 

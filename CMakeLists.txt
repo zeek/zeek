@@ -310,6 +310,7 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/auxil/broker/include
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/rapidjson/include
+    ${PROJECT_SOURCE_DIR}/auxil/fmt/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
@@ -1033,6 +1034,7 @@ include_directories(BEFORE ${broker_includes})
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/highwayhash)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/paraglob/include)
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include)
+include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/auxil/fmt/include)
 
 set(zeekdeps
     ${zeekdeps}

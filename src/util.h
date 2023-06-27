@@ -100,6 +100,9 @@ namespace filesystem = ghc::filesystem;
 inline constexpr std::string_view path_list_separator = ":";
 #endif
 
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
+
 using zeek_int_t = int64_t;
 using zeek_uint_t = uint64_t;
 
@@ -381,7 +384,14 @@ extern const char* fmt_bytes(const char* data, int len);
 // Note: returns a pointer into a shared buffer.
 extern const char* vfmt(const char* format, va_list args);
 // Note: returns a pointer into a shared buffer.
-extern const char* fmt(const char* format, ...) __attribute__((format(printf, 1, 2)));
+template <typename... Args> const char* fmt(const char* format, Args&&... args)
+	{
+	static ::fmt::memory_buffer out;
+	out.clear();
+	::fmt::format_to(std::back_inserter(out), format, args...);
+	out.push_back('\0');
+	return out.data();
+	}
 
 // Returns true if path exists and is a directory.
 bool is_dir(const std::string& path);

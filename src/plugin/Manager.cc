@@ -94,7 +94,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 	// Check if it's a plugin directory.
 
-	const std::string magic = dir + "/__bro_plugin__";
+	const std::string magic = dir + "/__zeek_plugin__";
 
 	if ( util::is_file(magic) )
 		{

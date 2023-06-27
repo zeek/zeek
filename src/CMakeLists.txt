@@ -520,6 +520,7 @@ zeek_target_link_libraries(zeek_objs)
 
 if (HAVE_SPICY)
     target_link_libraries(zeek_objs PRIVATE hilti spicy)
+    prefer_configured_spicy_include_dirs(zeek_objs)
 endif ()
 
 if (TARGET zeek_exe)

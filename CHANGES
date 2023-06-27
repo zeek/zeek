@@ -1,3 +1,7 @@
+6.1.0-dev.118 | 2023-06-27 18:17:40 +0200
+
+  * fix http AUTHORIZATION base64 decode failed (progmboy)
+
 6.1.0-dev.115 | 2023-06-21 17:45:35 -0700
 
   * formatters/JSON: Make JSON::NullDoubleWriter use zeek::json::detail version (Arne Welzel, Corelight)

@@ -90,12 +90,12 @@ void Specific_RE_Matcher::AddPat(const char* new_pat)
 
 void Specific_RE_Matcher::AddAnywherePat(const char* new_pat)
 	{
-	AddPat(new_pat, "^?(.|\\n)*(%s)", "(%s)|(^?(.|\\n)*(%s))");
+	AddPat(new_pat, "^?(.|\\n)*({:s})", "({:s})|(^?(.|\\n)*({:s}))");
 	}
 
 void Specific_RE_Matcher::AddExactPat(const char* new_pat)
 	{
-	AddPat(new_pat, "^?(%s)$?", "(%s)|(^?(%s)$?)");
+	AddPat(new_pat, "^?({:s})$?", "({:s})|(^?({:s})$?)");
 	}
 
 void Specific_RE_Matcher::AddPat(const char* new_pat, const char* orig_fmt, const char* app_fmt)
@@ -108,14 +108,14 @@ void Specific_RE_Matcher::AddPat(const char* new_pat, const char* orig_fmt, cons
 
 void Specific_RE_Matcher::MakeCaseInsensitive()
 	{
-	const char fmt[] = "(?i:%s)";
-	pattern_text = util::fmt(fmt, pattern_text.c_str());
+	const char fmt[] = "(?i:{:s})";
+	pattern_text = util::fmt(fmt, pattern_text);
 	}
 
 void Specific_RE_Matcher::MakeSingleLine()
 	{
-	const char fmt[] = "(?s:%s)";
-	pattern_text = util::fmt(fmt, pattern_text.c_str());
+	const char fmt[] = "(?s:{:s})";
+	pattern_text = util::fmt(fmt, pattern_text);
 	}
 
 bool Specific_RE_Matcher::Compile(bool lazy)
@@ -131,7 +131,7 @@ bool Specific_RE_Matcher::Compile(bool lazy)
 
 	if ( parse_status )
 		{
-		reporter->Error("error compiling pattern /%s/", pattern_text.c_str());
+		reporter->Error("error compiling pattern /{:s}/", pattern_text.c_str());
 		Unref(nfa);
 		nfa = nullptr;
 		return false;
@@ -416,7 +416,7 @@ static RE_Matcher* matcher_merge(const RE_Matcher* re1, const RE_Matcher* re2, c
 
 	size_t n = strlen(text1) + strlen(text2) + strlen(merge_op) + 32 /* slop */;
 
-	std::string merge_text = util::fmt("(%s)%s(%s)", text1, merge_op, text2);
+	std::string merge_text = util::fmt("({:s}){:s}({:s})", text1, merge_op, text2);
 	RE_Matcher* merge = new RE_Matcher(merge_text.c_str());
 
 	merge->Compile();

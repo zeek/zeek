@@ -364,7 +364,7 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
 				analyzer->EnqueueConnEvent(dns_unknown_reply, analyzer->ConnVal(),
 				                           msg->BuildHdrVal(), msg->BuildAnswerVal());
 
-			analyzer->Weird("DNS_RR_unknown_type", util::fmt("%d", msg->atype));
+			analyzer->Weird("DNS_RR_unknown_type", util::fmt("%d", static_cast<int>(msg->atype)));
 			data += rdlength;
 			len -= rdlength;
 			status = true;

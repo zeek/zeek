@@ -310,13 +310,13 @@ void ComponentManager<C>::RegisterComponent(C* component, const std::string& pre
 	components_by_val.insert(std::make_pair(component->Tag().AsVal()->InternalInt(), component));
 
 	// Install an identifier for enum value
-	std::string id = util::fmt("%s%s", prefix.c_str(), cname.c_str());
+	std::string id = util::fmt("{:s}{:s}", prefix, cname);
 	tag_enum_type->AddName(module, id.c_str(), component->Tag().AsVal()->InternalInt(), true,
 	                       nullptr);
 
 	if ( parent_tag_enum_type )
 		{
-		std::string parent_id = util::fmt("%s_%s", util::strtoupper(module).c_str(), id.c_str());
+		std::string parent_id = util::fmt("{:s}_{:s}", util::strtoupper(module), id);
 		parent_tag_enum_type->AddName(parent_module, parent_id.c_str(),
 		                              component->Tag().AsVal()->InternalInt(), true, nullptr);
 		}

@@ -2112,7 +2112,7 @@ assign-val v
 eval	auto v = globals[z.v2].id->GetVal();
 	if ( ! v )
 		{
-		ZAM_run_time_error(z.loc, "value used but not set", z.aux->id_val);
+		ZAM_run_time_error(z.loc, "value used but not set", z.aux->id_val.get());
 		break;
 		}
 
@@ -2180,8 +2180,8 @@ eval	flow = FLOW_BREAK;
 internal-op Lambda
 type VV
 eval	auto& aux = z.aux;
-	auto& master_func = aux->master_func;
-	auto& body = master_func->GetBodies()[0].stmts;
+	auto& primary_func = aux->primary_func;
+	auto& body = primary_func->GetBodies()[0].stmts;
 	ASSERT(body->Tag() == STMT_ZAM);
 	auto lamb = make_intrusive<ScriptFunc>(aux->id_val);
 	lamb->AddBody(body, z.v2);

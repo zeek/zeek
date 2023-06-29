@@ -4645,8 +4645,8 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
-                       std::string name, StmtPtr when_parent)
+LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, std::string name,
+                       StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
@@ -4661,17 +4661,17 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 		return;
 		}
 
-	// Install a master version of the function globally.  This is used
+	// Install a primary version of the function globally.  This is used
 	// by both broker (for transmitting closures) and script optimization
 	// (replacing its AST body with a compiled one).
-	master_func = make_intrusive<ScriptFunc>(ingredients->GetID());
-	master_func->SetOuterIDs(outer_ids);
+	primary_func = make_intrusive<ScriptFunc>(ingredients->GetID());
+	primary_func->SetOuterIDs(outer_ids);
 
 	// When we build the body, it will get updated with initialization
 	// statements.  Update the ingredients to reflect the new body,
 	// and no more need for initializers.
-	master_func->AddBody(*ingredients);
-	master_func->SetScope(ingredients->Scope());
+	primary_func->AddBody(*ingredients);
+	primary_func->SetScope(ingredients->Scope());
 	ingredients->ClearInits();
 
 	if ( name.empty() )
@@ -4683,9 +4683,9 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	master_func->SetName(my_name.c_str());
+	primary_func->SetName(my_name.c_str());
 
-	auto v = make_intrusive<FuncVal>(master_func);
+	auto v = make_intrusive<FuncVal>(primary_func);
 	lambda_id->SetVal(std::move(v));
 	lambda_id->SetType(ingr_t);
 	lambda_id->SetConst();
@@ -4697,7 +4697,7 @@ LambdaExpr::LambdaExpr(std::shared_ptr<FunctionIngredients> arg_ing, IDPList arg
 
 LambdaExpr::LambdaExpr(LambdaExpr* orig) : Expr(EXPR_LAMBDA)
 	{
-	master_func = orig->master_func;
+	primary_func = orig->primary_func;
 	ingredients = orig->ingredients;
 	lambda_id = orig->lambda_id;
 	my_name = orig->my_name;
@@ -4804,7 +4804,7 @@ void LambdaExpr::BuildName()
 	{
 	// Get the body's "string" representation.
 	ODesc d;
-	master_func->Describe(&d);
+	primary_func->Describe(&d);
 
 	for ( ;; )
 		{
@@ -4835,7 +4835,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
 
-	StmtPtr body = master_func->GetBodies()[0].stmts;
+	StmtPtr body = primary_func->GetBodies()[0].stmts;
 
 	if ( run_state::is_parsing )
 		// We're evaluating this lambda at parse time, which happens

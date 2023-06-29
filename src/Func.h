@@ -116,7 +116,10 @@ public:
 		}
 
 	// Various ways to add a new event handler to an existing function
-	// (event).
+	// (event).  The usual version to use is the first with its default
+	// parameter.  All of the others are for use by script optimization,
+	// as is a non-default second parameter to the first method, which
+	// overrides the function body in "ingr".
 	void AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_body = nullptr);
 	virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
 	                     size_t new_frame_size, int priority,
@@ -172,7 +175,6 @@ class ScriptFunc : public Func
 	{
 public:
 	ScriptFunc(const IDPtr& id);
-	ScriptFunc(const ID* id);
 
 	// For compiled scripts.
 	ScriptFunc(std::string name, FuncTypePtr ft, std::vector<StmtPtr> bodies,
@@ -384,7 +386,7 @@ public:
 
 	// Used by script optimization to update lambda ingredients
 	// after compilation.
-	void SetFrameSize(size_t _frame_size) { frame_size = std::move(_frame_size); }
+	void SetFrameSize(size_t _frame_size) { frame_size = _frame_size; }
 
 private:
 	IDPtr id;
@@ -395,6 +397,8 @@ private:
 	ScopePtr scope;
 	std::set<EventGroupPtr> groups;
 	};
+
+using FunctionIngredientsPtr = std::shared_ptr<FunctionIngredients>;
 
 extern std::vector<CallInfo> call_stack;
 

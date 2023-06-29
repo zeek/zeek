@@ -295,12 +295,10 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 namespace detail
 	{
 
-ScriptFunc::ScriptFunc(const IDPtr& id) : ScriptFunc::ScriptFunc(id.get()) { }
-
-ScriptFunc::ScriptFunc(const ID* id) : Func(SCRIPT_FUNC)
+ScriptFunc::ScriptFunc(const IDPtr& arg_id) : Func(SCRIPT_FUNC)
 	{
-	name = id->Name();
-	type = id->GetType<zeek::FuncType>();
+	name = arg_id->Name();
+	type = arg_id->GetType<zeek::FuncType>();
 	frame_size = 0;
 	}
 
@@ -337,7 +335,7 @@ ScriptFunc::~ScriptFunc()
 		{
 		auto& cvec = *captures_vec;
 		auto& captures = *type->GetCaptures();
-		for ( int i = 0; i < captures.size(); ++i )
+		for ( auto i = 0u; i < captures.size(); ++i )
 			if ( captures[i].IsManaged() )
 				ZVal::DeleteManagedType(cvec[i]);
 		}
@@ -562,7 +560,7 @@ void ScriptFunc::CreateCaptures(Frame* f)
 			captures_vec->push_back(ZVal());
 
 		if ( ! captures_vec )
-			(*captures_offset_mapping)[c.Id()->Name()] = offset;
+			captures_offset_mapping->insert_or_assign(c.Id()->Name(), offset);
 
 		++offset;
 		}
@@ -608,7 +606,7 @@ void ScriptFunc::SetCaptures(Frame* f)
 	int offset = 0;
 	for ( const auto& c : *captures )
 		{
-		(*captures_offset_mapping)[c.Id()->Name()] = offset;
+		captures_offset_mapping->insert_or_assign(c.Id()->Name(), offset);
 		++offset;
 		}
 	}
@@ -678,7 +676,7 @@ bool ScriptFunc::DeserializeCaptures(const broker::vector& data)
 		auto& captures = *type->GetCaptures();
 		int n = f->FrameSize();
 
-		ASSERT(captures.size() == n);
+		ASSERT(captures.size() == static_cast<size_t>(n));
 
 		auto cvec = std::make_unique<std::vector<ZVal>>();
 
@@ -721,17 +719,15 @@ FuncPtr ScriptFunc::DoClone()
 	if ( captures_vec )
 		{
 		auto cv_i = captures_vec->begin();
-		auto cv_copy = std::make_unique<std::vector<ZVal>>();
+		other->captures_vec = std::make_unique<std::vector<ZVal>>();
 		for ( auto& c : *type->GetCaptures() )
 			{
 			// Need to clone cv_i.
 			auto& t_i = c.Id()->GetType();
 			auto cv_i_val = cv_i->ToVal(t_i)->Clone();
-			cv_copy->push_back(ZVal(cv_i_val, t_i));
+			other->captures_vec->push_back(ZVal(cv_i_val, t_i));
 			++cv_i;
 			}
-
-		other->captures_vec = std::move(cv_copy);
 		}
 
 	return other;

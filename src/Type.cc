@@ -699,11 +699,14 @@ TypePtr SetType::ShallowClone()
 
 SetType::~SetType() = default;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 FuncType::Capture::Capture(detail::IDPtr _id, bool _deep_copy)
 	: id(std::move(_id)), deep_copy(_deep_copy)
 	{
 	is_managed = id ? ZVal::IsManagedType(id->GetType()) : false;
 	}
+#pragma GCC diagnostic pop
 
 FuncType::FuncType(RecordTypePtr arg_args, TypePtr arg_yield, FunctionFlavor arg_flavor)
 	: Type(TYPE_FUNC), args(std::move(arg_args)), arg_types(make_intrusive<TypeList>()),

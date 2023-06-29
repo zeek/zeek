@@ -432,7 +432,7 @@ public:
 	bool* is_managed = nullptr;
 
 	// Ingredients associated with lambdas ...
-	ScriptFuncPtr master_func;
+	ScriptFuncPtr primary_func;
 
 	// ... and its name.
 	std::string lambda_name;
@@ -445,7 +445,7 @@ public:
 	std::unique_ptr<CatArg>* cat_args = nullptr;
 
 	// Used for accessing function names.
-	const ID* id_val = nullptr;
+	IDPtr id_val = nullptr;
 
 	// Whether the instruction can lead to globals/captures changing.
 	// Currently only needed by the optimizer, but convenient to

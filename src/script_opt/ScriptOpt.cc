@@ -50,14 +50,14 @@ void analyze_func(ScriptFuncPtr f)
 
 void analyze_lambda(LambdaExpr* l)
 	{
-	auto& mf = l->MasterFunc();
-	analyze_func(mf);
-	lambdas.insert(mf.get());
+	auto& pf = l->PrimaryFunc();
+	analyze_func(pf);
+	lambdas.insert(pf.get());
 	}
 
 void analyze_when_lambda(LambdaExpr* l)
 	{
-	when_lambdas.insert(l->MasterFunc().get());
+	when_lambdas.insert(l->PrimaryFunc().get());
 	}
 
 bool is_when_lambda(const ScriptFunc* f)

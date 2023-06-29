@@ -26,7 +26,7 @@ bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
 
 bool ZAMCompiler::IsCapture(const ID* id) const
 	{
-	auto c = pf->CapturesOffsets();
+	const auto& c = pf->CapturesOffsets();
 	return c.find(id) != c.end();
 	}
 
@@ -75,7 +75,7 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id)
 
 	// We use the id_val for reporting used-but-not-set errors.
 	z.aux = new ZInstAux(0);
-	z.aux->id_val = id;
+	z.aux->id_val = {NewRef{}, const_cast<ID*>(id)};
 
 	return AddInst(z, true);
 	}

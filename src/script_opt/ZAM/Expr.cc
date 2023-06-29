@@ -785,9 +785,9 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
 	int ncaptures = captures ? captures->size() : 0;
 
 	auto aux = new ZInstAux(ncaptures);
-	aux->master_func = le->MasterFunc();
+	aux->primary_func = le->PrimaryFunc();
 	aux->lambda_name = le->Name();
-	aux->id_val = le->Ingredients()->GetID().get();
+	aux->id_val = le->Ingredients()->GetID();
 
 	for ( int i = 0; i < ncaptures; ++i )
 		{
@@ -799,7 +799,7 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
 			aux->Add(i, FrameSlot(id_i), id_i->GetType());
 		}
 
-	auto z = ZInstI(OP_LAMBDA_VV, n_slot, le->MasterFunc()->FrameSize());
+	auto z = ZInstI(OP_LAMBDA_VV, n_slot, le->PrimaryFunc()->FrameSize());
 	z.op_type = OP_VV_I2;
 	z.aux = aux;
 
@@ -946,7 +946,7 @@ const ZAMStmt ZAMCompiler::AssignToCall(const ExprStmt* e)
 const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 	{
 	auto func = c->Func()->AsNameExpr();
-	auto func_id = func->Id();
+	auto func_id = func->IdPtr();
 	auto& args = c->Args()->Exprs();
 
 	int nargs = args.length();

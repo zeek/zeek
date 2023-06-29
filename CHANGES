@@ -1,3 +1,7 @@
+6.1.0-dev.127 | 2023-06-29 11:22:58 -0700
+
+  * Move CMake template files to separate directory (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.125 | 2023-06-29 18:33:41 +0200
 
   * Add test with MUD example (Arne Welzel, Corelight)

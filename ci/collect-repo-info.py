@@ -170,7 +170,7 @@ def main():
 
     zeek_dir = pathlib.Path(args.dir).absolute()
 
-    if not (zeek_dir / "zeek-config.h.in").exists():
+    if not (zeek_dir / "cmake_templates" / "zeek-config.h.in").exists():
         logger.error("%s missing zeek-config.h.in", zeek_dir)
         return 1
 

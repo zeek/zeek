@@ -5522,14 +5522,19 @@ function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern
 ##
 ## t: Type of Zeek data.
 ##
+## key_func: Optional function to normalize key names in JSON objects. Useful
+##           when keys are not valid field identifiers, or represent reserved
+##           keywords like **port** or **type**.
+##
 ## returns: A value of type t.
 ##
 ## .. zeek:see:: to_json
-function from_json%(s: string, t: any%): from_json_result
+function from_json%(s: string, t: any, key_func: string_mapper &default=from_json_default_key_mapper%): from_json_result
 	%{
 	static auto result_type = zeek::id::find_type<RecordType>("from_json_result");
 	static auto v_idx = result_type->FieldOffset("v");
 	static auto valid_idx = result_type->FieldOffset("valid");
+	static auto default_key_func_ptr = zeek::id::find_func("from_json_default_key_mapper");
 
 	auto rval = zeek::make_intrusive<RecordVal>(result_type);
 
@@ -5540,7 +5545,14 @@ function from_json%(s: string, t: any%): from_json_result
 		return rval;
 		}
 
-	auto res = zeek::detail::ValFromJSON(s->ToStdStringView(), t->AsType()->AsTypeType()->GetType());
+	// If key_func is the same as "from_json_default_key_mapper",
+	// null it out so that no key normalization happens.
+	auto key_func_ptr = key_func->AsFuncVal()->AsFuncPtr();
+	if ( key_func_ptr == default_key_func_ptr )
+		key_func_ptr = Func::nil;
+
+	auto res = zeek::detail::ValFromJSON(s->ToStdStringView(), t->AsType()->AsTypeType()->GetType(),
+	                                     key_func_ptr);
 
 	if ( auto val = std::get_if<zeek::ValPtr>(&res) )
 		{

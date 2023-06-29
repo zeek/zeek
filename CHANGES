@@ -1,3 +1,20 @@
+6.1.0-dev.125 | 2023-06-29 18:33:41 +0200
+
+  * Add test with MUD example (Arne Welzel, Corelight)
+
+    This came up as a use-case on GitHub showing the limitations of the
+    opinionated approach. Add it as an example.
+
+    Reference https://www.rfc-editor.org/rfc/rfc8520#section-9
+
+  * GH-3142: from_json: Support function to normalize key names (Arne Welzel, Corelight)
+
+    When a JSON document contains key names containing colons or other
+    special characters that are not valid in Zeek identifiers, from_json()
+    cannot be used to parse such input.
+
+    This change allows a customizable normalization function.
+
 6.1.0-dev.121 | 2023-06-27 12:18:38 -0700
 
   * Prefer Spicy include directories of this build over accidental ones. (Benjamin Bannier, Corelight)

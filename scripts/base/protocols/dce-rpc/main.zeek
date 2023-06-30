@@ -226,6 +226,14 @@ event smb_discarded_dce_rpc_analyzers(c: connection)
 	Reporter::conn_weird("SMB_discarded_dce_rpc_analyzers", c, "", "SMB");
 	}
 
+# If a fid representing a pipe was closed, remove it from dce_rpc_backing.
+event smb2_close_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID) &priority=-5
+	{
+	local fid = file_id$persistent + file_id$volatile;
+	if ( c?$dce_rpc_backing )
+		delete c$dce_rpc_backing[fid];
+	}
+
 hook finalize_dce_rpc(c: connection)
 	{
 	if ( ! c?$dce_rpc )

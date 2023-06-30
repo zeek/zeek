@@ -46,7 +46,9 @@ type SMB2_close_request(header: SMB2_Header) = record {
 	reserved            : uint32;
 	file_id             : SMB2_guid;
 } &let {
+	fid: uint64 = file_id.persistent + file_id._volatile;
 	proc: bool = $context.connection.proc_smb2_close_request(header, this);
+	maybe_pipe_close: bool = $context.connection.forward_dce_rpc_close(fid);
 };
 
 type SMB2_close_response(header: SMB2_Header) = record {

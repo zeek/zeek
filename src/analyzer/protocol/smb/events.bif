@@ -8,3 +8,13 @@
 ##
 ## c: The connection.
 event smb_pipe_connect_heuristic%(c: connection%);
+
+## Generated for :abbr:`SMB (Server Message Block)` when the number of
+## :abbr:`DCE-RPC (Distributed Computing Environment/Remote Procedure Calls)`
+## analyzers exceeds :zeek:see:`SMB::max_dce_rpc_analyzers`.
+## Occurrence of this event may indicate traffic loss, traffic load-balancing
+## issues or abnormal SMB protocol usage.
+##
+## c: The connection.
+##
+event smb_discarded_dce_rpc_analyzers%(c: connection%);

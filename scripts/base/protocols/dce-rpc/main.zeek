@@ -217,6 +217,15 @@ event dce_rpc_response(c: connection, fid: count, ctx_id: count, opnum: count, s
 		}
 	}
 
+event smb_discarded_dce_rpc_analyzers(c: connection)
+	{
+	# This event is raised when the DCE-RPC analyzers table
+	# grew too large. Assume things are broken and wipe
+	# the backing table.
+	delete c$dce_rpc_backing;
+	Reporter::conn_weird("SMB_discarded_dce_rpc_analyzers", c, "", "SMB");
+	}
+
 hook finalize_dce_rpc(c: connection)
 	{
 	if ( ! c?$dce_rpc )

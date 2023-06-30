@@ -88,8 +88,6 @@ function set_state(c: connection, state_x: BackingState)
 		c$dce_rpc$endpoint = uuid_endpoint_map[c$dce_rpc_state$uuid];
 	if ( c$dce_rpc_state?$named_pipe )
 		c$dce_rpc$named_pipe = c$dce_rpc_state$named_pipe;
-
-	Conn::register_removal_hook(c, finalize_dce_rpc);
 	}
 
 function set_session(c: connection, fid: count)
@@ -97,7 +95,9 @@ function set_session(c: connection, fid: count)
 	if ( ! c?$dce_rpc_backing )
 		{
 		c$dce_rpc_backing = table();
+		Conn::register_removal_hook(c, finalize_dce_rpc);
 		}
+
 	if ( fid !in c$dce_rpc_backing )
 		{
 		local info = Info($ts=network_time(),$id=c$id,$uid=c$uid);

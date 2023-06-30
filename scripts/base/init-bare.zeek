@@ -3054,6 +3054,12 @@ export {
 	##
 	## .. zeek:see:: smb2_discarded_messages_state
 	const SMB::max_pending_messages = 1000 &redef;
+
+	## Maximum number of DCE-RPC analyzers per connection
+	## before discarding them to avoid unbounded state growth.
+	##
+	## .. zeek:see:: smb_discarded_dce_rpc_analyzers
+	const max_dce_rpc_analyzers = 1000 &redef;
 }
 
 module SMB1;

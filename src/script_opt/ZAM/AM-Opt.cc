@@ -258,9 +258,9 @@ bool ZAMCompiler::PruneUnused()
 			KillInst(i);
 			}
 
-		if ( inst->IsGlobalLoad() )
+		if ( inst->IsNonLocalLoad() )
 			{
-			// Any straight-line load of the same global
+			// Any straight-line load of the same global/capture
 			// is redundant.
 			for ( unsigned int j = i + 1; j < insts1.size(); ++j )
 				{
@@ -277,14 +277,14 @@ bool ZAMCompiler::PruneUnused()
 					// Inbound branch ends block.
 					break;
 
-				if ( i1->aux && i1->aux->can_change_globals )
+				if ( i1->aux && i1->aux->can_change_non_locals )
 					break;
 
-				if ( ! i1->IsGlobalLoad() )
+				if ( ! i1->IsNonLocalLoad() )
 					continue;
 
-				if ( i1->v2 == inst->v2 )
-					{ // Same global
+				if ( i1->v2 == inst->v2 && i1->IsGlobalLoad() == inst->IsGlobalLoad() )
+					{ // Same global/capture
 					did_prune = true;
 					KillInst(i1);
 					}
@@ -299,9 +299,10 @@ bool ZAMCompiler::PruneUnused()
 			// Variable is used, keep assignment.
 			continue;
 
-		if ( frame_denizens[slot]->IsGlobal() )
+		auto& id = frame_denizens[slot];
+		if ( id->IsGlobal() || IsCapture(id) )
 			{
-			// Extend the global's range to the end of the
+			// Extend the global/capture's range to the end of the
 			// function.
 			denizen_ending[slot] = insts1.back();
 			continue;
@@ -466,18 +467,30 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				break;
 				}
 
+			case OP_LAMBDA_VV:
+				{
+				auto aux = inst->aux;
+				int n = aux->n;
+				auto& slots = aux->slots;
+				for ( int i = 0; i < n; ++i )
+					ExtendLifetime(slots[i], EndOfLoop(inst, 1));
+				break;
+				}
+
 			default:
 				// Look for slots in auxiliary information.
 				auto aux = inst->aux;
 				if ( ! aux || ! aux->slots )
 					break;
 
-				for ( auto j = 0; j < aux->n; ++j )
+				int n = aux->n;
+				auto& slots = aux->slots;
+				for ( auto j = 0; j < n; ++j )
 					{
-					if ( aux->slots[j] < 0 )
+					if ( slots[j] < 0 )
 						continue;
 
-					ExtendLifetime(aux->slots[j], EndOfLoop(inst, 1));
+					ExtendLifetime(slots[j], EndOfLoop(inst, 1));
 					}
 				break;
 			}
@@ -759,7 +772,6 @@ void ZAMCompiler::ReMapVar(const ID* id, int slot, zeek_uint_t inst)
 void ZAMCompiler::CheckSlotAssignment(int slot, const ZInstI* inst)
 	{
 	ASSERT(slot >= 0 && static_cast<zeek_uint_t>(slot) < frame_denizens.size());
-
 	// We construct temporaries such that their values are never used
 	// earlier than their definitions in loop bodies.  For other
 	// denizens, however, they can be, so in those cases we expand the
@@ -913,47 +925,6 @@ const ZInstI* ZAMCompiler::EndOfLoop(const ZInstI* inst, int depth) const
 		--i;
 
 	return insts1[i];
-	}
-
-bool ZAMCompiler::VarIsAssigned(int slot) const
-	{
-	for ( auto& inst : insts1 )
-		if ( inst->live && VarIsAssigned(slot, inst) )
-			return true;
-
-	return false;
-	}
-
-bool ZAMCompiler::VarIsAssigned(int slot, const ZInstI* i) const
-	{
-	// Special-case for table iterators, which assign to a bunch
-	// of variables but they're not immediately visible in the
-	// instruction layout.
-	if ( i->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV || i->op == OP_NEXT_TABLE_ITER_VV )
-		{
-		auto& iter_vars = i->aux->loop_vars;
-		for ( auto v : iter_vars )
-			if ( v == slot )
-				return true;
-
-		if ( i->op != OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
-			return false;
-
-		// Otherwise fall through, since that flavor of iterate
-		// *does* also assign to slot 1.
-		}
-
-	if ( i->op == OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV && i->v2 == slot )
-		return true;
-
-	if ( i->op_type == OP_VV_FRAME )
-		// We don't want to consider these as assigning to the
-		// variable, since the point of this method is to figure
-		// out which variables don't need storing to the frame
-		// because their internal value is never modified.
-		return false;
-
-	return i->AssignsToSlot1() && i->v1 == slot;
 	}
 
 bool ZAMCompiler::VarIsUsed(int slot) const

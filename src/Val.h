@@ -968,8 +968,12 @@ public:
 
 	// If the &default attribute is not a function, or the function has
 	// already been initialized, this does nothing. Otherwise, evaluates
-	// the function in the frame allowing it to capture its closure.
+	// the function in the frame, allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
+
+	// An alternative that assigns the default value directly.  Used
+	// by ZAM compilation.
+	void InitDefaultVal(ValPtr def_val);
 
 	void ClearTimer(detail::Timer* t)
 		{

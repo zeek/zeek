@@ -1,8 +1,6 @@
-# Not suitable for ZAM since it spots the error at compile time and exits
-# with an error status code.
-# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
-# @TEST-EXEC: zeek -b %INPUT >out 2>&1
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# A version of uninitialized-local.zeek suitable for ZAM's behavior.
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" == "1"
+# @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
 
 event testit() &priority=10
 	{

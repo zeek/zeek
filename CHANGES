@@ -1,3 +1,53 @@
+6.1.0-dev.152 | 2023-06-30 10:19:19 +0200
+
+  * documentation updates (Vern Paxson, Corelight)
+
+  * updates to ZAM-specific BTest baseline (Vern Paxson, Corelight)
+
+  * Address PR review feedback on zam-feature-complete (Vern Paxson, Corelight)
+
+  * Updates to BTest baselines due to previous BTest tweaks (Vern Paxson, Corelight)
+
+  * tweaks to BTests for ZAM feature completeness; new ZAM-only btest (Vern Paxson, Corelight)
+
+  * removal of unused functionality and some follow-on simplifications (Vern Paxson, Corelight)
+
+  * feature completeness for ZAM (Vern Paxson, Corelight)
+
+  * -O gen-C++ tweaks to be compatible with ZAM changes (Vern Paxson, Corelight)
+
+  * ZAM support for "when" statements (Vern Paxson, Corelight)
+
+  * ZAM changes intermixed with lambda and "when" support (Vern Paxson, Corelight)
+
+  * WhenStmt/WhenInfo restructuring in support of ZAM "when" statements (Vern Paxson, Corelight)
+
+  * ZAM support for lambdas (Vern Paxson, Corelight)
+
+  * ZAM internals have a notion of "captures" as global-like variables (Vern Paxson, Corelight)
+
+  * AST profiling enhnacements in support of script optimization for lambdas/whens (Vern Paxson, Corelight)
+
+  * refinements to LambdaExpr's to provide flexibility, support for ZVal captures (Vern Paxson, Corelight)
+
+  * support in ScriptFunc class for ZVal-oriented vector of captures (Vern Paxson, Corelight)
+
+  * simplifications to the Frame class now that it no longer has to support old-style captures (Vern Paxson, Corelight)
+
+  * use Ingredients directly for constructing functions (Vern Paxson, Corelight)
+
+  * the "Capture" struct is now a class (Vern Paxson, Corelight)
+
+  * more debugging information when dumping script optimization data structures (Vern Paxson, Corelight)
+
+  * bug fixes for script optimization intermediate forms (Vern Paxson, Corelight)
+
+  * clarifying comments, interface tightening (Vern Paxson, Corelight)
+
+  * added some class accessors/set-ers (Vern Paxson, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 6.1.0-dev.127 | 2023-06-29 11:22:58 -0700
 
   * Move CMake template files to separate directory (Tim Wojtulewicz, Corelight)

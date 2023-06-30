@@ -23,8 +23,8 @@ void CPPCompile::CompileFunc(const FuncInfo& func)
 void CPPCompile::CompileLambda(const LambdaExpr* l, const ProfileFunc* pf)
 	{
 	auto lname = Canonicalize(l->Name().c_str()) + "_lb";
-	auto body = l->Ingredients().Body();
-	auto l_id = l->Ingredients().GetID();
+	auto body = l->Ingredients()->Body();
+	auto l_id = l->Ingredients()->GetID();
 	auto& ids = l->OuterIDs();
 
 	DefineBody(l_id->GetType<FuncType>(), pf, lname, body, &ids, FUNC_FLAVOR_FUNCTION);

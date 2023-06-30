@@ -77,6 +77,12 @@ void CPPCompile::Compile(bool report_uncompilable)
 			continue;
 			}
 
+		if ( is_when_lambda(f) )
+			{
+			func.SetSkip(true);
+			continue;
+			}
+
 		const char* reason;
 		if ( IsCompilable(func, &reason) )
 			{
@@ -150,7 +156,7 @@ void CPPCompile::Compile(bool report_uncompilable)
 	for ( const auto& l : pfs.Lambdas() )
 		{
 		const auto& n = l->Name();
-		const auto body = l->Ingredients().Body().get();
+		const auto body = l->Ingredients()->Body().get();
 		if ( lambda_ASTs.count(n) > 0 )
 			// Reuse previous body.
 			body_names[body] = body_names[lambda_ASTs[n]];
@@ -176,7 +182,7 @@ void CPPCompile::Compile(bool report_uncompilable)
 			continue;
 
 		CompileLambda(l, pfs.ExprProf(l).get());
-		lambda_ASTs[n] = l->Ingredients().Body().get();
+		lambda_ASTs[n] = l->Ingredients()->Body().get();
 		}
 
 	NL();

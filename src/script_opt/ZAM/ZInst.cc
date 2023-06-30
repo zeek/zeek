@@ -383,19 +383,38 @@ bool ZInstI::IsDirectAssignment() const
 
 	switch ( op )
 		{
-		case OP_ASSIGN_VV_N:
 		case OP_ASSIGN_VV_A:
+		case OP_ASSIGN_VV_D:
+		case OP_ASSIGN_VV_F:
+		case OP_ASSIGN_VV_I:
+		case OP_ASSIGN_VV_L:
+		case OP_ASSIGN_VV_N:
 		case OP_ASSIGN_VV_O:
 		case OP_ASSIGN_VV_P:
 		case OP_ASSIGN_VV_R:
 		case OP_ASSIGN_VV_S:
-		case OP_ASSIGN_VV_F:
 		case OP_ASSIGN_VV_T:
+		case OP_ASSIGN_VV_U:
 		case OP_ASSIGN_VV_V:
-		case OP_ASSIGN_VV_L:
+		case OP_ASSIGN_VV_a:
 		case OP_ASSIGN_VV_f:
 		case OP_ASSIGN_VV_t:
 		case OP_ASSIGN_VV:
+			return true;
+
+		default:
+			return false;
+		}
+	}
+
+bool ZInstI::HasCaptures() const
+	{
+	switch ( op )
+		{
+		case OP_LAMBDA_VV:
+		case OP_WHEN_V:
+		case OP_WHEN_TIMEOUT_VV:
+		case OP_WHEN_TIMEOUT_VC:
 			return true;
 
 		default:
@@ -645,6 +664,11 @@ bool ZInstI::IsGlobalLoad() const
 		}
 
 	return global_ops.count(op) > 0;
+	}
+
+bool ZInstI::IsCaptureLoad() const
+	{
+	return op == OP_LOAD_CAPTURE_VV || op == OP_LOAD_MANAGED_CAPTURE_VV;
 	}
 
 void ZInstI::InitConst(const ConstExpr* ce)

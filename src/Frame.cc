@@ -139,11 +139,8 @@ static bool val_is_func(const ValPtr& v, ScriptFunc* func)
 	return v->AsFunc() == func;
 	}
 
-broker::expected<broker::data> Frame::SerializeCopyFrame()
+broker::expected<broker::data> Frame::Serialize()
 	{
-	broker::vector rval;
-	rval.emplace_back(std::string("CopyFrame"));
-
 	broker::vector body;
 
 	for ( int i = 0; i < size; ++i )
@@ -158,28 +155,18 @@ broker::expected<broker::data> Frame::SerializeCopyFrame()
 		body.emplace_back(std::move(val_tuple));
 		}
 
+	broker::vector rval;
 	rval.emplace_back(std::move(body));
 
 	return {std::move(rval)};
 	}
 
-std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data,
-                                             const std::optional<FuncType::CaptureList>& captures)
+std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data)
 	{
 	if ( data.size() == 0 )
 		return std::make_pair(true, nullptr);
 
 	auto where = data.begin();
-
-	auto has_name = broker::get_if<std::string>(*where);
-	if ( ! has_name )
-		return std::make_pair(false, nullptr);
-
-	std::advance(where, 1);
-
-	if ( captures )
-		ASSERT(*has_name == "CopyFrame");
-
 	auto has_body = broker::get_if<broker::vector>(*where);
 	if ( ! has_body )
 		return std::make_pair(false, nullptr);

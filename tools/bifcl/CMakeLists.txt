@@ -9,16 +9,17 @@ FindRequiredPackage(BISON)
 FindRequiredPackage(FLEX)
 
 if ( MISSING_PREREQS )
-    foreach (prereq ${MISSING_PREREQ_DESCS})
-        message(SEND_ERROR ${prereq})
-    endforeach ()
-    message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
+  foreach (prereq ${MISSING_PREREQ_DESCS})
+    message(SEND_ERROR ${prereq})
+  endforeach ()
+  message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
 
 if (MSVC)
-    set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "/wd4018")
+  add_compile_options(/J) # Similar to -funsigned-char on other platforms
+  set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "/wd4018")
 else()
-    set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
+  set_property(SOURCE bif_lex.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 endif()
 
 include_directories(BEFORE

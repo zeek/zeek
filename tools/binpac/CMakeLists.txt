@@ -31,11 +31,15 @@ FindRequiredPackage(FLEX)
 FindRequiredPackage(BISON)
 
 if (MISSING_PREREQS)
-    foreach (prereq ${MISSING_PREREQ_DESCS})
-        message(SEND_ERROR ${prereq})
-    endforeach ()
-    message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
+  foreach (prereq ${MISSING_PREREQ_DESCS})
+      message(SEND_ERROR ${prereq})
+  endforeach ()
+  message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
 endif ()
+
+if (MSVC)
+  add_compile_options(/J) # Similar to -funsigned-char on other platforms
+endif()
 
 ########################################################################
 ## System Introspection

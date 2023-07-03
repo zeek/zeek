@@ -83,9 +83,12 @@ protected:
 
 // If no_global is true, don't search in the default "global" namespace.
 extern const IDPtr& lookup_ID(const char* name, const char* module, bool no_global = false,
-                              bool same_module_only = false, bool check_export = true);
+                              bool same_module_only = false, bool check_export = true,
+                              bool include_modules = false);
 
 extern IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool is_export);
+
+extern IDPtr install_module(const char* name);
 
 extern void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs);
 extern void push_existing_scope(ScopePtr scope);
@@ -95,6 +98,7 @@ extern ScopePtr pop_scope();
 
 extern ScopePtr current_scope();
 extern ScopePtr global_scope();
+extern const std::map<std::string, IDPtr, std::less<>>& modules();
 
 // Current module (identified by its name).
 extern std::string current_module;

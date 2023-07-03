@@ -63,6 +63,10 @@ ZVal::ZVal(ValPtr v, const TypePtr& t)
 			list_val = v.release()->AsListVal();
 			break;
 
+		case TYPE_MODULE:
+			module_val = v.release()->AsModuleVal();
+			break;
+
 		case TYPE_OPAQUE:
 			opaque_val = v.release()->AsOpaqueVal();
 			break;
@@ -140,6 +144,10 @@ ZVal::ZVal(const TypePtr& t)
 
 		case TYPE_LIST:
 			list_val = nullptr;
+			break;
+
+		case TYPE_MODULE:
+			module_val = nullptr;
 			break;
 
 		case TYPE_OPAQUE:
@@ -248,6 +256,9 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 		case TYPE_LIST:
 			v = list_val;
 			break;
+		case TYPE_MODULE:
+			v = module_val;
+			break;
 		case TYPE_OPAQUE:
 			v = opaque_val;
 			break;
@@ -295,6 +306,7 @@ bool ZVal::IsManagedType(const TypePtr& t)
 		case zeek::TYPE_FILE:
 		case zeek::TYPE_FUNC:
 		case zeek::TYPE_LIST:
+		case zeek::TYPE_MODULE:
 		case zeek::TYPE_OPAQUE:
 		case zeek::TYPE_PATTERN:
 		case zeek::TYPE_RECORD:

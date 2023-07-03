@@ -110,6 +110,9 @@ public:
 	void SetEnumConst() { is_enum_const = true; }
 	bool IsEnumConst() const { return is_enum_const; }
 
+	void SetModule() { is_module = true; }
+	bool IsModule() const { return is_module; }
+
 	void SetOffset(int arg_offset) { offset = arg_offset; }
 	int Offset() const { return offset; }
 
@@ -164,7 +167,7 @@ protected:
 	bool is_export;
 	bool infer_return_type;
 	TypePtr type;
-	bool is_const, is_enum_const, is_type, is_option, is_blank;
+	bool is_const, is_enum_const, is_type, is_option, is_blank, is_module;
 	int offset;
 	ValPtr val;
 	AttributesPtr attrs;

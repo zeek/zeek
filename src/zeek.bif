@@ -2101,6 +2101,27 @@ function val_footprint%(v: any%): count
 	return zeek::val_mgr->Count(v->Footprint());
 	%}
 
+%%{
+// Turns an IDPtr into a script_id entry.
+static zeek::RecordValPtr to_script_id_rec(const zeek::detail::IDPtr& id)
+	{
+	static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
+	auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
+	rec->Assign(0, type_name(id->GetType()->Tag()));
+	rec->Assign(1, id->IsExport());
+	rec->Assign(2, id->IsConst());
+	rec->Assign(3, id->IsEnumConst());
+	rec->Assign(4, id->IsOption());
+	rec->Assign(5, id->IsRedefinable());
+	rec->Assign(6, id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil);
+
+	if ( id->HasVal() )
+		rec->Assign(7, id->GetVal());
+
+	return rec;
+	}
+%%}
+
 ## Generates a table with information about all global identifiers. The table
 ## value is a record containing the type name of the identifier, whether it is
 ## exported, a constant, an enum constant, redefinable, and its value (if it
@@ -2111,26 +2132,35 @@ function global_ids%(%): id_table
 	%{
 	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
 	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
-	const auto& globals = zeek::detail::global_scope()->Vars();
 
-	for ( const auto& global : globals )
+	// Process modules first: They may be shadowed by global identifiers though.
+	for ( const auto& [name, id] : zeek::detail::modules() )
 		{
-		const auto& id = global.second;
-		static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
-		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
-		rec->Assign(0, type_name(id->GetType()->Tag()));
-		rec->Assign(1, id->IsExport());
-		rec->Assign(2, id->IsConst());
-		rec->Assign(3, id->IsEnumConst());
-		rec->Assign(4, id->IsOption());
-		rec->Assign(5, id->IsRedefinable());
-		rec->Assign(6, id->GetAttr(zeek::detail::ATTR_BACKEND) != zeek::detail::Attr::nil);
-
-		if ( id->HasVal() )
-			rec->Assign(7, id->GetVal());
-
 		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
-		ids->Assign(std::move(id_name), std::move(rec));
+		ids->Assign(std::move(id_name), std::move(to_script_id_rec(id)));
+		}
+
+	for ( const auto& [name, id] : zeek::detail::global_scope()->Vars() )
+		{
+		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
+		ids->Assign(std::move(id_name), std::move(to_script_id_rec(id)));
+		}
+
+	return ids;
+	%}
+
+## Same as global_ids() but limited to modules.
+##
+## Returns: A table that maps module names to information about them.
+function module_ids%(%): id_table
+	%{
+	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
+	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
+
+	for ( const auto& [name, id] : zeek::detail::modules() )
+		{
+		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
+		ids->Assign(std::move(id_name), std::move(to_script_id_rec(id)));
 		}
 
 	return ids;

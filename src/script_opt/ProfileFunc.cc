@@ -561,6 +561,7 @@ void ProfileFuncs::TraverseValue(const ValPtr& v)
 		case TYPE_INT:
 		case TYPE_INTERVAL:
 		case TYPE_OPAQUE:
+		case TYPE_MODULE:
 		case TYPE_PATTERN:
 		case TYPE_PORT:
 		case TYPE_STRING:
@@ -757,6 +758,7 @@ p_hash_type ProfileFuncs::HashType(const Type* t)
 		case TYPE_INT:
 		case TYPE_INTERVAL:
 		case TYPE_OPAQUE:
+		case TYPE_MODULE:
 		case TYPE_PATTERN:
 		case TYPE_PORT:
 		case TYPE_STRING:

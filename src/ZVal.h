@@ -14,6 +14,7 @@ class EnumVal;
 class File;
 class Func;
 class ListVal;
+class ModuleVal;
 class OpaqueVal;
 class PatternVal;
 class RecordVal;
@@ -27,6 +28,7 @@ class VectorVal;
 using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
 using ListValPtr = IntrusivePtr<ListVal>;
+using ModuleValPtr = IntrusivePtr<ModuleVal>;
 using OpaqueValPtr = IntrusivePtr<OpaqueVal>;
 using PatternValPtr = IntrusivePtr<PatternVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
@@ -74,6 +76,7 @@ class ZBody;
 	ZVal(File* v) { file_val = v; }
 	ZVal(Func* v) { func_val = v; }
 	ZVal(ListVal* v) { list_val = v; }
+	ZVal(ModuleVal* v) { module_val = v; }
 	ZVal(OpaqueVal* v) { opaque_val = v; }
 	ZVal(PatternVal* v) { re_val = v; }
 	ZVal(TableVal* v) { table_val = v; }
@@ -86,6 +89,7 @@ class ZBody;
 	ZVal(AddrValPtr v) { addr_val = v.release(); }
 	ZVal(SubNetValPtr v) { subnet_val = v.release(); }
 	ZVal(ListValPtr v) { list_val = v.release(); }
+	ZVal(ModuleValPtr v) { module_val = v.release(); }
 	ZVal(OpaqueValPtr v) { opaque_val = v.release(); }
 	ZVal(PatternValPtr v) { re_val = v.release(); }
 	ZVal(TableValPtr v) { table_val = v.release(); }
@@ -107,6 +111,7 @@ class ZBody;
 	File* AsFile() const { return file_val; }
 	Func* AsFunc() const { return func_val; }
 	ListVal* AsList() const { return list_val; }
+	ModuleVal* AsModule() const { return module_val; }
 	OpaqueVal* AsOpaque() const { return opaque_val; }
 	PatternVal* AsPattern() const { return re_val; }
 	TableVal* AsTable() const { return table_val; }
@@ -129,6 +134,7 @@ class ZBody;
 	File*& AsFileRef() { return file_val; }
 	Func*& AsFuncRef() { return func_val; }
 	ListVal*& AsListRef() { return list_val; }
+	ModuleVal*& AsModuleRef() { return module_val; }
 	OpaqueVal*& AsOpaqueRef() { return opaque_val; }
 	PatternVal*& AsPatternRef() { return re_val; }
 	TableVal*& AsTableRef() { return table_val; }
@@ -187,6 +193,7 @@ private:
 	File* file_val;
 	Func* func_val;
 	ListVal* list_val;
+	ModuleVal* module_val;
 	OpaqueVal* opaque_val;
 	PatternVal* re_val;
 	TableVal* table_val;

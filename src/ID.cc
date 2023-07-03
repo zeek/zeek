@@ -118,6 +118,7 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 	is_const = false;
 	is_enum_const = false;
 	is_type = false;
+	is_module = false;
 	offset = 0;
 
 	if ( is_blank )

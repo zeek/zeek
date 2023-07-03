@@ -56,6 +56,7 @@ const char* type_name(TypeTag t)
 		"opaque", // 20
 		"type", // 21
 		"error", // 22
+		"module", // 23
 	};
 
 	if ( int(t) >= NUM_TYPES )
@@ -2053,6 +2054,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 		case TYPE_SUBNET:
 		case TYPE_ANY:
 		case TYPE_ERROR:
+		case TYPE_MODULE:
 			return true;
 
 		case TYPE_ENUM:
@@ -2382,6 +2384,9 @@ bool is_assignable(TypeTag t)
 			return true;
 
 		case TYPE_VOID:
+			return false;
+
+		case TYPE_MODULE:
 			return false;
 		}
 

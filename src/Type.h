@@ -73,8 +73,9 @@ enum TypeTag
 	TYPE_VECTOR, // 19
 	TYPE_OPAQUE, // 20
 	TYPE_TYPE, // 21
-	TYPE_ERROR // 22
-#define NUM_TYPES (int(TYPE_ERROR) + 1)
+	TYPE_ERROR, // 22
+	TYPE_MODULE, // 23
+#define NUM_TYPES (int(TYPE_MODULE) + 1)
 	};
 
 // Returns the name of the type.
@@ -135,6 +136,7 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept
 		case TYPE_SUBNET:
 			return TYPE_INTERNAL_SUBNET;
 
+		case TYPE_MODULE:
 		case TYPE_PATTERN:
 		case TYPE_ANY:
 		case TYPE_TABLE:
@@ -902,6 +904,14 @@ protected:
 	void DoDescribe(ODesc* d) const override;
 
 	TypePtr yield_type;
+	};
+
+class ModuleType final : public Type
+	{
+public:
+	explicit ModuleType() : Type(TYPE_MODULE) { }
+	TypePtr ShallowClone() override { return make_intrusive<ModuleType>(); }
+	~ModuleType() = default;
 	};
 
 // True if the two types are equivalent.  If is_init is true then the test is

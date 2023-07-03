@@ -84,6 +84,7 @@ class PatternVal;
 class TableVal;
 class RecordVal;
 class ListVal;
+class ModuleVal;
 class StringVal;
 class EnumVal;
 class OpaqueVal;
@@ -95,6 +96,7 @@ using AddrValPtr = IntrusivePtr<AddrVal>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
 using FuncValPtr = IntrusivePtr<FuncVal>;
 using ListValPtr = IntrusivePtr<ListVal>;
+using ModuleValPtr = IntrusivePtr<ModuleVal>;
 using PortValPtr = IntrusivePtr<PortVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
@@ -181,6 +183,9 @@ public:
 
 	FileVal* AsFileVal();
 	const FileVal* AsFileVal() const;
+
+	ModuleVal* AsModuleVal();
+	const ModuleVal* AsModuleVal() const;
 
 	PatternVal* AsPatternVal();
 	const PatternVal* AsPatternVal() const;
@@ -631,6 +636,19 @@ protected:
 
 private:
 	FilePtr file_val;
+	};
+
+class ModuleVal final : public Val
+	{
+public:
+	explicit ModuleVal(std::string_view name);
+
+protected:
+	void ValDescribe(ODesc* d) const override;
+	ValPtr DoClone(CloneState* state) override;
+
+private:
+	std::string name;
 	};
 
 class PatternVal final : public Val

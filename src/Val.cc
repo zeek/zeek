@@ -73,6 +73,7 @@ Val::~Val()
 
 CONVERTERS(TYPE_FUNC, FuncVal*, Val::AsFuncVal)
 CONVERTERS(TYPE_FILE, FileVal*, Val::AsFileVal)
+CONVERTERS(TYPE_MODULE, ModuleVal*, Val::AsModuleVal)
 CONVERTERS(TYPE_PATTERN, PatternVal*, Val::AsPatternVal)
 CONVERTERS(TYPE_PORT, PortVal*, Val::AsPortVal)
 CONVERTERS(TYPE_SUBNET, SubNetVal*, Val::AsSubNetVal)
@@ -1494,6 +1495,19 @@ ValPtr FileVal::DoClone(CloneState* state)
 	// get the non-cached pointer back which is brought back into the
 	// cache when written to.
 	return {NewRef{}, this};
+	}
+
+ModuleVal::ModuleVal(std::string_view name) : Val(base_type(TYPE_MODULE)), name(name) { }
+
+void ModuleVal::ValDescribe(ODesc* d) const
+	{
+	d->Add("module ");
+	d->Add(name.c_str());
+	}
+
+ValPtr ModuleVal::DoClone(CloneState* state)
+	{
+	return make_intrusive<ModuleVal>(std::string_view{name.data(), name.size()});
 	}
 
 PatternVal::PatternVal(RE_Matcher* re) : Val(base_type(TYPE_PATTERN))

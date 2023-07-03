@@ -14,6 +14,9 @@
 namespace zeek::detail
 	{
 
+// Modules live in their own scope so that they do not
+// interfere with global_scope()->Vars().
+static Scope module_scope{ID::nil, nullptr};
 static std::vector<ScopePtr> scopes;
 static ScopePtr top_scope;
 
@@ -106,7 +109,7 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 	}
 
 const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global,
-                       bool same_module_only, bool check_export)
+                       bool same_module_only, bool check_export, bool include_modules)
 	{
 	std::string fullname = make_full_var_name(curr_module, name);
 
@@ -130,7 +133,15 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global
 	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 || ! same_module_only) )
 		{
 		std::string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
-		return global_scope()->Find(globalname);
+		if ( const auto& r = global_scope()->Find(globalname) )
+			return r;
+		}
+
+	// if enabled, try returning a module IDPtr if found.
+	if ( include_modules )
+		{
+		if ( const auto& m = module_scope.Find(name) )
+			return m;
 		}
 
 	return ID::nil;
@@ -155,12 +166,41 @@ IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool
 	auto id = make_intrusive<ID>(full_name.data(), scope, is_export);
 
 	if ( SCOPE_FUNCTION != scope )
+		{
+		if ( const auto& m = module_scope.Find(full_name) )
+			reporter->Warning("global identifier %s shadows module", full_name.c_str());
+
 		global_scope()->Insert(std::move(full_name), id);
+		}
 	else
 		{
 		id->SetOffset(top_scope->Length());
 		top_scope->Insert(std::move(full_name), id);
 		}
+
+	return id;
+	}
+
+// Add a module if it does not yet exist.
+//
+/// These live in an implicit global space.
+IDPtr install_module(const char* name)
+	{
+	if ( const auto& it = module_scope.Find(name) )
+		return it;
+
+	// Not an error, but can be confusing.
+	if ( auto gid = global_scope()->Find(name); gid )
+		{
+		reporter->Warning("global identifier %s (%s) shadows module", gid->Name(),
+		                  type_name(gid->GetType()->Tag()));
+		}
+
+	auto id = make_intrusive<ID>(name, SCOPE_GLOBAL, true /* is export */);
+	id->SetModule();
+	id->SetType(zeek::base_type(TYPE_MODULE));
+	id->SetVal(make_intrusive<ModuleVal>(std::string_view{name, strlen(name)}));
+	module_scope.Insert(name, id);
 
 	return id;
 	}
@@ -198,6 +238,11 @@ ScopePtr current_scope()
 ScopePtr global_scope()
 	{
 	return scopes.empty() ? 0 : scopes.front();
+	}
+
+const std::map<std::string, IDPtr, std::less<>>& modules()
+	{
+	return module_scope.Vars();
 	}
 
 	} // namespace zeek::detail

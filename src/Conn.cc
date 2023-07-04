@@ -315,18 +315,6 @@ void Connection::AppendAddl(const char* str)
 	cv->Assign(6, util::fmt(format, old, str));
 	}
 
-// Returns true if the character at s separates a version number.
-static inline bool is_version_sep(const char* s, const char* end)
-	{
-	return
-		// foo-1.2.3
-		(s < end - 1 && ispunct(s[0]) && isdigit(s[1])) ||
-		// foo-v1.2.3
-		(s < end - 2 && ispunct(s[0]) && tolower(s[1]) == 'v' && isdigit(s[2])) ||
-		// foo 1.2.3
-		isspace(s[0]);
-	}
-
 void Connection::Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig,
                        bool bol, bool eol, bool clear_state)
 	{

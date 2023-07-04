@@ -1301,7 +1301,7 @@ string CPPCompile::GenLambdaClone(const LambdaExpr* l, bool all_deep)
 		if ( captures && ! IsNativeType(id_t) )
 			{
 			for ( const auto& c : *captures )
-				if ( id == c.id && (c.deep_copy || all_deep) )
+				if ( id == c.Id() && (c.IsDeepCopy() || all_deep) )
 					arg = string("cast_intrusive<") + TypeName(id_t) + ">(" + arg + "->Clone())";
 			}
 

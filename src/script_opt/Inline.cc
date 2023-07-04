@@ -115,16 +115,21 @@ void Inliner::Analyze()
 		const auto& func = func_ptr.get();
 		const auto& body = f.Body();
 
+		if ( ! should_analyze(func_ptr, body) )
+			continue;
+
 		// Candidates are non-event, non-hook, non-recursive,
-		// non-compiled functions ... that don't use lambdas or when's,
-		// since we don't currently compute the closures/frame
-		// sizes for them correctly, and more fundamentally since
-		// we don't compile them and hence inlining them will
-		// make the parent non-compilable.
-		if ( should_analyze(func_ptr, body) && func->Flavor() == FUNC_FLAVOR_FUNCTION &&
-		     non_recursive_funcs.count(func) > 0 && f.Profile()->NumLambdas() == 0 &&
-		     f.Profile()->NumWhenStmts() == 0 && body->Tag() != STMT_CPP )
-			inline_ables.insert(func);
+		// non-compiled functions ...
+		if ( func->Flavor() != FUNC_FLAVOR_FUNCTION )
+			continue;
+
+		if ( non_recursive_funcs.count(func) == 0 )
+			continue;
+
+		if ( body->Tag() == STMT_CPP )
+			continue;
+
+		inline_ables.insert(func);
 		}
 
 	for ( auto& f : funcs )
@@ -163,6 +168,11 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 
 	if ( f->Tag() != EXPR_NAME )
 		// We don't inline indirect calls.
+		return c;
+
+	if ( c->IsInWhen() )
+		// Don't inline these, as doing so requires propagating
+		// the in-when attribute to the inlined function body.
 		return c;
 
 	auto n = f->AsNameExpr();

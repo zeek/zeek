@@ -511,10 +511,36 @@ public:
 	/**
 	 * A single lambda "capture" (outer variable used in a lambda's body).
 	 */
-	struct Capture
+	class Capture
 		{
-		detail::IDPtr id;
-		bool deep_copy;
+	public:
+		Capture(detail::IDPtr _id, bool _deep_copy);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		Capture(const Capture&) = default;
+		Capture(Capture&&) = default;
+		Capture& operator=(const Capture&) = default;
+		Capture& operator=(Capture&&) = default;
+		~Capture() = default;
+
+		auto& Id() const { return id; }
+		bool IsDeepCopy() const { return deep_copy; }
+		bool IsManaged() const { return is_managed; }
+
+		// For script optimization:
+		void SetID(detail::IDPtr new_id) { id = std::move(new_id); }
+#pragma GCC diagnostic pop
+
+		[[deprecated(
+			"Remove in v7.1.  Use non-default constructor and associated accessors.")]] detail::
+			IDPtr id;
+		[[deprecated(
+			"Remove in v7.1.  Use non-default constructor and associated accessors.")]] bool
+			deep_copy;
+		[[deprecated(
+			"Remove in v7.1.  Use non-default constructor and associated accessors.")]] bool
+			is_managed;
 		};
 
 	using CaptureList = std::vector<Capture>;

@@ -407,8 +407,6 @@ windows_task:
   # 2 hour timeout just for potential of building Docker image taking a while
   timeout_in: 120m
   windows_container:
-    # image: cirrusci/windowsservercore:cmake
-    # image: zeekurity/broker-ci-windows:latest
     dockerfile: ci/windows/Dockerfile
     os_version: 2019
     cpu: 8
@@ -608,9 +606,6 @@ container_image_manifest_docker_builder:
     # Tag images and push to Docker Hub and AWS ECR "zeek" account
     - ./ci/container-images-tag-and-push.sh
     - REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
-
-    # Continue to push tags to the "zeekurity" account as well.
-    - ZEEK_IMAGE_REPO=zeekurity ./ci/container-images-tag-and-push.sh
   depends_on:
     - arm64_container_image
     - amd64_container_image

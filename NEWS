@@ -31,6 +31,10 @@ New Functionality
   the break statement within ``assertion_failure()`` or ``assertion_result()``
   allows to suppress the default message.
 
+- The ``from_json()`` function now takes an optional key_func argument to
+  normalize JSON object key names. This can be useful if the keys in a JSON
+  object are not valid Zeek identifiers or reserved keywords.
+
 Changed Functionality
 ---------------------
 
@@ -109,6 +113,10 @@ Breaking Changes
   release. Older versions will trigger a warning at configuration time and,
   depending on the functionality included in the plugin, may trigger subsequent
   errors during configuration or build.
+
+- Zeek container images are not pushed to the zeekurity organization anymore.
+  Please switch to using the ``zeek/zeek`` image on DockerHub, or the images
+  published to ``public.ecr.aws/zeek/zeek``.
 
 - The IRC_Data analyzer declaration has been moved to protocols/irc/IRC.h.
 

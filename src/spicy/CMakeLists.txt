@@ -17,6 +17,7 @@ zeek_add_subdir_library(
     spicy.bif)
 
 target_link_libraries(zeek_spicy_obj PRIVATE hilti spicy)
+prefer_configured_spicy_include_dirs(zeek_spicy_obj)
 
 set(ZEEK_SPICY_MODULE_PATH "${CMAKE_INSTALL_FULL_LIBDIR}/zeek/spicy" CACHE PATH "")
 install(DIRECTORY DESTINATION "${ZEEK_SPICY_MODULE_PATH}")

@@ -420,9 +420,9 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 	NL();
 
 	Emit("std::vector<ValPtr> CPP__local_aggrs;");
-	for ( auto l : wi->WhenExprLocals() )
+	for ( auto& l : wi->WhenExprLocals() )
 		if ( IsAggr(l->GetType()) )
-			Emit("CPP__local_aggrs.emplace_back(%s);", IDNameStr(l));
+			Emit("CPP__local_aggrs.emplace_back(%s);", IDNameStr(l.get()));
 
 	Emit("CPP__wi->Instantiate(%s);", GenExpr(wi->Lambda(), GEN_NATIVE));
 
@@ -446,7 +446,7 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 		{
 		Emit("ValPtr retval = {NewRef{}, curr_t->Lookup(curr_assoc)};");
 		Emit("if ( ! retval )");
-		Emit("\tthrow DelayedCallException();");
+		Emit("\tthrow CPPDelayedCallException();");
 		Emit("return %s;", GenericValPtrToGT("retval", ret_type, GEN_NATIVE));
 		}
 

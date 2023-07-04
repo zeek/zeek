@@ -12,7 +12,7 @@
 # The Gen-ZAM utility processes this file to generate numerous C++ inclusion
 # files that are then compiled into Zeek.  These files span the range of (1)
 # hooks that enable run-time generation of ZAM code to execute ASTs (which
-# have first been transformed to "reduced" form, (2) specifications of the
+# have first been transformed to "reduced" form), (2) specifications of the
 # properties of the different instructions, (3) code to evaluate (execute)
 # each instruction, and (4) macros (C++ #define's) to aid in writing that
 # code.  See Gen-ZAM.h for a list of the different inclusion files.
@@ -947,11 +947,19 @@ eval	EvalIndexVecIntSelect(z.c, frame[z.v2])
 
 op Index
 type VVL
-custom-method return CompileIndex(n1, n2, l);
+custom-method return CompileIndex(n1, n2, l, false);
 
 op Index
 type VCL
-custom-method return CompileIndex(n, c, l);
+custom-method return CompileIndex(n, c, l, false);
+
+op WhenIndex
+type VVL
+custom-method return CompileIndex(n1, n2, l, true);
+
+op WhenIndex
+type VCL
+custom-method return CompileIndex(n, c, l, true);
 
 internal-op Index-Vec
 type VVV
@@ -988,22 +996,51 @@ internal-op Index-Any-VecC
 type VVV
 eval	EvalIndexAnyVec(z.v3)
 
-internal-op Index-Vec-Slice
-type VV
-eval	auto vec = frame[z.v2].vector_val;
+macro	WhenIndexResCheck()
+	auto& res = frame[z.v1].vector_val;
+	if ( res && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.push_back({NewRef{}, res});
+
+internal-op When-Index-Vec
+type VVV
+eval	EvalIndexAnyVec(frame[z.v3].uint_val)
+	WhenIndexResCheck()
+
+internal-op When-Index-VecC
+type VVV
+eval	EvalIndexAnyVec(z.v3)
+	WhenIndexResCheck()
+
+macro	EvalVecSlice()
+	auto vec = frame[z.v2].vector_val;
 	auto lv = z.aux->ToListVal(frame);
 	auto v = index_slice(vec, lv.get());
 	Unref(frame[z.v1].vector_val);
 	frame[z.v1].vector_val = v.release();
+
+internal-op Index-Vec-Slice
+type VV
+eval	EvalVecSlice()
+
+internal-op When-Index-Vec-Slice
+type VV
+eval	EvalVecSlice()
+	WhenIndexResCheck()
 
 internal-op Table-Index
 type VV
 eval	EvalTableIndex(z.aux->ToListVal(frame))
 	AssignV1(BuildVal(v, z.t))
 
+internal-op When-Table-Index
+type VV
+eval	EvalTableIndex(z.aux->ToListVal(frame))
+	if ( IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	AssignV1(BuildVal(v, z.t))
+
 macro EvalTableIndex(index)
-	auto v2 = index;
-	auto v = frame[z.v2].table_val->FindOrDefault(v2);
+	auto v = frame[z.v2].table_val->FindOrDefault(index);
 	if ( ! v )
 		{
 		ZAM_run_time_error(z.loc, "no such index");
@@ -1091,6 +1128,15 @@ eval	ConstructTableOrSetPre()
 		i += ind_width;
 		}
 	ConstructTableOrSetPost()
+
+# When tables are constructed, if their &default is a lambda with captures
+# then we need to explicitly set up the default.
+internal-op Set-Table-Default-Lambda
+type VV
+op1-read
+eval	auto& tbl = frame[z.v1].table_val;
+	auto lambda = frame[z.v2].ToVal(z.t);
+	tbl->InitDefaultVal(lambda);
 
 direct-unary-op Set-Constructor ConstructSet
 
@@ -1527,6 +1573,49 @@ assign-val v
 indirect-call
 num-call-args n
 
+# A call made in a "when" context.  These always have assignment targets.
+# To keep things simple, we just use one generic flavor (for N arguments,
+# doing a less-streamlined-but-simpler Val-based assignment).
+macro WhenCall(func)
+	if ( ! func )
+		throw ZAMDelayedCallException();
+	auto& lhs = frame[z.v1];
+	auto trigger = f->GetTrigger();
+	Val* v = trigger ? trigger->Lookup(z.call_expr) : nullptr;
+	ValPtr vp;
+	if ( v )
+		vp = {NewRef{}, v};
+	else
+		{
+		auto aux = z.aux;
+		auto current_assoc = f->GetTriggerAssoc();
+		auto n = aux->n;
+		std::vector<ValPtr> args;
+		for ( auto i = 0; i < n; ++i )
+			args.push_back(aux->ToVal(frame, i));
+		f->SetCall(z.call_expr);
+		vp = func->Invoke(&args, f);
+		f->SetTriggerAssoc(current_assoc);
+		if ( ! vp )
+			throw ZAMDelayedCallException();
+		}
+	if ( z.is_managed )
+		ZVal::DeleteManagedType(lhs);
+	lhs = ZVal(vp, z.t);
+
+internal-op WhenCallN
+type V
+side-effects
+eval	WhenCall(z.func)
+
+internal-op WhenIndCallN
+type VV
+side-effects
+eval	auto sel = z.v2;
+	auto func = (sel < 0) ? z.aux->id_val->GetVal()->AsFunc() : frame[sel].AsFunc();
+	WhenCall(func)
+
+
 ########## Statements ##########
 
 macro EvalScheduleArgs(time, is_delta, build_args)
@@ -1956,6 +2045,35 @@ eval	auto tt = cast_intrusive<TableType>(z.t);
 	Unref(frame[z.v1].table_val);
 	frame[z.v1].table_val = t;
 
+op When
+type V
+op1-read
+eval	BuildWhen(-1.0)
+
+op When-Timeout
+type VV
+op1-read
+eval	BuildWhen(frame[z.v2].double_val)
+
+op When-Timeout
+type VC
+op1-read
+eval	BuildWhen(z.c.double_val)
+
+macro BuildWhen(timeout)
+	auto& aux = z.aux;
+	auto wi = aux->wi;
+	FuncPtr func{NewRef{}, frame[z.v1].func_val};
+	auto lambda = make_intrusive<FuncVal>(func);
+	wi->Instantiate(lambda);
+	std::vector<ValPtr> local_aggrs;
+	for ( int i = 0; i < aux->n; ++i )
+		{
+		auto v = aux->ToVal(frame, i);
+		if ( v )
+			local_aggrs.push_back(v);
+		}
+	new trigger::Trigger(wi, timeout, wi->WhenExprGlobals(), local_aggrs, f, z.loc);
 
 ########################################
 # Internal
@@ -1994,7 +2112,7 @@ assign-val v
 eval	auto v = globals[z.v2].id->GetVal();
 	if ( ! v )
 		{
-		ZAM_run_time_error(z.loc, "value used but not set", z.aux->id_val);
+		ZAM_run_time_error(z.loc, "value used but not set", z.aux->id_val.get());
 		break;
 		}
 
@@ -2007,11 +2125,40 @@ eval	auto& v = frame[z.v1].type_val;
 	auto t = globals[z.v2].id->GetType();
 	v = new TypeVal(t, true);
 
+internal-op Load-Capture
+type VV
+eval	frame[z.v1] = f->GetFunction()->GetCapturesVec()[z.v2];
+
+internal-op Load-Managed-Capture
+type VV
+eval	auto& lhs = frame[z.v1];
+	auto& rhs = f->GetFunction()->GetCapturesVec()[z.v2];
+	zeek::Ref(rhs.ManagedVal());
+	ZVal::DeleteManagedType(lhs);
+	lhs = rhs;
+
 internal-op Store-Global
 op1-internal
 type V
 eval	auto& g = globals[z.v1];
 	g.id->SetVal(frame[g.slot].ToVal(z.t));
+
+# Both of these have the LHS as v2 not v1, to keep with existing
+# conventions of OP_VV_I2 op type (as opposed to OP_VV_I1_V2, which doesn't
+# currently exist, and would be a pain to add).
+internal-op Store-Capture
+op1-read
+type VV
+eval	f->GetFunction()->GetCapturesVec()[z.v2] = frame[z.v1];
+
+internal-op Store-Managed-Capture
+op1-read
+type VV
+eval	auto& lhs = f->GetFunction()->GetCapturesVec()[z.v2];
+	auto& rhs = frame[z.v1];
+	zeek::Ref(rhs.ManagedVal());
+	ZVal::DeleteManagedType(lhs);
+	lhs = rhs;
 
 
 internal-op Copy-To
@@ -2029,6 +2176,37 @@ eval	flow = FLOW_BREAK;
 	pc = end_pc;
 	continue;
 
+# Slot 2 gives frame size.
+internal-op Lambda
+type VV
+eval	auto& aux = z.aux;
+	auto& primary_func = aux->primary_func;
+	auto& body = primary_func->GetBodies()[0].stmts;
+	ASSERT(body->Tag() == STMT_ZAM);
+	auto lamb = make_intrusive<ScriptFunc>(aux->id_val);
+	lamb->AddBody(body, z.v2);
+	lamb->SetName(aux->lambda_name.c_str());
+	if ( aux->n > 0 )
+		{
+		auto captures = std::make_unique<std::vector<ZVal>>();
+		for ( auto i = 0; i < aux->n; ++i )
+			{
+			auto slot = aux->slots[i];
+			if ( slot >= 0 )
+				{
+				auto& cp = frame[aux->slots[i]];
+				if ( aux->is_managed[i] )
+					zeek::Ref(cp.ManagedVal());
+				captures->push_back(cp);
+				}
+			else
+				// Used for when-locals.
+				captures->push_back(ZVal());
+			}
+		lamb->CreateCaptures(std::move(captures));
+		}
+	ZVal::DeleteManagedType(frame[z.v1]);
+	frame[z.v1].func_val = lamb.release();
 
 ########################################
 # Built-in Functions

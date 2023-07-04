@@ -699,6 +699,15 @@ TypePtr SetType::ShallowClone()
 
 SetType::~SetType() = default;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+FuncType::Capture::Capture(detail::IDPtr _id, bool _deep_copy)
+	: id(std::move(_id)), deep_copy(_deep_copy)
+	{
+	is_managed = id ? ZVal::IsManagedType(id->GetType()) : false;
+	}
+#pragma GCC diagnostic pop
+
 FuncType::FuncType(RecordTypePtr arg_args, TypePtr arg_yield, FunctionFlavor arg_flavor)
 	: Type(TYPE_FUNC), args(std::move(arg_args)), arg_types(make_intrusive<TypeList>()),
 	  yield(std::move(arg_yield))
@@ -788,9 +797,12 @@ bool FuncType::CheckArgs(const std::vector<TypePtr>& args, bool is_init, bool do
 	if ( my_args.size() != args.size() )
 		{
 		if ( do_warn )
+			{
 			Warn(util::fmt("Wrong number of arguments for function. Expected %zu, got %zu.",
 			               args.size(), my_args.size()));
-		const_cast<FuncType*>(this)->reported_error = true;
+			const_cast<FuncType*>(this)->reported_error = true;
+			}
+
 		return false;
 		}
 

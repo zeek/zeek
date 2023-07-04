@@ -92,6 +92,7 @@ private:
 	void Init();
 	void InitGlobals();
 	void InitArgs();
+	void InitCaptures();
 	void InitLocals();
 	void TrackMemoryManagement();
 
@@ -137,6 +138,7 @@ private:
 	const ZAMStmt CompileCatchReturn(const CatchReturnStmt* cr);
 	const ZAMStmt CompileStmts(const StmtList* sl);
 	const ZAMStmt CompileInit(const InitStmt* is);
+	const ZAMStmt CompileWhen(const WhenStmt* ws);
 
 	const ZAMStmt CompileNext() { return GenGoTo(nexts.back()); }
 	const ZAMStmt CompileBreak() { return GenGoTo(breaks.back()); }
@@ -219,10 +221,15 @@ private:
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const ListExpr* l, const NameExpr* n2,
 	                            const ConstExpr* c);
 
-	const ZAMStmt CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l);
-	const ZAMStmt CompileIndex(const NameExpr* n1, const ConstExpr* c, const ListExpr* l);
+	const ZAMStmt CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l,
+	                           bool in_when);
+	const ZAMStmt CompileIndex(const NameExpr* n1, const ConstExpr* c, const ListExpr* l,
+	                           bool in_when);
 	const ZAMStmt CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2_type,
-	                           const ListExpr* l);
+	                           const ListExpr* l, bool in_when);
+
+	const ZAMStmt BuildLambda(const NameExpr* n, LambdaExpr* le);
+	const ZAMStmt BuildLambda(int n_slot, LambdaExpr* le);
 
 	// Second argument is which instruction slot holds the branch target.
 	const ZAMStmt GenCond(const Expr* e, int& branch_v);
@@ -350,8 +357,15 @@ private:
 
 	bool IsUnused(const IDPtr& id, const Stmt* where) const;
 
+	bool IsCapture(const IDPtr& id) const { return IsCapture(id.get()); }
+	bool IsCapture(const ID* id) const;
+
+	int CaptureOffset(const IDPtr& id) const { return IsCapture(id.get()); }
+	int CaptureOffset(const ID* id) const;
+
 	void LoadParam(const ID* id);
 	const ZAMStmt LoadGlobal(const ID* id);
+	const ZAMStmt LoadCapture(const ID* id);
 
 	int AddToFrame(const ID*);
 
@@ -444,14 +458,6 @@ private:
 	// the beginning/end of any loop(s) of depth >= 2".
 	const ZInstI* BeginningOfLoop(const ZInstI* inst, int depth) const;
 	const ZInstI* EndOfLoop(const ZInstI* inst, int depth) const;
-
-	// True if any statement other than a frame sync assigns to the
-	// given slot.
-	bool VarIsAssigned(int slot) const;
-
-	// True if the given statement assigns to the given slot, and
-	// it's not a frame sync.
-	bool VarIsAssigned(int slot, const ZInstI* i) const;
 
 	// True if any statement other than a frame sync uses the given slot.
 	bool VarIsUsed(int slot) const;
@@ -599,8 +605,10 @@ private:
 
 	// Used for communication between Frame1Slot and a subsequent
 	// AddInst.  If >= 0, then upon adding the next instruction,
-	// it should be followed by Store-Global for the given slot.
+	// it should be followed by Store-Global or Store-Capture for
+	// the given slot.
 	int pending_global_store = -1;
+	int pending_capture_store = -1;
 	};
 
 // Invokes after compiling all of the function bodies.

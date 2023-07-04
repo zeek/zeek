@@ -20,20 +20,6 @@ bool ZAM_error = false;
 
 bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason)
 	{
-	if ( pf->NumLambdas() > 0 )
-		{
-		if ( reason )
-			*reason = "use of lambda";
-		return false;
-		}
-
-	if ( pf->NumWhenStmts() > 0 )
-		{
-		if ( reason )
-			*reason = "use of \"when\"";
-		return false;
-		}
-
 	auto b = pf->ProfiledBody();
 	auto is_hook = pf->ProfiledFunc()->Flavor() == FUNC_FLAVOR_HOOK;
 	if ( b && ! script_is_valid(b, is_hook) )

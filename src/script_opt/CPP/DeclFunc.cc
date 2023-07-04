@@ -29,8 +29,8 @@ void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf)
 	ASSERT(is_CPP_compilable(pf));
 
 	auto lname = Canonicalize(l->Name().c_str()) + "_lb";
-	auto body = l->Ingredients().Body();
-	auto l_id = l->Ingredients().GetID();
+	auto body = l->Ingredients()->Body();
+	auto l_id = l->Ingredients()->GetID();
 	auto& ids = l->OuterIDs();
 
 	for ( auto id : ids )

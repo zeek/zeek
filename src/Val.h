@@ -968,8 +968,12 @@ public:
 
 	// If the &default attribute is not a function, or the function has
 	// already been initialized, this does nothing. Otherwise, evaluates
-	// the function in the frame allowing it to capture its closure.
+	// the function in the frame, allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
+
+	// An alternative that assigns the default value directly.  Used
+	// by ZAM compilation.
+	void InitDefaultVal(ValPtr def_val);
 
 	void ClearTimer(detail::Timer* t)
 		{
@@ -1800,7 +1804,11 @@ namespace detail
 // Parses a JSON string into arbitrary Zeek data using std::variant to simulate functional exception
 // handling. Returns a ValPtr if parsing was successful, or a std::string containing an error
 // message if an error occurred.
-extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t);
+//
+// The *key_func* parameter is a Zeek script function called for every JSON key
+// for normalization. If Func::nil is passed, no normalization happens.
+extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t,
+                                                     const FuncPtr& key_func);
 	}
 
 	} // namespace zeek

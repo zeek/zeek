@@ -131,6 +131,13 @@ type files_tag_set: set[Files::Tag];
 ##    directly and then remove this alias.
 type interval_set: set[interval];
 
+## Function mapping a string to a string.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type string_mapper: function(s: string): string;
+
 ## A structure indicating a MIME type and strength of a match against
 ## file magic signatures.
 ##
@@ -1128,6 +1135,12 @@ type entropy_test_result: record {
 	monte_carlo_pi: double;	##< Monte-carlo value for pi.
 	serial_correlation: double;	##< Serial correlation coefficient.
 };
+
+## The default JSON key mapper function. Identity function.
+function from_json_default_key_mapper(s: string): string
+	{
+	return s;
+	}
 
 ## Return type for from_json BIF.
 ##

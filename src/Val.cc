@@ -1064,7 +1064,8 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
 	return make_intrusive<StringVal>(new String(true, result, r - result));
 	}
 
-static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t)
+static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t,
+                                                  const FuncPtr& key_func)
 	{
 	auto mismatch_err = [t, &j]()
 	{
@@ -1278,9 +1279,9 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 				std::variant<ValPtr, std::string> v;
 
 				if ( tl->GetTypes().size() == 1 )
-					v = BuildVal(item, tl->GetPureType());
+					v = BuildVal(item, tl->GetPureType(), key_func);
 				else
-					v = BuildVal(item, tl);
+					v = BuildVal(item, tl, key_func);
 
 				if ( ! get_if<ValPtr>(&v) )
 					return v;
@@ -1301,24 +1302,62 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 
 			auto rt = t->AsRecordType();
 			auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
+
+			std::map<std::string, const rapidjson::Value*> normalized_keys;
+
+			// If key_func is given, map all JSON keys and store in above map.
+			if ( key_func )
+				{
+				for ( auto it = j.MemberBegin(); it != j.MemberEnd(); it++ )
+					{
+					ValPtr result;
+					try
+						{
+						result = key_func->Invoke(
+							zeek::make_intrusive<StringVal>(it->name.GetString()));
+						}
+					catch ( InterpreterException& )
+						{
+						/* Already reported. */
+						}
+
+					if ( ! result )
+						return "key function error";
+
+					normalized_keys[result->AsStringVal()->CheckString()] = &it->value;
+					}
+				}
+
+			// Now lookup record fields using the normalized input.
 			for ( int i = 0; i < rt->NumFields(); ++i )
 				{
-				auto td_i = rt->FieldDecl(i);
-				auto m_it = j.FindMember(td_i->id);
-				bool has_member = m_it != j.MemberEnd();
-				bool member_is_null = has_member && m_it->value.IsNull();
+				const auto td_i = rt->FieldDecl(i);
+				const rapidjson::Value* jval = nullptr;
 
-				if ( ! has_member || member_is_null )
+				if ( key_func )
+					{
+					auto m_it = normalized_keys.find(td_i->id);
+					jval = m_it != normalized_keys.end() ? m_it->second : nullptr;
+					}
+				else
+					{
+					auto m_it = j.FindMember(td_i->id);
+					jval = m_it != j.MemberEnd() ? &m_it->value : nullptr;
+					}
+
+				if ( ! jval || jval->IsNull() )
 					{
 					if ( ! td_i->GetAttr(detail::ATTR_OPTIONAL) &&
 					     ! td_i->GetAttr(detail::ATTR_DEFAULT) )
+						// jval being set means it is a null JSON value else
+						// it wasn't even there.
 						return util::fmt("required field %s$%s is %s in JSON", t->GetName().c_str(),
-						                 td_i->id, member_is_null ? "null" : "missing");
+						                 td_i->id, jval ? "null" : "missing");
 
 					continue;
 					}
 
-				auto v = BuildVal(m_it->value, td_i->type);
+				auto v = BuildVal(*jval, td_i->type, key_func);
 				if ( ! get_if<ValPtr>(&v) )
 					return v;
 
@@ -1342,7 +1381,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 
 			for ( size_t i = 0; i < lt->GetTypes().size(); i++ )
 				{
-				auto v = BuildVal(j.GetArray()[i], lt->GetTypes()[i]);
+				auto v = BuildVal(j.GetArray()[i], lt->GetTypes()[i], key_func);
 				if ( ! get_if<ValPtr>(&v) )
 					return v;
 
@@ -1361,7 +1400,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 			auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
 			for ( const auto& item : j.GetArray() )
 				{
-				auto v = BuildVal(item, vt->Yield());
+				auto v = BuildVal(item, vt->Yield(), key_func);
 				if ( ! get_if<ValPtr>(&v) )
 					return v;
 
@@ -1379,7 +1418,8 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 		}
 	}
 
-std::variant<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t)
+std::variant<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t,
+                                                      const FuncPtr& key_func)
 	{
 	rapidjson::Document doc;
 	rapidjson::ParseResult ok = doc.Parse(json_str.data(), json_str.length());
@@ -1388,7 +1428,7 @@ std::variant<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str,
 		return util::fmt("JSON parse error: %s Offset: %lu", rapidjson::GetParseError_En(ok.Code()),
 		                 ok.Offset());
 
-	return BuildVal(doc, t);
+	return BuildVal(doc, t, key_func);
 	}
 
 ValPtr StringVal::DoClone(CloneState* state)
@@ -2745,6 +2785,11 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 		return; // TableVal::Default will handle this.
 
 	def_val = def_attr->GetExpr()->Eval(f);
+	}
+
+void TableVal::InitDefaultVal(ValPtr _def_val)
+	{
+	def_val = std::move(_def_val);
 	}
 
 void TableVal::InitTimer(double delay)

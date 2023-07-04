@@ -38,6 +38,13 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- A connection's value is now updated in-place when its directionality is
+  flipped due to Zeek's heuristics (for example, SYN/SYN-ACK reversal or
+  protocol specific approaches).
+  Previously, a connection's value was discarded when flipped, including any
+  values set in a ``new_connection()`` handler. A new ``connection_flipped()``
+  event is added to allow updating custom state in script-land.
+
 Removed Functionality
 ---------------------
 

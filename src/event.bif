@@ -194,6 +194,17 @@ event connection_reused%(c: connection%);
 ##    new_connection new_connection_contents partial_connection
 event connection_status_update%(c: connection%);
 
+## Generated for a connection when the direction was flipped by Zeek's
+## heuristics and originator and responder roles were reversed. If state is
+## kept on a connection record for originator and responder, this event
+## can be used to update or reset such state. The ``orig`` and ``resp`` fields
+## as well as the contents of the ``id`` field reflect the post-flip state.
+##
+## c: The connection.
+##
+## .. zeek:see:: connection_established new_connection
+event connection_flipped%(c: connection%);
+
 ## Generated for a connection over IPv6 when one direction has changed
 ## the flow label that it's using.
 ##

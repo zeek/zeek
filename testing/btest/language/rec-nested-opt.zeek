@@ -1,6 +1,8 @@
 # @TEST-EXEC: zeek -b %INPUT >output 2>&1
 # @TEST-EXEC: btest-diff output
 
+module Test;
+
 type Version: record {
         major:  count &optional;    ##< Major version number
         minor:  count &optional;    ##< Minor version number

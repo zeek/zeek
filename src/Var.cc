@@ -470,6 +470,18 @@ void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr)
 		id->SetAttrs(make_intrusive<Attributes>(std::move(*attr), tnew, false, false));
 	}
 
+static std::set<std::string> all_module_names;
+
+void add_module(const char* module_name)
+	{
+	all_module_names.emplace(module_name);
+	}
+
+const std::set<std::string>& module_names()
+	{
+	return all_module_names;
+	}
+
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
 	{
 	for ( int i = 0; i < args->NumFields(); ++i )

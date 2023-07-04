@@ -90,8 +90,6 @@ const char* last_tok_filename = 0;
 const char* last_last_tok_filename = 0;
 char last_tok[128];
 
-extern std::set<std::string> module_names;
-
 #define YY_USER_ACTION	strncpy(last_tok, yytext, sizeof(last_tok) - 1); \
                         last_last_tok_filename = last_tok_filename; \
                         last_tok_filename = ::filename;
@@ -882,7 +880,7 @@ void do_atifdef(const char* id)
 	// If the ID didn't exist, look to see if this is a module name instead.
 	bool found = (i != nullptr);
 	if ( ! found )
-		found = (module_names.count(id) != 0);
+		found = (zeek::detail::module_names().count(id) != 0);
 
 	if ( ! found )
 		begin_ignoring();
@@ -897,7 +895,7 @@ void do_atifndef(const char *id)
 	// If the ID didn't exist, look to see if this is a module name instead.
 	bool found = (i != nullptr);
 	if ( ! found )
-		found = (module_names.count(id) != 0);
+		found = (zeek::detail::module_names().count(id) != 0);
 
 	if ( found )
 		begin_ignoring();

@@ -231,21 +231,6 @@ type flow_id : record {
 	dst_p: port;	##< The destination port number.
 } &log;
 
-## Specifics about an ICMP conversation. ICMP events typically pass this in
-## addition to :zeek:type:`conn_id`.
-##
-## .. zeek:see:: icmp_echo_reply icmp_echo_request icmp_redirect icmp_sent
-##    icmp_time_exceeded icmp_unreachable
-type icmp_conn: record {
-	orig_h: addr;	##< The originator's IP address.
-	resp_h: addr;	##< The responder's IP address.
-	itype: count;	##< The ICMP type of the packet that triggered the instantiation of the record.
-	icode: count;	##< The ICMP code of the packet that triggered the instantiation of the record.
-	len: count;	##< The length of the ICMP payload of the packet that triggered the instantiation of the record.
-	hlim: count;	##< The encapsulating IP header's Hop Limit value.
-	v6: bool;	##< True if it's an ICMPv6 packet.
-};
-
 ## Specifics about an ICMP conversation/packet.
 ## ICMP events typically pass this in addition to :zeek:type:`conn_id`.
 ##

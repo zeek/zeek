@@ -514,7 +514,8 @@ file(
     "export PATH=\"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
     "export SPICY_PATH=`${cmake_binary_dir}/spicy-path`\n"
     "export HILTI_CXX_INCLUDE_DIRS=`${cmake_binary_dir}/hilti-cxx-include-dirs`\n"
-    "export ZEEK_SPICY_LIBRARY_PATH=${cmake_source_dir}/scripts/spicy\n")
+    "export ZEEK_SPICY_LIBRARY_PATH=${cmake_source_dir}/scripts/spicy\n"
+    "export SPICY_BUILD_DIRECTORY=${cmake_binary_dir}/auxil/spicy\n")
 
 file(
     WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
@@ -523,7 +524,8 @@ file(
     "setenv PATH \"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
     "setenv SPICY_PATH \"`${cmake_binary_dir}/spicy-path`\"\n"
     "setenv HILTI_CXX_INCLUDE_DIRS \"`${cmake_binary_dir}/hilti-cxx-include-dirs`\"\n"
-    "setenv ZEEK_SPICY_LIBRARY_PATH \"${cmake_source_dir}/scripts/spicy\"\n")
+    "setenv ZEEK_SPICY_LIBRARY_PATH \"${cmake_source_dir}/scripts/spicy\"\n"
+    "setenv SPICY_BUILD_DIRECTORY \"${cmake_binary_dir}/auxil/spicy\"\n")
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
 execute_process(

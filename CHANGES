@@ -1,3 +1,13 @@
+6.0.0-rc3.5 | 2023-07-05 08:30:35 -0700
+
+  * Bump Spicy to latest release. (Benjamin Bannier, Corelight)
+
+    This bumps Spicy to 1.8.1 which fixes #3101.
+
+  * Update zeekjs submodule to 0.9.4 (Arne Welzel, Corelight)
+
+  * Update cmake submodule for cp -R fix (Tim Wojtulewicz, Corelight)
+
 6.0.0-rc3 | 2023-06-22 10:18:33 -0700
 
   * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz)

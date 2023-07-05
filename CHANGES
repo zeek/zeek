@@ -1,3 +1,12 @@
+6.1.0-dev.164 | 2023-07-05 10:23:27 -0700
+
+  * Bump Spicy to latest release. (Benjamin Bannier, Corelight)
+
+    This is the `master` branch companion patch for `release/6.0`'s
+    d6ad7f56c56925c0b0b3f27e98eb13b66e956c8f.
+
+    Closes #3101.
+
 6.1.0-dev.161 | 2023-07-05 08:33:36 -0700
 
   * Update binpac, bifcl, and broker submodules for funsigned-char change (Tim Wojtulewicz, Corelight)

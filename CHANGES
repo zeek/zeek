@@ -1,3 +1,11 @@
+6.1.0-dev.161 | 2023-07-05 08:33:36 -0700
+
+  * Update binpac, bifcl, and broker submodules for funsigned-char change (Tim Wojtulewicz, Corelight)
+
+  * Add /J flag on Windows to force unsigned char (Tim Wojtulewicz, Corelight)
+
+  * Use -funsigned-char flag when building Zeek (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.157 | 2023-07-05 15:24:57 +0200
 
   * GH-3136: global_ids(): Include module names (Arne Welzel, Corelight)

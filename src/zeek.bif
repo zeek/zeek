@@ -2106,17 +2106,20 @@ function val_footprint%(v: any%): count
 ## exported, a constant, an enum constant, redefinable, and its value (if it
 ## has one).
 ##
+## Module names are included in the returned table as well. The ``type_name``
+## field is set to  "module" and their names are prefixed with "module " to avoid
+## clashing with global identifiers. Note that there is no module type in Zeek.
+##
 ## Returns: A table that maps identifier names to information about them.
 function global_ids%(%): id_table
 	%{
 	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
-	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
-	const auto& globals = zeek::detail::global_scope()->Vars();
+	static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 
-	for ( const auto& global : globals )
+	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
+
+	for ( const auto& [_, id] : zeek::detail::global_scope()->Vars() )
 		{
-		const auto& id = global.second;
-		static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
 		rec->Assign(0, type_name(id->GetType()->Tag()));
 		rec->Assign(1, id->IsExport());
@@ -2130,6 +2133,23 @@ function global_ids%(%): id_table
 			rec->Assign(7, id->GetVal());
 
 		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
+		ids->Assign(std::move(id_name), std::move(rec));
+		}
+
+	auto module_str = zeek::make_intrusive<zeek::StringVal>("module");
+
+	for ( const auto& module_name : zeek::detail::module_names() )
+		{
+		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
+		rec->Assign(0, module_str); // type_name
+		rec->Assign(1, false); // exported
+		rec->Assign(2, false); // constant
+		rec->Assign(3, false); // enum_constant
+		rec->Assign(4, false); // option_value
+		rec->Assign(5, false); // redefinable
+		rec->Assign(6, false); // broker_backend
+
+		auto id_name = zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("module %s", module_name.c_str()));
 		ids->Assign(std::move(id_name), std::move(rec));
 		}
 

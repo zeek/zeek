@@ -35,6 +35,10 @@ New Functionality
   normalize JSON object key names. This can be useful if the keys in a JSON
   object are not valid Zeek identifiers or reserved keywords.
 
+- Module names are now included in ``global_ids()``. Their key in the returned
+  table is prefixed with "module " and their value will have the ``type_name``
+  field set to "module".
+
 Changed Functionality
 ---------------------
 

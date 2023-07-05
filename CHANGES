@@ -1,3 +1,14 @@
+6.1.0-dev.157 | 2023-07-05 15:24:57 +0200
+
+  * GH-3136: global_ids(): Include module names (Arne Welzel, Corelight)
+
+    Ad-hoc include module names in the global_ids() table. Table values will
+    have the type_name field set to "module" and their key in the table is
+    prefixed with "module " to avoid clashes with existing global identifiers
+    shadowing module names (Management::Node being an existing example).
+
+  * Update package-manager submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.154 | 2023-06-30 17:32:17 +0200
 
   * Update zeekjs submodule to 0.9.4 (Arne Welzel, Corelight)

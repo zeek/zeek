@@ -42,6 +42,10 @@ extern ExprPtr add_and_assign_local(IDPtr id, ExprPtr init, ValPtr val);
 
 extern void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr);
 
+extern void add_module(const char* module_name);
+
+const std::set<std::string>& module_names();
+
 extern void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool is_redef,
                        FuncTypePtr t, std::unique_ptr<std::vector<AttrPtr>> attrs = nullptr);
 

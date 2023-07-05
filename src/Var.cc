@@ -771,8 +771,12 @@ public:
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
-	std::vector<ScopePtr> scopes;
 	std::unordered_set<ID*> outer_id_references;
+
+private:
+	bool IsLocal(const ID* id) const;
+
+	std::vector<ScopePtr> scopes;
 	};
 
 TraversalCode OuterIDBindingFinder::PreStmt(const Stmt* stmt)
@@ -783,7 +787,11 @@ TraversalCode OuterIDBindingFinder::PreStmt(const Stmt* stmt)
 	auto ws = static_cast<const WhenStmt*>(stmt);
 
 	for ( auto& cl : ws->Info()->WhenExprLocals() )
-		outer_id_references.insert(const_cast<ID*>(cl.get()));
+		{
+		auto id = const_cast<ID*>(cl.get());
+		if ( ! IsLocal(id) )
+			outer_id_references.insert(id);
+		}
 
 	return TC_ABORTSTMT;
 	}
@@ -806,13 +814,9 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	if ( id->IsGlobal() )
 		return TC_CONTINUE;
 
-	for ( const auto& scope : scopes )
-		if ( scope->Find(id->Name()) )
-			// Shadowing is not allowed, so if it's found at inner scope, it's
-			// not something we have to worry about also being at outer scope.
-			return TC_CONTINUE;
+	if ( ! IsLocal(id) )
+		outer_id_references.insert(id);
 
-	outer_id_references.insert(id);
 	return TC_CONTINUE;
 	}
 
@@ -822,6 +826,18 @@ TraversalCode OuterIDBindingFinder::PostExpr(const Expr* expr)
 		scopes.pop_back();
 
 	return TC_CONTINUE;
+	}
+
+bool OuterIDBindingFinder::IsLocal(const ID* id) const
+	{
+	for ( const auto& scope : scopes )
+		if ( scope->Find(id->Name()) )
+			// Shadowing is not allowed, so if it's found at inner
+			// scope, it's not something we have to worry about
+			// also being at outer scope.
+			return true;
+
+	return false;
 	}
 
 // The following is only used for debugging AST duplication.  If activated,

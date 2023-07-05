@@ -217,6 +217,29 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t
 	EnqueueEvent(e, nullptr, GetVal(), val_mgr->Bool(is_orig), val_mgr->Count(threshold));
 	}
 
+namespace
+	{
+// Flip everything that needs to be flipped in the connection
+// record that is known on this level. This needs to align
+// with GetVal() and connection's layout in init-bare.
+void flip_conn_val(const RecordValPtr& conn_val)
+	{
+	// Flip the the conn_id (c$id).
+	const auto& id_val = conn_val->GetField<zeek::RecordVal>(0);
+	const auto& tmp_addr = id_val->GetField<zeek::AddrVal>(0);
+	const auto& tmp_port = id_val->GetField<zeek::PortVal>(1);
+	id_val->Assign(0, id_val->GetField<zeek::AddrVal>(2));
+	id_val->Assign(1, id_val->GetField<zeek::PortVal>(3));
+	id_val->Assign(2, tmp_addr);
+	id_val->Assign(3, tmp_port);
+
+	// Flip the endpoints within connection.
+	const auto& tmp_endp = conn_val->GetField<zeek::RecordVal>(1);
+	conn_val->Assign(1, conn_val->GetField(2));
+	conn_val->Assign(2, tmp_endp);
+	}
+	}
+
 const RecordValPtr& Connection::GetVal()
 	{
 	if ( ! conn_val )
@@ -315,18 +338,6 @@ void Connection::AppendAddl(const char* str)
 	cv->Assign(6, util::fmt(format, old, str));
 	}
 
-// Returns true if the character at s separates a version number.
-static inline bool is_version_sep(const char* s, const char* end)
-	{
-	return
-		// foo-1.2.3
-		(s < end - 1 && ispunct(s[0]) && isdigit(s[1])) ||
-		// foo-v1.2.3
-		(s < end - 2 && ispunct(s[0]) && tolower(s[1]) == 'v' && isdigit(s[2])) ||
-		// foo 1.2.3
-		isspace(s[0]);
-	}
-
 void Connection::Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig,
                        bool bol, bool eol, bool clear_state)
 	{
@@ -370,7 +381,8 @@ void Connection::FlipRoles()
 	resp_flow_label = orig_flow_label;
 	orig_flow_label = tmp_flow;
 
-	conn_val = nullptr;
+	if ( conn_val )
+		flip_conn_val(conn_val);
 
 	if ( adapter )
 		adapter->FlipRoles();
@@ -378,6 +390,9 @@ void Connection::FlipRoles()
 	analyzer_mgr->ApplyScheduledAnalyzers(this);
 
 	AddHistory('^');
+
+	if ( connection_flipped )
+		EnqueueEvent(connection_flipped, nullptr, GetVal());
 	}
 
 void Connection::Describe(ODesc* d) const

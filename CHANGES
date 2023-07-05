@@ -1,3 +1,29 @@
+6.1.0-dev.170 | 2023-07-05 13:32:21 -0700
+
+  * Update dump-events baseline, not running with OpenSSL 3 (Arne Welzel, Corelight)
+
+  * Conn: In-place val flip and connection_flipped() (Arne Welzel, Corelight)
+
+    Avoids loosing state on a connection value when a connection is flipped.
+
+    Fixes up the NTP baseline as well where this was visible: analyzer_confirmation_info()
+    was raised for a connection value which was immediately forgotten due to
+    the subsequent connection flipping.
+
+    Closed #3028
+
+  * Conn: Remove is_version_sep() (Arne Welzel, Corelight)
+
+    Leftover from 2655a653314237f5354fdb644bf642d0d5867f63.
+
+  * Remove icmp_conn leftovers (Arne Welzel, Corelight)
+
+    Roughly 2.5 years ago all events taking the ``icmp_conn`` parameter were
+    removed with 44ad614094db3c57fef7fb226c539f6f090a5421 and the NetVar.cc
+    type not populated anymore.
+
+    Remove the left-overs in script land, too.
+
 6.1.0-dev.164 | 2023-07-05 10:23:27 -0700
 
   * Bump Spicy to latest release. (Benjamin Bannier, Corelight)

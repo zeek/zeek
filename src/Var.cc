@@ -767,26 +767,12 @@ class OuterIDBindingFinder : public TraversalCallback
 public:
 	OuterIDBindingFinder(ScopePtr s) { scopes.emplace_back(s); }
 
-	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
 	std::vector<ScopePtr> scopes;
 	std::unordered_set<ID*> outer_id_references;
 	};
-
-TraversalCode OuterIDBindingFinder::PreStmt(const Stmt* stmt)
-	{
-	if ( stmt->Tag() != STMT_WHEN )
-		return TC_CONTINUE;
-
-	auto ws = static_cast<const WhenStmt*>(stmt);
-
-	for ( auto& cl : ws->Info()->WhenExprLocals() )
-		outer_id_references.insert(const_cast<ID*>(cl.get()));
-
-	return TC_ABORTSTMT;
-	}
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	{

@@ -1,3 +1,7 @@
+6.1.0-dev.177 | 2023-07-06 11:34:38 +0200
+
+  * Fix for nested "when" statements leading to confusion over scoping (Vern Paxson, Corelight)
+
 6.1.0-dev.175 | 2023-07-06 09:27:03 +0200
 
   * Define early_shutdown lambda earlier in zeek-setup, avoids build failure with gperftools (Tim Wojtulewicz)

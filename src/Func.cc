@@ -801,8 +801,6 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name, bool arg_
 	id->SetConst();
 	}
 
-BuiltinFunc::~BuiltinFunc() { }
-
 bool BuiltinFunc::IsPure() const
 	{
 	return is_pure;

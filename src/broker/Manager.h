@@ -96,7 +96,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Manager() override;
+	~Manager() override = default;
 
 	/**
 	 * Initialization of the manager. This is called late during Zeek's

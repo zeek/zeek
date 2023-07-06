@@ -813,8 +813,7 @@ void begin_RE()
 
 class LocalNameFinder : public zeek::detail::TraversalCallback {
 public:
-	LocalNameFinder()
-		{}
+	LocalNameFinder() = default;
 
 	virtual zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr)
 		{

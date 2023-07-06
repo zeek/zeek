@@ -20,8 +20,6 @@ PcapDumper::PcapDumper(const std::string& path, bool arg_append)
 	pd = nullptr;
 	}
 
-PcapDumper::~PcapDumper() { }
-
 void PcapDumper::Open()
 	{
 	int linktype = -1;

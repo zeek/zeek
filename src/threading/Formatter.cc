@@ -20,8 +20,6 @@ Formatter::Formatter(threading::MsgThread* t)
 	thread = t;
 	}
 
-Formatter::~Formatter() { }
-
 std::string Formatter::Render(const threading::Value::addr_t& addr)
 	{
 	if ( addr.family == IPv4 )

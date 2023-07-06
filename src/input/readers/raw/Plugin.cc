@@ -7,8 +7,6 @@ namespace zeek::plugin::detail::Zeek_RawReader
 
 Plugin plugin;
 
-Plugin::Plugin() { }
-
 zeek::plugin::Configuration Plugin::Configure()
 	{
 	AddComponent(new zeek::input::Component("Raw", zeek::input::reader::detail::Raw::Instantiate));

@@ -18,11 +18,11 @@ using FuncPtr = IntrusivePtr<Func>;
 namespace detail
 	{
 
-class Discarder
+class Discarder final
 	{
 public:
 	Discarder();
-	~Discarder();
+	~Discarder() = default;
 
 	bool IsActive();
 

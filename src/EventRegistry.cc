@@ -169,8 +169,6 @@ EventGroupPtr EventRegistry::LookupGroup(EventGroupKind kind, std::string_view n
 
 EventGroup::EventGroup(EventGroupKind kind, std::string_view name) : kind(kind), name(name) { }
 
-EventGroup::~EventGroup() noexcept { }
-
 // Run through all ScriptFunc instances associated with this group and
 // update their bodies after a group's enable/disable state has changed.
 // Once that has completed, also update the Func's has_enabled_bodies

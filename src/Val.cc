@@ -1563,8 +1563,6 @@ ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullp
 	tag = t;
 	}
 
-ListVal::~ListVal() { }
-
 ValPtr ListVal::SizeVal() const
 	{
 	return val_mgr->Count(vals.size());

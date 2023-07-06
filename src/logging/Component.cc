@@ -21,8 +21,6 @@ void Component::Initialize()
 	log_mgr->RegisterComponent(this, "WRITER_");
 	}
 
-Component::~Component() { }
-
 void Component::DoDescribe(ODesc* d) const
 	{
 	d->Add("Log::WRITER_");

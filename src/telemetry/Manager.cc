@@ -58,8 +58,6 @@ Manager::Manager()
 	pimpl.swap(ptr);
 	}
 
-Manager::~Manager() { }
-
 void Manager::InitPostScript() { }
 
 void Manager::InitPostBrokerSetup(broker::endpoint& ep)

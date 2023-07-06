@@ -33,7 +33,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~Component() override;
+	~Component() override = default;
 
 protected:
 	/**
@@ -84,7 +84,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~PktSrcComponent() override;
+	~PktSrcComponent() override = default;
 
 	/**
 	 * Returns the prefix(es) passed to the constructor.
@@ -145,7 +145,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~PktDumperComponent() override;
+	~PktDumperComponent() override = default;
 
 	/**
 	 * Returns the prefix(es) passed to the constructor.

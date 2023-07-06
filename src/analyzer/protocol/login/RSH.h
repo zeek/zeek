@@ -28,7 +28,7 @@ class Contents_Rsh_Analyzer final : public analyzer::tcp::ContentLine_Analyzer
 	{
 public:
 	Contents_Rsh_Analyzer(Connection* conn, bool orig, Rsh_Analyzer* analyzer);
-	~Contents_Rsh_Analyzer() override;
+	~Contents_Rsh_Analyzer() override = default;
 
 	rsh_state RshSaveState() const { return save_state; }
 

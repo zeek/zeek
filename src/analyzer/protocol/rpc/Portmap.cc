@@ -297,8 +297,6 @@ Portmapper_Analyzer::Portmapper_Analyzer(Connection* conn)
 	orig_rpc = resp_rpc = nullptr;
 	}
 
-Portmapper_Analyzer::~Portmapper_Analyzer() { }
-
 void Portmapper_Analyzer::Init()
 	{
 	RPC_Analyzer::Init();

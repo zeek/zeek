@@ -423,8 +423,6 @@ void Contents_RPC::Init()
 	analyzer::tcp::TCP_SupportAnalyzer::Init();
 	}
 
-Contents_RPC::~Contents_RPC() { }
-
 void Contents_RPC::Undelivered(uint64_t seq, int len, bool orig)
 	{
 	analyzer::tcp::TCP_SupportAnalyzer::Undelivered(seq, len, orig);

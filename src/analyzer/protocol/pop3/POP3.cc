@@ -52,8 +52,6 @@ POP3_Analyzer::POP3_Analyzer(Connection* conn)
 	AddSupportAnalyzer(cl_resp);
 	}
 
-POP3_Analyzer::~POP3_Analyzer() { }
-
 void POP3_Analyzer::Done()
 	{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Done();

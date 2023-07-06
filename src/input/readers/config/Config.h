@@ -23,7 +23,7 @@ class Config : public ReaderBackend
 	{
 public:
 	explicit Config(ReaderFrontend* frontend);
-	~Config() override;
+	~Config() override = default;
 
 	// prohibit copying and moving
 	Config(const Config&) = delete;

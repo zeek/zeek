@@ -340,7 +340,7 @@ class DictTestDummy
 	{
 public:
 	DictTestDummy(int v) : v(v) { }
-	~DictTestDummy() { }
+	~DictTestDummy() = default;
 	int v = 0;
 	};
 

@@ -50,8 +50,6 @@ OpaqueMgr* OpaqueMgr::mgr()
 
 OpaqueVal::OpaqueVal(OpaqueTypePtr t) : Val(std::move(t)) { }
 
-OpaqueVal::~OpaqueVal() { }
-
 const std::string& OpaqueMgr::TypeID(const OpaqueVal* v) const
 	{
 	auto x = _types.find(v->OpaqueName());

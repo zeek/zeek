@@ -212,7 +212,7 @@ class Contents_RPC final : public analyzer::tcp::TCP_SupportAnalyzer
 	{
 public:
 	Contents_RPC(Connection* conn, bool orig, detail::RPC_Interpreter* interp);
-	~Contents_RPC() override;
+	~Contents_RPC() override = default;
 
 protected:
 	enum state_t

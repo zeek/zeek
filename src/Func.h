@@ -336,7 +336,7 @@ class BuiltinFunc final : public Func
 	{
 public:
 	BuiltinFunc(built_in_func func, const char* name, bool is_pure);
-	~BuiltinFunc() override;
+	~BuiltinFunc() override = default;
 
 	bool IsPure() const override;
 	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;

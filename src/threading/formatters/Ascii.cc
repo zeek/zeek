@@ -53,8 +53,6 @@ Ascii::Ascii(MsgThread* t, const SeparatorInfo& info) : Formatter(t)
 	separators = info;
 	}
 
-Ascii::~Ascii() { }
-
 bool Ascii::Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const
 	{
 	for ( int i = 0; i < num_fields; i++ )

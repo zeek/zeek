@@ -206,7 +206,7 @@ class DNS_Request
 public:
 	DNS_Request(std::string host, int request_type, bool async = false);
 	DNS_Request(const IPAddr& addr, bool async = false);
-	~DNS_Request();
+	~DNS_Request() = default;
 
 	std::string Host() const { return host; }
 	const IPAddr& Addr() const { return addr; }
@@ -240,8 +240,6 @@ DNS_Request::DNS_Request(const IPAddr& addr, bool async) : addr(addr), async(asy
 	{
 	request_type = T_PTR;
 	}
-
-DNS_Request::~DNS_Request() { }
 
 void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr)
 	{

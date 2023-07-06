@@ -21,8 +21,6 @@ ConnSize_Analyzer::ConnSize_Analyzer(Connection* c)
 	start_time = c->StartTime();
 	}
 
-ConnSize_Analyzer::~ConnSize_Analyzer() { }
-
 void ConnSize_Analyzer::Init()
 	{
 	Analyzer::Init();

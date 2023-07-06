@@ -47,7 +47,7 @@ class ValTrace
 	{
 public:
 	ValTrace(const ValPtr& v);
-	~ValTrace();
+	~ValTrace() = default;
 
 	const ValPtr& GetVal() const { return v; }
 	const TypePtr& GetType() const { return t; }

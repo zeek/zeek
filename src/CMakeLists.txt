@@ -502,10 +502,14 @@ set(zeek_SRCS
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-    ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h
-    ${THIRD_PARTY_SRCS}
-    ${HH_SRCS}
-    ${MAIN_SRCS})
+    ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h)
+
+# Add the above files to the list of clang tidy sources before adding the third party and HH
+# sources. Also, the main_SRCS will get added to that list separately.
+add_clang_tidy_files(${zeek_SRCS})
+list(APPEND zeek_SRCS ${THIRD_PARTY_SRCS})
+list(APPEND zeek_SRCS ${HH_SRCS})
+list(APPEND zeek_SRCS ${MAIN_SRCS})
 
 collect_headers(zeek_HEADERS ${zeek_SRCS})
 
@@ -515,7 +519,6 @@ set_target_properties(zeek_objs PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
-add_clang_tidy_files(${zeek_SRCS})
 zeek_target_link_libraries(zeek_objs)
 
 if (HAVE_SPICY)

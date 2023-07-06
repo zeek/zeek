@@ -612,28 +612,29 @@ bool IPv6_Hdr_Chain::IsFragment() const
 IPAddr IPv6_Hdr_Chain::SrcAddr() const
 	{
 	if ( homeAddr )
-		return IPAddr(*homeAddr);
+		return {*homeAddr};
+
 	if ( chain.empty() )
 		{
 		reporter->InternalWarning("empty IPv6 header chain");
-		return IPAddr();
+		return {};
 		}
 
-	return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src);
+	return IPAddr{((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src};
 	}
 
 IPAddr IPv6_Hdr_Chain::DstAddr() const
 	{
 	if ( finalDst )
-		return IPAddr(*finalDst);
+		return {*finalDst};
 
 	if ( chain.empty() )
 		{
 		reporter->InternalWarning("empty IPv6 header chain");
-		return IPAddr();
+		return {};
 		}
 
-	return IPAddr(((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst);
+	return IPAddr{((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst};
 	}
 
 void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t len)

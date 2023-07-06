@@ -26,13 +26,13 @@ enum AnalyzerState {
 		{
 		switch ( state_nr ) {
 		case STATE_CLEAR:
-			return string("CLEAR");
+			return "CLEAR";
 
 		case STATE_ENCRYPTED:
-			return string("ENCRYPTED");
+			return "ENCRYPTED";
 
 		default:
-			return string(zeek::util::fmt("UNKNOWN (%d)", state_nr));
+			return zeek::util::fmt("UNKNOWN (%d)", state_nr);
 		}
 		}
 %}

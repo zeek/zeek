@@ -24,7 +24,7 @@ type uint48 = record {
 %code{
 string orig_label(bool is_orig)
 		{
-		return string(is_orig ? "originator" :"responder");
+		return is_orig ? "originator" :"responder";
 		}
 %}
 

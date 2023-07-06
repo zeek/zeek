@@ -203,7 +203,7 @@ std::string Specific_RE_Matcher::LookupDef(const std::string& def)
 	if ( iter != defs.end() )
 		return iter->second;
 
-	return std::string();
+	return {};
 	}
 
 bool Specific_RE_Matcher::MatchAll(const char* s)

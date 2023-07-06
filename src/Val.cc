@@ -956,13 +956,13 @@ const char* StringVal::CheckString() const
 string StringVal::ToStdString() const
 	{
 	auto* bs = AsString();
-	return string((char*)bs->Bytes(), bs->Len());
+	return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
 	}
 
 string_view StringVal::ToStdStringView() const
 	{
 	auto* bs = AsString();
-	return string_view((char*)bs->Bytes(), bs->Len());
+	return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
 	}
 
 StringVal* StringVal::ToUpper()

@@ -774,6 +774,20 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
 	dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
 
+	// After spinning up Broker, we have background threads running now. If
+	// we exit early, we need to shut down at least Broker to get a clean
+	// program exit. Otherwise, we may run into undefined behavior, e.g., if
+	// Broker is still accessing OpenSSL but OpenSSL has already cleaned up
+	// its state due to calling exit(). This needs to be defined here before
+	// potential USE_PERFTOOLS_DEBUG scope below or the definition gets lost
+	// when that variable is defined.
+	auto early_shutdown = []
+	{
+		broker_mgr->Terminate();
+		delete iosource_mgr;
+		delete telemetry_mgr;
+	};
+
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
 	// allocated before we start the checking is
@@ -866,18 +880,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 		if ( supervisor_mgr )
 			supervisor_mgr->InitPostScript();
-
-		// After spinning up Broker, we have background threads running now. If
-		// we exit early, we need to shut down at least Broker to get a clean
-		// program exit. Otherwise, we may run into undefined behavior, e.g., if
-		// Broker is still accessing OpenSSL but OpenSSL has already cleaned up
-		// its state due to calling exit().
-		auto early_shutdown = []
-		{
-			broker_mgr->Terminate();
-			delete iosource_mgr;
-			delete telemetry_mgr;
-		};
 
 		if ( options.print_plugins )
 			{

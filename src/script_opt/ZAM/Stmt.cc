@@ -837,7 +837,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val)
 		aux->value_var_type = value_var->GetType();
 
 	auto iter_slot = table_iters.size();
-	table_iters.emplace_back(TableIterInfo());
+	table_iters.emplace_back();
 
 	auto z = ZInstI(OP_INIT_TABLE_LOOP_VV, FrameSlot(val), iter_slot);
 	z.op_type = OP_VV_I2;

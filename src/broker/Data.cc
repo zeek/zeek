@@ -889,7 +889,7 @@ broker::expected<broker::data> val_to_data(const Val* v)
 			std::string name(f->Name());
 
 			broker::vector rval;
-			rval.push_back(name);
+			rval.emplace_back(name);
 
 			if ( name.find("lambda_<") == 0 )
 				{

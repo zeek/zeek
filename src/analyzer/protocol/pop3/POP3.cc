@@ -222,7 +222,7 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		// Some clients pipeline their commands (i.e., keep sending
 		// without waiting for a server's responses). Therefore we
 		// keep a list of pending commands.
-		cmds.push_back(std::string(line));
+		cmds.emplace_back(line);
 
 		if ( cmds.size() == 1 )
 			// Not waiting for another server response,

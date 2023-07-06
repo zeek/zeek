@@ -119,7 +119,7 @@ DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed) : Hasher(k, seed)
 		{
 		seed_t s = Seed();
 		s.h[0] += util::detail::prng(i);
-		hash_functions.push_back(UHF(s));
+		hash_functions.emplace_back(s);
 		}
 	}
 

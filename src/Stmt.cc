@@ -2085,7 +2085,7 @@ void WhenInfo::BuildProfile()
 		if ( ! is_present )
 			{
 			IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
-			cl->emplace_back(FuncType::Capture{wl_ptr, false});
+			cl->emplace_back(wl_ptr, false);
 			}
 
 		// In addition, don't treat them as external locals that
@@ -2098,7 +2098,7 @@ void WhenInfo::BuildProfile()
 		// We need IDPtr versions of the locals so we can manipulate
 		// them during script optimization.
 		auto non_const_w = const_cast<ID*>(w);
-		when_expr_locals.push_back({NewRef{}, non_const_w});
+		when_expr_locals.emplace_back(NewRef{}, non_const_w);
 		}
 	}
 

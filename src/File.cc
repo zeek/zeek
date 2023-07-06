@@ -148,7 +148,7 @@ bool File::Open(FILE* file, const char* mode)
 		}
 
 	is_open = true;
-	open_files.emplace_back(std::make_pair(name, this));
+	open_files.emplace_back(name, this);
 
 	RaiseOpenEvent();
 

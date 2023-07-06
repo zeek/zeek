@@ -398,7 +398,7 @@ void Trigger::Register(const ID* const_id)
 	notifier::detail::registry.Register(id, this);
 
 	Ref(id);
-	objs.push_back({id, id});
+	objs.emplace_back(id, id);
 	}
 
 void Trigger::Register(Val* val)

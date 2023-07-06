@@ -342,7 +342,7 @@ static void parse_function_name(vector<ParseLocationRec>& result, ParseLocationR
 vector<ParseLocationRec> parse_location_string(const string& s)
 	{
 	vector<ParseLocationRec> result;
-	result.push_back(ParseLocationRec());
+	result.emplace_back();
 	ParseLocationRec& plr = result[0];
 
 	// If PLR_FILE_AND_LINE, set this to the filename you want; for
@@ -531,7 +531,7 @@ void tokenize(const char* cstr, string& operation, vector<string>& arguments)
 		if ( ! num_tokens )
 			operation = string(str, start, len);
 		else
-			arguments.push_back(string(str, start, len));
+			arguments.emplace_back(str, start, len);
 
 		++num_tokens;
 		}

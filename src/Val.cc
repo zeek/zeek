@@ -1012,7 +1012,7 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
 			break;
 
 		// s[offset .. offset+end_of_match-1] matches re.
-		cut_points.push_back({offset, offset + end_of_match});
+		cut_points.emplace_back(offset, offset + end_of_match);
 
 		offset += end_of_match;
 		n -= end_of_match;

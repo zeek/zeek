@@ -156,7 +156,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 	const_vals[v] = constants[c_desc] = gi;
 
 	consts_offset = const_offsets[v] = constants_offsets[c_desc] = consts.size();
-	consts.emplace_back(pair(tag, gi->Offset()));
+	consts.emplace_back(tag, gi->Offset());
 
 	return gi;
 	}

@@ -26,7 +26,7 @@ void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	// Establish the outermost barrier and associated set of
 	// identifiers.
 	barrier_blocks.push_back(0);
-	modified_IDs.push_back({});
+	modified_IDs.emplace_back();
 
 	for ( const auto& g : pf->Globals() )
 		{
@@ -434,7 +434,7 @@ void GenIDDefs::StartConfluenceBlock(const Stmt* s)
 		barrier_blocks.push_back(confluence_blocks.size());
 
 	confluence_blocks.push_back(s);
-	modified_IDs.push_back({});
+	modified_IDs.emplace_back();
 	}
 
 void GenIDDefs::EndConfluenceBlock(bool no_orig)

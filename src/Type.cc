@@ -1196,7 +1196,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 		else
 			{
 			auto efi = std::make_unique<detail::ExprFieldInit>(def_expr, type);
-			creation_inits.emplace_back(std::make_pair(field, std::move(efi)));
+			creation_inits.emplace_back(field, std::move(efi));
 			}
 		}
 
@@ -1793,7 +1793,7 @@ EnumType::enum_name_list EnumType::Names() const
 	{
 	enum_name_list n;
 	for ( NameMap::const_iterator iter = names.begin(); iter != names.end(); ++iter )
-		n.push_back(std::make_pair(iter->first, iter->second));
+		n.emplace_back(iter->first, iter->second);
 
 	return n;
 	}

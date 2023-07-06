@@ -505,7 +505,7 @@ vector<string> dir_contents_recursive(string dir)
 	while ( (n = fts_read(fts)) )
 		{
 		if ( n->fts_info & FTS_F )
-			rval.push_back(n->fts_path);
+			rval.emplace_back(n->fts_path);
 		}
 
 	if ( errno )

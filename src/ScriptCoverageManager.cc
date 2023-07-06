@@ -24,12 +24,12 @@ void ScriptCoverageManager::AddStmt(Stmt* s)
 	if ( ignoring != 0 )
 		return;
 
-	stmts.push_back({NewRef{}, s});
+	stmts.emplace_back(NewRef{}, s);
 	}
 
 void ScriptCoverageManager::AddFunction(IDPtr func_id, StmtPtr body)
 	{
-	func_instances.push_back({func_id, body});
+	func_instances.emplace_back(func_id, body);
 	}
 
 bool ScriptCoverageManager::ReadStats()

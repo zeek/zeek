@@ -92,7 +92,7 @@ void add_func_analysis_pattern(AnalyOpt& opts, const char* pat)
 	try
 		{
 		std::string full_pat = std::string("^(") + pat + ")$";
-		opts.only_funcs.emplace_back(std::regex(full_pat));
+		opts.only_funcs.emplace_back(full_pat);
 		}
 	catch ( const std::regex_error& e )
 		{
@@ -105,7 +105,7 @@ void add_file_analysis_pattern(AnalyOpt& opts, const char* pat)
 	try
 		{
 		std::string full_pat = std::string("^.*(") + pat + ").*$";
-		opts.only_files.emplace_back(std::regex(full_pat));
+		opts.only_files.emplace_back(full_pat);
 		}
 	catch ( const std::regex_error& e )
 		{

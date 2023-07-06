@@ -2033,7 +2033,7 @@ case_type_list:
 case_type:
 		TOK_TYPE type
 			{
-			$$ = new ID(0, SCOPE_FUNCTION, 0);
+			$$ = new ID(0, SCOPE_FUNCTION, false);
 			$$->SetType({AdoptRef{}, $2});
 			}
 
@@ -2164,17 +2164,17 @@ local_id:
 	;
 
 global_id:
-	{ resolving_global_ID = 1; } global_or_event_id
+	{ resolving_global_ID = true; } global_or_event_id
 		{ $$ = $2; }
 	;
 
 def_global_id:
-	{ defining_global_ID = 1; } global_id { defining_global_ID = 0; }
+	{ defining_global_ID = true; } global_id { defining_global_ID = false; }
 		{ $$ = $2; }
 	;
 
 event_id:
-	{ resolving_global_ID = 0; } global_or_event_id
+	{ resolving_global_ID = false; } global_or_event_id
 		{ $$ = $2; }
 	;
 

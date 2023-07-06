@@ -8,10 +8,10 @@
 namespace zeek::plugin::Zeek_Wrapper
 	{
 
-class Plugin : public zeek::plugin::Plugin
+class Plugin final : public zeek::plugin::Plugin
 	{
 public:
-	zeek::plugin::Configuration Configure()
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new zeek::packet_analysis::Component(
 			"Wrapper", zeek::packet_analysis::Wrapper::WrapperAnalyzer::Instantiate));

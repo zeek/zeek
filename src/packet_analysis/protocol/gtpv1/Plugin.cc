@@ -8,7 +8,7 @@
 namespace zeek::plugin::detail::Zeek_GTPv1
 	{
 
-class Plugin : public zeek::plugin::Plugin
+class Plugin final : public zeek::plugin::Plugin
 	{
 public:
 	zeek::plugin::Configuration Configure() override

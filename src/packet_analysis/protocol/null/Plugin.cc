@@ -8,10 +8,10 @@
 namespace zeek::plugin::Zeek_Null
 	{
 
-class Plugin : public zeek::plugin::Plugin
+class Plugin final : public zeek::plugin::Plugin
 	{
 public:
-	zeek::plugin::Configuration Configure()
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new zeek::packet_analysis::Component(
 			"Null", zeek::packet_analysis::Null::NullAnalyzer::Instantiate));

@@ -1610,7 +1610,7 @@ class TestDNS_Mgr final : public DNS_Mgr
 	{
 public:
 	explicit TestDNS_Mgr(DNS_MgrMode mode) : DNS_Mgr(mode) { }
-	void Process();
+	void Process() override;
 	};
 
 void TestDNS_Mgr::Process()

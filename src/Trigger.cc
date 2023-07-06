@@ -31,7 +31,7 @@ public:
 		{
 		}
 
-	virtual TraversalCode PreExpr(const Expr*) override;
+	TraversalCode PreExpr(const Expr*) override;
 
 private:
 	IDSet& globals;
@@ -76,7 +76,7 @@ public:
 		time = run_state::network_time;
 		}
 
-	~TriggerTimer() { Unref(trigger); }
+	~TriggerTimer() override { Unref(trigger); }
 
 	void Dispatch(double t, bool is_expire) override
 		{

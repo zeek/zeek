@@ -811,11 +811,11 @@ void begin_RE()
 	BEGIN(RE);
 	}
 
-class LocalNameFinder : public zeek::detail::TraversalCallback {
+class LocalNameFinder final : public zeek::detail::TraversalCallback {
 public:
 	LocalNameFinder() = default;
 
-	virtual zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr)
+	zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr) override
 		{
 		if ( expr->Tag() != EXPR_NAME )
 			return zeek::detail::TC_CONTINUE;

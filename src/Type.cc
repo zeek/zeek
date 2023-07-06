@@ -1024,7 +1024,7 @@ class DirectManagedFieldInit final : public FieldInit
 	{
 public:
 	DirectManagedFieldInit(ZVal _init_val) : init_val(_init_val) { }
-	~DirectManagedFieldInit() { ZVal::DeleteManagedType(init_val); }
+	~DirectManagedFieldInit() override { ZVal::DeleteManagedType(init_val); }
 
 	ZVal Generate() const override
 		{

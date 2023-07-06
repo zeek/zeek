@@ -14,7 +14,7 @@ class BreakNextScriptValidation : public TraversalCallback
 public:
 	BreakNextScriptValidation(bool _report) : report(_report) { }
 
-	TraversalCode PreStmt(const Stmt* stmt)
+	TraversalCode PreStmt(const Stmt* stmt) override
 		{
 		if ( ! StmtIsRelevant(stmt) )
 			return TC_CONTINUE;
@@ -31,7 +31,7 @@ public:
 		return TC_CONTINUE;
 		}
 
-	TraversalCode PostStmt(const Stmt* stmt)
+	TraversalCode PostStmt(const Stmt* stmt) override
 		{
 		if ( ! StmtIsRelevant(stmt) )
 			return TC_CONTINUE;
@@ -43,7 +43,7 @@ public:
 		return TC_CONTINUE;
 		}
 
-	TraversalCode PreFunction(const zeek::Func* func)
+	TraversalCode PreFunction(const zeek::Func* func) override
 		{
 		if ( func->Flavor() == zeek::FUNC_FLAVOR_HOOK )
 			++hook_depth;
@@ -53,7 +53,7 @@ public:
 		return TC_CONTINUE;
 		}
 
-	TraversalCode PostFunction(const zeek::Func* func)
+	TraversalCode PostFunction(const zeek::Func* func) override
 		{
 		if ( func->Flavor() == zeek::FUNC_FLAVOR_HOOK )
 			--hook_depth;

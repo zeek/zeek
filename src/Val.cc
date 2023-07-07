@@ -2137,7 +2137,10 @@ bool TableVal::IsSubsetOf(const TableVal& tv) const
 
 ValPtr TableVal::Default(const ValPtr& index)
 	{
-	const auto& def_attr = GetAttr(detail::ATTR_DEFAULT);
+	auto def_attr = GetAttr(detail::ATTR_DEFAULT);
+
+	if ( ! def_attr )
+		def_attr = GetAttr(detail::ATTR_DEFAULT_INSERT);
 
 	if ( ! def_attr )
 		return nullptr;
@@ -2268,7 +2271,13 @@ ValPtr TableVal::FindOrDefault(const ValPtr& index)
 	if ( auto rval = Find(index) )
 		return rval;
 
-	return Default(index);
+	// If the default came from a &default_insert attribute,
+	// insert the value upon a missed lookup.
+	auto def = Default(index);
+	if ( def && GetAttr(detail::ATTR_DEFAULT_INSERT) )
+		Assign(index, def);
+
+	return def;
 	}
 
 bool TableVal::Contains(const IPAddr& addr) const
@@ -2768,7 +2777,9 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 	if ( def_val )
 		return;
 
-	const auto& def_attr = GetAttr(detail::ATTR_DEFAULT);
+	auto def_attr = GetAttr(detail::ATTR_DEFAULT);
+	if ( ! def_attr )
+		def_attr = GetAttr(detail::ATTR_DEFAULT_INSERT);
 
 	if ( ! def_attr )
 		return;

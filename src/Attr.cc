@@ -16,9 +16,12 @@ namespace zeek::detail
 
 const char* attr_name(AttrTag t)
 	{
+	// Do not collapse the list.
+	// clang-format off
 	static const char* attr_names[int(NUM_ATTRS)] = {
 		"&optional",
 		"&default",
+		"&default_insert",
 		"&redef",
 		"&add_func",
 		"&delete_func",
@@ -42,6 +45,7 @@ const char* attr_name(AttrTag t)
 		"&is_used",
 		"&ordered",
 	};
+	// clang-format on
 
 	return attr_names[int(t)];
 	}
@@ -359,8 +363,35 @@ void Attributes::CheckAttr(Attr* a)
 			}
 			break;
 
+		case ATTR_DEFAULT_INSERT:
+			{
+			if ( ! type->IsTable() )
+				{
+				Error("&default_insert only applicable to tables");
+				break;
+				}
+
+			if ( Find(ATTR_DEFAULT) )
+				{
+				Error("&default and &default_insert cannot be used together");
+				break;
+				}
+
+			std::string err_msg;
+			if ( ! check_default_attr(a, type, global_var, in_record, err_msg) &&
+			     ! err_msg.empty() )
+				Error(err_msg.c_str());
+			break;
+			}
+
 		case ATTR_DEFAULT:
 			{
+			if ( Find(ATTR_DEFAULT_INSERT) )
+				{
+				Error("&default and &default_insert cannot be used together");
+				break;
+				}
+
 			std::string err_msg;
 			if ( ! check_default_attr(a, type, global_var, in_record, err_msg) &&
 			     ! err_msg.empty() )
@@ -672,11 +703,13 @@ bool Attributes::operator==(const Attributes& other) const
 bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_record,
                         std::string& err_msg)
 	{
+	ASSERT(a->Tag() == ATTR_DEFAULT || a->Tag() == ATTR_DEFAULT_INSERT);
+	std::string aname = attr_name(a->Tag());
 	// &default is allowed for global tables, since it's used in
 	// initialization of table fields. It's not allowed otherwise.
 	if ( global_var && ! type->IsTable() )
 		{
-		err_msg = "&default is not valid for global variables except for tables";
+		err_msg = aname + " is not valid for global variables except for tables";
 		return false;
 		}
 
@@ -707,7 +740,7 @@ bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_r
 			return true;
 			}
 
-		a->GetExpr()->Error("&default value has inconsistent type", type.get());
+		a->GetExpr()->Error(util::fmt("%s value has inconsistent type", aname.c_str()), type.get());
 		return false;
 		}
 
@@ -725,7 +758,7 @@ bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_r
 			FuncType* f = atype->AsFuncType();
 			if ( ! f->CheckArgs(tt->GetIndexTypes()) || ! same_type(f->Yield(), ytype) )
 				{
-				err_msg = "&default function type clash";
+				err_msg = aname + " function type clash";
 				return false;
 				}
 
@@ -748,7 +781,7 @@ bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_r
 			return true;
 			}
 
-		err_msg = "&default value has inconsistent type";
+		err_msg = aname + " value has inconsistent type";
 		return false;
 		}
 

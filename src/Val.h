@@ -878,11 +878,13 @@ public:
 
 	/**
 	 * Finds an index in the table and returns its associated value or else
-	 * the &default value.
+	 * the &default or &default_insert value. If the &default_insert attribute
+	 * is set on the table, the returned value is also inserted into the table.
 	 * @param index  The index to lookup in the table.
 	 * @return  The value associated with the index.  If the index doesn't
-	 * exist, instead returns the &default value.  If there's no &default
-	 * attribute, then nullptr is still returned for nonexistent index.
+	 * exist, instead returns the &default or &default_insert.  If there's no
+	 * &default or &default_insert attribute, then nullptr is still returned
+	 * for nonexistent index.
 	 */
 	ValPtr FindOrDefault(const ValPtr& index);
 

@@ -42,8 +42,6 @@ string orig_label(bool is_orig)
 		  ((uint64)num->byte4() << 16) | ((uint64)num->byte5() << 8) | (uint64)num->byte6();
 		}
 	};
-
-	string state_label(int state_nr);
 %}
 
 extern type to_int;

@@ -388,10 +388,10 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args)
 			vector<ID*> choices;
 			choose_global_symbols_regex(args[0], choices, true);
 			for ( unsigned int i = 0; i < choices.size(); ++i )
-				locstrings.push_back(choices[i]->Name());
+				locstrings.emplace_back(choices[i]->Name());
 			}
 		else
-			locstrings.push_back(args[0].c_str());
+			locstrings.push_back(args[0]);
 
 		for ( unsigned int strindex = 0; strindex < locstrings.size(); ++strindex )
 			{

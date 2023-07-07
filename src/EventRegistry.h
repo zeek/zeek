@@ -37,7 +37,7 @@ using ScriptFuncPtr = zeek::IntrusivePtr<ScriptFunc>;
 	}
 
 // The registry keeps track of all events that we provide or handle.
-class EventRegistry
+class EventRegistry final
 	{
 public:
 	EventRegistry();
@@ -135,11 +135,11 @@ private:
  * bodies of the tracked ScriptFuncs and updates them to reflect the current
  * group state.
  */
-class EventGroup
+class EventGroup final
 	{
 public:
 	EventGroup(EventGroupKind kind, std::string_view name);
-	~EventGroup() noexcept;
+	~EventGroup() noexcept = default;
 	EventGroup(const EventGroup& g) = delete;
 	EventGroup& operator=(const EventGroup&) = delete;
 

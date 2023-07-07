@@ -21,8 +21,6 @@ void Component::Initialize()
 	input_mgr->RegisterComponent(this, "READER_");
 	}
 
-Component::~Component() { }
-
 void Component::DoDescribe(ODesc* d) const
 	{
 	d->Add("Input::READER_");

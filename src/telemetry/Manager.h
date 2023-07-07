@@ -50,7 +50,7 @@ public:
 
 	Manager& operator=(const Manager&) = delete;
 
-	virtual ~Manager();
+	virtual ~Manager() = default;
 
 	/**
 	 * Initialization of the manager. This is called late during Zeek's

@@ -23,7 +23,7 @@ bool None::DoInit(const WriterInfo& info, int num_fields, const threading::Field
 
 		for ( WriterInfo::config_map::const_iterator i = info.config.begin();
 		      i != info.config.end(); i++ )
-			keys.push_back(std::make_pair(i->first, i->second));
+			keys.emplace_back(i->first, i->second);
 
 		std::sort(keys.begin(), keys.end());
 

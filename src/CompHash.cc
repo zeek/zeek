@@ -929,7 +929,7 @@ bool CompositeHash::ReserveSingleTypeKeySize(HashKey& hk, Type* bt, const Val* v
 					{
 					reporter->InternalError(
 						"bad index type in CompositeHash::ReserveSingleTypeKeySize");
-					return 0;
+					return false;
 					}
 				}
 

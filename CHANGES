@@ -1,3 +1,25 @@
+6.1.0-dev.190 | 2023-07-07 09:56:56 -0700
+
+  * Remove unused state_label() method from ssl analyzer binpac files (Tim Wojtulewicz)
+
+  * Mark some overridden functions with override keyword (Tim Wojtulewicz)
+
+  * Use emplace_back over push_back where appropriate (Tim Wojtulewicz)
+
+  * packet_analysis: Define all plugin type as final (Tim Wojtulewicz)
+
+  * Use std::make_unique in one place instead of declaring unique_ptr directly (Tim Wojtulewicz)
+
+  * Avoid unnecessary type names in return statements (Tim Wojtulewicz)
+
+  * Simplify type trait usage (remove ::value usage) (Tim Wojtulewicz)
+
+  * A handful of int-to-bool conversions (Tim Wojtulewicz)
+
+  * Replace empty destructor bodies with =default definitions (Tim Wojtulewicz)
+
+  * Reduce amount of files passed to clang-tidy (Tim Wojtulewicz)
+
 6.1.0-dev.179 | 2023-07-07 11:45:53 +0200
 
   * GH-3157: [Spicy] Support `switch` fields when exporting Spicy types to Zeek. (Robin Sommer, Corelight)

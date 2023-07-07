@@ -28,7 +28,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~PktDumper();
+	virtual ~PktDumper() = default;
 
 	/**
 	 * Returns the path associated with the dumper.

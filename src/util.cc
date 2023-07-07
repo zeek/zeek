@@ -2002,7 +2002,7 @@ static string find_file_in_path(const string& filename, const string& path,
                                 const vector<string>& opt_ext)
 	{
 	if ( filename.empty() )
-		return string();
+		return {};
 
 	zeek::filesystem::path filepath(filename);
 
@@ -2012,7 +2012,7 @@ static string find_file_in_path(const string& filename, const string& path,
 		if ( can_read(filename) )
 			return filename;
 		else
-			return string();
+			return {};
 		}
 
 	auto abs_path = (zeek::filesystem::path(path) / filepath).string();
@@ -2031,7 +2031,7 @@ static string find_file_in_path(const string& filename, const string& path,
 	if ( can_read(abs_path) )
 		return abs_path;
 
-	return string();
+	return {};
 	}
 
 string find_file(const string& filename, const string& path_set, const string& opt_ext)
@@ -2051,7 +2051,7 @@ string find_file(const string& filename, const string& path_set, const string& o
 			return f;
 		}
 
-	return string();
+	return {};
 	}
 
 string find_script_file(const string& filename, const string& path_set)
@@ -2069,7 +2069,7 @@ string find_script_file(const string& filename, const string& path_set)
 			return f;
 		}
 
-	return string();
+	return {};
 	}
 
 RETSIGTYPE sig_handler(int signo);

@@ -1352,7 +1352,7 @@ string CPPCompile::GenField(const ExprPtr& rec, int field)
 		ASSERT(pt != processed_types.end());
 		auto rt_offset = pt->second->Offset();
 		string field_name = rt->FieldName(field);
-		field_decls.emplace_back(pair(rt_offset, rt->FieldDecl(field)));
+		field_decls.emplace_back(rt_offset, rt->FieldDecl(field));
 
 		if ( rfm != record_field_mappings.end() )
 			// We're already tracking this record.
@@ -1392,7 +1392,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 		mapping_slot = num_ev_mappings++;
 
 		string enum_name = et->Lookup(v);
-		enum_names.emplace_back(pair(TypeOffset(t), std::move(enum_name)));
+		enum_names.emplace_back(TypeOffset(t), std::move(enum_name));
 
 		if ( evm != enum_val_mappings.end() )
 			{

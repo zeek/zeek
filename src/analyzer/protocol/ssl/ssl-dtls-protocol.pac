@@ -21,22 +21,6 @@ enum AnalyzerState {
 	STATE_ENCRYPTED
 };
 
-%code{
-	string state_label(int state_nr)
-		{
-		switch ( state_nr ) {
-		case STATE_CLEAR:
-			return string("CLEAR");
-
-		case STATE_ENCRYPTED:
-			return string("ENCRYPTED");
-
-		default:
-			return string(zeek::util::fmt("UNKNOWN (%d)", state_nr));
-		}
-		}
-%}
-
 ######################################################################
 # Change Cipher Spec Protocol (7.1.)
 ######################################################################

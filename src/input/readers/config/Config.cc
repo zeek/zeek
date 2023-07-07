@@ -54,8 +54,6 @@ Config::Config(ReaderFrontend* frontend) : ReaderBackend(frontend)
 		}
 	}
 
-Config::~Config() { }
-
 void Config::DoClose() { }
 
 bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)

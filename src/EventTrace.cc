@@ -101,8 +101,6 @@ ValTrace::ValTrace(const ValPtr& _v) : v(_v)
 		}
 	}
 
-ValTrace::~ValTrace() { }
-
 bool ValTrace::operator==(const ValTrace& vt) const
 	{
 	auto& vt_v = vt.GetVal();

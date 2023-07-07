@@ -27,21 +27,20 @@ alignas(16) unsigned long long KeyedHash::shared_siphash_key[2];
 
 // we use the following lines to not pull in the highwayhash headers in Hash.h - but to check the
 // types did not change underneath us.
-static_assert(std::is_same<hash64_t, highwayhash::HHResult64>::value,
+static_assert(std::is_same_v<hash64_t, highwayhash::HHResult64>,
               "Highwayhash return values must match hash_x_t");
-static_assert(std::is_same<hash128_t, highwayhash::HHResult128>::value,
+static_assert(std::is_same_v<hash128_t, highwayhash::HHResult128>,
               "Highwayhash return values must match hash_x_t");
-static_assert(std::is_same<hash256_t, highwayhash::HHResult256>::value,
+static_assert(std::is_same_v<hash256_t, highwayhash::HHResult256>,
               "Highwayhash return values must match hash_x_t");
 
 void KeyedHash::InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed_data)
 	{
-	static_assert(std::is_same<decltype(KeyedHash::shared_siphash_key),
-	                           highwayhash::SipHashState::Key>::value,
-	              "Highwayhash Key is not unsigned long long[2]");
 	static_assert(
-		std::is_same<decltype(KeyedHash::shared_highwayhash_key), highwayhash::HHKey>::value,
-		"Highwayhash HHKey is not uint64_t[4]");
+		std::is_same_v<decltype(KeyedHash::shared_siphash_key), highwayhash::SipHashState::Key>,
+		"Highwayhash Key is not unsigned long long[2]");
+	static_assert(std::is_same_v<decltype(KeyedHash::shared_highwayhash_key), highwayhash::HHKey>,
+	              "Highwayhash HHKey is not uint64_t[4]");
 	if ( seeds_initialized )
 		return;
 

@@ -20,7 +20,7 @@ public:
 	AnalyzerTimer(Analyzer* arg_analyzer, analyzer_timer_func arg_timer, double arg_t,
 	              int arg_do_expire, zeek::detail::TimerType arg_type);
 
-	virtual ~AnalyzerTimer();
+	~AnalyzerTimer() override;
 
 	void Dispatch(double t, bool is_expire) override;
 

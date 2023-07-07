@@ -44,7 +44,7 @@ FieldMapping::FieldMapping(const FieldMapping& arg)
 
 FieldMapping FieldMapping::subType()
 	{
-	return FieldMapping(name, subtype, position);
+	return {name, subtype, position};
 	}
 
 FieldMapping& FieldMapping::operator=(const FieldMapping& arg)

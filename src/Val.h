@@ -663,7 +663,7 @@ class ListVal final : public Val
 public:
 	explicit ListVal(TypeTag t);
 
-	~ListVal() override;
+	~ListVal() override = default;
 
 	TypeTag BaseTag() const { return tag; }
 

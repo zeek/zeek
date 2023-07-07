@@ -104,7 +104,7 @@ char last_tok[128];
 static std::string find_relative_file(const std::string& filename, const std::string& ext)
 	{
 	if ( filename.empty() )
-		return std::string();
+		return {};
 
 	if ( filename[0] == '.' )
 		return zeek::util::find_file(filename, zeek::util::SafeDirname(::filename).result, ext);
@@ -115,7 +115,7 @@ static std::string find_relative_file(const std::string& filename, const std::st
 static std::string find_relative_script_file(const std::string& filename)
 	{
 	if ( filename.empty() )
-		return std::string();
+		return {};
 
 	if ( filename[0] == '.' )
 		return zeek::util::find_script_file(filename, zeek::util::SafeDirname(::filename).result);
@@ -811,12 +811,11 @@ void begin_RE()
 	BEGIN(RE);
 	}
 
-class LocalNameFinder : public zeek::detail::TraversalCallback {
+class LocalNameFinder final : public zeek::detail::TraversalCallback {
 public:
-	LocalNameFinder()
-		{}
+	LocalNameFinder() = default;
 
-	virtual zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr)
+	zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr) override
 		{
 		if ( expr->Tag() != EXPR_NAME )
 			return zeek::detail::TC_CONTINUE;

@@ -1330,7 +1330,7 @@ class TableCoerceExpr final : public UnaryExpr
 	{
 public:
 	TableCoerceExpr(ExprPtr op, TableTypePtr r, bool type_check = true);
-	~TableCoerceExpr() override;
+	~TableCoerceExpr() override = default;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1343,7 +1343,7 @@ class VectorCoerceExpr final : public UnaryExpr
 	{
 public:
 	VectorCoerceExpr(ExprPtr op, VectorTypePtr v);
-	~VectorCoerceExpr() override;
+	~VectorCoerceExpr() override = default;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1356,7 +1356,7 @@ class ScheduleTimer final : public Timer
 	{
 public:
 	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
-	~ScheduleTimer() override;
+	~ScheduleTimer() override = default;
 
 	void Dispatch(double t, bool is_expire) override;
 

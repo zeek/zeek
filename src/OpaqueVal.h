@@ -118,7 +118,7 @@ class OpaqueVal : public Val
 	{
 public:
 	explicit OpaqueVal(OpaqueTypePtr t);
-	~OpaqueVal() override;
+	~OpaqueVal() override = default;
 
 	/**
 	 * Serializes the value into a Broker representation.

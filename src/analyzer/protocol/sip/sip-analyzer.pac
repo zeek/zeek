@@ -71,7 +71,7 @@ refine flow SIP_Flow += {
 
 		if ( build_headers )
 			{
-			headers.push_back({zeek::AdoptRef{}, build_sip_header_val(name, value)});
+			headers.emplace_back(zeek::AdoptRef{}, build_sip_header_val(name, value));
 			}
 
 		return true;

@@ -352,7 +352,7 @@ std::string MsgThread::BuildMsgWithLocation(const char* msg)
 		}
 
 	desc.Add(msg);
-	return std::string(desc.Description());
+	return desc.Description();
 	}
 
 void MsgThread::Info(const char* msg)

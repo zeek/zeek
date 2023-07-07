@@ -246,8 +246,6 @@ Manager::Manager(bool arg_use_real_time)
 	writer_id_type = nullptr;
 	}
 
-Manager::~Manager() { }
-
 void Manager::InitPostScript()
 	{
 	DBG_LOG(DBG_BROKER, "Initializing");

@@ -31,7 +31,7 @@ public:
 		{
 		}
 
-	virtual TraversalCode PreExpr(const Expr*) override;
+	TraversalCode PreExpr(const Expr*) override;
 
 private:
 	IDSet& globals;
@@ -76,7 +76,7 @@ public:
 		time = run_state::network_time;
 		}
 
-	~TriggerTimer() { Unref(trigger); }
+	~TriggerTimer() override { Unref(trigger); }
 
 	void Dispatch(double t, bool is_expire) override
 		{
@@ -398,7 +398,7 @@ void Trigger::Register(const ID* const_id)
 	notifier::detail::registry.Register(id, this);
 
 	Ref(id);
-	objs.push_back({id, id});
+	objs.emplace_back(id, id);
 	}
 
 void Trigger::Register(Val* val)

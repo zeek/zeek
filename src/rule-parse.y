@@ -220,16 +220,16 @@ rule_attr:
 			}
 
 	|	TOK_REQUIRES_SIGNATURE TOK_IDENT
-			{ current_rule->AddRequires($2, 0, 0); }
+			{ current_rule->AddRequires($2, false, false); }
 
 	|	TOK_REQUIRES_SIGNATURE '!' TOK_IDENT
-			{ current_rule->AddRequires($3, 0, 1); }
+			{ current_rule->AddRequires($3, false, true); }
 
 	|	TOK_REQUIRES_REVERSE_SIGNATURE TOK_IDENT
-			{ current_rule->AddRequires($2, 1, 0); }
+			{ current_rule->AddRequires($2, true, false); }
 
 	|	TOK_REQUIRES_REVERSE_SIGNATURE '!' TOK_IDENT
-			{ current_rule->AddRequires($3, 1, 1); }
+			{ current_rule->AddRequires($3, true, true); }
 
 	|	TOK_SAME_IP
 			{ current_rule->AddCondition(new zeek::detail::RuleConditionSameIP()); }

@@ -17,8 +17,6 @@ Component::Component(plugin::component::Type type, const std::string& name)
 	{
 	}
 
-Component::~Component() { }
-
 PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string& arg_prefix,
                                  InputType arg_type, factory_callback arg_factory)
 	: Component(plugin::component::PKTSRC, arg_name)
@@ -27,8 +25,6 @@ PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string&
 	type = arg_type;
 	factory = arg_factory;
 	}
-
-PktSrcComponent::~PktSrcComponent() { }
 
 const std::vector<std::string>& PktSrcComponent::Prefixes() const
 	{
@@ -109,8 +105,6 @@ PktDumperComponent::PktDumperComponent(const std::string& name, const std::strin
 	util::tokenize_string(arg_prefix, ":", &prefixes);
 	factory = arg_factory;
 	}
-
-PktDumperComponent::~PktDumperComponent() { }
 
 PktDumperComponent::factory_callback PktDumperComponent::Factory() const
 	{

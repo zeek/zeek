@@ -77,7 +77,7 @@ void IDOptInfo::AddInitExpr(ExprPtr init_expr, InitClass ic)
 		return;
 
 	if ( my_id->IsGlobal() )
-		global_init_exprs.emplace_back(IDInitInfo(my_id, init_expr, ic));
+		global_init_exprs.emplace_back(my_id, init_expr, ic);
 
 	init_exprs.emplace_back(std::move(init_expr));
 	}

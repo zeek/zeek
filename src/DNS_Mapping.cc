@@ -63,7 +63,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	else
 		req_addr = IPAddr(req_buf);
 
-	names.push_back(name_buf);
+	names.emplace_back(name_buf);
 
 	for ( int i = 0; i < num_addrs; ++i )
 		{
@@ -74,7 +74,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 		if ( newline )
 			*newline = '\0';
 
-		addrs.emplace_back(IPAddr(buf));
+		addrs.emplace_back(buf);
 		}
 
 	init_failed = false;
@@ -134,16 +134,16 @@ void DNS_Mapping::Init(struct hostent* h)
 	if ( h->h_name )
 		// for now, just use the official name
 		// TODO: this could easily be expanded to include all of the aliases as well
-		names.push_back(h->h_name);
+		names.emplace_back(h->h_name);
 
 	if ( h->h_addr_list )
 		{
 		for ( int i = 0; h->h_addr_list[i] != NULL; ++i )
 			{
 			if ( h->h_addrtype == AF_INET )
-				addrs.push_back(IPAddr(IPv4, (uint32_t*)h->h_addr_list[i], IPAddr::Network));
+				addrs.emplace_back(IPv4, (uint32_t*)h->h_addr_list[i], IPAddr::Network);
 			else if ( h->h_addrtype == AF_INET6 )
-				addrs.push_back(IPAddr(IPv6, (uint32_t*)h->h_addr_list[i], IPAddr::Network));
+				addrs.emplace_back(IPv6, (uint32_t*)h->h_addr_list[i], IPAddr::Network);
 			}
 		}
 

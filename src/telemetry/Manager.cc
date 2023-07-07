@@ -58,8 +58,6 @@ Manager::Manager()
 	pimpl.swap(ptr);
 	}
 
-Manager::~Manager() { }
-
 void Manager::InitPostScript() { }
 
 void Manager::InitPostBrokerSetup(broker::endpoint& ep)
@@ -322,7 +320,7 @@ public:
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::dbl_counter_hdl* counter,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		if ( matches(family) )
 			metrics.emplace_back(MetricType::Counter, family, extract_label_values(labels),
@@ -331,7 +329,7 @@ public:
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::int_counter_hdl* counter,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		if ( matches(family) )
 			metrics.emplace_back(MetricType::Counter, family, extract_label_values(labels),
@@ -340,7 +338,7 @@ public:
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::dbl_gauge_hdl* gauge,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		if ( matches(family) )
 			metrics.emplace_back(MetricType::Gauge, family, extract_label_values(labels),
@@ -349,7 +347,7 @@ public:
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::int_gauge_hdl* gauge,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		if ( matches(family) )
 			metrics.emplace_back(MetricType::Gauge, family, extract_label_values(labels),
@@ -358,14 +356,14 @@ public:
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::dbl_histogram_hdl* histogram,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		// Ignored
 		}
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::int_histogram_hdl* histogram,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		// Ignored
 		}
@@ -402,35 +400,35 @@ public:
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::dbl_counter_hdl* counter,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		// Ignored
 		}
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::int_counter_hdl* counter,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		// Ignored
 		}
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::dbl_gauge_hdl* gauge,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		// Ignored
 		}
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::int_gauge_hdl* gauge,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		// Ignored
 		}
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::dbl_histogram_hdl* histogram,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		if ( ! matches(family) )
 			return;
@@ -454,7 +452,7 @@ public:
 
 	void operator()(const broker::telemetry::metric_family_hdl* family,
 	                const broker::telemetry::int_histogram_hdl* histogram,
-	                broker::telemetry::const_label_list labels)
+	                broker::telemetry::const_label_list labels) override
 		{
 		if ( ! matches(family) )
 			return;

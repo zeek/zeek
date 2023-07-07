@@ -4237,8 +4237,6 @@ TableCoerceExpr::TableCoerceExpr(ExprPtr arg_op, TableTypePtr tt, bool type_chec
 		ExprError("coercion of non-table/set to table/set");
 	}
 
-TableCoerceExpr::~TableCoerceExpr() { }
-
 ValPtr TableCoerceExpr::Fold(Val* v) const
 	{
 	TableVal* tv = v->AsTableVal();
@@ -4264,8 +4262,6 @@ VectorCoerceExpr::VectorCoerceExpr(ExprPtr arg_op, VectorTypePtr v)
 		ExprError("coercion of non-vector to vector");
 	}
 
-VectorCoerceExpr::~VectorCoerceExpr() { }
-
 ValPtr VectorCoerceExpr::Fold(Val* v) const
 	{
 	VectorVal* vv = v->AsVectorVal();
@@ -4280,8 +4276,6 @@ ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, Args arg_args, do
 	: Timer(t, TIMER_SCHEDULE), event(arg_event), args(std::move(arg_args))
 	{
 	}
-
-ScheduleTimer::~ScheduleTimer() { }
 
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	{

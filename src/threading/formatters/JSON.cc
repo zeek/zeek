@@ -37,8 +37,6 @@ JSON::JSON(MsgThread* t, TimeFormat tf, bool arg_include_unset_fields)
 	{
 	}
 
-JSON::~JSON() { }
-
 bool JSON::Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const
 	{
 	rapidjson::StringBuffer buffer;

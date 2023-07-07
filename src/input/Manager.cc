@@ -130,7 +130,7 @@ public:
 	string file_id;
 
 	AnalysisStream();
-	~AnalysisStream() override;
+	~AnalysisStream() override = default;
 	};
 
 Manager::TableStream::TableStream()
@@ -176,8 +176,6 @@ Manager::TableStream::~TableStream()
 	}
 
 Manager::AnalysisStream::AnalysisStream() : Manager::Stream::Stream(ANALYSIS_STREAM), file_id() { }
-
-Manager::AnalysisStream::~AnalysisStream() { }
 
 Manager::Manager() : plugin::ComponentManager<input::Component>("Input", "Reader")
 	{

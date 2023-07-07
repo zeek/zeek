@@ -190,7 +190,7 @@ private:
 /**
  * A class describing an item defined in \c *.bif file.
  */
-class BifItem
+class BifItem final
 	{
 public:
 	/**
@@ -228,7 +228,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~BifItem();
+	~BifItem() = default;
 
 	/**
 	 * Returns the script-level ID as passed into the constructor.

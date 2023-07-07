@@ -956,13 +956,13 @@ const char* StringVal::CheckString() const
 string StringVal::ToStdString() const
 	{
 	auto* bs = AsString();
-	return string((char*)bs->Bytes(), bs->Len());
+	return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
 	}
 
 string_view StringVal::ToStdStringView() const
 	{
 	auto* bs = AsString();
-	return string_view((char*)bs->Bytes(), bs->Len());
+	return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
 	}
 
 StringVal* StringVal::ToUpper()
@@ -1012,7 +1012,7 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
 			break;
 
 		// s[offset .. offset+end_of_match-1] matches re.
-		cut_points.push_back({offset, offset + end_of_match});
+		cut_points.emplace_back(offset, offset + end_of_match);
 
 		offset += end_of_match;
 		n -= end_of_match;
@@ -1562,8 +1562,6 @@ ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullp
 	{
 	tag = t;
 	}
-
-ListVal::~ListVal() { }
 
 ValPtr ListVal::SizeVal() const
 	{

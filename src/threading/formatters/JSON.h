@@ -36,7 +36,7 @@ public:
 		};
 
 	JSON(MsgThread* t, TimeFormat tf, bool include_unset_fields = false);
-	~JSON() override;
+	~JSON() override = default;
 
 	bool Describe(ODesc* desc, Value* val, const std::string& name = "") const override;
 	bool Describe(ODesc* desc, int num_fields, const Field* const* fields,

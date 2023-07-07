@@ -13,7 +13,7 @@ namespace zeek::plugin::detail::Zeek_RawReader
 class Plugin : public plugin::Plugin
 	{
 public:
-	Plugin();
+	Plugin() = default;
 
 	plugin::Configuration Configure() override;
 

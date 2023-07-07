@@ -23,8 +23,6 @@ void Component::Initialize()
 	file_mgr->RegisterComponent(this, "ANALYZER_");
 	}
 
-Component::~Component() { }
-
 void Component::DoDescribe(ODesc* d) const
 	{
 	if ( factory_func )

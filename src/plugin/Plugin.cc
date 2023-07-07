@@ -66,8 +66,6 @@ BifItem& BifItem::operator=(const BifItem& other)
 	return *this;
 	}
 
-BifItem::~BifItem() { }
-
 void HookArgument::Describe(ODesc* d) const
 	{
 	switch ( type )

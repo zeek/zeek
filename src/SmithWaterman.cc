@@ -37,7 +37,7 @@ const Substring& Substring::operator=(const Substring& bst)
 
 void Substring::AddAlignment(const String* str, int index)
 	{
-	_aligns.push_back(BSSAlign(str, index));
+	_aligns.emplace_back(str, index);
 	}
 
 bool Substring::DoesCover(const Substring* bst) const

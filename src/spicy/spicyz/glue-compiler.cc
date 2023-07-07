@@ -1173,7 +1173,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 }
 
 namespace {
-// Visitor creasting code to instantiate a Zeek type corresponding to a give
+// Visitor creating code to instantiate a Zeek type corresponding to a give
 // HILTI type.
 //
 // Note: Any logic changes here must be reflected in the plugin driver's
@@ -1192,6 +1192,30 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
     // Returns namespace of top-level ID, if any.
     auto namespace_() const {
         return (! ids.empty() && ids.front().has_value()) ? ids.front()->namespace_() : hilti::ID();
+    }
+
+    result_t create_record_type(const hilti::ID& ns, const hilti::ID& local,
+                                const std::vector<hilti::Expression>& fields) {
+        if ( hilti::logger().isEnabled(ZeekPlugin) ) {
+            if ( ! fields.empty() ) {
+                SPICY_DEBUG(hilti::util::fmt("Creating Zeek record type %s::%s with fields:", ns, local));
+
+                for ( const auto& f : fields )
+                    SPICY_DEBUG(hilti::util::fmt("  %s", f.as<hilti::expression::Ctor>()
+                                                             .ctor()
+                                                             .as<hilti::ctor::Tuple>()
+                                                             .value()[0]
+                                                             .as<hilti::expression::Ctor>()
+                                                             .ctor()
+                                                             .as<hilti::ctor::String>()
+                                                             .value()));
+            }
+            else
+                SPICY_DEBUG(hilti::util::fmt("Creating (empty) Zeek record type %s::%s", ns, local));
+        }
+
+        return builder::call("zeek_rt::create_record_type",
+                             {builder::string(ns), builder::string(local), builder::vector(fields)});
     }
 
     result_t base_type(const char* tag) { return builder::call("zeek_rt::create_base_type", {builder::id(tag)}); }
@@ -1281,8 +1305,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             fields.emplace_back(builder::tuple({builder::string(f.id()), *ztype, builder::bool_(f.isOptional())}));
         }
 
-        return builder::call("zeek_rt::create_record_type", {builder::string(id()->namespace_()),
-                                                             builder::string(id()->local()), builder::vector(fields)});
+        return create_record_type(id()->namespace_(), id()->local(), fields);
     }
 
     result_t operator()(const hilti::type::Tuple& t) {
@@ -1316,8 +1339,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             ns = namespace_();
         }
 
-        return builder::call("zeek_rt::create_record_type",
-                             {builder::string(ns), builder::string(local), builder::vector(fields)});
+        return create_record_type(ns, local, fields);
     }
 
     result_t operator()(const ::spicy::type::Unit& t) {
@@ -1333,8 +1355,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
                 builder::tuple({builder::string(std::get<0>(f)), *ztype, builder::bool_(std::get<2>(f))}));
         }
 
-        return builder::call("zeek_rt::create_record_type", {builder::string(id()->namespace_()),
-                                                             builder::string(id()->local()), builder::vector(fields)});
+        return create_record_type(id()->namespace_(), id()->local(), fields);
     }
 
     result_t operator()(const hilti::type::Vector& t) {
@@ -1368,7 +1389,12 @@ struct VisitorUnitFields : hilti::visitor::PreOrder<void, VisitorUnitFields> {
         fields.emplace_back(f.id(), f.itemType(), f.isOptional());
     }
 
-    // TODO: void operator()(const ::spicy::type::unit::item::Switch & f, const position_t p) {
+    void operator()(const ::spicy::type::unit::item::Switch& f, const position_t p) {
+        for ( const auto& c : f.cases() ) {
+            for ( const auto& i : c.items() )
+                dispatch(i);
+        }
+    }
 };
 } // namespace
 

@@ -43,6 +43,7 @@ Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args)
 void Frame::SetElement(int n, ValPtr v)
 	{
 	n += current_offset;
+	ASSERT(n < size);
 	frame[n] = std::move(v);
 	}
 

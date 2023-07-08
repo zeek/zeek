@@ -2701,6 +2701,7 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	red_stmt = nullptr;
 
 	auto args_list = args->Exprs();
+	auto ret_val = c->PushInlineBlock(type);
 
 	loop_over_list(args_list, i)
 		{
@@ -2714,7 +2715,6 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
 		}
 
-	auto ret_val = c->PushInlineBlock(type);
 	body = body->Reduce(c);
 	c->PopInlineBlock();
 

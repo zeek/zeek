@@ -185,7 +185,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	push_existing_scope(scope);
 
-	auto rc = std::make_shared<Reducer>();
+	auto rc = std::make_shared<Reducer>(f);
 	auto new_body = rc->Reduce(body);
 
 	if ( reporter->Errors() > 0 )

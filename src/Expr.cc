@@ -4829,6 +4829,10 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
 
+	// Use the primary function as the source of the frame size
+	// and function body, rather than the ingredients, since script
+	// optimization might have changed the former but not the latter.
+	lamb->SetFrameSize(primary_func->FrameSize());
 	StmtPtr body = primary_func->GetBodies()[0].stmts;
 
 	if ( run_state::is_parsing )

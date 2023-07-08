@@ -193,7 +193,8 @@ const Stmt* ZAMCompiler::LastStmt(const Stmt* s) const
 	if ( s->Tag() == STMT_LIST )
 		{
 		auto sl = s->AsStmtList()->Stmts();
-		return sl[sl.length() - 1];
+		ASSERT(! sl.empty());
+		return sl.back().get();
 		}
 
 	else

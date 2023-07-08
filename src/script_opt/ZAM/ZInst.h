@@ -437,9 +437,8 @@ public:
 	// ... and its name.
 	std::string lambda_name;
 
-	// For "when" statements.  Needs to be non-const so we can
-	// Instantiate() it as needed.
-	WhenInfo* wi;
+	// For "when" statements.
+	std::shared_ptr<WhenInfo> wi;
 
 	// A parallel array for the cat() built-in replacement.
 	std::unique_ptr<CatArg>* cat_args = nullptr;

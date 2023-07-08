@@ -48,8 +48,8 @@ public:
 	// statements are executed immediately and the object is deleted
 	// right away.
 
-	Trigger(WhenInfo* wi, double timeout, const IDSet& globals, std::vector<ValPtr> local_aggrs,
-	        Frame* f, const Location* loc);
+	Trigger(std::shared_ptr<WhenInfo> wi, double timeout, const IDSet& globals,
+	        std::vector<ValPtr> local_aggrs, Frame* f, const Location* loc);
 
 	~Trigger() override;
 

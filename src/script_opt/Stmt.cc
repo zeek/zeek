@@ -398,7 +398,13 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 
 		auto c_t = c->TypeCases();
 		if ( c_t )
-			rc->UpdateIDs(c_t);
+			{
+			for ( auto& c_t_i : *c_t )
+				{
+				if ( c_t_i->Name() )
+					c_t_i = rc->UpdateID({NewRef{}, c_t_i}).release();
+				}
+			}
 
 		c->UpdateBody(c->Body()->Reduce(rc));
 		}
@@ -407,7 +413,8 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 	for ( auto& i : case_label_type_list )
 		{
 		IDPtr idp = {NewRef{}, i.first};
-		i.first = rc->UpdateID(idp).release();
+		if ( idp->Name() )
+			i.first = rc->UpdateID(idp).release();
 		}
 
 	if ( s->Stmts().length() > 0 )

@@ -699,25 +699,25 @@ StmtPtr StmtList::Duplicate()
 	{
 	auto new_sl = new StmtList();
 
-	for ( auto& stmt : Stmts() )
-		new_sl->Stmts().push_back(stmt->Duplicate());
+	for ( auto& stmt : stmts )
+		new_sl->stmts.push_back(stmt->Duplicate());
 
 	return SetSucc(new_sl);
 	}
 
 void StmtList::Inline(Inliner* inl)
 	{
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt : stmts )
 		stmt->Inline(inl);
 	}
 
 bool StmtList::IsReduced(Reducer* c) const
 	{
-	auto n = Stmts().size();
+	auto n = stmts.size();
 
 	for ( auto i = 0; i < n; ++i )
 		{
-		auto& s_i = Stmts()[i];
+		auto& s_i = stmts[i];
 		if ( ! s_i->IsReduced(c) )
 			return false;
 
@@ -733,14 +733,14 @@ StmtPtr StmtList::DoReduce(Reducer* c)
 	std::vector<StmtPtr> f_stmts;
 	bool did_change = false;
 
-	auto n = Stmts().size();
+	auto n = stmts.size();
 
 	for ( auto i = 0; i < n; ++i )
 		{
 		if ( ReduceStmt(i, f_stmts, c) )
 			did_change = true;
 
-		if ( i < n - 1 && Stmts()[i]->NoFlowAfter(false) )
+		if ( i < n - 1 && stmts[i]->NoFlowAfter(false) )
 			{
 			did_change = true;
 			break;
@@ -768,7 +768,7 @@ StmtPtr StmtList::DoReduce(Reducer* c)
 bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c)
 	{
 	bool did_change = false;
-	auto stmt = Stmts()[s_i];
+	auto stmt = stmts[s_i];
 	auto old_stmt = stmt;
 
 	stmt = stmt->Reduce(c);
@@ -813,10 +813,10 @@ bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c)
 		auto var = lhs->AsNameExpr();
 		auto rhs = a->GetOp2();
 
-		if ( s_i < Stmts().size() - 1 )
+		if ( s_i < stmts.size() - 1 )
 			{
 			// See if we can compress an assignment chain.
-			auto& s_i_succ = Stmts()[s_i + 1];
+			auto& s_i_succ = stmts[s_i + 1];
 
 			// Don't reduce s_i_succ.  If it's what we're
 			// looking for, it's already reduced.  Plus
@@ -864,7 +864,7 @@ bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c)
 
 bool StmtList::NoFlowAfter(bool ignore_break) const
 	{
-	for ( auto& s : Stmts() )
+	for ( auto& s : stmts )
 		{
 		// For "break" statements, if ignore_break is set then
 		// by construction flow *does* go to after this statement

@@ -1677,7 +1677,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow)
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	for ( const auto& stmt_ptr : Stmts() )
+	for ( const auto& stmt_ptr : stmts )
 		{
 		auto stmt = stmt_ptr.get();
 
@@ -1702,7 +1702,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow)
 
 bool StmtList::IsPure() const
 	{
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt : stmts )
 		if ( ! stmt->IsPure() )
 			return false;
 	return true;
@@ -1727,7 +1727,7 @@ void StmtList::StmtDescribe(ODesc* d) const
 			d->NL();
 			}
 
-		for ( const auto& stmt : Stmts() )
+		for ( const auto& stmt : stmts )
 			{
 			stmt->Describe(d);
 			d->NL();
@@ -1743,7 +1743,7 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt : stmts )
 		{
 		tc = stmt->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);

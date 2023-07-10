@@ -1917,6 +1917,22 @@ ExprPtr HasFieldExpr::Duplicate()
 	return SetSucc(new HasFieldExpr(op->Duplicate(), util::copy_string(field_name)));
 	}
 
+bool HasFieldExpr::IsReduced(Reducer* c) const
+	{
+	return op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL);
+	}
+
+ExprPtr HasFieldExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
+	{
+	if ( ! op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL) )
+		{
+		auto True = make_intrusive<ConstExpr>(val_mgr->True());
+		return TransformMe(True, c, red_stmt);
+		}
+
+	return UnaryExpr::Reduce(c, red_stmt);
+	}
+
 ExprPtr RecordConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();

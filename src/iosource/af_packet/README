@@ -3,6 +3,9 @@
 
 This plugin provides native AF_Packet support for Zeek. For details about AF_Packet, see the corresponding [man page](http://man7.org/linux/man-pages/man7/packet.7.html).
 
+> **Note**:
+> Starting with Zeek version 5.2, Zeek ships with a built-in version of this plugin.
+
 ## Installation
 
 Before installing the plugin, make sure your kernel supports PACKET_FANOUT[^1] and TPACKET_V3.

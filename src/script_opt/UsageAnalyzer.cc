@@ -122,8 +122,12 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const
 
 		// If the global is exported, or has global scope, we assume
 		// it's meant to be used, even if the current scripts don't
-		// use it.
-		if ( id->IsExport() || id->ModuleName() == "GLOBAL" )
+		// use it.  Similarly, lambdas are either attributes, in
+		// which case we should presume they're used, or appear inside
+		// of functions, so if not used there will be a broader
+		// complaint about the encompassing function.
+		if ( id->IsExport() || id->ModuleName() == "GLOBAL" ||
+		     std::string(id->Name()).find("lambda_<") != std::string::npos )
 			seeds.insert(id.get());
 		}
 	}

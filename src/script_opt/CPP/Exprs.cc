@@ -351,7 +351,7 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level)
 
 	if ( is_async )
 		invoke_func = "when_invoke__CPP";
-	else if ( t->Tag() == TYPE_VOID )
+	else if ( top_level || t->Tag() == TYPE_VOID )
 		{
 		ASSERT(top_level);
 		invoke_func = "invoke_void__CPP";

@@ -11,4 +11,4 @@ export {
 	type foo: enum { a, b };
 }
 
-print GLOBAL::a, GLOBAL::b, a, b, c;
+print ::a, ::b, a, b, c;

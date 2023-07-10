@@ -21,6 +21,7 @@
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TYPE TOK_VECTOR TOK_WHEN
 %token TOK_WHILE TOK_AS TOK_IS
+%token TOK_GLOBAL_ID
 
 %token TOK_ATTR_ADD_FUNC TOK_ATTR_DEFAULT TOK_ATTR_OPTIONAL TOK_ATTR_REDEF
 %token TOK_ATTR_DEL_FUNC TOK_ATTR_EXPIRE_FUNC
@@ -55,7 +56,7 @@
 %nonassoc TOK_AS TOK_IS
 
 %type <b> opt_no_test opt_no_test_block opt_deep when_flavor
-%type <str> TOK_ID TOK_PATTERN_TEXT
+%type <str> TOK_ID TOK_PATTERN_TEXT TOK_GLOBAL_ID lookup_identifier
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
@@ -925,7 +926,7 @@ expr:
 			$$ = new ScheduleExpr({AdoptRef{}, $2}, {AdoptRef{}, $4});
 			}
 
-	|	TOK_ID
+	|	lookup_identifier
 			{
 			set_location(@1);
 			auto id = lookup_ID($1, current_module.c_str());
@@ -1976,7 +1977,7 @@ stmt_list:
 	;
 
 event:
-		TOK_ID '(' opt_expr_list ')'
+		lookup_identifier '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
 			const auto& id = lookup_ID($1, current_module.c_str());
@@ -2179,7 +2180,7 @@ event_id:
 	;
 
 global_or_event_id:
-		TOK_ID
+		lookup_identifier
 			{
 			set_location(@1);
 			auto id = lookup_ID($1, current_module.c_str(), false,
@@ -2217,7 +2218,7 @@ global_or_event_id:
 
 
 resolve_id:
-		TOK_ID
+		lookup_identifier
 			{
 			set_location(@1);
 			auto id = lookup_ID($1, current_module.c_str());
@@ -2228,6 +2229,20 @@ resolve_id:
 
 			delete [] $1;
 			}
+	;
+
+lookup_identifier:
+		TOK_ID
+	|
+		TOK_GLOBAL_ID
+			{
+			if ( is_export )
+				{
+				reporter->Error("cannot use :: prefix in export section: %s", $1);
+				YYERROR;
+				}
+			}
+
 	;
 
 opt_assert_msg:

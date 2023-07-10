@@ -1563,6 +1563,12 @@ ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullp
 	tag = t;
 	}
 
+ListVal::ListVal(TypeListPtr tl, std::vector<ValPtr>& _vals) : Val(std::move(tl))
+	{
+	tag = TYPE_ANY;
+	vals = std::move(_vals);
+	}
+
 ValPtr ListVal::SizeVal() const
 	{
 	return val_mgr->Count(vals.size());

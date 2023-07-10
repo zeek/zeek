@@ -661,7 +661,14 @@ private:
 class ListVal final : public Val
 	{
 public:
+	// Constructor to used to build up a homogeneous list of values;
+	// or, if 't' is TYPE_ANY, then a heterogeneous one whose type
+	// is built up as values are appended.
 	explicit ListVal(TypeTag t);
+
+	// Constructor used to build the list in one shot, with the type
+	// pre-computed.
+	ListVal(TypeListPtr tl, std::vector<ValPtr>& vals);
 
 	~ListVal() override = default;
 

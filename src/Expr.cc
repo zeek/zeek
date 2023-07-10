@@ -5033,7 +5033,7 @@ bool ListExpr::IsPure() const
 
 ValPtr ListExpr::Eval(Frame* f) const
 	{
-	auto v = make_intrusive<ListVal>(TYPE_ANY);
+	std::vector<ValPtr> evs;
 
 	for ( const auto& expr : exprs )
 		{
@@ -5045,10 +5045,10 @@ ValPtr ListExpr::Eval(Frame* f) const
 			return nullptr;
 			}
 
-		v->Append(std::move(ev));
+		evs.push_back(std::move(ev));
 		}
 
-	return v;
+	return make_intrusive<ListVal>(cast_intrusive<TypeList>(type), evs);
 	}
 
 TypePtr ListExpr::InitType() const

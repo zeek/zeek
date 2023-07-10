@@ -198,14 +198,6 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 		return c;
 		}
 
-	// Check for mismatches in argument count due to single-arg-of-type-any
-	// loophole used for variadic BiFs.
-	if ( function->GetType()->Params()->NumFields() == 1 && c->Args()->Exprs().size() != 1 )
-		{
-		skipped_inlining.insert(func_vf);
-		return c;
-		}
-
 	// We're going to inline the body, unless it's too large.
 	auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
 	auto oi = body->GetOptInfo();

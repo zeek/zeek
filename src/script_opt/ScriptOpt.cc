@@ -36,7 +36,7 @@ static ZAMCompiler* ZAM = nullptr;
 static bool generating_CPP = false;
 static std::string CPP_dir; // where to generate C++ code
 
-static std::unordered_set<const ScriptFunc*> lambdas;
+static std::unordered_map<const ScriptFunc*, LambdaExpr*> lambdas;
 static std::unordered_set<const ScriptFunc*> when_lambdas;
 static ScriptFuncPtr global_stmts;
 
@@ -52,7 +52,7 @@ void analyze_lambda(LambdaExpr* l)
 	{
 	auto& pf = l->PrimaryFunc();
 	analyze_func(pf);
-	lambdas.insert(pf.get());
+	lambdas[pf.get()] = l;
 	}
 
 void analyze_when_lambda(LambdaExpr* l)
@@ -496,22 +496,19 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 
 	if ( inl )
 		{
-		for ( auto& f : funcs )
+		for ( auto& g : pfs->Globals() )
 			{
-			for ( const auto& g : f.Profile()->Globals() )
-				{
-				if ( g->GetType()->Tag() != TYPE_FUNC )
-					continue;
+			if ( g->GetType()->Tag() != TYPE_FUNC )
+				continue;
 
-				auto v = g->GetVal();
-				if ( ! v )
-					continue;
+			auto v = g->GetVal();
+			if ( ! v )
+				continue;
 
-				auto func = v->AsFunc();
+			auto func = v->AsFunc();
 
-				if ( inl->WasInlined(func) )
-					func_used_indirectly.insert(func);
-				}
+			if ( inl->WasInlined(func) )
+				func_used_indirectly.insert(func);
 			}
 		}
 
@@ -520,7 +517,8 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	for ( auto& f : funcs )
 		{
 		auto func = f.Func();
-		bool is_lambda = lambdas.count(func) > 0;
+		auto l = lambdas.find(func);
+		bool is_lambda = l != lambdas.end();
 
 		if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
 			{

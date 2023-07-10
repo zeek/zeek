@@ -283,7 +283,7 @@ protected:
 	IDSet constant_vars;
 
 	// Statement at which the current reduction started.
-	StmtPtr reduction_root = nullptr;
+	StmtPtr reduction_root;
 
 	// Statement we're currently working on.
 	const Stmt* curr_stmt = nullptr;

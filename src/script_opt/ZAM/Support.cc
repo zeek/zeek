@@ -90,7 +90,10 @@ void ZAM_run_time_error(const char* msg)
 
 void ZAM_run_time_error(const Location* loc, const char* msg)
 	{
-	reporter->RuntimeError(loc, "%s", msg);
+	if ( ! loc )
+		ZAM_run_time_error(msg);
+	else
+		reporter->RuntimeError(loc, "%s", msg);
 	ZAM_error = true;
 	}
 
@@ -109,9 +112,14 @@ void ZAM_run_time_error(const Location* loc, const char* msg, const Obj* o)
 void ZAM_run_time_warning(const Location* loc, const char* msg)
 	{
 	ODesc d;
-	loc->Describe(&d);
 
-	reporter->Warning("%s: %s", d.Description(), msg);
+	if ( loc )
+		{
+		loc->Describe(&d);
+		reporter->Warning("%s: %s", d.Description(), msg);
+		}
+	else
+		reporter->Warning("%s", msg);
 	}
 
 	} // namespace zeek::detail

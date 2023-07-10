@@ -320,13 +320,20 @@ IntrusivePtr<Case> Case::Duplicate()
 		return make_intrusive<Case>(new_exprs, nullptr, s->Duplicate());
 		}
 
+	IDPList* new_type_cases = nullptr;
+
 	if ( type_cases )
 		{
+		new_type_cases = new IDPList();
+
 		for ( auto tc : *type_cases )
+			{
 			zeek::Ref(tc);
+			new_type_cases->append(tc);
+			}
 		}
 
-	return make_intrusive<Case>(nullptr, type_cases, s->Duplicate());
+	return make_intrusive<Case>(nullptr, new_type_cases, s->Duplicate());
 	}
 
 StmtPtr SwitchStmt::Duplicate()
@@ -354,6 +361,9 @@ bool SwitchStmt::IsReduced(Reducer* r) const
 	if ( ! e->IsReduced(r) )
 		return NonReduced(e.get());
 
+	if ( cases->length() == 0 )
+		return false;
+
 	for ( const auto& c : *cases )
 		{
 		if ( c->ExprCases() && ! c->ExprCases()->IsReduced(r) )
@@ -371,6 +381,10 @@ bool SwitchStmt::IsReduced(Reducer* r) const
 
 StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 	{
+	if ( cases->length() == 0 )
+		// Degenerate.
+		return make_intrusive<NullStmt>();
+
 	auto s = make_intrusive<StmtList>();
 	StmtPtr red_e_stmt;
 
@@ -383,6 +397,14 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 
 	if ( red_e_stmt )
 		s->Stmts().push_back(red_e_stmt.release());
+
+	// Update type cases.
+	for ( auto& i : case_label_type_list )
+		{
+		IDPtr idp = {NewRef{}, i.first};
+		if ( idp->Name() )
+			i.first = rc->UpdateID(idp).release();
+		}
 
 	for ( const auto& c : *cases )
 		{
@@ -407,14 +429,6 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 			}
 
 		c->UpdateBody(c->Body()->Reduce(rc));
-		}
-
-	// Update type cases.
-	for ( auto& i : case_label_type_list )
-		{
-		IDPtr idp = {NewRef{}, i.first};
-		if ( idp->Name() )
-			i.first = rc->UpdateID(idp).release();
 		}
 
 	if ( s->Stmts().length() > 0 )

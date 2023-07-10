@@ -90,10 +90,11 @@ void ZAM_run_time_error(const char* msg)
 
 void ZAM_run_time_error(const Location* loc, const char* msg)
 	{
-	if ( ! loc )
-		ZAM_run_time_error(msg);
-	else
+	if ( loc )
 		reporter->RuntimeError(loc, "%s", msg);
+	else
+		ZAM_run_time_error(msg);
+
 	ZAM_error = true;
 	}
 

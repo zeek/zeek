@@ -91,7 +91,7 @@ StmtPtr ExprListStmt::DoReduce(Reducer* c)
 			new_l->Append(red_e);
 
 			if ( red_e_stmt )
-				s->Stmts().push_back(red_e_stmt.release());
+				s->Stmts().push_back(red_e_stmt);
 			}
 		}
 
@@ -103,7 +103,7 @@ StmtPtr ExprListStmt::DoReduce(Reducer* c)
 
 	else
 		{
-		s->Stmts().push_back(DoSubclassReduce(new_l, c).release());
+		s->Stmts().push_back(DoSubclassReduce(new_l, c));
 		return s->Reduce(c);
 		}
 	}
@@ -296,7 +296,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c)
 		}
 
 	if ( red_e_stmt )
-		return TransformMe(make_intrusive<StmtList>(red_e_stmt, this), c);
+		return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
 
 	return ThisPtr();
 	}
@@ -382,7 +382,14 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 	// Note, the compiler checks for constant switch expressions.
 
 	if ( red_e_stmt )
-		s->Stmts().push_back(red_e_stmt.release());
+		s->Stmts().push_back(red_e_stmt);
+
+	// Update type cases.
+	for ( auto& i : case_label_type_list )
+		{
+		IDPtr idp = {NewRef{}, i.first};
+		i.first = rc->UpdateID(idp).release();
+		}
 
 	for ( const auto& c : *cases )
 		{
@@ -393,7 +400,7 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 			auto red_cases = c_e->Reduce(rc, c_e_stmt);
 
 			if ( c_e_stmt )
-				s->Stmts().push_back(c_e_stmt.release());
+				s->Stmts().push_back(c_e_stmt);
 			}
 
 		auto c_t = c->TypeCases();
@@ -403,14 +410,7 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc)
 		c->UpdateBody(c->Body()->Reduce(rc));
 		}
 
-	// Update type cases.
-	for ( auto& i : case_label_type_list )
-		{
-		IDPtr idp = {NewRef{}, i.first};
-		i.first = rc->UpdateID(idp).release();
-		}
-
-	if ( s->Stmts().length() > 0 )
+	if ( ! s->Stmts().empty() )
 		{
 		StmtPtr me = ThisPtr();
 		auto pre_and_me = make_intrusive<StmtList>(s, me);
@@ -634,7 +634,7 @@ StmtPtr ForStmt::DoReduce(Reducer* c)
 		Warn("empty \"for\" body leaves loop variables in indeterminate state");
 
 	if ( red_e_stmt )
-		return TransformMe(make_intrusive<StmtList>(red_e_stmt, this), c);
+		return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
 
 	return ThisPtr();
 	}
@@ -677,58 +677,47 @@ StmtPtr ReturnStmt::DoReduce(Reducer* c)
 	return ThisPtr();
 	}
 
-StmtList::StmtList(StmtPtr s1, Stmt* s2) : Stmt(STMT_LIST)
-	{
-	stmts = new StmtPList;
-	if ( s1 )
-		stmts->append(s1.release());
-	if ( s2 )
-		stmts->append(s2);
-	}
-
 StmtList::StmtList(StmtPtr s1, StmtPtr s2) : Stmt(STMT_LIST)
 	{
-	stmts = new StmtPList;
 	if ( s1 )
-		stmts->append(s1.release());
+		stmts.push_back(std::move(s1));
 	if ( s2 )
-		stmts->append(s2.release());
+		stmts.push_back(std::move(s2));
 	}
 
 StmtList::StmtList(StmtPtr s1, StmtPtr s2, StmtPtr s3) : Stmt(STMT_LIST)
 	{
-	stmts = new StmtPList;
 	if ( s1 )
-		stmts->append(s1.release());
+		stmts.push_back(std::move(s1));
 	if ( s2 )
-		stmts->append(s2.release());
+		stmts.push_back(std::move(s2));
 	if ( s3 )
-		stmts->append(s3.release());
+		stmts.push_back(std::move(s3));
 	}
 
 StmtPtr StmtList::Duplicate()
 	{
 	auto new_sl = new StmtList();
 
-	for ( auto& stmt : Stmts() )
-		new_sl->Stmts().push_back(stmt->Duplicate().release());
+	for ( auto& stmt : stmts )
+		new_sl->stmts.push_back(stmt->Duplicate());
 
 	return SetSucc(new_sl);
 	}
 
 void StmtList::Inline(Inliner* inl)
 	{
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt : stmts )
 		stmt->Inline(inl);
 	}
 
 bool StmtList::IsReduced(Reducer* c) const
 	{
-	int n = Stmts().length();
+	auto n = stmts.size();
 
 	for ( auto i = 0; i < n; ++i )
 		{
-		auto& s_i = Stmts()[i];
+		auto& s_i = stmts[i];
 		if ( ! s_i->IsReduced(c) )
 			return false;
 
@@ -741,17 +730,17 @@ bool StmtList::IsReduced(Reducer* c) const
 
 StmtPtr StmtList::DoReduce(Reducer* c)
 	{
-	StmtPList* f_stmts = new StmtPList{};
+	std::vector<StmtPtr> f_stmts;
 	bool did_change = false;
 
-	int n = Stmts().length();
+	auto n = stmts.size();
 
 	for ( auto i = 0; i < n; ++i )
 		{
 		if ( ReduceStmt(i, f_stmts, c) )
 			did_change = true;
 
-		if ( i < n - 1 && Stmts()[i]->NoFlowAfter(false) )
+		if ( i < n - 1 && stmts[i]->NoFlowAfter(false) )
 			{
 			did_change = true;
 			break;
@@ -761,31 +750,25 @@ StmtPtr StmtList::DoReduce(Reducer* c)
 			return ThisPtr();
 		}
 
-	if ( f_stmts->length() == 0 )
-		{
-		delete f_stmts;
+	if ( f_stmts.empty() )
 		return TransformMe(make_intrusive<NullStmt>(), c);
-		}
 
-	if ( f_stmts->length() == 1 )
-		return (*f_stmts)[0]->Reduce(c);
+	if ( f_stmts.size() == 1 )
+		return f_stmts[0]->Reduce(c);
 
 	if ( did_change )
 		{
-		ResetStmts(f_stmts);
+		ResetStmts(std::move(f_stmts));
 		return Reduce(c);
 		}
-	else
-		delete f_stmts;
 
 	return ThisPtr();
 	}
 
-bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
+bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c)
 	{
 	bool did_change = false;
-	auto stmt = Stmts()[s_i]->ThisPtr();
-
+	auto stmt = stmts[s_i];
 	auto old_stmt = stmt;
 
 	stmt = stmt->Reduce(c);
@@ -814,7 +797,7 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 
 		if ( e->Tag() != EXPR_ASSIGN )
 			{
-			f_stmts->append(stmt.release());
+			f_stmts.push_back(std::move(stmt));
 			return false;
 			}
 
@@ -823,17 +806,17 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 
 		if ( lhs->Tag() != EXPR_NAME )
 			{
-			f_stmts->append(stmt.release());
+			f_stmts.push_back(std::move(stmt));
 			return false;
 			}
 
 		auto var = lhs->AsNameExpr();
 		auto rhs = a->GetOp2();
 
-		if ( s_i < Stmts().length() - 1 )
+		if ( s_i < stmts.size() - 1 )
 			{
 			// See if we can compress an assignment chain.
-			auto& s_i_succ = Stmts()[s_i + 1];
+			auto& s_i_succ = stmts[s_i + 1];
 
 			// Don't reduce s_i_succ.  If it's what we're
 			// looking for, it's already reduced.  Plus
@@ -842,7 +825,7 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 			auto merge = c->MergeStmts(var, rhs, s_i_succ);
 			if ( merge )
 				{
-				f_stmts->append(merge.release());
+				f_stmts.push_back(std::move(merge));
 
 				// Skip both this statement and the next,
 				// now that we've substituted the merge.
@@ -864,7 +847,7 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 		auto sl = stmt->AsStmtList();
 
 		for ( auto& sub_stmt : sl->Stmts() )
-			f_stmts->append(sub_stmt->Ref());
+			f_stmts.push_back(sub_stmt);
 
 		did_change = true;
 		}
@@ -874,17 +857,14 @@ bool StmtList::ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c)
 		did_change = true;
 
 	else
-		// No need to Ref() because the StmtPList destructor
-		// doesn't Unref(), only the explicit list-walking
-		// in the ~StmtList destructor.
-		f_stmts->append(stmt.release());
+		f_stmts.push_back(std::move(stmt));
 
 	return did_change;
 	}
 
 bool StmtList::NoFlowAfter(bool ignore_break) const
 	{
-	for ( auto& s : Stmts() )
+	for ( auto& s : stmts )
 		{
 		// For "break" statements, if ignore_break is set then
 		// by construction flow *does* go to after this statement
@@ -971,7 +951,7 @@ void WhenInfo::UpdateIDs(Reducer* c)
 
 StmtPtr WhenStmt::Duplicate()
 	{
-	return SetSucc(new WhenStmt(new WhenInfo(wi)));
+	return SetSucc(new WhenStmt(wi));
 	}
 
 bool WhenStmt::IsReduced(Reducer* c) const

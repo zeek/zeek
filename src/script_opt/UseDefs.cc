@@ -197,20 +197,20 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			auto sl = s->AsStmtList();
 			const auto& stmts = sl->Stmts();
 
-			for ( int i = stmts.length(); --i >= 0; )
+			for ( int i = stmts.size(); --i >= 0; )
 				{
-				auto s_i = stmts[i];
+				auto s_i = stmts[i].get();
 
 				const Stmt* succ;
 
-				if ( i == stmts.length() - 1 )
+				if ( i == stmts.size() - 1 )
 					{ // Very last statement.
 					succ = succ_stmt;
 					if ( successor2.find(s) != successor2.end() )
 						successor2[s_i] = successor2[s];
 					}
 				else
-					succ = stmts[i + 1];
+					succ = stmts[i + 1].get();
 
 				succ_UDs = PropagateUDs(s_i, succ_UDs, succ, second_pass);
 				}

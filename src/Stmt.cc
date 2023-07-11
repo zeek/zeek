@@ -576,12 +576,12 @@ static StmtTag get_last_stmt_tag(const Stmt* stmt)
 		return stmt->Tag();
 
 	const StmtList* stmts = stmt->AsStmtList();
-	int len = stmts->Stmts().length();
+	auto len = stmts->Stmts().size();
 
 	if ( len == 0 )
 		return STMT_LIST;
 
-	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
+	return get_last_stmt_tag(stmts->Stmts()[len - 1].get());
 	}
 
 class FallthroughFinder : public TraversalCallback
@@ -1668,26 +1668,17 @@ void ReturnStmt::StmtDescribe(ODesc* d) const
 	DescribeDone(d);
 	}
 
-StmtList::StmtList() : Stmt(STMT_LIST)
-	{
-	stmts = new StmtPList;
-	}
-
-StmtList::~StmtList()
-	{
-	for ( const auto& stmt : Stmts() )
-		Unref(stmt);
-
-	delete stmts;
-	}
+StmtList::StmtList() : Stmt(STMT_LIST) { }
 
 ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow)
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt_ptr : stmts )
 		{
+		auto stmt = stmt_ptr.get();
+
 		f->SetNextStmt(stmt);
 
 		if ( ! pre_execute_stmt(stmt, f) )
@@ -1709,7 +1700,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow)
 
 bool StmtList::IsPure() const
 	{
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt : stmts )
 		if ( ! stmt->IsPure() )
 			return false;
 	return true;
@@ -1720,10 +1711,10 @@ void StmtList::StmtDescribe(ODesc* d) const
 	if ( ! d->IsReadable() )
 		{
 		AddTag(d);
-		d->AddCount(stmts->length());
+		d->AddCount(stmts.size());
 		}
 
-	if ( stmts->length() == 0 )
+	if ( stmts.empty() )
 		DescribeDone(d);
 
 	else
@@ -1734,7 +1725,7 @@ void StmtList::StmtDescribe(ODesc* d) const
 			d->NL();
 			}
 
-		for ( const auto& stmt : Stmts() )
+		for ( const auto& stmt : stmts )
 			{
 			stmt->Describe(d);
 			d->NL();
@@ -1750,7 +1741,7 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt : stmts )
 		{
 		tc = stmt->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -2209,7 +2200,7 @@ void WhenInfo::BuildInvokeElems()
 	invoke_timeout = make_intrusive<ListExpr>(three_const);
 	}
 
-WhenStmt::WhenStmt(WhenInfo* arg_wi) : Stmt(STMT_WHEN), wi(arg_wi)
+WhenStmt::WhenStmt(std::shared_ptr<WhenInfo> arg_wi) : Stmt(STMT_WHEN), wi(std::move(arg_wi))
 	{
 	wi->Build(ThisPtr());
 
@@ -2229,11 +2220,6 @@ WhenStmt::WhenStmt(WhenInfo* arg_wi) : Stmt(STMT_WHEN), wi(arg_wi)
 		if ( bt != TYPE_TIME && bt != TYPE_INTERVAL )
 			te->Error("when timeout requires a time or time interval");
 		}
-	}
-
-WhenStmt::~WhenStmt()
-	{
-	delete wi;
 	}
 
 ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)

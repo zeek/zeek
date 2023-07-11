@@ -99,7 +99,7 @@ protected:
 	double time;
 	};
 
-Trigger::Trigger(WhenInfo* wi, double timeout, const IDSet& _globals,
+Trigger::Trigger(std::shared_ptr<WhenInfo> wi, double timeout, const IDSet& _globals,
                  std::vector<ValPtr> _local_aggrs, Frame* f, const Location* loc)
 	{
 	timeout_value = timeout;

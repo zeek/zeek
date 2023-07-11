@@ -395,7 +395,7 @@ zeek:
 		stmt_list
 			{
 			if ( stmts )
-				stmts->AsStmtList()->Stmts().push_back($3);
+				stmts->AsStmtList()->Stmts().push_back({AdoptRef{}, $3});
 			else
 				stmts = $3;
 
@@ -1931,7 +1931,8 @@ stmt:
 
 	|	when_clause
 			{
-			$$ = new WhenStmt($1);
+			std::shared_ptr<WhenInfo> wi($1);
+			$$ = new WhenStmt(wi);
 			script_coverage_mgr.AddStmt($$);
 			}
 
@@ -1968,7 +1969,7 @@ stmt_list:
 		stmt_list stmt
 			{
 			set_location(@1, @2);
-			$1->AsStmtList()->Stmts().push_back($2);
+			$1->AsStmtList()->Stmts().push_back({AdoptRef{}, $2});
 			$1->UpdateLocationEndInfo(@2);
 			}
 	|

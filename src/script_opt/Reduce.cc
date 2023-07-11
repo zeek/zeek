@@ -654,7 +654,7 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e)
 	return make_intrusive<ConstExpr>(c->ValuePtr());
 	}
 
-StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, Stmt* succ_stmt)
+StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& succ_stmt)
 	{
 	// First check for tmp=rhs.
 	auto lhs_id = lhs->Id();

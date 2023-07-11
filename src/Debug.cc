@@ -205,7 +205,7 @@ void get_first_statement(Stmt* list, Stmt*& first, Location& loc)
 	while ( first->Tag() == STMT_LIST )
 		{
 		if ( first->AsStmtList()->Stmts()[0] )
-			first = first->AsStmtList()->Stmts()[0];
+			first = first->AsStmtList()->Stmts()[0].get();
 		else
 			break;
 		}

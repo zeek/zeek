@@ -460,12 +460,12 @@ class StmtList : public Stmt
 	{
 public:
 	StmtList();
-	~StmtList() override;
+	~StmtList() override = default;
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-	const StmtPList& Stmts() const { return *stmts; }
-	StmtPList& Stmts() { return *stmts; }
+	const auto& Stmts() const { return stmts; }
+	auto& Stmts() { return stmts; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -481,23 +481,18 @@ public:
 	bool NoFlowAfter(bool ignore_break) const override;
 
 	// Idioms commonly used in reduction.
-	StmtList(StmtPtr s1, Stmt* s2);
 	StmtList(StmtPtr s1, StmtPtr s2);
 	StmtList(StmtPtr s1, StmtPtr s2, StmtPtr s3);
 
 protected:
 	bool IsPure() const override;
 
-	StmtPList* stmts;
+	std::vector<StmtPtr> stmts;
 
 	// Optimization-related:
-	bool ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c);
+	bool ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c);
 
-	void ResetStmts(StmtPList* new_stmts)
-		{
-		delete stmts;
-		stmts = new_stmts;
-		}
+	void ResetStmts(std::vector<StmtPtr> new_stmts) { stmts = std::move(new_stmts); }
 	};
 
 class InitStmt final : public Stmt
@@ -690,9 +685,7 @@ private:
 class WhenStmt final : public Stmt
 	{
 public:
-	// The constructor takes ownership of the WhenInfo object.
-	WhenStmt(WhenInfo* wi);
-	~WhenStmt() override;
+	WhenStmt(std::shared_ptr<WhenInfo> wi);
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
@@ -703,7 +696,7 @@ public:
 	StmtPtr TimeoutBody() const { return wi->TimeoutStmt(); }
 	bool IsReturn() const { return wi->IsReturn(); }
 
-	WhenInfo* Info() const { return wi; }
+	auto Info() const { return wi; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -716,7 +709,7 @@ public:
 	StmtPtr DoReduce(Reducer* c) override;
 
 private:
-	WhenInfo* wi;
+	std::shared_ptr<WhenInfo> wi;
 	};
 
 // Internal statement used for inlining.  Executes a block and stops

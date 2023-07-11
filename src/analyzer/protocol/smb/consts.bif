@@ -1,1 +1,3 @@
 const SMB::pipe_filenames: string_set;
+const SMB::max_pending_messages: count;
+const SMB::max_dce_rpc_analyzers: count;

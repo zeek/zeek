@@ -1,3 +1,40 @@
+6.1.0-dev.198 | 2023-07-11 16:16:56 -0700
+
+  * dce-rpc: Test cases for unbounded state growth (Arne Welzel, Corelight)
+
+    Pcaps produced as shown in #3145 using a samba container and rpcclient.
+
+  * dce-rpc: Handle smb2_close_request() in scripts (Arne Welzel, Corelight)
+
+    If there's a request to close a fid and it's in the dce_rpc_backing
+    table, remove it from there.
+
+  * smb/dce-rpc: Cleanup DCE-RPC analyzers when fid is closed and limit them (Arne Welzel, Corelight)
+
+    This patch does two things:
+
+    1) For SMB close requests, tear down any associated DCE-RPC
+       analyzer if one exists.
+
+    2) Protect from fid_to_analyzer_map growing unbounded by introducing a
+       new SMB::max_dce_rpc_analyzers limit and forcefully wipe the
+       analyzers if exceeded. Propagate this to script land as event
+       smb_discarded_dce_rpc_analyzers() for additional cleanup.
+
+    This is mostly to fix how the binpac SMB analyzer tracks individual
+    DCE-RPC analyzers per open fid. Connections that re-open the same or
+    different pipe may currently allocate unbounded number of analyzers.
+
+    Closes #3145.
+
+  * dce-rpc: Do not repeatedly register removal hooks (Arne Welzel, Corelight)
+
+    ...once should be enough.
+
+  * removed use of unnecessary member variable accessors for StmtList methods (Vern Paxson, Corelight)
+
+  * migrated some raw pointers to smart pointers (Vern Paxson, Corelight)
+
 6.1.0-dev.190 | 2023-07-07 09:56:56 -0700
 
   * Remove unused state_label() method from ssl analyzer binpac files (Tim Wojtulewicz)

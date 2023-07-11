@@ -258,6 +258,11 @@ function complex_index_types()
 		test_case( "pattern index iteration", to_json(pi) == to_json(/pat2/) );
 		break;
 		}
+
+	local v = vector(1, 1, 1, 2, 2, 3, 3, 4);
+	local s5 = set(v);
+	test_case( "vector constructor size", |s5| == 4 );
+	test_case( "vector constructor elements", s5 == set(1,2,3,4) );
 }
 
 event zeek_init()

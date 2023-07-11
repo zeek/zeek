@@ -2793,31 +2793,40 @@ static SetTypePtr init_set_type(detail::ListExpr* l)
 	{
 	auto& elems = l->Exprs();
 	TypePtr index;
-
-	for ( auto e : elems )
-		{
-		auto& ind = e->GetType();
-
-		if ( ! index )
-			{
-			index = ind;
-			continue;
-			}
-
-		index = merge_types(index, ind);
-
-		if ( ! index )
-			return nullptr;
-		}
-
 	TypeListPtr ind_list;
 
-	if ( index->Tag() == TYPE_LIST )
-		ind_list = cast_intrusive<TypeList>(index);
+	if ( elems.size() == 1 && elems[0]->Tag() == detail::EXPR_NAME &&
+	     elems[0]->GetType()->Tag() == TYPE_VECTOR )
+		{
+		VectorTypePtr vt = elems[0]->GetType<VectorType>();
+		ind_list = make_intrusive<TypeList>(vt->Yield());
+		ind_list->Append(vt->Yield());
+		}
 	else
 		{
-		ind_list = make_intrusive<TypeList>(index);
-		ind_list->Append(index);
+		for ( auto e : elems )
+			{
+			auto& ind = e->GetType();
+
+			if ( ! index )
+				{
+				index = ind;
+				continue;
+				}
+
+			index = merge_types(index, ind);
+
+			if ( ! index )
+				return nullptr;
+			}
+
+		if ( index->Tag() == TYPE_LIST )
+			ind_list = cast_intrusive<TypeList>(index);
+		else
+			{
+			ind_list = make_intrusive<TypeList>(index);
+			ind_list->Append(index);
+			}
 		}
 
 	return make_intrusive<SetType>(ind_list, nullptr);

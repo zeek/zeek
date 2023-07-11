@@ -3744,8 +3744,11 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 
 	if ( indices.size() == 1 )
 		{
-		if ( ! check_and_promote_exprs_to_type(op->AsListExpr(), indices[0]) )
-			ExprError("inconsistent type in set constructor");
+		// Don't promote exprs if this is a named vector element. The types are going
+		// be different because we fiddled with the types during init_type earlier.
+		if ( cle.empty() || cle[0]->Tag() != EXPR_NAME || cle[0]->GetType()->Tag() != TYPE_VECTOR )
+			if ( ! check_and_promote_exprs_to_type(op->AsListExpr(), indices[0]) )
+				ExprError("inconsistent type in set constructor");
 		}
 
 	else if ( indices.size() > 1 )
@@ -3806,7 +3809,19 @@ ValPtr SetConstructorExpr::Eval(Frame* f) const
 	for ( const auto& expr : exprs )
 		{
 		auto element = expr->Eval(f);
-		aggr->Assign(std::move(element), nullptr);
+		if ( expr->Tag() == EXPR_NAME && element->GetType()->Tag() == TYPE_VECTOR )
+			{
+			auto v = element->AsVectorVal();
+			size_t size = v->Size();
+
+			for ( size_t i = 0; i < size; i++ )
+				{
+				auto ve = v->ValAt(i);
+				aggr->Assign(std::move(ve), nullptr);
+				}
+			}
+		else
+			aggr->Assign(std::move(element), nullptr);
 		}
 
 	return aggr;

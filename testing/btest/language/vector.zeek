@@ -229,4 +229,8 @@ event zeek_init()
 	test_case( "negative index", v24[-1] == 5 );
 	test_case( "negative index", v24[-3] == 3 );
 
+	local s1 = set(1, 2, 3, 4);
+	local v25 = vector(s1);
+	test_case( "constructor conversion from set size", |v25| == 4 );
+	test_case( "constructor conversion from set elements", v25[0] == 4 && v25[1] == 2 && v25[2] == 3 && v25[3] == 1 );
 }

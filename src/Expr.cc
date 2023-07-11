@@ -4,6 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include "zeek/CompHash.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -3843,6 +3844,8 @@ VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list, TypeP
 	if ( IsError() )
 		return;
 
+	bool set_conversion = false;
+
 	if ( arg_type )
 		{
 		if ( arg_type->Tag() != TYPE_VECTOR )
@@ -3856,16 +3859,31 @@ VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list, TypeP
 		}
 	else
 		{
-		if ( op->AsListExpr()->Exprs().empty() )
+		auto exprs = op->AsListExpr()->Exprs();
+
+		if ( exprs.empty() )
 			{
 			// vector().
 			// By default, assign VOID type here. A vector with
 			// void type set is seen as an unspecified vector.
 			SetType(make_intrusive<VectorType>(base_type(TYPE_VOID)));
-			return;
 			}
+		else if ( exprs.size() == 1 && exprs[0]->Tag() == EXPR_NAME &&
+		          exprs[0]->GetType()->IsSet() )
+			{
+			auto tt = exprs[0]->GetType<TableType>();
+			auto indices = tt->GetIndices();
+			if ( indices->GetTypes().size() > 1 )
+				{
+				Error("constructing vectors from sets with multiple indices is not supported");
+				SetError();
+				return;
+				}
 
-		if ( auto t = maximal_type(op->AsListExpr()) )
+			SetType(make_intrusive<VectorType>(indices->GetPureType()));
+			set_conversion = true;
+			}
+		else if ( auto t = maximal_type(op->AsListExpr()) )
 			SetType(make_intrusive<VectorType>(std::move(t)));
 		else
 			{
@@ -3874,7 +3892,8 @@ VectorConstructorExpr::VectorConstructorExpr(ListExprPtr constructor_list, TypeP
 			}
 		}
 
-	if ( ! check_and_promote_exprs_to_type(op->AsListExpr(), type->AsVectorType()->Yield()) )
+	if ( ! set_conversion &&
+	     ! check_and_promote_exprs_to_type(op->AsListExpr(), type->AsVectorType()->Yield()) )
 		ExprError("inconsistent types in vector constructor");
 	}
 
@@ -3888,9 +3907,31 @@ ValPtr VectorConstructorExpr::Eval(Frame* f) const
 
 	loop_over_list(exprs, i)
 		{
-		Expr* e = exprs[i];
+		Expr* expr = exprs[i];
+		auto element = expr->Eval(f);
 
-		if ( ! vec->Assign(i, e->Eval(f)) )
+		if ( expr->Tag() == EXPR_NAME && element->GetType()->IsSet() )
+			{
+			auto tv = element->AsTableVal()->Get();
+			auto tv_hash = element->AsTableVal()->GetTableHash();
+			int size = tv->Length();
+
+			auto it = tv->begin();
+			for ( int j = 0; j < size && it != tv->end(); j++ )
+				{
+				auto k = it->GetHashKey();
+				auto kv = tv_hash->RecoverVals(*k)->Vals();
+
+				if ( ! vec->Assign(j, kv.front()) )
+					{
+					RuntimeError(util::fmt("type mismatch at index %d", j));
+					return nullptr;
+					}
+
+				++it;
+				}
+			}
+		else if ( ! vec->Assign(i, element) )
 			{
 			RuntimeError(util::fmt("type mismatch at index %d", i));
 			return nullptr;

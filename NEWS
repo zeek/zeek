@@ -39,6 +39,10 @@ New Functionality
   table is prefixed with "module " and their value will have the ``type_name``
   field set to "module".
 
+- Identifiers in the global scope can now be referenced and defined from within
+  modules by prefixing their names with ``::``. Previously, these required an
+  explicit ``GLOBAL::`` prefix to be used. Using ``GLOBAL::`` has been deprecated.
+
 Changed Functionality
 ---------------------
 
@@ -54,6 +58,9 @@ Removed Functionality
 
 Deprecated Functionality
 ------------------------
+
+- Accessing globals with ``GLOBAL::name`` has been deprecated and will be
+  removed with Zeek 7.1. Use ``::name`` instead.
 
 Zeek 6.0.0
 ==========

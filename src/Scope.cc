@@ -108,22 +108,47 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const
 const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global,
                        bool same_module_only, bool check_export)
 	{
+	bool explicit_global = zeek::util::starts_with(name, "::");
+
+	// Ad-hoc deprecation if a name starts with "GLOBAL::". In v7.1 we could
+	// tweak {ID} to reject GLOBAL::, or switch this warning to error instead.
+	static std::string deprecated_prefix = util::fmt("%s::", GLOBAL_MODULE_NAME);
+	if ( zeek::util::starts_with(name, deprecated_prefix) )
+		reporter->Deprecation(util::fmt("Remove in v7.1: Use :: instead of %s (%s)",
+		                                deprecated_prefix.c_str(), name));
+
 	std::string fullname = make_full_var_name(curr_module, name);
-
 	std::string ID_module = extract_module_name(fullname.c_str());
-	bool need_export = check_export &&
-	                   (ID_module != GLOBAL_MODULE_NAME && ID_module != curr_module);
 
-	for ( auto s_i = scopes.rbegin(); s_i != scopes.rend(); ++s_i )
+	// This is mostly for sanity (and should be covered by syntax)
+	if ( explicit_global && same_module_only && ID_module != GLOBAL_MODULE_NAME )
 		{
-		const auto& id = (*s_i)->Find(fullname);
+		reporter->Error("lookup_ID for %s with :: prefix for non-global module called", name);
+		return ID::nil;
+		}
 
-		if ( id )
+	if ( explicit_global && no_global )
+		{
+		reporter->Error("lookup_ID  for %s with :: prefix, but no_global=true", name);
+		return ID::nil;
+		}
+
+	if ( ! explicit_global )
+		{
+		bool need_export = check_export &&
+		                   (ID_module != GLOBAL_MODULE_NAME && ID_module != curr_module);
+
+		for ( auto s_i = scopes.rbegin(); s_i != scopes.rend(); ++s_i )
 			{
-			if ( need_export && ! id->IsExport() && ! in_debug )
-				reporter->Error("identifier is not exported: %s", fullname.c_str());
+			const auto& id = (*s_i)->Find(fullname);
 
-			return id;
+			if ( id )
+				{
+				if ( need_export && ! id->IsExport() && ! in_debug )
+					reporter->Error("identifier is not exported: %s", fullname.c_str());
+
+				return id;
+				}
 			}
 		}
 

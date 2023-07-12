@@ -233,6 +233,8 @@ D	[0-9]+
 HEX	[0-9a-fA-F]+
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
+/* Token including including :: prefix for lookups of global identifiers */
+GLOBAL_ID	::{IDCOMPONENT}
 IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}:){6}({D}"."){3}{D}"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 FILE	[^ \t\r\n]+
 PREFIX	[^ \t\r\n]+
@@ -548,6 +550,12 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 	last_id_tok = yylval.str;
 	return TOK_ID;
 	}
+
+{GLOBAL_ID}	{
+		yylval.str = zeek::util::copy_string(yytext);
+		last_id_tok = yylval.str;
+		return TOK_GLOBAL_ID;
+		}
 
 {D}		{
 		RET_CONST(zeek::val_mgr->Count(static_cast<zeek_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())

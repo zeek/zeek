@@ -3703,7 +3703,7 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
                                        std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
                                        TypePtr arg_type, AttributesPtr arg_attrs2)
-	: UnaryExpr(EXPR_SET_CONSTRUCTOR, expand_op(constructor_list, arg_type))
+	: UnaryExpr(EXPR_SET_CONSTRUCTOR, expand_op(std::move(constructor_list), arg_type))
 	{
 	if ( IsError() )
 		return;
@@ -3737,7 +3737,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 	if ( arg_attrs )
 		SetAttrs(make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false));
 	else
-		SetAttrs(arg_attrs2);
+		SetAttrs(std::move(arg_attrs2));
 
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	ExprPList& cle = op->AsListExpr()->Exprs();

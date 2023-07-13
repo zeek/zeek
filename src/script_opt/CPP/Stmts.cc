@@ -406,14 +406,14 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 
 	Emit("{ // begin a new scope for internal variables");
 
-	Emit("static WhenInfo* CPP__wi = nullptr;");
+	Emit("static std::shared_ptr<WhenInfo> CPP__wi = nullptr;");
 	Emit("static IDSet CPP__w_globals;");
 
 	NL();
 
 	Emit("if ( ! CPP__wi )");
 	StartBlock();
-	Emit("CPP__wi = new WhenInfo(%s);", is_return);
+	Emit("CPP__wi = std::make_shared<WhenInfo>(%s);", is_return);
 	for ( auto& wg : wi->WhenExprGlobals() )
 		Emit("CPP__w_globals.insert(find_global__CPP(\"%s\").get());", wg->Name());
 	EndBlock();

@@ -170,11 +170,6 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 		// We don't inline indirect calls.
 		return c;
 
-	if ( c->IsInWhen() )
-		// Don't inline these, as doing so requires propagating
-		// the in-when attribute to the inlined function body.
-		return c;
-
 	auto n = f->AsNameExpr();
 	auto func = n->Id();
 
@@ -190,22 +185,38 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	if ( function->GetKind() != Func::SCRIPT_FUNC )
 		return c;
 
-	// Check for mismatches in argument count due to single-arg-of-type-any
-	// loophole used for variadic BiFs.
-	if ( function->GetType()->Params()->NumFields() == 1 && c->Args()->Exprs().size() != 1 )
-		return c;
-
 	auto func_vf = static_cast<ScriptFunc*>(function);
 
 	if ( inline_ables.count(func_vf) == 0 )
 		return c;
+
+	if ( c->IsInWhen() )
+		{
+		// Don't inline these, as doing so requires propagating
+		// the in-when attribute to the inlined function body.
+		skipped_inlining.insert(func_vf);
+		return c;
+		}
+
+	// Check for mismatches in argument count due to single-arg-of-type-any
+	// loophole used for variadic BiFs.  (The issue isn't calls to the
+	// BiFs, which won't happen here, but instead to script functions that
+	// are misusing/abusing the loophole.)
+	if ( function->GetType()->Params()->NumFields() == 1 && c->Args()->Exprs().size() != 1 )
+		{
+		skipped_inlining.insert(func_vf);
+		return c;
+		}
 
 	// We're going to inline the body, unless it's too large.
 	auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
 	auto oi = body->GetOptInfo();
 
 	if ( num_stmts + oi->num_stmts + num_exprs + oi->num_exprs > MAX_INLINE_SIZE )
-		return nullptr;
+		{
+		skipped_inlining.insert(func_vf);
+		return nullptr; // signals "stop inlining"
+		}
 
 	num_stmts += oi->num_stmts;
 	num_exprs += oi->num_exprs;

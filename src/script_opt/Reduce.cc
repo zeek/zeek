@@ -4,18 +4,35 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
+#include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
 #include "zeek/Var.h"
 #include "zeek/script_opt/ExprOptInfo.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/TempVar.h"
 
 namespace zeek::detail
 	{
+
+Reducer::Reducer(const ScriptFunc* func)
+	{
+	auto& ft = func->GetType();
+
+	// Track the parameters so we don't remap them.
+	int num_params = ft->Params()->NumFields();
+	auto& scope_vars = current_scope()->OrderedVars();
+
+	for ( auto i = 0; i < num_params; ++i )
+		tracked_ids.insert(scope_vars[i].get());
+
+	// Now include any captures.
+	if ( ft->GetCaptures() )
+		for ( auto& c : *ft->GetCaptures() )
+			tracked_ids.insert(c.Id().get());
+	}
 
 StmtPtr Reducer::Reduce(StmtPtr s)
 	{
@@ -57,10 +74,9 @@ NameExprPtr Reducer::UpdateName(NameExprPtr n)
 	return ne;
 	}
 
-bool Reducer::NameIsReduced(const NameExpr* n) const
+bool Reducer::NameIsReduced(const NameExpr* n)
 	{
-	auto id = n->Id();
-	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) || IsNewLocal(n);
+	return ID_IsReducedOrTopLevel(n->Id());
 	}
 
 void Reducer::UpdateIDs(IDPList* ids)
@@ -69,7 +85,7 @@ void Reducer::UpdateIDs(IDPList* ids)
 		{
 		IDPtr id = {NewRef{}, (*ids)[i]};
 
-		if ( ! ID_IsReduced(id) )
+		if ( ! ID_IsReducedOrTopLevel(id) )
 			{
 			Unref((*ids)[i]);
 			(*ids)[i] = UpdateID(id).release();
@@ -80,7 +96,7 @@ void Reducer::UpdateIDs(IDPList* ids)
 void Reducer::UpdateIDs(std::vector<IDPtr>& ids)
 	{
 	for ( auto& id : ids )
-		if ( ! ID_IsReduced(id) )
+		if ( ! ID_IsReducedOrTopLevel(id) )
 			id = UpdateID(id);
 	}
 
@@ -104,15 +120,27 @@ bool Reducer::IDsAreReduced(const std::vector<IDPtr>& ids) const
 
 IDPtr Reducer::UpdateID(IDPtr id)
 	{
-	if ( ID_IsReduced(id) )
+	if ( ID_IsReducedOrTopLevel(id) )
 		return id;
 
 	return FindNewLocal(id);
 	}
 
+bool Reducer::ID_IsReducedOrTopLevel(const ID* id)
+	{
+	if ( inline_block_level == 0 )
+		{
+		tracked_ids.insert(id);
+		return true;
+		}
+
+	return ID_IsReduced(id);
+	}
+
 bool Reducer::ID_IsReduced(const ID* id) const
 	{
-	return inline_block_level == 0 || id->IsGlobal() || IsTemporary(id) || IsNewLocal(id);
+	return inline_block_level == 0 || tracked_ids.count(id) > 0 || id->IsGlobal() ||
+	       IsTemporary(id);
 	}
 
 NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id)
@@ -126,6 +154,8 @@ NameExprPtr Reducer::PushInlineBlock(TypePtr type)
 	{
 	++inline_block_level;
 
+	block_locals.emplace_back(std::unordered_map<const ID*, IDPtr>());
+
 	if ( ! type || type->Tag() == TYPE_VOID )
 		return nullptr;
 
@@ -133,11 +163,13 @@ NameExprPtr Reducer::PushInlineBlock(TypePtr type)
 	ret_id->SetType(type);
 	ret_id->GetOptInfo()->SetTemp();
 
+	ret_vars.insert(ret_id.get());
+
 	// Track this as a new local *if* we're in the outermost inlining
 	// block.  If we're recursively deeper into inlining, then this
 	// variable will get mapped to a local anyway, so no need.
 	if ( inline_block_level == 1 )
-		new_locals.insert(ret_id.get());
+		AddNewLocal(ret_id);
 
 	return GenInlineBlockName(ret_id);
 	}
@@ -145,6 +177,18 @@ NameExprPtr Reducer::PushInlineBlock(TypePtr type)
 void Reducer::PopInlineBlock()
 	{
 	--inline_block_level;
+
+	for ( auto& l : block_locals.back() )
+		{
+		auto key = l.first;
+		auto prev = l.second;
+		if ( prev )
+			orig_to_new_locals[key] = prev;
+		else
+			orig_to_new_locals.erase(key);
+		}
+
+	block_locals.pop_back();
 	}
 
 bool Reducer::SameVal(const Val* v1, const Val* v2) const
@@ -750,6 +794,12 @@ IDPtr Reducer::FindNewLocal(const IDPtr& id)
 	return GenLocal(id);
 	}
 
+void Reducer::AddNewLocal(const IDPtr& l)
+	{
+	new_locals.insert(l.get());
+	tracked_ids.insert(l.get());
+	}
+
 IDPtr Reducer::GenLocal(const IDPtr& orig)
 	{
 	if ( Optimizing() )
@@ -757,6 +807,9 @@ IDPtr Reducer::GenLocal(const IDPtr& orig)
 
 	if ( omitted_stmts.size() > 0 )
 		reporter->InternalError("Generating a new local while pruning statements");
+
+	// Make sure the identifier is not being re-re-mapped.
+	ASSERT(strchr(orig->Name(), '.') == nullptr);
 
 	char buf[8192];
 	int n = new_locals.size();
@@ -769,8 +822,15 @@ IDPtr Reducer::GenLocal(const IDPtr& orig)
 	if ( orig->GetOptInfo()->IsTemp() )
 		local_id->GetOptInfo()->SetTemp();
 
-	new_locals.insert(local_id.get());
+	IDPtr prev;
+	if ( orig_to_new_locals.count(orig.get()) )
+		prev = orig_to_new_locals[orig.get()];
+
+	AddNewLocal(local_id);
 	orig_to_new_locals[orig.get()] = local_id;
+
+	if ( ! block_locals.empty() && ret_vars.count(orig.get()) == 0 )
+		block_locals.back()[orig.get()] = prev;
 
 	return local_id;
 	}

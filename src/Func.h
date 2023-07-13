@@ -375,6 +375,7 @@ public:
 	const IDPtr& GetID() const { return id; }
 
 	const StmtPtr& Body() const { return body; }
+	void ReplaceBody(StmtPtr new_body) { body = std::move(new_body); }
 
 	const auto& Inits() const { return inits; }
 	void ClearInits() { inits.clear(); }

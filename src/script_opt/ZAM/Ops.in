@@ -1594,7 +1594,13 @@ macro WhenCall(func)
 		for ( auto i = 0; i < n; ++i )
 			args.push_back(aux->ToVal(frame, i));
 		f->SetCall(z.call_expr);
+		/* It's possible that this function will call another that
+		 * itself returns null because *it* is the actual blocker.
+		 * That will set ZAM_error, which we need to ignore.
+		 */
+		auto hold_ZAM_error = ZAM_error;
 		vp = func->Invoke(&args, f);
+		ZAM_error = hold_ZAM_error;
 		f->SetTriggerAssoc(current_assoc);
 		if ( ! vp )
 			throw ZAMDelayedCallException();

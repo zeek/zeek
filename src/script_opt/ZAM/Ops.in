@@ -622,7 +622,7 @@ type R
 field-op
 assign-val v
 eval	auto r = frame[z.v2].record_val;
-	auto rv = r->RawOptField(z.v3);
+	auto& rv = r->RawOptField(z.v3);
 	if ( ! rv )
 		{
 		auto def = r->GetType<RecordType>()->FieldDefault(z.v3);
@@ -966,7 +966,7 @@ type VVV
 eval	EvalIndexVec(frame[z.v3].uint_val)
 
 macro EvalIndexVec(index)
-	auto vv = frame[z.v2].vector_val->RawVec();
+	auto& vv = frame[z.v2].vector_val->RawVec();
 	const auto& vec = *vv;
 	zeek_int_t ind = index;
 	if ( ind < 0 )
@@ -2104,12 +2104,12 @@ eval	AssignV1(BuildVal(z.c.ToVal(z.t), z.t))
 internal-assignment-op Load-Val
 type VV
 assign-val v
-eval	auto v = f->GetElement(z.v2);
+eval	auto& v = f->GetElement(z.v2);
 
 internal-assignment-op Load-Global
 type VV
 assign-val v
-eval	auto v = globals[z.v2].id->GetVal();
+eval	auto& v = globals[z.v2].id->GetVal();
 	if ( ! v )
 		{
 		ZAM_run_time_error(z.loc, "value used but not set", z.aux->id_val.get());
@@ -2122,7 +2122,7 @@ internal-op Load-Global-Type
 type VV
 eval	auto& v = frame[z.v1].type_val;
 	Unref(v);
-	auto t = globals[z.v2].id->GetType();
+	auto& t = globals[z.v2].id->GetType();
 	v = new TypeVal(t, true);
 
 internal-op Load-Capture

@@ -2363,6 +2363,10 @@ ExprPtr CallExpr::Duplicate()
 
 ExprPtr CallExpr::Inline(Inliner* inl)
 	{
+	// First check our elements.
+	func = func->Inline(inl);
+	args = cast_intrusive<ListExpr>(args->Inline(inl));
+
 	auto new_me = inl->CheckForInlining({NewRef{}, this});
 
 	if ( ! new_me )
@@ -2371,10 +2375,6 @@ ExprPtr CallExpr::Inline(Inliner* inl)
 
 	if ( new_me.get() != this )
 		return new_me;
-
-	// We're not inlining, but perhaps our elements should be.
-	func = func->Inline(inl);
-	args = cast_intrusive<ListExpr>(args->Inline(inl));
 
 	return ThisPtr();
 	}

@@ -951,7 +951,7 @@ void WhenInfo::UpdateIDs(Reducer* c)
 
 StmtPtr WhenStmt::Duplicate()
 	{
-	return SetSucc(new WhenStmt(wi));
+	return SetSucc(new WhenStmt(std::make_shared<WhenInfo>(wi.get())));
 	}
 
 bool WhenStmt::IsReduced(Reducer* c) const

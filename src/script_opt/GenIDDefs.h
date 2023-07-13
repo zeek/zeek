@@ -22,6 +22,8 @@ private:
 	void TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body);
 
 	TraversalCode PreStmt(const Stmt*) override;
+	void AnalyzeSwitch(const SwitchStmt* sw);
+
 	TraversalCode PostStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;

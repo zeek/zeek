@@ -444,10 +444,16 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 
 	if ( ret_type && ret_type->Tag() != TYPE_VOID )
 		{
+		// Note, ret_type can be active but we *still* don't have
+		// a return type, due to the faked-up "any" return type
+		// associated with "when" lambdas, so check for that case.
+		Emit("if ( curr_t )");
+		StartBlock();
 		Emit("ValPtr retval = {NewRef{}, curr_t->Lookup(curr_assoc)};");
 		Emit("if ( ! retval )");
 		Emit("\tthrow CPPDelayedCallException();");
 		Emit("return %s;", GenericValPtrToGT("retval", ret_type, GEN_NATIVE));
+		EndBlock();
 		}
 
 	Emit("}");

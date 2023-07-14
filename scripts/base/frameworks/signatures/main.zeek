@@ -101,8 +101,8 @@ export {
 		host_count: count        &log &optional;
 	};
 
-	## Actions for a signature.
-	const actions: table[string] of Action =  {
+	## Actions for a signature.  Can be updated dynamically.
+	global actions: table[string] of Action =  {
 		["unspecified"] = SIG_IGNORE, # place-holder
 	} &redef &default = SIG_ALARM;
 

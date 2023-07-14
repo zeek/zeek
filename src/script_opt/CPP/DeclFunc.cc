@@ -133,7 +133,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
 			auto tn = FullTypeName(id->GetType());
 			addl_args = addl_args + ", " + tn + " _" + name;
 
-			inits = inits + ", " + name + "(_" + name + ")";
+			inits = inits + ", " + name + "(std::move(_" + name + "))";
 			}
 		}
 

@@ -406,14 +406,14 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 
 	Emit("{ // begin a new scope for internal variables");
 
-	Emit("static WhenInfo* CPP__wi = nullptr;");
+	Emit("static std::shared_ptr<WhenInfo> CPP__wi = nullptr;");
 	Emit("static IDSet CPP__w_globals;");
 
 	NL();
 
 	Emit("if ( ! CPP__wi )");
 	StartBlock();
-	Emit("CPP__wi = new WhenInfo(%s);", is_return);
+	Emit("CPP__wi = std::make_shared<WhenInfo>(%s);", is_return);
 	for ( auto& wg : wi->WhenExprGlobals() )
 		Emit("CPP__w_globals.insert(find_global__CPP(\"%s\").get());", wg->Name());
 	EndBlock();
@@ -444,10 +444,16 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 
 	if ( ret_type && ret_type->Tag() != TYPE_VOID )
 		{
+		// Note, ret_type can be active but we *still* don't have
+		// a return type, due to the faked-up "any" return type
+		// associated with "when" lambdas, so check for that case.
+		Emit("if ( curr_t )");
+		StartBlock();
 		Emit("ValPtr retval = {NewRef{}, curr_t->Lookup(curr_assoc)};");
 		Emit("if ( ! retval )");
 		Emit("\tthrow CPPDelayedCallException();");
 		Emit("return %s;", GenericValPtrToGT("retval", ret_type, GEN_NATIVE));
+		EndBlock();
 		}
 
 	Emit("}");

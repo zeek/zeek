@@ -1,3 +1,13 @@
+6.1.0-dev.207 | 2023-07-14 09:15:16 -0700
+
+  * -O gen-C++ fix for recent smart pointer changes (Vern Paxson, Corelight)
+
+  * -a cpp Btest baseline updates (Vern Paxson, Corelight)
+
+  * minor BTest generalizations & simplifications (Vern Paxson, Corelight)
+
+  * fixes for compiling function calls that return non-error nil ValPtr's (Vern Paxson, Corelight)
+
 6.1.0-dev.202 | 2023-07-12 17:29:26 +0200
 
   * ci: Bust Ubuntu 22.10 image cache (Arne Welzel, Corelight)

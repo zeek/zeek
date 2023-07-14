@@ -4262,7 +4262,72 @@ ValPtr cast_value_to_type(Val* v, Type* t)
 		return static_cast<Broker::detail::DataVal*>(dv.get())->castTo(t);
 		}
 
+	// Allow casting between sets and vectors if the yield types are the same.
+	if ( v->GetType()->IsSet() && IsVector(t->Tag()) )
+		{
+		auto set_type = v->GetType<SetType>();
+		auto indices = set_type->GetIndices();
+
+		if ( indices->GetTypes().size() > 1 || ! indices->IsPure() )
+			return nullptr;
+
+		auto ret_type = IntrusivePtr<VectorType>{NewRef{}, t->AsVectorType()};
+		auto ret = make_intrusive<VectorVal>(ret_type);
+
+		auto lv = v->AsTableVal()->ToPureListVal();
+		auto n = lv->Length();
+
+		for ( int i = 0; i < n; ++i )
+			ret->Assign(i, lv->Idx(i));
+
+		return ret;
+		}
+	else if ( IsVector(v->GetType()->Tag()) && t->IsSet() )
+		{
+		auto ret_type = IntrusivePtr<TableType>{NewRef{}, t->AsSetType()};
+		auto ret = make_intrusive<TableVal>(ret_type);
+
+		auto vv = v->AsVectorVal();
+		size_t size = vv->Size();
+
+		for ( size_t i = 0; i < size; i++ )
+			{
+			auto ve = vv->ValAt(i);
+			ret->Assign(std::move(ve), nullptr);
+			}
+
+		return ret;
+		}
+
 	return nullptr;
+	}
+
+static bool can_cast_set_and_vector(const Type* t1, const Type* t2)
+	{
+	const TableType* st = nullptr;
+	const VectorType* vt = nullptr;
+
+	if ( t1->IsSet() && IsVector(t2->Tag()) )
+		{
+		st = t1->AsSetType();
+		vt = t2->AsVectorType();
+		}
+	else if ( IsVector(t1->Tag()) && t2->IsSet() )
+		{
+		st = t2->AsSetType();
+		vt = t1->AsVectorType();
+		}
+
+	if ( st && vt )
+		{
+		auto set_indices = st->GetIndices();
+		if ( set_indices->GetTypes().size() > 1 || ! set_indices->IsPure() )
+			return false;
+
+		return same_type(set_indices->GetPureType(), vt->Yield());
+		}
+
+	return false;
 	}
 
 bool can_cast_value_to_type(const Val* v, Type* t)
@@ -4288,6 +4353,10 @@ bool can_cast_value_to_type(const Val* v, Type* t)
 		return static_cast<const Broker::detail::DataVal*>(dv.get())->canCastTo(t);
 		}
 
+	// Allow casting between sets and vectors if the yield types are the same.
+	if ( can_cast_set_and_vector(v->GetType().get(), t) )
+		return true;
+
 	return false;
 	}
 
@@ -4305,6 +4374,10 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 		// As Broker is dynamically typed, we don't know if we will be able
 		// to convert the type as intended. We optimistically assume that we
 		// will.
+		return true;
+
+	// Allow casting between sets and vectors if the yield types are the same.
+	if ( can_cast_set_and_vector(s, t) )
 		return true;
 
 	return false;

@@ -107,37 +107,8 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 			}
 
 		case STMT_SWITCH:
-			{
-			auto sw = s->AsSwitchStmt();
-			auto e = sw->StmtExpr();
-
-			e->Traverse(this);
-
-			StartConfluenceBlock(sw);
-
-			for ( const auto& c : *sw->Cases() )
-				{
-				auto body = c->Body();
-
-				auto exprs = c->ExprCases();
-				if ( exprs )
-					exprs->Traverse(this);
-
-				auto type_ids = c->TypeCases();
-				if ( type_ids )
-					{
-					for ( const auto& id : *type_ids )
-						if ( id->Name() )
-							TrackID(id);
-					}
-
-				body->Traverse(this);
-				}
-
-			EndConfluenceBlock(sw->HasDefault());
-
+			AnalyzeSwitch(s->AsSwitchStmt());
 			return TC_ABORTSTMT;
-			}
 
 		case STMT_FOR:
 			{
@@ -198,6 +169,38 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 
 		default:
 			return TC_CONTINUE;
+		}
+	}
+
+void GenIDDefs::AnalyzeSwitch(const SwitchStmt* sw)
+	{
+	sw->StmtExpr()->Traverse(this);
+
+	for ( const auto& c : *sw->Cases() )
+		{
+		// Important: the confluence block is the switch statement
+		// itself, not the case body.  This is needed so that variable
+		// assignments made inside case bodies that end with
+		// "fallthrough" are correctly propagated to the next case
+		// body.
+		StartConfluenceBlock(sw);
+
+		auto body = c->Body();
+
+		auto exprs = c->ExprCases();
+		if ( exprs )
+			exprs->Traverse(this);
+
+		auto type_ids = c->TypeCases();
+		if ( type_ids )
+			{
+			for ( const auto& id : *type_ids )
+				if ( id->Name() )
+					TrackID(id);
+			}
+
+		body->Traverse(this);
+		EndConfluenceBlock(false);
 		}
 	}
 

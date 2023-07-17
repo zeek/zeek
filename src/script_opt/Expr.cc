@@ -1917,6 +1917,22 @@ ExprPtr HasFieldExpr::Duplicate()
 	return SetSucc(new HasFieldExpr(op->Duplicate(), util::copy_string(field_name)));
 	}
 
+bool HasFieldExpr::IsReduced(Reducer* c) const
+	{
+	return op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL);
+	}
+
+ExprPtr HasFieldExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
+	{
+	if ( ! op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL) )
+		{
+		auto true_constant = make_intrusive<ConstExpr>(val_mgr->True());
+		return TransformMe(true_constant, c, red_stmt);
+		}
+
+	return UnaryExpr::Reduce(c, red_stmt);
+	}
+
 ExprPtr RecordConstructorExpr::Duplicate()
 	{
 	auto op_l = op->Duplicate()->AsListExprPtr();
@@ -2347,6 +2363,10 @@ ExprPtr CallExpr::Duplicate()
 
 ExprPtr CallExpr::Inline(Inliner* inl)
 	{
+	// First check our elements.
+	func = func->Inline(inl);
+	args = cast_intrusive<ListExpr>(args->Inline(inl));
+
 	auto new_me = inl->CheckForInlining({NewRef{}, this});
 
 	if ( ! new_me )
@@ -2355,10 +2375,6 @@ ExprPtr CallExpr::Inline(Inliner* inl)
 
 	if ( new_me.get() != this )
 		return new_me;
-
-	// We're not inlining, but perhaps our elements should be.
-	func = func->Inline(inl);
-	args = cast_intrusive<ListExpr>(args->Inline(inl));
 
 	return ThisPtr();
 	}
@@ -2701,6 +2717,7 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	red_stmt = nullptr;
 
 	auto args_list = args->Exprs();
+	auto ret_val = c->PushInlineBlock(type);
 
 	loop_over_list(args_list, i)
 		{
@@ -2714,7 +2731,6 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
 		}
 
-	auto ret_val = c->PushInlineBlock(type);
 	body = body->Reduce(c);
 	c->PopInlineBlock();
 

@@ -295,7 +295,7 @@ void IDOptInfo::StartConfluenceBlock(const Stmt* s)
 
 			if ( ur.BlockLevel() < block_level )
 				// Didn't find one at our own level,
-				// so create on inherited from the
+				// so create one inherited from the
 				// outer one.
 				usage_regions.emplace_back(s, ur);
 

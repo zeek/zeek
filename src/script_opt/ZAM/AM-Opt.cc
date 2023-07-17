@@ -37,7 +37,7 @@ void finalize_functions(const std::vector<FuncInfo>& funcs)
 	std::unordered_set<const Func*> leave_alone;
 
 	for ( auto& f : funcs )
-		if ( f.Body()->Tag() != STMT_ZAM )
+		if ( f.Body() && f.Body()->Tag() != STMT_ZAM )
 			// This function has a body that wasn't compiled,
 			// don't mess with its size.
 			leave_alone.insert(f.Func());
@@ -473,7 +473,8 @@ void ZAMCompiler::ComputeFrameLifetimes()
 				int n = aux->n;
 				auto& slots = aux->slots;
 				for ( int i = 0; i < n; ++i )
-					ExtendLifetime(slots[i], EndOfLoop(inst, 1));
+					if ( slots[i] >= 0 )
+						ExtendLifetime(slots[i], EndOfLoop(inst, 1));
 				break;
 				}
 
@@ -839,6 +840,7 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst)
 
 void ZAMCompiler::ExtendLifetime(int slot, const ZInstI* inst)
 	{
+	ASSERT(slot >= 0);
 	auto id = frame_denizens[slot];
 	auto& t = id->GetType();
 

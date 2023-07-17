@@ -1,3 +1,19 @@
+6.1.0-dev.218 | 2023-07-17 16:33:22 -0700
+
+  * more extensive ZAM inlining & compilation of lambdas (Vern Paxson, Corelight)
+
+  * fixes for ZAM compilation of switch statements (Vern Paxson, Corelight)
+
+  * fix for ZAM inlining failing to inline function call arguments (Vern Paxson, Corelight)
+
+  * avoid constructing TypeList's on-the-fly for ListVal's with fixed types (Vern Paxson, Corelight)
+
+  * -O gen-C++ fix for recent smart pointer changes (Vern Paxson, Corelight)
+
+  * minor BTest generalizations & simplifications (Vern Paxson, Corelight)
+
+  * fixes for compiling function calls that return non-error nil ValPtr's (Vern Paxson, Corelight)
+
 6.1.0-dev.207 | 2023-07-14 09:15:16 -0700
 
   * -O gen-C++ fix for recent smart pointer changes (Vern Paxson, Corelight)

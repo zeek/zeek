@@ -16,7 +16,7 @@ class TempVar;
 class Reducer
 	{
 public:
-	Reducer() { }
+	Reducer(const ScriptFunc* func);
 
 	StmtPtr Reduce(StmtPtr s);
 
@@ -27,7 +27,7 @@ public:
 	ExprPtr GenTemporaryExpr(const TypePtr& t, ExprPtr rhs);
 
 	NameExprPtr UpdateName(NameExprPtr n);
-	bool NameIsReduced(const NameExpr* n) const;
+	bool NameIsReduced(const NameExpr* n);
 
 	void UpdateIDs(IDPList* ids);
 	bool IDsAreReduced(const IDPList* ids) const;
@@ -38,6 +38,10 @@ public:
 	IDPtr UpdateID(IDPtr id);
 	bool ID_IsReduced(const IDPtr& id) const { return ID_IsReduced(id.get()); }
 	bool ID_IsReduced(const ID* id) const;
+
+	// A version of ID_IsReduced() that tracks top-level variables, too.
+	bool ID_IsReducedOrTopLevel(const IDPtr& id) { return ID_IsReducedOrTopLevel(id.get()); }
+	bool ID_IsReducedOrTopLevel(const ID* id);
 
 	// This is called *prior* to pushing a new inline block, in
 	// order to generate the equivalent of function parameters.
@@ -205,6 +209,8 @@ protected:
 	IDPtr FindNewLocal(const IDPtr& id);
 	IDPtr FindNewLocal(const NameExprPtr& n) { return FindNewLocal(n->IdPtr()); }
 
+	void AddNewLocal(const IDPtr& l);
+
 	// Generate a new local to use in lieu of the original (seen
 	// in an inlined block).  The difference is that the new
 	// version has a distinct name and has a correct frame offset
@@ -228,6 +234,9 @@ protected:
 	// variable, if it corresponds to one.
 	std::unordered_map<const ID*, std::shared_ptr<TempVar>> ids_to_temps;
 
+	// Identifiers that we're tracking (and don't want to replace).
+	IDSet tracked_ids;
+
 	// Local variables created during reduction/optimization.
 	IDSet new_locals;
 
@@ -250,9 +259,17 @@ protected:
 	// Maps statements to replacements constructed during optimization.
 	std::unordered_map<const Stmt*, StmtPtr> replaced_stmts;
 
+	// Tracks return variables we've created.
+	IDSet ret_vars;
+
 	// Tracks whether we're inside an inline block, and if so then
 	// how deeply.
 	int inline_block_level = 0;
+
+	// Tracks locals introduced in the current block, remembering
+	// their previous replacement value (per "orig_to_new_locals"),
+	// if any.  When we pop the block, we restore the previous mapping.
+	std::vector<std::unordered_map<const ID*, IDPtr>> block_locals;
 
 	// Tracks how deeply we are in "bifurcation", i.e., duplicating
 	// code for if-else cascades.  We need to cap this at a certain
@@ -265,7 +282,7 @@ protected:
 	IDSet constant_vars;
 
 	// Statement at which the current reduction started.
-	StmtPtr reduction_root = nullptr;
+	StmtPtr reduction_root;
 
 	// Statement we're currently working on.
 	const Stmt* curr_stmt = nullptr;

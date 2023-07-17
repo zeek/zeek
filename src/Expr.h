@@ -1153,6 +1153,9 @@ public:
 	// Optimization-related:
 	ExprPtr Duplicate() override;
 
+	bool IsReduced(Reducer* c) const override;
+	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
 protected:
 	ValPtr Fold(Val* v) const override;
 
@@ -1478,6 +1481,8 @@ public:
 	const ScriptFuncPtr& PrimaryFunc() const { return primary_func; }
 
 	const FunctionIngredientsPtr& Ingredients() const { return ingredients; }
+
+	void ReplaceBody(StmtPtr new_body);
 
 	bool IsReduced(Reducer* c) const override;
 	bool HasReducedOps(Reducer* c) const override;

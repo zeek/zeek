@@ -182,6 +182,9 @@ protected:
 	 * during unserialization. Returns the type at reference count +1.
 	 */
 	static TypePtr UnserializeType(const broker::data& data);
+
+	void ValDescribe(ODesc* d) const override;
+	void ValDescribeReST(ODesc* d) const override;
 	};
 
 class HashVal : public OpaqueVal

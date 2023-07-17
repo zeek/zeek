@@ -158,6 +158,16 @@ ValPtr OpaqueVal::DoClone(CloneState* state)
 	return state->NewClone(this, std::move(rval));
 	}
 
+void OpaqueVal::ValDescribe(ODesc* d) const
+	{
+	d->Add(util::fmt("<opaque of %s>", OpaqueName()));
+	}
+
+void OpaqueVal::ValDescribeReST(ODesc* d) const
+	{
+	d->Add(util::fmt("<opaque of %s>", OpaqueName()));
+	}
+
 bool HashVal::IsValid() const
 	{
 	return valid;

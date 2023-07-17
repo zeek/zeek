@@ -7,10 +7,10 @@ cp zeek.HOLD src/zeek || (
     exit 1
 ) || exit 1
 
-if [ "$1" == "-U" ]; then
+if [ "$1" = "-U" ]; then
     btest_opt=-U
     shift
-elif [ "$1" == "-d" ]; then
+elif [ "$1" = "-d" ]; then
     btest_opt=-d
     shift
 else
@@ -32,7 +32,7 @@ export ZEEK_OPT_FILES="testing/btest"
 )
 
 # export -n ZEEK_GEN_CPP ZEEK_CPP_DIR ZEEK_OPT_FUNCS ZEEK_OPT_FILES
-export -n ZEEK_GEN_CPP ZEEK_REPORT_UNCOMPILABLE ZEEK_CPP_DIR ZEEK_OPT_FILES
+unset ZEEK_GEN_CPP ZEEK_REPORT_UNCOMPILABLE ZEEK_CPP_DIR ZEEK_OPT_FILES
 
 ninja
 

@@ -992,6 +992,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
 
 		analyze_scripts(options.no_unused_warnings);
+		// abort();
 
 		if ( analysis_options.report_recursive )
 			{
@@ -1113,6 +1114,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 			g_frame_stack.pop_back();
 			}
+
+		clear_script_analysis();
 
 		if ( zeek_script_loaded )
 			{

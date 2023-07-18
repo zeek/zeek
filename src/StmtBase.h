@@ -8,9 +8,11 @@
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Obj.h"
+#include "zeek/Options.h"
 #include "zeek/StmtEnums.h"
 #include "zeek/TraverseTypes.h"
 #include "zeek/util.h"
+#include "zeek/script_opt/AnalyOpt.h"
 
 namespace zeek
 	{
@@ -152,7 +154,7 @@ public:
 	// Designate the given Stmt node as the original for this one.
 	void SetOriginal(StmtPtr _orig)
 		{
-		if ( ! original )
+		if ( ! original && ! analysis_options.reduce_memory )
 			original = std::move(_orig);
 		}
 
@@ -165,7 +167,7 @@ public:
 	// into a StmtPtr.
 	virtual StmtPtr SetSucc(Stmt* succ)
 		{
-		succ->SetOriginal({NewRef{}, this});
+		succ->SetOriginal(ThisPtr());
 		return {AdoptRef{}, succ};
 		}
 

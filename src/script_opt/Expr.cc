@@ -1725,7 +1725,8 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		else
 			op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
 
-		op2->SetLocationInfo(op2_loc);
+		if ( ! analysis_options.reduce_memory )
+			op2->SetLocationInfo(op2_loc);
 		}
 
 	if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
@@ -1734,7 +1735,9 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		auto op2_loc = op2->GetLocationInfo();
 		ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
 		op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
-		op2->SetLocationInfo(op2_loc);
+
+		if ( ! analysis_options.reduce_memory )
+			op2->SetLocationInfo(op2_loc);
 		}
 
 	auto lhs_ref = op1->AsRefExprPtr();
@@ -1770,7 +1773,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 		red_stmt = MergeStmts(rhs_reduce, lhs_stmt, rhs_stmt);
 
-		auto field_name = field_e->FieldName();
+		auto field_name = util::copy_string(field_e->FieldName());
 		auto field = field_e->Field();
 		auto field_assign = make_intrusive<FieldLHSAssignExpr>(lhs_e, rhs_e, field_name, field);
 
@@ -1909,7 +1912,7 @@ ExprPtr IndexExprWhen::Duplicate()
 
 ExprPtr FieldExpr::Duplicate()
 	{
-	return SetSucc(new FieldExpr(op->Duplicate(), field_name));
+	return SetSucc(new FieldExpr(op->Duplicate(), util::copy_string(field_name)));
 	}
 
 ExprPtr HasFieldExpr::Duplicate()

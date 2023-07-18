@@ -213,7 +213,7 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI)
 		{
 		auto& iI = *instsI[i];
 		insts_copy[i] = iI;
-		if ( iI.stmt )
+		if ( iI.stmt && ! analysis_options.reduce_memory )
 			insts_copy[i].loc = iI.stmt->Original()->GetLocationInfo();
 		}
 

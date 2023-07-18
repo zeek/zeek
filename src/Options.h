@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "zeek/DNS_Mgr.h"
-#include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/AnalyOpt.h"
 
 namespace zeek
 	{

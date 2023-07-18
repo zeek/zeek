@@ -60,6 +60,7 @@ class ZAMCompiler
 public:
 	ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr body,
 	            std::shared_ptr<UseDefs> ud, std::shared_ptr<Reducer> rd);
+	~ZAMCompiler();
 
 	StmtPtr CompileBody();
 
@@ -123,8 +124,6 @@ private:
 
 	const ZAMStmt CompileStmt(const StmtPtr& body) { return CompileStmt(body.get()); }
 	const ZAMStmt CompileStmt(const Stmt* body);
-
-	void SetCurrStmt(const Stmt* stmt) { curr_stmt = stmt; }
 
 	const ZAMStmt CompilePrint(const PrintStmt* ps);
 	const ZAMStmt CompileExpr(const ExprStmt* es);

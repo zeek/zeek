@@ -13,7 +13,7 @@
 namespace zeek::detail
 	{
 
-const Stmt* curr_stmt;
+StmtPtr curr_stmt;
 TypePtr log_ID_enum_type;
 TypePtr any_base_type;
 bool ZAM_error = false;
@@ -90,7 +90,11 @@ void ZAM_run_time_error(const char* msg)
 
 void ZAM_run_time_error(const Location* loc, const char* msg)
 	{
-	reporter->RuntimeError(loc, "%s", msg);
+	if ( loc )
+		reporter->RuntimeError(loc, "%s", msg);
+	else
+		ZAM_run_time_error(msg);
+
 	ZAM_error = true;
 	}
 
@@ -102,16 +106,25 @@ void ZAM_run_time_error(const char* msg, const Obj* o)
 
 void ZAM_run_time_error(const Location* loc, const char* msg, const Obj* o)
 	{
-	reporter->RuntimeError(loc, "%s (%s)", msg, obj_desc(o).c_str());
+	if ( loc )
+		reporter->RuntimeError(loc, "%s (%s)", msg, obj_desc(o).c_str());
+	else
+		ZAM_run_time_error(msg, o);
+
 	ZAM_error = true;
 	}
 
 void ZAM_run_time_warning(const Location* loc, const char* msg)
 	{
-	ODesc d;
-	loc->Describe(&d);
+	if ( loc )
+		{
+		ODesc d;
+		loc->Describe(&d);
 
-	reporter->Warning("%s: %s", d.Description(), msg);
+		reporter->Warning("%s: %s", d.Description(), msg);
+		}
+	else
+		reporter->Warning("%s", msg);
 	}
 
 	} // namespace zeek::detail

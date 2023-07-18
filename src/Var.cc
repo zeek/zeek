@@ -19,6 +19,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
+#include "zeek/script_opt/AnalyOpt.h"
 #include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/UsageAnalyzer.h"
@@ -425,7 +426,7 @@ StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init,
 		}
 	}
 
-extern ExprPtr add_and_assign_local(IDPtr id, ExprPtr init, ValPtr val)
+ExprPtr add_and_assign_local(IDPtr id, ExprPtr init, ValPtr val)
 	{
 	make_var(id, nullptr, INIT_FULL, init, nullptr, VAR_REGULAR, false);
 	auto name_expr = make_intrusive<NameExpr>(std::move(id));
@@ -845,7 +846,8 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 
 	id->GetVal()->AsFunc()->AddBody(*ingredients);
 
-	script_coverage_mgr.AddFunction(id, ingredients->Body());
+	if ( ! analysis_options.reduce_memory )
+		script_coverage_mgr.AddFunction(id, ingredients->Body());
 
 	auto func_ptr = cast_intrusive<FuncVal>(id->GetVal())->AsFuncPtr();
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);
@@ -855,11 +857,6 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 		group->AddFunc(func);
 
 	analyze_func(std::move(func));
-
-	// Note: ideally, something would take ownership of this memory until the
-	// end of script execution, but that's essentially the same as the
-	// lifetime of the process at the moment, so ok to "leak" it.
-	ingredients.release();
 	}
 
 IDPList gather_outer_ids(ScopePtr scope, StmtPtr body)

@@ -306,7 +306,7 @@ public:
 	int num_labels = 0;
 
 	// Used for debugging.  Transformed into the ZInst "loc" field.
-	const Stmt* stmt = curr_stmt;
+	StmtPtr stmt = curr_stmt;
 
 private:
 	// Initialize 'c' from the given ConstExpr.

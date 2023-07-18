@@ -194,6 +194,7 @@ static void print_analysis_help()
 	fprintf(stderr, "--optimize options when using ZAM:\n");
 	fprintf(stderr, "    ZAM	execute scripts using ZAM and all optimizations\n");
 	fprintf(stderr, "    help	print this list\n");
+	fprintf(stderr, "    reduce-memory	lower memory footprint (diminishes some diagnostic functionality)\n");
 	fprintf(stderr, "    report-uncompilable	print names of functions that can't be compiled\n");
 	fprintf(stderr, "\n  primarily for developers:\n");
 	fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");
@@ -263,6 +264,8 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.activate = a_o.optimize_AST = true;
 	else if ( util::streq(opt, "profile-ZAM") )
 		a_o.activate = a_o.gen_ZAM_code = a_o.profile_ZAM = true;
+	else if ( util::streq(opt, "reduce-memory") )
+		a_o.reduce_memory = true;
 	else if ( util::streq(opt, "report-C++") )
 		a_o.report_CPP = true;
 	else if ( util::streq(opt, "report-recursive") )

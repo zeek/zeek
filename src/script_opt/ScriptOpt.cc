@@ -31,8 +31,6 @@ void (*CPP_activation_hook)() = nullptr;
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
 
-static ZAMCompiler* ZAM = nullptr;
-
 static bool generating_CPP = false;
 static std::string CPP_dir; // where to generate C++ code
 
@@ -78,12 +76,10 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 
 	auto sc = current_scope();
 	std::vector<IDPtr> empty_inits;
-	StmtPtr stmts_p{NewRef{}, stmts};
 	global_stmts = make_intrusive<ScriptFunc>(id);
-	global_stmts->AddBody(stmts_p, empty_inits, sc->Length());
+	global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
 
-	funcs.emplace_back(global_stmts, sc, stmts_p, 0);
-
+	funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);
 	return &funcs.back();
 	}
 
@@ -253,15 +249,15 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	if ( analysis_options.gen_ZAM_code )
 		{
-		ZAM = new ZAMCompiler(f, pf, scope, new_body, ud, rc);
+		ZAMCompiler ZAM(f, pf, scope, new_body, ud, rc);
 
-		new_body = ZAM->CompileBody();
+		new_body = ZAM.CompileBody();
 
 		if ( reporter->Errors() > 0 )
 			return;
 
 		if ( analysis_options.dump_ZAM )
-			ZAM->Dump();
+			ZAM.Dump();
 
 		f->ReplaceBody(body, new_body);
 		body = new_body;
@@ -359,6 +355,9 @@ static void init_options()
 	if ( analysis_options.optimize_AST || analysis_options.gen_ZAM_code ||
 	     analysis_options.usage_issues > 0 )
 		analysis_options.activate = true;
+
+	if ( analysis_options.reduce_memory && ! analysis_options.gen_ZAM_code )
+		reporter->FatalError("reduce-memory requires ZAM");
 	}
 
 static void report_CPP()
@@ -530,6 +529,8 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		          func_used_indirectly.count(func) == 0 )
 			{
 			// No need to compile as it won't be called directly.
+			f.SetBody(nullptr);
+			func->ReplaceBody(func->CurrentBody(), nullptr);
 			continue;
 			}
 
@@ -547,6 +548,16 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		reporter->FatalError("no matching functions/files for -O ZAM");
 
 	finalize_functions(funcs);
+	}
+
+void clear_script_analysis()
+	{
+	funcs.clear();
+	non_recursive_funcs.clear();
+	lambdas.clear();
+	when_lambdas.clear();
+
+	IDOptInfo::ClearGlobalInitExprs();
 	}
 
 void analyze_scripts(bool no_unused_warnings)

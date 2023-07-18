@@ -17,6 +17,7 @@
 #include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
+#include "zeek/script_opt/AnalyOpt.h"
 
 namespace zeek
 	{
@@ -380,7 +381,7 @@ public:
 	// Designate the given Expr node as the original for this one.
 	void SetOriginal(ExprPtr _orig)
 		{
-		if ( ! original )
+		if ( ! original && ! analysis_options.reduce_memory )
 			original = std::move(_orig);
 		}
 

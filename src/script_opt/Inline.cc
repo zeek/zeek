@@ -218,6 +218,8 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 		return nullptr; // signals "stop inlining"
 		}
 
+	did_inline.insert(func_vf);
+
 	num_stmts += oi->num_stmts;
 	num_exprs += oi->num_exprs;
 

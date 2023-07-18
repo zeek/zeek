@@ -1096,7 +1096,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 
 	z.aux->can_change_non_locals = true;
 
-	z.call_expr = c;
+	z.call_expr = {NewRef{}, const_cast<CallExpr*>(c)};
 
 	if ( in_when )
 		z.SetType(n->GetType());

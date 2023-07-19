@@ -99,7 +99,7 @@ if (MSVC)
     add_compile_options(
         /guard:cf # required by CheckCFlags
         /Z7 # required by CheckCFlags
-        /J  # Similar to -funsigned-char on other platforms
+        /J # Similar to -funsigned-char on other platforms
         /wd4068) # Disable unknown pragma warnings
 
     add_link_options(/debug:full # required by CheckCFlags

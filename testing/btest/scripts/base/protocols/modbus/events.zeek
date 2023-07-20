@@ -6,9 +6,11 @@
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage
 # @TEST-EXEC: btest-diff coverage
 # @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff weird.log
 
 @load base/protocols/modbus
 @load base/protocols/conn
+@load base/frameworks/notice/weird
 
 redef DPD::ignore_violations_after = 1;
 
@@ -152,3 +154,12 @@ event modbus_read_fifo_queue_response(c: connection, headers: ModbusHeaders, fif
     print "modbus_read_fifo_queue_response", c$id, headers, fifos;
 }
 
+event modbus_diagnostics_request(c: connection, headers: ModbusHeaders, subfunction: count, data: string)
+{
+    print "modbus_diagnostics_request", c$id, headers, subfunction, data;
+}
+
+event modbus_diagnostics_response(c: connection, headers: ModbusHeaders, subfunction: count, data: string)
+{
+    print "modbus_diagnostics_response", c$id, headers, subfunction, data;
+}

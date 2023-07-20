@@ -355,6 +355,93 @@ refine flow ModbusTCP_Flow += {
 		%}
 
 
+	# REQUEST FC=8
+	function deliver_DiagnosticsRequest(header: ModbusTCP_TransportHeader, message: DiagnosticsRequest): bool
+		%{
+		if ( ::modbus_diagnostics_request )
+			{
+			auto data = to_stringval(${message.data});
+
+			// Data should always be a multiple of two bytes. For everything except
+			// "Return Query Data (0x00)" it should be two bytes long.
+			if ( data->Len() < 2 || data->Len() % 2 != 0 ||
+			     (${message.subfunction} != DIAGNOSTICS_RETURN_QUERY_DATA && data->Len() != 2) )
+				{
+				zeek::reporter->Weird("modbus_diag_invalid_request_data",
+				                      zeek::util::fmt("%s", data->CheckString()));
+				}
+
+			switch (${message.subfunction})
+				{
+				case DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION:
+					// For "Restart Communications Option" it's either 0x0000 or 0xFF00.
+					if ( ( data->Bytes()[0] != 0x00 && data->Bytes()[0] != 0xFF ) ||
+					     data->Bytes()[1] != 0x00 )
+						{
+						zeek::reporter->Weird("modbus_diag_invalid_request_data",
+						                      zeek::util::fmt("%s", data->CheckString()));
+						}
+					break;
+				case DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER:
+				case DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE:
+				case DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER:
+				case DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT:
+				case DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT:
+				case DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT:
+				case DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT:
+				case DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT:
+				case DIAGNOSTICS_RETURN_SERVER_NAK_COUNT:
+				case DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT:
+				case DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT:
+				case DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG:
+					// For all of these subfunctions, the data should be 0x0000.
+					if ( data->Bytes()[0] != 0x00 || data->Bytes()[1] != 0x00 )
+						{
+						zeek::reporter->Weird("modbus_diag_invalid_request_data",
+						                      zeek::util::fmt("%s", data->CheckString()));
+						}
+					break;
+
+				case DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER:
+					// For "Change ASCII Input Delimiter", it should be an ascii character
+					// followed by a zero.
+					if ( ! isascii(data->Bytes()[0]) || data->Bytes()[1] != 0x00 )
+						{
+						zeek::reporter->Weird("modbus_diag_invalid_request_data",
+						                      zeek::util::fmt("%s", data->CheckString()));
+						}
+					break;
+
+				default:
+					zeek::reporter->Weird("modbus_diag_unknown_request_subfunction",
+					                      zeek::util::fmt("%d", ${message.subfunction}));
+					break;
+				}
+
+			zeek::BifEvent::enqueue_modbus_diagnostics_request(connection()->zeek_analyzer(),
+			                                                   connection()->zeek_analyzer()->Conn(),
+			                                                   HeaderToVal(header),
+			                                                   ${message.subfunction}, to_stringval(${message.data}));
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=8
+	function deliver_DiagnosticsResponse(header: ModbusTCP_TransportHeader, message: DiagnosticsResponse): bool
+		%{
+		if ( ::modbus_diagnostics_response )
+			{
+			zeek::BifEvent::enqueue_modbus_diagnostics_response(connection()->zeek_analyzer(),
+			                                                    connection()->zeek_analyzer()->Conn(),
+			                                                    HeaderToVal(header),
+			                                                    ${message.subfunction}, to_stringval(${message.data}));
+			}
+
+		return true;
+		%}
+
+
 	# REQUEST FC=15
 	function deliver_WriteMultipleCoilsRequest(header: ModbusTCP_TransportHeader, message: WriteMultipleCoilsRequest): bool
 		%{

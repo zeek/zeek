@@ -992,7 +992,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
 
 		analyze_scripts(options.no_unused_warnings);
-		// abort();
 
 		if ( analysis_options.report_recursive )
 			{

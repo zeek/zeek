@@ -8,7 +8,7 @@
 #
 # @TEST-EXEC: TOPIC=/zeek/my_topic btest-bg-run server "zeek %INPUT >output"
 # Leave room for Zeek to start up, which can be slow when using -O ZAM
-# @TEST-EXEC: sleep 5
+# @TEST-EXEC: sleep 15
 # @TEST-EXEC: TOPIC=/zeek/my_topic btest-bg-run client "python3 ../client.py >output"
 #
 # @TEST-EXEC: btest-bg-wait 45

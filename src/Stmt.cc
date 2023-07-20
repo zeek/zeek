@@ -206,6 +206,9 @@ bool Stmt::IsPure() const
 
 void Stmt::Describe(ODesc* d) const
 	{
+	// The following is a handy add-on when doing AST debugging.
+	// d->Add(util::fmt("%p: ", this));
+
 	StmtDescribe(d);
 	}
 

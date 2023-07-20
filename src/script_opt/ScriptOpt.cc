@@ -491,24 +491,19 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	// since it won't be consulted in that case.
 	std::unordered_set<Func*> func_used_indirectly;
 
-	if ( global_stmts )
-		func_used_indirectly.insert(global_stmts.get());
-
 	if ( inl )
 		{
+		if ( global_stmts )
+			func_used_indirectly.insert(global_stmts.get());
+
 		for ( auto& g : pfs->Globals() )
 			{
 			if ( g->GetType()->Tag() != TYPE_FUNC )
 				continue;
 
 			auto v = g->GetVal();
-			if ( ! v )
-				continue;
-
-			auto func = v->AsFunc();
-
-			if ( inl->WasInlined(func) )
-				func_used_indirectly.insert(func);
+			if ( v )
+				func_used_indirectly.insert(v->AsFunc());
 			}
 		}
 

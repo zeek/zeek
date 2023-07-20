@@ -13,7 +13,7 @@ namespace zeek::detail
 
 const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s)
 	{
-	SetCurrStmt(s);
+	curr_stmt = const_cast<Stmt*>(s)->ThisPtr();
 
 	switch ( s->Tag() )
 		{

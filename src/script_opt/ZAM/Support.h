@@ -14,7 +14,7 @@ using ValVec = std::vector<ValPtr>;
 
 // The (reduced) statement currently being compiled.  Used for both
 // tracking "use" and "reaching" definitions, and for error messages.
-extern const Stmt* curr_stmt;
+extern StmtPtr curr_stmt;
 
 // True if a function with the given profile can be compiled to ZAM.
 // If not, returns the reason in *reason, if non-nil.

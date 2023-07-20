@@ -787,10 +787,10 @@ StmtPtr StmtList::DoReduce(Reducer* c)
 bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c)
 	{
 	bool did_change = false;
-	auto stmt = stmts[s_i];
-	auto old_stmt = stmt;
+	auto& stmt_i = stmts[s_i];
+	auto old_stmt = stmt_i.get();
 
-	stmt = stmt->Reduce(c);
+	auto stmt = stmt_i->Reduce(c);
 
 	if ( stmt != old_stmt )
 		did_change = true;

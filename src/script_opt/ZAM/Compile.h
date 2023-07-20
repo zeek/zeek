@@ -124,8 +124,6 @@ private:
 	const ZAMStmt CompileStmt(const StmtPtr& body) { return CompileStmt(body.get()); }
 	const ZAMStmt CompileStmt(const Stmt* body);
 
-	void SetCurrStmt(const Stmt* stmt) { curr_stmt = stmt; }
-
 	const ZAMStmt CompilePrint(const PrintStmt* ps);
 	const ZAMStmt CompileExpr(const ExprStmt* es);
 	const ZAMStmt CompileIf(const IfStmt* is);

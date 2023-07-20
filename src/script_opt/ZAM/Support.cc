@@ -13,7 +13,7 @@
 namespace zeek::detail
 	{
 
-const Stmt* curr_stmt;
+StmtPtr curr_stmt;
 TypePtr log_ID_enum_type;
 TypePtr any_base_type;
 bool ZAM_error = false;

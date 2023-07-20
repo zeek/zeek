@@ -554,7 +554,7 @@ void clear_script_analysis()
 
 	// We need to explicitly clear out the optimization information
 	// associated with identifiers.  The have reference loops with
-	// the parent identifier that will prevent reclaimation of the
+	// the parent identifier that will prevent reclamation of the
 	// identifiers (and the optimization information) upon Unref'ing
 	// when discarding the scopes and ASTs.
 	for ( auto& f : funcs )

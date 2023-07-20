@@ -517,10 +517,15 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 				continue;
 			}
 
-		else if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasInlined(func) &&
-		          func_used_indirectly.count(func) == 0 )
+		else if ( ! analysis_options.compile_all && ! is_lambda && inl &&
+		          inl->WasFullyInlined(func) && func_used_indirectly.count(func) == 0 )
 			{
 			// No need to compile as it won't be called directly.
+			// We'd like to zero out the body to recover the
+			// memory, but a *few* such functions do get called,
+			// such as by the event engine reaching up, or
+			// BiFs looking for them, so we can't safely zero
+			// them.
 			continue;
 			}
 

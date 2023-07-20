@@ -31,10 +31,10 @@ public:
 	// or an InlineExpr if it is; or nil if further inlining should stop.
 	ExprPtr CheckForInlining(CallExprPtr c);
 
-	// True if the given function has been inlined.
-	bool WasInlined(const Func* f)
+	// True if every instance of the function was inlined.
+	bool WasFullyInlined(const Func* f)
 		{
-		return inline_ables.count(f) > 0 && skipped_inlining.count(f) == 0;
+		return did_inline.count(f) > 0 && skipped_inlining.count(f) == 0;
 		}
 
 protected:
@@ -51,6 +51,9 @@ protected:
 
 	// Functions that we've determined to be suitable for inlining.
 	std::unordered_set<const Func*> inline_ables;
+
+	// Functions that we inlined.
+	std::unordered_set<const Func*> did_inline;
 
 	// Functions that we didn't fully inline, so require separate
 	// compilation.

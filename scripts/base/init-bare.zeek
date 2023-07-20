@@ -4436,6 +4436,9 @@ type ModbusHeaders: record {
 	uid:           count;
 	## MODBUS function code
 	function_code: count;
+	## Length of the application PDU following the header plus
+	## one byte for the uid field.
+	len:           count;
 };
 
 module SSL;

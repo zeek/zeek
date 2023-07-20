@@ -34,6 +34,7 @@
 		modbus_header->Assign(1, header->pid());
 		modbus_header->Assign(2, header->uid());
 		modbus_header->Assign(3, header->fc());
+		modbus_header->Assign(4, header->len());
 		return modbus_header;
 		}
 

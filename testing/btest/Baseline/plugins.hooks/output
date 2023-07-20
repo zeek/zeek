@@ -781,12 +781,12 @@
 0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_counter_family, <frame>, (zeek, telemetry_counter_usage_error, [], This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., 1, T)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_gauge_family, <frame>, (zeek, telemetry_gauge_usage_error, [], This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero., 1, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_gauge_family, <frame>, (zeek, version_info, [version_number, major, minor, patch, commit, beta, debug, version_string], The Zeek version, 1, F)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_gauge_inc, <frame>, (<no value description>, 1.0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_gauge_inc, <frame>, (<opaque of DblGaugeMetricVal>, 1.0)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_gauge_metric_get_or_add, ..., ...) -> <no result>
-0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_gauge_value, <frame>, (<no value description>)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_gauge_value, <frame>, (<opaque of DblGaugeMetricVal>)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::__dbl_histogram_family, <frame>, (zeek, telemetry_histogram_usage_error, [], [1.0], This histogram is returned when label usage for histograms is wrong. Check reporter.log if non-zero., 1, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::gauge_family_set, ..., ...) -> <no result>
-0.000000   MetaHookPost  CallFunction(Telemetry::gauge_set, <frame>, ([__metric=<no value description>], 1.0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::gauge_set, <frame>, ([__metric=<opaque of DblGaugeMetricVal>], 1.0)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::gauge_with, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::make_labels, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(Telemetry::register_counter_family, <null>, ([prefix=zeek, name=telemetry_counter_usage_error, unit=1, help_text=This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., labels=[], is_total=<uninitialized>, bounds=<uninitialized>, count_bounds=<uninitialized>, metric_type=<uninitialized>])) -> <no result>
@@ -2401,12 +2401,12 @@
 0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_counter_family, <frame>, (zeek, telemetry_counter_usage_error, [], This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., 1, T))
 0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_gauge_family, <frame>, (zeek, telemetry_gauge_usage_error, [], This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero., 1, F))
 0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_gauge_family, <frame>, (zeek, version_info, [version_number, major, minor, patch, commit, beta, debug, version_string], The Zeek version, 1, F))
-0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_gauge_inc, <frame>, (<no value description>, 1.0))
+0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_gauge_inc, <frame>, (<opaque of DblGaugeMetricVal>, 1.0))
 0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_gauge_metric_get_or_add, ..., ...)
-0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_gauge_value, <frame>, (<no value description>))
+0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_gauge_value, <frame>, (<opaque of DblGaugeMetricVal>))
 0.000000   MetaHookPre   CallFunction(Telemetry::__dbl_histogram_family, <frame>, (zeek, telemetry_histogram_usage_error, [], [1.0], This histogram is returned when label usage for histograms is wrong. Check reporter.log if non-zero., 1, F))
 0.000000   MetaHookPre   CallFunction(Telemetry::gauge_family_set, ..., ...)
-0.000000   MetaHookPre   CallFunction(Telemetry::gauge_set, <frame>, ([__metric=<no value description>], 1.0))
+0.000000   MetaHookPre   CallFunction(Telemetry::gauge_set, <frame>, ([__metric=<opaque of DblGaugeMetricVal>], 1.0))
 0.000000   MetaHookPre   CallFunction(Telemetry::gauge_with, ..., ...)
 0.000000   MetaHookPre   CallFunction(Telemetry::make_labels, ..., ...)
 0.000000   MetaHookPre   CallFunction(Telemetry::register_counter_family, <null>, ([prefix=zeek, name=telemetry_counter_usage_error, unit=1, help_text=This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., labels=[], is_total=<uninitialized>, bounds=<uninitialized>, count_bounds=<uninitialized>, metric_type=<uninitialized>]))
@@ -4020,12 +4020,12 @@
 0.000000 | HookCallFunction Telemetry::__dbl_counter_family(zeek, telemetry_counter_usage_error, [], This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., 1, T)
 0.000000 | HookCallFunction Telemetry::__dbl_gauge_family(zeek, telemetry_gauge_usage_error, [], This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero., 1, F)
 0.000000 | HookCallFunction Telemetry::__dbl_gauge_family(zeek, version_info, [version_number, major, minor, patch, commit, beta, debug, version_string], The Zeek version, 1, F)
-0.000000 | HookCallFunction Telemetry::__dbl_gauge_inc(<no value description>, 1.0)
+0.000000 | HookCallFunction Telemetry::__dbl_gauge_inc(<opaque of DblGaugeMetricVal>, 1.0)
 0.000000 | HookCallFunction Telemetry::__dbl_gauge_metric_get_or_add(...)
-0.000000 | HookCallFunction Telemetry::__dbl_gauge_value(<no value description>)
+0.000000 | HookCallFunction Telemetry::__dbl_gauge_value(<opaque of DblGaugeMetricVal>)
 0.000000 | HookCallFunction Telemetry::__dbl_histogram_family(zeek, telemetry_histogram_usage_error, [], [1.0], This histogram is returned when label usage for histograms is wrong. Check reporter.log if non-zero., 1, F)
 0.000000 | HookCallFunction Telemetry::gauge_family_set(...)
-0.000000 | HookCallFunction Telemetry::gauge_set([__metric=<no value description>], 1.0)
+0.000000 | HookCallFunction Telemetry::gauge_set([__metric=<opaque of DblGaugeMetricVal>], 1.0)
 0.000000 | HookCallFunction Telemetry::gauge_with(...)
 0.000000 | HookCallFunction Telemetry::make_labels(...)
 0.000000 | HookCallFunction Telemetry::register_counter_family([prefix=zeek, name=telemetry_counter_usage_error, unit=1, help_text=This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero., labels=[], is_total=<uninitialized>, bounds=<uninitialized>, count_bounds=<uninitialized>, metric_type=<uninitialized>])

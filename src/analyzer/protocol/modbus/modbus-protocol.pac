@@ -15,7 +15,7 @@ enum function_codes {
 	WRITE_SINGLE_COIL             = 0x05,
 	WRITE_SINGLE_REGISTER         = 0x06,
 	# READ_EXCEPTION_STATUS         = 0x07,
-	# DIAGNOSTICS                   = 0x08,
+	DIAGNOSTICS                   = 0x08,
 	# GET_COMM_EVENT_COUNTER        = 0x0B,
 	# GET_COMM_EVENT_LOG            = 0x0C,
 	WRITE_MULTIPLE_COILS          = 0x0F,
@@ -48,6 +48,7 @@ enum function_codes {
 	WRITE_SINGLE_COIL_EXCEPTION             = 0x85,
 	WRITE_SINGLE_REGISTER_EXCEPTION         = 0x86,
 	READ_EXCEPTION_STATUS_EXCEPTION         = 0x87,
+	DIAGNOSTICS_EXCEPTION                   = 0x88,
 	WRITE_MULTIPLE_COILS_EXCEPTION          = 0x8F,
 	WRITE_MULTIPLE_REGISTERS_EXCEPTION      = 0x90,
 	READ_FILE_RECORD_EXCEPTION              = 0x94,
@@ -55,6 +56,24 @@ enum function_codes {
 	MASK_WRITE_REGISTER_EXCEPTION           = 0x96,
 	READ_WRITE_MULTIPLE_REGISTERS_EXCEPTION = 0x97,
 	READ_FIFO_QUEUE_EXCEPTION               = 0x98,
+};
+
+enum diagnostic_subfunctions {
+       DIAGNOSTICS_RETURN_QUERY_DATA                      = 0x00,
+       DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION          = 0x01,
+       DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER             = 0x02,
+       DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER           = 0x03,
+       DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE                 = 0x04,
+       DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER = 0x0A,
+       DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT               = 0x0B,
+       DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT   = 0x0C,
+       DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT       = 0x0D,
+       DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT            = 0x0E,
+       DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT        = 0x0F,
+       DIAGNOSTICS_RETURN_SERVER_NAK_COUNT                = 0x10,
+       DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT               = 0x11,
+       DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT     = 0x12,
+       DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG         = 0x14,
 };
 
 # Main Modbus/TCP PDU
@@ -86,7 +105,7 @@ type ModbusTCP_Request(header: ModbusTCP_TransportHeader) = case header.fc of {
 	WRITE_SINGLE_COIL             -> writeSingleCoil:            WriteSingleCoilRequest(header);
 	WRITE_SINGLE_REGISTER         -> writeSingleRegister:        WriteSingleRegisterRequest(header);
 	#READ_EXCEPTION_STATUS         -> readExceptionStatus:        ReadExceptionStatusRequest(header);
-	#DIAGNOSTICS                   -> diagnostics:                DiagnosticsRequest(header);
+	DIAGNOSTICS                   -> diagnostics:                DiagnosticsRequest(header);
 	#GET_COMM_EVENT_COUNTER        -> getCommEventCounter:        GetCommEventCounterRequest(header);
 	#GET_COMM_EVENT_LOG            -> getCommEventLog:            GetCommEventLogRequest(header);
 	WRITE_MULTIPLE_COILS          -> writeMultipleCoils:         WriteMultipleCoilsRequest(header);
@@ -113,7 +132,7 @@ type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc of {
 	WRITE_SINGLE_COIL                   -> writeSingleCoil:                 WriteSingleCoilResponse(header);
 	WRITE_SINGLE_REGISTER               -> writeSingleRegister:             WriteSingleRegisterResponse(header);
 	#READ_EXCEPTION_STATUS               -> readExceptionStatus:             ReadExceptionStatusResponse(header);
-	#DIAGNOSTICS                         -> diagnostics:                     DiagnosticsResponse(header);
+	DIAGNOSTICS                         -> diagnostics:                     DiagnosticsResponse(header);
 	#GET_COMM_EVENT_COUNTER              -> getCommEventCounter:             GetCommEventCounterResponse(header);
 	#GET_COMM_EVENT_LOG                  -> getCommEventLog:                 GetCommEventLogResponse(header);
 	WRITE_MULTIPLE_COILS                -> writeMultipleCoils:              WriteMultipleCoilsResponse(header);
@@ -134,6 +153,7 @@ type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc of {
 	WRITE_SINGLE_COIL_EXCEPTION             -> writeCoilException:              Exception(header);
 	WRITE_SINGLE_REGISTER_EXCEPTION         -> writeSingleRegisterException:    Exception(header);
 	READ_EXCEPTION_STATUS_EXCEPTION         -> readExceptionStatusException:    Exception(header);
+	DIAGNOSTICS_EXCEPTION                   -> diagnosticsException:            Exception(header);
 	WRITE_MULTIPLE_COILS_EXCEPTION          -> forceMultipleCoilsException:     Exception(header);
 	READ_FILE_RECORD_EXCEPTION              -> readGeneralReferenceException:   Exception(header);
 	WRITE_FILE_RECORD_EXCEPTION             -> writeGeneralReferenceException:  Exception(header);
@@ -245,6 +265,22 @@ type WriteSingleRegisterResponse(header: ModbusTCP_TransportHeader) = record {
 	value:     uint16;
 } &let {
 	deliver: bool = $context.flow.deliver_WriteSingleRegisterResponse(header, this);
+} &byteorder=bigendian;
+
+# REQUEST FC=8
+type DiagnosticsRequest(header: ModbusTCP_TransportHeader) = record {
+	subfunction: uint16;
+	data: bytestring &restofdata;
+} &let {
+	deliver: bool = $context.flow.deliver_DiagnosticsRequest(header, this);
+} &byteorder=bigendian;
+
+# RESPONSE FC=8
+type DiagnosticsResponse(header: ModbusTCP_TransportHeader) = record {
+	subfunction: uint16;
+	data: bytestring &restofdata;
+} &let {
+	deliver: bool = $context.flow.deliver_DiagnosticsResponse(header, this);
 } &byteorder=bigendian;
 
 # REQUEST FC=15

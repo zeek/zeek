@@ -152,3 +152,12 @@ event modbus_read_fifo_queue_response(c: connection, headers: ModbusHeaders, fif
     print "modbus_read_fifo_queue_response", c$id, headers, fifos;
 }
 
+event modbus_diagnostics_request(c: connection, headers: ModbusHeaders, subfunction: count, data: string)
+{
+    print "modbus_diagnostics_request", c$id, headers, subfunction, data;
+}
+
+event modbus_diagnostics_response(c: connection, headers: ModbusHeaders, subfunction: count, data: string)
+{
+    print "modbus_diagnostics_response", c$id, headers, subfunction, data;
+}

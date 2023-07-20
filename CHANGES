@@ -1,3 +1,12 @@
+6.1.0-dev.225 | 2023-07-20 09:23:33 -0700
+
+  * Print type of opaque instead of 'no value description' (Tim Wojtulewicz, Corelight)
+
+  * Add compiler flag to disable unknown pragma warnings on Windows (Tim Wojtulewicz, Corelight)
+
+    Without this flag you get a warning from every use of Type.h since it
+    contains a '#pramga GCC' for disabling a deprecation warning.
+
 6.1.0-dev.220 | 2023-07-17 16:35:06 -0700
 
   * allow signature actions to be dynamically updated (Vern Paxson, Corelight)

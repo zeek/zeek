@@ -761,4 +761,31 @@ refine flow ModbusTCP_Flow += {
 
 		return true;
 		%}
+
+	# REQUEST FC=2B
+	function deliver_EncapInterfaceTransportRequest(header: ModbusTCP_TransportHeader, message: EncapInterfaceTransportRequest): bool
+		%{
+		if ( ::modbus_encap_interface_transport_request )
+			{
+			zeek::BifEvent::enqueue_modbus_encap_interface_transport_request(
+			    connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
+			    HeaderToVal(header), ${message.mei_type}, to_stringval(${message.data}));
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=2B
+	function deliver_EncapInterfaceTransportResponse(header: ModbusTCP_TransportHeader, message: EncapInterfaceTransportResponse): bool
+		%{
+		if ( ::modbus_encap_interface_transport_response )
+			{
+			zeek::BifEvent::enqueue_modbus_encap_interface_transport_response(
+			    connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
+			    HeaderToVal(header), ${message.mei_type}, to_stringval(${message.data}));
+			}
+
+		return true;
+		%}
+
 };

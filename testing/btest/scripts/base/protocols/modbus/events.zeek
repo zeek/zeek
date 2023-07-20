@@ -1,12 +1,18 @@
 #
 # @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus.trace %INPUT | sort | uniq -c | sed 's/^ *//g' >output
+# @TEST-EXEC: mv conn.log conn-first.log
+# @TEST-EXEC: cat weird.log >> weird-combined.log
+# @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus-eit.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >>output
+# @TEST-EXEC: mv conn.log conn-second.log
+# @TEST-EXEC: cat weird.log >> weird-combined.log
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $2}' | grep "^modbus_" | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/modbus/events.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage
 # @TEST-EXEC: btest-diff coverage
-# @TEST-EXEC: btest-diff conn.log
-# @TEST-EXEC: btest-diff weird.log
+# @TEST-EXEC: btest-diff conn-first.log
+# @TEST-EXEC: btest-diff conn-second.log
+# @TEST-EXEC: btest-diff weird-combined.log
 
 @load base/protocols/modbus
 @load base/protocols/conn
@@ -162,4 +168,14 @@ event modbus_diagnostics_request(c: connection, headers: ModbusHeaders, subfunct
 event modbus_diagnostics_response(c: connection, headers: ModbusHeaders, subfunction: count, data: string)
 {
     print "modbus_diagnostics_response", c$id, headers, subfunction, data;
+}
+
+event modbus_encap_interface_transport_request(c: connection, headers: ModbusHeaders, mei_type: count, data: string)
+{
+    print "modbus_encap_interface_transport_request", c$id, headers, mei_type, data;
+}
+
+event modbus_encap_interface_transport_response(c: connection, headers: ModbusHeaders, mei_type: count, data: string)
+{
+    print "modbus_encap_interface_transport_response", c$id, headers, mei_type, data;
 }

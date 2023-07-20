@@ -315,3 +315,25 @@ event modbus_diagnostics_request%(c: connection, headers: ModbusHeaders, subfunc
 ##
 ## data: The data passed in the diagnostics response.
 event modbus_diagnostics_response%(c: connection, headers: ModbusHeaders, subfunction: count, data: string%);
+
+## Generated for a Modbus Encapsulated Interface Transport request.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## mei_type: The MEI type for the request.
+##
+## data: The MEI type specific data passed in the request.
+event modbus_encap_interface_transport_request%(c: connection, headers: ModbusHeaders, mei_type: count, data: string%);
+
+## Generated for a Modbus Encapsulated Interface Transport response.
+##
+## c: The connection.
+##
+## headers: The headers for the modbus function.
+##
+## mei_type: The MEI type for the response.
+##
+## data: The MEI type specific data passed in the response.
+event modbus_encap_interface_transport_response%(c: connection, headers: ModbusHeaders, mei_type: count, data: string%);

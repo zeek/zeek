@@ -3,3 +3,7 @@ These are the trace files that are used by the Zeek test suite.
 Note to maintainers: please take care when modifying/removing files from here.
 We install these traces with the Zeek distribution and external packages might
 depend on them for tests.
+
+Trace Index/Sources:
+
+- modbus/modbus-eit.trace: Sourced from https://www.netresec.com/?page=PCAP4SICS, credit to https://cs3sthlm.se/. The packets in this trace were pulled from the 4SICS-GeekLounge-151021.pcap file.

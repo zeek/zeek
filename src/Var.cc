@@ -845,7 +845,8 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 
 	id->GetVal()->AsFunc()->AddBody(*ingredients);
 
-	script_coverage_mgr.AddFunction(id, ingredients->Body());
+	if ( ! analysis_options.gen_ZAM )
+		script_coverage_mgr.AddFunction(id, ingredients->Body());
 
 	auto func_ptr = cast_intrusive<FuncVal>(id->GetVal())->AsFuncPtr();
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);

@@ -11,6 +11,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 using namespace std;
 
@@ -21,7 +22,7 @@ ScriptCoverageManager::ScriptCoverageManager() : ignoring(0), delim('\t') { }
 
 void ScriptCoverageManager::AddStmt(Stmt* s)
 	{
-	if ( ignoring != 0 )
+	if ( ignoring != 0 || analysis_options.gen_ZAM )
 		return;
 
 	stmts.emplace_back(NewRef{}, s);
@@ -29,6 +30,9 @@ void ScriptCoverageManager::AddStmt(Stmt* s)
 
 void ScriptCoverageManager::AddFunction(IDPtr func_id, StmtPtr body)
 	{
+	if ( analysis_options.gen_ZAM )
+		return;
+
 	func_instances.emplace_back(func_id, body);
 	}
 

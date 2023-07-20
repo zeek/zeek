@@ -141,7 +141,7 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 	// This needs to come after filling out the confluence
 	// blocks, since they'll create their own (earlier) regions.
 	usage_regions.emplace_back(s, true, stmt_num);
-	usage_regions.back().SetDefExpr(e);
+	usage_regions.back().SetDefExpr(std::move(e));
 
 	if ( tracing )
 		DumpBlocks();

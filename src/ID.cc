@@ -132,8 +132,8 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export)
 
 ID::~ID()
 	{
+	ClearOptInfo();
 	delete[] name;
-	delete opt_info;
 	}
 
 std::string ID::ModuleName() const
@@ -685,6 +685,12 @@ std::vector<Func*> ID::GetOptionHandlers() const
 	for ( auto& element : option_handlers )
 		v.push_back(element.second.get());
 	return v;
+	}
+
+void ID::ClearOptInfo()
+	{
+	delete opt_info;
+	opt_info = nullptr;
 	}
 
 	} // namespace detail

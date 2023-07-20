@@ -550,12 +550,21 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 
 void clear_script_analysis()
 	{
+	IDOptInfo::ClearGlobalInitExprs();
+
+	// We need to explicitly clear out the optimization information
+	// associated with identifiers.  The have reference loops with
+	// the parent identifier that will prevent reclaimation of the
+	// identifiers (and the optimization information) upon Unref'ing
+	// when discarding the scopes and ASTs.
+	for ( auto& f : funcs )
+		for ( auto& id : f.Scope()->OrderedVars() )
+			id->ClearOptInfo();
+
 	funcs.clear();
 	non_recursive_funcs.clear();
 	lambdas.clear();
 	when_lambdas.clear();
-
-	IDOptInfo::ClearGlobalInitExprs();
 	}
 
 void analyze_scripts(bool no_unused_warnings)

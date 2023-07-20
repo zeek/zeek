@@ -31,6 +31,8 @@ ZAMCompiler::ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> _pf, ScopeP
 
 ZAMCompiler::~ZAMCompiler()
 	{
+	curr_stmt = nullptr;
+
 	for ( auto i : insts1 )
 		delete i;
 	}

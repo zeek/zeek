@@ -11,8 +11,8 @@
 #include "zeek/Options.h"
 #include "zeek/StmtEnums.h"
 #include "zeek/TraverseTypes.h"
-#include "zeek/util.h"
 #include "zeek/script_opt/AnalyOpt.h"
+#include "zeek/util.h"
 
 namespace zeek
 	{

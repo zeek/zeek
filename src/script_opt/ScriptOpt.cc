@@ -520,8 +520,8 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 				continue;
 			}
 
-		else if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func) &&
-		          func_used_indirectly.count(func) == 0 )
+		else if ( ! analysis_options.compile_all && ! is_lambda && inl &&
+		          inl->WasFullyInlined(func) && func_used_indirectly.count(func) == 0 )
 			{
 			// No need to compile as it won't be called directly.
 			// We'd like to zero out the body to recover the

@@ -194,7 +194,9 @@ static void print_analysis_help()
 	fprintf(stderr, "--optimize options when using ZAM:\n");
 	fprintf(stderr, "    ZAM	execute scripts using ZAM and all optimizations\n");
 	fprintf(stderr, "    help	print this list\n");
-	fprintf(stderr, "    reduce-memory	lower memory footprint (diminishes some diagnostic functionality)\n");
+	fprintf(
+		stderr,
+		"    reduce-memory	lower memory footprint (diminishes some diagnostic functionality)\n");
 	fprintf(stderr, "    report-uncompilable	print names of functions that can't be compiled\n");
 	fprintf(stderr, "\n  primarily for developers:\n");
 	fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");

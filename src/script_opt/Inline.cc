@@ -268,7 +268,8 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 		max_inlined_frame_size = hold_max_inlined_frame_size;
 
 	auto t = c->GetType();
-	auto ie = make_intrusive<InlineExpr>(c->ArgsPtr(), std::move(params), body_dup, curr_frame_size, t);
+	auto ie = make_intrusive<InlineExpr>(c->ArgsPtr(), std::move(params), body_dup, curr_frame_size,
+	                                     t);
 	ie->SetOriginal(c);
 
 	return ie;

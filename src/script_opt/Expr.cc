@@ -1770,7 +1770,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 		red_stmt = MergeStmts(rhs_reduce, lhs_stmt, rhs_stmt);
 
-		auto field_name = field_e->FieldName();
+		auto field_name = util::copy_string(field_e->FieldName());
 		auto field = field_e->Field();
 		auto field_assign = make_intrusive<FieldLHSAssignExpr>(lhs_e, rhs_e, field_name, field);
 
@@ -1909,7 +1909,7 @@ ExprPtr IndexExprWhen::Duplicate()
 
 ExprPtr FieldExpr::Duplicate()
 	{
-	return SetSucc(new FieldExpr(op->Duplicate(), field_name));
+	return SetSucc(new FieldExpr(op->Duplicate(), util::copy_string(field_name)));
 	}
 
 ExprPtr HasFieldExpr::Duplicate()

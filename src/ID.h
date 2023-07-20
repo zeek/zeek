@@ -151,6 +151,7 @@ public:
 	std::vector<Func*> GetOptionHandlers() const;
 
 	IDOptInfo* GetOptInfo() const { return opt_info; }
+	void ClearOptInfo();
 
 protected:
 	void EvalFunc(ExprPtr ef, ExprPtr ev);

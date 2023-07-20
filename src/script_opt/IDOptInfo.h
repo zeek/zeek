@@ -148,6 +148,7 @@ public:
 	// Returns a list of the initialization expressions seen for all
 	// globals, ordered by when they were processed.
 	static auto& GetGlobalInitExprs() { return global_init_exprs; }
+	static void ClearGlobalInitExprs() { global_init_exprs.clear(); }
 
 	// Associated constant expression, if any.  This is only set
 	// for identifiers that are aliases for a constant (i.e., there

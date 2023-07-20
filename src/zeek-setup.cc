@@ -1114,6 +1114,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 			g_frame_stack.pop_back();
 			}
 
+		clear_script_analysis();
+
 		if ( zeek_script_loaded )
 			{
 			// Queue events reporting loaded scripts.

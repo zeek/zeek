@@ -1825,7 +1825,7 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line, const
 				}
 		}
 
-	eval += "f->SetOnlyCall(z.call_expr);\n";
+	eval += "f->SetOnlyCall(z.call_expr.get());\n";
 
 	if ( HasAssignVal() )
 		{

@@ -4674,7 +4674,7 @@ LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, st
 		my_name = name;
 
 	// Install that in the global_scope
-	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
+	lambda_id = install_ID(my_name.c_str(), "", true, false);
 
 	// Update lamb's name
 	primary_func->SetName(my_name.c_str());

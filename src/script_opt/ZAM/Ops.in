@@ -2079,7 +2079,7 @@ macro BuildWhen(timeout)
 		if ( v )
 			local_aggrs.push_back(v);
 		}
-	new trigger::Trigger(wi, timeout, wi->WhenExprGlobals(), local_aggrs, f, z.loc);
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, z.loc);
 
 ########################################
 # Internal

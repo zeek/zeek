@@ -1104,9 +1104,10 @@ Val* Manager::ValueToIndexVal(const Stream* i, int num_fields, const RecordType*
 
 					const char* warning = "Skipping input with missing non-optional value";
 					if ( source && file_pos != -1 )
-						Warning(i, "%s:%d: %s", source, file_pos, warning);
+						Warning(i, "%s:%d: %s (index field %s)", source, file_pos, warning,
+						        type->FieldName(j));
 					else
-						Warning(i, "%s", warning);
+						Warning(i, "%s (index field %s)", warning, type->FieldName(j));
 
 					have_error = true;
 					}
@@ -1961,9 +1962,10 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const* v
 
 			const char* warning = "Skipping input with missing non-optional value";
 			if ( source && file_pos != -1 )
-				Warning(stream, "%s:%d: %s", source, file_pos, warning);
+				Warning(stream, "%s:%d: %s (record field %s)", source, file_pos, warning,
+				        request_type->FieldName(i));
 			else
-				Warning(stream, "%s", warning);
+				Warning(stream, "%s (record field %s)", warning, request_type->FieldName(i));
 
 			have_error = true;
 			}

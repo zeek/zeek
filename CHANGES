@@ -1,3 +1,14 @@
+6.1.0-dev.234 | 2023-07-25 09:36:27 -0700
+
+  * Better input framework error messages for unset non-optionals (Johanna Amann, Corelight)
+
+    The input framework currently gives a rather opaque error message when
+    encountering a line in which a required value is not provided. This
+    change updates this behavior; the error message now provides the record
+    element (or the name or the index element) which was not set in the
+    input data, even though it is required to be set by the underlying Zeek
+    type.
+
 6.1.0-dev.232 | 2023-07-25 09:34:54 -0700
 
   * Fix script_opt/cpp test scripts to work correctly on all platforms (Tim Wojtulewicz)

@@ -117,7 +117,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
 	NL();
 	Emit("static %s %s(%s);", yt_decl, fname, ParamDecl(ft, lambda_ids, pf));
 
-	Emit("class %s_cl : public CPPStmt", fname);
+	Emit("class %s_cl final : public CPPStmt", fname);
 	StartBlock();
 
 	Emit("public:");
@@ -133,7 +133,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
 			auto tn = FullTypeName(id->GetType());
 			addl_args = addl_args + ", " + tn + " _" + name;
 
-			inits = inits + ", " + name + "(_" + name + ")";
+			inits = inits + ", " + name + "(std::move(_" + name + "))";
 			}
 		}
 
@@ -151,7 +151,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
 	if ( lambda_ids && lambda_ids->length() > 0 )
 		Emit("%s_cl(const char* name) : CPPStmt(name, %s) { }", fname, loc_info);
 
-	Emit("ValPtr Exec(Frame* f, StmtFlowType& flow) override final");
+	Emit("ValPtr Exec(Frame* f, StmtFlowType& flow) override");
 	StartBlock();
 
 	Emit("flow = FLOW_RETURN;");
@@ -182,13 +182,13 @@ void CPPCompile::DeclareDynCPPStmt()
 	Emit("// dispatch.  All of this is ugly, and only needed because clang");
 	Emit("// goes nuts (super slow) in the face of thousands of templates");
 	Emit("// in a given context (initializers, or a function body).");
-	Emit("class CPPDynStmt : public CPPStmt");
+	Emit("class CPPDynStmt final : public CPPStmt");
 	Emit("\t{");
 	Emit("public:");
 	Emit("\tCPPDynStmt(const char* _name, void* _func, int _type_signature, const char* filename, "
 	     "int line_num) : CPPStmt(_name, filename, line_num), "
 	     "func(_func), type_signature(_type_signature) { }");
-	Emit("\tValPtr Exec(Frame* f, StmtFlowType& flow) override final;");
+	Emit("\tValPtr Exec(Frame* f, StmtFlowType& flow) override;");
 	Emit("private:");
 	Emit("\t// The function to call in Exec().");
 	Emit("\tvoid* func;");

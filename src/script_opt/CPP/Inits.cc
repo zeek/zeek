@@ -44,7 +44,7 @@ void CPPCompile::GenInitExpr(std::shared_ptr<CallExprInitInfo> ce_init)
 
 	// Create the Func subclass that can be used in a CallExpr to
 	// evaluate 'e'.
-	Emit("class %s : public CPPFunc", wc);
+	Emit("class %s final : public CPPFunc", wc);
 	StartBlock();
 
 	Emit("public:");
@@ -57,7 +57,7 @@ void CPPCompile::GenInitExpr(std::shared_ptr<CallExprInitInfo> ce_init)
 
 	EndBlock();
 
-	Emit("ValPtr Invoke(zeek::Args* args, Frame* parent) const override final");
+	Emit("ValPtr Invoke(zeek::Args* args, Frame* parent) const override");
 	StartBlock();
 
 	if ( IsNativeType(t) )

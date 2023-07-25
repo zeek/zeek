@@ -1,3 +1,11 @@
+6.1.0-dev.232 | 2023-07-25 09:34:54 -0700
+
+  * Fix script_opt/cpp test scripts to work correctly on all platforms (Tim Wojtulewicz)
+
+  * CPP code-gen: Use std::move for constructor arguments (Tim Wojtulewicz)
+
+  * CPP code-gen: Mark child classes final, remove final from function defs (Tim Wojtulewicz)
+
 6.1.0-dev.225 | 2023-07-20 09:23:33 -0700
 
   * Print type of opaque instead of 'no value description' (Tim Wojtulewicz, Corelight)

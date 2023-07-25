@@ -344,7 +344,7 @@ type ReadFileRecordRequest(header: ModbusTCP_TransportHeader) = record {
 type FileRecordResponse = record {
 	file_len:    uint8; #    &check(file_len >= 0x07 && file_len <= 0xF5);
 	ref_type:    uint8; #    &check(ref_type == 6);
-	record_data: uint16[file_len/2] &length=file_len;
+	record_data: bytestring &length=file_len;
 } &byteorder=bigendian;
 
 # RESPONSE FC=20
@@ -357,11 +357,11 @@ type ReadFileRecordResponse(header: ModbusTCP_TransportHeader) = record {
 
 # Support data structure for the two following message types.
 type ReferenceWithData = record {
-	ref_type:       uint8;
-	file_num:       uint16;
-	record_num:     uint16;
-	word_count:     uint16;
-	register_value: uint16[word_count];
+	ref_type:      uint8;
+	file_num:      uint16;
+	record_num:    uint16;
+	record_length: uint16;
+	record_data:   bytestring &length=record_length*2;
 } &byteorder=bigendian;
 
 # REQUEST FC=21

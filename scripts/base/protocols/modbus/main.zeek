@@ -79,4 +79,3 @@ event modbus_exception(c: connection, headers: ModbusHeaders, code: count) &prio
 	Log::write(LOG, c$modbus);
 	delete c$modbus$exception;
 	}
-

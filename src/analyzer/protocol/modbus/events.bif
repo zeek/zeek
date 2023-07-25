@@ -191,9 +191,11 @@ event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHe
 ##
 ## headers: The headers for the modbus function.
 ##
-## .. note: This event is incomplete.  The information from the data structure
-##          is not yet passed through to the event.
-event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
+## byte_count: The full byte count for all of the reference records that follow.
+##
+## refs: A vector of reference records.
+event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileRecordRequests%);
+event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%) &deprecated="Remove in v7.1. Use the version that takes a byte_count and vector of references";
 
 ## Generated for a Modbus read file record response.
 ##
@@ -201,9 +203,11 @@ event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%);
 ##
 ## headers: The headers for the modbus function.
 ##
-## .. note: This event is incomplete.  The information from the data structure
-##          is not yet passed through to the event.
-event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%);
+## byte_count: The full byte count for all of the reference records that follow.
+##
+## refs: A vector of reference records.
+event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileRecordResponses%);
+event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%) &deprecated="Remove in v7.1. Use the version that takes a byte_count and vector of references";
 
 ## Generated for a Modbus write file record request.
 ##
@@ -211,9 +215,11 @@ event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%);
 ##
 ## headers: The headers for the modbus function.
 ##
-## .. note: This event is incomplete.  The information from the data structure
-##          is not yet passed through to the event.
-event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%);
+## byte_count: The full byte count for all of the reference records that follow.
+##
+## refs: A vector of reference records.
+event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileReferences%);
+event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%) &deprecated="Remove in v7.1. Use the version that takes a byte_count and vector of references";
 
 ## Generated for a Modbus write file record response.
 ##
@@ -221,9 +227,11 @@ event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%);
 ##
 ## headers: The headers for the modbus function.
 ##
-## .. note: This event is incomplete.  The information from the data structure
-##          is not yet passed through to the event.
-event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders%);
+## byte_count: The full byte count for all of the reference records that follow.
+##
+## refs: A vector of reference records.
+event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileReferences%);
+event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders%) &deprecated="Remove in v7.1. Use the version that takes a byte_count and vector of references";
 
 ## Generated for a Modbus mask write register request.
 ##

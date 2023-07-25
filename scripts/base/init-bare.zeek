@@ -4441,6 +4441,34 @@ type ModbusHeaders: record {
 	len:           count;
 };
 
+type ModbusFileRecordRequest: record {
+	ref_type: count;
+	file_num: count;
+	record_num: count;
+	record_len: count;
+};
+
+type ModbusFileRecordRequests: vector of ModbusFileRecordRequest;
+
+type ModbusFileRecordResponse: record {
+	file_len: count;
+	ref_type: count;
+	record_data: string;
+};
+
+type ModbusFileRecordResponses: vector of ModbusFileRecordResponse;
+
+type ModbusFileReference: record {
+	ref_type: count;
+	file_num: count;
+	record_num: count;
+	record_length: count;
+	record_data: string;
+};
+
+type ModbusFileReferences: vector of ModbusFileReference;
+
+
 module SSL;
 export {
 	type SignatureAndHashAlgorithm: record {

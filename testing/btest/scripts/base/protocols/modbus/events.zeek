@@ -106,24 +106,24 @@ event modbus_write_multiple_registers_response(c: connection, headers: ModbusHea
     print "modbus_write_multiple_registers_response", c$id, headers, start_address, quantity;
 }
 
-event modbus_read_file_record_request(c: connection, headers: ModbusHeaders)
+event modbus_read_file_record_request(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileRecordRequests)
 {
-    print "modbus_read_file_record_request", c$id, headers;
+    print "modbus_read_file_record_request", c$id, headers, byte_count, refs;
 }
 
-event modbus_read_file_record_response(c: connection, headers: ModbusHeaders)
+event modbus_read_file_record_response(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileRecordResponses)
 {
-    print "modbus_read_file_record_response", c$id, headers;
+    print "modbus_read_file_record_response", c$id, headers, byte_count, refs;
 }
 
-event modbus_write_file_record_request(c: connection, headers: ModbusHeaders)
+event modbus_write_file_record_request(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileReferences)
 {
-    print "modbus_write_file_record_request", c$id, headers;
+    print "modbus_write_file_record_request", c$id, headers, byte_count, refs;
 }
 
-event modbus_write_file_record_response(c: connection, headers: ModbusHeaders)
+event modbus_write_file_record_response(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileReferences)
 {
-    print "modbus_write_file_record_response", c$id, headers;
+    print "modbus_write_file_record_response", c$id, headers, byte_count, refs;
 }
 
 event modbus_mask_write_register_request(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count)

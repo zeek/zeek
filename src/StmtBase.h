@@ -165,7 +165,7 @@ public:
 	// into a StmtPtr.
 	virtual StmtPtr SetSucc(Stmt* succ)
 		{
-		succ->SetOriginal({NewRef{}, this});
+		succ->SetOriginal(ThisPtr());
 		return {AdoptRef{}, succ};
 		}
 

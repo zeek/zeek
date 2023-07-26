@@ -1581,7 +1581,7 @@ macro WhenCall(func)
 		throw ZAMDelayedCallException();
 	auto& lhs = frame[z.v1];
 	auto trigger = f->GetTrigger();
-	Val* v = trigger ? trigger->Lookup(z.call_expr) : nullptr;
+	Val* v = trigger ? trigger->Lookup(z.call_expr.get()) : nullptr;
 	ValPtr vp;
 	if ( v )
 		vp = {NewRef{}, v};
@@ -1593,7 +1593,7 @@ macro WhenCall(func)
 		std::vector<ValPtr> args;
 		for ( auto i = 0; i < n; ++i )
 			args.push_back(aux->ToVal(frame, i));
-		f->SetCall(z.call_expr);
+		f->SetCall(z.call_expr.get());
 		/* It's possible that this function will call another that
 		 * itself returns null because *it* is the actual blocker.
 		 * That will set ZAM_error, which we need to ignore.

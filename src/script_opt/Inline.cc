@@ -218,6 +218,8 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 		return nullptr; // signals "stop inlining"
 		}
 
+	did_inline.insert(func_vf);
+
 	num_stmts += oi->num_stmts;
 	num_exprs += oi->num_exprs;
 
@@ -265,9 +267,9 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	else
 		max_inlined_frame_size = hold_max_inlined_frame_size;
 
-	ListExprPtr args = {NewRef{}, c->Args()};
 	auto t = c->GetType();
-	auto ie = make_intrusive<InlineExpr>(args, std::move(params), body_dup, curr_frame_size, t);
+	auto ie = make_intrusive<InlineExpr>(c->ArgsPtr(), std::move(params), body_dup, curr_frame_size,
+	                                     t);
 	ie->SetOriginal(c);
 
 	return ie;

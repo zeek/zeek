@@ -130,7 +130,7 @@ public:
 
 	// Interpreter call expression associated with this instruction,
 	// for error reporting and stack backtraces.
-	const CallExpr* call_expr = nullptr;
+	CallExprPtr call_expr = nullptr;
 
 	// Whether v1 represents a frame slot type for which we
 	// explicitly manage the memory.
@@ -306,7 +306,7 @@ public:
 	int num_labels = 0;
 
 	// Used for debugging.  Transformed into the ZInst "loc" field.
-	const Stmt* stmt = curr_stmt;
+	StmtPtr stmt = curr_stmt;
 
 private:
 	// Initialize 'c' from the given ConstExpr.

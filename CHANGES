@@ -1,3 +1,15 @@
+6.1.0-dev.243 | 2023-07-26 14:46:06 -0700
+
+  * increase BTest wait time to abide ZAM compilation times (Vern Paxson, Corelight)
+
+  * avoid script coverage overhead (especially memory) when using ZAM (Vern Paxson, Corelight)
+
+  * fixes for correctly tracking which functions have been fully inlined (Vern Paxson, Corelight)
+
+  * support for discarding ASTs once compiled via ZAM script optimization (Vern Paxson, Corelight)
+
+  * some code simplifications and streamlining (Vern Paxson, Corelight)
+
 6.1.0-dev.236 | 2023-07-25 10:23:47 -0700
 
   * fix for installing identifiers for lambdas into the global scope (Vern Paxson, Corelight)

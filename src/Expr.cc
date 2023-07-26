@@ -254,7 +254,7 @@ ExprPtr Expr::MakeLvalue()
 	if ( ! IsError() )
 		ExprError("can't be assigned to");
 
-	return {NewRef{}, this};
+	return ThisPtr();
 	}
 
 bool Expr::InvertSense()
@@ -539,7 +539,7 @@ ExprPtr NameExpr::MakeLvalue()
 	if ( id->IsOption() && ! in_const_init )
 		ExprError("option is not a modifiable lvalue");
 
-	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
+	return make_intrusive<RefExpr>(ThisPtr());
 	}
 
 void NameExpr::Assign(Frame* f, ValPtr v)
@@ -2492,7 +2492,7 @@ RefExpr::RefExpr(ExprPtr arg_op) : UnaryExpr(EXPR_REF, std::move(arg_op))
 
 ExprPtr RefExpr::MakeLvalue()
 	{
-	return {NewRef{}, this};
+	return ThisPtr();
 	}
 
 void RefExpr::Assign(Frame* f, ValPtr v)
@@ -2876,7 +2876,7 @@ ExprPtr IndexExpr::MakeLvalue()
 	if ( IsString(op1->GetType()->Tag()) )
 		ExprError("cannot assign to string index expression");
 
-	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
+	return make_intrusive<RefExpr>(ThisPtr());
 	}
 
 ValPtr IndexExpr::Eval(Frame* f) const
@@ -3113,7 +3113,7 @@ FieldExpr::~FieldExpr()
 
 ExprPtr FieldExpr::MakeLvalue()
 	{
-	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
+	return make_intrusive<RefExpr>(ThisPtr());
 	}
 
 bool FieldExpr::CanDel() const
@@ -5130,7 +5130,7 @@ ExprPtr ListExpr::MakeLvalue()
 		if ( expr->Tag() != EXPR_NAME )
 			ExprError("can only assign to list of identifiers");
 
-	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
+	return make_intrusive<RefExpr>(ThisPtr());
 	}
 
 void ListExpr::Assign(Frame* f, ValPtr v)

@@ -29,6 +29,14 @@ ZAMCompiler::ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> _pf, ScopeP
 	Init();
 	}
 
+ZAMCompiler::~ZAMCompiler()
+	{
+	curr_stmt = nullptr;
+
+	for ( auto i : insts1 )
+		delete i;
+	}
+
 void ZAMCompiler::Init()
 	{
 	InitGlobals();

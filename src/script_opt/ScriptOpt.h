@@ -196,6 +196,10 @@ extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 // suppressed by the flag) and optimization.
 extern void analyze_scripts(bool no_unused_warnings);
 
+// Called when all script processing is complete and we can discard
+// unused ASTs and associated state.
+extern void clear_script_analysis();
+
 // Called when Zeek is terminating.
 extern void finish_script_execution();
 

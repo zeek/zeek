@@ -1,3 +1,14 @@
+6.1.0-dev.248 | 2023-07-31 15:59:41 -0700
+
+  * Do not forward more than the remaining data to downstream UDP analyzer (Johanna Amann, Corelight)
+
+    This fixes a bug introduced in 2b9de839b0948c7de3eb5ed4a397194f96aae6b5
+    / GH-3080, which causes UDP padding to be sent to UDP based analyzers.
+
+    Fixes GH-3205.
+
+  * Force rebuild of windows CI image (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.243 | 2023-07-26 14:46:06 -0700
 
   * increase BTest wait time to abide ZAM compilation times (Vern Paxson, Corelight)

@@ -226,7 +226,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	ForwardPacket(std::min(len, remaining), data, pkt, ntohs(c->RespPort()));
 
 	// Forward any data through session-analysis, too.
-	adapter->ForwardPacket(remaining, data, is_orig, -1, ip.get(), pkt->cap_len);
+	adapter->ForwardPacket(std::min(len, remaining), data, is_orig, -1, ip.get(), pkt->cap_len);
 	}
 
 bool UDPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)

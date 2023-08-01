@@ -1909,7 +1909,7 @@ ExprPtr IndexExprWhen::Duplicate()
 
 ExprPtr FieldExpr::Duplicate()
 	{
-	return SetSucc(new FieldExpr(op->Duplicate(), util::copy_string(field_name)));
+	return SetSucc(new FieldExpr(op->Duplicate(), field_name));
 	}
 
 ExprPtr HasFieldExpr::Duplicate()

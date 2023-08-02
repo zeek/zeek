@@ -3,17 +3,8 @@ project(BifCl C CXX)
 
 include(cmake/CommonCMakeConfig.cmake)
 
-include(FindRequiredPackage)
-
-FindRequiredPackage(BISON)
-FindRequiredPackage(FLEX)
-
-if ( MISSING_PREREQS )
-  foreach (prereq ${MISSING_PREREQ_DESCS})
-    message(SEND_ERROR ${prereq})
-  endforeach ()
-  message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
-endif ()
+find_package(BISON REQUIRED)
+find_package(FLEX REQUIRED)
 
 if (MSVC)
   add_compile_options(/J) # Similar to -funsigned-char on other platforms

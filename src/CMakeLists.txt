@@ -256,7 +256,7 @@ cmake_policy(POP)
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
            ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
-    COMMAND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
+    COMMAND ${Python_EXECUTABLE} ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
             ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
             ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in

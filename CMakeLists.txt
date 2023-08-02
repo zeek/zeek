@@ -721,8 +721,6 @@ endif ()
 # ##############################################################################
 # Dependency Configuration
 
-include(FindRequiredPackage)
-
 # Check cache value first to avoid displaying "Found sed" messages everytime
 if (NOT SED_EXE)
     find_program(SED_EXE sed)
@@ -734,15 +732,16 @@ if (NOT SED_EXE)
 endif ()
 
 list(APPEND Python_ADDITIONAL_VERSIONS 3)
-FindRequiredPackage(PythonInterp)
-FindRequiredPackage(FLEX)
-FindRequiredPackage(BISON)
-FindRequiredPackage(PCAP)
-FindRequiredPackage(OpenSSL)
+set(ZEEK_PYTHON_MIN 3.5.0)
+find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
+find_package(FLEX REQUIRED)
+find_package(BISON 2.5 REQUIRED)
+find_package(PCAP REQUIRED)
+find_package(OpenSSL REQUIRED)
 if (NOT MSVC)
-    FindRequiredPackage(BIND)
+    find_package(BIND REQUIRED)
 endif ()
-FindRequiredPackage(ZLIB)
+find_package(ZLIB REQUIRED)
 
 if (NOT BINARY_PACKAGING_MODE)
     # TODO: Broker seems to always turn on static libraries. We don't want that for Spicy by default.
@@ -773,7 +772,7 @@ endif ()
 if (ZEEK_PYTHON_DIR)
     set(py_mod_install_dir ${ZEEK_PYTHON_DIR})
 elseif (ZEEK_PYTHON_PREFIX)
-    set(pyver ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
+    set(pyver ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR})
     set(py_mod_install_dir ${ZEEK_PYTHON_PREFIX}/lib/python${pyver}/site-packages)
 elseif (ZEEK_PYTHON_HOME)
     set(py_mod_install_dir ${ZEEK_PYTHON_HOME}/lib/python)
@@ -801,7 +800,8 @@ if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
     # TODO in ZeekPluginConfig.cmake.in.
     set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
 endif ()
-FindRequiredPackage(BinPAC)
+
+find_package(BinPAC REQUIRED)
 
 # Add an alias (used by our plugin setup).
 add_executable(Zeek::BinPAC ALIAS binpac)
@@ -839,25 +839,6 @@ if (ENABLE_JEMALLOC)
     if (NOT JEMALLOC_FOUND)
         message(FATAL_ERROR "Could not find requested JeMalloc")
     endif ()
-endif ()
-
-if (BISON_VERSION AND BISON_VERSION VERSION_LESS 2.5)
-    set(MISSING_PREREQS true)
-    list(APPEND MISSING_PREREQ_DESCS
-         " Could not find prerequisite package Bison >= 2.5, found: ${BISON_VERSION}")
-endif ()
-
-if (MISSING_PREREQS)
-    foreach (prereq ${MISSING_PREREQ_DESCS})
-        message(SEND_ERROR ${prereq})
-    endforeach ()
-    message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
-endif ()
-
-set(ZEEK_PYTHON_MIN 3.5.0)
-
-if (PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN})
-    message(FATAL_ERROR "Python ${ZEEK_PYTHON_MIN} or greater is required.")
 endif ()
 
 add_subdirectory(auxil/paraglob)

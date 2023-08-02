@@ -1,3 +1,22 @@
+6.1.0-dev.254 | 2023-08-02 09:23:18 +0200
+
+  * GH-3122: UsageAnalyzer: Collect identifiers found in attributes as seeds (Arne Welzel, Corelight)
+
+    This marks every identifier used within an attribute as seeds. The scenario
+    this avoids is functions referenced through attributes on unused tables or
+    record types (&default, &expire_func, ...) being dinged as unused as
+    that's rather confusing.
+
+    Also adds test for the above and a light smoke test into language/ as it
+    doesn't appear we had coverage here.
+
+  * Force refresh of all CI docker images (Tim Wojtulewicz, Corelight)
+
+    There's something going on with the image cache on Cirrus where the images
+    are sometimes vanishing from the cache, thus causing builds to fail
+    because it can't load them. This forces a rebuild of all of the images,
+    thus refreshing the cached version of all of them.
+
 6.1.0-dev.250 | 2023-08-01 09:58:04 -0700
 
   * Fix memory leak in script_opt's Expr code (Tim Wojtulewicz, Corelight)

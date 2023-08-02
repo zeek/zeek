@@ -98,8 +98,60 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 		}
 	}
 
+// Find all identifiers in attributes for seeding.
+//
+// General motivation: Dinging functions referenced from &default or &expire_func
+// on tables or &default on record types is confusing when really the containing
+// table/type is unused. Any IDs references from attributes are therefore
+// implicitly used as seeds.
+class AttrExprIdsCollector : public TraversalCallback
+	{
+public:
+	TraversalCode PreAttr(const Attr* attr) override
+		{
+		++attr_depth;
+		return TC_CONTINUE;
+		}
+
+	TraversalCode PostAttr(const Attr* attr) override
+		{
+		--attr_depth;
+		return TC_CONTINUE;
+		}
+
+	TraversalCode PreType(const Type* t) override
+		{
+		if ( analyzed_types.count(t) > 0 )
+			return TC_ABORTSTMT;
+
+		analyzed_types.insert(t);
+		return TC_CONTINUE;
+		}
+
+	TraversalCode PreID(const ID* id) override
+		{
+		if ( ids.count(id) > 0 )
+			return TC_ABORTSTMT;
+
+		if ( attr_depth > 0 )
+			ids.insert(id);
+
+		id->GetType()->Traverse(this);
+
+		if ( auto& attrs = id->GetAttrs() )
+			attrs->Traverse(this);
+
+		return TC_CONTINUE;
+		}
+
+	int attr_depth = 0; // Are we in an attribute?
+	std::set<const detail::ID*> ids; // List of IDs found in attributes.
+	std::set<const Type*> analyzed_types; // Endless recursion avoidance.
+	};
+
 void UsageAnalyzer::FindSeeds(IDSet& seeds) const
 	{
+	AttrExprIdsCollector attr_ids_collector;
 	for ( auto& gpair : global_scope()->Vars() )
 		{
 		auto& id = gpair.second;
@@ -125,7 +177,13 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const
 		// use it.
 		if ( id->IsExport() || id->ModuleName() == "GLOBAL" )
 			seeds.insert(id.get());
+		else
+			// ...otherwise, find all IDs referenced from attribute expressions
+			// found through this identifier.
+			id->Traverse(&attr_ids_collector);
 		}
+
+	seeds.insert(attr_ids_collector.ids.begin(), attr_ids_collector.ids.end());
 	}
 
 const Func* UsageAnalyzer::GetFuncIfAny(const ID* id) const

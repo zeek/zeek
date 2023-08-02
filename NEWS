@@ -11,6 +11,12 @@ Breaking Changes
 
 - ``assert`` is now a reserved keyword for the new ``assert`` statement.
 
+- The ``__bro_plugin__`` file that gets generated as part of plugin builds was
+  renamed to ``__zeek_plugin__``. This will affect the ability for older
+  versions of ``zkg`` to use the ``zkg unload`` and ``zkg load`` commands. This
+  should only cause breakage for people using a version of ``zkg` that doesn't
+  come bundled with Zeek (which we generally don't recommend doing).
+
 New Functionality
 -----------------
 

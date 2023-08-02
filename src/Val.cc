@@ -2137,10 +2137,7 @@ bool TableVal::IsSubsetOf(const TableVal& tv) const
 
 ValPtr TableVal::Default(const ValPtr& index)
 	{
-	auto def_attr = GetAttr(detail::ATTR_DEFAULT);
-
-	if ( ! def_attr )
-		def_attr = GetAttr(detail::ATTR_DEFAULT_INSERT);
+	const auto& def_attr = DefaultAttr();
 
 	if ( ! def_attr )
 		return nullptr;
@@ -2221,6 +2218,14 @@ ValPtr TableVal::Default(const ValPtr& index)
 		}
 
 	return result;
+	}
+
+const detail::AttrPtr& TableVal::DefaultAttr() const
+	{
+	if ( const auto& def_attr = GetAttr(detail::ATTR_DEFAULT); def_attr )
+		return def_attr;
+
+	return GetAttr(detail::ATTR_DEFAULT_INSERT);
 	}
 
 const ValPtr& TableVal::Find(const ValPtr& index)
@@ -2777,9 +2782,7 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 	if ( def_val )
 		return;
 
-	auto def_attr = GetAttr(detail::ATTR_DEFAULT);
-	if ( ! def_attr )
-		def_attr = GetAttr(detail::ATTR_DEFAULT_INSERT);
+	const auto& def_attr = DefaultAttr();
 
 	if ( ! def_attr )
 		return;

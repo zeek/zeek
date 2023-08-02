@@ -1044,6 +1044,9 @@ protected:
 	// Calculates default value for index.  Returns nullptr if none.
 	ValPtr Default(const ValPtr& index);
 
+	// Pointer to either &default or &default_insert or else nil.
+	const detail::AttrPtr& DefaultAttr() const;
+
 	// Returns true if item expiration is enabled.
 	bool ExpirationEnabled() { return expire_time != nullptr; }
 

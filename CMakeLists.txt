@@ -531,7 +531,7 @@ file(
     "setenv ZEEK_SPICY_LIBRARY_PATH \"${cmake_source_dir}/scripts/spicy\"\n"
     "setenv SPICY_BUILD_DIRECTORY \"${cmake_binary_dir}/auxil/spicy\"\n")
 
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" ZEEK_VERSION_FULL LIMIT_COUNT 1)
 execute_process(
     COMMAND grep "^constexpr int PLUGIN_API_VERSION"
     INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h
@@ -541,7 +541,7 @@ execute_process(
 string(REGEX MATCH "^constexpr int PLUGIN_API_VERSION = ([0-9]+);" API_VERSION "${API_VERSION}")
 set(API_VERSION "${CMAKE_MATCH_1}")
 
-string(REGEX REPLACE "[.-]" " " version_numbers ${VERSION})
+string(REGEX REPLACE "[.-]" " " version_numbers ${ZEEK_VERSION_FULL})
 separate_arguments(version_numbers)
 list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
@@ -550,7 +550,7 @@ set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 math(EXPR ZEEK_VERSION_NUMBER
      "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH}")
 
-set(VERSION_C_IDENT "${VERSION}_plugin_${API_VERSION}")
+set(VERSION_C_IDENT "${ZEEK_VERSION_FULL}_plugin_${API_VERSION}")
 string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
 string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
 
@@ -1288,7 +1288,7 @@ endif ()
 # has already configured packaging
 if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
     include(ConfigurePackaging)
-    ConfigurePackaging(${VERSION})
+    ConfigurePackaging(${ZEEK_VERSION_FULL})
 endif ()
 
 # Refers back to the "distribution prefix". This is the source tree when

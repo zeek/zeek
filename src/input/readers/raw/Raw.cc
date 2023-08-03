@@ -3,6 +3,9 @@
 #include "zeek/input/readers/raw/Raw.h"
 
 #include <fcntl.h>
+#ifndef _MSC_VER
+#include <spawn.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -11,6 +14,8 @@
 #include <csignal>
 #include <cstdio>
 #include <cstdlib>
+
+extern char** environ;
 
 #include "zeek/input/readers/raw/Plugin.h"
 #include "zeek/input/readers/raw/raw.bif.h"
@@ -120,6 +125,10 @@ std::unique_lock<std::mutex> Raw::AcquireForkMutex()
 
 bool Raw::Execute()
 	{
+#ifdef _MSC_VER
+	// Executing applications is currently not supported on Windows
+	return false;
+#else
 	// AFAICT, pipe/fork/exec should be thread-safe, but actually having
 	// multiple threads set up pipes and fork concurrently sometimes
 	// results in problems w/ a stdin pipe not ever getting an EOF even
@@ -136,141 +145,119 @@ bool Raw::Execute()
 		return false;
 		}
 
-	childpid = fork();
-	if ( childpid < 0 )
+	posix_spawnattr_t attrs;
+	posix_spawnattr_init(&attrs);
+
+	short spawn_flags = 0;
+	// equivalent to setpgid(0,0) in the child
+	spawn_flags |= POSIX_SPAWN_SETPGROUP;
+
+	posix_spawn_file_actions_t actions;
+	posix_spawn_file_actions_init(&actions);
+	posix_spawn_file_actions_addclose(&actions, pipes[stdout_in]);
+	posix_spawn_file_actions_adddup2(&actions, pipes[stdout_out], stdout_fileno);
+	posix_spawn_file_actions_addclose(&actions, pipes[stdout_out]);
+	posix_spawn_file_actions_addclose(&actions, pipes[stdin_out]);
+	posix_spawn_file_actions_adddup2(&actions, pipes[stdin_in], stdin_fileno);
+	posix_spawn_file_actions_addclose(&actions, pipes[stdin_in]);
+	posix_spawn_file_actions_addclose(&actions, pipes[stderr_in]);
+	posix_spawn_file_actions_adddup2(&actions, pipes[stderr_out], stderr_fileno);
+	posix_spawn_file_actions_addclose(&actions, pipes[stderr_out]);
+
+	posix_spawnattr_setflags(&attrs, spawn_flags);
+
+	// Signal mask is inherited, so reset any ignored
+	// signals to default behavior and unblock any blocked signals.
+	// The old code in the child process calls SIG_UNBLOCK on a full mask,
+	// and set SIGPIPE to the default signal, ignoring anything else. New
+	// code replicates this behavior.
+	sigset_t mask;
+	sigemptyset(&mask);
+	spawn_flags |= POSIX_SPAWN_SETSIGMASK;
+	posix_spawnattr_setsigmask(&attrs, &mask);
+
+	spawn_flags |= POSIX_SPAWN_SETSIGDEF;
+	sigset_t sigdefault;
+	sigemptyset(&sigdefault);
+	sigaddset(&sigdefault, SIGPIPE);
+	posix_spawnattr_setsigdefault(&attrs, &sigdefault);
+
+	const char* spawn_argv[] = {"sh", "-c", fname.c_str(), nullptr};
+	auto posix_spawn_res = posix_spawn(&childpid, "/bin/sh", &actions, &attrs,
+	                                   const_cast<char**>(spawn_argv), environ);
+
+	posix_spawnattr_destroy(&attrs);
+	posix_spawn_file_actions_destroy(&actions);
+
+	if ( posix_spawn_res != 0 )
 		{
-		Error(Fmt("Could not create child process: %d", errno));
+		Error(Fmt("Could not spawn child process: %d", errno));
 		return false;
 		}
 
-	else if ( childpid == 0 )
+	lock.unlock();
+
+	ClosePipeEnd(stdout_out);
+
+	if ( Info().mode == MODE_STREAM )
 		{
-		// we are the child.
+		if ( ! SetFDFlags(pipes[stdout_in], F_SETFL, O_NONBLOCK) )
+			return false;
+		}
 
-		// Obtain a process group w/ child's PID.
-		if ( setpgid(0, 0) == -1 )
-			_exit(251);
+	ClosePipeEnd(stdin_in);
 
-		close(pipes[stdout_in]);
-		if ( dup2(pipes[stdout_out], stdout_fileno) == -1 )
-			_exit(252);
-
-		close(pipes[stdout_out]);
-
-		close(pipes[stdin_out]);
-		if ( stdin_towrite && dup2(pipes[stdin_in], stdin_fileno) == -1 )
-			_exit(253);
-
-		close(pipes[stdin_in]);
-
-		close(pipes[stderr_in]);
-		if ( use_stderr && dup2(pipes[stderr_out], stderr_fileno) == -1 )
-			_exit(254);
-
-		close(pipes[stderr_out]);
-
-		// Signal mask is inherited over fork-exec, so reset any ignored
-		// signals to default behavior and unblock any blocked signals.
-		setsignal(SIGPIPE, SIG_DFL); // May be ignored when debugging scripts.
-		sigset_t mask;
-		sigfillset(&mask);
-		// Assuming the fork-one model of pthreads' fork(), using sigprocmask()
-		// makes sense over pthread_sigmask() here.
-		sigprocmask(SIG_UNBLOCK, &mask, 0);
-
-		execl("/bin/sh", "sh", "-c", fname.c_str(), (char*)NULL);
-		fprintf(stderr, "Exec failed :(......\n");
-		_exit(255);
+	if ( stdin_towrite )
+		{
+		// Ya, just always set this to nonblocking. We do not
+		// want to block on a program receiving data. Note
+		// that there is a small gotcha with it. More data is
+		// queued when more data is read from the program
+		// output. Hence, when having a program in
+		// mode_manual where the first write cannot write
+		// everything, the rest will be stuck in a queue that
+		// is never emptied.
+		if ( ! SetFDFlags(pipes[stdin_out], F_SETFL, O_NONBLOCK) )
+			return false;
 		}
 	else
+		ClosePipeEnd(stdin_out);
+
+	ClosePipeEnd(stderr_out);
+
+	if ( use_stderr )
 		{
-		// we are the parent
+		if ( ! SetFDFlags(pipes[stderr_in], F_SETFL, O_NONBLOCK) )
+			return false;
+		}
+	else
+		ClosePipeEnd(stderr_in);
 
-		// Parent also sets child process group immediately to avoid a race.
-		if ( setpgid(childpid, childpid) == -1 )
+	file = std::unique_ptr<FILE, int (*)(FILE*)>(fdopen(pipes[stdout_in], "r"), fclose);
+
+	if ( ! file )
+		{
+		Error("Could not convert stdout_in fileno to file");
+		return false;
+		}
+
+	pipes[stdout_in] = -1; // will be closed by fclose
+
+	if ( use_stderr )
+		{
+		stderrfile = std::unique_ptr<FILE, int (*)(FILE*)>(fdopen(pipes[stderr_in], "r"), fclose);
+
+		if ( ! stderrfile )
 			{
-			if ( errno == EACCES )
-				// Child already did exec. That's fine since then it must have
-				// already done the setpgid() itself.
-				;
-
-			else if ( errno == ESRCH && kill(childpid, 0) == 0 )
-				// Sometimes (e.g. FreeBSD) this error is reported even though
-				// child exists, so do extra sanity check of whether it exists.
-				;
-
-			else
-				{
-				char buf[256];
-				util::zeek_strerror_r(errno, buf, sizeof(buf));
-				Warning(Fmt("Could not set child process group: %s", buf));
-				}
-			}
-
-		lock.unlock();
-
-		ClosePipeEnd(stdout_out);
-
-		if ( Info().mode == MODE_STREAM )
-			{
-			if ( ! SetFDFlags(pipes[stdout_in], F_SETFL, O_NONBLOCK) )
-				return false;
-			}
-
-		ClosePipeEnd(stdin_in);
-
-		if ( stdin_towrite )
-			{
-			// Ya, just always set this to nonblocking. we do not
-			// want to block on a program receiving data. Note
-			// that there is a small gotcha with it. More data is
-			// queued when more data is read from the program
-			// output. Hence, when having a program in
-			// mode_manual where the first write cannot write
-			// everything, the rest will be stuck in a queue that
-			// is never emptied.
-			if ( ! SetFDFlags(pipes[stdin_out], F_SETFL, O_NONBLOCK) )
-				return false;
-			}
-		else
-			ClosePipeEnd(stdin_out);
-
-		ClosePipeEnd(stderr_out);
-
-		if ( use_stderr )
-			{
-			if ( ! SetFDFlags(pipes[stderr_in], F_SETFL, O_NONBLOCK) )
-				return false;
-			}
-		else
-			ClosePipeEnd(stderr_in);
-
-		file = std::unique_ptr<FILE, int (*)(FILE*)>(fdopen(pipes[stdout_in], "r"), fclose);
-
-		if ( ! file )
-			{
-			Error("Could not convert stdout_in fileno to file");
+			Error("Could not convert stderr_in fileno to file");
 			return false;
 			}
 
-		pipes[stdout_in] = -1; // will be closed by fclose
-
-		if ( use_stderr )
-			{
-			stderrfile = std::unique_ptr<FILE, int (*)(FILE*)>(fdopen(pipes[stderr_in], "r"),
-			                                                   fclose);
-
-			if ( ! stderrfile )
-				{
-				Error("Could not convert stderr_in fileno to file");
-				return false;
-				}
-
-			pipes[stderr_in] = -1; // will be closed by fclose
-			}
-
-		return true;
+		pipes[stderr_in] = -1; // will be closed by fclose
 		}
+
+	return true;
+#endif
 	}
 
 bool Raw::OpenInput()

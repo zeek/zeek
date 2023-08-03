@@ -1,3 +1,71 @@
+6.0.0-7 | 2023-08-08 13:22:35 -0700
+
+  * Do not forward padding to downstream TCP packet analyzer (Johanna Amann, Corelight)
+
+    (cherry picked from commit 81ce83590dc15bb51b5c3819898b5e77c16a255c)
+
+  * Do not forward more than the remaining data to downstream UDP analyzer (Johanna Amann, Corelight)
+
+    This fixes a bug introduced in 2b9de839b0948c7de3eb5ed4a397194f96aae6b5
+    / GH-3080, which causes UDP padding to be sent to UDP based analyzers.
+
+    (cherry picked from commit 3c7a52d0a76cf03dddd1177b86c21806f1c3dcbd)
+
+  * Prefer Spicy include directories of this build over accidental ones. (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit c718f7f632d601922dde1e70ae4766d278bf3e86)
+
+  * dce-rpc: Test cases for unbounded state growth (Arne Welzel, Corelight)
+
+    Pcaps produced as shown in #3145 using a samba container and rpcclient.
+
+    (cherry picked from commit f9904511abe9b16e7657ec317477ec200944a01b)
+
+  * dce-rpc: Handle smb2_close_request() in scripts (Arne Welzel, Corelight)
+
+    If there's a request to close a fid and it's in the dce_rpc_backing
+    table, remove it from there.
+
+    (cherry picked from commit f9904511abe9b16e7657ec317477ec200944a01b)
+
+  * smb/dce-rpc: Cleanup DCE-RPC analyzers when fid is closed and limit them (Arne Welzel, Corelight)
+
+    This patch does two things:
+
+    1) For SMB close requests, tear down any associated DCE-RPC
+       analyzer if one exists.
+
+    2) Protect from fid_to_analyzer_map growing unbounded by introducing a
+       new SMB::max_dce_rpc_analyzers limit and forcefully wipe the
+       analyzers if exceeded. Propagate this to script land as event
+       smb_discarded_dce_rpc_analyzers() for additional cleanup.
+
+    This is mostly to fix how the binpac SMB analyzer tracks individual
+    DCE-RPC analyzers per open fid. Connections that re-open the same or
+    different pipe may currently allocate unbounded number of analyzers.
+
+    Closes #3145.
+
+    (cherry picked from commit f9904511abe9b16e7657ec317477ec200944a01b)
+
+  * dce-rpc: Do not repeatedly register removal hooks (Arne Welzel, Corelight)
+
+    ...once should be enough.
+
+    (cherry picked from commit f9904511abe9b16e7657ec317477ec200944a01b)
+
+  * Define early_shutdown lambda earlier in zeek-setup, avoids build failure with gperftools (Tim Wojtulewicz)
+
+    (cherry picked from commit 2da6f94ab657188213fc02b94a6fd303f021b60f)
+
+  * GH-3157: [Spicy] Support `switch` fields when exporting Spicy types to Zeek. (Robin Sommer, Corelight)
+
+    (cherry picked from commit cd2c193cb22e5e7166e47702dece8f49533de285)
+
+  * fix http AUTHORIZATION base64 decode failed (progmboy)
+
+    (cherry picked from commit b18122da08d37ab48a70c9dbb09d8b9403ebd19e)
+
 6.0.0 | 2023-07-05 10:17:38 -0700
 
   * Update btest, package-manager, and zeek-client submodules [nomail] [skip ci] (Christian Kreibich, Corelight)

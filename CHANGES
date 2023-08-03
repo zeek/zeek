@@ -1,3 +1,12 @@
+6.1.0-dev.258 | 2023-08-03 07:18:21 +0100
+
+  * Do not forward padding to downstream TCP packet analyzer (Johanna Amann, Corelight)
+
+    This is similar to GH-3206. There do not seem to be practical
+    consequences - but we should still fix it.
+
+    This also includes the udp-testcase that was forgotten in GH-3206.
+
 6.1.0-dev.256 | 2023-08-02 10:11:22 -0700
 
   * Rename magic __bro_plugin__ file to __zeek_plugin__ (Tim Wojtulewicz, Corelight)

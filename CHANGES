@@ -1,3 +1,39 @@
+6.1.0-dev.261 | 2023-08-04 12:31:51 +0200
+
+  * TableVal: Unify &default and &default_insert lookups (Arne Welzel, Corelight)
+
+    Introduce DefaultAttr() helper to avoid a bit of duplicated code.
+
+  * GH-2668: Add &default_insert attribute for tables (Arne Welzel, Corelight)
+
+    This is based on the discussion in zeek/zeek#2668. Using &default with tables
+    can be confusing as the default value is not inserted. The following example
+    prints an empty table at the end even new Service records was instantiated.
+
+        type Service: record {
+            occurrences: count &default=0;
+            last_seen: time &default=network_time();
+        };
+
+        global services: table[string] of Service &default=Service();
+
+        event zeek_init()
+            {
+            services["http"]$occurrences += 1;
+            services["http"]$last_seen = network_time();
+
+            print services;
+            }
+
+    Changing above &default to &default_insert will insert the newly created
+    default value upon a missed lookup and act less surprising.
+
+    Other examples that caused confusion previously revolved around table of sets
+     or table of vectors and `add` or `+=` not working as expected.
+
+        tbl_of_vector["http"] += 1
+        add tbl_of_set["http"][1];
+
 6.1.0-dev.258 | 2023-08-03 07:18:21 +0100
 
   * Do not forward padding to downstream TCP packet analyzer (Johanna Amann, Corelight)

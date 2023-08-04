@@ -2137,7 +2137,7 @@ bool TableVal::IsSubsetOf(const TableVal& tv) const
 
 ValPtr TableVal::Default(const ValPtr& index)
 	{
-	const auto& def_attr = GetAttr(detail::ATTR_DEFAULT);
+	const auto& def_attr = DefaultAttr();
 
 	if ( ! def_attr )
 		return nullptr;
@@ -2220,6 +2220,14 @@ ValPtr TableVal::Default(const ValPtr& index)
 	return result;
 	}
 
+const detail::AttrPtr& TableVal::DefaultAttr() const
+	{
+	if ( const auto& def_attr = GetAttr(detail::ATTR_DEFAULT); def_attr )
+		return def_attr;
+
+	return GetAttr(detail::ATTR_DEFAULT_INSERT);
+	}
+
 const ValPtr& TableVal::Find(const ValPtr& index)
 	{
 	if ( subnets )
@@ -2268,7 +2276,13 @@ ValPtr TableVal::FindOrDefault(const ValPtr& index)
 	if ( auto rval = Find(index) )
 		return rval;
 
-	return Default(index);
+	// If the default came from a &default_insert attribute,
+	// insert the value upon a missed lookup.
+	auto def = Default(index);
+	if ( def && GetAttr(detail::ATTR_DEFAULT_INSERT) )
+		Assign(index, def);
+
+	return def;
 	}
 
 bool TableVal::Contains(const IPAddr& addr) const
@@ -2768,7 +2782,7 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 	if ( def_val )
 		return;
 
-	const auto& def_attr = GetAttr(detail::ATTR_DEFAULT);
+	const auto& def_attr = DefaultAttr();
 
 	if ( ! def_attr )
 		return;

@@ -30,6 +30,7 @@ enum AttrTag
 	{
 	ATTR_OPTIONAL,
 	ATTR_DEFAULT,
+	ATTR_DEFAULT_INSERT, // insert default value on failed lookups
 	ATTR_REDEF,
 	ATTR_ADD_FUNC,
 	ATTR_DEL_FUNC,

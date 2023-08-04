@@ -5364,7 +5364,17 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 			if ( e->Tag() == EXPR_TABLE_CONSTRUCTOR )
 				{
 				auto& attrs = cast_intrusive<TableConstructorExpr>(e)->GetAttrs();
-				auto& def = attrs ? attrs->Find(ATTR_DEFAULT) : nullptr;
+				zeek::detail::AttrPtr def = Attr::nil;
+
+				// Check for &default or &default_insert expressions
+				// and use it for type checking against t.
+				if ( attrs )
+					{
+					def = attrs->Find(ATTR_DEFAULT);
+					if ( ! def )
+						def = attrs->Find(ATTR_DEFAULT_INSERT);
+					}
+
 				if ( def )
 					{
 					std::string err_msg;

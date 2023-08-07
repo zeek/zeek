@@ -17,6 +17,7 @@ race:std::ctype<char>::narrow
 race:broker::internal::connector::run_impl
 race:caf::net::multiplexer::set_thread_id
 race:caf::action::run
+mutex:caf::detail::ringbuffer<std::unique_ptr<caf::detail::thread_safe_actor_clock::schedule_entry, std::default_delete<caf::detail::thread_safe_actor_clock::schedule_entry> >, 64ul>::push_back
 
 # This one causes supervisor.config-bare-mode to fail occasionally but not always
 signal:caf::actor_control_block::enqueue
@@ -32,3 +33,12 @@ race:sqlite3_initialize
 # This one isn't actually in sqlite code, but some StringVal object gets ref'd by
 # zeek::id::find_const and throws a data race.
 race:zeek::logging::writer::detail::SQLite::DoInit
+
+# These findings were suppressed after the CI build was upgraded to Ubuntu 22.04.
+# They weren't reported by prior compiler versions.
+race:zeek::threading::MsgThread::RetrieveIn
+race:zeek::threading::MsgThread::Run
+race:zeek::threading::InputMessage<zeek::threading::MsgThread>::Object
+mutex:zeek::threading::Queue<zeek::threading::BasicInputMessage*>::Put
+mutex:zeek::threading::Queue<zeek::threading::BasicInputMessage*>::LocksForAllQueues
+deadlock:zeek::threading::Queue<zeek::threading::BasicInputMessage*>::LocksForAllQueues

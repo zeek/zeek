@@ -1,3 +1,13 @@
+6.1.0-dev.277 | 2023-08-07 14:34:32 -0700
+
+  * Pass parsed file record information with ReadFile/WriteFile events (Tim Wojtulewicz, Corelight)
+
+  * Add length field from header to ModbusHeaders record type (Tim Wojtulewicz, Corelight)
+
+  * Modbus: Add support for Encapsulation Interface Transport (FC=2B) requests and responses (Tim Wojtulewicz, Corelight)
+
+  * Modbus: Add support for Diagnostics (FC=8) requests and responses (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.272 | 2023-08-07 09:41:34 -0700
 
   * Change VERSION variable in CMake config to ZEEK_VERSION_FULL (Tim Wojtulewicz, Corelight)

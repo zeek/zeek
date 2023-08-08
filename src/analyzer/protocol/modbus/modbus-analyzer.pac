@@ -34,6 +34,7 @@
 		modbus_header->Assign(1, header->pid());
 		modbus_header->Assign(2, header->uid());
 		modbus_header->Assign(3, header->fc());
+		modbus_header->Assign(4, header->len());
 		return modbus_header;
 		}
 
@@ -355,6 +356,93 @@ refine flow ModbusTCP_Flow += {
 		%}
 
 
+	# REQUEST FC=8
+	function deliver_DiagnosticsRequest(header: ModbusTCP_TransportHeader, message: DiagnosticsRequest): bool
+		%{
+		if ( ::modbus_diagnostics_request )
+			{
+			auto data = to_stringval(${message.data});
+
+			// Data should always be a multiple of two bytes. For everything except
+			// "Return Query Data (0x00)" it should be two bytes long.
+			if ( data->Len() < 2 || data->Len() % 2 != 0 ||
+			     (${message.subfunction} != DIAGNOSTICS_RETURN_QUERY_DATA && data->Len() != 2) )
+				{
+				zeek::reporter->Weird("modbus_diag_invalid_request_data",
+				                      zeek::util::fmt("%s", data->CheckString()));
+				}
+
+			switch (${message.subfunction})
+				{
+				case DIAGNOSTICS_RESTART_COMMUNICATIONS_OPTION:
+					// For "Restart Communications Option" it's either 0x0000 or 0xFF00.
+					if ( ( data->Bytes()[0] != 0x00 && data->Bytes()[0] != 0xFF ) ||
+					     data->Bytes()[1] != 0x00 )
+						{
+						zeek::reporter->Weird("modbus_diag_invalid_request_data",
+						                      zeek::util::fmt("%s", data->CheckString()));
+						}
+					break;
+				case DIAGNOSTICS_RETURN_DIAGNOSTIC_REGISTER:
+				case DIAGNOSTICS_FORCE_LISTEN_ONLY_MODE:
+				case DIAGNOSTICS_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER:
+				case DIAGNOSTICS_RETURN_BUS_MESSAGE_COUNT:
+				case DIAGNOSTICS_RETURN_BUS_COMMUNICATION_ERROR_COUNT:
+				case DIAGNOSTICS_RETURN_BUS_EXCEPTION_ERROR_COUNT:
+				case DIAGNOSTICS_RETURN_SERVER_MESSAGE_COUNT:
+				case DIAGNOSTICS_RETURN_SERVER_NO_RESPONSE_COUNT:
+				case DIAGNOSTICS_RETURN_SERVER_NAK_COUNT:
+				case DIAGNOSTICS_RETURN_SERVER_BUSY_COUNT:
+				case DIAGNOSTICS_RETURN_BUS_CHARACTER_OVERRUN_COUNT:
+				case DIAGNOSTICS_CLEAR_OVERRUN_COUNTER_AND_FLAG:
+					// For all of these subfunctions, the data should be 0x0000.
+					if ( data->Bytes()[0] != 0x00 || data->Bytes()[1] != 0x00 )
+						{
+						zeek::reporter->Weird("modbus_diag_invalid_request_data",
+						                      zeek::util::fmt("%s", data->CheckString()));
+						}
+					break;
+
+				case DIAGNOSTICS_CHANGE_ASCII_INPUT_DELIMITER:
+					// For "Change ASCII Input Delimiter", it should be an ascii character
+					// followed by a zero.
+					if ( ! isascii(data->Bytes()[0]) || data->Bytes()[1] != 0x00 )
+						{
+						zeek::reporter->Weird("modbus_diag_invalid_request_data",
+						                      zeek::util::fmt("%s", data->CheckString()));
+						}
+					break;
+
+				default:
+					zeek::reporter->Weird("modbus_diag_unknown_request_subfunction",
+					                      zeek::util::fmt("%d", ${message.subfunction}));
+					break;
+				}
+
+			zeek::BifEvent::enqueue_modbus_diagnostics_request(connection()->zeek_analyzer(),
+			                                                   connection()->zeek_analyzer()->Conn(),
+			                                                   HeaderToVal(header),
+			                                                   ${message.subfunction}, to_stringval(${message.data}));
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=8
+	function deliver_DiagnosticsResponse(header: ModbusTCP_TransportHeader, message: DiagnosticsResponse): bool
+		%{
+		if ( ::modbus_diagnostics_response )
+			{
+			zeek::BifEvent::enqueue_modbus_diagnostics_response(connection()->zeek_analyzer(),
+			                                                    connection()->zeek_analyzer()->Conn(),
+			                                                    HeaderToVal(header),
+			                                                    ${message.subfunction}, to_stringval(${message.data}));
+			}
+
+		return true;
+		%}
+
+
 	# REQUEST FC=15
 	function deliver_WriteMultipleCoilsRequest(header: ModbusTCP_TransportHeader, message: WriteMultipleCoilsRequest): bool
 		%{
@@ -433,23 +521,23 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_file_record_request )
 			{
-			//TODO: this need to be a vector of some Reference Request record type
-			//auto t = create_vector_of_count();
-			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
-			//	{
-			//	auto r = zeek::val_mgr->Count((${message.references[i].ref_type}));
-			//	t->Assign(i, r);
-			//
-			//	auto k = zeek::val_mgr->Count((${message.references[i].file_num}));
-			//	t->Assign(i, k);
-			//
-			//	auto l = zeek::val_mgr->Count((${message.references[i].record_num}));
-			//	t->Assign(i, l);
-			//	}
+			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileRecordRequests);
+
+			for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+				{
+				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusFileRecordRequest);
+
+				r->Assign(0, zeek::val_mgr->Count(${message.references[i].ref_type}));
+				r->Assign(1, zeek::val_mgr->Count(${message.references[i].file_num}));
+				r->Assign(2, zeek::val_mgr->Count(${message.references[i].record_num}));
+				r->Assign(3, zeek::val_mgr->Count(${message.references[i].record_len}));
+
+				vect->Append(r);
+				}
 
 			zeek::BifEvent::enqueue_modbus_read_file_record_request(connection()->zeek_analyzer(),
-			                                                  connection()->zeek_analyzer()->Conn(),
-			                                                  HeaderToVal(header));
+			                                                connection()->zeek_analyzer()->Conn(),
+			                                                HeaderToVal(header), ${message.byte_count}, vect);
 			}
 
 		return true;
@@ -460,17 +548,22 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_read_file_record_response )
 			{
-			//auto t = create_vector_of_count();
-			//for ( unsigned int i = 0; i < ${message.references}->size(); ++i )
-			//	{
-			//	//TODO: work the reference type in here somewhere
-			//	auto r = zeek::val_mgr->Count(${message.references[i].record_data}));
-			//	t->Assign(i, r);
-			//	}
+			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileRecordResponses);
+
+			for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+				{
+				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusFileRecordResponse);
+
+				r->Assign(0, zeek::val_mgr->Count(${message.references[i].file_len}));
+				r->Assign(1, zeek::val_mgr->Count(${message.references[i].ref_type}));
+				r->Assign(2, to_stringval(${message.references[i].record_data}));
+
+				vect->Append(r);
+				}
 
 			zeek::BifEvent::enqueue_modbus_read_file_record_response(connection()->zeek_analyzer(),
 			                                                   connection()->zeek_analyzer()->Conn(),
-			                                                   HeaderToVal(header));
+			                                                   HeaderToVal(header), ${message.byte_count}, vect);
 			}
 
 		return true;
@@ -481,60 +574,50 @@ refine flow ModbusTCP_Flow += {
 		%{
 		if ( ::modbus_write_file_record_request )
 			{
-			//auto t = create_vector_of_count();
-			//for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
-			//	{
-			//	auto r = zeek::val_mgr->Count((${message.references[i].ref_type}));
-			//	t->Assign(i, r);
-			//
-			//	auto k = zeek::val_mgr->Count((${message.references[i].file_num}));
-			//	t->Assign(i, k);
-			//
-			//	auto n = zeek::val_mgr->Count((${message.references[i].record_num}));
-			//	t->Assign(i, n);
-			//
-			//	for ( unsigned int j = 0; j < (${message.references[i].register_value}->size()); ++j )
-			//		{
-			//		k = zeek::val_mgr->Count((${message.references[i].register_value[j]}));
-			//		t->Assign(i, k);
-			//		}
-			//	}
+			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileReferences);
+
+			for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+				{
+				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusFileReference);
+				r->Assign(0, zeek::val_mgr->Count(${message.references[i].ref_type}));
+				r->Assign(1, zeek::val_mgr->Count(${message.references[i].file_num}));
+				r->Assign(2, zeek::val_mgr->Count(${message.references[i].record_num}));
+				r->Assign(3, zeek::val_mgr->Count(${message.references[i].record_length}));
+				r->Assign(4, to_stringval(${message.references[i].record_data}));
+
+				vect->Append(r);
+				}
 
 			zeek::BifEvent::enqueue_modbus_write_file_record_request(connection()->zeek_analyzer(),
 			                                                   connection()->zeek_analyzer()->Conn(),
-			                                                   HeaderToVal(header));
+			                                                   HeaderToVal(header), ${message.byte_count}, vect);
 			}
 
 		return true;
 		%}
-
 
 	# RESPONSE FC=21
 	function deliver_WriteFileRecordResponse(header: ModbusTCP_TransportHeader, message: WriteFileRecordResponse): bool
 		%{
 		if ( ::modbus_write_file_record_response )
 			{
-			//auto t = create_vector_of_count();
-			//for ( unsigned int i = 0; i < (${messages.references}->size()); ++i )
-			//	{
-			//	auto r = zeek::val_mgr->Count((${message.references[i].ref_type}));
-			//	t->Assign(i, r);
-			//
-			//	auto f = zeek::val_mgr->Count((${message.references[i].file_num}));
-			//	t->Assign(i, f);
-			//
-			//	auto rn = zeek::val_mgr->Count((${message.references[i].record_num}));
-			//	t->Assign(i, rn);
-			//
-			//	for ( unsigned int j = 0; j<(${message.references[i].register_value}->size()); ++j )
-			//		{
-			//		auto k = zeek::val_mgr->Count((${message.references[i].register_value[j]}));
-			//		t->Assign(i, k);
-			//		}
+			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileReferences);
+
+			for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+				{
+				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusFileReference);
+				r->Assign(0, zeek::val_mgr->Count(${message.references[i].ref_type}));
+				r->Assign(1, zeek::val_mgr->Count(${message.references[i].file_num}));
+				r->Assign(2, zeek::val_mgr->Count(${message.references[i].record_num}));
+				r->Assign(3, zeek::val_mgr->Count(${message.references[i].record_length}));
+				r->Assign(4, to_stringval(${message.references[i].record_data}));
+
+				vect->Append(r);
+				}
 
 			zeek::BifEvent::enqueue_modbus_write_file_record_response(connection()->zeek_analyzer(),
 			                                                    connection()->zeek_analyzer()->Conn(),
-			                                                    HeaderToVal(header));
+			                                                    HeaderToVal(header), ${message.byte_count}, vect);
 			}
 
 		return true;
@@ -674,4 +757,31 @@ refine flow ModbusTCP_Flow += {
 
 		return true;
 		%}
+
+	# REQUEST FC=2B
+	function deliver_EncapInterfaceTransportRequest(header: ModbusTCP_TransportHeader, message: EncapInterfaceTransportRequest): bool
+		%{
+		if ( ::modbus_encap_interface_transport_request )
+			{
+			zeek::BifEvent::enqueue_modbus_encap_interface_transport_request(
+			    connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
+			    HeaderToVal(header), ${message.mei_type}, to_stringval(${message.data}));
+			}
+
+		return true;
+		%}
+
+	# RESPONSE FC=2B
+	function deliver_EncapInterfaceTransportResponse(header: ModbusTCP_TransportHeader, message: EncapInterfaceTransportResponse): bool
+		%{
+		if ( ::modbus_encap_interface_transport_response )
+			{
+			zeek::BifEvent::enqueue_modbus_encap_interface_transport_response(
+			    connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
+			    HeaderToVal(header), ${message.mei_type}, to_stringval(${message.data}));
+			}
+
+		return true;
+		%}
+
 };

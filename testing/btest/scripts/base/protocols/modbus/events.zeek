@@ -1,15 +1,11 @@
 #
 # @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus.trace %INPUT | sort | uniq -c | sed 's/^ *//g' >output
-# @TEST-EXEC: mv conn.log conn-first.log
-# @TEST-EXEC: zeek -b -r $TRACES/modbus/modbus-eit.pcap %INPUT | sort | uniq -c | sed 's/^ *//g' >>output
-# @TEST-EXEC: mv conn.log conn-second.log
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: cat output | awk '{print $2}' | grep "^modbus_" | sort | uniq | wc -l >covered
 # @TEST-EXEC: cat ${DIST}/src/analyzer/protocol/modbus/events.bif  | grep "^event modbus_" | wc -l >total
 # @TEST-EXEC: echo `cat covered` of `cat total` events triggered by trace >coverage
 # @TEST-EXEC: btest-diff coverage
-# @TEST-EXEC: btest-diff conn-first.log
-# @TEST-EXEC: btest-diff conn-second.log
+# @TEST-EXEC: btest-diff conn.log
 
 @load base/protocols/modbus
 @load base/protocols/conn
@@ -106,24 +102,24 @@ event modbus_write_multiple_registers_response(c: connection, headers: ModbusHea
     print "modbus_write_multiple_registers_response", c$id, headers, start_address, quantity;
 }
 
-event modbus_read_file_record_request(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileRecordRequests)
+event modbus_read_file_record_request(c: connection, headers: ModbusHeaders)
 {
-    print "modbus_read_file_record_request", c$id, headers, byte_count, refs;
+    print "modbus_read_file_record_request", c$id, headers;
 }
 
-event modbus_read_file_record_response(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileRecordResponses)
+event modbus_read_file_record_response(c: connection, headers: ModbusHeaders)
 {
-    print "modbus_read_file_record_response", c$id, headers, byte_count, refs;
+    print "modbus_read_file_record_response", c$id, headers;
 }
 
-event modbus_write_file_record_request(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileReferences)
+event modbus_write_file_record_request(c: connection, headers: ModbusHeaders)
 {
-    print "modbus_write_file_record_request", c$id, headers, byte_count, refs;
+    print "modbus_write_file_record_request", c$id, headers;
 }
 
-event modbus_write_file_record_response(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileReferences)
+event modbus_write_file_record_response(c: connection, headers: ModbusHeaders)
 {
-    print "modbus_write_file_record_response", c$id, headers, byte_count, refs;
+    print "modbus_write_file_record_response", c$id, headers;
 }
 
 event modbus_mask_write_register_request(c: connection, headers: ModbusHeaders, address: count, and_mask: count, or_mask: count)
@@ -156,22 +152,3 @@ event modbus_read_fifo_queue_response(c: connection, headers: ModbusHeaders, fif
     print "modbus_read_fifo_queue_response", c$id, headers, fifos;
 }
 
-event modbus_diagnostics_request(c: connection, headers: ModbusHeaders, subfunction: count, data: string)
-{
-    print "modbus_diagnostics_request", c$id, headers, subfunction, data;
-}
-
-event modbus_diagnostics_response(c: connection, headers: ModbusHeaders, subfunction: count, data: string)
-{
-    print "modbus_diagnostics_response", c$id, headers, subfunction, data;
-}
-
-event modbus_encap_interface_transport_request(c: connection, headers: ModbusHeaders, mei_type: count, data: string)
-{
-    print "modbus_encap_interface_transport_request", c$id, headers, mei_type, data;
-}
-
-event modbus_encap_interface_transport_response(c: connection, headers: ModbusHeaders, mei_type: count, data: string)
-{
-    print "modbus_encap_interface_transport_response", c$id, headers, mei_type, data;
-}

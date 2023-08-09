@@ -924,6 +924,17 @@ if (NOT DISABLE_SPICY)
         include(ConfigureSpicyBuild) # set some options different for building Spicy
 
         zeek_add_dependencies(spicy)
+
+        # Explicitly link against Spicy libraries if we are packaging. Since
+        # Zeek's binary packaging mode still leaves `BUILD_SHARED_LIBS` set we
+        # cannot use the branching inside `hilti_link_libraries_in_tree` and
+        # instead explicitly branch on `BINARY_PACKAGING_MODE` here.
+        if (BINARY_PACKAGING_MODE)
+            hilti_link_object_libraries_in_tree(zeek_exe PRIVATE)
+        else ()
+            hilti_link_libraries_in_tree(zeek_exe PRIVATE)
+        endif ()
+
         set(HAVE_SPICY yes)
     endif ()
 

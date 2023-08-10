@@ -145,25 +145,45 @@ bool Raw::Execute()
 		return false;
 		}
 
-	posix_spawnattr_t attrs;
-	posix_spawnattr_init(&attrs);
-
 	short spawn_flags = 0;
 	// equivalent to setpgid(0,0) in the child
 	spawn_flags |= POSIX_SPAWN_SETPGROUP;
 
 	posix_spawn_file_actions_t actions;
-	posix_spawn_file_actions_init(&actions);
-	posix_spawn_file_actions_addclose(&actions, pipes[stdout_in]);
-	posix_spawn_file_actions_adddup2(&actions, pipes[stdout_out], stdout_fileno);
-	posix_spawn_file_actions_addclose(&actions, pipes[stdout_out]);
-	posix_spawn_file_actions_addclose(&actions, pipes[stdin_out]);
-	posix_spawn_file_actions_adddup2(&actions, pipes[stdin_in], stdin_fileno);
-	posix_spawn_file_actions_addclose(&actions, pipes[stdin_in]);
-	posix_spawn_file_actions_addclose(&actions, pipes[stderr_in]);
-	posix_spawn_file_actions_adddup2(&actions, pipes[stderr_out], stderr_fileno);
-	posix_spawn_file_actions_addclose(&actions, pipes[stderr_out]);
+	if ( posix_spawn_file_actions_init(&actions) != 0 )
+		{
+		Error(Fmt("Could not call posix_spawn_file_actions_init: %d", errno));
+		return false;
+		}
 
+	auto file_actions_res = posix_spawn_file_actions_addclose(&actions, pipes[stdout_in]);
+	file_actions_res |= posix_spawn_file_actions_adddup2(&actions, pipes[stdout_out],
+	                                                     stdout_fileno);
+	file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stdout_out]);
+	file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stdin_out]);
+	file_actions_res |= posix_spawn_file_actions_adddup2(&actions, pipes[stdin_in], stdin_fileno);
+	file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stdin_in]);
+	file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stderr_in]);
+	file_actions_res |= posix_spawn_file_actions_adddup2(&actions, pipes[stderr_out],
+	                                                     stderr_fileno);
+	file_actions_res |= posix_spawn_file_actions_addclose(&actions, pipes[stderr_out]);
+
+	if ( file_actions_res != 0 )
+		{
+		Error("Error during posix_spawn_file_actions_add");
+		posix_spawn_file_actions_destroy(&actions);
+		return false;
+		}
+
+	posix_spawnattr_t attrs;
+	if ( posix_spawnattr_init(&attrs) != 0 )
+		{
+		Error(Fmt("Could not call posix_spawnattr_init: %d", errno));
+		posix_spawn_file_actions_destroy(&actions);
+		return false;
+		}
+
+	// this can only fail with EINVAL - and we don't care too much about this.
 	posix_spawnattr_setflags(&attrs, spawn_flags);
 
 	// Signal mask is inherited, so reset any ignored
@@ -174,12 +194,14 @@ bool Raw::Execute()
 	sigset_t mask;
 	sigemptyset(&mask);
 	spawn_flags |= POSIX_SPAWN_SETSIGMASK;
+	// this can only fail with EINVAL - which is not fatal
 	posix_spawnattr_setsigmask(&attrs, &mask);
 
 	spawn_flags |= POSIX_SPAWN_SETSIGDEF;
 	sigset_t sigdefault;
 	sigemptyset(&sigdefault);
 	sigaddset(&sigdefault, SIGPIPE);
+	// this can only fail with EINVAL - which is not fatal
 	posix_spawnattr_setsigdefault(&attrs, &sigdefault);
 
 	const char* spawn_argv[] = {"sh", "-c", fname.c_str(), nullptr};

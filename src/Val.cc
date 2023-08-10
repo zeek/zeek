@@ -4268,17 +4268,23 @@ ValPtr cast_value_to_type(Val* v, Type* t)
 		auto set_type = v->GetType<SetType>();
 		auto indices = set_type->GetIndices();
 
-		if ( indices->GetTypes().size() > 1 || ! indices->IsPure() )
+		if ( indices->GetTypes().size() > 1 )
 			return nullptr;
 
 		auto ret_type = IntrusivePtr<VectorType>{NewRef{}, t->AsVectorType()};
 		auto ret = make_intrusive<VectorVal>(ret_type);
 
-		auto lv = v->AsTableVal()->ToPureListVal();
-		auto n = lv->Length();
-
-		for ( int i = 0; i < n; ++i )
-			ret->Assign(i, lv->Idx(i));
+		auto* table = v->AsTable();
+		auto* tval = v->AsTableVal();
+		int index = 0;
+		for ( const auto& te : *table )
+			{
+			auto k = te.GetHashKey();
+			auto lv = tval->RecreateIndex(*k);
+			ValPtr entry_key = lv->Length() == 1 ? lv->Idx(0) : lv;
+			ret->Assign(index, entry_key);
+			index++;
+			}
 
 		return ret;
 		}
@@ -4320,11 +4326,11 @@ static bool can_cast_set_and_vector(const Type* t1, const Type* t2)
 
 	if ( st && vt )
 		{
-		auto set_indices = st->GetIndices();
-		if ( set_indices->GetTypes().size() > 1 || ! set_indices->IsPure() )
+		auto set_indices = st->GetIndices()->GetTypes();
+		if ( set_indices.size() > 1 )
 			return false;
 
-		return same_type(set_indices->GetPureType(), vt->Yield());
+		return same_type(set_indices[0], vt->Yield());
 		}
 
 	return false;

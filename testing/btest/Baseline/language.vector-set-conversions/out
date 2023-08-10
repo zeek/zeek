@@ -23,3 +23,17 @@ set to vector (port)
 21/tcp
 }
 [23/tcp, 21/tcp]
+
+set to vector (record)
+{
+[a=a, b=b],
+[a=a1, b=b1]
+}
+{
+[a=a, b=b],
+[a=a1, b=b1]
+}
+
+vector to set (record)
+[[a=a, b=b], [a=a1, b=b1]]
+[[a=a, b=b], [a=a1, b=b1]]

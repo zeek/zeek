@@ -131,6 +131,13 @@ struct Event {
     std::vector<ExpressionAccessor> expression_accessors; /**< One HILTI function per expression to access the value. */
 };
 
+/** Representation of an "export" statement parsed from an EVT file. */
+struct Export {
+    hilti::ID spicy_id;
+    hilti::ID zeek_id;
+    hilti::Location location;
+};
+
 } // namespace glue
 
 /** Generates the glue code between Zeek and Spicy based on *.evt files. */
@@ -205,6 +212,7 @@ private:
     glue::FileAnalyzer parseFileAnalyzer(const std::string& chunk);
     glue::PacketAnalyzer parsePacketAnalyzer(const std::string& chunk);
     glue::Event parseEvent(const std::string& chunk);
+    glue::Export parseExport(const std::string& chunk);
 
     /** Computes the missing pieces for all `Event` instances.  */
     bool PopulateEvents();
@@ -221,9 +229,9 @@ private:
     std::map<hilti::ID, std::shared_ptr<glue::SpicyModule>> _spicy_modules;
 
     std::vector<std::pair<hilti::ID, std::optional<hilti::ID>>>
-        _imports; /**< imports from EVT files, with ID and optional scope */
-    std::vector<std::tuple<hilti::ID, hilti::ID, hilti::Location>> _exports; /**< exports from EVT files */
-    std::vector<glue::Event> _events;                                        /**< events parsed from EVT files */
+        _imports;                                            /**< imports from EVT files, with ID and optional scope */
+    std::map<hilti::ID, glue::Export> _exports;              /**< exports from EVT files */
+    std::vector<glue::Event> _events;                        /**< events parsed from EVT files */
     std::vector<glue::ProtocolAnalyzer> _protocol_analyzers; /**< protocol analyzers parsed from EVT files */
     std::vector<glue::FileAnalyzer> _file_analyzers;         /**< file analyzers parsed from EVT files */
     std::vector<glue::PacketAnalyzer> _packet_analyzers;     /**< file analyzers parsed from EVT files */

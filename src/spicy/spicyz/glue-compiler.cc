@@ -492,22 +492,8 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
             }
 
             else if ( looking_at(*chunk, 0, "export") ) {
-                size_t i = 0;
-                eat_token(*chunk, &i, "export");
-
-                hilti::ID spicy_id = extract_id(*chunk, &i);
-                hilti::ID zeek_id = spicy_id;
-
-                if ( looking_at(*chunk, i, "as") ) {
-                    eat_token(*chunk, &i, "as");
-                    zeek_id = extract_id(*chunk, &i);
-                }
-
-                eat_spaces(*chunk, &i);
-                if ( ! looking_at(*chunk, i, ";") )
-                    throw ParseError("syntax error in export");
-
-                _exports.emplace_back(std::move(spicy_id), std::move(zeek_id), _locations.back());
+                auto export_ = parseExport(*chunk);
+                _exports[export_.zeek_id] = export_;
             }
 
             else
@@ -794,6 +780,27 @@ glue::Event GlueCompiler::parseEvent(const std::string& chunk) {
         throw ParseError("unexpected characters at end of line");
 
     return ev;
+}
+
+glue::Export GlueCompiler::parseExport(const std::string& chunk) {
+    glue::Export export_;
+
+    size_t i = 0;
+    eat_token(chunk, &i, "export");
+
+    export_.spicy_id = extract_id(chunk, &i);
+    export_.zeek_id = export_.spicy_id;
+
+    if ( looking_at(chunk, i, "as") ) {
+        eat_token(chunk, &i, "as");
+        export_.zeek_id = extract_id(chunk, &i);
+    }
+
+    eat_spaces(chunk, &i);
+    if ( ! looking_at(chunk, i, ";") )
+        throw ParseError("syntax error in export");
+
+    return export_;
 }
 
 bool GlueCompiler::compile() {

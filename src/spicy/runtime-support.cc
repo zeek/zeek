@@ -126,12 +126,17 @@ TypePtr rt::create_record_type(const std::string& ns, const std::string& id,
 
     auto decls = std::make_unique<type_decl_list>();
 
-    for ( const auto& [id, type, optional] : fields ) {
+    for ( const auto& [id, type, optional, log] : fields ) {
         auto attrs = make_intrusive<detail::Attributes>(nullptr, true, false);
 
         if ( optional ) {
             auto optional_ = make_intrusive<detail::Attr>(detail::ATTR_OPTIONAL);
-            attrs->AddAttr(optional_);
+            attrs->AddAttr(std::move(optional_));
+        }
+
+        if ( log ) {
+            auto log_ = make_intrusive<detail::Attr>(detail::ATTR_LOG);
+            attrs->AddAttr(std::move(log_));
         }
 
         decls->append(new TypeDecl(util::copy_string(id.c_str()), type, std::move(attrs)));

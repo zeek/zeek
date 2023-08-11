@@ -151,7 +151,7 @@ extern TypePtr create_enum_type(
     const std::string& ns, const std::string& id,
     const hilti::rt::Vector<std::tuple<std::string, hilti::rt::integer::safe<int64_t>>>& labels);
 
-using RecordField = std::tuple<std::string, TypePtr, hilti::rt::Bool>; // (ID, type, optional)
+using RecordField = std::tuple<std::string, TypePtr, hilti::rt::Bool, hilti::rt::Bool>; // (ID, type, optional, &log)
 extern TypePtr create_record_type(const std::string& ns, const std::string& id,
                                   const hilti::rt::Vector<RecordField>& fields);
 

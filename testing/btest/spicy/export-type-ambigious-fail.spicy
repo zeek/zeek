@@ -1,0 +1,25 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-DOC: Fail attempt to export a type multiple times
+#
+# @TEST-EXEC-FAIL: spicyz -d foo.spicy foo.evt -o foo.hlto >output 2>&1
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output
+
+# @TEST-START-FILE foo.spicy
+module Test;
+
+type A = unit {
+    x: uint8;
+};
+
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.evt
+
+export Test::A with { x };
+export Test::A without { x };
+
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.zeek
+# @TEST-END-FILE

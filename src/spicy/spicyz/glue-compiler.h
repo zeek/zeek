@@ -136,6 +136,18 @@ struct Export {
     hilti::ID spicy_id;
     hilti::ID zeek_id;
     hilti::Location location;
+
+    // Additional information for exported record types.
+    bool log_all = false;        /**< mark all fields for logging in exported record */
+    std::set<hilti::ID> with;    /**< fields to include in exported record */
+    std::set<hilti::ID> without; /**<  fields to exclude from exported record */
+    std::set<hilti::ID> logs;    /**< fields to mark for logging in exported record */
+
+    /**
+     * Checks that the information is semantically correct given the provided
+     * type information. Logs any errors and returns false on failure.
+     **/
+    bool validate(const TypeInfo& ti) const;
 };
 
 } // namespace glue
@@ -169,6 +181,22 @@ public:
 
     /** Returns all IDs that have been exported so far. */
     const auto& exportedIDs() const { return _exports; }
+
+    /** Returns the `export` declaration for a specific type given by the Zeek-side ID, if available. */
+    std::optional<glue::Export> exportForZeekID(const hilti::ID& id) const;
+
+    /** Provides `export` details for a given record field. */
+    struct ExportedField {
+        bool skip = false; /**< True if field is not to be included in the exported type. */
+        bool log = false;  /**< True if field is logged. */
+    };
+
+    /**
+     * Retrieves the  `export` details for a given record field. If our EVT
+     * file doesn't mention the field explicitly, the method returns the
+     * default behavior.
+     */
+    ExportedField exportForField(const hilti::ID& zeek_id, const hilti::ID& field_id) const;
 
     /** Generates code to convert a HILTI type to a corresponding Zeek type at runtime. */
     hilti::Result<hilti::Expression> createZeekType(const hilti::Type& t, const hilti::ID& id) const;

@@ -493,6 +493,9 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
 
             else if ( looking_at(*chunk, 0, "export") ) {
                 auto export_ = parseExport(*chunk);
+                if ( _exports.find(export_.zeek_id) != _exports.end() )
+                    throw ParseError(hilti::util::fmt("export of '%s' already defined", export_.zeek_id));
+
                 _exports[export_.zeek_id] = export_;
             }
 
@@ -510,6 +513,70 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
 
     for ( auto&& ev : new_events )
         _events.push_back(ev);
+
+    return true;
+}
+
+std::optional<glue::Export> GlueCompiler::exportForZeekID(const hilti::ID& id) const {
+    if ( auto i = _exports.find(id); i != _exports.end() )
+        return i->second;
+    else
+        return {};
+}
+
+GlueCompiler::ExportedField GlueCompiler::exportForField(const hilti::ID& zeek_id, const hilti::ID& field_id) const {
+    ExportedField field;
+
+    auto export_ = exportForZeekID(zeek_id);
+    if ( ! export_ )
+        // No `export` for this type, return defaults.
+        return field;
+
+    if ( export_->with.empty() ) {
+        // Include unless explicitly excluded.
+        if ( export_->without.find(field_id) != export_->without.end() )
+            field.skip = true;
+    }
+    else {
+        // Exclude unless explicitly included.
+        if ( export_->with.find(field_id) == export_->with.end() )
+            field.skip = true;
+    }
+
+    if ( export_->log_all )
+        field.log = true;
+
+    if ( export_->logs.find(field_id) != export_->logs.end() )
+        field.log = true;
+
+    return field;
+}
+
+
+bool glue::Export::validate(const TypeInfo& ti) const {
+    auto utype = ti.type.tryAs<::spicy::type::Unit>();
+    if ( ! utype )
+        return true;
+
+    auto check_field_names = [&](const auto& fields) {
+        for ( const auto& f : fields ) {
+            if ( ! utype->itemByName(f) ) {
+                hilti::logger().error(hilti::rt::fmt("type '%s' does not have field '%s'", ti.id, f), ti.location);
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    if ( ! check_field_names(with) )
+        return false;
+
+    if ( ! check_field_names(without) )
+        return false;
+
+    if ( ! check_field_names(logs) )
+        return false;
 
     return true;
 }
@@ -790,13 +857,56 @@ glue::Export GlueCompiler::parseExport(const std::string& chunk) {
 
     export_.spicy_id = extract_id(chunk, &i);
     export_.zeek_id = export_.spicy_id;
+    export_.location = _locations.back();
 
     if ( looking_at(chunk, i, "as") ) {
         eat_token(chunk, &i, "as");
         export_.zeek_id = extract_id(chunk, &i);
     }
 
-    eat_spaces(chunk, &i);
+    if ( looking_at(chunk, i, "&log") ) {
+        eat_token(chunk, &i, "&log");
+        export_.log_all = true;
+    }
+
+    bool expect_fields = false;
+    bool include_fields;
+
+    if ( looking_at(chunk, i, "without") ) {
+        eat_token(chunk, &i, "without");
+        include_fields = false;
+        expect_fields = true;
+    }
+    else if ( looking_at(chunk, i, "with") ) {
+        eat_token(chunk, &i, "with");
+        include_fields = true;
+        expect_fields = true;
+    }
+
+    if ( expect_fields ) {
+        eat_token(chunk, &i, "{");
+
+        while ( true ) {
+            auto field = extract_id(chunk, &i);
+            if ( include_fields )
+                export_.with.insert(field);
+            else
+                export_.without.insert(field);
+
+            if ( looking_at(chunk, i, "&log") ) {
+                eat_token(chunk, &i, "&log");
+                export_.logs.insert(field);
+            }
+
+            if ( looking_at(chunk, i, "}") ) {
+                eat_token(chunk, &i, "}");
+                break; // All done.
+            }
+
+            eat_token(chunk, &i, ",");
+        }
+    }
+
     if ( ! looking_at(chunk, i, ";") )
         throw ParseError("syntax error in export");
 
@@ -1309,7 +1419,8 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             if ( ! ztype )
                 return ztype.error();
 
-            fields.emplace_back(builder::tuple({builder::string(f.id()), *ztype, builder::bool_(f.isOptional())}));
+            fields.emplace_back(builder::tuple(
+                {builder::string(f.id()), *ztype, builder::bool_(f.isOptional()), builder::bool_(false)}));
         }
 
         return create_record_type(id()->namespace_(), id()->local(), fields);
@@ -1325,7 +1436,8 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             if ( ! ztype )
                 return ztype.error();
 
-            fields.emplace_back(builder::tuple({builder::string(*f.id()), *ztype, builder::bool_(false)}));
+            fields.emplace_back(
+                builder::tuple({builder::string(*f.id()), *ztype, builder::bool_(false), builder::bool_(false)}));
         }
 
         hilti::ID local;
@@ -1354,12 +1466,18 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
 
         std::vector<hilti::Expression> fields;
         for ( const auto& f : gc->recordFields(t) ) {
+            auto field_id = std::get<0>(f);
+            auto export_ = gc->exportForField(*id(), hilti::ID(field_id));
+
+            if ( export_.skip )
+                continue;
+
             auto ztype = createZeekType(std::get<1>(f));
             if ( ! ztype )
                 return ztype.error();
 
-            fields.emplace_back(
-                builder::tuple({builder::string(std::get<0>(f)), *ztype, builder::bool_(std::get<2>(f))}));
+            fields.emplace_back(builder::tuple({builder::string(std::get<0>(f)), *ztype, builder::bool_(std::get<2>(f)),
+                                                builder::bool_(export_.log)}));
         }
 
         return create_record_type(id()->namespace_(), id()->local(), fields);

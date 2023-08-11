@@ -224,8 +224,12 @@ std::vector<std::pair<TypeInfo, hilti::ID>> Driver::exportedTypes() const {
 
     for ( const auto& i : _glue->exportedIDs() ) {
         const auto& export_ = i.second;
-        if ( auto t = _types.find(export_.spicy_id); t != _types.end() )
+        if ( auto t = _types.find(export_.spicy_id); t != _types.end() ) {
+            if ( ! export_.validate(t->second) )
+                continue;
+
             result.emplace_back(t->second, export_.zeek_id);
+        }
         else {
             hilti::logger().error(hilti::rt::fmt("unknown type '%s' exported", export_.spicy_id));
             continue;

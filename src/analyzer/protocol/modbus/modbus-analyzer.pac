@@ -370,6 +370,7 @@ refine flow ModbusTCP_Flow += {
 				{
 				zeek::reporter->Weird("modbus_diag_invalid_request_data",
 				                      zeek::util::fmt("%s", data->CheckString()));
+				return false;
 				}
 
 			switch (${message.subfunction})

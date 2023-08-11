@@ -54,6 +54,11 @@ New Functionality
   modules by prefixing their names with ``::``. Previously, these required an
   explicit ``GLOBAL::`` prefix to be used. Using ``GLOBAL::`` has been deprecated.
 
+- The ``as`` keyword now supports casting between ``set`` and ``vector`` values
+  with the same element type. Converting ``set`` values with multiple index
+  values is not supported. We plan to extend the use of the ``as`` keyword to
+  support more type conversions in the future.
+
 Changed Functionality
 ---------------------
 

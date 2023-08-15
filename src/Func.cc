@@ -142,7 +142,7 @@ void Func::AddBody(detail::StmtPtr new_body, size_t new_frame_size)
 	{
 	std::vector<detail::IDPtr> no_inits;
 	std::set<EventGroupPtr> no_groups;
-	AddBody(new_body, no_inits, new_frame_size, 0, no_groups);
+	AddBody(std::move(new_body), no_inits, new_frame_size, 0, no_groups);
 	}
 
 void Func::AddBody(detail::StmtPtr /* new_body */,
@@ -588,7 +588,7 @@ void ScriptFunc::CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec)
 			if ( c_i.IsManaged() )
 				ZVal::DeleteManagedType(cv_i);
 
-			cv_i = ZVal(new_cv_i, t);
+			cv_i = ZVal(std::move(new_cv_i), t);
 			}
 		}
 	}
@@ -725,7 +725,7 @@ FuncPtr ScriptFunc::DoClone()
 			// Need to clone cv_i.
 			auto& t_i = c.Id()->GetType();
 			auto cv_i_val = cv_i->ToVal(t_i)->Clone();
-			other->captures_vec->push_back(ZVal(cv_i_val, t_i));
+			other->captures_vec->push_back(ZVal(std::move(cv_i_val), t_i));
 			++cv_i;
 			}
 		}

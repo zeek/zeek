@@ -4649,7 +4649,7 @@ LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, st
 	auto ingr_t = ingredients->GetID()->GetType<FuncType>();
 	SetType(ingr_t);
 
-	if ( ! CheckCaptures(when_parent) )
+	if ( ! CheckCaptures(std::move(when_parent)) )
 		{
 		SetError();
 		return;

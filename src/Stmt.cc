@@ -2079,7 +2079,7 @@ void WhenInfo::BuildProfile()
 		if ( ! is_present )
 			{
 			IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
-			cl->emplace_back(wl_ptr, false);
+			cl->emplace_back(std::move(wl_ptr), false);
 			}
 
 		// In addition, don't treat them as external locals that

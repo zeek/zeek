@@ -647,7 +647,7 @@ private:
 	StmtPtr s;
 	StmtPtr timeout_s;
 	ExprPtr timeout;
-	FuncType::CaptureList* cl;
+	FuncType::CaptureList* cl = nullptr;
 
 	bool is_return = false;
 

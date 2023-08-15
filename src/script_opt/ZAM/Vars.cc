@@ -32,7 +32,9 @@ bool ZAMCompiler::IsCapture(const ID* id) const
 
 int ZAMCompiler::CaptureOffset(const ID* id) const
 	{
-	return pf->CapturesOffsets().find(id)->second;
+	auto id_offset = pf->CapturesOffsets().find(id);
+	ASSERT(id_offset != pf->CapturesOffsets().end());
+	return id_offset->second;
 	}
 
 void ZAMCompiler::LoadParam(const ID* id)

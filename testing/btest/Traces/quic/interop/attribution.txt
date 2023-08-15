@@ -1,0 +1,10 @@
+PCAP files in this directory were gathered from the QUIC interop project webpage.
+
+Marten Seemann didn't have any concerns or reservations using these as testing
+material. They require DLT_PPP support in Zeek, unfortunately.
+
+Some references:
+
+https://interop.seemann.io/
+https://github.com/marten-seemann/quic-network-simulator
+https://github.com/marten-seemann/quic-interop-runner

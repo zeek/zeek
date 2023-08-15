@@ -1,1 +1,10 @@
-zeek_add_subdir_library(telemetry SOURCES Manager.cc BIFS telemetry.bif)
+zeek_add_subdir_library(
+    telemetry
+    SOURCES
+    Counter.cc
+    Gauge.cc
+    Histogram.cc
+    Manager.cc
+    MetricFamily.cc
+    BIFS
+    telemetry.bif)

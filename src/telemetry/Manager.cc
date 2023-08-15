@@ -11,8 +11,26 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/telemetry/Timer.h"
 #include "zeek/telemetry/telemetry.bif.h"
+#include "zeek/zeek-version.h"
 
 #include "broker/telemetry/metric_registry.hh"
+#include "opentelemetry/exporters/ostream/metric_exporter_factory.h"
+#include "opentelemetry/exporters/prometheus/exporter_factory.h"
+#include "opentelemetry/exporters/prometheus/exporter_options.h"
+#include "opentelemetry/metrics/provider.h"
+#include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader_factory.h"
+#include "opentelemetry/sdk/metrics/meter.h"
+#include "opentelemetry/sdk/metrics/meter_provider.h"
+#include "opentelemetry/sdk/metrics/meter_provider_factory.h"
+#include "opentelemetry/sdk/metrics/push_metric_exporter.h"
+#include "opentelemetry/sdk/metrics/view/instrument_selector_factory.h"
+#include "opentelemetry/sdk/metrics/view/meter_selector_factory.h"
+#include "opentelemetry/sdk/metrics/view/view_factory.h"
+
+namespace metrics_sdk = opentelemetry::sdk::metrics;
+namespace common = opentelemetry::common;
+namespace exportermetrics = opentelemetry::exporter::metrics;
+namespace metrics_api = opentelemetry::metrics;
 
 namespace {
 using NativeManager = broker::telemetry::metric_registry;
@@ -43,18 +61,71 @@ DoubleValPtr as_double_val(T val) {
 
 namespace zeek::telemetry {
 
-Manager::Manager() {
+Manager::Manager()
+    : metrics_name("zeek"), metrics_version(VERSION), metrics_schema("https://opentelemetry.io/schemas/1.2.0") {
     auto reg = NativeManager::pre_init_instance();
     NativeManagerImplPtr ptr{NewRef{}, reg.pimpl()};
     pimpl.swap(ptr);
+
+    auto meter_provider = metrics_sdk::MeterProviderFactory::Create();
+    auto* p = static_cast<metrics_sdk::MeterProvider*>(meter_provider.release());
+    std::shared_ptr<metrics_api::MeterProvider> provider_sp(p);
+    metrics_api::Provider::SetMeterProvider(provider_sp);
 }
 
-void Manager::InitPostScript() {}
+Manager::~Manager() {
+    std::shared_ptr<opentelemetry::metrics::MeterProvider> none;
+    metrics_api::Provider::SetMeterProvider(none);
+}
 
-void Manager::InitPostBrokerSetup(broker::endpoint& ep) {
-    auto reg = NativeManager::merge(NativeManager{pimpl.get()}, ep);
-    NativeManagerImplPtr ptr{NewRef{}, reg.pimpl()};
-    pimpl.swap(ptr);
+void Manager::InitPostScript() {
+    auto mp = metrics_api::Provider::GetMeterProvider();
+    auto* p = static_cast<metrics_sdk::MeterProvider*>(mp.get());
+
+    std::string prometheus_url;
+    auto metrics_port = id::find_val("Broker::metrics_port")->AsPortVal();
+    if ( metrics_port->Port() != 0 )
+        prometheus_url = util::fmt("localhost:%u", metrics_port->Port());
+    else if ( auto env = getenv("BROKER_METRICS_PORT") )
+        prometheus_url = util::fmt("localhost:%s", env);
+
+    if ( ! prometheus_url.empty() ) {
+        opentelemetry::exporter::metrics::PrometheusExporterOptions exporter_options;
+        exporter_options.url = prometheus_url;
+        auto exporter = exportermetrics::PrometheusExporterFactory::Create(exporter_options);
+        p->AddMetricReader(std::move(exporter));
+    }
+
+    if ( auto env = getenv("OTEL_DEBUG") ) {
+        auto os_exporter = exportermetrics::OStreamMetricExporterFactory::Create();
+        metrics_sdk::PeriodicExportingMetricReaderOptions options;
+        options.export_interval_millis = std::chrono::milliseconds(1000);
+        options.export_timeout_millis = std::chrono::milliseconds(500);
+        auto reader = metrics_sdk::PeriodicExportingMetricReaderFactory::Create(std::move(os_exporter), options);
+        p->AddMetricReader(std::move(reader));
+    }
+
+    // Counter view
+    // TODO: I'm not sure these do anything for us. At the very least, they don't match any
+    // of our metric names, and we'd have to make a view for each one of them.
+    std::string counter_name = metrics_name + "_counter";
+    auto instrument_selector =
+        metrics_sdk::InstrumentSelectorFactory::Create(metrics_sdk::InstrumentType::kCounter, counter_name, "");
+    auto meter_selector = metrics_sdk::MeterSelectorFactory::Create(metrics_name, metrics_version, metrics_schema);
+    auto sum_view =
+        metrics_sdk::ViewFactory::Create(metrics_name, "description", "", metrics_sdk::AggregationType::kSum);
+    p->AddView(std::move(instrument_selector), std::move(meter_selector), std::move(sum_view));
+
+    // histogram view
+    std::string histogram_name = metrics_name + "_histogram";
+    auto histogram_instrument_selector =
+        metrics_sdk::InstrumentSelectorFactory::Create(metrics_sdk::InstrumentType::kHistogram, histogram_name, "");
+    auto histogram_meter_selector =
+        metrics_sdk::MeterSelectorFactory::Create(histogram_name, metrics_version, metrics_schema);
+    auto histogram_view =
+        metrics_sdk::ViewFactory::Create(histogram_name, "description", "", metrics_sdk::AggregationType::kHistogram);
+    p->AddView(std::move(histogram_instrument_selector), std::move(histogram_meter_selector),
+               std::move(histogram_view));
 }
 
 // -- collect metric stuff -----------------------------------------------------

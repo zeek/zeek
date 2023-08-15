@@ -9,7 +9,7 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
-#include "broker/telemetry/fwd.hh"
+#include "opentelemetry/sdk/metrics/sync_instruments.h"
 
 namespace zeek::telemetry {
 
@@ -33,47 +33,51 @@ public:
     /**
      * Increments the value by 1.
      */
-    void Inc() noexcept { broker::telemetry::inc(hdl); }
+    void Inc() noexcept {
+        hdl->Add(1, attributes);
+        value++;
+    }
 
     /**
      * Increments the value by @p amount.
      * @pre `amount >= 0`
      */
-    void Inc(int64_t amount) noexcept { broker::telemetry::inc(hdl, amount); }
+    void Inc(uint64_t amount) noexcept {
+        hdl->Add(amount, attributes);
+        value += amount;
+    }
 
     /**
      * Increments the value by 1.
      * @return The new value.
      */
-    int64_t operator++() noexcept { return broker::telemetry::inc(hdl); }
+    uint64_t operator++() noexcept {
+        Inc();
+        return value;
+    }
 
     /**
      * @return The current value.
      */
-    int64_t Value() const noexcept { return broker::telemetry::value(hdl); }
+    uint64_t Value() const noexcept { return value; }
 
     /**
      * @return Whether @c this and @p other refer to the same counter.
      */
-    constexpr bool IsSameAs(const IntCounter& other) const noexcept { return hdl == other.hdl; }
+    bool IsSameAs(const IntCounter& other) const noexcept { return hdl == other.hdl; }
+
+    bool operator==(const IntCounter& rhs) const noexcept { return IsSameAs(rhs); }
+    bool operator!=(const IntCounter& rhs) const noexcept { return ! IsSameAs(rhs); }
 
 private:
-    using Handle = broker::telemetry::int_counter_hdl*;
+    using Handle = opentelemetry::metrics::Counter<uint64_t>;
 
-    explicit IntCounter(Handle hdl) noexcept : hdl(hdl) {}
+    explicit IntCounter(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
 
-    Handle hdl;
+    opentelemetry::nostd::shared_ptr<Handle> hdl;
+    MetricAttributeIterable attributes;
+    uint64_t value = 0;
 };
-
-/**
- * Checks whether two @ref IntCounter handles are identical.
- * @return Whether @p lhs and @p rhs refer to the same object.
- * @note compare their @c value instead to check for equality.
- */
-constexpr bool operator==(const IntCounter& lhs, const IntCounter& rhs) noexcept { return lhs.IsSameAs(rhs); }
-
-/// @relates IntCounter
-constexpr bool operator!=(const IntCounter& lhs, const IntCounter& rhs) noexcept { return ! (lhs == rhs); }
 
 /**
  * Manages a collection of IntCounter metrics.
@@ -93,7 +97,7 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    IntCounter GetOrAdd(Span<const LabelView> labels) { return IntCounter{int_counter_get_or_add(hdl, labels)}; }
+    IntCounter GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
@@ -103,9 +107,8 @@ public:
     }
 
 private:
-    using Handle = broker::telemetry::int_counter_family_hdl*;
-
-    explicit IntCounterFamily(Handle hdl) : MetricFamily(upcast(hdl)) {}
+    explicit IntCounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                              std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 };
 
 /**
@@ -125,41 +128,42 @@ public:
     /**
      * Increments the value by 1.
      */
-    void Inc() noexcept { broker::telemetry::inc(hdl); }
+    void Inc() noexcept {
+        hdl->Add(1, attributes);
+        value++;
+    }
 
     /**
      * Increments the value by @p amount.
      * @pre `amount >= 0`
      */
-    void Inc(double amount) noexcept { broker::telemetry::inc(hdl, amount); }
+    void Inc(double amount) noexcept {
+        hdl->Add(amount, attributes);
+        value += amount;
+    }
 
     /**
      * @return The current value.
      */
-    double Value() const noexcept { return broker::telemetry::value(hdl); }
+    double Value() const noexcept { return value; }
 
     /**
      * @return Whether @c this and @p other refer to the same counter.
      */
-    constexpr bool IsSameAs(const DblCounter& other) const noexcept { return hdl == other.hdl; }
+    bool IsSameAs(const DblCounter& other) const noexcept { return hdl == other.hdl; }
+
+    bool operator==(const DblCounter& rhs) const noexcept { return IsSameAs(rhs); }
+    bool operator!=(const DblCounter& rhs) const noexcept { return ! IsSameAs(rhs); }
 
 private:
-    using Handle = broker::telemetry::dbl_counter_hdl*;
+    using Handle = opentelemetry::metrics::Counter<double>;
 
-    explicit DblCounter(Handle hdl) noexcept : hdl(hdl) {}
+    explicit DblCounter(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
 
-    Handle hdl;
+    opentelemetry::nostd::shared_ptr<Handle> hdl;
+    MetricAttributeIterable attributes;
+    double value = 0;
 };
-
-/**
- * Checks whether two @ref DblCounter handles are identical.
- * @return Whether @p lhs and @p rhs refer to the same object.
- * @note compare their @c value instead to check for equality.
- */
-constexpr bool operator==(const DblCounter& lhs, const DblCounter& rhs) noexcept { return lhs.IsSameAs(rhs); }
-
-/// @relates DblCounter
-constexpr bool operator!=(const DblCounter& lhs, const DblCounter& rhs) noexcept { return ! (lhs == rhs); }
 
 /**
  * Manages a collection of DblCounter metrics.
@@ -179,7 +183,7 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    DblCounter GetOrAdd(Span<const LabelView> labels) { return DblCounter{dbl_counter_get_or_add(hdl, labels)}; }
+    DblCounter GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
@@ -189,9 +193,8 @@ public:
     }
 
 private:
-    using Handle = broker::telemetry::dbl_counter_family_hdl*;
-
-    explicit DblCounterFamily(Handle hdl) : MetricFamily(upcast(hdl)) {}
+    explicit DblCounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                              std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 };
 
 namespace detail {

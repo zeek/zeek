@@ -9,7 +9,7 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
-#include "broker/telemetry/fwd.hh"
+#include "opentelemetry/sdk/metrics/sync_instruments.h"
 
 namespace zeek::telemetry {
 
@@ -34,62 +34,75 @@ public:
     /**
      * Increments the value by 1.
      */
-    void Inc() noexcept { broker::telemetry::inc(hdl); }
+    void Inc() noexcept {
+        hdl->Add(1, attributes);
+        value++;
+    }
 
     /**
      * Increments the value by @p amount.
      */
-    void Inc(int64_t amount) noexcept { broker::telemetry::inc(hdl, amount); }
+    void Inc(int64_t amount) noexcept {
+        hdl->Add(amount, attributes);
+        value += amount;
+    }
 
     /**
      * Increments the value by 1.
      * @return The new value.
      */
-    int64_t operator++() noexcept { return broker::telemetry::inc(hdl); }
+    int64_t operator++() noexcept {
+        Inc();
+        return value;
+    }
 
     /**
      * Decrements the value by 1.
      */
-    void Dec() noexcept { broker::telemetry::dec(hdl); }
+    void Dec() noexcept {
+        hdl->Add(-1, attributes);
+        value--;
+    }
 
     /**
      * Decrements the value by @p amount.
      */
-    void Dec(int64_t amount) noexcept { broker::telemetry::dec(hdl, amount); }
+    void Dec(int64_t amount) noexcept {
+        hdl->Add(amount * -1);
+        value -= amount;
+    }
 
     /**
      * Decrements the value by 1.
      * @return The new value.
      */
-    int64_t operator--() noexcept { return broker::telemetry::dec(hdl); }
+    int64_t operator--() noexcept {
+        Dec();
+        return value;
+    }
 
     /**
      * @return The current value.
      */
-    int64_t Value() const noexcept { return broker::telemetry::value(hdl); }
+    int64_t Value() const noexcept { return value; }
 
     /**
      * @return Whether @c this and @p other refer to the same counter.
      */
-    constexpr bool IsSameAs(const IntGauge& other) const noexcept { return hdl == other.hdl; }
+    bool IsSameAs(const IntGauge& other) const noexcept { return hdl == other.hdl; }
+
+    bool operator==(const IntGauge& rhs) const noexcept { return IsSameAs(rhs); }
+    bool operator!=(const IntGauge& rhs) const noexcept { return ! IsSameAs(rhs); }
 
 private:
-    using Handle = broker::telemetry::int_gauge_hdl*;
+    using Handle = opentelemetry::metrics::UpDownCounter<int64_t>;
 
-    explicit IntGauge(Handle hdl) noexcept : hdl(hdl) {}
+    explicit IntGauge(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
 
-    Handle hdl;
+    opentelemetry::nostd::shared_ptr<Handle> hdl;
+    MetricAttributeIterable attributes;
+    int64_t value = 0;
 };
-
-/**
- * Checks whether two @ref IntGauge handles are identical.
- * @return Whether @p lhs and @p rhs refer to the same object.
- * @note compare their @c value instead to check for equality.
- */
-constexpr bool operator==(const IntGauge& lhs, const IntGauge& rhs) noexcept { return lhs.IsSameAs(rhs); }
-
-/// @relates IntGauge
-constexpr bool operator!=(const IntGauge& lhs, const IntGauge& rhs) noexcept { return ! (lhs == rhs); }
 
 /**
  * Manages a collection of IntGauge metrics.
@@ -109,7 +122,7 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    IntGauge GetOrAdd(Span<const LabelView> labels) { return IntGauge{int_gauge_get_or_add(hdl, labels)}; }
+    IntGauge GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
@@ -117,9 +130,8 @@ public:
     IntGauge GetOrAdd(std::initializer_list<LabelView> labels) { return GetOrAdd(Span{labels.begin(), labels.size()}); }
 
 private:
-    using Handle = broker::telemetry::int_gauge_family_hdl*;
-
-    explicit IntGaugeFamily(Handle hdl) : MetricFamily(upcast(hdl)) {}
+    IntGaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 };
 
 /**
@@ -139,50 +151,57 @@ public:
     /**
      * Increments the value by 1.
      */
-    void Inc() noexcept { broker::telemetry::inc(hdl); }
+    void Inc() noexcept {
+        hdl->Add(1, attributes);
+        value++;
+    }
 
     /**
      * Increments the value by @p amount.
      */
-    void Inc(double amount) noexcept { broker::telemetry::inc(hdl, amount); }
+    void Inc(double amount) noexcept {
+        hdl->Add(amount, attributes);
+        value += amount;
+    }
 
     /**
      * Increments the value by 1.
      */
-    void Dec() noexcept { broker::telemetry::dec(hdl); }
+    void Dec() noexcept {
+        hdl->Add(-1, attributes);
+        value--;
+    }
 
     /**
      * Increments the value by @p amount.
      */
-    void Dec(double amount) noexcept { broker::telemetry::dec(hdl, amount); }
+    void Dec(double amount) noexcept {
+        hdl->Add(amount * -1, attributes);
+        value -= amount;
+    }
 
     /**
      * @return The current value.
      */
-    double Value() const noexcept { return broker::telemetry::value(hdl); }
+    double Value() const noexcept { return value; }
 
     /**
      * @return Whether @c this and @p other refer to the same counter.
      */
-    constexpr bool IsSameAs(const DblGauge& other) const noexcept { return hdl == other.hdl; }
+    bool IsSameAs(const DblGauge& other) const noexcept { return hdl == other.hdl; }
+
+    bool operator==(const DblGauge& rhs) const noexcept { return IsSameAs(rhs); }
+    bool operator!=(const DblGauge& rhs) const noexcept { return ! IsSameAs(rhs); }
 
 private:
-    using Handle = broker::telemetry::dbl_gauge_hdl*;
+    using Handle = opentelemetry::metrics::UpDownCounter<double>;
 
-    explicit DblGauge(Handle hdl) noexcept : hdl(hdl) {}
+    explicit DblGauge(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
 
-    Handle hdl;
+    opentelemetry::nostd::shared_ptr<Handle> hdl;
+    MetricAttributeIterable attributes;
+    double value = 0;
 };
-
-/**
- * Checks whether two @ref DblGauge handles are identical.
- * @return Whether @p lhs and @p rhs refer to the same object.
- * @note compare their @c value instead to check for equality.
- */
-constexpr bool operator==(const DblGauge& lhs, const DblGauge& rhs) noexcept { return lhs.IsSameAs(rhs); }
-
-/// @relates DblGauge
-constexpr bool operator!=(const DblGauge& lhs, const DblGauge& rhs) noexcept { return ! (lhs == rhs); }
 
 /**
  * Manages a collection of DblGauge metrics.
@@ -202,7 +221,7 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    DblGauge GetOrAdd(Span<const LabelView> labels) { return DblGauge{dbl_gauge_get_or_add(hdl, labels)}; }
+    DblGauge GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
@@ -210,9 +229,8 @@ public:
     DblGauge GetOrAdd(std::initializer_list<LabelView> labels) { return GetOrAdd(Span{labels.begin(), labels.size()}); }
 
 private:
-    using Handle = broker::telemetry::dbl_gauge_family_hdl*;
-
-    explicit DblGaugeFamily(Handle hdl) : MetricFamily(upcast(hdl)) {}
+    DblGaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 };
 
 namespace detail {

@@ -1,3 +1,11 @@
+6.1.0-dev.303 | 2023-08-15 17:33:51 +0100
+
+  * Raw reader: use posix_spawn instead of fork + exec (Johanna Amann, Corelight)
+
+    This commit switchexisd the Raw reader to use posix_spawn, instead of
+    the combination of fork + exec. This should be much more efficient, and
+    also makes the code smaller, and easier to read and understand.
+
 6.1.0-dev.300 | 2023-08-15 09:19:57 -0700
 
   * Force pre-commit to use python 3.9 (Tim Wojtulewicz, Corelight)

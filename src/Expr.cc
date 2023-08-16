@@ -4673,11 +4673,11 @@ LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, st
 	else
 		my_name = name;
 
-	// Install that in the global_scope
-	lambda_id = install_ID(my_name.c_str(), "", true, false);
+	// Install that in the current scope.
+	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	primary_func->SetName(my_name.c_str());
+	primary_func->SetName(lambda_id->Name());
 
 	auto v = make_intrusive<FuncVal>(primary_func);
 	lambda_id->SetVal(std::move(v));
@@ -4800,6 +4800,17 @@ void LambdaExpr::BuildName()
 	ODesc d;
 	primary_func->Describe(&d);
 
+	if ( captures )
+		for ( auto& c : *captures )
+			{
+			if ( c.IsDeepCopy() )
+				d.AddSP("copy");
+
+			if ( c.Id() )
+				// c.Id() will be nil for some errors
+				c.Id()->Describe(&d);
+			}
+
 	for ( ;; )
 		{
 		hash128_t h;
@@ -4807,7 +4818,7 @@ void LambdaExpr::BuildName()
 
 		my_name = "lambda_<" + std::to_string(h[0]) + ">";
 		auto fullname = make_full_var_name(current_module.data(), my_name.data());
-		const auto& id = global_scope()->Find(fullname);
+		const auto& id = current_scope()->Find(fullname);
 
 		if ( id )
 			// Just try again to make a unique lambda name.
@@ -4872,6 +4883,9 @@ void LambdaExpr::ExprDescribe(ODesc* d) const
 			{
 			if ( &c != &(*captures)[0] )
 				d->AddSP(", ");
+
+			if ( c.IsDeepCopy() )
+				d->AddSP("copy");
 
 			d->Add(c.Id()->Name());
 			}

@@ -8,13 +8,11 @@ repos:
   - id: clang-format
 
 - repo: https://github.com/maxwinterstein/shfmt-py
-  rev: 3.3.1.8
+  # Latest master revision as of 2023-08-17 allows to run with modern Python
+  # versions. Switch this back to a tag once there is one :-)
+  rev: d4491d8
   hooks:
     - id: shfmt
-      # We force python3.9 since as of its current version `shfmt-py` has a
-      # `setup.cfg` not conforming to PEP639 (`license_file` instead of
-      # `license_files`) which triggers a warning with newer Python versions.
-      language_version: "3.9"
       args: ["-w", "-i", "4", "-ci"]
 
 - repo: https://github.com/pre-commit/mirrors-yapf

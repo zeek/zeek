@@ -17,6 +17,15 @@ The maintenance workflow:
 	ninja
 	src/zeek -O use-C++ -r some.pcap
 
+    and that it can compile them standalone:
+
+	rm CPP-gen.cc
+	ninja
+	echo | src/zeek -O gen-standalone-C++
+	ninja
+	rm CPP-gen.cc
+	ninja
+
     Do this first because if it can't, you'll be making changes to the
     compiler that you'll want to subsequent run against the test suite,
     per the following.
@@ -62,11 +71,7 @@ The maintenance workflow:
     (which is Baseline.cpp).
 
 FYI:
-    There are two tests that in the past have demonstrated possible
-    variations due to presumed race conditions:
+    Tests that have demonstrated variations/failures due to presumed
+    race conditions:
 
 	../testing/btest/scripts/base/utils/active-http.test
-	../testing/btest/supervisor/revive-leaf.zeek
-
-    These haven't shown up in a while, as of May 2023, so we can remove
-    the above if they continue to not show up.

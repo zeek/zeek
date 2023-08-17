@@ -58,6 +58,11 @@ void analyze_when_lambda(LambdaExpr* l)
 	when_lambdas.insert(l->PrimaryFunc().get());
 	}
 
+bool is_lambda(const ScriptFunc* f)
+	{
+	return lambdas.count(f) > 0;
+	}
+
 bool is_when_lambda(const ScriptFunc* f)
 	{
 	return when_lambdas.count(f) > 0;

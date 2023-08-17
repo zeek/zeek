@@ -77,8 +77,9 @@ void CPPCompile::Compile(bool report_uncompilable)
 			continue;
 			}
 
-		if ( is_when_lambda(f) )
+		if ( is_lambda(f) || is_when_lambda(f) )
 			{
+			// We deal with these separately.
 			func.SetSkip(true);
 			continue;
 			}

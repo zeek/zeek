@@ -78,6 +78,10 @@ Changed Functionality
   ``policy/protocols/conn/community-id-logging.zeek`` was loaded before. This
   was fairly unusual and hard to debug behavior.
 
+- Connections to broadcast addresses are not flipped based on ``likely_server_ports``
+  anymore. Previously, broadcast packets originating from a likely server port
+  resulted in 255.255.255.255 being the originator in ``conn.log``.
+
 Removed Functionality
 ---------------------
 

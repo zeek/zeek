@@ -830,7 +830,7 @@ private:
 
 	// If "all_deep" is true, it means make all of the captures
 	// deep copies, not just the ones that were explicitly marked
-	// as deep copies.  That functionality is used to supporting
+	// as deep copies.  That functionality is used to support
 	// Clone() methods; it's not needed when creating a new lambda
 	// instance.
 	std::string GenLambdaClone(const LambdaExpr* l, bool all_deep);
@@ -928,7 +928,7 @@ private:
 	// an IntrusivePtr to such a type.
 	const char* IntrusiveVal(const TypePtr& t);
 
-	// Maps types to indices in the global "types__CPP" array.
+	// Maps types to indices in the global "CPP__Type__" array.
 	CPPTracker<Type> types = {"types", true};
 
 	// Used to prevent analysis of mutually-referring types from

@@ -124,8 +124,6 @@ void CPPCompile::Compile(bool report_uncompilable)
 		types.AddKey(tp, pfs.HashType(t));
 		}
 
-	Emit("TypePtr types__CPP[%s];", Fmt(static_cast<int>(types.DistinctKeys().size())));
-
 	NL();
 
 	for ( auto& g : pfs.AllGlobals() )

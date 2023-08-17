@@ -89,14 +89,14 @@ void CPPCompile::GenStmt(const Stmt* s)
 				Emit("return false;");
 			break;
 
+		case STMT_FALLTHROUGH:
+			break;
+
 		case STMT_PRINT:
 			{
 			auto el = static_cast<const ExprListStmt*>(s)->ExprList();
 			Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
 			}
-			break;
-
-		case STMT_FALLTHROUGH:
 			break;
 
 		default:

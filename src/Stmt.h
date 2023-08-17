@@ -547,6 +547,10 @@ public:
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
+	const auto& Cond() const { return cond; }
+	const auto& CondDesc() const { return cond_desc; }
+	const auto& Msg() const { return msg; }
+
 	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -559,8 +563,16 @@ public:
 
 private:
 	ExprPtr cond;
+	std::string cond_desc;
 	ExprPtr msg;
 	};
+
+// Helper function for reporting on asserts that either failed, or should
+// be processed regardless due to the presence of a "assertion_result" hook.
+//
+// If "cond" is false, throws an InterpreterException after reporting.
+extern void report_assert(bool cond, std::string_view cond_desc, StringValPtr msg_val,
+                          const Location* loc);
 
 // A helper class for tracking all of the information associated with
 // a "when" statement, and constructing the necessary components in support

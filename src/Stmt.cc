@@ -164,6 +164,12 @@ const NullStmt* Stmt::AsNullStmt() const
 	return (const NullStmt*)this;
 	}
 
+const AssertStmt* Stmt::AsAssertStmt() const
+	{
+	CHECK_TAG(tag, STMT_ASSERT, "Stmt::AsAssertStmt", stmt_name)
+	return (const AssertStmt*)this;
+	}
+
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	{
 	if ( ! Obj::SetLocationInfo(start, end) )
@@ -1866,6 +1872,13 @@ AssertStmt::AssertStmt(ExprPtr arg_cond, ExprPtr arg_msg)
 
 	if ( msg && ! IsString(msg->GetType()->Tag()) )
 		msg->Error("message must be string");
+
+	zeek::ODesc desc;
+	desc.SetShort(true);
+	desc.SetQuotes(true);
+	cond->Describe(&desc);
+
+	cond_desc = desc.Description();
 	}
 
 ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow)
@@ -1873,81 +1886,41 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow)
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	static auto assertion_failure_hook = id::find_func("assertion_failure");
 	static auto assertion_result_hook = id::find_func("assertion_result");
-
 	bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
-	bool run_failure_hook = assertion_failure_hook && assertion_failure_hook->HasEnabledBodies();
-
 	auto assert_result = cond->Eval(f)->AsBool();
 
-	if ( assert_result && ! run_result_hook )
-		return Val::nil;
-
-	// Textual representation of cond from the AST.
-	static zeek::ODesc desc;
-	desc.Clear();
-	desc.SetShort(true);
-	desc.SetQuotes(true);
-	cond->Describe(&desc);
-	auto cond_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(), (const char*)desc.Bytes());
-
-	zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
-	if ( msg )
+	if ( ! cond->Eval(f)->AsBool() || run_result_hook )
 		{
-		// Eval() may fail if expression assumes assert
-		// condition is F, but we still try to get it for
-		// the assertion_result hook.
-		try
+		zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
+
+		if ( msg )
 			{
-			msg_val = cast_intrusive<zeek::StringVal>(msg->Eval(f));
+			// Eval() may fail if expression assumes assert
+			// condition is F, but we still try to get it for
+			// the assertion_result hook.
+			try
+				{
+				msg_val = cast_intrusive<zeek::StringVal>(msg->Eval(f));
+				}
+			catch ( InterpreterException& e )
+				{
+				static ODesc desc;
+				desc.Clear();
+				desc.SetShort(true);
+				desc.SetQuotes(true);
+				desc.Add("<error eval ");
+				msg->Describe(&desc);
+				desc.Add(">");
+				msg_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(),
+				                                                (const char*)desc.Bytes());
+				}
 			}
-		catch ( InterpreterException& e )
-			{
-			desc.Clear();
-			desc.Add("<error eval ");
-			msg->Describe(&desc);
-			desc.Add(">");
-			msg_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(), (const char*)desc.Bytes());
-			}
+
+		report_assert(assert_result, cond_desc, msg_val, GetLocationInfo());
 		}
 
-	VectorValPtr bt = nullptr;
-	if ( run_result_hook || run_failure_hook )
-		{
-		bt = get_current_script_backtrace();
-		auto assert_elem = make_backtrace_element("assert", MakeEmptyCallArgumentVector(),
-		                                          GetLocationInfo());
-		bt->Insert(0, std::move(assert_elem));
-		}
-
-	// Breaking from either the assertion_failure() or assertion_result()
-	// hook can be used to suppress the default log message.
-	bool report_error = true;
-
-	if ( run_result_hook )
-		report_error &= assertion_result_hook
-		                    ->Invoke(zeek::val_mgr->Bool(assert_result), cond_val, msg_val, bt)
-		                    ->AsBool();
-
-	if ( assert_result )
-		return Val::nil;
-
-	if ( run_failure_hook )
-		report_error &= assertion_failure_hook->Invoke(cond_val, msg_val, bt)->AsBool();
-
-	if ( report_error )
-		{
-		std::string reporter_msg = util::fmt("assertion failure: %s", cond_val->CheckString());
-		if ( msg_val->Len() > 0 )
-			reporter_msg += util::fmt(" (%s)", msg_val->CheckString());
-
-		reporter->PushLocation(GetLocationInfo());
-		reporter->Error("%s", reporter_msg.c_str());
-		reporter->PopLocation();
-		}
-
-	throw InterpreterException();
+	return Val::nil;
 	}
 
 void AssertStmt::StmtDescribe(ODesc* d) const
@@ -1990,6 +1963,59 @@ TraversalCode AssertStmt::Traverse(TraversalCallback* cb) const
 
 	tc = cb->PostStmt(this);
 	HANDLE_TC_STMT_POST(tc);
+	}
+
+class AssertException : public InterpreterException
+	{
+public:
+	AssertException() { }
+	};
+
+void report_assert(bool cond, std::string_view cond_desc, StringValPtr msg_val, const Location* loc)
+	{
+	static auto assertion_failure_hook = id::find_func("assertion_failure");
+	static auto assertion_result_hook = id::find_func("assertion_result");
+
+	bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
+	bool run_failure_hook = assertion_failure_hook && assertion_failure_hook->HasEnabledBodies();
+
+	auto cond_val = zeek::make_intrusive<zeek::StringVal>(cond_desc);
+
+	VectorValPtr bt = nullptr;
+	if ( run_result_hook || run_failure_hook )
+		{
+		bt = get_current_script_backtrace();
+		auto assert_elem = make_backtrace_element("assert", MakeEmptyCallArgumentVector(), loc);
+		bt->Insert(0, std::move(assert_elem));
+		}
+
+	// Breaking from either the assertion_failure() or assertion_result()
+	// hook can be used to suppress the default log message.
+	bool report_error = true;
+
+	if ( run_result_hook )
+		report_error &= assertion_result_hook
+		                    ->Invoke(zeek::val_mgr->Bool(cond), cond_val, msg_val, bt)
+		                    ->AsBool();
+
+	if ( cond )
+		return;
+
+	if ( run_failure_hook )
+		report_error &= assertion_failure_hook->Invoke(cond_val, msg_val, bt)->AsBool();
+
+	if ( report_error )
+		{
+		std::string reporter_msg = util::fmt("assertion failure: %s", cond_val->CheckString());
+		if ( msg_val->Len() > 0 )
+			reporter_msg += util::fmt(" (%s)", msg_val->CheckString());
+
+		reporter->PushLocation(loc);
+		reporter->Error("%s", reporter_msg.c_str());
+		reporter->PopLocation();
+		}
+
+	throw AssertException();
 	}
 
 WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_return)

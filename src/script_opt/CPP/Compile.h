@@ -720,6 +720,8 @@ private:
 	void GenForOverVector(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);
 	void GenForOverString(const ExprPtr& str, const IDPList* loop_vars);
 
+	void GenAssertStmt(const AssertStmt* a);
+
 	// Nested level of loops/switches for which "break"'s should be
 	// C++ breaks rather than a "hook" break.
 	int break_level = 0;

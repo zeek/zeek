@@ -4648,11 +4648,23 @@ LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, st
 
 	auto ingr_t = ingredients->GetID()->GetType<FuncType>();
 	SetType(ingr_t);
+	captures = ingr_t->GetCaptures();
 
 	if ( ! CheckCaptures(std::move(when_parent)) )
 		{
 		SetError();
 		return;
+		}
+
+	// Now that we've validated that the captures match the outer_ids,
+	// we regenerate the latter to come in the same order as the captures.
+	// This avoids potentially subtle bugs when doing script optimization
+	// where one context uses the outer_ids and another uses the captures.
+	if ( captures )
+		{
+		outer_ids.clear();
+		for ( auto& c : *captures )
+			outer_ids.append(c.Id().get());
 		}
 
 	// Install a primary version of the function globally.  This is used
@@ -4684,8 +4696,6 @@ LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, st
 	lambda_id->SetType(ingr_t);
 	lambda_id->SetConst();
 
-	captures = ingr_t->GetCaptures();
-
 	analyze_lambda(this);
 	}
 
@@ -4714,9 +4724,6 @@ LambdaExpr::LambdaExpr(LambdaExpr* orig) : Expr(EXPR_LAMBDA)
 
 bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 	{
-	auto ft = type->AsFuncType();
-	const auto& captures = ft->GetCaptures();
-
 	auto desc = when_parent ? "\"when\" statement" : "lambda";
 
 	if ( ! captures )

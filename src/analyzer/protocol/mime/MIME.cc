@@ -2,6 +2,8 @@
 
 #include "zeek/zeek-config.h"
 
+#include <openssl/evp.h>
+
 #include "zeek/Base64.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"

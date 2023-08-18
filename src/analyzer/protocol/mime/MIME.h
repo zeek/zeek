@@ -1,6 +1,5 @@
 #pragma once
 
-#include <openssl/evp.h>
 #include <cassert>
 #include <cstdio>
 #include <queue>
@@ -9,6 +8,9 @@
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Analyzer.h"
+
+struct evp_md_ctx_st;
+typedef evp_md_ctx_st EVP_MD_CTX;
 
 namespace zeek
 	{

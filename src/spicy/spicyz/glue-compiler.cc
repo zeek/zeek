@@ -1335,6 +1335,12 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
                              {builder::string(ns), builder::string(local), builder::vector(fields)});
     }
 
+    hilti::Expression create_record_field(const hilti::ID& id, const hilti::Expression& type, bool optional,
+                                          bool log) const {
+        return builder::call("zeek_rt::create_record_field",
+                             {builder::string(id), type, builder::bool_(optional), builder::bool_(log)});
+    }
+
     result_t base_type(const char* tag) { return builder::call("zeek_rt::create_base_type", {builder::id(tag)}); }
 
     result_t createZeekType(const hilti::Type& t, const std::optional<hilti::ID>& id_ = {}) {
@@ -1419,8 +1425,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             if ( ! ztype )
                 return ztype.error();
 
-            fields.emplace_back(builder::tuple(
-                {builder::string(f.id()), *ztype, builder::bool_(f.isOptional()), builder::bool_(false)}));
+            fields.emplace_back(create_record_field(f.id(), *ztype, f.isOptional(), false));
         }
 
         return create_record_type(id()->namespace_(), id()->local(), fields);
@@ -1436,8 +1441,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             if ( ! ztype )
                 return ztype.error();
 
-            fields.emplace_back(
-                builder::tuple({builder::string(*f.id()), *ztype, builder::bool_(false), builder::bool_(false)}));
+            fields.emplace_back(create_record_field(*f.id(), *ztype, false, false));
         }
 
         hilti::ID local;
@@ -1466,18 +1470,16 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
 
         std::vector<hilti::Expression> fields;
         for ( const auto& f : gc->recordFields(t) ) {
-            auto field_id = std::get<0>(f);
-            auto export_ = gc->exportForField(*id(), hilti::ID(field_id));
+            auto export_ = gc->exportForField(*id(), hilti::ID(f.id));
 
             if ( export_.skip )
                 continue;
 
-            auto ztype = createZeekType(std::get<1>(f));
+            auto ztype = createZeekType(f.type);
             if ( ! ztype )
                 return ztype.error();
 
-            fields.emplace_back(builder::tuple({builder::string(std::get<0>(f)), *ztype, builder::bool_(std::get<2>(f)),
-                                                builder::bool_(export_.log)}));
+            fields.emplace_back(create_record_field(f.id, *ztype, f.is_optional, export_.log));
         }
 
         return create_record_type(id()->namespace_(), id()->local(), fields);
@@ -1507,11 +1509,13 @@ struct VisitorUnitFields : hilti::visitor::PreOrder<void, VisitorUnitFields> {
         if ( f.isTransient() || f.parseType().isA<hilti::type::Void>() )
             return;
 
-        fields.emplace_back(f.id(), f.itemType(), true);
+        auto field = GlueCompiler::RecordField{.id = f.id(), .type = f.itemType(), .is_optional = true};
+        fields.emplace_back(std::move(field));
     }
 
     void operator()(const ::spicy::type::unit::item::Variable& f, const position_t p) {
-        fields.emplace_back(f.id(), f.itemType(), f.isOptional());
+        auto field = GlueCompiler::RecordField{.id = f.id(), .type = f.itemType(), .is_optional = f.isOptional()};
+        fields.emplace_back(std::move(field));
     }
 
     void operator()(const ::spicy::type::unit::item::Switch& f, const position_t p) {

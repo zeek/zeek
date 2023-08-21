@@ -201,7 +201,12 @@ public:
     /** Generates code to convert a HILTI type to a corresponding Zeek type at runtime. */
     hilti::Result<hilti::Expression> createZeekType(const hilti::Type& t, const hilti::ID& id) const;
 
-    using RecordField = std::tuple<std::string, hilti::Type, bool>; /**< (ID, type, optional) */
+    /** Return type for `recordField()`. */
+    struct RecordField {
+        hilti::ID id;     /**< name of record field */
+        hilti::Type type; /**< Spicy-side type object */
+        bool is_optional; /**< true if field is optional */
+    };
 
     /**
      * Helper to retrieve a list of Zeek-side record fields that converting a

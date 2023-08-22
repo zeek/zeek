@@ -3,6 +3,43 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 6.0.1
+==========
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- Fixed a base64 decoding issue with the authorization field of HTTP request
+  headers that was sometimes causing Zeek to output error messages. Thank you
+  to GitHub user @progmboy for reporting and providing a fix for this issue.
+
+- Ensure that Zeek builds use the internal version of Spicy instead of external
+  installations, unless specifically configured for that mode.
+
+- Support was added for ``switch`` fields when exporting Spicy types to Zeek.
+
+- A number of fixes were added to protect against potential unbounded state
+  growth with the SMB and DCE-RPC analyzers. SMB close requests will properly
+  tear down an related DCE-RPC analyzers. A new ``SMB::max_dce_rpc_analyzers``
+  script variable was added that allows finer control of how many DCE-RPC
+  analyzers are allowed to be created per SMB connection. Thanks to Zeek Slack
+  user Takomi Sugawara for reporting this issue.
+
+- Fixed a regression in the UDP and TCP analyzers that was causing more data
+  than necessary to be forwarded to the next analyzer in the chain. Thanks to
+  Zeek Slack user Hiep Long Tan for reporting this issue.
+
+- A connection's value is now updated in-place when its directionality is
+  flipped due to Zeek's heuristics (for example, SYN/SYN-ACK reversal or
+  protocol specific approaches). Previously, a connection's value was discarded
+  when flipped, including any values set in a ``new_connection()`` handler. A
+  new ``connection_flipped()`` event is added to allow updating custom state in
+  script-land.
+
+- Fixed undefined symbols being reported from Spicy when building some of the
+  binary packages for Zeek.
+
 Zeek 6.0.0
 ==========
 

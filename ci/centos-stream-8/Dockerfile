@@ -21,9 +21,9 @@ RUN dnf -y install \
     openssl \
     openssl-devel \
     procps-ng \
-    python3 \
-    python3-devel \
-    python3-pip\
+    python38 \
+    python38-devel \
+    python38-pip\
     sqlite \
     swig \
     which \

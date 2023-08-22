@@ -131,6 +131,25 @@ struct Event {
     std::vector<ExpressionAccessor> expression_accessors; /**< One HILTI function per expression to access the value. */
 };
 
+/** Representation of an "export" statement parsed from an EVT file. */
+struct Export {
+    hilti::ID spicy_id;
+    hilti::ID zeek_id;
+    hilti::Location location;
+
+    // Additional information for exported record types.
+    bool log_all = false;        /**< mark all fields for logging in exported record */
+    std::set<hilti::ID> with;    /**< fields to include in exported record */
+    std::set<hilti::ID> without; /**<  fields to exclude from exported record */
+    std::set<hilti::ID> logs;    /**< fields to mark for logging in exported record */
+
+    /**
+     * Checks that the information is semantically correct given the provided
+     * type information. Logs any errors and returns false on failure.
+     **/
+    bool validate(const TypeInfo& ti) const;
+};
+
 } // namespace glue
 
 /** Generates the glue code between Zeek and Spicy based on *.evt files. */
@@ -163,10 +182,31 @@ public:
     /** Returns all IDs that have been exported so far. */
     const auto& exportedIDs() const { return _exports; }
 
+    /** Returns the `export` declaration for a specific type given by the Zeek-side ID, if available. */
+    std::optional<glue::Export> exportForZeekID(const hilti::ID& id) const;
+
+    /** Provides `export` details for a given record field. */
+    struct ExportedField {
+        bool skip = false; /**< True if field is not to be included in the exported type. */
+        bool log = false;  /**< True if field is logged. */
+    };
+
+    /**
+     * Retrieves the  `export` details for a given record field. If our EVT
+     * file doesn't mention the field explicitly, the method returns the
+     * default behavior.
+     */
+    ExportedField exportForField(const hilti::ID& zeek_id, const hilti::ID& field_id) const;
+
     /** Generates code to convert a HILTI type to a corresponding Zeek type at runtime. */
     hilti::Result<hilti::Expression> createZeekType(const hilti::Type& t, const hilti::ID& id) const;
 
-    using RecordField = std::tuple<std::string, hilti::Type, bool>; /**< (ID, type, optional) */
+    /** Return type for `recordField()`. */
+    struct RecordField {
+        hilti::ID id;     /**< name of record field */
+        hilti::Type type; /**< Spicy-side type object */
+        bool is_optional; /**< true if field is optional */
+    };
 
     /**
      * Helper to retrieve a list of Zeek-side record fields that converting a
@@ -205,6 +245,7 @@ private:
     glue::FileAnalyzer parseFileAnalyzer(const std::string& chunk);
     glue::PacketAnalyzer parsePacketAnalyzer(const std::string& chunk);
     glue::Event parseEvent(const std::string& chunk);
+    glue::Export parseExport(const std::string& chunk);
 
     /** Computes the missing pieces for all `Event` instances.  */
     bool PopulateEvents();
@@ -221,9 +262,9 @@ private:
     std::map<hilti::ID, std::shared_ptr<glue::SpicyModule>> _spicy_modules;
 
     std::vector<std::pair<hilti::ID, std::optional<hilti::ID>>>
-        _imports; /**< imports from EVT files, with ID and optional scope */
-    std::vector<std::tuple<hilti::ID, hilti::ID, hilti::Location>> _exports; /**< exports from EVT files */
-    std::vector<glue::Event> _events;                                        /**< events parsed from EVT files */
+        _imports;                                            /**< imports from EVT files, with ID and optional scope */
+    std::map<hilti::ID, glue::Export> _exports;              /**< exports from EVT files */
+    std::vector<glue::Event> _events;                        /**< events parsed from EVT files */
     std::vector<glue::ProtocolAnalyzer> _protocol_analyzers; /**< protocol analyzers parsed from EVT files */
     std::vector<glue::FileAnalyzer> _file_analyzers;         /**< file analyzers parsed from EVT files */
     std::vector<glue::PacketAnalyzer> _packet_analyzers;     /**< file analyzers parsed from EVT files */

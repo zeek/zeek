@@ -151,9 +151,17 @@ extern TypePtr create_enum_type(
     const std::string& ns, const std::string& id,
     const hilti::rt::Vector<std::tuple<std::string, hilti::rt::integer::safe<int64_t>>>& labels);
 
-using RecordField = std::tuple<std::string, TypePtr, hilti::rt::Bool>; // (ID, type, optional)
+struct RecordField {
+    std::string id;   /**< name of record field */
+    TypePtr type;     /**< Spicy-side type object */
+    bool is_optional; /**< true if field is optional */
+    bool is_log;      /**< true if field has `&log` */
+};
+
 extern TypePtr create_record_type(const std::string& ns, const std::string& id,
                                   const hilti::rt::Vector<RecordField>& fields);
+extern RecordField create_record_field(const std::string& id, const TypePtr& type, hilti::rt::Bool is_optional,
+                                       hilti::rt::Bool is_log);
 
 extern TypePtr create_table_type(TypePtr key, std::optional<TypePtr> value);
 extern TypePtr create_vector_type(const TypePtr& elem);

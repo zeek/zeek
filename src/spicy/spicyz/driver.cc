@@ -222,11 +222,16 @@ std::vector<TypeInfo> Driver::types() const {
 std::vector<std::pair<TypeInfo, hilti::ID>> Driver::exportedTypes() const {
     std::vector<std::pair<TypeInfo, hilti::ID>> result;
 
-    for ( const auto& [spicy_id, zeek_id, _] : _glue->exportedIDs() ) {
-        if ( auto t = _types.find(spicy_id); t != _types.end() )
-            result.emplace_back(t->second, zeek_id);
+    for ( const auto& i : _glue->exportedIDs() ) {
+        const auto& export_ = i.second;
+        if ( auto t = _types.find(export_.spicy_id); t != _types.end() ) {
+            if ( ! export_.validate(t->second) )
+                continue;
+
+            result.emplace_back(t->second, export_.zeek_id);
+        }
         else {
-            hilti::logger().error(hilti::rt::fmt("unknown type '%s' exported", spicy_id));
+            hilti::logger().error(hilti::rt::fmt("unknown type '%s' exported", export_.spicy_id));
             continue;
         }
     }

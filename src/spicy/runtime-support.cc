@@ -126,18 +126,28 @@ TypePtr rt::create_record_type(const std::string& ns, const std::string& id,
 
     auto decls = std::make_unique<type_decl_list>();
 
-    for ( const auto& [id, type, optional] : fields ) {
+    for ( const auto& f : fields ) {
         auto attrs = make_intrusive<detail::Attributes>(nullptr, true, false);
 
-        if ( optional ) {
+        if ( f.is_optional ) {
             auto optional_ = make_intrusive<detail::Attr>(detail::ATTR_OPTIONAL);
-            attrs->AddAttr(optional_);
+            attrs->AddAttr(std::move(optional_));
         }
 
-        decls->append(new TypeDecl(util::copy_string(id.c_str()), type, std::move(attrs)));
+        if ( f.is_log ) {
+            auto log_ = make_intrusive<detail::Attr>(detail::ATTR_LOG);
+            attrs->AddAttr(std::move(log_));
+        }
+
+        decls->append(new TypeDecl(util::copy_string(f.id.c_str()), f.type, std::move(attrs)));
     }
 
     return make_intrusive<RecordType>(decls.release());
+}
+
+rt::RecordField rt::create_record_field(const std::string& id, const TypePtr& type, hilti::rt::Bool is_optional,
+                                        hilti::rt::Bool is_log) {
+    return rt::RecordField{id, type, is_optional, is_log};
 }
 
 TypePtr rt::create_table_type(TypePtr key, std::optional<TypePtr> value) {

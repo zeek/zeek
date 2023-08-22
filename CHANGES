@@ -1,3 +1,36 @@
+6.1.0-dev.310 | 2023-08-22 14:59:28 +0200
+
+  * GH-3218/GH-3219: Spicy: Extend functionality of `export` in EVT
+    files. (Robin Sommer, Corelight)
+
+    We now support selecting which fields of a unit type get exported into
+    the automatically created Zeek record; as well as selecting which
+    fields get a `&log` attribute added automatically to either all fields
+    or to selected fields.
+
+    Syntax:
+
+    - To export only selected fields:
+
+        export Foo::X with { field1, field3 };
+
+    - To export all but selected fields:
+
+        export Foo::X without { field2, field3 };
+
+    - To `&log` all fields:
+
+        export Foo::X &log;
+
+    - To `&log` only selected fields:
+
+        export Foo::X with { field1 &log, field3 }; # exports (only) field1 and field3, and marks field1 for logging
+
+  * pre-commit: Pin to latest shfmt-py version (Arne Welzel, Corelight)
+
+    This allows users to run shfmt-py with Python > 3.9. Also drop
+    the explicit Python version for the setup-python action.
+
 6.1.0-dev.303 | 2023-08-15 17:33:51 +0100
 
   * Raw reader: use posix_spawn instead of fork + exec (Johanna Amann, Corelight)

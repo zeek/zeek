@@ -3,6 +3,16 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 5.0.10
+===========
+
+This release fixes the following security issues:
+
+This release fixes the following bugs:
+
+- Fixed the DPD signature for the SOCKS analyzer to actually match the format
+  for those packets.
+
 Zeek 5.0.9
 ==========
 

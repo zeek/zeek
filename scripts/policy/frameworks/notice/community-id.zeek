@@ -1,11 +1,9 @@
-# Source this script in addition to protocols/conn/community-id
-# to add Community ID to notices.
+# Source this script to add Community ID to notices.
+# This script will automatically load the main community-id script.
 
-# Only support loading this if the main script is also loaded.
 @load base/protocols/conn
 @load base/frameworks/notice
-
-@ifdef ( CommunityID::seed )
+@load policy/protocols/conn/community-id-logging
 
 module CommunityID::Notice;
 
@@ -23,6 +21,5 @@ export {
 hook Notice::notice(n: Notice::Info)
 	{
 	if ( CommunityID::Notice::enabled && n?$conn )
-		n$community_id = community_id_v1(n$conn$id);
+		n$community_id = community_id_v1(n$conn$id, CommunityID::seed, CommunityID::do_base64);
 	}
-@endif

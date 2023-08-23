@@ -1,3 +1,11 @@
+6.1.0-dev.316 | 2023-08-23 13:04:59 -0700
+
+  * CI: Force alpine image to rebuild (Tim Wojtulewicz, Corelight)
+
+  * CI: Install python3.8 on older distros (Tim Wojtulewicz, Corelight)
+
+  * CI: Remove Ubuntu 18 build (EOL) (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.312 | 2023-08-23 12:31:16 +0100
 
   * Community-id: load main script in notice script, fix notice script (Johanna Amann, Corelight)

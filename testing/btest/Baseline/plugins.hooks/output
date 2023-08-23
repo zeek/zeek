@@ -711,6 +711,9 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 24, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 28, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 30, PacketAnalyzer::ANALYZER_IP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPP, 33, PacketAnalyzer::ANALYZER_IP)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPP, 641, PacketAnalyzer::ANALYZER_MPLS)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPP, 87, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPOE, 33, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPOE, 87, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPSERIAL, 33, PacketAnalyzer::ANALYZER_IP)) -> <no result>
@@ -725,6 +728,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 276, PacketAnalyzer::ANALYZER_LINUXSLL2)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 9, PacketAnalyzer::ANALYZER_PPP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_SNAP, 2048, PacketAnalyzer::ANALYZER_IP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_SNAP, 2054, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_SNAP, 32821, PacketAnalyzer::ANALYZER_ARP)) -> <no result>
@@ -1159,6 +1163,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/pe, <...>/pe) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/plugins, <...>/plugins) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/pop3, <...>/pop3) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/ppp, <...>/ppp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/ppp_serial, <...>/ppp_serial) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/pppoe, <...>/pppoe) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/queue, <...>/queue.zeek) -> -1
@@ -1549,6 +1554,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pe, <...>/pe) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/plugins, <...>/plugins) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pop3, <...>/pop3) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ppp, <...>/ppp) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ppp_serial, <...>/ppp_serial) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pppoe, <...>/pppoe) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/queue, <...>/queue.zeek) -> (-1, <no content>)
@@ -2331,6 +2337,9 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 24, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 28, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_NULL, 30, PacketAnalyzer::ANALYZER_IP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPP, 33, PacketAnalyzer::ANALYZER_IP))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPP, 641, PacketAnalyzer::ANALYZER_MPLS))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPP, 87, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPOE, 33, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPOE, 87, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_PPPSERIAL, 33, PacketAnalyzer::ANALYZER_IP))
@@ -2345,6 +2354,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 276, PacketAnalyzer::ANALYZER_LINUXSLL2))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_ROOT, 9, PacketAnalyzer::ANALYZER_PPP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_SNAP, 2048, PacketAnalyzer::ANALYZER_IP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_SNAP, 2054, PacketAnalyzer::ANALYZER_ARP))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_SNAP, 32821, PacketAnalyzer::ANALYZER_ARP))
@@ -2779,6 +2789,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/pe, <...>/pe)
 0.000000   MetaHookPre   LoadFile(0, base<...>/plugins, <...>/plugins)
 0.000000   MetaHookPre   LoadFile(0, base<...>/pop3, <...>/pop3)
+0.000000   MetaHookPre   LoadFile(0, base<...>/ppp, <...>/ppp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/ppp_serial, <...>/ppp_serial)
 0.000000   MetaHookPre   LoadFile(0, base<...>/pppoe, <...>/pppoe)
 0.000000   MetaHookPre   LoadFile(0, base<...>/queue, <...>/queue.zeek)
@@ -3169,6 +3180,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pe, <...>/pe)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/plugins, <...>/plugins)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pop3, <...>/pop3)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ppp, <...>/ppp)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ppp_serial, <...>/ppp_serial)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pppoe, <...>/pppoe)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/queue, <...>/queue.zeek)
@@ -3950,6 +3962,9 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NULL, 24, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NULL, 28, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_NULL, 30, PacketAnalyzer::ANALYZER_IP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPP, 33, PacketAnalyzer::ANALYZER_IP)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPP, 641, PacketAnalyzer::ANALYZER_MPLS)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPP, 87, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPPOE, 33, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPPOE, 87, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_PPPSERIAL, 33, PacketAnalyzer::ANALYZER_IP)
@@ -3964,6 +3979,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 239, PacketAnalyzer::ANALYZER_NFLOG)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 276, PacketAnalyzer::ANALYZER_LINUXSLL2)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 50, PacketAnalyzer::ANALYZER_PPPSERIAL)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_ROOT, 9, PacketAnalyzer::ANALYZER_PPP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_SNAP, 2048, PacketAnalyzer::ANALYZER_IP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_SNAP, 2054, PacketAnalyzer::ANALYZER_ARP)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_SNAP, 32821, PacketAnalyzer::ANALYZER_ARP)
@@ -4410,6 +4426,7 @@
 0.000000 | HookLoadFile  base<...>/pe <...>/pe
 0.000000 | HookLoadFile  base<...>/plugins <...>/plugins
 0.000000 | HookLoadFile  base<...>/pop3 <...>/pop3
+0.000000 | HookLoadFile  base<...>/ppp <...>/ppp
 0.000000 | HookLoadFile  base<...>/ppp_serial <...>/ppp_serial
 0.000000 | HookLoadFile  base<...>/pppoe <...>/pppoe
 0.000000 | HookLoadFile  base<...>/queue <...>/queue.zeek
@@ -4800,6 +4817,7 @@
 0.000000 | HookLoadFileExtended base<...>/pe <...>/pe
 0.000000 | HookLoadFileExtended base<...>/plugins <...>/plugins
 0.000000 | HookLoadFileExtended base<...>/pop3 <...>/pop3
+0.000000 | HookLoadFileExtended base<...>/ppp <...>/ppp
 0.000000 | HookLoadFileExtended base<...>/ppp_serial <...>/ppp_serial
 0.000000 | HookLoadFileExtended base<...>/pppoe <...>/pppoe
 0.000000 | HookLoadFileExtended base<...>/queue <...>/queue.zeek

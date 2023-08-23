@@ -69,6 +69,11 @@ Changed Functionality
   values set in a ``new_connection()`` handler. A new ``connection_flipped()``
   event is added to allow updating custom state in script-land.
 
+- Loading ``policy/frameworks/notice/community-id.zeek`` now also automatically
+  community ID logging. In the past, loading the script had no effect unless
+  ``policy/protocols/conn/community-id-logging.zeek`` was loaded before. This
+  was fairly unusual and hard to debug behavior.
+
 Removed Functionality
 ---------------------
 

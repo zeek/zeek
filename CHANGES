@@ -1,3 +1,19 @@
+6.1.0-dev.312 | 2023-08-23 12:31:16 +0100
+
+  * Community-id: load main script in notice script, fix notice script (Johanna Amann, Corelight)
+
+    This change makes the community-id script that adds the community id to
+    notice.log automatically load the main script if this was not already
+    loaded.
+
+    In the past, the script just did not perform any action if the main
+    script was not loaded.
+
+    This change also makes the notice script respect the seed/base64
+    settings that were set in the main script.
+
+    Fixes GH-3242
+
 6.1.0-dev.310 | 2023-08-22 14:59:28 +0200
 
   * GH-3218/GH-3219: Spicy: Extend functionality of `export` in EVT

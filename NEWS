@@ -40,6 +40,11 @@ This release fixes the following bugs:
 - Fixed undefined symbols being reported from Spicy when building some of the
   binary packages for Zeek.
 
+- Loading ``policy/frameworks/notice/community-id.zeek`` now also automatically
+  community ID logging. In the past, loading the script had no effect unless
+  ``policy/protocols/conn/community-id-logging.zeek`` was loaded before. This
+  was fairly unusual and hard to debug behavior.
+
 Zeek 6.0.0
 ==========
 

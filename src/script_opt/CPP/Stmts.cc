@@ -78,6 +78,10 @@ void CPPCompile::GenStmt(const Stmt* s)
 			GenForStmt(s->AsForStmt());
 			break;
 
+		case STMT_ASSERT:
+			GenAssertStmt(s->AsAssertStmt());
+			break;
+
 		case STMT_NEXT:
 			Emit("continue;");
 			break;
@@ -89,14 +93,14 @@ void CPPCompile::GenStmt(const Stmt* s)
 				Emit("return false;");
 			break;
 
+		case STMT_FALLTHROUGH:
+			break;
+
 		case STMT_PRINT:
 			{
 			auto el = static_cast<const ExprListStmt*>(s)->ExprList();
 			Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
 			}
-			break;
-
-		case STMT_FALLTHROUGH:
 			break;
 
 		default:
@@ -565,6 +569,35 @@ void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars)
 	auto lv0 = (*loop_vars)[0];
 	if ( ! lv0->IsBlank() )
 		Emit("%s = std::move(sv__CPP);", IDName(lv0));
+	}
+
+void CPPCompile::GenAssertStmt(const AssertStmt* a)
+	{
+	auto& cond = a->Cond();
+	auto& msg = a->Msg();
+
+	Emit("{ // begin a new scope for internal \"assert\" variables");
+	Emit("static auto assertion_result_hook = id::find_func(\"assertion_result\");");
+	Emit("bool run_result_hook = assertion_result_hook && "
+	     "assertion_result_hook->HasEnabledBodies();");
+	Emit("auto assert_result = %s;", GenExpr(cond, GEN_NATIVE));
+	Emit("if ( ! assert_result || run_result_hook )");
+
+	StartBlock();
+	if ( msg )
+		Emit("auto msg_val = %s;", GenExpr(msg, GEN_VAL_PTR));
+	else
+		Emit("auto msg_val = zeek::val_mgr->EmptyString();");
+
+	auto loc = a->GetLocationInfo();
+	Emit("static Location loc(\"%s\", %s, %s, %s, %s);", loc->filename,
+	     std::to_string(loc->first_line), std::to_string(loc->last_line),
+	     std::to_string(loc->first_column), std::to_string(loc->last_column));
+	Emit("report_assert(assert_result, \"%s\", msg_val, &loc);",
+	     CPPEscape(a->CondDesc().c_str()).c_str());
+	EndBlock();
+
+	Emit("} // end of \"assert\" scope");
 	}
 
 	} // zeek::detail

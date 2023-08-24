@@ -77,8 +77,9 @@ void CPPCompile::Compile(bool report_uncompilable)
 			continue;
 			}
 
-		if ( is_when_lambda(f) )
+		if ( is_lambda(f) || is_when_lambda(f) )
 			{
+			// We deal with these separately.
 			func.SetSkip(true);
 			continue;
 			}
@@ -122,8 +123,6 @@ void CPPCompile::Compile(bool report_uncompilable)
 		TypePtr tp{NewRef{}, (Type*)(t)};
 		types.AddKey(tp, pfs.HashType(t));
 		}
-
-	Emit("TypePtr types__CPP[%s];", Fmt(static_cast<int>(types.DistinctKeys().size())));
 
 	NL();
 

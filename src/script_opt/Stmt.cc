@@ -1012,7 +1012,7 @@ StmtPtr WhenStmt::DoReduce(Reducer* c)
 		if ( red_e_stmt )
 			{
 			auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
-			return TransformMe(s, c);
+			return TransformMe(std::move(s), c);
 			}
 		}
 

@@ -309,7 +309,7 @@ StmtPtr Expr::ReduceToSingletons(Reducer* c)
 	if ( op3 && ! op3->IsSingleton(c) )
 		SetOp3(op3->ReduceToSingleton(c, red3_stmt));
 
-	return MergeStmts(red1_stmt, red2_stmt, red3_stmt);
+	return MergeStmts(std::move(red1_stmt), std::move(red2_stmt), std::move(red3_stmt));
 	}
 
 ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt)
@@ -354,7 +354,7 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt)
 				{
 				auto red2_stmt = ReduceToSingletons(c);
 				auto res = ReduceToConditional(c, red_stmt);
-				red_stmt = MergeStmts(red2_stmt, red_stmt);
+				red_stmt = MergeStmts(std::move(red2_stmt), red_stmt);
 				return res;
 				}
 
@@ -611,7 +611,7 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( ! op2->IsSingleton(c) )
 		op2 = op2->ReduceToSingleton(c, red2_stmt);
 
-	red_stmt = MergeStmts(red_stmt, red2_stmt);
+	red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
 	auto op1_fold_val = op1->FoldVal();
 	auto op2_fold_val = op2->FoldVal();
@@ -1528,7 +1528,8 @@ StmtPtr CondExpr::ReduceToSingletons(Reducer* c)
 		if ( ! red3_stmt )
 			red3_stmt = make_intrusive<NullStmt>();
 
-		if_else = make_intrusive<IfStmt>(op1->Duplicate(), red2_stmt, red3_stmt);
+		if_else = make_intrusive<IfStmt>(op1->Duplicate(), std::move(red2_stmt),
+		                                 std::move(red3_stmt));
 		}
 
 	return MergeStmts(red1_stmt, if_else);
@@ -1897,7 +1898,7 @@ StmtPtr IndexExpr::ReduceToSingletons(Reducer* c)
 
 	StmtPtr red2_stmt = op2->ReduceToSingletons(c);
 
-	return MergeStmts(red1_stmt, red2_stmt);
+	return MergeStmts(red1_stmt, std::move(red2_stmt));
 	}
 
 ExprPtr IndexExprWhen::Duplicate()
@@ -1927,7 +1928,7 @@ ExprPtr HasFieldExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( ! op->GetType<RecordType>()->FieldHasAttr(field, ATTR_OPTIONAL) )
 		{
 		auto true_constant = make_intrusive<ConstExpr>(val_mgr->True());
-		return TransformMe(true_constant, c, red_stmt);
+		return TransformMe(std::move(true_constant), c, red_stmt);
 		}
 
 	return UnaryExpr::Reduce(c, red_stmt);
@@ -2334,7 +2335,7 @@ ExprPtr ScheduleExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	// We assume that EventExpr won't transform itself fundamentally.
 	(void)event->Reduce(c, red2_stmt);
 
-	red_stmt = MergeStmts(red_stmt, red2_stmt);
+	red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
 	return ThisPtr();
 	}
@@ -2419,7 +2420,7 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	// ### could check here for (1) pure function, and (2) all
 	// arguments constants, and call it to fold right now.
 
-	red_stmt = MergeStmts(red_stmt, red2_stmt);
+	red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
 	if ( GetType()->Tag() == TYPE_VOID )
 		return ThisPtr();

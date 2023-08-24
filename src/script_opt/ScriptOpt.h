@@ -174,7 +174,8 @@ extern void analyze_lambda(LambdaExpr* f);
 // has already been called.
 extern void analyze_when_lambda(LambdaExpr* f);
 
-// Whether a given script function is a "when" lambda.
+// Whether a given script function is a lambda or (separately) a "when" lambda.
+extern bool is_lambda(const ScriptFunc* f);
 extern bool is_when_lambda(const ScriptFunc* f);
 
 // Analyze the given top-level statement(s) for optimization.  Returns

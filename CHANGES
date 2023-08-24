@@ -1,3 +1,19 @@
+6.1.0-dev.327 | 2023-08-24 12:17:42 -0700
+
+  * updated notes regarding "-O gen-C++" maintenance (Vern Paxson, Corelight)
+
+  * "-O gen-C++" support for "assert" statements (Vern Paxson, Corelight)
+
+  * addressed some nits re "-O gen-C++" script optimization (Vern Paxson, Corelight)
+
+  * fixes for compiling lambdas to C++ (Vern Paxson, Corelight)
+
+  * fixes to avoid ambiguities in analyzing captures for script optimization (Vern Paxson, Corelight)
+
+  * disambiguate lambdas by adding scoping and consideration of captures (Vern Paxson, Corelight)
+
+  * addressed performance and correctness issues flagged by Coverity (Vern Paxson, Corelight)
+
 6.1.0-dev.319 | 2023-08-24 12:26:00 +0200
 
   * PPP: Add PPP analyzer to handle LINKTYPE_PPP (0x9) (Arne Welzel, Corelight)

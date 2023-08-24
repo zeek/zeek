@@ -1935,7 +1935,7 @@ stmt:
 	|	when_clause
 			{
 			std::shared_ptr<WhenInfo> wi($1);
-			$$ = new WhenStmt(wi);
+			$$ = new WhenStmt(std::move(wi));
 			script_coverage_mgr.AddStmt($$);
 			}
 

@@ -59,6 +59,8 @@ New Functionality
   values is not supported. We plan to extend the use of the ``as`` keyword to
   support more type conversions in the future.
 
+- Added new packet analyzer to handle PCAP files DLT_PPP link type.
+
 Changed Functionality
 ---------------------
 

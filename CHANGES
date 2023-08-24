@@ -1,3 +1,16 @@
+6.1.0-dev.319 | 2023-08-24 12:26:00 +0200
+
+  * PPP: Add PPP analyzer to handle LINKTYPE_PPP (0x9) (Arne Welzel, Corelight)
+
+    Using pcaps from https://interop.seemann.io/ as samples for QUIC protocol
+    data didn't produce a conn.log for the contained data. `tcpdump -r`
+    and Wireshark do show the contained IP/UDP packets. Teach Zeek how
+    to handle link type DLT_PPP 0x09 using a new PPP analyzer based on the
+    PPPSerial analyzer code.
+
+    Usual update to files/x509 baseline after adding new analyzer due
+    to enum values changing.
+
 6.1.0-dev.316 | 2023-08-23 13:04:59 -0700
 
   * CI: Force alpine image to rebuild (Tim Wojtulewicz, Corelight)

@@ -814,7 +814,8 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 	if ( t1->Tag() == TYPE_VECTOR )
 		{
 		// We only get here when using a matching vector on the RHS.
-		v2->AsVectorVal()->AddTo(v1, false);
+		if ( ! v2->AsVectorVal()->AddTo(v1, false) )
+			Error("incompatible vector element assignment", v2);
 		return {NewRef{}, v1};
 		}
 
@@ -1683,7 +1684,9 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	else if ( IsVector(bt1) )
 		{
-		if ( same_type(t1, t2) )
+		// We need the IsVector(bt2) check in the following because
+		// same_type() always treats "any" types as "same".
+		if ( IsVector(bt2) && same_type(t1, t2) )
 			{
 			SetType(t1);
 			return;

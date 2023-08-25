@@ -61,6 +61,8 @@ New Functionality
 
 - Added new packet analyzer to handle PCAP files DLT_PPP link type.
 
+- Fixed appending of ``any`` to ``vector of any``.
+
 Changed Functionality
 ---------------------
 

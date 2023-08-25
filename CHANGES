@@ -1,3 +1,9 @@
+6.1.0-dev.331 | 2023-08-25 21:38:40 +0200
+
+  * BTests for any/vector-of-any fixes (Vern Paxson, Corelight)
+
+  * fixes for vector assignments involving "any"/"vector of any" types (Vern Paxson, Corelight)
+
 6.1.0-dev.327 | 2023-08-24 12:17:42 -0700
 
   * updated notes regarding "-O gen-C++" maintenance (Vern Paxson, Corelight)

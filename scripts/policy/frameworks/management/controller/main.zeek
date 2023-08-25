@@ -880,8 +880,6 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 	Management::Log::info(fmt("rx Management::Controller::API::stage_configuration_request %s", reqid));
 
 	local req = Management::Request::create(reqid);
-	local res = Management::Result($reqid=req$id);
-	local config_copy: Management::Configuration;
 
 	if ( ! config_validate(config, req) )
 		{
@@ -892,6 +890,8 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 		    Management::Controller::API::stage_configuration_response, req$id, req$results);
 		return;
 		}
+
+	local res = Management::Result($reqid=req$id);
 
 	if ( ! Management::Controller::auto_assign_ports )
 		{
@@ -915,7 +915,7 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 		}
 
 	g_configs[STAGED] = config;
-	config_copy = copy(config);
+	local config_copy = copy(config);
 
 	if ( Management::Controller::auto_assign_ports )
 		config_assign_ports(config_copy);

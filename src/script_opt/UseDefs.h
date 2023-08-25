@@ -116,7 +116,7 @@ private:
 	void AddInExprUDs(UDs uds, const Expr* e);
 
 	// Add an ID into an existing set of UDs.
-	void AddID(UDs uds, const ID* id) const;
+	void AddID(UDs uds, const ID* id, bool is_direct_use) const;
 
 	// Returns a new use-def corresponding to the given one, but
 	// with the definition of "id" removed.
@@ -151,6 +151,11 @@ private:
 	// (which could be nil).
 	std::unordered_map<const Stmt*, UDs> use_defs_map;
 
+	// As we traverse, tracks which uses were live at return points
+	// but potentially haven't been used between the current analysis
+	// point and those points.
+	UDs uds_live_at_return;
+
 	// The following tracks statements whose use-defs are
 	// currently copies of some other statement's use-defs.
 	std::unordered_set<const Stmt*> UDs_are_copies;
@@ -174,6 +179,7 @@ private:
 	StmtPtr body;
 	std::shared_ptr<Reducer> rc;
 	FuncTypePtr ft;
+	std::unordered_set<const ID*> capture_ids;
 	};
 
 	} // zeek::detail

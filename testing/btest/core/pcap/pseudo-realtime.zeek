@@ -10,6 +10,16 @@ global ac = 0secs;
 
 event new_packet(c: connection, p: pkt_hdr)
 	{
+	++cnt;
+
+	if ( ! init ) 
+		{
+		last_network = network_time();
+		last_current = current_time();
+		init = T;
+		return;
+		}
+
 	local tn = network_time();
 	local tc = current_time();
 	local dn = tn - last_network;
@@ -17,13 +27,6 @@ event new_packet(c: connection, p: pkt_hdr)
 
 	last_network = tn;
 	last_current = tc;
-	++cnt;
-
-	if ( ! init ) 
-		{
-		init = T;
-		return;
-		}
 
 	an += dn;
 	ac += dc;

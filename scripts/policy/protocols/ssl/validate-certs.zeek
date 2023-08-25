@@ -147,7 +147,6 @@ hook ssl_finishing(c: connection) &priority=20
 
 	local intermediate_chain: vector of opaque of x509 = vector();
 	local issuer_name_hash = x509_issuer_name_hash(c$ssl$cert_chain[0]$x509$handle, 4); # SHA256
-	local hash = c$ssl$cert_chain[0]$sha1;
 	local result: X509::Result;
 
 	# Look if we already have a working chain for the issuer of this cert.
@@ -188,6 +187,7 @@ hook ssl_finishing(c: connection) &priority=20
 
 	if ( result$result_string != "ok" )
 		{
+		local hash = c$ssl$cert_chain[0]$sha1;
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
 		NOTICE([$note=Invalid_Server_Cert, $msg=message,
 		        $sub=c$ssl$cert_chain[0]$x509$certificate$subject, $conn=c,

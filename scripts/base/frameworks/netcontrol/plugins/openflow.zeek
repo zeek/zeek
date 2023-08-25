@@ -102,10 +102,10 @@ function openflow_name(p: PluginState) : string
 
 function openflow_check_rule(p: PluginState, r: Rule) : bool
 	{
-	local c = p$of_config;
-
 	if ( p$of_config?$check_pred )
 		return p$of_config$check_pred(p, r);
+
+	local c = p$of_config;
 
 	if ( r$target == MONITOR && c$monitor )
 		return T;
@@ -360,7 +360,6 @@ event OpenFlow::flow_mod_success(name: string, match: OpenFlow::ofp_match, flow_
 		return;
 
 	local r = of_messages[id,flow_mod$command]$r;
-	local p = of_messages[id,flow_mod$command]$p;
 
 	if ( r$entity$ty == ADDRESS || r$entity$ty == MAC )
 		{
@@ -368,6 +367,8 @@ event OpenFlow::flow_mod_success(name: string, match: OpenFlow::ofp_match, flow_
 		if ( of_messages[id,flow_mod$command]$c < 2 )
 			return; # will do stuff once the second part arrives...
 		}
+
+	local p = of_messages[id,flow_mod$command]$p;
 
 	delete of_messages[id,flow_mod$command];
 

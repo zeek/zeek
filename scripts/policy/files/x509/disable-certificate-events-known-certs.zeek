@@ -52,11 +52,11 @@ hook X509::x509_certificate_cache_replay(f: fa_file, e: X509::Info, sha256: stri
 	if ( f$info?$x509 || e$always_raise_x509_events )
 		return;
 
-	local raise_events = F;
-
 	# not sure how that could happen - but let's be safe...
 	if ( |f$conns| == 0 )
 		return;
+
+	local raise_events = F;
 
 	for ( c in f$conns )
 		{

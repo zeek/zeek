@@ -22,12 +22,18 @@ UseDefs::UseDefs(StmtPtr _body, std::shared_ptr<Reducer> _rc, FuncTypePtr _ft)
 	body = std::move(_body);
 	rc = std::move(_rc);
 	ft = std::move(_ft);
+
+	auto& captures = ft->GetCaptures();
+	if ( captures )
+		for ( auto& c : *captures )
+			capture_ids.insert(c.Id().get());
 	}
 
 void UseDefs::Analyze()
 	{
 	// Start afresh.
 	use_defs_map.clear();
+	uds_live_at_return = std::make_shared<UseDefSet>();
 	UDs_are_copies.clear();
 	stmts.clear();
 	successor.clear();
@@ -245,7 +251,6 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 		case STMT_CHECK_ANY_LEN:
 		case STMT_ADD:
 		case STMT_DELETE:
-		case STMT_RETURN:
 			{
 			auto e = static_cast<const ExprStmt*>(s)->StmtExpr();
 
@@ -253,6 +258,41 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 				return CreateExprUDs(s, e, succ_UDs);
 			else
 				return UseUDs(s, succ_UDs);
+			}
+
+		case STMT_RETURN:
+			{
+			if ( succ_UDs && ! second_pass )
+				for ( auto& id : succ_UDs->IterateOver() )
+					{
+					// printf("adding %s to live-at-return\n", id->Name());
+					uds_live_at_return->Add(id);
+					}
+
+			auto e = static_cast<const ReturnStmt*>(s)->StmtExpr();
+			UDs uds;
+
+			if ( e )
+				uds = CreateExprUDs(s, e, succ_UDs);
+			else
+				uds = UseUDs(s, succ_UDs);
+
+			if ( uds && uds != succ_UDs && ! second_pass )
+				for ( auto& id : uds->IterateOver() )
+					if ( (! succ_UDs || ! succ_UDs->HasID(id)) && uds_live_at_return->HasID(id) )
+						{
+						// printf("removing %s from live-at-return because in return expr\n", id->Name());
+						uds_live_at_return->Remove(id);
+						}
+
+			if ( ! second_pass && false )
+				{
+				printf("live-at-return for %s: ", obj_desc(s).c_str());
+				uds_live_at_return->Dump();
+				printf("\n");
+				}
+
+			return uds;
 			}
 
 		case STMT_EXPR:
@@ -272,6 +312,9 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
 			auto lhs_var = lhs_ref->GetOp1();
 			auto lhs_id = lhs_var->AsNameExpr()->Id();
+			if ( ! second_pass && uds_live_at_return->HasID(lhs_id) && capture_ids.count(lhs_id) == 0 && ! lhs_id->IsGlobal() )
+				printf("identifier %s has a path to a return w/o use\n", obj_desc(lhs_id).c_str());
+
 			auto lhs_UDs = RemoveID(lhs_id, succ_UDs);
 			auto rhs_UDs = ExprUDs(a->GetOp2().get());
 			auto uds = UD_Union(lhs_UDs, rhs_UDs);
@@ -285,11 +328,11 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 		case STMT_IF:
 			{
 			auto i = s->AsIfStmt();
-			auto cond = i->StmtExpr();
 
-			auto cond_UDs = ExprUDs(cond);
 			auto true_UDs = PropagateUDs(i->TrueBranch(), succ_UDs, succ_stmt, second_pass);
 			auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs, succ_stmt, second_pass);
+
+			auto cond_UDs = ExprUDs(i->StmtExpr());
 
 			return CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
 			}
@@ -556,7 +599,7 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			break;
 
 		case EXPR_NAME:
-			AddID(uds, e->AsNameExpr()->Id());
+			AddID(uds, e->AsNameExpr()->Id(), true);
 			break;
 
 		case EXPR_LIST:
@@ -596,7 +639,7 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			{
 			auto outer_ids = e->AsLambdaExpr()->OuterIDs();
 			for ( auto& i : outer_ids )
-				AddID(uds, i);
+				AddID(uds, i, true);
 			break;
 			}
 
@@ -610,9 +653,14 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 		}
 	}
 
-void UseDefs::AddID(UDs uds, const ID* id) const
+void UseDefs::AddID(UDs uds, const ID* id, bool is_direct_use) const
 	{
 	uds->Add(id);
+	if ( is_direct_use && uds_live_at_return->HasID(id) )
+		{
+		// printf("removing %s from live-at-return\n", id->Name());
+		uds_live_at_return->Remove(id);
+		}
 	}
 
 UDs UseDefs::RemoveID(const ID* id, const UDs& uds)
@@ -684,11 +732,11 @@ UDs UseDefs::UD_Union(const UDs& u1, const UDs& u2, const UDs& u3) const
 
 	if ( u2 )
 		for ( auto& u : u2->IterateOver() )
-			AddID(new_uds, u);
+			AddID(new_uds, u, false);
 
 	if ( u3 )
 		for ( auto& u : u3->IterateOver() )
-			AddID(new_uds, u);
+			AddID(new_uds, u, false);
 
 	return new_uds;
 	}

@@ -120,7 +120,6 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 		return;
 
 	local c = info$c;
-	local aid = info$aid;
 	local size = c$orig$size + c$resp$size;
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
@@ -130,6 +129,8 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 		local s: State;
 		c$dpd_state = s;
 		}
+
+	local aid = info$aid;
 
 	if ( aid in c$dpd_state$violations )
 		++c$dpd_state$violations[aid];

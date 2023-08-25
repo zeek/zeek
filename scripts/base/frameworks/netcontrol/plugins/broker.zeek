@@ -130,10 +130,10 @@ function broker_name(p: PluginState) : string
 
 function broker_check_rule(p: PluginState, r: Rule) : bool
 	{
-	local c = p$broker_config;
-
 	if ( p$broker_config?$check_pred )
 		return p$broker_config$check_pred(p, r);
+
+	local c = p$broker_config;
 
 	if ( r$target == MONITOR && c$monitor )
 		return T;

@@ -181,11 +181,12 @@ function rr_topic(pool: Pool, key: string): string
 		pool$rr_key_seq[key] = 0;
 
 	local next_idx = pool$rr_key_seq[key];
-	local start = next_idx;
 	local rval = "";
 
 	if ( next_idx >= |pool$node_list| )
 		return rval;
+
+	local start = next_idx;
 
 	while ( T )
 		{

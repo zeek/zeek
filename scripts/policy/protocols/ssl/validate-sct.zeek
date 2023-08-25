@@ -81,10 +81,10 @@ event ssl_extension_signed_certificate_timestamp(c: connection, is_client: bool,
 
 event x509_ocsp_ext_signed_certificate_timestamp(f: fa_file, version: count, logid: string, timestamp: count, hash_algorithm: count, signature_algorithm: count, signature: string) &priority=5
 	{
-	local src: SctSource;
 	if ( ! f?$info )
 		return;
 
+	local src: SctSource;
 	if ( f$source == "SSL" && f$info$mime_type == "application/ocsp-response" )
 		src = SCT_OCSP_EXT;
 	else if ( f$source == "SSL" && f$info$mime_type == "application/x-x509-user-cert" )

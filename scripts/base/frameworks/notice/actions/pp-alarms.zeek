@@ -64,9 +64,6 @@ function pp_send(rinfo: Log::RotationInfo)
 	close(pp_alarms);
 	pp_alarms_open = F;
 
-	local from = strftime("%H:%M:%S", rinfo$open);
-	local to = strftime("%H:%M:%S", rinfo$close);
-	local subject = fmt("Alarm summary from %s-%s", from, to);
 	local dest = mail_dest_pretty_printed != "" ? mail_dest_pretty_printed
 		: mail_dest;
 
@@ -75,6 +72,9 @@ function pp_send(rinfo: Log::RotationInfo)
 		# testing.
 		return;
 
+	local from = strftime("%H:%M:%S", rinfo$open);
+	local to = strftime("%H:%M:%S", rinfo$close);
+	local subject = fmt("Alarm summary from %s-%s", from, to);
 	local headers = email_headers(subject, dest);
 
 	local header_name = pp_alarms_name + ".tmp";

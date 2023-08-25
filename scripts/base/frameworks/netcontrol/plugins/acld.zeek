@@ -218,10 +218,10 @@ function rule_to_acl_rule(p: PluginState, r: Rule) : AclRule
 
 function acld_check_rule(p: PluginState, r: Rule) : bool
 	{
-	local c = p$acld_config;
-
 	if ( p$acld_config?$check_pred )
 		return p$acld_config$check_pred(p, r);
+
+	local c = p$acld_config;
 
 	if ( r$target == MONITOR && c$monitor )
 		return T;

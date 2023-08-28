@@ -1,3 +1,17 @@
+6.1.0-dev.343 | 2023-08-28 20:07:16 +0200
+
+  * cmake: Bump submodule for removal of NEED_KRB5_H (Arne Welzel, Corelight)
+
+  * zeek-config.h: Drop NEED_KRB5_H (Arne Welzel, Corelight)
+
+    This is unused in the Zeek tree after the previous commit, remove it
+    from zeek-config.h
+
+  * File: Drop krb5.h include (Arne Welzel, Corelight)
+
+    It looks as if krb5.h was only ever needed together with OpenSSL, then
+    OpenSSL includes were removed, but the krb5.h ones stayed around.
+
 6.1.0-dev.339 | 2023-08-28 10:53:37 -0700
 
   * change Trigger constructor to not potentially auto-delete itself (Vern Paxson, Corelight)

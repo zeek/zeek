@@ -80,9 +80,6 @@
 /* Define if you have the <sys/ethernet.h> header file. */
 #cmakedefine HAVE_SYS_ETHERNET_H
 
-/* Include krb5.h */
-#cmakedefine NEED_KRB5_H
-
 /* Compatibility for Darwin */
 #cmakedefine NEED_NAMESER_COMPAT_H
 

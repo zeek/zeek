@@ -12,6 +12,12 @@ set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_dependency(Threads REQUIRED)
 
+# Find OpenSSL and Forward hints from Zeek's build config.
+set(ZeekOpenSSLHint "@ZeekOpenSSLHint@")
+if (ZeekOpenSSLHint AND NOT OPENSSL_ROOT_DIR)
+    set(OPENSSL_ROOT_DIR "${ZeekOpenSSLHint}" CACHE
+        PATH "Directory hint for finding OpenSSL" FORCE)
+endif ()
 find_dependency(OpenSSL REQUIRED)
 
 # In our MSVC build, we have these extra dependencies from Conan.

@@ -91,6 +91,15 @@ Deprecated Functionality
 - Accessing globals with ``GLOBAL::name`` has been deprecated and will be
   removed with Zeek 7.1. Use ``::name`` instead.
 
+- The original ``trigger::Trigger`` constructor has been deprecated and will
+  be removed with Zeek 7.1. Use the new alternative constructor
+  (per ``src/Trigger.h``) instead, including replacing any use of ``new ...``
+  with ``make_intrusive<...>``. The new constructor differs only in the
+  placement of the ``timeout`` parameter, and in that - unlike the original -
+  it always returns a valid pointer, which must be Unref()'d after
+  construction, either explicitly (if using ``new``) or implicitly
+  (if using ``make_intrusive<...>``).
+
 Zeek 6.0.0
 ==========
 

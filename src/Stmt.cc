@@ -2268,8 +2268,8 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 			local_aggrs.emplace_back(std::move(v));
 		}
 
-	// The new trigger object will take care of its own deletion.
-	new trigger::Trigger(wi, timeout, wi->WhenExprGlobals(), local_aggrs, f, location);
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f,
+	                                       location);
 
 	return nullptr;
 	}

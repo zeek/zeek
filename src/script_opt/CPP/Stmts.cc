@@ -438,13 +438,9 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 	Emit("new_frame->SetTrigger({NewRef{}, curr_t});");
 	Emit("new_frame->SetTriggerAssoc(curr_assoc);");
 
-	Emit("auto t = new trigger::Trigger(CPP__wi, %s, CPP__w_globals, CPP__local_aggrs, "
-	     "new_frame.get(), "
-	     "nullptr);",
+	Emit("auto t = make_intrusive<trigger::Trigger>(CPP__wi, CPP__w_globals, CPP__local_aggrs, %s, "
+	     "new_frame.get());",
 	     timeout_val);
-
-	auto loc_str = util::fmt("%s:%d-%d", loc->filename, loc->first_line, loc->last_line);
-	Emit("t->SetName(\"%s\");", loc_str);
 
 	if ( ret_type && ret_type->Tag() != TYPE_VOID )
 		{

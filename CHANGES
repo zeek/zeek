@@ -1,3 +1,7 @@
+6.1.0-dev.339 | 2023-08-28 10:53:37 -0700
+
+  * change Trigger constructor to not potentially auto-delete itself (Vern Paxson, Corelight)
+
 6.1.0-dev.337 | 2023-08-28 12:56:14 +0200
 
   * Update doc, cmake submodules for installing .spicy files (Arne Welzel, Corelight)

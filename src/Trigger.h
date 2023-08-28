@@ -43,13 +43,33 @@ class TriggerTraversalCallback;
 class Trigger final : public Obj, public notifier::detail::Receiver
 	{
 public:
-	// Don't access Trigger objects; they take care of themselves after
-	// instantiation.  Note that if the condition is already true, the
-	// statements are executed immediately and the object is deleted
-	// right away.
+	// This first constructor can return an invalid pointer, so
+	// its value must not be used further.
+	[[deprecated("Remove in v7.1.  Use second Trigger constructor via "
+	             "make_intrusive<...>.")]] Trigger(std::shared_ptr<WhenInfo> wi, double timeout,
+	                                               const IDSet& globals,
+	                                               std::vector<ValPtr> local_aggrs, Frame* f,
+	                                               const Location* loc);
 
-	Trigger(std::shared_ptr<WhenInfo> wi, double timeout, const IDSet& globals,
-	        std::vector<ValPtr> local_aggrs, Frame* f, const Location* loc);
+	// Use this constructor via make_intrusive<...>. The usual pattern is
+	// to then discard what's returned, i.e. "(void)make_intrusive<...>" -
+	// however, a valid pointer will be returned that can be used for
+	// subsequent method calls.
+	//
+	// The reason for this complexity is that if the trigger condition
+	// is true upon construction, after construction finishes there's
+	// no more to do and the object should be deleted (Unref()'d).
+	// If the condition is not true, then the constructor ensures that
+	// the object will be tracked via sufficient Ref()'ing for further
+	// processing and eventual deletion once the trigger is satisfied
+	// or times out.
+	//
+	// Note that this constructor differs from the deprecated one only
+	// in where the "timeout" parameter appears, and in making the "loc"
+	// parameter optional. ("loc" is only used for internal logging when
+	// debugging triggers.)
+	Trigger(std::shared_ptr<WhenInfo> wi, const IDSet& globals, std::vector<ValPtr> local_aggrs,
+	        double timeout, Frame* f, const Location* loc = nullptr);
 
 	~Trigger() override;
 
@@ -104,7 +124,6 @@ public:
 	void Terminate() override;
 
 	const char* Name() const { return name.c_str(); }
-	void SetName(const char* new_name) { name = new_name; }
 
 private:
 	friend class TriggerTimer;

@@ -171,7 +171,7 @@ zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::Co
 	                                  pkt->ip_hdr->FlowLabel(), pkt);
 	conn->SetTransport(transport);
 
-	if ( flip )
+	if ( flip && ! id->dst_addr.IsBroadcast() )
 		conn->FlipRoles();
 
 	BuildSessionAnalyzerTree(conn);

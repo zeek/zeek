@@ -1,3 +1,15 @@
+6.1.0-dev.336 | 2023-08-28 12:19:45 +0200
+
+  * testing: Bump external test suite (Arne Welzel, Corelight)
+
+  * dhcp: Handle is_orig=T for connections from server to 255.255.255.255 (Arne Welzel, Corelight)
+
+    This works around the new semantics of is_orig=T for "connections"
+    from DHCP servers to broadcast addresses. IMO, having the server address
+    as originator in the conn.log is still more intuitive.
+
+  * GH-3235: IPBasedAnalyzer: Don't flip connections when destination is broadcast (Arne Welzel, Corelight)
+
 6.1.0-dev.331 | 2023-08-25 21:38:40 +0200
 
   * BTests for any/vector-of-any fixes (Vern Paxson, Corelight)

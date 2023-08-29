@@ -8,15 +8,13 @@ repos:
   - id: clang-format
 
 - repo: https://github.com/maxwinterstein/shfmt-py
-  # Latest master revision as of 2023-08-17 allows to run with modern Python
-  # versions. Switch this back to a tag once there is one :-)
-  rev: d4491d8
+  rev: v3.7.0.1
   hooks:
     - id: shfmt
       args: ["-w", "-i", "4", "-ci"]
 
-- repo: https://github.com/pre-commit/mirrors-yapf
-  rev: v0.31.0
+- repo: https://github.com/google/yapf
+  rev: v0.40.0
   hooks:
   - id: yapf
 
@@ -27,7 +25,7 @@ repos:
     exclude: '^auxil/.*$'
 
 - repo: https://github.com/crate-ci/typos
-  rev: v1.15.0
+  rev: v1.16.8
   hooks:
     - id: typos
       exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES)$'

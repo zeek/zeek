@@ -162,6 +162,7 @@ connection {
               * ts: time, log=F, optional=F
              }
         * command: string, log=T, optional=T
+        * command_seq: count, log=F, optional=T
         * cwd: string, log=F, optional=T
         * data_channel: record FTP::ExpectedDataChannel, log=T, optional=T
             FTP::ExpectedDataChannel {

@@ -78,9 +78,9 @@ export {
 	};
 }
 
-function add_pending_cmd(pc: PendingCmds, cmd: string, arg: string): CmdArg
+function add_pending_cmd(pc: PendingCmds, seq: count, cmd: string, arg: string): CmdArg
 	{
-	local ca = [$cmd = cmd, $arg = arg, $seq=|pc|+1, $ts=network_time()];
+	local ca = [$cmd = cmd, $arg = arg, $seq=seq, $ts=network_time()];
 	pc[ca$seq] = ca;
 
 	return ca;

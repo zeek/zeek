@@ -64,6 +64,9 @@ export {
 		## to are tracked here.
 		pending_commands:   PendingCmds;
 
+		## Sequence number of previous command.
+		command_seq:        count &default=0;
+
 		## Indicates if the session is in active or passive mode.
 		passive:            bool &default=F;
 

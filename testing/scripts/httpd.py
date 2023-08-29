@@ -4,6 +4,7 @@ import http.server as BaseHTTPServer
 
 
 class MyRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")

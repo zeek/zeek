@@ -1,3 +1,11 @@
+6.1.0-dev.346 | 2023-08-29 09:39:10 +0200
+
+  * pre-commit: autoupdate (Arne Welzel, Corelight)
+
+    ...except for clang-format, because versions after v13.0.0 have
+    borked the Whitesmith formatting. Also moves yapf from
+    pre-commit/mirrors-yapf to google/yapf.
+
 6.1.0-dev.343 | 2023-08-28 20:07:16 +0200
 
   * cmake: Bump submodule for removal of NEED_KRB5_H (Arne Welzel, Corelight)

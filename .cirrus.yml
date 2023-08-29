@@ -260,10 +260,10 @@ opensuse_tumbleweed_task:
   << : *CI_TEMPLATE
 #  << : *SKIP_TASK_ON_PR
 
-ubuntu2210_task:
+ubuntu23_task:
   container:
-    # Ubuntu 22.10 EOL: July 2023
-    dockerfile: ci/ubuntu-22.10/Dockerfile
+    # Ubuntu 23.04 EOL: January 2024
+    dockerfile: ci/ubuntu-23.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 

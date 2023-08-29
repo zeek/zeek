@@ -1,3 +1,9 @@
+6.1.0-dev.349 | 2023-08-29 09:11:21 -0700
+
+  * CI: Add ubuntu 23.04 build (Tim Wojtulewicz, Corelight)
+
+  * CI: Remove EOL ubuntu 22.10 build (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.346 | 2023-08-29 09:39:10 +0200
 
   * pre-commit: autoupdate (Arne Welzel, Corelight)

@@ -290,7 +290,8 @@ add_library(zeek_dynamic_plugin_base INTERFACE)
 target_include_directories(
     zeek_dynamic_plugin_base
     INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> "${OPENSSL_INCLUDE_DIR}")
+target_link_libraries(zeek_dynamic_plugin_base INTERFACE Threads::Threads)
 add_library(Zeek::DynamicPluginBase ALIAS zeek_dynamic_plugin_base)
 set_target_properties(zeek_dynamic_plugin_base PROPERTIES EXPORT_NAME DynamicPluginBase)
 install(TARGETS zeek_dynamic_plugin_base EXPORT ZeekTargets)
@@ -750,7 +751,7 @@ endif ()
 
 # Forward user-defined hint for OpenSSL to the plugins. Use a cache variable to
 # make sure this variable survives CMake re-runs. Note: This variable is picked
-# up in ZeekPluginConfig.cmake.in.
+# up in ZeekPluginConfig.cmake.in and ZeekConfig.cmake.in.
 if (OPENSSL_ROOT_DIR)
     set(ZeekOpenSSLHint "${OPENSSL_ROOT_DIR}" CACHE INTERNAL "" FORCE)
 elseif (DEFINED ENV{OPENSSL_ROOT_DIR})

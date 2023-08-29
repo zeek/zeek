@@ -1,7 +1,3 @@
-6.1.0-dev.351 | 2023-08-29 12:07:42 -0700
-
-  * Forward OpenSSL include path to plugins (Dominik Charousset, Corelight)
-
 6.1.0-dev.349 | 2023-08-29 09:11:21 -0700
 
   * CI: Add ubuntu 23.04 build (Tim Wojtulewicz, Corelight)

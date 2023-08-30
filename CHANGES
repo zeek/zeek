@@ -1,3 +1,15 @@
+6.1.0-dev.356 | 2023-08-30 11:24:51 +0200
+
+  * testing/external: Exclude telemetry.log from baselines (Arne Welzel, Corelight)
+
+    The diffs produced by telemetry.log when introducing a weird or
+    removing/adding protocol specific logs is overwhelming and distracting
+    without providing value. Exclude telemetry.log similar to how we already
+    exclude stats.log.
+
+    Some more targeted telemetry.log tests exists in the normal testing/btest
+    suite and that appears more sensible.
+
 6.1.0-dev.354 | 2023-08-29 12:13:51 -0700
 
   * Forward OpenSSL include path to plugins (Dominik Charousset, Corelight)

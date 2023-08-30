@@ -32,22 +32,22 @@ namespace detail {
 class ProtocolStats {
 public:
     struct Protocol {
-        telemetry::IntGauge active;
-        telemetry::IntCounter total;
+        std::shared_ptr<telemetry::IntGauge> active;
+        std::shared_ptr<telemetry::IntCounter> total;
         ssize_t max = 0;
 
-        Protocol(telemetry::IntGaugeFamily active_family, telemetry::IntCounterFamily total_family,
-                 std::string protocol)
-            : active(active_family.GetOrAdd({{"protocol", protocol}})),
-              total(total_family.GetOrAdd({{"protocol", protocol}})) {}
+        Protocol(std::shared_ptr<telemetry::IntGaugeFamily> active_family,
+                 std::shared_ptr<telemetry::IntCounterFamily> total_family, std::string protocol)
+            : active(active_family->GetOrAdd({{"protocol", protocol}})),
+              total(total_family->GetOrAdd({{"protocol", protocol}})) {}
     };
 
     using ProtocolMap = std::map<std::string, Protocol>;
 
     ProtocolMap::iterator InitCounters(const std::string& protocol) {
-        telemetry::IntGaugeFamily active_family =
+        auto active_family =
             telemetry_mgr->GaugeFamily("zeek", "active-sessions", {"protocol"}, "Active Zeek Sessions");
-        telemetry::IntCounterFamily total_family =
+        auto total_family =
             telemetry_mgr->CounterFamily("zeek", "total-sessions", {"protocol"}, "Total number of sessions", "1", true);
 
         auto [it, inserted] = entries.insert({protocol, Protocol{active_family, total_family, protocol}});
@@ -116,7 +116,7 @@ void Manager::Remove(Session* s) {
         else {
             Connection* c = static_cast<Connection*>(s);
             if ( auto* stat_block = stats->GetCounters(c->TransportIdentifier()) )
-                stat_block->active.Dec();
+                stat_block->active->Dec();
         }
 
         // Mark that the session isn't in the table so that in case the
@@ -190,18 +190,18 @@ void Manager::Clear() {
 void Manager::GetStats(Stats& s) {
     auto* tcp_stats = stats->GetCounters("tcp");
     s.max_TCP_conns = tcp_stats->max;
-    s.num_TCP_conns = tcp_stats->active.Value();
-    s.cumulative_TCP_conns = tcp_stats->total.Value();
+    s.num_TCP_conns = tcp_stats->active->Value();
+    s.cumulative_TCP_conns = tcp_stats->total->Value();
 
     auto* udp_stats = stats->GetCounters("udp");
     s.max_UDP_conns = udp_stats->max;
-    s.num_UDP_conns = udp_stats->active.Value();
-    s.cumulative_UDP_conns = udp_stats->total.Value();
+    s.num_UDP_conns = udp_stats->active->Value();
+    s.cumulative_UDP_conns = udp_stats->total->Value();
 
     auto* icmp_stats = stats->GetCounters("icmp");
     s.max_ICMP_conns = icmp_stats->max;
-    s.num_ICMP_conns = icmp_stats->active.Value();
-    s.cumulative_ICMP_conns = icmp_stats->total.Value();
+    s.num_ICMP_conns = icmp_stats->active->Value();
+    s.cumulative_ICMP_conns = icmp_stats->total->Value();
 
     s.num_fragments = zeek::detail::fragment_mgr->Size();
     s.max_fragments = zeek::detail::fragment_mgr->MaxFragments();
@@ -238,10 +238,10 @@ void Manager::InsertSession(detail::Key key, Session* session) {
     std::string protocol = session->TransportIdentifier();
 
     if ( auto* stat_block = stats->GetCounters(protocol) ) {
-        stat_block->active.Inc();
-        stat_block->total.Inc();
+        stat_block->active->Inc();
+        stat_block->total->Inc();
 
-        if ( stat_block->active.Value() > stat_block->max )
+        if ( stat_block->active->Value() > stat_block->max )
             stat_block->max++;
     }
 }

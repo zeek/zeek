@@ -173,11 +173,11 @@ public:
     auto CounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
                        std::string_view helptext, std::string_view unit = "1", bool is_sum = false) {
         if constexpr ( std::is_same<ValueType, int64_t>::value ) {
-            return IntCounterFamily{prefix, name, labels, helptext, unit, is_sum};
+            return std::make_shared<IntCounterFamily>(prefix, name, labels, helptext, unit, is_sum);
         }
         else {
             static_assert(std::is_same<ValueType, double>::value, "metrics only support int64_t and double values");
-            return DblCounterFamily{prefix, name, labels, helptext, unit, is_sum};
+            return std::make_shared<DblCounterFamily>(prefix, name, labels, helptext, unit, is_sum);
         }
     }
 
@@ -232,11 +232,11 @@ public:
     auto GaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
                      std::string_view helptext, std::string_view unit = "1", bool is_sum = false) {
         if constexpr ( std::is_same<ValueType, int64_t>::value ) {
-            return IntGaugeFamily{prefix, name, labels, helptext, unit, is_sum};
+            return std::make_shared<IntGaugeFamily>(prefix, name, labels, helptext, unit, is_sum);
         }
         else {
             static_assert(std::is_same<ValueType, double>::value, "metrics only support int64_t and double values");
-            return DblGaugeFamily{prefix, name, labels, helptext, unit, is_sum};
+            return std::make_shared<DblGaugeFamily>(prefix, name, labels, helptext, unit, is_sum);
         }
     }
 
@@ -315,12 +315,12 @@ public:
                          std::string_view unit = "1", bool is_sum = false) {
         if constexpr ( std::is_same<ValueType, int64_t>::value ) {
             // TODO: pass upper bounds
-            return IntHistogramFamily{prefix, name, labels, helptext, unit, is_sum};
+            return std::make_shared<IntHistogramFamily>(prefix, name, labels, helptext, unit, is_sum);
         }
         else {
             static_assert(std::is_same<ValueType, double>::value, "metrics only support int64_t and double values");
             // TODO: pass upper bounds
-            return DblHistogramFamily{prefix, name, labels, helptext, unit, is_sum};
+            return std::make_shared<DblHistogramFamily>(prefix, name, labels, helptext, unit, is_sum);
         }
     }
 

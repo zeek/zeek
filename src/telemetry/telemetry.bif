@@ -129,9 +129,9 @@ function Telemetry::__int_counter_metric_get_or_add%(family: opaque of int_count
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntCounterMetricVal>(res);
 			}
 		else
@@ -150,14 +150,14 @@ function Telemetry::__int_counter_metric_get_or_add%(family: opaque of int_count
 function Telemetry::__int_counter_inc%(val: opaque of int_counter_metric,
                                        amount: int &default = 1%): bool
 	%{
-	return with<IntCounterMetricVal>(val, "Telemetry::int_counter_inc: invalid handle.", [amount](auto hdl) { hdl.Inc(amount); });
+	return with<IntCounterMetricVal>(val, "Telemetry::int_counter_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__int_counter_value%(val: opaque of int_counter_metric%): int
 	%{
 	if ( auto ptr = dynamic_cast<zeek::IntCounterMetricVal*>(val) )
 		{
-		return zeek::val_mgr->Int(ptr->GetHandle().Value());
+		return zeek::val_mgr->Int(ptr->GetHandle()->Value());
 		}
 	else
 		{
@@ -189,9 +189,9 @@ function Telemetry::__dbl_counter_metric_get_or_add%(family: opaque of dbl_count
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblCounterMetricVal>(res);
 			}
 		else
@@ -210,14 +210,14 @@ function Telemetry::__dbl_counter_metric_get_or_add%(family: opaque of dbl_count
 function Telemetry::__dbl_counter_inc%(val: opaque of dbl_counter_metric,
                                        amount: double &default = 1.0%): bool
 	%{
-	return with<DblCounterMetricVal>(val, "Telemetry::dbl_counter_inc: invalid handle.", [amount](auto hdl) { hdl.Inc(amount); });
+	return with<DblCounterMetricVal>(val, "Telemetry::dbl_counter_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__dbl_counter_value%(val: opaque of dbl_counter_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::DblCounterMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle().Value());
+		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle()->Value());
 		}
 	else
 		{
@@ -249,9 +249,9 @@ function Telemetry::__int_gauge_metric_get_or_add%(family: opaque of int_gauge_m
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntGaugeMetricVal>(res);
 			}
 		else
@@ -270,20 +270,20 @@ function Telemetry::__int_gauge_metric_get_or_add%(family: opaque of int_gauge_m
 function Telemetry::__int_gauge_inc%(val: opaque of int_gauge_metric,
                                      amount: int &default = 1%): bool
 	%{
-	return with<IntGaugeMetricVal>(val, "Telemetry::int_gauge_inc: invalid handle.", [amount](auto hdl) { hdl.Inc(amount); });
+	return with<IntGaugeMetricVal>(val, "Telemetry::int_gauge_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__int_gauge_dec%(val: opaque of int_gauge_metric,
                                      amount: int &default = 1%): bool
 	%{
-	return with<IntGaugeMetricVal>(val, "Telemetry::int_gauge_dec: invalid handle.", [amount](auto hdl) { hdl.Dec(amount); });
+	return with<IntGaugeMetricVal>(val, "Telemetry::int_gauge_dec: invalid handle.", [amount](auto hdl) { hdl->Dec(amount); });
 	%}
 
 function Telemetry::__int_gauge_value%(val: opaque of int_gauge_metric%): int
 	%{
 	if ( auto ptr = dynamic_cast<zeek::IntGaugeMetricVal*>(val) )
 		{
-		return zeek::val_mgr->Int(ptr->GetHandle().Value());
+		return zeek::val_mgr->Int(ptr->GetHandle()->Value());
 		}
 	else
 		{
@@ -315,9 +315,9 @@ function Telemetry::__dbl_gauge_metric_get_or_add%(family: opaque of dbl_gauge_m
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblGaugeMetricVal>(res);
 			}
 		else
@@ -336,20 +336,20 @@ function Telemetry::__dbl_gauge_metric_get_or_add%(family: opaque of dbl_gauge_m
 function Telemetry::__dbl_gauge_inc%(val: opaque of dbl_gauge_metric,
                                      amount: double &default = 1.0%): bool
 	%{
-	return with<DblGaugeMetricVal>(val, "Telemetry::dbl_gauge_inc: invalid handle.", [amount](auto hdl) { hdl.Inc(amount); });
+	return with<DblGaugeMetricVal>(val, "Telemetry::dbl_gauge_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__dbl_gauge_dec%(val: opaque of dbl_gauge_metric,
                                      amount: double &default = 1.0%): bool
 	%{
-	return with<DblGaugeMetricVal>(val, "Telemetry::dbl_gauge_dec: invalid handle.", [amount](auto hdl) { hdl.Dec(amount); });
+	return with<DblGaugeMetricVal>(val, "Telemetry::dbl_gauge_dec: invalid handle.", [amount](auto hdl) { hdl->Dec(amount); });
 	%}
 
 function Telemetry::__dbl_gauge_value%(val: opaque of dbl_gauge_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::DblGaugeMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle().Value());
+		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle()->Value());
 		}
 	else
 		{
@@ -384,9 +384,9 @@ function Telemetry::__int_histogram_metric_get_or_add%(family: opaque of int_his
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntHistogramMetricVal>(res);
 			}
 		else
@@ -405,14 +405,14 @@ function Telemetry::__int_histogram_metric_get_or_add%(family: opaque of int_his
 function Telemetry::__int_histogram_observe%(val: opaque of int_histogram_metric,
                                              measurement: int%): bool
 	%{
-	return with<IntHistogramMetricVal>(val, "Telemetry::int_histogram_inc: invalid handle.", [measurement](auto hdl) { hdl.Observe(measurement); });
+	return with<IntHistogramMetricVal>(val, "Telemetry::int_histogram_inc: invalid handle.", [measurement](auto hdl) { hdl->Observe(measurement); });
 	%}
 
 function Telemetry::__int_histogram_sum%(val: opaque of int_histogram_metric%): int
 	%{
 	if ( auto ptr = dynamic_cast<zeek::IntHistogramMetricVal*>(val) )
 		{
-		return zeek::val_mgr->Int(ptr->GetHandle().Sum());
+		return zeek::val_mgr->Int(ptr->GetHandle()->Sum());
 		}
 	else
 		{
@@ -448,9 +448,9 @@ function Telemetry::__dbl_histogram_metric_get_or_add%(family: opaque of dbl_his
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblHistogramMetricVal>(res);
 			}
 		else
@@ -469,14 +469,14 @@ function Telemetry::__dbl_histogram_metric_get_or_add%(family: opaque of dbl_his
 function Telemetry::__dbl_histogram_observe%(val: opaque of dbl_histogram_metric,
                                              measurement: double%): bool
 	%{
-	return with<DblHistogramMetricVal>(val, "Telemetry::dbl_histogram_inc: invalid handle.", [measurement](auto hdl) { hdl.Observe(measurement); });
+	return with<DblHistogramMetricVal>(val, "Telemetry::dbl_histogram_inc: invalid handle.", [measurement](auto hdl) { hdl->Observe(measurement); });
 	%}
 
 function Telemetry::__dbl_histogram_sum%(val: opaque of dbl_histogram_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::DblHistogramMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle().Sum());
+		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle()->Sum());
 		}
 	else
 		{

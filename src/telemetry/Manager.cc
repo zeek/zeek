@@ -515,42 +515,42 @@ SCENARIO("telemetry managers provide access to counter families") {
         WHEN("retrieving an IntCounter family") {
             auto family = mgr.CounterFamily("zeek", "requests", {"method"}, "test", "1", true);
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "requests"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"method"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "1"sv);
-                CHECK_EQ(family.IsSum(), true);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "requests"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"method"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "1"sv);
+                CHECK_EQ(family->IsSum(), true);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"method", "get"}});
-                auto second = family.GetOrAdd({{"method", "get"}});
+                auto first = family->GetOrAdd({{"method", "get"}});
+                auto second = family->GetOrAdd({{"method", "get"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"method", "get"}});
-                auto second = family.GetOrAdd({{"method", "put"}});
+                auto first = family->GetOrAdd({{"method", "get"}});
+                auto second = family->GetOrAdd({{"method", "put"}});
                 CHECK_NE(first, second);
             }
         }
         WHEN("retrieving a DblCounter family") {
             auto family = mgr.CounterFamily<double>("zeek", "runtime", {"query"}, "test", "seconds", true);
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "runtime"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"query"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "seconds"sv);
-                CHECK_EQ(family.IsSum(), true);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "runtime"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"query"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "seconds"sv);
+                CHECK_EQ(family->IsSum(), true);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"query", "foo"}});
-                auto second = family.GetOrAdd({{"query", "foo"}});
+                auto first = family->GetOrAdd({{"query", "foo"}});
+                auto second = family->GetOrAdd({{"query", "foo"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"query", "foo"}});
-                auto second = family.GetOrAdd({{"query", "bar"}});
+                auto first = family->GetOrAdd({{"query", "foo"}});
+                auto second = family->GetOrAdd({{"query", "bar"}});
                 CHECK_NE(first, second);
             }
         }
@@ -563,42 +563,42 @@ SCENARIO("telemetry managers provide access to gauge families") {
         WHEN("retrieving an IntGauge family") {
             auto family = mgr.GaugeFamily("zeek", "open-connections", {"protocol"}, "test");
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "open-connections"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"protocol"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "1"sv);
-                CHECK_EQ(family.IsSum(), false);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "open-connections"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"protocol"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "1"sv);
+                CHECK_EQ(family->IsSum(), false);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "tcp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "tcp"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "quic"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "quic"}});
                 CHECK_NE(first, second);
             }
         }
         WHEN("retrieving a DblGauge family") {
             auto family = mgr.GaugeFamily<double>("zeek", "water-level", {"river"}, "test", "meters");
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "water-level"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"river"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "meters"sv);
-                CHECK_EQ(family.IsSum(), false);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "water-level"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"river"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "meters"sv);
+                CHECK_EQ(family->IsSum(), false);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"river", "Sacramento"}});
-                auto second = family.GetOrAdd({{"river", "Sacramento"}});
+                auto first = family->GetOrAdd({{"river", "Sacramento"}});
+                auto second = family->GetOrAdd({{"river", "Sacramento"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"query", "Sacramento"}});
-                auto second = family.GetOrAdd({{"query", "San Joaquin"}});
+                auto first = family->GetOrAdd({{"query", "Sacramento"}});
+                auto second = family->GetOrAdd({{"query", "San Joaquin"}});
                 CHECK_NE(first, second);
             }
         }
@@ -612,21 +612,21 @@ SCENARIO("telemetry managers provide access to histogram families") {
             int64_t buckets[] = {10, 20};
             auto family = mgr.HistogramFamily("zeek", "payload-size", {"protocol"}, buckets, "test", "bytes");
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "payload-size"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"protocol"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "bytes"sv);
-                CHECK_EQ(family.IsSum(), false);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "payload-size"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"protocol"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "bytes"sv);
+                CHECK_EQ(family->IsSum(), false);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "tcp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "tcp"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "udp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "udp"}});
                 CHECK_NE(first, second);
             }
         }
@@ -634,31 +634,31 @@ SCENARIO("telemetry managers provide access to histogram families") {
             double buckets[] = {10.0, 20.0};
             auto family = mgr.HistogramFamily<double>("zeek", "parse-time", {"protocol"}, buckets, "test", "seconds");
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "parse-time"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"protocol"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "seconds"sv);
-                CHECK_EQ(family.IsSum(), false);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "parse-time"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"protocol"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "seconds"sv);
+                CHECK_EQ(family->IsSum(), false);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "tcp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "tcp"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "udp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "udp"}});
                 CHECK_NE(first, second);
             }
             AND_THEN("Timers add observations to histograms") {
-                auto hg = family.GetOrAdd({{"protocol", "tst"}});
-                CHECK_EQ(hg.Sum(), 0.0);
+                auto hg = family->GetOrAdd({{"protocol", "tst"}});
+                CHECK_EQ(hg->Sum(), 0.0);
                 {
                     Timer observer{hg};
                     std::this_thread::sleep_for(1ms);
                 }
-                CHECK_NE(hg.Sum(), 0.0);
+                CHECK_NE(hg->Sum(), 0.0);
             }
         }
     }

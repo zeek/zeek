@@ -24,9 +24,11 @@ class Manager;
  */
 class IntHistogram {
 public:
-    friend class IntHistogramFamily;
-
     static inline const char* OpaqueName = "IntHistogramMetricVal";
+
+    using Handle = opentelemetry::metrics::Histogram<uint64_t>;
+
+    explicit IntHistogram(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
 
     IntHistogram() = delete;
     IntHistogram(const IntHistogram&) noexcept = default;
@@ -71,10 +73,6 @@ public:
     bool operator!=(const IntHistogram& other) const noexcept { return ! IsSameAs(other); }
 
 private:
-    using Handle = opentelemetry::metrics::Histogram<uint64_t>;
-
-    explicit IntHistogram(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
-
     opentelemetry::nostd::shared_ptr<Handle> hdl;
     MetricAttributeIterable attributes;
     opentelemetry::context::Context context;
@@ -86,11 +84,12 @@ private:
  */
 class IntHistogramFamily : public MetricFamily {
 public:
-    friend class Manager;
-
     static inline const char* OpaqueName = "IntHistogramMetricFamilyVal";
 
     using InstanceType = IntHistogram;
+
+    IntHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                       std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 
     IntHistogramFamily(const IntHistogramFamily&) noexcept = default;
     IntHistogramFamily& operator=(const IntHistogramFamily&) noexcept = default;
@@ -99,18 +98,14 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    IntHistogram GetOrAdd(Span<const LabelView> labels);
+    std::shared_ptr<IntHistogram> GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
      */
-    IntHistogram GetOrAdd(std::initializer_list<LabelView> labels) {
+    std::shared_ptr<IntHistogram> GetOrAdd(std::initializer_list<LabelView> labels) {
         return GetOrAdd(Span{labels.begin(), labels.size()});
     }
-
-private:
-    IntHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                       std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 };
 
 /**
@@ -120,9 +115,11 @@ private:
  */
 class DblHistogram {
 public:
-    friend class DblHistogramFamily;
-
     static inline const char* OpaqueName = "DblHistogramMetricVal";
+
+    using Handle = opentelemetry::metrics::Histogram<double>;
+
+    explicit DblHistogram(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
 
     DblHistogram() = delete;
     DblHistogram(const DblHistogram&) noexcept = default;
@@ -167,10 +164,6 @@ public:
     bool operator!=(const DblHistogram& other) const noexcept { return ! IsSameAs(other); }
 
 private:
-    using Handle = opentelemetry::metrics::Histogram<double>;
-
-    explicit DblHistogram(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
-
     opentelemetry::nostd::shared_ptr<Handle> hdl;
     MetricAttributeIterable attributes;
     opentelemetry::context::Context context;
@@ -182,11 +175,12 @@ private:
  */
 class DblHistogramFamily : public MetricFamily {
 public:
-    friend class Manager;
-
     static inline const char* OpaqueName = "DblHistogramMetricFamilyVal";
 
     using InstanceType = DblHistogram;
+
+    DblHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                       std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 
     DblHistogramFamily(const DblHistogramFamily&) noexcept = default;
     DblHistogramFamily& operator=(const DblHistogramFamily&) noexcept = default;
@@ -195,18 +189,16 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    DblHistogram GetOrAdd(Span<const LabelView> labels);
+    std::shared_ptr<DblHistogram> GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
      */
-    DblHistogram GetOrAdd(std::initializer_list<LabelView> labels) {
+    std::shared_ptr<DblHistogram> GetOrAdd(std::initializer_list<LabelView> labels) {
         return GetOrAdd(Span{labels.begin(), labels.size()});
     }
 
 private:
-    DblHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                       std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 };
 
 namespace detail {

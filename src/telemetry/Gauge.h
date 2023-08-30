@@ -23,9 +23,10 @@ class Manager;
  */
 class IntGauge {
 public:
-    friend class IntGaugeFamily;
-
     static inline const char* OpaqueName = "IntGaugeMetricVal";
+
+    using Handle = opentelemetry::metrics::UpDownCounter<int64_t>;
+    explicit IntGauge(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
 
     IntGauge() = delete;
     IntGauge(const IntGauge&) noexcept = default;
@@ -95,10 +96,6 @@ public:
     bool operator!=(const IntGauge& rhs) const noexcept { return ! IsSameAs(rhs); }
 
 private:
-    using Handle = opentelemetry::metrics::UpDownCounter<int64_t>;
-
-    explicit IntGauge(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
-
     opentelemetry::nostd::shared_ptr<Handle> hdl;
     MetricAttributeIterable attributes;
     int64_t value = 0;
@@ -109,11 +106,12 @@ private:
  */
 class IntGaugeFamily : public MetricFamily {
 public:
-    friend class Manager;
-
     static inline const char* OpaqueName = "IntGaugeMetricFamilyVal";
 
     using InstanceType = IntGauge;
+
+    IntGaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 
     IntGaugeFamily(const IntGaugeFamily&) noexcept = default;
     IntGaugeFamily& operator=(const IntGaugeFamily&) noexcept = default;
@@ -122,16 +120,14 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    IntGauge GetOrAdd(Span<const LabelView> labels);
+    std::shared_ptr<IntGauge> GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
      */
-    IntGauge GetOrAdd(std::initializer_list<LabelView> labels) { return GetOrAdd(Span{labels.begin(), labels.size()}); }
-
-private:
-    IntGaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
+    std::shared_ptr<IntGauge> GetOrAdd(std::initializer_list<LabelView> labels) {
+        return GetOrAdd(Span{labels.begin(), labels.size()});
+    }
 };
 
 /**
@@ -140,9 +136,11 @@ private:
  */
 class DblGauge {
 public:
-    friend class DblGaugeFamily;
-
     static inline const char* OpaqueName = "DblGaugeMetricVal";
+
+    using Handle = opentelemetry::metrics::UpDownCounter<double>;
+
+    explicit DblGauge(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
 
     DblGauge() = delete;
     DblGauge(const DblGauge&) noexcept = default;
@@ -194,10 +192,6 @@ public:
     bool operator!=(const DblGauge& rhs) const noexcept { return ! IsSameAs(rhs); }
 
 private:
-    using Handle = opentelemetry::metrics::UpDownCounter<double>;
-
-    explicit DblGauge(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
-
     opentelemetry::nostd::shared_ptr<Handle> hdl;
     MetricAttributeIterable attributes;
     double value = 0;
@@ -208,11 +202,12 @@ private:
  */
 class DblGaugeFamily : public MetricFamily {
 public:
-    friend class Manager;
-
     static inline const char* OpaqueName = "DblGaugeMetricFamilyVal";
 
     using InstanceType = DblGauge;
+
+    DblGaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 
     DblGaugeFamily(const DblGaugeFamily&) noexcept = default;
     DblGaugeFamily& operator=(const DblGaugeFamily&) noexcept = default;
@@ -221,16 +216,14 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    DblGauge GetOrAdd(Span<const LabelView> labels);
+    std::shared_ptr<DblGauge> GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
      */
-    DblGauge GetOrAdd(std::initializer_list<LabelView> labels) { return GetOrAdd(Span{labels.begin(), labels.size()}); }
-
-private:
-    DblGaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
+    std::shared_ptr<DblGauge> GetOrAdd(std::initializer_list<LabelView> labels) {
+        return GetOrAdd(Span{labels.begin(), labels.size()});
+    }
 };
 
 namespace detail {

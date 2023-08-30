@@ -72,12 +72,8 @@ public:
     bool IsSum() const noexcept { return is_sum; }
 
 protected:
-    using Handle = broker::telemetry::metric_family_hdl*;
-
     MetricFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> lbls,
                  std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
-
-    Handle hdl;
 
     std::string prefix;
     std::string name;

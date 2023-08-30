@@ -3259,6 +3259,22 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt)
 		}
 	}
 
+void RecordVal::UndeferParseTimeRecordFields(RecordType* rt, int idx, const detail::FieldInit& init)
+	{
+	auto it = parse_time_records.find(rt);
+
+	if ( it == parse_time_records.end() )
+		return;
+
+	auto& rvs = it->second;
+
+	for ( auto& rv : it->second )
+		{
+		if ( ! (*rv->record_val)[idx] )
+			(*rv->record_val)[idx] = init.Generate();
+		}
+	}
+
 void RecordVal::DoneParsing()
 	{
 	parse_time_records.clear();

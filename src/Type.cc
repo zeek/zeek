@@ -4,6 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include <deque>
 #include <list>
 #include <map>
 #include <string>
@@ -1205,7 +1206,20 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 		TypeTag tag = type->Tag();
 
 		if ( tag == TYPE_RECORD )
-			init = std::make_unique<detail::RecordFieldInit>(cast_intrusive<RecordType>(type));
+			{
+			const auto& rt = cast_intrusive<RecordType>(type);
+			init = std::make_unique<detail::RecordFieldInit>(rt);
+
+			if ( ! rt->IsInitDeferrable() )
+				{
+				// If the field isn't deferrable, add it to our creation_inits
+				// right away to ensure it's initialized upon record construction.
+				creation_inits.emplace_back(field, std::move(init));
+				init = nullptr;
+				}
+			else
+				deferred_init_by[rt].emplace_back(zeek::NewRef{}, this);
+			}
 
 		else if ( tag == TYPE_TABLE )
 			init = std::make_unique<detail::TableFieldInit>(cast_intrusive<TableType>(type), a);
@@ -1368,6 +1382,63 @@ TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const
 	return rval;
 	}
 
+RecordType::RecordTypeDeferrerMap RecordType::deferred_init_by;
+
+void RecordType::BecameUndeferrable(RecordTypePtr rt)
+	{
+	std::deque<zeek::RecordTypePtr> todo;
+	todo.push_back(rt);
+
+	// Work on all record types that change their deferrability
+	// through propagation.
+	while ( ! todo.empty() )
+		{
+		zeek::RecordTypePtr cur_rt = todo.front();
+		todo.pop_front();
+
+		const auto& it = deferred_init_by.find(cur_rt);
+
+		// Any other record deferring initialization of cur_rt?
+		if ( it == deferred_init_by.end() )
+			continue;
+
+		for ( const auto& deferrer_rt : it->second )
+			{
+			for ( int i = 0; i < deferrer_rt->NumFields(); i++ )
+				{
+				// Find all fields of type cur_rt and move them from
+				// deferred_inits to creation_inits.
+				if ( deferrer_rt->GetFieldType(i) != cur_rt )
+					continue;
+
+				std::unique_ptr<detail::FieldInit> init;
+				deferrer_rt->deferred_inits[i].swap(init);
+				if ( init ) // May have already been done.
+					{
+					bool init_deferrable_before = deferrer_rt->IsInitDeferrable();
+					deferrer_rt->creation_inits.emplace_back(i, std::move(init));
+
+					// If the deferrer was deferrable before, it has become
+					// undeferrable now, so work on it as well.
+					if ( init_deferrable_before )
+						todo.push_back(deferrer_rt);
+
+					RecordVal::UndeferParseTimeRecordFields(
+						deferrer_rt.get(), i, *deferrer_rt->creation_inits.back().second);
+					}
+				}
+			}
+
+		// No one defer initializes this record type anymore.
+		deferred_init_by.erase(cur_rt);
+		}
+	}
+
+void RecordType::DoneParsing()
+	{
+	deferred_init_by.clear();
+	}
+
 const char* RecordType::AddFields(const type_decl_list& others, bool add_log_attr)
 	{
 	assert(types);
@@ -1382,7 +1453,12 @@ const char* RecordType::AddFields(const type_decl_list& others, bool add_log_att
 
 	TableVal::SaveParseTimeTableState(this);
 
+	bool init_deferrable_before = IsInitDeferrable();
+
 	AddFieldsDirectly(others, add_log_attr);
+
+	if ( init_deferrable_before && ! IsInitDeferrable() )
+		RecordType::BecameUndeferrable({zeek::NewRef{}, this});
 
 	RecordVal::ResizeParseTimeRecords(this);
 	TableVal::RebuildParseTimeTables();

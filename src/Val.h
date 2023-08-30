@@ -1437,6 +1437,11 @@ public:
 	// mismatch as a result of parse-time record type redefinitions).
 	static void ResizeParseTimeRecords(RecordType* rt);
 
+	// The field at the given idx was previously deferred but not anymore.
+	// Initialize the field of all parse time records using *init* now.
+	static void UndeferParseTimeRecordFields(RecordType* rt, int idx,
+	                                         const detail::FieldInit& init);
+
 	static void DoneParsing();
 
 protected:

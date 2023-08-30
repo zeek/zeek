@@ -823,6 +823,7 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		run_state::is_parsing = false;
 		set_signal_mask(true);
 
+		RecordType::DoneParsing();
 		RecordVal::DoneParsing();
 		TableVal::DoneParsing();
 

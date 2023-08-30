@@ -734,6 +734,14 @@ public:
 
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
+	// Initialization of fields with the given record type cannot be
+	// deferred anymore, update and propagate to all other impacted
+	// record types and initialize parse time record values.
+	static void BecameUndeferrable(RecordTypePtr rt);
+
+	// Clears all state that was used to track RecordType dependencies.
+	static void DoneParsing();
+
 private:
 	RecordType() { types = nullptr; }
 
@@ -758,6 +766,9 @@ private:
 	const auto& DeferredInits() const { return deferred_inits; }
 	const auto& CreationInits() const { return creation_inits; }
 
+	// Can initialization of record values of this type be deferred?
+	bool IsInitDeferrable() const { return creation_inits.empty(); }
+
 	// If we were willing to bound the size of records, then we could
 	// use std::bitset here instead.
 	std::vector<bool> managed_fields;
@@ -770,6 +781,11 @@ private:
 
 	type_decl_list* types = nullptr;
 	std::set<std::string> field_ids;
+
+	// Maps a record type to all record types that embed it as fields with
+	// deferred initialized.
+	using RecordTypeDeferrerMap = std::unordered_map<RecordTypePtr, std::vector<RecordTypePtr>>;
+	static RecordTypeDeferrerMap deferred_init_by;
 	};
 
 class FileType final : public Type

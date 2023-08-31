@@ -261,8 +261,8 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 	# attackers.
 	if ( c?$ftp && c$ftp?$cmdarg && c$ftp?$reply_code )
 		{
-		remove_pending_cmd(c$ftp$pending_commands, c$ftp$cmdarg);
-		ftp_message(c);
+		if ( remove_pending_cmd(c$ftp$pending_commands, c$ftp$cmdarg) )
+			ftp_message(c);
 		}
 
 	local id = c$id;

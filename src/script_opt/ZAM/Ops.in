@@ -402,7 +402,8 @@ eval	$1.re_val->AddTo(frame[z.v1].re_val, false);
 
 unary-op AddVecToVec
 op1-read
-eval	$1.vector_val->AddTo(frame[z.v1].vector_val, false);
+eval	if ( ! $1.vector_val->AddTo(frame[z.v1].vector_val, false) )
+		ZAM_run_time_error(z.loc, "incompatible vector element assignment");
 
 unary-op AddTableToTable
 op1-read

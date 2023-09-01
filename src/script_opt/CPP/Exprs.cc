@@ -541,7 +541,9 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level)
 
 	if ( t->Tag() == TYPE_VECTOR )
 		{
-		if ( same_type(lhs->GetType(), rhs->GetType()) )
+		auto& rt = rhs->GetType();
+
+		if ( IsVector(rt->Tag()) && same_type(lhs->GetType(), rt) )
 			add_to_func = "vector_vec_append__CPP";
 		else
 			add_to_func = "vector_append__CPP";

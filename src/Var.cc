@@ -420,7 +420,9 @@ StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init,
 
 	else
 		{
-		current_scope()->AddInit(std::move(id));
+		if ( c != INIT_SKIP )
+			current_scope()->AddInit(std::move(id));
+
 		return make_intrusive<NullStmt>();
 		}
 	}

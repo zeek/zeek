@@ -82,6 +82,11 @@ Changed Functionality
   anymore. Previously, broadcast packets originating from a likely server port
   resulted in 255.255.255.255 being the originator in ``conn.log``.
 
+- When too many HTTP requests are pending, Zeek will now log them at once and
+  reset request/response correlation instead of running into unbounded state
+  growth. This behavior is configurable via a new option ``HTTP::max_pending_requests``.
+  The default is ``100``.
+
 Removed Functionality
 ---------------------
 

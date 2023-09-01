@@ -1,3 +1,19 @@
+6.1.0-dev.358 | 2023-09-01 11:53:55 +0200
+
+  * GH-1705: http: Prevent request/response de-synchronization and unbounded state growth (Arne Welzel, Corelight)
+
+    When http_reply events are received before http_request events, either
+    through faking traffic or possible re-ordering, it is possible to trigger
+    unbounded state growth due to later http_requests never being matched
+    again with responses.
+
+    Prevent this by synchronizing request/response counters when late
+    requests come in.
+
+    Also forcefully flush pending requests when http_replies are never
+    observed either due to the analyzer having been disabled or because
+    half-duplex traffic.
+
 6.1.0-dev.356 | 2023-08-30 11:24:51 +0200
 
   * testing/external: Exclude telemetry.log from baselines (Arne Welzel, Corelight)

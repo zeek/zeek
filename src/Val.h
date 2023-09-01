@@ -1444,6 +1444,7 @@ protected:
 	friend class zeek::detail::ValTrace;
 	friend class zeek::detail::ZBody;
 	friend class zeek::detail::CPPRuntime;
+	friend class zeek::detail::CompositeHash;
 
 	RecordValPtr DoCoerceTo(RecordTypePtr other, bool allow_orphaning) const;
 

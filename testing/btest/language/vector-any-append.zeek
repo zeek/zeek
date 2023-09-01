@@ -58,8 +58,8 @@ event zeek_init()
 	v5 += -3;
 
 	v6 += v5;
-	v7 += v5;
-
 	print v6;
+
+	v7 += v5;
 	print v7;
 	}

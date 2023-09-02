@@ -22,10 +22,6 @@ static void analyzer_del_func(void* v)
 
 AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
 	{
-	auto t = make_intrusive<TypeList>();
-	t->Append(file_mgr->GetTagType());
-	t->Append(BifType::Record::Files::AnalyzerArgs);
-	analyzer_hash = new zeek::detail::CompositeHash(std::move(t));
 	analyzer_map.SetDeleteFunc(analyzer_del_func);
 	}
 
@@ -38,8 +34,6 @@ AnalyzerSet::~AnalyzerSet()
 		delete mod;
 		mod_queue.pop();
 		}
-
-	delete analyzer_hash;
 	}
 
 Analyzer* AnalyzerSet::Find(const zeek::Tag& tag, RecordValPtr args)
@@ -153,7 +147,7 @@ std::unique_ptr<zeek::detail::HashKey> AnalyzerSet::GetKey(const zeek::Tag& t,
 	auto lv = make_intrusive<ListVal>(TYPE_ANY);
 	lv->Append(t.AsVal());
 	lv->Append(std::move(args));
-	auto key = analyzer_hash->MakeHashKey(*lv, true);
+	auto key = file_mgr->GetAnalyzerHash()->MakeHashKey(*lv, true);
 
 	if ( ! key )
 		reporter->InternalError("AnalyzerArgs type mismatch");

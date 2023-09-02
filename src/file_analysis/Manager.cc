@@ -4,6 +4,7 @@
 
 #include <openssl/md5.h>
 
+#include "zeek/CompHash.h"
 #include "zeek/Event.h"
 #include "zeek/UID.h"
 #include "zeek/analyzer/Manager.h"
@@ -35,11 +36,18 @@ Manager::~Manager()
 		delete entry.second;
 
 	delete magic_state;
+	delete analyzer_hash;
 	}
 
 void Manager::InitPreScript() { }
 
-void Manager::InitPostScript() { }
+void Manager::InitPostScript()
+	{
+	auto t = make_intrusive<TypeList>();
+	t->Append(GetTagType());
+	t->Append(BifType::Record::Files::AnalyzerArgs);
+	analyzer_hash = new zeek::detail::CompositeHash(std::move(t));
+	}
 
 void Manager::InitMagic()
 	{

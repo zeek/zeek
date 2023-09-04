@@ -1,3 +1,9 @@
+6.1.0-dev.361 | 2023-09-04 14:00:37 +0200
+
+  * Fix check for emailed notices (Justin Azoff, Corelight)
+
+    This bug was introduced in 9d0bd96
+
 6.1.0-dev.358 | 2023-09-01 11:53:55 +0200
 
   * GH-1705: http: Prevent request/response de-synchronization and unbounded state growth (Arne Welzel, Corelight)

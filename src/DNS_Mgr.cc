@@ -1471,6 +1471,15 @@ void DNS_Mgr::ProcessFd(int fd, int flags)
 	IssueAsyncRequests();
 	}
 
+void DNS_Mgr::Process()
+	{
+	// Process() is called when DNS_Mgr is found "ready" when its
+	// GetNextTimeout() returns 0.0, but there's no active FD.
+	//
+	// Kick off timeouts at least.
+	ares_process_fd(channel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
+	}
+
 void DNS_Mgr::GetStats(Stats* stats)
 	{
 	// TODO: can this use the telemetry framework?

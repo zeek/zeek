@@ -249,6 +249,14 @@ opensuse_leap_15_4_task:
     dockerfile: ci/opensuse-leap-15.4/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
+
+opensuse_leap_15_5_task:
+  container:
+    # Opensuse Leap 15.5 EOL: ~Dec 2024
+    dockerfile: ci/opensuse-leap-15.5/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
 
 opensuse_tumbleweed_task:
   container:

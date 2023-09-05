@@ -1456,8 +1456,7 @@ double DNS_Mgr::GetNextTimeout()
 
 	struct timeval* tvp = ares_timeout(channel, &tv, &tv);
 
-	return run_state::network_time + static_cast<double>(tvp->tv_sec) +
-	       (static_cast<double>(tvp->tv_usec) / 1e6);
+	return static_cast<double>(tvp->tv_sec) + (static_cast<double>(tvp->tv_usec) / 1e6);
 	}
 
 void DNS_Mgr::ProcessFd(int fd, int flags)
@@ -1470,6 +1469,15 @@ void DNS_Mgr::ProcessFd(int fd, int flags)
 		}
 
 	IssueAsyncRequests();
+	}
+
+void DNS_Mgr::Process()
+	{
+	// Process() is called when DNS_Mgr is found "ready" when its
+	// GetNextTimeout() returns 0.0, but there's no active FD.
+	//
+	// Kick off timeouts at least.
+	ares_process_fd(channel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
 	}
 
 void DNS_Mgr::GetStats(Stats* stats)

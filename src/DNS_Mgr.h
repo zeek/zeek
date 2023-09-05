@@ -285,7 +285,7 @@ protected:
 	void IssueAsyncRequests();
 
 	// IOSource interface.
-	void Process() override { }
+	void Process() override;
 	void ProcessFd(int fd, int flags) override;
 	void InitSource() override;
 	const char* Tag() override { return "DNS_Mgr"; }

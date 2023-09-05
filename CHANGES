@@ -1,3 +1,22 @@
+6.1.0-dev.364 | 2023-09-05 19:56:59 +0200
+
+  * DNS_Mgr: Use Process() for timeout expiration (Arne Welzel, Corelight)
+
+    DNS_Mgr has a GetNextTimeout() implementation that may return 0.0. When
+    that is the case, its IO source is enqueued as ready with an fd of -1.
+    This in turn results in Process() being called instead of ProcessFd()
+    in RunState.cc.
+
+    Ensure timeouts behavior is properly handled by actually forwarding
+    timeout indications to c-ares via DNS_Mgr::Process(). This results
+    in pending DNS queries for which a timeout happened to actually
+    timeout (when there's no other connectivity).
+
+  * DNS_Mgr: Fix GetNextTimeout() returning absolute values (Arne Welzel, Corelight)
+
+    Not sure, must have been some sort of left-over, but wasn't really
+    effective due to Process() not being implemented.
+
 6.1.0-dev.361 | 2023-09-04 14:00:37 +0200
 
   * Fix check for emailed notices (Justin Azoff, Corelight)

@@ -450,8 +450,8 @@ void rt::reject_protocol(const std::string& reason) {
 
     if ( auto x = cookie->protocol ) {
         auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());
-        SPICY_DEBUG(hilti::rt::fmt("rejecting protocol %s", tag.AsString()));
-        return x->analyzer->AnalyzerViolation("protocol rejected", nullptr, 0, tag);
+        SPICY_DEBUG(hilti::rt::fmt("rejecting protocol %s: %s", tag.AsString(), reason));
+        return x->analyzer->AnalyzerViolation(reason.c_str(), nullptr, 0, tag);
     }
     else
         throw ValueUnavailable("no current connection available");

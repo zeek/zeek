@@ -1,0 +1,33 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o foo.hlto foo.spicy foo.evt %INPUT
+# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap foo.hlto
+# @TEST-EXEC: cat analyzer.log | zeek-cut analyzer_name failure_reason failure_data > analyzer.log2 && mv analyzer.log2 analyzer.log
+# @TEST-EXEC: btest-diff analyzer.log
+#
+# @TEST-DOC: Validates that decline_input is propagated properly. This is a regression test for #3276.
+
+# @TEST-START-FILE foo.spicy
+module foo;
+
+public type X = unit {
+    : bytes &eod;
+};
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.evt
+protocol analyzer spicy::foo over UDP:
+    parse with foo::X,
+    ports { 12345/udp, 31337/udp };
+# @TEST-END-FILE
+
+module zeek_foo;
+import zeek;
+import foo;
+on foo::X::%done { zeek::reject_protocol("my reasons"); }
+
+# @TEST-START-NEXT
+module zeek_foo;
+import spicy;
+import foo;
+on foo::X::%done { spicy::decline_input("my reasons"); }

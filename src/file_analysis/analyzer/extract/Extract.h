@@ -72,8 +72,8 @@ protected:
 private:
 	std::string filename;
 	FILE* file_stream;
-	uint64_t limit;
-	uint64_t depth;
+	uint64_t limit; // the file extraction limit
+	uint64_t written; // how many bytes we have written so far
 	};
 
 	} // namespace zeek::file_analysis::detail

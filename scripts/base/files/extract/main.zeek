@@ -9,6 +9,10 @@ export {
 
 	## The default max size for extracted files (they won't exceed this
 	## number of bytes). A value of zero means unlimited.
+	##
+	## Note: Holes in files do not count towards these limits. Files with
+	## holes are created as sparse files on disk. This means that their
+	## apparent size can exceed this limit.
 	option default_limit = 0;
 
 	redef record Files::Info += {

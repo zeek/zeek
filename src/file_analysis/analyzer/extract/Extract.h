@@ -65,15 +65,17 @@ protected:
 	 * @param arg_filename a file system path which specifies the local file
 	 *        to which the contents of the file will be extracted/written.
 	 * @param arg_limit the maximum allowed file size.
+	 * @param arg_limit_includes_missing missing bytes count towards limit if true.
 	 */
 	Extract(RecordValPtr args, file_analysis::File* file, const std::string& arg_filename,
-	        uint64_t arg_limit);
+	        uint64_t arg_limit, bool arg_limit_includes_missing);
 
 private:
 	std::string filename;
 	FILE* file_stream;
 	uint64_t limit; // the file extraction limit
 	uint64_t written; // how many bytes we have written so far
+	bool limit_includes_missing; // do count missing bytes against limit if true
 	};
 
 	} // namespace zeek::file_analysis::detail

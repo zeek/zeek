@@ -13,9 +13,10 @@ namespace zeek::file_analysis::detail
 	{
 
 Extract::Extract(RecordValPtr args, file_analysis::File* file, const std::string& arg_filename,
-                 uint64_t arg_limit)
+                 uint64_t arg_limit, bool arg_limit_includes_missing)
 	: file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), std::move(args), file),
-	  filename(arg_filename), limit(arg_limit), written(0)
+	  filename(arg_filename), limit(arg_limit), written(0),
+	  limit_includes_missing(arg_limit_includes_missing)
 	{
 	char buf[128];
 	file_stream = fopen(filename.data(), "w");
@@ -60,11 +61,14 @@ file_analysis::Analyzer* Extract::Instantiate(RecordValPtr args, file_analysis::
 	{
 	const auto& fname = get_extract_field_val(args, "extract_filename");
 	const auto& limit = get_extract_field_val(args, "extract_limit");
+	const auto& extract_limit_includes_missing = get_extract_field_val(
+		args, "extract_limit_includes_missing");
 
-	if ( ! fname || ! limit )
+	if ( ! fname || ! limit || ! extract_limit_includes_missing )
 		return nullptr;
 
-	return new Extract(std::move(args), file, fname->AsString()->CheckString(), limit->AsCount());
+	return new Extract(std::move(args), file, fname->AsString()->CheckString(), limit->AsCount(),
+	                   extract_limit_includes_missing->AsBool());
 	}
 
 /**
@@ -152,6 +156,29 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len)
 	{
 	if ( ! file_stream )
 		return false;
+
+	if ( limit_includes_missing )
+		{
+		uint64_t towrite = 0;
+		bool limit_exceeded = check_limit_exceeded(limit, written, len, &towrite);
+		// if the limit is exceeded, we have to raise the event. This gives scripts the opportunity
+		// to raise the limit.
+		if ( limit_exceeded && file_extraction_limit )
+			{
+			file_analysis::File* f = GetFile();
+			f->FileEvent(file_extraction_limit,
+			             {f->ToVal(), GetArgs(), val_mgr->Count(limit), val_mgr->Count(len)});
+			// we have to check again if the limit is still exceedee
+			limit_exceeded = check_limit_exceeded(limit, written, len, &towrite);
+			}
+
+		// if the limit is exceeded, abort and don't do anything - no reason to seek.
+		if ( limit_exceeded )
+			return false;
+
+		// if we don't skip holes, count this hole against the write limit
+		written += len;
+		}
 
 	if ( fseek(file_stream, len + offset, SEEK_SET) != 0 )
 		{

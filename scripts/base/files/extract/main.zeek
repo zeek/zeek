@@ -9,11 +9,16 @@ export {
 
 	## The default max size for extracted files (they won't exceed this
 	## number of bytes). A value of zero means unlimited.
-	##
-	## Note: Holes in files do not count towards these limits. Files with
-	## holes are created as sparse files on disk. This means that their
-	## apparent size can exceed this limit.
 	option default_limit = 0;
+
+	## This setting configures if the file extract limit is inclusive
+	## of missing bytes. By default, missing bytes do count towards the
+	## limit.
+	## Setting this option to false changes this behavior so that missing
+	## bytes no longer count towards these limits. Files with
+	## missing bytes are created as sparse files on disk. Their apparent size
+	## can exceed this file size limit.
+	option default_limit_includes_missing = T;
 
 	redef record Files::Info += {
 		## Local filename of extracted file.
@@ -41,6 +46,14 @@ export {
 		## :zeek:see:`FileExtract::set_limit` is called to increase the
 		## limit.  A value of zero means "no limit".
 		extract_limit: count &default=default_limit;
+		## By default, missing bytes in files count towards the extract file size.
+		## Missing bytes can, e.g., occur due to missed traffic, or offsets
+		## used when downloading files.
+		## Setting this option to false changes this behavior so that holes
+		## in files do no longer count towards these limits. Files with
+		## holes are created as sparse files on disk. Their apparent size
+		## can exceed this file size limit.
+		extract_limit_includes_missing: bool &default=default_limit_includes_missing;
 	};
 
 	## Sets the maximum allowed extracted file size.

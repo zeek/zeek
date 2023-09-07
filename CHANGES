@@ -1,3 +1,9 @@
+6.1.0-dev.368 | 2023-09-07 13:28:42 +0200
+
+  * GH-3278: spicy: Do not register port N+1 for port N in .evt file (Arne Welzel, Corelight)
+
+  * Updating auxil/zeek-client submodule [nomail] (Christian Kreibich, Corelight)
+
 6.1.0-dev.364 | 2023-09-05 19:56:59 +0200
 
   * DNS_Mgr: Use Process() for timeout expiration (Arne Welzel, Corelight)

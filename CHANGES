@@ -1,3 +1,9 @@
+6.1.0-dev.374 | 2023-09-07 15:58:22 +0200
+
+  * GH-3276: Propagate failure reason in `spicy::decline_input`/`zeek::reject_protocol`. (Benjamin Bannier, Corelight)
+
+    Closes #3276.
+
 6.1.0-dev.372 | 2023-09-07 14:26:27 +0200
 
   * ci: update-alternative to have python3 be python3.9 (Arne Welzel, Corelight)

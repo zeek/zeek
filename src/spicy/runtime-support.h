@@ -275,7 +275,7 @@ void confirm_protocol();
  *
  * @param reason short description of what went wrong
  */
-void reject_protocol(const std::string& reason);
+void reject_protocol(const std::string& reason = "protocol rejected");
 
 /**
  * Opaque handle to a protocol analyzer.

@@ -693,6 +693,10 @@ void Manager::InitPostScript() {
                 SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for port %s", port_));
                 analyzer_mgr->RegisterAnalyzerForPort(tag, transport_protocol(port_), port);
 
+                // Don't double register in case of single-port ranges.
+                if ( ports.begin.port() == ports.end.port() )
+                    break;
+
                 // Explicitly prevent overflow.
                 if ( port == std::numeric_limits<decltype(port)>::max() )
                     break;

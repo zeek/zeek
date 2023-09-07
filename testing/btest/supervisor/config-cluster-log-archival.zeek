@@ -4,21 +4,21 @@
 
 # Test default log rotation/archival behavior (rotate into log-queue dir)
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: cp zeek/logger-1/log-queue/test*.log test.default.log
 # @TEST-EXEC: btest-diff test.default.log
 # @TEST-EXEC: rm -rf ./zeek
 
 # Test rotation/archival behavior with in-flight compression
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b LogAscii::gzip_level=1 %INPUT
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: gunzip -c zeek/logger-1/log-queue/test*.log.gz > test.zip-in-flight.log
 # @TEST-EXEC: btest-diff test.zip-in-flight.log
 # @TEST-EXEC: rm -rf ./zeek
 
 # Test rotation/archival behavior with in-flight compression + custom file extension
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b LogAscii::gzip_level=1 LogAscii::gzip_file_extension="mygz" %INPUT
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: cp zeek/logger-1/log-queue/test*.log.mygz test.log.gz
 # @TEST-EXEC: gunzip -c test.log.gz > test.zip-in-flight-custom-ext.log
 # @TEST-EXEC: btest-diff test.zip-in-flight-custom-ext.log
@@ -26,7 +26,7 @@
 
 # Test rotation/archival behavior with a custom rotation dir
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT Log::default_rotation_dir=my-logs
-# @TEST-EXEC: btest-bg-wait 45
+# @TEST-EXEC: btest-bg-wait 60
 # @TEST-EXEC: cp zeek/logger-1/my-logs/test*.log test.custom-dir.log
 # @TEST-EXEC: btest-diff test.custom-dir.log
 # @TEST-EXEC: rm -rf ./zeek

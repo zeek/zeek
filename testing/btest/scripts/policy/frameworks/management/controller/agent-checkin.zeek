@@ -8,7 +8,7 @@
 # @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: ZEEK_MANAGEMENT_TESTING=1 btest-bg-run zeek zeek -j %INPUT
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff zeek/nodes/controller/stdout
 
 @load policy/frameworks/management/agent

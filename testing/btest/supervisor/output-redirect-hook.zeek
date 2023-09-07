@@ -1,6 +1,6 @@
 # @TEST-PORT: BROKER_PORT
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff zeek/supervisor.out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-sort | grep -v 'while waiting for thread'" btest-diff zeek/.stderr

@@ -298,8 +298,8 @@ static ::zeek::spicy::rt::PortRange extract_port_range(const std::string& chunk,
     }
 
     if ( ! end )
-        // EVT port ranges are a closed interval, but rt are half-closed.
-        end = hilti::rt::Port(start.port() + 1, start.protocol());
+        // EVT port ranges are a closed.
+        end = hilti::rt::Port(start.port(), start.protocol());
 
     return {start, *end};
 }

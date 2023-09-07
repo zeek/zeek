@@ -1,3 +1,33 @@
+6.1.0-dev.372 | 2023-09-07 14:26:27 +0200
+
+  * ci: update-alternative to have python3 be python3.9 (Arne Welzel, Corelight)
+
+    Tweak so that python3 is correct for the Python_FIND_UNVERSIONED_NAMES
+    change. python3 on 15.4 was pointing at Python3.6 still and for that
+    there are no dev headers installed.
+
+    A normal user could use --with-python instead, but in CI this is easier.
+
+  * Add OpenSUSE Leap 15.5 to ci (Johanna Amann, Corelight)
+
+    This also adds 15.4 to the list of distributions that are skipped by
+    default - let me know if this is not a good idea. I assume that by now
+    most people will be running 15.5 (15.4 will be EOL in ~3 months).
+
+  * GH-3275: configure/CMakelists: Use Python_EXECUTABLE as hint for interpreter (Arne Welzel, Corelight)
+
+    The PYTHON_EXECUTABLE variable was only interpreted by our own FindPythonDev.
+    cmake's FindPython uses Python_EXECUTABLE instead.
+
+    Also, if --with-python is not used, prefer unversioned executables that
+    match the version requirement. Further, remove Python_ADDITIONAL_VERSIONS
+    that is interpreted by FindPythonInterp which we're not using anymore.
+
+    https://cmake.org/cmake/help/latest/module/FindPython.html#artifacts-specification
+    https://cmake.org/cmake/help/latest/module/FindPythonInterp.html
+
+    Closes #3275
+
 6.1.0-dev.368 | 2023-09-07 13:28:42 +0200
 
   * GH-3278: spicy: Do not register port N+1 for port N in .evt file (Arne Welzel, Corelight)

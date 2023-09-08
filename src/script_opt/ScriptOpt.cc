@@ -554,6 +554,9 @@ void clear_script_analysis()
 	{
 	IDOptInfo::ClearGlobalInitExprs();
 
+	// Keep the functions around if we're debugging, so we can
+	// generate profiles.
+#ifndef DEBUG
 	// We need to explicitly clear out the optimization information
 	// associated with identifiers.  They have reference loops with
 	// the parent identifier that will prevent reclamation of the
@@ -564,6 +567,8 @@ void clear_script_analysis()
 			id->ClearOptInfo();
 
 	funcs.clear();
+#endif
+
 	non_recursive_funcs.clear();
 	lambdas.clear();
 	when_lambdas.clear();

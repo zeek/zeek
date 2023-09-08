@@ -894,7 +894,7 @@ bool AddToExpr::IsReduced(Reducer* c) const
 	if ( tag == TYPE_TABLE )
 		return op1->IsReduced(c) && op2->IsReduced(c);
 
-	if ( tag == TYPE_VECTOR && same_type(t, op2->GetType()) )
+	if ( tag == TYPE_VECTOR && IsVector(op2->GetType()->Tag()) && same_type(t, op2->GetType()) )
 		return op1->IsReduced(c) && op2->IsReduced(c);
 
 	return NonReduced(this);
@@ -923,7 +923,8 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 
 			red_stmt = MergeStmts(red_stmt1, red_stmt2);
 
-			if ( tag == TYPE_VECTOR && ! same_type(t, op2->GetType()) )
+			if ( tag == TYPE_VECTOR &&
+			     (! IsVector(op2->GetType()->Tag()) || ! same_type(t, op2->GetType())) )
 				{
 				auto append = make_intrusive<AppendToExpr>(op1->Duplicate(), op2);
 				append->SetOriginal(ThisPtr());

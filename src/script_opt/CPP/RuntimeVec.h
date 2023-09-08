@@ -24,7 +24,8 @@ inline ValPtr vector_append__CPP(VectorValPtr v1, const ValPtr& v2)
 // Appends vector v2 to the vector v1.
 inline ValPtr vector_vec_append__CPP(VectorValPtr v1, const VectorValPtr& v2)
 	{
-	v2->AddTo(v1.get(), false);
+	if ( ! v2->AddTo(v1.get(), false) )
+		reporter->CPPRuntimeError("incompatible vector element assignment");
 	return v1;
 	}
 

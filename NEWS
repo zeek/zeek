@@ -45,6 +45,9 @@ This release fixes the following bugs:
   ``policy/protocols/conn/community-id-logging.zeek`` was loaded before. This
   was fairly unusual and hard to debug behavior.
 
+- Spicy no longer registers an extra port for every port registered in a
+  plugin's .evt file.
+
 Zeek 6.0.0
 ==========
 

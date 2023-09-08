@@ -1,3 +1,33 @@
+6.0.0-20 | 2023-09-07 18:31:19 -0700
+
+  * GH-3278: spicy: Do not register port N+1 for port N in .evt file (Arne Welzel, Corelight)
+
+    (cherry picked from commit 6e6a2bee8af39fb03fd9807a30b6ac3500b1464e)
+
+  * Updating auxil/zeek-client submodule [nomail] (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 21562cfbb2f0c1f963050412eb506486d45ce91d)
+
+  * CI: refresh all docker images, fix package installation on opensuse-tumbleweed (Tim Wojtulewicz, Corelight)
+
+  * Update scripts.policy.misc.dump-events baseline for connection flipping PR (Tim Wojtulewicz, Corelight)
+
+  * CI: update freebsd to 13.2 and 12.4 (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 6761aebef79c6ab02e66655933edfade824490cd)
+
+  * Conn: In-place val flip and connection_flipped() (Arne Welzel, Corelight)
+
+    Avoids loosing state on a connection value when a connection is flipped.
+
+    Fixes up the NTP baseline as well where this was visible: analyzer_confirmation_info()
+    was raised for a connection value which was immediately forgotten due to
+    the subsequent connection flipping.
+
+    Closed #3028
+
+    (cherry picked from commit a2214ad6115c2c614c8cd6eeeec1e33151708831)
+
 6.0.0-7 | 2023-08-08 13:22:35 -0700
 
   * Do not forward padding to downstream TCP packet analyzer (Johanna Amann, Corelight)

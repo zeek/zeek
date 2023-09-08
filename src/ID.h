@@ -46,6 +46,7 @@ enum InitClass
 	INIT_FULL,
 	INIT_EXTRA,
 	INIT_REMOVE,
+	INIT_SKIP,
 	};
 enum IDScope
 	{

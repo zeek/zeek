@@ -1263,7 +1263,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 
 			else
 				{
-				add_local({NewRef{}, lv}, ind_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
+				add_local({NewRef{}, lv}, ind_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
 				}
 			}
 		}
@@ -1284,7 +1284,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 			// nop
 			}
 		else if ( ! t )
-			add_local({NewRef{}, lv}, base_type(TYPE_COUNT), INIT_NONE, nullptr, nullptr,
+			add_local({NewRef{}, lv}, base_type(TYPE_COUNT), INIT_SKIP, nullptr, nullptr,
 			          VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1310,7 +1310,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 			// nop
 			}
 		else if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_NONE, nullptr,
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_SKIP, nullptr,
 			          nullptr, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
@@ -1353,7 +1353,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
 			e->Error("type clash in iteration", value_var->GetType().get());
 		}
 	else
-		add_local(value_var, yield_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
+		add_local(value_var, yield_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
 	}
 
 ForStmt::~ForStmt()

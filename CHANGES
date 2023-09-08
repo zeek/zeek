@@ -1,3 +1,26 @@
+6.1.0-dev.377 | 2023-09-08 13:48:26 +0200
+
+  * ID/Stmt: Introduce INIT_SKIP and use in ForStmt (Arne Welzel, Corelight)
+
+    Currently, loop vars are added to a function scope's inits and
+    initialized upon entering a function with default values. This
+    applies to vector, record and table types.
+
+    This is unnecessary for variables used in for loops as they are
+    guaranteed to be initialized while iterating.
+
+  * GH-3267: CompositeHash: Skip record initialization when recovering vals (Arne Welzel, Corelight)
+
+    Initializing fields of recovered records caused running &default expression
+    of fields just so that they are re-assigned in the next step with the
+    recovered fields. The second test case still shows that the loop var
+    is initialized as well even though that's not needed.
+
+    Add tests for iterating over records with &default attributes for both,
+    tables and vectors.
+
+    Fixes #3267
+
 6.1.0-dev.374 | 2023-09-07 15:58:22 +0200
 
   * GH-3276: Propagate failure reason in `spicy::decline_input`/`zeek::reject_protocol`. (Benjamin Bannier, Corelight)

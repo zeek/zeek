@@ -3155,17 +3155,15 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 	if ( run_state::is_parsing )
 		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
-	record_val = new std::vector<std::optional<ZVal>>;
-
 	if ( init_fields )
 		{
-		record_val->resize(n);
+		record_val.resize(n);
 
 		for ( auto& e : rt->CreationInits() )
 			{
 			try
 				{
-				(*record_val)[e.first] = e.second->Generate();
+				record_val[e.first] = e.second->Generate();
 				}
 			catch ( InterpreterException& e )
 				{
@@ -3177,21 +3175,19 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 		}
 
 	else
-		record_val->reserve(n);
+		record_val.reserve(n);
 	}
 
 RecordVal::~RecordVal()
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 
 	for ( unsigned int i = 0; i < n; ++i )
 		{
-		auto f_i = (*record_val)[i];
+		auto f_i = record_val[i];
 		if ( f_i && IsManaged(i) )
 			ZVal::DeleteManagedType(*f_i);
 		}
-
-	delete record_val;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -3206,7 +3202,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 		DeleteFieldIfManaged(field);
 
 		auto t = rt->GetFieldType(field);
-		(*record_val)[field] = ZVal(new_val, t);
+		record_val[field] = ZVal(new_val, t);
 		Modified();
 		}
 	else
@@ -3215,7 +3211,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 
 void RecordVal::Remove(int field)
 	{
-	auto& f_i = (*record_val)[field];
+	auto& f_i = record_val[field];
 	if ( f_i )
 		{
 		if ( IsManaged(field) )
@@ -3357,7 +3353,7 @@ TableValPtr RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 
 	if ( d->IsBinary() )
 		{
@@ -3393,7 +3389,7 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 	auto rt = GetType()->AsRecordType();
 
 	d->Add("{");

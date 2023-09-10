@@ -3161,18 +3161,24 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 		{
 		record_val->resize(n);
 
-		for ( auto& e : rt->CreationInits() )
+		int i = 0;
+		for ( auto& fi : rt->FieldInits() )
 			{
-			try
+			if ( fi && ! fi->IsDeferrable() )
 				{
-				(*record_val)[e.first] = e.second->Generate();
+				try
+					{
+					(*record_val)[i] = fi->Generate();
+					}
+				catch ( InterpreterException& e )
+					{
+					if ( run_state::is_parsing )
+						parse_time_records[rt.get()].pop_back();
+					throw;
+					}
 				}
-			catch ( InterpreterException& e )
-				{
-				if ( run_state::is_parsing )
-					parse_time_records[rt.get()].pop_back();
-				throw;
-				}
+
+			++i;
 			}
 		}
 

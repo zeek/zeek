@@ -1235,7 +1235,7 @@ public:
 		if ( (*record_val)[field] )
 			return true;
 
-		return rt->DeferredInits()[field] != nullptr;
+		return rt->FieldInits()[field] != nullptr;
 		}
 
 	/**
@@ -1260,8 +1260,13 @@ public:
 		auto& fv = (*record_val)[field];
 		if ( ! fv )
 			{
-			const auto& fi = rt->DeferredInits()[field];
+			const auto& fi = rt->FieldInits()[field];
 			if ( ! fi )
+				return nullptr;
+
+			// If the field init indicates a non-deferrable field,
+			// it must have been deleted.
+			if ( ! fi->IsDeferrable() )
 				return nullptr;
 
 			fv = fi->Generate();
@@ -1474,8 +1479,8 @@ protected:
 		auto& f = (*record_val)[field];
 		if ( ! f )
 			{
-			const auto& fi = rt->DeferredInits()[field];
-			if ( fi )
+			const auto& fi = rt->FieldInits()[field];
+			if ( fi && fi->IsDeferrable() )
 				f = fi->Generate();
 			}
 

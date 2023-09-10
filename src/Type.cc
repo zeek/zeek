@@ -13,6 +13,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Reporter.h"
+#include "zeek/RunState.h"
 #include "zeek/Scope.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
@@ -1015,6 +1016,8 @@ public:
 
 	ZVal Generate() const override { return init_val; }
 
+	bool IsDeferrable() const override { return true; }
+
 private:
 	ZVal init_val;
 	};
@@ -1031,6 +1034,8 @@ public:
 		zeek::Ref(init_val.ManagedVal());
 		return init_val;
 		}
+
+	bool IsDeferrable() const override { return true; }
 
 private:
 	ZVal init_val;
@@ -1065,6 +1070,8 @@ public:
 		return ZVal(v, init_type);
 		}
 
+	bool IsDeferrable() const override { return false; }
+
 private:
 	detail::ExprPtr init_expr;
 	TypePtr init_type;
@@ -1079,6 +1086,8 @@ public:
 	RecordFieldInit(RecordTypePtr _init_type) : init_type(std::move(_init_type)) { }
 
 	ZVal Generate() const override { return ZVal(new RecordVal(init_type)); }
+
+	bool IsDeferrable() const override { return init_type->IsDeferrable(); }
 
 private:
 	RecordTypePtr init_type;
@@ -1096,6 +1105,8 @@ public:
 
 	ZVal Generate() const override { return ZVal(new TableVal(init_type, attrs)); }
 
+	bool IsDeferrable() const override { return true; }
+
 private:
 	TableTypePtr init_type;
 	detail::AttributesPtr attrs;
@@ -1109,6 +1120,8 @@ public:
 	VectorFieldInit(VectorTypePtr _init_type) : init_type(std::move(_init_type)) { }
 
 	ZVal Generate() const override { return ZVal(new VectorVal(init_type)); }
+
+	bool IsDeferrable() const override { return true; }
 
 private:
 	VectorTypePtr init_type;
@@ -1155,18 +1168,18 @@ RecordType::~RecordType()
 
 void RecordType::AddField(unsigned int field, const TypeDecl* td)
 	{
-	ASSERT(field == deferred_inits.size());
+	ASSERT(field == field_inits.size());
 	ASSERT(field == managed_fields.size());
 
 	managed_fields.push_back(ZVal::IsManagedType(td->type));
 
-	// We defer error-checking until here so that we can keep deferred_inits
+	// We defer error-checking until here so that we can keep field_inits
 	// and managed_fields correctly tracking the associated fields.
 
 	if ( field_ids.count(td->id) != 0 )
 		{
 		reporter->Error("duplicate field '%s' found in record definition", td->id);
-		deferred_inits.push_back(nullptr);
+		field_inits.push_back(nullptr);
 		return;
 		}
 
@@ -1194,10 +1207,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 			}
 
 		else
-			{
-			auto efi = std::make_unique<detail::ExprFieldInit>(def_expr, type);
-			creation_inits.emplace_back(field, std::move(efi));
-			}
+			init = std::make_unique<detail::ExprFieldInit>(def_expr, type);
 		}
 
 	else if ( ! (a && a->Find(detail::ATTR_OPTIONAL)) )
@@ -1214,7 +1224,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 			init = std::make_unique<detail::VectorFieldInit>(cast_intrusive<VectorType>(type));
 		}
 
-	deferred_inits.push_back(std::move(init));
+	field_inits.push_back(std::move(init));
 	}
 
 bool RecordType::HasField(const char* field) const
@@ -1587,6 +1597,26 @@ detail::TraversalCode RecordType::Traverse(detail::TraversalCallback* cb) const
 
 	tc = cb->PostType(this);
 	HANDLE_TC_TYPE_POST(tc);
+	}
+
+// Recursive types: Can only be realized through redef after defining. Either
+// the fields are optional and their entry in field_inits is nil, or they
+// have a non-const &default which makes them non-deferrable.
+bool RecordType::IsDeferrable() const
+	{
+	if ( deferrable.has_value() )
+		return *deferrable;
+
+	if ( run_state::is_parsing )
+		return false;
+
+	auto is_deferrable = [](const auto& fi) -> bool
+	{
+		return fi && fi->IsDeferrable();
+	};
+
+	deferrable = std::all_of(field_inits.begin(), field_inits.end(), is_deferrable);
+	return *deferrable;
 	}
 
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) { }

@@ -44,6 +44,10 @@ public:
 
 	// Return the initialization value of the field.
 	virtual ZVal Generate() const = 0;
+
+	// Can initialization of the field be deferred? If false,
+	// Generate() is supposed to be called at record creation time.
+	virtual bool IsDeferrable() const = 0;
 	};
 
 	} // namespace detail
@@ -734,6 +738,13 @@ public:
 
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
+	// Can initialization of record values of this type be deferred?
+	//
+	// When record types contain non-const &default expressions or recursively
+	// contain any nested records that themselves are not deferrable,
+	// initialization can not be deferred, otherwise possible.
+	bool IsDeferrable() const;
+
 private:
 	RecordType() { types = nullptr; }
 
@@ -741,22 +752,11 @@ private:
 
 	void DoDescribe(ODesc* d) const override;
 
-	// Field initializations that can be deferred to first access,
-	// beneficial for fields that are separately initialized prior
-	// to first access.  Nil pointers mean "skip initializing the field".
-	std::vector<std::unique_ptr<detail::FieldInit>> deferred_inits;
-
-	// Field initializations that need to be done upon record creation,
-	// rather than deferred.  These are expressions whose value might
-	// change if computed later.
-	//
-	// Such initializations are uncommon, so we represent them using
-	// <fieldoffset, init> pairs.
-	std::vector<std::pair<int, std::unique_ptr<detail::FieldInit>>> creation_inits;
+	// All FieldInit instances.
+	std::vector<std::unique_ptr<detail::FieldInit>> field_inits;
 
 	friend zeek::RecordVal;
-	const auto& DeferredInits() const { return deferred_inits; }
-	const auto& CreationInits() const { return creation_inits; }
+	const auto& FieldInits() const { return field_inits; }
 
 	// If we were willing to bound the size of records, then we could
 	// use std::bitset here instead.
@@ -767,6 +767,9 @@ private:
 
 	// Number of fields in the type when originally declared.
 	int num_orig_fields = 0;
+
+	// Lazily updated within IsDeferrable() once parsing has completed.
+	mutable std::optional<bool> deferrable;
 
 	type_decl_list* types = nullptr;
 	std::set<std::string> field_ids;

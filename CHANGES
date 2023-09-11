@@ -1,3 +1,7 @@
+6.1.0-dev.385 | 2023-09-11 10:15:51 -0700
+
+  * Move allocation of analyzer_hash to file_mgr (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.382 | 2023-09-08 16:46:53 +0200
 
   * fix for ZAM statement-level profiling (broken by GH-3199) (Vern Paxson, Corelight)

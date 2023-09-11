@@ -32,6 +32,11 @@ class Analyzer;
 
 	} // namespace analyzer
 
+namespace detail
+	{
+class CompositeHash;
+	}
+
 namespace file_analysis
 	{
 
@@ -361,6 +366,8 @@ public:
 
 	uint64_t CumulativeFiles() { return cumulative_files; }
 
+	zeek::detail::CompositeHash* GetAnalyzerHash() const { return analyzer_hash; }
+
 protected:
 	friend class detail::FileTimer;
 
@@ -442,6 +449,8 @@ private:
 
 	size_t cumulative_files;
 	size_t max_files;
+
+	zeek::detail::CompositeHash* analyzer_hash = nullptr;
 	};
 
 /**

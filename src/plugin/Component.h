@@ -30,6 +30,7 @@ enum Type {
     PKTSRC,          /// A packet source.
     PKTDUMPER,       /// A packet dumper.
     SESSION_ADAPTER, /// A session adapter analyzer.
+    STORAGE,         /// A backend for the storage framework
 };
 
 } // namespace component

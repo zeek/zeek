@@ -10,5 +10,7 @@
 -./frameworks/netcontrol/cluster.zeek
 -./frameworks/openflow/cluster.zeek
 -./frameworks/packet-filter/cluster.zeek
+-./frameworks/storage/__load__.zeek
+-./frameworks/storage/main.zeek
 -./frameworks/sumstats/cluster.zeek
 -./init-supervisor.zeek

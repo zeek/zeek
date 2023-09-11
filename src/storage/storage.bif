@@ -1,0 +1,90 @@
+%%{
+#include "zeek/storage/Backend.h"
+#include "zeek/storage/Manager.h"
+%%}
+
+module Storage;
+
+function Storage::__open_backend%(btype: Storage::Backend, config: any, val_type: any%): opaque of Storage::BackendHandle
+	%{
+    auto btype_val = zeek::IntrusivePtr<zeek::EnumVal>{NewRef{}, btype->AsEnumVal()};
+    zeek::Tag tag{btype_val};
+
+    auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
+    auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+
+    auto b = storage_mgr->OpenBackend(tag, config_val, vt);
+    return zeek::make_intrusive<zeek::storage::BackendHandleVal>(b);
+	%}
+
+function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) : bool
+	%{
+	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		zeek::emit_builtin_error("Invalid storage handle", backend);
+		return zeek::val_mgr->Bool(false);
+	}
+
+	b->backend->Done();
+	return zeek::val_mgr->Bool(true);
+	%}
+
+function Storage::__store%(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool%): bool
+	%{
+	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		zeek::emit_builtin_error("Invalid storage handle", backend);
+		return zeek::val_mgr->Bool(false);
+	}
+
+    if ( ! same_type(key->GetType(), b->backend->ValueType()) ) {
+        zeek::emit_builtin_error("value type passed does not match value type for backend");
+        return zeek::val_mgr->Bool(false);
+    }
+
+	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
+	auto result = b->backend->Store(key_v, val_v, overwrite);
+	if ( ! result.first ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to store data: %s", result.second.c_str()));
+		return zeek::val_mgr->Bool(false);
+	}
+
+    return zeek::val_mgr->Bool(result.first);
+	%}
+
+function Storage::__retrieve%(backend: opaque of Storage::BackendHandle, key: any%): any
+	%{
+	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		zeek::emit_builtin_error("Invalid storage handle", backend);
+		return nullptr;
+	}
+
+	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto result = b->backend->Retrieve(key_v);
+	if ( ! result.first ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to retrieve data: %s", result.second.c_str()));
+        return nullptr;
+    }
+
+    return result.first;
+	%}
+
+function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%): bool
+    %{
+	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		zeek::emit_builtin_error("Invalid storage handle", backend);
+		return zeek::val_mgr->Bool(false);
+	}
+
+	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto result = b->backend->Erase(key_v);
+	if ( ! result.first ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to erase data for key: %s", result.second.c_str()));
+        return zeek::val_mgr->Bool(false);
+    }
+
+    return zeek::val_mgr->Bool(result.first);
+    %}

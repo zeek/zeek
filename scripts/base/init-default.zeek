@@ -44,6 +44,7 @@
 @load base/frameworks/openflow
 @load base/frameworks/netcontrol
 @load base/frameworks/telemetry
+@load base/frameworks/storage
 
 @if ( have_spicy() )
 @load base/frameworks/spicy

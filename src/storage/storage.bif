@@ -1,0 +1,116 @@
+%%{
+#include "zeek/storage/Backend.h"
+#include "zeek/storage/Manager.h"
+
+using namespace zeek;
+using namespace zeek::storage;
+%%}
+
+module Storage;
+
+# Generated when a new backend connection is opened
+event Storage::backend_opened%(%);
+
+# Generated when a backend connection is lost
+event Storage::backend_lost%(%);
+
+function Storage::__open_backend%(btype: Storage::Backend, options: any%): opaque of Storage::BackendHandle
+	%{
+	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
+	Tag tag{btype_val};
+
+	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
+
+	auto b = storage_mgr->OpenBackend(tag, options_val);
+
+	if ( ! b.has_value() ) {
+		emit_builtin_error(b.error().c_str());
+		return val_mgr->Bool(false);
+	}
+
+	return make_intrusive<storage::detail::BackendHandleVal>(b.value());
+	%}
+
+function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) : bool
+	%{
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		emit_builtin_error("Invalid storage handle", backend);
+		return val_mgr->Bool(false);
+	}
+	else if ( ! b->backend->IsOpen() )
+		// Return true here since the backend is already closed
+		return val_mgr->Bool(true);
+
+	storage_mgr->CloseBackend(b->backend);
+
+	return val_mgr->Bool(true);
+	%}
+
+function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool%): bool
+	%{
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		emit_builtin_error("Invalid storage handle", backend);
+		return val_mgr->Bool(false);
+	}
+	else if ( ! b->backend->IsOpen() )
+		return val_mgr->Bool(false);
+
+	// TODO: add support for when statements (see broker/store.bif)
+
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
+	auto result = b->backend->Put(key_v, val_v, overwrite);
+	if ( result.has_value() ) {
+		emit_builtin_error(util::fmt("Failed to store data: %s", result.value().c_str()));
+		return val_mgr->Bool(false);
+	}
+
+	return val_mgr->Bool(true);
+	%}
+
+function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, val_type: any%): any
+	%{
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		emit_builtin_error("Invalid storage handle", backend);
+		return val_mgr->Bool(false);
+	}
+	else if ( ! b->backend->IsOpen() )
+		return val_mgr->Bool(false);
+
+	// TODO: add support for when statements (see broker/store.bif)
+
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto result = b->backend->Get(key_v, vt);
+	if ( ! result.has_value() ) {
+		emit_builtin_error(util::fmt("Failed to retrieve data: %s", result.error().c_str()));
+		return val_mgr->Bool(false);
+	}
+
+	return result.value();
+	%}
+
+function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%): bool
+	%{
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		emit_builtin_error("Invalid storage handle", backend);
+		return val_mgr->Bool(false);
+	}
+	else if ( ! b->backend->IsOpen() )
+		return val_mgr->Bool(false);
+
+	// TODO: add support for when statements (see broker/store.bif)
+
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto result = b->backend->Erase(key_v);
+	if ( result.has_value() ) {
+		emit_builtin_error(util::fmt("Failed to erase data for key: %s", result.value().c_str()));
+		return val_mgr->Bool(false);
+	}
+
+	return val_mgr->Bool(true);
+	%}

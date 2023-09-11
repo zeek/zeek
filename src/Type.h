@@ -770,9 +770,9 @@ public:
 
 	// Can initialization of record values of this type be deferred?
 	//
-	// When record types contain non-const &default expressions or recursively
+	// Record types containing non-const &default expressions or recursively
 	// contain any nested records that themselves are not deferrable,
-	// initialization can not be deferred, otherwise possible.
+	// initialization can not be deferred, otherwise it's possible.
 	bool IsDeferrable() const;
 
 private:
@@ -797,9 +797,6 @@ private:
 
 	// Number of fields in the type when originally declared.
 	int num_orig_fields = 0;
-
-	// Lazily updated within IsDeferrable() once parsing has completed.
-	mutable std::optional<bool> deferrable;
 
 	type_decl_list* types = nullptr;
 	std::set<std::string> field_ids;

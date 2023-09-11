@@ -13,7 +13,6 @@
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Reporter.h"
-#include "zeek/RunState.h"
 #include "zeek/Scope.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
@@ -27,6 +26,11 @@ using namespace std;
 
 namespace zeek
 	{
+
+namespace run_state
+	{
+extern bool is_parsing;
+	}
 
 Type::TypeAliasMap Type::type_aliases;
 
@@ -1598,19 +1602,14 @@ detail::TraversalCode RecordType::Traverse(detail::TraversalCallback* cb) const
 // have a non-const &default which makes them non-deferrable.
 bool RecordType::IsDeferrable() const
 	{
-	if ( deferrable.has_value() )
-		return *deferrable;
-
-	if ( run_state::is_parsing )
-		return false;
+	assert(! run_state::is_parsing);
 
 	auto is_deferrable = [](const auto& fi) -> bool
 	{
 		return fi && fi->IsDeferrable();
 	};
 
-	deferrable = std::all_of(field_inits.begin(), field_inits.end(), is_deferrable);
-	return *deferrable;
+	return std::all_of(field_inits.begin(), field_inits.end(), is_deferrable);
 	}
 
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) { }

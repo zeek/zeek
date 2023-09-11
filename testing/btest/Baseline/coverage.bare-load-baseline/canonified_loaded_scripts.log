@@ -160,6 +160,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/bloom-filter.bif.zeek
     build/scripts/base/bif/cardinality-counter.bif.zeek
     build/scripts/base/bif/top-k.bif.zeek
+    build/scripts/base/bif/storage.bif.zeek
     build/scripts/base/bif/spicy.bif.zeek
   build/scripts/base/bif/plugins/__load__.zeek
     build/scripts/base/bif/plugins/Zeek_BitTorrent.events.bif.zeek

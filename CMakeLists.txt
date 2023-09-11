@@ -1143,6 +1143,7 @@ include(FindKqueue)
 
 include(FindPrometheusCpp)
 include_directories(BEFORE "auxil/out_ptr/include")
+include_directories(BEFORE "auxil/expected-lite/include")
 
 if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))
     set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)

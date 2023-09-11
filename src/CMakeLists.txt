@@ -205,6 +205,7 @@ add_subdirectory(iosource)
 add_subdirectory(logging)
 add_subdirectory(probabilistic)
 add_subdirectory(session)
+add_subdirectory(storage)
 
 if (HAVE_SPICY)
     add_subdirectory(spicy)

@@ -28,6 +28,11 @@ using ValPtr = IntrusivePtr<Val>;
 using EnumValPtr = IntrusivePtr<EnumVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
 
+namespace run_state
+	{
+extern bool is_parsing;
+	}
+
 namespace detail
 	{
 
@@ -47,7 +52,32 @@ public:
 
 	// Can initialization of the field be deferred? If false,
 	// Generate() is supposed to be called at record creation time.
-	virtual bool IsDeferrable() const = 0;
+	//
+	// Each FieldInit has is_deferrable cached for performance, using
+	// virtual method dispatch indicated overhead for microbenchmarks.
+	bool IsDeferrable() const
+		{
+		if ( is_deferrable.has_value() )
+			return is_deferrable.value();
+
+		if ( run_state::is_parsing )
+			return false;
+
+		is_deferrable = GetDeferrable();
+
+		return is_deferrable.value();
+		}
+
+	virtual bool GetDeferrable() const { return false; };
+
+protected:
+	// Base constructor.
+	//
+	// @param is_deferrable Deferrabiliy of FieldInit, if nullopt, GetDeferrable()
+	// 	is called to determine deferrability once parsing completed.
+	explicit FieldInit(std::optional<bool> is_deferrable) : is_deferrable(is_deferrable) { }
+
+	mutable std::optional<bool> is_deferrable;
 	};
 
 	} // namespace detail

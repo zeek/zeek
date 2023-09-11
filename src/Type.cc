@@ -1012,11 +1012,9 @@ namespace detail
 class DirectFieldInit final : public FieldInit
 	{
 public:
-	DirectFieldInit(ZVal _init_val) : init_val(_init_val) { }
+	DirectFieldInit(ZVal _init_val) : FieldInit(true), init_val(_init_val) { }
 
 	ZVal Generate() const override { return init_val; }
-
-	bool IsDeferrable() const override { return true; }
 
 private:
 	ZVal init_val;
@@ -1026,7 +1024,7 @@ private:
 class DirectManagedFieldInit final : public FieldInit
 	{
 public:
-	DirectManagedFieldInit(ZVal _init_val) : init_val(_init_val) { }
+	DirectManagedFieldInit(ZVal _init_val) : FieldInit(true), init_val(_init_val) { }
 	~DirectManagedFieldInit() override { ZVal::DeleteManagedType(init_val); }
 
 	ZVal Generate() const override
@@ -1034,8 +1032,6 @@ public:
 		zeek::Ref(init_val.ManagedVal());
 		return init_val;
 		}
-
-	bool IsDeferrable() const override { return true; }
 
 private:
 	ZVal init_val;
@@ -1049,7 +1045,7 @@ public:
 	// yielding the a value of the given type (which might require
 	// coercion for some records).
 	ExprFieldInit(detail::ExprPtr _init_expr, TypePtr _init_type)
-		: init_expr(std::move(_init_expr)), init_type(std::move(_init_type))
+		: FieldInit(false), init_expr(std::move(_init_expr)), init_type(std::move(_init_type))
 		{
 		if ( init_type->Tag() == TYPE_RECORD && ! same_type(init_expr->GetType(), init_type) )
 			coerce_type = cast_intrusive<RecordType>(init_type);
@@ -1070,8 +1066,6 @@ public:
 		return ZVal(v, init_type);
 		}
 
-	bool IsDeferrable() const override { return false; }
-
 private:
 	detail::ExprPtr init_expr;
 	TypePtr init_type;
@@ -1083,11 +1077,14 @@ private:
 class RecordFieldInit final : public FieldInit
 	{
 public:
-	RecordFieldInit(RecordTypePtr _init_type) : init_type(std::move(_init_type)) { }
+	RecordFieldInit(RecordTypePtr _init_type)
+		: FieldInit(std::nullopt), init_type(std::move(_init_type))
+		{
+		}
 
 	ZVal Generate() const override { return ZVal(new RecordVal(init_type)); }
 
-	bool IsDeferrable() const override { return init_type->IsDeferrable(); }
+	bool GetDeferrable() const override { return init_type->IsDeferrable(); }
 
 private:
 	RecordTypePtr init_type;
@@ -1099,13 +1096,11 @@ class TableFieldInit final : public FieldInit
 	{
 public:
 	TableFieldInit(TableTypePtr _init_type, detail::AttributesPtr _attrs)
-		: init_type(std::move(_init_type)), attrs(std::move(_attrs))
+		: FieldInit(true), init_type(std::move(_init_type)), attrs(std::move(_attrs))
 		{
 		}
 
 	ZVal Generate() const override { return ZVal(new TableVal(init_type, attrs)); }
-
-	bool IsDeferrable() const override { return true; }
 
 private:
 	TableTypePtr init_type;
@@ -1117,11 +1112,10 @@ private:
 class VectorFieldInit final : public FieldInit
 	{
 public:
-	VectorFieldInit(VectorTypePtr _init_type) : init_type(std::move(_init_type)) { }
+	VectorFieldInit(VectorTypePtr _init_type)
+		: FieldInit(true), init_type(std::move(_init_type)) { }
 
 	ZVal Generate() const override { return ZVal(new VectorVal(init_type)); }
-
-	bool IsDeferrable() const override { return true; }
 
 private:
 	VectorTypePtr init_type;

@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 
 @load base/frameworks/notice
-
+@load base/utils/strings
 @load frameworks/notice/extend-email/hostnames
 
 

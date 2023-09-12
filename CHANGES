@@ -1,3 +1,7 @@
+6.0.1 | 2023-09-12 11:17:35 -0700
+
+  * Remove EOL Ubuntu 22.10 build, update Ubuntu 22.04 docker image (Tim Wojtulewicz, Corelight)
+
 6.0.0-30 | 2023-09-12 09:52:31 -0700
 
   * Update dump_events test baseline after fseek changes (Tim Wojtulewicz, Corelight)

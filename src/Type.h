@@ -44,6 +44,9 @@ public:
 
 	// Return the initialization value of the field.
 	virtual ZVal Generate() const = 0;
+
+	// Can initialization of the field be deferred?
+	virtual bool IsDeferrable() const { return true; }
 	};
 
 	} // namespace detail
@@ -734,6 +737,15 @@ public:
 
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
+	// Can initialization of record values of this type be deferred?
+	//
+	// When record types contain non-const &default expressions or recursively
+	// contain any nested records that themselves are not deferrable,
+	// initialization can not be deferred, otherwise possible.
+	bool IsDeferrable() const;
+
+	static void InitPostScript();
+
 private:
 	RecordType() { types = nullptr; }
 
@@ -754,6 +766,7 @@ private:
 	// <fieldoffset, init> pairs.
 	std::vector<std::pair<int, std::unique_ptr<detail::FieldInit>>> creation_inits;
 
+	class CreationInitsOptimizer;
 	friend zeek::RecordVal;
 	const auto& DeferredInits() const { return deferred_inits; }
 	const auto& CreationInits() const { return creation_inits; }

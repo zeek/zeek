@@ -869,6 +869,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		if ( reporter->Errors() > 0 )
 			exit(1);
 
+		RecordType::InitPostScript();
+
 		telemetry_mgr->InitPostScript();
 		iosource_mgr->InitPostScript();
 		log_mgr->InitPostScript();

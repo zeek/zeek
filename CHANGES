@@ -1,3 +1,22 @@
+6.1.0-dev.390 | 2023-09-12 20:52:01 +0200
+
+  * CreationInitsOptimizer: Use PreTypedef() instead of PreType() (Arne Welzel, Corelight)
+
+    PreTypedef() does not require the PreID() trampoline and ensures
+    it's only called for IDs that are types. Also allows dropping
+    the const_cast<> due to id->GetType() returning a const TypePtr which
+    is different from a `const Type*`...
+
+  * GH-3260: Fix deferred record initialization (Arne Welzel, Corelight)
+
+    Put RecordFieldInit instances into creation_inits during parsing and
+    determine their deferrability in an InitPostScript step. Any
+    RecordFieldInits can be deferred are moved into deferred_inits.
+
+  * testing/btest: Un-deferred record initalization tests (Arne Welzel, Corelight)
+
+    These baselines should align with what Zeek 5.2 or before did.
+
 6.1.0-dev.385 | 2023-09-11 10:15:51 -0700
 
   * Move allocation of analyzer_hash to file_mgr (Tim Wojtulewicz, Corelight)

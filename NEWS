@@ -87,6 +87,9 @@ Changed Functionality
   growth. This behavior is configurable via a new option ``HTTP::max_pending_requests``.
   The default is ``100``.
 
+- Fix deferred initialization of nested records containing non-const &default
+  attributes.
+
 Removed Functionality
 ---------------------
 

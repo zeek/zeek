@@ -13,7 +13,9 @@
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Reporter.h"
+#include "zeek/RunState.h"
 #include "zeek/Scope.h"
+#include "zeek/Traverse.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
 #include "zeek/module_util.h"
@@ -1065,6 +1067,8 @@ public:
 		return ZVal(v, init_type);
 		}
 
+	bool IsDeferrable() const override { return false; }
+
 private:
 	detail::ExprPtr init_expr;
 	TypePtr init_type;
@@ -1079,6 +1083,12 @@ public:
 	RecordFieldInit(RecordTypePtr _init_type) : init_type(std::move(_init_type)) { }
 
 	ZVal Generate() const override { return ZVal(new RecordVal(init_type)); }
+
+	bool IsDeferrable() const override
+		{
+		assert(! run_state::is_parsing);
+		return init_type->IsDeferrable();
+		}
 
 private:
 	RecordTypePtr init_type;
@@ -1116,6 +1126,49 @@ private:
 
 	} // namespace detail
 
+// Helper TraversalCallback optimizing RecordType instances by moving
+// deferrable FieldInits from creation_inits to deferred_inits once
+// parsing has completed.
+class RecordType::CreationInitsOptimizer : public detail::TraversalCallback
+	{
+public:
+	detail::TraversalCode PreTypedef(const detail::ID* id) override
+		{
+		const auto& t = id->GetType();
+		if ( analyzed_types.count(t) > 0 )
+			return detail::TC_ABORTSTMT;
+
+		analyzed_types.emplace(t);
+
+		if ( t->Tag() == TYPE_RECORD )
+			OptimizeCreationInits(t->AsRecordType());
+
+		return detail::TC_CONTINUE;
+		}
+
+private:
+	void OptimizeCreationInits(RecordType* rt)
+		{
+		int i = 0;
+		for ( auto& ci : rt->creation_inits )
+			{
+			if ( ! ci.second->IsDeferrable() )
+				rt->creation_inits[i++] = std::move(ci);
+			else
+				{
+				assert(! rt->deferred_inits[ci.first]);
+				rt->deferred_inits[ci.first].swap(ci.second);
+				}
+			}
+
+		// Discard remaining elements.
+		rt->creation_inits.resize(i);
+		}
+
+	// Endless recursion avoidance.
+	std::unordered_set<TypePtr> analyzed_types;
+	};
+
 RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 	{
 	types = arg_types;
@@ -1130,6 +1183,12 @@ RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)
 		num_fields = 0;
 
 	num_orig_fields = num_fields;
+	}
+
+void RecordType::InitPostScript()
+	{
+	auto cb = CreationInitsOptimizer();
+	detail::traverse_all(&cb);
 	}
 
 // in this case the clone is actually not so shallow, since
@@ -1205,7 +1264,15 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td)
 		TypeTag tag = type->Tag();
 
 		if ( tag == TYPE_RECORD )
-			init = std::make_unique<detail::RecordFieldInit>(cast_intrusive<RecordType>(type));
+			{
+			// Initially, put record fields into creation_inits. Once parsing has
+			// completed, they may move into deferred_inits. See RecordType::InitPostScript()
+			// and RecordType::CreationInitisOptimizer.
+			//
+			// init (nil) is appended to deferred_inits as placeholder.
+			auto rfi = std::make_unique<detail::RecordFieldInit>(cast_intrusive<RecordType>(type));
+			creation_inits.emplace_back(field, std::move(rfi));
+			}
 
 		else if ( tag == TYPE_TABLE )
 			init = std::make_unique<detail::TableFieldInit>(cast_intrusive<TableType>(type), a);
@@ -1587,6 +1654,20 @@ detail::TraversalCode RecordType::Traverse(detail::TraversalCallback* cb) const
 
 	tc = cb->PostType(this);
 	HANDLE_TC_TYPE_POST(tc);
+	}
+
+bool RecordType::IsDeferrable() const
+	{
+	assert(! run_state::is_parsing);
+	auto is_deferrable = [](const auto& p) -> bool
+	{
+		return p.second->IsDeferrable();
+	};
+
+	// If all creation_inits are deferrable, this record type is deferrable, too.
+	// It will be optimized later on. Note, all_of() returns true for an empty
+	// range, which is correct.
+	return std::all_of(creation_inits.begin(), creation_inits.end(), is_deferrable);
 	}
 
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) { }

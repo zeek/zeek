@@ -1,3 +1,7 @@
+5.0.10 | 2023-09-12 12:38:57 -0700
+
+  * Load strings utils from extend-email btest (Tim Wojtulewicz, Corelight)
+
 5.0.9-19 | 2023-09-12 11:26:54 -0700
 
   * Add extract_limit_includes_missing option for file extraction (Johanna Amann, Corelight)

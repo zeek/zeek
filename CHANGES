@@ -1,4 +1,4 @@
-6.0.1 | 2023-09-12 11:17:35 -0700
+6.0.1 | 2023-09-12 13:37:34 -0700
 
   * Remove EOL Ubuntu 22.10 build, update Ubuntu 22.04 docker image (Tim Wojtulewicz, Corelight)
 

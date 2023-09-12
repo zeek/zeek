@@ -1132,26 +1132,16 @@ private:
 class RecordType::CreationInitsOptimizer : public detail::TraversalCallback
 	{
 public:
-	detail::TraversalCode PreID(const detail::ID* id) override
+	detail::TraversalCode PreTypedef(const detail::ID* id) override
 		{
-		if ( const auto& t = id->GetType() )
-			HANDLE_TC_TYPE_POST(t->Traverse(this));
-
-		return detail::TC_CONTINUE;
-		}
-
-	detail::TraversalCode PreType(const Type* t) override
-		{
+		const auto& t = id->GetType();
 		if ( analyzed_types.count(t) > 0 )
 			return detail::TC_ABORTSTMT;
 
 		analyzed_types.emplace(t);
 
 		if ( t->Tag() == TYPE_RECORD )
-			{
-			auto* rt = const_cast<RecordType*>(t->AsRecordType());
-			OptimizeCreationInits(rt);
-			}
+			OptimizeCreationInits(t->AsRecordType());
 
 		return detail::TC_CONTINUE;
 		}
@@ -1176,7 +1166,7 @@ private:
 		}
 
 	// Endless recursion avoidance.
-	std::unordered_set<const Type*> analyzed_types;
+	std::unordered_set<TypePtr> analyzed_types;
 	};
 
 RecordType::RecordType(type_decl_list* arg_types) : Type(TYPE_RECORD)

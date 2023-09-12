@@ -8,10 +8,53 @@ Zeek 5.0.10
 
 This release fixes the following security issues:
 
+- File extraction limits were not correctly enforced for files containing large
+  amounts of missing bytes. Crafting files with large amounts of missing bytes
+  in them could cause Zeek to spend a long time processing data, allocate a lot
+  of main memory, and write a lot of data to disk. Due to the possibility of
+  receiving these packets from remote hosts, this is a DoS risk. The fix
+  included makes Zeek correctly enforce file size limits. We also added a new
+  option (default_limit_includes_missing) which allows to customize the behavior
+  when encountering large amounts of missed bytes in file. This issue was
+  discovered by Luca Cigarini.
+
+- Sessions are sometimes not cleaned up completely within Zeek during shutdown,
+  potentially causing a crash when using the -B dpd flag for debug logging. This
+  is low priority because it only happens at shutdown and only when using that
+  flag. The fix included is to reorder shutdown to cleanup all the sessions
+  prior to tearing down the analyzers.
+
+- A specially-crafted HTTP packet can cause Zeek’s filename extraction code to
+  take a long time to process the data. Due to the possibility of receiving
+  these packets from remote hosts, this is a DoS risk. The fix included adjusts
+  the regular expression used in the extract_filename_from_content_disposition()
+  script function to more-correctly match the data.
+
+- A specially-crafted series of FTP packets made up of a CWD request followed by
+  a large amount of ERPT requests may cause Zeek to spend a long time logging
+  the commands. Due to the possibility of receiving these packets from remote
+  hosts, this is a DoS risk. The fix included is to prevent logging of pending
+  commands for FTP packets.
+
+- A specially-crafted series of SMB packets containing DCE-RPC traffic may cause
+  Zeek to use a large amount of memory and potentially crash. Due to the
+  possibility of receiving these packets from remote hosts, this is a DoS
+  risk. The fix included adds additional cleanup for DCE-RPC analyzers when
+  closing SMB connections and limits on the number of DCE-RPC analyzers that can
+  be created as part of an SMB connection.
+
 This release fixes the following bugs:
 
 - Fixed the DPD signature for the SOCKS analyzer to actually match the format
   for those packets.
+
+- Timeouts in DNS resolution no longer cause uncontrolled memory growth.
+
+- Fix check to skip DNS hostname lookups for notices that are not delivered via
+  email in ``policy/frameworks/notice/extend-email/hostnames``. Due to that
+  policy script being loaded in the Zeek's default ``local.zeek``, this
+  previously caused unneeded DNS lookups for every generated notice instead of
+  just those delivered via email.
 
 Zeek 5.0.9
 ==========

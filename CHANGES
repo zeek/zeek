@@ -1,3 +1,45 @@
+5.0.9-19 | 2023-09-12 11:26:54 -0700
+
+  * Add extract_limit_includes_missing option for file extraction (Johanna Amann, Corelight)
+
+    Setting this option to false does not count missing bytes in files towards the
+    extraction limits, and allows to extract data up to the desired limit,
+    even when partial files are written.
+
+    When missing bytes are encountered, files are now written as sparse
+    files.
+
+    Using this option requires the underlying storage and utilities to support
+    sparse files.
+
+  * File extraction: use fseek (Johanna Amann, Corelight)
+
+    In the past, we allocated a buffer with zeroes and wrote that with
+    fwrite. Now, instead we just fseek to the correct offset.
+
+    This changes the way in which the file extract limit is counted a bit;
+    skipped bytes do no longer count against the file size limit.
+
+  * ftp: Do not log non-pending commands (Arne Welzel, Corelight)
+
+    OSS Fuzz generated a CWD request and reply followed by very many EPRT
+    requests. This caused Zeek to re-log the CWD request and invoke `build_url_ftp()`
+    over and over again resulting in long processing times.
+
+    Avoid this scenario by not logging commands that aren't pending anymore.
+
+  * http/smtp: Fix wrong character class usage (Arne Welzel, Corelight)
+
+    A call to `extract_filename_from_content_disposition()` is only
+    efficient if the string is guaranteed to contain the pattern that
+    is removed by `sub()`. Due to missing brackets around the `[:blank:]`
+    character class, an overly long string (756kb) ending in
+    "Type:dtanameaa=" matched the wrong pattern causing `sub()` to
+    exhibit quadratic runtime. Besides that, we may have potentially
+    extracted wrong information from a crafted header value.
+
+  * Make sure that all sessions/connections are done before deleting plugins (Tim Wojtulewicz, Corelight)
+
 5.0.9-5 | 2023-08-08 14:58:31 -0700
 
   * socks/dpd: Add newer auth methods (Arne Welzel, Corelight)

@@ -8,204 +8,156 @@
 
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
+#include "zeek/telemetry/Util.h"
+#include "zeek/telemetry/telemetry.bif.h"
 
 #include "opentelemetry/sdk/metrics/sync_instruments.h"
 
 namespace zeek::telemetry {
 
-class DblHistogramFamily;
-class IntHistogramFamily;
-class Manager;
+template<typename BaseType>
+class BaseHistogram {
+public:
+    using Handle = opentelemetry::nostd::shared_ptr<opentelemetry::metrics::Histogram<BaseType>>;
+
+    /**
+     * Increments all buckets with an upper bound less than or equal to @p value
+     * by one and adds @p value to the total sum of all observed values.
+     */
+    void Observe(BaseType value) noexcept {
+        handle->Record(value, attributes, context);
+        sum += value;
+    }
+
+    /// @return The sum of all observed values.
+    BaseType Sum() const noexcept { return sum; }
+
+    /**
+     * @return Whether @c this and @p other refer to the same histogram.
+     */
+    bool IsSameAs(const BaseHistogram& other) const noexcept {
+        return handle == other.handle && attributes == other.attributes;
+    }
+
+    bool operator==(const BaseHistogram& other) const noexcept { return IsSameAs(other); }
+    bool operator!=(const BaseHistogram& other) const noexcept { return ! IsSameAs(other); }
+
+    bool CompareLabels(const Span<const LabelView>& labels) const { return attributes == labels; }
+
+protected:
+    explicit BaseHistogram(Handle handle, Span<const LabelView> labels) noexcept
+        : handle(std::move(handle)), attributes(labels) {}
+
+    Handle handle;
+    MetricAttributeIterable attributes;
+    opentelemetry::context::Context context;
+    BaseType sum = 0;
+};
 
 /**
  * A handle to a metric that represents an aggregable distribution of observed
  * measurements with integer precision. Sorts individual measurements into
  * configurable buckets.
  */
-class IntHistogram {
+class IntHistogram : public BaseHistogram<uint64_t> {
 public:
     static inline const char* OpaqueName = "IntHistogramMetricVal";
 
-    using Handle = opentelemetry::metrics::Histogram<uint64_t>;
-
-    explicit IntHistogram(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
+    explicit IntHistogram(Handle handle, Span<const LabelView> labels) noexcept
+        : BaseHistogram(std::move(handle), labels) {}
 
     IntHistogram() = delete;
-    IntHistogram(const IntHistogram&) noexcept = default;
-    IntHistogram& operator=(const IntHistogram&) noexcept = default;
+    IntHistogram(const IntHistogram&) noexcept = delete;
+    IntHistogram& operator=(const IntHistogram&) noexcept = delete;
+};
+
+/**
+ * A handle to a metric that represents an aggregable distribution of observed
+ * measurements with integer precision. Sorts individual measurements into
+ * configurable buckets.
+ */
+class DblHistogram : public BaseHistogram<double> {
+public:
+    static inline const char* OpaqueName = "DblHistogramMetricVal";
+
+    explicit DblHistogram(Handle handle, Span<const LabelView> labels) noexcept
+        : BaseHistogram(std::move(handle), labels) {}
+
+    DblHistogram() = delete;
+    DblHistogram(const DblHistogram&) noexcept = delete;
+    DblHistogram& operator=(const DblHistogram&) noexcept = delete;
+};
+
+template<class HistogramType, typename BaseType>
+class BaseHistogramFamily : public MetricFamily,
+                            public std::enable_shared_from_this<BaseHistogramFamily<HistogramType, BaseType>> {
+public:
+    BaseHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                        std::string_view helptext, std::string_view unit = "1", bool is_sum = false)
+        : MetricFamily(prefix, name, labels, helptext, unit, is_sum) {}
 
     /**
-     * Increments all buckets with an upper bound less than or equal to @p value
-     * by one and adds @p value to the total sum of all observed values.
+     * Returns the metrics handle for given labels, creating a new instance
+     * lazily if necessary.
      */
-    void Observe(uint64_t value) noexcept {
-        hdl->Record(value, attributes, context);
-        sum += value;
+    std::shared_ptr<HistogramType> GetOrAdd(Span<const LabelView> labels) {
+        auto check = [&](const std::shared_ptr<HistogramType>& histogram) { return histogram->CompareLabels(labels); };
+
+        if ( auto it = std::find_if(histograms.begin(), histograms.end(), check); it != histograms.end() )
+            return *it;
+
+        auto histogram = std::make_shared<HistogramType>(instrument, labels);
+        histograms.push_back(histogram);
+        return histogram;
     }
 
-    /// @return The sum of all observed values.
-    uint64_t Sum() const noexcept { return sum; }
-
-    // TODO: the opentelemetry API doesn't have direct access to the bucket information
-    // in the histogram instrument.
-
-    // /// @return The number of buckets, including the implicit "infinite" bucket.
-    // size_t NumBuckets() const noexcept { return broker::telemetry::num_buckets(hdl); }
-
-    // /// @return The number of observations in the bucket at @p index.
-    // /// @pre index < NumBuckets()
-    // uint64_t CountAt(size_t index) const noexcept { return broker::telemetry::count_at(hdl,
-    // index); }
-
-    // /// @return The upper bound of the bucket at @p index.
-    // /// @pre index < NumBuckets()
-    // uint64_t UpperBoundAt(size_t index) const noexcept
-    //  	{
-    //  	return broker::telemetry::upper_bound_at(hdl, index);
-    //  	}
-
     /**
-     * @return Whether @c this and @p other refer to the same histogram.
+     * @copydoc GetOrAdd
      */
-    bool IsSameAs(const IntHistogram& other) const noexcept { return hdl == other.hdl; }
+    std::shared_ptr<HistogramType> GetOrAdd(std::initializer_list<LabelView> labels) {
+        return GetOrAdd(Span{labels.begin(), labels.size()});
+    }
 
-    bool operator==(const IntHistogram& other) const noexcept { return IsSameAs(other); }
-    bool operator!=(const IntHistogram& other) const noexcept { return ! IsSameAs(other); }
+protected:
+    using Handle = opentelemetry::nostd::shared_ptr<opentelemetry::metrics::Histogram<BaseType>>;
 
-private:
-    opentelemetry::nostd::shared_ptr<Handle> hdl;
-    MetricAttributeIterable attributes;
-    opentelemetry::context::Context context;
-    uint64_t sum = 0;
+    Handle instrument;
+    std::vector<std::shared_ptr<HistogramType>> histograms;
 };
 
 /**
  * Manages a collection of IntHistogram metrics.
  */
-class IntHistogramFamily : public MetricFamily {
+class IntHistogramFamily : public BaseHistogramFamily<IntHistogram, uint64_t> {
 public:
     static inline const char* OpaqueName = "IntHistogramMetricFamilyVal";
-
-    using InstanceType = IntHistogram;
 
     IntHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
                        std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 
-    IntHistogramFamily(const IntHistogramFamily&) noexcept = default;
-    IntHistogramFamily& operator=(const IntHistogramFamily&) noexcept = default;
-
-    /**
-     * Returns the metrics handle for given labels, creating a new instance
-     * lazily if necessary.
-     */
-    std::shared_ptr<IntHistogram> GetOrAdd(Span<const LabelView> labels);
-
-    /**
-     * @copydoc GetOrAdd
-     */
-    std::shared_ptr<IntHistogram> GetOrAdd(std::initializer_list<LabelView> labels) {
-        return GetOrAdd(Span{labels.begin(), labels.size()});
-    }
-};
-
-/**
- * A handle to a metric that represents an aggregable distribution of observed
- * measurements with floating point precision. Sorts individual measurements
- * into configurable buckets.
- */
-class DblHistogram {
-public:
-    static inline const char* OpaqueName = "DblHistogramMetricVal";
-
-    using Handle = opentelemetry::metrics::Histogram<double>;
-
-    explicit DblHistogram(opentelemetry::nostd::shared_ptr<Handle> hdl, Span<const LabelView> labels) noexcept;
-
-    DblHistogram() = delete;
-    DblHistogram(const DblHistogram&) noexcept = default;
-    DblHistogram& operator=(const DblHistogram&) noexcept = default;
-
-    /**
-     * Increments all buckets with an upper bound less than or equal to @p value
-     * by one and adds @p value to the total sum of all observed values.
-     */
-    void Observe(double value) noexcept {
-        hdl->Record(value, attributes, context);
-        sum += value;
-    }
-
-    /// @return The sum of all observed values.
-    double Sum() const noexcept { return sum; }
-
-    // TODO: the opentelemetry API doesn't have direct access to the bucket information
-    // in the histogram instrument.
-
-    // /// @return The number of buckets, including the implicit "infinite" bucket.
-    // size_t NumBuckets() const noexcept { return broker::telemetry::num_buckets(hdl); }
-
-    // /// @return The number of observations in the bucket at @p index.
-    // /// @pre index < NumBuckets()
-    // int64_t CountAt(size_t index) const noexcept { return broker::telemetry::count_at(hdl,
-    // index); }
-
-    // /// @return The upper bound of the bucket at @p index.
-    // /// @pre index < NumBuckets()
-    // double UpperBoundAt(size_t index) const noexcept
-    // 	{
-    // 	return broker::telemetry::upper_bound_at(hdl, index);
-    // 	}
-
-    /**
-     * @return Whether @c this and @p other refer to the same histogram.
-     */
-    bool IsSameAs(const DblHistogram& other) const noexcept { return hdl == other.hdl; }
-
-    bool operator==(const DblHistogram& other) const noexcept { return IsSameAs(other); }
-    bool operator!=(const DblHistogram& other) const noexcept { return ! IsSameAs(other); }
-
-private:
-    opentelemetry::nostd::shared_ptr<Handle> hdl;
-    MetricAttributeIterable attributes;
-    opentelemetry::context::Context context;
-    double sum = 0;
+    IntHistogramFamily(const IntHistogramFamily&) noexcept = delete;
+    IntHistogramFamily& operator=(const IntHistogramFamily&) noexcept = delete;
 };
 
 /**
  * Manages a collection of DblHistogram metrics.
  */
-class DblHistogramFamily : public MetricFamily {
+class DblHistogramFamily : public BaseHistogramFamily<DblHistogram, double> {
 public:
     static inline const char* OpaqueName = "DblHistogramMetricFamilyVal";
-
-    using InstanceType = DblHistogram;
 
     DblHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
                        std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
 
-    DblHistogramFamily(const DblHistogramFamily&) noexcept = default;
-    DblHistogramFamily& operator=(const DblHistogramFamily&) noexcept = default;
-
-    /**
-     * Returns the metrics handle for given labels, creating a new instance
-     * lazily if necessary.
-     */
-    std::shared_ptr<DblHistogram> GetOrAdd(Span<const LabelView> labels);
-
-    /**
-     * @copydoc GetOrAdd
-     */
-    std::shared_ptr<DblHistogram> GetOrAdd(std::initializer_list<LabelView> labels) {
-        return GetOrAdd(Span{labels.begin(), labels.size()});
-    }
-
-private:
+    DblHistogramFamily(const DblHistogramFamily&) noexcept = delete;
+    DblHistogramFamily& operator=(const DblHistogramFamily&) noexcept = delete;
 };
 
 namespace detail {
 
 template<class T>
 struct HistogramOracle {
-    static_assert(std::is_same<T, int64_t>::value, "Histogram<T> only supports int64_t and double");
+    static_assert(std::is_same<T, uint64_t>::value, "Histogram<T> only supports uint64_t and double");
 
     using type = IntHistogram;
 };

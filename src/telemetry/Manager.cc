@@ -3,6 +3,7 @@
 #include "zeek/telemetry/Manager.h"
 
 #include <fnmatch.h>
+#include <algorithm>
 #include <thread>
 #include <variant>
 
@@ -126,6 +127,15 @@ void Manager::InitPostScript() {
         metrics_sdk::ViewFactory::Create(histogram_name, "description", "", metrics_sdk::AggregationType::kHistogram);
     p->AddView(std::move(histogram_instrument_selector), std::move(histogram_meter_selector),
                std::move(histogram_view));
+}
+
+std::shared_ptr<MetricFamily> Manager::LookupFamily(std::string_view prefix, std::string_view name) const {
+    auto check = [&](const auto& fam) { return fam->Prefix() == prefix && fam->Name() == name; };
+
+    if ( auto it = std::find_if(families.begin(), families.end(), check); it != families.end() )
+        return *it;
+
+    return nullptr;
 }
 
 // -- collect metric stuff -----------------------------------------------------

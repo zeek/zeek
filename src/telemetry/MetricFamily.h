@@ -94,6 +94,21 @@ public:
 
     size_t size() const noexcept override { return attributes.size(); }
 
+    bool operator==(const MetricAttributeIterable& other) const noexcept { return attributes == other.attributes; }
+
+    bool operator==(const Span<const LabelView>& other) const noexcept {
+        if ( other.size() != attributes.size() )
+            return false;
+
+        for ( const auto& label : other ) {
+            if ( auto it = attributes.find(std::string{label.first}); it != attributes.end() )
+                if ( it->second != label.second )
+                    return false;
+        }
+
+        return true;
+    }
+
 private:
     std::map<std::string, std::string> attributes;
 };

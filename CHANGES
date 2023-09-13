@@ -1,3 +1,51 @@
+6.1.0-dev.397 | 2023-09-12 17:00:26 -0700
+
+  * Update dump-events test baseline after latest master changes (Tim Wojtulewicz)
+
+  * Add extract_limit_includes_missing option for file extraction (Johanna Amann, Corelight)
+
+    Setting this option to false does not count missing bytes in files towards the
+    extraction limits, and allows to extract data up to the desired limit,
+    even when partial files are written.
+
+    When missing bytes are encountered, files are now written as sparse
+    files.
+
+    Using this option requires the underlying storage and utilities to support
+    sparse files.
+
+    (cherry picked from commit afa6f3a0d3b8db1ec5b5e82d26225504c2891089)
+
+  * ftp: Do not log non-pending commands (Arne Welzel, Corelight)
+
+    OSS Fuzz generated a CWD request and reply followed by very many EPRT
+    requests. This caused Zeek to re-log the CWD request and invoke `build_url_ftp()`
+    over and over again resulting in long processing times.
+
+    Avoid this scenario by not logging commands that aren't pending anymore.
+
+    (cherry picked from commit b05dd31667ff634ec7d017f09d122f05878fdf65)
+
+  * http/smtp: Fix wrong character class usage (Arne Welzel, Corelight)
+
+    A call to `extract_filename_from_content_disposition()` is only
+    efficient if the string is guaranteed to contain the pattern that
+    is removed by `sub()`. Due to missing brackets around the `[:blank:]`
+    character class, an overly long string (756kb) ending in
+    "Type:dtanameaa=" matched the wrong pattern causing `sub()` to
+    exhibit quadratic runtime. Besides that, we may have potentially
+    extracted wrong information from a crafted header value.
+
+    (cherry picked from commit 6d385b1ca724a10444865e4ad38a58b31a2e2288)
+
+  * VLAN: Fix length checking for non-Ethernet type 2 frames (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c579eb7b7cf3ca1d9008e74d7934155866c7e4f7)
+
+  * Make sure that all sessions/connections are done before deleting plugins (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit e29b499a211137cf3cf0c24a4ff82db1b806f132)
+
 6.1.0-dev.390 | 2023-09-12 20:52:01 +0200
 
   * CreationInitsOptimizer: Use PreTypedef() instead of PreType() (Arne Welzel, Corelight)

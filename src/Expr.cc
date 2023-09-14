@@ -3605,8 +3605,14 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		auto val_expr = expr->AsAssignExpr()->GetOp2();
 		auto yield_type = GetType()->AsTableType()->Yield();
 
+		if ( idx_expr->Tag() != EXPR_LIST )
+			{
+			expr->Error("table constructor index is not a list");
+			SetError();
+			return;
+			}
+
 		// Promote LHS
-		assert(idx_expr->Tag() == EXPR_LIST);
 		ExprPList& idx_exprs = idx_expr->AsListExpr()->Exprs();
 
 		if ( idx_exprs.length() != static_cast<int>(indices.size()) )

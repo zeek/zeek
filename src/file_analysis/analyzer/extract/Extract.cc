@@ -13,10 +13,9 @@ namespace zeek::file_analysis::detail
 	{
 
 Extract::Extract(RecordValPtr args, file_analysis::File* file, const std::string& arg_filename,
-                 uint64_t arg_limit, bool arg_limit_includes_missing)
+                 uint64_t arg_limit)
 	: file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), std::move(args), file),
-	  filename(arg_filename), limit(arg_limit), written(0),
-	  limit_includes_missing(arg_limit_includes_missing)
+	  filename(arg_filename), limit(arg_limit), depth(0)
 	{
 	char buf[128];
 	file_stream = fopen(filename.data(), "wb");
@@ -61,25 +60,14 @@ file_analysis::Analyzer* Extract::Instantiate(RecordValPtr args, file_analysis::
 	{
 	const auto& fname = get_extract_field_val(args, "extract_filename");
 	const auto& limit = get_extract_field_val(args, "extract_limit");
-	const auto& extract_limit_includes_missing = get_extract_field_val(
-		args, "extract_limit_includes_missing");
 
-	if ( ! fname || ! limit || ! extract_limit_includes_missing )
+	if ( ! fname || ! limit )
 		return nullptr;
 
-	return new Extract(std::move(args), file, fname->AsString()->CheckString(), limit->AsCount(),
-	                   extract_limit_includes_missing->AsBool());
+	return new Extract(std::move(args), file, fname->AsString()->CheckString(), limit->AsCount());
 	}
 
-/**
- * Check if we are exceeding the write limit with this write.
- * @param lim size limit
- * @param written how many bytes we have written so far
- * @param len length of the write
- * @param n number of bytes to write to keep within limit
- * @returns true if limit exceeded
- */
-static bool check_limit_exceeded(uint64_t lim, uint64_t written, uint64_t len, uint64_t* n)
+static bool check_limit_exceeded(uint64_t lim, uint64_t depth, uint64_t len, uint64_t* n)
 	{
 	if ( lim == 0 )
 		{
@@ -87,14 +75,14 @@ static bool check_limit_exceeded(uint64_t lim, uint64_t written, uint64_t len, u
 		return false;
 		}
 
-	if ( written >= lim )
+	if ( depth >= lim )
 		{
 		*n = 0;
 		return true;
 		}
-	else if ( written + len > lim )
+	else if ( depth + len > lim )
 		{
-		*n = lim - written;
+		*n = lim - depth;
 		return true;
 		}
 	else
@@ -111,7 +99,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 		return false;
 
 	uint64_t towrite = 0;
-	bool limit_exceeded = check_limit_exceeded(limit, written, len, &towrite);
+	bool limit_exceeded = check_limit_exceeded(limit, depth, len, &towrite);
 
 	if ( limit_exceeded && file_extraction_limit )
 		{
@@ -120,7 +108,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 		             {f->ToVal(), GetArgs(), val_mgr->Count(limit), val_mgr->Count(len)});
 
 		// Limit may have been modified by a BIF, re-check it.
-		limit_exceeded = check_limit_exceeded(limit, written, len, &towrite);
+		limit_exceeded = check_limit_exceeded(limit, depth, len, &towrite);
 		}
 
 	char buf[128];
@@ -136,7 +124,7 @@ bool Extract::DeliverStream(const u_char* data, uint64_t len)
 			return false;
 			}
 
-		written += towrite;
+		depth += towrite;
 		}
 
 	// Assume we may not try to write anything more for a while due to reaching
@@ -157,30 +145,7 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len)
 	if ( ! file_stream )
 		return false;
 
-	if ( limit_includes_missing )
-		{
-		uint64_t towrite = 0;
-		bool limit_exceeded = check_limit_exceeded(limit, written, len, &towrite);
-		// if the limit is exceeded, we have to raise the event. This gives scripts the opportunity
-		// to raise the limit.
-		if ( limit_exceeded && file_extraction_limit )
-			{
-			file_analysis::File* f = GetFile();
-			f->FileEvent(file_extraction_limit,
-			             {f->ToVal(), GetArgs(), val_mgr->Count(limit), val_mgr->Count(len)});
-			// we have to check again if the limit is still exceedee
-			limit_exceeded = check_limit_exceeded(limit, written, len, &towrite);
-			}
-
-		// if the limit is exceeded, abort and don't do anything - no reason to seek.
-		if ( limit_exceeded )
-			return false;
-
-		// if we don't skip holes, count this hole against the write limit
-		written += len;
-		}
-
-	if ( fseek(file_stream, len + offset, SEEK_SET) != 0 )
+	if ( depth == offset )
 		{
 		char* tmp = new char[len]();
 
@@ -196,7 +161,7 @@ bool Extract::Undelivered(uint64_t offset, uint64_t len)
 			}
 
 		delete[] tmp;
-		written += len;
+		depth += len;
 		}
 
 	return true;

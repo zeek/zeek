@@ -1,0 +1,20 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o foo.hlto foo.spicy foo.evt
+# @TEST-EXEC: zeek -NN Zeek::Spicy foo.hlto >output1 2>&1
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$PWD zeek -B all -NN Zeek::Spicy >output2 2>&1
+# @TEST-EXEC: diff output1 output2 1>&2
+#
+# @TEST-DOC: This validates that an exported Spicy name with local part identical with a Zeek name in global scope does not clash. Regression test for #3279.
+
+# @TEST-START-FILE foo.spicy
+module foo;
+
+# `foo::Direction` has the same local part as Zeek's `::Direction`.
+public type Direction = enum { a };
+public type Other = enum { a };
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.evt
+import foo;
+# @TEST-END-FILE

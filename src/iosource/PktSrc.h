@@ -9,7 +9,6 @@
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/iosource/Packet.h"
-#include "zeek/telemetry/Manager.h"
 
 struct pcap_pkthdr;
 

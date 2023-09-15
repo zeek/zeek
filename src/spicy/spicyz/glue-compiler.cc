@@ -1318,14 +1318,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
                 SPICY_DEBUG(hilti::util::fmt("Creating Zeek record type %s::%s with fields:", ns, local));
 
                 for ( const auto& f : fields )
-                    SPICY_DEBUG(hilti::util::fmt("  %s", f.as<hilti::expression::Ctor>()
-                                                             .ctor()
-                                                             .as<hilti::ctor::Tuple>()
-                                                             .value()[0]
-                                                             .as<hilti::expression::Ctor>()
-                                                             .ctor()
-                                                             .as<hilti::ctor::String>()
-                                                             .value()));
+                    SPICY_DEBUG(hilti::util::fmt("  %s", f));
             }
             else
                 SPICY_DEBUG(hilti::util::fmt("Creating (empty) Zeek record type %s::%s", ns, local));

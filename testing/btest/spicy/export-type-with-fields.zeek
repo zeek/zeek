@@ -1,6 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -do export.hlto export.spicy export.evt
+# Running with `-D zeek` to excercise debug streams.
+# @TEST-EXEC: spicyz -D zeek -do export.hlto export.spicy export.evt
 # @TEST-EXEC: zeek export.hlto %INPUT >>output
 # @TEST-EXEC: btest-diff output
 #

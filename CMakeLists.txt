@@ -924,6 +924,12 @@ if (NOT DISABLE_SPICY)
         # disable it.
         set(HILTI_DEV_PRECOMPILE_HEADERS OFF)
 
+        # Remove in v6.2. Older versions of Spicy use find_package(Python3),
+        # accommodate by setting the Python3_EXECUTABLE hint.
+        if (Python_EXECUTABLE)
+            set(Python3_EXECUTABLE ${Python_EXECUTABLE} CACHE STRING "Python3_EXECUTABLE hint")
+        endif ()
+
         add_subdirectory(auxil/spicy)
         include(ConfigureSpicyBuild) # set some options different for building Spicy
 

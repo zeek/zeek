@@ -1,3 +1,59 @@
+6.1.0-dev.409 | 2023-09-15 11:58:40 +0200
+
+  * Update zeekjs submodule (Arne Welzel, Corelight)
+
+    Primarily for the following fixes:
+
+        4dfc0dd Nodejs: Do not use UV_RUN_DEFAULT during InitPostScript()
+        ade764e Nodejs: Unset kNoInitializeCppgc for Node 20.6 or higher
+        a38df85 Fix type check of parameters array with zeek.event
+        deddadd Fix type check of parameters array with zeek.invoke
+
+  * CMakeLists: Set Python3_EXECUTABLE hint for spicy (Arne Welzel, Corelight)
+
+  * Avoid assertion/tag error on invalid table constructor index expression (Christian Kreibich, Corelight)
+
+    If an index expression in a table constructor isn't a list, don't abort with an
+    assertion failure (on debug builds) or a bad tag check. Instead, mark the
+    constructor expression erroneous and return gracefully. The following...
+
+      global a_table: table[subnet] of string = {
+            1.2.3.4/24 = "unspecified",    # should have been [1.2.3.4/24] = "unspecified",
+      };
+
+    ...now yields:
+
+      $ zeek ./test.zeek
+      error in ././test.zeek, line 2: table constructor index is not a list (1.2.3.0/24 = unspecified)
+      error in ././test.zeek, line 2: type clash in assignment (a_table = table(1.2.3.0/24 = unspecified))
+
+  * GH-3279: Fix handling of module scope when checking exported Spicy types for collisions (Benjamin Bannier, Corelight)
+
+    When checking exported Spicy types for collisions with existing Zeek
+    types we previously would also check whether they collide with names in
+    global scope, i.e., we didn't provide a `no_global` arg to
+    `detail::lookup_ID` which defaulted to false (since we also provided a
+    module name I'd argue that the behavior of that function is confusing
+    and probably error-prone -- like seen here).
+
+    This meant that e.g., a Spicy enum `foo::Direction` (automatically in
+    implicit Spicy module scope) would be detected to collide with the
+    existing Zeek `Direction` enum.
+
+    With this patch we use the `lookup_ID` API correctly and do not check
+    against potential collisions with globals anymore since it is not
+    needed.
+
+  * File extraction: use fseek (Johanna Amann, Corelight)
+
+    In the past, we allocated a buffer with zeroes and wrote that with
+    fwrite. Now, instead we just fseek to the correct offset.
+
+    This changes the way in which the file extract limit is counted a bit;
+    skipped bytes do no longer count against the file size limit.
+
+    (cherry picked from commit 5071592e9b7105090a1d9de19689c499070749d4)
+
 6.1.0-dev.397 | 2023-09-12 17:00:26 -0700
 
   * Update dump-events test baseline after latest master changes (Tim Wojtulewicz)

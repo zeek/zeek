@@ -215,7 +215,7 @@ void Manager::registerPacketAnalyzer(const std::string& name, const std::string&
 void Manager::registerType(const std::string& id, const TypePtr& type) {
     auto [ns, local] = parseID(id);
 
-    if ( const auto& old = detail::lookup_ID(local.c_str(), ns.c_str()) ) {
+    if ( const auto& old = detail::lookup_ID(local.c_str(), ns.c_str(), true) ) {
         // This is most likely to trigger for IDs that other Spicy modules
         // register. If we two Spicy modules need the same type, that's ok as
         // long as they match.

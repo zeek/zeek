@@ -10,6 +10,7 @@
 #include "zeek/EquivClass.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
+#include "zeek/util.h"
 
 #include "zeek/3rdparty/doctest.h"
 
@@ -450,6 +451,37 @@ void RE_Matcher::MakeSingleLine() {
 
     is_single_line = true;
 }
+
+size_t RE_Matcher::Hash() const {
+    size_t h = std::hash<std::string>{}(orig_text);
+    if ( re_anywhere )
+        h = util::hash_combine(h, re_anywhere->Hash());
+    if ( re_exact )
+        h = util::hash_combine(h, re_exact->Hash());
+
+    return h;
+}
+
+bool RE_Matcher::operator==(const RE_Matcher& other) const {
+    if ( orig_text != other.orig_text || is_case_insensitive != other.is_case_insensitive ||
+         is_single_line != other.is_single_line )
+        return false;
+
+    if ( (! re_anywhere && other.re_anywhere) || (re_anywhere && ! other.re_anywhere) )
+        return false;
+
+    if ( re_anywhere && other.re_anywhere && *re_anywhere != *other.re_anywhere )
+        return false;
+
+    if ( (! re_exact && other.re_exact) || (re_exact && ! other.re_exact) )
+        return false;
+
+    if ( re_exact && other.re_exact && *re_exact != *other.re_exact )
+        return false;
+
+    return true;
+}
+
 
 bool RE_Matcher::Compile(bool lazy) { return re_anywhere->Compile(lazy) && re_exact->Compile(lazy); }
 

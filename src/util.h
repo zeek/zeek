@@ -613,5 +613,13 @@ inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* del
     return split(std::wstring_view(s), std::wstring_view(delim));
 }
 
+inline size_t hash_combine(size_t h1, size_t h2) {
+    // Taken from Boost.  See for example
+    // https://www.boost.org/doc/libs/1_35_0/doc/html/boost/hash_combine_id241013.html
+    // or
+    // https://stackoverflow.com/questions/4948780/magic-number-in-boosthash-combine
+    return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+}
+
 } // namespace util
 } // namespace zeek

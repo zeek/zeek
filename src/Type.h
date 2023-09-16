@@ -301,6 +301,8 @@ public:
         return it->second.emplace(std::move(type)).second;
     }
 
+    bool operator==(const Type& type) const;
+
 protected:
     virtual void DoDescribe(ODesc* d) const;
 

@@ -241,6 +241,11 @@ void Type::DescribeReST(ODesc* d, bool roles_only) const { d->Add(util::fmt(":ze
 
 void Type::SetError() { tag = TYPE_ERROR; }
 
+bool Type::operator==(const Type& other) const {
+    return (tag == other.tag) && (internal_tag == other.internal_tag) && (is_network_order == other.is_network_order) &&
+           (base_type == other.base_type) && (name == other.name);
+}
+
 detail::TraversalCode Type::Traverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);

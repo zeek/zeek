@@ -44,6 +44,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/broker/Store.h"
 #include "zeek/threading/formatters/detail/json.h"
+#include "zeek/util.h"
 
 #include "zeek/3rdparty/doctest.h"
 
@@ -703,6 +704,16 @@ ValPtr AddrVal::DoClone(CloneState* state) {
     return {NewRef{}, this};
 }
 
+size_t AddrVal::Hash() const {
+    auto h = addr_val->MakeHashKey();
+    return h->Hash();
+}
+
+bool AddrVal::IsSameAs(const Val& other) const {
+    auto op = other.AsAddrVal();
+    return *addr_val == *op->addr_val;
+}
+
 SubNetVal::SubNetVal(const char* text) : Val(base_type(TYPE_SUBNET)) {
     subnet_val = new IPPrefix();
 
@@ -769,6 +780,16 @@ bool SubNetVal::Contains(const IPAddr& addr) const { return subnet_val->Contains
 ValPtr SubNetVal::DoClone(CloneState* state) {
     // Immutable.
     return {NewRef{}, this};
+}
+
+size_t SubNetVal::Hash() const {
+    auto h = subnet_val->MakeHashKey();
+    return h->Hash();
+}
+
+bool SubNetVal::IsSameAs(const Val& other) const {
+    auto op = other.AsSubNetVal();
+    return *subnet_val == *op->subnet_val;
 }
 
 StringVal::StringVal(String* s) : Val(base_type(TYPE_STRING)) { string_val = s; }
@@ -1320,6 +1341,13 @@ ValPtr StringVal::DoClone(CloneState* state) {
                                      new String((u_char*)string_val->Bytes(), string_val->Len(), true)));
 }
 
+size_t StringVal::Hash() const { return std::hash<std::string_view>{}(ToStdStringView()); }
+
+bool StringVal::IsSameAs(const Val& other) const {
+    auto so = other.AsStringVal();
+    return so && Bstr_eq(string_val, so->string_val);
+}
+
 FuncVal::FuncVal(FuncPtr f) : Val(f->GetType()) { func_val = std::move(f); }
 
 FuncPtr FuncVal::AsFuncPtr() const { return func_val; }
@@ -1329,6 +1357,16 @@ ValPtr FuncVal::SizeVal() const { return val_mgr->Count(func_val->GetType()->Par
 void FuncVal::ValDescribe(ODesc* d) const { func_val->Describe(d); }
 
 ValPtr FuncVal::DoClone(CloneState* state) { return make_intrusive<FuncVal>(func_val->DoClone()); }
+
+size_t FuncVal::Hash() const {
+    printf("funcval hash nop\n");
+    return 0;
+}
+
+bool FuncVal::IsSameAs(const Val& other) const {
+    printf("funcval same nop\n");
+    return false;
+}
 
 FileVal::FileVal(FilePtr f) : Val(make_intrusive<FileType>(base_type(TYPE_STRING))) {
     file_val = std::move(f);
@@ -1353,6 +1391,16 @@ ValPtr FileVal::DoClone(CloneState* state) {
     // get the non-cached pointer back which is brought back into the
     // cache when written to.
     return {NewRef{}, this};
+}
+
+size_t FileVal::Hash() const {
+    printf("fileval hash nop\n");
+    return 0;
+}
+
+bool FileVal::IsSameAs(const Val& other) const {
+    printf("fileval same nop\n");
+    return false;
 }
 
 PatternVal::PatternVal(RE_Matcher* re) : Val(base_type(TYPE_PATTERN)) { re_val = re; }
@@ -1398,6 +1446,13 @@ ValPtr PatternVal::DoClone(CloneState* state) {
     auto re = new RE_Matcher(re_val->PatternText(), re_val->AnywherePatternText());
     re->Compile();
     return state->NewClone(this, make_intrusive<PatternVal>(re));
+}
+
+size_t PatternVal::Hash() const { return re_val->Hash(); }
+
+bool PatternVal::IsSameAs(const Val& other) const {
+    auto op = other.AsPattern();
+    return *re_val == *op;
 }
 
 ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullptr : base_type(t))) { tag = t; }
@@ -1487,6 +1542,35 @@ unsigned int ListVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_
         fp += val->Footprint(analyzed_vals);
 
     return fp;
+}
+
+bool ListVal::IsSameAs(const Val& other) const {
+    // This will type-check the object as well.
+    auto lo = (&other)->AsListVal();
+
+    if ( ! lo || vals.size() != lo->vals.size() )
+        return false;
+
+    for ( size_t i = 0; i < vals.size(); i++ )
+        if ( ! vals[i]->IsSameAs(*(lo->vals[i])) )
+            return false;
+
+    return true;
+}
+
+std::size_t ListVal::Hash() const {
+    size_t hash = 0;
+
+    for ( const auto& v : vals )
+        hash = util::hash_combine(hash, v->Hash());
+
+    return hash;
+}
+
+size_t ListValHasher::operator()(const zeek::IntrusivePtr<zeek::ListVal>& val) const noexcept { return val->Hash(); }
+
+bool ListValEqualTo::operator()(const IntrusivePtr<ListVal>& a, const IntrusivePtr<ListVal>& b) const noexcept {
+    return a->IsSameAs(*b);
 }
 
 TableEntryVal* TableEntryVal::Clone(Val::CloneState* state) {
@@ -2919,6 +3003,24 @@ void TableVal::RebuildTable(ParseTimeTableState ptts) {
         Assign(std::move(key), std::move(val));
 }
 
+size_t TableVal::Hash() const {
+    size_t h = 0;
+    for ( auto it = table_val->begin(); it != table_val->end(); ++it ) {
+        auto v = it->value;
+        uint64_t k = *(uint32_t*)it->GetKey();
+
+        h = util::hash_combine(h, v->GetVal()->Hash());
+        h = util::hash_combine(h, std::hash<uint64_t>{}(k));
+    }
+
+    return h;
+}
+
+bool TableVal::IsSameAs(const Val& other) const {
+    auto op = other.AsTableVal();
+    return EqualTo(*op);
+}
+
 TableVal::ParseTimeTableStates TableVal::parse_time_table_states;
 
 TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies;
@@ -3203,6 +3305,50 @@ unsigned int RecordVal::ComputeFootprint(std::unordered_set<const Val*>* analyze
     return fp;
 }
 
+size_t RecordVal::Hash() const {
+    const auto* rt = GetRecordType();
+    size_t hash = 0;
+
+    int num_fields = rt->NumFields();
+    for ( int i = 0; i < num_fields; ++i ) {
+        auto rv_i = GetField(i);
+
+        detail::Attributes* a = rt->FieldDecl(i)->attrs.get();
+        bool optional_attr = (a && a->Find(detail::ATTR_OPTIONAL));
+
+        if ( ! rv_i || optional_attr )
+            continue;
+
+        hash = util::hash_combine(hash, rv_i->Hash());
+    }
+
+    return hash;
+}
+
+bool RecordVal::IsSameAs(const Val& other) const {
+    auto ro = (&other)->AsRecordVal();
+
+    if ( ! ro || NumFields() != ro->NumFields() )
+        return false;
+
+    for ( size_t i = 0; i < NumFields(); i++ ) {
+        if ( HasField(i) != ro->HasField(i) )
+            return false;
+
+        auto f = GetField(i);
+        auto of = ro->GetField(i);
+
+        if ( ! f && ! of )
+            continue;
+
+        if ( ! f || ! of || ! f->IsSameAs(*of) )
+            return false;
+    }
+
+    return true;
+}
+
+
 ValPtr EnumVal::SizeVal() const {
     // Negative enums are rejected at parse time, but not internally. Handle the
     // negative case just like a signed integer, as that is an enum's underlying
@@ -3227,11 +3373,27 @@ ValPtr EnumVal::DoClone(CloneState* state) {
     return {NewRef{}, this};
 }
 
+bool EnumVal::IsSameAs(const Val& other) const {
+    auto eo = other.AsEnumVal();
+
+    return eo && type == eo->type && int_val == eo->int_val;
+}
+
 void TypeVal::ValDescribe(ODesc* d) const { type->AsTypeType()->GetType()->Describe(d); }
 
 ValPtr TypeVal::DoClone(CloneState* state) {
     // Immutable.
     return {NewRef{}, this};
+}
+
+size_t TypeVal::Hash() const {
+    printf("typeval hash nop\n");
+    return 0;
+}
+
+bool TypeVal::IsSameAs(const Val& other) const {
+    auto op = other.AsTypeVal();
+    return *type == *op->Get();
 }
 
 VectorVal::VectorVal(VectorTypePtr t) : Val(t) {
@@ -3746,6 +3908,41 @@ void VectorVal::ValDescribe(ODesc* d) const {
     }
 
     d->Add("]");
+}
+
+size_t VectorVal::Hash() const {
+    size_t h = 0;
+
+    for ( auto i = 0; i < Size(); i++ ) {
+        auto v = ValAt(i);
+        if ( v )
+            h = util::hash_combine(h, v->Hash());
+        else
+            h = util::hash_combine(h, 0);
+    }
+
+    return h;
+}
+
+bool VectorVal::IsSameAs(const Val& other) const {
+    auto op = other.AsVectorVal();
+
+    if ( Size() != op->Size() )
+        return false;
+    if ( yield_type != op->RawYieldType() )
+        return false;
+
+    for ( auto i = 0; i < Size(); i++ ) {
+        auto v = ValAt(i);
+        auto o_v = op->ValAt(i);
+
+        if ( v && o_v && ! v->IsSameAs(*o_v) )
+            return false;
+        if ( v != o_v )
+            return false;
+    }
+
+    return true;
 }
 
 ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init, const detail::Location* expr_location) {

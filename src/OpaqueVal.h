@@ -132,6 +132,16 @@ public:
      */
     static OpaqueValPtr Unserialize(BrokerListView data);
 
+    size_t Hash() const override {
+        printf("opaqueval hash nop\n");
+        return 0;
+    }
+
+    bool IsSameAs(const Val& other) const override {
+        printf("opaqueval same nop\n");
+        return false;
+    }
+
 protected:
     friend class Val;
     friend class OpaqueMgr;

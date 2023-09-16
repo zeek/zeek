@@ -246,6 +246,14 @@ public:
         return static_cast<T>(this);
     }
 
+    /**
+     * Returns a hashed value of this Val, suitable for use when inserting a Val into
+     * a std container.
+     */
+    virtual size_t Hash() const = 0;
+
+    virtual bool IsSameAs(const Val& other) const = 0;
+
 protected:
     // Friends with access to Clone().
     friend class EnumType;
@@ -364,6 +372,12 @@ public:
 
     zeek_int_t Get() const { return int_val; }
 
+    size_t Hash() const override { return int_val; }
+    bool IsSameAs(const Val& other) const override {
+        auto op = other.AsInt();
+        return op == int_val;
+    }
+
 protected:
     zeek_int_t int_val;
 };
@@ -374,6 +388,12 @@ public:
 
     zeek_uint_t Get() const { return uint_val; }
 
+    size_t Hash() const override { return std::hash<zeek_uint_t>{}(uint_val); }
+    bool IsSameAs(const Val& other) const override {
+        auto op = other.AsCount();
+        return op == uint_val;
+    }
+
 protected:
     zeek_uint_t uint_val;
 };
@@ -383,6 +403,12 @@ public:
     DoubleValImplementation(TypePtr t, double v) : Val(std::move(t)), double_val(v) {}
 
     double Get() const { return double_val; }
+
+    size_t Hash() const override { return std::hash<double>{}(double_val); }
+    bool IsSameAs(const Val& other) const override {
+        auto op = other.AsDouble();
+        return op == double_val;
+    }
 
 protected:
     double double_val;
@@ -502,6 +528,9 @@ public:
 
     const IPAddr& Get() const { return *addr_val; }
 
+    size_t Hash() const override;
+    bool IsSameAs(const Val& other) const override;
+
 protected:
     ValPtr DoClone(CloneState* state) override;
 
@@ -529,6 +558,9 @@ public:
 
     const IPPrefix& Get() const { return *subnet_val; }
 
+    size_t Hash() const override;
+    bool IsSameAs(const Val& other) const override;
+
 protected:
     void ValDescribe(ODesc* d) const override;
     ValPtr DoClone(CloneState* state) override;
@@ -554,7 +586,7 @@ public:
     // Note that one needs to de-allocate the return value of
     // ExpandedString() to avoid a memory leak.
     // char* ExpandedString(int format = String::EXPANDED_STRING)
-    // 	{ return AsString()->ExpandedString(format); }
+    //	{ return AsString()->ExpandedString(format); }
 
     std::string ToStdString() const;
     std::string_view ToStdStringView() const;
@@ -563,6 +595,10 @@ public:
     const String* Get() const { return string_val; }
 
     StringValPtr Replace(RE_Matcher* re, const String& repl, bool do_all);
+
+    size_t Hash() const override;
+
+    bool IsSameAs(const Val& other) const override;
 
 protected:
     void ValDescribe(ODesc* d) const override;
@@ -582,6 +618,10 @@ public:
 
     Func* Get() const { return func_val.get(); }
 
+    size_t Hash() const override;
+
+    bool IsSameAs(const Val& other) const override;
+
 protected:
     void ValDescribe(ODesc* d) const override;
     ValPtr DoClone(CloneState* state) override;
@@ -597,6 +637,10 @@ public:
     ValPtr SizeVal() const override;
 
     File* Get() const { return file_val.get(); }
+
+    size_t Hash() const override;
+
+    bool IsSameAs(const Val& other) const override;
 
 protected:
     void ValDescribe(ODesc* d) const override;
@@ -619,6 +663,10 @@ public:
     bool MatchAnywhere(const String* s) const;
 
     const RE_Matcher* Get() const { return re_val; }
+
+    size_t Hash() const override;
+
+    bool IsSameAs(const Val& other) const override;
 
 protected:
     void ValDescribe(ODesc* d) const override;
@@ -674,6 +722,10 @@ public:
 
     void Describe(ODesc* d) const override;
 
+    bool IsSameAs(const Val& other) const override;
+
+    size_t Hash() const override;
+
 protected:
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
@@ -681,6 +733,14 @@ protected:
 
     std::vector<ValPtr> vals;
     TypeTag tag;
+};
+
+struct ListValHasher {
+    size_t operator()(const IntrusivePtr<ListVal>& val) const noexcept;
+};
+
+struct ListValEqualTo {
+    bool operator()(const IntrusivePtr<ListVal>& a, const IntrusivePtr<ListVal>& b) const noexcept;
 };
 
 class TableEntryVal {
@@ -998,6 +1058,9 @@ public:
      * Re-enables change notifications after being disabled by DisableChangeNotifications.
      */
     void EnableChangeNotifications() { in_change_func = false; }
+
+    size_t Hash() const override;
+    bool IsSameAs(const Val& other) const override;
 
 protected:
     void Init(TableTypePtr t, bool ordered = false);
@@ -1387,6 +1450,9 @@ public:
 
     static void DoneParsing();
 
+    size_t Hash() const override;
+    bool IsSameAs(const Val& other) const override;
+
 protected:
     friend class zeek::logging::Manager;
     friend class zeek::detail::ValTrace;
@@ -1486,6 +1552,8 @@ protected:
 
     void ValDescribe(ODesc* d) const override;
     ValPtr DoClone(CloneState* state) override;
+
+    bool IsSameAs(const Val& other) const override;
 };
 
 class TypeVal final : public Val {
@@ -1496,6 +1564,9 @@ public:
     TypeVal(TypePtr t, bool type_type) : Val(make_intrusive<TypeType>(std::move(t))) {}
 
     zeek::Type* Get() const { return type.get(); }
+
+    size_t Hash() const override;
+    bool IsSameAs(const Val& other) const override;
 
 protected:
     void ValDescribe(ODesc* d) const override;
@@ -1627,6 +1698,9 @@ public:
 
     const auto& RawYieldType() const { return yield_type; }
     const auto& RawYieldTypes() const { return yield_types; }
+
+    size_t Hash() const override;
+    bool IsSameAs(const Val& other) const override;
 
 protected:
     /**

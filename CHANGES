@@ -1,3 +1,7 @@
+6.1.0-dev.411 | 2023-09-18 10:46:34 -0700
+
+  * Remove some unnecessary includes of telemetry headers (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.409 | 2023-09-15 11:58:40 +0200
 
   * Update zeekjs submodule (Arne Welzel, Corelight)

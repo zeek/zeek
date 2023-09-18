@@ -10,6 +10,6 @@ We collect them here for convenience only.
   <https://wiki.wireshark.org/uploads/__moin_import__/attachments/SampleCaptures/ldap-krb5-sign-seal-01.cap>
   - the LDAP flow selected (filtered out the Kerberos packets)
   - truncated to 10 packets (where packet 10 contains the SASL encrypted LDAP message)
-  - one `\x30` byte in the cyphertext changed to `\x00`
+  - one `\x30` byte in the ciphertext changed to `\x00`
 - ldap-issue-32.pcapng: Provided by GH user martinvanhensbergen,
   <https://github.com/zeek/spicy-ldap/issues/23>

@@ -191,8 +191,8 @@ public type MessageWrapper = unit {
   var remainder: bytes;
 
   # SASLLayer consumes the delimiter ('\x30'), and because this is the first byte of a valid LDAP message
-  # we should re-add it to the remainder if the delimiter was found. If the delimeter was not found, we
-  # leave the remainer empty, but note that the bytes must be consumed either way to avoid stalling the
+  # we should re-add it to the remainder if the delimiter was found. If the delimiter was not found, we
+  # leave the remainder empty, but note that the bytes must be consumed either way to avoid stalling the
   # parser and causing an infinite loop error.
   : bytes &eod if ( self.success == False )  {
     if ( self.sasl_success == True ) {

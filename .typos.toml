@@ -69,3 +69,5 @@ caf = "caf"
 helo = "helo"
 # Seems we use this in the management framework
 requestor = "requestor"
+# `inout` is used as a keyword in Spicy, but looks like a typo of `input`.
+inout = "inout"

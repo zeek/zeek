@@ -794,6 +794,7 @@ void Manager::loadModule(const hilti::rt::filesystem::path& path) {
         if ( auto [library, inserted] = _libraries.insert({canonical_path, hilti::rt::Library(canonical_path)});
              inserted ) {
             SPICY_DEBUG(hilti::rt::fmt("Loading %s", canonical_path.native()));
+            set_location(detail::no_location); // make sure IDs get installed without stale location info
             if ( auto load = library->second.open(); ! load )
                 hilti::rt::fatalError(
                     hilti::rt::fmt("could not open library path %s: %s", canonical_path, load.error()));

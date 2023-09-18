@@ -1,5 +1,5 @@
 # This test can only run if we have the LDAP grammar available.
-# @TEST-REQUIRES: [ -n ${DIST} ]
+# @TEST-REQUIRES: have-spicy && [ -n ${DIST} ]
 #
 # @TEST-EXEC: spicyc -j -d -L ${DIST}/src/analyzer/protocol/ldap %INPUT
 #

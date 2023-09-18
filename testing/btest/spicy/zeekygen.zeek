@@ -4,7 +4,17 @@
 # @TEST-EXEC: cat output | grep 'module.s documentation' >output1
 # @TEST-EXEC: btest-diff output1
 #
-# @TEST-DOC: Check that Spicy's tells Zeeygen about its analyzers. (TODO: Test only partially implemented right now)
+# @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN && zeek -X zeekygen.conf test.hlto %INPUT
+# @TEST-EXEC: cat protocol.rst  | sed -n '/_plugin-foo-bar/,/_plugin/p' | sed '$d' >output2
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output2
+#
+# @TEST-DOC: Check that Spicy tells Zeekygen about its analyzers.
+
+## Test event.
+##
+## Really, just a test ...
+
+global ssh::banner: event(c: connection, facility: count, severity: count, msg: string);
 
 # @TEST-START-FILE doc.spicy
 
@@ -33,3 +43,7 @@ protocol analyzer spicy::SSH over TCP:
 on SSH::Banner -> event ssh::banner((1, self.software));
 
 # @TEST-END-FILE
+
+# @TEST-START-FILE zeekygen.conf
+proto_analyzer	*	protocol.rst
+

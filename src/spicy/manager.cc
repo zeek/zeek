@@ -545,7 +545,7 @@ void Manager::analyzerError(packet_analysis::Analyzer* a, const std::string& msg
 plugin::Configuration Manager::Configure() {
     ::zeek::plugin::Configuration config;
     config.name = "Zeek::Spicy";
-    config.description = "Support for Spicy parsers (*.hlto)";
+    config.description = "Support for Spicy parsers (.hlto)";
 
     EnableHook(::zeek::plugin::HOOK_LOAD_FILE);
 

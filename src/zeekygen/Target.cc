@@ -19,6 +19,7 @@
 #include "zeek/zeekygen/Manager.h"
 #include "zeek/zeekygen/PackageInfo.h"
 #include "zeek/zeekygen/ScriptInfo.h"
+#include "zeek/zeekygen/SpicyModuleInfo.h"
 
 using namespace std;
 
@@ -284,22 +285,66 @@ void AnalyzerTarget::DoGenerate() const
 void AnalyzerTarget::WriteAnalyzerElements(FILE* f, plugin::component::Type type,
                                            bool match_empty) const
 	{
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
-	plugin::Manager::plugin_list::const_iterator it;
+	// Create a union of the joint sets of all names provided by plugins and
+	// Spicy analyzers.
 
-	for ( it = plugins.begin(); it != plugins.end(); ++it )
+	struct IgnoreCase
 		{
-		if ( ! ComponentsMatch((*it)->Components(), type, match_empty) )
-			continue;
+		bool operator()(const std::string& a, const std::string& b) const
+			{
+			return util::strtolower(a) < util::strtolower(b);
+			}
+		};
 
-		write_plugin_section_heading(f, (*it)->Name(), (*it)->Description());
-		write_plugin_components(f, (*it)->Components());
-		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::CONSTANT,
-		                       "Options/Constants");
-		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::GLOBAL, "Globals");
-		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::TYPE, "Types");
-		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::EVENT, "Events");
-		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::FUNCTION, "Functions");
+	std::set<std::string, IgnoreCase> names;
+	std::map<std::string, plugin::Plugin*> plugins;
+
+	for ( auto p : plugin_mgr->ActivePlugins() )
+		{
+		if ( ComponentsMatch(p->Components(), type, match_empty) )
+			{
+			names.insert(p->Name());
+			plugins[p->Name()] = p;
+			}
+		}
+
+	auto spicy_modules = zeek::detail::zeekygen_mgr->SpicyModules();
+	for ( const auto& [name, m] : spicy_modules )
+		{
+		if ( ComponentsMatch(m->Components(), type, match_empty) )
+			names.insert(name);
+		}
+
+	// Now output the information associated with each name in sorted order.
+	for ( const auto& name : names )
+		{
+		plugin::Plugin::bif_item_list bif_items;
+
+		if ( auto i = plugins.find(name); i != plugins.end() ) // prefer built-in plugins over Spicy
+		                                                       // analyzer in case of name collision
+			{
+			auto plugin = i->second;
+			write_plugin_section_heading(f, plugin->Name(), plugin->Description());
+
+			if ( name != "Zeek::Spicy" ) // skip components (which are the available Spicy analyzers
+			                             // documented separately).
+				write_plugin_components(f, plugin->Components());
+
+			bif_items = plugin->BifItems();
+			}
+		else
+			{
+			auto module = spicy_modules[name];
+			write_plugin_section_heading(f, module->Name(), module->Description());
+			write_plugin_components(f, module->Components());
+			bif_items = module->BifItems();
+			}
+
+		write_plugin_bif_items(f, bif_items, plugin::BifItem::CONSTANT, "Options/Constants");
+		write_plugin_bif_items(f, bif_items, plugin::BifItem::GLOBAL, "Globals");
+		write_plugin_bif_items(f, bif_items, plugin::BifItem::TYPE, "Types");
+		write_plugin_bif_items(f, bif_items, plugin::BifItem::EVENT, "Events");
+		write_plugin_bif_items(f, bif_items, plugin::BifItem::FUNCTION, "Functions");
 		}
 	}
 

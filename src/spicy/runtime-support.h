@@ -90,6 +90,12 @@ public:
 };
 
 /**
+ * Begins registration of a Spicy EVT module. All subsequent, other `register_*()`
+ * function call will be associated with this module for documentation purposes.
+ */
+void register_spicy_module_begin(const std::string& name, const std::string& description, const hilti::rt::Time& mtime);
+
+/**
  * Registers a Spicy protocol analyzer with its EVT meta information with the
  * plugin's runtime.
  */
@@ -117,6 +123,13 @@ void register_packet_analyzer(const std::string& name, const std::string& parser
 
 /** Registers a Spicy-generated type to make it available inside Zeek. */
 void register_type(const std::string& ns, const std::string& id, const TypePtr& type);
+
+/**
+ * Ends registration of a Spicy EVT module. This must follow a preceding
+ * `registerSpicyModuleBegin()`.
+ */
+void register_spicy_module_end();
+
 
 /** Identifies a Zeek-side type. */
 enum class ZeekTypeTag : uint64_t {

@@ -102,6 +102,37 @@ static hilti::ID extract_id(const std::string& chunk, size_t* i) {
     return hilti::ID(hilti::util::replace(id, "%", "0x25_"));
 }
 
+static std::string extract_string(const std::string& chunk, size_t* i) {
+    eat_spaces(chunk, i);
+
+    if ( *i >= chunk.size() || chunk[*i] != '"' )
+        throw ParseError("expected string");
+
+    size_t j = *i + 1;
+
+    std::string str = "";
+    bool in_escape = false;
+    while ( j < chunk.size() - 1 ) {
+        if ( chunk[j] == '"' && ! in_escape )
+            break;
+
+        if ( chunk[j] == '\\' && ! in_escape ) {
+            in_escape = true;
+            ++j;
+            continue;
+        }
+
+        str += chunk[j++];
+        in_escape = false;
+    }
+
+    if ( j >= chunk.size() || chunk[j] != '"' )
+        throw ParseError("string not terminated");
+
+    *i = j + 1;
+    return str;
+}
+
 static hilti::Type extract_type(const std::string& chunk, size_t* i) {
     eat_spaces(chunk, i);
 
@@ -499,8 +530,30 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
                 _exports[export_.zeek_id] = export_;
             }
 
+            else if ( looking_at(*chunk, 0, "%doc-id") ) {
+                if ( ! _doc_id.empty() )
+                    throw ParseError("multiple %doc-id directives");
+
+                size_t i = 0;
+                eat_token(*chunk, &i, "%doc-id");
+                eat_token(*chunk, &i, "=");
+                _doc_id = extract_id(*chunk, &i);
+                SPICY_DEBUG(hilti::util::fmt("  Got module's documentation name: %s", _doc_id));
+            }
+
+            else if ( looking_at(*chunk, 0, "%doc-description") ) {
+                size_t i = 0;
+                eat_token(*chunk, &i, "%doc-description");
+                eat_token(*chunk, &i, "=");
+                _doc_description = extract_string(*chunk, &i);
+                SPICY_DEBUG(hilti::util::fmt("  Got module's documentation description: %s",
+                                             hilti::util::escapeUTF8(_doc_description)));
+            }
+
             else
-                throw ParseError("expected 'import', 'export', '{file,packet,protocol} analyzer', or 'on'");
+                throw ParseError(
+                    "expected 'import', 'export', '{file,packet,protocol} analyzer', 'on', or '%doc-{id,description}' "
+                    "directive");
 
             _locations.pop_back();
         }
@@ -932,6 +985,12 @@ bool GlueCompiler::compile() {
     if ( ! PopulateEvents() )
         return false;
 
+    if ( ! _doc_id.empty() ) {
+        auto mtime = hilti::expression::Ctor(hilti::ctor::Time(hilti::rt::time::current_time()));
+        preinit_body.addCall("zeek_rt::register_spicy_module_begin",
+                             {hilti::builder::string(_doc_id), hilti::builder::string(_doc_description), mtime});
+    }
+
     for ( auto& a : _protocol_analyzers ) {
         SPICY_DEBUG(hilti::util::fmt("Adding protocol analyzer '%s'", a.name));
 
@@ -1052,6 +1111,9 @@ bool GlueCompiler::compile() {
         auto unit = hilti::Unit::fromModule(_driver->context(), *m->spicy_module, ".spicy");
         _driver->addInput(unit);
     }
+
+    if ( ! _doc_id.empty() )
+        preinit_body.addCall("zeek_rt::register_spicy_module_end", {});
 
     if ( ! preinit_body.empty() ) {
         auto preinit_function =

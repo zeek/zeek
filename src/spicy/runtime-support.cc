@@ -20,6 +20,13 @@
 using namespace zeek;
 using namespace zeek::spicy;
 
+void rt::register_spicy_module_begin(const std::string& name, const std::string& description,
+                                     const hilti::rt::Time& mtime) {
+    spicy_mgr->registerSpicyModuleBegin(name, description, mtime);
+}
+
+void rt::register_spicy_module_end() { spicy_mgr->registerSpicyModuleEnd(); }
+
 void rt::register_protocol_analyzer(const std::string& name, hilti::rt::Protocol proto,
                                     const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                     const std::string& parser_orig, const std::string& parser_resp,

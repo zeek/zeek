@@ -360,6 +360,39 @@ connection {
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F
        }
+  * ldap_messages: table[int] of record LDAP::Message, log=F, optional=T
+      LDAP::Message {
+        * argument: vector of string, log=T, optional=T
+        * diagnostic_message: vector of string, log=T, optional=T
+        * id: record conn_id, log=T, optional=F
+            conn_id { ... }
+        * message_id: int, log=T, optional=T
+        * object: vector of string, log=T, optional=T
+        * opcode: set[string], log=T, optional=T
+        * proto: string, log=T, optional=T
+        * result: set[string], log=T, optional=T
+        * ts: time, log=T, optional=F
+        * uid: string, log=T, optional=F
+        * version: int, log=T, optional=T
+       }
+  * ldap_proto: string, log=F, optional=T
+  * ldap_searches: table[int] of record LDAP::Search, log=F, optional=T
+      LDAP::Search {
+        * attributes: vector of string, log=T, optional=T
+        * base_object: vector of string, log=T, optional=T
+        * deref: set[string], log=T, optional=T
+        * diagnostic_message: vector of string, log=T, optional=T
+        * filter: string, log=T, optional=T
+        * id: record conn_id, log=T, optional=F
+            conn_id { ... }
+        * message_id: int, log=T, optional=T
+        * proto: string, log=T, optional=T
+        * result: set[string], log=T, optional=T
+        * result_count: count, log=T, optional=T
+        * scope: set[string], log=T, optional=T
+        * ts: time, log=T, optional=F
+        * uid: string, log=T, optional=F
+       }
   * modbus: record Modbus::Info, log=F, optional=T
       Modbus::Info {
         * exception: string, log=T, optional=T

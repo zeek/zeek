@@ -406,6 +406,8 @@ scripts/base/init-default.zeek
     scripts/base/protocols/krb/main.zeek
       scripts/base/protocols/krb/consts.zeek
     scripts/base/protocols/krb/files.zeek
+  scripts/base/protocols/ldap/__load__.zeek
+    scripts/base/protocols/ldap/main.zeek
   scripts/base/protocols/modbus/__load__.zeek
     scripts/base/protocols/modbus/consts.zeek
     scripts/base/protocols/modbus/main.zeek

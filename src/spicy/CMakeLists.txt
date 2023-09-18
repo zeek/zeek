@@ -28,5 +28,3 @@ install(DIRECTORY "${PROJECT_SOURCE_DIR}/scripts/spicy/" DESTINATION "${ZEEK_SPI
 set(ZEEK_SPICY_DATA_PATH "${CMAKE_INSTALL_FULL_DATADIR}/zeek" CACHE PATH "")
 
 add_subdirectory(spicyz)
-
-add_subdirectory(spicy-ldap)

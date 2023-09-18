@@ -1,7 +1,0 @@
-build
-.idea/
-cmake-build-debug/
-.DS_Store
-*.swp
-*.tmp
-tests/.btest*

@@ -1,5 +1,8 @@
 # Copyright (c) 2022 by the Zeek Project. See LICENSE for details.
 
+%doc-id= Zeek::Finger;
+%doc-description = "Finger analyzer";
+
 protocol analyzer Finger over TCP:
     parse originator with Finger::Request,
     parse responder with Finger::Reply;

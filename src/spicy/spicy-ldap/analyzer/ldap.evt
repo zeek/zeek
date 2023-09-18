@@ -9,7 +9,6 @@ protocol analyzer spicy::LDAP_UDP over UDP:
     ports { 389/udp };
 
 import LDAP;
-import LDAP_Zeek;
 
 on LDAP::Message -> event LDAP::message($conn,
                                         self.messageID,

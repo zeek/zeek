@@ -1,4 +1,4 @@
 spicy_add_analyzer(
     NAME LDAP
     PACKAGE_NAME spicy-ldap
-    SOURCES ldap.spicy ldap.evt ldap_zeek.spicy)
+    SOURCES ldap.spicy ldap.evt)

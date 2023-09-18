@@ -869,3 +869,7 @@ type AbandonRequest = unit(inout message: Message) {
 # type IntermediateResponse = unit(inout message: Message) {
 #
 # };
+
+on LDAP::MessageWrapper::%done {
+  spicy::accept_input();
+}

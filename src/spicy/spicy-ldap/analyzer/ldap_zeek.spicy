@@ -1,0 +1,14 @@
+# Copyright (c) 2021 by the Zeek Project. See LICENSE for details.
+
+module LDAP_Zeek;
+
+import zeek;
+import LDAP;
+
+on LDAP::MessageWrapper::%done {
+  zeek::confirm_protocol();
+}
+
+on LDAP::MessageWrapper::%error {
+  zeek::reject_protocol("error while parsing LDAP message");
+}

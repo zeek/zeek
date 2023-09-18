@@ -1,0 +1,5 @@
+#! /bin/sh
+#
+# Assembles the Zeek path for testing the installed version (can't do that in btest.cfg directly).
+
+echo $(spicyz --print-scripts-path):$(zkg config script_dir):$(zeek-config --zeekpath)

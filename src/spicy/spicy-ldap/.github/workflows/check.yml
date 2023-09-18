@@ -1,0 +1,35 @@
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  Check:
+    strategy:
+      matrix:
+        version:
+          - zeek:6.0
+          - zeek-dev:latest
+
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    container: zeek/${{ matrix.version }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare
+        run: |
+          apt-get update
+          apt-get install -y -q --no-install-recommends g++ cmake make libpcap-dev
+      - name: Install
+        run: |
+          git config --global --add safe.directory $PWD
+          git clean -fd
+          eval $(zkg env)
+          echo Y | zkg -vvvvv install .
+
+      - name: Show logs
+        if: always()
+        run: |
+          tail -n 1000000 $(zkg config state_dir)/logs/*.log

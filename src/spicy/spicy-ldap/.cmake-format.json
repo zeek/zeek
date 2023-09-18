@@ -1,0 +1,26 @@
+{
+  "parse": {
+    "additional_commands": {
+        "spicy_add_analyzer": {
+            "kwargs": {
+                "NAME": "*",
+                "PACKAGE_NAME": "*",
+                "SOURCES": "*",
+                "SCRIPTS": "*"
+            }
+        }
+    }
+  },
+  "format": {
+    "line_width": 100,
+    "tab_size": 4,
+    "separate_ctrl_name_with_space": true,
+    "max_subgroups_hwrap": 3
+  },
+  "markup": {
+    "enable_markup": false
+  },
+  "lint": {
+      "disabled_codes": ["C0103"]
+  }
+}

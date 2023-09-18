@@ -25,10 +25,8 @@ using namespace std;
 namespace zeek::zeekygen::detail
 	{
 
-static void write_plugin_section_heading(FILE* f, const plugin::Plugin* p)
+static void write_plugin_section_heading(FILE* f, const string& name, const string& description)
 	{
-	const string& name = p->Name();
-
 	// A label-safe version of the plugin name: replace _ and : with -, turn
 	// sequences of - into single ones, and make lower-case. Example:
 	// "Zeek::IEEE802_11" -> "zeek-ieee802-11".
@@ -44,7 +42,7 @@ static void write_plugin_section_heading(FILE* f, const plugin::Plugin* p)
 		fprintf(f, "-");
 	fprintf(f, "\n\n");
 
-	fprintf(f, "%s\n\n", p->Description().c_str());
+	fprintf(f, "%s\n\n", description.c_str());
 	}
 
 static void write_analyzer_component(FILE* f, const analyzer::Component* c)
@@ -80,10 +78,8 @@ static void write_analyzer_component(FILE* f, const file_analysis::Component* c)
 	fprintf(f, ":zeek:enum:`Files::%s`\n\n", tag.c_str());
 	}
 
-static void write_plugin_components(FILE* f, const plugin::Plugin* p)
+static void write_plugin_components(FILE* f, const plugin::Plugin::component_list& components)
 	{
-	plugin::Plugin::component_list components = p->Components();
-
 	fprintf(f, "Components\n");
 	fprintf(f, "++++++++++\n\n");
 
@@ -137,10 +133,9 @@ static void write_plugin_components(FILE* f, const plugin::Plugin* p)
 		}
 	}
 
-static void write_plugin_bif_items(FILE* f, const plugin::Plugin* p, plugin::BifItem::Type t,
-                                   const string& heading)
+static void write_plugin_bif_items(FILE* f, plugin::Plugin::bif_item_list bifitems,
+                                   plugin::BifItem::Type t, const string& heading)
 	{
-	plugin::Plugin::bif_item_list bifitems = p->BifItems();
 	plugin::Plugin::bif_item_list::iterator it = bifitems.begin();
 
 	while ( it != bifitems.end() )
@@ -182,10 +177,9 @@ static void WriteAnalyzerTagDefn(FILE* f, const string& module)
 	fprintf(f, "%s\n", doc->ReStructuredText().c_str());
 	}
 
-static bool ComponentsMatch(const plugin::Plugin* p, plugin::component::Type t,
-                            bool match_empty = false)
+static bool ComponentsMatch(const plugin::Plugin::component_list& components,
+                            plugin::component::Type t, bool match_empty = false)
 	{
-	plugin::Plugin::component_list components = p->Components();
 	plugin::Plugin::component_list::const_iterator it;
 
 	if ( components.empty() )
@@ -287,6 +281,28 @@ void AnalyzerTarget::DoGenerate() const
 	CreateAnalyzerDoc(file.f);
 	}
 
+void AnalyzerTarget::WriteAnalyzerElements(FILE* f, plugin::component::Type type,
+                                           bool match_empty) const
+	{
+	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+	plugin::Manager::plugin_list::const_iterator it;
+
+	for ( it = plugins.begin(); it != plugins.end(); ++it )
+		{
+		if ( ! ComponentsMatch((*it)->Components(), type, match_empty) )
+			continue;
+
+		write_plugin_section_heading(f, (*it)->Name(), (*it)->Description());
+		write_plugin_components(f, (*it)->Components());
+		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::CONSTANT,
+		                       "Options/Constants");
+		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::GLOBAL, "Globals");
+		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::TYPE, "Types");
+		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::EVENT, "Events");
+		write_plugin_bif_items(f, (*it)->BifItems(), plugin::BifItem::FUNCTION, "Functions");
+		}
+	}
+
 void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 	{
 	fprintf(f, "Protocol Analyzers\n");
@@ -295,22 +311,7 @@ void ProtoAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 	WriteAnalyzerTagDefn(f, "Analyzer");
 	WriteAnalyzerTagDefn(f, "AllAnalyzers");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
-	plugin::Manager::plugin_list::const_iterator it;
-
-	for ( it = plugins.begin(); it != plugins.end(); ++it )
-		{
-		if ( ! ComponentsMatch(*it, plugin::component::ANALYZER, true) )
-			continue;
-
-		write_plugin_section_heading(f, *it);
-		write_plugin_components(f, *it);
-		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT, "Options/Constants");
-		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
-		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
-		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
-		write_plugin_bif_items(f, *it, plugin::BifItem::FUNCTION, "Functions");
-		}
+	WriteAnalyzerElements(f, plugin::component::ANALYZER, true);
 	}
 
 void PacketAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
@@ -320,22 +321,7 @@ void PacketAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 	WriteAnalyzerTagDefn(f, "PacketAnalyzer");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
-	plugin::Manager::plugin_list::const_iterator it;
-
-	for ( it = plugins.begin(); it != plugins.end(); ++it )
-		{
-		if ( ! ComponentsMatch(*it, plugin::component::PACKET_ANALYZER) )
-			continue;
-
-		write_plugin_section_heading(f, *it);
-		write_plugin_components(f, *it);
-		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT, "Options/Constants");
-		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
-		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
-		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
-		write_plugin_bif_items(f, *it, plugin::BifItem::FUNCTION, "Functions");
-		}
+	WriteAnalyzerElements(f, plugin::component::PACKET_ANALYZER);
 	}
 
 void FileAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
@@ -345,22 +331,7 @@ void FileAnalyzerTarget::DoCreateAnalyzerDoc(FILE* f) const
 
 	WriteAnalyzerTagDefn(f, "Files");
 
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
-	plugin::Manager::plugin_list::const_iterator it;
-
-	for ( it = plugins.begin(); it != plugins.end(); ++it )
-		{
-		if ( ! ComponentsMatch(*it, plugin::component::FILE_ANALYZER) )
-			continue;
-
-		write_plugin_section_heading(f, *it);
-		write_plugin_components(f, *it);
-		write_plugin_bif_items(f, *it, plugin::BifItem::CONSTANT, "Options/Constants");
-		write_plugin_bif_items(f, *it, plugin::BifItem::GLOBAL, "Globals");
-		write_plugin_bif_items(f, *it, plugin::BifItem::TYPE, "Types");
-		write_plugin_bif_items(f, *it, plugin::BifItem::EVENT, "Events");
-		write_plugin_bif_items(f, *it, plugin::BifItem::FUNCTION, "Functions");
-		}
+	WriteAnalyzerElements(f, plugin::component::FILE_ANALYZER);
 	}
 
 void PackageTarget::DoFindDependencies(const vector<Info*>& infos)

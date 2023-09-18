@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "zeek/plugin/Component.h"
+
 namespace zeek::zeekygen::detail
 	{
 
@@ -170,6 +172,8 @@ protected:
 	using doc_creator_fn = void (*)(FILE*);
 
 	AnalyzerTarget(const std::string& name, const std::string& pattern) : Target(name, pattern) { }
+
+	void WriteAnalyzerElements(FILE* f, plugin::component::Type t, bool match_empty = false) const;
 
 private:
 	void DoFindDependencies(const std::vector<Info*>& infos) override;

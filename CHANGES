@@ -1,3 +1,11 @@
+6.1.0-dev.413 | 2023-09-19 19:56:44 +0200
+
+  * ci/benchmark: Send more Cirrus, GitHub and Zeek version information (Arne Welzel, Corelight)
+
+    I wonder if we hit a query string limitation and should instead switch
+    to post body here. It's the `curl -G -X POST` part making this a POST
+    with a long query string.
+
 6.1.0-dev.411 | 2023-09-18 10:46:34 -0700
 
   * Remove some unnecessary includes of telemetry headers (Tim Wojtulewicz, Corelight)

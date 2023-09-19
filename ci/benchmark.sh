@@ -39,10 +39,18 @@ curl -sS -G --stderr - --fail --insecure -X POST \
     -o "/zeek/benchmark-${TIMESTAMP}.log" \
     -H "Zeek-HMAC: ${HMAC_DIGEST}" \
     -H "Zeek-HMAC-Timestamp: ${TIMESTAMP}" \
-    --data-urlencode branch=${CIRRUS_BRANCH} \
-    --data-urlencode build=${BUILD_URL} \
-    --data-urlencode build_hash=${BUILD_HASH} \
-    --data-urlencode commit=${CIRRUS_CHANGE_IN_REPO} \
+    --data-urlencode "branch=${CIRRUS_BRANCH}" \
+    --data-urlencode "build=${BUILD_URL}" \
+    --data-urlencode "build_hash=${BUILD_HASH}" \
+    --data-urlencode "commit=${CIRRUS_CHANGE_IN_REPO}" \
+    --data-urlencode "cirrus_repo_owner=${CIRRUS_REPO_OWNER}" \
+    --data-urlencode "cirrus_repo_name=${CIRRUS_REPO_NAME}" \
+    --data-urlencode "cirrus_task_id=${CIRRUS_TASK_ID}" \
+    --data-urlencode "cirrus_build_id=${CIRRUS_BUILD_ID}" \
+    --data-urlencode "cirrus_pr=${CIRRUS_PR}" \
+    --data-urlencode "cirrus_pr_labels=${CIRRUS_PR_LABELS}" \
+    --data-urlencode "github_check_suite_id=${GITHUB_CHECK_SUITE_ID}" \
+    --data-urlencode "repo_version=$(cat ./VERSION)" \
     "${TARGET}"
 
 STATUS=$?

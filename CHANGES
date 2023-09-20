@@ -1,3 +1,18 @@
+6.1.0-dev.416 | 2023-09-20 13:04:21 +0200
+
+  * Correctly compute name for spicyz export with debug log. (Benjamin Bannier, Corelight)
+
+    In 36a6770e9891114b4f42dac3728040c67cc9411e we changed the way Spicy
+    fields exported as
+    record fields are represented. This broke the `zeek` debug log which
+    hardcoded a different representation.
+
+    This patch brings the generation of the debug log in line with the
+    actual AST structure. We also enable debug logging in one test to
+    validate that it works, at least for the case we hit here.
+
+  * Updating submodule(s) [nomail] (Benjamin Bannier, Corelight)
+
 6.1.0-dev.413 | 2023-09-19 19:56:44 +0200
 
   * ci/benchmark: Send more Cirrus, GitHub and Zeek version information (Arne Welzel, Corelight)

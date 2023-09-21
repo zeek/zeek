@@ -203,9 +203,10 @@ public:
 
     /** Return type for `recordField()`. */
     struct RecordField {
-        hilti::ID id;     /**< name of record field */
-        hilti::Type type; /**< Spicy-side type object */
-        bool is_optional; /**< true if field is optional */
+        hilti::ID id;      /**< name of record field */
+        hilti::Type type;  /**< Spicy-side type object */
+        bool is_optional;  /**< true if field is optional */
+        bool is_anonymous; /**< true if field is annymous */
     };
 
     /**

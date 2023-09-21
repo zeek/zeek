@@ -1,3 +1,12 @@
+6.1.0-dev.419 | 2023-09-21 09:55:51 +0200
+
+  * GH-3298: Spicy: Fix support for exporting bitfields. (Robin Sommer, Corelight)
+
+    Anonymous bitfields now have their fields lifted into the surrounding
+    record.
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
 6.1.0-dev.416 | 2023-09-20 13:04:21 +0200
 
   * Correctly compute name for spicyz export with debug log. (Benjamin Bannier, Corelight)

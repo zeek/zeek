@@ -435,6 +435,8 @@ hilti::rt::Time network_time();
 // Forward-declare to_val() functions.
 template<typename T, typename std::enable_if_t<hilti::rt::is_tuple<T>::value>* = nullptr>
 ValPtr to_val(const T& t, TypePtr target);
+template<typename... Ts>
+inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, TypePtr target);
 template<typename T, typename std::enable_if_t<std::is_base_of<::hilti::rt::trait::isStruct, T>::value>* = nullptr>
 ValPtr to_val(const T& t, TypePtr target);
 template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>* = nullptr>
@@ -812,11 +814,44 @@ inline ValPtr to_val(const T& t, TypePtr target) {
         throw TypeMismatch("tuple", target);
 
     auto rval = make_intrusive<RecordVal>(rtype);
-    int idx = 0;
+    size_t idx = 0;
     hilti::rt::tuple_for_each(t, [&](const auto& x) { set_record_field(rval.get(), rtype, idx++, x); });
 
     return rval;
 }
+
+/**
+ * Converts a Spicy-side bitfield to a Zeek record value. The result is returned
+ * with ref count +1.
+ */
+template<typename... Ts>
+inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, TypePtr target) {
+    using Bitfield = hilti::rt::Bitfield<Ts...>;
+
+    if ( target->Tag() != TYPE_RECORD )
+        throw TypeMismatch("bitfield", target);
+
+    auto rtype = cast_intrusive<RecordType>(target);
+
+    if ( sizeof...(Ts) - 1 != rtype->NumFields() )
+        throw TypeMismatch("bitfield", target);
+
+    auto rval = make_intrusive<RecordVal>(rtype);
+    int idx = 0;
+    hilti::rt::tuple_for_each(v.value, [&](const auto& x) {
+        if ( idx < sizeof...(Ts) - 1 ) // last element is original integer value, with no record equivalent
+            set_record_field(rval.get(), rtype, idx++, x);
+    });
+
+    return rval;
+}
+
+template<typename>
+constexpr bool is_optional_impl = false;
+template<typename T>
+constexpr bool is_optional_impl<std::optional<T>> = true;
+template<typename T>
+constexpr bool is_optional = is_optional_impl<std::remove_cv_t<std::remove_reference_t<T>>>;
 
 /**
  * Converts Spicy-side struct to a Zeek record value. The result is returned
@@ -838,13 +873,35 @@ inline ValPtr to_val(const T& t, TypePtr target) {
         if ( idx >= num_fields )
             throw TypeMismatch(hilti::rt::fmt("no matching record field for field '%s'", name));
 
-        auto field = rtype->GetFieldType(idx);
-        std::string field_name = rtype->FieldName(idx);
+        // Special-case: Lift up anonymous bitfields (which always come as std::optionals).
+        if ( name == "<anon>" ) {
+            using X = typename std::decay<decltype(val)>::type;
+            if constexpr ( is_optional<X> ) {
+                if constexpr ( std::is_base_of<::hilti::rt::trait::isBitfield, typename X::value_type>::value ) {
+                    size_t j = 0;
+                    hilti::rt::tuple_for_each(val->value, [&](const auto& x) {
+                        if ( j++ < std::tuple_size<decltype(val->value)>() -
+                                       1 ) // last element is original integer value, with no record equivalent
+                            set_record_field(rval.get(), rtype, idx++, x);
+                    });
+                    return;
+                }
+            }
 
-        if ( field_name != name )
-            throw TypeMismatch(hilti::rt::fmt("mismatch in field name: expected '%s', found '%s'", name, field_name));
+            // There can't be any other anonymous fields.
+            auto msg = hilti::rt::fmt("unexpected anonymous field: %s", name);
+            reporter->InternalError("%s", msg.c_str());
+        }
+        else {
+            auto field = rtype->GetFieldType(idx);
+            std::string field_name = rtype->FieldName(idx);
 
-        set_record_field(rval.get(), rtype, idx++, val);
+            if ( field_name != name )
+                throw TypeMismatch(
+                    hilti::rt::fmt("mismatch in field name: expected '%s', found '%s'", name, field_name));
+
+            set_record_field(rval.get(), rtype, idx++, val);
+        }
     });
 
     // We already check above that all Spicy-side fields are mapped so we

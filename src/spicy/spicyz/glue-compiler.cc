@@ -1366,6 +1366,38 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
     }
 
     result_t operator()(const hilti::type::Address& t) { return base_type("zeek_rt::ZeekTypeTag::Addr"); }
+
+    result_t operator()(const hilti::type::Bitfield& t) {
+        std::vector<hilti::Expression> fields;
+        for ( const auto& b : t.bits() ) {
+            auto ztype = createZeekType(b.itemType());
+            if ( ! ztype )
+                return ztype.error();
+
+            fields.emplace_back(create_record_field(b.id(), *ztype, false, false));
+        }
+
+        hilti::ID local;
+        hilti::ID ns;
+
+        if ( auto id_ = id() ) {
+            local = id_->local();
+            ns = id_->namespace_();
+        }
+        else {
+            // Invent a (hopefully unique) name for the Zeek-side record type
+            // so that we can handle anonymous tuple types.
+            static uint64_t i = 0;
+            local = hilti::util::
+                fmt("__spicy_bitfield_%u"
+                    "_%" PRIu64,
+                    static_cast<unsigned int>(getpid()), ++i);
+            ns = namespace_();
+        }
+
+        return create_record_type(ns, local, fields);
+    }
+
     result_t operator()(const hilti::type::Bool& t) { return base_type("zeek_rt::ZeekTypeTag::Bool"); }
     result_t operator()(const hilti::type::Bytes& t) { return base_type("zeek_rt::ZeekTypeTag::String"); }
     result_t operator()(const hilti::type::Interval& t) { return base_type("zeek_rt::ZeekTypeTag::Interval"); }
@@ -1468,11 +1500,23 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             if ( export_.skip )
                 continue;
 
-            auto ztype = createZeekType(f.type);
-            if ( ! ztype )
-                return ztype.error();
+            // Special-case: Lift up elements of anonymous bitfields.
+            if ( auto bf = f.type.tryAs<hilti::type::Bitfield>(); bf && f.is_anonymous ) {
+                for ( const auto& b : bf->bits() ) {
+                    auto ztype = createZeekType(b.itemType());
+                    if ( ! ztype )
+                        return ztype.error();
 
-            fields.emplace_back(create_record_field(f.id, *ztype, f.is_optional, export_.log));
+                    fields.emplace_back(create_record_field(b.id(), *ztype, f.is_optional, export_.log));
+                }
+            }
+            else if ( ! f.is_anonymous ) {
+                auto ztype = createZeekType(f.type);
+                if ( ! ztype )
+                    return ztype.error();
+
+                fields.emplace_back(create_record_field(f.id, *ztype, f.is_optional, export_.log));
+            }
         }
 
         return create_record_type(id()->namespace_(), id()->local(), fields);
@@ -1499,15 +1543,21 @@ struct VisitorUnitFields : hilti::visitor::PreOrder<void, VisitorUnitFields> {
     std::vector<GlueCompiler::RecordField> fields;
 
     void operator()(const ::spicy::type::unit::item::Field& f, position_t p) {
-        if ( f.isTransient() || f.parseType().isA<hilti::type::Void>() )
+        if ( (f.isTransient() && ! f.isAnonymous()) || f.parseType().isA<hilti::type::Void>() )
             return;
 
-        auto field = GlueCompiler::RecordField{.id = f.id(), .type = f.itemType(), .is_optional = true};
+        auto field = GlueCompiler::RecordField{.id = f.id(),
+                                               .type = f.itemType(),
+                                               .is_optional = true,
+                                               .is_anonymous = f.isAnonymous()};
         fields.emplace_back(std::move(field));
     }
 
     void operator()(const ::spicy::type::unit::item::Variable& f, const position_t p) {
-        auto field = GlueCompiler::RecordField{.id = f.id(), .type = f.itemType(), .is_optional = f.isOptional()};
+        auto field = GlueCompiler::RecordField{.id = f.id(),
+                                               .type = f.itemType(),
+                                               .is_optional = f.isOptional(),
+                                               .is_anonymous = false};
         fields.emplace_back(std::move(field));
     }
 

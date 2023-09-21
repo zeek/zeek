@@ -1,23 +1,22 @@
-spicy_add_analyzer(
-    NAME QUIC
-    PACKAGE_NAME QUIC
-    SOURCES QUIC.spicy QUIC.evt
-    SCRIPTS __load__.zeek main.zeek
-    CXX_LINK ${CMAKE_CURRENT_BINARY_DIR}/libdecrypt_crypto.a)
+if (OPENSSL_VERSION VERSION_GREATER_EQUAL "1.1.0")
+    spicy_add_analyzer(NAME QUIC PACKAGE_NAME QUIC SOURCES QUIC.spicy QUIC.evt decrypt_crypto.cc)
 
-add_dependencies(QUIC decrypt_crypto)
+    # spicy_QUIC target is conditionally created by spicy_add_analyzer()
+    if (TARGET spicy_QUIC)
+        # I don't think this is actually needed as there's an unconditional
+        # include_directories(BEFORE ${OPENSSL_INCLUDE_DIR}) at the top-level.
+        target_include_directories(spicy_QUIC PRIVATE "${OPENSSL_INCLUDE_DIR}")
+    endif ()
+else ()
+    message(
+        STATUS
+            "Warning: QUIC analyzer unavailable - requires OpenSSL 1.1 or later (found ${OPENSSL_VERSION})"
+    )
+endif ()
 
-find_program(SPICY_CONFIG name spicy-config REQUIRED)
-execute_process(
-    COMMAND ${SPICY_CONFIG} --include-dirs
-    OUTPUT_VARIABLE SPICY_INCLUDE_DIRS)
-string(REPLACE " " ";" SPICY_INCLUDE_DIRS ${SPICY_INCLUDE_DIRS})
-
-find_package(OpenSSL REQUIRED)
-add_library(decrypt_crypto STATIC decrypt_crypto.cc)
-set_target_properties(
-    decrypt_crypto PROPERTIES
-    CXX_STANDARD 17
-    POSITION_INDEPENDENT_CODE ON)
-target_include_directories(decrypt_crypto PRIVATE "${OPENSSL_INCLUDE_DIR}" "${SPICY_INCLUDE_DIRS}")
-target_link_libraries(decrypt_crypto ${OpenSSL_LIBRARIES})
+# Allow tests to introspect availability of the QUIC analyzer.
+if (TARGET spicy_QUIC)
+    set(ZEEK_HAVE_ANALYZER_QUIC yes CACHE INTERNAL "Zeek has QUIC protocol parser support")
+else ()
+    set(ZEEK_HAVE_ANALYZER_QUIC no CACHE INTERNAL "Zeek has QUIC protocol parser support")
+endif ()

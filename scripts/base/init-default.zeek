@@ -66,6 +66,7 @@
 @load base/protocols/ntlm
 @load base/protocols/ntp
 @load base/protocols/pop3
+@load base/protocols/quic
 @load base/protocols/radius
 @load base/protocols/rdp
 @load base/protocols/rfb

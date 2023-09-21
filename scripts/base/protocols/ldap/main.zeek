@@ -6,6 +6,14 @@ export {
   redef enum Log::ID += { LDAP_LOG,
                           LDAP_SEARCH_LOG };
 
+  ## TCP ports which should be considered for analysis.
+  const ports_tcp = { 389/tcp, 3268/tcp } &redef;
+
+  ## UDP ports which should be considered for analysis.
+  const ports_udp = { 389/udp } &redef;
+
+  redef likely_server_ports += { LDAP::ports_tcp, LDAP::ports_udp };
+
   ## Whether clear text passwords are captured or not.
   option default_capture_password = F;
 
@@ -260,6 +268,9 @@ redef record connection += {
 
 #############################################################################
 event zeek_init() &priority=5 {
+  Analyzer::register_for_ports(Analyzer::ANALYZER_LDAP_TCP, LDAP::ports_tcp);
+  Analyzer::register_for_ports(Analyzer::ANALYZER_LDAP_UDP, LDAP::ports_udp);
+
   Log::create_stream(LDAP::LDAP_LOG, [$columns=Message, $ev=log_ldap, $path="ldap", $policy=log_policy]);
   Log::create_stream(LDAP::LDAP_SEARCH_LOG, [$columns=Search, $ev=log_ldap_search, $path="ldap_search", $policy=log_policy_search]);
 }

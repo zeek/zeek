@@ -1,12 +1,10 @@
 # Copyright (c) 2021 by the Zeek Project. See LICENSE for details.
 
 protocol analyzer LDAP_TCP over TCP:
-    parse with LDAP::Messages,
-    ports { 389/tcp, 3268/tcp};
+    parse with LDAP::Messages;
 
 protocol analyzer LDAP_UDP over UDP:
-    parse with LDAP::Messages,
-    ports { 389/udp };
+    parse with LDAP::Messages;
 
 import LDAP;
 

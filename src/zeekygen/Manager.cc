@@ -247,7 +247,7 @@ void Manager::StartType(zeek::detail::IDPtr id)
 	if ( disabled )
 		return;
 
-	if ( id->GetLocationInfo() == &zeek::detail::no_location )
+	if ( *id->GetLocationInfo() == zeek::detail::no_location )
 		{
 		DbgAndWarn(util::fmt("Can't generate zeekygen documentation for %s, "
 		                     "no location available",
@@ -309,7 +309,7 @@ void Manager::Identifier(zeek::detail::IDPtr id, bool from_redef)
 		return;
 		}
 
-	if ( id->GetLocationInfo() == &zeek::detail::no_location )
+	if ( *id->GetLocationInfo() == zeek::detail::no_location )
 		{
 		// Internally-created identifier (e.g. file/proto analyzer enum tags).
 		// Handled specially since they don't have a script location.

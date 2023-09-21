@@ -47,6 +47,20 @@ static std::pair<std::string, std::string> parseID(const std::string& s) {
 
 Manager::~Manager() {}
 
+void Manager::registerSpicyModuleBegin(const std::string& name, const std::string& description, hilti::rt::Time mtime) {
+    assert(! _module_info);
+    _module_info =
+        std::make_unique<zeekygen::detail::SpicyModuleInfo>(name, description, static_cast<time_t>(mtime.seconds()));
+}
+
+void Manager::registerSpicyModuleEnd() {
+    if ( ! _module_info )
+        return;
+
+    detail::zeekygen_mgr->AddSpicyModule(std::move(_module_info));
+    // _module_info now back to null
+}
+
 void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
                                        const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                        const std::string& parser_orig, const std::string& parser_resp,
@@ -97,10 +111,8 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
     auto c = new ::zeek::analyzer::Component(info.name_zeek, factory, 0);
     AddComponent(c);
 
-    // Hack to prevent Zeekygen from reporting the ID as not having a
-    // location during the following initialization step.
-    ::zeek::detail::zeekygen_mgr->Script(info.name_zeekygen);
-    ::zeek::detail::set_location(makeLocation(info.name_zeekygen));
+    if ( _module_info )
+        _module_info->AddComponent(c);
 
     // TODO: Should Zeek do this? It has run component intiialization at
     // this point already, so ours won't get initialized anymore.
@@ -145,10 +157,8 @@ void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vec
     auto c = new ::zeek::file_analysis::Component(info.name_zeek, spicy::rt::FileAnalyzer::InstantiateAnalyzer, 0);
     AddComponent(c);
 
-    // Hack to prevent Zeekygen from reporting the ID as not having a
-    // location during the following initialization step.
-    ::zeek::detail::zeekygen_mgr->Script(info.name_zeekygen);
-    ::zeek::detail::set_location(makeLocation(info.name_zeekygen));
+    if ( _module_info )
+        _module_info->AddComponent(c);
 
     // TODO: Should Zeek do this? It has run component intiialization at
     // this point already, so ours won't get initialized anymore.
@@ -196,10 +206,8 @@ void Manager::registerPacketAnalyzer(const std::string& name, const std::string&
     auto c = new ::zeek::packet_analysis::Component(info.name_zeek, instantiate, 0);
     AddComponent(c);
 
-    // Hack to prevent Zeekygen from reporting the ID as not having a
-    // location during the following initialization step.
-    ::zeek::detail::zeekygen_mgr->Script(info.name_zeekygen);
-    ::zeek::detail::set_location(makeLocation(info.name_zeekygen));
+    if ( _module_info )
+        _module_info->AddComponent(c);
 
     // TODO: Should Zeek do this? It has run component initialization at
     // this point already, so ours won't get initialized anymore.
@@ -237,6 +245,9 @@ void Manager::registerType(const std::string& id, const TypePtr& type) {
     zeek_id->SetType(type);
     zeek_id->MakeType();
     AddBifItem(id, ::zeek::plugin::BifItem::TYPE);
+
+    if ( _module_info )
+        _module_info->AddBifItem(id, ::zeek::plugin::BifItem::TYPE);
 }
 
 TypePtr Manager::findType(const std::string& id) const {
@@ -275,6 +286,9 @@ void Manager::registerEvent(const std::string& name) {
         // That will happen as handlers get defined. If there are no handlers,
         // we set a dummy type in the plugin's InitPostScript
         _events[name] = detail::install_ID(name.c_str(), mod.c_str(), false, true);
+
+    if ( _module_info )
+        _module_info->AddBifItem(name, ::zeek::plugin::BifItem::EVENT);
 }
 
 const ::spicy::rt::Parser* Manager::parserForProtocolAnalyzer(const Tag& tag, bool is_orig) {
@@ -531,7 +545,7 @@ void Manager::analyzerError(packet_analysis::Analyzer* a, const std::string& msg
 plugin::Configuration Manager::Configure() {
     ::zeek::plugin::Configuration config;
     config.name = "Zeek::Spicy";
-    config.description = "Support for Spicy parsers (*.hlto)";
+    config.description = "Support for Spicy parsers (.hlto)";
 
     EnableHook(::zeek::plugin::HOOK_LOAD_FILE);
 
@@ -780,6 +794,7 @@ void Manager::loadModule(const hilti::rt::filesystem::path& path) {
         if ( auto [library, inserted] = _libraries.insert({canonical_path, hilti::rt::Library(canonical_path)});
              inserted ) {
             SPICY_DEBUG(hilti::rt::fmt("Loading %s", canonical_path.native()));
+            set_location(detail::no_location); // make sure IDs get installed without stale location info
             if ( auto load = library->second.open(); ! load )
                 hilti::rt::fatalError(
                     hilti::rt::fmt("could not open library path %s: %s", canonical_path, load.error()));

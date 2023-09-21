@@ -13,6 +13,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/util.h"
 #include "zeek/zeekygen/Configuration.h"
+#include "zeek/zeekygen/SpicyModuleInfo.h"
 
 namespace zeek
 	{
@@ -149,6 +150,18 @@ public:
 	           zeek::detail::InitClass ic = zeek::detail::INIT_NONE);
 
 	/**
+	 * Register a Spicy EVT module.
+	 * @param info the module information
+	 */
+	void AddSpicyModule(std::unique_ptr<SpicyModuleInfo> info)
+		{
+		spicy_modules.map[info->Name()] = info.get();
+		all_info.push_back(info.release()); // switch to manual memory mgmt like all other infos
+		}
+
+	const auto& SpicyModules() const { return spicy_modules.map; }
+
+	/**
 	 * Register Zeekygen script summary content.
 	 * @param path Absolute path to a Zeek script.
 	 * @param comment Zeekygen-style summary comment ("##!") to associate with
@@ -231,6 +244,7 @@ private:
 	InfoMap<PackageInfo> packages;
 	InfoMap<ScriptInfo> scripts;
 	InfoMap<IdentifierInfo> identifiers;
+	InfoMap<SpicyModuleInfo> spicy_modules;
 	std::vector<Info*> all_info;
 	IdentifierInfo* last_identifier_seen;
 	IdentifierInfo* incomplete_type;

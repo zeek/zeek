@@ -345,6 +345,13 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 
 	return init;
 	}
+
+static void refine_location(zeek::detail::ID* id)
+	{
+	if ( *id->GetLocationInfo() == zeek::detail::no_location )
+		id->SetLocationInfo(&detail::start_location, &detail::end_location);
+	}
+
 %}
 
 %union {
@@ -2204,6 +2211,7 @@ global_or_event_id:
 						reporter->Deprecation($$->GetDeprecationWarning());
 					}
 
+				refine_location($$);
 				delete [] $1;
 				}
 

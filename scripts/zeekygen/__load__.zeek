@@ -14,7 +14,8 @@
 @load policy/protocols/conn/speculative-service.zeek
 
 @if ( have_spicy() )
-@load frameworks/spicy/record-spicy-batch.zeek
+# Loading this messes up documentation of some elements defined elsewhere.
+# @load frameworks/spicy/record-spicy-batch.zeek
 @load frameworks/spicy/resource-usage.zeek
 @endif
 

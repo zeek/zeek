@@ -19,6 +19,7 @@
 #include "zeek/plugin/Plugin.h"
 #include "zeek/spicy/port-range.h"
 #include "zeek/spicy/spicyz/config.h" // include for Spicy version
+#include "zeek/zeekygen/SpicyModuleInfo.h"
 
 // Macro helper to report Spicy debug messages. This forwards to
 // to both the Zeek logger and the Spicy runtime logger.
@@ -63,6 +64,21 @@ class Manager : public zeek::plugin::Plugin {
 public:
     Manager() {}
     virtual ~Manager();
+
+    /**
+     * Runtime method to begin registration of a Spicy EVT module. All
+     * subsequent, other `register*()` methods will be associated with this
+     * module for documentation purposes until a closing
+     * `registerSpicyModuleEnd()` call comes.
+
+     * @param name name of the EVT module that will be used to refer to it,
+     * and to index it, inside the Zeekygen documentation.
+     * @param description textual description in reST that will be shown for
+     * this module inside the Zeekygen documentation
+     * @param mtime timestamp indicating last time of modification of any of
+     * the module's content; used by Zeekygen to trigger rebuilds as necessary
+     */
+    void registerSpicyModuleBegin(const std::string& name, const std::string& description, hilti::rt::Time mtime);
 
     /**
      * Runtime method to register a protocol analyzer with its Zeek-side
@@ -139,6 +155,12 @@ public:
      * @param type Zeek-side type to register
      */
     void registerType(const std::string& id, const TypePtr& type);
+
+    /**
+     * Runtime method to end registration of a Spicy EVT module. The must
+     * follow a preceding `registerSpicyModuleBegin()`.
+     */
+    void registerSpicyModuleEnd();
 
     /**
      * Looks up a global type by its ID with Zeek.
@@ -396,6 +418,10 @@ private:
     };
 
     std::string _spicy_version;
+
+    // Tracks information relevant for documenting the current EVT module
+    // through Zeekygen.
+    std::unique_ptr<zeekygen::detail::SpicyModuleInfo> _module_info;
 
     std::vector<ProtocolAnalyzerInfo> _protocol_analyzers_by_type;
     std::vector<FileAnalyzerInfo> _file_analyzers_by_type;

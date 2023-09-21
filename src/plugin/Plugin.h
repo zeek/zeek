@@ -384,7 +384,7 @@ public:
 	/**
 	 * Constructor with a Frame argument.
 	 */
-	explicit HookArgument(detail::Frame* f)
+	explicit HookArgument(zeek::detail::Frame* f)
 		{
 		type = FRAME;
 		arg.frame = f;
@@ -624,14 +624,14 @@ private:
 		const Event* event;
 		const Connection* conn;
 		const Func* func;
-		const detail::Frame* frame;
+		const zeek::detail::Frame* frame;
 		int int_;
 		const Val* val;
 		const ValPList* vals;
 		const Args* args;
 		const void* voidp;
 		const logging::WriterBackend::WriterInfo* winfo;
-		const detail::Location* loc;
+		const zeek::detail::Location* loc;
 		const Packet* packet;
 		} arg;
 

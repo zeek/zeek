@@ -1,3 +1,52 @@
+6.1.0-dev.430 | 2023-09-21 10:55:12 +0200
+
+  * Add check to docs CI whether Spicy docs are up to date. (Robin Sommer, Corelight)
+
+  * Bump zeek-docs. (Robin Sommer, Corelight)
+
+  * Enable Spicy when generating docs. (Robin Sommer, Corelight)
+
+  * GH-3306: Zeekygen: Merge in Spicy analyzer documentation. (Robin Sommer, Corelight)
+
+  * Zeekygen: Refine location tracking for Spicy events. (Robin Sommer, Corelight)
+
+  * Zeekygen: Refactor code documenting analyzers. (Robin Sommer, Corelight)
+
+  * Add `%doc-*` tags to Syslog and Finger analyzers. (Robin Sommer, Corelight)
+
+  * Spicy: Support additional documentation tags inside EVT files. (Robin Sommer, Corelight)
+
+    So far we had trouble documenting Spicy analyzers through Zeekygen
+    because they would show up as components belonging to the
+    `Zeek::Spicy` plugin; whereas traditional analyzers would be their own
+    plugins and hence documented individually on their own. This commit
+    teaches Zeekygen to track Spicy analyzers separately inside their own
+    `Info` instances. This information isn't further used in this commit
+    yet, but will be merged with the plugin output in a subsequent change
+    to get the expected joint output.
+
+    To pass additional information to Zeekygen, EVT files now also support
+    two new tags for Zeekygen purposes:
+
+    - `%doc-id = ID;` defines the global ID under which everything inside
+      the EVT file will be documented by Zeekygen, conceptually comparable
+      to plugin names (e.g., `Zeek::Syslog`).
+
+    - `%doc-description = "text" provides additional text to go into the
+      documentation (comparable to plugin descriptions).
+
+    This information is carried through into the HLTO runtime
+    initialization code, from where it's registered with Zeekygen.
+
+    This commit also removes a couple of previous hacks of how Spicy
+    integrated with Zeekygen which (1) ended up generating broken doc output
+    for Spicy components, and (2) don't seem to be necessary anymore
+    anyways.
+
+  * Fix lack of namespace qualification inside an include file. (Robin Sommer, Corelight)
+
+  * Exclude script from documentation that interferes with other locations. (Robin Sommer, Corelight)
+
 6.1.0-dev.419 | 2023-09-21 09:55:51 +0200
 
   * GH-3298: Spicy: Fix support for exporting bitfields. (Robin Sommer, Corelight)

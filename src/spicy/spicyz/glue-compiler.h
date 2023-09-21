@@ -270,6 +270,10 @@ private:
     std::vector<glue::FileAnalyzer> _file_analyzers;         /**< file analyzers parsed from EVT files */
     std::vector<glue::PacketAnalyzer> _packet_analyzers;     /**< file analyzers parsed from EVT files */
     std::vector<hilti::Location> _locations;                 /**< location stack during parsing EVT files */
+
+    std::string _doc_id;          /**< name/ID associated with the current EVT module inside Zeekygen documentation */
+    std::string _doc_description; /**< textual description to be included for the current EVT module inside Zeekygen
+                                     documentation */
 };
 } // namespace zeek::spicy
 

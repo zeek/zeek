@@ -60,7 +60,7 @@ static bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr
 	if ( vv->Size() <= ind )
 		vv->Resize(ind + 1);
 
-	auto& elem = (*vv->RawVec())[ind];
+	auto& elem = vv->RawVec()[ind];
 
 	if ( ! ZVal::IsManagedType(t) )
 		{
@@ -96,12 +96,12 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 #define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err)                            \
 	static VectorVal* vec_coerce_##tag(VectorVal* vec, const ZInst& z)                             \
 		{                                                                                          \
-		auto& v = *vec->RawVec();                                                                  \
+		auto& v = vec->RawVec();                                                                   \
 		auto yt = make_intrusive<VectorType>(base_type(lhs_type));                                 \
 		auto res_zv = new VectorVal(yt);                                                           \
 		auto n = v.size();                                                                         \
 		res_zv->Resize(n);                                                                         \
-		auto& res = *res_zv->RawVec();                                                             \
+		auto& res = res_zv->RawVec();                                                              \
 		for ( auto i = 0U; i < n; ++i )                                                            \
 			if ( v[i] )                                                                            \
 				{                                                                                  \
@@ -479,7 +479,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 	// well move the whole kit-and-caboodle into the Exec method).  But
 	// that seems like a lot of code bloat for only a very modest gain.
 
-	auto& vec2 = *v2->RawVec();
+	auto& vec2 = v2->RawVec();
 	auto n = vec2.size();
 	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
 	auto& vec1 = *vec1_ptr;
@@ -511,8 +511,8 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 	{
 	// See comment above re further speed-up.
 
-	auto& vec2 = *v2->RawVec();
-	auto& vec3 = *v3->RawVec();
+	auto& vec2 = v2->RawVec();
+	auto& vec3 = v3->RawVec();
 	auto n = vec2.size();
 	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
 	auto& vec1 = *vec1_ptr;

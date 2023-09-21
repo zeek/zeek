@@ -314,13 +314,13 @@ void ValTrace::TraceTable(const TableValPtr& tv)
 void ValTrace::TraceVector(const VectorValPtr& vv)
 	{
 	auto& vec = vv->RawVec();
-	auto n = vec->size();
+	auto n = vec.size();
 	auto& yt = vv->RawYieldType();
 	auto& yts = vv->RawYieldTypes();
 
 	for ( auto i = 0U; i < n; ++i )
 		{
-		auto& elem = (*vec)[i];
+		auto& elem = vec[i];
 		if ( elem )
 			{
 			auto& t = yts ? (*yts)[i] : yt;

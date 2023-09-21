@@ -1592,7 +1592,7 @@ public:
 	// Returns true if successful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
-	unsigned int Size() const { return vector_val->size(); }
+	unsigned int Size() const { return vector_val.size(); }
 
 	// Is there any way to reclaim previously-allocated memory when you
 	// shrink a vector?  The return value is the old size.
@@ -1662,10 +1662,7 @@ public:
 
 	ValPtr ValAt(unsigned int index) const { return At(index); }
 
-	bool Has(unsigned int index) const
-		{
-		return index < vector_val->size() && (*vector_val)[index];
-		}
+	bool Has(unsigned int index) const { return index < vector_val.size() && vector_val[index]; }
 
 	/**
 	 * Returns the given element in a given underlying representation.
@@ -1675,26 +1672,17 @@ public:
 	 * @param index  The position in the vector of the element to return.
 	 * @return  The element's underlying value.
 	 */
-	zeek_int_t IntAt(unsigned int index) const { return (*vector_val)[index]->int_val; }
-	zeek_uint_t CountAt(unsigned int index) const { return (*vector_val)[index]->uint_val; }
-	double DoubleAt(unsigned int index) const { return (*vector_val)[index]->double_val; }
-	const RecordVal* RecordValAt(unsigned int index) const
-		{
-		return (*vector_val)[index]->record_val;
-		}
-	bool BoolAt(unsigned int index) const
-		{
-		return static_cast<bool>((*vector_val)[index]->uint_val);
-		}
-	const StringVal* StringValAt(unsigned int index) const
-		{
-		return (*vector_val)[index]->string_val;
-		}
+	zeek_int_t IntAt(unsigned int index) const { return vector_val[index]->int_val; }
+	zeek_uint_t CountAt(unsigned int index) const { return vector_val[index]->uint_val; }
+	double DoubleAt(unsigned int index) const { return vector_val[index]->double_val; }
+	const RecordVal* RecordValAt(unsigned int index) const { return vector_val[index]->record_val; }
+	bool BoolAt(unsigned int index) const { return static_cast<bool>(vector_val[index]->uint_val); }
+	const StringVal* StringValAt(unsigned int index) const { return vector_val[index]->string_val; }
 	const String* StringAt(unsigned int index) const { return StringValAt(index)->AsString(); }
 
 	// Only intended for low-level access by internal or compiled code.
-	const auto& RawVec() const { return vector_val; }
-	auto& RawVec() { return vector_val; }
+	const std::vector<std::optional<ZVal>>& RawVec() const { return vector_val; }
+	std::vector<std::optional<ZVal>>& RawVec() { return vector_val; }
 
 	const auto& RawYieldType() const { return yield_type; }
 	const auto& RawYieldTypes() const { return yield_types; }
@@ -1730,7 +1718,7 @@ private:
 	// Add the given number of "holes" to the end of a vector.
 	void AddHoles(int nholes);
 
-	std::vector<std::optional<ZVal>>* vector_val;
+	std::vector<std::optional<ZVal>> vector_val;
 
 	// For homogeneous vectors (the usual case), the type of the
 	// elements.  Will be TYPE_VOID for empty vectors created using

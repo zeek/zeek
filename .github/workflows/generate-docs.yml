@@ -84,6 +84,9 @@ jobs:
       - name: Build
         run: cd build && make -j $(nproc)
 
+      - name: Check Spicy docs
+        run: cd doc && make check-spicy-docs
+
       - name: Generate Docs
         run: |
           git config --global user.name zeek-bot

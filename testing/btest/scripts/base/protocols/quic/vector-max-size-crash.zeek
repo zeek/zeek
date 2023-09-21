@@ -1,4 +1,6 @@
 # @TEST-DOC: Test that runs the pcap
+
+# @TEST-REQUIRES: ${SCRIPTS}/have-quic
 # @TEST-EXEC: zeek -Cr $TRACES/quic/vector-max-size-crash.pcap base/protocols/quic
 # @TEST-EXEC: zeek-cut -m ts uid history service < conn.log > conn.log.cut
 # @TEST-EXEC: zeek-cut -m ts uid cause analyzer_kind analyzer_name failure_reason < analyzer.log > analyzer.log.cut

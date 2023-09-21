@@ -1,4 +1,6 @@
 # @TEST-DOC: Test that runs the pcap
+
+# @TEST-REQUIRES: ${SCRIPTS}/have-quic
 # @TEST-EXEC: zeek -Cr $TRACES/quic/curl-8.1.2-dev-http3-www-google-de.pcap base/protocols/quic
 # @TEST-EXEC: zeek-cut -m ts uid history service < conn.log > conn.log.cut
 # @TEST-EXEC: btest-diff conn.log.cut

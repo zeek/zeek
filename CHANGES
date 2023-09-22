@@ -1,3 +1,9 @@
+6.1.0-dev.441 | 2023-09-22 14:38:26 -0700
+
+  * CI: Disable tsan task until it can be fixed (Tim Wojtulewicz, Corelight)
+
+  * Update af_packet plugin submodule [nomail] (Tim Wojtulewicz)
+
 6.1.0-dev.436 | 2023-09-22 15:06:39 +0200
 
   * Bump Spicy (Benjamin Bannier, Corelight)

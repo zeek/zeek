@@ -1,3 +1,7 @@
+6.1.0-dev.436 | 2023-09-22 15:06:39 +0200
+
+  * Bump Spicy (Benjamin Bannier, Corelight)
+
 6.1.0-dev.434 | 2023-09-22 12:13:23 +0200
 
   * Fix formatting of `spicy_add_analyzer` (Benjamin Bannier, Corelight)

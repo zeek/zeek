@@ -1,3 +1,11 @@
+6.0.1-13 | 2023-10-16 13:32:12 -0700
+
+  * CI: Disable tsan task until it can be fixed (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 5ff24dad234f90dcae0d89a2b8bcc6b19f41f4b5)
+
+  * Update zeekjs submodule to v0.9.6 [nomail] (Tim Wojtulewicz, Corelight)
+
 6.0.1-11 | 2023-10-16 13:27:18 -0700
 
   * Do not require cookie for `reject_protocol` during teardown. (Benjamin Bannier, Corelight)

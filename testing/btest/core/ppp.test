@@ -1,4 +1,6 @@
 # @TEST-DOC: PCAP from https://interop.seemann.io/ with DLT_PPP linklayer and no HDLC framing.
 #
-# @TEST-EXEC: zeek -r $TRACES/ppp/quic-interop-retry.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/ppp/quic-interop-retry.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
+
+@load base/protocols/conn

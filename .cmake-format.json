@@ -64,6 +64,13 @@
 		    "_filepath": "*",
 		    "_sympath": "*"
 		}
+	    },
+	    "spicy_add_analyzer": {
+		"kwargs": {
+		    "NAME": "*",
+		    "PACKAGE_NAME": "*",
+		    "SOURCES": "*"
+		}
 	    }
 	}
     },

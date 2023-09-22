@@ -1761,6 +1761,64 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
 		}
 	}
 
+using PatternValPtr = IntrusivePtr<PatternVal>;
+
+class TablePatternMatcher
+	{
+public:
+	TablePatternMatcher(TypePtr _yield)
+		{
+		// ### optimize me
+		vtype = make_intrusive<VectorType>(_yield);
+		}
+	~TablePatternMatcher() { delete matcher; }
+
+	void Insert(ValPtr pat, ValPtr yield);
+	// ### TODO: implement removal
+
+	VectorValPtr Lookup(const StringVal* s);
+
+private:
+	VectorTypePtr vtype;
+	std::vector<const RE_Matcher*> patterns;
+	std::vector<ValPtr> yields;
+	RE_DisjunctiveMatcher* matcher = nullptr;
+	};
+
+void TablePatternMatcher::Insert(ValPtr pat, ValPtr yield)
+	{
+	auto p = pat->AsPattern();
+
+	for ( auto i = 0U; i < patterns.size(); ++i )
+		if ( patterns[i] == p )
+			{
+			yields[i] = yield;
+			return;
+			}
+
+	patterns.push_back(p);
+	yields.push_back(std::move(yield));
+
+	// Invalidate the existing matcher.
+	delete matcher;
+	matcher = nullptr;
+	}
+
+VectorValPtr TablePatternMatcher::Lookup(const StringVal* s)
+	{
+	if ( ! matcher )
+		matcher = new RE_DisjunctiveMatcher(patterns);
+
+	std::vector<int> matches;
+	matcher->Match(s->AsString(), matches);
+
+	auto results = make_intrusive<VectorVal>(vtype);
+	for ( auto m : matches )
+		results->Append(yields[m - 1]);
+
+	return results;
+	}
+
 TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 	{
 	bool ordered = (a != nullptr && a->Find(detail::ATTR_ORDERED) != nullptr);
@@ -1797,6 +1855,10 @@ void TableVal::Init(TableTypePtr t, bool ordered)
 	else
 		subnets = nullptr;
 
+	auto& it = table_type->GetIndexTypes();
+	if ( it.size() == 1 && it[0]->Tag() == TYPE_PATTERN && table_type->Yield() )
+		pattern_matcher = new TablePatternMatcher(table_type->Yield());
+
 	table_hash = new detail::CompositeHash(table_type->GetIndices());
 	if ( ordered )
 		table_val = new PDict<TableEntryVal>(DictOrder::ORDERED);
@@ -1814,6 +1876,7 @@ TableVal::~TableVal()
 	delete table_hash;
 	delete table_val;
 	delete subnets;
+	delete pattern_matcher;
 	delete expire_iterator;
 	}
 
@@ -1922,6 +1985,9 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward,
 		index->Error("index type doesn't match table", table_type->GetIndices().get());
 		return false;
 		}
+
+	if ( pattern_matcher )
+		pattern_matcher->Insert(index->AsListVal()->Idx(0), new_val);
 
 	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward,
 	              iterators_invalidated);
@@ -2308,6 +2374,14 @@ VectorValPtr TableVal::LookupSubnets(const SubNetVal* search)
 		result->Assign(result->Size(), make_intrusive<SubNetVal>(get<0>(element)));
 
 	return result;
+	}
+
+VectorValPtr TableVal::LookupPattern(const StringVal* s)
+	{
+	if ( ! pattern_matcher )
+		reporter->InternalError("LookupPattern called on wrong table type");
+
+	return pattern_matcher->Lookup(s);
 	}
 
 TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search)

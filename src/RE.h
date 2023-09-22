@@ -38,6 +38,7 @@ extern CCL* curr_ccl;
 extern NFA_Machine* nfa;
 extern Specific_RE_Matcher* rem;
 extern const char* RE_parse_input;
+extern int RE_accept_num;
 
 extern int clower(int);
 extern void synerr(const char str[]);
@@ -112,6 +113,8 @@ public:
 	int Match(const char* s);
 	int Match(const String* s);
 	int Match(const u_char* bv, int n);
+
+	void MatchDisjunction(const String* s, std::vector<int>& matches);
 
 	int LongestMatch(const char* s);
 	int LongestMatch(const String* s);
@@ -250,6 +253,17 @@ protected:
 
 	bool is_case_insensitive = false;
 	bool is_single_line = false;
+	};
+
+class RE_DisjunctiveMatcher final
+	{
+public:
+	RE_DisjunctiveMatcher(const std::vector<const RE_Matcher*>& REs);
+
+	void Match(const String* s, std::vector<int>& matches);
+
+private:
+	std::unique_ptr<detail::Specific_RE_Matcher> matcher;
 	};
 
 	} // namespace zeek

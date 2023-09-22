@@ -759,6 +759,8 @@ protected:
 	TableVal* table;
 	};
 
+class TablePatternMatcher;
+
 class TableVal final : public Val, public notifier::detail::Modifiable
 	{
 public:
@@ -902,6 +904,8 @@ public:
 	// the given subnet.
 	// Causes an internal error if called for any other kind of table.
 	VectorValPtr LookupSubnets(const SubNetVal* s);
+
+	VectorValPtr LookupPattern(const StringVal* s);
 
 	// For a set[subnet]/table[subnet], return a new table that only contains
 	// entries that cover the given subnet.
@@ -1085,6 +1089,7 @@ protected:
 	TableValTimer* timer;
 	RobustDictIterator<TableEntryVal>* expire_iterator;
 	detail::PrefixTable* subnets;
+	TablePatternMatcher* pattern_matcher = nullptr;
 	ValPtr def_val;
 	detail::ExprPtr change_func;
 	std::string broker_store;

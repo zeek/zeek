@@ -1,9 +1,38 @@
 # @TEST-REQUIRES: have-spicy
-#
+
+# Baseline.
+
 # @TEST-EXEC: spicyz -d -o x.hlto %INPUT
+# @TEST-EXEC: echo '# Baseline: module can be explicitly loaded:' >>output
 # @TEST-EXEC: zeek -b Zeek::Spicy x.hlto Spicy::enable_print=T >>output
+
+# Tests that loading recurses into subdirectories of `ZEEK_SPICY_MODULE_PATH`.
+#
 # @TEST-EXEC: mkdir -p y/z && mv x.hlto y/z
+# @TEST-EXEC: echo "# Loading from module path 'FOO:y::BAR' DOES find module 'y/z/x.hlto':" >>output
 # @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=FOO:y:BAR zeek -b Zeek::Spicy Spicy::enable_print=T >>output
+
+# Tests related to dot directory handling.
+
+# @TEST-EXEC: mv y .y
+# @TEST-EXEC: echo "# Loading from module path '.' DOES NOT find module '.y/z/x.hlto':" >>output
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=. zeek -b Zeek::Spicy Spicy::enable_print=T >>output
+
+# @TEST-EXEC: echo "# Loading from module path '.y' DOES find module '.y/z/x.hlto':" >>output
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=.y zeek -b Zeek::Spicy Spicy::enable_print=T >>output
+
+# @TEST-EXEC: mkdir a && mv .y a
+# @TEST-EXEC: echo "# Loading from module path '.' DOES NOT find module 'a/.y/z/x.hlto':" >>output
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=.y zeek -b Zeek::Spicy Spicy::enable_print=T >>output
+
+# @TEST-EXEC: mkdir b && mv a b
+# @TEST-EXEC: echo "# Loading from module path '.' DOES NOT find module 'b/a/.y/z/x.hlto':" >>output
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=.y zeek -b Zeek::Spicy Spicy::enable_print=T >>output
+
+# @TEST-EXEC: echo "# Sanity check: can load module from _file_ '.x.hlto' directly:" >>output
+# @TEST-EXEC: mv b/a/.y/z/x.hlto .x.hlto
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=. zeek -b Zeek::Spicy Spicy::enable_print=T >>output
+
 # @TEST-EXEC: btest-diff output
 
 module Test;

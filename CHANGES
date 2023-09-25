@@ -1,3 +1,17 @@
+6.1.0-dev.444 | 2023-09-25 14:59:19 +0200
+
+  * Do not require cookie for `reject_protocol` during teardown. (Benjamin Bannier, Corelight)
+
+    A user reported that they ran into a situation where a parse error
+    caused an assertion failure in `reject_protocol`. printf debugging points
+    to the `CookieSetter`s in the `try`/`catch` blocks during processing
+    already clearing the cookie RAII-style; since their `catch` blocks
+    already send an analyzer violation no further sending of one from
+    `reject_protocol` is required.
+
+    This patch replaces the assert in `reject_protocol` with a runtime check
+    and an early return if the cookie is already cleared.
+
 6.1.0-dev.442 | 2023-09-25 13:50:15 +0200
 
   * ci/benchmark: Also send CIRRUS_TASK_NAME to benchmarker API (Arne Welzel, Corelight)

@@ -436,7 +436,12 @@ void rt::confirm_protocol() {
 void rt::reject_protocol(const std::string& reason) {
     auto _ = hilti::rt::profiler::start("zeek/rt/reject_protocol");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
+
+    // We might be invoked during teardown when the cookie has already been
+    // cleared. These other code paths also take care of sending an analyzer
+    // violation to Zeek, so we can immediately return for such cases here.
+    if ( ! cookie )
+        return;
 
     if ( auto x = cookie->protocol ) {
         auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());

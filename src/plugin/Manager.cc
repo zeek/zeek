@@ -147,6 +147,10 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		if ( strcmp(dp->d_name, "..") == 0 || strcmp(dp->d_name, ".") == 0 )
 			continue;
 
+		// We do not search plugins in discovered dot directories.
+		if ( (dp->d_name[0] == '.') && dp->d_type == DT_DIR )
+			continue;
+
 		string path = dir + "/" + dp->d_name;
 
 		if ( stat(path.c_str(), &st) < 0 )

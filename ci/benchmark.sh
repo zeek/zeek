@@ -46,6 +46,7 @@ curl -sS -G --stderr - --fail --insecure -X POST \
     --data-urlencode "cirrus_repo_owner=${CIRRUS_REPO_OWNER}" \
     --data-urlencode "cirrus_repo_name=${CIRRUS_REPO_NAME}" \
     --data-urlencode "cirrus_task_id=${CIRRUS_TASK_ID}" \
+    --data-urlencode "cirrus_task_name=${CIRRUS_TASK_NAME}" \
     --data-urlencode "cirrus_build_id=${CIRRUS_BUILD_ID}" \
     --data-urlencode "cirrus_pr=${CIRRUS_PR}" \
     --data-urlencode "cirrus_pr_labels=${CIRRUS_PR_LABELS}" \

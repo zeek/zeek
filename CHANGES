@@ -1,3 +1,10 @@
+6.1.0-dev.442 | 2023-09-25 13:50:15 +0200
+
+  * ci/benchmark: Also send CIRRUS_TASK_NAME to benchmarker API (Arne Welzel, Corelight)
+
+    We otherwise cannot distinguish between different benchmarking jobs when
+    we introduce them (think ubuntu22_jemalloc or ubuntu22_spicy).
+
 6.1.0-dev.441 | 2023-09-22 14:38:26 -0700
 
   * CI: Disable tsan task until it can be fixed (Tim Wojtulewicz, Corelight)

@@ -97,6 +97,7 @@ ci_template: &CI_TEMPLATE
 
   init_external_repos_script: ./ci/init-external-repos.sh
 
+  pre_build_script: ./ci/pre-build.sh
   build_script: ./ci/build.sh
   test_script: ./ci/test.sh
 

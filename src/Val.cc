@@ -3921,10 +3921,6 @@ bool VectorVal::Concretize(const TypePtr& t)
 		// shouldn't happen in any case.
 		return yield_type->Tag() == t->Tag();
 
-	if ( vector_val.empty() )
-		// Trivially concretized.
-		return true;
-
 	auto n = vector_val.size();
 	for ( auto i = 0U; i < n; ++i )
 		{

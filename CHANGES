@@ -1,3 +1,17 @@
+6.1.0-dev.455 | 2023-09-26 18:42:20 +0200
+
+  * auxil/libunistd: Bump for poll() inclusion (Arne Welzel, Corelight)
+
+  * GH-3309: DNS_Mgr: Replace ares_fds() with ares_getsock() (Arne Welzel, Corelight)
+
+    On Slack, a user reported "fortify source" aborts within ares_fds() due
+    to the FDs used by c-ares exceeding 1024 and thereby larger than the
+    maximum fd value that a fd_set can hold.
+
+    Switch to ares_get_socks() and poll() to avoid this.
+
+    Closes #3309.
+
 6.1.0-dev.451 | 2023-09-26 16:14:24 +0200
 
   * Use unique port for test `scripts.base.utils.active-http` (Benjamin Bannier, Corelight)

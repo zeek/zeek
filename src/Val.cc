@@ -3155,17 +3155,15 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 	if ( run_state::is_parsing )
 		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
-	record_val = new std::vector<std::optional<ZVal>>;
-
 	if ( init_fields )
 		{
-		record_val->resize(n);
+		record_val.resize(n);
 
 		for ( auto& e : rt->CreationInits() )
 			{
 			try
 				{
-				(*record_val)[e.first] = e.second->Generate();
+				record_val[e.first] = e.second->Generate();
 				}
 			catch ( InterpreterException& e )
 				{
@@ -3177,21 +3175,19 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 		}
 
 	else
-		record_val->reserve(n);
+		record_val.reserve(n);
 	}
 
 RecordVal::~RecordVal()
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 
 	for ( unsigned int i = 0; i < n; ++i )
 		{
-		auto f_i = (*record_val)[i];
+		auto f_i = record_val[i];
 		if ( f_i && IsManaged(i) )
 			ZVal::DeleteManagedType(*f_i);
 		}
-
-	delete record_val;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -3206,7 +3202,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 		DeleteFieldIfManaged(field);
 
 		auto t = rt->GetFieldType(field);
-		(*record_val)[field] = ZVal(new_val, t);
+		record_val[field] = ZVal(new_val, t);
 		Modified();
 		}
 	else
@@ -3215,7 +3211,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 
 void RecordVal::Remove(int field)
 	{
-	auto& f_i = (*record_val)[field];
+	auto& f_i = record_val[field];
 	if ( f_i )
 		{
 		if ( IsManaged(field) )
@@ -3357,7 +3353,7 @@ TableValPtr RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 
 	if ( d->IsBinary() )
 		{
@@ -3393,7 +3389,7 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 	auto rt = GetType()->AsRecordType();
 
 	d->Add("{");
@@ -3491,16 +3487,19 @@ ValPtr TypeVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-VectorVal::VectorVal(VectorTypePtr t) : VectorVal(t, new vector<std::optional<ZVal>>()) { }
-
-VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : Val(t)
+VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 	{
-	vector_val = vals;
 	yield_type = t->Yield();
 
 	auto y_tag = yield_type->Tag();
 	any_yield = (y_tag == TYPE_VOID || y_tag == TYPE_ANY);
 	managed_yield = ZVal::IsManagedType(yield_type);
+	}
+
+VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : VectorVal(t)
+	{
+	if ( vals )
+		vector_val = std::move(*vals);
 	}
 
 VectorVal::~VectorVal()
@@ -3510,7 +3509,7 @@ VectorVal::~VectorVal()
 		int n = yield_types->size();
 		for ( auto i = 0; i < n; ++i )
 			{
-			auto& elem = (*vector_val)[i];
+			auto& elem = vector_val[i];
 			if ( elem )
 				ZVal::DeleteIfManaged(*elem, (*yield_types)[i]);
 			}
@@ -3519,17 +3518,15 @@ VectorVal::~VectorVal()
 
 	else if ( managed_yield )
 		{
-		for ( auto& elem : *vector_val )
+		for ( auto& elem : vector_val )
 			if ( elem )
 				ZVal::DeleteManagedType(*elem);
 		}
-
-	delete vector_val;
 	}
 
 ValPtr VectorVal::SizeVal() const
 	{
-	return val_mgr->Count(uint32_t(vector_val->size()));
+	return val_mgr->Count(uint32_t(vector_val.size()));
 	}
 
 bool VectorVal::CheckElementType(const ValPtr& element)
@@ -3544,7 +3541,7 @@ bool VectorVal::CheckElementType(const ValPtr& element)
 
 	if ( any_yield )
 		{
-		int n = vector_val->size();
+		int n = vector_val.size();
 
 		if ( n == 0 )
 			{
@@ -3578,14 +3575,14 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 	if ( ! CheckElementType(element) )
 		return false;
 
-	unsigned int n = vector_val->size();
+	unsigned int n = vector_val.size();
 
 	if ( index >= n )
 		{
 		if ( index > n )
 			AddHoles(index - n);
 
-		vector_val->resize(index + 1);
+		vector_val.resize(index + 1);
 		if ( yield_types )
 			yield_types->resize(index + 1);
 		}
@@ -3594,14 +3591,14 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 		{
 		const auto& t = element->GetType();
 		(*yield_types)[index] = t;
-		auto& elem = (*vector_val)[index];
+		auto& elem = vector_val[index];
 		if ( elem )
 			ZVal::DeleteIfManaged(*elem, t);
 		elem = ZVal(std::move(element), t);
 		}
 	else
 		{
-		auto& elem = (*vector_val)[index];
+		auto& elem = vector_val[index];
 		if ( managed_yield && elem )
 			ZVal::DeleteManagedType(*elem);
 
@@ -3634,17 +3631,17 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	vector<std::optional<ZVal>>::iterator it;
 	vector<TypePtr>::iterator types_it;
 
-	auto n = vector_val->size();
+	auto n = vector_val.size();
 
 	if ( index < n )
 		{ // Find location within existing vector elements.
-		it = std::next(vector_val->begin(), index);
+		it = std::next(vector_val.begin(), index);
 		if ( yield_types )
 			types_it = std::next(yield_types->begin(), index);
 		}
 	else
 		{
-		it = vector_val->end();
+		it = vector_val.end();
 		if ( yield_types )
 			types_it = yield_types->end();
 
@@ -3658,13 +3655,13 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 			{
 			const auto& t = element->GetType();
 			yield_types->insert(types_it, t);
-			vector_val->insert(it, ZVal(std::move(element), t));
+			vector_val.insert(it, ZVal(std::move(element), t));
 			}
 		else
-			vector_val->insert(it, ZVal(std::move(element), yield_type));
+			vector_val.insert(it, ZVal(std::move(element), yield_type));
 		}
 	else
-		vector_val->insert(it, std::nullopt);
+		vector_val.insert(it, std::nullopt);
 
 	Modified();
 	return true;
@@ -3677,15 +3674,15 @@ void VectorVal::AddHoles(int nholes)
 		fill_t = base_type(TYPE_ANY);
 
 	for ( auto i = 0; i < nholes; ++i )
-		vector_val->emplace_back(std::nullopt);
+		vector_val.emplace_back(std::nullopt);
 	}
 
 bool VectorVal::Remove(unsigned int index)
 	{
-	if ( index >= vector_val->size() )
+	if ( index >= vector_val.size() )
 		return false;
 
-	auto it = std::next(vector_val->begin(), index);
+	auto it = std::next(vector_val.begin(), index);
 
 	if ( yield_types )
 		{
@@ -3701,7 +3698,7 @@ bool VectorVal::Remove(unsigned int index)
 			ZVal::DeleteManagedType(**it);
 		}
 
-	vector_val->erase(it);
+	vector_val.erase(it);
 
 	Modified();
 	return true;
@@ -3734,10 +3731,10 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 
 ValPtr VectorVal::At(unsigned int index) const
 	{
-	if ( index >= vector_val->size() )
+	if ( index >= vector_val.size() )
 		return Val::nil;
 
-	auto& elem = (*vector_val)[index];
+	auto& elem = vector_val[index];
 	if ( ! elem )
 		return Val::nil;
 
@@ -3854,7 +3851,7 @@ void VectorVal::Sort(Func* cmp_func)
 			}
 		}
 
-	sort(vector_val->begin(), vector_val->end(), sort_func);
+	sort(vector_val.begin(), vector_val.end(), sort_func);
 	}
 
 VectorValPtr VectorVal::Order(Func* cmp_func)
@@ -3899,7 +3896,7 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map.emplace_back(&(*vector_val)[i]);
+		index_map.emplace_back(&vector_val[i]);
 		}
 
 	sort(ind_vv.begin(), ind_vv.end(), sort_func);
@@ -3924,14 +3921,14 @@ bool VectorVal::Concretize(const TypePtr& t)
 		// shouldn't happen in any case.
 		return yield_type->Tag() == t->Tag();
 
-	if ( ! vector_val )
+	if ( vector_val.empty() )
 		// Trivially concretized.
 		return true;
 
-	auto n = vector_val->size();
+	auto n = vector_val.size();
 	for ( auto i = 0U; i < n; ++i )
 		{
-		auto& v = (*vector_val)[i];
+		auto& v = vector_val[i];
 		if ( ! v )
 			// Vector hole does not require concretization.
 			continue;
@@ -3964,7 +3961,7 @@ bool VectorVal::Concretize(const TypePtr& t)
 
 unsigned int VectorVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const
 	{
-	auto n = vector_val->size();
+	auto n = vector_val.size();
 	unsigned int fp = n;
 
 	for ( auto i = 0U; i < n; ++i )
@@ -3979,9 +3976,9 @@ unsigned int VectorVal::ComputeFootprint(std::unordered_set<const Val*>* analyze
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	{
-	unsigned int oldsize = vector_val->size();
-	vector_val->reserve(new_num_elements);
-	vector_val->resize(new_num_elements);
+	unsigned int oldsize = vector_val.size();
+	vector_val.reserve(new_num_elements);
+	vector_val.resize(new_num_elements);
 
 	if ( yield_types )
 		{
@@ -3994,7 +3991,7 @@ unsigned int VectorVal::Resize(unsigned int new_num_elements)
 
 unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 	{
-	unsigned int old_size = vector_val->size();
+	unsigned int old_size = vector_val.size();
 	if ( new_num_elements <= old_size )
 		return old_size;
 
@@ -4003,7 +4000,7 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 void VectorVal::Reserve(unsigned int num_elements)
 	{
-	vector_val->reserve(num_elements);
+	vector_val.reserve(num_elements);
 
 	if ( yield_types )
 		yield_types->reserve(num_elements);
@@ -4012,10 +4009,10 @@ void VectorVal::Reserve(unsigned int num_elements)
 ValPtr VectorVal::DoClone(CloneState* state)
 	{
 	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
-	vv->Reserve(vector_val->size());
+	vv->Reserve(vector_val.size());
 	state->NewClone(this, vv);
 
-	int n = vector_val->size();
+	int n = vector_val.size();
 
 	for ( auto i = 0; i < n; ++i )
 		{
@@ -4030,7 +4027,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("[");
 
-	size_t vector_size = vector_val->size();
+	size_t vector_size = vector_val.size();
 
 	if ( vector_size != 0 )
 		{

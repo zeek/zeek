@@ -1,3 +1,26 @@
+6.1.0-dev.447 | 2023-09-26 11:07:12 +0200
+
+  * VectorVal: Embed vector_val (Arne Welzel, Corelight)
+
+    Similar motivation as for RecordVal, save an extra malloc/free
+    and pointer indirection.
+
+    This breaks the `auto& RawVec()` API which previously returned
+    a reference to the std::vector*. It now returns a reference
+    to the vector instead. It's commented as intended for internal
+    and compiled code, so even though it's public API,
+
+    The previous `std::vector<std::optional<ZVal>>*&` return type was also very
+    likely not intended (all consumers just dereference it anyhow). I'm certain
+    this API was never meant to modify the actual pointer value.
+
+    I've switched to explicit typing, too.
+
+  * RecordVal: Embed record_val (Arne Welzel, Corelight)
+
+    This should remove one malloc/free per created and destroyed record instance
+    and avoid one extra pointer indirection to access fields.
+
 6.1.0-dev.444 | 2023-09-25 14:59:19 +0200
 
   * Do not require cookie for `reject_protocol` during teardown. (Benjamin Bannier, Corelight)

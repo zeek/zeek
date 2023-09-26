@@ -17,6 +17,11 @@ Breaking Changes
   should only cause breakage for people using a version of ``zkg` that doesn't
   come bundled with Zeek (which we generally don't recommend doing).
 
+- Zeek does not traverse into dot directories to find plugins or hlto files anymore.
+  Any dot directories found below the directories specified in ZEEK_PLUGIN_PATH or
+  ZEEK_SPICY_MODULE_PATH are now skipped. Dot directories explicitly listed in
+  ZEEK_PLUGIN_PATH or ZEEK_SPICY_MODULE_PATH are not skipped.
+
 New Functionality
 -----------------
 

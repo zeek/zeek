@@ -253,6 +253,7 @@ bool Expr::IsFieldAssignable(const Expr* e) const
 		case EXPR_SUB:
 		case EXPR_TIMES:
 		case EXPR_DIVIDE:
+		case EXPR_MASK:
 		case EXPR_MOD:
 		case EXPR_AND:
 		case EXPR_OR:
@@ -1091,18 +1092,22 @@ ExprPtr DivideExpr::Duplicate()
 
 bool DivideExpr::WillTransform(Reducer* c) const
 	{
-	return GetType()->Tag() != TYPE_SUBNET && op2->IsOne();
+	return op2->IsOne();
 	}
 
 ExprPtr DivideExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	{
-	if ( GetType()->Tag() != TYPE_SUBNET )
-		{
-		if ( op2->IsOne() )
-			return op1->ReduceToSingleton(c, red_stmt);
-		}
+	if ( op2->IsOne() )
+		return op1->ReduceToSingleton(c, red_stmt);
 
 	return BinaryExpr::Reduce(c, red_stmt);
+	}
+
+ExprPtr MaskExpr::Duplicate()
+	{
+	auto op1_d = op1->Duplicate();
+	auto op2_d = op2->Duplicate();
+	return SetSucc(new MaskExpr(op1_d, op2_d));
 	}
 
 ExprPtr ModExpr::Duplicate()

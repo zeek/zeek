@@ -490,7 +490,16 @@ eval-pre	if ( $2 == 0 )
 			break;
 			}
 eval $1 / $2
-#
+
+binary-expr-op Mask
+op-type I
+vector
+### Note that this first "eval" is a dummy - we'll never generate code
+### that uses it because "Mask" expressions don't have LHS operands of
+### type "int". We could omit this if we modified Gen-ZAM to understand
+### that an op-type of 'X' for a binary-expr-op means "skip the usual case
+### of two operands of the same type".
+eval $1 / $2
 eval-mixed A I	auto mask = static_cast<uint32_t>($2);
 		auto a = $1->AsAddr();
 		if ( a.GetFamily() == IPv4 && mask > 32 )

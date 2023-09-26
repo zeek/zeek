@@ -52,6 +52,7 @@ enum ExprTag : int
 	EXPR_REMOVE_FROM,
 	EXPR_TIMES,
 	EXPR_DIVIDE,
+	EXPR_MASK,
 	EXPR_MOD,
 	EXPR_AND,
 	EXPR_OR,
@@ -819,6 +820,15 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	};
+
+class MaskExpr final : public BinaryExpr
+	{
+public:
+	MaskExpr(ExprPtr op1, ExprPtr op2);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr AddrFold(Val* v1, Val* v2) const override;

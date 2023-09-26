@@ -80,6 +80,7 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level)
 		case EXPR_TIMES:
 			return GenBinary(e, gt, "*", "mul");
 		case EXPR_DIVIDE:
+		case EXPR_MASK: // later code will split into addr masking
 			return GenBinary(e, gt, "/", "div");
 		case EXPR_MOD:
 			return GenBinary(e, gt, "%", "mod");
@@ -1060,7 +1061,7 @@ string CPPCompile::GenBinaryAddr(const Expr* e, GenType gt, const char* op)
 	{
 	auto v1 = GenExpr(e->GetOp1(), GEN_DONT_CARE) + "->AsAddr()";
 
-	if ( e->Tag() == EXPR_DIVIDE )
+	if ( e->Tag() == EXPR_MASK )
 		{
 		auto gen = string("addr_mask__CPP(") + v1 + ", " + GenExpr(e->GetOp2(), GEN_NATIVE) + ")";
 

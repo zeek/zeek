@@ -48,6 +48,7 @@ const char* expr_name(ExprTag t)
 		"-=",
 		"*",
 		"/",
+		"/", // mask operator
 		"%",
 		"&",
 		"|",
@@ -1918,14 +1919,27 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 
-	else if ( bt1 == TYPE_ADDR && ! is_vector(op2) && (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
-		SetType(base_type(TYPE_SUBNET));
-
 	else
 		ExprError("requires arithmetic operands");
 	}
 
-ValPtr DivideExpr::AddrFold(Val* v1, Val* v2) const
+MaskExpr::MaskExpr(ExprPtr arg_op1, ExprPtr arg_op2)
+	: BinaryExpr(EXPR_MASK, std::move(arg_op1), std::move(arg_op2))
+	{
+	if ( IsError() )
+		return;
+
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
+
+	if ( bt1 == TYPE_ADDR && ! is_vector(op2) && (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
+		SetType(base_type(TYPE_SUBNET));
+	else
+		ExprError("requires address LHS and count/int RHS");
+	}
+
+ValPtr MaskExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	uint32_t mask;
 

@@ -633,7 +633,10 @@ expr:
 	|	expr '/' expr
 			{
 			set_location(@1, @3);
-			$$ = new DivideExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			if ( $1->GetType()->Tag() == TYPE_ADDR )
+				$$ = new MaskExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			else
+				$$ = new DivideExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '%' expr

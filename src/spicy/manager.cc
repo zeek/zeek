@@ -842,6 +842,16 @@ void Manager::searchModules(const std::string& paths) {
         auto it = hilti::rt::filesystem::recursive_directory_iterator(trimmed_dir, ec);
         if ( ! ec ) {
             while ( it != hilti::rt::filesystem::recursive_directory_iterator() ) {
+                // Reject loading of modules in dot directories.
+                if ( it->is_directory() ) {
+                    // Check the name of the subdirectory (the last path fragment), and do not recurse into it if it
+                    // starts with a dot.
+                    //
+                    // NOTE: `.` and `..` are already removed by `recursive_directory_iterator`.
+                    if ( const auto& p = it->path().filename().string(); p.empty() || p[0] == '.' )
+                        it.disable_recursion_pending();
+                }
+
                 if ( it->is_regular_file() && it->path().extension() == ".hlto" )
                     loadModule(it->path());
 

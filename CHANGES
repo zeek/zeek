@@ -1,3 +1,22 @@
+6.1.0-dev.451 | 2023-09-26 16:14:24 +0200
+
+  * Use unique port for test `scripts.base.utils.active-http` (Benjamin Bannier, Corelight)
+
+  * Do not automatically load Spicy modules in dot paths. (Benjamin Bannier, Corelight)
+
+  * Exclude dot directories when searching ZEEK_PLUGIN_PATH (Benjamin Bannier, Corelight)
+
+    Dot directories rarely contain anything we would want to load as a
+    dynamic plugin. Even worse, they likely contain files with externally
+    controlled lifetimes which might be removed while we are using them
+    (see e.g., zeek/btest#98).
+
+    With this patch we do not search _discovered_ dot directories anymore.
+    We continue to load from a user-specified `ZEEK_PLUGIN_PATH`, even if
+    its name starts with a dot.
+
+    Since this patch changes previous behavior it is a **BREAKING CHANGE**.
+
 6.1.0-dev.447 | 2023-09-26 11:07:12 +0200
 
   * VectorVal: Embed vector_val (Arne Welzel, Corelight)

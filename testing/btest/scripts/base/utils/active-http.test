@@ -1,7 +1,8 @@
 # @TEST-REQUIRES: which python3
 # @TEST-REQUIRES: which curl
 #
-# @TEST-EXEC: btest-bg-run httpd python3 $SCRIPTS/httpd.py --max 2 --addr=127.0.0.1
+# @TEST-PORT: MYPORT
+# @TEST-EXEC: btest-bg-run httpd python3 $SCRIPTS/httpd.py --max 2 --addr=127.0.0.1 --port=$(echo $MYPORT | cut -d'/' -f1)
 # @TEST-EXEC: sleep 3
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 15
@@ -11,6 +12,8 @@
 @load base/utils/active-http
 redef exit_only_after_terminate = T;
 
+global PORT: string = split_string1(getenv("MYPORT"), /\//)[0];
+global REMOTE: string = cat("127.0.0.1:", PORT);
 global c: count = 0;
 
 function check_exit_condition()
@@ -37,7 +40,7 @@ function test_request(label: string, req: ActiveHTTP::Request)
 
 event zeek_init()
 	{
-	test_request("test1", [$url="127.0.0.1:32123"]);
-	test_request("test2", [$url="127.0.0.1:32123/empty", $method="POST"]);
-	test_request("test3", [$url="127.0.0.1:32123", $method="POST 123"]); # will be rejected and not execute request
+	test_request("test1", [ $url=REMOTE ]);
+	test_request("test2", [ $url=cat(REMOTE, "/empty"), $method="POST" ]);
+	test_request("test3", [ $url=REMOTE, $method="POST 123" ]); # will be rejected and not execute request
 	}

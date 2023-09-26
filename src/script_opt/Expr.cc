@@ -196,7 +196,7 @@ bool Expr::IsReducedConditional(Reducer* c) const
 			if ( op1->Tag() != EXPR_NAME && op1->Tag() != EXPR_LIST )
 				return NonReduced(this);
 
-			if ( op2->GetType()->Tag() != TYPE_TABLE || ! op2->IsReduced(c) )
+			if ( op2->GetType()->Tag() != TYPE_TABLE || ! op2->IsSingleton(c) )
 				return NonReduced(this);
 
 			if ( op1->Tag() == EXPR_LIST )
@@ -889,13 +889,13 @@ bool AddToExpr::IsReduced(Reducer* c) const
 	auto tag = t->Tag();
 
 	if ( tag == TYPE_PATTERN )
-		return op1->HasReducedOps(c) && op2->IsReduced(c);
+		return op1->HasReducedOps(c) && op2->IsSingleton(c);
 
 	if ( tag == TYPE_TABLE )
-		return op1->IsReduced(c) && op2->IsReduced(c);
+		return op1->IsReduced(c) && op2->IsSingleton(c);
 
 	if ( tag == TYPE_VECTOR && IsVector(op2->GetType()->Tag()) && same_type(t, op2->GetType()) )
-		return op1->IsReduced(c) && op2->IsReduced(c);
+		return op1->IsReduced(c) && op2->IsSingleton(c);
 
 	return NonReduced(this);
 	}
@@ -919,7 +919,7 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 				op1 = op1->Reduce(c, red_stmt1);
 
 			auto& t = op1->GetType();
-			op2 = op2->Reduce(c, red_stmt2);
+			op2 = op2->ReduceToSingleton(c, red_stmt2);
 
 			red_stmt = MergeStmts(red_stmt1, red_stmt2);
 
@@ -1015,7 +1015,7 @@ ExprPtr RemoveFromExpr::Duplicate()
 bool RemoveFromExpr::IsReduced(Reducer* c) const
 	{
 	if ( op1->GetType()->Tag() == TYPE_TABLE )
-		return op1->IsReduced(c) && op2->IsReduced(c);
+		return op1->IsReduced(c) && op2->IsSingleton(c);
 
 	return NonReduced(this);
 	}
@@ -1028,7 +1028,7 @@ ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 		StmtPtr red_stmt2;
 
 		op1 = op1->Reduce(c, red_stmt1);
-		op2 = op2->Reduce(c, red_stmt2);
+		op2 = op2->ReduceToSingleton(c, red_stmt2);
 
 		red_stmt = MergeStmts(red_stmt1, red_stmt2);
 

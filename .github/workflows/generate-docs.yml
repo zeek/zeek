@@ -82,7 +82,7 @@ jobs:
         run: date -Iseconds
 
       - name: Show cache timestamps
-        run: stat /home/runner/work/zeek/zeek/.ccache/0/0*
+        run: stat /home/runner/work/zeek/zeek/.ccache/0/0/*
 
       - name: Configure
         run: ./configure --disable-broker-tests --disable-cpp-tests --ccache

@@ -78,6 +78,12 @@ jobs:
         with:
           key: 'docs-gen-${{ github.job }}'
 
+      - name: Show cache timestamps
+        run: date -Iseconds
+
+      - name: Show cache timestamps
+        run: stat /home/runner/work/zeek/zeek/.ccache/0/0*
+
       - name: Configure
         run: ./configure --disable-broker-tests --disable-cpp-tests --ccache
 

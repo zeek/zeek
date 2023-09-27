@@ -1812,8 +1812,9 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt)
 	if ( op2->WillTransform(c) )
 		{
 		StmtPtr xform_stmt;
+		StmtPtr lhs_stmt = lhs_ref->ReduceToLHS(c);
 		op2 = op2->ReduceToSingleton(c, xform_stmt);
-		red_stmt = MergeStmts(rhs_reduce, xform_stmt);
+		red_stmt = MergeStmts(lhs_stmt, rhs_reduce, xform_stmt);
 		return ThisPtr();
 		}
 

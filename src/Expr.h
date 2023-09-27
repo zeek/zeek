@@ -304,11 +304,11 @@ public:
 	// True if this expression can be the RHS for a field assignment.
 	bool IsFieldAssignable(const Expr* e) const;
 
-	// True if the expression will transform to one of another type
-	// upon reduction, for non-constant operands.  "Transform" means
-	// something beyond assignment to a temporary.  Necessary so that
-	// we know to fully reduce such expressions if they're the RHS
-	// of an assignment.
+	// True if the expression will transform to one of another AST node
+	// (perhaps of the same type) upon reduction, for non-constant
+	// operands.  "Transform" means something beyond assignment to a
+	// temporary.  Necessary so that we know to fully reduce such
+	// expressions if they're the RHS of an assignment.
 	virtual bool WillTransform(Reducer* c) const { return false; }
 
 	// The same, but for the expression when used in a conditional context.

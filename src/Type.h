@@ -744,6 +744,11 @@ public:
 	// initialization can not be deferred, otherwise possible.
 	bool IsDeferrable() const;
 
+	// Whether values of this record type are equivalent upon initial
+	// creation, or might differ (e.g. due to function calls or changes
+	// to global state) - used for script optimization.
+	bool IdempotentCreation() const { return creation_inits.empty(); }
+
 	static void InitPostScript();
 
 private:

@@ -1,3 +1,19 @@
+6.1.0-dev.458 | 2023-09-27 16:53:02 +0200
+
+  * cirrus/ci: Add ubuntu22_spicy_task and ubuntu22_spicy_head_task (Arne Welzel, Corelight)
+
+    These tasks are meant to run nightly on the master branch. Currently,
+    the external dns, http and dhcp Spicy analyzers are installed via zkg
+    post building. The build artifact is uploaded to Cirrus and the benchmarker
+    API triggered.
+
+    For the spicy_head task, the auxil/spicy submodule is pulled to the latest
+    commit. This also provides a bit of a nightly integration test.
+
+  * cirrus/ci: Add pre_build_script mechanism (Arne Welzel, Corelight)
+
+    Allow tasks to run a bit of code just before ci/build.sh.
+
 6.1.0-dev.455 | 2023-09-26 18:42:20 +0200
 
   * auxil/libunistd: Bump for poll() inclusion (Arne Welzel, Corelight)

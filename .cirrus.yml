@@ -74,6 +74,15 @@ skip_task_on_pr: &SKIP_TASK_ON_PR
   skip: >
     ($CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ '.*fullci.*')
 
+benchmark_only_if_template: &BENCHMARK_ONLY_IF_TEMPLATE
+  # only_if condition for cron-triggered benchmarking tests.
+  # These currently do not run for release/.*
+  only_if: >
+    ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+    ( $CIRRUS_CRON == 'benchmark-nightly' ||
+      $CIRRUS_PR_LABELS =~ '.*fullci.*' ||
+      $CIRRUS_PR_LABELS =~ '.*benchmark.*' )
+
 ci_template: &CI_TEMPLATE
   << : *BUILDS_ONLY_IF_TEMPLATE
 
@@ -97,6 +106,7 @@ ci_template: &CI_TEMPLATE
 
   init_external_repos_script: ./ci/init-external-repos.sh
 
+  pre_build_script: ./ci/pre-build.sh
   build_script: ./ci/build.sh
   test_script: ./ci/test.sh
 
@@ -286,6 +296,37 @@ ubuntu22_task:
   upload_binary_artifacts:
     path: build.tgz
   benchmark_script: ./ci/benchmark.sh
+
+ubuntu22_spicy_task:
+  container:
+    # Ubuntu 22.04 EOL: April 2027
+    dockerfile: ci/ubuntu-22.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_CREATE_ARTIFACT: 1
+  test_script: true  # Don't run tests, these are redundant.
+  spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
+  upload_binary_artifacts:
+    path: build.tgz
+  benchmark_script: ./ci/benchmark.sh
+  << : *BENCHMARK_ONLY_IF_TEMPLATE
+
+ubuntu22_spicy_head_task:
+  container:
+    # Ubuntu 22.04 EOL: April 2027
+    dockerfile: ci/ubuntu-22.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_CREATE_ARTIFACT: 1
+    # Pull auxil/spicy to the latest head version. May or may not build.
+    ZEEK_CI_PREBUILD_COMMAND: 'cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive'
+  spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
+  upload_binary_artifacts:
+    path: build.tgz
+  benchmark_script: ./ci/benchmark.sh
+  << : *BENCHMARK_ONLY_IF_TEMPLATE
 
 ubuntu20_task:
   container:

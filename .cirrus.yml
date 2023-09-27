@@ -82,6 +82,7 @@ benchmark_only_if_template: &BENCHMARK_ONLY_IF_TEMPLATE
     ( $CIRRUS_CRON == 'benchmark-nightly' ||
       $CIRRUS_PR_LABELS =~ '.*fullci.*' ||
       $CIRRUS_PR_LABELS =~ '.*benchmark.*' )
+  skip: true
 
 ci_template: &CI_TEMPLATE
   << : *BUILDS_ONLY_IF_TEMPLATE

@@ -26,8 +26,7 @@
 namespace zeek::detail
 	{
 
-static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs,
-                          const ExprPtr& init)
+static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs)
 	{
 	if ( ! IsFunc(id->GetType()->Tag()) )
 		return false;
@@ -50,12 +49,6 @@ static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs,
 	if ( canon_ft->Flavor() == FUNC_FLAVOR_FUNCTION )
 		{
 		alt_ft->Error("redeclaration of function", canon_ft);
-		return false;
-		}
-
-	if ( init )
-		{
-		init->Error("initialization not allowed during event/hook alternate prototype declaration");
 		return false;
 		}
 
@@ -221,8 +214,8 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			if ( IsFunc(id->GetType()->Tag()) )
-				add_prototype(id, t.get(), attr.get(), init);
+			if ( IsFunc(id->GetType()->Tag()) && ! init )
+				add_prototype(id, t.get(), attr.get());
 			else
 				id->Error("already defined", init.get());
 

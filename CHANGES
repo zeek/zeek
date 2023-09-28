@@ -1,3 +1,7 @@
+6.1.0-dev.462 | 2023-09-28 20:29:36 +0200
+
+  * cirrus/ci: Run ubuntu22_task on benchmark-nightly, too (Arne Welzel, Corelight)
+
 6.1.0-dev.460 | 2023-09-28 10:00:55 +0200
 
   * Fix GCC warnings about unintended pointer comparisions (Benjamin Bannier, Corelight)

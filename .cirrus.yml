@@ -296,6 +296,13 @@ ubuntu22_task:
   upload_binary_artifacts:
     path: build.tgz
   benchmark_script: ./ci/benchmark.sh
+  # Run on PRs, merges to master and release/.* and benchmark-nightly cron.
+  only_if: >
+    ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
+    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+        $CIRRUS_BRANCH == 'master' ||
+        $CIRRUS_BRANCH =~ 'release/.*' ||
+        $CIRRUS_CRON == 'benchmark-nightly' )
 
 ubuntu22_spicy_task:
   container:

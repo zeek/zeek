@@ -11,6 +11,7 @@
 #include <optional>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
 
@@ -882,7 +883,7 @@ inline ValPtr to_val(const T& t, TypePtr target) {
 
     auto num_fields = rtype->NumFields();
 
-    t.__visit([&](const auto& name, const auto& val) {
+    t.__visit([&](std::string_view name, const auto& val) {
         if ( idx >= num_fields )
             throw TypeMismatch(hilti::rt::fmt("no matching record field for field '%s'", name));
 

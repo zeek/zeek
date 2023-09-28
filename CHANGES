@@ -1,3 +1,7 @@
+6.1.0-dev.460 | 2023-09-28 10:00:55 +0200
+
+  * Fix GCC warnings about unintended pointer comparisions (Benjamin Bannier, Corelight)
+
 6.1.0-dev.458 | 2023-09-27 16:53:02 +0200
 
   * cirrus/ci: Add ubuntu22_spicy_task and ubuntu22_spicy_head_task (Arne Welzel, Corelight)

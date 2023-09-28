@@ -1338,9 +1338,15 @@ void Manager::ProcessStoreEvent(broker::data msg)
 		auto key = erase.key();
 		DBG_LOG(DBG_BROKER, "Store %s: Erase key %s", erase.store_id().c_str(),
 		        to_string(key).c_str());
+
 		const auto& its = table->GetType()->AsTableType()->GetIndexTypes();
-		assert(its.size() == 1);
-		auto zeek_key = detail::data_to_val(key, its[0].get());
+		ValPtr zeek_key;
+		if ( its.size() == 1 )
+			zeek_key = detail::data_to_val(key, its[0].get());
+		else
+			zeek_key = detail::data_to_val(key,
+			                               table->GetType()->AsTableType()->GetIndices().get());
+
 		if ( ! zeek_key )
 			{
 			reporter->Error("ProcessStoreEvent: could not convert key \"%s\" for store \"%s\" "

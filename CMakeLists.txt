@@ -525,7 +525,16 @@ file(
     "setenv HILTI_CXX_INCLUDE_DIRS \"`${cmake_binary_dir}/hilti-cxx-include-dirs`\"\n"
     "setenv ZEEK_SPICY_LIBRARY_PATH \"${cmake_source_dir}/scripts/spicy\"\n")
 
+if (CMAKE_CXX_COMPILER_LAUNCHER)
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
+         "export HILTI_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}\n")
+
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
+         "setenv HILTI_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}\n")
+endif ()
+
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
+
 execute_process(
     COMMAND grep "^constexpr int PLUGIN_API_VERSION"
     INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h

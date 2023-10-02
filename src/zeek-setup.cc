@@ -820,12 +820,15 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		// when we actually end up reading interactively from stdin.
 		set_signal_mask(false);
 		run_state::is_parsing = true;
-		yyparse();
+		int yyparse_result = yyparse();
 		run_state::is_parsing = false;
 		set_signal_mask(true);
 
 		RecordVal::DoneParsing();
 		TableVal::DoneParsing();
+
+		if ( yyparse_result != 0 || zeek::reporter->Errors() > 0 )
+			exit(1);
 
 		init_general_global_var();
 		init_net_var();

@@ -1,3 +1,15 @@
+6.1.0-dev.484 | 2023-10-02 11:44:21 -0700
+
+  * zeek-setup: Early exit when parsing failed (Arne Welzel, Corelight)
+
+    When there are errors reported during yyparse(), Zeek still continued
+    running initialization functions like init_general_global_var(), init_net_var()
+    and run_bif_initializers(). These usually call abort() in unexpected
+    situations causing misleading and confusing errors. This patch prevents
+    this by exiting earlier.
+
+    Closes #3316
+
 6.1.0-dev.482 | 2023-10-02 11:42:58 -0700
 
   * broker/Manager: Fix deletion of composite keys (Arne Welzel, Corelight)

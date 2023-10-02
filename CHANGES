@@ -1,3 +1,14 @@
+6.1.0-dev.468 | 2023-10-02 10:10:22 -0700
+
+  * Enable ccache-backed Spicy JIT for users of developer scripts. (Benjamin Bannier, Corelight)
+
+    For CI and more general BTest execution we already enabled ccache
+    previously, but developers using a Spicy build out of the build
+    directory still needed to manually set up caching.
+
+    With this patch we enable it for such cases as well via
+    `zeek-path-dev.*sh`.
+
 6.1.0-dev.466 | 2023-10-02 10:08:38 -0700
 
   * DNS_Mgr: Fix | vs & for pollfd.revents (Arne Welzel, Corelight)

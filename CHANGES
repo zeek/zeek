@@ -1,3 +1,7 @@
+6.1.0-dev.464 | 2023-10-02 14:38:18 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 6.1.0-dev.462 | 2023-09-28 20:29:36 +0200
 
   * cirrus/ci: Run ubuntu22_task on benchmark-nightly, too (Arne Welzel, Corelight)

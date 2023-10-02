@@ -1,3 +1,12 @@
+6.1.0-dev.470 | 2023-10-02 10:13:04 -0700
+
+  * generate-docs: Bump ccache from 500M to 2000M (Arne Welzel, Corelight)
+
+    Since enabling Spicy, 500M (default) of ccache max-size size is not
+    sufficient for efficient cache usage of a Zeek build anymore, so we
+    end up thrashing the configured ccache. Build times have increased
+    from 5-10 minutes to 1+ hour after enabling Spicy in the docs build.
+
 6.1.0-dev.468 | 2023-10-02 10:10:22 -0700
 
   * Enable ccache-backed Spicy JIT for users of developer scripts. (Benjamin Bannier, Corelight)

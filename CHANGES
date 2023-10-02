@@ -1,3 +1,11 @@
+6.1.0-dev.482 | 2023-10-02 11:42:58 -0700
+
+  * broker/Manager: Fix deletion of composite keys (Arne Welzel, Corelight)
+
+    Follow-up for commit 44ae8f9e8f25ff403707026657e000693550873f.
+
+  * Add btest for brokerstore delete with complex index. (Jan Grashoefer, Corelight)
+
 6.1.0-dev.479 | 2023-10-02 11:09:13 -0700
 
   * minor updates to -O gen-C++ maintenance notes and scripts (Vern Paxson, Corelight)

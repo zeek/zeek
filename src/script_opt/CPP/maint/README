@@ -30,18 +30,20 @@ The maintenance workflow:
     compiler that you'll want to subsequent run against the test suite,
     per the following.
 
-2.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
+2.  "mkdir CPP-test" - a directory for holding results relating to C++ testing
+
+3.  Run "find-test-files.sh" to generate a list (to stdout) of all of the
     possible Zeek source files found in the test suite.
 
-3.  For each such Zeek file, run "check-zeek.sh" to see whether Zeek can
+4.  For each such Zeek file, run "check-zeek.sh" to see whether Zeek can
     parse it.  This helps remove from further consideration difficult
     tests (like those that have embedded input files, or multiple separate
-    scripts).
+    scripts).  Each run writes a report into CPP-test/cz.* file.
 
-4.  "mkdir CPP-test" - a directory for holding results relating to C++ testing
+    This step is parallelizable, say using xargs -P 10 -n 1.
 
 5.  Run "check-CPP-gen.sh" for each Zeek file that passed "check-zeek.sh".
-    This will generate a corresponding file in CPP-test/out* indicating whether
+    This will generate a corresponding file in CPP-test/out.* indicating whether
     "-O gen-C++" can successfully run on the input.  Presently, it should
     be able to do so for all of them except a few that have conditional code,
     which I've left active (no @TEST-REQUIRES to prune) given hopes of

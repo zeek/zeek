@@ -1,3 +1,21 @@
+6.1.0-dev.479 | 2023-10-02 11:09:13 -0700
+
+  * minor updates to -O gen-C++ maintenance notes and scripts (Vern Paxson, Corelight)
+
+  * ZAM fix for inlining bug when a local is assigned to a function parameter (Vern Paxson, Corelight)
+
+  * ZAM fixes for record creation and table indexing potentially having side-effects (Vern Paxson, Corelight)
+
+  * removed order-of-evaluation ambiguity from new BTest (Vern Paxson, Corelight)
+
+  * introduce internal "mask" expression node to avoid mixed-type overloading of "/" (Vern Paxson, Corelight)
+
+  * fix bug in failing to concretize empty vectors (Vern Paxson, Corelight)
+
+  * ZAM BTest update to match recent change to one of the tests (Vern Paxson, Corelight)
+
+  * fixed ZAM reduction bug in += / -= operators (Vern Paxson, Corelight)
+
 6.1.0-dev.470 | 2023-10-02 10:13:04 -0700
 
   * generate-docs: Bump ccache from 500M to 2000M (Arne Welzel, Corelight)

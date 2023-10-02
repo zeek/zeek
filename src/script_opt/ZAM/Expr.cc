@@ -736,6 +736,12 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c3);
 				}
 
+			// See the discussion in CSE_ValidityChecker::PreExpr
+			// regarding always needing to treat this as potentially
+			// modifying globals.
+			z.aux = new ZInstAux(0);
+			z.aux->can_change_non_locals = true;
+
 			return AddInst(z);
 			}
 		}
@@ -1184,6 +1190,9 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e)
 		}
 
 	z.t = e->GetType();
+
+	if ( ! rc->GetType<RecordType>()->IdempotentCreation() )
+		z.aux->can_change_non_locals = true;
 
 	return AddInst(z);
 	}

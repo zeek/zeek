@@ -52,6 +52,7 @@ enum ExprTag : int
 	EXPR_REMOVE_FROM,
 	EXPR_TIMES,
 	EXPR_DIVIDE,
+	EXPR_MASK,
 	EXPR_MOD,
 	EXPR_AND,
 	EXPR_OR,
@@ -303,11 +304,11 @@ public:
 	// True if this expression can be the RHS for a field assignment.
 	bool IsFieldAssignable(const Expr* e) const;
 
-	// True if the expression will transform to one of another type
-	// upon reduction, for non-constant operands.  "Transform" means
-	// something beyond assignment to a temporary.  Necessary so that
-	// we know to fully reduce such expressions if they're the RHS
-	// of an assignment.
+	// True if the expression will transform to one of another AST node
+	// (perhaps of the same type) upon reduction, for non-constant
+	// operands.  "Transform" means something beyond assignment to a
+	// temporary.  Necessary so that we know to fully reduce such
+	// expressions if they're the RHS of an assignment.
 	virtual bool WillTransform(Reducer* c) const { return false; }
 
 	// The same, but for the expression when used in a conditional context.
@@ -819,6 +820,15 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	};
+
+class MaskExpr final : public BinaryExpr
+	{
+public:
+	MaskExpr(ExprPtr op1, ExprPtr op2);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr AddrFold(Val* v1, Val* v2) const override;

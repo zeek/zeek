@@ -80,10 +80,18 @@ global tbl: table[R] of R;
 	{
 	print seq, "populating table, expecting 8 my_seq() invocations";
 
-	tbl[R()] = R();
-	tbl[R()] = R();
-	tbl[R()] = R();
-	tbl[R()] = R();
+	# The following structure is used to avoid order-of-evaluation
+	# ambiguity. If we use "tbl[R()] = R()" statements then script
+	# optimization might create different table indices/values than
+	# interpreted execution.
+	local v = R();
+	tbl[R()] = v;
+	v = R();
+	tbl[R()] = v;
+	v = R();
+	tbl[R()] = v;
+	v = R();
+	tbl[R()] = v;
 
 	print seq, "iterating table, expecting no my_seq() invocations";
 	for ( [r1], r2 in tbl )

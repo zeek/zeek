@@ -332,6 +332,10 @@ protected:
 	// renders the CSE unsafe.
 	const std::vector<const ID*>& ids;
 
+	// Whether the list of identifiers includes some that we should
+	// consider potentially altered by a function call.
+	bool sensitive_to_calls = false;
+
 	// Where in the AST to start our analysis.  This is the initial
 	// assignment expression.
 	const Expr* start_e;

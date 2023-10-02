@@ -7,4 +7,4 @@ SSH banner, [orig_h=192.150.186.169, orig_p=49244/tcp, resp_h=131.159.14.23, res
 confirm, AllAnalyzers::ANALYZER_ANALYZER_SPICY_SSH
 === violation
 violation, AllAnalyzers::ANALYZER_ANALYZER_SPICY_SSH, failed to match regular expression (<...>/ssh.spicy:7:15)
-violation, AllAnalyzers::ANALYZER_ANALYZER_SPICY_SSH, protocol rejected
+violation, AllAnalyzers::ANALYZER_ANALYZER_SPICY_SSH, kaputt

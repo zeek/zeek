@@ -1030,8 +1030,8 @@ void DNS_Mgr::Resolve()
 			{
 			for ( int i = 0; i < nfds; i++ )
 				{
-				int rdfd = pollfds[i].revents | POLLIN ? pollfds[i].fd : ARES_SOCKET_BAD;
-				int wrfd = pollfds[i].revents | POLLOUT ? pollfds[i].fd : ARES_SOCKET_BAD;
+				int rdfd = pollfds[i].revents & POLLIN ? pollfds[i].fd : ARES_SOCKET_BAD;
+				int wrfd = pollfds[i].revents & POLLOUT ? pollfds[i].fd : ARES_SOCKET_BAD;
 
 				if ( rdfd != ARES_SOCKET_BAD || wrfd != ARES_SOCKET_BAD )
 					ares_process_fd(channel, rdfd, wrfd);

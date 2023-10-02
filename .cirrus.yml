@@ -44,13 +44,6 @@ freebsd_environment: &FREEBSD_ENVIRONMENT
     ZEEK_CI_CPUS: 8
     ZEEK_CI_BTEST_JOBS: 8
 
-sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
-  cpu: 4
-  # Sanitizers uses a lot more memory than a typical config.
-  memory: 12GB
-  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-  greedy: true
-
 builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
   # Rules for skipping builds:
   # - Do not run builds for anything that's cron triggered
@@ -405,7 +398,7 @@ asan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    << : *SANITIZERS_RESOURCE_TEMPLATE
+    << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
@@ -420,7 +413,7 @@ ubsan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run undefined behavior checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    << : *SANITIZERS_RESOURCE_TEMPLATE
+    << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
@@ -436,7 +429,7 @@ ubsan_sanitizer_task:
 #   container:
 #     # Just uses a recent/common distro to run memory error/leak checks.
 #     dockerfile: ci/ubuntu-22.04/Dockerfile
-#     << : *SANITIZERS_RESOURCE_TEMPLATE
+#     << : *RESOURCES_TEMPLATE
 
 #   << : *CI_TEMPLATE
 #   << : *SKIP_TASK_ON_PR

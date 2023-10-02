@@ -1,3 +1,7 @@
+6.1.0-dev.486 | 2023-10-02 11:50:56 -0700
+
+  * get_current_packet: Add note/warning to docs (Arne Welzel, Corelight)
+
 6.1.0-dev.484 | 2023-10-02 11:44:21 -0700
 
   * zeek-setup: Early exit when parsing failed (Arne Welzel, Corelight)

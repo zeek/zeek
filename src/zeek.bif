@@ -3698,6 +3698,10 @@ const char* conn_id_string(zeek::Val* c)
 ## Returns: True on success.
 ##
 ## .. zeek:see:: dump_packet get_current_packet
+##
+## .. note::
+##
+##      See :zeek:see:`get_current_packet` for caveats.
 function dump_current_packet%(file_name: string%) : bool
 	%{
 	const Packet* pkt;
@@ -3729,6 +3733,23 @@ function dump_current_packet%(file_name: string%) : bool
 ##          containing the timestamp, ``snaplen``, and packet data.
 ##
 ## .. zeek:see:: dump_current_packet dump_packet
+##
+## .. note::
+##
+##      Calling ``get_current_packet()`` within events that are not directly
+##      raised as a result of processing a specific packet may result in
+##      unexpected behavior. For example, out-of-order TCP segments or IP
+##      defragmentation may result in such scenarios. Details depend on the
+##      involved packet and protocol analyzers. As a rule of thumb, in low-level
+##      events, like :zeek:see:`raw_packet`, the behavior is well defined.
+##
+##      The returned packet is directly taken from the packet source and any
+##      tunnel or encapsulation layers will be present in the payload. Correctly
+##      inspecting the payload using Zeek script is therefore a non-trivial task.
+##
+##      The return value of ``get_current_packet()`` further should be considered
+##      undefined when called within event handlers raised via :zeek:see:`event`,
+##      :zeek:see:`schedule` or by recipient of Broker messages.
 function get_current_packet%(%) : pcap_packet
 	%{
 	const Packet* p = nullptr;
@@ -3746,6 +3767,10 @@ function get_current_packet%(%) : pcap_packet
 ##          4 headers of the currently processed packet.
 ##
 ## .. zeek:see:: raw_pkt_hdr get_current_packet
+##
+## .. note::
+##
+##      See :zeek:see:`get_current_packet` for caveats.
 function get_current_packet_header%(%) : raw_pkt_hdr
 	%{
 	const Packet* p;

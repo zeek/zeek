@@ -445,6 +445,7 @@ if (NOT ZEEK_SCRIPT_INSTALL_PATH)
     # set the default Zeek script installation path (user did not specify one)
     set(ZEEK_SCRIPT_INSTALL_PATH ${ZEEK_ROOT_DIR}/share/zeek)
 endif ()
+set(ZEEK_SCRIPT_RELATIVE_PATH "$ORIGIN/../share/zeek")
 
 if (NOT ZEEK_MAN_INSTALL_PATH)
     # set the default Zeek man page installation path (user did not specify one)
@@ -1126,8 +1127,8 @@ endif ()
 set(ZEEK_HAVE_JAVASCRIPT ${ZEEK_HAVE_JAVASCRIPT} CACHE INTERNAL "Zeek has JavaScript support")
 
 set(DEFAULT_ZEEKPATH_PATHS
-    . ${ZEEK_SCRIPT_INSTALL_PATH} ${ZEEK_SCRIPT_INSTALL_PATH}/policy
-    ${ZEEK_SCRIPT_INSTALL_PATH}/site ${ZEEK_SCRIPT_INSTALL_PATH}/builtin-plugins)
+    . "\$ORIGIN/../lib/zeek" ${ZEEK_SCRIPT_RELATIVE_PATH} ${ZEEK_SCRIPT_RELATIVE_PATH}/policy
+    ${ZEEK_SCRIPT_RELATIVE_PATH}/site ${ZEEK_SCRIPT_RELATIVE_PATH}/builtin-plugins)
 if (MSVC)
     list(JOIN DEFAULT_ZEEKPATH_PATHS ";" DEFAULT_ZEEKPATH)
 else ()

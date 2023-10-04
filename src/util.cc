@@ -4,9 +4,12 @@
 
 #include "zeek/zeek-config.h"
 
+#include <system_error>
+
 #include "zeek/zeek-config-paths.h"
 
 #ifdef HAVE_DARWIN
+#include <mach-o/dyld.h>
 #include <mach/mach_init.h>
 #include <mach/task.h>
 #endif
@@ -40,10 +43,13 @@
 
 #include <algorithm>
 #include <array>
+#include <filesystem>
 #include <iostream>
 #include <random>
+#include <regex>
 #include <string>
 #include <vector>
+namespace fs = std::filesystem;
 
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/3rdparty/doctest.h"
@@ -63,14 +69,61 @@
 using namespace std;
 
 extern const char* proc_status_file;
+const std::regex origin_re("\\$ORIGIN");
 
 static bool can_read(const string& path)
 	{
 	return access(path.c_str(), R_OK) == 0;
 	}
 
+#if __linux__
+static fs::path current_executable()
+	{
+	return fs::absolute(fs::read_symlink("/proc/self/exe"));
+	}
+#elif __APPLE__
+static fs::path current_executable()
+	{
+	char buffer[PATH_MAX] = {0};
+	uint32_t sz = sizeof(buffer);
+	if ( _NSGetExecutablePath(buffer, &sz) )
+		{
+		throw new fs::filesystem_error("error calling _NSGetExecutablePath", std::error_code());
+		}
+	return fs::absolute(buffer);
+	}
+#elif __WIN32
+static fs::path current_executable()
+	{
+	char buffer[MAX_PATH] = {0};
+	auto nchar = GetModuleFileName(NULL, buffer, MAX_PATH);
+	if ( ! nchar || (nchar == MAX_PATH && (GetLastError() == ERROR_INSUFFICIENT_BUFFER) ||
+	                 buffer[MAX_PATH - 1]) )
+		{
+		throw new fs::filesystem_error("insufficient buffer for GetModuleFileName",
+		                               error_code(ERROR_INSUFFICIENT_BUFFER, std::system_category());
+		}
+	return fs::absolute(buffer);
+	}
+#endif
+
+static std::string from_origin(const std::string& relative_path)
+	{
+	auto self_exe = current_executable();
+	auto parent = self_exe.parent_path();
+	return fs::absolute(parent / fs::path(relative_path));
+	}
+
+static std::string replace_origin(const char* input)
+	{
+	std::string input_s(input);
+	input_s = std::regex_replace(input_s, origin_re, std::string(from_origin(".")));
+	return fs::path(input_s).lexically_normal();
+	}
+
 static string zeek_path_value;
 const string zeek_path_list_separator(path_list_separator.begin(), path_list_separator.end());
+const string relative_plugin_path = from_origin("../lib/zeek/plugins");
 
 namespace zeek::util
 	{
@@ -1779,16 +1832,14 @@ int int_list_cmp(const void* v1, const void* v2)
 		return 1;
 	}
 
+
 const std::string& zeek_path()
 	{
 	if ( zeek_path_value.empty() )
 		{
 		const char* path = getenv("ZEEKPATH");
 
-		if ( ! path )
-			path = DEFAULT_ZEEKPATH;
-
-		zeek_path_value = path;
+		zeek_path_value = path ? path : replace_origin(DEFAULT_ZEEKPATH);
 		}
 
 	return zeek_path_value;
@@ -1799,7 +1850,7 @@ const char* zeek_plugin_path()
 	const char* path = getenv("ZEEK_PLUGIN_PATH");
 
 	if ( ! path )
-		path = BRO_PLUGIN_INSTALL_PATH;
+		path = relative_plugin_path.c_str();
 
 	return path;
 	}

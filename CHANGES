@@ -1,3 +1,15 @@
+6.1.0-dev.490 | 2023-10-04 20:15:54 +0200
+
+  * Var/Func: Render function parameters using comma, not semicolon (Arne Welzel, Corelight)
+
+    A bit larger follow-up to what Tim pointed out: Function prototype descriptions
+    previously used semicolons to separate parameters.
+
+    Switch to use commas when a RecordType is used as function parameter.
+    Use existing "func_args" naming for consistency.
+
+  * GH-3314: Var: Fix null-pointer deref on redefinition of lambdas (Arne Welzel, Corelight)
+
 6.1.0-dev.486 | 2023-10-02 11:50:56 -0700
 
   * get_current_packet: Add note/warning to docs (Arne Welzel, Corelight)

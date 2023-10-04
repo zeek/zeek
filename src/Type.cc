@@ -835,7 +835,7 @@ void FuncType::DoDescribe(ODesc* d) const
 		{
 		d->Add(FlavorString());
 		d->Add("(");
-		args->DescribeFields(d);
+		args->DescribeFields(d, true);
 		d->Add(")");
 
 		if ( yield )
@@ -849,7 +849,7 @@ void FuncType::DoDescribe(ODesc* d) const
 		d->Add(int(Tag()));
 		d->Add(flavor);
 		d->Add(yield != nullptr);
-		args->DescribeFields(d);
+		args->DescribeFields(d, true);
 		if ( yield )
 			yield->Describe(d);
 		}
@@ -1477,7 +1477,7 @@ void RecordType::AddFieldsDirectly(const type_decl_list& others, bool add_log_at
 	num_fields = types->length();
 	}
 
-void RecordType::DescribeFields(ODesc* d) const
+void RecordType::DescribeFields(ODesc* d, bool func_args) const
 	{
 	if ( d->IsReadable() )
 		{
@@ -1501,7 +1501,13 @@ void RecordType::DescribeFields(ODesc* d) const
 				td->attrs->Describe(d);
 				}
 
-			d->Add(";");
+			if ( func_args )
+				{
+				if ( i + 1 < num_fields )
+					d->Add(",");
+				}
+			else
+				d->Add(";");
 			}
 		}
 

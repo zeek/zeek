@@ -95,6 +95,9 @@ Changed Functionality
 - Fix deferred initialization of nested records containing non-const &default
   attributes.
 
+- Parameter lists for functions, events and hooks now use commas instead of
+  semicolons in error messages or when printing such functions.
+
 Removed Functionality
 ---------------------
 

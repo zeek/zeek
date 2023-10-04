@@ -7,8 +7,8 @@
 #include <utility>
 
 #include "zeek/Span.h"
+#include "zeek/telemetry/Collect.h"
 
-#include "broker/telemetry/metric_family.hh"
 #include "opentelemetry/sdk/metrics/meter.h"
 
 namespace zeek::telemetry {
@@ -27,6 +27,8 @@ public:
     MetricFamily() = delete;
     MetricFamily(const MetricFamily&) noexcept = default;
     MetricFamily& operator=(const MetricFamily&) noexcept = default;
+
+    virtual ~MetricFamily() = default;
 
     /**
      * @return The prefix (namespace) this family belongs to. Builtin metrics
@@ -71,9 +73,48 @@ public:
      */
     bool IsSum() const noexcept { return is_sum; }
 
+    /**
+     * @return All counter and gauge metrics and their values matching prefix and name.
+     * @param prefix The prefix pattern to use for filtering. Supports globbing.
+     * @param name The name pattern to use for filtering. Supports globbing.
+     */
+    virtual std::vector<CollectedValueMetric> CollectMetrics() const { return {}; }
+
+    /**
+     * @return All histogram metrics and their data matching prefix and name.
+     * @param prefix The prefix pattern to use for filtering. Supports globbing.
+     * @param name The name pattern to use for filtering. Supports globbing.
+     */
+    virtual std::vector<CollectedHistogramMetric> CollectHistogramMetrics() const { return {}; }
+
+    /**
+     * Converts the family data into script layer record. This record lazily-allocated
+     * and reused for each instrument associated with this family.
+     *
+     * @return A script layer Telemetry::Metric record for this family.
+     */
+    RecordValPtr GetMetricOptsRecord() const;
+
+    /**
+     * @return The type of this metric, defined as one of the values in the script-layer
+     * Telemetry::MetricType enum.
+     */
+    virtual zeek_int_t MetricType() const noexcept = 0;
+
+    /**
+     * @return Whether the prefix and name of this family matches the patterns provided.
+     */
+    bool Matches(std::string_view prefix_pattern, std::string_view name_pattern) const noexcept;
+
 protected:
     MetricFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> lbls,
                  std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
+
+    /**
+     * Adds additional information to the record val about this family. This
+     * is used by Histogram families to add information about the buckets.
+     */
+    virtual void AddAdditionalOpts() const {}
 
     std::string prefix;
     std::string name;
@@ -82,6 +123,8 @@ protected:
     std::string helptext;
     std::string unit;
     bool is_sum = false;
+
+    mutable RecordValPtr record_val;
 };
 
 class MetricAttributeIterable : public opentelemetry::common::KeyValueIterable {
@@ -108,6 +151,8 @@ public:
 
         return true;
     }
+
+    std::vector<std::string> Labels() const;
 
 private:
     std::map<std::string, std::string> attributes;

@@ -487,26 +487,10 @@ function Telemetry::__dbl_histogram_sum%(val: opaque of dbl_histogram_metric%): 
 
 function Telemetry::__collect_metrics%(prefix: string, name: string%): any_vec
 	%{
-	auto metrics = telemetry_mgr->CollectMetrics(sv(prefix), sv(name));
-
-	static auto metrics_vector_type = zeek::id::find_type<VectorType>("any_vec");
-	auto vec = zeek::make_intrusive<VectorVal>(metrics_vector_type);
-
-	for ( const auto& m : metrics )
-		vec->Append(m.AsMetricRecord());
-
-	return vec;
+	return telemetry_mgr->CollectValueMetrics(sv(prefix), sv(name));
 	%}
 
 function Telemetry::__collect_histogram_metrics%(prefix: string, name: string%): any_vec
 	%{
-	auto metrics = telemetry_mgr->CollectHistogramMetrics(sv(prefix), sv(name));
-
-	static auto metrics_vector_type = zeek::id::find_type<VectorType>("any_vec");
-	auto vec = zeek::make_intrusive<VectorVal>(metrics_vector_type);
-
-	for ( const auto& m : metrics )
-		vec->Append(m.AsHistogramMetricRecord());
-
-	return vec;
+	return telemetry_mgr->CollectHistoMetrics(sv(prefix), sv(name));
 	%}

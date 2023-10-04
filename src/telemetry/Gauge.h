@@ -8,6 +8,7 @@
 
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
+#include "zeek/telemetry/telemetry.bif.h"
 
 #include "opentelemetry/sdk/metrics/async_instruments.h"
 #include "opentelemetry/sdk/metrics/sync_instruments.h"
@@ -76,6 +77,7 @@ public:
     bool operator!=(const BaseGauge<BaseType>& rhs) const noexcept { return ! IsSameAs(rhs); }
 
     bool CompareLabels(const Span<const LabelView>& labels) const { return attributes == labels; }
+    std::vector<std::string> Labels() const { return attributes.Labels(); }
 
 protected:
     explicit BaseGauge(Handle handle, Span<const LabelView> labels) noexcept
@@ -143,6 +145,21 @@ public:
         return GetOrAdd(Span{labels.begin(), labels.size()});
     }
 
+    /**
+     * @return All gauge metrics and their values matching prefix and name.
+     * @param prefix The prefix pattern to use for filtering. Supports globbing.
+     * @param name The name pattern to use for filtering. Supports globbing.
+     */
+    std::vector<CollectedValueMetric> CollectMetrics() const override {
+        std::vector<CollectedValueMetric> result;
+        result.reserve(gauges.size());
+
+        for ( const auto& cntr : gauges )
+            result.emplace_back(MetricType(), this->shared_from_this(), cntr->Labels(), cntr->Value());
+
+        return result;
+    }
+
 protected:
     opentelemetry::nostd::shared_ptr<opentelemetry::metrics::UpDownCounter<BaseType>> instrument;
     opentelemetry::nostd::shared_ptr<opentelemetry::metrics::ObservableInstrument> observable;
@@ -162,6 +179,8 @@ public:
 
     IntGaugeFamily(const IntGaugeFamily&) noexcept = default;
     IntGaugeFamily& operator=(const IntGaugeFamily&) noexcept = default;
+
+    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::INT_GAUGE; }
 };
 
 /**
@@ -177,6 +196,8 @@ public:
 
     DblGaugeFamily(const DblGaugeFamily&) noexcept = default;
     DblGaugeFamily& operator=(const DblGaugeFamily&) noexcept = default;
+
+    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::DOUBLE_GAUGE; }
 };
 
 namespace detail {

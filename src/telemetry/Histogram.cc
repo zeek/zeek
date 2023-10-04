@@ -1,13 +1,15 @@
 #include "zeek/telemetry/Histogram.h"
 
+#include "zeek/Val.h"
 #include "zeek/telemetry/Manager.h"
 
 #include "opentelemetry/metrics/provider.h"
+#include "opentelemetry/sdk/metrics/meter_provider.h"
 #include "opentelemetry/sdk/metrics/view/instrument_selector_factory.h"
 #include "opentelemetry/sdk/metrics/view/meter_selector_factory.h"
 #include "opentelemetry/sdk/metrics/view/view_factory.h"
 
-using namespace zeek::telemetry;
+namespace zeek::telemetry {
 
 namespace metrics_sdk = opentelemetry::sdk::metrics;
 
@@ -65,3 +67,5 @@ DblHistogramFamily::DblHistogramFamily(std::string_view prefix, std::string_view
 
     add_histogram_view(FullName(), default_upper_bounds, helptext, unit, p);
 }
+
+} // namespace zeek::telemetry

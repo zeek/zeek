@@ -1,6 +1,7 @@
 zeek_add_subdir_library(
     telemetry
     SOURCES
+    Collect.cc
     Counter.cc
     Gauge.cc
     Histogram.cc

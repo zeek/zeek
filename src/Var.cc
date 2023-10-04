@@ -57,7 +57,7 @@ static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs)
 
 	if ( auto p = canon_ft->FindPrototype(*alt_args); p )
 		{
-		alt_ft->Error("alternate function prototype already exists", p->args.get());
+		alt_ft->Error("alternate function prototype already exists", p->args.get(), true);
 		return false;
 		}
 

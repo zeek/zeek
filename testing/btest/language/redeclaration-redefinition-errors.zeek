@@ -43,6 +43,14 @@ global ev: event();
 global ev: event();
 
 @TEST-START-NEXT
+global ev: event(x: bool, y: count);
+global ev: event(x: bool, y: count);
+
+@TEST-START-NEXT
+global ev: event(x: bool);
+global ev: event(xx: bool);
+
+@TEST-START-NEXT
 global f: event();
 global f: hook();
 global f: function();

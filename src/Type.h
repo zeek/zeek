@@ -718,7 +718,7 @@ public:
 	void AddFieldsDirectly(const type_decl_list& types, bool add_log_attr = false);
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
-	void DescribeFields(ODesc* d) const;
+	void DescribeFields(ODesc* d, bool func_args = false) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
 	bool IsFieldDeprecated(int field) const

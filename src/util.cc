@@ -2010,7 +2010,7 @@ static string find_file_in_path(const string& filename, const string& path,
 	if ( filepath.is_absolute() )
 		{
 		if ( can_read(filename) )
-			return filename;
+			return detail::normalize_path(filename);
 		else
 			return {};
 		}
@@ -2024,12 +2024,12 @@ static string find_file_in_path(const string& filename, const string& path,
 			string with_ext = abs_path + ext;
 
 			if ( can_read(with_ext) )
-				return with_ext;
+				return detail::normalize_path(with_ext);
 			}
 		}
 
 	if ( can_read(abs_path) )
-		return abs_path;
+		return detail::normalize_path(abs_path);
 
 	return {};
 	}

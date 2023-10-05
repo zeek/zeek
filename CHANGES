@@ -1,3 +1,9 @@
+6.1.0-dev.493 | 2023-10-04 22:46:38 -0700
+
+  * Btest for normalized reporter path reporting (Christian Kreibich, Corelight)
+
+  * Normalize file paths in find_file_in_path() (Christian Kreibich, Corelight)
+
 6.1.0-dev.490 | 2023-10-04 20:15:54 +0200
 
   * Var/Func: Render function parameters using comma, not semicolon (Arne Welzel, Corelight)

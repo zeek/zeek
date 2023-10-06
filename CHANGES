@@ -1,3 +1,7 @@
+6.1.0-dev.495 | 2023-10-06 16:08:56 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 6.1.0-dev.493 | 2023-10-04 22:46:38 -0700
 
   * Btest for normalized reporter path reporting (Christian Kreibich, Corelight)

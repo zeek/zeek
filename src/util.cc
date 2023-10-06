@@ -43,13 +43,11 @@
 
 #include <algorithm>
 #include <array>
-#include <filesystem>
 #include <iostream>
 #include <random>
 #include <regex>
 #include <string>
 #include <vector>
-namespace fs = std::filesystem;
 
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/3rdparty/doctest.h"
@@ -77,33 +75,34 @@ static bool can_read(const string& path)
 	}
 
 #if __linux__
-static fs::path current_executable()
+static zeek::filesystem::path current_executable()
 	{
-	return fs::absolute(fs::read_symlink("/proc/self/exe"));
+	return zeek::filesystem::absolute(zeek::filesystem::read_symlink("/proc/self/exe"));
 	}
 #elif __APPLE__
-static fs::path current_executable()
+static zeek::filesystem::path current_executable()
 	{
 	char buffer[PATH_MAX] = {0};
 	uint32_t sz = sizeof(buffer);
 	if ( _NSGetExecutablePath(buffer, &sz) )
 		{
-		throw new fs::filesystem_error("error calling _NSGetExecutablePath", std::error_code());
+		throw new zeek::filesystem::filesystem_error("error calling _NSGetExecutablePath",
+		                                             std::error_code());
 		}
-	return fs::absolute(buffer);
+	return zeek::filesystem::absolute(buffer);
 	}
 #elif __WIN32
-static fs::path current_executable()
+static zeek::filesystem::path current_executable()
 	{
 	char buffer[MAX_PATH] = {0};
 	auto nchar = GetModuleFileName(NULL, buffer, MAX_PATH);
 	if ( ! nchar || (nchar == MAX_PATH && (GetLastError() == ERROR_INSUFFICIENT_BUFFER) ||
 	                 buffer[MAX_PATH - 1]) )
 		{
-		throw new fs::filesystem_error("insufficient buffer for GetModuleFileName",
+		throw new zeek::filesystem::filesystem_error("insufficient buffer for GetModuleFileName",
 		                               error_code(ERROR_INSUFFICIENT_BUFFER, std::system_category());
 		}
-	return fs::absolute(buffer);
+	return zeek::filesystem::absolute(buffer);
 	}
 #endif
 
@@ -111,14 +110,14 @@ static std::string from_origin(const std::string& relative_path)
 	{
 	auto self_exe = current_executable();
 	auto parent = self_exe.parent_path();
-	return fs::absolute(parent / fs::path(relative_path));
+	return zeek::filesystem::absolute(parent / zeek::filesystem::path(relative_path));
 	}
 
 static std::string replace_origin(const char* input)
 	{
 	std::string input_s(input);
 	input_s = std::regex_replace(input_s, origin_re, std::string(from_origin(".")));
-	return fs::path(input_s).lexically_normal();
+	return zeek::filesystem::path(input_s).lexically_normal();
 	}
 
 static string zeek_path_value;
@@ -1831,7 +1830,6 @@ int int_list_cmp(const void* v1, const void* v2)
 	else
 		return 1;
 	}
-
 
 const std::string& zeek_path()
 	{

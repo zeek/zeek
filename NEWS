@@ -22,9 +22,9 @@ Breaking Changes
   ZEEK_SPICY_MODULE_PATH are now skipped. Dot directories explicitly listed in
   ZEEK_PLUGIN_PATH or ZEEK_SPICY_MODULE_PATH are not skipped.
 
-- External plugins are now required to raise their minimum required CMake version
-  to 3.15. This was previously warned about, but has caused user confusion in
-  errors cases around the IN_LIST operator.
+- External plugins will fail to configure if their minimum required CMake version
+  is below 3.15. This was a warning with Zeek 6.0, but has caused user confusion
+  due to unhelpful error messages around the IN_LIST operator policy.
 
 New Functionality
 -----------------

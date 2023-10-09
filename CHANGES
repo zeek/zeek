@@ -1,3 +1,32 @@
+6.1.0-dev.499 | 2023-10-09 14:15:41 +0200
+
+  * btest/coverage: Add record-fields test (Arne Welzel, Corelight)
+
+    Justin pointed out that the misc/dump-events test shows added fields to
+    the connection record. Add a new test that prints the connection record
+    recursively in bare and default mode to cover that use-case
+    specifically.
+
+  * btest/dump-events: Run in bare mode, load conn and smtp scripts only (Arne Welzel, Corelight)
+
+    The dump-events baseline changes are pure noise and have spurred confusion
+    for internal and external contributors. For example, adding new
+    analyzers have perturbed orderings of sets holding analyzer tags.
+
+    Running in non-bare mode, the baselines change almost whenever any of the
+    record types attached to connections change in the default scripts. This
+    causes continuous and seemingly little useful updates to the baselines.
+
+    This change switches the test to run in bare mode and explicitly loads
+    just base/protocols/conn and base/protocols/smtp. The primary intention
+    of the test should be testing the functionality of the misc/dump-events
+    script, not the raised events of all loaded default scripts (for that the
+    used PCAP is too narrow).
+
+    Protocol specific scripts that do want to leverage misc/dump-events for
+    baseline creation of their or their analyzer's events can add additional
+    specific tests with suitable PCAP files.
+
 6.1.0-dev.495 | 2023-10-06 16:08:56 +0200
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

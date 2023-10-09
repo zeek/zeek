@@ -1025,7 +1025,7 @@ void set_thread_name(const char* name, pthread_t tid)
 int setvbuf(FILE* stream, char* buf, int type, size_t size)
 	{
 #ifndef _MSC_VER
-	return ::setvbuf(stream, NULL, type, size);
+	return ::setvbuf(stream, buf, type, size);
 #else
 	// TODO: this turns off buffering altogether because Windows wants us to pass a valid
 	// buffer and length if we're going to pass one of the other modes. We need to

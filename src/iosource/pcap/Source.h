@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <unistd.h>
+#include <vector>
 
 extern "C"
 	{
@@ -44,6 +45,9 @@ private:
 
 	pcap_t* pd;
 	struct pcap_stat prev_pstat = {0};
+
+	// Buffer provided to setvbuf() when reading from a PCAP file.
+	std::vector<char> iobuf;
 	};
 
 	} // namespace zeek::iosource::pcap

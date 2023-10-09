@@ -10,6 +10,8 @@
 #include <pcap-int.h>
 #endif
 
+#include <stdio.h>
+
 #include "zeek/Event.h"
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/Packet.h"
@@ -176,10 +178,42 @@ void PcapSource::OpenOffline()
 	{
 	char errbuf[PCAP_ERRBUF_SIZE];
 
-	pd = pcap_open_offline(props.path.c_str(), errbuf);
+	FILE* f = nullptr;
+	if ( props.path == "-" )
+		{
+		f = stdin;
+		}
+	else
+		{
+		if ( f = fopen(props.path.c_str(), "rb"); ! f )
+			{
+			Error(util::fmt("unable to open %s: %s", props.path.c_str(), strerror(errno)));
+			return;
+			}
+
+		// Setup file IO buffering with a bufsize_offline_bytes sized
+		// buffer if set, otherwise use what fopen() took as the default.
+		if ( BifConst::Pcap::bufsize_offline_bytes != 0 )
+			{
+			iobuf.resize(BifConst::Pcap::bufsize_offline_bytes);
+			if ( util::detail::setvbuf(f, iobuf.data(), _IOFBF, iobuf.size()) != 0 )
+				{
+				Error(util::fmt("unable to setvbuf %s: %s", props.path.c_str(), strerror(errno)));
+				fclose(f);
+				return;
+				}
+			}
+		}
+
+	// pcap_fopen_offline() takes ownership of f on success and
+	// pcap_close() elsewhere should close it, too.
+	pd = pcap_fopen_offline(f, errbuf);
 
 	if ( ! pd )
 		{
+		if ( f != stdin )
+			fclose(f);
+
 		Error(errbuf);
 		return;
 		}

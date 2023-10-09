@@ -1,3 +1,15 @@
+6.1.0-dev.502 | 2023-10-09 16:26:58 +0200
+
+  * btest/plugins/hooks: Run in bare mode (Arne Welzel, Corelight)
+
+    Motivation is basically the same as in 88bb5270263934f0004fd9fdeebf5ac25015d213.
+    For plugin.hooks, one example is that adding a new option in the default script
+    changes the baseline due registration of change handlers. Also, the connection
+    record is printed in various places, resulting in churn when the default
+    scripts change.
+
+  * Bump cmake submodule for 3.15 requirement (Arne Welzel, Corelight)
+
 6.1.0-dev.499 | 2023-10-09 14:15:41 +0200
 
   * btest/coverage: Add record-fields test (Arne Welzel, Corelight)

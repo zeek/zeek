@@ -11,6 +11,7 @@ btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 16GB
 
 config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
+no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache
 static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache
 asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
@@ -43,13 +44,6 @@ freebsd_environment: &FREEBSD_ENVIRONMENT
   env:
     ZEEK_CI_CPUS: 8
     ZEEK_CI_BTEST_JOBS: 8
-
-sanitizers_resource_template: &SANITIZERS_RESOURCE_TEMPLATE
-  cpu: 4
-  # Sanitizers uses a lot more memory than a typical config.
-  memory: 12GB
-  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
-  greedy: true
 
 builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
   # Rules for skipping builds:
@@ -232,6 +226,8 @@ arm_debian11_task:
     dockerfile: ci/debian-11/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
 
 debian11_static_task:
   container:
@@ -258,6 +254,8 @@ opensuse_leap_15_4_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
 
 opensuse_leap_15_5_task:
   container:
@@ -405,7 +403,7 @@ asan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    << : *SANITIZERS_RESOURCE_TEMPLATE
+    << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
@@ -420,7 +418,7 @@ ubsan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run undefined behavior checks.
     dockerfile: ci/ubuntu-20.04/Dockerfile
-    << : *SANITIZERS_RESOURCE_TEMPLATE
+    << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
@@ -436,7 +434,7 @@ ubsan_sanitizer_task:
 #   container:
 #     # Just uses a recent/common distro to run memory error/leak checks.
 #     dockerfile: ci/ubuntu-22.04/Dockerfile
-#     << : *SANITIZERS_RESOURCE_TEMPLATE
+#     << : *RESOURCES_TEMPLATE
 
 #   << : *CI_TEMPLATE
 #   << : *SKIP_TASK_ON_PR

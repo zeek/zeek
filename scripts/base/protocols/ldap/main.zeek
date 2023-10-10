@@ -29,8 +29,7 @@ export {
   #############################################################################
   # This is the format of ldap.log (ldap operations minus search-related)
   # Each line represents a unique connection+message_id (requests/responses)
-  type Message: record {
-
+  type MessageInfo: record {
     # Timestamp for when the event happened.
     ts: time &log;
 
@@ -68,8 +67,7 @@ export {
   #############################################################################
   # This is the format of ldap_search.log (search-related messages only)
   # Each line represents a unique connection+message_id (requests/responses)
-  type Search: record {
-
+  type SearchInfo: record {
     # Timestamp for when the event happened.
     ts: time &log;
 
@@ -110,8 +108,8 @@ export {
 
   # Event that can be handled to access the ldap record as it is sent on
   # to the logging framework.
-  global log_ldap: event(rec: LDAP::Message);
-  global log_ldap_search: event(rec: LDAP::Search);
+  global log_ldap: event(rec: LDAP::MessageInfo);
+  global log_ldap_search: event(rec: LDAP::SearchInfo);
 
   # Event called for each LDAP message (either direction)
   global LDAP::message: event(c: connection,
@@ -262,8 +260,8 @@ global OPCODES_SEARCH: set[LDAP::ProtocolOpcode] = { LDAP::ProtocolOpcode_SEARCH
 #############################################################################
 redef record connection += {
   ldap_proto: string &optional;
-  ldap_messages: table[int] of Message &optional;
-  ldap_searches: table[int] of Search &optional;
+  ldap_messages: table[int] of MessageInfo &optional;
+  ldap_searches: table[int] of SearchInfo &optional;
 };
 
 #############################################################################
@@ -271,8 +269,8 @@ event zeek_init() &priority=5 {
   Analyzer::register_for_ports(Analyzer::ANALYZER_LDAP_TCP, LDAP::ports_tcp);
   Analyzer::register_for_ports(Analyzer::ANALYZER_LDAP_UDP, LDAP::ports_udp);
 
-  Log::create_stream(LDAP::LDAP_LOG, [$columns=Message, $ev=log_ldap, $path="ldap", $policy=log_policy]);
-  Log::create_stream(LDAP::LDAP_SEARCH_LOG, [$columns=Search, $ev=log_ldap_search, $path="ldap_search", $policy=log_policy_search]);
+  Log::create_stream(LDAP::LDAP_LOG, [$columns=MessageInfo, $ev=log_ldap, $path="ldap", $policy=log_policy]);
+  Log::create_stream(LDAP::LDAP_SEARCH_LOG, [$columns=SearchInfo, $ev=log_ldap_search, $path="ldap_search", $policy=log_policy_search]);
 }
 
 #############################################################################

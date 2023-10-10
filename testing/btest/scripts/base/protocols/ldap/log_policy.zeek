@@ -10,12 +10,12 @@
 #
 # @TEST-DOC: Test LDAP analyzer with small trace using logging policies.
 
-hook LDAP::log_policy(rec: LDAP::Message, id: Log::ID, filter: Log::Filter)
+hook LDAP::log_policy(rec: LDAP::MessageInfo, id: Log::ID, filter: Log::Filter)
 	{
 	break;
 	}
 
-hook LDAP::log_policy_search(rec: LDAP::Search, id: Log::ID,
+hook LDAP::log_policy_search(rec: LDAP::SearchInfo, id: Log::ID,
     filter: Log::Filter)
 	{
 	break;

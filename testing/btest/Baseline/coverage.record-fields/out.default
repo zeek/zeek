@@ -360,8 +360,8 @@ connection {
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F
        }
-  * ldap_messages: table[int] of record LDAP::Message, log=F, optional=T
-      LDAP::Message {
+  * ldap_messages: table[int] of record LDAP::MessageInfo, log=F, optional=T
+      LDAP::MessageInfo {
         * argument: vector of string, log=T, optional=T
         * diagnostic_message: vector of string, log=T, optional=T
         * id: record conn_id, log=T, optional=F
@@ -376,8 +376,8 @@ connection {
         * version: int, log=T, optional=T
        }
   * ldap_proto: string, log=F, optional=T
-  * ldap_searches: table[int] of record LDAP::Search, log=F, optional=T
-      LDAP::Search {
+  * ldap_searches: table[int] of record LDAP::SearchInfo, log=F, optional=T
+      LDAP::SearchInfo {
         * attributes: vector of string, log=T, optional=T
         * base_object: vector of string, log=T, optional=T
         * deref: set[string], log=T, optional=T

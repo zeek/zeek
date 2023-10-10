@@ -5,21 +5,16 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::Geneve
-	{
+namespace zeek::packet_analysis::Geneve {
 
-class GeneveAnalyzer : public zeek::packet_analysis::Analyzer
-	{
+class GeneveAnalyzer : public zeek::packet_analysis::Analyzer {
 public:
-	GeneveAnalyzer();
-	~GeneveAnalyzer() override = default;
+    GeneveAnalyzer();
+    ~GeneveAnalyzer() override = default;
 
-	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
+    bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
-	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
-		return std::make_shared<GeneveAnalyzer>();
-		}
-	};
+    static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<GeneveAnalyzer>(); }
+};
 
-	}
+} // namespace zeek::packet_analysis::Geneve

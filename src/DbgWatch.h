@@ -4,26 +4,23 @@
 
 #include "zeek/util.h"
 
-namespace zeek
-	{
+namespace zeek {
 class Obj;
-	}
+}
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 class Expr;
 
-class DbgWatch
-	{
+class DbgWatch {
 public:
-	explicit DbgWatch(Obj* var_to_watch);
-	explicit DbgWatch(Expr* expr_to_watch);
-	~DbgWatch() = default;
+    explicit DbgWatch(Obj* var_to_watch);
+    explicit DbgWatch(Expr* expr_to_watch);
+    ~DbgWatch() = default;
 
 protected:
-	Obj* var;
-	Expr* expr;
-	};
+    Obj* var;
+    Expr* expr;
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

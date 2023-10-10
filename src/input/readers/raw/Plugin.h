@@ -7,25 +7,23 @@
 #include "zeek/input/readers/raw/Raw.h"
 #include "zeek/plugin/Plugin.h"
 
-namespace zeek::plugin::detail::Zeek_RawReader
-	{
+namespace zeek::plugin::detail::Zeek_RawReader {
 
-class Plugin : public plugin::Plugin
-	{
+class Plugin : public plugin::Plugin {
 public:
-	Plugin() = default;
+    Plugin() = default;
 
-	plugin::Configuration Configure() override;
+    plugin::Configuration Configure() override;
 
-	void InitPreScript() override;
-	void Done() override;
+    void InitPreScript() override;
+    void Done() override;
 
-	std::unique_lock<std::mutex> ForkMutex();
+    std::unique_lock<std::mutex> ForkMutex();
 
 private:
-	std::mutex fork_mutex;
-	};
+    std::mutex fork_mutex;
+};
 
 extern Plugin plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_RawReader
+} // namespace zeek::plugin::detail::Zeek_RawReader

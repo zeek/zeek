@@ -5,36 +5,28 @@
 #include "zeek/ID.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace binpac
-	{
-namespace MQTT
-	{
+namespace binpac {
+namespace MQTT {
 class MQTT_Conn;
-	}
-	}
+}
+} // namespace binpac
 
-namespace zeek::analyzer::mqtt
-	{
+namespace zeek::analyzer::mqtt {
 
-class MQTT_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
-
+class MQTT_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	MQTT_Analyzer(Connection* conn);
-	~MQTT_Analyzer() override;
+    MQTT_Analyzer(Connection* conn);
+    ~MQTT_Analyzer() override;
 
-	void Done() override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64_t seq, int len, bool orig) override;
-	void EndpointEOF(bool is_orig) override;
+    void Done() override;
+    void DeliverStream(int len, const u_char* data, bool orig) override;
+    void Undelivered(uint64_t seq, int len, bool orig) override;
+    void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
-		{
-		return new MQTT_Analyzer(conn);
-		}
+    static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn) { return new MQTT_Analyzer(conn); }
 
 protected:
-	binpac::MQTT::MQTT_Conn* interp;
-	};
+    binpac::MQTT::MQTT_Conn* interp;
+};
 
-	} // namespace zeek::analyzer::mqtt
+} // namespace zeek::analyzer::mqtt

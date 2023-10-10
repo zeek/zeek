@@ -5,21 +5,16 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::Root
-	{
+namespace zeek::packet_analysis::Root {
 
-class RootAnalyzer : public Analyzer
-	{
+class RootAnalyzer : public Analyzer {
 public:
-	RootAnalyzer();
-	~RootAnalyzer() override = default;
+    RootAnalyzer();
+    ~RootAnalyzer() override = default;
 
-	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
+    bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
-	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
-		return std::make_shared<RootAnalyzer>();
-		}
-	};
+    static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<RootAnalyzer>(); }
+};
 
-	}
+} // namespace zeek::packet_analysis::Root

@@ -6,8 +6,7 @@
 #include "zeek/Stats.h"
 #include "zeek/Val.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 extern int watchdog_interval;
 
@@ -103,7 +102,7 @@ extern void init_event_handlers();
 extern void init_net_var();
 extern void init_builtin_types();
 
-	} // namespace zeek::detail
+} // namespace zeek::detail
 
 #include "const.bif.netvar_h"
 #include "event.bif.netvar_h"

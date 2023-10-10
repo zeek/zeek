@@ -7,21 +7,18 @@
 
 #include "broker/data.hh"
 
-namespace zeek
-	{
+namespace zeek {
 
 class ODesc;
 
-namespace threading
-	{
+namespace threading {
 
 struct Value;
 struct Field;
 
-	} // namespace threading
+} // namespace threading
 
-namespace Broker::detail
-	{
+namespace Broker::detail {
 
 extern OpaqueTypePtr opaque_of_data_type;
 extern OpaqueTypePtr opaque_of_set_iterator;
@@ -91,75 +88,69 @@ threading::Field* data_to_threading_field(broker::data d);
 /**
  * A Zeek value which wraps a Broker data value.
  */
-class DataVal : public OpaqueVal
-	{
+class DataVal : public OpaqueVal {
 public:
-	DataVal(broker::data arg_data) : OpaqueVal(opaque_of_data_type), data(std::move(arg_data)) { }
+    DataVal(broker::data arg_data) : OpaqueVal(opaque_of_data_type), data(std::move(arg_data)) {}
 
-	void ValDescribe(ODesc* d) const override;
+    void ValDescribe(ODesc* d) const override;
 
-	ValPtr castTo(zeek::Type* t);
-	bool canCastTo(zeek::Type* t) const;
+    ValPtr castTo(zeek::Type* t);
+    bool canCastTo(zeek::Type* t) const;
 
-	// Returns the Zeek type that scripts use to represent a Broker data
-	// instance. This may be wrapping the opaque value inside another
-	// type.
-	static const TypePtr& ScriptDataType();
+    // Returns the Zeek type that scripts use to represent a Broker data
+    // instance. This may be wrapping the opaque value inside another
+    // type.
+    static const TypePtr& ScriptDataType();
 
-	broker::data data;
+    broker::data data;
 
 protected:
-	DataVal() : OpaqueVal(opaque_of_data_type) { }
+    DataVal() : OpaqueVal(opaque_of_data_type) {}
 
-	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::DataVal)
-	};
+    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::DataVal)
+};
 
 /**
  * Visitor for retrieving type names a Broker data value.
  */
-struct type_name_getter
-	{
-	using result_type = const char*;
+struct type_name_getter {
+    using result_type = const char*;
 
-	result_type operator()(broker::none)
-		{
-		return "NONE";
-		} // FIXME: what's the right thing to return here?
+    result_type operator()(broker::none) { return "NONE"; } // FIXME: what's the right thing to return here?
 
-	result_type operator()(bool) { return "bool"; }
+    result_type operator()(bool) { return "bool"; }
 
-	result_type operator()(uint64_t) { return "uint64_t"; }
+    result_type operator()(uint64_t) { return "uint64_t"; }
 
-	result_type operator()(int64_t) { return "int64_t"; }
+    result_type operator()(int64_t) { return "int64_t"; }
 
-	result_type operator()(double) { return "double"; }
+    result_type operator()(double) { return "double"; }
 
-	result_type operator()(const std::string&) { return "string"; }
+    result_type operator()(const std::string&) { return "string"; }
 
-	result_type operator()(const broker::address&) { return "address"; }
+    result_type operator()(const broker::address&) { return "address"; }
 
-	result_type operator()(const broker::subnet&) { return "subnet"; }
+    result_type operator()(const broker::subnet&) { return "subnet"; }
 
-	result_type operator()(const broker::port&) { return "port"; }
+    result_type operator()(const broker::port&) { return "port"; }
 
-	result_type operator()(const broker::timestamp&) { return "time"; }
+    result_type operator()(const broker::timestamp&) { return "time"; }
 
-	result_type operator()(const broker::timespan&) { return "interval"; }
+    result_type operator()(const broker::timespan&) { return "interval"; }
 
-	result_type operator()(const broker::enum_value&) { return "enum"; }
+    result_type operator()(const broker::enum_value&) { return "enum"; }
 
-	result_type operator()(const broker::set&) { return "set"; }
+    result_type operator()(const broker::set&) { return "set"; }
 
-	result_type operator()(const broker::table&) { return "table"; }
+    result_type operator()(const broker::table&) { return "table"; }
 
-	result_type operator()(const broker::vector&)
-		{
-		assert(tag == zeek::TYPE_VECTOR || tag == zeek::TYPE_RECORD);
-		return tag == zeek::TYPE_VECTOR ? "vector" : "record";
-		}
+    result_type operator()(const broker::vector&) {
+        assert(tag == zeek::TYPE_VECTOR || tag == zeek::TYPE_RECORD);
+        return tag == zeek::TYPE_VECTOR ? "vector" : "record";
+    }
 
-	zeek::TypeTag tag;
-	};
+    zeek::TypeTag tag;
+};
 
 /**
  * Retrieve Broker data value associated with a Broker::Data Zeek value.
@@ -180,99 +171,89 @@ broker::data& opaque_field_to_data(zeek::RecordVal* v, zeek::detail::Frame* f);
  * A runtime interpret exception is thrown if trying to access a type which
  * is not currently stored in the Broker data.
  */
-template <typename T>
-T& require_data_type(broker::data& d, zeek::TypeTag tag, zeek::detail::Frame* f)
-	{
-	auto ptr = broker::get_if<T>(&d);
-	if ( ! ptr )
-		zeek::reporter->RuntimeError(f->GetCallLocation(), "data is of type '%s' not of type '%s'",
-		                             visit(type_name_getter{tag}, d), zeek::type_name(tag));
+template<typename T>
+T& require_data_type(broker::data& d, zeek::TypeTag tag, zeek::detail::Frame* f) {
+    auto ptr = broker::get_if<T>(&d);
+    if ( ! ptr )
+        zeek::reporter->RuntimeError(f->GetCallLocation(), "data is of type '%s' not of type '%s'",
+                                     visit(type_name_getter{tag}, d), zeek::type_name(tag));
 
-	return *ptr;
-	}
+    return *ptr;
+}
 
 /**
  * @see require_data_type() and opaque_field_to_data().
  */
-template <typename T>
-inline T& require_data_type(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-	{
-	return require_data_type<T>(opaque_field_to_data(v, f), tag, f);
-	}
+template<typename T>
+inline T& require_data_type(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f) {
+    return require_data_type<T>(opaque_field_to_data(v, f), tag, f);
+}
 
 // Copying data into iterator vals is not the fastest approach, but safer...
 
-class SetIterator : public zeek::OpaqueVal
-	{
+class SetIterator : public zeek::OpaqueVal {
 public:
-	SetIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-		: zeek::OpaqueVal(opaque_of_set_iterator),
-		  dat(require_data_type<broker::set>(v, zeek::TYPE_TABLE, f)), it(dat.begin())
-		{
-		}
+    SetIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
+        : zeek::OpaqueVal(opaque_of_set_iterator),
+          dat(require_data_type<broker::set>(v, zeek::TYPE_TABLE, f)),
+          it(dat.begin()) {}
 
-	broker::set dat;
-	broker::set::iterator it;
+    broker::set dat;
+    broker::set::iterator it;
 
 protected:
-	SetIterator() : zeek::OpaqueVal(opaque_of_set_iterator) { }
+    SetIterator() : zeek::OpaqueVal(opaque_of_set_iterator) {}
 
-	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
-	};
+    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
+};
 
-class TableIterator : public zeek::OpaqueVal
-	{
+class TableIterator : public zeek::OpaqueVal {
 public:
-	TableIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-		: zeek::OpaqueVal(opaque_of_table_iterator),
-		  dat(require_data_type<broker::table>(v, zeek::TYPE_TABLE, f)), it(dat.begin())
-		{
-		}
+    TableIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
+        : zeek::OpaqueVal(opaque_of_table_iterator),
+          dat(require_data_type<broker::table>(v, zeek::TYPE_TABLE, f)),
+          it(dat.begin()) {}
 
-	broker::table dat;
-	broker::table::iterator it;
+    broker::table dat;
+    broker::table::iterator it;
 
 protected:
-	TableIterator() : zeek::OpaqueVal(opaque_of_table_iterator) { }
+    TableIterator() : zeek::OpaqueVal(opaque_of_table_iterator) {}
 
-	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
-	};
+    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
+};
 
-class VectorIterator : public zeek::OpaqueVal
-	{
+class VectorIterator : public zeek::OpaqueVal {
 public:
-	VectorIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-		: zeek::OpaqueVal(opaque_of_vector_iterator),
-		  dat(require_data_type<broker::vector>(v, zeek::TYPE_VECTOR, f)), it(dat.begin())
-		{
-		}
+    VectorIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
+        : zeek::OpaqueVal(opaque_of_vector_iterator),
+          dat(require_data_type<broker::vector>(v, zeek::TYPE_VECTOR, f)),
+          it(dat.begin()) {}
 
-	broker::vector dat;
-	broker::vector::iterator it;
+    broker::vector dat;
+    broker::vector::iterator it;
 
 protected:
-	VectorIterator() : zeek::OpaqueVal(opaque_of_vector_iterator) { }
+    VectorIterator() : zeek::OpaqueVal(opaque_of_vector_iterator) {}
 
-	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
-	};
+    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
+};
 
-class RecordIterator : public zeek::OpaqueVal
-	{
+class RecordIterator : public zeek::OpaqueVal {
 public:
-	RecordIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-		: zeek::OpaqueVal(opaque_of_record_iterator),
-		  dat(require_data_type<broker::vector>(v, zeek::TYPE_RECORD, f)), it(dat.begin())
-		{
-		}
+    RecordIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
+        : zeek::OpaqueVal(opaque_of_record_iterator),
+          dat(require_data_type<broker::vector>(v, zeek::TYPE_RECORD, f)),
+          it(dat.begin()) {}
 
-	broker::vector dat;
-	broker::vector::iterator it;
+    broker::vector dat;
+    broker::vector::iterator it;
 
 protected:
-	RecordIterator() : zeek::OpaqueVal(opaque_of_record_iterator) { }
+    RecordIterator() : zeek::OpaqueVal(opaque_of_record_iterator) {}
 
-	DECLARE_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
-	};
+    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
+};
 
-	} // namespace Broker::detail
-	} // namespace zeek
+} // namespace Broker::detail
+} // namespace zeek

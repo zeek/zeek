@@ -2,28 +2,23 @@
 
 #include "zeek/input/readers/raw/Plugin.h"
 
-namespace zeek::plugin::detail::Zeek_RawReader
-	{
+namespace zeek::plugin::detail::Zeek_RawReader {
 
 Plugin plugin;
 
-zeek::plugin::Configuration Plugin::Configure()
-	{
-	AddComponent(new zeek::input::Component("Raw", zeek::input::reader::detail::Raw::Instantiate));
+zeek::plugin::Configuration Plugin::Configure() {
+    AddComponent(new zeek::input::Component("Raw", zeek::input::reader::detail::Raw::Instantiate));
 
-	zeek::plugin::Configuration config;
-	config.name = "Zeek::RawReader";
-	config.description = "Raw input reader";
-	return config;
-	}
+    zeek::plugin::Configuration config;
+    config.name = "Zeek::RawReader";
+    config.description = "Raw input reader";
+    return config;
+}
 
-void Plugin::InitPreScript() { }
+void Plugin::InitPreScript() {}
 
-void Plugin::Done() { }
+void Plugin::Done() {}
 
-std::unique_lock<std::mutex> Plugin::ForkMutex()
-	{
-	return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock);
-	}
+std::unique_lock<std::mutex> Plugin::ForkMutex() { return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock); }
 
-	} // namespace zeek::plugin::detail::Zeek_RawReader
+} // namespace zeek::plugin::detail::Zeek_RawReader

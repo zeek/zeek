@@ -8,73 +8,67 @@
 #include "zeek/Func.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
-namespace zeek
-	{
+namespace zeek {
 
-namespace detail
-	{
+namespace detail {
 
 // A subclass of Func used for lambdas that the compiler creates for
 // complex initializations (expressions used in type attributes).
 // The usage is via derivation from this class, rather than direct
 // use of it.
 
-class CPPFunc : public Func
-	{
+class CPPFunc : public Func {
 public:
-	bool IsPure() const override { return is_pure; }
+    bool IsPure() const override { return is_pure; }
 
-	void Describe(ODesc* d) const override;
+    void Describe(ODesc* d) const override;
 
 protected:
-	// Constructor used when deriving subclasses.
-	CPPFunc(const char* _name, bool _is_pure)
-		{
-		name = _name;
-		is_pure = _is_pure;
-		}
+    // Constructor used when deriving subclasses.
+    CPPFunc(const char* _name, bool _is_pure) {
+        name = _name;
+        is_pure = _is_pure;
+    }
 
-	std::string name;
-	bool is_pure;
-	};
+    std::string name;
+    bool is_pure;
+};
 
 // A subclass of Stmt used to replace a function/event handler/hook body.
 
-class CPPStmt : public Stmt
-	{
+class CPPStmt : public Stmt {
 public:
-	CPPStmt(const char* _name, const char* filename, int line_num);
+    CPPStmt(const char* _name, const char* filename, int line_num);
 
-	const std::string& Name() { return name; }
+    const std::string& Name() { return name; }
 
-	// Sets/returns a hash associated with this statement.  A value
-	// of 0 means "not set".
-	p_hash_type GetHash() const { return hash; }
-	void SetHash(p_hash_type h) { hash = h; }
+    // Sets/returns a hash associated with this statement.  A value
+    // of 0 means "not set".
+    p_hash_type GetHash() const { return hash; }
+    void SetHash(p_hash_type h) { hash = h; }
 
-	// The following only get defined by lambda bodies.
-	virtual void SetLambdaCaptures(Frame* f) { }
-	virtual std::vector<ValPtr> SerializeLambdaCaptures() const { return std::vector<ValPtr>{}; }
+    // The following only get defined by lambda bodies.
+    virtual void SetLambdaCaptures(Frame* f) {}
+    virtual std::vector<ValPtr> SerializeLambdaCaptures() const { return std::vector<ValPtr>{}; }
 
-	virtual IntrusivePtr<CPPStmt> Clone() { return {NewRef{}, this}; }
+    virtual IntrusivePtr<CPPStmt> Clone() { return {NewRef{}, this}; }
 
 protected:
-	// This method being called means that the inliner is running
-	// on compiled code, which shouldn't happen.
-	StmtPtr Duplicate() override
-		{
-		ASSERT(0);
-		return ThisPtr();
-		}
+    // This method being called means that the inliner is running
+    // on compiled code, which shouldn't happen.
+    StmtPtr Duplicate() override {
+        ASSERT(0);
+        return ThisPtr();
+    }
 
-	TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
+    TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
 
-	std::string name;
-	p_hash_type hash = 0ULL;
+    std::string name;
+    p_hash_type hash = 0ULL;
 
-	// A pseudo AST "call" node, used to support error localization.
-	CallExprPtr ce;
-	};
+    // A pseudo AST "call" node, used to support error localization.
+    CallExprPtr ce;
+};
 
 using CPPStmtPtr = IntrusivePtr<CPPStmt>;
 
@@ -83,31 +77,29 @@ using CPPStmtPtr = IntrusivePtr<CPPStmt>;
 // that CPPFunc is for lambdas generated directly by the compiler,
 // rather than those explicitly present in scripts.
 
-class CPPLambdaFunc : public ScriptFunc
-	{
+class CPPLambdaFunc : public ScriptFunc {
 public:
-	CPPLambdaFunc(std::string name, FuncTypePtr ft, CPPStmtPtr l_body);
+    CPPLambdaFunc(std::string name, FuncTypePtr ft, CPPStmtPtr l_body);
 
 protected:
-	// Methods related to sending lambdas via Broker.
-	broker::expected<broker::data> SerializeCaptures() const override;
-	void SetCaptures(Frame* f) override;
+    // Methods related to sending lambdas via Broker.
+    broker::expected<broker::data> SerializeCaptures() const override;
+    void SetCaptures(Frame* f) override;
 
-	FuncPtr DoClone() override;
+    FuncPtr DoClone() override;
 
-	CPPStmtPtr l_body;
-	};
+    CPPStmtPtr l_body;
+};
 
 // Information associated with a given compiled script body: its
 // Stmt subclass, priority, and any events that should be registered
 // upon instantiating the body.
-struct CompiledScript
-	{
-	CPPStmtPtr body;
-	int priority;
-	std::vector<std::string> events;
-	void (*finish_init_func)();
-	};
+struct CompiledScript {
+    CPPStmtPtr body;
+    int priority;
+    std::vector<std::string> events;
+    void (*finish_init_func)();
+};
 
 // Maps hashes to compiled information.
 extern std::unordered_map<p_hash_type, CompiledScript> compiled_scripts;
@@ -125,6 +117,6 @@ extern std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
 // Callbacks to finalize initialization of standalone compiled scripts.
 extern std::vector<void (*)()> standalone_finalizations;
 
-	} // namespace detail
+} // namespace detail
 
-	} // namespace zeek
+} // namespace zeek

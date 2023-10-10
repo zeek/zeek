@@ -5,36 +5,33 @@
 #include <cstdint>
 #include <vector>
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 using int_list = std::vector<std::intptr_t>;
 
-class CCL
-	{
+class CCL {
 public:
-	CCL();
-	~CCL();
+    CCL();
+    ~CCL();
 
-	void Add(int sym);
-	void Negate();
-	bool IsNegated() { return negated != 0; }
-	int Index() { return index; }
+    void Add(int sym);
+    void Negate();
+    bool IsNegated() { return negated != 0; }
+    int Index() { return index; }
 
-	void Sort();
+    void Sort();
 
-	int_list* Syms() { return syms; }
+    int_list* Syms() { return syms; }
 
-	void ReplaceSyms(int_list* new_syms)
-		{
-		delete syms;
-		syms = new_syms;
-		}
+    void ReplaceSyms(int_list* new_syms) {
+        delete syms;
+        syms = new_syms;
+    }
 
 protected:
-	int_list* syms;
-	int negated;
-	int index;
-	};
+    int_list* syms;
+    int negated;
+    int index;
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

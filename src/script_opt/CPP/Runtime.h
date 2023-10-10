@@ -24,8 +24,7 @@
 #include "zeek/script_opt/CPP/RuntimeVec.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 using BoolValPtr = IntrusivePtr<zeek::BoolVal>;
 using IntValPtr = IntrusivePtr<zeek::IntVal>;
@@ -39,4 +38,4 @@ using FuncValPtr = IntrusivePtr<zeek::FuncVal>;
 using FileValPtr = IntrusivePtr<zeek::FileVal>;
 using SubNetValPtr = IntrusivePtr<zeek::SubNetVal>;
 
-	}
+} // namespace zeek::detail

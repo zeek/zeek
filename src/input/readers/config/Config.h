@@ -13,49 +13,46 @@
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/threading/formatters/Ascii.h"
 
-namespace zeek::input::reader::detail
-	{
+namespace zeek::input::reader::detail {
 
 /**
  * Reader for Configuration files.
  */
-class Config : public ReaderBackend
-	{
+class Config : public ReaderBackend {
 public:
-	explicit Config(ReaderFrontend* frontend);
-	~Config() override = default;
+    explicit Config(ReaderFrontend* frontend);
+    ~Config() override = default;
 
-	// prohibit copying and moving
-	Config(const Config&) = delete;
-	Config(Config&&) = delete;
-	Config& operator=(const Config&) = delete;
-	Config& operator=(Config&&) = delete;
+    // prohibit copying and moving
+    Config(const Config&) = delete;
+    Config(Config&&) = delete;
+    Config& operator=(const Config&) = delete;
+    Config& operator=(Config&&) = delete;
 
-	static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Config(frontend); }
+    static ReaderBackend* Instantiate(ReaderFrontend* frontend) { return new Config(frontend); }
 
 protected:
-	bool DoInit(const ReaderInfo& info, int arg_num_fields,
-	            const threading::Field* const* fields) override;
-	void DoClose() override;
-	bool DoUpdate() override;
-	bool DoHeartbeat(double network_time, double current_time) override;
+    bool DoInit(const ReaderInfo& info, int arg_num_fields, const threading::Field* const* fields) override;
+    void DoClose() override;
+    bool DoUpdate() override;
+    bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
-	bool GetLine(std::string& str);
-	bool OpenFile();
+    bool GetLine(std::string& str);
+    bool OpenFile();
 
-	std::ifstream file;
-	time_t mtime;
-	ino_t ino;
+    std::ifstream file;
+    time_t mtime;
+    ino_t ino;
 
-	bool fail_on_file_problem;
+    bool fail_on_file_problem;
 
-	std::string set_separator;
-	std::string empty_field;
+    std::string set_separator;
+    std::string empty_field;
 
-	std::unique_ptr<threading::Formatter> formatter;
-	std::unordered_map<std::string, std::tuple<TypeTag, TypeTag, zeek::detail::IDPtr>> option_types;
-	std::unordered_map<std::string, std::string> option_values;
-	};
+    std::unique_ptr<threading::Formatter> formatter;
+    std::unordered_map<std::string, std::tuple<TypeTag, TypeTag, zeek::detail::IDPtr>> option_types;
+    std::unordered_map<std::string, std::string> option_values;
+};
 
-	} // namespace zeek::input::reader::detail
+} // namespace zeek::input::reader::detail

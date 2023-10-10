@@ -4,26 +4,23 @@
 
 #include "zeek/Reporter.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
-TempVar::TempVar(size_t num, const TypePtr& t, ExprPtr _rhs) : type(t)
-	{
-	char buf[8192];
-	snprintf(buf, sizeof buf, "#%zu", num);
-	name = buf;
-	rhs = std::move(_rhs);
-	}
+TempVar::TempVar(size_t num, const TypePtr& t, ExprPtr _rhs) : type(t) {
+    char buf[8192];
+    snprintf(buf, sizeof buf, "#%zu", num);
+    name = buf;
+    rhs = std::move(_rhs);
+}
 
-void TempVar::SetAlias(IDPtr _alias)
-	{
-	if ( alias )
-		reporter->InternalError("Re-aliasing a temporary");
+void TempVar::SetAlias(IDPtr _alias) {
+    if ( alias )
+        reporter->InternalError("Re-aliasing a temporary");
 
-	if ( alias == id )
-		reporter->InternalError("Creating alias loop");
+    if ( alias == id )
+        reporter->InternalError("Creating alias loop");
 
-	alias = std::move(_alias);
-	}
+    alias = std::move(_alias);
+}
 
-	} // zeek::detail
+} // namespace zeek::detail

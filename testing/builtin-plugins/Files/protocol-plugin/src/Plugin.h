@@ -3,18 +3,16 @@
 
 #include <zeek/plugin/Plugin.h>
 
-namespace btest::plugin::Demo_Foo
-	{
+namespace btest::plugin::Demo_Foo {
 
-class Plugin : public zeek::plugin::Plugin
-	{
+class Plugin : public zeek::plugin::Plugin {
 protected:
-	// Overridden from zeek::plugin::Plugin.
-	zeek::plugin::Configuration Configure() override;
+    // Overridden from zeek::plugin::Plugin.
+    zeek::plugin::Configuration Configure() override;
 
-	void InitPostScript() override;
-	};
+    void InitPostScript() override;
+};
 
 extern Plugin plugin;
 
-	}
+} // namespace btest::plugin::Demo_Foo

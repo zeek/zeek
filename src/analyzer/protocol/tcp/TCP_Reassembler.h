@@ -5,124 +5,117 @@
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 
-namespace zeek
-	{
-namespace packet_analysis::TCP
-	{
+namespace zeek {
+namespace packet_analysis::TCP {
 class TCPSessionAdapter;
-	}
+}
 
 class Connection;
 
-namespace analyzer
-	{
+namespace analyzer {
 
 class Analyzer;
 
-namespace tcp
-	{
+namespace tcp {
 
-class TCP_Reassembler final : public Reassembler
-	{
+class TCP_Reassembler final : public Reassembler {
 public:
-	enum Type
-		{
-		Direct, // deliver to destination analyzer itself
-		Forward, // forward to destination analyzer's children
-		};
+    enum Type {
+        Direct,  // deliver to destination analyzer itself
+        Forward, // forward to destination analyzer's children
+    };
 
-	TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
-	                packet_analysis::TCP::TCPSessionAdapter* arg_tcp_analyzer, Type arg_type,
-	                TCP_Endpoint* arg_endp);
+    TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer, packet_analysis::TCP::TCPSessionAdapter* arg_tcp_analyzer,
+                    Type arg_type, TCP_Endpoint* arg_endp);
 
-	void Done();
+    void Done();
 
-	void SetDstAnalyzer(analyzer::Analyzer* analyzer) { dst_analyzer = analyzer; }
-	void SetType(Type arg_type) { type = arg_type; }
+    void SetDstAnalyzer(analyzer::Analyzer* analyzer) { dst_analyzer = analyzer; }
+    void SetType(Type arg_type) { type = arg_type; }
 
-	packet_analysis::TCP::TCPSessionAdapter* GetTCPAnalyzer() { return tcp_analyzer; }
+    packet_analysis::TCP::TCPSessionAdapter* GetTCPAnalyzer() { return tcp_analyzer; }
 
-	// Returns the volume of data buffered in the reassembler.
-	// First parameter returns data that is above a hole, and thus is
-	// waiting on the hole being filled.  Second parameter returns
-	// data that has been processed but is awaiting an ACK to free
-	// it up.
-	//
-	// If we're not processing contents, then naturally each of
-	// these is empty.
-	//
-	// WARNING: this is an O(n) operation and potentially very slow.
-	void SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack) const;
+    // Returns the volume of data buffered in the reassembler.
+    // First parameter returns data that is above a hole, and thus is
+    // waiting on the hole being filled.  Second parameter returns
+    // data that has been processed but is awaiting an ACK to free
+    // it up.
+    //
+    // If we're not processing contents, then naturally each of
+    // these is empty.
+    //
+    // WARNING: this is an O(n) operation and potentially very slow.
+    void SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack) const;
 
-	// How much data is pending delivery since it's not yet reassembled.
-	// Includes the data due to holes (so this value is a bit different
-	// from waiting_on_hole above; and is computed in a different fashion).
-	uint64_t NumUndeliveredBytes() const;
+    // How much data is pending delivery since it's not yet reassembled.
+    // Includes the data due to holes (so this value is a bit different
+    // from waiting_on_hole above; and is computed in a different fashion).
+    uint64_t NumUndeliveredBytes() const;
 
-	void SetContentsFile(FilePtr f);
-	const FilePtr& GetContentsFile() const { return record_contents_file; }
+    void SetContentsFile(FilePtr f);
+    const FilePtr& GetContentsFile() const { return record_contents_file; }
 
-	void MatchUndelivered(uint64_t up_to_seq, bool use_last_upper);
+    void MatchUndelivered(uint64_t up_to_seq, bool use_last_upper);
 
-	// Skip up to seq, as if there's a content gap.
-	// Can be used to skip HTTP data for performance considerations.
-	void SkipToSeq(uint64_t seq);
+    // Skip up to seq, as if there's a content gap.
+    // Can be used to skip HTTP data for performance considerations.
+    void SkipToSeq(uint64_t seq);
 
-	bool DataSent(double t, uint64_t seq, int len, const u_char* data,
-	              analyzer::tcp::TCP_Flags flags, bool replaying = true);
-	void AckReceived(uint64_t seq);
+    bool DataSent(double t, uint64_t seq, int len, const u_char* data, analyzer::tcp::TCP_Flags flags,
+                  bool replaying = true);
+    void AckReceived(uint64_t seq);
 
-	// Checks if we have delivered all contents that we can possibly
-	// deliver for this endpoint.  Calls TCPSessionAdapter::EndpointEOF()
-	// when so.
-	void CheckEOF();
+    // Checks if we have delivered all contents that we can possibly
+    // deliver for this endpoint.  Calls TCPSessionAdapter::EndpointEOF()
+    // when so.
+    void CheckEOF();
 
-	bool HasUndeliveredData() const { return HasBlocks(); }
-	bool HadGap() const { return had_gap; }
-	bool DataPending() const;
-	uint64_t DataSeq() const { return LastReassemSeq(); }
+    bool HasUndeliveredData() const { return HasBlocks(); }
+    bool HadGap() const { return had_gap; }
+    bool DataPending() const;
+    uint64_t DataSeq() const { return LastReassemSeq(); }
 
-	void DeliverBlock(uint64_t seq, int len, const u_char* data);
-	void Deliver(uint64_t seq, int len, const u_char* data);
+    void DeliverBlock(uint64_t seq, int len, const u_char* data);
+    void Deliver(uint64_t seq, int len, const u_char* data);
 
-	TCP_Endpoint* Endpoint() { return endp; }
-	const TCP_Endpoint* Endpoint() const { return endp; }
+    TCP_Endpoint* Endpoint() { return endp; }
+    const TCP_Endpoint* Endpoint() const { return endp; }
 
-	bool IsOrig() const { return endp->IsOrig(); }
+    bool IsOrig() const { return endp->IsOrig(); }
 
-	bool IsSkippedContents(uint64_t seq, int length) const { return seq + length <= seq_to_skip; }
+    bool IsSkippedContents(uint64_t seq, int length) const { return seq + length <= seq_to_skip; }
 
 private:
-	void Undelivered(uint64_t up_to_seq) override;
-	void Gap(uint64_t seq, uint64_t len);
+    void Undelivered(uint64_t up_to_seq) override;
+    void Gap(uint64_t seq, uint64_t len);
 
-	void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const FilePtr& f);
-	void RecordBlock(const DataBlock& b, const FilePtr& f);
-	void RecordGap(uint64_t start_seq, uint64_t upper_seq, const FilePtr& f);
+    void RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const FilePtr& f);
+    void RecordBlock(const DataBlock& b, const FilePtr& f);
+    void RecordGap(uint64_t start_seq, uint64_t upper_seq, const FilePtr& f);
 
-	void BlockInserted(DataBlockMap::const_iterator it) override;
-	void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
+    void BlockInserted(DataBlockMap::const_iterator it) override;
+    void Overlap(const u_char* b1, const u_char* b2, uint64_t n) override;
 
-	TCP_Endpoint* endp;
+    TCP_Endpoint* endp;
 
-	bool deliver_tcp_contents;
-	bool had_gap;
-	bool did_EOF;
-	bool skip_deliveries;
+    bool deliver_tcp_contents;
+    bool had_gap;
+    bool did_EOF;
+    bool skip_deliveries;
 
-	uint64_t seq_to_skip;
+    uint64_t seq_to_skip;
 
-	bool in_delivery;
-	analyzer::tcp::TCP_Flags flags;
+    bool in_delivery;
+    analyzer::tcp::TCP_Flags flags;
 
-	FilePtr record_contents_file; // file on which to reassemble contents
+    FilePtr record_contents_file; // file on which to reassemble contents
 
-	analyzer::Analyzer* dst_analyzer;
-	packet_analysis::TCP::TCPSessionAdapter* tcp_analyzer;
+    analyzer::Analyzer* dst_analyzer;
+    packet_analysis::TCP::TCPSessionAdapter* tcp_analyzer;
 
-	Type type;
-	};
+    Type type;
+};
 
-	} // namespace tcp
-	} // namespace analyzer
-	} // namespace zeek
+} // namespace tcp
+} // namespace analyzer
+} // namespace zeek

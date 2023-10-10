@@ -6,32 +6,26 @@
 #include "zeek/analyzer/protocol/ssl/SSL.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::rdp
-	{
+namespace zeek::analyzer::rdp {
 
-class RDP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
-
+class RDP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit RDP_Analyzer(Connection* conn);
-	~RDP_Analyzer() override;
+    explicit RDP_Analyzer(Connection* conn);
+    ~RDP_Analyzer() override;
 
-	// Overridden from Analyzer.
-	void Done() override;
-	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64_t seq, int len, bool orig) override;
-	void EndpointEOF(bool is_orig) override;
+    // Overridden from Analyzer.
+    void Done() override;
+    void DeliverStream(int len, const u_char* data, bool orig) override;
+    void Undelivered(uint64_t seq, int len, bool orig) override;
+    void EndpointEOF(bool is_orig) override;
 
-	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
-		{
-		return new RDP_Analyzer(conn);
-		}
+    static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn) { return new RDP_Analyzer(conn); }
 
 protected:
-	binpac::RDP::RDP_Conn* interp;
+    binpac::RDP::RDP_Conn* interp;
 
-	bool had_gap;
-	analyzer::ssl::SSL_Analyzer* ssl;
-	};
+    bool had_gap;
+    analyzer::ssl::SSL_Analyzer* ssl;
+};
 
-	} // namespace zeek::analyzer::rdp
+} // namespace zeek::analyzer::rdp

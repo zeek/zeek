@@ -30,6 +30,9 @@ export {
   ## Default logging policy hook for LDAP_SEARCH_LOG.
   global log_policy_search: Log::PolicyHook;
 
+  ## LDAP finalization hook.
+  global finalize_ldap: Conn::RemovalHook;
+
   #############################################################################
   # This is the format of ldap.log (ldap operations minus search-related)
   # Each line represents a unique connection+message_id (requests/responses)
@@ -161,6 +164,7 @@ event zeek_init() &priority=5 {
 
 #############################################################################
 function set_session(c: connection, message_id: int, opcode: LDAP::ProtocolOpcode) {
+  Conn::register_removal_hook(c, finalize_ldap);
 
   if (! c?$ldap_messages )
     c$ldap_messages = table();
@@ -363,8 +367,7 @@ event LDAP::bindreq(c: connection,
 }
 
 #############################################################################
-event connection_state_remove(c: connection) {
-
+hook finalize_ldap(c: connection) {
   # log any "pending" unlogged LDAP messages/searches
 
   if ( c?$ldap_messages && (|c$ldap_messages| > 0) ) {

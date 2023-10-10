@@ -3,10 +3,13 @@
 #
 repos:
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: 'v13.0.0'
+  rev: 'v17.0.2'
   hooks:
   - id: clang-format
-
+    types_or:
+      - "c"
+      - "c++"
+      
 - repo: https://github.com/maxwinterstein/shfmt-py
   rev: v3.7.0.1
   hooks:

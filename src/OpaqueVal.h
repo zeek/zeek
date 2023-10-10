@@ -100,8 +100,14 @@ private:
 	friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                        \
 	broker::expected<broker::data> DoSerialize() const override;                                   \
 	bool DoUnserialize(const broker::data& data) override;                                         \
-	const char* OpaqueName() const override { return #T; }                                         \
-	static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
+	const char* OpaqueName() const override                                                        \
+	{                                                                                              \
+		return #T;                                                                                 \
+	}                                                                                              \
+	static zeek::OpaqueValPtr OpaqueInstantiate()                                                  \
+	{                                                                                              \
+		return zeek::make_intrusive<T>();                                                          \
+	}
 
 #define __OPAQUE_MERGE(a, b) a##b
 #define __OPAQUE_ID(x) __OPAQUE_MERGE(_opaque, x)

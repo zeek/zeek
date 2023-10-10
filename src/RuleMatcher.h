@@ -14,7 +14,7 @@
 #include "zeek/ScannedFile.h"
 #include "zeek/plugin/Manager.h"
 
-//#define MATCHER_PRINT_STATS
+// #define MATCHER_PRINT_STATS
 
 // Parser interface:
 

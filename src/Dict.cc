@@ -369,7 +369,9 @@ TEST_CASE("dict robust iteration replacement")
 
 	// Iterate past the first couple of elements so we're not done, but the
 	// iterator is still pointing at a valid element.
-	for ( ; count != 2 && it != dict.end_robust(); ++count, ++it ) { }
+	for ( ; count != 2 && it != dict.end_robust(); ++count, ++it )
+	{
+	}
 
 	// Store off the value at this iterator index
 	auto* v = it->value;

@@ -347,8 +347,8 @@ public:
 
 		if ( del )
 		{
-			delete[](struct ip*) ip4;
-			delete[](struct ip6_hdr*) ip6;
+			delete[] (struct ip*)ip4;
+			delete[] (struct ip6_hdr*)ip6;
 		}
 	}
 

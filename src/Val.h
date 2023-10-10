@@ -1743,7 +1743,10 @@ private:
 };
 
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name)                                                \
-	inline ctype Val::name() const { return static_cast<const ztype*>(this)->Get(); }
+	inline ctype Val::name() const                                                                 \
+	{                                                                                              \
+		return static_cast<const ztype*>(this)->Get();                                             \
+	}
 
 UNDERLYING_ACCESSOR_DEF(detail::IntValImplementation, zeek_int_t, AsInt)
 UNDERLYING_ACCESSOR_DEF(BoolVal, bool, AsBool)

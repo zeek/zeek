@@ -46,9 +46,6 @@ export {
     # The connection's 4-tuple of endpoint addresses/ports.
     id: conn_id &log;
 
-    # transport protocol
-    proto: string &log &optional;
-
     # Message ID
     message_id: int &log &optional;
 
@@ -83,9 +80,6 @@ export {
 
     # The connection's 4-tuple of endpoint addresses/ports.
     id: conn_id &log;
-
-    # transport protocol
-    proto: string &log &optional;
 
     # Message ID
     message_id: int &log &optional;
@@ -148,7 +142,6 @@ global OPCODES_SEARCH: set[LDAP::ProtocolOpcode] = { LDAP::ProtocolOpcode_SEARCH
 
 #############################################################################
 redef record connection += {
-  ldap_proto: string &optional;
   ldap_messages: table[int] of MessageInfo &optional;
   ldap_searches: table[int] of SearchInfo &optional;
 };
@@ -185,28 +178,8 @@ function set_session(c: connection, message_id: int, opcode: LDAP::ProtocolOpcod
                                    $id=c$id,
                                    $message_id=message_id];
   }
-
 }
 
-#############################################################################
-@if (Version::at_least("5.2.0"))
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) {
-  if ( atype == Analyzer::ANALYZER_LDAP_TCP ) {
-    info$c$ldap_proto = "tcp";
-  }
-}
-@else @if (Version::at_least("4.2.0"))
-event analyzer_confirmation(c: connection, atype: AllAnalyzers::Tag, aid: count) {
-@else
-event protocol_confirmation(c: connection, atype: Analyzer::Tag, aid: count) {
-@endif
-
-  if ( atype == Analyzer::ANALYZER_LDAP_TCP ) {
-    c$ldap_proto = "tcp";
-  }
-
-}
-@endif
 #############################################################################
 event LDAP::message(c: connection,
                     message_id: int,
@@ -233,9 +206,6 @@ event LDAP::message(c: connection,
         searches$diagnostic_messages = vector();
       searches$diagnostic_messages += diagnostic_message;
     }
-
-    if (( ! searches?$proto ) && c?$ldap_proto)
-      searches$proto = c$ldap_proto;
 
     Log::write(LDAP::LDAP_SEARCH_LOG, searches);
     delete c$ldap_searches[message_id];
@@ -283,9 +253,6 @@ event LDAP::message(c: connection,
         # don't have both "bind" and "bind <method>" in the operations list
         delete messages$opcodes[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
       }
-
-      if (( ! messages?$proto ) && c?$ldap_proto)
-        messages$proto = c$ldap_proto;
 
       Log::write(LDAP::LDAP_LOG, messages);
       delete c$ldap_messages[message_id];
@@ -379,9 +346,6 @@ hook finalize_ldap(c: connection) {
           delete m$opcodes[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
         }
 
-        if (( ! m?$proto ) && c?$ldap_proto)
-          m$proto = c$ldap_proto;
-
         Log::write(LDAP::LDAP_LOG, m);
       }
     }
@@ -391,10 +355,6 @@ hook finalize_ldap(c: connection) {
   if ( c?$ldap_searches && (|c$ldap_searches| > 0) ) {
     for ( [mid], s in c$ldap_searches ) {
       if (mid > 0) {
-
-        if (( ! s?$proto ) && c?$ldap_proto)
-          s$proto = c$ldap_proto;
-
         Log::write(LDAP::LDAP_SEARCH_LOG, s);
       }
     }

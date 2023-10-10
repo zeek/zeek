@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ldap_search
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	message_id	scopes	derefs	base_objects	result_count	results	diagnostic_messages	filter	attributes
-#types	time	string	addr	port	addr	port	string	int	set[string]	set[string]	vector[string]	count	set[string]	vector[string]	string	vector[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.0.1	25936	10.0.0.2	3268	tcp	2	tree	always	DC=xx\x2cDC=xxx\x2cDC=xxxxx\x2cDC=net	1	success	-	(&(objectclass=*)(sAMAccountName=xxxxxxxx))	sAMAccountName
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	scopes	derefs	base_objects	result_count	results	diagnostic_messages	filter	attributes
+#types	time	string	addr	port	addr	port	int	set[string]	set[string]	vector[string]	count	set[string]	vector[string]	string	vector[string]
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.0.1	25936	10.0.0.2	3268	2	tree	always	DC=xx\x2cDC=xxx\x2cDC=xxxxx\x2cDC=net	1	success	-	(&(objectclass=*)(sAMAccountName=xxxxxxxx))	sAMAccountName
 #close XXXX-XX-XX-XX-XX-XX

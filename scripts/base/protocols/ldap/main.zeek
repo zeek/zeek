@@ -216,70 +216,74 @@ event LDAP::message(c: connection,
   if (opcode == LDAP::ProtocolOpcode_SEARCH_RESULT_DONE) {
     set_session(c, message_id, opcode);
 
+    local searches = c$ldap_searches[message_id];
+
     if ( result != LDAP::ResultCode_Undef ) {
-      if ( ! c$ldap_searches[message_id]?$results )
-        c$ldap_searches[message_id]$results = set();
-      add c$ldap_searches[message_id]$results[RESULT_CODES[result]];
+      if ( ! searches?$results )
+        searches$results = set();
+      add searches$results[RESULT_CODES[result]];
     }
 
     if ( diagnostic_message != "" ) {
-      if ( ! c$ldap_searches[message_id]?$diagnostic_messages )
-        c$ldap_searches[message_id]$diagnostic_messages = vector();
-      c$ldap_searches[message_id]$diagnostic_messages += diagnostic_message;
+      if ( ! searches?$diagnostic_messages )
+        searches$diagnostic_messages = vector();
+      searches$diagnostic_messages += diagnostic_message;
     }
 
-    if (( ! c$ldap_searches[message_id]?$proto ) && c?$ldap_proto)
-      c$ldap_searches[message_id]$proto = c$ldap_proto;
+    if (( ! searches?$proto ) && c?$ldap_proto)
+      searches$proto = c$ldap_proto;
 
-    Log::write(LDAP::LDAP_SEARCH_LOG, c$ldap_searches[message_id]);
+    Log::write(LDAP::LDAP_SEARCH_LOG, searches);
     delete c$ldap_searches[message_id];
 
   } else if (opcode !in OPCODES_SEARCH) {
     set_session(c, message_id, opcode);
 
-    if ( ! c$ldap_messages[message_id]?$opcodes )
-      c$ldap_messages[message_id]$opcodes = set();
-    add c$ldap_messages[message_id]$opcodes[PROTOCOL_OPCODES[opcode]];
+    local messages = c$ldap_messages[message_id];
+
+    if ( ! messages?$opcodes )
+      messages$opcodes = set();
+    add messages$opcodes[PROTOCOL_OPCODES[opcode]];
 
     if ( result != LDAP::ResultCode_Undef ) {
-      if ( ! c$ldap_messages[message_id]?$results )
-        c$ldap_messages[message_id]$results = set();
-      add c$ldap_messages[message_id]$results[RESULT_CODES[result]];
+      if ( ! messages?$results )
+        messages$results = set();
+      add messages$results[RESULT_CODES[result]];
     }
 
     if ( diagnostic_message != "" ) {
-      if ( ! c$ldap_messages[message_id]?$diagnostic_messages )
-        c$ldap_messages[message_id]$diagnostic_messages = vector();
-      c$ldap_messages[message_id]$diagnostic_messages += diagnostic_message;
+      if ( ! messages?$diagnostic_messages )
+        messages$diagnostic_messages = vector();
+      messages$diagnostic_messages += diagnostic_message;
     }
 
     if ( object != "" ) {
-      if ( ! c$ldap_messages[message_id]?$objects )
-        c$ldap_messages[message_id]$objects = vector();
-      c$ldap_messages[message_id]$objects += object;
+      if ( ! messages?$objects )
+        messages$objects = vector();
+      messages$objects += object;
     }
 
     if ( argument != "" ) {
-      if ( ! c$ldap_messages[message_id]?$arguments )
-        c$ldap_messages[message_id]$arguments = vector();
-      if ("bind simple" in c$ldap_messages[message_id]$opcodes && !default_capture_password)
-        c$ldap_messages[message_id]$arguments += "REDACTED";
+      if ( ! messages?$arguments )
+        messages$arguments = vector();
+      if ("bind simple" in messages$opcodes && !default_capture_password)
+        messages$arguments += "REDACTED";
       else
-        c$ldap_messages[message_id]$arguments += argument;
+        messages$arguments += argument;
     }
 
     if (opcode in OPCODES_FINISHED) {
 
-      if ((BIND_SIMPLE in c$ldap_messages[message_id]$opcodes) ||
-          (BIND_SASL in c$ldap_messages[message_id]$opcodes)) {
+      if ((BIND_SIMPLE in messages$opcodes) ||
+          (BIND_SASL in messages$opcodes)) {
         # don't have both "bind" and "bind <method>" in the operations list
-        delete c$ldap_messages[message_id]$opcodes[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
+        delete messages$opcodes[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
       }
 
-      if (( ! c$ldap_messages[message_id]?$proto ) && c?$ldap_proto)
-        c$ldap_messages[message_id]$proto = c$ldap_proto;
+      if (( ! messages?$proto ) && c?$ldap_proto)
+        messages$proto = c$ldap_proto;
 
-      Log::write(LDAP::LDAP_LOG, c$ldap_messages[message_id]);
+      Log::write(LDAP::LDAP_LOG, messages);
       delete c$ldap_messages[message_id];
     }
   }

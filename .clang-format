@@ -141,4 +141,6 @@ StatementMacros:
   - STANDARD_OPERATOR_1
 TabWidth:        4
 UseTab:          Never
+---
+Language: Json
 ...

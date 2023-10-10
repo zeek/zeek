@@ -9,6 +9,7 @@ repos:
     types_or:
       - "c"
       - "c++"
+      - "json"
 
 - repo: https://github.com/maxwinterstein/shfmt-py
   rev: v3.7.0.1

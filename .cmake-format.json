@@ -69,7 +69,8 @@
 		"kwargs": {
 		    "NAME": "*",
 		    "PACKAGE_NAME": "*",
-		    "SOURCES": "*"
+		    "SOURCES": "*",
+		    "MODULES": "*"
 		}
 	    }
 	}

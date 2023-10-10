@@ -20,6 +20,8 @@ known_certs
 known_hosts
 known_modbus
 known_services
+ldap
+ldap_search
 loaded_scripts
 modbus
 modbus_register_change

@@ -1,5 +1,6 @@
 # Test that checks that files.log is generated if the respective option is set.
 
+# @TEST-REQUIRES: ${SCRIPTS}/have-spicy
 # @TEST-EXEC: zeek -b -r $TRACES/tls/google-duplicate.trace %INPUT
 # @TEST-EXEC: btest-diff files.log
 

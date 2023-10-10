@@ -29,6 +29,25 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Zeek now includes the LDAP protocol analyzer from the zeek/spicy-ldap
+  project (https://github.com/zeek/spicy-ldap). This analyzer is enabled by
+  default. The analyzer's events and its ``ldap.log`` and ``ldap_search.log``
+  should be considered preliminary and experimental until the arrival of
+  Zeek's next long-term-stable release (7.0).
+
+  If you observe unusually high CPU consumption or other issues due to this
+  analyzer being enabled by default, the easiest way to disable it is via
+  the ``Analyzer::disabled_analyzers`` const as follows:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_LDAP_UDP,
+		Analyzer::ANALYZER_LDAP_TCP,
+	};
+
+  Please do report issues to us including diagnostic information in case this is
+  necessary in your environment. We're also open to general feedback about the
+  structure of the new logs.
+
 - Added a new ``assert`` statement for assertion based testing and asserting
   runtime state.
 

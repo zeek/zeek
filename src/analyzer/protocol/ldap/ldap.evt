@@ -1,0 +1,40 @@
+# Copyright (c) 2021 by the Zeek Project. See LICENSE for details.
+
+protocol analyzer LDAP_TCP over TCP:
+    parse with LDAP::Messages;
+
+protocol analyzer LDAP_UDP over UDP:
+    parse with LDAP::Messages;
+
+import LDAP;
+
+on LDAP::Message -> event LDAP::message($conn,
+                                        self.messageID,
+                                        self.opcode,
+                                        self.result.code,
+                                        self.result.matchedDN,
+                                        self.result.diagnosticMessage,
+                                        self.obj,
+                                        self.arg);
+
+on LDAP::BindRequest -> event LDAP::bindreq($conn,
+                                            message.messageID,
+                                            self.version,
+                                            self.name,
+                                            self.authType,
+                                            message.arg);
+
+on LDAP::SearchRequest -> event LDAP::searchreq($conn,
+                                                message.messageID,
+                                                self.baseObject,
+                                                self.scope,
+                                                self.deref,
+                                                self.sizeLimit,
+                                                self.timeLimit,
+                                                self.typesOnly,
+                                                self.filter,
+                                                self.attributes);
+
+on LDAP::SearchResultEntry -> event LDAP::searchres($conn,
+                                                    message.messageID,
+                                                    self.objectName);

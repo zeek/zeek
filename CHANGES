@@ -1,3 +1,89 @@
+6.1.0-dev.528 | 2023-10-10 20:03:31 +0200
+
+  * Introduce dedicated `LDAP::Info` (Benjamin Bannier, Corelight)
+
+  * Remove redundant storing of protocol in LDAP logs (Benjamin Bannier, Corelight)
+
+  * Use LDAP `RemovalHook` instead of implementing `connection_state_remove` (Benjamin Bannier, Corelight)
+
+  * Tidy up LDAP code by using local references (Benjamin Bannier, Corelight)
+
+  * Pluralize container names in LDAP types (Benjamin Bannier, Corelight)
+
+  * Move LDAP script constants to their own file (Benjamin Bannier, Corelight)
+
+  * Name `LDAP::Message` and `LDAP::Search` `*Info` (Benjamin Bannier, Corelight)
+
+  * Make ports for LDAP analyzers fully configurable (Benjamin Bannier, Corelight)
+
+    This moves the ports the LDAP analyzers should be triggered on from the
+    EVT file to the Zeek module. This gives users full control over which
+    ports the analyzers are registered for while previously they could only
+    register them for additional ports (there is no Zeek script equivalent
+    of `Manager::UnregisterAnalyzerForPort`).
+
+    The analyzers could still be triggered via DPD, but this is intentional.
+    To fully disable analyzers users can use e.g.,
+
+    ```zeek
+    event zeek_init()
+        {
+        Analyzer::disable_analyzer(Analyzer::ANALYZER_LDAP_TCP);
+        }
+    ```
+
+  * Require have-spicy for tests which log spicy-ldap information (Benjamin Bannier, Corelight)
+
+  * Fix LDAP analyzer setup for when Spicy analyzers are disabled (Benjamin Bannier, Corelight)
+
+  * Bump zeek-testing-private (Benjamin Bannier, Corelight)
+
+  * Integrate spicy-ldap test suite (Benjamin Bannier, Corelight)
+
+  * Move spicy-ldap into Zeek protocol analyzer tree (Benjamin Bannier, Corelight)
+
+  * Explicitly use all of spicy-ldap's modules (Benjamin Bannier, Corelight)
+
+    This fixes building of this multi-module analyzer.
+
+  * Explicitly list `asn1.spicy` as spicy-ldap source (Benjamin Bannier, Corelight)
+
+    This will lead to the file being installed so it can be consumed by
+    other parsers.
+
+  * Remove uses of `zeek` module in spicy-ldap (Benjamin Bannier, Corelight)
+
+  * Fix typos in spicy-ldap (Benjamin Bannier, Corelight)
+
+  * Remove project configuration files in spicy-ldap (Benjamin Bannier, Corelight)
+
+  * Integrate spicy-ldap into build (Benjamin Bannier, Corelight)
+
+  * Import zeek/spicy-ldap@57b5eff9883d1c43896f4278218351a132de9ce1 (Benjamin Bannier, Corelight)
+
+  * Merge branch 'topic/timw/arm-build-failure' (Tim Wojtulewicz, Corelight)
+
+    * topic/timw/arm-build-failure:
+      CI: Disable spicy on arm_debian11 and opensuse_leap_15_4 builds
+      CI: Remove sanitizers resource template
+
+  * CI: Disable spicy on arm_debian11 and opensuse_leap_15_4 builds (Tim Wojtulewicz, Corelight)
+
+    These two builds are struggling to complete due to OOM issues. Reducing the
+    number of CPUs didn't help, so this temporarily disables Spicy from
+    building on those hosts to reduce the memory usage.
+
+  * CI: Remove sanitizers resource template (Tim Wojtulewicz, Corelight)
+
+    This template was added when the sanitizer builds needed more memory than all
+    of the other builds. We've since increased the amount of memory that the other
+    builds use beyond what's requested in this template, so it doesn't make sense
+    to keep it around.
+
+  * Updating zeek-aux submodule [nomail] (Arne Welzel, Corelight)
+
+  * NEWS: Polish external plugins message [nomail] [skip ci] (Arne Welzel, Corelight)
+
 6.1.0-dev.502 | 2023-10-09 16:26:58 +0200
 
   * btest/plugins/hooks: Run in bare mode (Arne Welzel, Corelight)

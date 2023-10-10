@@ -59,6 +59,7 @@
 @load base/protocols/imap
 @load base/protocols/irc
 @load base/protocols/krb
+@load base/protocols/ldap
 @load base/protocols/modbus
 @load base/protocols/mqtt
 @load base/protocols/mysql

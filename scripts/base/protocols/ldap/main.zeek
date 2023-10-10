@@ -7,8 +7,7 @@
 module LDAP;
 
 export {
-  redef enum Log::ID += { LDAP_LOG,
-                          LDAP_SEARCH_LOG };
+  redef enum Log::ID += { LDAP_LOG, LDAP_SEARCH_LOG };
 
   ## TCP ports which should be considered for analysis.
   const ports_tcp = { 389/tcp, 3268/tcp } &redef;
@@ -107,6 +106,13 @@ export {
     attributes: vector of string &log &optional;
   };
 
+  type State: record {
+    messages: table[int] of MessageInfo &optional;
+    searches: table[int] of SearchInfo &optional;
+  };
+
+  redef record connection += { ldap: State &optional; };
+
   # Event that can be handled to access the ldap record as it is sent on
   # to the logging framework.
   global log_ldap: event(rec: LDAP::MessageInfo);
@@ -141,12 +147,6 @@ global OPCODES_SEARCH: set[LDAP::ProtocolOpcode] = { LDAP::ProtocolOpcode_SEARCH
                                                      LDAP::ProtocolOpcode_SEARCH_RESULT_REFERENCE };
 
 #############################################################################
-redef record connection += {
-  ldap_messages: table[int] of MessageInfo &optional;
-  ldap_searches: table[int] of SearchInfo &optional;
-};
-
-#############################################################################
 event zeek_init() &priority=5 {
   Analyzer::register_for_ports(Analyzer::ANALYZER_LDAP_TCP, LDAP::ports_tcp);
   Analyzer::register_for_ports(Analyzer::ANALYZER_LDAP_UDP, LDAP::ports_udp);
@@ -159,21 +159,24 @@ event zeek_init() &priority=5 {
 function set_session(c: connection, message_id: int, opcode: LDAP::ProtocolOpcode) {
   Conn::register_removal_hook(c, finalize_ldap);
 
-  if (! c?$ldap_messages )
-    c$ldap_messages = table();
+  if (! c?$ldap )
+    c$ldap = State();
 
-  if (! c?$ldap_searches )
-    c$ldap_searches = table();
+  if (! c$ldap?$messages )
+    c$ldap$messages = table();
 
-  if ((opcode in OPCODES_SEARCH) && (message_id !in c$ldap_searches)) {
-    c$ldap_searches[message_id] = [$ts=network_time(),
+  if (! c$ldap?$searches )
+    c$ldap$searches = table();
+
+  if ((opcode in OPCODES_SEARCH) && (message_id !in c$ldap$searches)) {
+    c$ldap$searches[message_id] = [$ts=network_time(),
                                    $uid=c$uid,
                                    $id=c$id,
                                    $message_id=message_id,
                                    $result_count=0];
 
-  } else if ((opcode !in OPCODES_SEARCH) && (message_id !in c$ldap_messages)) {
-    c$ldap_messages[message_id] = [$ts=network_time(),
+  } else if ((opcode !in OPCODES_SEARCH) && (message_id !in c$ldap$messages)) {
+    c$ldap$messages[message_id] = [$ts=network_time(),
                                    $uid=c$uid,
                                    $id=c$id,
                                    $message_id=message_id];
@@ -193,7 +196,7 @@ event LDAP::message(c: connection,
   if (opcode == LDAP::ProtocolOpcode_SEARCH_RESULT_DONE) {
     set_session(c, message_id, opcode);
 
-    local searches = c$ldap_searches[message_id];
+    local searches = c$ldap$searches[message_id];
 
     if ( result != LDAP::ResultCode_Undef ) {
       if ( ! searches?$results )
@@ -208,12 +211,12 @@ event LDAP::message(c: connection,
     }
 
     Log::write(LDAP::LDAP_SEARCH_LOG, searches);
-    delete c$ldap_searches[message_id];
+    delete c$ldap$searches[message_id];
 
   } else if (opcode !in OPCODES_SEARCH) {
     set_session(c, message_id, opcode);
 
-    local messages = c$ldap_messages[message_id];
+    local messages = c$ldap$messages[message_id];
 
     if ( ! messages?$opcodes )
       messages$opcodes = set();
@@ -255,7 +258,7 @@ event LDAP::message(c: connection,
       }
 
       Log::write(LDAP::LDAP_LOG, messages);
-      delete c$ldap_messages[message_id];
+      delete c$ldap$messages[message_id];
     }
   }
 
@@ -276,26 +279,26 @@ event LDAP::searchreq(c: connection,
   set_session(c, message_id, LDAP::ProtocolOpcode_SEARCH_REQUEST);
 
   if ( scope != LDAP::SearchScope_Undef ) {
-    if ( ! c$ldap_searches[message_id]?$scopes )
-      c$ldap_searches[message_id]$scopes = set();
-    add c$ldap_searches[message_id]$scopes[SEARCH_SCOPES[scope]];
+    if ( ! c$ldap$searches[message_id]?$scopes )
+      c$ldap$searches[message_id]$scopes = set();
+    add c$ldap$searches[message_id]$scopes[SEARCH_SCOPES[scope]];
   }
 
   if ( deref != LDAP::SearchDerefAlias_Undef ) {
-    if ( ! c$ldap_searches[message_id]?$derefs )
-      c$ldap_searches[message_id]$derefs = set();
-    add c$ldap_searches[message_id]$derefs[SEARCH_DEREF_ALIASES[deref]];
+    if ( ! c$ldap$searches[message_id]?$derefs )
+      c$ldap$searches[message_id]$derefs = set();
+    add c$ldap$searches[message_id]$derefs[SEARCH_DEREF_ALIASES[deref]];
   }
 
   if ( base_object != "" ) {
-    if ( ! c$ldap_searches[message_id]?$base_objects )
-      c$ldap_searches[message_id]$base_objects = vector();
-    c$ldap_searches[message_id]$base_objects += base_object;
+    if ( ! c$ldap$searches[message_id]?$base_objects )
+      c$ldap$searches[message_id]$base_objects = vector();
+    c$ldap$searches[message_id]$base_objects += base_object;
   }
-  c$ldap_searches[message_id]$filter = filter;
+  c$ldap$searches[message_id]$filter = filter;
 
   if ( default_log_search_attributes ) {
-    c$ldap_searches[message_id]$attributes = attributes;
+    c$ldap$searches[message_id]$attributes = attributes;
   }
 }
 
@@ -306,7 +309,7 @@ event LDAP::searchres(c: connection,
 
   set_session(c, message_id, LDAP::ProtocolOpcode_SEARCH_RESULT_ENTRY);
 
-  c$ldap_searches[message_id]$result_count += 1;
+  c$ldap$searches[message_id]$result_count += 1;
 }
 
 #############################################################################
@@ -316,29 +319,27 @@ event LDAP::bindreq(c: connection,
                     name: string,
                     authType: LDAP::BindAuthType,
                     authInfo: string) {
-
   set_session(c, message_id, LDAP::ProtocolOpcode_BIND_REQUEST);
 
-  if ( ! c$ldap_messages[message_id]?$version )
-    c$ldap_messages[message_id]$version = version;
+  if ( ! c$ldap$messages[message_id]?$version )
+    c$ldap$messages[message_id]$version = version;
 
-  if ( ! c$ldap_messages[message_id]?$opcodes )
-    c$ldap_messages[message_id]$opcodes = set();
+  if ( ! c$ldap$messages[message_id]?$opcodes )
+    c$ldap$messages[message_id]$opcodes = set();
 
   if (authType == LDAP::BindAuthType_BIND_AUTH_SIMPLE) {
-    add c$ldap_messages[message_id]$opcodes[BIND_SIMPLE];
+    add c$ldap$messages[message_id]$opcodes[BIND_SIMPLE];
   } else if (authType == LDAP::BindAuthType_BIND_AUTH_SASL) {
-    add c$ldap_messages[message_id]$opcodes[BIND_SASL];
+    add c$ldap$messages[message_id]$opcodes[BIND_SASL];
   }
-
 }
 
 #############################################################################
 hook finalize_ldap(c: connection) {
   # log any "pending" unlogged LDAP messages/searches
 
-  if ( c?$ldap_messages && (|c$ldap_messages| > 0) ) {
-    for ( [mid], m in c$ldap_messages ) {
+  if ( c$ldap?$messages && (|c$ldap$messages| > 0) ) {
+    for ( [mid], m in c$ldap$messages ) {
       if (mid > 0) {
 
         if ((BIND_SIMPLE in m$opcodes) || (BIND_SASL in m$opcodes)) {
@@ -349,16 +350,16 @@ hook finalize_ldap(c: connection) {
         Log::write(LDAP::LDAP_LOG, m);
       }
     }
-    delete c$ldap_messages;
+    delete c$ldap$messages;
   }
 
-  if ( c?$ldap_searches && (|c$ldap_searches| > 0) ) {
-    for ( [mid], s in c$ldap_searches ) {
+  if ( c$ldap?$searches && (|c$ldap$searches| > 0) ) {
+    for ( [mid], s in c$ldap$searches ) {
       if (mid > 0) {
         Log::write(LDAP::LDAP_SEARCH_LOG, s);
       }
     }
-    delete c$ldap_searches;
+    delete c$ldap$searches;
   }
 
 }

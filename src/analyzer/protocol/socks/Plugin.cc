@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/socks/SOCKS.h"
 
 namespace zeek::plugin::detail::Zeek_SOCKS
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"SOCKS", zeek::analyzer::socks::SOCKS_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::SOCKS";
 		config.description = "SOCKS analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_SOCKS
+} // namespace zeek::plugin::detail::Zeek_SOCKS

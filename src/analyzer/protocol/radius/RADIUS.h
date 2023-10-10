@@ -4,10 +4,10 @@
 #include "zeek/analyzer/protocol/radius/radius_pac.h"
 
 namespace zeek::analyzer::radius
-	{
+{
 
 class RADIUS_Analyzer final : public analyzer::Analyzer
-	{
+{
 public:
 	explicit RADIUS_Analyzer(Connection* conn);
 	~RADIUS_Analyzer() override;
@@ -21,6 +21,6 @@ public:
 
 protected:
 	binpac::RADIUS::RADIUS_Conn* interp;
-	};
+};
 
-	} // namespace zeek::analyzer::radius
+} // namespace zeek::analyzer::radius

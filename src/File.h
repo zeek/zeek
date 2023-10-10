@@ -11,17 +11,17 @@
 #include "zeek/util.h"
 
 namespace zeek
-	{
+{
 
 namespace detail
-	{
+{
 
 class PrintStmt;
 class Attributes;
 
 extern void do_print_stmt(const std::vector<ValPtr>& vals);
 
-	} // namespace detail;
+} // namespace detail;
 
 class RecordVal;
 class Type;
@@ -31,7 +31,7 @@ class File;
 using FilePtr = IntrusivePtr<File>;
 
 class File final : public Obj
-	{
+{
 public:
 	explicit File(FILE* arg_f);
 	File(FILE* arg_f, const char* filename, const char* access);
@@ -118,6 +118,6 @@ protected:
 
 private:
 	static std::list<std::pair<std::string, File*>> open_files;
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

@@ -6,10 +6,10 @@
 #include "zeek/packet_analysis/Component.h"
 
 namespace zeek::packet_analysis::Wrapper
-	{
+{
 
 class WrapperAnalyzer : public Analyzer
-	{
+{
 public:
 	WrapperAnalyzer();
 	~WrapperAnalyzer() override = default;
@@ -17,9 +17,9 @@ public:
 	bool Analyze(Packet* packet, const uint8_t*& data) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<WrapperAnalyzer>();
-		}
-	};
-
 	}
+};
+
+}

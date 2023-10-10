@@ -11,7 +11,7 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 static inline bool is_established(const zeek::analyzer::tcp::TCP_Endpoint* e)
-	{
+{
 	// We more or less follow Snort here: an established session
 	// is one for which the initial handshake has succeeded (but we
 	// add partial connections).  The connection tear-down is part
@@ -19,14 +19,14 @@ static inline bool is_established(const zeek::analyzer::tcp::TCP_Endpoint* e)
 	return e->state != zeek::analyzer::tcp::TCP_ENDPOINT_INACTIVE &&
 	       e->state != zeek::analyzer::tcp::TCP_ENDPOINT_SYN_SENT &&
 	       e->state != zeek::analyzer::tcp::TCP_ENDPOINT_SYN_ACK_SENT;
-	}
+}
 
 namespace zeek::detail
-	{
+{
 
 bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
                                     int len)
-	{
+{
 	auto* adapter = state->GetAnalyzer()->Conn()->GetSessionAdapter();
 
 	if ( ! adapter || ! adapter->IsAnalyzer("TCP") )
@@ -48,16 +48,16 @@ bool RuleConditionTCPState::DoMatch(Rule* rule, RuleEndpointState* state, const 
 		return false;
 
 	return true;
-	}
+}
 
 void RuleConditionTCPState::PrintDebug()
-	{
+{
 	fprintf(stderr, "	RuleConditionTCPState: 0x%x\n", tcpstates);
-	}
+}
 
 bool RuleConditionUDPState::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
                                     int len)
-	{
+{
 	auto* adapter = state->GetAnalyzer()->Conn()->GetSessionAdapter();
 
 	if ( ! adapter || ! adapter->IsAnalyzer("UDP") )
@@ -73,43 +73,43 @@ bool RuleConditionUDPState::DoMatch(Rule* rule, RuleEndpointState* state, const 
 		return false;
 
 	return true;
-	}
+}
 
 void RuleConditionUDPState::PrintDebug()
-	{
+{
 	fprintf(stderr, "	RuleConditionUDPState: 0x%x\n", states);
-	}
+}
 
 void RuleConditionIPOptions::PrintDebug()
-	{
+{
 	fprintf(stderr, "	RuleConditionIPOptions: 0x%x\n", options);
-	}
+}
 
 bool RuleConditionIPOptions::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
                                      int len)
-	{
+{
 	// FIXME: Not implemented yet
 	return false;
-	}
+}
 
 void RuleConditionSameIP::PrintDebug()
-	{
+{
 	fprintf(stderr, "	RuleConditionSameIP\n");
-	}
+}
 
 bool RuleConditionSameIP::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data, int len)
-	{
+{
 	return state->GetAnalyzer()->Conn()->OrigAddr() == state->GetAnalyzer()->Conn()->RespAddr();
-	}
+}
 
 void RuleConditionPayloadSize::PrintDebug()
-	{
+{
 	fprintf(stderr, "	RuleConditionPayloadSize %d\n", val);
-	}
+}
 
 bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data,
                                        int len)
-	{
+{
 #ifdef MATCHER_PRINT_DEBUG
 	fprintf(stderr, "%.06f PayloadSize check: val = %d, payload_size = %d\n", network_time, val,
 	        state->PayloadSize());
@@ -127,7 +127,7 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state, con
 	uint32_t payload_size = uint32_t(state->PayloadSize());
 
 	switch ( comp )
-		{
+	{
 		case RULE_EQ:
 			return payload_size == val;
 
@@ -148,23 +148,23 @@ bool RuleConditionPayloadSize::DoMatch(Rule* rule, RuleEndpointState* state, con
 
 		default:
 			reporter->InternalError("unknown comparison type");
-		}
+	}
 
 	// Should not be reached
 	return false;
-	}
+}
 
 RuleConditionEval::RuleConditionEval(const char* func)
-	{
+{
 	id = global_scope()->Find(func).get();
 	if ( ! id )
-		{
+	{
 		rules_error("unknown identifier", func);
 		return;
-		}
+	}
 
 	if ( id->GetType()->Tag() == TYPE_FUNC )
-		{
+	{
 		// Validate argument quantity and type.
 		FuncType* f = id->GetType()->AsFuncType();
 
@@ -182,16 +182,16 @@ RuleConditionEval::RuleConditionEval(const char* func)
 			            func);
 
 		id->AddAttr(make_intrusive<Attr>(ATTR_IS_USED));
-		}
 	}
+}
 
 bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state, const u_char* data, int len)
-	{
+{
 	if ( ! id->HasVal() )
-		{
+	{
 		reporter->Error("undefined value");
 		return false;
-		}
+	}
 
 	if ( id->GetType()->Tag() != TYPE_FUNC )
 		return id->GetVal()->AsBool();
@@ -209,21 +209,21 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state, const u_ch
 	bool result = false;
 
 	try
-		{
+	{
 		auto val = id->GetVal()->AsFunc()->Invoke(&args);
 		result = val && val->AsBool();
-		}
+	}
 
 	catch ( InterpreterException& e )
-		{
-		}
+	{
+	}
 
 	return result;
-	}
+}
 
 void RuleConditionEval::PrintDebug()
-	{
+{
 	fprintf(stderr, "	RuleConditionEval: %s\n", id->Name());
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

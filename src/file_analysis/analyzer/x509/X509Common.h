@@ -11,7 +11,7 @@
 #include "zeek/file_analysis/Analyzer.h"
 
 namespace zeek
-	{
+{
 
 class EventHandlerPtr;
 class Reporter;
@@ -20,15 +20,15 @@ template <class T> class IntrusivePtr;
 using StringValPtr = IntrusivePtr<StringVal>;
 
 namespace file_analysis
-	{
+{
 
 class File;
 
 namespace detail
-	{
+{
 
 class X509Common : public file_analysis::Analyzer
-	{
+{
 public:
 	~X509Common() override{};
 
@@ -54,8 +54,8 @@ protected:
 	void ParseExtension(X509_EXTENSION* ex, const EventHandlerPtr& h, bool global);
 	void ParseSignedCertificateTimestamps(X509_EXTENSION* ext);
 	virtual void ParseExtensionsSpecific(X509_EXTENSION* ex, bool, ASN1_OBJECT*, const char*) = 0;
-	};
+};
 
-	} // namespace detail
-	} // namespace file_analysis
-	} // namespace zeek
+} // namespace detail
+} // namespace file_analysis
+} // namespace zeek

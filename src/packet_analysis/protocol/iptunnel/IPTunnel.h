@@ -8,15 +8,15 @@
 #include "zeek/packet_analysis/Component.h"
 
 namespace zeek::packet_analysis::IPTunnel
-	{
+{
 
 namespace detail
-	{
+{
 class IPTunnelTimer;
-	}
+}
 
 class IPTunnelAnalyzer : public Analyzer
-	{
+{
 public:
 	IPTunnelAnalyzer();
 	~IPTunnelAnalyzer() override = default;
@@ -24,9 +24,9 @@ public:
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<IPTunnelAnalyzer>();
-		}
+	}
 
 	/**
 	 * Wrapper that handles encapsulated IP packets and passes them back into
@@ -76,7 +76,7 @@ protected:
 	using TunnelActivity = std::pair<EncapsulatingConn, double>;
 	using IPTunnelMap = std::map<IPPair, TunnelActivity>;
 	IPTunnelMap ip_tunnels;
-	};
+};
 
 /**
  * Utility function for packet analyzers for encapsulation/tunnel protocols. This
@@ -108,10 +108,10 @@ extern std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_
                                                   const Tag& analyzer_tag);
 
 namespace detail
-	{
+{
 
 class IPTunnelTimer final : public zeek::detail::Timer
-	{
+{
 public:
 	IPTunnelTimer(double t, IPTunnelAnalyzer::IPPair p, IPTunnelAnalyzer* analyzer);
 	~IPTunnelTimer() override = default;
@@ -121,11 +121,11 @@ public:
 protected:
 	IPTunnelAnalyzer::IPPair tunnel_idx;
 	IPTunnelAnalyzer* analyzer;
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 // This is temporary until the TCP and UDP analyzers are moved to be packet analyzers.
 extern IPTunnelAnalyzer* ip_tunnel_analyzer;
 
-	}
+}

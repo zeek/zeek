@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/radius/RADIUS.h"
 
 namespace zeek::plugin::detail::Zeek_RADIUS
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"RADIUS", zeek::analyzer::radius::RADIUS_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::RADIUS";
 		config.description = "RADIUS analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_RADIUS
+} // namespace zeek::plugin::detail::Zeek_RADIUS

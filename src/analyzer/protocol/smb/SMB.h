@@ -5,10 +5,10 @@
 #include "analyzer/protocol/smb/smb_pac.h"
 
 namespace zeek::analyzer::smb
-	{
+{
 
 class SMB_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit SMB_Analyzer(Connection* conn);
 	~SMB_Analyzer() override;
@@ -31,6 +31,6 @@ protected:
 	uint8_t chunks;
 
 	bool need_sync;
-	};
+};
 
-	} // namespace zeek::analyzer::smb
+} // namespace zeek::analyzer::smb

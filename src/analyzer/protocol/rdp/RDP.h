@@ -7,10 +7,10 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::rdp
-	{
+{
 
 class RDP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 
 public:
 	explicit RDP_Analyzer(Connection* conn);
@@ -23,15 +23,15 @@ public:
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
-		{
+	{
 		return new RDP_Analyzer(conn);
-		}
+	}
 
 protected:
 	binpac::RDP::RDP_Conn* interp;
 
 	bool had_gap;
 	analyzer::ssl::SSL_Analyzer* ssl;
-	};
+};
 
-	} // namespace zeek::analyzer::rdp
+} // namespace zeek::analyzer::rdp

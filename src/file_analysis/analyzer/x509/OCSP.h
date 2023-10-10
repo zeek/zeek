@@ -8,15 +8,15 @@
 #include "zeek/file_analysis/analyzer/x509/X509Common.h"
 
 namespace zeek::file_analysis
-	{
+{
 
 class File;
 
 namespace detail
-	{
+{
 
 class OCSP : public file_analysis::detail::X509Common
-	{
+{
 public:
 	bool DeliverStream(const u_char* data, uint64_t len) override;
 	bool Undelivered(uint64_t offset, uint64_t len) override;
@@ -36,7 +36,7 @@ private:
 
 	std::string ocsp_data;
 	bool request = false; // true if ocsp request, false if reply
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek::file_analysis
+} // namespace detail
+} // namespace zeek::file_analysis

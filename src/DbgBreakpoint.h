@@ -7,26 +7,26 @@
 #include "zeek/util.h"
 
 namespace zeek::detail
-	{
+{
 
 class Stmt;
 class ParseLocationRec;
 
 enum BreakCode
-	{
+{
 	BC_NO_HIT,
 	BC_HIT,
 	BC_HIT_AND_DELETE
-	};
+};
 class DbgBreakpoint
-	{
+{
 	enum Kind
-		{
+	{
 		BP_STMT = 0,
 		BP_FUNC,
 		BP_LINE,
 		BP_TIME
-		};
+	};
 
 public:
 	DbgBreakpoint();
@@ -95,6 +95,6 @@ protected:
 	int32_t hit_count; // how many times it's been hit (w/o breaking)
 
 	std::string condition; // condition to evaluate; nil for none
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

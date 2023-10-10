@@ -15,19 +15,19 @@
 // are extra metadata on every variable instance.
 
 namespace zeek
-	{
+{
 
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 
 namespace detail
-	{
+{
 
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 
 enum AttrTag
-	{
+{
 	ATTR_OPTIONAL,
 	ATTR_DEFAULT,
 	ATTR_DEFAULT_INSERT, // insert default value on failed lookups
@@ -54,7 +54,7 @@ enum AttrTag
 	ATTR_IS_USED, // to suppress usage warnings
 	ATTR_ORDERED, // used to store tables in ordered mode
 	NUM_ATTRS // this item should always be last
-	};
+};
 
 class Attr;
 using AttrPtr = IntrusivePtr<Attr>;
@@ -62,7 +62,7 @@ class Attributes;
 using AttributesPtr = IntrusivePtr<Attributes>;
 
 class Attr final : public Obj
-	{
+{
 public:
 	static inline const AttrPtr nil;
 
@@ -87,7 +87,7 @@ public:
 	std::string DeprecationMessage() const;
 
 	bool operator==(const Attr& other) const
-		{
+	{
 		if ( tag != other.tag )
 			return false;
 
@@ -99,7 +99,7 @@ public:
 			return expr && other.expr;
 
 		return true;
-		}
+	}
 
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
@@ -108,11 +108,11 @@ protected:
 
 	AttrTag tag;
 	ExprPtr expr;
-	};
+};
 
 // Manages a collection of attributes.
 class Attributes final : public Obj
-	{
+{
 public:
 	Attributes(std::vector<AttrPtr> a, TypePtr t, bool in_record, bool is_global);
 	Attributes(TypePtr t, bool in_record, bool is_global);
@@ -144,7 +144,7 @@ protected:
 
 	bool in_record;
 	bool global_var;
-	};
+};
 
 // Checks whether default attribute "a" is compatible with the given type.
 // "global_var" specifies whether the attribute is being associated with
@@ -157,5 +157,5 @@ protected:
 extern bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_record,
                                std::string& err_msg);
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

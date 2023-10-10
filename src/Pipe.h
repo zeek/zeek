@@ -3,10 +3,10 @@
 #pragma once
 
 namespace zeek::detail
-	{
+{
 
 class Pipe
-	{
+{
 public:
 	/**
 	 * Create a pair of file descriptors via pipe(), or aborts if it cannot.
@@ -63,13 +63,13 @@ private:
 	int fds[2];
 	int flags[2];
 	int status_flags[2];
-	};
+};
 
 /**
  * A pair of pipes that can be used for bi-directional IPC.
  */
 class PipePair
-	{
+{
 public:
 	/**
 	 * Create a pair of pipes
@@ -125,6 +125,6 @@ public:
 private:
 	Pipe pipes[2];
 	bool swapped = false;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

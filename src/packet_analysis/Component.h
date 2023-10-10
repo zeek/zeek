@@ -11,13 +11,13 @@
 #include "zeek/util.h"
 
 namespace zeek::packet_analysis
-	{
+{
 
 class Analyzer;
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
 class Component : public plugin::Component
-	{
+{
 public:
 	using factory_callback = std::function<AnalyzerPtr()>;
 
@@ -59,6 +59,6 @@ protected:
 private:
 	factory_callback factory; // The analyzer's factory callback.
 	bool enabled = true; // True if the analyzer is enabled.
-	};
+};
 
-	}
+}

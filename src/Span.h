@@ -8,7 +8,7 @@
 #include <type_traits>
 
 namespace zeek
-	{
+{
 
 /**
  * Drop-in replacement for C++20's @c std::span with dynamic extent only:
@@ -16,7 +16,7 @@ namespace zeek
  * this class may get replaced with a type alias instead and/or deprecated.
  */
 template <class T> class Span
-	{
+{
 public:
 	// -- member types ---------------------------------------------------------
 
@@ -52,25 +52,25 @@ public:
 
 	constexpr Span(pointer first, pointer last)
 		: memory_block(first), num_elements(static_cast<size_t>(last - first))
-		{
-		}
+	{
+	}
 
 	template <size_t Size>
 	constexpr Span(element_type (&arr)[Size]) noexcept : memory_block(arr), num_elements(Size)
-		{
-		}
+	{
+	}
 
 	template <class Container, class Data = typename Container::value_type,
 	          class = std::enable_if_t<std::is_convertible_v<Data*, T*>>>
 	Span(Container& xs) noexcept : memory_block(xs.data()), num_elements(xs.size())
-		{
-		}
+	{
+	}
 
 	template <class Container, class Data = typename Container::value_type,
 	          class = std::enable_if_t<std::is_convertible_v<const Data*, T*>>>
 	Span(const Container& xs) noexcept : memory_block(xs.data()), num_elements(xs.size())
-		{
-		}
+	{
+	}
 
 	constexpr Span(const Span&) noexcept = default;
 
@@ -89,16 +89,16 @@ public:
 	constexpr reverse_iterator rbegin() const noexcept { return reverse_iterator{end()}; }
 
 	constexpr const_reverse_iterator crbegin() const noexcept
-		{
+	{
 		return const_reverse_iterator{end()};
-		}
+	}
 
 	constexpr reverse_iterator rend() const noexcept { return reverse_iterator{begin()}; }
 
 	constexpr const_reverse_iterator crend() const noexcept
-		{
+	{
 		return const_reverse_iterator{begin()};
-		}
+	}
 
 	// -- element access -------------------------------------------------------
 
@@ -121,14 +121,14 @@ public:
 	// -- subviews -------------------------------------------------------------
 
 	constexpr Span subspan(size_t offset, size_t count) const
-		{
+	{
 		return {memory_block + offset, count};
-		}
+	}
 
 	constexpr Span subspan(size_t offset) const
-		{
+	{
 		return {memory_block + offset, num_elements - offset};
-		}
+	}
 
 	constexpr Span first(size_t count) const { return {memory_block, count}; }
 
@@ -142,7 +142,7 @@ private:
 
 	/// Stores the number of elements in the contiguous memory block.
 	size_t num_elements;
-	};
+};
 
 // -- deduction guides ---------------------------------------------------------
 
@@ -156,4 +156,4 @@ template <class Container> Span(Container&) -> Span<typename Container::value_ty
 
 template <class Container> Span(const Container&) -> Span<const typename Container::value_type>;
 
-	} // namespace zeek
+} // namespace zeek

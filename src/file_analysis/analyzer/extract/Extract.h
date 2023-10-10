@@ -11,13 +11,13 @@
 #include "zeek/file_analysis/analyzer/extract/events.bif.h"
 
 namespace zeek::file_analysis::detail
-	{
+{
 
 /**
  * An analyzer to extract content of files to local disk.
  */
 class Extract : public file_analysis::Analyzer
-	{
+{
 public:
 	/**
 	 * Destructor.  Will close the file that was used for data extraction.
@@ -76,6 +76,6 @@ private:
 	uint64_t limit; // the file extraction limit
 	uint64_t written; // how many bytes we have written so far
 	bool limit_includes_missing; // do count missing bytes against limit if true
-	};
+};
 
-	} // namespace zeek::file_analysis::detail
+} // namespace zeek::file_analysis::detail

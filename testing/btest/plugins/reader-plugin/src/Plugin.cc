@@ -3,14 +3,14 @@
 #include "Foo.h"
 
 namespace btest::plugin::Demo_Foo
-	{
+{
 Plugin plugin;
-	}
+}
 
 using namespace btest::plugin::Demo_Foo;
 
 zeek::plugin::Configuration Plugin::Configure()
-	{
+{
 	AddComponent(new zeek::input::Component("Foo", btest::input::reader::Foo::Instantiate));
 
 	zeek::plugin::Configuration config;
@@ -20,4 +20,4 @@ zeek::plugin::Configuration Plugin::Configure()
 	config.version.minor = 0;
 	config.version.patch = 0;
 	return config;
-	}
+}

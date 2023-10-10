@@ -6,17 +6,17 @@
 #include <unistd.h>
 
 extern "C"
-	{
+{
 #include <pcap.h>
-	}
+}
 
 #include "zeek/iosource/PktSrc.h"
 
 namespace zeek::iosource::pcap
-	{
+{
 
 class PcapSource : public PktSrc
-	{
+{
 public:
 	PcapSource(const std::string& path, bool is_live);
 	~PcapSource() override;
@@ -44,6 +44,6 @@ private:
 
 	pcap_t* pd;
 	struct pcap_stat prev_pstat = {0};
-	};
+};
 
-	} // namespace zeek::iosource::pcap
+} // namespace zeek::iosource::pcap

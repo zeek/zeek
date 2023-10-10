@@ -22,7 +22,7 @@ constexpr uint32_t HIST_RESP_CORRUPT_PKT = 0x8;
 UDPAnalyzer::UDPAnalyzer() : IPBasedAnalyzer("UDP", TRANSPORT_UDP, UDP_PORT_MASK, false) { }
 
 SessionAdapter* UDPAnalyzer::MakeSessionAdapter(Connection* conn)
-	{
+{
 	auto* root = new UDPSessionAdapter(conn);
 	root->SetParent(this);
 
@@ -30,15 +30,15 @@ SessionAdapter* UDPAnalyzer::MakeSessionAdapter(Connection* conn)
 	conn->SetInactivityTimeout(zeek::detail::udp_inactivity_timeout);
 
 	return root;
-	}
+}
 
 zeek::analyzer::pia::PIA* UDPAnalyzer::MakePIA(Connection* conn)
-	{
+{
 	return new analyzer::pia::PIA_UDP(conn);
-	}
+}
 
 void UDPAnalyzer::Initialize()
-	{
+{
 	IPBasedAnalyzer::Initialize();
 
 	const auto& id = detail::global_scope()->Find("PacketAnalyzer::VXLAN::vxlan_ports");
@@ -51,17 +51,17 @@ void UDPAnalyzer::Initialize()
 
 	for ( auto i = 0; i < port_list->Length(); ++i )
 		vxlan_ports.emplace_back(port_list->Idx(i)->AsPortVal()->Port());
-	}
+}
 
 bool UDPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port, const u_char* data,
                                  bool& flip_roles) const
-	{
+{
 	flip_roles = IsLikelyServerPort(src_port) && ! IsLikelyServerPort(dst_port);
 	return true;
-	}
+}
 
 bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple)
-	{
+{
 	uint32_t min_hdr_len = sizeof(struct udphdr);
 	if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
 		return false;
@@ -76,10 +76,10 @@ bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
 	tuple.proto = TRANSPORT_UDP;
 
 	return true;
-	}
+}
 
 void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt)
-	{
+{
 	auto* adapter = static_cast<UDPSessionAdapter*>(c->GetSessionAdapter());
 
 	const u_char* data = pkt->ip_hdr->Payload();
@@ -116,10 +116,10 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	if ( validate_checksum && len > ((int)sizeof(struct udphdr) + vxlan_len + eth_len) &&
 	     (data[0] & 0x08) == 0x08 )
-		{
+	{
 		if ( std::find(vxlan_ports.begin(), vxlan_ports.end(), ntohs(up->uh_dport)) !=
 		     vxlan_ports.end() )
-			{
+		{
 			// Looks like VXLAN on a well-known port, so the checksum should be
 			// transmitted as zero, and we should accept that.  If not
 			// transmitted as zero, then validating the checksum is optional.
@@ -127,29 +127,29 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 				validate_checksum = false;
 			else
 				validate_checksum = BifConst::Tunnel::validate_vxlan_checksums;
-			}
 		}
+	}
 
 	if ( validate_checksum )
-		{
+	{
 		bool bad = false;
 
 		if ( ip->IP4_Hdr() )
-			{
+		{
 			if ( chksum && ! ValidateChecksum(ip.get(), up, len) )
 				bad = true;
-			}
+		}
 
 		/* checksum is not optional for IPv6 */
 		else if ( ! ValidateChecksum(ip.get(), up, len) )
 			bad = true;
 
 		if ( bad )
-			{
+		{
 			adapter->HandleBadChecksum(is_orig);
 			return;
-			}
 		}
+	}
 
 	int ulen = ntohs(up->uh_ulen);
 	if ( ulen != len )
@@ -162,7 +162,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	c->SetLastTime(run_state::current_timestamp);
 
 	if ( udp_contents )
-		{
+	{
 		static auto udp_content_ports = id::find_val<TableVal>("udp_content_ports");
 		static auto udp_content_delivery_ports_orig = id::find_val<TableVal>(
 			"udp_content_delivery_ports_orig");
@@ -176,44 +176,44 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 		     udp_content_ports->FindOrDefault(sport_val) )
 			do_udp_contents = true;
 		else
-			{
+		{
 			uint16_t p = zeek::detail::udp_content_delivery_ports_use_resp ? c->RespPort()
 			                                                               : up->uh_dport;
 			const auto& port_val = zeek::val_mgr->Port(ntohs(p), TRANSPORT_UDP);
 
 			if ( is_orig )
-				{
+			{
 				auto result = udp_content_delivery_ports_orig->FindOrDefault(port_val);
 
 				if ( zeek::detail::udp_content_deliver_all_orig || (result && result->AsBool()) )
 					do_udp_contents = true;
-				}
+			}
 			else
-				{
+			{
 				auto result = udp_content_delivery_ports_resp->FindOrDefault(port_val);
 
 				if ( zeek::detail::udp_content_deliver_all_resp || (result && result->AsBool()) )
 					do_udp_contents = true;
-				}
 			}
+		}
 
 		if ( do_udp_contents )
 			adapter->EnqueueConnEvent(udp_contents, adapter->ConnVal(), val_mgr->Bool(is_orig),
 			                          make_intrusive<StringVal>(len, (const char*)data));
-		}
+	}
 
 	if ( is_orig )
-		{
+	{
 		c->CheckHistory(HIST_ORIG_DATA_PKT, 'D');
 		adapter->UpdateLength(is_orig, ulen);
 		adapter->Event(udp_request);
-		}
+	}
 	else
-		{
+	{
 		c->CheckHistory(HIST_RESP_DATA_PKT, 'd');
 		adapter->UpdateLength(is_orig, ulen);
 		adapter->Event(udp_reply);
-		}
+	}
 
 	// Store the session in the packet in case we get an encapsulation here. We need it for
 	// handling those properly.
@@ -227,12 +227,12 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 	// Forward any data through session-analysis, too.
 	adapter->ForwardPacket(std::min(len, remaining), data, is_orig, -1, ip.get(), pkt->cap_len);
-	}
+}
 
 bool UDPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len)
-	{
+{
 	auto sum = detail::ip_in_cksum(ip->IP4_Hdr(), ip->SrcAddr(), ip->DstAddr(), IPPROTO_UDP,
 	                               reinterpret_cast<const uint8_t*>(up), len);
 
 	return sum == 0xffff;
-	}
+}

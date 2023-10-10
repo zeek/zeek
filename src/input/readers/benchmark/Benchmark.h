@@ -6,13 +6,13 @@
 #include "zeek/threading/formatters/Ascii.h"
 
 namespace zeek::input::reader::detail
-	{
+{
 
 /**
  * A benchmark reader to measure performance of the input framework.
  */
 class Benchmark : public ReaderBackend
-	{
+{
 public:
 	explicit Benchmark(ReaderFrontend* frontend);
 	~Benchmark() override;
@@ -43,6 +43,6 @@ private:
 	double heartbeat_interval;
 
 	threading::formatter::Ascii* ascii;
-	};
+};
 
-	} // namespace zeek::input::reader
+} // namespace zeek::input::reader

@@ -4,26 +4,6 @@
 Language: Cpp
 Standard: c++17
 
-BreakBeforeBraces: Whitesmiths
-
-# BraceWrapping:
-#   AfterCaseLabel: true
-#   AfterClass: false
-#   AfterControlStatement: Always
-#   AfterEnum: false
-#   AfterFunction: true
-#   AfterNamespace: false
-#   AfterStruct: false
-#   AfterUnion: false
-#   AfterExternBlock: false
-#   BeforeCatch: true
-#   BeforeElse: true
-#   BeforeWhile: false
-#   IndentBraces: true
-#   SplitEmptyFunction: false
-#   SplitEmptyRecord: false
-#   SplitEmptyNamespace: false
-
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
 AlignTrailingComments: false
@@ -36,6 +16,7 @@ AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterReturnType: None
 BinPackArguments: true
 BinPackParameters: true
+BreakBeforeBraces: Allman
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
 ColumnLimit: 100

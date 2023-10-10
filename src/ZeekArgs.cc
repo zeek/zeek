@@ -6,10 +6,10 @@
 #include "zeek/Val.h"
 
 namespace zeek
-	{
+{
 
 Args val_list_to_args(const ValPList& vl)
-	{
+{
 	Args rval;
 	rval.reserve(vl.length());
 
@@ -17,16 +17,16 @@ Args val_list_to_args(const ValPList& vl)
 		rval.emplace_back(AdoptRef{}, v);
 
 	return rval;
-	}
+}
 
 VectorValPtr MakeCallArgumentVector(const Args& vals, const RecordTypePtr& types)
-	{
+{
 	static auto call_argument_vector = id::find_type<VectorType>("call_argument_vector");
 
 	auto rval = make_intrusive<VectorVal>(call_argument_vector);
 
 	for ( int i = 0; i < types->NumFields(); i++ )
-		{
+	{
 		const char* fname = types->FieldName(i);
 		const auto& ftype = types->GetFieldType(i);
 		auto fdefault = types->FieldDefault(i);
@@ -47,15 +47,15 @@ VectorValPtr MakeCallArgumentVector(const Args& vals, const RecordTypePtr& types
 			rec->Assign(3, vals[i]);
 
 		rval->Assign(i, std::move(rec));
-		}
+	}
 
 	return rval;
-	}
+}
 
 VectorValPtr MakeEmptyCallArgumentVector()
-	{
+{
 	static auto call_argument_vector = id::find_type<VectorType>("call_argument_vector");
 	return make_intrusive<VectorVal>(call_argument_vector);
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek

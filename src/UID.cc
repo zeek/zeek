@@ -10,10 +10,10 @@
 using namespace std;
 
 namespace zeek
-	{
+{
 
 void UID::Set(zeek_uint_t bits, const uint64_t* v, size_t n)
-	{
+{
 	initialized = true;
 
 	for ( size_t i = 0; i < UID_LEN; ++i )
@@ -30,10 +30,10 @@ void UID::Set(zeek_uint_t bits, const uint64_t* v, size_t n)
 
 	if ( res.rem )
 		uid[0] >>= 64 - res.rem;
-	}
+}
 
 std::string UID::Base62(std::string prefix) const
-	{
+{
 	if ( ! initialized )
 		reporter->InternalError("use of uninitialized UID");
 
@@ -42,6 +42,6 @@ std::string UID::Base62(std::string prefix) const
 		prefix.append(util::uitoa_n(uid[i], tmp, sizeof(tmp), 62));
 
 	return prefix;
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek

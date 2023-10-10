@@ -13,17 +13,17 @@
 #include "zeek/iosource/IOSource.h"
 
 namespace zeek
-	{
+{
 
 namespace run_state
-	{
+{
 extern double network_time;
-	} // namespace run_state
+} // namespace run_state
 
 class EventMgr;
 
 class Event final : public Obj
-	{
+{
 public:
 	Event(const EventHandlerPtr& handler, zeek::Args args,
 	      util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0,
@@ -54,10 +54,10 @@ protected:
 	double ts;
 	Obj* obj;
 	Event* next_event;
-	};
+};
 
 class EventMgr final : public Obj, public iosource::IOSource
-	{
+{
 public:
 	EventMgr();
 	~EventMgr() override;
@@ -86,9 +86,9 @@ public:
 	template <class... Args>
 	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	Enqueue(const EventHandlerPtr& h, Args&&... args)
-		{
+	{
 		return Enqueue(h, zeek::Args{std::forward<Args>(args)...});
-		}
+	}
 
 	void Dispatch(Event* event, bool no_remote = false);
 
@@ -132,8 +132,8 @@ protected:
 	RecordVal* src_val;
 	bool draining;
 	detail::Flare queue_flare;
-	};
+};
 
 extern EventMgr event_mgr;
 
-	} // namespace zeek
+} // namespace zeek

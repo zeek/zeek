@@ -7,13 +7,13 @@
 #include "zeek/analyzer/protocol/ssl/SSL.h"
 
 namespace zeek::plugin::detail::Zeek_SSL
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("SSL", zeek::analyzer::ssl::SSL_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component(
@@ -23,7 +23,7 @@ public:
 		config.name = "Zeek::SSL";
 		config.description = "SSL/TLS and DTLS analyzers";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_SSL
+} // namespace zeek::plugin::detail::Zeek_SSL

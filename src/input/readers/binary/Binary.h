@@ -8,13 +8,13 @@
 #include "zeek/input/ReaderBackend.h"
 
 namespace zeek::input::reader::detail
-	{
+{
 
 /**
  * Binary mode file reader.
  */
 class Binary : public ReaderBackend
-	{
+{
 public:
 	explicit Binary(ReaderFrontend* frontend);
 	~Binary() override;
@@ -43,6 +43,6 @@ private:
 	// options set from the script-level.
 	static std::streamsize chunk_size;
 	std::string path_prefix;
-	};
+};
 
-	} // namespace zeek::input::reader::detail
+} // namespace zeek::input::reader::detail

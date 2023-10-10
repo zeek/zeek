@@ -18,7 +18,7 @@
 #include "zeek/logging/WriterBackend.h"
 
 namespace zeek
-	{
+{
 
 class Func;
 class VectorType;
@@ -27,23 +27,23 @@ using VectorTypePtr = IntrusivePtr<VectorType>;
 using TableValPtr = IntrusivePtr<TableVal>;
 
 namespace telemetry
-	{
+{
 class Manager;
-	}
+}
 
 namespace detail
-	{
+{
 class Frame;
-	}
+}
 
 namespace Broker
-	{
+{
 
 namespace detail
-	{
+{
 class StoreHandleVal;
 class StoreQueryCallback;
-	};
+};
 
 class BrokerState;
 
@@ -51,7 +51,7 @@ class BrokerState;
  * Communication statistics.
  */
 struct Stats
-	{
+{
 	// Number of active peer connections.
 	size_t num_peers = 0;
 	// Number of active data stores.
@@ -70,21 +70,21 @@ struct Stats
 	size_t num_ids_incoming = 0;
 	// Number of total identifiers sent.
 	size_t num_ids_outgoing = 0;
-	};
+};
 
 /**
  * Manages various forms of communication between peer Zeek processes
  * or other external applications via use of the Broker messaging library.
  */
 class Manager : public iosource::IOSource
-	{
+{
 public:
 	/** Broker protocol to expect on a listening port. */
 	enum class BrokerProtocol
-		{
+	{
 		Native, /**< Broker's native binary protocol */
 		WebSocket /** Broker's WebSocket protocol for external clients. */
-		};
+	};
 
 	static const broker::endpoint_info NoPeer;
 
@@ -377,10 +377,10 @@ public:
 	 * layer BIFs so that error messages can emit useful call site info.
 	 */
 	struct ScriptScopeGuard
-		{
+	{
 		ScriptScopeGuard() { ++script_scope; }
 		~ScriptScopeGuard() { --script_scope; }
-		};
+	};
 
 	/**
 	 * Changes the frequency for publishing scraped metrics to the target topic.
@@ -450,27 +450,27 @@ private:
 	double GetNextTimeout() override { return -1; }
 
 	struct LogBuffer
-		{
+	{
 		// Indexed by topic string.
 		std::unordered_map<std::string, broker::vector> msgs;
 		size_t message_count;
 
 		size_t Flush(broker::endpoint& endpoint, size_t batch_size);
-		};
+	};
 
 	// Data stores
 	using query_id = std::pair<broker::request_id, detail::StoreHandleVal*>;
 
 	struct query_id_hasher
-		{
+	{
 		size_t operator()(const query_id& qid) const
-			{
+		{
 			size_t rval = 0;
 			broker::detail::hash_combine(rval, qid.first);
 			broker::detail::hash_combine(rval, qid.second);
 			return rval;
-			}
-		};
+		}
+	};
 
 	std::vector<LogBuffer> log_buffers; // Indexed by stream ID enum.
 	std::string default_log_topic_prefix;
@@ -495,10 +495,10 @@ private:
 	std::string zeek_table_db_directory;
 
 	static int script_scope;
-	};
+};
 
-	} // namespace Broker
+} // namespace Broker
 
 extern Broker::Manager* broker_mgr;
 
-	} // namespace zeek
+} // namespace zeek

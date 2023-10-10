@@ -18,7 +18,7 @@
 #include "zeek/zeekygen/Manager.h"
 
 namespace zeek::plugin
-	{
+{
 
 /**
  * A class that manages tracking of plugin components (e.g. analyzers) and
@@ -28,7 +28,7 @@ namespace zeek::plugin
  * @tparam C A plugin::Component type derivative.
  */
 template <class C> class ComponentManager
-	{
+{
 public:
 	/**
 	 * Constructor creates a new enum type to associate with
@@ -152,43 +152,43 @@ private:
 	std::map<std::string, C*> components_by_name;
 	std::map<zeek::Tag, C*> components_by_tag;
 	std::map<zeek_int_t, C*> components_by_val;
-	};
+};
 
 template <class C>
 ComponentManager<C>::ComponentManager(const std::string& module, const std::string& local_id,
                                       const std::string& parent_module)
 	: module(module), parent_module(parent_module)
-	{
+{
 	tag_enum_type = make_intrusive<EnumType>(module + "::" + local_id);
 	auto id = zeek::detail::install_ID(local_id.c_str(), module.c_str(), true, true);
 	zeek::detail::add_type(id.get(), tag_enum_type, nullptr);
 	zeek::detail::zeekygen_mgr->Identifier(std::move(id));
 
 	if ( ! parent_module.empty() )
-		{
+	{
 		// check to see if the parent module's type has been created already
 		id = zeek::detail::lookup_ID(local_id.c_str(), parent_module.c_str(), false, true, false);
 		if ( id != zeek::detail::ID::nil )
-			{
+		{
 			parent_tag_enum_type = id->GetType<EnumType>();
-			}
+		}
 		else
-			{
+		{
 			parent_tag_enum_type = make_intrusive<EnumType>(parent_module + "::" + local_id);
 			id = zeek::detail::install_ID(local_id.c_str(), parent_module.c_str(), true, true);
 			zeek::detail::add_type(id.get(), parent_tag_enum_type, nullptr);
 			zeek::detail::zeekygen_mgr->Identifier(std::move(id));
-			}
 		}
 	}
+}
 
 template <class C> const std::string& ComponentManager<C>::GetModule() const
-	{
+{
 	return module;
-	}
+}
 
 template <class C> std::list<C*> ComponentManager<C>::GetComponents() const
-	{
+{
 	std::list<C*> rval;
 	typename std::map<zeek::Tag, C*>::const_iterator i;
 
@@ -196,15 +196,15 @@ template <class C> std::list<C*> ComponentManager<C>::GetComponents() const
 		rval.push_back(i->second);
 
 	return rval;
-	}
+}
 
 template <class C> const EnumTypePtr& ComponentManager<C>::GetTagType() const
-	{
+{
 	return tag_enum_type;
-	}
+}
 
 template <class C> const std::string& ComponentManager<C>::GetComponentName(zeek::Tag tag) const
-	{
+{
 	static const std::string error = "<error>";
 
 	if ( ! tag )
@@ -215,10 +215,10 @@ template <class C> const std::string& ComponentManager<C>::GetComponentName(zeek
 
 	reporter->InternalWarning("requested name of unknown component tag %s", tag.AsString().c_str());
 	return error;
-	}
+}
 
 template <class C> const std::string& ComponentManager<C>::GetComponentName(EnumValPtr val) const
-	{
+{
 	static const std::string error = "<error>";
 
 	if ( ! val )
@@ -230,10 +230,10 @@ template <class C> const std::string& ComponentManager<C>::GetComponentName(Enum
 	reporter->InternalWarning("requested name of unknown component tag %s",
 	                          val->AsString()->CheckString());
 	return error;
-	}
+}
 
 template <class C> StringValPtr ComponentManager<C>::GetComponentNameVal(zeek::Tag tag) const
-	{
+{
 	static auto error = make_intrusive<StringVal>("<error>");
 
 	if ( ! tag )
@@ -244,10 +244,10 @@ template <class C> StringValPtr ComponentManager<C>::GetComponentNameVal(zeek::T
 
 	reporter->InternalWarning("requested name of unknown component tag %s", tag.AsString().c_str());
 	return error;
-	}
+}
 
 template <class C> StringValPtr ComponentManager<C>::GetComponentNameVal(EnumValPtr val) const
-	{
+{
 	static auto error = make_intrusive<StringVal>("<error>");
 
 	if ( ! val )
@@ -259,43 +259,43 @@ template <class C> StringValPtr ComponentManager<C>::GetComponentNameVal(EnumVal
 	reporter->InternalWarning("requested name of unknown component tag %s",
 	                          val->AsString()->CheckString());
 	return error;
-	}
+}
 
 template <class C> zeek::Tag ComponentManager<C>::GetComponentTag(const std::string& name) const
-	{
+{
 	C* c = Lookup(name);
 	return c ? c->Tag() : zeek::Tag();
-	}
+}
 
 template <class C> zeek::Tag ComponentManager<C>::GetComponentTag(Val* v) const
-	{
+{
 	C* c = Lookup(v->AsEnumVal());
 	return c ? c->Tag() : zeek::Tag();
-	}
+}
 
 template <class C> C* ComponentManager<C>::Lookup(const std::string& name) const
-	{
+{
 	typename std::map<std::string, C*>::const_iterator i = components_by_name.find(
 		util::to_upper(name));
 	return i != components_by_name.end() ? i->second : nullptr;
-	}
+}
 
 template <class C> C* ComponentManager<C>::Lookup(const zeek::Tag& tag) const
-	{
+{
 	typename std::map<zeek::Tag, C*>::const_iterator i = components_by_tag.find(tag);
 	return i != components_by_tag.end() ? i->second : nullptr;
-	}
+}
 
 template <class C> C* ComponentManager<C>::Lookup(EnumVal* val) const
-	{
+{
 	typename std::map<zeek_int_t, C*>::const_iterator i = components_by_val.find(
 		val->InternalInt());
 	return i != components_by_val.end() ? i->second : nullptr;
-	}
+}
 
 template <class C>
 void ComponentManager<C>::RegisterComponent(C* component, const std::string& prefix)
-	{
+{
 	std::string cname = component->CanonicalName();
 
 	if ( Lookup(cname) )
@@ -315,11 +315,11 @@ void ComponentManager<C>::RegisterComponent(C* component, const std::string& pre
 	                       nullptr);
 
 	if ( parent_tag_enum_type )
-		{
+	{
 		std::string parent_id = util::fmt("%s_%s", util::strtoupper(module).c_str(), id.c_str());
 		parent_tag_enum_type->AddName(parent_module, parent_id.c_str(),
 		                              component->Tag().AsVal()->InternalInt(), true, nullptr);
-		}
 	}
+}
 
-	} // namespace zeek::plugin
+} // namespace zeek::plugin

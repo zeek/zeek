@@ -13,9 +13,9 @@
 #include "zeek/plugin/Plugin.h"
 
 namespace zeek
-	{
+{
 namespace plugin
-	{
+{
 
 // Macros that trigger plugin hooks. We put this into macros to short-cut the
 // code for the most common case that no plugin defines the hook.
@@ -28,10 +28,10 @@ namespace plugin
  * @param method_call The \a Manager method corresponding to the hook.
  */
 #define PLUGIN_HOOK_VOID(hook, method_call)                                                        \
-		{                                                                                          \
+	{                                                                                              \
 		if ( zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) )                             \
 			zeek::plugin_mgr->method_call;                                                         \
-		}
+	}
 
 /**
  * Macro to trigger hooks that return a result.
@@ -51,7 +51,7 @@ namespace plugin
  * A singleton object managing all plugins.
  */
 class Manager
-	{
+{
 public:
 	using bif_init_func = void (*)(Plugin*);
 	using plugin_list = std::list<Plugin*>;
@@ -170,10 +170,10 @@ public:
 	 * @return True if there's a plugin for that hook.
 	 */
 	bool HavePluginForHook(HookType hook) const
-		{
+	{
 		// Inline to avoid the function call.
 		return hooks[hook] != nullptr;
-		}
+	}
 
 	/**
 	 * Returns all the hooks, with their priorities, that are currently
@@ -511,47 +511,47 @@ private:
 	// so that plugins can register their bifs even before the manager
 	// exists.
 	static bif_init_func_map* BifFilesInternal();
-	};
+};
 
 template <class T> std::list<T*> Manager::Components() const
-	{
+{
 	std::list<T*> result;
 
 	for ( plugin_list::const_iterator p = ActivePluginsInternal()->begin();
 	      p != ActivePluginsInternal()->end(); p++ )
-		{
+	{
 		component_list components = (*p)->Components();
 
 		for ( component_list::const_iterator c = components.begin(); c != components.end(); c++ )
-			{
+		{
 			T* t = dynamic_cast<T*>(*c);
 
 			if ( t )
 				result.push_back(t);
-			}
 		}
-
-	return result;
 	}
 
+	return result;
+}
+
 namespace detail
-	{
+{
 
 /**
  * Internal class used by bifcl-generated code to register its init functions at runtime.
  */
 class __RegisterBif
-	{
+{
 public:
 	__RegisterBif(const char* plugin, Manager::bif_init_func init)
-		{
+	{
 		Manager::RegisterBifFile(plugin, init);
-		}
-	};
+	}
+};
 
-	} // namespace detail
-	} // namespace plugin
+} // namespace detail
+} // namespace plugin
 
 extern plugin::Manager* plugin_mgr;
 
-	} // namespace zeek
+} // namespace zeek

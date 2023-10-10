@@ -10,14 +10,14 @@
 #include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek
-	{
+{
 
 /**
  * Options that define general Zeek processing behavior, usually determined
  * from command-line arguments.
  */
 struct Options
-	{
+{
 	/**
 	 * Unset options that aren't meant to be used by the supervisor, but may
 	 * make sense for supervised nodes to inherit (as opposed to flagging
@@ -85,7 +85,7 @@ struct Options
 
 	// For script optimization:
 	detail::AnalyOpt analysis_options;
-	};
+};
 
 /**
  * Parse Zeek command-line arguments.
@@ -107,4 +107,4 @@ void usage(const char* prog, int code = 1);
  */
 bool fake_dns();
 
-	} // namespace zeek
+} // namespace zeek

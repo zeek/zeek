@@ -10,40 +10,40 @@
 extern std::unordered_set<std::string> files_with_conditionals;
 
 namespace zeek::detail
-	{
+{
 
 using namespace std;
 
 CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const string& gen_name,
                        bool _standalone, bool report_uncompilable)
 	: funcs(_funcs), pfs(_pfs), standalone(_standalone)
-	{
+{
 	auto target_name = gen_name.c_str();
 
 	write_file = fopen(target_name, "w");
 	if ( ! write_file )
-		{
+	{
 		reporter->Error("can't open C++ target file %s", target_name);
 		exit(1);
-		}
+	}
 
 	Compile(report_uncompilable);
-	}
+}
 
 CPPCompile::~CPPCompile()
-	{
+{
 	fclose(write_file);
-	}
+}
 
 void CPPCompile::Compile(bool report_uncompilable)
-	{
+{
 	unordered_set<string> filenames_reported_as_skipped;
 	bool had_to_skip = false;
 
 	// Determine which functions we can call directly, and reuse
 	// previously compiled instances of those if present.
 	for ( auto& func : funcs )
-		{
+	{
 		const auto& f = func.Func();
 
 		auto& ofiles = analysis_options.only_files;
@@ -53,55 +53,55 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 		if ( ! allow_cond && ! func.ShouldSkip() && ! ofiles.empty() &&
 		     files_with_conditionals.count(fn) > 0 )
-			{
+		{
 			if ( report_uncompilable )
 				reporter->Warning(
 					"%s cannot be compiled to C++ due to source file %s having conditional code",
 					f->Name(), fn.c_str());
 
 			else if ( filenames_reported_as_skipped.count(fn) == 0 )
-				{
+			{
 				reporter->Warning(
 					"skipping compilation of files in %s due to presence of conditional code",
 					fn.c_str());
 				filenames_reported_as_skipped.insert(fn);
-				}
+			}
 
 			had_to_skip = true;
 			func.SetSkip(true);
-			}
+		}
 
 		if ( func.ShouldSkip() )
-			{
+		{
 			not_fully_compilable.insert(f->Name());
 			continue;
-			}
+		}
 
 		if ( is_lambda(f) || is_when_lambda(f) )
-			{
+		{
 			// We deal with these separately.
 			func.SetSkip(true);
 			continue;
-			}
+		}
 
 		const char* reason;
 		if ( IsCompilable(func, &reason) )
-			{
+		{
 			if ( f->Flavor() == FUNC_FLAVOR_FUNCTION )
 				// Note this as a callable compiled function.
 				compilable_funcs.insert(BodyName(func));
-			}
+		}
 		else
-			{
+		{
 			if ( reason && report_uncompilable )
-				{
+			{
 				had_to_skip = true;
 				reporter->Warning("%s cannot be compiled to C++ due to %s", f->Name(), reason);
-				}
+			}
 
 			not_fully_compilable.insert(f->Name());
-			}
 		}
+	}
 
 	if ( standalone && had_to_skip )
 		reporter->FatalError(
@@ -119,10 +119,10 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 	// Track all of the types we'll be using.
 	for ( const auto& t : pfs.RepTypes() )
-		{
+	{
 		TypePtr tp{NewRef{}, (Type*)(t)};
 		types.AddKey(tp, pfs.HashType(t));
-		}
+	}
 
 	NL();
 
@@ -134,11 +134,11 @@ void CPPCompile::Compile(bool report_uncompilable)
 			Emit("EventHandlerPtr %s_ev;", globals[string(e)]);
 
 	for ( const auto& t : pfs.RepTypes() )
-		{
+	{
 		ASSERT(types.HasKey(t));
 		TypePtr tp{NewRef{}, (Type*)(t)};
 		RegisterType(tp);
-		}
+	}
 
 	// The scaffolding is now in place to go ahead and generate
 	// the functions & lambdas.  First declare them ...
@@ -153,18 +153,18 @@ void CPPCompile::Compile(bool report_uncompilable)
 	// twice, but we do want to map the second one to the same body name.
 	unordered_map<string, const Stmt*> lambda_ASTs;
 	for ( const auto& l : pfs.Lambdas() )
-		{
+	{
 		const auto& n = l->Name();
 		const auto body = l->Ingredients()->Body().get();
 		if ( lambda_ASTs.count(n) > 0 )
 			// Reuse previous body.
 			body_names[body] = body_names[lambda_ASTs[n]];
 		else
-			{
+		{
 			DeclareLambda(l, pfs.ExprProf(l).get());
 			lambda_ASTs[n] = body;
-			}
 		}
+	}
 
 	NL();
 
@@ -175,14 +175,14 @@ void CPPCompile::Compile(bool report_uncompilable)
 
 	lambda_ASTs.clear();
 	for ( const auto& l : pfs.Lambdas() )
-		{
+	{
 		const auto& n = l->Name();
 		if ( lambda_ASTs.count(n) > 0 )
 			continue;
 
 		CompileLambda(l, pfs.ExprProf(l).get());
 		lambda_ASTs[n] = l->Ingredients()->Body().get();
-		}
+	}
 
 	NL();
 	Emit("std::vector<CPP_RegisterBody> CPP__bodies_to_register = {");
@@ -193,10 +193,10 @@ void CPPCompile::Compile(bool report_uncompilable)
 	Emit("};");
 
 	GenEpilog();
-	}
+}
 
 void CPPCompile::GenProlog()
-	{
+{
 	Emit("#include \"zeek/script_opt/CPP/Runtime.h\"\n");
 
 	// Get the working directory for annotating the output to help
@@ -244,51 +244,51 @@ void CPPCompile::GenProlog()
 	NL();
 	DeclareDynCPPStmt();
 	NL();
-	}
+}
 
 shared_ptr<CPP_InitsInfo> CPPCompile::CreateConstInitInfo(const char* tag, const char* type,
                                                           const char* c_type)
-	{
+{
 	auto gi = make_shared<CPP_BasicConstInitsInfo>(tag, type, c_type);
 	return RegisterInitInfo(tag, type, gi);
-	}
+}
 
 shared_ptr<CPP_InitsInfo> CPPCompile::CreateCompoundInitInfo(const char* tag, const char* type)
-	{
+{
 	auto gi = make_shared<CPP_CompoundInitsInfo>(tag, type);
 	return RegisterInitInfo(tag, type, gi);
-	}
+}
 
 shared_ptr<CPP_InitsInfo> CPPCompile::CreateCustomInitInfo(const char* tag, const char* type)
-	{
+{
 	auto gi = make_shared<CPP_CustomInitsInfo>(tag, type);
 	if ( type[0] == '\0' )
 		gi->SetCPPType("void*");
 
 	return RegisterInitInfo(tag, type, gi);
-	}
+}
 
 shared_ptr<CPP_InitsInfo> CPPCompile::RegisterInitInfo(const char* tag, const char* type,
                                                        shared_ptr<CPP_InitsInfo> gi)
-	{
+{
 	string v_type = type[0] ? (string(tag) + type) : "void*";
 	Emit("std::vector<%s> CPP__%s__;", v_type, string(tag));
 	all_global_info.insert(gi);
 	return gi;
-	}
+}
 
 void CPPCompile::RegisterCompiledBody(const string& f)
-	{
+{
 	// Build up an initializer of the events relevant to the function.
 	string events;
 	auto be = body_events.find(f);
 	if ( be != body_events.end() )
 		for ( const auto& e : be->second )
-			{
+		{
 			if ( events.size() > 0 )
 				events += ", ";
 			events = events + "\"" + e + "\"";
-			}
+		}
 
 	events = string("{") + events + "}";
 
@@ -304,15 +304,15 @@ void CPPCompile::RegisterCompiledBody(const string& f)
 
 	Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, std::vector<std::string>(%s)),", f, f,
 	     Fmt(type_signature), body_info, events);
-	}
+}
 
 void CPPCompile::GenEpilog()
-	{
+{
 	if ( standalone )
-		{
+	{
 		NL();
 		InitializeGlobals();
-		}
+	}
 
 	NL();
 	for ( const auto& ii : init_infos )
@@ -368,10 +368,10 @@ void CPPCompile::GenEpilog()
 
 	Emit("} //\n\n");
 	Emit("} // zeek::detail");
-	}
+}
 
 void CPPCompile::GenCPPDynStmt()
-	{
+{
 	Emit("ValPtr CPPDynStmt::Exec(Frame* f, StmtFlowType& flow)");
 
 	StartBlock();
@@ -382,7 +382,7 @@ void CPPCompile::GenCPPDynStmt()
 	Emit("switch ( type_signature )");
 	StartBlock();
 	for ( auto i = 0U; i < func_casting_glue.size(); ++i )
-		{
+	{
 		Emit("case %s:", to_string(i));
 		StartBlock();
 		auto& glue = func_casting_glue[i];
@@ -390,13 +390,13 @@ void CPPCompile::GenCPPDynStmt()
 		auto invoke = string("(*(") + glue.cast + ")(func))(" + glue.args + ")";
 
 		if ( glue.is_hook )
-			{
+		{
 			Emit("if ( ! %s )", invoke);
 			StartBlock();
 			Emit("flow = FLOW_BREAK;");
 			EndBlock();
 			Emit("return nullptr;");
-			}
+		}
 
 		else if ( IsNativeType(glue.yield) )
 			GenInvokeBody(invoke, glue.yield);
@@ -405,7 +405,7 @@ void CPPCompile::GenCPPDynStmt()
 			Emit("return %s;", invoke);
 
 		EndBlock();
-		}
+	}
 
 	Emit("default:");
 	Emit("\treporter->InternalError(\"invalid type in CPPDynStmt::Exec\");");
@@ -413,19 +413,19 @@ void CPPCompile::GenCPPDynStmt()
 
 	EndBlock();
 	EndBlock();
-	}
+}
 
 void CPPCompile::GenLoadBiFs()
-	{
+{
 	Emit("void load_BiFs__CPP()");
 	StartBlock();
 	Emit("for ( auto& b : CPP__BiF_lookups__ )");
 	Emit("\tb.ResolveBiF();");
 	EndBlock();
-	}
+}
 
 void CPPCompile::GenFinishInit()
-	{
+{
 	Emit("void finish_init__CPP()");
 
 	StartBlock();
@@ -443,11 +443,11 @@ void CPPCompile::GenFinishInit()
 
 	NL();
 	for ( const auto& ci : const_info )
-		{
+	{
 		auto& gi = ci.second;
 		Emit("InitConsts.emplace(%s, std::make_shared<CPP_InitAccessor<%s>>(%s));",
 		     TypeTagName(ci.first), gi->CPPType(), gi->InitsName());
-		}
+	}
 
 	Emit("InitsManager im(CPP__ConstVals, InitConsts, InitIndices, CPP__Strings, CPP__Hashes, "
 	     "CPP__Type__, CPP__Attributes__, CPP__Attr__, CPP__CallExpr__);");
@@ -482,10 +482,10 @@ void CPPCompile::GenFinishInit()
 		Emit("init_globals__CPP();");
 
 	EndBlock();
-	}
+}
 
 void CPPCompile::GenRegisterBodies()
-	{
+{
 	Emit("void register_bodies__CPP()");
 	StartBlock();
 
@@ -499,10 +499,10 @@ void CPPCompile::GenRegisterBodies()
 	EndBlock();
 
 	EndBlock();
-	}
+}
 
 bool CPPCompile::IsCompilable(const FuncInfo& func, const char** reason)
-	{
+{
 	if ( ! is_CPP_compilable(func.Profile(), reason) )
 		return false;
 
@@ -515,6 +515,6 @@ bool CPPCompile::IsCompilable(const FuncInfo& func, const char** reason)
 		return false;
 
 	return true;
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

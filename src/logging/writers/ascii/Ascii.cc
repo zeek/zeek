@@ -31,7 +31,7 @@ using zeek::threading::Value;
 static constexpr auto shadow_file_prefix = ".shadow.";
 
 namespace zeek::logging::writer::detail
-	{
+{
 
 /**
  * Information about an leftover log file: that is, one that a previous
@@ -39,7 +39,7 @@ namespace zeek::logging::writer::detail
  * for whatever reason (prematurely crashed/killed).
  */
 struct LeftoverLog
-	{
+{
 	/*
 	 * Name of leftover log.
 	 */
@@ -94,7 +94,7 @@ struct LeftoverLog
 	 * Deletes the shadow file and returns whether it succeeded.
 	 */
 	bool DeleteShadow() const { return unlink(shadow_filename.data()) == 0; }
-	};
+};
 
 /**
  * Prefix the basename part of the given path with prefix.
@@ -102,25 +102,25 @@ struct LeftoverLog
  * prefix_basename_with("logs/conn.log", ".shadow") -> logs/.shadow.conn.log"
  */
 static std::string prefix_basename_with(const std::string& path, const std::string& prefix)
-	{
+{
 	auto fspath = zeek::filesystem::path(path);
 	auto new_filename = prefix + fspath.filename().string();
 	return (fspath.parent_path() / new_filename).string();
-	}
+}
 
 TEST_CASE("writers.ascii prefix_basename_with")
-	{
+{
 #ifdef _MSC_VER
-		// TODO: adapt this test to Windows paths
+	// TODO: adapt this test to Windows paths
 #else
 	CHECK(prefix_basename_with("a/conn.log", ".shadow.") == "a/.shadow.conn.log");
 	CHECK(prefix_basename_with("/a/conn.log", ".shadow.") == "/a/.shadow.conn.log");
 	CHECK(prefix_basename_with("a/b/conn.log", ".shadow.") == "a/b/.shadow.conn.log");
 #endif
-	}
+}
 
 static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
-	{
+{
 	auto sfname = prefix_basename_with(fname, shadow_file_prefix);
 
 	LeftoverLog rval = {};
@@ -130,62 +130,62 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 	auto sf_stream = fopen(rval.shadow_filename.data(), "r");
 
 	if ( ! sf_stream )
-		{
+	{
 		rval.error = util::fmt("Failed to open %s: %s", rval.shadow_filename.data(),
 		                       strerror(errno));
 		return rval;
-		}
+	}
 
 	int res = fseek(sf_stream, 0, SEEK_END);
 
 	if ( res == -1 )
-		{
+	{
 		rval.error = util::fmt("Failed to fseek(SEEK_END) on %s: %s", rval.shadow_filename.data(),
 		                       strerror(errno));
 		fclose(sf_stream);
 		return rval;
-		}
+	}
 
 	auto sf_len = ftell(sf_stream);
 
 	if ( sf_len == -1 )
-		{
+	{
 		rval.error = util::fmt("Failed to ftell() on %s: %s", rval.shadow_filename.data(),
 		                       strerror(errno));
 		fclose(sf_stream);
 		return rval;
-		}
+	}
 
 	res = fseek(sf_stream, 0, SEEK_SET);
 
 	if ( res == -1 )
-		{
+	{
 		rval.error = util::fmt("Failed to fseek(SEEK_SET) on %s: %s", rval.shadow_filename.data(),
 		                       strerror(errno));
 		fclose(sf_stream);
 		return rval;
-		}
+	}
 
 	auto sf_content = std::make_unique<char[]>(sf_len);
 	auto bytes_read = fread(sf_content.get(), 1, sf_len, sf_stream);
 	fclose(sf_stream);
 
 	if ( bytes_read != static_cast<size_t>(sf_len) )
-		{
+	{
 		rval.error = "Failed to read contents of " + rval.shadow_filename;
 		return rval;
-		}
+	}
 
 	std::string_view sf_view(sf_content.get(), sf_len);
 	auto sf_lines = util::tokenize_string(sf_view, '\n');
 
 	if ( sf_lines.size() < 2 )
-		{
+	{
 		rval.error = util::fmt("Found leftover log, '%s', but the associated shadow "
 		                       " file, '%s', required to process it is invalid",
 		                       rval.filename.data(), rval.shadow_filename.data());
 		return rval;
-		}
+	}
 
 	rval.extension = sf_lines[0];
 	rval.post_proc_func = sf_lines[1];
@@ -194,28 +194,28 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname)
 
 	// Use shadow file's modification time as creation time.
 	if ( stat(rval.shadow_filename.data(), &st) != 0 )
-		{
+	{
 		rval.error = util::fmt("Failed to stat %s: %s", rval.shadow_filename.data(),
 		                       strerror(errno));
 		return rval;
-		}
+	}
 
 	rval.open_time = st.st_ctime;
 
 	// Use log file's modification time for closing time.
 	if ( stat(rval.filename.data(), &st) != 0 )
-		{
+	{
 		rval.error = util::fmt("Failed to stat %s: %s", rval.filename.data(), strerror(errno));
 		return rval;
-		}
+	}
 
 	rval.close_time = st.st_mtime;
 
 	return rval;
-	}
+}
 
 Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
-	{
+{
 	fd = 0;
 	ascii_done = false;
 	output_to_stdout = false;
@@ -230,10 +230,10 @@ Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend)
 
 	InitConfigOptions();
 	init_options = InitFilterOptions();
-	}
+}
 
 void Ascii::InitConfigOptions()
-	{
+{
 	output_to_stdout = BifConst::LogAscii::output_to_stdout;
 	include_meta = BifConst::LogAscii::include_meta;
 	use_json = BifConst::LogAscii::use_json;
@@ -265,79 +265,79 @@ void Ascii::InitConfigOptions()
 	                           BifConst::LogAscii::gzip_file_extension->Len());
 
 	logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
-	}
+}
 
 bool Ascii::InitFilterOptions()
-	{
+{
 	const WriterInfo& info = Info();
 
 	// Set per-filter configuration options.
 	for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end();
 	      ++i )
-		{
+	{
 		if ( strcmp(i->first, "tsv") == 0 )
-			{
+		{
 			if ( strcmp(i->second, "T") == 0 )
 				tsv = true;
 			else if ( strcmp(i->second, "F") == 0 )
 				tsv = false;
 			else
-				{
+			{
 				Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
 				return false;
-				}
 			}
+		}
 
 		else if ( strcmp(i->first, "gzip_level") == 0 )
-			{
+		{
 			gzip_level = atoi(i->second);
 
 			if ( gzip_level < 0 || gzip_level > 9 )
-				{
+			{
 				Error("invalid value for 'gzip_level', must be a number between 0 and 9.");
 				return false;
-				}
 			}
+		}
 		else if ( strcmp(i->first, "use_json") == 0 )
-			{
+		{
 			if ( strcmp(i->second, "T") == 0 )
 				use_json = true;
 			else if ( strcmp(i->second, "F") == 0 )
 				use_json = false;
 			else
-				{
+			{
 				Error("invalid value for 'use_json', must be a string and either \"T\" or \"F\"");
 				return false;
-				}
 			}
+		}
 
 		else if ( strcmp(i->first, "enable_utf_8") == 0 )
-			{
+		{
 			if ( strcmp(i->second, "T") == 0 )
 				enable_utf_8 = true;
 			else if ( strcmp(i->second, "F") == 0 )
 				enable_utf_8 = false;
 			else
-				{
+			{
 				Error(
 					"invalid value for 'enable_utf_8', must be a string and either \"T\" or \"F\"");
 				return false;
-				}
 			}
+		}
 
 		else if ( strcmp(i->first, "output_to_stdout") == 0 )
-			{
+		{
 			if ( strcmp(i->second, "T") == 0 )
 				output_to_stdout = true;
 			else if ( strcmp(i->second, "F") == 0 )
 				output_to_stdout = false;
 			else
-				{
+			{
 				Error("invalid value for 'output_to_stdout', must be a string and either \"T\" or "
 				      "\"F\"");
 				return false;
-				}
 			}
+		}
 
 		else if ( strcmp(i->first, "separator") == 0 )
 			separator.assign(i->second);
@@ -358,36 +358,36 @@ bool Ascii::InitFilterOptions()
 			json_timestamps.assign(i->second);
 
 		else if ( strcmp(i->first, "json_include_unset_fields") == 0 )
-			{
+		{
 			if ( strcmp(i->second, "T") == 0 )
 				json_include_unset_fields = true;
 			else if ( strcmp(i->second, "F") == 0 )
 				json_include_unset_fields = false;
 			else
-				{
+			{
 				Error("invalid value for 'json_include_unset_fields', must be "
 				      "a string and either \"T\" or \"F\"");
 				return false;
-				}
 			}
+		}
 
 		else if ( strcmp(i->first, "gzip_file_extension") == 0 )
 			gzip_file_extension.assign(i->second);
-		}
+	}
 
 	if ( ! InitFormatter() )
 		return false;
 
 	return true;
-	}
+}
 
 bool Ascii::InitFormatter()
-	{
+{
 	delete formatter;
 	formatter = nullptr;
 
 	if ( use_json )
-		{
+	{
 		threading::formatter::JSON::TimeFormat tf = threading::formatter::JSON::TS_EPOCH;
 
 		// Write out JSON formatted logs.
@@ -398,17 +398,17 @@ bool Ascii::InitFormatter()
 		else if ( strcmp(json_timestamps.c_str(), "JSON::TS_ISO8601") == 0 )
 			tf = threading::formatter::JSON::TS_ISO8601;
 		else
-			{
+		{
 			Error(Fmt("Invalid JSON timestamp format: %s", json_timestamps.c_str()));
 			return false;
-			}
+		}
 
 		formatter = new threading::formatter::JSON(this, tf, json_include_unset_fields);
 		// Using JSON implicitly turns off the header meta fields.
 		include_meta = false;
-		}
+	}
 	else
-		{
+	{
 		// Enable utf-8 if needed
 		if ( enable_utf_8 )
 			desc.EnableUTF8();
@@ -419,30 +419,30 @@ bool Ascii::InitFormatter()
 		threading::formatter::Ascii::SeparatorInfo sep_info(separator, set_separator, unset_field,
 		                                                    empty_field);
 		formatter = new threading::formatter::Ascii(this, sep_info);
-		}
-
-	return true;
 	}
 
+	return true;
+}
+
 Ascii::~Ascii()
-	{
+{
 	if ( ! ascii_done )
 		// In case of errors aborting the logging altogether,
 		// DoFinish() may not have been called.
 		CloseFile(run_state::network_time);
 
 	delete formatter;
-	}
+}
 
 bool Ascii::WriteHeaderField(const string& key, const string& val)
-	{
+{
 	string str = meta_prefix + key + separator + val + "\n";
 
 	return InternalWrite(fd, str.c_str(), str.length());
-	}
+}
 
 void Ascii::CloseFile(double t)
-	{
+{
 	if ( ! fd )
 		return;
 
@@ -452,10 +452,10 @@ void Ascii::CloseFile(double t)
 	InternalClose(fd);
 	fd = 0;
 	gzfile = nullptr;
-	}
+}
 
 bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields)
-	{
+{
 	assert(! fd);
 
 	if ( ! init_options )
@@ -469,14 +469,14 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 	fname = path;
 
 	if ( ! IsSpecial(fname) )
-		{
+	{
 		std::string ext = "." + LogExt();
 
 		if ( gzip_level > 0 )
-			{
+		{
 			ext += ".";
 			ext += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
-			}
+		}
 
 		if ( fname.front() != '/' && ! logdir.empty() )
 			fname = (zeek::filesystem::path(logdir) / fname).string();
@@ -487,16 +487,16 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 		                  Info().rotation_interval > 0;
 
 		if ( use_shadow )
-			{
+		{
 			auto sfname = prefix_basename_with(fname, shadow_file_prefix);
 			auto tmp_sfname = prefix_basename_with(sfname, ".tmp");
 			auto sfd = open(tmp_sfname.data(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 			if ( sfd < 0 )
-				{
+			{
 				Error(Fmt("cannot open %s: %s", tmp_sfname.data(), Strerror(errno)));
 				return false;
-				}
+			}
 
 			util::safe_write(sfd, ext.data(), ext.size());
 			util::safe_write(sfd, "\n", 1);
@@ -511,33 +511,33 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 			util::safe_close(sfd);
 
 			if ( rename(tmp_sfname.data(), sfname.data()) == -1 )
-				{
+			{
 				Error(Fmt("Unable to rename %s to %s: %s", tmp_sfname.data(), sfname.data(),
 				          Strerror(errno)));
 
 				unlink(tmp_sfname.data());
 
 				return false;
-				}
 			}
 		}
+	}
 
 	fd = open(fname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
 	if ( fd < 0 )
-		{
+	{
 		Error(Fmt("cannot open %s: %s", fname.c_str(), Strerror(errno)));
 		fd = 0;
 		return false;
-		}
+	}
 
 	if ( gzip_level > 0 )
-		{
+	{
 		if ( gzip_level < 0 || gzip_level > 9 )
-			{
+		{
 			Error("invalid value for 'gzip_level', must be a number between 0 and 9.");
 			return false;
-			}
+		}
 
 		char mode[4];
 		snprintf(mode, sizeof(mode), "wb%d", gzip_level);
@@ -545,27 +545,27 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
 		gzfile = gzdopen(fd, mode);
 
 		if ( gzfile == nullptr )
-			{
+		{
 			Error(Fmt("cannot gzip %s: %s", fname.c_str(), Strerror(errno)));
 			return false;
-			}
 		}
+	}
 	else
-		{
+	{
 		gzfile = nullptr;
-		}
-
-	if ( ! WriteHeader(path) )
-		{
-		Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
-		return false;
-		}
-
-	return true;
 	}
 
-bool Ascii::WriteHeader(const string& path)
+	if ( ! WriteHeader(path) )
 	{
+		Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
+		return false;
+	}
+
+	return true;
+}
+
+bool Ascii::WriteHeader(const string& path)
+{
 	if ( ! include_meta )
 		return true;
 
@@ -573,26 +573,26 @@ bool Ascii::WriteHeader(const string& path)
 	string types;
 
 	for ( int i = 0; i < NumFields(); ++i )
-		{
+	{
 		if ( i > 0 )
-			{
+		{
 			names += separator;
 			types += separator;
-			}
+		}
 
 		names += string(Fields()[i]->name);
 		types += Fields()[i]->TypeName().c_str();
-		}
+	}
 
 	if ( tsv )
-		{
+	{
 		// A single TSV-style line is all we need.
 		string str = names + "\n";
 		if ( ! InternalWrite(fd, str.c_str(), str.length()) )
 			return false;
 
 		return true;
-		}
+	}
 
 	string str = meta_prefix + "separator " // Always use space as separator here.
 	             + util::get_escaped_string(separator, false) + "\n";
@@ -611,21 +611,21 @@ bool Ascii::WriteHeader(const string& path)
 		return false;
 
 	return true;
-	}
+}
 
 bool Ascii::DoFlush(double network_time)
-	{
+{
 	fsync(fd);
 	return true;
-	}
+}
 
 bool Ascii::DoFinish(double network_time)
-	{
+{
 	if ( ascii_done )
-		{
+	{
 		fprintf(stderr, "internal error: duplicate finish\n");
 		abort();
-		}
+	}
 
 	DoFlush(network_time);
 
@@ -634,10 +634,10 @@ bool Ascii::DoFinish(double network_time)
 	CloseFile(network_time);
 
 	return true;
-	}
+}
 
 bool Ascii::DoWrite(int num_fields, const threading::Field* const* fields, threading::Value** vals)
-	{
+{
 	if ( ! fd )
 		DoInit(Info(), NumFields(), Fields());
 
@@ -652,7 +652,7 @@ bool Ascii::DoWrite(int num_fields, const threading::Field* const* fields, threa
 	int len = desc.Len();
 
 	if ( strncmp(bytes, meta_prefix.data(), meta_prefix.size()) == 0 )
-		{
+	{
 		// It would so escape the first character.
 		char hex[4] = {'\\', 'x', '0', '0'};
 		util::bytetohex(bytes[0], hex + 2);
@@ -662,7 +662,7 @@ bool Ascii::DoWrite(int num_fields, const threading::Field* const* fields, threa
 
 		++bytes;
 		--len;
-		}
+	}
 
 	if ( ! InternalWrite(fd, bytes, len) )
 		goto write_error;
@@ -675,74 +675,74 @@ bool Ascii::DoWrite(int num_fields, const threading::Field* const* fields, threa
 write_error:
 	Error(Fmt("error writing to %s: %s", fname.c_str(), Strerror(errno)));
 	return false;
-	}
+}
 
 bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool terminating)
-	{
+{
 	// Don't rotate special files or if there's not one currently open.
 	if ( ! fd || IsSpecial(Info().path) )
-		{
+	{
 		FinishedRotation();
 		return true;
-		}
+	}
 
 	CloseFile(close);
 
 	string nname = string(rotated_path) + "." + LogExt();
 
 	if ( gzip_level > 0 )
-		{
+	{
 		nname += ".";
 		nname += gzip_file_extension.empty() ? "gz" : gzip_file_extension;
-		}
+	}
 
 	if ( rename(fname.c_str(), nname.c_str()) != 0 )
-		{
+	{
 		char buf[256];
 		util::zeek_strerror_r(errno, buf, sizeof(buf));
 		Error(Fmt("failed to rename %s to %s: %s", fname.c_str(), nname.c_str(), buf));
 		FinishedRotation();
 		return false;
-		}
+	}
 
 	bool use_shadow = BifConst::LogAscii::enable_leftover_log_rotation &&
 	                  Info().rotation_interval > 0;
 
 	if ( use_shadow )
-		{
+	{
 		auto sfname = prefix_basename_with(fname, shadow_file_prefix);
 
 		if ( unlink(sfname.data()) != 0 )
-			{
+		{
 			Error(Fmt("cannot unlink %s: %s", sfname.data(), Strerror(errno)));
 			FinishedRotation();
 			return false;
-			}
 		}
+	}
 
 	if ( ! FinishedRotation(nname.c_str(), fname.c_str(), open, close, terminating) )
-		{
+	{
 		Error(Fmt("error rotating %s to %s", fname.c_str(), nname.c_str()));
 		return false;
-		}
+	}
 
 	return true;
-	}
+}
 
 bool Ascii::DoSetBuf(bool enabled)
-	{
+{
 	// Nothing to do.
 	return true;
-	}
+}
 
 bool Ascii::DoHeartbeat(double network_time, double current_time)
-	{
+{
 	// Nothing to do.
 	return true;
-	}
+}
 
 static std::vector<LeftoverLog> find_leftover_logs()
-	{
+{
 	std::vector<LeftoverLog> rval;
 	std::vector<std::string> stale_shadow_files;
 	auto prefix_len = strlen(shadow_file_prefix);
@@ -759,14 +759,14 @@ static std::vector<LeftoverLog> find_leftover_logs()
 	struct dirent* dp;
 
 	if ( ! d )
-		{
+	{
 		reporter->Error("failed to open directory '%s' in search of leftover logs: %s",
 		                logdir.c_str(), strerror(errno));
 		return rval;
-		}
+	}
 
 	while ( (dp = readdir(d)) )
-		{
+	{
 		if ( strncmp(dp->d_name, shadow_file_prefix, prefix_len) != 0 )
 			continue;
 
@@ -774,20 +774,20 @@ static std::vector<LeftoverLog> find_leftover_logs()
 		std::string log_fname = (logdir / (dp->d_name + prefix_len)).string();
 
 		if ( util::is_file(log_fname) )
-			{
+		{
 			if ( auto ll = parse_shadow_log(log_fname) )
-				{
+			{
 				if ( ll->error.empty() )
 					rval.emplace_back(std::move(*ll));
 				else
 					reporter->Error("failed to process leftover log '%s': %s", log_fname.data(),
 					                ll->error.data());
-				}
 			}
+		}
 		else
 			// There was a log here.  It's gone now.
 			stale_shadow_files.emplace_back(shadow_fname);
-		}
+	}
 
 	for ( const auto& f : stale_shadow_files )
 		if ( unlink(f.data()) != 0 )
@@ -795,10 +795,10 @@ static std::vector<LeftoverLog> find_leftover_logs()
 
 	closedir(d);
 	return rval;
-	}
+}
 
 void Ascii::RotateLeftoverLogs()
-	{
+{
 	if ( ! BifConst::LogAscii::enable_leftover_log_rotation )
 		return;
 
@@ -816,7 +816,7 @@ void Ascii::RotateLeftoverLogs()
 	auto leftover_logs = find_leftover_logs();
 
 	for ( const auto& ll : leftover_logs )
-		{
+	{
 		static auto rot_info_type = id::find_type<RecordType>("Log::RotationInfo");
 		static auto writer_type = id::find_type<EnumType>("Log::Writer");
 		static auto writer_idx = writer_type->Lookup("Log", "WRITER_ASCII");
@@ -827,7 +827,7 @@ void Ascii::RotateLeftoverLogs()
 		auto ppf = default_ppf;
 
 		if ( ! ll.post_proc_func.empty() )
-			{
+		{
 			auto func = id::find_func(ll.post_proc_func.data());
 
 			if ( func )
@@ -837,7 +837,7 @@ void Ascii::RotateLeftoverLogs()
 				                  "postprocessor function '%s', proceeding "
 				                  " with the default function",
 				                  ll.filename.data(), ll.post_proc_func.data());
-			}
+		}
 
 		auto rotation_path = log_mgr->FormatRotationPath(writer_val, ll.Path(), ll.open_time,
 		                                                 ll.close_time, false, ppf);
@@ -863,31 +863,31 @@ void Ascii::RotateLeftoverLogs()
 			                  strerror(errno));
 
 		try
-			{
+		{
 			ppf->Invoke(std::move(rot_info));
 			reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ", ll.filename.data(),
 			               rotation_path.data());
-			}
+		}
 		catch ( InterpreterException& e )
-			{
+		{
 			reporter->Warning("Postprocess function '%s' failed for leftover log '%s'", ppf->Name(),
 			                  ll.filename.data());
-			}
 		}
 	}
+}
 
 string Ascii::LogExt()
-	{
+{
 	const char* ext = getenv("ZEEK_LOG_SUFFIX");
 
 	if ( ! ext )
 		ext = "log";
 
 	return ext;
-	}
+}
 
 string Ascii::Timestamp(double t)
-	{
+{
 	time_t teatime = time_t(t);
 
 	if ( ! teatime )
@@ -903,38 +903,38 @@ string Ascii::Timestamp(double t)
 	strftime(tmp, sizeof(tmp), date_fmt, tm);
 
 	return tmp;
-	}
+}
 
 bool Ascii::InternalWrite(int fd, const char* data, int len)
-	{
+{
 	if ( ! gzfile )
 		return util::safe_write(fd, data, len);
 
 	while ( len > 0 )
-		{
+	{
 		int n = gzwrite(gzfile, data, len);
 
 		if ( n <= 0 )
-			{
+		{
 			const char* err = gzerror(gzfile, &n);
 			Error(Fmt("Ascii::InternalWrite error: %s\n", err));
 			return false;
-			}
+		}
 
 		data += n;
 		len -= n;
-		}
-
-	return true;
 	}
 
+	return true;
+}
+
 bool Ascii::InternalClose(int fd)
-	{
+{
 	if ( ! gzfile )
-		{
+	{
 		util::safe_close(fd);
 		return true;
-		}
+	}
 
 	int res = gzclose(gzfile);
 
@@ -942,7 +942,7 @@ bool Ascii::InternalClose(int fd)
 		return true;
 
 	switch ( res )
-		{
+	{
 		case Z_STREAM_ERROR:
 			Error("Ascii::InternalClose gzclose error: invalid file stream");
 			break;
@@ -956,9 +956,9 @@ bool Ascii::InternalClose(int fd)
 		default:
 			Error("Ascii::InternalClose invalid gzclose result");
 			break;
-		}
-
-	return false;
 	}
 
-	} // namespace zeek::logging::writer::detail
+	return false;
+}
+
+} // namespace zeek::logging::writer::detail

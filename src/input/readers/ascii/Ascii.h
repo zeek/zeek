@@ -13,11 +13,11 @@
 #include "zeek/threading/formatters/Ascii.h"
 
 namespace zeek::input::reader::detail
-	{
+{
 
 // Description for input field mapping.
 struct FieldMapping
-	{
+{
 	std::string name;
 	TypeTag type;
 	TypeTag subtype; // internal type for sets and vectors
@@ -35,13 +35,13 @@ struct FieldMapping
 	FieldMapping& operator=(const FieldMapping& arg);
 
 	FieldMapping subType();
-	};
+};
 
 /**
  * Reader for structured ASCII files.
  */
 class Ascii : public ReaderBackend
-	{
+{
 public:
 	explicit Ascii(ReaderFrontend* frontend);
 	~Ascii() override = default;
@@ -98,16 +98,16 @@ private:
 	// define a custom deleter for the unique_ptr here to make sure the filename gets deleted
 	// correctly when the unique_ptr gets reset.
 	struct LocationDeleter
-		{
+	{
 		void operator()(zeek::detail::Location* loc) const
-			{
+		{
 			delete[] loc->filename;
 			delete loc;
-			}
-		};
+		}
+	};
 
 	using LocationPtr = std::unique_ptr<zeek::detail::Location, LocationDeleter>;
 	LocationPtr read_location;
-	};
+};
 
-	} // namespace zeek::input::reader::detail
+} // namespace zeek::input::reader::detail

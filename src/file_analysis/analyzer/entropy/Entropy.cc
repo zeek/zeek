@@ -9,47 +9,47 @@
 #include "zeek/util.h"
 
 namespace zeek::file_analysis::detail
-	{
+{
 
 Entropy::Entropy(RecordValPtr args, file_analysis::File* file)
 	: file_analysis::Analyzer(file_mgr->GetComponentTag("ENTROPY"), std::move(args), file)
-	{
+{
 	entropy = new EntropyVal;
 	fed = false;
-	}
+}
 
 Entropy::~Entropy()
-	{
+{
 	Unref(entropy);
-	}
+}
 
 file_analysis::Analyzer* Entropy::Instantiate(RecordValPtr args, file_analysis::File* file)
-	{
+{
 	return new Entropy(std::move(args), file);
-	}
+}
 
 bool Entropy::DeliverStream(const u_char* data, uint64_t len)
-	{
+{
 	if ( ! fed )
 		fed = len > 0;
 
 	entropy->Feed(data, len);
 	return true;
-	}
+}
 
 bool Entropy::EndOfFile()
-	{
+{
 	Finalize();
 	return false;
-	}
+}
 
 bool Entropy::Undelivered(uint64_t offset, uint64_t len)
-	{
+{
 	return false;
-	}
+}
 
 void Entropy::Finalize()
-	{
+{
 	if ( ! fed )
 		return;
 
@@ -69,6 +69,6 @@ void Entropy::Finalize()
 	ent_result->Assign(4, scc);
 
 	event_mgr.Enqueue(file_entropy, GetFile()->ToVal(), std::move(ent_result));
-	}
+}
 
-	} // namespace zeek::file_analysis::detail
+} // namespace zeek::file_analysis::detail

@@ -6,12 +6,12 @@
 #include "zeek/analyzer/protocol/rpc/RPC.h"
 
 namespace zeek::analyzer::rpc
-	{
+{
 namespace detail
-	{
+{
 
 class NFS_Interp : public RPC_Interpreter
-	{
+{
 public:
 	explicit NFS_Interp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
@@ -78,17 +78,17 @@ protected:
 	double ExtractTime(const u_char*& buf, int& n);
 	double ExtractInterval(const u_char*& buf, int& n);
 	bool ExtractBool(const u_char*& buf, int& n);
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 class NFS_Analyzer : public RPC_Analyzer
-	{
+{
 public:
 	explicit NFS_Analyzer(Connection* conn);
 	void Init() override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new NFS_Analyzer(conn); }
-	};
+};
 
-	} // namespace zeek::analyzer::rpc
+} // namespace zeek::analyzer::rpc

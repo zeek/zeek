@@ -18,7 +18,7 @@
 // recommends we do it. See https://npcap.com/guide/npcap-devguide.html#npcap-feature-native
 // for further info.
 static void init_npcap_dll_path()
-	{
+{
 #ifdef HAVE_WPCAP
 	BOOL(WINAPI * SetDllDirectory)(LPCTSTR);
 	char sysdir_name[512];
@@ -27,25 +27,25 @@ static void init_npcap_dll_path()
 	SetDllDirectory = (BOOL(WINAPI*)(LPCTSTR))GetProcAddress(GetModuleHandle("kernel32.dll"),
 	                                                         "SetDllDirectoryA");
 	if ( SetDllDirectory == NULL )
-		{
+	{
 		fprintf(stderr, "Error in SetDllDirectory");
-		}
+	}
 	else
-		{
+	{
 		len = GetSystemDirectory(sysdir_name, 480); //	be safe
 		if ( ! len )
 			fprintf(stderr, "Error in GetSystemDirectory (%d)", GetLastError());
 		strcat(sysdir_name, "\\Npcap");
 		if ( SetDllDirectory(sysdir_name) == 0 )
 			fprintf(stderr, "Error in SetDllDirectory(\"System32\\Npcap\")");
-		}
-#endif
 	}
+#endif
+}
 
 #endif
 
 int main(int argc, char** argv)
-	{
+{
 #ifdef _MSC_VER
 	_setmode(_fileno(stdout), _O_BINARY);
 	_setmode(_fileno(stderr), _O_BINARY);
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 	                   zeek::BifConst::exit_only_after_terminate;
 
 	if ( do_run_loop )
-		{
+	{
 		if ( zeek::detail::profiling_logger )
 			zeek::detail::profiling_logger->Log();
 
@@ -74,10 +74,10 @@ int main(int argc, char** argv)
 			heap_checker = new HeapLeakChecker("net_run");
 
 		if ( options.perftools_profile )
-			{
+		{
 			HeapProfilerStart("heap");
 			HeapProfilerDump("pre net_run");
-			}
+		}
 
 #endif
 
@@ -90,14 +90,14 @@ int main(int argc, char** argv)
 		uint64_t mem_net_start_malloced;
 
 		if ( options.print_execution_time )
-			{
+		{
 			zeek::util::get_memory_usage(&mem_net_start_total, &mem_net_start_malloced);
 
 			fprintf(stderr, "# initialization %.6f\n", time_net_start - time_start);
 
 			fprintf(stderr, "# initialization %" PRIu64 "M/%" PRIu64 "M\n",
 			        mem_net_start_total / 1024 / 1024, mem_net_start_malloced / 1024 / 1024);
-			}
+		}
 
 		zeek::run_state::detail::run_loop();
 
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 		uint64_t mem_net_done_malloced;
 
 		if ( options.print_execution_time )
-			{
+		{
 			zeek::util::get_memory_usage(&mem_net_done_total, &mem_net_done_malloced);
 
 			fprintf(stderr, "# total time %.6f, processing %.6f\n", time_net_done - time_start,
@@ -118,8 +118,8 @@ int main(int argc, char** argv)
 			        mem_net_done_total / 1024 / 1024, mem_net_done_malloced / 1024 / 1024,
 			        (mem_net_done_total - mem_net_start_total) / 1024 / 1024,
 			        (mem_net_done_malloced - mem_net_start_malloced) / 1024 / 1024);
-			}
 		}
+	}
 
 	return zeek::detail::cleanup(do_run_loop);
-	}
+}

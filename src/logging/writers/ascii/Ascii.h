@@ -12,15 +12,15 @@
 #include "zeek/threading/formatters/JSON.h"
 
 namespace zeek::plugin::detail::Zeek_AsciiWriter
-	{
+{
 class Plugin;
-	}
+}
 
 namespace zeek::logging::writer::detail
-	{
+{
 
 class Ascii : public WriterBackend
-	{
+{
 public:
 	explicit Ascii(WriterFrontend* frontend);
 	~Ascii() override;
@@ -83,6 +83,6 @@ private:
 
 	threading::Formatter* formatter;
 	bool init_options;
-	};
+};
 
-	} // namespace zeek::logging::writer::detail
+} // namespace zeek::logging::writer::detail

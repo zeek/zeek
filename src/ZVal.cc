@@ -11,27 +11,27 @@ using namespace zeek;
 bool* ZVal::zval_was_nil_addr = nullptr;
 
 ZVal::ZVal(ValPtr v, const TypePtr& t)
-	{
+{
 	if ( ! v )
-		{
+	{
 		// This can happen for some forms of error propagation.
 		// We can deal with it iff the type is managed, and thus
 		// we can employ a "nil" placeholder.
 		ASSERT(IsManagedType(t));
 		managed_val = nullptr;
 		return;
-		}
+	}
 
 	const auto& vt = v->GetType();
 
 	if ( vt->Tag() != t->Tag() && t->Tag() != TYPE_ANY )
-		{
+	{
 		if ( t->InternalType() == TYPE_INTERNAL_OTHER || t->InternalType() != vt->InternalType() )
 			reporter->InternalError("type inconsistency in ZVal constructor");
-		}
+	}
 
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 		case TYPE_INT:
 		case TYPE_ENUM:
@@ -106,13 +106,13 @@ ZVal::ZVal(ValPtr v, const TypePtr& t)
 		case TYPE_ERROR:
 		case TYPE_VOID:
 			reporter->InternalError("bad type in ZVal constructor");
-		}
 	}
+}
 
 ZVal::ZVal(const TypePtr& t)
-	{
+{
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 		case TYPE_INT:
 		case TYPE_ENUM:
@@ -185,15 +185,15 @@ ZVal::ZVal(const TypePtr& t)
 		case TYPE_ERROR:
 		case TYPE_VOID:
 			reporter->InternalError("bad type in ZVal constructor");
-		}
 	}
+}
 
 ValPtr ZVal::ToVal(const TypePtr& t) const
-	{
+{
 	Val* v;
 
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_INT:
 			return val_mgr->Int(int_val);
 
@@ -220,19 +220,19 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 
 		case TYPE_FUNC:
 			if ( func_val )
-				{
+			{
 				FuncPtr fv_ptr = {NewRef{}, func_val};
 				return make_intrusive<FuncVal>(fv_ptr);
-				}
+			}
 
 			return nullptr;
 
 		case TYPE_FILE:
 			if ( file_val )
-				{
+			{
 				FilePtr fv_ptr = {NewRef{}, file_val};
 				return make_intrusive<FileVal>(fv_ptr);
-				}
+			}
 
 			return nullptr;
 
@@ -275,7 +275,7 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 		default:
 			v = nullptr;
 			reporter->InternalError("bad type in ZVal::ToVal: %s", type_name(t->Tag()));
-		}
+	}
 
 	if ( v )
 		return {NewRef{}, v};
@@ -284,12 +284,12 @@ ValPtr ZVal::ToVal(const TypePtr& t) const
 		*zval_was_nil_addr = true;
 
 	return nullptr;
-	}
+}
 
 bool ZVal::IsManagedType(const TypePtr& t)
-	{
+{
 	switch ( t->Tag() )
-		{
+	{
 		case zeek::TYPE_ADDR:
 		case zeek::TYPE_ANY:
 		case zeek::TYPE_FILE:
@@ -307,5 +307,5 @@ bool ZVal::IsManagedType(const TypePtr& t)
 
 		default:
 			return false;
-		}
 	}
+}

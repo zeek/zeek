@@ -10,12 +10,12 @@
 #include "zeek/packet_analysis/Analyzer.h"
 
 namespace zeek::analyzer::pia
-	{
+{
 class PIA;
-	}
+}
 
 namespace zeek::packet_analysis::IP
-	{
+{
 
 class SessionAdapter;
 
@@ -25,7 +25,7 @@ class SessionAdapter;
  * that those plugins have in common.
  */
 class IPBasedAnalyzer : public Analyzer
-	{
+{
 public:
 	~IPBasedAnalyzer() override;
 
@@ -120,8 +120,8 @@ protected:
 	 * @param pkt The packet being processed.
 	 */
 	virtual void DeliverPacket(Connection* conn, double t, bool is_orig, int remaining, Packet* pkt)
-		{
-		}
+	{
+	}
 
 	/**
 	 * Upon seeing the first packet of a connection, checks whether we want
@@ -137,10 +137,10 @@ protected:
 	 */
 	virtual bool WantConnection(uint16_t src_port, uint16_t dst_port, const u_char* data,
 	                            bool& flip_roles) const
-		{
+	{
 		flip_roles = false;
 		return true;
-		}
+	}
 
 	/**
 	 * Returns an analyzer adapter appropriate for this IP-based analyzer. This adapter
@@ -201,6 +201,6 @@ private:
 	TransportProto transport;
 	uint32_t server_port_mask;
 	static TableValPtr ignore_checksums_nets_table;
-	};
+};
 
-	}
+}

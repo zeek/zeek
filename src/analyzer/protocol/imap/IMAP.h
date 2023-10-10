@@ -10,10 +10,10 @@
 #include "analyzer/protocol/imap/imap_pac.h"
 
 namespace zeek::analyzer::imap
-	{
+{
 
 class IMAP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit IMAP_Analyzer(Connection* conn);
 	~IMAP_Analyzer() override;
@@ -34,6 +34,6 @@ protected:
 	bool had_gap;
 
 	bool tls_active;
-	};
+};
 
-	} // namespace zeek::analyzer::imap
+} // namespace zeek::analyzer::imap

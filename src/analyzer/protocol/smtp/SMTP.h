@@ -12,18 +12,18 @@
 #define SMTP_CMD_DEF(cmd) SMTP_CMD_##cmd,
 
 namespace zeek::analyzer::smtp
-	{
+{
 namespace detail
-	{
+{
 
 enum SMTP_Cmd
-	{
+{
 #include "SMTP_cmd.def"
-	};
+};
 
 // State is updated on every SMTP reply.
 enum SMTP_State
-	{
+{
 	SMTP_CONNECTED, // 0: before the opening message
 	SMTP_INITIATED, // 1: after opening message 220, EHLO/HELO expected
 	SMTP_NOT_AVAILABLE, // 2: after opening message 554, etc.
@@ -37,12 +37,12 @@ enum SMTP_State
 	SMTP_QUIT, // 10: after QUIT
 	SMTP_AFTER_GAP, // 11: after a gap is detected
 	SMTP_GAP_RECOVERY, // 12: after the first reply after a gap
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 class SMTP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit SMTP_Analyzer(Connection* conn);
 	~SMTP_Analyzer() override;
@@ -93,6 +93,6 @@ protected:
 private:
 	analyzer::tcp::ContentLine_Analyzer* cl_orig;
 	analyzer::tcp::ContentLine_Analyzer* cl_resp;
-	};
+};
 
-	} // namespace zeek::analyzer::smtp
+} // namespace zeek::analyzer::smtp

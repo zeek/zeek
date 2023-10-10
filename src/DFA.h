@@ -12,7 +12,7 @@
 #include "zeek/RE.h" // for typedef AcceptingSet
 
 namespace zeek::detail
-	{
+{
 
 class DFA_State;
 class DFA_Machine;
@@ -23,7 +23,7 @@ class DFA_Machine;
 #define DFA_UNCOMPUTED_STATE_PTR ((DFA_State*)DFA_UNCOMPUTED_STATE)
 
 class DFA_State : public Obj
-	{
+{
 public:
 	DFA_State(int state_num, const EquivClass* ec, NFA_state_list* nfa_states,
 	          AcceptingSet* accept);
@@ -68,12 +68,12 @@ protected:
 	NFA_state_list* nfa_states;
 	EquivClass* meta_ec; // which ec's make same transition
 	DFA_State* mark;
-	};
+};
 
 using DigestStr = std::basic_string<u_char>;
 
 class DFA_State_Cache
-	{
+{
 public:
 	DFA_State_Cache();
 	~DFA_State_Cache();
@@ -87,7 +87,7 @@ public:
 	int NumEntries() const { return states.size(); }
 
 	struct Stats
-		{
+	{
 		// Sum of all NFA states
 		unsigned int nfa_states;
 		unsigned int dfa_states;
@@ -96,7 +96,7 @@ public:
 		unsigned int mem;
 		unsigned int hits;
 		unsigned int misses;
-		};
+	};
 
 	void GetStats(Stats* s);
 
@@ -106,10 +106,10 @@ private:
 
 	// Hash indexed by NFA states (MD5s of them, actually).
 	std::map<DigestStr, DFA_State*> states;
-	};
+};
 
 class DFA_Machine : public Obj
-	{
+{
 public:
 	DFA_Machine(NFA_Machine* n, EquivClass* ec);
 	~DFA_Machine() override;
@@ -140,14 +140,14 @@ protected:
 	DFA_State_Cache* dfa_state_cache;
 
 	NFA_Machine* nfa;
-	};
+};
 
 inline DFA_State* DFA_State::Xtion(int sym, DFA_Machine* machine)
-	{
+{
 	if ( xtions[sym] == DFA_UNCOMPUTED_STATE_PTR )
 		return ComputeXtion(sym, machine);
 	else
 		return xtions[sym];
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

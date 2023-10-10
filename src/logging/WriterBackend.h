@@ -8,12 +8,12 @@
 #include "zeek/threading/MsgThread.h"
 
 namespace broker
-	{
+{
 class data;
-	}
+}
 
 namespace zeek::logging
-	{
+{
 
 class WriterFrontend;
 
@@ -27,7 +27,7 @@ class WriterFrontend;
  * thread (the constructor and destructor are the exceptions.)
  */
 class WriterBackend : public threading::MsgThread
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -51,7 +51,7 @@ public:
 	 * A struct passing information to the writer at initialization time.
 	 */
 	struct WriterInfo
-		{
+	{
 		// Structure takes ownership of these strings.
 		using config_map = std::map<const char*, const char*, util::CompareString>;
 
@@ -95,11 +95,11 @@ public:
 		config_map config;
 
 		WriterInfo() : path(nullptr), rotation_interval(0.0), rotation_base(0.0), network_time(0.0)
-			{
-			}
+		{
+		}
 
 		WriterInfo(const WriterInfo& other)
-			{
+		{
 			path = other.path ? util::copy_string(other.path) : nullptr;
 			post_proc_func = other.post_proc_func ? util::copy_string(other.post_proc_func)
 			                                      : nullptr;
@@ -111,19 +111,19 @@ public:
 			      i++ )
 				config.insert(
 					std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
-			}
+		}
 
 		~WriterInfo()
-			{
+		{
 			delete[] path;
 			delete[] post_proc_func;
 
 			for ( config_map::iterator i = config.begin(); i != config.end(); i++ )
-				{
+			{
 				delete[] i->first;
 				delete[] i->second;
-				}
 			}
+		}
 
 		// Note, these need to be adapted when changing the struct's
 		// fields. They serialize/deserialize the struct.
@@ -132,7 +132,7 @@ public:
 
 	private:
 		const WriterInfo& operator=(const WriterInfo& other); // Disable.
-		};
+	};
 
 	/**
 	 * One-time initialization of the writer to define the logged fields.
@@ -401,6 +401,6 @@ private:
 	bool buffering; // True if buffering is enabled.
 
 	int rotation_counter; // Tracks FinishedRotation() calls.
-	};
+};
 
-	} // namespace zeek::logging
+} // namespace zeek::logging

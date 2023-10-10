@@ -8,13 +8,13 @@
 #include "zeek/Traverse.h"
 
 namespace zeek::detail
-	{
+{
 
 class Expr;
 class TempVar;
 
 class Reducer
-	{
+{
 public:
 	Reducer(const ScriptFunc* func);
 
@@ -85,20 +85,20 @@ public:
 	// A predicate that returns true if the given statement should
 	// be removed due to AST optimization.
 	bool ShouldOmitStmt(const Stmt* s) const
-		{
+	{
 		return omitted_stmts.find(s) != omitted_stmts.end();
-		}
+	}
 
 	// Provides a replacement for the given statement due to
 	// AST optimization, or nil if there's no replacement.
 	StmtPtr ReplacementStmt(const StmtPtr& s) const
-		{
+	{
 		auto repl = replaced_stmts.find(s.get());
 		if ( repl == replaced_stmts.end() )
 			return nullptr;
 		else
 			return repl->second;
-		}
+	}
 
 	// Tells the reducer to prune the given statement during the
 	// next reduction pass.
@@ -107,17 +107,17 @@ public:
 	// Tells the reducer to replace the given statement during the
 	// next reduction pass.
 	void AddStmtToReplace(const Stmt* s_old, StmtPtr s_new)
-		{
+	{
 		replaced_stmts[s_old] = std::move(s_new);
-		}
+	}
 
 	// Tells the reducer that it can reclaim the storage associated
 	// with the omitted statements.
 	void ResetAlteredStmts()
-		{
+	{
 		omitted_stmts.clear();
 		replaced_stmts.clear();
-		}
+	}
 
 	// Given the LHS and RHS of an assignment, returns true
 	// if the RHS is a common subexpression (meaning that the
@@ -288,7 +288,7 @@ protected:
 	const Stmt* curr_stmt = nullptr;
 
 	bool opt_ready = false;
-	};
+};
 
 // Helper class that walks an AST to determine whether it's safe
 // to substitute a common subexpression (which at this point is
@@ -300,7 +300,7 @@ protected:
 // for safety.
 
 class CSE_ValidityChecker : public TraversalCallback
-	{
+{
 public:
 	CSE_ValidityChecker(const std::vector<const ID*>& ids, const Expr* start_e, const Expr* end_e);
 
@@ -310,14 +310,14 @@ public:
 
 	// Returns the ultimate verdict re safety.
 	bool IsValid() const
-		{
+	{
 		if ( ! is_valid )
 			return false;
 
 		if ( ! have_end_e )
 			reporter->InternalError("CSE_ValidityChecker: saw start but not end");
 		return true;
-		}
+	}
 
 protected:
 	// Returns true if an assignment involving the given identifier on
@@ -361,7 +361,7 @@ protected:
 	// Whether analyzed expressions occur in the context of
 	// a statement that modifies an aggregate ("add" or "delete").
 	bool in_aggr_mod_stmt = false;
-	};
+};
 
 // Used for debugging, to communicate which expression wasn't
 // reduced when we expected them all to be.
@@ -371,4 +371,4 @@ extern bool checking_reduction;
 // Used to report a non-reduced expression.
 extern bool NonReduced(const Expr* perp);
 
-	} // zeek::detail
+} // zeek::detail

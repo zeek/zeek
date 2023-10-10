@@ -13,32 +13,32 @@
 #include "zeek/plugin/ComponentManager.h"
 
 namespace zeek
-	{
+{
 
 class TableVal;
 class VectorVal;
 
 namespace run_state
-	{
+{
 
 extern bool terminating;
 
-	} // namespace run_state
+} // namespace run_state
 
 namespace analyzer
-	{
+{
 
 class Analyzer;
 
-	} // namespace analyzer
+} // namespace analyzer
 
 namespace detail
-	{
+{
 class CompositeHash;
-	}
+}
 
 namespace file_analysis
-	{
+{
 
 class File;
 
@@ -46,7 +46,7 @@ class File;
  * Main entry point for interacting with file analysis.
  */
 class Manager : public plugin::ComponentManager<Component>
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -451,7 +451,7 @@ private:
 	size_t max_files;
 
 	zeek::detail::CompositeHash* analyzer_hash = nullptr;
-	};
+};
 
 /**
  * Returns a script-layer value corresponding to the \c mime_matches type.
@@ -459,8 +459,8 @@ private:
  */
 VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m);
 
-	} // namespace file_analysis
+} // namespace file_analysis
 
 extern file_analysis::Manager* file_mgr;
 
-	} // namespace zeek
+} // namespace zeek

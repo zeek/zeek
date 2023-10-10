@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 
 namespace zeek::plugin::detail::Zeek_ConnSize
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"ConnSize", zeek::analyzer::conn_size::ConnSize_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::ConnSize";
 		config.description = "Connection size analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_ConnSize
+} // namespace zeek::plugin::detail::Zeek_ConnSize

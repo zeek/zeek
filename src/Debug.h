@@ -12,7 +12,7 @@
 #include "zeek/util.h"
 
 namespace zeek
-	{
+{
 
 class Val;
 template <class T> class IntrusivePtr;
@@ -21,7 +21,7 @@ using ValPtr = zeek::IntrusivePtr<Val>;
 extern std::string current_module;
 
 namespace detail
-	{
+{
 
 class Frame;
 class Stmt;
@@ -31,19 +31,19 @@ class DbgDisplay;
 
 // This needs to be defined before we do the includes that come after it.
 enum ParseLocationRecType
-	{
+{
 	PLR_UNKNOWN,
 	PLR_FILE_AND_LINE,
 	PLR_FUNCTION
-	};
+};
 class ParseLocationRec
-	{
+{
 public:
 	ParseLocationRecType type;
 	int32_t line;
 	Stmt* stmt;
 	const char* filename;
-	};
+};
 
 class StmtLocMapping;
 using Filemap = std::deque<StmtLocMapping*>; // mapping for a single file
@@ -52,13 +52,13 @@ using BPIDMapType = std::map<int, DbgBreakpoint*>;
 using BPMapType = std::multimap<const Stmt*, DbgBreakpoint*>;
 
 class TraceState
-	{
+{
 public:
 	TraceState()
-		{
+	{
 		dbgtrace = false;
 		trace_file = stderr;
-		}
+	}
 
 	// Returns previous filename.
 	FILE* SetTraceFile(const char* trace_filename);
@@ -73,12 +73,12 @@ public:
 protected:
 	bool dbgtrace; // print an execution trace
 	FILE* trace_file;
-	};
+};
 
 extern TraceState g_trace_state;
 
 class DebuggerState
-	{
+{
 public:
 	DebuggerState();
 	~DebuggerState();
@@ -117,19 +117,19 @@ protected:
 
 private:
 	Frame* dbg_locals; // unused
-	};
+};
 
 // Source line -> statement mapping.
 // (obj -> source line mapping available in object itself)
 class StmtLocMapping
-	{
+{
 public:
 	StmtLocMapping() { }
 	StmtLocMapping(const Location* l, Stmt* s)
-		{
+	{
 		loc = *l;
 		stmt = s;
-		}
+	}
 
 	bool StartsAfter(const StmtLocMapping* m2);
 	const Location& Loc() const { return loc; }
@@ -138,7 +138,7 @@ public:
 protected:
 	Location loc;
 	Stmt* stmt = nullptr;
-	};
+};
 
 extern bool g_policy_debug; // enable debugging facility
 extern DebuggerState g_debugger_state;
@@ -195,5 +195,5 @@ extern std::map<std::string, Filemap*> g_dbgfilemaps; // filename => filemap
 // Perhaps add a code/priority argument to do selective output.
 int debug_msg(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

@@ -12,7 +12,7 @@
 #include "broker/telemetry/fwd.hh"
 
 namespace zeek::telemetry
-	{
+{
 
 class DblCounterFamily;
 class IntCounterFamily;
@@ -22,7 +22,7 @@ class Manager;
  * A handle to a metric that represents an integer value that can only go up.
  */
 class IntCounter
-	{
+{
 public:
 	friend class IntCounterFamily;
 
@@ -65,7 +65,7 @@ private:
 	explicit IntCounter(Handle hdl) noexcept : hdl(hdl) { }
 
 	Handle hdl;
-	};
+};
 
 /**
  * Checks whether two @ref IntCounter handles are identical.
@@ -73,21 +73,21 @@ private:
  * @note compare their @c value instead to check for equality.
  */
 constexpr bool operator==(const IntCounter& lhs, const IntCounter& rhs) noexcept
-	{
+{
 	return lhs.IsSameAs(rhs);
-	}
+}
 
 /// @relates IntCounter
 constexpr bool operator!=(const IntCounter& lhs, const IntCounter& rhs) noexcept
-	{
+{
 	return ! (lhs == rhs);
-	}
+}
 
 /**
  * Manages a collection of IntCounter metrics.
  */
 class IntCounterFamily : public MetricFamily
-	{
+{
 public:
 	friend class Manager;
 
@@ -103,30 +103,30 @@ public:
 	 * lazily if necessary.
 	 */
 	IntCounter GetOrAdd(Span<const LabelView> labels)
-		{
+	{
 		return IntCounter{int_counter_get_or_add(hdl, labels)};
-		}
+	}
 
 	/**
 	 * @copydoc GetOrAdd
 	 */
 	IntCounter GetOrAdd(std::initializer_list<LabelView> labels)
-		{
+	{
 		return GetOrAdd(Span{labels.begin(), labels.size()});
-		}
+	}
 
 private:
 	using Handle = broker::telemetry::int_counter_family_hdl*;
 
 	explicit IntCounterFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
-	};
+};
 
 /**
  * A handle to a metric that represents a floating point value that can only go
  * up.
  */
 class DblCounter
-	{
+{
 public:
 	friend class DblCounterFamily;
 
@@ -163,7 +163,7 @@ private:
 	explicit DblCounter(Handle hdl) noexcept : hdl(hdl) { }
 
 	Handle hdl;
-	};
+};
 
 /**
  * Checks whether two @ref DblCounter handles are identical.
@@ -171,21 +171,21 @@ private:
  * @note compare their @c value instead to check for equality.
  */
 constexpr bool operator==(const DblCounter& lhs, const DblCounter& rhs) noexcept
-	{
+{
 	return lhs.IsSameAs(rhs);
-	}
+}
 
 /// @relates DblCounter
 constexpr bool operator!=(const DblCounter& lhs, const DblCounter& rhs) noexcept
-	{
+{
 	return ! (lhs == rhs);
-	}
+}
 
 /**
  * Manages a collection of DblCounter metrics.
  */
 class DblCounterFamily : public MetricFamily
-	{
+{
 public:
 	friend class Manager;
 
@@ -201,41 +201,41 @@ public:
 	 * lazily if necessary.
 	 */
 	DblCounter GetOrAdd(Span<const LabelView> labels)
-		{
+	{
 		return DblCounter{dbl_counter_get_or_add(hdl, labels)};
-		}
+	}
 
 	/**
 	 * @copydoc GetOrAdd
 	 */
 	DblCounter GetOrAdd(std::initializer_list<LabelView> labels)
-		{
+	{
 		return GetOrAdd(Span{labels.begin(), labels.size()});
-		}
+	}
 
 private:
 	using Handle = broker::telemetry::dbl_counter_family_hdl*;
 
 	explicit DblCounterFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
-	};
+};
 
 namespace detail
-	{
+{
 
 template <class T> struct CounterOracle
-	{
+{
 	static_assert(std::is_same<T, int64_t>::value, "Counter<T> only supports int64_t and double");
 
 	using type = IntCounter;
-	};
+};
 
 template <> struct CounterOracle<double>
-	{
+{
 	using type = DblCounter;
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 template <class T> using Counter = typename detail::CounterOracle<T>::type;
 
-	} // namespace zeek::telemetry
+} // namespace zeek::telemetry

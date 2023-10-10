@@ -3,10 +3,10 @@
 #include "analyzer/protocol/dhcp/dhcp_pac.h"
 
 namespace zeek::analyzer::dhcp
-	{
+{
 
 class DHCP_Analyzer final : public analyzer::Analyzer
-	{
+{
 public:
 	explicit DHCP_Analyzer(Connection* conn);
 	~DHCP_Analyzer() override;
@@ -19,6 +19,6 @@ public:
 
 protected:
 	binpac::DHCP::DHCP_Conn* interp;
-	};
+};
 
-	} // namespace zeek::analyzer::dhcp
+} // namespace zeek::analyzer::dhcp

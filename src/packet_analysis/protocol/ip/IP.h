@@ -7,15 +7,15 @@
 #include "zeek/packet_analysis/Component.h"
 
 namespace zeek::detail
-	{
+{
 class Discarder;
-	}
+}
 
 namespace zeek::packet_analysis::IP
-	{
+{
 
 class IPAnalyzer : public Analyzer
-	{
+{
 public:
 	IPAnalyzer();
 	~IPAnalyzer() override;
@@ -23,9 +23,9 @@ public:
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<IPAnalyzer>();
-		}
+	}
 
 private:
 	// Returns a reassembled packet, or nil if there are still
@@ -33,15 +33,15 @@ private:
 	zeek::detail::FragReassembler* NextFragment(double t, const IP_Hdr* ip, const u_char* pkt);
 
 	zeek::detail::Discarder* discarder = nullptr;
-	};
+};
 
 enum class ParseResult
-	{
+{
 	Ok = 0,
 	CaplenTooSmall = -1,
 	BadProtocol = -2,
 	CaplenTooLarge = 1
-	};
+};
 
 /**
  * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -70,4 +70,4 @@ enum class ParseResult
 ParseResult ParsePacket(int caplen, const u_char* const pkt, int proto,
                         std::shared_ptr<IP_Hdr>& inner);
 
-	}
+}

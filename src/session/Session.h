@@ -13,35 +13,35 @@
 #include "zeek/session/Key.h"
 
 namespace zeek
-	{
+{
 
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
 namespace analyzer
-	{
+{
 class Analyzer;
-	}
+}
 
 namespace session
-	{
+{
 namespace detail
-	{
+{
 class Timer;
-	}
+}
 
 class Session;
 using timer_func = void (Session::*)(double t);
 
 enum class AnalyzerConfirmationState
-	{
+{
 	UNKNOWN,
 	VIOLATED,
 	CONFIRMED
-	};
+};
 
 class Session : public Obj
-	{
+{
 public:
 	/**
 	 * Construct a new session.
@@ -142,9 +142,9 @@ public:
 	template <class... Args>
 	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args)
-		{
+	{
 		return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...});
-		}
+	}
 
 	virtual void Describe(ODesc* d) const override;
 
@@ -246,20 +246,20 @@ protected:
 	bool in_session_table;
 
 	std::map<zeek::Tag, AnalyzerConfirmationState> analyzer_confirmations;
-	};
+};
 
 namespace detail
-	{
+{
 
 class Timer final : public zeek::detail::Timer
-	{
+{
 public:
 	Timer(Session* arg_session, timer_func arg_timer, double arg_t, bool arg_do_expire,
 	      zeek::detail::TimerType arg_type)
 		: zeek::detail::Timer(arg_t, arg_type)
-		{
+	{
 		Init(arg_session, arg_timer, arg_do_expire);
-		}
+	}
 	~Timer() override;
 
 	void Dispatch(double t, bool is_expire) override;
@@ -270,10 +270,10 @@ protected:
 	Session* session;
 	timer_func timer;
 	bool do_expire;
-	};
+};
 
-	} // namespace detail
-	} // namespace session
-	} // namespace zeek
+} // namespace detail
+} // namespace session
+} // namespace zeek
 
 #define ADD_TIMER(timer, t, do_expire, type) AddTimer(timer_func(timer), (t), (do_expire), (type))

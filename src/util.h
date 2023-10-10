@@ -68,9 +68,9 @@ extern HeapLeakChecker* heap_checker;
 #include <stdint.h>
 
 extern "C"
-	{
+{
 #include "zeek/3rdparty/modp_numtoa.h"
-	}
+}
 
 #ifdef HAVE_LINUX
 #include <pthread.h>
@@ -85,18 +85,18 @@ extern "C"
 #include <pthread.h>
 #include <filesystem>
 namespace zeek
-	{
+{
 namespace filesystem = std::filesystem;
-	}
+}
 inline constexpr std::string_view path_list_separator = ";";
 #else
 // Expose ghc::filesystem as zeek::filesystem until we can
 // switch to std::filesystem on all platforms.
 #include "zeek/3rdparty/ghc/filesystem.hpp"
 namespace zeek
-	{
+{
 namespace filesystem = ghc::filesystem;
-	}
+}
 inline constexpr std::string_view path_list_separator = ":";
 #endif
 
@@ -111,15 +111,15 @@ extern char* strcasestr(const char* s, const char* find);
 extern "C" void out_of_memory(const char* where);
 
 namespace zeek
-	{
+{
 
 class ODesc;
 class RecordVal;
 
 namespace util
-	{
+{
 namespace detail
-	{
+{
 
 std::string extract_ip(const std::string& i);
 std::string extract_ip_and_len(const std::string& i, int* len);
@@ -221,7 +221,7 @@ extern void add_to_zeek_path(const std::string& dir);
  * modify the path argument and may optionally abort execution on error.
  */
 class SafePathOp
-	{
+{
 public:
 	std::string result;
 	bool error;
@@ -230,7 +230,7 @@ protected:
 	SafePathOp() : result(), error() { }
 
 	void CheckValid(const char* result, const char* path, bool error_aborts);
-	};
+};
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.
@@ -308,21 +308,21 @@ double calc_next_rotate(double current, double rotate_interval, double base);
 
 int setvbuf(FILE* stream, char* buf, int type, size_t size);
 
-	} // namespace detail
+} // namespace detail
 
 template <class T> void delete_each(T* t)
-	{
+{
 	using iterator = typename T::iterator;
 	for ( iterator it = t->begin(); it != t->end(); ++it )
 		delete *it;
-	}
+}
 
 inline void bytetohex(unsigned char byte, char* hex_out)
-	{
+{
 	static constexpr char hex_chars[] = "0123456789abcdef";
 	hex_out[0] = hex_chars[(byte & 0xf0) >> 4];
 	hex_out[1] = hex_chars[byte & 0x0f];
-	}
+}
 
 std::string get_unescaped_string(const std::string& str);
 
@@ -330,9 +330,9 @@ ODesc* get_escaped_string(ODesc* d, const char* str, size_t len, bool escape_all
 std::string get_escaped_string(const char* str, size_t len, bool escape_all);
 
 inline std::string get_escaped_string(const std::string& str, bool escape_all)
-	{
+{
 	return get_escaped_string(str.data(), str.length(), escape_all);
-	}
+}
 
 std::vector<std::string>* tokenize_string(std::string_view input, std::string_view delim,
                                           std::vector<std::string>* rval = nullptr, int limit = 0);
@@ -397,24 +397,24 @@ extern const char* zeek_plugin_activate();
 extern std::string zeek_prefixes();
 
 class SafeDirname : public detail::SafePathOp
-	{
+{
 public:
 	explicit SafeDirname(const char* path, bool error_aborts = true);
 	explicit SafeDirname(const std::string& path, bool error_aborts = true);
 
 private:
 	void DoFunc(const std::string& path, bool error_aborts = true);
-	};
+};
 
 class SafeBasename : public detail::SafePathOp
-	{
+{
 public:
 	explicit SafeBasename(const char* path, bool error_aborts = true);
 	explicit SafeBasename(const std::string& path, bool error_aborts = true);
 
 private:
 	void DoFunc(const std::string& path, bool error_aborts = true);
-	};
+};
 
 std::string implode_string_vector(const std::vector<std::string>& v,
                                   const std::string& delim = "\n");
@@ -467,12 +467,12 @@ extern uint64_t calculate_unique_id(const size_t pool);
 
 // Use for map's string keys.
 struct ltstr
-	{
+{
 	bool operator()(const char* s1, const char* s2) const { return strcmp(s1, s2) < 0; }
-	};
+};
 
 constexpr size_t pad_size(size_t size)
-	{
+{
 	// We emulate glibc here (values measured on Linux i386).
 	// FIXME: We should better copy the portable value definitions from glibc.
 	if ( size == 0 )
@@ -483,7 +483,7 @@ constexpr size_t pad_size(size_t size)
 		return 2 * pad;
 
 	return ((size + 3) / pad + 1) * pad;
-	}
+}
 
 #define padded_sizeof(x) (zeek::util::pad_size(sizeof(x)))
 
@@ -507,36 +507,36 @@ extern void safe_close(int fd);
 // Versions of realloc/malloc which abort() on out of memory
 
 inline void* safe_realloc(void* ptr, size_t size)
-	{
+{
 	ptr = realloc(ptr, size);
 	if ( size && ! ptr )
 		out_of_memory("realloc");
 
 	return ptr;
-	}
+}
 
 inline void* safe_malloc(size_t size)
-	{
+{
 	void* ptr = malloc(size);
 	if ( ! ptr )
 		out_of_memory("malloc");
 
 	return ptr;
-	}
+}
 
 inline char* safe_strncpy(char* dest, const char* src, size_t n)
-	{
+{
 	char* result = strncpy(dest, src, n - 1);
 	dest[n - 1] = '\0';
 	return result;
-	}
+}
 
 // Memory alignment helpers.
 
 inline bool is_power_of_2(zeek_uint_t x)
-	{
+{
 	return ((x - 1) & x) == 0;
-	}
+}
 
 // Rounds the given pointer up to the nearest multiple of the
 // given size, if not already a multiple.
@@ -557,9 +557,9 @@ extern void get_memory_usage(uint64_t* total, uint64_t* malloced);
 // char*'s as keys. Otherwise the pointer values will be compared instead of
 // the actual string values.
 struct CompareString
-	{
+{
 	bool operator()(char const* a, char const* b) const { return strcmp(a, b) < 0; }
-	};
+};
 
 /**
  * Canonicalizes a name by converting it to uppercase letters and replacing
@@ -600,7 +600,7 @@ std::string json_escape_utf8(const char* val, size_t val_size,
  * \note This function is not UTF8-aware.
  */
 template <typename T> std::vector<T> split(T s, const T& delim)
-	{
+{
 	// If there's no delimiter, return a copy of the existing string.
 	if ( delim.empty() )
 		return {T(s)};
@@ -614,20 +614,20 @@ template <typename T> std::vector<T> split(T s, const T& delim)
 	const bool ends_in_delim = (s.substr(s.size() - delim.size()) == delim);
 
 	do
-		{
+	{
 		size_t p = s.find(delim);
 		l.push_back(s.substr(0, p));
 		if ( p == std::string::npos )
 			break;
 
 		s = s.substr(p + delim.size());
-		} while ( ! s.empty() );
+	} while ( ! s.empty() );
 
 	if ( ends_in_delim )
 		l.emplace_back(T{});
 
 	return l;
-	}
+}
 
 /**
  * Specialized version of util::split that allows for differing string and delimiter types,
@@ -640,9 +640,9 @@ template <typename T> std::vector<T> split(T s, const T& delim)
  * @return a vector of containing the separate parts of the string.
  */
 template <typename T, typename U = typename T::value_type*> std::vector<T> split(T s, U delim)
-	{
+{
 	return split(s, T{delim});
-	}
+}
 
 /**
  * Specialized version of util::split that takes a const char* string and delimiter.
@@ -652,9 +652,9 @@ template <typename T, typename U = typename T::value_type*> std::vector<T> split
  * @return a vector of string_view objects containing the separate parts of the string.
  */
 inline std::vector<std::string_view> split(const char* s, const char* delim)
-	{
+{
 	return split(std::string_view(s), std::string_view(delim));
-	}
+}
 
 /**
  * Specialized version of util::split that takes a const wchar_t* string and delimiter.
@@ -664,9 +664,9 @@ inline std::vector<std::string_view> split(const char* s, const char* delim)
  * @return a vector of wstring_view objects containing the separate parts of the string.
  */
 inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* delim)
-	{
+{
 	return split(std::wstring_view(s), std::wstring_view(delim));
-	}
+}
 
-	} // namespace util
-	} // namespace zeek
+} // namespace util
+} // namespace zeek

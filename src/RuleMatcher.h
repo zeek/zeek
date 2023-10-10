@@ -28,7 +28,7 @@ extern int rules_line_number;
 extern const char* current_rule_file;
 
 namespace zeek
-	{
+{
 
 class File;
 class IP_Hdr;
@@ -36,16 +36,16 @@ class IPPrefix;
 class Val;
 
 namespace analyzer
-	{
+{
 class Analyzer;
-	}
+}
 namespace analyzer::pia
-	{
+{
 class PIA;
-	}
+}
 
 namespace detail
-	{
+{
 
 class RE_Match_State;
 class Specific_RE_Matcher;
@@ -59,16 +59,16 @@ extern RuleMatcher* rule_matcher;
 // Given a header expression like "ip[offset:len] & mask = val", we parse
 // it into a Range and a MaskedValue.
 struct Range
-	{
+{
 	uint32_t offset;
 	uint32_t len;
-	};
+};
 
 struct MaskedValue
-	{
+{
 	uint32_t val;
 	uint32_t mask;
-	};
+};
 
 using maskedvalue_list = PList<MaskedValue>;
 using string_list = PList<char>;
@@ -81,20 +81,20 @@ extern char* id_to_str(const char* id);
 extern uint32_t id_to_uint(const char* id);
 
 class RuleHdrTest
-	{
+{
 public:
 	// Note: Adapt RuleHdrTest::PrintDebug() when changing these enums.
 	enum Comp
-		{
+	{
 		LE,
 		GE,
 		LT,
 		GT,
 		EQ,
 		NE
-		};
+	};
 	enum Prot
-		{
+	{
 		NOPROT,
 		IP,
 		IPv6,
@@ -105,7 +105,7 @@ public:
 		NEXT,
 		IPSrc,
 		IPDst
-		};
+	};
 
 	RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size, Comp arg_comp,
 	            maskedvalue_list* arg_vals);
@@ -138,7 +138,7 @@ private:
 	friend class RuleMatcher;
 
 	struct PatternSet
-		{
+	{
 		PatternSet() : re() { }
 
 		// If we're above the 'RE_level' (see RuleMatcher), this
@@ -150,7 +150,7 @@ private:
 		// All the patterns and their rule indices.
 		string_list patterns;
 		int_list ids; // (only needed for debugging)
-		};
+	};
 
 	using pattern_set_list = PList<PatternSet>;
 	pattern_set_list psets[Rule::TYPES];
@@ -164,14 +164,14 @@ private:
 
 	RuleHdrTest* sibling; // linkage within HdrTest tree
 	RuleHdrTest* child;
-	};
+};
 
 using rule_hdr_test_list = PList<RuleHdrTest>;
 
 // RuleEndpointState keeps the per-stream matching state of one
 // connection endpoint.
 class RuleEndpointState
-	{
+{
 public:
 	~RuleEndpointState();
 
@@ -198,10 +198,10 @@ private:
 	                  RuleEndpointState* arg_opposite, analyzer::pia::PIA* arg_PIA);
 
 	struct Matcher
-		{
+	{
 		RE_Match_State* state;
 		Rule::PatternType type;
-		};
+	};
 
 	using matcher_list = PList<Matcher>;
 
@@ -222,13 +222,13 @@ private:
 	bool is_orig;
 
 	int_list matched_rules; // Rules for which all conditions have matched
-	};
+};
 
 /**
  * A state object used for matching file magic signatures.
  */
 class RuleFileMagicState
-	{
+{
 	friend class RuleMatcher;
 
 public:
@@ -240,19 +240,19 @@ private:
 	RuleFileMagicState() { }
 
 	struct Matcher
-		{
+	{
 		RE_Match_State* state;
-		};
+	};
 
 	using matcher_list = PList<Matcher>;
 	matcher_list matchers;
-	};
+};
 
 // RuleMatcher is the main class which builds up the data structures
 // and performs the actual matching.
 
 class RuleMatcher
-	{
+{
 public:
 	// Argument is tree level on which we build combined regexps
 	// (Level 0 is root).
@@ -327,7 +327,7 @@ public:
 
 	// Interface to for getting some statistics
 	struct Stats
-		{
+	{
 		unsigned int matchers; // # distinct RE matchers
 
 		// NFA states across all matchers.
@@ -341,7 +341,7 @@ public:
 		// # cache hits (sampled, multiply by MOVE_TO_FRONT_SAMPLE_SIZE)
 		unsigned int hits;
 		unsigned int misses; // # cache misses
-		};
+	};
 
 	Val* BuildRuleStateValue(const Rule* rule, const RuleEndpointState* state) const;
 
@@ -397,18 +397,18 @@ private:
 	RuleHdrTest* root;
 	rule_list rules;
 	rule_dict rules_by_id;
-	};
+};
 
 // Keeps bi-directional matching-state.
 class RuleMatcherState
-	{
+{
 public:
 	RuleMatcherState() { orig_match_state = resp_match_state = nullptr; }
 	~RuleMatcherState()
-		{
+	{
 		delete orig_match_state;
 		delete resp_match_state;
-		}
+	}
 
 	// ip may be nil.
 	void InitEndpointMatcher(analyzer::Analyzer* analyzer, const IP_Hdr* ip, int caplen,
@@ -427,7 +427,7 @@ public:
 private:
 	RuleEndpointState* orig_match_state;
 	RuleEndpointState* resp_match_state;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

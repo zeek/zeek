@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/vlan/VLAN.h"
 
 namespace zeek::plugin::Zeek_VLAN
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"VLAN", zeek::packet_analysis::VLAN::VLANAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::VLAN";
 		config.description = "VLAN packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

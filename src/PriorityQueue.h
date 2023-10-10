@@ -8,12 +8,12 @@
 #include <cstdint>
 
 namespace zeek::detail
-	{
+{
 
 class PriorityQueue;
 
 class PQ_Element
-	{
+{
 public:
 	explicit PQ_Element(double t) : time(t) { }
 	virtual ~PQ_Element() = default;
@@ -29,22 +29,22 @@ protected:
 	PQ_Element() = default;
 	double time = 0.0;
 	int offset = -1;
-	};
+};
 
 class PriorityQueue
-	{
+{
 public:
 	explicit PriorityQueue(int initial_size = 16);
 	~PriorityQueue();
 
 	// Returns the top of queue, or nil if the queue is empty.
 	PQ_Element* Top() const
-		{
+	{
 		if ( heap_size == 0 )
 			return nullptr;
 
 		return heap[0];
-		}
+	}
 
 	// Removes (and returns) top of queue.  Returns nil if the queue
 	// is empty.
@@ -75,23 +75,23 @@ protected:
 	int RightChild(int bin) const { return LeftChild(bin) + 1; }
 
 	void SetElement(int bin, PQ_Element* e)
-		{
+	{
 		heap[bin] = e;
 		e->SetOffset(bin);
-		}
+	}
 
 	void Swap(int bin1, int bin2)
-		{
+	{
 		PQ_Element* t = heap[bin1];
 		SetElement(bin1, heap[bin2]);
 		SetElement(bin2, t);
-		}
+	}
 
 	PQ_Element** heap = nullptr;
 	int heap_size = 0;
 	int peak_heap_size = 0;
 	int max_heap_size = 0;
 	uint64_t cumulative_num = 0;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

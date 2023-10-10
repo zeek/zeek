@@ -9,10 +9,10 @@
 #include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek::detail
-	{
+{
 
 class UsageAnalyzer : public TraversalCallback
-	{
+{
 public:
 	// "funcs" contains the entire set of ASTs.
 	UsageAnalyzer(std::vector<FuncInfo>& funcs);
@@ -73,10 +73,10 @@ private:
 
 	// All of the types we've analyzed to date.
 	std::unordered_set<const Type*> analyzed_types;
-	};
+};
 
 // Marks a given identifier as referring to a script-level event (one
 // not previously known before its declaration in a script).
 extern void register_new_event(const IDPtr& id);
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

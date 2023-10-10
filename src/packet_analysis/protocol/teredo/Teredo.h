@@ -9,10 +9,10 @@
 #include "zeek/packet_analysis/Analyzer.h"
 
 namespace zeek::packet_analysis::teredo
-	{
+{
 
 class TeredoAnalyzer final : public packet_analysis::Analyzer
-	{
+{
 public:
 	TeredoAnalyzer();
 	~TeredoAnalyzer() override = default;
@@ -20,9 +20,9 @@ public:
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<TeredoAnalyzer>();
-		}
+	}
 
 	/**
 	 * Emits a weird only if the analyzer has previously been able to
@@ -32,22 +32,22 @@ public:
 	 * has a valid encapsulation and so the weird would be informative.
 	 */
 	void Weird(const char* name, bool force = false) const
-		{
+	{
 		if ( AnalyzerConfirmed(conn) || force )
 			reporter->Weird(conn, name, "", GetAnalyzerName());
-		}
+	}
 
 	/**
 	 * If the delayed confirmation option is set, then a valid encapsulation
 	 * seen from both end points is required before confirming.
 	 */
 	void Confirm(bool valid_orig, bool valid_resp)
-		{
+	{
 		if ( ! BifConst::Tunnel::delay_teredo_confirmation || (valid_orig && valid_resp) )
-			{
+		{
 			AnalyzerConfirmation(conn);
-			}
 		}
+	}
 
 	bool DetectProtocol(size_t len, const uint8_t* data, Packet* packet) override;
 
@@ -57,22 +57,22 @@ protected:
 	Connection* conn = nullptr;
 
 	struct OrigResp
-		{
+	{
 		bool valid_orig = false;
 		bool valid_resp = false;
 		bool confirmed = false;
-		};
+	};
 	using OrigRespMap = std::map<zeek::detail::ConnKey, OrigResp>;
 	OrigRespMap orig_resp_map;
 
 	std::unique_ptr<zeek::detail::Specific_RE_Matcher> pattern_re;
-	};
+};
 
 namespace detail
-	{
+{
 
 class TeredoEncapsulation
-	{
+{
 public:
 	explicit TeredoEncapsulation(const TeredoAnalyzer* ta) : analyzer(ta) { }
 
@@ -99,8 +99,8 @@ private:
 	const u_char* origin_indication = nullptr;
 	const u_char* auth = nullptr;
 	const TeredoAnalyzer* analyzer = nullptr;
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
-	} // namespace zeek::packet_analysis::teredo
+} // namespace zeek::packet_analysis::teredo

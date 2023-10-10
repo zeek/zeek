@@ -7,10 +7,10 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::gssapi
-	{
+{
 
 class GSSAPI_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 
 public:
 	explicit GSSAPI_Analyzer(Connection* conn);
@@ -29,6 +29,6 @@ public:
 
 protected:
 	binpac::GSSAPI::GSSAPI_Conn* interp;
-	};
+};
 
-	} // namespace zeek::analyzer::gssapi
+} // namespace zeek::analyzer::gssapi

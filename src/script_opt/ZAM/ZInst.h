@@ -11,7 +11,7 @@
 #include "zeek/script_opt/ZAM/ZOp.h"
 
 namespace zeek::detail
-	{
+{
 
 class Expr;
 class ConstExpr;
@@ -26,7 +26,7 @@ using FrameMap = std::vector<const ID*>;
 // Maps ZAM frame slots to information for sharing the slot across
 // multiple script variables.
 class FrameSharingInfo
-	{
+{
 public:
 	// The variables sharing the slot.  ID's need to be non-const so we
 	// can manipulate them, for example by changing their interpreter
@@ -48,7 +48,7 @@ public:
 
 	// Whether this is a managed slot.
 	bool is_managed = false;
-	};
+};
 
 using FrameReMap = std::vector<FrameSharingInfo>;
 
@@ -58,13 +58,13 @@ class ZInstAux;
 // execution, but omits information and methods only necessary for
 // compiling.
 class ZInst
-	{
+{
 public:
 	ZInst(ZOp _op, ZAMOpType _op_type)
-		{
+	{
 		op = _op;
 		op_type = _op_type;
-		}
+	}
 
 	// Create a stub instruction that will be populated later.
 	ZInst() = default;
@@ -135,68 +135,68 @@ public:
 	// Whether v1 represents a frame slot type for which we
 	// explicitly manage the memory.
 	bool is_managed = false;
-	};
+};
 
 // A intermediary ZAM instruction, one that includes information/methods
 // needed for compiling.  Intermediate instructions use pointers to other
 // such instructions for branches, rather than concrete instruction
 // numbers.  This allows the AM optimizer to easily prune instructions.
 class ZInstI : public ZInst
-	{
+{
 public:
 	// These constructors can be used directly, but often instead
 	// they'll be generated via the use of Inst-Gen methods.
 	ZInstI(ZOp _op) : ZInst(_op, OP_X)
-		{
+	{
 		op = _op;
 		op_type = OP_X;
-		}
+	}
 
 	ZInstI(ZOp _op, int _v1) : ZInst(_op, OP_V) { v1 = _v1; }
 
 	ZInstI(ZOp _op, int _v1, int _v2) : ZInst(_op, OP_VV)
-		{
+	{
 		v1 = _v1;
 		v2 = _v2;
-		}
+	}
 
 	ZInstI(ZOp _op, int _v1, int _v2, int _v3) : ZInst(_op, OP_VVV)
-		{
+	{
 		v1 = _v1;
 		v2 = _v2;
 		v3 = _v3;
-		}
+	}
 
 	ZInstI(ZOp _op, int _v1, int _v2, int _v3, int _v4) : ZInst(_op, OP_VVVV)
-		{
+	{
 		v1 = _v1;
 		v2 = _v2;
 		v3 = _v3;
 		v4 = _v4;
-		}
+	}
 
 	ZInstI(ZOp _op, const ConstExpr* ce) : ZInst(_op, OP_C) { InitConst(ce); }
 
 	ZInstI(ZOp _op, int _v1, const ConstExpr* ce) : ZInst(_op, OP_VC)
-		{
+	{
 		v1 = _v1;
 		InitConst(ce);
-		}
+	}
 
 	ZInstI(ZOp _op, int _v1, int _v2, const ConstExpr* ce) : ZInst(_op, OP_VVC)
-		{
+	{
 		v1 = _v1;
 		v2 = _v2;
 		InitConst(ce);
-		}
+	}
 
 	ZInstI(ZOp _op, int _v1, int _v2, int _v3, const ConstExpr* ce) : ZInst(_op, OP_VVVC)
-		{
+	{
 		v1 = _v1;
 		v2 = _v2;
 		v3 = _v3;
 		InitConst(ce);
-		}
+	}
 
 	// Constructor used when we're going to just copy in another ZInstI.
 	ZInstI() { }
@@ -267,17 +267,17 @@ public:
 	bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_V; }
 
 	void CheckIfManaged(const TypePtr& t)
-		{
+	{
 		if ( ZVal::IsManagedType(t) )
 			is_managed = true;
-		}
+	}
 
 	void SetType(TypePtr _t)
-		{
+	{
 		t = std::move(_t);
 		if ( t )
 			CheckIfManaged(t);
-		}
+	}
 
 	// Whether the instruction should be included in final code
 	// generation.
@@ -311,55 +311,55 @@ public:
 private:
 	// Initialize 'c' from the given ConstExpr.
 	void InitConst(const ConstExpr* ce);
-	};
+};
 
 // Auxiliary information, used when the fixed ZInst layout lacks
 // sufficient expressiveness to represent all of the elements that
 // an instruction needs.
 class ZInstAux
-	{
+{
 public:
 	// if n is positive then it gives the size of parallel arrays
 	// tracking slots, constants, and types.
 	ZInstAux(int _n)
-		{
+	{
 		n = _n;
 		if ( n > 0 )
-			{
+		{
 			slots = ints = new int[n];
 			constants = new ValPtr[n];
 			types = new TypePtr[n];
 			is_managed = new bool[n];
-			}
 		}
+	}
 
 	~ZInstAux()
-		{
+	{
 		delete[] ints;
 		delete[] constants;
 		delete[] types;
 		delete[] is_managed;
 		delete[] cat_args;
-		}
+	}
 
 	// Returns the i'th element of the parallel arrays as a ValPtr.
 	ValPtr ToVal(const ZVal* frame, int i) const
-		{
+	{
 		if ( constants[i] )
 			return constants[i];
 		else
 			return frame[slots[i]].ToVal(types[i]);
-		}
+	}
 
 	// Returns the parallel arrays as a ListValPtr.
 	ListValPtr ToListVal(const ZVal* frame) const
-		{
+	{
 		auto lv = make_intrusive<ListVal>(TYPE_ANY);
 		for ( auto i = 0; i < n; ++i )
 			lv->Append(ToVal(frame, i));
 
 		return lv;
-		}
+	}
 
 	// Converts the parallel arrays to a ListValPtr suitable for
 	// use as indices for indexing a table or set.  "offset" specifies
@@ -367,48 +367,48 @@ public:
 	// constructors), and "width" the number of elements in a single
 	// index.
 	ListValPtr ToIndices(const ZVal* frame, int offset, int width) const
-		{
+	{
 		auto lv = make_intrusive<ListVal>(TYPE_ANY);
 		for ( auto i = 0; i < 0 + width; ++i )
 			lv->Append(ToVal(frame, offset + i));
 
 		return lv;
-		}
+	}
 
 	// Returns the parallel arrays converted to a vector of ValPtr's.
 	const ValVec& ToValVec(const ZVal* frame)
-		{
+	{
 		vv.clear();
 		FillValVec(vv, frame);
 		return vv;
-		}
+	}
 
 	// Populates the given vector of ValPtr's with the conversion
 	// of the parallel arrays.
 	void FillValVec(ValVec& vec, const ZVal* frame) const
-		{
+	{
 		for ( auto i = 0; i < n; ++i )
 			vec.push_back(ToVal(frame, i));
-		}
+	}
 
 	// When building up a ZInstAux, sets one element of the parallel
 	// arrays to a given frame slot and type.
 	void Add(int i, int slot, TypePtr t)
-		{
+	{
 		ints[i] = slot;
 		constants[i] = nullptr;
 		types[i] = t;
 		is_managed[i] = t ? ZVal::IsManagedType(t) : false;
-		}
+	}
 
 	// Same but for constants.
 	void Add(int i, ValPtr c)
-		{
+	{
 		ints[i] = -1;
 		constants[i] = c;
 		types[i] = nullptr;
 		is_managed[i] = false;
-		}
+	}
 
 	// Member variables.  We could add accessors for manipulating
 	// these (and make the variables private), but for convenience we
@@ -475,7 +475,7 @@ public:
 	// If we cared about memory penny-pinching, we could make this
 	// a pointer and only instantiate as needed.
 	ValVec vv;
-	};
+};
 
 // Returns a human-readable version of the given ZAM op-code.
 extern const char* ZOP_name(ZOp op);
@@ -500,4 +500,4 @@ extern std::unordered_map<ZOp, ZOp> assignmentless_op;
 // counterpart uses.
 extern std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

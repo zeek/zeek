@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/file/File.h"
 
 namespace zeek::plugin::detail::Zeek_File
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("FTP_Data", zeek::analyzer::file::FTP_Data::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::File";
 		config.description = "Generic file analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_File
+} // namespace zeek::plugin::detail::Zeek_File

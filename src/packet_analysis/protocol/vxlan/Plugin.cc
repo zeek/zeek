@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/vxlan/VXLAN.h"
 
 namespace zeek::plugin::Zeek_VXLAN
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"VXLAN", zeek::packet_analysis::VXLAN::VXLAN_Analyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::VXLAN";
 		config.description = "VXLAN packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

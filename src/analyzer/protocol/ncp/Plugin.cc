@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/ncp/NCP.h"
 
 namespace zeek::plugin::detail::Zeek_NCP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("NCP", zeek::analyzer::ncp::NCP_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("Contents_NCP", nullptr));
@@ -21,7 +21,7 @@ public:
 		config.name = "Zeek::NCP";
 		config.description = "NCP analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_NCP
+} // namespace zeek::plugin::detail::Zeek_NCP

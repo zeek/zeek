@@ -7,13 +7,13 @@
 #include "zeek/file_analysis/analyzer/x509/X509.h"
 
 namespace zeek::plugin::detail::Zeek_X509
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::file_analysis::Component(
 			"X509", zeek::file_analysis::detail::X509::Instantiate));
 		AddComponent(new zeek::file_analysis::Component(
@@ -25,13 +25,13 @@ public:
 		config.name = "Zeek::X509";
 		config.description = "X509 and OCSP analyzer";
 		return config;
-		}
+	}
 
 	void Done() override
-		{
+	{
 		zeek::plugin::Plugin::Done();
 		zeek::file_analysis::detail::X509::FreeRootStore();
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_X509
+} // namespace zeek::plugin::detail::Zeek_X509

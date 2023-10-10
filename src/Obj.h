@@ -7,21 +7,21 @@
 #include <climits>
 
 namespace zeek
-	{
+{
 
 class ODesc;
 
 namespace detail
-	{
+{
 
 class Location final
-	{
+{
 public:
 	constexpr Location(const char* fname, int line_f, int line_l, int col_f, int col_l) noexcept
 		: filename(fname), first_line(line_f), last_line(line_l), first_column(col_f),
 		  last_column(col_l)
-		{
-		}
+	{
+	}
 
 	Location() = default;
 
@@ -33,7 +33,7 @@ public:
 	const char* filename = nullptr;
 	int first_line = 0, last_line = 0;
 	int first_column = 0, last_column = 0;
-	};
+};
 
 #define YYLTYPE zeek::detail::yyltype
 using yyltype = Location;
@@ -49,23 +49,23 @@ extern Location end_location;
 
 // Used by parser to set the above.
 inline void set_location(const Location loc)
-	{
+{
 	start_location = end_location = loc;
-	}
+}
 
 inline void set_location(const Location start, const Location end)
-	{
+{
 	start_location = start;
 	end_location = end;
-	}
+}
 
-	} // namespace detail
+} // namespace detail
 
 class Obj
-	{
+{
 public:
 	Obj()
-		{
+	{
 		// A bit of a hack.  We'd like to associate location
 		// information with every object created when parsing,
 		// since for them, the location is generally well-defined.
@@ -82,7 +82,7 @@ public:
 		location = nullptr;
 		if ( detail::start_location.first_line != 0 )
 			SetLocationInfo(&detail::start_location, &detail::end_location);
-		}
+	}
 
 	virtual ~Obj();
 
@@ -101,10 +101,10 @@ public:
 	// Report internal errors.
 	void BadTag(const char* msg, const char* t1 = nullptr, const char* t2 = nullptr) const;
 #define CHECK_TAG(t1, t2, text, tag_to_text_func)                                                  \
-		{                                                                                          \
+	{                                                                                              \
 		if ( t1 != t2 )                                                                            \
 			BadTag(text, tag_to_text_func(t1), tag_to_text_func(t2));                              \
-		}
+	}
 
 	[[noreturn]] void Internal(const char* msg) const;
 	void InternalWarning(const char* msg) const;
@@ -115,9 +115,9 @@ public:
 
 	// Get location info for debugging.
 	virtual const detail::Location* GetLocationInfo() const
-		{
+	{
 		return location ? location : &detail::no_location;
-		}
+	}
 
 	virtual bool SetLocationInfo(const detail::Location* loc) { return SetLocationInfo(loc, loc); }
 
@@ -136,11 +136,11 @@ public:
 	// Helper class to temporarily suppress errors
 	// as long as there exist any instances.
 	class SuppressErrors
-		{
+	{
 	public:
 		SuppressErrors() { ++Obj::suppress_errors; }
 		~SuppressErrors() { --Obj::suppress_errors; }
-		};
+	};
 
 	void Print() const;
 
@@ -163,39 +163,39 @@ private:
 	// If non-zero, do not print runtime errors.  Useful for
 	// speculative evaluation.
 	static int suppress_errors;
-	};
+};
 
 // Sometimes useful when dealing with Obj subclasses that have their
 // own (protected) versions of Error.
 inline void Error(const Obj* o, const char* msg)
-	{
+{
 	o->Error(msg);
-	}
+}
 
 [[noreturn]] extern void bad_ref(int type);
 
 inline void Ref(Obj* o)
-	{
+{
 	if ( ++(o->ref_cnt) <= 1 )
 		bad_ref(0);
 	if ( o->ref_cnt == INT_MAX )
 		bad_ref(1);
-	}
+}
 
 inline void Unref(Obj* o)
-	{
+{
 	if ( o && --o->ref_cnt <= 0 )
-		{
+	{
 		if ( o->ref_cnt < 0 )
 			bad_ref(2);
 		delete o;
 
 		// We could do the following if o were passed by reference.
 		// o = (Obj*) 0xcd;
-		}
 	}
+}
 
 // A dict_delete_func that knows to Unref() dictionary entries.
 extern void obj_delete_func(void* v);
 
-	} // namespace zeek
+} // namespace zeek

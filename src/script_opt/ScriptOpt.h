@@ -13,17 +13,17 @@
 #include "zeek/Scope.h"
 
 namespace zeek
-	{
+{
 struct Options;
-	}
+}
 
 namespace zeek::detail
-	{
+{
 
 // Flags controlling what sorts of analysis to do.
 
 struct AnalyOpt
-	{
+{
 
 	// If non-nil, then only analyze function/event/hook(s) whose names
 	// match one of the given regular expressions.
@@ -111,7 +111,7 @@ struct AnalyOpt
 	// If true, allow standalone compilation in the presence of
 	// conditional code.
 	bool allow_cond = false;
-	};
+};
 
 extern AnalyOpt analysis_options;
 
@@ -121,13 +121,13 @@ using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 
 // Info we need for tracking an instance of a function.
 class FuncInfo
-	{
+{
 public:
 	FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body, int _priority)
 		: func(std::move(_func)), scope(std::move(_scope)), body(std::move(_body)),
 		  priority(_priority)
-		{
-		}
+	{
+	}
 
 	ScriptFunc* Func() const { return func.get(); }
 	const ScriptFuncPtr& FuncPtr() const { return func; }
@@ -156,7 +156,7 @@ protected:
 
 	// Whether to skip optimizing this function.
 	bool skip = false;
-	};
+};
 
 // We track which functions are definitely not recursive.  We do this
 // as the negative, rather than tracking functions known to be recursive,
@@ -212,4 +212,4 @@ extern void (*CPP_init_hook)();
 // called after parsing and BiF initialization, but before zeek_init.
 extern void (*CPP_activation_hook)();
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

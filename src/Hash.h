@@ -28,28 +28,28 @@
 #include "zeek/ZeekArgs.h"
 
 namespace zeek
-	{
+{
 
 class String;
 class ODesc;
 
-	}
+}
 
 namespace zeek::detail
-	{
+{
 
 class Frame;
 class BifReturnVal;
 
-	}
+}
 
 namespace zeek::BifFunc
-	{
+{
 extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
-	}
+}
 
 namespace zeek::detail
-	{
+{
 
 using hash_t = uint64_t;
 using hash64_t = uint64_t;
@@ -57,7 +57,7 @@ using hash128_t = uint64_t[2];
 using hash256_t = uint64_t[4];
 
 class KeyedHash
-	{
+{
 public:
 	/**
 	 * Generate a 64 bit digest hash.
@@ -218,19 +218,19 @@ private:
 	friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes,
 	                                   unsigned char digest[16]);
 	friend BifReturnVal BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
-	};
+};
 
 enum HashKeyTag
-	{
+{
 	HASH_KEY_INT,
 	HASH_KEY_DOUBLE,
 	HASH_KEY_STRING
-	};
+};
 
 constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 
 class HashKey
-	{
+{
 public:
 	explicit HashKey() { key_u.u32 = 0; }
 	explicit HashKey(bool b);
@@ -281,9 +281,9 @@ public:
 	// other than our internal key_u union. This is almost like
 	// is_our_dynamic, but remains true also after TakeKey().
 	bool IsAllocated() const
-		{
+	{
 		return (key != nullptr && key != reinterpret_cast<const char*>(&key_u));
-		}
+	}
 
 	// Buffer size reservation. Repeated calls to these methods
 	// incrementally build up the eventual buffer size to be allocated via
@@ -372,14 +372,15 @@ protected:
 	void Set(double d);
 	void Set(const void* p);
 
-		union {
+	union
+	{
 		bool b;
 		int i;
 		zeek_int_t bi;
 		uint32_t u32;
 		double d;
 		const void* p;
-		} key_u;
+	} key_u;
 
 	char* key = nullptr;
 	mutable hash_t hash = 0;
@@ -387,8 +388,8 @@ protected:
 	bool is_our_dynamic = false;
 	size_t write_size = 0;
 	mutable size_t read_size = 0;
-	};
+};
 
 extern void init_hash_function();
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

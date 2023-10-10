@@ -28,7 +28,7 @@ typedef struct ares_channeldata* ares_channel;
 #endif
 
 namespace zeek
-	{
+{
 class Val;
 class ListVal;
 class TableVal;
@@ -40,30 +40,30 @@ using ListValPtr = IntrusivePtr<ListVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 
-	} // namespace zeek
+} // namespace zeek
 
 namespace zeek::detail
-	{
+{
 class DNS_Mapping;
 using DNS_MappingPtr = std::shared_ptr<DNS_Mapping>;
 class DNS_Request;
 
 enum DNS_MgrMode
-	{
+{
 	DNS_PRIME, // used to prime the cache
 	DNS_FORCE, // internal error if cache miss
 	DNS_DEFAULT, // lookup names as they're requested
 	DNS_FAKE, // don't look up names, just return dummy results
-	};
+};
 
 class DNS_Mgr : public iosource::IOSource
-	{
+{
 public:
 	/**
 	 * Base class for callback handling for asynchronous lookups.
 	 */
 	class LookupCallback
-		{
+	{
 	public:
 		virtual ~LookupCallback() = default;
 
@@ -92,7 +92,7 @@ public:
 		 * Called when a timeout request occurs.
 		 */
 		virtual void Timeout() = 0;
-		};
+	};
 
 	explicit DNS_Mgr(DNS_MgrMode mode);
 	~DNS_Mgr() override;
@@ -201,7 +201,7 @@ public:
 	bool Save();
 
 	struct Stats
-		{
+	{
 		unsigned long requests; // These count only async requests.
 		unsigned long successful;
 		unsigned long failed;
@@ -210,7 +210,7 @@ public:
 		unsigned long cached_addresses;
 		unsigned long cached_texts;
 		unsigned long cached_total;
-		};
+	};
 
 	/**
 	 * Returns the current statistics for the DNS_Manager.
@@ -308,7 +308,7 @@ protected:
 	using CallbackList = std::list<LookupCallback*>;
 
 	struct AsyncRequest
-		{
+	{
 		double time = 0.0;
 		IPAddr addr;
 		std::string host;
@@ -317,19 +317,19 @@ protected:
 		bool processed = false;
 
 		AsyncRequest(std::string host, int request_type) : host(std::move(host)), type(request_type)
-			{
-			}
+		{
+		}
 		AsyncRequest(const IPAddr& addr) : addr(addr), type(T_PTR) { }
 
 		void Resolved(const std::string& name);
 		void Resolved(TableValPtr addrs);
 		void Timeout();
-		};
+	};
 
 	struct AsyncRequestCompare
-		{
+	{
 		bool operator()(const AsyncRequest* a, const AsyncRequest* b) { return a->time > b->time; }
-		};
+	};
 
 	using AsyncRequestMap = std::map<MappingKey, AsyncRequest*>;
 	AsyncRequestMap asyncs;
@@ -345,8 +345,8 @@ protected:
 	std::set<int> write_socket_fds;
 
 	bool shutting_down = false;
-	};
+};
 
 extern DNS_Mgr* dns_mgr;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

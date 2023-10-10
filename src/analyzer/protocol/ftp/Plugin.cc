@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/ftp/FTP.h"
 
 namespace zeek::plugin::detail::Zeek_FTP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("FTP", zeek::analyzer::ftp::FTP_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("FTP_ADAT", nullptr));
@@ -21,7 +21,7 @@ public:
 		config.name = "Zeek::FTP";
 		config.description = "FTP analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_FTP
+} // namespace zeek::plugin::detail::Zeek_FTP

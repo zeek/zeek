@@ -32,18 +32,18 @@
 #include "zeek/plugin/ComponentManager.h"
 
 namespace zeek
-	{
+{
 
 namespace packet_analysis::IP
-	{
+{
 
 class IPBasedAnalyzer;
 class SessionAdapter;
 
-	} // namespace packet_analysis::IP
+} // namespace packet_analysis::IP
 
 namespace analyzer
-	{
+{
 
 /**
  * Class maintaining and scheduling available protocol analyzers.
@@ -56,7 +56,7 @@ namespace analyzer
  * scheduled for individual connections.
  */
 class Manager : public plugin::ComponentManager<Component>
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -348,7 +348,7 @@ private:
 
 	// The index for a scheduled connection.
 	struct ConnIndex
-		{
+	{
 		IPAddr orig;
 		IPAddr resp;
 		uint16_t resp_p;
@@ -358,23 +358,23 @@ private:
 		ConnIndex();
 
 		bool operator<(const ConnIndex& other) const;
-		};
+	};
 
 	// Information associated with a scheduled connection.
 	struct ScheduledAnalyzer
-		{
+	{
 		ConnIndex conn;
 		zeek::Tag analyzer;
 		double timeout;
 
 		struct Comparator
-			{
+		{
 			bool operator()(ScheduledAnalyzer* a, ScheduledAnalyzer* b)
-				{
+			{
 				return a->timeout > b->timeout;
-				}
-			};
+			}
 		};
+	};
 
 	using protocol_analyzers = std::set<std::tuple<zeek::Tag, TransportProto, uint32_t>>;
 	using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
@@ -387,13 +387,13 @@ private:
 	conns_map conns;
 	conns_queue conns_by_timeout;
 	std::vector<uint16_t> vxlan_ports;
-	};
+};
 
-	} // namespace analyzer
+} // namespace analyzer
 
 extern analyzer::Manager* analyzer_mgr;
 
-	} // namespace zeek
+} // namespace zeek
 
 // Macros for analyzer debug logging which include the connection id into the
 // message.

@@ -6,10 +6,10 @@
 #pragma once
 
 namespace zeek::detail
-	{
+{
 
 class StmtOptInfo
-	{
+{
 public:
 	// We number statements by their traversal order in the AST.
 	int stmt_num = -1; // -1 = not assigned yet
@@ -30,6 +30,6 @@ public:
 	// Number of statements and expressions in a function body.
 	int num_stmts = 0;
 	int num_exprs = 0;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

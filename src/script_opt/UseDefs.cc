@@ -9,23 +9,23 @@
 #include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek::detail
-	{
+{
 
 void UseDefSet::Dump() const
-	{
+{
 	for ( const auto& u : IterateOver() )
 		printf(" %s", u->Name());
-	}
+}
 
 UseDefs::UseDefs(StmtPtr _body, std::shared_ptr<Reducer> _rc, FuncTypePtr _ft)
-	{
+{
 	body = std::move(_body);
 	rc = std::move(_rc);
 	ft = std::move(_ft);
-	}
+}
 
 void UseDefs::Analyze()
-	{
+{
 	// Start afresh.
 	use_defs_map.clear();
 	UDs_are_copies.clear();
@@ -34,27 +34,27 @@ void UseDefs::Analyze()
 	successor2.clear();
 
 	(void)PropagateUDs(body, nullptr, nullptr, false);
-	}
+}
 
 StmtPtr UseDefs::RemoveUnused()
-	{
+{
 	int iter = 0;
 	while ( RemoveUnused(++iter) )
-		{
+	{
 		body = rc->Reduce(body);
 		Analyze();
 
 		if ( reporter->Errors() > 0 )
 			break;
-		}
-
-	return body;
 	}
 
+	return body;
+}
+
 void UseDefs::Dump()
-	{
+{
 	for ( int i = stmts.size(); --i >= 0; )
-		{
+	{
 		const auto& s = stmts[i];
 		auto uds = FindUsage(s);
 		auto are_copies = (UDs_are_copies.find(s) != UDs_are_copies.end());
@@ -67,19 +67,19 @@ void UseDefs::Dump()
 			printf(" <none>");
 
 		printf("\n\n");
-		}
 	}
+}
 
 bool UseDefs::RemoveUnused(int iter)
-	{
+{
 	rc->ResetAlteredStmts();
 
 	bool did_omission = false;
 
 	for ( const auto& s : stmts )
-		{
+	{
 		if ( s->Tag() == STMT_INIT )
-			{
+		{
 			auto init = s->AsInitStmt();
 			const auto& inits = init->Inits();
 			std::vector<IDPtr> used_ids;
@@ -89,23 +89,23 @@ bool UseDefs::RemoveUnused(int iter)
 					used_ids.emplace_back(id);
 
 			if ( used_ids.empty() )
-				{ // There aren't any ID's to keep.
+			{ // There aren't any ID's to keep.
 				rc->AddStmtToOmit(s);
 				continue;
-				}
+			}
 
 			if ( used_ids.size() < inits.size() )
-				{
+			{
 				// Need to replace the current Init statement
 				// with one that only includes the actually
 				// used identifiers.
 
 				auto new_init = make_intrusive<InitStmt>(used_ids);
 				rc->AddStmtToReplace(s, std::move(new_init));
-				}
+			}
 
 			continue;
-			}
+		}
 
 		// The only other statements we might revise or remove
 		// are assignments.
@@ -151,82 +151,82 @@ bool UseDefs::RemoveUnused(int iter)
 		bool degen = rt == EXPR_NAME && id == rhs->AsNameExpr()->Id();
 
 		if ( CheckIfUnused(s, id, iter == 1) || degen )
-			{
+		{
 			rc->AddStmtToOmit(s);
 			did_omission = true;
-			}
 		}
-
-	return did_omission;
 	}
 
+	return did_omission;
+}
+
 bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report)
-	{
+{
 	if ( id->IsGlobal() )
 		return false;
 
 	if ( auto& captures = ft->GetCaptures() )
-		{
+	{
 		for ( auto& c : *captures )
 			if ( c.Id() == id )
 				return false;
-		}
+	}
 
 	auto uds = FindSuccUsage(s);
 	if ( ! uds || ! uds->HasID(id) )
-		{
+	{
 		if ( report && analysis_options.usage_issues > 0 && ! rc->IsTemporary(id) &&
 		     ! rc->IsConstantVar(id) && ! rc->IsNewLocal(id) && ! id->GetAttr(ATTR_IS_USED) )
 			reporter->Warning("%s assignment unused: %s", id->Name(), obj_desc(s).c_str());
 
 		return true;
-		}
-
-	return false;
 	}
 
+	return false;
+}
+
 UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bool second_pass)
-	{
+{
 	if ( ! second_pass )
 		stmts.push_back(s);
 
 	switch ( s->Tag() )
-		{
+	{
 		case STMT_LIST:
-			{
+		{
 			auto sl = s->AsStmtList();
 			const auto& stmts = sl->Stmts();
 
 			for ( int i = stmts.size(); --i >= 0; )
-				{
+			{
 				auto s_i = stmts[i].get();
 
 				const Stmt* succ;
 
 				if ( i == stmts.size() - 1 )
-					{ // Very last statement.
+				{ // Very last statement.
 					succ = succ_stmt;
 					if ( successor2.find(s) != successor2.end() )
 						successor2[s_i] = successor2[s];
-					}
+				}
 				else
 					succ = stmts[i + 1].get();
 
 				succ_UDs = PropagateUDs(s_i, succ_UDs, succ, second_pass);
-				}
-
-			return UseUDs(s, succ_UDs);
 			}
 
+			return UseUDs(s, succ_UDs);
+		}
+
 		case STMT_CATCH_RETURN:
-			{
+		{
 			auto cr = s->AsCatchReturnStmt();
 			auto block = cr->Block();
 
 			auto uds = PropagateUDs(block.get(), succ_UDs, succ_stmt, second_pass);
 
 			return UseUDs(s, uds);
-			}
+		}
 
 		case STMT_NULL:
 		case STMT_NEXT:
@@ -246,17 +246,17 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 		case STMT_ADD:
 		case STMT_DELETE:
 		case STMT_RETURN:
-			{
+		{
 			auto e = static_cast<const ExprStmt*>(s)->StmtExpr();
 
 			if ( e )
 				return CreateExprUDs(s, e, succ_UDs);
 			else
 				return UseUDs(s, succ_UDs);
-			}
+		}
 
 		case STMT_EXPR:
-			{
+		{
 			auto e = s->AsExprStmt()->StmtExpr();
 
 			if ( e->Tag() != EXPR_ASSIGN )
@@ -280,10 +280,10 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 				successor[s] = succ_stmt;
 
 			return CreateUDs(s, uds);
-			}
+		}
 
 		case STMT_IF:
-			{
+		{
 			auto i = s->AsIfStmt();
 			auto cond = i->StmtExpr();
 
@@ -292,7 +292,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs, succ_stmt, second_pass);
 
 			return CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
-			}
+		}
 
 		case STMT_INIT:
 			if ( ! second_pass )
@@ -301,7 +301,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			return UseUDs(s, succ_UDs);
 
 		case STMT_WHEN:
-			{
+		{
 			auto w = s->AsWhenStmt();
 			auto wi = w->Info();
 			auto uds = UD_Union(succ_UDs, ExprUDs(wi->Lambda().get()));
@@ -311,26 +311,26 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 				uds = UD_Union(uds, ExprUDs(timeout.get()));
 
 			return CreateUDs(s, uds);
-			}
+		}
 
 		case STMT_SWITCH:
-			{
+		{
 			auto sw_UDs = std::make_shared<UseDefSet>();
 
 			auto sw = s->AsSwitchStmt();
 			auto cases = sw->Cases();
 
 			for ( const auto& c : *cases )
-				{
+			{
 				auto body = c->Body();
 				auto uds = PropagateUDs(body, succ_UDs, succ_stmt, second_pass);
 
 				auto exprs = c->ExprCases();
 				if ( exprs )
-					{
+				{
 					auto e_UDs = ExprUDs(exprs);
 					uds = UD_Union(uds, e_UDs);
-					}
+				}
 
 				auto type_ids = c->TypeCases();
 				if ( type_ids )
@@ -338,7 +338,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 						uds = RemoveID(id, uds);
 
 				FoldInUDs(sw_UDs, uds);
-				}
+			}
 
 			auto e_UDs = ExprUDs(sw->StmtExpr());
 
@@ -349,10 +349,10 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 				FoldInUDs(sw_UDs, succ_UDs, e_UDs);
 
 			return CreateUDs(s, sw_UDs);
-			}
+		}
 
 		case STMT_FOR:
-			{
+		{
 			auto f = s->AsForStmt();
 			auto body = f->LoopBody();
 
@@ -381,10 +381,10 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			FoldInUDs(f_UDs, succ_UDs);
 
 			return CreateUDs(s, f_UDs);
-			}
+		}
 
 		case STMT_WHILE:
-			{
+		{
 			auto w = s->AsWhileStmt();
 			auto body = w->Body();
 			auto cond_stmt = w->CondPredStmt();
@@ -400,7 +400,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			FoldInUDs(w_UDs, body_UDs);
 
 			if ( cond_stmt )
-				{
+			{
 				// Create a successor for the cond_stmt
 				// that has the correct UDs associated with it.
 				const auto& c_as_s = w->ConditionAsStmt();
@@ -408,7 +408,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 				CreateUDs(c_as_s.get(), c_as_s_UDs);
 
 				w_UDs = PropagateUDs(cond_stmt, w_UDs, c_as_s, second_pass);
-				}
+			}
 
 			// Confluence: loop the top UDs back around to the bottom.
 			auto bottom_UDs = UD_Union(w_UDs, succ_UDs);
@@ -418,25 +418,25 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 			FoldInUDs(w_UDs, succ_UDs);
 
 			return CreateUDs(s, w_UDs);
-			}
+		}
 
 		default:
 			reporter->InternalError("non-reduced statement in use-def analysis");
-		}
 	}
+}
 
 UDs UseDefs::FindUsage(const Stmt* s) const
-	{
+{
 	auto s_map = use_defs_map.find(s);
 
 	if ( s_map == use_defs_map.end() )
 		reporter->InternalError("missing use-defs");
 
 	return s_map->second;
-	}
+}
 
 UDs UseDefs::FindSuccUsage(const Stmt* s) const
-	{
+{
 	auto succ = successor.find(s);
 	auto no_succ = (succ == successor.end() || ! succ->second);
 	auto uds = no_succ ? nullptr : FindUsage(succ->second);
@@ -451,26 +451,26 @@ UDs UseDefs::FindSuccUsage(const Stmt* s) const
 		return uds;
 	else
 		return uds2;
-	}
+}
 
 UDs UseDefs::ExprUDs(const Expr* e)
-	{
+{
 	auto uds = std::make_shared<UseDefSet>();
 
 	switch ( e->Tag() )
-		{
+	{
 		case EXPR_NAME:
 		case EXPR_LAMBDA:
 			AddInExprUDs(uds, e);
 			break;
 
 		case EXPR_FIELD_LHS_ASSIGN:
-			{
+		{
 			AddInExprUDs(uds, e->GetOp1().get());
 			auto rhs_UDs = ExprUDs(e->GetOp2().get());
 			uds = UD_Union(uds, rhs_UDs);
 			break;
-			}
+		}
 
 		case EXPR_INCR:
 		case EXPR_DECR:
@@ -479,22 +479,22 @@ UDs UseDefs::ExprUDs(const Expr* e)
 
 		case EXPR_ADD_TO:
 		case EXPR_REMOVE_FROM:
-			{
+		{
 			AddInExprUDs(uds, e->GetOp1().get());
 			auto rhs_UDs = ExprUDs(e->GetOp2().get());
 			uds = UD_Union(uds, rhs_UDs);
 			break;
-			}
+		}
 
 		case EXPR_RECORD_CONSTRUCTOR:
-			{
+		{
 			auto r = static_cast<const RecordConstructorExpr*>(e);
 			AddInExprUDs(uds, r->Op().get());
 			break;
-			}
+		}
 
 		case EXPR_TABLE_CONSTRUCTOR:
-			{
+		{
 			auto t = static_cast<const TableConstructorExpr*>(e);
 			AddInExprUDs(uds, t->GetOp1().get());
 
@@ -505,27 +505,27 @@ UDs UseDefs::ExprUDs(const Expr* e)
 				uds = ExprUDs(def_expr.get());
 
 			break;
-			}
+		}
 
 		case EXPR_CONST:
 			break;
 
 		case EXPR_CALL:
-			{
+		{
 			auto c = e->AsCallExpr();
 			AddInExprUDs(uds, c->Func());
 			AddInExprUDs(uds, c->Args());
 			break;
-			}
+		}
 
 		case EXPR_LIST:
-			{
+		{
 			auto l = e->AsListExpr();
 			for ( const auto& l_e : l->Exprs() )
 				AddInExprUDs(uds, l_e);
 
 			break;
-			}
+		}
 
 		default:
 			auto op1 = e->GetOp1();
@@ -542,15 +542,15 @@ UDs UseDefs::ExprUDs(const Expr* e)
 				AddInExprUDs(uds, op3.get());
 
 			break;
-		}
-
-	return uds;
 	}
 
+	return uds;
+}
+
 void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
-	{
+{
 	switch ( e->Tag() )
-		{
+	{
 		case EXPR_REF:
 			AddInExprUDs(uds, e->GetOp1().get());
 			break;
@@ -560,12 +560,12 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			break;
 
 		case EXPR_LIST:
-			{
+		{
 			auto l = e->AsListExpr();
 			for ( const auto& l_e : l->Exprs() )
 				AddInExprUDs(uds, l_e);
-			}
-			break;
+		}
+		break;
 
 		case EXPR_EVENT:
 			AddInExprUDs(uds, e->GetOp1().get());
@@ -593,12 +593,12 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 			break;
 
 		case EXPR_LAMBDA:
-			{
+		{
 			auto outer_ids = e->AsLambdaExpr()->OuterIDs();
 			for ( auto& i : outer_ids )
 				AddID(uds, i);
 			break;
-			}
+		}
 
 		case EXPR_CONST:
 			// Nothing to do.
@@ -607,16 +607,16 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e)
 		default:
 			reporter->InternalError("bad tag in UseDefs::AddInExprUDs");
 			break;
-		}
 	}
+}
 
 void UseDefs::AddID(UDs uds, const ID* id) const
-	{
+{
 	uds->Add(id);
-	}
+}
 
 UDs UseDefs::RemoveID(const ID* id, const UDs& uds)
-	{
+{
 	if ( ! uds )
 		return nullptr;
 
@@ -626,16 +626,16 @@ UDs UseDefs::RemoveID(const ID* id, const UDs& uds)
 	new_uds->Remove(id);
 
 	return new_uds;
-	}
+}
 
 void UseDefs::RemoveUDFrom(UDs uds, const ID* id)
-	{
+{
 	if ( uds )
 		uds->Remove(id);
-	}
+}
 
 void UseDefs::FoldInUDs(UDs& main_UDs, const UDs& u1, const UDs& u2)
-	{
+{
 	auto old_main = main_UDs;
 	main_UDs = std::make_shared<UseDefSet>();
 
@@ -649,14 +649,14 @@ void UseDefs::FoldInUDs(UDs& main_UDs, const UDs& u1, const UDs& u2)
 	if ( u2 )
 		for ( auto ud : u2->IterateOver() )
 			main_UDs->Add(ud);
-	}
+}
 
 void UseDefs::UpdateUDs(const Stmt* s, const UDs& uds)
-	{
+{
 	auto curr_uds = FindUsage(s);
 
 	if ( ! curr_uds || UDs_are_copies.find(s) != UDs_are_copies.end() )
-		{
+	{
 		// Copy-on-write.
 		auto new_uds = std::make_shared<UseDefSet>();
 
@@ -666,17 +666,17 @@ void UseDefs::UpdateUDs(const Stmt* s, const UDs& uds)
 		CreateUDs(s, new_uds);
 
 		curr_uds = new_uds;
-		}
-
-	if ( uds )
-		{
-		for ( auto u : uds->IterateOver() )
-			curr_uds->Add(u);
-		}
 	}
 
-UDs UseDefs::UD_Union(const UDs& u1, const UDs& u2, const UDs& u3) const
+	if ( uds )
 	{
+		for ( auto u : uds->IterateOver() )
+			curr_uds->Add(u);
+	}
+}
+
+UDs UseDefs::UD_Union(const UDs& u1, const UDs& u2, const UDs& u3) const
+{
 	auto new_uds = std::make_shared<UseDefSet>();
 
 	if ( u1 )
@@ -691,28 +691,28 @@ UDs UseDefs::UD_Union(const UDs& u1, const UDs& u2, const UDs& u3) const
 			AddID(new_uds, u);
 
 	return new_uds;
-	}
+}
 
 UDs UseDefs::UseUDs(const Stmt* s, UDs uds)
-	{
+{
 	use_defs_map[s] = uds;
 	UDs_are_copies.insert(s);
 	return uds;
-	}
+}
 
 UDs UseDefs::CreateExprUDs(const Stmt* s, const Expr* e, const UDs& uds)
-	{
+{
 	auto e_UDs = ExprUDs(e);
 	auto new_UDs = UD_Union(uds, e_UDs);
 
 	return CreateUDs(s, new_UDs);
-	}
+}
 
 UDs UseDefs::CreateUDs(const Stmt* s, UDs uds)
-	{
+{
 	use_defs_map[s] = uds;
 	UDs_are_copies.erase(s);
 	return uds;
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

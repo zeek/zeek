@@ -16,12 +16,12 @@
 #include "zeek/zeekygen/SpicyModuleInfo.h"
 
 namespace zeek
-	{
+{
 
 class TypeDecl;
 
 namespace zeekygen::detail
-	{
+{
 
 class PackageInfo;
 class ScriptInfo;
@@ -32,7 +32,7 @@ class ScriptInfo;
  * iterators directly to find a particular info object).
  */
 template <class T> struct InfoMap
-	{
+{
 	using map_type = std::map<std::string, T*>;
 
 	/**
@@ -40,19 +40,19 @@ template <class T> struct InfoMap
 	 * @return The info object associated with \a name.
 	 */
 	T* GetInfo(const std::string& name) const
-		{
+	{
 		typename map_type::const_iterator it = map.find(name);
 		return it == map.end() ? 0 : it->second;
-		}
+	}
 
 	map_type map;
-	};
+};
 
 /**
  * Manages all documentation tracking and generation.
  */
 class Manager
-	{
+{
 
 public:
 	/**
@@ -154,10 +154,10 @@ public:
 	 * @param info the module information
 	 */
 	void AddSpicyModule(std::unique_ptr<SpicyModuleInfo> info)
-		{
+	{
 		spicy_modules.map[info->Name()] = info.get();
 		all_info.push_back(info.release()); // switch to manual memory mgmt like all other infos
-		}
+	}
 
 	const auto& SpicyModules() const { return spicy_modules.map; }
 
@@ -197,9 +197,9 @@ public:
 	 * pointer if it's not a known identifier.
 	 */
 	IdentifierInfo* GetIdentifierInfo(const std::string& name) const
-		{
+	{
 		return identifiers.GetInfo(name);
-		}
+	}
 
 	/**
 	 * @param name Name of a Zeek script ("normalized" to be a path relative
@@ -251,22 +251,22 @@ private:
 	std::map<std::string, std::string> enum_mappings; // enum id -> enum type id
 	Config config;
 	time_t mtime;
-	};
+};
 
 template <class T>
 bool Manager::IsUpToDate(const std::string& target_file, const std::vector<T*>& dependencies) const
-	{
+{
 	struct stat s;
 
 	if ( stat(target_file.c_str(), &s) < 0 )
-		{
+	{
 		if ( errno == ENOENT )
 			// Doesn't exist.
 			return false;
 
 		reporter->InternalError("Zeekygen failed to stat target file '%s': %s", target_file.c_str(),
 		                        strerror(errno));
-		}
+	}
 
 	if ( difftime(mtime, s.st_mtime) > 0 )
 		return false;
@@ -279,14 +279,14 @@ bool Manager::IsUpToDate(const std::string& target_file, const std::vector<T*>& 
 			return false;
 
 	return true;
-	}
+}
 
-	} // namespace zeekygen::detail
+} // namespace zeekygen::detail
 
 namespace detail
-	{
+{
 
 extern zeekygen::detail::Manager* zeekygen_mgr;
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

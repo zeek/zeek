@@ -6,10 +6,10 @@
 #include "zeek/analyzer/Analyzer.h"
 
 namespace zeek::analyzer::conn_size
-	{
+{
 
 class ConnSize_Analyzer : public analyzer::Analyzer
-	{
+{
 public:
 	explicit ConnSize_Analyzer(Connection* c);
 	~ConnSize_Analyzer() override = default;
@@ -48,6 +48,6 @@ protected:
 
 	double start_time;
 	double duration_thresh;
-	};
+};
 
-	} // namespace zeek::analyzer::conn_size
+} // namespace zeek::analyzer::conn_size

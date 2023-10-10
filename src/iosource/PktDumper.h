@@ -7,18 +7,18 @@
 #include <string>
 
 namespace zeek
-	{
+{
 
 class Packet;
 
 namespace iosource
-	{
+{
 
 /**
  * Base class for packet dumpers.
  */
 class PktDumper
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -96,10 +96,10 @@ protected:
 	 * base class. Derived class pass an instance of this to \a Opened().
 	 */
 	struct Properties
-		{
+	{
 		std::string path;
 		double open_time = 0.0;
-		};
+	};
 
 	/**
 	 * Called from the implementations of \a Open() to signal that the
@@ -137,7 +137,7 @@ private:
 	Properties props;
 
 	std::string errmsg;
-	};
+};
 
-	} // namespace iosource
-	} // namespace zeek
+} // namespace iosource
+} // namespace zeek

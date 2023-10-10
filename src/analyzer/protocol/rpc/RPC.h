@@ -6,57 +6,57 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::rpc
-	{
+{
 namespace detail
-	{
+{
 
 enum
-	{
+{
 	RPC_CALL = 0,
 	RPC_REPLY = 1,
-	};
+};
 
 enum
-	{
+{
 	RPC_MSG_ACCEPTED = 0,
 	RPC_MSG_DENIED = 1,
-	};
+};
 
 enum
-	{
+{
 	RPC_SUCCESS = 0,
 	RPC_PROG_UNAVAIL = 1,
 	RPC_PROG_MISMATCH = 2,
 	RPC_PROC_UNAVAIL = 3,
 	RPC_GARBAGE_ARGS = 4,
 	RPC_SYSTEM_ERR = 5,
-	};
+};
 
 enum
-	{
+{
 	RPC_MISMATCH = 0,
 	RPC_AUTH_ERROR = 1,
-	};
+};
 
 enum
-	{
+{
 	RPC_AUTH_BADCRED = 1,
 	RPC_AUTH_REJECTEDCRED = 2,
 	RPC_AUTH_BADVERF = 3,
 	RPC_AUTH_REJECTEDVERF = 4,
 	RPC_AUTH_TOOWEAK = 5,
-	};
+};
 
 enum
-	{
+{
 	RPC_AUTH_NULL = 0,
 	RPC_AUTH_UNIX = 1,
 	RPC_AUTH_SHORT = 2,
 	RPC_AUTH_DES = 3,
-	};
+};
 
 class RPC_CallInfo
-	{
+{
 public:
 	RPC_CallInfo(uint32_t xid, const u_char*& buf, int& n, double start_time, double last_time,
 	             int rpc_len);
@@ -65,10 +65,10 @@ public:
 	void AddVal(ValPtr arg_v) { v = std::move(arg_v); }
 	const ValPtr& RequestVal() const { return v; }
 	ValPtr TakeRequestVal()
-		{
+	{
 		auto rv = std::move(v);
 		return rv;
-		}
+	}
 
 	bool CompareRexmit(const u_char* buf, int n) const;
 
@@ -110,10 +110,10 @@ protected:
 	bool valid_call = true; // whether call was well-formed
 
 	ValPtr v; // single (perhaps compound) value corresponding to call
-	};
+};
 
 class RPC_Interpreter
-	{
+{
 public:
 	explicit RPC_Interpreter(analyzer::Analyzer* analyzer);
 	virtual ~RPC_Interpreter();
@@ -139,7 +139,7 @@ protected:
 
 	std::map<uint32_t, RPC_CallInfo*> calls;
 	analyzer::Analyzer* analyzer;
-	};
+};
 
 /* A simple buffer for reassembling the fragments that RPC-over-TCP
  * uses. Only needed by RPC_Contents.
@@ -159,20 +159,20 @@ protected:
  * TODO: grow buffer dynamically
  */
 class RPC_Reasm_Buffer
-	{
+{
 public:
 	RPC_Reasm_Buffer()
-		{
+	{
 		maxsize = expected = 0;
 		fill = processed = 0;
 		buf = nullptr;
-		};
+	};
 
 	~RPC_Reasm_Buffer()
-		{
+	{
 		if ( buf )
 			delete[] buf;
-		}
+	}
 
 	void Init(int64_t arg_maxsize, int64_t arg_expected);
 
@@ -186,10 +186,10 @@ public:
 	// expected bytes exceeds maxsize (which means that we will truncate
 	// the message).
 	bool AddToExpected(int64_t delta)
-		{
+	{
 		expected += delta;
 		return ! (expected > maxsize);
-		}
+	}
 
 	// Consume a chunk of input data (pointed to by data, up len in
 	// size). data and len will be adjusted accordingly. Returns true if
@@ -203,35 +203,35 @@ protected:
 	int64_t processed; // number of bytes we have processed so far
 	int64_t expected; // number of input bytes we expect
 	u_char* buf;
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 /* Support Analyzer for reassembling RPC-over-TCP messages */
 class Contents_RPC final : public analyzer::tcp::TCP_SupportAnalyzer
-	{
+{
 public:
 	Contents_RPC(Connection* conn, bool orig, detail::RPC_Interpreter* interp);
 	~Contents_RPC() override = default;
 
 protected:
 	enum state_t
-		{
+	{
 		WAIT_FOR_MESSAGE,
 		WAIT_FOR_MARKER,
 		WAIT_FOR_DATA,
 		WAIT_FOR_LAST_DATA,
-		};
+	};
 
 	enum resync_state_t
-		{
+	{
 		NEED_RESYNC,
 		RESYNC_WAIT_FOR_MSG_START,
 		RESYNC_WAIT_FOR_FULL_MSG,
 		RESYNC_HAD_FULL_MSG,
 		INSYNC,
 		RESYNC_INIT,
-		};
+	};
 
 	void Init() override;
 	bool CheckResync(int& len, const u_char*& data, bool orig);
@@ -239,11 +239,11 @@ protected:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	void NeedResync()
-		{
+	{
 		resync_state = NEED_RESYNC;
 		resync_toskip = 0;
 		state = WAIT_FOR_MESSAGE;
-		}
+	}
 
 	detail::RPC_Interpreter* interp;
 
@@ -256,10 +256,10 @@ protected:
 
 	resync_state_t resync_state;
 	int resync_toskip;
-	};
+};
 
 class RPC_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	RPC_Analyzer(const char* name, Connection* conn, detail::RPC_Interpreter* arg_interp);
 	~RPC_Analyzer() override;
@@ -276,6 +276,6 @@ protected:
 
 	Contents_RPC* orig_rpc;
 	Contents_RPC* resp_rpc;
-	};
+};
 
-	} // namespace zeek::analyzer::rpc
+} // namespace zeek::analyzer::rpc

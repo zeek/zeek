@@ -8,14 +8,14 @@
 #include <threading/Formatter.h>
 
 namespace btest::plugin::Reporter_Hook
-	{
+{
 Plugin plugin;
-	}
+}
 
 using namespace btest::plugin::Reporter_Hook;
 
 zeek::plugin::Configuration Plugin::Configure()
-	{
+{
 	EnableHook(zeek::plugin::HOOK_REPORTER);
 
 	zeek::plugin::Configuration config;
@@ -25,14 +25,14 @@ zeek::plugin::Configuration Plugin::Configure()
 	config.version.minor = 0;
 	config.version.patch = 0;
 	return config;
-	}
+}
 
 bool Plugin::HookReporter(const std::string& prefix, const zeek::EventHandlerPtr event,
                           const zeek::Connection* conn, const zeek::ValPList* addl, bool location,
                           const zeek::detail::Location* location1,
                           const zeek::detail::Location* location2, bool time,
                           const std::string& message)
-	{
+{
 	zeek::ODesc d;
 	if ( location1 )
 		location1->Describe(&d);
@@ -45,4 +45,4 @@ bool Plugin::HookReporter(const std::string& prefix, const zeek::EventHandlerPtr
 		return false;
 
 	return true;
-	}
+}

@@ -11,7 +11,7 @@
 #include "zeek/util.h"
 
 namespace zeek
-	{
+{
 
 class EnumVal;
 using EnumValPtr = IntrusivePtr<EnumVal>;
@@ -37,7 +37,7 @@ using EnumTypePtr = IntrusivePtr<EnumType>;
  * \c std::map.
  */
 class Tag
-	{
+{
 public:
 	/**
 	 * Type for the component's main type.
@@ -121,25 +121,25 @@ public:
 	 * Compares two tags for equality.
 	 */
 	bool operator==(const Tag& other) const
-		{
+	{
 		return type == other.type && subtype == other.subtype;
-		}
+	}
 
 	/**
 	 * Compares two tags for inequality.
 	 */
 	bool operator!=(const Tag& other) const
-		{
+	{
 		return type != other.type || subtype != other.subtype;
-		}
+	}
 
 	/**
 	 * Compares two tags for less-than relationship.
 	 */
 	bool operator<(const Tag& other) const
-		{
+	{
 		return type != other.type ? type < other.type : (subtype < other.subtype);
-		}
+	}
 
 	/**
 	 * Returns the numerical values for main and subtype inside a string
@@ -168,6 +168,6 @@ private:
 	subtype_t subtype = 0; // Subtype.
 	EnumValPtr val; // Script-layer value.
 	EnumTypePtr etype;
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

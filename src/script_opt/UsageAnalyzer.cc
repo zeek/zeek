@@ -7,19 +7,19 @@
 #include "zeek/script_opt/IDOptInfo.h"
 
 namespace zeek::detail
-	{
+{
 
 // The names of identifiers that correspond to events not-previously-known
 // before their declaration in the scripts.
 std::unordered_set<std::string> script_events;
 
 void register_new_event(const IDPtr& id)
-	{
+{
 	script_events.insert(id->Name());
-	}
+}
 
 UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
-	{
+{
 	// First, prune the script events to only those that were never
 	// registered in a non-script context.
 	auto script_events_orig = script_events;
@@ -46,7 +46,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 	auto& globals = global_scope()->Vars();
 
 	for ( auto& gpair : globals )
-		{
+	{
 		auto id = gpair.second.get();
 		auto& t = id->GetType();
 
@@ -70,11 +70,11 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 		// fine, as the key is to find the root of such issues.
 		reachables.insert(id);
 		Expand(id);
-		}
+	}
 
 	// Now make a second pass, focusing solely on functions.
 	for ( auto& gpair : globals )
-		{
+	{
 		auto& id = gpair.second;
 
 		if ( reachables.count(id.get()) > 0 )
@@ -95,8 +95,8 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 		// typos (because there will be a declaration elsewhere that
 		// they're supposed to match), whereas orphan functions in
 		// general will not.
-		}
 	}
+}
 
 // Find all identifiers in attributes for seeding.
 //
@@ -105,31 +105,31 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs)
 // table/type is unused. Any IDs references from attributes are therefore
 // implicitly used as seeds.
 class AttrExprIdsCollector : public TraversalCallback
-	{
+{
 public:
 	TraversalCode PreAttr(const Attr* attr) override
-		{
+	{
 		++attr_depth;
 		return TC_CONTINUE;
-		}
+	}
 
 	TraversalCode PostAttr(const Attr* attr) override
-		{
+	{
 		--attr_depth;
 		return TC_CONTINUE;
-		}
+	}
 
 	TraversalCode PreType(const Type* t) override
-		{
+	{
 		if ( analyzed_types.count(t) > 0 )
 			return TC_ABORTSTMT;
 
 		analyzed_types.insert(t);
 		return TC_CONTINUE;
-		}
+	}
 
 	TraversalCode PreID(const ID* id) override
-		{
+	{
 		if ( ids.count(id) > 0 )
 			return TC_ABORTSTMT;
 
@@ -142,35 +142,35 @@ public:
 			attrs->Traverse(this);
 
 		return TC_CONTINUE;
-		}
+	}
 
 	int attr_depth = 0; // Are we in an attribute?
 	std::set<const detail::ID*> ids; // List of IDs found in attributes.
 	std::set<const Type*> analyzed_types; // Endless recursion avoidance.
-	};
+};
 
 void UsageAnalyzer::FindSeeds(IDSet& seeds) const
-	{
+{
 	AttrExprIdsCollector attr_ids_collector;
 	for ( auto& gpair : global_scope()->Vars() )
-		{
+	{
 		auto& id = gpair.second;
 
 		if ( id->GetAttr(ATTR_IS_USED) || id->GetAttr(ATTR_DEPRECATED) )
-			{
+		{
 			seeds.insert(id.get());
 			continue;
-			}
+		}
 
 		auto f = GetFuncIfAny(id);
 
 		if ( f && id->GetType<FuncType>()->Flavor() == FUNC_FLAVOR_EVENT )
-			{
+		{
 			if ( script_events.count(f->Name()) == 0 )
 				seeds.insert(id.get());
 
 			continue;
-			}
+		}
 
 		// If the global is exported, or has global scope, we assume
 		// it's meant to be used, even if the current scripts don't
@@ -181,13 +181,13 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const
 			// ...otherwise, find all IDs referenced from attribute expressions
 			// found through this identifier.
 			id->Traverse(&attr_ids_collector);
-		}
-
-	seeds.insert(attr_ids_collector.ids.begin(), attr_ids_collector.ids.end());
 	}
 
+	seeds.insert(attr_ids_collector.ids.begin(), attr_ids_collector.ids.end());
+}
+
 const Func* UsageAnalyzer::GetFuncIfAny(const ID* id) const
-	{
+{
 	auto& t = id->GetType();
 	if ( t->Tag() != TYPE_FUNC )
 		return nullptr;
@@ -198,37 +198,37 @@ const Func* UsageAnalyzer::GetFuncIfAny(const ID* id) const
 
 	auto func = fv->Get();
 	return func->GetKind() == Func::SCRIPT_FUNC ? func : nullptr;
-	}
+}
 
 void UsageAnalyzer::FullyExpandReachables()
-	{
+{
 	// We use the following structure to avoid having to copy
 	// the initial set of reachables, which can be quite large.
 	if ( ExpandReachables(reachables) )
-		{
+	{
 		auto r = new_reachables;
 		reachables.insert(r.begin(), r.end());
 
 		while ( ExpandReachables(r) )
-			{
+		{
 			r = new_reachables;
 			reachables.insert(r.begin(), r.end());
-			}
 		}
 	}
+}
 
 bool UsageAnalyzer::ExpandReachables(const IDSet& curr_r)
-	{
+{
 	new_reachables.clear();
 
 	for ( auto r : curr_r )
 		Expand(r);
 
 	return ! new_reachables.empty();
-	}
+}
 
 void UsageAnalyzer::Expand(const ID* id)
-	{
+{
 	// A subtle problem arises for exported globals that refer to functions
 	// that themselves generate events.  Because for identifiers we don't
 	// traverse their values (since there's no Traverse infrastructure for
@@ -245,10 +245,10 @@ void UsageAnalyzer::Expand(const ID* id)
 	analyzed_IDs.clear();
 
 	id->Traverse(this);
-	}
+}
 
 TraversalCode UsageAnalyzer::PreID(const ID* id)
-	{
+{
 	if ( analyzed_IDs.count(id) > 0 )
 		// No need to repeat the analysis.
 		return TC_ABORTSTMT;
@@ -275,16 +275,16 @@ TraversalCode UsageAnalyzer::PreID(const ID* id)
 			ie->Traverse(this);
 
 	return TC_CONTINUE;
-	}
+}
 
 TraversalCode UsageAnalyzer::PreType(const Type* t)
-	{
+{
 	if ( analyzed_types.count(t) > 0 )
 		return TC_ABORTSTMT;
 
 	// Save processing by avoiding a re-traversal of this type.
 	analyzed_types.insert(t);
 	return TC_CONTINUE;
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

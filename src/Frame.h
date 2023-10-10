@@ -18,30 +18,30 @@
 #include "zeek/ZeekList.h" // for typedef val_list
 
 namespace zeek
-	{
+{
 
 using ValPtr = IntrusivePtr<Val>;
 
 namespace detail
-	{
+{
 
 class CallExpr;
 class ScriptFunc;
 using IDPtr = IntrusivePtr<ID>;
 
 namespace trigger
-	{
+{
 
 class Trigger;
 using TriggerPtr = IntrusivePtr<Trigger>;
 
-	}
+}
 
 class Frame;
 using FramePtr = IntrusivePtr<Frame>;
 
 class Frame : public Obj
-	{
+{
 public:
 	/**
 	 * Constructs a new frame belonging to *func* with *fn_args*
@@ -65,12 +65,12 @@ public:
 	 * @return the value at index *n* of the underlying array.
 	 */
 	const ValPtr& GetElement(int n) const
-		{
+	{
 		// Note: technically this may want to adjust by current_offset, but
 		// in practice, this method is never called from anywhere other than
 		// function call invocation, where current_offset should be zero.
 		return frame[n];
-		}
+	}
 
 	/**
 	 * Sets the element at index *n* of the underlying array to *v*.
@@ -194,10 +194,10 @@ public:
 	trigger::Trigger* GetTrigger() const { return trigger.get(); }
 
 	void SetCall(const CallExpr* arg_call)
-		{
+	{
 		call = arg_call;
 		SetTriggerAssoc((void*)call);
-		}
+	}
 	void SetOnlyCall(const CallExpr* arg_call) { call = arg_call; }
 	const CallExpr* GetCall() const { return call; }
 
@@ -257,10 +257,10 @@ private:
 	trigger::TriggerPtr trigger;
 	const CallExpr* call = nullptr;
 	const void* assoc = nullptr;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek
 
 /**
  * If we stopped using this and instead just made a struct of the information

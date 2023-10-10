@@ -6,30 +6,30 @@
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 
 namespace zeek
-	{
+{
 namespace packet_analysis::TCP
-	{
+{
 class TCPSessionAdapter;
-	}
+}
 
 class Connection;
 
 namespace analyzer
-	{
+{
 
 class Analyzer;
 
 namespace tcp
-	{
+{
 
 class TCP_Reassembler final : public Reassembler
-	{
+{
 public:
 	enum Type
-		{
+	{
 		Direct, // deliver to destination analyzer itself
 		Forward, // forward to destination analyzer's children
-		};
+	};
 
 	TCP_Reassembler(analyzer::Analyzer* arg_dst_analyzer,
 	                packet_analysis::TCP::TCPSessionAdapter* arg_tcp_analyzer, Type arg_type,
@@ -121,8 +121,8 @@ private:
 	packet_analysis::TCP::TCPSessionAdapter* tcp_analyzer;
 
 	Type type;
-	};
+};
 
-	} // namespace tcp
-	} // namespace analyzer
-	} // namespace zeek
+} // namespace tcp
+} // namespace analyzer
+} // namespace zeek

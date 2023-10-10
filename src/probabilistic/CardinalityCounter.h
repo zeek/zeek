@@ -8,18 +8,18 @@
 #include <vector>
 
 namespace broker
-	{
+{
 class data;
-	}
+}
 
 namespace zeek::probabilistic::detail
-	{
+{
 
 /**
  * A probabilistic cardinality counter using the HyperLogLog algorithm.
  */
 class CardinalityCounter
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -187,6 +187,6 @@ private:
 	uint64_t V = 0;
 	double alpha_m = 0.0;
 	int p = 0; // the log2 of m
-	};
+};
 
-	} // namespace zeek::probabilistic::detail
+} // namespace zeek::probabilistic::detail

@@ -25,9 +25,9 @@
 #include "zeek/iosource/IOSource.h"
 
 namespace zeek
-	{
+{
 namespace detail
-	{
+{
 
 struct SupervisorStemHandle;
 struct SupervisedNode;
@@ -38,7 +38,7 @@ struct SupervisorNode;
  * of a Supervisor/Stem child process' redirected stdout/stderr.
  */
 struct LineBufferedPipe
-	{
+{
 	/**
 	 * A pipe that a parent process can read from to obtain output
 	 * written by a child process.
@@ -80,9 +80,9 @@ struct LineBufferedPipe
 	 * A hook to call when emitting messages read from the pipe.
 	 */
 	FuncPtr hook;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail
 
 /**
  * A Supervisor object manages a tree of persistent Zeek processes.  If any
@@ -100,27 +100,27 @@ struct LineBufferedPipe
  * done via polling for change in parent process ID.
  */
 class Supervisor : public iosource::IOSource
-	{
+{
 public:
 	/**
 	 * Configuration options that change Supervisor behavior.
 	 */
 	struct Config
-		{
+	{
 		/**
 		 * The filesystem path of the Zeek binary/executable.  This is used
 		 * if the Stem process ever dies and we need to fork() and exec() to
 		 * re-create it.
 		 */
 		std::string zeek_exe_path;
-		};
+	};
 
 	/**
 	 * Configuration options that influence how a Supervised Zeek node
 	 * integrates into the normal Zeek Cluster Framework.
 	 */
 	struct ClusterEndpoint
-		{
+	{
 		/**
 		 * The node's role within the cluster.  E.g. manager, logger, worker.
 		 */
@@ -143,13 +143,13 @@ public:
 		 * Typically used by worker nodes.
 		 */
 		std::optional<std::string> pcap_file;
-		};
+	};
 
 	/**
 	 * Configuration options that influence behavior of a Supervised Zeek node.
 	 */
 	struct NodeConfig
-		{
+	{
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -249,7 +249,7 @@ public:
 		 * Entries in the map use node names for keys.
 		 */
 		std::map<std::string, ClusterEndpoint> cluster;
-		};
+	};
 
 	/**
 	 * Create and run the Stem process if necessary.
@@ -371,15 +371,15 @@ private:
 	NodeMap nodes;
 	std::string msg_buffer;
 	EventHandlerPtr node_status;
-	};
+};
 
 namespace detail
-	{
+{
 /**
  * State used to initialize and talk to the Supervisor Stem process.
  */
 struct SupervisorStemHandle
-	{
+{
 	/**
 	 * Bidirectional pipes that allow the Supervisor and Stem to talk.
 	 */
@@ -398,13 +398,13 @@ struct SupervisorStemHandle
 	 * The Stem's process ID.
 	 */
 	pid_t pid = 0;
-	};
+};
 
 /**
  * State which defines a Supervised Zeek node's understanding of itself.
  */
 struct SupervisedNode
-	{
+{
 	/**
 	 * Initialize the Supervised node within the Zeek Cluster Framework.
 	 * This function populates the "Cluster::nodes" script-layer variable
@@ -432,13 +432,13 @@ struct SupervisedNode
 	 * of the Stem process).
 	 */
 	pid_t parent_pid;
-	};
+};
 
 /**
  * The state of a supervised node from the Supervisor's perspective.
  */
 struct SupervisorNode
-	{
+{
 	/**
 	 * Convert the node into script-layer Supervisor::NodeStatus record
 	 * representation.
@@ -500,7 +500,7 @@ struct SupervisorNode
 	 * any output written to the Node's stdout.
 	 */
 	detail::LineBufferedPipe stderr_pipe;
-	};
+};
 
 /**
  * A timer used by supervised processes to periodically check whether their
@@ -508,7 +508,7 @@ struct SupervisorNode
  * process self-terminates.
  */
 class ParentProcessCheckTimer final : public Timer
-	{
+{
 public:
 	/**
 	 * Create a timer to check for parent process death.
@@ -521,9 +521,9 @@ protected:
 	void Dispatch(double t, bool is_expire) override;
 
 	double interval;
-	};
-	}
+};
+}
 
 extern Supervisor* supervisor_mgr;
 
-	} // namespace zeek
+} // namespace zeek

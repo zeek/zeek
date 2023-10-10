@@ -8,10 +8,10 @@
 #include "zeek/plugin/Plugin.h"
 
 namespace zeek::plugin::detail::Zeek_RawReader
-	{
+{
 
 class Plugin : public plugin::Plugin
-	{
+{
 public:
 	Plugin() = default;
 
@@ -24,8 +24,8 @@ public:
 
 private:
 	std::mutex fork_mutex;
-	};
+};
 
 extern Plugin plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_RawReader
+} // namespace zeek::plugin::detail::Zeek_RawReader

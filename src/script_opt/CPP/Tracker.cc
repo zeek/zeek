@@ -7,31 +7,31 @@
 #include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek::detail
-	{
+{
 
 using namespace std;
 
 template <class T> void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h)
-	{
+{
 	if ( HasKey(key) )
 		return;
 
 	if ( map2.count(h) == 0 )
-		{
+	{
 		auto index = keys.size();
 		keys.push_back(key);
 
 		map2[h] = index;
 		reps[h] = key.get();
-		}
+	}
 
 	ASSERT(h != 0); // check for hash botches
 
 	map[key.get()] = h;
-	}
+}
 
 template <class T> string CPPTracker<T>::KeyName(const T* key)
-	{
+{
 	ASSERT(HasKey(key));
 
 	auto hash = map[key];
@@ -52,11 +52,11 @@ template <class T> string CPPTracker<T>::KeyName(const T* key)
 		full_name = base_name + "_" + ind + "__CPP";
 
 	return full_name;
-	}
+}
 
 // Instantiate the templates we'll need.
 template class CPPTracker<Type>;
 template class CPPTracker<Attributes>;
 template class CPPTracker<Expr>;
 
-	} // zeek::detail
+} // zeek::detail

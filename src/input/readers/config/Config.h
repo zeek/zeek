@@ -14,13 +14,13 @@
 #include "zeek/threading/formatters/Ascii.h"
 
 namespace zeek::input::reader::detail
-	{
+{
 
 /**
  * Reader for Configuration files.
  */
 class Config : public ReaderBackend
-	{
+{
 public:
 	explicit Config(ReaderFrontend* frontend);
 	~Config() override = default;
@@ -56,6 +56,6 @@ private:
 	std::unique_ptr<threading::Formatter> formatter;
 	std::unordered_map<std::string, std::tuple<TypeTag, TypeTag, zeek::detail::IDPtr>> option_types;
 	std::unordered_map<std::string, std::string> option_values;
-	};
+};
 
-	} // namespace zeek::input::reader::detail
+} // namespace zeek::input::reader::detail

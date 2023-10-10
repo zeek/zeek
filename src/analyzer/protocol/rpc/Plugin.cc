@@ -9,13 +9,13 @@
 #include "zeek/analyzer/protocol/rpc/RPC.h"
 
 namespace zeek::plugin::detail::Zeek_RPC
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("NFS", zeek::analyzer::rpc::NFS_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component(
@@ -29,7 +29,7 @@ public:
 		config.name = "Zeek::RPC";
 		config.description = "Analyzers for RPC-based protocols";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_RPC
+} // namespace zeek::plugin::detail::Zeek_RPC

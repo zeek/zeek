@@ -16,20 +16,20 @@
 #include "zeek/script_opt/CPP/InitsInfo.h"
 
 namespace zeek::detail
-	{
+{
 
 // T is a type that has an IntrusivePtr instantiation.
 
 template <class T> class CPPTracker
-	{
+{
 public:
 	// The base name is used to construct key names.  "single_global",
 	// if true, specifies that the names should be constructed as
 	// indexes into a single global, rather than as distinct globals.
 	CPPTracker(const char* _base_name, bool _single_global)
 		: base_name(_base_name), single_global(_single_global)
-		{
-		}
+	{
+	}
 
 	// True if the given key has already been entered.
 	bool HasKey(const T* key) const { return map.count(key) > 0; }
@@ -50,10 +50,10 @@ public:
 
 	// For a given key, get its representative.
 	const T* GetRep(const T* key)
-		{
+	{
 		ASSERT(HasKey(key));
 		return reps[map[key]];
-		}
+	}
 	const T* GetRep(IntrusivePtr<T> key) { return GetRep(key.get()); }
 
 private:
@@ -78,6 +78,6 @@ private:
 	// Whether to base the names out of a single global, or distinct
 	// globals.
 	bool single_global;
-	};
+};
 
-	} // zeek::detail
+} // zeek::detail

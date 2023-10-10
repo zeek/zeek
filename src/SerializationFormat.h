@@ -11,17 +11,17 @@ struct in_addr;
 struct in6_addr;
 
 namespace zeek
-	{
+{
 
 class IPAddr;
 class IPPrefix;
 
 namespace detail
-	{
+{
 
 // Abstract base class.
 class SerializationFormat
-	{
+{
 public:
 	SerializationFormat();
 	virtual ~SerializationFormat();
@@ -101,10 +101,10 @@ protected:
 
 	int bytes_written;
 	int bytes_read;
-	};
+};
 
 class BinarySerializationFormat final : public SerializationFormat
-	{
+{
 public:
 	BinarySerializationFormat() = default;
 	~BinarySerializationFormat() override = default;
@@ -141,7 +141,7 @@ public:
 	bool WriteOpenTag(const char* tag) override;
 	bool WriteCloseTag(const char* tag) override;
 	bool WriteSeparator() override;
-	};
+};
 
-	} // namespace zeek::detail
-	} // namespace zeek
+} // namespace zeek::detail
+} // namespace zeek

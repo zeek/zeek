@@ -9,10 +9,10 @@
 using std::string;
 
 namespace zeek::detail
-	{
+{
 
 void ZInst::Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const
-	{
+{
 	// printf("v%d ", n);
 
 	auto id1 = VName(1, inst_num, mappings);
@@ -21,17 +21,17 @@ void ZInst::Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const
 	auto id4 = VName(4, inst_num, mappings);
 
 	Dump(id1, id2, id3, id4);
-	}
+}
 
 void ZInst::Dump(const string& id1, const string& id2, const string& id3, const string& id4) const
-	{
+{
 	printf("%s ", ZOP_name(op));
 	// printf("(%s) ", op_type_name(op_type));
 	if ( t && 0 )
 		printf("(%s) ", type_name(t->Tag()));
 
 	switch ( op_type )
-		{
+	{
 		case OP_X:
 			break;
 
@@ -122,18 +122,18 @@ void ZInst::Dump(const string& id1, const string& id2, const string& id3, const 
 		case OP_VVVC_I1_I2_I3:
 			printf("%d, %d, %d, %s", v1, v2, v3, ConstDump().c_str());
 			break;
-		}
+	}
 
 	if ( func )
 		printf(" (func %s)", func->Name());
 
 	printf("\n");
-	}
+}
 
 int ZInst::NumFrameSlots() const
-	{
+{
 	switch ( op_type )
-		{
+	{
 		case OP_X:
 		case OP_C:
 		case OP_V_I1:
@@ -166,15 +166,15 @@ int ZInst::NumFrameSlots() const
 
 		case OP_VVVV:
 			return 4;
-		}
+	}
 
 	return -1;
-	}
+}
 
 int ZInst::NumSlots() const
-	{
+{
 	switch ( op_type )
-		{
+	{
 		case OP_C:
 		case OP_X:
 			return 0;
@@ -207,13 +207,13 @@ int ZInst::NumSlots() const
 		case OP_VVVV_I3_I4:
 		case OP_VVVV_I2_I3_I4:
 			return 4;
-		}
-
-	return -1;
 	}
 
+	return -1;
+}
+
 string ZInst::VName(int n, zeek_uint_t inst_num, const FrameReMap* mappings) const
-	{
+{
 	if ( n > NumFrameSlots() )
 		return "";
 
@@ -229,7 +229,7 @@ string ZInst::VName(int n, zeek_uint_t inst_num, const FrameReMap* mappings) con
 
 	unsigned int i;
 	for ( i = 0; i < map.id_start.size(); ++i )
-		{
+	{
 		// If the slot is right at the boundary between two
 		// identifiers, then it matters whether this is slot 1
 		// (starts right here) vs. slot > 1 (ignore change right
@@ -237,22 +237,22 @@ string ZInst::VName(int n, zeek_uint_t inst_num, const FrameReMap* mappings) con
 		if ( (n == 1 && map.id_start[i] > inst_num) || (n > 1 && map.id_start[i] >= inst_num) )
 			// Went too far.
 			break;
-		}
+	}
 
 	if ( i < map.id_start.size() )
-		{
+	{
 		ASSERT(i > 0);
-		}
+	}
 
 	auto id = map.names.empty() ? map.ids[i - 1]->Name() : map.names[i - 1];
 
 	return util::fmt("%d (%s)", slot, id);
-	}
+}
 
 ValPtr ZInst::ConstVal() const
-	{
+{
 	switch ( op_type )
-		{
+	{
 		case OP_C:
 		case OP_VC:
 		case OP_VC_I1:
@@ -279,13 +279,13 @@ ValPtr ZInst::ConstVal() const
 		case OP_VVVV_I3_I4:
 		case OP_VVVV_I2_I3_I4:
 			return nullptr;
-		}
-
-	return nullptr;
 	}
 
+	return nullptr;
+}
+
 string ZInst::ConstDump() const
-	{
+{
 	auto v = ConstVal();
 
 	ODesc d;
@@ -294,10 +294,10 @@ string ZInst::ConstDump() const
 	v->Describe(&d);
 
 	return d.Description();
-	}
+}
 
 void ZInstI::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
-	{
+{
 	int n = NumFrameSlots();
 	// printf("v%d ", n);
 
@@ -307,10 +307,10 @@ void ZInstI::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
 	auto id4 = VName(4, frame_ids, remappings);
 
 	ZInst::Dump(id1, id2, id3, id4);
-	}
+}
 
 string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappings) const
-	{
+{
 	if ( n > NumFrameSlots() )
 		return "";
 
@@ -322,7 +322,7 @@ string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappi
 	const ID* id;
 
 	if ( remappings && live )
-		{ // Find which identifier manifests at this instruction.
+	{ // Find which identifier manifests at this instruction.
 		ASSERT(slot >= 0 && static_cast<zeek_uint_t>(slot) < remappings->size());
 
 		auto& map = (*remappings)[slot];
@@ -330,40 +330,40 @@ string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappi
 		unsigned int i;
 		auto inst_num_u = static_cast<zeek_uint_t>(inst_num);
 		for ( i = 0; i < map.id_start.size(); ++i )
-			{
+		{
 			// See discussion for ZInst::VName, though this is
 			// a tad different since we have the general notion
 			// of AssignsToSlot().
 			if ( AssignsToSlot(n) )
-				{
+			{
 				if ( map.id_start[i] > inst_num_u )
 					break;
-				}
+			}
 
 			else if ( map.id_start[i] >= inst_num_u )
 				// Went too far.
 				break;
-			}
+		}
 
 		if ( i < map.id_start.size() )
-			{
+		{
 			ASSERT(i > 0);
-			}
+		}
 
 		// For ZInstI's, map.ids is always populated.
 		id = map.ids[i - 1];
-		}
+	}
 
 	else
 		id = (*frame_ids)[slot];
 
 	return util::fmt("%d (%s)", slot, id->Name());
-	}
+}
 
 bool ZInstI::DoesNotContinue() const
-	{
+{
 	switch ( op )
-		{
+	{
 		case OP_GOTO_V:
 		case OP_HOOK_BREAK_X:
 		case OP_RETURN_C:
@@ -373,16 +373,16 @@ bool ZInstI::DoesNotContinue() const
 
 		default:
 			return false;
-		}
 	}
+}
 
 bool ZInstI::IsDirectAssignment() const
-	{
+{
 	if ( op_type != OP_VV )
 		return false;
 
 	switch ( op )
-		{
+	{
 		case OP_ASSIGN_VV_A:
 		case OP_ASSIGN_VV_D:
 		case OP_ASSIGN_VV_F:
@@ -404,13 +404,13 @@ bool ZInstI::IsDirectAssignment() const
 
 		default:
 			return false;
-		}
 	}
+}
 
 bool ZInstI::HasCaptures() const
-	{
+{
 	switch ( op )
-		{
+	{
 		case OP_LAMBDA_VV:
 		case OP_WHEN_V:
 		case OP_WHEN_TIMEOUT_VV:
@@ -419,18 +419,18 @@ bool ZInstI::HasCaptures() const
 
 		default:
 			return false;
-		}
 	}
+}
 
 bool ZInstI::HasSideEffects() const
-	{
+{
 	return op_side_effects[op];
-	}
+}
 
 bool ZInstI::AssignsToSlot1() const
-	{
+{
 	switch ( op_type )
-		{
+	{
 		case OP_X:
 		case OP_C:
 		case OP_V_I1:
@@ -462,31 +462,31 @@ bool ZInstI::AssignsToSlot1() const
 		case OP_VVVV:
 			auto fl = op1_flavor[op];
 			return fl == OP1_WRITE || fl == OP1_READ_WRITE;
-		}
-
-	return false;
 	}
 
+	return false;
+}
+
 bool ZInstI::AssignsToSlot(int slot) const
-	{
+{
 	switch ( op )
-		{
+	{
 		case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV:
 			return slot == 1 || slot == 2;
 
 		default:
 			return slot == 1 && AssignsToSlot1();
-		}
 	}
+}
 
 bool ZInstI::UsesSlot(int slot) const
-	{
+{
 	auto fl = op1_flavor[op];
 	auto v1_relevant = fl == OP1_READ || fl == OP1_READ_WRITE;
 	auto v1_match = v1_relevant && v1 == slot;
 
 	switch ( op_type )
-		{
+	{
 		case OP_X:
 		case OP_C:
 		case OP_V_I1:
@@ -519,20 +519,20 @@ bool ZInstI::UsesSlot(int slot) const
 
 		case OP_VVVV:
 			return v1_match || v2 == slot || v3 == slot || v4 == slot;
-		}
-
-	return false;
 	}
 
+	return false;
+}
+
 bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
-	{
+{
 	s1 = s2 = s3 = s4 = -1;
 
 	auto fl = op1_flavor[op];
 	auto v1_relevant = fl == OP1_READ || fl == OP1_READ_WRITE;
 
 	switch ( op_type )
-		{
+	{
 		case OP_X:
 		case OP_C:
 		case OP_V_I1:
@@ -587,15 +587,15 @@ bool ZInstI::UsesSlots(int& s1, int& s2, int& s3, int& s4) const
 				s4 = v1;
 
 			return true;
-		}
-
-	return false;
 	}
 
+	return false;
+}
+
 void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
-	{
+{
 	switch ( op_type )
-		{
+	{
 		case OP_X:
 		case OP_C:
 		case OP_V_I1:
@@ -634,17 +634,17 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping)
 			v3 = slot_mapping[v3];
 			v4 = slot_mapping[v4];
 			break;
-		}
+	}
 
 	// Note, unlike for UsesSlots() we do *not* include OP1_READ_WRITE
 	// here, because such instructions will already have v1 remapped
 	// given it's an assignment target.
 	if ( op1_flavor[op] == OP1_READ && v1 >= 0 )
 		v1 = slot_mapping[v1];
-	}
+}
 
 bool ZInstI::IsGlobalLoad() const
-	{
+{
 	if ( op == OP_LOAD_GLOBAL_TYPE_VV )
 		// These don't have flavors.
 		return true;
@@ -652,33 +652,33 @@ bool ZInstI::IsGlobalLoad() const
 	static std::unordered_set<ZOp> global_ops;
 
 	if ( global_ops.empty() )
-		{ // Initialize the set.
+	{ // Initialize the set.
 		for ( int t = 0; t < NUM_TYPES; ++t )
-			{
+		{
 			TypeTag tag = TypeTag(t);
 			ZOp global_op_flavor = AssignmentFlavor(OP_LOAD_GLOBAL_VV, tag, false);
 
 			if ( global_op_flavor != OP_NOP )
 				global_ops.insert(global_op_flavor);
-			}
 		}
+	}
 
 	return global_ops.count(op) > 0;
-	}
+}
 
 bool ZInstI::IsCaptureLoad() const
-	{
+{
 	return op == OP_LOAD_CAPTURE_VV || op == OP_LOAD_MANAGED_CAPTURE_VV;
-	}
+}
 
 void ZInstI::InitConst(const ConstExpr* ce)
-	{
+{
 	auto v = ce->ValuePtr();
 	t = ce->GetType();
 	c = ZVal(v, t);
 
 	if ( ZAM_error )
 		reporter->InternalError("bad value compiling code");
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

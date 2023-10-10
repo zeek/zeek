@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/mqtt/MQTT.h"
 
 namespace zeek::plugin::detail::Zeek_MQTT
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"MQTT", zeek::analyzer::mqtt::MQTT_Analyzer::InstantiateAnalyzer));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::MQTT";
 		config.description = "Message Queuing Telemetry Transport v3.1.1 Protocol analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_MQTT
+} // namespace zeek::plugin::detail::Zeek_MQTT

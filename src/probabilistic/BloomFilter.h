@@ -13,29 +13,29 @@
 #include "zeek/probabilistic/Hasher.h"
 
 namespace broker
-	{
+{
 class data;
-	}
+}
 
 namespace zeek::probabilistic
-	{
+{
 namespace detail
-	{
+{
 class CounterVector;
-	}
+}
 
 /** Types of derived BloomFilter classes. */
 enum BloomFilterType
-	{
+{
 	Basic,
 	Counting
-	};
+};
 
 /**
  * The abstract base class for Bloom filters.
  */
 class BloomFilter
-	{
+{
 public:
 	/**
 	 * Destructor.
@@ -133,7 +133,7 @@ protected:
 	virtual BloomFilterType Type() const = 0;
 
 	const detail::Hasher* hasher;
-	};
+};
 
 class CountingBloomFilter;
 
@@ -141,7 +141,7 @@ class CountingBloomFilter;
  * A basic Bloom filter.
  */
 class BasicBloomFilter : public BloomFilter
-	{
+{
 	friend class CountingBloomFilter;
 
 public:
@@ -215,13 +215,13 @@ protected:
 
 private:
 	detail::BitVector* bits;
-	};
+};
 
 /**
  * A counting Bloom filter.
  */
 class CountingBloomFilter : public BloomFilter
-	{
+{
 public:
 	/**
 	 * Constructs a counting Bloom filter.
@@ -279,6 +279,6 @@ protected:
 
 private:
 	detail::CounterVector* cells;
-	};
+};
 
-	} // namespace zeek::probabilistic
+} // namespace zeek::probabilistic

@@ -10,7 +10,7 @@
 #include <thread>
 
 namespace zeek::threading
-	{
+{
 
 class Manager;
 
@@ -23,7 +23,7 @@ class Manager;
  * manually).
  */
 class BasicThread
-	{
+{
 public:
 	/**
 	 * Creates a new thread object. Instantiating the object does however
@@ -214,6 +214,6 @@ private:
 	char* strerr_buffer;
 
 	static uint64_t thread_counter;
-	};
+};
 
-	} // namespace zeek::threading
+} // namespace zeek::threading

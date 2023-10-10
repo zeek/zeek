@@ -11,27 +11,27 @@
 #include <memory>
 
 namespace zeek
-	{
+{
 
 class File;
 class Func;
 class TableVal;
 
 namespace detail
-	{
+{
 
 class Location;
 
 // Object called by SegmentProfiler when it is done and reports its
 // cumulative CPU/memory statistics.
 class SegmentStatsReporter
-	{
+{
 public:
 	SegmentStatsReporter() { }
 	virtual ~SegmentStatsReporter() { }
 
 	virtual void SegmentProfile(const char* name, const Location* loc, double dtime, int dmem) = 0;
-	};
+};
 
 // A SegmentProfiler tracks how much CPU and memory is consumed
 // across its lifetime.
@@ -39,28 +39,28 @@ public:
 // ### This needs porting to Linux.  It could also be improved by
 // better efforts at measuring its own overhead.
 class SegmentProfiler
-	{
+{
 public:
 	// The constructor takes some way of identifying the segment.
 	SegmentProfiler(std::shared_ptr<SegmentStatsReporter> arg_reporter, const char* arg_name)
 		: reporter(std::move(arg_reporter)), name(arg_name), loc(), initial_rusage()
-		{
+	{
 		if ( reporter )
 			Init();
-		}
+	}
 
 	SegmentProfiler(std::shared_ptr<SegmentStatsReporter> arg_reporter, const Location* arg_loc)
 		: reporter(std::move(arg_reporter)), name(), loc(arg_loc), initial_rusage()
-		{
+	{
 		if ( reporter )
 			Init();
-		}
+	}
 
 	~SegmentProfiler()
-		{
+	{
 		if ( reporter )
 			Report();
-		}
+	}
 
 protected:
 	void Init();
@@ -70,10 +70,10 @@ protected:
 	const char* name;
 	const Location* loc;
 	struct rusage initial_rusage;
-	};
+};
 
 class ProfileLogger final : public SegmentStatsReporter
-	{
+{
 public:
 	ProfileLogger(zeek::File* file, double interval);
 	~ProfileLogger() override;
@@ -87,11 +87,11 @@ protected:
 private:
 	zeek::File* file;
 	unsigned int log_count;
-	};
+};
 
 // Generates load_sample() events.
 class SampleLogger final : public SegmentStatsReporter
-	{
+{
 public:
 	SampleLogger();
 	~SampleLogger() override;
@@ -105,7 +105,7 @@ protected:
 	void SegmentProfile(const char* name, const Location* loc, double dtime, int dmem) override;
 
 	TableVal* load_samples;
-	};
+};
 
 extern std::shared_ptr<ProfileLogger> profiling_logger;
 extern std::shared_ptr<ProfileLogger> segment_logger;
@@ -121,7 +121,7 @@ extern uint64_t tot_gap_events;
 extern uint64_t tot_gap_bytes;
 
 class PacketProfiler
-	{
+{
 public:
 	PacketProfiler(unsigned int mode, double freq, File* arg_file);
 	~PacketProfiler();
@@ -141,7 +141,7 @@ protected:
 	uint64_t last_mem;
 	uint64_t pkt_cnt;
 	uint64_t byte_cnt;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

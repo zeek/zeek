@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/imap/IMAP.h"
 
 namespace zeek::plugin::detail::Zeek_IMAP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"IMAP", zeek::analyzer::imap::IMAP_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::IMAP";
 		config.description = "IMAP analyzer (StartTLS only)";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_IMAP
+} // namespace zeek::plugin::detail::Zeek_IMAP

@@ -6,13 +6,13 @@
 #include "zeek/file_analysis/analyzer/pe/PE.h"
 
 namespace zeek::plugin::detail::Zeek_PE
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::file_analysis::Component("PE", zeek::file_analysis::detail::PE::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::PE";
 		config.description = "Portable Executable analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_PE
+} // namespace zeek::plugin::detail::Zeek_PE

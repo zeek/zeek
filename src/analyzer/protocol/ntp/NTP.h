@@ -5,10 +5,10 @@
 #include "zeek/analyzer/protocol/ntp/types.bif.h"
 
 namespace zeek::analyzer::ntp
-	{
+{
 
 class NTP_Analyzer final : public analyzer::Analyzer
-	{
+{
 public:
 	explicit NTP_Analyzer(Connection* conn);
 	~NTP_Analyzer() override;
@@ -22,6 +22,6 @@ public:
 
 protected:
 	binpac::NTP::NTP_Conn* interp;
-	};
+};
 
-	} // namespace zeek::analyzer::ntp
+} // namespace zeek::analyzer::ntp

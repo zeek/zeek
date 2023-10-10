@@ -12,10 +12,10 @@
 #include "zeek/binpac_zeek.h"
 
 namespace zeek::analyzer::http
-	{
+{
 
 enum CHUNKED_TRANSFER_STATE
-	{
+{
 	NON_CHUNKED_TRANSFER,
 	BEFORE_CHUNK,
 	EXPECT_CHUNK_SIZE,
@@ -23,24 +23,24 @@ enum CHUNKED_TRANSFER_STATE
 	EXPECT_CHUNK_DATA_CRLF,
 	EXPECT_CHUNK_TRAILER,
 	EXPECT_NOTHING,
-	};
+};
 
 class HTTP_Entity;
 class HTTP_Message;
 class HTTP_Analyzer;
 
 class HTTP_Entity final : public analyzer::mime::MIME_Entity
-	{
+{
 public:
 	HTTP_Entity(HTTP_Message* msg, analyzer::mime::MIME_Entity* parent_entity, int expect_body);
 	~HTTP_Entity() override
-		{
+	{
 		if ( zip )
-			{
+		{
 			zip->Done();
 			delete zip;
-			}
 		}
+	}
 
 	void EndOfData() override;
 	void Deliver(int len, const char* data, bool trailing_CRLF) override;
@@ -63,12 +63,12 @@ protected:
 	int64_t body_length;
 	int64_t header_length;
 	enum
-		{
+	{
 		IDENTITY,
 		GZIP,
 		COMPRESS,
 		DEFLATE
-		} encoding;
+	} encoding;
 	analyzer::zip::ZIP_Analyzer* zip;
 	bool deliver_body;
 	bool is_partial_content;
@@ -78,9 +78,9 @@ protected:
 	std::string precomputed_file_id;
 
 	analyzer::mime::MIME_Entity* NewChildEntity() override
-		{
+	{
 		return new HTTP_Entity(http_message, this, 1);
-		}
+	}
 
 	void DeliverBody(int len, const char* data, bool trailing_CRLF);
 	void DeliverBodyClear(int len, const char* data, bool trailing_CRLF);
@@ -91,14 +91,14 @@ protected:
 
 	void SubmitHeader(analyzer::mime::MIME_Header* h) override;
 	void SubmitAllHeaders() override;
-	};
+};
 
 enum
-	{
+{
 	HTTP_BODY_NOT_EXPECTED,
 	HTTP_BODY_EXPECTED,
 	HTTP_BODY_MAYBE,
-	};
+};
 
 // Finishing HTTP Messages:
 //
@@ -112,7 +112,7 @@ enum
 // HTTP_MessageDone	-> {Request,Reply}Made
 
 class HTTP_Message final : public analyzer::mime::MIME_Message
-	{
+{
 	friend class HTTP_Entity;
 
 public:
@@ -162,10 +162,10 @@ protected:
 	HTTP_Entity* current_entity;
 
 	RecordValPtr BuildMessageStat(bool interrupted, const char* msg);
-	};
+};
 
 class HTTP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	HTTP_Analyzer(Connection* conn);
 
@@ -192,19 +192,19 @@ public:
 	void PacketWithRST() override;
 
 	struct HTTP_VersionNumber
-		{
+	{
 		uint8_t major = 0;
 		uint8_t minor = 0;
 
 		bool operator==(const HTTP_VersionNumber& other) const
-			{
+		{
 			return minor == other.minor && major == other.major;
-			}
+		}
 
 		bool operator!=(const HTTP_VersionNumber& other) const { return ! operator==(other); }
 
 		double ToDouble() const { return major + minor * 0.1; }
-		};
+	};
 
 	double GetRequestVersion() { return request_version.ToDouble(); };
 	double GetReplyVersion() { return reply_version.ToDouble(); };
@@ -216,11 +216,11 @@ public:
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new HTTP_Analyzer(conn); }
 
 	static bool Available()
-		{
+	{
 		return (http_request || http_reply || http_header || http_all_headers ||
 		        http_begin_entity || http_end_entity || http_content_type || http_entity_data ||
 		        http_message_done || http_event || http_stats);
-		}
+	}
 
 protected:
 	void GenStats();
@@ -292,7 +292,7 @@ protected:
 
 	HTTP_Message* request_message;
 	HTTP_Message* reply_message;
-	};
+};
 
 extern bool is_reserved_URI_char(unsigned char ch);
 extern bool is_unreserved_URI_char(unsigned char ch);
@@ -300,4 +300,4 @@ extern void escape_URI_char(unsigned char ch, unsigned char*& p);
 extern String* unescape_URI(const u_char* line, const u_char* line_end,
                             analyzer::Analyzer* analyzer);
 
-	} // namespace zeek::analyzer::http
+} // namespace zeek::analyzer::http

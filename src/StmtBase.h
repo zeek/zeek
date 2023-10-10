@@ -13,18 +13,18 @@
 #include "zeek/util.h"
 
 namespace zeek
-	{
+{
 
 class Val;
 using ValPtr = IntrusivePtr<Val>;
 
 namespace run_state
-	{
+{
 extern double network_time;
-	}
+}
 
 namespace detail
-	{
+{
 
 class CompositeHash;
 class Frame;
@@ -58,7 +58,7 @@ using StmtPtr = IntrusivePtr<Stmt>;
 class StmtOptInfo;
 
 class Stmt : public Obj
-	{
+{
 public:
 	StmtTag Tag() const { return tag; }
 
@@ -67,10 +67,10 @@ public:
 	virtual ValPtr Exec(Frame* f, StmtFlowType& flow) = 0;
 
 	Stmt* Ref()
-		{
+	{
 		zeek::Ref(this);
 		return this;
-		}
+	}
 	StmtPtr ThisPtr() { return {NewRef{}, this}; }
 
 	bool SetLocationInfo(const Location* loc) override { return Stmt::SetLocationInfo(loc, loc); }
@@ -98,10 +98,10 @@ public:
 	const AssertStmt* AsAssertStmt() const;
 
 	void RegisterAccess() const
-		{
+	{
 		last_access = run_state::network_time;
 		access_count++;
-		}
+	}
 	void AccessStats(ODesc* d) const;
 	uint32_t GetAccessCount() const { return access_count; }
 
@@ -151,10 +151,10 @@ public:
 
 	// Designate the given Stmt node as the original for this one.
 	void SetOriginal(StmtPtr _orig)
-		{
+	{
 		if ( ! original )
 			original = std::move(_orig);
-		}
+	}
 
 	// A convenience function for taking a newly-created Stmt,
 	// making it point to us as the successor, and returning it.
@@ -164,18 +164,18 @@ public:
 	// call, as a convenient side effect, transforms that bare pointer
 	// into a StmtPtr.
 	virtual StmtPtr SetSucc(Stmt* succ)
-		{
+	{
 		succ->SetOriginal(ThisPtr());
 		return {AdoptRef{}, succ};
-		}
+	}
 
 	const detail::Location* GetLocationInfo() const override
-		{
+	{
 		if ( original )
 			return original->GetLocationInfo();
 		else
 			return Obj::GetLocationInfo();
-		}
+	}
 
 	// Access script optimization information associated with
 	// this statement.
@@ -216,7 +216,7 @@ protected:
 
 	// Number of statements created thus far.
 	static int num_stmts;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

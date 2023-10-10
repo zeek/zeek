@@ -13,10 +13,10 @@
 #include "analyzer/protocol/krb/krb_pac.h"
 
 namespace zeek::analyzer::krb
-	{
+{
 
 class KRB_Analyzer final : public analyzer::Analyzer
-	{
+{
 
 public:
 	explicit KRB_Analyzer(Connection* conn);
@@ -42,6 +42,6 @@ private:
 	static krb5_context krb_context;
 	static krb5_keytab krb_keytab;
 #endif
-	};
+};
 
-	} // namespace zeek::analyzer::krb
+} // namespace zeek::analyzer::krb

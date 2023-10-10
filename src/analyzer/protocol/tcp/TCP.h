@@ -10,12 +10,12 @@
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 namespace zeek::analyzer::pia
-	{
+{
 class PIA_TCP;
-	}
+}
 
 namespace zeek::analyzer::tcp
-	{
+{
 
 class TCP_Endpoint;
 class TCP_Reassembler;
@@ -26,11 +26,11 @@ class TCP_ApplicationAnalyzer;
  * of TCP.
  */
 class TCP_ApplicationAnalyzer : public analyzer::Analyzer
-	{
+{
 public:
 	TCP_ApplicationAnalyzer(const char* name, Connection* conn) : Analyzer(name, conn), tcp(nullptr)
-		{
-		}
+	{
+	}
 
 	explicit TCP_ApplicationAnalyzer(Connection* conn) : Analyzer(conn), tcp(nullptr) { }
 
@@ -73,15 +73,15 @@ public:
 
 private:
 	packet_analysis::TCP::TCPSessionAdapter* tcp;
-	};
+};
 
 class TCP_SupportAnalyzer : public analyzer::SupportAnalyzer
-	{
+{
 public:
 	TCP_SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
 		: analyzer::SupportAnalyzer(name, conn, arg_orig)
-		{
-		}
+	{
+	}
 
 	~TCP_SupportAnalyzer() override { }
 
@@ -91,10 +91,10 @@ public:
 	virtual void ConnectionFinished(bool half_finished) { }
 	virtual void ConnectionReset() { }
 	virtual void PacketWithRST() { }
-	};
+};
 
 class TCPStats_Endpoint
-	{
+{
 public:
 	explicit TCPStats_Endpoint(TCP_Endpoint* endp);
 
@@ -114,10 +114,10 @@ protected:
 	uint64_t max_top_seq;
 	int last_id;
 	int endian_type;
-	};
+};
 
 class TCPStats_Analyzer : public tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit TCPStats_Analyzer(Connection* c);
 	~TCPStats_Analyzer() override;
@@ -133,6 +133,6 @@ protected:
 
 	TCPStats_Endpoint* orig_stats;
 	TCPStats_Endpoint* resp_stats;
-	};
+};
 
-	} // namespace zeek::analyzer::tcp
+} // namespace zeek::analyzer::tcp

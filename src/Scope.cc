@@ -12,18 +12,18 @@
 #include "zeek/module_util.h"
 
 namespace zeek::detail
-	{
+{
 
 static std::vector<ScopePtr> scopes;
 static ScopePtr top_scope;
 
 Scope::Scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> al)
 	: scope_id(std::move(id)), attrs(std::move(al))
-	{
+{
 	return_type = nullptr;
 
 	if ( scope_id )
-		{
+	{
 		const auto& id_type = scope_id->GetType();
 
 		if ( id_type->Tag() == TYPE_ERROR )
@@ -33,81 +33,81 @@ Scope::Scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> al)
 
 		FuncType* ft = scope_id->GetType()->AsFuncType();
 		return_type = ft->Yield();
-		}
 	}
+}
 
 const IDPtr& Scope::Find(std::string_view name) const
-	{
+{
 	auto entry = local.find(name);
 
 	if ( entry != local.end() )
 		return entry->second;
 
 	return ID::nil;
-	}
+}
 
 IDPtr Scope::GenerateTemporary(const char* name)
-	{
+{
 	return make_intrusive<ID>(name, SCOPE_FUNCTION, false);
-	}
+}
 
 std::vector<IDPtr> Scope::GetInits()
-	{
+{
 	auto rval = std::move(inits);
 	inits = {};
 	return rval;
-	}
+}
 
 void Scope::Describe(ODesc* d) const
-	{
+{
 	if ( d->IsReadable() )
 		d->AddSP("scope");
 
 	else
-		{
+	{
 		d->Add(scope_id != nullptr);
 		d->SP();
 		d->Add(return_type != nullptr);
 		d->SP();
 		d->Add(static_cast<uint64_t>(local.size()));
 		d->SP();
-		}
+	}
 
 	if ( scope_id )
-		{
+	{
 		scope_id->Describe(d);
 		d->NL();
-		}
+	}
 
 	if ( return_type )
-		{
+	{
 		return_type->Describe(d);
 		d->NL();
-		}
+	}
 
 	for ( const auto& entry : local )
-		{
+	{
 		ID* id = entry.second.get();
 		id->Describe(d);
 		d->NL();
-		}
 	}
+}
 
 TraversalCode Scope::Traverse(TraversalCallback* cb) const
-	{
+{
 	for ( const auto& entry : local )
-		{
+	{
 		ID* id = entry.second.get();
 		TraversalCode tc = id->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
-		}
+	}
 
 	return TC_CONTINUE;
-	}
+}
 
 const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global,
                        bool same_module_only, bool check_export)
-	{
+{
 	bool explicit_global = zeek::util::starts_with(name, "::");
 
 	// Ad-hoc deprecation if a name starts with "GLOBAL::". In v7.1 we could
@@ -122,47 +122,47 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global
 
 	// This is mostly for sanity (and should be covered by syntax)
 	if ( explicit_global && same_module_only && ID_module != GLOBAL_MODULE_NAME )
-		{
+	{
 		reporter->Error("lookup_ID for %s with :: prefix for non-global module called", name);
 		return ID::nil;
-		}
+	}
 
 	if ( explicit_global && no_global )
-		{
+	{
 		reporter->Error("lookup_ID  for %s with :: prefix, but no_global=true", name);
 		return ID::nil;
-		}
+	}
 
 	if ( ! explicit_global )
-		{
+	{
 		bool need_export = check_export &&
 		                   (ID_module != GLOBAL_MODULE_NAME && ID_module != curr_module);
 
 		for ( auto s_i = scopes.rbegin(); s_i != scopes.rend(); ++s_i )
-			{
+		{
 			const auto& id = (*s_i)->Find(fullname);
 
 			if ( id )
-				{
+			{
 				if ( need_export && ! id->IsExport() && ! in_debug )
 					reporter->Error("identifier is not exported: %s", fullname.c_str());
 
 				return id;
-				}
 			}
 		}
-
-	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 || ! same_module_only) )
-		{
-		std::string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
-		return global_scope()->Find(globalname);
-		}
-
-	return ID::nil;
 	}
 
-IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool is_export)
+	if ( ! no_global && (strcmp(GLOBAL_MODULE_NAME, curr_module) == 0 || ! same_module_only) )
 	{
+		std::string globalname = make_full_var_name(GLOBAL_MODULE_NAME, name);
+		return global_scope()->Find(globalname);
+	}
+
+	return ID::nil;
+}
+
+IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool is_export)
+{
 	if ( scopes.empty() && ! is_global )
 		reporter->InternalError("local identifier in global scope");
 
@@ -182,28 +182,28 @@ IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool
 	if ( SCOPE_FUNCTION != scope )
 		global_scope()->Insert(std::move(full_name), id);
 	else
-		{
+	{
 		id->SetOffset(top_scope->Length());
 		top_scope->Insert(std::move(full_name), id);
-		}
+	}
 
 	return id;
-	}
+}
 
 void push_existing_scope(ScopePtr scope)
-	{
+{
 	top_scope = scope;
 	scopes.push_back(scope);
-	}
+}
 
 void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs)
-	{
+{
 	top_scope = make_intrusive<Scope>(std::move(id), std::move(attrs));
 	scopes.push_back(top_scope);
-	}
+}
 
 ScopePtr pop_scope()
-	{
+{
 	if ( scopes.empty() )
 		reporter->InternalError("scope underflow");
 	scopes.pop_back();
@@ -213,16 +213,16 @@ ScopePtr pop_scope()
 	top_scope = scopes.empty() ? nullptr : scopes.back();
 
 	return old_top;
-	}
+}
 
 ScopePtr current_scope()
-	{
+{
 	return top_scope;
-	}
+}
 
 ScopePtr global_scope()
-	{
+{
 	return scopes.empty() ? 0 : scopes.front();
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

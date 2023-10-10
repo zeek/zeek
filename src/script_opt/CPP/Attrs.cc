@@ -3,12 +3,12 @@
 #include "zeek/script_opt/CPP/Compile.h"
 
 namespace zeek::detail
-	{
+{
 
 using namespace std;
 
 shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttributes(const AttributesPtr& attrs)
-	{
+{
 	if ( ! attrs )
 		return nullptr;
 
@@ -23,11 +23,11 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttributes(const AttributesPtr& att
 	// The cast is just so we can make an IntrusivePtr.
 	auto a_rep = const_cast<Attributes*>(attributes.GetRep(attrs));
 	if ( a_rep != a )
-		{
+	{
 		AttributesPtr a_rep_ptr = {NewRef{}, a_rep};
 		processed_attrs[a] = RegisterAttributes(a_rep_ptr);
 		return processed_attrs[a];
-		}
+	}
 
 	for ( const auto& a : attrs->GetAttrs() )
 		(void)RegisterAttr(a);
@@ -37,10 +37,10 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttributes(const AttributesPtr& att
 	processed_attrs[a] = gi;
 
 	return gi;
-	}
+}
 
 shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr)
-	{
+{
 	auto a = attr.get();
 	auto pa = processed_attr.find(a);
 
@@ -49,7 +49,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr)
 
 	const auto& e = a->GetExpr();
 	if ( e && ! IsSimpleInitExpr(e) )
-		{
+	{
 		auto h = p_hash(e);
 
 		// Include the type in the hash, otherwise expressions
@@ -57,26 +57,26 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterAttr(const AttrPtr& attr)
 		h = merge_p_hashes(h, p_hash(e->GetType()));
 
 		init_exprs.AddKey(e, h);
-		}
+	}
 
 	auto gi = make_shared<AttrInfo>(this, attr);
 	attr_info->AddInstance(gi);
 	processed_attr[a] = gi;
 
 	return gi;
-	}
+}
 
 void CPPCompile::BuildAttrs(const AttributesPtr& attrs, string& attr_tags, string& attr_vals)
-	{
+{
 	if ( attrs )
-		{
+	{
 		for ( const auto& a : attrs->GetAttrs() )
-			{
+		{
 			if ( attr_tags.size() > 0 )
-				{
+			{
 				attr_tags += ", ";
 				attr_vals += ", ";
-				}
+			}
 
 			attr_tags += Fmt(int(a->Tag()));
 
@@ -86,17 +86,17 @@ void CPPCompile::BuildAttrs(const AttributesPtr& attrs, string& attr_tags, strin
 				attr_vals += GenExpr(e, GEN_VAL_PTR, false);
 			else
 				attr_vals += "nullptr";
-			}
 		}
+	}
 
 	attr_tags = string("{") + attr_tags + "}";
 	attr_vals = string("{") + attr_vals + "}";
-	}
+}
 
 const char* CPPCompile::AttrName(AttrTag t)
-	{
+{
 	switch ( t )
-		{
+	{
 		case ATTR_OPTIONAL:
 			return "ATTR_OPTIONAL";
 		case ATTR_DEFAULT:
@@ -146,7 +146,7 @@ const char* CPPCompile::AttrName(AttrTag t)
 
 		default:
 			return "<busted>";
-		}
 	}
+}
 
-	} // zeek::detail
+} // zeek::detail

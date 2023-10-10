@@ -5,17 +5,17 @@
 #include "zeek/threading/Formatter.h"
 
 namespace zeek::threading::formatter
-	{
+{
 
 class Ascii final : public Formatter
-	{
+{
 public:
 	/**
 	 * A struct to pass the necessary configuration values to the
 	 * Ascii module on initialization.
 	 */
 	struct SeparatorInfo
-		{
+	{
 		std::string separator; // Separator between columns
 		std::string set_separator; // Separator between set elements.
 		std::string unset_field; // String marking an unset field.
@@ -34,7 +34,7 @@ public:
 		 * of them, like StringToAddr, etc.
 		 */
 		SeparatorInfo();
-		};
+	};
 
 	/**
 	 * Constructor.
@@ -59,6 +59,6 @@ private:
 	bool CheckNumberError(const char* start, const char* end, bool nonneg_only = false) const;
 
 	SeparatorInfo separators;
-	};
+};
 
-	} // namespace zeek::threading::formatter
+} // namespace zeek::threading::formatter

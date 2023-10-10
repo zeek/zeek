@@ -12,21 +12,21 @@
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
 namespace zeek::analyzer::finger
-	{
+{
 
 Finger_Analyzer::Finger_Analyzer(Connection* conn)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("FINGER", conn)
-	{
+{
 	did_deliver = 0;
 	content_line_orig = new analyzer::tcp::ContentLine_Analyzer(conn, true, 1000);
 	content_line_orig->SetIsNULSensitive(true);
 	content_line_resp = new analyzer::tcp::ContentLine_Analyzer(conn, false, 1000);
 	AddSupportAnalyzer(content_line_orig);
 	AddSupportAnalyzer(content_line_resp);
-	}
+}
 
 void Finger_Analyzer::Done()
-	{
+{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	if ( TCP() )
@@ -35,10 +35,10 @@ void Finger_Analyzer::Done()
 		      TCP()->OrigPrevState() == analyzer::tcp::TCP_ENDPOINT_CLOSED) )
 			// ### should include the partial text
 			Weird("partial_finger_request");
-	}
+}
 
 void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
-	{
+{
 	const char* line = (const char*)data;
 	const char* end_of_line = line + length;
 
@@ -46,7 +46,7 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		return;
 
 	if ( is_orig )
-		{
+	{
 
 		if ( ! finger_request )
 			return;
@@ -77,16 +77,16 @@ void Finger_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig
 		              true, true, true);
 
 		did_deliver = 1;
-		}
+	}
 
 	else
-		{
+	{
 		if ( ! finger_reply )
 			return;
 
 		EnqueueConnEvent(finger_reply, ConnVal(),
 		                 make_intrusive<StringVal>(end_of_line - line, line));
-		}
 	}
+}
 
-	} // namespace zeek::analyzer::finger
+} // namespace zeek::analyzer::finger

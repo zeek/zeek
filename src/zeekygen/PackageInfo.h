@@ -9,13 +9,13 @@
 #include "zeek/zeekygen/Info.h"
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 /**
  * Information about a Zeek script package.
  */
 class PackageInfo : public Info
-	{
+{
 
 public:
 	/**
@@ -41,6 +41,6 @@ private:
 
 	std::string pkg_name;
 	std::vector<std::string> readme;
-	};
+};
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

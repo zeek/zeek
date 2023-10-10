@@ -12,18 +12,18 @@
 #include "zeek/telemetry/Counter.h"
 
 namespace zeek
-	{
+{
 
 namespace run_state
-	{
+{
 extern double network_time;
-	} // namespace run_state
+} // namespace run_state
 
 class Func;
 using FuncPtr = IntrusivePtr<Func>;
 
 class EventHandler
-	{
+{
 public:
 	explicit EventHandler(std::string name);
 
@@ -57,9 +57,9 @@ public:
 	// Flags the event as interesting even if there is no body defined. In
 	// particular, this will then still pass the event on to plugins.
 	void SetGenerateAlways(bool arg_generate_always = true)
-		{
+	{
 		generate_always = arg_generate_always;
-		}
+	}
 	bool GenerateAlways() const { return generate_always; }
 
 	uint64_t CallCount() const { return call_count ? call_count->Value() : 0; }
@@ -79,25 +79,25 @@ private:
 	std::optional<zeek::telemetry::IntCounter> call_count;
 
 	std::unordered_set<std::string> auto_publish;
-	};
+};
 
 // Encapsulates a ptr to an event handler to overload the boolean operator.
 class EventHandlerPtr
-	{
+{
 public:
 	EventHandlerPtr(EventHandler* p = nullptr) { handler = p; }
 	EventHandlerPtr(const EventHandlerPtr& h) { handler = h.handler; }
 
 	const EventHandlerPtr& operator=(EventHandler* p)
-		{
+	{
 		handler = p;
 		return *this;
-		}
+	}
 	const EventHandlerPtr& operator=(const EventHandlerPtr& h)
-		{
+	{
 		handler = h.handler;
 		return *this;
-		}
+	}
 
 	bool operator==(const EventHandlerPtr& h) const { return handler == h.handler; }
 
@@ -109,6 +109,6 @@ public:
 
 private:
 	EventHandler* handler;
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

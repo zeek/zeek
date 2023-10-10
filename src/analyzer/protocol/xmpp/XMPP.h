@@ -7,10 +7,10 @@
 #include "analyzer/protocol/xmpp/xmpp_pac.h"
 
 namespace zeek::analyzer::xmpp
-	{
+{
 
 class XMPP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit XMPP_Analyzer(Connection* conn);
 	~XMPP_Analyzer() override;
@@ -31,6 +31,6 @@ protected:
 	bool had_gap;
 
 	bool tls_active;
-	};
+};
 
-	} // namespace zeek::analyzer::xmpp
+} // namespace zeek::analyzer::xmpp

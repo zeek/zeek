@@ -11,12 +11,12 @@
 #include "zeek/Obj.h"
 
 namespace zeek
-	{
+{
 
 // Whenever subclassing the Reassembler class
 // you should add to this for known subclasses.
 enum ReassemblerType
-	{
+{
 	REASSEM_UNKNOWN,
 	REASSEM_TCP,
 	REASSEM_FRAG,
@@ -24,7 +24,7 @@ enum ReassemblerType
 
 	// Terminal value. Add new above.
 	REASSEM_NUM,
-	};
+};
 
 class Reassembler;
 
@@ -32,7 +32,7 @@ class Reassembler;
  * A block/segment of data for use in the reassembly process.
  */
 class DataBlock
-	{
+{
 public:
 	/**
 	 * Create a data block/segment with associated sequence numbering.
@@ -40,24 +40,24 @@ public:
 	DataBlock(const u_char* data, uint64_t size, uint64_t seq);
 
 	DataBlock(const DataBlock& other)
-		{
+	{
 		seq = other.seq;
 		upper = other.upper;
 		auto size = other.Size();
 		block = new u_char[size];
 		memcpy(block, other.block, size);
-		}
+	}
 
 	DataBlock(DataBlock&& other)
-		{
+	{
 		seq = other.seq;
 		upper = other.upper;
 		block = other.block;
 		other.block = nullptr;
-		}
+	}
 
 	DataBlock& operator=(const DataBlock& other)
-		{
+	{
 		if ( this == &other )
 			return *this;
 
@@ -68,10 +68,10 @@ public:
 		block = new u_char[size];
 		memcpy(block, other.block, size);
 		return *this;
-		}
+	}
 
 	DataBlock& operator=(DataBlock&& other)
-		{
+	{
 		if ( this == &other )
 			return *this;
 
@@ -81,7 +81,7 @@ public:
 		block = other.block;
 		other.block = nullptr;
 		return *this;
-		}
+	}
 
 	~DataBlock() { delete[] block; }
 
@@ -93,7 +93,7 @@ public:
 	uint64_t seq;
 	uint64_t upper;
 	u_char* block;
-	};
+};
 
 using DataBlockMap = std::map<uint64_t, DataBlock>;
 
@@ -102,7 +102,7 @@ using DataBlockMap = std::map<uint64_t, DataBlock>;
  * blocks/segments.  It internally uses an ordered map (std::map).
  */
 class DataBlockList
-	{
+{
 public:
 	DataBlockList() { }
 
@@ -125,20 +125,20 @@ public:
 	 * Must not be called when the list is empty.
 	 */
 	const DataBlock& FirstBlock() const
-		{
+	{
 		assert(block_map.size());
 		return block_map.begin()->second;
-		}
+	}
 
 	/**
 	 * @return reference to the last data block in the list.
 	 * Must not be called when the list is empty.
 	 */
 	const DataBlock& LastBlock() const
-		{
+	{
 		assert(block_map.size());
 		return block_map.rbegin()->second;
-		}
+	}
 
 	/**
 	 * @return whether the list is empty.
@@ -242,10 +242,10 @@ private:
 	Reassembler* reassembler = nullptr;
 	size_t total_data_size = 0;
 	DataBlockMap block_map;
-	};
+};
 
 class Reassembler : public Obj
-	{
+{
 public:
 	Reassembler(uint64_t init_seq, ReassemblerType reassem_type = REASSEM_UNKNOWN);
 	~Reassembler() override { }
@@ -267,10 +267,10 @@ public:
 	uint64_t TrimSeq() const { return trim_seq; }
 
 	void SetTrimSeq(uint64_t seq)
-		{
+	{
 		if ( seq > trim_seq )
 			trim_seq = seq;
-		}
+	}
 
 	uint64_t TotalSize() const; // number of bytes buffered up
 
@@ -304,6 +304,6 @@ protected:
 
 	static uint64_t total_size;
 	static uint64_t sizes[REASSEM_NUM];
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

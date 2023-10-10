@@ -5,10 +5,10 @@
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
 namespace zeek::packet_analysis::UDP
-	{
+{
 
 class UDPSessionAdapter final : public IP::SessionAdapter
-	{
+{
 
 public:
 	UDPSessionAdapter(Connection* conn) : IP::SessionAdapter("UDP", conn) { }
@@ -32,6 +32,6 @@ private:
 
 	zeek_int_t request_len = -1;
 	zeek_int_t reply_len = -1;
-	};
+};
 
-	} // namespace zeek::packet_analysis::UDP
+} // namespace zeek::packet_analysis::UDP

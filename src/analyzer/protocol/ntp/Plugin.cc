@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/ntp/NTP.h"
 
 namespace zeek::plugin::detail::Zeek_NTP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("NTP", zeek::analyzer::ntp::NTP_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::NTP";
 		config.description = "NTP analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_NTP
+} // namespace zeek::plugin::detail::Zeek_NTP

@@ -5,26 +5,26 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace binpac
-	{
+{
 namespace SSL
-	{
+{
 class SSL_Conn;
-	}
-	}
+}
+}
 
 namespace binpac
-	{
+{
 namespace TLSHandshake
-	{
+{
 class Handshake_Conn;
-	}
-	}
+}
+}
 
 namespace zeek::analyzer::ssl
-	{
+{
 
 class SSL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 	// let binpac forward encrypted TLS application data to us.
 	friend class binpac::SSL::SSL_Conn;
 
@@ -174,6 +174,6 @@ protected:
 	std::vector<u_char> keys;
 	// PIA, for decrypted data
 	zeek::analyzer::pia::PIA_TCP* pia;
-	};
+};
 
-	} // namespace zeek::analyzer::ssl
+} // namespace zeek::analyzer::ssl

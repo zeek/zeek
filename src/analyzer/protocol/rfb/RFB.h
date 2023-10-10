@@ -5,10 +5,10 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::rfb
-	{
+{
 
 class RFB_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 
 public:
 	explicit RFB_Analyzer(Connection* conn);
@@ -24,15 +24,15 @@ public:
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn)
-		{
+	{
 		return new RFB_Analyzer(conn);
-		}
+	}
 
 protected:
 	binpac::RFB::RFB_Conn* interp;
 
 	bool had_gap;
 	bool invalid;
-	};
+};
 
-	} // namespace zeek::analyzer::rfb
+} // namespace zeek::analyzer::rfb

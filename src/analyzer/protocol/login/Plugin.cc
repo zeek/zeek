@@ -9,13 +9,13 @@
 #include "zeek/analyzer/protocol/login/Telnet.h"
 
 namespace zeek::plugin::detail::Zeek_Login
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"Telnet", zeek::analyzer::login::Telnet_Analyzer::Instantiate));
 		AddComponent(
@@ -31,7 +31,7 @@ public:
 		config.name = "Zeek::Login";
 		config.description = "Telnet/Rsh/Rlogin analyzers";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_Login
+} // namespace zeek::plugin::detail::Zeek_Login

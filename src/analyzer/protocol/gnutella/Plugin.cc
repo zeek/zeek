@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/gnutella/Gnutella.h"
 
 namespace zeek::plugin::detail::Zeek_Gnutella
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"Gnutella", zeek::analyzer::gnutella::Gnutella_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::Gnutella";
 		config.description = "Gnutella analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_Gnutella
+} // namespace zeek::plugin::detail::Zeek_Gnutella

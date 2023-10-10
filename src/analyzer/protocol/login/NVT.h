@@ -12,12 +12,12 @@
 #define NUM_TELNET_OPTIONS 5
 
 namespace zeek::analyzer::login
-	{
+{
 
 class NVT_Analyzer;
 
 class TelnetOption
-	{
+{
 public:
 	TelnetOption(NVT_Analyzer* endp, unsigned int code);
 	virtual ~TelnetOption() { }
@@ -58,30 +58,30 @@ protected:
 	unsigned int code;
 	int flags;
 	int active;
-	};
+};
 
 namespace detail
-	{
+{
 
 class TelnetTerminalOption final : public TelnetOption
-	{
+{
 public:
 	explicit TelnetTerminalOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_TERMINAL)
-		{
-		}
+	{
+	}
 
 	void RecvSubOption(u_char* data, int len) override;
-	};
+};
 
 class TelnetEncryptOption final : public TelnetOption
-	{
+{
 public:
 	explicit TelnetEncryptOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_ENCRYPT)
-		{
+	{
 		did_encrypt_request = doing_encryption = 0;
-		}
+	}
 
 	void RecvSubOption(u_char* data, int len) override;
 
@@ -91,16 +91,16 @@ public:
 protected:
 	friend class NVT_Analyzer;
 	int did_encrypt_request, doing_encryption;
-	};
+};
 
 class TelnetAuthenticateOption final : public TelnetOption
-	{
+{
 public:
 	explicit TelnetAuthenticateOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_AUTHENTICATE)
-		{
+	{
 		authentication_requested = 0;
-		}
+	}
 
 	void RecvSubOption(u_char* data, int len) override;
 
@@ -109,40 +109,40 @@ public:
 protected:
 	friend class NVT_Analyzer;
 	int authentication_requested;
-	};
+};
 
 class TelnetEnvironmentOption final : public TelnetOption
-	{
+{
 public:
 	explicit TelnetEnvironmentOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_ENVIRON)
-		{
-		}
+	{
+	}
 
 	void RecvSubOption(u_char* data, int len) override;
 
 protected:
 	char* ExtractEnv(u_char*& data, int& len, int& code);
-	};
+};
 
 class TelnetBinaryOption final : public TelnetOption
-	{
+{
 public:
 	explicit TelnetBinaryOption(NVT_Analyzer* arg_endp)
 		: TelnetOption(arg_endp, TELNET_OPTION_BINARY)
-		{
-		}
+	{
+	}
 
 	void SetActive(bool is_active) override;
 
 protected:
 	void InconsistentOption(unsigned int type) override;
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 class NVT_Analyzer final : public analyzer::tcp::ContentLine_Analyzer
-	{
+{
 public:
 	NVT_Analyzer(Connection* conn, bool orig);
 	~NVT_Analyzer() override;
@@ -159,10 +159,10 @@ public:
 	void SetBinaryMode(int mode) { binary_mode = mode; }
 	void SetEncrypting(int mode);
 	void SetAuthName(char* arg_auth_name)
-		{
+	{
 		delete[] auth_name;
 		auth_name = arg_auth_name;
-		}
+	}
 
 	const char* AuthName() const { return auth_name; }
 	int AuthenticationHasBeenAccepted() const { return authentication_has_been_accepted; }
@@ -192,6 +192,6 @@ protected:
 
 	TelnetOption* options[NUM_TELNET_OPTIONS];
 	int num_options = 0;
-	};
+};
 
-	} // namespace zeek::analyzer::login
+} // namespace zeek::analyzer::login

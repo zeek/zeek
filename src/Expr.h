@@ -19,11 +19,11 @@
 #include "zeek/ZeekList.h"
 
 namespace zeek
-	{
+{
 template <class T> class IntrusivePtr;
 
 namespace detail
-	{
+{
 
 class Frame;
 class Scope;
@@ -35,7 +35,7 @@ using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 using FunctionIngredientsPtr = std::shared_ptr<FunctionIngredients>;
 
 enum ExprTag : int
-	{
+{
 	EXPR_ANY = -1,
 	EXPR_NAME,
 	EXPR_CONST,
@@ -108,7 +108,7 @@ enum ExprTag : int
 	EXPR_NOP,
 
 #define NUM_EXPRS (int(EXPR_NOP) + 1)
-	};
+};
 
 extern const char* expr_name(ExprTag t);
 
@@ -151,7 +151,7 @@ using StmtPtr = IntrusivePtr<Stmt>;
 class ExprOptInfo;
 
 class Expr : public Obj
-	{
+{
 public:
 	const TypePtr& GetType() const { return type; }
 
@@ -160,10 +160,10 @@ public:
 	ExprTag Tag() const { return tag; }
 
 	Expr* Ref()
-		{
+	{
 		zeek::Ref(this);
 		return this;
-		}
+	}
 	ExprPtr ThisPtr() { return {NewRef{}, this}; }
 
 	// Evaluates the expression and returns a corresponding Val*,
@@ -271,9 +271,9 @@ public:
 	// True if the expression can serve as an operand to a reduced
 	// expression.
 	bool IsSingleton(Reducer* r) const
-		{
+	{
 		return (tag == EXPR_NAME && IsReduced(r)) || tag == EXPR_CONST;
-		}
+	}
 
 	// True if the expression has no side effects, false otherwise.
 	virtual bool HasNoSideEffects() const { return IsPure(); }
@@ -288,10 +288,10 @@ public:
 	// True if (a) the expression has at least one operand, and (b) all
 	// of its operands are constant.
 	bool HasConstantOps() const
-		{
+	{
 		return GetOp1() && GetOp1()->IsConst() &&
 		       (! GetOp2() || (GetOp2()->IsConst() && (! GetOp3() || GetOp3()->IsConst())));
-		}
+	}
 
 	// True if the expression is reduced to a form that can be
 	// used in a conditional.
@@ -347,9 +347,9 @@ public:
 	ExprPtr AssignToTemporary(ExprPtr e, Reducer* c, StmtPtr& red_stmt);
 	// Same but for this expression.
 	ExprPtr AssignToTemporary(Reducer* c, StmtPtr& red_stmt)
-		{
+	{
 		return AssignToTemporary(ThisPtr(), c, red_stmt);
-		}
+	}
 
 	// If the expression always evaluates to the same value, returns
 	// that value.  Otherwise, returns nullptr.
@@ -380,10 +380,10 @@ public:
 
 	// Designate the given Expr node as the original for this one.
 	void SetOriginal(ExprPtr _orig)
-		{
+	{
 		if ( ! original )
 			original = std::move(_orig);
-		}
+	}
 
 	// A convenience function for taking a newly-created Expr,
 	// making it point to us as the successor, and returning it.
@@ -393,20 +393,20 @@ public:
 	// call, as a convenient side effect, transforms that bare pointer
 	// into an ExprPtr.
 	virtual ExprPtr SetSucc(Expr* succ)
-		{
+	{
 		succ->SetOriginal(ThisPtr());
 		if ( IsParen() )
 			succ->MarkParen();
 		return {AdoptRef{}, succ};
-		}
+	}
 
 	const detail::Location* GetLocationInfo() const override
-		{
+	{
 		if ( original )
 			return original->GetLocationInfo();
 		else
 			return Obj::GetLocationInfo();
-		}
+	}
 
 	// Access script optimization information associated with
 	// this statement.
@@ -456,10 +456,10 @@ protected:
 
 	// Number of expressions created thus far.
 	static int num_exprs;
-	};
+};
 
 class NameExpr final : public Expr
-	{
+{
 public:
 	explicit NameExpr(IDPtr id, bool const_init = false);
 
@@ -490,10 +490,10 @@ protected:
 
 	IDPtr id;
 	bool in_const_init;
-	};
+};
 
 class ConstExpr final : public Expr
-	{
+{
 public:
 	explicit ConstExpr(ValPtr val);
 
@@ -511,10 +511,10 @@ public:
 protected:
 	void ExprDescribe(ODesc* d) const override;
 	ValPtr val;
-	};
+};
 
 class UnaryExpr : public Expr
-	{
+{
 public:
 	Expr* Op() const { return op.get(); }
 
@@ -547,10 +547,10 @@ protected:
 	virtual ValPtr Fold(Val* v) const;
 
 	ExprPtr op;
-	};
+};
 
 class BinaryExpr : public Expr
-	{
+{
 public:
 	Expr* Op1() const { return op1.get(); }
 	Expr* Op2() const { return op2.get(); }
@@ -581,12 +581,12 @@ public:
 protected:
 	BinaryExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 		: Expr(arg_tag), op1(std::move(arg_op1)), op2(std::move(arg_op2))
-		{
+	{
 		if ( ! (op1 && op2) )
 			return;
 		if ( op1->IsError() || op2->IsError() )
 			SetError();
-		}
+	}
 
 	// Returns the expression folded using the given constants.
 	virtual ValPtr Fold(Val* v1, Val* v2) const;
@@ -634,10 +634,10 @@ protected:
 
 	ExprPtr op1;
 	ExprPtr op2;
-	};
+};
 
 class CloneExpr final : public UnaryExpr
-	{
+{
 public:
 	explicit CloneExpr(ExprPtr op);
 	ValPtr Eval(Frame* f) const override;
@@ -647,10 +647,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class IncrExpr final : public UnaryExpr
-	{
+{
 public:
 	IncrExpr(ExprTag tag, ExprPtr op);
 
@@ -666,10 +666,10 @@ public:
 	bool HasReducedOps(Reducer* c) const override { return false; }
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 	ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
-	};
+};
 
 class ComplementExpr final : public UnaryExpr
-	{
+{
 public:
 	explicit ComplementExpr(ExprPtr op);
 
@@ -680,10 +680,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class NotExpr final : public UnaryExpr
-	{
+{
 public:
 	explicit NotExpr(ExprPtr op);
 
@@ -694,10 +694,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class PosExpr final : public UnaryExpr
-	{
+{
 public:
 	explicit PosExpr(ExprPtr op);
 
@@ -708,10 +708,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class NegExpr final : public UnaryExpr
-	{
+{
 public:
 	explicit NegExpr(ExprPtr op);
 
@@ -722,10 +722,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class SizeExpr final : public UnaryExpr
-	{
+{
 public:
 	explicit SizeExpr(ExprPtr op);
 	ValPtr Eval(Frame* f) const override;
@@ -735,10 +735,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class AddExpr final : public BinaryExpr
-	{
+{
 public:
 	AddExpr(ExprPtr op1, ExprPtr op2);
 	void Canonicalize() override;
@@ -750,10 +750,10 @@ public:
 
 protected:
 	ExprPtr BuildSub(const ExprPtr& op1, const ExprPtr& op2);
-	};
+};
 
 class AddToExpr final : public BinaryExpr
-	{
+{
 public:
 	AddToExpr(ExprPtr op1, ExprPtr op2);
 	ValPtr Eval(Frame* f) const override;
@@ -770,10 +770,10 @@ public:
 private:
 	// Whether this operation is appending a single element to a vector.
 	bool is_vector_elem_append = false;
-	};
+};
 
 class RemoveFromExpr final : public BinaryExpr
-	{
+{
 public:
 	bool IsPure() const override { return false; }
 	RemoveFromExpr(ExprPtr op1, ExprPtr op2);
@@ -786,10 +786,10 @@ public:
 	bool IsReduced(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 	ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
-	};
+};
 
 class SubExpr final : public BinaryExpr
-	{
+{
 public:
 	SubExpr(ExprPtr op1, ExprPtr op2);
 
@@ -797,10 +797,10 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-	};
+};
 
 class TimesExpr final : public BinaryExpr
-	{
+{
 public:
 	TimesExpr(ExprPtr op1, ExprPtr op2);
 	void Canonicalize() override;
@@ -809,10 +809,10 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-	};
+};
 
 class DivideExpr final : public BinaryExpr
-	{
+{
 public:
 	DivideExpr(ExprPtr op1, ExprPtr op2);
 
@@ -820,10 +820,10 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-	};
+};
 
 class MaskExpr final : public BinaryExpr
-	{
+{
 public:
 	MaskExpr(ExprPtr op1, ExprPtr op2);
 
@@ -832,19 +832,19 @@ public:
 
 protected:
 	ValPtr AddrFold(Val* v1, Val* v2) const override;
-	};
+};
 
 class ModExpr final : public BinaryExpr
-	{
+{
 public:
 	ModExpr(ExprPtr op1, ExprPtr op2);
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
-	};
+};
 
 class BoolExpr final : public BinaryExpr
-	{
+{
 public:
 	BoolExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 
@@ -860,10 +860,10 @@ public:
 protected:
 	bool IsTrue(const ExprPtr& e) const;
 	bool IsFalse(const ExprPtr& e) const;
-	};
+};
 
 class BitExpr final : public BinaryExpr
-	{
+{
 public:
 	BitExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 
@@ -871,10 +871,10 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-	};
+};
 
 class EqExpr final : public BinaryExpr
-	{
+{
 public:
 	EqExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 	void Canonicalize() override;
@@ -887,10 +887,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v1, Val* v2) const override;
-	};
+};
 
 class RelExpr final : public BinaryExpr
-	{
+{
 public:
 	RelExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
 	void Canonicalize() override;
@@ -900,10 +900,10 @@ public:
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 	bool InvertSense() override;
-	};
+};
 
 class CondExpr final : public Expr
-	{
+{
 public:
 	CondExpr(ExprPtr op1, ExprPtr op2, ExprPtr op3);
 
@@ -940,10 +940,10 @@ protected:
 	ExprPtr op1;
 	ExprPtr op2;
 	ExprPtr op3;
-	};
+};
 
 class RefExpr final : public UnaryExpr
-	{
+{
 public:
 	explicit RefExpr(ExprPtr op);
 
@@ -960,10 +960,10 @@ public:
 
 	// Reduce to simplified LHS form, i.e., a reference to only a name.
 	StmtPtr ReduceToLHS(Reducer* c);
-	};
+};
 
 class AssignExpr : public BinaryExpr
-	{
+{
 public:
 	// If val is given, evaluating this expression will always yield the val
 	// yet still perform the assignment.  Used for triggers.
@@ -1006,20 +1006,20 @@ protected:
 	bool is_temp = false; // Optimization related
 
 	ValPtr val; // optional
-	};
+};
 
 class IndexSliceAssignExpr final : public AssignExpr
-	{
+{
 public:
 	IndexSliceAssignExpr(ExprPtr op1, ExprPtr op2, bool is_init);
 	ValPtr Eval(Frame* f) const override;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
-	};
+};
 
 class IndexExpr : public BinaryExpr
-	{
+{
 public:
 	IndexExpr(ExprPtr op1, ListExprPtr op2, bool is_slice = false, bool is_inside_when = false);
 
@@ -1052,7 +1052,7 @@ protected:
 
 	bool is_slice;
 	bool is_inside_when;
-	};
+};
 
 // The following execute the heart of IndexExpr functionality for
 // vector slices and strings.
@@ -1085,7 +1085,7 @@ extern VectorValPtr vector_int_select(VectorTypePtr vt, const VectorVal* v1, con
 // TODO: One Fine Day we should do the equivalent for accessing fields
 // in records, too.
 class IndexExprWhen final : public IndexExpr
-	{
+{
 public:
 	static inline std::vector<ValPtr> results = {};
 	static inline int evaluating = 0;
@@ -1095,33 +1095,33 @@ public:
 	static void EndEval() { --evaluating; }
 
 	static std::vector<ValPtr> TakeAllResults()
-		{
+	{
 		auto rval = std::move(results);
 		results = {};
 		return rval;
-		}
+	}
 
 	IndexExprWhen(ExprPtr op1, ListExprPtr op2, bool is_slice = false)
 		: IndexExpr(std::move(op1), std::move(op2), is_slice, true)
-		{
-		}
+	{
+	}
 
 	ValPtr Eval(Frame* f) const override
-		{
+	{
 		auto v = IndexExpr::Eval(f);
 
 		if ( v && evaluating > 0 )
 			results.emplace_back(v);
 
 		return v;
-		}
+	}
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
-	};
+};
 
 class FieldExpr final : public UnaryExpr
-	{
+{
 public:
 	FieldExpr(ExprPtr op, const char* field_name);
 	~FieldExpr() override;
@@ -1147,12 +1147,12 @@ protected:
 	const char* field_name;
 	const TypeDecl* td;
 	int field; // -1 = attributes
-	};
+};
 
 // "rec?$fieldname" is true if the value of $fieldname in rec is not nil.
 // "rec?$$attrname" is true if the attribute attrname is not nil.
 class HasFieldExpr final : public UnaryExpr
-	{
+{
 public:
 	HasFieldExpr(ExprPtr op, const char* field_name);
 	~HasFieldExpr() override;
@@ -1173,10 +1173,10 @@ protected:
 
 	const char* field_name;
 	int field;
-	};
+};
 
 class RecordConstructorExpr final : public Expr
-	{
+{
 public:
 	explicit RecordConstructorExpr(ListExprPtr constructor_list);
 
@@ -1205,10 +1205,10 @@ protected:
 
 	ListExprPtr op;
 	std::optional<std::vector<int>> map;
-	};
+};
 
 class TableConstructorExpr final : public UnaryExpr
-	{
+{
 public:
 	TableConstructorExpr(ListExprPtr constructor_list, std::unique_ptr<std::vector<AttrPtr>> attrs,
 	                     TypePtr arg_type = nullptr, AttributesPtr arg_attrs = nullptr);
@@ -1231,10 +1231,10 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	AttributesPtr attrs;
-	};
+};
 
 class SetConstructorExpr final : public UnaryExpr
-	{
+{
 public:
 	SetConstructorExpr(ListExprPtr constructor_list, std::unique_ptr<std::vector<AttrPtr>> attrs,
 	                   TypePtr arg_type = nullptr, AttributesPtr arg_attrs = nullptr);
@@ -1257,10 +1257,10 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	AttributesPtr attrs;
-	};
+};
 
 class VectorConstructorExpr final : public UnaryExpr
-	{
+{
 public:
 	explicit VectorConstructorExpr(ListExprPtr constructor_list, TypePtr arg_type = nullptr);
 
@@ -1273,10 +1273,10 @@ public:
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
-	};
+};
 
 class FieldAssignExpr final : public UnaryExpr
-	{
+{
 public:
 	FieldAssignExpr(const char* field_name, ExprPtr value);
 
@@ -1301,10 +1301,10 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	std::string field_name;
-	};
+};
 
 class ArithCoerceExpr final : public UnaryExpr
-	{
+{
 public:
 	ArithCoerceExpr(ExprPtr op, TypeTag t);
 
@@ -1317,10 +1317,10 @@ public:
 protected:
 	ValPtr FoldSingleVal(ValPtr v, const TypePtr& t) const;
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class RecordCoerceExpr final : public UnaryExpr
-	{
+{
 public:
 	RecordCoerceExpr(ExprPtr op, RecordTypePtr r);
 
@@ -1335,12 +1335,12 @@ protected:
 	// For each super-record slot, gives subrecord slot with which to
 	// fill it.
 	std::vector<int> map;
-	};
+};
 
 extern RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& map);
 
 class TableCoerceExpr final : public UnaryExpr
-	{
+{
 public:
 	TableCoerceExpr(ExprPtr op, TableTypePtr r, bool type_check = true);
 	~TableCoerceExpr() override = default;
@@ -1350,10 +1350,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class VectorCoerceExpr final : public UnaryExpr
-	{
+{
 public:
 	VectorCoerceExpr(ExprPtr op, VectorTypePtr v);
 	~VectorCoerceExpr() override = default;
@@ -1363,10 +1363,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v) const override;
-	};
+};
 
 class ScheduleTimer final : public Timer
-	{
+{
 public:
 	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
 	~ScheduleTimer() override = default;
@@ -1376,10 +1376,10 @@ public:
 protected:
 	EventHandlerPtr event;
 	zeek::Args args;
-	};
+};
 
 class ScheduleExpr final : public Expr
-	{
+{
 public:
 	ScheduleExpr(ExprPtr when, EventExprPtr event);
 
@@ -1411,10 +1411,10 @@ protected:
 
 	ExprPtr when;
 	EventExprPtr event;
-	};
+};
 
 class InExpr final : public BinaryExpr
-	{
+{
 public:
 	InExpr(ExprPtr op1, ExprPtr op2);
 
@@ -1425,10 +1425,10 @@ public:
 
 protected:
 	ValPtr Fold(Val* v1, Val* v2) const override;
-	};
+};
 
 class CallExpr final : public Expr
-	{
+{
 public:
 	CallExpr(ExprPtr func, ListExprPtr args, bool in_hook = false, bool in_when = false);
 
@@ -1458,7 +1458,7 @@ protected:
 	ExprPtr func;
 	ListExprPtr args;
 	bool in_when;
-	};
+};
 
 /**
  * Class that represents an anonymous function expression in Zeek.
@@ -1466,7 +1466,7 @@ protected:
  * the closure for the instance of the function that it creates.
  */
 class LambdaExpr final : public Expr
-	{
+{
 public:
 	LambdaExpr(FunctionIngredientsPtr ingredients, IDPList outer_ids, std::string name = "",
 	           StmtPtr when_parent = nullptr);
@@ -1528,12 +1528,12 @@ private:
 	IDSet private_captures;
 
 	std::string my_name;
-	};
+};
 
 // This comes before EventExpr so that EventExpr::GetOp1 can return its
 // arguments as convertible to ExprPtr.
 class ListExpr : public Expr
-	{
+{
 public:
 	ListExpr();
 	explicit ListExpr(ExprPtr e);
@@ -1568,10 +1568,10 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	ExprPList exprs;
-	};
+};
 
 class EventExpr final : public Expr
-	{
+{
 public:
 	EventExpr(const char* name, ListExprPtr args);
 
@@ -1600,16 +1600,16 @@ protected:
 	std::string name;
 	EventHandlerPtr handler;
 	ListExprPtr args;
-	};
+};
 
 class RecordAssignExpr final : public ListExpr
-	{
+{
 public:
 	RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_list, bool is_init);
-	};
+};
 
 class CastExpr final : public UnaryExpr
-	{
+{
 public:
 	CastExpr(ExprPtr op, TypePtr t);
 
@@ -1619,14 +1619,14 @@ public:
 protected:
 	ValPtr Fold(Val* v) const override;
 	void ExprDescribe(ODesc* d) const override;
-	};
+};
 
 // Returns the value 'v' cast to type 't'.  On an error, returns nil
 // and populates "error" with an error message.
 extern ValPtr cast_value(ValPtr v, const TypePtr& t, std::string& error);
 
 class IsExpr final : public UnaryExpr
-	{
+{
 public:
 	IsExpr(ExprPtr op, TypePtr t);
 
@@ -1641,10 +1641,10 @@ protected:
 
 private:
 	TypePtr t;
-	};
+};
 
 class InlineExpr : public Expr
-	{
+{
 public:
 	InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> params, StmtPtr body, int frame_offset,
 	           TypePtr ret_type);
@@ -1672,12 +1672,12 @@ protected:
 	int frame_offset;
 	ListExprPtr args;
 	StmtPtr body;
-	};
+};
 
 // A companion to AddToExpr that's for vector-append, instantiated during
 // the reduction process.
 class AppendToExpr : public BinaryExpr
-	{
+{
 public:
 	AppendToExpr(ExprPtr op1, ExprPtr op2);
 	ValPtr Eval(Frame* f) const override;
@@ -1688,11 +1688,11 @@ public:
 	bool IsReduced(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 	ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
-	};
+};
 
 // An internal class for reduced form.
 class IndexAssignExpr : public BinaryExpr
-	{
+{
 public:
 	// "op1[op2] = op3", all reduced.
 	IndexAssignExpr(ExprPtr op1, ExprPtr op2, ExprPtr op3);
@@ -1716,11 +1716,11 @@ protected:
 	void ExprDescribe(ODesc* d) const override;
 
 	ExprPtr op3; // assignment RHS
-	};
+};
 
 // An internal class for reduced form.
 class FieldLHSAssignExpr : public BinaryExpr
-	{
+{
 public:
 	// "op1$field = RHS", where RHS is reduced with respect to
 	// ReduceToFieldAssignment().
@@ -1744,12 +1744,12 @@ protected:
 
 	const char* field_name;
 	int field;
-	};
+};
 
 // Expression to explicitly capture conversion to an "any" type, rather
 // than it occurring implicitly during script interpretation.
 class CoerceToAnyExpr : public UnaryExpr
-	{
+{
 public:
 	CoerceToAnyExpr(ExprPtr op);
 
@@ -1757,11 +1757,11 @@ protected:
 	ValPtr Fold(Val* v) const override;
 
 	ExprPtr Duplicate() override;
-	};
+};
 
 // Same, but for conversion from an "any" type.
 class CoerceFromAnyExpr : public UnaryExpr
-	{
+{
 public:
 	CoerceFromAnyExpr(ExprPtr op, TypePtr to_type);
 
@@ -1769,11 +1769,11 @@ protected:
 	ValPtr Fold(Val* v) const override;
 
 	ExprPtr Duplicate() override;
-	};
+};
 
 // ... and for conversion from a "vector of any" type.
 class CoerceFromAnyVecExpr : public UnaryExpr
-	{
+{
 public:
 	// to_type is yield type, not VectorType.
 	CoerceFromAnyVecExpr(ExprPtr op, TypePtr to_type);
@@ -1784,11 +1784,11 @@ public:
 
 protected:
 	ExprPtr Duplicate() override;
-	};
+};
 
 // Expression used to explicitly capture [a, b, c, ...] = x assignments.
 class AnyIndexExpr : public UnaryExpr
-	{
+{
 public:
 	AnyIndexExpr(ExprPtr op, int index);
 
@@ -1803,11 +1803,11 @@ protected:
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 	int index;
-	};
+};
 
 // Used internally for optimization, when a placeholder is needed.
 class NopExpr : public Expr
-	{
+{
 public:
 	explicit NopExpr() : Expr(EXPR_NOP) { }
 
@@ -1819,18 +1819,18 @@ public:
 
 protected:
 	void ExprDescribe(ODesc* d) const override;
-	};
+};
 
 // Assigns v1[v2] = v3.  Returns an error message, or nullptr on success.
 // Factored out so that compiled code can call it as well as the interpreter.
 extern const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3, bool& iterators_invalidated);
 
 inline Val* Expr::ExprVal() const
-	{
+{
 	if ( ! IsConst() )
 		BadTag("ExprVal::Val", expr_name(tag), expr_name(EXPR_CONST));
 	return ((ConstExpr*)this)->Value();
-	}
+}
 
 // Decides whether to return an AssignExpr or a RecordAssignExpr.
 extern ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init);
@@ -1870,24 +1870,24 @@ extern bool expr_greater(const Expr* e1, const Expr* e2);
 
 // True if the given Expr* has a vector type
 inline bool is_vector(Expr* e)
-	{
+{
 	return e->GetType()->Tag() == TYPE_VECTOR;
-	}
+}
 inline bool is_vector(const ExprPtr& e)
-	{
+{
 	return is_vector(e.get());
-	}
+}
 
 // True if the given Expr* has a list type
 inline bool is_list(Expr* e)
-	{
+{
 	return e->GetType()->Tag() == TYPE_LIST;
-	}
+}
 
 inline bool is_list(const ExprPtr& e)
-	{
+{
 	return is_list(e.get());
-	}
+}
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

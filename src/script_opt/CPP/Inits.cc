@@ -6,12 +6,12 @@
 #include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek::detail
-	{
+{
 
 using namespace std;
 
 std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterInitExpr(const ExprPtr& ep)
-	{
+{
 	auto ename = InitExprName(ep);
 
 	auto ii = init_infos.find(ename);
@@ -25,10 +25,10 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterInitExpr(const ExprPtr& ep)
 	init_infos[ename] = gi;
 
 	return gi;
-	}
+}
 
 void CPPCompile::GenInitExpr(std::shared_ptr<CallExprInitInfo> ce_init)
-	{
+{
 	NL();
 
 	const auto& e = ce_init->GetExpr();
@@ -76,18 +76,18 @@ void CPPCompile::GenInitExpr(std::shared_ptr<CallExprInitInfo> ce_init)
 	EndBlock();
 
 	Emit("CallExprPtr %s;", ename);
-	}
+}
 
 bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e)
-	{
+{
 	switch ( e->Tag() )
-		{
+	{
 		case EXPR_CONST:
 		case EXPR_NAME:
 			return true;
 
 		case EXPR_RECORD_COERCE:
-			{ // look for coercion of empty record
+		{ // look for coercion of empty record
 			auto op = e->GetOp1();
 
 			if ( op->Tag() != EXPR_RECORD_CONSTRUCTOR )
@@ -97,39 +97,39 @@ bool CPPCompile::IsSimpleInitExpr(const ExprPtr& e)
 			const auto& exprs = rc->Op()->AsListExpr()->Exprs();
 
 			return exprs.length() == 0;
-			}
+		}
 
 		default:
 			return false;
-		}
 	}
+}
 
 string CPPCompile::InitExprName(const ExprPtr& e)
-	{
+{
 	return init_exprs.KeyName(e);
-	}
+}
 
 void CPPCompile::InitializeFieldMappings()
-	{
+{
 	Emit("std::vector<CPP_FieldMapping> CPP__field_mappings__ = ");
 
 	StartBlock();
 
 	for ( const auto& mapping : field_decls )
-		{
+	{
 		auto rt_arg = Fmt(mapping.first);
 		auto td = mapping.second;
 		auto type_arg = Fmt(TypeOffset(td->type));
 		auto attrs_arg = Fmt(AttributesOffset(td->attrs));
 
 		Emit("CPP_FieldMapping(%s, \"%s\", %s, %s),", rt_arg, td->id, type_arg, attrs_arg);
-		}
-
-	EndBlock(true);
 	}
 
+	EndBlock(true);
+}
+
 void CPPCompile::InitializeEnumMappings()
-	{
+{
 	Emit("std::vector<CPP_EnumMapping> CPP__enum_mappings__ = ");
 
 	StartBlock();
@@ -138,10 +138,10 @@ void CPPCompile::InitializeEnumMappings()
 		Emit("CPP_EnumMapping(%s, \"%s\"),", Fmt(mapping.first), mapping.second);
 
 	EndBlock(true);
-	}
+}
 
 void CPPCompile::InitializeBiFs()
-	{
+{
 	Emit("std::vector<CPP_LookupBiF> CPP__BiF_lookups__ = ");
 
 	StartBlock();
@@ -150,10 +150,10 @@ void CPPCompile::InitializeBiFs()
 		Emit("CPP_LookupBiF(%s, \"%s\"),", b.first, b.second);
 
 	EndBlock(true);
-	}
+}
 
 void CPPCompile::InitializeStrings()
-	{
+{
 	Emit("std::vector<const char*> CPP__Strings =");
 
 	StartBlock();
@@ -162,10 +162,10 @@ void CPPCompile::InitializeStrings()
 		Emit("\"%s\",", s);
 
 	EndBlock(true);
-	}
+}
 
 void CPPCompile::InitializeHashes()
-	{
+{
 	Emit("std::vector<p_hash_type> CPP__Hashes =");
 
 	StartBlock();
@@ -174,10 +174,10 @@ void CPPCompile::InitializeHashes()
 		Emit(Fmt(h) + ",");
 
 	EndBlock(true);
-	}
+}
 
 void CPPCompile::InitializeConsts()
-	{
+{
 	Emit("std::vector<CPP_ValElem> CPP__ConstVals =");
 
 	StartBlock();
@@ -186,10 +186,10 @@ void CPPCompile::InitializeConsts()
 		Emit("CPP_ValElem(%s, %s),", TypeTagName(c.first), Fmt(c.second));
 
 	EndBlock(true);
-	}
+}
 
 void CPPCompile::InitializeGlobals()
-	{
+{
 	Emit("static void init_globals__CPP()");
 	StartBlock();
 
@@ -197,7 +197,7 @@ void CPPCompile::InitializeGlobals()
 	NL();
 
 	for ( const auto& ginit : IDOptInfo::GetGlobalInitExprs() )
-		{
+	{
 		auto g = ginit.Id();
 		if ( pfs.Globals().count(g) == 0 )
 			continue;
@@ -209,7 +209,7 @@ void CPPCompile::InitializeGlobals()
 			Emit(GenExpr(init, GEN_NATIVE, true) + ";");
 
 		else
-			{
+		{
 			// This branch occurs for += or -= initializations that
 			// use associated functions.
 			string ics;
@@ -221,23 +221,23 @@ void CPPCompile::InitializeGlobals()
 				reporter->FatalError("bad initialization class in CPPCompile::InitializeGlobals()");
 
 			Emit("%s->SetValue(%s, %s);", globals[g->Name()], GenExpr(init, GEN_NATIVE, true), ics);
-			}
+		}
 
 		const auto& attrs = g->GetAttrs();
 		if ( attrs )
-			{
+		{
 			string attr_tags;
 			string attr_vals;
 			BuildAttrs(attrs, attr_tags, attr_vals);
 			Emit("assign_attrs__CPP(%s, %s, %s);", globals[g->Name()], attr_tags, attr_vals);
-			}
 		}
-
-	EndBlock();
 	}
 
+	EndBlock();
+}
+
 void CPPCompile::GenInitHook()
-	{
+{
 	NL();
 
 	Emit("int hook_in_init()");
@@ -255,10 +255,10 @@ void CPPCompile::GenInitHook()
 	// Trigger the activation of the hook at run-time.
 	NL();
 	Emit("static int dummy = hook_in_init();\n");
-	}
+}
 
 void CPPCompile::GenStandaloneActivation()
-	{
+{
 	NL();
 
 	Emit("void standalone_activation__CPP()");
@@ -277,7 +277,7 @@ void CPPCompile::GenStandaloneActivation()
 	unordered_map<const Func*, vector<p_hash_type>> func_bodies;
 
 	for ( const auto& func : funcs )
-		{
+	{
 		if ( func.ShouldSkip() )
 			continue;
 
@@ -292,18 +292,18 @@ void CPPCompile::GenStandaloneActivation()
 		auto bh = body_hashes.find(bname);
 		ASSERT(bh != body_hashes.end());
 		func_bodies[f].push_back(bh->second);
-		}
+	}
 
 	for ( auto& fb : func_bodies )
-		{
+	{
 		string hashes;
 		for ( auto h : fb.second )
-			{
+		{
 			if ( hashes.size() > 0 )
 				hashes += ", ";
 
 			hashes += Fmt(h);
-			}
+		}
 
 		hashes = "{" + hashes + "}";
 
@@ -322,7 +322,7 @@ void CPPCompile::GenStandaloneActivation()
 
 		Emit("activate_bodies__CPP(\"%s\", \"%s\", %s, %s, %s);", var, mod, exported,
 		     GenTypeName(ft), hashes);
-		}
+	}
 
 	EndBlock();
 
@@ -333,12 +333,12 @@ void CPPCompile::GenStandaloneActivation()
 	Emit("standalone_activation__CPP();");
 	Emit("standalone_finalizations.push_back(load_BiFs__CPP);");
 	EndBlock();
-	}
+}
 
 void CPPCompile::GenLoad()
-	{
+{
 	Emit("register_scripts__CPP(%s, standalone_init__CPP);", Fmt(total_hash));
 	printf("global init_CPP_%llu = load_CPP(%llu);\n", total_hash, total_hash);
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

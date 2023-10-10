@@ -13,7 +13,7 @@
 #include "zeek/UID.h"
 
 namespace zeek
-	{
+{
 
 class Connection;
 
@@ -25,15 +25,15 @@ class Connection;
  * be shared with Connection's in the case the tunnel uses a transport-layer.
  */
 class EncapsulatingConn
-	{
+{
 public:
 	/**
 	 * Default tunnel connection constructor.
 	 */
 	EncapsulatingConn()
 		: src_port(0), dst_port(0), proto(TRANSPORT_UNKNOWN), type(BifEnum::Tunnel::NONE), uid()
-		{
-		}
+	{
+	}
 
 	/**
 	 * Construct an IP tunnel "connection" with its own UID.
@@ -49,8 +49,8 @@ public:
 	                  BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
 		: src_addr(s), dst_addr(d), src_port(0), dst_port(0), proto(TRANSPORT_UNKNOWN), type(t),
 		  uid(UID(detail::bits_per_uid))
-		{
-		}
+	{
+	}
 
 	/**
 	 * Construct a tunnel connection using information from an already existing
@@ -70,8 +70,8 @@ public:
 		: ip_hdr(other.ip_hdr), src_addr(other.src_addr), dst_addr(other.dst_addr),
 		  src_port(other.src_port), dst_port(other.dst_port), proto(other.proto), type(other.type),
 		  uid(other.uid)
-		{
-		}
+	{
+	}
 
 	/**
 	 * Destructor.
@@ -79,9 +79,9 @@ public:
 	~EncapsulatingConn() { }
 
 	EncapsulatingConn& operator=(const EncapsulatingConn& other)
-		{
+	{
 		if ( this != &other )
-			{
+		{
 			src_addr = other.src_addr;
 			dst_addr = other.dst_addr;
 			src_port = other.src_port;
@@ -90,10 +90,10 @@ public:
 			type = other.type;
 			uid = other.uid;
 			ip_hdr = other.ip_hdr;
-			}
+		}
 
 		return *this;
-		}
+	}
 
 	BifEnum::Tunnel::Type Type() const { return type; }
 
@@ -103,7 +103,7 @@ public:
 	RecordValPtr ToVal() const;
 
 	friend bool operator==(const EncapsulatingConn& ec1, const EncapsulatingConn& ec2)
-		{
+	{
 		if ( ec1.type != ec2.type )
 			return false;
 
@@ -123,12 +123,12 @@ public:
 		return ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr &&
 		       ec1.src_port == ec2.src_port && ec1.dst_port == ec2.dst_port && ec1.uid == ec2.uid &&
 		       ec1.proto == ec2.proto;
-		}
+	}
 
 	friend bool operator!=(const EncapsulatingConn& ec1, const EncapsulatingConn& ec2)
-		{
+	{
 		return ! (ec1 == ec2);
-		}
+	}
 
 	// TODO: temporarily public
 	std::shared_ptr<IP_Hdr> ip_hdr;
@@ -141,26 +141,26 @@ protected:
 	TransportProto proto;
 	BifEnum::Tunnel::Type type;
 	UID uid;
-	};
+};
 
 /**
  * Abstracts an arbitrary amount of nested tunneling.
  */
 class EncapsulationStack
-	{
+{
 public:
 	EncapsulationStack() : conns(nullptr) { }
 
 	EncapsulationStack(const EncapsulationStack& other)
-		{
+	{
 		if ( other.conns )
 			conns = new std::vector<EncapsulatingConn>(*(other.conns));
 		else
 			conns = nullptr;
-		}
+	}
 
 	EncapsulationStack& operator=(const EncapsulationStack& other)
-		{
+	{
 		if ( this == &other )
 			return *this;
 
@@ -172,7 +172,7 @@ public:
 			conns = nullptr;
 
 		return *this;
-		}
+	}
 
 	~EncapsulationStack() { delete conns; }
 
@@ -182,12 +182,12 @@ public:
 	 * @param c The new inner-most tunnel to append to the tunnel chain.
 	 */
 	void Add(const EncapsulatingConn& c)
-		{
+	{
 		if ( ! conns )
 			conns = new std::vector<EncapsulatingConn>();
 
 		conns->push_back(c);
-		}
+	}
 
 	/**
 	 * Return how many nested tunnels are involved in a encapsulation, zero
@@ -199,33 +199,33 @@ public:
 	 * Return the tunnel type of the inner-most tunnel.
 	 */
 	BifEnum::Tunnel::Type LastType() const
-		{
+	{
 		return conns ? (*conns)[conns->size() - 1].Type() : BifEnum::Tunnel::NONE;
-		}
+	}
 
 	/**
 	 * Get the value of type "EncapsulatingConnVector" represented by the
 	 * entire encapsulation chain.
 	 */
 	VectorValPtr ToVal() const
-		{
+	{
 		auto vv = make_intrusive<VectorVal>(id::find_type<VectorType>("EncapsulatingConnVector"));
 
 		if ( conns )
-			{
+		{
 			for ( size_t i = 0; i < conns->size(); ++i )
 				vv->Assign(i, (*conns)[i].ToVal());
-			}
+		}
 
 		return vv;
-		}
+	}
 
 	friend bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2);
 
 	friend bool operator!=(const EncapsulationStack& e1, const EncapsulationStack& e2)
-		{
+	{
 		return ! (e1 == e2);
-		}
+	}
 
 	/**
 	 * Returns a pointer the last element in the stack. Returns a nullptr
@@ -242,12 +242,12 @@ public:
 	 * out of range.
 	 */
 	EncapsulatingConn* At(size_t index)
-		{
+	{
 		if ( index > 0 && index <= Depth() )
 			return &(conns->at(index - 1));
 
 		return nullptr;
-		}
+	}
 
 	/**
 	 * Pops the last element off the encapsulation stack.
@@ -256,6 +256,6 @@ public:
 
 protected:
 	std::vector<EncapsulatingConn>* conns;
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

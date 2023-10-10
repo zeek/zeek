@@ -4,10 +4,10 @@
 #include <iosource/PktDumper.h>
 
 namespace btest::plugin::Demo_Foo
-	{
+{
 
 class Foo : public zeek::iosource::PktDumper
-	{
+{
 public:
 	Foo(const std::string& path, bool is_live);
 	virtual ~Foo();
@@ -21,6 +21,6 @@ protected:
 
 private:
 	Properties props;
-	};
+};
 
-	}
+}

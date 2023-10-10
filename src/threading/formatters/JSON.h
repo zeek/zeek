@@ -13,27 +13,27 @@
 #include "zeek/threading/Formatter.h"
 
 namespace zeek::json::detail
-	{
+{
 class NullDoubleWriter;
-	}
+}
 
 namespace zeek::threading::formatter
-	{
+{
 
 /**
  * A thread-safe class for converting values into a JSON representation
  * and vice versa.
  */
 class JSON : public Formatter
-	{
+{
 public:
 	enum TimeFormat
-		{
+	{
 		TS_EPOCH, // Doubles that represents seconds from the UNIX epoch.
 		TS_ISO8601, // ISO 8601 defined human readable timestamp format.
 		TS_MILLIS // Milliseconds from the UNIX epoch.  Some consumers need this (e.g.,
 		          // elasticsearch).
-		};
+	};
 
 	JSON(MsgThread* t, TimeFormat tf, bool include_unset_fields = false);
 	~JSON() override = default;
@@ -45,7 +45,7 @@ public:
 	                  TypeTag subtype = TYPE_ERROR) const override;
 
 	class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer>
-		{
+	{
 	public:
 		[[deprecated("Remove in v7.1 - This is an implementation detail.")]] NullDoubleWriter(
 			rapidjson::StringBuffer& stream);
@@ -53,7 +53,7 @@ public:
 
 	private:
 		std::unique_ptr<json::detail::NullDoubleWriter> writer;
-		};
+	};
 
 private:
 	void BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val,
@@ -61,6 +61,6 @@ private:
 
 	TimeFormat timestamps;
 	bool include_unset_fields;
-	};
+};
 
-	} // namespace zeek::threading::formatter
+} // namespace zeek::threading::formatter

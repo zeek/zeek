@@ -9,7 +9,7 @@
 #include "zeek/Obj.h"
 
 namespace zeek::detail
-	{
+{
 
 class RuleCondition;
 class RuleAction;
@@ -21,16 +21,16 @@ using rule_list = PList<Rule>;
 using rule_dict = std::map<std::string, Rule*>;
 
 class Rule
-	{
+{
 public:
 	Rule(const char* arg_id, const Location& arg_location)
-		{
+	{
 		id = util::copy_string(arg_id);
 		idx = rule_counter++;
 		location = arg_location;
 		active = true;
 		next = nullptr;
-		}
+	}
 
 	~Rule();
 
@@ -38,7 +38,7 @@ public:
 	unsigned int Index() const { return idx; }
 
 	enum PatternType
-		{
+	{
 		FILE_MAGIC,
 		PAYLOAD,
 		HTTP_REQUEST,
@@ -49,7 +49,7 @@ public:
 		FTP,
 		FINGER,
 		TYPES,
-		};
+	};
 
 	bool Active() { return active; }
 	void SetActiveStatus(bool new_status) { active = new_status; }
@@ -81,12 +81,12 @@ private:
 
 	// Matching of this rule can depend on the state of other rules.
 	struct Precond
-		{
+	{
 		const char* id;
 		Rule* rule; // set by RuleMatcher
 		bool opposite_dir; // if true, rule must match other dir.
 		bool negate; // negate test
-		};
+	};
 
 	using precond_list = PList<Precond>;
 
@@ -99,13 +99,13 @@ private:
 	bool active; // set the active status of the rule, default true
 
 	struct Pattern
-		{
+	{
 		char* pattern; // the pattern itself
 		PatternType type;
 		int id; // ID of pattern (for identifying it within regexps)
 		uint32_t offset;
 		uint32_t depth;
-		};
+	};
 
 	using pattern_list = PList<Pattern>;
 	pattern_list patterns;
@@ -121,6 +121,6 @@ private:
 
 	// Array of rules indexed by payloadid.
 	static rule_list rule_table;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

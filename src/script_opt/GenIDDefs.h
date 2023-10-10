@@ -9,10 +9,10 @@
 #include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek::detail
-	{
+{
 
 class GenIDDefs : public TraversalCallback
-	{
+{
 public:
 	GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr scope, StmtPtr body);
 
@@ -113,6 +113,6 @@ private:
 	// of usage errors.  A counter rather than a boolean because
 	// such situations might nest.
 	int suppress_usage = 0;
-	};
+};
 
-	} // zeek::detail
+} // zeek::detail

@@ -9,13 +9,13 @@
 #include "zeek/session/Session.h"
 
 namespace zeek::packet_analysis
-	{
+{
 
 /**
  * Main packet analyzer interface.
  */
 class Analyzer
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -171,15 +171,15 @@ public:
 	 * once.
 	 */
 	bool AnalyzerConfirmed(session::Session* session) const
-		{
+	{
 		return session->AnalyzerState(GetAnalyzerTag()) ==
 		       session::AnalyzerConfirmationState::CONFIRMED;
-		}
+	}
 	bool AnalyzerViolated(session::Session* session) const
-		{
+	{
 		return session->AnalyzerState(GetAnalyzerTag()) ==
 		       session::AnalyzerConfirmationState::VIOLATED;
-		}
+	}
 
 	/**
 	 * Reports a Weird with the analyzer's name included in the addl field.
@@ -229,9 +229,9 @@ protected:
 	 * @return Analyzer's module name.
 	 */
 	std::string GetModuleName() const
-		{
+	{
 		return util::fmt("PacketAnalyzer::%s::", GetAnalyzerName());
-		};
+	};
 
 	/**
 	 * Triggers analysis of the encapsulated packet. The encapsulated protocol
@@ -279,8 +279,8 @@ private:
 	std::set<AnalyzerPtr> analyzers_to_detect;
 
 	void Init(const zeek::Tag& tag);
-	};
+};
 
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
-	}
+}

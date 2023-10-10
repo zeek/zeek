@@ -8,7 +8,7 @@
 #include "zeek/plugin/Component.h"
 
 namespace zeek::iosource
-	{
+{
 
 class IOSource;
 class PktSrc;
@@ -18,7 +18,7 @@ class PktDumper;
  * Component description for plugins providing IOSources.
  */
 class Component : public plugin::Component
-	{
+{
 public:
 	using factory_callback = IOSource* (*)();
 
@@ -45,23 +45,23 @@ protected:
 	 * be unique across all components of this type.
 	 */
 	Component(plugin::component::Type type, const std::string& name);
-	};
+};
 
 /**
  * Component description for plugins providing a PktSrc for packet input.
  */
 class PktSrcComponent : public Component
-	{
+{
 public:
 	/**
 	 * Type of input a packet source supports.
 	 */
 	enum InputType
-		{
+	{
 		LIVE, ///< Live input.
 		TRACE, ///< Offline input from trace file.
 		BOTH ///< Live input as well as offline.
-		};
+	};
 
 	using factory_callback = PktSrc* (*)(const std::string& path, bool is_live);
 
@@ -123,7 +123,7 @@ private:
 	std::vector<std::string> prefixes;
 	InputType type;
 	factory_callback factory;
-	};
+};
 
 /**
  * Component description for plugins providing a PktDumper for packet output.
@@ -132,7 +132,7 @@ private:
  * the PktSrc.
  */
 class PktDumperComponent : public plugin::Component
-	{
+{
 public:
 	using factory_callback = PktDumper* (*)(const std::string& path, bool append);
 
@@ -171,6 +171,6 @@ public:
 private:
 	std::vector<std::string> prefixes;
 	factory_callback factory;
-	};
+};
 
-	} // namespace zeek::iosource
+} // namespace zeek::iosource

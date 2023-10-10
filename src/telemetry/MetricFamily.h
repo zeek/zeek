@@ -11,7 +11,7 @@
 #include "broker/telemetry/metric_family.hh"
 
 namespace zeek::telemetry
-	{
+{
 
 /**
  * A key-value pair for a single label dimension.
@@ -23,7 +23,7 @@ using LabelView = std::pair<std::string_view, std::string_view>;
  * the same prefix (namespace), name, and label dimensions.
  */
 class MetricFamily
-	{
+{
 public:
 	MetricFamily() = delete;
 	MetricFamily(const MetricFamily&) noexcept = default;
@@ -47,9 +47,9 @@ public:
 	 * @return The names for all label dimensions.
 	 */
 	Span<const std::string> LabelNames() const noexcept
-		{
+	{
 		return broker::telemetry::label_names(hdl);
-		}
+	}
 
 	/**
 	 * @return A short explanation of the metric.
@@ -76,6 +76,6 @@ protected:
 	explicit MetricFamily(Handle hdl) : hdl(hdl) { }
 
 	Handle hdl;
-	};
+};
 
-	} // namespace zeek::telemetry
+} // namespace zeek::telemetry

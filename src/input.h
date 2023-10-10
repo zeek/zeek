@@ -36,7 +36,7 @@ extern int line_number;
 extern const char* filename;
 
 namespace zeek::detail
-	{
+{
 
 class Stmt;
 
@@ -50,4 +50,4 @@ extern std::vector<std::string> params;
 
 extern Stmt* stmts; // global statements
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

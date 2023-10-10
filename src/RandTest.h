@@ -11,15 +11,15 @@
 	     floating point type. */
 
 namespace zeek
-	{
+{
 
 class EntropyVal;
 
 namespace detail
-	{
+{
 
 class RandTest
-	{
+{
 public:
 	RandTest();
 	void add(const void* buf, int bufl);
@@ -35,7 +35,7 @@ private:
 	unsigned int monte[RT_MONTEN] = {0};
 	int64_t inmont, mcount;
 	double cexp, montex, montey, montepi, sccu0, scclast, scct1, scct2, scct3;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

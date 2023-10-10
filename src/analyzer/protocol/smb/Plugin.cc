@@ -5,13 +5,13 @@
 #include "zeek/analyzer/protocol/smb/SMB.h"
 
 namespace zeek::plugin::detail::Zeek_SMB
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("SMB", zeek::analyzer::smb::SMB_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("Contents_SMB", nullptr));
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::SMB";
 		config.description = "SMB analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_SMB
+} // namespace zeek::plugin::detail::Zeek_SMB

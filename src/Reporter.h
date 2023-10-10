@@ -15,7 +15,7 @@
 #include "zeek/net_util.h"
 
 namespace zeek
-	{
+{
 
 class Connection;
 class EventHandlerPtr;
@@ -29,45 +29,45 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 
 namespace detail
-	{
+{
 
 class AssertStmt;
 class Location;
 class Expr;
 
-	} // namespace detail
+} // namespace detail
 
 namespace analyzer
-	{
+{
 class Analyzer;
-	}
+}
 namespace file_analysis
-	{
+{
 class File;
-	}
+}
 
 // One cannot raise this exception directly, go through the
 // Reporter's methods instead.
 
 class ReporterException
-	{
+{
 protected:
 	friend class Reporter;
 	ReporterException() { }
-	};
+};
 
 class InterpreterException : public ReporterException
-	{
+{
 protected:
 	friend class Reporter;
 	friend class detail::AssertStmt;
 	InterpreterException() { }
-	};
+};
 
 #define FMT_ATTR __attribute__((format(printf, 2, 3))) // sic! 1st is "this" I guess.
 
 class Reporter
-	{
+{
 public:
 	using IPPair = std::pair<IPAddr, IPAddr>;
 	using ConnTuple = std::tuple<IPAddr, IPAddr, uint32_t, uint32_t, TransportProto>;
@@ -170,16 +170,16 @@ public:
 	// will be assumed to be the current one. The pointer must remain
 	// valid until the location is popped.
 	void PushLocation(const detail::Location* location)
-		{
+	{
 		locations.push_back(
 			std::pair<const detail::Location*, const detail::Location*>(location, 0));
-		}
+	}
 
 	void PushLocation(const detail::Location* loc1, const detail::Location* loc2)
-		{
+	{
 		locations.push_back(
 			std::pair<const detail::Location*, const detail::Location*>(loc1, loc2));
-		}
+	}
 
 	// Removes the top-most location information from stack.
 	void PopLocation() { locations.pop_back(); }
@@ -228,9 +228,9 @@ public:
 	 * @param weird_sampling_whitelist New weird sampling whitelist.
 	 */
 	void SetWeirdSamplingWhitelist(WeirdSet weird_sampling_whitelist)
-		{
+	{
 		this->weird_sampling_whitelist = std::move(weird_sampling_whitelist);
-		}
+	}
 
 	/**
 	 * Gets the weird sampling global list.
@@ -243,9 +243,9 @@ public:
 	 * @param weird_sampling_global list New weird sampling global list.
 	 */
 	void SetWeirdSamplingGlobalList(WeirdSet weird_sampling_global_list)
-		{
+	{
 		this->weird_sampling_global_list = std::move(weird_sampling_global_list);
-		}
+	}
 
 	/**
 	 * Gets the current weird sampling threshold.
@@ -260,9 +260,9 @@ public:
 	 * @param weird_sampling_threshold New weird sampling threshold.
 	 */
 	void SetWeirdSamplingThreshold(uint64_t weird_sampling_threshold)
-		{
+	{
 		this->weird_sampling_threshold = weird_sampling_threshold;
-		}
+	}
 
 	/**
 	 * Gets the current weird sampling rate.
@@ -277,9 +277,9 @@ public:
 	 * @param weird_sampling_rate New weird sampling rate.
 	 */
 	void SetWeirdSamplingRate(uint64_t weird_sampling_rate)
-		{
+	{
 		this->weird_sampling_rate = weird_sampling_rate;
-		}
+	}
 
 	/**
 	 * Gets the current weird sampling duration.
@@ -295,9 +295,9 @@ public:
 	 * @param weird_sampling_duration New weird sampling duration.
 	 */
 	void SetWeirdSamplingDuration(double weird_sampling_duration)
-		{
+	{
 		this->weird_sampling_duration = weird_sampling_duration;
-		}
+	}
 
 private:
 	void DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn,
@@ -311,23 +311,23 @@ private:
 	;
 	void UpdateWeirdStats(const char* name);
 	inline bool WeirdOnSamplingWhiteList(const char* name)
-		{
+	{
 		return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end();
-		}
+	}
 	inline bool WeirdOnGlobalList(const char* name)
-		{
+	{
 		return weird_sampling_global_list.find(name) != weird_sampling_global_list.end();
-		}
+	}
 	bool PermitNetWeird(const char* name);
 	bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
 	bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);
 
 	enum class PermitWeird
-		{
+	{
 		Allow,
 		Deny,
 		Unknown
-		};
+	};
 	PermitWeird CheckGlobalWeirdLists(const char* name);
 
 	bool EmitToStderr(bool flag);
@@ -356,8 +356,8 @@ private:
 	double weird_sampling_duration;
 
 	bool ignore_deprecations;
-	};
+};
 
 extern Reporter* reporter;
 
-	} // namespace zeek
+} // namespace zeek

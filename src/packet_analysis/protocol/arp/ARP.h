@@ -16,10 +16,10 @@
 #endif
 
 namespace zeek::packet_analysis::ARP
-	{
+{
 
 class ARPAnalyzer : public Analyzer
-	{
+{
 public:
 	ARPAnalyzer();
 	~ARPAnalyzer() override = default;
@@ -27,9 +27,9 @@ public:
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<ARPAnalyzer>();
-		}
+	}
 
 private:
 	zeek::AddrValPtr ToAddrVal(const void* addr, size_t len);
@@ -39,6 +39,6 @@ private:
 		__attribute__((format(printf, 3, 4)));
 	void RequestReplyEvent(EventHandlerPtr e, const u_char* src, const u_char* dst,
 	                       const struct arp_pkthdr* hdr);
-	};
+};
 
-	}
+}

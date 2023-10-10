@@ -6,16 +6,16 @@
 #include "zeek/file_analysis/Manager.h"
 
 namespace zeek::file_analysis::detail
-	{
+{
 
 FileTimer::FileTimer(double t, const std::string& id, double interval)
 	: zeek::detail::Timer(t + interval, zeek::detail::TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id)
-	{
+{
 	DBG_LOG(DBG_FILE_ANALYSIS, "New %f second timeout timer for %s", interval, file_id.c_str());
-	}
+}
 
 void FileTimer::Dispatch(double t, bool is_expire)
-	{
+{
 	File* file = file_mgr->LookupFile(file_id);
 
 	if ( ! file )
@@ -30,17 +30,17 @@ void FileTimer::Dispatch(double t, bool is_expire)
 	        file_id.c_str(), last_active, inactive_time);
 
 	if ( last_active == 0.0 )
-		{
+	{
 		// was created when network_time was zero, so re-schedule w/ valid time
 		file->UpdateLastActivityTime();
 		file->ScheduleInactivityTimer();
 		return;
-		}
+	}
 
 	if ( inactive_time >= file->GetTimeoutInterval() )
 		file_mgr->Timeout(file_id);
 	else if ( ! is_expire )
 		file->ScheduleInactivityTimer();
-	}
+}
 
-	} // namespace zeek::file_analysis::detail
+} // namespace zeek::file_analysis::detail

@@ -20,17 +20,17 @@
 #include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek
-	{
+{
 
 void Options::filter_supervisor_options()
-	{
+{
 	pcap_filter = {};
 	signature_files = {};
 	pcap_output_file = {};
-	}
+}
 
 void Options::filter_supervised_node_options()
-	{
+{
 	auto og = *this;
 	*this = {};
 
@@ -69,17 +69,17 @@ void Options::filter_supervised_node_options()
 	plugins_to_load = og.plugins_to_load;
 	scripts_to_load = og.scripts_to_load;
 	script_options_to_set = og.script_options_to_set;
-	}
+}
 
 bool fake_dns()
-	{
+{
 	return getenv("ZEEK_DNS_FAKE");
-	}
+}
 
 extern const char* zeek_version();
 
 void usage(const char* prog, int code)
-	{
+{
 	fprintf(stderr, "zeek version %s\n", zeek_version());
 
 	fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
@@ -187,10 +187,10 @@ void usage(const char* prog, int code)
 	fprintf(stderr, "\n");
 
 	exit(code);
-	}
+}
 
 static void print_analysis_help()
-	{
+{
 	fprintf(stderr, "--optimize options when using ZAM:\n");
 	fprintf(stderr, "    ZAM	execute scripts using ZAM and all optimizations\n");
 	fprintf(stderr, "    help	print this list\n");
@@ -220,24 +220,24 @@ static void print_analysis_help()
 	fprintf(stderr, "    report-C++	report available C++ script bodies and exit\n");
 	fprintf(stderr, "    report-uncompilable	print names of functions that can't be compiled\n");
 	fprintf(stderr, "    use-C++	use available C++ script bodies\n");
-	}
+}
 
 static void set_analysis_option(const char* opt, Options& opts)
-	{
+{
 	auto& a_o = opts.analysis_options;
 
 	if ( ! opt || util::streq(opt, "ZAM") )
-		{
+	{
 		a_o.inliner = a_o.optimize_AST = a_o.activate = true;
 		a_o.gen_ZAM = true;
 		return;
-		}
+	}
 
 	if ( util::streq(opt, "help") )
-		{
+	{
 		print_analysis_help();
 		exit(0);
-		}
+	}
 
 	if ( util::streq(opt, "dump-uds") )
 		a_o.activate = a_o.dump_uds = true;
@@ -275,15 +275,15 @@ static void set_analysis_option(const char* opt, Options& opts)
 		a_o.activate = true;
 
 	else
-		{
+	{
 		fprintf(stderr, "zeek: unrecognized -O/--optimize option: %s\n\n", opt);
 		print_analysis_help();
 		exit(1);
-		}
 	}
+}
 
 Options parse_cmdline(int argc, char** argv)
-	{
+{
 	Options rval;
 
 	// When running unit tests, the first argument on the command line must be
@@ -296,7 +296,7 @@ Options parse_cmdline(int argc, char** argv)
 	std::vector<std::string> zeek_args;
 
 	if ( argc > 1 && strcmp(argv[1], "--test") == 0 )
-		{
+	{
 #ifdef DOCTEST_CONFIG_DISABLE
 		fprintf(stderr, "ERROR: C++ unit tests are disabled for this build.\n"
 		                "       Please re-compile with ENABLE_ZEEK_UNIT_TESTS "
@@ -314,22 +314,22 @@ Options parse_cmdline(int argc, char** argv)
 		zeek_args.emplace_back(argv[0]);
 
 		if ( separator != last )
-			{
+		{
 			auto first_zeek_arg = std::next(separator);
 
 			for ( auto i = first_zeek_arg; i != last; ++i )
 				zeek_args.emplace_back(*i);
-			}
+		}
 
 		rval.run_unit_tests = true;
 
 		for ( ptrdiff_t i = 0; i < std::distance(first, separator); ++i )
 			rval.doctest_args.emplace_back(argv[i]);
-		}
+	}
 	else
-		{
+	{
 		if ( argc > 1 )
-			{
+		{
 			auto endsWith = [](const std::string& str, const std::string& suffix)
 			{
 				return str.size() >= suffix.size() &&
@@ -338,26 +338,26 @@ Options parse_cmdline(int argc, char** argv)
 
 			auto i = 0;
 			for ( ; i < argc && ! endsWith(argv[i], "--"); ++i )
-				{
+			{
 				zeek_args.emplace_back(argv[i]);
-				}
+			}
 
 			if ( i < argc )
-				{
+			{
 				// If a script is invoked with Zeek as the interpreter, the arguments provided
 				// directly in the interpreter line of the script won't be broken apart in the
 				// argv on Linux so we split it up here.
 				if ( endsWith(argv[i], "--") && zeek_args.size() == 1 )
-					{
+				{
 					std::istringstream iss(argv[i]);
 					for ( std::string s; iss >> s; )
-						{
+					{
 						if ( ! endsWith(s, "--") )
-							{
+						{
 							zeek_args.emplace_back(s);
-							}
 						}
 					}
+				}
 
 				// There is an additional increment here to skip over the "--" if it was found.
 				if ( endsWith(argv[i], "--") )
@@ -369,9 +369,9 @@ Options parse_cmdline(int argc, char** argv)
 				// If there are more argument, grab them for script arguments
 				for ( ; i < argc; ++i )
 					rval.script_args.emplace_back(argv[i]);
-				}
 			}
 		}
+	}
 
 	int profile_scripts = 0;
 	int profile_script_call_stacks = 0;
@@ -450,7 +450,7 @@ Options parse_cmdline(int argc, char** argv)
 	while ( (op = getopt_long(zeek_args.size(), zargs.get(), opts, long_opts, &long_optsind)) !=
 	        EOF )
 		switch ( op )
-			{
+		{
 			case 'a':
 				rval.parse_only = true;
 				break;
@@ -474,43 +474,43 @@ Options parse_cmdline(int argc, char** argv)
 				break;
 			case 'i':
 				if ( rval.interface )
-					{
+				{
 					fprintf(stderr, "ERROR: Only a single interface option (-i) is allowed.\n");
 					exit(1);
-					}
+				}
 
 				if ( rval.pcap_file )
-					{
+				{
 					fprintf(stderr, "ERROR: Using -i is not allow when reading a pcap file.\n");
 					exit(1);
-					}
+				}
 
 				rval.interface = optarg;
 				break;
 			case 'j':
 				rval.supervisor_mode = true;
 				if ( optarg )
-					{
+				{
 					// TODO: for supervised offline pcap reading, the argument is
 					// expected to be number of workers like "-j 4" or possibly a
 					// list of worker/proxy/logger counts like "-j 4,2,1"
-					}
+				}
 				break;
 			case 'p':
 				rval.script_prefixes.emplace_back(optarg);
 				break;
 			case 'r':
 				if ( rval.pcap_file )
-					{
+				{
 					fprintf(stderr, "ERROR: Only a single readfile option (-r) is allowed.\n");
 					exit(1);
-					}
+				}
 
 				if ( rval.interface )
-					{
+				{
 					fprintf(stderr, "Using -r is not allowed when reading a live interface.\n");
 					exit(1);
-					}
+				}
 
 				rval.pcap_file = optarg;
 				break;
@@ -538,10 +538,10 @@ Options parse_cmdline(int argc, char** argv)
 				rval.debug_log_streams = optarg;
 #else
 				if ( util::streq(optarg, "help") )
-					{
+				{
 					fprintf(stderr, "debug streams unavailable\n");
 					exit(1);
-					}
+				}
 #endif
 				break;
 
@@ -628,17 +628,17 @@ Options parse_cmdline(int argc, char** argv)
 				// This happens for long options that don't have
 				// a short-option equivalent.
 				if ( profile_scripts )
-					{
+				{
 					profile_filename = optarg ? optarg : "";
 					enable_script_profile = true;
 					profile_scripts = 0;
-					}
+				}
 
 				if ( profile_script_call_stacks )
-					{
+				{
 					enable_script_profile_call_stacks = true;
 					profile_script_call_stacks = 0;
-					}
+				}
 
 				if ( no_unused_warnings )
 					rval.no_unused_warnings = true;
@@ -648,7 +648,7 @@ Options parse_cmdline(int argc, char** argv)
 			default:
 				usage(zargs[0], 1);
 				break;
-			}
+		}
 
 	if ( ! enable_script_profile && enable_script_profile_call_stacks )
 		fprintf(
@@ -656,23 +656,23 @@ Options parse_cmdline(int argc, char** argv)
 			"ERROR: --profile-scripts-traces requires --profile-scripts to be passed as well.\n");
 
 	if ( enable_script_profile )
-		{
+	{
 		activate_script_profiling(profile_filename.empty() ? nullptr : profile_filename.c_str(),
 		                          enable_script_profile_call_stacks);
-		}
+	}
 
 	// Process remaining arguments. X=Y arguments indicate script
 	// variable/parameter assignments. X::Y arguments indicate plugins to
 	// activate/query. The remainder are treated as scripts to load.
 	while ( optind < static_cast<int>(zeek_args.size()) )
-		{
+	{
 		if ( strchr(zargs[optind], '=') )
 			rval.script_options_to_set.emplace_back(zargs[optind++]);
 		else if ( strstr(zargs[optind], "::") )
 			rval.plugins_to_load.emplace(zargs[optind++]);
 		else
 			rval.scripts_to_load.emplace_back(zargs[optind++]);
-		}
+	}
 
 	auto canonify_script_path = [](std::string* path)
 	{
@@ -686,45 +686,45 @@ Options parse_cmdline(int argc, char** argv)
 			return;
 
 		if ( (*path)[0] != '.' )
-			{
+		{
 			// Look up file in ZEEKPATH
 			auto res = util::find_script_file(*path, util::zeek_path());
 
 			if ( res.empty() )
-				{
+			{
 				fprintf(stderr, "failed to locate script: %s\n", path->data());
 				exit(1);
-				}
+			}
 
 			*path = res;
 
 			if ( (*path)[0] == '/' || (*path)[0] == '~' )
 				// Now an absolute path
 				return;
-			}
+		}
 
 		// Need to translate relative path to absolute.
 		char cwd[PATH_MAX];
 
 		if ( ! getcwd(cwd, sizeof(cwd)) )
-			{
+		{
 			fprintf(stderr, "failed to get current directory: %s\n", strerror(errno));
 			exit(1);
-			}
+		}
 
 		*path = std::string(cwd) + "/" + *path;
 	};
 
 	if ( rval.supervisor_mode )
-		{
+	{
 		// Translate any relative paths supplied to supervisor into absolute
 		// paths for use by supervised nodes since they have the option to
 		// operate out of a different working directory.
 		for ( auto& s : rval.scripts_to_load )
 			canonify_script_path(&s);
-		}
-
-	return rval;
 	}
 
-	} // namespace zeek
+	return rval;
+}
+
+} // namespace zeek

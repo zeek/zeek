@@ -3,17 +3,17 @@
 #include "zeek/3rdparty/doctest.h"
 
 TEST_CASE("list construction")
-	{
+{
 	zeek::List<int> list;
 	CHECK(list.empty());
 
 	zeek::List<int> list2(10);
 	CHECK(list2.empty());
 	CHECK(list2.max() == 10);
-	}
+}
 
 TEST_CASE("list operation")
-	{
+{
 	zeek::List<int> list({1, 2, 3});
 	CHECK(list.size() == 3);
 	CHECK(list.max() == 3);
@@ -82,10 +82,10 @@ TEST_CASE("list operation")
 	list.clear();
 	CHECK(list.size() == 0);
 	CHECK(list.max() == 0);
-	}
+}
 
 TEST_CASE("list iteration")
-	{
+{
 	zeek::List<int> list({1, 2, 3, 4});
 
 	int index = 1;
@@ -95,10 +95,10 @@ TEST_CASE("list iteration")
 	index = 1;
 	for ( auto it = list.begin(); it != list.end(); index++, ++it )
 		CHECK(*it == index);
-	}
+}
 
 TEST_CASE("plists")
-	{
+{
 	zeek::PList<int> list;
 	list.push_back(new int{1});
 	list.push_back(new int{2});
@@ -114,10 +114,10 @@ TEST_CASE("plists")
 	for ( auto v : list )
 		delete v;
 	list.clear();
-	}
+}
 
 TEST_CASE("unordered list operation")
-	{
+{
 	zeek::List<int, zeek::ListOrder::UNORDERED> list({1, 2, 3, 4});
 	CHECK(list.size() == 4);
 
@@ -128,4 +128,4 @@ TEST_CASE("unordered list operation")
 	CHECK(list[0] == 1);
 	CHECK(list[1] == 4);
 	CHECK(list[2] == 3);
-	}
+}

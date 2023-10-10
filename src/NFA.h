@@ -17,12 +17,12 @@
 #define SYM_CCL 260
 
 namespace zeek
-	{
+{
 
 class Func;
 
 namespace detail
-	{
+{
 
 class CCL;
 class EquivClass;
@@ -31,7 +31,7 @@ class NFA_State;
 using NFA_state_list = PList<NFA_State>;
 
 class NFA_State : public Obj
-	{
+{
 public:
 	NFA_State(int sym, EquivClass* ec);
 	explicit NFA_State(CCL* ccl);
@@ -77,16 +77,16 @@ protected:
 	NFA_state_list xtions;
 	NFA_state_list* epsclosure;
 	NFA_State* mark;
-	};
+};
 
 class EpsilonState : public NFA_State
-	{
+{
 public:
 	EpsilonState() : NFA_State(SYM_EPSILON, nullptr) { }
-	};
+};
 
 class NFA_Machine : public Obj
-	{
+{
 public:
 	explicit NFA_Machine(NFA_State* first, NFA_State* final = nullptr);
 	~NFA_Machine() override;
@@ -99,10 +99,10 @@ public:
 	void AddAccept(int accept_val);
 
 	void MakeClosure()
-		{
+	{
 		MakePositiveClosure();
 		MakeOptional();
-		}
+	}
 	void MakeOptional();
 	void MakePositiveClosure();
 
@@ -127,7 +127,7 @@ protected:
 	NFA_State* first_state;
 	NFA_State* final_state;
 	int bol, eol;
-	};
+};
 
 extern NFA_Machine* make_alternate(NFA_Machine* m1, NFA_Machine* m2);
 
@@ -141,5 +141,5 @@ extern NFA_state_list* epsilon_closure(NFA_state_list* states);
 // For sorting NFA states based on their ID fields (decreasing)
 extern bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2);
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

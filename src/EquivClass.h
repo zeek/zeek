@@ -5,12 +5,12 @@
 #include <stdio.h>
 
 namespace zeek::detail
-	{
+{
 
 class CCL;
 
 class EquivClass
-	{
+{
 public:
 	explicit EquivClass(int size);
 	~EquivClass();
@@ -44,6 +44,6 @@ protected:
 	int* rep; // representative for symbol's equivalence class
 	int* ccl_flags;
 	int ec_nil, no_class, no_rep;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

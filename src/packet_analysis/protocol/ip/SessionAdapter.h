@@ -3,12 +3,12 @@
 #include "zeek/analyzer/Analyzer.h"
 
 namespace zeek::analyzer::pia
-	{
+{
 class PIA;
-	}
+}
 
 namespace zeek::packet_analysis::IP
-	{
+{
 
 class IPBasedAnalyzer;
 
@@ -18,7 +18,7 @@ class IPBasedAnalyzer;
  * packet analyzer that intends to forward into the session analysis.
  */
 class SessionAdapter : public analyzer::Analyzer
-	{
+{
 
 public:
 	SessionAdapter(const char* name, Connection* conn) : analyzer::Analyzer(name, conn) { }
@@ -99,6 +99,6 @@ public:
 protected:
 	IPBasedAnalyzer* parent = nullptr;
 	analyzer::pia::PIA* pia = nullptr;
-	};
+};
 
-	} // namespace zeek::packet_analysis::IP
+} // namespace zeek::packet_analysis::IP

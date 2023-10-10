@@ -12,7 +12,7 @@
 #include "zeek/ZeekList.h"
 
 namespace zeek::detail
-	{
+{
 
 class CompositeHash;
 class NameExpr;
@@ -21,7 +21,7 @@ using NameExprPtr = IntrusivePtr<zeek::detail::NameExpr>;
 class ZAMCompiler; // for "friend" declarations
 
 class ExprListStmt : public Stmt
-	{
+{
 public:
 	const ListExpr* ExprList() const { return l.get(); }
 	const ListExprPtr& ExprListPtr() const { return l; }
@@ -51,14 +51,14 @@ protected:
 	// Returns a new version of the original derived object
 	// based on the given list of singleton expressions.
 	virtual StmtPtr DoSubclassReduce(ListExprPtr singletons, Reducer* c) = 0;
-	};
+};
 
 class PrintStmt final : public ExprListStmt
-	{
+{
 public:
 	template <typename L> explicit PrintStmt(L&& l) : ExprListStmt(STMT_PRINT, std::forward<L>(l))
-		{
-		}
+	{
+	}
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
@@ -68,12 +68,12 @@ protected:
 
 	// Optimization-related:
 	StmtPtr DoSubclassReduce(ListExprPtr singletons, Reducer* c) override;
-	};
+};
 
 extern void do_print_stmt(const std::vector<ValPtr>& vals);
 
 class ExprStmt : public Stmt
-	{
+{
 public:
 	explicit ExprStmt(ExprPtr e);
 	~ExprStmt() override;
@@ -105,10 +105,10 @@ protected:
 	bool IsPure() const override;
 
 	ExprPtr e;
-	};
+};
 
 class IfStmt final : public ExprStmt
-	{
+{
 public:
 	IfStmt(ExprPtr test, StmtPtr s1, StmtPtr s2);
 	~IfStmt() override;
@@ -135,10 +135,10 @@ protected:
 
 	StmtPtr s1;
 	StmtPtr s2;
-	};
+};
 
 class Case final : public Obj
-	{
+{
 public:
 	Case(ListExprPtr c, IDPList* types, StmtPtr arg_s);
 	~Case() override;
@@ -165,12 +165,12 @@ protected:
 	ListExprPtr expr_cases;
 	IDPList* type_cases;
 	StmtPtr s;
-	};
+};
 
 using case_list = PList<Case>;
 
 class SwitchStmt final : public ExprStmt
-	{
+{
 public:
 	SwitchStmt(ExprPtr index, case_list* cases);
 	~SwitchStmt() override;
@@ -229,12 +229,12 @@ protected:
 	std::unordered_map<const Val*, int> case_label_value_map;
 	PDict<int> case_label_hash_map;
 	std::vector<std::pair<ID*, int>> case_label_type_list;
-	};
+};
 
 // Helper class. Added for script optimization, but it makes sense
 // in terms of factoring even without.
 class AddDelStmt : public ExprStmt
-	{
+{
 public:
 	TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -246,10 +246,10 @@ public:
 
 protected:
 	AddDelStmt(StmtTag t, ExprPtr arg_e);
-	};
+};
 
 class AddStmt final : public AddDelStmt
-	{
+{
 public:
 	explicit AddStmt(ExprPtr e);
 
@@ -257,10 +257,10 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
-	};
+};
 
 class DelStmt final : public AddDelStmt
-	{
+{
 public:
 	explicit DelStmt(ExprPtr e);
 
@@ -268,10 +268,10 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
-	};
+};
 
 class EventStmt final : public ExprStmt
-	{
+{
 public:
 	explicit EventStmt(EventExprPtr e);
 
@@ -286,10 +286,10 @@ public:
 
 protected:
 	EventExprPtr event_expr;
-	};
+};
 
 class WhileStmt final : public Stmt
-	{
+{
 public:
 	WhileStmt(ExprPtr loop_condition, StmtPtr body);
 	~WhileStmt() override;
@@ -332,10 +332,10 @@ protected:
 	// evaluating the reduced conditional, as well as the reduced
 	// expression.  This turns out to be useful in propagating RDs/UDs.
 	StmtPtr stmt_loop_condition = nullptr;
-	};
+};
 
 class ForStmt final : public ExprStmt
-	{
+{
 public:
 	ForStmt(IDPList* loop_vars, ExprPtr loop_expr);
 	// Special constructor for key value for loop.
@@ -373,10 +373,10 @@ protected:
 	// Stores the value variable being used for a key value for loop.
 	// Always set to nullptr unless special constructor is called.
 	IDPtr value_var;
-	};
+};
 
 class NextStmt final : public Stmt
-	{
+{
 public:
 	NextStmt() : Stmt(STMT_NEXT) { }
 
@@ -393,10 +393,10 @@ public:
 	bool NoFlowAfter(bool ignore_break) const override { return true; }
 
 protected:
-	};
+};
 
 class BreakStmt final : public Stmt
-	{
+{
 public:
 	BreakStmt() : Stmt(STMT_BREAK) { }
 
@@ -413,10 +413,10 @@ public:
 	bool NoFlowAfter(bool ignore_break) const override { return ! ignore_break; }
 
 protected:
-	};
+};
 
 class FallthroughStmt final : public Stmt
-	{
+{
 public:
 	FallthroughStmt() : Stmt(STMT_FALLTHROUGH) { }
 
@@ -431,10 +431,10 @@ public:
 	StmtPtr Duplicate() override { return SetSucc(new FallthroughStmt()); }
 
 protected:
-	};
+};
 
 class ReturnStmt final : public ExprStmt
-	{
+{
 public:
 	explicit ReturnStmt(ExprPtr e);
 
@@ -454,10 +454,10 @@ public:
 	StmtPtr DoReduce(Reducer* c) override;
 
 	bool NoFlowAfter(bool ignore_break) const override { return true; }
-	};
+};
 
 class StmtList : public Stmt
-	{
+{
 public:
 	StmtList();
 	~StmtList() override = default;
@@ -493,10 +493,10 @@ protected:
 	bool ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c);
 
 	void ResetStmts(std::vector<StmtPtr> new_stmts) { stmts = std::move(new_stmts); }
-	};
+};
 
 class InitStmt final : public Stmt
-	{
+{
 public:
 	explicit InitStmt(std::vector<IDPtr> arg_inits);
 
@@ -516,10 +516,10 @@ public:
 
 protected:
 	std::vector<IDPtr> inits;
-	};
+};
 
 class NullStmt final : public Stmt
-	{
+{
 public:
 	NullStmt(bool arg_is_directive = false);
 
@@ -538,10 +538,10 @@ public:
 
 private:
 	bool is_directive;
-	};
+};
 
 class AssertStmt final : public Stmt
-	{
+{
 public:
 	explicit AssertStmt(ExprPtr cond, ExprPtr msg = nullptr);
 
@@ -565,7 +565,7 @@ private:
 	ExprPtr cond;
 	std::string cond_desc;
 	ExprPtr msg;
-	};
+};
 
 // Helper function for reporting on asserts that either failed, or should
 // be processed regardless due to the presence of a "assertion_result" hook.
@@ -578,7 +578,7 @@ extern void report_assert(bool cond, std::string_view cond_desc, StringValPtr ms
 // a "when" statement, and constructing the necessary components in support
 // of lambda-style captures.
 class WhenInfo
-	{
+{
 public:
 	// Takes ownership of the CaptureList.
 	WhenInfo(ExprPtr cond, FuncType::CaptureList* cl, bool is_return);
@@ -594,10 +594,10 @@ public:
 	void AddBody(StmtPtr arg_s) { s = std::move(arg_s); }
 
 	void AddTimeout(ExprPtr arg_timeout, StmtPtr arg_timeout_s)
-		{
+	{
 		timeout = std::move(arg_timeout);
 		timeout_s = std::move(arg_timeout_s);
-		}
+	}
 
 	// Complete construction of the associated internals, including
 	// the (complex) lambda used to access the different elements of
@@ -692,10 +692,10 @@ private:
 
 	// Locals introduced via "local" in the "when" clause itself.
 	IDSet when_new_locals;
-	};
+};
 
 class WhenStmt final : public Stmt
-	{
+{
 public:
 	WhenStmt(std::shared_ptr<WhenInfo> wi);
 
@@ -722,13 +722,13 @@ public:
 
 private:
 	std::shared_ptr<WhenInfo> wi;
-	};
+};
 
 // Internal statement used for inlining.  Executes a block and stops
 // the propagation of any "return" inside the block.  Generated in
 // an already-reduced state.
 class CatchReturnStmt : public Stmt
-	{
+{
 public:
 	explicit CatchReturnStmt(StmtPtr block, NameExprPtr ret_var);
 
@@ -770,13 +770,13 @@ protected:
 	// If this statement transformed into an assignment, that
 	// corresponding statement.
 	StmtPtr assign_stmt;
-	};
+};
 
 // Statement that makes sure at run-time that an "any" type has the
 // correct number of (list) entries to enable sub-assigning to it via
 // statements like "[a, b, c] = x;".  Generated in an already-reduced state.
 class CheckAnyLenStmt : public ExprStmt
-	{
+{
 public:
 	explicit CheckAnyLenStmt(ExprPtr e, int expected_len);
 
@@ -793,6 +793,6 @@ public:
 
 protected:
 	int expected_len;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

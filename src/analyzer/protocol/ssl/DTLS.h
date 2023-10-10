@@ -3,25 +3,25 @@
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
 
 namespace binpac
-	{
+{
 namespace DTLS
-	{
+{
 class SSL_Conn;
-	}
-	}
+}
+}
 namespace binpac
-	{
+{
 namespace TLSHandshake
-	{
+{
 class Handshake_Conn;
-	}
-	}
+}
+}
 
 namespace zeek::analyzer::dtls
-	{
+{
 
 class DTLS_Analyzer final : public analyzer::Analyzer
-	{
+{
 public:
 	explicit DTLS_Analyzer(Connection* conn);
 	~DTLS_Analyzer() override;
@@ -60,6 +60,6 @@ public:
 protected:
 	binpac::DTLS::SSL_Conn* interp;
 	binpac::TLSHandshake::Handshake_Conn* handshake_interp;
-	};
+};
 
-	} // namespace zeek::analyzer::dtls
+} // namespace zeek::analyzer::dtls

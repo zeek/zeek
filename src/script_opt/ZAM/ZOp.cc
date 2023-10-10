@@ -5,24 +5,24 @@
 #include "zeek/script_opt/ZAM/Support.h"
 
 namespace zeek::detail
-	{
+{
 
 const char* ZOP_name(ZOp op)
-	{
+{
 	switch ( op )
-		{
+	{
 #include "zeek/ZAM-OpsNamesDefs.h"
 		case OP_NOP:
 			return "nop";
-		}
-
-	return "<error>";
 	}
 
+	return "<error>";
+}
+
 static const char* op_type_name(ZAMOpType ot)
-	{
+{
 	switch ( ot )
-		{
+	{
 		case OP_X:
 			return "X";
 		case OP_C:
@@ -69,10 +69,10 @@ static const char* op_type_name(ZAMOpType ot)
 			return "VVVV_I3_I4";
 		case OP_VVVV_I2_I3_I4:
 			return "VVVV_I2_I3_I4";
-		}
+	}
 
 	return "<error>";
-	}
+}
 
 ZAMOp1Flavor op1_flavor[] = {
 #include "zeek/ZAM-Op1FlavorsDefs.h"
@@ -89,21 +89,21 @@ std::unordered_map<ZOp, ZOp> assignmentless_op;
 std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
 
 ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict)
-	{
+{
 	static bool did_init = false;
 
 	if ( ! did_init )
-		{
+	{
 		std::unordered_map<TypeTag, ZOp> empty_map;
 
 #include "zeek/ZAM-AssignFlavorsDefs.h"
 
 		did_init = true;
-		}
+	}
 
 	// Map type tag to equivalent, as needed.
 	switch ( tag )
-		{
+	{
 		case TYPE_BOOL:
 		case TYPE_ENUM:
 			tag = TYPE_INT;
@@ -120,27 +120,27 @@ ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict)
 
 		default:
 			break;
-		}
+	}
 
 	if ( assignment_flavor.count(orig) == 0 )
-		{
+	{
 		if ( strict )
 			ASSERT(false);
 		else
 			return OP_NOP;
-		}
+	}
 
 	auto orig_map = assignment_flavor[orig];
 
 	if ( orig_map.count(tag) == 0 )
-		{
+	{
 		if ( strict )
 			ASSERT(false);
 		else
 			return OP_NOP;
-		}
-
-	return orig_map[tag];
 	}
 
-	} // zeek::detail
+	return orig_map[tag];
+}
+
+} // zeek::detail

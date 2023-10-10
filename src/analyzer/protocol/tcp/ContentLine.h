@@ -5,7 +5,7 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::tcp
-	{
+{
 
 #define CR_as_EOL 1
 #define LF_as_EOL 2
@@ -14,7 +14,7 @@ namespace zeek::analyzer::tcp
 constexpr auto DEFAULT_MAX_LINE_LENGTH = 16 * 1024 * 1024 - 100;
 
 class ContentLine_Analyzer : public TCP_SupportAnalyzer
-	{
+{
 public:
 	ContentLine_Analyzer(Connection* conn, bool orig,
 	                     int max_line_length = DEFAULT_MAX_LINE_LENGTH);
@@ -111,6 +111,6 @@ protected:
 
 	// Whether to skip partial conns.
 	bool skip_partial;
-	};
+};
 
-	} // namespace zeek::analyzer::tcp
+} // namespace zeek::analyzer::tcp

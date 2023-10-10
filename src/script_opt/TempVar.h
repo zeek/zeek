@@ -12,10 +12,10 @@
 #include "zeek/script_opt/IDOptInfo.h"
 
 namespace zeek::detail
-	{
+{
 
 class TempVar
-	{
+{
 public:
 	TempVar(size_t num, const TypePtr& t, ExprPtr rhs);
 
@@ -25,10 +25,10 @@ public:
 
 	IDPtr Id() const { return id; }
 	void SetID(IDPtr _id)
-		{
+	{
 		id = std::move(_id);
 		id->GetOptInfo()->SetTemp();
-		}
+	}
 	void Deactivate() { active = false; }
 	bool IsActive() const { return active; }
 
@@ -49,6 +49,6 @@ protected:
 	ExprPtr rhs;
 	bool active = true;
 	IDPtr alias;
-	};
+};
 
-	} // zeek::detail
+} // zeek::detail

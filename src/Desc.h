@@ -11,7 +11,7 @@
 #include "zeek/util.h" // for zeek_int_t
 
 namespace zeek
-	{
+{
 
 class IPAddr;
 class IPPrefix;
@@ -19,19 +19,19 @@ class File;
 class Type;
 
 enum DescType
-	{
+{
 	DESC_READABLE,
 	DESC_BINARY,
-	};
+};
 
 enum DescStyle
-	{
+{
 	STANDARD_STYLE,
 	RAW_STYLE,
-	};
+};
 
 class ODesc
-	{
+{
 public:
 	explicit ODesc(DescType t = DESC_READABLE, File* f = nullptr);
 
@@ -70,9 +70,9 @@ public:
 	void AddEscapeSequence(const std::string& s) { escape_sequences.insert(s); }
 	void RemoveEscapeSequence(const char* s) { escape_sequences.erase(s); }
 	void RemoveEscapeSequence(const char* s, size_t n)
-		{
+	{
 		escape_sequences.erase(std::string(s, n));
-		}
+	}
 	void RemoveEscapeSequence(const std::string& s) { escape_sequences.erase(s); }
 
 	void PushIndent();
@@ -101,42 +101,42 @@ public:
 	void AddBytes(const String* s);
 
 	void Add(const char* s1, const char* s2)
-		{
+	{
 		Add(s1);
 		Add(s2);
-		}
+	}
 
 	void AddSP(const char* s1, const char* s2)
-		{
+	{
 		Add(s1);
 		AddSP(s2);
-		}
+	}
 
 	void AddSP(const char* s)
-		{
+	{
 		Add(s);
 		SP();
-		}
+	}
 
 	void AddCount(zeek_int_t n)
-		{
+	{
 		if ( ! IsReadable() )
-			{
+		{
 			Add(n);
 			SP();
-			}
 		}
+	}
 
 	void SP()
-		{
+	{
 		if ( ! IsBinary() )
 			Add(" ", 0);
-		}
+	}
 	void NL()
-		{
+	{
 		if ( ! IsBinary() && ! is_short )
 			Add("\n", 0);
-		}
+	}
 
 	// Bypasses the escaping enabled via EnableEscaping().
 	void AddRaw(const char* s, int len) { AddBytesRaw(s, len); }
@@ -147,7 +147,7 @@ public:
 
 	const u_char* Bytes() const { return (const u_char*)base; }
 	byte_vec TakeBytes()
-		{
+	{
 		const void* t = base;
 		base = nullptr;
 		size = 0;
@@ -156,7 +156,7 @@ public:
 		// subsequent calls to Len().
 
 		return byte_vec(t);
-		}
+	}
 
 	int Len() const { return offset; }
 
@@ -223,7 +223,7 @@ protected:
 	File* f; // or the file we're using.
 
 	std::set<const Type*> encountered_types;
-	};
+};
 
 // Returns a string representation of an object's description.  Used for
 // debugging and error messages.  takes a bare pointer rather than an
@@ -235,4 +235,4 @@ std::string obj_desc(const Obj* o);
 // Same as obj_desc(), but ensure it is short and don't include location info.
 std::string obj_desc_short(const Obj* o);
 
-	} // namespace zeek
+} // namespace zeek

@@ -18,13 +18,13 @@ using cce_func = int (*)(int);
 extern int re_lex(void);
 
 namespace zeek
-	{
+{
 
 class String;
 class RE_Matcher;
 
 namespace detail
-	{
+{
 
 class NFA_Machine;
 class DFA_Machine;
@@ -49,16 +49,16 @@ using AcceptingMatchSet = std::map<AcceptIdx, MatchPos>;
 using string_list = name_list;
 
 enum match_type
-	{
+{
 	MATCH_ANYWHERE,
 	MATCH_EXACTLY
-	};
+};
 
 // A "specific" RE matcher will match one type of pattern: either
 // MATCH_ANYWHERE or MATCH_EXACTLY.
 
 class Specific_RE_Matcher
-	{
+{
 public:
 	explicit Specific_RE_Matcher(match_type mt, bool multiline = false);
 	~Specific_RE_Matcher();
@@ -79,18 +79,18 @@ public:
 
 	void InsertCCL(const char* txt, CCL* ccl) { ccl_dict[std::string(txt)] = ccl; }
 	int InsertCCL(CCL* ccl)
-		{
+	{
 		ccl_list.push_back(ccl);
 		return ccl_list.length() - 1;
-		}
+	}
 	CCL* LookupCCL(const char* txt)
-		{
+	{
 		const auto& iter = ccl_dict.find(std::string(txt));
 		if ( iter != ccl_dict.end() )
 			return iter->second;
 
 		return nullptr;
-		}
+	}
 	CCL* LookupCCL(int index) { return ccl_list[index]; }
 	CCL* AnyCCL(bool single_line_mode = false);
 
@@ -152,18 +152,18 @@ protected:
 
 	CCL* any_ccl;
 	CCL* single_line_ccl;
-	};
+};
 
 class RE_Match_State
-	{
+{
 public:
 	explicit RE_Match_State(Specific_RE_Matcher* matcher)
-		{
+	{
 		dfa = matcher->DFA() ? matcher->DFA() : nullptr;
 		ecs = matcher->EC()->EquivClasses();
 		current_pos = -1;
 		current_state = nullptr;
-		}
+	}
 
 	const AcceptingMatchSet& AcceptedMatches() const { return accepted_matches; }
 
@@ -175,11 +175,11 @@ public:
 	bool Match(const u_char* bv, int n, bool bol, bool eol, bool clear);
 
 	void Clear()
-		{
+	{
 		current_pos = -1;
 		current_state = nullptr;
 		accepted_matches.clear();
-		}
+	}
 
 	void AddMatches(const AcceptingSet& as, MatchPos position);
 
@@ -190,15 +190,15 @@ protected:
 	AcceptingMatchSet accepted_matches;
 	DFA_State* current_state;
 	int current_pos;
-	};
+};
 
 extern RE_Matcher* RE_Matcher_conjunction(const RE_Matcher* re1, const RE_Matcher* re2);
 extern RE_Matcher* RE_Matcher_disjunction(const RE_Matcher* re1, const RE_Matcher* re2);
 
-	} // namespace detail
+} // namespace detail
 
 class RE_Matcher final
-	{
+{
 public:
 	RE_Matcher();
 	explicit RE_Matcher(const char* pat);
@@ -250,6 +250,6 @@ protected:
 
 	bool is_case_insensitive = false;
 	bool is_single_line = false;
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

@@ -9,23 +9,23 @@
 #include "Obj.h"
 
 namespace zeek
-	{
+{
 
 /**
  * A tag class for the #IntrusivePtr constructor which means: adopt
  * the reference from the caller.
  */
 struct AdoptRef
-	{
-	};
+{
+};
 
 /**
  * A tag class for the #IntrusivePtr constructor which means: create a
  * new reference to the object.
  */
 struct NewRef
-	{
-	};
+{
+};
 
 /**
  * This has to be forward declared and known here in order for us to be able
@@ -56,7 +56,7 @@ class OpaqueVal;
  * increase robustness of the code (in particular w.r.t. exceptions).
  */
 template <class T> class IntrusivePtr
-	{
+{
 public:
 	// -- member types
 
@@ -75,9 +75,9 @@ public:
 	constexpr IntrusivePtr() noexcept = default;
 
 	constexpr IntrusivePtr(std::nullptr_t) noexcept : IntrusivePtr()
-		{
+	{
 		// nop
-		}
+	}
 
 	/**
 	 * Constructs a new intrusive pointer for managing the lifetime of the object
@@ -98,44 +98,44 @@ public:
 	 * @param raw_ptr Pointer to the shared object.
 	 */
 	IntrusivePtr(NewRef, pointer raw_ptr) noexcept : ptr_(raw_ptr)
-		{
+	{
 		if ( ptr_ )
 			Ref(ptr_);
-		}
+	}
 
 	IntrusivePtr(IntrusivePtr&& other) noexcept : ptr_(other.release())
-		{
+	{
 		// nop
-		}
+	}
 
 	IntrusivePtr(const IntrusivePtr& other) noexcept : IntrusivePtr(NewRef{}, other.get()) { }
 
 	template <class U, class = std::enable_if_t<std::is_convertible_v<U*, T*>>>
 	IntrusivePtr(IntrusivePtr<U> other) noexcept : ptr_(other.release())
-		{
+	{
 		// nop
-		}
+	}
 
 	~IntrusivePtr()
-		{
+	{
 		if ( ptr_ )
-			{
+		{
 			// Specializing `OpaqueVal` as MSVC compiler does not detect it
 			// inheriting from `zeek::Obj` so we have to do that manually.
 			if constexpr ( std::is_same_v<T, OpaqueVal> )
 				Unref(reinterpret_cast<zeek::Obj*>(ptr_));
 			else
 				Unref(ptr_);
-			}
 		}
+	}
 
 	void swap(IntrusivePtr& other) noexcept { std::swap(ptr_, other.ptr_); }
 
 	friend void swap(IntrusivePtr& a, IntrusivePtr& b) noexcept
-		{
+	{
 		using std::swap;
 		swap(a.ptr_, b.ptr_);
-		}
+	}
 
 	/**
 	 * Detaches an object from the automated lifetime management and sets this
@@ -145,27 +145,27 @@ public:
 	pointer release() noexcept { return std::exchange(ptr_, nullptr); }
 
 	IntrusivePtr& operator=(const IntrusivePtr& other) noexcept
-		{
+	{
 		IntrusivePtr tmp{other};
 		swap(tmp);
 		return *this;
-		}
+	}
 
 	IntrusivePtr& operator=(IntrusivePtr&& other) noexcept
-		{
+	{
 		swap(other);
 		return *this;
-		}
+	}
 
 	IntrusivePtr& operator=(std::nullptr_t) noexcept
-		{
+	{
 		if ( ptr_ )
-			{
+		{
 			Unref(ptr_);
 			ptr_ = nullptr;
-			}
-		return *this;
 		}
+		return *this;
+	}
 
 	pointer get() const noexcept { return ptr_; }
 
@@ -179,7 +179,7 @@ public:
 
 private:
 	pointer ptr_ = nullptr;
-	};
+};
 
 /**
  * Convenience function for creating a reference counted object and wrapping it
@@ -190,10 +190,10 @@ private:
  * @relates IntrusivePtr
  */
 template <class T, class... Ts> IntrusivePtr<T> make_intrusive(Ts&&... args)
-	{
+{
 	// Assumes that objects start with a reference count of 1!
 	return {AdoptRef{}, new T(std::forward<Ts>(args)...)};
-	}
+}
 
 /**
  * Casts an @c IntrusivePtr object to another by way of static_cast on
@@ -202,9 +202,9 @@ template <class T, class... Ts> IntrusivePtr<T> make_intrusive(Ts&&... args)
  * @return  The pointer, as cast to type @c T.
  */
 template <class T, class U> IntrusivePtr<T> cast_intrusive(IntrusivePtr<U> p) noexcept
-	{
+{
 	return {AdoptRef{}, static_cast<T*>(p.release())};
-	}
+}
 
 // -- comparison to nullptr ----------------------------------------------------
 
@@ -212,33 +212,33 @@ template <class T, class U> IntrusivePtr<T> cast_intrusive(IntrusivePtr<U> p) no
  * @relates IntrusivePtr
  */
 template <class T> bool operator==(const zeek::IntrusivePtr<T>& x, std::nullptr_t)
-	{
+{
 	return ! x;
-	}
+}
 
 /**
  * @relates IntrusivePtr
  */
 template <class T> bool operator==(std::nullptr_t, const zeek::IntrusivePtr<T>& x)
-	{
+{
 	return ! x;
-	}
+}
 
 /**
  * @relates IntrusivePtr
  */
 template <class T> bool operator!=(const zeek::IntrusivePtr<T>& x, std::nullptr_t)
-	{
+{
 	return static_cast<bool>(x);
-	}
+}
 
 /**
  * @relates IntrusivePtr
  */
 template <class T> bool operator!=(std::nullptr_t, const zeek::IntrusivePtr<T>& x)
-	{
+{
 	return static_cast<bool>(x);
-	}
+}
 
 // -- comparison to raw pointer ------------------------------------------------
 
@@ -246,33 +246,33 @@ template <class T> bool operator!=(std::nullptr_t, const zeek::IntrusivePtr<T>& 
  * @relates IntrusivePtr
  */
 template <class T> bool operator==(const zeek::IntrusivePtr<T>& x, const T* y)
-	{
+{
 	return x.get() == y;
-	}
+}
 
 /**
  * @relates IntrusivePtr
  */
 template <class T> bool operator==(const T* x, const zeek::IntrusivePtr<T>& y)
-	{
+{
 	return x == y.get();
-	}
+}
 
 /**
  * @relates IntrusivePtr
  */
 template <class T> bool operator!=(const zeek::IntrusivePtr<T>& x, const T* y)
-	{
+{
 	return x.get() != y;
-	}
+}
 
 /**
  * @relates IntrusivePtr
  */
 template <class T> bool operator!=(const T* x, const zeek::IntrusivePtr<T>& y)
-	{
+{
 	return x != y.get();
-	}
+}
 
 // -- comparison to intrusive pointer ------------------------------------------
 
@@ -285,9 +285,9 @@ template <class T> bool operator!=(const T* x, const zeek::IntrusivePtr<T>& y)
 template <class T, class U>
 auto operator==(const zeek::IntrusivePtr<T>& x, const zeek::IntrusivePtr<U>& y)
 	-> decltype(x.get() == y.get())
-	{
+{
 	return x.get() == y.get();
-	}
+}
 
 /**
  * @relates IntrusivePtr
@@ -295,22 +295,22 @@ auto operator==(const zeek::IntrusivePtr<T>& x, const zeek::IntrusivePtr<U>& y)
 template <class T, class U>
 auto operator!=(const zeek::IntrusivePtr<T>& x, const zeek::IntrusivePtr<U>& y)
 	-> decltype(x.get() != y.get())
-	{
+{
 	return x.get() != y.get();
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek
 
 // -- hashing ------------------------------------------------
 
 namespace std
-	{
+{
 template <class T> struct hash<zeek::IntrusivePtr<T>>
-	{
+{
 	// Hash of intrusive pointer is the same as hash of the raw pointer it holds.
 	size_t operator()(const zeek::IntrusivePtr<T>& v) const noexcept
-		{
+	{
 		return std::hash<T*>{}(v.get());
-		}
-	};
 	}
+};
+}

@@ -7,14 +7,14 @@
 #include "zeek/threading/MsgThread.h"
 
 namespace zeek
-	{
+{
 namespace threading
-	{
+{
 namespace detail
-	{
+{
 
 class HeartbeatTimer final : public zeek::detail::Timer
-	{
+{
 public:
 	HeartbeatTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_THREAD_HEARTBEAT) { }
 	virtual ~HeartbeatTimer() { }
@@ -23,9 +23,9 @@ public:
 
 protected:
 	void Init();
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 /**
  * The thread manager coordinates all child threads. Once a BasicThread is
@@ -38,7 +38,7 @@ protected:
  * the rest of Zeek. It also triggers the regular heartbeats.
  */
 class Manager
-	{
+{
 public:
 	/**
 	 * Constructor. Only a single instance of the manager must be
@@ -156,9 +156,9 @@ private:
 	msg_stats_list stats;
 
 	bool heartbeat_timer_running = false;
-	};
+};
 
-	} // namespace threading
+} // namespace threading
 
 /**
  * A singleton instance of the thread manager. All methods must only be
@@ -166,4 +166,4 @@ private:
  */
 extern threading::Manager* thread_mgr;
 
-	} // namespace zeek
+} // namespace zeek

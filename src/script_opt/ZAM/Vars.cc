@@ -9,10 +9,10 @@
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail
-	{
+{
 
 bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
-	{
+{
 	if ( ! ud->HasUsage(where) )
 		return true;
 
@@ -22,23 +22,23 @@ bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
 	// all of the uses of the given identifier.
 
 	return ! usage || ! usage->HasID(id.get());
-	}
+}
 
 bool ZAMCompiler::IsCapture(const ID* id) const
-	{
+{
 	const auto& c = pf->CapturesOffsets();
 	return c.find(id) != c.end();
-	}
+}
 
 int ZAMCompiler::CaptureOffset(const ID* id) const
-	{
+{
 	auto id_offset = pf->CapturesOffsets().find(id);
 	ASSERT(id_offset != pf->CapturesOffsets().end());
 	return id_offset->second;
-	}
+}
 
 void ZAMCompiler::LoadParam(const ID* id)
-	{
+{
 	if ( id->IsType() )
 		reporter->InternalError(
 			"don't know how to compile local variable that's a type not a value");
@@ -56,10 +56,10 @@ void ZAMCompiler::LoadParam(const ID* id)
 	z.op_type = OP_VV_FRAME;
 
 	(void)AddInst(z);
-	}
+}
 
 const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id)
-	{
+{
 	ZOp op;
 
 	if ( id->IsType() )
@@ -80,10 +80,10 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id)
 	z.aux->id_val = {NewRef{}, const_cast<ID*>(id)};
 
 	return AddInst(z, true);
-	}
+}
 
 const ZAMStmt ZAMCompiler::LoadCapture(const ID* id)
-	{
+{
 	ZOp op;
 
 	if ( ZVal::IsManagedType(id->GetType()) )
@@ -97,17 +97,17 @@ const ZAMStmt ZAMCompiler::LoadCapture(const ID* id)
 	z.op_type = OP_VV_I2;
 
 	return AddInst(z, true);
-	}
+}
 
 int ZAMCompiler::AddToFrame(const ID* id)
-	{
+{
 	frame_layout1[id] = frame_sizeI;
 	frame_denizens.push_back(id);
 	return frame_sizeI++;
-	}
+}
 
 int ZAMCompiler::FrameSlot(const ID* id)
-	{
+{
 	auto slot = RawSlot(id);
 
 	if ( id->IsGlobal() )
@@ -117,10 +117,10 @@ int ZAMCompiler::FrameSlot(const ID* id)
 		(void)LoadCapture(id);
 
 	return slot;
-	}
+}
 
 int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
-	{
+{
 	if ( fl == OP1_READ )
 		return FrameSlot(id);
 
@@ -144,25 +144,25 @@ int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 	ASSERT(pending_global_store == -1 || pending_capture_store == -1);
 
 	return slot;
-	}
+}
 
 int ZAMCompiler::RawSlot(const ID* id)
-	{
+{
 	auto id_slot = frame_layout1.find(id);
 
 	if ( id_slot == frame_layout1.end() )
 		reporter->InternalError("ID %s missing from frame layout", id->Name());
 
 	return id_slot->second;
-	}
+}
 
 bool ZAMCompiler::HasFrameSlot(const ID* id) const
-	{
+{
 	return frame_layout1.find(id) != frame_layout1.end();
-	}
+}
 
 int ZAMCompiler::NewSlot(bool is_managed)
-	{
+{
 	char buf[8192];
 	snprintf(buf, sizeof buf, "#internal-%d#", frame_sizeI);
 
@@ -175,10 +175,10 @@ int ZAMCompiler::NewSlot(bool is_managed)
 	internal_reg->SetType(base_type(tag));
 
 	return AddToFrame(internal_reg);
-	}
+}
 
 int ZAMCompiler::TempForConst(const ConstExpr* c)
-	{
+{
 	auto slot = NewSlot(c->GetType());
 
 	auto z = ZInstI(OP_ASSIGN_CONST_VC, slot, c);
@@ -186,6 +186,6 @@ int ZAMCompiler::TempForConst(const ConstExpr* c)
 	(void)AddInst(z);
 
 	return slot;
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

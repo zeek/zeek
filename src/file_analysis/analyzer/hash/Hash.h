@@ -11,13 +11,13 @@
 #include "zeek/file_analysis/analyzer/hash/events.bif.h"
 
 namespace zeek::file_analysis::detail
-	{
+{
 
 /**
  * An analyzer to produce a hash of file contents.
  */
 class Hash : public file_analysis::Analyzer
-	{
+{
 public:
 	/**
 	 * Destructor.
@@ -67,13 +67,13 @@ private:
 	HashVal* hash;
 	bool fed;
 	StringValPtr kind;
-	};
+};
 
 /**
  * An analyzer to produce an MD5 hash of file contents.
  */
 class MD5 final : public Hash
-	{
+{
 public:
 	/**
 	 * Create a new instance of the MD5 hashing file analyzer.
@@ -83,9 +83,9 @@ public:
 	 *         handler for the "file_hash" event.
 	 */
 	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file)
-		{
+	{
 		return file_hash ? new MD5(std::move(args), file) : nullptr;
-		}
+	}
 
 private:
 	/**
@@ -95,17 +95,17 @@ private:
 	 */
 	MD5(RecordValPtr args, file_analysis::File* file)
 		: Hash(std::move(args), file, new MD5Val(), MD5::kind_val)
-		{
-		}
+	{
+	}
 
 	static StringValPtr kind_val;
-	};
+};
 
 /**
  * An analyzer to produce a SHA1 hash of file contents.
  */
 class SHA1 final : public Hash
-	{
+{
 public:
 	/**
 	 * Create a new instance of the SHA1 hashing file analyzer.
@@ -115,9 +115,9 @@ public:
 	 *         handler for the "file_hash" event.
 	 */
 	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file)
-		{
+	{
 		return file_hash ? new SHA1(std::move(args), file) : nullptr;
-		}
+	}
 
 private:
 	/**
@@ -127,17 +127,17 @@ private:
 	 */
 	SHA1(RecordValPtr args, file_analysis::File* file)
 		: Hash(std::move(args), file, new SHA1Val(), SHA1::kind_val)
-		{
-		}
+	{
+	}
 
 	static StringValPtr kind_val;
-	};
+};
 
 /**
  * An analyzer to produce a SHA256 hash of file contents.
  */
 class SHA256 final : public Hash
-	{
+{
 public:
 	/**
 	 * Create a new instance of the SHA256 hashing file analyzer.
@@ -147,9 +147,9 @@ public:
 	 *         handler for the "file_hash" event.
 	 */
 	static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file)
-		{
+	{
 		return file_hash ? new SHA256(std::move(args), file) : nullptr;
-		}
+	}
 
 private:
 	/**
@@ -159,10 +159,10 @@ private:
 	 */
 	SHA256(RecordValPtr args, file_analysis::File* file)
 		: Hash(std::move(args), file, new SHA256Val(), SHA256::kind_val)
-		{
-		}
+	{
+	}
 
 	static StringValPtr kind_val;
-	};
+};
 
-	} // namespace zeek::file_analysis
+} // namespace zeek::file_analysis

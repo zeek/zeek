@@ -6,12 +6,12 @@
 #include "zeek/RE.h"
 
 namespace zeek::detail
-	{
+{
 
 FixedCatArg::FixedCatArg(const TypePtr& _t) : t(_t)
-	{
+{
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 			max_size = 1;
 			break;
@@ -30,13 +30,13 @@ FixedCatArg::FixedCatArg(const TypePtr& _t) : t(_t)
 			break;
 
 		case TYPE_ENUM:
-			{
+		{
 			size_t n = 0;
 			for ( const auto& e : t->AsEnumType()->Names() )
 				n += e.first.size();
 			max_size = n;
 			break;
-			}
+		}
 
 		case TYPE_PORT:
 			max_size = 5 + 1 + 7; // <number> + / + "unknown
@@ -52,18 +52,18 @@ FixedCatArg::FixedCatArg(const TypePtr& _t) : t(_t)
 
 		default:
 			reporter->InternalError("bad type in FixedCatArg constructor");
-		}
 	}
+}
 
 void FixedCatArg::RenderInto(ZVal* zframe, int slot, char*& res)
-	{
+{
 	auto& z = zframe[slot];
 	int n;
 	const char* text;
 	std::string str;
 
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 			*(res++) = z.AsInt() ? 'T' : 'F';
 			break;
@@ -99,38 +99,38 @@ void FixedCatArg::RenderInto(ZVal* zframe, int slot, char*& res)
 			break;
 
 		case TYPE_PORT:
-			{
+		{
 			uint32_t full_p = static_cast<uint32_t>(z.AsCount());
 			zeek_uint_t p = full_p & ~PORT_SPACE_MASK;
 			n = modp_ulitoa10(p, res);
 			res += n;
 
 			if ( (full_p & TCP_PORT_MASK) == TCP_PORT_MASK )
-				{
+			{
 				strcpy(res, "/tcp");
 				res += 4;
-				}
+			}
 
 			else if ( (full_p & UDP_PORT_MASK) == UDP_PORT_MASK )
-				{
+			{
 				strcpy(res, "/udp");
 				res += 4;
-				}
+			}
 
 			else if ( (full_p & ICMP_PORT_MASK) == ICMP_PORT_MASK )
-				{
+			{
 				strcpy(res, "/icmp");
 				res += 5;
-				}
+			}
 
 			else
-				{
+			{
 				strcpy(res, "/unknown");
 				res += 8;
-				}
+			}
 
 			break;
-			}
+		}
 
 		case TYPE_ADDR:
 			str = z.AsAddr()->Get().AsString();
@@ -146,14 +146,14 @@ void FixedCatArg::RenderInto(ZVal* zframe, int slot, char*& res)
 
 		default:
 			reporter->InternalError("bad type in FixedCatArg::RenderInto");
-		}
 	}
+}
 
 size_t PatternCatArg::ComputeMaxSize(ZVal* zframe, int slot)
-	{
+{
 	text = zframe[slot].AsPattern()->AsPattern()->PatternText();
 	n = strlen(text);
 	return n;
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

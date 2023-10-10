@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/http/HTTP.h"
 
 namespace zeek::plugin::detail::Zeek_HTTP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"HTTP", zeek::analyzer::http::HTTP_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::HTTP";
 		config.description = "HTTP analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_HTTP
+} // namespace zeek::plugin::detail::Zeek_HTTP

@@ -9,7 +9,7 @@
 #include "zeek/zeekygen/Target.h"
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 class Info;
 
@@ -20,7 +20,7 @@ class Info;
  * a tab-delimited list of target-type, target-pattern, and target-output-file.
  */
 class Config
-	{
+{
 
 public:
 	/**
@@ -57,6 +57,6 @@ private:
 	std::string file;
 	std::vector<Target*> targets;
 	TargetFactory target_factory;
-	};
+};
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

@@ -5,10 +5,10 @@
 #include <cstring>
 
 namespace zeek::detail
-	{
+{
 
 void IntSet::Expand(unsigned int i)
-	{
+{
 	unsigned int newsize = i / 8 + 1;
 	unsigned char* newset = new unsigned char[newsize];
 
@@ -18,6 +18,6 @@ void IntSet::Expand(unsigned int i)
 	delete[] set;
 	size = newsize;
 	set = newset;
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

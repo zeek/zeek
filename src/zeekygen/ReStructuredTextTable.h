@@ -6,13 +6,13 @@
 #include <vector>
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 /**
  * A reST table with arbitrary number of columns.
  */
 class ReStructuredTextTable
-	{
+{
 public:
 	/**
 	 * Create the reST table object.
@@ -44,6 +44,6 @@ private:
 	size_t num_cols;
 	std::vector<std::vector<std::string>> rows;
 	std::vector<size_t> longest_row_in_column;
-	};
+};
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

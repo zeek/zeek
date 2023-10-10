@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/nflog/NFLog.h"
 
 namespace zeek::plugin::Zeek_NFLog
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"NFLog", zeek::packet_analysis::NFLog::NFLogAnalyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::NFLog";
 		config.description = "NFLog packet analyzer";
 		return config;
-		}
-	} plugin;
-
 	}
+} plugin;
+
+}

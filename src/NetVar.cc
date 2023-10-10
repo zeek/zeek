@@ -106,7 +106,7 @@ zeek::StringVal* cmd_line_bpf_filter;
 zeek::StringVal* global_hash_seed;
 
 namespace zeek::detail
-	{
+{
 
 int watchdog_interval;
 
@@ -194,29 +194,29 @@ zeek_uint_t bits_per_uid;
 
 zeek_uint_t tunnel_max_changes_per_connection;
 
-	} // namespace zeek::detail. The namespace has be closed here before we include the netvar_def
-	  // files.
+} // namespace zeek::detail. The namespace has be closed here before we include the netvar_def
+  // files.
 
 // Because of how the BIF include files are built with namespaces already in them,
 // these files need to be included separately before the namespace is opened below.
 
 static void bif_init_event_handlers()
-	{
+{
 #include "event.bif.netvar_init"
-	}
+}
 
 static void bif_init_net_var()
-	{
+{
 #include "const.bif.netvar_init"
 #include "packet_analysis.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
-	}
+}
 
 static void init_bif_types()
-	{
+{
 #include "types.bif.netvar_init"
-	}
+}
 
 #include "const.bif.netvar_def"
 #include "event.bif.netvar_def"
@@ -227,15 +227,15 @@ static void init_bif_types()
 
 // Re-open the namespace now that the bif headers are all included.
 namespace zeek::detail
-	{
+{
 
 void init_event_handlers()
-	{
+{
 	bif_init_event_handlers();
-	}
+}
 
 void init_general_global_var()
-	{
+{
 	table_expire_interval = id::find_val("table_expire_interval")->AsInterval();
 	table_expire_delay = id::find_val("table_expire_delay")->AsInterval();
 	table_incremental_step = id::find_val("table_incremental_step")->AsCount();
@@ -244,16 +244,16 @@ void init_general_global_var()
 	check_for_unused_event_handlers = id::find_val("check_for_unused_event_handlers")->AsBool();
 	record_all_packets = id::find_val("record_all_packets")->AsBool();
 	bits_per_uid = id::find_val("bits_per_uid")->AsCount();
-	}
+}
 
 void init_builtin_types()
-	{
+{
 	init_bif_types();
 	id::detail::init_types();
-	}
+}
 
 void init_net_var()
-	{
+{
 	bif_init_net_var();
 
 	ignore_checksums = id::find_val("ignore_checksums")->AsBool();
@@ -347,6 +347,6 @@ void init_net_var()
 
 	tunnel_max_changes_per_connection =
 		id::find_val("Tunnel::max_changes_per_connection")->AsCount();
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

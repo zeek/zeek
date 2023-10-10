@@ -24,7 +24,7 @@
 using namespace std::string_literals;
 
 namespace zeek
-	{
+{
 
 // This constructor forces the user to specify arg_final_NUL.  When str
 // is a *normal* NUL-terminated string, make arg_n == strlen(str) and
@@ -32,38 +32,38 @@ namespace zeek
 // arg_final_NUL == 0.
 
 String::String(bool arg_final_NUL, byte_vec str, int arg_n)
-	{
+{
 	b = str;
 	n = arg_n;
 	final_NUL = arg_final_NUL;
 	use_free_to_delete = false;
-	}
+}
 
 String::String(const u_char* str, int arg_n, bool add_NUL) : String()
-	{
+{
 	Set(str, arg_n, add_NUL);
-	}
+}
 
 String::String(std::string_view str) : String()
-	{
+{
 	Set(str);
-	}
+}
 
 String::String(const String& bs) : String()
-	{
+{
 	*this = bs;
-	}
+}
 
 String::String()
-	{
+{
 	b = nullptr;
 	n = 0;
 	final_NUL = false;
 	use_free_to_delete = false;
-	}
+}
 
 void String::Reset()
-	{
+{
 	if ( use_free_to_delete )
 		free(b);
 	else
@@ -73,10 +73,10 @@ void String::Reset()
 	n = 0;
 	final_NUL = false;
 	use_free_to_delete = false;
-	}
+}
 
 const String& String::operator=(const String& bs)
-	{
+{
 	if ( this == &bs )
 		return *this;
 
@@ -90,38 +90,38 @@ const String& String::operator=(const String& bs)
 	final_NUL = true;
 	use_free_to_delete = false;
 	return *this;
-	}
+}
 
 bool String::operator==(const String& bs) const
-	{
+{
 	return Bstr_eq(this, &bs);
-	}
+}
 
 bool String::operator<(const String& bs) const
-	{
+{
 	return Bstr_cmp(this, &bs) < 0;
-	}
+}
 
 bool String::operator==(std::string_view s) const
-	{
+{
 	if ( static_cast<size_t>(n) != s.size() )
 		return false;
 
 	if ( b == nullptr )
-		{
+	{
 		return s.size() == 0;
-		}
+	}
 
 	return (memcmp(b, s.data(), n) == 0);
-	}
+}
 
 bool String::operator!=(std::string_view s) const
-	{
+{
 	return ! (*this == s);
-	}
+}
 
 void String::Adopt(byte_vec bytes, int len)
-	{
+{
 	Reset();
 
 	b = bytes;
@@ -130,10 +130,10 @@ void String::Adopt(byte_vec bytes, int len)
 	// a final NUL and adjust the length accordingly.
 	final_NUL = (b[len - 1] == '\0');
 	n = len - final_NUL;
-	}
+}
 
 void String::Set(const u_char* str, int len, bool add_NUL)
-	{
+{
 	Reset();
 
 	n = len;
@@ -145,37 +145,37 @@ void String::Set(const u_char* str, int len, bool add_NUL)
 		b[n] = 0;
 
 	use_free_to_delete = false;
-	}
+}
 
 void String::Set(std::string_view str)
-	{
+{
 	Reset();
 
 	if ( ! str.empty() )
-		{
+	{
 		n = str.size();
 		b = new u_char[n + 1];
 		memcpy(b, str.data(), n);
 		b[n] = 0;
 		final_NUL = true;
 		use_free_to_delete = false;
-		}
 	}
+}
 
 void String::Set(const String& str)
-	{
+{
 	*this = str;
-	}
+}
 
 const char* String::CheckString() const
-	{
+{
 	void* nulTerm;
 	if ( n == 0 )
 		return "";
 
 	nulTerm = memchr(b, '\0', n + final_NUL);
 	if ( nulTerm != &b[n] )
-		{
+	{
 		// Either an embedded NUL, or no final NUL.
 		char* exp_s = Render();
 
@@ -186,34 +186,34 @@ const char* String::CheckString() const
 
 		delete[] exp_s;
 		return "<string-with-NUL>";
-		}
-
-	return (const char*)b;
 	}
 
+	return (const char*)b;
+}
+
 char* String::Render(int format, int* len) const
-	{
+{
 	// Maximum character expansion is as \xHH, so a factor of 4.
 	char* s = new char[n * 4 + 1]; // +1 is for final '\0'
 	char* sp = s;
 	int tmp_len;
 
 	for ( int i = 0; i < n; ++i )
-		{
+	{
 		if ( b[i] == '\\' && (format & ESC_ESC) )
-			{
+		{
 			*sp++ = '\\';
 			*sp++ = '\\';
-			}
+		}
 
 		else if ( (b[i] == '\'' || b[i] == '"') && (format & ESC_QUOT) )
-			{
+		{
 			*sp++ = '\\';
 			*sp++ = b[i];
-			}
+		}
 
 		else if ( (b[i] < ' ' || b[i] > 126) && (format & ESC_HEX) )
-			{
+		{
 			char hex_fmt[16];
 
 			*sp++ = '\\';
@@ -221,50 +221,50 @@ char* String::Render(int format, int* len) const
 			snprintf(hex_fmt, 16, "%02x", b[i]);
 			*sp++ = hex_fmt[0];
 			*sp++ = hex_fmt[1];
-			}
+		}
 
 		else if ( (b[i] < ' ' || b[i] > 126) && (format & ESC_DOT) )
-			{
+		{
 			*sp++ = '.';
-			}
+		}
 
 		else
-			{
+		{
 			*sp++ = b[i];
-			}
 		}
+	}
 
 	*sp++ = '\0'; // NUL-terminate.
 	tmp_len = sp - s;
 
 	if ( (format & ESC_SER) )
-		{
+	{
 		char* result = new char[tmp_len + 16];
 		snprintf(result, tmp_len + 16, "%u ", tmp_len - 1);
 		tmp_len += strlen(result);
 		memcpy(result + strlen(result), s, sp - s);
 		delete[] s;
 		s = result;
-		}
+	}
 
 	if ( len )
 		*len = tmp_len;
 
 	return s;
-	}
+}
 
 std::ostream& String::Render(std::ostream& os, int format) const
-	{
+{
 	char* tmp = Render(format);
 	os << tmp;
 	delete[] tmp;
 	return os;
-	}
+}
 
 std::istream& String::Read(std::istream& is, int format)
-	{
+{
 	if ( (format & String::ESC_SER) )
-		{
+	{
 		int len;
 		is >> len; // Get the length of the string
 
@@ -276,26 +276,26 @@ std::istream& String::Read(std::istream& is, int format)
 		buf[len] = '\0'; // NUL-terminate just for safety
 
 		Adopt((u_char*)buf, len + 1);
-		}
+	}
 	else
-		{
+	{
 		std::string str;
 		is >> str;
 		Set(str);
-		}
-
-	return is;
 	}
 
+	return is;
+}
+
 void String::ToUpper()
-	{
+{
 	for ( int i = 0; i < n; ++i )
 		if ( islower(b[i]) )
 			b[i] = toupper(b[i]);
-	}
+}
 
 String* String::GetSubstring(int start, int len) const
-	{
+{
 	// This code used to live in zeek.bif's sub_bytes() routine.
 	if ( start < 0 || start > n )
 		return nullptr;
@@ -304,15 +304,15 @@ String* String::GetSubstring(int start, int len) const
 		len = n - start;
 
 	return new String(&b[start], len, true);
-	}
+}
 
 int String::FindSubstring(const String* s) const
-	{
+{
 	return util::strstr_n(n, b, s->Len(), s->Bytes());
-	}
+}
 
 String::Vec* String::Split(const String::IdxVec& indices) const
-	{
+{
 	size_t i;
 
 	if ( indices.empty() )
@@ -344,75 +344,75 @@ String::Vec* String::Split(const String::IdxVec& indices) const
 	i = 0;
 
 	for ( IdxVecIt it = idx.begin(); it != end; ++it, ++i )
-		{
+	{
 		int len = (it + 1 == end) ? -1 : idx[i + 1] - idx[i];
 		result->push_back(GetSubstring(idx[i], len));
-		}
-
-	return result;
 	}
 
+	return result;
+}
+
 VectorVal* String::VecToPolicy(Vec* vec)
-	{
+{
 	auto result = make_intrusive<VectorVal>(id::string_vec);
 
 	for ( unsigned int i = 0; i < vec->size(); ++i )
-		{
+	{
 		String* string = (*vec)[i];
 		auto val = make_intrusive<StringVal>(string->Len(), (const char*)string->Bytes());
 		result->Assign(i, std::move(val));
-		}
-
-	return result.release();
 	}
 
+	return result.release();
+}
+
 String::Vec* String::VecFromPolicy(VectorVal* vec)
-	{
+{
 	Vec* result = new Vec();
 
 	for ( unsigned int i = 0; i < vec->Size(); ++i )
-		{
+	{
 		auto v = vec->StringAt(i);
 		if ( ! v )
 			continue;
 
 		String* string = new String(*v);
 		result->push_back(string);
-		}
-
-	return result;
 	}
 
+	return result;
+}
+
 char* String::VecToString(const Vec* vec)
-	{
+{
 	std::string result("[");
 
 	for ( String::VecCIt it = vec->begin(); it != vec->end(); ++it )
-		{
+	{
 		result += (*it)->CheckString();
 		result += ",";
-		}
+	}
 
 	result += "]";
 
 	return strdup(result.c_str());
-	}
+}
 
 bool StringLenCmp::operator()(String* const& bst1, String* const& bst2)
-	{
+{
 	return _increasing ? (bst1->Len() < bst2->Len()) : (bst1->Len() > bst2->Len());
-	}
+}
 
 std::ostream& operator<<(std::ostream& os, const String& bs)
-	{
+{
 	char* tmp = bs.Render(String::EXPANDED_STRING);
 	os << tmp;
 	delete[] tmp;
 	return os;
-	}
+}
 
 int Bstr_eq(const String* s1, const String* s2)
-	{
+{
 	if ( s1->Len() != s2->Len() )
 		return 0;
 
@@ -421,10 +421,10 @@ int Bstr_eq(const String* s1, const String* s2)
 		return s1->Bytes() == s2->Bytes();
 
 	return memcmp(s1->Bytes(), s2->Bytes(), s1->Len()) == 0;
-	}
+}
 
 int Bstr_cmp(const String* s1, const String* s2)
-	{
+{
 	int n = std::min(s1->Len(), s2->Len());
 	// memcmp() arguments should never be null, so help avoid that
 	// (assuming that we only ever have null pointers when lengths are zero).
@@ -439,10 +439,10 @@ int Bstr_cmp(const String* s1, const String* s2)
 		return -1;
 	else
 		return 1;
-	}
+}
 
 String* concatenate(std::vector<data_chunk_t>& v)
-	{
+{
 	int n = v.size();
 	int len = 0;
 	int i;
@@ -453,18 +453,18 @@ String* concatenate(std::vector<data_chunk_t>& v)
 
 	char* b = data;
 	for ( i = 0; i < n; ++i )
-		{
+	{
 		memcpy(b, v[i].data, v[i].length);
 		b += v[i].length;
-		}
+	}
 
 	*b = '\0';
 
 	return new String(true, (byte_vec)data, len);
-	}
+}
 
 String* concatenate(String::CVec& v)
-	{
+{
 	int n = v.size();
 	int len = 0;
 	int i;
@@ -475,38 +475,38 @@ String* concatenate(String::CVec& v)
 
 	char* b = data;
 	for ( i = 0; i < n; ++i )
-		{
+	{
 		memcpy(b, v[i]->Bytes(), v[i]->Len());
 		b += v[i]->Len();
-		}
+	}
 	*b = '\0';
 
 	return new String(true, (byte_vec)data, len);
-	}
+}
 
 String* concatenate(String::Vec& v)
-	{
+{
 	String::CVec cv;
 
 	for ( String::VecIt it = v.begin(); it != v.end(); ++it )
 		cv.push_back(*it);
 
 	return concatenate(cv);
-	}
+}
 
 void delete_strings(std::vector<const String*>& v)
-	{
+{
 	for ( auto& elem : v )
 		delete elem;
 	v.clear();
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek
 
 TEST_SUITE_BEGIN("ZeekString");
 
 TEST_CASE("construction")
-	{
+{
 	zeek::String s1{};
 	CHECK_EQ(s1.Len(), 0);
 	CHECK_EQ(s1.Bytes(), nullptr);
@@ -551,10 +551,10 @@ TEST_CASE("construction")
 	zeek::String s10{true, text5, 6};
 	s10.SetUseFreeToDelete(1);
 	CHECK_EQ(s10.Bytes(), text5);
-	}
+}
 
 TEST_CASE("set/assignment/comparison")
-	{
+{
 	zeek::String s{"abc"};
 	CHECK_EQ(s, "abc");
 
@@ -593,10 +593,10 @@ TEST_CASE("set/assignment/comparison")
 	zeek::String s5{};
 	CHECK_LT(s5, s);
 	CHECK_FALSE(s < s5);
-	}
+}
 
 TEST_CASE("searching/modification")
-	{
+{
 	zeek::String s{"this is a test"};
 	auto* ss = s.GetSubstring(5, 4);
 	CHECK_EQ(*ss, "is a");
@@ -637,10 +637,10 @@ TEST_CASE("searching/modification")
 	for ( auto* entry : *splits )
 		delete entry;
 	delete splits;
-	}
+}
 
 TEST_CASE("rendering")
-	{
+{
 	zeek::String s1("\\abcd\'\"");
 	auto* r = s1.Render(zeek::String::ESC_ESC);
 	CHECK_EQ(std::string(r), "\\\\abcd\'\"");
@@ -685,10 +685,10 @@ TEST_CASE("rendering")
 	std::ostringstream os2;
 	s2.Render(os2, zeek::String::ESC_HEX);
 	CHECK_EQ(os2.str(), "\\x03\\x04\\x05\\x06\\\'");
-	}
+}
 
 TEST_CASE("read")
-	{
+{
 	std::string text1("5 abcde");
 	std::istringstream iss1(text1);
 	zeek::String s1{};
@@ -701,10 +701,10 @@ TEST_CASE("read")
 	// Setting to something else disables reading the serialization format
 	s2.Read(iss2, zeek::String::ESC_HEX);
 	CHECK_EQ(s2, text2);
-	}
+}
 
 TEST_CASE("misc")
-	{
+{
 	std::vector<const zeek::String*> sv = {new zeek::String{}, new zeek::String{}};
 	CHECK_EQ(sv.size(), 2);
 	zeek::delete_strings(sv);
@@ -726,6 +726,6 @@ TEST_CASE("misc")
 
 	for ( auto* entry : sv2 )
 		delete entry;
-	}
+}
 
 TEST_SUITE_END();

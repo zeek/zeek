@@ -7,22 +7,22 @@
 #define BTTRACKER_BUF 2048
 
 namespace zeek
-	{
+{
 
 class StringVal;
 
 namespace analyzer::bittorrent
-	{
+{
 
 // If the following is defined, then the analyzer will store all of
 // the headers seen in tracker messages.
 //#define BTTRACKER_STORE_HEADERS 1
 
 namespace detail
-	{
+{
 
 enum BTT_States
-	{
+{
 	BTT_REQ_GET,
 	BTT_REQ_HEADER,
 	BTT_REQ_DONE,
@@ -31,32 +31,32 @@ enum BTT_States
 	BTT_RES_HEADER,
 	BTT_RES_BODY,
 	BTT_RES_DONE
-	};
+};
 
 // "benc" = Bencode ("Bee-Encode"), per http://en.wikipedia.org/wiki/Bencode
 enum BTT_BencTypes
-	{
+{
 	BENC_TYPE_INT = 0,
 	BENC_TYPE_STR = 1,
 	BENC_TYPE_DIR = 2,
 	BENC_TYPE_LIST = 3,
 	BENC_TYPE_NONE = 10
-	};
+};
 
 enum BTT_BencStates
-	{
+{
 	BENC_STATE_EMPTY,
 	BENC_STATE_INT1,
 	BENC_STATE_INT2,
 	BENC_STATE_INT3,
 	BENC_STATE_STR1,
 	BENC_STATE_STR2,
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 class BitTorrentTracker_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit BitTorrentTracker_Analyzer(Connection* conn);
 	~BitTorrentTracker_Analyzer() override;
@@ -67,9 +67,9 @@ public:
 	void EndpointEOF(bool is_orig) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{
+	{
 		return new BitTorrentTracker_Analyzer(conn);
-		}
+	}
 
 protected:
 	void ClientRequest(int len, const u_char* data);
@@ -139,7 +139,7 @@ protected:
 
 	// True on protocol violation.
 	bool stop_orig, stop_resp;
-	};
+};
 
-	} // namespace analyzer::bittorrent
-	} // namespace zeek
+} // namespace analyzer::bittorrent
+} // namespace zeek

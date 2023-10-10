@@ -6,7 +6,7 @@
 #include "zeek/plugin/Component.h"
 
 namespace zeek::logging
-	{
+{
 
 class WriterFrontend;
 class WriterBackend;
@@ -15,7 +15,7 @@ class WriterBackend;
  * Component description for plugins providing log writers.
  */
 class Component : public plugin::Component
-	{
+{
 public:
 	using factory_callback = WriterBackend* (*)(WriterFrontend* frontend);
 
@@ -58,6 +58,6 @@ protected:
 
 private:
 	factory_callback factory;
-	};
+};
 
-	} // namespace zeek::logging
+} // namespace zeek::logging

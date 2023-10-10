@@ -6,7 +6,7 @@
 #include "zeek/plugin/Component.h"
 
 namespace zeek::input
-	{
+{
 
 class ReaderFrontend;
 class ReaderBackend;
@@ -15,7 +15,7 @@ class ReaderBackend;
  * Component description for plugins providing log readers.
  */
 class Component : public plugin::Component
-	{
+{
 public:
 	using factory_callback = ReaderBackend* (*)(ReaderFrontend* frontend);
 
@@ -58,6 +58,6 @@ protected:
 
 private:
 	factory_callback factory;
-	};
+};
 
-	} // namespace zeek::input
+} // namespace zeek::input

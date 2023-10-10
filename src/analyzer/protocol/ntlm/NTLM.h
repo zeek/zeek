@@ -7,10 +7,10 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::ntlm
-	{
+{
 
 class NTLM_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 
 public:
 	explicit NTLM_Analyzer(Connection* conn);
@@ -29,6 +29,6 @@ public:
 
 protected:
 	binpac::NTLM::NTLM_Conn* interp;
-	};
+};
 
-	} // namespace zeek::analyzer::ntlm
+} // namespace zeek::analyzer::ntlm

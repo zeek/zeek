@@ -6,13 +6,13 @@
 #include <string>
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 /**
  * Abstract base class for any thing that Zeekygen can document.
  */
 class Info
-	{
+{
 
 public:
 	/**
@@ -43,9 +43,9 @@ public:
 	 * @return A reST representation of the object and associated documentation.
 	 */
 	std::string ReStructuredText(bool roles_only = false) const
-		{
+	{
 		return DoReStructuredText(roles_only);
-		}
+	}
 
 	/**
 	 * Perform any remaining info gathering/initialization that can only be done
@@ -61,6 +61,6 @@ private:
 	virtual std::string DoReStructuredText(bool roles_only) const = 0;
 
 	virtual void DoInitPostScript() { }
-	};
+};
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

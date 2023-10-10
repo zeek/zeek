@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/arp/ARP.h"
 
 namespace zeek::plugin::Zeek_ARP
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"ARP", zeek::packet_analysis::ARP::ARPAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::ARP";
 		config.description = "ARP packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

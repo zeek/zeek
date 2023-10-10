@@ -14,14 +14,14 @@
 #include "zeek/zeekygen/Info.h"
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 class IdentifierInfo;
 
 struct IdInfoComp
-	{
+{
 	bool operator()(const IdentifierInfo* lhs, const IdentifierInfo* rhs) const;
-	};
+};
 
 using id_info_set = std::set<IdentifierInfo*, IdInfoComp>;
 using id_info_list = std::list<IdentifierInfo*>;
@@ -30,7 +30,7 @@ using id_info_list = std::list<IdentifierInfo*>;
  * Information about a Zeek script.
  */
 class ScriptInfo : public Info
-	{
+{
 
 public:
 	/**
@@ -112,6 +112,6 @@ private:
 	id_info_list hooks;
 	id_info_list functions;
 	id_info_set redefs;
-	};
+};
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

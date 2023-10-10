@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/syslog/legacy/Syslog.h"
 
 namespace zeek::plugin::detail::Zeek_Syslog
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"Syslog", zeek::analyzer::syslog::Syslog_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::Syslog";
 		config.description = "Syslog analyzer UDP-only";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_Syslog
+} // namespace zeek::plugin::detail::Zeek_Syslog

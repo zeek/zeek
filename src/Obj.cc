@@ -12,71 +12,71 @@
 #include "zeek/plugin/Manager.h"
 
 namespace zeek
-	{
+{
 namespace detail
-	{
+{
 
 Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
 
 void Location::Describe(ODesc* d) const
-	{
+{
 	if ( filename )
-		{
+	{
 		d->Add(filename);
 
 		if ( first_line == 0 )
 			return;
 
 		d->AddSP(",");
-		}
+	}
 
 	if ( last_line != first_line )
-		{
+	{
 		d->Add("lines ");
 		d->Add(first_line);
 		d->Add("-");
 		d->Add(last_line);
-		}
+	}
 	else
-		{
+	{
 		d->Add("line ");
 		d->Add(first_line);
-		}
 	}
+}
 
 bool Location::operator==(const Location& l) const
-	{
+{
 	if ( filename == l.filename || (filename && l.filename && util::streq(filename, l.filename)) )
 		return first_line == l.first_line && last_line == l.last_line;
 	else
 		return false;
-	}
+}
 
-	} // namespace detail
+} // namespace detail
 
 int Obj::suppress_errors = 0;
 
 Obj::~Obj()
-	{
+{
 	if ( notify_plugins )
 		PLUGIN_HOOK_VOID(HOOK_OBJ_DTOR, HookObjDtor(this));
 
 	delete location;
-	}
+}
 
 void Obj::Warn(const char* msg, const Obj* obj2, bool pinpoint_only,
                const detail::Location* expr_location) const
-	{
+{
 	ODesc d;
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
 	reporter->Warning("%s", d.Description());
 	reporter->PopLocation();
-	}
+}
 
 void Obj::Error(const char* msg, const Obj* obj2, bool pinpoint_only,
                 const detail::Location* expr_location) const
-	{
+{
 	if ( suppress_errors )
 		return;
 
@@ -84,10 +84,10 @@ void Obj::Error(const char* msg, const Obj* obj2, bool pinpoint_only,
 	DoMsg(&d, msg, obj2, pinpoint_only, expr_location);
 	reporter->Error("%s", d.Description());
 	reporter->PopLocation();
-	}
+}
 
 void Obj::BadTag(const char* msg, const char* t1, const char* t2) const
-	{
+{
 	char out[512];
 
 	if ( t2 )
@@ -101,10 +101,10 @@ void Obj::BadTag(const char* msg, const char* t1, const char* t2) const
 	DoMsg(&d, out);
 	reporter->FatalErrorWithCore("%s", d.Description());
 	reporter->PopLocation();
-	}
+}
 
 void Obj::Internal(const char* msg) const
-	{
+{
 	ODesc d;
 	DoMsg(&d, msg);
 	auto rcs = render_call_stack();
@@ -115,29 +115,29 @@ void Obj::Internal(const char* msg) const
 		reporter->InternalError("%s, call stack: %s", d.Description(), rcs.data());
 
 	reporter->PopLocation();
-	}
+}
 
 void Obj::InternalWarning(const char* msg) const
-	{
+{
 	ODesc d;
 	DoMsg(&d, msg);
 	reporter->InternalWarning("%s", d.Description());
 	reporter->PopLocation();
-	}
+}
 
 void Obj::AddLocation(ODesc* d) const
-	{
+{
 	if ( ! location )
-		{
+	{
 		d->Add("<no location>");
 		return;
-		}
-
-	location->Describe(d);
 	}
 
+	location->Describe(d);
+}
+
 bool Obj::SetLocationInfo(const detail::Location* start, const detail::Location* end)
-	{
+{
 	if ( ! start || ! end )
 		return false;
 
@@ -154,20 +154,20 @@ bool Obj::SetLocationInfo(const detail::Location* start, const detail::Location*
 	                                start->first_column, end->last_column);
 
 	return true;
-	}
+}
 
 void Obj::UpdateLocationEndInfo(const detail::Location& end)
-	{
+{
 	if ( ! location )
 		SetLocationInfo(&end, &end);
 
 	location->last_line = end.last_line;
 	location->last_column = end.last_column;
-	}
+}
 
 void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2, bool pinpoint_only,
                 const detail::Location* expr_location) const
-	{
+{
 	d->SetShort();
 
 	d->Add(s1);
@@ -181,38 +181,38 @@ void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2, bool pinpoint_only,
 		loc2 = expr_location;
 
 	reporter->PushLocation(GetLocationInfo(), loc2);
-	}
+}
 
 void Obj::PinPoint(ODesc* d, const Obj* obj2, bool pinpoint_only) const
-	{
+{
 	d->Add(" (");
 	Describe(d);
 	if ( obj2 && ! pinpoint_only )
-		{
+	{
 		d->Add(" and ");
 		obj2->Describe(d);
-		}
-
-	d->Add(")");
 	}
 
+	d->Add(")");
+}
+
 void Obj::Print() const
-	{
+{
 	static File fstderr(stderr);
 	ODesc d(DESC_READABLE, &fstderr);
 	Describe(&d);
 	d.Add("\n");
-	}
+}
 
 void bad_ref(int type)
-	{
+{
 	reporter->InternalError("bad reference count [%d]", type);
 	abort();
-	}
+}
 
 void obj_delete_func(void* v)
-	{
+{
 	Unref((Obj*)v);
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek

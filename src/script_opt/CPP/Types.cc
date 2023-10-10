@@ -3,17 +3,17 @@
 #include "zeek/script_opt/CPP/Compile.h"
 
 namespace zeek::detail
-	{
+{
 
 using namespace std;
 
 bool CPPCompile::IsNativeType(const TypePtr& t) const
-	{
+{
 	if ( ! t )
 		return true;
 
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 		case TYPE_COUNT:
 		case TYPE_DOUBLE:
@@ -46,11 +46,11 @@ bool CPPCompile::IsNativeType(const TypePtr& t) const
 		default:
 			reporter->InternalError("bad type in CPPCompile::IsNativeType");
 			return false;
-		}
 	}
+}
 
 string CPPCompile::NativeToGT(const string& expr, const TypePtr& t, GenType gt)
-	{
+{
 	if ( gt == GEN_DONT_CARE )
 		return expr;
 
@@ -59,7 +59,7 @@ string CPPCompile::NativeToGT(const string& expr, const TypePtr& t, GenType gt)
 
 	// Need to convert to a ValPtr.
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_VOID:
 			return expr;
 
@@ -80,27 +80,27 @@ string CPPCompile::NativeToGT(const string& expr, const TypePtr& t, GenType gt)
 
 		default:
 			return string("make_intrusive<") + IntrusiveVal(t) + ">(" + expr + ")";
-		}
 	}
+}
 
 string CPPCompile::GenericValPtrToGT(const string& expr, const TypePtr& t, GenType gt)
-	{
+{
 	if ( gt != GEN_VAL_PTR && IsNativeType(t) )
 		return expr + NativeAccessor(t);
 	else
 		return string("cast_intrusive<") + IntrusiveVal(t) + ">(" + expr + ")";
-	}
+}
 
 string CPPCompile::GenTypeName(const Type* t)
-	{
+{
 	ASSERT(processed_types.count(TypeRep(t)) > 0);
 	return types.KeyName(TypeRep(t));
-	}
+}
 
 const char* CPPCompile::TypeTagName(TypeTag tag)
-	{
+{
 	switch ( tag )
-		{
+	{
 		case TYPE_ADDR:
 			return "TYPE_ADDR";
 		case TYPE_ANY:
@@ -151,13 +151,13 @@ const char* CPPCompile::TypeTagName(TypeTag tag)
 		default:
 			reporter->InternalError("bad type in CPPCompile::TypeTagName");
 			return nullptr;
-		}
 	}
+}
 
 const char* CPPCompile::TypeName(const TypePtr& t)
-	{
+{
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 			return "bool";
 		case TYPE_COUNT:
@@ -205,16 +205,16 @@ const char* CPPCompile::TypeName(const TypePtr& t)
 		default:
 			reporter->InternalError("bad type in CPPCompile::TypeName");
 			return nullptr;
-		}
 	}
+}
 
 const char* CPPCompile::FullTypeName(const TypePtr& t)
-	{
+{
 	if ( ! t )
 		return "void";
 
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 		case TYPE_COUNT:
 		case TYPE_DOUBLE:
@@ -254,13 +254,13 @@ const char* CPPCompile::FullTypeName(const TypePtr& t)
 		default:
 			reporter->InternalError("bad type in CPPCompile::FullTypeName");
 			return nullptr;
-		}
 	}
+}
 
 const char* CPPCompile::TypeType(const TypePtr& t)
-	{
+{
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_RECORD:
 			return "RecordType";
 		case TYPE_TABLE:
@@ -271,11 +271,11 @@ const char* CPPCompile::TypeType(const TypePtr& t)
 		default:
 			reporter->InternalError("bad type in CPPCompile::TypeType");
 			return nullptr;
-		}
 	}
+}
 
 shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp)
-	{
+{
 	auto t = TypeRep(tp);
 
 	auto pt = processed_types.find(t);
@@ -287,7 +287,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp)
 	shared_ptr<CPP_InitInfo> gi;
 
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_ADDR:
 		case TYPE_ANY:
 		case TYPE_BOOL:
@@ -340,7 +340,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp)
 
 		default:
 			reporter->InternalError("bad type in CPPCompile::RegisterType");
-		}
+	}
 
 	type_info->AddInstance(gi);
 	processed_types[t] = gi;
@@ -348,12 +348,12 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp)
 	types.AddInitInfo(t, gi);
 
 	return gi;
-	}
+}
 
 const char* CPPCompile::NativeAccessor(const TypePtr& t)
-	{
+{
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 			return "->AsBool()";
 		case TYPE_COUNT:
@@ -403,13 +403,13 @@ const char* CPPCompile::NativeAccessor(const TypePtr& t)
 		default:
 			reporter->InternalError("bad type in CPPCompile::NativeAccessor");
 			return nullptr;
-		}
 	}
+}
 
 const char* CPPCompile::IntrusiveVal(const TypePtr& t)
-	{
+{
 	switch ( t->Tag() )
-		{
+	{
 		case TYPE_BOOL:
 			return "BoolVal";
 		case TYPE_COUNT:
@@ -455,7 +455,7 @@ const char* CPPCompile::IntrusiveVal(const TypePtr& t)
 		default:
 			reporter->InternalError("bad type in CPPCompile::IntrusiveVal");
 			return nullptr;
-		}
 	}
+}
 
-	} // zeek::detail
+} // zeek::detail

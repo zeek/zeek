@@ -14,29 +14,29 @@
 
 #define fatalError(...)                                                                            \
 	do                                                                                             \
-		{                                                                                          \
+	{                                                                                              \
 		if ( reporter )                                                                            \
 			reporter->FatalError(__VA_ARGS__);                                                     \
 		else                                                                                       \
-			{                                                                                      \
+		{                                                                                          \
 			fprintf(stderr, __VA_ARGS__);                                                          \
 			fprintf(stderr, "\n");                                                                 \
 			_exit(1);                                                                              \
-			}                                                                                      \
-		} while ( 0 )
+		}                                                                                          \
+	} while ( 0 )
 
 #endif
 
 namespace zeek::detail
-	{
+{
 
 Flare::Flare()
 #ifndef _MSC_VER
 	: pipe(FD_CLOEXEC, FD_CLOEXEC, O_NONBLOCK, O_NONBLOCK)
-	{
-	}
+{
+}
 #else
-	{
+{
 	WSADATA wsaData;
 	if ( WSAStartup(MAKEWORD(2, 2), &wsaData) != 0 )
 		fatalError("WSAStartup failure: %d", WSAGetLastError());
@@ -61,11 +61,11 @@ Flare::Flare()
 		fatalError("getsockname failure: %d", WSAGetLastError());
 	if ( connect(sendfd, (sockaddr*)&sa, sizeof(sa)) == SOCKET_ERROR )
 		fatalError("connect failure: %d", WSAGetLastError());
-	}
+}
 #endif
 
 [[noreturn]] static void bad_pipe_op(const char* which, bool signal_safe)
-	{
+{
 	if ( signal_safe )
 		abort();
 
@@ -75,18 +75,18 @@ Flare::Flare()
 	if ( reporter )
 		reporter->FatalErrorWithCore("unexpected pipe %s failure: %s", which, buf);
 	else
-		{
+	{
 		fprintf(stderr, "unexpected pipe %s failure: %s", which, buf);
 		abort();
-		}
 	}
+}
 
 void Flare::Fire(bool signal_safe)
-	{
+{
 	char tmp = 0;
 
 	for ( ;; )
-		{
+	{
 #ifndef _MSC_VER
 		int n = write(pipe.WriteFD(), &tmp, 1);
 
@@ -98,7 +98,7 @@ void Flare::Fire(bool signal_safe)
 			break;
 
 		if ( n < 0 )
-			{
+		{
 #ifdef _MSC_VER
 			errno = WSAGetLastError();
 			bad_pipe_op("send", signal_safe);
@@ -112,30 +112,30 @@ void Flare::Fire(bool signal_safe)
 				continue;
 
 			bad_pipe_op("write", signal_safe);
-			}
+		}
 
 		// No error, but didn't write a byte: try again.
-		}
 	}
+}
 
 int Flare::Extinguish(bool signal_safe)
-	{
+{
 	int rval = 0;
 	char tmp[256];
 
 	for ( ;; )
-		{
+	{
 #ifndef _MSC_VER
 		int n = read(pipe.ReadFD(), &tmp, sizeof(tmp));
 #else
 		int n = recv(recvfd, tmp, sizeof(tmp), 0);
 #endif
 		if ( n >= 0 )
-			{
+		{
 			rval += n;
 			// Pipe may not be empty yet: try again.
 			continue;
-			}
+		}
 #ifdef _MSC_VER
 		if ( WSAGetLastError() == WSAEWOULDBLOCK )
 			break;
@@ -151,9 +151,9 @@ int Flare::Extinguish(bool signal_safe)
 			continue;
 
 		bad_pipe_op("read", signal_safe);
-		}
-
-	return rval;
 	}
 
-	} // namespace zeek::detail
+	return rval;
+}
+
+} // namespace zeek::detail

@@ -12,12 +12,12 @@
 #include "zeek/session/Session.h"
 
 namespace zeek
-	{
+{
 
 namespace detail
-	{
+{
 class PacketFilter;
-	}
+}
 
 class EncapsulationStack;
 class Packet;
@@ -26,15 +26,15 @@ struct ConnTuple;
 class StatBlocks;
 
 namespace session
-	{
+{
 
 namespace detail
-	{
+{
 class ProtocolStats;
-	}
+}
 
 struct Stats
-	{
+{
 	size_t num_TCP_conns;
 	size_t max_TCP_conns;
 	uint64_t cumulative_TCP_conns;
@@ -50,10 +50,10 @@ struct Stats
 	size_t num_fragments;
 	size_t max_fragments;
 	uint64_t num_packets;
-	};
+};
 
 class Manager final
-	{
+{
 public:
 	Manager();
 	~Manager();
@@ -102,11 +102,11 @@ private:
 
 	SessionMap session_map;
 	detail::ProtocolStats* stats;
-	};
+};
 
-	} // namespace session
+} // namespace session
 
 // Manager for the currently active sessions.
 extern session::Manager* session_mgr;
 
-	} // namespace zeek
+} // namespace zeek

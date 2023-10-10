@@ -13,7 +13,7 @@
 #undef Queue // Defined elsewhere unfortunately.
 
 namespace zeek::threading
-	{
+{
 
 /**
  * A thread-safe single-reader single-writer queue.
@@ -27,7 +27,7 @@ namespace zeek::threading
  * optimize it further if helpful.
  */
 template <typename T> class Queue
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -86,10 +86,10 @@ public:
 	 * Statistics about inter-thread communication.
 	 */
 	struct Stats
-		{
+	{
 		uint64_t num_reads; //! Number of messages read from the queue.
 		uint64_t num_writes; //! Number of messages written to the queue.
-		};
+	};
 
 	/**
 	 * Returns statistics about the queue's usage.
@@ -117,45 +117,45 @@ private:
 	// Statistics.
 	uint64_t num_reads;
 	uint64_t num_writes;
-	};
+};
 
 inline static std::unique_lock<std::mutex> acquire_lock(std::mutex& m)
-	{
+{
 	try
-		{
+	{
 		return std::unique_lock<std::mutex>(m);
-		}
+	}
 	catch ( const std::system_error& e )
-		{
+	{
 		reporter->FatalErrorWithCore("cannot lock mutex: %s", e.what());
 		// Never gets here.
 		throw std::exception();
-		}
 	}
+}
 
 template <typename T> inline Queue<T>::Queue(BasicThread* arg_reader, BasicThread* arg_writer)
-	{
+{
 	read_ptr = 0;
 	write_ptr = 0;
 	num_reads = num_writes = 0;
 	reader = arg_reader;
 	writer = arg_writer;
-	}
+}
 
 template <typename T> inline Queue<T>::~Queue() { }
 
 template <typename T> inline T Queue<T>::Get()
-	{
+{
 	auto lock = acquire_lock(mutex[read_ptr]);
 
 	int old_read_ptr = read_ptr;
 
 	if ( messages[read_ptr].empty() &&
 	     ! ((reader && reader->Killed()) || (writer && writer->Killed())) )
-		{
+	{
 		if ( has_data[read_ptr].wait_for(lock, std::chrono::seconds(5)) == std::cv_status::timeout )
 			return nullptr;
-		}
+	}
 
 	if ( messages[read_ptr].empty() )
 		return nullptr;
@@ -167,10 +167,10 @@ template <typename T> inline T Queue<T>::Get()
 	++num_reads;
 
 	return data;
-	}
+}
 
 template <typename T> inline void Queue<T>::Put(T data)
-	{
+{
 	auto lock = acquire_lock(mutex[write_ptr]);
 
 	int old_write_ptr = write_ptr;
@@ -183,43 +183,43 @@ template <typename T> inline void Queue<T>::Put(T data)
 	++num_writes;
 
 	if ( need_signal )
-		{
+	{
 		lock.unlock();
 		has_data[old_write_ptr].notify_one();
-		}
 	}
+}
 
 template <typename T> inline bool Queue<T>::Ready()
-	{
+{
 	auto lock = acquire_lock(mutex[read_ptr]);
 
 	bool ret = (messages[read_ptr].size());
 
 	return ret;
-	}
+}
 
 template <typename T> inline std::vector<std::unique_lock<std::mutex>> Queue<T>::LocksForAllQueues()
-	{
+{
 	std::vector<std::unique_lock<std::mutex>> locks;
 
 	try
-		{
+	{
 		for ( int i = 0; i < NUM_QUEUES; i++ )
 			locks.emplace_back(std::unique_lock<std::mutex>(mutex[i]));
-		}
+	}
 
 	catch ( const std::system_error& e )
-		{
+	{
 		reporter->FatalErrorWithCore("cannot lock all mutexes: %s", e.what());
 		// Never gets here.
 		throw std::exception();
-		}
-
-	return locks;
 	}
 
+	return locks;
+}
+
 template <typename T> inline uint64_t Queue<T>::Size()
-	{
+{
 	// Need to lock all queues.
 	auto locks = LocksForAllQueues();
 
@@ -229,25 +229,25 @@ template <typename T> inline uint64_t Queue<T>::Size()
 		size += messages[i].size();
 
 	return size;
-	}
+}
 
 template <typename T> inline void Queue<T>::GetStats(Stats* stats)
-	{
+{
 	// To be safe, we look all queues. That's probably unnecessary, but
 	// doesn't really hurt.
 	auto locks = LocksForAllQueues();
 
 	stats->num_reads = num_reads;
 	stats->num_writes = num_writes;
-	}
+}
 
 template <typename T> inline void Queue<T>::WakeUp()
-	{
+{
 	for ( int i = 0; i < NUM_QUEUES; i++ )
-		{
+	{
 		auto lock = acquire_lock(mutex[i]);
 		has_data[i].notify_all();
-		}
 	}
+}
 
-	} // namespace zeek::threading
+} // namespace zeek::threading

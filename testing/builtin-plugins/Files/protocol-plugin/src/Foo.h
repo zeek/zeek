@@ -5,18 +5,18 @@
 #include "analyzer/protocol/tcp/TCP.h"
 
 namespace binpac
-	{
+{
 namespace Foo
-	{
+{
 class Foo_Conn;
-	}
-	}
+}
+}
 
 namespace btest::plugin::Demo_Foo
-	{
+{
 
 class Foo : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	Foo(zeek::Connection* conn);
 	~Foo();
@@ -30,6 +30,6 @@ public:
 
 protected:
 	binpac::Foo::Foo_Conn* interp;
-	};
+};
 
-	}
+}

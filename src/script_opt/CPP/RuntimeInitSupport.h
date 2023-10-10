@@ -9,27 +9,27 @@
 #include "zeek/script_opt/CPP/Func.h"
 
 namespace zeek
-	{
+{
 
 using FuncValPtr = IntrusivePtr<zeek::FuncVal>;
 
 namespace detail
-	{
+{
 
 // A version of TableType that allows us to first build a "stub" and
 // then fill in its actual index & yield later - necessary for dealing
 // with recursive types.
 class CPPTableType : public TableType
-	{
+{
 public:
 	CPPTableType() : TableType(nullptr, nullptr){};
 
 	void SetIndexAndYield(TypeListPtr ind, TypePtr yield)
-		{
+	{
 		ind = std::move(indices);
 		yield_type = std::move(yield);
-		}
-	};
+	}
+};
 
 // An initialization hook for a collection of compiled-to-C++ functions
 // (the result of a single invocation of the compiler on a set of scripts).
@@ -101,5 +101,5 @@ extern EnumTypePtr get_enum_type__CPP(const std::string& enum_type_name);
 // in the context of the given enum type 't'.
 extern EnumValPtr make_enum__CPP(TypePtr t, zeek_int_t i);
 
-	} // namespace zeek::detail
-	} // namespace zeek
+} // namespace zeek::detail
+} // namespace zeek

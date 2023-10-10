@@ -6,13 +6,13 @@
 #include "zeek/file_analysis/analyzer/hash/Hash.h"
 
 namespace zeek::plugin::detail::Zeek_FileHash
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::file_analysis::Component(
 			"MD5", zeek::file_analysis::detail::MD5::Instantiate));
 		AddComponent(new zeek::file_analysis::Component(
@@ -24,7 +24,7 @@ public:
 		config.name = "Zeek::FileHash";
 		config.description = "Hash file content";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_FileHash
+} // namespace zeek::plugin::detail::Zeek_FileHash

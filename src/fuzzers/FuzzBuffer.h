@@ -5,7 +5,7 @@
 #include <optional>
 
 namespace zeek::detail
-	{
+{
 
 /**
  * This structure helps chunk/simulate protocol conversions from arbitrary
@@ -18,14 +18,14 @@ namespace zeek::detail
  * send along to an analyzers Deliver method.
  */
 class FuzzBuffer
-	{
+{
 public:
 	struct Chunk
-		{
+	{
 		std::unique_ptr<unsigned char[]> data;
 		size_t size;
 		bool is_orig;
-		};
+	};
 
 	static constexpr int PKT_MAGIC_LEN = 4;
 	static constexpr unsigned char PKT_MAGIC[PKT_MAGIC_LEN + 1] = "\1PKT";
@@ -58,9 +58,9 @@ public:
 	 * @return  Whether the FuzzBuffer exceeds the desired chunk count limit.
 	 */
 	bool ExceedsChunkLimit(int chunk_count_limit) const
-		{
+	{
 		return ChunkCount(chunk_count_limit + 1) > chunk_count_limit;
-		}
+	}
 
 	/**
 	 * @return  the next chunk to deliver, if one could be extracted
@@ -70,6 +70,6 @@ public:
 private:
 	const unsigned char* begin;
 	const unsigned char* end;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

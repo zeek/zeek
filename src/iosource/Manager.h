@@ -15,9 +15,9 @@ struct timespec;
 struct kevent;
 
 namespace zeek
-	{
+{
 namespace iosource
-	{
+{
 
 class PktSrc;
 class PktDumper;
@@ -27,14 +27,14 @@ class PktDumper;
  * in the main loop.
  */
 class Manager
-	{
+{
 public:
 	struct ReadySource
-		{
+	{
 		IOSource* src = nullptr;
 		int fd = -1;
 		int flags = 0;
-		};
+	};
 
 	using ReadySources = std::vector<ReadySource>;
 
@@ -175,7 +175,7 @@ private:
 	void RemoveAll();
 
 	class WakeupHandler final : public IOSource
-		{
+	{
 	public:
 		WakeupHandler();
 		~WakeupHandler();
@@ -195,14 +195,14 @@ private:
 
 	private:
 		zeek::detail::Flare flare;
-		};
+	};
 
 	struct Source
-		{
+	{
 		IOSource* src = nullptr;
 		bool dont_count = false;
 		bool manage_lifetime = false;
-		};
+	};
 
 	using SourceList = std::vector<Source*>;
 	SourceList sources;
@@ -225,10 +225,10 @@ private:
 	// This is only used for the output of the call to kqueue in FindReadySources().
 	// The actual events are stored as part of the queue.
 	std::vector<struct kevent> events;
-	};
+};
 
-	} // namespace iosource
+} // namespace iosource
 
 extern iosource::Manager* iosource_mgr;
 
-	} // namespace zeek
+} // namespace zeek

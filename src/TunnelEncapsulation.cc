@@ -7,21 +7,21 @@
 #include "zeek/util.h"
 
 namespace zeek
-	{
+{
 
 EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
 	: src_addr(c->OrigAddr()), dst_addr(c->RespAddr()), src_port(c->OrigPort()),
 	  dst_port(c->RespPort()), proto(c->ConnTransport()), type(t), uid(c->GetUID())
-	{
+{
 	if ( ! uid )
-		{
+	{
 		uid.Set(zeek::detail::bits_per_uid);
 		c->SetUID(uid);
-		}
 	}
+}
 
 RecordValPtr EncapsulatingConn::ToVal() const
-	{
+{
 	auto rv = make_intrusive<RecordVal>(BifType::Record::Tunnel::EncapsulatingConn);
 
 	auto id_val = make_intrusive<RecordVal>(id::conn_id);
@@ -35,10 +35,10 @@ RecordValPtr EncapsulatingConn::ToVal() const
 	rv->Assign(2, uid.Base62("C"));
 
 	return rv;
-	}
+}
 
 bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2)
-	{
+{
 	if ( ! e1.conns )
 		return e2.conns;
 
@@ -49,23 +49,23 @@ bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2)
 		return false;
 
 	for ( size_t i = 0; i < e1.conns->size(); ++i )
-		{
+	{
 		if ( (*e1.conns)[i] != (*e2.conns)[i] )
 			return false;
-		}
+	}
 
 	return true;
-	}
+}
 
 void EncapsulationStack::Pop()
-	{
+{
 	if ( Depth() == 0 )
-		{
+	{
 		reporter->InternalWarning("Attempted to pop from empty EncapsulationStack\n");
 		return;
-		}
-
-	conns->pop_back();
 	}
 
-	} // namespace zeek
+	conns->pop_back();
+}
+
+} // namespace zeek

@@ -8,40 +8,40 @@
 #include "zeek/Hash.h"
 
 namespace broker
-	{
+{
 class data;
-	}
+}
 
 namespace zeek::probabilistic::detail
-	{
+{
 
 /** Types of derived Hasher classes. */
 enum HasherType
-	{
+{
 	Default,
 	Double
-	};
+};
 
 /**
  * Abstract base class for hashers. A hasher creates a family of hash
  * functions to hash an element *k* times.
  */
 class Hasher
-	{
+{
 public:
 	using digest = zeek::detail::hash_t;
 	using digest_vector = std::vector<digest>;
 	struct seed_t
-		{
+	{
 		// actually HH_U64, which has the same type
 		alignas(16) unsigned long long h[2];
 
 		friend seed_t operator+(seed_t lhs, const uint64_t rhs)
-			{
+		{
 			lhs.h[0] += rhs;
 			return lhs;
-			}
-		};
+		}
+	};
 
 	/**
 	 * Creates a valid hasher seed from an arbitrary string.
@@ -132,14 +132,14 @@ protected:
 private:
 	size_t k = 0;
 	seed_t seed = {0};
-	};
+};
 
 /**
  * A universal hash function family. This is a helper class that Hasher
  * implementations can use in their implementation.
  */
 class UHF
-	{
+{
 public:
 	/**
 	 * Default constructor with zero seed.
@@ -155,9 +155,9 @@ public:
 	explicit UHF(Hasher::seed_t arg_seed);
 
 	template <typename T> Hasher::digest operator()(const T& x) const
-		{
+	{
 		return hash(&x, sizeof(T));
-		}
+	}
 
 	/**
 	 * Computes hash values for an element.
@@ -181,9 +181,9 @@ public:
 	Hasher::digest hash(const void* x, size_t n) const;
 
 	friend bool operator==(const UHF& x, const UHF& y)
-		{
+	{
 		return (x.seed.h[0] == y.seed.h[0]) && (x.seed.h[1] == y.seed.h[1]);
-		}
+	}
 
 	friend bool operator!=(const UHF& x, const UHF& y) { return ! (x == y); }
 
@@ -194,14 +194,14 @@ private:
 	static size_t compute_seed(Hasher::seed_t seed);
 
 	Hasher::seed_t seed;
-	};
+};
 
 /**
  * A hasher implementing the default hashing policy. Uses *k* separate hash
  * functions internally.
  */
 class DefaultHasher : public Hasher
-	{
+{
 public:
 	/**
 	 * Constructor for a hasher with *k* hash functions.
@@ -223,14 +223,14 @@ private:
 	HasherType Type() const override { return HasherType::Default; }
 
 	std::vector<UHF> hash_functions;
-	};
+};
 
 /**
  * The *double-hashing* policy. Uses a linear combination of two hash
  * functions.
  */
 class DoubleHasher : public Hasher
-	{
+{
 public:
 	/**
 	 * Constructor for a double hasher with *k* hash functions.
@@ -253,6 +253,6 @@ private:
 
 	UHF h1;
 	UHF h2;
-	};
+};
 
-	} // namespace zeek::probabilistic::detail
+} // namespace zeek::probabilistic::detail

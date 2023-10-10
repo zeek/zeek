@@ -22,21 +22,21 @@
 #include "zeek/telemetry/Histogram.h"
 
 namespace broker
-	{
+{
 class data;
-	}
+}
 
 namespace zeek
-	{
+{
 
 namespace probabilistic
-	{
+{
 class BloomFilter;
-	}
+}
 namespace probabilistic::detail
-	{
+{
 class CardinalityCounter;
-	}
+}
 
 class OpaqueVal;
 using OpaqueValPtr = IntrusivePtr<OpaqueVal>;
@@ -49,7 +49,7 @@ using BloomFilterValPtr = IntrusivePtr<BloomFilterVal>;
  * values. This facilitates their serialization into Broker values.
  */
 class OpaqueMgr
-	{
+{
 public:
 	using Factory = OpaqueValPtr();
 
@@ -85,14 +85,14 @@ public:
 	 * with the manager.
 	 */
 	template <class T> class Register
-		{
+	{
 	public:
 		Register(const char* id) { OpaqueMgr::mgr()->_types.emplace(id, &T::OpaqueInstantiate); }
-		};
+	};
 
 private:
 	std::unordered_map<std::string, Factory*> _types;
-	};
+};
 
 /** Macro to insert into an OpaqueVal-derived class's declaration. */
 #define DECLARE_OPAQUE_VALUE(T)                                                                    \
@@ -115,7 +115,7 @@ private:
  * (other than bif functions). See OpaqueVal.h for derived classes.
  */
 class OpaqueVal : public Val
-	{
+{
 public:
 	explicit OpaqueVal(OpaqueTypePtr t);
 	~OpaqueVal() override = default;
@@ -185,21 +185,21 @@ protected:
 
 	void ValDescribe(ODesc* d) const override;
 	void ValDescribeReST(ODesc* d) const override;
-	};
+};
 
 class HashVal : public OpaqueVal
-	{
+{
 public:
 	template <class T>
 	static void digest_all(detail::HashAlgorithm alg, const T& vlist, u_char* result)
-		{
+	{
 		auto h = detail::hash_init(alg);
 
 		for ( const auto& v : vlist )
 			digest_one(h, v);
 
 		detail::hash_final(h, result);
-		}
+	}
 
 	bool IsValid() const;
 	bool Init();
@@ -219,27 +219,27 @@ protected:
 private:
 	// This flag exists because Get() can only be called once.
 	bool valid;
-	};
+};
 
 class MD5Val : public HashVal
-	{
+{
 public:
 	template <class T> static void digest(const T& vlist, u_char result[MD5_DIGEST_LENGTH])
-		{
+	{
 		digest_all(detail::Hash_MD5, vlist, result);
-		}
+	}
 
 	template <class T>
 	static void hmac(const T& vlist, u_char key[MD5_DIGEST_LENGTH],
 	                 u_char result[MD5_DIGEST_LENGTH])
-		{
+	{
 		digest(vlist, result);
 
 		for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
 			result[i] ^= key[i];
 
 		detail::internal_md5(result, MD5_DIGEST_LENGTH, result);
-		}
+	}
 
 	MD5Val();
 	~MD5Val();
@@ -260,15 +260,15 @@ private:
 #else
 	MD5_CTX ctx;
 #endif
-	};
+};
 
 class SHA1Val : public HashVal
-	{
+{
 public:
 	template <class T> static void digest(const T& vlist, u_char result[SHA_DIGEST_LENGTH])
-		{
+	{
 		digest_all(detail::Hash_SHA1, vlist, result);
-		}
+	}
 
 	SHA1Val();
 	~SHA1Val();
@@ -289,15 +289,15 @@ private:
 #else
 	SHA_CTX ctx;
 #endif
-	};
+};
 
 class SHA256Val : public HashVal
-	{
+{
 public:
 	template <class T> static void digest(const T& vlist, u_char result[SHA256_DIGEST_LENGTH])
-		{
+	{
 		digest_all(detail::Hash_SHA256, vlist, result);
-		}
+	}
 
 	SHA256Val();
 	~SHA256Val();
@@ -318,10 +318,10 @@ private:
 #else
 	SHA256_CTX ctx;
 #endif
-	};
+};
 
 class EntropyVal : public OpaqueVal
-	{
+{
 public:
 	EntropyVal();
 
@@ -334,10 +334,10 @@ protected:
 	DECLARE_OPAQUE_VALUE(EntropyVal)
 private:
 	detail::RandTest state;
-	};
+};
 
 class BloomFilterVal : public OpaqueVal
-	{
+{
 public:
 	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
 	~BloomFilterVal() override;
@@ -371,10 +371,10 @@ private:
 	TypePtr type;
 	detail::CompositeHash* hash;
 	probabilistic::BloomFilter* bloom_filter;
-	};
+};
 
 class CardinalityVal : public OpaqueVal
-	{
+{
 public:
 	explicit CardinalityVal(probabilistic::detail::CardinalityCounter*);
 	~CardinalityVal() override;
@@ -397,10 +397,10 @@ private:
 	TypePtr type;
 	detail::CompositeHash* hash;
 	probabilistic::detail::CardinalityCounter* c;
-	};
+};
 
 class ParaglobVal : public OpaqueVal
-	{
+{
 public:
 	explicit ParaglobVal(std::unique_ptr<paraglob::Paraglob> p);
 	VectorValPtr Get(StringVal*& pattern);
@@ -414,13 +414,13 @@ protected:
 
 private:
 	std::unique_ptr<paraglob::Paraglob> internal_paraglob;
-	};
+};
 
 /**
  * Base class for metric handles. Handle types are not serializable.
  */
 class TelemetryVal : public OpaqueVal
-	{
+{
 protected:
 	explicit TelemetryVal(telemetry::IntCounter);
 	explicit TelemetryVal(telemetry::IntCounterFamily);
@@ -437,10 +437,10 @@ protected:
 
 	broker::expected<broker::data> DoSerialize() const override;
 	bool DoUnserialize(const broker::data& data) override;
-	};
+};
 
 template <class Handle> class TelemetryValImpl : public TelemetryVal
-	{
+{
 public:
 	using HandleType = Handle;
 
@@ -455,7 +455,7 @@ protected:
 
 private:
 	Handle hdl;
-	};
+};
 
 using IntCounterMetricVal = TelemetryValImpl<telemetry::IntCounter>;
 using IntCounterMetricFamilyVal = TelemetryValImpl<telemetry::IntCounterFamily>;
@@ -470,4 +470,4 @@ using IntHistogramMetricFamilyVal = TelemetryValImpl<telemetry::IntHistogramFami
 using DblHistogramMetricVal = TelemetryValImpl<telemetry::DblHistogram>;
 using DblHistogramMetricFamilyVal = TelemetryValImpl<telemetry::DblHistogramFamily>;
 
-	} // namespace zeek
+} // namespace zeek

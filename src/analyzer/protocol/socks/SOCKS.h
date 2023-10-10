@@ -6,18 +6,18 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace binpac
-	{
+{
 namespace SOCKS
-	{
+{
 class SOCKS_Conn;
-	}
-	}
+}
+}
 
 namespace zeek::analyzer::socks
-	{
+{
 
 class SOCKS_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit SOCKS_Analyzer(Connection* conn);
 	~SOCKS_Analyzer() override;
@@ -37,6 +37,6 @@ protected:
 
 	analyzer::pia::PIA_TCP* pia;
 	binpac::SOCKS::SOCKS_Conn* interp;
-	};
+};
 
-	} // namespace zeek::analyzer::socks
+} // namespace zeek::analyzer::socks

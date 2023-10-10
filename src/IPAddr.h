@@ -13,19 +13,19 @@
 using in4_addr = in_addr;
 
 namespace zeek
-	{
+{
 
 class String;
 struct ConnTuple;
 class Val;
 
 namespace detail
-	{
+{
 
 class HashKey;
 
 class ConnKey
-	{
+{
 public:
 	in6_addr ip1;
 	in6_addr ip2;
@@ -52,15 +52,15 @@ public:
 private:
 	void Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port,
 	          TransportProto t, bool one_way);
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 /**
  * Class storing both IPv4 and IPv6 addresses.
  */
 class IPAddr
-	{
+{
 public:
 	/**
 	 * Address family.
@@ -71,10 +71,10 @@ public:
 	 * Byte order.
 	 */
 	enum ByteOrder
-		{
+	{
 		Host,
 		Network
-		};
+	};
 
 	/**
 	 * Constructs the unspecified IPv6 address (all 128 bits zeroed).
@@ -87,10 +87,10 @@ public:
 	 * @param in6 The IPv6 address.
 	 */
 	explicit IPAddr(const in4_addr& in4)
-		{
+	{
 		memcpy(in6.s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
 		memcpy(&in6.s6_addr[12], &in4.s_addr, sizeof(in4.s_addr));
-		}
+	}
 
 	/**
 	 * Constructs an address instance from an IPv6 address.
@@ -151,12 +151,12 @@ public:
 	 * Returns the address' family.
 	 */
 	Family GetFamily() const
-		{
+	{
 		if ( memcmp(in6.s6_addr, v4_mapped_prefix, 12) == 0 )
 			return IPv4;
 
 		return IPv6;
-		}
+	}
 
 	/**
 	 * Returns true if the address represents a loopback device.
@@ -167,24 +167,24 @@ public:
 	 * Returns true if the address represents a multicast address.
 	 */
 	bool IsMulticast() const
-		{
+	{
 		if ( GetFamily() == IPv4 )
 			return in6.s6_addr[12] == 224;
 
 		return in6.s6_addr[0] == 0xff;
-		}
+	}
 
 	/**
 	 * Returns true if the address represents a broadcast address.
 	 */
 	bool IsBroadcast() const
-		{
+	{
 		if ( GetFamily() == IPv4 )
 			return ((in6.s6_addr[12] == 0xff) && (in6.s6_addr[13] == 0xff) &&
 			        (in6.s6_addr[14] == 0xff) && (in6.s6_addr[15] == 0xff));
 
 		return false;
-		}
+	}
 
 	/**
 	 * Retrieves the raw byte representation of the address.
@@ -199,18 +199,18 @@ public:
 	 * will be 1 for an IPv4 address and 4 for an IPv6 address.
 	 */
 	int GetBytes(const uint32_t** bytes) const
-		{
+	{
 		if ( GetFamily() == IPv4 )
-			{
+		{
 			*bytes = (uint32_t*)&in6.s6_addr[12];
 			return 1;
-			}
+		}
 		else
-			{
+		{
 			*bytes = (uint32_t*)in6.s6_addr;
 			return 4;
-			}
 		}
+	}
 
 	/**
 	 * Retrieves a copy of the IPv6 raw byte representation of the address.
@@ -224,24 +224,24 @@ public:
 	 * The default is network order.
 	 */
 	void CopyIPv6(uint32_t* bytes, ByteOrder order = Network) const
-		{
+	{
 		memcpy(bytes, in6.s6_addr, sizeof(in6.s6_addr));
 
 		if ( order == Host )
-			{
+		{
 			for ( unsigned int i = 0; i < 4; ++i )
 				bytes[i] = ntohl(bytes[i]);
-			}
 		}
+	}
 
 	/**
 	 * Retrieves a copy of the IPv6 raw byte representation of the address.
 	 * @see CopyIPv6(uint32_t)
 	 */
 	void CopyIPv6(in6_addr* arg_in6) const
-		{
+	{
 		memcpy(arg_in6->s6_addr, in6.s6_addr, sizeof(in6.s6_addr));
-		}
+	}
 
 	/**
 	 * Retrieves a copy of the IPv4 raw byte representation of the address.
@@ -252,9 +252,9 @@ public:
 	 * of the address are to be copied in network byte-order.
 	 */
 	void CopyIPv4(in4_addr* in4) const
-		{
+	{
 		memcpy(&in4->s_addr, &in6.s6_addr[12], sizeof(in4->s_addr));
-		}
+	}
 
 	/**
 	 * Returns a key that can be used to lookup the IP Address in a hash table.
@@ -288,25 +288,25 @@ public:
 	 * Assignment operator.
 	 */
 	IPAddr& operator=(const IPAddr& other)
-		{
+	{
 		// No self-assignment check here because it's correct without it and
 		// makes the common case faster.
 		in6 = other.in6;
 		return *this;
-		}
+	}
 
 	/**
 	 * Bitwise OR operator returns the IP address resulting from the bitwise
 	 * OR operation on the raw bytes of this address with another.
 	 */
 	IPAddr operator|(const IPAddr& other)
-		{
+	{
 		in6_addr result;
 		for ( int i = 0; i < 16; ++i )
 			result.s6_addr[i] = this->in6.s6_addr[i] | other.in6.s6_addr[i];
 
 		return IPAddr(result);
-		}
+	}
 
 	/**
 	 * Returns a string representation of the address. IPv4 addresses
@@ -321,12 +321,12 @@ public:
 	 * IPv6 addresses are encased in square brackets.
 	 */
 	std::string AsURIString() const
-		{
+	{
 		if ( GetFamily() == IPv4 )
 			return AsString();
 
 		return std::string("[") + AsString() + "]";
-		}
+	}
 
 	/**
 	 * Returns a host-order, plain hex string representation of the address.
@@ -349,9 +349,9 @@ public:
 	 * Comparison operator for IP address.
 	 */
 	friend bool operator==(const IPAddr& addr1, const IPAddr& addr2)
-		{
+	{
 		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) == 0;
-		}
+	}
 
 	friend bool operator!=(const IPAddr& addr1, const IPAddr& addr2) { return ! (addr1 == addr2); }
 
@@ -361,14 +361,14 @@ public:
 	 * their numerical values.
 	 */
 	friend bool operator<(const IPAddr& addr1, const IPAddr& addr2)
-		{
+	{
 		return memcmp(&addr1.in6, &addr2.in6, sizeof(in6_addr)) < 0;
-		}
+	}
 
 	friend bool operator<=(const IPAddr& addr1, const IPAddr& addr2)
-		{
+	{
 		return addr1 < addr2 || addr1 == addr2;
-		}
+	}
 
 	friend bool operator>=(const IPAddr& addr1, const IPAddr& addr2) { return ! (addr1 < addr2); }
 
@@ -413,10 +413,10 @@ public:
 	 * @return whether the string is a valid IP address
 	 */
 	static bool IsValid(const char* s)
-		{
+	{
 		in6_addr tmp;
 		return ConvertString(s, &tmp);
-		}
+	}
 
 	/**
 	 * Unspecified IPv4 addr, "0.0.0.0".
@@ -444,39 +444,39 @@ private:
 
 	// Top 96 bits of a v4-mapped-addr.
 	static constexpr uint8_t v4_mapped_prefix[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff};
-	};
+};
 
 inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order)
-	{
+{
 	if ( family == IPv4 )
-		{
+	{
 		memcpy(in6.s6_addr, v4_mapped_prefix, sizeof(v4_mapped_prefix));
 		memcpy(&in6.s6_addr[12], bytes, sizeof(uint32_t));
 
 		if ( order == Host )
-			{
+		{
 			uint32_t* p = (uint32_t*)&in6.s6_addr[12];
 			*p = htonl(*p);
-			}
-		}
-
-	else
-		{
-		memcpy(in6.s6_addr, bytes, sizeof(in6.s6_addr));
-
-		if ( order == Host )
-			{
-			for ( unsigned int i = 0; i < 4; ++i )
-				{
-				uint32_t* p = (uint32_t*)&in6.s6_addr[i * 4];
-				*p = htonl(*p);
-				}
-			}
 		}
 	}
 
-inline bool IPAddr::IsLoopback() const
+	else
 	{
+		memcpy(in6.s6_addr, bytes, sizeof(in6.s6_addr));
+
+		if ( order == Host )
+		{
+			for ( unsigned int i = 0; i < 4; ++i )
+			{
+				uint32_t* p = (uint32_t*)&in6.s6_addr[i * 4];
+				*p = htonl(*p);
+			}
+		}
+	}
+}
+
+inline bool IPAddr::IsLoopback() const
+{
 	if ( GetFamily() == IPv4 )
 		return in6.s6_addr[12] == 127;
 
@@ -487,14 +487,14 @@ inline bool IPAddr::IsLoopback() const
 		        (in6.s6_addr[9] == 0) && (in6.s6_addr[10] == 0) && (in6.s6_addr[11] == 0) &&
 		        (in6.s6_addr[12] == 0) && (in6.s6_addr[13] == 0) && (in6.s6_addr[14] == 0) &&
 		        (in6.s6_addr[15] == 1));
-	}
+}
 
 inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
-	{
+{
 	v->family = GetFamily();
 
 	switch ( v->family )
-		{
+	{
 		case IPv4:
 			CopyIPv4(&v->in.in4);
 			return;
@@ -502,15 +502,15 @@ inline void IPAddr::ConvertToThreadingValue(threading::Value::addr_t* v) const
 		case IPv6:
 			CopyIPv6(&v->in.in6);
 			return;
-		}
 	}
+}
 
 /**
  * Class storing both IPv4 and IPv6 prefixes
  * (i.e., \c 192.168.1.1/16 and \c FD00::/8.
  */
 class IPPrefix
-	{
+{
 public:
 	/**
 	 * Constructs a prefix 0/0.
@@ -586,22 +586,22 @@ public:
 	 * @param addr The address to test.
 	 */
 	bool Contains(const IPAddr& addr) const
-		{
+	{
 		IPAddr p(addr);
 		p.Mask(length);
 		return p == prefix;
-		}
+	}
 	/**
 	 * Assignment operator.
 	 */
 	IPPrefix& operator=(const IPPrefix& other)
-		{
+	{
 		// No self-assignment check here because it's correct without it and
 		// makes the common case faster.
 		prefix = other.prefix;
 		length = other.length;
 		return *this;
-		}
+	}
 
 	/**
 	 * Returns a string representation of the prefix. IPv4 addresses
@@ -622,18 +622,18 @@ public:
 	 * inter-thread communication.
 	 */
 	void ConvertToThreadingValue(threading::Value::subnet_t* v) const
-		{
+	{
 		v->length = length;
 		prefix.ConvertToThreadingValue(&v->prefix);
-		}
+	}
 
 	/**
 	 * Comparison operator for IP prefix.
 	 */
 	friend bool operator==(const IPPrefix& net1, const IPPrefix& net2)
-		{
+	{
 		return net1.Prefix() == net2.Prefix() && net1.Length() == net2.Length();
-		}
+	}
 
 	friend bool operator!=(const IPPrefix& net1, const IPPrefix& net2) { return ! (net1 == net2); }
 
@@ -643,7 +643,7 @@ public:
 	 * numerical values.
 	 */
 	friend bool operator<(const IPPrefix& net1, const IPPrefix& net2)
-		{
+	{
 		if ( net1.Prefix() < net2.Prefix() )
 			return true;
 
@@ -652,12 +652,12 @@ public:
 
 		else
 			return false;
-		}
+	}
 
 	friend bool operator<=(const IPPrefix& net1, const IPPrefix& net2)
-		{
+	{
 		return net1 < net2 || net1 == net2;
-		}
+	}
 
 	friend bool operator>=(const IPPrefix& net1, const IPPrefix& net2) { return ! (net1 < net2); }
 
@@ -680,14 +680,14 @@ public:
 	 * @return whether the string is a valid IP address prefix
 	 */
 	static bool IsValid(const char* s)
-		{
+	{
 		IPPrefix tmp;
 		return ConvertString(s, &tmp);
-		}
+	}
 
 private:
 	IPAddr prefix; // We store it as an address with the non-prefix bits masked out via Mask().
 	uint8_t length = 0; // The bit length of the prefix relative to full IPv6 addr.
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

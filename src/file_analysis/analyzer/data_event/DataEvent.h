@@ -10,13 +10,13 @@
 #include "zeek/file_analysis/File.h"
 
 namespace zeek::file_analysis::detail
-	{
+{
 
 /**
  * An analyzer to send file data to script-layer via events.
  */
 class DataEvent : public file_analysis::Analyzer
-	{
+{
 public:
 	/**
 	 * Generates the event, if any, specified by the "chunk_event" field of this
@@ -61,6 +61,6 @@ protected:
 private:
 	EventHandlerPtr chunk_event;
 	EventHandlerPtr stream_event;
-	};
+};
 
-	} // namespace zeek::file_analysis::detail
+} // namespace zeek::file_analysis::detail

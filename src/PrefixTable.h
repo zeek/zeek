@@ -1,9 +1,9 @@
 #pragma once
 
 extern "C"
-	{
+{
 #include "zeek/3rdparty/patricia.h"
-	}
+}
 
 #include <list>
 #include <tuple>
@@ -11,31 +11,31 @@ extern "C"
 #include "zeek/IPAddr.h"
 
 namespace zeek
-	{
+{
 
 class Val;
 class SubNetVal;
 
 namespace detail
-	{
+{
 
 class PrefixTable
-	{
+{
 private:
 	struct iterator
-		{
+	{
 		patricia_node_t* Xstack[PATRICIA_MAXBITS + 1];
 		patricia_node_t** Xsp;
 		patricia_node_t* Xrn;
 		patricia_node_t* Xnode;
-		};
+	};
 
 public:
 	PrefixTable()
-		{
+	{
 		tree = New_Patricia(128);
 		delete_function = nullptr;
-		}
+	}
 	~PrefixTable() { Destroy_Patricia(tree, delete_function); }
 
 	// Addr in network byte order. If data is zero, acts like a set.
@@ -74,7 +74,7 @@ private:
 
 	patricia_tree_t* tree;
 	data_fn_t delete_function;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

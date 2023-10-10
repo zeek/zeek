@@ -6,10 +6,10 @@
 #include "zeek/packet_analysis/Component.h"
 
 namespace zeek::packet_analysis::AYIYA
-	{
+{
 
 class AYIYAAnalyzer : public zeek::packet_analysis::Analyzer
-	{
+{
 public:
 	AYIYAAnalyzer();
 	~AYIYAAnalyzer() override = default;
@@ -17,11 +17,11 @@ public:
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<AYIYAAnalyzer>();
-		}
+	}
 
 	bool DetectProtocol(size_t len, const uint8_t* data, Packet* packet) override;
-	};
+};
 
-	}
+}

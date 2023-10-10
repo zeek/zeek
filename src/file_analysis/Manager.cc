@@ -17,16 +17,16 @@
 using namespace std;
 
 namespace zeek::file_analysis
-	{
+{
 
 Manager::Manager()
 	: plugin::ComponentManager<file_analysis::Component>("Files", "Tag", "AllAnalyzers"),
 	  current_file_id(), magic_state(), cumulative_files(0), max_files(0)
-	{
-	}
+{
+}
 
 Manager::~Manager()
-	{
+{
 	for ( MIMEMap::iterator i = mime_types.begin(); i != mime_types.end(); i++ )
 		delete i->second;
 
@@ -37,26 +37,26 @@ Manager::~Manager()
 
 	delete magic_state;
 	delete analyzer_hash;
-	}
+}
 
 void Manager::InitPreScript() { }
 
 void Manager::InitPostScript()
-	{
+{
 	auto t = make_intrusive<TypeList>();
 	t->Append(GetTagType());
 	t->Append(BifType::Record::Files::AnalyzerArgs);
 	analyzer_hash = new zeek::detail::CompositeHash(std::move(t));
-	}
+}
 
 void Manager::InitMagic()
-	{
+{
 	delete magic_state;
 	magic_state = zeek::detail::rule_matcher->InitFileMagic();
-	}
+}
 
 void Manager::Terminate()
-	{
+{
 	vector<string> keys;
 	keys.reserve(id_map.size());
 
@@ -67,38 +67,38 @@ void Manager::Terminate()
 		Timeout(key, true);
 
 	event_mgr.Drain();
-	}
+}
 
 string Manager::HashHandle(const string& handle) const
-	{
+{
 	zeek::detail::hash128_t hash;
 	zeek::detail::KeyedHash::StaticHash128(handle.data(), handle.size(), &hash);
 
 	return UID(zeek::detail::bits_per_uid, hash, 2).Base62("F");
-	}
+}
 
 void Manager::SetHandle(const string& handle)
-	{
+{
 	if ( handle.empty() )
 		return;
 
 #ifdef DEBUG
 	if ( zeek::detail::debug_logger.IsEnabled(DBG_FILE_ANALYSIS) )
-		{
+	{
 		String tmp{handle};
 		auto rendered = tmp.Render();
 		DBG_LOG(DBG_FILE_ANALYSIS, "Set current handle to %s", rendered);
 		delete[] rendered;
-		}
+	}
 #endif
 
 	current_file_id = HashHandle(handle);
-	}
+}
 
 string Manager::DataIn(const u_char* data, uint64_t len, uint64_t offset, const zeek::Tag& tag,
                        Connection* conn, bool is_orig, const string& precomputed_id,
                        const string& mime_type)
-	{
+{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
 	File* file = GetFile(id, conn, tag, is_orig);
 
@@ -117,17 +117,17 @@ string Manager::DataIn(const u_char* data, uint64_t len, uint64_t offset, const 
 	file->DataIn(data, len, offset);
 
 	if ( file->IsComplete() )
-		{
+	{
 		RemoveFile(file->GetID());
 		return "";
-		}
+	}
 
 	return id;
-	}
+}
 
 string Manager::DataIn(const u_char* data, uint64_t len, const zeek::Tag& tag, Connection* conn,
                        bool is_orig, const string& precomputed_id, const string& mime_type)
-	{
+{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
 	// Sequential data input shouldn't be going over multiple conns, so don't
 	// do the check to update connection set.
@@ -142,17 +142,17 @@ string Manager::DataIn(const u_char* data, uint64_t len, const zeek::Tag& tag, C
 	file->DataIn(data, len);
 
 	if ( file->IsComplete() )
-		{
+	{
 		RemoveFile(file->GetID());
 		return "";
-		}
+	}
 
 	return id;
-	}
+}
 
 void Manager::DataIn(const u_char* data, uint64_t len, const string& file_id, const string& source,
                      const string& mime_type)
-	{
+{
 	File* file = GetFile(file_id, nullptr, zeek::Tag::Error, false, false, source.c_str());
 
 	if ( ! file )
@@ -165,11 +165,11 @@ void Manager::DataIn(const u_char* data, uint64_t len, const string& file_id, co
 
 	if ( file->IsComplete() )
 		RemoveFile(file->GetID());
-	}
+}
 
 void Manager::DataIn(const u_char* data, uint64_t len, uint64_t offset, const string& file_id,
                      const string& source, const string& mime_type)
-	{
+{
 	File* file = GetFile(file_id, nullptr, zeek::Tag::Error, false, false, source.c_str());
 
 	if ( ! file )
@@ -182,28 +182,28 @@ void Manager::DataIn(const u_char* data, uint64_t len, uint64_t offset, const st
 
 	if ( file->IsComplete() )
 		RemoveFile(file->GetID());
-	}
+}
 
 void Manager::EndOfFile(const zeek::Tag& tag, Connection* conn)
-	{
+{
 	EndOfFile(tag, conn, true);
 	EndOfFile(tag, conn, false);
-	}
+}
 
 void Manager::EndOfFile(const zeek::Tag& tag, Connection* conn, bool is_orig)
-	{
+{
 	// Don't need to create a file if we're just going to remove it right away.
 	RemoveFile(GetFileID(tag, conn, is_orig));
-	}
+}
 
 void Manager::EndOfFile(const string& file_id)
-	{
+{
 	RemoveFile(file_id);
-	}
+}
 
 string Manager::Gap(uint64_t offset, uint64_t len, const zeek::Tag& tag, Connection* conn,
                     bool is_orig, const string& precomputed_id)
-	{
+{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
 	File* file = GetFile(id, conn, tag, is_orig);
 
@@ -212,11 +212,11 @@ string Manager::Gap(uint64_t offset, uint64_t len, const zeek::Tag& tag, Connect
 
 	file->Gap(offset, len);
 	return id;
-	}
+}
 
 string Manager::SetSize(uint64_t size, const zeek::Tag& tag, Connection* conn, bool is_orig,
                         const string& precomputed_id)
-	{
+{
 	string id = precomputed_id.empty() ? GetFileID(tag, conn, is_orig) : precomputed_id;
 	File* file = GetFile(id, conn, tag, is_orig);
 
@@ -226,16 +226,16 @@ string Manager::SetSize(uint64_t size, const zeek::Tag& tag, Connection* conn, b
 	file->SetTotalBytes(size);
 
 	if ( file->IsComplete() )
-		{
+	{
 		RemoveFile(file->GetID());
 		return "";
-		}
-
-	return id;
 	}
 
+	return id;
+}
+
 bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
-	{
+{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
@@ -246,10 +246,10 @@ bool Manager::SetTimeoutInterval(const string& file_id, double interval) const
 
 	file->SetTimeoutInterval(interval);
 	return true;
-	}
+}
 
 bool Manager::EnableReassembly(const string& file_id)
-	{
+{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
@@ -257,10 +257,10 @@ bool Manager::EnableReassembly(const string& file_id)
 
 	file->EnableReassembly();
 	return true;
-	}
+}
 
 bool Manager::DisableReassembly(const string& file_id)
-	{
+{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
@@ -268,10 +268,10 @@ bool Manager::DisableReassembly(const string& file_id)
 
 	file->DisableReassembly();
 	return true;
-	}
+}
 
 bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max)
-	{
+{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
@@ -279,41 +279,41 @@ bool Manager::SetReassemblyBuffer(const string& file_id, uint64_t max)
 
 	file->SetReassemblyBuffer(max);
 	return true;
-	}
+}
 
 bool Manager::SetExtractionLimit(const string& file_id, RecordValPtr args, uint64_t n) const
-	{
+{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
 	return file->SetExtractionLimit(std::move(args), n);
-	}
+}
 
 bool Manager::AddAnalyzer(const string& file_id, const zeek::Tag& tag, RecordValPtr args) const
-	{
+{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
 	return file->AddAnalyzer(tag, std::move(args));
-	}
+}
 
 bool Manager::RemoveAnalyzer(const string& file_id, const zeek::Tag& tag, RecordValPtr args) const
-	{
+{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
 		return false;
 
 	return file->RemoveAnalyzer(tag, std::move(args));
-	}
+}
 
 File* Manager::GetFile(const string& file_id, Connection* conn, const zeek::Tag& tag, bool is_orig,
                        bool update_conn, const char* source_name)
-	{
+{
 	if ( file_id.empty() )
 		return nullptr;
 
@@ -323,7 +323,7 @@ File* Manager::GetFile(const string& file_id, Connection* conn, const zeek::Tag&
 	File* rval = LookupFile(file_id);
 
 	if ( ! rval )
-		{
+	{
 		rval = new File(file_id, source_name ? source_name : analyzer_mgr->GetComponentName(tag),
 		                conn, tag, is_orig);
 		id_map[file_id] = rval;
@@ -342,29 +342,29 @@ File* Manager::GetFile(const string& file_id, Connection* conn, const zeek::Tag&
 
 		if ( IsIgnored(file_id) )
 			return nullptr;
-		}
+	}
 	else
-		{
+	{
 		rval->UpdateLastActivityTime();
 
 		if ( update_conn && rval->UpdateConnectionFields(conn, is_orig) )
 			rval->RaiseFileOverNewConnection(conn, is_orig);
-		}
-
-	return rval;
 	}
 
+	return rval;
+}
+
 File* Manager::LookupFile(const string& file_id) const
-	{
+{
 	const auto& entry = id_map.find(file_id);
 	if ( entry == id_map.end() )
 		return nullptr;
 
 	return entry->second;
-	}
+}
 
 void Manager::Timeout(const string& file_id, bool is_terminating)
-	{
+{
 	File* file = LookupFile(file_id);
 
 	if ( ! file )
@@ -375,20 +375,20 @@ void Manager::Timeout(const string& file_id, bool is_terminating)
 	file->FileEvent(file_timeout);
 
 	if ( file->postpone_timeout && ! is_terminating )
-		{
+	{
 		DBG_LOG(DBG_FILE_ANALYSIS, "Postpone file analysis timeout for %s", file->GetID().c_str());
 		file->UpdateLastActivityTime();
 		file->ScheduleInactivityTimer();
 		return;
-		}
+	}
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "File analysis timeout for %s", file->GetID().c_str());
 
 	RemoveFile(file->GetID());
-	}
+}
 
 bool Manager::IgnoreFile(const string& file_id)
-	{
+{
 	if ( ! LookupFile(file_id) )
 		return false;
 
@@ -396,10 +396,10 @@ bool Manager::IgnoreFile(const string& file_id)
 
 	ignored.insert(file_id);
 	return true;
-	}
+}
 
 bool Manager::RemoveFile(const string& file_id)
-	{
+{
 	// Can't remove from the dictionary/map right away as invoking EndOfFile
 	// may cause some events to be executed which actually depend on the file
 	// still being in the dictionary/map.
@@ -416,15 +416,15 @@ bool Manager::RemoveFile(const string& file_id)
 	ignored.erase(file_id);
 	delete f;
 	return true;
-	}
+}
 
 bool Manager::IsIgnored(const string& file_id)
-	{
+{
 	return ignored.find(file_id) != ignored.end();
-	}
+}
 
 string Manager::GetFileID(const zeek::Tag& tag, Connection* c, bool is_orig)
-	{
+{
 	current_file_id.clear();
 
 	if ( IsDisabled(tag) )
@@ -441,10 +441,10 @@ string Manager::GetFileID(const zeek::Tag& tag, Connection* c, bool is_orig)
 	event_mgr.Enqueue(get_file_handle, tagval, c->GetVal(), val_mgr->Bool(is_orig));
 	event_mgr.Drain(); // need file handle immediately so we don't have to buffer data
 	return current_file_id;
-	}
+}
 
 bool Manager::IsDisabled(const zeek::Tag& tag)
-	{
+{
 	if ( ! disabled )
 		disabled = id::find_const("Files::disable")->AsTableVal();
 
@@ -455,25 +455,25 @@ bool Manager::IsDisabled(const zeek::Tag& tag)
 		return false;
 
 	return yield->AsBool();
-	}
+}
 
 Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordValPtr args, File* f) const
-	{
+{
 	Component* c = Lookup(tag);
 
 	if ( ! c )
-		{
+	{
 		reporter->InternalWarning("unknown file analyzer instantiation request: %s",
 		                          tag.AsString().c_str());
 		return nullptr;
-		}
+	}
 
 	if ( ! c->Enabled() )
-		{
+	{
 		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip instantiation of disabled analyzer %s", f->id.c_str(),
 		        GetComponentName(tag).c_str());
 		return nullptr;
-		}
+	}
 
 	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s", f->id.c_str(),
 	        GetComponentName(tag).c_str());
@@ -483,12 +483,12 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordValPtr args, File* 
 	if ( c->factory_func )
 		a = c->factory_func(std::move(args), f);
 	else
-		{
+	{
 		reporter->InternalWarning("file analyzer %s cannot be instantiated "
 		                          "dynamically",
 		                          c->CanonicalName().c_str());
 		return nullptr;
-		}
+	}
 
 	if ( ! a )
 		reporter->InternalError("file analyzer instantiation failed");
@@ -496,22 +496,22 @@ Analyzer* Manager::InstantiateAnalyzer(const Tag& tag, RecordValPtr args, File* 
 	a->SetAnalyzerTag(tag);
 
 	return a;
-	}
+}
 
 zeek::detail::RuleMatcher::MIME_Matches*
 Manager::DetectMIME(const u_char* data, uint64_t len,
                     zeek::detail::RuleMatcher::MIME_Matches* rval) const
-	{
+{
 	if ( ! magic_state )
 		reporter->InternalError("file magic signature state not initialized");
 
 	rval = zeek::detail::rule_matcher->Match(magic_state, data, len, rval);
 	zeek::detail::rule_matcher->ClearFileMagicState(magic_state);
 	return rval;
-	}
+}
 
 string Manager::DetectMIME(const u_char* data, uint64_t len) const
-	{
+{
 	zeek::detail::RuleMatcher::MIME_Matches matches;
 	DetectMIME(data, len, &matches);
 
@@ -519,29 +519,29 @@ string Manager::DetectMIME(const u_char* data, uint64_t len) const
 		return "";
 
 	return *(matches.begin()->second.begin());
-	}
+}
 
 VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m)
-	{
+{
 	static auto mime_matches = id::find_type<VectorType>("mime_matches");
 	static auto mime_match = id::find_type<RecordType>("mime_match");
 	auto rval = make_intrusive<VectorVal>(mime_matches);
 
 	for ( zeek::detail::RuleMatcher::MIME_Matches::const_iterator it = m.begin(); it != m.end();
 	      ++it )
-		{
+	{
 		auto element = make_intrusive<RecordVal>(mime_match);
 
 		for ( set<string>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 )
-			{
+		{
 			element->Assign(0, it->first);
 			element->Assign(1, *it2);
-			}
-
-		rval->Assign(rval->Size(), std::move(element));
 		}
 
-	return rval;
+		rval->Assign(rval->Size(), std::move(element));
 	}
 
-	} // namespace zeek::file_analysis
+	return rval;
+}
+
+} // namespace zeek::file_analysis

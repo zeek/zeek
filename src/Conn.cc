@@ -23,7 +23,7 @@
 #include "zeek/session/Manager.h"
 
 namespace zeek
-	{
+{
 
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
@@ -33,7 +33,7 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
 	: Session(t, connection_timeout, connection_status_update,
               detail::connection_status_update_interval),
 	  key(k)
-	{
+{
 	orig_addr = id->src_addr;
 	resp_addr = id->dst_addr;
 	orig_port = id->src_port;
@@ -73,10 +73,10 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
 	++total_connections;
 
 	encapsulation = pkt->encap;
-	}
+}
 
 Connection::~Connection()
-	{
+{
 	if ( ! finished )
 		reporter->InternalError("Done() not called before destruction of Connection");
 
@@ -88,77 +88,77 @@ Connection::~Connection()
 	delete adapter;
 
 	--current_connections;
-	}
+}
 
 void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& arg_encap)
-	{
+{
 	if ( encapsulation && arg_encap )
-		{
+	{
 		if ( *encapsulation != *arg_encap )
-			{
+		{
 			if ( tunnel_changed &&
 			     (zeek::detail::tunnel_max_changes_per_connection == 0 ||
 			      tunnel_changes < zeek::detail::tunnel_max_changes_per_connection) )
-				{
+			{
 				tunnel_changes++;
 				EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
-				}
+			}
 
 			encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
-			}
 		}
+	}
 
 	else if ( encapsulation )
-		{
+	{
 		if ( tunnel_changed )
-			{
+		{
 			EncapsulationStack empty;
 			EnqueueEvent(tunnel_changed, nullptr, GetVal(), empty.ToVal());
-			}
-
-		encapsulation = nullptr;
 		}
 
+		encapsulation = nullptr;
+	}
+
 	else if ( arg_encap )
-		{
+	{
 		if ( tunnel_changed )
 			EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
 
 		encapsulation = std::make_shared<EncapsulationStack>(*arg_encap);
-		}
 	}
+}
 
 void Connection::Done()
-	{
+{
 	finished = 1;
 
 	if ( adapter )
-		{
+	{
 		if ( ConnTransport() == TRANSPORT_TCP )
-			{
+		{
 			auto* ta = static_cast<packet_analysis::TCP::TCPSessionAdapter*>(adapter);
 			assert(ta->IsAnalyzer("TCP"));
 			analyzer::tcp::TCP_Endpoint* to = ta->Orig();
 			analyzer::tcp::TCP_Endpoint* tr = ta->Resp();
 
 			packet_analysis::TCP::TCPAnalyzer::GetStats().StateLeft(to->state, tr->state);
-			}
+		}
 
 		if ( ! adapter->IsFinished() )
 			adapter->Done();
-		}
 	}
+}
 
 void Connection::NextPacket(double t, bool is_orig, const IP_Hdr* ip, int len, int caplen,
                             const u_char*& data, int& record_packet, int& record_content,
                             // arguments for reproducing packets
                             const Packet* pkt)
-	{
+{
 	run_state::current_timestamp = t;
 	run_state::current_pkt = pkt;
 
 	if ( adapter )
-		{
+	{
 		if ( adapter->Skipping() )
 			return;
 
@@ -167,24 +167,24 @@ void Connection::NextPacket(double t, bool is_orig, const IP_Hdr* ip, int len, i
 		adapter->NextPacket(len, data, is_orig, -1, ip, caplen);
 		record_packet = record_current_packet;
 		record_content = record_current_content;
-		}
+	}
 	else
 		last_time = t;
 
 	run_state::current_timestamp = 0;
 	run_state::current_pkt = nullptr;
-	}
+}
 
 bool Connection::IsReuse(double t, const u_char* pkt)
-	{
+{
 	return adapter && adapter->IsReuse(t, pkt);
-	}
+}
 
 bool Connection::ScaledHistoryEntry(char code, uint32_t& counter, uint32_t& scaling_threshold,
                                     uint32_t scaling_base)
-	{
+{
 	if ( ++counter == scaling_threshold )
-		{
+	{
 		AddHistory(code);
 
 		auto new_threshold = scaling_threshold * scaling_base;
@@ -199,13 +199,13 @@ bool Connection::ScaledHistoryEntry(char code, uint32_t& counter, uint32_t& scal
 			scaling_threshold = new_threshold;
 
 		return true;
-		}
-
-	return false;
 	}
 
+	return false;
+}
+
 void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t threshold)
-	{
+{
 	if ( ! e )
 		return;
 
@@ -215,15 +215,15 @@ void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t
 		return;
 
 	EnqueueEvent(e, nullptr, GetVal(), val_mgr->Bool(is_orig), val_mgr->Count(threshold));
-	}
+}
 
 namespace
-	{
+{
 // Flip everything that needs to be flipped in the connection
 // record that is known on this level. This needs to align
 // with GetVal() and connection's layout in init-bare.
 void flip_conn_val(const RecordValPtr& conn_val)
-	{
+{
 	// Flip the the conn_id (c$id).
 	const auto& id_val = conn_val->GetField<zeek::RecordVal>(0);
 	const auto& tmp_addr = id_val->GetField<zeek::AddrVal>(0);
@@ -237,13 +237,13 @@ void flip_conn_val(const RecordValPtr& conn_val)
 	const auto& tmp_endp = conn_val->GetField<zeek::RecordVal>(1);
 	conn_val->Assign(1, conn_val->GetField(2));
 	conn_val->Assign(2, tmp_endp);
-	}
-	}
+}
+}
 
 const RecordValPtr& Connection::GetVal()
-	{
+{
 	if ( ! conn_val )
-		{
+	{
 		conn_val = make_intrusive<RecordVal>(id::connection);
 
 		TransportProto prot_type = ConnTransport();
@@ -293,7 +293,7 @@ const RecordValPtr& Connection::GetVal()
 
 		if ( inner_vlan != 0 )
 			conn_val->Assign(10, inner_vlan);
-		}
+	}
 
 	if ( adapter )
 		adapter->UpdateConnVal(conn_val.get());
@@ -302,63 +302,63 @@ const RecordValPtr& Connection::GetVal()
 	conn_val->AssignInterval(4, last_time - start_time);
 
 	if ( ! history.empty() )
-		{
+	{
 		auto v = conn_val->GetFieldAs<StringVal>(6);
 		if ( *v != history )
 			conn_val->Assign(6, history);
-		}
+	}
 
 	conn_val->SetOrigin(this);
 
 	return conn_val;
-	}
+}
 
 analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id)
-	{
+{
 	return adapter ? adapter->FindChild(id) : nullptr;
-	}
+}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const zeek::Tag& tag)
-	{
+{
 	return adapter ? adapter->FindChild(tag) : nullptr;
-	}
+}
 
 analyzer::Analyzer* Connection::FindAnalyzer(const char* name)
-	{
+{
 	return adapter->FindChild(name);
-	}
+}
 
 void Connection::AppendAddl(const char* str)
-	{
+{
 	const auto& cv = GetVal();
 
 	const char* old = cv->GetFieldAs<StringVal>(6)->CheckString();
 	const char* format = *old ? "%s %s" : "%s%s";
 
 	cv->Assign(6, util::fmt(format, old, str));
-	}
+}
 
 void Connection::Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig,
                        bool bol, bool eol, bool clear_state)
-	{
+{
 	if ( primary_PIA )
 		primary_PIA->Match(type, data, len, is_orig, bol, eol, clear_state);
-	}
+}
 
 void Connection::RemovalEvent()
-	{
+{
 	if ( connection_state_remove )
 		EnqueueEvent(connection_state_remove, nullptr, GetVal());
-	}
+}
 
 void Connection::Weird(const char* name, const char* addl, const char* source)
-	{
+{
 	weird = 1;
 	reporter->Weird(this, name, addl ? addl : "", source ? source : "");
-	}
+}
 
 void Connection::FlipRoles()
-	{
+{
 	IPAddr tmp_addr = resp_addr;
 	resp_addr = orig_addr;
 	orig_addr = tmp_addr;
@@ -393,14 +393,14 @@ void Connection::FlipRoles()
 
 	if ( connection_flipped )
 		EnqueueEvent(connection_flipped, nullptr, GetVal());
-	}
+}
 
 void Connection::Describe(ODesc* d) const
-	{
+{
 	session::Session::Describe(d);
 
 	switch ( proto )
-		{
+	{
 		case TRANSPORT_TCP:
 			d->Add("TCP");
 			break;
@@ -421,7 +421,7 @@ void Connection::Describe(ODesc* d) const
 
 		default:
 			reporter->InternalError("unhandled transport type in Connection::Describe");
-		}
+	}
 
 	d->SP();
 	d->Add(orig_addr);
@@ -436,10 +436,10 @@ void Connection::Describe(ODesc* d) const
 	d->Add(ntohs(resp_port));
 
 	d->NL();
-	}
+}
 
 void Connection::IDString(ODesc* d) const
-	{
+{
 	d->Add(orig_addr);
 	d->AddRaw(":", 1);
 	d->Add(ntohs(orig_port));
@@ -447,45 +447,45 @@ void Connection::IDString(ODesc* d) const
 	d->Add(resp_addr);
 	d->AddRaw(":", 1);
 	d->Add(ntohs(resp_port));
-	}
+}
 
 void Connection::SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa, analyzer::pia::PIA* pia)
-	{
+{
 	adapter = aa;
 	primary_PIA = pia;
-	}
+}
 
 void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label)
-	{
+{
 	uint32_t& my_flow_label = is_orig ? orig_flow_label : resp_flow_label;
 
 	if ( my_flow_label != flow_label )
-		{
+	{
 		if ( conn_val )
-			{
+		{
 			RecordVal* endp = conn_val->GetFieldAs<RecordVal>(is_orig ? 1 : 2);
 			endp->Assign(4, flow_label);
-			}
+		}
 
 		if ( connection_flow_label_changed &&
 		     (is_orig ? saw_first_orig_packet : saw_first_resp_packet) )
-			{
+		{
 			EnqueueEvent(connection_flow_label_changed, nullptr, GetVal(), val_mgr->Bool(is_orig),
 			             val_mgr->Count(my_flow_label), val_mgr->Count(flow_label));
-			}
+		}
 
 		my_flow_label = flow_label;
-		}
+	}
 
 	if ( is_orig )
 		saw_first_orig_packet = 1;
 	else
 		saw_first_resp_packet = 1;
-	}
+}
 
 bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration)
-	{
+{
 	return detail::PermitWeird(weird_state, name, threshold, rate, duration);
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek

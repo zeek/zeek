@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/ieee802_11_radio/IEEE802_11_Radio.h"
 
 namespace zeek::plugin::Zeek_IEEE802_11_Radio
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"IEEE802_11_Radio",
 			zeek::packet_analysis::IEEE802_11_Radio::IEEE802_11_RadioAnalyzer::Instantiate));
@@ -21,7 +21,7 @@ public:
 		config.name = "Zeek::IEEE802_11_Radio";
 		config.description = "IEEE 802.11 Radiotap packet analyzer";
 		return config;
-		}
-
-	} plugin;
 	}
+
+} plugin;
+}

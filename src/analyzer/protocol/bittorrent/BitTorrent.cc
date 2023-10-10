@@ -6,31 +6,31 @@
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::bittorrent
-	{
+{
 
 BitTorrent_Analyzer::BitTorrent_Analyzer(Connection* c)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("BITTORRENT", c)
-	{
+{
 	interp = new binpac::BitTorrent::BitTorrent_Conn(this);
 	stop_orig = stop_resp = false;
 	stream_len_orig = stream_len_resp = 0;
-	}
+}
 
 BitTorrent_Analyzer::~BitTorrent_Analyzer()
-	{
+{
 	delete interp;
-	}
+}
 
 void BitTorrent_Analyzer::Done()
-	{
+{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 
 	interp->FlowEOF(true);
 	interp->FlowEOF(false);
-	}
+}
 
 void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
-	{
+{
 	uint64_t& this_stream_len = orig ? stream_len_orig : stream_len_resp;
 	bool& this_stop = orig ? stop_orig : stop_resp;
 
@@ -45,30 +45,30 @@ void BitTorrent_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	this_stream_len += len;
 
 	try
-		{
+	{
 		interp->NewData(orig, data, data + len);
-		}
+	}
 	catch ( binpac::Exception const& e )
-		{
+	{
 		const char except[] = "binpac exception: invalid handshake";
 		if ( ! strncmp(e.c_msg(), except, strlen(except)) )
 			// Does not look like bittorrent - silently
 			// drop the connection.
 			Parent()->RemoveChildAnalyzer(this);
 		else
-			{
+		{
 			DeliverWeird(
 				util::fmt("Stopping BitTorrent analysis: protocol violation (%s)", e.c_msg()),
 				orig);
 			this_stop = true;
 			if ( stop_orig && stop_resp )
 				AnalyzerViolation("BitTorrent: content gap and/or protocol violation");
-			}
 		}
 	}
+}
 
 void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
-	{
+{
 	analyzer::tcp::TCP_ApplicationAnalyzer::Undelivered(seq, len, orig);
 
 	// TODO: Code commented out for now. I think that shoving data that
@@ -107,21 +107,21 @@ void BitTorrent_Analyzer::Undelivered(uint64_t seq, int len, bool orig)
 	//			AnalyzerViolation("BitTorrent: content gap and/or protocol violation");
 	//		}
 	//	}
-	}
+}
 
 void BitTorrent_Analyzer::EndpointEOF(bool is_orig)
-	{
+{
 	analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 	interp->FlowEOF(is_orig);
-	}
+}
 
 void BitTorrent_Analyzer::DeliverWeird(const char* msg, bool orig)
-	{
+{
 	if ( bittorrent_peer_weird )
 
 		// TODO: why does bittorrent have a different set of weirds?
 		EnqueueConnEvent(bittorrent_peer_weird, ConnVal(), val_mgr->Bool(orig),
 		                 make_intrusive<StringVal>(msg));
-	}
+}
 
-	} // namespace zeek::analyzer::bittorrent
+} // namespace zeek::analyzer::bittorrent

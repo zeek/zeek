@@ -11,13 +11,13 @@
 #include "zeek/zeekygen/Info.h"
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 /**
  * Information about a Spicy EVT module.
  */
 class SpicyModuleInfo : public Info
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -26,8 +26,8 @@ public:
 	 */
 	explicit SpicyModuleInfo(const std::string& name, const std::string& description, time_t mtime)
 		: name(name), description(description), mtime(mtime)
-		{
-		}
+	{
+	}
 
 	/** @return textual description of the module */
 	const auto& Description() const { return description; }
@@ -47,9 +47,9 @@ public:
 
 	/** Register a BiF item provided by the EVT module. */
 	void AddBifItem(const std::string& id, plugin::BifItem::Type type)
-		{
+	{
 		bif_items.emplace_back(id, type);
-		}
+	}
 
 private:
 	time_t DoGetModificationTime() const override { return mtime; }
@@ -62,6 +62,6 @@ private:
 
 	std::list<plugin::Component*> components;
 	std::list<plugin::BifItem> bif_items;
-	};
+};
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

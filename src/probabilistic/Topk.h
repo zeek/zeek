@@ -14,17 +14,17 @@
 // Or - to be more precise - it implements an interpretation of it.
 
 namespace zeek::detail
-	{
+{
 class CompositeHash;
-	}
+}
 
 namespace zeek::probabilistic::detail
-	{
+{
 
 struct Element;
 
 struct Bucket
-	{
+{
 	uint64_t count;
 	std::list<Element*> elements;
 
@@ -32,17 +32,17 @@ struct Bucket
 	// points to us - so it is invalid when we are no longer there. Cute,
 	// isn't it?
 	std::list<Bucket*>::iterator bucketPos;
-	};
+};
 
 struct Element
-	{
+{
 	uint64_t epsilon;
 	ValPtr value;
 	Bucket* parent;
-	};
+};
 
 class TopkVal : public OpaqueVal
-	{
+{
 
 public:
 	/**
@@ -180,6 +180,6 @@ private:
 	uint64_t size = 0; // how many elements are we tracking?
 	uint64_t numElements = 0; // how many elements do we have at the moment
 	bool pruned = false; // was this data structure pruned?
-	};
+};
 
-	} // namespace zeek::probabilistic::detail
+} // namespace zeek::probabilistic::detail

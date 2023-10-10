@@ -6,10 +6,10 @@
 #include "zeek/packet_analysis/Component.h"
 
 namespace zeek::packet_analysis::NFLog
-	{
+{
 
 class NFLogAnalyzer : public Analyzer
-	{
+{
 public:
 	NFLogAnalyzer();
 	~NFLogAnalyzer() override = default;
@@ -17,6 +17,6 @@ public:
 	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
 	static AnalyzerPtr Instantiate() { return std::make_shared<NFLogAnalyzer>(); }
-	};
+};
 
-	}
+}

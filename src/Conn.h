@@ -20,7 +20,7 @@
 #include "zeek/session/Session.h"
 
 namespace zeek
-	{
+{
 
 class Connection;
 class EncapsulationStack;
@@ -31,53 +31,53 @@ using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
 namespace session
-	{
+{
 class Manager;
-	}
+}
 namespace detail
-	{
+{
 
 class Specific_RE_Matcher;
 class RuleEndpointState;
 class RuleHdrTest;
 
-	} // namespace detail
+} // namespace detail
 
 namespace analyzer
-	{
+{
 class Analyzer;
-	}
+}
 namespace packet_analysis::IP
-	{
+{
 class SessionAdapter;
-	}
+}
 
 enum ConnEventToFlag
-	{
+{
 	NUL_IN_LINE,
 	SINGULAR_CR,
 	SINGULAR_LF,
 	NUM_EVENTS_TO_FLAG,
-	};
+};
 
 struct ConnTuple
-	{
+{
 	IPAddr src_addr;
 	IPAddr dst_addr;
 	uint32_t src_port = 0;
 	uint32_t dst_port = 0;
 	bool is_one_way = false; // if true, don't canonicalize order
 	TransportProto proto = TRANSPORT_UNKNOWN;
-	};
+};
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2,
                                      uint32_t p2)
-	{
+{
 	return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
-	}
+}
 
 class Connection final : public session::Session
-	{
+{
 public:
 	Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow,
 	           const Packet* pkt);
@@ -119,10 +119,10 @@ public:
 	// should be marked invalid.
 	const detail::ConnKey& Key() const { return key; }
 	session::detail::Key SessionKey(bool copy) const override
-		{
+	{
 		return session::detail::Key{&key, sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE,
 		                            copy};
-		}
+	}
 
 	const IPAddr& OrigAddr() const { return orig_addr; }
 	const IPAddr& RespAddr() const { return resp_addr; }
@@ -138,7 +138,7 @@ public:
 
 	TransportProto ConnTransport() const { return proto; }
 	std::string TransportIdentifier() const override
-		{
+	{
 		if ( proto == TRANSPORT_TCP )
 			return "tcp";
 		else if ( proto == TRANSPORT_UDP )
@@ -147,7 +147,7 @@ public:
 			return "icmp";
 		else
 			return "unknown";
-		}
+	}
 
 	// Returns true if the packet reflects a reuse of this
 	// connection (i.e., not a continuation but the beginning of
@@ -176,16 +176,16 @@ public:
 	bool DidWeird() const { return weird != 0; }
 
 	inline bool FlagEvent(ConnEventToFlag e)
-		{
+	{
 		if ( e >= 0 && e < NUM_EVENTS_TO_FLAG )
-			{
+		{
 			if ( suppress_event & (1 << e) )
 				return false;
 			suppress_event |= 1 << e;
-			}
+		}
 
 		return true;
-		}
+	}
 
 	void Describe(ODesc* d) const override;
 	void IDString(ODesc* d) const;
@@ -197,16 +197,16 @@ public:
 
 	// Returns true if the history was already seen, false otherwise.
 	bool CheckHistory(uint32_t mask, char code)
-		{
+	{
 		if ( (hist_seen & mask) == 0 )
-			{
+		{
 			hist_seen |= mask;
 			AddHistory(code);
 			return false;
-			}
+		}
 		else
 			return true;
-		}
+	}
 
 	// Increments the passed counter and adds it as a history
 	// code if it has crossed the next scaling threshold.  Scaling
@@ -277,6 +277,6 @@ private:
 	// Count number of connections.
 	static uint64_t total_connections;
 	static uint64_t current_connections;
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

@@ -5,15 +5,15 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::login
-	{
+{
 
 enum login_state
-	{
+{
 	LOGIN_STATE_AUTHENTICATE, // trying to authenticate
 	LOGIN_STATE_LOGGED_IN, // successful authentication
 	LOGIN_STATE_SKIP, // skip any further processing
 	LOGIN_STATE_CONFUSED, // we're confused
-	};
+};
 
 // If no action by this many lines, we're definitely confused.
 #define MAX_AUTHENTICATE_LINES 50
@@ -22,7 +22,7 @@ enum login_state
 #define MAX_LOGIN_LOOKAHEAD 10
 
 class Login_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	Login_Analyzer(const char* name, Connection* conn);
 	~Login_Analyzer() override;
@@ -83,6 +83,6 @@ protected:
 
 	bool is_VMS;
 	bool saw_ploy;
-	};
+};
 
-	} // namespace zeek::analyzer::login
+} // namespace zeek::analyzer::login

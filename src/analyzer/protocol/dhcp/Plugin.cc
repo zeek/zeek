@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/dhcp/DHCP.h"
 
 namespace zeek::plugin::detail::Zeek_DHCP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"DHCP", zeek::analyzer::dhcp::DHCP_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::DHCP";
 		config.description = "DHCP analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_DHCP
+} // namespace zeek::plugin::detail::Zeek_DHCP

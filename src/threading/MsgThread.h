@@ -9,12 +9,12 @@
 #include "zeek/threading/Queue.h"
 
 namespace zeek::detail
-	{
+{
 class Location;
-	}
+}
 
 namespace zeek::threading
-	{
+{
 
 struct Value;
 struct Field;
@@ -22,7 +22,7 @@ class BasicInputMessage;
 class BasicOutputMessage;
 
 namespace detail
-	{
+{
 
 // These classes are marked as friends later so they need to be forward declared.
 class HeartbeatMessage;
@@ -30,7 +30,7 @@ class FinishMessage;
 class FinishedMessage;
 class KillMeMessage;
 
-	}
+}
 
 /**
  * A specialized thread that provides bi-directional message passing between
@@ -44,7 +44,7 @@ class KillMeMessage;
  * processes all remaining ones still in the queue, and then exits.
  */
 class MsgThread : public BasicThread, public iosource::IOSource
-	{
+{
 public:
 	/**
 	 * Constructor. It automatically registers the thread with the
@@ -193,7 +193,7 @@ public:
 	 * Statistics about inter-thread communication.
 	 */
 	struct Stats
-		{
+	{
 		uint64_t sent_in; //! Number of messages sent to the child thread.
 		uint64_t sent_out; //! Number of messages sent from the child thread to the main thread
 		uint64_t pending_in; //! Number of messages sent to the child but not yet processed.
@@ -203,7 +203,7 @@ public:
 		/// Statistics from our queues.
 		Queue<BasicInputMessage*>::Stats queue_in_stats;
 		Queue<BasicOutputMessage*>::Stats queue_out_stats;
-		};
+	};
 
 	/**
 	 * Returns statistics about the inter-thread communication.
@@ -368,13 +368,13 @@ private:
 	bool failed; // Set to true when a command failed.
 
 	zeek::detail::Flare flare;
-	};
+};
 
 /**
  * Base class for all message between Zeek's main process and a MsgThread.
  */
 class Message
-	{
+{
 public:
 	/**
 	 * Destructor.
@@ -404,13 +404,13 @@ protected:
 
 private:
 	const char* name;
-	};
+};
 
 /**
  * Base class for messages sent from Zeek's main thread to a child MsgThread.
  */
 class BasicInputMessage : public Message
-	{
+{
 protected:
 	/**
 	 * Constructor.
@@ -419,13 +419,13 @@ protected:
 	 * mainly for debugging purposes.
 	 */
 	explicit BasicInputMessage(const char* name) : Message(name) { }
-	};
+};
 
 /**
  * Base class for messages sent from a child MsgThread to Zeek's main thread.
  */
 class BasicOutputMessage : public Message
-	{
+{
 protected:
 	/**
 	 * Constructor.
@@ -434,14 +434,14 @@ protected:
 	 * mainly for debugging purposes.
 	 */
 	explicit BasicOutputMessage(const char* name) : Message(name) { }
-	};
+};
 
 /**
  * A parameterized InputMessage that stores a pointer to an argument object.
  * Normally, the objects will be used from the Process() callback.
  */
 template <typename O> class InputMessage : public BasicInputMessage
-	{
+{
 public:
 	/**
 	 * Returns the objects passed to the constructor.
@@ -461,14 +461,14 @@ protected:
 
 private:
 	O* object;
-	};
+};
 
 /**
  * A parameterized OutputMessage that stores a pointer to an argument object.
  * Normally, the objects will be used from the Process() callback.
  */
 template <typename O> class OutputMessage : public BasicOutputMessage
-	{
+{
 public:
 	/**
 	 * Returns the objects passed to the constructor.
@@ -485,12 +485,12 @@ protected:
 	 * @param arg_object An object to store with the message.
 	 */
 	OutputMessage(const char* name, O* arg_object) : BasicOutputMessage(name)
-		{
+	{
 		object = arg_object;
-		}
+	}
 
 private:
 	O* object;
-	};
+};
 
-	} // namespace zeek::threading
+} // namespace zeek::threading

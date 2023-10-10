@@ -5,13 +5,13 @@
 #include "zeek/Options.h"
 
 namespace zeek::detail
-	{
+{
 
 struct SetupResult
-	{
+{
 	int code = 0;
 	Options options;
-	};
+};
 
 /**
  * Initializes Zeek's global state.
@@ -30,4 +30,4 @@ SetupResult setup(int argc, char** argv, Options* options = nullptr);
  */
 int cleanup(bool did_run_loop);
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

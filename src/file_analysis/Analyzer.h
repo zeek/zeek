@@ -7,13 +7,13 @@
 #include "zeek/Tag.h"
 
 namespace zeek
-	{
+{
 
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
 namespace file_analysis
-	{
+{
 
 class File;
 using ID = uint32_t;
@@ -22,7 +22,7 @@ using ID = uint32_t;
  * Base class for analyzers that can be attached to file_analysis::File objects.
  */
 class Analyzer
-	{
+{
 public:
 	/**
 	 * Destructor.  Nothing special about it. Virtual since we definitely expect
@@ -209,7 +209,7 @@ private:
 	uint64_t analyzer_violations = 0;
 
 	static ID id_counter;
-	};
+};
 
-	} // namespace file_analysis
-	} // namespace zeek
+} // namespace file_analysis
+} // namespace zeek

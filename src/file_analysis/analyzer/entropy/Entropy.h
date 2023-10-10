@@ -11,13 +11,13 @@
 #include "zeek/file_analysis/analyzer/entropy/events.bif.h"
 
 namespace zeek::file_analysis::detail
-	{
+{
 
 /**
  * An analyzer to produce entropy of file contents.
  */
 class Entropy : public file_analysis::Analyzer
-	{
+{
 public:
 	/**
 	 * Destructor.
@@ -75,6 +75,6 @@ protected:
 private:
 	EntropyVal* entropy;
 	bool fed;
-	};
+};
 
-	} // namespace zeek::file_analysis::detail
+} // namespace zeek::file_analysis::detail

@@ -8,12 +8,12 @@
 #include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
-	{
+{
 
 constexpr int MAX_INLINE_SIZE = 1000;
 
 void Inliner::Analyze()
-	{
+{
 	// Locate self- and indirectly recursive functions.
 
 	// Maps each function to any functions that it calls, either
@@ -23,27 +23,27 @@ void Inliner::Analyze()
 	// Prime the call set for each function with the functions it
 	// directly calls.
 	for ( auto& f : funcs )
-		{
+	{
 		std::unordered_set<const Func*> cs;
 
 		// Aspirational ....
 		non_recursive_funcs.insert(f.Func());
 
 		for ( auto& func : f.Profile()->ScriptCalls() )
-			{
+		{
 			cs.insert(func);
 
 			if ( func == f.Func() )
-				{
+			{
 				if ( report_recursive )
 					printf("%s is directly recursive\n", func->Name());
 
 				non_recursive_funcs.erase(func);
-				}
 			}
+		}
 
 		call_set[f.Func()] = cs;
-		}
+	}
 
 	// Transitive closure.  If we had any self-respect, we'd implement
 	// Warshall's algorithm.  What we do here is feasible though since
@@ -57,19 +57,19 @@ void Inliner::Analyze()
 	// Whether a change has occurred.
 	bool did_addition = true;
 	while ( did_addition )
-		{
+	{
 		did_addition = false;
 
 		// Loop over all the functions of interest.
 		for ( auto& c : call_set )
-			{
+		{
 			// For each of them, loop over the set of functions
 			// they call.
 
 			std::unordered_set<const Func*> addls;
 
 			for ( auto& cc : c.second )
-				{
+			{
 				if ( cc == c.first )
 					// Don't loop over ourselves.
 					continue;
@@ -77,7 +77,7 @@ void Inliner::Analyze()
 				// For each called function, pull up *its*
 				// set of called functions.
 				for ( auto& ccc : call_set[cc] )
-					{
+				{
 					// For each of those, if we don't
 					// already have it, add it.
 					if ( c.second.count(ccc) > 0 )
@@ -96,21 +96,21 @@ void Inliner::Analyze()
 
 					non_recursive_funcs.erase(c.first);
 					non_recursive_funcs.erase(cc);
-					}
 				}
+			}
 
 			if ( addls.size() > 0 )
-				{
+			{
 				did_addition = true;
 
 				for ( auto& a : addls )
 					c.second.insert(a);
-				}
 			}
 		}
+	}
 
 	for ( auto& f : funcs )
-		{
+	{
 		const auto& func_ptr = f.FuncPtr();
 		const auto& func = func_ptr.get();
 		const auto& body = f.Body();
@@ -130,15 +130,15 @@ void Inliner::Analyze()
 			continue;
 
 		inline_ables.insert(func);
-		}
+	}
 
 	for ( auto& f : funcs )
 		if ( should_analyze(f.FuncPtr(), f.Body()) )
 			InlineFunction(&f);
-	}
+}
 
 void Inliner::InlineFunction(FuncInfo* f)
-	{
+{
 	max_inlined_frame_size = 0;
 
 	// It's important that we take the current frame size from the
@@ -160,10 +160,10 @@ void Inliner::InlineFunction(FuncInfo* f)
 
 	if ( new_frame_size > f->Func()->FrameSize() )
 		f->Func()->SetFrameSize(new_frame_size);
-	}
+}
 
 ExprPtr Inliner::CheckForInlining(CallExprPtr c)
-	{
+{
 	auto f = c->Func();
 
 	if ( f->Tag() != EXPR_NAME )
@@ -191,32 +191,32 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 		return c;
 
 	if ( c->IsInWhen() )
-		{
+	{
 		// Don't inline these, as doing so requires propagating
 		// the in-when attribute to the inlined function body.
 		skipped_inlining.insert(func_vf);
 		return c;
-		}
+	}
 
 	// Check for mismatches in argument count due to single-arg-of-type-any
 	// loophole used for variadic BiFs.  (The issue isn't calls to the
 	// BiFs, which won't happen here, but instead to script functions that
 	// are misusing/abusing the loophole.)
 	if ( function->GetType()->Params()->NumFields() == 1 && c->Args()->Exprs().size() != 1 )
-		{
+	{
 		skipped_inlining.insert(func_vf);
 		return c;
-		}
+	}
 
 	// We're going to inline the body, unless it's too large.
 	auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
 	auto oi = body->GetOptInfo();
 
 	if ( num_stmts + oi->num_stmts + num_exprs + oi->num_exprs > MAX_INLINE_SIZE )
-		{
+	{
 		skipped_inlining.insert(func_vf);
 		return nullptr; // signals "stop inlining"
-		}
+	}
 
 	did_inline.insert(func_vf);
 
@@ -273,6 +273,6 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	ie->SetOriginal(c);
 
 	return ie;
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

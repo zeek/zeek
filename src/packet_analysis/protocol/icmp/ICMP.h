@@ -9,7 +9,7 @@
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
 namespace zeek
-	{
+{
 
 class VectorVal;
 using VectorValPtr = IntrusivePtr<VectorVal>;
@@ -17,20 +17,20 @@ class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
 namespace packet_analysis::ICMP
-	{
+{
 
 class ICMPSessionAdapter;
 
 class ICMPAnalyzer final : public IP::IPBasedAnalyzer
-	{
+{
 public:
 	ICMPAnalyzer();
 	~ICMPAnalyzer() override = default;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<ICMPAnalyzer>();
-		}
+	}
 
 	packet_analysis::IP::SessionAdapter* MakeSessionAdapter(Connection* conn) override;
 
@@ -83,12 +83,12 @@ private:
 	VectorValPtr BuildNDOptionsVal(int caplen, const u_char* data, ICMPSessionAdapter* adapter);
 
 	void UpdateEndpointVal(const ValPtr& endp, bool is_orig);
-	};
+};
 
 // Returns the counterpart type to the given type (e.g., the counterpart
 // to ICMP_ECHOREPLY is ICMP_ECHO).
 extern int ICMP4_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 extern int ICMP6_counterpart(int icmp_type, int icmp_code, bool& is_one_way);
 
-	} // namespace packet_analysis::ICMP
-	} // namespace zeek
+} // namespace packet_analysis::ICMP
+} // namespace zeek

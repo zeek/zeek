@@ -12,11 +12,11 @@
 #include "zeek/zeek-setup.h"
 
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
-	{
+{
 	auto zeekpath = getenv("ZEEKPATH");
 
 	if ( ! zeekpath )
-		{
+	{
 		// Set up an expected script search path for use with OSS-Fuzz
 		auto constexpr oss_fuzz_scripts = "oss-fuzz-zeek-scripts";
 		auto fuzzer_path = zeek::util::detail::get_exe_path(*argv[0]);
@@ -28,7 +28,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 
 		if ( setenv("ZEEKPATH", oss_fuzz_zeekpath, true) == -1 )
 			abort();
-		}
+	}
 
 	zeek::Options options;
 	options.scripts_to_load.emplace_back("local.zeek");
@@ -52,13 +52,13 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 	zeek::event_registry->Lookup("new_event")->SetGenerateAlways(false);
 
 	return 0;
-	}
+}
 
 namespace zeek::detail
-	{
+{
 
 void fuzzer_cleanup_one_input()
-	{
+{
 	run_state::terminating = true;
 	broker_mgr->ClearStores();
 	file_mgr->Terminate();
@@ -69,6 +69,6 @@ void fuzzer_cleanup_one_input()
 	zeek::event_mgr.Drain();
 	zeek::session_mgr->Clear();
 	run_state::terminating = false;
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

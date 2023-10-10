@@ -11,13 +11,13 @@
 #include <unordered_map>
 
 namespace zeek::notifier::detail
-	{
+{
 
 class Modifiable;
 
 /** Interface class for receivers of notifications. */
 class Receiver
-	{
+{
 public:
 	Receiver();
 	virtual ~Receiver();
@@ -34,11 +34,11 @@ public:
 	 * no further modifications can possibly occur.
 	 */
 	virtual void Terminate() { }
-	};
+};
 
 /** Singleton class tracking all notification requests globally. */
 class Registry
-	{
+{
 public:
 	~Registry();
 
@@ -89,7 +89,7 @@ private:
 
 	using ModifiableMap = std::unordered_multimap<Modifiable*, Receiver*>;
 	ModifiableMap registrations;
-	};
+};
 
 /**
  * Singleton object tracking all global notification requests.
@@ -101,17 +101,17 @@ extern Registry registry;
  * modified.
  */
 class Modifiable
-	{
+{
 public:
 	/**
 	 * Calling this method signals to all registered receivers that the
 	 * object has been modified.
 	 */
 	void Modified()
-		{
+	{
 		if ( num_receivers )
 			registry.Modified(this);
-		}
+	}
 
 protected:
 	friend class Registry;
@@ -120,6 +120,6 @@ protected:
 
 	// Number of currently registered receivers.
 	uint64_t num_receivers = 0;
-	};
+};
 
-	} // namespace zeek::notifier::detail
+} // namespace zeek::notifier::detail

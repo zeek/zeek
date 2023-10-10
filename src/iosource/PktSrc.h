@@ -13,13 +13,13 @@
 struct pcap_pkthdr;
 
 namespace zeek::iosource
-	{
+{
 
 /**
  * Base class for packet sources.
  */
 class PktSrc : public IOSource
-	{
+{
 public:
 	static const uint32_t NETMASK_UNKNOWN = 0xffffffff;
 
@@ -27,7 +27,7 @@ public:
 	 * Struct for returning statistics on a packet source.
 	 */
 	struct Stats
-		{
+	{
 		/**
 		 * Packets received by source after filtering (w/o drops).
 		 */
@@ -53,7 +53,7 @@ public:
 		 * Packets filtered by the packet source.
 		 */
 		std::optional<uint64_t> filtered;
-		};
+	};
 
 	/**
 	 * Constructor.
@@ -189,9 +189,9 @@ public:
 	 * is not supported.
 	 */
 	virtual bool PrecompileFilter(int index, const std::string& filter)
-		{
+	{
 		return PrecompileBPFFilter(index, filter);
-		}
+	}
 
 	/**
 	 * Activates a precompiled filter with the given index.
@@ -237,7 +237,7 @@ protected:
 	 * base class. Derived class pass an instance of this to \a Opened().
 	 */
 	struct Properties
-		{
+	{
 		/**
 		 * The path associated with the source. This is the interface
 		 * name for live source, and a filename for offline sources.
@@ -268,7 +268,7 @@ protected:
 		bool is_live;
 
 		Properties();
-		};
+	};
 
 	/**
 	 * Called from the implementations of \a Open() to signal that the
@@ -392,6 +392,6 @@ private:
 	std::vector<detail::BPF_Program*> filters;
 
 	std::string errbuf;
-	};
+};
 
-	} // namespace zeek::iosource
+} // namespace zeek::iosource

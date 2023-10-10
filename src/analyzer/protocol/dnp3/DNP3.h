@@ -5,13 +5,13 @@
 #include "analyzer/protocol/dnp3/dnp3_pac.h"
 
 namespace zeek::analyzer::dnp3
-	{
+{
 
 namespace detail
-	{
+{
 
 class DNP3_Base
-	{
+{
 public:
 	explicit DNP3_Base(analyzer::Analyzer* analyzer);
 	virtual ~DNP3_Base();
@@ -22,7 +22,7 @@ protected:
 	static const int MAX_BUFFER_SIZE = 300;
 
 	struct Endpoint
-		{
+	{
 		u_char buffer[MAX_BUFFER_SIZE] = {0};
 		int buffer_len = 0;
 		bool in_hdr = false;
@@ -30,7 +30,7 @@ protected:
 		int pkt_length = 0;
 		int pkt_cnt = 0;
 		bool encountered_first_chunk = false;
-		};
+	};
 
 	bool ProcessData(int len, const u_char* data, bool orig);
 	void ClearEndpointState(bool orig);
@@ -63,12 +63,12 @@ protected:
 
 	Endpoint orig_state;
 	Endpoint resp_state;
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 class DNP3_TCP_Analyzer : public detail::DNP3_Base, public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit DNP3_TCP_Analyzer(Connection* conn);
 	~DNP3_TCP_Analyzer() override = default;
@@ -79,10 +79,10 @@ public:
 	void EndpointEOF(bool is_orig) override;
 
 	static Analyzer* Instantiate(Connection* conn) { return new DNP3_TCP_Analyzer(conn); }
-	};
+};
 
 class DNP3_UDP_Analyzer : public detail::DNP3_Base, public analyzer::Analyzer
-	{
+{
 public:
 	explicit DNP3_UDP_Analyzer(Connection* conn);
 	~DNP3_UDP_Analyzer() override = default;
@@ -91,6 +91,6 @@ public:
 	                   int caplen) override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new DNP3_UDP_Analyzer(conn); }
-	};
+};
 
-	} // namespace zeek::analyzer::dnp3
+} // namespace zeek::analyzer::dnp3

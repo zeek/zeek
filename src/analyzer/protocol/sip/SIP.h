@@ -4,10 +4,10 @@
 #include "zeek/analyzer/protocol/sip/sip_pac.h"
 
 namespace zeek::analyzer::sip
-	{
+{
 
 class SIP_Analyzer final : public analyzer::Analyzer
-	{
+{
 public:
 	explicit SIP_Analyzer(Connection* conn);
 	~SIP_Analyzer() override;
@@ -22,6 +22,6 @@ public:
 
 protected:
 	binpac::SIP::SIP_Conn* interp;
-	};
+};
 
-	} // namespace zeek::analyzer::sip
+} // namespace zeek::analyzer::sip

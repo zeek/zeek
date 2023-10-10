@@ -11,16 +11,16 @@
 #include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
-	{
+{
 
 GenIDDefs::GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr scope, StmtPtr body)
 	: pf(std::move(_pf))
-	{
+{
 	TraverseFunction(f, scope, body);
-	}
+}
 
 void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
-	{
+{
 	func_flavor = f->Flavor();
 
 	// Establish the outermost barrier and associated set of
@@ -29,10 +29,10 @@ void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	modified_IDs.emplace_back();
 
 	for ( const auto& g : pf->Globals() )
-		{
+	{
 		g->GetOptInfo()->Clear();
 		TrackID(g);
-		}
+	}
 
 	// Clear the locals before processing the arguments, since
 	// they're included among the locals.
@@ -43,21 +43,21 @@ void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	int nparam = f->GetType()->Params()->NumFields();
 
 	for ( const auto& a : args )
-		{
+	{
 		if ( --nparam < 0 )
 			break;
 
 		a->GetOptInfo()->Clear();
 		TrackID(a);
-		}
+	}
 
 	stmt_num = 0; // 0 = "before the first statement"
 
 	body->Traverse(this);
-	}
+}
 
 TraversalCode GenIDDefs::PreStmt(const Stmt* s)
-	{
+{
 	curr_stmt = s;
 
 	auto si = s->GetOptInfo();
@@ -65,9 +65,9 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 	si->block_level = confluence_blocks.size() + 1;
 
 	switch ( s->Tag() )
-		{
+	{
 		case STMT_CATCH_RETURN:
-			{
+		{
 			auto cr = s->AsCatchReturnStmt();
 			auto block = cr->Block();
 
@@ -80,10 +80,10 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 				TrackID(retvar->Id());
 
 			return TC_ABORTSTMT;
-			}
+		}
 
 		case STMT_IF:
-			{
+		{
 			auto i = s->AsIfStmt();
 			auto cond = i->StmtExpr();
 			auto t_branch = i->TrueBranch();
@@ -104,14 +104,14 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 			EndConfluenceBlock(true);
 
 			return TC_ABORTSTMT;
-			}
+		}
 
 		case STMT_SWITCH:
 			AnalyzeSwitch(s->AsSwitchStmt());
 			return TC_ABORTSTMT;
 
 		case STMT_FOR:
-			{
+		{
 			auto f = s->AsForStmt();
 
 			auto ids = f->LoopVars();
@@ -136,10 +136,10 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 			EndConfluenceBlock();
 
 			return TC_ABORTSTMT;
-			}
+		}
 
 		case STMT_WHILE:
-			{
+		{
 			auto w = s->AsWhileStmt();
 
 			StartConfluenceBlock(s);
@@ -165,19 +165,19 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 			EndConfluenceBlock();
 
 			return TC_ABORTSTMT;
-			}
+		}
 
 		default:
 			return TC_CONTINUE;
-		}
 	}
+}
 
 void GenIDDefs::AnalyzeSwitch(const SwitchStmt* sw)
-	{
+{
 	sw->StmtExpr()->Traverse(this);
 
 	for ( const auto& c : *sw->Cases() )
-		{
+	{
 		// Important: the confluence block is the switch statement
 		// itself, not the case body.  This is needed so that variable
 		// assignments made inside case bodies that end with
@@ -193,37 +193,37 @@ void GenIDDefs::AnalyzeSwitch(const SwitchStmt* sw)
 
 		auto type_ids = c->TypeCases();
 		if ( type_ids )
-			{
+		{
 			for ( const auto& id : *type_ids )
 				if ( id->Name() )
 					TrackID(id);
-			}
+		}
 
 		body->Traverse(this);
 		EndConfluenceBlock(false);
-		}
 	}
+}
 
 TraversalCode GenIDDefs::PostStmt(const Stmt* s)
-	{
+{
 	switch ( s->Tag() )
-		{
+	{
 		case STMT_INIT:
-			{
+		{
 			auto init = s->AsInitStmt();
 			auto& inits = init->Inits();
 
 			for ( const auto& id : inits )
-				{
+			{
 				auto id_t = id->GetType();
 
 				// Only aggregates get initialized.
 				if ( zeek::IsAggr(id->GetType()->Tag()) )
 					TrackID(id);
-				}
+			}
 
 			break;
-			}
+		}
 
 		case STMT_RETURN:
 			ReturnAt(s);
@@ -234,20 +234,20 @@ TraversalCode GenIDDefs::PostStmt(const Stmt* s)
 			break;
 
 		case STMT_BREAK:
-			{
+		{
 			auto target = FindBreakTarget();
 
 			if ( target )
 				BranchBeyond(s, target, false);
 
 			else
-				{
+			{
 				ASSERT(func_flavor == FUNC_FLAVOR_HOOK);
 				ReturnAt(s);
-				}
+			}
 
 			break;
-			}
+		}
 
 		case STMT_FALLTHROUGH:
 			// No need to do anything, the work all occurs
@@ -256,33 +256,33 @@ TraversalCode GenIDDefs::PostStmt(const Stmt* s)
 
 		default:
 			break;
-		}
-
-	return TC_CONTINUE;
 	}
 
+	return TC_CONTINUE;
+}
+
 TraversalCode GenIDDefs::PreExpr(const Expr* e)
-	{
+{
 	e->GetOptInfo()->stmt_num = stmt_num;
 
 	switch ( e->Tag() )
-		{
+	{
 		case EXPR_NAME:
 			CheckVarUsage(e, e->AsNameExpr()->Id());
 			break;
 
 		case EXPR_ASSIGN:
-			{
+		{
 			auto lhs = e->GetOp1();
 			auto op2 = e->GetOp2();
 
 			if ( lhs->Tag() == EXPR_LIST && op2->GetType()->Tag() != TYPE_ANY )
-				{
+			{
 				// This combination occurs only for assignments used
 				// to initialize table entries.  Treat it as references
 				// to both the lhs and the rhs, not as an assignment.
 				return TC_CONTINUE;
-				}
+			}
 
 			op2->Traverse(this);
 
@@ -293,7 +293,7 @@ TraversalCode GenIDDefs::PreExpr(const Expr* e)
 				lhs->Traverse(this);
 
 			return TC_ABORTSTMT;
-			}
+		}
 
 		case EXPR_COND:
 			// Special hack.  We turn off checking for usage issues
@@ -311,7 +311,7 @@ TraversalCode GenIDDefs::PreExpr(const Expr* e)
 			return TC_ABORTSTMT;
 
 		case EXPR_LAMBDA:
-			{
+		{
 			auto l = static_cast<const LambdaExpr*>(e);
 			const auto& ids = l->OuterIDs();
 
@@ -321,17 +321,17 @@ TraversalCode GenIDDefs::PreExpr(const Expr* e)
 			// Don't descend into the lambda body - we'll analyze and
 			// optimize it separately, as its own function.
 			return TC_ABORTSTMT;
-			}
+		}
 
 		default:
 			break;
-		}
-
-	return TC_CONTINUE;
 	}
 
+	return TC_CONTINUE;
+}
+
 TraversalCode GenIDDefs::PostExpr(const Expr* e)
-	{
+{
 	// Attend to expressions that reflect assignments after
 	// execution, but for which the assignment target was
 	// also an accessed value (so if we analyzed them
@@ -340,34 +340,34 @@ TraversalCode GenIDDefs::PostExpr(const Expr* e)
 
 	auto t = e->Tag();
 	if ( t == EXPR_INCR || t == EXPR_DECR || t == EXPR_ADD_TO || t == EXPR_REMOVE_FROM )
-		{
+	{
 		auto op = e->GetOp1();
 		if ( ! IsAggr(op) )
 			(void)CheckLHS(op);
-		}
-
-	return TC_CONTINUE;
 	}
 
+	return TC_CONTINUE;
+}
+
 bool GenIDDefs::CheckLHS(const ExprPtr& lhs, const ExprPtr& rhs)
-	{
+{
 	switch ( lhs->Tag() )
-		{
+	{
 		case EXPR_REF:
 			return CheckLHS(lhs->GetOp1(), rhs);
 
 		case EXPR_NAME:
-			{
+		{
 			auto n = lhs->AsNameExpr();
 			TrackID(n->Id(), rhs);
 			return true;
-			}
+		}
 
 		case EXPR_LIST:
-			{ // look for [a, b, c] = any_val
+		{ // look for [a, b, c] = any_val
 			auto l = lhs->AsListExpr();
 			for ( const auto& expr : l->Exprs() )
-				{
+			{
 				if ( expr->Tag() != EXPR_NAME )
 					// This will happen for table initializers,
 					// for example.
@@ -375,10 +375,10 @@ bool GenIDDefs::CheckLHS(const ExprPtr& lhs, const ExprPtr& rhs)
 
 				auto n = expr->AsNameExpr();
 				TrackID(n->Id());
-				}
+			}
 
 			return true;
-			}
+		}
 
 		case EXPR_FIELD:
 			// If we want to track record field initializations,
@@ -392,11 +392,11 @@ bool GenIDDefs::CheckLHS(const ExprPtr& lhs, const ExprPtr& rhs)
 
 		default:
 			reporter->InternalError("bad tag in GenIDDefs::CheckLHS");
-		}
 	}
+}
 
 bool GenIDDefs::IsAggr(const Expr* e) const
-	{
+{
 	if ( e->Tag() != EXPR_NAME )
 		return false;
 
@@ -405,10 +405,10 @@ bool GenIDDefs::IsAggr(const Expr* e) const
 	auto tag = id->GetType()->Tag();
 
 	return zeek::IsAggr(tag);
-	}
+}
 
 void GenIDDefs::CheckVarUsage(const Expr* e, const ID* id)
-	{
+{
 	if ( analysis_options.usage_issues != 1 || id->IsGlobal() || suppress_usage > 0 )
 		return;
 
@@ -416,32 +416,32 @@ void GenIDDefs::CheckVarUsage(const Expr* e, const ID* id)
 
 	if ( ! oi->DidUndefinedWarning() && ! oi->IsDefinedBefore(curr_stmt) &&
 	     ! id->GetAttr(ATTR_IS_ASSIGNED) )
-		{
+	{
 		if ( ! oi->IsPossiblyDefinedBefore(curr_stmt) )
-			{
+		{
 			e->Warn("used without definition");
 			oi->SetDidUndefinedWarning();
-			}
+		}
 
 		else if ( ! oi->DidPossiblyUndefinedWarning() )
-			{
+		{
 			e->Warn("possibly used without definition");
 			oi->SetDidPossiblyUndefinedWarning();
-			}
 		}
 	}
+}
 
 void GenIDDefs::StartConfluenceBlock(const Stmt* s)
-	{
+{
 	if ( s->Tag() == STMT_CATCH_RETURN )
 		barrier_blocks.push_back(confluence_blocks.size());
 
 	confluence_blocks.push_back(s);
 	modified_IDs.emplace_back();
-	}
+}
 
 void GenIDDefs::EndConfluenceBlock(bool no_orig)
-	{
+{
 	for ( auto id : modified_IDs.back() )
 		id->GetOptInfo()->ConfluenceBlockEndsAfter(curr_stmt, no_orig);
 
@@ -452,63 +452,63 @@ void GenIDDefs::EndConfluenceBlock(bool no_orig)
 		barrier_blocks.pop_back();
 
 	modified_IDs.pop_back();
-	}
+}
 
 void GenIDDefs::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all)
-	{
+{
 	for ( auto id : modified_IDs.back() )
 		id->GetOptInfo()->BranchBackTo(from, to, close_all);
-	}
+}
 
 void GenIDDefs::BranchBeyond(const Stmt* from, const Stmt* to, bool close_all)
-	{
+{
 	for ( auto id : modified_IDs.back() )
 		id->GetOptInfo()->BranchBeyond(from, to, close_all);
 
 	to->GetOptInfo()->contains_branch_beyond = true;
-	}
+}
 
 const Stmt* GenIDDefs::FindLoop()
-	{
+{
 	int i = confluence_blocks.size() - 1;
 	while ( i >= 0 )
-		{
+	{
 		auto t = confluence_blocks[i]->Tag();
 		if ( t == STMT_WHILE || t == STMT_FOR )
 			break;
 
 		--i;
-		}
+	}
 
 	ASSERT(i >= 0);
 
 	return confluence_blocks[i];
-	}
+}
 
 const Stmt* GenIDDefs::FindBreakTarget()
-	{
+{
 	int i = confluence_blocks.size() - 1;
 	while ( i >= 0 )
-		{
+	{
 		auto cb = confluence_blocks[i];
 		auto t = cb->Tag();
 		if ( t == STMT_WHILE || t == STMT_FOR || t == STMT_SWITCH )
 			return cb;
 
 		--i;
-		}
+	}
 
 	return nullptr;
-	}
+}
 
 void GenIDDefs::ReturnAt(const Stmt* s)
-	{
+{
 	for ( auto id : modified_IDs.back() )
 		id->GetOptInfo()->ReturnAt(s);
-	}
+}
 
 void GenIDDefs::TrackID(const ID* id, const ExprPtr& e)
-	{
+{
 	auto oi = id->GetOptInfo();
 
 	ASSERT(! barrier_blocks.empty());
@@ -524,6 +524,6 @@ void GenIDDefs::TrackID(const ID* id, const ExprPtr& e)
 	if ( confluence_blocks.empty() )
 		// This is a definition at the outermost level.
 		modified_IDs[0].insert(id);
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

@@ -15,27 +15,27 @@
 #include <vector>
 
 namespace zeek::detail
-	{
+{
 
 // TODO: Anon.h may not be the right place to put these functions ...
 
 enum ip_addr_anonymization_class_t
-	{
+{
 	ORIG_ADDR, // client address
 	RESP_ADDR, // server address
 	OTHER_ADDR,
 	NUM_ADDR_ANONYMIZATION_CLASSES,
-	};
+};
 
 enum ip_addr_anonymization_method_t
-	{
+{
 	KEEP_ORIG_ADDR,
 	SEQUENTIALLY_NUMBERED,
 	RANDOM_MD5,
 	PREFIX_PRESERVING_A50,
 	PREFIX_PRESERVING_MD5,
 	NUM_ADDR_ANONYMIZATION_METHODS,
-	};
+};
 
 using ipaddr32_t = uint32_t;
 
@@ -43,7 +43,7 @@ using ipaddr32_t = uint32_t;
 // network order.
 
 class AnonymizeIPAddr
-	{
+{
 public:
 	virtual ~AnonymizeIPAddr() = default;
 
@@ -57,39 +57,39 @@ public:
 
 protected:
 	std::map<ipaddr32_t, ipaddr32_t> mapping;
-	};
+};
 
 class AnonymizeIPAddr_Seq : public AnonymizeIPAddr
-	{
+{
 public:
 	AnonymizeIPAddr_Seq() { seq = 1; }
 	ipaddr32_t anonymize(ipaddr32_t addr) override;
 
 protected:
 	ipaddr32_t seq;
-	};
+};
 
 class AnonymizeIPAddr_RandomMD5 : public AnonymizeIPAddr
-	{
+{
 public:
 	ipaddr32_t anonymize(ipaddr32_t addr) override;
-	};
+};
 
 class AnonymizeIPAddr_PrefixMD5 : public AnonymizeIPAddr
-	{
+{
 public:
 	ipaddr32_t anonymize(ipaddr32_t addr) override;
 
 protected:
 	struct anon_prefix
-		{
+	{
 		int len;
 		ipaddr32_t prefix;
-		} prefix;
-	};
+	} prefix;
+};
 
 class AnonymizeIPAddr_A50 : public AnonymizeIPAddr
-	{
+{
 public:
 	AnonymizeIPAddr_A50() { init(); }
 	~AnonymizeIPAddr_A50() override;
@@ -99,11 +99,11 @@ public:
 
 protected:
 	struct Node
-		{
+	{
 		ipaddr32_t input;
 		ipaddr32_t output;
 		Node* child[2];
-		};
+	};
 
 	int method;
 	int before_anonymization;
@@ -128,7 +128,7 @@ protected:
 	ipaddr32_t make_output(ipaddr32_t, int) const;
 	Node* make_peer(ipaddr32_t, Node*);
 	Node* find_node(ipaddr32_t);
-	};
+};
 
 // The global IP anonymizers.
 extern AnonymizeIPAddr* ip_anonymizer[NUM_ADDR_ANONYMIZATION_METHODS];
@@ -139,4 +139,4 @@ ipaddr32_t anonymize_ip(ipaddr32_t ip, enum ip_addr_anonymization_class_t cl);
 #define LOG_ANONYMIZATION_MAPPING
 void log_anonymization_mapping(ipaddr32_t input, ipaddr32_t output);
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

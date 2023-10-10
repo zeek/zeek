@@ -11,10 +11,10 @@
 using namespace std;
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 PackageInfo::PackageInfo(const string& arg_name) : Info(), pkg_name(arg_name), readme()
-	{
+{
 	string readme_file = util::find_file(pkg_name + "/README", util::zeek_path());
 
 	if ( readme_file.empty() )
@@ -34,10 +34,10 @@ PackageInfo::PackageInfo(const string& arg_name) : Info(), pkg_name(arg_name), r
 	if ( f.bad() )
 		reporter->InternalWarning("Zeekygen error reading '%s': %s", readme_file.c_str(),
 		                          strerror(errno));
-	}
+}
 
 string PackageInfo::DoReStructuredText(bool roles_only) const
-	{
+{
 	string rval = util::fmt(":doc:`%s </scripts/%s/index>`\n\n", pkg_name.c_str(),
 	                        pkg_name.c_str());
 
@@ -45,16 +45,16 @@ string PackageInfo::DoReStructuredText(bool roles_only) const
 		rval += "   " + readme[i] + "\n";
 
 	return rval;
-	}
+}
 
 time_t PackageInfo::DoGetModificationTime() const
-	{
+{
 	string readme_file = util::find_file(pkg_name + "/README", util::zeek_path());
 
 	if ( readme_file.empty() )
 		return 0;
 
 	return get_mtime(readme_file);
-	}
+}
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

@@ -6,13 +6,13 @@
 #include "zeek/TraverseTypes.h"
 
 namespace zeek
-	{
+{
 
 class Func;
 class Type;
 
 namespace detail
-	{
+{
 
 class Stmt;
 class Expr;
@@ -21,7 +21,7 @@ class Attributes;
 class Attr;
 
 class TraversalCallback
-	{
+{
 public:
 	TraversalCallback() { current_scope = nullptr; }
 	virtual ~TraversalCallback() { }
@@ -59,9 +59,9 @@ public:
 	virtual TraversalCode PostAttr(const Attr*) { return TC_CONTINUE; }
 
 	ScopePtr current_scope;
-	};
+};
 
 TraversalCode traverse_all(TraversalCallback* cb);
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

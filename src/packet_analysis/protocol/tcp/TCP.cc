@@ -17,7 +17,7 @@ TCPAnalyzer::TCPAnalyzer() : IPBasedAnalyzer("TCP", TRANSPORT_TCP, TCP_PORT_MASK
 void TCPAnalyzer::Initialize() { }
 
 SessionAdapter* TCPAnalyzer::MakeSessionAdapter(Connection* conn)
-	{
+{
 	auto* root = new TCPSessionAdapter(conn);
 	root->SetParent(this);
 
@@ -25,15 +25,15 @@ SessionAdapter* TCPAnalyzer::MakeSessionAdapter(Connection* conn)
 	conn->SetInactivityTimeout(zeek::detail::udp_inactivity_timeout);
 
 	return root;
-	}
+}
 
 zeek::analyzer::pia::PIA* TCPAnalyzer::MakePIA(Connection* conn)
-	{
+{
 	return new analyzer::pia::PIA_TCP(conn);
-	}
+}
 
 bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple)
-	{
+{
 	uint32_t min_hdr_len = sizeof(struct tcphdr);
 	if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
 		return false;
@@ -50,17 +50,17 @@ bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
 	tuple.proto = TRANSPORT_TCP;
 
 	return true;
-	}
+}
 
 bool TCPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port, const u_char* data,
                                  bool& flip_roles) const
-	{
+{
 	flip_roles = false;
 	const struct tcphdr* tp = (const struct tcphdr*)data;
 	uint8_t tcp_flags = tp->th_flags;
 
 	if ( ! (tcp_flags & TH_SYN) || (tcp_flags & TH_ACK) )
-		{
+	{
 		// The new connection is starting either without a SYN,
 		// or with a SYN ack. This means it's a partial connection.
 		if ( ! zeek::detail::partial_connection_ok )
@@ -74,7 +74,7 @@ bool TCPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port, const u_c
 		// safely flip the roles, but that doesn't work
 		// for stealth scans.)
 		if ( IsLikelyServerPort(src_port) )
-			{ // connection is a candidate for flipping
+		{ // connection is a candidate for flipping
 			if ( IsLikelyServerPort(dst_port) )
 				// Hmmm, both source and destination
 				// are plausible.  Heuristic: flip only
@@ -86,14 +86,14 @@ bool TCPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port, const u_c
 			else
 				// Source is plausible, destination isn't.
 				flip_roles = true;
-			}
 		}
-
-	return true;
 	}
 
+	return true;
+}
+
 void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt)
-	{
+{
 	const u_char* data = pkt->ip_hdr->Payload();
 	int len = pkt->ip_hdr->PayloadLen();
 	// If the header length is zero, tcp checksum offloading is probably enabled
@@ -132,46 +132,46 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 	// analyzers.
 	adapter->DeliverPacket(std::min(len, remaining), data, is_orig, adapter->LastRelDataSeq(),
 	                       ip.get(), pkt->cap_len);
-	}
+}
 
 const struct tcphdr* TCPAnalyzer::ExtractTCP_Header(const u_char*& data, int& len, int& remaining,
                                                     TCPSessionAdapter* adapter)
-	{
+{
 	const struct tcphdr* tp = (const struct tcphdr*)data;
 	uint32_t tcp_hdr_len = tp->th_off * 4;
 
 	if ( tcp_hdr_len < sizeof(struct tcphdr) )
-		{
+	{
 		adapter->Weird("bad_TCP_header_len");
 		return nullptr;
-		}
+	}
 
 	if ( tcp_hdr_len > uint32_t(len) || tcp_hdr_len > uint32_t(remaining) )
-		{
+	{
 		// This can happen even with the above test, due to TCP options.
 		adapter->Weird("truncated_header");
 		return nullptr;
-		}
+	}
 
 	len -= tcp_hdr_len; // remove TCP header
 	remaining -= tcp_hdr_len;
 	data += tcp_hdr_len;
 
 	return tp;
-	}
+}
 
 bool TCPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
                                    analyzer::tcp::TCP_Endpoint* endpoint, int len, int caplen,
                                    TCPSessionAdapter* adapter)
-	{
+{
 	if ( ! run_state::current_pkt->l4_checksummed && ! detail::ignore_checksums &&
 	     ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) && caplen >= len &&
 	     ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) )
-		{
+	{
 		adapter->Weird("bad_TCP_checksum");
 		endpoint->ChecksumError();
 		return false;
-		}
+	}
 	else
 		return true;
-	}
+}

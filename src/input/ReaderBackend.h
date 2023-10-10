@@ -8,12 +8,12 @@
 #include "zeek/threading/SerialTypes.h"
 
 namespace zeek::detail
-	{
+{
 class Location;
-	}
+}
 
 namespace zeek::input
-	{
+{
 
 class ReaderFrontend;
 
@@ -21,7 +21,7 @@ class ReaderFrontend;
  * The modes a reader can be in.
  */
 enum ReaderMode
-	{
+{
 	/**
 	 * Manual refresh reader mode. The reader will read the file once,
 	 * and send all read data back to the manager. After that, no automatic
@@ -46,7 +46,7 @@ enum ReaderMode
 
 	/** Internal dummy mode for initialization. */
 	MODE_NONE
-	};
+};
 
 /**
  * Base class for reader implementation. When the input:Manager creates a new
@@ -58,7 +58,7 @@ enum ReaderMode
  * constructor is the one exception.)
  */
 class ReaderBackend : public threading::MsgThread
-	{
+{
 public:
 	// Silence a warning from clang about hidden overloaded functions and the
 	// Info() function that this class provides.
@@ -85,7 +85,7 @@ public:
 	 * A struct passing information to the reader at initialization time.
 	 */
 	struct ReaderInfo
-		{
+	{
 		// Structure takes ownership of the strings.
 		using config_map = std::map<const char*, const char*, util::CompareString>;
 
@@ -115,14 +115,14 @@ public:
 		ReaderMode mode;
 
 		ReaderInfo()
-			{
+		{
 			source = nullptr;
 			name = nullptr;
 			mode = MODE_NONE;
-			}
+		}
 
 		ReaderInfo(const ReaderInfo& other)
-			{
+		{
 			source = other.source ? util::copy_string(other.source) : nullptr;
 			name = other.name ? util::copy_string(other.name) : nullptr;
 			mode = other.mode;
@@ -131,23 +131,23 @@ public:
 			      i++ )
 				config.insert(
 					std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
-			}
+		}
 
 		~ReaderInfo()
-			{
+		{
 			delete[] source;
 			delete[] name;
 
 			for ( config_map::iterator i = config.begin(); i != config.end(); i++ )
-				{
+			{
 				delete[] i->first;
 				delete[] i->second;
-				}
 			}
+		}
 
 	private:
 		const ReaderInfo& operator=(const ReaderInfo& other); // Disable.
-		};
+	};
 
 	/**
 	 * One-time initialization of the reader to define the input source.
@@ -377,6 +377,6 @@ private:
 	// this is an internal indicator in case the read is currently in a failed state
 	// it's used to suppress duplicate error messages.
 	bool suppress_warnings = false;
-	};
+};
 
-	} // namespace zeek::input
+} // namespace zeek::input

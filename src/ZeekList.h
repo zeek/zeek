@@ -5,9 +5,9 @@
 #include "zeek/List.h"
 
 namespace zeek
-	{
+{
 namespace detail
-	{
+{
 
 class Expr;
 class ID;
@@ -15,7 +15,7 @@ class Stmt;
 class Attr;
 class Timer;
 
-	} // namespace detail
+} // namespace detail
 
 class Val;
 class Type;
@@ -27,4 +27,4 @@ using TypePList = PList<Type>;
 using AttrPList = PList<detail::Attr>;
 using TimerPList = PList<detail::Timer, ListOrder::UNORDERED>;
 
-	} // namespace zeek
+} // namespace zeek

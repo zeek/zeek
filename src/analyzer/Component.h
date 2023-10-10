@@ -9,12 +9,12 @@
 #include "zeek/util.h"
 
 namespace zeek
-	{
+{
 
 class Connection;
 
 namespace analyzer
-	{
+{
 
 class Analyzer;
 
@@ -25,7 +25,7 @@ class Analyzer;
  * analyzer component, describing the analyzer.
  */
 class Component : public plugin::Component
-	{
+{
 public:
 	using factory_callback = Analyzer* (*)(Connection* conn);
 
@@ -112,7 +112,7 @@ private:
 	factory_callback factory; // The analyzer's factory callback.
 	bool partial; // True if the analyzer supports partial connections.
 	bool enabled; // True if the analyzer is enabled.
-	};
+};
 
-	} // namespace analyzer
-	} // namespace zeek
+} // namespace analyzer
+} // namespace zeek

@@ -14,7 +14,7 @@
 #include "zeek/file_analysis/AnalyzerSet.h"
 
 namespace zeek
-	{
+{
 
 class Connection;
 class EventHandlerPtr;
@@ -24,7 +24,7 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
 
 namespace file_analysis
-	{
+{
 
 class FileReassembler;
 
@@ -32,7 +32,7 @@ class FileReassembler;
  * Wrapper class around \c fa_file record values from script layer.
  */
 class File
-	{
+{
 public:
 	/**
 	 * Destructor.  Nothing fancy, releases a reference to the wrapped
@@ -312,9 +312,9 @@ protected:
 	 */
 	static int Idx(const std::string& field_name, const RecordType* type);
 	static int Idx(const std::string& field_name, const RecordTypePtr& type)
-		{
+	{
 		return Idx(field_name, type.get());
-		}
+	}
 
 	/**
 	 * Initializes static member.
@@ -336,18 +336,18 @@ protected:
 	                                        can be safely deleted. */
 
 	struct BOF_Buffer
-		{
+	{
 		BOF_Buffer() : full(false), size(0) { }
 		~BOF_Buffer()
-			{
+		{
 			for ( size_t i = 0; i < chunks.size(); ++i )
 				delete chunks[i];
-			}
+		}
 
 		bool full;
 		uint64_t size;
 		String::CVec chunks;
-		} bof_buffer; /**< Beginning of file buffer. */
+	} bof_buffer; /**< Beginning of file buffer. */
 
 	zeek::detail::WeirdStateMap weird_state;
 
@@ -370,7 +370,7 @@ protected:
 
 	static int meta_mime_type_idx;
 	static int meta_mime_types_idx;
-	};
+};
 
-	} // namespace file_analysis
-	} // namespace zeek
+} // namespace file_analysis
+} // namespace zeek

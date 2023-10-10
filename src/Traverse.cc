@@ -7,10 +7,10 @@
 #include "zeek/input.h"
 
 namespace zeek::detail
-	{
+{
 
 TraversalCode traverse_all(TraversalCallback* cb)
-	{
+{
 	if ( ! global_scope() )
 		return TC_CONTINUE;
 
@@ -25,6 +25,6 @@ TraversalCode traverse_all(TraversalCallback* cb)
 	HANDLE_TC_STMT_PRE(tc);
 	tc = stmts->Traverse(cb);
 	HANDLE_TC_STMT_POST(tc);
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

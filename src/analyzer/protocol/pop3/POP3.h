@@ -17,26 +17,26 @@
 #define POP3_CMD_DEF(cmd) POP3_CMD_##cmd,
 
 namespace zeek::analyzer::pop3
-	{
+{
 namespace detail
-	{
+{
 
 enum POP3_Cmd
-	{
+{
 #include "POP3_cmd.def"
-	};
+};
 
 enum POP3_MasterState
-	{
+{
 	POP3_START,
 	POP3_AUTHORIZATION,
 	POP3_TRANSACTION,
 	POP3_UPDATE,
 	POP3_FINISHED,
-	};
+};
 
 enum POP3_State
-	{
+{
 	START,
 	USER,
 	PASS,
@@ -60,18 +60,18 @@ enum POP3_State
 	XSENDER,
 	MISC,
 	END,
-	};
+};
 
 enum POP3_SubState
-	{
+{
 	POP3_OK,
 	POP3_WOK,
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 class POP3_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit POP3_Analyzer(Connection* conn);
 	~POP3_Analyzer() override = default;
@@ -119,6 +119,6 @@ private:
 	bool tls;
 	analyzer::tcp::ContentLine_Analyzer* cl_orig;
 	analyzer::tcp::ContentLine_Analyzer* cl_resp;
-	};
+};
 
-	} // namespace zeek::analyzer::pop3
+} // namespace zeek::analyzer::pop3

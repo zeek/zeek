@@ -11,26 +11,26 @@
 #include "zeek/plugin/ComponentManager.h"
 
 namespace zeek
-	{
+{
 
 namespace detail
-	{
+{
 class PacketProfiler;
-	}
+}
 
 namespace iosource
-	{
+{
 class PktDumper;
-	}
+}
 
 namespace packet_analysis
-	{
+{
 
 class Analyzer;
 using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
 class Manager : public plugin::ComponentManager<Component>
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -170,11 +170,11 @@ public:
 	void ResetUnknownProtocolTimer(const std::string& analyzer, uint32_t protocol);
 
 	detail::PacketFilter* GetPacketFilter(bool init = true)
-		{
+	{
 		if ( ! pkt_filter && init )
 			pkt_filter = new detail::PacketFilter(detail::packet_filter_default);
 		return pkt_filter;
-		}
+	}
 
 	/**
 	 * Returns the total number of packets received that weren't considered
@@ -222,10 +222,10 @@ private:
 
 	uint64_t total_not_processed = 0;
 	iosource::PktDumper* unprocessed_dumper = nullptr;
-	};
+};
 
-	} // namespace packet_analysis
+} // namespace packet_analysis
 
 extern zeek::packet_analysis::Manager* packet_mgr;
 
-	} // namespace zeek
+} // namespace zeek

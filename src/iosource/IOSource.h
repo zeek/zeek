@@ -3,20 +3,20 @@
 #pragma once
 
 namespace zeek::iosource
-	{
+{
 
 /**
  * Interface class for components providing/consuming data inside Zeek's main
  * loop.
  */
 class IOSource
-	{
+{
 public:
 	enum ProcessFlags
-		{
+	{
 		READ = 0x01,
 		WRITE = 0x02
-		};
+	};
 
 	/**
 	 * Constructor.
@@ -109,6 +109,6 @@ protected:
 private:
 	bool closed = false;
 	bool implements_process_fd = false;
-	};
+};
 
-	} // namespace zeek::iosource
+} // namespace zeek::iosource

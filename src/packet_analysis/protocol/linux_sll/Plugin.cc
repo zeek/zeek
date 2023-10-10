@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/linux_sll/LinuxSLL.h"
 
 namespace zeek::plugin::Zeek_LinuxSLL
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"LinuxSLL", zeek::packet_analysis::LinuxSLL::LinuxSLLAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::LinuxSLL";
 		config.description = "Linux cooked capture (SLL) packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

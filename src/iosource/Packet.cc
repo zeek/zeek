@@ -1,7 +1,7 @@
 #include "zeek/iosource/Packet.h"
 
 extern "C"
-	{
+{
 #include <pcap.h>
 #ifdef HAVE_NET_ETHERNET_H
 #include <net/ethernet.h>
@@ -13,7 +13,7 @@ extern "C"
 #elif defined(HAVE_NET_ETHERTYPES_H)
 #include <net/ethertypes.h>
 #endif
-	}
+}
 
 #include "zeek/Desc.h"
 #include "zeek/IP.h"
@@ -23,11 +23,11 @@ extern "C"
 #include "zeek/packet_analysis/Manager.h"
 
 namespace zeek
-	{
+{
 
 void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, uint32_t arg_len,
                   const u_char* arg_data, bool arg_copy, std::string arg_tag)
-	{
+{
 	if ( data && copy )
 		delete[] data;
 
@@ -40,10 +40,10 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
 	copy = arg_copy;
 
 	if ( arg_data && arg_copy )
-		{
+	{
 		data = new u_char[arg_caplen];
 		memcpy(const_cast<u_char*>(data), arg_data, arg_caplen);
-		}
+	}
 	else
 		data = arg_data;
 
@@ -72,16 +72,16 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
 	gre_link_type = DLT_RAW;
 
 	processed = false;
-	}
+}
 
 Packet::~Packet()
-	{
+{
 	if ( copy )
 		delete[] data;
-	}
+}
 
 RecordValPtr Packet::ToRawPktHdrVal() const
-	{
+{
 	static auto raw_pkt_hdr_type = id::find_type<RecordType>("raw_pkt_hdr");
 	static auto l2_hdr_type = id::find_type<RecordType>("l2_hdr");
 	auto pkt_hdr = make_intrusive<RecordVal>(raw_pkt_hdr_type);
@@ -113,7 +113,7 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 	//      proto: layer3_proto;    ##< L3 proto
 
 	if ( is_ethernet )
-		{
+	{
 		// Ethernet header layout is:
 		//    dst[6bytes] src[6bytes] ethertype[2bytes]...
 		l2_hdr->Assign(0, BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_ETHERNET));
@@ -141,7 +141,7 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 		if ( eth_type == ETHERTYPE_ARP || eth_type == ETHERTYPE_REVARP )
 			// We also identify ARP for L3 over ethernet
 			l3 = BifEnum::L3_ARP;
-		}
+	}
 	else
 		l2_hdr->Assign(0, BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
 
@@ -158,41 +158,41 @@ RecordValPtr Packet::ToRawPktHdrVal() const
 		return ip_hdr->ToPktHdrVal(std::move(pkt_hdr), 1);
 	else
 		return pkt_hdr;
-	}
+}
 
 RecordValPtr Packet::ToVal(const Packet* p)
-	{
+{
 	static auto pcap_packet = zeek::id::find_type<zeek::RecordType>("pcap_packet");
 	auto val = zeek::make_intrusive<zeek::RecordVal>(pcap_packet);
 
 	if ( p )
-		{
+	{
 		val->Assign(0, static_cast<uint32_t>(p->ts.tv_sec));
 		val->Assign(1, static_cast<uint32_t>(p->ts.tv_usec));
 		val->Assign(2, p->cap_len);
 		val->Assign(3, p->len);
 		val->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, (const char*)p->data));
 		val->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(p->link_type));
-		}
+	}
 	else
-		{
+	{
 		val->Assign(0, 0);
 		val->Assign(1, 0);
 		val->Assign(2, 0);
 		val->Assign(3, 0);
 		val->Assign(4, zeek::val_mgr->EmptyString());
 		val->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(BifEnum::LINK_UNKNOWN));
-		}
-
-	return val;
 	}
 
+	return val;
+}
+
 ValPtr Packet::FmtEUI48(const u_char* mac) const
-	{
+{
 	char buf[20];
 	snprintf(buf, sizeof buf, "%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3],
 	         mac[4], mac[5]);
 	return make_intrusive<StringVal>(buf);
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek

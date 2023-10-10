@@ -6,23 +6,23 @@
 #include "zeek/IPAddr.h"
 
 namespace zeek
-	{
+{
 
 class Connection;
 class IP_Hdr;
 
 namespace packet_analysis::TCP
-	{
+{
 class TCPSessionAdapter;
-	}
+}
 
 namespace analyzer::tcp
-	{
+{
 
 class TCP_Reassembler;
 
 enum EndpointState
-	{
+{
 	TCP_ENDPOINT_INACTIVE, // no SYN (or other packets) seen for this side
 	TCP_ENDPOINT_SYN_SENT, // SYN seen, but no ack
 	TCP_ENDPOINT_SYN_ACK_SENT, // SYN ack seen, no initial SYN
@@ -31,11 +31,11 @@ enum EndpointState
 	                          // sent by responder)
 	TCP_ENDPOINT_CLOSED, // FIN seen
 	TCP_ENDPOINT_RESET // RST seen
-	};
+};
 
 // One endpoint of a TCP connection.
 class TCP_Endpoint
-	{
+{
 public:
 	TCP_Endpoint(packet_analysis::TCP::TCPSessionAdapter* analyzer, bool is_orig);
 	~TCP_Endpoint();
@@ -103,9 +103,9 @@ public:
 	 *         accounting for the number of times the 32-bit space overflowed.
 	 */
 	static uint64_t ToFullSeqSpace(uint32_t tcp_seq_num, uint32_t wraparounds)
-		{
+	{
 		return ToFullSeqSpace(wraparounds) + tcp_seq_num;
-		}
+	}
 
 	/**
 	 * @param tcp_seq_num A 32-bit TCP sequence space number.
@@ -115,39 +115,39 @@ public:
 	 *         and relative to the starting sequence number for this endpoint.
 	 */
 	uint64_t ToRelativeSeqSpace(uint32_t tcp_seq_num, uint32_t wraparounds) const
-		{
+	{
 		return ToFullSeqSpace(tcp_seq_num, wraparounds) - StartSeqI64();
-		}
+	}
 
 	void InitStartSeq(int64_t seq) { start_seq = seq; }
 	void InitLastSeq(uint32_t seq) { last_seq = seq; }
 	void InitAckSeq(uint32_t seq) { ack_seq = seq; }
 
 	void UpdateLastSeq(uint32_t seq)
-		{
+	{
 		if ( seq < last_seq )
 			++seq_wraps;
 
 		last_seq = seq;
-		}
+	}
 
 	void UpdateAckSeq(uint32_t seq)
-		{
+	{
 		if ( seq < ack_seq )
 			++ack_wraps;
 
 		ack_seq = seq;
-		}
+	}
 
 	// True if none of this endpoint's data has been acknowledged.
 	// We allow for possibly one octet being ack'd in the case of
 	// an initial SYN exchange.
 	bool NoDataAcked() const
-		{
+	{
 		uint64_t ack = ToFullSeqSpace(ack_seq, ack_wraps);
 		uint64_t start = static_cast<uint64_t>(StartSeqI64());
 		return ack == start || ack == start + 1;
-		}
+	}
 
 	Connection* Conn() const;
 
@@ -255,12 +255,12 @@ protected:
 	uint32_t rxmt_cnt, rxmt_thresh;
 	uint32_t win0_cnt, win0_thresh;
 	uint32_t gap_cnt, gap_thresh;
-	};
+};
 
 #define ENDIAN_UNKNOWN 0
 #define ENDIAN_LITTLE 1
 #define ENDIAN_BIG 2
 #define ENDIAN_CONFUSED 3
 
-	} // namespace analyzer::tcp
-	} // namespace zeek
+} // namespace analyzer::tcp
+} // namespace zeek

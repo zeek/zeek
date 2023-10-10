@@ -7,10 +7,10 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::ssh
-	{
+{
 
 class SSH_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 
 public:
 	explicit SSH_Analyzer(Connection* conn);
@@ -41,6 +41,6 @@ protected:
 
 	int service_accept_size;
 	int userauth_failure_size;
-	};
+};
 
-	} // namespace zeek::analyzer::ssh
+} // namespace zeek::analyzer::ssh

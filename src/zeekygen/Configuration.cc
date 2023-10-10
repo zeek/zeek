@@ -13,10 +13,10 @@
 using namespace std;
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 static TargetFactory create_target_factory()
-	{
+{
 	TargetFactory rval;
 	rval.Register<PackageIndexTarget>("package_index");
 	rval.Register<PackageTarget>("package");
@@ -28,11 +28,11 @@ static TargetFactory create_target_factory()
 	rval.Register<ScriptTarget>("script");
 	rval.Register<IdentifierTarget>("identifier");
 	return rval;
-	}
+}
 
 Config::Config(const string& arg_file, const string& delim)
 	: file(arg_file), targets(), target_factory(create_target_factory())
-	{
+{
 	if ( file.empty() )
 		return;
 
@@ -46,7 +46,7 @@ Config::Config(const string& arg_file, const string& delim)
 	unsigned int line_number = 0;
 
 	while ( getline(f, line) )
-		{
+	{
 		++line_number;
 		vector<string> tokens;
 		util::tokenize_string(line, delim, &tokens);
@@ -70,37 +70,37 @@ Config::Config(const string& arg_file, const string& delim)
 			reporter->FatalError("unknown Zeekygen target type: %s", tokens[0].c_str());
 
 		targets.push_back(target);
-		}
+	}
 
 	if ( f.bad() )
 		reporter->InternalError("error reading Zeekygen config file '%s': %s", file.c_str(),
 		                        strerror(errno));
-	}
+}
 
 Config::~Config()
-	{
+{
 	for ( size_t i = 0; i < targets.size(); ++i )
 		delete targets[i];
-	}
+}
 
 void Config::FindDependencies(const vector<Info*>& infos)
-	{
+{
 	for ( size_t i = 0; i < targets.size(); ++i )
 		targets[i]->FindDependencies(infos);
-	}
+}
 
 void Config::GenerateDocs() const
-	{
+{
 	for ( size_t i = 0; i < targets.size(); ++i )
 		targets[i]->Generate();
-	}
+}
 
 time_t Config::GetModificationTime() const
-	{
+{
 	if ( file.empty() )
 		return 0;
 
 	return get_mtime(file);
-	}
+}
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

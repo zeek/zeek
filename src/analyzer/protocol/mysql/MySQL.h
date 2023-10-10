@@ -7,10 +7,10 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::mysql
-	{
+{
 
 class MySQL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 
 public:
 	explicit MySQL_Analyzer(Connection* conn);
@@ -33,6 +33,6 @@ protected:
 	binpac::MySQL::MySQL_Conn* interp;
 	bool had_gap;
 	bool tls_active;
-	};
+};
 
-	} // namespace zeek::analyzer::mysql
+} // namespace zeek::analyzer::mysql

@@ -9,14 +9,14 @@
 #include "zeek/util.h"
 
 namespace zeek::threading
-	{
+{
 
 static const int STD_FMT_BUF_LEN = 2048;
 
 uint64_t BasicThread::thread_counter = 0;
 
 BasicThread::BasicThread()
-	{
+{
 	started = false;
 	terminating = false;
 	killed = false;
@@ -29,39 +29,39 @@ BasicThread::BasicThread()
 	name = util::copy_string(util::fmt("thread-%" PRIu64, ++thread_counter));
 
 	thread_mgr->AddThread(this);
-	}
+}
 
 BasicThread::~BasicThread()
-	{
+{
 	if ( buf )
 		free(buf);
 
 	delete[] name;
 	delete[] strerr_buffer;
-	}
+}
 
 void BasicThread::SetName(const char* arg_name)
-	{
+{
 	delete[] name;
 	name = util::copy_string(arg_name);
-	}
+}
 
 void BasicThread::SetOSName(const char* arg_name)
-	{
+{
 	// Do it only if libc++ supports pthread_t.
 	if constexpr ( std::is_same_v<std::thread::native_handle_type, pthread_t> )
 		zeek::util::detail::set_thread_name(arg_name,
 		                                    reinterpret_cast<pthread_t>(thread.native_handle()));
-	}
+}
 
 const char* BasicThread::Fmt(const char* format, ...)
-	{
+{
 	if ( buf_len > 10 * STD_FMT_BUF_LEN )
-		{
+	{
 		// Shrink back to normal.
 		buf = (char*)util::safe_realloc(buf, STD_FMT_BUF_LEN);
 		buf_len = STD_FMT_BUF_LEN;
-		}
+	}
 
 	va_list al;
 	va_start(al, format);
@@ -69,7 +69,7 @@ const char* BasicThread::Fmt(const char* format, ...)
 	va_end(al);
 
 	if ( (unsigned int)n >= buf_len )
-		{ // Not enough room, grow the buffer.
+	{ // Not enough room, grow the buffer.
 		buf_len = n + 32;
 		buf = (char*)util::safe_realloc(buf, buf_len);
 
@@ -77,22 +77,22 @@ const char* BasicThread::Fmt(const char* format, ...)
 		va_start(al, format);
 		n = vsnprintf(buf, buf_len, format, al);
 		va_end(al);
-		}
-
-	return buf;
 	}
 
+	return buf;
+}
+
 const char* BasicThread::Strerror(int err)
-	{
+{
 	if ( ! strerr_buffer )
 		strerr_buffer = new char[256];
 
 	util::zeek_strerror_r(err, strerr_buffer, 256);
 	return strerr_buffer;
-	}
+}
 
 void BasicThread::Start()
-	{
+{
 	if ( started )
 		return;
 
@@ -103,10 +103,10 @@ void BasicThread::Start()
 	DBG_LOG(DBG_THREADING, "Started thread %s", name);
 
 	OnStart();
-	}
+}
 
 void BasicThread::SignalStop()
-	{
+{
 	if ( ! started )
 		return;
 
@@ -116,10 +116,10 @@ void BasicThread::SignalStop()
 	DBG_LOG(DBG_THREADING, "Signaling thread %s to terminate ...", name);
 
 	OnSignalStop();
-	}
+}
 
 void BasicThread::WaitForStop()
-	{
+{
 	if ( ! started )
 		return;
 
@@ -129,10 +129,10 @@ void BasicThread::WaitForStop()
 	OnWaitForStop();
 
 	terminating = true;
-	}
+}
 
 void BasicThread::Join()
-	{
+{
 	if ( ! started )
 		return;
 
@@ -142,37 +142,37 @@ void BasicThread::Join()
 	assert(terminating);
 
 	try
-		{
+	{
 		thread.join();
-		}
+	}
 	catch ( const std::system_error& e )
-		{
+	{
 		reporter->FatalError("Failure joining thread %s with error %s", name, e.what());
-		}
-
-	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);
 	}
 
+	DBG_LOG(DBG_THREADING, "Joined with thread %s", name);
+}
+
 void BasicThread::Kill()
-	{
+{
 	// We don't *really* kill the thread here because that leads to race
 	// conditions. Instead we set a flag that parts of the code need
 	// to check and get out of any loops they might be in.
 	terminating = true;
 	killed = true;
 	OnKill();
-	}
+}
 
 void BasicThread::Done()
-	{
+{
 	DBG_LOG(DBG_THREADING, "Thread %s has finished", name);
 
 	terminating = true;
 	killed = true;
-	}
+}
 
 void* BasicThread::launcher(void* arg)
-	{
+{
 	BasicThread* thread = (BasicThread*)arg;
 
 #ifndef _MSC_VER
@@ -198,6 +198,6 @@ void* BasicThread::launcher(void* arg)
 	thread->Done();
 
 	return nullptr;
-	}
+}
 
-	} // namespace zeek::threading
+} // namespace zeek::threading

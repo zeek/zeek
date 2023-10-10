@@ -19,10 +19,10 @@ using zeek::threading::Field;
 using zeek::threading::Value;
 
 namespace zeek::input::reader::detail
-	{
+{
 
 Config::Config(ReaderFrontend* frontend) : ReaderBackend(frontend)
-	{
+{
 	mtime = 0;
 	ino = 0;
 	fail_on_file_problem = false;
@@ -31,17 +31,17 @@ Config::Config(ReaderFrontend* frontend) : ReaderBackend(frontend)
 	const auto& globals = zeek::detail::global_scope()->Vars();
 
 	for ( const auto& entry : globals )
-		{
+	{
 		auto& id = entry.second;
 		if ( ! id->IsOption() )
 			continue;
 
 		if ( id->GetType()->Tag() == TYPE_RECORD ||
 		     ! Manager::IsCompatibleType(id->GetType().get()) )
-			{
+		{
 			option_types[id->Name()] = std::make_tuple(TYPE_ERROR, id->GetType()->Tag(), id);
 			continue;
-			}
+		}
 
 		TypeTag primary = id->GetType()->Tag();
 		TypeTag secondary = TYPE_VOID;
@@ -51,13 +51,13 @@ Config::Config(ReaderFrontend* frontend) : ReaderBackend(frontend)
 			secondary = id->GetType()->AsVectorType()->Yield()->Tag();
 
 		option_types[id->Name()] = std::make_tuple(primary, secondary, id);
-		}
 	}
+}
 
 void Config::DoClose() { }
 
 bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields)
-	{
+{
 	fail_on_file_problem = BifConst::InputConfig::fail_on_file_problem;
 
 	set_separator.assign((const char*)BifConst::InputConfig::set_separator->Bytes(),
@@ -71,29 +71,29 @@ bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* 
 		new threading::formatter::Ascii(this, sep_info));
 
 	return DoUpdate();
-	}
+}
 
 bool Config::OpenFile()
-	{
+{
 	if ( file.is_open() )
 		return true;
 
 	file.open(Info().source);
 
 	if ( ! file.is_open() )
-		{
+	{
 		FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s", Info().source), true);
 		return ! fail_on_file_problem;
-		}
+	}
 
 	StopWarningSuppression();
 	return true;
-	}
+}
 
 bool Config::GetLine(std::string& str)
-	{
+{
 	while ( getline(file, str) )
-		{
+	{
 		if ( ! str.size() )
 			continue;
 
@@ -102,31 +102,31 @@ bool Config::GetLine(std::string& str)
 
 		if ( str[0] != '#' )
 			return true;
-		}
+	}
 
 	return false;
-	}
+}
 
 // read the entire file and send appropriate thingies back to InputMgr
 bool Config::DoUpdate()
-	{
+{
 	if ( ! OpenFile() )
 		return ! fail_on_file_problem;
 
 	switch ( Info().mode )
-		{
+	{
 		case MODE_REREAD:
-			{
+		{
 			// check if the file has changed
 			struct stat sb;
 			if ( stat(Info().source, &sb) == -1 )
-				{
+			{
 				FailWarn(fail_on_file_problem, Fmt("Could not get stat for %s", Info().source),
 				         true);
 
 				file.close();
 				return ! fail_on_file_problem;
-				}
+			}
 
 			if ( sb.st_ino == ino && sb.st_mtime == mtime )
 				// no change
@@ -141,32 +141,32 @@ bool Config::DoUpdate()
 			mtime = sb.st_mtime;
 			ino = sb.st_ino;
 			// File changed. Fall through to re-read.
-			}
+		}
 
 		case MODE_MANUAL:
 		case MODE_STREAM:
-			{
+		{
 			// dirty, fix me. (well, apparently after trying seeking, etc
 			// - this is not that bad)
 			if ( file.is_open() )
-				{
+			{
 				if ( Info().mode == MODE_STREAM )
-					{
+				{
 					file.clear(); // remove end of file evil bits
 					break;
-					}
+				}
 
 				file.close();
-				}
+			}
 
 			OpenFile();
 
 			break;
-			}
+		}
 
 		default:
 			assert(false);
-		}
+	}
 
 	std::string line;
 	file.sync();
@@ -175,9 +175,9 @@ bool Config::DoUpdate()
 	// Start out with all element and removes while going along
 	std::unordered_set<std::string> unseen_options;
 	for ( const auto& i : option_values )
-		{
+	{
 		unseen_options.insert(i.first);
-		}
+	}
 
 	std::string re_str = Fmt(
 		"^([^[:blank:]]+)[[:blank:]]+([^[:blank:]](.*[^[:blank:]%c])?)?[[:blank:]%c]*$",
@@ -185,20 +185,20 @@ bool Config::DoUpdate()
 
 	regex_t re;
 	if ( regcomp(&re, re_str.c_str(), REG_EXTENDED) )
-		{
+	{
 		Error(Fmt("Failed to compile regex."));
 		return true;
-		}
+	}
 
 	while ( GetLine(line) )
-		{
+	{
 		regmatch_t match[3];
 		if ( regexec(&re, line.c_str(), 3, match, 0) )
-			{
+		{
 			Warning(
 				Fmt("Could not parse '%s'; line has invalid format. Ignoring line.", line.c_str()));
 			continue;
-			}
+		}
 
 		std::string key = line.substr(match[1].rm_so, match[1].rm_eo - match[1].rm_so);
 		std::string value;
@@ -207,34 +207,34 @@ bool Config::DoUpdate()
 
 		auto typeit = option_types.find(key);
 		if ( typeit == option_types.end() )
-			{
+		{
 			Warning(Fmt("Option '%s' does not exist. Ignoring line.", key.c_str()));
 			continue;
-			}
+		}
 
 		if ( std::get<0>((*typeit).second) == TYPE_ERROR )
-			{
+		{
 			ODesc d;
 			std::get<2>((*typeit).second)->GetType()->Describe(&d);
 			Warning(Fmt(
 				"Option '%s' has type '%s', which is not supported for file input. Ignoring line.",
 				key.c_str(), d.Description()));
 			continue;
-			}
+		}
 
 		Value* eventval = formatter->ParseValue(value, key, std::get<0>((*typeit).second),
 		                                        std::get<1>((*typeit).second));
 		if ( ! eventval )
-			{
+		{
 			Warning(Fmt("Could not convert line '%s' to value. Ignoring line.", line.c_str()));
 			continue;
-			}
+		}
 		else if ( ! eventval->present )
-			{
+		{
 			Warning(Fmt("Line '%s' has no value. Ignoring line.", line.c_str()));
 			delete eventval;
 			continue;
-			}
+		}
 
 		unseen_options.erase(key);
 
@@ -243,14 +243,14 @@ bool Config::DoUpdate()
 		// the reader and once in memory in Zeek; that is difficult to change.
 		auto search = option_values.find(key);
 		if ( search != option_values.end() && search->second == value )
-			{
+		{
 			delete eventval;
 			continue;
-			}
+		}
 
 		option_values[key] = value;
 
-			{
+		{
 			Value** fields = new Value*[2];
 			Value* keyval = new threading::Value(TYPE_STRING, true);
 			keyval->val.string_val.length = key.size();
@@ -265,9 +265,9 @@ bool Config::DoUpdate()
 				Put(fields);
 			else
 				SendEntry(fields);
-			}
+		}
 
-			{
+		{
 			Value** vals = new Value*[4];
 			vals[0] = new Value(TYPE_STRING, true);
 			vals[0]->val.string_val.data = util::copy_string(Info().name);
@@ -281,8 +281,8 @@ bool Config::DoUpdate()
 			vals[3] = eventval;
 
 			SendEvent("InputConfig::new_value", 4, vals);
-			}
 		}
+	}
 
 	regfree(&re);
 
@@ -294,12 +294,12 @@ bool Config::DoUpdate()
 		option_values.erase(i);
 
 	return true;
-	}
+}
 
 bool Config::DoHeartbeat(double network_time, double current_time)
-	{
+{
 	switch ( Info().mode )
-		{
+	{
 		case MODE_MANUAL:
 			// yay, we do nothing :)
 			break;
@@ -312,9 +312,9 @@ bool Config::DoHeartbeat(double network_time, double current_time)
 
 		default:
 			assert(false);
-		}
-
-	return true;
 	}
 
-	} // namespace zeek::input::reader::detail
+	return true;
+}
+
+} // namespace zeek::input::reader::detail

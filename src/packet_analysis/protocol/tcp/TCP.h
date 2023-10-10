@@ -9,25 +9,25 @@
 #include "zeek/packet_analysis/protocol/tcp/Stats.h"
 
 namespace zeek::analyzer::tcp
-	{
+{
 class TCP_Endpoint;
-	}
+}
 
 namespace zeek::packet_analysis::TCP
-	{
+{
 
 class TCPSessionAdapter;
 
 class TCPAnalyzer final : public IP::IPBasedAnalyzer
-	{
+{
 public:
 	TCPAnalyzer();
 	~TCPAnalyzer() override = default;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<TCPAnalyzer>();
-		}
+	}
 
 	/*
 	 * Initialize the analyzer. This method is called after the configuration
@@ -37,10 +37,10 @@ public:
 	void Initialize() override;
 
 	static TCPStateStats& GetStats()
-		{
+	{
 		static TCPStateStats stats;
 		return stats;
-		}
+	}
 
 protected:
 	/**
@@ -87,6 +87,6 @@ private:
 	bool ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp,
 	                      analyzer::tcp::TCP_Endpoint* endpoint, int len, int caplen,
 	                      TCPSessionAdapter* adapter);
-	};
+};
 
-	}
+}

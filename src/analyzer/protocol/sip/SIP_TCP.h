@@ -10,10 +10,10 @@
 #include "analyzer/protocol/sip/sip_TCP_pac.h"
 
 namespace zeek::analyzer::sip_tcp
-	{
+{
 
 class SIP_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit SIP_Analyzer(Connection* conn);
 	~SIP_Analyzer() override;
@@ -30,6 +30,6 @@ public:
 protected:
 	binpac::SIP_TCP::SIP_Conn* interp;
 	bool had_gap;
-	};
+};
 
-	} // namespace zeek::analyzer::sip_tcp
+} // namespace zeek::analyzer::sip_tcp

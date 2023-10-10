@@ -21,9 +21,9 @@
 #include <cstdlib>
 
 extern "C"
-	{
+{
 #include "zeek/3rdparty/setsignal.h"
-	};
+};
 
 #include "zeek/Anon.h"
 #include "zeek/Event.h"
@@ -44,9 +44,9 @@ static double last_watchdog_proc_time = 0.0; // value of above during last watch
 extern int signal_val;
 
 namespace zeek::run_state
-	{
+{
 namespace detail
-	{
+{
 
 iosource::PktDumper* pkt_dumper = nullptr;
 iosource::PktSrc* current_pktsrc = nullptr;
@@ -61,9 +61,9 @@ bool time_updated = false;
 bool bare_mode = false;
 
 RETSIGTYPE watchdog(int /* signo */)
-	{
+{
 	if ( processing_start_time != 0.0 )
-		{
+	{
 		// The signal arrived while we're processing a packet and/or
 		// its corresponding event queue.  Check whether we've been
 		// spending too much time, which we take to mean we've wedged.
@@ -81,7 +81,7 @@ RETSIGTYPE watchdog(int /* signo */)
 		// watchdog_interval seconds.
 
 		if ( processing_start_time == last_watchdog_proc_time )
-			{
+		{
 			// snprintf() calls alloc/free routines if you use %f!
 			// We need to avoid doing that given we're in a single
 			// handler and the allocation routines are not
@@ -96,24 +96,24 @@ RETSIGTYPE watchdog(int /* signo */)
 			int frac_pst = int((processing_start_time - int_pst) * 1e6);
 
 			if ( current_pkt )
-				{
+			{
 				if ( ! pkt_dumper )
-					{
+				{
 					// We aren't dumping packets; however,
 					// saving the packet which caused the
 					// watchdog to trigger may be helpful,
 					// so we'll save that one nevertheless.
 					pkt_dumper = iosource_mgr->OpenPktDumper("watchdog-pkt.pcap", false);
 					if ( ! pkt_dumper || pkt_dumper->IsError() )
-						{
+					{
 						reporter->Error("watchdog: can't open watchdog-pkt.pcap for writing");
 						pkt_dumper = nullptr;
-						}
 					}
+				}
 
 				if ( pkt_dumper )
 					pkt_dumper->Dump(current_pkt);
-				}
+			}
 
 			get_final_stats();
 			finish_run(0);
@@ -121,25 +121,25 @@ RETSIGTYPE watchdog(int /* signo */)
 			reporter->FatalErrorWithCore(
 				"**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d", int_ct,
 				frac_ct, int_pst, frac_pst, current_dispatched);
-			}
 		}
+	}
 
 	last_watchdog_proc_time = processing_start_time;
 
 	(void)alarm(zeek::detail::watchdog_interval);
 	return RETSIGVAL;
-	}
+}
 
 void update_network_time(double new_network_time)
-	{
+{
 	time_updated = true;
 	network_time = new_network_time;
 	PLUGIN_HOOK_VOID(HOOK_UPDATE_NETWORK_TIME, HookUpdateNetworkTime(new_network_time));
-	}
+}
 
 // Logic to decide when updating network_time is acceptable:
 static bool should_forward_network_time()
-	{
+{
 	// In pseudo_realtime mode, always update time once
 	// we've dispatched and processed the first packet.
 	// run_state::detail::first_timestamp is currently set
@@ -148,7 +148,7 @@ static bool should_forward_network_time()
 		return true;
 
 	if ( iosource::PktSrc* ps = iosource_mgr->GetPktSrc() )
-		{
+	{
 		// Offline packet sources always control network time
 		// unless we're running pseudo_realtime, see above.
 		if ( ! ps->IsLive() )
@@ -156,15 +156,15 @@ static bool should_forward_network_time()
 
 		if ( ! ps->HasBeenIdleFor(BifConst::packet_source_inactivity_timeout) )
 			return false;
-		}
+	}
 
 	// We determined that we don't have a packet source, or it is idle.
 	// Unless it has been disabled, network_time will now be moved forward.
 	return BifConst::allow_network_time_forward;
-	}
+}
 
 static void forward_network_time_if_applicable()
-	{
+{
 	if ( ! should_forward_network_time() )
 		return;
 
@@ -173,14 +173,14 @@ static void forward_network_time_if_applicable()
 		update_network_time(now);
 
 	return;
-	}
+}
 
 void init_run(const std::optional<std::string>& interface,
               const std::optional<std::string>& pcap_input_file,
               const std::optional<std::string>& pcap_output_file, bool do_watchdog)
-	{
+{
 	if ( pcap_input_file )
-		{
+	{
 		reading_live = pseudo_realtime > 0.0;
 		reading_traces = true;
 
@@ -190,9 +190,9 @@ void init_run(const std::optional<std::string>& interface,
 		if ( ! ps->IsOpen() )
 			reporter->FatalError("problem with trace file %s (%s)", pcap_input_file->c_str(),
 			                     ps->ErrorMsg());
-		}
+	}
 	else if ( interface )
-		{
+	{
 		reading_live = true;
 		reading_traces = false;
 
@@ -202,7 +202,7 @@ void init_run(const std::optional<std::string>& interface,
 		if ( ! ps->IsOpen() )
 			reporter->FatalError("problem with interface %s (%s)", interface->c_str(),
 			                     ps->ErrorMsg());
-		}
+	}
 
 	else
 		// have_pending_timers = true, possibly.  We don't set
@@ -212,7 +212,7 @@ void init_run(const std::optional<std::string>& interface,
 		reading_traces = reading_live = false;
 
 	if ( pcap_output_file )
-		{
+	{
 		const char* writefile = pcap_output_file->data();
 		pkt_dumper = iosource_mgr->OpenPktDumper(writefile, false);
 		assert(pkt_dumper);
@@ -225,39 +225,39 @@ void init_run(const std::optional<std::string>& interface,
 			id->SetVal(make_intrusive<StringVal>(writefile));
 		else
 			reporter->Error("trace_output_file not defined");
-		}
+	}
 
 	zeek::detail::init_ip_addr_anonymizers();
 
 	session_mgr = new session::Manager();
 
 	if ( do_watchdog )
-		{
+	{
 		// Set up the watchdog to make sure we don't wedge.
 		(void)setsignal(SIGALRM, watchdog);
 		(void)alarm(zeek::detail::watchdog_interval);
-		}
 	}
+}
 
 void expire_timers()
-	{
+{
 	zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "expiring-timers");
 
 	current_dispatched += zeek::detail::timer_mgr->Advance(
 		network_time, zeek::detail::max_timer_expires - current_dispatched);
-	}
+}
 
 void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
-	{
+{
 	double t = run_state::pseudo_realtime ? check_pseudo_time(pkt) : pkt->time;
 
 	if ( ! zeek_start_network_time )
-		{
+	{
 		zeek_start_network_time = t;
 
 		if ( network_time_init )
 			event_mgr.Enqueue(network_time_init, Args{});
-		}
+	}
 
 	current_iosrc = pkt_src;
 	current_pktsrc = pkt_src;
@@ -270,31 +270,31 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 	zeek::detail::SegmentProfiler* sp = nullptr;
 
 	if ( load_sample )
-		{
+	{
 		static uint32_t load_freq = 0;
 
 		if ( load_freq == 0 )
 			load_freq = uint32_t(0xffffffff) / uint32_t(zeek::detail::load_sample_freq);
 
 		if ( uint32_t(util::detail::random_number() & 0xffffffff) < load_freq )
-			{
+		{
 			// Drain the queued timer events so they're not
 			// charged against this sample.
 			event_mgr.Drain();
 
 			zeek::detail::sample_logger = std::make_shared<zeek::detail::SampleLogger>();
 			sp = new zeek::detail::SegmentProfiler(zeek::detail::sample_logger, "load-samp");
-			}
 		}
+	}
 
 	packet_mgr->ProcessPacket(pkt);
 	event_mgr.Drain();
 
 	if ( sp )
-		{
+	{
 		delete sp;
 		zeek::detail::sample_logger = nullptr;
-		}
+	}
 
 	processing_start_time = 0.0; // = "we're not processing now"
 	current_dispatched = 0;
@@ -304,17 +304,17 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src)
 
 	current_iosrc = nullptr;
 	current_pktsrc = nullptr;
-	}
+}
 
 void run_loop()
-	{
+{
 	util::detail::set_processing_status("RUNNING", "run_loop");
 
 	iosource::Manager::ReadySources ready;
 	ready.reserve(iosource_mgr->TotalSize());
 
 	while ( iosource_mgr->Size() || (BifConst::exit_only_after_terminate && ! terminating) )
-		{
+	{
 		time_updated = false;
 		iosource_mgr->FindReadySources(&ready);
 
@@ -324,21 +324,21 @@ void run_loop()
 		// If no source is ready, we log only every 100th cycle,
 		// starting with the first.
 		if ( ! ready.empty() || loop_counter++ % 100 == 0 )
-			{
+		{
 			DBG_LOG(DBG_MAINLOOP, "realtime=%.6f ready_count=%zu", util::current_time(),
 			        ready.size());
 
 			if ( ! ready.empty() )
 				loop_counter = 0;
-			}
+		}
 #endif
 		current_iosrc = nullptr;
 		auto communication_enabled = broker_mgr->Active();
 
 		if ( ! ready.empty() )
-			{
+		{
 			for ( const auto& src : ready )
-				{
+			{
 				auto* iosrc = src.src;
 
 				DBG_LOG(DBG_MAINLOOP, "processing source %s", iosrc->Tag());
@@ -347,12 +347,12 @@ void run_loop()
 					iosrc->ProcessFd(src.fd, src.flags);
 				else
 					iosrc->Process();
-				}
 			}
+		}
 		else if ( (have_pending_timers || communication_enabled ||
 		           BifConst::exit_only_after_terminate) &&
 		          ! pseudo_realtime )
-			{
+		{
 			// Take advantage of the lull to get up to
 			// date on timers and events.  Because we only
 			// have timers as sources, going to sleep here
@@ -368,7 +368,7 @@ void run_loop()
 			// Prevent another forward_network_time_if_applicable() below
 			// even if time wasn't actually updated.
 			time_updated = true;
-			}
+		}
 
 		if ( ! time_updated )
 			forward_network_time_if_applicable();
@@ -393,25 +393,25 @@ void run_loop()
 		// Terminate if we're running pseudo_realtime and
 		// the interface has been closed.
 		if ( pseudo_realtime && communication_enabled )
-			{
+		{
 			iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
 			if ( ps && ! ps->IsOpen() )
 				iosource_mgr->Terminate();
-			}
 		}
+	}
 
 	// Get the final statistics now, and not when finish_run() is
 	// called, since that might happen quite a bit in the future
 	// due to expiring pending timers, and we don't want to ding
 	// for any packets dropped beyond this point.
 	get_final_stats();
-	}
+}
 
 void get_final_stats()
-	{
+{
 	iosource::PktSrc* ps = iosource_mgr->GetPktSrc();
 	if ( ps && ps->IsLive() )
-		{
+	{
 		iosource::PktSrc::Stats s;
 		ps->Statistics(&s);
 
@@ -431,26 +431,26 @@ void get_final_stats()
 
 		std::string filtered = "";
 		if ( s.filtered )
-			{
+		{
 			double filtered_pct = s.filtered.value() > 0 ? pct(s.filtered.value(), s.received)
 			                                             : 0.0;
 			filtered = zeek::util::fmt(" %" PRIu64 " (%.2f%%) filtered", s.filtered.value(),
 			                           filtered_pct);
-			}
+		}
 
 		reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64
 		               " (%.2f%%) dropped, %" PRIu64 " (%.2f%%) not processed%s",
 		               s.received, ps->Path().c_str(), s.dropped, dropped_pct, not_processed,
 		               unprocessed_pct, filtered.c_str());
-		}
 	}
+}
 
 void finish_run(int drain_events)
-	{
+{
 	util::detail::set_processing_status("TERMINATING", "finish_run");
 
 	if ( drain_events )
-		{
+	{
 		if ( session_mgr )
 			session_mgr->Drain();
 
@@ -458,7 +458,7 @@ void finish_run(int drain_events)
 
 		if ( session_mgr )
 			session_mgr->Done();
-		}
+	}
 
 #ifdef DEBUG
 	extern int reassem_seen_bytes, reassem_copied_bytes;
@@ -468,45 +468,45 @@ void finish_run(int drain_events)
 	extern int num_packets_held, num_packets_cleaned;
 	// DEBUG_MSG("packets clean up: %d/%d\n", num_packets_cleaned, num_packets_held);
 #endif
-	}
+}
 
 void delete_run()
-	{
+{
 	util::detail::set_processing_status("TERMINATING", "delete_run");
 
 	for ( int i = 0; i < zeek::detail::NUM_ADDR_ANONYMIZATION_METHODS; ++i )
 		delete zeek::detail::ip_anonymizer[i];
-	}
+}
 
 double check_pseudo_time(const Packet* pkt)
-	{
+{
 	double pseudo_time = pkt->time - first_timestamp;
 	double ct = (util::current_time(true) - first_wallclock) * pseudo_realtime;
 
 	current_pseudo = pseudo_time <= ct ? zeek_start_time + pseudo_time : 0;
 	return current_pseudo;
-	}
+}
 
 iosource::PktSrc* current_packet_source()
-	{
+{
 	return dynamic_cast<iosource::PktSrc*>(current_iosrc);
-	}
+}
 
-	} // namespace detail
+} // namespace detail
 
 double current_packet_timestamp()
-	{
+{
 	return detail::current_pseudo;
-	}
+}
 
 double current_packet_wallclock()
-	{
+{
 	// We stop time when we are suspended.
 	if ( run_state::is_processing_suspended() )
 		detail::current_wallclock = util::current_time(true);
 
 	return detail::current_wallclock;
-	}
+}
 
 bool reading_live = false;
 bool reading_traces = false;
@@ -526,28 +526,28 @@ double current_timestamp = 0.0;
 static int _processing_suspended = 0;
 
 void suspend_processing()
-	{
+{
 	if ( _processing_suspended == 0 )
 		reporter->Info("processing suspended");
 
 	++_processing_suspended;
-	}
+}
 
 void continue_processing()
-	{
+{
 	if ( _processing_suspended == 1 )
-		{
+	{
 		reporter->Info("processing continued");
 		detail::current_wallclock = util::current_time(true);
-		}
+	}
 
 	if ( _processing_suspended > 0 )
 		--_processing_suspended;
-	}
+}
 
 bool is_processing_suspended()
-	{
+{
 	return _processing_suspended > 0;
-	}
+}
 
-	} // namespace zeek::run_state
+} // namespace zeek::run_state

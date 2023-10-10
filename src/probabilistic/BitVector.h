@@ -8,18 +8,18 @@
 #include <vector>
 
 namespace broker
-	{
+{
 class data;
-	}
+}
 
 namespace zeek::probabilistic::detail
-	{
+{
 
 /**
  * A vector of bits.
  */
 class BitVector
-	{
+{
 public:
 	using block_type = uint64_t;
 	using size_type = size_t;
@@ -32,7 +32,7 @@ public:
 	 * An lvalue proxy for individual bits.
 	 */
 	class Reference
-		{
+	{
 	public:
 		/**
 		 * Inverts the bits' values.
@@ -56,7 +56,7 @@ public:
 
 		block_type& block;
 		const block_type mask;
-		};
+	};
 
 	/**
 	 * Default-constructs an empty bit vector.
@@ -78,10 +78,10 @@ public:
 	 *
 	 */
 	template <typename InputIterator> BitVector(InputIterator first, InputIterator last)
-		{
+	{
 		bits.insert(bits.end(), first, last);
 		num_bits = bits.size() * bits_per_block;
-		}
+	}
 
 	/**
 	 * Copy-constructs a bit vector.
@@ -130,7 +130,7 @@ public:
 	 * sequence.
 	 */
 	template <typename ForwardIterator> void Append(ForwardIterator first, ForwardIterator last)
-		{
+	{
 		if ( first == last )
 			return;
 
@@ -141,21 +141,21 @@ public:
 		bits.reserve(Blocks() + delta);
 
 		if ( excess == 0 )
-			{
+		{
 			bits.back() |= (*first << excess);
 
 			do
-				{
+			{
 				block_type b = *first++ >> (bits_per_block - excess);
 				bits.push_back(b | (first == last ? 0 : *first << excess));
-				} while ( first != last );
-			}
+			} while ( first != last );
+		}
 
 		else
 			bits.insert(bits.end(), first, last);
 
 		num_bits += bits_per_block * delta;
-		}
+	}
 
 	/**
 	 * Appends the bits in a given block.
@@ -334,9 +334,9 @@ private:
 	 * @return The number of blocks to represent *bits* number of bits.
 	 */
 	static size_type bits_to_blocks(size_type bits)
-		{
+	{
 		return bits / bits_per_block + static_cast<size_type>(bits % bits_per_block != 0);
-		}
+	}
 
 	/**
 	 * Computes the bit position first 1-bit in a given block.
@@ -347,6 +347,6 @@ private:
 
 	std::vector<block_type> bits;
 	size_type num_bits;
-	};
+};
 
-	} // namespace zeek::probabilistic::detail
+} // namespace zeek::probabilistic::detail

@@ -6,7 +6,7 @@
 #include "zeek/ZeekArgs.h"
 
 namespace zeek::detail
-	{
+{
 
 class ValTrace;
 class ValTraceMgr;
@@ -14,7 +14,7 @@ class ValTraceMgr;
 // Abstract class for capturing a single difference between two script-level
 // values.  Includes notions of inserting, changing, or deleting a value.
 class ValDelta
-	{
+{
 public:
 	ValDelta(const ValTrace* _vt) : vt(_vt) { }
 	virtual ~ValDelta() { }
@@ -35,7 +35,7 @@ public:
 
 protected:
 	const ValTrace* vt;
-	};
+};
 
 using DeltaVector = std::vector<std::unique_ptr<ValDelta>>;
 
@@ -44,7 +44,7 @@ using DeltaVector = std::vector<std::unique_ptr<ValDelta>>;
 // it is (recursively) each of the sub-elements, in a manner that can then
 // be readily compared against future instances.
 class ValTrace
-	{
+{
 public:
 	ValTrace(const ValPtr& v);
 	~ValTrace() = default;
@@ -104,42 +104,42 @@ private:
 
 	ValPtr v;
 	TypePtr t; // v's type, for convenience
-	};
+};
 
 // Captures the basic notion of a new, non-equivalent value being assigned.
 class DeltaReplaceValue : public ValDelta
-	{
+{
 public:
 	DeltaReplaceValue(const ValTrace* _vt, ValPtr _new_val)
 		: ValDelta(_vt), new_val(std::move(_new_val))
-		{
-		}
+	{
+	}
 
 	std::string Generate(ValTraceMgr* vtm) const override;
 
 private:
 	ValPtr new_val;
-	};
+};
 
 // Captures the notion of setting a record field.
 class DeltaSetField : public ValDelta
-	{
+{
 public:
 	DeltaSetField(const ValTrace* _vt, int _field, ValPtr _new_val)
 		: ValDelta(_vt), field(_field), new_val(std::move(_new_val))
-		{
-		}
+	{
+	}
 
 	std::string Generate(ValTraceMgr* vtm) const override;
 
 private:
 	int field;
 	ValPtr new_val;
-	};
+};
 
 // Captures the notion of deleting a record field.
 class DeltaRemoveField : public ValDelta
-	{
+{
 public:
 	DeltaRemoveField(const ValTrace* _vt, int _field) : ValDelta(_vt), field(_field) { }
 
@@ -148,21 +148,21 @@ public:
 
 private:
 	int field;
-	};
+};
 
 // Captures the notion of creating a record from scratch.
 class DeltaRecordCreate : public ValDelta
-	{
+{
 public:
 	DeltaRecordCreate(const ValTrace* _vt) : ValDelta(_vt) { }
 
 	std::string Generate(ValTraceMgr* vtm) const override;
-	};
+};
 
 // Captures the notion of adding an element to a set.  Use DeltaRemoveTableEntry to
 // delete values.
 class DeltaSetSetEntry : public ValDelta
-	{
+{
 public:
 	DeltaSetSetEntry(const ValTrace* _vt, ValPtr _index) : ValDelta(_vt), index(_index) { }
 
@@ -171,121 +171,121 @@ public:
 
 private:
 	ValPtr index;
-	};
+};
 
 // Captures the notion of setting a table entry (which includes both changing
 // an existing one and adding a new one).  Use DeltaRemoveTableEntry to
 // delete values.
 class DeltaSetTableEntry : public ValDelta
-	{
+{
 public:
 	DeltaSetTableEntry(const ValTrace* _vt, ValPtr _index, ValPtr _new_val)
 		: ValDelta(_vt), index(_index), new_val(std::move(_new_val))
-		{
-		}
+	{
+	}
 
 	std::string Generate(ValTraceMgr* vtm) const override;
 
 private:
 	ValPtr index;
 	ValPtr new_val;
-	};
+};
 
 // Captures the notion of removing a table/set entry.
 class DeltaRemoveTableEntry : public ValDelta
-	{
+{
 public:
 	DeltaRemoveTableEntry(const ValTrace* _vt, ValPtr _index)
 		: ValDelta(_vt), index(std::move(_index))
-		{
-		}
+	{
+	}
 
 	std::string Generate(ValTraceMgr* vtm) const override;
 	bool NeedsLHS() const override { return false; }
 
 private:
 	ValPtr index;
-	};
+};
 
 // Captures the notion of creating a set from scratch.
 class DeltaSetCreate : public ValDelta
-	{
+{
 public:
 	DeltaSetCreate(const ValTrace* _vt) : ValDelta(_vt) { }
 
 	std::string Generate(ValTraceMgr* vtm) const override;
-	};
+};
 
 // Captures the notion of creating a table from scratch.
 class DeltaTableCreate : public ValDelta
-	{
+{
 public:
 	DeltaTableCreate(const ValTrace* _vt) : ValDelta(_vt) { }
 
 	std::string Generate(ValTraceMgr* vtm) const override;
-	};
+};
 
 // Captures the notion of changing an element of a vector.
 class DeltaVectorSet : public ValDelta
-	{
+{
 public:
 	DeltaVectorSet(const ValTrace* _vt, int _index, ValPtr _elem)
 		: ValDelta(_vt), index(_index), elem(std::move(_elem))
-		{
-		}
+	{
+	}
 
 	std::string Generate(ValTraceMgr* vtm) const override;
 
 private:
 	int index;
 	ValPtr elem;
-	};
+};
 
 // Captures the notion of adding an entry to the end of a vector.
 class DeltaVectorAppend : public ValDelta
-	{
+{
 public:
 	DeltaVectorAppend(const ValTrace* _vt, int _index, ValPtr _elem)
 		: ValDelta(_vt), index(_index), elem(std::move(_elem))
-		{
-		}
+	{
+	}
 
 	std::string Generate(ValTraceMgr* vtm) const override;
 
 private:
 	int index;
 	ValPtr elem;
-	};
+};
 
 // Captures the notion of replacing a vector wholesale.
 class DeltaVectorCreate : public ValDelta
-	{
+{
 public:
 	DeltaVectorCreate(const ValTrace* _vt) : ValDelta(_vt) { }
 
 	std::string Generate(ValTraceMgr* vtm) const override;
-	};
+};
 
 // Captures the notion of creating a value with an unsupported type
 // (like "opaque").
 class DeltaUnsupportedCreate : public ValDelta
-	{
+{
 public:
 	DeltaUnsupportedCreate(const ValTrace* _vt) : ValDelta(_vt) { }
 
 	std::string Generate(ValTraceMgr* vtm) const override;
-	};
+};
 
 // Manages the changes to (or creation of) a variable used to represent
 // a value.
 class DeltaGen
-	{
+{
 public:
 	DeltaGen(ValPtr _val, std::string _rhs, bool _needs_lhs, bool _is_first_def)
 		: val(std::move(_val)), rhs(std::move(_rhs)), needs_lhs(_needs_lhs),
 		  is_first_def(_is_first_def)
-		{
-		}
+	{
+	}
 
 	const ValPtr& GetVal() const { return val; }
 	const std::string& RHS() const { return rhs; }
@@ -305,13 +305,13 @@ private:
 	// Whether this is the first definition of the variable (in which
 	// case we also need to declare the variable).
 	bool is_first_def;
-	};
+};
 
 using DeltaGenVec = std::vector<DeltaGen>;
 
 // Tracks a single event.
 class EventTrace
-	{
+{
 public:
 	// Constructed in terms of the associated script function, "network
 	// time" when the event occurred, and the position of this event
@@ -324,10 +324,10 @@ public:
 
 	// Adds to the trace an update for the given value.
 	void AddDelta(ValPtr val, std::string rhs, bool needs_lhs, bool is_first_def)
-		{
+	{
 		auto& d = is_post ? post_deltas : deltas;
 		d.emplace_back(DeltaGen(val, rhs, needs_lhs, is_first_def));
-		}
+	}
 
 	// Initially we analyze events pre-execution.  When this flag
 	// is set, we switch to instead analyzing post-execution.  The
@@ -370,11 +370,11 @@ private:
 	// The event's name and a string representation of its arguments.
 	std::string name;
 	std::string args;
-	};
+};
 
 // Manages all of the events and associated values seen during the execution.
 class ValTraceMgr
-	{
+{
 public:
 	// Invoked to trace a new event with the associated arguments.
 	void TraceEventValues(std::shared_ptr<EventTrace> et, const zeek::Args* args);
@@ -470,12 +470,12 @@ private:
 	// Hang on to values we're tracking to make sure the pointers don't
 	// get reused when the main use of the value ends.
 	std::vector<ValPtr> vals;
-	};
+};
 
 // Manages tracing of all of the events seen during execution, including
 // the final generation of the trace script.
 class EventTraceMgr
-	{
+{
 public:
 	EventTraceMgr(const std::string& trace_file);
 	~EventTraceMgr();
@@ -498,9 +498,9 @@ private:
 
 	// The names of all of the script events that have been generated.
 	std::unordered_set<std::string> script_events;
-	};
+};
 
 // If non-nil then we're doing event tracing.
 extern std::unique_ptr<EventTraceMgr> etm;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

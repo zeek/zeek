@@ -9,12 +9,12 @@
 #include "zeek/script_opt/ZAM/ZBody.h"
 
 namespace zeek
-	{
+{
 class EventHandler;
-	}
+}
 
 namespace zeek::detail
-	{
+{
 
 class NameExpr;
 class ConstExpr;
@@ -34,7 +34,7 @@ using InstLabel = ZInstI*;
 // Designed to be fully opaque, but also effective without requiring pointer
 // management.
 class ZAMStmt
-	{
+{
 protected:
 	friend class ZAMCompiler;
 
@@ -42,21 +42,21 @@ protected:
 	ZAMStmt(int _stmt_num) { stmt_num = _stmt_num; }
 
 	int stmt_num;
-	};
+};
 
 // Class that holds values that only have meaning to the ZAM compiler,
 // but that needs to be held (opaquely, via a pointer) by external
 // objects.
 class OpaqueVals
-	{
+{
 public:
 	OpaqueVals(ZInstAux* _aux) { aux = _aux; }
 
 	ZInstAux* aux;
-	};
+};
 
 class ZAMCompiler
-	{
+{
 public:
 	ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr body,
 	            std::shared_ptr<UseDefs> ud, std::shared_ptr<Reducer> rd);
@@ -76,7 +76,7 @@ public:
 	int NumStepIters() const { return num_step_iters; }
 
 	template <typename T> const CaseMaps<T>& GetCases() const
-		{
+	{
 		if constexpr ( std::is_same_v<T, zeek_int_t> )
 			return int_cases;
 		else if constexpr ( std::is_same_v<T, zeek_uint_t> )
@@ -85,7 +85,7 @@ public:
 			return double_cases;
 		else if constexpr ( std::is_same_v<T, std::string> )
 			return str_cases;
-		}
+	}
 
 	void Dump();
 
@@ -189,33 +189,33 @@ private:
 	const ZAMStmt CompileEvent(EventHandler* h, const ListExpr* l);
 
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2, const NameExpr* n3)
-		{
+	{
 		return CompileInExpr(n1, n2, nullptr, n3, nullptr);
-		}
+	}
 
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c)
-		{
+	{
 		return CompileInExpr(n1, n2, nullptr, nullptr, c);
-		}
+	}
 
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const ConstExpr* c, const NameExpr* n3)
-		{
+	{
 		return CompileInExpr(n1, nullptr, c, n3, nullptr);
-		}
+	}
 
 	// In the following, one of n2 or c2 (likewise, n3/c3) will be nil.
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const NameExpr* n2, const ConstExpr* c2,
 	                            const NameExpr* n3, const ConstExpr* c3);
 
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const ListExpr* l, const NameExpr* n2)
-		{
+	{
 		return CompileInExpr(n1, l, n2, nullptr);
-		}
+	}
 
 	const ZAMStmt CompileInExpr(const NameExpr* n, const ListExpr* l, const ConstExpr* c)
-		{
+	{
 		return CompileInExpr(n, l, nullptr, c);
-		}
+	}
 
 	const ZAMStmt CompileInExpr(const NameExpr* n1, const ListExpr* l, const NameExpr* n2,
 	                            const ConstExpr* c);
@@ -264,20 +264,20 @@ private:
 	zeek_uint_t ConstArgsMask(const ExprPList& args, int nargs) const;
 
 	int ConvertToInt(const Expr* e)
-		{
+	{
 		if ( e->Tag() == EXPR_NAME )
 			return FrameSlot(e->AsNameExpr()->Id());
 		else
 			return e->AsConstExpr()->Value()->AsInt();
-		}
+	}
 
 	int ConvertToCount(const Expr* e)
-		{
+	{
 		if ( e->Tag() == EXPR_NAME )
 			return FrameSlot(e->AsNameExpr()->Id());
 		else
 			return e->AsConstExpr()->Value()->AsCount();
-		}
+	}
 
 	using GoToSet = std::vector<ZAMStmt>;
 	using GoToSets = std::vector<GoToSet>;
@@ -303,7 +303,7 @@ private:
 	void ConcretizeBranch(ZInstI* inst, ZInstI* target, int target_slot);
 
 	void SetV(ZAMStmt s, const InstLabel l, int v)
-		{
+	{
 		if ( v == 1 )
 			SetV1(s, l);
 		else if ( v == 2 )
@@ -312,7 +312,7 @@ private:
 			SetV3(s, l);
 		else
 			SetV4(s, l);
-		}
+	}
 
 	void SetV1(ZAMStmt s, const InstLabel l);
 	void SetV2(ZAMStmt s, const InstLabel l);
@@ -371,10 +371,10 @@ private:
 	int FrameSlot(const IDPtr& id) { return FrameSlot(id.get()); }
 	int FrameSlot(const ID* id);
 	int FrameSlotIfName(const Expr* e)
-		{
+	{
 		auto n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
 		return n ? FrameSlot(n->Id()) : 0;
-		}
+	}
 
 	int FrameSlot(const NameExpr* id) { return FrameSlot(id->AsNameExpr()->Id()); }
 	int Frame1Slot(const NameExpr* id, ZOp op) { return Frame1Slot(id->AsNameExpr()->Id(), op); }
@@ -474,15 +474,15 @@ private:
 
 	// Same, but not including i.
 	ZInstI* NextLiveInst(ZInstI* i, bool follow_gotos = false)
-		{
+	{
 		if ( i->inst_num == static_cast<int>(insts1.size()) - 1 )
 			return nullptr;
 		return FirstLiveInst(insts1[i->inst_num + 1], follow_gotos);
-		}
+	}
 	int NextLiveInst(int i, bool follow_gotos = false)
-		{
+	{
 		return FirstLiveInst(i + 1, follow_gotos);
-		}
+	}
 
 	// Mark an instruction as unnecessary and remove its influence on
 	// other statements.  The instruction is indicated as an offset
@@ -608,10 +608,10 @@ private:
 	// the given slot.
 	int pending_global_store = -1;
 	int pending_capture_store = -1;
-	};
+};
 
 // Invokes after compiling all of the function bodies.
 class FuncInfo;
 extern void finalize_functions(const std::vector<FuncInfo>& funcs);
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

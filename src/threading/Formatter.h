@@ -8,7 +8,7 @@
 #include "zeek/threading/SerialTypes.h"
 
 namespace zeek::threading
-	{
+{
 
 class MsgThread;
 
@@ -18,7 +18,7 @@ class MsgThread;
  * rendering/parsing code needed by a number of input/output threads.
  */
 class Formatter
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -163,6 +163,6 @@ protected:
 
 private:
 	MsgThread* thread;
-	};
+};
 
-	} // namespace zeek::threading
+} // namespace zeek::threading

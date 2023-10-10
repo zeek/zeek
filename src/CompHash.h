@@ -8,20 +8,20 @@
 #include "zeek/Type.h"
 
 namespace zeek
-	{
+{
 
 class ListVal;
 using ListValPtr = zeek::IntrusivePtr<ListVal>;
 
-	} // namespace zeek
+} // namespace zeek
 
 namespace zeek::detail
-	{
+{
 
 class HashKey;
 
 class CompositeHash
-	{
+{
 public:
 	explicit CompositeHash(TypeListPtr composite_type);
 
@@ -61,13 +61,13 @@ protected:
 	std::unique_ptr<std::unordered_map<const Func*, uint32_t>> func_to_func_id;
 	std::unique_ptr<std::vector<FuncPtr>> func_id_to_func;
 	void BuildFuncMappings()
-		{
+	{
 		func_to_func_id = std::make_unique<std::unordered_map<const Func*, uint32_t>>();
 		func_id_to_func = std::make_unique<std::vector<FuncPtr>>();
-		}
+	}
 
 	TypeListPtr type;
 	bool is_singleton = false; // if just one type in index
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

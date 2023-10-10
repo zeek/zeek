@@ -7,13 +7,13 @@
 #include "zeek/telemetry/Histogram.h"
 
 namespace zeek::telemetry
-	{
+{
 
 /// Convenience helper for measuring durations such as latency using a histogram
 /// with second resolution. The measurement starts when creating the objects and
 /// finishes when the Timer goes out of scope.
 class [[nodiscard]] Timer
-	{
+{
 public:
 	using Clock = std::chrono::steady_clock;
 
@@ -33,15 +33,15 @@ public:
 
 	/// Calls `h.Observe` with the time passed since `start`.
 	static void Observe(DblHistogram h, Clock::time_point start)
-		{
+	{
 		using DblSec = std::chrono::duration<double>;
 		if ( auto end = Clock::now(); end > start )
 			h.Observe(std::chrono::duration_cast<DblSec>(end - start).count());
-		}
+	}
 
 private:
 	DblHistogram h_;
 	Clock::time_point start_;
-	};
+};
 
-	} // namespace zeek::telemetry
+} // namespace zeek::telemetry

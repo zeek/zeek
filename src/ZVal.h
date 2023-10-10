@@ -7,7 +7,7 @@
 #include "zeek/zeek-config.h"
 
 namespace zeek
-	{
+{
 
 class AddrVal;
 class EnumVal;
@@ -38,9 +38,9 @@ using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
 
 namespace detail
-	{
+{
 class ZBody;
-	}
+}
 
 // Note that a ZVal by itself is ambiguous: it doesn't track its type.
 // This makes them consume less memory and cheaper to copy.  It does
@@ -53,7 +53,8 @@ class ZBody;
 // to the managed_val member, which both simplifies memory management
 // and is also required for sharing of ZAM frame slots.
 
-	union ZVal {
+union ZVal
+{
 	// Constructor for hand-populating the values.
 	ZVal() { managed_val = nullptr; }
 
@@ -148,10 +149,10 @@ class ZBody;
 
 	// Deletes a possibly-managed value.
 	static void DeleteIfManaged(ZVal& v, const TypePtr& t)
-		{
+	{
 		if ( IsManagedType(t) )
 			DeleteManagedType(v);
-		}
+	}
 
 	// Specifies the address of a flag to set if a ZVal is accessed
 	// that was missing (a nil pointer).  Used to generate run-time
@@ -159,9 +160,9 @@ class ZBody;
 	// this flag can be combined with a general-purpose error flag,
 	// allowing inner loops to only have to test a single flag.
 	static void SetZValNilStatusAddr(bool* _zval_was_nil_addr)
-		{
+	{
 		zval_was_nil_addr = _zval_was_nil_addr;
-		}
+	}
 
 private:
 	friend class RecordVal;
@@ -207,6 +208,6 @@ private:
 	// particular ZVal that produces the issue, and just wants to
 	// know whether it occurred at some point.
 	static bool* zval_was_nil_addr;
-	};
+};
 
-	} // zeek
+} // zeek

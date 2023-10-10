@@ -8,7 +8,7 @@
 #include "zeek/Hash.h"
 
 namespace zeek::session::detail
-	{
+{
 
 struct KeyHash;
 
@@ -23,7 +23,7 @@ struct KeyHash;
  * guaranteed over the lifetime of the map entry.
  */
 class Key final
-	{
+{
 public:
 	const static size_t CONNECTION_KEY_TYPE = 0;
 
@@ -73,11 +73,11 @@ private:
 	size_t size = 0;
 	size_t type = CONNECTION_KEY_TYPE;
 	bool copied = false;
-	};
+};
 
 struct KeyHash
-	{
+{
 	std::size_t operator()(const Key& k) const { return k.Hash(); }
-	};
+};
 
-	} // namespace zeek::session::detail
+} // namespace zeek::session::detail

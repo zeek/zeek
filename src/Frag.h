@@ -11,17 +11,17 @@
 #include "zeek/util.h" // for zeek_uint_t
 
 namespace zeek
-	{
+{
 
 class IP_Hdr;
 
 namespace session
-	{
+{
 class Manager;
-	}
+}
 
 namespace detail
-	{
+{
 
 class FragReassembler;
 class FragTimer;
@@ -29,7 +29,7 @@ class FragTimer;
 using FragReassemblerKey = std::tuple<IPAddr, IPAddr, zeek_uint_t>;
 
 class FragReassembler : public Reassembler
-	{
+{
 public:
 	FragReassembler(session::Manager* s, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt,
 	                const FragReassemblerKey& k, double t);
@@ -58,10 +58,10 @@ protected:
 	uint16_t proto_hdr_len;
 
 	FragTimer* expire_timer;
-	};
+};
 
 class FragTimer final : public Timer
-	{
+{
 public:
 	FragTimer(FragReassembler* arg_f, double arg_t) : Timer(arg_t, TIMER_FRAG) { f = arg_f; }
 	~FragTimer() override;
@@ -73,10 +73,10 @@ public:
 
 protected:
 	FragReassembler* f;
-	};
+};
 
 class FragmentManager
-	{
+{
 public:
 	FragmentManager() = default;
 	~FragmentManager();
@@ -92,12 +92,12 @@ private:
 	using FragmentMap = std::map<detail::FragReassemblerKey, detail::FragReassembler*>;
 	FragmentMap fragments;
 	size_t max_fragments = 0;
-	};
+};
 
 extern FragmentManager* fragment_mgr;
 
 class FragReassemblerTracker
-	{
+{
 public:
 	FragReassemblerTracker(FragReassembler* f) : frag_reassembler(f) { }
 
@@ -105,7 +105,7 @@ public:
 
 private:
 	FragReassembler* frag_reassembler;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

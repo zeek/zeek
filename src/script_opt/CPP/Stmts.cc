@@ -5,24 +5,24 @@
 #include "zeek/script_opt/CPP/Compile.h"
 
 namespace zeek::detail
-	{
+{
 
 using namespace std;
 
 void CPPCompile::GenStmt(const Stmt* s)
-	{
+{
 	auto loc = s->GetLocationInfo();
 	if ( loc != &detail::no_location && s->Tag() != STMT_LIST )
 		Emit("// %s:%s", loc->filename, to_string(loc->first_line));
 
 	switch ( s->Tag() )
-		{
+	{
 		case STMT_INIT:
 			GenInitStmt(s->AsInitStmt());
 			break;
 
 		case STMT_LIST:
-			{
+		{
 			// These always occur in contexts surrounded by {}'s,
 			// so no need to add them explicitly.
 			auto sl = s->AsStmtList();
@@ -30,8 +30,8 @@ void CPPCompile::GenStmt(const Stmt* s)
 
 			for ( const auto& stmt : stmts )
 				GenStmt(stmt);
-			}
-			break;
+		}
+		break;
 
 		case STMT_EXPR:
 			if ( auto e = s->AsExprStmt()->StmtExpr() )
@@ -97,23 +97,23 @@ void CPPCompile::GenStmt(const Stmt* s)
 			break;
 
 		case STMT_PRINT:
-			{
+		{
 			auto el = static_cast<const ExprListStmt*>(s)->ExprList();
 			Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
-			}
-			break;
+		}
+		break;
 
 		default:
 			reporter->InternalError("bad statement type in CPPCompile::GenStmt");
-		}
 	}
+}
 
 void CPPCompile::GenInitStmt(const InitStmt* init)
-	{
+{
 	auto inits = init->Inits();
 
 	for ( const auto& aggr : inits )
-		{
+	{
 		const auto& t = aggr->GetType();
 
 		if ( ! IsAggr(t->Tag()) )
@@ -124,18 +124,18 @@ void CPPCompile::GenInitStmt(const InitStmt* init)
 		auto type_ind = GenTypeName(t);
 
 		if ( locals.count(aggr.get()) == 0 )
-			{
+		{
 			// fprintf(stderr, "aggregate %s unused\n", obj_desc(aggr.get()).c_str());
 			continue;
-			}
+		}
 
 		Emit("%s = make_intrusive<%s>(cast_intrusive<%s>(%s));", IDName(aggr), type_name, type_type,
 		     type_ind);
-		}
 	}
+}
 
 void CPPCompile::GenIfStmt(const IfStmt* i)
-	{
+{
 	auto cond = i->StmtExpr();
 
 	Emit("if ( %s )", GenExpr(cond, GEN_NATIVE));
@@ -146,16 +146,16 @@ void CPPCompile::GenIfStmt(const IfStmt* i)
 	const auto& fb = i->FalseBranch();
 
 	if ( fb->Tag() != STMT_NULL )
-		{
+	{
 		Emit("else");
 		StartBlock();
 		GenStmt(i->FalseBranch());
 		EndBlock();
-		}
 	}
+}
 
 void CPPCompile::GenWhileStmt(const WhileStmt* w)
-	{
+{
 	Emit("while ( %s )", GenExpr(w->Condition(), GEN_NATIVE));
 
 	StartBlock();
@@ -165,10 +165,10 @@ void CPPCompile::GenWhileStmt(const WhileStmt* w)
 	--break_level;
 
 	EndBlock();
-	}
+}
 
 void CPPCompile::GenReturnStmt(const ReturnStmt* r)
-	{
+{
 	auto e = r->StmtExpr();
 
 	if ( in_hook )
@@ -182,7 +182,7 @@ void CPPCompile::GenReturnStmt(const ReturnStmt* r)
 		Emit("return;");
 
 	else
-		{
+	{
 		auto gt = ret_type->Tag() == TYPE_ANY ? GEN_VAL_PTR : GEN_NATIVE;
 		auto ret = GenExpr(e, gt);
 
@@ -190,42 +190,42 @@ void CPPCompile::GenReturnStmt(const ReturnStmt* r)
 			ret = GenericValPtrToGT(ret, ret_type, gt);
 
 		Emit("return %s;", ret);
-		}
 	}
+}
 
 void CPPCompile::GenAddStmt(const ExprStmt* es)
-	{
+{
 	auto op = es->StmtExpr();
 	auto aggr = GenExpr(op->GetOp1(), GEN_DONT_CARE);
 	auto indices = op->GetOp2();
 
 	Emit("add_element__CPP(%s, index_val__CPP({%s}));", aggr, GenExpr(indices, GEN_VAL_PTR));
-	}
+}
 
 void CPPCompile::GenDeleteStmt(const ExprStmt* es)
-	{
+{
 	auto op = es->StmtExpr();
 	auto aggr = op->GetOp1();
 	auto aggr_gen = GenExpr(aggr, GEN_VAL_PTR);
 
 	if ( op->Tag() == EXPR_INDEX )
-		{
+	{
 		auto indices = op->GetOp2();
 
 		Emit("remove_element__CPP(%s, index_val__CPP({%s}));", aggr_gen,
 		     GenExpr(indices, GEN_VAL_PTR));
-		}
+	}
 
 	else
-		{
+	{
 		ASSERT(op->Tag() == EXPR_FIELD);
 		auto field = GenField(aggr, op->AsFieldExpr()->Field());
 		Emit("%s->Remove(%s);", aggr_gen, field);
-		}
 	}
+}
 
 void CPPCompile::GenEventStmt(const EventStmt* ev)
-	{
+{
 	auto ev_s = ev->StmtExprPtr();
 	auto ev_e = cast_intrusive<EventExpr>(ev_s);
 	auto ev_n = ev_e->Name();
@@ -237,10 +237,10 @@ void CPPCompile::GenEventStmt(const EventStmt* ev)
 		     GenExpr(ev_e->Args(), GEN_VAL_PTR));
 	else
 		Emit("event_mgr.Enqueue(%s_ev, Args{});", globals[string(ev_n)]);
-	}
+}
 
 void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
-	{
+{
 	auto e = sw->StmtExpr();
 	auto cases = sw->Cases();
 
@@ -248,10 +248,10 @@ void CPPCompile::GenSwitchStmt(const SwitchStmt* sw)
 		GenValueSwitchStmt(e, cases);
 	else
 		GenTypeSwitchStmt(e, cases);
-	}
+}
 
 void CPPCompile::GenTypeSwitchStmt(const Expr* e, const case_list* cases)
-	{
+{
 	// Start a scoping block so we avoid naming conflicts if a function
 	// has multiple type switches.
 	Emit("{");
@@ -259,12 +259,12 @@ void CPPCompile::GenTypeSwitchStmt(const Expr* e, const case_list* cases)
 	StartBlock();
 
 	for ( const auto& c : *cases )
-		{
+	{
 		auto tc = c->TypeCases();
 		if ( tc )
 			for ( auto id : *tc )
 				Emit(Fmt(TypeOffset(id->GetType())) + ",");
-		}
+	}
 	EndBlock(true);
 
 	NL();
@@ -287,30 +287,30 @@ void CPPCompile::GenTypeSwitchStmt(const Expr* e, const case_list* cases)
 	int case_offset = 0;
 
 	for ( const auto& c : *cases )
-		{
+	{
 		auto tc = c->TypeCases();
 		if ( tc )
-			{
+		{
 			bool is_multi = tc->size() > 1;
 			for ( auto id : *tc )
 				GenTypeSwitchCase(id, case_offset++, is_multi);
-			}
+		}
 		else
 			Emit("default:");
 
 		StartBlock();
 		GenStmt(c->Body());
 		EndBlock();
-		}
+	}
 
 	--break_level;
 
 	Emit("}"); // end the switch
 	Emit("}"); // end the scoping block
-	}
+}
 
 void CPPCompile::GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi)
-	{
+{
 	Emit("case %s:", Fmt(case_offset));
 
 	if ( ! id->Name() )
@@ -322,10 +322,10 @@ void CPPCompile::GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi)
 	IndentUp();
 
 	if ( is_multi )
-		{
+	{
 		Emit("if ( CPP__sw_type_ind == %s )", Fmt(case_offset));
 		IndentUp();
-		}
+	}
 
 	auto targ_val = "CPP__sw_val.get()";
 	auto targ_type = string("CPP__Type__[CPP__switch_types[") + Fmt(case_offset) + "]].get()";
@@ -338,10 +338,10 @@ void CPPCompile::GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi)
 
 	if ( is_multi )
 		IndentDown();
-	}
+}
 
 void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases)
-	{
+{
 	auto e_it = e->GetType()->InternalType();
 	bool is_int = e_it == TYPE_INTERNAL_INT;
 	bool is_uint = e_it == TYPE_INTERNAL_UNSIGNED;
@@ -359,13 +359,13 @@ void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases)
 	++break_level;
 
 	for ( const auto& c : *cases )
-		{
+	{
 		if ( c->ExprCases() )
-			{
+		{
 			const auto& c_e_s = c->ExprCases()->AsListExpr()->Exprs();
 
 			for ( const auto& c_e : c_e_s )
-				{
+			{
 				auto c_v = c_e->Eval(nullptr);
 				ASSERT(c_v);
 
@@ -379,8 +379,8 @@ void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases)
 					c_v_rep = Fmt(p_hash(c_v));
 
 				Emit("case %s:", c_v_rep);
-				}
 			}
+		}
 
 		else
 			Emit("default:");
@@ -388,15 +388,15 @@ void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases)
 		StartBlock();
 		GenStmt(c->Body());
 		EndBlock();
-		}
+	}
 
 	--break_level;
 
 	Emit("}");
-	}
+}
 
 void CPPCompile::GenWhenStmt(const WhenStmt* w)
-	{
+{
 	auto wi = w->Info();
 	auto wl = wi->Lambda();
 
@@ -443,7 +443,7 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 	     timeout_val);
 
 	if ( ret_type && ret_type->Tag() != TYPE_VOID )
-		{
+	{
 		// Note, ret_type can be active but we *still* don't have
 		// a return type, due to the faked-up "any" return type
 		// associated with "when" lambdas, so check for that case.
@@ -454,13 +454,13 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 		Emit("\tthrow CPPDelayedCallException();");
 		Emit("return %s;", GenericValPtrToGT("retval", ret_type, GEN_NATIVE));
 		EndBlock();
-		}
-
-	Emit("}");
 	}
 
+	Emit("}");
+}
+
 void CPPCompile::GenForStmt(const ForStmt* f)
-	{
+{
 	Emit("{ // begin a new scope for the internal loop vars");
 
 	++break_level;
@@ -491,11 +491,11 @@ void CPPCompile::GenForStmt(const ForStmt* f)
 	--break_level;
 
 	Emit("} // end of for scope");
-	}
+}
 
 void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
                                  const IDPList* loop_vars)
-	{
+{
 	Emit("auto tv__CPP = %s;", GenExpr(tbl, GEN_DONT_CARE));
 	Emit("const PDict<TableEntryVal>* loop_vals__CPP = tv__CPP->AsTable();");
 
@@ -514,7 +514,7 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
 		     GenericValPtrToGT("current_tev__CPP->GetVal()", value_var->GetType(), GEN_NATIVE));
 
 	for ( int i = 0; i < loop_vars->length(); ++i )
-		{
+	{
 		auto var = (*loop_vars)[i];
 		if ( var->IsBlank() )
 			continue;
@@ -526,12 +526,12 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var,
 			Emit("%s = ind_lv__CPP->Idx(%s)%s;", IDName(var), Fmt(i), acc);
 		else
 			Emit("%s = {NewRef{}, ind_lv__CPP->Idx(%s)%s};", IDName(var), Fmt(i), acc);
-		}
 	}
+}
 
 void CPPCompile::GenForOverVector(const ExprPtr& vec, const IDPtr& value_var,
                                   const IDPList* loop_vars)
-	{
+{
 	Emit("auto vv__CPP = %s;", GenExpr(vec, GEN_DONT_CARE));
 
 	Emit("for ( auto i__CPP = 0u; i__CPP < vv__CPP->Size(); ++i__CPP )");
@@ -545,16 +545,16 @@ void CPPCompile::GenForOverVector(const ExprPtr& vec, const IDPtr& value_var,
 		Emit("%s = i__CPP;", IDName(lv0));
 
 	if ( value_var && ! value_var->IsBlank() )
-		{
+	{
 		auto vv = IDName(value_var);
 		auto access = "vv__CPP->ValAt(i__CPP)";
 		auto native = GenericValPtrToGT(access, value_var->GetType(), GEN_NATIVE);
 		Emit("%s = %s;", IDName(value_var), native);
-		}
 	}
+}
 
 void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars)
-	{
+{
 	Emit("auto sval__CPP = %s;", GenExpr(str, GEN_DONT_CARE));
 
 	Emit("for ( auto i__CPP = 0; i__CPP < sval__CPP->Len(); ++i__CPP )");
@@ -565,10 +565,10 @@ void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars)
 	auto lv0 = (*loop_vars)[0];
 	if ( ! lv0->IsBlank() )
 		Emit("%s = std::move(sv__CPP);", IDName(lv0));
-	}
+}
 
 void CPPCompile::GenAssertStmt(const AssertStmt* a)
-	{
+{
 	auto& cond = a->Cond();
 	auto& msg = a->Msg();
 
@@ -594,6 +594,6 @@ void CPPCompile::GenAssertStmt(const AssertStmt* a)
 	EndBlock();
 
 	Emit("} // end of \"assert\" scope");
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

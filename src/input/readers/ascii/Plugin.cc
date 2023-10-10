@@ -5,13 +5,13 @@
 #include "zeek/input/readers/ascii/Ascii.h"
 
 namespace zeek::plugin::detail::Zeek_AsciiReader
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::input::Component("Ascii", zeek::input::reader::detail::Ascii::Instantiate));
 
@@ -19,7 +19,7 @@ public:
 		config.name = "Zeek::AsciiReader";
 		config.description = "ASCII input reader";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_AsciiReader
+} // namespace zeek::plugin::detail::Zeek_AsciiReader

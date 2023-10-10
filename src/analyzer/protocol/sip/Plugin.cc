@@ -7,13 +7,13 @@
 #include "zeek/analyzer/protocol/sip/SIP_TCP.h"
 
 namespace zeek::plugin::detail::Zeek_SIP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("SIP", zeek::analyzer::sip::SIP_Analyzer::Instantiate));
 
@@ -25,7 +25,7 @@ public:
 		config.name = "Zeek::SIP";
 		config.description = "SIP analyzer UDP-only";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_SIP
+} // namespace zeek::plugin::detail::Zeek_SIP

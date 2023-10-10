@@ -14,12 +14,12 @@
 #include "zeek/zeekygen/Info.h"
 
 namespace zeek
-	{
+{
 
 class TypeDecl;
 
 namespace zeekygen::detail
-	{
+{
 
 class ScriptInfo;
 
@@ -27,7 +27,7 @@ class ScriptInfo;
  * Information regarding a script-level identifier and its documentation.
  */
 class IdentifierInfo : public Info
-	{
+{
 
 public:
 	/**
@@ -57,10 +57,10 @@ public:
 	 * @param comment A string extracted from Zeekygen-style comment.
 	 */
 	void AddComment(const std::string& comment)
-		{
+	{
 		last_field_seen ? last_field_seen->comments.push_back(comment)
 						: comments.push_back(comment);
-		}
+	}
 
 	/**
 	 * Associate several comments with the identifier.  They will be appended
@@ -68,9 +68,9 @@ public:
 	 * @param cmtns A vector of comments to associate.
 	 */
 	void AddComments(const std::vector<std::string>& cmtns)
-		{
+	{
 		comments.insert(comments.end(), cmtns.begin(), cmtns.end());
-		}
+	}
 
 	/**
 	 * Register a redefinition of the identifier.
@@ -144,7 +144,7 @@ public:
 	 * Tracks useful information related to a redef.
 	 */
 	struct Redefinition
-		{
+	{
 		std::string from_script; /**< Name of script doing the redef. */
 		zeek::detail::InitClass ic;
 		zeek::detail::ExprPtr init_expr;
@@ -154,7 +154,7 @@ public:
 		             zeek::detail::ExprPtr arg_expr, std::vector<std::string> arg_comments);
 
 		~Redefinition();
-		};
+	};
 
 	/**
 	 * Get a list of information about redefinitions of the identifier within
@@ -178,14 +178,14 @@ private:
 	std::string DoReStructuredText(bool roles_only) const override;
 
 	struct RecordField
-		{
+	{
 		~RecordField();
 
 		TypeDecl* field;
 		std::string from_script;
 		std::vector<std::string> comments;
 		bool from_redef;
-		};
+	};
 
 	using redef_list = std::list<Redefinition*>;
 	using record_field_map = std::map<std::string, RecordField*>;
@@ -198,7 +198,7 @@ private:
 	RecordField* last_field_seen;
 	ScriptInfo* declaring_script;
 	bool from_redef = false;
-	};
+};
 
-	} // namespace zeekygen::detail
-	} // namespace zeek
+} // namespace zeekygen::detail
+} // namespace zeek

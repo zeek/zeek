@@ -3,11 +3,11 @@
 #pragma once
 
 namespace zeek::detail
-	{
+{
 
 // These are in a separate file to break circular dependences
 enum StmtTag
-	{
+{
 	STMT_ANY = -1,
 	STMT_ALARM, // Does no longer exist but kept to create enums consistent.
 	STMT_PRINT,
@@ -34,17 +34,17 @@ enum StmtTag
 	STMT_NULL,
 	STMT_ASSERT,
 #define NUM_STMTS (int(STMT_ASSERT) + 1)
-	};
+};
 
 enum StmtFlowType
-	{
+{
 	FLOW_NEXT, // continue on to next statement
 	FLOW_LOOP, // go to top of loop
 	FLOW_BREAK, // break out of loop
 	FLOW_RETURN, // return from function
 	FLOW_FALLTHROUGH // fall through to next switch case
-	};
+};
 
 extern const char* stmt_name(StmtTag t);
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

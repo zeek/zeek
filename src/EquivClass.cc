@@ -8,10 +8,10 @@
 #include "zeek/util.h"
 
 namespace zeek::detail
-	{
+{
 
 EquivClass::EquivClass(int arg_size)
-	{
+{
 	size = arg_size;
 	fwd = new int[size];
 	bck = new int[size];
@@ -26,29 +26,29 @@ EquivClass::EquivClass(int arg_size)
 	fwd[size - 1] = ec_nil;
 
 	for ( int i = 0; i < size; ++i )
-		{
+	{
 		if ( i > 0 )
-			{
+		{
 			fwd[i - 1] = i;
 			bck[i] = i - 1;
-			}
+		}
 
 		equiv_class[i] = no_class;
 		rep[i] = no_rep;
-		}
 	}
+}
 
 EquivClass::~EquivClass()
-	{
+{
 	delete[] fwd;
 	delete[] bck;
 	delete[] equiv_class;
 	delete[] rep;
 	delete[] ccl_flags;
-	}
+}
 
 void EquivClass::ConvertCCL(CCL* ccl)
-	{
+{
 	// For each character in the class, add the character's
 	// equivalence class to the new "character" class we are
 	// creating.  Thus when we are all done, the character class
@@ -59,49 +59,49 @@ void EquivClass::ConvertCCL(CCL* ccl)
 	int_list* new_syms = new int_list;
 
 	for ( auto sym : *c_syms )
-		{
+	{
 		if ( IsRep(sym) )
 			new_syms->push_back(SymEquivClass(sym));
-		}
-
-	ccl->ReplaceSyms(new_syms);
 	}
 
+	ccl->ReplaceSyms(new_syms);
+}
+
 int EquivClass::BuildECs()
-	{
+{
 	// Create equivalence class numbers.  If bck[x] is nil,
 	// then x is the representative of its equivalence class.
 
 	for ( int i = 0; i < size; ++i )
 		if ( bck[i] == ec_nil )
-			{
+		{
 			equiv_class[i] = num_ecs++;
 			rep[i] = i;
 			for ( int j = fwd[i]; j != ec_nil; j = fwd[j] )
-				{
+			{
 				equiv_class[j] = equiv_class[i];
 				rep[j] = i;
-				}
 			}
+		}
 
 	return num_ecs;
-	}
+}
 
 void EquivClass::CCL_Use(CCL* ccl)
-	{
+{
 	// Note that it doesn't matter whether or not the character class is
 	// negated.  The same results will be obtained in either case.
 
 	if ( ! ccl_flags )
-		{
+	{
 		ccl_flags = new int[size];
 		for ( int i = 0; i < size; ++i )
 			ccl_flags[i] = 0;
-		}
+	}
 
 	int_list* csyms = ccl->Syms();
 	for ( size_t i = 0; i < csyms->size(); /* no increment */ )
-		{
+	{
 		int sym = (*csyms)[i];
 
 		int old_ec = bck[sym];
@@ -110,16 +110,16 @@ void EquivClass::CCL_Use(CCL* ccl)
 		size_t j = i + 1;
 
 		for ( int k = fwd[sym]; k && k < size; k = fwd[k] )
-			{ // look for the symbol in the character class
+		{ // look for the symbol in the character class
 			for ( ; j < csyms->size(); ++j )
-				{
+			{
 				if ( (*csyms)[j] > k )
 					// Since the character class is sorted,
 					// we can stop.
 					break;
 
 				if ( (*csyms)[j] == k && ! ccl_flags[j] )
-					{
+				{
 					// We found an old companion of sym
 					// in the ccl.  Link it into the new
 					// equivalence class and flag it as
@@ -133,8 +133,8 @@ void EquivClass::CCL_Use(CCL* ccl)
 
 					// Get next equivalence class member.
 					break;
-					}
 				}
+			}
 
 			if ( j < csyms->size() && (*csyms)[j] == k )
 				// We broke out of the above loop by finding
@@ -148,13 +148,13 @@ void EquivClass::CCL_Use(CCL* ccl)
 				fwd[old_ec] = k;
 
 			old_ec = k;
-			}
+		}
 
 		if ( bck[sym] != ec_nil || old_ec != bck[sym] )
-			{
+		{
 			bck[sym] = ec_nil;
 			fwd[old_ec] = ec_nil;
-			}
+		}
 
 		fwd[new_ec] = ec_nil;
 
@@ -162,11 +162,11 @@ void EquivClass::CCL_Use(CCL* ccl)
 		for ( ++i; i < csyms->size() && ccl_flags[i]; ++i )
 			// Reset "doesn't need processing" flag.
 			ccl_flags[i] = 0;
-		}
 	}
+}
 
 void EquivClass::UniqueChar(int sym)
-	{
+{
 	// If until now the character has been a proper subset of
 	// an equivalence class, break it away to create a new ec.
 
@@ -178,19 +178,19 @@ void EquivClass::UniqueChar(int sym)
 
 	fwd[sym] = ec_nil;
 	bck[sym] = ec_nil;
-	}
+}
 
 void EquivClass::Dump(FILE* f)
-	{
+{
 	fprintf(f, "%d symbols in EC yielded %d ecs\n", size, num_ecs);
 	for ( int i = 0; i < size; ++i )
 		if ( SymEquivClass(i) != 0 ) // skip usually huge default ec
 			fprintf(f, "map %d ('%c') -> %d\n", i, i, SymEquivClass(i));
-	}
+}
 
 int EquivClass::Size() const
-	{
+{
 	return padded_sizeof(*this) + util::pad_size(sizeof(int) * size * (ccl_flags ? 5 : 4));
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

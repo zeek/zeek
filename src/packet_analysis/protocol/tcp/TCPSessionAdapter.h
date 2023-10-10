@@ -11,16 +11,16 @@
 #include "zeek/session/Manager.h"
 
 namespace zeek::analyzer::pia
-	{
+{
 class PIA_TCP;
-	}
+}
 namespace zeek::analyzer::tcp
-	{
+{
 class TCP_Reassembler;
-	}
+}
 
 namespace zeek::packet_analysis::TCP
-	{
+{
 
 constexpr bool DEBUG_tcp_data_sent = false;
 constexpr bool DEBUG_tcp_connection_close = false;
@@ -28,7 +28,7 @@ constexpr bool DEBUG_tcp_connection_close = false;
 class TCPAnalyzer;
 
 class TCPSessionAdapter final : public packet_analysis::IP::SessionAdapter
-	{
+{
 public:
 	explicit TCPSessionAdapter(Connection* conn);
 	~TCPSessionAdapter() override;
@@ -189,6 +189,6 @@ private:
 
 	// Whether we have seen the first ACK from the originator.
 	unsigned int seen_first_ACK : 1;
-	};
+};
 
-	} // namespace zeek::packet_analysis::tcp
+} // namespace zeek::packet_analysis::tcp

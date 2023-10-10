@@ -4,13 +4,13 @@
 #include "packet_analysis/Component.h"
 
 namespace zeek::plugin::PacketDemo_Bar
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure()
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"Raw_Layer", zeek::packet_analysis::PacketDemo::RawLayer::Instantiate));
 
@@ -21,8 +21,8 @@ public:
 		config.version.minor = 0;
 		config.version.patch = 0;
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

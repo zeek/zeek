@@ -9,19 +9,19 @@
 #include "zeek/Tag.h"
 
 namespace zeek
-	{
+{
 
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
 namespace file_analysis
-	{
+{
 
 class Analyzer;
 class File;
 
 namespace detail
-	{
+{
 
 /**
  * A set of file analysis analyzers indexed by an \c AnalyzerArgs (script-layer
@@ -30,7 +30,7 @@ namespace detail
  * iterator isn't invalidated).
  */
 class AnalyzerSet
-	{
+{
 public:
 	/**
 	 * Constructor.  Nothing special.
@@ -144,7 +144,7 @@ private:
 	 * Abstract base class for analyzer set modifications.
 	 */
 	class Modification
-		{
+	{
 	public:
 		virtual ~Modification() { }
 
@@ -159,13 +159,13 @@ private:
 		 * Don't perform the modification on the analyzer set and clean up.
 		 */
 		virtual void Abort() = 0;
-		};
+	};
 
 	/**
 	 * Represents a request to add an analyzer to an analyzer set.
 	 */
 	class AddMod final : public Modification
-		{
+	{
 	public:
 		/**
 		 * Construct request which can add an analyzer to an analyzer set.
@@ -174,8 +174,8 @@ private:
 		 */
 		AddMod(file_analysis::Analyzer* arg_a, std::unique_ptr<zeek::detail::HashKey> arg_key)
 			: Modification(), a(arg_a), key(std::move(arg_key))
-			{
-			}
+		{
+		}
 		~AddMod() override { }
 		bool Perform(AnalyzerSet* set) override;
 		void Abort() override;
@@ -183,13 +183,13 @@ private:
 	protected:
 		file_analysis::Analyzer* a;
 		std::unique_ptr<zeek::detail::HashKey> key;
-		};
+	};
 
 	/**
 	 * Represents a request to remove an analyzer from an analyzer set.
 	 */
 	class RemoveMod final : public Modification
-		{
+	{
 	public:
 		/**
 		 * Construct request which can remove an analyzer from an analyzer set.
@@ -198,8 +198,8 @@ private:
 		 */
 		RemoveMod(const zeek::Tag& arg_tag, std::unique_ptr<zeek::detail::HashKey> arg_key)
 			: Modification(), tag(arg_tag), key(std::move(arg_key))
-			{
-			}
+		{
+		}
 		~RemoveMod() override { }
 		bool Perform(AnalyzerSet* set) override;
 		void Abort() override { }
@@ -207,12 +207,12 @@ private:
 	protected:
 		zeek::Tag tag;
 		std::unique_ptr<zeek::detail::HashKey> key;
-		};
+	};
 
 	using ModQueue = std::queue<Modification*>;
 	ModQueue mod_queue; /**< A queue of analyzer additions/removals requests. */
-	};
+};
 
-	} // namespace detail
-	} // namespace file_analysis
-	} // namespace zeek
+} // namespace detail
+} // namespace file_analysis
+} // namespace zeek

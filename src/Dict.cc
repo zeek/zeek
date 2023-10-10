@@ -6,14 +6,14 @@
 #include "zeek/Hash.h"
 
 namespace zeek
-	{
+{
 
 // namespace detail
 
 TEST_SUITE_BEGIN("Dict");
 
 TEST_CASE("dict construction")
-	{
+{
 	PDict<int> dict;
 	CHECK(! dict.IsOrdered());
 	CHECK(dict.Length() == 0);
@@ -21,10 +21,10 @@ TEST_CASE("dict construction")
 	PDict<int> dict2(ORDERED);
 	CHECK(dict2.IsOrdered());
 	CHECK(dict2.Length() == 0);
-	}
+}
 
 TEST_CASE("dict operation")
-	{
+{
 	PDict<uint32_t> dict;
 
 	uint32_t val = 10;
@@ -67,10 +67,10 @@ TEST_CASE("dict operation")
 
 	delete key;
 	delete key2;
-	}
+}
 
 TEST_CASE("dict nthentry")
-	{
+{
 	PDict<uint32_t> unordered(UNORDERED);
 	PDict<uint32_t> ordered(ORDERED);
 
@@ -103,10 +103,10 @@ TEST_CASE("dict nthentry")
 	delete okey2;
 	delete ukey;
 	delete ukey2;
-	}
+}
 
 TEST_CASE("dict iteration")
-	{
+{
 	PDict<uint32_t> dict;
 
 	uint32_t val = 15;
@@ -123,12 +123,12 @@ TEST_CASE("dict iteration")
 	int count = 0;
 
 	for ( const auto& entry : dict )
-		{
+	{
 		auto* v = static_cast<uint32_t*>(entry.value);
 		uint64_t k = *(uint32_t*)entry.GetKey();
 
 		switch ( count )
-			{
+		{
 			case 0:
 				CHECK(k == key_val2);
 				CHECK(*v == val2);
@@ -139,10 +139,10 @@ TEST_CASE("dict iteration")
 				break;
 			default:
 				break;
-			}
+		}
 
 		count++;
-		}
+	}
 
 	PDict<uint32_t>::iterator it;
 	it = dict.begin();
@@ -153,10 +153,10 @@ TEST_CASE("dict iteration")
 
 	delete key;
 	delete key2;
-	}
+}
 
 TEST_CASE("dict robust iteration")
-	{
+{
 	PDict<uint32_t> dict;
 
 	uint32_t val = 15;
@@ -174,17 +174,17 @@ TEST_CASE("dict robust iteration")
 	dict.Insert(key, &val);
 	dict.Insert(key2, &val2);
 
-		{
+	{
 		int count = 0;
 		auto it = dict.begin_robust();
 
 		for ( ; it != dict.end_robust(); ++it )
-			{
+		{
 			auto* v = it->value;
 			uint64_t k = *(uint32_t*)it->GetKey();
 
 			switch ( count )
-				{
+			{
 				case 0:
 					CHECK(k == key_val2);
 					CHECK(*v == val2);
@@ -202,24 +202,24 @@ TEST_CASE("dict robust iteration")
 					// We shouldn't get here.
 					CHECK(false);
 					break;
-				}
-			count++;
 			}
-
-		CHECK(count == 3);
+			count++;
 		}
 
-		{
+		CHECK(count == 3);
+	}
+
+	{
 		int count = 0;
 		auto it = dict.begin_robust();
 
 		for ( ; it != dict.end_robust(); ++it )
-			{
+		{
 			auto* v = it->value;
 			uint64_t k = *(uint32_t*)it->GetKey();
 
 			switch ( count )
-				{
+			{
 				case 0:
 					CHECK(k == key_val2);
 					CHECK(*v == val2);
@@ -234,20 +234,20 @@ TEST_CASE("dict robust iteration")
 					// We shouldn't get here.
 					CHECK(false);
 					break;
-				}
-			count++;
 			}
+			count++;
+		}
 
 		CHECK(count == 2);
-		}
+	}
 
 	delete key;
 	delete key2;
 	delete key3;
-	}
+}
 
 TEST_CASE("dict ordered iteration")
-	{
+{
 	PDict<uint32_t> dict(DictOrder::ORDERED);
 
 	// These key values are specifically contrived to be inserted
@@ -277,7 +277,7 @@ TEST_CASE("dict ordered iteration")
 	int count = 0;
 
 	for ( const auto& entry : dict )
-		{
+	{
 		auto* v = static_cast<uint32_t*>(entry.value);
 		uint32_t k = *(uint32_t*)entry.GetKey();
 
@@ -291,13 +291,13 @@ TEST_CASE("dict ordered iteration")
 			CHECK(k == 45);
 
 		count++;
-		}
+	}
 
 	dict.Insert(key4.get(), &val4);
 	count = 0;
 
 	for ( const auto& entry : dict )
-		{
+	{
 		auto* v = static_cast<uint32_t*>(entry.value);
 		uint32_t k = *(uint32_t*)entry.GetKey();
 
@@ -313,13 +313,13 @@ TEST_CASE("dict ordered iteration")
 			CHECK(k == 35);
 
 		count++;
-		}
+	}
 
 	dict.Remove(key2.get());
 	count = 0;
 
 	for ( const auto& entry : dict )
-		{
+	{
 		auto* v = static_cast<uint32_t*>(entry.value);
 		uint32_t k = *(uint32_t*)entry.GetKey();
 
@@ -333,19 +333,19 @@ TEST_CASE("dict ordered iteration")
 			CHECK(k == 35);
 
 		count++;
-		}
 	}
+}
 
 class DictTestDummy
-	{
+{
 public:
 	DictTestDummy(int v) : v(v) { }
 	~DictTestDummy() = default;
 	int v = 0;
-	};
+};
 
 TEST_CASE("dict robust iteration replacement")
-	{
+{
 	PDict<DictTestDummy> dict;
 
 	DictTestDummy* val1 = new DictTestDummy(15);
@@ -384,11 +384,11 @@ TEST_CASE("dict robust iteration replacement")
 
 	// This shouldn't crash with AddressSanitizer
 	for ( ; it != dict.end_robust(); ++it )
-		{
+	{
 		uint64_t k = *(uint32_t*)it->GetKey();
 		auto* v = it->value;
 		CHECK(v->v == 50);
-		}
+	}
 
 	delete key1;
 	delete key2;
@@ -397,10 +397,10 @@ TEST_CASE("dict robust iteration replacement")
 	delete val1;
 	delete val3;
 	delete val4;
-	}
+}
 
 TEST_CASE("dict iterator invalidation")
-	{
+{
 	PDict<uint32_t> dict;
 
 	uint32_t val = 15;
@@ -451,12 +451,12 @@ TEST_CASE("dict iterator invalidation")
 	delete key;
 	delete key2;
 	delete key3;
-	}
+}
 
 // private
 void generic_delete_func(void* v)
-	{
+{
 	free(v);
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek

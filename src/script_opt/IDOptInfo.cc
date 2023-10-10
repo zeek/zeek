@@ -8,37 +8,37 @@
 #include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail
-	{
+{
 
 const char* trace_ID = nullptr;
 
 IDDefRegion::IDDefRegion(const Stmt* s, bool maybe, int def)
-	{
+{
 	start_stmt = s->GetOptInfo()->stmt_num;
 	block_level = s->GetOptInfo()->block_level;
 
 	Init(maybe, def);
-	}
+}
 
 IDDefRegion::IDDefRegion(int stmt_num, int level, bool maybe, int def)
-	{
+{
 	start_stmt = stmt_num;
 	block_level = level;
 
 	Init(maybe, def);
-	}
+}
 
 IDDefRegion::IDDefRegion(const Stmt* s, const IDDefRegion& ur)
-	{
+{
 	start_stmt = s->GetOptInfo()->stmt_num;
 	block_level = s->GetOptInfo()->block_level;
 
 	Init(ur.MaybeDefined(), ur.DefinedAfter());
 	SetDefExpr(ur.DefExprAfter());
-	}
+}
 
 void IDDefRegion::Dump() const
-	{
+{
 	printf("\t%d->%d (%d): ", start_stmt, end_stmt, block_level);
 
 	if ( defined != NO_DEF )
@@ -49,19 +49,19 @@ void IDDefRegion::Dump() const
 		printf("N/A");
 
 	printf("\n");
-	}
+}
 
 std::vector<IDInitInfo> IDOptInfo::global_init_exprs;
 
 void IDOptInfo::Clear()
-	{
+{
 	static bool did_init = false;
 
 	if ( ! did_init )
-		{
+	{
 		trace_ID = getenv("ZEEK_TRACE_ID");
 		did_init = true;
-		}
+	}
 
 	init_exprs.clear();
 	usage_regions.clear();
@@ -69,10 +69,10 @@ void IDOptInfo::Clear()
 	confluence_stmts.clear();
 
 	tracing = trace_ID && util::streq(trace_ID, my_id->Name());
-	}
+}
 
 void IDOptInfo::AddInitExpr(ExprPtr init_expr, InitClass ic)
-	{
+{
 	if ( ! init_expr )
 		return;
 
@@ -80,35 +80,35 @@ void IDOptInfo::AddInitExpr(ExprPtr init_expr, InitClass ic)
 		global_init_exprs.emplace_back(my_id, init_expr, ic);
 
 	init_exprs.emplace_back(std::move(init_expr));
-	}
+}
 
 void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
                              const std::vector<const Stmt*>& conf_blocks, zeek_uint_t conf_start)
-	{
+{
 	if ( tracing )
 		printf("ID %s defined at %d: %s\n", trace_ID, s ? s->GetOptInfo()->stmt_num : NO_DEF,
 		       s ? obj_desc(s).c_str() : "<entry>");
 
 	if ( ! s )
-		{ // This is a definition-upon-entry
+	{ // This is a definition-upon-entry
 		ASSERT(usage_regions.empty());
 		usage_regions.emplace_back(0, 0, true, 0);
 		if ( tracing )
 			DumpBlocks();
 		return;
-		}
+	}
 
 	auto s_oi = s->GetOptInfo();
 	auto stmt_num = s_oi->stmt_num;
 
 	if ( usage_regions.empty() )
-		{
+	{
 		// We're seeing this identifier for the first time,
 		// so we don't have any context or confluence
 		// information for it.  Create its "backstory" region.
 		ASSERT(confluence_stmts.empty());
 		usage_regions.emplace_back(0, 0, false, NO_DEF);
-		}
+	}
 
 	// Any pending regions stop prior to this statement.
 	EndRegionsAfter(stmt_num - 1, s_oi->block_level);
@@ -118,7 +118,7 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 	int n = confluence_stmts.size();
 
 	while ( b < n && conf_start < conf_blocks.size() )
-		{
+	{
 		auto outer_block = conf_blocks[conf_start];
 
 		// See if we can find that block.
@@ -127,11 +127,11 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 				break;
 
 		if ( b < n )
-			{ // We found it, look for the next one.
+		{ // We found it, look for the next one.
 			++conf_start;
 			++b;
-			}
 		}
+	}
 
 	// Add in the remainder.
 	for ( ; conf_start < conf_blocks.size(); ++conf_start )
@@ -145,10 +145,10 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 
 	if ( tracing )
 		DumpBlocks();
-	}
+}
 
 void IDOptInfo::ReturnAt(const Stmt* s)
-	{
+{
 	if ( tracing )
 		printf("ID %s subject to return %d: %s\n", trace_ID, s->GetOptInfo()->stmt_num,
 		       obj_desc(s).c_str());
@@ -156,22 +156,22 @@ void IDOptInfo::ReturnAt(const Stmt* s)
 	// Look for a catch-return that this would branch to.
 	for ( int i = confluence_stmts.size() - 1; i >= 0; --i )
 		if ( confluence_stmts[i]->Tag() == STMT_CATCH_RETURN )
-			{
+		{
 			BranchBeyond(s, confluence_stmts[i], false);
 			if ( tracing )
 				DumpBlocks();
 			return;
-			}
+		}
 
 	auto s_oi = s->GetOptInfo();
 	EndRegionsAfter(s_oi->stmt_num - 1, s_oi->block_level);
 
 	if ( tracing )
 		DumpBlocks();
-	}
+}
 
 void IDOptInfo::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all)
-	{
+{
 	if ( tracing )
 		printf("ID %s branching back from %d->%d: %s\n", trace_ID, from->GetOptInfo()->stmt_num,
 		       to->GetOptInfo()->stmt_num, obj_desc(from).c_str());
@@ -192,7 +192,7 @@ void IDOptInfo::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all)
 
 	if ( from_reg && from_reg->DefinedAfter() != t_r.DefinedAfter() &&
 	     t_r.DefinedAfter() != NO_DEF )
-		{
+	{
 		// They disagree on the definition.  Move the definition
 		// point to be the start of the confluence region, and
 		// update any blocks inside the region that refer to
@@ -201,27 +201,27 @@ void IDOptInfo::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all)
 		int new_def = t_oi->stmt_num;
 
 		for ( auto i = t_r_ind; i < usage_regions.size(); ++i )
-			{
+		{
 			auto& ur = usage_regions[i];
 
 			if ( ur.DefinedAfter() < new_def )
-				{
+			{
 				ASSERT(ur.DefinedAfter() != NO_DEF);
 				ur.UpdateDefinedAfter(new_def);
 				ur.SetDefExpr(nullptr);
-				}
 			}
 		}
+	}
 
 	int level = close_all ? t_oi->block_level + 1 : f_oi->block_level;
 	EndRegionsAfter(f_oi->stmt_num, level);
 
 	if ( tracing )
 		DumpBlocks();
-	}
+}
 
 void IDOptInfo::BranchBeyond(const Stmt* end_s, const Stmt* block, bool close_all)
-	{
+{
 	if ( tracing )
 		printf("ID %s branching forward from %d beyond %d: %s\n", trace_ID,
 		       end_s->GetOptInfo()->stmt_num, block->GetOptInfo()->stmt_num,
@@ -244,10 +244,10 @@ void IDOptInfo::BranchBeyond(const Stmt* end_s, const Stmt* block, bool close_al
 
 	if ( tracing )
 		DumpBlocks();
-	}
+}
 
 void IDOptInfo::StartConfluenceBlock(const Stmt* s)
-	{
+{
 	if ( tracing )
 		printf("ID %s starting confluence block at %d: %s\n", trace_ID, s->GetOptInfo()->stmt_num,
 		       obj_desc(s).c_str());
@@ -257,18 +257,18 @@ void IDOptInfo::StartConfluenceBlock(const Stmt* s)
 
 	// End any confluence blocks at this or inner levels.
 	for ( auto cs : confluence_stmts )
-		{
+	{
 		ASSERT(cs != s);
 
 		auto cs_level = cs->GetOptInfo()->block_level;
 
 		if ( cs_level >= block_level )
-			{
+		{
 			ASSERT(cs_level == block_level);
 			ASSERT(cs == confluence_stmts.back());
 			EndRegionsAfter(s_oi->stmt_num - 1, block_level);
-			}
 		}
+	}
 
 	pending_confluences[s] = {};
 	confluence_stmts.push_back(s);
@@ -276,13 +276,13 @@ void IDOptInfo::StartConfluenceBlock(const Stmt* s)
 
 	// Inherit the closest open, outer region, if necessary.
 	for ( int i = usage_regions.size() - 1; i >= 0; --i )
-		{
+	{
 		auto& ur = usage_regions[i];
 
 		if ( ur.EndsAfter() == NO_DEF )
-			{
+		{
 			if ( ur.BlockLevel() > block_level )
-				{
+			{
 				// This can happen for regions left over
 				// from a previous catch-return, which
 				// we haven't closed out yet because we
@@ -291,7 +291,7 @@ void IDOptInfo::StartConfluenceBlock(const Stmt* s)
 				ASSERT(s->Tag() == STMT_CATCH_RETURN);
 				ur.SetEndsAfter(s_oi->stmt_num - 1);
 				continue;
-				}
+			}
 
 			if ( ur.BlockLevel() < block_level )
 				// Didn't find one at our own level,
@@ -301,15 +301,15 @@ void IDOptInfo::StartConfluenceBlock(const Stmt* s)
 
 			// We now have one at our level that we can use.
 			break;
-			}
 		}
+	}
 
 	if ( tracing )
 		DumpBlocks();
-	}
+}
 
 void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
-	{
+{
 	auto stmt_num = s->GetOptInfo()->stmt_num;
 
 	ASSERT(! confluence_stmts.empty());
@@ -342,7 +342,7 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
 	int num_regions = 0;
 
 	for ( auto i = 0U; i < usage_regions.size(); ++i )
-		{
+	{
 		auto& ur = usage_regions[i];
 
 		if ( ur.BlockLevel() < cs_level )
@@ -350,13 +350,13 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
 			continue;
 
 		if ( ur.EndsAfter() == NO_DEF )
-			{ // End this region.
+		{ // End this region.
 			ur.SetEndsAfter(stmt_num);
 
 			if ( ur.StartsAfter() <= cs_stmt_num && no_orig_flow && pc.count(i) == 0 )
 				// Don't include this region in our assessment.
 				continue;
-			}
+		}
 
 		else if ( ur.EndsAfter() < cs_stmt_num )
 			// Irrelevant, didn't extend into confluence region.
@@ -375,35 +375,35 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
 		maybe = maybe || ur.MaybeDefined();
 
 		if ( ur.DefinedAfter() == NO_DEF )
-			{
+		{
 			defined = false;
 			continue;
-			}
+		}
 
 		if ( did_single_def )
-			{
+		{
 			if ( single_def != ur.DefinedAfter() )
 				have_multi_defs = true;
-			}
+		}
 		else
-			{
+		{
 			single_def = ur.DefinedAfter();
 			single_def_expr = ur.DefExprAfter();
 			did_single_def = true;
-			}
 		}
+	}
 
 	if ( num_regions == 0 )
-		{ // Nothing survives.
+	{ // Nothing survives.
 		ASSERT(maybe == false);
 		defined = false;
-		}
+	}
 
 	if ( ! defined )
-		{
+	{
 		single_def = NO_DEF;
 		have_multi_defs = false;
-		}
+	}
 
 	if ( have_multi_defs )
 		// Definition reflects confluence point, which comes
@@ -422,64 +422,64 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow)
 
 	if ( tracing )
 		DumpBlocks();
-	}
+}
 
 bool IDOptInfo::IsPossiblyDefinedBefore(const Stmt* s)
-	{
+{
 	return IsPossiblyDefinedBefore(s->GetOptInfo()->stmt_num);
-	}
+}
 
 bool IDOptInfo::IsDefinedBefore(const Stmt* s)
-	{
+{
 	return IsDefinedBefore(s->GetOptInfo()->stmt_num);
-	}
+}
 
 int IDOptInfo::DefinitionBefore(const Stmt* s)
-	{
+{
 	return DefinitionBefore(s->GetOptInfo()->stmt_num);
-	}
+}
 
 ExprPtr IDOptInfo::DefExprBefore(const Stmt* s)
-	{
+{
 	return DefExprBefore(s->GetOptInfo()->stmt_num);
-	}
+}
 
 bool IDOptInfo::IsPossiblyDefinedBefore(int stmt_num)
-	{
+{
 	if ( usage_regions.empty() )
 		return false;
 
 	return FindRegionBefore(stmt_num).MaybeDefined();
-	}
+}
 
 bool IDOptInfo::IsDefinedBefore(int stmt_num)
-	{
+{
 	if ( usage_regions.empty() )
 		return false;
 
 	return FindRegionBefore(stmt_num).DefinedAfter() != NO_DEF;
-	}
+}
 
 int IDOptInfo::DefinitionBefore(int stmt_num)
-	{
+{
 	if ( usage_regions.empty() )
 		return NO_DEF;
 
 	return FindRegionBefore(stmt_num).DefinedAfter();
-	}
+}
 
 ExprPtr IDOptInfo::DefExprBefore(int stmt_num)
-	{
+{
 	if ( usage_regions.empty() )
 		return nullptr;
 
 	return FindRegionBefore(stmt_num).DefExprAfter();
-	}
+}
 
 void IDOptInfo::EndRegionsAfter(int stmt_num, int level)
-	{
+{
 	for ( int i = usage_regions.size() - 1; i >= 0; --i )
-		{
+	{
 		auto& ur = usage_regions[i];
 
 		if ( ur.BlockLevel() < level )
@@ -487,14 +487,14 @@ void IDOptInfo::EndRegionsAfter(int stmt_num, int level)
 
 		if ( ur.EndsAfter() == NO_DEF )
 			ur.SetEndsAfter(stmt_num);
-		}
 	}
+}
 
 int IDOptInfo::FindRegionBeforeIndex(int stmt_num)
-	{
+{
 	int region_ind = NO_DEF;
 	for ( auto i = 0U; i < usage_regions.size(); ++i )
-		{
+	{
 		auto ur = usage_regions[i];
 
 		if ( ur.StartsAfter() >= stmt_num )
@@ -508,28 +508,28 @@ int IDOptInfo::FindRegionBeforeIndex(int stmt_num)
 			// It's active at the beginning of the statement of
 			// interest.
 			region_ind = i;
-		}
+	}
 
 	ASSERT(region_ind != NO_DEF);
 	return region_ind;
-	}
+}
 
 int IDOptInfo::ActiveRegionIndex()
-	{
+{
 	int i;
 	for ( i = usage_regions.size() - 1; i >= 0; --i )
 		if ( usage_regions[i].EndsAfter() == NO_DEF )
 			return i;
 
 	return NO_DEF;
-	}
+}
 
 void IDOptInfo::DumpBlocks() const
-	{
+{
 	for ( auto& ur : usage_regions )
 		ur.Dump();
 
 	printf("<end>\n");
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

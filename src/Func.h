@@ -19,20 +19,20 @@
 #include "zeek/ZeekList.h"
 
 namespace broker
-	{
+{
 class data;
 using vector = std::vector<data>;
 template <class> class expected;
-	}
+}
 
 namespace zeek
-	{
+{
 
 class Val;
 class FuncType;
 
 namespace detail
-	{
+{
 
 class Scope;
 class Stmt;
@@ -46,7 +46,7 @@ using StmtPtr = IntrusivePtr<Stmt>;
 class ScriptFunc;
 class FunctionIngredients;
 
-	} // namespace detail
+} // namespace detail
 
 class EventGroup;
 using EventGroupPtr = std::shared_ptr<EventGroup>;
@@ -55,15 +55,15 @@ class Func;
 using FuncPtr = IntrusivePtr<Func>;
 
 class Func : public Obj
-	{
+{
 public:
 	static inline const FuncPtr nil;
 
 	enum Kind
-		{
+	{
 		SCRIPT_FUNC,
 		BUILTIN_FUNC
-		};
+	};
 
 	explicit Func(Kind arg_kind) : kind(arg_kind) { }
 
@@ -71,7 +71,7 @@ public:
 	FunctionFlavor Flavor() const { return GetType()->Flavor(); }
 
 	struct Body
-		{
+	{
 		detail::StmtPtr stmts;
 		int priority;
 		std::set<EventGroupPtr> groups;
@@ -80,10 +80,10 @@ public:
 		bool disabled = false;
 
 		bool operator<(const Body& other) const
-			{
+		{
 			return priority > other.priority;
-			} // reverse sort
-		};
+		} // reverse sort
+	};
 
 	const std::vector<Body>& GetBodies() const { return bodies; }
 	bool HasBodies() const { return ! bodies.empty(); }
@@ -110,10 +110,10 @@ public:
 	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>,
 	                 ValPtr>
 	Invoke(Args&&... args) const
-		{
+	{
 		auto zargs = zeek::Args{std::forward<Args>(args)...};
 		return Invoke(&zargs);
-		}
+	}
 
 	// Various ways to add a new event handler to an existing function
 	// (event).  The usual version to use is the first with its default
@@ -166,13 +166,13 @@ private:
 	// expose accessors in the zeek:: public interface.
 	friend class EventGroup;
 	bool has_enabled_bodies = true;
-	};
+};
 
 namespace detail
-	{
+{
 
 class ScriptFunc : public Func
-	{
+{
 public:
 	ScriptFunc(const IDPtr& id);
 
@@ -221,10 +221,10 @@ public:
 	 * @return internal vector of ZVal's kept for persisting captures
 	 */
 	auto& GetCapturesVec() const
-		{
+	{
 		ASSERT(captures_vec);
 		return *captures_vec;
-		}
+	}
 
 	// Same definition as in Frame.h.
 	using OffsetMap = std::unordered_map<std::string, int>;
@@ -328,12 +328,12 @@ private:
 
 	// ... and its priority.
 	int current_priority = 0;
-	};
+};
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);
 
 class BuiltinFunc final : public Func
-	{
+{
 public:
 	BuiltinFunc(built_in_func func, const char* name, bool is_pure);
 	~BuiltinFunc() override = default;
@@ -346,27 +346,27 @@ public:
 
 protected:
 	BuiltinFunc()
-		{
+	{
 		func = nullptr;
 		is_pure = 0;
-		}
+	}
 
 	built_in_func func;
 	bool is_pure;
-	};
+};
 
 extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 
 struct CallInfo
-	{
+{
 	const CallExpr* call;
 	const Func* func;
 	const zeek::Args& args;
-	};
+};
 
 // Class that collects all the specifics defining a Func.
 class FunctionIngredients
-	{
+{
 public:
 	// Gathers all of the information from a scope and a function body needed
 	// to build a function.
@@ -397,7 +397,7 @@ private:
 	int priority = 0;
 	ScopePtr scope;
 	std::set<EventGroupPtr> groups;
-	};
+};
 
 using FunctionIngredientsPtr = std::shared_ptr<FunctionIngredients>;
 
@@ -428,18 +428,18 @@ extern std::vector<void (*)()> bif_initializers;
 extern void init_primary_bifs();
 
 inline void run_bif_initializers()
-	{
+{
 	for ( const auto& bi : bif_initializers )
 		bi();
 
 	bif_initializers = {};
-	}
+}
 
 extern void emit_builtin_exception(const char* msg);
 extern void emit_builtin_exception(const char* msg, const ValPtr& arg);
 extern void emit_builtin_exception(const char* msg, Obj* arg);
 
-	} // namespace detail
+} // namespace detail
 
 extern std::string render_call_stack();
 
@@ -448,4 +448,4 @@ extern void emit_builtin_error(const char* msg);
 extern void emit_builtin_error(const char* msg, const ValPtr&);
 extern void emit_builtin_error(const char* msg, Obj* arg);
 
-	} // namespace zeek
+} // namespace zeek

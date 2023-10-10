@@ -5,7 +5,7 @@
 #include "zeek/logging/WriterBackend.h"
 
 namespace zeek::logging
-	{
+{
 
 class Manager;
 
@@ -19,7 +19,7 @@ class Manager;
  *
  */
 class WriterFrontend
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -209,6 +209,6 @@ protected:
 	static const int WRITER_BUFFER_SIZE = 1000;
 	int write_buffer_pos; // Position of next write in buffer.
 	threading::Value*** write_buffer; // Buffer of size WRITER_BUFFER_SIZE.
-	};
+};
 
-	} // namespace zeek::logging
+} // namespace zeek::logging

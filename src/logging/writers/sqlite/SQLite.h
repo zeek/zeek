@@ -12,10 +12,10 @@
 #include "zeek/threading/formatters/Ascii.h"
 
 namespace zeek::logging::writer::detail
-	{
+{
 
 class SQLite : public WriterBackend
-	{
+{
 public:
 	explicit SQLite(WriterFrontend* frontend);
 	~SQLite() override;
@@ -50,6 +50,6 @@ private:
 	std::string empty_field;
 
 	threading::formatter::Ascii* io;
-	};
+};
 
-	} // namespace zeek::logging::writer::detail
+} // namespace zeek::logging::writer::detail

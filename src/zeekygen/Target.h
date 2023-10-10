@@ -12,7 +12,7 @@
 #include "zeek/plugin/Component.h"
 
 namespace zeek::zeekygen::detail
-	{
+{
 
 class Info;
 class PackageInfo;
@@ -24,7 +24,7 @@ class IdentifierInfo;
  * close it on destruction.
  */
 struct TargetFile
-	{
+{
 	/**
 	 * Open a file.
 	 * @param arg_name Path to a file to create.  It's a fatal error if
@@ -41,7 +41,7 @@ struct TargetFile
 
 	std::string name; /**< File name. */
 	FILE* f; /**< File stream. */
-	};
+};
 
 /**
  * A Zeekygen target abstract base class.  A target is generally any portion of
@@ -50,7 +50,7 @@ struct TargetFile
  * a path to an output file.
  */
 class Target
-	{
+{
 
 public:
 	/**
@@ -106,18 +106,18 @@ private:
 	std::string name;
 	std::string pattern;
 	std::string prefix;
-	};
+};
 
 template <class T> static Target* create_target(const std::string& name, const std::string& pattern)
-	{
+{
 	return new T(name, pattern);
-	}
+}
 
 /**
  * Factory for creating Target instances.
  */
 class TargetFactory
-	{
+{
 
 public:
 	/**
@@ -126,9 +126,9 @@ public:
 	 * config files.
 	 */
 	template <class T> void Register(const std::string& type_name)
-		{
+	{
 		target_creators[type_name] = &create_target<T>;
-		}
+	}
 
 	/**
 	 * Instantiate a target.
@@ -141,26 +141,26 @@ public:
 	 */
 	Target* Create(const std::string& type_name, const std::string& name,
 	               const std::string& pattern)
-		{
+	{
 		target_creator_map::const_iterator it = target_creators.find(type_name);
 
 		if ( it == target_creators.end() )
 			return nullptr;
 
 		return it->second(name, pattern);
-		}
+	}
 
 private:
 	using TargetFactoryFn = Target* (*)(const std::string& name, const std::string& pattern);
 	using target_creator_map = std::map<std::string, TargetFactoryFn>;
 	target_creator_map target_creators;
-	};
+};
 
 /**
  * Target to build analyzer documentation.
  */
 class AnalyzerTarget : public Target
-	{
+{
 public:
 	/**
 	 * Writes out plugin index documentation for all analyzer plugins.
@@ -181,13 +181,13 @@ private:
 	void DoGenerate() const override;
 
 	virtual void DoCreateAnalyzerDoc(FILE* f) const = 0;
-	};
+};
 
 /**
  * Target to build protocol analyzer documentation.
  */
 class ProtoAnalyzerTarget : public AnalyzerTarget
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -196,18 +196,18 @@ public:
 	 */
 	ProtoAnalyzerTarget(const std::string& name, const std::string& pattern)
 		: AnalyzerTarget(name, pattern)
-		{
-		}
+	{
+	}
 
 private:
 	void DoCreateAnalyzerDoc(FILE* f) const override;
-	};
+};
 
 /**
  * Target to build file analyzer documentation.
  */
 class FileAnalyzerTarget : public AnalyzerTarget
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -216,18 +216,18 @@ public:
 	 */
 	FileAnalyzerTarget(const std::string& name, const std::string& pattern)
 		: AnalyzerTarget(name, pattern)
-		{
-		}
+	{
+	}
 
 private:
 	void DoCreateAnalyzerDoc(FILE* f) const override;
-	};
+};
 
 /**
  * Target to build packet analyzer documentation.
  */
 class PacketAnalyzerTarget : public AnalyzerTarget
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -236,18 +236,18 @@ public:
 	 */
 	PacketAnalyzerTarget(const std::string& name, const std::string& pattern)
 		: AnalyzerTarget(name, pattern)
-		{
-		}
+	{
+	}
 
 private:
 	void DoCreateAnalyzerDoc(FILE* f) const override;
-	};
+};
 
 /**
  * Target to build package documentation.
  */
 class PackageTarget : public Target
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -256,8 +256,8 @@ public:
 	 */
 	PackageTarget(const std::string& name, const std::string& pattern)
 		: Target(name, pattern), pkg_deps(), script_deps(), pkg_manifest()
-		{
-		}
+	{
+	}
 
 private:
 	void DoFindDependencies(const std::vector<Info*>& infos) override;
@@ -269,13 +269,13 @@ private:
 
 	using manifest_t = std::map<PackageInfo*, std::vector<ScriptInfo*>>;
 	manifest_t pkg_manifest;
-	};
+};
 
 /**
  * Target to build package index documentation.
  */
 class PackageIndexTarget : public Target
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -284,8 +284,8 @@ public:
 	 */
 	PackageIndexTarget(const std::string& name, const std::string& pattern)
 		: Target(name, pattern), pkg_deps()
-		{
-		}
+	{
+	}
 
 private:
 	void DoFindDependencies(const std::vector<Info*>& infos) override;
@@ -293,13 +293,13 @@ private:
 	void DoGenerate() const override;
 
 	std::vector<PackageInfo*> pkg_deps;
-	};
+};
 
 /**
  * Target to build script documentation.
  */
 class ScriptTarget : public Target
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -311,14 +311,14 @@ public:
 	 */
 	ScriptTarget(const std::string& name, const std::string& pattern)
 		: Target(name, pattern), script_deps()
-		{
-		}
+	{
+	}
 
 	~ScriptTarget() override
-		{
+	{
 		for ( size_t i = 0; i < pkg_deps.size(); ++i )
 			delete pkg_deps[i];
-		}
+	}
 
 protected:
 	std::vector<ScriptInfo*> script_deps;
@@ -331,13 +331,13 @@ private:
 	bool IsDir() const { return Name()[Name().size() - 1] == '/'; }
 
 	std::vector<Target*> pkg_deps;
-	};
+};
 
 /**
  * Target to build script summary documentation.
  */
 class ScriptSummaryTarget : public ScriptTarget
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -346,18 +346,18 @@ public:
 	 */
 	ScriptSummaryTarget(const std::string& name, const std::string& pattern)
 		: ScriptTarget(name, pattern)
-		{
-		}
+	{
+	}
 
 private:
 	void DoGenerate() const override /* override */;
-	};
+};
 
 /**
  * Target to build script index documentation.
  */
 class ScriptIndexTarget : public ScriptTarget
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -366,18 +366,18 @@ public:
 	 */
 	ScriptIndexTarget(const std::string& name, const std::string& pattern)
 		: ScriptTarget(name, pattern)
-		{
-		}
+	{
+	}
 
 private:
 	void DoGenerate() const override /* override */;
-	};
+};
 
 /**
  * Target to build identifier documentation.
  */
 class IdentifierTarget : public Target
-	{
+{
 public:
 	/**
 	 * Ctor.
@@ -386,8 +386,8 @@ public:
 	 */
 	IdentifierTarget(const std::string& name, const std::string& pattern)
 		: Target(name, pattern), id_deps()
-		{
-		}
+	{
+	}
 
 private:
 	void DoFindDependencies(const std::vector<Info*>& infos) override;
@@ -395,6 +395,6 @@ private:
 	void DoGenerate() const override;
 
 	std::vector<IdentifierInfo*> id_deps;
-	};
+};
 
-	} // namespace zeek::zeekygen::detail
+} // namespace zeek::zeekygen::detail

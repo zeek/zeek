@@ -6,13 +6,13 @@
 #include "zeek/file_analysis/analyzer/extract/Extract.h"
 
 namespace zeek::plugin::detail::Zeek_FileExtract
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::file_analysis::Component(
 			"EXTRACT", zeek::file_analysis::detail::Extract::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::FileExtract";
 		config.description = "Extract file content";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_FileExtract
+} // namespace zeek::plugin::detail::Zeek_FileExtract

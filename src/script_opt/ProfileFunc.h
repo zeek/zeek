@@ -39,7 +39,7 @@
 #include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek::detail
-	{
+{
 
 // The type used to represent hashes.  We use the mnemonic "p_hash" as
 // short for "profile hash", to avoid confusion with hashes used elsewhere
@@ -50,33 +50,33 @@ using p_hash_type = unsigned long long;
 // Helper functions for computing/managing hashes.
 
 inline p_hash_type p_hash(int val)
-	{
+{
 	return std::hash<int>{}(val);
-	}
+}
 
 inline p_hash_type p_hash(std::string_view val)
-	{
+{
 	return std::hash<std::string_view>{}(val);
-	}
+}
 
 extern p_hash_type p_hash(const Obj* o);
 inline p_hash_type p_hash(const IntrusivePtr<Obj>& o)
-	{
+{
 	return p_hash(o.get());
-	}
+}
 
 inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2)
-	{
+{
 	// Taken from Boost.  See for example
 	// https://www.boost.org/doc/libs/1_35_0/doc/html/boost/hash_combine_id241013.html
 	// or
 	// https://stackoverflow.com/questions/4948780/magic-number-in-boosthash-combine
 	return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
-	}
+}
 
 // Class for profiling the components of a single function (or expression).
 class ProfileFunc : public TraversalCallback
-	{
+{
 public:
 	// Constructor used for the usual case of profiling a script
 	// function and one of its bodies.
@@ -118,9 +118,9 @@ public:
 	const IDSet& BiFGlobals() const { return BiF_globals; }
 	const std::unordered_set<std::string>& Events() const { return events; }
 	const std::unordered_set<const Attributes*>& ConstructorAttrs() const
-		{
+	{
 		return constructor_attrs;
-		}
+	}
 	const std::unordered_set<const SwitchStmt*>& ExprSwitches() const { return expr_switches; }
 	const std::unordered_set<const SwitchStmt*>& TypeSwitches() const { return type_switches; }
 
@@ -269,7 +269,7 @@ protected:
 	// Whether we should treat record field accesses as absolute
 	// (integer offset) or relative (name-based).
 	bool abs_rec_fields;
-	};
+};
 
 // Function pointer for a predicate that determines whether a given
 // profile is compilable.  Alternatively we could derive subclasses
@@ -279,7 +279,7 @@ using is_compilable_pred = bool (*)(const ProfileFunc*, const char** reason);
 
 // Collectively profile an entire collection of functions.
 class ProfileFuncs
-	{
+{
 public:
 	// Updates entries in "funcs" to include profiles.  If pred is
 	// non-nil, then it is called for each profile to see whether it's
@@ -310,11 +310,11 @@ public:
 	// Returns the "representative" Type* for the hash associated with
 	// the parameter (which might be the parameter itself).
 	const Type* TypeRep(const Type* orig)
-		{
+	{
 		auto it = type_to_rep.find(orig);
 		ASSERT(it != type_to_rep.end());
 		return it->second;
-		}
+	}
 
 	// Returns the hash associated with the given type, computing it
 	// if necessary.
@@ -420,6 +420,6 @@ protected:
 	// Whether the hashes for extended records should cover their final,
 	// full form, or only their original fields.
 	bool full_record_hashes;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

@@ -6,12 +6,12 @@
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
 namespace zeek::analyzer::login
-	{
+{
 
 class Rlogin_Analyzer;
 
 enum rlogin_state
-	{
+{
 	RLOGIN_FIRST_NULL, // waiting to see first NUL
 	RLOGIN_CLIENT_USER_NAME, // scanning client user name up to NUL
 	RLOGIN_SERVER_USER_NAME, // scanning server user name up to NUL
@@ -30,10 +30,10 @@ enum rlogin_state
 	RLOGIN_PRESUMED_REJECTED, // apparently server said No Way
 
 	RLOGIN_UNKNOWN, // we don't know what state we're in
-	};
+};
 
 class Contents_Rlogin_Analyzer final : public analyzer::tcp::ContentLine_Analyzer
-	{
+{
 public:
 	Contents_Rlogin_Analyzer(Connection* conn, bool orig, Rlogin_Analyzer* analyzer);
 	~Contents_Rlogin_Analyzer() override = default;
@@ -51,10 +51,10 @@ protected:
 
 	Contents_Rlogin_Analyzer* peer;
 	Rlogin_Analyzer* analyzer;
-	};
+};
 
 class Rlogin_Analyzer final : public Login_Analyzer
-	{
+{
 public:
 	explicit Rlogin_Analyzer(Connection* conn);
 
@@ -63,6 +63,6 @@ public:
 	void TerminalType(const char* s);
 
 	static analyzer::Analyzer* Instantiate(Connection* conn) { return new Rlogin_Analyzer(conn); }
-	};
+};
 
-	} // namespace zeek::analyzer::login
+} // namespace zeek::analyzer::login

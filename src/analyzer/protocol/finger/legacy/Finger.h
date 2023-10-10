@@ -6,10 +6,10 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::finger
-	{
+{
 
 class Finger_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit Finger_Analyzer(Connection* conn);
 	~Finger_Analyzer() override { }
@@ -24,6 +24,6 @@ protected:
 	analyzer::tcp::ContentLine_Analyzer* content_line_orig;
 	analyzer::tcp::ContentLine_Analyzer* content_line_resp;
 	int did_deliver;
-	};
+};
 
-	} // namespace zeek::analyzer::finger
+} // namespace zeek::analyzer::finger

@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/fddi/FDDI.h"
 
 namespace zeek::plugin::Zeek_FDDI
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"FDDI", zeek::packet_analysis::FDDI::FDDIAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::FDDI";
 		config.description = "FDDI packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

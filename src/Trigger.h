@@ -12,7 +12,7 @@
 #include "zeek/util.h"
 
 namespace zeek
-	{
+{
 
 class ODesc;
 class Val;
@@ -20,7 +20,7 @@ class Val;
 using ValPtr = IntrusivePtr<Val>;
 
 namespace detail
-	{
+{
 
 class Frame;
 class Stmt;
@@ -32,7 +32,7 @@ class WhenInfo;
 using StmtPtr = IntrusivePtr<Stmt>;
 
 namespace trigger
-	{
+{
 
 // Triggers are the heart of "when" statements: expressions that when
 // they become true execute a body of statements.
@@ -41,7 +41,7 @@ class TriggerTimer;
 class TriggerTraversalCallback;
 
 class Trigger final : public Obj, public notifier::detail::Receiver
-	{
+{
 public:
 	// This first constructor can return an invalid pointer, so
 	// its value must not be used further.
@@ -167,10 +167,10 @@ private:
 
 	using ValCache = std::map<const void*, Val*>;
 	ValCache cache;
-	};
+};
 
 class Manager final : public iosource::IOSource
-	{
+{
 public:
 	Manager();
 	~Manager();
@@ -184,10 +184,10 @@ public:
 	void Queue(Trigger* trigger);
 
 	struct Stats
-		{
+	{
 		unsigned long total;
 		unsigned long pending;
-		};
+	};
 
 	void GetStats(Stats* stats);
 
@@ -195,11 +195,11 @@ private:
 	using TriggerList = std::list<Trigger*>;
 	TriggerList* pending;
 	unsigned long total_triggers = 0;
-	};
+};
 
-	} // namespace trigger
+} // namespace trigger
 
 extern trigger::Manager* trigger_mgr;
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

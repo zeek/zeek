@@ -12,7 +12,7 @@
 #include "zeek/broker/store.bif.h"
 
 namespace zeek::Broker::detail
-	{
+{
 
 extern OpaqueTypePtr opaque_of_store_handle;
 
@@ -28,12 +28,12 @@ EnumValPtr query_status(bool success);
  * a failure.
  */
 inline RecordValPtr query_result()
-	{
+{
 	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(false));
 	rval->Assign(1, make_intrusive<RecordVal>(BifType::Record::Broker::Data));
 	return rval;
-	}
+}
 
 /**
  * @param data the result of the query.
@@ -41,12 +41,12 @@ inline RecordValPtr query_result()
  * a success.
  */
 inline RecordValPtr query_result(RecordValPtr data)
-	{
+{
 	auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::QueryResult);
 	rval->Assign(0, query_status(true));
 	rval->Assign(1, std::move(data));
 	return rval;
-	}
+}
 
 /**
  * Convert an expiry from a double (used by Zeek) to the format required by Broker
@@ -54,46 +54,46 @@ inline RecordValPtr query_result(RecordValPtr data)
  * @return expire interval in Broker format
  */
 static std::optional<broker::timespan> convert_expiry(double e)
-	{
+{
 	std::optional<broker::timespan> ts;
 
 	if ( e )
-		{
+	{
 		broker::timespan x;
 		broker::convert(e, x);
 		ts = x;
-		}
+	}
 
 	return ts;
-	}
+}
 
 /**
  * Used for asynchronous data store queries which use "when" statements.
  */
 class StoreQueryCallback
-	{
+{
 public:
 	StoreQueryCallback(zeek::detail::trigger::Trigger* arg_trigger, const void* arg_assoc,
 	                   broker::store store)
 		: trigger(arg_trigger), assoc(arg_assoc), store(std::move(store))
-		{
+	{
 		Ref(trigger);
-		}
+	}
 
 	~StoreQueryCallback() { Unref(trigger); }
 
 	void Result(const RecordValPtr& result)
-		{
+	{
 		trigger->Cache(assoc, result.get());
 		trigger->Release();
-		}
+	}
 
 	void Abort()
-		{
+	{
 		auto result = query_result();
 		trigger->Cache(assoc, result.get());
 		trigger->Release();
-		}
+	}
 
 	bool Disabled() const { return trigger->Disabled(); }
 
@@ -103,21 +103,21 @@ private:
 	zeek::detail::trigger::Trigger* trigger;
 	const void* assoc;
 	broker::store store;
-	};
+};
 
 /**
  * An opaque handle which wraps a Broker data store.
  */
 class StoreHandleVal : public OpaqueVal
-	{
+{
 public:
 	StoreHandleVal() : OpaqueVal(Broker::detail::opaque_of_store_handle) { }
 
 	StoreHandleVal(broker::store s)
 		: OpaqueVal(Broker::detail::opaque_of_store_handle), store{std::move(s)}, proxy{store},
 		  store_pid{store.frontend_id()}, forward_to{}, have_store{true}
-		{
-		}
+	{
+	}
 
 	void ValDescribe(ODesc* d) const override;
 
@@ -132,7 +132,7 @@ protected:
 	IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef{}, this}; }
 
 	DECLARE_OPAQUE_VALUE(StoreHandleVal)
-	};
+};
 
 // Helper function to construct a broker backend type from script land.
 broker::backend to_backend_type(BifEnum::Broker::BackendType type);
@@ -140,4 +140,4 @@ broker::backend to_backend_type(BifEnum::Broker::BackendType type);
 // Helper function to construct broker backend options from script land.
 broker::backend_options to_backend_options(broker::backend backend, RecordVal* options);
 
-	} // namespace zeek::Broker::detail
+} // namespace zeek::Broker::detail

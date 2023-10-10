@@ -7,7 +7,7 @@
 #include "zeek/ZeekList.h"
 
 namespace zeek
-	{
+{
 
 class VectorVal;
 class RecordType;
@@ -46,4 +46,4 @@ VectorValPtr MakeCallArgumentVector(const Args& vals, const RecordTypePtr& types
  */
 VectorValPtr MakeEmptyCallArgumentVector();
 
-	} // namespace zeek
+} // namespace zeek

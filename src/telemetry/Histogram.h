@@ -12,7 +12,7 @@
 #include "broker/telemetry/fwd.hh"
 
 namespace zeek::telemetry
-	{
+{
 
 class DblHistogramFamily;
 class IntHistogramFamily;
@@ -24,7 +24,7 @@ class Manager;
  * configurable buckets.
  */
 class IntHistogram
-	{
+{
 public:
 	friend class IntHistogramFamily;
 
@@ -53,9 +53,9 @@ public:
 	/// @return The upper bound of the bucket at @p index.
 	/// @pre index < NumBuckets()
 	int64_t UpperBoundAt(size_t index) const noexcept
-		{
+	{
 		return broker::telemetry::upper_bound_at(hdl, index);
-		}
+	}
 
 	/**
 	 * @return Whether @c this and @p other refer to the same histogram.
@@ -68,28 +68,28 @@ private:
 	explicit IntHistogram(Handle hdl) noexcept : hdl(hdl) { }
 
 	Handle hdl;
-	};
+};
 
 /**
  * Checks whether two @ref IntHistogram handles are identical.
  * @return Whether @p lhs and @p rhs refer to the same object.
  */
 constexpr bool operator==(const IntHistogram& lhs, const IntHistogram& rhs) noexcept
-	{
+{
 	return lhs.IsSameAs(rhs);
-	}
+}
 
 /// @relates IntHistogram
 constexpr bool operator!=(const IntHistogram& lhs, const IntHistogram& rhs) noexcept
-	{
+{
 	return ! (lhs == rhs);
-	}
+}
 
 /**
  * Manages a collection of IntHistogram metrics.
  */
 class IntHistogramFamily : public MetricFamily
-	{
+{
 public:
 	friend class Manager;
 
@@ -105,23 +105,23 @@ public:
 	 * lazily if necessary.
 	 */
 	IntHistogram GetOrAdd(Span<const LabelView> labels)
-		{
+	{
 		return IntHistogram{int_histogram_get_or_add(hdl, labels)};
-		}
+	}
 
 	/**
 	 * @copydoc GetOrAdd
 	 */
 	IntHistogram GetOrAdd(std::initializer_list<LabelView> labels)
-		{
+	{
 		return GetOrAdd(Span{labels.begin(), labels.size()});
-		}
+	}
 
 private:
 	using Handle = broker::telemetry::int_histogram_family_hdl*;
 
 	explicit IntHistogramFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
-	};
+};
 
 /**
  * A handle to a metric that represents an aggregable distribution of observed
@@ -129,7 +129,7 @@ private:
  * into configurable buckets.
  */
 class DblHistogram
-	{
+{
 public:
 	friend class DblHistogramFamily;
 
@@ -158,9 +158,9 @@ public:
 	/// @return The upper bound of the bucket at @p index.
 	/// @pre index < NumBuckets()
 	double UpperBoundAt(size_t index) const noexcept
-		{
+	{
 		return broker::telemetry::upper_bound_at(hdl, index);
-		}
+	}
 
 	/**
 	 * @return Whether @c this and @p other refer to the same histogram.
@@ -173,28 +173,28 @@ private:
 	explicit DblHistogram(Handle hdl) noexcept : hdl(hdl) { }
 
 	Handle hdl;
-	};
+};
 
 /**
  * Checks whether two @ref DblHistogram handles are identical.
  * @return Whether @p lhs and @p rhs refer to the same object.
  */
 constexpr bool operator==(const DblHistogram& lhs, const DblHistogram& rhs) noexcept
-	{
+{
 	return lhs.IsSameAs(rhs);
-	}
+}
 
 /// @relates DblHistogram
 constexpr bool operator!=(const DblHistogram& lhs, const DblHistogram& rhs) noexcept
-	{
+{
 	return ! (lhs == rhs);
-	}
+}
 
 /**
  * Manages a collection of DblHistogram metrics.
  */
 class DblHistogramFamily : public MetricFamily
-	{
+{
 public:
 	friend class Manager;
 
@@ -210,41 +210,41 @@ public:
 	 * lazily if necessary.
 	 */
 	DblHistogram GetOrAdd(Span<const LabelView> labels)
-		{
+	{
 		return DblHistogram{dbl_histogram_get_or_add(hdl, labels)};
-		}
+	}
 
 	/**
 	 * @copydoc GetOrAdd
 	 */
 	DblHistogram GetOrAdd(std::initializer_list<LabelView> labels)
-		{
+	{
 		return GetOrAdd(Span{labels.begin(), labels.size()});
-		}
+	}
 
 private:
 	using Handle = broker::telemetry::dbl_histogram_family_hdl*;
 
 	explicit DblHistogramFamily(Handle hdl) : MetricFamily(upcast(hdl)) { }
-	};
+};
 
 namespace detail
-	{
+{
 
 template <class T> struct HistogramOracle
-	{
+{
 	static_assert(std::is_same<T, int64_t>::value, "Histogram<T> only supports int64_t and double");
 
 	using type = IntHistogram;
-	};
+};
 
 template <> struct HistogramOracle<double>
-	{
+{
 	using type = DblHistogram;
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 template <class T> using Histogram = typename detail::HistogramOracle<T>::type;
 
-	} // namespace zeek::telemetry
+} // namespace zeek::telemetry

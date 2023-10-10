@@ -6,10 +6,10 @@
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
 namespace zeek::packet_analysis::ICMP
-	{
+{
 
 class ICMPSessionAdapter final : public IP::SessionAdapter
-	{
+{
 
 public:
 	ICMPSessionAdapter(Connection* conn) : IP::SessionAdapter("ICMP", conn) { }
@@ -28,6 +28,6 @@ private:
 	detail::RuleMatcherState matcher_state;
 	int request_len = -1;
 	int reply_len = -1;
-	};
+};
 
-	} // namespace zeek::packet_analysis::ICMP
+} // namespace zeek::packet_analysis::ICMP

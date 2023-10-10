@@ -5,10 +5,10 @@
 #include "analyzer/protocol/syslog/legacy/syslog_pac.h"
 
 namespace zeek::analyzer::syslog
-	{
+{
 
 class Syslog_Analyzer : public analyzer::Analyzer
-	{
+{
 public:
 	explicit Syslog_Analyzer(Connection* conn);
 	~Syslog_Analyzer() override;
@@ -23,7 +23,7 @@ protected:
 	int did_session_done;
 
 	binpac::Syslog::Syslog_Conn* interp;
-	};
+};
 
 // #include "Syslog_tcp_pac.h"
 //
@@ -45,4 +45,4 @@ protected:
 //};
 //
 
-	} // namespace zeek::analyzer::syslog
+} // namespace zeek::analyzer::syslog

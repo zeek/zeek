@@ -10,14 +10,14 @@
 #include "zeek/input/ReaderBackend.h"
 
 namespace zeek::input::reader::detail
-	{
+{
 
 /**
  * A reader that returns a file (or the output of a command) as a single
  * blob.
  */
 class Raw : public ReaderBackend
-	{
+{
 public:
 	explicit Raw(ReaderFrontend* frontend);
 	~Raw() override;
@@ -82,16 +82,16 @@ private:
 	pid_t childpid;
 
 	enum IoChannels
-		{
+	{
 		stdout_in = 0,
 		stdout_out = 1,
 		stdin_in = 2,
 		stdin_out = 3,
 		stderr_in = 4,
 		stderr_out = 5
-		};
-
-	static const int block_size;
 	};
 
-	} // namespace zeek::input::reader::detail
+	static const int block_size;
+};
+
+} // namespace zeek::input::reader::detail

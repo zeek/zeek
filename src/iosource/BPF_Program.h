@@ -8,29 +8,29 @@
 #include "zeek/util.h"
 
 extern "C"
-	{
+{
 #include <pcap.h>
-	}
+}
 
 namespace zeek::iosource
-	{
+{
 
 enum class FilterState : uint8_t
-	{
+{
 	OK,
 	FATAL, // results in Reporter::Error
 	WARNING // results in Reporter::Warning
-	};
+};
 
 namespace detail
-	{
+{
 
 // BPF_Programs are an abstraction around struct bpf_program,
 // to create a clean facility for creating, compiling, and
 // freeing such programs.
 
 class BPF_Program
-	{
+{
 public:
 	/**
 	 * Creates an empty, uncompiled BPF program.
@@ -94,7 +94,7 @@ protected:
 
 	FilterState state = FilterState::OK;
 	std::string state_message;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek::iosource
+} // namespace detail
+} // namespace zeek::iosource

@@ -18,10 +18,10 @@
 #include "zeek/session/Manager.h"
 
 namespace zeek::analyzer::tcp
-	{
+{
 
 TCP_Endpoint::TCP_Endpoint(packet_analysis::TCP::TCPSessionAdapter* arg_analyzer, bool arg_is_orig)
-	{
+{
 	contents_processor = nullptr;
 	prev_state = state = TCP_ENDPOINT_INACTIVE;
 	peer = nullptr;
@@ -45,99 +45,99 @@ TCP_Endpoint::TCP_Endpoint(packet_analysis::TCP::TCPSessionAdapter* arg_analyzer
 
 	src_addr = is_orig ? Conn()->RespAddr() : Conn()->OrigAddr();
 	dst_addr = is_orig ? Conn()->OrigAddr() : Conn()->RespAddr();
-	}
+}
 
 TCP_Endpoint::~TCP_Endpoint()
-	{
+{
 	delete contents_processor;
-	}
+}
 
 Connection* TCP_Endpoint::Conn() const
-	{
+{
 	return tcp_analyzer->Conn();
-	}
+}
 
 void TCP_Endpoint::Done()
-	{
+{
 	if ( contents_processor )
 		contents_processor->Done();
-	}
+}
 
 void TCP_Endpoint::SetPeer(TCP_Endpoint* p)
-	{
+{
 	peer = p;
 	if ( IsOrig() )
-		{
+	{
 		// Only one Endpoint adds the initial state to the counter.
 		packet_analysis::TCP::TCPAnalyzer::GetStats().StateEntered(state, peer->state);
-		}
 	}
+}
 
 bool TCP_Endpoint::HadGap() const
-	{
+{
 	return contents_processor && contents_processor->HadGap();
-	}
+}
 
 void TCP_Endpoint::AddReassembler(TCP_Reassembler* arg_contents_processor)
-	{
+{
 	if ( contents_processor != arg_contents_processor )
 		delete contents_processor;
 	contents_processor = arg_contents_processor;
 
 	if ( contents_file )
 		contents_processor->SetContentsFile(contents_file);
-	}
+}
 
 bool TCP_Endpoint::DataPending() const
-	{
+{
 	if ( contents_processor )
 		return contents_processor->DataPending();
 	else
 		return false;
-	}
+}
 
 bool TCP_Endpoint::HasUndeliveredData() const
-	{
+{
 	if ( contents_processor )
 		return contents_processor->HasUndeliveredData();
 	else
 		return false;
-	}
+}
 
 void TCP_Endpoint::CheckEOF()
-	{
+{
 	if ( contents_processor )
 		contents_processor->CheckEOF();
-	}
+}
 
 void TCP_Endpoint::SizeBufferedData(uint64_t& waiting_on_hole, uint64_t& waiting_on_ack)
-	{
+{
 	if ( contents_processor )
 		contents_processor->SizeBufferedData(waiting_on_hole, waiting_on_ack);
 	else
 		waiting_on_hole = waiting_on_ack = 0;
-	}
+}
 
 bool TCP_Endpoint::ValidChecksum(const struct tcphdr* tp, int len, bool ipv4) const
-	{
+{
 	int tcp_len = tp->th_off * 4 + len;
 
 	auto sum = detail::ip_in_cksum(ipv4, src_addr, dst_addr, IPPROTO_TCP,
 	                               reinterpret_cast<const uint8_t*>(tp), tcp_len);
 
 	return sum == 0xffff;
-	}
+}
 
 static inline bool is_handshake(EndpointState state)
-	{
+{
 	return state == TCP_ENDPOINT_INACTIVE || state == TCP_ENDPOINT_SYN_SENT ||
 	       state == TCP_ENDPOINT_SYN_ACK_SENT;
-	}
+}
 
 void TCP_Endpoint::SetState(EndpointState new_state)
-	{
+{
 	if ( new_state != state )
-		{
+	{
 		// Activate inactivity timer if this transition finishes the
 		// handshake.
 		if ( ! is_handshake(new_state) )
@@ -153,11 +153,11 @@ void TCP_Endpoint::SetState(EndpointState new_state)
 		else
 			packet_analysis::TCP::TCPAnalyzer::GetStats().ChangeState(peer->state, peer->state,
 			                                                          prev_state, state);
-		}
 	}
+}
 
 uint64_t TCP_Endpoint::Size() const
-	{
+{
 	if ( prev_state == TCP_ENDPOINT_SYN_SENT && state == TCP_ENDPOINT_RESET &&
 	     peer->state == TCP_ENDPOINT_INACTIVE && ! NoDataAcked() )
 		// This looks like a half-open connection was discovered and aborted.
@@ -189,40 +189,40 @@ uint64_t TCP_Endpoint::Size() const
 		--size; // don't include FIN octet.
 
 	return size;
-	}
+}
 
 bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen, const u_char* data,
                             const IP_Hdr* ip, const struct tcphdr* tp)
-	{
+{
 	bool status = false;
 
 	if ( contents_processor )
-		{
+	{
 		if ( caplen >= len )
 			status = contents_processor->DataSent(t, seq, len, data, TCP_Flags(tp));
 		else
 			TCP()->Weird("truncated_tcp_payload");
-		}
+	}
 
 	if ( caplen <= 0 )
 		return status;
 
 	if ( contents_file && ! contents_processor && seq + len > contents_start_seq )
-		{
+	{
 		int64_t under_seq = contents_start_seq - seq;
 		if ( under_seq > 0 )
-			{
+		{
 			seq += under_seq;
 			data += under_seq;
 			len -= under_seq;
-			}
+		}
 
 		// DEBUG_MSG("%d: seek %d, data=%02x len=%d\n", IsOrig(), seq - contents_start_seq, *data,
 		// len);
 		FILE* f = contents_file->Seek(seq - contents_start_seq);
 
 		if ( fwrite(data, 1, len, f) < unsigned(len) )
-			{
+		{
 			char buf[256];
 			util::zeek_strerror_r(errno, buf, sizeof(buf));
 			reporter->Error("TCP contents write failed: %s", buf);
@@ -231,20 +231,20 @@ bool TCP_Endpoint::DataSent(double t, uint64_t seq, int len, int caplen, const u
 				tcp_analyzer->EnqueueConnEvent(contents_file_write_failure, Conn()->GetVal(),
 				                               val_mgr->Bool(IsOrig()),
 				                               make_intrusive<StringVal>(buf));
-			}
 		}
+	}
 
 	return status;
-	}
+}
 
 void TCP_Endpoint::AckReceived(uint64_t seq)
-	{
+{
 	if ( contents_processor )
 		contents_processor->AckReceived(seq);
-	}
+}
 
 void TCP_Endpoint::SetContentsFile(FilePtr f)
-	{
+{
 	contents_file = std::move(f);
 	contents_start_seq = ToRelativeSeqSpace(last_seq, seq_wraps);
 
@@ -253,14 +253,14 @@ void TCP_Endpoint::SetContentsFile(FilePtr f)
 
 	if ( contents_processor )
 		contents_processor->SetContentsFile(contents_file);
-	}
+}
 
 bool TCP_Endpoint::CheckHistory(uint32_t mask, char code)
-	{
+{
 	auto conn = Conn();
 
 	if ( (code == 'A' || code == 'D') && conn->GetHistory() == "H" )
-		{
+	{
 		// This is a connection that began with a SYN-ACK rather
 		// than a SYN.  Those don't get flipped (unless they have
 		// the right combination of likely-server ports) because
@@ -280,51 +280,51 @@ bool TCP_Endpoint::CheckHistory(uint32_t mask, char code)
 		conn->FlipRoles();
 		conn->ReplaceHistory("^h");
 		tcp_analyzer->SetFirstPacketSeen(true);
-		}
-
-	if ( ! IsOrig() )
-		{
-		mask <<= 16;
-		code = tolower(code);
-		}
-
-	return Conn()->CheckHistory(mask, code);
 	}
 
-void TCP_Endpoint::AddHistory(char code)
+	if ( ! IsOrig() )
 	{
+		mask <<= 16;
+		code = tolower(code);
+	}
+
+	return Conn()->CheckHistory(mask, code);
+}
+
+void TCP_Endpoint::AddHistory(char code)
+{
 	if ( ! IsOrig() )
 		code = tolower(code);
 
 	Conn()->AddHistory(code);
-	}
+}
 
 void TCP_Endpoint::ChecksumError()
-	{
+{
 	uint32_t t = chk_thresh;
 	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'C' : 'c', chk_cnt, chk_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_checksum_errors, IsOrig(), t);
-	}
+}
 
 void TCP_Endpoint::DidRxmit()
-	{
+{
 	uint32_t t = rxmt_thresh;
 	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'T' : 't', rxmt_cnt, rxmt_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_retransmissions, IsOrig(), t);
-	}
+}
 
 void TCP_Endpoint::ZeroWindow()
-	{
+{
 	uint32_t t = win0_thresh;
 	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'W' : 'w', win0_cnt, win0_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_zero_windows, IsOrig(), t);
-	}
+}
 
 void TCP_Endpoint::Gap(uint64_t seq, uint64_t len)
-	{
+{
 	uint32_t t = gap_thresh;
 	if ( Conn()->ScaledHistoryEntry(IsOrig() ? 'G' : 'g', gap_cnt, gap_thresh) )
 		Conn()->HistoryThresholdEvent(tcp_multiple_gap, IsOrig(), t);
-	}
+}
 
-	} // namespace zeek::analyzer::tcp
+} // namespace zeek::analyzer::tcp

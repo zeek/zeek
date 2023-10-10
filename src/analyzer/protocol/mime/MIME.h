@@ -11,7 +11,7 @@
 #include "zeek/analyzer/Analyzer.h"
 
 namespace zeek
-	{
+{
 
 class TableVal;
 class StringVal;
@@ -19,18 +19,18 @@ using TableValPtr = IntrusivePtr<TableVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 
 namespace detail
-	{
+{
 class Base64Converter;
-	}
+}
 
 namespace analyzer::mime
-	{
+{
 
-	// MIME: Multipurpose Internet Mail Extensions
-	// Follows RFC 822 & 2822 (Internet Mail), 2045-2049 (MIME)
-	// See related files: SMTP.h and SMTP.cc
+// MIME: Multipurpose Internet Mail Extensions
+// Follows RFC 822 & 2822 (Internet Mail), 2045-2049 (MIME)
+// See related files: SMTP.h and SMTP.cc
 
-	// MIME Constants
+// MIME Constants
 
 #define HT '\011'
 #define SP '\040'
@@ -38,20 +38,20 @@ namespace analyzer::mime
 #define LF '\012'
 
 enum MIME_CONTENT_TYPE
-	{
+{
 	CONTENT_TYPE_MULTIPART,
 	CONTENT_TYPE_MESSAGE,
 	CONTENT_TYPE_TEXT,
 	CONTENT_TYPE_OTHER, // image | audio | video | application | <other>
-	};
+};
 
 enum MIME_EVENT_TYPE
-	{
+{
 	MIME_EVENT_ILLEGAL_FORMAT,
 	MIME_EVENT_ILLEGAL_ENCODING,
 	MIME_EVENT_CONTENT_GAP,
 	MIME_EVENT_OTHER,
-	};
+};
 
 // MIME data structures.
 
@@ -63,7 +63,7 @@ class MIME_Mail;
 class MIME_Message;
 
 class MIME_Multiline
-	{
+{
 public:
 	MIME_Multiline();
 	~MIME_Multiline();
@@ -74,10 +74,10 @@ public:
 protected:
 	std::vector<const String*> buffer;
 	String* line;
-	};
+};
 
 class MIME_Header
-	{
+{
 public:
 	explicit MIME_Header(MIME_Multiline* hl);
 	~MIME_Header();
@@ -95,12 +95,12 @@ protected:
 	data_chunk_t name;
 	data_chunk_t value;
 	data_chunk_t value_token, rest_value;
-	};
+};
 
 using MIME_HeaderList = std::vector<MIME_Header*>;
 
 class MIME_Entity
-	{
+{
 public:
 	MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entity);
 	virtual ~MIME_Entity();
@@ -187,39 +187,39 @@ protected:
 	MIME_Message* message;
 	bool delay_adding_implicit_CRLF;
 	bool want_all_headers;
-	};
+};
 
 // The reason I separate MIME_Message as an abstract class is to
 // present the *interface* separated from its implementation to
 // generate Zeek events.
 
 class MIME_Message
-	{
+{
 public:
 	explicit MIME_Message(analyzer::Analyzer* arg_analyzer)
-		{
+	{
 		// Cannot initialize top_level entity because we do
 		// not know its type yet (MIME_Entity / MIME_Mail /
 		// etc.).
 		top_level = nullptr;
 		finished = false;
 		analyzer = arg_analyzer;
-		}
+	}
 
 	virtual ~MIME_Message()
-		{
+	{
 		if ( ! finished )
 			reporter->AnalyzerError(analyzer, "missing MIME_Message::Done() call");
-		}
+	}
 
 	virtual void Done() { finished = true; }
 
 	bool Finished() const { return finished; }
 
 	virtual void Deliver(int len, const char* data, bool trailing_CRLF)
-		{
+	{
 		top_level->Deliver(len, data, trailing_CRLF);
-		}
+	}
 
 	analyzer::Analyzer* GetAnalyzer() const { return analyzer; }
 
@@ -240,10 +240,10 @@ protected:
 
 	RecordValPtr ToHeaderVal(MIME_Header* h);
 	TableValPtr ToHeaderTable(MIME_HeaderList& hlist);
-	};
+};
 
 class MIME_Mail final : public MIME_Message
-	{
+{
 public:
 	MIME_Mail(analyzer::Analyzer* mail_conn, bool is_orig, int buf_size = 0);
 	~MIME_Mail() override;
@@ -275,7 +275,7 @@ protected:
 
 	uint64_t cur_entity_len;
 	std::string cur_entity_id;
-	};
+};
 
 extern bool is_null_data_chunk(data_chunk_t b);
 extern StringValPtr to_string_val(int length, const char* data);
@@ -296,5 +296,5 @@ extern int MIME_get_value(int len, const char* data, String*& buf, bool is_bound
 extern int MIME_get_field_name(int len, const char* data, data_chunk_t* name);
 extern String* MIME_decode_quoted_pairs(data_chunk_t buf);
 
-	} // namespace analyzer::mime
-	} // namespace zeek
+} // namespace analyzer::mime
+} // namespace zeek

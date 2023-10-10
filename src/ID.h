@@ -14,7 +14,7 @@
 #include "zeek/TraverseTypes.h"
 
 namespace zeek
-	{
+{
 
 class Func;
 class Val;
@@ -31,29 +31,29 @@ using EnumTypePtr = IntrusivePtr<EnumType>;
 using ValPtr = IntrusivePtr<Val>;
 using FuncPtr = IntrusivePtr<Func>;
 
-	}
+}
 
 namespace zeek::detail
-	{
+{
 
 class Attributes;
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 
 enum InitClass
-	{
+{
 	INIT_NONE,
 	INIT_FULL,
 	INIT_EXTRA,
 	INIT_REMOVE,
 	INIT_SKIP,
-	};
+};
 enum IDScope
-	{
+{
 	SCOPE_FUNCTION,
 	SCOPE_MODULE,
 	SCOPE_GLOBAL
-	};
+};
 
 class ID;
 using IDPtr = IntrusivePtr<ID>;
@@ -62,7 +62,7 @@ using IDSet = std::unordered_set<const ID*>;
 class IDOptInfo;
 
 class ID final : public Obj, public notifier::detail::Modifiable
-	{
+{
 public:
 	static inline const IDPtr nil;
 
@@ -179,12 +179,12 @@ protected:
 	// via the associated pointer, to allow it to be modified in
 	// contexts where the ID is itself "const".
 	IDOptInfo* opt_info;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail
 
 namespace zeek::id
-	{
+{
 
 /**
  * Lookup an ID in the global module and return it, if one exists;
@@ -209,9 +209,9 @@ const TypePtr& find_type(std::string_view name);
  * @return  The type of the identifier.
  */
 template <class T> IntrusivePtr<T> find_type(std::string_view name)
-	{
+{
 	return cast_intrusive<T>(find_type(name));
-	}
+}
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -228,9 +228,9 @@ const ValPtr& find_val(std::string_view name);
  * @return  The current value of the identifier.
  */
 template <class T> IntrusivePtr<T> find_val(std::string_view name)
-	{
+{
 	return cast_intrusive<T>(find_val(name));
-	}
+}
 
 /**
  * Lookup an ID by its name and return its value.  A fatal occurs if the ID
@@ -247,9 +247,9 @@ const ValPtr& find_const(std::string_view name);
  * @return  The current value of the identifier.
  */
 template <class T> IntrusivePtr<T> find_const(std::string_view name)
-	{
+{
 	return cast_intrusive<T>(find_const(name));
-	}
+}
 
 /**
  * Lookup an ID by its name and return the function it references.
@@ -272,9 +272,9 @@ extern VectorTypePtr string_vec;
 extern VectorTypePtr index_vec;
 
 namespace detail
-	{
+{
 
 void init_types();
 
-	} // namespace detail
-	} // namespace zeek::id
+} // namespace detail
+} // namespace zeek::id

@@ -5,13 +5,13 @@
 #include "zeek/input/readers/sqlite/SQLite.h"
 
 namespace zeek::plugin::detail::Zeek_SQLiteReader
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::input::Component("SQLite", zeek::input::reader::detail::SQLite::Instantiate));
 
@@ -19,7 +19,7 @@ public:
 		config.name = "Zeek::SQLiteReader";
 		config.description = "SQLite input reader";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_SQLiteReader
+} // namespace zeek::plugin::detail::Zeek_SQLiteReader

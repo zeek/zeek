@@ -9,10 +9,10 @@
 #include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek
-	{
+{
 
 namespace detail
-	{
+{
 
 // A subclass of Func used for lambdas that the compiler creates for
 // complex initializations (expressions used in type attributes).
@@ -20,7 +20,7 @@ namespace detail
 // use of it.
 
 class CPPFunc : public Func
-	{
+{
 public:
 	bool IsPure() const override { return is_pure; }
 
@@ -29,19 +29,19 @@ public:
 protected:
 	// Constructor used when deriving subclasses.
 	CPPFunc(const char* _name, bool _is_pure)
-		{
+	{
 		name = _name;
 		is_pure = _is_pure;
-		}
+	}
 
 	std::string name;
 	bool is_pure;
-	};
+};
 
 // A subclass of Stmt used to replace a function/event handler/hook body.
 
 class CPPStmt : public Stmt
-	{
+{
 public:
 	CPPStmt(const char* _name, const char* filename, int line_num);
 
@@ -62,10 +62,10 @@ protected:
 	// This method being called means that the inliner is running
 	// on compiled code, which shouldn't happen.
 	StmtPtr Duplicate() override
-		{
+	{
 		ASSERT(0);
 		return ThisPtr();
-		}
+	}
 
 	TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
 
@@ -74,7 +74,7 @@ protected:
 
 	// A pseudo AST "call" node, used to support error localization.
 	CallExprPtr ce;
-	};
+};
 
 using CPPStmtPtr = IntrusivePtr<CPPStmt>;
 
@@ -84,7 +84,7 @@ using CPPStmtPtr = IntrusivePtr<CPPStmt>;
 // rather than those explicitly present in scripts.
 
 class CPPLambdaFunc : public ScriptFunc
-	{
+{
 public:
 	CPPLambdaFunc(std::string name, FuncTypePtr ft, CPPStmtPtr l_body);
 
@@ -96,18 +96,18 @@ protected:
 	FuncPtr DoClone() override;
 
 	CPPStmtPtr l_body;
-	};
+};
 
 // Information associated with a given compiled script body: its
 // Stmt subclass, priority, and any events that should be registered
 // upon instantiating the body.
 struct CompiledScript
-	{
+{
 	CPPStmtPtr body;
 	int priority;
 	std::vector<std::string> events;
 	void (*finish_init_func)();
-	};
+};
 
 // Maps hashes to compiled information.
 extern std::unordered_map<p_hash_type, CompiledScript> compiled_scripts;
@@ -125,6 +125,6 @@ extern std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
 // Callbacks to finalize initialization of standalone compiled scripts.
 extern std::vector<void (*)()> standalone_finalizations;
 
-	} // namespace detail
+} // namespace detail
 
-	} // namespace zeek
+} // namespace zeek

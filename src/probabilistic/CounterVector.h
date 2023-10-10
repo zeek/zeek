@@ -10,12 +10,12 @@
 #include <memory>
 
 namespace broker
-	{
+{
 class data;
-	}
+}
 
 namespace zeek::probabilistic::detail
-	{
+{
 
 class BitVector;
 
@@ -23,7 +23,7 @@ class BitVector;
  * A vector of counters, each of which has a fixed number of bits.
  */
 class CounterVector
-	{
+{
 public:
 	using size_type = size_t;
 	using count_type = uint64_t;
@@ -165,6 +165,6 @@ private:
 
 	BitVector* bits = nullptr;
 	size_t width = 0;
-	};
+};
 
-	} // namespace zeek::probabilistic::detail
+} // namespace zeek::probabilistic::detail

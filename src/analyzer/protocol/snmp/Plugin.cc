@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/snmp/SNMP.h"
 
 namespace zeek::plugin::detail::Zeek_SNMP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"SNMP", zeek::analyzer::snmp::SNMP_Analyzer::InstantiateAnalyzer));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::SNMP";
 		config.description = "SNMP analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_SNMP
+} // namespace zeek::plugin::detail::Zeek_SNMP

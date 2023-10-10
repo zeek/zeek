@@ -12,10 +12,10 @@
 #include "zeek/threading/formatters/Ascii.h"
 
 namespace zeek::input::reader::detail
-	{
+{
 
 class SQLite : public ReaderBackend
-	{
+{
 public:
 	explicit SQLite(ReaderFrontend* frontend);
 	~SQLite() override;
@@ -47,6 +47,6 @@ private:
 	std::string set_separator;
 	std::string unset_field;
 	std::string empty_field;
-	};
+};
 
-	} // namespace zeek::input::reader
+} // namespace zeek::input::reader

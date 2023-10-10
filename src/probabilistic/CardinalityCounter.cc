@@ -10,10 +10,10 @@
 #include "zeek/Reporter.h"
 
 namespace zeek::probabilistic::detail
-	{
+{
 
 int CardinalityCounter::OptimalB(double error, double confidence) const
-	{
+{
 	double initial_estimate = 2 * (log(1.04) - log(error)) / log(2);
 	int answer = (int)floor(initial_estimate);
 
@@ -23,16 +23,16 @@ int CardinalityCounter::OptimalB(double error, double confidence) const
 	double k = 0;
 
 	do
-		{
+	{
 		answer++;
 		k = pow(2, (answer - initial_estimate) / 2);
-		} while ( erf(k / sqrt(2)) < confidence );
+	} while ( erf(k / sqrt(2)) < confidence );
 
 	return answer;
-	}
+}
 
 void CardinalityCounter::Init(uint64_t size)
-	{
+{
 	m = size;
 
 	// The following magic values are taken directly out of the
@@ -68,18 +68,18 @@ void CardinalityCounter::Init(uint64_t size)
 	assert(buckets.size() == m);
 
 	V = m;
-	}
+}
 
 CardinalityCounter::CardinalityCounter(CardinalityCounter& other) : buckets(other.buckets)
-	{
+{
 	V = other.V;
 	alpha_m = other.alpha_m;
 	m = other.m;
 	p = other.p;
-	}
+}
 
 CardinalityCounter::CardinalityCounter(CardinalityCounter&& o) noexcept
-	{
+{
 	V = o.V;
 	alpha_m = o.alpha_m;
 	m = o.m;
@@ -87,23 +87,23 @@ CardinalityCounter::CardinalityCounter(CardinalityCounter&& o) noexcept
 
 	o.m = 0;
 	buckets = std::move(o.buckets);
-	}
+}
 
 CardinalityCounter::CardinalityCounter(double error_margin, double confidence)
-	{
+{
 	int b = OptimalB(error_margin, confidence);
 	Init((uint64_t)pow(2, b));
 
 	assert(b == p);
-	}
+}
 
 CardinalityCounter::CardinalityCounter(uint64_t size)
-	{
+{
 	Init(size);
-	}
+}
 
 CardinalityCounter::CardinalityCounter(uint64_t arg_size, uint64_t arg_V, double arg_alpha_m)
-	{
+{
 	m = arg_size;
 
 	buckets.reserve(m);
@@ -113,19 +113,19 @@ CardinalityCounter::CardinalityCounter(uint64_t arg_size, uint64_t arg_V, double
 	alpha_m = arg_alpha_m;
 	V = arg_V;
 	p = log2(m);
-	}
+}
 
 uint8_t CardinalityCounter::Rank(uint64_t hash_modified) const
-	{
+{
 	hash_modified = hash_modified >> p;
 	int answer = 64 - p - CardinalityCounter::flsll(hash_modified) + 1;
 	assert(answer > 0 && answer < 64);
 
 	return answer;
-	}
+}
 
 void CardinalityCounter::AddElement(uint64_t hash)
-	{
+{
 	uint64_t index = hash % m;
 	hash = hash - index;
 
@@ -136,7 +136,7 @@ void CardinalityCounter::AddElement(uint64_t hash)
 
 	if ( temp > buckets[index] )
 		buckets[index] = temp;
-	}
+}
 
 /**
  * Estimate the size by using the "raw" HyperLogLog estimate. Then,
@@ -148,7 +148,7 @@ void CardinalityCounter::AddElement(uint64_t hash)
  * of our 64-bit hashes.
  **/
 double CardinalityCounter::Size() const
-	{
+{
 	double answer = 0;
 	for ( unsigned int i = 0; i < m; i++ )
 		answer += pow(2, -((int)buckets[i]));
@@ -164,10 +164,10 @@ double CardinalityCounter::Size() const
 
 	else
 		return -pow(2, 64) * log(1 - (answer / pow(2, 64)));
-	}
+}
 
 bool CardinalityCounter::Merge(CardinalityCounter* c)
-	{
+{
 	if ( m != c->GetM() )
 		return false;
 
@@ -176,29 +176,29 @@ bool CardinalityCounter::Merge(CardinalityCounter* c)
 	V = 0;
 
 	for ( size_t i = 0; i < m; i++ )
-		{
+	{
 		if ( temp[i] > buckets[i] )
 			buckets[i] = temp[i];
 
 		if ( buckets[i] == 0 )
 			++V;
-		}
+	}
 
 	return true;
-	}
+}
 
 const std::vector<uint8_t>& CardinalityCounter::GetBuckets() const
-	{
+{
 	return buckets;
-	}
+}
 
 uint64_t CardinalityCounter::GetM() const
-	{
+{
 	return m;
-	}
+}
 
 broker::expected<broker::data> CardinalityCounter::Serialize() const
-	{
+{
 	broker::vector v = {m, V, alpha_m};
 	v.reserve(3 + m);
 
@@ -206,10 +206,10 @@ broker::expected<broker::data> CardinalityCounter::Serialize() const
 		v.emplace_back(static_cast<uint64_t>(buckets[i]));
 
 	return {std::move(v)};
-	}
+}
 
 std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker::data& data)
-	{
+{
 	auto v = broker::get_if<broker::vector>(&data);
 	if ( ! (v && v->size() >= 3) )
 		return nullptr;
@@ -230,16 +230,16 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
 		return nullptr;
 
 	for ( size_t i = 0; i < *m; ++i )
-		{
+	{
 		auto x = broker::get_if<uint64_t>(&(*v)[3 + i]);
 		if ( ! x )
 			return nullptr;
 
 		cc->buckets[i] = *x;
-		}
+	}
 
 	return cc;
-	}
+}
 
 /**
  * The following function is copied from libc/string/flsll.c from the FreeBSD source
@@ -278,7 +278,7 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker
  * Find Last Set bit
  */
 int CardinalityCounter::flsll(uint64_t mask)
-	{
+{
 	int bit;
 
 	if ( mask == 0 )
@@ -286,6 +286,6 @@ int CardinalityCounter::flsll(uint64_t mask)
 	for ( bit = 1; mask != 1; bit++ )
 		mask = (uint64_t)mask >> 1;
 	return (bit);
-	}
+}
 
-	} // namespace zeek::probabilistic::detail
+} // namespace zeek::probabilistic::detail

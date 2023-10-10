@@ -5,18 +5,18 @@
 #include "zeek/Reassem.h"
 
 namespace zeek
-	{
+{
 
 class Connection;
 class File;
 
 namespace file_analysis
-	{
+{
 
 class File;
 
 class FileReassembler final : public Reassembler
-	{
+{
 public:
 	FileReassembler(File* f, uint64_t starting_offset);
 	~FileReassembler() override = default;
@@ -57,7 +57,7 @@ protected:
 
 	File* the_file = nullptr;
 	bool flushing = false;
-	};
+};
 
-	} // namespace file_analysis
-	} // namespace zeek
+} // namespace file_analysis
+} // namespace zeek

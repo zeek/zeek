@@ -4,10 +4,10 @@
 #include <zeek/plugin/Plugin.h>
 
 namespace btest::plugin::Demo_Hooks
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 protected:
 	std::pair<bool, zeek::ValPtr>
 	HookFunctionCall(const zeek::Func* func, zeek::detail::Frame* frame, zeek::Args* args) override;
@@ -19,8 +19,8 @@ protected:
 
 	// Overridden from plugin::Plugin.
 	zeek::plugin::Configuration Configure() override;
-	};
+};
 
 extern Plugin plugin;
 
-	}
+}

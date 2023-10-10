@@ -6,20 +6,20 @@
 #include "zeek/analyzer/protocol/zip/ZIP.h"
 
 namespace zeek::plugin::detail::Zeek_ZIP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component("ZIP", nullptr));
 
 		zeek::plugin::Configuration config;
 		config.name = "Zeek::ZIP";
 		config.description = "Generic ZIP support analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_ZIP
+} // namespace zeek::plugin::detail::Zeek_ZIP

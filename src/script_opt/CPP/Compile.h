@@ -121,10 +121,10 @@
 // necessary compiler methods.
 
 namespace zeek::detail
-	{
+{
 
 class CPPCompile
-	{
+{
 public:
 	CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs, const std::string& gen_name,
 	           bool _standalone, bool report_uncompilable);
@@ -172,9 +172,9 @@ public:
 	// Convenient access to the global offset associated with
 	// a set of Attributes.
 	int AttributesOffset(const AttributesPtr& attrs)
-		{
+	{
 		return GI_Offset(RegisterAttributes(attrs));
-		}
+	}
 
 	// The same, for a single attribute.
 	std::shared_ptr<CPP_InitInfo> RegisterAttr(const AttrPtr& attr);
@@ -207,7 +207,7 @@ public:
 	// Tracks a C++ string value needed for initialization.  Returns
 	// an offset into the global vector that will hold these.
 	int TrackString(std::string s)
-		{
+	{
 		auto ts = tracked_strings.find(s);
 		if ( ts != tracked_strings.end() )
 			return ts->second;
@@ -217,12 +217,12 @@ public:
 		ordered_tracked_strings.emplace_back(s);
 
 		return offset;
-		}
+	}
 
 	// Tracks a profile hash value needed for initialization.  Returns
 	// an offset into the global vector that will hold these.
 	int TrackHash(p_hash_type h)
-		{
+	{
 		auto th = tracked_hashes.find(h);
 		if ( th != tracked_hashes.end() )
 			return th->second;
@@ -232,7 +232,7 @@ public:
 		ordered_tracked_hashes.emplace_back(h);
 
 		return offset;
-		}
+	}
 
 	// Returns the hash associated with a given function body.
 	// It's a fatal error to call this for a body that hasn't
@@ -243,9 +243,9 @@ public:
 	// with the function/hook/event handler of the given fname is
 	// not compilable.
 	bool NotFullyCompilable(const std::string& fname) const
-		{
+	{
 		return not_fully_compilable.count(fname) > 0;
-		}
+	}
 
 private:
 	// Start of methods related to driving the overall compilation
@@ -389,9 +389,9 @@ private:
 	// Returns a canonicalized version of a variant of a global made
 	// distinct by the given suffix.
 	std::string GlobalName(const std::string& g, const char* suffix)
-		{
+	{
 		return Canonicalize(g.c_str()) + "_" + suffix;
-		}
+	}
 
 	// Returns a canonicalized form of a local identifier's name,
 	// expanding its module prefix if needed.
@@ -501,12 +501,12 @@ private:
 
 	// Information associated with a CPPDynStmt dynamic dispatch.
 	struct DispatchInfo
-		{
+	{
 		std::string cast; // C++ cast to use for function pointer
 		std::string args; // arguments to pass to the function
 		bool is_hook; // whether the function is a hook
 		TypePtr yield; // what type the function returns, if any
-		};
+	};
 
 	// An array of cast/invocation pairs used to generate the CPPDynStmt
 	// Exec method.
@@ -547,9 +547,9 @@ private:
 	// Generates the body of the Invoke() method (which supplies the
 	// "glue" for calling the C++-generated code, for CPPStmt subclasses).
 	void GenInvokeBody(const std::string& fname, const TypePtr& t, const std::string& args)
-		{
+	{
 		GenInvokeBody(fname + "(" + args + ")", t);
-		}
+	}
 	void GenInvokeBody(const std::string& call, const TypePtr& t);
 
 	// Generates the code for the body of a script function with
@@ -748,11 +748,11 @@ private:
 	// convenient to generate (sometimes used when the caller knows
 	// that the value is non-native).
 	enum GenType
-		{
+	{
 		GEN_NATIVE,
 		GEN_VAL_PTR,
 		GEN_DONT_CARE,
-		};
+	};
 
 	// Generate an expression for which we want the result embedded
 	// in {} initializers (generally to be used in calling a function
@@ -769,9 +769,9 @@ private:
 	// Per-Expr-subclass code generation.  The resulting code generally
 	// reflects the corresponding Eval() or Fold() methods.
 	std::string GenExpr(const ExprPtr& e, GenType gt, bool top_level = false)
-		{
+	{
 		return GenExpr(e.get(), gt, top_level);
-		}
+	}
 	std::string GenExpr(const Expr* e, GenType gt, bool top_level = false);
 
 	std::string GenNameExpr(const NameExpr* ne, GenType gt);
@@ -983,9 +983,9 @@ private:
 	// associated with an initialization.
 	int GI_Offset(const std::shared_ptr<CPP_InitInfo>& gi) const { return gi ? gi->Offset() : -1; }
 	int GI_Cohort(const std::shared_ptr<CPP_InitInfo>& gi) const
-		{
+	{
 		return gi ? gi->InitCohort() : 0;
-		}
+	}
 
 	// Generate code to initialize the mappings for record field
 	// offsets for field accesses into regions of records that
@@ -1058,61 +1058,61 @@ private:
 	// assume that the first argument is a printf-style format
 	// (but one that can only have %s specifiers).
 	void Emit(const std::string& str) const
-		{
+	{
 		Indent();
 		fprintf(write_file, "%s", str.c_str());
 		NL();
-		}
+	}
 
 	void Emit(const std::string& fmt, const std::string& arg, bool do_NL = true) const
-		{
+	{
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg.c_str());
 		if ( do_NL )
 			NL();
-		}
+	}
 
 	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2) const
-		{
+	{
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str());
 		NL();
-		}
+	}
 
 	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2,
 	          const std::string& arg3) const
-		{
+	{
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str());
 		NL();
-		}
+	}
 
 	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2,
 	          const std::string& arg3, const std::string& arg4) const
-		{
+	{
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str());
 		NL();
-		}
+	}
 
 	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2,
 	          const std::string& arg3, const std::string& arg4, const std::string& arg5) const
-		{
+	{
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str(),
 		        arg5.c_str());
 		NL();
-		}
+	}
 
 	void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2,
 	          const std::string& arg3, const std::string& arg4, const std::string& arg5,
 	          const std::string& arg6) const
-		{
+	{
 		Indent();
 		fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str(),
 		        arg5.c_str(), arg6.c_str());
 		NL();
-		}
+	}
 
 	void NL() const { fputc('\n', write_file); }
 
@@ -1127,6 +1127,6 @@ private:
 
 	//
 	// End of methods related to run-time initialization.
-	};
+};
 
-	} // zeek::detail
+} // zeek::detail

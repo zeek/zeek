@@ -11,20 +11,20 @@
 #include "zeek/Val.h"
 
 namespace zeek
-	{
+{
 
 class ODesc;
 
 namespace plugin
-	{
+{
 namespace component
-	{
+{
 
 /**
  * Component types.
  */
 enum Type
-	{
+{
 	READER, /// An input reader (not currently used).
 	WRITER, /// A logging writer (not currently used).
 	ANALYZER, /// A protocol analyzer.
@@ -34,9 +34,9 @@ enum Type
 	PKTSRC, /// A packet source.
 	PKTDUMPER, /// A packet dumper.
 	SESSION_ADAPTER, /// A session adapter analyzer.
-	};
+};
 
-	} // namespace component
+} // namespace component
 
 /**
  * Base class for plugin components. A component is a specific piece of
@@ -44,7 +44,7 @@ enum Type
  * writer.
  */
 class Component
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -147,7 +147,7 @@ private:
 
 	/** Used to generate globally unique tags */
 	static Tag::type_t type_counter;
-	};
+};
 
-	} // namespace plugin
-	} // namespace zeek
+} // namespace plugin
+} // namespace zeek

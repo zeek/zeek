@@ -22,12 +22,12 @@
 #endif
 
 namespace zeek::threading
-	{
+{
 struct Field;
-	}
+}
 
 namespace zeek
-	{
+{
 
 #ifdef _MSC_VER
 #undef VOID
@@ -47,16 +47,16 @@ template <class T> class IntrusivePtr;
 using ValPtr = IntrusivePtr<Val>;
 
 namespace threading
-	{
+{
 struct Field;
-	}
+}
 namespace detail
-	{
+{
 class Frame;
-	}
+}
 
 namespace plugin
-	{
+{
 
 class Manager;
 class Component;
@@ -67,7 +67,7 @@ class Plugin;
  * virtual method in \a Plugin.
  */
 enum HookType
-	{
+{
 	// Note: when changing this table, update hook_name() in Plugin.cc.
 	HOOK_LOAD_FILE, //< Activates Plugin::HookLoadFile().
 	HOOK_LOAD_FILE_EXT, //< Activates Plugin::HookLoadFileExtended().
@@ -88,7 +88,7 @@ enum HookType
 
 	// End marker.
 	NUM_HOOKS,
-	};
+};
 
 /**
  * Converts a hook type into a readable hook name.
@@ -99,7 +99,7 @@ extern const char* hook_name(HookType h);
  * Helper class to capture a plugin's version.
  * */
 struct VersionNumber
-	{
+{
 	int major = -1; //< Major version number.
 	int minor = -1; //< Minor version number.
 	int patch = 0; //< Patch version number (available since Zeek 3.0).
@@ -108,13 +108,13 @@ struct VersionNumber
 	 *  Returns true if the version is set to a non-negative value.
 	 */
 	explicit operator bool() const { return major >= 0 && minor >= 0 && patch >= 0; }
-	};
+};
 
 /**
  * A class defining a plugin's static configuration parameters.
  */
 class Configuration
-	{
+{
 public:
 	std::string name = ""; //< The plugin's name, including a namespace. Mandatory.
 	std::string description = ""; //< A short textual description of the plugin. Mandatory.
@@ -124,7 +124,7 @@ public:
 	// into the external plugin. (Technically, it's not a "force", just a
 	// strong hint.). The attribute seems generally available.
 	inline Configuration() __attribute__((always_inline))
-		{
+	{
 // Only bake in a ZEEK_PLUGIN_ZEEK_VERSION reference into external plugins. The
 // internal ones are in the same binary so the runtime link check shouldn't be
 // needed and we can avoid ccache busting. The define gets set in the
@@ -133,28 +133,28 @@ public:
 #ifndef ZEEK_PLUGIN_SKIP_VERSION_CHECK
 		zeek_version = ZEEK_PLUGIN_ZEEK_VERSION;
 #endif
-		}
+	}
 
 	Configuration(Configuration&& c)
-		{
+	{
 		zeek_version = std::move(c.zeek_version);
 
 		name = std::move(c.name);
 		description = std::move(c.description);
 		version = std::move(c.version);
-		}
+	}
 
 	Configuration(const Configuration& c)
-		{
+	{
 		zeek_version = c.zeek_version;
 
 		name = c.name;
 		description = c.description;
 		version = c.version;
-		}
+	}
 
 	Configuration& operator=(Configuration&& c)
-		{
+	{
 		zeek_version = std::move(c.zeek_version);
 
 		name = std::move(c.name);
@@ -162,10 +162,10 @@ public:
 		version = std::move(c.version);
 
 		return *this;
-		}
+	}
 
 	Configuration& operator=(const Configuration& c)
-		{
+	{
 		zeek_version = c.zeek_version;
 
 		name = c.name;
@@ -173,7 +173,7 @@ public:
 		version = c.version;
 
 		return *this;
-		}
+	}
 
 	~Configuration() { }
 
@@ -185,25 +185,25 @@ public:
 
 private:
 	friend class Plugin;
-	};
+};
 
 /**
  * A class describing an item defined in \c *.bif file.
  */
 class BifItem final
-	{
+{
 public:
 	/**
 	 * Type of the item.
 	 */
 	enum Type
-		{
+	{
 		FUNCTION = 1,
 		EVENT = 2,
 		CONSTANT = 3,
 		GLOBAL = 4,
 		TYPE = 5
-		};
+	};
 
 	/**
 	 * Constructor.
@@ -243,19 +243,19 @@ public:
 private:
 	std::string id;
 	Type type;
-	};
+};
 
 /**
  * A class encapsulating an event argument to then pass along with a meta hook.
  */
 class HookArgument
-	{
+{
 public:
 	/**
 	 * Type of the argument.
 	 */
 	enum Type
-		{
+	{
 		BOOL,
 		DOUBLE,
 		EVENT,
@@ -275,7 +275,7 @@ public:
 		ARG_LIST,
 		INPUT_FILE,
 		PACKET
-		};
+	};
 
 	/**
 	 * Default constructor initialized the argument with type VOID.
@@ -286,323 +286,323 @@ public:
 	 * Constructor with a boolean argument.
 	 */
 	explicit HookArgument(bool a)
-		{
+	{
 		type = BOOL;
 		arg.bool_ = a;
-		}
+	}
 
 	/**
 	 * Constructor with a double argument.
 	 */
 	explicit HookArgument(double a)
-		{
+	{
 		type = DOUBLE;
 		arg.double_ = a;
-		}
+	}
 
 	/**
 	 * Constructor with an event argument.
 	 */
 	explicit HookArgument(const Event* a)
-		{
+	{
 		type = EVENT;
 		arg.event = a;
-		}
+	}
 
 	/**
 	 * Constructor with an connection argument.
 	 */
 	explicit HookArgument(const Connection* c)
-		{
+	{
 		type = CONN;
 		arg.conn = c;
-		}
+	}
 
 	/**
 	 * Constructor with a function argument.
 	 */
 	explicit HookArgument(const Func* a)
-		{
+	{
 		type = FUNC;
 		arg.func = a;
-		}
+	}
 
 	/**
 	 * Constructor with an integer  argument.
 	 */
 	explicit HookArgument(int a)
-		{
+	{
 		type = INT;
 		arg.int_ = a;
-		}
+	}
 
 	/**
 	 * Constructor with a string argument.
 	 */
 	explicit HookArgument(const std::string& a)
-		{
+	{
 		type = STRING;
 		arg_string = a;
-		}
+	}
 
 	/**
 	 * Constructor with a Zeek value argument.
 	 */
 	explicit HookArgument(const Val* a)
-		{
+	{
 		type = VAL;
 		arg.val = a;
-		}
+	}
 
 	/**
 	 * Constructor with a list of Zeek values argument.
 	 */
 	explicit HookArgument(const ValPList* a)
-		{
+	{
 		type = VAL_LIST;
 		arg.vals = a;
-		}
+	}
 
 	/**
 	 * Constructor with a void pointer argument.
 	 */
 	explicit HookArgument(void* p)
-		{
+	{
 		type = VOIDP;
 		arg.voidp = p;
-		}
+	}
 
 	/**
 	 * Constructor with a function result argument.
 	 */
 	explicit HookArgument(std::pair<bool, Val*> fresult)
-		{
+	{
 		type = FUNC_RESULT;
 		func_result = fresult;
-		}
+	}
 
 	/**
 	 * Constructor with a Frame argument.
 	 */
 	explicit HookArgument(zeek::detail::Frame* f)
-		{
+	{
 		type = FRAME;
 		arg.frame = f;
-		}
+	}
 
 	/**
 	 * Constructor with a WriterInfo argument.
 	 */
 	explicit HookArgument(const logging::WriterBackend::WriterInfo* i)
-		{
+	{
 		type = WRITER_INFO;
 		arg.winfo = i;
-		}
+	}
 
 	/**
 	 * Constructor with a threading field argument.
 	 */
 	explicit HookArgument(const std::pair<int, const threading::Field* const*> fpair)
-		{
+	{
 		type = THREAD_FIELDS;
 		tfields = fpair;
-		}
+	}
 
 	/**
 	 * Constructor with a location argument.
 	 */
 	explicit HookArgument(const zeek::detail::Location* location)
-		{
+	{
 		type = LOCATION;
 		arg.loc = location;
-		}
+	}
 
 	/**
 	 * Constructor with a zeek::Args argument.
 	 */
 	explicit HookArgument(const Args* args)
-		{
+	{
 		type = ARG_LIST;
 		arg.args = args;
-		}
+	}
 
 	/**
 	 * Constructor with HookLoadFileExtended result describing an input file.
 	 */
 	explicit HookArgument(std::pair<int, std::optional<std::string>> file)
-		{
+	{
 		type = INPUT_FILE;
 		input_file = std::move(file);
-		}
+	}
 
 	/**
 	 * Returns the value for a zeek::Packet* argument. The argument's type must
 	 * Constructor with a zeek::Packet* argument.
 	 */
 	explicit HookArgument(const Packet* packet)
-		{
+	{
 		type = PACKET;
 		arg.packet = packet;
-		}
+	}
 
 	/**
 	 * Returns the value for a boolean argument. The argument's type must
 	 * match accordingly.
 	 */
 	bool AsBool() const
-		{
+	{
 		assert(type == BOOL);
 		return arg.bool_;
-		}
+	}
 
 	/**
 	 * Returns the value for a double argument. The argument's type must
 	 * match accordingly.
 	 */
 	double AsDouble() const
-		{
+	{
 		assert(type == DOUBLE);
 		return arg.double_;
-		}
+	}
 
 	/**
 	 * Returns the value for an event argument. The argument's type must
 	 * match accordingly.
 	 */
 	const Event* AsEvent() const
-		{
+	{
 		assert(type == EVENT);
 		return arg.event;
-		}
+	}
 
 	/**
 	 * Returns the value for an connection argument. The argument's type must
 	 * match accordingly.
 	 */
 	const Connection* AsConnection() const
-		{
+	{
 		assert(type == CONN);
 		return arg.conn;
-		}
+	}
 
 	/**
 	 * Returns the value for a function argument. The argument's type must
 	 * match accordingly.
 	 */
 	const Func* AsFunc() const
-		{
+	{
 		assert(type == FUNC);
 		return arg.func;
-		}
+	}
 
 	/**
 	 * Returns the value for an integer argument. The argument's type must
 	 * match accordingly.
 	 */
 	double AsInt() const
-		{
+	{
 		assert(type == INT);
 		return arg.int_;
-		}
+	}
 
 	/**
 	 * Returns the value for a string argument. The argument's type must
 	 * match accordingly.
 	 */
 	const std::string& AsString() const
-		{
+	{
 		assert(type == STRING);
 		return arg_string;
-		}
+	}
 
 	/**
 	 * Returns the value for a Zeek value argument. The argument's type must
 	 * match accordingly.
 	 */
 	const Val* AsVal() const
-		{
+	{
 		assert(type == VAL);
 		return arg.val;
-		}
+	}
 
 	/**
 	 * Returns the value for a Zeek wrapped value argument.  The argument's type must
 	 * match accordingly.
 	 */
 	const std::pair<bool, Val*> AsFuncResult() const
-		{
+	{
 		assert(type == FUNC_RESULT);
 		return func_result;
-		}
+	}
 
 	/**
 	 * Returns the value for a Zeek frame argument.  The argument's type must
 	 * match accordingly.
 	 */
 	const zeek::detail::Frame* AsFrame() const
-		{
+	{
 		assert(type == FRAME);
 		return arg.frame;
-		}
+	}
 
 	/**
 	 * Returns the value for a logging WriterInfo argument.  The argument's type must
 	 * match accordingly.
 	 */
 	const logging::WriterBackend::WriterInfo* AsWriterInfo() const
-		{
+	{
 		assert(type == WRITER_INFO);
 		return arg.winfo;
-		}
+	}
 
 	/**
 	 * Returns the value for a threading fields argument.  The argument's type must
 	 * match accordingly.
 	 */
 	const std::pair<int, const threading::Field* const*> AsThreadFields() const
-		{
+	{
 		assert(type == THREAD_FIELDS);
 		return tfields;
-		}
+	}
 
 	/**
 	 * Returns the value for a list of Zeek values argument. The argument's type must
 	 * match accordingly.
 	 */
 	const ValPList* AsValList() const
-		{
+	{
 		assert(type == VAL_LIST);
 		return arg.vals;
-		}
+	}
 
 	/**
 	 * Returns the value as a Args.
 	 */
 	const Args* AsArgList() const
-		{
+	{
 		assert(type == ARG_LIST);
 		return arg.args;
-		}
+	}
 
 	/**
 	 * Returns the value for a void pointer argument. The argument's type
 	 * must match accordingly.
 	 */
 	const void* AsVoidPtr() const
-		{
+	{
 		assert(type == VOIDP);
 		return arg.voidp;
-		}
+	}
 
 	/**
 	 * Returns the value for a Packet pointer argument. The argument's type
 	 * must match accordingly.
 	 */
 	const Packet* AsPacket() const
-		{
+	{
 		assert(type == PACKET);
 		return arg.packet;
-		}
+	}
 
 	/**
 	 * Returns the argument's type.
@@ -618,7 +618,8 @@ public:
 
 private:
 	Type type;
-		union {
+	union
+	{
 		bool bool_;
 		double double_;
 		const Event* event;
@@ -633,14 +634,14 @@ private:
 		const logging::WriterBackend::WriterInfo* winfo;
 		const zeek::detail::Location* loc;
 		const Packet* packet;
-		} arg;
+	} arg;
 
 	// Outside union because these have dtors.
 	std::pair<bool, Val*> func_result;
 	std::pair<int, const threading::Field* const*> tfields;
 	std::string arg_string;
 	std::pair<int, std::optional<std::string>> input_file;
-	};
+};
 
 using HookArgumentList = std::list<HookArgument>;
 
@@ -672,7 +673,7 @@ using HookArgumentList = std::list<HookArgument>;
  *
  */
 class Plugin
-	{
+{
 public:
 	using component_list = std::list<Component*>;
 	using bif_item_list = std::list<BifItem>;
@@ -682,11 +683,11 @@ public:
 	 * The different types of @loads supported by HookLoadFile.
 	 */
 	enum LoadType
-		{
+	{
 		SCRIPT,
 		SIGNATURES,
 		PLUGIN
-		};
+	};
 
 	/**
 	 * Constructor.
@@ -1188,7 +1189,7 @@ private:
 
 	component_list components; // Components the plugin provides.
 	bif_item_list bif_items; // BiF items the plugin provides.
-	};
+};
 
-	} // namespace plugin
-	} // namespace zeek
+} // namespace plugin
+} // namespace zeek

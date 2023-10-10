@@ -7,10 +7,10 @@
 #include "zeek/Reporter.h"
 
 namespace zeek::detail
-	{
+{
 
 DNS_Mapping::DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl, int type)
-	{
+{
 	Init(h);
 	req_host = host;
 	req_ttl = ttl;
@@ -18,18 +18,18 @@ DNS_Mapping::DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl, int 
 
 	if ( names.empty() )
 		names.push_back(std::move(host));
-	}
+}
 
 DNS_Mapping::DNS_Mapping(const IPAddr& addr, struct hostent* h, uint32_t ttl)
-	{
+{
 	Init(h);
 	req_addr = addr;
 	req_ttl = ttl;
 	req_type = T_PTR;
-	}
+}
 
 DNS_Mapping::DNS_Mapping(FILE* f)
-	{
+{
 	Clear();
 	init_failed = true;
 
@@ -39,10 +39,10 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	char buf[512];
 
 	if ( ! fgets(buf, sizeof(buf), f) )
-		{
+	{
 		no_mapping = true;
 		return;
-		}
+	}
 
 	char req_buf[512 + 1], name_buf[512 + 1];
 	int is_req_host;
@@ -51,10 +51,10 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 
 	if ( sscanf(buf, "%lf %d %512s %d %512s %d %d %" PRIu32, &creation_time, &is_req_host, req_buf,
 	            &failed_local, name_buf, &req_type, &num_addrs, &req_ttl) != 8 )
-		{
+	{
 		no_mapping = true;
 		return;
-		}
+	}
 
 	failed = static_cast<bool>(failed_local);
 
@@ -66,7 +66,7 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 	names.emplace_back(name_buf);
 
 	for ( int i = 0; i < num_addrs; ++i )
-		{
+	{
 		if ( ! fgets(buf, sizeof(buf), f) )
 			return;
 
@@ -75,39 +75,39 @@ DNS_Mapping::DNS_Mapping(FILE* f)
 			*newline = '\0';
 
 		addrs.emplace_back(buf);
-		}
-
-	init_failed = false;
 	}
 
+	init_failed = false;
+}
+
 ListValPtr DNS_Mapping::Addrs()
-	{
+{
 	if ( failed )
 		return nullptr;
 
 	if ( ! addrs_val )
-		{
+	{
 		addrs_val = make_intrusive<ListVal>(TYPE_ADDR);
 
 		for ( const auto& addr : addrs )
 			addrs_val->Append(make_intrusive<AddrVal>(addr));
-		}
-
-	return addrs_val;
 	}
 
+	return addrs_val;
+}
+
 TableValPtr DNS_Mapping::AddrsSet()
-	{
+{
 	auto l = Addrs();
 
 	if ( ! l || l->Length() == 0 )
 		return DNS_Mgr::empty_addr_set();
 
 	return l->ToSetVal();
-	}
+}
 
 StringValPtr DNS_Mapping::Host()
-	{
+{
 	if ( failed || names.empty() )
 		return nullptr;
 
@@ -115,10 +115,10 @@ StringValPtr DNS_Mapping::Host()
 		host_val = make_intrusive<StringVal>(names[0]);
 
 	return host_val;
-	}
+}
 
 void DNS_Mapping::Init(struct hostent* h)
-	{
+{
 	no_mapping = false;
 	init_failed = false;
 	creation_time = util::current_time();
@@ -126,10 +126,10 @@ void DNS_Mapping::Init(struct hostent* h)
 	addrs_val = nullptr;
 
 	if ( ! h )
-		{
+	{
 		Clear();
 		return;
-		}
+	}
 
 	if ( h->h_name )
 		// for now, just use the official name
@@ -137,21 +137,21 @@ void DNS_Mapping::Init(struct hostent* h)
 		names.emplace_back(h->h_name);
 
 	if ( h->h_addr_list )
-		{
+	{
 		for ( int i = 0; h->h_addr_list[i] != NULL; ++i )
-			{
+		{
 			if ( h->h_addrtype == AF_INET )
 				addrs.emplace_back(IPv4, (uint32_t*)h->h_addr_list[i], IPAddr::Network);
 			else if ( h->h_addrtype == AF_INET6 )
 				addrs.emplace_back(IPv6, (uint32_t*)h->h_addr_list[i], IPAddr::Network);
-			}
 		}
-
-	failed = false;
 	}
 
+	failed = false;
+}
+
 void DNS_Mapping::Clear()
-	{
+{
 	names.clear();
 	host_val = nullptr;
 	addrs.clear();
@@ -159,65 +159,65 @@ void DNS_Mapping::Clear()
 	no_mapping = false;
 	req_type = 0;
 	failed = true;
-	}
+}
 
 void DNS_Mapping::Save(FILE* f) const
-	{
+{
 	fprintf(f, "%.0f %d %s %d %s %d %zu %" PRIu32 "\n", creation_time, ! req_host.empty(),
 	        req_host.empty() ? req_addr.AsString().c_str() : req_host.c_str(), failed,
 	        names.empty() ? "*" : names[0].c_str(), req_type, addrs.size(), req_ttl);
 
 	for ( const auto& addr : addrs )
 		fprintf(f, "%s\n", addr.AsString().c_str());
-	}
+}
 
 void DNS_Mapping::Merge(const DNS_MappingPtr& other)
-	{
+{
 	std::copy(other->names.begin(), other->names.end(), std::back_inserter(names));
 	std::copy(other->addrs.begin(), other->addrs.end(), std::back_inserter(addrs));
-	}
+}
 
 // This value needs to be incremented if something changes in the data stored by Save(). This
 // allows us to change the structure of the cache without breaking something in DNS_Mgr.
 constexpr int FILE_VERSION = 1;
 
 void DNS_Mapping::InitializeCache(FILE* f)
-	{
+{
 	fprintf(f, "%d\n", FILE_VERSION);
-	}
+}
 
 bool DNS_Mapping::ValidateCacheVersion(FILE* f)
-	{
+{
 	char buf[512];
 	if ( ! fgets(buf, sizeof(buf), f) )
 		return false;
 
 	int version;
 	if ( sscanf(buf, "%d", &version) != 1 )
-		{
+	{
 		reporter->Warning("Existing DNS cache did not have correct version, ignoring");
 		return false;
-		}
+	}
 
 	return FILE_VERSION == version;
-	}
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_CASE("dns_mapping init null hostent")
-	{
+{
 	DNS_Mapping mapping("www.apple.com", nullptr, 123, T_A);
 
 	CHECK(! mapping.Valid());
 	CHECK(mapping.Addrs() == nullptr);
 	CHECK(mapping.AddrsSet()->EqualTo(DNS_Mgr::empty_addr_set()));
 	CHECK(mapping.Host() == nullptr);
-	}
+}
 
 TEST_CASE("dns_mapping init host")
-	{
+{
 	IPAddr addr("1.2.3.4");
 	in4_addr in4;
 	addr.CopyIPv4(&in4);
@@ -253,10 +253,10 @@ TEST_CASE("dns_mapping init host")
 	CHECK(svh->ToStdString() == "testing.home");
 
 	delete[] he.h_name;
-	}
+}
 
 TEST_CASE("dns_mapping init addr")
-	{
+{
 	IPAddr addr("1.2.3.4");
 	in4_addr in4;
 	addr.CopyIPv4(&in4);
@@ -292,12 +292,12 @@ TEST_CASE("dns_mapping init addr")
 	CHECK(svh->ToStdString() == "testing.home");
 
 	delete[] he.h_name;
-	}
+}
 
 TEST_CASE("dns_mapping save reload")
-	{
-		// TODO: this test uses fmemopen and mkdtemp, both of which aren't available on
-		// Windows. We'll have to figure out another way to do this test there.
+{
+	// TODO: this test uses fmemopen and mkdtemp, both of which aren't available on
+	// Windows. We'll have to figure out another way to do this test there.
 #ifndef _MSC_VER
 	IPAddr addr("1.2.3.4");
 	in4_addr in4;
@@ -360,10 +360,10 @@ TEST_CASE("dns_mapping save reload")
 
 	delete[] he.h_name;
 #endif
-	}
+}
 
 TEST_CASE("dns_mapping multiple addresses")
-	{
+{
 	IPAddr addr("1.2.3.4");
 	in4_addr in4_1;
 	addr.CopyIPv4(&in4_1);
@@ -397,10 +397,10 @@ TEST_CASE("dns_mapping multiple addresses")
 	CHECK(lvae->Get().AsString() == "5.6.7.8");
 
 	delete[] he.h_name;
-	}
+}
 
 TEST_CASE("dns_mapping ipv6")
-	{
+{
 	IPAddr addr("64:ff9b:1::");
 	in6_addr in6;
 	addr.CopyIPv6(&in6);
@@ -428,6 +428,6 @@ TEST_CASE("dns_mapping ipv6")
 	CHECK(lvae->Get().AsString() == "64:ff9b:1::");
 
 	delete[] he.h_name;
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

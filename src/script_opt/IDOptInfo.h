@@ -12,7 +12,7 @@
 #include "zeek/IntrusivePtr.h"
 
 namespace zeek::detail
-	{
+{
 
 class Expr;
 class Stmt;
@@ -27,21 +27,21 @@ using ExprPtr = IntrusivePtr<Expr>;
 // be defined, or (3) definitely not defined.
 
 class IDDefRegion
-	{
+{
 public:
 	IDDefRegion(const Stmt* s, bool maybe, int def);
 	IDDefRegion(int stmt_num, int level, bool maybe, int def);
 	IDDefRegion(const Stmt* s, const IDDefRegion& ur);
 
 	void Init(bool maybe, int def)
-		{
+	{
 		if ( def != NO_DEF )
 			maybe_defined = true;
 		else
 			maybe_defined = maybe;
 
 		defined = def;
-		}
+	}
 
 	// Returns the starting point of the region, i.e., the number
 	// of the statement *after* which executing this region begins.
@@ -103,13 +103,13 @@ protected:
 	// Nil if either it's ambiguous (due to confluence), or the
 	// identifier isn't guaranteed to be defined.
 	ExprPtr def_expr;
-	};
+};
 
 // Class tracking information associated with a (global) identifier's
 // (re-)initialization.
 
 class IDInitInfo
-	{
+{
 public:
 	IDInitInfo(const ID* _id, ExprPtr _init, InitClass _ic) : id(_id), init(_init), ic(_ic) { }
 
@@ -121,12 +121,12 @@ private:
 	const ID* id;
 	ExprPtr init;
 	InitClass ic;
-	};
+};
 
 // Class tracking optimization information associated with identifiers.
 
 class IDOptInfo
-	{
+{
 public:
 	IDOptInfo(const ID* id) { my_id = id; }
 
@@ -227,19 +227,19 @@ private:
 	// Find the region that applies *before* executing the given
 	// statement.  There should always be such a region.
 	IDDefRegion& FindRegionBefore(int stmt_num)
-		{
+	{
 		return usage_regions[FindRegionBeforeIndex(stmt_num)];
-		}
+	}
 	int FindRegionBeforeIndex(int stmt_num);
 
 	// Return the current "active" region, if any.  The active region
 	// is the innermost region that currently has an end of NO_DEF,
 	// meaning we have not yet found its end.
 	IDDefRegion* ActiveRegion()
-		{
+	{
 		auto ind = ActiveRegionIndex();
 		return ind >= 0 ? &usage_regions[ind] : nullptr;
-		}
+	}
 	int ActiveRegionIndex();
 
 	// Used for debugging.
@@ -297,10 +297,10 @@ private:
 	// Track whether we've already generated usage errors.
 	bool did_undefined_warning = false;
 	bool did_possibly_undefined_warning = false;
-	};
+};
 
 // If non-nil, then output detailed tracing information when building
 // up the usage regions for any identifier with the given name.
 extern const char* trace_ID;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

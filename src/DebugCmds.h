@@ -12,10 +12,10 @@
 #include "DebugCmdConstants.h"
 
 namespace zeek::detail
-	{
+{
 
 class DebugCmdInfo
-	{
+{
 public:
 	DebugCmdInfo(const DebugCmdInfo& info);
 
@@ -43,7 +43,7 @@ protected:
 
 	// Does entering a blank line repeat this command?
 	bool repeatable;
-	};
+};
 
 using DebugCmdInfoQueue = std::deque<DebugCmdInfo*>;
 extern DebugCmdInfoQueue g_DebugCmdInfos;
@@ -80,4 +80,4 @@ DbgCmdFn dbg_cmd_info;
 DbgCmdFn dbg_cmd_list;
 DbgCmdFn dbg_cmd_trace;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

@@ -9,16 +9,16 @@
 #include "zeek/iosource/IOSource.h"
 
 namespace zeek
-	{
+{
 class ODesc;
-	}
+}
 
 namespace zeek::detail
-	{
+{
 
 // If you add a timer here, adjust TimerNames in Timer.cc.
 enum TimerType : uint8_t
-	{
+{
 	TIMER_BACKDOOR,
 	TIMER_BREAKPOINT,
 	TIMER_CONN_DELETE,
@@ -52,13 +52,13 @@ enum TimerType : uint8_t
 	TIMER_TIMERMGR_EXPIRE,
 	TIMER_THREAD_HEARTBEAT,
 	TIMER_UNKNOWN_PROTOCOL_EXPIRE,
-	};
+};
 constexpr int NUM_TIMER_TYPES = int(TIMER_UNKNOWN_PROTOCOL_EXPIRE) + 1;
 
 extern const char* timer_type_to_string(TimerType type);
 
 class Timer : public PQ_Element
-	{
+{
 public:
 	Timer(double t, TimerType arg_type) : PQ_Element(t), type(arg_type) { }
 	~Timer() override { }
@@ -74,10 +74,10 @@ public:
 
 protected:
 	TimerType type{};
-	};
+};
 
 class TimerMgr final : public iosource::IOSource
-	{
+{
 public:
 	TimerMgr();
 
@@ -162,8 +162,8 @@ private:
 
 	static unsigned int current_timers[NUM_TIMER_TYPES];
 	std::unique_ptr<PriorityQueue> q;
-	};
+};
 
 extern TimerMgr* timer_mgr;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

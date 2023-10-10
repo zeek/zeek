@@ -9,13 +9,13 @@
 #include "zeek/Val.h"
 
 namespace zeek::detail
-	{
+{
 
 class DNS_Mapping;
 using DNS_MappingPtr = std::shared_ptr<DNS_Mapping>;
 
 class DNS_Mapping
-	{
+{
 public:
 	DNS_Mapping() = delete;
 	DNS_Mapping(std::string host, struct hostent* h, uint32_t ttl, int type);
@@ -75,6 +75,6 @@ protected:
 	bool no_mapping = false; // when initializing from a file, immediately hit EOF
 	bool init_failed = false;
 	bool failed = false;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

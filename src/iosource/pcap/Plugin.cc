@@ -7,13 +7,13 @@
 #include "zeek/iosource/pcap/Source.h"
 
 namespace zeek::plugin::detail::Zeek_Pcap
-	{
+{
 
 class Plugin : public plugin::Plugin
-	{
+{
 public:
 	plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new iosource::PktSrcComponent("PcapReader", "pcap",
 		                                           iosource::PktSrcComponent::BOTH,
 		                                           iosource::pcap::PcapSource::Instantiate));
@@ -24,7 +24,7 @@ public:
 		config.name = "Zeek::Pcap";
 		config.description = "Packet acquisition via libpcap";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_Pcap
+} // namespace zeek::plugin::detail::Zeek_Pcap

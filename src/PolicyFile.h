@@ -18,7 +18,7 @@
 #include <string>
 
 namespace zeek::detail
-	{
+{
 
 int how_many_lines_in(const char* policy_filename);
 
@@ -29,4 +29,4 @@ bool LoadPolicyFileText(const char* policy_filename,
 bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned int how_many_lines,
                 bool show_numbers);
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

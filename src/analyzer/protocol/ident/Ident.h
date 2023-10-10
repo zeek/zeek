@@ -6,10 +6,10 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::ident
-	{
+{
 
 class Ident_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit Ident_Analyzer(Connection* conn);
 	void Done() override;
@@ -30,6 +30,6 @@ protected:
 
 	bool did_deliver;
 	bool did_bad_reply;
-	};
+};
 
-	} // namespace zeek::analyzer::ident
+} // namespace zeek::analyzer::ident

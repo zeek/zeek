@@ -7,10 +7,10 @@
 using namespace std;
 
 namespace zeek::detail
-	{
+{
 
 shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& consts_offset)
-	{
+{
 	// Make sure the value pointer, which might be transient
 	// in construction, sticks around so we can track its
 	// value.
@@ -20,11 +20,11 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 	auto cv = const_vals.find(v);
 
 	if ( cv != const_vals.end() )
-		{
+	{
 		// Already did this one.
 		consts_offset = const_offsets[v];
 		return cv->second;
-		}
+	}
 
 	// Formulate a key that's unique per distinct constant.
 
@@ -32,15 +32,15 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 	string c_desc;
 
 	if ( t->Tag() == TYPE_STRING )
-		{
+	{
 		// We can't rely on these to render with consistent
 		// escaping, sigh.  Just use the raw string.
 		auto s = v->AsString();
 		auto b = (const char*)(s->Bytes());
 		c_desc = string(b, s->Len()) + "string";
-		}
+	}
 	else
-		{
+	{
 		ODesc d;
 		v->Describe(&d);
 
@@ -50,31 +50,31 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 
 		// Likewise, tables that have attributes.
 		if ( t->Tag() == TYPE_TABLE )
-			{
+		{
 			const auto& attrs = v->AsTableVal()->GetAttrs();
 			if ( attrs )
 				attrs->Describe(&d);
 			else
 				d.Add("<no-attrs>");
-			}
+		}
 
 		c_desc = d.Description();
-		}
+	}
 
 	auto c = constants.find(c_desc);
 	if ( c != constants.end() )
-		{
+	{
 		const_vals[v] = c->second;
 		consts_offset = const_offsets[v] = constants_offsets[c_desc];
 		return c->second;
-		}
+	}
 
 	auto tag = t->Tag();
 	auto const_name = const_info[tag]->NextName();
 	shared_ptr<CPP_InitInfo> gi;
 
 	switch ( tag )
-		{
+	{
 		case TYPE_BOOL:
 			gi = make_shared<BasicConstInfo>(vp->AsBool() ? "true" : "false");
 			break;
@@ -150,7 +150,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 		default:
 			reporter->InternalError("bad constant type in CPPCompile::AddConstant");
 			break;
-		}
+	}
 
 	const_info[tag]->AddInstance(gi);
 	const_vals[v] = constants[c_desc] = gi;
@@ -159,6 +159,6 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 	consts.emplace_back(tag, gi->Offset());
 
 	return gi;
-	}
+}
 
-	} // zeek::detail
+} // zeek::detail

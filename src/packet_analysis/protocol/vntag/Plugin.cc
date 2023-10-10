@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/vntag/VNTag.h"
 
 namespace zeek::plugin::Zeek_VNTag
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"VNTag", zeek::packet_analysis::VNTag::VNTagAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::VNTag";
 		config.description = "VNTag packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

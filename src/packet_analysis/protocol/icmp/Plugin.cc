@@ -8,13 +8,13 @@
 #include "zeek/packet_analysis/protocol/icmp/ICMPSessionAdapter.h"
 
 namespace zeek::plugin::Zeek_ICMP
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"ICMP", zeek::packet_analysis::ICMP::ICMPAnalyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("ICMP", nullptr, 0, true, false, true));
@@ -23,8 +23,8 @@ public:
 		config.name = "Zeek::ICMP";
 		config.description = "Packet analyzer for ICMP";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

@@ -10,24 +10,24 @@
 #include "zeek/Stmt.h"
 
 namespace zeek
-	{
+{
 
 namespace detail
-	{
+{
 
 // Base class for tracking an instance of profile information.  The instance
 // can be a single function body (equivalently, event handler or hook body),
 // or an aggregate that includes multiple function bodies.
 
 class ScriptProfileStats
-	{
+{
 public:
 	struct StackData
-		{
+	{
 		int call_count = 0;
 		double cpu_time = 0.0;
 		uint64_t memory = 0;
-		};
+	};
 
 	ScriptProfileStats() = default;
 	ScriptProfileStats(std::string arg_name) : name(std::move(arg_name)) { }
@@ -66,17 +66,17 @@ public:
 
 	// Accumulate a single instance of CPU & memory usage.
 	void AddIn(double delta_CPU_time, uint64_t delta_memory)
-		{
+	{
 		CPU_time += delta_CPU_time;
 		memory += delta_memory;
-		}
+	}
 
 	// Directly specify the total CPU & memory usage.
 	void SetStats(double arg_CPU_time, uint64_t arg_memory)
-		{
+	{
 		CPU_time = arg_CPU_time;
 		memory = arg_memory;
-		}
+	}
 
 	// Track that the instance has had another call.
 	void NewCall() { ++ncalls; }
@@ -88,16 +88,16 @@ private:
 	double CPU_time = 0.0;
 	uint64_t memory = 0;
 	std::unordered_map<std::string, StackData> stacks;
-	};
+};
 
 // Manages all of the profile instances associated with a given script.
 
 class ScriptProfile : public ScriptProfileStats
-	{
+{
 public:
 	ScriptProfile(const Func* _func, const detail::StmtPtr& body)
 		: ScriptProfileStats(_func->Name())
-		{
+	{
 		func = {NewRef{}, const_cast<Func*>(_func)};
 		is_BiF = body == nullptr;
 
@@ -105,14 +105,14 @@ public:
 			loc = *func->GetLocationInfo();
 		else
 			loc = *body->GetLocationInfo();
-		}
+	}
 
 	// Constructor used for the special case of non-script accounting.
 	ScriptProfile() : ScriptProfileStats("non-scripts")
-		{
+	{
 		func = nullptr;
 		is_BiF = false;
-		}
+	}
 
 	// Called to register the beginning/end of an execution instance.
 	void StartActivation();
@@ -145,11 +145,11 @@ private:
 
 	// Defined for the last activation period.
 	ScriptProfileStats delta_stats;
-	};
+};
 
 // Manages the entire script profiling process.
 class ScriptProfileMgr
-	{
+{
 public:
 	// Argument specifies the file to write the profile to.
 	ScriptProfileMgr(FILE* f);
@@ -187,15 +187,15 @@ private:
 	std::vector<const Obj*> objs;
 
 	bool with_traces = false;
-	};
+};
 
 // If non-nil, script profiling is active.
 extern std::unique_ptr<ScriptProfileMgr> spm;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail
 
 // Called to turn on script profiling to the given file.  If nil, writes
 // the profile to stdout.
 extern void activate_script_profiling(const char* fn, bool with_traces);
 
-	} // namespace zeek
+} // namespace zeek

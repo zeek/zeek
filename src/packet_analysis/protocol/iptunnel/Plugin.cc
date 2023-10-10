@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 namespace zeek::plugin::Zeek_IPTunnel
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"IPTunnel", zeek::packet_analysis::IPTunnel::IPTunnelAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::IPTunnel";
 		config.description = "IPTunnel packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

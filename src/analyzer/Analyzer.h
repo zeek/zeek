@@ -15,7 +15,7 @@
 #include "zeek/Timer.h"
 
 namespace zeek
-	{
+{
 
 class Connection;
 class IP_Hdr;
@@ -24,27 +24,27 @@ using FilePtr = zeek::IntrusivePtr<File>;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 namespace detail
-	{
+{
 class Rule;
-	}
+}
 namespace packet_analysis::IP
-	{
+{
 class IPBasedAnalyzer;
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek
 
 namespace zeek::analyzer
-	{
+{
 
 namespace tcp
-	{
+{
 class TCP_ApplicationAnalyzer;
-	}
+}
 namespace pia
-	{
+{
 class PIA;
-	}
+}
 
 class Analyzer;
 class AnalyzerTimer;
@@ -64,7 +64,7 @@ using analyzer_timer_func = void (Analyzer::*)(double t);
  * Class to receive processed output from an analyzer.
  */
 class OutputHandler
-	{
+{
 public:
 	/**
 	 * Destructor.
@@ -77,8 +77,8 @@ public:
 	 */
 	virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
 	                           const IP_Hdr* ip, int caplen)
-		{
-		}
+	{
+	}
 
 	/**
 	 * Hook for receiving stream data. Parameters are the same as for
@@ -91,7 +91,7 @@ public:
 	 * same as for Analyzer::Undelivered().
 	 */
 	virtual void Undelivered(uint64_t seq, int len, bool orig) { }
-	};
+};
 
 /**
  * Main analyzer interface.
@@ -105,7 +105,7 @@ public:
  * base-class version first.
  */
 class Analyzer
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -358,10 +358,10 @@ public:
 	 * Returns the tag associated with the analyzer's type.
 	 */
 	zeek::Tag GetAnalyzerTag() const
-		{
+	{
 		assert(tag);
 		return tag;
-		}
+	}
 
 	/**
 	 * Sets the tag associated with the analyzer's type. Note that this
@@ -621,9 +621,9 @@ public:
 	template <class... Args>
 	std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>>
 	EnqueueConnEvent(EventHandlerPtr h, Args&&... args)
-		{
+	{
 		return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...});
-		}
+	}
 
 	/**
 	 * Convenience function that forwards directly to the corresponding
@@ -643,9 +643,9 @@ protected:
 	 * and ID.
 	 */
 	static std::string fmt_analyzer(const Analyzer* a)
-		{
+	{
 		return std::string(a->GetAnalyzerName()) + util::fmt("[%d]", a->GetID());
-		}
+	}
 
 	/**
 	 * Associates a connection with this analyzer.  Must be called if
@@ -768,7 +768,7 @@ private:
 	uint64_t analyzer_violations = 0;
 
 	static ID id_counter;
-	};
+};
 
 /**
  * Convenience macro to add a new timer.
@@ -808,7 +808,7 @@ private:
  *
  */
 class SupportAnalyzer : public Analyzer
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -822,10 +822,10 @@ public:
 	 * connection originator side, and otherwise for the responder side.
 	 */
 	SupportAnalyzer(const char* name, Connection* conn, bool arg_orig) : Analyzer(name, conn)
-		{
+	{
 		orig = arg_orig;
 		sibling = nullptr;
-		}
+	}
 
 	/**
 	 * Destructor.
@@ -892,7 +892,7 @@ private:
 	// Points to next support analyzer in chain.  The list is managed by
 	// parent analyzer.
 	SupportAnalyzer* sibling;
-	};
+};
 
 // The following need to be consistent with zeek.init.
 #define CONTENTS_NONE 0
@@ -900,4 +900,4 @@ private:
 #define CONTENTS_RESP 2
 #define CONTENTS_BOTH 3
 
-	} // namespace zeek::analyzer
+} // namespace zeek::analyzer

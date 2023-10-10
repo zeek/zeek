@@ -10,7 +10,7 @@
 #include <vector>
 
 namespace zeek
-	{
+{
 
 // Forward declaration, for helper functions that convert (sub)string vectors
 // to and from policy-level representations.
@@ -26,7 +26,7 @@ using byte_vec = u_char*;
  * conversions of non-printable characters into other representations.
  */
 class String
-	{
+{
 public:
 	using Vec = std::vector<String*>;
 	using VecIt = Vec::iterator;
@@ -87,7 +87,7 @@ public:
 	const char* CheckString() const;
 
 	enum render_style
-		{
+	{
 		ESC_NONE = 0,
 		ESC_ESC = (1 << 1), // '\' -> "\\"
 		ESC_QUOT = (1 << 2), // '"' -> "\"", ''' -> "\'"
@@ -96,7 +96,7 @@ public:
 
 		// For serialization: '<string len> <string>'
 		ESC_SER = (1 << 7),
-		};
+	};
 
 	static constexpr int EXPANDED_STRING = // the original style
 		ESC_HEX;
@@ -161,21 +161,21 @@ protected:
 	int n;
 	bool final_NUL; // whether we have added a final NUL
 	bool use_free_to_delete; // free() vs. operator delete
-	};
+};
 
 // A comparison class that sorts pointers to String's according to
 // the length of the pointed-to strings. Sort order can be specified
 // through the constructor.
 //
 class StringLenCmp
-	{
+{
 public:
 	explicit StringLenCmp(bool increasing = true) { _increasing = increasing; }
 	bool operator()(String* const& bst1, String* const& bst2);
 
 private:
 	unsigned int _increasing;
-	};
+};
 
 // Default output stream operator, using rendering mode EXPANDED_STRING.
 std::ostream& operator<<(std::ostream& os, const String& bs);
@@ -191,14 +191,14 @@ extern int Bstr_cmp(const String* s1, const String* s2);
 // "ZeekConstString" might be a better name here.
 
 struct data_chunk_t
-	{
+{
 	int length;
 	const char* data;
-	};
+};
 
 extern String* concatenate(std::vector<data_chunk_t>& v);
 extern String* concatenate(String::Vec& v);
 extern String* concatenate(String::CVec& v);
 extern void delete_strings(std::vector<const String*>& v);
 
-	} // namespace zeek
+} // namespace zeek

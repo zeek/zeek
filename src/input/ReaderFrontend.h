@@ -6,12 +6,12 @@
 #include "zeek/threading/SerialTypes.h"
 
 namespace zeek
-	{
+{
 
 class EnumVal;
 
 namespace input
-	{
+{
 
 class Manager;
 
@@ -24,7 +24,7 @@ class Manager;
  * correspond to method called by the manager.
  */
 class ReaderFrontend
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -112,10 +112,10 @@ public:
 	 * Returns the additional reader information passed into the constructor.
 	 */
 	const ReaderBackend::ReaderInfo& Info() const
-		{
+	{
 		assert(info);
 		return *info;
-		}
+	}
 
 	/**
 	 * Returns the number of log fields as passed into the constructor.
@@ -138,7 +138,7 @@ private:
 	bool disabled; // True if disabled.
 	bool initialized; // True if initialized.
 	const char* name; // Descriptive name.
-	};
+};
 
-	} // namespace input
-	} // namespace zeek
+} // namespace input
+} // namespace zeek

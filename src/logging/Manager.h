@@ -15,20 +15,20 @@
 #include "zeek/telemetry/Manager.h"
 
 namespace broker
-	{
+{
 struct endpoint_info;
-	}
+}
 
 namespace zeek
-	{
+{
 
 namespace detail
-	{
+{
 class SerializationFormat;
-	}
+}
 
 namespace logging
-	{
+{
 
 class WriterFrontend;
 class RotationFinishedMessage;
@@ -38,7 +38,7 @@ class RotationTimer;
  * Singleton class for managing log streams.
  */
 class Manager : public plugin::ComponentManager<Component>
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -309,10 +309,10 @@ private:
 
 	telemetry::IntCounterFamily total_log_stream_writes_family;
 	telemetry::IntCounterFamily total_log_writer_writes_family;
-	};
+};
 
-	} // namespace logging;
+} // namespace logging;
 
 extern logging::Manager* log_mgr;
 
-	} // namespace zeek
+} // namespace zeek

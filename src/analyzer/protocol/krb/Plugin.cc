@@ -7,13 +7,13 @@
 #include "zeek/analyzer/protocol/krb/KRB_TCP.h"
 
 namespace zeek::plugin::detail::Zeek_KRB
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(
 			new zeek::analyzer::Component("KRB", zeek::analyzer::krb::KRB_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component(
@@ -22,7 +22,7 @@ public:
 		config.name = "Zeek::KRB";
 		config.description = "Kerberos analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_KRB
+} // namespace zeek::plugin::detail::Zeek_KRB

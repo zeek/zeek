@@ -5,12 +5,12 @@
 #include "zeek/analyzer/protocol/rpc/RPC.h"
 
 namespace zeek::analyzer::rpc
-	{
+{
 namespace detail
-	{
+{
 
 class PortmapperInterp : public RPC_Interpreter
-	{
+{
 public:
 	explicit PortmapperInterp(analyzer::Analyzer* arg_analyzer) : RPC_Interpreter(arg_analyzer) { }
 
@@ -25,21 +25,21 @@ protected:
 	ValPtr ExtractMapping(const u_char*& buf, int& len);
 	ValPtr ExtractPortRequest(const u_char*& buf, int& len);
 	ValPtr ExtractCallItRequest(const u_char*& buf, int& len);
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 class Portmapper_Analyzer : public RPC_Analyzer
-	{
+{
 public:
 	explicit Portmapper_Analyzer(Connection* conn);
 	~Portmapper_Analyzer() override = default;
 	void Init() override;
 
 	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{
+	{
 		return new Portmapper_Analyzer(conn);
-		}
-	};
+	}
+};
 
-	} // namespace zeek::analyzer::detail
+} // namespace zeek::analyzer::detail

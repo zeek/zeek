@@ -6,12 +6,12 @@
 #include <vector>
 
 namespace zeek::detail
-	{
+{
 
 using int_list = std::vector<std::intptr_t>;
 
 class CCL
-	{
+{
 public:
 	CCL();
 	~CCL();
@@ -26,15 +26,15 @@ public:
 	int_list* Syms() { return syms; }
 
 	void ReplaceSyms(int_list* new_syms)
-		{
+	{
 		delete syms;
 		syms = new_syms;
-		}
+	}
 
 protected:
 	int_list* syms;
 	int negated;
 	int index;
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

@@ -14,14 +14,14 @@
 #include "zeek/IntrusivePtr.h"
 
 namespace zeek
-	{
+{
 
 // The different kinds of event groups that exist.
 enum class EventGroupKind
-	{
+{
 	Attribute,
 	Module,
-	};
+};
 
 class EventGroup;
 class EventHandler;
@@ -31,14 +31,14 @@ class RE_Matcher;
 using EventGroupPtr = std::shared_ptr<EventGroup>;
 
 namespace detail
-	{
+{
 class ScriptFunc;
 using ScriptFuncPtr = zeek::IntrusivePtr<ScriptFunc>;
-	}
+}
 
 // The registry keeps track of all events that we provide or handle.
 class EventRegistry final
-	{
+{
 public:
 	EventRegistry();
 	~EventRegistry() noexcept;
@@ -112,7 +112,7 @@ private:
 	// Map event groups identified by kind and name to their instances.
 	std::map<std::pair<EventGroupKind, std::string>, std::shared_ptr<EventGroup>, std::less<>>
 		event_groups;
-	};
+};
 
 /**
  * Event group.
@@ -136,7 +136,7 @@ private:
  * group state.
  */
 class EventGroup final
-	{
+{
 public:
 	EventGroup(EventGroupKind kind, std::string_view name);
 	~EventGroup() noexcept = default;
@@ -172,8 +172,8 @@ private:
 	std::string name;
 	bool enabled = true;
 	std::unordered_set<detail::ScriptFuncPtr> funcs;
-	};
+};
 
 extern EventRegistry* event_registry;
 
-	} // namespace zeek
+} // namespace zeek

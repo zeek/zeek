@@ -11,10 +11,10 @@
 #include <cstring>
 
 namespace zeek::detail
-	{
+{
 
 bool FuzzBuffer::Valid(int chunk_count_limit) const
-	{
+{
 	if ( end - begin < PKT_MAGIC_LEN + 2 )
 		return false;
 
@@ -25,28 +25,28 @@ bool FuzzBuffer::Valid(int chunk_count_limit) const
 		return false;
 
 	return true;
-	}
+}
 
 int FuzzBuffer::ChunkCount(int chunk_count_limit) const
-	{
+{
 	auto pos = begin;
 	int chunks = 0;
 
 	while ( pos < end && (chunks < chunk_count_limit || chunk_count_limit == 0) )
-		{
+	{
 		pos = (const unsigned char*)memmem(pos, end - pos, PKT_MAGIC, PKT_MAGIC_LEN);
 		if ( ! pos )
 			break;
 
 		pos += PKT_MAGIC_LEN + 1;
 		chunks++;
-		}
-
-	return chunks;
 	}
 
+	return chunks;
+}
+
 std::optional<FuzzBuffer::Chunk> FuzzBuffer::Next()
-	{
+{
 	if ( begin == end )
 		return {};
 
@@ -77,7 +77,7 @@ std::optional<FuzzBuffer::Chunk> FuzzBuffer::Next()
 	rval.size = begin - chunk_begin;
 
 	if ( rval.size )
-		{
+	{
 		// The point of allocating a new buffer here is to better detect
 		// analyzers that may over-read within a chunk  -- ASan wouldn't
 		// complain if that happens to land within the full input buffer
@@ -86,9 +86,9 @@ std::optional<FuzzBuffer::Chunk> FuzzBuffer::Next()
 		rval.data = std::make_unique<unsigned char[]>(rval.size);
 		memcpy(rval.data.get(), chunk_begin, rval.size);
 		return {std::move(rval)};
-		}
-
-	return {};
 	}
 
-	} // namespace zeek::detail
+	return {};
+}
+
+} // namespace zeek::detail

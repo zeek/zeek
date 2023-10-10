@@ -11,12 +11,12 @@
 #include "zeek/IntSet.h"
 
 namespace zeek::detail
-	{
+{
 
 static int nfa_state_id = 0;
 
 NFA_State::NFA_State(int arg_sym, EquivClass* ec)
-	{
+{
 	sym = arg_sym;
 	ccl = nullptr;
 	accept = NO_ACCEPT;
@@ -35,10 +35,10 @@ NFA_State::NFA_State(int arg_sym, EquivClass* ec)
 
 	if ( ec && sym != SYM_EPSILON /* no associated symbol */ )
 		ec->UniqueChar(sym);
-	}
+}
 
 NFA_State::NFA_State(CCL* arg_ccl)
-	{
+{
 	sym = SYM_CCL;
 	ccl = arg_ccl;
 	accept = NO_ACCEPT;
@@ -46,30 +46,30 @@ NFA_State::NFA_State(CCL* arg_ccl)
 	mark = nullptr;
 	id = ++nfa_state_id;
 	epsclosure = nullptr;
-	}
+}
 
 NFA_State::~NFA_State()
-	{
+{
 	for ( int i = 0; i < xtions.length(); ++i )
 		if ( i > 0 || ! first_trans_is_back_ref )
 			Unref(xtions[i]);
 
 	delete epsclosure;
-	}
+}
 
 void NFA_State::AddXtionsTo(NFA_state_list* ns)
-	{
+{
 	for ( int i = 0; i < xtions.length(); ++i )
 		ns->push_back(xtions[i]);
-	}
+}
 
 NFA_State* NFA_State::DeepCopy()
-	{
+{
 	if ( mark )
-		{
+	{
 		Ref(mark);
 		return mark;
-		}
+	}
 
 	NFA_State* copy = ccl ? new NFA_State(ccl) : new NFA_State(sym, nullptr);
 	SetMark(copy);
@@ -78,20 +78,20 @@ NFA_State* NFA_State::DeepCopy()
 		copy->AddXtion(xtions[i]->DeepCopy());
 
 	return copy;
-	}
+}
 
 void NFA_State::ClearMarks()
-	{
+{
 	if ( mark )
-		{
+	{
 		SetMark(nullptr);
 		for ( int i = 0; i < xtions.length(); ++i )
 			xtions[i]->ClearMarks();
-		}
 	}
+}
 
 NFA_state_list* NFA_State::EpsilonClosure()
-	{
+{
 	if ( epsclosure )
 		return epsclosure;
 
@@ -103,29 +103,29 @@ NFA_state_list* NFA_State::EpsilonClosure()
 
 	int i;
 	for ( i = 0; i < states.length(); ++i )
-		{
+	{
 		NFA_State* ns = states[i];
 		if ( ns->TransSym() == SYM_EPSILON )
-			{
+		{
 			NFA_state_list* x = ns->Transitions();
 			for ( int j = 0; j < x->length(); ++j )
-				{
+			{
 				NFA_State* nxt = (*x)[j];
 				if ( ! nxt->Mark() )
-					{
+				{
 					states.push_back(nxt);
 					nxt->SetMark(nxt);
-					}
 				}
+			}
 
 			if ( ns->Accept() != NO_ACCEPT )
 				epsclosure->push_back(ns);
-			}
+		}
 
 		else
 			// Non-epsilon transition - keep it.
 			epsclosure->push_back(ns);
-		}
+	}
 
 	// Clear out markers.
 	for ( i = 0; i < states.length(); ++i )
@@ -135,15 +135,15 @@ NFA_state_list* NFA_State::EpsilonClosure()
 	epsclosure->resize(0);
 
 	return epsclosure;
-	}
+}
 
 void NFA_State::Describe(ODesc* d) const
-	{
+{
 	d->Add("NFA state");
-	}
+}
 
 void NFA_State::Dump(FILE* f)
-	{
+{
 	if ( mark )
 		return;
 
@@ -155,34 +155,34 @@ void NFA_State::Dump(FILE* f)
 	SetMark(this);
 	for ( int i = 0; i < xtions.length(); ++i )
 		xtions[i]->Dump(f);
-	}
+}
 
 NFA_Machine::NFA_Machine(NFA_State* first, NFA_State* final)
-	{
+{
 	first_state = first;
 	final_state = final ? final : first;
 	eol = bol = 0;
-	}
+}
 
 NFA_Machine::~NFA_Machine()
-	{
+{
 	Unref(first_state);
-	}
+}
 
 void NFA_Machine::InsertEpsilon()
-	{
+{
 	NFA_State* eps = new EpsilonState();
 	eps->AddXtion(first_state);
 	first_state = eps;
-	}
+}
 
 void NFA_Machine::AppendEpsilon()
-	{
+{
 	AppendState(new EpsilonState());
-	}
+}
 
 void NFA_Machine::AddAccept(int accept_val)
-	{
+{
 	// Hang the accepting number off an epsilon state.  If it is associated
 	// with a state that has a non-epsilon out-transition, then the state
 	// will accept BEFORE it makes that transition, i.e., one character
@@ -192,10 +192,10 @@ void NFA_Machine::AddAccept(int accept_val)
 		AppendState(new EpsilonState());
 
 	final_state->SetAccept(accept_val);
-	}
+}
 
 void NFA_Machine::LinkCopies(int n)
-	{
+{
 	if ( n <= 0 )
 		return;
 
@@ -212,53 +212,53 @@ void NFA_Machine::LinkCopies(int n)
 		AppendMachine(copies[i]);
 
 	delete[] copies;
-	}
+}
 
 NFA_Machine* NFA_Machine::DuplicateMachine()
-	{
+{
 	NFA_State* new_first_state = first_state->DeepCopy();
 	NFA_Machine* new_m = new NFA_Machine(new_first_state, final_state->Mark());
 	first_state->ClearMarks();
 
 	return new_m;
-	}
+}
 
 void NFA_Machine::AppendState(NFA_State* s)
-	{
+{
 	final_state->AddXtion(s);
 	final_state = s;
-	}
+}
 
 void NFA_Machine::AppendMachine(NFA_Machine* m)
-	{
+{
 	AppendEpsilon();
 	final_state->AddXtion(m->FirstState());
 	final_state = m->FinalState();
 
 	Ref(m->FirstState()); // so states stay around after the following
 	Unref(m);
-	}
+}
 
 void NFA_Machine::MakeOptional()
-	{
+{
 	InsertEpsilon();
 	AppendEpsilon();
 	first_state->AddXtion(final_state);
 	Ref(final_state);
-	}
+}
 
 void NFA_Machine::MakePositiveClosure()
-	{
+{
 	AppendEpsilon();
 	final_state->AddXtion(first_state);
 
 	// Don't Ref the state the final epsilon points to, otherwise we'll
 	// have reference cycles that lead to leaks.
 	final_state->SetFirstTransIsBackRef();
-	}
+}
 
 void NFA_Machine::MakeRepl(int lower, int upper)
-	{
+{
 	NFA_Machine* dup = nullptr;
 	if ( upper > lower || upper == NO_UPPER_BOUND )
 		dup = DuplicateMachine();
@@ -266,14 +266,14 @@ void NFA_Machine::MakeRepl(int lower, int upper)
 	LinkCopies(lower - 1);
 
 	if ( upper == NO_UPPER_BOUND )
-		{
+	{
 		dup->MakeClosure();
 		AppendMachine(dup);
 		return;
-		}
+	}
 
 	while ( upper > lower )
-		{
+	{
 		NFA_Machine* dup2;
 		if ( --upper == lower )
 			// Don't need "dup" for any further copies
@@ -283,22 +283,22 @@ void NFA_Machine::MakeRepl(int lower, int upper)
 
 		dup2->MakeOptional();
 		AppendMachine(dup2);
-		}
 	}
+}
 
 void NFA_Machine::Describe(ODesc* d) const
-	{
+{
 	d->Add("NFA machine");
-	}
+}
 
 void NFA_Machine::Dump(FILE* f)
-	{
+{
 	first_state->Dump(f);
 	first_state->ClearMarks();
-	}
+}
 
 NFA_Machine* make_alternate(NFA_Machine* m1, NFA_Machine* m2)
-	{
+{
 	if ( ! m1 )
 		return m2;
 	if ( ! m2 )
@@ -322,10 +322,10 @@ NFA_Machine* make_alternate(NFA_Machine* m1, NFA_Machine* m2)
 	Unref(m2);
 
 	return new NFA_Machine(first, last);
-	}
+}
 
 NFA_state_list* epsilon_closure(NFA_state_list* states)
-	{
+{
 	// We just keep one of this as it may get quite large.
 	static IntSet closuremap;
 	closuremap.Clear();
@@ -333,19 +333,19 @@ NFA_state_list* epsilon_closure(NFA_state_list* states)
 	NFA_state_list* closure = new NFA_state_list;
 
 	for ( int i = 0; i < states->length(); ++i )
-		{
+	{
 		NFA_state_list* stateclosure = (*states)[i]->EpsilonClosure();
 
 		for ( int j = 0; j < stateclosure->length(); ++j )
-			{
+		{
 			NFA_State* ns = (*stateclosure)[j];
 			if ( ! closuremap.Contains(ns->ID()) )
-				{
+			{
 				closuremap.Insert(ns->ID());
 				closure->push_back(ns);
-				}
 			}
 		}
+	}
 
 	// Sort all of the closures in the list by ID
 	std::sort(closure->begin(), closure->end(), NFA_state_cmp_neg);
@@ -356,14 +356,14 @@ NFA_state_list* epsilon_closure(NFA_state_list* states)
 	delete states;
 
 	return closure;
-	}
+}
 
 bool NFA_state_cmp_neg(const NFA_State* v1, const NFA_State* v2)
-	{
+{
 	if ( v1->ID() < v2->ID() )
 		return true;
 	else
 		return false;
-	}
+}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

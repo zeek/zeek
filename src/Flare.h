@@ -7,10 +7,10 @@
 #endif
 
 namespace zeek::detail
-	{
+{
 
 class Flare
-	{
+{
 public:
 	/**
 	 * Create a flare object that can be used to signal a "ready" status via
@@ -26,13 +26,13 @@ public:
 	 */
 	int FD() const
 #ifndef _MSC_VER
-		{
+	{
 		return pipe.ReadFD();
-		}
+	}
 #else
-		{
+	{
 		return recvfd;
-		}
+	}
 #endif
 
 	/**
@@ -57,6 +57,6 @@ private:
 #else
 	int sendfd, recvfd;
 #endif
-	};
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

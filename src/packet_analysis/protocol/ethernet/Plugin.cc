@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/ethernet/Ethernet.h"
 
 namespace zeek::plugin::Zeek_Ethernet
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"Ethernet", zeek::packet_analysis::Ethernet::EthernetAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::Ethernet";
 		config.description = "Ethernet packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

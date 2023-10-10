@@ -8,15 +8,15 @@
 #include "zeek/script_opt/ZAM/Support.h"
 
 namespace zeek::detail
-	{
+{
 
 // Static information about globals used in a function.
 class GlobalInfo
-	{
+{
 public:
 	IDPtr id;
 	int slot;
-	};
+};
 
 // These are the counterparts to CaseMapI and CaseMapsI in ZAM.h,
 // but concretized to use instruction numbers rather than pointers
@@ -27,7 +27,7 @@ template <typename T> using CaseMaps = std::vector<CaseMap<T>>;
 using TableIterVec = std::vector<TableIterInfo>;
 
 class ZBody : public Stmt
-	{
+{
 public:
 	ZBody(const char* _func_name, const ZAMCompiler* zc);
 
@@ -113,9 +113,9 @@ private:
 	CaseMaps<zeek_uint_t> uint_cases;
 	CaseMaps<double> double_cases;
 	CaseMaps<std::string> str_cases;
-	};
+};
 
 // Prints the execution profile.
 extern void report_ZOP_profile();
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

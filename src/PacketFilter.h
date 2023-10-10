@@ -8,16 +8,16 @@
 #include "zeek/PrefixTable.h"
 
 namespace zeek
-	{
+{
 
 class IP_Hdr;
 class Val;
 
 namespace detail
-	{
+{
 
 class PacketFilter
-	{
+{
 public:
 	explicit PacketFilter(bool arg_default);
 	~PacketFilter() { }
@@ -42,10 +42,10 @@ public:
 
 private:
 	struct Filter
-		{
+	{
 		uint32_t tcp_flags;
 		double probability;
-		};
+	};
 
 	static void DeleteFilter(void* data);
 
@@ -54,7 +54,7 @@ private:
 	bool default_match;
 	PrefixTable src_filter;
 	PrefixTable dst_filter;
-	};
+};
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

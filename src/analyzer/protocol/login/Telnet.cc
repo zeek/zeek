@@ -8,10 +8,10 @@
 #include "zeek/analyzer/protocol/login/events.bif.h"
 
 namespace zeek::analyzer::login
-	{
+{
 
 Telnet_Analyzer::Telnet_Analyzer(Connection* conn) : Login_Analyzer("TELNET", conn)
-	{
+{
 	NVT_Analyzer* nvt_orig = new NVT_Analyzer(conn, true);
 	NVT_Analyzer* nvt_resp = new NVT_Analyzer(conn, false);
 
@@ -20,6 +20,6 @@ Telnet_Analyzer::Telnet_Analyzer(Connection* conn) : Login_Analyzer("TELNET", co
 
 	AddSupportAnalyzer(nvt_orig);
 	AddSupportAnalyzer(nvt_resp);
-	}
+}
 
-	} // namespace zeek::analyzer::login
+} // namespace zeek::analyzer::login

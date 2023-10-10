@@ -8,7 +8,7 @@
 #include "zeek/util.h" // for zeek_int_t
 
 namespace zeek
-	{
+{
 
 constexpr int UID_LEN = 2;
 
@@ -17,7 +17,7 @@ constexpr int UID_LEN = 2;
  * them to human-readable strings in Base62 format.
  */
 class UID
-	{
+{
 public:
 	/**
 	 * Default ctor.  The UID is uninitialized.
@@ -70,9 +70,9 @@ public:
 	 * UID equality operator.
 	 */
 	friend bool operator==(const UID& u1, const UID& u2)
-		{
+	{
 		return memcmp(u1.uid, u2.uid, sizeof(u1.uid)) == 0;
-		}
+	}
 
 	/**
 	 * UID inequality operator.
@@ -82,19 +82,19 @@ public:
 private:
 	uint64_t uid[UID_LEN];
 	bool initialized; // Since technically uid == 0 is a legit UID
-	};
+};
 
 inline UID::UID(const UID& other)
-	{
+{
 	memcpy(uid, other.uid, sizeof(uid));
 	initialized = other.initialized;
-	}
+}
 
 inline UID& UID::operator=(const UID& other)
-	{
+{
 	memmove(uid, other.uid, sizeof(uid));
 	initialized = other.initialized;
 	return *this;
-	}
+}
 
-	} // namespace zeek
+} // namespace zeek

@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/mpls/MPLS.h"
 
 namespace zeek::plugin::Zeek_MPLS
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"MPLS", zeek::packet_analysis::MPLS::MPLSAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::MPLS";
 		config.description = "MPLS packet analyzer";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

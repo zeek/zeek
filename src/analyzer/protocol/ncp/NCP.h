@@ -23,16 +23,16 @@
 #include "analyzer/protocol/ncp/ncp_pac.h"
 
 namespace zeek::analyzer::ncp
-	{
+{
 namespace detail
-	{
+{
 
 // Create a general NCP_Session class so that it can be used in
 // case the RPC conversation is tunneled through other connections,
 // e.g., through an SMB session.
 
 class NCP_Session
-	{
+{
 public:
 	explicit NCP_Session(analyzer::Analyzer* analyzer);
 
@@ -46,10 +46,10 @@ protected:
 	analyzer::Analyzer* analyzer;
 	int req_frame_type;
 	int req_func;
-	};
+};
 
 class FrameBuffer
-	{
+{
 public:
 	explicit FrameBuffer(size_t header_length);
 	virtual ~FrameBuffer();
@@ -72,23 +72,23 @@ protected:
 	uint64_t msg_len;
 	size_t buf_n; // number of bytes in msg_buf
 	size_t buf_len; // size off msg_buf
-	};
+};
 
 #define NCP_TCPIP_HEADER_LENGTH 8
 
 class NCP_FrameBuffer : public FrameBuffer
-	{
+{
 public:
 	NCP_FrameBuffer() : FrameBuffer(NCP_TCPIP_HEADER_LENGTH) { }
 
 protected:
 	void compute_msg_length() override;
-	};
+};
 
-	} // namespace detail
+} // namespace detail
 
 class Contents_NCP_Analyzer : public analyzer::tcp::TCP_SupportAnalyzer
-	{
+{
 public:
 	Contents_NCP_Analyzer(Connection* conn, bool orig, detail::NCP_Session* session);
 	~Contents_NCP_Analyzer() override = default;
@@ -103,10 +103,10 @@ protected:
 	// Re-sync for partial connections (or after a content gap).
 	bool resync;
 	bool resync_set;
-	};
+};
 
 class NCP_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 public:
 	explicit NCP_Analyzer(Connection* conn);
 	~NCP_Analyzer() override;
@@ -117,6 +117,6 @@ protected:
 	detail::NCP_Session* session;
 	Contents_NCP_Analyzer* o_ncp;
 	Contents_NCP_Analyzer* r_ncp;
-	};
+};
 
-	} // namespace zeek::analyzer::ncp
+} // namespace zeek::analyzer::ncp

@@ -6,13 +6,13 @@
 #include "zeek/packet_analysis/protocol/ip/IP.h"
 
 namespace zeek::plugin::Zeek_IP
-	{
+{
 
 class Plugin final : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::packet_analysis::Component(
 			"IP", zeek::packet_analysis::IP::IPAnalyzer::Instantiate));
 
@@ -20,8 +20,8 @@ public:
 		config.name = "Zeek::IP";
 		config.description = "Packet analyzer for IP fallback (v4 or v6)";
 		return config;
-		}
-
-	} plugin;
-
 	}
+
+} plugin;
+
+}

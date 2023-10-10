@@ -10,7 +10,7 @@
 #include "zeek/util.h"
 
 namespace zeek::detail
-	{
+{
 
 using ObjPtr = IntrusivePtr<Obj>;
 
@@ -18,7 +18,7 @@ using ObjPtr = IntrusivePtr<Obj>;
  * A simple class for managing stats of Zeek script coverage across Zeek runs.
  */
 class ScriptCoverageManager
-	{
+{
 public:
 	ScriptCoverageManager();
 	virtual ~ScriptCoverageManager() = default;
@@ -85,17 +85,17 @@ private:
 	 * that don't agree with the output format of ScriptCoverageManager.
 	 */
 	struct canonicalize_desc
-		{
+	{
 		char delim;
 
 		void operator()(char& c)
-			{
+		{
 			if ( c == '\n' )
 				c = ' ';
 			if ( c == delim )
 				c = ' ';
-			}
-		};
+		}
+	};
 
 	/**
 	 * Tracks the usage of a given object with a given description
@@ -107,8 +107,8 @@ private:
 	 * Reports a single coverage instance.
 	 */
 	void Report(FILE* f, uint64_t cnt, std::string loc, std::string desc);
-	};
+};
 
 extern ScriptCoverageManager script_coverage_mgr;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

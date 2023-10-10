@@ -26,18 +26,18 @@
 #define PLUGIN_DBG_LOG(plugin, ...) ::zeek::detail::debug_logger.Log(plugin, __VA_ARGS__)
 
 namespace zeek
-	{
+{
 
 namespace plugin
-	{
+{
 class Plugin;
-	}
+}
 
 // To add a new debugging stream, add a constant here as well as
 // an entry to DebugLogger::streams in DebugLogger.cc.
 
 enum DebugStream
-	{
+{
 	DBG_SERIAL, // Serialization
 	DBG_RULES, // Signature matching
 	DBG_STRING, // String code
@@ -60,13 +60,13 @@ enum DebugStream
 	DBG_SPICY, // Spicy functionality
 
 	NUM_DBGS // Has to be last
-	};
+};
 
 namespace detail
-	{
+{
 
 class DebugLogger
-	{
+{
 public:
 	// Output goes to stderr per default.
 	DebugLogger();
@@ -102,26 +102,26 @@ private:
 	bool verbose;
 
 	struct Stream
-		{
+	{
 		const char* prefix;
 		int indent;
 		bool enabled;
-		};
+	};
 
 	std::set<std::string> enabled_streams;
 
 	static Stream streams[NUM_DBGS];
 
 	const std::string PluginStreamName(const std::string& plugin_name)
-		{
+	{
 		return "plugin-" + util::strreplace(plugin_name, "::", "-");
-		}
-	};
+	}
+};
 
 extern DebugLogger debug_logger;
 
-	} // namespace detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek
 
 #else
 #define DBG_LOG(...)

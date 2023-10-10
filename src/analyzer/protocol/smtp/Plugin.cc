@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/smtp/SMTP.h"
 
 namespace zeek::plugin::detail::Zeek_SMTP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"SMTP", zeek::analyzer::smtp::SMTP_Analyzer::Instantiate));
 
@@ -20,7 +20,7 @@ public:
 		config.name = "Zeek::SMTP";
 		config.description = "SMTP analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_SMTP
+} // namespace zeek::plugin::detail::Zeek_SMTP

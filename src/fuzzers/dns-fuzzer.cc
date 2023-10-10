@@ -14,7 +14,7 @@
 static constexpr auto ZEEK_FUZZ_ANALYZER = "dns";
 
 static zeek::Connection* add_connection()
-	{
+{
 	static constexpr double network_time_start = 1439471031;
 	zeek::run_state::detail::update_network_time(network_time_start);
 
@@ -31,10 +31,10 @@ static zeek::Connection* add_connection()
 	conn->SetTransport(TRANSPORT_TCP);
 	zeek::session_mgr->Insert(conn);
 	return conn;
-	}
+}
 
 static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
-	{
+{
 	auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn);
 	auto* pia = new zeek::analyzer::pia::PIA_TCP(conn);
 	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(ZEEK_FUZZ_ANALYZER, conn);
@@ -42,22 +42,22 @@ static zeek::analyzer::Analyzer* add_analyzer(zeek::Connection* conn)
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());
 	conn->SetSessionAdapter(tcp, pia);
 	return a;
-	}
+}
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
-	{
+{
 	auto conn = add_connection();
 	auto a = add_analyzer(conn);
 
 	try
-		{
+	{
 		a->DeliverPacket(size, data, true, -1, nullptr, size);
-		}
+	}
 	catch ( const binpac::Exception& e )
-		{
-		}
+	{
+	}
 
 	zeek::event_mgr.Drain();
 	zeek::detail::fuzzer_cleanup_one_input();
 	return 0;
-	}
+}

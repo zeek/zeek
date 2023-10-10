@@ -7,27 +7,27 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer
-	{
+{
 
 namespace irc
-	{
+{
 
 /**
  * \brief Main class for analyzing IRC traffic.
  */
 class IRC_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+{
 	enum
-		{
+	{
 		WAIT_FOR_REGISTRATION,
 		REGISTERED,
-		};
+	};
 	enum
-		{
+	{
 		NO_ZIP,
 		ACCEPT_ZIP,
 		ZIP_LOADED,
-		};
+	};
 
 public:
 	/**
@@ -81,15 +81,15 @@ private:
 	analyzer::tcp::ContentLine_Analyzer* cl_orig;
 	analyzer::tcp::ContentLine_Analyzer* cl_resp;
 	bool starttls; // if true, connection has been upgraded to tls
-	};
+};
 
-	} // namespace irc
+} // namespace irc
 
 namespace file
-	{
+{
 
 class IRC_Data : public analyzer::file::File_Analyzer
-	{
+{
 public:
 	explicit IRC_Data(Connection* conn) : analyzer::file::File_Analyzer("IRC_Data", conn) { }
 
@@ -98,7 +98,7 @@ public:
 	void Undelivered(uint64_t seq, int len, bool orig) override;
 
 	static Analyzer* Instantiate(Connection* conn) { return new IRC_Data(conn); }
-	};
-	}
+};
+}
 
-	} // namespace zeek::analyzer
+} // namespace zeek::analyzer

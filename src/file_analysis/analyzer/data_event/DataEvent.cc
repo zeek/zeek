@@ -11,17 +11,17 @@
 #include "zeek/util.h"
 
 namespace zeek::file_analysis::detail
-	{
+{
 
 DataEvent::DataEvent(RecordValPtr args, file_analysis::File* file, EventHandlerPtr ce,
                      EventHandlerPtr se)
 	: file_analysis::Analyzer(file_mgr->GetComponentTag("DATA_EVENT"), std::move(args), file),
 	  chunk_event(ce), stream_event(se)
-	{
-	}
+{
+}
 
 file_analysis::Analyzer* DataEvent::Instantiate(RecordValPtr args, file_analysis::File* file)
-	{
+{
 	const auto& chunk_val = args->GetField("chunk_event");
 	const auto& stream_val = args->GetField("stream_event");
 
@@ -38,10 +38,10 @@ file_analysis::Analyzer* DataEvent::Instantiate(RecordValPtr args, file_analysis
 		stream = event_registry->Lookup(stream_val->AsFunc()->Name());
 
 	return new DataEvent(std::move(args), file, chunk, stream);
-	}
+}
 
 bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
-	{
+{
 	if ( ! chunk_event )
 		return true;
 
@@ -50,10 +50,10 @@ bool DataEvent::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset)
 	                  val_mgr->Count(offset));
 
 	return true;
-	}
+}
 
 bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
-	{
+{
 	if ( ! stream_event )
 		return true;
 
@@ -61,6 +61,6 @@ bool DataEvent::DeliverStream(const u_char* data, uint64_t len)
 	                  make_intrusive<StringVal>(new String(data, len, false)));
 
 	return true;
-	}
+}
 
-	} // namespace zeek::file_analysis::detail
+} // namespace zeek::file_analysis::detail

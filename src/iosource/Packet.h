@@ -23,7 +23,7 @@ using pkt_timeval = struct timeval;
 #include "zeek/session/Session.h"
 
 namespace zeek
-	{
+{
 
 class ODesc;
 class Val;
@@ -39,18 +39,18 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
  * correctly.
  */
 enum Layer3Proto : int32_t
-	{
+{
 	L3_UNKNOWN = -1, /// Layer 3 type could not be determined.
 	L3_IPV4 = 1, /// Layer 3 is IPv4.
 	L3_IPV6 = 2, /// Layer 3 is IPv6.
 	L3_ARP = 3, /// Layer 3 is ARP.
-	};
+};
 
 /**
  * A link-layer packet.
  */
 class Packet
-	{
+{
 public:
 	/**
 	 * Construct and initialize from packet data.
@@ -76,18 +76,18 @@ public:
 	 */
 	Packet(int link_type, pkt_timeval* ts, uint32_t caplen, uint32_t len, const u_char* data,
 	       bool copy = false, std::string tag = "")
-		{
+	{
 		Init(link_type, ts, caplen, len, data, copy, tag);
-		}
+	}
 
 	/**
 	 * Default constructor. For internal use only.
 	 */
 	Packet()
-		{
+	{
 		pkt_timeval ts = {0, 0};
 		Init(0, &ts, 0, 0, nullptr);
-		}
+	}
 
 	/**
 	 * Destructor.
@@ -286,6 +286,6 @@ private:
 	// True if we need to delete associated packet memory upon
 	// destruction.
 	bool copy;
-	};
+};
 
-	} // namespace zeek
+} // namespace zeek

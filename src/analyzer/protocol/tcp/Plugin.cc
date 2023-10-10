@@ -6,13 +6,13 @@
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::plugin::detail::Zeek_TCP
-	{
+{
 
 class Plugin : public zeek::plugin::Plugin
-	{
+{
 public:
 	zeek::plugin::Configuration Configure() override
-		{
+	{
 		AddComponent(new zeek::analyzer::Component(
 			"TCPStats", zeek::analyzer::tcp::TCPStats_Analyzer::Instantiate));
 		AddComponent(new zeek::analyzer::Component("CONTENTLINE", nullptr));
@@ -22,7 +22,7 @@ public:
 		config.name = "Zeek::TCP";
 		config.description = "TCP analyzer";
 		return config;
-		}
-	} plugin;
+	}
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_TCP
+} // namespace zeek::plugin::detail::Zeek_TCP

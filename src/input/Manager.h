@@ -13,12 +13,12 @@
 #include "zeek/threading/SerialTypes.h"
 
 namespace zeek
-	{
+{
 
 class RecordVal;
 
 namespace input
-	{
+{
 
 class ReaderFrontend;
 class ReaderBackend;
@@ -27,7 +27,7 @@ class ReaderBackend;
  * Singleton class for managing input streams.
  */
 class Manager : public plugin::ComponentManager<Component>
-	{
+{
 public:
 	/**
 	 * Constructor.
@@ -254,11 +254,11 @@ private:
 	void Error(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
 
 	enum class ErrorType
-		{
+	{
 		INFO,
 		WARNING,
 		ERROR
-		};
+	};
 	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const
 		__attribute__((format(printf, 5, 6)));
 	void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt,
@@ -268,19 +268,19 @@ private:
 	Stream* FindStream(ReaderFrontend* reader) const;
 
 	enum StreamType
-		{
+	{
 		TABLE_STREAM,
 		EVENT_STREAM,
 		ANALYSIS_STREAM
-		};
+	};
 
 	std::map<ReaderFrontend*, Stream*> readers;
 
 	EventHandlerPtr end_of_data;
-	};
+};
 
-	} // namespace input
+} // namespace input
 
 extern input::Manager* input_mgr;
 
-	} // namespace zeek
+} // namespace zeek

@@ -16,7 +16,7 @@
 #define TOSTRING(str) VAL(str)
 
 static zeek::Connection* add_connection()
-	{
+{
 	static constexpr double network_time_start = 1439471031;
 	zeek::run_state::detail::update_network_time(network_time_start);
 
@@ -33,28 +33,28 @@ static zeek::Connection* add_connection()
 	conn->SetTransport(TRANSPORT_TCP);
 	zeek::session_mgr->Insert(conn);
 	return conn;
-	}
+}
 
 static std::pair<zeek::analyzer::Analyzer*, zeek::packet_analysis::TCP::TCPSessionAdapter*>
 add_analyzer(zeek::Connection* conn, zeek::Tag tag)
-	{
+{
 	auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn);
 	auto* pia = new zeek::analyzer::pia::PIA_TCP(conn);
 	auto a = zeek::analyzer_mgr->InstantiateAnalyzer(tag, conn);
 	if ( ! a )
-		{
+	{
 		fprintf(stderr, "Unknown or unsupported analyzer %s found\n", TOSTRING(ZEEK_FUZZ_ANALYZER));
 		abort();
-		}
+	}
 
 	tcp->AddChildAnalyzer(a);
 	tcp->AddChildAnalyzer(pia->AsAnalyzer());
 	conn->SetSessionAdapter(tcp, pia);
 	return {a, tcp};
-	}
+}
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
-	{
+{
 	zeek::detail::FuzzBuffer fb{data, size};
 
 	if ( ! fb.Valid() )
@@ -65,19 +65,19 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	auto [a, tcp] = add_analyzer(conn, tag);
 
 	for ( ;; )
-		{
+	{
 		auto chunk = fb.Next();
 
 		if ( ! chunk )
 			break;
 
 		try
-			{
+		{
 			a->NextStream(chunk->size, chunk->data.get(), chunk->is_orig);
-			}
+		}
 		catch ( const binpac::Exception& e )
-			{
-			}
+		{
+		}
 
 		chunk = {};
 		zeek::event_mgr.Drain();
@@ -85,8 +85,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 		// Has the analyzer been disabled during event processing?
 		if ( ! tcp->HasChildAnalyzer(tag) )
 			break;
-		}
+	}
 
 	zeek::detail::fuzzer_cleanup_one_input();
 	return 0;
-	}
+}

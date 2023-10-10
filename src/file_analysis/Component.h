@@ -8,13 +8,13 @@
 #include "zeek/plugin/Component.h"
 
 namespace zeek
-	{
+{
 
 class RecordVal;
 using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 namespace file_analysis
-	{
+{
 
 class File;
 class Analyzer;
@@ -27,7 +27,7 @@ class Manager;
  * analyzer component, describing the analyzer.
  */
 class Component : public plugin::Component
-	{
+{
 public:
 	using factory_function = Analyzer* (*)(RecordValPtr args, File* file);
 
@@ -99,7 +99,7 @@ private:
 
 	factory_function factory_func; // The analyzer's factory callback.
 	bool enabled; // True if the analyzer is enabled.
-	};
+};
 
-	} // namespace file_analysis
-	} // namespace zeek
+} // namespace file_analysis
+} // namespace zeek

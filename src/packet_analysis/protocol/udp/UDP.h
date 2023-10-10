@@ -8,18 +8,18 @@
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
 namespace zeek::packet_analysis::UDP
-	{
+{
 
 class UDPAnalyzer final : public IP::IPBasedAnalyzer
-	{
+{
 public:
 	UDPAnalyzer();
 	~UDPAnalyzer() override = default;
 
 	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
+	{
 		return std::make_shared<UDPAnalyzer>();
-		}
+	}
 
 	/**
 	 * Initialize the analyzer. This method is called after the configuration
@@ -59,6 +59,6 @@ private:
 	static bool ValidateChecksum(const IP_Hdr* ip, const struct udphdr* up, int len);
 
 	std::vector<uint16_t> vxlan_ports;
-	};
+};
 
-	}
+}

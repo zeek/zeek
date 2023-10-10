@@ -205,7 +205,7 @@ bool ReaderBackend::OnFinish(double network_time) {
         for ( unsigned int i = 0; i < num_fields; i++ )
             delete (fields[i]);
 
-        delete[](fields);
+        delete[] (fields);
         fields = nullptr;
     }
 

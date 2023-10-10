@@ -1520,8 +1520,8 @@ void DNS_Interpreter::SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHand
 }
 
 DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query) {
-    //### Need to fix alignment if hdr is misaligned (not on a short
-    // boundary).
+    // ### Need to fix alignment if hdr is misaligned (not on a short
+    //  boundary).
     unsigned short flags = ntohs(hdr->flags);
 
     QR = (flags & 0x8000) != 0;

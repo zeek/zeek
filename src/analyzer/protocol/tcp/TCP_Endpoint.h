@@ -206,7 +206,7 @@ public:
     bool CheckHistory(uint32_t mask, char code);
     void AddHistory(char code);
 
-    //### combine into a set of flags:
+    // ### combine into a set of flags:
     EndpointState state, prev_state;
     TCP_Endpoint* peer;
     TCP_Reassembler* contents_processor;

@@ -113,7 +113,7 @@ public:
         if ( key_size <= 8 ) {
             memcpy(key_here, arg_key, key_size);
             if ( ! copy_key )
-                delete[](char*) arg_key; // own the arg_key, now don't need it.
+                delete[] (char*)arg_key; // own the arg_key, now don't need it.
         }
         else {
             if ( copy_key ) {
@@ -584,7 +584,7 @@ public:
             v = table[position].value;
             table[position].value = val;
             if ( ! copy_key )
-                delete[](char*) key;
+                delete[] (char*)key;
 
             if ( iterators && ! iterators->empty() )
                 // need to set new v for iterators too.

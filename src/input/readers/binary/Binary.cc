@@ -140,7 +140,7 @@ streamsize Binary::GetChunk(char** chunk) {
     streamsize bytes_read = in->gcount();
 
     if ( ! bytes_read ) {
-        delete[] * chunk;
+        delete[] *chunk;
         *chunk = nullptr;
         return 0;
     }

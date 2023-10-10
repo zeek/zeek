@@ -185,8 +185,8 @@ bool DbgBreakpoint::Reset() {
         case BP_STMT:
         case BP_LINE:
             plr.type = PLR_FUNCTION;
-            //### How to deal with wildcards?
-            //### perhaps save user choices?--tough...
+            // ### How to deal with wildcards?
+            // ### perhaps save user choices?--tough...
             break;
     }
 

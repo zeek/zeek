@@ -85,7 +85,7 @@ public:
 
     // Temporary state: vanishes when execution resumes.
 
-    //### Umesh, why do these all need to be public? -- Vern
+    // ### Umesh, why do these all need to be public? -- Vern
 
     // Which frame we're looking at; 0 = the innermost frame.
     int curr_frame_idx;

@@ -14,7 +14,7 @@ namespace analyzer::bittorrent {
 
 // If the following is defined, then the analyzer will store all of
 // the headers seen in tracker messages.
-//#define BTTRACKER_STORE_HEADERS 1
+// #define BTTRACKER_STORE_HEADERS 1
 
 namespace detail {
 

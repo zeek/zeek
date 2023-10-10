@@ -232,7 +232,7 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len) {
     }
 
     if ( data[0] == ENVIRON_SEND )
-        //### We should track the dialog and make sure both sides agree.
+        // ### We should track the dialog and make sure both sides agree.
         return;
 
     if ( data[0] != ENVIRON_IS && data[0] != ENVIRON_INFO ) {

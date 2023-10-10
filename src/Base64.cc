@@ -154,7 +154,7 @@ int Base64Converter::Decode(int len, const char* data, int* pblen, char** pbuf) 
                 *buf++ = char((bit32 >> 8) & 0xff);
 
             if ( --num_octets >= 0 )
-                *buf++ = char((bit32)&0xff);
+                *buf++ = char((bit32) & 0xff);
 
             if ( base64_padding > 0 )
                 base64_after_padding = 1;

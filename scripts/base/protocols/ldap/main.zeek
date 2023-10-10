@@ -53,19 +53,19 @@ export {
     version: int &log &optional;
 
     # normalized operations (e.g., bind_request and bind_response to "bind")
-    opcode: set[string] &log &optional;
+    opcodes: set[string] &log &optional;
 
     # Result code(s)
-    result: set[string] &log &optional;
+    results: set[string] &log &optional;
 
     # result diagnostic message(s)
-    diagnostic_message: vector of string &log &optional;
+    diagnostic_messages: vector of string &log &optional;
 
     # object(s)
-    object: vector of string &log &optional;
+    objects: vector of string &log &optional;
 
     # argument(s)
-    argument: vector of string &log &optional;
+    arguments: vector of string &log &optional;
   };
 
   #############################################################################
@@ -88,20 +88,20 @@ export {
     message_id: int &log &optional;
 
     # sets of search scope and deref alias
-    scope: set[string] &log &optional;
-    deref: set[string] &log &optional;
+    scopes: set[string] &log &optional;
+    derefs: set[string] &log &optional;
 
     # base search objects
-    base_object: vector of string &log &optional;
+    base_objects: vector of string &log &optional;
 
     # number of results returned
     result_count: count &log &optional;
 
     # Result code (s)
-    result: set[string] &log &optional;
+    results: set[string] &log &optional;
 
     # result diagnostic message(s)
-    diagnostic_message: vector of string &log &optional;
+    diagnostic_messages: vector of string &log &optional;
 
     #  a string representation of the search filter used in the query
     filter: string &log &optional;
@@ -217,15 +217,15 @@ event LDAP::message(c: connection,
     set_session(c, message_id, opcode);
 
     if ( result != LDAP::ResultCode_Undef ) {
-      if ( ! c$ldap_searches[message_id]?$result )
-        c$ldap_searches[message_id]$result = set();
-      add c$ldap_searches[message_id]$result[RESULT_CODES[result]];
+      if ( ! c$ldap_searches[message_id]?$results )
+        c$ldap_searches[message_id]$results = set();
+      add c$ldap_searches[message_id]$results[RESULT_CODES[result]];
     }
 
     if ( diagnostic_message != "" ) {
-      if ( ! c$ldap_searches[message_id]?$diagnostic_message )
-        c$ldap_searches[message_id]$diagnostic_message = vector();
-      c$ldap_searches[message_id]$diagnostic_message += diagnostic_message;
+      if ( ! c$ldap_searches[message_id]?$diagnostic_messages )
+        c$ldap_searches[message_id]$diagnostic_messages = vector();
+      c$ldap_searches[message_id]$diagnostic_messages += diagnostic_message;
     }
 
     if (( ! c$ldap_searches[message_id]?$proto ) && c?$ldap_proto)
@@ -237,43 +237,43 @@ event LDAP::message(c: connection,
   } else if (opcode !in OPCODES_SEARCH) {
     set_session(c, message_id, opcode);
 
-    if ( ! c$ldap_messages[message_id]?$opcode )
-      c$ldap_messages[message_id]$opcode = set();
-    add c$ldap_messages[message_id]$opcode[PROTOCOL_OPCODES[opcode]];
+    if ( ! c$ldap_messages[message_id]?$opcodes )
+      c$ldap_messages[message_id]$opcodes = set();
+    add c$ldap_messages[message_id]$opcodes[PROTOCOL_OPCODES[opcode]];
 
     if ( result != LDAP::ResultCode_Undef ) {
-      if ( ! c$ldap_messages[message_id]?$result )
-        c$ldap_messages[message_id]$result = set();
-      add c$ldap_messages[message_id]$result[RESULT_CODES[result]];
+      if ( ! c$ldap_messages[message_id]?$results )
+        c$ldap_messages[message_id]$results = set();
+      add c$ldap_messages[message_id]$results[RESULT_CODES[result]];
     }
 
     if ( diagnostic_message != "" ) {
-      if ( ! c$ldap_messages[message_id]?$diagnostic_message )
-        c$ldap_messages[message_id]$diagnostic_message = vector();
-      c$ldap_messages[message_id]$diagnostic_message += diagnostic_message;
+      if ( ! c$ldap_messages[message_id]?$diagnostic_messages )
+        c$ldap_messages[message_id]$diagnostic_messages = vector();
+      c$ldap_messages[message_id]$diagnostic_messages += diagnostic_message;
     }
 
     if ( object != "" ) {
-      if ( ! c$ldap_messages[message_id]?$object )
-        c$ldap_messages[message_id]$object = vector();
-      c$ldap_messages[message_id]$object += object;
+      if ( ! c$ldap_messages[message_id]?$objects )
+        c$ldap_messages[message_id]$objects = vector();
+      c$ldap_messages[message_id]$objects += object;
     }
 
     if ( argument != "" ) {
-      if ( ! c$ldap_messages[message_id]?$argument )
-        c$ldap_messages[message_id]$argument = vector();
-      if ("bind simple" in c$ldap_messages[message_id]$opcode && !default_capture_password)
-        c$ldap_messages[message_id]$argument += "REDACTED";
+      if ( ! c$ldap_messages[message_id]?$arguments )
+        c$ldap_messages[message_id]$arguments = vector();
+      if ("bind simple" in c$ldap_messages[message_id]$opcodes && !default_capture_password)
+        c$ldap_messages[message_id]$arguments += "REDACTED";
       else
-        c$ldap_messages[message_id]$argument += argument;
+        c$ldap_messages[message_id]$arguments += argument;
     }
 
     if (opcode in OPCODES_FINISHED) {
 
-      if ((BIND_SIMPLE in c$ldap_messages[message_id]$opcode) ||
-          (BIND_SASL in c$ldap_messages[message_id]$opcode)) {
+      if ((BIND_SIMPLE in c$ldap_messages[message_id]$opcodes) ||
+          (BIND_SASL in c$ldap_messages[message_id]$opcodes)) {
         # don't have both "bind" and "bind <method>" in the operations list
-        delete c$ldap_messages[message_id]$opcode[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
+        delete c$ldap_messages[message_id]$opcodes[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
       }
 
       if (( ! c$ldap_messages[message_id]?$proto ) && c?$ldap_proto)
@@ -301,21 +301,21 @@ event LDAP::searchreq(c: connection,
   set_session(c, message_id, LDAP::ProtocolOpcode_SEARCH_REQUEST);
 
   if ( scope != LDAP::SearchScope_Undef ) {
-    if ( ! c$ldap_searches[message_id]?$scope )
-      c$ldap_searches[message_id]$scope = set();
-    add c$ldap_searches[message_id]$scope[SEARCH_SCOPES[scope]];
+    if ( ! c$ldap_searches[message_id]?$scopes )
+      c$ldap_searches[message_id]$scopes = set();
+    add c$ldap_searches[message_id]$scopes[SEARCH_SCOPES[scope]];
   }
 
   if ( deref != LDAP::SearchDerefAlias_Undef ) {
-    if ( ! c$ldap_searches[message_id]?$deref )
-      c$ldap_searches[message_id]$deref = set();
-    add c$ldap_searches[message_id]$deref[SEARCH_DEREF_ALIASES[deref]];
+    if ( ! c$ldap_searches[message_id]?$derefs )
+      c$ldap_searches[message_id]$derefs = set();
+    add c$ldap_searches[message_id]$derefs[SEARCH_DEREF_ALIASES[deref]];
   }
 
   if ( base_object != "" ) {
-    if ( ! c$ldap_searches[message_id]?$base_object )
-      c$ldap_searches[message_id]$base_object = vector();
-    c$ldap_searches[message_id]$base_object += base_object;
+    if ( ! c$ldap_searches[message_id]?$base_objects )
+      c$ldap_searches[message_id]$base_objects = vector();
+    c$ldap_searches[message_id]$base_objects += base_object;
   }
   c$ldap_searches[message_id]$filter = filter;
 
@@ -347,13 +347,13 @@ event LDAP::bindreq(c: connection,
   if ( ! c$ldap_messages[message_id]?$version )
     c$ldap_messages[message_id]$version = version;
 
-  if ( ! c$ldap_messages[message_id]?$opcode )
-    c$ldap_messages[message_id]$opcode = set();
+  if ( ! c$ldap_messages[message_id]?$opcodes )
+    c$ldap_messages[message_id]$opcodes = set();
 
   if (authType == LDAP::BindAuthType_BIND_AUTH_SIMPLE) {
-    add c$ldap_messages[message_id]$opcode[BIND_SIMPLE];
+    add c$ldap_messages[message_id]$opcodes[BIND_SIMPLE];
   } else if (authType == LDAP::BindAuthType_BIND_AUTH_SASL) {
-    add c$ldap_messages[message_id]$opcode[BIND_SASL];
+    add c$ldap_messages[message_id]$opcodes[BIND_SASL];
   }
 
 }
@@ -367,9 +367,9 @@ event connection_state_remove(c: connection) {
     for ( [mid], m in c$ldap_messages ) {
       if (mid > 0) {
 
-        if ((BIND_SIMPLE in m$opcode) || (BIND_SASL in m$opcode)) {
+        if ((BIND_SIMPLE in m$opcodes) || (BIND_SASL in m$opcodes)) {
           # don't have both "bind" and "bind <method>" in the operations list
-          delete m$opcode[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
+          delete m$opcodes[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
         }
 
         if (( ! m?$proto ) && c?$ldap_proto)

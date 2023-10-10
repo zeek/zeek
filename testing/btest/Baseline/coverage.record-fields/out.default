@@ -362,15 +362,15 @@ connection {
        }
   * ldap_messages: table[int] of record LDAP::MessageInfo, log=F, optional=T
       LDAP::MessageInfo {
-        * argument: vector of string, log=T, optional=T
-        * diagnostic_message: vector of string, log=T, optional=T
+        * arguments: vector of string, log=T, optional=T
+        * diagnostic_messages: vector of string, log=T, optional=T
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
         * message_id: int, log=T, optional=T
-        * object: vector of string, log=T, optional=T
-        * opcode: set[string], log=T, optional=T
+        * objects: vector of string, log=T, optional=T
+        * opcodes: set[string], log=T, optional=T
         * proto: string, log=T, optional=T
-        * result: set[string], log=T, optional=T
+        * results: set[string], log=T, optional=T
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F
         * version: int, log=T, optional=T
@@ -379,17 +379,17 @@ connection {
   * ldap_searches: table[int] of record LDAP::SearchInfo, log=F, optional=T
       LDAP::SearchInfo {
         * attributes: vector of string, log=T, optional=T
-        * base_object: vector of string, log=T, optional=T
-        * deref: set[string], log=T, optional=T
-        * diagnostic_message: vector of string, log=T, optional=T
+        * base_objects: vector of string, log=T, optional=T
+        * derefs: set[string], log=T, optional=T
+        * diagnostic_messages: vector of string, log=T, optional=T
         * filter: string, log=T, optional=T
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
         * message_id: int, log=T, optional=T
         * proto: string, log=T, optional=T
-        * result: set[string], log=T, optional=T
         * result_count: count, log=T, optional=T
-        * scope: set[string], log=T, optional=T
+        * results: set[string], log=T, optional=T
+        * scopes: set[string], log=T, optional=T
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F
        }

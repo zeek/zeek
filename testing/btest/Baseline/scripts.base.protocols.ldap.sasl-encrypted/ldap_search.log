@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ldap_search
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	message_id	scope	deref	base_object	result_count	result	diagnostic_message	filter	attributes
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	message_id	scopes	derefs	base_objects	result_count	results	diagnostic_messages	filter	attributes
 #types	time	string	addr	port	addr	port	string	int	set[string]	set[string]	vector[string]	count	set[string]	vector[string]	string	vector[string]
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	172.31.1.104	3116	172.31.1.101	389	tcp	213	base	never	-	1	success	-	(objectclass=*)	-
 #close XXXX-XX-XX-XX-XX-XX

@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ldap
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	message_id	version	opcode	result	diagnostic_message	object	argument
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	message_id	version	opcodes	results	diagnostic_messages	objects	arguments
 #types	time	string	addr	port	addr	port	string	int	int	set[string]	set[string]	vector[string]	vector[string]	vector[string]
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	172.31.1.104	3116	172.31.1.101	389	tcp	215	3	bind SASL	success	-	-	GSS-SPNEGO
 #close XXXX-XX-XX-XX-XX-XX

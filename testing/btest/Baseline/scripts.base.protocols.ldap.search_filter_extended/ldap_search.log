@@ -5,7 +5,7 @@
 #unset_field	-
 #path	ldap_search
 #open XXXX-XX-XX-XX-XX-XX
-#fields	uid	filter	base_object
+#fields	uid	filter	base_objects
 #types	string	string	vector[string]
 CHhAvVGS1DHFjwGM9	(departmentNumber:2.16.840.1.113730.3.3.2.46.1:=>=N4709)	DC=matrix\x2cDC=local
 #close XXXX-XX-XX-XX-XX-XX

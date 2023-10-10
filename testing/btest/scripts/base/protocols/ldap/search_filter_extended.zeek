@@ -4,7 +4,7 @@
 #
 # @TEST-REQUIRES: have-spicy
 # @TEST-EXEC: zeek -C -r ${TRACES}/ldap/issue-32.pcapng %INPUT
-# @TEST-EXEC: cat ldap_search.log | zeek-cut -C uid filter base_object > ldap_search.log2 && mv ldap_search.log2 ldap_search.log
+# @TEST-EXEC: cat ldap_search.log | zeek-cut -C uid filter base_objects > ldap_search.log2 && mv ldap_search.log2 ldap_search.log
 # @TEST-EXEC: btest-diff ldap_search.log
 #
 # @TEST-DOC: Test LDAP analyzer with small trace.

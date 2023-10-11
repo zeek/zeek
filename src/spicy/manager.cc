@@ -244,10 +244,13 @@ void Manager::registerType(const std::string& id, const TypePtr& type) {
     auto zeek_id = detail::install_ID(local.c_str(), ns.c_str(), true, true);
     zeek_id->SetType(type);
     zeek_id->MakeType();
-    AddBifItem(id, ::zeek::plugin::BifItem::TYPE);
+
+    detail::zeekygen_mgr->Identifier(zeek_id);
 
     if ( _module_info )
         _module_info->AddBifItem(id, ::zeek::plugin::BifItem::TYPE);
+    else
+        AddBifItem(id, ::zeek::plugin::BifItem::TYPE);
 }
 
 TypePtr Manager::findType(const std::string& id) const {
@@ -616,7 +619,7 @@ void Manager::InitPostScript() {
     for ( const auto& [name, id] : _events ) {
         if ( ! id->GetType() ) {
             auto args = make_intrusive<RecordType>(new type_decl_list());
-            auto et = make_intrusive<FuncType>(std::move(args), base_type(TYPE_VOID), FUNC_FLAVOR_EVENT);
+            auto et = make_intrusive<FuncType>(std::move(args), nullptr, FUNC_FLAVOR_EVENT);
             id->SetType(std::move(et));
         }
     }

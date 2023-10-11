@@ -508,6 +508,21 @@ connection {
         * size: count, log=F, optional=F
         * state: count, log=F, optional=F
        }
+  * quic: record QUIC::Info, log=F, optional=T
+      QUIC::Info {
+        * client_initial_dcid: string, log=T, optional=T
+        * client_protocol: string, log=T, optional=T
+        * history: string, log=T, optional=T
+        * history_state: vector of string, log=F, optional=F
+        * id: record conn_id, log=T, optional=F
+            conn_id { ... }
+        * logged: bool, log=F, optional=T
+        * server_name: string, log=T, optional=T
+        * server_scid: string, log=T, optional=T
+        * ts: time, log=T, optional=F
+        * uid: string, log=T, optional=F
+        * version: string, log=T, optional=F
+       }
   * radius: record RADIUS::Info, log=F, optional=T
       RADIUS::Info {
         * connect_info: string, log=T, optional=T

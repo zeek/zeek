@@ -48,6 +48,27 @@ New Functionality
   necessary in your environment. We're also open to general feedback about the
   structure of the new logs.
 
+- Zeek now includes the QUIC protocol analyzer from the zeek/spicy-quic
+  project (https://github.com/zeek/spicy-quic). This project is a fork of
+  Fox-IT's initial implementation (https://github.com/fox-ds/spicy-quic).
+
+  As for the LDAP analyzer, the analyzer's events and the new ``quic.log``
+  should be considered preliminary and experimental until the arrival of
+  Zeek's next long-term-stable release (7.0). As above, any feedback and
+  contributions to this analyzer and the new log are welcome.
+
+  The analyzer's functionality is limited to decryption of the INITIAL packets
+  of QUIC version 1. If decryption of these packets is successful, the
+  handshake data is forwarded to Zeek's SSL analyzer. An ``ssl.log`` entry
+  will appear in ``ssl.log`` for QUIC connections. The entry in the ``conn.log``
+  will contain ``quic`` and ``ssl`` in the service field.
+
+  To disable the analyzer in case of issues, use the following snippet:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_QUIC,
+	};
+
 - Added a new ``assert`` statement for assertion based testing and asserting
   runtime state.
 

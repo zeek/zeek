@@ -1,3 +1,26 @@
+6.1.0-dev.547 | 2023-10-11 18:02:25 +0200
+
+  * ci/btest: Remove spicy-quic helper, disable Spicy on CentOS 7 (Arne Welzel, Corelight)
+
+    The have-quic pattern wasn't great and it wouldn't scale.
+
+  * btest/core/ppp: Run test in bare mode (Arne Welzel, Corelight)
+
+  * btest/quic: Update other tests (Arne Welzel, Corelight)
+
+  * testing/quic: Fixups and simplification after Zeek integration (Arne Welzel, Corelight)
+
+  * quic: Integrate as default analyzer (Arne Welzel, Corelight)
+
+  * quic: Include Copyright lines to the analyzer's source code contributed by Fox-IT (Arne Welzel, Corelight)
+
+    This is primarily such that they stay intact when importing into the
+    Zeek project. Also move LICENSE to COPYING.
+
+  * quic: Squashed follow-ups: quic.log, tests, various fixes, performance (Arne Welzel, Corelight)
+
+  * quic: Initial implementation (Joost)
+
 6.1.0-dev.538 | 2023-10-11 15:20:27 +0200
 
   * ci/update-zeekygen-docs.sh: Do output stderr by default (Arne Welzel, Corelight)

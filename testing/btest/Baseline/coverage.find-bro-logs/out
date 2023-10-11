@@ -42,6 +42,7 @@ openflow
 packet_filter
 pe
 print_log_path
+quic
 radius
 rdp
 reporter

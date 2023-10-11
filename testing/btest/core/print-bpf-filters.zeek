@@ -1,4 +1,4 @@
-# @TEST-REQUIRES: have-spicy
+# @TEST-REQUIRES: $SCRIPTS/have-spicy
 #
 # @TEST-EXEC: zeek -r $TRACES/empty.trace >output
 # @TEST-EXEC: cat packet_filter.log >>output

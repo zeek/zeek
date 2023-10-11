@@ -192,12 +192,14 @@
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (udp_content_ports, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GRE, 4754/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, 2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, 2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, 3544/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, 4789/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp})) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GRE, {4754/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, {2152<...>/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, {3544/udp})) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp})) -> <no result>
@@ -296,6 +298,7 @@
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 2123, PacketAnalyzer::ANALYZER_GTPV1)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 2152, PacketAnalyzer::ANALYZER_GTPV1)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 3544, PacketAnalyzer::ANALYZER_TEREDO)) -> <no result>
+0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 4754, PacketAnalyzer::ANALYZER_GRE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 4789, PacketAnalyzer::ANALYZER_VXLAN)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA)) -> <no result>
 0.000000   MetaHookPost  CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE)) -> <no result>
@@ -342,6 +345,7 @@
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (3544/udp)) -> <no result>
+0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (4754/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (4789/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (5072/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (6081/udp)) -> <no result>
@@ -1122,12 +1126,14 @@
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (udp_content_ports, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GRE, 4754/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, 2123/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, 2152/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, 3544/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_port, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, 4789/udp))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp}))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GRE, {4754/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, {2152<...>/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, {3544/udp}))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_for_ports, <frame>, (PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp}))
@@ -1226,6 +1232,7 @@
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 2123, PacketAnalyzer::ANALYZER_GTPV1))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 2152, PacketAnalyzer::ANALYZER_GTPV1))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 3544, PacketAnalyzer::ANALYZER_TEREDO))
+0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 4754, PacketAnalyzer::ANALYZER_GRE))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 4789, PacketAnalyzer::ANALYZER_VXLAN))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA))
 0.000000   MetaHookPre   CallFunction(PacketAnalyzer::register_packet_analyzer, <frame>, (PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE))
@@ -1272,6 +1279,7 @@
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2123/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2152/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (3544/udp))
+0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (4754/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (4789/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (5072/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (6081/udp))
@@ -2051,12 +2059,14 @@
 0.000000 | HookCallFunction Option::set_change_handler(udp_content_ports, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, 5072/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, 6081/udp)
+0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GRE, 4754/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, 2123/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, 2152/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, 3544/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_port(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, 4789/udp)
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_AYIYA, {5072/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GENEVE, {6081/udp})
+0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GRE, {4754/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_GTPV1, {2152<...>/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_TEREDO, {3544/udp})
 0.000000 | HookCallFunction PacketAnalyzer::register_for_ports(PacketAnalyzer::ANALYZER_UDP, PacketAnalyzer::ANALYZER_VXLAN, {4789/udp})
@@ -2155,6 +2165,7 @@
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 2123, PacketAnalyzer::ANALYZER_GTPV1)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 2152, PacketAnalyzer::ANALYZER_GTPV1)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 3544, PacketAnalyzer::ANALYZER_TEREDO)
+0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 4754, PacketAnalyzer::ANALYZER_GRE)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 4789, PacketAnalyzer::ANALYZER_VXLAN)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 5072, PacketAnalyzer::ANALYZER_AYIYA)
 0.000000 | HookCallFunction PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_UDP, 6081, PacketAnalyzer::ANALYZER_GENEVE)
@@ -2201,6 +2212,7 @@
 0.000000 | HookCallFunction port_to_count(2123/udp)
 0.000000 | HookCallFunction port_to_count(2152/udp)
 0.000000 | HookCallFunction port_to_count(3544/udp)
+0.000000 | HookCallFunction port_to_count(4754/udp)
 0.000000 | HookCallFunction port_to_count(4789/udp)
 0.000000 | HookCallFunction port_to_count(5072/udp)
 0.000000 | HookCallFunction port_to_count(6081/udp)

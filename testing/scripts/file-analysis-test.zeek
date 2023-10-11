@@ -5,7 +5,7 @@ redef FileExtract::prefix = "./";
 
 global test_file_analysis_source: string = "" &redef;
 
-global test_file_analyzers: set[Files::Tag];
+global test_file_analyzers: vector of Files::Tag;
 
 global test_get_file_name: function(f: fa_file): string =
 	function(f: fa_file): string { return ""; } &redef;
@@ -45,7 +45,7 @@ event file_new(f: fa_file)
 	if ( test_file_analysis_source == "" ||
 	     f$source == test_file_analysis_source )
 		{
-		for ( tag in test_file_analyzers )
+		for ( _, tag in test_file_analyzers )
 			Files::add_analyzer(f, tag);
 
 		local filename: string = test_get_file_name(f);
@@ -110,7 +110,7 @@ event file_state_remove(f: fa_file)
 
 event zeek_init()
 	{
-	add test_file_analyzers[Files::ANALYZER_MD5];
-	add test_file_analyzers[Files::ANALYZER_SHA1];
-	add test_file_analyzers[Files::ANALYZER_SHA256];
+	test_file_analyzers += Files::ANALYZER_MD5;
+	test_file_analyzers += Files::ANALYZER_SHA1;
+	test_file_analyzers += Files::ANALYZER_SHA256;
 	}

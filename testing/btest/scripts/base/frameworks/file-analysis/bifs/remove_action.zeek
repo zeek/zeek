@@ -12,7 +12,7 @@ redef test_get_file_name = function(f: fa_file): string
 
 event file_new(f: fa_file) &priority=-10
 	{
-	for ( tag in test_file_analyzers )
+	for ( _, tag in test_file_analyzers )
 		Files::remove_analyzer(f, tag);
 	local filename = test_get_file_name(f);
 	Files::remove_analyzer(f, Files::ANALYZER_EXTRACT,

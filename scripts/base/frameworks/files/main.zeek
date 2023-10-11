@@ -61,7 +61,7 @@ export {
 		depth: count &default=0 &log;
 
 		## A set of analysis types done during the file analysis.
-		analyzers: set[string] &default=string_set() &log;
+		analyzers: set[string] &ordered &log;
 
 		## A mime type provided by the strongest file magic signature
 		## match against the *bof_buffer* field of :zeek:see:`fa_file`,
@@ -335,7 +335,7 @@ global registered_protocols: table[Analyzer::Tag] of ProtoRegistration = table()
 
 # Store the MIME type to analyzer mappings.
 global mime_types: table[Files::Tag] of set[string];
-global mime_type_to_analyzers: table[string] of set[Files::Tag];
+global mime_type_to_analyzers: table[string] of vector of Files::Tag;
 
 global analyzer_add_callbacks: table[Files::Tag] of function(f: fa_file, args: AnalyzerArgs) = table();
 
@@ -480,9 +480,21 @@ function register_for_mime_type(tag: Files::Tag, mt: string) : bool
 
 	if ( mt !in mime_type_to_analyzers )
 		{
-		mime_type_to_analyzers[mt] = set();
+		mime_type_to_analyzers[mt] = vector();
 		}
-	add mime_type_to_analyzers[mt][tag];
+
+	for ( _, otag in mime_type_to_analyzers[mt] )
+		{
+		if ( tag == otag )
+			return T;  # already registered
+		}
+
+	mime_type_to_analyzers[mt] += tag;
+
+	# Make order of analyzers per mime-type deterministic by pre-sorting.
+	sort(mime_type_to_analyzers[mt], function(l: Files::Tag, r: Files::Tag): int {
+		return strcmp(cat(l), cat(r));
+	});
 
 	return T;
 	}
@@ -564,7 +576,7 @@ event file_sniff(f: fa_file, meta: fa_metadata) &priority=10
 	     meta$mime_type in mime_type_to_analyzers )
 		{
 		local analyzers = mime_type_to_analyzers[meta$mime_type];
-		for ( a in analyzers )
+		for ( _, a in analyzers )
 			Files::add_analyzer(f, a);
 		}
 	}

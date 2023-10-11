@@ -1,0 +1,20 @@
+# @TEST-DOC: Test that file_hash() events are raised in sorted (alphabetic) order.
+
+# @TEST-EXEC: zeek -b -r $TRACES/http/concurrent-range-requests-complete.pcap %INPUT > output
+# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff files.log
+
+@load base/protocols/http
+@load base/files/hash
+
+event zeek_init()
+	{
+	Files::register_for_mime_type(Files::ANALYZER_SHA256, "text/plain");
+	Files::register_for_mime_type(Files::ANALYZER_MD5, "text/plain");
+	Files::register_for_mime_type(Files::ANALYZER_SHA1, "text/plain");
+	}
+
+event file_hash(f: fa_file, kind: string, hash: string)
+	{
+	print f$id, kind, hash;
+	}

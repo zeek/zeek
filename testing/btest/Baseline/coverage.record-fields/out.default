@@ -260,7 +260,7 @@ connection {
         * client: string, log=T, optional=T
         * client_cert: record Files::Info, log=F, optional=T
             Files::Info {
-              * analyzers: set[string], log=T, optional=T
+              * analyzers: set[string], log=T, optional=F
               * depth: count, log=T, optional=T
               * duration: interval, log=T, optional=T
               * extracted: string, log=T, optional=T

@@ -1,3 +1,31 @@
+6.1.0-dev.538 | 2023-10-11 15:20:27 +0200
+
+  * ci/update-zeekygen-docs.sh: Do output stderr by default (Arne Welzel, Corelight)
+
+    stderr was only produced when there was a real failure as it had been a
+    bit noisy previously, but has hidden actual problems. Now that there is
+    less noise, just output stderr all the time.
+
+  * zeekygen: Disable zeek_init() handlers causing error output (Arne Welzel, Corelight)
+
+    These modules have zeek_init() handlers with actual logic that has side-effects
+    and error outputs. Just disable them during zeekygen runs.
+
+  * zeekygen/example: Squelch unused function warning (Arne Welzel, Corelight)
+
+  * iosource/pcap: Support configurable buffer size (Arne Welzel, Corelight)
+
+    On Linux with a default ext4 or tmpfs filesystem, the default buffer size for
+    reading a pcap is chosen as 4k (strace/gdb validated). When reading large pcaps
+    containing raw data transfers, the syscall overhead for read becomes visible
+    in profiles. Support configurability of the buffer size and default to 128kb.
+
+    When processing a ~830M PCAP (16 UDP connections, each transferring ~50MB) in
+    bare mode, this change improves runtime from 1.39 sec to 1.29 sec. Increasing
+    the buffer further didn't provide a noticeable boost.
+
+  * util/setvbuf: Respect buf argument (Arne Welzel, Corelight)
+
 6.1.0-dev.531 | 2023-10-11 14:09:22 +0200
 
   * protocol/ldap: Add doc-id/doc-description to .evt file (Arne Welzel, Corelight)

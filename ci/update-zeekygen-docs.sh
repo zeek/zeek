@@ -13,7 +13,6 @@ source_dir="$(cd $dir/.. && pwd)"
 build_dir=$source_dir/build
 conf_file=$build_dir/zeekygen-test.conf
 output_dir=$source_dir/doc
-zeek_error_file=$build_dir/zeekygen-test-stderr.txt
 
 if [ -n "$1" ]; then
     output_dir=$1
@@ -29,11 +28,10 @@ cd $build_dir
 export ZEEK_SEED_FILE=$source_dir/testing/btest/random.seed
 
 function run_zeek {
-    ZEEK_ALLOW_INIT_ERRORS=1 zeek -X $conf_file zeekygen >/dev/null 2>$zeek_error_file
+    ZEEK_ALLOW_INIT_ERRORS=1 zeek -X $conf_file zeekygen >/dev/null
 
     if [ $? -ne 0 ]; then
-        echo "Failed running zeek with zeekygen config file $conf_file"
-        echo "See stderr in $zeek_error_file"
+        echo "Failed running zeek with zeekygen config file $conf_file" >&2
         exit 1
     fi
 }

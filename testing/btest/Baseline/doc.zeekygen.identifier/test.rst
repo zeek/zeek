@@ -240,6 +240,7 @@
    :source-code: zeekygen/example.zeek 176 184
 
    :Type: :zeek:type:`function` (tag: :zeek:type:`string`) : :zeek:type:`string`
+   :Attributes: :zeek:attr:`&is_used`
 
 
 .. zeek:type:: ZeekygenExample::PrivateRecord

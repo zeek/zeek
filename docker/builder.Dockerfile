@@ -3,7 +3,12 @@
 # Layer to build Zeek.
 FROM debian:bookworm-slim
 
+# Allow apt to retry 3 times before failing.
 RUN echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries
+
+# Force apt to timeout retrieval of data after 3 minutes.
+RUN echo 'Acquire::http::timeout "180";' > /etc/apt/apt.conf.d/99-timeouts
+RUN echo 'Acquire::https::timeout "180";' >> /etc/apt/apt.conf.d/99-timeouts
 
 # Configure system for build.
 RUN apt-get -q update \

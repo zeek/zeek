@@ -1,6 +1,7 @@
 # @TEST-DOC: Output interesting record types in bare and default mode recursively. Currently just the connection record type.
 #
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
+# @TEST-REQUIRES: ${SCRIPTS}/have-quic
 # @TEST-EXEC: zeek -b %INPUT >out.bare
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out.bare
 # @TEST-EXEC: zeek %INPUT >out.default

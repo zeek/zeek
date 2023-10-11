@@ -424,6 +424,9 @@ scripts/base/init-default.zeek
     scripts/base/protocols/ntp/main.zeek
     scripts/base/protocols/ntp/consts.zeek
   scripts/base/protocols/pop3/__load__.zeek
+  scripts/base/protocols/quic/__load__.zeek
+    scripts/base/protocols/quic/consts.zeek
+    scripts/base/protocols/quic/main.zeek
   scripts/base/protocols/radius/__load__.zeek
     scripts/base/protocols/radius/main.zeek
       scripts/base/protocols/radius/consts.zeek

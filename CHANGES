@@ -1,3 +1,14 @@
+6.1.0-dev.531 | 2023-10-11 14:09:22 +0200
+
+  * protocol/ldap: Add doc-id/doc-description to .evt file (Arne Welzel, Corelight)
+
+  * spicy/manager: Ensure Zeekygen knows identifier for registered types (Arne Welzel, Corelight)
+
+    Without this, Zeekygen won't generate documentation about exported
+    enum types as it can not resolve the identifier. Also, only register a
+    type as item with the Spicy plugin if there's no _module_info currently
+    active.
+
 6.1.0-dev.528 | 2023-10-10 20:03:31 +0200
 
   * Introduce dedicated `LDAP::Info` (Benjamin Bannier, Corelight)

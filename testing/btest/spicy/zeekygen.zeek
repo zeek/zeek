@@ -22,6 +22,11 @@ module SSH;
 
 import zeek;
 
+public type Compression = enum {
+    NONE = 0,
+    ZLIB = 1,
+};
+
 public type Banner = unit {
     magic   : /SSH-/;
     version : /[^-]*/;

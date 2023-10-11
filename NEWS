@@ -121,6 +121,9 @@ Changed Functionality
 - Parameter lists for functions, events and hooks now use commas instead of
   semicolons in error messages or when printing such functions.
 
+- The IO buffer size used for PCAP file reading is now always 128kb. This
+  new default can be changed via ``Pcap::bufsize_offline_bytes``.
+
 Removed Functionality
 ---------------------
 

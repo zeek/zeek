@@ -5286,6 +5286,11 @@ export {
 	## interfaces.
 	const bufsize = 128 &redef;
 
+	## Number of bytes to use for buffering file read operations when reading
+	## from a PCAP file. Setting this to 0 uses operating system defaults
+	## as chosen by fopen().
+	const bufsize_offline_bytes = 128 * 1024 &redef;
+
 	## Default timeout for packet sources without file descriptors.
 	##
 	## For libpcap based packet sources that do not provide a usable

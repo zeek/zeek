@@ -13,10 +13,3 @@ else ()
             "Warning: QUIC analyzer unavailable - requires OpenSSL 1.1 or later (found ${OPENSSL_VERSION})"
     )
 endif ()
-
-# Allow tests to introspect availability of the QUIC analyzer.
-if (TARGET spicy_QUIC)
-    set(ZEEK_HAVE_ANALYZER_QUIC yes CACHE INTERNAL "Zeek has QUIC protocol parser support")
-else ()
-    set(ZEEK_HAVE_ANALYZER_QUIC no CACHE INTERNAL "Zeek has QUIC protocol parser support")
-endif ()

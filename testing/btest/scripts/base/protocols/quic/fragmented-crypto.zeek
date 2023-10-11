@@ -1,6 +1,6 @@
 # @TEST-DOC: Pcap with fragmented and unordered CRYPTO frames.
 
-# @TEST-REQUIRES: ${SCRIPTS}/have-quic
+# @TEST-REQUIRES: ${SCRIPTS}/have-spicy
 # @TEST-EXEC: zeek -Cr $TRACES/quic/chromium-115.0.5790.110-google-de-fragmented.pcap base/protocols/quic
 # @TEST-EXEC: zeek-cut -m ts uid history service < conn.log > conn.log.cut
 # @TEST-EXEC: btest-diff conn.log.cut

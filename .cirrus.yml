@@ -437,6 +437,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
     CIRRUS_LOG_TIMESTAMP: true
     BUILDER_IMAGE_CACHE_DIR: /tmp/builder-image-cache
     ZEEK_IMAGE_CACHE_DIR: /tmp/zeek-image-cache-${CIRRUS_ARCH}
+    BUILDKIT_PROGRESS: plain
 
   always:
     ccache_cache:

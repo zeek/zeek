@@ -140,17 +140,13 @@ type VariableLengthInteger = unit {
   #
   # https://datatracker.ietf.org/doc/rfc9000/
   # Section 16 and Appendix A
-  #
-  first_byte: bytes &size=1 {
-    local uint8_val = uint8($$.to_uint(spicy::ByteOrder::Big));
-    self.bytes_to_parse = 2**((0xC0 & uint8_val) >> 6);
-    # Re-pack without most significant two bits for later use.
-    self.first_byte = pack(0x3f & uint8_val, spicy::ByteOrder::Big);
+  : uint8 {
+    self.bytes_to_parse = 2**((0xC0 & $$) >> 6);
+    self.result = $$ & 0x3F;
   }
-  remaining_bytes: bytes &size=self.bytes_to_parse  - 1;
 
-  on %done {
-    self.result = (self.first_byte + self.remaining_bytes).to_uint(spicy::ByteOrder::Big);
+  : uint8[self.bytes_to_parse - 1] if (self.bytes_to_parse > 1) foreach {
+    self.result = (self.result << 8) | $$;
   }
 };
 

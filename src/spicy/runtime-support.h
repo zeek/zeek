@@ -851,7 +851,7 @@ inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, TypePtr target) {
         throw TypeMismatch("bitfield", target);
 
     auto rval = make_intrusive<RecordVal>(rtype);
-    int idx = 0;
+    size_t idx = 0;
     hilti::rt::tuple_for_each(v.value, [&](const auto& x) {
         if ( idx < sizeof...(Ts) - 1 ) // last element is original integer value, with no record equivalent
             set_record_field(rval.get(), rtype, idx++, x);

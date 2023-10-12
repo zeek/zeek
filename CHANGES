@@ -1,3 +1,11 @@
+6.1.0-dev.553 | 2023-10-12 17:11:18 +0200
+
+  * Fix signed-unsigned comparison. (Benjamin Bannier, Corelight)
+
+    We compared the return value of `sizeof` which returns a `std::size_t`
+    with an `int` which GCC warned about. This patch changes the `int` to a
+    `size_t`.
+
 6.1.0-dev.551 | 2023-10-12 15:53:45 +0200
 
   * quic: Avoid bytes for VariableLengthInteger (Arne Welzel, Corelight)

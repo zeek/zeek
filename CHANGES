@@ -1,3 +1,19 @@
+6.1.0-dev.551 | 2023-10-12 15:53:45 +0200
+
+  * quic: Avoid bytes for VariableLengthInteger (Arne Welzel, Corelight)
+
+    Allocation of bytes objects due to parsing and usage of pack and the
+    invocation of to_uint() showed significantly in profiles (3.3% sample
+    matches). Switch to a more procedural approach to avoid the allocation
+    overhead.
+
+    From zeek/spicy-quic/pull/13
+
+  * protocol/quic: Add doc-id/doc-description to .evt file (Arne Welzel, Corelight)
+
+    Without this, the QUIC enums end up under Zeek::Spicy and we don't
+    have an extra Zeek::QUIC section in the docs.
+
 6.1.0-dev.547 | 2023-10-11 18:02:25 +0200
 
   * ci/btest: Remove spicy-quic helper, disable Spicy on CentOS 7 (Arne Welzel, Corelight)

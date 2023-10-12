@@ -2,6 +2,18 @@
 // Copyright (c) 2023 by the Zeek Project. See COPYING for details.
 
 /*
+WARNING: THIS CODE IS NOT SAFE IN MULTI-THREADED
+
+* Initializations of static OpenSSL contexts without locking
+* Use of contexts is not protected by locks.
+
+The involved contexts are EVP_CIPHER_CTX and EVP_PKEY_CTX and are allocated
+lazily just once and re-used for performance reasons. Previously, every
+decrypt operation allocated, initialized and freed each of the used context
+resulting in a significant performance hit.
+*/
+
+/*
 WORK-IN-PROGRESS
 Initial working version of decrypting the INITIAL packets from
 both client & server to be used by the Spicy parser. Might need a few more
@@ -83,6 +95,29 @@ const size_t AEAD_TAG_LENGTH = 16;
 const size_t MAXIMUM_PACKET_LENGTH = 1500;
 const size_t MAXIMUM_PACKET_NUMBER_LENGTH = 4;
 
+EVP_CIPHER_CTX* get_aes_128_ecb()
+	{
+	static EVP_CIPHER_CTX* ctx = nullptr;
+	if ( ! ctx )
+		{
+		ctx = EVP_CIPHER_CTX_new();
+		EVP_CipherInit_ex(ctx, EVP_aes_128_ecb(), NULL, NULL, NULL, 1);
+		}
+
+	return ctx;
+	}
+
+EVP_CIPHER_CTX* get_aes_128_gcm()
+	{
+	static EVP_CIPHER_CTX* ctx = nullptr;
+	if ( ! ctx )
+		{
+		ctx = EVP_CIPHER_CTX_new();
+		EVP_CipherInit_ex(ctx, EVP_aes_128_gcm(), NULL, NULL, NULL, 1);
+		}
+
+	return ctx;
+	}
 /*
 HKDF-Extract as described in https://www.rfc-editor.org/rfc/rfc8446.html#section-7.1
 */
@@ -90,36 +125,109 @@ std::vector<uint8_t> hkdf_extract(const hilti::rt::Bytes& connection_id)
 	{
 	std::vector<uint8_t> out_temp(INITIAL_SECRET_LEN);
 	size_t initial_secret_len = out_temp.size();
-	const EVP_MD* digest = EVP_sha256();
-	EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
-	EVP_PKEY_derive_init(pctx);
-	EVP_PKEY_CTX_hkdf_mode(pctx, EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY);
-	EVP_PKEY_CTX_set_hkdf_md(pctx, digest);
-	EVP_PKEY_CTX_set1_hkdf_key(pctx, data_as_uint8(connection_id), connection_id.size());
-	EVP_PKEY_CTX_set1_hkdf_salt(pctx, INITIAL_SALT_V1.data(), INITIAL_SALT_V1.size());
-	EVP_PKEY_derive(pctx, out_temp.data(), &initial_secret_len);
-	EVP_PKEY_CTX_free(pctx);
+	static EVP_PKEY_CTX* ctx = nullptr;
+	if ( ! ctx )
+		{
+		ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+		EVP_PKEY_derive_init(ctx);
+		EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
+		EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY);
+		}
+
+	EVP_PKEY_CTX_set1_hkdf_key(ctx, data_as_uint8(connection_id), connection_id.size());
+	EVP_PKEY_CTX_set1_hkdf_salt(ctx, INITIAL_SALT_V1.data(), INITIAL_SALT_V1.size());
+	EVP_PKEY_derive(ctx, out_temp.data(), &initial_secret_len);
 	return out_temp;
 	}
 
 /*
 HKDF-Expand-Label as described in https://www.rfc-editor.org/rfc/rfc8446.html#section-7.1
-that uses the global constant labels such as 'quic hp'.
 */
-std::vector<uint8_t> hkdf_expand(size_t out_len, const std::vector<uint8_t>& key,
-                                 const std::vector<uint8_t>& info)
+std::vector<uint8_t> hkdf_expand(EVP_PKEY_CTX* ctx, size_t out_len, const std::vector<uint8_t>& key)
 	{
 	std::vector<uint8_t> out_temp(out_len);
-	const EVP_MD* digest = EVP_sha256();
-	EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
-	EVP_PKEY_derive_init(pctx);
-	EVP_PKEY_CTX_hkdf_mode(pctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
-	EVP_PKEY_CTX_set_hkdf_md(pctx, digest);
-	EVP_PKEY_CTX_set1_hkdf_key(pctx, key.data(), key.size());
-	EVP_PKEY_CTX_add1_hkdf_info(pctx, info.data(), info.size());
-	EVP_PKEY_derive(pctx, out_temp.data(), &out_len);
-	EVP_PKEY_CTX_free(pctx);
+	EVP_PKEY_CTX_set1_hkdf_key(ctx, key.data(), key.size());
+	EVP_PKEY_derive(ctx, out_temp.data(), &out_len);
 	return out_temp;
+	}
+
+std::vector<uint8_t> hkdf_expand_client_initial_info(size_t out_len,
+                                                     const std::vector<uint8_t>& key)
+	{
+	static EVP_PKEY_CTX* ctx = nullptr;
+	if ( ! ctx )
+		{
+		ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+		EVP_PKEY_derive_init(ctx);
+		EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
+		EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
+		EVP_PKEY_CTX_add1_hkdf_info(ctx, CLIENT_INITIAL_INFO.data(), CLIENT_INITIAL_INFO.size());
+		}
+
+	return hkdf_expand(ctx, out_len, key);
+	}
+
+std::vector<uint8_t> hkdf_expand_server_initial_info(size_t out_len,
+                                                     const std::vector<uint8_t>& key)
+	{
+
+	static EVP_PKEY_CTX* ctx = nullptr;
+	if ( ! ctx )
+		{
+		ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+		EVP_PKEY_derive_init(ctx);
+		EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
+		EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
+		EVP_PKEY_CTX_add1_hkdf_info(ctx, SERVER_INITIAL_INFO.data(), SERVER_INITIAL_INFO.size());
+		}
+
+	return hkdf_expand(ctx, out_len, key);
+	}
+
+std::vector<uint8_t> hkdf_expand_key_info(size_t out_len, const std::vector<uint8_t>& key)
+	{
+	static EVP_PKEY_CTX* ctx = nullptr;
+	if ( ! ctx )
+		{
+		ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+		EVP_PKEY_derive_init(ctx);
+		EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
+		EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
+		EVP_PKEY_CTX_add1_hkdf_info(ctx, KEY_INFO.data(), KEY_INFO.size());
+		}
+
+	return hkdf_expand(ctx, out_len, key);
+	}
+
+std::vector<uint8_t> hkdf_expand_iv_info(size_t out_len, const std::vector<uint8_t>& key)
+	{
+
+	static EVP_PKEY_CTX* ctx = nullptr;
+	if ( ! ctx )
+		{
+		ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+		EVP_PKEY_derive_init(ctx);
+		EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
+		EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
+		EVP_PKEY_CTX_add1_hkdf_info(ctx, IV_INFO.data(), IV_INFO.size());
+		}
+
+	return hkdf_expand(ctx, out_len, key);
+	}
+
+std::vector<uint8_t> hkdf_expand_hp_info(size_t out_len, const std::vector<uint8_t>& key)
+	{
+	static EVP_PKEY_CTX* ctx = nullptr;
+	if ( ! ctx )
+		{
+		ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+		EVP_PKEY_derive_init(ctx);
+		EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
+		EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
+		EVP_PKEY_CTX_add1_hkdf_info(ctx, HP_INFO.data(), HP_INFO.size());
+		}
+
+	return hkdf_expand(ctx, out_len, key);
 	}
 
 /*
@@ -132,9 +240,7 @@ DecryptionInformation remove_header_protection(const std::vector<uint8_t>& clien
 	{
 	DecryptionInformation decryptInfo;
 	int outlen;
-	auto cipher = EVP_aes_128_ecb();
-	auto ctx = EVP_CIPHER_CTX_new();
-	EVP_CipherInit_ex(ctx, cipher, NULL, NULL, NULL, 1);
+	auto* ctx = get_aes_128_ecb();
 	EVP_CIPHER_CTX_set_key_length(ctx, client_hp.size());
 	// Passing an 1 means ENCRYPT
 	EVP_CipherInit_ex(ctx, NULL, NULL, client_hp.data(), NULL, 1);
@@ -147,7 +253,6 @@ DecryptionInformation remove_header_protection(const std::vector<uint8_t>& clien
 
 	std::array<uint8_t, AEAD_SAMPLE_LENGTH> mask;
 	EVP_CipherUpdate(ctx, mask.data(), &outlen, sample, AEAD_SAMPLE_LENGTH);
-	EVP_CIPHER_CTX_free(ctx);
 
 	// To determine the actual packet number length,
 	// we have to remove the mask from the first byte
@@ -237,10 +342,7 @@ hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt
 	std::array<uint8_t, MAXIMUM_PACKET_LENGTH> decrypt_buffer;
 
 	// Setup context
-	auto cipher = EVP_aes_128_gcm();
-	auto ctx = EVP_CIPHER_CTX_new();
-
-	EVP_CipherInit_ex(ctx, cipher, NULL, NULL, NULL, 0);
+	auto* ctx = get_aes_128_gcm();
 
 	// Set the sizes for the IV and KEY
 	EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_CCM_SET_IVLEN, decryptInfo.nonce.size(), NULL);
@@ -264,7 +366,6 @@ hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt
 
 	// Validate whether the decryption was successful or not
 	EVP_CipherFinal_ex(ctx, NULL, &out2);
-	EVP_CIPHER_CTX_free(ctx);
 
 	// Copy the decrypted data from the decrypted buffer into a Bytes instance.
 	return hilti::rt::Bytes(decrypt_buffer.data(), decrypt_buffer.data() + out);
@@ -296,16 +397,16 @@ QUIC_decrypt_crypto_payload(const hilti::rt::Bytes& all_data, const hilti::rt::B
 	std::vector<uint8_t> server_client_secret;
 	if ( from_client )
 		{
-		server_client_secret = hkdf_expand(INITIAL_SECRET_LEN, initial_secret, CLIENT_INITIAL_INFO);
+		server_client_secret = hkdf_expand_client_initial_info(INITIAL_SECRET_LEN, initial_secret);
 		}
 	else
 		{
-		server_client_secret = hkdf_expand(INITIAL_SECRET_LEN, initial_secret, SERVER_INITIAL_INFO);
+		server_client_secret = hkdf_expand_server_initial_info(INITIAL_SECRET_LEN, initial_secret);
 		}
 
-	std::vector<uint8_t> key = hkdf_expand(AEAD_KEY_LEN, server_client_secret, KEY_INFO);
-	std::vector<uint8_t> iv = hkdf_expand(AEAD_IV_LEN, server_client_secret, IV_INFO);
-	std::vector<uint8_t> hp = hkdf_expand(AEAD_HP_LEN, server_client_secret, HP_INFO);
+	std::vector<uint8_t> key = hkdf_expand_key_info(AEAD_KEY_LEN, server_client_secret);
+	std::vector<uint8_t> iv = hkdf_expand_iv_info(AEAD_IV_LEN, server_client_secret);
+	std::vector<uint8_t> hp = hkdf_expand_hp_info(AEAD_HP_LEN, server_client_secret);
 
 	DecryptionInformation decryptInfo = remove_header_protection(hp, encrypted_offset, all_data);
 

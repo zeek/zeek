@@ -1,3 +1,7 @@
+6.1.0-rc1 | 2023-10-13 11:25:59 -0700
+
+  * Add missing NEWS entries for upcoming 6.1 release, reformat slightly (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.561 | 2023-10-13 13:15:59 +0200
 
   * GH-14: protocol/quic/decrypt_crypto: Reuse OpenSSL context objects (Arne Welzel, Corelight)

@@ -23,8 +23,13 @@ redef Log::default_rotation_dir = build_path(Management::get_spool_dir(), "log-q
 
 @if ( getenv("ZEEK_MANAGEMENT_NODE") != "" )
 
-# Management agents and controllers don't have loggers, nor their configuration,
-# so establish a similar one here:
+# Management agents and controllers run their own logging setup, which we
+# establish here. The controller serves as the central logger for any activity
+# in the management infrastructure (i.e. including the controller, agents, and
+# the Management shim running in cluster nodes).
+
+# Have log writes go to the controller.
+redef Broker::default_log_topic_prefix = Management::controller_topic_prefix + "/logs/";
 
 function archiver_rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationPath
 	{
@@ -36,8 +41,8 @@ function archiver_rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationP
 	}
 
 redef Log::default_rotation_interval = 1 hrs;
-redef Log::enable_local_logging = T;
-redef Log::enable_remote_logging = T;
+redef Log::enable_local_logging = Management::node_is_controller();
+redef Log::enable_remote_logging = Management::node_is_agent();
 redef Log::rotation_format_func = archiver_rotation_format_func;
 
 redef LogAscii::enable_leftover_log_rotation = T;

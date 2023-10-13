@@ -40,6 +40,15 @@ export {
 	## log level required to produce output.
 	global level = INFO &redef;
 
+	## For Management framework code running in cluster nodes (the
+	## Management::Node space), we don't want to use regular log writes
+	## because these would get sent to the cluster's logger(s). Instead we
+	## handle those "log writes" as events sent to the agent, which in turn
+	## logs them as usual. In the end all logs pop out in the controller in
+	## a centralized log. The Management::Node space sets this to T; it
+	## remains F everywhere else.
+	const log_via_agent = F &redef;
+
 	## A debug-level log message writer.
 	##
 	## message: the message to log.
@@ -86,14 +95,24 @@ global r2s: table[Management::Role] of string = {
 	[Management::NODE] = "NODE",
 };
 
+function log_write(id: Log::ID, fields: Info)
+	{
+	if ( log_via_agent )
+		Broker::publish(Management::agent_topic_prefix,
+		    Management::Log::log_message,
+		    fields);
+	else
+		Log::write(id, fields);
+	}
+
 function debug(message: string)
 	{
 	if ( enum_to_int(level) > enum_to_int(DEBUG) )
 		return;
 
 	local node = Supervisor::node();
-	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[DEBUG],
-			 $role=r2s[Management::role], $message=message]);
+	log_write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[DEBUG],
+			$role=r2s[Management::role], $message=message]);
 	}
 
 function info(message: string)
@@ -102,8 +121,8 @@ function info(message: string)
 		return;
 
 	local node = Supervisor::node();
-	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[INFO],
-			 $role=r2s[Management::role], $message=message]);
+	log_write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[INFO],
+			$role=r2s[Management::role], $message=message]);
 	}
 
 function warning(message: string)
@@ -112,8 +131,8 @@ function warning(message: string)
 		return;
 
 	local node = Supervisor::node();
-	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[WARNING],
-			 $role=r2s[Management::role], $message=message]);
+	log_write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[WARNING],
+			$role=r2s[Management::role], $message=message]);
 	}
 
 function error(message: string)
@@ -122,8 +141,8 @@ function error(message: string)
 		return;
 
 	local node = Supervisor::node();
-	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[ERROR],
-			 $role=r2s[Management::role], $message=message]);
+	log_write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[ERROR],
+			$role=r2s[Management::role], $message=message]);
 	}
 
 # Bump priority to ensure the log stream exists when other zeek_init handlers use it.
@@ -132,13 +151,15 @@ event zeek_init() &priority=5
 	if ( ! Supervisor::is_supervised() )
 		return;
 
-	local node = Supervisor::node();
-
 	# Defining the stream outside of the stream creation call sidesteps
 	# the coverage.find-bro-logs test, which tries to inventory all logs.
 	# This log isn't yet ready for that level of scrutiny.
-	local stream = Log::Stream($columns=Info, $path=fmt("management-%s", node$name),
-	                           $policy=log_policy);
+	if ( ! log_via_agent )
+		{
+		local node = Supervisor::node();
+		local stream = Log::Stream($columns=Info, $path=fmt("management-%s", node$name),
+		                           $policy=log_policy);
 
-	Log::create_stream(Management::Log::LOG, stream);
+		Log::create_stream(Management::Log::LOG, stream);
+		}
 	}

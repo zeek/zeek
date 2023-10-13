@@ -1054,6 +1054,11 @@ event Management::Request::request_expired(req: Management::Request::Request)
 		}
 	}
 
+event Management::Log::log_message(fields: Management::Log::Info)
+	{
+	Log::write(Management::Log::LOG, fields);
+	}
+
 event Broker::peer_added(peer: Broker::EndpointInfo, msg: string)
 	{
 	Management::Log::debug(fmt("broker peer %s added: %s", peer, msg));

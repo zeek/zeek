@@ -64,6 +64,10 @@ export {
 	## message: the message to log.
 	##
 	global error: function(message: string);
+
+	## The event used by cluster nodes to report Management framework log
+	## messages to the agent, which turns these into "proper" log writes.
+	global log_message: event(fields: Management::Log::Info);
 }
 
 # Enum translations to strings. This avoids those enums being reported

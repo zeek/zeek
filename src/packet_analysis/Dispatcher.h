@@ -37,7 +37,10 @@ public:
 	 * @return The analyzer registered for the given identifier. Returns a
 	 * nullptr if no analyzer is registered.
 	 */
-	AnalyzerPtr Lookup(uint32_t identifier) const;
+	const AnalyzerPtr& LookupAnalyzer(uint32_t identifier) const;
+
+	[[deprecated("Remove with v7.1, use LookupAnalyzer")]] AnalyzerPtr
+	Lookup(uint32_t identifier) const;
 
 	/**
 	 * Returns the number of registered analyzers.

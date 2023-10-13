@@ -59,13 +59,18 @@ void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer)
 	table[index] = std::move(analyzer);
 	}
 
-AnalyzerPtr Dispatcher::Lookup(uint32_t identifier) const
+const AnalyzerPtr& Dispatcher::LookupAnalyzer(uint32_t identifier) const
 	{
 	int64_t index = identifier - lowest_identifier;
 	if ( index >= 0 && index < static_cast<int64_t>(table.size()) && table[index] != nullptr )
 		return table[index];
 
-	return nullptr;
+	return Analyzer::nil;
+	}
+
+AnalyzerPtr Dispatcher::Lookup(uint32_t identifier) const
+	{
+	return LookupAnalyzer(identifier);
 	}
 
 size_t Dispatcher::Count() const

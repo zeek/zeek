@@ -1,3 +1,9 @@
+6.1.0-dev.557 | 2023-10-13 08:16:24 +0200
+
+  * CI: Add more logging during docker builds (Tim Wojtulewicz, Corelight)
+
+  * CI: Add timeouts for apt commands in docker builder Dockerfiles (Tim Wojtulewicz, Corelight)
+
 6.1.0-dev.553 | 2023-10-12 17:11:18 +0200
 
   * Fix signed-unsigned comparison. (Benjamin Bannier, Corelight)

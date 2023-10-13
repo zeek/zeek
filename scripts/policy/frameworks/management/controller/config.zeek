@@ -72,9 +72,6 @@ export {
 	## ports assigned.
 	const auto_assign_start_port = 2200/tcp &redef;
 
-	## The controller's Broker topic. Clients send requests to this topic.
-	const topic = "zeek/management/controller" &redef;
-
 	## An optional custom output directory for stdout/stderr. Agent and
 	## controller currently only log locally, not via the Zeek cluster's
 	## logger node. This means that if both write to the same log file,

@@ -187,7 +187,7 @@ function config_deploy_to_agents(config: Management::Configuration, req: Managem
 		if ( name !in g_instances_ready )
 			next;
 
-		local agent_topic = Management::Agent::topic_prefix + "/" + name;
+		local agent_topic = Management::agent_topic_prefix + "/" + name;
 		local areq = Management::Request::create();
 		areq$parent_id = req$id;
 
@@ -237,7 +237,7 @@ function add_instance(inst: Management::Instance)
 		local req = Management::Request::create();
 
 		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request %s to %s", req$id, inst$name));
-		Broker::publish(Management::Agent::topic_prefix + "/" + inst$name,
+		Broker::publish(Management::agent_topic_prefix + "/" + inst$name,
 		    Management::Agent::API::agent_welcome_request, req$id);
 		}
 	else
@@ -251,7 +251,7 @@ function drop_instance(inst: Management::Instance)
 
 	# Send the agent a standby so it shuts down its cluster nodes & state
 	Management::Log::info(fmt("tx Management::Agent::API::agent_standby_request to %s", inst$name));
-	Broker::publish(Management::Agent::topic_prefix + "/" + inst$name,
+	Broker::publish(Management::agent_topic_prefix + "/" + inst$name,
 	    Management::Agent::API::agent_standby_request, "");
 
 	delete g_instances[inst$name];
@@ -665,7 +665,7 @@ function deploy(req: Management::Request::Request)
 			{
 			Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
 			    Management::Request::to_string(req)));
-			Broker::publish(Management::Controller::topic,
+			Broker::publish(Management::controller_topic_prefix,
 			    Management::Controller::API::deploy_response, req$id, req$results);
 			}
 
@@ -768,7 +768,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, id: string, c
 		local req = Management::Request::create();
 
 		Management::Log::info(fmt("tx Management::Agent::API::agent_welcome_request %s to %s", req$id, instance));
-		Broker::publish(Management::Agent::topic_prefix + "/" + instance,
+		Broker::publish(Management::agent_topic_prefix + "/" + instance,
 		    Management::Agent::API::agent_welcome_request, req$id);
 		}
 	}
@@ -790,7 +790,7 @@ event Management::Agent::API::agent_welcome_response(reqid: string, result: Mana
 		{
 		Management::Log::info(fmt(
 		    "tx Management::Agent::API::agent_standby_request to %s", result$instance));
-		Broker::publish(Management::Agent::topic_prefix + "/" + result$instance,
+		Broker::publish(Management::agent_topic_prefix + "/" + result$instance,
 		    Management::Agent::API::agent_standby_request, "");
 		return;
 		}
@@ -868,7 +868,7 @@ event Management::Agent::API::deploy_response(reqid: string, results: Management
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
 		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::deploy_response, req$id, req$results);
 		}
 
@@ -888,7 +888,7 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 		Management::Request::finish(req$id);
 		Management::Log::info(fmt("tx Management::Controller::API::stage_configuration_response %s",
 		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::stage_configuration_response, req$id, req$results);
 		return;
 		}
@@ -907,7 +907,7 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 
 			Management::Log::info(fmt("tx Management::Controller::API::stage_configuration_response %s",
 			    Management::Request::to_string(req)));
-			Broker::publish(Management::Controller::topic,
+			Broker::publish(Management::controller_topic_prefix,
 			    Management::Controller::API::stage_configuration_response, req$id, req$results);
 			Management::Request::finish(req$id);
 			return;
@@ -929,7 +929,7 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 	Management::Log::info(fmt(
 	    "tx Management::Controller::API::stage_configuration_response %s",
 	    Management::result_to_string(res)));
-	Broker::publish(Management::Controller::topic,
+	Broker::publish(Management::controller_topic_prefix,
 	    Management::Controller::API::stage_configuration_response, reqid, req$results);
 	Management::Request::finish(req$id);
 	}
@@ -955,7 +955,7 @@ event Management::Controller::API::get_configuration_request(reqid: string, depl
 	Management::Log::info(fmt(
 	    "tx Management::Controller::API::get_configuration_response %s",
 	    Management::result_to_string(res)));
-	Broker::publish(Management::Controller::topic,
+	Broker::publish(Management::controller_topic_prefix,
 	    Management::Controller::API::get_configuration_response, reqid, res);
 	}
 
@@ -968,7 +968,7 @@ event Management::Controller::API::deploy_request(reqid: string)
 
 		Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
 		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::deploy_response, req$id, req$results);
 		};
 
@@ -1020,7 +1020,7 @@ event Management::Controller::API::get_instances_request(reqid: string)
 	res$data = insts;
 
 	Management::Log::info(fmt("tx Management::Controller::API::get_instances_response %s", reqid));
-	Broker::publish(Management::Controller::topic,
+	Broker::publish(Management::controller_topic_prefix,
 	    Management::Controller::API::get_instances_response, reqid, res);
 	}
 
@@ -1065,7 +1065,7 @@ event Management::Agent::API::get_nodes_response(reqid: string, result: Manageme
 
 	Management::Log::info(fmt("tx Management::Controller::API::get_nodes_response %s",
 	    Management::Request::to_string(req)));
-	Broker::publish(Management::Controller::topic,
+	Broker::publish(Management::controller_topic_prefix,
 	    Management::Controller::API::get_nodes_response, req$id, req$results);
 	Management::Request::finish(req$id);
 	}
@@ -1080,7 +1080,7 @@ event Management::Controller::API::get_nodes_request(reqid: string)
 		Management::Log::info(fmt("tx Management::Controller::API::get_nodes_response %s", reqid));
 		local res = Management::Result($reqid=reqid, $success=F,
 		    $error="no instances connected");
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::get_nodes_response, reqid, vector(res));
 		return;
 		}
@@ -1090,7 +1090,7 @@ event Management::Controller::API::get_nodes_request(reqid: string)
 
 	for ( name in g_instances_known )
 		{
-		local agent_topic = Management::Agent::topic_prefix + "/" + name;
+		local agent_topic = Management::agent_topic_prefix + "/" + name;
 		local areq = Management::Request::create();
 
 		areq$parent_id = req$id;
@@ -1155,7 +1155,7 @@ event Management::Agent::API::node_dispatch_response(reqid: string, results: Man
 			Management::Log::info(fmt(
 			    "tx Management::Controller::API::get_id_value_response %s",
 			    Management::Request::to_string(req)));
-			Broker::publish(Management::Controller::topic,
+			Broker::publish(Management::controller_topic_prefix,
 			    Management::Controller::API::get_id_value_response,
 			    req$id, req$results);
 			break;
@@ -1179,7 +1179,7 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::get_id_value_response %s", reqid));
 		res = Management::Result($reqid=reqid, $success=F, $error="no cluster deployed");
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::get_id_value_response,
 		    reqid, vector(res));
 		return;
@@ -1217,7 +1217,7 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 			Management::Log::info(fmt(
 			    "tx Management::Controller::API::get_id_value_response %s",
 			    Management::Request::to_string(req)));
-			Broker::publish(Management::Controller::topic,
+			Broker::publish(Management::controller_topic_prefix,
 			    Management::Controller::API::get_id_value_response,
 			    req$id, req$results);
 			Management::Request::finish(req$id);
@@ -1231,7 +1231,7 @@ event Management::Controller::API::get_id_value_request(reqid: string, id: strin
 		if ( name !in g_instances_ready )
 			next;
 
-		local agent_topic = Management::Agent::topic_prefix + "/" + name;
+		local agent_topic = Management::agent_topic_prefix + "/" + name;
 		local areq = Management::Request::create();
 
 		areq$parent_id = req$id;
@@ -1281,7 +1281,7 @@ event Management::Agent::API::restart_response(reqid: string, results: Managemen
 	Management::Log::info(fmt(
 	    "tx Management::Controller::API::restart_response %s",
 	    Management::Request::to_string(req)));
-	Broker::publish(Management::Controller::topic,
+	Broker::publish(Management::controller_topic_prefix,
 	    Management::Controller::API::restart_response,
 	    req$id, req$results);
 	Management::Request::finish(req$id);
@@ -1299,7 +1299,7 @@ event Management::Controller::API::restart_request(reqid: string, nodes: set[str
 
 		Management::Log::info(fmt("tx Management::Controller::API::restart_response %s",
 		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::restart_response, req$id, req$results);
 		};
 
@@ -1353,7 +1353,7 @@ event Management::Controller::API::restart_request(reqid: string, nodes: set[str
 			Management::Log::info(fmt(
 			    "tx Management::Controller::API::restart_response %s",
 			    Management::Request::to_string(req)));
-			Broker::publish(Management::Controller::topic,
+			Broker::publish(Management::controller_topic_prefix,
 			    Management::Controller::API::restart_response,
 			    req$id, req$results);
 			Management::Request::finish(req$id);
@@ -1366,7 +1366,7 @@ event Management::Controller::API::restart_request(reqid: string, nodes: set[str
 		if ( name !in g_instances_ready )
 			next;
 
-		local agent_topic = Management::Agent::topic_prefix + "/" + name;
+		local agent_topic = Management::agent_topic_prefix + "/" + name;
 		local areq = Management::Request::create();
 
 		areq$parent_id = req$id;
@@ -1404,7 +1404,7 @@ event Management::Request::request_expired(req: Management::Request::Request)
 			{
 			Management::Log::info(fmt("tx Management::Controller::API::deploy_response %s",
 			    Management::Request::to_string(req)));
-			Broker::publish(Management::Controller::topic,
+			Broker::publish(Management::controller_topic_prefix,
 			    Management::Controller::API::deploy_response, req$id, req$results);
 			}
 		}
@@ -1415,7 +1415,7 @@ event Management::Request::request_expired(req: Management::Request::Request)
 
 		Management::Log::info(fmt("tx Management::Controller::API::get_nodes_response %s",
 		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::get_nodes_response, req$id, req$results);
 		}
 
@@ -1429,7 +1429,7 @@ event Management::Request::request_expired(req: Management::Request::Request)
 				Management::Log::info(fmt(
 				    "tx Management::Controller::API::get_id_value_response %s",
 				    Management::Request::to_string(req)));
-				Broker::publish(Management::Controller::topic,
+				Broker::publish(Management::controller_topic_prefix,
 				    Management::Controller::API::get_id_value_response,
 				    req$id, req$results);
 				break;
@@ -1446,7 +1446,7 @@ event Management::Request::request_expired(req: Management::Request::Request)
 
 		Management::Log::info(fmt("tx Management::Controller::API::restart_response %s",
 		    Management::Request::to_string(req)));
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::restart_response,
 		    req$id, req$results);
 		}
@@ -1454,7 +1454,7 @@ event Management::Request::request_expired(req: Management::Request::Request)
 	if ( req?$test_state )
 		{
 		Management::Log::info(fmt("tx Management::Controller::API::test_timeout_response %s", req$id));
-		Broker::publish(Management::Controller::topic,
+		Broker::publish(Management::controller_topic_prefix,
 		    Management::Controller::API::test_timeout_response, req$id, res);
 		}
 	}
@@ -1523,8 +1523,8 @@ event zeek_init()
 		websocket_info = fmt("websocket port %s:%s", cni$address, cni$bound_port);
 		}
 
-	Broker::subscribe(Management::Agent::topic_prefix);
-	Broker::subscribe(Management::Controller::topic);
+	Broker::subscribe(Management::agent_topic_prefix);
+	Broker::subscribe(Management::controller_topic_prefix);
 
 	Management::Log::info(fmt("controller is live, Broker ID %s, %s, %s",
 	    Broker::node_id(), broker_info, websocket_info));

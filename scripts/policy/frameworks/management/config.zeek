@@ -46,6 +46,13 @@ export {
 	## That's :zeek:see:`Management::state_dir` when set, otherwise the
 	## installation's state directory.
 	global get_state_dir: function(): string;
+
+	## Agents' Broker topic prefix. For its own communication, the agent
+	## suffixes this with "/<name>", based on :zeek:see:`Management::Agent::get_name`.
+	const agent_topic_prefix = "zeek/management/agent" &redef;
+
+	## The controller's Broker topic prefix. Clients send requests to this topic.
+	const controller_topic_prefix = "zeek/management/controller" &redef;
 }
 
 function get_spool_dir(): string

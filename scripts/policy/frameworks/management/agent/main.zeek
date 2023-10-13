@@ -160,7 +160,7 @@ global g_outputs: table[string] of Management::NodeOutputs;
 function agent_topic(): string
 	{
 	local epi = Management::Agent::endpoint_info();
-	return Management::Agent::topic_prefix + "/" + epi$id;
+	return Management::agent_topic_prefix + "/" + epi$id;
 	}
 
 function supervisor_network_info(): Broker::NetworkInfo

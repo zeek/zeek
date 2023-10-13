@@ -65,10 +65,6 @@ export {
 	## The destination interval for archived logs.
 	const archive_dir = Installation::log_dir &redef;
 
-	## The agent's Broker topic prefix. For its own communication, the agent
-	## suffixes this with "/<name>", based on :zeek:see:`Management::Agent::get_name`.
-	const topic_prefix = "zeek/management/agent" &redef;
-
 	## The network coordinates of the controller. By default, the agent
 	## connects locally to the controller at its default port. Assigning
 	## a :zeek:see:`Broker::NetworkInfo` record with IP address "0.0.0.0"

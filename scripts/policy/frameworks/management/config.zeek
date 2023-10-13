@@ -53,6 +53,9 @@ export {
 
 	## The controller's Broker topic prefix. Clients send requests to this topic.
 	const controller_topic_prefix = "zeek/management/controller" &redef;
+
+	global node_is_agent: function(): bool;
+	global node_is_controller: function(): bool;
 }
 
 function get_spool_dir(): string
@@ -69,4 +72,14 @@ function get_state_dir(): string
 		return state_dir;
 
 	return Installation::state_dir;
+	}
+
+function node_is_agent(): bool
+	{
+	return getenv("ZEEK_MANAGEMENT_NODE") == "AGENT";
+	}
+
+function node_is_controller(): bool
+	{
+	return getenv("ZEEK_MANAGEMENT_NODE") == "CONTROLLER";
 	}

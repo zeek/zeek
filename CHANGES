@@ -1,3 +1,21 @@
+6.1.0-dev.561 | 2023-10-13 13:15:59 +0200
+
+  * GH-14: protocol/quic/decrypt_crypto: Reuse OpenSSL context objects (Arne Welzel, Corelight)
+
+    It is not necessary to allocate and free the context objects used for
+    HKDF and AES all the time, they can be re-used. The main assumption here
+    is no cross-thread usage, but this should be guaranteed even with the
+    fibers: QUIC_decrypt_crypto_payload() always runs to completion.
+
+    A pcap with ~12k QUIC connections had ~15% samples in
+    QUIC_decrypt_crypto_payload. After this change it is down to 5%
+    of samples. The improvement in runtime is ~16%, 12.2 seconds
+    to 10.2 seconds.
+
+    From zeek/spicy-quic#14
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 6.1.0-dev.557 | 2023-10-13 08:16:24 +0200
 
   * CI: Add more logging during docker builds (Tim Wojtulewicz, Corelight)

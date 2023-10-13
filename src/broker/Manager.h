@@ -419,17 +419,18 @@ public:
 	void SetMetricsExportPrefixes(std::vector<std::string> filter);
 
 private:
-	void DispatchMessage(const broker::topic& topic, broker::data msg);
 	// Process events used for Broker store backed zeek tables
 	void ProcessStoreEvent(broker::data msg);
 	// Common functionality for processing insert and update events.
 	void ProcessStoreEventInsertUpdate(const TableValPtr& table, const std::string& store_id,
 	                                   const broker::data& key, const broker::data& data,
 	                                   const broker::data& old_value, bool insert);
-	void ProcessEvent(const broker::topic& topic, broker::zeek::Event ev);
-	bool ProcessLogCreate(broker::zeek::LogCreate lc);
-	bool ProcessLogWrite(broker::zeek::LogWrite lw);
-	bool ProcessIdentifierUpdate(broker::zeek::IdentifierUpdate iu);
+	void ProcessMessage(std::string_view topic, broker::zeek::Batch& ev);
+	void ProcessMessage(std::string_view topic, broker::zeek::Event& ev);
+	void ProcessMessage(std::string_view topic, broker::zeek::Invalid& ev);
+	bool ProcessMessage(std::string_view topic, broker::zeek::LogCreate& lc);
+	bool ProcessMessage(std::string_view topic, broker::zeek::LogWrite& lw);
+	bool ProcessMessage(std::string_view topic, broker::zeek::IdentifierUpdate& iu);
 	void ProcessStatus(broker::status_view stat);
 	void ProcessError(broker::error_view err);
 	void ProcessStoreResponse(detail::StoreHandleVal*, broker::store::response response);
@@ -452,7 +453,7 @@ private:
 	struct LogBuffer
 		{
 		// Indexed by topic string.
-		std::unordered_map<std::string, broker::vector> msgs;
+		std::unordered_map<std::string, broker::zeek::BatchBuilder> msgs;
 		size_t message_count;
 
 		size_t Flush(broker::endpoint& endpoint, size_t batch_size);

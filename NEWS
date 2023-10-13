@@ -39,8 +39,7 @@ This release fixes the following security issues:
 - A specially-crafted VLAN packet can cause Zeek to overflow memory and
   potentially crash. Due to the possibility of receiving these packets from
   remote hosts, this is a DoS risk. The fix included is to add some additional
-  length checking to the VLAN analyzer. This patch does not affect the 5.0
-  baseline.
+  length checking to the VLAN analyzer.
 
 This release fixes the following bugs:
 

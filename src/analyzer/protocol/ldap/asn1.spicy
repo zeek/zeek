@@ -167,27 +167,28 @@ type ASN1ObjectIdentifierNibble = unit {
 } &convert=self.data;
 
 type ASN1ObjectIdentifier = unit(len: uint64) {
-  var oid: vector<uint64>;
+  var oidbytes: bytes;
   var temp: uint64;
   var oidstring: string;
 
   : uint8 if ( len >= 1 ) {
     self.temp = $$ / 40;
-    self.oid.push_back( self.temp );
-    self.oidstring = "%d" % (self.temp);
+    self.oidbytes += ("%d" % (self.temp)).encode();
     self.temp = $$ % 40;
-    self.oid.push_back( self.temp );
-    self.oidstring = self.oidstring + ".%d" % (self.temp);
+    self.oidbytes += (".%d" % (self.temp)).encode();
     self.temp = 0;
   }
 
   sublist: ASN1ObjectIdentifierNibble[len - 1] foreach {
     self.temp = ( self.temp<<7 ) | $$.num;
     if ( $$.more != 1 ) {
-      self.oid.push_back(self.temp);
-      self.oidstring = self.oidstring + ".%d" % (self.temp);
+      self.oidbytes += (".%d" % (self.temp)).encode();
       self.temp = 0;
     }
+  }
+
+  on %done {
+    self.oidstring = self.oidbytes.decode();
   }
 };
 

@@ -1,3 +1,15 @@
+6.0.1-5 | 2023-10-13 12:59:06 -0700
+
+  * Bump auxil/spicy to latest 1.8 development snapshot (Benjamin Bannier, Corelight)
+
+  * ci/benchmark: Send more Cirrus, GitHub and Zeek version information (Arne Welzel, Corelight)
+
+    I wonder if we hit a query string limitation and should instead switch
+    to post body here. It's the `curl -G -X POST` part making this a POST
+    with a long query string.
+
+    (cherry picked from commit 7b28152a9270b26af18a21e9ba11ef14107479e7)
+
 6.0.1 | 2023-09-12 13:37:34 -0700
 
   * Remove EOL Ubuntu 22.10 build, update Ubuntu 22.04 docker image (Tim Wojtulewicz, Corelight)

@@ -153,32 +153,34 @@ void Unref(EncapsulationStack*);
 class EncapsulationStack
 	{
 public:
-	EncapsulationStack() : conns(nullptr) { }
+	/*
+	    EncapsulationStack() : { }
 
-	EncapsulationStack(const EncapsulationStack& other)
-		{
-		if ( other.conns )
-			conns = new std::vector<EncapsulatingConn>(*(other.conns));
-		else
-			conns = nullptr;
-		}
+	    // EncapsulationStack(const EncapsulationStack& other)
+	        {
+	        if ( other.conns )
+	            conns = new std::vector<EncapsulatingConn>(*(other.conns));
+	        else
+	            conns = nullptr;
+	        }
 
-	EncapsulationStack& operator=(const EncapsulationStack& other)
-		{
-		if ( this == &other )
-			return *this;
+	    EncapsulationStack& operator=(const EncapsulationStack& other)
+	        {
+	        if ( this == &other )
+	            return *this;
 
-		delete conns;
+	        delete conns;
 
-		if ( other.conns )
-			conns = new std::vector<EncapsulatingConn>(*(other.conns));
-		else
-			conns = nullptr;
+	        if ( other.conns )
+	            conns = new std::vector<EncapsulatingConn>(*(other.conns));
+	        else
+	            conns = nullptr;
 
-		return *this;
-		}
+	        return *this;
+	        }
 
-	~EncapsulationStack() { delete conns; }
+	    ~EncapsulationStack() { delete conns; }
+	        */
 
 	/**
 	 * Add a new inner-most tunnel to the EncapsulationStack.
@@ -187,24 +189,24 @@ public:
 	 */
 	void Add(const EncapsulatingConn& c)
 		{
-		if ( ! conns )
-			conns = new std::vector<EncapsulatingConn>();
+		if ( conns.size() == 0 )
+			conns.reserve(4); // Avoid extra reallocations for double encapsulation
 
-		conns->push_back(c);
+		conns.push_back(c);
 		}
 
 	/**
 	 * Return how many nested tunnels are involved in a encapsulation, zero
 	 * meaning no tunnels are present.
 	 */
-	size_t Depth() const { return conns ? conns->size() : 0; }
+	size_t Depth() const { return conns.size(); }
 
 	/**
 	 * Return the tunnel type of the inner-most tunnel.
 	 */
 	BifEnum::Tunnel::Type LastType() const
 		{
-		return conns ? (*conns)[conns->size() - 1].Type() : BifEnum::Tunnel::NONE;
+		return conns.size() > 1 ? conns.back().Type() : BifEnum::Tunnel::NONE;
 		}
 
 	/**
@@ -215,11 +217,8 @@ public:
 		{
 		auto vv = make_intrusive<VectorVal>(id::find_type<VectorType>("EncapsulatingConnVector"));
 
-		if ( conns )
-			{
-			for ( size_t i = 0; i < conns->size(); ++i )
-				vv->Assign(i, (*conns)[i].ToVal());
-			}
+		for ( const auto& c : conns )
+			vv->Append(c.ToVal());
 
 		return vv;
 		}
@@ -235,7 +234,7 @@ public:
 	 * Returns a pointer the last element in the stack. Returns a nullptr
 	 * if the stack is empty or hasn't been initialized yet.
 	 */
-	EncapsulatingConn* Last() { return Depth() > 0 ? &(conns->back()) : nullptr; }
+	EncapsulatingConn* Last() { return Depth() > 0 ? &(conns.back()) : nullptr; }
 
 	/**
 	 * Returns an EncapsulatingConn from the requested index in the stack.
@@ -248,7 +247,7 @@ public:
 	EncapsulatingConn* At(size_t index)
 		{
 		if ( index > 0 && index <= Depth() )
-			return &(conns->at(index - 1));
+			return &(conns.at(index - 1));
 
 		return nullptr;
 		}
@@ -259,7 +258,7 @@ public:
 	void Pop();
 
 protected:
-	std::vector<EncapsulatingConn>* conns;
+	std::vector<EncapsulatingConn> conns;
 
 private:
 	friend void zeek::Ref(EncapsulationStack*);

@@ -39,22 +39,13 @@ RecordValPtr EncapsulatingConn::ToVal() const
 
 bool operator==(const EncapsulationStack& e1, const EncapsulationStack& e2)
 	{
-	if ( ! e1.conns )
-		return e2.conns;
+	if ( e1.conns.empty() && e2.conns.empty() )
+		return true;
 
-	if ( ! e2.conns )
+	if ( e1.conns.size() != e2.conns.size() )
 		return false;
 
-	if ( e1.conns->size() != e2.conns->size() )
-		return false;
-
-	for ( size_t i = 0; i < e1.conns->size(); ++i )
-		{
-		if ( (*e1.conns)[i] != (*e2.conns)[i] )
-			return false;
-		}
-
-	return true;
+	return e1.conns == e2.conns;
 	}
 
 void EncapsulationStack::Pop()
@@ -65,7 +56,7 @@ void EncapsulationStack::Pop()
 		return;
 		}
 
-	conns->pop_back();
+	conns.pop_back();
 	}
 
 	} // namespace zeek

@@ -50,7 +50,7 @@ zeek::packet_analysis::AnalyzerPtr Analyzer::LoadAnalyzer(const std::string& nam
 	return packet_mgr->GetAnalyzer(analyzer_val->AsEnumVal());
 	}
 
-const Tag Analyzer::GetAnalyzerTag() const
+const Tag& Analyzer::GetAnalyzerTag() const
 	{
 	assert(tag);
 	return tag;
@@ -105,7 +105,7 @@ const AnalyzerPtr& Analyzer::DetectAnalyzer(size_t len, const uint8_t* data, Pac
 	{
 	for ( const auto& child : analyzers_to_detect )
 		{
-		if ( child->DetectProtocol(len, data, packet) )
+		if ( child->IsEnabled() && child->DetectProtocol(len, data, packet) )
 			{
 			DBG_LOG(DBG_PACKET_ANALYSIS,
 			        "Protocol detection in %s succeeded, next layer analyzer is %s",

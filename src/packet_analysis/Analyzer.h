@@ -56,7 +56,7 @@ public:
 	/**
 	 * Returns the tag associated with the analyzer's type.
 	 */
-	const zeek::Tag GetAnalyzerTag() const;
+	const zeek::Tag& GetAnalyzerTag() const;
 
 	/**
 	 * Returns a textual description of the analyzer's type. This is

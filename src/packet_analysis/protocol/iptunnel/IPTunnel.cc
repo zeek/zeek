@@ -170,7 +170,6 @@ std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
                                            int link_type, BifEnum::Tunnel::Type tunnel_type,
                                            const Tag& analyzer_tag)
 	{
-	auto inner_pkt = std::make_unique<Packet>();
 
 	assert(outer_pkt->cap_len >= inner_cap_len);
 	assert(outer_pkt->len >= outer_pkt->cap_len - inner_cap_len);
@@ -188,7 +187,8 @@ std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
 	ts.tv_sec = static_cast<time_t>(run_state::current_timestamp);
 	ts.tv_usec = static_cast<suseconds_t>(
 		(run_state::current_timestamp - static_cast<double>(ts.tv_sec)) * 1000000);
-	inner_pkt->Init(link_type, &ts, inner_cap_len, inner_wire_len, data);
+
+	auto inner_pkt = std::make_unique<Packet>(link_type, &ts, inner_cap_len, inner_wire_len, data);
 
 	*encap_index = 0;
 	if ( outer_pkt->session )

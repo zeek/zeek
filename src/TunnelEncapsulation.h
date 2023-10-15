@@ -11,6 +11,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/UID.h"
+#include "zeek/local_shared_ptr.h"
 
 namespace zeek
 	{
@@ -131,7 +132,7 @@ public:
 		}
 
 	// TODO: temporarily public
-	std::shared_ptr<IP_Hdr> ip_hdr;
+	zeek::detail::local_shared_ptr<IP_Hdr> ip_hdr;
 
 protected:
 	IPAddr src_addr;

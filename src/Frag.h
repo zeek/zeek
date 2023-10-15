@@ -8,6 +8,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reassem.h"
 #include "zeek/Timer.h"
+#include "zeek/local_shared_ptr.h"
 #include "zeek/util.h" // for zeek_uint_t
 
 namespace zeek
@@ -31,17 +32,17 @@ using FragReassemblerKey = std::tuple<IPAddr, IPAddr, zeek_uint_t>;
 class FragReassembler : public Reassembler
 	{
 public:
-	FragReassembler(session::Manager* s, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt,
-	                const FragReassemblerKey& k, double t);
+	FragReassembler(session::Manager* s, const zeek::detail::local_shared_ptr<IP_Hdr>& ip,
+	                const u_char* pkt, const FragReassemblerKey& k, double t);
 	~FragReassembler() override;
 
-	void AddFragment(double t, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt);
+	void AddFragment(double t, const zeek::detail::local_shared_ptr<IP_Hdr>& ip, const u_char* pkt);
 
 	void Expire(double t);
 	void DeleteTimer();
 	void ClearTimer() { expire_timer = nullptr; }
 
-	std::shared_ptr<IP_Hdr> ReassembledPkt() { return std::move(reassembled_pkt); }
+	zeek::detail::local_shared_ptr<IP_Hdr> ReassembledPkt() { return std::move(reassembled_pkt); }
 	const FragReassemblerKey& Key() const { return key; }
 
 protected:
@@ -50,7 +51,7 @@ protected:
 	void Weird(const char* name) const;
 
 	u_char* proto_hdr;
-	std::shared_ptr<IP_Hdr> reassembled_pkt;
+	zeek::detail::local_shared_ptr<IP_Hdr> reassembled_pkt;
 	session::Manager* s;
 	uint64_t frag_size; // size of fully reassembled fragment
 	FragReassemblerKey key;
@@ -81,7 +82,8 @@ public:
 	FragmentManager() = default;
 	~FragmentManager();
 
-	FragReassembler* NextFragment(double t, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt);
+	FragReassembler* NextFragment(double t, const zeek::detail::local_shared_ptr<IP_Hdr>& ip,
+	                              const u_char* pkt);
 	void Clear();
 	void Remove(detail::FragReassembler* f);
 

@@ -90,7 +90,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 		len = remaining;
 
 	const struct udphdr* up = (const struct udphdr*)data;
-	const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
+	const auto& ip = pkt->ip_hdr;
 
 	adapter->DeliverPacket(len, data, is_orig, -1, ip.get(), remaining);
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "zeek/Frag.h"
+#include "zeek/local_shared_ptr.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
@@ -68,6 +69,6 @@ enum class ParseResult
  *         in the header's version field.
  */
 ParseResult ParsePacket(int caplen, const u_char* const pkt, int proto,
-                        std::shared_ptr<IP_Hdr>& inner);
+                        zeek::detail::local_shared_ptr<IP_Hdr>& inner);
 
 	}

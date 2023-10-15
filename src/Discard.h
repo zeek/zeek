@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/local_shared_ptr.h"
 
 namespace zeek
 	{
@@ -26,7 +27,7 @@ public:
 
 	bool IsActive();
 
-	bool NextPacket(const std::shared_ptr<IP_Hdr>& ip, int len, int caplen);
+	bool NextPacket(const zeek::detail::local_shared_ptr<IP_Hdr>& ip, int len, int caplen);
 
 protected:
 	Val* BuildData(const u_char* data, int hdrlen, int len, int caplen);

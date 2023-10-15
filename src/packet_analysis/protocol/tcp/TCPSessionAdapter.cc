@@ -543,8 +543,8 @@ static int32_t update_last_seq(analyzer::tcp::TCP_Endpoint* endpoint, uint32_t l
 	}
 
 void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len,
-                                const std::shared_ptr<IP_Hdr>& ip, const u_char* data,
-                                int remaining)
+                                const zeek::detail::local_shared_ptr<IP_Hdr>& ip,
+                                const u_char* data, int remaining)
 	{
 	analyzer::tcp::TCP_Flags flags(tp);
 	uint32_t base_seq = ntohl(tp->th_seq);

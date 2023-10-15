@@ -31,7 +31,8 @@ void FragTimer::Dispatch(double t, bool /* is_expire */)
 		reporter->InternalWarning("fragment timer dispatched w/o reassembler");
 	}
 
-FragReassembler::FragReassembler(session::Manager* arg_s, const std::shared_ptr<IP_Hdr>& ip,
+FragReassembler::FragReassembler(session::Manager* arg_s,
+                                 const zeek::detail::local_shared_ptr<IP_Hdr>& ip,
                                  const u_char* pkt, const FragReassemblerKey& k, double t)
 	: Reassembler(0, REASSEM_FRAG)
 	{
@@ -74,7 +75,8 @@ FragReassembler::~FragReassembler()
 	delete[] proto_hdr;
 	}
 
-void FragReassembler::AddFragment(double t, const std::shared_ptr<IP_Hdr>& ip, const u_char* pkt)
+void FragReassembler::AddFragment(double t, const zeek::detail::local_shared_ptr<IP_Hdr>& ip,
+                                  const u_char* pkt)
 	{
 	const struct ip* ip4 = ip->IP4_Hdr();
 
@@ -294,7 +296,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		{
 		struct ip* reassem4 = (struct ip*)pkt_start;
 		reassem4->ip_len = htons(frag_size + proto_hdr_len);
-		reassembled_pkt = std::make_shared<IP_Hdr>(reassem4, true, true);
+		reassembled_pkt = zeek::detail::make_local_shared<IP_Hdr>(reassem4, true, true);
 		DeleteTimer();
 		}
 
@@ -303,7 +305,7 @@ void FragReassembler::BlockInserted(DataBlockMap::const_iterator /* it */)
 		struct ip6_hdr* reassem6 = (struct ip6_hdr*)pkt_start;
 		reassem6->ip6_plen = htons(frag_size + proto_hdr_len - 40);
 		const IPv6_Hdr_Chain* chain = new IPv6_Hdr_Chain(reassem6, next_proto, n);
-		reassembled_pkt = std::make_shared<IP_Hdr>(reassem6, true, n, chain, true);
+		reassembled_pkt = zeek::detail::make_local_shared<IP_Hdr>(reassem6, true, n, chain, true);
 		DeleteTimer();
 		}
 
@@ -338,7 +340,8 @@ FragmentManager::~FragmentManager()
 	Clear();
 	}
 
-FragReassembler* FragmentManager::NextFragment(double t, const std::shared_ptr<IP_Hdr>& ip,
+FragReassembler* FragmentManager::NextFragment(double t,
+                                               const zeek::detail::local_shared_ptr<IP_Hdr>& ip,
                                                const u_char* pkt)
 	{
 	uint32_t frag_id = ip->ID();

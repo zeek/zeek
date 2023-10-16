@@ -293,6 +293,10 @@ protected:
 	IPAddr* finalDst = nullptr;
 	};
 
+class IP_Hdr;
+inline void Ref(IP_Hdr* o);
+inline void Unref(IP_Hdr* o);
+
 /**
  * A class that wraps either an IPv4 or IPv6 packet and abstracts methods
  * for inquiring about common features between the two.
@@ -548,11 +552,34 @@ public:
 	bool Reassembled() const { return reassembled; }
 
 private:
+	friend void zeek::Ref(IP_Hdr*);
+	friend void zeek::Unref(IP_Hdr*);
 	const struct ip* ip4 = nullptr;
 	const struct ip6_hdr* ip6 = nullptr;
 	const IPv6_Hdr_Chain* ip6_hdrs = nullptr;
 	bool del = false;
 	bool reassembled = false;
+	int ref_cnt = 1;
 	};
+
+using IP_HdrPtr = zeek::IntrusivePtr<IP_Hdr>;
+
+inline void Ref(IP_Hdr* o)
+	{
+	if ( ++(o->ref_cnt) <= 1 )
+		bad_ref(0);
+	if ( o->ref_cnt == INT_MAX )
+		bad_ref(1);
+	}
+
+inline void Unref(IP_Hdr* o)
+	{
+	if ( o && --o->ref_cnt <= 0 )
+		{
+		if ( o->ref_cnt < 0 )
+			bad_ref(2);
+		delete o;
+		}
+	}
 
 	} // namespace zeek

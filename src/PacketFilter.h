@@ -6,12 +6,13 @@
 
 #include "zeek/IPAddr.h"
 #include "zeek/PrefixTable.h"
-#include "zeek/local_shared_ptr.h"
 
 namespace zeek
 	{
 
 class IP_Hdr;
+using IP_HdrPtr = IntrusivePtr<IP_Hdr>;
+
 class Val;
 
 namespace detail
@@ -39,7 +40,7 @@ public:
 	bool RemoveDst(Val* dst);
 
 	// Returns true if packet matches a drop filter
-	bool Match(const zeek::detail::local_shared_ptr<IP_Hdr>& ip, int len, int caplen);
+	bool Match(const zeek::IP_HdrPtr& ip, int len, int caplen);
 
 private:
 	struct Filter

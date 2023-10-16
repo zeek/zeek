@@ -13,7 +13,6 @@
 #include "zeek/PacketFilter.h"
 #include "zeek/RunState.h"
 #include "zeek/TunnelEncapsulation.h"
-#include "zeek/local_shared_ptr.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/session/Manager.h"
 
@@ -50,11 +49,12 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	// data about the header.
 	auto ip = (const struct ip*)data;
 	uint32_t protocol = ip->ip_v;
-	zeek::detail::local_shared_ptr<IP_Hdr> ip_hdr;
+
+	IP_HdrPtr ip_hdr;
 
 	if ( protocol == 4 )
 		{
-		ip_hdr = zeek::detail::make_local_shared<IP_Hdr>(ip, false);
+		ip_hdr = zeek::make_intrusive<IP_Hdr>(ip, false);
 		packet->l3_proto = L3_IPV4;
 		}
 	else if ( protocol == 6 )
@@ -65,8 +65,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 			return false;
 			}
 
-		ip_hdr = zeek::detail::make_local_shared<IP_Hdr>((const struct ip6_hdr*)data, false,
-		                                                 static_cast<int>(len));
+		ip_hdr = zeek::make_intrusive<IP_Hdr>((const struct ip6_hdr*)data, false,
+		                                      static_cast<int>(len));
 		packet->l3_proto = L3_IPV6;
 		}
 	else
@@ -305,9 +305,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 	return return_val;
 	}
 
-ParseResult
-zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, int proto,
-                                       zeek::detail::local_shared_ptr<zeek::IP_Hdr>& inner)
+ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, int proto,
+                                                   zeek::IP_HdrPtr& inner)
 	{
 	if ( proto == IPPROTO_IPV6 )
 		{
@@ -315,7 +314,7 @@ zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, int 
 			return ParseResult::CaplenTooSmall;
 
 		const struct ip6_hdr* ip6 = (const struct ip6_hdr*)pkt;
-		inner = zeek::detail::make_local_shared<zeek::IP_Hdr>(ip6, false, caplen);
+		inner = zeek::make_intrusive<zeek::IP_Hdr>(ip6, false, caplen);
 		if ( (ip6->ip6_ctlun.ip6_un2_vfc & 0xF0) != 0x60 )
 			return ParseResult::BadProtocol;
 		}
@@ -326,7 +325,7 @@ zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* const pkt, int 
 			return ParseResult::BadProtocol;
 
 		const struct ip* ip4 = (const struct ip*)pkt;
-		inner = zeek::detail::make_local_shared<zeek::IP_Hdr>(ip4, false);
+		inner = zeek::make_intrusive<zeek::IP_Hdr>(ip4, false);
 		if ( ip4->ip_v != 4 )
 			return ParseResult::BadProtocol;
 		}

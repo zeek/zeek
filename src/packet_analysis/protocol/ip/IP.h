@@ -3,7 +3,6 @@
 #pragma once
 
 #include "zeek/Frag.h"
-#include "zeek/local_shared_ptr.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
@@ -68,7 +67,6 @@ enum class ParseResult
  *         or IPPROTO_IPV6 or if \a proto does not match the protocol
  *         in the header's version field.
  */
-ParseResult ParsePacket(int caplen, const u_char* const pkt, int proto,
-                        zeek::detail::local_shared_ptr<IP_Hdr>& inner);
+ParseResult ParsePacket(int caplen, const u_char* const pkt, int proto, zeek::IP_HdrPtr& inner);
 
 	}

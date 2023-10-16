@@ -54,7 +54,7 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 	// TODO: i'm not sure about this. on the one hand, we do some error checking with the result
 	// but on the other hand we duplicate this work here. maybe this header could just be stored
 	// and reused in the IP analyzer somehow?
-	zeek::detail::local_shared_ptr<IP_Hdr> inner = nullptr;
+	zeek::IP_HdrPtr inner = nullptr;
 	auto result = packet_analysis::IP::ParsePacket(len, data, next_header, inner);
 
 	if ( result == packet_analysis::IP::ParseResult::Ok )

@@ -11,7 +11,6 @@
 #include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/UID.h"
-#include "zeek/local_shared_ptr.h"
 
 namespace zeek
 	{
@@ -132,7 +131,7 @@ public:
 		}
 
 	// TODO: temporarily public
-	zeek::detail::local_shared_ptr<IP_Hdr> ip_hdr;
+	IP_HdrPtr ip_hdr;
 
 protected:
 	IPAddr src_addr;
@@ -143,6 +142,10 @@ protected:
 	BifEnum::Tunnel::Type type;
 	UID uid;
 	};
+
+class EncapsulationStack;
+void Ref(EncapsulationStack*);
+void Unref(EncapsulationStack*);
 
 /**
  * Abstracts an arbitrary amount of nested tunneling.
@@ -257,6 +260,31 @@ public:
 
 protected:
 	std::vector<EncapsulatingConn>* conns;
+
+private:
+	friend void zeek::Ref(EncapsulationStack*);
+	friend void zeek::Unref(EncapsulationStack*);
+	int ref_cnt = 1;
 	};
+
+using EncapsulationStackPtr = zeek::IntrusivePtr<EncapsulationStack>;
+
+inline void Ref(EncapsulationStack* o)
+	{
+	if ( ++(o->ref_cnt) <= 1 )
+		bad_ref(0);
+	if ( o->ref_cnt == INT_MAX )
+		bad_ref(1);
+	}
+
+inline void Unref(zeek::EncapsulationStack* o)
+	{
+	if ( o && --o->ref_cnt <= 0 )
+		{
+		if ( o->ref_cnt < 0 )
+			bad_ref(2);
+		delete o;
+		}
+	}
 
 	} // namespace zeek

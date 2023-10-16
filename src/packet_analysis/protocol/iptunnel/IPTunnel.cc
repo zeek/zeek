@@ -39,7 +39,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 	BifEnum::Tunnel::Type tunnel_type = packet->tunnel_type;
 	int gre_link_type = packet->gre_link_type;
 
-	zeek::detail::local_shared_ptr<IP_Hdr> inner = nullptr;
+	zeek::IP_HdrPtr inner = nullptr;
 
 	if ( gre_version != 0 )
 		{
@@ -89,9 +89,10 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 /**
  * Handles a packet that contains an IP header directly after the tunnel header.
  */
-bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(
-	double t, const Packet* pkt, const zeek::detail::local_shared_ptr<IP_Hdr>& inner,
-	zeek::detail::local_shared_ptr<EncapsulationStack> prev, const EncapsulatingConn& ec)
+bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt,
+                                                 const zeek::IP_HdrPtr& inner,
+                                                 EncapsulationStackPtr prev,
+                                                 const EncapsulatingConn& ec)
 	{
 	uint32_t caplen, len;
 	caplen = len = inner->TotalLen();
@@ -114,7 +115,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(
 	else
 		data = (const u_char*)inner->IP6_Hdr();
 
-	auto outer = prev ? prev : zeek::detail::make_local_shared<EncapsulationStack>();
+	auto outer = prev ? prev : zeek::make_intrusive<EncapsulationStack>();
 	outer->Add(ec);
 
 	// Construct fake packet containing the inner packet so it can be processed
@@ -132,9 +133,10 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(
 /**
  * Handles a packet that contains a physical-layer header after the tunnel header.
  */
-bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(
-	double t, const Packet* pkt, uint32_t caplen, uint32_t len, const u_char* data, int link_type,
-	zeek::detail::local_shared_ptr<EncapsulationStack> prev, const EncapsulatingConn& ec)
+bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, uint32_t caplen,
+                                                 uint32_t len, const u_char* data, int link_type,
+                                                 EncapsulationStackPtr prev,
+                                                 const EncapsulatingConn& ec)
 	{
 	pkt_timeval ts;
 
@@ -146,7 +148,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(
 		ts.tv_usec = (suseconds_t)((run_state::network_time - (double)ts.tv_sec) * 1000000);
 		}
 
-	auto outer = prev ? prev : zeek::detail::make_local_shared<EncapsulationStack>();
+	auto outer = prev ? prev : zeek::make_intrusive<EncapsulationStack>();
 	outer->Add(ec);
 
 	// Construct fake packet containing the inner packet so it can be processed
@@ -162,11 +164,11 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(
 	return return_val;
 	}
 
-std::unique_ptr<Packet>
-build_inner_packet(Packet* outer_pkt, int* encap_index,
-                   zeek::detail::local_shared_ptr<EncapsulationStack> encap_stack,
-                   uint32_t inner_cap_len, const u_char* data, int link_type,
-                   BifEnum::Tunnel::Type tunnel_type, const Tag& analyzer_tag)
+std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
+                                           EncapsulationStackPtr encap_stack,
+                                           uint32_t inner_cap_len, const u_char* data,
+                                           int link_type, BifEnum::Tunnel::Type tunnel_type,
+                                           const Tag& analyzer_tag)
 	{
 	auto inner_pkt = std::make_unique<Packet>();
 
@@ -194,9 +196,8 @@ build_inner_packet(Packet* outer_pkt, int* encap_index,
 		EncapsulatingConn inner(static_cast<Connection*>(outer_pkt->session), tunnel_type);
 
 		if ( ! outer_pkt->encap )
-			outer_pkt->encap = encap_stack != nullptr
-			                       ? encap_stack
-			                       : zeek::detail::make_local_shared<EncapsulationStack>();
+			outer_pkt->encap = encap_stack != nullptr ? encap_stack
+			                                          : zeek::make_intrusive<EncapsulationStack>();
 
 		outer_pkt->encap->Add(inner);
 		inner_pkt->encap = outer_pkt->encap;

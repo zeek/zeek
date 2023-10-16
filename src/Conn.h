@@ -17,7 +17,6 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/iosource/Packet.h"
-#include "zeek/local_shared_ptr.h"
 #include "zeek/session/Session.h"
 
 namespace zeek
@@ -92,7 +91,7 @@ public:
 	 * @param encap The new encapsulation. Can be set to null to indicated no
 	 * encapsulation or clear an old one.
 	 */
-	void CheckEncapsulation(const zeek::detail::local_shared_ptr<EncapsulationStack>& encap);
+	void CheckEncapsulation(const EncapsulationStackPtr& encap);
 
 	/**
 	 * Invoked when the session is about to be removed. Use Ref(this)
@@ -235,10 +234,7 @@ public:
 
 	UID GetUID() const { return uid; }
 
-	zeek::detail::local_shared_ptr<EncapsulationStack> GetEncapsulation() const
-		{
-		return encapsulation;
-		}
+	EncapsulationStackPtr GetEncapsulation() const { return encapsulation; }
 
 	void CheckFlowLabel(bool is_orig, uint32_t flow_label);
 
@@ -260,7 +256,7 @@ private:
 	u_char resp_l2_addr[Packet::L2_ADDR_LEN]; // Link-layer responder address, if available
 	int suppress_event; // suppress certain events to once per conn.
 	RecordValPtr conn_val;
-	zeek::detail::local_shared_ptr<EncapsulationStack> encapsulation; // tunnels
+	EncapsulationStackPtr encapsulation; // tunnels
 	uint8_t tunnel_changes = 0;
 
 	detail::ConnKey key;

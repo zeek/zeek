@@ -20,7 +20,6 @@ using pkt_timeval = struct timeval;
 #include "zeek/IP.h"
 #include "zeek/NetVar.h" // For BifEnum::Tunnel
 #include "zeek/TunnelEncapsulation.h"
-#include "zeek/local_shared_ptr.h"
 #include "zeek/session/Session.h"
 
 namespace zeek
@@ -232,13 +231,13 @@ public:
 	 * used by the tunnel analyzers to keep track of the encapsulations as
 	 * processing occurs.
 	 */
-	zeek::detail::local_shared_ptr<EncapsulationStack> encap = nullptr;
+	EncapsulationStackPtr encap = nullptr;
 
 	/**
 	 * The IP header for this packet. This is filled in by the IP analyzer
 	 * during processing if the packet contains an IP header.
 	 */
-	zeek::detail::local_shared_ptr<IP_Hdr> ip_hdr = nullptr;
+	IP_HdrPtr ip_hdr = nullptr;
 
 	/**
 	 * The protocol of the packet. This is used by the tunnel analyzers to

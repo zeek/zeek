@@ -63,8 +63,8 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
 
 	l4_checksummed = false;
 
-	encap.reset();
-	ip_hdr.reset();
+	encap = nullptr;
+	ip_hdr = nullptr;
 
 	proto = -1;
 	tunnel_type = BifEnum::Tunnel::NONE;

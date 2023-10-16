@@ -90,8 +90,7 @@ Connection::~Connection()
 	--current_connections;
 	}
 
-void Connection::CheckEncapsulation(
-	const zeek::detail::local_shared_ptr<EncapsulationStack>& arg_encap)
+void Connection::CheckEncapsulation(const EncapsulationStackPtr& arg_encap)
 	{
 	if ( encapsulation && arg_encap )
 		{
@@ -105,7 +104,7 @@ void Connection::CheckEncapsulation(
 				EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
 				}
 
-			encapsulation = zeek::detail::make_local_shared<EncapsulationStack>(*arg_encap);
+			encapsulation = zeek::make_intrusive<EncapsulationStack>(*arg_encap);
 			}
 		}
 
@@ -125,7 +124,7 @@ void Connection::CheckEncapsulation(
 		if ( tunnel_changed )
 			EnqueueEvent(tunnel_changed, nullptr, GetVal(), arg_encap->ToVal());
 
-		encapsulation = zeek::detail::make_local_shared<EncapsulationStack>(*arg_encap);
+		encapsulation = zeek::make_intrusive<EncapsulationStack>(*arg_encap);
 		}
 	}
 

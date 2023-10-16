@@ -88,7 +88,7 @@ public:
 
 	const u_char* Authentication() const { return auth; }
 
-	RecordValPtr BuildVal(const zeek::detail::local_shared_ptr<IP_Hdr>& inner) const;
+	RecordValPtr BuildVal(const zeek::IP_HdrPtr& inner) const;
 
 private:
 	bool DoParse(const u_char* data, size_t& len, bool found_orig, bool found_au);

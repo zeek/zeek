@@ -5,7 +5,6 @@
 #include "zeek/Tag.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
-#include "zeek/local_shared_ptr.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
@@ -34,9 +33,8 @@ public:
 	explicit TCPSessionAdapter(Connection* conn);
 	~TCPSessionAdapter() override;
 
-	void Process(bool is_orig, const struct tcphdr* tp, int len,
-	             const zeek::detail::local_shared_ptr<IP_Hdr>& ip, const u_char* data,
-	             int remaining);
+	void Process(bool is_orig, const struct tcphdr* tp, int len, const zeek::IP_HdrPtr& ip,
+	             const u_char* data, int remaining);
 
 	void EnableReassembly();
 

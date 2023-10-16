@@ -2,9 +2,9 @@
 
 #pragma once
 
+#include "zeek/IP.h"
 #include "zeek/IPAddr.h"
 #include "zeek/TunnelEncapsulation.h"
-#include "zeek/local_shared_ptr.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
@@ -44,10 +44,8 @@ public:
 	 *        the most-recently found depth of encapsulation.
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
-	bool ProcessEncapsulatedPacket(double t, const Packet* pkt,
-	                               const zeek::detail::local_shared_ptr<IP_Hdr>& inner,
-	                               zeek::detail::local_shared_ptr<EncapsulationStack> prev,
-	                               const EncapsulatingConn& ec);
+	bool ProcessEncapsulatedPacket(double t, const Packet* pkt, const zeek::IP_HdrPtr& inner,
+	                               EncapsulationStackPtr prev, const EncapsulatingConn& ec);
 
 	/**
 	 * Wrapper that handles encapsulated Ethernet/IP packets and passes them back into
@@ -66,8 +64,7 @@ public:
 	 * @param ec The most-recently found depth of encapsulation.
 	 */
 	bool ProcessEncapsulatedPacket(double t, const Packet* pkt, uint32_t caplen, uint32_t len,
-	                               const u_char* data, int link_type,
-	                               zeek::detail::local_shared_ptr<EncapsulationStack> prev,
+	                               const u_char* data, int link_type, EncapsulationStackPtr prev,
 	                               const EncapsulatingConn& ec);
 
 protected:
@@ -102,11 +99,11 @@ protected:
  * @param analyzer_tag The tag for the analyzer calling this method.
  * return A new packet object describing the encapsulated packet and data.
  */
-extern std::unique_ptr<Packet>
-build_inner_packet(Packet* outer_pkt, int* encap_index,
-                   zeek::detail::local_shared_ptr<EncapsulationStack> encap_stack,
-                   uint32_t inner_cap_len, const u_char* data, int link_type,
-                   BifEnum::Tunnel::Type tunnel_type, const Tag& analyzer_tag);
+extern std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
+                                                  EncapsulationStackPtr encap_stack,
+                                                  uint32_t inner_cap_len, const u_char* data,
+                                                  int link_type, BifEnum::Tunnel::Type tunnel_type,
+                                                  const Tag& analyzer_tag);
 
 namespace detail
 	{

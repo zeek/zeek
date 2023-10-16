@@ -1,3 +1,9 @@
+6.2.0-dev.6 | 2023-10-16 11:49:33 -0700
+
+  * Add registration for GRE-over-UDP (Tim Wojtulewicz, Corelight)
+
+  * Update c-ares to v1.20.1 [nomail] (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.2 | 2023-10-13 14:36:17 -0700
 
   * Broker: Adapt to upstream API adjustments (Dominik Charousset)

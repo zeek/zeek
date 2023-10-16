@@ -1,3 +1,21 @@
+6.0.1-9 | 2023-10-16 13:23:01 -0700
+
+  * DNS_Mgr: Fix | vs & for pollfd.revents (Arne Welzel, Corelight)
+
+    (cherry picked from 0424eefd96107afb89259ee7456155ddf5717b86)
+
+  * DNS_Mgr: Replace ares_fds() with ares_getsock() (Arne Welzel, Corelight)
+
+    On Slack, a user reported "fortify source" aborts within ares_fds() due
+    to the FDs used by c-ares exceeding 1024 and thereby larger than the
+    maximum fd value that a fd_set can hold.
+
+    Switch to ares_get_socks() and poll() to avoid this.
+
+    (cherry picked from commit c4c4a23bfd19c258beb7254be9d96716914ad03f)
+
+  * Update cmake submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 6.0.1-5 | 2023-10-13 12:59:06 -0700
 
   * Bump auxil/spicy to latest 1.8 development snapshot (Benjamin Bannier, Corelight)

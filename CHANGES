@@ -1,3 +1,9 @@
+6.1.0-rc1.1 | 2023-10-17 09:28:05 -0700
+
+  * performance improvements for the LDAP ASN.1 analyzer (Paul Dokas, Corelight)
+
+    (cherry picked from commit a17923da505efad333db28141b25d835f8c90b54)
+
 6.1.0-rc1 | 2023-10-13 11:25:59 -0700
 
   * Add missing NEWS entries for upcoming 6.1 release, reformat slightly (Tim Wojtulewicz, Corelight)

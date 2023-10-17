@@ -475,6 +475,15 @@ refine connection SSH_Conn += {
 					// UNTESTED
 					if ( update_kex_state_if_equal("diffie-hellman-group14-sha1", KEX_DH) )
 						return true;
+					// UNTESTED
+					if ( update_kex_state_if_equal("diffie-hellman-group14-sha256", KEX_DH) )
+						return true;
+					// UNTESTED
+					if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
+						return true;
+					// UNTESTED
+					if ( update_kex_state_if_equal("diffie-hellman-group16-sha512", KEX_DH) )
+						return true;
 
 					if ( update_kex_state_if_equal("diffie-hellman-group-exchange-sha1", KEX_DH_GEX) )
 						return true;
@@ -496,7 +505,9 @@ refine connection SSH_Conn += {
 						return true;
 					if ( update_kex_state_if_startswith("curve25519-sha256", KEX_ECC) )
 						return true;
-
+					// UNTESTED
+					if ( update_kex_state_if_startswith("sntrup761x25519-sha512", KEX_ECC) )
+						return true;
 
 					zeek_analyzer()->Weird("ssh_unknown_kex_algorithm", c_str(kex_algorithm_));
 					return true;

@@ -1,3 +1,7 @@
+6.2.0-dev.9 | 2023-10-17 15:54:34 +0200
+
+  * performance improvements for the LDAP ASN.1 analyzer (Paul Dokas, Corelight)
+
 6.2.0-dev.6 | 2023-10-16 11:49:33 -0700
 
   * Add registration for GRE-over-UDP (Tim Wojtulewicz, Corelight)

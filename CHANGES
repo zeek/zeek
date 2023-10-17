@@ -1,3 +1,13 @@
+6.2.0-dev.11 | 2023-10-17 19:33:47 +0200
+
+  * gre-over-udp: Update testing pcap with both endpoints (Arne Welzel, Corelight)
+
+    The first pcap only contained packets from the originator, not the responder.
+
+    What stands out here is that the Linux kernel doesn't seem to use a symmetric
+    flow hash for the tunneled connection, resulting in a total of four tunnel
+    connections for the two inner connections. Sigh.
+
 6.2.0-dev.9 | 2023-10-17 15:54:34 +0200
 
   * performance improvements for the LDAP ASN.1 analyzer (Paul Dokas, Corelight)

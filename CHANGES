@@ -1,3 +1,7 @@
+6.2.0-dev.13 | 2023-10-18 12:05:24 -0700
+
+  * Add new SSH key exchange algorithms reported by OpenSSH 9.0 (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.11 | 2023-10-17 19:33:47 +0200
 
   * gre-over-udp: Update testing pcap with both endpoints (Arne Welzel, Corelight)

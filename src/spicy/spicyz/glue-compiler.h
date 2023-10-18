@@ -16,6 +16,7 @@
 
 #include <spicy/rt/mime.h>
 
+#include <hilti/ast/builder/builder.h>
 #include <hilti/ast/declarations/function.h>
 #include <hilti/ast/expression.h>
 #include <hilti/ast/module.h>
@@ -198,8 +199,12 @@ public:
      */
     ExportedField exportForField(const hilti::ID& zeek_id, const hilti::ID& field_id) const;
 
-    /** Generates code to convert a HILTI type to a corresponding Zeek type at runtime. */
-    hilti::Result<hilti::Expression> createZeekType(const hilti::Type& t, const hilti::ID& id) const;
+    /**
+     * Generates code to convert a HILTI type to a corresponding Zeek type at
+     * runtime. The code is added to the given body.
+     */
+    hilti::Result<hilti::Nothing> createZeekType(const hilti::Type& t, const hilti::ID& id,
+                                                 hilti::builder::Builder* body) const;
 
     /** Return type for `recordField()`. */
     struct RecordField {

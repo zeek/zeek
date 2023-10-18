@@ -187,6 +187,11 @@ Changed Functionality
 - The input framework now provides better information in error messages when
   encountering missing non-optional field while loading data.
 
+- The SSL analyzer will now parse a configurable maximum of 10 SSL Alerts per
+  SSL message. For TLS 1.3, the maximum is implicitly 1 as defined by RFC 8446.
+  If there are more alerts, a new weird "SSL_excessive_alerts_in_record" is raised.
+  For non-TLS 1.3, the maximum can be redefined via ``SSL::max_alerts_per_record``.
+
 Deprecated Functionality
 ------------------------
 

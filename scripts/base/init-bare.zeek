@@ -4490,6 +4490,11 @@ const SSL::dtls_max_version_errors = 10 &redef;
 ## Maximum number of invalid version errors to report in one DTLS connection.
 const SSL::dtls_max_reported_version_errors = 1 &redef;
 
+## Maximum number of Alert messages parsed from an SSL record with
+## content_type alert (21). The remaining alerts are discarded. For
+## TLS 1.3 connections, this is implicitly 1 as defined by RFC 8446.
+const SSL::max_alerts_per_record = 10 &redef;
+
 }
 
 module GLOBAL;

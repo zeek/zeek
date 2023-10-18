@@ -113,16 +113,6 @@ export {
   # to the logging framework.
   global log_ldap: event(rec: LDAP::MessageInfo);
   global log_ldap_search: event(rec: LDAP::SearchInfo);
-
-  # Event called for each LDAP message (either direction)
-  global LDAP::message: event(c: connection,
-                              message_id: int,
-                              opcode: LDAP::ProtocolOpcode,
-                              result: LDAP::ResultCode,
-                              matched_dn: string,
-                              diagnostic_message: string,
-                              object: string,
-                              argument: string);
 }
 
 redef record connection += {

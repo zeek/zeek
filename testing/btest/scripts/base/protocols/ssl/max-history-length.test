@@ -1,0 +1,12 @@
+# Test max history length functionality
+
+# @TEST-EXEC: zeek -r $TRACES/tls/tls-conn-with-extensions.trace
+# @TEST-EXEC: zeek-cut uid ssl_history < ssl.log > ssl-max-history-length-default.log
+# @TEST-EXEC: btest-diff ssl-max-history-length-default.log
+# @TEST-EXEC: ! test -f weird.log
+#
+# @TEST-EXEC: zeek -r $TRACES/tls/tls-conn-with-extensions.trace SSL::max_ssl_history_length=3
+# @TEST-EXEC: zeek-cut uid ssl_history < ssl.log > ssl-max-history-length-3.log
+# @TEST-EXEC: zeek-cut uid name < weird.log > weird-max-history-length-3.log
+# @TEST-EXEC: btest-diff ssl-max-history-length-3.log
+# @TEST-EXEC: btest-diff weird-max-history-length-3.log

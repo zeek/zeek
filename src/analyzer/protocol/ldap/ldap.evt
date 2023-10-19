@@ -20,24 +20,24 @@ on LDAP::Message -> event LDAP::message($conn,
                                         self.obj,
                                         self.arg);
 
-on LDAP::BindRequest -> event LDAP::bindreq($conn,
-                                            message.messageID,
-                                            self.version,
-                                            self.name,
-                                            self.authType,
-                                            message.arg);
+on LDAP::BindRequest -> event LDAP::bind_request($conn,
+                                                 message.messageID,
+                                                 self.version,
+                                                 self.name,
+                                                 self.authType,
+                                                 message.arg);
 
-on LDAP::SearchRequest -> event LDAP::searchreq($conn,
-                                                message.messageID,
-                                                self.baseObject,
-                                                self.scope,
-                                                self.deref,
-                                                self.sizeLimit,
-                                                self.timeLimit,
-                                                self.typesOnly,
-                                                self.filter,
-                                                self.attributes);
+on LDAP::SearchRequest -> event LDAP::search_request($conn,
+                                                     message.messageID,
+                                                     self.baseObject,
+                                                     self.scope,
+                                                     self.deref,
+                                                     self.sizeLimit,
+                                                     self.timeLimit,
+                                                     self.typesOnly,
+                                                     self.filter,
+                                                     self.attributes);
 
-on LDAP::SearchResultEntry -> event LDAP::searchres($conn,
-                                                    message.messageID,
-                                                    self.objectName);
+on LDAP::SearchResultEntry -> event LDAP::search_result($conn,
+                                                        message.messageID,
+                                                        self.objectName);

@@ -43,7 +43,7 @@ global LDAP::message: event(
 ## auth_type: The auth type field in the BindRequest.
 ##
 ## auth_info: Additional information related to the used auth type.
-global LDAP::bindreq: event(
+global LDAP::bind_request: event(
   c: connection,
   message_id: int,
   version: int,
@@ -73,7 +73,7 @@ global LDAP::bindreq: event(
 ## filter: The string representation of the filter field in the SearchRequest.
 ##
 ## attributes: Additional attributes of the SearchRequest.
-global LDAP::searchreq: event (
+global LDAP::search_request: event (
   c: connection,
   message_id: int,
   base_object: string,
@@ -93,7 +93,7 @@ global LDAP::searchreq: event (
 ## message_id: The messageID element.
 ##
 ## object_name: The object name in the SearchResultEntry.
-global LDAP::searchres: event (
+global LDAP::search_result: event (
   c: connection,
   message_id: int,
   object_name: string

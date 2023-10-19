@@ -258,7 +258,7 @@ event LDAP::message(c: connection,
 }
 
 #############################################################################
-event LDAP::searchreq(c: connection,
+event LDAP::search_request(c: connection,
                       message_id: int,
                       base_object: string,
                       scope: LDAP::SearchScope,
@@ -296,7 +296,7 @@ event LDAP::searchreq(c: connection,
 }
 
 #############################################################################
-event LDAP::searchres(c: connection,
+event LDAP::search_result(c: connection,
                       message_id: int,
                       object_name: string) {
 
@@ -306,7 +306,7 @@ event LDAP::searchres(c: connection,
 }
 
 #############################################################################
-event LDAP::bindreq(c: connection,
+event LDAP::bind_request(c: connection,
                     message_id: int,
                     version: int,
                     name: string,

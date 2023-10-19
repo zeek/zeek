@@ -113,6 +113,7 @@ add_generic_analyzer_fuzz_target(sip)
 add_generic_analyzer_fuzz_target(smb)
 add_generic_analyzer_fuzz_target(snmp)
 add_generic_analyzer_fuzz_target(ssh)
+add_generic_analyzer_fuzz_target(ssl)
 add_generic_analyzer_fuzz_target(syslog)
 
 # add_generic_analyzer_fuzz_target(finger)  # no pcap files

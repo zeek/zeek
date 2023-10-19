@@ -113,16 +113,6 @@ export {
   # to the logging framework.
   global log_ldap: event(rec: LDAP::MessageInfo);
   global log_ldap_search: event(rec: LDAP::SearchInfo);
-
-  # Event called for each LDAP message (either direction)
-  global LDAP::message: event(c: connection,
-                              message_id: int,
-                              opcode: LDAP::ProtocolOpcode,
-                              result: LDAP::ResultCode,
-                              matched_dn: string,
-                              diagnostic_message: string,
-                              object: string,
-                              argument: string);
 }
 
 redef record connection += {
@@ -268,16 +258,16 @@ event LDAP::message(c: connection,
 }
 
 #############################################################################
-event LDAP::searchreq(c: connection,
-                      message_id: int,
-                      base_object: string,
-                      scope: LDAP::SearchScope,
-                      deref: LDAP::SearchDerefAlias,
-                      size_limit: int,
-                      time_limit: int,
-                      types_only: bool,
-                      filter: string,
-                      attributes: vector of string) {
+event LDAP::search_request(c: connection,
+                           message_id: int,
+                           base_object: string,
+                           scope: LDAP::SearchScope,
+                           deref: LDAP::SearchDerefAlias,
+                           size_limit: int,
+                           time_limit: int,
+                           types_only: bool,
+                           filter: string,
+                           attributes: vector of string) {
 
   set_session(c, message_id, LDAP::ProtocolOpcode_SEARCH_REQUEST);
 
@@ -306,9 +296,9 @@ event LDAP::searchreq(c: connection,
 }
 
 #############################################################################
-event LDAP::searchres(c: connection,
-                      message_id: int,
-                      object_name: string) {
+event LDAP::search_result(c: connection,
+                          message_id: int,
+                          object_name: string) {
 
   set_session(c, message_id, LDAP::ProtocolOpcode_SEARCH_RESULT_ENTRY);
 
@@ -316,12 +306,12 @@ event LDAP::searchres(c: connection,
 }
 
 #############################################################################
-event LDAP::bindreq(c: connection,
-                    message_id: int,
-                    version: int,
-                    name: string,
-                    authType: LDAP::BindAuthType,
-                    authInfo: string) {
+event LDAP::bind_request(c: connection,
+                         message_id: int,
+                         version: int,
+                         name: string,
+                         authType: LDAP::BindAuthType,
+                         authInfo: string) {
   set_session(c, message_id, LDAP::ProtocolOpcode_BIND_REQUEST);
 
   if ( ! c$ldap$messages[message_id]?$version )

@@ -1,3 +1,14 @@
+6.2.0-dev.17 | 2023-10-19 11:08:07 +0200
+
+  * ldap: Use longer event names (Arne Welzel, Corelight)
+
+    It's unusual to compress and shorten event names of protocol analyzers,
+    switch to a slightly longer name instead.
+
+  * ldap: Add spicy-events.zeek (Arne Welzel, Corelight)
+
+  * quic: Add spicy-events.zeek (Arne Welzel, Corelight)
+
 6.2.0-dev.13 | 2023-10-18 12:05:24 -0700
 
   * Add new SSH key exchange algorithms reported by OpenSSH 9.0 (Tim Wojtulewicz, Corelight)

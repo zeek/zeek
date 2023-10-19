@@ -1085,8 +1085,10 @@ bool GlueCompiler::compile() {
         preinit_body.addCall("zeek_rt::install_handler", {builder::string(ev.name)});
 
     // Create Zeek types for exported Spicy types.
+    GlueCompiler::ZeekTypeCache cache;
+
     for ( const auto& [tinfo, id] : _driver->exportedTypes() ) {
-        if ( auto rc = createZeekType(tinfo.type, id, &preinit_body); ! rc )
+        if ( auto rc = createZeekType(tinfo.type, id, &preinit_body, &cache); ! rc )
             hilti::logger().error(hilti::util::fmt("cannot export Spicy type '%s': %s", id, rc.error()),
                                   tinfo.location);
     }
@@ -1356,10 +1358,12 @@ namespace {
 // Note: Any logic changes here must be reflected in the plugin driver's
 // corresponding `VisitorZeekType` as well.
 struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expression>, VisitorZeekType> {
-    VisitorZeekType(const GlueCompiler* gc, hilti::builder::Builder* body) : gc(gc), body(body) {}
+    VisitorZeekType(const GlueCompiler* gc, hilti::builder::Builder* body, GlueCompiler::ZeekTypeCache* cache)
+        : gc(gc), body(body), cache(cache) {}
 
     const GlueCompiler* gc;
     hilti::builder::Builder* body;
+    GlueCompiler::ZeekTypeCache* cache;
 
     std::set<hilti::ID> zeek_types;
     std::vector<std::optional<hilti::ID>> ids = {};
@@ -1407,31 +1411,38 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
 
     result_t base_type(const char* tag) { return builder::call("zeek_rt::create_base_type", {builder::id(tag)}); }
 
-    result_t createZeekType(const hilti::Type& t, const std::optional<hilti::ID>& id_ = {}) {
-        if ( id_ )
-            ids.push_back(id_);
-        else if ( auto x = t.typeID() )
-            ids.push_back(*x);
-        else
-            ids.push_back(std::nullopt);
+    result_t createZeekType(const hilti::Type& t, std::optional<hilti::ID> id = {}) {
+        if ( ! id )
+            id = t.typeID(); // may still be unset
 
-        if ( id() ) {
+        if ( id ) {
+            if ( auto x = cache->find(*id); x != cache->end() )
+                return x->second;
+
             // Avoid infinite recursion.
-            if ( zeek_types.count(*id()) )
+            if ( zeek_types.count(*id) )
                 return hilti::result::Error("type is self-recursive");
 
-            zeek_types.insert(*id());
+            zeek_types.insert(*id);
         }
 
+        ids.push_back(id);
         auto x = dispatch(t);
+        ids.pop_back();
+
         if ( ! x )
             return hilti::result::Error(
                 hilti::util::fmt("no support for automatic conversion into a Zeek type (%s)", t.typename_()));
 
-        if ( id() )
-            zeek_types.erase(*id());
+        if ( id ) {
+            zeek_types.erase(*id);
 
-        ids.pop_back();
+            if ( *x ) {
+                auto zt = body->addTmp(tmpName("type", *id), **x);
+                cache->emplace(*id, zt);
+                return zt;
+            }
+        }
 
         return *x;
     }
@@ -1612,10 +1623,11 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
 } // namespace
 
 hilti::Result<hilti::Nothing> GlueCompiler::createZeekType(const hilti::Type& t, const hilti::ID& id,
-                                                           hilti::builder::Builder* body) const {
+                                                           hilti::builder::Builder* body,
+                                                           GlueCompiler::ZeekTypeCache* cache) const {
     body->addComment(hilti::util::fmt("Creating Zeek type %s", id));
 
-    auto v = VisitorZeekType(this, body);
+    auto v = VisitorZeekType(this, body, cache);
 
     if ( auto zt = v.createZeekType(t, id) ) {
         body->addCall("zeek_rt::register_type", {builder::string(id.namespace_()), builder::string(id.local()), *zt});

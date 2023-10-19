@@ -199,12 +199,14 @@ public:
      */
     ExportedField exportForField(const hilti::ID& zeek_id, const hilti::ID& field_id) const;
 
+    using ZeekTypeCache = std::map<hilti::ID, hilti::Expression>;
+
     /**
      * Generates code to convert a HILTI type to a corresponding Zeek type at
      * runtime. The code is added to the given body.
      */
     hilti::Result<hilti::Nothing> createZeekType(const hilti::Type& t, const hilti::ID& id,
-                                                 hilti::builder::Builder* body) const;
+                                                 hilti::builder::Builder* body, ZeekTypeCache* cache) const;
 
     /** Return type for `recordField()`. */
     struct RecordField {

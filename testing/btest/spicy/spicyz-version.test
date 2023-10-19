@@ -1,0 +1,5 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: set -x; test "$(spicyz --version)" = "$(zeek -e 'print zeek_version()')"
+#
+# @TEST-DOC: Verify that spicyz and Zeek agree on their versions.

@@ -1,3 +1,7 @@
+6.2.0-dev.19 | 2023-10-19 16:25:34 +0200
+
+  * GH-3383: Fix missing version number in `spicyz`. (Robin Sommer, Corelight)
+
 6.2.0-dev.17 | 2023-10-19 11:08:07 +0200
 
   * ldap: Use longer event names (Arne Welzel, Corelight)

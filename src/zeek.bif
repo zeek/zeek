@@ -4011,7 +4011,7 @@ static void report_mmdb_msg(const char* format, ...)
 
 	va_list al;
 	va_start(al, format);
-	std::string msg = zeek::util::fmt(format, al);
+	std::string msg = zeek::util::vfmt(format, al);
 	va_end(al);
 
 	zeek::reporter->Info("%s", msg.data());
@@ -4159,7 +4159,7 @@ static void mmdb_check_loc()
 		{
 		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
 		did_mmdb_loc_db_error = false;
-		mmdb_loc.release();
+		mmdb_loc.reset();
 		}
 	}
 
@@ -4169,7 +4169,7 @@ static void mmdb_check_asn()
 		{
 		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
 		did_mmdb_asn_db_error = false;
-		mmdb_asn.release();
+		mmdb_asn.reset();
 		}
 	}
 

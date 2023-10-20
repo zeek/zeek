@@ -98,7 +98,7 @@ public:
     std::shared_ptr<CounterType> GetOrAdd(Span<const LabelView> labels) {
         if ( observable )
             // TODO: add some sort of warning here. You shouldn't ever add labeled handles to an
-            // observable family.
+            // observable instrumen
             return nullptr;
 
         auto check = [&](const std::shared_ptr<CounterType>& counter) { return counter->CompareLabels(labels); };

@@ -106,28 +106,6 @@ void Manager::InitPostScript() {
         p->AddMetricReader(std::move(reader));
     }
 
-    // Counter view
-    // TODO: I'm not sure these do anything for us. At the very least, they don't match any
-    // of our metric names, and we'd have to make a view for each one of them.
-    std::string counter_name = metrics_name + "_counter";
-    auto instrument_selector =
-        metrics_sdk::InstrumentSelectorFactory::Create(metrics_sdk::InstrumentType::kCounter, counter_name, "");
-    auto meter_selector = metrics_sdk::MeterSelectorFactory::Create(metrics_name, metrics_version, metrics_schema);
-    auto sum_view =
-        metrics_sdk::ViewFactory::Create(metrics_name, "description", "", metrics_sdk::AggregationType::kSum);
-    p->AddView(std::move(instrument_selector), std::move(meter_selector), std::move(sum_view));
-
-    // histogram view
-    std::string histogram_name = metrics_name + "_histogram";
-    auto histogram_instrument_selector =
-        metrics_sdk::InstrumentSelectorFactory::Create(metrics_sdk::InstrumentType::kHistogram, histogram_name, "");
-    auto histogram_meter_selector =
-        metrics_sdk::MeterSelectorFactory::Create(histogram_name, metrics_version, metrics_schema);
-    auto histogram_view =
-        metrics_sdk::ViewFactory::Create(histogram_name, "description", "", metrics_sdk::AggregationType::kHistogram);
-    p->AddView(std::move(histogram_instrument_selector), std::move(histogram_meter_selector),
-               std::move(histogram_view));
-
     // This has to be stored in the family map so the instrument continues being valid.
     auto stats_family =
         CounterFamily<double>("zeek", "system-stats", {"test"}, "", "1", false, Manager::FetchSystemStats);
@@ -504,12 +482,25 @@ std::vector<Manager::CollectedHistogramMetric> Manager::CollectHistogramMetrics(
     return std::move(collector.GetResult());
 }
 
+
 void Manager::FetchSystemStats(opentelemetry::metrics::ObserverResult result, void* state) {
     std::map<std::pair<std::string, std::string>, double> values;
     values.insert({{"test", "value1"}, 1.234});
     values.insert({{"test", "value2"}, 5.678});
 
     build_observation(values, result);
+}
+
+void Manager::AddView(const std::string& name, const std::string& helptext, const std::string& unit,
+                      opentelemetry::sdk::metrics::InstrumentType instrument_type,
+                      opentelemetry::sdk::metrics::AggregationType aggregation) {
+    auto instrument_selector = metrics_sdk::InstrumentSelectorFactory::Create(instrument_type, name, unit);
+    auto meter_selector = metrics_sdk::MeterSelectorFactory::Create(metrics_name, metrics_version, metrics_schema);
+    auto view = metrics_sdk::ViewFactory::Create(name, helptext, unit, metrics_sdk::AggregationType::kHistogram);
+
+    auto mp = metrics_api::Provider::GetMeterProvider();
+    auto* p = static_cast<metrics_sdk::MeterProvider*>(mp.get());
+    p->AddView(std::move(instrument_selector), std::move(meter_selector), std::move(view));
 }
 
 } // namespace zeek::telemetry

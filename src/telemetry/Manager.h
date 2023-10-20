@@ -426,6 +426,13 @@ public:
 
     static void FetchSystemStats(opentelemetry::metrics::ObserverResult observer_result, void* state);
 
+    /**
+     * Adds a view to the MeterProvider.
+     */
+    void AddView(const std::string& name, const std::string& helptext, const std::string& unit,
+                 opentelemetry::sdk::metrics::InstrumentType instrument_type,
+                 opentelemetry::sdk::metrics::AggregationType aggregation);
+
 protected:
     template<class F>
     static void WithLabelNames(Span<const LabelView> xs, F continuation) {

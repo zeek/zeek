@@ -69,6 +69,9 @@ export {
 	global log_policy: Log::PolicyHook;
 
 	global finalize_quic: Conn::RemovalHook;
+
+	## The maximum length of the history field.
+	option max_history_length = 100;
 }
 
 redef record connection += {
@@ -84,12 +87,15 @@ const quic_ports = {
 	784/udp, # DNS-over-QUIC early
 };
 
-function add_to_history(quic: Info, is_orig: bool, what: string)
+function add_to_history(c: connection, is_orig: bool, what: string)
 	{
-	if ( |quic$history_state| == 10 )
+	if ( |c$quic$history_state| == max_history_length )
 		return;
 
-	quic$history_state += is_orig ? to_upper(what[0]) : to_lower(what[0]);
+	c$quic$history_state += is_orig ? to_upper(what[0]) : to_lower(what[0]);
+
+	if ( |c$quic$history_state| == max_history_length )
+		Reporter::conn_weird("QUIC_max_history_length_reached", c);
 	}
 
 function log_record(quic: Info)
@@ -123,19 +129,19 @@ function set_conn(c: connection, is_orig: bool, version: count, dcid: string, sc
 event QUIC::initial_packet(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
 	set_conn(c, is_orig, version, dcid, scid);
-	add_to_history(c$quic, is_orig, "INIT");
+	add_to_history(c, is_orig, "INIT");
 	}
 
 event QUIC::handshake_packet(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
 	set_conn(c, is_orig, version, dcid, scid);
-	add_to_history(c$quic, is_orig, "HANDSHAKE");
+	add_to_history(c, is_orig, "HANDSHAKE");
 	}
 
 event QUIC::zero_rtt_packet(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
 	set_conn(c, is_orig, version, dcid, scid);
-	add_to_history(c$quic, is_orig, "ZeroRTT");
+	add_to_history(c, is_orig, "ZeroRTT");
 	}
 
 # RETRY packets trigger a log entry and state reset.
@@ -144,7 +150,7 @@ event QUIC::retry_packet(c: connection, is_orig: bool, version: count, dcid: str
 	if ( ! c?$quic )
 		set_conn(c, is_orig, version, dcid, scid);
 
-	add_to_history(c$quic, is_orig, "RETRY");
+	add_to_history(c, is_orig, "RETRY");
 
 	log_record(c$quic);
 
@@ -158,7 +164,7 @@ event QUIC::connection_close_frame(c: connection, is_orig: bool, version: count,
 	if ( ! c?$quic )
 		return;
 
-	add_to_history(c$quic, is_orig, "CONNECTION_CLOSE");
+	add_to_history(c, is_orig, "CONNECTION_CLOSE");
 
 	log_record(c$quic);
 
@@ -189,7 +195,7 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 	if ( ! c?$quic )
 		return;
 
-	add_to_history(c$quic, T, "SSL");
+	add_to_history(c, T, "SSL");
 	}
 
 event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=-5
@@ -197,7 +203,7 @@ event ssl_server_hello(c: connection, version: count, record_version: count, pos
 	if ( ! c?$quic )
 		return;
 
-	add_to_history(c$quic, F, "SSL");
+	add_to_history(c, F, "SSL");
 	}
 
 hook finalize_quic(c: connection)

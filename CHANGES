@@ -1,3 +1,11 @@
+6.1.0-rc1.5 | 2023-10-20 11:46:43 -0700
+
+  * quic: Bump maximum history length, make configurable (Arne Welzel, Corelight)
+
+    From zeek/spicy-quic#15
+
+    (cherry picked from commit bf75f56ef78e77053b89eb746dca3ceb7972d310)
+
 6.1.0-rc1.1 | 2023-10-17 09:28:05 -0700
 
   * performance improvements for the LDAP ASN.1 analyzer (Paul Dokas, Corelight)

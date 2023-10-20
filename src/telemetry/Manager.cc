@@ -127,6 +127,10 @@ void Manager::InitPostScript() {
         metrics_sdk::ViewFactory::Create(histogram_name, "description", "", metrics_sdk::AggregationType::kHistogram);
     p->AddView(std::move(histogram_instrument_selector), std::move(histogram_meter_selector),
                std::move(histogram_view));
+
+    // This has to be stored in the family map so the instrument continues being valid.
+    auto stats_family =
+        CounterFamily<double>("zeek", "system-stats", {"test"}, "", "1", false, Manager::FetchSystemStats);
 }
 
 std::shared_ptr<MetricFamily> Manager::LookupFamily(std::string_view prefix, std::string_view name) const {
@@ -498,6 +502,14 @@ std::vector<Manager::CollectedHistogramMetric> Manager::CollectHistogramMetrics(
     pimpl->collect(collector);
 
     return std::move(collector.GetResult());
+}
+
+void Manager::FetchSystemStats(opentelemetry::metrics::ObserverResult result, void* state) {
+    std::map<std::pair<std::string, std::string>, double> values;
+    values.insert({{"test", "value1"}, 1.234});
+    values.insert({{"test", "value2"}, 5.678});
+
+    build_observation(values, result);
 }
 
 } // namespace zeek::telemetry

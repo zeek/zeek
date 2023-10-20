@@ -9,6 +9,7 @@
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 
+#include "opentelemetry/sdk/metrics/async_instruments.h"
 #include "opentelemetry/sdk/metrics/sync_instruments.h"
 
 namespace zeek::telemetry {
@@ -143,9 +144,8 @@ public:
     }
 
 protected:
-    using Handle = opentelemetry::nostd::shared_ptr<opentelemetry::metrics::UpDownCounter<BaseType>>;
-
-    Handle instrument;
+    opentelemetry::nostd::shared_ptr<opentelemetry::metrics::UpDownCounter<BaseType>> instrument;
+    opentelemetry::nostd::shared_ptr<opentelemetry::metrics::ObservableInstrument> observable;
     std::vector<std::shared_ptr<GaugeType>> gauges;
 };
 
@@ -157,7 +157,8 @@ public:
     static inline const char* OpaqueName = "IntGaugeMetricFamilyVal";
 
     IntGaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
+                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false,
+                   opentelemetry::metrics::ObservableCallbackPtr callback = nullptr);
 
     IntGaugeFamily(const IntGaugeFamily&) noexcept = default;
     IntGaugeFamily& operator=(const IntGaugeFamily&) noexcept = default;
@@ -171,7 +172,8 @@ public:
     static inline const char* OpaqueName = "DblGaugeMetricFamilyVal";
 
     DblGaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
+                   std::string_view helptext, std::string_view unit = "1", bool is_sum = false,
+                   opentelemetry::metrics::ObservableCallbackPtr callback = nullptr);
 
     DblGaugeFamily(const DblGaugeFamily&) noexcept = default;
     DblGaugeFamily& operator=(const DblGaugeFamily&) noexcept = default;

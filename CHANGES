@@ -1,3 +1,20 @@
+6.2.0-dev.29 | 2023-10-23 11:25:15 +0200
+
+  * GH-3370: Spicy: Avoid creating Zeek types multiple times. (Robin Sommer, Corelight)
+
+    We now cache the first time we create a (named) Zeek type so that we
+    can reuse it later when needed again.
+
+    Closes #3370.
+
+  * Spicy: Unroll Zeek type registrations. (Robin Sommer, Corelight)
+
+    For records and enums, the type registration calls could get pretty
+    large, and then slow to compile. We now build up their vectors
+    entry by entry instead of all at once.
+
+  * quic: Skip new test if have-quic is false (Arne Welzel, Corelight)
+
 6.2.0-dev.24 | 2023-10-20 11:44:15 -0700
 
   * quic: Bump maximum history length, make configurable (Arne Welzel, Corelight)

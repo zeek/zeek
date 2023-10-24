@@ -1,3 +1,35 @@
+6.2.0-dev.38 | 2023-10-24 13:57:03 +0200
+
+  * base/frameworks/spicy: Do not load base/misc/version (Arne Welzel, Corelight)
+
+    Unsure what it's used for today and also results in the situation that on
+    some platforms we generate a reporter.log in bare mode, while on others
+    where spicy is disabled, we do not.
+
+    If we want base/frameworks/version loaded by default, should put it into
+    init-bare.zeek and possibly remove the loading of the reporter framework
+    from it - Reporter::error() would still work and be visible on stderr,
+    just not create a reporter.log.
+
+  * btest/core/mmdb: Basic lookup_autonomous_system / lookup_location tests (Arne Welzel, Corelight)
+
+  * btest/files: Add mmdb testing databases and generator code (Arne Welzel, Corelight)
+
+  * zeek.bif: Switch mmdb stale check to network_time (Arne Welzel, Corelight)
+
+    Makes testing easier and aligns better with log rotation and timer
+    expiration. Should not have an effect in practice. Also, log detail
+    about whether inode or modification time changed, too.
+
+  * Fix mmdb pointer destruction (peter.cullen, Corelight)
+
+    The mmdb references needs to use reset() instead of release()
+    so that the destructor gets called and the stale DB is actually
+    cleaned up. Otherwise, the pointer is leaked and the stale DB
+    remains in memory.
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 6.2.0-dev.29 | 2023-10-23 11:25:15 +0200
 
   * GH-3370: Spicy: Avoid creating Zeek types multiple times. (Robin Sommer, Corelight)

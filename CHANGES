@@ -1,3 +1,7 @@
+6.2.0-dev.44 | 2023-10-24 13:05:55 -0700
+
+  * Update CMake submodule for caching fix (Dominik Charousset, Corelight)
+
 6.2.0-dev.41 | 2023-10-24 19:35:20 +0200
 
   * GH-3190: event: Reinitialize EventMgr's flare after fork() from stem (Arne Welzel, Corelight)

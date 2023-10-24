@@ -1,5 +1,3 @@
-@load base/misc/version
-
 # doc-common-start
 module Spicy;
 

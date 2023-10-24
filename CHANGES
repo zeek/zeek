@@ -1,3 +1,18 @@
+6.2.0-dev.41 | 2023-10-24 19:35:20 +0200
+
+  * GH-3190: event: Reinitialize EventMgr's flare after fork() from stem (Arne Welzel, Corelight)
+
+    Because EventMgr is defined globally as an object (rather than a global
+    pointer to an EventMgr object), its pipe is created even before main()
+    is entered. This further means that in the fork-based supervisor setup,
+    all Zeek processes created from the top-level supervisor process share
+    the same pipe object for the EventMgr. In turn, whenever any of the
+    processes enqueued an event, the flare was fired and ready for reading
+    on all other processes in the cluster, causing much contention and
+    unneeded overhead.
+
+  * btest/Files/mmdb: golang-ci suggested fixes (Arne Welzel, Corelight)
+
 6.2.0-dev.38 | 2023-10-24 13:57:03 +0200
 
   * base/frameworks/spicy: Do not load base/misc/version (Arne Welzel, Corelight)

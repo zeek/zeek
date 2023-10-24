@@ -118,6 +118,9 @@ public:
 	const char* Tag() override { return "EventManager"; }
 	void InitPostScript();
 
+	// Initialization to be done after a fork() happened.
+	void InitPostFork();
+
 	uint64_t num_events_queued = 0;
 	uint64_t num_events_dispatched = 0;
 

@@ -1,0 +1,13 @@
+These .mmdb databases were created with the mmdbwriter from MaxMind [1] for
+testing purposes. See the main.go file. They only contain information about
+LBL's network ranges:
+
+    128.3.0.0/16
+    131.243.0.0/16
+
+Rebuild with:
+
+    go build
+    ./testmmdb
+
+[1] https://github.com/maxmind/mmdbwriter

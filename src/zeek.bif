@@ -4011,7 +4011,7 @@ static void report_mmdb_msg(const char* format, ...)
 
 	va_list al;
 	va_start(al, format);
-	std::string msg = zeek::util::fmt(format, al);
+	std::string msg = zeek::util::vfmt(format, al);
 	va_end(al);
 
 	zeek::reporter->Info("%s", msg.data());
@@ -4031,12 +4031,12 @@ private:
 	MMDB_s mmdb;
 	struct stat file_info;
 	bool lookup_error;
-	std::chrono::time_point<std::chrono::steady_clock> last_check;
+	double last_check;
 };
 
 MMDB::MMDB(const char* filename, struct stat info)
 	: file_info(info), lookup_error{false},
-	  last_check{std::chrono::steady_clock::now()}
+	  last_check{zeek::run_state::network_time}
 	{
 	int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
 
@@ -4071,26 +4071,29 @@ MMDB_lookup_result_s MMDB::Lookup(const struct sockaddr* const sa)
 bool MMDB::StaleDB()
 	{
 	struct stat buf;
-	using Clock = std::chrono::steady_clock;
-	std::chrono::time_point<Clock> now = Clock::now();
 
 	if ( lookup_error )
 		return true;
 
-	// Only perform stat once per 5 minutes.
-	using Min = std::chrono::minutes;
-	if ( std::chrono::duration_cast<Min>(now - last_check).count() < 5 )
+
+	static double mmdb_stale_check_interval = zeek::id::find_val("mmdb_stale_check_interval")->AsInterval();
+
+	if ( mmdb_stale_check_interval < 0.0 )
 		return false;
 
-	last_check = now;
+	if ( zeek::run_state::network_time - last_check < mmdb_stale_check_interval )
+		return false;
+
+	last_check = zeek::run_state::network_time;
 
 	if ( 0 != stat(mmdb.filename, &buf) )
 		return true;
 
 	if ( buf.st_ino != file_info.st_ino || buf.st_mtime != file_info.st_mtime )
 		{
-		report_mmdb_msg("Inode change detected for MaxMind DB [%s]",
-		                mmdb.filename);
+		report_mmdb_msg("%s change detected for MaxMind DB [%s]",
+				buf.st_ino != file_info.st_ino ? "Inode" : "Modification time",
+				mmdb.filename);
 		return true;
 		}
 
@@ -4159,7 +4162,7 @@ static void mmdb_check_loc()
 		{
 		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
 		did_mmdb_loc_db_error = false;
-		mmdb_loc.release();
+		mmdb_loc.reset();
 		}
 	}
 
@@ -4169,7 +4172,7 @@ static void mmdb_check_asn()
 		{
 		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
 		did_mmdb_asn_db_error = false;
-		mmdb_asn.release();
+		mmdb_asn.reset();
 		}
 	}
 

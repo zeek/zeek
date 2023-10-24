@@ -47,7 +47,6 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, path=http, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, path=reporter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=tunnel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])) -> <no result>
@@ -60,7 +59,6 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__enable_stream, <frame>, (Analyzer::Logging::LOG)) -> <no result>
@@ -74,7 +72,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (HTTP::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Notice::ALARM_LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Notice::LOG)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Reporter::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Tunnel::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Weird::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
@@ -87,7 +84,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Analyzer::Logging::LOG, default)) -> <no result>
@@ -100,7 +96,6 @@
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (HTTP::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Notice::ALARM_LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Notice::LOG, default)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Reporter::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Tunnel::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Weird::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])) -> <no result>
@@ -113,7 +108,6 @@
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::enable_stream, <frame>, (Analyzer::Logging::LOG)) -> <no result>
@@ -322,7 +316,6 @@
 0.000000   MetaHookPost  CallFunction(Site::update_private_address_space, <frame>, (Site::private_address_space, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Supervisor::__is_supervisor, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Supervisor::is_supervisor, <frame>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(Version::parse, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_primary_bifs, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_secondary_bifs, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations)) -> <no result>
@@ -330,7 +323,6 @@
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(global_options, <frame>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(gsub, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(has_event_group, <frame>, (Analyzer::Logging)) -> <no result>
 0.000000   MetaHookPost  CallFunction(has_module_events, <frame>, (Analyzer::Logging)) -> <no result>
 0.000000   MetaHookPost  CallFunction(have_spicy, <null>, ()) -> <no result>
@@ -338,7 +330,6 @@
 0.000000   MetaHookPost  CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(lambda_<15261139872714441626>, <frame>, (Analyzer::Logging::include_confirmations, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(lambda_<2645182068207650863>, <frame>, (Analyzer::Logging::enable, T)) -> <no result>
-0.000000   MetaHookPost  CallFunction(lstrip, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (3544/udp)) -> <no result>
@@ -347,12 +338,9 @@
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (6081/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(reading_traces, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$)) -> <no result>
-0.000000   MetaHookPost  CallFunction(split_string1, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, )) -> <no result>
-0.000000   MetaHookPost  CallFunction(to_count, ..., ...) -> <no result>
 0.000000   MetaHookPost  CallFunction(zeek_init, <null>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(zeek_version, <null>, ()) -> <no result>
 0.000000   MetaHookPost  DrainEvents() -> <void>
 0.000000   MetaHookPost  LoadFile(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ARP.events.bif.zeek, <...>/Zeek_ARP.events.bif.zeek) -> -1
@@ -601,7 +589,6 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/ppp_serial, <...>/ppp_serial) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/pppoe, <...>/pppoe) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/removal-hooks, <...>/removal-hooks.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, base<...>/reporter, <...>/reporter) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/reporter.bif, <...>/reporter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/root, <...>/root) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/site, <...>/site.zeek) -> -1
@@ -619,7 +606,6 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/types.bif, <...>/types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/udp, <...>/udp) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/utils, <...>/utils.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, base<...>/version, <...>/version.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/vlan, <...>/vlan) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/vntag, <...>/vntag) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/vxlan, <...>/vxlan) -> -1
@@ -888,7 +874,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ppp_serial, <...>/ppp_serial) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pppoe, <...>/pppoe) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/removal-hooks, <...>/removal-hooks.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, base<...>/reporter, <...>/reporter) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/reporter.bif, <...>/reporter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/root, <...>/root) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/site, <...>/site.zeek) -> (-1, <no content>)
@@ -906,7 +891,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/types.bif, <...>/types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/udp, <...>/udp) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/utils, <...>/utils.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, base<...>/version, <...>/version.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/vlan, <...>/vlan) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/vntag, <...>/vntag) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/vxlan, <...>/vxlan) -> (-1, <no content>)
@@ -977,7 +961,6 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, path=http, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
-0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, path=reporter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=tunnel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}]))
@@ -990,7 +973,6 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::__enable_stream, <frame>, (Analyzer::Logging::LOG))
@@ -1004,7 +986,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (HTTP::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Notice::ALARM_LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Notice::LOG))
-0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Reporter::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Tunnel::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Weird::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
@@ -1017,7 +998,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
-0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Analyzer::Logging::LOG, default))
@@ -1030,7 +1010,6 @@
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (HTTP::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Notice::ALARM_LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Notice::LOG, default))
-0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Reporter::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Tunnel::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Weird::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}]))
@@ -1043,7 +1022,6 @@
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}]))
 0.000000   MetaHookPre   CallFunction(Log::enable_stream, <frame>, (Analyzer::Logging::LOG))
@@ -1252,7 +1230,6 @@
 0.000000   MetaHookPre   CallFunction(Site::update_private_address_space, <frame>, (Site::private_address_space, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24}))
 0.000000   MetaHookPre   CallFunction(Supervisor::__is_supervisor, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Supervisor::is_supervisor, <frame>, ())
-0.000000   MetaHookPre   CallFunction(Version::parse, ..., ...)
 0.000000   MetaHookPre   CallFunction(__init_primary_bifs, <null>, ())
 0.000000   MetaHookPre   CallFunction(__init_secondary_bifs, <null>, ())
 0.000000   MetaHookPre   CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations))
@@ -1260,7 +1237,6 @@
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
 0.000000   MetaHookPre   CallFunction(global_options, <frame>, ())
-0.000000   MetaHookPre   CallFunction(gsub, ..., ...)
 0.000000   MetaHookPre   CallFunction(has_event_group, <frame>, (Analyzer::Logging))
 0.000000   MetaHookPre   CallFunction(has_module_events, <frame>, (Analyzer::Logging))
 0.000000   MetaHookPre   CallFunction(have_spicy, <null>, ())
@@ -1268,7 +1244,6 @@
 0.000000   MetaHookPre   CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(lambda_<15261139872714441626>, <frame>, (Analyzer::Logging::include_confirmations, F))
 0.000000   MetaHookPre   CallFunction(lambda_<2645182068207650863>, <frame>, (Analyzer::Logging::enable, T))
-0.000000   MetaHookPre   CallFunction(lstrip, ..., ...)
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2123/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2152/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (3544/udp))
@@ -1277,12 +1252,9 @@
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (6081/udp))
 0.000000   MetaHookPre   CallFunction(reading_traces, <frame>, ())
 0.000000   MetaHookPre   CallFunction(set_to_regex, <frame>, ({}, (^\.?|\.)(~~)$))
-0.000000   MetaHookPre   CallFunction(split_string1, ..., ...)
 0.000000   MetaHookPre   CallFunction(string_to_pattern, <frame>, ((^\.?|\.)()$, F))
 0.000000   MetaHookPre   CallFunction(sub, <frame>, ((^\.?|\.)(~~)$, <...>/, ))
-0.000000   MetaHookPre   CallFunction(to_count, ..., ...)
 0.000000   MetaHookPre   CallFunction(zeek_init, <null>, ())
-0.000000   MetaHookPre   CallFunction(zeek_version, <null>, ())
 0.000000   MetaHookPre   DrainEvents()
 0.000000   MetaHookPre   LoadFile(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ARP.events.bif.zeek, <...>/Zeek_ARP.events.bif.zeek)
@@ -1531,7 +1503,6 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/ppp_serial, <...>/ppp_serial)
 0.000000   MetaHookPre   LoadFile(0, base<...>/pppoe, <...>/pppoe)
 0.000000   MetaHookPre   LoadFile(0, base<...>/removal-hooks, <...>/removal-hooks.zeek)
-0.000000   MetaHookPre   LoadFile(0, base<...>/reporter, <...>/reporter)
 0.000000   MetaHookPre   LoadFile(0, base<...>/reporter.bif, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/root, <...>/root)
 0.000000   MetaHookPre   LoadFile(0, base<...>/site, <...>/site.zeek)
@@ -1549,7 +1520,6 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/types.bif, <...>/types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/udp, <...>/udp)
 0.000000   MetaHookPre   LoadFile(0, base<...>/utils, <...>/utils.zeek)
-0.000000   MetaHookPre   LoadFile(0, base<...>/version, <...>/version.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/vlan, <...>/vlan)
 0.000000   MetaHookPre   LoadFile(0, base<...>/vntag, <...>/vntag)
 0.000000   MetaHookPre   LoadFile(0, base<...>/vxlan, <...>/vxlan)
@@ -1818,7 +1788,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ppp_serial, <...>/ppp_serial)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pppoe, <...>/pppoe)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/removal-hooks, <...>/removal-hooks.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, base<...>/reporter, <...>/reporter)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/reporter.bif, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/root, <...>/root)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/site, <...>/site.zeek)
@@ -1836,7 +1805,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/types.bif, <...>/types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/udp, <...>/udp)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/utils, <...>/utils.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, base<...>/version, <...>/version.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/vlan, <...>/vlan)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/vntag, <...>/vntag)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/vxlan, <...>/vxlan)
@@ -1906,7 +1874,6 @@
 0.000000 | HookCallFunction Log::__add_filter(HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, path=http, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=notice_alarm, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
-0.000000 | HookCallFunction Log::__add_filter(Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, path=reporter, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=tunnel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__create_stream(Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])
@@ -1919,7 +1886,6 @@
 0.000000 | HookCallFunction Log::__create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::__enable_stream(Analyzer::Logging::LOG)
@@ -1933,7 +1899,6 @@
 0.000000 | HookCallFunction Log::add_default_filter(HTTP::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Notice::ALARM_LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Notice::LOG)
-0.000000 | HookCallFunction Log::add_default_filter(Reporter::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Tunnel::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Weird::LOG)
 0.000000 | HookCallFunction Log::add_filter(Analyzer::Logging::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
@@ -1946,7 +1911,6 @@
 0.000000 | HookCallFunction Log::add_filter(HTTP::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Notice::ALARM_LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
-0.000000 | HookCallFunction Log::add_filter(Reporter::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_filter(Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=<uninitialized>, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::add_stream_filters(Analyzer::Logging::LOG, default)
@@ -1959,7 +1923,6 @@
 0.000000 | HookCallFunction Log::add_stream_filters(HTTP::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Notice::ALARM_LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Notice::LOG, default)
-0.000000 | HookCallFunction Log::add_stream_filters(Reporter::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Tunnel::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Weird::LOG, default)
 0.000000 | HookCallFunction Log::create_stream(Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])
@@ -1972,7 +1935,6 @@
 0.000000 | HookCallFunction Log::create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Reporter::LOG, [columns=Reporter::Info, ev=<uninitialized>, path=reporter, policy=Reporter::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])
 0.000000 | HookCallFunction Log::enable_stream(Analyzer::Logging::LOG)
@@ -2181,7 +2143,6 @@
 0.000000 | HookCallFunction Site::update_private_address_space(Site::private_address_space, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24})
 0.000000 | HookCallFunction Supervisor::__is_supervisor()
 0.000000 | HookCallFunction Supervisor::is_supervisor()
-0.000000 | HookCallFunction Version::parse(...)
 0.000000 | HookCallFunction __init_primary_bifs()
 0.000000 | HookCallFunction __init_secondary_bifs()
 0.000000 | HookCallFunction disable_event_group(Analyzer::Logging::include_confirmations)
@@ -2189,7 +2150,6 @@
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
 0.000000 | HookCallFunction global_options()
-0.000000 | HookCallFunction gsub(...)
 0.000000 | HookCallFunction has_event_group(Analyzer::Logging)
 0.000000 | HookCallFunction has_module_events(Analyzer::Logging)
 0.000000 | HookCallFunction have_spicy()
@@ -2197,7 +2157,6 @@
 0.000000 | HookCallFunction is_packet_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction lambda_<15261139872714441626>(Analyzer::Logging::include_confirmations, F)
 0.000000 | HookCallFunction lambda_<2645182068207650863>(Analyzer::Logging::enable, T)
-0.000000 | HookCallFunction lstrip(...)
 0.000000 | HookCallFunction port_to_count(2123/udp)
 0.000000 | HookCallFunction port_to_count(2152/udp)
 0.000000 | HookCallFunction port_to_count(3544/udp)
@@ -2206,12 +2165,9 @@
 0.000000 | HookCallFunction port_to_count(6081/udp)
 0.000000 | HookCallFunction reading_traces()
 0.000000 | HookCallFunction set_to_regex({}, (^\.?|\.)(~~)$)
-0.000000 | HookCallFunction split_string1(...)
 0.000000 | HookCallFunction string_to_pattern((^\.?|\.)()$, F)
 0.000000 | HookCallFunction sub((^\.?|\.)(~~)$, <...>/, )
-0.000000 | HookCallFunction to_count(...)
 0.000000 | HookCallFunction zeek_init()
-0.000000 | HookCallFunction zeek_version()
 0.000000 | HookDrainEvents
 0.000000 | HookLoadFile  ./CPP-load.bif.zeek <...>/CPP-load.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ARP.events.bif.zeek <...>/Zeek_ARP.events.bif.zeek
@@ -2472,7 +2428,6 @@
 0.000000 | HookLoadFile  base<...>/ppp_serial <...>/ppp_serial
 0.000000 | HookLoadFile  base<...>/pppoe <...>/pppoe
 0.000000 | HookLoadFile  base<...>/removal-hooks <...>/removal-hooks.zeek
-0.000000 | HookLoadFile  base<...>/reporter <...>/reporter
 0.000000 | HookLoadFile  base<...>/reporter.bif <...>/reporter.bif.zeek
 0.000000 | HookLoadFile  base<...>/root <...>/root
 0.000000 | HookLoadFile  base<...>/site <...>/site.zeek
@@ -2490,7 +2445,6 @@
 0.000000 | HookLoadFile  base<...>/types.bif <...>/types.bif.zeek
 0.000000 | HookLoadFile  base<...>/udp <...>/udp
 0.000000 | HookLoadFile  base<...>/utils <...>/utils.zeek
-0.000000 | HookLoadFile  base<...>/version <...>/version.zeek
 0.000000 | HookLoadFile  base<...>/vlan <...>/vlan
 0.000000 | HookLoadFile  base<...>/vntag <...>/vntag
 0.000000 | HookLoadFile  base<...>/vxlan <...>/vxlan
@@ -2759,7 +2713,6 @@
 0.000000 | HookLoadFileExtended base<...>/ppp_serial <...>/ppp_serial
 0.000000 | HookLoadFileExtended base<...>/pppoe <...>/pppoe
 0.000000 | HookLoadFileExtended base<...>/removal-hooks <...>/removal-hooks.zeek
-0.000000 | HookLoadFileExtended base<...>/reporter <...>/reporter
 0.000000 | HookLoadFileExtended base<...>/reporter.bif <...>/reporter.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/root <...>/root
 0.000000 | HookLoadFileExtended base<...>/site <...>/site.zeek
@@ -2777,7 +2730,6 @@
 0.000000 | HookLoadFileExtended base<...>/types.bif <...>/types.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/udp <...>/udp
 0.000000 | HookLoadFileExtended base<...>/utils <...>/utils.zeek
-0.000000 | HookLoadFileExtended base<...>/version <...>/version.zeek
 0.000000 | HookLoadFileExtended base<...>/vlan <...>/vlan
 0.000000 | HookLoadFileExtended base<...>/vntag <...>/vntag
 0.000000 | HookLoadFileExtended base<...>/vxlan <...>/vxlan

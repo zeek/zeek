@@ -11,7 +11,7 @@ import (
 	"github.com/maxmind/mmdbwriter/mmdbtype"
 )
 
-func writeDb(fname, name string, record mmdbtype.Map, nets ...*net.IPNet) {
+func writeDB(fname, name string, record mmdbtype.Map, nets ...*net.IPNet) {
 	writer, err := mmdbwriter.New(
 		mmdbwriter.Options{
 			DatabaseType: name,
@@ -31,12 +31,14 @@ func writeDb(fname, name string, record mmdbtype.Map, nets ...*net.IPNet) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer fh.Close()
 
 	_, err = writer.WriteTo(fh)
 	if err != nil {
+		fh.Close()
 		log.Fatal(err)
 	}
+
+	fh.Close()
 }
 
 func main() {
@@ -44,13 +46,13 @@ func main() {
 	_, net2, _ := net.ParseCIDR("131.243.0.0/16")
 
 	// The ASN record.
-	asn_record := mmdbtype.Map{}
-	asn_record["autonomous_system_number"] = mmdbtype.Uint32(16)
-	asn_record["autonomous_system_organization"] = mmdbtype.String("Lawrence Berkeley National Laboratory")
-	writeDb("GeoLite2-ASN.mmdb", "My-ASN-DB", asn_record, net1, net2)
+	asnRecord := mmdbtype.Map{}
+	asnRecord["autonomous_system_number"] = mmdbtype.Uint32(16)
+	asnRecord["autonomous_system_organization"] = mmdbtype.String("Lawrence Berkeley National Laboratory")
+	writeDB("GeoLite2-ASN.mmdb", "My-ASN-DB", asnRecord, net1, net2)
 
 	// The Location record.
-	loc_record := mmdbtype.Map{
+	locRecord := mmdbtype.Map{
 		"country": mmdbtype.Map{
 			"iso_code": mmdbtype.String("US"),
 			"names": mmdbtype.Map{
@@ -67,5 +69,5 @@ func main() {
 			},
 		},
 	}
-	writeDb("GeoLite2-City.mmdb", "My-City-DB", loc_record, net1, net2)
+	writeDB("GeoLite2-City.mmdb", "My-City-DB", locRecord, net1, net2)
 }

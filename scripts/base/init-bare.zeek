@@ -1080,6 +1080,11 @@ type geo_autonomous_system: record {
 ## The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
 const mmdb_dir: string = "" &redef;
 
+## Sets the interval for MaxMind DB file staleness checks. When Zeek detects a
+## change in inode or modification time, the database is re-opened. Setting
+## a negative interval disables staleness checks.
+const mmdb_stale_check_interval: interval = 5min &redef;
+
 ## Computed entropy values. The record captures a number of measures that are
 ## computed in parallel. See `A Pseudorandom Number Sequence Test Program
 ## <http://www.fourmilab.ch/random>`_ for more information, Zeek uses the same

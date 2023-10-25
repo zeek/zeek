@@ -294,7 +294,8 @@ target_include_directories(
 if (OPENSSL_INCLUDE_DIR)
     target_include_directories(zeek_dynamic_plugin_base INTERFACE "${OPENSSL_INCLUDE_DIR}")
 endif ()
-target_link_libraries(zeek_dynamic_plugin_base INTERFACE Threads::Threads)
+target_link_libraries(zeek_dynamic_plugin_base INTERFACE Threads::Threads OpenSSL::SSL
+                                                         OpenSSL::Crypto)
 add_library(Zeek::DynamicPluginBase ALIAS zeek_dynamic_plugin_base)
 set_target_properties(zeek_dynamic_plugin_base PROPERTIES EXPORT_NAME DynamicPluginBase)
 install(TARGETS zeek_dynamic_plugin_base EXPORT ZeekTargets)

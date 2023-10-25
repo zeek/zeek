@@ -15,10 +15,11 @@ int main(int argc, char** argv)
 	{
 	using namespace std::chrono;
 	auto agg_start = high_resolution_clock::now();
-	auto num_inputs = argc - 1;
-	printf("Standalone fuzzer processing %d inputs\n", num_inputs);
 
 	LLVMFuzzerInitialize(&argc, &argv);
+
+	auto num_inputs = argc - 1;
+	printf("Standalone fuzzer processing %d inputs\n", num_inputs);
 	auto fuzz_start = high_resolution_clock::now();
 
 	for ( auto i = 0; i < num_inputs; ++i )

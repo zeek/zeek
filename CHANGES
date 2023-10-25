@@ -1,3 +1,19 @@
+6.2.0-dev.53 | 2023-10-25 17:01:57 +0200
+
+  * fuzzer-setup: Allow customization without recompiling (Arne Welzel, Corelight)
+
+    This change allows to invoke a reproducer with different script options
+    and extra scripts to ease debugging and investigation. For example, enabling
+    the DPD debug stream and adding misc/dump-events can be done as follows after
+    this change:
+
+        ZEEK_DEBUG_LOG_STDERR=1 ../../build/src/fuzzers/zeek-pop3-fuzzer <test-case> -- -B dpd misc/dump-events
+
+  * subdir-btest: Allow setting build_dir (Arne Welzel, Corelight)
+
+    We have that functionality in btest.cfg and it's actually nice to use
+    it for toggling between a debug/asan and release build.
+
 6.2.0-dev.49 | 2023-10-25 12:55:41 +0200
 
   * GH-3043: Supervisor: Handle EAGAIN error on stem pipe (Arne Welzel, Corelight)

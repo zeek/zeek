@@ -1,3 +1,7 @@
+6.2.0-dev.47 | 2023-10-25 09:15:20 +0200
+
+  * CI: Pass -A flag to btest for cluster-testing builds (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.44 | 2023-10-24 13:05:55 -0700
 
   * Update CMake submodule for caching fix (Dominik Charousset, Corelight)

@@ -1,3 +1,19 @@
+6.2.0-dev.49 | 2023-10-25 12:55:41 +0200
+
+  * GH-3043: Supervisor: Handle EAGAIN error on stem pipe (Arne Welzel, Corelight)
+
+    util::safe_write() calls abort() in case of EAGAIN errors. This is
+    easily observed when starting clusters with 32 workers or more.
+
+    Add a custom write_message() function handling EAGAIN by retrying
+    after a small sleep. It's not clear a more complicated poll() would be
+    much better: The pipe might be ready for writing, but then our message
+    might not actually fit in, resulting in another EAGAIN error. And even
+    poll() would introduce blocking/sleeping code.
+
+    Take some precautions against the stem and the supervisor dead-locking
+    when both pipes are full by draining the other end on EAGAIN errors.
+
 6.2.0-dev.47 | 2023-10-25 09:15:20 +0200
 
   * CI: Pass -A flag to btest for cluster-testing builds (Tim Wojtulewicz, Corelight)

@@ -354,21 +354,21 @@ public:
         auto fam = LookupFamily(prefix, name);
 
         if constexpr ( std::is_same<ValueType, int64_t>::value ) {
-            // TODO: pass upper bounds
             if ( fam )
                 return std::static_pointer_cast<IntHistogramFamily>(fam);
 
-            auto int_fam = std::make_shared<IntHistogramFamily>(prefix, name, labels, helptext, unit, is_sum);
+            auto int_fam = std::make_shared<IntHistogramFamily>(prefix, name, labels, default_upper_bounds, helptext,
+                                                                unit, is_sum);
             families.push_back(int_fam);
             return int_fam;
         }
         else {
             static_assert(std::is_same<ValueType, double>::value, "metrics only support int64_t and double values");
-            // TODO: pass upper bounds
             if ( fam )
                 return std::static_pointer_cast<DblHistogramFamily>(fam);
 
-            auto dbl_fam = std::make_shared<DblHistogramFamily>(prefix, name, labels, helptext, unit, is_sum);
+            auto dbl_fam = std::make_shared<DblHistogramFamily>(prefix, name, labels, default_upper_bounds, helptext,
+                                                                unit, is_sum);
             families.push_back(dbl_fam);
             return dbl_fam;
         }

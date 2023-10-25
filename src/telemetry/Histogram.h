@@ -133,7 +133,8 @@ public:
     static inline const char* OpaqueName = "IntHistogramMetricFamilyVal";
 
     IntHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                       std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
+                       Span<const int64_t> default_upper_bounds, std::string_view helptext, std::string_view unit = "1",
+                       bool is_sum = false);
 
     IntHistogramFamily(const IntHistogramFamily&) noexcept = delete;
     IntHistogramFamily& operator=(const IntHistogramFamily&) noexcept = delete;
@@ -147,7 +148,8 @@ public:
     static inline const char* OpaqueName = "DblHistogramMetricFamilyVal";
 
     DblHistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                       std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
+                       Span<const double> default_upper_bounds, std::string_view helptext, std::string_view unit = "1",
+                       bool is_sum = false);
 
     DblHistogramFamily(const DblHistogramFamily&) noexcept = delete;
     DblHistogramFamily& operator=(const DblHistogramFamily&) noexcept = delete;

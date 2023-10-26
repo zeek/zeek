@@ -1761,6 +1761,100 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
 		}
 	}
 
+using PatternValPtr = IntrusivePtr<PatternVal>;
+
+// Support class for returning multiple values from a table[pattern]
+// when indexed with a string.
+class TablePatternMatcher
+	{
+public:
+	TablePatternMatcher(const TableVal* _tbl, TypePtr _yield) : tbl(_tbl)
+		{
+		vtype = make_intrusive<VectorType>(std::move(_yield));
+		}
+	~TablePatternMatcher() { Clear(); }
+
+	void Insert(ValPtr pat, ValPtr yield) { Clear(); }
+	void Remove(ValPtr pat) { Clear(); }
+
+	void Clear()
+		{
+		delete matcher;
+		matcher = nullptr;
+		}
+
+	VectorValPtr Lookup(const StringVal* s);
+
+private:
+	void Build();
+
+	const TableVal* tbl;
+	VectorTypePtr vtype;
+
+	// If matcher is nil then we know we need to build it. This gives
+	// us an easy way to cache matchers in the common case that these
+	// sorts of tables don't change their elements very often (indeed,
+	// they'll frequently be constructed just once), and also keeps us
+	// from having to re-build the matcher on every insert/delete in
+	// the common case that a whole bunch of those are done in a single
+	// batch.
+	RE_DisjunctiveMatcher* matcher = nullptr;
+
+	// Maps matcher values to corresponding yields. When building the
+	// matcher we insert a nil at the head to accommodate how
+	// disjunctive matchers use numbering starting at 1 rather than 0.
+	std::vector<ValPtr> matcher_yields;
+	};
+
+VectorValPtr TablePatternMatcher::Lookup(const StringVal* s)
+	{
+	auto results = make_intrusive<VectorVal>(vtype);
+
+	if ( ! matcher )
+		{
+		if ( tbl->Get()->Length() == 0 )
+			return results;
+
+		Build();
+		}
+
+	std::vector<int> matches;
+	matcher->Match(s->AsString(), matches);
+
+	for ( auto m : matches )
+		results->Append(matcher_yields[m]);
+
+	return results;
+	}
+
+void TablePatternMatcher::Build()
+	{
+	matcher_yields.clear();
+	matcher_yields.push_back(nullptr);
+
+	auto& tbl_dict = *tbl->Get();
+	auto& tbl_hash = *tbl->GetTableHash();
+	std::vector<const RE_Matcher*> patterns;
+
+	// We need to hold on to recovered hash key values so they don't
+	// get lost once a loop iteration goes out of scope.
+	std::vector<ListValPtr> hash_key_vals;
+
+	for ( auto& iter : tbl_dict )
+		{
+		auto k = iter.GetHashKey();
+		auto v = iter.value;
+		auto vl = tbl_hash.RecoverVals(*k);
+
+		patterns.push_back(vl->AsListVal()->Idx(0)->AsPattern());
+		matcher_yields.push_back(v->GetVal());
+
+		hash_key_vals.push_back(std::move(vl));
+		}
+
+	matcher = new RE_DisjunctiveMatcher(patterns);
+	}
+
 TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t)
 	{
 	bool ordered = (a != nullptr && a->Find(detail::ATTR_ORDERED) != nullptr);
@@ -1797,6 +1891,10 @@ void TableVal::Init(TableTypePtr t, bool ordered)
 	else
 		subnets = nullptr;
 
+	auto& it = table_type->GetIndexTypes();
+	if ( it.size() == 1 && it[0]->Tag() == TYPE_PATTERN && table_type->Yield() )
+		pattern_matcher = new TablePatternMatcher(this, table_type->Yield());
+
 	table_hash = new detail::CompositeHash(table_type->GetIndices());
 	if ( ordered )
 		table_val = new PDict<TableEntryVal>(DictOrder::ORDERED);
@@ -1814,6 +1912,7 @@ TableVal::~TableVal()
 	delete table_hash;
 	delete table_val;
 	delete subnets;
+	delete pattern_matcher;
 	delete expire_iterator;
 	}
 
@@ -1825,6 +1924,9 @@ void TableVal::RemoveAll()
 	delete table_val;
 	table_val = new PDict<TableEntryVal>;
 	table_val->SetDeleteFunc(table_entry_val_delete_func);
+
+	if ( pattern_matcher )
+		pattern_matcher->Clear();
 	}
 
 int TableVal::Size() const
@@ -1922,6 +2024,9 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward,
 		index->Error("index type doesn't match table", table_type->GetIndices().get());
 		return false;
 		}
+
+	if ( pattern_matcher )
+		pattern_matcher->Insert(index->AsListVal()->Idx(0), new_val);
 
 	return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward,
 	              iterators_invalidated);
@@ -2338,6 +2443,14 @@ TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search)
 	return nt;
 	}
 
+VectorValPtr TableVal::LookupPattern(const StringVal* s)
+	{
+	if ( ! pattern_matcher )
+		reporter->InternalError("LookupPattern called on wrong table type");
+
+	return pattern_matcher->Lookup(s);
+	}
+
 bool TableVal::UpdateTimestamp(Val* index)
 	{
 	TableEntryVal* v;
@@ -2550,7 +2663,13 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
 		va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
 	if ( subnets && ! subnets->Remove(&index) )
+		// VP: not clear to me this should be an internal warning,
+		// since Zeek doesn't otherwise complain about removing
+		// non-existent table elements.
 		reporter->InternalWarning("index not in prefix table");
+
+	if ( pattern_matcher )
+		pattern_matcher->Remove(index.AsListVal()->Idx(0));
 
 	delete v;
 

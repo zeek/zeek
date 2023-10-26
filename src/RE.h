@@ -38,6 +38,7 @@ extern CCL* curr_ccl;
 extern NFA_Machine* nfa;
 extern Specific_RE_Matcher* rem;
 extern const char* RE_parse_input;
+extern int RE_accept_num;
 
 extern int clower(int);
 extern void synerr(const char str[]);
@@ -112,6 +113,17 @@ public:
 	int Match(const char* s);
 	int Match(const String* s);
 	int Match(const u_char* bv, int n);
+
+	// A disjunction is a collection of regular expressions (that under
+	// the hood are matches as a single RE, not serially) for which
+	// the match operation returns *all* of the matches.  Disjunctions
+	// are constructed using the internal "||" RE operator, and the
+	// matches are returned as indices into the position, left-to-right,
+	// of which REs matched. IMPORTANT: the first RE is numbered 1, not 0.
+	//
+	// Note that there's no guarantee regarding the ordering of the
+	// returned matches if there is more than one.
+	void MatchDisjunction(const String* s, std::vector<int>& matches);
 
 	int LongestMatch(const char* s);
 	int LongestMatch(const String* s);
@@ -250,6 +262,20 @@ protected:
 
 	bool is_case_insensitive = false;
 	bool is_single_line = false;
+	};
+
+class RE_DisjunctiveMatcher final
+	{
+public:
+	// Takes a collection of individual REs and builds a disjunctive
+	// matcher for the set.
+	RE_DisjunctiveMatcher(const std::vector<const RE_Matcher*>& REs);
+
+	// See MatchDisjunction() above.
+	void Match(const String* s, std::vector<int>& matches);
+
+private:
+	std::unique_ptr<detail::Specific_RE_Matcher> matcher;
 	};
 
 	} // namespace zeek

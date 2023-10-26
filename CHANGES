@@ -1,3 +1,12 @@
+6.2.0-dev.56 | 2023-10-26 15:34:17 +0200
+
+  * Fix tests so they work both with GNU and BSD tools (Benjamin Bannier, Corelight)
+
+    The GNU and BSD versions of `touch` and `truncate` allow slightly
+    different arguments, change the tests so they work in both versions.
+
+  * Install libmaxminddb in macOS CI (Benjamin Bannier, Corelight)
+
 6.2.0-dev.53 | 2023-10-25 17:01:57 +0200
 
   * fuzzer-setup: Allow customization without recompiling (Arne Welzel, Corelight)

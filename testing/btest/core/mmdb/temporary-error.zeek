@@ -15,15 +15,31 @@ redef mmdb_dir = "./mmdb";
 
 global pkt = 0;
 
+global asn_fn = safe_shell_quote(mmdb_dir + "/GeoLite2-ASN.mmdb");
+global city_fn = safe_shell_quote(mmdb_dir + "/GeoLite2-City.mmdb");
+
+global asn_fn_backup = safe_shell_quote(mmdb_dir + "-backup/GeoLite2-ASN.mmdb");
+global city_fn_backup = safe_shell_quote(mmdb_dir + "-backup/GeoLite2-City.mmdb");
+
+function timestamp(n: count): string
+	{
+	assert n <= 60;
+	return fmt("2020-01-01T00:%s:00", n);
+	}
+
+event zeek_init()
+	{
+	# Set the initial modification time for the MMDBs.
+	for ( db in vector(asn_fn, city_fn, asn_fn_backup, city_fn_backup) )
+		{
+		if ( ! piped_exec(fmt("test -f %s && touch -d %s %s", db, timestamp(pkt), db), "") )
+			exit(1);
+		}
+	}
+
 event new_packet(c: connection, p: pkt_hdr)
 	{
 	++pkt;
-
-	local asn_fn = safe_shell_quote(mmdb_dir + "/GeoLite2-ASN.mmdb");
-	local city_fn = safe_shell_quote(mmdb_dir + "/GeoLite2-City.mmdb");
-
-	local asn_fn_backup = safe_shell_quote(mmdb_dir + "-backup/GeoLite2-ASN.mmdb");
-	local city_fn_backup = safe_shell_quote(mmdb_dir + "-backup/GeoLite2-City.mmdb");
 
 	if ( pkt == 1 )
 		{
@@ -32,10 +48,10 @@ event new_packet(c: connection, p: pkt_hdr)
 	if ( pkt == 2 )
 		{
 		print "corrupting db";
-		if ( ! piped_exec(fmt("truncate --size=8 %s", asn_fn), "") )
+		if ( ! piped_exec(fmt("truncate -s 8 %s", asn_fn), "") )
 			exit(1);
 
-		if ( ! piped_exec(fmt("truncate --size=8 %s", city_fn), "") )
+		if ( ! piped_exec(fmt("truncate -s 8 %s", city_fn), "") )
 			exit(1);
 		}
 	else if ( pkt == 4 )
@@ -73,11 +89,11 @@ event new_packet(c: connection, p: pkt_hdr)
 			exit(1);
 		}
 
-	# Set MMDB's modification time to current network time for predictability.
-	if ( ! piped_exec(fmt("test -f %s && touch -d @%s %s", asn_fn, network_time(), asn_fn), "") )
+	# Increment MMDB's modification time.
+	if ( ! piped_exec(fmt("test -f %s && touch -d %s %s", asn_fn, timestamp(pkt), asn_fn), "") )
 		exit(1);
 
-	if ( ! piped_exec(fmt("test -f %s && touch -d @%s %s", city_fn, network_time(), city_fn), "") )
+	if ( ! piped_exec(fmt("test -f %s && touch -d %s %s", city_fn, timestamp(pkt), city_fn), "") )
 		exit(1);
 
 	print network_time(), pkt, 128.3.0.1, "asn", lookup_autonomous_system(128.3.0.1);

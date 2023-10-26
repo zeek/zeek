@@ -14,17 +14,23 @@ redef mmdb_dir = "./mmdb";
 
 global pkt = 0;
 
+function timestamp(n: count): string
+	{
+	return fmt("2020-01-01T00:%s:00", n);
+	}
+
 event new_packet(c: connection, p: pkt_hdr)
 	{
 	++pkt;
-	# Set MMDB's modification time to current network time.
+
+	# Increment MMDB's modification time.
 	local asn_fn = safe_shell_quote(mmdb_dir + "/GeoLite2-ASN.mmdb");
 	local city_fn = safe_shell_quote(mmdb_dir + "/GeoLite2-City.mmdb");
 
-	if ( ! piped_exec(fmt("touch -d @%s %s", network_time(), asn_fn), "") )
+	if ( ! piped_exec(fmt("touch -d %s %s", timestamp(pkt), asn_fn), "") )
 		exit(1);
 
-	if ( ! piped_exec(fmt("touch -d @%s %s", network_time(), city_fn), "") )
+	if ( ! piped_exec(fmt("touch -d %s %s", timestamp(pkt), city_fn), "") )
 		exit(1);
 
 	print network_time(), pkt, 128.3.0.1, "asn", lookup_autonomous_system(128.3.0.1);

@@ -465,7 +465,29 @@ string CPPCompile::GenIndexExpr(const Expr* e, GenType gt)
 
 	if ( aggr_t->Tag() == TYPE_TABLE )
 		{
-		func = inside_when ? "when_index_table__CPP" : "index_table__CPP";
+		auto ind_expr = e->GetOp2()->AsListExpr()->Exprs()[0];
+		auto is_pat_str_ind = false;
+
+		auto& indices = aggr_t->AsTableType()->GetIndices()->GetTypes();
+		if ( indices.size() == 1 && indices[0]->Tag() == TYPE_PATTERN &&
+		     ind_expr->GetType()->Tag() == TYPE_STRING )
+			is_pat_str_ind = true;
+
+		if ( inside_when )
+			{
+			if ( is_pat_str_ind )
+				func = "when_index_patstr__CPP";
+			else
+				func = "when_index_table__CPP";
+			}
+		else
+			{
+			if ( is_pat_str_ind )
+				func = "index_patstr_table__CPP";
+			else
+				func = "index_table__CPP";
+			}
+
 		gen = func + "(" + GenExpr(aggr, GEN_NATIVE) + ", {" + GenExpr(e->GetOp2(), GEN_VAL_PTR) +
 		      "})";
 		}

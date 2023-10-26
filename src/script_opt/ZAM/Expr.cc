@@ -646,6 +646,20 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 	int n = l->Exprs().length();
 	auto n2tag = n2t->Tag();
 
+	// Whether this is an instance of indexing a table[pattern] of X
+	// with a string.
+	bool is_pat_str_ind = false;
+
+	if ( n2tag == TYPE_TABLE && n == 1 )
+		{
+		auto& ind_types = n2t->AsTableType()->GetIndices();
+		auto& ind_type0 = ind_types->GetTypes()[0];
+		auto ind = l->Exprs()[0];
+
+		if ( ind_type0->Tag() == TYPE_PATTERN && ind->GetType()->Tag() == TYPE_STRING )
+			is_pat_str_ind = true;
+		}
+
 	if ( n == 1 && ! in_when )
 		{
 		auto ind = l->Exprs()[0];
@@ -723,7 +737,8 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVV, n1->GetType()->Tag());
+				auto op = is_pat_str_ind ? OP_TABLE_PATSTR_INDEX1_VVV : OP_TABLE_INDEX1_VVV;
+				auto zop = AssignmentFlavor(op, n1->GetType()->Tag());
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, n3_slot);
 				z.SetType(n3->GetType());
 				}
@@ -732,7 +747,8 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 				{
 				ASSERT(c3);
 
-				auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVC, n1->GetType()->Tag());
+				auto op = is_pat_str_ind ? OP_TABLE_PATSTR_INDEX1_VVC : OP_TABLE_INDEX1_VVC;
+				auto zop = AssignmentFlavor(op, n1->GetType()->Tag());
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c3);
 				}
 
@@ -759,7 +775,16 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 			break;
 
 		case TYPE_TABLE:
-			op = in_when ? OP_WHEN_TABLE_INDEX_VV : OP_TABLE_INDEX_VV;
+			if ( in_when )
+				{
+				if ( is_pat_str_ind )
+					op = OP_WHEN_PATSTR_INDEX_VV;
+				else
+					op = OP_WHEN_TABLE_INDEX_VV;
+				}
+			else
+				op = OP_TABLE_INDEX_VV;
+
 			z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
 			z.SetType(n1->GetType());
 			break;

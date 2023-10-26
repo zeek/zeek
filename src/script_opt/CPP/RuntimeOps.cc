@@ -49,6 +49,11 @@ ValPtr index_table__CPP(const TableValPtr& t, vector<ValPtr> indices)
 	return v;
 	}
 
+ValPtr index_patstr_table__CPP(const TableValPtr& t, vector<ValPtr> indices)
+	{
+	return t->LookupPattern(indices[0]->AsStringVal());
+	}
+
 ValPtr index_vec__CPP(const VectorValPtr& vec, int index)
 	{
 	if ( index < 0 )
@@ -69,6 +74,14 @@ ValPtr index_string__CPP(const StringValPtr& svp, vector<ValPtr> indices)
 ValPtr when_index_table__CPP(const TableValPtr& t, vector<ValPtr> indices)
 	{
 	auto v = index_table__CPP(t, std::move(indices));
+	if ( v && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	return v;
+	}
+
+ValPtr when_index_patstr__CPP(const TableValPtr& t, vector<ValPtr> indices)
+	{
+	auto v = index_patstr_table__CPP(t, std::move(indices));
 	if ( v && IndexExprWhen::evaluating > 0 )
 		IndexExprWhen::results.emplace_back(v);
 	return v;

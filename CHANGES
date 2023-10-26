@@ -1,3 +1,7 @@
+6.0.1-21 | 2023-10-26 08:51:59 -0700
+
+  * Bump auxil/spicy to latest 1.8 release (Benjamin Bannier, Corelight)
+
 6.0.1-18 | 2023-10-24 14:51:14 -0700
 
   * Update cmake submodule for caching fix [nomail] (Tim Wojtulewicz, Corelight)

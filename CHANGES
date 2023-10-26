@@ -1,3 +1,13 @@
+6.1.0-rc1.10 | 2023-10-26 08:53:12 -0700
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit 9a77f718086ccc7481c8c57459c8319cfc7e0143)
+
+  * quic: Skip new test if have-quic is false (Arne Welzel, Corelight)
+
+    (cherry picked from commit ebb8780d6a1b27dd1d36d71dd629bfc9e19954f7)
+
 6.1.0-rc1.7 | 2023-10-24 13:08:06 -0700
 
   * Update cmake submodule for caching fix [nomail] (Tim Wojtulewicz, Corelight)

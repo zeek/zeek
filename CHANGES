@@ -1,3 +1,48 @@
+6.0.1-27 | 2023-10-27 10:52:58 -0700
+
+  * ftp: Do not base seq on number of pending commands (Arne Welzel, Corelight)
+
+    Previously, seq was computed as the result of |pending_commands|+1. This
+    opened the possibility to override queued commands, as well as logging
+    the same pending ftp reply multiple times.
+
+    For example, when commands 1, 2, 3 are pending, command 1 may be dequeued,
+    but the incoming command then receives seq 3 and overrides the already
+    pending command 3. The second scenario happens when ftp_reply() selected
+    command 3 as pending for logging, but is then followed by many ftp_request()
+    events. This resulted in command 3's response being logged for every
+    following ftp_request() over and over again.
+
+    Avoid both scenarios by tracking the command sequence as an absolute counter.
+
+  * ssl: Prevent unbounded ssl_history growth (Arne Welzel, Corelight)
+
+    The previous fix also made it clear that the ssl_history field may grow
+    unbounded via the ssl_alert event. Prevent by capping using a configurable
+    limit (default 100) and raise a weird once reached.
+
+  * ssl: Cap number of alerts parsed from SSL record (Arne Welzel, Corelight)
+
+    Limit the number of events raised from an SSL record with content_type
+    alert (21) to a configurable maximum number (default 10). For TLS 1.3,
+    the limit is set to 1 as specified in the RFC. Add a new weird for the
+    in cases where the limit is exceeded.
+
+    OSS-Fuzz managed to generate a reproducer that raised ~660k ssl_plaintext
+    and ssl_alert events together given ~810kb of input data. This prevents
+    it with hopefully no negative side-effect in the real-world.
+
+  * X509Common/SCT parsing: Fix memory leak in error case (Arne Welzel, Corelight)
+
+    Failed to free the copy of the OCSP extension's value the inner
+    octet string couldn't be parsed.
+
+  * IEEE802_11: Fix buffer-overflow due to not accounting for the amsdu header (Arne Welzel, Corelight)
+
+    The fuzzer generated input where data length left was 14 and the amsdu_len
+    field set to 14. That caused buffer overread due not taking into account
+    the amsdu header length of 14.
+
 6.0.1-21 | 2023-10-26 08:51:59 -0700
 
   * Bump auxil/spicy to latest 1.8 release (Benjamin Bannier, Corelight)

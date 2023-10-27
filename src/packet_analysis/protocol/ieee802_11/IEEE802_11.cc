@@ -105,7 +105,7 @@ bool IEEE802_11Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* 
 
 			// This is the length of everything after the A-MSDU subframe header.
 			size_t amsdu_len = (data[12] << 8) + data[13];
-			if ( len < amsdu_len )
+			if ( len < amsdu_len + 14 )
 				{
 				Weird("truncated_802_11_amsdu_packet", packet);
 				return false;

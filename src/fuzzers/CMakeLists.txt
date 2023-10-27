@@ -55,10 +55,18 @@ macro (ADD_FUZZ_TARGET _name)
 endmacro ()
 
 macro (ADD_GENERIC_ANALYZER_FUZZ_TARGET _name)
+    set(_transport "tcp")
+    set(extra_args "${ARGN}")
+    list(LENGTH extra_args extra_args_n)
+    if (${extra_args_n} GREATER 0)
+        list(GET extra_args 0 _transport)
+    endif ()
+
     set(_fuzz_target zeek-${_name}-fuzzer)
     set(_fuzz_source generic-analyzer-fuzzer.cc)
     setup_fuzz_target(${_fuzz_target} ${_fuzz_source})
     target_compile_definitions(${_fuzz_target} PUBLIC ZEEK_FUZZ_ANALYZER=${_name})
+    target_compile_definitions(${_fuzz_target} PUBLIC ZEEK_FUZZ_ANALYZER_TRANSPORT=${_transport})
 endmacro ()
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -94,27 +102,29 @@ add_generic_analyzer_fuzz_target(pop3)
 add_generic_analyzer_fuzz_target(smtp)
 
 add_generic_analyzer_fuzz_target(dce_rpc)
-add_generic_analyzer_fuzz_target(dhcp)
+add_generic_analyzer_fuzz_target(dhcp udp)
 add_generic_analyzer_fuzz_target(dnp3_tcp)
+add_generic_analyzer_fuzz_target(dtls udp)
 add_generic_analyzer_fuzz_target(irc)
 add_generic_analyzer_fuzz_target(modbus)
 add_generic_analyzer_fuzz_target(mqtt)
 add_generic_analyzer_fuzz_target(mysql)
 add_generic_analyzer_fuzz_target(ncp)
-add_generic_analyzer_fuzz_target(ntp)
-add_generic_analyzer_fuzz_target(radius)
+add_generic_analyzer_fuzz_target(ntp udp)
+add_generic_analyzer_fuzz_target(radius udp)
 add_generic_analyzer_fuzz_target(rdp)
-add_generic_analyzer_fuzz_target(rdpeudp)
+add_generic_analyzer_fuzz_target(rdpeudp udp)
 add_generic_analyzer_fuzz_target(rfb)
+# The rpc based analyzer work with udp and tcp.
 add_generic_analyzer_fuzz_target(mount) # rpc
 add_generic_analyzer_fuzz_target(nfs) # rpc
 add_generic_analyzer_fuzz_target(portmapper) # rpc
-add_generic_analyzer_fuzz_target(sip)
+add_generic_analyzer_fuzz_target(sip udp)
 add_generic_analyzer_fuzz_target(smb)
-add_generic_analyzer_fuzz_target(snmp)
+add_generic_analyzer_fuzz_target(snmp udp)
 add_generic_analyzer_fuzz_target(ssh)
 add_generic_analyzer_fuzz_target(ssl)
-add_generic_analyzer_fuzz_target(syslog)
+add_generic_analyzer_fuzz_target(syslog udp)
 
 # add_generic_analyzer_fuzz_target(finger)  # no pcap files
 # add_generic_analyzer_fuzz_target(gssapi)  # only samples are embedded in smb

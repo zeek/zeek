@@ -1,3 +1,36 @@
+6.2.0-dev.64 | 2023-10-27 19:19:55 +0200
+
+  * fuzzers: Add DTLS fuzzer (Arne Welzel, Corelight)
+
+    Not sure it adds a lot over the SSL analyzer as they share code, but it
+    provides a distinct entry point at least.
+
+  * GH-3398: generic-analyzer-fuzzer: Support NextPacket() fuzzing (Arne Welzel, Corelight)
+
+    A number of analyzers that we've been fuzzing with the generic-analyzer-fuzzer
+    setup do not implement DeliverStream() and instead only work with DeliverPacket()
+    (ntp, syslog, sip, radius, ...). Calling DeliverStream() on those is
+    pretty much a noop and fuzzing not effective.
+
+    This change adds support to fuzz DeliverPacket(). Whether to use packet
+    or stream fuzzing is configured through a define via CMake.
+
+    This is still a bit limited in that for analyzers that support both,
+    DeliverPacket() and DeliverStream(), only one code path is fuzzed.
+
+  * Require `truncate` for a test using it (Benjamin Bannier, Corelight)
+
+    It looks like older versions of macOS like Monterey do not ship with
+    `truncate`. Make a recently added test require it to suppress spurious
+    failures.
+
+  * Bump outdated baseline (Benjamin Bannier, Corelight)
+
+    This fixes an outdated baseline added with
+    caaffd0324ac0557ba4c5ce0290d07a4d013a735.
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
 6.2.0-dev.56 | 2023-10-26 15:34:17 +0200
 
   * Fix tests so they work both with GNU and BSD tools (Benjamin Bannier, Corelight)

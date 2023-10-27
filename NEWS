@@ -3,6 +3,69 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 6.0.2
+==========
+
+This release fixes the following security issues:
+
+- A specially-crafted SSL packet could cause Zeek to leak memory and potentially
+  crash. Due to the possibility of receiving these packets from remote hosts,
+  this is a DoS risk. The fix included adds additional memory cleanup to the
+  x509 file analyzer.
+
+- A specially-crafted series of FTP packets could cause Zeek to log entries for
+  requests that have already been completed, using resources unnecessarily and
+  potentially causing Zeek to lose other traffic. Due to the possibility of
+  receiving these packets from remote hosts, this is a DoS risk. The fix
+  included changes the way that we track the pending FTP commands, avoiding
+  possibly reusing the same value for subsequent commands.
+
+- A specially-crafted series of SSL packets could cause Zeek to output a very
+  large number of unnecessary alerts for the same record. Due to the possibility
+  of receiving these packets from remote hosts, this is a DoS risk. The fix
+  included adds a new option SSL::max_alerts_per_record that caps the number of
+  alerts that can be generated for an SSL record. For TLS 1.3 this is capped at
+  1 as defined in RFC 8446. For non-TLS 1.3 it is a configurable value. A
+  SSL_excessive_alerts_in_record weird will be raised if the cap is exceeded.
+
+- A specially-crafted series of SSL packets could cause Zeek to generate very
+  long ssl_history fields in the ssl.log, potentially using a large amount of
+  memory due to unbounded state growth. Due to the possibility of receiving
+  these packets from remote hosts, this is a DoS risk. The fix included adds a
+  new option SSL::max_ssl_history_length that caps this to 100 characters by
+  default. A SSL_max_ssl_history_length_reached weird will be raised if the cap
+  is exceeded.
+
+- A specially-crafted IEEE802.11 packet could cause Zeek to overflow memory and
+  potentially crash. Due to the possibility of receiving these packets from
+  remote hosts, this is a DoS risk. The fix included adds additional bounds
+  checking to the IEEE802.11 packet analyzer.
+
+This release fixes the following bugs:
+
+- Fixed Spicy type names from causing collisions with existing Zeek types.
+
+- On some systems with low values for the maximum number of file descriptors, it
+  was possible to run into crashes when doing DNS lookups if all of the file
+  descriptors were used. This is now avoided with better checking for the number
+  of available file descriptors before trying a lookup. Thank you to Zeek Slack
+  user h-mikami for reporting this issue.
+
+- Tables backed by a Broker backend now correctly support deletion if they have
+  complex index types. Zeek previously reported an error when trying to delete
+  elements from these tables.
+
+- A significant performance issue with Zeek's supervisor code was fixed,
+  revolving around the re-initialization of the Event Manager object used to
+  track events. Thank you to Jan Grashoefer for reporting this issue.
+
+- The MaxMind DB code now cleans up after itself, resolving a memory leak with
+  the loaded database files.
+
+- The ZeekJS submodule was updated to version 0.9.6, bringing fixes for
+  zeek.invoke and zeek.event crashes, garbage collection, and an issue where
+  Zeek may stop executing events from ZeekJS.
+
 Zeek 6.0.1
 ==========
 

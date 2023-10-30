@@ -24,58 +24,54 @@ typedef vector<CVariable*> CVariableList;
 //
 // 3. We do not check repeated names.
 
-class CClass
-	{
+class CClass {
 public:
-	CClass(const string& class_name);
+    CClass(const string& class_name);
 
-	void AddMember(CClassMember* member);
-	void AddMethod(CClassMember* method);
+    void AddMember(CClassMember* member);
+    void AddMethod(CClassMember* method);
 
-	void GenForwardDeclaration(Output* out_h);
-	void GenCode(Output* out_h, Output* out_cc);
+    void GenForwardDeclaration(Output* out_h);
+    void GenCode(Output* out_h, Output* out_cc);
 
 protected:
-	string class_name_;
-	CClassMemberList* members_;
-	CClassMethodList* methods_;
-	};
+    string class_name_;
+    CClassMemberList* members_;
+    CClassMethodList* methods_;
+};
 
-class CVariable
-	{
+class CVariable {
 public:
-	CClassMember(const string& name, CType* type);
+    CClassMember(const string& name, CType* type);
 
-	string name() const { return name_; }
-	CType* type() const { return type_; }
+    string name() const { return name_; }
+    CType* type() const { return type_; }
 
 protected:
-	string name_;
-	CType* type_;
-	};
+    string name_;
+    CType* type_;
+};
 
-class CClassMember
-	{
+class CClassMember {
 public:
-	CClassMember(CVariable* var);
-	void GenCode(Output* out_h, Output* out_cc);
+    CClassMember(CVariable* var);
+    void GenCode(Output* out_h, Output* out_cc);
 
-	string decl() const;
+    string decl() const;
 
 protected:
-	CVariable* var_;
-	};
+    CVariable* var_;
+};
 
-class CClassMethod
-	{
+class CClassMethod {
 public:
-	CClassMethod(CVariable* var, CVariableList* params);
+    CClassMethod(CVariable* var, CVariableList* params);
 
-	string decl() const;
+    string decl() const;
 
 protected:
-	CVariable* var_;
-	CVariableList* params_;
-	};
+    CVariable* var_;
+    CVariableList* params_;
+};
 
 #endif // pac_cclass_h

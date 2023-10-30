@@ -4,54 +4,37 @@
 #include "pac_field.h"
 
 // A private variable evaluated with parsing
-class ParseVarField : public Field
-	{
+class ParseVarField : public Field {
 public:
-	ParseVarField(int is_class_member, ID* id, Type* type)
-		: Field(PARSE_VAR_FIELD, TYPE_TO_BE_PARSED | is_class_member | NOT_PUBLIC_READABLE, id,
-	            type)
-		{
-		}
-	void GenPubDecls(Output* out, Env* env) override
-		{ /* do nothing */
-		}
-	};
+    ParseVarField(int is_class_member, ID* id, Type* type)
+        : Field(PARSE_VAR_FIELD, TYPE_TO_BE_PARSED | is_class_member | NOT_PUBLIC_READABLE, id, type) {}
+    void GenPubDecls(Output* out, Env* env) override { /* do nothing */
+    }
+};
 
 // A public variable
-class PubVarField : public Field
-	{
+class PubVarField : public Field {
 public:
-	PubVarField(ID* id, Type* type)
-		: Field(PUB_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type)
-		{
-		}
-	~PubVarField() override { }
-	};
+    PubVarField(ID* id, Type* type)
+        : Field(PUB_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type) {}
+    ~PubVarField() override {}
+};
 
 // A private variable
-class PrivVarField : public Field
-	{
+class PrivVarField : public Field {
 public:
-	PrivVarField(ID* id, Type* type)
-		: Field(PRIV_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | NOT_PUBLIC_READABLE, id,
-	            type)
-		{
-		}
-	~PrivVarField() override { }
+    PrivVarField(ID* id, Type* type)
+        : Field(PRIV_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | NOT_PUBLIC_READABLE, id, type) {}
+    ~PrivVarField() override {}
 
-	void GenPubDecls(Output* out, Env* env) override
-		{ /* do nothing */
-		}
-	};
+    void GenPubDecls(Output* out, Env* env) override { /* do nothing */
+    }
+};
 
-class TempVarField : public Field
-	{
+class TempVarField : public Field {
 public:
-	TempVarField(ID* id, Type* type)
-		: Field(TEMP_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | NOT_CLASS_MEMBER, id, type)
-		{
-		}
-	~TempVarField() override { }
-	};
+    TempVarField(ID* id, Type* type) : Field(TEMP_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | NOT_CLASS_MEMBER, id, type) {}
+    ~TempVarField() override {}
+};
 
 #endif // pac_varfield_h

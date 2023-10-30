@@ -7,36 +7,34 @@
 
 using namespace std;
 
-class OutputException
-	{
+class OutputException {
 public:
-	OutputException(const char* arg_msg);
-	~OutputException();
-	const char* errmsg() const { return msg.c_str(); }
+    OutputException(const char* arg_msg);
+    ~OutputException();
+    const char* errmsg() const { return msg.c_str(); }
 
 protected:
-	string msg;
-	};
+    string msg;
+};
 
-class Output
-	{
+class Output {
 public:
-	Output(string filename);
-	~Output();
+    Output(string filename);
+    ~Output();
 
-	int println(const char* fmt, ...);
-	int print(const char* fmt, ...);
+    int println(const char* fmt, ...);
+    int print(const char* fmt, ...);
 
-	int indent() const { return indent_; }
+    int indent() const { return indent_; }
 
-	void inc_indent() { ++indent_; }
-	void dec_indent() { --indent_; }
+    void inc_indent() { ++indent_; }
+    void dec_indent() { --indent_; }
 
 protected:
-	int print(const char* fmt, va_list ap);
+    int print(const char* fmt, va_list ap);
 
-	FILE* fp;
-	int indent_;
-	};
+    FILE* fp;
+    int indent_;
+};
 
 #endif /* pac_output_h */

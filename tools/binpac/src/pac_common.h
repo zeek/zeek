@@ -20,25 +20,23 @@ extern int line_number;
 // representing language elements -- identifiers, types, expressions,
 // etc.
 
-class Object
-	{
+class Object {
 public:
-	Object()
-		{
-		filename = input_filename;
-		line_num = line_number;
-		location = strfmt("%s:%d", filename.c_str(), line_number);
-		}
+    Object() {
+        filename = input_filename;
+        line_num = line_number;
+        location = strfmt("%s:%d", filename.c_str(), line_number);
+    }
 
-	~Object() { }
+    ~Object() {}
 
-	const char* Location() const { return location.c_str(); }
+    const char* Location() const { return location.c_str(); }
 
 protected:
-	string filename;
-	int line_num;
-	string location;
-	};
+    string filename;
+    int line_num;
+    string location;
+};
 
 class ActionParam;
 class ActionParamType;
@@ -103,17 +101,17 @@ typedef vector<Param*> ParamList;
 typedef vector<RecordField*> RecordFieldList;
 typedef vector<StateVar*> StateVarList;
 
-#define foreach(i, ct, pc)                                                                         \
-	if ( pc )                                                                                      \
-		for ( ct::iterator i = (pc)->begin(); i != (pc)->end(); ++i )
+#define foreach(i, ct, pc)                                                                                             \
+    if ( pc )                                                                                                          \
+        for ( ct::iterator i = (pc)->begin(); i != (pc)->end(); ++i )
 
-#define delete_list(ct, pc)                                                                        \
-		{                                                                                          \
-		foreach (delete_list_i, ct, pc)                                                            \
-			delete *delete_list_i;                                                                 \
-		delete pc;                                                                                 \
-		pc = 0;                                                                                    \
-		}
+#define delete_list(ct, pc)                                                                                            \
+    {                                                                                                                  \
+        foreach (delete_list_i, ct, pc)                                                                                \
+            delete *delete_list_i;                                                                                     \
+        delete pc;                                                                                                     \
+        pc = 0;                                                                                                        \
+    }
 
 // Constants
 const char* const kComputeFrameLength = "compute_frame_length";

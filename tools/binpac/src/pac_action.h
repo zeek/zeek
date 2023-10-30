@@ -6,71 +6,61 @@
 #include "pac_analyzer.h"
 #include "pac_common.h"
 
-class AnalyzerAction : public AnalyzerElement
-	{
+class AnalyzerAction : public AnalyzerElement {
 public:
-	enum When
-		{
-		BEFORE,
-		AFTER
-		};
+    enum When { BEFORE, AFTER };
 
-	AnalyzerAction(ID* action_id, When when, ActionParam* param, EmbeddedCode* code);
+    AnalyzerAction(ID* action_id, When when, ActionParam* param, EmbeddedCode* code);
 
-	~AnalyzerAction() override;
+    ~AnalyzerAction() override;
 
-	When when() const { return when_; }
-	ActionParam* param() const { return param_; }
-	AnalyzerDecl* analyzer() const { return analyzer_; }
-	string action_function() const;
+    When when() const { return when_; }
+    ActionParam* param() const { return param_; }
+    AnalyzerDecl* analyzer() const { return analyzer_; }
+    string action_function() const;
 
-	// Generate function prototype and code for the action
-	void GenCode(Output* out_h, Output* out_cc, AnalyzerDecl* decl);
+    // Generate function prototype and code for the action
+    void GenCode(Output* out_h, Output* out_cc, AnalyzerDecl* decl);
 
-	// Install the hook at the corresponding data type parsing
-	// function to invoke the action.
-	void InstallHook(AnalyzerDecl* analyzer);
+    // Install the hook at the corresponding data type parsing
+    // function to invoke the action.
+    void InstallHook(AnalyzerDecl* analyzer);
 
 private:
-	string ParamDecls(Env* env) const;
+    string ParamDecls(Env* env) const;
 
-	ID* action_id_;
-	When when_;
-	ActionParam* param_;
-	EmbeddedCode* code_;
-	AnalyzerDecl* analyzer_;
-	};
+    ID* action_id_;
+    When when_;
+    ActionParam* param_;
+    EmbeddedCode* code_;
+    AnalyzerDecl* analyzer_;
+};
 
-class ActionParam
-	{
+class ActionParam {
 public:
-	ActionParam(const ID* id, ActionParamType* type) : id_(id), type_(type) { }
+    ActionParam(const ID* id, ActionParamType* type) : id_(id), type_(type) {}
 
-	const ID* id() const { return id_; }
-	ActionParamType* type() const { return type_; }
+    const ID* id() const { return id_; }
+    ActionParamType* type() const { return type_; }
 
-	Type* MainDataType() const;
-	Type* DataType() const;
-	string DeclStr(Env* env) const;
+    Type* MainDataType() const;
+    Type* DataType() const;
+    string DeclStr(Env* env) const;
 
 private:
-	const ID* id_;
-	ActionParamType* type_;
-	};
+    const ID* id_;
+    ActionParamType* type_;
+};
 
-class ActionParamType
-	{
+class ActionParamType {
 public:
-	ActionParamType(const ID* type_id, const ID* field_id = 0)
-		: type_id_(type_id), field_id_(field_id)
-		{
-		}
+    ActionParamType(const ID* type_id, const ID* field_id = 0) : type_id_(type_id), field_id_(field_id) {}
 
-	const ID* type_id() const { return type_id_; }
-	const ID* field_id() const { return field_id_; }
+    const ID* type_id() const { return type_id_; }
+    const ID* field_id() const { return field_id_; }
 
 protected:
-	const ID *type_id_, *field_id_;
-	};
+    const ID *type_id_, *field_id_;
+};
 
 #endif // pac_action_h

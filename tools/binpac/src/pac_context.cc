@@ -12,99 +12,83 @@
 #include "pac_utils.h"
 
 ContextField::ContextField(ID* id, Type* type)
-	: Field(CONTEXT_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type)
-	{
-	}
+    : Field(CONTEXT_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type) {}
 
 AnalyzerContextDecl* AnalyzerContextDecl::current_analyzer_context_ = nullptr;
 
-namespace
-	{
-ParamList* ContextFieldsToParams(ContextFieldList* context_fields)
-	{
-	// Convert context fields to parameters
-	ParamList* params = new ParamList();
-	foreach (i, ContextFieldList, context_fields)
-		{
-		ContextField* f = *i;
-		params->push_back(new Param(f->id()->clone(), f->type()));
-		}
-	return params;
-	}
-	} // namespace private
+namespace {
+ParamList* ContextFieldsToParams(ContextFieldList* context_fields) {
+    // Convert context fields to parameters
+    ParamList* params = new ParamList();
+    foreach (i, ContextFieldList, context_fields) {
+        ContextField* f = *i;
+        params->push_back(new Param(f->id()->clone(), f->type()));
+    }
+    return params;
+}
+} // namespace
 
 AnalyzerContextDecl::AnalyzerContextDecl(ID* id, ContextFieldList* context_fields)
-	: TypeDecl(new ID(strfmt("Context%s", id->Name())), ContextFieldsToParams(context_fields),
-               new DummyType())
-	{
-	context_name_id_ = id;
-	if ( current_analyzer_context_ != nullptr )
-		{
-		throw Exception(this, strfmt("multiple declaration of analyzer context; "
-		                             "the previous one is `%s'",
-		                             current_analyzer_context_->id()->Name()));
-		}
-	else
-		current_analyzer_context_ = this;
+    : TypeDecl(new ID(strfmt("Context%s", id->Name())), ContextFieldsToParams(context_fields), new DummyType()) {
+    context_name_id_ = id;
+    if ( current_analyzer_context_ != nullptr ) {
+        throw Exception(this, strfmt("multiple declaration of analyzer context; "
+                                     "the previous one is `%s'",
+                                     current_analyzer_context_->id()->Name()));
+    }
+    else
+        current_analyzer_context_ = this;
 
-	context_fields_ = context_fields;
+    context_fields_ = context_fields;
 
-	param_type_ = new ParameterizedType(id_->clone(), nullptr);
+    param_type_ = new ParameterizedType(id_->clone(), nullptr);
 
-	flow_buffer_added_ = false;
+    flow_buffer_added_ = false;
 
-	DEBUG_MSG("Context type: %s\n", param_type()->class_name().c_str());
-	}
+    DEBUG_MSG("Context type: %s\n", param_type()->class_name().c_str());
+}
 
-AnalyzerContextDecl::~AnalyzerContextDecl()
-	{
-	delete context_name_id_;
-	delete param_type_;
-	delete_list(ContextFieldList, context_fields_);
-	}
+AnalyzerContextDecl::~AnalyzerContextDecl() {
+    delete context_name_id_;
+    delete param_type_;
+    delete_list(ContextFieldList, context_fields_);
+}
 
-void AnalyzerContextDecl::GenForwardDeclaration(Output* out_h)
-	{
-	GenNamespaceBegin(out_h);
-	TypeDecl::GenForwardDeclaration(out_h);
-	}
+void AnalyzerContextDecl::GenForwardDeclaration(Output* out_h) {
+    GenNamespaceBegin(out_h);
+    TypeDecl::GenForwardDeclaration(out_h);
+}
 
-void AnalyzerContextDecl::GenCode(Output* out_h, Output* out_cc)
-	{
-	GenNamespaceBegin(out_h);
-	GenNamespaceBegin(out_cc);
-	TypeDecl::GenCode(out_h, out_cc);
-	}
+void AnalyzerContextDecl::GenCode(Output* out_h, Output* out_cc) {
+    GenNamespaceBegin(out_h);
+    GenNamespaceBegin(out_cc);
+    TypeDecl::GenCode(out_h, out_cc);
+}
 
-void AnalyzerContextDecl::GenNamespaceBegin(Output* out) const
-	{
-	out->println("namespace %s {", context_name_id()->Name());
-	}
+void AnalyzerContextDecl::GenNamespaceBegin(Output* out) const {
+    out->println("namespace %s {", context_name_id()->Name());
+}
 
-void AnalyzerContextDecl::GenNamespaceEnd(Output* out) const
-	{
-	out->println("} // namespace %s", context_name_id()->Name());
-	}
+void AnalyzerContextDecl::GenNamespaceEnd(Output* out) const {
+    out->println("} // namespace %s", context_name_id()->Name());
+}
 
-void AnalyzerContextDecl::AddFlowBuffer()
-	{
-	if ( flow_buffer_added_ )
-		return;
+void AnalyzerContextDecl::AddFlowBuffer() {
+    if ( flow_buffer_added_ )
+        return;
 
-	AddParam(new Param(new ID(kFlowBufferVar), FlowDecl::flow_buffer_type()->Clone()));
+    AddParam(new Param(new ID(kFlowBufferVar), FlowDecl::flow_buffer_type()->Clone()));
 
-	flow_buffer_added_ = true;
-	}
+    flow_buffer_added_ = true;
+}
 
-string AnalyzerContextDecl::mb_buffer(Env* env)
-	{
-	// A hack. The orthodox way would be to build an Expr of
-	// context.flow_buffer_var, and then EvalExpr.
-	return strfmt("%s->%s()", env->RValue(analyzer_context_id), kFlowBufferVar);
-	}
+string AnalyzerContextDecl::mb_buffer(Env* env) {
+    // A hack. The orthodox way would be to build an Expr of
+    // context.flow_buffer_var, and then EvalExpr.
+    return strfmt("%s->%s()", env->RValue(analyzer_context_id), kFlowBufferVar);
+}
 
-Type* DummyType::DoClone() const
-	{
-	// Fields will be copied in Type::Clone().
-	return new DummyType();
-	}
+Type* DummyType::DoClone() const {
+    // Fields will be copied in Type::Clone().
+    return new DummyType();
+}

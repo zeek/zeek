@@ -22,189 +22,179 @@ using namespace std;
 // Env -- a mapping from ID names to their L/R-value expressions and evaluation
 //   methods.
 
-enum IDType
-	{
-	CONST,
-	GLOBAL_VAR,
-	TEMP_VAR,
-	MEMBER_VAR,
-	PRIV_MEMBER_VAR,
-	UNION_VAR,
-	STATE_VAR,
-	MACRO,
-	FUNC_ID,
-	FUNC_PARAM,
-	};
+enum IDType {
+    CONST,
+    GLOBAL_VAR,
+    TEMP_VAR,
+    MEMBER_VAR,
+    PRIV_MEMBER_VAR,
+    UNION_VAR,
+    STATE_VAR,
+    MACRO,
+    FUNC_ID,
+    FUNC_PARAM,
+};
 
 class ID;
 class IDRecord;
 class Env;
 class Evaluatable;
 
-class ID : public Object
-	{
+class ID : public Object {
 public:
-	ID(string arg_name) : name(arg_name), anonymous_id_(false)
-		{
-		locname = nfmt("%s:%s", Location(), Name());
-		}
-	~ID() { delete[] locname; }
+    ID(string arg_name) : name(arg_name), anonymous_id_(false) { locname = nfmt("%s:%s", Location(), Name()); }
+    ~ID() { delete[] locname; }
 
-	bool operator==(ID const& x) const { return name == x.Name(); }
+    bool operator==(ID const& x) const { return name == x.Name(); }
 
-	const char* Name() const { return name.c_str(); }
-	const char* LocName() const { return locname; }
-	bool is_anonymous() const { return anonymous_id_; }
+    const char* Name() const { return name.c_str(); }
+    const char* LocName() const { return locname; }
+    bool is_anonymous() const { return anonymous_id_; }
 
-	ID* clone() const { return new ID(Name()); }
+    ID* clone() const { return new ID(Name()); }
 
 protected:
-	string name;
-	bool anonymous_id_;
-	char* locname;
-	friend class ID_ptr_cmp;
+    string name;
+    bool anonymous_id_;
+    char* locname;
+    friend class ID_ptr_cmp;
 
 public:
-	static ID* NewAnonymousID(const string& prefix);
+    static ID* NewAnonymousID(const string& prefix);
 
 private:
-	static int anonymous_id_seq;
-	};
+    static int anonymous_id_seq;
+};
 
 // A comparison operator for pointers to ID's.
-class ID_ptr_cmp
-	{
+class ID_ptr_cmp {
 public:
-	bool operator()(const ID* const& id1, const ID* const& id2) const
-		{
-		ASSERT(id1);
-		ASSERT(id2);
-		return id1->name < id2->name;
-		}
-	};
+    bool operator()(const ID* const& id1, const ID* const& id2) const {
+        ASSERT(id1);
+        ASSERT(id2);
+        return id1->name < id2->name;
+    }
+};
 
-class IDRecord
-	{
+class IDRecord {
 public:
-	IDRecord(Env* env, const ID* id, IDType id_type);
-	~IDRecord();
+    IDRecord(Env* env, const ID* id, IDType id_type);
+    ~IDRecord();
 
-	IDType GetType() const { return id_type; }
+    IDType GetType() const { return id_type; }
 
-	void SetDataType(Type* type) { data_type = type; }
-	Type* GetDataType() const { return data_type; }
+    void SetDataType(Type* type) { data_type = type; }
+    Type* GetDataType() const { return data_type; }
 
-	void SetEvalMethod(Evaluatable* arg_eval) { eval = arg_eval; }
-	void Evaluate(Output* out, Env* env);
-	void SetEvaluated(bool v);
-	bool Evaluated() const { return evaluated; }
+    void SetEvalMethod(Evaluatable* arg_eval) { eval = arg_eval; }
+    void Evaluate(Output* out, Env* env);
+    void SetEvaluated(bool v);
+    bool Evaluated() const { return evaluated; }
 
-	void SetField(Field* f) { field = f; }
-	Field* GetField() const { return field; }
+    void SetField(Field* f) { field = f; }
+    Field* GetField() const { return field; }
 
-	void SetConstant(int c);
-	bool GetConstant(int* pc) const;
+    void SetConstant(int c);
+    bool GetConstant(int* pc) const;
 
-	void SetMacro(Expr* expr);
-	Expr* GetMacro() const;
+    void SetMacro(Expr* expr);
+    Expr* GetMacro() const;
 
-	const char* RValue() const;
-	const char* LValue() const;
+    const char* RValue() const;
+    const char* LValue() const;
 
 protected:
-	Env* env;
-	const ID* id;
-	IDType id_type;
+    Env* env;
+    const ID* id;
+    IDType id_type;
 
-	string rvalue;
-	string lvalue;
-	string setfunc;
+    string rvalue;
+    string lvalue;
+    string setfunc;
 
-	Type* data_type;
+    Type* data_type;
 
-	Field* field;
+    Field* field;
 
-	int constant;
-	bool constant_set;
+    int constant;
+    bool constant_set;
 
-	Expr* macro;
+    Expr* macro;
 
-	bool evaluated;
-	bool in_evaluation; // to detect cyclic dependence
-	Evaluatable* eval;
-	};
+    bool evaluated;
+    bool in_evaluation; // to detect cyclic dependence
+    Evaluatable* eval;
+};
 
-class Evaluatable
-	{
+class Evaluatable {
 public:
-	virtual ~Evaluatable() { }
-	virtual void GenEval(Output* out, Env* env) = 0;
-	};
+    virtual ~Evaluatable() {}
+    virtual void GenEval(Output* out, Env* env) = 0;
+};
 
-class Env
-	{
+class Env {
 public:
-	Env(Env* parent_env, Object* context_object);
-	~Env();
+    Env(Env* parent_env, Object* context_object);
+    ~Env();
 
-	bool allow_undefined_id() const { return allow_undefined_id_; }
-	void set_allow_undefined_id(bool x) { allow_undefined_id_ = x; }
+    bool allow_undefined_id() const { return allow_undefined_id_; }
+    void set_allow_undefined_id(bool x) { allow_undefined_id_ = x; }
 
-	bool in_branch() const { return in_branch_; }
-	void set_in_branch(bool x) { in_branch_ = x; }
+    bool in_branch() const { return in_branch_; }
+    void set_in_branch(bool x) { in_branch_ = x; }
 
-	void AddID(const ID* id, IDType id_type, Type* type);
-	void AddConstID(const ID* id, const int c, Type* type = 0);
-	void AddMacro(const ID* id, Expr* expr);
+    void AddID(const ID* id, IDType id_type, Type* type);
+    void AddConstID(const ID* id, const int c, Type* type = 0);
+    void AddMacro(const ID* id, Expr* expr);
 
-	// Generate a temp ID with a unique name
-	ID* AddTempID(Type* type);
+    // Generate a temp ID with a unique name
+    ID* AddTempID(Type* type);
 
-	IDType GetIDType(const ID* id) const;
-	const char* RValue(const ID* id) const;
-	const char* LValue(const ID* id) const;
-	// const char *SetFunc(const ID *id) const;
+    IDType GetIDType(const ID* id) const;
+    const char* RValue(const ID* id) const;
+    const char* LValue(const ID* id) const;
+    // const char *SetFunc(const ID *id) const;
 
-	// Set evaluation method for the ID
-	void SetEvalMethod(const ID* id, Evaluatable* eval);
+    // Set evaluation method for the ID
+    void SetEvalMethod(const ID* id, Evaluatable* eval);
 
-	// Evaluate the ID according to the evaluation method. It
-	// assumes the ID has an evaluation emthod. It does nothing
-	// if the ID has already been evaluated.
-	void Evaluate(Output* out, const ID* id);
+    // Evaluate the ID according to the evaluation method. It
+    // assumes the ID has an evaluation emthod. It does nothing
+    // if the ID has already been evaluated.
+    void Evaluate(Output* out, const ID* id);
 
-	// Whether the ID has already been evaluated.
-	bool Evaluated(const ID* id) const;
+    // Whether the ID has already been evaluated.
+    bool Evaluated(const ID* id) const;
 
-	// Set the ID as evaluated (or not).
-	void SetEvaluated(const ID* id, bool v = true);
+    // Set the ID as evaluated (or not).
+    void SetEvaluated(const ID* id, bool v = true);
 
-	void SetField(const ID* id, Field* field);
-	Field* GetField(const ID* id) const;
+    void SetField(const ID* id, Field* field);
+    Field* GetField(const ID* id) const;
 
-	bool GetConstant(const ID* id, int* pc) const;
+    bool GetConstant(const ID* id, int* pc) const;
 
-	Expr* GetMacro(const ID* id) const;
+    Expr* GetMacro(const ID* id) const;
 
-	Type* GetDataType(const ID* id) const;
+    Type* GetDataType(const ID* id) const;
 
-	string DataTypeStr(const ID* id) const;
+    string DataTypeStr(const ID* id) const;
 
 protected:
-	IDRecord* lookup(const ID* id, bool recursive, bool raise_exception) const;
+    IDRecord* lookup(const ID* id, bool recursive, bool raise_exception) const;
 
-	void SetDataType(const ID* id, Type* type);
-	void SetConstant(const ID* id, int constant);
-	void SetMacro(const ID* id, Expr* macro);
+    void SetDataType(const ID* id, Type* type);
+    void SetConstant(const ID* id, int constant);
+    void SetMacro(const ID* id, Expr* macro);
 
 private:
-	Env* parent;
-	Object* context_object_;
-	typedef map<const ID*, IDRecord*, ID_ptr_cmp> id_map_t;
-	id_map_t id_map;
-	bool allow_undefined_id_;
-	bool in_branch_;
-	};
+    Env* parent;
+    Object* context_object_;
+    typedef map<const ID*, IDRecord*, ID_ptr_cmp> id_map_t;
+    id_map_t id_map;
+    bool allow_undefined_id_;
+    bool in_branch_;
+};
 
 extern const ID* default_value_var;
 extern const ID* null_id;

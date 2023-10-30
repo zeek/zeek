@@ -8,55 +8,46 @@
 #include "pac_type.h"
 #include "pac_utils.h"
 
-Param::Param(ID* id, Type* type) : id_(id), type_(type)
-	{
-	if ( ! type_ )
-		type_ = extern_type_int->Clone();
+Param::Param(ID* id, Type* type) : id_(id), type_(type) {
+    if ( ! type_ )
+        type_ = extern_type_int->Clone();
 
-	decl_str_ = strfmt("%s %s", type_->DataTypeConstRefStr().c_str(), id_->Name());
+    decl_str_ = strfmt("%s %s", type_->DataTypeConstRefStr().c_str(), id_->Name());
 
-	param_field_ = new ParamField(this);
-	}
+    param_field_ = new ParamField(this);
+}
 
-Param::~Param() { }
+Param::~Param() {}
 
-const string& Param::decl_str() const
-	{
-	ASSERT(! decl_str_.empty());
-	return decl_str_;
-	}
+const string& Param::decl_str() const {
+    ASSERT(! decl_str_.empty());
+    return decl_str_;
+}
 
-string ParamDecls(ParamList* params)
-	{
-	string param_decls;
+string ParamDecls(ParamList* params) {
+    string param_decls;
 
-	int first = 1;
-	foreach (i, ParamList, params)
-		{
-		Param* p = *i;
-		const char* decl_str = p->decl_str().c_str();
-		if ( first )
-			first = 0;
-		else
-			param_decls += ", ";
-		param_decls += decl_str;
-		}
-	return param_decls;
-	}
+    int first = 1;
+    foreach (i, ParamList, params) {
+        Param* p = *i;
+        const char* decl_str = p->decl_str().c_str();
+        if ( first )
+            first = 0;
+        else
+            param_decls += ", ";
+        param_decls += decl_str;
+    }
+    return param_decls;
+}
 
 ParamField::ParamField(const Param* param)
-	: Field(PARAM_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, param->id(),
-            param->type())
-	{
-	}
+    : Field(PARAM_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, param->id(), param->type()) {}
 
-void ParamField::GenInitCode(Output* out_cc, Env* env)
-	{
-	out_cc->println("%s = %s;", env->LValue(id()), id()->Name());
-	env->SetEvaluated(id());
-	}
+void ParamField::GenInitCode(Output* out_cc, Env* env) {
+    out_cc->println("%s = %s;", env->LValue(id()), id()->Name());
+    env->SetEvaluated(id());
+}
 
-void ParamField::GenCleanUpCode(Output* out_cc, Env* env)
-	{
-	// Do nothing
-	}
+void ParamField::GenCleanUpCode(Output* out_cc, Env* env) {
+    // Do nothing
+}

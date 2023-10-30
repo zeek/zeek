@@ -9,64 +9,60 @@
 
 class DataDepVisitor;
 
-class DataDepElement
-	{
+class DataDepElement {
 public:
-	enum DDE_Type
-		{
-		ATTR,
-		CASEEXPR,
-		EXPR,
-		FIELD,
-		INPUT_BUFFER,
-		PARAM,
-		TYPE,
-		};
+    enum DDE_Type {
+        ATTR,
+        CASEEXPR,
+        EXPR,
+        FIELD,
+        INPUT_BUFFER,
+        PARAM,
+        TYPE,
+    };
 
-	DataDepElement(DDE_Type type);
-	virtual ~DataDepElement() { }
+    DataDepElement(DDE_Type type);
+    virtual ~DataDepElement() {}
 
-	// Returns whether to continue traversal
-	bool Traverse(DataDepVisitor* visitor);
+    // Returns whether to continue traversal
+    bool Traverse(DataDepVisitor* visitor);
 
-	// Returns whether to continue traversal
-	virtual bool DoTraverse(DataDepVisitor* visitor) = 0;
+    // Returns whether to continue traversal
+    virtual bool DoTraverse(DataDepVisitor* visitor) = 0;
 
-	DDE_Type dde_type() const { return dde_type_; }
-	Expr* expr();
-	Type* type();
+    DDE_Type dde_type() const { return dde_type_; }
+    Expr* expr();
+    Type* type();
 
 protected:
-	DDE_Type dde_type_;
-	bool in_traversal;
-	};
+    DDE_Type dde_type_;
+    bool in_traversal;
+};
 
-class DataDepVisitor
-	{
+class DataDepVisitor {
 public:
-	virtual ~DataDepVisitor() { }
-	// Returns whether to continue traversal
-	virtual bool PreProcess(DataDepElement* element) = 0;
-	virtual bool PostProcess(DataDepElement* element) = 0;
-	};
+    virtual ~DataDepVisitor() {}
+    // Returns whether to continue traversal
+    virtual bool PreProcess(DataDepElement* element) = 0;
+    virtual bool PostProcess(DataDepElement* element) = 0;
+};
 
-class RequiresAnalyzerContext : public DataDepVisitor
-	{
+class RequiresAnalyzerContext : public DataDepVisitor {
 public:
-	RequiresAnalyzerContext() : requires_analyzer_context_(false) { }
+    RequiresAnalyzerContext() : requires_analyzer_context_(false) {}
 
-	// Returns whether to continue traversal
-	bool PreProcess(DataDepElement* element) override;
-	bool PostProcess(DataDepElement* element) override;
+    // Returns whether to continue traversal
+    bool PreProcess(DataDepElement* element) override;
+    bool PostProcess(DataDepElement* element) override;
 
-	bool requires_analyzer_context() const { return requires_analyzer_context_; }
+    bool requires_analyzer_context() const { return requires_analyzer_context_; }
 
-	static bool compute(DataDepElement* element);
+    static bool compute(DataDepElement* element);
 
 protected:
-	void ProcessExpr(Expr* expr);
+    void ProcessExpr(Expr* expr);
 
-	bool requires_analyzer_context_;
-	};
+    bool requires_analyzer_context_;
+};
 
 #endif // pac_datadep_h

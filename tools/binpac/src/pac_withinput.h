@@ -5,34 +5,33 @@
 #include "pac_decl.h"
 #include "pac_field.h"
 
-class WithInputField : public Field, public Evaluatable
-	{
+class WithInputField : public Field, public Evaluatable {
 public:
-	WithInputField(ID* id, Type* type, InputBuffer* input);
-	~WithInputField() override;
+    WithInputField(ID* id, Type* type, InputBuffer* input);
+    ~WithInputField() override;
 
-	InputBuffer* input() const { return input_; }
+    InputBuffer* input() const { return input_; }
 
-	void Prepare(Env* env) override;
+    void Prepare(Env* env) override;
 
-	// void GenPubDecls(Output* out, Env* env);
-	// void GenPrivDecls(Output* out, Env* env);
+    // void GenPubDecls(Output* out, Env* env);
+    // void GenPrivDecls(Output* out, Env* env);
 
-	// void GenInitCode(Output* out, Env* env);
-	// void GenCleanUpCode(Output* out, Env* env);
+    // void GenInitCode(Output* out, Env* env);
+    // void GenCleanUpCode(Output* out, Env* env);
 
-	void GenParseCode(Output* out, Env* env);
+    void GenParseCode(Output* out, Env* env);
 
-	// Instantiate the Evaluatable interface
-	void GenEval(Output* out, Env* env) override;
+    // Instantiate the Evaluatable interface
+    void GenEval(Output* out, Env* env) override;
 
-	bool RequiresAnalyzerContext() const override;
-
-protected:
-	bool DoTraverse(DataDepVisitor* visitor) override;
+    bool RequiresAnalyzerContext() const override;
 
 protected:
-	InputBuffer* input_;
-	};
+    bool DoTraverse(DataDepVisitor* visitor) override;
+
+protected:
+    InputBuffer* input_;
+};
 
 #endif // pac_withinput_h

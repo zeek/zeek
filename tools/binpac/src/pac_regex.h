@@ -6,36 +6,34 @@
 
 class RegExDecl;
 
-class RegEx : public Object
-	{
+class RegEx : public Object {
 public:
-	RegEx(const string& str);
-	~RegEx();
+    RegEx(const string& str);
+    ~RegEx();
 
-	const string& str() const { return str_; }
-	ID* matcher_id() const { return matcher_id_; }
+    const string& str() const { return str_; }
+    ID* matcher_id() const { return matcher_id_; }
 
 private:
-	string str_;
-	ID* matcher_id_;
-	RegExDecl* decl_;
+    string str_;
+    ID* matcher_id_;
+    RegExDecl* decl_;
 
 public:
-	static const char* kREMatcherType;
-	static const char* kMatchPrefix;
-	};
+    static const char* kREMatcherType;
+    static const char* kMatchPrefix;
+};
 
-class RegExDecl : public Decl
-	{
+class RegExDecl : public Decl {
 public:
-	RegExDecl(RegEx* regex);
+    RegExDecl(RegEx* regex);
 
-	void Prepare() override;
-	void GenForwardDeclaration(Output* out_h) override;
-	void GenCode(Output* out_h, Output* out_cc) override;
+    void Prepare() override;
+    void GenForwardDeclaration(Output* out_h) override;
+    void GenCode(Output* out_h, Output* out_cc) override;
 
 private:
-	RegEx* regex_;
-	};
+    RegEx* regex_;
+};
 
 #endif // pac_regex_h

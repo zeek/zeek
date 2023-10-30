@@ -204,11 +204,16 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 
 	log_info$msg_types += DHCP::message_types[msg$m_type];
 
+	# The is_orig flag is T for "connections" initiated by servers
+	# to broadcast addresses, otherwise is_orig indicates that this
+	# is a DHCP client.
+	local is_client = is_orig && (id$orig_h == 0.0.0.0 || id$orig_p == 68/udp || id$resp_p == 67/udp);
+
 	# Let's watch for messages in any DHCP message type
 	# and split them out based on client and server.
 	if ( options?$message )
 		{
-		if ( is_orig )
+		if ( is_client )
 			log_info$client_message = options$message;
 		else
 			log_info$server_message = options$message;
@@ -218,7 +223,7 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 	# expiration handling.
 	log_info$last_message_ts = ts;
 
-	if ( is_orig ) # client requests
+	if ( is_client ) # client requests
 		{
 		# Assign the client addr in case this is a session
 		# of only INFORM messages (no lease handed out).
@@ -246,12 +251,27 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 		{
 		# Only log the address of the server if it handed out
 		# an IP address.
-		if ( msg$yiaddr != 0.0.0.0 &&
-		     id$resp_h != 255.255.255.255 )
+		if ( msg$yiaddr != 0.0.0.0 )
 			{
-			log_info$server_addr = id$resp_h;
-			log_info$server_port = id$resp_p;
-			log_info$client_port = id$orig_p;
+			if ( is_orig )
+				{
+				# This is a server message and is_orig is T.
+				# This means it's a DHCP server broadcasting
+				# and the server is the originator.
+				log_info$server_addr = id$orig_h;
+				log_info$server_port = id$orig_p;
+				log_info$client_port = id$resp_p;
+				}
+			else
+				{
+				# When a server sends to a non-broadcast
+				# address, Zeek's connection flipping is
+				# in effect and the server is the responder
+				# instead.
+				log_info$server_addr = id$resp_h;
+				log_info$server_port = id$resp_p;
+				log_info$client_port = id$orig_p;
+				}
 			}
 
 		# Only use the client hardware address from the server

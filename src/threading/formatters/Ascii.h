@@ -47,7 +47,7 @@ public:
 	 * separators.
 	 */
 	Ascii(MsgThread* t, const SeparatorInfo& info);
-	~Ascii() override;
+	~Ascii() override = default;
 
 	virtual bool Describe(ODesc* desc, Value* val, const std::string& name = "") const override;
 	virtual bool Describe(ODesc* desc, int num_fields, const Field* const* fields,

@@ -41,7 +41,7 @@ public:
 		{
 		}
 
-	virtual ~RotateMessage() { delete[] rotated_path; }
+	~RotateMessage() override { delete[] rotated_path; }
 
 	bool Process() override { return Object()->Rotate(rotated_path, open, close, terminating); }
 

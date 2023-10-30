@@ -423,6 +423,7 @@ static void terminate_zeek()
 
 	event_mgr.Drain();
 
+	session_mgr->Clear();
 	plugin_mgr->FinishPlugins();
 
 	finish_script_execution();
@@ -553,7 +554,13 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	auto stem = Supervisor::CreateStem(options.supervisor_mode);
 
 	if ( Supervisor::ThisNode() )
+		{
+		// If we get here, we're a supervised node that just returned
+		// from CreateStem() after being forked from the stem.
 		Supervisor::ThisNode()->Init(&options);
+
+		event_mgr.InitPostFork();
+		}
 
 	script_coverage_mgr.ReadStats();
 
@@ -774,6 +781,20 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 	dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
 	dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
 
+	// After spinning up Broker, we have background threads running now. If
+	// we exit early, we need to shut down at least Broker to get a clean
+	// program exit. Otherwise, we may run into undefined behavior, e.g., if
+	// Broker is still accessing OpenSSL but OpenSSL has already cleaned up
+	// its state due to calling exit(). This needs to be defined here before
+	// potential USE_PERFTOOLS_DEBUG scope below or the definition gets lost
+	// when that variable is defined.
+	auto early_shutdown = []
+	{
+		broker_mgr->Terminate();
+		delete iosource_mgr;
+		delete telemetry_mgr;
+	};
+
 	// The leak-checker tends to produce some false
 	// positives (memory which had already been
 	// allocated before we start the checking is
@@ -805,12 +826,15 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		// when we actually end up reading interactively from stdin.
 		set_signal_mask(false);
 		run_state::is_parsing = true;
-		yyparse();
+		int yyparse_result = yyparse();
 		run_state::is_parsing = false;
 		set_signal_mask(true);
 
 		RecordVal::DoneParsing();
 		TableVal::DoneParsing();
+
+		if ( yyparse_result != 0 || zeek::reporter->Errors() > 0 )
+			exit(1);
 
 		init_general_global_var();
 		init_net_var();
@@ -855,6 +879,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 		if ( reporter->Errors() > 0 )
 			exit(1);
 
+		RecordType::InitPostScript();
+
 		telemetry_mgr->InitPostScript();
 		iosource_mgr->InitPostScript();
 		log_mgr->InitPostScript();
@@ -866,18 +892,6 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 		if ( supervisor_mgr )
 			supervisor_mgr->InitPostScript();
-
-		// After spinning up Broker, we have background threads running now. If
-		// we exit early, we need to shut down at least Broker to get a clean
-		// program exit. Otherwise, we may run into undefined behavior, e.g., if
-		// Broker is still accessing OpenSSL but OpenSSL has already cleaned up
-		// its state due to calling exit().
-		auto early_shutdown = []
-		{
-			broker_mgr->Terminate();
-			delete iosource_mgr;
-			delete telemetry_mgr;
-		};
 
 		if ( options.print_plugins )
 			{
@@ -1111,6 +1125,8 @@ SetupResult setup(int argc, char** argv, Options* zopts)
 
 			g_frame_stack.pop_back();
 			}
+
+		clear_script_analysis();
 
 		if ( zeek_script_loaded )
 			{

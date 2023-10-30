@@ -67,7 +67,7 @@ vector<string> IdentifierInfo::GetFieldComments(const string& field) const
 	record_field_map::const_iterator it = fields.find(field);
 
 	if ( it == fields.end() )
-		return vector<string>();
+		return {};
 
 	return it->second->comments;
 	}

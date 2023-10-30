@@ -9,7 +9,10 @@ event zeek_init()
 	print "This should fail but not crash";
 	# The following produces a run-time warning, "non-void function
 	# returning without a value" ... but not when inlined, since then
-	# there's no call to a script function occurring.
+	# there's no call to a script function occurring.  Also, for
+	# scripts compiled to C++, they treat all instances of returning
+	# without a value in a context where a value is needed as a
+	# run-time error, not just a warning.
 	print Files::lookup_file("asdf");
 
 	print "This should return F";

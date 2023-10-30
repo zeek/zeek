@@ -8,10 +8,10 @@
 namespace zeek::plugin::Zeek_Root
 	{
 
-class Plugin : public zeek::plugin::Plugin
+class Plugin final : public zeek::plugin::Plugin
 	{
 public:
-	zeek::plugin::Configuration Configure()
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new zeek::packet_analysis::Component(
 			"Root", zeek::packet_analysis::Root::RootAnalyzer::Instantiate));

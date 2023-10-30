@@ -3,6 +3,10 @@ FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2019
 
 SHELL [ "powershell" ]
 
+# A version field to invalidatea Cirrus's build cache when needed, as suggested in
+# https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
+ENV DOCKERFILE_VERSION 20230801
+
 RUN Set-ExecutionPolicy Unrestricted -Force
 
 # Install Chocolatey

@@ -79,7 +79,7 @@ std::list<std::tuple<IPPrefix, void*>> PrefixTable::FindAll(const IPAddr& addr, 
 	patricia_search_all(tree, prefix, &list, &elems);
 
 	for ( int i = 0; i < elems; ++i )
-		out.push_back(std::make_tuple(PrefixToIPPrefix(list[i]->prefix), list[i]->data));
+		out.emplace_back(PrefixToIPPrefix(list[i]->prefix), list[i]->data);
 
 	Deref_Prefix(prefix);
 	free(list);

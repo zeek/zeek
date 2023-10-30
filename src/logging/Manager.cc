@@ -1113,7 +1113,7 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty)
 
 			for ( zeek_int_t i = 0; i < lval->val.vector_val.size; i++ )
 				{
-				lval->val.vector_val.vals[i] = ValToLogVal((*vv)[i], vt.get());
+				lval->val.vector_val.vals[i] = ValToLogVal(vv[i], vt.get());
 				}
 
 			break;

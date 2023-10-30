@@ -61,7 +61,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	~CardinalityCounter();
+	~CardinalityCounter() = default;
 
 	/**
 	 * Add a new element to the counter.

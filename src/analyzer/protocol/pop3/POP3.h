@@ -74,7 +74,7 @@ class POP3_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
 	{
 public:
 	explicit POP3_Analyzer(Connection* conn);
-	~POP3_Analyzer() override;
+	~POP3_Analyzer() override = default;
 
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;

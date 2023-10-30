@@ -2,7 +2,7 @@ FROM centos:7
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20230312
+ENV DOCKERFILE_VERSION 20230807
 
 ENV FLEX_VERSION=2.6.4
 ENV FLEX_DIR=/opt/flex
@@ -39,9 +39,10 @@ RUN yum -y install \
     make \
     openssl \
     openssl-devel \
-    python3 \
-    python3-devel \
-    python3-pip\
+    rh-python38 \
+    rh-python38-devel \
+    rh-python38-python-devel \
+    rh-python38-pip \
     sqlite \
     swig \
     which \
@@ -59,6 +60,7 @@ RUN pip3 install websockets junit2html
 
 RUN echo 'unset BASH_ENV PROMPT_COMMAND ENV' > /usr/bin/zeek-ci-env && \
     echo 'source /opt/rh/devtoolset-8/enable' >> /usr/bin/zeek-ci-env && \
+    echo 'source /opt/rh/rh-python38/enable' >> /usr/bin/zeek-ci-env && \
     echo 'export PATH=${PATH}:${FLEX_DIR}/bin' >> /usr/bin/zeek-ci-env
 
 ENV BASH_ENV="/usr/bin/zeek-ci-env" \

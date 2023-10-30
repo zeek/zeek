@@ -131,6 +131,13 @@ type files_tag_set: set[Files::Tag];
 ##    directly and then remove this alias.
 type interval_set: set[interval];
 
+## Function mapping a string to a string.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type string_mapper: function(s: string): string;
+
 ## A structure indicating a MIME type and strength of a match against
 ## file magic signatures.
 ##
@@ -223,21 +230,6 @@ type flow_id : record {
 	dst_h: addr;	##< The destination IP address.
 	dst_p: port;	##< The destination port number.
 } &log;
-
-## Specifics about an ICMP conversation. ICMP events typically pass this in
-## addition to :zeek:type:`conn_id`.
-##
-## .. zeek:see:: icmp_echo_reply icmp_echo_request icmp_redirect icmp_sent
-##    icmp_time_exceeded icmp_unreachable
-type icmp_conn: record {
-	orig_h: addr;	##< The originator's IP address.
-	resp_h: addr;	##< The responder's IP address.
-	itype: count;	##< The ICMP type of the packet that triggered the instantiation of the record.
-	icode: count;	##< The ICMP code of the packet that triggered the instantiation of the record.
-	len: count;	##< The length of the ICMP payload of the packet that triggered the instantiation of the record.
-	hlim: count;	##< The encapsulating IP header's Hop Limit value.
-	v6: bool;	##< True if it's an ICMPv6 packet.
-};
 
 ## Specifics about an ICMP conversation/packet.
 ## ICMP events typically pass this in addition to :zeek:type:`conn_id`.
@@ -1115,6 +1107,11 @@ type geo_autonomous_system: record {
 ## The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
 const mmdb_dir: string = "" &redef;
 
+## Sets the interval for MaxMind DB file staleness checks. When Zeek detects a
+## change in inode or modification time, the database is re-opened. Setting
+## a negative interval disables staleness checks.
+const mmdb_stale_check_interval: interval = 5min &redef;
+
 ## Computed entropy values. The record captures a number of measures that are
 ## computed in parallel. See `A Pseudorandom Number Sequence Test Program
 ## <http://www.fourmilab.ch/random>`_ for more information, Zeek uses the same
@@ -1128,6 +1125,12 @@ type entropy_test_result: record {
 	monte_carlo_pi: double;	##< Monte-carlo value for pi.
 	serial_correlation: double;	##< Serial correlation coefficient.
 };
+
+## The default JSON key mapper function. Identity function.
+function from_json_default_key_mapper(s: string): string
+	{
+	return s;
+	}
 
 ## Return type for from_json BIF.
 ##
@@ -3041,6 +3044,12 @@ export {
 	##
 	## .. zeek:see:: smb2_discarded_messages_state
 	const SMB::max_pending_messages = 1000 &redef;
+
+	## Maximum number of DCE-RPC analyzers per connection
+	## before discarding them to avoid unbounded state growth.
+	##
+	## .. zeek:see:: smb_discarded_dce_rpc_analyzers
+	const max_dce_rpc_analyzers = 1000 &redef;
 }
 
 module SMB1;
@@ -4432,7 +4441,38 @@ type ModbusHeaders: record {
 	uid:           count;
 	## MODBUS function code
 	function_code: count;
+	## Length of the application PDU following the header plus
+	## one byte for the uid field.
+	len:           count;
 };
+
+type ModbusFileRecordRequest: record {
+	ref_type: count;
+	file_num: count;
+	record_num: count;
+	record_len: count;
+};
+
+type ModbusFileRecordRequests: vector of ModbusFileRecordRequest;
+
+type ModbusFileRecordResponse: record {
+	file_len: count;
+	ref_type: count;
+	record_data: string;
+};
+
+type ModbusFileRecordResponses: vector of ModbusFileRecordResponse;
+
+type ModbusFileReference: record {
+	ref_type: count;
+	file_num: count;
+	record_num: count;
+	record_len: count;
+	record_data: string;
+};
+
+type ModbusFileReferences: vector of ModbusFileReference;
+
 
 module SSL;
 export {
@@ -4454,6 +4494,11 @@ const SSL::dtls_max_version_errors = 10 &redef;
 
 ## Maximum number of invalid version errors to report in one DTLS connection.
 const SSL::dtls_max_reported_version_errors = 1 &redef;
+
+## Maximum number of Alert messages parsed from an SSL record with
+## content_type alert (21). The remaining alerts are discarded. For
+## TLS 1.3 connections, this is implicitly 1 as defined by RFC 8446.
+const SSL::max_alerts_per_record = 10 &redef;
 
 }
 
@@ -5250,6 +5295,11 @@ export {
 	## Number of Mbytes to provide as buffer space when capturing from live
 	## interfaces.
 	const bufsize = 128 &redef;
+
+	## Number of bytes to use for buffering file read operations when reading
+	## from a PCAP file. Setting this to 0 uses operating system defaults
+	## as chosen by fopen().
+	const bufsize_offline_bytes = 128 * 1024 &redef;
 
 	## Default timeout for packet sources without file descriptors.
 	##

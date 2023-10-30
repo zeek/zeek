@@ -31,18 +31,41 @@ void (*CPP_activation_hook)() = nullptr;
 // Tracks all of the loaded functions (including event handlers and hooks).
 static std::vector<FuncInfo> funcs;
 
-static ZAMCompiler* ZAM = nullptr;
-
 static bool generating_CPP = false;
 static std::string CPP_dir; // where to generate C++ code
 
+static std::unordered_map<const ScriptFunc*, LambdaExpr*> lambdas;
+static std::unordered_set<const ScriptFunc*> when_lambdas;
 static ScriptFuncPtr global_stmts;
 
 void analyze_func(ScriptFuncPtr f)
 	{
 	// Even if we're analyzing only a subset of the scripts, we still
 	// track all functions here because the inliner will need the full list.
+	ASSERT(f->GetScope());
 	funcs.emplace_back(f, f->GetScope(), f->CurrentBody(), f->CurrentPriority());
+	}
+
+void analyze_lambda(LambdaExpr* l)
+	{
+	auto& pf = l->PrimaryFunc();
+	analyze_func(pf);
+	lambdas[pf.get()] = l;
+	}
+
+void analyze_when_lambda(LambdaExpr* l)
+	{
+	when_lambdas.insert(l->PrimaryFunc().get());
+	}
+
+bool is_lambda(const ScriptFunc* f)
+	{
+	return lambdas.count(f) > 0;
+	}
+
+bool is_when_lambda(const ScriptFunc* f)
+	{
+	return when_lambdas.count(f) > 0;
 	}
 
 const FuncInfo* analyze_global_stmts(Stmt* stmts)
@@ -58,12 +81,10 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts)
 
 	auto sc = current_scope();
 	std::vector<IDPtr> empty_inits;
-	StmtPtr stmts_p{NewRef{}, stmts};
 	global_stmts = make_intrusive<ScriptFunc>(id);
-	global_stmts->AddBody(stmts_p, empty_inits, sc->Length());
+	global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
 
-	funcs.emplace_back(global_stmts, sc, stmts_p, 0);
-
+	funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);
 	return &funcs.back();
 	}
 
@@ -72,7 +93,7 @@ void add_func_analysis_pattern(AnalyOpt& opts, const char* pat)
 	try
 		{
 		std::string full_pat = std::string("^(") + pat + ")$";
-		opts.only_funcs.emplace_back(std::regex(full_pat));
+		opts.only_funcs.emplace_back(full_pat);
 		}
 	catch ( const std::regex_error& e )
 		{
@@ -85,7 +106,7 @@ void add_file_analysis_pattern(AnalyOpt& opts, const char* pat)
 	try
 		{
 		std::string full_pat = std::string("^.*(") + pat + ").*$";
-		opts.only_files.emplace_back(std::regex(full_pat));
+		opts.only_files.emplace_back(full_pat);
 		}
 	catch ( const std::regex_error& e )
 		{
@@ -165,7 +186,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	push_existing_scope(scope);
 
-	auto rc = std::make_shared<Reducer>();
+	auto rc = std::make_shared<Reducer>(f);
 	auto new_body = rc->Reduce(body);
 
 	if ( reporter->Errors() > 0 )
@@ -208,13 +229,17 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	rc->SetReadyToOptimize();
 
-	auto ud = std::make_shared<UseDefs>(body, rc);
+	auto ft = cast_intrusive<FuncType>(f->GetType());
+	auto ud = std::make_shared<UseDefs>(body, rc, ft);
 	ud->Analyze();
 
 	if ( analysis_options.dump_uds )
 		ud->Dump();
 
 	new_body = ud->RemoveUnused();
+
+	if ( analysis_options.dump_xform )
+		printf("Post removal of unused: %s\n", obj_desc(new_body.get()).c_str());
 
 	if ( new_body != body )
 		{
@@ -229,15 +254,15 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
 	if ( analysis_options.gen_ZAM_code )
 		{
-		ZAM = new ZAMCompiler(f, pf, scope, new_body, ud, rc);
+		ZAMCompiler ZAM(f, pf, scope, new_body, ud, rc);
 
-		new_body = ZAM->CompileBody();
+		new_body = ZAM.CompileBody();
 
 		if ( reporter->Errors() > 0 )
 			return;
 
 		if ( analysis_options.dump_ZAM )
-			ZAM->Dump();
+			ZAM.Dump();
 
 		f->ReplaceBody(body, new_body);
 		body = new_body;
@@ -442,10 +467,10 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		}
 
 	// Re-profile the functions, now without worrying about compatibility
-	// with compilation to C++.  Note that the first profiling pass earlier
-	// may have marked some of the functions as to-skip, so first clear
-	// those markings.  Once we have full compile-to-C++ and ZAM support
-	// for all Zeek language features, we can remove the re-profiling here.
+	// with compilation to C++.
+
+	// The first profiling pass earlier may have marked some of the
+	// functions as to-skip, so clear those markings.
 	for ( auto& f : funcs )
 		f.SetSkip(false);
 
@@ -467,27 +492,19 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	// since it won't be consulted in that case.
 	std::unordered_set<Func*> func_used_indirectly;
 
-	if ( global_stmts )
-		func_used_indirectly.insert(global_stmts.get());
-
 	if ( inl )
 		{
-		for ( auto& f : funcs )
+		if ( global_stmts )
+			func_used_indirectly.insert(global_stmts.get());
+
+		for ( auto& g : pfs->Globals() )
 			{
-			for ( const auto& g : f.Profile()->Globals() )
-				{
-				if ( g->GetType()->Tag() != TYPE_FUNC )
-					continue;
+			if ( g->GetType()->Tag() != TYPE_FUNC )
+				continue;
 
-				auto v = g->GetVal();
-				if ( ! v )
-					continue;
-
-				auto func = v->AsFunc();
-
-				if ( inl->WasInlined(func) )
-					func_used_indirectly.insert(func);
-				}
+			auto v = g->GetVal();
+			if ( v )
+				func_used_indirectly.insert(v->AsFunc());
 			}
 		}
 
@@ -496,6 +513,8 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 	for ( auto& f : funcs )
 		{
 		auto func = f.Func();
+		auto l = lambdas.find(func);
+		bool is_lambda = l != lambdas.end();
 
 		if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() )
 			{
@@ -503,14 +522,25 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 				continue;
 			}
 
-		else if ( ! analysis_options.compile_all && inl && inl->WasInlined(func) &&
-		          func_used_indirectly.count(func) == 0 )
+		else if ( ! analysis_options.compile_all && ! is_lambda && inl &&
+		          inl->WasFullyInlined(func) && func_used_indirectly.count(func) == 0 )
+			{
 			// No need to compile as it won't be called directly.
+			// We'd like to zero out the body to recover the
+			// memory, but a *few* such functions do get called,
+			// such as by the event engine reaching up, or
+			// BiFs looking for them, so we can't safely zero
+			// them.
 			continue;
+			}
 
 		auto new_body = f.Body();
 		optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
 		f.SetBody(new_body);
+
+		if ( is_lambda )
+			l->second->ReplaceBody(new_body);
+
 		did_one = true;
 		}
 
@@ -518,6 +548,30 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs)
 		reporter->FatalError("no matching functions/files for -O ZAM");
 
 	finalize_functions(funcs);
+	}
+
+void clear_script_analysis()
+	{
+	IDOptInfo::ClearGlobalInitExprs();
+
+	// Keep the functions around if we're debugging, so we can
+	// generate profiles.
+#ifndef DEBUG
+	// We need to explicitly clear out the optimization information
+	// associated with identifiers.  They have reference loops with
+	// the parent identifier that will prevent reclamation of the
+	// identifiers (and the optimization information) upon Unref'ing
+	// when discarding the scopes and ASTs.
+	for ( auto& f : funcs )
+		for ( auto& id : f.Scope()->OrderedVars() )
+			id->ClearOptInfo();
+
+	funcs.clear();
+#endif
+
+	non_recursive_funcs.clear();
+	lambdas.clear();
+	when_lambdas.clear();
 	}
 
 void analyze_scripts(bool no_unused_warnings)
@@ -593,6 +647,9 @@ void analyze_scripts(bool no_unused_warnings)
 	// At this point we're done with C++ considerations, so instead
 	// are compiling to ZAM.
 	analyze_scripts_for_ZAM(pfs);
+
+	if ( reporter->Errors() > 0 )
+		reporter->FatalError("Optimized script execution aborted due to errors");
 	}
 
 void profile_script_execution()

@@ -31,7 +31,7 @@ public:
 		{
 		}
 
-	virtual TraversalCode PreExpr(const Expr*) override;
+	TraversalCode PreExpr(const Expr*) override;
 
 private:
 	IDSet& globals;
@@ -76,7 +76,7 @@ public:
 		time = run_state::network_time;
 		}
 
-	~TriggerTimer() { Unref(trigger); }
+	~TriggerTimer() override { Unref(trigger); }
 
 	void Dispatch(double t, bool is_expire) override
 		{
@@ -99,8 +99,15 @@ protected:
 	double time;
 	};
 
-Trigger::Trigger(WhenInfo* wi, double timeout, const IDSet& _globals,
+Trigger::Trigger(std::shared_ptr<WhenInfo> wi, double timeout, const IDSet& _globals,
                  std::vector<ValPtr> _local_aggrs, Frame* f, const Location* loc)
+	: Trigger(std::move(wi), _globals, std::move(_local_aggrs), timeout, f, loc)
+	{
+	Unref(this);
+	}
+
+Trigger::Trigger(std::shared_ptr<WhenInfo> wi, const IDSet& _globals,
+                 std::vector<ValPtr> _local_aggrs, double timeout, Frame* f, const Location* loc)
 	{
 	timeout_value = timeout;
 	globals = _globals;
@@ -117,8 +124,8 @@ Trigger::Trigger(WhenInfo* wi, double timeout, const IDSet& _globals,
 	disabled = false;
 	attached = nullptr;
 
-	if ( location )
-		name = util::fmt("%s:%d-%d", location->filename, location->first_line, location->last_line);
+	if ( loc )
+		name = util::fmt("%s:%d-%d", loc->filename, loc->first_line, loc->last_line);
 	else
 		name = "<no-trigger-location>";
 
@@ -135,7 +142,6 @@ Trigger::Trigger(WhenInfo* wi, double timeout, const IDSet& _globals,
 		if ( ! parent )
 			{
 			reporter->Error("return trigger in context which does not allow delaying result");
-			Unref(this);
 			return;
 			}
 
@@ -152,8 +158,6 @@ Trigger::Trigger(WhenInfo* wi, double timeout, const IDSet& _globals,
 		timer = new TriggerTimer(timeout_value, this);
 		timer_mgr->Add(timer);
 		}
-
-	Unref(this);
 	}
 
 void Trigger::Terminate()
@@ -398,7 +402,7 @@ void Trigger::Register(const ID* const_id)
 	notifier::detail::registry.Register(id, this);
 
 	Ref(id);
-	objs.push_back({id, id});
+	objs.emplace_back(id, id);
 	}
 
 void Trigger::Register(Val* val)

@@ -115,16 +115,21 @@ void Inliner::Analyze()
 		const auto& func = func_ptr.get();
 		const auto& body = f.Body();
 
+		if ( ! should_analyze(func_ptr, body) )
+			continue;
+
 		// Candidates are non-event, non-hook, non-recursive,
-		// non-compiled functions ... that don't use lambdas or when's,
-		// since we don't currently compute the closures/frame
-		// sizes for them correctly, and more fundamentally since
-		// we don't compile them and hence inlining them will
-		// make the parent non-compilable.
-		if ( should_analyze(func_ptr, body) && func->Flavor() == FUNC_FLAVOR_FUNCTION &&
-		     non_recursive_funcs.count(func) > 0 && f.Profile()->NumLambdas() == 0 &&
-		     f.Profile()->NumWhenStmts() == 0 && body->Tag() != STMT_CPP )
-			inline_ables.insert(func);
+		// non-compiled functions ...
+		if ( func->Flavor() != FUNC_FLAVOR_FUNCTION )
+			continue;
+
+		if ( non_recursive_funcs.count(func) == 0 )
+			continue;
+
+		if ( body->Tag() == STMT_CPP )
+			continue;
+
+		inline_ables.insert(func);
 		}
 
 	for ( auto& f : funcs )
@@ -180,22 +185,40 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	if ( function->GetKind() != Func::SCRIPT_FUNC )
 		return c;
 
-	// Check for mismatches in argument count due to single-arg-of-type-any
-	// loophole used for variadic BiFs.
-	if ( function->GetType()->Params()->NumFields() == 1 && c->Args()->Exprs().size() != 1 )
-		return c;
-
 	auto func_vf = static_cast<ScriptFunc*>(function);
 
 	if ( inline_ables.count(func_vf) == 0 )
 		return c;
+
+	if ( c->IsInWhen() )
+		{
+		// Don't inline these, as doing so requires propagating
+		// the in-when attribute to the inlined function body.
+		skipped_inlining.insert(func_vf);
+		return c;
+		}
+
+	// Check for mismatches in argument count due to single-arg-of-type-any
+	// loophole used for variadic BiFs.  (The issue isn't calls to the
+	// BiFs, which won't happen here, but instead to script functions that
+	// are misusing/abusing the loophole.)
+	if ( function->GetType()->Params()->NumFields() == 1 && c->Args()->Exprs().size() != 1 )
+		{
+		skipped_inlining.insert(func_vf);
+		return c;
+		}
 
 	// We're going to inline the body, unless it's too large.
 	auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
 	auto oi = body->GetOptInfo();
 
 	if ( num_stmts + oi->num_stmts + num_exprs + oi->num_exprs > MAX_INLINE_SIZE )
-		return nullptr;
+		{
+		skipped_inlining.insert(func_vf);
+		return nullptr; // signals "stop inlining"
+		}
+
+	did_inline.insert(func_vf);
 
 	num_stmts += oi->num_stmts;
 	num_exprs += oi->num_exprs;
@@ -244,9 +267,9 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c)
 	else
 		max_inlined_frame_size = hold_max_inlined_frame_size;
 
-	ListExprPtr args = {NewRef{}, c->Args()};
 	auto t = c->GetType();
-	auto ie = make_intrusive<InlineExpr>(args, std::move(params), body_dup, curr_frame_size, t);
+	auto ie = make_intrusive<InlineExpr>(c->ArgsPtr(), std::move(params), body_dup, curr_frame_size,
+	                                     t);
 	ie->SetOriginal(c);
 
 	return ie;

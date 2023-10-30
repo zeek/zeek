@@ -20,7 +20,7 @@ set[port,string]
 table[count] of string
 table[string] of table[addr,port] of string
 record { c:count; s:string; }
-function(aa:int; bb:int;) : bool
+function(aa:int, bb:int) : bool
 function() : any
 function() : void
 file of string

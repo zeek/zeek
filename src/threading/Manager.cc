@@ -277,7 +277,7 @@ const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats(
 		MsgThread::Stats s;
 		t->GetStats(&s);
 
-		stats.push_back(std::make_pair(t->Name(), s));
+		stats.emplace_back(t->Name(), s);
 		}
 
 	return stats;

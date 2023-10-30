@@ -96,8 +96,11 @@ if (MSVC)
     endforeach ()
 
     # Set compilation flags for Windows
-    add_compile_options(/guard:cf # required by CheckCFlags
-                        /Z7) # required by CheckCFlags
+    add_compile_options(
+        /guard:cf # required by CheckCFlags
+        /Z7 # required by CheckCFlags
+        /J # Similar to -funsigned-char on other platforms
+        /wd4068) # Disable unknown pragma warnings
 
     add_link_options(/debug:full # required by CheckCFlags
     )
@@ -149,6 +152,7 @@ if (MSVC)
     set(UNISTD_INCLUDES ${CMAKE_SOURCE_DIR}/auxil/libunistd/unistd
                         ${CMAKE_SOURCE_DIR}/auxil/libunistd/regex)
     include_directories(BEFORE ${UNISTD_INCLUDES})
+
     # Required for `check_include_files` to operate correctly
     list(APPEND CMAKE_REQUIRED_INCLUDES ${UNISTD_INCLUDES})
     list(APPEND zeekdeps libunistd libregex)
@@ -287,6 +291,10 @@ target_include_directories(
     zeek_dynamic_plugin_base
     INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
+if (OPENSSL_INCLUDE_DIR)
+    target_include_directories(zeek_dynamic_plugin_base INTERFACE "${OPENSSL_INCLUDE_DIR}")
+endif ()
+target_link_libraries(zeek_dynamic_plugin_base INTERFACE Threads::Threads)
 add_library(Zeek::DynamicPluginBase ALIAS zeek_dynamic_plugin_base)
 set_target_properties(zeek_dynamic_plugin_base PROPERTIES EXPORT_NAME DynamicPluginBase)
 install(TARGETS zeek_dynamic_plugin_base EXPORT ZeekTargets)
@@ -464,7 +472,8 @@ set(zeek_script_install_path "${ZEEK_SCRIPT_INSTALL_PATH}")
 if (MSVC)
     # This has to happen before we modify the paths below so that the pure Windows
     # paths are stored in the output file.
-    configure_file(zeek-path-dev.bat.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
+    configure_file(cmake_templates/zeek-path-dev.bat.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
 
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir
@@ -504,7 +513,7 @@ install(DIRECTORY DESTINATION ${ZEEK_STATE_DIR})
 install(DIRECTORY DESTINATION ${ZEEK_SPOOL_DIR})
 install(DIRECTORY DESTINATION ${ZEEK_LOG_DIR})
 
-configure_file(zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
+configure_file(cmake_templates/zeek-path-dev.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev)
 
 file(
     WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
@@ -513,7 +522,8 @@ file(
     "export PATH=\"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
     "export SPICY_PATH=`${cmake_binary_dir}/spicy-path`\n"
     "export HILTI_CXX_INCLUDE_DIRS=`${cmake_binary_dir}/hilti-cxx-include-dirs`\n"
-    "export ZEEK_SPICY_LIBRARY_PATH=${cmake_source_dir}/scripts/spicy\n")
+    "export ZEEK_SPICY_LIBRARY_PATH=${cmake_source_dir}/scripts/spicy\n"
+    "export SPICY_BUILD_DIRECTORY=${cmake_binary_dir}/auxil/spicy\n")
 
 file(
     WRITE ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
@@ -522,9 +532,19 @@ file(
     "setenv PATH \"${cmake_binary_dir}\":\"${cmake_binary_dir}/src\":\"${cmake_binary_dir}/auxil/spicy/bin\":\"${cmake_binary_dir}/src/spicy/spicyz\":$\{PATH\}\n"
     "setenv SPICY_PATH \"`${cmake_binary_dir}/spicy-path`\"\n"
     "setenv HILTI_CXX_INCLUDE_DIRS \"`${cmake_binary_dir}/hilti-cxx-include-dirs`\"\n"
-    "setenv ZEEK_SPICY_LIBRARY_PATH \"${cmake_source_dir}/scripts/spicy\"\n")
+    "setenv ZEEK_SPICY_LIBRARY_PATH \"${cmake_source_dir}/scripts/spicy\"\n"
+    "setenv SPICY_BUILD_DIRECTORY \"${cmake_binary_dir}/auxil/spicy\"\n")
 
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VERSION LIMIT_COUNT 1)
+if (CMAKE_CXX_COMPILER_LAUNCHER)
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.sh
+         "export HILTI_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}\n")
+
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.csh
+         "setenv HILTI_CXX_COMPILER_LAUNCHER=${CMAKE_CXX_COMPILER_LAUNCHER}\n")
+endif ()
+
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" ZEEK_VERSION_FULL LIMIT_COUNT 1)
+
 execute_process(
     COMMAND grep "^constexpr int PLUGIN_API_VERSION"
     INPUT_FILE ${CMAKE_CURRENT_SOURCE_DIR}/src/plugin/Plugin.h
@@ -534,7 +554,7 @@ execute_process(
 string(REGEX MATCH "^constexpr int PLUGIN_API_VERSION = ([0-9]+);" API_VERSION "${API_VERSION}")
 set(API_VERSION "${CMAKE_MATCH_1}")
 
-string(REGEX REPLACE "[.-]" " " version_numbers ${VERSION})
+string(REGEX REPLACE "[.-]" " " version_numbers ${ZEEK_VERSION_FULL})
 separate_arguments(version_numbers)
 list(GET version_numbers 0 VERSION_MAJOR)
 list(GET version_numbers 1 VERSION_MINOR)
@@ -543,7 +563,7 @@ set(VERSION_MAJ_MIN "${VERSION_MAJOR}.${VERSION_MINOR}")
 math(EXPR ZEEK_VERSION_NUMBER
      "${VERSION_MAJOR} * 10000 + ${VERSION_MINOR} * 100 + ${VERSION_PATCH}")
 
-set(VERSION_C_IDENT "${VERSION}_plugin_${API_VERSION}")
+set(VERSION_C_IDENT "${ZEEK_VERSION_FULL}_plugin_${API_VERSION}")
 string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
 string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
 
@@ -714,8 +734,6 @@ endif ()
 # ##############################################################################
 # Dependency Configuration
 
-include(FindRequiredPackage)
-
 # Check cache value first to avoid displaying "Found sed" messages everytime
 if (NOT SED_EXE)
     find_program(SED_EXE sed)
@@ -726,16 +744,17 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-list(APPEND Python_ADDITIONAL_VERSIONS 3)
-FindRequiredPackage(PythonInterp)
-FindRequiredPackage(FLEX)
-FindRequiredPackage(BISON)
-FindRequiredPackage(PCAP)
-FindRequiredPackage(OpenSSL)
+set(ZEEK_PYTHON_MIN 3.5.0)
+set(Python_FIND_UNVERSIONED_NAMES FIRST)
+find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
+find_package(FLEX REQUIRED)
+find_package(BISON 2.5 REQUIRED)
+find_package(PCAP REQUIRED)
+find_package(OpenSSL REQUIRED)
 if (NOT MSVC)
-    FindRequiredPackage(BIND)
+    find_package(BIND REQUIRED)
 endif ()
-FindRequiredPackage(ZLIB)
+find_package(ZLIB REQUIRED)
 
 if (NOT BINARY_PACKAGING_MODE)
     # TODO: Broker seems to always turn on static libraries. We don't want that for Spicy by default.
@@ -744,7 +763,7 @@ endif ()
 
 # Forward user-defined hint for OpenSSL to the plugins. Use a cache variable to
 # make sure this variable survives CMake re-runs. Note: This variable is picked
-# up in ZeekPluginConfig.cmake.in.
+# up in ZeekPluginConfig.cmake.in and ZeekConfig.cmake.in.
 if (OPENSSL_ROOT_DIR)
     set(ZeekOpenSSLHint "${OPENSSL_ROOT_DIR}" CACHE INTERNAL "" FORCE)
 elseif (DEFINED ENV{OPENSSL_ROOT_DIR})
@@ -766,7 +785,7 @@ endif ()
 if (ZEEK_PYTHON_DIR)
     set(py_mod_install_dir ${ZEEK_PYTHON_DIR})
 elseif (ZEEK_PYTHON_PREFIX)
-    set(pyver ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
+    set(pyver ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR})
     set(py_mod_install_dir ${ZEEK_PYTHON_PREFIX}/lib/python${pyver}/site-packages)
 elseif (ZEEK_PYTHON_HOME)
     set(py_mod_install_dir ${ZEEK_PYTHON_HOME}/lib/python)
@@ -794,7 +813,8 @@ if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
     # TODO in ZeekPluginConfig.cmake.in.
     set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
 endif ()
-FindRequiredPackage(BinPAC)
+
+find_package(BinPAC REQUIRED)
 
 # Add an alias (used by our plugin setup).
 add_executable(Zeek::BinPAC ALIAS binpac)
@@ -832,25 +852,6 @@ if (ENABLE_JEMALLOC)
     if (NOT JEMALLOC_FOUND)
         message(FATAL_ERROR "Could not find requested JeMalloc")
     endif ()
-endif ()
-
-if (BISON_VERSION AND BISON_VERSION VERSION_LESS 2.5)
-    set(MISSING_PREREQS true)
-    list(APPEND MISSING_PREREQ_DESCS
-         " Could not find prerequisite package Bison >= 2.5, found: ${BISON_VERSION}")
-endif ()
-
-if (MISSING_PREREQS)
-    foreach (prereq ${MISSING_PREREQ_DESCS})
-        message(SEND_ERROR ${prereq})
-    endforeach ()
-    message(FATAL_ERROR "Configuration aborted due to missing prerequisites")
-endif ()
-
-set(ZEEK_PYTHON_MIN 3.5.0)
-
-if (PYTHON_VERSION_STRING VERSION_LESS ${ZEEK_PYTHON_MIN})
-    message(FATAL_ERROR "Python ${ZEEK_PYTHON_MIN} or greater is required.")
 endif ()
 
 add_subdirectory(auxil/paraglob)
@@ -932,10 +933,27 @@ if (NOT DISABLE_SPICY)
         # disable it.
         set(HILTI_DEV_PRECOMPILE_HEADERS OFF)
 
+        # Remove in v6.2. Older versions of Spicy use find_package(Python3),
+        # accommodate by setting the Python3_EXECUTABLE hint.
+        if (Python_EXECUTABLE)
+            set(Python3_EXECUTABLE ${Python_EXECUTABLE} CACHE STRING "Python3_EXECUTABLE hint")
+        endif ()
+
         add_subdirectory(auxil/spicy)
         include(ConfigureSpicyBuild) # set some options different for building Spicy
 
         zeek_add_dependencies(spicy)
+
+        # Explicitly link against Spicy libraries if we are packaging. Since
+        # Zeek's binary packaging mode still leaves `BUILD_SHARED_LIBS` set we
+        # cannot use the branching inside `hilti_link_libraries_in_tree` and
+        # instead explicitly branch on `BINARY_PACKAGING_MODE` here.
+        if (BINARY_PACKAGING_MODE)
+            hilti_link_object_libraries_in_tree(zeek_exe PRIVATE)
+        else ()
+            hilti_link_libraries_in_tree(zeek_exe PRIVATE)
+        endif ()
+
         set(HAVE_SPICY yes)
     endif ()
 
@@ -1154,8 +1172,8 @@ endif ()
 set(ZEEK_CONFIG_BTEST_TOOLS_DIR ${ZEEK_ROOT_DIR}/share/btest)
 install(DIRECTORY DESTINATION ${ZEEK_CONFIG_BTEST_TOOLS_DIR})
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.in ${CMAKE_CURRENT_BINARY_DIR}/zeek-config
-               @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zeek-config.in
+               ${CMAKE_CURRENT_BINARY_DIR}/zeek-config @ONLY)
 install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/zeek-config DESTINATION bin)
 
 install(
@@ -1179,8 +1197,8 @@ if (INSTALL_ZKG)
     set(ZEEK_ZKG_CONFIG_DIR "${ZEEK_ETC_INSTALL_DIR}/zkg")
     set(ZEEK_ZKG_STATE_DIR "${ZEEK_STATE_DIR}/zkg")
 
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zkg-config.in ${CMAKE_CURRENT_BINARY_DIR}/zkg-config
-                   @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zkg-config.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/zkg-config @ONLY)
 
     install(DIRECTORY DESTINATION var/lib/zkg)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zkg-config DESTINATION ${ZEEK_ZKG_CONFIG_DIR}
@@ -1270,19 +1288,20 @@ checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 # Generate Spicy helper scripts referenced in e.g., `zeek-path-dev.*`. These
 # set Spicy-side environment variables to run it out of the build directory.
-configure_file(${CMAKE_SOURCE_DIR}/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/hilti-cxx-include-dirs.in
+configure_file(${CMAKE_SOURCE_DIR}/cmake_templates/spicy-path.in ${CMAKE_BINARY_DIR}/spicy-path
+               @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/cmake_templates/hilti-cxx-include-dirs.in
                ${CMAKE_BINARY_DIR}/hilti-cxx-include-dirs @ONLY)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-version.h.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zeek-version.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-version.h DESTINATION include/zeek)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config.h.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zeek-config.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config.h DESTINATION include/zeek)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/zeek-config-paths.h.in
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake_templates/zeek-config-paths.h.in
                ${CMAKE_CURRENT_BINARY_DIR}/zeek-config-paths.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zeek-config-paths.h DESTINATION include/zeek)
 
@@ -1299,7 +1318,7 @@ endif ()
 # has already configured packaging
 if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
     include(ConfigurePackaging)
-    ConfigurePackaging(${VERSION})
+    ConfigurePackaging(${ZEEK_VERSION_FULL})
 endif ()
 
 # Refers back to the "distribution prefix". This is the source tree when

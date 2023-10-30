@@ -14,11 +14,6 @@ namespace zeek
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
-namespace detail
-	{
-class CompositeHash;
-	}
-
 namespace file_analysis
 	{
 
@@ -143,7 +138,6 @@ protected:
 
 private:
 	File* file; /**< File which owns the set */
-	zeek::detail::CompositeHash* analyzer_hash; /**< AnalyzerArgs hashes. */
 	PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
 
 	/**

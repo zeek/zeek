@@ -1,3 +1,1628 @@
+6.2.0-dev.78 | 2023-10-30 11:47:23 +0100
+
+  * GH-3421: Normalize version strings in test (Benjamin Bannier, Corelight)
+
+6.2.0-dev.74 | 2023-10-27 11:04:16 -0700
+
+  * IEEE802_11: Fix buffer-overflow due to not accounting for the amsdu header (Arne Welzel, Corelight)
+
+    The fuzzer generated input where data length left was 14 and the amsdu_len
+    field set to 14. That caused buffer overread due not taking into account
+    the amsdu header length of 14.
+
+  * ssl: Prevent unbounded ssl_history growth (Arne Welzel, Corelight)
+
+    The ssl_history field may grow unbounded (e.g., ssl_alert event). Prevent this
+    by capping using a configurable limit (default 100) and raise a weird once reached.
+
+  * ssl: Cap number of alerts parsed from SSL record (Arne Welzel, Corelight)
+
+    Limit the number of events raised from an SSL record with content_type
+    alert (21) to a configurable maximum number (default 10). For TLS 1.3,
+    the limit is set to 1 as specified in the RFC. Add a new weird cases
+    where the limit is exceeded.
+
+    OSS-Fuzz managed to generate a reproducer that raised ~660k ssl_plaintext
+    and ssl_alert events given ~810kb of input data. This change prevents this
+    with hopefully no negative side-effect in the real-world.
+
+  * ftp: Do not base seq on number of pending commands (Arne Welzel, Corelight)
+
+    Previously, seq was computed as the result of |pending_commands|+1. This
+    opened the possibility to override queued commands, as well as logging
+    the same pending ftp reply multiple times.
+
+    For example, when commands 1, 2, 3 are pending, command 1 may be dequeued,
+    but the incoming command then receives seq 3 and overrides the already
+    pending command 3. The second scenario happens when ftp_reply() selected
+    command 3 as pending for logging, but is then followed by many ftp_request()
+    events. This resulted in command 3's response being logged for every
+    following ftp_request() over and over again.
+
+    Avoid both scenarios by tracking the command sequence as an absolute counter.
+
+  * X509Common/SCT parsing: Fix memory leak in error case (Arne Welzel, Corelight)
+
+    Failed to free the copy of the OCSP extension's value the inner
+    octet string couldn't be parsed.
+
+6.2.0-dev.64 | 2023-10-27 19:19:55 +0200
+
+  * fuzzers: Add DTLS fuzzer (Arne Welzel, Corelight)
+
+    Not sure it adds a lot over the SSL analyzer as they share code, but it
+    provides a distinct entry point at least.
+
+  * GH-3398: generic-analyzer-fuzzer: Support NextPacket() fuzzing (Arne Welzel, Corelight)
+
+    A number of analyzers that we've been fuzzing with the generic-analyzer-fuzzer
+    setup do not implement DeliverStream() and instead only work with DeliverPacket()
+    (ntp, syslog, sip, radius, ...). Calling DeliverStream() on those is
+    pretty much a noop and fuzzing not effective.
+
+    This change adds support to fuzz DeliverPacket(). Whether to use packet
+    or stream fuzzing is configured through a define via CMake.
+
+    This is still a bit limited in that for analyzers that support both,
+    DeliverPacket() and DeliverStream(), only one code path is fuzzed.
+
+  * Require `truncate` for a test using it (Benjamin Bannier, Corelight)
+
+    It looks like older versions of macOS like Monterey do not ship with
+    `truncate`. Make a recently added test require it to suppress spurious
+    failures.
+
+  * Bump outdated baseline (Benjamin Bannier, Corelight)
+
+    This fixes an outdated baseline added with
+    caaffd0324ac0557ba4c5ce0290d07a4d013a735.
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
+6.2.0-dev.56 | 2023-10-26 15:34:17 +0200
+
+  * Fix tests so they work both with GNU and BSD tools (Benjamin Bannier, Corelight)
+
+    The GNU and BSD versions of `touch` and `truncate` allow slightly
+    different arguments, change the tests so they work in both versions.
+
+  * Install libmaxminddb in macOS CI (Benjamin Bannier, Corelight)
+
+6.2.0-dev.53 | 2023-10-25 17:01:57 +0200
+
+  * fuzzer-setup: Allow customization without recompiling (Arne Welzel, Corelight)
+
+    This change allows to invoke a reproducer with different script options
+    and extra scripts to ease debugging and investigation. For example, enabling
+    the DPD debug stream and adding misc/dump-events can be done as follows after
+    this change:
+
+        ZEEK_DEBUG_LOG_STDERR=1 ../../build/src/fuzzers/zeek-pop3-fuzzer <test-case> -- -B dpd misc/dump-events
+
+  * subdir-btest: Allow setting build_dir (Arne Welzel, Corelight)
+
+    We have that functionality in btest.cfg and it's actually nice to use
+    it for toggling between a debug/asan and release build.
+
+6.2.0-dev.49 | 2023-10-25 12:55:41 +0200
+
+  * GH-3043: Supervisor: Handle EAGAIN error on stem pipe (Arne Welzel, Corelight)
+
+    util::safe_write() calls abort() in case of EAGAIN errors. This is
+    easily observed when starting clusters with 32 workers or more.
+
+    Add a custom write_message() function handling EAGAIN by retrying
+    after a small sleep. It's not clear a more complicated poll() would be
+    much better: The pipe might be ready for writing, but then our message
+    might not actually fit in, resulting in another EAGAIN error. And even
+    poll() would introduce blocking/sleeping code.
+
+    Take some precautions against the stem and the supervisor dead-locking
+    when both pipes are full by draining the other end on EAGAIN errors.
+
+6.2.0-dev.47 | 2023-10-25 09:15:20 +0200
+
+  * CI: Pass -A flag to btest for cluster-testing builds (Tim Wojtulewicz, Corelight)
+
+6.2.0-dev.44 | 2023-10-24 13:05:55 -0700
+
+  * Update CMake submodule for caching fix (Dominik Charousset, Corelight)
+
+6.2.0-dev.41 | 2023-10-24 19:35:20 +0200
+
+  * GH-3190: event: Reinitialize EventMgr's flare after fork() from stem (Arne Welzel, Corelight)
+
+    Because EventMgr is defined globally as an object (rather than a global
+    pointer to an EventMgr object), its pipe is created even before main()
+    is entered. This further means that in the fork-based supervisor setup,
+    all Zeek processes created from the top-level supervisor process share
+    the same pipe object for the EventMgr. In turn, whenever any of the
+    processes enqueued an event, the flare was fired and ready for reading
+    on all other processes in the cluster, causing much contention and
+    unneeded overhead.
+
+  * btest/Files/mmdb: golang-ci suggested fixes (Arne Welzel, Corelight)
+
+6.2.0-dev.38 | 2023-10-24 13:57:03 +0200
+
+  * base/frameworks/spicy: Do not load base/misc/version (Arne Welzel, Corelight)
+
+    Unsure what it's used for today and also results in the situation that on
+    some platforms we generate a reporter.log in bare mode, while on others
+    where spicy is disabled, we do not.
+
+    If we want base/frameworks/version loaded by default, should put it into
+    init-bare.zeek and possibly remove the loading of the reporter framework
+    from it - Reporter::error() would still work and be visible on stderr,
+    just not create a reporter.log.
+
+  * btest/core/mmdb: Basic lookup_autonomous_system / lookup_location tests (Arne Welzel, Corelight)
+
+  * btest/files: Add mmdb testing databases and generator code (Arne Welzel, Corelight)
+
+  * zeek.bif: Switch mmdb stale check to network_time (Arne Welzel, Corelight)
+
+    Makes testing easier and aligns better with log rotation and timer
+    expiration. Should not have an effect in practice. Also, log detail
+    about whether inode or modification time changed, too.
+
+  * Fix mmdb pointer destruction (peter.cullen, Corelight)
+
+    The mmdb references needs to use reset() instead of release()
+    so that the destructor gets called and the stale DB is actually
+    cleaned up. Otherwise, the pointer is leaked and the stale DB
+    remains in memory.
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+6.2.0-dev.29 | 2023-10-23 11:25:15 +0200
+
+  * GH-3370: Spicy: Avoid creating Zeek types multiple times. (Robin Sommer, Corelight)
+
+    We now cache the first time we create a (named) Zeek type so that we
+    can reuse it later when needed again.
+
+    Closes #3370.
+
+  * Spicy: Unroll Zeek type registrations. (Robin Sommer, Corelight)
+
+    For records and enums, the type registration calls could get pretty
+    large, and then slow to compile. We now build up their vectors
+    entry by entry instead of all at once.
+
+  * quic: Skip new test if have-quic is false (Arne Welzel, Corelight)
+
+6.2.0-dev.24 | 2023-10-20 11:44:15 -0700
+
+  * quic: Bump maximum history length, make configurable (Arne Welzel, Corelight)
+
+    From zeek/spicy-quic#15
+
+6.2.0-dev.21 | 2023-10-19 19:59:49 +0200
+
+  * fuzzers: Add SSL fuzzer (Arne Welzel, Corelight)
+
+6.2.0-dev.19 | 2023-10-19 16:25:34 +0200
+
+  * GH-3383: Fix missing version number in `spicyz`. (Robin Sommer, Corelight)
+
+6.2.0-dev.17 | 2023-10-19 11:08:07 +0200
+
+  * ldap: Use longer event names (Arne Welzel, Corelight)
+
+    It's unusual to compress and shorten event names of protocol analyzers,
+    switch to a slightly longer name instead.
+
+  * ldap: Add spicy-events.zeek (Arne Welzel, Corelight)
+
+  * quic: Add spicy-events.zeek (Arne Welzel, Corelight)
+
+6.2.0-dev.13 | 2023-10-18 12:05:24 -0700
+
+  * Add new SSH key exchange algorithms reported by OpenSSH 9.0 (Tim Wojtulewicz, Corelight)
+
+6.2.0-dev.11 | 2023-10-17 19:33:47 +0200
+
+  * gre-over-udp: Update testing pcap with both endpoints (Arne Welzel, Corelight)
+
+    The first pcap only contained packets from the originator, not the responder.
+
+    What stands out here is that the Linux kernel doesn't seem to use a symmetric
+    flow hash for the tunneled connection, resulting in a total of four tunnel
+    connections for the two inner connections. Sigh.
+
+6.2.0-dev.9 | 2023-10-17 15:54:34 +0200
+
+  * performance improvements for the LDAP ASN.1 analyzer (Paul Dokas, Corelight)
+
+6.2.0-dev.6 | 2023-10-16 11:49:33 -0700
+
+  * Add registration for GRE-over-UDP (Tim Wojtulewicz, Corelight)
+
+  * Update c-ares to v1.20.1 [nomail] (Tim Wojtulewicz, Corelight)
+
+6.2.0-dev.2 | 2023-10-13 14:36:17 -0700
+
+  * Broker: Adapt to upstream API adjustments (Dominik Charousset)
+
+6.1.0-dev.561 | 2023-10-13 13:15:59 +0200
+
+  * GH-14: protocol/quic/decrypt_crypto: Reuse OpenSSL context objects (Arne Welzel, Corelight)
+
+    It is not necessary to allocate and free the context objects used for
+    HKDF and AES all the time, they can be re-used. The main assumption here
+    is no cross-thread usage, but this should be guaranteed even with the
+    fibers: QUIC_decrypt_crypto_payload() always runs to completion.
+
+    A pcap with ~12k QUIC connections had ~15% samples in
+    QUIC_decrypt_crypto_payload. After this change it is down to 5%
+    of samples. The improvement in runtime is ~16%, 12.2 seconds
+    to 10.2 seconds.
+
+    From zeek/spicy-quic#14
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+6.1.0-dev.557 | 2023-10-13 08:16:24 +0200
+
+  * CI: Add more logging during docker builds (Tim Wojtulewicz, Corelight)
+
+  * CI: Add timeouts for apt commands in docker builder Dockerfiles (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.553 | 2023-10-12 17:11:18 +0200
+
+  * Fix signed-unsigned comparison. (Benjamin Bannier, Corelight)
+
+    We compared the return value of `sizeof` which returns a `std::size_t`
+    with an `int` which GCC warned about. This patch changes the `int` to a
+    `size_t`.
+
+6.1.0-dev.551 | 2023-10-12 15:53:45 +0200
+
+  * quic: Avoid bytes for VariableLengthInteger (Arne Welzel, Corelight)
+
+    Allocation of bytes objects due to parsing and usage of pack and the
+    invocation of to_uint() showed significantly in profiles (3.3% sample
+    matches). Switch to a more procedural approach to avoid the allocation
+    overhead.
+
+    From zeek/spicy-quic/pull/13
+
+  * protocol/quic: Add doc-id/doc-description to .evt file (Arne Welzel, Corelight)
+
+    Without this, the QUIC enums end up under Zeek::Spicy and we don't
+    have an extra Zeek::QUIC section in the docs.
+
+6.1.0-dev.547 | 2023-10-11 18:02:25 +0200
+
+  * ci/btest: Remove spicy-quic helper, disable Spicy on CentOS 7 (Arne Welzel, Corelight)
+
+    The have-quic pattern wasn't great and it wouldn't scale.
+
+  * btest/core/ppp: Run test in bare mode (Arne Welzel, Corelight)
+
+  * btest/quic: Update other tests (Arne Welzel, Corelight)
+
+  * testing/quic: Fixups and simplification after Zeek integration (Arne Welzel, Corelight)
+
+  * quic: Integrate as default analyzer (Arne Welzel, Corelight)
+
+  * quic: Include Copyright lines to the analyzer's source code contributed by Fox-IT (Arne Welzel, Corelight)
+
+    This is primarily such that they stay intact when importing into the
+    Zeek project. Also move LICENSE to COPYING.
+
+  * quic: Squashed follow-ups: quic.log, tests, various fixes, performance (Arne Welzel, Corelight)
+
+  * quic: Initial implementation (Joost)
+
+6.1.0-dev.538 | 2023-10-11 15:20:27 +0200
+
+  * ci/update-zeekygen-docs.sh: Do output stderr by default (Arne Welzel, Corelight)
+
+    stderr was only produced when there was a real failure as it had been a
+    bit noisy previously, but has hidden actual problems. Now that there is
+    less noise, just output stderr all the time.
+
+  * zeekygen: Disable zeek_init() handlers causing error output (Arne Welzel, Corelight)
+
+    These modules have zeek_init() handlers with actual logic that has side-effects
+    and error outputs. Just disable them during zeekygen runs.
+
+  * zeekygen/example: Squelch unused function warning (Arne Welzel, Corelight)
+
+  * iosource/pcap: Support configurable buffer size (Arne Welzel, Corelight)
+
+    On Linux with a default ext4 or tmpfs filesystem, the default buffer size for
+    reading a pcap is chosen as 4k (strace/gdb validated). When reading large pcaps
+    containing raw data transfers, the syscall overhead for read becomes visible
+    in profiles. Support configurability of the buffer size and default to 128kb.
+
+    When processing a ~830M PCAP (16 UDP connections, each transferring ~50MB) in
+    bare mode, this change improves runtime from 1.39 sec to 1.29 sec. Increasing
+    the buffer further didn't provide a noticeable boost.
+
+  * util/setvbuf: Respect buf argument (Arne Welzel, Corelight)
+
+6.1.0-dev.531 | 2023-10-11 14:09:22 +0200
+
+  * protocol/ldap: Add doc-id/doc-description to .evt file (Arne Welzel, Corelight)
+
+  * spicy/manager: Ensure Zeekygen knows identifier for registered types (Arne Welzel, Corelight)
+
+    Without this, Zeekygen won't generate documentation about exported
+    enum types as it can not resolve the identifier. Also, only register a
+    type as item with the Spicy plugin if there's no _module_info currently
+    active.
+
+6.1.0-dev.528 | 2023-10-10 20:03:31 +0200
+
+  * Introduce dedicated `LDAP::Info` (Benjamin Bannier, Corelight)
+
+  * Remove redundant storing of protocol in LDAP logs (Benjamin Bannier, Corelight)
+
+  * Use LDAP `RemovalHook` instead of implementing `connection_state_remove` (Benjamin Bannier, Corelight)
+
+  * Tidy up LDAP code by using local references (Benjamin Bannier, Corelight)
+
+  * Pluralize container names in LDAP types (Benjamin Bannier, Corelight)
+
+  * Move LDAP script constants to their own file (Benjamin Bannier, Corelight)
+
+  * Name `LDAP::Message` and `LDAP::Search` `*Info` (Benjamin Bannier, Corelight)
+
+  * Make ports for LDAP analyzers fully configurable (Benjamin Bannier, Corelight)
+
+    This moves the ports the LDAP analyzers should be triggered on from the
+    EVT file to the Zeek module. This gives users full control over which
+    ports the analyzers are registered for while previously they could only
+    register them for additional ports (there is no Zeek script equivalent
+    of `Manager::UnregisterAnalyzerForPort`).
+
+    The analyzers could still be triggered via DPD, but this is intentional.
+    To fully disable analyzers users can use e.g.,
+
+    ```zeek
+    event zeek_init()
+        {
+        Analyzer::disable_analyzer(Analyzer::ANALYZER_LDAP_TCP);
+        }
+    ```
+
+  * Require have-spicy for tests which log spicy-ldap information (Benjamin Bannier, Corelight)
+
+  * Fix LDAP analyzer setup for when Spicy analyzers are disabled (Benjamin Bannier, Corelight)
+
+  * Bump zeek-testing-private (Benjamin Bannier, Corelight)
+
+  * Integrate spicy-ldap test suite (Benjamin Bannier, Corelight)
+
+  * Move spicy-ldap into Zeek protocol analyzer tree (Benjamin Bannier, Corelight)
+
+  * Explicitly use all of spicy-ldap's modules (Benjamin Bannier, Corelight)
+
+    This fixes building of this multi-module analyzer.
+
+  * Explicitly list `asn1.spicy` as spicy-ldap source (Benjamin Bannier, Corelight)
+
+    This will lead to the file being installed so it can be consumed by
+    other parsers.
+
+  * Remove uses of `zeek` module in spicy-ldap (Benjamin Bannier, Corelight)
+
+  * Fix typos in spicy-ldap (Benjamin Bannier, Corelight)
+
+  * Remove project configuration files in spicy-ldap (Benjamin Bannier, Corelight)
+
+  * Integrate spicy-ldap into build (Benjamin Bannier, Corelight)
+
+  * Import zeek/spicy-ldap@57b5eff9883d1c43896f4278218351a132de9ce1 (Benjamin Bannier, Corelight)
+
+  * Merge branch 'topic/timw/arm-build-failure' (Tim Wojtulewicz, Corelight)
+
+    * topic/timw/arm-build-failure:
+      CI: Disable spicy on arm_debian11 and opensuse_leap_15_4 builds
+      CI: Remove sanitizers resource template
+
+  * CI: Disable spicy on arm_debian11 and opensuse_leap_15_4 builds (Tim Wojtulewicz, Corelight)
+
+    These two builds are struggling to complete due to OOM issues. Reducing the
+    number of CPUs didn't help, so this temporarily disables Spicy from
+    building on those hosts to reduce the memory usage.
+
+  * CI: Remove sanitizers resource template (Tim Wojtulewicz, Corelight)
+
+    This template was added when the sanitizer builds needed more memory than all
+    of the other builds. We've since increased the amount of memory that the other
+    builds use beyond what's requested in this template, so it doesn't make sense
+    to keep it around.
+
+  * Updating zeek-aux submodule [nomail] (Arne Welzel, Corelight)
+
+  * NEWS: Polish external plugins message [nomail] [skip ci] (Arne Welzel, Corelight)
+
+6.1.0-dev.502 | 2023-10-09 16:26:58 +0200
+
+  * btest/plugins/hooks: Run in bare mode (Arne Welzel, Corelight)
+
+    Motivation is basically the same as in 88bb5270263934f0004fd9fdeebf5ac25015d213.
+    For plugin.hooks, one example is that adding a new option in the default script
+    changes the baseline due registration of change handlers. Also, the connection
+    record is printed in various places, resulting in churn when the default
+    scripts change.
+
+  * Bump cmake submodule for 3.15 requirement (Arne Welzel, Corelight)
+
+6.1.0-dev.499 | 2023-10-09 14:15:41 +0200
+
+  * btest/coverage: Add record-fields test (Arne Welzel, Corelight)
+
+    Justin pointed out that the misc/dump-events test shows added fields to
+    the connection record. Add a new test that prints the connection record
+    recursively in bare and default mode to cover that use-case
+    specifically.
+
+  * btest/dump-events: Run in bare mode, load conn and smtp scripts only (Arne Welzel, Corelight)
+
+    The dump-events baseline changes are pure noise and have spurred confusion
+    for internal and external contributors. For example, adding new
+    analyzers have perturbed orderings of sets holding analyzer tags.
+
+    Running in non-bare mode, the baselines change almost whenever any of the
+    record types attached to connections change in the default scripts. This
+    causes continuous and seemingly little useful updates to the baselines.
+
+    This change switches the test to run in bare mode and explicitly loads
+    just base/protocols/conn and base/protocols/smtp. The primary intention
+    of the test should be testing the functionality of the misc/dump-events
+    script, not the raised events of all loaded default scripts (for that the
+    used PCAP is too narrow).
+
+    Protocol specific scripts that do want to leverage misc/dump-events for
+    baseline creation of their or their analyzer's events can add additional
+    specific tests with suitable PCAP files.
+
+6.1.0-dev.495 | 2023-10-06 16:08:56 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+6.1.0-dev.493 | 2023-10-04 22:46:38 -0700
+
+  * Btest for normalized reporter path reporting (Christian Kreibich, Corelight)
+
+  * Normalize file paths in find_file_in_path() (Christian Kreibich, Corelight)
+
+6.1.0-dev.490 | 2023-10-04 20:15:54 +0200
+
+  * Var/Func: Render function parameters using comma, not semicolon (Arne Welzel, Corelight)
+
+    A bit larger follow-up to what Tim pointed out: Function prototype descriptions
+    previously used semicolons to separate parameters.
+
+    Switch to use commas when a RecordType is used as function parameter.
+    Use existing "func_args" naming for consistency.
+
+  * GH-3314: Var: Fix null-pointer deref on redefinition of lambdas (Arne Welzel, Corelight)
+
+6.1.0-dev.486 | 2023-10-02 11:50:56 -0700
+
+  * get_current_packet: Add note/warning to docs (Arne Welzel, Corelight)
+
+6.1.0-dev.484 | 2023-10-02 11:44:21 -0700
+
+  * zeek-setup: Early exit when parsing failed (Arne Welzel, Corelight)
+
+    When there are errors reported during yyparse(), Zeek still continued
+    running initialization functions like init_general_global_var(), init_net_var()
+    and run_bif_initializers(). These usually call abort() in unexpected
+    situations causing misleading and confusing errors. This patch prevents
+    this by exiting earlier.
+
+    Closes #3316
+
+6.1.0-dev.482 | 2023-10-02 11:42:58 -0700
+
+  * broker/Manager: Fix deletion of composite keys (Arne Welzel, Corelight)
+
+    Follow-up for commit 44ae8f9e8f25ff403707026657e000693550873f.
+
+  * Add btest for brokerstore delete with complex index. (Jan Grashoefer, Corelight)
+
+6.1.0-dev.479 | 2023-10-02 11:09:13 -0700
+
+  * minor updates to -O gen-C++ maintenance notes and scripts (Vern Paxson, Corelight)
+
+  * ZAM fix for inlining bug when a local is assigned to a function parameter (Vern Paxson, Corelight)
+
+  * ZAM fixes for record creation and table indexing potentially having side-effects (Vern Paxson, Corelight)
+
+  * removed order-of-evaluation ambiguity from new BTest (Vern Paxson, Corelight)
+
+  * introduce internal "mask" expression node to avoid mixed-type overloading of "/" (Vern Paxson, Corelight)
+
+  * fix bug in failing to concretize empty vectors (Vern Paxson, Corelight)
+
+  * ZAM BTest update to match recent change to one of the tests (Vern Paxson, Corelight)
+
+  * fixed ZAM reduction bug in += / -= operators (Vern Paxson, Corelight)
+
+6.1.0-dev.470 | 2023-10-02 10:13:04 -0700
+
+  * generate-docs: Bump ccache from 500M to 2000M (Arne Welzel, Corelight)
+
+    Since enabling Spicy, 500M (default) of ccache max-size size is not
+    sufficient for efficient cache usage of a Zeek build anymore, so we
+    end up thrashing the configured ccache. Build times have increased
+    from 5-10 minutes to 1+ hour after enabling Spicy in the docs build.
+
+6.1.0-dev.468 | 2023-10-02 10:10:22 -0700
+
+  * Enable ccache-backed Spicy JIT for users of developer scripts. (Benjamin Bannier, Corelight)
+
+    For CI and more general BTest execution we already enabled ccache
+    previously, but developers using a Spicy build out of the build
+    directory still needed to manually set up caching.
+
+    With this patch we enable it for such cases as well via
+    `zeek-path-dev.*sh`.
+
+6.1.0-dev.466 | 2023-10-02 10:08:38 -0700
+
+  * DNS_Mgr: Fix | vs & for pollfd.revents (Arne Welzel, Corelight)
+
+    Follow-up for c4c4a23bfd19c258beb7254be9d96716914ad03f.
+
+6.1.0-dev.464 | 2023-10-02 14:38:18 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+6.1.0-dev.462 | 2023-09-28 20:29:36 +0200
+
+  * cirrus/ci: Run ubuntu22_task on benchmark-nightly, too (Arne Welzel, Corelight)
+
+6.1.0-dev.460 | 2023-09-28 10:00:55 +0200
+
+  * Fix GCC warnings about unintended pointer comparisions (Benjamin Bannier, Corelight)
+
+6.1.0-dev.458 | 2023-09-27 16:53:02 +0200
+
+  * cirrus/ci: Add ubuntu22_spicy_task and ubuntu22_spicy_head_task (Arne Welzel, Corelight)
+
+    These tasks are meant to run nightly on the master branch. Currently,
+    the external dns, http and dhcp Spicy analyzers are installed via zkg
+    post building. The build artifact is uploaded to Cirrus and the benchmarker
+    API triggered.
+
+    For the spicy_head task, the auxil/spicy submodule is pulled to the latest
+    commit. This also provides a bit of a nightly integration test.
+
+  * cirrus/ci: Add pre_build_script mechanism (Arne Welzel, Corelight)
+
+    Allow tasks to run a bit of code just before ci/build.sh.
+
+6.1.0-dev.455 | 2023-09-26 18:42:20 +0200
+
+  * auxil/libunistd: Bump for poll() inclusion (Arne Welzel, Corelight)
+
+  * GH-3309: DNS_Mgr: Replace ares_fds() with ares_getsock() (Arne Welzel, Corelight)
+
+    On Slack, a user reported "fortify source" aborts within ares_fds() due
+    to the FDs used by c-ares exceeding 1024 and thereby larger than the
+    maximum fd value that a fd_set can hold.
+
+    Switch to ares_get_socks() and poll() to avoid this.
+
+    Closes #3309.
+
+6.1.0-dev.451 | 2023-09-26 16:14:24 +0200
+
+  * Use unique port for test `scripts.base.utils.active-http` (Benjamin Bannier, Corelight)
+
+  * Do not automatically load Spicy modules in dot paths. (Benjamin Bannier, Corelight)
+
+  * Exclude dot directories when searching ZEEK_PLUGIN_PATH (Benjamin Bannier, Corelight)
+
+    Dot directories rarely contain anything we would want to load as a
+    dynamic plugin. Even worse, they likely contain files with externally
+    controlled lifetimes which might be removed while we are using them
+    (see e.g., zeek/btest#98).
+
+    With this patch we do not search _discovered_ dot directories anymore.
+    We continue to load from a user-specified `ZEEK_PLUGIN_PATH`, even if
+    its name starts with a dot.
+
+    Since this patch changes previous behavior it is a **BREAKING CHANGE**.
+
+6.1.0-dev.447 | 2023-09-26 11:07:12 +0200
+
+  * VectorVal: Embed vector_val (Arne Welzel, Corelight)
+
+    Similar motivation as for RecordVal, save an extra malloc/free
+    and pointer indirection.
+
+    This breaks the `auto& RawVec()` API which previously returned
+    a reference to the std::vector*. It now returns a reference
+    to the vector instead. It's commented as intended for internal
+    and compiled code, so even though it's public API,
+
+    The previous `std::vector<std::optional<ZVal>>*&` return type was also very
+    likely not intended (all consumers just dereference it anyhow). I'm certain
+    this API was never meant to modify the actual pointer value.
+
+    I've switched to explicit typing, too.
+
+  * RecordVal: Embed record_val (Arne Welzel, Corelight)
+
+    This should remove one malloc/free per created and destroyed record instance
+    and avoid one extra pointer indirection to access fields.
+
+6.1.0-dev.444 | 2023-09-25 14:59:19 +0200
+
+  * Do not require cookie for `reject_protocol` during teardown. (Benjamin Bannier, Corelight)
+
+    A user reported that they ran into a situation where a parse error
+    caused an assertion failure in `reject_protocol`. printf debugging points
+    to the `CookieSetter`s in the `try`/`catch` blocks during processing
+    already clearing the cookie RAII-style; since their `catch` blocks
+    already send an analyzer violation no further sending of one from
+    `reject_protocol` is required.
+
+    This patch replaces the assert in `reject_protocol` with a runtime check
+    and an early return if the cookie is already cleared.
+
+6.1.0-dev.442 | 2023-09-25 13:50:15 +0200
+
+  * ci/benchmark: Also send CIRRUS_TASK_NAME to benchmarker API (Arne Welzel, Corelight)
+
+    We otherwise cannot distinguish between different benchmarking jobs when
+    we introduce them (think ubuntu22_jemalloc or ubuntu22_spicy).
+
+6.1.0-dev.441 | 2023-09-22 14:38:26 -0700
+
+  * CI: Disable tsan task until it can be fixed (Tim Wojtulewicz, Corelight)
+
+  * Update af_packet plugin submodule [nomail] (Tim Wojtulewicz)
+
+6.1.0-dev.436 | 2023-09-22 15:06:39 +0200
+
+  * Bump Spicy (Benjamin Bannier, Corelight)
+
+6.1.0-dev.434 | 2023-09-22 12:13:23 +0200
+
+  * Fix formatting of `spicy_add_analyzer` (Benjamin Bannier, Corelight)
+
+  * Update cmake submodule [nomail] (Arne Welzel, Corelight)
+
+6.1.0-dev.430 | 2023-09-21 10:55:12 +0200
+
+  * Add check to docs CI whether Spicy docs are up to date. (Robin Sommer, Corelight)
+
+  * Bump zeek-docs. (Robin Sommer, Corelight)
+
+  * Enable Spicy when generating docs. (Robin Sommer, Corelight)
+
+  * GH-3306: Zeekygen: Merge in Spicy analyzer documentation. (Robin Sommer, Corelight)
+
+  * Zeekygen: Refine location tracking for Spicy events. (Robin Sommer, Corelight)
+
+  * Zeekygen: Refactor code documenting analyzers. (Robin Sommer, Corelight)
+
+  * Add `%doc-*` tags to Syslog and Finger analyzers. (Robin Sommer, Corelight)
+
+  * Spicy: Support additional documentation tags inside EVT files. (Robin Sommer, Corelight)
+
+    So far we had trouble documenting Spicy analyzers through Zeekygen
+    because they would show up as components belonging to the
+    `Zeek::Spicy` plugin; whereas traditional analyzers would be their own
+    plugins and hence documented individually on their own. This commit
+    teaches Zeekygen to track Spicy analyzers separately inside their own
+    `Info` instances. This information isn't further used in this commit
+    yet, but will be merged with the plugin output in a subsequent change
+    to get the expected joint output.
+
+    To pass additional information to Zeekygen, EVT files now also support
+    two new tags for Zeekygen purposes:
+
+    - `%doc-id = ID;` defines the global ID under which everything inside
+      the EVT file will be documented by Zeekygen, conceptually comparable
+      to plugin names (e.g., `Zeek::Syslog`).
+
+    - `%doc-description = "text" provides additional text to go into the
+      documentation (comparable to plugin descriptions).
+
+    This information is carried through into the HLTO runtime
+    initialization code, from where it's registered with Zeekygen.
+
+    This commit also removes a couple of previous hacks of how Spicy
+    integrated with Zeekygen which (1) ended up generating broken doc output
+    for Spicy components, and (2) don't seem to be necessary anymore
+    anyways.
+
+  * Fix lack of namespace qualification inside an include file. (Robin Sommer, Corelight)
+
+  * Exclude script from documentation that interferes with other locations. (Robin Sommer, Corelight)
+
+6.1.0-dev.419 | 2023-09-21 09:55:51 +0200
+
+  * GH-3298: Spicy: Fix support for exporting bitfields. (Robin Sommer, Corelight)
+
+    Anonymous bitfields now have their fields lifted into the surrounding
+    record.
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
+6.1.0-dev.416 | 2023-09-20 13:04:21 +0200
+
+  * Correctly compute name for spicyz export with debug log. (Benjamin Bannier, Corelight)
+
+    In 36a6770e9891114b4f42dac3728040c67cc9411e we changed the way Spicy
+    fields exported as
+    record fields are represented. This broke the `zeek` debug log which
+    hardcoded a different representation.
+
+    This patch brings the generation of the debug log in line with the
+    actual AST structure. We also enable debug logging in one test to
+    validate that it works, at least for the case we hit here.
+
+  * Updating submodule(s) [nomail] (Benjamin Bannier, Corelight)
+
+6.1.0-dev.413 | 2023-09-19 19:56:44 +0200
+
+  * ci/benchmark: Send more Cirrus, GitHub and Zeek version information (Arne Welzel, Corelight)
+
+    I wonder if we hit a query string limitation and should instead switch
+    to post body here. It's the `curl -G -X POST` part making this a POST
+    with a long query string.
+
+6.1.0-dev.411 | 2023-09-18 10:46:34 -0700
+
+  * Remove some unnecessary includes of telemetry headers (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.409 | 2023-09-15 11:58:40 +0200
+
+  * Update zeekjs submodule (Arne Welzel, Corelight)
+
+    Primarily for the following fixes:
+
+        4dfc0dd Nodejs: Do not use UV_RUN_DEFAULT during InitPostScript()
+        ade764e Nodejs: Unset kNoInitializeCppgc for Node 20.6 or higher
+        a38df85 Fix type check of parameters array with zeek.event
+        deddadd Fix type check of parameters array with zeek.invoke
+
+  * CMakeLists: Set Python3_EXECUTABLE hint for spicy (Arne Welzel, Corelight)
+
+  * Avoid assertion/tag error on invalid table constructor index expression (Christian Kreibich, Corelight)
+
+    If an index expression in a table constructor isn't a list, don't abort with an
+    assertion failure (on debug builds) or a bad tag check. Instead, mark the
+    constructor expression erroneous and return gracefully. The following...
+
+      global a_table: table[subnet] of string = {
+            1.2.3.4/24 = "unspecified",    # should have been [1.2.3.4/24] = "unspecified",
+      };
+
+    ...now yields:
+
+      $ zeek ./test.zeek
+      error in ././test.zeek, line 2: table constructor index is not a list (1.2.3.0/24 = unspecified)
+      error in ././test.zeek, line 2: type clash in assignment (a_table = table(1.2.3.0/24 = unspecified))
+
+  * GH-3279: Fix handling of module scope when checking exported Spicy types for collisions (Benjamin Bannier, Corelight)
+
+    When checking exported Spicy types for collisions with existing Zeek
+    types we previously would also check whether they collide with names in
+    global scope, i.e., we didn't provide a `no_global` arg to
+    `detail::lookup_ID` which defaulted to false (since we also provided a
+    module name I'd argue that the behavior of that function is confusing
+    and probably error-prone -- like seen here).
+
+    This meant that e.g., a Spicy enum `foo::Direction` (automatically in
+    implicit Spicy module scope) would be detected to collide with the
+    existing Zeek `Direction` enum.
+
+    With this patch we use the `lookup_ID` API correctly and do not check
+    against potential collisions with globals anymore since it is not
+    needed.
+
+  * File extraction: use fseek (Johanna Amann, Corelight)
+
+    In the past, we allocated a buffer with zeroes and wrote that with
+    fwrite. Now, instead we just fseek to the correct offset.
+
+    This changes the way in which the file extract limit is counted a bit;
+    skipped bytes do no longer count against the file size limit.
+
+    (cherry picked from commit 5071592e9b7105090a1d9de19689c499070749d4)
+
+6.1.0-dev.397 | 2023-09-12 17:00:26 -0700
+
+  * Update dump-events test baseline after latest master changes (Tim Wojtulewicz)
+
+  * Add extract_limit_includes_missing option for file extraction (Johanna Amann, Corelight)
+
+    Setting this option to false does not count missing bytes in files towards the
+    extraction limits, and allows to extract data up to the desired limit,
+    even when partial files are written.
+
+    When missing bytes are encountered, files are now written as sparse
+    files.
+
+    Using this option requires the underlying storage and utilities to support
+    sparse files.
+
+    (cherry picked from commit afa6f3a0d3b8db1ec5b5e82d26225504c2891089)
+
+  * ftp: Do not log non-pending commands (Arne Welzel, Corelight)
+
+    OSS Fuzz generated a CWD request and reply followed by very many EPRT
+    requests. This caused Zeek to re-log the CWD request and invoke `build_url_ftp()`
+    over and over again resulting in long processing times.
+
+    Avoid this scenario by not logging commands that aren't pending anymore.
+
+    (cherry picked from commit b05dd31667ff634ec7d017f09d122f05878fdf65)
+
+  * http/smtp: Fix wrong character class usage (Arne Welzel, Corelight)
+
+    A call to `extract_filename_from_content_disposition()` is only
+    efficient if the string is guaranteed to contain the pattern that
+    is removed by `sub()`. Due to missing brackets around the `[:blank:]`
+    character class, an overly long string (756kb) ending in
+    "Type:dtanameaa=" matched the wrong pattern causing `sub()` to
+    exhibit quadratic runtime. Besides that, we may have potentially
+    extracted wrong information from a crafted header value.
+
+    (cherry picked from commit 6d385b1ca724a10444865e4ad38a58b31a2e2288)
+
+  * VLAN: Fix length checking for non-Ethernet type 2 frames (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c579eb7b7cf3ca1d9008e74d7934155866c7e4f7)
+
+  * Make sure that all sessions/connections are done before deleting plugins (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit e29b499a211137cf3cf0c24a4ff82db1b806f132)
+
+6.1.0-dev.390 | 2023-09-12 20:52:01 +0200
+
+  * CreationInitsOptimizer: Use PreTypedef() instead of PreType() (Arne Welzel, Corelight)
+
+    PreTypedef() does not require the PreID() trampoline and ensures
+    it's only called for IDs that are types. Also allows dropping
+    the const_cast<> due to id->GetType() returning a const TypePtr which
+    is different from a `const Type*`...
+
+  * GH-3260: Fix deferred record initialization (Arne Welzel, Corelight)
+
+    Put RecordFieldInit instances into creation_inits during parsing and
+    determine their deferrability in an InitPostScript step. Any
+    RecordFieldInits can be deferred are moved into deferred_inits.
+
+  * testing/btest: Un-deferred record initalization tests (Arne Welzel, Corelight)
+
+    These baselines should align with what Zeek 5.2 or before did.
+
+6.1.0-dev.385 | 2023-09-11 10:15:51 -0700
+
+  * Move allocation of analyzer_hash to file_mgr (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.382 | 2023-09-08 16:46:53 +0200
+
+  * fix for ZAM statement-level profiling (broken by GH-3199) (Vern Paxson, Corelight)
+
+  * GH-3249: ZAM fixes for compatibility with GH-3249 changes (Vern Paxson, Corelight)
+
+  * GH-3249: -O gen-C++ fixes for compatibility with GH-3249 changes (Vern Paxson, Corelight)
+
+  * minor BTest reordering to diminish differences with script optimization (Vern Paxson, Corelight)
+
+6.1.0-dev.377 | 2023-09-08 13:48:26 +0200
+
+  * ID/Stmt: Introduce INIT_SKIP and use in ForStmt (Arne Welzel, Corelight)
+
+    Currently, loop vars are added to a function scope's inits and
+    initialized upon entering a function with default values. This
+    applies to vector, record and table types.
+
+    This is unnecessary for variables used in for loops as they are
+    guaranteed to be initialized while iterating.
+
+  * GH-3267: CompositeHash: Skip record initialization when recovering vals (Arne Welzel, Corelight)
+
+    Initializing fields of recovered records caused running &default expression
+    of fields just so that they are re-assigned in the next step with the
+    recovered fields. The second test case still shows that the loop var
+    is initialized as well even though that's not needed.
+
+    Add tests for iterating over records with &default attributes for both,
+    tables and vectors.
+
+    Fixes #3267
+
+6.1.0-dev.374 | 2023-09-07 15:58:22 +0200
+
+  * GH-3276: Propagate failure reason in `spicy::decline_input`/`zeek::reject_protocol`. (Benjamin Bannier, Corelight)
+
+    Closes #3276.
+
+6.1.0-dev.372 | 2023-09-07 14:26:27 +0200
+
+  * ci: update-alternative to have python3 be python3.9 (Arne Welzel, Corelight)
+
+    Tweak so that python3 is correct for the Python_FIND_UNVERSIONED_NAMES
+    change. python3 on 15.4 was pointing at Python3.6 still and for that
+    there are no dev headers installed.
+
+    A normal user could use --with-python instead, but in CI this is easier.
+
+  * Add OpenSUSE Leap 15.5 to ci (Johanna Amann, Corelight)
+
+    This also adds 15.4 to the list of distributions that are skipped by
+    default - let me know if this is not a good idea. I assume that by now
+    most people will be running 15.5 (15.4 will be EOL in ~3 months).
+
+  * GH-3275: configure/CMakelists: Use Python_EXECUTABLE as hint for interpreter (Arne Welzel, Corelight)
+
+    The PYTHON_EXECUTABLE variable was only interpreted by our own FindPythonDev.
+    cmake's FindPython uses Python_EXECUTABLE instead.
+
+    Also, if --with-python is not used, prefer unversioned executables that
+    match the version requirement. Further, remove Python_ADDITIONAL_VERSIONS
+    that is interpreted by FindPythonInterp which we're not using anymore.
+
+    https://cmake.org/cmake/help/latest/module/FindPython.html#artifacts-specification
+    https://cmake.org/cmake/help/latest/module/FindPythonInterp.html
+
+    Closes #3275
+
+6.1.0-dev.368 | 2023-09-07 13:28:42 +0200
+
+  * GH-3278: spicy: Do not register port N+1 for port N in .evt file (Arne Welzel, Corelight)
+
+  * Updating auxil/zeek-client submodule [nomail] (Christian Kreibich, Corelight)
+
+6.1.0-dev.364 | 2023-09-05 19:56:59 +0200
+
+  * DNS_Mgr: Use Process() for timeout expiration (Arne Welzel, Corelight)
+
+    DNS_Mgr has a GetNextTimeout() implementation that may return 0.0. When
+    that is the case, its IO source is enqueued as ready with an fd of -1.
+    This in turn results in Process() being called instead of ProcessFd()
+    in RunState.cc.
+
+    Ensure timeouts behavior is properly handled by actually forwarding
+    timeout indications to c-ares via DNS_Mgr::Process(). This results
+    in pending DNS queries for which a timeout happened to actually
+    timeout (when there's no other connectivity).
+
+  * DNS_Mgr: Fix GetNextTimeout() returning absolute values (Arne Welzel, Corelight)
+
+    Not sure, must have been some sort of left-over, but wasn't really
+    effective due to Process() not being implemented.
+
+6.1.0-dev.361 | 2023-09-04 14:00:37 +0200
+
+  * Fix check for emailed notices (Justin Azoff, Corelight)
+
+    This bug was introduced in 9d0bd96
+
+6.1.0-dev.358 | 2023-09-01 11:53:55 +0200
+
+  * GH-1705: http: Prevent request/response de-synchronization and unbounded state growth (Arne Welzel, Corelight)
+
+    When http_reply events are received before http_request events, either
+    through faking traffic or possible re-ordering, it is possible to trigger
+    unbounded state growth due to later http_requests never being matched
+    again with responses.
+
+    Prevent this by synchronizing request/response counters when late
+    requests come in.
+
+    Also forcefully flush pending requests when http_replies are never
+    observed either due to the analyzer having been disabled or because
+    half-duplex traffic.
+
+6.1.0-dev.356 | 2023-08-30 11:24:51 +0200
+
+  * testing/external: Exclude telemetry.log from baselines (Arne Welzel, Corelight)
+
+    The diffs produced by telemetry.log when introducing a weird or
+    removing/adding protocol specific logs is overwhelming and distracting
+    without providing value. Exclude telemetry.log similar to how we already
+    exclude stats.log.
+
+    Some more targeted telemetry.log tests exists in the normal testing/btest
+    suite and that appears more sensible.
+
+6.1.0-dev.354 | 2023-08-29 12:13:51 -0700
+
+  * Forward OpenSSL include path to plugins (Dominik Charousset, Corelight)
+
+6.1.0-dev.349 | 2023-08-29 09:11:21 -0700
+
+  * CI: Add ubuntu 23.04 build (Tim Wojtulewicz, Corelight)
+
+  * CI: Remove EOL ubuntu 22.10 build (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.346 | 2023-08-29 09:39:10 +0200
+
+  * pre-commit: autoupdate (Arne Welzel, Corelight)
+
+    ...except for clang-format, because versions after v13.0.0 have
+    borked the Whitesmith formatting. Also moves yapf from
+    pre-commit/mirrors-yapf to google/yapf.
+
+6.1.0-dev.343 | 2023-08-28 20:07:16 +0200
+
+  * cmake: Bump submodule for removal of NEED_KRB5_H (Arne Welzel, Corelight)
+
+  * zeek-config.h: Drop NEED_KRB5_H (Arne Welzel, Corelight)
+
+    This is unused in the Zeek tree after the previous commit, remove it
+    from zeek-config.h
+
+  * File: Drop krb5.h include (Arne Welzel, Corelight)
+
+    It looks as if krb5.h was only ever needed together with OpenSSL, then
+    OpenSSL includes were removed, but the krb5.h ones stayed around.
+
+6.1.0-dev.339 | 2023-08-28 10:53:37 -0700
+
+  * change Trigger constructor to not potentially auto-delete itself (Vern Paxson, Corelight)
+
+6.1.0-dev.337 | 2023-08-28 12:56:14 +0200
+
+  * Update doc, cmake submodules for installing .spicy files (Arne Welzel, Corelight)
+
+6.1.0-dev.336 | 2023-08-28 12:19:45 +0200
+
+  * testing: Bump external test suite (Arne Welzel, Corelight)
+
+  * dhcp: Handle is_orig=T for connections from server to 255.255.255.255 (Arne Welzel, Corelight)
+
+    This works around the new semantics of is_orig=T for "connections"
+    from DHCP servers to broadcast addresses. IMO, having the server address
+    as originator in the conn.log is still more intuitive.
+
+  * GH-3235: IPBasedAnalyzer: Don't flip connections when destination is broadcast (Arne Welzel, Corelight)
+
+6.1.0-dev.331 | 2023-08-25 21:38:40 +0200
+
+  * BTests for any/vector-of-any fixes (Vern Paxson, Corelight)
+
+  * fixes for vector assignments involving "any"/"vector of any" types (Vern Paxson, Corelight)
+
+6.1.0-dev.327 | 2023-08-24 12:17:42 -0700
+
+  * updated notes regarding "-O gen-C++" maintenance (Vern Paxson, Corelight)
+
+  * "-O gen-C++" support for "assert" statements (Vern Paxson, Corelight)
+
+  * addressed some nits re "-O gen-C++" script optimization (Vern Paxson, Corelight)
+
+  * fixes for compiling lambdas to C++ (Vern Paxson, Corelight)
+
+  * fixes to avoid ambiguities in analyzing captures for script optimization (Vern Paxson, Corelight)
+
+  * disambiguate lambdas by adding scoping and consideration of captures (Vern Paxson, Corelight)
+
+  * addressed performance and correctness issues flagged by Coverity (Vern Paxson, Corelight)
+
+6.1.0-dev.319 | 2023-08-24 12:26:00 +0200
+
+  * PPP: Add PPP analyzer to handle LINKTYPE_PPP (0x9) (Arne Welzel, Corelight)
+
+    Using pcaps from https://interop.seemann.io/ as samples for QUIC protocol
+    data didn't produce a conn.log for the contained data. `tcpdump -r`
+    and Wireshark do show the contained IP/UDP packets. Teach Zeek how
+    to handle link type DLT_PPP 0x09 using a new PPP analyzer based on the
+    PPPSerial analyzer code.
+
+    Usual update to files/x509 baseline after adding new analyzer due
+    to enum values changing.
+
+6.1.0-dev.316 | 2023-08-23 13:04:59 -0700
+
+  * CI: Force alpine image to rebuild (Tim Wojtulewicz, Corelight)
+
+  * CI: Install python3.8 on older distros (Tim Wojtulewicz, Corelight)
+
+  * CI: Remove Ubuntu 18 build (EOL) (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.312 | 2023-08-23 12:31:16 +0100
+
+  * Community-id: load main script in notice script, fix notice script (Johanna Amann, Corelight)
+
+    This change makes the community-id script that adds the community id to
+    notice.log automatically load the main script if this was not already
+    loaded.
+
+    In the past, the script just did not perform any action if the main
+    script was not loaded.
+
+    This change also makes the notice script respect the seed/base64
+    settings that were set in the main script.
+
+    Fixes GH-3242
+
+6.1.0-dev.310 | 2023-08-22 14:59:28 +0200
+
+  * GH-3218/GH-3219: Spicy: Extend functionality of `export` in EVT
+    files. (Robin Sommer, Corelight)
+
+    We now support selecting which fields of a unit type get exported into
+    the automatically created Zeek record; as well as selecting which
+    fields get a `&log` attribute added automatically to either all fields
+    or to selected fields.
+
+    Syntax:
+
+    - To export only selected fields:
+
+        export Foo::X with { field1, field3 };
+
+    - To export all but selected fields:
+
+        export Foo::X without { field2, field3 };
+
+    - To `&log` all fields:
+
+        export Foo::X &log;
+
+    - To `&log` only selected fields:
+
+        export Foo::X with { field1 &log, field3 }; # exports (only) field1 and field3, and marks field1 for logging
+
+  * pre-commit: Pin to latest shfmt-py version (Arne Welzel, Corelight)
+
+    This allows users to run shfmt-py with Python > 3.9. Also drop
+    the explicit Python version for the setup-python action.
+
+6.1.0-dev.303 | 2023-08-15 17:33:51 +0100
+
+  * Raw reader: use posix_spawn instead of fork + exec (Johanna Amann, Corelight)
+
+    This commit switchexisd the Raw reader to use posix_spawn, instead of
+    the combination of fork + exec. This should be much more efficient, and
+    also makes the code smaller, and easier to read and understand.
+
+6.1.0-dev.300 | 2023-08-15 09:19:57 -0700
+
+  * Force pre-commit to use python 3.9 (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.298 | 2023-08-14 11:18:14 -0700
+
+  * CI: update freebsd to 13.2 and 12.4 (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.293 | 2023-08-11 10:34:52 -0700
+
+  * Fix conversion with record types (Tim Wojtulewicz, Corelight)
+
+  * Add conversion between set and vector using 'as' keyword (Tim Wojtulewicz, Corelight)
+
+  * Add std::move for a couple of variables passed by value (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.289 | 2023-08-11 09:52:24 -0700
+
+  * Modbus: Add early return in case of data being too short to parse (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.287 | 2023-08-09 09:08:33 -0700
+
+  * Explicitly link Zeek executable against Spicy libraries in binary packaging mode. (Benjamin Bannier, Corelight)
+
+6.1.0-dev.284 | 2023-08-08 10:55:03 -0700
+
+  * Pass parsed file record information with ReadFile/WriteFile events (Tim Wojtulewicz, Corelight)
+
+  * Add length field from header to ModbusHeaders record type (Tim Wojtulewicz, Corelight)
+
+  * Modbus: Add support for Encapsulation Interface Transport (FC=2B) requests and responses (Tim Wojtulewicz, Corelight)
+
+  * Modbus: Add support for Diagnostics (FC=8) requests and responses (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.272 | 2023-08-07 09:41:34 -0700
+
+  * Change VERSION variable in CMake config to ZEEK_VERSION_FULL (Tim Wojtulewicz, Corelight)
+
+  * Update bifcl and binpac for FindPackage fixes (Tim Wojtulewicz, Corelight)
+
+  * Remove usage of FindRequiredPackage (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl and cmake to deprecate FindRequiredPackage (Tim Wojtulewicz, Corelight)
+
+  * Update broker submodule for pybind11 + cmake changes (Tim Wojtulewicz, Corelight)
+
+  * ci: Bump centos-7 (Arne Welzel, Corelight)
+
+6.1.0-dev.264 | 2023-08-07 10:22:18 +0200
+
+  * Suppress new tsan findings from Ubuntu 22 upgrade (Tim Wojtulewicz)
+
+  * Update tsan build to ubuntu22 (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.261 | 2023-08-04 12:31:51 +0200
+
+  * TableVal: Unify &default and &default_insert lookups (Arne Welzel, Corelight)
+
+    Introduce DefaultAttr() helper to avoid a bit of duplicated code.
+
+  * GH-2668: Add &default_insert attribute for tables (Arne Welzel, Corelight)
+
+    This is based on the discussion in zeek/zeek#2668. Using &default with tables
+    can be confusing as the default value is not inserted. The following example
+    prints an empty table at the end even new Service records was instantiated.
+
+        type Service: record {
+            occurrences: count &default=0;
+            last_seen: time &default=network_time();
+        };
+
+        global services: table[string] of Service &default=Service();
+
+        event zeek_init()
+            {
+            services["http"]$occurrences += 1;
+            services["http"]$last_seen = network_time();
+
+            print services;
+            }
+
+    Changing above &default to &default_insert will insert the newly created
+    default value upon a missed lookup and act less surprising.
+
+    Other examples that caused confusion previously revolved around table of sets
+     or table of vectors and `add` or `+=` not working as expected.
+
+        tbl_of_vector["http"] += 1
+        add tbl_of_set["http"][1];
+
+6.1.0-dev.258 | 2023-08-03 07:18:21 +0100
+
+  * Do not forward padding to downstream TCP packet analyzer (Johanna Amann, Corelight)
+
+    This is similar to GH-3206. There do not seem to be practical
+    consequences - but we should still fix it.
+
+    This also includes the udp-testcase that was forgotten in GH-3206.
+
+6.1.0-dev.256 | 2023-08-02 10:11:22 -0700
+
+  * Rename magic __bro_plugin__ file to __zeek_plugin__ (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.254 | 2023-08-02 09:23:18 +0200
+
+  * GH-3122: UsageAnalyzer: Collect identifiers found in attributes as seeds (Arne Welzel, Corelight)
+
+    This marks every identifier used within an attribute as seeds. The scenario
+    this avoids is functions referenced through attributes on unused tables or
+    record types (&default, &expire_func, ...) being dinged as unused as
+    that's rather confusing.
+
+    Also adds test for the above and a light smoke test into language/ as it
+    doesn't appear we had coverage here.
+
+  * Force refresh of all CI docker images (Tim Wojtulewicz, Corelight)
+
+    There's something going on with the image cache on Cirrus where the images
+    are sometimes vanishing from the cache, thus causing builds to fail
+    because it can't load them. This forces a rebuild of all of the images,
+    thus refreshing the cached version of all of them.
+
+6.1.0-dev.250 | 2023-08-01 09:58:04 -0700
+
+  * Fix memory leak in script_opt's Expr code (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.248 | 2023-07-31 15:59:41 -0700
+
+  * Do not forward more than the remaining data to downstream UDP analyzer (Johanna Amann, Corelight)
+
+    This fixes a bug introduced in 2b9de839b0948c7de3eb5ed4a397194f96aae6b5
+    / GH-3080, which causes UDP padding to be sent to UDP based analyzers.
+
+    Fixes GH-3205.
+
+  * Force rebuild of windows CI image (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.243 | 2023-07-26 14:46:06 -0700
+
+  * increase BTest wait time to abide ZAM compilation times (Vern Paxson, Corelight)
+
+  * avoid script coverage overhead (especially memory) when using ZAM (Vern Paxson, Corelight)
+
+  * fixes for correctly tracking which functions have been fully inlined (Vern Paxson, Corelight)
+
+  * support for discarding ASTs once compiled via ZAM script optimization (Vern Paxson, Corelight)
+
+  * some code simplifications and streamlining (Vern Paxson, Corelight)
+
+6.1.0-dev.236 | 2023-07-25 10:23:47 -0700
+
+  * fix for installing identifiers for lambdas into the global scope (Vern Paxson, Corelight)
+
+6.1.0-dev.234 | 2023-07-25 09:36:27 -0700
+
+  * Better input framework error messages for unset non-optionals (Johanna Amann, Corelight)
+
+    The input framework currently gives a rather opaque error message when
+    encountering a line in which a required value is not provided. This
+    change updates this behavior; the error message now provides the record
+    element (or the name or the index element) which was not set in the
+    input data, even though it is required to be set by the underlying Zeek
+    type.
+
+6.1.0-dev.232 | 2023-07-25 09:34:54 -0700
+
+  * Fix script_opt/cpp test scripts to work correctly on all platforms (Tim Wojtulewicz)
+
+  * CPP code-gen: Use std::move for constructor arguments (Tim Wojtulewicz)
+
+  * CPP code-gen: Mark child classes final, remove final from function defs (Tim Wojtulewicz)
+
+6.1.0-dev.225 | 2023-07-20 09:23:33 -0700
+
+  * Print type of opaque instead of 'no value description' (Tim Wojtulewicz, Corelight)
+
+  * Add compiler flag to disable unknown pragma warnings on Windows (Tim Wojtulewicz, Corelight)
+
+    Without this flag you get a warning from every use of Type.h since it
+    contains a '#pramga GCC' for disabling a deprecation warning.
+
+6.1.0-dev.220 | 2023-07-17 16:35:06 -0700
+
+  * allow signature actions to be dynamically updated (Vern Paxson, Corelight)
+
+6.1.0-dev.218 | 2023-07-17 16:33:22 -0700
+
+  * more extensive ZAM inlining & compilation of lambdas (Vern Paxson, Corelight)
+
+  * fixes for ZAM compilation of switch statements (Vern Paxson, Corelight)
+
+  * fix for ZAM inlining failing to inline function call arguments (Vern Paxson, Corelight)
+
+  * avoid constructing TypeList's on-the-fly for ListVal's with fixed types (Vern Paxson, Corelight)
+
+  * -O gen-C++ fix for recent smart pointer changes (Vern Paxson, Corelight)
+
+  * minor BTest generalizations & simplifications (Vern Paxson, Corelight)
+
+  * fixes for compiling function calls that return non-error nil ValPtr's (Vern Paxson, Corelight)
+
+6.1.0-dev.207 | 2023-07-14 09:15:16 -0700
+
+  * -O gen-C++ fix for recent smart pointer changes (Vern Paxson, Corelight)
+
+  * -a cpp Btest baseline updates (Vern Paxson, Corelight)
+
+  * minor BTest generalizations & simplifications (Vern Paxson, Corelight)
+
+  * fixes for compiling function calls that return non-error nil ValPtr's (Vern Paxson, Corelight)
+
+6.1.0-dev.202 | 2023-07-12 17:29:26 +0200
+
+  * ci: Bust Ubuntu 22.10 image cache (Arne Welzel, Corelight)
+
+    Cirrus jobs failing to pull the image, try rebuilding.
+
+  * GH-2709: Support :: prefix to reference global namespace, deprecate GLOBAL:: (Arne Welzel, Corelight)
+
+6.1.0-dev.198 | 2023-07-11 16:16:56 -0700
+
+  * dce-rpc: Test cases for unbounded state growth (Arne Welzel, Corelight)
+
+    Pcaps produced as shown in #3145 using a samba container and rpcclient.
+
+  * dce-rpc: Handle smb2_close_request() in scripts (Arne Welzel, Corelight)
+
+    If there's a request to close a fid and it's in the dce_rpc_backing
+    table, remove it from there.
+
+  * smb/dce-rpc: Cleanup DCE-RPC analyzers when fid is closed and limit them (Arne Welzel, Corelight)
+
+    This patch does two things:
+
+    1) For SMB close requests, tear down any associated DCE-RPC
+       analyzer if one exists.
+
+    2) Protect from fid_to_analyzer_map growing unbounded by introducing a
+       new SMB::max_dce_rpc_analyzers limit and forcefully wipe the
+       analyzers if exceeded. Propagate this to script land as event
+       smb_discarded_dce_rpc_analyzers() for additional cleanup.
+
+    This is mostly to fix how the binpac SMB analyzer tracks individual
+    DCE-RPC analyzers per open fid. Connections that re-open the same or
+    different pipe may currently allocate unbounded number of analyzers.
+
+    Closes #3145.
+
+  * dce-rpc: Do not repeatedly register removal hooks (Arne Welzel, Corelight)
+
+    ...once should be enough.
+
+  * removed use of unnecessary member variable accessors for StmtList methods (Vern Paxson, Corelight)
+
+  * migrated some raw pointers to smart pointers (Vern Paxson, Corelight)
+
+6.1.0-dev.190 | 2023-07-07 09:56:56 -0700
+
+  * Remove unused state_label() method from ssl analyzer binpac files (Tim Wojtulewicz)
+
+  * Mark some overridden functions with override keyword (Tim Wojtulewicz)
+
+  * Use emplace_back over push_back where appropriate (Tim Wojtulewicz)
+
+  * packet_analysis: Define all plugin type as final (Tim Wojtulewicz)
+
+  * Use std::make_unique in one place instead of declaring unique_ptr directly (Tim Wojtulewicz)
+
+  * Avoid unnecessary type names in return statements (Tim Wojtulewicz)
+
+  * Simplify type trait usage (remove ::value usage) (Tim Wojtulewicz)
+
+  * A handful of int-to-bool conversions (Tim Wojtulewicz)
+
+  * Replace empty destructor bodies with =default definitions (Tim Wojtulewicz)
+
+  * Reduce amount of files passed to clang-tidy (Tim Wojtulewicz)
+
+6.1.0-dev.179 | 2023-07-07 11:45:53 +0200
+
+  * GH-3157: [Spicy] Support `switch` fields when exporting Spicy types to Zeek. (Robin Sommer, Corelight)
+
+6.1.0-dev.177 | 2023-07-06 11:34:38 +0200
+
+  * Fix for nested "when" statements leading to confusion over scoping (Vern Paxson, Corelight)
+
+6.1.0-dev.175 | 2023-07-06 09:27:03 +0200
+
+  * Define early_shutdown lambda earlier in zeek-setup, avoids build failure with gperftools (Tim Wojtulewicz)
+
+6.1.0-dev.172 | 2023-07-05 13:32:42 -0700
+
+  * Set `SPICY_BUILD_DIRECTORY` in `zeek-path-dev`. (Robin Sommer, Corelight)
+
+    Having this set allows running Spicy tests from inside
+    `auxil/spicy/tests`.
+
+6.1.0-dev.170 | 2023-07-05 13:32:21 -0700
+
+  * Update dump-events baseline, not running with OpenSSL 3 (Arne Welzel, Corelight)
+
+  * Conn: In-place val flip and connection_flipped() (Arne Welzel, Corelight)
+
+    Avoids loosing state on a connection value when a connection is flipped.
+
+    Fixes up the NTP baseline as well where this was visible: analyzer_confirmation_info()
+    was raised for a connection value which was immediately forgotten due to
+    the subsequent connection flipping.
+
+    Closed #3028
+
+  * Conn: Remove is_version_sep() (Arne Welzel, Corelight)
+
+    Leftover from 2655a653314237f5354fdb644bf642d0d5867f63.
+
+  * Remove icmp_conn leftovers (Arne Welzel, Corelight)
+
+    Roughly 2.5 years ago all events taking the ``icmp_conn`` parameter were
+    removed with 44ad614094db3c57fef7fb226c539f6f090a5421 and the NetVar.cc
+    type not populated anymore.
+
+    Remove the left-overs in script land, too.
+
+6.1.0-dev.164 | 2023-07-05 10:23:27 -0700
+
+  * Bump Spicy to latest release. (Benjamin Bannier, Corelight)
+
+    This is the `master` branch companion patch for `release/6.0`'s
+    d6ad7f56c56925c0b0b3f27e98eb13b66e956c8f.
+
+    Closes #3101.
+
+6.1.0-dev.161 | 2023-07-05 08:33:36 -0700
+
+  * Update binpac, bifcl, and broker submodules for funsigned-char change (Tim Wojtulewicz, Corelight)
+
+  * Add /J flag on Windows to force unsigned char (Tim Wojtulewicz, Corelight)
+
+  * Use -funsigned-char flag when building Zeek (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.157 | 2023-07-05 15:24:57 +0200
+
+  * GH-3136: global_ids(): Include module names (Arne Welzel, Corelight)
+
+    Ad-hoc include module names in the global_ids() table. Table values will
+    have the type_name field set to "module" and their key in the table is
+    prefixed with "module " to avoid clashes with existing global identifiers
+    shadowing module names (Management::Node being an existing example).
+
+  * Update package-manager submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.154 | 2023-06-30 17:32:17 +0200
+
+  * Update zeekjs submodule to 0.9.4 (Arne Welzel, Corelight)
+
+  * Fixup external hashes modified during merge (Arne Welzel, Corelight)
+
+6.1.0-dev.152 | 2023-06-30 10:19:19 +0200
+
+  * documentation updates (Vern Paxson, Corelight)
+
+  * updates to ZAM-specific BTest baseline (Vern Paxson, Corelight)
+
+  * Address PR review feedback on zam-feature-complete (Vern Paxson, Corelight)
+
+  * Updates to BTest baselines due to previous BTest tweaks (Vern Paxson, Corelight)
+
+  * tweaks to BTests for ZAM feature completeness; new ZAM-only btest (Vern Paxson, Corelight)
+
+  * removal of unused functionality and some follow-on simplifications (Vern Paxson, Corelight)
+
+  * feature completeness for ZAM (Vern Paxson, Corelight)
+
+  * -O gen-C++ tweaks to be compatible with ZAM changes (Vern Paxson, Corelight)
+
+  * ZAM support for "when" statements (Vern Paxson, Corelight)
+
+  * ZAM changes intermixed with lambda and "when" support (Vern Paxson, Corelight)
+
+  * WhenStmt/WhenInfo restructuring in support of ZAM "when" statements (Vern Paxson, Corelight)
+
+  * ZAM support for lambdas (Vern Paxson, Corelight)
+
+  * ZAM internals have a notion of "captures" as global-like variables (Vern Paxson, Corelight)
+
+  * AST profiling enhnacements in support of script optimization for lambdas/whens (Vern Paxson, Corelight)
+
+  * refinements to LambdaExpr's to provide flexibility, support for ZVal captures (Vern Paxson, Corelight)
+
+  * support in ScriptFunc class for ZVal-oriented vector of captures (Vern Paxson, Corelight)
+
+  * simplifications to the Frame class now that it no longer has to support old-style captures (Vern Paxson, Corelight)
+
+  * use Ingredients directly for constructing functions (Vern Paxson, Corelight)
+
+  * the "Capture" struct is now a class (Vern Paxson, Corelight)
+
+  * more debugging information when dumping script optimization data structures (Vern Paxson, Corelight)
+
+  * bug fixes for script optimization intermediate forms (Vern Paxson, Corelight)
+
+  * clarifying comments, interface tightening (Vern Paxson, Corelight)
+
+  * added some class accessors/set-ers (Vern Paxson, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
+6.1.0-dev.127 | 2023-06-29 11:22:58 -0700
+
+  * Move CMake template files to separate directory (Tim Wojtulewicz, Corelight)
+
+6.1.0-dev.125 | 2023-06-29 18:33:41 +0200
+
+  * Add test with MUD example (Arne Welzel, Corelight)
+
+    This came up as a use-case on GitHub showing the limitations of the
+    opinionated approach. Add it as an example.
+
+    Reference https://www.rfc-editor.org/rfc/rfc8520#section-9
+
+  * GH-3142: from_json: Support function to normalize key names (Arne Welzel, Corelight)
+
+    When a JSON document contains key names containing colons or other
+    special characters that are not valid in Zeek identifiers, from_json()
+    cannot be used to parse such input.
+
+    This change allows a customizable normalization function.
+
+6.1.0-dev.121 | 2023-06-27 12:18:38 -0700
+
+  * Prefer Spicy include directories of this build over accidental ones. (Benjamin Bannier, Corelight)
+
+    Closes #3153.
+
+6.1.0-dev.118 | 2023-06-27 18:17:40 +0200
+
+  * fix http AUTHORIZATION base64 decode failed (progmboy)
+
 6.1.0-dev.115 | 2023-06-21 17:45:35 -0700
 
   * formatters/JSON: Make JSON::NullDoubleWriter use zeek::json::detail version (Arne Welzel, Corelight)

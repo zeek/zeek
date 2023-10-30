@@ -1,0 +1,25 @@
+# Copyright (c) 2023, NCC Group / Fox-IT. See COPYING for details.
+# Copyright (c) 2023 by the Zeek Project. See COPYING for details.
+
+%doc-id = Zeek::QUIC;
+%doc-description = "QUIC analyzer";
+
+protocol analyzer QUIC over UDP:
+    parse originator with QUIC::RequestFrame,
+    parse responder with QUIC::ResponseFrame;
+
+import QUIC;
+
+# Make the enum available.
+export QUIC::LongPacketType;
+
+on QUIC::InitialPacket -> event QUIC::initial_packet($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id);
+
+on QUIC::RetryPacket -> event QUIC::retry_packet($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id, self.retry_token, self.integrity_tag);
+
+on QUIC::HandshakePacket -> event QUIC::handshake_packet($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id);
+
+on QUIC::ZeroRTTPacket -> event QUIC::zero_rtt_packet($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id);
+
+on QUIC::ConnectionClosePayload -> event QUIC::connection_close_frame($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id,
+                                                                      self.error_code.result, self.reason_phrase);

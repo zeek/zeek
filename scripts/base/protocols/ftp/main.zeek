@@ -165,7 +165,7 @@ function set_ftp_session(c: connection)
 		Conn::register_removal_hook(c, finalize_ftp);
 
 		# Add a shim command so the server can respond with some init response.
-		add_pending_cmd(c$ftp$pending_commands, "<init>", "");
+		add_pending_cmd(c$ftp$pending_commands, ++c$ftp$command_seq, "<init>", "");
 		}
 	}
 
@@ -261,8 +261,8 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 	# attackers.
 	if ( c?$ftp && c$ftp?$cmdarg && c$ftp?$reply_code )
 		{
-		remove_pending_cmd(c$ftp$pending_commands, c$ftp$cmdarg);
-		ftp_message(c);
+		if ( remove_pending_cmd(c$ftp$pending_commands, c$ftp$cmdarg) )
+			ftp_message(c);
 		}
 
 	local id = c$id;
@@ -270,7 +270,7 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 
 	# Queue up the new command and argument
 	if ( |c$ftp$pending_commands| < max_pending_commands )
-		add_pending_cmd(c$ftp$pending_commands, command, arg);
+		add_pending_cmd(c$ftp$pending_commands, ++c$ftp$command_seq, command, arg);
 	else
 		Reporter::conn_weird("FTP_too_many_pending_commands", c,
 				     cat(|c$ftp$pending_commands|), "FTP");

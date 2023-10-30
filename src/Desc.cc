@@ -267,28 +267,26 @@ size_t ODesc::StartsWithEscapeSequence(const char* start, const char* end)
 
 std::pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n)
 	{
-	using escape_pos = std::pair<const char*, size_t>;
-
 	if ( IsBinary() )
-		return escape_pos(0, 0);
+		return {nullptr, 0};
 
 	for ( size_t i = 0; i < n; ++i )
 		{
 		auto printable = isprint(bytes[i]);
 
 		if ( ! printable && ! utf8 )
-			return escape_pos(bytes + i, 1);
+			return {bytes + i, 1};
 
 		if ( bytes[i] == '\\' )
-			return escape_pos(bytes + i, 1);
+			return {bytes + i, 1};
 
 		size_t len = StartsWithEscapeSequence(bytes + i, bytes + n);
 
 		if ( len )
-			return escape_pos(bytes + i, len);
+			return {bytes + i, len};
 		}
 
-	return escape_pos(nullptr, 0);
+	return {nullptr, 0};
 	}
 
 void ODesc::AddBytes(const void* bytes, unsigned int n)
@@ -429,7 +427,7 @@ std::string obj_desc(const Obj* o)
 	d.SP();
 	o->GetLocationInfo()->Describe(&d);
 
-	return std::string(d.Description());
+	return d.Description();
 	}
 
 std::string obj_desc_short(const Obj* o)
@@ -440,7 +438,7 @@ std::string obj_desc_short(const Obj* o)
 	d.Clear();
 	o->Describe(&d);
 
-	return std::string(d.Description());
+	return d.Description();
 	}
 
 	} // namespace zeek

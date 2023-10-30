@@ -51,6 +51,8 @@ scripts/base/init-bare.zeek
       scripts/base/packet-protocols/nflog/main.zeek
     scripts/base/packet-protocols/null/__load__.zeek
       scripts/base/packet-protocols/null/main.zeek
+    scripts/base/packet-protocols/ppp/__load__.zeek
+      scripts/base/packet-protocols/ppp/main.zeek
     scripts/base/packet-protocols/ppp_serial/__load__.zeek
       scripts/base/packet-protocols/ppp_serial/main.zeek
     scripts/base/packet-protocols/pppoe/__load__.zeek
@@ -266,10 +268,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_NoneWriter.none.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek
   scripts/base/frameworks/spicy/init-framework.zeek
-    scripts/base/misc/version.zeek
-      scripts/base/frameworks/reporter/__load__.zeek
-        scripts/base/frameworks/reporter/main.zeek
-      scripts/base/utils/strings.zeek
 build/scripts/builtin-plugins/__load__.zeek
 scripts/policy/misc/loaded-scripts.zeek
   scripts/base/utils/paths.zeek

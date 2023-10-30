@@ -1,0 +1,10 @@
+# @TEST-EXEC: zeek -b -r $TRACES/tunnels/gre-over-udp-4754.pcap %INPUT
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff tunnel.log
+# @TEST-EXEC: btest-diff dns.log
+# @TEST-EXEC: btest-diff http.log
+#
+@load base/frameworks/tunnels
+@load base/protocols/conn
+@load base/protocols/dns
+@load base/protocols/http

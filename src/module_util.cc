@@ -28,6 +28,7 @@ TEST_CASE("module_util streq")
 TEST_CASE("module_util extract_module_name")
 	{
 	CHECK(extract_module_name("mod") == GLOBAL_MODULE_NAME);
+	CHECK(extract_module_name("::var") == GLOBAL_MODULE_NAME);
 	CHECK(extract_module_name("mod::") == "mod");
 	CHECK(extract_module_name("mod::var") == "mod");
 	}
@@ -38,8 +39,8 @@ string extract_module_name(const char* name)
 	string module_name = name;
 	string::size_type pos = module_name.rfind("::");
 
-	if ( pos == string::npos )
-		return string(GLOBAL_MODULE_NAME);
+	if ( pos == string::npos || pos == 0 )
+		return GLOBAL_MODULE_NAME;
 
 	module_name.erase(pos);
 
@@ -63,7 +64,7 @@ string extract_var_name(const char* name)
 		return var_name;
 
 	if ( pos + 2 > var_name.size() )
-		return string("");
+		return "";
 
 	return var_name.substr(pos + 2);
 	}
@@ -81,7 +82,7 @@ string normalized_module_name(const char* module_name)
 	if ( (mod_len = strlen(module_name)) >= 2 && streq(module_name + mod_len - 2, "::") )
 		mod_len -= 2;
 
-	return string(module_name, mod_len);
+	return {module_name, static_cast<size_t>(mod_len)};
 	}
 
 TEST_CASE("module_util make_full_var_name")
@@ -89,21 +90,23 @@ TEST_CASE("module_util make_full_var_name")
 	CHECK(make_full_var_name(nullptr, "GLOBAL::var") == "var");
 	CHECK(make_full_var_name(GLOBAL_MODULE_NAME, "var") == "var");
 	CHECK(make_full_var_name(nullptr, "notglobal::var") == "notglobal::var");
-	CHECK(make_full_var_name(nullptr, "::var") == "::var");
+	CHECK(make_full_var_name(nullptr, "::var") == "var");
 
 	CHECK(make_full_var_name("module", "var") == "module::var");
 	CHECK(make_full_var_name("module::", "var") == "module::var");
-	CHECK(make_full_var_name("", "var") == "::var");
+	CHECK(make_full_var_name("", "var") == "var");
+	CHECK(make_full_var_name("", "::var") == "var");
 	}
 
 string make_full_var_name(const char* module_name, const char* var_name)
 	{
-	if ( ! module_name || streq(module_name, GLOBAL_MODULE_NAME) || strstr(var_name, "::") )
+	if ( ! module_name || streq(module_name, "") || streq(module_name, GLOBAL_MODULE_NAME) ||
+	     strstr(var_name, "::") )
 		{
 		if ( streq(GLOBAL_MODULE_NAME, extract_module_name(var_name).c_str()) )
 			return extract_var_name(var_name);
 
-		return string(var_name);
+		return var_name;
 		}
 
 	string full_name = normalized_module_name(module_name);

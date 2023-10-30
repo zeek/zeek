@@ -51,6 +51,8 @@ scripts/base/init-bare.zeek
       scripts/base/packet-protocols/nflog/main.zeek
     scripts/base/packet-protocols/null/__load__.zeek
       scripts/base/packet-protocols/null/main.zeek
+    scripts/base/packet-protocols/ppp/__load__.zeek
+      scripts/base/packet-protocols/ppp/main.zeek
     scripts/base/packet-protocols/ppp_serial/__load__.zeek
       scripts/base/packet-protocols/ppp_serial/main.zeek
     scripts/base/packet-protocols/pppoe/__load__.zeek
@@ -266,10 +268,6 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_NoneWriter.none.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SQLiteWriter.sqlite.bif.zeek
   scripts/base/frameworks/spicy/init-framework.zeek
-    scripts/base/misc/version.zeek
-      scripts/base/frameworks/reporter/__load__.zeek
-        scripts/base/frameworks/reporter/main.zeek
-      scripts/base/utils/strings.zeek
 scripts/base/init-default.zeek
   scripts/base/utils/active-http.zeek
     scripts/base/utils/exec.zeek
@@ -277,6 +275,8 @@ scripts/base/init-default.zeek
   scripts/base/utils/backtrace.zeek
   scripts/base/utils/conn-ids.zeek
   scripts/base/utils/dir.zeek
+    scripts/base/frameworks/reporter/__load__.zeek
+      scripts/base/frameworks/reporter/main.zeek
     scripts/base/utils/paths.zeek
   scripts/base/utils/directions-and-hosts.zeek
   scripts/base/utils/email.zeek
@@ -284,6 +284,7 @@ scripts/base/init-default.zeek
   scripts/base/utils/geoip-distance.zeek
   scripts/base/utils/numbers.zeek
   scripts/base/utils/queue.zeek
+  scripts/base/utils/strings.zeek
   scripts/base/utils/thresholds.zeek
   scripts/base/utils/time.zeek
   scripts/base/utils/urls.zeek
@@ -347,6 +348,7 @@ scripts/base/init-default.zeek
     scripts/base/frameworks/netcontrol/non-cluster.zeek
   scripts/base/frameworks/telemetry/__load__.zeek
     scripts/base/frameworks/telemetry/main.zeek
+      scripts/base/misc/version.zeek
   scripts/base/frameworks/spicy/__load__.zeek
     scripts/base/frameworks/spicy/main.zeek
   scripts/base/protocols/conn/__load__.zeek
@@ -404,6 +406,10 @@ scripts/base/init-default.zeek
     scripts/base/protocols/krb/main.zeek
       scripts/base/protocols/krb/consts.zeek
     scripts/base/protocols/krb/files.zeek
+  scripts/base/protocols/ldap/__load__.zeek
+    scripts/base/protocols/ldap/spicy-events.zeek
+    scripts/base/protocols/ldap/consts.zeek
+    scripts/base/protocols/ldap/main.zeek
   scripts/base/protocols/modbus/__load__.zeek
     scripts/base/protocols/modbus/consts.zeek
     scripts/base/protocols/modbus/main.zeek
@@ -419,6 +425,10 @@ scripts/base/init-default.zeek
     scripts/base/protocols/ntp/main.zeek
     scripts/base/protocols/ntp/consts.zeek
   scripts/base/protocols/pop3/__load__.zeek
+  scripts/base/protocols/quic/__load__.zeek
+    scripts/base/protocols/quic/spicy-events.zeek
+    scripts/base/protocols/quic/consts.zeek
+    scripts/base/protocols/quic/main.zeek
   scripts/base/protocols/radius/__load__.zeek
     scripts/base/protocols/radius/main.zeek
       scripts/base/protocols/radius/consts.zeek

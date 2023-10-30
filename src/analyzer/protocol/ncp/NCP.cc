@@ -169,8 +169,6 @@ Contents_NCP_Analyzer::Contents_NCP_Analyzer(Connection* conn, bool orig,
 	resync_set = false;
 	}
 
-Contents_NCP_Analyzer::~Contents_NCP_Analyzer() { }
-
 void Contents_NCP_Analyzer::DeliverStream(int len, const u_char* data, bool orig)
 	{
 	analyzer::tcp::TCP_SupportAnalyzer::DeliverStream(len, data, orig);

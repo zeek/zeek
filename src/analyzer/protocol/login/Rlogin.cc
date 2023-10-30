@@ -26,8 +26,6 @@ Contents_Rlogin_Analyzer::Contents_Rlogin_Analyzer(Connection* conn, bool orig,
 		state = save_state = RLOGIN_SERVER_ACK;
 	}
 
-Contents_Rlogin_Analyzer::~Contents_Rlogin_Analyzer() { }
-
 void Contents_Rlogin_Analyzer::DoDeliver(int len, const u_char* data)
 	{
 	int endp_state;

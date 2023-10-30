@@ -3,6 +3,7 @@ module Pcap;
 
 const snaplen: count;
 const bufsize: count;
+const bufsize_offline_bytes: count;
 const non_fd_timeout: interval;
 
 %%{

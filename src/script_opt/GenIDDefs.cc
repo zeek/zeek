@@ -26,7 +26,7 @@ void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body)
 	// Establish the outermost barrier and associated set of
 	// identifiers.
 	barrier_blocks.push_back(0);
-	modified_IDs.push_back({});
+	modified_IDs.emplace_back();
 
 	for ( const auto& g : pf->Globals() )
 		{
@@ -107,37 +107,8 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 			}
 
 		case STMT_SWITCH:
-			{
-			auto sw = s->AsSwitchStmt();
-			auto e = sw->StmtExpr();
-
-			e->Traverse(this);
-
-			StartConfluenceBlock(sw);
-
-			for ( const auto& c : *sw->Cases() )
-				{
-				auto body = c->Body();
-
-				auto exprs = c->ExprCases();
-				if ( exprs )
-					exprs->Traverse(this);
-
-				auto type_ids = c->TypeCases();
-				if ( type_ids )
-					{
-					for ( const auto& id : *type_ids )
-						if ( id->Name() )
-							TrackID(id);
-					}
-
-				body->Traverse(this);
-				}
-
-			EndConfluenceBlock(sw->HasDefault());
-
+			AnalyzeSwitch(s->AsSwitchStmt());
 			return TC_ABORTSTMT;
-			}
 
 		case STMT_FOR:
 			{
@@ -196,14 +167,40 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s)
 			return TC_ABORTSTMT;
 			}
 
-		case STMT_WHEN:
-			{
-			// ### punt on these for now, need to reflect on bindings.
-			return TC_ABORTSTMT;
-			}
-
 		default:
 			return TC_CONTINUE;
+		}
+	}
+
+void GenIDDefs::AnalyzeSwitch(const SwitchStmt* sw)
+	{
+	sw->StmtExpr()->Traverse(this);
+
+	for ( const auto& c : *sw->Cases() )
+		{
+		// Important: the confluence block is the switch statement
+		// itself, not the case body.  This is needed so that variable
+		// assignments made inside case bodies that end with
+		// "fallthrough" are correctly propagated to the next case
+		// body.
+		StartConfluenceBlock(sw);
+
+		auto body = c->Body();
+
+		auto exprs = c->ExprCases();
+		if ( exprs )
+			exprs->Traverse(this);
+
+		auto type_ids = c->TypeCases();
+		if ( type_ids )
+			{
+			for ( const auto& id : *type_ids )
+				if ( id->Name() )
+					TrackID(id);
+			}
+
+		body->Traverse(this);
+		EndConfluenceBlock(false);
 		}
 	}
 
@@ -440,7 +437,7 @@ void GenIDDefs::StartConfluenceBlock(const Stmt* s)
 		barrier_blocks.push_back(confluence_blocks.size());
 
 	confluence_blocks.push_back(s);
-	modified_IDs.push_back({});
+	modified_IDs.emplace_back();
 	}
 
 void GenIDDefs::EndConfluenceBlock(bool no_orig)

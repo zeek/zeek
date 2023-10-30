@@ -403,8 +403,6 @@ DNP3_TCP_Analyzer::DNP3_TCP_Analyzer(Connection* c)
 	{
 	}
 
-DNP3_TCP_Analyzer::~DNP3_TCP_Analyzer() { }
-
 void DNP3_TCP_Analyzer::Done()
 	{
 	TCP_ApplicationAnalyzer::Done();
@@ -443,8 +441,6 @@ void DNP3_TCP_Analyzer::EndpointEOF(bool is_orig)
 	}
 
 DNP3_UDP_Analyzer::DNP3_UDP_Analyzer(Connection* c) : DNP3_Base(this), Analyzer("DNP3_UDP", c) { }
-
-DNP3_UDP_Analyzer::~DNP3_UDP_Analyzer() { }
 
 void DNP3_UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq,
                                       const IP_Hdr* ip, int caplen)

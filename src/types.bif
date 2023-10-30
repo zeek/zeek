@@ -176,6 +176,12 @@ module GLOBAL;
 type ModbusHeaders: record;
 type ModbusCoils: vector;
 type ModbusRegisters: vector;
+type ModbusFileRecordRequest: record;
+type ModbusFileRecordRequests: vector;
+type ModbusFileRecordResponse: record;
+type ModbusFileRecordResponses: vector;
+type ModbusFileReference: record;
+type ModbusFileReferences: vector;
 
 type PE::DOSHeader: record;
 type PE::FileHeader: record;

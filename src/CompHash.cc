@@ -359,10 +359,11 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
 
 					ASSERT(int(values.size()) == num_fields);
 
-					auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
+					auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt},
+					                                    false /* init_fields */);
 
 					for ( int i = 0; i < num_fields; ++i )
-						rv->Assign(i, std::move(values[i]));
+						rv->AppendField(std::move(values[i]), rt->GetFieldType(i));
 
 					*pval = std::move(rv);
 					}
@@ -929,7 +930,7 @@ bool CompositeHash::ReserveSingleTypeKeySize(HashKey& hk, Type* bt, const Val* v
 					{
 					reporter->InternalError(
 						"bad index type in CompositeHash::ReserveSingleTypeKeySize");
-					return 0;
+					return false;
 					}
 				}
 

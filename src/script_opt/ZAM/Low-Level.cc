@@ -149,6 +149,9 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local)
 	if ( suppress_non_local )
 		return ZAMStmt(top_main_inst);
 
+	// Ensure we haven't confused ourselves about any pending stores.
+	ASSERT(pending_global_store == -1 || pending_capture_store == -1);
+
 	if ( pending_global_store >= 0 )
 		{
 		auto gs = pending_global_store;
@@ -161,6 +164,27 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local)
 		return AddInst(store_inst);
 		}
 
+	if ( pending_capture_store >= 0 )
+		{
+		auto cs = pending_capture_store;
+		pending_capture_store = -1;
+
+		auto& cv = *func->GetType()->AsFuncType()->GetCaptures();
+		auto& c_id = cv[cs].Id();
+
+		ZOp op;
+
+		if ( ZVal::IsManagedType(c_id->GetType()) )
+			op = OP_STORE_MANAGED_CAPTURE_VV;
+		else
+			op = OP_STORE_CAPTURE_VV;
+
+		auto store_inst = ZInstI(op, RawSlot(c_id.get()), cs);
+		store_inst.op_type = OP_VV_I2;
+
+		return AddInst(store_inst);
+		}
+
 	return ZAMStmt(top_main_inst);
 	}
 
@@ -169,7 +193,8 @@ const Stmt* ZAMCompiler::LastStmt(const Stmt* s) const
 	if ( s->Tag() == STMT_LIST )
 		{
 		auto sl = s->AsStmtList()->Stmts();
-		return sl[sl.length() - 1];
+		ASSERT(! sl.empty());
+		return sl.back().get();
 		}
 
 	else

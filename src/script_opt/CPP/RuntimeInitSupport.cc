@@ -208,7 +208,7 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
 		ASSERT(cs != compiled_scripts.end());
 
 		const auto& f = cs->second;
-		bodies.push_back(f.body);
+		bodies.emplace_back(f.body);
 		priorities.push_back(f.priority);
 
 		// This might register the same event more than once,

@@ -1,0 +1,134 @@
+# This test can only run if we have the LDAP grammar available.
+# @TEST-REQUIRES: have-spicy && [ -n ${DIST} ]
+#
+# @TEST-EXEC: spicyc -j -d -L ${DIST}/src/analyzer/protocol/ldap %INPUT
+#
+# @TEST-DOC: Validates helper functions in LDAP module.
+
+module test;
+
+import LDAP;
+
+# ----------------------------------------------------------------------------------
+# function utf16_guid_to_hex_repr()
+# - requires exactly 16 bytes
+
+# Not enough bytes (15)
+assert LDAP::utf16_guid_to_hex_repr(b"1234567890ABCDE") == "GUID_FORMAT_FAILED";
+
+# Too much bytes (17)
+assert LDAP::utf16_guid_to_hex_repr(b"1234567890ABCDEFG") == "GUID_FORMAT_FAILED";
+
+# Empty
+assert LDAP::utf16_guid_to_hex_repr(b"") == "GUID_FORMAT_FAILED";
+
+# 16 times \x00
+assert LDAP::utf16_guid_to_hex_repr(b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00") == "00000000-0000-0000-0000-000000000000";
+
+# 16 times \xff
+assert LDAP::utf16_guid_to_hex_repr(b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff") == "ffffffff-ffff-ffff-ffff-ffffffffffff";
+
+# Valid DomainGuidFilter
+assert LDAP::utf16_guid_to_hex_repr(b"\x3b\x52\xb3\xb0\x6f\x54\xaf\x4f\x93\xb2\x29\x4a\x38\x50\x98\xf2") == "b0b3523b-546f-4faf-93b2-294a385098f2";
+
+# ----------------------------------------------------------------------------------
+# function bytes_sid_to_hex_repr()
+# - transforms bytes of arbitrary length to a ':' separated string
+
+# Empty
+assert LDAP::bytes_sid_to_hex_repr(b"") == "";
+
+# 10 times \x00
+assert LDAP::bytes_sid_to_hex_repr(b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00") == "00:00:00:00:00:00:00:00:00:00";
+
+# 10 times \xff
+assert LDAP::bytes_sid_to_hex_repr(b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff") == "ff:ff:ff:ff:ff:ff:ff:ff:ff:ff";
+
+# Valid `AAC` value
+assert LDAP::bytes_sid_to_hex_repr(b"\x80\x00\x00\x00") == "80:00:00:00";
+
+# Valid objectSid
+assert LDAP::bytes_sid_to_hex_repr(b"\x01\x05\x00\x00\x00\x00\x00\x05\x15\x00\x00\x00\xd5\x64\xbe\x81\x5d\x68\x9c\x0d\x44\x4a\xae\x74\x01\x02\x00\x00") == "01:05:00:00:00:00:00:05:15:00:00:00:d5:64:be:81:5d:68:9c:0d:44:4a:ae:74:01:02:00:00";
+
+# ----------------------------------------------------------------------------------
+# function bytes_sid_to_SID_repr()
+# - requires exactly 24 bytes
+
+# Not enough bytes (0 and 10)
+assert LDAP::bytes_sid_to_SID_repr(b"") == "SID_FORMAT_FAILED";
+assert LDAP::bytes_sid_to_SID_repr(b"1234567890") == "SID_FORMAT_FAILED";
+
+# Too much bytes (25)
+assert LDAP::bytes_sid_to_SID_repr(b"1234567890123456789012345") == "SID_FORMAT_FAILED";
+
+# Empty
+assert LDAP::bytes_sid_to_SID_repr(b"") == "SID_FORMAT_FAILED";
+
+# Valid SID
+assert LDAP::bytes_sid_to_SID_repr(b"\x01\x04\x00\x00\x00\x00\x00\x05\x15\x00\x00\x00\x39\xc5\xc7\x44\xfa\xbd\x24\x1d\x4a\x65\xfd\x71") == "S-1-5-21-1153942841-488947194-1912431946";
+
+# Some random bytes - probably an invalid SID but no error
+assert LDAP::bytes_sid_to_SID_repr(b"\x02\x08\x00\x02\x00\x00\x00\x05\x15\x20\x00\x12\xd5\x64\xaf\x84\x5d\x68\x9c\x0d\x44\x4c\xad\x73") == "S-2-8589934597-301998101-2226087125-228354141-1940737092";
+
+# All 1's
+assert LDAP::bytes_sid_to_SID_repr(b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff") == "S-255-281474976710655-4294967295-4294967295-4294967295-4294967295";
+
+# ----------------------------------------------------------------------------------
+# function uint32_to_hex_repr()
+
+# Not enough bytes (0 and 2)
+assert LDAP::uint32_to_hex_repr(b"") == "HEX_FORMAT_FAILED";
+assert LDAP::uint32_to_hex_repr(b"12") == "HEX_FORMAT_FAILED";
+
+# Too much bytes (6)
+assert LDAP::uint32_to_hex_repr(b"123456") == "HEX_FORMAT_FAILED";
+
+# Empty
+assert LDAP::uint32_to_hex_repr(b"") == "HEX_FORMAT_FAILED";
+
+# Valid `NtVer` value
+assert LDAP::uint32_to_hex_repr(b"\x16\x00\x00\x00") == "0x00000016";
+
+# 4 times \x00
+assert LDAP::uint32_to_hex_repr(b"\x00\x00\x00\x00") == "0x00000000";
+
+# 4 times \xff
+assert LDAP::uint32_to_hex_repr(b"\xff\xff\xff\xff") == "0xffffffff";
+
+# ----------------------------------------------------------------------------------
+# function string_representation()
+function make_nested_repr(filters: vector<string>): string {
+    local nestedOr: LDAP::ParseNestedAndOr;
+    nestedOr.searchfilters = vector<LDAP::SearchFilter>();
+
+    for (f in filters) {
+        local or_: LDAP::SearchFilter;
+        or_.filterType = LDAP::FilterType::FILTER_PRESENT;
+        or_.FILTER_PRESENT = f;
+        or_.stringRepresentation = LDAP::string_representation(or_);
+
+        nestedOr.searchfilters.push_back(or_);
+    }
+
+    local searchFilter: LDAP::SearchFilter;
+    searchFilter.filterType = LDAP::FilterType::FILTER_OR;
+    searchFilter.FILTER_OR = nestedOr;
+
+    return LDAP::string_representation(searchFilter);
+}
+
+function test_string_representation() {
+    local repr0 = make_nested_repr(vector());
+    assert repr0 == "": repr0;
+
+    local repr1 = make_nested_repr(vector("foo"));
+    assert repr1 == "(|(foo=*))": repr1;
+
+    local repr2 = make_nested_repr(vector("foo", "bar"));
+    assert repr2 == "(|(foo=*)(bar=*))": repr2;
+
+    local repr3 = make_nested_repr(vector("foo", "bar", "baz"));
+    assert repr3 == "(|(|(foo=*)(bar=*))(baz=*))": repr3;
+}
+
+test_string_representation();

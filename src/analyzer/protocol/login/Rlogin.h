@@ -36,7 +36,7 @@ class Contents_Rlogin_Analyzer final : public analyzer::tcp::ContentLine_Analyze
 	{
 public:
 	Contents_Rlogin_Analyzer(Connection* conn, bool orig, Rlogin_Analyzer* analyzer);
-	~Contents_Rlogin_Analyzer() override;
+	~Contents_Rlogin_Analyzer() override = default;
 
 	void SetPeer(Contents_Rlogin_Analyzer* arg_peer) { peer = arg_peer; }
 

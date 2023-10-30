@@ -30,13 +30,42 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 			abort();
 		}
 
-	zeek::Options options;
+	int zeek_args = 0;
+	char** zeek_argv = &((*argv)[*argc]);
+
+	// If the inputs given to the fuzzer executable contain "--", consider all
+	// following arguments to be part of Zeek's command-line and forward them to
+	// zeek::parse_cmdline().
+	//
+	// This allows to load more scripts and set or overwrite options without
+	// the need to recompile the fuzzer.
+	for ( int i = 0; i < *argc; i++ )
+		{
+		if ( ! strcmp((*argv)[i], "--") )
+			{
+			zeek_args = *argc - i;
+			(*argv)[i] = (*argv)[0]; // Fake argv[0] for parse_cmdline() with the original argv[0]
+			zeek_argv = &(*argv)[i];
+			}
+		}
+
+	// Propagate change in argc upwards.
+	*argc = *argc - zeek_args;
+
+	zeek::Options options = zeek_args > 0 ? zeek::parse_cmdline(zeek_args, zeek_argv)
+	                                      : zeek::Options{};
+
+	std::vector<std::string> default_script_options_to_set = {
+		"Site::local_nets={10.0.0.0/8}", "Log::default_writer=Log::WRITER_NONE",
+		"Reporter::info_to_stderr=F",    "Reporter::warnings_to_stderr=F",
+		"Reporter::errors_to_stderr=F",
+	};
+
+	// Prepend default options.
+	options.script_options_to_set.insert(options.script_options_to_set.begin(),
+	                                     default_script_options_to_set.begin(),
+	                                     default_script_options_to_set.end());
 	options.scripts_to_load.emplace_back("local.zeek");
-	options.script_options_to_set.emplace_back("Site::local_nets={10.0.0.0/8}");
-	options.script_options_to_set.emplace_back("Log::default_writer=Log::WRITER_NONE");
-	options.script_options_to_set.emplace_back("Reporter::info_to_stderr=F");
-	options.script_options_to_set.emplace_back("Reporter::warnings_to_stderr=F");
-	options.script_options_to_set.emplace_back("Reporter::errors_to_stderr=F");
 	options.deterministic_mode = true;
 	options.ignore_checksums = true;
 	options.abort_on_scripting_errors = true;

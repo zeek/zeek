@@ -11,6 +11,7 @@
 @load base/packet-protocols/linux_sll2
 @load base/packet-protocols/nflog
 @load base/packet-protocols/null
+@load base/packet-protocols/ppp
 @load base/packet-protocols/ppp_serial
 @load base/packet-protocols/pppoe
 @load base/packet-protocols/vlan

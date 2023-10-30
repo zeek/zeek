@@ -11,7 +11,7 @@ namespace zeek::analyzer::xmpp
 XMPP_Analyzer::XMPP_Analyzer(Connection* conn)
 	: analyzer::tcp::TCP_ApplicationAnalyzer("XMPP", conn)
 	{
-	interp = unique_ptr<binpac::XMPP::XMPP_Conn>(new binpac::XMPP::XMPP_Conn(this));
+	interp = std::make_unique<binpac::XMPP::XMPP_Conn>(this);
 	had_gap = false;
 	tls_active = false;
 	}

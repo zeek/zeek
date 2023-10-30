@@ -18,7 +18,7 @@ class PcapDumper : public PktDumper
 	{
 public:
 	PcapDumper(const std::string& path, bool append);
-	~PcapDumper() override;
+	~PcapDumper() override = default;
 
 	static PktDumper* Instantiate(const std::string& path, bool append);
 

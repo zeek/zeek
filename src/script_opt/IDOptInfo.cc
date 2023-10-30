@@ -77,7 +77,7 @@ void IDOptInfo::AddInitExpr(ExprPtr init_expr, InitClass ic)
 		return;
 
 	if ( my_id->IsGlobal() )
-		global_init_exprs.emplace_back(IDInitInfo(my_id, init_expr, ic));
+		global_init_exprs.emplace_back(my_id, init_expr, ic);
 
 	init_exprs.emplace_back(std::move(init_expr));
 	}
@@ -141,7 +141,7 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e,
 	// This needs to come after filling out the confluence
 	// blocks, since they'll create their own (earlier) regions.
 	usage_regions.emplace_back(s, true, stmt_num);
-	usage_regions.back().SetDefExpr(e);
+	usage_regions.back().SetDefExpr(std::move(e));
 
 	if ( tracing )
 		DumpBlocks();
@@ -295,7 +295,7 @@ void IDOptInfo::StartConfluenceBlock(const Stmt* s)
 
 			if ( ur.BlockLevel() < block_level )
 				// Didn't find one at our own level,
-				// so create on inherited from the
+				// so create one inherited from the
 				// outer one.
 				usage_regions.emplace_back(s, ur);
 

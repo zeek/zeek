@@ -209,6 +209,7 @@ void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext)
 	                                                 ext_val->length);
 	if ( ! inner )
 		{
+		OPENSSL_free(ext_val_second_pointer);
 		reporter->Error(
 			"X509::ParseSignedCertificateTimestamps could not parse inner octet string");
 		return;

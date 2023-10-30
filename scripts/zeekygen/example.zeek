@@ -173,7 +173,7 @@ export {
 
 # This function isn't exported, so it won't appear anywhere in the generated
 # documentation.  So using ``##``-style comments is pointless here.
-function function_without_proto(tag: string): string
+function function_without_proto(tag: string): string &is_used
     {
     # Zeekygen-style comments only apply to entities at global-scope so
     # Zeekygen doesn't associate the following comments with anything.

@@ -661,9 +661,16 @@ private:
 class ListVal final : public Val
 	{
 public:
+	// Constructor used to build up a homogeneous list of values;
+	// or, if 't' is TYPE_ANY, then a heterogeneous one whose type
+	// is built up as values are appended.
 	explicit ListVal(TypeTag t);
 
-	~ListVal() override;
+	// Constructor used to build the list in one shot, with the type
+	// pre-computed.
+	ListVal(TypeListPtr tl, std::vector<ValPtr> vals);
+
+	~ListVal() override = default;
 
 	TypeTag BaseTag() const { return tag; }
 
@@ -871,11 +878,13 @@ public:
 
 	/**
 	 * Finds an index in the table and returns its associated value or else
-	 * the &default value.
+	 * the &default or &default_insert value. If the &default_insert attribute
+	 * is set on the table, the returned value is also inserted into the table.
 	 * @param index  The index to lookup in the table.
 	 * @return  The value associated with the index.  If the index doesn't
-	 * exist, instead returns the &default value.  If there's no &default
-	 * attribute, then nullptr is still returned for nonexistent index.
+	 * exist, instead returns the &default or &default_insert.  If there's no
+	 * &default or &default_insert attribute, then nullptr is still returned
+	 * for nonexistent index.
 	 */
 	ValPtr FindOrDefault(const ValPtr& index);
 
@@ -968,8 +977,12 @@ public:
 
 	// If the &default attribute is not a function, or the function has
 	// already been initialized, this does nothing. Otherwise, evaluates
-	// the function in the frame allowing it to capture its closure.
+	// the function in the frame, allowing it to capture its closure.
 	void InitDefaultFunc(detail::Frame* f);
+
+	// An alternative that assigns the default value directly.  Used
+	// by ZAM compilation.
+	void InitDefaultVal(ValPtr def_val);
 
 	void ClearTimer(detail::Timer* t)
 		{
@@ -1030,6 +1043,9 @@ protected:
 
 	// Calculates default value for index.  Returns nullptr if none.
 	ValPtr Default(const ValPtr& index);
+
+	// Pointer to either &default or &default_insert or else nil.
+	const detail::AttrPtr& DefaultAttr() const;
 
 	// Returns true if item expiration is enabled.
 	bool ExpirationEnabled() { return expire_time != nullptr; }
@@ -1138,7 +1154,7 @@ public:
 	// The following provide efficient record field assignments.
 	void Assign(int field, bool new_val)
 		{
-		(*record_val)[field] = ZVal(zeek_int_t(new_val));
+		record_val[field] = ZVal(zeek_int_t(new_val));
 		AddedField(field);
 		}
 
@@ -1146,28 +1162,28 @@ public:
 	// convenience, since sometimes the caller has one rather than the other.
 	void Assign(int field, int32_t new_val)
 		{
-		(*record_val)[field] = ZVal(zeek_int_t(new_val));
+		record_val[field] = ZVal(zeek_int_t(new_val));
 		AddedField(field);
 		}
 	void Assign(int field, int64_t new_val)
 		{
-		(*record_val)[field] = ZVal(zeek_int_t(new_val));
+		record_val[field] = ZVal(zeek_int_t(new_val));
 		AddedField(field);
 		}
 	void Assign(int field, uint32_t new_val)
 		{
-		(*record_val)[field] = ZVal(zeek_uint_t(new_val));
+		record_val[field] = ZVal(zeek_uint_t(new_val));
 		AddedField(field);
 		}
 	void Assign(int field, uint64_t new_val)
 		{
-		(*record_val)[field] = ZVal(zeek_uint_t(new_val));
+		record_val[field] = ZVal(zeek_uint_t(new_val));
 		AddedField(field);
 		}
 
 	void Assign(int field, double new_val)
 		{
-		(*record_val)[field] = ZVal(new_val);
+		record_val[field] = ZVal(new_val);
 		AddedField(field);
 		}
 
@@ -1180,7 +1196,7 @@ public:
 
 	void Assign(int field, StringVal* new_val)
 		{
-		auto& fv = (*record_val)[field];
+		auto& fv = record_val[field];
 		if ( fv )
 			ZVal::DeleteManagedType(*fv);
 		fv = ZVal(new_val);
@@ -1206,7 +1222,7 @@ public:
 	 * Returns the number of fields in the record.
 	 * @return  The number of fields in the record.
 	 */
-	unsigned int NumFields() const { return record_val->size(); }
+	unsigned int NumFields() const { return record_val.size(); }
 
 	/**
 	 * Returns true if the given field is in the record, false if
@@ -1216,7 +1232,7 @@ public:
 	 */
 	bool HasField(int field) const
 		{
-		if ( (*record_val)[field] )
+		if ( record_val[field] )
 			return true;
 
 		return rt->DeferredInits()[field] != nullptr;
@@ -1241,7 +1257,7 @@ public:
 	 */
 	ValPtr GetField(int field) const
 		{
-		auto& fv = (*record_val)[field];
+		auto& fv = record_val[field];
 		if ( ! fv )
 			{
 			const auto& fi = rt->DeferredInits()[field];
@@ -1326,32 +1342,32 @@ public:
 		{
 		if constexpr ( std::is_same_v<T, BoolVal> || std::is_same_v<T, IntVal> ||
 		               std::is_same_v<T, EnumVal> )
-			return record_val->operator[](field)->int_val;
+			return record_val[field]->int_val;
 		else if constexpr ( std::is_same_v<T, CountVal> )
-			return record_val->operator[](field)->uint_val;
+			return record_val[field]->uint_val;
 		else if constexpr ( std::is_same_v<T, DoubleVal> || std::is_same_v<T, TimeVal> ||
 		                    std::is_same_v<T, IntervalVal> )
-			return record_val->operator[](field)->double_val;
+			return record_val[field]->double_val;
 		else if constexpr ( std::is_same_v<T, PortVal> )
-			return val_mgr->Port(record_val->at(field)->uint_val);
+			return val_mgr->Port(record_val[field]->uint_val);
 		else if constexpr ( std::is_same_v<T, StringVal> )
-			return record_val->operator[](field)->string_val->Get();
+			return record_val[field]->string_val->Get();
 		else if constexpr ( std::is_same_v<T, AddrVal> )
-			return record_val->operator[](field)->addr_val->Get();
+			return record_val[field]->addr_val->Get();
 		else if constexpr ( std::is_same_v<T, SubNetVal> )
-			return record_val->operator[](field)->subnet_val->Get();
+			return record_val[field]->subnet_val->Get();
 		else if constexpr ( std::is_same_v<T, File> )
-			return *(record_val->operator[](field)->file_val);
+			return *(record_val[field]->file_val);
 		else if constexpr ( std::is_same_v<T, Func> )
-			return *(record_val->operator[](field)->func_val);
+			return *(record_val[field]->func_val);
 		else if constexpr ( std::is_same_v<T, PatternVal> )
-			return record_val->operator[](field)->re_val->Get();
+			return record_val[field]->re_val->Get();
 		else if constexpr ( std::is_same_v<T, RecordVal> )
-			return record_val->operator[](field)->record_val;
+			return record_val[field]->record_val;
 		else if constexpr ( std::is_same_v<T, VectorVal> )
-			return record_val->operator[](field)->vector_val;
+			return record_val[field]->vector_val;
 		else if constexpr ( std::is_same_v<T, TableVal> )
-			return record_val->operator[](field)->table_val->Get();
+			return record_val[field]->table_val->Get();
 		else
 			{
 			// It's an error to reach here, although because of
@@ -1365,11 +1381,11 @@ public:
 	T GetFieldAs(int field) const
 		{
 		if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
-			return record_val->operator[](field)->int_val;
+			return record_val[field]->int_val;
 		else if constexpr ( std::is_integral_v<T> && std::is_unsigned_v<T> )
-			return record_val->operator[](field)->uint_val;
+			return record_val[field]->uint_val;
 		else if constexpr ( std::is_floating_point_v<T> )
-			return record_val->operator[](field)->double_val;
+			return record_val[field]->double_val;
 
 		// Note: we could add other types here using type traits,
 		// such as is_same_v<T, std::string>, etc.
@@ -1428,6 +1444,7 @@ protected:
 	friend class zeek::detail::ValTrace;
 	friend class zeek::detail::ZBody;
 	friend class zeek::detail::CPPRuntime;
+	friend class zeek::detail::CompositeHash;
 
 	RecordValPtr DoCoerceTo(RecordTypePtr other, bool allow_orphaning) const;
 
@@ -1443,9 +1460,9 @@ protected:
 	void AppendField(ValPtr v, const TypePtr& t)
 		{
 		if ( v )
-			record_val->emplace_back(ZVal(v, t));
+			record_val.emplace_back(ZVal(v, t));
 		else
-			record_val->emplace_back(std::nullopt);
+			record_val.emplace_back(std::nullopt);
 		}
 
 	// For internal use by low-level ZAM instructions and event tracing.
@@ -1454,7 +1471,7 @@ protected:
 	// The second version ensures that the optional value is present.
 	std::optional<ZVal>& RawOptField(int field)
 		{
-		auto& f = (*record_val)[field];
+		auto& f = record_val[field];
 		if ( ! f )
 			{
 			const auto& fi = rt->DeferredInits()[field];
@@ -1485,7 +1502,7 @@ protected:
 private:
 	void DeleteFieldIfManaged(unsigned int field)
 		{
-		auto& f = (*record_val)[field];
+		auto& f = record_val[field];
 		if ( f && IsManaged(field) )
 			ZVal::DeleteManagedType(*f);
 		}
@@ -1501,7 +1518,9 @@ private:
 	RecordTypePtr rt;
 
 	// Low-level values of each of the fields.
-	std::vector<std::optional<ZVal>>* record_val;
+	//
+	// Lazily modified during GetField(), so mutable.
+	mutable std::vector<std::optional<ZVal>> record_val;
 
 	// Whether a given field requires explicit memory management.
 	const std::vector<bool>& is_managed;
@@ -1573,7 +1592,7 @@ public:
 	// Returns true if successful.
 	bool AddTo(Val* v, bool is_first_init) const override;
 
-	unsigned int Size() const { return vector_val->size(); }
+	unsigned int Size() const { return vector_val.size(); }
 
 	// Is there any way to reclaim previously-allocated memory when you
 	// shrink a vector?  The return value is the old size.
@@ -1643,10 +1662,7 @@ public:
 
 	ValPtr ValAt(unsigned int index) const { return At(index); }
 
-	bool Has(unsigned int index) const
-		{
-		return index < vector_val->size() && (*vector_val)[index];
-		}
+	bool Has(unsigned int index) const { return index < vector_val.size() && vector_val[index]; }
 
 	/**
 	 * Returns the given element in a given underlying representation.
@@ -1656,26 +1672,17 @@ public:
 	 * @param index  The position in the vector of the element to return.
 	 * @return  The element's underlying value.
 	 */
-	zeek_int_t IntAt(unsigned int index) const { return (*vector_val)[index]->int_val; }
-	zeek_uint_t CountAt(unsigned int index) const { return (*vector_val)[index]->uint_val; }
-	double DoubleAt(unsigned int index) const { return (*vector_val)[index]->double_val; }
-	const RecordVal* RecordValAt(unsigned int index) const
-		{
-		return (*vector_val)[index]->record_val;
-		}
-	bool BoolAt(unsigned int index) const
-		{
-		return static_cast<bool>((*vector_val)[index]->uint_val);
-		}
-	const StringVal* StringValAt(unsigned int index) const
-		{
-		return (*vector_val)[index]->string_val;
-		}
+	zeek_int_t IntAt(unsigned int index) const { return vector_val[index]->int_val; }
+	zeek_uint_t CountAt(unsigned int index) const { return vector_val[index]->uint_val; }
+	double DoubleAt(unsigned int index) const { return vector_val[index]->double_val; }
+	const RecordVal* RecordValAt(unsigned int index) const { return vector_val[index]->record_val; }
+	bool BoolAt(unsigned int index) const { return static_cast<bool>(vector_val[index]->uint_val); }
+	const StringVal* StringValAt(unsigned int index) const { return vector_val[index]->string_val; }
 	const String* StringAt(unsigned int index) const { return StringValAt(index)->AsString(); }
 
 	// Only intended for low-level access by internal or compiled code.
-	const auto& RawVec() const { return vector_val; }
-	auto& RawVec() { return vector_val; }
+	const std::vector<std::optional<ZVal>>& RawVec() const { return vector_val; }
+	std::vector<std::optional<ZVal>>& RawVec() { return vector_val; }
 
 	const auto& RawYieldType() const { return yield_type; }
 	const auto& RawYieldTypes() const { return yield_types; }
@@ -1711,7 +1718,7 @@ private:
 	// Add the given number of "holes" to the end of a vector.
 	void AddHoles(int nholes);
 
-	std::vector<std::optional<ZVal>>* vector_val;
+	std::vector<std::optional<ZVal>> vector_val;
 
 	// For homogeneous vectors (the usual case), the type of the
 	// elements.  Will be TYPE_VOID for empty vectors created using
@@ -1800,7 +1807,11 @@ namespace detail
 // Parses a JSON string into arbitrary Zeek data using std::variant to simulate functional exception
 // handling. Returns a ValPtr if parsing was successful, or a std::string containing an error
 // message if an error occurred.
-extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t);
+//
+// The *key_func* parameter is a Zeek script function called for every JSON key
+// for normalization. If Func::nil is passed, no normalization happens.
+extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t,
+                                                     const FuncPtr& key_func);
 	}
 
 	} // namespace zeek

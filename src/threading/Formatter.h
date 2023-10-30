@@ -33,7 +33,7 @@ public:
 	/**
 	 * Destructor.
 	 */
-	virtual ~Formatter();
+	virtual ~Formatter() = default;
 
 	/**
 	 * Convert a list of threading values into an implementation specific

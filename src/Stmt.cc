@@ -52,7 +52,6 @@ const char* stmt_name(StmtTag t)
 		"check-any-length",
 		"compiled-C++",
 		"ZAM",
-		"ZAM-resumption",
 		"null",
 		"assert",
 	};
@@ -165,6 +164,12 @@ const NullStmt* Stmt::AsNullStmt() const
 	return (const NullStmt*)this;
 	}
 
+const AssertStmt* Stmt::AsAssertStmt() const
+	{
+	CHECK_TAG(tag, STMT_ASSERT, "Stmt::AsAssertStmt", stmt_name)
+	return (const AssertStmt*)this;
+	}
+
 bool Stmt::SetLocationInfo(const Location* start, const Location* end)
 	{
 	if ( ! Obj::SetLocationInfo(start, end) )
@@ -207,6 +212,9 @@ bool Stmt::IsPure() const
 
 void Stmt::Describe(ODesc* d) const
 	{
+	// The following is a handy add-on when doing AST debugging.
+	// d->Add(util::fmt("%p: ", this));
+
 	StmtDescribe(d);
 	}
 
@@ -577,12 +585,12 @@ static StmtTag get_last_stmt_tag(const Stmt* stmt)
 		return stmt->Tag();
 
 	const StmtList* stmts = stmt->AsStmtList();
-	int len = stmts->Stmts().length();
+	auto len = stmts->Stmts().size();
 
 	if ( len == 0 )
 		return STMT_LIST;
 
-	return get_last_stmt_tag(stmts->Stmts()[len - 1]);
+	return get_last_stmt_tag(stmts->Stmts()[len - 1].get());
 	}
 
 class FallthroughFinder : public TraversalCallback
@@ -1255,7 +1263,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 
 			else
 				{
-				add_local({NewRef{}, lv}, ind_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
+				add_local({NewRef{}, lv}, ind_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
 				}
 			}
 		}
@@ -1276,7 +1284,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 			// nop
 			}
 		else if ( ! t )
-			add_local({NewRef{}, lv}, base_type(TYPE_COUNT), INIT_NONE, nullptr, nullptr,
+			add_local({NewRef{}, lv}, base_type(TYPE_COUNT), INIT_SKIP, nullptr, nullptr,
 			          VAR_REGULAR);
 
 		else if ( ! IsIntegral(t->Tag()) )
@@ -1302,7 +1310,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr)
 			// nop
 			}
 		else if ( ! t )
-			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_NONE, nullptr,
+			add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_SKIP, nullptr,
 			          nullptr, VAR_REGULAR);
 
 		else if ( t->Tag() != TYPE_STRING )
@@ -1345,7 +1353,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
 			e->Error("type clash in iteration", value_var->GetType().get());
 		}
 	else
-		add_local(value_var, yield_type, INIT_NONE, nullptr, nullptr, VAR_REGULAR);
+		add_local(value_var, yield_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
 	}
 
 ForStmt::~ForStmt()
@@ -1403,7 +1411,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow)
 	else if ( v->GetType()->Tag() == TYPE_VECTOR )
 		{
 		VectorVal* vv = v->AsVectorVal();
-		const auto& raw_vv = *vv->RawVec();
+		const auto& raw_vv = vv->RawVec();
 
 		for ( auto i = 0u; i < vv->Size(); ++i )
 			{
@@ -1669,26 +1677,17 @@ void ReturnStmt::StmtDescribe(ODesc* d) const
 	DescribeDone(d);
 	}
 
-StmtList::StmtList() : Stmt(STMT_LIST)
-	{
-	stmts = new StmtPList;
-	}
-
-StmtList::~StmtList()
-	{
-	for ( const auto& stmt : Stmts() )
-		Unref(stmt);
-
-	delete stmts;
-	}
+StmtList::StmtList() : Stmt(STMT_LIST) { }
 
 ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow)
 	{
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt_ptr : stmts )
 		{
+		auto stmt = stmt_ptr.get();
+
 		f->SetNextStmt(stmt);
 
 		if ( ! pre_execute_stmt(stmt, f) )
@@ -1710,7 +1709,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow)
 
 bool StmtList::IsPure() const
 	{
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt : stmts )
 		if ( ! stmt->IsPure() )
 			return false;
 	return true;
@@ -1721,10 +1720,10 @@ void StmtList::StmtDescribe(ODesc* d) const
 	if ( ! d->IsReadable() )
 		{
 		AddTag(d);
-		d->AddCount(stmts->length());
+		d->AddCount(stmts.size());
 		}
 
-	if ( stmts->length() == 0 )
+	if ( stmts.empty() )
 		DescribeDone(d);
 
 	else
@@ -1735,7 +1734,7 @@ void StmtList::StmtDescribe(ODesc* d) const
 			d->NL();
 			}
 
-		for ( const auto& stmt : Stmts() )
+		for ( const auto& stmt : stmts )
 			{
 			stmt->Describe(d);
 			d->NL();
@@ -1751,7 +1750,7 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	for ( const auto& stmt : Stmts() )
+	for ( const auto& stmt : stmts )
 		{
 		tc = stmt->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
@@ -1873,6 +1872,13 @@ AssertStmt::AssertStmt(ExprPtr arg_cond, ExprPtr arg_msg)
 
 	if ( msg && ! IsString(msg->GetType()->Tag()) )
 		msg->Error("message must be string");
+
+	zeek::ODesc desc;
+	desc.SetShort(true);
+	desc.SetQuotes(true);
+	cond->Describe(&desc);
+
+	cond_desc = desc.Description();
 	}
 
 ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow)
@@ -1880,81 +1886,41 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow)
 	RegisterAccess();
 	flow = FLOW_NEXT;
 
-	static auto assertion_failure_hook = id::find_func("assertion_failure");
 	static auto assertion_result_hook = id::find_func("assertion_result");
-
 	bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
-	bool run_failure_hook = assertion_failure_hook && assertion_failure_hook->HasEnabledBodies();
-
 	auto assert_result = cond->Eval(f)->AsBool();
 
-	if ( assert_result && ! run_result_hook )
-		return Val::nil;
-
-	// Textual representation of cond from the AST.
-	static zeek::ODesc desc;
-	desc.Clear();
-	desc.SetShort(true);
-	desc.SetQuotes(true);
-	cond->Describe(&desc);
-	auto cond_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(), (const char*)desc.Bytes());
-
-	zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
-	if ( msg )
+	if ( ! cond->Eval(f)->AsBool() || run_result_hook )
 		{
-		// Eval() may fail if expression assumes assert
-		// condition is F, but we still try to get it for
-		// the assertion_result hook.
-		try
+		zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
+
+		if ( msg )
 			{
-			msg_val = cast_intrusive<zeek::StringVal>(msg->Eval(f));
+			// Eval() may fail if expression assumes assert
+			// condition is F, but we still try to get it for
+			// the assertion_result hook.
+			try
+				{
+				msg_val = cast_intrusive<zeek::StringVal>(msg->Eval(f));
+				}
+			catch ( InterpreterException& e )
+				{
+				static ODesc desc;
+				desc.Clear();
+				desc.SetShort(true);
+				desc.SetQuotes(true);
+				desc.Add("<error eval ");
+				msg->Describe(&desc);
+				desc.Add(">");
+				msg_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(),
+				                                                (const char*)desc.Bytes());
+				}
 			}
-		catch ( InterpreterException& e )
-			{
-			desc.Clear();
-			desc.Add("<error eval ");
-			msg->Describe(&desc);
-			desc.Add(">");
-			msg_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(), (const char*)desc.Bytes());
-			}
+
+		report_assert(assert_result, cond_desc, msg_val, GetLocationInfo());
 		}
 
-	VectorValPtr bt = nullptr;
-	if ( run_result_hook || run_failure_hook )
-		{
-		bt = get_current_script_backtrace();
-		auto assert_elem = make_backtrace_element("assert", MakeEmptyCallArgumentVector(),
-		                                          GetLocationInfo());
-		bt->Insert(0, std::move(assert_elem));
-		}
-
-	// Breaking from either the assertion_failure() or assertion_result()
-	// hook can be used to suppress the default log message.
-	bool report_error = true;
-
-	if ( run_result_hook )
-		report_error &= assertion_result_hook
-		                    ->Invoke(zeek::val_mgr->Bool(assert_result), cond_val, msg_val, bt)
-		                    ->AsBool();
-
-	if ( assert_result )
-		return Val::nil;
-
-	if ( run_failure_hook )
-		report_error &= assertion_failure_hook->Invoke(cond_val, msg_val, bt)->AsBool();
-
-	if ( report_error )
-		{
-		std::string reporter_msg = util::fmt("assertion failure: %s", cond_val->CheckString());
-		if ( msg_val->Len() > 0 )
-			reporter_msg += util::fmt(" (%s)", msg_val->CheckString());
-
-		reporter->PushLocation(GetLocationInfo());
-		reporter->Error("%s", reporter_msg.c_str());
-		reporter->PopLocation();
-		}
-
-	throw InterpreterException();
+	return Val::nil;
 	}
 
 void AssertStmt::StmtDescribe(ODesc* d) const
@@ -1999,41 +1965,66 @@ TraversalCode AssertStmt::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
+class AssertException : public InterpreterException
+	{
+public:
+	AssertException() { }
+	};
+
+void report_assert(bool cond, std::string_view cond_desc, StringValPtr msg_val, const Location* loc)
+	{
+	static auto assertion_failure_hook = id::find_func("assertion_failure");
+	static auto assertion_result_hook = id::find_func("assertion_result");
+
+	bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
+	bool run_failure_hook = assertion_failure_hook && assertion_failure_hook->HasEnabledBodies();
+
+	auto cond_val = zeek::make_intrusive<zeek::StringVal>(cond_desc);
+
+	VectorValPtr bt = nullptr;
+	if ( run_result_hook || run_failure_hook )
+		{
+		bt = get_current_script_backtrace();
+		auto assert_elem = make_backtrace_element("assert", MakeEmptyCallArgumentVector(), loc);
+		bt->Insert(0, std::move(assert_elem));
+		}
+
+	// Breaking from either the assertion_failure() or assertion_result()
+	// hook can be used to suppress the default log message.
+	bool report_error = true;
+
+	if ( run_result_hook )
+		report_error &= assertion_result_hook
+		                    ->Invoke(zeek::val_mgr->Bool(cond), cond_val, msg_val, bt)
+		                    ->AsBool();
+
+	if ( cond )
+		return;
+
+	if ( run_failure_hook )
+		report_error &= assertion_failure_hook->Invoke(cond_val, msg_val, bt)->AsBool();
+
+	if ( report_error )
+		{
+		std::string reporter_msg = util::fmt("assertion failure: %s", cond_val->CheckString());
+		if ( msg_val->Len() > 0 )
+			reporter_msg += util::fmt(" (%s)", msg_val->CheckString());
+
+		reporter->PushLocation(loc);
+		reporter->Error("%s", reporter_msg.c_str());
+		reporter->PopLocation();
+		}
+
+	throw AssertException();
+	}
+
 WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_return)
 	: cond(std::move(arg_cond)), cl(arg_cl), is_return(arg_is_return)
 	{
 	if ( ! cl )
 		cl = new zeek::FuncType::CaptureList;
 
-	ProfileFunc cond_pf(cond.get());
-
-	when_expr_locals = cond_pf.Locals();
-	when_expr_globals = cond_pf.AllGlobals();
-	when_new_locals = cond_pf.WhenLocals();
-
-	// Make any when-locals part of our captures, if not already present,
-	// to enable sharing between the condition and the body/timeout code.
-	for ( auto& wl : when_new_locals )
-		{
-		bool is_present = false;
-
-		for ( auto& c : *cl )
-			if ( c.id == wl )
-				{
-				is_present = true;
-				break;
-				}
-
-		if ( ! is_present )
-			{
-			IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
-			cl->emplace_back(FuncType::Capture{wl_ptr, false});
-			}
-
-		// In addition, don't treat them as external locals that
-		// existed at the onset.
-		when_expr_locals.erase(wl);
-		}
+	BuildProfile();
 
 	// Create the internal lambda we'll use to manage the captures.
 	static int num_params = 0; // to ensure each is distinct
@@ -2049,12 +2040,39 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 	if ( ! is_return )
 		lambda_ft->SetExpressionlessReturnOkay(true);
 
+	lambda_ft->SetCaptures(*cl);
+
 	auto id = current_scope()->GenerateTemporary("when-internal");
 	id->SetType(lambda_ft);
 	push_scope(std::move(id), nullptr);
 
-	auto arg_id = install_ID(lambda_param_id.c_str(), current_module.c_str(), false, false);
-	arg_id->SetType(count_t);
+	param_id = install_ID(lambda_param_id.c_str(), current_module.c_str(), false, false);
+	param_id->SetType(count_t);
+	}
+
+WhenInfo::WhenInfo(const WhenInfo* orig)
+	{
+	if ( orig->cl )
+		{
+		cl = new FuncType::CaptureList;
+		*cl = *orig->cl;
+		}
+
+	cond = orig->OrigCond()->Duplicate();
+
+	// We don't duplicate these, as they'll be compiled separately.
+	s = orig->OrigBody();
+	timeout_s = orig->OrigBody();
+
+	timeout = orig->OrigTimeout();
+	if ( timeout )
+		timeout = timeout->Duplicate();
+
+	lambda = cast_intrusive<LambdaExpr>(orig->Lambda()->Duplicate());
+
+	is_return = orig->IsReturn();
+
+	BuildProfile();
 	}
 
 WhenInfo::WhenInfo(bool arg_is_return) : is_return(arg_is_return)
@@ -2063,10 +2081,49 @@ WhenInfo::WhenInfo(bool arg_is_return) : is_return(arg_is_return)
 	BuildInvokeElems();
 	}
 
+void WhenInfo::BuildProfile()
+	{
+	ProfileFunc cond_pf(cond.get());
+
+	auto when_expr_locals_set = cond_pf.Locals();
+	when_expr_globals = cond_pf.AllGlobals();
+	when_new_locals = cond_pf.WhenLocals();
+
+	// Make any when-locals part of our captures, if not already present,
+	// to enable sharing between the condition and the body/timeout code.
+	for ( auto& wl : when_new_locals )
+		{
+		bool is_present = false;
+
+		for ( auto& c : *cl )
+			if ( c.Id() == wl )
+				{
+				is_present = true;
+				break;
+				}
+
+		if ( ! is_present )
+			{
+			IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
+			cl->emplace_back(std::move(wl_ptr), false);
+			}
+
+		// In addition, don't treat them as external locals that
+		// existed at the onset.
+		when_expr_locals_set.erase(wl);
+		}
+
+	for ( auto& w : when_expr_locals_set )
+		{
+		// We need IDPtr versions of the locals so we can manipulate
+		// them during script optimization.
+		auto non_const_w = const_cast<ID*>(w);
+		when_expr_locals.emplace_back(NewRef{}, non_const_w);
+		}
+	}
+
 void WhenInfo::Build(StmtPtr ws)
 	{
-	lambda_ft->SetCaptures(*cl);
-
 	// Our general strategy is to construct a single lambda (so that
 	// the values of captures are shared across all of its elements)
 	// that's used for all three of the "when" components: condition,
@@ -2086,10 +2143,13 @@ void WhenInfo::Build(StmtPtr ws)
 	// First, the constants we'll need.
 	BuildInvokeElems();
 
+	if ( lambda )
+		// No need to build the lambda.
+		return;
+
 	auto true_const = make_intrusive<ConstExpr>(val_mgr->True());
 
 	// Access to the parameter that selects which action we're doing.
-	auto param_id = lookup_ID(lambda_param_id.c_str(), current_module.c_str());
 	ASSERT(param_id);
 	auto param = make_intrusive<NameExpr>(param_id);
 
@@ -2109,11 +2169,14 @@ void WhenInfo::Build(StmtPtr ws)
 
 	auto shebang = make_intrusive<StmtList>(do_test, do_bodies, dummy_return);
 
-	auto ingredients = std::make_unique<FunctionIngredients>(current_scope(), shebang,
+	auto ingredients = std::make_shared<FunctionIngredients>(current_scope(), shebang,
 	                                                         current_module);
 	auto outer_ids = gather_outer_ids(pop_scope(), ingredients->Body());
 
-	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), ws);
+	lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), "", ws);
+	lambda->SetPrivateCaptures(when_new_locals);
+
+	analyze_when_lambda(lambda.get());
 	}
 
 void WhenInfo::Instantiate(Frame* f)
@@ -2166,7 +2229,7 @@ void WhenInfo::BuildInvokeElems()
 	invoke_timeout = make_intrusive<ListExpr>(three_const);
 	}
 
-WhenStmt::WhenStmt(WhenInfo* arg_wi) : Stmt(STMT_WHEN), wi(arg_wi)
+WhenStmt::WhenStmt(std::shared_ptr<WhenInfo> arg_wi) : Stmt(STMT_WHEN), wi(std::move(arg_wi))
 	{
 	wi->Build(ThisPtr());
 
@@ -2188,11 +2251,6 @@ WhenStmt::WhenStmt(WhenInfo* arg_wi) : Stmt(STMT_WHEN), wi(arg_wi)
 		}
 	}
 
-WhenStmt::~WhenStmt()
-	{
-	delete wi;
-	}
-
 ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 	{
 	RegisterAccess();
@@ -2205,14 +2263,13 @@ ValPtr WhenStmt::Exec(Frame* f, StmtFlowType& flow)
 	std::vector<ValPtr> local_aggrs;
 	for ( auto& l : wi->WhenExprLocals() )
 		{
-		IDPtr l_ptr = {NewRef{}, const_cast<ID*>(l)};
-		auto v = f->GetElementByID(l_ptr);
+		auto v = f->GetElementByID(l);
 		if ( v && v->Modifiable() )
 			local_aggrs.emplace_back(std::move(v));
 		}
 
-	// The new trigger object will take care of its own deletion.
-	new trigger::Trigger(wi, timeout, wi->WhenExprGlobals(), local_aggrs, f, location);
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f,
+	                                       location);
 
 	return nullptr;
 	}
@@ -2225,6 +2282,23 @@ bool WhenStmt::IsPure() const
 void WhenStmt::StmtDescribe(ODesc* d) const
 	{
 	Stmt::StmtDescribe(d);
+
+	auto cl = wi->Captures();
+	if ( d->IsReadable() && ! cl->empty() )
+		{
+		d->Add("[");
+		for ( auto& c : *cl )
+			{
+			if ( &c != &(*cl)[0] )
+				d->AddSP(",");
+
+			if ( c.IsDeepCopy() )
+				d->Add("copy ");
+
+			d->Add(c.Id()->Name());
+			}
+		d->Add("]");
+		}
 
 	if ( d->IsReadable() )
 		d->Add("(");
@@ -2267,32 +2341,13 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const
 	TraversalCode tc = cb->PreStmt(this);
 	HANDLE_TC_STMT_PRE(tc);
 
-	auto wl = wi->Lambda();
+	tc = wi->Lambda()->Traverse(cb);
+	HANDLE_TC_STMT_PRE(tc);
 
-	if ( wl )
+	auto e = wi->TimeoutExpr();
+	if ( e )
 		{
-		tc = wl->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-		}
-
-	else
-		{
-		tc = wi->OrigCond()->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-
-		tc = wi->OrigBody()->Traverse(cb);
-		HANDLE_TC_STMT_PRE(tc);
-
-		if ( wi->OrigTimeoutStmt() )
-			{
-			tc = wi->OrigTimeoutStmt()->Traverse(cb);
-			HANDLE_TC_STMT_PRE(tc);
-			}
-		}
-
-	if ( wi->OrigTimeout() )
-		{
-		tc = wi->OrigTimeout()->Traverse(cb);
+		tc = e->Traverse(cb);
 		HANDLE_TC_STMT_PRE(tc);
 		}
 

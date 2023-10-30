@@ -133,6 +133,12 @@ export {
 
 	## HTTP finalization hook.  Remaining HTTP info may get logged when it's called.
 	global finalize_http: Conn::RemovalHook;
+
+	## Only allow that many pending requests on a single connection.
+	## If this number is exceeded, all pending requests are flushed
+	## out and request/response tracking reset to prevent unbounded
+	## state growth.
+	option max_pending_requests = 100;
 }
 
 # Add the http state tracking fields to the connection record.
@@ -203,6 +209,47 @@ event http_request(c: connection, method: string, original_URI: string,
 		local s: State;
 		c$http_state = s;
 		Conn::register_removal_hook(c, finalize_http);
+		}
+
+	# Request/response tracking exists to account for HTTP pipelining.
+	# It fails if more responses have been seen than requests. If that
+	# happens, just fast-forward current_request such that the next
+	# response matches the in-flight request.
+	if ( c$http_state$current_request < c$http_state$current_response )
+		{
+		Reporter::conn_weird("HTTP_response_before_request", c);
+		c$http_state$current_request = c$http_state$current_response;
+		}
+
+	# Too many requests are pending for which we have not yet observed a
+	# reply. This might be due to excessive HTTP pipelining, one-sided
+	# traffic capture, or the responder side of the HTTP analyzer having
+	# been disabled. In any case, we simply log out all pending requests
+	# to make room for a new one. Any matching of pipelined requests and
+	# responses is most likely totally off anyhow.
+	if ( max_pending_requests > 0 && |c$http_state$pending| > max_pending_requests )
+		{
+		Reporter::conn_weird("HTTP_excessive_pipelining", c);
+
+		if ( c$http_state$current_response == 0 )
+			++c$http_state$current_response;
+
+		while ( c$http_state$current_response < c$http_state$current_request )
+			{
+			local cr = c$http_state$current_response;
+			if ( cr in c$http_state$pending )
+				{
+				Log::write(HTTP::LOG, c$http_state$pending[cr]);
+				delete c$http_state$pending[cr];
+				}
+			else
+				{
+				# The above should have been true...
+				# Reporter::error(fmt("Expected pending request at %d", cr));
+				}
+
+			++c$http_state$current_response;
+			}
 		}
 
 	++c$http_state$current_request;
@@ -290,7 +337,7 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			{
 			if ( /^[bB][aA][sS][iI][cC] / in value )
 				{
-				local userpass = decode_base64_conn(c$id, sub(value, /[bB][aA][sS][iI][cC][[:blank:]]/, ""));
+				local userpass = decode_base64_conn(c$id, sub(value, /[bB][aA][sS][iI][cC][[:blank:]]+/, ""));
 				local up = split_string(userpass, /:/);
 				if ( |up| >= 2 )
 					{

@@ -28,8 +28,11 @@ namespace detail
 class Frame;
 class Scope;
 class FunctionIngredients;
+class WhenInfo;
 using IDPtr = IntrusivePtr<ID>;
 using ScopePtr = IntrusivePtr<Scope>;
+using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
+using FunctionIngredientsPtr = std::shared_ptr<FunctionIngredients>;
 
 enum ExprTag : int
 	{
@@ -49,6 +52,7 @@ enum ExprTag : int
 	EXPR_REMOVE_FROM,
 	EXPR_TIMES,
 	EXPR_DIVIDE,
+	EXPR_MASK,
 	EXPR_MOD,
 	EXPR_AND,
 	EXPR_OR,
@@ -300,11 +304,11 @@ public:
 	// True if this expression can be the RHS for a field assignment.
 	bool IsFieldAssignable(const Expr* e) const;
 
-	// True if the expression will transform to one of another type
-	// upon reduction, for non-constant operands.  "Transform" means
-	// something beyond assignment to a temporary.  Necessary so that
-	// we know to fully reduce such expressions if they're the RHS
-	// of an assignment.
+	// True if the expression will transform to one of another AST node
+	// (perhaps of the same type) upon reduction, for non-constant
+	// operands.  "Transform" means something beyond assignment to a
+	// temporary.  Necessary so that we know to fully reduce such
+	// expressions if they're the RHS of an assignment.
 	virtual bool WillTransform(Reducer* c) const { return false; }
 
 	// The same, but for the expression when used in a conditional context.
@@ -816,6 +820,15 @@ public:
 	ExprPtr Duplicate() override;
 	bool WillTransform(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	};
+
+class MaskExpr final : public BinaryExpr
+	{
+public:
+	MaskExpr(ExprPtr op1, ExprPtr op2);
+
+	// Optimization-related:
+	ExprPtr Duplicate() override;
 
 protected:
 	ValPtr AddrFold(Val* v1, Val* v2) const override;
@@ -1150,6 +1163,9 @@ public:
 	// Optimization-related:
 	ExprPtr Duplicate() override;
 
+	bool IsReduced(Reducer* c) const override;
+	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
 protected:
 	ValPtr Fold(Val* v) const override;
 
@@ -1327,7 +1343,7 @@ class TableCoerceExpr final : public UnaryExpr
 	{
 public:
 	TableCoerceExpr(ExprPtr op, TableTypePtr r, bool type_check = true);
-	~TableCoerceExpr() override;
+	~TableCoerceExpr() override = default;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1340,7 +1356,7 @@ class VectorCoerceExpr final : public UnaryExpr
 	{
 public:
 	VectorCoerceExpr(ExprPtr op, VectorTypePtr v);
-	~VectorCoerceExpr() override;
+	~VectorCoerceExpr() override = default;
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
@@ -1353,7 +1369,7 @@ class ScheduleTimer final : public Timer
 	{
 public:
 	ScheduleTimer(const EventHandlerPtr& event, zeek::Args args, double t);
-	~ScheduleTimer() override;
+	~ScheduleTimer() override = default;
 
 	void Dispatch(double t, bool is_expire) override;
 
@@ -1452,12 +1468,17 @@ protected:
 class LambdaExpr final : public Expr
 	{
 public:
-	LambdaExpr(std::unique_ptr<FunctionIngredients> ingredients, IDPList outer_ids,
+	LambdaExpr(FunctionIngredientsPtr ingredients, IDPList outer_ids, std::string name = "",
 	           StmtPtr when_parent = nullptr);
 
 	const std::string& Name() const { return my_name; }
+
 	const IDPList& OuterIDs() const { return outer_ids; }
-	const FunctionIngredients& Ingredients() const { return *ingredients; }
+
+	// Lambda's potentially have their own private copy of captures,
+	// to enable updates to the set during script optimization.
+	using CaptureList = std::vector<FuncType::Capture>;
+	const std::optional<CaptureList>& GetCaptures() const { return captures; }
 
 	ValPtr Eval(Frame* f) const override;
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -1466,19 +1487,45 @@ public:
 
 	// Optimization-related:
 	ExprPtr Duplicate() override;
-	ExprPtr Inline(Inliner* inl) override;
 
+	const ScriptFuncPtr& PrimaryFunc() const { return primary_func; }
+
+	const FunctionIngredientsPtr& Ingredients() const { return ingredients; }
+
+	void ReplaceBody(StmtPtr new_body);
+
+	bool IsReduced(Reducer* c) const override;
+	bool HasReducedOps(Reducer* c) const override;
 	ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+	StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
+	// Constructor used for script optimization.
+	LambdaExpr(LambdaExpr* orig);
+
 	void ExprDescribe(ODesc* d) const override;
 
 private:
-	bool CheckCaptures(StmtPtr when_parent);
+	friend class WhenInfo;
 
-	std::unique_ptr<FunctionIngredients> ingredients;
+	// "Private" captures are captures that correspond to "when"
+	// condition locals.  These aren't true captures in that they
+	// don't come from the outer frame when the lambda is constructed,
+	// but they otherwise behave like captures in that they persist
+	// across function invocations.
+	void SetPrivateCaptures(const IDSet& pcaps) { private_captures = pcaps; }
+
+	bool CheckCaptures(StmtPtr when_parent);
+	void BuildName();
+
+	void UpdateCaptures(Reducer* c);
+
+	FunctionIngredientsPtr ingredients;
+	ScriptFuncPtr primary_func;
 	IDPtr lambda_id;
 	IDPList outer_ids;
+	std::optional<CaptureList> captures;
+	IDSet private_captures;
 
 	std::string my_name;
 	};

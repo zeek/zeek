@@ -10,7 +10,7 @@ refine connection SMB_Conn += {
 
 	%cleanup{
 		// Iterate all of the analyzers and destroy them.
-		for ( auto kv : fid_to_analyzer_map )
+		for ( const auto& kv : fid_to_analyzer_map )
 			{
 			if ( kv.second )
 				{
@@ -49,6 +49,22 @@ refine connection SMB_Conn += {
 
 		if ( it == fid_to_analyzer_map.end() )
 			{
+			// Too many analyzers?
+			if ( zeek::BifConst::SMB::max_dce_rpc_analyzers > 0 &&
+			     fid_to_analyzer_map.size() >= zeek::BifConst::SMB::max_dce_rpc_analyzers )
+				{
+				if ( smb_discarded_dce_rpc_analyzers )
+					zeek::BifEvent::enqueue_smb_discarded_dce_rpc_analyzers(zeek_analyzer(), zeek_analyzer()->Conn());
+
+				for ( const auto& kv : fid_to_analyzer_map )
+					{
+					kv.second->Done();
+					delete kv.second;
+					}
+
+				fid_to_analyzer_map.clear();
+				}
+
 			auto tmp_analyzer = zeek::analyzer_mgr->InstantiateAnalyzer("DCE_RPC", zeek_analyzer()->Conn());
 			pipe_dcerpc = static_cast<zeek::analyzer::dce_rpc::DCE_RPC_Analyzer *>(tmp_analyzer);
 
@@ -67,5 +83,20 @@ refine connection SMB_Conn += {
 			pipe_dcerpc->DeliverStream(${pipe_data}.length(), ${pipe_data}.begin(), is_orig);
 
 		return true;
+		%}
+
+	function forward_dce_rpc_close(fid: uint64): bool
+		%{
+		auto it = fid_to_analyzer_map.find(fid);
+
+		if ( it != fid_to_analyzer_map.end() )
+			{
+			it->second->Done();
+			delete it->second;
+			fid_to_analyzer_map.erase(it);
+			return true;
+			}
+
+		return false;
 		%}
 };

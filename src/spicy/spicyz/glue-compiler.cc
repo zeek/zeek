@@ -8,6 +8,7 @@
 
 #include <hilti/ast/all.h>
 #include <hilti/ast/builder/all.h>
+#include <hilti/ast/builder/expression.h>
 #include <hilti/base/preprocessor.h>
 #include <hilti/base/util.h>
 #include <hilti/compiler/unit.h>
@@ -100,6 +101,37 @@ static hilti::ID extract_id(const std::string& chunk, size_t* i) {
     auto id = chunk.substr(*i, j - *i);
     *i = j;
     return hilti::ID(hilti::util::replace(id, "%", "0x25_"));
+}
+
+static std::string extract_string(const std::string& chunk, size_t* i) {
+    eat_spaces(chunk, i);
+
+    if ( *i >= chunk.size() || chunk[*i] != '"' )
+        throw ParseError("expected string");
+
+    size_t j = *i + 1;
+
+    std::string str = "";
+    bool in_escape = false;
+    while ( j < chunk.size() - 1 ) {
+        if ( chunk[j] == '"' && ! in_escape )
+            break;
+
+        if ( chunk[j] == '\\' && ! in_escape ) {
+            in_escape = true;
+            ++j;
+            continue;
+        }
+
+        str += chunk[j++];
+        in_escape = false;
+    }
+
+    if ( j >= chunk.size() || chunk[j] != '"' )
+        throw ParseError("string not terminated");
+
+    *i = j + 1;
+    return str;
 }
 
 static hilti::Type extract_type(const std::string& chunk, size_t* i) {
@@ -298,8 +330,8 @@ static ::zeek::spicy::rt::PortRange extract_port_range(const std::string& chunk,
     }
 
     if ( ! end )
-        // EVT port ranges are a closed interval, but rt are half-closed.
-        end = hilti::rt::Port(start.port() + 1, start.protocol());
+        // EVT port ranges are a closed.
+        end = hilti::rt::Port(start.port(), start.protocol());
 
     return {start, *end};
 }
@@ -492,26 +524,37 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
             }
 
             else if ( looking_at(*chunk, 0, "export") ) {
+                auto export_ = parseExport(*chunk);
+                if ( _exports.find(export_.zeek_id) != _exports.end() )
+                    throw ParseError(hilti::util::fmt("export of '%s' already defined", export_.zeek_id));
+
+                _exports[export_.zeek_id] = export_;
+            }
+
+            else if ( looking_at(*chunk, 0, "%doc-id") ) {
+                if ( ! _doc_id.empty() )
+                    throw ParseError("multiple %doc-id directives");
+
                 size_t i = 0;
-                eat_token(*chunk, &i, "export");
+                eat_token(*chunk, &i, "%doc-id");
+                eat_token(*chunk, &i, "=");
+                _doc_id = extract_id(*chunk, &i);
+                SPICY_DEBUG(hilti::util::fmt("  Got module's documentation name: %s", _doc_id));
+            }
 
-                hilti::ID spicy_id = extract_id(*chunk, &i);
-                hilti::ID zeek_id = spicy_id;
-
-                if ( looking_at(*chunk, i, "as") ) {
-                    eat_token(*chunk, &i, "as");
-                    zeek_id = extract_id(*chunk, &i);
-                }
-
-                eat_spaces(*chunk, &i);
-                if ( ! looking_at(*chunk, i, ";") )
-                    throw ParseError("syntax error in export");
-
-                _exports.emplace_back(std::move(spicy_id), std::move(zeek_id), _locations.back());
+            else if ( looking_at(*chunk, 0, "%doc-description") ) {
+                size_t i = 0;
+                eat_token(*chunk, &i, "%doc-description");
+                eat_token(*chunk, &i, "=");
+                _doc_description = extract_string(*chunk, &i);
+                SPICY_DEBUG(hilti::util::fmt("  Got module's documentation description: %s",
+                                             hilti::util::escapeUTF8(_doc_description)));
             }
 
             else
-                throw ParseError("expected 'import', 'export', '{file,packet,protocol} analyzer', or 'on'");
+                throw ParseError(
+                    "expected 'import', 'export', '{file,packet,protocol} analyzer', 'on', or '%doc-{id,description}' "
+                    "directive");
 
             _locations.pop_back();
         }
@@ -524,6 +567,70 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
 
     for ( auto&& ev : new_events )
         _events.push_back(ev);
+
+    return true;
+}
+
+std::optional<glue::Export> GlueCompiler::exportForZeekID(const hilti::ID& id) const {
+    if ( auto i = _exports.find(id); i != _exports.end() )
+        return i->second;
+    else
+        return {};
+}
+
+GlueCompiler::ExportedField GlueCompiler::exportForField(const hilti::ID& zeek_id, const hilti::ID& field_id) const {
+    ExportedField field;
+
+    auto export_ = exportForZeekID(zeek_id);
+    if ( ! export_ )
+        // No `export` for this type, return defaults.
+        return field;
+
+    if ( export_->with.empty() ) {
+        // Include unless explicitly excluded.
+        if ( export_->without.find(field_id) != export_->without.end() )
+            field.skip = true;
+    }
+    else {
+        // Exclude unless explicitly included.
+        if ( export_->with.find(field_id) == export_->with.end() )
+            field.skip = true;
+    }
+
+    if ( export_->log_all )
+        field.log = true;
+
+    if ( export_->logs.find(field_id) != export_->logs.end() )
+        field.log = true;
+
+    return field;
+}
+
+
+bool glue::Export::validate(const TypeInfo& ti) const {
+    auto utype = ti.type.tryAs<::spicy::type::Unit>();
+    if ( ! utype )
+        return true;
+
+    auto check_field_names = [&](const auto& fields) {
+        for ( const auto& f : fields ) {
+            if ( ! utype->itemByName(f) ) {
+                hilti::logger().error(hilti::rt::fmt("type '%s' does not have field '%s'", ti.id, f), ti.location);
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    if ( ! check_field_names(with) )
+        return false;
+
+    if ( ! check_field_names(without) )
+        return false;
+
+    if ( ! check_field_names(logs) )
+        return false;
 
     return true;
 }
@@ -796,6 +903,70 @@ glue::Event GlueCompiler::parseEvent(const std::string& chunk) {
     return ev;
 }
 
+glue::Export GlueCompiler::parseExport(const std::string& chunk) {
+    glue::Export export_;
+
+    size_t i = 0;
+    eat_token(chunk, &i, "export");
+
+    export_.spicy_id = extract_id(chunk, &i);
+    export_.zeek_id = export_.spicy_id;
+    export_.location = _locations.back();
+
+    if ( looking_at(chunk, i, "as") ) {
+        eat_token(chunk, &i, "as");
+        export_.zeek_id = extract_id(chunk, &i);
+    }
+
+    if ( looking_at(chunk, i, "&log") ) {
+        eat_token(chunk, &i, "&log");
+        export_.log_all = true;
+    }
+
+    bool expect_fields = false;
+    bool include_fields;
+
+    if ( looking_at(chunk, i, "without") ) {
+        eat_token(chunk, &i, "without");
+        include_fields = false;
+        expect_fields = true;
+    }
+    else if ( looking_at(chunk, i, "with") ) {
+        eat_token(chunk, &i, "with");
+        include_fields = true;
+        expect_fields = true;
+    }
+
+    if ( expect_fields ) {
+        eat_token(chunk, &i, "{");
+
+        while ( true ) {
+            auto field = extract_id(chunk, &i);
+            if ( include_fields )
+                export_.with.insert(field);
+            else
+                export_.without.insert(field);
+
+            if ( looking_at(chunk, i, "&log") ) {
+                eat_token(chunk, &i, "&log");
+                export_.logs.insert(field);
+            }
+
+            if ( looking_at(chunk, i, "}") ) {
+                eat_token(chunk, &i, "}");
+                break; // All done.
+            }
+
+            eat_token(chunk, &i, ",");
+        }
+    }
+
+    if ( ! looking_at(chunk, i, ";") )
+        throw ParseError("syntax error in export");
+
+    return export_;
+}
+
 bool GlueCompiler::compile() {
     assert(_driver);
 
@@ -814,6 +985,12 @@ bool GlueCompiler::compile() {
 
     if ( ! PopulateEvents() )
         return false;
+
+    if ( ! _doc_id.empty() ) {
+        auto mtime = hilti::expression::Ctor(hilti::ctor::Time(hilti::rt::time::current_time()));
+        preinit_body.addCall("zeek_rt::register_spicy_module_begin",
+                             {hilti::builder::string(_doc_id), hilti::builder::string(_doc_description), mtime});
+    }
 
     for ( auto& a : _protocol_analyzers ) {
         SPICY_DEBUG(hilti::util::fmt("Adding protocol analyzer '%s'", a.name));
@@ -908,12 +1085,11 @@ bool GlueCompiler::compile() {
         preinit_body.addCall("zeek_rt::install_handler", {builder::string(ev.name)});
 
     // Create Zeek types for exported Spicy types.
+    GlueCompiler::ZeekTypeCache cache;
+
     for ( const auto& [tinfo, id] : _driver->exportedTypes() ) {
-        if ( auto type = createZeekType(tinfo.type, id) )
-            preinit_body.addCall("zeek_rt::register_type",
-                                 {builder::string(id.namespace_()), builder::string(id.local()), *type});
-        else
-            hilti::logger().error(hilti::util::fmt("cannot export Spicy type '%s': %s", id, type.error()),
+        if ( auto rc = createZeekType(tinfo.type, id, &preinit_body, &cache); ! rc )
+            hilti::logger().error(hilti::util::fmt("cannot export Spicy type '%s': %s", id, rc.error()),
                                   tinfo.location);
     }
 
@@ -935,6 +1111,9 @@ bool GlueCompiler::compile() {
         auto unit = hilti::Unit::fromModule(_driver->context(), *m->spicy_module, ".spicy");
         _driver->addInput(unit);
     }
+
+    if ( ! _doc_id.empty() )
+        preinit_body.addCall("zeek_rt::register_spicy_module_end", {});
 
     if ( ! preinit_body.empty() ) {
         auto preinit_function =
@@ -1173,15 +1352,18 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 }
 
 namespace {
-// Visitor creasting code to instantiate a Zeek type corresponding to a give
+// Visitor creating code to instantiate a Zeek type corresponding to a give
 // HILTI type.
 //
 // Note: Any logic changes here must be reflected in the plugin driver's
 // corresponding `VisitorZeekType` as well.
 struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expression>, VisitorZeekType> {
-    VisitorZeekType(const GlueCompiler* gc) : gc(gc) {}
+    VisitorZeekType(const GlueCompiler* gc, hilti::builder::Builder* body, GlueCompiler::ZeekTypeCache* cache)
+        : gc(gc), body(body), cache(cache) {}
 
     const GlueCompiler* gc;
+    hilti::builder::Builder* body;
+    GlueCompiler::ZeekTypeCache* cache;
 
     std::set<hilti::ID> zeek_types;
     std::vector<std::optional<hilti::ID>> ids = {};
@@ -1194,38 +1376,110 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
         return (! ids.empty() && ids.front().has_value()) ? ids.front()->namespace_() : hilti::ID();
     }
 
-    result_t base_type(const char* tag) { return builder::call("zeek_rt::create_base_type", {builder::id(tag)}); }
+    // Returns prefix for a new tmp that includes the given ID in its name.
+    auto tmpName(const std::string& prefix, const hilti::ID& id) const {
+        return hilti::util::fmt("%s_%s", prefix, hilti::util::replace(id, "::", "_"));
+    }
 
-    result_t createZeekType(const hilti::Type& t, const std::optional<hilti::ID>& id_ = {}) {
-        if ( id_ )
-            ids.push_back(id_);
-        else if ( auto x = t.typeID() )
-            ids.push_back(*x);
-        else
-            ids.push_back(std::nullopt);
+    result_t create_record_type(const hilti::ID& ns, const hilti::ID& local,
+                                const std::vector<hilti::Expression>& fields) {
+        if ( hilti::logger().isEnabled(ZeekPlugin) ) {
+            if ( ! fields.empty() ) {
+                SPICY_DEBUG(hilti::util::fmt("Creating Zeek record type %s::%s with fields:", ns, local));
 
-        if ( id() ) {
-            // Avoid infinite recursion.
-            if ( zeek_types.count(*id()) )
-                return hilti::result::Error("type is self-recursive");
-
-            zeek_types.insert(*id());
+                for ( const auto& f : fields )
+                    SPICY_DEBUG(hilti::util::fmt("  %s", f));
+            }
+            else
+                SPICY_DEBUG(hilti::util::fmt("Creating (empty) Zeek record type %s::%s", ns, local));
         }
 
+        auto tmp =
+            body->addTmp(tmpName("fields", {ns, local}), builder::vector(builder::typeByID("zeek_rt::RecordField")));
+
+        for ( const auto& f : fields )
+            body->addMemberCall(tmp, "push_back", {f});
+
+        return builder::call("zeek_rt::create_record_type", {builder::string(ns), builder::string(local), tmp});
+    }
+
+    hilti::Expression create_record_field(const hilti::ID& id, const hilti::Expression& type, bool optional,
+                                          bool log) const {
+        return builder::call("zeek_rt::create_record_field",
+                             {builder::string(id), type, builder::bool_(optional), builder::bool_(log)});
+    }
+
+    result_t base_type(const char* tag) { return builder::call("zeek_rt::create_base_type", {builder::id(tag)}); }
+
+    result_t createZeekType(const hilti::Type& t, std::optional<hilti::ID> id = {}) {
+        if ( ! id )
+            id = t.typeID(); // may still be unset
+
+        if ( id ) {
+            if ( auto x = cache->find(*id); x != cache->end() )
+                return x->second;
+
+            // Avoid infinite recursion.
+            if ( zeek_types.count(*id) )
+                return hilti::result::Error("type is self-recursive");
+
+            zeek_types.insert(*id);
+        }
+
+        ids.push_back(id);
         auto x = dispatch(t);
+        ids.pop_back();
+
         if ( ! x )
             return hilti::result::Error(
                 hilti::util::fmt("no support for automatic conversion into a Zeek type (%s)", t.typename_()));
 
-        if ( id() )
-            zeek_types.erase(*id());
+        if ( id ) {
+            zeek_types.erase(*id);
 
-        ids.pop_back();
+            if ( *x ) {
+                auto zt = body->addTmp(tmpName("type", *id), **x);
+                cache->emplace(*id, zt);
+                return zt;
+            }
+        }
 
         return *x;
     }
 
     result_t operator()(const hilti::type::Address& t) { return base_type("zeek_rt::ZeekTypeTag::Addr"); }
+
+    result_t operator()(const hilti::type::Bitfield& t) {
+        std::vector<hilti::Expression> fields;
+        for ( const auto& b : t.bits() ) {
+            auto ztype = createZeekType(b.itemType());
+            if ( ! ztype )
+                return ztype.error();
+
+            fields.emplace_back(create_record_field(b.id(), *ztype, false, false));
+        }
+
+        hilti::ID local;
+        hilti::ID ns;
+
+        if ( auto id_ = id() ) {
+            local = id_->local();
+            ns = id_->namespace_();
+        }
+        else {
+            // Invent a (hopefully unique) name for the Zeek-side record type
+            // so that we can handle anonymous tuple types.
+            static uint64_t i = 0;
+            local = hilti::util::
+                fmt("__spicy_bitfield_%u"
+                    "_%" PRIu64,
+                    static_cast<unsigned int>(getpid()), ++i);
+            ns = namespace_();
+        }
+
+        return create_record_type(ns, local, fields);
+    }
+
     result_t operator()(const hilti::type::Bool& t) { return base_type("zeek_rt::ZeekTypeTag::Bool"); }
     result_t operator()(const hilti::type::Bytes& t) { return base_type("zeek_rt::ZeekTypeTag::String"); }
     result_t operator()(const hilti::type::Interval& t) { return base_type("zeek_rt::ZeekTypeTag::Interval"); }
@@ -1243,8 +1497,16 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             return builder::tuple({builder::string(l.get().id()), builder::integer(l.get().value())});
         });
 
-        return builder::call("zeek_rt::create_enum_type", {builder::string(id()->namespace_()),
-                                                           builder::string(id()->local()), builder::vector(labels)});
+        auto tmp = body->addTmp(tmpName("labels", *id()),
+                                hilti::type::Vector(
+                                    hilti::type::Tuple({hilti::type::String(), hilti::type::SignedInteger(64)})));
+
+        for ( const auto& l : t.labels() )
+            body->addMemberCall(tmp, "push_back",
+                                {builder::tuple({builder::string(l.get().id()), builder::integer(l.get().value())})});
+
+        return builder::call("zeek_rt::create_enum_type",
+                             {builder::string(id()->namespace_()), builder::string(id()->local()), tmp});
     }
 
     result_t operator()(const hilti::type::Map& t) {
@@ -1278,11 +1540,10 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             if ( ! ztype )
                 return ztype.error();
 
-            fields.emplace_back(builder::tuple({builder::string(f.id()), *ztype, builder::bool_(f.isOptional())}));
+            fields.emplace_back(create_record_field(f.id(), *ztype, f.isOptional(), false));
         }
 
-        return builder::call("zeek_rt::create_record_type", {builder::string(id()->namespace_()),
-                                                             builder::string(id()->local()), builder::vector(fields)});
+        return create_record_type(id()->namespace_(), id()->local(), fields);
     }
 
     result_t operator()(const hilti::type::Tuple& t) {
@@ -1295,7 +1556,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             if ( ! ztype )
                 return ztype.error();
 
-            fields.emplace_back(builder::tuple({builder::string(*f.id()), *ztype, builder::bool_(false)}));
+            fields.emplace_back(create_record_field(*f.id(), *ztype, false, false));
         }
 
         hilti::ID local;
@@ -1316,8 +1577,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
             ns = namespace_();
         }
 
-        return builder::call("zeek_rt::create_record_type",
-                             {builder::string(ns), builder::string(local), builder::vector(fields)});
+        return create_record_type(ns, local, fields);
     }
 
     result_t operator()(const ::spicy::type::Unit& t) {
@@ -1325,16 +1585,31 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
 
         std::vector<hilti::Expression> fields;
         for ( const auto& f : gc->recordFields(t) ) {
-            auto ztype = createZeekType(std::get<1>(f));
-            if ( ! ztype )
-                return ztype.error();
+            auto export_ = gc->exportForField(*id(), hilti::ID(f.id));
 
-            fields.emplace_back(
-                builder::tuple({builder::string(std::get<0>(f)), *ztype, builder::bool_(std::get<2>(f))}));
+            if ( export_.skip )
+                continue;
+
+            // Special-case: Lift up elements of anonymous bitfields.
+            if ( auto bf = f.type.tryAs<hilti::type::Bitfield>(); bf && f.is_anonymous ) {
+                for ( const auto& b : bf->bits() ) {
+                    auto ztype = createZeekType(b.itemType());
+                    if ( ! ztype )
+                        return ztype.error();
+
+                    fields.emplace_back(create_record_field(b.id(), *ztype, f.is_optional, export_.log));
+                }
+            }
+            else if ( ! f.is_anonymous ) {
+                auto ztype = createZeekType(f.type);
+                if ( ! ztype )
+                    return ztype.error();
+
+                fields.emplace_back(create_record_field(f.id, *ztype, f.is_optional, export_.log));
+            }
         }
 
-        return builder::call("zeek_rt::create_record_type", {builder::string(id()->namespace_()),
-                                                             builder::string(id()->local()), builder::vector(fields)});
+        return create_record_type(id()->namespace_(), id()->local(), fields);
     }
 
     result_t operator()(const hilti::type::Vector& t) {
@@ -1347,9 +1622,19 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
 };
 } // namespace
 
-hilti::Result<hilti::Expression> GlueCompiler::createZeekType(const hilti::Type& t, const hilti::ID& id) const {
-    auto v = VisitorZeekType(this);
-    return v.createZeekType(t, id);
+hilti::Result<hilti::Nothing> GlueCompiler::createZeekType(const hilti::Type& t, const hilti::ID& id,
+                                                           hilti::builder::Builder* body,
+                                                           GlueCompiler::ZeekTypeCache* cache) const {
+    body->addComment(hilti::util::fmt("Creating Zeek type %s", id));
+
+    auto v = VisitorZeekType(this, body, cache);
+
+    if ( auto zt = v.createZeekType(t, id) ) {
+        body->addCall("zeek_rt::register_type", {builder::string(id.namespace_()), builder::string(id.local()), *zt});
+        return hilti::Nothing();
+    }
+    else
+        return zt.error();
 }
 
 namespace {
@@ -1358,17 +1643,30 @@ struct VisitorUnitFields : hilti::visitor::PreOrder<void, VisitorUnitFields> {
     std::vector<GlueCompiler::RecordField> fields;
 
     void operator()(const ::spicy::type::unit::item::Field& f, position_t p) {
-        if ( f.isTransient() || f.parseType().isA<hilti::type::Void>() )
+        if ( (f.isTransient() && ! f.isAnonymous()) || f.parseType().isA<hilti::type::Void>() )
             return;
 
-        fields.emplace_back(f.id(), f.itemType(), true);
+        auto field = GlueCompiler::RecordField{.id = f.id(),
+                                               .type = f.itemType(),
+                                               .is_optional = true,
+                                               .is_anonymous = f.isAnonymous()};
+        fields.emplace_back(std::move(field));
     }
 
     void operator()(const ::spicy::type::unit::item::Variable& f, const position_t p) {
-        fields.emplace_back(f.id(), f.itemType(), f.isOptional());
+        auto field = GlueCompiler::RecordField{.id = f.id(),
+                                               .type = f.itemType(),
+                                               .is_optional = f.isOptional(),
+                                               .is_anonymous = false};
+        fields.emplace_back(std::move(field));
     }
 
-    // TODO: void operator()(const ::spicy::type::unit::item::Switch & f, const position_t p) {
+    void operator()(const ::spicy::type::unit::item::Switch& f, const position_t p) {
+        for ( const auto& c : f.cases() ) {
+            for ( const auto& i : c.items() )
+                dispatch(i);
+        }
+    }
 };
 } // namespace
 

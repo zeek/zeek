@@ -8,10 +8,10 @@
 namespace zeek::plugin::Zeek_LLC
 	{
 
-class Plugin : public zeek::plugin::Plugin
+class Plugin final : public zeek::plugin::Plugin
 	{
 public:
-	zeek::plugin::Configuration Configure()
+	zeek::plugin::Configuration Configure() override
 		{
 		AddComponent(new zeek::packet_analysis::Component(
 			"LLC", zeek::packet_analysis::LLC::LLCAnalyzer::Instantiate));

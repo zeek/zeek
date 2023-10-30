@@ -7,10 +7,6 @@
 #include <string>
 #include <utility>
 
-#ifdef NEED_KRB5_H
-#include <krb5.h>
-#endif // NEED_KRB5_H
-
 #include "zeek/Val.h"
 #include "zeek/util.h"
 

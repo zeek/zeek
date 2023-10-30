@@ -50,8 +50,6 @@ OpaqueMgr* OpaqueMgr::mgr()
 
 OpaqueVal::OpaqueVal(OpaqueTypePtr t) : Val(std::move(t)) { }
 
-OpaqueVal::~OpaqueVal() { }
-
 const std::string& OpaqueMgr::TypeID(const OpaqueVal* v) const
 	{
 	auto x = _types.find(v->OpaqueName());
@@ -158,6 +156,16 @@ ValPtr OpaqueVal::DoClone(CloneState* state)
 
 	auto rval = OpaqueVal::Unserialize(std::move(*d));
 	return state->NewClone(this, std::move(rval));
+	}
+
+void OpaqueVal::ValDescribe(ODesc* d) const
+	{
+	d->Add(util::fmt("<opaque of %s>", OpaqueName()));
+	}
+
+void OpaqueVal::ValDescribeReST(ODesc* d) const
+	{
+	d->Add(util::fmt("<opaque of %s>", OpaqueName()));
 	}
 
 bool HashVal::IsValid() const

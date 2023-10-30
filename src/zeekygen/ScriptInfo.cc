@@ -51,11 +51,11 @@ static void add_summary_rows(const ODesc& id_desc, const vector<string>& cmnts,
                              ReStructuredTextTable* table)
 	{
 	vector<string> row;
-	row.push_back(id_desc.Description());
+	row.emplace_back(id_desc.Description());
 
 	if ( cmnts.empty() )
 		{
-		row.push_back("");
+		row.emplace_back();
 		table->AddRow(row);
 		return;
 		}
@@ -66,7 +66,7 @@ static void add_summary_rows(const ODesc& id_desc, const vector<string>& cmnts,
 	for ( size_t i = 1; i < cmnts.size(); ++i )
 		{
 		row.clear();
-		row.push_back("");
+		row.emplace_back();
 		row.push_back(cmnts[i]);
 		table->AddRow(row);
 		}

@@ -12,7 +12,7 @@ class ConnSize_Analyzer : public analyzer::Analyzer
 	{
 public:
 	explicit ConnSize_Analyzer(Connection* c);
-	~ConnSize_Analyzer() override;
+	~ConnSize_Analyzer() override = default;
 
 	void Init() override;
 	void Done() override;

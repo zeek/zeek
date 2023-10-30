@@ -4,6 +4,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail
@@ -176,12 +177,6 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 	auto r2 = rhs->GetOp2();
 	auto r3 = rhs->GetOp3();
 
-	if ( rhs->Tag() == EXPR_LAMBDA )
-		{
-		// reporter->Error("lambda expressions not supported for compiling");
-		return ErrorStmt();
-		}
-
 	if ( rhs->Tag() == EXPR_NAME )
 		return AssignVV(lhs, rhs->AsNameExpr());
 
@@ -212,6 +207,9 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e)
 
 	if ( rhs->Tag() == EXPR_ANY_INDEX )
 		return AnyIndexVVi(lhs, r1->AsNameExpr(), rhs->AsAnyIndexExpr()->Index());
+
+	if ( rhs->Tag() == EXPR_LAMBDA )
+		return BuildLambda(lhs, rhs->AsLambdaExpr());
 
 	if ( rhs->Tag() == EXPR_COND && r1->GetType()->Tag() == TYPE_VECTOR )
 		return Bool_Vec_CondVVVV(lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr());
@@ -285,7 +283,18 @@ const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const Index
 		                  : IndexVecIntSelectVVV(lhs, n, index);
 		}
 
-	return const_aggr ? IndexVCL(lhs, con, indexes_expr) : IndexVVL(lhs, n, indexes_expr);
+	if ( rhs->IsInsideWhen() )
+		{
+		if ( const_aggr )
+			return WhenIndexVCL(lhs, con, indexes_expr);
+		else
+			return WhenIndexVVL(lhs, n, indexes_expr);
+		}
+
+	if ( const_aggr )
+		return IndexVCL(lhs, con, indexes_expr);
+	else
+		return IndexVVL(lhs, n, indexes_expr);
 	}
 
 const ZAMStmt ZAMCompiler::CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e)
@@ -616,26 +625,28 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, 
 	return AddInst(z);
 	}
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l)
+const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, const NameExpr* n2, const ListExpr* l,
+                                        bool in_when)
 	{
-	return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l);
+	return CompileIndex(n1, FrameSlot(n2), n2->GetType(), l, in_when);
 	}
 
-const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l)
+const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n, const ConstExpr* c, const ListExpr* l,
+                                        bool in_when)
 	{
 	auto tmp = TempForConst(c);
-	return CompileIndex(n, tmp, c->GetType(), l);
+	return CompileIndex(n, tmp, c->GetType(), l, in_when);
 	}
 
 const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2t,
-                                        const ListExpr* l)
+                                        const ListExpr* l, bool in_when)
 	{
 	ZInstI z;
 
 	int n = l->Exprs().length();
 	auto n2tag = n2t->Tag();
 
-	if ( n == 1 )
+	if ( n == 1 && ! in_when )
 		{
 		auto ind = l->Exprs()[0];
 		auto var_ind = ind->Tag() == EXPR_NAME;
@@ -677,12 +688,28 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 			if ( n3 )
 				{
 				int n3_slot = FrameSlot(n3);
-				auto zop = is_any ? OP_INDEX_ANY_VEC_VVV : OP_INDEX_VEC_VVV;
+
+				ZOp zop;
+				if ( in_when )
+					zop = OP_WHEN_INDEX_VEC_VVV;
+				else if ( is_any )
+					zop = OP_INDEX_ANY_VEC_VVV;
+				else
+					zop = OP_INDEX_VEC_VVV;
+
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, n3_slot);
 				}
 			else
 				{
-				auto zop = is_any ? OP_INDEX_ANY_VECC_VVV : OP_INDEX_VECC_VVV;
+				ZOp zop;
+
+				if ( in_when )
+					zop = OP_WHEN_INDEX_VECC_VVV;
+				else if ( is_any )
+					zop = OP_INDEX_ANY_VECC_VVV;
+				else
+					zop = OP_INDEX_VECC_VVV;
+
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
 				z.op_type = OP_VVV_I3;
 				}
@@ -709,6 +736,12 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 				z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c3);
 				}
 
+			// See the discussion in CSE_ValidityChecker::PreExpr
+			// regarding always needing to treat this as potentially
+			// modifying globals.
+			z.aux = new ZInstAux(0);
+			z.aux->can_change_non_locals = true;
+
 			return AddInst(z);
 			}
 		}
@@ -720,13 +753,13 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 	switch ( n2tag )
 		{
 		case TYPE_VECTOR:
-			op = OP_INDEX_VEC_SLICE_VV;
+			op = in_when ? OP_WHEN_INDEX_VEC_SLICE_VV : OP_INDEX_VEC_SLICE_VV;
 			z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
 			z.SetType(n2t);
 			break;
 
 		case TYPE_TABLE:
-			op = OP_TABLE_INDEX_VV;
+			op = in_when ? OP_WHEN_TABLE_INDEX_VV : OP_TABLE_INDEX_VV;
 			z = ZInstI(op, Frame1Slot(n1, op), n2_slot);
 			z.SetType(n1->GetType());
 			break;
@@ -743,6 +776,38 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
 
 	z.aux = InternalBuildVals(l);
 	z.CheckIfManaged(n1->GetType());
+
+	return AddInst(z);
+	}
+
+const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le)
+	{
+	return BuildLambda(Frame1Slot(n, OP1_WRITE), le);
+	}
+
+const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le)
+	{
+	auto& captures = le->GetCaptures();
+	int ncaptures = captures ? captures->size() : 0;
+
+	auto aux = new ZInstAux(ncaptures);
+	aux->primary_func = le->PrimaryFunc();
+	aux->lambda_name = le->Name();
+	aux->id_val = le->Ingredients()->GetID();
+
+	for ( int i = 0; i < ncaptures; ++i )
+		{
+		auto& id_i = (*captures)[i].Id();
+
+		if ( pf->WhenLocals().count(id_i.get()) > 0 )
+			aux->Add(i, nullptr);
+		else
+			aux->Add(i, FrameSlot(id_i), id_i->GetType());
+		}
+
+	auto z = ZInstI(OP_LAMBDA_VV, n_slot, le->PrimaryFunc()->FrameSize());
+	z.op_type = OP_VV_I2;
+	z.aux = aux;
 
 	return AddInst(z);
 	}
@@ -887,16 +952,17 @@ const ZAMStmt ZAMCompiler::AssignToCall(const ExprStmt* e)
 const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 	{
 	auto func = c->Func()->AsNameExpr();
-	auto func_id = func->Id();
+	auto func_id = func->IdPtr();
 	auto& args = c->Args()->Exprs();
 
 	int nargs = args.length();
 	int call_case = nargs;
 
 	bool indirect = ! func_id->IsGlobal() || ! func_id->GetVal();
+	bool in_when = c->IsInWhen();
 
-	if ( indirect )
-		call_case = -1; // force default of CallN
+	if ( indirect || in_when )
+		call_case = -1; // force default of some flavor of CallN
 
 	auto nt = n ? n->GetType()->Tag() : TYPE_VOID;
 	auto n_slot = n ? Frame1Slot(n, OP1_WRITE) : -1;
@@ -973,8 +1039,17 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 				break;
 
 			default:
-				if ( indirect )
+				if ( in_when )
+					{
+					if ( indirect )
+						op = OP_WHENINDCALLN_VV;
+					else
+						op = OP_WHENCALLN_V;
+					}
+
+				else if ( indirect )
 					op = n ? OP_INDCALLN_VV : OP_INDCALLN_V;
+
 				else
 					op = n ? OP_CALLN_V : OP_CALLN_X;
 				break;
@@ -982,7 +1057,9 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 
 		if ( n )
 			{
-			op = AssignmentFlavor(op, nt);
+			if ( ! in_when )
+				op = AssignmentFlavor(op, nt);
+
 			auto n_slot = Frame1Slot(n, OP1_WRITE);
 
 			if ( indirect )
@@ -1023,9 +1100,12 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 	if ( ! z.aux )
 		z.aux = new ZInstAux(0);
 
-	z.aux->can_change_globals = true;
+	z.aux->can_change_non_locals = true;
 
-	z.call_expr = c;
+	z.call_expr = {NewRef{}, const_cast<CallExpr*>(c)};
+
+	if ( in_when )
+		z.SetType(n->GetType());
 
 	if ( ! indirect || func_id->IsGlobal() )
 		{
@@ -1033,19 +1113,6 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n)
 
 		if ( ! indirect )
 			z.func = func_id->GetVal()->AsFunc();
-		}
-
-	if ( n )
-		{
-		auto id = n->Id();
-		if ( id->IsGlobal() )
-			{
-			AddInst(z);
-			auto global_slot = global_id_to_info[id];
-			z = ZInstI(OP_STORE_GLOBAL_V, global_slot);
-			z.op_type = OP_V_I1;
-			z.t = globalsI[global_slot].id->GetType();
-			}
 		}
 
 	return AddInst(z);
@@ -1061,6 +1128,31 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e)
 	z.aux = InternalBuildVals(con, width + 1);
 	z.t = tt;
 	z.attrs = e->AsTableConstructorExpr()->GetAttrs();
+
+	auto zstmt = AddInst(z);
+
+	auto def_attr = z.attrs ? z.attrs->Find(ATTR_DEFAULT) : nullptr;
+	if ( ! def_attr || def_attr->GetExpr()->Tag() != EXPR_LAMBDA )
+		return zstmt;
+
+	auto def_lambda = def_attr->GetExpr()->AsLambdaExpr();
+	auto dl_t = def_lambda->GetType()->AsFuncType();
+	auto& captures = dl_t->GetCaptures();
+
+	if ( ! captures )
+		return zstmt;
+
+	// What a pain.  The table's default value is a lambda that has
+	// captures.  The semantics of this are that the captures are
+	// evaluated at table-construction time.  We need to build the
+	// lambda and assign it as the table's default.
+
+	auto slot = NewSlot(true); // since func_val's are managed
+	(void)BuildLambda(slot, def_lambda);
+
+	z = GenInst(OP_SET_TABLE_DEFAULT_LAMBDA_VV, n, slot);
+	z.op_type = OP_VV;
+	z.t = def_lambda->GetType();
 
 	return AddInst(z);
 	}
@@ -1098,6 +1190,9 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e)
 		}
 
 	z.t = e->GetType();
+
+	if ( ! rc->GetType<RecordType>()->IdempotentCreation() )
+		z.aux->can_change_non_locals = true;
 
 	return AddInst(z);
 	}

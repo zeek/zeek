@@ -90,8 +90,6 @@ const char* last_tok_filename = 0;
 const char* last_last_tok_filename = 0;
 char last_tok[128];
 
-extern std::set<std::string> module_names;
-
 #define YY_USER_ACTION	strncpy(last_tok, yytext, sizeof(last_tok) - 1); \
                         last_last_tok_filename = last_tok_filename; \
                         last_tok_filename = ::filename;
@@ -106,7 +104,7 @@ extern std::set<std::string> module_names;
 static std::string find_relative_file(const std::string& filename, const std::string& ext)
 	{
 	if ( filename.empty() )
-		return std::string();
+		return {};
 
 	if ( filename[0] == '.' )
 		return zeek::util::find_file(filename, zeek::util::SafeDirname(::filename).result, ext);
@@ -117,7 +115,7 @@ static std::string find_relative_file(const std::string& filename, const std::st
 static std::string find_relative_script_file(const std::string& filename)
 	{
 	if ( filename.empty() )
-		return std::string();
+		return {};
 
 	if ( filename[0] == '.' )
 		return zeek::util::find_script_file(filename, zeek::util::SafeDirname(::filename).result);
@@ -235,6 +233,8 @@ D	[0-9]+
 HEX	[0-9a-fA-F]+
 IDCOMPONENT [A-Za-z_][A-Za-z_0-9]*
 ID	{IDCOMPONENT}(::{IDCOMPONENT})*
+/* Token including including :: prefix for lookups of global identifiers */
+GLOBAL_ID	::{IDCOMPONENT}
 IP6 ("["({HEX}:){7}{HEX}"]")|("["0x{HEX}({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}|:)*"::"({HEX}|:)*"]")|("["({HEX}:){6}({D}"."){3}{D}"]")|("["({HEX}|:)*"::"({HEX}|:)*({D}"."){3}{D}"]")
 FILE	[^ \t\r\n]+
 PREFIX	[^ \t\r\n]+
@@ -377,6 +377,7 @@ when	return TOK_WHEN;
 &add_func	return TOK_ATTR_ADD_FUNC;
 &create_expire	return TOK_ATTR_EXPIRE_CREATE;
 &default	return TOK_ATTR_DEFAULT;
+&default_insert	return TOK_ATTR_DEFAULT_INSERT;
 &delete_func	return TOK_ATTR_DEL_FUNC;
 &deprecated	return TOK_ATTR_DEPRECATED;
 &raw_output	return TOK_ATTR_RAW_OUTPUT;
@@ -550,6 +551,12 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 	last_id_tok = yylval.str;
 	return TOK_ID;
 	}
+
+{GLOBAL_ID}	{
+		yylval.str = zeek::util::copy_string(yytext);
+		last_id_tok = yylval.str;
+		return TOK_GLOBAL_ID;
+		}
 
 {D}		{
 		RET_CONST(zeek::val_mgr->Count(static_cast<zeek_uint_t>(strtoull(yytext, (char**) NULL, 10))).release())
@@ -813,12 +820,11 @@ void begin_RE()
 	BEGIN(RE);
 	}
 
-class LocalNameFinder : public zeek::detail::TraversalCallback {
+class LocalNameFinder final : public zeek::detail::TraversalCallback {
 public:
-	LocalNameFinder()
-		{}
+	LocalNameFinder() = default;
 
-	virtual zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr)
+	zeek::detail::TraversalCode PreExpr(const zeek::detail::Expr* expr) override
 		{
 		if ( expr->Tag() != EXPR_NAME )
 			return zeek::detail::TC_CONTINUE;
@@ -882,7 +888,7 @@ void do_atifdef(const char* id)
 	// If the ID didn't exist, look to see if this is a module name instead.
 	bool found = (i != nullptr);
 	if ( ! found )
-		found = (module_names.count(id) != 0);
+		found = (zeek::detail::module_names().count(id) != 0);
 
 	if ( ! found )
 		begin_ignoring();
@@ -897,7 +903,7 @@ void do_atifndef(const char *id)
 	// If the ID didn't exist, look to see if this is a module name instead.
 	bool found = (i != nullptr);
 	if ( ! found )
-		found = (module_names.count(id) != 0);
+		found = (zeek::detail::module_names().count(id) != 0);
 
 	if ( found )
 		begin_ignoring();

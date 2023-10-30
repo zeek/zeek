@@ -1,0 +1,159 @@
+#!/bin/sh
+
+binpac_root="@ZEEK_CONFIG_BINPAC_ROOT_DIR@"
+broker_root="@ZEEK_CONFIG_BROKER_ROOT_DIR@"
+btest_tools_dir="@ZEEK_CONFIG_BTEST_TOOLS_DIR@"
+build_type="@CMAKE_BUILD_TYPE_LOWER@"
+cmake_dir="@ZEEK_CMAKE_CONFIG_DIR@"
+config_dir="@ZEEK_ETC_INSTALL_DIR@"
+have_spicy="@USE_SPICY_ANALYZERS@"
+include_dir="@CMAKE_INSTALL_PREFIX@/include"
+lib_dir="@CMAKE_INSTALL_FULL_LIBDIR@"
+plugin_dir="@ZEEK_PLUGIN_DIR@"
+prefix="@CMAKE_INSTALL_PREFIX@"
+python_dir="@PY_MOD_INSTALL_DIR@"
+script_dir="@ZEEK_SCRIPT_INSTALL_PATH@"
+site_dir="@ZEEK_SCRIPT_INSTALL_PATH@/site"
+version="@ZEEK_VERSION_FULL@"
+zeek_dist="@ZEEK_DIST@"
+zeekpath="@DEFAULT_ZEEKPATH@"
+
+add_path() {
+    # $1: existing path
+    # $2: path to add
+    if test -z "$2" || test "$1" = "$2" ||
+        echo "$1" | grep -q "^$2:" 2>/dev/null ||
+        echo "$1" | grep -q ":$2:" 2>/dev/null ||
+        echo "$1" | grep -q ":$2$" 2>/dev/null; then
+        echo "$1"
+        return
+    fi
+
+    echo "$1:$2"
+}
+
+# When changing any of these, also update "src/spicy/spicyz/config.h.in".
+include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_PCAP_INCLUDE_DIR@")
+include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_ZLIB_INCLUDE_DIR@")
+include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_OPENSSL_INCLUDE_DIR@")
+include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_LibKrb5_INCLUDE_DIR@")
+include_dir=$(add_path "$include_dir" "@ZEEK_CONFIG_GooglePerftools_INCLUDE_DIR@")
+
+usage() {
+    echo "Usage: zeek-config [OPTIONS]
+
+Basic options:
+
+  --build_type          Zeek build type as per cmake, lower case (e.g. 'relwithdebinfo')
+  --prefix              Toplevel Zeek distribution installation directory
+  --version             Zeek version number
+  --zeek_dist           Toplevel directory of source tree the distribution built from
+  --zeekpath            ZEEKPATH environment variable paths for this distribution
+
+Specific directories in the Zeek distribution:
+
+  --btest_tools_dir     Zeek-related BTest tooling
+  --cmake_dir           Zeek's cmake modules
+  --config_dir          Configuration files for cluster topology, zkg, etc
+  --include_dir         C/C++ header folders for Zeek and related components, colon-separated
+  --lib_dir             Toplevel folder for shared libraries, Python packages, etc
+  --plugin_dir          Native-code Zeek plugins
+  --python_dir          Python packages (Broker, ZeekControl, zkg, etc)
+  --script_dir          Toplevel folder for Zeek scripts
+  --site_dir            Site-specific Zeek scripts
+
+Toplevel installation directories for third-party components:
+
+  --binpac_root         BinPAC compiler
+  --broker_root         Broker communication framework
+
+Feature tests:
+
+  --have-spicy-analyzers  Prints 'yes' if built-in Spicy analyzers are available; exit code reflects result
+"
+}
+
+if [ $# -eq 0 ]; then
+    usage 1>&2
+    exit 1
+fi
+
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -*=*) optarg=$(echo "$1" | sed 's/[-_a-zA-Z0-9]*=//') ;;
+        *) optarg= ;;
+    esac
+
+    case $1 in
+        --binpac_root)
+            echo $binpac_root
+            ;;
+        --bro_dist) # For compatibility with legacy Bro plugins.
+            echo $zeek_dist
+            ;;
+        --broker_root)
+            echo $broker_root
+            ;;
+        --bropath) # For compatibility with legacy Bro plugins.
+            echo $zeekpath
+            ;;
+        --btest_tools_dir)
+            echo $btest_tools_dir
+            ;;
+        --build_type)
+            echo $build_type
+            ;;
+        --cmake_dir)
+            echo $cmake_dir
+            ;;
+        --config_dir)
+            echo $config_dir
+            ;;
+        --have-spicy-analyzers)
+            if [ "$have_spicy" = "yes" ]; then
+                echo "yes"
+                exit 0
+            else
+                echo "no"
+                exit 1
+            fi
+            ;;
+        --include_dir)
+            echo $include_dir
+            ;;
+        --lib_dir)
+            echo $lib_dir
+            ;;
+        --plugin_dir)
+            echo $plugin_dir
+            ;;
+        --prefix)
+            echo $prefix
+            ;;
+        --python_dir)
+            echo $python_dir
+            ;;
+        --script_dir)
+            echo $script_dir
+            ;;
+        --site_dir)
+            echo $site_dir
+            ;;
+        --version)
+            echo $version
+            ;;
+        --zeek_dist)
+            echo $zeek_dist
+            ;;
+        --zeekpath)
+            echo $zeekpath
+            ;;
+        *)
+            usage 1>&2
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+exit 0

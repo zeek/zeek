@@ -77,12 +77,16 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: 'docs-gen-${{ github.job }}'
+          max-size: '2000M'
 
       - name: Configure
-        run: ./configure --disable-broker-tests --disable-cpp-tests --disable-spicy --ccache
+        run: ./configure --disable-broker-tests --disable-cpp-tests --ccache
 
       - name: Build
         run: cd build && make -j $(nproc)
+
+      - name: Check Spicy docs
+        run: cd doc && make check-spicy-docs
 
       - name: Generate Docs
         run: |

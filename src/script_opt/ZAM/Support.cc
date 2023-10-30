@@ -13,27 +13,13 @@
 namespace zeek::detail
 	{
 
-const Stmt* curr_stmt;
+StmtPtr curr_stmt;
 TypePtr log_ID_enum_type;
 TypePtr any_base_type;
 bool ZAM_error = false;
 
 bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason)
 	{
-	if ( pf->NumLambdas() > 0 )
-		{
-		if ( reason )
-			*reason = "use of lambda";
-		return false;
-		}
-
-	if ( pf->NumWhenStmts() > 0 )
-		{
-		if ( reason )
-			*reason = "use of \"when\"";
-		return false;
-		}
-
 	auto b = pf->ProfiledBody();
 	auto is_hook = pf->ProfiledFunc()->Flavor() == FUNC_FLAVOR_HOOK;
 	if ( b && ! script_is_valid(b, is_hook) )
@@ -69,7 +55,7 @@ StringVal* ZAM_to_lower(const StringVal* sv)
 
 	*ls++ = '\0';
 
-	return new StringVal(new String(1, lower_s, n));
+	return new StringVal(new String(true, lower_s, n));
 	}
 
 StringVal* ZAM_sub_bytes(const StringVal* s, zeek_uint_t start, zeek_int_t n)
@@ -90,7 +76,7 @@ StringValPtr ZAM_val_cat(const ValPtr& v)
 
 	v->Describe(&d);
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return make_intrusive<StringVal>(s);

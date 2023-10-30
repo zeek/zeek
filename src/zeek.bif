@@ -2106,17 +2106,20 @@ function val_footprint%(v: any%): count
 ## exported, a constant, an enum constant, redefinable, and its value (if it
 ## has one).
 ##
+## Module names are included in the returned table as well. The ``type_name``
+## field is set to  "module" and their names are prefixed with "module " to avoid
+## clashing with global identifiers. Note that there is no module type in Zeek.
+##
 ## Returns: A table that maps identifier names to information about them.
 function global_ids%(%): id_table
 	%{
 	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
-	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
-	const auto& globals = zeek::detail::global_scope()->Vars();
+	static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 
-	for ( const auto& global : globals )
+	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
+
+	for ( const auto& [_, id] : zeek::detail::global_scope()->Vars() )
 		{
-		const auto& id = global.second;
-		static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
 		rec->Assign(0, type_name(id->GetType()->Tag()));
 		rec->Assign(1, id->IsExport());
@@ -2130,6 +2133,23 @@ function global_ids%(%): id_table
 			rec->Assign(7, id->GetVal());
 
 		auto id_name = zeek::make_intrusive<zeek::StringVal>(id->Name());
+		ids->Assign(std::move(id_name), std::move(rec));
+		}
+
+	auto module_str = zeek::make_intrusive<zeek::StringVal>("module");
+
+	for ( const auto& module_name : zeek::detail::module_names() )
+		{
+		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
+		rec->Assign(0, module_str); // type_name
+		rec->Assign(1, false); // exported
+		rec->Assign(2, false); // constant
+		rec->Assign(3, false); // enum_constant
+		rec->Assign(4, false); // option_value
+		rec->Assign(5, false); // redefinable
+		rec->Assign(6, false); // broker_backend
+
+		auto id_name = zeek::make_intrusive<zeek::StringVal>(zeek::util::fmt("module %s", module_name.c_str()));
 		ids->Assign(std::move(id_name), std::move(rec));
 		}
 
@@ -3678,6 +3698,10 @@ const char* conn_id_string(zeek::Val* c)
 ## Returns: True on success.
 ##
 ## .. zeek:see:: dump_packet get_current_packet
+##
+## .. note::
+##
+##      See :zeek:see:`get_current_packet` for caveats.
 function dump_current_packet%(file_name: string%) : bool
 	%{
 	const Packet* pkt;
@@ -3709,6 +3733,23 @@ function dump_current_packet%(file_name: string%) : bool
 ##          containing the timestamp, ``snaplen``, and packet data.
 ##
 ## .. zeek:see:: dump_current_packet dump_packet
+##
+## .. note::
+##
+##      Calling ``get_current_packet()`` within events that are not directly
+##      raised as a result of processing a specific packet may result in
+##      unexpected behavior. For example, out-of-order TCP segments or IP
+##      defragmentation may result in such scenarios. Details depend on the
+##      involved packet and protocol analyzers. As a rule of thumb, in low-level
+##      events, like :zeek:see:`raw_packet`, the behavior is well defined.
+##
+##      The returned packet is directly taken from the packet source and any
+##      tunnel or encapsulation layers will be present in the payload. Correctly
+##      inspecting the payload using Zeek script is therefore a non-trivial task.
+##
+##      The return value of ``get_current_packet()`` further should be considered
+##      undefined when called within event handlers raised via :zeek:see:`event`,
+##      :zeek:see:`schedule` or by recipient of Broker messages.
 function get_current_packet%(%) : pcap_packet
 	%{
 	const Packet* p = nullptr;
@@ -3726,6 +3767,10 @@ function get_current_packet%(%) : pcap_packet
 ##          4 headers of the currently processed packet.
 ##
 ## .. zeek:see:: raw_pkt_hdr get_current_packet
+##
+## .. note::
+##
+##      See :zeek:see:`get_current_packet` for caveats.
 function get_current_packet_header%(%) : raw_pkt_hdr
 	%{
 	const Packet* p;
@@ -3966,7 +4011,7 @@ static void report_mmdb_msg(const char* format, ...)
 
 	va_list al;
 	va_start(al, format);
-	std::string msg = zeek::util::fmt(format, al);
+	std::string msg = zeek::util::vfmt(format, al);
 	va_end(al);
 
 	zeek::reporter->Info("%s", msg.data());
@@ -3986,12 +4031,12 @@ private:
 	MMDB_s mmdb;
 	struct stat file_info;
 	bool lookup_error;
-	std::chrono::time_point<std::chrono::steady_clock> last_check;
+	double last_check;
 };
 
 MMDB::MMDB(const char* filename, struct stat info)
 	: file_info(info), lookup_error{false},
-	  last_check{std::chrono::steady_clock::now()}
+	  last_check{zeek::run_state::network_time}
 	{
 	int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
 
@@ -4026,26 +4071,29 @@ MMDB_lookup_result_s MMDB::Lookup(const struct sockaddr* const sa)
 bool MMDB::StaleDB()
 	{
 	struct stat buf;
-	using Clock = std::chrono::steady_clock;
-	std::chrono::time_point<Clock> now = Clock::now();
 
 	if ( lookup_error )
 		return true;
 
-	// Only perform stat once per 5 minutes.
-	using Min = std::chrono::minutes;
-	if ( std::chrono::duration_cast<Min>(now - last_check).count() < 5 )
+
+	static double mmdb_stale_check_interval = zeek::id::find_val("mmdb_stale_check_interval")->AsInterval();
+
+	if ( mmdb_stale_check_interval < 0.0 )
 		return false;
 
-	last_check = now;
+	if ( zeek::run_state::network_time - last_check < mmdb_stale_check_interval )
+		return false;
+
+	last_check = zeek::run_state::network_time;
 
 	if ( 0 != stat(mmdb.filename, &buf) )
 		return true;
 
 	if ( buf.st_ino != file_info.st_ino || buf.st_mtime != file_info.st_mtime )
 		{
-		report_mmdb_msg("Inode change detected for MaxMind DB [%s]",
-		                mmdb.filename);
+		report_mmdb_msg("%s change detected for MaxMind DB [%s]",
+				buf.st_ino != file_info.st_ino ? "Inode" : "Modification time",
+				mmdb.filename);
 		return true;
 		}
 
@@ -4114,7 +4162,7 @@ static void mmdb_check_loc()
 		{
 		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
 		did_mmdb_loc_db_error = false;
-		mmdb_loc.release();
+		mmdb_loc.reset();
 		}
 	}
 
@@ -4124,7 +4172,7 @@ static void mmdb_check_asn()
 		{
 		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
 		did_mmdb_asn_db_error = false;
-		mmdb_asn.release();
+		mmdb_asn.reset();
 		}
 	}
 
@@ -5522,14 +5570,19 @@ function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern
 ##
 ## t: Type of Zeek data.
 ##
+## key_func: Optional function to normalize key names in JSON objects. Useful
+##           when keys are not valid field identifiers, or represent reserved
+##           keywords like **port** or **type**.
+##
 ## returns: A value of type t.
 ##
 ## .. zeek:see:: to_json
-function from_json%(s: string, t: any%): from_json_result
+function from_json%(s: string, t: any, key_func: string_mapper &default=from_json_default_key_mapper%): from_json_result
 	%{
 	static auto result_type = zeek::id::find_type<RecordType>("from_json_result");
 	static auto v_idx = result_type->FieldOffset("v");
 	static auto valid_idx = result_type->FieldOffset("valid");
+	static auto default_key_func_ptr = zeek::id::find_func("from_json_default_key_mapper");
 
 	auto rval = zeek::make_intrusive<RecordVal>(result_type);
 
@@ -5540,7 +5593,14 @@ function from_json%(s: string, t: any%): from_json_result
 		return rval;
 		}
 
-	auto res = zeek::detail::ValFromJSON(s->ToStdStringView(), t->AsType()->AsTypeType()->GetType());
+	// If key_func is the same as "from_json_default_key_mapper",
+	// null it out so that no key normalization happens.
+	auto key_func_ptr = key_func->AsFuncVal()->AsFuncPtr();
+	if ( key_func_ptr == default_key_func_ptr )
+		key_func_ptr = Func::nil;
+
+	auto res = zeek::detail::ValFromJSON(s->ToStdStringView(), t->AsType()->AsTypeType()->GetType(),
+	                                     key_func_ptr);
 
 	if ( auto val = std::get_if<zeek::ValPtr>(&res) )
 		{

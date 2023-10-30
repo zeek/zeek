@@ -11,7 +11,7 @@ namespace zeek::detail
 
 void ZAMCompiler::PushGoTos(GoToSets& gotos)
 	{
-	gotos.push_back({});
+	gotos.emplace_back();
 	}
 
 void ZAMCompiler::ResolveGoTos(GoToSets& gotos, const InstLabel l)

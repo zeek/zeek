@@ -8,7 +8,7 @@
 namespace zeek::plugin::detail::Zeek_Teredo
 	{
 
-class Plugin : public zeek::plugin::Plugin
+class Plugin final : public zeek::plugin::Plugin
 	{
 public:
 	zeek::plugin::Configuration Configure() override

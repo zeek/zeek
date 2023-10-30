@@ -16,8 +16,6 @@ PktDumper::PktDumper()
 	errmsg = "";
 	}
 
-PktDumper::~PktDumper() { }
-
 void PktDumper::Init()
 	{
 	Open();

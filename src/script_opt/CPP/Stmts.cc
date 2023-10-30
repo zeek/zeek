@@ -78,6 +78,10 @@ void CPPCompile::GenStmt(const Stmt* s)
 			GenForStmt(s->AsForStmt());
 			break;
 
+		case STMT_ASSERT:
+			GenAssertStmt(s->AsAssertStmt());
+			break;
+
 		case STMT_NEXT:
 			Emit("continue;");
 			break;
@@ -89,14 +93,14 @@ void CPPCompile::GenStmt(const Stmt* s)
 				Emit("return false;");
 			break;
 
+		case STMT_FALLTHROUGH:
+			break;
+
 		case STMT_PRINT:
 			{
 			auto el = static_cast<const ExprListStmt*>(s)->ExprList();
 			Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
 			}
-			break;
-
-		case STMT_FALLTHROUGH:
 			break;
 
 		default:
@@ -406,23 +410,23 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 
 	Emit("{ // begin a new scope for internal variables");
 
-	Emit("static WhenInfo* CPP__wi = nullptr;");
+	Emit("static std::shared_ptr<WhenInfo> CPP__wi = nullptr;");
 	Emit("static IDSet CPP__w_globals;");
 
 	NL();
 
 	Emit("if ( ! CPP__wi )");
 	StartBlock();
-	Emit("CPP__wi = new WhenInfo(%s);", is_return);
+	Emit("CPP__wi = std::make_shared<WhenInfo>(%s);", is_return);
 	for ( auto& wg : wi->WhenExprGlobals() )
 		Emit("CPP__w_globals.insert(find_global__CPP(\"%s\").get());", wg->Name());
 	EndBlock();
 	NL();
 
 	Emit("std::vector<ValPtr> CPP__local_aggrs;");
-	for ( auto l : wi->WhenExprLocals() )
+	for ( auto& l : wi->WhenExprLocals() )
 		if ( IsAggr(l->GetType()) )
-			Emit("CPP__local_aggrs.emplace_back(%s);", IDNameStr(l));
+			Emit("CPP__local_aggrs.emplace_back(%s);", IDNameStr(l.get()));
 
 	Emit("CPP__wi->Instantiate(%s);", GenExpr(wi->Lambda(), GEN_NATIVE));
 
@@ -434,20 +438,22 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w)
 	Emit("new_frame->SetTrigger({NewRef{}, curr_t});");
 	Emit("new_frame->SetTriggerAssoc(curr_assoc);");
 
-	Emit("auto t = new trigger::Trigger(CPP__wi, %s, CPP__w_globals, CPP__local_aggrs, "
-	     "new_frame.get(), "
-	     "nullptr);",
+	Emit("auto t = make_intrusive<trigger::Trigger>(CPP__wi, CPP__w_globals, CPP__local_aggrs, %s, "
+	     "new_frame.get());",
 	     timeout_val);
-
-	auto loc_str = util::fmt("%s:%d-%d", loc->filename, loc->first_line, loc->last_line);
-	Emit("t->SetName(\"%s\");", loc_str);
 
 	if ( ret_type && ret_type->Tag() != TYPE_VOID )
 		{
+		// Note, ret_type can be active but we *still* don't have
+		// a return type, due to the faked-up "any" return type
+		// associated with "when" lambdas, so check for that case.
+		Emit("if ( curr_t )");
+		StartBlock();
 		Emit("ValPtr retval = {NewRef{}, curr_t->Lookup(curr_assoc)};");
 		Emit("if ( ! retval )");
-		Emit("\tthrow DelayedCallException();");
+		Emit("\tthrow CPPDelayedCallException();");
 		Emit("return %s;", GenericValPtrToGT("retval", ret_type, GEN_NATIVE));
+		EndBlock();
 		}
 
 	Emit("}");
@@ -559,6 +565,35 @@ void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars)
 	auto lv0 = (*loop_vars)[0];
 	if ( ! lv0->IsBlank() )
 		Emit("%s = std::move(sv__CPP);", IDName(lv0));
+	}
+
+void CPPCompile::GenAssertStmt(const AssertStmt* a)
+	{
+	auto& cond = a->Cond();
+	auto& msg = a->Msg();
+
+	Emit("{ // begin a new scope for internal \"assert\" variables");
+	Emit("static auto assertion_result_hook = id::find_func(\"assertion_result\");");
+	Emit("bool run_result_hook = assertion_result_hook && "
+	     "assertion_result_hook->HasEnabledBodies();");
+	Emit("auto assert_result = %s;", GenExpr(cond, GEN_NATIVE));
+	Emit("if ( ! assert_result || run_result_hook )");
+
+	StartBlock();
+	if ( msg )
+		Emit("auto msg_val = %s;", GenExpr(msg, GEN_VAL_PTR));
+	else
+		Emit("auto msg_val = zeek::val_mgr->EmptyString();");
+
+	auto loc = a->GetLocationInfo();
+	Emit("static Location loc(\"%s\", %s, %s, %s, %s);", loc->filename,
+	     std::to_string(loc->first_line), std::to_string(loc->last_line),
+	     std::to_string(loc->first_column), std::to_string(loc->last_column));
+	Emit("report_assert(assert_result, \"%s\", msg_val, &loc);",
+	     CPPEscape(a->CondDesc().c_str()).c_str());
+	EndBlock();
+
+	Emit("} // end of \"assert\" scope");
 	}
 
 	} // zeek::detail

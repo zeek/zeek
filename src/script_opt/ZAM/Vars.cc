@@ -24,6 +24,19 @@ bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const
 	return ! usage || ! usage->HasID(id.get());
 	}
 
+bool ZAMCompiler::IsCapture(const ID* id) const
+	{
+	const auto& c = pf->CapturesOffsets();
+	return c.find(id) != c.end();
+	}
+
+int ZAMCompiler::CaptureOffset(const ID* id) const
+	{
+	auto id_offset = pf->CapturesOffsets().find(id);
+	ASSERT(id_offset != pf->CapturesOffsets().end());
+	return id_offset->second;
+	}
+
 void ZAMCompiler::LoadParam(const ID* id)
 	{
 	if ( id->IsType() )
@@ -64,7 +77,24 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id)
 
 	// We use the id_val for reporting used-but-not-set errors.
 	z.aux = new ZInstAux(0);
-	z.aux->id_val = id;
+	z.aux->id_val = {NewRef{}, const_cast<ID*>(id)};
+
+	return AddInst(z, true);
+	}
+
+const ZAMStmt ZAMCompiler::LoadCapture(const ID* id)
+	{
+	ZOp op;
+
+	if ( ZVal::IsManagedType(id->GetType()) )
+		op = OP_LOAD_MANAGED_CAPTURE_VV;
+	else
+		op = OP_LOAD_CAPTURE_VV;
+
+	auto slot = RawSlot(id);
+
+	ZInstI z(op, slot, CaptureOffset(id));
+	z.op_type = OP_VV_I2;
 
 	return AddInst(z, true);
 	}
@@ -82,6 +112,9 @@ int ZAMCompiler::FrameSlot(const ID* id)
 
 	if ( id->IsGlobal() )
 		(void)LoadGlobal(id);
+
+	else if ( IsCapture(id) )
+		(void)LoadCapture(id);
 
 	return slot;
 	}
@@ -102,6 +135,13 @@ int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl)
 
 	if ( id->IsGlobal() )
 		pending_global_store = global_id_to_info[id];
+
+	else if ( IsCapture(id) )
+		pending_capture_store = CaptureOffset(id);
+
+	// Make sure we don't think we're storing to both a global and
+	// a capture.
+	ASSERT(pending_global_store == -1 || pending_capture_store == -1);
 
 	return slot;
 	}

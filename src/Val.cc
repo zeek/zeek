@@ -956,13 +956,13 @@ const char* StringVal::CheckString() const
 string StringVal::ToStdString() const
 	{
 	auto* bs = AsString();
-	return string((char*)bs->Bytes(), bs->Len());
+	return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
 	}
 
 string_view StringVal::ToStdStringView() const
 	{
 	auto* bs = AsString();
-	return string_view((char*)bs->Bytes(), bs->Len());
+	return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
 	}
 
 StringVal* StringVal::ToUpper()
@@ -1012,7 +1012,7 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
 			break;
 
 		// s[offset .. offset+end_of_match-1] matches re.
-		cut_points.push_back({offset, offset + end_of_match});
+		cut_points.emplace_back(offset, offset + end_of_match);
 
 		offset += end_of_match;
 		n -= end_of_match;
@@ -1064,7 +1064,8 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
 	return make_intrusive<StringVal>(new String(true, result, r - result));
 	}
 
-static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t)
+static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t,
+                                                  const FuncPtr& key_func)
 	{
 	auto mismatch_err = [t, &j]()
 	{
@@ -1278,9 +1279,9 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 				std::variant<ValPtr, std::string> v;
 
 				if ( tl->GetTypes().size() == 1 )
-					v = BuildVal(item, tl->GetPureType());
+					v = BuildVal(item, tl->GetPureType(), key_func);
 				else
-					v = BuildVal(item, tl);
+					v = BuildVal(item, tl, key_func);
 
 				if ( ! get_if<ValPtr>(&v) )
 					return v;
@@ -1301,24 +1302,62 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 
 			auto rt = t->AsRecordType();
 			auto rv = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
+
+			std::map<std::string, const rapidjson::Value*> normalized_keys;
+
+			// If key_func is given, map all JSON keys and store in above map.
+			if ( key_func )
+				{
+				for ( auto it = j.MemberBegin(); it != j.MemberEnd(); it++ )
+					{
+					ValPtr result;
+					try
+						{
+						result = key_func->Invoke(
+							zeek::make_intrusive<StringVal>(it->name.GetString()));
+						}
+					catch ( InterpreterException& )
+						{
+						/* Already reported. */
+						}
+
+					if ( ! result )
+						return "key function error";
+
+					normalized_keys[result->AsStringVal()->CheckString()] = &it->value;
+					}
+				}
+
+			// Now lookup record fields using the normalized input.
 			for ( int i = 0; i < rt->NumFields(); ++i )
 				{
-				auto td_i = rt->FieldDecl(i);
-				auto m_it = j.FindMember(td_i->id);
-				bool has_member = m_it != j.MemberEnd();
-				bool member_is_null = has_member && m_it->value.IsNull();
+				const auto td_i = rt->FieldDecl(i);
+				const rapidjson::Value* jval = nullptr;
 
-				if ( ! has_member || member_is_null )
+				if ( key_func )
+					{
+					auto m_it = normalized_keys.find(td_i->id);
+					jval = m_it != normalized_keys.end() ? m_it->second : nullptr;
+					}
+				else
+					{
+					auto m_it = j.FindMember(td_i->id);
+					jval = m_it != j.MemberEnd() ? &m_it->value : nullptr;
+					}
+
+				if ( ! jval || jval->IsNull() )
 					{
 					if ( ! td_i->GetAttr(detail::ATTR_OPTIONAL) &&
 					     ! td_i->GetAttr(detail::ATTR_DEFAULT) )
+						// jval being set means it is a null JSON value else
+						// it wasn't even there.
 						return util::fmt("required field %s$%s is %s in JSON", t->GetName().c_str(),
-						                 td_i->id, member_is_null ? "null" : "missing");
+						                 td_i->id, jval ? "null" : "missing");
 
 					continue;
 					}
 
-				auto v = BuildVal(m_it->value, td_i->type);
+				auto v = BuildVal(*jval, td_i->type, key_func);
 				if ( ! get_if<ValPtr>(&v) )
 					return v;
 
@@ -1342,7 +1381,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 
 			for ( size_t i = 0; i < lt->GetTypes().size(); i++ )
 				{
-				auto v = BuildVal(j.GetArray()[i], lt->GetTypes()[i]);
+				auto v = BuildVal(j.GetArray()[i], lt->GetTypes()[i], key_func);
 				if ( ! get_if<ValPtr>(&v) )
 					return v;
 
@@ -1361,7 +1400,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 			auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
 			for ( const auto& item : j.GetArray() )
 				{
-				auto v = BuildVal(item, vt->Yield());
+				auto v = BuildVal(item, vt->Yield(), key_func);
 				if ( ! get_if<ValPtr>(&v) )
 					return v;
 
@@ -1379,7 +1418,8 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 		}
 	}
 
-std::variant<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t)
+std::variant<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t,
+                                                      const FuncPtr& key_func)
 	{
 	rapidjson::Document doc;
 	rapidjson::ParseResult ok = doc.Parse(json_str.data(), json_str.length());
@@ -1388,7 +1428,7 @@ std::variant<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str,
 		return util::fmt("JSON parse error: %s Offset: %lu", rapidjson::GetParseError_En(ok.Code()),
 		                 ok.Offset());
 
-	return BuildVal(doc, t);
+	return BuildVal(doc, t, key_func);
 	}
 
 ValPtr StringVal::DoClone(CloneState* state)
@@ -1523,7 +1563,11 @@ ListVal::ListVal(TypeTag t) : Val(make_intrusive<TypeList>(t == TYPE_ANY ? nullp
 	tag = t;
 	}
 
-ListVal::~ListVal() { }
+ListVal::ListVal(TypeListPtr tl, std::vector<ValPtr> _vals) : Val(std::move(tl))
+	{
+	tag = TYPE_ANY;
+	vals = std::move(_vals);
+	}
 
 ValPtr ListVal::SizeVal() const
 	{
@@ -2093,7 +2137,7 @@ bool TableVal::IsSubsetOf(const TableVal& tv) const
 
 ValPtr TableVal::Default(const ValPtr& index)
 	{
-	const auto& def_attr = GetAttr(detail::ATTR_DEFAULT);
+	const auto& def_attr = DefaultAttr();
 
 	if ( ! def_attr )
 		return nullptr;
@@ -2176,6 +2220,14 @@ ValPtr TableVal::Default(const ValPtr& index)
 	return result;
 	}
 
+const detail::AttrPtr& TableVal::DefaultAttr() const
+	{
+	if ( const auto& def_attr = GetAttr(detail::ATTR_DEFAULT); def_attr )
+		return def_attr;
+
+	return GetAttr(detail::ATTR_DEFAULT_INSERT);
+	}
+
 const ValPtr& TableVal::Find(const ValPtr& index)
 	{
 	if ( subnets )
@@ -2224,7 +2276,13 @@ ValPtr TableVal::FindOrDefault(const ValPtr& index)
 	if ( auto rval = Find(index) )
 		return rval;
 
-	return Default(index);
+	// If the default came from a &default_insert attribute,
+	// insert the value upon a missed lookup.
+	auto def = Default(index);
+	if ( def && GetAttr(detail::ATTR_DEFAULT_INSERT) )
+		Assign(index, def);
+
+	return def;
 	}
 
 bool TableVal::Contains(const IPAddr& addr) const
@@ -2724,7 +2782,7 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 	if ( def_val )
 		return;
 
-	const auto& def_attr = GetAttr(detail::ATTR_DEFAULT);
+	const auto& def_attr = DefaultAttr();
 
 	if ( ! def_attr )
 		return;
@@ -2745,6 +2803,11 @@ void TableVal::InitDefaultFunc(detail::Frame* f)
 		return; // TableVal::Default will handle this.
 
 	def_val = def_attr->GetExpr()->Eval(f);
+	}
+
+void TableVal::InitDefaultVal(ValPtr _def_val)
+	{
+	def_val = std::move(_def_val);
 	}
 
 void TableVal::InitTimer(double delay)
@@ -3092,17 +3155,15 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 	if ( run_state::is_parsing )
 		parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
-	record_val = new std::vector<std::optional<ZVal>>;
-
 	if ( init_fields )
 		{
-		record_val->resize(n);
+		record_val.resize(n);
 
 		for ( auto& e : rt->CreationInits() )
 			{
 			try
 				{
-				(*record_val)[e.first] = e.second->Generate();
+				record_val[e.first] = e.second->Generate();
 				}
 			catch ( InterpreterException& e )
 				{
@@ -3114,21 +3175,19 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 		}
 
 	else
-		record_val->reserve(n);
+		record_val.reserve(n);
 	}
 
 RecordVal::~RecordVal()
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 
 	for ( unsigned int i = 0; i < n; ++i )
 		{
-		auto f_i = (*record_val)[i];
+		auto f_i = record_val[i];
 		if ( f_i && IsManaged(i) )
 			ZVal::DeleteManagedType(*f_i);
 		}
-
-	delete record_val;
 	}
 
 ValPtr RecordVal::SizeVal() const
@@ -3143,7 +3202,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 		DeleteFieldIfManaged(field);
 
 		auto t = rt->GetFieldType(field);
-		(*record_val)[field] = ZVal(new_val, t);
+		record_val[field] = ZVal(new_val, t);
 		Modified();
 		}
 	else
@@ -3152,7 +3211,7 @@ void RecordVal::Assign(int field, ValPtr new_val)
 
 void RecordVal::Remove(int field)
 	{
-	auto& f_i = (*record_val)[field];
+	auto& f_i = record_val[field];
 	if ( f_i )
 		{
 		if ( IsManaged(field) )
@@ -3294,7 +3353,7 @@ TableValPtr RecordVal::GetRecordFieldsVal() const
 
 void RecordVal::Describe(ODesc* d) const
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 
 	if ( d->IsBinary() )
 		{
@@ -3330,7 +3389,7 @@ void RecordVal::Describe(ODesc* d) const
 
 void RecordVal::DescribeReST(ODesc* d) const
 	{
-	auto n = record_val->size();
+	auto n = record_val.size();
 	auto rt = GetType()->AsRecordType();
 
 	d->Add("{");
@@ -3428,16 +3487,19 @@ ValPtr TypeVal::DoClone(CloneState* state)
 	return {NewRef{}, this};
 	}
 
-VectorVal::VectorVal(VectorTypePtr t) : VectorVal(t, new vector<std::optional<ZVal>>()) { }
-
-VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : Val(t)
+VectorVal::VectorVal(VectorTypePtr t) : Val(t)
 	{
-	vector_val = vals;
 	yield_type = t->Yield();
 
 	auto y_tag = yield_type->Tag();
 	any_yield = (y_tag == TYPE_VOID || y_tag == TYPE_ANY);
 	managed_yield = ZVal::IsManagedType(yield_type);
+	}
+
+VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : VectorVal(t)
+	{
+	if ( vals )
+		vector_val = std::move(*vals);
 	}
 
 VectorVal::~VectorVal()
@@ -3447,7 +3509,7 @@ VectorVal::~VectorVal()
 		int n = yield_types->size();
 		for ( auto i = 0; i < n; ++i )
 			{
-			auto& elem = (*vector_val)[i];
+			auto& elem = vector_val[i];
 			if ( elem )
 				ZVal::DeleteIfManaged(*elem, (*yield_types)[i]);
 			}
@@ -3456,17 +3518,15 @@ VectorVal::~VectorVal()
 
 	else if ( managed_yield )
 		{
-		for ( auto& elem : *vector_val )
+		for ( auto& elem : vector_val )
 			if ( elem )
 				ZVal::DeleteManagedType(*elem);
 		}
-
-	delete vector_val;
 	}
 
 ValPtr VectorVal::SizeVal() const
 	{
-	return val_mgr->Count(uint32_t(vector_val->size()));
+	return val_mgr->Count(uint32_t(vector_val.size()));
 	}
 
 bool VectorVal::CheckElementType(const ValPtr& element)
@@ -3481,7 +3541,7 @@ bool VectorVal::CheckElementType(const ValPtr& element)
 
 	if ( any_yield )
 		{
-		int n = vector_val->size();
+		int n = vector_val.size();
 
 		if ( n == 0 )
 			{
@@ -3515,14 +3575,14 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 	if ( ! CheckElementType(element) )
 		return false;
 
-	unsigned int n = vector_val->size();
+	unsigned int n = vector_val.size();
 
 	if ( index >= n )
 		{
 		if ( index > n )
 			AddHoles(index - n);
 
-		vector_val->resize(index + 1);
+		vector_val.resize(index + 1);
 		if ( yield_types )
 			yield_types->resize(index + 1);
 		}
@@ -3531,14 +3591,14 @@ bool VectorVal::Assign(unsigned int index, ValPtr element)
 		{
 		const auto& t = element->GetType();
 		(*yield_types)[index] = t;
-		auto& elem = (*vector_val)[index];
+		auto& elem = vector_val[index];
 		if ( elem )
 			ZVal::DeleteIfManaged(*elem, t);
 		elem = ZVal(std::move(element), t);
 		}
 	else
 		{
-		auto& elem = (*vector_val)[index];
+		auto& elem = vector_val[index];
 		if ( managed_yield && elem )
 			ZVal::DeleteManagedType(*elem);
 
@@ -3571,17 +3631,17 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 	vector<std::optional<ZVal>>::iterator it;
 	vector<TypePtr>::iterator types_it;
 
-	auto n = vector_val->size();
+	auto n = vector_val.size();
 
 	if ( index < n )
 		{ // Find location within existing vector elements.
-		it = std::next(vector_val->begin(), index);
+		it = std::next(vector_val.begin(), index);
 		if ( yield_types )
 			types_it = std::next(yield_types->begin(), index);
 		}
 	else
 		{
-		it = vector_val->end();
+		it = vector_val.end();
 		if ( yield_types )
 			types_it = yield_types->end();
 
@@ -3595,13 +3655,13 @@ bool VectorVal::Insert(unsigned int index, ValPtr element)
 			{
 			const auto& t = element->GetType();
 			yield_types->insert(types_it, t);
-			vector_val->insert(it, ZVal(std::move(element), t));
+			vector_val.insert(it, ZVal(std::move(element), t));
 			}
 		else
-			vector_val->insert(it, ZVal(std::move(element), yield_type));
+			vector_val.insert(it, ZVal(std::move(element), yield_type));
 		}
 	else
-		vector_val->insert(it, std::nullopt);
+		vector_val.insert(it, std::nullopt);
 
 	Modified();
 	return true;
@@ -3614,15 +3674,15 @@ void VectorVal::AddHoles(int nholes)
 		fill_t = base_type(TYPE_ANY);
 
 	for ( auto i = 0; i < nholes; ++i )
-		vector_val->emplace_back(std::nullopt);
+		vector_val.emplace_back(std::nullopt);
 	}
 
 bool VectorVal::Remove(unsigned int index)
 	{
-	if ( index >= vector_val->size() )
+	if ( index >= vector_val.size() )
 		return false;
 
-	auto it = std::next(vector_val->begin(), index);
+	auto it = std::next(vector_val.begin(), index);
 
 	if ( yield_types )
 		{
@@ -3638,7 +3698,7 @@ bool VectorVal::Remove(unsigned int index)
 			ZVal::DeleteManagedType(**it);
 		}
 
-	vector_val->erase(it);
+	vector_val.erase(it);
 
 	Modified();
 	return true;
@@ -3663,17 +3723,18 @@ bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const
 	auto last_idx = v->Size();
 
 	for ( auto i = 0u; i < Size(); ++i )
-		v->Assign(last_idx++, At(i));
+		if ( ! v->Assign(last_idx++, At(i)) )
+			return false;
 
 	return true;
 	}
 
 ValPtr VectorVal::At(unsigned int index) const
 	{
-	if ( index >= vector_val->size() )
+	if ( index >= vector_val.size() )
 		return Val::nil;
 
-	auto& elem = (*vector_val)[index];
+	auto& elem = vector_val[index];
 	if ( ! elem )
 		return Val::nil;
 
@@ -3790,7 +3851,7 @@ void VectorVal::Sort(Func* cmp_func)
 			}
 		}
 
-	sort(vector_val->begin(), vector_val->end(), sort_func);
+	sort(vector_val.begin(), vector_val.end(), sort_func);
 	}
 
 VectorValPtr VectorVal::Order(Func* cmp_func)
@@ -3835,7 +3896,7 @@ VectorValPtr VectorVal::Order(Func* cmp_func)
 	for ( i = 0; i < n; ++i )
 		{
 		ind_vv[i] = i;
-		index_map.emplace_back(&(*vector_val)[i]);
+		index_map.emplace_back(&vector_val[i]);
 		}
 
 	sort(ind_vv.begin(), ind_vv.end(), sort_func);
@@ -3860,14 +3921,10 @@ bool VectorVal::Concretize(const TypePtr& t)
 		// shouldn't happen in any case.
 		return yield_type->Tag() == t->Tag();
 
-	if ( ! vector_val )
-		// Trivially concretized.
-		return true;
-
-	auto n = vector_val->size();
+	auto n = vector_val.size();
 	for ( auto i = 0U; i < n; ++i )
 		{
-		auto& v = (*vector_val)[i];
+		auto& v = vector_val[i];
 		if ( ! v )
 			// Vector hole does not require concretization.
 			continue;
@@ -3900,7 +3957,7 @@ bool VectorVal::Concretize(const TypePtr& t)
 
 unsigned int VectorVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const
 	{
-	auto n = vector_val->size();
+	auto n = vector_val.size();
 	unsigned int fp = n;
 
 	for ( auto i = 0U; i < n; ++i )
@@ -3915,9 +3972,9 @@ unsigned int VectorVal::ComputeFootprint(std::unordered_set<const Val*>* analyze
 
 unsigned int VectorVal::Resize(unsigned int new_num_elements)
 	{
-	unsigned int oldsize = vector_val->size();
-	vector_val->reserve(new_num_elements);
-	vector_val->resize(new_num_elements);
+	unsigned int oldsize = vector_val.size();
+	vector_val.reserve(new_num_elements);
+	vector_val.resize(new_num_elements);
 
 	if ( yield_types )
 		{
@@ -3930,7 +3987,7 @@ unsigned int VectorVal::Resize(unsigned int new_num_elements)
 
 unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 	{
-	unsigned int old_size = vector_val->size();
+	unsigned int old_size = vector_val.size();
 	if ( new_num_elements <= old_size )
 		return old_size;
 
@@ -3939,7 +3996,7 @@ unsigned int VectorVal::ResizeAtLeast(unsigned int new_num_elements)
 
 void VectorVal::Reserve(unsigned int num_elements)
 	{
-	vector_val->reserve(num_elements);
+	vector_val.reserve(num_elements);
 
 	if ( yield_types )
 		yield_types->reserve(num_elements);
@@ -3948,10 +4005,10 @@ void VectorVal::Reserve(unsigned int num_elements)
 ValPtr VectorVal::DoClone(CloneState* state)
 	{
 	auto vv = make_intrusive<VectorVal>(GetType<VectorType>());
-	vv->Reserve(vector_val->size());
+	vv->Reserve(vector_val.size());
 	state->NewClone(this, vv);
 
-	int n = vector_val->size();
+	int n = vector_val.size();
 
 	for ( auto i = 0; i < n; ++i )
 		{
@@ -3966,7 +4023,7 @@ void VectorVal::ValDescribe(ODesc* d) const
 	{
 	d->Add("[");
 
-	size_t vector_size = vector_val->size();
+	size_t vector_size = vector_val.size();
 
 	if ( vector_size != 0 )
 		{
@@ -4219,7 +4276,78 @@ ValPtr cast_value_to_type(Val* v, Type* t)
 		return static_cast<Broker::detail::DataVal*>(dv.get())->castTo(t);
 		}
 
+	// Allow casting between sets and vectors if the yield types are the same.
+	if ( v->GetType()->IsSet() && IsVector(t->Tag()) )
+		{
+		auto set_type = v->GetType<SetType>();
+		auto indices = set_type->GetIndices();
+
+		if ( indices->GetTypes().size() > 1 )
+			return nullptr;
+
+		auto ret_type = IntrusivePtr<VectorType>{NewRef{}, t->AsVectorType()};
+		auto ret = make_intrusive<VectorVal>(ret_type);
+
+		auto* table = v->AsTable();
+		auto* tval = v->AsTableVal();
+		int index = 0;
+		for ( const auto& te : *table )
+			{
+			auto k = te.GetHashKey();
+			auto lv = tval->RecreateIndex(*k);
+			ValPtr entry_key = lv->Length() == 1 ? lv->Idx(0) : lv;
+			ret->Assign(index, entry_key);
+			index++;
+			}
+
+		return ret;
+		}
+	else if ( IsVector(v->GetType()->Tag()) && t->IsSet() )
+		{
+		auto ret_type = IntrusivePtr<TableType>{NewRef{}, t->AsSetType()};
+		auto ret = make_intrusive<TableVal>(ret_type);
+
+		auto vv = v->AsVectorVal();
+		size_t size = vv->Size();
+
+		for ( size_t i = 0; i < size; i++ )
+			{
+			auto ve = vv->ValAt(i);
+			ret->Assign(std::move(ve), nullptr);
+			}
+
+		return ret;
+		}
+
 	return nullptr;
+	}
+
+static bool can_cast_set_and_vector(const Type* t1, const Type* t2)
+	{
+	const TableType* st = nullptr;
+	const VectorType* vt = nullptr;
+
+	if ( t1->IsSet() && IsVector(t2->Tag()) )
+		{
+		st = t1->AsSetType();
+		vt = t2->AsVectorType();
+		}
+	else if ( IsVector(t1->Tag()) && t2->IsSet() )
+		{
+		st = t2->AsSetType();
+		vt = t1->AsVectorType();
+		}
+
+	if ( st && vt )
+		{
+		auto set_indices = st->GetIndices()->GetTypes();
+		if ( set_indices.size() > 1 )
+			return false;
+
+		return same_type(set_indices[0], vt->Yield());
+		}
+
+	return false;
 	}
 
 bool can_cast_value_to_type(const Val* v, Type* t)
@@ -4245,6 +4373,10 @@ bool can_cast_value_to_type(const Val* v, Type* t)
 		return static_cast<const Broker::detail::DataVal*>(dv.get())->canCastTo(t);
 		}
 
+	// Allow casting between sets and vectors if the yield types are the same.
+	if ( can_cast_set_and_vector(v->GetType().get(), t) )
+		return true;
+
 	return false;
 	}
 
@@ -4262,6 +4394,10 @@ bool can_cast_value_to_type(const Type* s, Type* t)
 		// As Broker is dynamically typed, we don't know if we will be able
 		// to convert the type as intended. We optimistically assume that we
 		// will.
+		return true;
+
+	// Allow casting between sets and vectors if the yield types are the same.
+	if ( can_cast_set_and_vector(s, t) )
 		return true;
 
 	return false;

@@ -44,6 +44,7 @@ using IDPtr = IntrusivePtr<ID>;
 using StmtPtr = IntrusivePtr<Stmt>;
 
 class ScriptFunc;
+class FunctionIngredients;
 
 	} // namespace detail
 
@@ -114,14 +115,18 @@ public:
 		return Invoke(&zargs);
 		}
 
-	// Add a new event handler to an existing function (event).
+	// Various ways to add a new event handler to an existing function
+	// (event).  The usual version to use is the first with its default
+	// parameter.  All of the others are for use by script optimization,
+	// as is a non-default second parameter to the first method, which
+	// overrides the function body in "ingr".
+	void AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_body = nullptr);
 	virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
 	                     size_t new_frame_size, int priority,
 	                     const std::set<EventGroupPtr>& groups);
-
-	// Add a new event handler to an existing function (event).
-	virtual void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
-	                     size_t new_frame_size, int priority = 0);
+	void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits,
+	             size_t new_frame_size, int priority = 0);
+	void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
 
 	virtual void SetScope(detail::ScopePtr newscope);
 	virtual detail::ScopePtr GetScope() const { return scope; }
@@ -191,12 +196,35 @@ public:
 	void CreateCaptures(Frame* f);
 
 	/**
+	 * Uses the given set of ZVal's for captures.  Note that this is
+	 * different from the method above, which uses its argument to
+	 * compute the captures, rather than here where they are pre-computed.
+	 *
+	 * Makes deep copies if required.
+	 *
+	 * @param cvec  a vector of ZVal's corresponding to the captures.
+	 */
+	void CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec);
+
+	/**
 	 * Returns the frame associated with this function for tracking
 	 * captures, or nil if there isn't one.
 	 *
 	 * @return internal frame kept by the function for persisting captures
 	 */
 	Frame* GetCapturesFrame() const { return captures_frame; }
+
+	/**
+	 * Returns the set of ZVal's used for captures.  It's okay to modify
+	 * these as long as memory-management is done for managed entries.
+	 *
+	 * @return internal vector of ZVal's kept for persisting captures
+	 */
+	auto& GetCapturesVec() const
+		{
+		ASSERT(captures_vec);
+		return *captures_vec;
+		}
 
 	// Same definition as in Frame.h.
 	using OffsetMap = std::unordered_map<std::string, int>;
@@ -273,6 +301,7 @@ protected:
 	/**
 	 * Uses the given frame for captures, and generates the
 	 * mapping from captured variables to offsets in the frame.
+	 * Virtual so it can be modified for script optimization uses.
 	 *
 	 * @param f  the frame holding the values of capture variables
 	 */
@@ -291,6 +320,9 @@ private:
 
 	OffsetMap* captures_offset_mapping = nullptr;
 
+	// Captures when using ZVal block instead of a Frame.
+	std::unique_ptr<std::vector<ZVal>> captures_vec;
+
 	// The most recently added/updated body ...
 	StmtPtr current_body;
 
@@ -304,7 +336,7 @@ class BuiltinFunc final : public Func
 	{
 public:
 	BuiltinFunc(built_in_func func, const char* name, bool is_pure);
-	~BuiltinFunc() override;
+	~BuiltinFunc() override = default;
 
 	bool IsPure() const override;
 	ValPtr Invoke(zeek::Args* args, Frame* parent) const override;
@@ -332,8 +364,7 @@ struct CallInfo
 	const zeek::Args& args;
 	};
 
-// Struct that collects all the specifics defining a Func. Used for ScriptFuncs
-// with closures.
+// Class that collects all the specifics defining a Func.
 class FunctionIngredients
 	{
 public:
@@ -344,13 +375,19 @@ public:
 	const IDPtr& GetID() const { return id; }
 
 	const StmtPtr& Body() const { return body; }
-	void SetBody(StmtPtr _body) { body = std::move(_body); }
+	void ReplaceBody(StmtPtr new_body) { body = std::move(new_body); }
 
 	const auto& Inits() const { return inits; }
+	void ClearInits() { inits.clear(); }
+
 	size_t FrameSize() const { return frame_size; }
 	int Priority() const { return priority; }
 	const ScopePtr& Scope() const { return scope; }
 	const auto& Groups() const { return groups; }
+
+	// Used by script optimization to update lambda ingredients
+	// after compilation.
+	void SetFrameSize(size_t _frame_size) { frame_size = _frame_size; }
 
 private:
 	IDPtr id;
@@ -361,6 +398,8 @@ private:
 	ScopePtr scope;
 	std::set<EventGroupPtr> groups;
 	};
+
+using FunctionIngredientsPtr = std::shared_ptr<FunctionIngredients>;
 
 extern std::vector<CallInfo> call_stack;
 

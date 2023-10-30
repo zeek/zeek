@@ -80,6 +80,7 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level)
 		case EXPR_TIMES:
 			return GenBinary(e, gt, "*", "mul");
 		case EXPR_DIVIDE:
+		case EXPR_MASK: // later code will split into addr masking
 			return GenBinary(e, gt, "/", "div");
 		case EXPR_MOD:
 			return GenBinary(e, gt, "%", "mod");
@@ -351,7 +352,7 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level)
 
 	if ( is_async )
 		invoke_func = "when_invoke__CPP";
-	else if ( t->Tag() == TYPE_VOID )
+	else if ( top_level || t->Tag() == TYPE_VOID )
 		{
 		ASSERT(top_level);
 		invoke_func = "invoke_void__CPP";
@@ -541,7 +542,9 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level)
 
 	if ( t->Tag() == TYPE_VECTOR )
 		{
-		if ( same_type(lhs->GetType(), rhs->GetType()) )
+		auto& rt = rhs->GetType();
+
+		if ( IsVector(rt->Tag()) && same_type(lhs->GetType(), rt) )
 			add_to_func = "vector_vec_append__CPP";
 		else
 			add_to_func = "vector_append__CPP";
@@ -1058,7 +1061,7 @@ string CPPCompile::GenBinaryAddr(const Expr* e, GenType gt, const char* op)
 	{
 	auto v1 = GenExpr(e->GetOp1(), GEN_DONT_CARE) + "->AsAddr()";
 
-	if ( e->Tag() == EXPR_DIVIDE )
+	if ( e->Tag() == EXPR_MASK )
 		{
 		auto gen = string("addr_mask__CPP(") + v1 + ", " + GenExpr(e->GetOp2(), GEN_NATIVE) + ")";
 
@@ -1301,7 +1304,7 @@ string CPPCompile::GenLambdaClone(const LambdaExpr* l, bool all_deep)
 		if ( captures && ! IsNativeType(id_t) )
 			{
 			for ( const auto& c : *captures )
-				if ( id == c.id && (c.deep_copy || all_deep) )
+				if ( id == c.Id() && (c.IsDeepCopy() || all_deep) )
 					arg = string("cast_intrusive<") + TypeName(id_t) + ">(" + arg + "->Clone())";
 			}
 
@@ -1352,7 +1355,7 @@ string CPPCompile::GenField(const ExprPtr& rec, int field)
 		ASSERT(pt != processed_types.end());
 		auto rt_offset = pt->second->Offset();
 		string field_name = rt->FieldName(field);
-		field_decls.emplace_back(pair(rt_offset, rt->FieldDecl(field)));
+		field_decls.emplace_back(rt_offset, rt->FieldDecl(field));
 
 		if ( rfm != record_field_mappings.end() )
 			// We're already tracking this record.
@@ -1392,7 +1395,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev)
 		mapping_slot = num_ev_mappings++;
 
 		string enum_name = et->Lookup(v);
-		enum_names.emplace_back(pair(TypeOffset(t), std::move(enum_name)));
+		enum_names.emplace_back(TypeOffset(t), std::move(enum_name));
 
 		if ( evm != enum_val_mappings.end() )
 			{

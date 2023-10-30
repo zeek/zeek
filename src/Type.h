@@ -44,6 +44,9 @@ public:
 
 	// Return the initialization value of the field.
 	virtual ZVal Generate() const = 0;
+
+	// Can initialization of the field be deferred?
+	virtual bool IsDeferrable() const { return true; }
 	};
 
 	} // namespace detail
@@ -511,10 +514,36 @@ public:
 	/**
 	 * A single lambda "capture" (outer variable used in a lambda's body).
 	 */
-	struct Capture
+	class Capture
 		{
-		detail::IDPtr id;
-		bool deep_copy;
+	public:
+		Capture(detail::IDPtr _id, bool _deep_copy);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		Capture(const Capture&) = default;
+		Capture(Capture&&) = default;
+		Capture& operator=(const Capture&) = default;
+		Capture& operator=(Capture&&) = default;
+		~Capture() = default;
+
+		auto& Id() const { return id; }
+		bool IsDeepCopy() const { return deep_copy; }
+		bool IsManaged() const { return is_managed; }
+
+		// For script optimization:
+		void SetID(detail::IDPtr new_id) { id = std::move(new_id); }
+#pragma GCC diagnostic pop
+
+		[[deprecated(
+			"Remove in v7.1.  Use non-default constructor and associated accessors.")]] detail::
+			IDPtr id;
+		[[deprecated(
+			"Remove in v7.1.  Use non-default constructor and associated accessors.")]] bool
+			deep_copy;
+		[[deprecated(
+			"Remove in v7.1.  Use non-default constructor and associated accessors.")]] bool
+			is_managed;
 		};
 
 	using CaptureList = std::vector<Capture>;
@@ -689,7 +718,7 @@ public:
 	void AddFieldsDirectly(const type_decl_list& types, bool add_log_attr = false);
 
 	void DescribeReST(ODesc* d, bool roles_only = false) const override;
-	void DescribeFields(ODesc* d) const;
+	void DescribeFields(ODesc* d, bool func_args = false) const;
 	void DescribeFieldsReST(ODesc* d, bool func_args) const;
 
 	bool IsFieldDeprecated(int field) const
@@ -707,6 +736,20 @@ public:
 	std::string GetFieldDeprecationWarning(int field, bool has_check) const;
 
 	detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+
+	// Can initialization of record values of this type be deferred?
+	//
+	// When record types contain non-const &default expressions or recursively
+	// contain any nested records that themselves are not deferrable,
+	// initialization can not be deferred, otherwise possible.
+	bool IsDeferrable() const;
+
+	// Whether values of this record type are equivalent upon initial
+	// creation, or might differ (e.g. due to function calls or changes
+	// to global state) - used for script optimization.
+	bool IdempotentCreation() const { return creation_inits.empty(); }
+
+	static void InitPostScript();
 
 private:
 	RecordType() { types = nullptr; }
@@ -728,6 +771,7 @@ private:
 	// <fieldoffset, init> pairs.
 	std::vector<std::pair<int, std::unique_ptr<detail::FieldInit>>> creation_inits;
 
+	class CreationInitsOptimizer;
 	friend zeek::RecordVal;
 	const auto& DeferredInits() const { return deferred_inits; }
 	const auto& CreationInits() const { return creation_inits; }

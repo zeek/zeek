@@ -6,7 +6,7 @@
 
 #include <netdb.h>
 #include <netinet/in.h>
-#include <sys/select.h>
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -206,7 +206,7 @@ class DNS_Request
 public:
 	DNS_Request(std::string host, int request_type, bool async = false);
 	DNS_Request(const IPAddr& addr, bool async = false);
-	~DNS_Request();
+	~DNS_Request() = default;
 
 	std::string Host() const { return host; }
 	const IPAddr& Addr() const { return addr; }
@@ -240,8 +240,6 @@ DNS_Request::DNS_Request(const IPAddr& addr, bool async) : addr(addr), async(asy
 	{
 	request_type = T_PTR;
 	}
-
-DNS_Request::~DNS_Request() { }
 
 void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr)
 	{
@@ -994,23 +992,54 @@ void DNS_Mgr::Resolve()
 	{
 	int nfds = 0;
 	struct timeval *tvp, tv;
-	fd_set read_fds, write_fds;
+	struct pollfd pollfds[ARES_GETSOCK_MAXNUM];
+	ares_socket_t socks[ARES_GETSOCK_MAXNUM];
 
 	tv.tv_sec = DNS_TIMEOUT;
 	tv.tv_usec = 0;
 
 	for ( int i = 0; i < MAX_PENDING_REQUESTS; i++ )
 		{
-		FD_ZERO(&read_fds);
-		FD_ZERO(&write_fds);
-		nfds = ares_fds(channel, &read_fds, &write_fds);
+		int nfds = 0;
+		int bitmap = ares_getsock(channel, socks, ARES_GETSOCK_MAXNUM);
+
+		for ( int i = 0; i < ARES_GETSOCK_MAXNUM; i++ )
+			{
+			bool rd = ARES_GETSOCK_READABLE(bitmap, i);
+			bool wr = ARES_GETSOCK_WRITABLE(bitmap, i);
+			if ( rd || wr )
+				{
+				pollfds[nfds].fd = socks[i];
+				pollfds[nfds].events = rd ? POLLIN : 0;
+				pollfds[nfds].events |= wr ? POLLOUT : 0;
+				++nfds;
+				}
+			}
+
+		// Do we have any sockets that are read or writable?
 		if ( nfds == 0 )
 			break;
 
+		// poll() timeout is in milliseconds.
 		tvp = ares_timeout(channel, &tv, &tv);
-		int res = select(nfds, &read_fds, &write_fds, NULL, tvp);
-		if ( res >= 0 )
-			ares_process(channel, &read_fds, &write_fds);
+		int timeout_ms = tvp->tv_sec * 1000 + tvp->tv_usec / 1000;
+
+		int res = poll(pollfds, nfds, timeout_ms);
+
+		if ( res > 0 )
+			{
+			for ( int i = 0; i < nfds; i++ )
+				{
+				int rdfd = pollfds[i].revents & POLLIN ? pollfds[i].fd : ARES_SOCKET_BAD;
+				int wrfd = pollfds[i].revents & POLLOUT ? pollfds[i].fd : ARES_SOCKET_BAD;
+
+				if ( rdfd != ARES_SOCKET_BAD || wrfd != ARES_SOCKET_BAD )
+					ares_process_fd(channel, rdfd, wrfd);
+				}
+			}
+		else if ( res == 0 )
+			// Do timeout processing when poll() timed out.
+			ares_process_fd(channel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
 		}
 	}
 
@@ -1444,11 +1473,16 @@ double DNS_Mgr::GetNextTimeout()
 	if ( asyncs_pending == 0 )
 		return -1;
 
-	fd_set read_fds, write_fds;
+	int nfds = 0;
+	ares_socket_t socks[ARES_GETSOCK_MAXNUM];
+	int bitmap = ares_getsock(channel, socks, ARES_GETSOCK_MAXNUM);
+	for ( int i = 0; i < ARES_GETSOCK_MAXNUM; i++ )
+		{
+		if ( ARES_GETSOCK_READABLE(bitmap, i) || ARES_GETSOCK_WRITABLE(bitmap, i) )
+			++nfds;
+		}
 
-	FD_ZERO(&read_fds);
-	FD_ZERO(&write_fds);
-	int nfds = ares_fds(channel, &read_fds, &write_fds);
+	// Do we have any sockets that are read or writable?
 	if ( nfds == 0 )
 		return -1;
 
@@ -1458,8 +1492,7 @@ double DNS_Mgr::GetNextTimeout()
 
 	struct timeval* tvp = ares_timeout(channel, &tv, &tv);
 
-	return run_state::network_time + static_cast<double>(tvp->tv_sec) +
-	       (static_cast<double>(tvp->tv_usec) / 1e6);
+	return static_cast<double>(tvp->tv_sec) + (static_cast<double>(tvp->tv_usec) / 1e6);
 	}
 
 void DNS_Mgr::ProcessFd(int fd, int flags)
@@ -1472,6 +1505,15 @@ void DNS_Mgr::ProcessFd(int fd, int flags)
 		}
 
 	IssueAsyncRequests();
+	}
+
+void DNS_Mgr::Process()
+	{
+	// Process() is called when DNS_Mgr is found "ready" when its
+	// GetNextTimeout() returns 0.0, but there's no active FD.
+	//
+	// Kick off timeouts at least.
+	ares_process_fd(channel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
 	}
 
 void DNS_Mgr::GetStats(Stats* stats)
@@ -1612,7 +1654,7 @@ class TestDNS_Mgr final : public DNS_Mgr
 	{
 public:
 	explicit TestDNS_Mgr(DNS_MgrMode mode) : DNS_Mgr(mode) { }
-	void Process();
+	void Process() override;
 	};
 
 void TestDNS_Mgr::Process()

@@ -15,7 +15,6 @@ zeek::RecordType* endpoint_stats;
 zeek::RecordType* connection_type;
 zeek::RecordType* fa_file_type;
 zeek::RecordType* fa_metadata_type;
-zeek::RecordType* icmp_conn;
 zeek::RecordType* icmp_context;
 zeek::RecordType* SYN_packet;
 zeek::RecordType* pcap_packet;

@@ -25,6 +25,7 @@
 #include "zeek/digest.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek::detail
 	{
@@ -47,6 +48,7 @@ const char* expr_name(ExprTag t)
 		"-=",
 		"*",
 		"/",
+		"/", // mask operator
 		"%",
 		"&",
 		"|",
@@ -253,7 +255,7 @@ ExprPtr Expr::MakeLvalue()
 	if ( ! IsError() )
 		ExprError("can't be assigned to");
 
-	return {NewRef{}, this};
+	return ThisPtr();
 	}
 
 bool Expr::InvertSense()
@@ -538,7 +540,7 @@ ExprPtr NameExpr::MakeLvalue()
 	if ( id->IsOption() && ! in_const_init )
 		ExprError("option is not a modifiable lvalue");
 
-	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
+	return make_intrusive<RefExpr>(ThisPtr());
 	}
 
 void NameExpr::Assign(Frame* f, ValPtr v)
@@ -813,7 +815,8 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const
 	if ( t1->Tag() == TYPE_VECTOR )
 		{
 		// We only get here when using a matching vector on the RHS.
-		v2->AsVectorVal()->AddTo(v1, false);
+		if ( ! v2->AsVectorVal()->AddTo(v1, false) )
+			Error("incompatible vector element assignment", v2);
 		return {NewRef{}, v1};
 		}
 
@@ -1682,7 +1685,9 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
 	else if ( IsVector(bt1) )
 		{
-		if ( same_type(t1, t2) )
+		// We need the IsVector(bt2) check in the following because
+		// same_type() always treats "any" types as "same".
+		if ( IsVector(bt2) && same_type(t1, t2) )
 			{
 			SetType(t1);
 			return;
@@ -1914,14 +1919,27 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 	else if ( BothArithmetic(bt1, bt2) )
 		PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
 
-	else if ( bt1 == TYPE_ADDR && ! is_vector(op2) && (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
-		SetType(base_type(TYPE_SUBNET));
-
 	else
 		ExprError("requires arithmetic operands");
 	}
 
-ValPtr DivideExpr::AddrFold(Val* v1, Val* v2) const
+MaskExpr::MaskExpr(ExprPtr arg_op1, ExprPtr arg_op2)
+	: BinaryExpr(EXPR_MASK, std::move(arg_op1), std::move(arg_op2))
+	{
+	if ( IsError() )
+		return;
+
+	TypeTag bt1, bt2;
+	if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
+		return;
+
+	if ( bt1 == TYPE_ADDR && ! is_vector(op2) && (bt2 == TYPE_COUNT || bt2 == TYPE_INT) )
+		SetType(base_type(TYPE_SUBNET));
+	else
+		ExprError("requires address LHS and count/int RHS");
+	}
+
+ValPtr MaskExpr::AddrFold(Val* v1, Val* v2) const
 	{
 	uint32_t mask;
 
@@ -2491,7 +2509,7 @@ RefExpr::RefExpr(ExprPtr arg_op) : UnaryExpr(EXPR_REF, std::move(arg_op))
 
 ExprPtr RefExpr::MakeLvalue()
 	{
-	return {NewRef{}, this};
+	return ThisPtr();
 	}
 
 void RefExpr::Assign(Frame* f, ValPtr v)
@@ -2875,7 +2893,7 @@ ExprPtr IndexExpr::MakeLvalue()
 	if ( IsString(op1->GetType()->Tag()) )
 		ExprError("cannot assign to string index expression");
 
-	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
+	return make_intrusive<RefExpr>(ThisPtr());
 	}
 
 ValPtr IndexExpr::Eval(Frame* f) const
@@ -3112,7 +3130,7 @@ FieldExpr::~FieldExpr()
 
 ExprPtr FieldExpr::MakeLvalue()
 	{
-	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
+	return make_intrusive<RefExpr>(ThisPtr());
 	}
 
 bool FieldExpr::CanDel() const
@@ -3601,8 +3619,14 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
 		auto val_expr = expr->AsAssignExpr()->GetOp2();
 		auto yield_type = GetType()->AsTableType()->Yield();
 
+		if ( idx_expr->Tag() != EXPR_LIST )
+			{
+			expr->Error("table constructor index is not a list");
+			SetError();
+			return;
+			}
+
 		// Promote LHS
-		assert(idx_expr->Tag() == EXPR_LIST);
 		ExprPList& idx_exprs = idx_expr->AsListExpr()->Exprs();
 
 		if ( idx_exprs.length() != static_cast<int>(indices.size()) )
@@ -3702,7 +3726,7 @@ void TableConstructorExpr::ExprDescribe(ODesc* d) const
 SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
                                        std::unique_ptr<std::vector<AttrPtr>> arg_attrs,
                                        TypePtr arg_type, AttributesPtr arg_attrs2)
-	: UnaryExpr(EXPR_SET_CONSTRUCTOR, expand_op(constructor_list, arg_type))
+	: UnaryExpr(EXPR_SET_CONSTRUCTOR, expand_op(std::move(constructor_list), arg_type))
 	{
 	if ( IsError() )
 		return;
@@ -3736,7 +3760,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list,
 	if ( arg_attrs )
 		SetAttrs(make_intrusive<Attributes>(std::move(*arg_attrs), type, false, false));
 	else
-		SetAttrs(arg_attrs2);
+		SetAttrs(std::move(arg_attrs2));
 
 	const auto& indices = type->AsTableType()->GetIndices()->GetTypes();
 	ExprPList& cle = op->AsListExpr()->Exprs();
@@ -4236,8 +4260,6 @@ TableCoerceExpr::TableCoerceExpr(ExprPtr arg_op, TableTypePtr tt, bool type_chec
 		ExprError("coercion of non-table/set to table/set");
 	}
 
-TableCoerceExpr::~TableCoerceExpr() { }
-
 ValPtr TableCoerceExpr::Fold(Val* v) const
 	{
 	TableVal* tv = v->AsTableVal();
@@ -4263,8 +4285,6 @@ VectorCoerceExpr::VectorCoerceExpr(ExprPtr arg_op, VectorTypePtr v)
 		ExprError("coercion of non-vector to vector");
 	}
 
-VectorCoerceExpr::~VectorCoerceExpr() { }
-
 ValPtr VectorCoerceExpr::Fold(Val* v) const
 	{
 	VectorVal* vv = v->AsVectorVal();
@@ -4279,8 +4299,6 @@ ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, Args arg_args, do
 	: Timer(t, TIMER_SCHEDULE), event(arg_event), args(std::move(arg_args))
 	{
 	}
-
-ScheduleTimer::~ScheduleTimer() { }
 
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */)
 	{
@@ -4644,69 +4662,91 @@ void CallExpr::ExprDescribe(ODesc* d) const
 		args->Describe(d);
 	}
 
-LambdaExpr::LambdaExpr(std::unique_ptr<FunctionIngredients> arg_ing, IDPList arg_outer_ids,
+LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, std::string name,
                        StmtPtr when_parent)
 	: Expr(EXPR_LAMBDA)
 	{
 	ingredients = std::move(arg_ing);
 	outer_ids = std::move(arg_outer_ids);
 
-	SetType(ingredients->GetID()->GetType());
+	auto ingr_t = ingredients->GetID()->GetType<FuncType>();
+	SetType(ingr_t);
+	captures = ingr_t->GetCaptures();
 
-	if ( ! CheckCaptures(when_parent) )
+	if ( ! CheckCaptures(std::move(when_parent)) )
 		{
 		SetError();
 		return;
 		}
 
-	// Install a dummy version of the function globally for use only
-	// when broker provides a closure.
-	auto dummy_func = make_intrusive<ScriptFunc>(ingredients->GetID());
-	dummy_func->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-	                    ingredients->Priority());
-
-	dummy_func->SetOuterIDs(outer_ids);
-
-	// Get the body's "string" representation.
-	ODesc d;
-	dummy_func->Describe(&d);
-
-	for ( ;; )
+	// Now that we've validated that the captures match the outer_ids,
+	// we regenerate the latter to come in the same order as the captures.
+	// This avoids potentially subtle bugs when doing script optimization
+	// where one context uses the outer_ids and another uses the captures.
+	if ( captures )
 		{
-		hash128_t h;
-		KeyedHash::Hash128(d.Bytes(), d.Len(), &h);
-
-		my_name = "lambda_<" + std::to_string(h[0]) + ">";
-		auto fullname = make_full_var_name(current_module.data(), my_name.data());
-		const auto& id = global_scope()->Find(fullname);
-
-		if ( id )
-			// Just try again to make a unique lambda name.
-			// If two peer processes need to agree on the same
-			// lambda name, this assumes they're loading the same
-			// scripts and thus have the same hash collisions.
-			d.Add(" ");
-		else
-			break;
+		outer_ids.clear();
+		for ( auto& c : *captures )
+			outer_ids.append(c.Id().get());
 		}
 
-	// Install that in the global_scope
+	// Install a primary version of the function globally.  This is used
+	// by both broker (for transmitting closures) and script optimization
+	// (replacing its AST body with a compiled one).
+	primary_func = make_intrusive<ScriptFunc>(ingredients->GetID());
+	primary_func->SetOuterIDs(outer_ids);
+
+	// When we build the body, it will get updated with initialization
+	// statements.  Update the ingredients to reflect the new body,
+	// and no more need for initializers.
+	primary_func->AddBody(*ingredients);
+	primary_func->SetScope(ingredients->Scope());
+	ingredients->ClearInits();
+
+	if ( name.empty() )
+		BuildName();
+	else
+		my_name = name;
+
+	// Install that in the current scope.
 	lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);
 
 	// Update lamb's name
-	dummy_func->SetName(my_name.c_str());
+	primary_func->SetName(lambda_id->Name());
 
-	auto v = make_intrusive<FuncVal>(std::move(dummy_func));
+	auto v = make_intrusive<FuncVal>(primary_func);
 	lambda_id->SetVal(std::move(v));
-	lambda_id->SetType(ingredients->GetID()->GetType());
+	lambda_id->SetType(ingr_t);
 	lambda_id->SetConst();
+
+	analyze_lambda(this);
+	}
+
+LambdaExpr::LambdaExpr(LambdaExpr* orig) : Expr(EXPR_LAMBDA)
+	{
+	primary_func = orig->primary_func;
+	ingredients = orig->ingredients;
+	lambda_id = orig->lambda_id;
+	my_name = orig->my_name;
+	private_captures = orig->private_captures;
+
+	// We need to have our own copies of the outer IDs and captures so
+	// we can rename them when inlined.
+	for ( auto i : orig->outer_ids )
+		outer_ids.append(i);
+
+	if ( orig->captures )
+		{
+		captures = std::vector<FuncType::Capture>{};
+		for ( auto& c : *orig->captures )
+			captures->push_back(c);
+		}
+
+	SetType(orig->GetType());
 	}
 
 bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 	{
-	auto ft = type->AsFuncType();
-	const auto& captures = ft->GetCaptures();
-
 	auto desc = when_parent ? "\"when\" statement" : "lambda";
 
 	if ( ! captures )
@@ -4726,7 +4766,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 
 	for ( const auto& c : *captures )
 		{
-		auto cid = c.id.get();
+		auto cid = c.Id().get();
 
 		if ( ! cid )
 			// This happens for undefined/inappropriate
@@ -4768,7 +4808,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 
 	for ( const auto& c : *captures )
 		{
-		auto cid = c.id.get();
+		auto cid = c.Id().get();
 		if ( cid && capture_is_matched.count(cid) == 0 )
 			{
 			auto msg = util::fmt("%s is captured but not used inside %s", cid->Name(), desc);
@@ -4784,20 +4824,77 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent)
 	return true;
 	}
 
+void LambdaExpr::BuildName()
+	{
+	// Get the body's "string" representation.
+	ODesc d;
+	primary_func->Describe(&d);
+
+	if ( captures )
+		for ( auto& c : *captures )
+			{
+			if ( c.IsDeepCopy() )
+				d.AddSP("copy");
+
+			if ( c.Id() )
+				// c.Id() will be nil for some errors
+				c.Id()->Describe(&d);
+			}
+
+	for ( ;; )
+		{
+		hash128_t h;
+		KeyedHash::Hash128(d.Bytes(), d.Len(), &h);
+
+		my_name = "lambda_<" + std::to_string(h[0]) + ">";
+		auto fullname = make_full_var_name(current_module.data(), my_name.data());
+		const auto& id = current_scope()->Find(fullname);
+
+		if ( id )
+			// Just try again to make a unique lambda name.
+			// If two peer processes need to agree on the same
+			// lambda name, this assumes they're loading the same
+			// scripts and thus have the same hash collisions.
+			d.Add(" ");
+		else
+			break;
+		}
+	}
+
 ScopePtr LambdaExpr::GetScope() const
 	{
 	return ingredients->Scope();
 	}
 
+void LambdaExpr::ReplaceBody(StmtPtr new_body)
+	{
+	ingredients->ReplaceBody(std::move(new_body));
+	}
+
 ValPtr LambdaExpr::Eval(Frame* f) const
 	{
 	auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
-	lamb->AddBody(ingredients->Body(), ingredients->Inits(), ingredients->FrameSize(),
-	              ingredients->Priority());
 
+	// Use the primary function as the source of the frame size
+	// and function body, rather than the ingredients, since script
+	// optimization might have changed the former but not the latter.
+	lamb->SetFrameSize(primary_func->FrameSize());
+	StmtPtr body = primary_func->GetBodies()[0].stmts;
+
+	if ( run_state::is_parsing )
+		// We're evaluating this lambda at parse time, which happens
+		// for initializations.  If we're doing script optimization
+		// then the current version of the body might be left in an
+		// inconsistent state (e.g., if it's replaced with ZAM code)
+		// causing problems if we execute this lambda subsequently.
+		// To avoid that problem, we duplicate the AST so it's
+		// distinct.
+		body = body->Duplicate();
+
+	lamb->AddBody(*ingredients, body);
 	lamb->CreateCaptures(f);
 
-	// Set name to corresponding dummy func.
+	// Set name to corresponding master func.
 	// Allows for lookups by the receiver.
 	lamb->SetName(my_name.c_str());
 
@@ -4807,6 +4904,25 @@ ValPtr LambdaExpr::Eval(Frame* f) const
 void LambdaExpr::ExprDescribe(ODesc* d) const
 	{
 	d->Add(expr_name(Tag()));
+
+	if ( captures && d->IsReadable() )
+		{
+		d->Add("[");
+
+		for ( auto& c : *captures )
+			{
+			if ( &c != &(*captures)[0] )
+				d->AddSP(", ");
+
+			if ( c.IsDeepCopy() )
+				d->AddSP("copy");
+
+			d->Add(c.Id()->Name());
+			}
+
+		d->Add("]");
+		}
+
 	ingredients->Body()->Describe(d);
 	}
 
@@ -4966,7 +5082,7 @@ bool ListExpr::IsPure() const
 
 ValPtr ListExpr::Eval(Frame* f) const
 	{
-	auto v = make_intrusive<ListVal>(TYPE_ANY);
+	std::vector<ValPtr> evs;
 
 	for ( const auto& expr : exprs )
 		{
@@ -4978,10 +5094,10 @@ ValPtr ListExpr::Eval(Frame* f) const
 			return nullptr;
 			}
 
-		v->Append(std::move(ev));
+		evs.push_back(std::move(ev));
 		}
 
-	return v;
+	return make_intrusive<ListVal>(cast_intrusive<TypeList>(type), std::move(evs));
 	}
 
 TypePtr ListExpr::InitType() const
@@ -5058,7 +5174,7 @@ ExprPtr ListExpr::MakeLvalue()
 		if ( expr->Tag() != EXPR_NAME )
 			ExprError("can only assign to list of identifiers");
 
-	return make_intrusive<RefExpr>(IntrusivePtr{NewRef{}, this});
+	return make_intrusive<RefExpr>(ThisPtr());
 	}
 
 void ListExpr::Assign(Frame* f, ValPtr v)
@@ -5292,7 +5408,17 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t)
 			if ( e->Tag() == EXPR_TABLE_CONSTRUCTOR )
 				{
 				auto& attrs = cast_intrusive<TableConstructorExpr>(e)->GetAttrs();
-				auto& def = attrs ? attrs->Find(ATTR_DEFAULT) : nullptr;
+				zeek::detail::AttrPtr def = Attr::nil;
+
+				// Check for &default or &default_insert expressions
+				// and use it for type checking against t.
+				if ( attrs )
+					{
+					def = attrs->Find(ATTR_DEFAULT);
+					if ( ! def )
+						def = attrs->Find(ATTR_DEFAULT_INSERT);
+					}
+
 				if ( def )
 					{
 					std::string err_msg;

@@ -143,6 +143,10 @@ export {
 	## (especially with large file transfers).
 	option disable_analyzer_after_detection = T;
 
+	## Maximum length of the ssl_history field to prevent unbounded
+	## growth when the parser is running into unexpected situations.
+	option max_ssl_history_length = 100;
+
 	## Delays an SSL record for a specific token: the record will not be
 	## logged as long as the token exists or until 15 seconds elapses.
 	global delay_log: function(info: Info, token: string);
@@ -208,10 +212,16 @@ function set_session(c: connection)
 
 function add_to_history(c: connection, is_client: bool, char: string)
 	{
+	if ( |c$ssl$ssl_history| == max_ssl_history_length )
+		return;
+
 	if ( is_client )
 		c$ssl$ssl_history = c$ssl$ssl_history+to_upper(char);
 	else
 		c$ssl$ssl_history = c$ssl$ssl_history+to_lower(char);
+
+	if ( |c$ssl$ssl_history| == max_ssl_history_length )
+		Reporter::conn_weird("SSL_max_ssl_history_length_reached", c);
 	}
 
 function delay_log(info: Info, token: string)

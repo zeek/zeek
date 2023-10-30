@@ -30,8 +30,6 @@ Contents_Rsh_Analyzer::Contents_Rsh_Analyzer(Connection* conn, bool orig,
 		}
 	}
 
-Contents_Rsh_Analyzer::~Contents_Rsh_Analyzer() { }
-
 void Contents_Rsh_Analyzer::DoDeliver(int len, const u_char* data)
 	{
 	int endp_state;

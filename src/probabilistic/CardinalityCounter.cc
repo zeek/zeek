@@ -115,8 +115,6 @@ CardinalityCounter::CardinalityCounter(uint64_t arg_size, uint64_t arg_V, double
 	p = log2(m);
 	}
 
-CardinalityCounter::~CardinalityCounter() { }
-
 uint8_t CardinalityCounter::Rank(uint64_t hash_modified) const
 	{
 	hash_modified = hash_modified >> p;

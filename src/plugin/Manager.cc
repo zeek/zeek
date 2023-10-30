@@ -94,7 +94,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 
 	// Check if it's a plugin directory.
 
-	const std::string magic = dir + "/__bro_plugin__";
+	const std::string magic = dir + "/__zeek_plugin__";
 
 	if ( util::is_file(magic) )
 		{
@@ -147,6 +147,10 @@ void Manager::SearchDynamicPlugins(const std::string& dir)
 		if ( strcmp(dp->d_name, "..") == 0 || strcmp(dp->d_name, ".") == 0 )
 			continue;
 
+		// We do not search plugins in discovered dot directories.
+		if ( (dp->d_name[0] == '.') && dp->d_type == DT_DIR )
+			continue;
+
 		string path = dir + "/" + dp->d_name;
 
 		if ( stat(path.c_str(), &st) < 0 )
@@ -189,7 +193,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 				return true;
 			}
 
-		errors->push_back(util::fmt("plugin %s is not available", name.c_str()));
+		errors->emplace_back(util::fmt("plugin %s is not available", name.c_str()));
 		return false;
 		}
 
@@ -216,7 +220,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 				"dynamic plugin %s from directory %s conflicts with %s plugin %s (%d.%d.%d)",
 				name.c_str(), dir.c_str(), p->DynamicPlugin() ? "dynamic" : "built-in",
 				p->Name().c_str(), v.major, v.minor, v.patch);
-			errors->push_back(error);
+			errors->emplace_back(error);
 			return false;
 			}
 		}
@@ -245,14 +249,14 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			if ( ! hdl )
 				{
 				const char* err = dlerror();
-				errors->push_back(util::fmt("cannot load plugin library %s: %s", path,
-				                            err ? err : "<unknown error>"));
+				errors->emplace_back(util::fmt("cannot load plugin library %s: %s", path,
+				                               err ? err : "<unknown error>"));
 				continue;
 				}
 
 			if ( ! current_plugin )
 				{
-				errors->push_back(
+				errors->emplace_back(
 					util::fmt("load plugin library %s did not instantiate a plugin", path));
 				dlclose(hdl);
 				continue;
@@ -275,8 +279,8 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 			// what we expect from its magic file.
 			if ( util::strtolower(current_plugin->Name()) != util::strtolower(name) )
 				{
-				errors->push_back(util::fmt("inconsistent plugin name: %s vs %s",
-				                            current_plugin->Name().c_str(), name.c_str()));
+				errors->emplace_back(util::fmt("inconsistent plugin name: %s vs %s",
+				                               current_plugin->Name().c_str(), name.c_str()));
 				continue;
 				}
 
@@ -577,7 +581,7 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const
 			}
 
 		if ( ! found )
-			inactives.push_back(*i);
+			inactives.emplace_back(*i);
 		}
 
 	return inactives;
@@ -646,7 +650,7 @@ std::list<std::pair<HookType, int>> Manager::HooksEnabledForPlugin(const Plugin*
 		if ( hook_list* l = hooks[i] )
 			for ( const auto& [hook, hook_plugin] : *l )
 				if ( hook_plugin == plugin )
-					enabled.push_back(std::make_pair(static_cast<HookType>(i), hook));
+					enabled.emplace_back(static_cast<HookType>(i), hook);
 		}
 
 	return enabled;
@@ -666,7 +670,7 @@ void Manager::EnableHook(HookType hook, Plugin* plugin, int prio)
 			return;
 		}
 
-	l->push_back(std::make_pair(prio, plugin));
+	l->emplace_back(prio, plugin);
 	l->sort(hook_cmp);
 	}
 
@@ -710,9 +714,9 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(type));
-		args.push_back(HookArgument(file));
-		args.push_back(HookArgument(resolved));
+		args.emplace_back(type);
+		args.emplace_back(file);
+		args.emplace_back(resolved);
 		MetaHookPre(HOOK_LOAD_FILE, args);
 		}
 
@@ -745,9 +749,9 @@ Manager::HookLoadFileExtended(const Plugin::LoadType type, const string& file,
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(type));
-		args.push_back(HookArgument(file));
-		args.push_back(HookArgument(resolved));
+		args.emplace_back(type);
+		args.emplace_back(file);
+		args.emplace_back(resolved);
 		MetaHookPre(HOOK_LOAD_FILE_EXT, args);
 		}
 
@@ -785,9 +789,9 @@ std::pair<bool, ValPtr> Manager::HookCallFunction(const Func* func, zeek::detail
 		for ( const auto& v : *vecargs )
 			vargs.push_back(v.get());
 
-		args.push_back(HookArgument(func));
-		args.push_back(HookArgument(parent));
-		args.push_back(HookArgument(&vargs));
+		args.emplace_back(func);
+		args.emplace_back(parent);
+		args.emplace_back(&vargs);
 		MetaHookPre(HOOK_CALL_FUNCTION, args);
 		}
 
@@ -821,7 +825,7 @@ bool Manager::HookQueueEvent(Event* event) const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(event));
+		args.emplace_back(event);
 		MetaHookPre(HOOK_QUEUE_EVENT, args);
 		}
 
@@ -873,7 +877,7 @@ void Manager::HookSetupAnalyzerTree(Connection* conn) const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(conn));
+		args.emplace_back(conn);
 		MetaHookPre(HOOK_SETUP_ANALYZER_TREE, args);
 		}
 
@@ -900,7 +904,7 @@ void Manager::HookUpdateNetworkTime(double network_time) const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(network_time));
+		args.emplace_back(network_time);
 		MetaHookPre(HOOK_UPDATE_NETWORK_TIME, args);
 		}
 
@@ -923,7 +927,7 @@ void Manager::HookObjDtor(void* obj) const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(obj));
+		args.emplace_back(obj);
 		MetaHookPre(HOOK_OBJ_DTOR, args);
 		}
 
@@ -948,13 +952,13 @@ void Manager::HookLogInit(const std::string& writer, const std::string& instanti
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(writer));
-		args.push_back(HookArgument(instantiating_filter));
-		args.push_back(HookArgument(local));
-		args.push_back(HookArgument(remote));
-		args.push_back(HookArgument(&info));
-		args.push_back(HookArgument(num_fields));
-		args.push_back(HookArgument(std::make_pair(num_fields, fields)));
+		args.emplace_back(writer);
+		args.emplace_back(instantiating_filter);
+		args.emplace_back(local);
+		args.emplace_back(remote);
+		args.emplace_back(&info);
+		args.emplace_back(num_fields);
+		args.emplace_back(std::make_pair(num_fields, fields));
 		MetaHookPre(HOOK_LOG_INIT, args);
 		}
 
@@ -979,12 +983,12 @@ bool Manager::HookLogWrite(const std::string& writer, const std::string& filter,
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(writer));
-		args.push_back(HookArgument(filter));
-		args.push_back(HookArgument(&info));
-		args.push_back(HookArgument(num_fields));
-		args.push_back(HookArgument(std::make_pair(num_fields, fields)));
-		args.push_back(HookArgument(vals));
+		args.emplace_back(writer);
+		args.emplace_back(filter);
+		args.emplace_back(&info);
+		args.emplace_back(num_fields);
+		args.emplace_back(std::make_pair(num_fields, fields));
+		args.emplace_back(vals);
 		MetaHookPre(HOOK_LOG_WRITE, args);
 		}
 
@@ -1021,14 +1025,14 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.push_back(HookArgument(prefix));
-		args.push_back(HookArgument(conn));
-		args.push_back(HookArgument(addl));
-		args.push_back(HookArgument(location1));
-		args.push_back(HookArgument(location2));
-		args.push_back(HookArgument(location));
-		args.push_back(HookArgument(time));
-		args.push_back(HookArgument(message));
+		args.emplace_back(prefix);
+		args.emplace_back(conn);
+		args.emplace_back(addl);
+		args.emplace_back(location1);
+		args.emplace_back(location2);
+		args.emplace_back(location);
+		args.emplace_back(time);
+		args.emplace_back(message);
 		MetaHookPre(HOOK_REPORTER, args);
 		}
 
@@ -1063,7 +1067,7 @@ void Manager::HookUnprocessedPacket(const Packet* packet) const
 
 	if ( HavePluginForHook(META_HOOK_PRE) )
 		{
-		args.emplace_back(HookArgument{packet});
+		args.emplace_back(packet);
 		MetaHookPre(HOOK_UNPROCESSED_PACKET, args);
 		}
 

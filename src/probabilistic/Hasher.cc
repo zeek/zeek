@@ -108,7 +108,7 @@ UHF::UHF(Hasher::seed_t arg_seed)
 // times.
 Hasher::digest UHF::hash(const void* x, size_t n) const
 	{
-	static_assert(std::is_same<highwayhash::SipHashState::Key, decltype(seed.h)>::value,
+	static_assert(std::is_same_v<highwayhash::SipHashState::Key, decltype(seed.h)>,
 	              "Seed value is not the same type as highwayhash key");
 	return highwayhash::SipHash(seed.h, reinterpret_cast<const char*>(x), n);
 	}
@@ -119,7 +119,7 @@ DefaultHasher::DefaultHasher(size_t k, Hasher::seed_t seed) : Hasher(k, seed)
 		{
 		seed_t s = Seed();
 		s.h[0] += util::detail::prng(i);
-		hash_functions.push_back(UHF(s));
+		hash_functions.emplace_back(s);
 		}
 	}
 

@@ -11,6 +11,7 @@
 #include <optional>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
 
@@ -90,6 +91,12 @@ public:
 };
 
 /**
+ * Begins registration of a Spicy EVT module. All subsequent, other `register_*()`
+ * function call will be associated with this module for documentation purposes.
+ */
+void register_spicy_module_begin(const std::string& name, const std::string& description, const hilti::rt::Time& mtime);
+
+/**
  * Registers a Spicy protocol analyzer with its EVT meta information with the
  * plugin's runtime.
  */
@@ -117,6 +124,13 @@ void register_packet_analyzer(const std::string& name, const std::string& parser
 
 /** Registers a Spicy-generated type to make it available inside Zeek. */
 void register_type(const std::string& ns, const std::string& id, const TypePtr& type);
+
+/**
+ * Ends registration of a Spicy EVT module. This must follow a preceding
+ * `registerSpicyModuleBegin()`.
+ */
+void register_spicy_module_end();
+
 
 /** Identifies a Zeek-side type. */
 enum class ZeekTypeTag : uint64_t {
@@ -151,9 +165,17 @@ extern TypePtr create_enum_type(
     const std::string& ns, const std::string& id,
     const hilti::rt::Vector<std::tuple<std::string, hilti::rt::integer::safe<int64_t>>>& labels);
 
-using RecordField = std::tuple<std::string, TypePtr, hilti::rt::Bool>; // (ID, type, optional)
+struct RecordField {
+    std::string id;   /**< name of record field */
+    TypePtr type;     /**< Spicy-side type object */
+    bool is_optional; /**< true if field is optional */
+    bool is_log;      /**< true if field has `&log` */
+};
+
 extern TypePtr create_record_type(const std::string& ns, const std::string& id,
                                   const hilti::rt::Vector<RecordField>& fields);
+extern RecordField create_record_field(const std::string& id, const TypePtr& type, hilti::rt::Bool is_optional,
+                                       hilti::rt::Bool is_log);
 
 extern TypePtr create_table_type(TypePtr key, std::optional<TypePtr> value);
 extern TypePtr create_vector_type(const TypePtr& elem);
@@ -267,7 +289,7 @@ void confirm_protocol();
  *
  * @param reason short description of what went wrong
  */
-void reject_protocol(const std::string& reason);
+void reject_protocol(const std::string& reason = "protocol rejected");
 
 /**
  * Opaque handle to a protocol analyzer.
@@ -427,6 +449,8 @@ hilti::rt::Time network_time();
 // Forward-declare to_val() functions.
 template<typename T, typename std::enable_if_t<hilti::rt::is_tuple<T>::value>* = nullptr>
 ValPtr to_val(const T& t, TypePtr target);
+template<typename... Ts>
+inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, TypePtr target);
 template<typename T, typename std::enable_if_t<std::is_base_of<::hilti::rt::trait::isStruct, T>::value>* = nullptr>
 ValPtr to_val(const T& t, TypePtr target);
 template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>* = nullptr>
@@ -804,11 +828,44 @@ inline ValPtr to_val(const T& t, TypePtr target) {
         throw TypeMismatch("tuple", target);
 
     auto rval = make_intrusive<RecordVal>(rtype);
-    int idx = 0;
+    size_t idx = 0;
     hilti::rt::tuple_for_each(t, [&](const auto& x) { set_record_field(rval.get(), rtype, idx++, x); });
 
     return rval;
 }
+
+/**
+ * Converts a Spicy-side bitfield to a Zeek record value. The result is returned
+ * with ref count +1.
+ */
+template<typename... Ts>
+inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, TypePtr target) {
+    using Bitfield = hilti::rt::Bitfield<Ts...>;
+
+    if ( target->Tag() != TYPE_RECORD )
+        throw TypeMismatch("bitfield", target);
+
+    auto rtype = cast_intrusive<RecordType>(target);
+
+    if ( sizeof...(Ts) - 1 != rtype->NumFields() )
+        throw TypeMismatch("bitfield", target);
+
+    auto rval = make_intrusive<RecordVal>(rtype);
+    size_t idx = 0;
+    hilti::rt::tuple_for_each(v.value, [&](const auto& x) {
+        if ( idx < sizeof...(Ts) - 1 ) // last element is original integer value, with no record equivalent
+            set_record_field(rval.get(), rtype, idx++, x);
+    });
+
+    return rval;
+}
+
+template<typename>
+constexpr bool is_optional_impl = false;
+template<typename T>
+constexpr bool is_optional_impl<std::optional<T>> = true;
+template<typename T>
+constexpr bool is_optional = is_optional_impl<std::remove_cv_t<std::remove_reference_t<T>>>;
 
 /**
  * Converts Spicy-side struct to a Zeek record value. The result is returned
@@ -826,17 +883,39 @@ inline ValPtr to_val(const T& t, TypePtr target) {
 
     auto num_fields = rtype->NumFields();
 
-    t.__visit([&](const auto& name, const auto& val) {
+    t.__visit([&](std::string_view name, const auto& val) {
         if ( idx >= num_fields )
             throw TypeMismatch(hilti::rt::fmt("no matching record field for field '%s'", name));
 
-        auto field = rtype->GetFieldType(idx);
-        std::string field_name = rtype->FieldName(idx);
+        // Special-case: Lift up anonymous bitfields (which always come as std::optionals).
+        if ( name == "<anon>" ) {
+            using X = typename std::decay<decltype(val)>::type;
+            if constexpr ( is_optional<X> ) {
+                if constexpr ( std::is_base_of<::hilti::rt::trait::isBitfield, typename X::value_type>::value ) {
+                    size_t j = 0;
+                    hilti::rt::tuple_for_each(val->value, [&](const auto& x) {
+                        if ( j++ < std::tuple_size<decltype(val->value)>() -
+                                       1 ) // last element is original integer value, with no record equivalent
+                            set_record_field(rval.get(), rtype, idx++, x);
+                    });
+                    return;
+                }
+            }
 
-        if ( field_name != name )
-            throw TypeMismatch(hilti::rt::fmt("mismatch in field name: expected '%s', found '%s'", name, field_name));
+            // There can't be any other anonymous fields.
+            auto msg = hilti::rt::fmt("unexpected anonymous field: %s", name);
+            reporter->InternalError("%s", msg.c_str());
+        }
+        else {
+            auto field = rtype->GetFieldType(idx);
+            std::string field_name = rtype->FieldName(idx);
 
-        set_record_field(rval.get(), rtype, idx++, val);
+            if ( field_name != name )
+                throw TypeMismatch(
+                    hilti::rt::fmt("mismatch in field name: expected '%s', found '%s'", name, field_name));
+
+            set_record_field(rval.get(), rtype, idx++, val);
+        }
     });
 
     // We already check above that all Spicy-side fields are mapped so we

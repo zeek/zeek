@@ -26,8 +26,7 @@
 namespace zeek::detail
 	{
 
-static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs,
-                          const ExprPtr& init)
+static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs)
 	{
 	if ( ! IsFunc(id->GetType()->Tag()) )
 		return false;
@@ -53,18 +52,12 @@ static bool add_prototype(const IDPtr& id, Type* t, std::vector<AttrPtr>* attrs,
 		return false;
 		}
 
-	if ( init )
-		{
-		init->Error("initialization not allowed during event/hook alternate prototype declaration");
-		return false;
-		}
-
 	const auto& canon_args = canon_ft->Params();
 	const auto& alt_args = alt_ft->Params();
 
 	if ( auto p = canon_ft->FindPrototype(*alt_args); p )
 		{
-		alt_ft->Error("alternate function prototype already exists", p->args.get());
+		alt_ft->Error("alternate function prototype already exists", p->args.get(), true);
 		return false;
 		}
 
@@ -221,8 +214,8 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init,
 
 		else if ( dt != VAR_REDEF || init || ! attr )
 			{
-			if ( IsFunc(id->GetType()->Tag()) )
-				add_prototype(id, t.get(), attr.get(), init);
+			if ( IsFunc(id->GetType()->Tag()) && ! init )
+				add_prototype(id, t.get(), attr.get());
 			else
 				id->Error("already defined", init.get());
 
@@ -420,7 +413,9 @@ StmtPtr add_local(IDPtr id, TypePtr t, InitClass c, ExprPtr init,
 
 	else
 		{
-		current_scope()->AddInit(std::move(id));
+		if ( c != INIT_SKIP )
+			current_scope()->AddInit(std::move(id));
+
 		return make_intrusive<NullStmt>();
 		}
 	}
@@ -468,6 +463,18 @@ void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr)
 
 	if ( attr )
 		id->SetAttrs(make_intrusive<Attributes>(std::move(*attr), tnew, false, false));
+	}
+
+static std::set<std::string> all_module_names;
+
+void add_module(const char* module_name)
+	{
+	all_module_names.emplace(module_name);
+	}
+
+const std::set<std::string>& module_names()
+	{
+	return all_module_names;
 	}
 
 static void transfer_arg_defaults(RecordType* args, RecordType* recv)
@@ -755,27 +762,12 @@ class OuterIDBindingFinder : public TraversalCallback
 public:
 	OuterIDBindingFinder(ScopePtr s) { scopes.emplace_back(s); }
 
-	TraversalCode PreStmt(const Stmt*) override;
 	TraversalCode PreExpr(const Expr*) override;
 	TraversalCode PostExpr(const Expr*) override;
 
 	std::vector<ScopePtr> scopes;
 	std::unordered_set<ID*> outer_id_references;
 	};
-
-TraversalCode OuterIDBindingFinder::PreStmt(const Stmt* stmt)
-	{
-	if ( stmt->Tag() != STMT_WHEN )
-		return TC_CONTINUE;
-
-	// The semantics of identifiers for the "when" statement are those
-	// of the lambda it's transformed into.
-
-	auto ws = static_cast<const WhenStmt*>(stmt);
-	ws->Info()->Lambda()->Traverse(this);
-
-	return TC_ABORTSTMT;
-	}
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	{
@@ -789,18 +781,19 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr)
 	if ( expr->Tag() != EXPR_NAME )
 		return TC_CONTINUE;
 
-	auto* e = static_cast<const NameExpr*>(expr);
+	auto e = static_cast<const NameExpr*>(expr);
+	auto id = e->Id();
 
-	if ( e->Id()->IsGlobal() )
+	if ( id->IsGlobal() )
 		return TC_CONTINUE;
 
 	for ( const auto& scope : scopes )
-		if ( scope->Find(e->Id()->Name()) )
+		if ( scope->Find(id->Name()) )
 			// Shadowing is not allowed, so if it's found at inner scope, it's
 			// not something we have to worry about also being at outer scope.
 			return TC_CONTINUE;
 
-	outer_id_references.insert(e->Id());
+	outer_id_references.insert(id);
 	return TC_CONTINUE;
 	}
 
@@ -845,11 +838,10 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals)
 		id->SetConst();
 		}
 
-	id->GetVal()->AsFunc()->AddBody(ingredients->Body(), ingredients->Inits(),
-	                                ingredients->FrameSize(), ingredients->Priority(),
-	                                ingredients->Groups());
+	id->GetVal()->AsFunc()->AddBody(*ingredients);
 
-	script_coverage_mgr.AddFunction(id, ingredients->Body());
+	if ( ! analysis_options.gen_ZAM )
+		script_coverage_mgr.AddFunction(id, ingredients->Body());
 
 	auto func_ptr = cast_intrusive<FuncVal>(id->GetVal())->AsFuncPtr();
 	auto func = cast_intrusive<ScriptFunc>(func_ptr);

@@ -3,3 +3,18 @@ These are the trace files that are used by the Zeek test suite.
 Note to maintainers: please take care when modifying/removing files from here.
 We install these traces with the Zeek distribution and external packages might
 depend on them for tests.
+
+Trace Index/Sources:
+
+- modbus/modbus-eit.trace: Sourced from https://www.netresec.com/?page=PCAP4SICS, credit to https://cs3sthlm.se/. The packets in this trace were pulled from the 4SICS-GeekLounge-151021.pcap file.
+
+- [ldap/simpleauth.pcap](https://github.com/arkime/arkime/blob/main/tests/pcap/ldap-simpleauth.pcap)
+- ldap/simpleauth-diff-port.pcap: made with
+  `tcprewrite -r 3268:32681 -i simpleauth.pcap -o simpleauth-diff-port.pcap`
+- ldap/krb5-sign-seal-01.pcap: trace is derived from
+  <https://wiki.wireshark.org/uploads/__moin_import__/attachments/SampleCaptures/ldap-krb5-sign-seal-01.cap>
+  - the LDAP flow selected (filtered out the Kerberos packets)
+  - truncated to 10 packets (where packet 10 contains the SASL encrypted LDAP message)
+  - one `\x30` byte in the ciphertext changed to `\x00`
+- ldap/issue-32.pcapng: Provided by GH user martinvanhensbergen,
+  <https://github.com/zeek/spicy-ldap/issues/23>

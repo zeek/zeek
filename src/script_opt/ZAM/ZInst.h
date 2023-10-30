@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/Desc.h"
+#include "zeek/Func.h"
 #include "zeek/script_opt/ZAM/BuiltInSupport.h"
 #include "zeek/script_opt/ZAM/Support.h"
 #include "zeek/script_opt/ZAM/ZOp.h"
@@ -129,7 +130,7 @@ public:
 
 	// Interpreter call expression associated with this instruction,
 	// for error reporting and stack backtraces.
-	const CallExpr* call_expr = nullptr;
+	CallExprPtr call_expr = nullptr;
 
 	// Whether v1 represents a frame slot type for which we
 	// explicitly manage the memory.
@@ -220,6 +221,9 @@ public:
 	// True if this instruction is of the form "v1 = v2".
 	bool IsDirectAssignment() const;
 
+	// True if this instruction includes captures in its aux slots.
+	bool HasCaptures() const;
+
 	// True if this instruction has side effects when executed, so
 	// should not be pruned even if it has a dead assignment.
 	bool HasSideEffects() const;
@@ -247,9 +251,17 @@ public:
 	// the ZAM frame.
 	bool IsGlobalLoad() const;
 
+	// True if the instruction corresponds to loading a capture into
+	// the ZAM frame.
+	bool IsCaptureLoad() const;
+
+	// True if the instruction does not correspond to a load from the
+	// ZAM frame.
+	bool IsNonLocalLoad() const { return IsGlobalLoad() || IsCaptureLoad(); }
+
 	// True if the instruction corresponds to some sort of load,
-	// either from the interpreter frame or of a global.
-	bool IsLoad() const { return op_type == OP_VV_FRAME || IsGlobalLoad(); }
+	// either from the interpreter frame or of a global/capture.
+	bool IsLoad() const { return op_type == OP_VV_FRAME || IsNonLocalLoad(); }
 
 	// True if the instruction corresponds to storing a global.
 	bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_V; }
@@ -294,7 +306,7 @@ public:
 	int num_labels = 0;
 
 	// Used for debugging.  Transformed into the ZInst "loc" field.
-	const Stmt* stmt = curr_stmt;
+	StmtPtr stmt = curr_stmt;
 
 private:
 	// Initialize 'c' from the given ConstExpr.
@@ -317,6 +329,7 @@ public:
 			slots = ints = new int[n];
 			constants = new ValPtr[n];
 			types = new TypePtr[n];
+			is_managed = new bool[n];
 			}
 		}
 
@@ -325,6 +338,7 @@ public:
 		delete[] ints;
 		delete[] constants;
 		delete[] types;
+		delete[] is_managed;
 		delete[] cat_args;
 		}
 
@@ -384,6 +398,7 @@ public:
 		ints[i] = slot;
 		constants[i] = nullptr;
 		types[i] = t;
+		is_managed[i] = t ? ZVal::IsManagedType(t) : false;
 		}
 
 	// Same but for constants.
@@ -392,6 +407,7 @@ public:
 		ints[i] = -1;
 		constants[i] = c;
 		types[i] = nullptr;
+		is_managed[i] = false;
 		}
 
 	// Member variables.  We could add accessors for manipulating
@@ -404,24 +420,36 @@ public:
 	// if not, it's nil).
 	//
 	// We track associated types, too, enabling us to use
-	// ZVal::ToVal to convert frame slots or constants to ValPtr's.
+	// ZVal::ToVal to convert frame slots or constants to ValPtr's;
+	// and, as a performance optimization, whether those types
+	// indicate the slot needs to be managed.
 
 	int n; // size of arrays
 	int* slots = nullptr; // either nil or points to ints
 	int* ints = nullptr;
 	ValPtr* constants = nullptr;
 	TypePtr* types = nullptr;
+	bool* is_managed = nullptr;
+
+	// Ingredients associated with lambdas ...
+	ScriptFuncPtr primary_func;
+
+	// ... and its name.
+	std::string lambda_name;
+
+	// For "when" statements.
+	std::shared_ptr<WhenInfo> wi;
 
 	// A parallel array for the cat() built-in replacement.
 	std::unique_ptr<CatArg>* cat_args = nullptr;
 
 	// Used for accessing function names.
-	const ID* id_val = nullptr;
+	IDPtr id_val = nullptr;
 
-	// Whether the instruction can lead to globals changing.
-	// Currently only needed by the optimizer, but convenient
-	// to store here.
-	bool can_change_globals = false;
+	// Whether the instruction can lead to globals/captures changing.
+	// Currently only needed by the optimizer, but convenient to
+	// store here.
+	bool can_change_non_locals = false;
 
 	// The following is only used for OP_CONSTRUCT_KNOWN_RECORD_V,
 	// to map elements in slots/constants/types to record field offsets.

@@ -20,6 +20,13 @@
 using namespace zeek;
 using namespace zeek::spicy;
 
+void rt::register_spicy_module_begin(const std::string& name, const std::string& description,
+                                     const hilti::rt::Time& mtime) {
+    spicy_mgr->registerSpicyModuleBegin(name, description, mtime);
+}
+
+void rt::register_spicy_module_end() { spicy_mgr->registerSpicyModuleEnd(); }
+
 void rt::register_protocol_analyzer(const std::string& name, hilti::rt::Protocol proto,
                                     const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                     const std::string& parser_orig, const std::string& parser_resp,
@@ -126,18 +133,28 @@ TypePtr rt::create_record_type(const std::string& ns, const std::string& id,
 
     auto decls = std::make_unique<type_decl_list>();
 
-    for ( const auto& [id, type, optional] : fields ) {
+    for ( const auto& f : fields ) {
         auto attrs = make_intrusive<detail::Attributes>(nullptr, true, false);
 
-        if ( optional ) {
+        if ( f.is_optional ) {
             auto optional_ = make_intrusive<detail::Attr>(detail::ATTR_OPTIONAL);
-            attrs->AddAttr(optional_);
+            attrs->AddAttr(std::move(optional_));
         }
 
-        decls->append(new TypeDecl(util::copy_string(id.c_str()), type, std::move(attrs)));
+        if ( f.is_log ) {
+            auto log_ = make_intrusive<detail::Attr>(detail::ATTR_LOG);
+            attrs->AddAttr(std::move(log_));
+        }
+
+        decls->append(new TypeDecl(util::copy_string(f.id.c_str()), f.type, std::move(attrs)));
     }
 
     return make_intrusive<RecordType>(decls.release());
+}
+
+rt::RecordField rt::create_record_field(const std::string& id, const TypePtr& type, hilti::rt::Bool is_optional,
+                                        hilti::rt::Bool is_log) {
+    return rt::RecordField{id, type, is_optional, is_log};
 }
 
 TypePtr rt::create_table_type(TypePtr key, std::optional<TypePtr> value) {
@@ -436,12 +453,17 @@ void rt::confirm_protocol() {
 void rt::reject_protocol(const std::string& reason) {
     auto _ = hilti::rt::profiler::start("zeek/rt/reject_protocol");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
+
+    // We might be invoked during teardown when the cookie has already been
+    // cleared. These other code paths also take care of sending an analyzer
+    // violation to Zeek, so we can immediately return for such cases here.
+    if ( ! cookie )
+        return;
 
     if ( auto x = cookie->protocol ) {
         auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());
-        SPICY_DEBUG(hilti::rt::fmt("rejecting protocol %s", tag.AsString()));
-        return x->analyzer->AnalyzerViolation("protocol rejected", nullptr, 0, tag);
+        SPICY_DEBUG(hilti::rt::fmt("rejecting protocol %s: %s", tag.AsString(), reason));
+        return x->analyzer->AnalyzerViolation(reason.c_str(), nullptr, 0, tag);
     }
     else
         throw ValueUnavailable("no current connection available");

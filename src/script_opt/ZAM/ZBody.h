@@ -52,12 +52,10 @@ public:
 	void ProfileExecution() const;
 
 protected:
-	friend class ZAMResumption;
-
 	// Initializes profiling information, if needed.
 	void InitProfile();
 
-	ValPtr DoExec(Frame* f, int start_pc, StmtFlowType& flow);
+	ValPtr DoExec(Frame* f, StmtFlowType& flow);
 
 	// Run-time checking for "any" type being consistent with
 	// expected typed.  Returns true if the type match is okay.
@@ -73,7 +71,7 @@ private:
 	const char* func_name = nullptr;
 
 	const ZInst* insts = nullptr;
-	unsigned int ninst = 0;
+	unsigned int end_pc = 0;
 
 	FrameReMap frame_denizens;
 	int frame_size;
@@ -115,29 +113,6 @@ private:
 	CaseMaps<zeek_uint_t> uint_cases;
 	CaseMaps<double> double_cases;
 	CaseMaps<std::string> str_cases;
-	};
-
-// This is a statement that resumes execution into a code block in a
-// ZBody.  Used for deferred execution for "when" statements.
-
-class ZAMResumption : public Stmt
-	{
-public:
-	ZAMResumption(ZBody* _am, int _xfer_pc) : Stmt(STMT_ZAM_RESUMPTION), am(_am), xfer_pc(_xfer_pc)
-		{
-		}
-
-	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
-
-	StmtPtr Duplicate() override { return {NewRef{}, this}; }
-
-	void StmtDescribe(ODesc* d) const override;
-
-protected:
-	TraversalCode Traverse(TraversalCallback* cb) const override;
-
-	ZBody* am;
-	int xfer_pc = 0;
 	};
 
 // Prints the execution profile.

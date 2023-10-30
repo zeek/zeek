@@ -5,7 +5,7 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 211
+%expect 217
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY TOK_ASSERT
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
@@ -21,8 +21,9 @@
 %token TOK_STRING TOK_SUBNET TOK_SWITCH TOK_TABLE
 %token TOK_TIME TOK_TIMEOUT TOK_TYPE TOK_VECTOR TOK_WHEN
 %token TOK_WHILE TOK_AS TOK_IS
+%token TOK_GLOBAL_ID
 
-%token TOK_ATTR_ADD_FUNC TOK_ATTR_DEFAULT TOK_ATTR_OPTIONAL TOK_ATTR_REDEF
+%token TOK_ATTR_ADD_FUNC TOK_ATTR_DEFAULT TOK_ATTR_DEFAULT_INSERT TOK_ATTR_OPTIONAL TOK_ATTR_REDEF
 %token TOK_ATTR_DEL_FUNC TOK_ATTR_EXPIRE_FUNC
 %token TOK_ATTR_EXPIRE_CREATE TOK_ATTR_EXPIRE_READ TOK_ATTR_EXPIRE_WRITE
 %token TOK_ATTR_RAW_OUTPUT TOK_ATTR_ON_CHANGE TOK_ATTR_BROKER_STORE
@@ -55,7 +56,7 @@
 %nonassoc TOK_AS TOK_IS
 
 %type <b> opt_no_test opt_no_test_block opt_deep when_flavor
-%type <str> TOK_ID TOK_PATTERN_TEXT
+%type <str> TOK_ID TOK_PATTERN_TEXT TOK_GLOBAL_ID lookup_identifier
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
@@ -156,8 +157,6 @@ static Location func_hdr_location;
 static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
-
-std::set<std::string> module_names;
 
 static void parse_new_enum(void)
 	{
@@ -346,6 +345,13 @@ static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
 
 	return init;
 	}
+
+static void refine_location(zeek::detail::ID* id)
+	{
+	if ( *id->GetLocationInfo() == zeek::detail::no_location )
+		id->SetLocationInfo(&detail::start_location, &detail::end_location);
+	}
+
 %}
 
 %union {
@@ -397,7 +403,7 @@ zeek:
 		stmt_list
 			{
 			if ( stmts )
-				stmts->AsStmtList()->Stmts().push_back($3);
+				stmts->AsStmtList()->Stmts().push_back({AdoptRef{}, $3});
 			else
 				stmts = $3;
 
@@ -627,7 +633,10 @@ expr:
 	|	expr '/' expr
 			{
 			set_location(@1, @3);
-			$$ = new DivideExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			if ( $1->GetType()->Tag() == TYPE_ADDR )
+				$$ = new MaskExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			else
+				$$ = new DivideExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
 	|	expr '%' expr
@@ -927,7 +936,7 @@ expr:
 			$$ = new ScheduleExpr({AdoptRef{}, $2}, {AdoptRef{}, $4});
 			}
 
-	|	TOK_ID
+	|	lookup_identifier
 			{
 			set_location(@1);
 			auto id = lookup_ID($1, current_module.c_str());
@@ -1357,7 +1366,7 @@ decl:
 		TOK_MODULE TOK_ID ';'
 			{
 			current_module = $2;
-			module_names.insert($2);
+			zeek::detail::add_module($2);
 			zeekygen_mgr->ModuleUsage(::filename, current_module);
 			}
 
@@ -1566,7 +1575,7 @@ lambda_body:
 
 			// Gather the ingredients for a Func from the
 			// current scope.
-			auto ingredients = std::make_unique<FunctionIngredients>(
+			auto ingredients = std::make_shared<FunctionIngredients>(
 				current_scope(), IntrusivePtr{AdoptRef{}, $3}, current_module.c_str());
 			auto outer_ids = gather_outer_ids(pop_scope(), ingredients->Body());
 
@@ -1640,9 +1649,7 @@ capture:
 
 			delete [] $2;
 
-			$$ = new FuncType::Capture;
-			$$->id = id;
-			$$->deep_copy = $1;
+			$$ = new FuncType::Capture(id, $1);
 			}
 	;
 
@@ -1723,6 +1730,8 @@ attr_list:
 attr:
 		TOK_ATTR_DEFAULT '=' expr
 			{ $$ = new Attr(ATTR_DEFAULT, {AdoptRef{}, $3}); }
+	|	TOK_ATTR_DEFAULT_INSERT '=' expr
+			{ $$ = new Attr(ATTR_DEFAULT_INSERT, {AdoptRef{}, $3}); }
 	|	TOK_ATTR_OPTIONAL
 			{ $$ = new Attr(ATTR_OPTIONAL); }
 	|	TOK_ATTR_REDEF
@@ -1935,7 +1944,8 @@ stmt:
 
 	|	when_clause
 			{
-			$$ = new WhenStmt($1);
+			std::shared_ptr<WhenInfo> wi($1);
+			$$ = new WhenStmt(std::move(wi));
 			script_coverage_mgr.AddStmt($$);
 			}
 
@@ -1972,7 +1982,7 @@ stmt_list:
 		stmt_list stmt
 			{
 			set_location(@1, @2);
-			$1->AsStmtList()->Stmts().push_back($2);
+			$1->AsStmtList()->Stmts().push_back({AdoptRef{}, $2});
 			$1->UpdateLocationEndInfo(@2);
 			}
 	|
@@ -1980,7 +1990,7 @@ stmt_list:
 	;
 
 event:
-		TOK_ID '(' opt_expr_list ')'
+		lookup_identifier '(' opt_expr_list ')'
 			{
 			set_location(@1, @4);
 			const auto& id = lookup_ID($1, current_module.c_str());
@@ -2037,7 +2047,7 @@ case_type_list:
 case_type:
 		TOK_TYPE type
 			{
-			$$ = new ID(0, SCOPE_FUNCTION, 0);
+			$$ = new ID(0, SCOPE_FUNCTION, false);
 			$$->SetType({AdoptRef{}, $2});
 			}
 
@@ -2168,22 +2178,22 @@ local_id:
 	;
 
 global_id:
-	{ resolving_global_ID = 1; } global_or_event_id
+	{ resolving_global_ID = true; } global_or_event_id
 		{ $$ = $2; }
 	;
 
 def_global_id:
-	{ defining_global_ID = 1; } global_id { defining_global_ID = 0; }
+	{ defining_global_ID = true; } global_id { defining_global_ID = false; }
 		{ $$ = $2; }
 	;
 
 event_id:
-	{ resolving_global_ID = 0; } global_or_event_id
+	{ resolving_global_ID = false; } global_or_event_id
 		{ $$ = $2; }
 	;
 
 global_or_event_id:
-		TOK_ID
+		lookup_identifier
 			{
 			set_location(@1);
 			auto id = lookup_ID($1, current_module.c_str(), false,
@@ -2204,6 +2214,7 @@ global_or_event_id:
 						reporter->Deprecation($$->GetDeprecationWarning());
 					}
 
+				refine_location($$);
 				delete [] $1;
 				}
 
@@ -2221,7 +2232,7 @@ global_or_event_id:
 
 
 resolve_id:
-		TOK_ID
+		lookup_identifier
 			{
 			set_location(@1);
 			auto id = lookup_ID($1, current_module.c_str());
@@ -2232,6 +2243,20 @@ resolve_id:
 
 			delete [] $1;
 			}
+	;
+
+lookup_identifier:
+		TOK_ID
+	|
+		TOK_GLOBAL_ID
+			{
+			if ( is_export )
+				{
+				reporter->Error("cannot use :: prefix in export section: %s", $1);
+				YYERROR;
+				}
+			}
+
 	;
 
 opt_assert_msg:

@@ -20,7 +20,7 @@ hook notice(n: Notice::Info) &priority=-1
 		return;
 
 	# This should only be done for notices that are being sent to email.
-	if ( ! n?$email_dest )
+	if ( |n$email_dest| == 0 )
 		return;
 
 	# I'm not recovering gracefully from the when statements because I want

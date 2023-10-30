@@ -59,12 +59,14 @@
 @load base/protocols/imap
 @load base/protocols/irc
 @load base/protocols/krb
+@load base/protocols/ldap
 @load base/protocols/modbus
 @load base/protocols/mqtt
 @load base/protocols/mysql
 @load base/protocols/ntlm
 @load base/protocols/ntp
 @load base/protocols/pop3
+@load base/protocols/quic
 @load base/protocols/radius
 @load base/protocols/rdp
 @load base/protocols/rfb

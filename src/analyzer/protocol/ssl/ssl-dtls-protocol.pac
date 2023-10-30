@@ -5,7 +5,7 @@
 
 type PlaintextRecord(rec: SSLRecord) = case rec.content_type of {
 	CHANGE_CIPHER_SPEC	-> ch_cipher : ChangeCipherSpec(rec);
-	ALERT			-> alert : Alert(rec);
+	ALERT			-> alerts : Alerts(rec);
 	HEARTBEAT -> heartbeat: Heartbeat(rec);
 	APPLICATION_DATA	-> app_data : ApplicationData(rec);
 	default			-> unknown_record : UnknownRecord(rec);
@@ -20,22 +20,6 @@ enum AnalyzerState {
 	STATE_CLEAR,
 	STATE_ENCRYPTED
 };
-
-%code{
-	string state_label(int state_nr)
-		{
-		switch ( state_nr ) {
-		case STATE_CLEAR:
-			return string("CLEAR");
-
-		case STATE_ENCRYPTED:
-			return string("ENCRYPTED");
-
-		default:
-			return string(zeek::util::fmt("UNKNOWN (%d)", state_nr));
-		}
-		}
-%}
 
 ######################################################################
 # Change Cipher Spec Protocol (7.1.)
@@ -59,6 +43,11 @@ type ChangeCipherSpec(rec: SSLRecord) = record {
 ######################################################################
 # Alert Protocol (7.2.)
 ######################################################################
+
+type Alerts(rec: SSLRecord) = record {
+	alerts: Alert(rec)[] &length=$context.connection.cap_alert_messages_length(rec.length);
+	rest: bytestring &restofdata &transient;
+} &length=rec.length;
 
 type Alert(rec: SSLRecord) = record {
 	level : uint8;
@@ -103,6 +92,10 @@ type CiphertextRecord(rec: SSLRecord) = record {
 # binpac analyzer for SSL including
 ######################################################################
 
+%extern{
+#include "zeek/analyzer/protocol/ssl/consts.bif.h"
+%}
+
 refine connection SSL_Conn += {
 
 	%member{
@@ -146,5 +139,30 @@ refine connection SSL_Conn += {
 			return 1;
 
 		return 0;
+		%}
+
+	function cap_alert_messages_length(record_length: int) : int
+		%{
+		int alert_length = record_length;
+		int max_length = zeek::BifConst::SSL::max_alerts_per_record * 2;
+
+		// With TLS 1.3, enforce a single alert.
+		//
+		// From https://datatracker.ietf.org/doc/html/rfc8446//section-5.1
+		//
+		//    Alert messages (Section 6) MUST NOT be fragmented across records, and
+		//    multiple alert messages MUST NOT be coalesced into a single
+		//    record.  In other words, a record with an Alert type MUST contain
+		//    exactly one message.
+		if ( determine_tls13() )
+			max_length = 2;
+
+		if ( alert_length > max_length )
+			{
+			zeek_analyzer()->Weird("SSL_excessive_alerts_in_record", zeek::util::fmt("%d", alert_length / 2));
+			alert_length = max_length;
+			}
+
+		return alert_length;
 		%}
 };

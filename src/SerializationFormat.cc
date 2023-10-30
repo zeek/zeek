@@ -103,10 +103,6 @@ bool SerializationFormat::WriteData(const void* b, size_t count)
 	return true;
 	}
 
-BinarySerializationFormat::BinarySerializationFormat() { }
-
-BinarySerializationFormat::~BinarySerializationFormat() { }
-
 bool BinarySerializationFormat::Read(int* v, const char* tag)
 	{
 	uint32_t tmp;

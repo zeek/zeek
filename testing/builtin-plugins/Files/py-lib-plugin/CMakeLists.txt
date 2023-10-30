@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+project(Zeek-Plugin-Demo-Python)
+
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 find_package(PythonLibs REQUIRED)
 

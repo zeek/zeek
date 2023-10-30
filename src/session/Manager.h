@@ -10,7 +10,6 @@
 #include "zeek/Hash.h"
 #include "zeek/NetVar.h"
 #include "zeek/session/Session.h"
-#include "zeek/telemetry/Manager.h"
 
 namespace zeek
 	{

@@ -81,10 +81,6 @@ export {
 		## reference to the actual connection will be deleted after
 		## applying the notice policy.
 		conn:           connection     &optional;
-		## A shorthand way of giving the uid and id to a notice.  The
-		## reference to the actual connection will be deleted after
-		## applying the notice policy.
-		iconn:          icmp_conn      &optional;
 
 		## A file record if the notice is related to a file.  The
 		## reference to the actual fa_file record will be deleted after
@@ -108,7 +104,7 @@ export {
 		file_desc:      string          &log &optional;
 
 		## The transport protocol. Filled automatically when either
-		## *conn*, *iconn* or *p* is specified.
+		## *conn* or *p* is specified.
 		proto:          transport_proto &log &optional;
 
 		## The :zeek:type:`Notice::Type` of the notice.
@@ -667,15 +663,6 @@ function apply_policy(n: Notice::Info)
 
 	if ( n?$p )
 		n$proto = get_port_transport_proto(n$p);
-
-	if ( n?$iconn )
-		{
-		n$proto = icmp;
-		if ( ! n?$src )
-			n$src = n$iconn$orig_h;
-		if ( ! n?$dst )
-			n$dst = n$iconn$resp_h;
-		}
 
 	if ( ! n?$email_body_sections )
 		n$email_body_sections = vector();

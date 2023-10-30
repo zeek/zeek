@@ -450,6 +450,7 @@ public:
 	ReturnStmt(ExprPtr e, bool ignored);
 
 	// Optimization-related:
+	bool IsReduced(Reducer* c) const override;
 	StmtPtr DoReduce(Reducer* c) override;
 
 	bool NoFlowAfter(bool ignore_break) const override { return true; }
@@ -459,12 +460,12 @@ class StmtList : public Stmt
 	{
 public:
 	StmtList();
-	~StmtList() override;
+	~StmtList() override = default;
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-	const StmtPList& Stmts() const { return *stmts; }
-	StmtPList& Stmts() { return *stmts; }
+	const auto& Stmts() const { return stmts; }
+	auto& Stmts() { return stmts; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -480,23 +481,18 @@ public:
 	bool NoFlowAfter(bool ignore_break) const override;
 
 	// Idioms commonly used in reduction.
-	StmtList(StmtPtr s1, Stmt* s2);
 	StmtList(StmtPtr s1, StmtPtr s2);
 	StmtList(StmtPtr s1, StmtPtr s2, StmtPtr s3);
 
 protected:
 	bool IsPure() const override;
 
-	StmtPList* stmts;
+	std::vector<StmtPtr> stmts;
 
 	// Optimization-related:
-	bool ReduceStmt(int& s_i, StmtPList* f_stmts, Reducer* c);
+	bool ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c);
 
-	void ResetStmts(StmtPList* new_stmts)
-		{
-		delete stmts;
-		stmts = new_stmts;
-		}
+	void ResetStmts(std::vector<StmtPtr> new_stmts) { stmts = std::move(new_stmts); }
 	};
 
 class InitStmt final : public Stmt
@@ -551,6 +547,10 @@ public:
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
+	const auto& Cond() const { return cond; }
+	const auto& CondDesc() const { return cond_desc; }
+	const auto& Msg() const { return msg; }
+
 	void StmtDescribe(ODesc* d) const override;
 
 	TraversalCode Traverse(TraversalCallback* cb) const override;
@@ -563,8 +563,16 @@ public:
 
 private:
 	ExprPtr cond;
+	std::string cond_desc;
 	ExprPtr msg;
 	};
+
+// Helper function for reporting on asserts that either failed, or should
+// be processed regardless due to the presence of a "assertion_result" hook.
+//
+// If "cond" is false, throws an InterpreterException after reporting.
+extern void report_assert(bool cond, std::string_view cond_desc, StringValPtr msg_val,
+                          const Location* loc);
 
 // A helper class for tracking all of the information associated with
 // a "when" statement, and constructing the necessary components in support
@@ -574,6 +582,9 @@ class WhenInfo
 public:
 	// Takes ownership of the CaptureList.
 	WhenInfo(ExprPtr cond, FuncType::CaptureList* cl, bool is_return);
+
+	// Used for duplication to support inlining.
+	WhenInfo(const WhenInfo* orig);
 
 	// Constructor used by script optimization to create a stub.
 	WhenInfo(bool is_return);
@@ -615,6 +626,7 @@ public:
 	StmtPtr TimeoutStmt();
 
 	ExprPtr TimeoutExpr() const { return timeout; }
+	void SetTimeoutExpr(ExprPtr e) { timeout = std::move(e); }
 	double TimeoutVal(Frame* f);
 
 	FuncType::CaptureList* Captures() { return cl; }
@@ -624,10 +636,22 @@ public:
 	// The locals and globals used in the conditional expression
 	// (other than newly introduced locals), necessary for registering
 	// the associated triggers for when their values change.
-	const IDSet& WhenExprLocals() const { return when_expr_locals; }
-	const IDSet& WhenExprGlobals() const { return when_expr_globals; }
+	const auto& WhenExprLocals() const { return when_expr_locals; }
+	const auto& WhenExprGlobals() const { return when_expr_globals; }
+
+	// The locals introduced in the conditional expression.
+	const auto& WhenNewLocals() const { return when_new_locals; }
+
+	// Used for script optimization when in-lining needs to revise
+	// identifiers.
+	bool HasUnreducedIDs(Reducer* c) const;
+	void UpdateIDs(Reducer* c);
 
 private:
+	// Profile the original AST elements to extract things like
+	// globals and locals used.
+	void BuildProfile();
+
 	// Build those elements we'll need for invoking our lambda.
 	void BuildInvokeElems();
 
@@ -635,12 +659,14 @@ private:
 	StmtPtr s;
 	StmtPtr timeout_s;
 	ExprPtr timeout;
-	FuncType::CaptureList* cl;
+	FuncType::CaptureList* cl = nullptr;
 
 	bool is_return = false;
 
-	// The name of parameter passed to the lambda.
+	// The name of parameter passed to the lambda, and the corresponding
+	// identifier.
 	std::string lambda_param_id;
+	IDPtr param_id;
 
 	// The expression for constructing the lambda, and its type.
 	LambdaExprPtr lambda;
@@ -661,7 +687,7 @@ private:
 	ConstExprPtr two_const;
 	ConstExprPtr three_const;
 
-	IDSet when_expr_locals;
+	std::vector<IDPtr> when_expr_locals;
 	IDSet when_expr_globals;
 
 	// Locals introduced via "local" in the "when" clause itself.
@@ -671,9 +697,7 @@ private:
 class WhenStmt final : public Stmt
 	{
 public:
-	// The constructor takes ownership of the WhenInfo object.
-	WhenStmt(WhenInfo* wi);
-	~WhenStmt() override;
+	WhenStmt(std::shared_ptr<WhenInfo> wi);
 
 	ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 	bool IsPure() const override;
@@ -684,7 +708,7 @@ public:
 	StmtPtr TimeoutBody() const { return wi->TimeoutStmt(); }
 	bool IsReturn() const { return wi->IsReturn(); }
 
-	const WhenInfo* Info() const { return wi; }
+	auto Info() const { return wi; }
 
 	void StmtDescribe(ODesc* d) const override;
 
@@ -692,12 +716,12 @@ public:
 
 	// Optimization-related:
 	StmtPtr Duplicate() override;
-	void Inline(Inliner* inl) override;
 
 	bool IsReduced(Reducer* c) const override;
+	StmtPtr DoReduce(Reducer* c) override;
 
 private:
-	WhenInfo* wi;
+	std::shared_ptr<WhenInfo> wi;
 	};
 
 // Internal statement used for inlining.  Executes a block and stops

@@ -1025,7 +1025,7 @@ void set_thread_name(const char* name, pthread_t tid)
 int setvbuf(FILE* stream, char* buf, int type, size_t size)
 	{
 #ifndef _MSC_VER
-	return ::setvbuf(stream, NULL, type, size);
+	return ::setvbuf(stream, buf, type, size);
 #else
 	// TODO: this turns off buffering altogether because Windows wants us to pass a valid
 	// buffer and length if we're going to pass one of the other modes. We need to
@@ -2002,7 +2002,7 @@ static string find_file_in_path(const string& filename, const string& path,
                                 const vector<string>& opt_ext)
 	{
 	if ( filename.empty() )
-		return string();
+		return {};
 
 	zeek::filesystem::path filepath(filename);
 
@@ -2010,9 +2010,9 @@ static string find_file_in_path(const string& filename, const string& path,
 	if ( filepath.is_absolute() )
 		{
 		if ( can_read(filename) )
-			return filename;
+			return detail::normalize_path(filename);
 		else
-			return string();
+			return {};
 		}
 
 	auto abs_path = (zeek::filesystem::path(path) / filepath).string();
@@ -2024,14 +2024,14 @@ static string find_file_in_path(const string& filename, const string& path,
 			string with_ext = abs_path + ext;
 
 			if ( can_read(with_ext) )
-				return with_ext;
+				return detail::normalize_path(with_ext);
 			}
 		}
 
 	if ( can_read(abs_path) )
-		return abs_path;
+		return detail::normalize_path(abs_path);
 
-	return string();
+	return {};
 	}
 
 string find_file(const string& filename, const string& path_set, const string& opt_ext)
@@ -2051,7 +2051,7 @@ string find_file(const string& filename, const string& path_set, const string& o
 			return f;
 		}
 
-	return string();
+	return {};
 	}
 
 string find_script_file(const string& filename, const string& path_set)
@@ -2069,7 +2069,7 @@ string find_script_file(const string& filename, const string& path_set)
 			return f;
 		}
 
-	return string();
+	return {};
 	}
 
 RETSIGTYPE sig_handler(int signo);

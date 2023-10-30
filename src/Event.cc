@@ -207,4 +207,12 @@ void EventMgr::InitPostScript()
 		reporter->FatalError("Failed to register event manager FD with iosource_mgr");
 	}
 
+void EventMgr::InitPostFork()
+	{
+	// Re-initialize the flare, closing and re-opening the underlying
+	// pipe FDs. This is needed so that each Zeek process in a supervisor
+	// setup has its own pipe instead of them all sharing a single pipe.
+	queue_flare = zeek::detail::Flare{};
+	}
+
 	} // namespace zeek

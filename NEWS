@@ -3,33 +3,14 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
-Zeek 6.1.0
+Zeek 6.2.0
 ==========
 
 Breaking Changes
 ----------------
 
-- ``assert`` is now a reserved keyword for the new ``assert`` statement.
-
 New Functionality
 -----------------
-
-- Added a new ``assert`` statement for assertion based testing and asserting
-  runtime state.
-
-	assert <expr: bool>[, <message: string>];
-
-  This statement comes with two hooks. First, ``assertion_failure()`` that
-  is invoked for every failing assert statement. Second, ``assertion_result()``
-  which is invoked for every assert statement and its outcome. The latter allows
-  to construct a summary of failing and passing assert statements. Both hooks
-  receive the location and call stack for the ``assert`` statement via a
-  ``Backtrace`` vector.
-
-  A failing assert will abort execution of the current event handler similar
-  to scripting errors. By default, a reporter error message is logged. Using
-  the break statement within ``assertion_failure()`` or ``assertion_result()``
-  allows to suppress the default message.
 
 Changed Functionality
 ---------------------
@@ -39,6 +20,197 @@ Removed Functionality
 
 Deprecated Functionality
 ------------------------
+
+Zeek 6.1.0
+==========
+
+Breaking Changes
+----------------
+
+- ``assert`` is now a reserved keyword for the new ``assert`` statement.
+
+- The ``__bro_plugin__`` file that gets generated as part of plugin builds was
+  renamed to ``__zeek_plugin__``. This will affect the ability for older
+  versions of ``zkg`` to use the ``zkg unload`` and ``zkg load`` commands. This
+  should only cause breakage for people using a version of ``zkg` that doesn't
+  come bundled with Zeek (which we generally don't recommend doing).
+
+- Zeek does not traverse into dot directories to find plugins or hlto files
+  anymore.  Any dot directories found below the directories specified in
+  ZEEK_PLUGIN_PATH or ZEEK_SPICY_MODULE_PATH are now skipped. Dot directories
+  explicitly listed in ZEEK_PLUGIN_PATH or ZEEK_SPICY_MODULE_PATH are not
+  skipped.
+
+- External plugins will fail to configure if their minimum required CMake
+  version is below 3.15. This was a warning with Zeek 6.0, but has caused user
+  confusion due to unhelpful error messages around the IN_LIST operator policy.
+
+- The FindBISON, FindOpenSSL, FindPackageHandleStandardArgs, FindPackageMessage,
+  and SelectLibraryConfigurations cmake files were removed from our cmake
+  repository in favor of the versions that come with CMake. This should not
+  cause any breakage, but it is possible in the case that someone was using
+  these in a plugin.
+
+New Functionality
+-----------------
+
+- Zeek now includes the LDAP protocol analyzer from the zeek/spicy-ldap project
+  (https://github.com/zeek/spicy-ldap). This analyzer is enabled by default. The
+  analyzer's events and its ``ldap.log`` and ``ldap_search.log`` should be
+  considered preliminary and experimental until the arrival of Zeek's next
+  long-term-stable release (7.0).
+
+  If you observe unusually high CPU consumption or other issues due to this
+  analyzer being enabled by default, the easiest way to disable it is via the
+  ``Analyzer::disabled_analyzers`` const as follows:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_LDAP_UDP,
+		Analyzer::ANALYZER_LDAP_TCP,
+	};
+
+  Please do report issues to us including diagnostic information in case this is
+  necessary in your environment. We're also open to general feedback about the
+  structure of the new logs.
+
+- Zeek now includes the QUIC protocol analyzer from the zeek/spicy-quic project
+  (https://github.com/zeek/spicy-quic). This project is a fork of Fox-IT's
+  initial implementation (https://github.com/fox-ds/spicy-quic).
+
+  As for the LDAP analyzer, the analyzer's events and the new ``quic.log``
+  should be considered preliminary and experimental until the arrival of Zeek's
+  next long-term-stable release (7.0). As above, any feedback and contributions
+  to this analyzer and the new log are welcome.
+
+  The analyzer's functionality is limited to decryption of the INITIAL packets
+  of QUIC version 1. If decryption of these packets is successful, the handshake
+  data is forwarded to Zeek's SSL analyzer. An ``ssl.log`` entry will appear in
+  ``ssl.log`` for QUIC connections. The entry in the ``conn.log`` will contain
+  ``quic`` and ``ssl`` in the service field.
+
+  To disable the analyzer in case of issues, use the following snippet:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_QUIC,
+	};
+
+- Added a new ``assert`` statement for assertion based testing and asserting
+  runtime state.
+
+	assert <expr: bool>[, <message: string>];
+
+  This statement comes with two hooks. First, ``assertion_failure()`` that is
+  invoked for every failing assert statement. Second, ``assertion_result()``
+  which is invoked for every assert statement and its outcome. The latter allows
+  to construct a summary of failing and passing assert statements. Both hooks
+  receive the location and call stack for the ``assert`` statement via a
+  ``Backtrace`` vector.
+
+  A failing assert will abort execution of the current event handler similar to
+  scripting errors. By default, a reporter error message is logged. Using the
+  break statement within ``assertion_failure()`` or ``assertion_result()``
+  allows to suppress the default message.
+
+- Add a new ``&default_insert`` attribute for tables. This behaves as
+  ``&default`` with the addition that the default value is inserted into the
+  table upon a failed lookup. Particularly for tables with nested container
+  values, the ``&default`` behavior of not inserting the value can be of little
+  use.
+
+- The ``from_json()`` function now takes an optional key_func argument to
+  normalize JSON object key names. This can be useful if the keys in a JSON
+  object are not valid Zeek identifiers or reserved keywords.
+
+- Module names are now included in ``global_ids()``. Their key in the returned
+  table is prefixed with "module " and their value will have the ``type_name``
+  field set to "module".
+
+- Identifiers in the global scope can now be referenced and defined from within
+  modules by prefixing their names with ``::``. Previously, these required an
+  explicit ``GLOBAL::`` prefix to be used. Using ``GLOBAL::`` has been
+  deprecated.
+
+- The ``as`` keyword now supports casting between ``set`` and ``vector`` values
+  with the same element type. Converting ``set`` values with multiple index
+  values is not supported. We plan to extend the use of the ``as`` keyword to
+  support more type conversions in the future.
+
+- Added new packet analyzer to handle PCAP files DLT_PPP link type.
+
+- Fixed appending of ``any`` to ``vector of any``.
+
+- The ModBus analyzer's function support was expanded, with new handling of the
+  Encapsulation Interface Transport (function 28) And Diagnostics (function 8)
+  functions. This adds new ``modbus_encap_interface_transport_{request,response}``
+  and ``modbus_diagnostics_{request,response}`` events.
+
+- The ModBus file record read and write events now provide the full data from
+  the request and response messages as part of the event data.
+
+- The full PDU length was added to the ``ModBusHeader`` record type passed with
+  all of the ModBus events.
+
+Changed Functionality
+---------------------
+
+- A connection's value is now updated in-place when its directionality is
+  flipped due to Zeek's heuristics (for example, SYN/SYN-ACK reversal or
+  protocol specific approaches).  Previously, a connection's value was discarded
+  when flipped, including any values set in a ``new_connection()`` handler. A
+  new ``connection_flipped()`` event is added to allow updating custom state in
+  script-land.
+
+- Loading ``policy/frameworks/notice/community-id.zeek`` now also automatically
+  community ID logging. In the past, loading the script had no effect unless
+  ``policy/protocols/conn/community-id-logging.zeek`` was loaded before. This
+  was fairly unusual and hard to debug behavior.
+
+- Connections to broadcast addresses are not flipped based on
+  ``likely_server_ports`` anymore. Previously, broadcast packets originating
+  from a likely server port resulted in 255.255.255.255 being the originator in
+  ``conn.log``.
+
+- When too many HTTP requests are pending, Zeek will now log them at once and
+  reset request/response correlation instead of running into unbounded state
+  growth. This behavior is configurable via a new option
+  ``HTTP::max_pending_requests``.  The default is ``100``.
+
+- Fix deferred initialization of nested records containing non-const &default
+  attributes.
+
+- Parameter lists for functions, events and hooks now use commas instead of
+  semicolons in error messages or when printing such functions.
+
+- The IO buffer size used for PCAP file reading is now always 128kb. This new
+  default can be changed via ``Pcap::bufsize_offline_bytes``.
+
+- The input framework now provides better information in error messages when
+  encountering missing non-optional field while loading data.
+
+- The SSL analyzer will now parse a configurable maximum of 10 SSL Alerts per
+  SSL message. For TLS 1.3, the maximum is implicitly 1 as defined by RFC 8446.
+  If there are more alerts, a new weird "SSL_excessive_alerts_in_record" is raised.
+  For non-TLS 1.3, the maximum can be redefined via ``SSL::max_alerts_per_record``.
+
+- The ``ssl_history`` field in the ssl.log is now capped at a configurable
+  limit of 100 characters prevent unbounded growth. The limit can be changed
+  via the option ``SSL::max_ssl_history_length``. When reached, a new weird
+  named "SSL_max_ssl_history_length_reached" is raised.
+
+Deprecated Functionality
+------------------------
+
+- Accessing globals with ``GLOBAL::name`` has been deprecated and will be
+  removed with Zeek 7.1. Use ``::name`` instead.
+
+- The original ``trigger::Trigger`` constructor has been deprecated and will be
+  removed with Zeek 7.1. Use the new alternative constructor (per
+  ``src/Trigger.h``) instead, including replacing any use of ``new ...`` with
+  ``make_intrusive<...>``. The new constructor differs only in the placement of
+  the ``timeout`` parameter, and in that - unlike the original - it always
+  returns a valid pointer, which must be Unref()'d after construction, either
+  explicitly (if using ``new``) or implicitly (if using
+  ``make_intrusive<...>``).
 
 Zeek 6.0.0
 ==========
@@ -109,6 +281,10 @@ Breaking Changes
   release. Older versions will trigger a warning at configuration time and,
   depending on the functionality included in the plugin, may trigger subsequent
   errors during configuration or build.
+
+- Zeek container images are not pushed to the zeekurity organization anymore.
+  Please switch to using the ``zeek/zeek`` image on DockerHub, or the images
+  published to ``public.ecr.aws/zeek/zeek``.
 
 - The IRC_Data analyzer declaration has been moved to protocols/irc/IRC.h.
 

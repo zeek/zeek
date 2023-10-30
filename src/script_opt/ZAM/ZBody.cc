@@ -31,6 +31,11 @@ namespace zeek::detail
 
 using std::vector;
 
+// Thrown when a call inside a "when" delays.
+class ZAMDelayedCallException : public InterpreterException
+	{
+	};
+
 static bool did_init = false;
 
 // Count of how often each type of ZOP executed, and how much CPU it
@@ -55,7 +60,7 @@ static bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr
 	if ( vv->Size() <= ind )
 		vv->Resize(ind + 1);
 
-	auto& elem = (*vv->RawVec())[ind];
+	auto& elem = vv->RawVec()[ind];
 
 	if ( ! ZVal::IsManagedType(t) )
 		{
@@ -91,12 +96,12 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 #define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err)                            \
 	static VectorVal* vec_coerce_##tag(VectorVal* vec, const ZInst& z)                             \
 		{                                                                                          \
-		auto& v = *vec->RawVec();                                                                  \
+		auto& v = vec->RawVec();                                                                   \
 		auto yt = make_intrusive<VectorType>(base_type(lhs_type));                                 \
 		auto res_zv = new VectorVal(yt);                                                           \
 		auto n = v.size();                                                                         \
 		res_zv->Resize(n);                                                                         \
-		auto& res = *res_zv->RawVec();                                                             \
+		auto& res = res_zv->RawVec();                                                              \
 		for ( auto i = 0U; i < n; ++i )                                                            \
 			if ( v[i] )                                                                            \
 				{                                                                                  \
@@ -188,10 +193,10 @@ ZBody::~ZBody()
 
 void ZBody::SetInsts(vector<ZInst*>& _insts)
 	{
-	ninst = _insts.size();
-	auto insts_copy = new ZInst[ninst];
+	end_pc = _insts.size();
+	auto insts_copy = new ZInst[end_pc];
 
-	for ( auto i = 0U; i < ninst; ++i )
+	for ( auto i = 0U; i < end_pc; ++i )
 		insts_copy[i] = *_insts[i];
 
 	insts = insts_copy;
@@ -201,10 +206,10 @@ void ZBody::SetInsts(vector<ZInst*>& _insts)
 
 void ZBody::SetInsts(vector<ZInstI*>& instsI)
 	{
-	ninst = instsI.size();
-	auto insts_copy = new ZInst[ninst];
+	end_pc = instsI.size();
+	auto insts_copy = new ZInst[end_pc];
 
-	for ( auto i = 0U; i < ninst; ++i )
+	for ( auto i = 0U; i < end_pc; ++i )
 		{
 		auto& iI = *instsI[i];
 		insts_copy[i] = iI;
@@ -223,7 +228,7 @@ void ZBody::InitProfile()
 		{
 		inst_count = new vector<int>;
 		inst_CPU = new vector<double>;
-		for ( auto i = 0U; i < ninst; ++i )
+		for ( auto i = 0U; i < end_pc; ++i )
 			{
 			inst_count->push_back(0);
 			inst_CPU->push_back(0.0);
@@ -240,7 +245,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 	double t = analysis_options.profile_ZAM ? util::curr_CPU_time() : 0.0;
 #endif
 
-	auto val = DoExec(f, 0, flow);
+	auto val = DoExec(f, flow);
 
 #ifdef DEBUG
 	if ( analysis_options.profile_ZAM )
@@ -250,10 +255,9 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow)
 	return val;
 	}
 
-ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
+ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow)
 	{
-	int pc = start_pc;
-	const int end_pc = ninst;
+	int pc = 0;
 
 	// Return value, or nil if none.
 	const ZVal* ret_u = nullptr;
@@ -287,6 +291,9 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 		}
 
 	flow = FLOW_RETURN; // can be over-written by a Hook-Break
+
+	// Clear any leftover error state.
+	ZAM_error = false;
 
 	while ( pc < end_pc && ! ZAM_error )
 		{
@@ -363,9 +370,6 @@ ValPtr ZBody::DoExec(Frame* f, int start_pc, StmtFlowType& flow)
 
 		delete[] frame;
 		}
-
-	// Clear any error state.
-	ZAM_error = false;
 
 	return result;
 	}
@@ -444,7 +448,7 @@ void ZBody::Dump() const
 
 	printf("Final code:\n");
 
-	for ( unsigned i = 0; i < ninst; ++i )
+	for ( unsigned i = 0; i < end_pc; ++i )
 		{
 		auto& inst = insts[i];
 		printf("%d: ", i);
@@ -467,25 +471,6 @@ TraversalCode ZBody::Traverse(TraversalCallback* cb) const
 	HANDLE_TC_STMT_POST(tc);
 	}
 
-ValPtr ZAMResumption::Exec(Frame* f, StmtFlowType& flow)
-	{
-	return am->DoExec(f, xfer_pc, flow);
-	}
-
-void ZAMResumption::StmtDescribe(ODesc* d) const
-	{
-	d->Add("<resumption of compiled code>");
-	}
-
-TraversalCode ZAMResumption::Traverse(TraversalCallback* cb) const
-	{
-	TraversalCode tc = cb->PreStmt(this);
-	HANDLE_TC_STMT_PRE(tc);
-
-	tc = cb->PostStmt(this);
-	HANDLE_TC_STMT_POST(tc);
-	}
-
 // Unary vector operation of v1 <vec-op> v2.
 static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& z)
 	{
@@ -494,7 +479,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 	// well move the whole kit-and-caboodle into the Exec method).  But
 	// that seems like a lot of code bloat for only a very modest gain.
 
-	auto& vec2 = *v2->RawVec();
+	auto& vec2 = v2->RawVec();
 	auto n = vec2.size();
 	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
 	auto& vec1 = *vec1_ptr;
@@ -526,8 +511,8 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 	{
 	// See comment above re further speed-up.
 
-	auto& vec2 = *v2->RawVec();
-	auto& vec3 = *v3->RawVec();
+	auto& vec2 = v2->RawVec();
+	auto& vec3 = v3->RawVec();
 	auto n = vec2.size();
 	auto vec1_ptr = new vector<std::optional<ZVal>>(n);
 	auto& vec1 = *vec1_ptr;

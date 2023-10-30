@@ -55,7 +55,7 @@ public:
     //
     const char* EvalExpr(Output* out, Env* env);
 
-    // force evaulation of IDs contained in this expression;
+    // force evaluation of IDs contained in this expression;
     // necessary with case expr and conditional let fields (&if)
     // for correct parsing of fields
     void ForceIDEval(Output* out_cc, Env* env);

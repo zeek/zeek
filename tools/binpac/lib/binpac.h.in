@@ -72,6 +72,8 @@ inline uint16 pac_swap(const uint16 x)
 
 inline int16 pac_swap(const int16 x)
 	{
+	// Forward to unsigned version with argument/result casted
+	// appropriately.
 	uint16 (*p)(const uint16) = &pac_swap;
 	return (*p)(x);
 	}
@@ -86,6 +88,8 @@ inline uint32 pac_swap(const uint32 x)
 
 inline int32 pac_swap(const int32 x)
 	{
+	// Forward to unsigned version with argument/result casted
+	// appropriately.
 	uint32 (*p)(const uint32) = &pac_swap;
 	return (*p)(x);
 	}
@@ -104,6 +108,8 @@ inline uint64 pac_swap(const uint64 x)
 	
 inline int64 pac_swap(const int64 x)
 	{
+	// Forward to unsigned version with argument/result casted
+	// appropriately.
 	uint64 (*p)(const uint64) = &pac_swap;
 	return (*p)(x);
 	}

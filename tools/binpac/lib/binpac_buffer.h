@@ -31,7 +31,7 @@ public:
     // Interface for delayed parsing. Sometimes BinPAC doesn't get the
     // buffering right and then one can use these to feed parts
     // individually and assemble them internally. After calling
-    // FinishBuffer(), one can send the uppper-layer flow an FlowEOF() to
+    // FinishBuffer(), one can send the upper-layer flow an FlowEOF() to
     // trigger parsing.
     void BufferData(const_byteptr data, const_byteptr end);
     void FinishBuffer();

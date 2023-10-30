@@ -62,7 +62,7 @@ numbers of issues below correspond to the patch numbers
     in cases
 - problem: initialization of buffer occurs in every Parse call,
   regardless if it was initialized before or not; initialization
-  is correct only on first such occurence
+  is correct only on first such occurrence
 - solution: check to buffer_state is to be created always when
   buffering_state_id is in environment in Type::GenBufferConfig
 - changed condition from buffering_state_var_field_ to

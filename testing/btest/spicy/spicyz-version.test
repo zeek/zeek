@@ -1,5 +1,12 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: set -x; test "$(spicyz --version)" = "$(zeek -e 'print zeek_version()')"
+# @TEST-EXEC: set -x; test "$(spicyz --version)" = "$(zeek %INPUT)"
 #
 # @TEST-DOC: Verify that spicyz and Zeek agree on their versions.
+
+event zeek_init()
+	{
+	# For debug versions Zeek appends `-debug` to its version, but
+	# `spicyz --version` does not. Normalize Zeek's version string.
+	print sub(zeek_version(), /-debug$/, "");
+	}

@@ -6,18 +6,11 @@
 
 #include "zeek/script_opt/ProfileFunc.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 // Conversions to strings.
-inline std::string Fmt(int i)
-	{
-	return std::to_string(i);
-	}
-inline std::string Fmt(p_hash_type u)
-	{
-	return std::to_string(u) + "ULL";
-	}
+inline std::string Fmt(int i) { return std::to_string(i); }
+inline std::string Fmt(p_hash_type u) { return std::to_string(u) + "ULL"; }
 extern std::string Fmt(double d);
 
 // Returns the prefix for the scoping used by the compiler.
@@ -39,9 +32,6 @@ extern void unlock_file(const std::string& fname, FILE* f);
 // For the given byte array / string, returns a version expanded
 // with escape sequences in order to represent it as a C++ string.
 extern std::string CPPEscape(const char* b, int len);
-inline std::string CPPEscape(const char* s)
-	{
-	return CPPEscape(s, strlen(s));
-	}
+inline std::string CPPEscape(const char* s) { return CPPEscape(s, strlen(s)); }
 
-	} // zeek::detail
+} // namespace zeek::detail

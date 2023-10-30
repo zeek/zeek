@@ -24,3 +24,12 @@ e97c14add5b04aedc7f3f9dba59f665cbad793af
 
 # Remove trailing whitespace from script files
 a6378531dbc5c357926d98fe785bb719cc70e1b4
+
+# clang-format: Reformat Zeek in Spicy style
+f5a76c1aedc7f8886bc6abef0dfaa8065684b1f6
+
+# clang-format: Bump pre-commit hooks.
+26d04fd9fca0868d9c81e02fbffb6f81a00b56e5
+
+# clang-format: Format JSON with clang-format
+e6256446ddef5c5d5240eefff974556f2e12ac46

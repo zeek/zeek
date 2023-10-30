@@ -7,24 +7,20 @@
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
-namespace zeek::plugin::Zeek_TCP
-	{
+namespace zeek::plugin::Zeek_TCP {
 
-class Plugin final : public zeek::plugin::Plugin
-	{
+class Plugin final : public zeek::plugin::Plugin {
 public:
-	zeek::plugin::Configuration Configure() override
-		{
-		AddComponent(new zeek::packet_analysis::Component(
-			"TCP", zeek::packet_analysis::TCP::TCPAnalyzer::Instantiate));
-		AddComponent(new zeek::analyzer::Component("TCP", nullptr, 0, true, false, true));
+    zeek::plugin::Configuration Configure() override {
+        AddComponent(new zeek::packet_analysis::Component("TCP", zeek::packet_analysis::TCP::TCPAnalyzer::Instantiate));
+        AddComponent(new zeek::analyzer::Component("TCP", nullptr, 0, true, false, true));
 
-		zeek::plugin::Configuration config;
-		config.name = "Zeek::TCP_PKT";
-		config.description = "Packet analyzer for TCP";
-		return config;
-		}
+        zeek::plugin::Configuration config;
+        config.name = "Zeek::TCP_PKT";
+        config.description = "Packet analyzer for TCP";
+        return config;
+    }
 
-	} plugin;
+} plugin;
 
-	}
+} // namespace zeek::plugin::Zeek_TCP

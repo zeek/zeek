@@ -5,23 +5,21 @@
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/ppp_serial/PPPSerial.h"
 
-namespace zeek::plugin::Zeek_PPPSerial
-	{
+namespace zeek::plugin::Zeek_PPPSerial {
 
-class Plugin final : public zeek::plugin::Plugin
-	{
+class Plugin final : public zeek::plugin::Plugin {
 public:
-	zeek::plugin::Configuration Configure() override
-		{
-		AddComponent(new zeek::packet_analysis::Component(
-			"PPPSerial", zeek::packet_analysis::PPPSerial::PPPSerialAnalyzer::Instantiate));
+    zeek::plugin::Configuration Configure() override {
+        AddComponent(
+            new zeek::packet_analysis::Component("PPPSerial",
+                                                 zeek::packet_analysis::PPPSerial::PPPSerialAnalyzer::Instantiate));
 
-		zeek::plugin::Configuration config;
-		config.name = "Zeek::PPPSerial";
-		config.description = "PPPSerial packet analyzer";
-		return config;
-		}
+        zeek::plugin::Configuration config;
+        config.name = "Zeek::PPPSerial";
+        config.description = "PPPSerial packet analyzer";
+        return config;
+    }
 
-	} plugin;
+} plugin;
 
-	}
+} // namespace zeek::plugin::Zeek_PPPSerial

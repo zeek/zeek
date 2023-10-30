@@ -3,25 +3,22 @@
 #include "zeek/analyzer/protocol/sip/events.bif.h"
 #include "zeek/analyzer/protocol/sip/sip_pac.h"
 
-namespace zeek::analyzer::sip
-	{
+namespace zeek::analyzer::sip {
 
-class SIP_Analyzer final : public analyzer::Analyzer
-	{
+class SIP_Analyzer final : public analyzer::Analyzer {
 public:
-	explicit SIP_Analyzer(Connection* conn);
-	~SIP_Analyzer() override;
+    explicit SIP_Analyzer(Connection* conn);
+    ~SIP_Analyzer() override;
 
-	// Overridden from Analyzer
+    // Overridden from Analyzer
 
-	void Done() override;
-	void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
-	                   int caplen) override;
+    void Done() override;
+    void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn) { return new SIP_Analyzer(conn); }
+    static analyzer::Analyzer* Instantiate(Connection* conn) { return new SIP_Analyzer(conn); }
 
 protected:
-	binpac::SIP::SIP_Conn* interp;
-	};
+    binpac::SIP::SIP_Conn* interp;
+};
 
-	} // namespace zeek::analyzer::sip
+} // namespace zeek::analyzer::sip

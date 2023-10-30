@@ -1,74 +1,66 @@
-# Clang-format configuration for Zeek. This configuration requires
-# at least clang-format 12.0.1 to format correctly.
+# Copyright (c) 2020-2023 by the Zeek Project. See LICENSE for details.
 
-Language: Cpp
-Standard: c++17
-
-BreakBeforeBraces: Whitesmiths
-
-# BraceWrapping:
-#   AfterCaseLabel: true
-#   AfterClass: false
-#   AfterControlStatement: Always
-#   AfterEnum: false
-#   AfterFunction: true
-#   AfterNamespace: false
-#   AfterStruct: false
-#   AfterUnion: false
-#   AfterExternBlock: false
-#   BeforeCatch: true
-#   BeforeElse: true
-#   BeforeWhile: false
-#   IndentBraces: true
-#   SplitEmptyFunction: false
-#   SplitEmptyRecord: false
-#   SplitEmptyNamespace: false
-
+---
+Language:        Cpp
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
-AlignTrailingComments: false
-AllowShortBlocksOnASingleLine: Empty
-AllowShortEnumsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: Inline
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlines: Right
+AlignOperands:   true
+AlignTrailingComments: true
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: false
-AllowShortLambdasOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: true
 BinPackParameters: true
-BreakConstructorInitializers: BeforeColon
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   false
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterExternBlock: false
+  BeforeCatch:     false
+  BeforeElse:      true
+  IndentBraces:    false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Custom
+BreakBeforeInheritanceComma: false
 BreakInheritanceList: BeforeColon
-ColumnLimit: 100
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
-FixNamespaceComments: false
-IndentCaseLabels: true
-IndentCaseBlocks: false
-IndentExternBlock: NoIndent
-IndentPPDirectives: None
-IndentWidth: 4
-NamespaceIndentation: None
-PointerAlignment: Left
-SpaceAfterCStyleCast: false
-SpaceAfterLogicalNot: true
-SpaceBeforeAssignmentOperators: true
-SpaceBeforeCpp11BracedList: false
-SpaceBeforeCtorInitializerColon: true
-SpaceBeforeInheritanceColon: true
-SpaceBeforeParens: ControlStatements
-SpaceBeforeRangeBasedForLoopColon: true
-SpaceInEmptyBlock: true
-SpaceInEmptyParentheses: false
-SpacesInAngles: false
-SpacesInConditionalStatement: true
-SpacesInContainerLiterals: false
-SpacesInParentheses: false
-TabWidth: 4
-UseTab: AlignWithSpaces
-
-# Setting this to a high number causes clang-format to prefer breaking somewhere else
-# over breaking after the assignment operator in a line that's over the column limit
-PenaltyBreakAssignment: 100
-
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializers: BeforeColon
+BreakAfterJavaFieldAnnotations: false
+BreakStringLiterals: true
+ColumnLimit:     120
+CommentPragmas:  'NOLINT'
+CompactNamespaces: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+DisableFormat:   false
+ExperimentalAutoDetectBinPacking: false
+FixNamespaceComments: true
+ForEachMacros:
+  - foreach
+  - Q_FOREACH
+  - BOOST_FOREACH
 IncludeBlocks: Regroup
 
 # Include categories go like this:
@@ -98,3 +90,57 @@ IncludeCategories:
     Priority: 4
   - Regex: '.*'
     Priority: 5
+
+IncludeIsMainRegex: '$'
+IndentCaseLabels: true
+IndentPPDirectives: None
+IndentWidth:     4
+IndentWrappedFunctionNames: false
+JavaScriptQuotes: Leave
+JavaScriptWrapImports: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MacroBlockBegin: '^BEGIN_'
+MacroBlockEnd:   '^END_'
+MaxEmptyLinesToKeep: 2
+NamespaceIndentation: None
+ObjCBinPackProtocolList: Auto
+ObjCBlockIndentWidth: 2
+ObjCSpaceAfterProperty: false
+ObjCSpaceBeforeProtocolList: true
+PenaltyBreakAssignment: 2
+PenaltyBreakBeforeFirstCallParameter: 500
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyBreakTemplateDeclaration: 10
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 1000
+PointerAlignment: Left
+ReflowComments:  true
+SortIncludes:    true
+SortUsingDeclarations: true
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: false
+SpaceAfterLogicalNot: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles:  false
+SpacesInContainerLiterals: true
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpacesInConditionalStatement: true
+Standard:        Cpp11
+StatementMacros:
+  - STANDARD_OPERATOR_1
+TabWidth:        4
+UseTab:          Never
+---
+Language: Json
+...

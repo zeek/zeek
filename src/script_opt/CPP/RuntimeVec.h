@@ -10,24 +10,21 @@
 
 #include "zeek/Val.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 // Appends v2 to the vector v1.  A separate function because of the
 // need to support assignment cascades.
-inline ValPtr vector_append__CPP(VectorValPtr v1, const ValPtr& v2)
-	{
-	v1->Assign(v1->Size(), v2);
-	return v1;
-	}
+inline ValPtr vector_append__CPP(VectorValPtr v1, const ValPtr& v2) {
+    v1->Assign(v1->Size(), v2);
+    return v1;
+}
 
 // Appends vector v2 to the vector v1.
-inline ValPtr vector_vec_append__CPP(VectorValPtr v1, const VectorValPtr& v2)
-	{
-	if ( ! v2->AddTo(v1.get(), false) )
-		reporter->CPPRuntimeError("incompatible vector element assignment");
-	return v1;
-	}
+inline ValPtr vector_vec_append__CPP(VectorValPtr v1, const VectorValPtr& v2) {
+    if ( ! v2->AddTo(v1.get(), false) )
+        reporter->CPPRuntimeError("incompatible vector element assignment");
+    return v1;
+}
 
 // Unary vector operations.
 extern VectorValPtr vec_op_pos__CPP(const VectorValPtr& v, const TypePtr& t);
@@ -94,4 +91,4 @@ extern VectorValPtr vec_coerce_to_double__CPP(const VectorValPtr& v, TypePtr tar
 // that mix vector and scalar arguments.
 extern VectorValPtr vec_scalar_mixed_with_vector();
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

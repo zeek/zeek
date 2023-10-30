@@ -11,39 +11,37 @@
 // This file is generated during the build.
 #include "DebugCmdConstants.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
-class DebugCmdInfo
-	{
+class DebugCmdInfo {
 public:
-	DebugCmdInfo(const DebugCmdInfo& info);
+    DebugCmdInfo(const DebugCmdInfo& info);
 
-	DebugCmdInfo(DebugCmd cmd, const char* const* names, int num_names, bool resume_execution,
-	             const char* const helpstring, bool repeatable);
+    DebugCmdInfo(DebugCmd cmd, const char* const* names, int num_names, bool resume_execution,
+                 const char* const helpstring, bool repeatable);
 
-	DebugCmdInfo() : helpstring(nullptr) { }
+    DebugCmdInfo() : helpstring(nullptr) {}
 
-	int Cmd() const { return cmd; }
-	int NumNames() const { return num_names; }
-	const std::vector<const char*>& Names() const { return names; }
-	bool ResumeExecution() const { return resume_execution; }
-	const char* Helpstring() const { return helpstring; }
-	bool Repeatable() const { return repeatable; }
+    int Cmd() const { return cmd; }
+    int NumNames() const { return num_names; }
+    const std::vector<const char*>& Names() const { return names; }
+    bool ResumeExecution() const { return resume_execution; }
+    const char* Helpstring() const { return helpstring; }
+    bool Repeatable() const { return repeatable; }
 
 protected:
-	DebugCmd cmd;
+    DebugCmd cmd;
 
-	int32_t num_names;
-	std::vector<const char*> names;
-	const char* const helpstring;
+    int32_t num_names;
+    std::vector<const char*> names;
+    const char* const helpstring;
 
-	// Whether executing this should restart execution of the script.
-	bool resume_execution;
+    // Whether executing this should restart execution of the script.
+    bool resume_execution;
 
-	// Does entering a blank line repeat this command?
-	bool repeatable;
-	};
+    // Does entering a blank line repeat this command?
+    bool repeatable;
+};
 
 using DebugCmdInfoQueue = std::deque<DebugCmdInfo*>;
 extern DebugCmdInfoQueue g_DebugCmdInfos;
@@ -80,4 +78,4 @@ DbgCmdFn dbg_cmd_info;
 DbgCmdFn dbg_cmd_list;
 DbgCmdFn dbg_cmd_trace;
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

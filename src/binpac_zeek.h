@@ -12,8 +12,7 @@
 
 #include "event.bif.func_h"
 
-namespace binpac
-	{
+namespace binpac {
 
 using ZeekAnalyzer = zeek::analyzer::Analyzer*;
 using ZeekFileAnalyzer = zeek::file_analysis::Analyzer;
@@ -23,11 +22,10 @@ using ZeekPortVal = zeek::PortVal*;
 using ZeekStringVal = zeek::StringVal*;
 using ZeekPacket = zeek::Packet;
 
-inline zeek::StringValPtr to_stringval(const_bytestring const& str)
-	{
-	return zeek::make_intrusive<zeek::StringVal>(str.length(), (const char*)str.begin());
-	}
+inline zeek::StringValPtr to_stringval(const_bytestring const& str) {
+    return zeek::make_intrusive<zeek::StringVal>(str.length(), (const char*)str.begin());
+}
 
 zeek::StringValPtr utf16_to_utf8_val(zeek::Connection* conn, const bytestring& utf16);
 
-	} // namespace binpac
+} // namespace binpac

@@ -5,21 +5,16 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::LLC
-	{
+namespace zeek::packet_analysis::LLC {
 
-class LLCAnalyzer : public Analyzer
-	{
+class LLCAnalyzer : public Analyzer {
 public:
-	LLCAnalyzer();
-	~LLCAnalyzer() override = default;
+    LLCAnalyzer();
+    ~LLCAnalyzer() override = default;
 
-	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
+    bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
-	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
-		return std::make_shared<LLCAnalyzer>();
-		}
-	};
+    static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<LLCAnalyzer>(); }
+};
 
-	}
+} // namespace zeek::packet_analysis::LLC

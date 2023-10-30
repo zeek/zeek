@@ -31,19 +31,16 @@
 #include "zeek/net_util.h"
 #include "zeek/plugin/ComponentManager.h"
 
-namespace zeek
-	{
+namespace zeek {
 
-namespace packet_analysis::IP
-	{
+namespace packet_analysis::IP {
 
 class IPBasedAnalyzer;
 class SessionAdapter;
 
-	} // namespace packet_analysis::IP
+} // namespace packet_analysis::IP
 
-namespace analyzer
-	{
+namespace analyzer {
 
 /**
  * Class maintaining and scheduling available protocol analyzers.
@@ -55,358 +52,348 @@ namespace analyzer
  * respecting well-known ports, and tracking any analyzers specifically
  * scheduled for individual connections.
  */
-class Manager : public plugin::ComponentManager<Component>
-	{
+class Manager : public plugin::ComponentManager<Component> {
 public:
-	/**
-	 * Constructor.
-	 */
-	Manager();
+    /**
+     * Constructor.
+     */
+    Manager();
 
-	/**
-	 * Destructor.
-	 */
-	~Manager();
+    /**
+     * Destructor.
+     */
+    ~Manager();
 
-	/**
-	 * Second-stage initialization of the manager. This is called late
-	 * during Zeek's initialization after any scripts are processed.
-	 */
-	void InitPostScript();
+    /**
+     * Second-stage initialization of the manager. This is called late
+     * during Zeek's initialization after any scripts are processed.
+     */
+    void InitPostScript();
 
-	/**
-	 * Finished the manager's operations.
-	 */
-	void Done();
+    /**
+     * Finished the manager's operations.
+     */
+    void Done();
 
-	/**
-	 * Dumps out the state of all registered analyzers to the \c analyzer
-	 * debug stream. Should be called only after any \c zeek_init events
-	 * have executed to ensure that any of their changes are applied.
-	 */
-	void DumpDebug(); // Called after zeek_init() events.
+    /**
+     * Dumps out the state of all registered analyzers to the \c analyzer
+     * debug stream. Should be called only after any \c zeek_init events
+     * have executed to ensure that any of their changes are applied.
+     */
+    void DumpDebug(); // Called after zeek_init() events.
 
-	/**
-	 * Enables an analyzer type. Only enabled analyzers will be
-	 * instantiated for new connections.
-	 *
-	 * @param tag The analyzer's tag.
-	 *
-	 * @return True if successful.
-	 */
-	bool EnableAnalyzer(const zeek::Tag& tag);
+    /**
+     * Enables an analyzer type. Only enabled analyzers will be
+     * instantiated for new connections.
+     *
+     * @param tag The analyzer's tag.
+     *
+     * @return True if successful.
+     */
+    bool EnableAnalyzer(const zeek::Tag& tag);
 
-	/**
-	 * Enables an analyzer type. Only enabled analyzers will be
-	 * instantiated for new connections.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Tag.
-	 *
-	 * @return True if successful.
-	 */
-	bool EnableAnalyzer(EnumVal* tag);
+    /**
+     * Enables an analyzer type. Only enabled analyzers will be
+     * instantiated for new connections.
+     *
+     * @param tag The analyzer's tag as an enum of script type \c
+     * Tag.
+     *
+     * @return True if successful.
+     */
+    bool EnableAnalyzer(EnumVal* tag);
 
-	/**
-	 * Enables an analyzer type. Disabled analyzers will not be
-	 * instantiated for new connections.
-	 *
-	 * @param tag The analyzer's tag.
-	 *
-	 * @return True if successful.
-	 */
-	bool DisableAnalyzer(const zeek::Tag& tag);
+    /**
+     * Enables an analyzer type. Disabled analyzers will not be
+     * instantiated for new connections.
+     *
+     * @param tag The analyzer's tag.
+     *
+     * @return True if successful.
+     */
+    bool DisableAnalyzer(const zeek::Tag& tag);
 
-	/**
-	 * Disables an analyzer type. Disabled analyzers will not be
-	 * instantiated for new connections.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Tag.
-	 *
-	 * @return True if successful.
-	 */
-	bool DisableAnalyzer(EnumVal* tag);
+    /**
+     * Disables an analyzer type. Disabled analyzers will not be
+     * instantiated for new connections.
+     *
+     * @param tag The analyzer's tag as an enum of script type \c
+     * Tag.
+     *
+     * @return True if successful.
+     */
+    bool DisableAnalyzer(EnumVal* tag);
 
-	/**
-	 * Disables all currently registered analyzers.
-	 */
-	void DisableAllAnalyzers();
+    /**
+     * Disables all currently registered analyzers.
+     */
+    void DisableAllAnalyzers();
 
-	/**
-	 * Returns the tag associated with an analyzer name, or the tag
-	 * associated with an error if no such analyzer exists.
-	 *
-	 * @param name The canonical analyzer name to check.
-	 */
-	zeek::Tag GetAnalyzerTag(const char* name);
+    /**
+     * Returns the tag associated with an analyzer name, or the tag
+     * associated with an error if no such analyzer exists.
+     *
+     * @param name The canonical analyzer name to check.
+     */
+    zeek::Tag GetAnalyzerTag(const char* name);
 
-	/**
-	 * Returns true if an analyzer is enabled.
-	 *
-	 * @param tag The analyzer's tag.
-	 */
-	bool IsEnabled(const zeek::Tag& tag);
+    /**
+     * Returns true if an analyzer is enabled.
+     *
+     * @param tag The analyzer's tag.
+     */
+    bool IsEnabled(const zeek::Tag& tag);
 
-	/**
-	 * Returns true if an analyzer is enabled.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Tag.
-	 */
-	bool IsEnabled(EnumVal* tag);
+    /**
+     * Returns true if an analyzer is enabled.
+     *
+     * @param tag The analyzer's tag as an enum of script type \c
+     * Tag.
+     */
+    bool IsEnabled(EnumVal* tag);
 
-	/**
-	 * Registers a well-known port for an analyzer. Once registered,
-	 * connection on that port will start with a corresponding analyzer
-	 * assigned.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Tag.
-	 *
-	 * @param port The well-known port.
-	 *
-	 * @return True if successful.
-	 */
-	bool RegisterAnalyzerForPort(EnumVal* tag, PortVal* port);
+    /**
+     * Registers a well-known port for an analyzer. Once registered,
+     * connection on that port will start with a corresponding analyzer
+     * assigned.
+     *
+     * @param tag The analyzer's tag as an enum of script type \c
+     * Tag.
+     *
+     * @param port The well-known port.
+     *
+     * @return True if successful.
+     */
+    bool RegisterAnalyzerForPort(EnumVal* tag, PortVal* port);
 
-	/**
-	 * Registers a well-known port for an analyzer. Once registered,
-	 * connection on that port will start with a corresponding analyzer
-	 * assigned.
-	 *
-	 * @param tag The analyzer's tag.
-	 *
-	 * @param proto The port's protocol.
-	 *
-	 * @param port The port's number.
-	 *
-	 * @return True if successful.
-	 */
-	bool RegisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port);
+    /**
+     * Registers a well-known port for an analyzer. Once registered,
+     * connection on that port will start with a corresponding analyzer
+     * assigned.
+     *
+     * @param tag The analyzer's tag.
+     *
+     * @param proto The port's protocol.
+     *
+     * @param port The port's number.
+     *
+     * @return True if successful.
+     */
+    bool RegisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port);
 
-	/**
-	 * Unregisters a well-known port for an analyzers.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Tag.
-	 *
-	 * @param port The well-known port.
-	 *
-	 * @return True if successful (incl. when the port wasn't actually
-	 * registered for the analyzer).
-	 *
-	 */
-	bool UnregisterAnalyzerForPort(EnumVal* tag, PortVal* port);
+    /**
+     * Unregisters a well-known port for an analyzers.
+     *
+     * @param tag The analyzer's tag as an enum of script type \c
+     * Tag.
+     *
+     * @param port The well-known port.
+     *
+     * @return True if successful (incl. when the port wasn't actually
+     * registered for the analyzer).
+     *
+     */
+    bool UnregisterAnalyzerForPort(EnumVal* tag, PortVal* port);
 
-	/**
-	 * Unregisters a well-known port for an analyzers.
-	 *
-	 * @param tag The analyzer's tag.
-	 *
-	 * @param proto The port's protocol.
-	 *
-	 * @param port The port's number.
-	 *
-	 * @param tag The analyzer's tag as an enum of script type \c
-	 * Tag.
-	 */
-	bool UnregisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port);
+    /**
+     * Unregisters a well-known port for an analyzers.
+     *
+     * @param tag The analyzer's tag.
+     *
+     * @param proto The port's protocol.
+     *
+     * @param port The port's number.
+     *
+     * @param tag The analyzer's tag as an enum of script type \c
+     * Tag.
+     */
+    bool UnregisterAnalyzerForPort(const zeek::Tag& tag, TransportProto proto, uint32_t port);
 
-	/**
-	 * Instantiates a new analyzer instance for a connection.
-	 *
-	 * @param tag The analyzer's tag.
-	 *
-	 * @param conn The connection the analyzer is to be associated with.
-	 *
-	 * @return The new analyzer instance. Note that the analyzer will not
-	 * have been added to the connection's analyzer tree yet. Returns
-	 * null if tag is invalid, the requested analyzer is disabled, or the
-	 * analyzer can't be instantiated.
-	 */
-	Analyzer* InstantiateAnalyzer(const zeek::Tag& tag, Connection* c);
+    /**
+     * Instantiates a new analyzer instance for a connection.
+     *
+     * @param tag The analyzer's tag.
+     *
+     * @param conn The connection the analyzer is to be associated with.
+     *
+     * @return The new analyzer instance. Note that the analyzer will not
+     * have been added to the connection's analyzer tree yet. Returns
+     * null if tag is invalid, the requested analyzer is disabled, or the
+     * analyzer can't be instantiated.
+     */
+    Analyzer* InstantiateAnalyzer(const zeek::Tag& tag, Connection* c);
 
-	/**
-	 * Instantiates a new analyzer instance for a connection.
-	 *
-	 * @param name The name of the analyzer.
-	 *
-	 * @param conn The connection the analyzer is to be associated with.
-	 *
-	 * @return The new analyzer instance. Note that the analyzer will not
-	 * have been added to the connection's analyzer tree yet. Returns
-	 * null if the name is not known or if the requested analyzer that is
-	 * disabled.
-	 */
-	Analyzer* InstantiateAnalyzer(const char* name, Connection* c);
+    /**
+     * Instantiates a new analyzer instance for a connection.
+     *
+     * @param name The name of the analyzer.
+     *
+     * @param conn The connection the analyzer is to be associated with.
+     *
+     * @return The new analyzer instance. Note that the analyzer will not
+     * have been added to the connection's analyzer tree yet. Returns
+     * null if the name is not known or if the requested analyzer that is
+     * disabled.
+     */
+    Analyzer* InstantiateAnalyzer(const char* name, Connection* c);
 
-	/**
-	 * Schedules a particular analyzer for an upcoming connection. Once
-	 * the connection is seen, BuildInitAnalyzerTree() will add the
-	 * specified analyzer to its tree.
-	 *
-	 * @param orig The connection's anticipated originator address.
-	 * 0.0.0.0 can be used as a wildcard matching any originator.
-	 *
-	 * @param resp The connection's anticipated responder address (no
-	 * wildcard).
-	 *
-	 * @param resp_p The connection's anticipated responder port.
-	 *
-	 * @param proto The connection's anticipated transport protocol.
-	 *
-	 * @param analyzer The analyzer to use once the connection is seen.
-	 *
-	 * @param timeout An interval after which to timeout the request to
-	 * schedule this analyzer. Must be non-zero.
-	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-	                      TransportProto proto, const zeek::Tag& analyzer, double timeout);
+    /**
+     * Schedules a particular analyzer for an upcoming connection. Once
+     * the connection is seen, BuildInitAnalyzerTree() will add the
+     * specified analyzer to its tree.
+     *
+     * @param orig The connection's anticipated originator address.
+     * 0.0.0.0 can be used as a wildcard matching any originator.
+     *
+     * @param resp The connection's anticipated responder address (no
+     * wildcard).
+     *
+     * @param resp_p The connection's anticipated responder port.
+     *
+     * @param proto The connection's anticipated transport protocol.
+     *
+     * @param analyzer The analyzer to use once the connection is seen.
+     *
+     * @param timeout An interval after which to timeout the request to
+     * schedule this analyzer. Must be non-zero.
+     */
+    void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p, TransportProto proto,
+                          const zeek::Tag& analyzer, double timeout);
 
-	/**
-	 * Schedules a particular analyzer for an upcoming connection. Once
-	 * the connection is seen, BuildInitAnalyzerTree() will add the
-	 * specified analyzer to its tree.
-	 *
-	 * @param orig The connection's anticipated originator address. 0 can
-	 * be used as a wildcard matching any originator.
-	 *
-	 * @param resp The connection's anticipated responder address (no
-	 * wildcard).
-	 *
-	 * @param resp_p The connection's anticipated responder port.
-	 *
-	 * @param proto The connection's anticipated transport protocol.
-	 *
-	 * @param analyzer The name of the analyzer to use once the
-	 * connection is seen.
-	 *
-	 * @param timeout An interval after which to timeout the request to
-	 * schedule this analyzer. Must be non-zero.
-	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p,
-	                      TransportProto proto, const char* analyzer, double timeout);
+    /**
+     * Schedules a particular analyzer for an upcoming connection. Once
+     * the connection is seen, BuildInitAnalyzerTree() will add the
+     * specified analyzer to its tree.
+     *
+     * @param orig The connection's anticipated originator address. 0 can
+     * be used as a wildcard matching any originator.
+     *
+     * @param resp The connection's anticipated responder address (no
+     * wildcard).
+     *
+     * @param resp_p The connection's anticipated responder port.
+     *
+     * @param proto The connection's anticipated transport protocol.
+     *
+     * @param analyzer The name of the analyzer to use once the
+     * connection is seen.
+     *
+     * @param timeout An interval after which to timeout the request to
+     * schedule this analyzer. Must be non-zero.
+     */
+    void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, uint16_t resp_p, TransportProto proto,
+                          const char* analyzer, double timeout);
 
-	/**
-	 * Searched for analyzers scheduled to be attached to a given connection
-	 * and then attaches them.
-	 *
-	 * @param conn The connection to which scheduled analyzers are attached.
-	 *
-	 * @param init True if the newly added analyzers should be
-	 * immediately initialized.
-	 *
-	 * @param root If given, the scheduled analyzers will become children
-	 * of this; if not given the connection's root analyzer is used
-	 * instead.
-	 *
-	 * @return True if at least one scheduled analyzer was found.
-	 */
-	bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true,
-	                             packet_analysis::IP::SessionAdapter* parent = nullptr);
+    /**
+     * Searched for analyzers scheduled to be attached to a given connection
+     * and then attaches them.
+     *
+     * @param conn The connection to which scheduled analyzers are attached.
+     *
+     * @param init True if the newly added analyzers should be
+     * immediately initialized.
+     *
+     * @param root If given, the scheduled analyzers will become children
+     * of this; if not given the connection's root analyzer is used
+     * instead.
+     *
+     * @return True if at least one scheduled analyzer was found.
+     */
+    bool ApplyScheduledAnalyzers(Connection* conn, bool init_and_event = true,
+                                 packet_analysis::IP::SessionAdapter* parent = nullptr);
 
-	/**
-	 * Schedules a particular analyzer for an upcoming connection. Once
-	 * the connection is seen, BuildInitAnalyzerTree() will add the
-	 * specified analyzer to its tree.
-	 *
-	 * @param orig The connection's anticipated originator address. 0 can
-	 * be used as a wildcard matching any originator.
-	 *
-	 * @param resp The connection's anticipated responder address (no
-	 * wildcard).
-	 *
-	 * @param resp_p The connection's anticipated responder port.
-	 *
-	 * @param analyzer The analyzer to use once the connection is seen as
-	 * an enum value of script-type \c Tag.
-	 *
-	 * @param timeout An interval after which to timeout the request to
-	 * schedule this analyzer. Must be non-zero.
-	 */
-	void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p, Val* analyzer,
-	                      double timeout);
+    /**
+     * Schedules a particular analyzer for an upcoming connection. Once
+     * the connection is seen, BuildInitAnalyzerTree() will add the
+     * specified analyzer to its tree.
+     *
+     * @param orig The connection's anticipated originator address. 0 can
+     * be used as a wildcard matching any originator.
+     *
+     * @param resp The connection's anticipated responder address (no
+     * wildcard).
+     *
+     * @param resp_p The connection's anticipated responder port.
+     *
+     * @param analyzer The analyzer to use once the connection is seen as
+     * an enum value of script-type \c Tag.
+     *
+     * @param timeout An interval after which to timeout the request to
+     * schedule this analyzer. Must be non-zero.
+     */
+    void ScheduleAnalyzer(const IPAddr& orig, const IPAddr& resp, PortVal* resp_p, Val* analyzer, double timeout);
 
-	/**
-	 * @return the UDP port numbers to be associated with VXLAN traffic.
-	 */
-	const std::vector<uint16_t>& GetVxlanPorts() const { return vxlan_ports; }
+    /**
+     * @return the UDP port numbers to be associated with VXLAN traffic.
+     */
+    const std::vector<uint16_t>& GetVxlanPorts() const { return vxlan_ports; }
 
 private:
-	// Internal version that must be used only once InitPostScript has completed.
-	bool RegisterAnalyzerForPort(const std::tuple<zeek::Tag, TransportProto, uint32_t>& p);
+    // Internal version that must be used only once InitPostScript has completed.
+    bool RegisterAnalyzerForPort(const std::tuple<zeek::Tag, TransportProto, uint32_t>& p);
 
-	friend class packet_analysis::IP::IPBasedAnalyzer;
+    friend class packet_analysis::IP::IPBasedAnalyzer;
 
-	using tag_set = std::set<zeek::Tag>;
+    using tag_set = std::set<zeek::Tag>;
 
-	tag_set GetScheduled(const Connection* conn);
-	void ExpireScheduledAnalyzers();
+    tag_set GetScheduled(const Connection* conn);
+    void ExpireScheduledAnalyzers();
 
-	//// Data structures to track analyzed scheduled for future connections.
+    //// Data structures to track analyzed scheduled for future connections.
 
-	// The index for a scheduled connection.
-	struct ConnIndex
-		{
-		IPAddr orig;
-		IPAddr resp;
-		uint16_t resp_p;
-		uint16_t proto;
+    // The index for a scheduled connection.
+    struct ConnIndex {
+        IPAddr orig;
+        IPAddr resp;
+        uint16_t resp_p;
+        uint16_t proto;
 
-		ConnIndex(const IPAddr& _orig, const IPAddr& _resp, uint16_t _resp_p, uint16_t _proto);
-		ConnIndex();
+        ConnIndex(const IPAddr& _orig, const IPAddr& _resp, uint16_t _resp_p, uint16_t _proto);
+        ConnIndex();
 
-		bool operator<(const ConnIndex& other) const;
-		};
+        bool operator<(const ConnIndex& other) const;
+    };
 
-	// Information associated with a scheduled connection.
-	struct ScheduledAnalyzer
-		{
-		ConnIndex conn;
-		zeek::Tag analyzer;
-		double timeout;
+    // Information associated with a scheduled connection.
+    struct ScheduledAnalyzer {
+        ConnIndex conn;
+        zeek::Tag analyzer;
+        double timeout;
 
-		struct Comparator
-			{
-			bool operator()(ScheduledAnalyzer* a, ScheduledAnalyzer* b)
-				{
-				return a->timeout > b->timeout;
-				}
-			};
-		};
+        struct Comparator {
+            bool operator()(ScheduledAnalyzer* a, ScheduledAnalyzer* b) { return a->timeout > b->timeout; }
+        };
+    };
 
-	using protocol_analyzers = std::set<std::tuple<zeek::Tag, TransportProto, uint32_t>>;
-	using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
-	using conns_queue = std::priority_queue<ScheduledAnalyzer*, std::vector<ScheduledAnalyzer*>,
-	                                        ScheduledAnalyzer::Comparator>;
+    using protocol_analyzers = std::set<std::tuple<zeek::Tag, TransportProto, uint32_t>>;
+    using conns_map = std::multimap<ConnIndex, ScheduledAnalyzer*>;
+    using conns_queue =
+        std::priority_queue<ScheduledAnalyzer*, std::vector<ScheduledAnalyzer*>, ScheduledAnalyzer::Comparator>;
 
-	bool initialized = false;
-	protocol_analyzers pending_analyzers_for_ports;
+    bool initialized = false;
+    protocol_analyzers pending_analyzers_for_ports;
 
-	conns_map conns;
-	conns_queue conns_by_timeout;
-	std::vector<uint16_t> vxlan_ports;
-	};
+    conns_map conns;
+    conns_queue conns_by_timeout;
+    std::vector<uint16_t> vxlan_ports;
+};
 
-	} // namespace analyzer
+} // namespace analyzer
 
 extern analyzer::Manager* analyzer_mgr;
 
-	} // namespace zeek
+} // namespace zeek
 
 // Macros for analyzer debug logging which include the connection id into the
 // message.
 #ifdef DEBUG
-#define DBG_ANALYZER(conn, txt)                                                                    \
-	DBG_LOG(zeek::DBG_ANALYZER, "%s " txt,                                                         \
-	        fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(),               \
-	                    ntohs(conn->RespPort())));
-#define DBG_ANALYZER_ARGS(conn, fmt, ...)                                                          \
-	DBG_LOG(zeek::DBG_ANALYZER, "%s " fmt,                                                         \
-	        fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(),               \
-	                    ntohs(conn->RespPort())),                                                  \
-	        ##__VA_ARGS__);
+#define DBG_ANALYZER(conn, txt)                                                                                        \
+    DBG_LOG(zeek::DBG_ANALYZER, "%s " txt,                                                                             \
+            fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(), ntohs(conn->RespPort())));
+#define DBG_ANALYZER_ARGS(conn, fmt, ...)                                                                              \
+    DBG_LOG(zeek::DBG_ANALYZER, "%s " fmt,                                                                             \
+            fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(), ntohs(conn->RespPort())),         \
+            ##__VA_ARGS__);
 #else
 #define DBG_ANALYZER(conn, txt)
 #define DBG_ANALYZER_ARGS(conn, fmt, ...)

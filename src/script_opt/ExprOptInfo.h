@@ -5,15 +5,13 @@
 
 #pragma once
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
-class ExprOptInfo
-	{
+class ExprOptInfo {
 public:
-	// The AST number of the statement in which this expression
-	// appears.
-	int stmt_num = -1; // -1 = not assigned yet
-	};
+    // The AST number of the statement in which this expression
+    // appears.
+    int stmt_num = -1; // -1 = not assigned yet
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

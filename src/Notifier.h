@@ -10,86 +10,83 @@
 #include <cstdint>
 #include <unordered_map>
 
-namespace zeek::notifier::detail
-	{
+namespace zeek::notifier::detail {
 
 class Modifiable;
 
 /** Interface class for receivers of notifications. */
-class Receiver
-	{
+class Receiver {
 public:
-	Receiver();
-	virtual ~Receiver();
+    Receiver();
+    virtual ~Receiver();
 
-	/**
-	 * Callback executed when a register object has been modified.
-	 *
-	 * @param m object that was modified
-	 */
-	virtual void Modified(Modifiable* m) = 0;
+    /**
+     * Callback executed when a register object has been modified.
+     *
+     * @param m object that was modified
+     */
+    virtual void Modified(Modifiable* m) = 0;
 
-	/**
-	 * Callback executed when notification registry is terminating and
-	 * no further modifications can possibly occur.
-	 */
-	virtual void Terminate() { }
-	};
+    /**
+     * Callback executed when notification registry is terminating and
+     * no further modifications can possibly occur.
+     */
+    virtual void Terminate() {}
+};
 
 /** Singleton class tracking all notification requests globally. */
-class Registry
-	{
+class Registry {
 public:
-	~Registry();
+    ~Registry();
 
-	/**
-	 * Registers a receiver to be informed when a modifiable object has
-	 * changed.
-	 *
-	 * @param m object to track. Does not take ownership, but the object
-	 * will automatically unregister itself on destruction.
-	 *
-	 * @param r receiver to notify on changes. Does not take ownership,
-	 * the receiver must remain valid as long as the registration stays
-	 * in place.
-	 */
-	void Register(Modifiable* m, Receiver* r);
+    /**
+     * Registers a receiver to be informed when a modifiable object has
+     * changed.
+     *
+     * @param m object to track. Does not take ownership, but the object
+     * will automatically unregister itself on destruction.
+     *
+     * @param r receiver to notify on changes. Does not take ownership,
+     * the receiver must remain valid as long as the registration stays
+     * in place.
+     */
+    void Register(Modifiable* m, Receiver* r);
 
-	/**
-	 * Cancels a receiver's request to be informed about an object's
-	 * modification. The arguments to the method must match what was
-	 * originally registered.
-	 *
-	 * @param m object to no longer track.
-	 *
-	 * @param r receiver to no longer notify.
-	 */
-	void Unregister(Modifiable* m, Receiver* Receiver);
+    /**
+     * Cancels a receiver's request to be informed about an object's
+     * modification. The arguments to the method must match what was
+     * originally registered.
+     *
+     * @param m object to no longer track.
+     *
+     * @param r receiver to no longer notify.
+     */
+    void Unregister(Modifiable* m, Receiver* Receiver);
 
-	/**
-	 * Cancels any active receiver requests to be informed about a
-	 * particular object's modifications.
-	 *
-	 * @param m object to no longer track.
-	 */
-	void Unregister(Modifiable* m);
+    /**
+     * Cancels any active receiver requests to be informed about a
+     * particular object's modifications.
+     *
+     * @param m object to no longer track.
+     */
+    void Unregister(Modifiable* m);
 
-	/**
-	 * Notifies all receivers that no further modifications will occur
-	 * as the registry is shutting down.
-	 */
-	void Terminate();
+    /**
+     * Notifies all receivers that no further modifications will occur
+     * as the registry is shutting down.
+     */
+    void Terminate();
 
 private:
-	friend class Modifiable;
+    friend class Modifiable;
 
-	// Inform all registered receivers of a modification to an object.
-	// Will be called from the object itself.
-	void Modified(Modifiable* m);
+    // Inform all registered receivers of a modification to an object.
+    // Will be called from the object itself.
+    void Modified(Modifiable* m);
 
-	using ModifiableMap = std::unordered_multimap<Modifiable*, Receiver*>;
-	ModifiableMap registrations;
-	};
+    using ModifiableMap = std::unordered_multimap<Modifiable*, Receiver*>;
+    ModifiableMap registrations;
+};
 
 /**
  * Singleton object tracking all global notification requests.
@@ -100,26 +97,24 @@ extern Registry registry;
  * Base class for objects that can trigger notifications to receivers when
  * modified.
  */
-class Modifiable
-	{
+class Modifiable {
 public:
-	/**
-	 * Calling this method signals to all registered receivers that the
-	 * object has been modified.
-	 */
-	void Modified()
-		{
-		if ( num_receivers )
-			registry.Modified(this);
-		}
+    /**
+     * Calling this method signals to all registered receivers that the
+     * object has been modified.
+     */
+    void Modified() {
+        if ( num_receivers )
+            registry.Modified(this);
+    }
 
 protected:
-	friend class Registry;
+    friend class Registry;
 
-	virtual ~Modifiable();
+    virtual ~Modifiable();
 
-	// Number of currently registered receivers.
-	uint64_t num_receivers = 0;
-	};
+    // Number of currently registered receivers.
+    uint64_t num_receivers = 0;
+};
 
-	} // namespace zeek::notifier::detail
+} // namespace zeek::notifier::detail

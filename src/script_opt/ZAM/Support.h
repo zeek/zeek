@@ -7,8 +7,7 @@
 #include "zeek/Expr.h"
 #include "zeek/Stmt.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 using ValVec = std::vector<ValPtr>;
 
@@ -25,14 +24,8 @@ extern bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason = nullp
 extern bool IsAny(const Type* t);
 
 // Convenience functions for getting to these.
-inline bool IsAny(const TypePtr& t)
-	{
-	return IsAny(t.get());
-	}
-inline bool IsAny(const Expr* e)
-	{
-	return IsAny(e->GetType());
-	}
+inline bool IsAny(const TypePtr& t) { return IsAny(t.get()); }
+inline bool IsAny(const Expr* e) { return IsAny(e->GetType()); }
 
 // Needed for the logging built-in.  Exported so that ZAM can make sure it's
 // defined when compiling.
@@ -56,4 +49,4 @@ extern StringVal* ZAM_sub_bytes(const StringVal* s, zeek_uint_t start, zeek_int_
 
 extern StringValPtr ZAM_val_cat(const ValPtr& v);
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

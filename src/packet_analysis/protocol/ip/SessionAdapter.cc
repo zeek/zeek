@@ -6,33 +6,23 @@
 
 using namespace zeek::packet_analysis::IP;
 
-void SessionAdapter::Done()
-	{
-	Analyzer::Done();
-	}
+void SessionAdapter::Done() { Analyzer::Done(); }
 
-bool SessionAdapter::IsReuse(double t, const u_char* pkt)
-	{
-	return parent->IsReuse(t, pkt);
-	}
+bool SessionAdapter::IsReuse(double t, const u_char* pkt) { return parent->IsReuse(t, pkt); }
 
-void SessionAdapter::SetContentsFile(unsigned int /* direction */, FilePtr /* f */)
-	{
-	reporter->Error("analyzer type does not support writing to a contents file");
-	}
+void SessionAdapter::SetContentsFile(unsigned int /* direction */, FilePtr /* f */) {
+    reporter->Error("analyzer type does not support writing to a contents file");
+}
 
-zeek::FilePtr SessionAdapter::GetContentsFile(unsigned int /* direction */) const
-	{
-	reporter->Error("analyzer type does not support writing to a contents file");
-	return nullptr;
-	}
+zeek::FilePtr SessionAdapter::GetContentsFile(unsigned int /* direction */) const {
+    reporter->Error("analyzer type does not support writing to a contents file");
+    return nullptr;
+}
 
-void SessionAdapter::PacketContents(const u_char* data, int len)
-	{
-	if ( packet_contents && len > 0 )
-		{
-		zeek::String* cbs = new zeek::String(data, len, true);
-		auto contents = make_intrusive<StringVal>(cbs);
-		EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
-		}
-	}
+void SessionAdapter::PacketContents(const u_char* data, int len) {
+    if ( packet_contents && len > 0 ) {
+        zeek::String* cbs = new zeek::String(data, len, true);
+        auto contents = make_intrusive<StringVal>(cbs);
+        EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
+    }
+}

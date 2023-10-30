@@ -5,22 +5,19 @@
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/teredo/Teredo.h"
 
-namespace zeek::plugin::detail::Zeek_Teredo
-	{
+namespace zeek::plugin::detail::Zeek_Teredo {
 
-class Plugin final : public zeek::plugin::Plugin
-	{
+class Plugin final : public zeek::plugin::Plugin {
 public:
-	zeek::plugin::Configuration Configure() override
-		{
-		AddComponent(new zeek::packet_analysis::Component(
-			"Teredo", zeek::packet_analysis::teredo::TeredoAnalyzer::Instantiate));
+    zeek::plugin::Configuration Configure() override {
+        AddComponent(
+            new zeek::packet_analysis::Component("Teredo", zeek::packet_analysis::teredo::TeredoAnalyzer::Instantiate));
 
-		zeek::plugin::Configuration config;
-		config.name = "Zeek::Teredo";
-		config.description = "Teredo packet analyzer";
-		return config;
-		}
-	} plugin;
+        zeek::plugin::Configuration config;
+        config.name = "Zeek::Teredo";
+        config.description = "Teredo packet analyzer";
+        return config;
+    }
+} plugin;
 
-	} // namespace zeek::plugin::detail::Zeek_Teredo
+} // namespace zeek::plugin::detail::Zeek_Teredo

@@ -1,3 +1,17 @@
+6.2.0-dev.83 | 2023-10-30 12:34:26 -0700
+
+  * Format JSON with clang-format (Benjamin Bannier, Corelight)
+
+    We do not activate support for JavaScript at this time since most of our
+    JavaScript code is in BTest files to test zeekjs, but these files also
+    contain other languages which leads to largely misformated files.
+
+  * Reformat Zeek in Spicy style (Benjamin Bannier, Corelight)
+
+    This largely copies over Spicy's `.clang-format` configuration file. The
+    one place where we deviate is header include order since Zeek depends on
+    headers being included in a certain order.
+
 6.2.0-dev.78 | 2023-10-30 11:47:23 +0100
 
   * GH-3421: Normalize version strings in test (Benjamin Bannier, Corelight)

@@ -6,42 +6,30 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 class Discarder;
-	}
+}
 
-namespace zeek::packet_analysis::IP
-	{
+namespace zeek::packet_analysis::IP {
 
-class IPAnalyzer : public Analyzer
-	{
+class IPAnalyzer : public Analyzer {
 public:
-	IPAnalyzer();
-	~IPAnalyzer() override;
+    IPAnalyzer();
+    ~IPAnalyzer() override;
 
-	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
+    bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
-	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
-		return std::make_shared<IPAnalyzer>();
-		}
+    static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<IPAnalyzer>(); }
 
 private:
-	// Returns a reassembled packet, or nil if there are still
-	// some missing fragments.
-	zeek::detail::FragReassembler* NextFragment(double t, const IP_Hdr* ip, const u_char* pkt);
+    // Returns a reassembled packet, or nil if there are still
+    // some missing fragments.
+    zeek::detail::FragReassembler* NextFragment(double t, const IP_Hdr* ip, const u_char* pkt);
 
-	zeek::detail::Discarder* discarder = nullptr;
-	};
+    zeek::detail::Discarder* discarder = nullptr;
+};
 
-enum class ParseResult
-	{
-	Ok = 0,
-	CaplenTooSmall = -1,
-	BadProtocol = -2,
-	CaplenTooLarge = 1
-	};
+enum class ParseResult { Ok = 0, CaplenTooSmall = -1, BadProtocol = -2, CaplenTooLarge = 1 };
 
 /**
  * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4
@@ -67,7 +55,6 @@ enum class ParseResult
  *         or IPPROTO_IPV6 or if \a proto does not match the protocol
  *         in the header's version field.
  */
-ParseResult ParsePacket(int caplen, const u_char* const pkt, int proto,
-                        std::shared_ptr<IP_Hdr>& inner);
+ParseResult ParsePacket(int caplen, const u_char* const pkt, int proto, std::shared_ptr<IP_Hdr>& inner);
 
-	}
+} // namespace zeek::packet_analysis::IP

@@ -1,3 +1,15 @@
+6.2.0-dev.86 | 2023-10-31 16:17:33 +0000
+
+  * SSL: Add new extension types and ECH test (Johanna Amann, Corelight)
+
+    This commit adds a multitude of new extension types that were added in
+    the last few years; it also adds grease values to extensions, curves,
+    and ciphersuites.
+
+    Furthermore, it adds a test that contains a encrypted-client-hello
+    key-exchange (which uses several extension types that we do not have in
+    our baseline so far).
+
 6.2.0-dev.83 | 2023-10-30 12:34:26 -0700
 
   * Format JSON with clang-format (Benjamin Bannier, Corelight)

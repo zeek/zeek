@@ -168,7 +168,20 @@ export {
 	const SSL_EXTENSION_EXTENDED_MASTER_SECRET = 23;
 	const SSL_EXTENSION_TOKEN_BINDING = 24;
 	const SSL_EXTENSION_CACHED_INFO = 25;
+	const SSL_EXTENSION_TLS_LTS = 26;
+	const SSL_EXTENSION_COMPRESS_CERTIFICATE = 27;
+	const SSL_EXTENSION_RECORD_SIZE_LIMIT = 28;
+	const SSL_EXTENSION_PWD_PROTECT = 29;
+	const SSL_EXTENSION_PWD_CLEAR = 30;
+	const SSL_EXTENSION_PASSWORD_SALT = 31;
+	const SSL_EXTENSION_TICKET_PINNING = 32;
+	const SSL_EXTENSION_TLS_CERT_WITH_EXTERN_PSK = 33;
+	const SSL_EXTENSION_DELEGATED_CREDENTIAL = 34;
 	const SSL_EXTENSION_SESSIONTICKET_TLS = 35;
+	const SSL_EXTENSION_TLMSP = 36;
+	const SSL_EXTENSION_TLMSP_PROXYING = 37;
+	const SSL_EXTENSION_TLMSP_DELEGATE = 38;
+	const SSL_EXTENSION_SUPPORTED_EKT_CIPHERS = 39;
 	const SSL_EXTENSION_KEY_SHARE_OLD = 40;
 	const SSL_EXTENSION_PRE_SHARED_KEY = 41;
 	const SSL_EXTENSION_EARLY_DATA = 42;
@@ -182,16 +195,22 @@ export {
 	const SSL_EXTENSION_SIGNATURE_ALGORITHMS_CERT = 50;
 	const SSL_EXTENSION_KEY_SHARE = 51;
 	const SSL_EXTENSION_TRANSPARENCY_INFO = 52;
-	const SSL_EXTENSION_CONNECTION_ID = 53;
+	const SSL_EXTENSION_CONNECTION_ID_DEPRECATED = 53;
+	const SSL_EXTENSION_CONNECTION_ID = 54;
 	const SSL_EXTENSION_EXTERNAL_ID_HASH = 55;
 	const SSL_EXTENSION_EXTERNAL_SESSION_ID = 56;
 	const SSL_EXTENSION_QUIC_TRANSPORT_PARAMETERS = 57;
+	const SSL_EXTENSION_TICKET_REQUEST = 58;
+	const SSL_EXTENSION_DNSSEC_CHAIN = 59;
+	const SSL_EXTENSION_SEQUENCE_NUMBER_ENCRYPTION_ALGORITHMS = 60;
 	const SSL_EXTENSION_NEXT_PROTOCOL_NEGOTIATION = 13172;
 	const SSL_EXTENSION_ORIGIN_BOUND_CERTIFICATES = 13175;
 	const SSL_EXTENSION_ENCRYPTED_CLIENT_CERTIFICATES = 13180;
+	const SSL_EXTENSION_APPLICATION_SETTING = 17513;
 	const SSL_EXTENSION_CHANNEL_ID = 30031;
 	const SSL_EXTENSION_CHANNEL_ID_NEW = 30032;
 	const SSL_EXTENSION_PADDING_TEMP = 35655;
+	const SSL_EXTENSION_ENCRYPTED_CLIENT_HELLO = 65037;
 	const SSL_EXTENSION_RENEGOTIATION_INFO = 65281;
 
 	## Mapping between numeric codes and human readable strings for SSL/TLS
@@ -225,7 +244,20 @@ export {
 		[23] = "extended_master_secret",
 		[24] = "token_binding", # temporary till 2017-03-06 - draft-ietf-tokbind-negotiation
 		[25] = "cached_info",
+		[26] = "tls_lts", # draft-gutmann-tls-lts
+		[27] = "compress_certificate", # RFC8879
+		[28] = "record_size_limit", # RFC8449
+		[29] = "pwd_protect", # RFC8492
+		[30] = "pwd_clear", # RFC8492
+		[31] = "password_salt", # RFC8492
+		[32] = "ticket_pinning", # RFC8672
+		[33] = "tls_cert_with_extern_psk", # RFC8773
+		[34] = "delegated_credential", # RFC9345
 		[35] = "SessionTicket TLS",
+		[36] = "TLMSP", # ETSI TS 103 523-2
+		[37] = "TLMSP_proxying", # ETSI TS 103 523-2
+		[38] = "TLMSP_delegate", # ETSI TS 103 523-2
+		[39] = "supported_ekt_ciphers", # RFC8870
 		[40] = "key_share_old", # new for TLS 1.3, used in some of the drafts. Did not make it into the RFC. Was used for extended_random before.
 		[41] = "pre_shared_key", # new for 1.3, see RFC 8446
 		[42] = "early_data", # new for 1.3, see RFC 8446
@@ -238,18 +270,41 @@ export {
 		[49] = "post_handshake_auth", # new for 1.3, see RFC 8446
 		[50] = "signature_algorithms_cert", # new for 1.3, see RFC 8446
 		[51] = "key_share", # new for 1.3, see RFC 8446
-		[52] = "transparency_info", # temporary - draft-ietf-trans-rfc6962-bis-34
-		[53] = "connection_id", # temporary -d draft-ietf-tls-dtls-connection-id
-		[55] = "external_id_hash", # temporary - RFC-ietf-mmusic-sdp-uks-07
-		[56] = "external_session_id", # temporary - RFC-ietf-mmusic-sdp-uks-07
-		[57] = "quic_transport_parameters", # temporary - draft-ietf-quic-tls-32
+		[52] = "transparency_info", # RFC9162
+		[53] = "connection_id_deprecated", # RFC9146
+		[54] = "connection_id", # RFC9146
+		[55] = "external_id_hash", # RFC8844
+		[56] = "external_session_id", # RFC8844
+		[57] = "quic_transport_parameters", # RFC9001
+		[58] = "ticket_request", # RFC9149]
+		[59] = "dnssec_chain", # RFC9102
+		[60] = "sequence_number_encryption_algorithms", # draft-pismenny-tls-dtls-plaintext-sequence-number-01
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",
+		[17513] = "application_setting", # draft-vvv-tls-alps-01.html
 		[30031] = "channel_id",
 		[30032] = "channel_id_new",
 		[35655] = "padding",
-		[65281] = "renegotiation_info"
+		[65037] = "encrypted_client_hello", # draft-ietf-tls-esni
+		[65281] = "renegotiation_info",
+		# GREASE values - rfc8701
+		[2570] = "grease_0x0A0A",
+		[6682] = "grease_0x1A1A",
+		[10794] = "grease_0x2A2A",
+		[14906] = "grease_0x3A3A",
+		[19018] = "grease_0x4A4A",
+		[23130] = "grease_0x5A5A",
+		[27242] = "grease_0x6A6A",
+		[31354] = "grease_0x7A7A",
+		[35466] = "grease_0x8A8A",
+		[39578] = "grease_0x9A9A",
+		[43690] = "grease_0xAAAA",
+		[47802] = "grease_0xBABA",
+		[51914] = "grease_0xCACA",
+		[56026] = "grease_0xDADA",
+		[60138] = "grease_0xEAEA",
+		[64250] = "grease_0xFAFA"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable string for SSL/TLS elliptic curves.
@@ -293,7 +348,24 @@ export {
 		[259] = "ffdhe6144",
 		[260] = "ffdhe8192",
 		[0xFF01] = "arbitrary_explicit_prime_curves",
-		[0xFF02] = "arbitrary_explicit_char2_curves"
+		[0xFF02] = "arbitrary_explicit_char2_curves",
+		# GREASE values - rfc8701
+		[2570] = "grease_0x0A0A",
+		[6682] = "grease_0x1A1A",
+		[10794] = "grease_0x2A2A",
+		[14906] = "grease_0x3A3A",
+		[19018] = "grease_0x4A4A",
+		[23130] = "grease_0x5A5A",
+		[27242] = "grease_0x6A6A",
+		[31354] = "grease_0x7A7A",
+		[35466] = "grease_0x8A8A",
+		[39578] = "grease_0x9A9A",
+		[43690] = "grease_0xAAAA",
+		[47802] = "grease_0xBABA",
+		[51914] = "grease_0xCACA",
+		[56026] = "grease_0xDADA",
+		[60138] = "grease_0xEAEA",
+		[64250] = "grease_0xFAFA"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable string for SSL/TLS EC point formats.
@@ -1081,6 +1153,23 @@ export {
 		[SSL_RSA_WITH_DES_CBC_MD5] = "SSL_RSA_WITH_DES_CBC_MD5",
 		[SSL_RSA_WITH_3DES_EDE_CBC_MD5] = "SSL_RSA_WITH_3DES_EDE_CBC_MD5",
 		[TLS_EMPTY_RENEGOTIATION_INFO_SCSV] = "TLS_EMPTY_RENEGOTIATION_INFO_SCSV",
+		# GREASE - rfc8701
+		[2570] = "grease_0x0A0A",
+		[6682] = "grease_0x1A1A",
+		[10794] = "grease_0x2A2A",
+		[14906] = "grease_0x3A3A",
+		[19018] = "grease_0x4A4A",
+		[23130] = "grease_0x5A5A",
+		[27242] = "grease_0x6A6A",
+		[31354] = "grease_0x7A7A",
+		[35466] = "grease_0x8A8A",
+		[39578] = "grease_0x9A9A",
+		[43690] = "grease_0xAAAA",
+		[47802] = "grease_0xBABA",
+		[51914] = "grease_0xCACA",
+		[56026] = "grease_0xDADA",
+		[60138] = "grease_0xEAEA",
+		[64250] = "grease_0xFAFA"
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 }

@@ -82,7 +82,7 @@ const AnalyzerPtr& Analyzer::FindInnerAnalyzer(size_t len, const uint8_t* data, 
 // Return an analyzer found via DetectProtocol() for the given data, else nil.
 const AnalyzerPtr& Analyzer::DetectInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet) const {
     for ( const auto& child : analyzers_to_detect ) {
-        if ( child->DetectProtocol(len, data, packet) ) {
+        if ( child->IsEnabled() && child->DetectProtocol(len, data, packet) ) {
             DBG_LOG(DBG_PACKET_ANALYSIS, "Protocol detection in %s succeeded, next layer analyzer is %s",
                     GetAnalyzerName(), child->GetAnalyzerName());
             return child;

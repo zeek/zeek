@@ -2,9 +2,13 @@
 indexing empty, 0
 single insert, match, [1]
 single insert, non-match, []
+single insert, in, T
+single insert, not-in, F
 multiple inserts, non-match, []
 multiple inserts, single match, [3]
 multiple inserts, double match, [1, 3]
+multiple insert, in, T
+multiple insert, not-in, F
 triple match, [1, 3, 4]
 embedded newline, /s operator, [6]
 no embedded newline, /s vs. no /s operator, [5, 6, 7]

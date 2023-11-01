@@ -3815,6 +3815,18 @@ InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_IN, std::move
         }
     }
 
+    // Support <string> in table[pattern] of X
+    if ( op1->GetType()->Tag() == TYPE_STRING ) {
+        if ( op2->GetType()->Tag() == TYPE_TABLE ) {
+            const auto& table_type = op2->GetType()->AsTableType();
+
+            if ( table_type->IsPatternIndex() && table_type->Yield() ) {
+                SetType(base_type(TYPE_BOOL));
+                return;
+            }
+        }
+    }
+
     if ( op1->Tag() != EXPR_LIST )
         op1 = make_intrusive<ListExpr>(std::move(op1));
 
@@ -3853,8 +3865,14 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const {
         auto ind = v1->AsListVal()->Idx(0)->CoerceToUnsigned();
         res = ind < vv2->Size() && vv2->ValAt(ind);
     }
-    else
-        res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
+    else {
+        const auto& table_val = v2->AsTableVal();
+        const auto& table_type = table_val->GetType<zeek::TableType>();
+        if ( table_type->IsPatternIndex() && table_type->Yield() && v1->GetType()->Tag() == TYPE_STRING )
+            res = table_val->LookupPattern({NewRef{}, v1->AsStringVal()})->Size() > 0;
+        else
+            res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
+    }
 
     return val_mgr->Bool(res);
 }

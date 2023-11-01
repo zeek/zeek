@@ -4,3 +4,5 @@ populate_a()
 gotcha a, [42]
 populate_b()
 gotcha b, [4242]
+populate_c()
+gotcha c, [4711]

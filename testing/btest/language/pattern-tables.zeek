@@ -13,6 +13,8 @@ event zeek_init()
 
 	print "single insert, match", pt["foo"];
 	print "single insert, non-match", pt["foox"];
+	print "single insert, in", "foo" in pt;
+	print "single insert, not-in", "foox" in pt;
 
 	pt[/bar/] = 2;
 	pt[/(foo|bletch)/] = 3;
@@ -20,6 +22,8 @@ event zeek_init()
 	print "multiple inserts, non-match", pt["x"];
 	print "multiple inserts, single match", pt["bletch"];
 	print "multiple inserts, double match", sort(pt["foo"]);
+	print "multiple insert, in", "foo" in pt;
+	print "multiple insert, not-in", "x" in pt;
 
 	pt[/(foo|bletch|xyz)/] = 4;
 	print "triple match", sort(pt["foo"]);

@@ -6,11 +6,18 @@ global pt: table[pattern] of count;
 
 redef exit_only_after_terminate = T;
 
+event populate_c()
+	{
+	print "populate_c()";
+	pt[/c/] = 4711;
+	terminate();
+	}
+
 event populate_b()
 	{
 	print "populate_b()";
 	pt[/b/] = 4242;
-	terminate();
+	schedule 1msec { populate_c() };
 	}
 
 event populate_a()
@@ -36,6 +43,10 @@ event zeek_init()
 
 	when ( |pt["b"]| > 0 ) {
 		print "gotcha b", pt["b"];
+	}
+
+	when ( "c" in pt ) {
+		print "gotcha c", pt["c"];
 	}
 
 	print "schedule populate";

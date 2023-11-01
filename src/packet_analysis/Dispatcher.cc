@@ -50,7 +50,7 @@ void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer) {
 
 const AnalyzerPtr& Dispatcher::Lookup(uint32_t identifier) const {
     int64_t index = identifier - lowest_identifier;
-    if ( index >= 0 && index < static_cast<int64_t>(table.size()) && table[index] != nullptr )
+    if ( index >= 0 && index < static_cast<int64_t>(table.size()) )
         return table[index];
 
     return Analyzer::nil;

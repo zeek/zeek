@@ -1455,7 +1455,7 @@ private:
     // from having to re-build the matcher on every insert/delete in
     // the common case that a whole bunch of those are done in a single
     // batch.
-    std::unique_ptr<RE_DisjunctiveMatcher> matcher = nullptr;
+    std::unique_ptr<detail::Specific_RE_Matcher> matcher = nullptr;
 
     // Maps matcher values to corresponding yields. When building the
     // matcher we insert a nil at the head to accommodate how
@@ -1473,8 +1473,8 @@ VectorValPtr detail::TablePatternMatcher::Lookup(const StringValPtr& s) {
         Build();
     }
 
-    std::vector<int> matches;
-    matcher->Match(s->AsString(), matches);
+    std::vector<AcceptIdx> matches;
+    matcher->MatchSet(s->AsString(), matches);
 
     for ( auto m : matches )
         results->Append(matcher_yields[m]);
@@ -1488,7 +1488,9 @@ void detail::TablePatternMatcher::Build() {
 
     auto& tbl_dict = *tbl->Get();
     auto& tbl_hash = *tbl->GetTableHash();
-    std::vector<const RE_Matcher*> patterns;
+
+    zeek::detail::string_list pattern_list;
+    zeek::detail::int_list index_list;
 
     // We need to hold on to recovered hash key values so they don't
     // get lost once a loop iteration goes out of scope.
@@ -1499,13 +1501,18 @@ void detail::TablePatternMatcher::Build() {
         auto v = iter.value;
         auto vl = tbl_hash.RecoverVals(*k);
 
-        patterns.push_back(vl->AsListVal()->Idx(0)->AsPattern());
+        char* pt = const_cast<char*>(vl->AsListVal()->Idx(0)->AsPattern()->PatternText());
+        pattern_list.push_back(pt);
+        index_list.push_back(pattern_list.size());
         matcher_yields.push_back(v->GetVal());
 
         hash_key_vals.push_back(std::move(vl));
     }
 
-    matcher = std::make_unique<RE_DisjunctiveMatcher>(patterns);
+    matcher = std::make_unique<detail::Specific_RE_Matcher>(detail::MATCH_EXACTLY);
+
+    if ( ! matcher->CompileSet(pattern_list, index_list) )
+        reporter->FatalError("failed compile set for disjunctive matching");
 }
 
 TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t) {

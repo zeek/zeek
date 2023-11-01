@@ -194,6 +194,10 @@ bool Specific_RE_Matcher::MatchAll(const String* s) {
     return MatchAll(s->Bytes(), s->Len());
 }
 
+bool Specific_RE_Matcher::MatchSet(const String* s, std::vector<AcceptIdx>& matches) {
+    return MatchAll(s->Bytes(), s->Len(), &matches);
+}
+
 int Specific_RE_Matcher::Match(const char* s) { return Match((const u_char*)(s), strlen(s)); }
 
 int Specific_RE_Matcher::Match(const String* s) { return Match(s->Bytes(), s->Len()); }
@@ -202,7 +206,7 @@ int Specific_RE_Matcher::LongestMatch(const char* s) { return LongestMatch((cons
 
 int Specific_RE_Matcher::LongestMatch(const String* s) { return LongestMatch(s->Bytes(), s->Len()); }
 
-bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n) {
+bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n, std::vector<AcceptIdx>* matches) {
     if ( ! dfa )
         // An empty pattern matches "all" iff what's being
         // matched is empty.
@@ -221,6 +225,11 @@ bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n) {
 
     if ( d )
         d = d->Xtion(ecs[SYM_EOL], dfa);
+
+    if ( d && matches )
+        if ( const auto* a_set = d->Accept() )
+            for ( auto a : *a_set )
+                matches->push_back(a);
 
     return d && d->Accept() != nullptr;
 }
@@ -254,33 +263,6 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n) {
 
     return 0;
 }
-
-void Specific_RE_Matcher::MatchDisjunction(const String* s, std::vector<int>& matches) {
-    auto bv = s->Bytes();
-    auto n = s->Len();
-
-    ASSERT(dfa);
-
-    DFA_State* d = dfa->StartState();
-    d = d->Xtion(ecs[SYM_BOL], dfa);
-
-    while ( d ) {
-        if ( --n < 0 )
-            break;
-
-        int ec = ecs[*(bv++)];
-        d = d->Xtion(ec, dfa);
-    }
-
-    if ( d )
-        d = d->Xtion(ecs[SYM_EOL], dfa);
-
-    if ( d )
-        if ( auto a_set = d->Accept() )
-            for ( auto a : *a_set )
-                matches.push_back(a);
-}
-
 
 void Specific_RE_Matcher::Dump(FILE* f) { dfa->Dump(f); }
 
@@ -455,26 +437,6 @@ void RE_Matcher::MakeSingleLine() {
 }
 
 bool RE_Matcher::Compile(bool lazy) { return re_anywhere->Compile(lazy) && re_exact->Compile(lazy); }
-
-RE_DisjunctiveMatcher::RE_DisjunctiveMatcher(const std::vector<const RE_Matcher*>& REs) {
-    matcher = std::make_unique<detail::Specific_RE_Matcher>(detail::MATCH_EXACTLY);
-
-    zeek::detail::string_list sl;
-    zeek::detail::int_list il;
-
-    for ( const auto* re : REs ) {
-        sl.push_back(const_cast<char*>(re->PatternText()));
-        il.push_back(sl.size());
-    }
-
-    if ( ! matcher->CompileSet(sl, il) )
-        reporter->FatalError("failed compile set for disjunctive matcher");
-}
-
-void RE_DisjunctiveMatcher::Match(const String* s, std::vector<int>& matches) {
-    matches.clear();
-    return matcher->MatchDisjunction(s, matches);
-}
 
 TEST_SUITE("re_matcher") {
     TEST_CASE("simple_pattern") {

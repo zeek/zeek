@@ -1440,7 +1440,7 @@ public:
 
     void Clear() { matcher.reset(); }
 
-    VectorValPtr Lookup(const StringVal* s);
+    VectorValPtr Lookup(const StringValPtr& s);
 
 private:
     void Build();
@@ -1463,7 +1463,7 @@ private:
     std::vector<ValPtr> matcher_yields;
 };
 
-VectorValPtr detail::TablePatternMatcher::Lookup(const StringVal* s) {
+VectorValPtr detail::TablePatternMatcher::Lookup(const StringValPtr& s) {
     auto results = make_intrusive<VectorVal>(vtype);
 
     if ( ! matcher ) {
@@ -2016,7 +2016,7 @@ TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search) {
     return nt;
 }
 
-VectorValPtr TableVal::LookupPattern(const StringVal* s) {
+VectorValPtr TableVal::LookupPattern(const StringValPtr& s) {
     if ( ! pattern_matcher )
         reporter->InternalError("LookupPattern called on wrong table type");
 

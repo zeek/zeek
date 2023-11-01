@@ -45,7 +45,7 @@ ValPtr index_table__CPP(const TableValPtr& t, vector<ValPtr> indices) {
 }
 
 ValPtr index_patstr_table__CPP(const TableValPtr& t, vector<ValPtr> indices) {
-    return t->LookupPattern(indices[0]->AsStringVal());
+    return t->LookupPattern(cast_intrusive<StringVal>(indices[0]));
 }
 
 ValPtr index_vec__CPP(const VectorValPtr& vec, int index) {

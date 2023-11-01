@@ -867,7 +867,7 @@ public:
     // For a table[pattern], return a vector of all yields matching
     // the given string.
     // Causes an internal error if called for any other kind of table.
-    VectorValPtr LookupPattern(const StringVal* s);
+    VectorValPtr LookupPattern(const StringValPtr& s);
 
     // Sets the timestamp for the given index to network time.
     // Returns false if index does not exist.

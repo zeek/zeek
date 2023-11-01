@@ -52,21 +52,18 @@ public:
     void InitPostScript();
 
     /**
-     * @return All counter and gauge metrics and their values matching prefix and name.
+     * @return A VectorVal containing all counter and gauge metrics and their values matching prefix and name.
      * @param prefix The prefix pattern to use for filtering. Supports globbing.
      * @param name The name pattern to use for filtering. Supports globbing.
      */
-    std::vector<CollectedValueMetric> CollectMetrics(std::string_view prefix, std::string_view name);
+    ValPtr CollectMetrics(std::string_view prefix, std::string_view name);
 
     /**
-     * @return All histogram metrics and their data matching prefix and name.
+     * @return A VectorVal containing all histogram metrics and their values matching prefix and name.
      * @param prefix The prefix pattern to use for filtering. Supports globbing.
      * @param name The name pattern to use for filtering. Supports globbing.
      */
-    std::vector<CollectedHistogramMetric> CollectHistogramMetrics(std::string_view prefix, std::string_view name);
-
-    ValPtr CollectValueMetrics(std::string_view prefix, std::string_view name);
-    ValPtr CollectHistoMetrics(std::string_view prefix, std::string_view name);
+    ValPtr CollectHistogramMetrics(std::string_view prefix, std::string_view name);
 
     /**
      * @return A counter metric family. Creates the family lazily if necessary.
@@ -342,8 +339,6 @@ public:
                  opentelemetry::sdk::metrics::InstrumentType instrument_type,
                  opentelemetry::sdk::metrics::AggregationType aggregation);
 
-    OtelReader* GetOtelReader() const { return otel_reader.get(); }
-
 protected:
     template<class F>
     static void WithLabelNames(Span<const LabelView> xs, F continuation) {
@@ -371,7 +366,6 @@ private:
     std::string metrics_schema;
 
     std::shared_ptr<OtelReader> otel_reader;
-    std::map<std::string, RecordValPtr> record_cache;
     std::vector<std::shared_ptr<MetricFamily>> families;
 };
 

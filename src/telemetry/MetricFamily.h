@@ -7,7 +7,7 @@
 #include <utility>
 
 #include "zeek/Span.h"
-#include "zeek/telemetry/Collect.h"
+#include "zeek/Val.h"
 
 #include "opentelemetry/sdk/metrics/meter.h"
 
@@ -74,20 +74,6 @@ public:
     bool IsSum() const noexcept { return is_sum; }
 
     /**
-     * @return All counter and gauge metrics and their values matching prefix and name.
-     * @param prefix The prefix pattern to use for filtering. Supports globbing.
-     * @param name The name pattern to use for filtering. Supports globbing.
-     */
-    virtual std::vector<CollectedValueMetric> CollectMetrics() const { return {}; }
-
-    /**
-     * @return All histogram metrics and their data matching prefix and name.
-     * @param prefix The prefix pattern to use for filtering. Supports globbing.
-     * @param name The name pattern to use for filtering. Supports globbing.
-     */
-    virtual std::vector<CollectedHistogramMetric> CollectHistogramMetrics() const { return {}; }
-
-    /**
      * Converts the family data into script layer record. This record lazily-allocated
      * and reused for each instrument associated with this family.
      *
@@ -109,12 +95,6 @@ public:
 protected:
     MetricFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> lbls,
                  std::string_view helptext, std::string_view unit = "1", bool is_sum = false);
-
-    /**
-     * Adds additional information to the record val about this family. This
-     * is used by Histogram families to add information about the buckets.
-     */
-    virtual void AddAdditionalOpts() const {}
 
     std::string prefix;
     std::string name;
@@ -151,8 +131,6 @@ public:
 
         return true;
     }
-
-    std::vector<std::string> Labels() const;
 
 private:
     std::map<std::string, std::string> attributes;

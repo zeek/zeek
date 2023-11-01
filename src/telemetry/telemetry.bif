@@ -487,10 +487,10 @@ function Telemetry::__dbl_histogram_sum%(val: opaque of dbl_histogram_metric%): 
 
 function Telemetry::__collect_metrics%(prefix: string, name: string%): any_vec
 	%{
-	return telemetry_mgr->CollectValueMetrics(sv(prefix), sv(name));
+	return telemetry_mgr->CollectMetrics(sv(prefix), sv(name));
 	%}
 
 function Telemetry::__collect_histogram_metrics%(prefix: string, name: string%): any_vec
 	%{
-	return telemetry_mgr->CollectHistoMetrics(sv(prefix), sv(name));
+	return telemetry_mgr->CollectHistogramMetrics(sv(prefix), sv(name));
 	%}

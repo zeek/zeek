@@ -8,7 +8,7 @@
 
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/ID.h"
-#include "zeek/telemetry/Collect.h"
+#include "zeek/telemetry/OtelReader.h"
 #include "zeek/telemetry/Timer.h"
 #include "zeek/telemetry/telemetry.bif.h"
 #include "zeek/zeek-version.h"
@@ -35,7 +35,7 @@ namespace zeek::telemetry {
 
 enum MetricType { COUNTER, GAUGE, HISTOGRAM };
 
-static metrics_sdk::AggregationType GetAggregationType(const metrics_sdk::PointType& point_type) {
+static metrics_sdk::AggregationType get_aggregation_type(const metrics_sdk::PointType& point_type) {
     if ( opentelemetry::nostd::holds_alternative<metrics_sdk::SumPointData>(point_type) ) {
         return metrics_sdk::AggregationType::kSum;
     }
@@ -52,7 +52,7 @@ static metrics_sdk::AggregationType GetAggregationType(const metrics_sdk::PointT
     return metrics_sdk::AggregationType::kDefault;
 }
 
-static MetricType GetMetricType(metrics_sdk::AggregationType agg_type, bool is_monotonic) {
+static MetricType get_metric_type(metrics_sdk::AggregationType agg_type, bool is_monotonic) {
     switch ( agg_type ) {
         case metrics_sdk::AggregationType::kSum:
             if ( ! is_monotonic ) {
@@ -70,7 +70,20 @@ static MetricType GetMetricType(metrics_sdk::AggregationType agg_type, bool is_m
     }
 }
 
-static void SetValues(const RecordValPtr& r, const metrics_sdk::ValueType& value, int value_idx, int count_value_idx) {
+// Convert an int64_t or double to a DoubleValPtr. int64_t is casted.
+template<typename T>
+zeek::IntrusivePtr<zeek::DoubleVal> as_double_val(T val) {
+    if constexpr ( std::is_same_v<T, int64_t> || std::is_same_v<T, uint64_t> ) {
+        return zeek::make_intrusive<zeek::DoubleVal>(static_cast<double>(val));
+    }
+    else {
+        static_assert(std::is_same_v<T, double>);
+        return zeek::make_intrusive<zeek::DoubleVal>(val);
+    }
+};
+
+static void set_record_values(const RecordValPtr& r, const metrics_sdk::ValueType& value, int value_idx,
+                              int count_value_idx) {
     if ( opentelemetry::nostd::holds_alternative<double>(value) ) {
         r->Assign(value_idx, as_double_val(opentelemetry::nostd::get<double>(value)));
     }
@@ -78,6 +91,21 @@ static void SetValues(const RecordValPtr& r, const metrics_sdk::ValueType& value
         int64_t v = opentelemetry::nostd::get<int64_t>(value);
         r->Assign(value_idx, as_double_val(v));
         r->Assign(count_value_idx, val_mgr->Count(v));
+    }
+}
+
+template<typename T>
+void build_observation(const std::map<std::pair<std::string, std::string>, T>& values,
+                       opentelemetry::metrics::ObserverResult& result) {
+    if ( opentelemetry::nostd::holds_alternative<
+             opentelemetry::nostd::shared_ptr<opentelemetry::metrics::ObserverResultT<T>>>(result) ) {
+        auto res =
+            opentelemetry::nostd::get<opentelemetry::nostd::shared_ptr<opentelemetry::metrics::ObserverResultT<T>>>(
+                result);
+
+        for ( const auto& [k, v] : values ) {
+            res->Observe(v, {k});
+        }
     }
 }
 
@@ -140,33 +168,7 @@ std::shared_ptr<MetricFamily> Manager::LookupFamily(std::string_view prefix, std
 
 // -- collect metric stuff -----------------------------------------------------
 
-std::vector<CollectedValueMetric> Manager::CollectMetrics(std::string_view prefix, std::string_view name) {
-    std::vector<CollectedValueMetric> result;
-
-    for ( const auto& family : families ) {
-        if ( family->Matches(prefix, name) ) {
-            auto metrics = family->CollectMetrics();
-            std::move(metrics.begin(), metrics.end(), std::back_inserter(result));
-        }
-    }
-
-    return result;
-}
-
-std::vector<CollectedHistogramMetric> Manager::CollectHistogramMetrics(std::string_view prefix, std::string_view name) {
-    std::vector<CollectedHistogramMetric> result;
-
-    for ( const auto& family : families ) {
-        if ( family->Matches(prefix, name) ) {
-            auto metrics = family->CollectHistogramMetrics();
-            std::move(metrics.begin(), metrics.end(), std::back_inserter(result));
-        }
-    }
-
-    return result;
-}
-
-ValPtr Manager::CollectValueMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
+ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
     static auto metric_record_type = zeek::id::find_type<zeek::RecordType>("Telemetry::Metric");
     static auto opts_idx = metric_record_type->FieldOffset("opts");
@@ -201,12 +203,12 @@ ValPtr Manager::CollectValueMetrics(std::string_view prefix_pattern, std::string
                 // Point data = instrument
                 for ( const auto& point_data_attr : metric.point_data_attr_ ) {
                     bool is_monotonic = true;
-                    auto agg_type = GetAggregationType(point_data_attr.point_data);
+                    auto agg_type = get_aggregation_type(point_data_attr.point_data);
                     if ( agg_type == metrics_sdk::AggregationType::kSum )
                         is_monotonic = opentelemetry::nostd::get<metrics_sdk::SumPointData>(point_data_attr.point_data)
                                            .is_monotonic_;
 
-                    auto metric_type = GetMetricType(agg_type, is_monotonic);
+                    auto metric_type = get_metric_type(agg_type, is_monotonic);
                     if ( metric_type == MetricType::HISTOGRAM )
                         continue;
 
@@ -224,21 +226,21 @@ ValPtr Manager::CollectValueMetrics(std::string_view prefix_pattern, std::string
                             auto point_data =
                                 opentelemetry::nostd::get<metrics_sdk::LastValuePointData>(point_data_attr.point_data);
                             std::vector<metrics_sdk::ValueType> values{point_data.value_};
-                            SetValues(r, values[0], value_idx, count_value_idx);
+                            set_record_values(r, values[0], value_idx, count_value_idx);
                         }
                         else if ( opentelemetry::nostd::holds_alternative<metrics_sdk::SumPointData>(
                                       point_data_attr.point_data) ) {
                             auto point_data =
                                 opentelemetry::nostd::get<metrics_sdk::SumPointData>(point_data_attr.point_data);
                             std::vector<metrics_sdk::ValueType> values{point_data.value_};
-                            SetValues(r, values[0], value_idx, count_value_idx);
+                            set_record_values(r, values[0], value_idx, count_value_idx);
                         }
                     }
                     else {
                         auto point_data =
                             opentelemetry::nostd::get<metrics_sdk::SumPointData>(point_data_attr.point_data);
                         std::vector<metrics_sdk::ValueType> values{point_data.value_};
-                        SetValues(r, values[0], value_idx, count_value_idx);
+                        set_record_values(r, values[0], value_idx, count_value_idx);
                     }
 
                     ret_val->Append(r);
@@ -251,7 +253,7 @@ ValPtr Manager::CollectValueMetrics(std::string_view prefix_pattern, std::string
     return ret_val;
 }
 
-ValPtr Manager::CollectHistoMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
+ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
     static auto double_vec_type = zeek::id::find_type<zeek::VectorType>("double_vec");
     static auto count_vec_type = zeek::id::find_type<zeek::VectorType>("index_vec");
@@ -297,12 +299,12 @@ ValPtr Manager::CollectHistoMetrics(std::string_view prefix_pattern, std::string
                 // Point data = instrument
                 for ( const auto& point_data_attr : metric.point_data_attr_ ) {
                     bool is_monotonic = true;
-                    auto agg_type = GetAggregationType(point_data_attr.point_data);
+                    auto agg_type = get_aggregation_type(point_data_attr.point_data);
                     if ( agg_type == metrics_sdk::AggregationType::kSum )
                         is_monotonic = opentelemetry::nostd::get<metrics_sdk::SumPointData>(point_data_attr.point_data)
                                            .is_monotonic_;
 
-                    auto metric_type = GetMetricType(agg_type, is_monotonic);
+                    auto metric_type = get_metric_type(agg_type, is_monotonic);
                     if ( metric_type != MetricType::HISTOGRAM )
                         continue;
 
@@ -344,10 +346,6 @@ ValPtr Manager::CollectHistoMetrics(std::string_view prefix_pattern, std::string
                     for ( auto val : counts )
                         counts_vec->Append(as_double_val(val));
                     r->Assign(values_idx, counts_vec);
-
-                    // SetData(std::vector<double>{sum, (double)histogram_point_data.count_},
-                    //         boundaries, counts, point_data_attr.attributes,
-                    //         instrumentation_info.scope_, &metric_family, data.resource_);
 
                     ret_val->Append(r);
                 }

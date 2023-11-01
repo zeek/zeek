@@ -54,7 +54,6 @@ public:
     bool operator!=(const BaseCounter<BaseType>& rhs) const noexcept { return ! IsSameAs(rhs); }
 
     bool CompareLabels(const Span<const LabelView>& labels) const { return attributes == labels; }
-    std::vector<std::string> Labels() const { return attributes.Labels(); }
 
 protected:
     explicit BaseCounter(Handle handle, Span<const LabelView> labels) noexcept
@@ -118,21 +117,6 @@ public:
      */
     std::shared_ptr<CounterType> GetOrAdd(std::initializer_list<LabelView> labels) {
         return GetOrAdd(Span{labels.begin(), labels.size()});
-    }
-
-    /**
-     * @return All counter metrics and their values matching prefix and name.
-     * @param prefix The prefix pattern to use for filtering. Supports globbing.
-     * @param name The name pattern to use for filtering. Supports globbing.
-     */
-    std::vector<CollectedValueMetric> CollectMetrics() const override {
-        std::vector<CollectedValueMetric> result;
-        result.reserve(counters.size());
-
-        for ( const auto& cntr : counters )
-            result.emplace_back(MetricType(), this->shared_from_this(), cntr->Labels(), cntr->Value());
-
-        return result;
     }
 
 protected:

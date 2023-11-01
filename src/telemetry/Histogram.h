@@ -8,7 +8,6 @@
 
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
-#include "zeek/telemetry/Util.h"
 #include "zeek/telemetry/telemetry.bif.h"
 
 #include "opentelemetry/sdk/metrics/sync_instruments.h"
@@ -43,7 +42,6 @@ public:
     bool operator!=(const BaseHistogram& other) const noexcept { return ! IsSameAs(other); }
 
     bool CompareLabels(const Span<const LabelView>& labels) const { return attributes == labels; }
-    std::vector<std::string> Labels() const { return attributes.Labels(); }
 
 protected:
     explicit BaseHistogram(Handle handle, Span<const LabelView> labels) noexcept
@@ -140,66 +138,7 @@ public:
         return GetOrAdd(Span{labels.begin(), labels.size()});
     }
 
-    /**
-     * @return All histogram metrics and their data matching prefix and name.
-     * @param prefix The prefix pattern to use for filtering. Supports globbing.
-     * @param name The name pattern to use for filtering. Supports globbing.
-     */
-    std::vector<CollectedHistogramMetric> CollectHistogramMetrics() const override {
-        std::vector<CollectedHistogramMetric> metrics;
-
-        for ( const auto& hst : histograms ) {
-            // TODO: the opentelemetry API doesn't have direct access to the bucket information
-            // in the histogram instrument. In the meantime we just return an empty set of
-            // buckets.
-
-            if constexpr ( std::is_same_v<BaseType, uint64_t> ) {
-                CollectedHistogramMetric::IntHistogramData histogram_data;
-                histogram_data.sum = hst->Sum();
-                metrics.emplace_back(MetricType(), this->shared_from_this(), hst->Labels(), std::move(histogram_data));
-            }
-            else {
-                CollectedHistogramMetric::DblHistogramData histogram_data;
-                histogram_data.sum = hst->Sum();
-                metrics.emplace_back(MetricType(), this->shared_from_this(), hst->Labels(), std::move(histogram_data));
-            }
-        }
-
-        return metrics;
-    }
-
 protected:
-    void AddAdditionalOpts() const override {
-        static auto double_vec_type = zeek::id::find_type<zeek::VectorType>("double_vec");
-        static auto count_vec_type = zeek::id::find_type<zeek::VectorType>("index_vec");
-
-        // Add bounds and optionally count_bounds into the MetricOpts record.
-        static auto opts_rt = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
-        static auto opts_rt_idx_bounds = opts_rt->FieldOffset("bounds");
-        static auto opts_rt_idx_count_bounds = opts_rt->FieldOffset("count_bounds");
-
-        auto add_double_bounds = [](auto& r, const auto* family) {
-            size_t buckets = family->NumBuckets();
-            auto bounds_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
-            for ( size_t i = 0; i < buckets; i++ )
-                bounds_vec->Append(as_double_val(family->UpperBoundAt(i)));
-
-            r->Assign(opts_rt_idx_bounds, bounds_vec);
-        };
-
-        add_double_bounds(record_val, this);
-
-        if constexpr ( std::is_same_v<BaseType, uint64_t> ) {
-            // Add count_bounds to uint64_t histograms
-            size_t buckets = NumBuckets();
-            auto count_bounds_vec = make_intrusive<zeek::VectorVal>(count_vec_type);
-            for ( size_t i = 0; i < buckets; i++ )
-                count_bounds_vec->Append(val_mgr->Count(UpperBoundAt(i)));
-
-            record_val->Assign(opts_rt_idx_count_bounds, count_bounds_vec);
-        }
-    }
-
     using Handle = opentelemetry::nostd::shared_ptr<opentelemetry::metrics::Histogram<BaseType>>;
 
     Handle instrument;

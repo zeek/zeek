@@ -53,23 +53,47 @@ bool Analyzer::IsAnalyzer(const char* name) {
     return packet_mgr->GetComponentName(tag) == name;
 }
 
-AnalyzerPtr Analyzer::Lookup(uint32_t identifier) const { return dispatcher.Lookup(identifier); }
+const AnalyzerPtr& Analyzer::Lookup(uint32_t identifier) const { return dispatcher.Lookup(identifier); }
 
-bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, uint32_t identifier) const {
-    auto inner_analyzer = Lookup(identifier);
-    if ( ! inner_analyzer ) {
-        for ( const auto& child : analyzers_to_detect ) {
-            if ( child->DetectProtocol(len, data, packet) ) {
-                DBG_LOG(DBG_PACKET_ANALYSIS, "Protocol detection in %s succeeded, next layer analyzer is %s",
-                        GetAnalyzerName(), child->GetAnalyzerName());
-                inner_analyzer = child;
-                break;
-            }
+// Find the next inner analyzer using identifier or via DetectProtocol(),
+// otherwise return the default analyzer.
+const AnalyzerPtr& Analyzer::FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet,
+                                               uint32_t identifier) const {
+    const auto& identifier_based_analyzer = Lookup(identifier);
+    if ( identifier_based_analyzer )
+        return identifier_based_analyzer;
+
+    const auto& detect_based_analyzer = DetectInnerAnalyzer(len, data, packet);
+    if ( detect_based_analyzer )
+        return detect_based_analyzer;
+
+    return default_analyzer;
+}
+
+// Find the next inner analyzer via DetectProtocol(), otherwise the default analyzer.
+const AnalyzerPtr& Analyzer::FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet) const {
+    const auto& detect_based_analyzer = DetectInnerAnalyzer(len, data, packet);
+    if ( detect_based_analyzer )
+        return detect_based_analyzer;
+
+    return default_analyzer;
+}
+
+// Return an analyzer found via DetectProtocol() for the given data, else nil.
+const AnalyzerPtr& Analyzer::DetectInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet) const {
+    for ( const auto& child : analyzers_to_detect ) {
+        if ( child->IsEnabled() && child->DetectProtocol(len, data, packet) ) {
+            DBG_LOG(DBG_PACKET_ANALYSIS, "Protocol detection in %s succeeded, next layer analyzer is %s",
+                    GetAnalyzerName(), child->GetAnalyzerName());
+            return child;
         }
     }
 
-    if ( ! inner_analyzer )
-        inner_analyzer = default_analyzer;
+    return nil;
+}
+
+bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, uint32_t identifier) const {
+    const auto& inner_analyzer = FindInnerAnalyzer(len, data, packet, identifier);
 
     if ( ! inner_analyzer ) {
         DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
@@ -89,23 +113,12 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, ui
 
     DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.", GetAnalyzerName(),
             identifier);
+
     return inner_analyzer->AnalyzePacket(len, data, packet);
 }
 
 bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const {
-    AnalyzerPtr inner_analyzer = nullptr;
-
-    for ( const auto& child : analyzers_to_detect ) {
-        if ( child->DetectProtocol(len, data, packet) ) {
-            DBG_LOG(DBG_PACKET_ANALYSIS, "Protocol detection in %s succeeded, next layer analyzer is %s",
-                    GetAnalyzerName(), child->GetAnalyzerName());
-            inner_analyzer = child;
-            break;
-        }
-    }
-
-    if ( ! inner_analyzer )
-        inner_analyzer = default_analyzer;
+    const auto& inner_analyzer = FindInnerAnalyzer(len, data, packet);
 
     if ( ! inner_analyzer ) {
         DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s stopped, no default analyzer available.", GetAnalyzerName());

@@ -1,3 +1,37 @@
+6.2.0-dev.93 | 2023-11-01 12:04:16 +0100
+
+  * build_inner_connection: Use the outer packet's timestamp (Arne Welzel, Corelight)
+
+    Don't construct the timeval based on run_state, just use the timestamp
+    of the outer packet to avoid the extra int/double conversions required.
+
+  * build_inner_connection: Avoid one extra Init() (Arne Welzel, Corelight)
+
+    Packet::Init() is not so cheap as one might think: It computes a
+    timestamp from { 0, 0 } using double division. Just avoid this
+    by not initializing an empty Packet.
+
+  * packet_analysis: Do not run DetectProtocol() on disabled analyzers (Arne Welzel, Corelight)
+
+    This came up when disabling the TEREDO analyzer but still seeing its
+    DetectProtocol() method prominently in flame graphs.
+
+  * packet_analysis/Dispatcher: Do not index table twice (Arne Welzel, Corelight)
+
+    It's okay to return the nullptr that's in the table, no need to check
+    for != nullptr before dereferencing again.
+
+  * GH-3379: packet_analysis: Avoid shared_ptr copying for analyzer lookups (Arne Welzel, Corelight)
+
+    For deeply encapsulated connections (think AWS traffic mirroring format
+    like IP,UDP,GENEVE,IP,UDP,VXLAN,ETH,IP,TCP), the Dispatcher::Lookup()
+    method is fairly visible in profiles when running in bare mode.
+
+    This changes the Analyzer::Lookup() and Dispatcher::Lookup() return value
+    breaking the API in favor of the performance improvement.
+
+    Relates to zeek/zeek#3379.
+
 6.2.0-dev.86 | 2023-10-31 16:17:33 +0000
 
   * SSL: Add new extension types and ECH test (Johanna Amann, Corelight)

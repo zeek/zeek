@@ -9,6 +9,10 @@ Zeek 6.2.0
 Breaking Changes
 ----------------
 
+- The methods ``Dispatcher::Lookup()`` and ``Analyzer::Lookup()`` in the packet_analysis
+  namespace were changed to return a reference to a std::shared_ptr instead of a copy
+  for performance reasons.
+
 New Functionality
 -----------------
 

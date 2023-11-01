@@ -2383,11 +2383,10 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice, bo
         return;
 
     if ( op1->GetType()->Tag() == TYPE_TABLE ) { // Check for a table[pattern] being indexed by a string
-        auto table_type = op1->GetType()->AsTableType();
-        auto& it = table_type->GetIndexTypes();
-        auto& rhs_type = op2->GetType()->AsTypeList()->GetTypes();
-        if ( it.size() == 1 && it[0]->Tag() == TYPE_PATTERN && table_type->Yield() && rhs_type.size() == 1 &&
-             rhs_type[0]->Tag() == TYPE_STRING ) {
+        const auto& table_type = op1->GetType()->AsTableType();
+        const auto& rhs_type = op2->GetType()->AsTypeList()->GetTypes();
+        if ( table_type->IsPatternIndex() && table_type->Yield() && rhs_type.size() == 1 &&
+             IsString(rhs_type[0]->Tag()) ) {
             is_pattern_table = true;
             SetType(make_intrusive<VectorType>(op1->GetType()->Yield()));
             return;

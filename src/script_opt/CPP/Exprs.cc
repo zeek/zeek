@@ -391,8 +391,7 @@ string CPPCompile::GenIndexExpr(const Expr* e, GenType gt) {
         auto ind_expr = e->GetOp2()->AsListExpr()->Exprs()[0];
         auto is_pat_str_ind = false;
 
-        auto& indices = aggr_t->AsTableType()->GetIndices()->GetTypes();
-        if ( indices.size() == 1 && indices[0]->Tag() == TYPE_PATTERN && ind_expr->GetType()->Tag() == TYPE_STRING )
+        if ( aggr_t->AsTableType()->IsPatternIndex() && ind_expr->GetType()->Tag() == TYPE_STRING )
             is_pat_str_ind = true;
 
         if ( inside_when ) {

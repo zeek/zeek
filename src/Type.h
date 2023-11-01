@@ -356,6 +356,9 @@ public:
     // Returns true if this table is solely indexed by subnet.
     bool IsSubNetIndex() const;
 
+    // Returns true if this table has a single index of type pattern.
+    bool IsPatternIndex() const;
+
     detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:

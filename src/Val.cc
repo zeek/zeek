@@ -1547,8 +1547,7 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
     else
         subnets = nullptr;
 
-    auto& it = table_type->GetIndexTypes();
-    if ( it.size() == 1 && it[0]->Tag() == TYPE_PATTERN && table_type->Yield() )
+    if ( table_type->IsPatternIndex() && table_type->Yield() )
         pattern_matcher = new TablePatternMatcher(this, table_type->Yield());
 
     table_hash = new detail::CompositeHash(table_type->GetIndices());

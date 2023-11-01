@@ -172,6 +172,10 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     dfa = new DFA_Machine(nfa, EC());
     ecs = EC()->EquivClasses();
 
+    // dfa took ownership
+    Unref(nfa);
+    nfa = nullptr;
+
     return true;
 }
 
@@ -455,13 +459,16 @@ bool RE_Matcher::Compile(bool lazy) { return re_anywhere->Compile(lazy) && re_ex
 RE_DisjunctiveMatcher::RE_DisjunctiveMatcher(const std::vector<const RE_Matcher*>& REs) {
     matcher = std::make_unique<detail::Specific_RE_Matcher>(detail::MATCH_EXACTLY);
 
-    std::string disjunction;
-    for ( auto re : REs )
-        disjunction += std::string("||") + re->PatternText();
+    zeek::detail::string_list sl;
+    zeek::detail::int_list il;
 
-    matcher->SetPat(disjunction.c_str());
-    auto status = matcher->Compile();
-    ASSERT(status);
+    for ( const auto* re : REs ) {
+        sl.push_back(const_cast<char*>(re->PatternText()));
+        il.push_back(sl.size());
+    }
+
+    if ( ! matcher->CompileSet(sl, il) )
+        reporter->FatalError("failed compile set for disjunctive matcher");
 }
 
 void RE_DisjunctiveMatcher::Match(const String* s, std::vector<int>& matches) {

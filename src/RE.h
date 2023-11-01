@@ -36,7 +36,6 @@ extern CCL* curr_ccl;
 extern NFA_Machine* nfa;
 extern Specific_RE_Matcher* rem;
 extern const char* RE_parse_input;
-extern int RE_accept_num;
 
 extern int clower(int);
 extern void synerr(const char str[]);

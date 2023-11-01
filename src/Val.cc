@@ -1436,15 +1436,11 @@ public:
     TablePatternMatcher(const TableVal* _tbl, TypePtr _yield) : tbl(_tbl) {
         vtype = make_intrusive<VectorType>(std::move(_yield));
     }
-    ~TablePatternMatcher() { Clear(); }
 
     void Insert(ValPtr pat, ValPtr yield) { Clear(); }
     void Remove(ValPtr pat) { Clear(); }
 
-    void Clear() {
-        delete matcher;
-        matcher = nullptr;
-    }
+    void Clear() { matcher.reset(); }
 
     VectorValPtr Lookup(const StringVal* s);
 
@@ -1461,7 +1457,7 @@ private:
     // from having to re-build the matcher on every insert/delete in
     // the common case that a whole bunch of those are done in a single
     // batch.
-    RE_DisjunctiveMatcher* matcher = nullptr;
+    std::unique_ptr<RE_DisjunctiveMatcher> matcher = nullptr;
 
     // Maps matcher values to corresponding yields. When building the
     // matcher we insert a nil at the head to accommodate how
@@ -1511,7 +1507,7 @@ void TablePatternMatcher::Build() {
         hash_key_vals.push_back(std::move(vl));
     }
 
-    matcher = new RE_DisjunctiveMatcher(patterns);
+    matcher = std::make_unique<RE_DisjunctiveMatcher>(patterns);
 }
 
 TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t) {

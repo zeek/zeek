@@ -51,6 +51,7 @@ class Frame;
 class PrefixTable;
 class CompositeHash;
 class HashKey;
+class TablePatternMatcher;
 
 class ValTrace;
 class ZBody;
@@ -718,8 +719,6 @@ protected:
     TableVal* table;
 };
 
-class TablePatternMatcher;
-
 class TableVal final : public Val, public notifier::detail::Modifiable {
 public:
     explicit TableVal(TableTypePtr t, detail::AttributesPtr attrs = nullptr);
@@ -1039,7 +1038,7 @@ protected:
     TableValTimer* timer;
     RobustDictIterator<TableEntryVal>* expire_iterator;
     detail::PrefixTable* subnets;
-    TablePatternMatcher* pattern_matcher = nullptr;
+    detail::TablePatternMatcher* pattern_matcher = nullptr;
     ValPtr def_val;
     detail::ExprPtr change_func;
     std::string broker_store;

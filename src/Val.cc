@@ -1427,11 +1427,9 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
     }
 }
 
-using PatternValPtr = IntrusivePtr<PatternVal>;
-
 // Support class for returning multiple values from a table[pattern]
 // when indexed with a string.
-class TablePatternMatcher {
+class detail::TablePatternMatcher {
 public:
     TablePatternMatcher(const TableVal* _tbl, TypePtr _yield) : tbl(_tbl) {
         vtype = make_intrusive<VectorType>(std::move(_yield));
@@ -1465,7 +1463,7 @@ private:
     std::vector<ValPtr> matcher_yields;
 };
 
-VectorValPtr TablePatternMatcher::Lookup(const StringVal* s) {
+VectorValPtr detail::TablePatternMatcher::Lookup(const StringVal* s) {
     auto results = make_intrusive<VectorVal>(vtype);
 
     if ( ! matcher ) {
@@ -1484,7 +1482,7 @@ VectorValPtr TablePatternMatcher::Lookup(const StringVal* s) {
     return results;
 }
 
-void TablePatternMatcher::Build() {
+void detail::TablePatternMatcher::Build() {
     matcher_yields.clear();
     matcher_yields.push_back(nullptr);
 
@@ -1544,7 +1542,7 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
         subnets = nullptr;
 
     if ( table_type->IsPatternIndex() && table_type->Yield() )
-        pattern_matcher = new TablePatternMatcher(this, table_type->Yield());
+        pattern_matcher = new detail::TablePatternMatcher(this, table_type->Yield());
 
     table_hash = new detail::CompositeHash(table_type->GetIndices());
     if ( ordered )

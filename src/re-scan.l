@@ -23,6 +23,7 @@
 #include "re-parse.h"
 
 const char* zeek::detail::RE_parse_input = nullptr;
+int zeek::detail::RE_accept_num = 0;
 
 #define RET_CCE(func) \
 	BEGIN(SC_CCL); \
@@ -143,6 +144,8 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 				}
 			}
 
+	"||"		return TOK_DISJUNCTION;
+
 	[|*+?.(){}]	return yytext[0];
 	.		yylval.int_val = yytext[0]; return TOK_CHAR;
 	\n		return 0;	// treat as end of pattern
@@ -237,6 +240,7 @@ YY_BUFFER_STATE RE_buf;
 void RE_set_input(const char* str)
 	{
 	zeek::detail::RE_parse_input = str;
+	zeek::detail::RE_accept_num = 0;
 	RE_buf = yy_scan_string(str);
 	}
 

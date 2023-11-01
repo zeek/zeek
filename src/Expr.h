@@ -1012,6 +1012,7 @@ protected:
 
     bool is_slice;
     bool is_inside_when;
+    bool is_pattern_table = false;
 };
 
 // The following execute the heart of IndexExpr functionality for

@@ -21,6 +21,7 @@ void yyerror(const char msg[]);
 %}
 
 %token TOK_CHAR TOK_NUMBER TOK_CCL TOK_CCE TOK_CASE_INSENSITIVE TOK_SINGLE_LINE
+%token TOK_DISJUNCTION
 
 %union {
 	int int_val;
@@ -32,13 +33,16 @@ void yyerror(const char msg[]);
 %type <int_val> TOK_CHAR TOK_NUMBER
 %type <cce_val> TOK_CCE
 %type <ccl_val> TOK_CCL ccl full_ccl
-%type <mach_val> re singleton series string
+%type <mach_val> re singleton series string disjunction
 
 %destructor { delete $$; } <mach_val>
 
 %%
 flexrule	:	re
 			{ $1->AddAccept(1); zeek::detail::nfa = $1; }
+
+		|  disjunction
+			{ zeek::detail::nfa = $1; }
 
 		|  error
 			{ return 1; }
@@ -49,6 +53,18 @@ re		:  re '|' series
 		|  series
 		|
 			{ $$ = new zeek::detail::NFA_Machine(new zeek::detail::EpsilonState()); }
+		;
+
+disjunction	:  disjunction TOK_DISJUNCTION re
+			{
+			$3->AddAccept(++zeek::detail::RE_accept_num);
+			$$ = zeek::detail::make_alternate($1, $3);
+			}
+		|  TOK_DISJUNCTION re
+			{
+			$2->AddAccept(++zeek::detail::RE_accept_num);
+			$$ = $2;
+			}
 		;
 
 series		:  series singleton

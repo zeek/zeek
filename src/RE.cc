@@ -251,6 +251,33 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n) {
     return 0;
 }
 
+void Specific_RE_Matcher::MatchDisjunction(const String* s, std::vector<int>& matches) {
+    auto bv = s->Bytes();
+    auto n = s->Len();
+
+    ASSERT(dfa);
+
+    DFA_State* d = dfa->StartState();
+    d = d->Xtion(ecs[SYM_BOL], dfa);
+
+    while ( d ) {
+        if ( --n < 0 )
+            break;
+
+        int ec = ecs[*(bv++)];
+        d = d->Xtion(ec, dfa);
+    }
+
+    if ( d )
+        d = d->Xtion(ecs[SYM_EOL], dfa);
+
+    if ( d )
+        if ( auto a_set = d->Accept() )
+            for ( auto a : *a_set )
+                matches.push_back(a);
+}
+
+
 void Specific_RE_Matcher::Dump(FILE* f) { dfa->Dump(f); }
 
 inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position) {
@@ -424,6 +451,23 @@ void RE_Matcher::MakeSingleLine() {
 }
 
 bool RE_Matcher::Compile(bool lazy) { return re_anywhere->Compile(lazy) && re_exact->Compile(lazy); }
+
+RE_DisjunctiveMatcher::RE_DisjunctiveMatcher(const std::vector<const RE_Matcher*>& REs) {
+    matcher = std::make_unique<detail::Specific_RE_Matcher>(detail::MATCH_EXACTLY);
+
+    std::string disjunction;
+    for ( auto re : REs )
+        disjunction += std::string("||") + re->PatternText();
+
+    matcher->SetPat(disjunction.c_str());
+    auto status = matcher->Compile();
+    ASSERT(status);
+}
+
+void RE_DisjunctiveMatcher::Match(const String* s, std::vector<int>& matches) {
+    matches.clear();
+    return matcher->MatchDisjunction(s, matches);
+}
 
 TEST_SUITE("re_matcher") {
     TEST_CASE("simple_pattern") {

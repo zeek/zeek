@@ -8,6 +8,7 @@ extend-ignore-re = [
     "des-ede3-cbc-Env-OID",
     "Remove in v6.1.*SupressWeird",
     "max_repititions:.*Remove in v6.1",
+    "pointers mis-aliasing",
     # On purpose
     "\"THE NETBIOS NAM\"",
     # NFS stuff.

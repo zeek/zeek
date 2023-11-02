@@ -50,6 +50,11 @@ struct AnalyOpt {
     // If true, do global inlining.
     bool inliner = false;
 
+    // If true, suppress global inlining.  A separate option because
+    // it needs to override situations where "inliner" is implicitly
+    // enabled due to other options.
+    bool no_inliner = false;
+
     // If true, report which functions are directly and indirectly
     // recursive, and exit.  Only germane if running the inliner.
     bool report_recursive = false;
@@ -155,6 +160,17 @@ protected:
 // so that if we don't do the analysis at all (it's driven by inlining),
 // we err on the conservative side and assume every function is recursive.
 extern std::unordered_set<const Func*> non_recursive_funcs;
+
+// The guts of script optimization often wind up using bare const pointers
+// rather than intrusive pointers, both because the Traverse framework
+// uses those, and because we can't readily track intrusive pointers in
+// sets/maps.  Because during optimization AST nodes can be replaced with
+// newly constructed ones, it's important to ensure that there's no risk
+// of new bare pointers mis-aliasing with previous, now-discarded, ones.
+// To do so, as AST elements are constructed, they're registered with
+// script-optimization via these functions.
+extern void register_new_stmt(StmtPtr s);
+extern void register_new_expr(ExprPtr e);
 
 // Analyze a given function for optimization.
 extern void analyze_func(ScriptFuncPtr f);

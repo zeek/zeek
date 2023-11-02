@@ -2,8 +2,8 @@
 
 #pragma once
 
-// Class for managing temporary variables created during statement reduction
-// for compilation.
+// Reducer helper class for managing temporary variables created during
+// statement reduction for compilation.
 
 #include <string>
 
@@ -15,10 +15,9 @@ namespace zeek::detail {
 
 class TempVar {
 public:
-    TempVar(size_t num, const TypePtr& t, ExprPtr rhs);
+    TempVar(size_t num, ExprPtr rhs);
 
     const char* Name() const { return name.data(); }
-    const zeek::Type* Type() const { return type.get(); }
     const Expr* RHS() const { return rhs.get(); }
 
     IDPtr Id() const { return id; }
@@ -42,7 +41,6 @@ public:
 protected:
     std::string name;
     IDPtr id;
-    const TypePtr& type;
     ExprPtr rhs;
     bool active = true;
     IDPtr alias;

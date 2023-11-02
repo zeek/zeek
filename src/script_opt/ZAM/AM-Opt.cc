@@ -228,6 +228,14 @@ bool ZAMCompiler::PruneUnused() {
             continue;
         }
 
+        if ( i == insts1.size() - 1 && inst->op == OP_RETURN_X ) {
+            // A non-value return at the very end of the body
+            // doesn't actually do anything.
+            did_prune = true;
+            KillInst(i);
+            continue;
+        }
+
         if ( inst->IsLoad() && ! VarIsUsed(inst->v1) ) {
             did_prune = true;
             KillInst(i);

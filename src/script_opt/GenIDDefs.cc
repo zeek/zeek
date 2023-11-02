@@ -22,6 +22,7 @@ void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body) {
 
     // Establish the outermost barrier and associated set of
     // identifiers.
+    // ### Remove barrier_blocks
     barrier_blocks.push_back(0);
     modified_IDs.emplace_back();
 
@@ -63,9 +64,9 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             auto cr = s->AsCatchReturnStmt();
             auto block = cr->Block();
 
-            StartConfluenceBlock(s);
+            cr_active.push_back(confluence_blocks.size());
             block->Traverse(this);
-            EndConfluenceBlock();
+            cr_active.pop_back();
 
             auto retvar = cr->RetVar();
             if ( retvar )
@@ -443,8 +444,12 @@ const Stmt* GenIDDefs::FindBreakTarget() {
 }
 
 void GenIDDefs::ReturnAt(const Stmt* s) {
-    for ( auto id : modified_IDs.back() )
-        id->GetOptInfo()->ReturnAt(s);
+    // If we're right at a catch-return then we don't want to make the
+    // identifier as encountering a scope-ending "return" here.  By avoiding
+    // that, we're able to do optimization across catch-return blocks.
+    if ( cr_active.empty() || cr_active.back() != confluence_blocks.size() )
+        for ( auto id : modified_IDs.back() )
+            id->GetOptInfo()->ReturnAt(s);
 }
 
 void GenIDDefs::TrackID(const ID* id, const ExprPtr& e) {

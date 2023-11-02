@@ -6,6 +6,7 @@
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
+#include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek::detail {
 
@@ -14,7 +15,7 @@ class TempVar;
 
 class Reducer {
 public:
-    Reducer(const ScriptFunc* func);
+    Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> pf);
 
     StmtPtr Reduce(StmtPtr s);
 
@@ -41,8 +42,18 @@ public:
     bool ID_IsReducedOrTopLevel(const IDPtr& id) { return ID_IsReducedOrTopLevel(id.get()); }
     bool ID_IsReducedOrTopLevel(const ID* id);
 
-    // This is called *prior* to pushing a new inline block, in
-    // order to generate the equivalent of function parameters.
+    // This is called *prior* to pushing a new inline block, in order
+    // to generate the equivalent of function parameters.  "rhs" is
+    // the concrete argument to which the (inline version of the)
+    // identifier will be assigned, and "is_modified" is true if the
+    // parameter is assigned to in the body of the block.
+    //
+    // The return value is a statement that performs an assignment
+    // to initialize the parameter to the RHS.
+    StmtPtr GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified);
+
+    // Returns an expression for referring to an identifier in the
+    // context of an inline block.
     NameExprPtr GenInlineBlockName(const IDPtr& id);
 
     int NumNewLocals() const { return new_locals.size(); }
@@ -69,6 +80,7 @@ public:
     bool IsNewLocal(const ID* id) const;
 
     bool IsTemporary(const ID* id) const { return FindTemporary(id) != nullptr; }
+    bool IsParamTemp(const ID* id) const { return param_temps.count(id) > 0; }
 
     bool IsConstantVar(const ID* id) const { return constant_vars.find(id) != constant_vars.end(); }
 
@@ -114,7 +126,8 @@ public:
     // current assignment statement should be deleted).  In
     // that case, has the side effect of associating an alias
     // for the LHS with the temporary variable that holds the
-    // equivalent RHS.
+    // equivalent RHS; or if the LHS is a local that has no other
+    // assignments, and the same for the RHS.
     //
     // Assumes reduction (including alias propagation) has
     // already been applied.
@@ -190,7 +203,7 @@ protected:
     // into compound expressions.
     void CheckIDs(const Expr* e, std::vector<const ID*>& ids) const;
 
-    IDPtr GenTemporary(const TypePtr& t, ExprPtr rhs);
+    IDPtr GenTemporary(TypePtr t, ExprPtr rhs, IDPtr id = nullptr);
     std::shared_ptr<TempVar> FindTemporary(const ID* id) const;
 
     // Retrieve the identifier corresponding to the new local for
@@ -211,6 +224,9 @@ protected:
     // the corresponding ConstExpr with the value.
     const ConstExpr* CheckForConst(const IDPtr& id, int stmt_num) const;
 
+    // Profile associated with the function.
+    std::shared_ptr<ProfileFunc> pf;
+
     // Tracks the temporary variables created during the reduction/
     // optimization process.
     std::vector<std::shared_ptr<TempVar>> temps;
@@ -228,6 +244,10 @@ protected:
 
     // Local variables created during reduction/optimization.
     IDSet new_locals;
+
+    // Parameters that we're treating as temporaries to facilitate CSE
+    // across inlined functions.
+    IDSet param_temps;
 
     // Mapping of original identifiers to new locals.  Used to
     // rename local variables when inlining.

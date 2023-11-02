@@ -1273,6 +1273,10 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
+    bool IsReduced(Reducer* c) const override;
+    bool WillTransform(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
     const std::vector<int>& Map() const { return map; }
 
 protected:
@@ -1362,7 +1366,9 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
+    bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
     ValPtr Fold(Val* v1, Val* v2) const override;
@@ -1502,6 +1508,8 @@ public:
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
+    bool AllConstantOps() const;
+
 protected:
     void ExprDescribe(ODesc* d) const override;
 
@@ -1579,7 +1587,8 @@ private:
 
 class InlineExpr : public Expr {
 public:
-    InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> params, StmtPtr body, int frame_offset, TypePtr ret_type);
+    InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified, StmtPtr body,
+               int frame_offset, TypePtr ret_type);
 
     bool IsPure() const override;
 
@@ -1601,6 +1610,7 @@ protected:
     void ExprDescribe(ODesc* d) const override;
 
     std::vector<IDPtr> params;
+    std::vector<bool> param_is_modified;
     int frame_offset;
     ListExprPtr args;
     StmtPtr body;

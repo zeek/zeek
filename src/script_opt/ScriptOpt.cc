@@ -37,6 +37,12 @@ static std::unordered_map<const ScriptFunc*, LambdaExpr*> lambdas;
 static std::unordered_set<const ScriptFunc*> when_lambdas;
 static ScriptFuncPtr global_stmts;
 
+static std::vector<IntrusivePtr<Obj>> AST_objs;
+
+void register_new_stmt(StmtPtr s) { AST_objs.push_back(std::move(s)); }
+
+void register_new_expr(ExprPtr e) { AST_objs.push_back(std::move(e)); }
+
 void analyze_func(ScriptFuncPtr f) {
     // Even if we're analyzing only a subset of the scripts, we still
     // track all functions here because the inliner will need the full list.
@@ -160,7 +166,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
     push_existing_scope(scope);
 
-    auto rc = std::make_shared<Reducer>(f);
+    auto rc = std::make_shared<Reducer>(f, pf);
     auto new_body = rc->Reduce(body);
 
     if ( reporter->Errors() > 0 ) {
@@ -254,6 +260,7 @@ static void init_options() {
     check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
     check_env_opt("ZEEK_DUMP_UDS", analysis_options.dump_uds);
     check_env_opt("ZEEK_INLINE", analysis_options.inliner);
+    check_env_opt("ZEEK_NO_INLINE", analysis_options.no_inliner);
     check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
     check_env_opt("ZEEK_XFORM", analysis_options.activate);
     check_env_opt("ZEEK_ZAM", analysis_options.gen_ZAM);
@@ -320,6 +327,9 @@ static void init_options() {
 
     if ( analysis_options.optimize_AST || analysis_options.gen_ZAM_code || analysis_options.usage_issues > 0 )
         analysis_options.activate = true;
+
+    if ( analysis_options.no_inliner )
+        analysis_options.inliner = false;
 }
 
 static void report_CPP() {
@@ -516,6 +526,7 @@ void clear_script_analysis() {
     non_recursive_funcs.clear();
     lambdas.clear();
     when_lambdas.clear();
+    AST_objs.clear();
 }
 
 void analyze_scripts(bool no_unused_warnings) {

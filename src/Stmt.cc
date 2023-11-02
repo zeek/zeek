@@ -69,6 +69,8 @@ Stmt::Stmt(StmtTag arg_tag) {
 
     SetLocationInfo(&start_location, &end_location);
 
+    register_new_stmt(ThisPtr());
+
     ++num_stmts;
 }
 

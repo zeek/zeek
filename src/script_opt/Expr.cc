@@ -83,6 +83,11 @@ const RecordCoerceExpr* Expr::AsRecordCoerceExpr() const {
     return (const RecordCoerceExpr*)this;
 }
 
+RecordConstructorExpr* Expr::AsRecordConstructorExpr() {
+    CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
+    return (RecordConstructorExpr*)this;
+}
+
 const RecordConstructorExpr* Expr::AsRecordConstructorExpr() const {
     CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
     return (const RecordConstructorExpr*)this;
@@ -502,6 +507,11 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
     auto op1_fold_val = op1->FoldVal();
+
+    if ( ! op1_fold_val && op1->Tag() == EXPR_LIST && op1->AsListExpr()->AllConstantOps() )
+        // We can turn the list into a ListVal.
+        op1_fold_val = op1->Eval(nullptr);
+
     auto op2_fold_val = op2->FoldVal();
     if ( op1_fold_val && op2_fold_val ) {
         auto fold = Fold(op1_fold_val.get(), op2_fold_val.get());
@@ -1468,7 +1478,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
         auto ind1_e = ind_e->Op1()->Reduce(c, ind1_stmt);
         auto ind2_e = ind_e->Op2()->Reduce(c, ind2_stmt);
-        auto rhs_e = op2->Reduce(c, rhs_stmt);
+        auto rhs_e = op2->ReduceToSingleton(c, rhs_stmt);
 
         red_stmt = MergeStmts(MergeStmts(rhs_reduce, ind1_stmt), ind2_stmt, rhs_stmt);
 
@@ -1909,6 +1919,27 @@ ExprPtr RecordCoerceExpr::Duplicate() {
     return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
 }
 
+bool RecordCoerceExpr::IsReduced(Reducer* c) const {
+    if ( WillTransform(c) )
+        return NonReduced(this);
+
+    return UnaryExpr::IsReduced(c);
+}
+
+bool RecordCoerceExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_RECORD_CONSTRUCTOR; }
+
+ExprPtr RecordCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( WillTransform(c) ) {
+        auto rt = cast_intrusive<RecordType>(type);
+        auto rc_op = op->AsRecordConstructorExpr();
+        auto known_constr = make_intrusive<RecordConstructorExpr>(rt, rc_op->Op());
+        auto red_e = known_constr->Reduce(c, red_stmt);
+        return TransformMe(std::move(red_e), c, red_stmt);
+    }
+
+    return UnaryExpr::Reduce(c, red_stmt);
+}
+
 ExprPtr TableCoerceExpr::Duplicate() {
     auto op_dup = op->Duplicate();
     return SetSucc(new TableCoerceExpr(op_dup, GetType<TableType>()));
@@ -1979,7 +2010,21 @@ ExprPtr InExpr::Duplicate() {
     return SetSucc(new InExpr(op1_d, op2_d));
 }
 
+bool InExpr::IsReduced(Reducer* c) const {
+    if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->AllConstantOps() )
+        return NonReduced(this);
+
+    return BinaryExpr::IsReduced(c);
+}
+
 bool InExpr::HasReducedOps(Reducer* c) const { return op1->HasReducedOps(c) && op2->IsSingleton(c); }
+
+ExprPtr InExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->AllConstantOps() )
+        op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
+
+    return BinaryExpr::Reduce(c, red_stmt);
+}
 
 ExprPtr CallExpr::Duplicate() {
     auto func_d = func->Duplicate();
@@ -2223,14 +2268,21 @@ StmtPtr ListExpr::ReduceToSingletons(Reducer* c) {
     return red_stmt;
 }
 
+bool ListExpr::AllConstantOps() const {
+    loop_over_list(exprs, i) if ( exprs[i]->Tag() != EXPR_CONST ) return false;
+
+    return true;
+}
+
 ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), type)); }
 
 ExprPtr IsExpr::Duplicate() { return SetSucc(new IsExpr(op->Duplicate(), t)); }
 
-InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params, StmtPtr arg_body, int _frame_offset,
-                       TypePtr ret_type)
+InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params, std ::vector<bool> arg_param_is_modified,
+                       StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
     : Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body)) {
     params = std::move(arg_params);
+    param_is_modified = std::move(arg_param_is_modified);
     frame_offset = _frame_offset;
     type = std::move(ret_type);
 }
@@ -2271,7 +2323,7 @@ ValPtr InlineExpr::Eval(Frame* f) const {
 ExprPtr InlineExpr::Duplicate() {
     auto args_d = args->Duplicate()->AsListExprPtr();
     auto body_d = body->Duplicate();
-    return SetSucc(new InlineExpr(args_d, params, body_d, frame_offset, type));
+    return SetSucc(new InlineExpr(args_d, params, param_is_modified, body_d, frame_offset, type));
 }
 
 bool InlineExpr::IsReduced(Reducer* c) const { return NonReduced(this); }
@@ -2289,11 +2341,7 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     loop_over_list(args_list, i) {
         StmtPtr arg_red_stmt;
         auto red_i = args_list[i]->Reduce(c, arg_red_stmt);
-
-        auto param_i = c->GenInlineBlockName(params[i]);
-        auto assign = make_intrusive<AssignExpr>(param_i, red_i, false, nullptr, nullptr, false);
-        auto assign_stmt = make_intrusive<ExprStmt>(assign);
-
+        auto assign_stmt = c->GenParam(params[i], red_i, param_is_modified[i]);
         red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
     }
 

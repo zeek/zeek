@@ -116,6 +116,7 @@ int Expr::num_exprs = 0;
 Expr::Expr(ExprTag arg_tag) : tag(arg_tag), paren(false), type(nullptr) {
     SetLocationInfo(&start_location, &end_location);
     opt_info = new ExprOptInfo();
+    register_new_expr(ThisPtr());
     ++num_exprs;
 }
 

@@ -16,7 +16,7 @@
 
 namespace zeek::detail {
 
-Reducer::Reducer(const ScriptFunc* func) {
+Reducer::Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> _pf) : pf(std::move(_pf)) {
     auto& ft = func->GetType();
 
     // Track the parameters so we don't remap them.
@@ -119,6 +119,34 @@ bool Reducer::ID_IsReducedOrTopLevel(const ID* id) {
 
 bool Reducer::ID_IsReduced(const ID* id) const {
     return inline_block_level == 0 || tracked_ids.count(id) > 0 || id->IsGlobal() || IsTemporary(id);
+}
+
+StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
+    auto param = GenInlineBlockName(id);
+    auto rhs_id = rhs->Tag() == EXPR_NAME ? rhs->AsNameExpr()->IdPtr() : nullptr;
+
+    if ( rhs_id && pf->Locals().count(rhs_id.get()) == 0 && ! rhs_id->IsConst() )
+        // It's hard to guarantee the RHS won't change during
+        // the inline block's execution.
+        is_modified = true;
+
+    if ( ! is_modified ) {
+        // Can use a temporary variable, which then supports
+        // optimization via alias propagation.
+        auto param_id = GenTemporary(id->GetType(), rhs, param->IdPtr());
+        auto& tv = ids_to_temps[param_id.get()];
+
+        if ( rhs_id )
+            tv->SetAlias(rhs_id);
+        else if ( rhs->Tag() == EXPR_CONST )
+            tv->SetConst(rhs->AsConstExpr());
+
+        param_temps.insert(param_id.get());
+        param = make_intrusive<NameExpr>(param_id);
+    }
+
+    auto assign = make_intrusive<AssignExpr>(param, rhs, false, nullptr, nullptr, false);
+    return make_intrusive<ExprStmt>(assign);
 }
 
 NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id) {
@@ -469,23 +497,14 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs) {
             auto rhs_id = rhs->AsNameExpr()->IdPtr();
             auto rhs_tmp_var = FindTemporary(rhs_id.get());
 
-            if ( rhs_tmp_var && rhs_tmp_var->Const() ) { // temporary can be replaced with constant
-                lhs_tmp->SetConst(rhs_tmp_var->Const());
+            if ( rhs_tmp_var ) {
+                if ( rhs_tmp_var->Const() )
+                    // temporary can be replaced with constant
+                    lhs_tmp->SetConst(rhs_tmp_var->Const());
+                else
+                    lhs_tmp->SetAlias(rhs_id);
                 return true;
             }
-
-            // Treat the LHS as either an alias for the RHS,
-            // or as a constant if the RHS is a constant in
-            // this context.
-            auto stmt_num = a->GetOptInfo()->stmt_num;
-            auto rhs_const = CheckForConst(rhs_id, stmt_num);
-
-            if ( rhs_const )
-                lhs_tmp->SetConst(rhs_const);
-            else
-                lhs_tmp->SetAlias(rhs_id);
-
-            return true;
         }
 
         expr_temps.emplace_back(lhs_tmp);
@@ -599,23 +618,7 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
             alias_tmp = FindTemporary(alias.get());
         }
 
-        if ( alias->GetOptInfo()->IsTemp() ) {
-            // Temporaries always have only one definition,
-            // so no need to check for consistency.
-            auto new_usage = NewVarUsage(alias, e.get());
-            return new_usage;
-        }
-
-        auto e_stmt_1 = e->GetOptInfo()->stmt_num;
-        auto e_stmt_2 = tmp_var->RHS()->GetOptInfo()->stmt_num;
-
-        auto def_1 = alias->GetOptInfo()->DefinitionBefore(e_stmt_1);
-        auto def_2 = tmp_var->Id()->GetOptInfo()->DefinitionBefore(e_stmt_2);
-
-        if ( def_1 == def_2 && def_1 != NO_DEF )
-            return NewVarUsage(alias, e.get());
-        else
-            return e;
+        return NewVarUsage(alias, e.get());
     }
 
     auto rhs = tmp_var->RHS();
@@ -690,15 +693,20 @@ StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& suc
     return merge_e_stmt;
 }
 
-IDPtr Reducer::GenTemporary(const TypePtr& t, ExprPtr rhs) {
+IDPtr Reducer::GenTemporary(TypePtr t, ExprPtr rhs, IDPtr id) {
     if ( Optimizing() )
         reporter->InternalError("Generating a new temporary while optimizing");
 
     if ( omitted_stmts.size() > 0 )
         reporter->InternalError("Generating a new temporary while pruning statements");
 
-    auto temp = std::make_shared<TempVar>(temps.size(), t, rhs);
-    IDPtr temp_id = install_ID(temp->Name(), "<internal>", false, false);
+    auto temp = std::make_shared<TempVar>(temps.size(), rhs);
+
+    IDPtr temp_id;
+    if ( id )
+        temp_id = id;
+    else
+        temp_id = install_ID(temp->Name(), "<internal>", false, false);
 
     temp->SetID(temp_id);
     temp_id->SetType(t);

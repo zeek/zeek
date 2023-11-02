@@ -100,6 +100,7 @@ private:
     // can get quite deep due when inlining, so there are savings
     // to avoid having to track outer to them.
     std::vector<zeek_uint_t> barrier_blocks;
+    std::vector<zeek_uint_t> cr_active; // ###
 
     // The following is parallel to confluence_blocks except
     // the front entry tracks identifiers at the outermost

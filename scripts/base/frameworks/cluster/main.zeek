@@ -181,7 +181,7 @@ export {
 		## A value of ``0/unknown`` means the node is not pre-configured to listen.
 		p:            port        &default=0/unknown;
 		## Identifier for the interface a worker is sniffing.
-		interface:    string      &optional;
+		interface:    string      &optional &deprecated="Remove in v7.1: interface is not required and not set consistently on workers. Replace usages with packet_source() or keep a separate worker-to-interface mapping in a global table.";
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
 		## Name of a time machine node with which this node connects.

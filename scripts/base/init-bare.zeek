@@ -5189,7 +5189,7 @@ const dpd_ignore_ports = F &redef;
 const likely_server_ports: set[port] &redef;
 
 ## If true, output profiling for Time-Machine queries.
-const time_machine_profiling = F &redef;
+const time_machine_profiling = F &redef &deprecated="Remove in v7.1. Unused.";
 
 ## If true, warns about unused event handlers at startup.
 const check_for_unused_event_handlers = F &redef;

@@ -1,3 +1,7 @@
+# This doesn't work for ZAM because its optimization is able to find the
+# problem at compile-time rather than run-time. There's a parallel test
+# for ZAM finding that error.
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 # @TEST-EXEC: zeek -b %INPUT >output 2>err
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err

@@ -981,7 +981,7 @@ macro EvalIndexVec(index)
 	zeek_int_t ind = index;
 	if ( ind < 0 )
 		ind += vv.size();
-	if ( ind < 0 || ind >= vv.size() )
+	if ( ind < 0 || ind >= int(vv.size()) )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
 
@@ -998,7 +998,7 @@ macro EvalIndexAnyVec(index)
 	zeek_int_t ind = index;
 	if ( ind < 0 )
 		ind += vv->Size();
-	if ( ind < 0 || ind >= vv->Size() )
+	if ( ind < 0 || ind >= int(vv->Size()) )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(ZVal(vv->ValAt(ind).release()))
 

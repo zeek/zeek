@@ -182,7 +182,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
                 const Stmt* succ;
 
-                if ( i == stmts.size() - 1 ) { // Very last statement.
+                if ( i == int(stmts.size()) - 1 ) { // Very last statement.
                     succ = succ_stmt;
                     if ( successor2.find(s) != successor2.end() )
                         successor2[s_i] = successor2[s];

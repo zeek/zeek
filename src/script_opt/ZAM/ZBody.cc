@@ -233,7 +233,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
 }
 
 ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
-    int pc = 0;
+    unsigned int pc = 0;
 
     // Return value, or nil if none.
     const ZVal* ret_u = nullptr;

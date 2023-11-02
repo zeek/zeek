@@ -1,6 +1,10 @@
 ##! This script implements the "Zeek side" of several load balancing
 ##! approaches for Zeek clusters.
 
+@deprecated "Remove in v7.1. This script has not seen extensions for the past 10 years and is not at all recommended to use for packet load balancing purposes. On Linux, AF_PACKET is recommended and works out of the box. On FreeBSD, there is Netmap with lb. Otherwise, NIC specific packet sources and approaches exist that handle the load balancing."
+
+@pragma push ignore-deprecations
+
 @load base/frameworks/cluster
 @load base/frameworks/packet-filter
 
@@ -109,3 +113,5 @@ event zeek_init() &priority=5
 	}
 
 @endif
+
+@pragma pop

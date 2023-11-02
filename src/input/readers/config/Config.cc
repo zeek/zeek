@@ -222,11 +222,11 @@ bool Config::DoUpdate() {
             Value** fields = new Value*[2];
             Value* keyval = new threading::Value(TYPE_STRING, true);
             keyval->val.string_val.length = key.size();
-            keyval->val.string_val.data = util::copy_string(key.c_str());
+            keyval->val.string_val.data = util::copy_string(key.c_str(), key.size());
             fields[0] = keyval;
             Value* val = new threading::Value(TYPE_STRING, true);
             val->val.string_val.length = value.size();
-            val->val.string_val.data = util::copy_string(value.c_str());
+            val->val.string_val.data = util::copy_string(value.c_str(), value.size());
             fields[1] = val;
 
             if ( Info().mode == MODE_STREAM )
@@ -238,13 +238,15 @@ bool Config::DoUpdate() {
         {
             Value** vals = new Value*[4];
             vals[0] = new Value(TYPE_STRING, true);
-            vals[0]->val.string_val.data = util::copy_string(Info().name);
-            vals[0]->val.string_val.length = strlen(Info().name);
+            auto val0_len = strlen(Info().name);
+            vals[0]->val.string_val.data = util::copy_string(Info().name, val0_len);
+            vals[0]->val.string_val.length = val0_len;
             vals[1] = new Value(TYPE_STRING, true);
-            vals[1]->val.string_val.data = util::copy_string(Info().source);
-            vals[1]->val.string_val.length = strlen(Info().source);
+            auto val1_len = strlen(Info().source);
+            vals[1]->val.string_val.data = util::copy_string(Info().source, val1_len);
+            vals[1]->val.string_val.length = val1_len;
             vals[2] = new Value(TYPE_STRING, true);
-            vals[2]->val.string_val.data = util::copy_string(key.c_str());
+            vals[2]->val.string_val.data = util::copy_string(key.c_str(), key.size());
             vals[2]->val.string_val.length = key.size();
             vals[3] = eventval;
 

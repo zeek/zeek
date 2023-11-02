@@ -30,7 +30,7 @@ bool Field::Read(detail::SerializationFormat* fmt) {
         if ( ! fmt->Read(&tmp_secondary_name, "secondary_name") )
             return false;
 
-        secondary_name = util::copy_string(tmp_secondary_name.c_str());
+        secondary_name = util::copy_string(tmp_secondary_name.c_str(), tmp_secondary_name.size());
     }
     else
         secondary_name = nullptr;
@@ -41,7 +41,7 @@ bool Field::Read(detail::SerializationFormat* fmt) {
     if ( ! success )
         return false;
 
-    name = util::copy_string(tmp_name.c_str());
+    name = util::copy_string(tmp_name.c_str(), tmp_name.size());
 
     type = static_cast<TypeTag>(t);
     subtype = static_cast<TypeTag>(st);

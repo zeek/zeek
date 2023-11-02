@@ -135,10 +135,10 @@ void String::Set(std::string_view str) {
 
 void String::Set(const String& str) { *this = str; }
 
-const char* String::CheckString() const {
+std::pair<const char*, size_t> String::CheckStringWithSize() const {
     void* nulTerm;
     if ( n == 0 )
-        return "";
+        return {"", 0};
 
     nulTerm = memchr(b, '\0', n + final_NUL);
     if ( nulTerm != &b[n] ) {
@@ -151,11 +151,14 @@ const char* String::CheckString() const {
             reporter->Error("string without NUL terminator: \"%s\"", exp_s);
 
         delete[] exp_s;
-        return "<string-with-NUL>";
+        static constexpr const char result[] = "<string-with-NUL>";
+        return {result, std::size(result) - 1};
     }
 
-    return (const char*)b;
+    return {(const char*)b, n};
 }
+
+const char* String::CheckString() const { return CheckStringWithSize().first; }
 
 char* String::Render(int format, int* len) const {
     // Maximum character expansion is as \xHH, so a factor of 4.

@@ -3362,7 +3362,7 @@ bool FieldAssignExpr::PromoteTo(TypePtr t) {
 bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const {
     if ( td ) {
         td->type = op->GetType();
-        td->id = util::copy_string(field_name.c_str());
+        td->id = util::copy_string(field_name.c_str(), field_name.size());
     }
 
     return true;

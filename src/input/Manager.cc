@@ -215,8 +215,8 @@ bool Manager::CreateStream(Stream* info, RecordVal* description) {
     string source((const char*)bsource->Bytes(), bsource->Len());
 
     ReaderBackend::ReaderInfo rinfo;
-    rinfo.source = util::copy_string(source.c_str());
-    rinfo.name = util::copy_string(name.c_str());
+    rinfo.source = util::copy_string(source.c_str(), source.size());
+    rinfo.name = util::copy_string(name.c_str(), name.size());
 
     auto mode_val = description->GetFieldOrDefault("mode");
     auto mode = mode_val->AsEnumVal();
@@ -244,7 +244,8 @@ bool Manager::CreateStream(Stream* info, RecordVal* description) {
             auto index = info->config->RecreateIndex(*k);
             string key = index->Idx(0)->AsString()->CheckString();
             string value = v->GetVal()->AsString()->CheckString();
-            rinfo.config.insert(std::make_pair(util::copy_string(key.c_str()), util::copy_string(value.c_str())));
+            rinfo.config.insert(std::make_pair(util::copy_string(key.c_str(), key.size()),
+                                               util::copy_string(value.c_str(), value.size())));
         }
     }
 

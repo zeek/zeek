@@ -752,6 +752,8 @@ const u_char* StringVal::Bytes() const { return AsString()->Bytes(); }
 
 const char* StringVal::CheckString() const { return AsString()->CheckString(); }
 
+std::pair<const char*, size_t> StringVal::CheckStringWithSize() const { return AsString()->CheckStringWithSize(); }
+
 string StringVal::ToStdString() const {
     auto* bs = AsString();
     return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};

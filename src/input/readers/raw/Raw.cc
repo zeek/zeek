@@ -679,11 +679,13 @@ bool Raw::DoUpdate() {
 
         Value** vals = new Value*[4];
         vals[0] = new Value(TYPE_STRING, true);
-        vals[0]->val.string_val.data = util::copy_string(Info().name);
-        vals[0]->val.string_val.length = strlen(Info().name);
+        auto val0_len = strlen(Info().name);
+        vals[0]->val.string_val.data = util::copy_string(Info().name, val0_len);
+        vals[0]->val.string_val.length = val0_len;
         vals[1] = new Value(TYPE_STRING, true);
-        vals[1]->val.string_val.data = util::copy_string(Info().source);
-        vals[1]->val.string_val.length = strlen(Info().source);
+        auto val1_len = strlen(Info().source);
+        vals[1]->val.string_val.data = util::copy_string(Info().source, val1_len);
+        vals[1]->val.string_val.length = val1_len;
         vals[2] = new Value(TYPE_COUNT, true);
         vals[2]->val.int_val = code;
         vals[3] = new Value(TYPE_BOOL, true);

@@ -448,7 +448,8 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 			return false;
 			}
 
-		char* tmp = zeek::util::copy_string(key->AsString()->CheckString());
+auto [data,len] = key->AsString()->CheckStringWithSize();
+		char* tmp = zeek::util::copy_string(data, len);
 		zeek::util::to_upper(tmp);
 		std::string var1 = zeek::util::fmt("ZEEK_ARG_%s", tmp);
 		delete [] tmp;

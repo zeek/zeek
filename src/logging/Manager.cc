@@ -803,14 +803,15 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg) {
 
                     if ( const auto& val = filter->field_name_map->Find(fn) ) {
                         delete[] filter->fields[j]->name;
-                        filter->fields[j]->name = util::copy_string(val->AsStringVal()->CheckString());
+                        auto [data, len] = val->AsStringVal()->CheckStringWithSize();
+                        filter->fields[j]->name = util::copy_string(data, len);
                     }
                 }
                 arg_fields[j] = new threading::Field(*filter->fields[j]);
             }
 
             info = new WriterBackend::WriterInfo;
-            info->path = util::copy_string(path.c_str());
+            info->path = util::copy_string(path.c_str(), path.size());
             info->network_time = run_state::network_time;
 
             auto* filter_config_table = filter->config->AsTable();
@@ -821,7 +822,8 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg) {
                 auto index = filter->config->RecreateIndex(*k);
                 string key = index->Idx(0)->AsString()->CheckString();
                 string value = v->GetVal()->AsString()->CheckString();
-                info->config.insert(std::make_pair(util::copy_string(key.c_str()), util::copy_string(value.c_str())));
+                info->config.emplace(util::copy_string(key.c_str(), key.size()),
+                                     util::copy_string(value.c_str(), value.size()));
             }
 
             // CreateWriter() will set the other fields in info.
@@ -883,14 +885,15 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             const char* s = ty->AsEnumType()->Lookup(val->AsInt());
 
             if ( s ) {
-                lval->val.string_val.data = util::copy_string(s);
-                lval->val.string_val.length = strlen(s);
+                auto len = strlen(s);
+                lval->val.string_val.data = util::copy_string(s, len);
+                lval->val.string_val.length = len;
             }
 
             else {
                 auto err_msg = "enum type does not contain value:" + std::to_string(val->AsInt());
                 ty->Error(err_msg.c_str());
-                lval->val.string_val.data = util::copy_string("");
+                lval->val.string_val.data = util::copy_string("", 0);
                 lval->val.string_val.length = 0;
             }
             break;
@@ -935,9 +938,10 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
 
         case TYPE_FILE: {
             const File* f = val->AsFile();
-            string s = f->Name();
-            lval->val.string_val.data = util::copy_string(s.c_str());
-            lval->val.string_val.length = s.size();
+            const char* s = f->Name();
+            auto len = strlen(s);
+            lval->val.string_val.data = util::copy_string(s, len);
+            lval->val.string_val.length = len;
             break;
         }
 
@@ -946,8 +950,9 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             const Func* f = val->AsFunc();
             f->Describe(&d);
             const char* s = d.Description();
-            lval->val.string_val.data = util::copy_string(s);
-            lval->val.string_val.length = strlen(s);
+            auto len = strlen(s);
+            lval->val.string_val.data = util::copy_string(s, len);
+            lval->val.string_val.length = len;
             break;
         }
 

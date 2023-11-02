@@ -152,7 +152,7 @@ bool Ascii::OpenFile() {
 
     if ( ! read_location ) {
         read_location = LocationPtr(new zeek::detail::Location());
-        read_location->filename = util::copy_string(fname.c_str());
+        read_location->filename = util::copy_string(fname.c_str(), fname.size());
     }
 
     StopWarningSuppression();

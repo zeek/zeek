@@ -405,7 +405,7 @@ int CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
     if ( fm_offset < 0 ) { // field does not exist, create it
         fm_offset = r->NumFields();
 
-        auto id = util::copy_string(field_name.c_str());
+        auto id = util::copy_string(field_name.c_str(), field_name.size());
         auto type = im->Types(field_type);
 
         AttributesPtr attrs;

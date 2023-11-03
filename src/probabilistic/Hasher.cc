@@ -14,9 +14,9 @@
 namespace zeek::probabilistic::detail {
 
 Hasher::seed_t Hasher::MakeSeed(const void* data, size_t size) {
-    u_char buf[SHA256_DIGEST_LENGTH];
+    u_char buf[ZEEK_SHA256_DIGEST_LENGTH];
     seed_t tmpseed;
-    EVP_MD_CTX* ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
+    auto* ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
 
     assert(sizeof(tmpseed) == 16);
 

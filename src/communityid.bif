@@ -86,7 +86,7 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
         std::swap(hash_src_port, hash_dst_port);
     }
 
-    auto digest_update = [](EVP_MD_CTX *ctx, const void* data, unsigned long len) {
+    auto digest_update = [](auto*ctx, const void* data, unsigned long len) {
         zeek::detail::hash_update(ctx, data, len);
         return len;
     };
@@ -102,7 +102,7 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
     dlen += digest_update(ctx, &hash_src_port, 2);
     dlen += digest_update(ctx, &hash_dst_port, 2);
 
-    u_char digest[SHA_DIGEST_LENGTH];
+    u_char digest[ZEEK_SHA_DIGEST_LENGTH];
     zeek::detail::hash_final(ctx, digest);
 
     // We currently have no real versioning/hash configuration logic,
@@ -115,7 +115,7 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
         int outlen = 0;
 
         zeek::detail::Base64Converter enc{nullptr};
-        enc.Encode(SHA_DIGEST_LENGTH, digest, &outlen, &outbuf);
+        enc.Encode(ZEEK_SHA_DIGEST_LENGTH, digest, &outlen, &outbuf);
         res = new zeek::String(ver + std::string(outbuf, outlen));
         // When given outlen = 0, the Encode() method creates the
         // buffer it returns as outbuf, so we must delete it.

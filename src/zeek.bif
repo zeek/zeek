@@ -586,7 +586,7 @@ function piped_exec%(program: string, to_write: string%): bool
 ##      friends.
 function md5_hash%(...%): string
 	%{
-	unsigned char digest[MD5_DIGEST_LENGTH];
+	unsigned char digest[ZEEK_MD5_DIGEST_LENGTH];
 	MD5Val::digest(@ARG@, digest);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(digest));
 	%}
@@ -606,7 +606,7 @@ function md5_hash%(...%): string
 ##      friends.
 function sha1_hash%(...%): string
 	%{
-	unsigned char digest[SHA_DIGEST_LENGTH];
+	unsigned char digest[ZEEK_SHA_DIGEST_LENGTH];
 	SHA1Val::digest(@ARG@, digest);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha1_digest_print(digest));
 	%}
@@ -626,7 +626,7 @@ function sha1_hash%(...%): string
 ##      friends.
 function sha256_hash%(...%): string
 	%{
-	unsigned char digest[SHA256_DIGEST_LENGTH];
+	unsigned char digest[ZEEK_SHA256_DIGEST_LENGTH];
 	SHA256Val::digest(@ARG@, digest);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha256_digest_print(digest));
 	%}
@@ -642,7 +642,7 @@ function sha256_hash%(...%): string
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hmac%(...%): string
 	%{
-	unsigned char hmac[MD5_DIGEST_LENGTH];
+	unsigned char hmac[ZEEK_MD5_DIGEST_LENGTH];
 	MD5Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_md5_key, hmac);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(hmac));
 	%}

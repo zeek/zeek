@@ -65,7 +65,7 @@ public:
     // Create a stub instruction that will be populated later.
     ZInst() = default;
 
-    virtual ~ZInst() = default;
+    virtual ~ZInst() { delete loc; }
 
     // Methods for printing out the instruction for debugging/maintenance.
     void Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const;
@@ -121,7 +121,7 @@ public:
     ZInstAux* aux = nullptr;
 
     // Location associated with this instruction, for error reporting.
-    const Location* loc = nullptr;
+    Location* loc = nullptr;
 
     // Interpreter call expression associated with this instruction,
     // for error reporting and stack backtraces.

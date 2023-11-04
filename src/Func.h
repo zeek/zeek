@@ -247,6 +247,10 @@ public:
      */
     void ReplaceBody(const detail::StmtPtr& old_body, detail::StmtPtr new_body);
 
+    // ***
+    // Replaces the entire set of bodies with a single new body.
+    void ReplaceBodies(detail::StmtPtr new_body, detail::ScopePtr new_scope, size_t new_frame_size);
+
     StmtPtr CurrentBody() const { return current_body; }
     int CurrentPriority() const { return current_priority; }
 

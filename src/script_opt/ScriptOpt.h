@@ -134,13 +134,18 @@ public:
     const ProfileFunc* Profile() const { return pf.get(); }
     std::shared_ptr<ProfileFunc> ProfilePtr() const { return pf; }
 
+    void SetScope(ScopePtr new_scope) { scope = std::move(new_scope); }
     void SetBody(StmtPtr new_body) { body = std::move(new_body); }
     void SetProfile(std::shared_ptr<ProfileFunc> _pf) { pf = std::move(_pf); }
 
+    bool ShouldAnalyze() const { return should_analyze; }
+    void SetShouldNotAnalyze() {
+        should_analyze = false;
+        skip = true;
+    }
+
     // The following provide a way of marking FuncInfo's as
-    // should-be-skipped for script optimization, generally because
-    // the function body has a property that a given script optimizer
-    // doesn't know how to deal with.  Defaults to don't-skip.
+    // should-be-skipped for a given phase of script optimization.
     bool ShouldSkip() const { return skip; }
     void SetSkip(bool should_skip) { skip = should_skip; }
 
@@ -151,7 +156,13 @@ protected:
     std::shared_ptr<ProfileFunc> pf;
     int priority;
 
-    // Whether to skip optimizing this function.
+    // Whether to analyze this function at all, per optimization selection
+    // via --optimize-file/--optimize-func.  If those flags aren't used,
+    // then this will remain true.
+    bool should_analyze = true;
+
+    // Whether to skip optimizing this function in a given context. May be
+    // altered during optimization.
     bool skip = false;
 };
 

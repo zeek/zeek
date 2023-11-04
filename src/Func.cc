@@ -586,6 +586,24 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body) {
     current_body = new_body;
 }
 
+void ScriptFunc::ReplaceBodies(detail::StmtPtr new_body, detail::ScopePtr new_scope, size_t new_frame_size) {
+    current_body = new_body;
+    scope = std::move(new_scope);
+    frame_size = new_frame_size;
+
+    auto base_body = bodies[0];
+    bodies.clear();
+
+    base_body.stmts = std::move(new_body);
+
+    // Priority doesn't matter because there's only one body, but let's
+    // be tidy.
+    current_priority = 0;
+    base_body.priority = 0;
+
+    bodies.push_back(std::move(base_body));
+}
+
 bool ScriptFunc::DeserializeCaptures(const broker::vector& data) {
     auto result = Frame::Unserialize(data);
 

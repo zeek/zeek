@@ -37,8 +37,18 @@ protected:
     // recursively inlines eligible ones.
     void Analyze();
 
+    using BodyInfo = std::unordered_map<const Stmt*, std::reference_wrapper<FuncInfo>>;
+
+    void CollapseEventHandlers();
+    void CollapseEventHandlers(ScriptFuncPtr sf, const std::vector<Func::Body>& bodies, const BodyInfo& profiles);
+
     // Recursively inlines any calls associated with the given function.
     void InlineFunction(FuncInfo* f);
+
+    void PreInline(StmtOptInfo* oi, size_t frame_size);
+    void PostInline(StmtOptInfo* oi, ScriptFuncPtr f);
+
+    ExprPtr DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, ScopePtr scope, const ProfileFunc* pf);
 
     // Information about all of the functions (and events/hooks) in
     // the full set of scripts.

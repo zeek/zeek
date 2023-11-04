@@ -749,6 +749,9 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
     local_id->SetType(orig->GetType());
     local_id->SetAttrs(orig->GetAttrs());
 
+    if ( orig->IsBlank() )
+        local_id->SetBlank();
+
     if ( orig->GetOptInfo()->IsTemp() )
         local_id->GetOptInfo()->SetTemp();
 

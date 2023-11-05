@@ -84,6 +84,8 @@ public:
      */
     bool HasEnabledBodies() const { return ! bodies.empty() && has_enabled_bodies; };
 
+    virtual void EnablementChanged(bool all_enabled) {}
+
     /**
      * Calls a Zeek function.
      * @param args  the list of arguments to the function call.
@@ -115,7 +117,7 @@ public:
     void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
 
     virtual void SetScope(detail::ScopePtr newscope);
-    virtual detail::ScopePtr GetScope() const { return scope; }
+    virtual detail::ScopePtr GetScope() const { return curr_scope; }
 
     const FuncTypePtr& GetType() const { return type; }
 
@@ -140,8 +142,14 @@ protected:
     // Helper function for checking result of plugin hook.
     void CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFlavor flavor) const;
 
+    const std::vector<Body>* curr_bodies = &bodies;
     std::vector<Body> bodies;
+    std::vector<Body> alt_body;
+
     detail::ScopePtr scope;
+    detail::ScopePtr curr_scope;
+    detail::ScopePtr alt_scope;
+
     Kind kind = SCRIPT_FUNC;
     FuncTypePtr type;
     std::string name;
@@ -248,8 +256,9 @@ public:
     void ReplaceBody(const detail::StmtPtr& old_body, detail::StmtPtr new_body);
 
     // ***
-    // Replaces the entire set of bodies with a single new body.
-    void ReplaceBodies(detail::StmtPtr new_body, detail::ScopePtr new_scope, size_t new_frame_size);
+    // Establishes an alternate body to use in the absence of varying
+    // event disablement.
+    void SetAlternativeBody(detail::StmtPtr body, detail::ScopePtr scope, size_t frame_size);
 
     StmtPtr CurrentBody() const { return current_body; }
     int CurrentPriority() const { return current_priority; }
@@ -258,7 +267,7 @@ public:
      * Returns the function's frame size.
      * @return  The number of ValPtr slots in the function's frame.
      */
-    int FrameSize() const { return frame_size; }
+    int FrameSize() const { return curr_frame_size; }
 
     /**
      * Changes the function's frame size to a new size - used for
@@ -266,7 +275,10 @@ public:
      *
      * @param new_size  The frame size the function should use.
      */
-    void SetFrameSize(int new_size) { frame_size = new_size; }
+    void SetFrameSize(int new_size) { curr_frame_size = frame_size = new_size; }
+    void SetAltFrameSize(int new_size) { curr_frame_size = alt_frame_size = new_size; }
+
+    void EnablementChanged(bool all_enabled) override;
 
     /** Sets this function's outer_id list. */
     void SetOuterIDs(IDPList ids) { outer_ids = std::move(ids); }
@@ -293,7 +305,12 @@ protected:
     virtual void SetCaptures(Frame* f);
 
 private:
+    void SwitchToRegular();
+    void SwitchToAlternative();
+
     size_t frame_size = 0;
+    size_t curr_frame_size = 0;
+    size_t alt_frame_size = 0;
 
     // List of the outer IDs used in the function.
     IDPList outer_ids;

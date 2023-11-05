@@ -149,6 +149,9 @@ public:
     bool ShouldSkip() const { return skip; }
     void SetSkip(bool should_skip) { skip = should_skip; }
 
+    bool IsAlternative() const { return is_alt; }
+    void SetAlternative() { is_alt = true; }
+
 protected:
     ScriptFuncPtr func;
     ScopePtr scope;
@@ -164,6 +167,8 @@ protected:
     // Whether to skip optimizing this function in a given context. May be
     // altered during optimization.
     bool skip = false;
+
+    bool is_alt = false;
 };
 
 // We track which functions are definitely not recursive.  We do this
@@ -198,9 +203,16 @@ extern bool is_lambda(const ScriptFunc* f);
 extern bool is_when_lambda(const ScriptFunc* f);
 
 // Analyze the given top-level statement(s) for optimization.  Returns
-// a pointer to a FuncInfo for an argument-less quasi-function that can
-// be Invoked, or its body executed directly, to execute the statements.
-extern const FuncInfo* analyze_global_stmts(Stmt* stmts);
+// an opaque value that can be provided to get_global_stmts() to retrieve
+// the corresponding FuncInfo, which reflects an argument-less quasi-function
+// that can be Invoked, or its body executed directly, to execute the
+// statements.  This indirection is used in case in between the call to
+// analyze_global_stmts() and using the value subsequently, the FuncInfo may
+// have been updated or shifted.  a pointer to a FuncInfo for an argument-less
+// quasi-function that can be Invoked, or its body executed directly, to
+// execute the statements.
+extern size_t analyze_global_stmts(Stmt* stmts);
+extern const FuncInfo& get_global_stmts(size_t handle);
 
 // Add a pattern to the "only_funcs" list.
 extern void add_func_analysis_pattern(AnalyOpt& opts, const char* pat);

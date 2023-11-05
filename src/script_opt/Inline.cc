@@ -125,12 +125,15 @@ void Inliner::Analyze() {
     for ( auto& f : funcs )
         if ( f.ShouldAnalyze() )
             InlineFunction(&f);
+
+    // ### funcs.insert(funcs.end(), new_funcs.begin(), new_funcs.end());
 }
 
 void Inliner::CollapseEventHandlers() {
     std::unordered_map<ScriptFunc*, size_t> event_handlers;
     BodyInfo body_to_info;
-    for ( auto& f : funcs ) {
+    for ( size_t i = 0U; i < funcs.size(); ++i ) {
+        auto& f = funcs[i];
         if ( ! f.ShouldAnalyze() )
             continue;
 
@@ -141,19 +144,6 @@ void Inliner::CollapseEventHandlers() {
 
         if ( func_type->AsFuncType()->Flavor() != FUNC_FLAVOR_EVENT )
             continue;
-
-        auto& f_attrs = f.Scope()->Attrs();
-        if ( f_attrs ) {
-            bool is_in_group = false;
-            for ( auto& a : *f_attrs )
-                if ( a->Tag() == ATTR_GROUP ) {
-                    is_in_group = true;
-                    break;
-                }
-
-            if ( is_in_group )
-                continue;
-        }
 
         // Special-case: zeek_init both has tons of event handlers (even
         // with -b), such that it inevitably blows out the inlining budget,
@@ -169,9 +159,7 @@ void Inliner::CollapseEventHandlers() {
             else
                 ++event_handlers[func];
             ASSERT(body_to_info.count(body.get()) == 0);
-            body_to_info.emplace(
-                std::pair<const Stmt*, std::reference_wrapper<FuncInfo>>(body.get(),
-                                                                         std::reference_wrapper<FuncInfo>(f)));
+            body_to_info[body.get()] = i;
         }
     }
 
@@ -206,7 +194,7 @@ void Inliner::CollapseEventHandlers(ScriptFuncPtr func, const std::vector<Func::
     auto& b0 = func->GetBodies()[0].stmts;
     auto b0_info = body_to_info.find(b0.get());
     ASSERT(b0_info != body_to_info.end());
-    auto& info0 = b0_info->second.get();
+    auto& info0 = funcs[b0_info->second];
     auto& scope0 = info0.Scope();
     auto& vars = scope0->OrderedVars();
 
@@ -239,7 +227,7 @@ void Inliner::CollapseEventHandlers(ScriptFuncPtr func, const std::vector<Func::
         auto bp = b.stmts;
         auto bi_find = body_to_info.find(bp.get());
         ASSERT(bi_find != body_to_info.end());
-        auto& bi = bi_find->second.get();
+        auto& bi = funcs[bi_find->second];
         auto ie = DoInline(func, bp, args, bi.Scope(), bi.Profile());
 
         if ( ! ie ) {
@@ -251,26 +239,17 @@ void Inliner::CollapseEventHandlers(ScriptFuncPtr func, const std::vector<Func::
     }
 
     if ( success ) {
-        PostInline(oi, func);
+        PostInline(oi, func, true);
 
-        info0.SetScope(std::move(new_scope));
+        new_scope = func->GetScope();
+        func->SetAlternativeBody(merged_body, new_scope, func->FrameSize());
+        funcs.emplace_back(func, new_scope, merged_body, 0);
+        auto& new_fi = funcs.back();
         auto pf = std::make_shared<ProfileFunc>(func.get(), merged_body, true);
-        info0.SetProfile(std::move(pf));
+        new_fi.SetProfile(std::move(pf));
+        new_fi.SetAlternative();
 
-        // Deactivate script analysis for all of the other bodies.
-        for ( auto& b : bodies ) {
-            auto bi_find = body_to_info.find(b.stmts.get());
-            auto& bi = bi_find->second.get();
-
-            if ( b.stmts == b0 )
-                bi.SetBody(merged_body);
-            else {
-                bi.SetShouldNotAnalyze();
-                bi.SetBody(nullptr);
-            }
-        }
-
-        func->ReplaceBodies(merged_body, func->GetScope(), func->FrameSize());
+        // ### new_funcs.push_back(std::move(new_fi));
     }
 }
 
@@ -278,7 +257,7 @@ void Inliner::InlineFunction(FuncInfo* f) {
     auto oi = f->Body()->GetOptInfo();
     PreInline(oi, f->Scope()->Length());
     f->Body()->Inline(this);
-    PostInline(oi, f->FuncPtr());
+    PostInline(oi, f->FuncPtr(), false);
 }
 
 void Inliner::PreInline(StmtOptInfo* oi, size_t frame_size) {
@@ -288,14 +267,18 @@ void Inliner::PreInline(StmtOptInfo* oi, size_t frame_size) {
     num_exprs = oi->num_exprs;
 }
 
-void Inliner::PostInline(StmtOptInfo* oi, ScriptFuncPtr f) {
+void Inliner::PostInline(StmtOptInfo* oi, ScriptFuncPtr f, bool is_alt) {
     oi->num_stmts = num_stmts;
     oi->num_exprs = num_exprs;
 
     int new_frame_size = curr_frame_size + max_inlined_frame_size;
 
-    if ( new_frame_size > f->FrameSize() )
-        f->SetFrameSize(new_frame_size);
+    if ( new_frame_size > f->FrameSize() ) {
+        if ( is_alt )
+            f->SetAltFrameSize(new_frame_size);
+        else
+            f->SetFrameSize(new_frame_size);
+    }
 }
 
 ExprPtr Inliner::CheckForInlining(CallExprPtr c) {

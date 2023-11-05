@@ -141,7 +141,7 @@ void Func::AddBody(detail::StmtPtr /* new_body */, const std::vector<detail::IDP
     Internal("Func::AddBody called");
 }
 
-void Func::SetScope(detail::ScopePtr newscope) { scope = std::move(newscope); }
+void Func::SetScope(detail::ScopePtr newscope) { curr_scope = scope = std::move(newscope); }
 
 FuncPtr Func::DoClone() {
     // By default, ok just to return a reference. Func does not have any state
@@ -207,7 +207,7 @@ detail::TraversalCode Func::Traverse(detail::TraversalCallback* cb) const {
 
 void Func::CopyStateInto(Func* other) const {
     other->bodies = bodies;
-    other->scope = scope;
+    other->curr_scope = other->scope = scope;
     other->kind = kind;
 
     other->type = type;
@@ -264,12 +264,12 @@ namespace detail {
 ScriptFunc::ScriptFunc(const IDPtr& arg_id) : Func(SCRIPT_FUNC) {
     name = arg_id->Name();
     type = arg_id->GetType<zeek::FuncType>();
-    frame_size = 0;
+    curr_frame_size = frame_size = 0;
 }
 
 ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> bs, std::vector<int> priorities) {
     name = std::move(_name);
-    frame_size = ft->ParamList()->GetTypes().size();
+    curr_frame_size = frame_size = ft->ParamList()->GetTypes().size();
     type = std::move(ft);
 
     auto n = bs.size();
@@ -327,7 +327,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
     }
 
-    auto f = make_intrusive<Frame>(frame_size, this, args);
+    auto f = make_intrusive<Frame>(curr_frame_size, this, args);
 
     // Hand down any trigger.
     if ( parent ) {
@@ -362,7 +362,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
     StmtFlowType flow = FLOW_NEXT;
     ValPtr result;
 
-    for ( const auto& body : bodies ) {
+    for ( const auto& body : *curr_bodies ) {
         if ( body.disabled )
             continue;
 
@@ -542,12 +542,12 @@ void ScriptFunc::SetCaptures(Frame* f) {
 void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, size_t new_frame_size, int priority,
                          const std::set<EventGroupPtr>& groups) {
     if ( new_frame_size > frame_size )
-        frame_size = new_frame_size;
+        curr_frame_size = frame_size = new_frame_size;
 
     auto num_args = static_cast<size_t>(GetType()->Params()->NumFields());
 
     if ( num_args > frame_size )
-        frame_size = num_args;
+        curr_frame_size = frame_size = num_args;
 
     new_body = AddInits(std::move(new_body), new_inits);
 
@@ -568,40 +568,61 @@ void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, 
 }
 
 void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body) {
-    bool found_it = false;
-
-    for ( auto body = bodies.begin(); body != bodies.end(); ++body )
-        if ( body->stmts.get() == old_body.get() ) {
-            if ( new_body ) {
-                body->stmts = new_body;
-                current_priority = body->priority;
+    if ( ! alt_body.empty() && alt_body[0].stmts == old_body ) {
+        ASSERT(new_body);
+        alt_body[0].stmts = new_body;
+    }
+    else
+        for ( auto body = bodies.begin(); body != bodies.end(); ++body )
+            if ( body->stmts == old_body ) {
+                if ( new_body ) {
+                    body->stmts = new_body;
+                    current_priority = body->priority;
+                }
+                else
+                    bodies.erase(body);
+                break;
             }
-            else
-                bodies.erase(body);
-
-            found_it = true;
-            break;
-        }
 
     current_body = new_body;
 }
 
-void ScriptFunc::ReplaceBodies(detail::StmtPtr new_body, detail::ScopePtr new_scope, size_t new_frame_size) {
-    current_body = new_body;
-    scope = std::move(new_scope);
-    frame_size = new_frame_size;
+void ScriptFunc::SetAlternativeBody(detail::StmtPtr body, detail::ScopePtr new_scope, size_t new_frame_size) {
+    ASSERT(alt_body.empty());
 
-    auto base_body = bodies[0];
-    bodies.clear();
-
-    base_body.stmts = std::move(new_body);
-
+    Body new_body;
+    new_body.stmts = std::move(body);
     // Priority doesn't matter because there's only one body, but let's
     // be tidy.
-    current_priority = 0;
-    base_body.priority = 0;
+    new_body.priority = 0;
 
-    bodies.push_back(std::move(base_body));
+    alt_body.push_back(std::move(new_body));
+    alt_scope = std::move(new_scope);
+    alt_frame_size = new_frame_size;
+
+    SwitchToAlternative();
+}
+
+void ScriptFunc::SwitchToRegular() {
+    curr_bodies = &bodies;
+    curr_frame_size = frame_size;
+    curr_scope = scope;
+}
+
+void ScriptFunc::SwitchToAlternative() {
+    curr_bodies = &alt_body;
+    curr_frame_size = alt_frame_size;
+    curr_scope = alt_scope;
+}
+
+void ScriptFunc::EnablementChanged(bool all_enabled) {
+    if ( alt_body.empty() )
+        return;
+
+    if ( all_enabled )
+        SwitchToAlternative();
+    else
+        SwitchToRegular();
 }
 
 bool ScriptFunc::DeserializeCaptures(const broker::vector& data) {
@@ -643,7 +664,7 @@ FuncPtr ScriptFunc::DoClone() {
 
     CopyStateInto(other.get());
 
-    other->frame_size = frame_size;
+    other->curr_frame_size = other->frame_size = frame_size;
     other->outer_ids = outer_ids;
 
     if ( captures_frame ) {

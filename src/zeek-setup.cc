@@ -924,7 +924,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         exit(reporter->Errors() != 0);
     }
 
-    auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
+    auto init_stmts_handle = stmts ? analyze_global_stmts(stmts) : 0;
 
     analyze_scripts(options.no_unused_warnings);
 
@@ -1023,13 +1023,14 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     // cause more severe problems.
     ZEEK_LSAN_ENABLE();
 
-    if ( init_stmts ) {
+    if ( stmts ) {
+        auto& init_stmts = get_global_stmts(init_stmts_handle);
         StmtFlowType flow;
-        Frame f(init_stmts->Scope()->Length(), nullptr, nullptr);
+        Frame f(init_stmts.Scope()->Length(), nullptr, nullptr);
         g_frame_stack.push_back(&f);
 
         try {
-            init_stmts->Body()->Exec(&f, flow);
+            init_stmts.Body()->Exec(&f, flow);
         } catch ( InterpreterException& ) {
             reporter->FatalError("failed to execute script statements at top-level scope");
         }

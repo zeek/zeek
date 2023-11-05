@@ -1289,6 +1289,11 @@ void ForStmt::StmtDescribe(ODesc* d) const {
     if ( loop_vars->length() )
         d->Add("]");
 
+    if ( value_var ) {
+        d->AddSP(",");
+        value_var->Describe(d);
+    }
+
     if ( d->IsReadable() )
         d->Add(" in ");
 
@@ -1311,6 +1316,11 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const {
 
     for ( const auto& var : *loop_vars ) {
         tc = var->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    if ( value_var ) {
+        tc = value_var->Traverse(cb);
         HANDLE_TC_STMT_PRE(tc);
     }
 

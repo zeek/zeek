@@ -632,7 +632,7 @@ void StmtList::Inline(Inliner* inl) {
 bool StmtList::IsReduced(Reducer* c) const {
     auto n = stmts.size();
 
-    for ( auto i = 0; i < n; ++i ) {
+    for ( auto i = 0U; i < n; ++i ) {
         auto& s_i = stmts[i];
         if ( ! s_i->IsReduced(c) )
             return false;
@@ -650,7 +650,7 @@ StmtPtr StmtList::DoReduce(Reducer* c) {
 
     auto n = stmts.size();
 
-    for ( auto i = 0; i < n; ++i ) {
+    for ( auto i = 0U; i < n; ++i ) {
         if ( ReduceStmt(i, f_stmts, c) )
             did_change = true;
 
@@ -677,7 +677,7 @@ StmtPtr StmtList::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
+bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
     bool did_change = false;
     auto& stmt_i = stmts[s_i];
     auto old_stmt = stmt_i.get();

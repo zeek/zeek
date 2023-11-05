@@ -114,7 +114,7 @@ const char* CPPCompile::TypeName(const TypePtr& t) {
         case TYPE_BOOL: return "bool";
         case TYPE_COUNT: return "zeek_uint_t";
         case TYPE_DOUBLE: return "double";
-        case TYPE_ENUM: return "int";
+        case TYPE_ENUM: return "zeek_int_t";
         case TYPE_INT: return "zeek_int_t";
         case TYPE_INTERVAL: return "double";
         case TYPE_PORT: return "zeek_uint_t";

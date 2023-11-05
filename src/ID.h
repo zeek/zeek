@@ -100,6 +100,8 @@ public:
 
     void SetOption();
     bool IsOption() const { return is_option; }
+
+    void SetBlank() { is_blank = true; }
     bool IsBlank() const { return is_blank; };
 
     void SetEnumConst() { is_enum_const = true; }

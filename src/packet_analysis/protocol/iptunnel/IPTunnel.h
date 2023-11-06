@@ -77,6 +77,8 @@ protected:
  * The wire length (pkt->len) of the inner packet is computed based on the wire length
  * of the outer packet and the differences in capture lengths.
  *
+ * The inner packet's timestamp is set to the same value as the outer packet's timestamp.
+ *
  * @param outer_pkt The packet containing the encapsulation. This packet should contain
  * @param encap_index A return value for the current index into the encapsulation stack.
  * This is returned to allow analyzers to know what point in the stack they were operating

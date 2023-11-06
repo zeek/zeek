@@ -9,12 +9,16 @@
 #include "zeek/session/Session.h"
 
 namespace zeek::packet_analysis {
+class Analyzer;
+using AnalyzerPtr = std::shared_ptr<Analyzer>;
 
 /**
  * Main packet analyzer interface.
  */
 class Analyzer {
 public:
+    static inline AnalyzerPtr nil = nullptr;
+
     /**
      * Constructor.
      *
@@ -198,7 +202,7 @@ protected:
      * @return The analyzer registered for the given identifier. Returns a
      * nullptr if no analyzer is registered.
      */
-    AnalyzerPtr Lookup(uint32_t identifier) const;
+    const AnalyzerPtr& Lookup(uint32_t identifier) const;
 
     /**
      * Returns an analyzer based on a script-land definition.
@@ -256,6 +260,11 @@ private:
     void EnqueueAnalyzerViolationInfo(session::Session* session, const char* reason, const char* data, int len,
                                       const zeek::Tag& arg_tag);
 
+    // Internal helpers to find an appropriate next inner analyzer.
+    const AnalyzerPtr& FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet, uint32_t identifier) const;
+    const AnalyzerPtr& FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet) const;
+    const AnalyzerPtr& DetectInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet) const;
+
     zeek::Tag tag;
     Dispatcher dispatcher;
     AnalyzerPtr default_analyzer = nullptr;
@@ -270,7 +279,4 @@ private:
 
     void Init(const zeek::Tag& tag);
 };
-
-using AnalyzerPtr = std::shared_ptr<Analyzer>;
-
 } // namespace zeek::packet_analysis

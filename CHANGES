@@ -1,3 +1,63 @@
+6.2.0-dev.93 | 2023-11-01 12:04:16 +0100
+
+  * build_inner_connection: Use the outer packet's timestamp (Arne Welzel, Corelight)
+
+    Don't construct the timeval based on run_state, just use the timestamp
+    of the outer packet to avoid the extra int/double conversions required.
+
+  * build_inner_connection: Avoid one extra Init() (Arne Welzel, Corelight)
+
+    Packet::Init() is not so cheap as one might think: It computes a
+    timestamp from { 0, 0 } using double division. Just avoid this
+    by not initializing an empty Packet.
+
+  * packet_analysis: Do not run DetectProtocol() on disabled analyzers (Arne Welzel, Corelight)
+
+    This came up when disabling the TEREDO analyzer but still seeing its
+    DetectProtocol() method prominently in flame graphs.
+
+  * packet_analysis/Dispatcher: Do not index table twice (Arne Welzel, Corelight)
+
+    It's okay to return the nullptr that's in the table, no need to check
+    for != nullptr before dereferencing again.
+
+  * GH-3379: packet_analysis: Avoid shared_ptr copying for analyzer lookups (Arne Welzel, Corelight)
+
+    For deeply encapsulated connections (think AWS traffic mirroring format
+    like IP,UDP,GENEVE,IP,UDP,VXLAN,ETH,IP,TCP), the Dispatcher::Lookup()
+    method is fairly visible in profiles when running in bare mode.
+
+    This changes the Analyzer::Lookup() and Dispatcher::Lookup() return value
+    breaking the API in favor of the performance improvement.
+
+    Relates to zeek/zeek#3379.
+
+6.2.0-dev.86 | 2023-10-31 16:17:33 +0000
+
+  * SSL: Add new extension types and ECH test (Johanna Amann, Corelight)
+
+    This commit adds a multitude of new extension types that were added in
+    the last few years; it also adds grease values to extensions, curves,
+    and ciphersuites.
+
+    Furthermore, it adds a test that contains a encrypted-client-hello
+    key-exchange (which uses several extension types that we do not have in
+    our baseline so far).
+
+6.2.0-dev.83 | 2023-10-30 12:34:26 -0700
+
+  * Format JSON with clang-format (Benjamin Bannier, Corelight)
+
+    We do not activate support for JavaScript at this time since most of our
+    JavaScript code is in BTest files to test zeekjs, but these files also
+    contain other languages which leads to largely misformated files.
+
+  * Reformat Zeek in Spicy style (Benjamin Bannier, Corelight)
+
+    This largely copies over Spicy's `.clang-format` configuration file. The
+    one place where we deviate is header include order since Zeek depends on
+    headers being included in a certain order.
+
 6.2.0-dev.78 | 2023-10-30 11:47:23 +0100
 
   * GH-3421: Normalize version strings in test (Benjamin Bannier, Corelight)

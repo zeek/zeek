@@ -1,0 +1,20 @@
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/tls13-ech.pcap %INPUT
+# @TEST-EXEC: btest-diff ssl.log
+# @TEST-EXEC: btest-diff .stdout
+
+# This is a trace that uses the new encrypted client hello extension to hide (among others)
+# the real value of the SNI.
+
+@load base/protocols/ssl
+
+event ssl_extension(c: connection, is_client: bool, code: count, val: string)
+	{
+	print is_client, SSL::extensions[code];
+	}
+
+event ssl_extension_elliptic_curves(c: connection, is_client: bool, curves: index_vec)
+	{
+	print "Curves", c$id$orig_h, c$id$resp_h;
+	for ( i in curves )
+		print SSL::ec_curves[curves[i]];
+	}

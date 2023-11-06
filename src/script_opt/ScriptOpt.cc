@@ -256,6 +256,7 @@ static void init_options() {
     check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
     check_env_opt("ZEEK_DUMP_UDS", analysis_options.dump_uds);
     check_env_opt("ZEEK_INLINE", analysis_options.inliner);
+    check_env_opt("ZEEK_NO_INLINE", analysis_options.no_inliner);
     check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
     check_env_opt("ZEEK_XFORM", analysis_options.activate);
     check_env_opt("ZEEK_ZAM", analysis_options.gen_ZAM);
@@ -322,6 +323,9 @@ static void init_options() {
 
     if ( analysis_options.optimize_AST || analysis_options.gen_ZAM_code || analysis_options.usage_issues > 0 )
         analysis_options.activate = true;
+
+    if ( analysis_options.no_inliner )
+        analysis_options.inliner = false;
 }
 
 static void report_CPP() {

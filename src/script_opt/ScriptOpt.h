@@ -50,6 +50,11 @@ struct AnalyOpt {
     // If true, do global inlining.
     bool inliner = false;
 
+    // If true, suppress global inlining.  A separate option because
+    // it needs to override situations where "inliner" is implicitly
+    // enabled due to other options.
+    bool no_inliner = false;
+
     // If true, report which functions are directly and indirectly
     // recursive, and exit.  Only germane if running the inliner.
     bool report_recursive = false;

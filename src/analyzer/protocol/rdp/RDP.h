@@ -24,7 +24,7 @@ protected:
     binpac::RDP::RDP_Conn* interp;
 
     bool had_gap;
-    // analyzer::ssl::SSL_Analyzer* ssl;
+    bool tls_active;
 };
 
 } // namespace zeek::analyzer::rdp

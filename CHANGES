@@ -1,3 +1,9 @@
+6.2.0-dev.97 | 2023-11-06 09:29:49 -0700
+
+  * Update c-ares in Windows conanfile (Tim Wojtulewicz, Corelight)
+
+  * Upgrade c-ares submodule to 1.21.0 (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.93 | 2023-11-01 12:04:16 +0100
 
   * build_inner_connection: Use the outer packet's timestamp (Arne Welzel, Corelight)

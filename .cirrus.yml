@@ -350,20 +350,19 @@ alpine_task:
 
 # Apple doesn't publish official long-term support timelines.
 # We aim to support both the current and previous macOS release.
+macos_sonoma_task:
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-sonoma-base:latest
+  prepare_script: ./ci/macos/prepare.sh
+  << : *CI_TEMPLATE
+  << : *MACOS_ENVIRONMENT
+
 macos_ventura_task:
   macos_instance:
     image: ghcr.io/cirruslabs/macos-ventura-base:latest
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
-
-macos_monterey_task:
-  macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-base:latest
-  prepare_script: ./ci/macos/prepare.sh
-  << : *CI_TEMPLATE
-  << : *MACOS_ENVIRONMENT
-  << : *SKIP_TASK_ON_PR
 
 # FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:

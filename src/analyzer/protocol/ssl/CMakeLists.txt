@@ -1,3 +1,5 @@
+add_subdirectory(spicy)
+
 zeek_add_plugin(
     Zeek
     SSL

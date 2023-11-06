@@ -1,4 +1,4 @@
-module TLS;
+module SSL;
 
 import spicy;
 
@@ -1740,7 +1740,7 @@ type SingleCertificate = unit {
 
 import zeek;
 
-public function convert_server_names(snl: TLS::ServerNameList) : vector<bytes> {
+public function convert_server_names(snl: SSL::ServerNameList) : vector<bytes> {
   local out: vector<bytes>;
 
   for ( i in snl.server_name_list )
@@ -1749,7 +1749,7 @@ public function convert_server_names(snl: TLS::ServerNameList) : vector<bytes> {
   return out;
 }
 
-public function convert_signature_algorithms(sa: TLS::SignatureAlgorithms) : vector<tuple<HashAlgorithm: uint8, SignatureAlgorithm: uint8>> {
+public function convert_signature_algorithms(sa: SSL::SignatureAlgorithms) : vector<tuple<HashAlgorithm: uint8, SignatureAlgorithm: uint8>> {
   local out: vector<tuple<uint8, uint8>>;
   for ( i in sa.supported_signature_algorithms )
     out.push_back(tuple(i.hash, i.signature));
@@ -1762,7 +1762,7 @@ public function create_empty_sigmature_algorithms() : vector<tuple<HashAlgorithm
   return out;
 }
 
-public function convert_clienthellokeyshare(ks: TLS::ClientHelloKeyShare) : vector<uint16> {
+public function convert_clienthellokeyshare(ks: SSL::ClientHelloKeyShare) : vector<uint16> {
   local out: vector<uint16>;
 
   for ( i in ks.keyshares )
@@ -1771,7 +1771,7 @@ public function convert_clienthellokeyshare(ks: TLS::ClientHelloKeyShare) : vect
   return out;
 }
 
-public function convert_binders(bi: TLS::PSKBindersList) : vector<bytes> {
+public function convert_binders(bi: SSL::PSKBindersList) : vector<bytes> {
   local out: vector<bytes>;
 
   for ( i in bi.binders )
@@ -1780,21 +1780,21 @@ public function convert_binders(bi: TLS::PSKBindersList) : vector<bytes> {
   return out;
 }
 
-public function convert_identities(id: TLS::PSKIdentitiesList) : vector<tuple<identity: bytes, obfuscated_ticket_age: uint32>> {
+public function convert_identities(id: SSL::PSKIdentitiesList) : vector<tuple<identity: bytes, obfuscated_ticket_age: uint32>> {
   local out: vector<tuple<bytes, uint32>>;
   for ( i in id.identities )
     out.push_back(tuple(i.identity, i.obfuscated_ticket_age));
   return out;
 }
 
-public function convert_protocol_name_list(pns: TLS::ProtocolNameList) : vector<bytes> {
+public function convert_protocol_name_list(pns: SSL::ProtocolNameList) : vector<bytes> {
   local out: vector<bytes>;
   for ( i in pns.protocol_name_list )
     out.push_back(i.name);
   return out;
 }
 
-public function convert_certificate_authorities(c: TLS::CertificateRequest) : vector<bytes> {
+public function convert_certificate_authorities(c: SSL::CertificateRequest) : vector<bytes> {
   local out: vector<bytes>;
   for ( i in c.certificate_authorities )
     out.push_back(i.certificate_authority);
@@ -1830,23 +1830,23 @@ public function check_direction(inout sh: Share, desired: bool) : bool {
   return False;
 }
 
-on TLS::ClientHello::%done {
+on SSL::ClientHello::%done {
   spicy::accept_input();
 }
 
-on TLS::ClientHello::%error {
+on SSL::ClientHello::%error {
   spicy::decline_input("error while parsing TLS client hello");
 }
 
-on TLS::ServerHello::%done {
+on SSL::ServerHello::%done {
   spicy::accept_input();
 }
 
-on TLS::ServerHello::%error {
+on SSL::ServerHello::%error {
   spicy::decline_input("error while parsing TLS server hello");
 }
 
-on TLS::Certificate::%done {
+on SSL::Certificate::%done {
   local first: bool = True;
   for ( i in self.certificate_list )
     {

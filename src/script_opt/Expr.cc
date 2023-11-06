@@ -83,6 +83,11 @@ const RecordCoerceExpr* Expr::AsRecordCoerceExpr() const {
     return (const RecordCoerceExpr*)this;
 }
 
+RecordConstructorExpr* Expr::AsRecordConstructorExpr() {
+    CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
+    return (RecordConstructorExpr*)this;
+}
+
 const RecordConstructorExpr* Expr::AsRecordConstructorExpr() const {
     CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
     return (const RecordConstructorExpr*)this;
@@ -502,6 +507,11 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
     auto op1_fold_val = op1->FoldVal();
+
+    if ( ! op1_fold_val && op1->Tag() == EXPR_LIST && op1->AsListExpr()->HasConstantOps() )
+        // We can turn the list into a ListVal.
+        op1_fold_val = op1->Eval(nullptr);
+
     auto op2_fold_val = op2->FoldVal();
     if ( op1_fold_val && op2_fold_val ) {
         auto fold = Fold(op1_fold_val.get(), op2_fold_val.get());
@@ -1909,6 +1919,27 @@ ExprPtr RecordCoerceExpr::Duplicate() {
     return SetSucc(new RecordCoerceExpr(op_dup, GetType<RecordType>()));
 }
 
+bool RecordCoerceExpr::IsReduced(Reducer* c) const {
+    if ( WillTransform(c) )
+        return NonReduced(this);
+
+    return UnaryExpr::IsReduced(c);
+}
+
+bool RecordCoerceExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_RECORD_CONSTRUCTOR; }
+
+ExprPtr RecordCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( WillTransform(c) ) {
+        auto rt = cast_intrusive<RecordType>(type);
+        auto rc_op = op->AsRecordConstructorExpr();
+        auto known_constr = make_intrusive<RecordConstructorExpr>(rt, rc_op->Op());
+        auto red_e = known_constr->Reduce(c, red_stmt);
+        return TransformMe(std::move(red_e), c, red_stmt);
+    }
+
+    return UnaryExpr::Reduce(c, red_stmt);
+}
+
 ExprPtr TableCoerceExpr::Duplicate() {
     auto op_dup = op->Duplicate();
     return SetSucc(new TableCoerceExpr(op_dup, GetType<TableType>()));
@@ -1979,7 +2010,21 @@ ExprPtr InExpr::Duplicate() {
     return SetSucc(new InExpr(op1_d, op2_d));
 }
 
+bool InExpr::IsReduced(Reducer* c) const {
+    if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->HasConstantOps() )
+        return NonReduced(this);
+
+    return BinaryExpr::IsReduced(c);
+}
+
 bool InExpr::HasReducedOps(Reducer* c) const { return op1->HasReducedOps(c) && op2->IsSingleton(c); }
+
+ExprPtr InExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->HasConstantOps() )
+        op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
+
+    return BinaryExpr::Reduce(c, red_stmt);
+}
 
 ExprPtr CallExpr::Duplicate() {
     auto func_d = func->Duplicate();

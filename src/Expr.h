@@ -1273,6 +1273,10 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
+    bool IsReduced(Reducer* c) const override;
+    bool WillTransform(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
     const std::vector<int>& Map() const { return map; }
 
 protected:
@@ -1362,7 +1366,9 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
+    bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
     ValPtr Fold(Val* v1, Val* v2) const override;
@@ -1484,6 +1490,9 @@ public:
 
     // True if the entire list represents pure values.
     bool IsPure() const override;
+
+    // True if the entire list represents constant values.
+    bool HasConstantOps() const;
 
     ValPtr Eval(Frame* f) const override;
 

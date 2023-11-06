@@ -171,7 +171,7 @@ void IfStmt::Inline(Inliner* inl) {
 }
 
 bool IfStmt::IsReduced(Reducer* c) const {
-    if ( ! e->IsReducedConditional(c) )
+    if ( e->IsConst() || ! e->IsReducedConditional(c) )
         return NonReduced(e.get());
 
     return s1->IsReduced(c) && s2->IsReduced(c);
@@ -707,7 +707,7 @@ bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Redu
 
         if ( e->Tag() != EXPR_ASSIGN ) {
             f_stmts.push_back(std::move(stmt));
-            return false;
+            return did_change;
         }
 
         auto a = e->AsAssignExpr();
@@ -715,7 +715,7 @@ bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Redu
 
         if ( lhs->Tag() != EXPR_NAME ) {
             f_stmts.push_back(std::move(stmt));
-            return false;
+            return did_change;
         }
 
         auto var = lhs->AsNameExpr();

@@ -56,7 +56,7 @@ bool is_lambda(const ScriptFunc* f) { return lambdas.count(f) > 0; }
 
 bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.count(f) > 0; }
 
-const FuncInfo* analyze_global_stmts(Stmt* stmts) {
+size_t analyze_global_stmts(Stmt* stmts) {
     // We ignore analysis_options.only_{files,funcs} - if they're in use, later
     // logic will keep this function from being compiled, but it's handy
     // now to enter it into "funcs" so we have a FuncInfo to return.
@@ -72,8 +72,10 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts) {
     global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
 
     funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);
-    return &funcs.back();
+    return funcs.size() - 1;
 }
+
+const FuncInfo& get_global_stmts(size_t global_ind) { return funcs[global_ind]; }
 
 void add_func_analysis_pattern(AnalyOpt& opts, const char* pat) {
     try {

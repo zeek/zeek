@@ -1468,7 +1468,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
         auto ind1_e = ind_e->Op1()->Reduce(c, ind1_stmt);
         auto ind2_e = ind_e->Op2()->Reduce(c, ind2_stmt);
-        auto rhs_e = op2->Reduce(c, rhs_stmt);
+        auto rhs_e = op2->ReduceToSingleton(c, rhs_stmt);
 
         red_stmt = MergeStmts(MergeStmts(rhs_reduce, ind1_stmt), ind2_stmt, rhs_stmt);
 

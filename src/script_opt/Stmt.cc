@@ -740,8 +740,8 @@ bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Redu
             }
         }
 
-        if ( c->IsCSE(a, var, rhs.get()) ) {
-            // printf("discarding %s as unnecessary\n", obj_desc(a));
+        if ( c->IsTemporary(var->Id()) && ! c->IsParamTemp(var->Id()) && c->IsCSE(a, var, rhs.get()) ) {
+            // printf("discarding %s as unnecessary\n", var->Id()->Name());
             // Skip this now unnecessary statement.
             return true;
         }

@@ -1588,7 +1588,8 @@ private:
 
 class InlineExpr : public Expr {
 public:
-    InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> params, StmtPtr body, int frame_offset, TypePtr ret_type);
+    InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified, StmtPtr body,
+               int frame_offset, TypePtr ret_type);
 
     bool IsPure() const override;
 
@@ -1610,6 +1611,7 @@ protected:
     void ExprDescribe(ODesc* d) const override;
 
     std::vector<IDPtr> params;
+    std::vector<bool> param_is_modified;
     int frame_offset;
     ListExprPtr args;
     StmtPtr body;

@@ -117,7 +117,7 @@ void Inliner::Analyze() {
         if ( body->Tag() == STMT_CPP )
             continue;
 
-        inline_ables.insert(func);
+        inline_ables[func] = f.Profile();
     }
 
     for ( auto& f : funcs )
@@ -173,7 +173,8 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
 
     auto func_vf = static_cast<ScriptFunc*>(function);
 
-    if ( inline_ables.count(func_vf) == 0 )
+    auto ia = inline_ables.find(func_vf);
+    if ( ia == inline_ables.end() )
         return c;
 
     if ( c->IsInWhen() ) {
@@ -220,14 +221,18 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     // the function, *using the knowledge that the parameters are
     // declared first*.
     auto scope = func_vf->GetScope();
+    auto& pf = ia->second;
     auto& vars = scope->OrderedVars();
     int nparam = func_vf->GetType()->Params()->NumFields();
 
     std::vector<IDPtr> params;
-    params.reserve(nparam);
+    std::vector<bool> param_is_modified;
 
-    for ( int i = 0; i < nparam; ++i )
-        params.emplace_back(vars[i]);
+    for ( int i = 0; i < nparam; ++i ) {
+        auto& vi = vars[i];
+        params.emplace_back(vi);
+        param_is_modified.emplace_back((pf->Assignees().count(vi.get()) > 0));
+    }
 
     // Recursively inline the body.  This is safe to do because we've
     // ensured there are no recursive loops ... but we have to be
@@ -251,7 +256,8 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
         max_inlined_frame_size = hold_max_inlined_frame_size;
 
     auto t = c->GetType();
-    auto ie = make_intrusive<InlineExpr>(c->ArgsPtr(), std::move(params), body_dup, curr_frame_size, t);
+    auto ie = make_intrusive<InlineExpr>(c->ArgsPtr(), std::move(params), std::move(param_is_modified), body_dup,
+                                         curr_frame_size, t);
     ie->SetOriginal(c);
 
     return ie;

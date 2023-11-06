@@ -2272,10 +2272,11 @@ ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), typ
 
 ExprPtr IsExpr::Duplicate() { return SetSucc(new IsExpr(op->Duplicate(), t)); }
 
-InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params, StmtPtr arg_body, int _frame_offset,
-                       TypePtr ret_type)
+InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params, std ::vector<bool> arg_param_is_modified,
+                       StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
     : Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body)) {
     params = std::move(arg_params);
+    param_is_modified = std::move(arg_param_is_modified);
     frame_offset = _frame_offset;
     type = std::move(ret_type);
 }
@@ -2316,7 +2317,7 @@ ValPtr InlineExpr::Eval(Frame* f) const {
 ExprPtr InlineExpr::Duplicate() {
     auto args_d = args->Duplicate()->AsListExprPtr();
     auto body_d = body->Duplicate();
-    return SetSucc(new InlineExpr(args_d, params, body_d, frame_offset, type));
+    return SetSucc(new InlineExpr(args_d, params, param_is_modified, body_d, frame_offset, type));
 }
 
 bool InlineExpr::IsReduced(Reducer* c) const { return NonReduced(this); }
@@ -2334,11 +2335,7 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     loop_over_list(args_list, i) {
         StmtPtr arg_red_stmt;
         auto red_i = args_list[i]->Reduce(c, arg_red_stmt);
-
-        auto param_i = c->GenInlineBlockName(params[i]);
-        auto assign = make_intrusive<AssignExpr>(param_i, red_i, false, nullptr, nullptr, false);
-        auto assign_stmt = make_intrusive<ExprStmt>(assign);
-
+        auto assign_stmt = c->GenParam(params[i], red_i, param_is_modified[i]);
         red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
     }
 

@@ -13,6 +13,7 @@
 namespace zeek::detail {
 
 class FuncInfo;
+class ProfileFunc;
 
 class Inliner {
 public:
@@ -43,8 +44,9 @@ protected:
     // the full set of scripts.
     std::vector<FuncInfo>& funcs;
 
-    // Functions that we've determined to be suitable for inlining.
-    std::unordered_set<const Func*> inline_ables;
+    // Functions that we've determined to be suitable for inlining, and
+    // their associated profiles.
+    std::unordered_map<const Func*, const ProfileFunc*> inline_ables;
 
     // Functions that we inlined.
     std::unordered_set<const Func*> did_inline;

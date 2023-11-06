@@ -4,16 +4,14 @@
 
 #include "zeek/analyzer/protocol/login/Login.h"
 
-namespace zeek::analyzer::login
-	{
+namespace zeek::analyzer::login {
 
-class Telnet_Analyzer : public Login_Analyzer
-	{
+class Telnet_Analyzer : public Login_Analyzer {
 public:
-	explicit Telnet_Analyzer(Connection* conn);
-	~Telnet_Analyzer() override { }
+    explicit Telnet_Analyzer(Connection* conn);
+    ~Telnet_Analyzer() override {}
 
-	static analyzer::Analyzer* Instantiate(Connection* conn) { return new Telnet_Analyzer(conn); }
-	};
+    static analyzer::Analyzer* Instantiate(Connection* conn) { return new Telnet_Analyzer(conn); }
+};
 
-	} // namespace zeek::analyzer::login
+} // namespace zeek::analyzer::login

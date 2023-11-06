@@ -5,21 +5,16 @@
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
-namespace zeek::packet_analysis::SNAP
-	{
+namespace zeek::packet_analysis::SNAP {
 
-class SNAPAnalyzer : public Analyzer
-	{
+class SNAPAnalyzer : public Analyzer {
 public:
-	SNAPAnalyzer();
-	~SNAPAnalyzer() override = default;
+    SNAPAnalyzer();
+    ~SNAPAnalyzer() override = default;
 
-	bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
+    bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
-	static zeek::packet_analysis::AnalyzerPtr Instantiate()
-		{
-		return std::make_shared<SNAPAnalyzer>();
-		}
-	};
+    static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<SNAPAnalyzer>(); }
+};
 
-	}
+} // namespace zeek::packet_analysis::SNAP

@@ -6,12 +6,12 @@
 
 #include "zeek/ZeekList.h"
 
-namespace zeek
-	{
+namespace zeek {
 
 class VectorVal;
 class RecordType;
-template <class T> class IntrusivePtr;
+template<class T>
+class IntrusivePtr;
 
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
@@ -46,4 +46,4 @@ VectorValPtr MakeCallArgumentVector(const Args& vals, const RecordTypePtr& types
  */
 VectorValPtr MakeEmptyCallArgumentVector();
 
-	} // namespace zeek
+} // namespace zeek

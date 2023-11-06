@@ -9,194 +9,162 @@
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/file_analysis/file_analysis.bif.h"
 
-namespace zeek::file_analysis::detail
-	{
+namespace zeek::file_analysis::detail {
 
-static void analyzer_del_func(void* v)
-	{
-	file_analysis::Analyzer* a = (file_analysis::Analyzer*)v;
+static void analyzer_del_func(void* v) {
+    file_analysis::Analyzer* a = (file_analysis::Analyzer*)v;
 
-	a->Done();
-	delete a;
-	}
+    a->Done();
+    delete a;
+}
 
-AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file)
-	{
-	analyzer_map.SetDeleteFunc(analyzer_del_func);
-	}
+AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file) { analyzer_map.SetDeleteFunc(analyzer_del_func); }
 
-AnalyzerSet::~AnalyzerSet()
-	{
-	while ( ! mod_queue.empty() )
-		{
-		Modification* mod = mod_queue.front();
-		mod->Abort();
-		delete mod;
-		mod_queue.pop();
-		}
-	}
+AnalyzerSet::~AnalyzerSet() {
+    while ( ! mod_queue.empty() ) {
+        Modification* mod = mod_queue.front();
+        mod->Abort();
+        delete mod;
+        mod_queue.pop();
+    }
+}
 
-Analyzer* AnalyzerSet::Find(const zeek::Tag& tag, RecordValPtr args)
-	{
-	auto key = GetKey(tag, std::move(args));
-	Analyzer* rval = analyzer_map.Lookup(key.get());
-	return rval;
-	}
+Analyzer* AnalyzerSet::Find(const zeek::Tag& tag, RecordValPtr args) {
+    auto key = GetKey(tag, std::move(args));
+    Analyzer* rval = analyzer_map.Lookup(key.get());
+    return rval;
+}
 
-bool AnalyzerSet::Add(const zeek::Tag& tag, RecordValPtr args)
-	{
-	auto key = GetKey(tag, args);
+bool AnalyzerSet::Add(const zeek::Tag& tag, RecordValPtr args) {
+    auto key = GetKey(tag, args);
 
-	if ( analyzer_map.Lookup(key.get()) )
-		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s skipped: already exists",
-		        file->GetID().c_str(), file_mgr->GetComponentName(tag).c_str());
+    if ( analyzer_map.Lookup(key.get()) ) {
+        DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s skipped: already exists", file->GetID().c_str(),
+                file_mgr->GetComponentName(tag).c_str());
 
-		return true;
-		}
+        return true;
+    }
 
-	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
+    file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
 
-	if ( ! a )
-		return false;
+    if ( ! a )
+        return false;
 
-	Insert(a, std::move(key));
+    Insert(a, std::move(key));
 
-	return true;
-	}
+    return true;
+}
 
-Analyzer* AnalyzerSet::QueueAdd(const zeek::Tag& tag, RecordValPtr args)
-	{
-	auto key = GetKey(tag, args);
-	file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
+Analyzer* AnalyzerSet::QueueAdd(const zeek::Tag& tag, RecordValPtr args) {
+    auto key = GetKey(tag, args);
+    file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
 
-	if ( ! a )
-		return nullptr;
+    if ( ! a )
+        return nullptr;
 
-	mod_queue.push(new AddMod(a, std::move(key)));
+    mod_queue.push(new AddMod(a, std::move(key)));
 
-	return a;
-	}
+    return a;
+}
 
-bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set)
-	{
-	if ( set->analyzer_map.Lookup(key.get()) )
-		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s skipped: already exists",
-		        a->GetFile()->GetID().c_str(), file_mgr->GetComponentName(a->Tag()).c_str());
+bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set) {
+    if ( set->analyzer_map.Lookup(key.get()) ) {
+        DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s skipped: already exists", a->GetFile()->GetID().c_str(),
+                file_mgr->GetComponentName(a->Tag()).c_str());
 
-		Abort();
-		return true;
-		}
+        Abort();
+        return true;
+    }
 
-	set->Insert(a, std::move(key));
+    set->Insert(a, std::move(key));
 
-	return true;
-	}
+    return true;
+}
 
-void AnalyzerSet::AddMod::Abort()
-	{
-	delete a;
-	}
+void AnalyzerSet::AddMod::Abort() { delete a; }
 
-bool AnalyzerSet::Remove(const zeek::Tag& tag, RecordValPtr args)
-	{
-	return Remove(tag, GetKey(tag, std::move(args)));
-	}
+bool AnalyzerSet::Remove(const zeek::Tag& tag, RecordValPtr args) { return Remove(tag, GetKey(tag, std::move(args))); }
 
-bool AnalyzerSet::Remove(const zeek::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key)
-	{
-	auto a = (file_analysis::Analyzer*)analyzer_map.Remove(key.get());
+bool AnalyzerSet::Remove(const zeek::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key) {
+    auto a = (file_analysis::Analyzer*)analyzer_map.Remove(key.get());
 
-	if ( ! a )
-		{
-		DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip remove analyzer %s", file->GetID().c_str(),
-		        file_mgr->GetComponentName(tag).c_str());
-		return false;
-		}
+    if ( ! a ) {
+        DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip remove analyzer %s", file->GetID().c_str(),
+                file_mgr->GetComponentName(tag).c_str());
+        return false;
+    }
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove analyzer %s", file->GetID().c_str(),
-	        file_mgr->GetComponentName(tag).c_str());
+    DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove analyzer %s", file->GetID().c_str(),
+            file_mgr->GetComponentName(tag).c_str());
 
-	a->Done();
+    a->Done();
 
-	// We don't delete the analyzer object right here because the remove
-	// operation may execute at a time when it can still be accessed.
-	// Instead we let the file know to delete the analyzer later.
-	file->DoneWithAnalyzer(a);
+    // We don't delete the analyzer object right here because the remove
+    // operation may execute at a time when it can still be accessed.
+    // Instead we let the file know to delete the analyzer later.
+    file->DoneWithAnalyzer(a);
 
-	return true;
-	}
+    return true;
+}
 
-bool AnalyzerSet::QueueRemove(const zeek::Tag& tag, RecordValPtr args)
-	{
-	auto key = GetKey(tag, std::move(args));
-	auto rval = analyzer_map.Lookup(key.get());
-	mod_queue.push(new RemoveMod(tag, std::move(key)));
-	return rval;
-	}
+bool AnalyzerSet::QueueRemove(const zeek::Tag& tag, RecordValPtr args) {
+    auto key = GetKey(tag, std::move(args));
+    auto rval = analyzer_map.Lookup(key.get());
+    mod_queue.push(new RemoveMod(tag, std::move(key)));
+    return rval;
+}
 
-bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set)
-	{
-	return set->Remove(tag, std::move(key));
-	}
+bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set) { return set->Remove(tag, std::move(key)); }
 
-std::unique_ptr<zeek::detail::HashKey> AnalyzerSet::GetKey(const zeek::Tag& t,
-                                                           RecordValPtr args) const
-	{
-	auto lv = make_intrusive<ListVal>(TYPE_ANY);
-	lv->Append(t.AsVal());
-	lv->Append(std::move(args));
-	auto key = file_mgr->GetAnalyzerHash()->MakeHashKey(*lv, true);
+std::unique_ptr<zeek::detail::HashKey> AnalyzerSet::GetKey(const zeek::Tag& t, RecordValPtr args) const {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    lv->Append(t.AsVal());
+    lv->Append(std::move(args));
+    auto key = file_mgr->GetAnalyzerHash()->MakeHashKey(*lv, true);
 
-	if ( ! key )
-		reporter->InternalError("AnalyzerArgs type mismatch");
+    if ( ! key )
+        reporter->InternalError("AnalyzerArgs type mismatch");
 
-	return key;
-	}
+    return key;
+}
 
-file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag, RecordValPtr args) const
-	{
-	auto a = file_mgr->InstantiateAnalyzer(tag, std::move(args), file);
+file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag, RecordValPtr args) const {
+    auto a = file_mgr->InstantiateAnalyzer(tag, std::move(args), file);
 
-	if ( ! a )
-		{
-		auto c = file_mgr->Lookup(tag);
+    if ( ! a ) {
+        auto c = file_mgr->Lookup(tag);
 
-		if ( c && ! c->Enabled() )
-			return nullptr;
+        if ( c && ! c->Enabled() )
+            return nullptr;
 
-		reporter->Error("[%s] Failed file analyzer %s instantiation", file->GetID().c_str(),
-		                file_mgr->GetComponentName(tag).c_str());
-		return nullptr;
-		}
+        reporter->Error("[%s] Failed file analyzer %s instantiation", file->GetID().c_str(),
+                        file_mgr->GetComponentName(tag).c_str());
+        return nullptr;
+    }
 
-	return a;
-	}
+    return a;
+}
 
-void AnalyzerSet::Insert(file_analysis::Analyzer* a, std::unique_ptr<zeek::detail::HashKey> key)
-	{
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s", file->GetID().c_str(),
-	        file_mgr->GetComponentName(a->Tag()).c_str());
-	analyzer_map.Insert(key.get(), a);
+void AnalyzerSet::Insert(file_analysis::Analyzer* a, std::unique_ptr<zeek::detail::HashKey> key) {
+    DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s", file->GetID().c_str(),
+            file_mgr->GetComponentName(a->Tag()).c_str());
+    analyzer_map.Insert(key.get(), a);
 
-	a->Init();
-	}
+    a->Init();
+}
 
-void AnalyzerSet::DrainModifications()
-	{
-	if ( mod_queue.empty() )
-		return;
+void AnalyzerSet::DrainModifications() {
+    if ( mod_queue.empty() )
+        return;
 
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Start analyzer mod queue flush", file->GetID().c_str());
-	do
-		{
-		Modification* mod = mod_queue.front();
-		mod->Perform(this);
-		delete mod;
-		mod_queue.pop();
-		} while ( ! mod_queue.empty() );
-	DBG_LOG(DBG_FILE_ANALYSIS, "[%s] End flushing analyzer mod queue.", file->GetID().c_str());
-	}
+    DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Start analyzer mod queue flush", file->GetID().c_str());
+    do {
+        Modification* mod = mod_queue.front();
+        mod->Perform(this);
+        delete mod;
+        mod_queue.pop();
+    } while ( ! mod_queue.empty() );
+    DBG_LOG(DBG_FILE_ANALYSIS, "[%s] End flushing analyzer mod queue.", file->GetID().c_str());
+}
 
-	} // namespace zeek::file_analysis::detail
+} // namespace zeek::file_analysis::detail

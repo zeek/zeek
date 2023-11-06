@@ -6,33 +6,30 @@
 #include "zeek/analyzer/protocol/mysql/mysql_pac.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-namespace zeek::analyzer::mysql
-	{
+namespace zeek::analyzer::mysql {
 
-class MySQL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer
-	{
-
+class MySQL_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	explicit MySQL_Analyzer(Connection* conn);
-	~MySQL_Analyzer() override;
+    explicit MySQL_Analyzer(Connection* conn);
+    ~MySQL_Analyzer() override;
 
-	// Overridden from Analyzer.
-	void Done() override;
+    // Overridden from Analyzer.
+    void Done() override;
 
-	void DeliverStream(int len, const u_char* data, bool orig) override;
-	void Undelivered(uint64_t seq, int len, bool orig) override;
+    void DeliverStream(int len, const u_char* data, bool orig) override;
+    void Undelivered(uint64_t seq, int len, bool orig) override;
 
-	// Overridden from analyzer::tcp::TCP_ApplicationAnalyzer.
-	void EndpointEOF(bool is_orig) override;
+    // Overridden from analyzer::tcp::TCP_ApplicationAnalyzer.
+    void EndpointEOF(bool is_orig) override;
 
-	void StartTLS();
+    void StartTLS();
 
-	static analyzer::Analyzer* Instantiate(Connection* conn) { return new MySQL_Analyzer(conn); }
+    static analyzer::Analyzer* Instantiate(Connection* conn) { return new MySQL_Analyzer(conn); }
 
 protected:
-	binpac::MySQL::MySQL_Conn* interp;
-	bool had_gap;
-	bool tls_active;
-	};
+    binpac::MySQL::MySQL_Conn* interp;
+    bool had_gap;
+    bool tls_active;
+};
 
-	} // namespace zeek::analyzer::mysql
+} // namespace zeek::analyzer::mysql

@@ -38,8 +38,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 // The type used to represent hashes.  We use the mnemonic "p_hash" as
 // short for "profile hash", to avoid confusion with hashes used elsewhere
@@ -49,227 +48,213 @@ using p_hash_type = unsigned long long;
 
 // Helper functions for computing/managing hashes.
 
-inline p_hash_type p_hash(int val)
-	{
-	return std::hash<int>{}(val);
-	}
+inline p_hash_type p_hash(int val) { return std::hash<int>{}(val); }
 
-inline p_hash_type p_hash(std::string_view val)
-	{
-	return std::hash<std::string_view>{}(val);
-	}
+inline p_hash_type p_hash(std::string_view val) { return std::hash<std::string_view>{}(val); }
 
 extern p_hash_type p_hash(const Obj* o);
-inline p_hash_type p_hash(const IntrusivePtr<Obj>& o)
-	{
-	return p_hash(o.get());
-	}
+inline p_hash_type p_hash(const IntrusivePtr<Obj>& o) { return p_hash(o.get()); }
 
-inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2)
-	{
-	// Taken from Boost.  See for example
-	// https://www.boost.org/doc/libs/1_35_0/doc/html/boost/hash_combine_id241013.html
-	// or
-	// https://stackoverflow.com/questions/4948780/magic-number-in-boosthash-combine
-	return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
-	}
+inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2) {
+    // Taken from Boost.  See for example
+    // https://www.boost.org/doc/libs/1_35_0/doc/html/boost/hash_combine_id241013.html
+    // or
+    // https://stackoverflow.com/questions/4948780/magic-number-in-boosthash-combine
+    return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+}
 
 // Class for profiling the components of a single function (or expression).
-class ProfileFunc : public TraversalCallback
-	{
+class ProfileFunc : public TraversalCallback {
 public:
-	// Constructor used for the usual case of profiling a script
-	// function and one of its bodies.
-	ProfileFunc(const Func* func, const StmtPtr& body, bool abs_rec_fields);
+    // Constructor used for the usual case of profiling a script
+    // function and one of its bodies.
+    ProfileFunc(const Func* func, const StmtPtr& body, bool abs_rec_fields);
 
-	// Constructors for profiling an AST statement expression.  These exist
-	// to support (1) profiling lambda expressions and loop bodies, and
-	// (2) traversing attribute expressions (such as &default=expr)
-	// to discover what components they include.
-	ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
-	ProfileFunc(const Expr* func, bool abs_rec_fields = false);
+    // Constructors for profiling an AST statement expression.  These exist
+    // to support (1) profiling lambda expressions and loop bodies, and
+    // (2) traversing attribute expressions (such as &default=expr)
+    // to discover what components they include.
+    ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
+    ProfileFunc(const Expr* func, bool abs_rec_fields = false);
 
-	// Returns the function, body, or expression profiled.  Each can be
-	// null depending on the constructor used.
-	const Func* ProfiledFunc() const { return profiled_func; }
-	const Stmt* ProfiledBody() const { return profiled_body; }
-	const Expr* ProfiledExpr() const { return profiled_expr; }
+    // Returns the function, body, or expression profiled.  Each can be
+    // null depending on the constructor used.
+    const Func* ProfiledFunc() const { return profiled_func; }
+    const Stmt* ProfiledBody() const { return profiled_body; }
+    const Expr* ProfiledExpr() const { return profiled_expr; }
 
-	// See the comments for the associated member variables for each
-	// of these accessors.
-	const IDSet& Globals() const { return globals; }
-	const IDSet& AllGlobals() const { return all_globals; }
-	const IDSet& Locals() const { return locals; }
-	const IDSet& Captures() const { return captures; }
-	const auto& CapturesOffsets() const { return captures_offsets; }
-	const IDSet& WhenLocals() const { return when_locals; }
-	const IDSet& Params() const { return params; }
-	const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
-	const IDSet& Inits() const { return inits; }
-	const std::vector<const Stmt*>& Stmts() const { return stmts; }
-	const std::vector<const Expr*>& Exprs() const { return exprs; }
-	const std::vector<const LambdaExpr*>& Lambdas() const { return lambdas; }
-	const std::vector<const ConstExpr*>& Constants() const { return constants; }
-	const IDSet& UnorderedIdentifiers() const { return ids; }
-	const std::vector<const ID*>& OrderedIdentifiers() const { return ordered_ids; }
-	const std::unordered_set<const Type*>& UnorderedTypes() const { return types; }
-	const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
-	const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
-	const IDSet& BiFGlobals() const { return BiF_globals; }
-	const std::unordered_set<std::string>& Events() const { return events; }
-	const std::unordered_set<const Attributes*>& ConstructorAttrs() const
-		{
-		return constructor_attrs;
-		}
-	const std::unordered_set<const SwitchStmt*>& ExprSwitches() const { return expr_switches; }
-	const std::unordered_set<const SwitchStmt*>& TypeSwitches() const { return type_switches; }
+    // See the comments for the associated member variables for each
+    // of these accessors.
+    const IDSet& Globals() const { return globals; }
+    const IDSet& AllGlobals() const { return all_globals; }
+    const IDSet& Locals() const { return locals; }
+    const IDSet& Captures() const { return captures; }
+    const auto& CapturesOffsets() const { return captures_offsets; }
+    const IDSet& WhenLocals() const { return when_locals; }
+    const IDSet& Params() const { return params; }
+    const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
+    const IDSet& Inits() const { return inits; }
+    const std::vector<const Stmt*>& Stmts() const { return stmts; }
+    const std::vector<const Expr*>& Exprs() const { return exprs; }
+    const std::vector<const LambdaExpr*>& Lambdas() const { return lambdas; }
+    const std::vector<const ConstExpr*>& Constants() const { return constants; }
+    const IDSet& UnorderedIdentifiers() const { return ids; }
+    const std::vector<const ID*>& OrderedIdentifiers() const { return ordered_ids; }
+    const std::unordered_set<const Type*>& UnorderedTypes() const { return types; }
+    const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
+    const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
+    const IDSet& BiFGlobals() const { return BiF_globals; }
+    const std::unordered_set<std::string>& Events() const { return events; }
+    const std::unordered_set<const Attributes*>& ConstructorAttrs() const { return constructor_attrs; }
+    const std::unordered_set<const SwitchStmt*>& ExprSwitches() const { return expr_switches; }
+    const std::unordered_set<const SwitchStmt*>& TypeSwitches() const { return type_switches; }
 
-	bool DoesIndirectCalls() { return does_indirect_calls; }
+    bool DoesIndirectCalls() { return does_indirect_calls; }
 
-	int NumParams() const { return num_params; }
-	int NumLambdas() const { return lambdas.size(); }
-	int NumWhenStmts() const { return num_when_stmts; }
+    int NumParams() const { return num_params; }
+    int NumLambdas() const { return lambdas.size(); }
+    int NumWhenStmts() const { return num_when_stmts; }
 
-	const std::vector<p_hash_type>& AdditionalHashes() const { return addl_hashes; }
+    const std::vector<p_hash_type>& AdditionalHashes() const { return addl_hashes; }
 
-	// Set this function's hash to the given value; retrieve that value.
-	void SetHashVal(p_hash_type hash) { hash_val = hash; }
-	p_hash_type HashVal() const { return hash_val; }
+    // Set this function's hash to the given value; retrieve that value.
+    void SetHashVal(p_hash_type hash) { hash_val = hash; }
+    p_hash_type HashVal() const { return hash_val; }
 
 protected:
-	// Construct the profile for the given function signature and body.
-	void Profile(const FuncType* ft, const StmtPtr& body);
+    // Construct the profile for the given function signature and body.
+    void Profile(const FuncType* ft, const StmtPtr& body);
 
-	TraversalCode PreStmt(const Stmt*) override;
-	TraversalCode PreExpr(const Expr*) override;
-	TraversalCode PreID(const ID*) override;
+    TraversalCode PreStmt(const Stmt*) override;
+    TraversalCode PreExpr(const Expr*) override;
+    TraversalCode PreID(const ID*) override;
 
-	// Take note of the presence of a given type.
-	void TrackType(const Type* t);
-	void TrackType(const TypePtr& t) { TrackType(t.get()); }
+    // Take note of the presence of a given type.
+    void TrackType(const Type* t);
+    void TrackType(const TypePtr& t) { TrackType(t.get()); }
 
-	// Take note of the presence of an identifier.
-	void TrackID(const ID* id);
+    // Take note of the presence of an identifier.
+    void TrackID(const ID* id);
 
-	// Take note of an assignment to an identifier.
-	void TrackAssignment(const ID* id);
+    // Take note of an assignment to an identifier.
+    void TrackAssignment(const ID* id);
 
-	// The function, body, or expression profiled.  Can be null
-	// depending on which constructor was used.
-	const Func* profiled_func = nullptr;
-	const Stmt* profiled_body = nullptr;
-	const Expr* profiled_expr = nullptr;
+    // The function, body, or expression profiled.  Can be null
+    // depending on which constructor was used.
+    const Func* profiled_func = nullptr;
+    const Stmt* profiled_body = nullptr;
+    const Expr* profiled_expr = nullptr;
 
-	// Globals seen in the function.
-	//
-	// Does *not* include globals solely seen as the function being
-	// called in a call.
-	IDSet globals;
+    // Globals seen in the function.
+    //
+    // Does *not* include globals solely seen as the function being
+    // called in a call.
+    IDSet globals;
 
-	// Same, but also includes globals only seen as called functions.
-	IDSet all_globals;
+    // Same, but also includes globals only seen as called functions.
+    IDSet all_globals;
 
-	// Locals seen in the function.
-	IDSet locals;
+    // Locals seen in the function.
+    IDSet locals;
 
-	// Same, but for those declared in "when" expressions.
-	IDSet when_locals;
+    // Same, but for those declared in "when" expressions.
+    IDSet when_locals;
 
-	// The function's parameters.  Empty if our starting point was
-	// profiling an expression.
-	IDSet params;
+    // The function's parameters.  Empty if our starting point was
+    // profiling an expression.
+    IDSet params;
 
-	// How many parameters the function has.  The default value flags
-	// that we started the profile with an expression rather than a
-	// function.
-	int num_params = -1;
+    // How many parameters the function has.  The default value flags
+    // that we started the profile with an expression rather than a
+    // function.
+    int num_params = -1;
 
-	// Maps identifiers (globals, locals, parameters) to how often
-	// they are assigned to (no entry if never).  Does not include
-	// implicit assignments due to initializations, which are instead
-	// captured in "inits".
-	std::unordered_map<const ID*, int> assignees;
+    // Maps identifiers (globals, locals, parameters) to how often
+    // they are assigned to (no entry if never).  Does not include
+    // implicit assignments due to initializations, which are instead
+    // captured in "inits".
+    std::unordered_map<const ID*, int> assignees;
 
-	// Same for locals seen in initializations, so we can find,
-	// for example, unused aggregates.
-	IDSet inits;
+    // Same for locals seen in initializations, so we can find,
+    // for example, unused aggregates.
+    IDSet inits;
 
-	// Statements seen in the function.  Does not include indirect
-	// statements, such as those in lambda bodies.
-	std::vector<const Stmt*> stmts;
+    // Statements seen in the function.  Does not include indirect
+    // statements, such as those in lambda bodies.
+    std::vector<const Stmt*> stmts;
 
-	// Expressions seen in the function.  Does not include indirect
-	// expressions (such as those appearing in attributes of types).
-	std::vector<const Expr*> exprs;
+    // Expressions seen in the function.  Does not include indirect
+    // expressions (such as those appearing in attributes of types).
+    std::vector<const Expr*> exprs;
 
-	// Lambdas seen in the function.  We don't profile lambda bodies,
-	// but rather make them available for separate profiling if
-	// appropriate.
-	std::vector<const LambdaExpr*> lambdas;
+    // Lambdas seen in the function.  We don't profile lambda bodies,
+    // but rather make them available for separate profiling if
+    // appropriate.
+    std::vector<const LambdaExpr*> lambdas;
 
-	// If we're profiling a lambda function, this holds the captures.
-	IDSet captures;
+    // If we're profiling a lambda function, this holds the captures.
+    IDSet captures;
 
-	// This maps capture identifiers to their offsets.
-	std::map<const ID*, int> captures_offsets;
+    // This maps capture identifiers to their offsets.
+    std::map<const ID*, int> captures_offsets;
 
-	// Constants seen in the function.
-	std::vector<const ConstExpr*> constants;
+    // Constants seen in the function.
+    std::vector<const ConstExpr*> constants;
 
-	// Identifiers seen in the function.
-	IDSet ids;
+    // Identifiers seen in the function.
+    IDSet ids;
 
-	// The same, but in a deterministic order.
-	std::vector<const ID*> ordered_ids;
+    // The same, but in a deterministic order.
+    std::vector<const ID*> ordered_ids;
 
-	// Types seen in the function.  A set rather than a vector because
-	// the same type can be seen numerous times.
-	std::unordered_set<const Type*> types;
+    // Types seen in the function.  A set rather than a vector because
+    // the same type can be seen numerous times.
+    std::unordered_set<const Type*> types;
 
-	// The same, but in a deterministic order, with duplicates removed.
-	std::vector<const Type*> ordered_types;
+    // The same, but in a deterministic order, with duplicates removed.
+    std::vector<const Type*> ordered_types;
 
-	// Script functions that this script calls.  Includes calls made
-	// by lambdas and when bodies, as the goal is to identify recursion.
-	std::unordered_set<ScriptFunc*> script_calls;
+    // Script functions that this script calls.  Includes calls made
+    // by lambdas and when bodies, as the goal is to identify recursion.
+    std::unordered_set<ScriptFunc*> script_calls;
 
-	// Same for BiF's, though for them we record the corresponding global
-	// rather than the BuiltinFunc*.
-	IDSet BiF_globals;
+    // Same for BiF's, though for them we record the corresponding global
+    // rather than the BuiltinFunc*.
+    IDSet BiF_globals;
 
-	// Script functions appearing in "when" clauses.
-	std::unordered_set<ScriptFunc*> when_calls;
+    // Script functions appearing in "when" clauses.
+    std::unordered_set<ScriptFunc*> when_calls;
 
-	// Names of generated events.
-	std::unordered_set<std::string> events;
+    // Names of generated events.
+    std::unordered_set<std::string> events;
 
-	// Attributes seen in set or table constructors.
-	std::unordered_set<const Attributes*> constructor_attrs;
+    // Attributes seen in set or table constructors.
+    std::unordered_set<const Attributes*> constructor_attrs;
 
-	// Switch statements with either expression cases or type cases.
-	std::unordered_set<const SwitchStmt*> expr_switches;
-	std::unordered_set<const SwitchStmt*> type_switches;
+    // Switch statements with either expression cases or type cases.
+    std::unordered_set<const SwitchStmt*> expr_switches;
+    std::unordered_set<const SwitchStmt*> type_switches;
 
-	// True if the function makes a call through an expression rather
-	// than simply a function's (global) name.
-	bool does_indirect_calls = false;
+    // True if the function makes a call through an expression rather
+    // than simply a function's (global) name.
+    bool does_indirect_calls = false;
 
-	// Additional values present in the body that should be factored
-	// into its hash.
-	std::vector<p_hash_type> addl_hashes;
+    // Additional values present in the body that should be factored
+    // into its hash.
+    std::vector<p_hash_type> addl_hashes;
 
-	// Associated hash value.
-	p_hash_type hash_val = 0;
+    // Associated hash value.
+    p_hash_type hash_val = 0;
 
-	// How many when statements appear in the function body.  We could
-	// track these individually, but to date all that's mattered is
-	// whether a given body contains any.
-	int num_when_stmts = 0;
+    // How many when statements appear in the function body.  We could
+    // track these individually, but to date all that's mattered is
+    // whether a given body contains any.
+    int num_when_stmts = 0;
 
-	// Whether we should treat record field accesses as absolute
-	// (integer offset) or relative (name-based).
-	bool abs_rec_fields;
-	};
+    // Whether we should treat record field accesses as absolute
+    // (integer offset) or relative (name-based).
+    bool abs_rec_fields;
+};
 
 // Function pointer for a predicate that determines whether a given
 // profile is compilable.  Alternatively we could derive subclasses
@@ -278,148 +263,146 @@ protected:
 using is_compilable_pred = bool (*)(const ProfileFunc*, const char** reason);
 
 // Collectively profile an entire collection of functions.
-class ProfileFuncs
-	{
+class ProfileFuncs {
 public:
-	// Updates entries in "funcs" to include profiles.  If pred is
-	// non-nil, then it is called for each profile to see whether it's
-	// compilable, and, if not, the FuncInfo is marked as ShouldSkip().
-	// "full_record_hashes" controls whether the hashes for extended
-	// records covers their final, full form, or should only their
-	// original fields.
-	ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool full_record_hashes);
+    // Updates entries in "funcs" to include profiles.  If pred is
+    // non-nil, then it is called for each profile to see whether it's
+    // compilable, and, if not, the FuncInfo is marked as ShouldSkip().
+    // "full_record_hashes" controls whether the hashes for extended
+    // records covers their final, full form, or should only their
+    // original fields.
+    ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool full_record_hashes);
 
-	// The following accessors provide a global profile across all of
-	// the (non-skipped) functions in "funcs".  See the comments for
-	// the associated member variables for documentation.
-	const IDSet& Globals() const { return globals; }
-	const IDSet& AllGlobals() const { return all_globals; }
-	const std::unordered_set<const ConstExpr*>& Constants() const { return constants; }
-	const std::vector<const Type*>& MainTypes() const { return main_types; }
-	const std::vector<const Type*>& RepTypes() const { return rep_types; }
-	const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
-	const IDSet& BiFGlobals() const { return BiF_globals; }
-	const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
-	const std::unordered_set<std::string>& Events() const { return events; }
+    // The following accessors provide a global profile across all of
+    // the (non-skipped) functions in "funcs".  See the comments for
+    // the associated member variables for documentation.
+    const IDSet& Globals() const { return globals; }
+    const IDSet& AllGlobals() const { return all_globals; }
+    const std::unordered_set<const ConstExpr*>& Constants() const { return constants; }
+    const std::vector<const Type*>& MainTypes() const { return main_types; }
+    const std::vector<const Type*>& RepTypes() const { return rep_types; }
+    const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
+    const IDSet& BiFGlobals() const { return BiF_globals; }
+    const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
+    const std::unordered_set<std::string>& Events() const { return events; }
 
-	std::shared_ptr<ProfileFunc> FuncProf(const ScriptFunc* f) { return func_profs[f]; }
+    std::shared_ptr<ProfileFunc> FuncProf(const ScriptFunc* f) { return func_profs[f]; }
 
-	// This is only externally germane for LambdaExpr's.
-	std::shared_ptr<ProfileFunc> ExprProf(const Expr* e) { return expr_profs[e]; }
+    // This is only externally germane for LambdaExpr's.
+    std::shared_ptr<ProfileFunc> ExprProf(const Expr* e) { return expr_profs[e]; }
 
-	// Returns the "representative" Type* for the hash associated with
-	// the parameter (which might be the parameter itself).
-	const Type* TypeRep(const Type* orig)
-		{
-		auto it = type_to_rep.find(orig);
-		ASSERT(it != type_to_rep.end());
-		return it->second;
-		}
+    // Returns the "representative" Type* for the hash associated with
+    // the parameter (which might be the parameter itself).
+    const Type* TypeRep(const Type* orig) {
+        auto it = type_to_rep.find(orig);
+        ASSERT(it != type_to_rep.end());
+        return it->second;
+    }
 
-	// Returns the hash associated with the given type, computing it
-	// if necessary.
-	p_hash_type HashType(const TypePtr& t) { return HashType(t.get()); }
-	p_hash_type HashType(const Type* t);
+    // Returns the hash associated with the given type, computing it
+    // if necessary.
+    p_hash_type HashType(const TypePtr& t) { return HashType(t.get()); }
+    p_hash_type HashType(const Type* t);
 
-	p_hash_type HashAttrs(const AttributesPtr& attrs);
+    p_hash_type HashAttrs(const AttributesPtr& attrs);
 
 protected:
-	// Incorporate the given function profile into the global profile.
-	void MergeInProfile(ProfileFunc* pf);
+    // Incorporate the given function profile into the global profile.
+    void MergeInProfile(ProfileFunc* pf);
 
-	// Recursively traverse a (possibly aggregate) value to extract
-	// all of the types its elements use.
-	void TraverseValue(const ValPtr& v);
+    // Recursively traverse a (possibly aggregate) value to extract
+    // all of the types its elements use.
+    void TraverseValue(const ValPtr& v);
 
-	// When traversing types, Zeek records can have attributes that in
-	// turn have expressions associated with them.  The expressions can
-	// in turn have types, which might be records with further attribute
-	// expressions, etc.  This method iteratively processes the list
-	// expressions we need to analyze until no new ones are added.
-	void DrainPendingExprs();
+    // When traversing types, Zeek records can have attributes that in
+    // turn have expressions associated with them.  The expressions can
+    // in turn have types, which might be records with further attribute
+    // expressions, etc.  This method iteratively processes the list
+    // expressions we need to analyze until no new ones are added.
+    void DrainPendingExprs();
 
-	// Compute hashes for the given set of types.  Potentially recursive
-	// upon discovering additional types.
-	void ComputeTypeHashes(const std::vector<const Type*>& types);
+    // Compute hashes for the given set of types.  Potentially recursive
+    // upon discovering additional types.
+    void ComputeTypeHashes(const std::vector<const Type*>& types);
 
-	// Compute hashes to associate with each function
-	void ComputeBodyHashes(std::vector<FuncInfo>& funcs);
+    // Compute hashes to associate with each function
+    void ComputeBodyHashes(std::vector<FuncInfo>& funcs);
 
-	// Compute the hash associated with a single function profile.
-	void ComputeProfileHash(std::shared_ptr<ProfileFunc> pf);
+    // Compute the hash associated with a single function profile.
+    void ComputeProfileHash(std::shared_ptr<ProfileFunc> pf);
 
-	// Analyze the expressions and lambdas appearing in a set of
-	// attributes.
-	void AnalyzeAttrs(const Attributes* Attrs);
+    // Analyze the expressions and lambdas appearing in a set of
+    // attributes.
+    void AnalyzeAttrs(const Attributes* Attrs);
 
-	// Globals seen across the functions, other than those solely seen
-	// as the function being called in a call.
-	IDSet globals;
+    // Globals seen across the functions, other than those solely seen
+    // as the function being called in a call.
+    IDSet globals;
 
-	// Same, but also includes globals only seen as called functions.
-	IDSet all_globals;
+    // Same, but also includes globals only seen as called functions.
+    IDSet all_globals;
 
-	// Constants seen across the functions.
-	std::unordered_set<const ConstExpr*> constants;
+    // Constants seen across the functions.
+    std::unordered_set<const ConstExpr*> constants;
 
-	// Types seen across the functions.  Does not include subtypes.
-	// Deterministically ordered.
-	std::vector<const Type*> main_types;
+    // Types seen across the functions.  Does not include subtypes.
+    // Deterministically ordered.
+    std::vector<const Type*> main_types;
 
-	// "Representative" types seen across the functions.  Includes
-	// subtypes.  These all have unique hashes, and are returned by
-	// calls to TypeRep().  Deterministically ordered.
-	std::vector<const Type*> rep_types;
+    // "Representative" types seen across the functions.  Includes
+    // subtypes.  These all have unique hashes, and are returned by
+    // calls to TypeRep().  Deterministically ordered.
+    std::vector<const Type*> rep_types;
 
-	// Maps a type to its representative (which might be itself).
-	std::unordered_map<const Type*, const Type*> type_to_rep;
+    // Maps a type to its representative (which might be itself).
+    std::unordered_map<const Type*, const Type*> type_to_rep;
 
-	// Script functions that get called.
-	std::unordered_set<ScriptFunc*> script_calls;
+    // Script functions that get called.
+    std::unordered_set<ScriptFunc*> script_calls;
 
-	// Same for BiF's.
-	IDSet BiF_globals;
+    // Same for BiF's.
+    IDSet BiF_globals;
 
-	// And for lambda's.
-	std::unordered_set<const LambdaExpr*> lambdas;
+    // And for lambda's.
+    std::unordered_set<const LambdaExpr*> lambdas;
 
-	// Names of generated events.
-	std::unordered_set<std::string> events;
+    // Names of generated events.
+    std::unordered_set<std::string> events;
 
-	// Maps script functions to associated profiles.  This isn't
-	// actually well-defined in the case of event handlers and hooks,
-	// which can have multiple bodies.  However, the need for this
-	// is temporary (it's for skipping compilation of functions that
-	// appear in "when" clauses), and in that context it suffices.
-	std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>> func_profs;
+    // Maps script functions to associated profiles.  This isn't
+    // actually well-defined in the case of event handlers and hooks,
+    // which can have multiple bodies.  However, the need for this
+    // is temporary (it's for skipping compilation of functions that
+    // appear in "when" clauses), and in that context it suffices.
+    std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>> func_profs;
 
-	// Maps expressions to their profiles.  This is only germane
-	// externally for LambdaExpr's, but internally it abets memory
-	// management.
-	std::unordered_map<const Expr*, std::shared_ptr<ProfileFunc>> expr_profs;
+    // Maps expressions to their profiles.  This is only germane
+    // externally for LambdaExpr's, but internally it abets memory
+    // management.
+    std::unordered_map<const Expr*, std::shared_ptr<ProfileFunc>> expr_profs;
 
-	// These remaining member variables are only used internally,
-	// not provided via accessors:
+    // These remaining member variables are only used internally,
+    // not provided via accessors:
 
-	// Maps types to their hashes.
-	std::unordered_map<const Type*, p_hash_type> type_hashes;
+    // Maps types to their hashes.
+    std::unordered_map<const Type*, p_hash_type> type_hashes;
 
-	// An inverse mapping, to a representative for each distinct hash.
-	std::unordered_map<p_hash_type, const Type*> type_hash_reps;
+    // An inverse mapping, to a representative for each distinct hash.
+    std::unordered_map<p_hash_type, const Type*> type_hash_reps;
 
-	// For types with names, tracks the ones we've already hashed,
-	// so we can avoid work for distinct pointers that refer to the
-	// same underlying type.
-	std::unordered_map<std::string, const Type*> seen_type_names;
+    // For types with names, tracks the ones we've already hashed,
+    // so we can avoid work for distinct pointers that refer to the
+    // same underlying type.
+    std::unordered_map<std::string, const Type*> seen_type_names;
 
-	// Expressions that we've discovered that we need to further
-	// profile.  These can arise for example due to lambdas or
-	// record attributes.
-	std::vector<const Expr*> pending_exprs;
+    // Expressions that we've discovered that we need to further
+    // profile.  These can arise for example due to lambdas or
+    // record attributes.
+    std::vector<const Expr*> pending_exprs;
 
-	// Whether the hashes for extended records should cover their final,
-	// full form, or only their original fields.
-	bool full_record_hashes;
-	};
+    // Whether the hashes for extended records should cover their final,
+    // full form, or only their original fields.
+    bool full_record_hashes;
+};
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

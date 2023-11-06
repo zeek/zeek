@@ -6,34 +6,29 @@
 #include "foo.bif.h"
 #include "foo_pac.h"
 
-namespace btest::analyzer::FOO
-	{
+namespace btest::analyzer::FOO {
 
-class FOO_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer
-	{
+class FOO_Analyzer : public zeek::analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-	FOO_Analyzer(zeek::Connection* conn);
-	virtual ~FOO_Analyzer();
+    FOO_Analyzer(zeek::Connection* conn);
+    virtual ~FOO_Analyzer();
 
-	// Overridden from Analyzer.
-	virtual void Done();
+    // Overridden from Analyzer.
+    virtual void Done();
 
-	virtual void DeliverStream(int len, const u_char* data, bool orig);
-	virtual void Undelivered(uint64_t seq, int len, bool orig);
+    virtual void DeliverStream(int len, const u_char* data, bool orig);
+    virtual void Undelivered(uint64_t seq, int len, bool orig);
 
-	// Overridden from tcp::TCP_ApplicationAnalyzer.
-	virtual void EndpointEOF(bool is_orig);
+    // Overridden from tcp::TCP_ApplicationAnalyzer.
+    virtual void EndpointEOF(bool is_orig);
 
-	static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn)
-		{
-		return new FOO_Analyzer(conn);
-		}
+    static zeek::analyzer::Analyzer* InstantiateAnalyzer(zeek::Connection* conn) { return new FOO_Analyzer(conn); }
 
 protected:
-	binpac::FOO::FOO_Conn* interp;
-	bool had_gap;
-	};
+    binpac::FOO::FOO_Conn* interp;
+    bool had_gap;
+};
 
-	} // namespace btest::analyzer::FOO
+} // namespace btest::analyzer::FOO
 
 #endif

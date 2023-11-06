@@ -7,27 +7,22 @@
 #include <optional>
 #include <string>
 
-namespace zeek
-	{
+namespace zeek {
 
 class Packet;
 
-namespace iosource
-	{
+namespace iosource {
 
 class IOSource;
 class PktSrc;
 class PktDumper;
 
-	} // namespace iosource
+} // namespace iosource
 
-namespace run_state
-	{
-namespace detail
-	{
+namespace run_state {
+namespace detail {
 
-extern void init_run(const std::optional<std::string>& interfaces,
-                     const std::optional<std::string>& pcap_input_file,
+extern void init_run(const std::optional<std::string>& interfaces, const std::optional<std::string>& pcap_input_file,
                      const std::optional<std::string>& pcap_output_file, bool do_watchdog);
 extern void run_loop();
 extern void get_final_stats();
@@ -67,7 +62,7 @@ extern bool zeek_init_done;
 
 extern bool bare_mode; // True if Zeek was started in bare mode.
 
-	} // namespace detail
+} // namespace detail
 
 // Functions to temporarily suspend processing of live input (network packets
 // and remote events/state). Turning this is on is sure to lead to data loss!
@@ -115,5 +110,5 @@ extern const zeek::Packet* current_pkt;
 extern int current_dispatched;
 extern double current_timestamp;
 
-	} // namespace run_state
-	} // namespace zeek
+} // namespace run_state
+} // namespace zeek

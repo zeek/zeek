@@ -8,28 +8,24 @@
 #include "zeek/script_opt/CPP/Attrs.h"
 #include "zeek/script_opt/CPP/Func.h"
 
-namespace zeek
-	{
+namespace zeek {
 
 using FuncValPtr = IntrusivePtr<zeek::FuncVal>;
 
-namespace detail
-	{
+namespace detail {
 
 // A version of TableType that allows us to first build a "stub" and
 // then fill in its actual index & yield later - necessary for dealing
 // with recursive types.
-class CPPTableType : public TableType
-	{
+class CPPTableType : public TableType {
 public:
-	CPPTableType() : TableType(nullptr, nullptr){};
+    CPPTableType() : TableType(nullptr, nullptr){};
 
-	void SetIndexAndYield(TypeListPtr ind, TypePtr yield)
-		{
-		ind = std::move(indices);
-		yield_type = std::move(yield);
-		}
-	};
+    void SetIndexAndYield(TypeListPtr ind, TypePtr yield) {
+        ind = std::move(indices);
+        yield_type = std::move(yield);
+    }
+};
 
 // An initialization hook for a collection of compiled-to-C++ functions
 // (the result of a single invocation of the compiler on a set of scripts).
@@ -45,8 +41,8 @@ extern void register_type__CPP(TypePtr t, const std::string& name);
 // given priority and hash.  "events" is a list of event handlers
 // relevant for the function body, which should be registered if the
 // function body is going to be used.
-extern void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
-                               std::vector<std::string> events, void (*finish_init)());
+extern void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, std::vector<std::string> events,
+                               void (*finish_init)());
 
 // Same but for standalone function bodies.
 extern void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
@@ -55,8 +51,7 @@ extern void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_
 // Registers a lambda body as associated with the given hash.  Includes
 // the name of the lambda (so it can be made available as a quasi-global
 // identifier), its type, and whether it needs captures.
-extern void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t,
-                                 bool has_captures);
+extern void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t, bool has_captures);
 
 // Registers a callback for activating a set of scripts associated with
 // the given hash.
@@ -80,8 +75,7 @@ extern Func* lookup_bif__CPP(const char* bif);
 // returns an associated FuncVal.  It's a fatal error for the hash
 // not to exist, because this function should only be called by compiled
 // code that has ensured its existence.
-extern FuncValPtr lookup_func__CPP(std::string name, int num_bodies, std::vector<p_hash_type> h,
-                                   const TypePtr& t);
+extern FuncValPtr lookup_func__CPP(std::string name, int num_bodies, std::vector<p_hash_type> h, const TypePtr& t);
 
 // Looks for a global with the given name, generating a run-time error
 // if not present.
@@ -101,5 +95,5 @@ extern EnumTypePtr get_enum_type__CPP(const std::string& enum_type_name);
 // in the context of the given enum type 't'.
 extern EnumValPtr make_enum__CPP(TypePtr t, zeek_int_t i);
 
-	} // namespace zeek::detail
-	} // namespace zeek
+} // namespace detail
+} // namespace zeek

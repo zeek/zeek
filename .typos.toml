@@ -67,7 +67,6 @@ uses_seh = "uses_seh"
 [default.extend-words]
 caf = "caf"
 helo = "helo"
-inout = "inout"
 # Seems we use this in the management framework
 requestor = "requestor"
 # `inout` is used as a keyword in Spicy, but looks like a typo of `input`.

@@ -4,9 +4,8 @@
 
 #include "zeek/Val.h"
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
-BifReturnVal::BifReturnVal(std::nullptr_t) noexcept { }
+BifReturnVal::BifReturnVal(std::nullptr_t) noexcept {}
 
-	} // namespace zeek::detail
+} // namespace zeek::detail

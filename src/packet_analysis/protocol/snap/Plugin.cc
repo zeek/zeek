@@ -5,23 +5,20 @@
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/snap/SNAP.h"
 
-namespace zeek::plugin::Zeek_SNAP
-	{
+namespace zeek::plugin::Zeek_SNAP {
 
-class Plugin final : public zeek::plugin::Plugin
-	{
+class Plugin final : public zeek::plugin::Plugin {
 public:
-	zeek::plugin::Configuration Configure() override
-		{
-		AddComponent(new zeek::packet_analysis::Component(
-			"SNAP", zeek::packet_analysis::SNAP::SNAPAnalyzer::Instantiate));
+    zeek::plugin::Configuration Configure() override {
+        AddComponent(
+            new zeek::packet_analysis::Component("SNAP", zeek::packet_analysis::SNAP::SNAPAnalyzer::Instantiate));
 
-		zeek::plugin::Configuration config;
-		config.name = "Zeek::SNAP";
-		config.description = "SNAP packet analyzer";
-		return config;
-		}
+        zeek::plugin::Configuration config;
+        config.name = "Zeek::SNAP";
+        config.description = "SNAP packet analyzer";
+        return config;
+    }
 
-	} plugin;
+} plugin;
 
-	}
+} // namespace zeek::plugin::Zeek_SNAP

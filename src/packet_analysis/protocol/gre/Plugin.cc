@@ -5,23 +5,19 @@
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/gre/GRE.h"
 
-namespace zeek::plugin::Zeek_GRE
-	{
+namespace zeek::plugin::Zeek_GRE {
 
-class Plugin final : public zeek::plugin::Plugin
-	{
+class Plugin final : public zeek::plugin::Plugin {
 public:
-	zeek::plugin::Configuration Configure() override
-		{
-		AddComponent(new zeek::packet_analysis::Component(
-			"GRE", zeek::packet_analysis::GRE::GREAnalyzer::Instantiate));
+    zeek::plugin::Configuration Configure() override {
+        AddComponent(new zeek::packet_analysis::Component("GRE", zeek::packet_analysis::GRE::GREAnalyzer::Instantiate));
 
-		zeek::plugin::Configuration config;
-		config.name = "Zeek::GRE";
-		config.description = "GRE packet analyzer";
-		return config;
-		}
+        zeek::plugin::Configuration config;
+        config.name = "Zeek::GRE";
+        config.description = "GRE packet analyzer";
+        return config;
+    }
 
-	} plugin;
+} plugin;
 
-	}
+} // namespace zeek::plugin::Zeek_GRE

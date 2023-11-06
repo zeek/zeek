@@ -1,8 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 #pragma once
 
-namespace zeek::detail
-	{
+namespace zeek::detail {
 
 class Stmt;
 
@@ -21,4 +20,4 @@ void script_validation();
  */
 bool script_is_valid(const Stmt* s, bool is_in_hook);
 
-	}
+} // namespace zeek::detail

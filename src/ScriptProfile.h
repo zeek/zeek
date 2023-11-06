@@ -9,193 +9,181 @@
 #include "zeek/Func.h"
 #include "zeek/Stmt.h"
 
-namespace zeek
-	{
+namespace zeek {
 
-namespace detail
-	{
+namespace detail {
 
 // Base class for tracking an instance of profile information.  The instance
 // can be a single function body (equivalently, event handler or hook body),
 // or an aggregate that includes multiple function bodies.
 
-class ScriptProfileStats
-	{
+class ScriptProfileStats {
 public:
-	struct StackData
-		{
-		int call_count = 0;
-		double cpu_time = 0.0;
-		uint64_t memory = 0;
-		};
+    struct StackData {
+        int call_count = 0;
+        double cpu_time = 0.0;
+        uint64_t memory = 0;
+    };
 
-	ScriptProfileStats() = default;
-	ScriptProfileStats(std::string arg_name) : name(std::move(arg_name)) { }
+    ScriptProfileStats() = default;
+    ScriptProfileStats(std::string arg_name) : name(std::move(arg_name)) {}
 
-	virtual ~ScriptProfileStats() = default;
+    virtual ~ScriptProfileStats() = default;
 
-	ScriptProfileStats(ScriptProfileStats&&) = default;
-	ScriptProfileStats(const ScriptProfileStats&) = default;
+    ScriptProfileStats(ScriptProfileStats&&) = default;
+    ScriptProfileStats(const ScriptProfileStats&) = default;
 
-	ScriptProfileStats& operator=(ScriptProfileStats&&) = default;
-	ScriptProfileStats& operator=(const ScriptProfileStats&) = default;
+    ScriptProfileStats& operator=(ScriptProfileStats&&) = default;
+    ScriptProfileStats& operator=(const ScriptProfileStats&) = default;
 
-	const auto Name() const { return name; }
+    const auto Name() const { return name; }
 
-	// Number of instances included in an aggregate (like for "all BiFs").
-	// This is 1 for non-aggregates.
-	int NumInstances() const { return ninstances; }
+    // Number of instances included in an aggregate (like for "all BiFs").
+    // This is 1 for non-aggregates.
+    int NumInstances() const { return ninstances; }
 
-	// How many calls were profiled for this instance.
-	int NumCalls() const { return ncalls; }
+    // How many calls were profiled for this instance.
+    int NumCalls() const { return ncalls; }
 
-	// CPU & memory accumulated by the calls.
-	double CPUTime() const { return CPU_time; }
-	uint64_t Memory() const { return memory; }
+    // CPU & memory accumulated by the calls.
+    double CPUTime() const { return CPU_time; }
+    uint64_t Memory() const { return memory; }
 
-	// Stacks for all of the calls plus counters.
-	std::unordered_map<std::string, StackData> Stacks() const { return stacks; }
+    // Stacks for all of the calls plus counters.
+    std::unordered_map<std::string, StackData> Stacks() const { return stacks; }
 
-	// Used to count instances in an aggregate.
-	void AddInstance() { ++ninstances; }
+    // Used to count instances in an aggregate.
+    void AddInstance() { ++ninstances; }
 
-	// Fold into this profile another profile.  Second argument controls
-	// whether the folding should include increasing the number of calls.
-	void AddIn(const ScriptProfileStats* eps, bool bump_num_calls = true,
-	           const std::string& stack = "");
+    // Fold into this profile another profile.  Second argument controls
+    // whether the folding should include increasing the number of calls.
+    void AddIn(const ScriptProfileStats* eps, bool bump_num_calls = true, const std::string& stack = "");
 
-	// Accumulate a single instance of CPU & memory usage.
-	void AddIn(double delta_CPU_time, uint64_t delta_memory)
-		{
-		CPU_time += delta_CPU_time;
-		memory += delta_memory;
-		}
+    // Accumulate a single instance of CPU & memory usage.
+    void AddIn(double delta_CPU_time, uint64_t delta_memory) {
+        CPU_time += delta_CPU_time;
+        memory += delta_memory;
+    }
 
-	// Directly specify the total CPU & memory usage.
-	void SetStats(double arg_CPU_time, uint64_t arg_memory)
-		{
-		CPU_time = arg_CPU_time;
-		memory = arg_memory;
-		}
+    // Directly specify the total CPU & memory usage.
+    void SetStats(double arg_CPU_time, uint64_t arg_memory) {
+        CPU_time = arg_CPU_time;
+        memory = arg_memory;
+    }
 
-	// Track that the instance has had another call.
-	void NewCall() { ++ncalls; }
+    // Track that the instance has had another call.
+    void NewCall() { ++ncalls; }
 
 private:
-	std::string name;
-	int ninstances = 0;
-	int ncalls = 0;
-	double CPU_time = 0.0;
-	uint64_t memory = 0;
-	std::unordered_map<std::string, StackData> stacks;
-	};
+    std::string name;
+    int ninstances = 0;
+    int ncalls = 0;
+    double CPU_time = 0.0;
+    uint64_t memory = 0;
+    std::unordered_map<std::string, StackData> stacks;
+};
 
 // Manages all of the profile instances associated with a given script.
 
-class ScriptProfile : public ScriptProfileStats
-	{
+class ScriptProfile : public ScriptProfileStats {
 public:
-	ScriptProfile(const Func* _func, const detail::StmtPtr& body)
-		: ScriptProfileStats(_func->Name())
-		{
-		func = {NewRef{}, const_cast<Func*>(_func)};
-		is_BiF = body == nullptr;
+    ScriptProfile(const Func* _func, const detail::StmtPtr& body) : ScriptProfileStats(_func->Name()) {
+        func = {NewRef{}, const_cast<Func*>(_func)};
+        is_BiF = body == nullptr;
 
-		if ( is_BiF )
-			loc = *func->GetLocationInfo();
-		else
-			loc = *body->GetLocationInfo();
-		}
+        if ( is_BiF )
+            loc = *func->GetLocationInfo();
+        else
+            loc = *body->GetLocationInfo();
+    }
 
-	// Constructor used for the special case of non-script accounting.
-	ScriptProfile() : ScriptProfileStats("non-scripts")
-		{
-		func = nullptr;
-		is_BiF = false;
-		}
+    // Constructor used for the special case of non-script accounting.
+    ScriptProfile() : ScriptProfileStats("non-scripts") {
+        func = nullptr;
+        is_BiF = false;
+    }
 
-	// Called to register the beginning/end of an execution instance.
-	void StartActivation();
-	void EndActivation(const std::string& stack = "");
+    // Called to register the beginning/end of an execution instance.
+    void StartActivation();
+    void EndActivation(const std::string& stack = "");
 
-	// Called when a child instance finishes.
-	void ChildFinished(const ScriptProfile* child);
+    // Called when a child instance finishes.
+    void ChildFinished(const ScriptProfile* child);
 
-	bool IsBiF() const { return is_BiF; }
-	double DeltaCPUTime() const { return delta_stats.CPUTime(); }
-	uint64_t DeltaMemory() const { return delta_stats.Memory(); }
+    bool IsBiF() const { return is_BiF; }
+    double DeltaCPUTime() const { return delta_stats.CPUTime(); }
+    uint64_t DeltaMemory() const { return delta_stats.Memory(); }
 
-	// Write the profile to the given file.
-	void Report(FILE* f, bool with_traces) const;
+    // Write the profile to the given file.
+    void Report(FILE* f, bool with_traces) const;
 
 private:
-	// We store "func" as a FuncPtr to ensure it sticks around when
-	// it would otherwise be ephemeral (i.e., for lambdas).
-	FuncPtr func;
-	bool is_BiF;
-	detail::Location loc;
+    // We store "func" as a FuncPtr to ensure it sticks around when
+    // it would otherwise be ephemeral (i.e., for lambdas).
+    FuncPtr func;
+    bool is_BiF;
+    detail::Location loc;
 
-	// Profile associated with child instances (functions or hooks
-	// that this instance calls - does not include events that this
-	// instance generates).
-	ScriptProfileStats child_stats;
+    // Profile associated with child instances (functions or hooks
+    // that this instance calls - does not include events that this
+    // instance generates).
+    ScriptProfileStats child_stats;
 
-	// These are ephemeral, only relevant between Start and End activations.
-	ScriptProfileStats start_stats;
+    // These are ephemeral, only relevant between Start and End activations.
+    ScriptProfileStats start_stats;
 
-	// Defined for the last activation period.
-	ScriptProfileStats delta_stats;
-	};
+    // Defined for the last activation period.
+    ScriptProfileStats delta_stats;
+};
 
 // Manages the entire script profiling process.
-class ScriptProfileMgr
-	{
+class ScriptProfileMgr {
 public:
-	// Argument specifies the file to write the profile to.
-	ScriptProfileMgr(FILE* f);
+    // Argument specifies the file to write the profile to.
+    ScriptProfileMgr(FILE* f);
 
-	// Destructor generates the actual profile.
-	~ScriptProfileMgr();
+    // Destructor generates the actual profile.
+    ~ScriptProfileMgr();
 
-	// Mark that the given function body has begun/finished.  "body" is
-	// nil for BiFs.
-	void StartInvocation(const Func* f, const detail::StmtPtr& body = nullptr);
-	void EndInvocation();
+    // Mark that the given function body has begun/finished.  "body" is
+    // nil for BiFs.
+    void StartInvocation(const Func* f, const detail::StmtPtr& body = nullptr);
+    void EndInvocation();
 
-	void EnableTraces() { with_traces = true; }
+    void EnableTraces() { with_traces = true; }
 
 private:
-	FILE* f; // where to write the profile
+    FILE* f; // where to write the profile
 
-	// Separate "script" profile that tracks resource impact of non-script
-	// execution.
-	ScriptProfile non_scripts;
+    // Separate "script" profile that tracks resource impact of non-script
+    // execution.
+    ScriptProfile non_scripts;
 
-	// Currently active instances.
-	std::vector<ScriptProfile*> call_stack;
+    // Currently active instances.
+    std::vector<ScriptProfile*> call_stack;
 
-	// Maps a given object (either a function body, for scripts, or the
-	// function itself, for BiFs) to its profile.
-	std::unordered_map<const Obj*, std::unique_ptr<ScriptProfile>> profiles;
+    // Maps a given object (either a function body, for scripts, or the
+    // function itself, for BiFs) to its profile.
+    std::unordered_map<const Obj*, std::unique_ptr<ScriptProfile>> profiles;
 
-	// Maps script bodies to their function - used for functions with
-	// multiple bodies.
-	std::unordered_map<const Obj*, const Func*> body_to_func;
+    // Maps script bodies to their function - used for functions with
+    // multiple bodies.
+    std::unordered_map<const Obj*, const Func*> body_to_func;
 
-	// Tracks the objects encountered.  Used to generate a consistent
-	// and more natural printing order.
-	std::vector<const Obj*> objs;
+    // Tracks the objects encountered.  Used to generate a consistent
+    // and more natural printing order.
+    std::vector<const Obj*> objs;
 
-	bool with_traces = false;
-	};
+    bool with_traces = false;
+};
 
 // If non-nil, script profiling is active.
 extern std::unique_ptr<ScriptProfileMgr> spm;
 
-	} // namespace zeek::detail
+} // namespace detail
 
 // Called to turn on script profiling to the given file.  If nil, writes
 // the profile to stdout.
 extern void activate_script_profiling(const char* fn, bool with_traces);
 
-	} // namespace zeek
+} // namespace zeek

@@ -2,8 +2,7 @@
 
 #pragma once
 
-namespace zeek
-	{
+namespace zeek {
 
 /**
  * Set the process affinity to a given CPU.  Currently only supported on
@@ -15,4 +14,4 @@ namespace zeek
  */
 bool set_affinity(int core_number);
 
-	} // namespace zeek
+} // namespace zeek

@@ -6,25 +6,21 @@
 #include "zeek/logging/Manager.h"
 #include "zeek/util.h"
 
-namespace zeek::logging
-	{
+namespace zeek::logging {
 
 Component::Component(const std::string& name, factory_callback arg_factory)
-	: plugin::Component(plugin::component::WRITER, name, 0, log_mgr->GetTagType())
-	{
-	factory = arg_factory;
-	}
+    : plugin::Component(plugin::component::WRITER, name, 0, log_mgr->GetTagType()) {
+    factory = arg_factory;
+}
 
-void Component::Initialize()
-	{
-	InitializeTag();
-	log_mgr->RegisterComponent(this, "WRITER_");
-	}
+void Component::Initialize() {
+    InitializeTag();
+    log_mgr->RegisterComponent(this, "WRITER_");
+}
 
-void Component::DoDescribe(ODesc* d) const
-	{
-	d->Add("Log::WRITER_");
-	d->Add(CanonicalName());
-	}
+void Component::DoDescribe(ODesc* d) const {
+    d->Add("Log::WRITER_");
+    d->Add(CanonicalName());
+}
 
-	} // namespace zeek::logging
+} // namespace zeek::logging

@@ -3,9 +3,13 @@
 #
 repos:
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: 'v13.0.0'
+  rev: 'v17.0.3'
   hooks:
   - id: clang-format
+    types_or:
+      - "c"
+      - "c++"
+      - "json"
 
 - repo: https://github.com/maxwinterstein/shfmt-py
   rev: v3.7.0.1
@@ -14,7 +18,7 @@ repos:
       args: ["-w", "-i", "4", "-ci"]
 
 - repo: https://github.com/google/yapf
-  rev: v0.40.0
+  rev: v0.40.2
   hooks:
   - id: yapf
 
@@ -25,7 +29,7 @@ repos:
     exclude: '^auxil/.*$'
 
 - repo: https://github.com/crate-ci/typos
-  rev: v1.16.8
+  rev: v1.16.21
   hooks:
     - id: typos
       exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES)$'

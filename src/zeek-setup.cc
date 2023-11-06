@@ -73,18 +73,16 @@
 #include "zeek/threading/Manager.h"
 #include "zeek/zeekygen/Manager.h"
 
-extern "C"
-	{
+extern "C" {
 #include "zeek/3rdparty/setsignal.h"
-	};
+};
 
 zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;
 
 #ifndef HAVE_STRSEP
-extern "C"
-	{
-	char* strsep(char**, const char*);
-	};
+extern "C" {
+char* strsep(char**, const char*);
+};
 #endif
 
 #ifdef USE_PERFTOOLS_DEBUG
@@ -94,85 +92,68 @@ int perftools_profile = 0;
 #endif
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-struct CRYPTO_dynlock_value
-	{
-	std::mutex mtx;
-	};
+struct CRYPTO_dynlock_value {
+    std::mutex mtx;
+};
 
-namespace
-	{
+namespace {
 
 std::unique_ptr<std::mutex[]> ssl_mtx_tbl;
 
-void ssl_lock_fn(int mode, int n, const char*, int)
-	{
-	if ( mode & CRYPTO_LOCK )
-		ssl_mtx_tbl[static_cast<size_t>(n)].lock();
-	else
-		ssl_mtx_tbl[static_cast<size_t>(n)].unlock();
-	}
+void ssl_lock_fn(int mode, int n, const char*, int) {
+    if ( mode & CRYPTO_LOCK )
+        ssl_mtx_tbl[static_cast<size_t>(n)].lock();
+    else
+        ssl_mtx_tbl[static_cast<size_t>(n)].unlock();
+}
 
-CRYPTO_dynlock_value* ssl_dynlock_create(const char*, int)
-	{
-	return new CRYPTO_dynlock_value;
-	}
+CRYPTO_dynlock_value* ssl_dynlock_create(const char*, int) { return new CRYPTO_dynlock_value; }
 
-void ssl_dynlock_lock(int mode, CRYPTO_dynlock_value* ptr, const char*, int)
-	{
-	if ( mode & CRYPTO_LOCK )
-		ptr->mtx.lock();
-	else
-		ptr->mtx.unlock();
-	}
+void ssl_dynlock_lock(int mode, CRYPTO_dynlock_value* ptr, const char*, int) {
+    if ( mode & CRYPTO_LOCK )
+        ptr->mtx.lock();
+    else
+        ptr->mtx.unlock();
+}
 
-void ssl_dynlock_destroy(CRYPTO_dynlock_value* ptr, const char*, int)
-	{
-	delete ptr;
-	}
+void ssl_dynlock_destroy(CRYPTO_dynlock_value* ptr, const char*, int) { delete ptr; }
 
-void do_ssl_init()
-	{
-	ERR_load_crypto_strings();
-	OPENSSL_add_all_algorithms_conf();
-	SSL_library_init();
-	SSL_load_error_strings();
-	ssl_mtx_tbl.reset(new std::mutex[CRYPTO_num_locks()]);
-	CRYPTO_set_locking_callback(ssl_lock_fn);
-	CRYPTO_set_dynlock_create_callback(ssl_dynlock_create);
-	CRYPTO_set_dynlock_lock_callback(ssl_dynlock_lock);
-	CRYPTO_set_dynlock_destroy_callback(ssl_dynlock_destroy);
-	}
+void do_ssl_init() {
+    ERR_load_crypto_strings();
+    OPENSSL_add_all_algorithms_conf();
+    SSL_library_init();
+    SSL_load_error_strings();
+    ssl_mtx_tbl.reset(new std::mutex[CRYPTO_num_locks()]);
+    CRYPTO_set_locking_callback(ssl_lock_fn);
+    CRYPTO_set_dynlock_create_callback(ssl_dynlock_create);
+    CRYPTO_set_dynlock_lock_callback(ssl_dynlock_lock);
+    CRYPTO_set_dynlock_destroy_callback(ssl_dynlock_destroy);
+}
 
-void do_ssl_deinit()
-	{
-	ERR_free_strings();
-	EVP_cleanup();
-	CRYPTO_cleanup_all_ex_data();
-	CRYPTO_set_locking_callback(nullptr);
-	CRYPTO_set_dynlock_create_callback(nullptr);
-	CRYPTO_set_dynlock_lock_callback(nullptr);
-	CRYPTO_set_dynlock_destroy_callback(nullptr);
-	ssl_mtx_tbl.reset();
-	}
+void do_ssl_deinit() {
+    ERR_free_strings();
+    EVP_cleanup();
+    CRYPTO_cleanup_all_ex_data();
+    CRYPTO_set_locking_callback(nullptr);
+    CRYPTO_set_dynlock_create_callback(nullptr);
+    CRYPTO_set_dynlock_lock_callback(nullptr);
+    CRYPTO_set_dynlock_destroy_callback(nullptr);
+    ssl_mtx_tbl.reset();
+}
 
-	} // namespace
+} // namespace
 #else
-namespace
-	{
+namespace {
 
-void do_ssl_init()
-	{
-	OPENSSL_init_ssl(0, nullptr);
-	}
+void do_ssl_init() { OPENSSL_init_ssl(0, nullptr); }
 
-void do_ssl_deinit()
-	{
-	ERR_free_strings();
-	EVP_cleanup();
-	CRYPTO_cleanup_all_ex_data();
-	}
+void do_ssl_deinit() {
+    ERR_free_strings();
+    EVP_cleanup();
+    CRYPTO_cleanup_all_ex_data();
+}
 
-	} // namespace
+} // namespace
 #endif
 
 zeek::ValManager* zeek::val_mgr = nullptr;
@@ -243,969 +224,893 @@ zeek::OpaqueTypePtr dbl_histogram_metric_family_type;
 int zeek::detail::zeek_argc;
 char** zeek::detail::zeek_argv;
 
-namespace zeek
-	{
+namespace zeek {
 
-const char* zeek_version()
-	{
+const char* zeek_version() {
 #ifdef DEBUG
-	static char* debug_version = nullptr;
+    static char* debug_version = nullptr;
 
-	if ( ! debug_version )
-		{
-		int n = strlen(version) + sizeof("-debug") + 1;
-		debug_version = new char[n];
-		snprintf(debug_version, n, "%s%s", version, "-debug");
-		}
+    if ( ! debug_version ) {
+        int n = strlen(version) + sizeof("-debug") + 1;
+        debug_version = new char[n];
+        snprintf(debug_version, n, "%s%s", version, "-debug");
+    }
 
-	return debug_version;
+    return debug_version;
 #else
-	return version;
+    return version;
 #endif
-	}
+}
 
-namespace detail
-	{
+namespace detail {
 
-static std::vector<const char*> to_cargs(const std::vector<std::string>& args)
-	{
-	std::vector<const char*> rval;
-	rval.reserve(args.size());
+static std::vector<const char*> to_cargs(const std::vector<std::string>& args) {
+    std::vector<const char*> rval;
+    rval.reserve(args.size());
 
-	for ( const auto& arg : args )
-		rval.emplace_back(arg.data());
+    for ( const auto& arg : args )
+        rval.emplace_back(arg.data());
 
-	return rval;
-	}
+    return rval;
+}
 
-static bool show_plugins(int level)
-	{
-	plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
+static bool show_plugins(int level) {
+    plugin::Manager::plugin_list plugins = plugin_mgr->ActivePlugins();
 
-	if ( ! plugins.size() )
-		{
-		printf("No plugins registered, not even any built-ins. This is probably a bug.\n");
-		return false;
-		}
+    if ( ! plugins.size() ) {
+        printf("No plugins registered, not even any built-ins. This is probably a bug.\n");
+        return false;
+    }
 
-	ODesc d;
+    ODesc d;
 
-	if ( level == 1 )
-		d.SetShort();
+    if ( level == 1 )
+        d.SetShort();
 
-	int count = 0;
+    int count = 0;
 
-	for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end();
-	      i++ )
-		{
-		if ( requested_plugins.size() &&
-		     requested_plugins.find((*i)->Name()) == requested_plugins.end() )
-			continue;
+    for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ ) {
+        if ( requested_plugins.size() && requested_plugins.find((*i)->Name()) == requested_plugins.end() )
+            continue;
 
-		(*i)->Describe(&d);
+        (*i)->Describe(&d);
 
-		if ( ! d.IsShort() )
-			d.Add("\n");
+        if ( ! d.IsShort() )
+            d.Add("\n");
 
-		++count;
-		}
+        ++count;
+    }
 
-	printf("%s", d.Description());
+    printf("%s", d.Description());
 
-	plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
+    plugin::Manager::inactive_plugin_list inactives = plugin_mgr->InactivePlugins();
 
-	if ( inactives.size() && ! requested_plugins.size() )
-		{
-		printf("\nInactive dynamic plugins:\n");
+    if ( inactives.size() && ! requested_plugins.size() ) {
+        printf("\nInactive dynamic plugins:\n");
 
-		for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin();
-		      i != inactives.end(); i++ )
-			{
-			string name = (*i).first;
-			string path = (*i).second;
-			printf("  %s (%s)\n", name.c_str(), path.c_str());
-			}
-		}
+        for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ ) {
+            string name = (*i).first;
+            string path = (*i).second;
+            printf("  %s (%s)\n", name.c_str(), path.c_str());
+        }
+    }
 
-	return count != 0;
-	}
+    return count != 0;
+}
 
-static void done_with_network()
-	{
-	util::detail::set_processing_status("TERMINATING", "done_with_network");
+static void done_with_network() {
+    util::detail::set_processing_status("TERMINATING", "done_with_network");
 
-	// Cancel any pending alarms (watchdog, in particular).
-	(void)alarm(0);
+    // Cancel any pending alarms (watchdog, in particular).
+    (void)alarm(0);
 
-	if ( net_done )
-		{
-		event_mgr.Drain();
-		// Don't propagate this event to remote clients.
-		event_mgr.Dispatch(new Event(net_done, {make_intrusive<TimeVal>(timer_mgr->Time())}), true);
-		}
+    if ( net_done ) {
+        event_mgr.Drain();
+        // Don't propagate this event to remote clients.
+        event_mgr.Dispatch(new Event(net_done, {make_intrusive<TimeVal>(timer_mgr->Time())}), true);
+    }
 
-	if ( profiling_logger )
-		profiling_logger->Log();
+    if ( profiling_logger )
+        profiling_logger->Log();
 
-	run_state::terminating = true;
+    run_state::terminating = true;
 
-	packet_mgr->Done();
-	analyzer_mgr->Done();
-	timer_mgr->Expire();
-	dns_mgr->Flush();
-	event_mgr.Drain();
-	event_mgr.Drain();
+    packet_mgr->Done();
+    analyzer_mgr->Done();
+    timer_mgr->Expire();
+    dns_mgr->Flush();
+    event_mgr.Drain();
+    event_mgr.Drain();
 
-	run_state::detail::finish_run(1);
+    run_state::detail::finish_run(1);
 
 #ifdef USE_PERFTOOLS_DEBUG
 
-	if ( perftools_profile )
-		{
-		HeapProfilerDump("post net_run");
-		HeapProfilerStop();
-		}
+    if ( perftools_profile ) {
+        HeapProfilerDump("post net_run");
+        HeapProfilerStop();
+    }
 
-	if ( heap_checker && ! heap_checker->NoLeaks() )
-		{
-		fprintf(stderr, "Memory leaks - aborting.\n");
-		abort();
-		}
+    if ( heap_checker && ! heap_checker->NoLeaks() ) {
+        fprintf(stderr, "Memory leaks - aborting.\n");
+        abort();
+    }
 #endif
 
-	ZEEK_LSAN_DISABLE();
-	}
+    ZEEK_LSAN_DISABLE();
+}
 
-static void terminate_zeek()
-	{
-	util::detail::set_processing_status("TERMINATING", "terminate_zeek");
+static void terminate_zeek() {
+    util::detail::set_processing_status("TERMINATING", "terminate_zeek");
 
-	run_state::terminating = true;
+    run_state::terminating = true;
 
-	iosource_mgr->Wakeup("terminate_zeek");
+    iosource_mgr->Wakeup("terminate_zeek");
 
-	// File analysis termination may produce events, so do it early on in
-	// the termination process.
-	file_mgr->Terminate();
+    // File analysis termination may produce events, so do it early on in
+    // the termination process.
+    file_mgr->Terminate();
 
-	if ( zeek_done )
-		event_mgr.Enqueue(zeek_done, Args{});
+    if ( zeek_done )
+        event_mgr.Enqueue(zeek_done, Args{});
 
-	timer_mgr->Expire();
+    timer_mgr->Expire();
 
-	// Drain() limits how many "generations" of newly created events
-	// it will process.  When we're terminating, however, we're okay
-	// with long chains of events, and this makes the workings of
-	// event-tracing simpler.
-	//
-	// That said, we also need to ensure that it runs at least once,
-	// as it has side effects such as tickling triggers.
-	event_mgr.Drain();
+    // Drain() limits how many "generations" of newly created events
+    // it will process.  When we're terminating, however, we're okay
+    // with long chains of events, and this makes the workings of
+    // event-tracing simpler.
+    //
+    // That said, we also need to ensure that it runs at least once,
+    // as it has side effects such as tickling triggers.
+    event_mgr.Drain();
 
-	while ( event_mgr.HasEvents() )
-		event_mgr.Drain();
+    while ( event_mgr.HasEvents() )
+        event_mgr.Drain();
 
-	if ( profiling_logger )
-		{
-		// FIXME: There are some occasional crashes in the memory
-		// allocation code when killing Zeek.  Disabling this for now.
-		if ( ! (signal_val == SIGTERM || signal_val == SIGINT) )
-			profiling_logger->Log();
-		}
+    if ( profiling_logger ) {
+        // FIXME: There are some occasional crashes in the memory
+        // allocation code when killing Zeek.  Disabling this for now.
+        if ( ! (signal_val == SIGTERM || signal_val == SIGINT) )
+            profiling_logger->Log();
+    }
 
-	event_mgr.Drain();
+    event_mgr.Drain();
 
-	notifier::detail::registry.Terminate();
-	log_mgr->Terminate();
-	input_mgr->Terminate();
-	thread_mgr->Terminate();
-	broker_mgr->Terminate();
+    notifier::detail::registry.Terminate();
+    log_mgr->Terminate();
+    input_mgr->Terminate();
+    thread_mgr->Terminate();
+    broker_mgr->Terminate();
 
-	event_mgr.Drain();
+    event_mgr.Drain();
 
-	session_mgr->Clear();
-	plugin_mgr->FinishPlugins();
+    session_mgr->Clear();
+    plugin_mgr->FinishPlugins();
 
-	finish_script_execution();
+    finish_script_execution();
 
-	script_coverage_mgr.WriteStats();
+    script_coverage_mgr.WriteStats();
 
-	delete zeekygen_mgr;
-	delete packet_mgr;
-	delete analyzer_mgr;
-	delete file_mgr;
-	// broker_mgr, timer_mgr, supervisor, and dns_mgr are deleted via iosource_mgr
-	delete iosource_mgr;
-	delete event_registry;
-	delete log_mgr;
-	delete reporter;
-	delete plugin_mgr;
-	delete val_mgr;
-	delete session_mgr;
-	delete fragment_mgr;
-	delete telemetry_mgr;
+    delete zeekygen_mgr;
+    delete packet_mgr;
+    delete analyzer_mgr;
+    delete file_mgr;
+    // broker_mgr, timer_mgr, supervisor, and dns_mgr are deleted via iosource_mgr
+    delete iosource_mgr;
+    delete event_registry;
+    delete log_mgr;
+    delete reporter;
+    delete plugin_mgr;
+    delete val_mgr;
+    delete session_mgr;
+    delete fragment_mgr;
+    delete telemetry_mgr;
 #ifdef HAVE_SPICY
-	delete spicy_mgr;
+    delete spicy_mgr;
 #endif
 
-	// free the global scope
-	pop_scope();
+    // free the global scope
+    pop_scope();
 
-	reporter = nullptr;
-	}
+    reporter = nullptr;
+}
 
-RETSIGTYPE sig_handler(int signo)
-	{
-	util::detail::set_processing_status("TERMINATING", "sig_handler");
-	signal_val = signo;
+RETSIGTYPE sig_handler(int signo) {
+    util::detail::set_processing_status("TERMINATING", "sig_handler");
+    signal_val = signo;
 
-	if ( ! run_state::terminating )
-		iosource_mgr->Wakeup("sig_handler");
+    if ( ! run_state::terminating )
+        iosource_mgr->Wakeup("sig_handler");
 
-	return RETSIGVAL;
-	}
+    return RETSIGVAL;
+}
 
-static void atexit_handler()
-	{
-	util::detail::set_processing_status("TERMINATED", "atexit");
-	}
+static void atexit_handler() { util::detail::set_processing_status("TERMINATED", "atexit"); }
 
-static void zeek_new_handler()
-	{
-	out_of_memory("new");
-	}
+static void zeek_new_handler() { out_of_memory("new"); }
 
-static std::vector<std::string> get_script_signature_files()
-	{
-	std::vector<std::string> rval;
+static std::vector<std::string> get_script_signature_files() {
+    std::vector<std::string> rval;
 
-	// Parse rule files defined on the script level.
-	char* script_signature_files = util::copy_string(
-		id::find_val("signature_files")->AsString()->CheckString());
+    // Parse rule files defined on the script level.
+    char* script_signature_files = util::copy_string(id::find_val("signature_files")->AsString()->CheckString());
 
-	char* tmp = script_signature_files;
-	char* s;
-	while ( (s = strsep(&tmp, " \t")) )
-		if ( *s )
-			rval.emplace_back(s);
+    char* tmp = script_signature_files;
+    char* s;
+    while ( (s = strsep(&tmp, " \t")) )
+        if ( *s )
+            rval.emplace_back(s);
 
-	delete[] script_signature_files;
-	return rval;
-	}
+    delete[] script_signature_files;
+    return rval;
+}
 
 // Helper for masking/unmasking the set of signals that apply to our signal
 // handlers: sig_handler() in this file, as well as stem_signal_handler() and
 // supervisor_signal_handler() in the Supervisor.
-static void set_signal_mask(bool do_block)
-	{
-	sigset_t mask_set;
+static void set_signal_mask(bool do_block) {
+    sigset_t mask_set;
 
-	sigemptyset(&mask_set);
-	sigaddset(&mask_set, SIGCHLD);
-	sigaddset(&mask_set, SIGTERM);
-	sigaddset(&mask_set, SIGINT);
+    sigemptyset(&mask_set);
+    sigaddset(&mask_set, SIGCHLD);
+    sigaddset(&mask_set, SIGTERM);
+    sigaddset(&mask_set, SIGINT);
 
-	int res = pthread_sigmask(do_block ? SIG_BLOCK : SIG_UNBLOCK, &mask_set, 0);
-	assert(res == 0);
-	}
+    int res = pthread_sigmask(do_block ? SIG_BLOCK : SIG_UNBLOCK, &mask_set, 0);
+    assert(res == 0);
+}
 
-SetupResult setup(int argc, char** argv, Options* zopts)
-	{
-	ZEEK_LSAN_DISABLE();
-	std::set_new_handler(zeek_new_handler);
+SetupResult setup(int argc, char** argv, Options* zopts) {
+    ZEEK_LSAN_DISABLE();
+    std::set_new_handler(zeek_new_handler);
 
-	auto zeek_exe_path = util::detail::get_exe_path(argv[0]);
+    auto zeek_exe_path = util::detail::get_exe_path(argv[0]);
 
-	if ( zeek_exe_path.empty() )
-		{
-		fprintf(stderr, "failed to get path to executable '%s'", argv[0]);
-		exit(1);
-		}
+    if ( zeek_exe_path.empty() ) {
+        fprintf(stderr, "failed to get path to executable '%s'", argv[0]);
+        exit(1);
+    }
 
-	zeek_argc = argc;
-	zeek_argv = new char*[argc];
+    zeek_argc = argc;
+    zeek_argv = new char*[argc];
 
-	for ( int i = 0; i < argc; i++ )
-		zeek_argv[i] = util::copy_string(argv[i]);
+    for ( int i = 0; i < argc; i++ )
+        zeek_argv[i] = util::copy_string(argv[i]);
 
-	auto options = zopts ? *zopts : parse_cmdline(argc, argv);
+    auto options = zopts ? *zopts : parse_cmdline(argc, argv);
 
-	run_state::detail::bare_mode = options.bare_mode;
+    run_state::detail::bare_mode = options.bare_mode;
 
-	// Set up the global that facilitates access to analysis/optimization
-	// options from deep within some modules.
-	analysis_options = options.analysis_options;
+    // Set up the global that facilitates access to analysis/optimization
+    // options from deep within some modules.
+    analysis_options = options.analysis_options;
 
-	if ( options.print_version )
-		{
-		fprintf(stdout, "%s version %s\n", argv[0], zeek_version());
-		exit(0);
-		}
+    if ( options.print_version ) {
+        fprintf(stdout, "%s version %s\n", argv[0], zeek_version());
+        exit(0);
+    }
 
-	if ( options.print_build_info )
-		{
-		fprintf(stdout, "%s", zeek_build_info);
-		exit(0);
-		}
+    if ( options.print_build_info ) {
+        fprintf(stdout, "%s", zeek_build_info);
+        exit(0);
+    }
 
-	if ( options.run_unit_tests )
-		options.deterministic_mode = true;
+    if ( options.run_unit_tests )
+        options.deterministic_mode = true;
 
-	auto stem = Supervisor::CreateStem(options.supervisor_mode);
+    auto stem = Supervisor::CreateStem(options.supervisor_mode);
 
-	if ( Supervisor::ThisNode() )
-		{
-		// If we get here, we're a supervised node that just returned
-		// from CreateStem() after being forked from the stem.
-		Supervisor::ThisNode()->Init(&options);
+    if ( Supervisor::ThisNode() ) {
+        // If we get here, we're a supervised node that just returned
+        // from CreateStem() after being forked from the stem.
+        Supervisor::ThisNode()->Init(&options);
 
-		event_mgr.InitPostFork();
-		}
+        event_mgr.InitPostFork();
+    }
 
-	script_coverage_mgr.ReadStats();
+    script_coverage_mgr.ReadStats();
 
-	auto dns_type = options.dns_mode;
+    auto dns_type = options.dns_mode;
 
-	if ( dns_type == DNS_DEFAULT && fake_dns() )
-		dns_type = DNS_FAKE;
+    if ( dns_type == DNS_DEFAULT && fake_dns() )
+        dns_type = DNS_FAKE;
 
-	dns_mgr = new DNS_Mgr(dns_type);
+    dns_mgr = new DNS_Mgr(dns_type);
 
-	RETSIGTYPE (*oldhandler)(int);
+    RETSIGTYPE (*oldhandler)(int);
 
-	zeek_script_prefixes = options.script_prefixes;
-	auto zeek_prefixes = getenv("ZEEK_PREFIXES");
+    zeek_script_prefixes = options.script_prefixes;
+    auto zeek_prefixes = getenv("ZEEK_PREFIXES");
 
-	if ( zeek_prefixes )
-		util::tokenize_string(zeek_prefixes, ":", &zeek_script_prefixes);
+    if ( zeek_prefixes )
+        util::tokenize_string(zeek_prefixes, ":", &zeek_script_prefixes);
 
-	run_state::pseudo_realtime = options.pseudo_realtime;
+    run_state::pseudo_realtime = options.pseudo_realtime;
 
 #ifdef USE_PERFTOOLS_DEBUG
-	perftools_leaks = options.perftools_check_leaks;
-	perftools_profile = options.perftools_profile;
+    perftools_leaks = options.perftools_check_leaks;
+    perftools_profile = options.perftools_profile;
 #endif
 
-	if ( options.debug_scripts )
-		{
-		g_policy_debug = options.debug_scripts;
-		fprintf(stderr, "Zeek script debugging ON.\n");
-		}
+    if ( options.debug_scripts ) {
+        g_policy_debug = options.debug_scripts;
+        fprintf(stderr, "Zeek script debugging ON.\n");
+    }
 
-	if ( options.script_code_to_exec )
-		command_line_policy = options.script_code_to_exec->data();
+    if ( options.script_code_to_exec )
+        command_line_policy = options.script_code_to_exec->data();
 
-	if ( options.debug_script_tracing_file )
-		{
-		g_trace_state.SetTraceFile(options.debug_script_tracing_file->data());
-		g_trace_state.TraceOn();
-		}
+    if ( options.debug_script_tracing_file ) {
+        g_trace_state.SetTraceFile(options.debug_script_tracing_file->data());
+        g_trace_state.TraceOn();
+    }
 
-	if ( options.process_status_file )
-		proc_status_file = util::copy_string(options.process_status_file->data());
+    if ( options.process_status_file )
+        proc_status_file = util::copy_string(options.process_status_file->data());
 
-	atexit(atexit_handler);
-	util::detail::set_processing_status("INITIALIZING", "main");
+    atexit(atexit_handler);
+    util::detail::set_processing_status("INITIALIZING", "main");
 
-	run_state::zeek_start_time = util::current_time(true);
+    run_state::zeek_start_time = util::current_time(true);
 
-	val_mgr = new ValManager();
-	reporter = new Reporter(options.abort_on_scripting_errors);
-	thread_mgr = new threading::Manager();
-	plugin_mgr = new plugin::Manager();
-	fragment_mgr = new detail::FragmentManager();
+    val_mgr = new ValManager();
+    reporter = new Reporter(options.abort_on_scripting_errors);
+    thread_mgr = new threading::Manager();
+    plugin_mgr = new plugin::Manager();
+    fragment_mgr = new detail::FragmentManager();
 
-	if ( options.no_unused_warnings && options.analysis_options.usage_issues > 0 )
-		reporter->FatalError("-u incompatible with --no-unused-warnings");
+    if ( options.no_unused_warnings && options.analysis_options.usage_issues > 0 )
+        reporter->FatalError("-u incompatible with --no-unused-warnings");
 
 #ifdef DEBUG
-	if ( options.debug_log_streams )
-		{
-		debug_logger.EnableStreams(options.debug_log_streams->data());
+    if ( options.debug_log_streams ) {
+        debug_logger.EnableStreams(options.debug_log_streams->data());
 
-		if ( getenv("ZEEK_DEBUG_LOG_STDERR") )
-			debug_logger.OpenDebugLog(nullptr);
-		else
-			debug_logger.OpenDebugLog("debug");
-		}
+        if ( getenv("ZEEK_DEBUG_LOG_STDERR") )
+            debug_logger.OpenDebugLog(nullptr);
+        else
+            debug_logger.OpenDebugLog("debug");
+    }
 #endif
 
-	// Mask signals relevant for our signal handlers here. We unmask them
-	// again further down, when all components that launch threads have done
-	// so, and intermittently during parsing. The launched threads inherit
-	// the active signal mask and thus prevent our signal handlers from
-	// running in unintended threads.
-	set_signal_mask(true);
+    // Mask signals relevant for our signal handlers here. We unmask them
+    // again further down, when all components that launch threads have done
+    // so, and intermittently during parsing. The launched threads inherit
+    // the active signal mask and thus prevent our signal handlers from
+    // running in unintended threads.
+    set_signal_mask(true);
 
-	if ( options.supervisor_mode )
-		{
-		Supervisor::Config cfg = {};
-		cfg.zeek_exe_path = zeek_exe_path;
-		options.filter_supervisor_options();
-		supervisor_mgr = new Supervisor(std::move(cfg), std::move(*stem));
-		}
+    if ( options.supervisor_mode ) {
+        Supervisor::Config cfg = {};
+        cfg.zeek_exe_path = zeek_exe_path;
+        options.filter_supervisor_options();
+        supervisor_mgr = new Supervisor(std::move(cfg), std::move(*stem));
+    }
 
-	std::string seed_string;
-	if ( const auto* seed_env = getenv("ZEEK_SEED_VALUES") )
-		seed_string = seed_env;
+    std::string seed_string;
+    if ( const auto* seed_env = getenv("ZEEK_SEED_VALUES") )
+        seed_string = seed_env;
 
-	const char* seed_load_file = getenv("ZEEK_SEED_FILE");
+    const char* seed_load_file = getenv("ZEEK_SEED_FILE");
 
-	if ( options.random_seed_input_file )
-		seed_load_file = options.random_seed_input_file->data();
+    if ( options.random_seed_input_file )
+        seed_load_file = options.random_seed_input_file->data();
 
-	if ( seed_load_file && *seed_load_file && ! seed_string.empty() )
-		reporter->FatalError("can't use ZEEK_SEED_VALUES together with ZEEK_SEED_FILE or -G");
+    if ( seed_load_file && *seed_load_file && ! seed_string.empty() )
+        reporter->FatalError("can't use ZEEK_SEED_VALUES together with ZEEK_SEED_FILE or -G");
 
-	util::detail::init_random_seed(
-		(seed_load_file && *seed_load_file ? seed_load_file : nullptr),
-		options.random_seed_output_file ? options.random_seed_output_file->data() : nullptr,
-		options.deterministic_mode, seed_string);
-	// DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
-	init_hash_function();
+    util::detail::init_random_seed((seed_load_file && *seed_load_file ? seed_load_file : nullptr),
+                                   options.random_seed_output_file ? options.random_seed_output_file->data() : nullptr,
+                                   options.deterministic_mode, seed_string);
+    // DEBUG_MSG("HMAC key: %s\n", md5_digest_print(shared_hmac_md5_key));
+    init_hash_function();
 
-	do_ssl_init();
+    do_ssl_init();
 
-	// FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
-	// seed the PRNG. We should do this here (but at least Linux, FreeBSD
-	// and Solaris provide /dev/urandom).
+    // FIXME: On systems that don't provide /dev/urandom, OpenSSL doesn't
+    // seed the PRNG. We should do this here (but at least Linux, FreeBSD
+    // and Solaris provide /dev/urandom).
 #ifdef USE_SQLITE
-	int r = sqlite3_initialize();
+    int r = sqlite3_initialize();
 
-	if ( r != SQLITE_OK )
-		reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
+    if ( r != SQLITE_OK )
+        reporter->Error("Failed to initialize sqlite3: %s", sqlite3_errstr(r));
 #endif
 
-	timer_mgr = new TimerMgr();
+    timer_mgr = new TimerMgr();
 
-	auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
-	zeekygen_mgr = new zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);
+    auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
+    zeekygen_mgr = new zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);
 
-	add_essential_input_file("base/init-bare.zeek");
-	add_essential_input_file("builtin-plugins/__preload__.zeek");
-	add_essential_input_file("base/init-frameworks-and-bifs.zeek");
+    add_essential_input_file("base/init-bare.zeek");
+    add_essential_input_file("builtin-plugins/__preload__.zeek");
+    add_essential_input_file("base/init-frameworks-and-bifs.zeek");
 
-	if ( ! options.bare_mode )
-		{
-		// The supervisor only needs to load a limited set of
-		// scripts, since it won't be doing traffic processing.
-		if ( options.supervisor_mode )
-			add_input_file("base/init-supervisor.zeek");
-		else
-			add_input_file("base/init-default.zeek");
-		}
+    if ( ! options.bare_mode ) {
+        // The supervisor only needs to load a limited set of
+        // scripts, since it won't be doing traffic processing.
+        if ( options.supervisor_mode )
+            add_input_file("base/init-supervisor.zeek");
+        else
+            add_input_file("base/init-default.zeek");
+    }
 
-	add_input_file("builtin-plugins/__load__.zeek");
+    add_input_file("builtin-plugins/__load__.zeek");
 
-	plugin_mgr->SearchDynamicPlugins(util::zeek_plugin_path());
+    plugin_mgr->SearchDynamicPlugins(util::zeek_plugin_path());
 
-	if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() &&
-	     options.script_options_to_set.empty() && ! options.pcap_file && ! options.interface &&
-	     ! options.identifier_to_print && ! command_line_policy && ! options.print_plugins &&
-	     ! options.supervisor_mode && ! Supervisor::ThisNode() && ! options.run_unit_tests )
-		add_input_file("-");
+    if ( options.plugins_to_load.empty() && options.scripts_to_load.empty() && options.script_options_to_set.empty() &&
+         ! options.pcap_file && ! options.interface && ! options.identifier_to_print && ! command_line_policy &&
+         ! options.print_plugins && ! options.supervisor_mode && ! Supervisor::ThisNode() && ! options.run_unit_tests )
+        add_input_file("-");
 
-	for ( const auto& script_option : options.script_options_to_set )
-		params.push_back(script_option);
+    for ( const auto& script_option : options.script_options_to_set )
+        params.push_back(script_option);
 
-	for ( const auto& plugin : options.plugins_to_load )
-		requested_plugins.insert(plugin);
+    for ( const auto& plugin : options.plugins_to_load )
+        requested_plugins.insert(plugin);
 
-	for ( const auto& script : options.scripts_to_load )
-		add_input_file(script.data());
+    for ( const auto& script : options.scripts_to_load )
+        add_input_file(script.data());
 
-	if ( options.pcap_filter )
-		add_input_file("base/frameworks/packet-filter/main.zeek");
+    if ( options.pcap_filter )
+        add_input_file("base/frameworks/packet-filter/main.zeek");
 
-	push_scope(nullptr, nullptr);
+    push_scope(nullptr, nullptr);
 
-	// It would nice if this were configurable.  This is similar to the
-	// chicken and the egg problem.  It would be configurable by parsing
-	// policy, but we can't parse policy without DNS resolution.
-	dns_mgr->SetDir(".state");
+    // It would nice if this were configurable.  This is similar to the
+    // chicken and the egg problem.  It would be configurable by parsing
+    // policy, but we can't parse policy without DNS resolution.
+    dns_mgr->SetDir(".state");
 
-	telemetry_mgr = new telemetry::Manager;
-	iosource_mgr = new iosource::Manager();
-	event_registry = new EventRegistry();
-	packet_mgr = new packet_analysis::Manager();
-	analyzer_mgr = new analyzer::Manager();
-	log_mgr = new logging::Manager();
-	input_mgr = new input::Manager();
-	file_mgr = new file_analysis::Manager();
-	auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
-	broker_mgr = new Broker::Manager(broker_real_time);
-	trigger_mgr = new trigger::Manager();
+    telemetry_mgr = new telemetry::Manager;
+    iosource_mgr = new iosource::Manager();
+    event_registry = new EventRegistry();
+    packet_mgr = new packet_analysis::Manager();
+    analyzer_mgr = new analyzer::Manager();
+    log_mgr = new logging::Manager();
+    input_mgr = new input::Manager();
+    file_mgr = new file_analysis::Manager();
+    auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
+    broker_mgr = new Broker::Manager(broker_real_time);
+    trigger_mgr = new trigger::Manager();
 #ifdef HAVE_SPICY
-	spicy_mgr = new spicy::Manager(); // registers as plugin with the plugin manager
+    spicy_mgr = new spicy::Manager(); // registers as plugin with the plugin manager
 #endif
 
-	plugin_mgr->InitPreScript();
-	file_mgr->InitPreScript();
-	zeekygen_mgr->InitPreScript();
+    plugin_mgr->InitPreScript();
+    file_mgr->InitPreScript();
+    zeekygen_mgr->InitPreScript();
 
-	// This has to happen before ActivateDynamicPlugin() below or the list of plugins in the
-	// manager will be missing the plugins we want to try to add to the path.
-	plugin_mgr->ExtendZeekPathForPlugins();
+    // This has to happen before ActivateDynamicPlugin() below or the list of plugins in the
+    // manager will be missing the plugins we want to try to add to the path.
+    plugin_mgr->ExtendZeekPathForPlugins();
 
-	for ( const auto& x : requested_plugins )
-		plugin_mgr->ActivateDynamicPlugin(std::move(x));
+    for ( const auto& x : requested_plugins )
+        plugin_mgr->ActivateDynamicPlugin(std::move(x));
 
-	plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
+    plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 
-	// Print usage after plugins load so that any path extensions are properly shown.
-	if ( options.print_usage )
-		usage(argv[0], 0);
+    // Print usage after plugins load so that any path extensions are properly shown.
+    if ( options.print_usage )
+        usage(argv[0], 0);
 
-	init_event_handlers();
+    init_event_handlers();
 
-	md5_type = make_intrusive<OpaqueType>("md5");
-	sha1_type = make_intrusive<OpaqueType>("sha1");
-	sha256_type = make_intrusive<OpaqueType>("sha256");
-	entropy_type = make_intrusive<OpaqueType>("entropy");
-	cardinality_type = make_intrusive<OpaqueType>("cardinality");
-	topk_type = make_intrusive<OpaqueType>("topk");
-	bloomfilter_type = make_intrusive<OpaqueType>("bloomfilter");
-	x509_opaque_type = make_intrusive<OpaqueType>("x509");
-	ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
-	paraglob_type = make_intrusive<OpaqueType>("paraglob");
-	int_counter_metric_type = make_intrusive<OpaqueType>("int_counter_metric");
-	int_counter_metric_family_type = make_intrusive<OpaqueType>("int_counter_metric_family");
-	dbl_counter_metric_type = make_intrusive<OpaqueType>("dbl_counter_metric");
-	dbl_counter_metric_family_type = make_intrusive<OpaqueType>("dbl_counter_metric_family");
-	int_gauge_metric_type = make_intrusive<OpaqueType>("int_gauge_metric");
-	int_gauge_metric_family_type = make_intrusive<OpaqueType>("int_gauge_metric_family");
-	dbl_gauge_metric_type = make_intrusive<OpaqueType>("dbl_gauge_metric");
-	dbl_gauge_metric_family_type = make_intrusive<OpaqueType>("dbl_gauge_metric_family");
-	int_histogram_metric_type = make_intrusive<OpaqueType>("int_histogram_metric");
-	int_histogram_metric_family_type = make_intrusive<OpaqueType>("int_histogram_metric_family");
-	dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
-	dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
+    md5_type = make_intrusive<OpaqueType>("md5");
+    sha1_type = make_intrusive<OpaqueType>("sha1");
+    sha256_type = make_intrusive<OpaqueType>("sha256");
+    entropy_type = make_intrusive<OpaqueType>("entropy");
+    cardinality_type = make_intrusive<OpaqueType>("cardinality");
+    topk_type = make_intrusive<OpaqueType>("topk");
+    bloomfilter_type = make_intrusive<OpaqueType>("bloomfilter");
+    x509_opaque_type = make_intrusive<OpaqueType>("x509");
+    ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
+    paraglob_type = make_intrusive<OpaqueType>("paraglob");
+    int_counter_metric_type = make_intrusive<OpaqueType>("int_counter_metric");
+    int_counter_metric_family_type = make_intrusive<OpaqueType>("int_counter_metric_family");
+    dbl_counter_metric_type = make_intrusive<OpaqueType>("dbl_counter_metric");
+    dbl_counter_metric_family_type = make_intrusive<OpaqueType>("dbl_counter_metric_family");
+    int_gauge_metric_type = make_intrusive<OpaqueType>("int_gauge_metric");
+    int_gauge_metric_family_type = make_intrusive<OpaqueType>("int_gauge_metric_family");
+    dbl_gauge_metric_type = make_intrusive<OpaqueType>("dbl_gauge_metric");
+    dbl_gauge_metric_family_type = make_intrusive<OpaqueType>("dbl_gauge_metric_family");
+    int_histogram_metric_type = make_intrusive<OpaqueType>("int_histogram_metric");
+    int_histogram_metric_family_type = make_intrusive<OpaqueType>("int_histogram_metric_family");
+    dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
+    dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
 
-	// After spinning up Broker, we have background threads running now. If
-	// we exit early, we need to shut down at least Broker to get a clean
-	// program exit. Otherwise, we may run into undefined behavior, e.g., if
-	// Broker is still accessing OpenSSL but OpenSSL has already cleaned up
-	// its state due to calling exit(). This needs to be defined here before
-	// potential USE_PERFTOOLS_DEBUG scope below or the definition gets lost
-	// when that variable is defined.
-	auto early_shutdown = []
-	{
-		broker_mgr->Terminate();
-		delete iosource_mgr;
-		delete telemetry_mgr;
-	};
+    // After spinning up Broker, we have background threads running now. If
+    // we exit early, we need to shut down at least Broker to get a clean
+    // program exit. Otherwise, we may run into undefined behavior, e.g., if
+    // Broker is still accessing OpenSSL but OpenSSL has already cleaned up
+    // its state due to calling exit(). This needs to be defined here before
+    // potential USE_PERFTOOLS_DEBUG scope below or the definition gets lost
+    // when that variable is defined.
+    auto early_shutdown = [] {
+        broker_mgr->Terminate();
+        delete iosource_mgr;
+        delete telemetry_mgr;
+    };
 
-	// The leak-checker tends to produce some false
-	// positives (memory which had already been
-	// allocated before we start the checking is
-	// nevertheless reported; see perftools docs), thus
-	// we suppress some messages here.
+    // The leak-checker tends to produce some false
+    // positives (memory which had already been
+    // allocated before we start the checking is
+    // nevertheless reported; see perftools docs), thus
+    // we suppress some messages here.
 
 #ifdef USE_PERFTOOLS_DEBUG
-		{
-		HeapLeakChecker::Disabler disabler;
+    {
+        HeapLeakChecker::Disabler disabler;
 #endif
 
-		auto ipbid = install_ID("__init_primary_bifs", GLOBAL_MODULE_NAME, true, true);
-		auto ipbft = make_intrusive<FuncType>(make_intrusive<RecordType>(nullptr),
-		                                      base_type(TYPE_BOOL), FUNC_FLAVOR_FUNCTION);
-		ipbid->SetType(std::move(ipbft));
-		auto init_bifs = [](Frame* frame, const Args* args) -> BifReturnVal
-		{
-			init_primary_bifs();
-			return val_mgr->True();
-		};
-		auto ipbb = make_intrusive<BuiltinFunc>(init_bifs, ipbid->Name(), false);
+        auto ipbid = install_ID("__init_primary_bifs", GLOBAL_MODULE_NAME, true, true);
+        auto ipbft =
+            make_intrusive<FuncType>(make_intrusive<RecordType>(nullptr), base_type(TYPE_BOOL), FUNC_FLAVOR_FUNCTION);
+        ipbid->SetType(std::move(ipbft));
+        auto init_bifs = [](Frame* frame, const Args* args) -> BifReturnVal {
+            init_primary_bifs();
+            return val_mgr->True();
+        };
+        auto ipbb = make_intrusive<BuiltinFunc>(init_bifs, ipbid->Name(), false);
 
-		if ( options.event_trace_file )
-			etm = make_unique<EventTraceMgr>(*options.event_trace_file);
+        if ( options.event_trace_file )
+            etm = make_unique<EventTraceMgr>(*options.event_trace_file);
 
-		// Parsing involves reading input files, including any input
-		// interactively provided by the user at the console. Temporarily
-		// undo the signal mask to allow ctrl-c. Ideally we'd do this only
-		// when we actually end up reading interactively from stdin.
-		set_signal_mask(false);
-		run_state::is_parsing = true;
-		int yyparse_result = yyparse();
-		run_state::is_parsing = false;
-		set_signal_mask(true);
+        // Parsing involves reading input files, including any input
+        // interactively provided by the user at the console. Temporarily
+        // undo the signal mask to allow ctrl-c. Ideally we'd do this only
+        // when we actually end up reading interactively from stdin.
+        set_signal_mask(false);
+        run_state::is_parsing = true;
+        int yyparse_result = yyparse();
+        run_state::is_parsing = false;
+        set_signal_mask(true);
 
-		RecordVal::DoneParsing();
-		TableVal::DoneParsing();
+        RecordVal::DoneParsing();
+        TableVal::DoneParsing();
 
-		if ( yyparse_result != 0 || zeek::reporter->Errors() > 0 )
-			exit(1);
+        if ( yyparse_result != 0 || zeek::reporter->Errors() > 0 )
+            exit(1);
 
-		init_general_global_var();
-		init_net_var();
-		run_bif_initializers();
+        init_general_global_var();
+        init_net_var();
+        run_bif_initializers();
 
-		// Delay the unit test until here so that plugins and script
-		// types have been fully loaded.
-		if ( options.run_unit_tests )
-			{
-			set_signal_mask(false); // Allow ctrl-c to abort the tests early
-			doctest::Context context;
-			auto dargs = to_cargs(options.doctest_args);
-			context.applyCommandLine(dargs.size(), dargs.data());
-			ZEEK_LSAN_ENABLE();
-			exit(context.run());
-			}
+        // Delay the unit test until here so that plugins and script
+        // types have been fully loaded.
+        if ( options.run_unit_tests ) {
+            set_signal_mask(false); // Allow ctrl-c to abort the tests early
+            doctest::Context context;
+            auto dargs = to_cargs(options.doctest_args);
+            context.applyCommandLine(dargs.size(), dargs.data());
+            ZEEK_LSAN_ENABLE();
+            exit(context.run());
+        }
 
-		// Assign the script_args for command line processing in Zeek scripts.
-		if ( ! options.script_args.empty() )
-			{
-			auto script_args_val = id::find_val<VectorVal>("zeek_script_args");
-			for ( const string& script_arg : options.script_args )
-				{
-				script_args_val->Assign(script_args_val->Size(),
-				                        make_intrusive<StringVal>(script_arg));
-				}
-			}
+        // Assign the script_args for command line processing in Zeek scripts.
+        if ( ! options.script_args.empty() ) {
+            auto script_args_val = id::find_val<VectorVal>("zeek_script_args");
+            for ( const string& script_arg : options.script_args ) {
+                script_args_val->Assign(script_args_val->Size(), make_intrusive<StringVal>(script_arg));
+            }
+        }
 
-		// Must come after plugin activation (and also after hash
-		// initialization).
-		binpac::FlowBuffer::Policy flowbuffer_policy;
-		flowbuffer_policy.max_capacity =
-			global_scope()->Find("BinPAC::flowbuffer_capacity_max")->GetVal()->AsCount();
-		flowbuffer_policy.min_capacity =
-			global_scope()->Find("BinPAC::flowbuffer_capacity_min")->GetVal()->AsCount();
-		flowbuffer_policy.contract_threshold =
-			global_scope()->Find("BinPAC::flowbuffer_contract_threshold")->GetVal()->AsCount();
-		binpac::init(&flowbuffer_policy);
+        // Must come after plugin activation (and also after hash
+        // initialization).
+        binpac::FlowBuffer::Policy flowbuffer_policy;
+        flowbuffer_policy.max_capacity = global_scope()->Find("BinPAC::flowbuffer_capacity_max")->GetVal()->AsCount();
+        flowbuffer_policy.min_capacity = global_scope()->Find("BinPAC::flowbuffer_capacity_min")->GetVal()->AsCount();
+        flowbuffer_policy.contract_threshold =
+            global_scope()->Find("BinPAC::flowbuffer_contract_threshold")->GetVal()->AsCount();
+        binpac::init(&flowbuffer_policy);
 
-		plugin_mgr->InitBifs();
+        plugin_mgr->InitBifs();
 
-		if ( reporter->Errors() > 0 )
-			exit(1);
+        if ( reporter->Errors() > 0 )
+            exit(1);
 
-		RecordType::InitPostScript();
+        RecordType::InitPostScript();
 
-		telemetry_mgr->InitPostScript();
-		iosource_mgr->InitPostScript();
-		log_mgr->InitPostScript();
-		plugin_mgr->InitPostScript();
-		zeekygen_mgr->InitPostScript();
-		broker_mgr->InitPostScript();
-		timer_mgr->InitPostScript();
-		event_mgr.InitPostScript();
+        telemetry_mgr->InitPostScript();
+        iosource_mgr->InitPostScript();
+        log_mgr->InitPostScript();
+        plugin_mgr->InitPostScript();
+        zeekygen_mgr->InitPostScript();
+        broker_mgr->InitPostScript();
+        timer_mgr->InitPostScript();
+        event_mgr.InitPostScript();
 
-		if ( supervisor_mgr )
-			supervisor_mgr->InitPostScript();
+        if ( supervisor_mgr )
+            supervisor_mgr->InitPostScript();
 
-		if ( options.print_plugins )
-			{
-			early_shutdown();
-			bool success = show_plugins(options.print_plugins);
-			exit(success ? 0 : 1);
-			}
+        if ( options.print_plugins ) {
+            early_shutdown();
+            bool success = show_plugins(options.print_plugins);
+            exit(success ? 0 : 1);
+        }
 
 #ifdef DEBUG
-		// Check debug streams. Specifically that all plugin-
-		// streams are valid now that the active plugins are known.
-		std::set<std::string> active_plugins;
-		for ( const auto p : plugin_mgr->ActivePlugins() )
-			active_plugins.insert(p->Name());
+        // Check debug streams. Specifically that all plugin-
+        // streams are valid now that the active plugins are known.
+        std::set<std::string> active_plugins;
+        for ( const auto p : plugin_mgr->ActivePlugins() )
+            active_plugins.insert(p->Name());
 
-		if ( ! debug_logger.CheckStreams(active_plugins) )
-			{
-			early_shutdown();
-			exit(1);
-			}
+        if ( ! debug_logger.CheckStreams(active_plugins) ) {
+            early_shutdown();
+            exit(1);
+        }
 #endif
 
-		packet_mgr->InitPostScript(options.unprocessed_output_file.value_or(""));
-		analyzer_mgr->InitPostScript();
-		file_mgr->InitPostScript();
-		dns_mgr->InitPostScript();
-		trigger_mgr->InitPostScript();
+        packet_mgr->InitPostScript(options.unprocessed_output_file.value_or(""));
+        analyzer_mgr->InitPostScript();
+        file_mgr->InitPostScript();
+        dns_mgr->InitPostScript();
+        trigger_mgr->InitPostScript();
 
 #ifdef USE_PERFTOOLS_DEBUG
-		}
+    }
 #endif
-		set_signal_mask(false);
+    set_signal_mask(false);
 
-		if ( reporter->Errors() > 0 )
-			{
-			early_shutdown();
-			exit(1);
-			}
+    if ( reporter->Errors() > 0 ) {
+        early_shutdown();
+        exit(1);
+    }
 
-		reporter->InitOptions();
-		KeyedHash::InitOptions();
-		zeekygen_mgr->GenerateDocs();
+    reporter->InitOptions();
+    KeyedHash::InitOptions();
+    zeekygen_mgr->GenerateDocs();
 
-		if ( options.pcap_filter )
-			{
-			const auto& id = global_scope()->Find("cmd_line_bpf_filter");
+    if ( options.pcap_filter ) {
+        const auto& id = global_scope()->Find("cmd_line_bpf_filter");
 
-			if ( ! id )
-				reporter->InternalError("global cmd_line_bpf_filter not defined");
+        if ( ! id )
+            reporter->InternalError("global cmd_line_bpf_filter not defined");
 
-			id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
-			}
+        id->SetVal(make_intrusive<StringVal>(*options.pcap_filter));
+    }
 
-		std::vector<SignatureFile> all_signature_files;
+    std::vector<SignatureFile> all_signature_files;
 
-		// Append signature files given on the command line
-		for ( const auto& sf : options.signature_files )
-			all_signature_files.emplace_back(sf);
+    // Append signature files given on the command line
+    for ( const auto& sf : options.signature_files )
+        all_signature_files.emplace_back(sf);
 
-		// Append signature files defined in "signature_files" script option
-		for ( auto&& sf : get_script_signature_files() )
-			all_signature_files.emplace_back(std::move(sf));
+    // Append signature files defined in "signature_files" script option
+    for ( auto&& sf : get_script_signature_files() )
+        all_signature_files.emplace_back(std::move(sf));
 
-		// Append signature files defined in @load-sigs
-		for ( const auto& sf : zeek::detail::sig_files )
-			all_signature_files.emplace_back(sf);
+    // Append signature files defined in @load-sigs
+    for ( const auto& sf : zeek::detail::sig_files )
+        all_signature_files.emplace_back(sf);
 
-		if ( ! all_signature_files.empty() )
-			{
-			rule_matcher = new RuleMatcher(options.signature_re_level);
-			if ( ! rule_matcher->ReadFiles(all_signature_files) )
-				{
-				early_shutdown();
-				exit(1);
-				}
+    if ( ! all_signature_files.empty() ) {
+        rule_matcher = new RuleMatcher(options.signature_re_level);
+        if ( ! rule_matcher->ReadFiles(all_signature_files) ) {
+            early_shutdown();
+            exit(1);
+        }
 
-			if ( options.print_signature_debug_info )
-				rule_matcher->PrintDebug();
+        if ( options.print_signature_debug_info )
+            rule_matcher->PrintDebug();
 
-			file_mgr->InitMagic();
-			}
+        file_mgr->InitMagic();
+    }
 
-		if ( g_policy_debug )
-			// ### Add support for debug command file.
-			dbg_init_debugger(nullptr);
+    if ( g_policy_debug )
+        // ### Add support for debug command file.
+        dbg_init_debugger(nullptr);
 
-		if ( ! options.pcap_file && ! options.interface )
-			{
-			const auto& interfaces_val = id::find_val("interfaces");
-			if ( interfaces_val )
-				{
-				char* interfaces_str = interfaces_val->AsString()->Render();
+    if ( ! options.pcap_file && ! options.interface ) {
+        const auto& interfaces_val = id::find_val("interfaces");
+        if ( interfaces_val ) {
+            char* interfaces_str = interfaces_val->AsString()->Render();
 
-				if ( interfaces_str[0] != '\0' )
-					options.interface = interfaces_str;
+            if ( interfaces_str[0] != '\0' )
+                options.interface = interfaces_str;
 
-				delete[] interfaces_str;
-				}
-			}
+            delete[] interfaces_str;
+        }
+    }
 
-		if ( options.parse_only )
-			{
-			if ( analysis_options.usage_issues > 0 )
-				analyze_scripts(options.no_unused_warnings);
+    if ( options.parse_only ) {
+        if ( analysis_options.usage_issues > 0 )
+            analyze_scripts(options.no_unused_warnings);
 
-			early_shutdown();
-			exit(reporter->Errors() != 0);
-			}
+        early_shutdown();
+        exit(reporter->Errors() != 0);
+    }
 
-		auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
+    auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
 
-		analyze_scripts(options.no_unused_warnings);
+    analyze_scripts(options.no_unused_warnings);
 
-		if ( analysis_options.report_recursive )
-			{
-			// This option is report-and-exit.
-			early_shutdown();
-			exit(0);
-			}
+    if ( analysis_options.report_recursive ) {
+        // This option is report-and-exit.
+        early_shutdown();
+        exit(0);
+    }
 
-		if ( dns_type != DNS_PRIME )
-			run_state::detail::init_run(options.interface, options.pcap_file,
-			                            options.pcap_output_file, options.use_watchdog);
+    if ( dns_type != DNS_PRIME )
+        run_state::detail::init_run(options.interface, options.pcap_file, options.pcap_output_file,
+                                    options.use_watchdog);
 
-		if ( ! g_policy_debug )
-			{
-			(void)setsignal(SIGTERM, sig_handler);
-			(void)setsignal(SIGINT, sig_handler);
-			(void)setsignal(SIGPIPE, SIG_IGN);
-			}
+    if ( ! g_policy_debug ) {
+        (void)setsignal(SIGTERM, sig_handler);
+        (void)setsignal(SIGINT, sig_handler);
+        (void)setsignal(SIGPIPE, SIG_IGN);
+    }
 
-		// Cooperate with nohup(1).
-		if ( (oldhandler = setsignal(SIGHUP, sig_handler)) != SIG_DFL )
-			(void)setsignal(SIGHUP, oldhandler);
+    // Cooperate with nohup(1).
+    if ( (oldhandler = setsignal(SIGHUP, sig_handler)) != SIG_DFL )
+        (void)setsignal(SIGHUP, oldhandler);
 
-		// If we were priming the DNS cache (i.e. -P was passed as an argument), flush anything
-		// remaining to be resolved and save the cache to disk. We can just exit now because
-		// we've done everything we need to do. The run loop isn't started in this case, so
-		// nothing else should be happening.
-		if ( dns_type == DNS_PRIME )
-			{
-			dns_mgr->Resolve();
+    // If we were priming the DNS cache (i.e. -P was passed as an argument), flush anything
+    // remaining to be resolved and save the cache to disk. We can just exit now because
+    // we've done everything we need to do. The run loop isn't started in this case, so
+    // nothing else should be happening.
+    if ( dns_type == DNS_PRIME ) {
+        dns_mgr->Resolve();
 
-			if ( ! dns_mgr->Save() )
-				reporter->FatalError("can't update DNS cache");
+        if ( ! dns_mgr->Save() )
+            reporter->FatalError("can't update DNS cache");
 
-			event_mgr.Drain();
-			early_shutdown();
-			exit(0);
-			}
+        event_mgr.Drain();
+        early_shutdown();
+        exit(0);
+    }
 
-		if ( options.ignore_checksums )
-			{
-			const auto& id = global_scope()->Find("ignore_checksums");
+    if ( options.ignore_checksums ) {
+        const auto& id = global_scope()->Find("ignore_checksums");
 
-			if ( ! id )
-				reporter->InternalError("global ignore_checksums not defined");
+        if ( ! id )
+            reporter->InternalError("global ignore_checksums not defined");
 
-			id->SetVal(zeek::val_mgr->True());
-			ignore_checksums = 1;
-			}
+        id->SetVal(zeek::val_mgr->True());
+        ignore_checksums = 1;
+    }
 
-		// Print the ID.
-		if ( options.identifier_to_print )
-			{
-			const auto& id = global_scope()->Find(*options.identifier_to_print);
-			if ( ! id )
-				reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
+    // Print the ID.
+    if ( options.identifier_to_print ) {
+        const auto& id = global_scope()->Find(*options.identifier_to_print);
+        if ( ! id )
+            reporter->FatalError("No such ID: %s\n", options.identifier_to_print->data());
 
-			ODesc desc;
-			desc.SetQuotes(true);
-			desc.SetIncludeStats(true);
-			id->DescribeExtended(&desc);
+        ODesc desc;
+        desc.SetQuotes(true);
+        desc.SetIncludeStats(true);
+        id->DescribeExtended(&desc);
 
-			fprintf(stdout, "%s\n", desc.Description());
-			early_shutdown();
-			exit(0);
-			}
+        fprintf(stdout, "%s\n", desc.Description());
+        early_shutdown();
+        exit(0);
+    }
 
-		if ( profiling_interval > 0 )
-			{
-			const auto& profiling_file = id::find_val("profiling_file");
-			profiling_logger = std::make_shared<ProfileLogger>(profiling_file->AsFile(),
-			                                                   profiling_interval);
+    if ( profiling_interval > 0 ) {
+        const auto& profiling_file = id::find_val("profiling_file");
+        profiling_logger = std::make_shared<ProfileLogger>(profiling_file->AsFile(), profiling_interval);
 
-			if ( segment_profiling )
-				segment_logger = profiling_logger;
-			}
+        if ( segment_profiling )
+            segment_logger = profiling_logger;
+    }
 
-		if ( ! run_state::reading_live && ! run_state::reading_traces &&
-		     id::find_const("allow_network_time_forward")->AsBool() )
-			// Set up network_time to track real-time, since
-			// we don't have any other source for it.
-			run_state::detail::update_network_time(util::current_time());
+    if ( ! run_state::reading_live && ! run_state::reading_traces &&
+         id::find_const("allow_network_time_forward")->AsBool() )
+        // Set up network_time to track real-time, since
+        // we don't have any other source for it.
+        run_state::detail::update_network_time(util::current_time());
 
-		if ( CPP_activation_hook )
-			(*CPP_activation_hook)();
+    if ( CPP_activation_hook )
+        (*CPP_activation_hook)();
 
-		if ( zeek_init )
-			event_mgr.Enqueue(zeek_init, Args{});
+    if ( zeek_init )
+        event_mgr.Enqueue(zeek_init, Args{});
 
-		EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
+    EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
 
-		if ( ! dead_handlers.empty() && check_for_unused_event_handlers )
-			{
-			for ( const string& handler : dead_handlers )
-				reporter->Warning("event handler never invoked: %s", handler.c_str());
-			}
+    if ( ! dead_handlers.empty() && check_for_unused_event_handlers ) {
+        for ( const string& handler : dead_handlers )
+            reporter->Warning("event handler never invoked: %s", handler.c_str());
+    }
 
-		// Enable LeakSanitizer before zeek_init() and even before executing
-		// top-level statements.  Even though it's not bad if a leak happens only
-		// once at initialization, we have to assume that script-layer code causing
-		// such a leak can be placed in any arbitrary event handler and potentially
-		// cause more severe problems.
-		ZEEK_LSAN_ENABLE();
+    // Enable LeakSanitizer before zeek_init() and even before executing
+    // top-level statements.  Even though it's not bad if a leak happens only
+    // once at initialization, we have to assume that script-layer code causing
+    // such a leak can be placed in any arbitrary event handler and potentially
+    // cause more severe problems.
+    ZEEK_LSAN_ENABLE();
 
-		if ( init_stmts )
-			{
-			StmtFlowType flow;
-			Frame f(init_stmts->Scope()->Length(), nullptr, nullptr);
-			g_frame_stack.push_back(&f);
+    if ( init_stmts ) {
+        StmtFlowType flow;
+        Frame f(init_stmts->Scope()->Length(), nullptr, nullptr);
+        g_frame_stack.push_back(&f);
 
-			try
-				{
-				init_stmts->Body()->Exec(&f, flow);
-				}
-			catch ( InterpreterException& )
-				{
-				reporter->FatalError("failed to execute script statements at top-level scope");
-				}
+        try {
+            init_stmts->Body()->Exec(&f, flow);
+        } catch ( InterpreterException& ) {
+            reporter->FatalError("failed to execute script statements at top-level scope");
+        }
 
-			g_frame_stack.pop_back();
-			}
+        g_frame_stack.pop_back();
+    }
 
-		clear_script_analysis();
+    clear_script_analysis();
 
-		if ( zeek_script_loaded )
-			{
-			// Queue events reporting loaded scripts.
-			for ( const auto& file : zeek::detail::files_scanned )
-				{
-				if ( file.skipped )
-					continue;
+    if ( zeek_script_loaded ) {
+        // Queue events reporting loaded scripts.
+        for ( const auto& file : zeek::detail::files_scanned ) {
+            if ( file.skipped )
+                continue;
 
-				event_mgr.Enqueue(zeek_script_loaded, make_intrusive<StringVal>(file.name.c_str()),
-				                  val_mgr->Count(file.include_level));
-				}
-			}
+            event_mgr.Enqueue(zeek_script_loaded, make_intrusive<StringVal>(file.name.c_str()),
+                              val_mgr->Count(file.include_level));
+        }
+    }
 
-		reporter->ReportViaEvents(true);
+    reporter->ReportViaEvents(true);
 
-		// Drain the event queue here to support the protocols framework configuring DPM
-		event_mgr.Drain();
+    // Drain the event queue here to support the protocols framework configuring DPM
+    event_mgr.Drain();
 
-		if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
-			reporter->FatalError("errors occurred while initializing");
+    if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
+        reporter->FatalError("errors occurred while initializing");
 
-		run_state::detail::zeek_init_done = true;
-		packet_mgr->DumpDebug();
-		analyzer_mgr->DumpDebug();
+    run_state::detail::zeek_init_done = true;
+    packet_mgr->DumpDebug();
+    analyzer_mgr->DumpDebug();
 
-		run_state::detail::have_pending_timers = ! run_state::reading_traces &&
-		                                         timer_mgr->Size() > 0;
+    run_state::detail::have_pending_timers = ! run_state::reading_traces && timer_mgr->Size() > 0;
 
-		return {0, std::move(options)};
-	}
+    return {0, std::move(options)};
+}
 
-int cleanup(bool did_run_loop)
-	{
-	if ( did_run_loop )
-		done_with_network();
+int cleanup(bool did_run_loop) {
+    if ( did_run_loop )
+        done_with_network();
 
-	run_state::detail::delete_run();
-	terminate_zeek();
+    run_state::detail::delete_run();
+    terminate_zeek();
 
 #ifdef USE_SQLITE
-	sqlite3_shutdown();
+    sqlite3_shutdown();
 #endif
 
-	do_ssl_deinit();
+    do_ssl_deinit();
 
-	// Close files after net_delete(), because net_delete()
-	// might write to connection content files.
-	File::CloseOpenFiles();
+    // Close files after net_delete(), because net_delete()
+    // might write to connection content files.
+    File::CloseOpenFiles();
 
-	delete rule_matcher;
+    delete rule_matcher;
 
-	return 0;
-	}
+    return 0;
+}
 
-	} // namespace detail
+} // namespace detail
 
-namespace run_state::detail
-	{
+namespace run_state::detail {
 
-void zeek_terminate_loop(const char* reason)
-	{
-	util::detail::set_processing_status("TERMINATING", reason);
-	reporter->Info("%s", reason);
+void zeek_terminate_loop(const char* reason) {
+    util::detail::set_processing_status("TERMINATING", reason);
+    reporter->Info("%s", reason);
 
-	get_final_stats();
-	zeek::detail::done_with_network();
-	delete_run();
+    get_final_stats();
+    zeek::detail::done_with_network();
+    delete_run();
 
-	zeek::detail::terminate_zeek();
+    zeek::detail::terminate_zeek();
 
-	// Close files after net_delete(), because net_delete()
-	// might write to connection content files.
-	File::CloseOpenFiles();
+    // Close files after net_delete(), because net_delete()
+    // might write to connection content files.
+    File::CloseOpenFiles();
 
-	delete zeek::detail::rule_matcher;
+    delete zeek::detail::rule_matcher;
 
-	exit(0);
-	}
+    exit(0);
+}
 
-	} // namespace run_state::detail
-	} // namespace zeek
+} // namespace run_state::detail
+} // namespace zeek

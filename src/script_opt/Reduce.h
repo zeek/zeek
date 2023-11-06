@@ -6,6 +6,7 @@
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
+#include "zeek/script_opt/ObjMgr.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek::detail {
@@ -21,7 +22,10 @@ public:
 
     void SetReadyToOptimize() { opt_ready = true; }
 
-    void SetCurrStmt(const Stmt* stmt) { curr_stmt = stmt; }
+    void SetCurrStmt(const Stmt* stmt) {
+        om.AddObj(stmt);
+        curr_stmt = stmt;
+    }
 
     ExprPtr GenTemporaryExpr(const TypePtr& t, ExprPtr rhs);
 
@@ -108,11 +112,17 @@ public:
 
     // Tells the reducer to prune the given statement during the
     // next reduction pass.
-    void AddStmtToOmit(const Stmt* s) { omitted_stmts.insert(s); }
+    void AddStmtToOmit(const Stmt* s) {
+        om.AddObj(s);
+        omitted_stmts.insert(s);
+    }
 
     // Tells the reducer to replace the given statement during the
     // next reduction pass.
-    void AddStmtToReplace(const Stmt* s_old, StmtPtr s_new) { replaced_stmts[s_old] = std::move(s_new); }
+    void AddStmtToReplace(const Stmt* s_old, StmtPtr s_new) {
+        om.AddObj(s_old);
+        replaced_stmts[s_old] = std::move(s_new);
+    }
 
     // Tells the reducer that it can reclaim the storage associated
     // with the omitted statements.
@@ -279,6 +289,10 @@ protected:
     // their previous replacement value (per "orig_to_new_locals"),
     // if any.  When we pop the block, we restore the previous mapping.
     std::vector<std::unordered_map<const ID*, IDPtr>> block_locals;
+
+    // Memory management for AST elements that might change during
+    // the reduction/optimization processes.
+    ObjMgr om;
 
     // Tracks how deeply we are in "bifurcation", i.e., duplicating
     // code for if-else cascades.  We need to cap this at a certain

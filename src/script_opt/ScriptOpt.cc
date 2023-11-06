@@ -36,6 +36,7 @@ static std::string CPP_dir; // where to generate C++ code
 static std::unordered_map<const ScriptFunc*, LambdaExpr*> lambdas;
 static std::unordered_set<const ScriptFunc*> when_lambdas;
 static ScriptFuncPtr global_stmts;
+static size_t global_stmts_ind; // index into Funcs corresponding to global_stmts
 
 void analyze_func(ScriptFuncPtr f) {
     // Even if we're analyzing only a subset of the scripts, we still
@@ -56,7 +57,7 @@ bool is_lambda(const ScriptFunc* f) { return lambdas.count(f) > 0; }
 
 bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.count(f) > 0; }
 
-size_t analyze_global_stmts(Stmt* stmts) {
+void analyze_global_stmts(Stmt* stmts) {
     // We ignore analysis_options.only_{files,funcs} - if they're in use, later
     // logic will keep this function from being compiled, but it's handy
     // now to enter it into "funcs" so we have a FuncInfo to return.
@@ -71,11 +72,15 @@ size_t analyze_global_stmts(Stmt* stmts) {
     global_stmts = make_intrusive<ScriptFunc>(id);
     global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
 
+    global_stmts_ind = funcs.size();
     funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);
-    return funcs.size() - 1;
 }
 
-const FuncInfo& get_global_stmts(size_t global_ind) { return funcs[global_ind]; }
+std::pair<StmtPtr, ScopePtr> get_global_stmts() {
+    ASSERT(global_stmts);
+    auto& fi = funcs[global_stmts_ind];
+    return std::pair<StmtPtr, ScopePtr>{fi.Body(), fi.Scope()};
+}
 
 void add_func_analysis_pattern(AnalyOpt& opts, const char* pat) {
     try {

@@ -557,6 +557,7 @@ ConstExprPtr Reducer::Fold(ExprPtr e) {
 }
 
 void Reducer::FoldedTo(ExprPtr e, ConstExprPtr c) {
+    om.AddObj(e.get());
     constant_exprs[e.get()] = std::move(c);
     folded_exprs.push_back(std::move(e));
 }
@@ -712,6 +713,8 @@ IDPtr Reducer::GenTemporary(TypePtr t, ExprPtr rhs, IDPtr id) {
     temp_id->SetType(t);
 
     temps.push_back(temp);
+
+    om.AddObj(temp_id.get());
     ids_to_temps[temp_id.get()] = temp;
 
     return temp_id;
@@ -760,6 +763,7 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
         prev = orig_to_new_locals[orig.get()];
 
     AddNewLocal(local_id);
+    om.AddObj(orig.get());
     orig_to_new_locals[orig.get()] = local_id;
 
     if ( ! block_locals.empty() && ret_vars.count(orig.get()) == 0 )

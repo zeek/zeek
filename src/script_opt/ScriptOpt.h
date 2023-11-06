@@ -175,17 +175,11 @@ extern void analyze_when_lambda(LambdaExpr* f);
 extern bool is_lambda(const ScriptFunc* f);
 extern bool is_when_lambda(const ScriptFunc* f);
 
-// Analyze the given top-level statement(s) for optimization.  Returns
-// an opaque value that can be provided to get_global_stmts() to retrieve
-// the corresponding FuncInfo, which reflects an argument-less quasi-function
-// that can be Invoked, or its body executed directly, to execute the
-// statements.  This indirection is used in case in between the call to
-// analyze_global_stmts() and using the value subsequently, the FuncInfo may
-// have been updated or shifted.  a pointer to a FuncInfo for an argument-less
-// quasi-function that can be Invoked, or its body executed directly, to
-// execute the statements.
-extern size_t analyze_global_stmts(Stmt* stmts);
-extern const FuncInfo& get_global_stmts(size_t handle);
+// Analyze the given top-level statement(s) for optimization.
+extern void analyze_global_stmts(Stmt* stmts);
+
+// Returns the body and scope for the previously analyzed global statements.
+extern std::pair<StmtPtr, ScopePtr> get_global_stmts();
 
 // Add a pattern to the "only_funcs" list.
 extern void add_func_analysis_pattern(AnalyOpt& opts, const char* pat);

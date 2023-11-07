@@ -1,3 +1,11 @@
+6.2.0-dev.107 | 2023-11-07 10:03:24 +0100
+
+  * Update binpac and bifcl submodules [nomail] (Tim Wojtulewicz, Corelight)
+
+  * CI: Use other base64 options on macOS Sonoma too (Tim Wojtulewicz, Corelight)
+
+  * CI: Add macOS Sonoma build, remove macOS Monterey build (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.102 | 2023-11-07 09:58:25 +0100
 
   * Merge branch 'topic/xb-anssi/http_signature_body_end_match' of https://github.com/xb-anssi/zeek (Arne Welzel, Corelight)

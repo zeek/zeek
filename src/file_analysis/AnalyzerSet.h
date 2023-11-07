@@ -7,6 +7,7 @@
 
 #include "zeek/Dict.h"
 #include "zeek/Tag.h"
+#include "zeek/Val.h"
 
 namespace zeek {
 
@@ -87,9 +88,9 @@ public:
     void DrainModifications();
 
     // Iterator support
-    using iterator = zeek::DictIterator<file_analysis::Analyzer>;
-    ;
-    using const_iterator = const iterator;
+    using MapType = std::unordered_map<IntrusivePtr<ListVal>, file_analysis::Analyzer*, ListValHasher, ListValEqualTo>;
+    using iterator = MapType::iterator;
+    using const_iterator = MapType::const_iterator;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -100,15 +101,9 @@ public:
     const_iterator cbegin() { return analyzer_map.cbegin(); }
     const_iterator cend() { return analyzer_map.cend(); }
 
-protected:
-    /**
-     * Get a hash key which represents an analyzer instance.
-     * @param tag the file analyzer tag.
-     * @param args an \c AnalyzerArgs value which specifies an analyzer.
-     * @return the hash key calculated from \a args
-     */
-    std::unique_ptr<zeek::detail::HashKey> GetKey(const zeek::Tag& tag, RecordValPtr args) const;
+    size_t Size() const { return analyzer_map.size(); }
 
+protected:
     /**
      * Create an instance of a file analyzer.
      * @param tag the tag of a file analyzer.
@@ -122,7 +117,7 @@ protected:
      * @param a an analyzer instance.
      * @param key the hash key which represents the analyzer's \c AnalyzerArgs.
      */
-    void Insert(file_analysis::Analyzer* a, std::unique_ptr<zeek::detail::HashKey> key);
+    void Insert(file_analysis::Analyzer* a, const zeek::Tag& tag, RecordValPtr args);
 
     /**
      * Remove an analyzer instance from the set.
@@ -133,8 +128,8 @@ protected:
     bool Remove(const zeek::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key);
 
 private:
-    File* file;                                  /**< File which owns the set */
-    PDict<file_analysis::Analyzer> analyzer_map; /**< Indexed by AnalyzerArgs. */
+    File* file; /**< File which owns the set */
+    MapType analyzer_map;
 
     /**
      * Abstract base class for analyzer set modifications.
@@ -166,15 +161,15 @@ private:
          * @param arg_a an analyzer instance to add to an analyzer set.
          * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
          */
-        AddMod(file_analysis::Analyzer* arg_a, std::unique_ptr<zeek::detail::HashKey> arg_key)
-            : Modification(), a(arg_a), key(std::move(arg_key)) {}
-        ~AddMod() override {}
+        AddMod(file_analysis::Analyzer* arg_a, const zeek::Tag& arg_tag, RecordValPtr arg_args);
+        ~AddMod() override = default;
         bool Perform(AnalyzerSet* set) override;
         void Abort() override;
 
     protected:
         file_analysis::Analyzer* a;
-        std::unique_ptr<zeek::detail::HashKey> key;
+        zeek::Tag tag;
+        RecordValPtr args;
     };
 
     /**
@@ -187,15 +182,14 @@ private:
          * @param arg_a an analyzer instance to add to an analyzer set.
          * @param arg_key hash key representing the analyzer's \c AnalyzerArgs.
          */
-        RemoveMod(const zeek::Tag& arg_tag, std::unique_ptr<zeek::detail::HashKey> arg_key)
-            : Modification(), tag(arg_tag), key(std::move(arg_key)) {}
-        ~RemoveMod() override {}
+        RemoveMod(const zeek::Tag& arg_tag, RecordValPtr arg_args);
+        ~RemoveMod() override = default;
         bool Perform(AnalyzerSet* set) override;
         void Abort() override {}
 
     protected:
         zeek::Tag tag;
-        std::unique_ptr<zeek::detail::HashKey> key;
+        RecordValPtr args;
     };
 
     using ModQueue = std::queue<Modification*>;

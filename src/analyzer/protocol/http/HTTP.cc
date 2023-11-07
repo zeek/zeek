@@ -76,6 +76,13 @@ void HTTP_Entity::EndOfData()
 		encoding = IDENTITY;
 		}
 
+	zeek::detail::Rule::PatternType rule = http_message->IsOrig()
+	                                           ? zeek::detail::Rule::HTTP_REQUEST_BODY
+	                                           : zeek::detail::Rule::HTTP_REPLY_BODY;
+
+	http_message->MyHTTP_Analyzer()->Conn()->Match(rule, reinterpret_cast<const u_char*>(""), 0,
+	                                               http_message->IsOrig(), false, true, false);
+
 	if ( body_length )
 		http_message->MyHTTP_Analyzer()->ForwardEndOfData(http_message->IsOrig());
 
@@ -182,7 +189,10 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF)
 class HTTP_Entity::UncompressedOutput : public analyzer::OutputHandler
 	{
 public:
-	UncompressedOutput(HTTP_Entity* e) { entity = e; }
+	UncompressedOutput(HTTP_Entity* e)
+		{
+		entity = e;
+		}
 	void DeliverStream(int len, const u_char* data, bool orig) override
 		{
 		entity->DeliverBodyClear(len, (char*)data, false);

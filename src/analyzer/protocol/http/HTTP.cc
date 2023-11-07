@@ -69,6 +69,12 @@ void HTTP_Entity::EndOfData() {
         encoding = IDENTITY;
     }
 
+    zeek::detail::Rule::PatternType rule =
+        http_message->IsOrig() ? zeek::detail::Rule::HTTP_REQUEST_BODY : zeek::detail::Rule::HTTP_REPLY_BODY;
+
+    http_message->MyHTTP_Analyzer()->Conn()->Match(rule, reinterpret_cast<const u_char*>(""), 0, http_message->IsOrig(),
+                                                   false, true, false);
+
     if ( body_length )
         http_message->MyHTTP_Analyzer()->ForwardEndOfData(http_message->IsOrig());
 

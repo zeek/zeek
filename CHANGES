@@ -1,3 +1,117 @@
+6.0.2-3 | 2024-01-12 11:19:06 -0700
+
+  * Let signature framework match HTTP body end (xb-anssi)
+
+    The HTTP analyzer never tells the signature framework when the body of a
+    request or a response ends, so any signature regex ending in a '$' used
+    in an 'http-request-body' or in an 'http-reply-body' condition will
+    never match.
+
+    This made it impossible to write a signature which could distinguish an
+    HTTP body consisting only of something from an HTTP body prefixed by
+    that same something.
+
+    - Fix:
+
+    The fix notifies the signature framework on EndOfData() that there will
+    be no further data to match for this body by giving it an empty buffer
+    of length 0 with the eol parameter set to true and all others set to
+    false. This lets it reach the '$' state in its DFA, and doesn't affect
+    other documented HTTP match behaviours.
+
+    - Limitation:
+
+    Since the signature framework doesn't appear to keep previously consumed
+    data on hand, any match of an http-*-body condition whose patterns ends
+    with a '$' will lead to an empty data parameter being passed to the
+    signature_match() event because the body data is no longer available
+    when EndOfData() happens.
+
+    Due to segmentation there is anyway no guarantee the data parameter
+    would have held the entire match even without the '$', since the data
+    parameter only receives the last chunk of data which completed the match
+    condition, as can be seen on prefix matches in the btest cases where the
+    matching data spans multiple segments (the event gives 'B' and not
+    'AB'), so this is only an extreme case of partial data being given to
+    that event.
+
+    (cherry picked from commit 8a13155a415b7070e6c95480c5b9074a67bafb58)
+
+  * Test how the signature framework matches HTTP body (xb-anssi)
+
+    This adds a signatures/http-body-match btest to verify how the signature
+    framework matches HTTP body in requests and responses.
+
+    It currently fails because the 'http-request-body' and 'http-reply-body'
+    clauses never match anything when there is a '$' in their regular
+    expressions.
+
+    The other pattern clauses such as the 'payload' clause do not suffer
+    from that restriction and it is not documented as a limitation of HTTP
+    body pattern clauses either, so it is probably a bug.
+
+    The "http-body-match" btest shows that without a fix any signatures
+    which ends with a '$' in a http-request-body or http-reply-body rule
+    will never raise a signature_match() event, and that signatures which do
+    not end with a '$' cannot distinguish an HTTP body prefixed by the
+    matching pattern (ex: ABCD) from an HTTP body consisting entirely of the
+    matching pattern (ex: AB).
+
+    Test cases by source port:
+    - 13579:
+      - GET without body, plain res body (CD, only)
+    - 13578:
+      - GET without body, plain res body (CDEF, prefix)
+    - 24680:
+      - POST plain req body (AB, only), plain res body (CD, only)
+    - 24681:
+      - POST plain req body (ABCD, prefix), plain res body (CDEF, prefix)
+    - 24682:
+      - POST gzipped req body (AB, only), gzipped res body (CD, only)
+      - POST plain req body (CD, only), plain res body (EF, only)
+    - 33210:
+      - POST multipart plain req body (AB;CD;EF, prefix)
+      - plain res body (CD, only)
+    - 33211:
+      - POST multipart plain req body (ABCD;EF, prefix)
+      - plain res body (CDEF, prefix)
+    - 34527:
+      - POST chunked gzipped req body (AB, only)
+      - chunked gzipped res body (CD, only)
+    - 34528:
+      - POST chunked gzipped req body (ABCD, prefix)
+      - chunked gzipped res body (CDEF, prefix)
+
+    The tests with source ports 24680, 24682 and 34527 should
+    match the signature http_request_body_AB_only and the signature
+    http_request_body_AB_prefix, but they only match the latter.
+
+    The tests with source ports 13579, 24680, 24682, 33210 and 34527 should
+    match the signature http_response_body_CD_only and the signature
+    http_response_body_CD_prefix, but they only match the latter.
+
+    The tests with source ports 24680, 24681, 33210 and 33211 show how the
+    http_request_body_AB_then_CD signature with two http-request-body
+    conditions match either on one or multiple requests (documented
+    behaviour).
+
+    The test cases with other source ports show where the
+    http_request_body_AB_only and http_response_body_CD_only signatures
+    should not match because their bodies include more than the searched
+    patterns.
+
+    (cherry picked from commit 8a13155a415b7070e6c95480c5b9074a67bafb58)
+
+  * CMakeLists: Fix OPENSSL_INCLUDE_DIR reference (Arne Welzel, Corelight)
+
+    Seems the intention was to always add OPENSSL_INCLUDE_DIR to the
+    zeek_dynamic_plugin_base target, but finding of the OpenSSL package
+    and setting OPENSSL_INCLUDE_DIR happens much later, so this was never
+    functional.
+
+    Relates to #3408 - this is the fix for Zeek 6.0.3, #3420 is the
+    better fix for the future.
+
 6.0.2 | 2023-10-27 11:37:13 -0700
 
   * ftp: Do not base seq on number of pending commands (Arne Welzel, Corelight)

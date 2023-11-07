@@ -402,7 +402,10 @@ NameExpr::NameExpr(IDPtr arg_id, bool const_init) : Expr(EXPR_NAME), id(std::mov
 
     EventHandler* h = event_registry->Lookup(id->Name());
     if ( h )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         h->SetUsed();
+#pragma GCC diagnostic pop
 }
 
 // This isn't in-lined to avoid needing to pull in ID.h.
@@ -4265,7 +4268,10 @@ EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
         event_registry->Register(h, true);
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     h->SetUsed();
+#pragma GCC diagnostic pop
 
     handler = h;
 

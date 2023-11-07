@@ -1008,7 +1008,10 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     if ( zeek_init )
         event_mgr.Enqueue(zeek_init, Args{});
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
+#pragma GCC diagnostic pop
 
     if ( ! dead_handlers.empty() && check_for_unused_event_handlers ) {
         for ( const string& handler : dead_handlers )

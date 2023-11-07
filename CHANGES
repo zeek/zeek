@@ -1,3 +1,47 @@
+6.2.0-dev.114 | 2023-11-07 19:27:58 +0100
+
+  * Bump zeekctl (Arne Welzel, Corelight)
+
+  * GH-3187: EventHandler: Deprecate SetUsed() and Used() as well. (Arne Welzel, Corelight)
+
+    Seems the latter isn't used outside of the functions that were deprecated
+    in the previous commit and with UsageAnalyzer not making use of this
+    information unclear why we should keep it around.
+
+    Relates to #3187.
+
+  * GH-3187: EventRegistry: Deprecate UsedHandlers() and UnusedHandlers() (Arne Welzel, Corelight)
+
+    and check_for_unused_event_handlers: UsageAnalyzer is more thorough
+    and the previous ones weren't extended to work with &is_used and
+    should probably be considered superseded by the UsageAnalyzer even
+    if that currently does not provide a public API and just prints
+    out deprecation warnings.
+
+    I'm also tempted to deprecate SetUsed() and Used() of EventHandler
+    for the same reason.
+
+    Closes #3187.
+
+  * time machine: Mark leftovers for removal in v7.1 (Arne Welzel, Corelight)
+
+    I suspect we could just drop these directly, but lets follow the
+    deprecation cycle.
+
+  * policy/misc/load-balancing: Deprecate script (Arne Welzel, Corelight)
+
+  * GH-2877: cluster: Deprecate the Cluster::Node$interface field (Arne Welzel, Corelight)
+
+    This field isn't required by a worker and it's certainly not used by a
+    worker to listen on that specific interface. It also isn't required to
+    be set consistently and its use in-tree limited to the old load-balancing
+    script.
+
+    There's a bif called packet_source() which on a worker will provide
+    information about the actually used packet source.
+
+    Relates to zeek/zeek#2877.
+
 6.2.0-dev.107 | 2023-11-07 10:03:24 +0100
 
   * Update binpac and bifcl submodules [nomail] (Tim Wojtulewicz, Corelight)

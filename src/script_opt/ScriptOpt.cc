@@ -386,7 +386,10 @@ static void use_CPP() {
 
             for ( auto& e : s->second.events ) {
                 auto h = event_registry->Register(e);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
                 h->SetUsed();
+#pragma GCC diagnostic pop
             }
 
             auto finish = s->second.finish_init_func;

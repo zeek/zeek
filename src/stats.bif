@@ -489,7 +489,7 @@ function get_event_handler_stats%(%): EventNameStats
 	auto rval = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<VectorType>("EventNameStats"));
 	const auto& recordType = zeek::id::find_type<RecordType>("EventNameCounter");
 
-	const auto& events = event_registry->UsedHandlers();
+	const auto& events = event_registry->AllHandlers();
 	for ( const auto& name : events )
 		{
 		auto handler = event_registry->Lookup(name);

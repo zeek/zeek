@@ -287,7 +287,7 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
                     // Remove the '/'s
                     candidate.erase(0, 1);
                     candidate.erase(candidate.size() - 1);
-                    val->val.pattern_text_val = util::copy_string(candidate.c_str());
+                    val->val.pattern_text_val = util::copy_string(candidate.c_str(), candidate.size());
                     break;
                 }
             }

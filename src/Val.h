@@ -546,6 +546,7 @@ public:
     int Len() const;
     const u_char* Bytes() const;
     const char* CheckString() const;
+    std::pair<const char*, size_t> CheckStringWithSize() const;
 
     // Note that one needs to de-allocate the return value of
     // ExpandedString() to avoid a memory leak.

@@ -1752,7 +1752,7 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 
     auto param_list = new type_decl_list();
     auto count_t = base_type(TYPE_COUNT);
-    param_list->push_back(new TypeDecl(util::copy_string(lambda_param_id.c_str()), count_t));
+    param_list->push_back(new TypeDecl(util::copy_string(lambda_param_id.c_str(), lambda_param_id.size()), count_t));
     auto params = make_intrusive<RecordType>(param_list);
 
     lambda_ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY), FUNC_FLAVOR_FUNCTION);

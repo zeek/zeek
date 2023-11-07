@@ -146,7 +146,7 @@ TypePtr rt::create_record_type(const std::string& ns, const std::string& id,
             attrs->AddAttr(std::move(log_));
         }
 
-        decls->append(new TypeDecl(util::copy_string(f.id.c_str()), f.type, std::move(attrs)));
+        decls->append(new TypeDecl(util::copy_string(f.id.c_str(), f.id.size()), f.type, std::move(attrs)));
     }
 
     return make_intrusive<RecordType>(decls.release());

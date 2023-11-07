@@ -84,6 +84,11 @@ public:
      */
     const char* CheckString() const;
 
+    /**
+     * Like @c CheckString(), but also returns the length of the string.
+     */
+    std::pair<const char*, size_t> CheckStringWithSize() const;
+
     enum render_style {
         ESC_NONE = 0,
         ESC_ESC = (1 << 1),  // '\' -> "\\"

@@ -434,15 +434,14 @@ static std::vector<std::string> get_script_signature_files() {
     std::vector<std::string> rval;
 
     // Parse rule files defined on the script level.
-    char* script_signature_files = util::copy_string(id::find_val("signature_files")->AsString()->CheckString());
+    auto script_signature_files = id::find_val("signature_files")->AsStringVal()->ToStdString();
 
-    char* tmp = script_signature_files;
+    char* tmp = script_signature_files.data();
     char* s;
     while ( (s = strsep(&tmp, " \t")) )
         if ( *s )
             rval.emplace_back(s);
 
-    delete[] script_signature_files;
     return rval;
 }
 

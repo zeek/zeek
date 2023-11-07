@@ -157,7 +157,8 @@ int TraceState::LogTrace(const char* fmt, ...) {
     }
 
     if ( ! loc.filename ) {
-        loc.filename = util::copy_string("<no filename>");
+        static constexpr const char str[] = "<no filename>";
+        loc.filename = util::copy_string(str, std::size(str) - 1);
         loc.last_line = 0;
     }
 
@@ -675,7 +676,8 @@ string get_context_description(const Stmt* stmt, const Frame* frame) {
     if ( stmt )
         loc = *stmt->GetLocationInfo();
     else {
-        loc.filename = util::copy_string("<no filename>");
+        static constexpr const char str[] = "<no filename>";
+        loc.filename = util::copy_string(str, std::size(str) - 1);
         loc.last_line = 0;
     }
 

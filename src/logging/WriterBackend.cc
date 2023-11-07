@@ -73,9 +73,7 @@ broker::data WriterBackend::WriterInfo::ToBroker() const {
     auto t = broker::table();
 
     for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i ) {
-        auto key = std::string(i->first);
-        auto value = std::string(i->second);
-        t.insert(std::make_pair(key, value));
+        t.emplace(std::string{i->first}, std::string{i->second});
     }
 
     auto bppf = post_proc_func ? post_proc_func : "";
@@ -98,7 +96,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d) {
     if ( ! (bpath && brotation_base && brotation_interval && bnetwork_time && bconfig && bppf) )
         return false;
 
-    path = util::copy_string(bpath->c_str());
+    path = util::copy_string(bpath->c_str(), bpath->size());
     post_proc_func = util::copy_string(bppf->c_str());
     rotation_base = *brotation_base;
     rotation_interval = *brotation_interval;
@@ -111,7 +109,7 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d) {
         if ( ! (k && v) )
             return false;
 
-        auto p = std::make_pair(util::copy_string(k->c_str()), util::copy_string(v->c_str()));
+        auto p = std::make_pair(util::copy_string(k->c_str(), k->size()), util::copy_string(v->c_str(), v->size()));
         config.insert(p);
     }
 

@@ -1,3 +1,14 @@
+6.2.0-dev.99 | 2023-11-07 09:56:55 +0100
+
+  * Fix unsafe and inefficient uses of copy_string (Dominik Charousset, Corelight)
+
+    Add a new overload to `copy_string` that takes the input characters plus
+    size. The new overload avoids inefficient scanning of the input for the
+    null terminator in cases where we know the size beforehand. Furthermore,
+    this overload *must* be used when dealing with input character sequences
+    that may have no null terminator, e.g., when the input is from a
+    `std::string_view` object.
+
 6.2.0-dev.97 | 2023-11-06 09:29:49 -0700
 
   * Update c-ares in Windows conanfile (Tim Wojtulewicz, Corelight)

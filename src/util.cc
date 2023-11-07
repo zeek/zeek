@@ -1022,6 +1022,16 @@ std::string get_escaped_string(const char* str, size_t len, bool escape_all) {
     return get_escaped_string(&d, str, len, escape_all)->Description();
 }
 
+char* copy_string(const char* str, size_t len) {
+    if ( ! str )
+        return nullptr;
+
+    char* c = new char[len + 1];
+    memcpy(c, str, len);
+    c[len] = '\0';
+    return c;
+}
+
 char* copy_string(const char* s) {
     if ( ! s )
         return nullptr;

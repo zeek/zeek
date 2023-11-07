@@ -9,15 +9,7 @@
 #include "zeek/file_analysis/Manager.h"
 
 namespace zeek::file_analysis::detail {
-
-static void analyzer_del_func(void* v) {
-    file_analysis::Analyzer* a = (file_analysis::Analyzer*)v;
-
-    a->Done();
-    delete a;
-}
-
-AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file) { analyzer_map.SetDeleteFunc(analyzer_del_func); }
+AnalyzerSet::AnalyzerSet(File* arg_file) : file(arg_file) {}
 
 AnalyzerSet::~AnalyzerSet() {
     while ( ! mod_queue.empty() ) {
@@ -26,48 +18,64 @@ AnalyzerSet::~AnalyzerSet() {
         delete mod;
         mod_queue.pop();
     }
+
+    for ( const auto& a : analyzer_map )
+        delete a.second;
+
+    analyzer_map.clear();
 }
 
 Analyzer* AnalyzerSet::Find(const zeek::Tag& tag, RecordValPtr args) {
-    auto key = GetKey(tag, std::move(args));
-    Analyzer* rval = analyzer_map.Lookup(key.get());
-    return rval;
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    lv->Append(tag.AsVal());
+    lv->Append(std::move(args));
+
+    auto it = analyzer_map.find(lv);
+    if ( it != analyzer_map.end() )
+        return it->second;
+
+    return nullptr;
 }
 
 bool AnalyzerSet::Add(const zeek::Tag& tag, RecordValPtr args) {
-    auto key = GetKey(tag, args);
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    lv->Append(tag.AsVal());
+    lv->Append(args);
 
-    if ( analyzer_map.Lookup(key.get()) ) {
+    if ( analyzer_map.contains(lv) ) {
         DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Instantiate analyzer %s skipped: already exists", file->GetID().c_str(),
                 file_mgr->GetComponentName(tag).c_str());
 
         return true;
     }
 
-    file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
+    file_analysis::Analyzer* a = InstantiateAnalyzer(tag, args);
 
     if ( ! a )
         return false;
 
-    Insert(a, std::move(key));
+    Insert(a, tag, std::move(args));
 
     return true;
 }
 
 Analyzer* AnalyzerSet::QueueAdd(const zeek::Tag& tag, RecordValPtr args) {
-    auto key = GetKey(tag, args);
-    file_analysis::Analyzer* a = InstantiateAnalyzer(tag, std::move(args));
+    file_analysis::Analyzer* a = InstantiateAnalyzer(tag, args);
 
     if ( ! a )
         return nullptr;
 
-    mod_queue.push(new AddMod(a, std::move(key)));
+    mod_queue.push(new AddMod(a, tag, std::move(args)));
 
     return a;
 }
 
 bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set) {
-    if ( set->analyzer_map.Lookup(key.get()) ) {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    lv->Append(tag.AsVal());
+    lv->Append(args);
+
+    if ( set->analyzer_map.contains(lv) ) {
         DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s skipped: already exists", a->GetFile()->GetID().c_str(),
                 file_mgr->GetComponentName(a->Tag()).c_str());
 
@@ -75,19 +83,24 @@ bool AnalyzerSet::AddMod::Perform(AnalyzerSet* set) {
         return true;
     }
 
-    set->Insert(a, std::move(key));
+    set->Insert(a, tag, args);
 
     return true;
 }
 
-void AnalyzerSet::AddMod::Abort() { delete a; }
+void AnalyzerSet::AddMod::Abort() {
+    delete a;
+    a = nullptr;
+}
 
-bool AnalyzerSet::Remove(const zeek::Tag& tag, RecordValPtr args) { return Remove(tag, GetKey(tag, std::move(args))); }
+bool AnalyzerSet::Remove(const zeek::Tag& tag, RecordValPtr args) {
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    lv->Append(tag.AsVal());
+    lv->Append(std::move(args));
 
-bool AnalyzerSet::Remove(const zeek::Tag& tag, std::unique_ptr<zeek::detail::HashKey> key) {
-    auto a = (file_analysis::Analyzer*)analyzer_map.Remove(key.get());
+    auto a = analyzer_map.find(lv);
 
-    if ( ! a ) {
+    if ( a == analyzer_map.end() ) {
         DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Skip remove analyzer %s", file->GetID().c_str(),
                 file_mgr->GetComponentName(tag).c_str());
         return false;
@@ -96,36 +109,30 @@ bool AnalyzerSet::Remove(const zeek::Tag& tag, std::unique_ptr<zeek::detail::Has
     DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Remove analyzer %s", file->GetID().c_str(),
             file_mgr->GetComponentName(tag).c_str());
 
-    a->Done();
+    a->second->Done();
 
     // We don't delete the analyzer object right here because the remove
     // operation may execute at a time when it can still be accessed.
     // Instead we let the file know to delete the analyzer later.
-    file->DoneWithAnalyzer(a);
+    file->DoneWithAnalyzer(a->second);
+
+    analyzer_map.erase(a);
 
     return true;
 }
 
 bool AnalyzerSet::QueueRemove(const zeek::Tag& tag, RecordValPtr args) {
-    auto key = GetKey(tag, std::move(args));
-    auto rval = analyzer_map.Lookup(key.get());
-    mod_queue.push(new RemoveMod(tag, std::move(key)));
-    return rval;
-}
-
-bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set) { return set->Remove(tag, std::move(key)); }
-
-std::unique_ptr<zeek::detail::HashKey> AnalyzerSet::GetKey(const zeek::Tag& t, RecordValPtr args) const {
     auto lv = make_intrusive<ListVal>(TYPE_ANY);
-    lv->Append(t.AsVal());
-    lv->Append(std::move(args));
-    auto key = file_mgr->GetAnalyzerHash()->MakeHashKey(*lv, true);
+    lv->Append(tag.AsVal());
+    lv->Append(args);
 
-    if ( ! key )
-        reporter->InternalError("AnalyzerArgs type mismatch");
+    auto it = analyzer_map.find(lv);
 
-    return key;
+    mod_queue.push(new RemoveMod(tag, std::move(args)));
+    return it != analyzer_map.end();
 }
+
+bool AnalyzerSet::RemoveMod::Perform(AnalyzerSet* set) { return set->Remove(tag, args); }
 
 file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag, RecordValPtr args) const {
     auto a = file_mgr->InstantiateAnalyzer(tag, std::move(args), file);
@@ -144,10 +151,15 @@ file_analysis::Analyzer* AnalyzerSet::InstantiateAnalyzer(const Tag& tag, Record
     return a;
 }
 
-void AnalyzerSet::Insert(file_analysis::Analyzer* a, std::unique_ptr<zeek::detail::HashKey> key) {
+void AnalyzerSet::Insert(file_analysis::Analyzer* a, const Tag& tag, RecordValPtr args) {
     DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Add analyzer %s", file->GetID().c_str(),
             file_mgr->GetComponentName(a->Tag()).c_str());
-    analyzer_map.Insert(key.get(), a);
+
+    auto lv = make_intrusive<ListVal>(TYPE_ANY);
+    lv->Append(tag.AsVal());
+    lv->Append(std::move(args));
+
+    analyzer_map.insert({lv, a});
 
     a->Init();
 }

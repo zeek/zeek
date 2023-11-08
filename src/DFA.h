@@ -69,6 +69,17 @@ protected:
 
 using DigestStr = std::basic_string<u_char>;
 
+struct DFA_State_Cache_Stats {
+    // Sum of all NFA states
+    unsigned int nfa_states;
+    unsigned int dfa_states;
+    unsigned int computed;
+    unsigned int uncomputed;
+    unsigned int mem;
+    unsigned int hits;
+    unsigned int misses;
+};
+
 class DFA_State_Cache {
 public:
     DFA_State_Cache();
@@ -82,17 +93,7 @@ public:
 
     int NumEntries() const { return states.size(); }
 
-    struct Stats {
-        // Sum of all NFA states
-        unsigned int nfa_states;
-        unsigned int dfa_states;
-        unsigned int computed;
-        unsigned int uncomputed;
-        unsigned int mem;
-        unsigned int hits;
-        unsigned int misses;
-    };
-
+    using Stats = DFA_State_Cache_Stats;
     void GetStats(Stats* s);
 
 private:

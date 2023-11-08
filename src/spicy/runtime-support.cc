@@ -748,6 +748,19 @@ void rt::terminate_session() {
         throw spicy::rt::ValueUnavailable("terminate_session() not available in the current context");
 }
 
+void rt::skip_input() {
+    auto _ = hilti::rt::profiler::start("zeek/rt/skip_input");
+    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
+    assert(cookie);
+
+    if ( auto p = cookie->protocol )
+        p->analyzer->SetSkip(true);
+    else if ( auto f = cookie->file )
+        f->analyzer->SetSkip(true);
+    else
+        throw spicy::rt::ValueUnavailable("skip() not available in the current context");
+}
+
 std::string rt::fuid() {
     auto _ = hilti::rt::profiler::start("zeek/rt/fuid");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());

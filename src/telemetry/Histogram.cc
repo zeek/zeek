@@ -62,8 +62,8 @@ DblHistogramFamily::DblHistogramFamily(std::string_view prefix, std::string_view
     instrument = m->CreateDoubleHistogram(FullName(), helptext, unit);
 
     if ( is_sum )
-        telemetry_mgr->AddView(FullName(), std::string{helptext}, std::string{unit},
-                               metrics_sdk::InstrumentType::kHistogram, metrics_sdk::AggregationType::kSum);
+        telemetry_mgr->AddView(FullName(), std::string{helptext}, "", metrics_sdk::InstrumentType::kHistogram,
+                               metrics_sdk::AggregationType::kSum);
 
     add_histogram_view(FullName(), default_upper_bounds, helptext, unit, p);
 }

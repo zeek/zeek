@@ -25,7 +25,7 @@ IntCounterFamily::IntCounterFamily(std::string_view prefix, std::string_view nam
     }
 
     if ( is_sum )
-        telemetry_mgr->AddView(FullName(), std::string{helptext}, std::string{unit}, type,
+        telemetry_mgr->AddView(FullName(), std::string{helptext}, "", type,
                                opentelemetry::sdk::metrics::AggregationType::kSum);
 }
 
@@ -34,7 +34,7 @@ DblCounterFamily::DblCounterFamily(std::string_view prefix, std::string_view nam
                                    opentelemetry::metrics::ObservableCallbackPtr callback)
     : BaseCounterFamily(prefix, name, labels, helptext, unit, is_sum) {
     auto p = opentelemetry::metrics::Provider::GetMeterProvider();
-    auto m = p->GetMeter(prefix);
+    auto m = p->GetMeter(std::string{prefix});
 
     opentelemetry::sdk::metrics::InstrumentType type;
     if ( ! callback ) {

@@ -1,10 +1,8 @@
 protocol analyzer SSL over TCP:
-	parse with SSL::Message,
-	port 443/tcp;
+	parse with SSL::Message;
 
  protocol analyzer DTLS over UDP:
- 	parse with SSL::Message,
- 	port 443/udp;
+ 	parse with SSL::Message;
 
 import SSL;
 import zeek;

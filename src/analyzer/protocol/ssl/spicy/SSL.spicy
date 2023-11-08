@@ -846,6 +846,10 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
   on unhandled {
     print "Unhandled handshake message of type ", self.msg_type;
   }
+  on %error(emsg: string) {
+    print "Error in handshake message of type", self.msg_type, self, emsg;
+    print self;
+  }
 };
 
 type HelloRequest = unit(inout sh: Share) {
@@ -910,9 +914,8 @@ type ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
   cipher_suites: uint16[self.cipher_suites_length/2];
   compression_methods_length: uint8;
   compression_methods: uint8[self.compression_methods_length];
-  extensions_length: uint16 if ( len > self.offset() );
-  extensions: Extension(sh, True)[] &size=self.extensions_length if ( len > self.offset() );
-
+  extensions_length: uint16 if ( len > self.offset() + 2 );
+  extensions: Extension(sh, True)[] &size=self.extensions_length if ( len > self.offset() + 2 );
   on %error(emsg: string) {
     print "Error in client hello", emsg;
     print self;
@@ -955,8 +958,8 @@ type ServerHelloOneThree = unit(len: uint64, msg: Message, inout sh: Share, serv
   random_bytes: bytes &size=32;
   gmt_unix_time: uint32 &parse-from=self.random_bytes;
   cipher_suite: uint16;
-  extensions_length: uint16 if ( len > self.offset() );
-  extensions: Extension(sh, False)[] &size=self.extensions_length if ( len > self.offset() );
+  extensions_length: uint16 if ( len > self.offset() + 2 );
+  extensions: Extension(sh, False)[] &size=self.extensions_length if ( len > self.offset() + 2);
 
   on cipher_suite {
     sh.chosen_cipher = self.cipher_suite;
@@ -971,8 +974,8 @@ type ServerHello = unit(len: uint64, msg: Message, inout sh: Share, server_versi
   session_id: bytes &size=self.session_id_length;
   cipher_suite: uint16;
   compression_method: uint8;
-  extensions_length: uint16 if ( len > self.offset() );
-  extensions: Extension(sh, False)[] &size=self.extensions_length if ( len > self.offset() );
+  extensions_length: uint16 if ( len > self.offset() + 2 );
+  extensions: Extension(sh, False)[] &size=self.extensions_length if ( len > self.offset() + 2 );
 
   on cipher_suite {
     sh.chosen_cipher = self.cipher_suite;

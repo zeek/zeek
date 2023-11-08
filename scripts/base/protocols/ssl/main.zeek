@@ -197,8 +197,8 @@ redef likely_server_ports += { ssl_ports, dtls_ports };
 event zeek_init() &priority=6
 	{
 	Log::create_stream(SSL::LOG, [$columns=Info, $ev=log_ssl, $path="ssl", $policy=log_policy]);
-	#Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
-	#Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SSL, ssl_ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_DTLS, dtls_ports);
 	}
 
 function set_session(c: connection)

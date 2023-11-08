@@ -25,6 +25,22 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The ``Cluster::Node$interface`` field has been deprecated. It's essentially
+  unneeded, unused and not a reliable way to gather the actual interface used
+  by a worker. In Zeekctl deployments the field will be populated until its
+  removal. The ``packet_source()`` bif should be used on worker processes to
+  gather information about the interface.
+
+- The ``policy/misc/load-balancing`` script has been deprecated in favor of
+  AF_PACKET PF_RING, Netmap or other NIC specific load balancing approaches.
+
+- Time machine related enums, options and fields have been marked for removal.
+
+- The ``check_for_unused_event_handlers`` options the related ``UsedHandlers()``,
+  ``UnusedHandlers()`` and their related ``SetUsed()`` and ``Used()`` methods
+  have been marked for removal. The feature of finding unused event handlers is
+  provided by default via the ``UsageAnalyzer`` component.
+
 Zeek 6.1.0
 ==========
 

@@ -20,6 +20,7 @@
 #include "zeek/Attr.h"
 #include "zeek/CompHash.h"
 #include "zeek/Conn.h"
+#include "zeek/DFA.h"
 #include "zeek/Desc.h"
 #include "zeek/Dict.h"
 #include "zeek/Expr.h"
@@ -1442,6 +1443,13 @@ public:
 
     VectorValPtr Lookup(const StringValPtr& s);
 
+    void GetStats(detail::DFA_State_Cache_Stats* stats) const {
+        if ( matcher && matcher->DFA() )
+            matcher->DFA()->Cache()->GetStats(stats);
+        else
+            *stats = {0};
+    };
+
 private:
     void Build();
 
@@ -2028,6 +2036,13 @@ VectorValPtr TableVal::LookupPattern(const StringValPtr& s) {
         reporter->InternalError("LookupPattern called on wrong table type");
 
     return pattern_matcher->Lookup(s);
+}
+
+void TableVal::GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const {
+    if ( ! pattern_matcher )
+        reporter->InternalError("GetPatternMatcherStats called on wrong table type");
+
+    return pattern_matcher->GetStats(stats);
 }
 
 bool TableVal::UpdateTimestamp(Val* index) {

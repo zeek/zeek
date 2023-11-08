@@ -5795,3 +5795,53 @@ function have_spicy_analyzers%(%) : bool
 	%{
 	return zeek::val_mgr->Bool(USE_SPICY_ANALYZERS);
 	%}
+
+%%{
+#include "zeek/DFA.h"
+%%}
+
+## Return MatcherStats for a table[pattern] or set[pattern] value.
+##
+## This returns a MatcherStats objects that can be used for introspection
+## of the DFA used for such a table. Statistics reset whenever elements are
+## added or removed to the table as these operations result in the underlying
+## DFA being rebuilt.
+##
+## This function iterates over all states of the DFA. Calling it at a high
+## frequency is likely detrimental to performance.
+##
+## tbl: The table to get stats for.
+##
+## Returns: A record with matcher statistics.
+function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
+	%{
+	static auto matcher_stats_type = zeek::id::find_type<zeek::RecordType>("MatcherStats");
+
+	const auto& type = tbl->GetType();
+	if ( type->Tag() != zeek::TYPE_TABLE )
+		{
+		zeek::emit_builtin_error("pattern-table_stats() requires a table argument");
+		return nullptr;
+		}
+
+	if ( ! type->AsTableType()->IsPatternIndex() )
+		{
+		zeek::emit_builtin_error("pattern_table_stats() requires a single index of type pattern");
+		return nullptr;
+		}
+
+	zeek::detail::DFA_State_Cache::Stats stats;
+	tbl->AsTableVal()->GetPatternMatcherStats(&stats);
+
+	auto result = zeek::make_intrusive<zeek::RecordVal>(matcher_stats_type);
+	int n = 0;
+	result->Assign(n++, 1); // matchers
+	result->Assign(n++, stats.nfa_states);
+	result->Assign(n++, stats.dfa_states);
+	result->Assign(n++, stats.computed);
+	result->Assign(n++, stats.mem);
+	result->Assign(n++, stats.hits);
+	result->Assign(n++, stats.misses);
+
+	return result;
+	%}

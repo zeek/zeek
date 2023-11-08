@@ -53,6 +53,8 @@ class CompositeHash;
 class HashKey;
 class TablePatternMatcher;
 
+struct DFA_State_Cache_Stats;
+
 class ValTrace;
 class ZBody;
 class CPPRuntime;
@@ -868,6 +870,10 @@ public:
     // the given string.
     // Causes an internal error if called for any other kind of table.
     VectorValPtr LookupPattern(const StringValPtr& s);
+
+    // For a table[pattern], fill stats with information about
+    // the DFA's state for introspection.
+    void GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const;
 
     // Sets the timestamp for the given index to network time.
     // Returns false if index does not exist.

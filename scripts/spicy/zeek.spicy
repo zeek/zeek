@@ -118,6 +118,10 @@ public function fuid() : string &cxxname="zeek::spicy::rt::fuid";
 ## called from inside a protocol analyzer.
 public function terminate_session() : void &cxxname="zeek::spicy::rt::terminate_session";
 
+## Tells Zeek to skip sending any further input data to the current analyzer.
+## This is supported for protocol and file analyzers.
+public function skip_input() : void &cxxname="zeek::spicy::rt::skip_input";
+
 ## Signals the expected size of a file to Zeek's file analysis.
 ##
 ## size: expected size of file

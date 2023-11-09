@@ -1,3 +1,8 @@
+6.2.0-dev.123 | 2023-11-09 17:22:29 +0100
+
+  * GH-3443: Spicy: Provide `zeek::skip_input()` to disable deliver to
+    current analyzer. (Robin Sommer, Corelight)
+
 6.2.0-dev.121 | 2023-11-09 10:42:16 +0100
 
   * btest/opt: Update pure-inlining baseline (Arne Welzel, Corelight)

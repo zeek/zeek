@@ -1,3 +1,23 @@
+6.2.0-dev.121 | 2023-11-09 10:42:16 +0100
+
+  * btest/opt: Update pure-inlining baseline (Arne Welzel, Corelight)
+
+    I suspect this as just stale due to not being executed regularly.
+
+  * btest/opt: Update basic baseline (Arne Welzel, Corelight)
+
+  * Expr: Fix alloc-dealloc-mismatch (Arne Welzel, Corelight)
+
+    I *thought* Vern had fixed this up, but maybe that was another
+    occurrence.
+
+  * btest: Move zam/basic.test into opt/basic.test, update TestDirs (Arne Welzel, Corelight)
+
+    It seems "opt" can and should run unconditionally. The "misc" dir was
+    definitely an oversight.
+
+  * Add deprecations to NEWS [nomail] [skipci] (Arne Welzel, Corelight)
+
 6.2.0-dev.114 | 2023-11-07 19:27:58 +0100
 
   * Bump zeekctl (Arne Welzel, Corelight)

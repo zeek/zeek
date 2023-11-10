@@ -10,6 +10,7 @@
 #include "zeek/telemetry/MetricFamily.h"
 #include "zeek/telemetry/telemetry.bif.h"
 
+#include "opentelemetry/sdk/metrics/async_instruments.h"
 #include "opentelemetry/sdk/metrics/sync_instruments.h"
 
 namespace zeek::telemetry {

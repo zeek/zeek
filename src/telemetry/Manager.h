@@ -4,9 +4,8 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include <memory>
 #include <string_view>
-#include <unordered_map>
-#include <variant>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"
@@ -15,16 +14,10 @@
 #include "zeek/telemetry/Gauge.h"
 #include "zeek/telemetry/Histogram.h"
 
-#include "opentelemetry/sdk/metrics/meter_provider.h"
-
 namespace zeek {
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 } // namespace zeek
-
-namespace zeek::Broker {
-class Manager;
-}
 
 namespace zeek::telemetry {
 
@@ -35,8 +28,6 @@ class OtelReader;
  */
 class Manager final {
 public:
-    friend class Broker::Manager;
-
     Manager();
 
     Manager(const Manager&) = delete;

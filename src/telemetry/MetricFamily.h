@@ -9,7 +9,7 @@
 #include "zeek/Span.h"
 #include "zeek/Val.h"
 
-#include "opentelemetry/sdk/metrics/meter.h"
+#include "opentelemetry/common/key_value_iterable.h"
 
 namespace zeek::telemetry {
 

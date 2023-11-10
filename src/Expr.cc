@@ -4377,6 +4377,12 @@ bool ListExpr::IsPure() const {
     return true;
 }
 
+bool ListExpr::HasConstantOps() const {
+    loop_over_list(exprs, i) if ( exprs[i]->Tag() != EXPR_CONST ) return false;
+
+    return true;
+}
+
 ValPtr ListExpr::Eval(Frame* f) const {
     std::vector<ValPtr> evs;
 

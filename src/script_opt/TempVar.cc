@@ -6,7 +6,7 @@
 
 namespace zeek::detail {
 
-TempVar::TempVar(size_t num, const TypePtr& t, ExprPtr _rhs) : type(t) {
+TempVar::TempVar(size_t num, ExprPtr _rhs) {
     char buf[8192];
     snprintf(buf, sizeof buf, "#%zu", num);
     name = buf;
@@ -14,6 +14,11 @@ TempVar::TempVar(size_t num, const TypePtr& t, ExprPtr _rhs) : type(t) {
 }
 
 void TempVar::SetAlias(IDPtr _alias) {
+    if ( _alias == alias )
+        // This can happen when treating function parameters as
+        // temporary variables.
+        return;
+
     if ( alias )
         reporter->InternalError("Re-aliasing a temporary");
 

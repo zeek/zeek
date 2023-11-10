@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "zeek/Expr.h"
+#include "zeek/script_opt/ObjMgr.h"
 
 namespace zeek::detail {
 
@@ -165,6 +166,8 @@ private:
     // track both because sometimes a relevant UD will be present
     // in only one or the other.
     std::unordered_map<const Stmt*, const Stmt*> successor2;
+
+    ObjMgr om;
 
     StmtPtr body;
     std::shared_ptr<Reducer> rc;

@@ -1,3 +1,23 @@
+6.2.0-dev.134 | 2023-11-10 12:42:57 +0100
+
+  * retention of superseded AST elements to prevent pointer mis-aliasing (Vern Paxson, Corelight)
+
+  * BTest updates for latest ZAM maintenance (Vern Paxson, Corelight)
+
+  * greater ZAM optimization of inlined function calls (Vern Paxson, Corelight)
+
+  * some minor ZAM optimization improvements (Vern Paxson, Corelight)
+
+  * added "-O noinline" option to turn off ZAM inlining, to help with diagnosing optimization problems (Vern Paxson, Corelight)
+
+  * fixes for a number of ZAM optimization bugs (Vern Paxson, Corelight)
+
+  * allow explicitly marking an identifier as equivalent to special '_' identifier (Vern Paxson, Corelight)
+
+  * fixed some warnings about mixing signed & unsigned integers (Vern Paxson, Corelight)
+
+  * descriptions of "for" statements now include their "value variable" if present (Vern Paxson, Corelight)
+
 6.2.0-dev.123 | 2023-11-09 17:22:29 +0100
 
   * GH-3443: Spicy: Provide `zeek::skip_input()` to disable deliver to

@@ -121,7 +121,7 @@ public:
     ZInstAux* aux = nullptr;
 
     // Location associated with this instruction, for error reporting.
-    const Location* loc = nullptr;
+    std::shared_ptr<Location> loc;
 
     // Interpreter call expression associated with this instruction,
     // for error reporting and stack backtraces.

@@ -171,7 +171,7 @@ void IfStmt::Inline(Inliner* inl) {
 }
 
 bool IfStmt::IsReduced(Reducer* c) const {
-    if ( ! e->IsReducedConditional(c) )
+    if ( e->IsConst() || ! e->IsReducedConditional(c) )
         return NonReduced(e.get());
 
     return s1->IsReduced(c) && s2->IsReduced(c);
@@ -632,7 +632,7 @@ void StmtList::Inline(Inliner* inl) {
 bool StmtList::IsReduced(Reducer* c) const {
     auto n = stmts.size();
 
-    for ( auto i = 0; i < n; ++i ) {
+    for ( auto i = 0U; i < n; ++i ) {
         auto& s_i = stmts[i];
         if ( ! s_i->IsReduced(c) )
             return false;
@@ -650,7 +650,7 @@ StmtPtr StmtList::DoReduce(Reducer* c) {
 
     auto n = stmts.size();
 
-    for ( auto i = 0; i < n; ++i ) {
+    for ( auto i = 0U; i < n; ++i ) {
         if ( ReduceStmt(i, f_stmts, c) )
             did_change = true;
 
@@ -677,7 +677,7 @@ StmtPtr StmtList::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
+bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
     bool did_change = false;
     auto& stmt_i = stmts[s_i];
     auto old_stmt = stmt_i.get();
@@ -707,7 +707,7 @@ bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
 
         if ( e->Tag() != EXPR_ASSIGN ) {
             f_stmts.push_back(std::move(stmt));
-            return false;
+            return did_change;
         }
 
         auto a = e->AsAssignExpr();
@@ -715,7 +715,7 @@ bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
 
         if ( lhs->Tag() != EXPR_NAME ) {
             f_stmts.push_back(std::move(stmt));
-            return false;
+            return did_change;
         }
 
         auto var = lhs->AsNameExpr();
@@ -740,8 +740,8 @@ bool StmtList::ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
             }
         }
 
-        if ( c->IsCSE(a, var, rhs.get()) ) {
-            // printf("discarding %s as unnecessary\n", obj_desc(a));
+        if ( c->IsTemporary(var->Id()) && ! c->IsParamTemp(var->Id()) && c->IsCSE(a, var, rhs.get()) ) {
+            // printf("discarding %s as unnecessary\n", var->Id()->Name());
             // Skip this now unnecessary statement.
             return true;
         }

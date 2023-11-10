@@ -19,6 +19,7 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.5
     libopenssl-devel \
     libpcap-devel \
     make \
+    openssh \
     python311 \
     python311-devel \
     python311-pip \

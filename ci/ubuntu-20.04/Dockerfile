@@ -18,6 +18,7 @@ RUN apt-get update && apt-get -y install \
     gcc \
     git \
     lcov \
+    libcurl4-openssl-dev \
     libkrb5-dev \
     libmaxminddb-dev \
     libpcap-dev \

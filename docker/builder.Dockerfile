@@ -21,10 +21,12 @@ RUN apt-get -q update \
      bison \
      ccache \
      cmake \
+     curl \
      flex \
      g++ \
      gcc \
      git \
+     libcurl4-openssl-dev \
      libfl2 \
      libfl-dev \
      libnode-dev \

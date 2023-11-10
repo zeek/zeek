@@ -19,6 +19,7 @@ RUN apt-get update && apt-get -y install \
     g++ \
     gcc \
     git \
+    libcurl4-openssl-dev \
     libkrb5-dev \
     libpcap-dev \
     libssl-dev \

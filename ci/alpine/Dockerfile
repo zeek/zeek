@@ -11,6 +11,7 @@ RUN apk add --no-cache \
   ccache \
   cmake \
   curl \
+  curl-dev \
   diffutils \
   flex-dev \
   musl-fts-dev \

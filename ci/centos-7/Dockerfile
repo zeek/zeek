@@ -35,6 +35,7 @@ RUN yum -y install \
     cmake3 \
     curl \
     findutils \
+    libcurl-devel \
     libpcap-devel \
     make \
     openssl \

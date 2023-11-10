@@ -14,6 +14,7 @@ RUN dnf -y install \
     gcc \
     gcc-c++ \
     git \
+    libcurl-devel \
     libpcap-devel \
     make \
     nodejs-devel \

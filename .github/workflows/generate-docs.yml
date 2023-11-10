@@ -55,6 +55,8 @@ jobs:
             g++ \
             gcc \
             git \
+            libcurl4 \
+            libcurl4-openssl-dev \
             libfl-dev \
             libfl2 \
             libkrb5-dev \

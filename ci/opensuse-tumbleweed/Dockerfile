@@ -25,9 +25,11 @@ RUN zypper refresh \
     libopenssl-devel \
     libpcap-devel \
     make \
+    openssh \
     python3 \
     python3-devel \
     python3-pip \
+    python3-websockets \
     swig \
     tar \
     util-linux \
@@ -35,4 +37,4 @@ RUN zypper refresh \
     zlib-devel \
   && rm -rf /var/cache/zypp
 
-RUN pip3 install --break-system-packages websockets junit2html
+RUN pip3 install --break-system-packages junit2html

@@ -19,6 +19,7 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.4
     libopenssl-devel \
     libpcap-devel \
     make \
+    openssh \
     python39 \
     python39-devel \
     python39-pip \

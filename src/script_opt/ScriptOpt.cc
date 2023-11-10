@@ -147,7 +147,7 @@ static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf, std::s
     return true;
 }
 
-static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr& body) {
+static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr& body, bool is_alt) {
     if ( reporter->Errors() > 0 )
         return;
 
@@ -226,8 +226,12 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
     int new_frame_size = scope->Length() + rc->NumTemps() + rc->NumNewLocals();
 
-    if ( new_frame_size > f->FrameSize() )
-        f->SetFrameSize(new_frame_size);
+    if ( new_frame_size > f->FrameSize() ) {
+        if ( is_alt )
+            f->SetAltFrameSize(new_frame_size);
+        else
+            f->SetFrameSize(new_frame_size);
+    }
 
     if ( analysis_options.gen_ZAM_code ) {
         ZAMCompiler ZAM(f, pf, scope, new_body, ud, rc);
@@ -473,17 +477,15 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
     bool did_one = false;
 
     for ( auto& f : funcs ) {
+        if ( ! f.ShouldAnalyze() )
+            continue;
+
         auto func = f.Func();
         auto l = lambdas.find(func);
         bool is_lambda = l != lambdas.end();
 
-        if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() ) {
-            if ( ! should_analyze(f.FuncPtr(), f.Body()) )
-                continue;
-        }
-
-        else if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func) &&
-                  func_used_indirectly.count(func) == 0 ) {
+        if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func) &&
+             func_used_indirectly.count(func) == 0 ) {
             // No need to compile as it won't be called directly.
             // We'd like to zero out the body to recover the
             // memory, but a *few* such functions do get called,
@@ -494,7 +496,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
         }
 
         auto new_body = f.Body();
-        optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
+        optimize_func(func, f.ProfilePtr(), f.Scope(), new_body, f.IsAlternative());
         f.SetBody(new_body);
 
         if ( is_lambda )
@@ -563,7 +565,7 @@ void analyze_scripts(bool no_unused_warnings) {
         if ( should_analyze(func.FuncPtr(), func.Body()) )
             have_one_to_do = true;
         else
-            func.SetSkip(true);
+            func.SetShouldNotAnalyze();
 
     if ( ! have_one_to_do )
         reporter->FatalError("no matching functions/files for C++ compilation");

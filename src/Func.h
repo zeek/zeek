@@ -85,6 +85,12 @@ public:
     bool HasEnabledBodies() const { return ! bodies.empty() && has_enabled_bodies; };
 
     /**
+     * Called when there's been a change in which bodies are enabled.
+     * @param all_enabled  true if now all bodies are enabled, false otherwise.
+     */
+    virtual void EnablementChanged(bool all_enabled) {}
+
+    /**
      * Calls a Zeek function.
      * @param args  the list of arguments to the function call.
      * @param parent  the frame from which the function is being called.
@@ -115,7 +121,7 @@ public:
     void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
 
     virtual void SetScope(detail::ScopePtr newscope);
-    virtual detail::ScopePtr GetScope() const { return scope; }
+    virtual detail::ScopePtr GetScope() const { return curr_scope; }
 
     const FuncTypePtr& GetType() const { return type; }
 
@@ -140,8 +146,26 @@ protected:
     // Helper function for checking result of plugin hook.
     void CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFlavor flavor) const;
 
+    // The set of bodies associated with the function, sorted by priority.
     std::vector<Body> bodies;
+
+    // An alternative body. While there will just be a single Body, we
+    // store this as a vector to enable easy switching between the regular
+    // set of bodies and the alternative.
+    std::vector<Body> alt_body;
+
+    // Points to either bodies or alt_body.
+    const std::vector<Body>* curr_bodies = &bodies;
+
+    // The main scope associated with the function.
     detail::ScopePtr scope;
+
+    // If the function has an "alternative" body, its scope.
+    detail::ScopePtr alt_scope;
+
+    // The scope to currently use: could be the main scope or the alternative.
+    detail::ScopePtr curr_scope;
+
     Kind kind = SCRIPT_FUNC;
     FuncTypePtr type;
     std::string name;
@@ -247,6 +271,16 @@ public:
      */
     void ReplaceBody(const detail::StmtPtr& old_body, detail::StmtPtr new_body);
 
+    /**
+     * Establishes an alternate body to use in the absence of varying event
+     * disablement. Switches to using that body.
+     *
+     * @param body  AST corresponding to the alternative.
+     * @param scope  scope to use when employing the alternative
+     * @param frame_size  frame size to use when employing the alternative
+     */
+    void SetAlternativeBody(detail::StmtPtr body, detail::ScopePtr scope, size_t frame_size);
+
     StmtPtr CurrentBody() const { return current_body; }
     int CurrentPriority() const { return current_priority; }
 
@@ -254,7 +288,7 @@ public:
      * Returns the function's frame size.
      * @return  The number of ValPtr slots in the function's frame.
      */
-    int FrameSize() const { return frame_size; }
+    int FrameSize() const { return curr_frame_size; }
 
     /**
      * Changes the function's frame size to a new size - used for
@@ -262,7 +296,10 @@ public:
      *
      * @param new_size  The frame size the function should use.
      */
-    void SetFrameSize(int new_size) { frame_size = new_size; }
+    void SetFrameSize(int new_size) { curr_frame_size = frame_size = new_size; }
+    void SetAltFrameSize(int new_size) { curr_frame_size = alt_frame_size = new_size; }
+
+    void EnablementChanged(bool all_enabled) override;
 
     /** Sets this function's outer_id list. */
     void SetOuterIDs(IDPList ids) { outer_ids = std::move(ids); }
@@ -289,7 +326,18 @@ protected:
     virtual void SetCaptures(Frame* f);
 
 private:
+    // Used to toggle between the regular set of bodies and the "alternative"
+    // used for coalescing multiple bodies into a single instance.
+    void SwitchToRegular();
+    void SwitchToAlternative();
+
+    // Frame size associated with the regular set of bodies and the
+    // "alternative", if any.
     size_t frame_size = 0;
+    size_t alt_frame_size = 0;
+
+    // Frame size to currently use, reflecting one or the other of the above.
+    size_t curr_frame_size = 0;
 
     // List of the outer IDs used in the function.
     IDPList outer_ids;

@@ -2,12 +2,12 @@
 
 #include "zeek/probabilistic/BitVector.h"
 
-#include <broker/data.hh>
 #include <openssl/sha.h>
 #include <cassert>
 #include <cstring>
 #include <limits>
 
+#include "zeek/broker/Data.h"
 #include "zeek/digest.h"
 
 namespace zeek::probabilistic::detail {
@@ -413,39 +413,43 @@ uint64_t BitVector::Hash() const {
     return digest;
 }
 
-broker::expected<broker::data> BitVector::Serialize() const {
-    broker::vector v = {static_cast<uint64_t>(num_bits), static_cast<uint64_t>(bits.size())};
-    v.reserve(2 + bits.size());
+std::optional<BrokerData> BitVector::Serialize() const {
+    BrokerListBuilder builder;
+    builder.Reserve(2 + bits.size());
 
-    for ( size_t i = 0; i < bits.size(); ++i )
-        v.emplace_back(static_cast<uint64_t>(bits[i]));
+    builder.AddCount(num_bits);
+    builder.AddCount(bits.size());
 
-    return {std::move(v)};
+    for ( auto bit : bits )
+        builder.AddCount(bit);
+
+    return std::move(builder).Build();
 }
 
-std::unique_ptr<BitVector> BitVector::Unserialize(const broker::data& data) {
-    auto v = broker::get_if<broker::vector>(&data);
-    if ( ! (v && v->size() >= 2) )
+std::unique_ptr<BitVector> BitVector::Unserialize(BrokerDataView data) {
+    if ( ! data.IsList() )
         return nullptr;
 
-    auto num_bits = broker::get_if<uint64_t>(&(*v)[0]);
-    auto size = broker::get_if<uint64_t>(&(*v)[1]);
+    auto v = data.ToList();
 
-    if ( ! (num_bits && size) )
+    if ( v.Size() < 2 || ! v[0].IsCount() || ! v[1].IsCount() )
         return nullptr;
 
-    if ( v->size() != 2 + *size )
+    auto num_bits = v[0].ToCount();
+    auto size = v[1].ToCount();
+
+    if ( v.Size() != 2 + size )
         return nullptr;
 
-    auto bv = std::unique_ptr<BitVector>(new BitVector());
-    bv->num_bits = *num_bits;
+    auto bv = std::make_unique<BitVector>();
+    bv->num_bits = num_bits;
 
-    for ( size_t i = 0; i < *size; ++i ) {
-        auto x = broker::get_if<uint64_t>(&(*v)[2 + i]);
-        if ( ! x )
+    for ( size_t i = 0; i < size; ++i ) {
+        auto x = v[2 + i];
+        if ( ! x.IsCount() )
             return nullptr;
 
-        bv->bits.push_back(*x);
+        bv->bits.push_back(x.ToCount());
     }
 
     return bv;

@@ -60,16 +60,12 @@ void EventHandler::Call(Args* vl, bool no_remote, double ts) {
     if ( ! no_remote ) {
         if ( ! auto_publish.empty() ) {
             // Send event in form [name, xs...] where xs represent the arguments.
-            broker::vector xs;
-            xs.reserve(vl->size());
+            BrokerListBuilder xs;
+            xs.Reserve(vl->size());
             bool valid_args = true;
 
-            for ( auto i = 0u; i < vl->size(); ++i ) {
-                auto opt_data = Broker::detail::val_to_data((*vl)[i].get());
-
-                if ( opt_data )
-                    xs.emplace_back(std::move(*opt_data));
-                else {
+            for ( size_t index = 0; index < vl->size(); ++index ) {
+                if ( ! xs.Add((*vl)[index]) ) {
                     valid_args = false;
                     auto_publish.clear();
                     reporter->Error("failed auto-remote event '%s', disabled", Name());
@@ -78,14 +74,16 @@ void EventHandler::Call(Args* vl, bool no_remote, double ts) {
             }
 
             if ( valid_args ) {
+                auto ev_args = std::move(xs).Build();
+
                 for ( auto it = auto_publish.begin();; ) {
                     const auto& topic = *it;
                     ++it;
 
                     if ( it != auto_publish.end() )
-                        broker_mgr->PublishEvent(topic, Name(), xs, ts);
+                        broker_mgr->PublishEvent(topic, Name(), ev_args, ts);
                     else {
-                        broker_mgr->PublishEvent(topic, Name(), std::move(xs), ts);
+                        broker_mgr->PublishEvent(topic, Name(), std::move(ev_args), ts);
                         break;
                     }
                 }

@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <broker/data.hh>
-#include <broker/expected.hh>
 #include <memory>
 #include <optional>
 #include <string>
@@ -20,6 +18,9 @@
 namespace zeek {
 
 using ValPtr = IntrusivePtr<Val>;
+
+class BrokerListView;
+class BrokerData;
 
 namespace detail {
 
@@ -171,7 +172,7 @@ public:
      * sequence of two-element vectors, the first element reflecting
      * the frame value, the second its type.
      */
-    broker::expected<broker::data> Serialize();
+    std::optional<BrokerData> Serialize();
 
     /**
      * Instantiates a Frame from a serialized one.
@@ -180,7 +181,7 @@ public:
      * and the second is the unserialized frame with reference count +1, or
      * null if the serialization wasn't successful.
      */
-    static std::pair<bool, FramePtr> Unserialize(const broker::vector& data);
+    static std::pair<bool, FramePtr> Unserialize(BrokerListView data);
 
     // If the frame is run in the context of a trigger condition evaluation,
     // the trigger needs to be registered.

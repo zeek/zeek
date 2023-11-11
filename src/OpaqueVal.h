@@ -6,12 +6,12 @@
 #include <unistd.h>
 #endif
 
-#include <broker/expected.hh>
 #if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
 #include <openssl/md5.h>
 #endif
 #include <paraglob/paraglob.h>
 #include <sys/types.h> // for u_char
+#include <optional>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/RandTest.h"
@@ -21,11 +21,11 @@
 #include "zeek/telemetry/Gauge.h"
 #include "zeek/telemetry/Histogram.h"
 
-namespace broker {
-class data;
-}
-
 namespace zeek {
+
+class BrokerData;
+class BrokerDataView;
+class BrokerListView;
 
 namespace probabilistic {
 class BloomFilter;
@@ -93,8 +93,8 @@ private:
 #define DECLARE_OPAQUE_VALUE(T)                                                                                        \
     friend class zeek::OpaqueMgr::Register<T>;                                                                         \
     friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
-    broker::expected<broker::data> DoSerialize() const override;                                                       \
-    bool DoUnserialize(const broker::data& data) override;                                                             \
+    std::optional<BrokerData> DoSerialize() const override;                                                            \
+    bool DoUnserialize(BrokerDataView data) override;                                                                  \
     const char* OpaqueName() const override { return #T; }                                                             \
     static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
 
@@ -120,7 +120,7 @@ public:
      * @return the broker representation, or an error if serialization
      * isn't supported or failed.
      */
-    broker::expected<broker::data> Serialize() const;
+    std::optional<BrokerData> Serialize() const;
 
     /**
      * Reinstantiates a value from its serialized Broker representation.
@@ -128,7 +128,12 @@ public:
      * @param data Broker representation as returned by *Serialize()*.
      * @return unserialized instances with reference count at +1
      */
-    static OpaqueValPtr Unserialize(const broker::data& data);
+    static OpaqueValPtr Unserialize(BrokerDataView data);
+
+    /**
+     * @copydoc Unserialize
+     */
+    static OpaqueValPtr Unserialize(BrokerListView data);
 
 protected:
     friend class Val;
@@ -141,7 +146,7 @@ protected:
      * @return the serialized data or an error if serialization
      * isn't supported or failed.
      */
-    virtual broker::expected<broker::data> DoSerialize() const = 0;
+    virtual std::optional<BrokerData> DoSerialize() const = 0;
 
     /**
      * Must be overridden to recreate the derived class' state from a
@@ -149,7 +154,7 @@ protected:
      *
      * @return true if successful.
      */
-    virtual bool DoUnserialize(const broker::data& data) = 0;
+    virtual bool DoUnserialize(BrokerDataView data) = 0;
 
     /**
      * Internal helper for the serialization machinery. Automatically
@@ -169,13 +174,13 @@ protected:
      * Helper function for derived class that need to record a type
      * during serialization.
      */
-    static broker::expected<broker::data> SerializeType(const TypePtr& t);
+    static std::optional<BrokerData> SerializeType(const TypePtr& t);
 
     /**
      * Helper function for derived class that need to restore a type
      * during unserialization. Returns the type at reference count +1.
      */
-    static TypePtr UnserializeType(const broker::data& data);
+    static TypePtr UnserializeType(BrokerDataView data);
 
     void ValDescribe(ODesc* d) const override;
     void ValDescribeReST(ODesc* d) const override;
@@ -417,8 +422,8 @@ protected:
     explicit TelemetryVal(telemetry::DblHistogram);
     explicit TelemetryVal(telemetry::DblHistogramFamily);
 
-    broker::expected<broker::data> DoSerialize() const override;
-    bool DoUnserialize(const broker::data& data) override;
+    std::optional<BrokerData> DoSerialize() const override;
+    bool DoUnserialize(BrokerDataView data) override;
 };
 
 template<class Handle>

@@ -52,7 +52,7 @@ function Broker::__opaque_clone_through_serialization%(d: any%): any
         	return zeek::val_mgr->False();
 		}
 
-	return OpaqueVal::Unserialize(std::move(*x));
+	return OpaqueVal::Unserialize(x->AsView());
 	%}
 
 function Broker::__set_create%(%): Broker::Data

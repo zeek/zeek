@@ -2,6 +2,7 @@
 
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
+#include <broker/config.hh>
 #include <broker/data.hh>
 #include <broker/detail/hash.hh>
 #include <broker/endpoint.hh>
@@ -414,6 +415,12 @@ public:
     void SetMetricsExportPrefixes(std::vector<std::string> filter);
 
 private:
+#ifdef BROKER_HAS_VARIANT
+    using NativeBrokerValue = broker::variant;
+#else
+    using NativeBrokerValue = broker::data;
+#endif
+
     // Process events used for Broker store backed zeek tables
     void ProcessStoreEvent(broker::data msg);
     // Common functionality for processing insert and update events.
@@ -425,8 +432,8 @@ private:
     bool ProcessMessage(std::string_view topic, broker::zeek::LogCreate& lc);
     bool ProcessMessage(std::string_view topic, broker::zeek::LogWrite& lw);
     bool ProcessMessage(std::string_view topic, broker::zeek::IdentifierUpdate& iu);
-    void ProcessStatus(broker::status_view stat);
-    void ProcessError(broker::error_view err);
+    void ProcessStatus(const broker::status& stat);
+    void ProcessError(const broker::error& err);
     void ProcessStoreResponse(detail::StoreHandleVal*, broker::store::response response);
     void FlushPendingQueries();
     // Initializes the masters for Broker backed Zeek tables when using the &backend attribute

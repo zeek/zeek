@@ -13,6 +13,15 @@
 #include "zeek/broker/data.bif.h"
 #include "zeek/module_util.h"
 
+#ifdef BROKER_HAS_VARIANT
+#include <broker/builder.hh>
+#include <broker/variant.hh>
+#include <broker/variant_list.hh>
+#include <broker/variant_set.hh>
+#include <broker/variant_table.hh>
+#include <broker/visit.hh>
+#endif
+
 using namespace std;
 
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_data_type;
@@ -129,7 +138,7 @@ struct val_converter {
         }
     }
 
-    result_type operator()(broker::address& a) {
+    result_type operator()(const broker::address& a) {
         if ( type->Tag() == TYPE_ADDR ) {
             auto bits = reinterpret_cast<const in6_addr*>(&a.bytes());
             return make_intrusive<AddrVal>(IPAddr(*bits));
@@ -138,7 +147,7 @@ struct val_converter {
         return nullptr;
     }
 
-    result_type operator()(broker::subnet& a) {
+    result_type operator()(const broker::subnet& a) {
         if ( type->Tag() == TYPE_SUBNET ) {
             auto bits = reinterpret_cast<const in6_addr*>(&a.network().bytes());
             return make_intrusive<SubNetVal>(IPPrefix(IPAddr(*bits), a.length()));
@@ -147,14 +156,14 @@ struct val_converter {
         return nullptr;
     }
 
-    result_type operator()(broker::port& a) {
+    result_type operator()(const broker::port& a) {
         if ( type->Tag() == TYPE_PORT )
             return val_mgr->Port(a.number(), to_zeek_port_proto(a.type()));
 
         return nullptr;
     }
 
-    result_type operator()(broker::timestamp& a) {
+    result_type operator()(broker::timestamp a) {
         if ( type->Tag() != TYPE_TIME )
             return nullptr;
 
@@ -163,7 +172,7 @@ struct val_converter {
         return make_intrusive<TimeVal>(s.count());
     }
 
-    result_type operator()(broker::timespan& a) {
+    result_type operator()(broker::timespan a) {
         if ( type->Tag() != TYPE_INTERVAL )
             return nullptr;
 
@@ -430,6 +439,271 @@ struct val_converter {
 
         return nullptr;
     }
+
+#ifdef BROKER_HAS_VARIANT
+
+    result_type operator()(broker::enum_value_view a) {
+        if ( type->Tag() == TYPE_ENUM ) {
+            broker::enum_value tmp{std::string{a.name}};
+            return (*this)(tmp);
+        }
+        return nullptr;
+    }
+
+    result_type operator()(std::string_view a) {
+        switch ( type->Tag() ) {
+            case TYPE_STRING: return make_intrusive<StringVal>(a.size(), a.data());
+            case TYPE_FILE: {
+                std::string tmp{a};
+                return (*this)(tmp);
+            }
+            default: return nullptr;
+        }
+    }
+
+    result_type operator()(const broker::variant_set& a) {
+        if ( ! type->IsSet() )
+            return nullptr;
+
+        auto tt = type->AsTableType();
+        auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
+
+        for ( const auto& item : a ) {
+            const auto& expected_index_types = tt->GetIndices()->GetTypes();
+            broker::vector indices;
+
+            if ( item.is_list() ) {
+                if ( expected_index_types.size() == 1 && serialized_as_vector(expected_index_types[0]->Tag()) ) {
+                    // Disambiguate from composite key w/ multiple vals.
+                    indices.emplace_back(item.to_data());
+                }
+                else {
+                    for ( const auto& index : item.to_list() )
+                        indices.emplace_back(index.to_data());
+                }
+            }
+            else {
+                indices.emplace_back(item.to_data());
+            }
+
+            if ( expected_index_types.size() != indices.size() )
+                return nullptr;
+
+            auto list_val = make_intrusive<ListVal>(TYPE_ANY);
+
+            for ( size_t i = 0; i < indices.size(); ++i ) {
+                auto index_val = data_to_val(indices[i], expected_index_types[i].get());
+
+                if ( ! index_val )
+                    return nullptr;
+
+                list_val->Append(std::move(index_val));
+            }
+
+            rval->Assign(std::move(list_val), nullptr);
+        }
+
+        return rval;
+    }
+
+    result_type operator()(const broker::variant_table& a) {
+        if ( ! type->IsTable() )
+            return nullptr;
+
+        auto tt = type->AsTableType();
+        auto rval = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
+
+        for ( const auto& [key, val] : a ) {
+            const auto& expected_index_types = tt->GetIndices()->GetTypes();
+            broker::vector indices;
+
+            if ( key.is_list() ) {
+                if ( expected_index_types.size() == 1 && serialized_as_vector(expected_index_types[0]->Tag()) ) {
+                    // Disambiguate from composite key w/ multiple vals.
+                    indices.emplace_back(key.to_data());
+                }
+                else {
+                    for ( const auto& index : key.to_list() )
+                        indices.emplace_back(index.to_data());
+                }
+            }
+            else {
+                indices.emplace_back(key.to_data());
+            }
+
+            if ( expected_index_types.size() != indices.size() )
+                return nullptr;
+
+            auto list_val = make_intrusive<ListVal>(TYPE_ANY);
+
+            for ( size_t i = 0; i < indices.size(); ++i ) {
+                auto index_val = data_to_val(indices[i], expected_index_types[i].get());
+
+                if ( ! index_val )
+                    return nullptr;
+
+                list_val->Append(std::move(index_val));
+            }
+
+            auto value_val = data_to_val(val, tt->Yield().get());
+
+            if ( ! value_val )
+                return nullptr;
+
+            rval->Assign(std::move(list_val), std::move(value_val));
+        }
+
+        return rval;
+    }
+
+    result_type operator()(const broker::variant_list& a) {
+        if ( type->Tag() == TYPE_VECTOR ) {
+            auto vt = type->AsVectorType();
+            auto rval = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
+
+            for ( const auto& item : a ) {
+                auto item_val = data_to_val(item, vt->Yield().get());
+
+                if ( ! item_val )
+                    return nullptr;
+
+                rval->Assign(rval->Size(), std::move(item_val));
+            }
+
+            return rval;
+        }
+        else if ( type->Tag() == TYPE_LIST ) {
+            // lists are just treated as vectors on the broker side.
+            auto lt = type->AsTypeList();
+            auto pure = lt->IsPure();
+            const auto& types = lt->GetTypes();
+
+            if ( ! pure && a.size() > types.size() )
+                return nullptr;
+
+            auto lt_tag = pure ? lt->GetPureType()->Tag() : TYPE_ANY;
+            auto rval = make_intrusive<ListVal>(lt_tag);
+
+            unsigned int pos = 0;
+            for ( const auto& item : a ) {
+                auto item_val = data_to_val(item, pure ? lt->GetPureType().get() : types[pos].get());
+                pos++;
+
+                if ( ! item_val )
+                    return nullptr;
+
+                rval->Append(std::move(item_val));
+            }
+            return rval;
+        }
+        else if ( type->Tag() == TYPE_FUNC ) {
+            if ( a.size() < 1 || a.size() > 2 )
+                return nullptr;
+
+            const auto& name = a[0];
+            if ( ! name.is_string() )
+                return nullptr;
+
+            const auto& id = zeek::detail::global_scope()->Find(std::string{name.to_string()});
+            if ( ! id )
+                return nullptr;
+
+            const auto& rval = id->GetVal();
+            if ( ! rval )
+                return nullptr;
+
+            const auto& t = rval->GetType();
+            if ( ! t )
+                return nullptr;
+
+            if ( t->Tag() != TYPE_FUNC )
+                return nullptr;
+
+            if ( a.size() == 2 ) // we have a closure/capture frame
+            {
+                // Note, seems if we already have a separate
+                // instance of the same lambda, then unless
+                // we use a cloned value, we'll step on that
+                // one's captures, too.  This is because
+                // the capture mapping lives with the Func
+                // object rather than the FuncVal.  However,
+                // we can't readily Clone() here because
+                // rval is const (and, grrr, Clone() is not).
+                // -VP
+                // rval = rval->Clone();
+
+                const auto& frame_var = a[1];
+
+                if ( ! frame_var.is_list() )
+                    return nullptr;
+
+                auto frame_data = frame_var.to_data();
+                auto* frame = &broker::get<broker::vector>(frame_data);
+                auto* b = dynamic_cast<zeek::detail::ScriptFunc*>(rval->AsFunc());
+                if ( ! b || ! b->DeserializeCaptures(BrokerListView{frame}) )
+                    return nullptr;
+            }
+
+            return rval;
+        }
+        else if ( type->Tag() == TYPE_RECORD ) {
+            auto rt = type->AsRecordType();
+            auto rval = make_intrusive<RecordVal>(IntrusivePtr{NewRef{}, rt});
+            auto idx = 0u;
+
+            for ( size_t i = 0; i < static_cast<size_t>(rt->NumFields()); ++i ) {
+                if ( idx >= a.size() )
+                    return nullptr;
+
+                if ( a[idx].is_none() ) {
+                    rval->Remove(i);
+                    ++idx;
+                    continue;
+                }
+
+                auto item_val = data_to_val(a[idx], rt->GetFieldType(i).get());
+
+                if ( ! item_val )
+                    return nullptr;
+
+                rval->Assign(i, std::move(item_val));
+                ++idx;
+            }
+
+            return rval;
+        }
+        else if ( type->Tag() == TYPE_PATTERN ) {
+            if ( a.size() != 2 )
+                return nullptr;
+
+            if ( ! a[0].is_string() || ! a[1].is_string() )
+                return nullptr;
+
+            auto exact_text = std::string{a[0].to_string()};
+            auto anywhere_text = std::string{a[1].to_string()};
+
+            auto* re = new RE_Matcher(exact_text.c_str(), anywhere_text.c_str());
+
+            if ( ! re->Compile() ) {
+                reporter->Error("failed compiling unserialized pattern: %s, %s", exact_text.c_str(),
+                                anywhere_text.c_str());
+                delete re;
+                return nullptr;
+            }
+
+            auto rval = make_intrusive<PatternVal>(re);
+            return rval;
+        }
+        else if ( type->Tag() == TYPE_OPAQUE ) {
+            auto converted = a.to_data();
+            auto* vptr = &broker::get<broker::vector>(converted);
+            return OpaqueVal::Unserialize(BrokerListView{vptr});
+        }
+
+        return nullptr;
+    }
+
+#endif // BROKER_HAS_VARIANT
 };
 
 struct type_checker {
@@ -725,6 +999,17 @@ ValPtr data_to_val(broker::data& d, Type* type) {
 
     return visit(val_converter{type}, d);
 }
+
+#ifdef BROKER_HAS_VARIANT
+ValPtr data_to_val(const broker::variant& d, Type* type) {
+    if ( type->Tag() == TYPE_ANY ) {
+        BrokerData tmp{d.to_data()};
+        return std::move(tmp).ToRecordVal();
+    }
+
+    return broker::visit(val_converter{type}, d);
+}
+#endif
 
 std::optional<broker::data> val_to_data(const Val* v) {
     switch ( v->GetType()->Tag() ) {
@@ -1037,7 +1322,7 @@ const TypePtr& DataVal::ScriptDataType() {
 
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::DataVal)
 
-std::optional<BrokerData> DataVal::DoSerialize() const { return BrokerData{data}; }
+std::optional<BrokerData> DataVal::DoSerialize() const { return {BrokerData{std::move(data)}}; }
 
 bool DataVal::DoUnserialize(BrokerDataView dv) {
     data = std::move(*dv.value_);
@@ -1047,7 +1332,7 @@ bool DataVal::DoUnserialize(BrokerDataView dv) {
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
 
 std::optional<BrokerData> SetIterator::DoSerialize() const {
-    return BrokerData{broker::data{broker::vector{dat, *it}}};
+    return {BrokerData{broker::data{broker::vector{dat, *it}}}};
 }
 
 bool SetIterator::DoUnserialize(BrokerDataView data) {
@@ -1072,7 +1357,7 @@ bool SetIterator::DoUnserialize(BrokerDataView data) {
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
 
 std::optional<BrokerData> TableIterator::DoSerialize() const {
-    return BrokerData{broker::data{broker::vector{dat, it->first}}};
+    return {BrokerData{broker::data{broker::vector{dat, it->first}}}};
 }
 
 bool TableIterator::DoUnserialize(BrokerDataView data) {
@@ -1098,7 +1383,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
 
 std::optional<BrokerData> VectorIterator::DoSerialize() const {
     broker::integer difference = it - dat.begin();
-    return BrokerData{broker::data{broker::vector{dat, difference}}};
+    return {BrokerData{broker::data{broker::vector{dat, difference}}}};
 }
 
 bool VectorIterator::DoUnserialize(BrokerDataView data) {
@@ -1120,7 +1405,7 @@ bool VectorIterator::DoUnserialize(BrokerDataView data) {
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
 
 std::optional<BrokerData> RecordIterator::DoSerialize() const {
-    auto difference = static_cast<broker::integer>(it - dat.begin());
+    broker::integer difference = it - dat.begin();
     return BrokerData{broker::data{broker::vector{dat, difference}}};
 }
 
@@ -1175,17 +1460,48 @@ threading::Field* data_to_threading_field(broker::data d) {
                                 static_cast<TypeTag>(*type), static_cast<TypeTag>(*subtype), *optional);
 }
 
+#ifdef BROKER_HAS_VARIANT
+
+threading::Field* data_to_threading_field(const broker::variant& d) {
+    if ( ! d.is_list() )
+        return nullptr;
+
+    auto v = d.to_list();
+    if ( ! broker::contains<std::string, broker::any_type, broker::count, broker::count, bool>(v) )
+        return nullptr;
+
+    auto [name, secondary, type, subtype, optional] = v.take<5>();
+
+    auto name_str = std::string{name.to_string()};
+
+    std::string secondary_str;
+    const char* secondary_cstr = nullptr;
+
+    if ( secondary.is_string() ) {
+        secondary_str = secondary.to_string();
+        secondary_cstr = secondary_str.c_str();
+    }
+    else if ( ! secondary.is_none() ) {
+        return nullptr;
+    }
+
+    return new threading::Field(name_str.c_str(), secondary_cstr, static_cast<TypeTag>(type.to_count()),
+                                static_cast<TypeTag>(subtype.to_count()), optional.to_boolean());
+}
+
+#endif
+
 } // namespace zeek::Broker::detail
 
 namespace zeek {
 
-BrokerListView BrokerDataView::ToList() noexcept {
+[[nodiscard]] BrokerListView BrokerDataView::ToList() noexcept {
     return BrokerListView{std::addressof(broker::get<broker::vector>(*value_))};
 }
 
-ValPtr BrokerDataView::ToVal(Type* type) { return zeek::Broker::detail::data_to_val(*value_, type); }
+[[nodiscard]] ValPtr BrokerDataView::ToVal(Type* type) { return zeek::Broker::detail::data_to_val(*value_, type); }
 
-bool BrokerData::Convert(const Val* value) {
+[[nodiscard]] bool BrokerData::Convert(const Val* value) {
     if ( auto res = zeek::Broker::detail::val_to_data(value) ) {
         value_ = std::move(*res);
         return true;
@@ -1193,13 +1509,13 @@ bool BrokerData::Convert(const Val* value) {
     return false;
 }
 
-RecordValPtr BrokerData::ToRecordVal() && {
+[[nodiscard]] RecordValPtr BrokerData::ToRecordVal() && {
     auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
     rval->Assign(0, make_intrusive<zeek::Broker::detail::DataVal>(std::move(value_)));
     return rval;
 }
 
-RecordValPtr BrokerData::ToRecordVal(const Val* v) {
+[[nodiscard]] RecordValPtr BrokerData::ToRecordVal(const Val* v) {
     auto rval = make_intrusive<RecordVal>(BifType::Record::Broker::Data);
 
     BrokerData tmp;
@@ -1211,7 +1527,7 @@ RecordValPtr BrokerData::ToRecordVal(const Val* v) {
     return rval;
 }
 
-bool BrokerListBuilder::Add(const Val* value) {
+[[nodiscard]] bool BrokerListBuilder::Add(const Val* value) {
     if ( auto res = zeek::Broker::detail::val_to_data(value) ) {
         values_.emplace_back(std::move(*res));
         return true;

@@ -9,7 +9,8 @@
 
 namespace broker {
 class data;
-}
+class variant;
+} // namespace broker
 
 namespace zeek::logging {
 
@@ -117,6 +118,7 @@ public:
         // fields. They serialize/deserialize the struct.
         broker::data ToBroker() const;
         bool FromBroker(broker::data d);
+        bool FromBroker(const broker::variant& d);
 
     private:
         const WriterInfo& operator=(const WriterInfo& other); // Disable.

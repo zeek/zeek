@@ -103,6 +103,13 @@ broker::data threading_field_to_data(const threading::Field* f);
  */
 threading::Field* data_to_threading_field(broker::data d);
 
+#ifdef BROKER_HAS_VARIANT
+ValPtr data_to_val(const broker::variant& d, Type* type);
+
+threading::Field* data_to_threading_field(const broker::variant& d);
+#endif
+
+
 /**
  * A Zeek value which wraps a Broker data value.
  */

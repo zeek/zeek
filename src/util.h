@@ -330,6 +330,7 @@ std::vector<std::string>* tokenize_string(std::string_view input, std::string_vi
 
 std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
 
+extern char* copy_string(const char* str, size_t len);
 extern char* copy_string(const char* s);
 extern bool streq(const char* s1, const char* s2);
 extern bool starts_with(std::string_view s, std::string_view beginning);

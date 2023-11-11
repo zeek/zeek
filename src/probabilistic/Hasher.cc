@@ -2,13 +2,13 @@
 
 #include "zeek/probabilistic/Hasher.h"
 
-#include <broker/data.hh>
 #include <highwayhash/sip_hash.h>
 #include <openssl/evp.h>
 #include <typeinfo>
 
 #include "zeek/NetVar.h"
 #include "zeek/Var.h"
+#include "zeek/broker/Data.h"
 #include "zeek/digest.h"
 
 namespace zeek::probabilistic::detail {
@@ -45,30 +45,33 @@ Hasher::Hasher(size_t arg_k, seed_t arg_seed) {
     seed = arg_seed;
 }
 
-broker::expected<broker::data> Hasher::Serialize() const {
-    return {broker::vector{static_cast<uint64_t>(Type()), static_cast<uint64_t>(k), seed.h[0], seed.h[1]}};
+std::optional<BrokerData> Hasher::Serialize() const {
+    BrokerListBuilder builder;
+    builder.Reserve(4);
+    builder.AddCount(static_cast<unsigned>(Type()));
+    builder.AddCount(k);
+    builder.AddCount(seed.h[0]);
+    builder.AddCount(seed.h[1]);
+    return std::move(builder).Build();
 }
 
-std::unique_ptr<Hasher> Hasher::Unserialize(const broker::data& data) {
-    auto v = broker::get_if<broker::vector>(&data);
-
-    if ( ! (v && v->size() == 4) )
+std::unique_ptr<Hasher> Hasher::Unserialize(BrokerDataView data) {
+    if ( ! data.IsList() )
         return nullptr;
 
-    auto type = broker::get_if<uint64_t>(&(*v)[0]);
-    auto k = broker::get_if<uint64_t>(&(*v)[1]);
-    auto h1 = broker::get_if<uint64_t>(&(*v)[2]);
-    auto h2 = broker::get_if<uint64_t>(&(*v)[3]);
+    auto v = data.ToList();
 
-    if ( ! (type && k && h1 && h2) )
+    if ( v.Size() != 4 || ! IsCount(v[0], v[1], v[2], v[3]) )
         return nullptr;
+
+    auto [type, k, h1, h2] = ToCount(v[0], v[1], v[2], v[3]);
 
     std::unique_ptr<Hasher> hasher;
 
-    switch ( *type ) {
-        case Default: hasher = std::unique_ptr<Hasher>(new DefaultHasher(*k, {*h1, *h2})); break;
+    switch ( type ) {
+        case Default: hasher.reset(new DefaultHasher(k, {h1, h2})); break;
 
-        case Double: hasher = std::unique_ptr<Hasher>(new DoubleHasher(*k, {*h1, *h2})); break;
+        case Double: hasher.reset(new DoubleHasher(k, {h1, h2})); break;
     }
 
     // Note that the derived classed don't hold any further state of

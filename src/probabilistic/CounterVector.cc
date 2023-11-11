@@ -2,11 +2,11 @@
 
 #include "zeek/probabilistic/CounterVector.h"
 
-#include <broker/data.hh>
-#include <broker/error.hh>
 #include <cassert>
 #include <limits>
+#include <memory>
 
+#include "zeek/broker/Data.h"
 #include "zeek/probabilistic/BitVector.h"
 #include "zeek/util.h"
 
@@ -138,27 +138,34 @@ CounterVector operator|(const CounterVector& x, const CounterVector& y) {
 
 uint64_t CounterVector::Hash() const { return bits->Hash(); }
 
-broker::expected<broker::data> CounterVector::Serialize() const {
+std::optional<BrokerData> CounterVector::Serialize() const {
     auto b = bits->Serialize();
     if ( ! b )
-        return broker::ec::invalid_data; // Cannot serialize
+        return std::nullopt; // Cannot serialize
 
-    return {broker::vector{static_cast<uint64_t>(width), std::move(*b)}};
+    BrokerListBuilder builder;
+    builder.Reserve(2);
+    builder.AddCount(width);
+    builder.Add(std::move(*b));
+    return std::move(builder).Build();
 }
 
-std::unique_ptr<CounterVector> CounterVector::Unserialize(const broker::data& data) {
-    auto v = broker::get_if<broker::vector>(&data);
-    if ( ! (v && v->size() >= 2) )
+std::unique_ptr<CounterVector> CounterVector::Unserialize(BrokerDataView data) {
+    if ( ! data.IsList() )
         return nullptr;
 
-    auto width = broker::get_if<uint64_t>(&(*v)[0]);
-    auto bits = BitVector::Unserialize((*v)[1]);
-
-    if ( ! (width && bits) )
+    auto v = data.ToList();
+    if ( v.Size() < 2 || ! v[0].IsCount() )
         return nullptr;
 
-    auto cv = std::unique_ptr<CounterVector>(new CounterVector());
-    cv->width = *width;
+    auto width = v[0].ToCount();
+    auto bits = BitVector::Unserialize(v[1]);
+
+    if ( ! bits )
+        return nullptr;
+
+    auto cv = std::unique_ptr<CounterVector>{new CounterVector};
+    cv->width = width;
     cv->bits = bits.release();
     return cv;
 }

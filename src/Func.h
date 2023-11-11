@@ -18,17 +18,12 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
 
-namespace broker {
-class data;
-using vector = std::vector<data>;
-template<class>
-class expected;
-} // namespace broker
-
 namespace zeek {
 
 class Val;
 class FuncType;
+class BrokerData;
+class BrokerListView;
 
 namespace detail {
 
@@ -231,14 +226,14 @@ public:
      *
      * @return a serialized version of the function's capture frame.
      */
-    virtual broker::expected<broker::data> SerializeCaptures() const;
+    virtual std::optional<BrokerData> SerializeCaptures() const;
 
     /**
      * Sets the captures frame to one built from *data*.
      *
      * @param data a serialized frame
      */
-    bool DeserializeCaptures(const broker::vector& data);
+    bool DeserializeCaptures(BrokerListView data);
 
     using Func::AddBody;
 

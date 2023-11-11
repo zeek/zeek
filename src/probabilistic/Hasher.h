@@ -7,9 +7,10 @@
 
 #include "zeek/Hash.h"
 
-namespace broker {
-class data;
-}
+namespace zeek {
+class BrokerData;
+class BrokerDataView;
+} // namespace zeek
 
 namespace zeek::probabilistic::detail {
 
@@ -106,8 +107,8 @@ public:
      */
     seed_t Seed() const { return seed; }
 
-    broker::expected<broker::data> Serialize() const;
-    static std::unique_ptr<Hasher> Unserialize(const broker::data& data);
+    std::optional<BrokerData> Serialize() const;
+    static std::unique_ptr<Hasher> Unserialize(BrokerDataView data);
 
 protected:
     Hasher() {}
@@ -179,8 +180,8 @@ public:
 
     friend bool operator!=(const UHF& x, const UHF& y) { return ! (x == y); }
 
-    broker::expected<broker::data> Serialize() const;
-    static UHF Unserialize(const broker::data& data);
+    std::optional<BrokerData> Serialize() const;
+    static UHF Unserialize(BrokerDataView data);
 
 private:
     static size_t compute_seed(Hasher::seed_t seed);

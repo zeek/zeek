@@ -2163,9 +2163,9 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
         else
             index_val = index;
 
-        auto broker_index = Broker::detail::val_to_data(index_val);
+        auto broker_index = BrokerData{};
 
-        if ( ! broker_index ) {
+        if ( ! broker_index.Convert(index_val) ) {
             emit_builtin_error("invalid Broker data conversation for table index");
             return;
         }
@@ -2195,26 +2195,25 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
                 }
 
                 if ( table_type->IsSet() )
-                    handle->store.put(std::move(*broker_index), broker::data(), expiry);
+                    handle->Put(std::move(broker_index), BrokerData{}, expiry);
                 else {
                     if ( ! new_entry_val ) {
                         emit_builtin_error("did not receive new value for Broker datastore send operation");
                         return;
                     }
 
-                    auto new_value = new_entry_val->GetVal().get();
-                    auto broker_val = Broker::detail::val_to_data(new_value);
-                    if ( ! broker_val ) {
+                    auto broker_val = BrokerData{};
+                    if ( ! broker_val.Convert(new_entry_val->GetVal()) ) {
                         emit_builtin_error("invalid Broker data conversation for table value");
                         return;
                     }
 
-                    handle->store.put(std::move(*broker_index), std::move(*broker_val), expiry);
+                    handle->Put(std::move(broker_index), std::move(broker_val), expiry);
                 }
                 break;
             }
 
-            case ELEMENT_REMOVED: handle->store.erase(std::move(*broker_index)); break;
+            case ELEMENT_REMOVED: handle->Erase(std::move(broker_index)); break;
 
             case ELEMENT_EXPIRED:
                 // we do nothing here. The Broker store does its own expiration - so the element

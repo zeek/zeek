@@ -586,7 +586,7 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body) {
     current_body = new_body;
 }
 
-bool ScriptFunc::DeserializeCaptures(const broker::vector& data) {
+bool ScriptFunc::DeserializeCaptures(BrokerListView data) {
     auto result = Frame::Unserialize(data);
 
     ASSERT(result.first);
@@ -649,7 +649,7 @@ FuncPtr ScriptFunc::DoClone() {
     return other;
 }
 
-broker::expected<broker::data> ScriptFunc::SerializeCaptures() const {
+std::optional<BrokerData> ScriptFunc::SerializeCaptures() const {
     if ( captures_vec ) {
         auto& cv = *captures_vec;
         auto& captures = *type->GetCaptures();
@@ -668,7 +668,7 @@ broker::expected<broker::data> ScriptFunc::SerializeCaptures() const {
         return captures_frame->Serialize();
 
     // No captures, return an empty vector.
-    return broker::vector{};
+    return BrokerListBuilder{}.Build();
 }
 
 void ScriptFunc::Describe(ODesc* d) const {

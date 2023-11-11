@@ -2,12 +2,11 @@
 
 #include "zeek/probabilistic/BloomFilter.h"
 
-#include <broker/data.hh>
-#include <broker/error.hh>
 #include <cmath>
 #include <limits>
 
 #include "zeek/Reporter.h"
+#include "zeek/broker/Data.h"
 #include "zeek/probabilistic/CounterVector.h"
 #include "zeek/util.h"
 
@@ -19,48 +18,52 @@ BloomFilter::BloomFilter(const detail::Hasher* arg_hasher) { hasher = arg_hasher
 
 BloomFilter::~BloomFilter() { delete hasher; }
 
-broker::expected<broker::data> BloomFilter::Serialize() const {
+std::optional<BrokerData> BloomFilter::Serialize() const {
     auto h = hasher->Serialize();
 
     if ( ! h )
-        return broker::ec::invalid_data; // Cannot serialize
+        return std::nullopt; // Cannot serialize
 
     auto d = DoSerialize();
 
     if ( ! d )
-        return broker::ec::invalid_data; // Cannot serialize
+        return std::nullopt; // Cannot serialize
 
-    return {broker::vector{static_cast<uint64_t>(Type()), std::move(*h), std::move(*d)}};
+    BrokerListBuilder builder;
+    builder.Reserve(3);
+    builder.Add(static_cast<uint64_t>(Type()));
+    builder.Add(std::move(*h));
+    builder.Add(std::move(*d));
+    return std::move(builder).Build();
 }
 
-std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data) {
-    auto v = broker::get_if<broker::vector>(&data);
-
-    if ( ! (v && v->size() == 3) )
+std::unique_ptr<BloomFilter> BloomFilter::Unserialize(BrokerDataView data) {
+    if ( ! data.IsList() )
         return nullptr;
 
-    auto type = broker::get_if<uint64_t>(&(*v)[0]);
-    if ( ! type )
-        return nullptr;
+    auto v = data.ToList();
 
-    auto hasher_ = detail::Hasher::Unserialize((*v)[1]);
-    if ( ! hasher_ )
+    if ( v.Size() != 3 || ! v[0].IsCount() )
         return nullptr;
 
     std::unique_ptr<BloomFilter> bf;
 
-    switch ( *type ) {
-        case Basic: bf = std::unique_ptr<BloomFilter>(new BasicBloomFilter()); break;
+    switch ( v[0].ToCount() ) {
+        case Basic: bf.reset(new BasicBloomFilter()); break;
 
-        case Counting: bf = std::unique_ptr<BloomFilter>(new CountingBloomFilter()); break;
+        case Counting: bf.reset(new CountingBloomFilter()); break;
 
         default: reporter->Error("found invalid bloom filter type"); return nullptr;
     }
 
-    if ( ! bf->DoUnserialize((*v)[2]) )
+    if ( ! bf->DoUnserialize(v[2]) )
         return nullptr;
 
-    bf->hasher = hasher_.release();
+    bf->hasher = detail::Hasher::Unserialize(v[1]).release();
+
+    if ( ! bf->hasher )
+        return nullptr;
+
     return bf;
 }
 
@@ -163,12 +166,9 @@ size_t BasicBloomFilter::Count(const zeek::detail::HashKey* key) const {
     return 1;
 }
 
-broker::expected<broker::data> BasicBloomFilter::DoSerialize() const {
-    auto b = bits->Serialize();
-    return b;
-}
+std::optional<BrokerData> BasicBloomFilter::DoSerialize() const { return bits->Serialize(); }
 
-bool BasicBloomFilter::DoUnserialize(const broker::data& data) {
+bool BasicBloomFilter::DoUnserialize(BrokerDataView data) {
     auto b = detail::BitVector::Unserialize(data);
     if ( ! b )
         return false;
@@ -280,12 +280,9 @@ size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const {
     return min;
 }
 
-broker::expected<broker::data> CountingBloomFilter::DoSerialize() const {
-    auto c = cells->Serialize();
-    return c;
-}
+std::optional<BrokerData> CountingBloomFilter::DoSerialize() const { return cells->Serialize(); }
 
-bool CountingBloomFilter::DoUnserialize(const broker::data& data) {
+bool CountingBloomFilter::DoUnserialize(BrokerDataView data) {
     auto c = detail::CounterVector::Unserialize(data);
     if ( ! c )
         return false;

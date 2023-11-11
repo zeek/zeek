@@ -83,7 +83,7 @@ public:
 
 protected:
     // Methods related to sending lambdas via Broker.
-    broker::expected<broker::data> SerializeCaptures() const override;
+    std::optional<BrokerData> SerializeCaptures() const override;
     void SetCaptures(Frame* f) override;
 
     FuncPtr DoClone() override;

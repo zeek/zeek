@@ -29,6 +29,10 @@
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 
+#ifdef BROKER_HAS_VARIANT
+#include <broker/variant.hh>
+#endif
+
 using namespace std;
 
 namespace {
@@ -40,6 +44,19 @@ broker::data& convert_if_broker_variant(broker::data& arg) { return arg; }
 broker::data&& convert_if_broker_variant_or_move(broker::data& arg) { return std::move(arg); }
 
 broker::vector& broker_vector_from(broker::data& arg) { return broker::get<broker::vector>(arg); }
+
+#ifdef BROKER_HAS_VARIANT
+
+broker::data convert_if_broker_variant(const broker::variant& arg) { return arg.to_data(); }
+
+broker::data convert_if_broker_variant_or_move(const broker::variant& arg) { return arg.to_data(); }
+
+broker::vector broker_vector_from(const broker::variant& arg) {
+    auto tmp = arg.to_data();
+    return std::move(broker::get<broker::vector>(tmp));
+}
+
+#endif
 
 // Converts a string_view into a string to make sure that we can safely call `.c_str()` on the result.
 template<class View>
@@ -195,6 +212,14 @@ namespace {
 
 std::string RenderMessage(const broker::data& d) { return util::json_escape_utf8(broker::to_string(d)); }
 
+#ifdef BROKER_HAS_VARIANT
+
+std::string RenderMessage(const broker::variant& d) { return util::json_escape_utf8(broker::to_string(d)); }
+
+std::string RenderMessage(const broker::variant_list& d) { return util::json_escape_utf8(broker::to_string(d)); }
+
+#endif
+
 std::string RenderMessage(const broker::store::response& x) {
     return util::fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
 }
@@ -207,9 +232,9 @@ std::string RenderMessage(const broker::status& s) { return broker::to_string(s.
 
 std::string RenderMessage(const broker::error& e) {
     if ( auto ctx = e.context() )
-        return util::fmt("%s (%s)", to_string(e.code()).c_str(), to_string(*ctx).c_str());
+        return util::fmt("%s (%s)", broker::to_string(e.code()).c_str(), to_string(*ctx).c_str());
     else
-        return util::fmt("%s (null)", to_string(e.code()).c_str());
+        return util::fmt("%s (null)", broker::to_string(e.code()).c_str());
 }
 
 template<class DataOrVariant>

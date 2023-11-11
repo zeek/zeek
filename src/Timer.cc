@@ -49,6 +49,7 @@ const char* TimerNames[] = {
     "TimerMgrExpireTimer",
     "ThreadHeartbeat",
     "UnknownProtocolExpire",
+    "LogDelayExpire",
 };
 
 const char* timer_type_to_string(TimerType type) { return TimerNames[type]; }

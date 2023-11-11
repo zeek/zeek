@@ -1,3 +1,7 @@
+6.2.0-dev.137 | 2023-11-11 17:45:51 +0100
+
+  * Bind scan_path to the scope; avoid heap allocation (Dominik Charousset, Corelight)
+
 6.2.0-dev.134 | 2023-11-10 12:42:57 +0100
 
   * retention of superseded AST elements to prevent pointer mis-aliasing (Vern Paxson, Corelight)

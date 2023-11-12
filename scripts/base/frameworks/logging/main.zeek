@@ -215,6 +215,17 @@ export {
 	const Log::default_ext_func: function(path: string): any =
 		function(path: string) { } &redef;
 
+	## Maximum default log write delay for a stream. A :zeek:see:`Log::write`
+	## operation is delayed by at most this interval if :zeek:see:`Log::delay`
+	## is called within :zeek:see:`Log::log_stream_policy`.
+	const default_max_delay_interval = 200msec &redef;
+
+	## The maximum length of the write delay queue per stream. If exceeded,
+	## an attempt is made to evict the oldest writes from the queue. If
+	## post delay callbacks re-delay a write operation, the maximum queue
+	## size may be exceeded.
+	const default_max_delay_queue_size = 1000 &redef;
+
 	## A filter type describes how to customize logging streams.
 	type Filter: record {
 		## Descriptive name to reference this filter.
@@ -393,6 +404,16 @@ export {
 		## log stream is disabled and enabled when the stream is
 		## enabled again.
 		event_groups: set[string] &default=set();
+
+		## Maximum delay interval for this stream.
+		##
+		## .. :zeek:see:`Log::default_max_delay_interval`
+		max_delay_interval: interval &default=default_max_delay_interval;
+
+		## Maximum delay queue size of this stream.
+		##
+		## .. :zeek:see:`Log::default_max_delay_queue_size`
+		max_delay_queue_size: count &default=default_max_delay_queue_size;
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.
@@ -602,6 +623,102 @@ export {
 	## of the given log record. Note that filter-level policy hooks still get
 	## invoked after the global hook vetoes, but they cannot "un-veto" the write.
 	global log_stream_policy: Log::StreamPolicyHook;
+
+	## Type of function to invoke when delaying a log write has completed.
+	##
+	## This is similar to a :zeek:see:`Log::StreamPolicyHook`, but a callback
+	## of this type is passed to zeek:see:`Log::delay` and executes just before
+	## the record is forwarded to the individual log filters.
+	##
+	## Returning false from a post delay callback discards the log write.
+	type PostDelayCallback: function(rec: any, id: ID): bool;
+
+	## Type of the opaque value returned by :zeek:see:`Log::delay`. These
+	## values can be passed to :zeek:see:`Log::delay_finish` to release a
+	## delayed write operation.
+	type DelayToken: any;
+
+	## Represents a post delay callback that simply returns T. This is used
+	## as a default value for :zeek:see:`Log::delay` and ignored internally.
+	global empty_post_delay_cb: PostDelayCallback;
+
+	## Delay a log write.
+	##
+	## Calling this function is currently only allowed within the execution
+	## of a :zeek:see:`Log::log_stream_policy` hook and requires the caller
+	## to provide the stream ID and log record of the active write operation
+	## as parameters.
+	##
+	## Conceptually, the delay is inserted between the execution of the
+	## zeek:see:`Log::log_stream_policy` hook and the policy hooks of filters.
+	##
+	## Calling this function increases a reference count that can subsequently
+	## be released using :zeek:see:`Log::delay_finish`.
+	## The delay completes when either the reference count reaches zero, or
+	## the configured maximum delay interval for the stream expires. The
+	## optional *post_delay_callback* is invoked when the delay completed.
+	##
+	## The *post_delay_callback* function can extend the delay by invoking
+	## :zeek:see:`Log::delay`. There's no limit to how often a write can be
+	## re-delayed. Further, it can veto the forwarding of the log record
+	## to the stream's filters by returning ``F``. If *post_delay_cb* is not
+	## provided, it's equivalent to a function solely returning ``T``.
+	##
+	## id: The ID associated with a logging stream.
+	##
+	## rec: Log record
+	##
+	## post_delay_cb: A callback to invoke when the delay completed.
+	##
+	## Returns: An opaque token of type :zeek:see:`Log::DelayToken`
+	##          to be passed to :zeek:see:`Log::delay_finish`.
+	global delay: function(id: ID, rec: any, post_delay_cb: PostDelayCallback &default=empty_post_delay_cb): DelayToken;
+
+	## Release a delay reference taken with :zeek:see:`Log::delay`.
+	##
+	## When the last reference is released, :zeek:see:`Log::delay_finish`
+	## synchronously resumes the delayed :zeek:see:`Log::write` operation.
+	##
+	## id: The ID associated with a logging stream.
+	##
+	## rec: Log record
+	##
+	## token: The opaque token as returned by :zeek:see:`Log::delay`.
+	##
+	## Returns: ``T`` on success, ``F`` if an inconsistent combination of
+	##          *id*, *rec* and *token* was provided.
+	global delay_finish: function(id: ID, rec: any, token: DelayToken): bool;
+
+	## Set the maximum delay for a stream.
+	##
+	## Multiple calls to this function will only ever increase the maximum
+	## delay, the delay cannot be lowered. The default maximum delay for a
+	## stream is zeek:see:`Log::default_max_delay_interval`.
+	##
+	## When a stream is removed and re-created via :zeek:see:`Log::create_stream`,
+	## the new stream is re-configured with the previously used maximum delay.
+	##
+	## id: The ID associated with a logging stream.
+	##
+	## max_delay: The maximum delay interval for this stream.
+	##
+	## Returns: ``T`` on success, else ``F``.
+	global set_max_delay_interval: function(id: Log::ID, max_delay: interval): bool;
+
+	## Set the given stream's delay queue size.
+	##
+	## If the queue holds more records than the given *queue_size*, these are
+	## attempted to be evicted at the time of the call.
+	##
+	## When a stream is removed and re-created via :zeek:see:`Log::create_stream`,
+	## the new stream is re-configured with the most recently used queue size.
+	##
+	## id: The ID associated with a logging stream.
+	##
+	## max_delay: The maximum delay interval of this stream.
+	##
+	## Returns: ``T`` on success, else ``F``.
+	global set_max_delay_queue_size: function(id: Log::ID, queue_size: count): bool;
 }
 
 global all_streams: table[ID] of Stream = table();
@@ -728,10 +845,31 @@ function Log::rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationPath
 	return rval;
 	}
 
+# Keep maximum stream delay and last queue sizes around.
+global max_stream_delay_intervals: table[ID] of interval;
+global max_stream_delay_queue_sizes: table[ID] of count;
+
 function create_stream(id: ID, stream: Stream) : bool
 	{
 	if ( ! __create_stream(id, stream) )
 		return F;
+
+	# Restore max value of any prior set_max_delay_interval().
+	if ( id in max_stream_delay_intervals &&
+	     max_stream_delay_intervals[id] > stream$max_delay_interval )
+		stream$max_delay_interval = max_stream_delay_intervals[id];
+	else
+		max_stream_delay_intervals[id] = stream$max_delay_interval;
+
+	# Restore the previous queue size.
+	if ( id in max_stream_delay_queue_sizes &&
+	     max_stream_delay_queue_sizes[id] != stream$max_delay_queue_size )
+		stream$max_delay_queue_size = max_stream_delay_queue_sizes[id];
+	else
+		max_stream_delay_queue_sizes[id] = stream$max_delay_queue_size;
+
+	Log::__set_max_delay_interval(id, stream$max_delay_interval);
+	Log::__set_max_delay_queue_size(id, stream$max_delay_queue_size);
 
 	active_streams[id] = stream;
 	all_streams[id] = stream;
@@ -877,4 +1015,54 @@ event zeek_init() &priority=5
 	{
 	if ( print_to_log != REDIRECT_NONE )
 		Log::create_stream(PRINTLOG, [$columns=PrintLogInfo, $ev=log_print, $path=print_log_path]);
+	}
+
+function empty_post_delay_cb(rec: any, id: ID): bool {
+	return T;
+}
+
+function delay(id: ID, rec: any, post_delay_cb: PostDelayCallback &default=empty_post_delay_cb): DelayToken
+	{
+	return Log::__delay(id, rec, post_delay_cb);
+	}
+
+function delay_finish(id: ID, rec: any, token: DelayToken): bool
+	{
+	return Log::__delay_finish(id, rec, token);
+	}
+
+function set_max_delay_interval(id: Log::ID, max_delay: interval): bool
+	{
+	# Only allow setting larger values on created streams.
+	if ( id !in all_streams )
+		return F;
+
+	# Already larger interval.
+	if ( all_streams[id]$max_delay_interval >= max_delay )
+		return T;
+
+	if ( ! Log::__set_max_delay_interval(id, max_delay) )
+		return F;
+
+	max_stream_delay_intervals[id] = max_delay;
+	all_streams[id]$max_delay_interval = max_delay;
+
+	return T;
+	}
+
+function set_max_delay_queue_size(id: Log::ID, max_size: count): bool
+	{
+	if ( id !in all_streams )
+		return F;
+
+	if ( all_streams[id]$max_delay_queue_size == max_size )
+		return T;
+
+	if ( ! Log::__set_max_delay_queue_size(id, max_size) )
+		return F;
+
+	max_stream_delay_queue_sizes[id] = max_size;
+	all_streams[id]$max_delay_queue_size = max_size;
+
+	return T;
 	}

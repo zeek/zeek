@@ -283,7 +283,7 @@ private:
     bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude,
                         const std::string& path, const std::list<int>& indices);
 
-    threading::Value** RecordToFilterVals(Stream* stream, Filter* filter, RecordVal* columns);
+    threading::Value** RecordToFilterVals(const Stream* stream, Filter* filter, RecordVal* columns);
 
     threading::Value* ValToLogVal(std::optional<ZVal>& val, Type* ty);
     Stream* FindStream(EnumVal* id);
@@ -293,6 +293,13 @@ private:
     WriterInfo* FindWriter(WriterFrontend* writer);
     bool CompareFields(const Filter* filter, const WriterFrontend* writer);
     bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
+
+    // Verdict of a PolicyHook.
+    enum class PolicyVerdict {
+        PASS,
+        VETO,
+    };
+    bool WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr columns, PolicyVerdict stream_verdict);
 
     bool RemoveStream(unsigned int idx);
 

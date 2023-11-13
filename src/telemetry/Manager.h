@@ -318,7 +318,7 @@ public:
                                            ConstSpan<ValueType> default_upper_bounds, std::string_view helptext,
                                            std::string_view unit = "1", bool is_sum = false) {
         auto lbls = Span{labels.begin(), labels.size()};
-        return HistogramInstance(prefix, name, lbls, default_upper_bounds, helptext, unit, is_sum);
+        return HistogramInstance<ValueType>(prefix, name, lbls, default_upper_bounds, helptext, unit, is_sum);
     }
 
     static void FetchSystemStats(opentelemetry::metrics::ObserverResult observer_result, void* state);
@@ -332,7 +332,7 @@ public:
 
 protected:
     template<class F>
-    static void WithLabelNames(Span<const LabelView> xs, F continuation) {
+    static auto WithLabelNames(Span<const LabelView> xs, F continuation) {
         if ( xs.size() <= 10 ) {
             std::string_view buf[10];
             for ( size_t index = 0; index < xs.size(); ++index )
@@ -343,7 +343,7 @@ protected:
         else {
             std::vector<std::string_view> buf;
             for ( auto x : xs )
-                buf.emplace_back(x.first, x.second);
+                buf.emplace_back(x.first);
 
             return continuation(Span{buf});
         }

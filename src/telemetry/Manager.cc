@@ -9,6 +9,7 @@
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/ID.h"
 #include "zeek/telemetry/OtelReader.h"
+#include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
 #include "zeek/telemetry/telemetry.bif.h"
 #include "zeek/zeek-version.h"
@@ -152,9 +153,54 @@ void Manager::InitPostScript() {
         p->AddMetricReader(std::move(reader));
     }
 
-    // This has to be stored in the family map so the instrument continues being valid.
-    auto stats_family =
-        CounterFamily<double>("zeek", "system-stats", {"test"}, "", "1", false, Manager::FetchSystemStats);
+#ifdef HAVE_PROCESS_STAT_METRICS
+    auto process_meter = p->GetMeter("process");
+    static auto get_stats = [this]() -> const detail::process_stats* {
+        double now = util::current_time();
+        if ( this->process_stats_last_updated < now - 0.01 ) {
+            this->current_process_stats = detail::get_process_stats();
+            this->process_stats_last_updated = now;
+        }
+
+        return &this->current_process_stats;
+    };
+
+    rss_gauge =
+        GaugeInstance<int64_t>("process", "resident_memory", {}, "Resident memory size", "bytes", false,
+                               [](metrics_api::ObserverResult r, void* state) {
+                                   auto* s = get_stats();
+                                   opentelemetry::nostd::get<
+                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
+                                       ->Observe(s->rss);
+                               });
+
+    vms_gauge =
+        GaugeInstance<int64_t>("process", "virtual_memory", {}, "Virtual memory size", "bytes", false,
+                               [](metrics_api::ObserverResult r, void* state) {
+                                   auto* s = get_stats();
+                                   opentelemetry::nostd::get<
+                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
+                                       ->Observe(s->vms);
+                               });
+
+    cpu_gauge = GaugeInstance<double>("process", "cpu", {}, "Total user and system CPU time spent", "seconds", false,
+                                      [](metrics_api::ObserverResult r, void* state) {
+                                          auto* s = get_stats();
+                                          opentelemetry::nostd::get<
+                                              opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<double>>>(r)
+                                              ->Observe(s->cpu);
+                                      });
+
+    fds_gauge =
+        GaugeInstance<int64_t>("process", "open_fds", {}, "Number of open file descriptors", "", false,
+                               [](metrics_api::ObserverResult r, void* state) {
+                                   auto* s = get_stats();
+                                   opentelemetry::nostd::get<
+                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
+                                       ->Observe(s->fds);
+                               });
+
+#endif
 }
 
 std::shared_ptr<MetricFamily> Manager::LookupFamily(std::string_view prefix, std::string_view name) const {
@@ -355,14 +401,6 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
     });
 
     return ret_val;
-}
-
-void Manager::FetchSystemStats(opentelemetry::metrics::ObserverResult result, void* state) {
-    std::map<std::pair<std::string, std::string>, double> values;
-    values.insert({{"test", "value1"}, 1.234});
-    values.insert({{"test", "value2"}, 5.678});
-
-    build_observation(values, result);
 }
 
 void Manager::AddView(const std::string& name, const std::string& helptext, const std::string& unit,

@@ -2,10 +2,12 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"
@@ -13,6 +15,7 @@
 #include "zeek/telemetry/Counter.h"
 #include "zeek/telemetry/Gauge.h"
 #include "zeek/telemetry/Histogram.h"
+#include "zeek/telemetry/ProcessStats.h"
 
 namespace zeek {
 class RecordVal;
@@ -321,8 +324,6 @@ public:
         return HistogramInstance<ValueType>(prefix, name, lbls, default_upper_bounds, helptext, unit, is_sum);
     }
 
-    static void FetchSystemStats(opentelemetry::metrics::ObserverResult observer_result, void* state);
-
     /**
      * Adds a view to the MeterProvider.
      */
@@ -358,6 +359,14 @@ private:
 
     std::shared_ptr<OtelReader> otel_reader;
     std::vector<std::shared_ptr<MetricFamily>> families;
+
+    detail::process_stats current_process_stats;
+    double process_stats_last_updated = 0.0;
+
+    std::shared_ptr<IntGauge> rss_gauge;
+    std::shared_ptr<IntGauge> vms_gauge;
+    std::shared_ptr<DblGauge> cpu_gauge;
+    std::shared_ptr<IntGauge> fds_gauge;
 };
 
 } // namespace zeek::telemetry

@@ -67,6 +67,14 @@ public:
     BaseType Value() const noexcept { return value; }
 
     /**
+     * Sets the value stored by the gauge to a specific value.
+     */
+    void SetValue(BaseType v) {
+        handle->Add(v - value, attributes);
+        value = v;
+    }
+
+    /**
      * @return Whether @c this and @p other refer to the same counter.
      */
     bool IsSameAs(const BaseGauge<BaseType>& other) const noexcept {

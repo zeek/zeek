@@ -6,5 +6,6 @@ zeek_add_subdir_library(
     Histogram.cc
     Manager.cc
     MetricFamily.cc
+    ProcessStats.cc
     BIFS
     telemetry.bif)

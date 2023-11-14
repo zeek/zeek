@@ -871,6 +871,11 @@ public:
     // Causes an internal error if called for any other kind of table.
     VectorValPtr LookupPattern(const StringValPtr& s);
 
+    // For a table[pattern] or set[pattern], returns True if any of the
+    // patterns in the index matches the given string, else False.
+    // Causes an internal error if called for any other kind of table.
+    bool MatchPattern(const StringValPtr& s);
+
     // For a table[pattern], fill stats with information about
     // the DFA's state for introspection.
     void GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const;

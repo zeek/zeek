@@ -3815,12 +3815,12 @@ InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_IN, std::move
         }
     }
 
-    // Support <string> in table[pattern] of X
+    // Support <string> in table[pattern] / set[pattern]
     if ( op1->GetType()->Tag() == TYPE_STRING ) {
         if ( op2->GetType()->Tag() == TYPE_TABLE ) {
             const auto& table_type = op2->GetType()->AsTableType();
 
-            if ( table_type->IsPatternIndex() && table_type->Yield() ) {
+            if ( table_type->IsPatternIndex() ) {
                 SetType(base_type(TYPE_BOOL));
                 return;
             }
@@ -3868,8 +3868,9 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const {
     else {
         const auto& table_val = v2->AsTableVal();
         const auto& table_type = table_val->GetType<zeek::TableType>();
-        if ( table_type->IsPatternIndex() && table_type->Yield() && v1->GetType()->Tag() == TYPE_STRING )
-            res = table_val->LookupPattern({NewRef{}, v1->AsStringVal()})->Size() > 0;
+        // Special table[pattern] / set[pattern] in expression.
+        if ( table_type->IsPatternIndex() && v1->GetType()->Tag() == TYPE_STRING )
+            res = table_val->MatchPattern({NewRef{}, v1->AsStringVal()});
         else
             res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
     }

@@ -1443,6 +1443,9 @@ public:
 
     VectorValPtr Lookup(const StringValPtr& s);
 
+    // Delegate to matcher->MatchAll().
+    bool MatchAll(const StringValPtr& s);
+
     void GetStats(detail::DFA_State_Cache_Stats* stats) const {
         if ( matcher && matcher->DFA() )
             matcher->DFA()->Cache()->GetStats(stats);
@@ -1488,6 +1491,17 @@ VectorValPtr detail::TablePatternMatcher::Lookup(const StringValPtr& s) {
         results->Append(matcher_yields[m]);
 
     return results;
+}
+
+bool detail::TablePatternMatcher::MatchAll(const StringValPtr& s) {
+    if ( ! matcher ) {
+        if ( tbl->Get()->Length() == 0 )
+            return false;
+
+        Build();
+    }
+
+    return matcher->MatchAll(s->AsString());
 }
 
 void detail::TablePatternMatcher::Build() {
@@ -1556,7 +1570,7 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
     else
         subnets = nullptr;
 
-    if ( table_type->IsPatternIndex() && table_type->Yield() )
+    if ( table_type->IsPatternIndex() )
         pattern_matcher = new detail::TablePatternMatcher(this, table_type->Yield());
 
     table_hash = new detail::CompositeHash(table_type->GetIndices());
@@ -1674,7 +1688,7 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward, bool* i
     }
 
     if ( pattern_matcher )
-        pattern_matcher->Insert(index->AsListVal()->Idx(0), new_val);
+        pattern_matcher->Insert(index, new_val);
 
     return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward, iterators_invalidated);
 }
@@ -2032,10 +2046,17 @@ TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search) {
 }
 
 VectorValPtr TableVal::LookupPattern(const StringValPtr& s) {
-    if ( ! pattern_matcher )
+    if ( ! pattern_matcher || ! GetType()->Yield() )
         reporter->InternalError("LookupPattern called on wrong table type");
 
     return pattern_matcher->Lookup(s);
+}
+
+bool TableVal::MatchPattern(const StringValPtr& s) {
+    if ( ! pattern_matcher )
+        reporter->InternalError("LookupPattern called on wrong table type");
+
+    return pattern_matcher->MatchAll(s);
 }
 
 void TableVal::GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const {

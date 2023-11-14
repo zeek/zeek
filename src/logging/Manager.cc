@@ -64,7 +64,7 @@ struct Manager::Filter {
 struct Manager::WriterInfo {
     EnumVal* type = nullptr;
     double open_time = 0.0;
-    detail::Timer* rotation_timer = nullptr;
+    zeek::detail::Timer* rotation_timer = nullptr;
     double interval = 0.0;
     Func* postprocessor = nullptr;
     WriterFrontend* writer = nullptr;
@@ -404,7 +404,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         const auto& t = rtype->GetFieldType(i);
 
         // Ignore if &log not specified.
-        if ( ! rtype->FieldDecl(i)->GetAttr(detail::ATTR_LOG) )
+        if ( ! rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_LOG) )
             continue;
 
         list<int> new_indices = indices;
@@ -494,7 +494,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         else if ( t->Tag() == TYPE_VECTOR )
             st = t->AsVectorType()->Yield()->Tag();
 
-        bool optional = (bool)rtype->FieldDecl(i)->GetAttr(detail::ATTR_OPTIONAL);
+        bool optional = (bool)rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL);
 
         filter->fields[filter->num_fields - 1] =
             new threading::Field(new_path.c_str(), nullptr, t->Tag(), st, optional);
@@ -674,7 +674,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg) {
     }
 
     if ( ! stream->total_writes ) {
-        std::string module_name = detail::extract_module_name(stream->name.c_str());
+        std::string module_name = zeek::detail::extract_module_name(stream->name.c_str());
         std::initializer_list<telemetry::LabelView> labels{{"module", module_name}, {"stream", stream->name}};
         stream->total_writes = total_log_stream_writes_family.GetOrAdd(labels);
     }
@@ -1099,7 +1099,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
     }
 
     // Initialize metric for this frontend.
-    std::string stream_module_name = detail::extract_module_name(stream->name.c_str());
+    std::string stream_module_name = zeek::detail::extract_module_name(stream->name.c_str());
     std::string writer_name = writer->GetType()->AsEnumType()->Lookup(writer->AsEnum());
     std::initializer_list<telemetry::LabelView> labels{{"writer", writer_name},
                                                        {"module", stream_module_name},

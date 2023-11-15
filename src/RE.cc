@@ -253,14 +253,26 @@ int Specific_RE_Matcher::Match(const u_char* bv, int n) {
 
 void Specific_RE_Matcher::Dump(FILE* f) { dfa->Dump(f); }
 
-inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position) {
+inline bool RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position) {
+    bool new_match = false;
     using am_idx = std::pair<AcceptIdx, MatchPos>;
 
-    for ( AcceptingSet::const_iterator it = as.begin(); it != as.end(); ++it )
-        accepted_matches.insert(am_idx(*it, position));
+    for ( AcceptingSet::const_iterator it = as.begin(); it != as.end(); ++it ) {
+        const auto& [iit, success] = accepted_matches.insert(am_idx(*it, position));
+
+        // Either we inserted a new AcceptIdx, or it existed and we can check
+        // if it was at a different position.
+        if ( success )
+            new_match = true;
+        else if ( iit->second != position )
+            new_match = true;
+    }
+
+    return new_match;
 }
 
 bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool clear) {
+    bool new_match = false;
     if ( current_pos == -1 ) {
         // First call to Match().
         if ( ! dfa )
@@ -274,7 +286,7 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
         const AcceptingSet* ac = current_state->Accept();
 
         if ( ac )
-            AddMatches(*ac, 0);
+            new_match = AddMatches(*ac, 0);
     }
 
     else if ( clear ) {
@@ -285,8 +297,6 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
     if ( ! current_state )
         return false;
 
-
-    size_t old_matches = accepted_matches.size();
 
     int ec;
     int m = bol ? n + 1 : n;
@@ -309,15 +319,16 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
 
         const AcceptingSet* ac = next_state->Accept();
 
-        if ( ac )
-            AddMatches(*ac, current_pos);
+        if ( ac ) {
+            new_match = AddMatches(*ac, current_pos);
+        }
 
         ++current_pos;
 
         current_state = next_state;
     }
 
-    return accepted_matches.size() != old_matches;
+    return new_match;
 }
 
 int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n) {

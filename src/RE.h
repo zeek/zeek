@@ -169,7 +169,9 @@ public:
         accepted_matches.clear();
     }
 
-    void AddMatches(const AcceptingSet& as, MatchPos position);
+    // Add all indices from AcceptingSet. Returns true if a new match
+    // was found.
+    bool AddMatches(const AcceptingSet& as, MatchPos position);
 
 protected:
     DFA_Machine* dfa;

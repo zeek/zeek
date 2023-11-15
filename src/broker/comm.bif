@@ -3,6 +3,7 @@
 
 %%{
 #include "zeek/broker/Manager.h"
+#include "zeek/telemetry/Manager.h"
 %%}
 
 module Broker;
@@ -186,29 +187,30 @@ function Broker::__set_metrics_export_interval%(value: interval%): bool
 	// Manager is going to initialize Broker using the most recent value of the
 	// corresponding option.
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	if ( broker_mgr )
-		broker_mgr->SetMetricsExportInterval(value);
+
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportInterval(value);
 	return zeek::val_mgr->True();
 	%}
 
 function Broker::__set_metrics_export_topic%(value: string%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	if ( broker_mgr )
-		broker_mgr->SetMetricsExportTopic(value->ToStdString());
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportTopic(value->ToStdString());
 	return zeek::val_mgr->True();
 	%}
 
 function Broker::__set_metrics_import_topics%(filter: string_vec%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	if ( broker_mgr )
+	if ( telemetry_mgr )
 		{
 		std::vector<std::string> slist;
 		auto* vval = filter->AsVectorVal();
 		for ( unsigned index = 0; index < vval->Size(); ++index )
 			slist.emplace_back(vval->StringValAt(index)->ToStdString());
-		broker_mgr->SetMetricsImportTopics(std::move(slist));
+		telemetry_mgr->SetMetricsImportTopics(std::move(slist));
 		}
 	return zeek::val_mgr->True();
 	%}
@@ -216,21 +218,21 @@ function Broker::__set_metrics_import_topics%(filter: string_vec%): bool
 function Broker::__set_metrics_export_endpoint_name%(value: string%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	if ( broker_mgr )
-		broker_mgr->SetMetricsExportEndpointName(value->ToStdString());
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportEndpointName(value->ToStdString());
 	return zeek::val_mgr->True();
 	%}
 
 function Broker::__set_metrics_export_prefixes%(filter: string_vec%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	if ( broker_mgr )
+	if ( telemetry_mgr )
 		{
 		std::vector<std::string> slist;
 		auto* vval = filter->AsVectorVal();
 		for ( unsigned index = 0; index < vval->Size(); ++index )
 			slist.emplace_back(vval->StringValAt(index)->ToStdString());
-		broker_mgr->SetMetricsExportPrefixes(std::move(slist));
+		telemetry_mgr->SetMetricsExportPrefixes(std::move(slist));
 		}
 	return zeek::val_mgr->True();
 	%}

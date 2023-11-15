@@ -139,18 +139,18 @@ export {
 	## Broker to make metrics available to Prometheus scrapers via HTTP. Zeek
 	## overrides any value provided in zeek_init or earlier at startup if the
 	## environment variable BROKER_METRICS_PORT is defined.
-	const metrics_port = 0/unknown &redef;
+	const metrics_port = 0/unknown &redef &deprecated="Remove in 7.1. Use Telemetry::metrics_port.";
 
 	## Frequency for publishing scraped metrics to the target topic. Zeek
 	## overrides any value provided in zeek_init or earlier at startup if the
 	## environment variable BROKER_METRICS_EXPORT_INTERVAL is defined.
-	option metrics_export_interval = 1 sec;
+	option metrics_export_interval = 1 sec &deprecated="Remove in 7.1. Use Telemetry::metrics_export_interval";
 
 	## Target topic for the metrics. Setting a non-empty string starts the
 	## periodic publishing of local metrics. Zeek overrides any value provided in
 	## zeek_init or earlier at startup if the environment variable
 	## BROKER_METRICS_EXPORT_TOPIC is defined.
-	option metrics_export_topic = "";
+	option metrics_export_topic = "" &deprecated="Remove in 7.1. Use Telemetry::metrics_export_topic";
 
 	## Topics for the Prometheus exporter for collecting metrics from other
 	## peers in the network and including them in the output. Has no effect when
@@ -158,7 +158,7 @@ export {
 	##
 	## Zeek overrides any value provided in zeek_init or earlier at startup if
 	## the environment variable BROKER_METRICS_IMPORT_TOPICS is defined.
-	option metrics_import_topics: vector of string = vector();
+	option metrics_import_topics: vector of string = vector() &deprecated="Remove in 7.1. Use Telemetry::metrics_import_topics";
 
 	## ID for the metrics exporter. When setting a target topic for the
 	## exporter, Broker sets this option to the suffix of the new topic *unless*
@@ -167,12 +167,12 @@ export {
 	## setting it at all if the topic suffix serves as a good-enough ID. Zeek
 	## overrides any value provided in zeek_init or earlier at startup if the
 	## environment variable BROKER_METRICS_ENDPOINT_NAME is defined.
-	option metrics_export_endpoint_name = "";
+	option metrics_export_endpoint_name = "" &deprecated="Remove in 7.1. Use Telemetry::metrics_export_endpoint_name";
 
 	## Selects prefixes from the local metrics. Only metrics with prefixes
 	## listed in this variable are included when publishing local metrics.
 	## Setting an empty vector selects *all* metrics.
-	option metrics_export_prefixes: vector of string = vector();
+	option metrics_export_prefixes: vector of string = vector() &deprecated="Remove in 7.1. Use Telemetry::metrics_export_prefixes";
 
 	## The default topic prefix where logs will be published.  The log's stream
 	## id is appended when writing to a particular stream.
@@ -458,31 +458,31 @@ event Broker::log_flush() &priority=10
 	schedule Broker::log_batch_interval { Broker::log_flush() };
 	}
 
-function update_metrics_export_interval(id: string, val: interval): interval
+function update_metrics_export_interval(id: string, val: interval): interval &deprecated="Remove in v7.1. Use Telemetry::update_metrics_export_interval."
 	{
 	Broker::__set_metrics_export_interval(val);
 	return val;
 	}
 
-function update_metrics_export_topic(id: string, val: string): string
+function update_metrics_export_topic(id: string, val: string): string &deprecated="Remove in v7.1. Use Telemetry::update_metrics_export_topic."
 	{
 	Broker::__set_metrics_export_topic(val);
 	return val;
 	}
 
-function update_metrics_import_topics(id: string, topics: vector of string): vector of string
+function update_metrics_import_topics(id: string, topics: vector of string): vector of string &deprecated="Remove in v7.1. Use Telemetry::update_metrics_import_topics."
 	{
 	Broker::__set_metrics_import_topics(topics);
 	return topics;
 	}
 
-function update_metrics_export_endpoint_name(id: string, val: string): string
+function update_metrics_export_endpoint_name(id: string, val: string): string &deprecated="Remove in v7.1. Use Telemetry::update_metrics_export_endpoint_name."
 	{
 	Broker::__set_metrics_export_endpoint_name(val);
 	return val;
 	}
 
-function update_metrics_export_prefixes(id: string, filter: vector of string): vector of string
+function update_metrics_export_prefixes(id: string, filter: vector of string): vector of string &deprecated="Remove in v7.1. Use Telemetry::update_metrics_export_prefixes."
 	{
 	Broker::__set_metrics_export_prefixes(filter);
 	return filter;
@@ -491,6 +491,9 @@ function update_metrics_export_prefixes(id: string, filter: vector of string): v
 event zeek_init()
 	{
 	schedule Broker::log_batch_interval { Broker::log_flush() };
+
+	# Remove in v7.1.
+@pragma push ignore-deprecations
 	# interval
 	update_metrics_export_interval("Broker::metrics_export_interval",
 	                               Broker::metrics_export_interval);
@@ -516,6 +519,7 @@ event zeek_init()
 	                               Broker::metrics_export_prefixes);
 	Option::set_change_handler("Broker::metrics_export_prefixes",
 	                           update_metrics_export_prefixes);
+@pragma pop
 	}
 
 event retry_listen(a: string, p: port, retry: interval)

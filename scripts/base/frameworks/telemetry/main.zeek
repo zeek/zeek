@@ -6,6 +6,7 @@
 ##! `BROKER_METRICS_PORT` environment variable.
 
 @load base/misc/version
+@load base/frameworks/telemetry/options
 
 module Telemetry;
 
@@ -580,11 +581,6 @@ event run_sync_hook()
 	schedule sync_interval { run_sync_hook() };
 	}
 
-event zeek_init()
-	{
-	schedule sync_interval { run_sync_hook() };
-	}
-
 # Expose the Zeek version as Prometheus style info metric
 global version_gauge_family = Telemetry::register_gauge_family([
 	$prefix="zeek",
@@ -597,6 +593,8 @@ global version_gauge_family = Telemetry::register_gauge_family([
 
 event zeek_init()
 	{
+	schedule sync_interval { run_sync_hook() };
+
 	local v = Version::info;
 	local labels = vector(cat(v$version_number),
 	                      cat(v$major), cat(v$minor), cat (v$patch),

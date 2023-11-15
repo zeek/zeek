@@ -494,3 +494,54 @@ function Telemetry::__collect_histogram_metrics%(prefix: string, name: string%):
 	%{
 	return telemetry_mgr->CollectHistogramMetrics(sv(prefix), sv(name));
 	%}
+
+function Telemetry::__set_metrics_export_interval%(value: interval%): bool
+	%{
+	// This BIF may run prior to telemetry::Manager::InitPostScript. In this case,
+	// telemetry_mgr is still null but we can safely ignore this event because the
+	// Manager is going to initialize Telemetry using the most recent value of the
+	// corresponding option.
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportInterval(value);
+	return zeek::val_mgr->True();
+	%}
+
+function Telemetry::__set_metrics_export_topic%(value: string%): bool
+	%{
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportTopic(value->ToStdString());
+	return zeek::val_mgr->True();
+	%}
+
+function Telemetry::__set_metrics_import_topics%(filter: string_vec%): bool
+	%{
+	if ( telemetry_mgr )
+		{
+		std::vector<std::string> slist;
+		auto* vval = filter->AsVectorVal();
+		for ( unsigned index = 0; index < vval->Size(); ++index )
+			slist.emplace_back(vval->StringValAt(index)->ToStdString());
+		telemetry_mgr->SetMetricsImportTopics(std::move(slist));
+		}
+	return zeek::val_mgr->True();
+	%}
+
+function Telemetry::__set_metrics_export_endpoint_name%(value: string%): bool
+	%{
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportEndpointName(value->ToStdString());
+	return zeek::val_mgr->True();
+	%}
+
+function Telemetry::__set_metrics_export_prefixes%(filter: string_vec%): bool
+	%{
+	if ( telemetry_mgr )
+		{
+		std::vector<std::string> slist;
+		auto* vval = filter->AsVectorVal();
+		for ( unsigned index = 0; index < vval->Size(); ++index )
+			slist.emplace_back(vval->StringValAt(index)->ToStdString());
+		telemetry_mgr->SetMetricsExportPrefixes(std::move(slist));
+		}
+	return zeek::val_mgr->True();
+	%}

@@ -167,6 +167,16 @@
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Site::neighbor_zones, Site::update_neighbor_zones_regex{ Site::local_dns_neighbor_suffix_regex = set_to_regex(Site::new_value, (^\.?|\.)(~~)$)return (Site::new_value)}, -5)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Site::private_address_space, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Site::private_address_space, Site::update_private_address_space{ Site::new_privates = Site::new_value - Site::private_address_spaceSite::old_privates = Site::private_address_space - Site::new_valueSite::new_local_nets = (Site::local_nets | Site::private_address_space) - Site::old_privatesSite::new_local_nets += Site::new_privatesSite::local_nets_needs_private_address_space = FOption::set(Site::local_nets, to_any_coerceSite::new_local_nets, <skip-config-log>)return (Site::new_value)}, -5)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_endpoint_name, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_endpoint_name, Telemetry::update_metrics_export_endpoint_name{ Telemetry::__set_metrics_export_endpoint_name(Telemetry::val)return (Telemetry::val)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_interval, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_interval, Telemetry::update_metrics_export_interval{ Telemetry::__set_metrics_export_interval(Telemetry::val)return (Telemetry::val)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_prefixes, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_prefixes, Telemetry::update_metrics_export_prefixes{ Telemetry::__set_metrics_export_prefixes(Telemetry::filter)return (Telemetry::filter)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_topic, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_topic, Telemetry::update_metrics_export_topic{ Telemetry::__set_metrics_export_topic(Telemetry::val)return (Telemetry::val)}, 0)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_import_topics, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_import_topics, Telemetry::update_metrics_import_topics{ Telemetry::__set_metrics_import_topics(Telemetry::topics)return (Telemetry::topics)}, 0)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::ignore_hosts, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_duration, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_duration, Config::weird_option_change_interval{ if (Weird::sampling_duration == Config::ID) { Reporter::set_weird_sampling_duration(Config::new_value)}return (Config::new_value)}, 5)) -> <no result>
@@ -319,6 +329,16 @@
 0.000000   MetaHookPost  CallFunction(Site::update_private_address_space, <frame>, (Site::private_address_space, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24})) -> <no result>
 0.000000   MetaHookPost  CallFunction(Supervisor::__is_supervisor, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Supervisor::is_supervisor, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::__set_metrics_export_endpoint_name, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::__set_metrics_export_interval, <frame>, (1.0 sec)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::__set_metrics_export_prefixes, <frame>, ([])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::__set_metrics_export_topic, <frame>, ()) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::__set_metrics_import_topics, <frame>, ([])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::update_metrics_export_endpoint_name, <frame>, (Telemetry::metrics_export_endpoint_name, )) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::update_metrics_export_interval, <frame>, (Telemetry::metrics_export_interval, 1.0 sec)) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::update_metrics_export_prefixes, <frame>, (Telemetry::metrics_export_prefixes, [])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::update_metrics_export_topic, <frame>, (Telemetry::metrics_export_topic, )) -> <no result>
+0.000000   MetaHookPost  CallFunction(Telemetry::update_metrics_import_topics, <frame>, (Telemetry::metrics_import_topics, [])) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_primary_bifs, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_secondary_bifs, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations)) -> <no result>
@@ -586,6 +606,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/null, <...>/null) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/numbers, <...>/numbers.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/option.bif, <...>/option.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/options, <...>/options.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/pbb, <...>/pbb) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/plugins, <...>/plugins) -> -1
@@ -605,6 +626,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor, <...>/supervisor) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/tcp, <...>/tcp) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/telemetry.bif, <...>/telemetry.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/teredo, <...>/teredo) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/tunnels, <...>/tunnels) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/types.bif, <...>/types.bif.zeek) -> -1
@@ -871,6 +893,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/null, <...>/null) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/numbers, <...>/numbers.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/option.bif, <...>/option.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/options, <...>/options.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pbb, <...>/pbb) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/plugins, <...>/plugins) -> (-1, <no content>)
@@ -890,6 +913,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/supervisor, <...>/supervisor) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/tcp, <...>/tcp) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/telemetry.bif, <...>/telemetry.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/teredo, <...>/teredo) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/tunnels, <...>/tunnels) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/types.bif, <...>/types.bif.zeek) -> (-1, <no content>)
@@ -1085,6 +1109,16 @@
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Site::neighbor_zones, Site::update_neighbor_zones_regex{ Site::local_dns_neighbor_suffix_regex = set_to_regex(Site::new_value, (^\.?|\.)(~~)$)return (Site::new_value)}, -5))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Site::private_address_space, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Site::private_address_space, Site::update_private_address_space{ Site::new_privates = Site::new_value - Site::private_address_spaceSite::old_privates = Site::private_address_space - Site::new_valueSite::new_local_nets = (Site::local_nets | Site::private_address_space) - Site::old_privatesSite::new_local_nets += Site::new_privatesSite::local_nets_needs_private_address_space = FOption::set(Site::local_nets, to_any_coerceSite::new_local_nets, <skip-config-log>)return (Site::new_value)}, -5))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_endpoint_name, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_endpoint_name, Telemetry::update_metrics_export_endpoint_name{ Telemetry::__set_metrics_export_endpoint_name(Telemetry::val)return (Telemetry::val)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_interval, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_interval, Telemetry::update_metrics_export_interval{ Telemetry::__set_metrics_export_interval(Telemetry::val)return (Telemetry::val)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_prefixes, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_prefixes, Telemetry::update_metrics_export_prefixes{ Telemetry::__set_metrics_export_prefixes(Telemetry::filter)return (Telemetry::filter)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_topic, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_export_topic, Telemetry::update_metrics_export_topic{ Telemetry::__set_metrics_export_topic(Telemetry::val)return (Telemetry::val)}, 0))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_import_topics, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
+0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Telemetry::metrics_import_topics, Telemetry::update_metrics_import_topics{ Telemetry::__set_metrics_import_topics(Telemetry::topics)return (Telemetry::topics)}, 0))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::ignore_hosts, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_duration, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Weird::sampling_duration, Config::weird_option_change_interval{ if (Weird::sampling_duration == Config::ID) { Reporter::set_weird_sampling_duration(Config::new_value)}return (Config::new_value)}, 5))
@@ -1237,6 +1271,16 @@
 0.000000   MetaHookPre   CallFunction(Site::update_private_address_space, <frame>, (Site::private_address_space, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24}))
 0.000000   MetaHookPre   CallFunction(Supervisor::__is_supervisor, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Supervisor::is_supervisor, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Telemetry::__set_metrics_export_endpoint_name, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Telemetry::__set_metrics_export_interval, <frame>, (1.0 sec))
+0.000000   MetaHookPre   CallFunction(Telemetry::__set_metrics_export_prefixes, <frame>, ([]))
+0.000000   MetaHookPre   CallFunction(Telemetry::__set_metrics_export_topic, <frame>, ())
+0.000000   MetaHookPre   CallFunction(Telemetry::__set_metrics_import_topics, <frame>, ([]))
+0.000000   MetaHookPre   CallFunction(Telemetry::update_metrics_export_endpoint_name, <frame>, (Telemetry::metrics_export_endpoint_name, ))
+0.000000   MetaHookPre   CallFunction(Telemetry::update_metrics_export_interval, <frame>, (Telemetry::metrics_export_interval, 1.0 sec))
+0.000000   MetaHookPre   CallFunction(Telemetry::update_metrics_export_prefixes, <frame>, (Telemetry::metrics_export_prefixes, []))
+0.000000   MetaHookPre   CallFunction(Telemetry::update_metrics_export_topic, <frame>, (Telemetry::metrics_export_topic, ))
+0.000000   MetaHookPre   CallFunction(Telemetry::update_metrics_import_topics, <frame>, (Telemetry::metrics_import_topics, []))
 0.000000   MetaHookPre   CallFunction(__init_primary_bifs, <null>, ())
 0.000000   MetaHookPre   CallFunction(__init_secondary_bifs, <null>, ())
 0.000000   MetaHookPre   CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations))
@@ -1504,6 +1548,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/null, <...>/null)
 0.000000   MetaHookPre   LoadFile(0, base<...>/numbers, <...>/numbers.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/option.bif, <...>/option.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/options, <...>/options.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/pbb, <...>/pbb)
 0.000000   MetaHookPre   LoadFile(0, base<...>/plugins, <...>/plugins)
@@ -1523,6 +1568,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor, <...>/supervisor)
 0.000000   MetaHookPre   LoadFile(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/tcp, <...>/tcp)
+0.000000   MetaHookPre   LoadFile(0, base<...>/telemetry.bif, <...>/telemetry.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/teredo, <...>/teredo)
 0.000000   MetaHookPre   LoadFile(0, base<...>/tunnels, <...>/tunnels)
 0.000000   MetaHookPre   LoadFile(0, base<...>/types.bif, <...>/types.bif.zeek)
@@ -1789,6 +1835,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/null, <...>/null)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/numbers, <...>/numbers.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/option.bif, <...>/option.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/options, <...>/options.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pbb, <...>/pbb)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/plugins, <...>/plugins)
@@ -1808,6 +1855,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/supervisor, <...>/supervisor)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/supervisor.bif, <...>/supervisor.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/tcp, <...>/tcp)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/telemetry.bif, <...>/telemetry.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/teredo, <...>/teredo)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/tunnels, <...>/tunnels)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/types.bif, <...>/types.bif.zeek)
@@ -2002,6 +2050,16 @@
 0.000000 | HookCallFunction Option::set_change_handler(Site::neighbor_zones, Site::update_neighbor_zones_regex{ Site::local_dns_neighbor_suffix_regex = set_to_regex(Site::new_value, (^\.?|\.)(~~)$)return (Site::new_value)}, -5)
 0.000000 | HookCallFunction Option::set_change_handler(Site::private_address_space, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Site::private_address_space, Site::update_private_address_space{ Site::new_privates = Site::new_value - Site::private_address_spaceSite::old_privates = Site::private_address_space - Site::new_valueSite::new_local_nets = (Site::local_nets | Site::private_address_space) - Site::old_privatesSite::new_local_nets += Site::new_privatesSite::local_nets_needs_private_address_space = FOption::set(Site::local_nets, to_any_coerceSite::new_local_nets, <skip-config-log>)return (Site::new_value)}, -5)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_export_endpoint_name, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_export_endpoint_name, Telemetry::update_metrics_export_endpoint_name{ Telemetry::__set_metrics_export_endpoint_name(Telemetry::val)return (Telemetry::val)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_export_interval, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_export_interval, Telemetry::update_metrics_export_interval{ Telemetry::__set_metrics_export_interval(Telemetry::val)return (Telemetry::val)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_export_prefixes, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_export_prefixes, Telemetry::update_metrics_export_prefixes{ Telemetry::__set_metrics_export_prefixes(Telemetry::filter)return (Telemetry::filter)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_export_topic, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_export_topic, Telemetry::update_metrics_export_topic{ Telemetry::__set_metrics_export_topic(Telemetry::val)return (Telemetry::val)}, 0)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_import_topics, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
+0.000000 | HookCallFunction Option::set_change_handler(Telemetry::metrics_import_topics, Telemetry::update_metrics_import_topics{ Telemetry::__set_metrics_import_topics(Telemetry::topics)return (Telemetry::topics)}, 0)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::ignore_hosts, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_duration, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Weird::sampling_duration, Config::weird_option_change_interval{ if (Weird::sampling_duration == Config::ID) { Reporter::set_weird_sampling_duration(Config::new_value)}return (Config::new_value)}, 5)
@@ -2154,6 +2212,16 @@
 0.000000 | HookCallFunction Site::update_private_address_space(Site::private_address_space, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24})
 0.000000 | HookCallFunction Supervisor::__is_supervisor()
 0.000000 | HookCallFunction Supervisor::is_supervisor()
+0.000000 | HookCallFunction Telemetry::__set_metrics_export_endpoint_name()
+0.000000 | HookCallFunction Telemetry::__set_metrics_export_interval(1.0 sec)
+0.000000 | HookCallFunction Telemetry::__set_metrics_export_prefixes([])
+0.000000 | HookCallFunction Telemetry::__set_metrics_export_topic()
+0.000000 | HookCallFunction Telemetry::__set_metrics_import_topics([])
+0.000000 | HookCallFunction Telemetry::update_metrics_export_endpoint_name(Telemetry::metrics_export_endpoint_name, )
+0.000000 | HookCallFunction Telemetry::update_metrics_export_interval(Telemetry::metrics_export_interval, 1.0 sec)
+0.000000 | HookCallFunction Telemetry::update_metrics_export_prefixes(Telemetry::metrics_export_prefixes, [])
+0.000000 | HookCallFunction Telemetry::update_metrics_export_topic(Telemetry::metrics_export_topic, )
+0.000000 | HookCallFunction Telemetry::update_metrics_import_topics(Telemetry::metrics_import_topics, [])
 0.000000 | HookCallFunction __init_primary_bifs()
 0.000000 | HookCallFunction __init_secondary_bifs()
 0.000000 | HookCallFunction disable_event_group(Analyzer::Logging::include_confirmations)
@@ -2433,6 +2501,7 @@
 0.000000 | HookLoadFile  base<...>/null <...>/null
 0.000000 | HookLoadFile  base<...>/numbers <...>/numbers.zeek
 0.000000 | HookLoadFile  base<...>/option.bif <...>/option.bif.zeek
+0.000000 | HookLoadFile  base<...>/options <...>/options.zeek
 0.000000 | HookLoadFile  base<...>/packet_analysis.bif <...>/packet_analysis.bif.zeek
 0.000000 | HookLoadFile  base<...>/pbb <...>/pbb
 0.000000 | HookLoadFile  base<...>/plugins <...>/plugins
@@ -2452,6 +2521,7 @@
 0.000000 | HookLoadFile  base<...>/supervisor <...>/supervisor
 0.000000 | HookLoadFile  base<...>/supervisor.bif <...>/supervisor.bif.zeek
 0.000000 | HookLoadFile  base<...>/tcp <...>/tcp
+0.000000 | HookLoadFile  base<...>/telemetry.bif <...>/telemetry.bif.zeek
 0.000000 | HookLoadFile  base<...>/teredo <...>/teredo
 0.000000 | HookLoadFile  base<...>/tunnels <...>/tunnels
 0.000000 | HookLoadFile  base<...>/types.bif <...>/types.bif.zeek
@@ -2718,6 +2788,7 @@
 0.000000 | HookLoadFileExtended base<...>/null <...>/null
 0.000000 | HookLoadFileExtended base<...>/numbers <...>/numbers.zeek
 0.000000 | HookLoadFileExtended base<...>/option.bif <...>/option.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/options <...>/options.zeek
 0.000000 | HookLoadFileExtended base<...>/packet_analysis.bif <...>/packet_analysis.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/pbb <...>/pbb
 0.000000 | HookLoadFileExtended base<...>/plugins <...>/plugins
@@ -2737,6 +2808,7 @@
 0.000000 | HookLoadFileExtended base<...>/supervisor <...>/supervisor
 0.000000 | HookLoadFileExtended base<...>/supervisor.bif <...>/supervisor.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/tcp <...>/tcp
+0.000000 | HookLoadFileExtended base<...>/telemetry.bif <...>/telemetry.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/teredo <...>/teredo
 0.000000 | HookLoadFileExtended base<...>/tunnels <...>/tunnels
 0.000000 | HookLoadFileExtended base<...>/types.bif <...>/types.bif.zeek

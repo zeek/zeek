@@ -280,15 +280,23 @@ static zeek::VectorValPtr do_split_string(zeek::StringVal* str_val,
 	int num_sep = 0;
 
 	int offset = 0;
+	bool bol = true;
+	const bool eol = true;
+
 	while ( n >= 0 )
 		{
 		offset = 0;
 		// Find next match offset.
 		int end_of_match = 0;
-		while ( n > 0 &&
-		        (end_of_match = re->MatchPrefix(s + offset, n)) <= 0 )
+		while ( n > 0 )
 			{
-			// Move on to next byte.
+			end_of_match = re->MatchPrefix(s + offset, n, bol, eol);
+			if ( end_of_match > 0 )
+				break;
+
+			// Move on to next byte, use BOL only on the byte such that
+			// a BOL anchored pattern won't be matched anywhere else.
+			bol = false;
 			++offset;
 			--n;
 			}

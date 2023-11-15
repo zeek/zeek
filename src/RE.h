@@ -235,6 +235,9 @@ public:
     // the main ("explicit") constructor was used.
     const char* OrigText() const { return orig_text.c_str(); }
 
+    // Access to the underlying re_exact Matcher.
+    detail::Specific_RE_Matcher* GetExactMatcher() const { return re_exact; }
+
 protected:
     std::string orig_text;
 

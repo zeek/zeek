@@ -268,6 +268,7 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
 
         // Initialize state and copy the accepting states of the start
         // state into the acceptance set.
+        current_pos = 0;
         current_state = dfa->StartState();
 
         const AcceptingSet* ac = current_state->Accept();
@@ -276,13 +277,14 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
             AddMatches(*ac, 0);
     }
 
-    else if ( clear )
+    else if ( clear ) {
+        current_pos = 0;
         current_state = dfa->StartState();
+    }
 
     if ( ! current_state )
         return false;
 
-    current_pos = 0;
 
     size_t old_matches = accepted_matches.size();
 

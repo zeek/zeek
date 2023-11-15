@@ -163,6 +163,10 @@ public:
     // If clear is true, starts matching over.
     bool Match(const u_char* bv, int n, bool bol, bool eol, bool clear);
 
+    // Returns true if no matter what is passed to Match() the DFA
+    // will not make progress. Useful for short-circuiting.
+    bool Jammed() const { return current_pos >= 0 && current_state == nullptr; }
+
     void Clear() {
         current_pos = -1;
         current_state = nullptr;

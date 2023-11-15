@@ -31,3 +31,6 @@ A
  C 
 =
  D
+test, ^est, [test]
+test, tes$, [test]
+test, ^test$, [, test, ]

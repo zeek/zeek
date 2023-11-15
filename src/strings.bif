@@ -274,20 +274,47 @@ static zeek::VectorValPtr do_split_string(zeek::StringVal* str_val,
 	// string_vec is used early in the version script - do not use the NetVar.
 	auto rval = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("string_vec"));
 	const u_char* s = str_val->Bytes();
+	const u_char* s_orig = str_val->Bytes();
 	int n = str_val->Len();
 	const u_char* end_of_s = s + n;
 	int num = 0;
 	int num_sep = 0;
 
-	int offset = 0;
+	zeek::detail::RE_Match_State match_state{re->GetExactMatcher()};
+
 	while ( n >= 0 )
 		{
-		offset = 0;
-		// Find next match offset.
+		// Feed each byte into match_state with BOL and EOL based
+		// on the full input string. If there's any match, the current
+		// position is the beginning of a match and the last one
+		// the end of the match.
+		int offset = 0;
 		int end_of_match = 0;
-		while ( n > 0 &&
-		        (end_of_match = re->MatchPrefix(s + offset, n)) <= 0 )
+
+		while ( n > 0 )
 			{
+			match_state.Clear();
+			// std::fprintf(stderr, "offset=%d Trying to match '%s'\n", offset, s + offset);
+			for ( int i = 0; i < n; i++ )
+				{
+				if ( match_state.Jammed() ) {
+					// std::fprintf(stderr, "jammed\n");
+					break;
+				}
+
+				bool bol = (s + offset + i) == s_orig; // only once
+				bool eol = i == n - 1;
+				// std::fprintf(stderr, "%c bol=%d eol=%d\n", s[offset + i], bol, eol);
+				if ( match_state.Match(&s[offset + i], 1, bol, eol, false /*reset*/) )
+					{
+					// std::fprintf(stderr, "match %d %d %c\n", offset, i, s[offset + i]);
+					end_of_match = i + 1;
+					}
+				}
+
+			if ( end_of_match > 0 )
+				break;
+
 			// Move on to next byte.
 			++offset;
 			--n;

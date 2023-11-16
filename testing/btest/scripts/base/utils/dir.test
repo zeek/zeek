@@ -1,4 +1,9 @@
 # @TEST-EXEC: btest-bg-run zeek zeek -b ../dirtest.zeek
+#
+# The following helps eliminate race conditions when Zeek startup is
+# slow due to ZAM compilation.
+# @TEST-EXEC: sleep 5
+#
 # @TEST-EXEC: $SCRIPTS/wait-for-file zeek/next1 10 || (btest-bg-wait -k 1 && false)
 # @TEST-EXEC: rm testdir/bye
 # @TEST-EXEC: touch testdir/newone

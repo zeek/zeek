@@ -1,4 +1,5 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
 # @TEST-EXEC: zeek -b -O inline %INPUT >output
 # @TEST-EXEC: btest-diff output
 

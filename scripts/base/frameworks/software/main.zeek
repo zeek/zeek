@@ -190,7 +190,8 @@ function parse(unparsed_version: string): Description
 			# of the version number from the previous split_all.
 			local sv = strip(version_parts[1]);
 			if ( /^[\/\-\._v\(]/ in sv )
-				sv = strip(sub(version_parts[1], /^\(?[\/\-\._v\(]/, ""));
+				sv = strip(sub(sv, /^[\/\-\._v\(]/, ""));
+
 			local version_numbers = split_string_n(sv, /[\-\._,\[\(\{ ]/, F, 3);
 			if ( 4 in version_numbers && version_numbers[4] != "" )
 				v$addl = strip(version_numbers[4]);

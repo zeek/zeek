@@ -1,3 +1,12 @@
+6.2.0-dev.141 | 2023-11-17 13:01:19 +0100
+
+  * GH-3455: strings.bif/do_split_string: Pass bol and eol to MatchPrefix() (Arne Welzel, Corelight)
+
+    This allows better control of BOL and EOL. MatchPrefix() / LongestMatch()
+    always start with BOL.
+
+  * RE_Matcher: Add MatchPrefix with bol/eol control (Arne Welzel, Corelight)
+
 6.2.0-dev.137 | 2023-11-11 17:45:51 +0100
 
   * Bind scan_path to the scope; avoid heap allocation (Dominik Charousset, Corelight)

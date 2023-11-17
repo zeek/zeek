@@ -318,7 +318,7 @@ bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool cle
     return accepted_matches.size() != old_matches;
 }
 
-int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n) {
+int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n, bool bol, bool eol) {
     if ( ! dfa )
         // An empty pattern matches anything.
         return 0;
@@ -327,11 +327,13 @@ int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n) {
     int last_accept = -1;
     DFA_State* d = dfa->StartState();
 
-    d = d->Xtion(ecs[SYM_BOL], dfa);
-    if ( ! d )
-        return -1;
+    if ( bol ) {
+        d = d->Xtion(ecs[SYM_BOL], dfa);
+        if ( ! d )
+            return -1;
+    }
 
-    if ( d->Accept() )
+    if ( d->Accept() ) // initial state or bol match (e.g, / */ or /^ ?/)
         last_accept = 0;
 
     for ( int i = 0; i < n; ++i ) {
@@ -345,7 +347,7 @@ int Specific_RE_Matcher::LongestMatch(const u_char* bv, int n) {
             last_accept = i + 1;
     }
 
-    if ( d ) {
+    if ( d && eol ) {
         d = d->Xtion(ecs[SYM_EOL], dfa);
         if ( d && d->Accept() )
             return n;

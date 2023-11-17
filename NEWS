@@ -19,6 +19,10 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The ``split_string`` family of functions now respect the beginning-of-line ^ and
+  end-of-line $ anchors. Previously, an anchored pattern would be matched anywhere
+  in the input string.
+
 Removed Functionality
 ---------------------
 

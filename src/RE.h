@@ -106,7 +106,7 @@ public:
 
     int LongestMatch(const char* s);
     int LongestMatch(const String* s);
-    int LongestMatch(const u_char* bv, int n);
+    int LongestMatch(const u_char* bv, int n, bool bol = true, bool eol = true);
 
     EquivClass* EC() { return &equiv_class; }
 
@@ -219,6 +219,11 @@ public:
     int MatchPrefix(const char* s) { return re_exact->LongestMatch(s); }
     int MatchPrefix(const String* s) { return re_exact->LongestMatch(s); }
     int MatchPrefix(const u_char* s, int n) { return re_exact->LongestMatch(s, n); }
+
+    // MatchPrefix() version allowing control of bol and eol.
+    // This can be useful when searching for a pattern with an
+    // anchor within a larger string.
+    int MatchPrefix(const u_char* s, int n, bool bol, bool eol) { return re_exact->LongestMatch(s, n, bol, eol); }
 
     bool Match(const u_char* s, int n) { return re_anywhere->Match(s, n); }
 

@@ -170,13 +170,16 @@ EventGroup::EventGroup(EventGroupKind kind, std::string_view name) : kind(kind),
 // from the public zeek:: namespace.
 void EventGroup::UpdateFuncBodies() {
     static auto is_group_disabled = [](const auto& g) { return g->IsDisabled(); };
+    static auto is_body_enabled = [](const auto& b) { return ! b.disabled; };
 
     for ( auto& func : funcs ) {
-        for ( auto& b : func->bodies )
+        func->has_enabled_bodies = false;
+        func->all_bodies_enabled = true;
+        for ( auto& b : func->bodies ) {
             b.disabled = std::any_of(b.groups.cbegin(), b.groups.cend(), is_group_disabled);
-
-        static auto is_body_enabled = [](const auto& b) { return ! b.disabled; };
-        func->has_enabled_bodies = std::any_of(func->bodies.cbegin(), func->bodies.cend(), is_body_enabled);
+            func->has_enabled_bodies |= is_body_enabled(b);
+            func->all_bodies_enabled &= is_body_enabled(b);
+        }
     }
 }
 

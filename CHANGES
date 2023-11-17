@@ -1,3 +1,11 @@
+6.2.0-dev.147 | 2023-11-17 18:00:32 +0100
+
+  * BTest updates to accommodate event handler coalescence differences (Vern Paxson, Corelight)
+
+  * BTests for testing that event handler coalescence operates as expected (Vern Paxson, Corelight)
+
+  * coalescing of event handlers (ZAM optimization) (Vern Paxson, Corelight)
+
 6.2.0-dev.143 | 2023-11-17 09:24:36 -0700
 
   * CI: Install missing packages on opensuse (Tim Wojtulewicz, Corelight)

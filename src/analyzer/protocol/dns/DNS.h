@@ -127,6 +127,8 @@ enum DNSSEC_Algo {
     GOST_R_34_10_2001 = 12,
     ECDSA_curveP256withSHA256 = 13,
     ECDSA_curveP384withSHA384 = 14,
+    Ed25519 = 15,
+    Ed448 = 16,
     Indirect = 252,   ///<
     PrivateDNS = 253, ///<  OPTIONAL
     PrivateOID = 254, ///<  OPTIONAL

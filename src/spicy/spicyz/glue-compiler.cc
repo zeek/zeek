@@ -989,7 +989,8 @@ bool GlueCompiler::compile() {
     if ( ! _doc_id.empty() ) {
         auto mtime = hilti::expression::Ctor(hilti::ctor::Time(hilti::rt::time::current_time()));
         preinit_body.addCall("zeek_rt::register_spicy_module_begin",
-                             {hilti::builder::string(_doc_id), hilti::builder::string(_doc_description), mtime});
+                             {hilti::builder::string_mut(_doc_id), hilti::builder::string_mut(_doc_description),
+                              mtime});
     }
 
     for ( auto& a : _protocol_analyzers ) {
@@ -1028,14 +1029,14 @@ bool GlueCompiler::compile() {
 
         preinit_body.addCall(
             "zeek_rt::register_protocol_analyzer",
-            {builder::string(a.name), builder::id(protocol),
+            {builder::string_mut(a.name), builder::id(protocol),
              builder::vector(hilti::util::transform(
                  a.ports,
                  [](const auto& p) {
                      return builder::call("zeek_rt::make_port_range", {builder::port(p.begin), builder::port(p.end)});
                  })),
-             builder::string(a.unit_name_orig), builder::string(a.unit_name_resp), builder::string(a.replaces),
-             _linker_scope()});
+             builder::string_mut(a.unit_name_orig), builder::string_mut(a.unit_name_resp),
+             builder::string_mut(a.replaces), _linker_scope()});
     }
 
     for ( auto& a : _file_analyzers ) {
@@ -1051,10 +1052,10 @@ bool GlueCompiler::compile() {
         }
 
         preinit_body.addCall("zeek_rt::register_file_analyzer",
-                             {builder::string(a.name),
+                             {builder::string_mut(a.name),
                               builder::vector(
-                                  hilti::util::transform(a.mime_types, [](auto m) { return builder::string(m); })),
-                              builder::string(a.unit_name), builder::string(a.replaces), _linker_scope()});
+                                  hilti::util::transform(a.mime_types, [](auto m) { return builder::string_mut(m); })),
+                              builder::string_mut(a.unit_name), builder::string_mut(a.replaces), _linker_scope()});
     }
 
     for ( auto& a : _packet_analyzers ) {
@@ -1070,8 +1071,8 @@ bool GlueCompiler::compile() {
         }
 
         preinit_body.addCall("zeek_rt::register_packet_analyzer",
-                             {builder::string(a.name), builder::string(a.unit_name), builder::string(a.replaces),
-                              _linker_scope()});
+                             {builder::string_mut(a.name), builder::string_mut(a.unit_name),
+                              builder::string_mut(a.replaces), _linker_scope()});
     }
 
     // Create the Spicy hooks and accessor functions.
@@ -1082,7 +1083,7 @@ bool GlueCompiler::compile() {
 
     // Register our Zeek events at pre-init time.
     for ( auto&& ev : _events )
-        preinit_body.addCall("zeek_rt::install_handler", {builder::string(ev.name)});
+        preinit_body.addCall("zeek_rt::install_handler", {builder::string_mut(ev.name)});
 
     // Create Zeek types for exported Spicy types.
     GlueCompiler::ZeekTypeCache cache;
@@ -1239,8 +1240,9 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 
     // Define Zeek-side event handler.
     auto handler_id = hilti::ID(hilti::util::fmt("__zeek_handler_%s", mangled_event_name));
-    auto handler = builder::global(handler_id, builder::call("zeek_rt::internal_handler", {builder::string(ev->name)}),
-                                   hilti::declaration::Linkage::Private, meta);
+    auto handler =
+        builder::global(handler_id, builder::call("zeek_rt::internal_handler", {builder::string_mut(ev->name)}),
+                        hilti::declaration::Linkage::Private, meta);
     ev->spicy_module->spicy_module->add(std::move(handler));
 
     // Create the hook body that raises the event.
@@ -1269,11 +1271,11 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
     // Zeek type to convert an Spicy type into. However, we wouldn't want
     // limit logging to events with handlers.
     if ( _driver->hiltiOptions().debug ) {
-        std::vector<hilti::Expression> fmt_args = {builder::string(ev->name)};
+        std::vector<hilti::Expression> fmt_args = {builder::string_mut(ev->name)};
 
         for ( const auto&& [i, e] : hilti::util::enumerate(ev->expression_accessors) ) {
             if ( hilti::util::startsWith(e.expression, "$") ) {
-                fmt_args.emplace_back(builder::string(e.expression));
+                fmt_args.emplace_back(builder::string_mut(e.expression));
                 continue;
             }
 
@@ -1281,12 +1283,12 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
                 fmt_args.emplace_back(std::move(*expr));
             else
                 // We'll catch and report this below.
-                fmt_args.emplace_back(builder::string("<error>"));
+                fmt_args.emplace_back(builder::string_mut("<error>"));
         }
 
         std::vector<std::string> fmt_ctrls(fmt_args.size() - 1, "%s");
         auto fmt_str = hilti::util::fmt("-> event %%s(%s)", hilti::util::join(fmt_ctrls, ", "));
-        auto msg = builder::modulo(builder::string(fmt_str), builder::tuple(fmt_args));
+        auto msg = builder::modulo(builder::string_mut(fmt_str), builder::tuple(fmt_args));
         auto call = builder::call("zeek_rt::debug", {std::move(msg)});
         body.addExpression(call);
     }
@@ -1400,13 +1402,13 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
         for ( const auto& f : fields )
             body->addMemberCall(tmp, "push_back", {f});
 
-        return builder::call("zeek_rt::create_record_type", {builder::string(ns), builder::string(local), tmp});
+        return builder::call("zeek_rt::create_record_type", {builder::string_mut(ns), builder::string_mut(local), tmp});
     }
 
     hilti::Expression create_record_field(const hilti::ID& id, const hilti::Expression& type, bool optional,
                                           bool log) const {
         return builder::call("zeek_rt::create_record_field",
-                             {builder::string(id), type, builder::bool_(optional), builder::bool_(log)});
+                             {builder::string_mut(id), type, builder::bool_(optional), builder::bool_(log)});
     }
 
     result_t base_type(const char* tag) { return builder::call("zeek_rt::create_base_type", {builder::id(tag)}); }
@@ -1494,7 +1496,7 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
         assert(id());
 
         auto labels = hilti::rt::transform(t.labels(), [](const auto& l) {
-            return builder::tuple({builder::string(l.get().id()), builder::integer(l.get().value())});
+            return builder::tuple({builder::string_mut(l.get().id()), builder::integer(l.get().value())});
         });
 
         auto tmp = body->addTmp(tmpName("labels", *id()),
@@ -1503,10 +1505,11 @@ struct VisitorZeekType : hilti::visitor::PreOrder<hilti::Result<hilti::Expressio
 
         for ( const auto& l : t.labels() )
             body->addMemberCall(tmp, "push_back",
-                                {builder::tuple({builder::string(l.get().id()), builder::integer(l.get().value())})});
+                                {builder::tuple(
+                                    {builder::string_mut(l.get().id()), builder::integer(l.get().value())})});
 
         return builder::call("zeek_rt::create_enum_type",
-                             {builder::string(id()->namespace_()), builder::string(id()->local()), tmp});
+                             {builder::string_mut(id()->namespace_()), builder::string_mut(id()->local()), tmp});
     }
 
     result_t operator()(const hilti::type::Map& t) {
@@ -1630,7 +1633,8 @@ hilti::Result<hilti::Nothing> GlueCompiler::createZeekType(const hilti::Type& t,
     auto v = VisitorZeekType(this, body, cache);
 
     if ( auto zt = v.createZeekType(t, id) ) {
-        body->addCall("zeek_rt::register_type", {builder::string(id.namespace_()), builder::string(id.local()), *zt});
+        body->addCall("zeek_rt::register_type",
+                      {builder::string_mut(id.namespace_()), builder::string_mut(id.local()), *zt});
         return hilti::Nothing();
     }
     else

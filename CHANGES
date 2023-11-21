@@ -1,3 +1,7 @@
+6.2.0-dev.176 | 2023-11-21 14:31:12 +0100
+
+  * Add jq to final.Dockerfile (Matti Bispham, Corelight)
+
 6.2.0-dev.174 | 2023-11-21 12:00:20 +0100
 
   * TableVal: Replace raw subnets/pattern_matcher with unique_ptr (Arne Welzel, Corelight)

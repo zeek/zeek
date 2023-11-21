@@ -18,6 +18,7 @@ RUN apt-get -q update \
  && apt-get install -q -y --no-install-recommends \
      ca-certificates \
      git \
+     jq \
      libmaxminddb0 \
      libnode108 \
      libpython3.11 \

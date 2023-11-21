@@ -939,7 +939,8 @@ public:
     // Returns the Prefix table used inside the table (if present).
     // This allows us to do more direct queries to this specialized
     // type that the general Table API does not allow.
-    const detail::PrefixTable* Subnets() const { return subnets; }
+    const detail::PrefixTable* Subnets() const { return subnets.get(); }
+
 
     void Describe(ODesc* d) const override;
 
@@ -1048,8 +1049,8 @@ protected:
     detail::ExprPtr expire_func;
     TableValTimer* timer;
     RobustDictIterator<TableEntryVal>* expire_iterator;
-    detail::PrefixTable* subnets;
-    detail::TablePatternMatcher* pattern_matcher = nullptr;
+    std::unique_ptr<detail::PrefixTable> subnets;
+    std::unique_ptr<detail::TablePatternMatcher> pattern_matcher;
     ValPtr def_val;
     detail::ExprPtr change_func;
     std::string broker_store;

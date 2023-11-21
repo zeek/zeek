@@ -1563,12 +1563,10 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
     def_val = nullptr;
 
     if ( table_type->IsSubNetIndex() )
-        subnets = new detail::PrefixTable;
-    else
-        subnets = nullptr;
+        subnets = std::make_unique<detail::PrefixTable>();
 
     if ( table_type->IsPatternIndex() )
-        pattern_matcher = new detail::TablePatternMatcher(this, table_type->Yield());
+        pattern_matcher = std::make_unique<detail::TablePatternMatcher>(this, table_type->Yield());
 
     table_hash = new detail::CompositeHash(table_type->GetIndices());
     if ( ordered )
@@ -1585,8 +1583,6 @@ TableVal::~TableVal() {
 
     delete table_hash;
     delete table_val;
-    delete subnets;
-    delete pattern_matcher;
     delete expire_iterator;
 }
 

@@ -231,12 +231,12 @@ void do_feed(MD5Val::StatePtr ptr, const void* data, size_t size) {
 
 void do_get(MD5Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
 
-std::pair<const char*, size_t> do_get_bytes(MD5Val::StatePtr ptr) {
+std::string do_serialize(MD5Val::StatePtr ptr) {
     auto* md = reinterpret_cast<MD5_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
     return {reinterpret_cast<const char*>(md), sizeof(MD5_CTX)};
 }
 
-void do_set_bytes(MD5Val::StatePtr ptr, const char* bytes, size_t len) {
+void do_unserialize(MD5Val::StatePtr ptr, const char* bytes, size_t len) {
     auto* md = reinterpret_cast<MD5_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
     memcpy(md, bytes, len);
 }
@@ -261,12 +261,12 @@ void do_feed(SHA1Val::StatePtr ptr, const void* data, size_t size) {
 
 void do_get(SHA1Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
 
-std::pair<const char*, size_t> do_get_bytes(SHA1Val::StatePtr ptr) {
+std::string do_serialize(SHA1Val::StatePtr ptr) {
     auto* md = reinterpret_cast<SHA_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
     return {reinterpret_cast<const char*>(md), sizeof(SHA_CTX)};
 }
 
-void do_set_bytes(SHA1Val::StatePtr ptr, const char* bytes, size_t len) {
+void do_unserialize(SHA1Val::StatePtr ptr, const char* bytes, size_t len) {
     auto* md = reinterpret_cast<SHA_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
     memcpy(md, bytes, len);
 }
@@ -293,12 +293,12 @@ void do_feed(SHA256Val::StatePtr ptr, const void* data, size_t size) {
 
 void do_get(SHA256Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
 
-std::pair<const char*, size_t> do_get_bytes(SHA256Val::StatePtr ptr) {
+std::string do_serialize(SHA256Val::StatePtr ptr) {
     auto* md = reinterpret_cast<SHA256_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
     return {reinterpret_cast<const char*>(md), sizeof(SHA256_CTX)};
 }
 
-void do_set_bytes(SHA256Val::StatePtr ptr, const char* bytes, size_t len) {
+void do_unserialize(SHA256Val::StatePtr ptr, const char* bytes, size_t len) {
     auto* md = reinterpret_cast<SHA256_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
     memcpy(md, bytes, len);
 }
@@ -323,11 +323,9 @@ void do_feed(MD5Val::StatePtr ptr, const void* data, size_t size) { MD5_Update(t
 
 void do_get(MD5Val::StatePtr ptr, u_char* digest) { MD5_Final(digest, to_native_ptr(ptr)); }
 
-std::pair<const char*, size_t> do_get_bytes(MD5Val::StatePtr ptr) {
-    return {reinterpret_cast<const char*>(ptr), sizeof(MD5_CTX)};
-}
+std::string do_serialize(MD5Val::StatePtr ptr) { return {reinterpret_cast<const char*>(ptr), sizeof(MD5_CTX)}; }
 
-void do_set_bytes(MD5Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
+void do_unserialize(MD5Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
 
 void do_destroy(MD5Val::StatePtr ptr) { delete to_native_ptr(ptr); }
 
@@ -347,11 +345,9 @@ void do_feed(SHA1Val::StatePtr ptr, const void* data, size_t size) { SHA1_Update
 
 void do_get(SHA1Val::StatePtr ptr, u_char* digest) { SHA1_Final(digest, to_native_ptr(ptr)); }
 
-std::pair<const char*, size_t> do_get_bytes(SHA1Val::StatePtr ptr) {
-    return {reinterpret_cast<const char*>(ptr), sizeof(SHA_CTX)};
-}
+std::string do_serialize(SHA1Val::StatePtr ptr) { return {reinterpret_cast<const char*>(ptr), sizeof(SHA_CTX)}; }
 
-void do_set_bytes(SHA1Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
+void do_unserialize(SHA1Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
 
 void do_destroy(SHA1Val::StatePtr ptr) { delete to_native_ptr(ptr); }
 
@@ -371,11 +367,9 @@ void do_feed(SHA256Val::StatePtr ptr, const void* data, size_t size) { SHA256_Up
 
 void do_get(SHA256Val::StatePtr ptr, u_char* digest) { SHA256_Final(digest, to_native_ptr(ptr)); }
 
-std::pair<const char*, size_t> do_get_bytes(SHA256Val::StatePtr ptr) {
-    return {reinterpret_cast<const char*>(ptr), sizeof(SHA256_CTX)};
-}
+std::string do_serialize(SHA256Val::StatePtr ptr) { return {reinterpret_cast<const char*>(ptr), sizeof(SHA256_CTX)}; }
 
-void do_set_bytes(SHA256Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
+void do_unserialize(SHA256Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
 
 void do_destroy(SHA256Val::StatePtr ptr) { delete to_native_ptr(ptr); }
 
@@ -383,7 +377,7 @@ void do_destroy(SHA256Val::StatePtr ptr) { delete to_native_ptr(ptr); }
 
 } // namespace
 
-MD5Val::MD5Val() : HashVal(md5_type) { memset(&ctx, 0, sizeof(ctx)); }
+MD5Val::MD5Val() : HashVal(md5_type) {}
 
 MD5Val::~MD5Val() { do_destroy(ctx); }
 
@@ -441,10 +435,7 @@ broker::expected<broker::data> MD5Val::DoSerialize() const {
     if ( ! IsValid() )
         return {broker::vector{false}};
 
-    auto [bytes, len] = do_get_bytes(ctx);
-    auto data = std::string{bytes, len};
-
-    broker::vector d = {true, data};
+    broker::vector d = {true, do_serialize(ctx)};
     return {std::move(d)};
 }
 
@@ -473,7 +464,7 @@ bool MD5Val::DoUnserialize(const broker::data& data) {
         return false;
 
     Init();
-    do_set_bytes(ctx, s->data(), s->size());
+    do_unserialize(ctx, s->data(), s->size());
     return true;
 }
 
@@ -523,10 +514,7 @@ broker::expected<broker::data> SHA1Val::DoSerialize() const {
     if ( ! IsValid() )
         return {broker::vector{false}};
 
-    auto [bytes, len] = do_get_bytes(ctx);
-    auto data = std::string{bytes, len};
-
-    broker::vector d = {true, data};
+    broker::vector d = {true, do_serialize(ctx)};
 
     return {std::move(d)};
 }
@@ -556,7 +544,7 @@ bool SHA1Val::DoUnserialize(const broker::data& data) {
         return false;
 
     Init();
-    do_set_bytes(ctx, s->data(), s->size());
+    do_unserialize(ctx, s->data(), s->size());
     return true;
 }
 
@@ -609,10 +597,7 @@ broker::expected<broker::data> SHA256Val::DoSerialize() const {
     if ( ! IsValid() )
         return {broker::vector{false}};
 
-    auto [bytes, len] = do_get_bytes(ctx);
-    auto data = std::string{bytes, len};
-
-    broker::vector d = {true, data};
+    broker::vector d = {true, do_serialize(ctx)};
 
     return {std::move(d)};
 }
@@ -642,7 +627,7 @@ bool SHA256Val::DoUnserialize(const broker::data& data) {
         return false;
 
     Init();
-    do_set_bytes(ctx, s->data(), s->size());
+    do_unserialize(ctx, s->data(), s->size());
     return true;
 }
 

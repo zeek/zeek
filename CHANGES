@@ -1,3 +1,38 @@
+6.2.0-dev.155 | 2023-11-21 10:08:14 +0100
+
+  * GH-3453: DNS: Add Ed25519 and Ed448 enum values to parser (Arne Welzel, Corelight)
+
+    We already had these declared in dns/const.zeek, so extend the parser
+    as well to avoid raising weirds and add some test pcaps:
+
+       $ dig @8.8.8.8 DNSKEY ed448.no
+       $ dig @8.8.8.8 ed448.no +dnssec
+
+    And the same for the ed25519.no domain.
+
+  * RE_Match_State: Do not reset current_pos for every Match() call (Arne Welzel, Corelight)
+
+    This seems like a bug: If one feeds one byte at a time, current_pos
+    is being reset for every byte, possibly reporting the wrong offsets
+    in the accepted_matches map.
+
+  * frameworks/software: Fix stale value used for stripping (Arne Welzel, Corelight)
+
+    There was some confusion around which value was used subsequent to a strip(),
+    but sub not respecting anchors make it appear to work. Also seems that the
+    `\(?` part seems redundant.
+
+  * GH-3455: strings.bif/sub,gsub: Respect anchors in pattern (Arne Welzel, Corelight)
+
+    Anchors within pattern passed to sub() or gsub() were previously ignored,
+    replacing any occurrence of '<text>' even when '^<text>' was used as a
+    pattern.
+
+    This is a pretty user-visible change (and we even have anchored patterns
+    within the base scripts), but seems "the right thing to do".
+
+    Relates to #3455
+
 6.2.0-dev.147 | 2023-11-17 18:00:32 +0100
 
   * BTest updates to accommodate event handler coalescence differences (Vern Paxson, Corelight)

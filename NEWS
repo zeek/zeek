@@ -27,6 +27,8 @@ Changed Functionality
   end-of-line $ anchors. Previously, an anchored pattern would be matched anywhere
   in the input string.
 
+- Ed25519 and Ed448 DNSKEY and RRSIG entries do not cause weirds anymore.
+
 Removed Functionality
 ---------------------
 

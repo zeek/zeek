@@ -425,8 +425,8 @@ private:
     bool ProcessMessage(std::string_view topic, broker::zeek::LogCreate& lc);
     bool ProcessMessage(std::string_view topic, broker::zeek::LogWrite& lw);
     bool ProcessMessage(std::string_view topic, broker::zeek::IdentifierUpdate& iu);
-    void ProcessStatus(broker::status_view stat);
-    void ProcessError(broker::error_view err);
+    void ProcessStatus(broker::status& stat);
+    void ProcessError(broker::error& err);
     void ProcessStoreResponse(detail::StoreHandleVal*, broker::store::response response);
     void FlushPendingQueries();
     // Initializes the masters for Broker backed Zeek tables when using the &backend attribute

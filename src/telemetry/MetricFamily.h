@@ -120,7 +120,8 @@ public:
     bool operator==(const MetricAttributeIterable& other) const noexcept { return attributes == other.attributes; }
 
     bool operator==(const Span<const LabelView>& other) const noexcept {
-        if ( other.size() != attributes.size() )
+        // Take the synthetic "endpoint" label into account when checking size here
+        if ( other.size() != attributes.size() - 1 )
             return false;
 
         for ( const auto& label : other ) {

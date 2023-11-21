@@ -57,8 +57,17 @@ bool MetricFamily::Matches(std::string_view prefix_pattern, std::string_view nam
 }
 
 MetricAttributeIterable::MetricAttributeIterable(Span<const LabelView> labels) {
-    for ( const auto& p : labels )
+    bool found_endpoint = false;
+    for ( const auto& p : labels ) {
         attributes.emplace(std::string{p.first}, std::string{p.second});
+        if ( p.first == "endpoint" )
+            found_endpoint = true;
+    }
+
+    if ( ! found_endpoint ) {
+        auto endpoint = id::find_val("Broker::metrics_export_endpoint_name")->AsStringVal();
+        attributes.emplace("endpoint", endpoint->ToStdString());
+    }
 }
 
 bool MetricAttributeIterable::ForEachKeyValue(

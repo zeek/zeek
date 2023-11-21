@@ -259,8 +259,10 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
                         continue;
 
                     auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
-                    for ( const auto& [label_key, label] : point_data_attr.attributes )
-                        label_values_vec->Append(make_intrusive<StringVal>(std::get<std::string>(label)));
+                    for ( const auto& [label_key, label] : point_data_attr.attributes ) {
+                        if ( label_key != "endpoint" )
+                            label_values_vec->Append(make_intrusive<StringVal>(std::get<std::string>(label)));
+                    }
 
                     auto r = make_intrusive<zeek::RecordVal>(metric_record_type);
                     r->Assign(labels_idx, label_values_vec);
@@ -355,8 +357,10 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
                         continue;
 
                     auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
-                    for ( const auto& [label_key, label] : point_data_attr.attributes )
-                        label_values_vec->Append(make_intrusive<StringVal>(std::get<std::string>(label)));
+                    for ( const auto& [label_key, label] : point_data_attr.attributes ) {
+                        if ( label_key != "endpoint" )
+                            label_values_vec->Append(make_intrusive<StringVal>(std::get<std::string>(label)));
+                    }
 
                     auto r = make_intrusive<zeek::RecordVal>(histogram_metric_type);
                     r->Assign(labels_idx, label_values_vec);

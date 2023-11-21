@@ -789,15 +789,22 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
     vector<std::pair<int, int>> cut_points;
 
     int size = 0; // size of result
+    bool bol = true;
+    const bool eol = true;
 
     while ( n > 0 ) {
         // Find next match offset.
         int end_of_match;
-        while ( n > 0 && (end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 ) {
+        while ( n > 0 ) {
+            end_of_match = re->MatchPrefix(&s[offset], n, bol, eol);
+            if ( end_of_match > 0 )
+                break;
+
             // This character is going to be copied to the result.
             ++size;
 
             // Move on to next character.
+            bol = false;
             ++offset;
             --n;
         }

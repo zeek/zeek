@@ -1031,6 +1031,10 @@ bool DNS_Interpreter::ParseRR_RRSIG(detail::DNS_MsgInfo* msg, const u_char*& dat
 			break;
 		case detail::ECDSA_curveP384withSHA384:
 			break;
+		case detail::Ed25519:
+			break;
+		case detail::Ed448:
+			break;
 		case detail::Indirect:
 			analyzer->Weird("DNSSEC_RRSIG_Indirect_ZoneSignAlgo", util::fmt("%d", algo));
 			break;
@@ -1127,6 +1131,10 @@ bool DNS_Interpreter::ParseRR_DNSKEY(detail::DNS_MsgInfo* msg, const u_char*& da
 		case detail::ECDSA_curveP256withSHA256:
 			break;
 		case detail::ECDSA_curveP384withSHA384:
+			break;
+		case detail::Ed25519:
+			break;
+		case detail::Ed448:
 			break;
 		case detail::Indirect:
 			analyzer->Weird("DNSSEC_DNSKEY_Indirect_ZoneSignAlgo", util::fmt("%d", dalgorithm));
@@ -1780,8 +1788,8 @@ void DNS_Interpreter::SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHand
 
 DNS_MsgInfo::DNS_MsgInfo(DNS_RawMsgHdr* hdr, int arg_is_query)
 	{
-	//### Need to fix alignment if hdr is misaligned (not on a short
-	// boundary).
+	// ### Need to fix alignment if hdr is misaligned (not on a short
+	//  boundary).
 	unsigned short flags = ntohs(hdr->flags);
 
 	QR = (flags & 0x8000) != 0;

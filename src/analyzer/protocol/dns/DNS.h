@@ -137,6 +137,8 @@ enum DNSSEC_Algo
 	GOST_R_34_10_2001 = 12,
 	ECDSA_curveP256withSHA256 = 13,
 	ECDSA_curveP384withSHA384 = 14,
+	Ed25519 = 15,
+	Ed448 = 16,
 	Indirect = 252, ///<
 	PrivateDNS = 253, ///<  OPTIONAL
 	PrivateOID = 254, ///<  OPTIONAL
@@ -448,7 +450,10 @@ public:
 
 	void Flush(); ///< process any partially-received data
 
-	detail::TCP_DNS_state State() const { return state; }
+	detail::TCP_DNS_state State() const
+		{
+		return state;
+		}
 
 protected:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
@@ -479,7 +484,10 @@ public:
 	                      bool gen_event) override;
 	void ExpireTimer(double t);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn) { return new DNS_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn)
+		{
+		return new DNS_Analyzer(conn);
+		}
 
 protected:
 	detail::DNS_Interpreter* interp;

@@ -1436,9 +1436,6 @@ public:
         vtype = make_intrusive<VectorType>(std::move(_yield));
     }
 
-    void Insert(ValPtr pat, ValPtr yield) { Clear(); }
-    void Remove(ValPtr pat) { Clear(); }
-
     void Clear() { matcher.reset(); }
 
     VectorValPtr Lookup(const StringValPtr& s);
@@ -1687,9 +1684,6 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward, bool* i
         return false;
     }
 
-    if ( pattern_matcher )
-        pattern_matcher->Insert(index, new_val);
-
     return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward, iterators_invalidated);
 }
 
@@ -1717,6 +1711,9 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
         else
             subnets->Insert(index.get(), new_entry_val);
     }
+
+    if ( pattern_matcher )
+        pattern_matcher->Clear();
 
     // Keep old expiration time if necessary.
     if ( old_entry_val && attrs && attrs->Find(detail::ATTR_EXPIRE_CREATE) )
@@ -2252,7 +2249,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
         reporter->InternalWarning("index not in prefix table");
 
     if ( pattern_matcher )
-        pattern_matcher->Remove(index.AsListVal()->Idx(0));
+        pattern_matcher->Clear();
 
     delete v;
 

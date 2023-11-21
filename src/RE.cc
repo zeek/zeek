@@ -172,6 +172,10 @@ bool Specific_RE_Matcher::CompileSet(const string_list& set, const int_list& idx
     dfa = new DFA_Machine(nfa, EC());
     ecs = EC()->EquivClasses();
 
+    // dfa took ownership
+    Unref(nfa);
+    nfa = nullptr;
+
     return true;
 }
 
@@ -190,6 +194,10 @@ bool Specific_RE_Matcher::MatchAll(const String* s) {
     return MatchAll(s->Bytes(), s->Len());
 }
 
+bool Specific_RE_Matcher::MatchSet(const String* s, std::vector<AcceptIdx>& matches) {
+    return MatchAll(s->Bytes(), s->Len(), &matches);
+}
+
 int Specific_RE_Matcher::Match(const char* s) { return Match((const u_char*)(s), strlen(s)); }
 
 int Specific_RE_Matcher::Match(const String* s) { return Match(s->Bytes(), s->Len()); }
@@ -198,7 +206,7 @@ int Specific_RE_Matcher::LongestMatch(const char* s) { return LongestMatch((cons
 
 int Specific_RE_Matcher::LongestMatch(const String* s) { return LongestMatch(s->Bytes(), s->Len()); }
 
-bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n) {
+bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n, std::vector<AcceptIdx>* matches) {
     if ( ! dfa )
         // An empty pattern matches "all" iff what's being
         // matched is empty.
@@ -217,6 +225,11 @@ bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n) {
 
     if ( d )
         d = d->Xtion(ecs[SYM_EOL], dfa);
+
+    if ( d && matches )
+        if ( const auto* a_set = d->Accept() )
+            for ( auto a : *a_set )
+                matches->push_back(a);
 
     return d && d->Accept() != nullptr;
 }

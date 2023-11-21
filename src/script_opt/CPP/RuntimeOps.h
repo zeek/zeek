@@ -32,13 +32,16 @@ extern ListValPtr index_val__CPP(std::vector<ValPtr> indices);
 // Returns the value corresponding to indexing the given table/vector/string
 // with the given set of indices.  These are functions rather than something
 // generated directly so that they can package up the error handling for
-// the case where there's no such index.
+// the case where there's no such index.  "patstr" refers to indexing a
+// table[pattern] of X with a string value.
 extern ValPtr index_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
+extern ValPtr index_patstr_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
 extern ValPtr index_vec__CPP(const VectorValPtr& vec, int index);
 extern ValPtr index_string__CPP(const StringValPtr& svp, std::vector<ValPtr> indices);
 
 // The same, but for indexing happening inside a "when" clause.
 extern ValPtr when_index_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
+extern ValPtr when_index_patstr__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
 extern ValPtr when_index_vec__CPP(const VectorValPtr& vec, int index);
 
 // For vector slices, we use the existing index_slice(), but we need a

@@ -16,6 +16,26 @@ Breaking Changes
 New Functionality
 -----------------
 
+- The table type was extended to allow parallel regular expression matching
+  when a table's index is a pattern. Indexing such tables yields a vector
+  containing all values of matching patterns for keys of type string.
+
+  As an example, the following snippet outputs ``[a, a or b], [a or b]``.
+
+	global tbl: table[pattern] of string;
+	tbl[/a/] = "a";
+	tbl[/a|b/] = "a or b";
+	tbl[/c/] = "c";
+	print tbl["a"], tbl["b"];
+
+  Depending on the patterns and input used for matching, memory growth may
+  be observed over time as the underlying DFA is constructed lazily. Users are
+  advised to test with realistic and adversarial input data with focus on
+  memory growth. The DFA's state can be reset by removal/addition of a single
+  pattern. For observability, a new bif ``table_pattern_matcher_stats()``
+  can be used to gather ``MatcherStats``.
+
+
 Changed Functionality
 ---------------------
 

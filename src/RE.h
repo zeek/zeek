@@ -96,6 +96,14 @@ public:
     // to the matching expressions.  (idx must not contain zeros).
     bool CompileSet(const string_list& set, const int_list& idx);
 
+    // For use with CompileSet() to collect indices of all matched
+    // expressions into the matches vector. The matches vector is
+    // populated with the indices of all matching expressions provided
+    // to CompileSet()'s set and idx arguments.
+    //
+    // Behaves as MatchAll(), consuming the complete input string.
+    bool MatchSet(const String* s, std::vector<AcceptIdx>& matches);
+
     // Returns the position in s just beyond where the first match
     // occurs, or 0 if there is no such position in s.  Note that
     // if the pattern matches empty strings, matching continues
@@ -125,7 +133,7 @@ protected:
     // appending to an existing pattern_text.
     void AddPat(const char* pat, const char* orig_fmt, const char* app_fmt);
 
-    bool MatchAll(const u_char* bv, int n);
+    bool MatchAll(const u_char* bv, int n, std::vector<AcceptIdx>* matches = nullptr);
 
     match_type mt;
     bool multiline;

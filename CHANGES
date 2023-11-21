@@ -1,3 +1,64 @@
+6.2.0-dev.174 | 2023-11-21 12:00:20 +0100
+
+  * TableVal: Replace raw subnets/pattern_matcher with unique_ptr (Arne Welzel, Corelight)
+
+  * TablePatternMatcher: Drop Insert()/Remove(), use Clear() (Arne Welzel, Corelight)
+
+    Also move Clear() when assigning into more generic Assign() function.
+
+  * TableType: Simplify and inline Is...Index tests (Arne Welzel, Corelight)
+
+  * NEWS: Add small table[pattern] section (Arne Welzel, Corelight)
+
+  * Expr/Val: Add support for in set[pattern] (Arne Welzel, Corelight)
+
+  * zeek.bif: Implement table_pattern_matcher_stats() bif for introspection (Arne Welzel, Corelight)
+
+    Provide a script accessible way to introspect the DFA stats that can be
+    leveraged to gather runtime statistics of the underlying DFA. This
+    re-uses the existing MatcherStats used by ``get_matcher_stats()``.
+
+  * DFA: Extract inner Stats struct from DFA_State_Cache (Arne Welzel, Corelight)
+
+    This makes it possible to forward declare the class in Val.h which
+    otherwise seems difficult.
+
+  * Expr: Implement string in table[pattern] of X (Arne Welzel, Corelight)
+
+    Not sure how useful this is (and the implementation isn't optimized in
+    any way), but seems reasonable for consistency.
+
+    Vern suggested that set[pattern] can already be achieved via
+    set_to_regex(), so left out any set[pattern] variants.
+
+  * RE: Remove RE_DisjunctiveMatcher and re-use MatchAll() (Arne Welzel, Corelight)
+
+    Seems we can just open code the CompileSet() usage in the TablePatternMatcher
+    helper without indirecting through another class. Further, add the collection
+    of indices into MatchAll() rather than duplicating its code in
+    MatchDisjunction(). Doesn't seem like MatchAll() is used widely.
+
+  * TablePatternMatcher: Use const StringValPtr& instead of const StringVal* (Arne Welzel, Corelight)
+
+  * Val: Move TablePatternMatcher into detail namespace (Arne Welzel, Corelight)
+
+    There's anyway only prototype in the headers, so detail seems better
+    than the public zeek namespace.
+
+  * TablePatternMatcher: Use unique_ptr (Arne Welzel, Corelight)
+
+  * IndexType: Add IsPatternIndex(), like IsSubNetIndex() (Arne Welzel, Corelight)
+
+  * btest: Add test for pattern tables and when (Arne Welzel, Corelight)
+
+  * Reuse CompileSet() instead of || string formatting (Arne Welzel, Corelight)
+
+  * script optimization support for using strings to index table[pattern] values (Vern Paxson, Corelight)
+
+  * BTests for indexing "table[pattern] of T" with strings (Vern Paxson, Corelight)
+
+  * support for indexing "table[pattern] of T" with strings to get multi-matches (Vern Paxson, Corelight)
+
 6.2.0-dev.155 | 2023-11-21 10:08:14 +0100
 
   * GH-3453: DNS: Add Ed25519 and Ed448 enum values to parser (Arne Welzel, Corelight)

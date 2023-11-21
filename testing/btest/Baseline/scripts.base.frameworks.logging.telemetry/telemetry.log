@@ -7,10 +7,10 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	peer	metric_type	prefix	name	unit	labels	label_values	value
 #types	time	string	string	string	string	string	vector[string]	vector[string]	double
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-writer-writes	-	writer,module,stream,filter-name,path	default,HTTP,http,HTTP::LOG,Log::WRITER_ASCII	10.0
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-writer-writes	-	writer,module,stream,filter-name,path	default,DNS,dns,DNS::LOG,Log::WRITER_ASCII	23.0
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-writer-writes	-	writer,module,stream,filter-name,path	default,Conn,conn,Conn::LOG,Log::WRITER_ASCII	30.0
 XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-stream-writes	-	module,stream	HTTP,HTTP::LOG	14.0
 XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-stream-writes	-	module,stream	DNS,DNS::LOG	34.0
 XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-stream-writes	-	module,stream	Conn,Conn::LOG	34.0
-XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-writer-writes	-	filter-name,module,path,stream,writer	default,HTTP,http,HTTP::LOG,Log::WRITER_ASCII	10.0
-XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-writer-writes	-	filter-name,module,path,stream,writer	default,DNS,dns,DNS::LOG,Log::WRITER_ASCII	23.0
-XXXXXXXXXX.XXXXXX	zeek	counter	zeek	log-writer-writes	-	filter-name,module,path,stream,writer	default,Conn,conn,Conn::LOG,Log::WRITER_ASCII	30.0
 #close XXXX-XX-XX-XX-XX-XX

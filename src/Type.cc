@@ -382,20 +382,6 @@ void IndexType::DescribeReST(ODesc* d, bool roles_only) const {
     }
 }
 
-bool IndexType::IsSubNetIndex() const {
-    const auto& types = indices->GetTypes();
-    if ( types.size() == 1 && types[0]->Tag() == TYPE_SUBNET )
-        return true;
-    return false;
-}
-
-bool IndexType::IsPatternIndex() const {
-    const auto& types = indices->GetTypes();
-    if ( types.size() == 1 && types[0]->Tag() == TYPE_PATTERN )
-        return true;
-    return false;
-}
-
 detail::TraversalCode IndexType::Traverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);

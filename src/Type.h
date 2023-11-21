@@ -354,10 +354,16 @@ public:
     void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
     // Returns true if this table is solely indexed by subnet.
-    bool IsSubNetIndex() const;
+    bool IsSubNetIndex() const {
+        const auto& types = indices->GetTypes();
+        return types.size() == 1 && types[0]->Tag() == TYPE_SUBNET;
+    }
 
     // Returns true if this table has a single index of type pattern.
-    bool IsPatternIndex() const;
+    bool IsPatternIndex() const {
+        const auto& types = indices->GetTypes();
+        return types.size() == 1 && types[0]->Tag() == TYPE_PATTERN;
+    }
 
     detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 

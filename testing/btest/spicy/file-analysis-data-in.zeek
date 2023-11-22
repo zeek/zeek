@@ -1,6 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: spicyz -d -o test.hlto ssh.spicy ./ssh-cond.evt
+# @TEST-EXEC: cat ssh.spicy ssh-1.spicy > ssh-test.spicy
+# @TEST-EXEC: spicyz -d -o test.hlto ssh-test.spicy ./ssh-cond.evt
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T | sort  >output
 #
 # @TEST-EXEC: cat x509.log | grep -v ^# | cut -f 4-5 >x509.log.tmp && mv x509.log.tmp x509.log
@@ -8,6 +9,13 @@
 #
 # @TEST-EXEC: cat files.log | zeek-cut sha1 filename >files.log.tmp && mv files.log.tmp files.log
 # @TEST-EXEC: btest-diff files.log
+#
+# @TEST-EXEC: cat ssh.spicy ssh-2.spicy > ssh-test.spicy
+# @TEST-EXEC: spicyz -d -o test.hlto ssh-test.spicy ./ssh-cond.evt
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T | sort  >>output
+#
+# @TEST-EXEC: cat files.log | zeek-cut fuid filename >files.log.tmp && mv files.log.tmp files-2.log
+# @TEST-EXEC: btest-diff files-2.log
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output
 
@@ -33,13 +41,27 @@ public type Banner = unit {
     dash    : /-/;
     software: /[^\r\n]*/;
 
-    var file_id: string = zeek::file_begin("application/x-x509-ca-cert");
+    var file_id: string;
     var file_name: string = "foo-%d.txt" % ++file_counter;
 };
 
 on Banner::%done { zeek::file_end(self.file_id); }
 
 # @TEST-END-FILE
+
+# First test case - just let Zeek generate the File ID
+# @TEST-START-FILE ssh-1.spicy
+
+on Banner::%init { self.file_id = zeek::file_begin("application/x-x509-ca-cert"); }
+
+# @TEST-END-FILE ssh-1.spicy
+
+# Second test case - provide a file ID
+# @TEST-START-FILE ssh-2.spicy
+
+on Banner::%init { self.file_id = zeek::file_begin("application/x-x509-ca-cert", "FaAaAaAaAaAaAaAaAa"); }
+
+# @TEST-END-FILE ssh-2.spicy
 
 # @TEST-START-FILE ssh-cond.evt
 

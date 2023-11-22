@@ -1,6 +1,5 @@
 #pragma once
 
-#include <openssl/evp.h>
 #include <cassert>
 #include <cstdio>
 #include <queue>
@@ -9,6 +8,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Analyzer.h"
+#include "zeek/digest.h"
 
 namespace zeek {
 
@@ -254,7 +254,7 @@ protected:
     int data_start;
     int compute_content_hash;
     int content_hash_length;
-    EVP_MD_CTX* md5_hash;
+    detail::HashDigestState* md5_hash = nullptr;
     std::vector<const String*> entity_content;
     std::vector<const String*> all_content;
 

@@ -291,9 +291,6 @@ target_include_directories(
     zeek_dynamic_plugin_base
     INTERFACE $<INSTALL_INTERFACE:include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
-if (OPENSSL_INCLUDE_DIR)
-    target_include_directories(zeek_dynamic_plugin_base INTERFACE "${OPENSSL_INCLUDE_DIR}")
-endif ()
 target_link_libraries(zeek_dynamic_plugin_base INTERFACE Threads::Threads)
 add_library(Zeek::DynamicPluginBase ALIAS zeek_dynamic_plugin_base)
 set_target_properties(zeek_dynamic_plugin_base PROPERTIES EXPORT_NAME DynamicPluginBase)

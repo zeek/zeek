@@ -1,3 +1,9 @@
+6.2.0-dev.180 | 2023-11-22 10:34:18 +0100
+
+  * Integrate review feedback (Dominik Charousset, Corelight)
+
+  * Avoid OpenSSL header dependencies (Dominik Charousset, Corelight)
+
 6.2.0-dev.176 | 2023-11-21 14:31:12 +0100
 
   * Add jq to final.Dockerfile (Matti Bispham, Corelight)

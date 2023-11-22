@@ -7,9 +7,6 @@
 #endif
 
 #include <broker/expected.hh>
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
-#include <openssl/md5.h>
-#endif
 #include <paraglob/paraglob.h>
 #include <sys/types.h> // for u_char
 
@@ -199,8 +196,8 @@ public:
     StringValPtr Get();
 
 protected:
-    static void digest_one(EVP_MD_CTX* h, const Val* v);
-    static void digest_one(EVP_MD_CTX* h, const ValPtr& v);
+    static void digest_one(detail::HashDigestState* h, const Val* v);
+    static void digest_one(detail::HashDigestState* h, const ValPtr& v);
 
     explicit HashVal(OpaqueTypePtr t);
 
@@ -215,19 +212,23 @@ private:
 
 class MD5Val : public HashVal {
 public:
+    struct State;
+
+    using StatePtr = State*;
+
     template<class T>
-    static void digest(const T& vlist, u_char result[MD5_DIGEST_LENGTH]) {
+    static void digest(const T& vlist, u_char result[ZEEK_MD5_DIGEST_LENGTH]) {
         digest_all(detail::Hash_MD5, vlist, result);
     }
 
     template<class T>
-    static void hmac(const T& vlist, u_char key[MD5_DIGEST_LENGTH], u_char result[MD5_DIGEST_LENGTH]) {
+    static void hmac(const T& vlist, u_char key[ZEEK_MD5_DIGEST_LENGTH], u_char result[ZEEK_MD5_DIGEST_LENGTH]) {
         digest(vlist, result);
 
-        for ( int i = 0; i < MD5_DIGEST_LENGTH; ++i )
+        for ( int i = 0; i < ZEEK_MD5_DIGEST_LENGTH; ++i )
             result[i] ^= key[i];
 
-        detail::internal_md5(result, MD5_DIGEST_LENGTH, result);
+        detail::internal_md5(result, ZEEK_MD5_DIGEST_LENGTH, result);
     }
 
     MD5Val();
@@ -244,17 +245,17 @@ protected:
 
     DECLARE_OPAQUE_VALUE(MD5Val)
 private:
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
-    EVP_MD_CTX* ctx;
-#else
-    MD5_CTX ctx;
-#endif
+    StatePtr ctx = nullptr;
 };
 
 class SHA1Val : public HashVal {
 public:
+    struct State;
+
+    using StatePtr = State*;
+
     template<class T>
-    static void digest(const T& vlist, u_char result[SHA_DIGEST_LENGTH]) {
+    static void digest(const T& vlist, u_char result[ZEEK_SHA_DIGEST_LENGTH]) {
         digest_all(detail::Hash_SHA1, vlist, result);
     }
 
@@ -272,17 +273,17 @@ protected:
 
     DECLARE_OPAQUE_VALUE(SHA1Val)
 private:
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
-    EVP_MD_CTX* ctx;
-#else
-    SHA_CTX ctx;
-#endif
+    StatePtr ctx = nullptr;
 };
 
 class SHA256Val : public HashVal {
 public:
+    struct State;
+
+    using StatePtr = State*;
+
     template<class T>
-    static void digest(const T& vlist, u_char result[SHA256_DIGEST_LENGTH]) {
+    static void digest(const T& vlist, u_char result[ZEEK_SHA256_DIGEST_LENGTH]) {
         digest_all(detail::Hash_SHA256, vlist, result);
     }
 
@@ -300,11 +301,7 @@ protected:
 
     DECLARE_OPAQUE_VALUE(SHA256Val)
 private:
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
-    EVP_MD_CTX* ctx;
-#else
-    SHA256_CTX ctx;
-#endif
+    StatePtr ctx = nullptr;
 };
 
 class EntropyVal : public OpaqueVal {

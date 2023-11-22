@@ -45,7 +45,7 @@ void KeyedHash::InitializeSeeds(const std::array<uint32_t, SEED_INIT_SIZE>& seed
     // yes, we use the same buffer twice to initialize two different keys. This should not really be
     // a security problem of any kind: hmac-md5 is not really used anymore - and even if it was, the
     // hashes should not reveal any information about their initialization vector.
-    static_assert(sizeof(shared_highwayhash_key) == SHA256_DIGEST_LENGTH);
+    static_assert(sizeof(shared_highwayhash_key) == ZEEK_SHA256_DIGEST_LENGTH);
     calculate_digest(Hash_SHA256, (const u_char*)seed_data.data(), sizeof(seed_data) - 16,
                      reinterpret_cast<unsigned char*>(shared_highwayhash_key));
     memcpy(shared_siphash_key, reinterpret_cast<const char*>(seed_data.data()) + 64, 16);

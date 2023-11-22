@@ -13,6 +13,16 @@ Breaking Changes
   namespace were changed to return a reference to a std::shared_ptr instead of a copy
   for performance reasons.
 
+- Zeek's ``OPENSSL_INCLUDE_DIR`` is not automatically added to an external plugin's
+  include path anymore. A plugin using OpenSSL functionality directly can use the
+  following explicit entry to re-use Zeek's ``OPENSSL_INCLUDE_DIR``:
+
+	zeek_add_plugin(
+		Namespace Name
+		INCLUDE_DIRS "${OPENSSL_INCLUDE_DIR}"
+		SOURCES ...
+	)
+
 New Functionality
 -----------------
 
@@ -48,6 +58,11 @@ Changed Functionality
   in the input string.
 
 - Ed25519 and Ed448 DNSKEY and RRSIG entries do not cause weirds anymore.
+
+- The OpenSSL references in ``digest.h`` and ``OpaqueVal.h`` headers have been
+  hidden to avoid unneeded dependencies on OpenSSL headers. Plugins using the
+  detail API from ``digest.h`` to compute hashes likely need to accommodate for
+  this change.
 
 Removed Functionality
 ---------------------

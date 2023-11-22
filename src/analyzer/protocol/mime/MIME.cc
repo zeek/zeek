@@ -2,6 +2,8 @@
 
 #include "zeek/zeek-config.h"
 
+#include <openssl/evp.h>
+
 #include "zeek/Base64.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
@@ -1123,8 +1125,7 @@ TableValPtr MIME_Message::ToHeaderTable(MIME_HeaderList& hlist) {
     return t;
 }
 
-MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
-    : MIME_Message(mail_analyzer), md5_hash() {
+MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size) : MIME_Message(mail_analyzer) {
     analyzer = mail_analyzer;
 
     min_overlap_length = zeek::detail::mime_segment_overlap_length;
@@ -1179,7 +1180,7 @@ void MIME_Mail::Done() {
 
 MIME_Mail::~MIME_Mail() {
     if ( md5_hash )
-        EVP_MD_CTX_free(md5_hash);
+        zeek::detail::hash_state_free(md5_hash);
 
     delete_strings(all_content);
     delete data_buffer;

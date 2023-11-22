@@ -32,6 +32,7 @@ class Val;
 class ListVal;
 class TableVal;
 class StringVal;
+class RecordVal;
 
 template<class T>
 class IntrusivePtr;
@@ -39,6 +40,7 @@ using ValPtr = IntrusivePtr<Val>;
 using ListValPtr = IntrusivePtr<ListVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
 
 } // namespace zeek
 
@@ -263,7 +265,7 @@ protected:
     void Event(EventHandlerPtr e, const DNS_MappingPtr& dm, ListValPtr l1, ListValPtr l2);
     void Event(EventHandlerPtr e, const DNS_MappingPtr& old_dm, DNS_MappingPtr new_dm);
 
-    ValPtr BuildMappingVal(const DNS_MappingPtr& dm);
+    RecordValPtr BuildMappingVal(const DNS_MappingPtr& dm);
 
     void CompareMappings(const DNS_MappingPtr& prev_dm, const DNS_MappingPtr& new_dm);
     ListValPtr AddrListDelta(ListValPtr al1, ListValPtr al2);

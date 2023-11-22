@@ -19,9 +19,9 @@ protected:
 
     void Event(EventHandlerPtr f, ValPtr request, BifEnum::rpc_status status, ValPtr reply);
 
-    ValPtr ExtractMapping(const u_char*& buf, int& len);
-    ValPtr ExtractPortRequest(const u_char*& buf, int& len);
-    ValPtr ExtractCallItRequest(const u_char*& buf, int& len);
+    RecordValPtr ExtractMapping(const u_char*& buf, int& len);
+    RecordValPtr ExtractPortRequest(const u_char*& buf, int& len);
+    RecordValPtr ExtractCallItRequest(const u_char*& buf, int& len);
 };
 
 } // namespace detail

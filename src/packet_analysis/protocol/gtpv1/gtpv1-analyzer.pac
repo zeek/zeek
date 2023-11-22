@@ -33,7 +33,7 @@ static zeek::ValPtr BuildIMSI(const InformationElement* ie)
 	return zeek::val_mgr->Count(ie->imsi()->value());
 	}
 
-static zeek::ValPtr BuildRAI(const InformationElement* ie)
+static zeek::RecordValPtr BuildRAI(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_rai);
 	ev->Assign(0, ie->rai()->mcc());
@@ -83,7 +83,7 @@ static zeek::ValPtr BuildTraceType(const InformationElement* ie)
 	return zeek::val_mgr->Count(ie->trace_type()->value());
 	}
 
-zeek::ValPtr BuildEndUserAddr(const InformationElement* ie)
+zeek::RecordValPtr BuildEndUserAddr(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_end_user_addr);
 	ev->Assign(0, ie->end_user_addr()->pdp_type_org());
@@ -127,7 +127,7 @@ zeek::ValPtr BuildProtoConfigOptions(const InformationElement* ie)
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(d, len, false));
 	}
 
-zeek::ValPtr BuildGSN_Addr(const InformationElement* ie)
+zeek::RecordValPtr BuildGSN_Addr(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_gsn_addr);
 
@@ -153,7 +153,7 @@ zeek::ValPtr BuildMSISDN(const InformationElement* ie)
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String(d, len, false));
 	}
 
-zeek::ValPtr BuildQoS_Profile(const InformationElement* ie)
+zeek::RecordValPtr BuildQoS_Profile(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_qos_profile);
 
@@ -187,7 +187,7 @@ zeek::ValPtr BuildOMC_ID(const InformationElement* ie)
 	return zeek::make_intrusive<zeek::StringVal>(new zeek::String((const u_char*) d, len, false));
 	}
 
-zeek::ValPtr BuildPrivateExt(const InformationElement* ie)
+zeek::RecordValPtr BuildPrivateExt(const InformationElement* ie)
 	{
 	auto ev = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::gtp_private_extension);
 

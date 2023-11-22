@@ -2303,7 +2303,7 @@ TypePtr merge_record_types(const Type* t1, const Type* t2) {
     return make_intrusive<RecordType>(tdl3);
 }
 
-TypePtr merge_list_types(const Type* t1, const Type* t2) {
+TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
     const TypeList* tl1 = t1->AsTypeList();
     const TypeList* tl2 = t2->AsTypeList();
 

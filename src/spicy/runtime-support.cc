@@ -681,9 +681,11 @@ void rt::protocol_handle_close(const ProtocolHandle& handle) {
     c->analyzer->RemoveChildAnalyzer(handle.id());
 }
 
-rt::cookie::FileState* rt::cookie::FileStateStack::push() {
+rt::cookie::FileState* rt::cookie::FileStateStack::push(std::optional<std::string> fid_provided) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file-stack-push");
-    auto fid = file_mgr->HashHandle(hilti::rt::fmt("%s.%d", _analyzer_id, ++_id_counter));
+    auto fid = fid_provided.value_or(file_mgr->HashHandle(hilti::rt::fmt("%s.%d", _analyzer_id, ++_id_counter)));
+    if ( find(fid) )
+        throw InvalidValue(hilti::rt::fmt("Duplicate file id %s provided", fid));
     _stack.emplace_back(fid);
     return &_stack.back();
 }
@@ -774,10 +776,10 @@ std::string rt::fuid() {
     throw ValueUnavailable("fuid() not available in current context");
 }
 
-std::string rt::file_begin(const std::optional<std::string>& mime_type) {
+std::string rt::file_begin(const std::optional<std::string>& mime_type, const std::optional<std::string>& fuid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_begin");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    auto* fstate = _file_state_stack(cookie)->push();
+    auto* fstate = _file_state_stack(cookie)->push(fuid);
     fstate->mime_type = mime_type;
 
     // Feed an empty chunk into the analysis to force creating the file state inside Zeek.

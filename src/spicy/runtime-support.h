@@ -382,9 +382,10 @@ void protocol_handle_close(const ProtocolHandle& handle);
  * with the current connection.
  *
  * @param mime_type optional mime type passed to Zeek
+ * @param fid optional file ID passed to Zeek
  * @returns Zeek-side file ID of the new file
  */
-std::string file_begin(const std::optional<std::string>& mime_type);
+std::string file_begin(const std::optional<std::string>& mime_type, const std::optional<std::string>& fid);
 
 /**
  * Returns the current file's FUID.

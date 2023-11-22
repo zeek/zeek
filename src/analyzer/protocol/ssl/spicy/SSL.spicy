@@ -2,6 +2,11 @@ module SSL;
 
 import spicy;
 
+public function get_fuid(
+  is_client: bool,
+  pos: uint32
+): string &cxxname="ssl_get_fuid";
+
 type ContentType = enum {
   change_cipher_spec = 20,
   alert = 21,
@@ -570,6 +575,8 @@ type Share = unit {
   var server_encrypted: bool;
   var both_sides_encrypted_first_time: bool;
   var established: bool;
+  var client_certificate_depth: uint32;
+  var server_certificate_depth: uint32;
 
   on %init {
     self.ccs_seen = 0;
@@ -582,6 +589,8 @@ type Share = unit {
     self.client_encrypted = False;
     self.both_sides_encrypted_first_time = False;
     self.established = False;
+    self.client_certificate_depth = 0;
+    self.server_certificate_depth = 0;
   }
 };
 
@@ -827,7 +836,7 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
     HandshakeType::server_hello_done -> : bytes &size=self.length; # Fixme: alert if length != 0
     HandshakeType::hello_verify_request -> hello_verify_request: HelloVerifyRequest;
     HandshakeType::server_hello -> server_hello: ServerHelloChoice(self.length, msg, sh);
-    HandshakeType::certificate -> certificate: Certificate;
+    HandshakeType::certificate -> certificate: Certificate(sh);
     HandshakeType::certificate_request -> certificate_request: CertificateRequest(sh);
     HandshakeType::certificate_verify -> : bytes &size=self.length; # opaque encrypted data
     HandshakeType::client_key_exchange -> client_key_exchange: ClientKeyExchange(sh, self.length);
@@ -1728,7 +1737,7 @@ type NewSessionTicket = unit {
   ticket: bytes &size=self.ticket_length;
 };
 
-type Certificate = unit {
+type Certificate = unit(inout sh: Share) {
   length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network);
   certificate_list: SingleCertificate[] &size=self.length;
 };
@@ -1812,6 +1821,19 @@ public function get_direction(sh: Share) : bool {
     return zeek::is_orig();
 }
 
+# returns the current certificate depth and increases it by one
+public function get_and_increase_certificate_depth(inout sh: Share) : uint32 {
+  local certificate_depth: uint32 = 0;
+  if ( get_direction(sh) ) {
+    certificate_depth = sh.client_certificate_depth;
+    sh.client_certificate_depth += 1;
+  } else {
+    certificate_depth = sh.server_certificate_depth;
+    sh.server_certificate_depth += 1;
+  }
+  return certificate_depth;
+}
+
 # If this function returns True, you have to send the ssl_connection_flipped event!
 public function check_direction(inout sh: Share, desired: bool) : bool {
   if ( sh.flipped ) {
@@ -1854,9 +1876,9 @@ on SSL::Certificate::%done {
   for ( i in self.certificate_list )
     {
     if ( first )
-      zeek::file_begin("application/x-x509-user-cert");
+      zeek::file_begin("application/x-x509-user-cert", get_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
     else
-      zeek::file_begin("application/x-x509-ca-cert");
+      zeek::file_begin("application/x-x509-ca-cert", get_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
     zeek::file_data_in(i.cert);
     zeek::file_end();
     first = False;

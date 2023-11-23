@@ -719,6 +719,13 @@ export {
 	##
 	## Returns: ``T`` on success, else ``F``.
 	global set_max_delay_queue_size: function(id: Log::ID, queue_size: count): bool;
+
+	## Get the current size of the delay queue for a stream.
+	##
+	## id: The ID associated with a logging stream.
+	##
+	## Returns: The current size of the delay queue, or -1 on error.
+	global get_delay_queue_size: function(id: Log::ID): int;
 }
 
 global all_streams: table[ID] of Stream = table();
@@ -1065,4 +1072,9 @@ function set_max_delay_queue_size(id: Log::ID, max_size: count): bool
 	all_streams[id]$max_delay_queue_size = max_size;
 
 	return T;
+	}
+
+function get_delay_queue_size(id: Log::ID): int
+	{
+	return Log::__get_delay_queue_size(id);
 	}

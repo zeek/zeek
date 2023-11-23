@@ -237,6 +237,15 @@ public:
     bool SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t max_queue_length);
 
     /**
+     * Returns the current size for the delay queue for the stream identified by \a id.
+     *
+     * @param id The enum value corresponding to the log stream.
+     *
+     * @return The size of the delay queue or -1 on error.
+     */
+    zeek_int_t GetDelayQueueSize(const EnumValPtr& id);
+
+    /**
      * Create a new log writer frontend. This is exposed so that the
      * communication system can recreate remote log streams locally.
      *

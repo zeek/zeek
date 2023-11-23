@@ -145,3 +145,12 @@ function Log::__set_max_delay_queue_size%(id: Log::ID, max_queue_size: count%): 
         bool result = zeek::log_mgr->SetMaxDelayQueueSize(idptr, max_queue_size);
         return zeek::val_mgr->Bool(result);
         %}
+
+function Log::__get_delay_queue_size%(id: Log::ID%): int
+        %{
+        auto idptr = enum_ref(id);
+        if ( ! idptr )
+                return zeek::val_mgr->Bool(false);
+
+        return zeek::val_mgr->Int(zeek::log_mgr->GetDelayQueueSize(idptr));
+        %}

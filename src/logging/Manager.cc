@@ -1312,6 +1312,14 @@ bool Manager::SetMaxDelayInterval(const EnumValPtr& id, double delay) {
     return true;
 }
 
+zeek_int_t Manager::GetDelayQueueSize(const EnumValPtr& id) {
+    Stream* stream = FindStream(id.get());
+    if ( ! stream )
+        return -1;
+
+    return stream->delay_queue.size();
+}
+
 bool Manager::SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t queue_size) {
     Stream* stream = FindStream(id.get());
     if ( ! stream )

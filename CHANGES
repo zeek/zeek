@@ -1,3 +1,14 @@
+6.2.0-dev.187 | 2023-11-23 17:19:51 +0000
+
+  * Spicy: allow providing file id in zeek::file_begin (Johanna Amann, Corelight)
+
+    Allow spicy parsers to generate their own file IDs and provide them to
+    Zeek. This duplicates functionality that is currently possible (and
+    used) by some binpac-based analyzers. One example for an analyzer
+    creating its own file IDs is the SSL analyzer.
+
+  * Bump cmake submodule for INCLUDE_DIRS fix (Arne Welzel, Corelight)
+
 6.2.0-dev.180 | 2023-11-22 10:34:18 +0100
 
   * Integrate review feedback (Dominik Charousset, Corelight)

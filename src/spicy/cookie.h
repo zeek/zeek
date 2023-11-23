@@ -50,8 +50,9 @@ public:
     /**
      * Begins analysis for a new file, pushing a new state object onto the
      * stack.
+     * @param fid Optional precomputed file ID to use for the new file.
      */
-    FileState* push();
+    FileState* push(std::optional<std::string> fid = {});
 
     /** Returns true if the stack is currently empty. */
     bool isEmpty() const { return _stack.empty(); }

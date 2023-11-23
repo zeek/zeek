@@ -686,8 +686,12 @@ rt::cookie::FileState* rt::cookie::FileStateStack::push(std::optional<std::strin
     if ( fid_provided && find(*fid_provided) )
         throw InvalidValue(hilti::rt::fmt("Duplicate file id %s provided", *fid_provided));
 
-    auto fid = fid_provided.value_or(file_mgr->HashHandle(hilti::rt::fmt("%s.%d", _analyzer_id, ++_id_counter)));
-    _stack.emplace_back(fid);
+    std::string fid;
+    if ( fid_provided )
+        fid = *fid_provided;
+    else
+        fid = file_mgr->HashHandle(hilti::rt::fmt("%s.%d", _analyzer_id, ++_id_counter));
+    _stack.emplace_back(std::move(fid));
     return &_stack.back();
 }
 

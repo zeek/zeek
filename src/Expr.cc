@@ -431,7 +431,8 @@ ValPtr NameExpr::Eval(Frame* f) const {
     if ( v )
         return v;
     else {
-        RuntimeError("value used but not set");
+        if ( f )
+            RuntimeError("value used but not set");
         return nullptr;
     }
 }

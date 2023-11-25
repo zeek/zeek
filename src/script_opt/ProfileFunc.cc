@@ -8,6 +8,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/Stmt.h"
+#include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/IDOptInfo.h"
 
 namespace zeek::detail {
@@ -147,6 +148,15 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
                 expr_switches.insert(sw);
         } break;
 
+        case STMT_ADD:
+        case STMT_DELETE: {
+            auto ad_stmt = static_cast<const AddDelStmt*>(s);
+            auto ad_e = ad_stmt->StmtExpr();
+            auto& lhs_t = ad_e->GetOp1()->GetType();
+            if ( lhs_t->Tag() == TYPE_TABLE )
+                aggr_mods.insert(lhs_t.get());
+        } break;
+
         default: break;
     }
 
@@ -199,16 +209,18 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             break;
         }
 
-        case EXPR_FIELD:
-            if ( abs_rec_fields ) {
-                auto f = e->AsFieldExpr()->Field();
+        case EXPR_FIELD: {
+            auto f = e->AsFieldExpr()->Field();
+            if ( abs_rec_fields )
                 addl_hashes.push_back(p_hash(f));
-            }
             else {
                 auto fn = e->AsFieldExpr()->FieldName();
                 addl_hashes.push_back(p_hash(fn));
             }
-            break;
+            aggr_refs.insert(std::make_pair(e->GetOp1()->GetType().get(), f));
+        }
+
+        break;
 
         case EXPR_HAS_FIELD:
             if ( abs_rec_fields ) {
@@ -221,32 +233,62 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             }
             break;
 
+        case EXPR_INDEX: {
+            auto lhs_t = e->GetOp1()->GetType();
+            if ( lhs_t->Tag() == TYPE_TABLE )
+                aggr_refs.insert(std::make_pair(lhs_t.get(), 0));
+        } break;
+
         case EXPR_INCR:
         case EXPR_DECR:
         case EXPR_ADD_TO:
         case EXPR_REMOVE_FROM:
         case EXPR_ASSIGN: {
-            if ( e->GetOp1()->Tag() != EXPR_REF )
-                // this isn't a direct assignment
+            auto lhs = e->GetOp1();
+
+            if ( lhs->Tag() == EXPR_REF )
+                lhs = lhs->GetOp1();
+
+            else if ( e->Tag() == EXPR_ASSIGN )
+                // This isn't a direct assignment, but instead an overloaded
+                // use of "=" such as in a table constructor.
                 break;
 
-            auto lhs = e->GetOp1()->GetOp1();
-            if ( lhs->Tag() != EXPR_NAME )
-                break;
-
-            auto id = lhs->AsNameExpr()->Id();
-            TrackAssignment(id);
-
-            if ( e->Tag() == EXPR_ASSIGN ) {
-                auto a_e = static_cast<const AssignExpr*>(e);
-                auto& av = a_e->AssignVal();
-                if ( av )
-                    // This is a funky "local" assignment
-                    // inside a when clause.
-                    when_locals.insert(id);
+            auto lhs_t = lhs->GetType();
+            if ( IsAggr(lhs_t->Tag()) ) {
+                // Determine which aggregate is being modified.  For an
+                // assignment "a[b] = aggr", it's not a[b]'s type but rather
+                // a's type. However, for any of the others, e.g. "a[b] -= aggr"
+                // it is a[b]'s type.
+                if ( e->Tag() == EXPR_ASSIGN ) {
+                    // The following might be nil for an assignment like
+                    // "aggr = new_val".
+                    auto lhs_parent = lhs->GetOp1();
+                    if ( lhs_parent )
+                        aggr_mods.insert(lhs_parent->GetType().get());
+                }
+                else
+                    // Operation directly modifies LHS.
+                    aggr_mods.insert(lhs_t.get());
             }
-            break;
-        }
+
+            if ( lhs->Tag() == EXPR_NAME ) {
+                auto id = lhs->AsNameExpr()->Id();
+                TrackAssignment(id);
+
+                if ( e->Tag() == EXPR_ASSIGN ) {
+                    auto a_e = static_cast<const AssignExpr*>(e);
+                    auto& av = a_e->AssignVal();
+                    if ( av )
+                        // This is a funky "local" assignment
+                        // inside a when clause.
+                        when_locals.insert(id);
+                }
+                break;
+            }
+
+
+        } break;
 
         case EXPR_CALL: {
             auto c = e->AsCallExpr();
@@ -272,8 +314,8 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 auto func_vf = func_v->AsFunc();
 
                 if ( func_vf->GetKind() == Func::SCRIPT_FUNC ) {
-                    auto bf = static_cast<ScriptFunc*>(func_vf);
-                    script_calls.insert(bf);
+                    auto sf = static_cast<ScriptFunc*>(func_vf);
+                    script_calls.insert(sf);
                 }
                 else
                     BiF_globals.insert(func);
@@ -329,8 +371,9 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             // In general, we don't want to recurse into the body.
             // However, we still want to *profile* it so we can
             // identify calls within it.
-            ProfileFunc body_pf(l->Ingredients()->Body().get(), false);
-            script_calls.insert(body_pf.ScriptCalls().begin(), body_pf.ScriptCalls().end());
+            auto pf = std::make_shared<ProfileFunc>(l->Ingredients()->Body().get(), false);
+            // func_profs[l->PrimaryFunc()] = pf;
+            script_calls.insert(pf->ScriptCalls().begin(), pf->ScriptCalls().end());
 
             return TC_ABORTSTMT;
         }
@@ -340,7 +383,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             const auto& attrs = sc->GetAttrs();
 
             if ( attrs )
-                constructor_attrs.insert(attrs.get());
+                constructor_attrs[attrs.get()] = sc->GetType();
         } break;
 
         case EXPR_TABLE_CONSTRUCTOR: {
@@ -348,7 +391,17 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             const auto& attrs = tc->GetAttrs();
 
             if ( attrs )
-                constructor_attrs.insert(attrs.get());
+                constructor_attrs[attrs.get()] = tc->GetType();
+        } break;
+
+        case EXPR_RECORD_COERCE:
+        case EXPR_TABLE_COERCE: {
+            auto res_type = e->GetType().get();
+            auto orig_type = e->GetOp1()->GetType().get();
+            if ( type_aliases.count(res_type) == 0 )
+                type_aliases[orig_type] = {res_type};
+            else
+                type_aliases[orig_type].insert(res_type);
         } break;
 
         default: break;
@@ -395,6 +448,9 @@ void ProfileFunc::TrackAssignment(const ID* id) {
         ++assignees[id];
     else
         assignees[id] = 1;
+
+    if ( id->IsGlobal() || captures.count(id) > 0 )
+        non_local_assignees.insert(id);
 }
 
 ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _full_record_hashes) {
@@ -432,6 +488,8 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
         // Computing those hashes could have led to traversals that
         // create more pending expressions to analyze.
     } while ( ! pending_exprs.empty() );
+
+    ComputeSideEffects();
 }
 
 void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
@@ -460,7 +518,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
 
         auto& attrs = g->GetAttrs();
         if ( attrs )
-            AnalyzeAttrs(attrs.get());
+            AnalyzeAttrs(attrs.get(), t.get());
     }
 
     constants.insert(pf->Constants().begin(), pf->Constants().end());
@@ -475,7 +533,13 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
     }
 
     for ( auto& a : pf->ConstructorAttrs() )
-        AnalyzeAttrs(a);
+        AnalyzeAttrs(a.first, a.second.get());
+
+    for ( auto& ta : pf->TypeAliases() ) {
+        if ( type_aliases.count(ta.first) == 0 )
+            type_aliases[ta.first] = std::set<const Type*>{};
+        type_aliases[ta.first].insert(ta.second.begin(), ta.second.end());
+    }
 }
 
 void ProfileFuncs::TraverseValue(const ValPtr& v) {
@@ -579,8 +643,12 @@ void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
         if ( ! f.ShouldSkip() )
             ComputeProfileHash(f.ProfilePtr());
 
-    for ( auto& l : lambdas )
-        ComputeProfileHash(ExprProf(l));
+    for ( auto& l : lambdas ) {
+        auto pf = ExprProf(l);
+        printf("adding lambda profile for %s (%p)\n", l->PrimaryFunc()->Name(), l->PrimaryFunc().get());
+        func_profs[l->PrimaryFunc().get()] = pf;
+        ComputeProfileHash(pf);
+    }
 }
 
 void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {
@@ -713,7 +781,7 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
                 if ( f->attrs ) {
                     if ( do_hash )
                         h = merge_p_hashes(h, HashAttrs(f->attrs));
-                    AnalyzeAttrs(f->attrs.get());
+                    AnalyzeAttrs(f->attrs.get(), t, i);
                 }
             }
         } break;
@@ -731,8 +799,24 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
             auto ft = t->AsFuncType();
             auto flv = ft->FlavorString();
             h = merge_p_hashes(h, p_hash(flv));
+
+            // We deal with the parameters individually, rather than just
+            // recursing into the RecordType that's used (for convenience)
+            // to represent them. We do so because their properties are
+            // somewhat different - in particular, an &default on a parameter
+            // field is resolved in the context of the caller, not the
+            // function itself, and so we don't want to track those as
+            // attributes associated with the function body's execution.
             h = merge_p_hashes(h, p_hash("params"));
-            h = merge_p_hashes(h, HashType(ft->Params()));
+            auto params = ft->Params()->Types();
+
+            if ( params ) {
+                h = merge_p_hashes(h, p_hash(params->length()));
+
+                for ( auto p : *params )
+                    h = merge_p_hashes(h, HashType(p->type));
+            }
+
             h = merge_p_hashes(h, p_hash("func-yield"));
             h = merge_p_hashes(h, HashType(ft->Yield()));
         } break;
@@ -803,18 +887,269 @@ p_hash_type ProfileFuncs::HashAttrs(const AttributesPtr& Attrs) {
     return h;
 }
 
-void ProfileFuncs::AnalyzeAttrs(const Attributes* Attrs) {
-    auto attrs = Attrs->GetAttrs();
+extern const char* attr_name(AttrTag t);
 
-    for ( const auto& a : attrs ) {
-        const Expr* e = a->GetExpr().get();
+void ProfileFuncs::AnalyzeAttrs(const Attributes* attrs, const Type* t, int field) {
+    for ( const auto& a : attrs->GetAttrs() ) {
+        auto& e = a->GetExpr();
 
-        if ( e ) {
-            pending_exprs.push_back(e);
-            if ( e->Tag() == EXPR_LAMBDA )
-                lambdas.insert(e->AsLambdaExpr());
+        if ( ! e )
+            continue;
+
+        pending_exprs.push_back(e.get());
+
+        auto prev_ea = expr_attrs.find(a.get());
+        if ( prev_ea == expr_attrs.end() )
+            expr_attrs[a.get()] = {std::pair<const Type*, int>{t, field}};
+        else {
+            // Add it if new. This is rare, but can arise due to attributes
+            // being shared for example from initializers with a variable
+            // itself.
+            bool found = false;
+            for ( auto ea : prev_ea->second )
+                if ( ea.first == t && ea.second == field ) {
+                    found = true;
+                    break;
+                }
+
+            if ( ! found )
+                prev_ea->second.emplace_back(std::pair<const Type*, int>{t, field});
+        }
+
+        if ( e->Tag() == EXPR_LAMBDA )
+            lambdas.insert(e->AsLambdaExpr());
+
+#if 0
+        // If this is an attribute that can be triggered by statement/expression
+        // execution, then we need to determine any modifications it might make
+	// to non-local state.
+        auto at = a->Tag();
+        if ( at != ATTR_DEFAULT && at != ATTR_DEFAULT_INSERT && at != ATTR_ON_CHANGE )
+            continue;
+
+	if ( ! CouldHaveSideEffects(e) )
+		continue;
+
+	std::vector<SensitiveType> changes;
+	GetExprChangesToLocalState(e, changes);
+
+	if ( ! changes.empty() )
+		printf("problematic expr: %s\n", obj_desc(e.get()).c_str());
+#endif
+    }
+}
+
+void ProfileFuncs::ComputeSideEffects() {
+    // Computing side effects is an iterative process, because whether
+    // a given expression has a side effect can depend on whether it
+    // includes accesses to types that have side effects.
+
+    // Step one: assemble a candidate pool of attributes to assess.
+    for ( auto& ea : expr_attrs ) {
+        // Is this an attribute that can be triggered by
+        // statement/expression execution?
+        auto a = ea.first;
+        auto at = a->Tag();
+        if ( at == ATTR_DEFAULT || at == ATTR_DEFAULT_INSERT || at == ATTR_ON_CHANGE ) {
+            // Weed out very-common-and-completely-safe expressions.
+            if ( DefinitelyHasNoSideEffects(a->GetExpr()) )
+                continue;
+
+            printf("adding candidate %s\n", obj_desc(a).c_str());
+            candidates.insert(a);
         }
     }
+
+    std::vector<std::shared_ptr<SideEffectsOp>> side_effects;
+
+    while ( ! candidates.empty() ) {
+        std::unordered_set<const Attr*> made_decision;
+
+        for ( auto c : candidates ) {
+            IDSet non_local_ids;
+            std::unordered_set<const Type*> aggrs;
+            bool is_unknown = false;
+
+            if ( ! AssessSideEffects(c->GetExpr(), non_local_ids, aggrs, is_unknown) )
+                // Can't make a decision yet.
+                continue;
+
+            made_decision.insert(c);
+            auto& effects_vec = attr_side_effects[c] = std::vector<std::shared_ptr<SideEffectsOp>>{};
+
+            if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown )
+                // Definitely no side effects.
+                continue;
+
+            // Track the associated side effects.
+            auto at = c->Tag() == ATTR_ON_CHANGE ? SideEffectsOp::WRITE : SideEffectsOp::READ;
+            for ( auto& ea : expr_attrs[c] ) {
+                auto seo = std::make_shared<SideEffectsOp>(at, ea.first, ea.second);
+                seo->AddModNonGlobal(non_local_ids);
+                seo->AddModAggrs(aggrs);
+
+                if ( is_unknown )
+                    seo->SetUnknownChanges();
+
+                effects_vec.push_back(seo);
+                side_effects.push_back(std::move(seo));
+            }
+        }
+
+        ASSERT(! made_decision.empty());
+        for ( auto md : made_decision )
+            candidates.erase(md);
+    }
+}
+
+bool ProfileFuncs::DefinitelyHasNoSideEffects(const ExprPtr& e) const {
+    if ( e->Tag() == EXPR_CONST || e->Tag() == EXPR_VECTOR_CONSTRUCTOR )
+        return true;
+
+    if ( e->Tag() == EXPR_NAME )
+        return e->GetType()->Tag() != TYPE_FUNC;
+
+    auto ep = expr_profs.find(e.get());
+    ASSERT(ep != expr_profs.end());
+
+    const auto& pf = ep->second;
+
+    if ( ! pf->NonLocalAssignees().empty() || ! pf->AggrRefs().empty() || ! pf->AggrMods().empty() ||
+         ! pf->ScriptCalls().empty() )
+        return false;
+
+    for ( auto& b : pf->BiFGlobals() )
+        if ( ! is_side_effect_free(b->Name()) )
+            return false;
+
+    return true;
+}
+
+std::vector<const Attr*> ProfileFuncs::AssociatedAttrs(const Type* t, int f) {
+    std::vector<const Attr*> assoc_attrs;
+
+    for ( auto c : candidates )
+        for ( auto& ea : expr_attrs[c] )
+            for ( auto ta : type_aliases[ea.first] )
+                if ( same_type(t, ta) && f == ea.second ) {
+                    assoc_attrs.push_back(c);
+                    break;
+                }
+
+    return assoc_attrs;
+}
+
+bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs,
+                                     bool& is_unknown) {
+    std::shared_ptr<ProfileFunc> pf;
+
+    if ( e->Tag() == EXPR_NAME && e->GetType()->Tag() == TYPE_FUNC ) {
+        // This occurs when the expression is itself a function name, and
+        // in an attribute context indicates an implicit call.
+        auto fid = e->AsNameExpr()->Id();
+        auto fv = fid->GetVal();
+
+        if ( ! fv || ! fid->IsConst() ) {
+            // The value is unavailable (likely a bug), or might change
+            // at run-time.
+            is_unknown = true;
+            return true;
+        }
+
+        auto func = fv->AsFunc();
+        if ( func->GetKind() == Func::BUILTIN_FUNC ) {
+            if ( ! is_side_effect_free(func->Name()) )
+                is_unknown = true;
+            return true;
+        }
+
+        auto sf = static_cast<ScriptFunc*>(func);
+        if ( func_profs.count(sf) == 0 ) {
+            printf("no function profile for %s / %s (%p)\n", obj_desc(e.get()).c_str(), sf->Name(), sf);
+            is_unknown = true;
+            return true;
+        }
+
+        pf = func_profs[sf];
+    }
+    else {
+        ASSERT(expr_profs.count(e.get()) > 0);
+        pf = expr_profs[e.get()];
+    }
+
+    return AssessSideEffects(pf.get(), non_local_ids, aggrs, is_unknown);
+}
+
+bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids,
+                                     std::unordered_set<const Type*>& aggrs, bool& is_unknown) {
+    if ( pf->DoesIndirectCalls() )
+        is_unknown = true;
+
+    for ( auto& b : pf->BiFGlobals() )
+        if ( ! is_side_effect_free(b->Name()) ) {
+            is_unknown = true;
+            break;
+        }
+
+    IDSet nla;
+    std::unordered_set<const Type*> mod_aggrs;
+
+    for ( auto& a : pf->NonLocalAssignees() )
+        nla.insert(a);
+
+    for ( auto& r : pf->AggrRefs() )
+        if ( ! AssessAggrEffects(SideEffectsOp::READ, r.first, r.second, nla, mod_aggrs, is_unknown) )
+            return is_unknown;
+
+    for ( auto& a : pf->AggrMods() )
+        if ( ! AssessAggrEffects(SideEffectsOp::WRITE, a, 0, nla, mod_aggrs, is_unknown) )
+            return is_unknown;
+
+    for ( auto& f : pf->ScriptCalls() ) {
+        auto pff = func_profs[f];
+        if ( active_func_profiles.count(pff) > 0 )
+            continue;
+
+        active_func_profiles.insert(pff);
+        auto a = AssessSideEffects(pff.get(), nla, mod_aggrs, is_unknown);
+        active_func_profiles.erase(pff);
+
+        if ( ! a )
+            return is_unknown;
+    }
+
+    non_local_ids.insert(nla.begin(), nla.end());
+    aggrs.insert(mod_aggrs.begin(), mod_aggrs.end());
+
+    return true;
+}
+
+bool ProfileFuncs::AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, int f, IDSet& non_local_ids,
+                                     std::unordered_set<const Type*>& aggrs, bool& is_unknown) {
+    auto assoc_attrs = AssociatedAttrs(t, f);
+
+    for ( auto a : assoc_attrs ) {
+        auto ase = attr_side_effects.find(a);
+        if ( ase == attr_side_effects.end() )
+            return false;
+
+        for ( auto& se : ase->second ) {
+            if ( se->GetAccessType() != access )
+                continue;
+
+            if ( se->HasUnknownChanges() ) {
+                is_unknown = true;
+                return true;
+            }
+
+            for ( auto a : se->ModAggrs() )
+                aggrs.insert(a);
+            for ( auto nl : se->ModNonLocals() )
+                non_local_ids.insert(nl);
+        }
+    }
+
+    return true;
 }
 
 } // namespace zeek::detail

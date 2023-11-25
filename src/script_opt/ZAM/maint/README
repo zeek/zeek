@@ -1,0 +1,14 @@
+This directory holds scripts and associated data to support maintenance of
+ZAM optimization:
+
+list-bifs.zeek
+	A Zeek script that prints to stdout a list of the BiFs available
+	for the Zeek invocation.
+
+	Use this to compare with BiFs.list to see whether there are any
+	new BiFs (or old ones that have been removed). If so, update
+	src/script_opt/FuncInfo.cc and then BiFs.list accordingly.
+
+BiFs.list
+	The BiFs that were present last time ZAM maintenance included
+	looking for any updates to available BiFs.

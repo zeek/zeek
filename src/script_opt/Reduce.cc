@@ -911,6 +911,31 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
         case EXPR_CALL:
             if ( sensitive_to_calls ) {
+                auto c = e->AsCallExpr();
+                auto func = c->Func();
+                std::string desc;
+                if ( func->Tag() == EXPR_NAME ) {
+                    auto f = func->AsNameExpr()->Id();
+                    if ( f->IsGlobal() ) {
+                        auto func_v = f->GetVal();
+                        if ( func_v ) {
+                            auto func_vf = func_v->AsFunc();
+
+                            if ( func_vf->GetKind() == Func::SCRIPT_FUNC )
+                                desc = "script";
+                            else
+                                desc = "BiF";
+                        }
+                        else
+                            desc = "missing";
+                    }
+                    else
+                        desc = "indirect";
+                }
+                else
+                    desc = "compound-indirect";
+
+                // printf("call sensitivity: %s %s\n", desc.c_str(), obj_desc(e).c_str());
                 is_valid = false;
                 return TC_ABORTALL;
             }

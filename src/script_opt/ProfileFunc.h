@@ -37,6 +37,7 @@
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 #include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/SideEffects.h"
 
 namespace zeek::detail {
 
@@ -93,6 +94,9 @@ public:
     const IDSet& WhenLocals() const { return when_locals; }
     const IDSet& Params() const { return params; }
     const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
+    const std::unordered_set<const ID*>& NonLocalAssignees() const { return non_local_assignees; }
+    const auto& AggrRefs() const { return aggr_refs; }
+    const auto& AggrMods() const { return aggr_mods; }
     const IDSet& Inits() const { return inits; }
     const std::vector<const Stmt*>& Stmts() const { return stmts; }
     const std::vector<const Expr*>& Exprs() const { return exprs; }
@@ -102,14 +106,15 @@ public:
     const std::vector<const ID*>& OrderedIdentifiers() const { return ordered_ids; }
     const std::unordered_set<const Type*>& UnorderedTypes() const { return types; }
     const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
+    const auto& TypeAliases() const { return type_aliases; }
     const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
     const IDSet& BiFGlobals() const { return BiF_globals; }
     const std::unordered_set<std::string>& Events() const { return events; }
-    const std::unordered_set<const Attributes*>& ConstructorAttrs() const { return constructor_attrs; }
+    const std::unordered_map<const Attributes*, TypePtr>& ConstructorAttrs() const { return constructor_attrs; }
     const std::unordered_set<const SwitchStmt*>& ExprSwitches() const { return expr_switches; }
     const std::unordered_set<const SwitchStmt*>& TypeSwitches() const { return type_switches; }
 
-    bool DoesIndirectCalls() { return does_indirect_calls; }
+    bool DoesIndirectCalls() const { return does_indirect_calls; }
 
     int NumParams() const { return num_params; }
     int NumLambdas() const { return lambdas.size(); }
@@ -175,6 +180,12 @@ protected:
     // captured in "inits".
     std::unordered_map<const ID*, int> assignees;
 
+    // ###
+    std::unordered_set<const ID*> non_local_assignees;
+
+    std::set<std::pair<const Type*, int>> aggr_refs;
+    std::unordered_set<const Type*> aggr_mods;
+
     // Same for locals seen in initializations, so we can find,
     // for example, unused aggregates.
     IDSet inits;
@@ -211,8 +222,12 @@ protected:
     // the same type can be seen numerous times.
     std::unordered_set<const Type*> types;
 
+    std::unordered_map<const Type*, std::set<const Type*>> type_aliases;
+
     // The same, but in a deterministic order, with duplicates removed.
     std::vector<const Type*> ordered_types;
+
+    std::unordered_set<const Type*> modified_aggrs;
 
     // Script functions that this script calls.  Includes calls made
     // by lambdas and when bodies, as the goal is to identify recursion.
@@ -229,7 +244,7 @@ protected:
     std::unordered_set<std::string> events;
 
     // Attributes seen in set or table constructors.
-    std::unordered_set<const Attributes*> constructor_attrs;
+    std::unordered_map<const Attributes*, TypePtr> constructor_attrs;
 
     // Switch statements with either expression cases or type cases.
     std::unordered_set<const SwitchStmt*> expr_switches;
@@ -286,10 +301,16 @@ public:
     const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
     const std::unordered_set<std::string>& Events() const { return events; }
 
-    std::shared_ptr<ProfileFunc> FuncProf(const ScriptFunc* f) { return func_profs[f]; }
+    // ### Might not be needed if the lambda is found in ExprProf.
+    const auto& FuncProfs() const { return func_profs; }
 
-    // This is only externally germane for LambdaExpr's.
+    // Profiles associated with LambdaExpr's and expressions appearing in
+    // attributes.
     std::shared_ptr<ProfileFunc> ExprProf(const Expr* e) { return expr_profs[e]; }
+
+    // Expression-valued attributes that appear in the context of different
+    // types.
+    const auto& ExprAttrs() const { return expr_attrs; }
 
     // Returns the "representative" Type* for the hash associated with
     // the parameter (which might be the parameter itself).
@@ -332,8 +353,25 @@ protected:
     void ComputeProfileHash(std::shared_ptr<ProfileFunc> pf);
 
     // Analyze the expressions and lambdas appearing in a set of
-    // attributes.
-    void AnalyzeAttrs(const Attributes* Attrs);
+    // attributes, in the context of a given type.  "field" is only
+    // meaningful if "t" is a RecordType.
+    void AnalyzeAttrs(const Attributes* attrs, const Type* t, int field = 0);
+
+    void ComputeSideEffects();
+
+    bool DefinitelyHasNoSideEffects(const ExprPtr& e) const;
+
+    std::vector<const Attr*> AssociatedAttrs(const Type* t, int f);
+
+    // ### False on can't-make-decision-yet
+    bool AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, std::unordered_set<const Type*>& types,
+                           bool& is_unknown);
+    bool AssessSideEffects(const ProfileFunc* e, IDSet& non_local_ids, std::unordered_set<const Type*>& types,
+                           bool& is_unknown);
+
+    // ### const? etc.
+    bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, int f, IDSet& non_local_ids,
+                           std::unordered_set<const Type*>& aggrs, bool& is_unknown);
 
     // Globals seen across the functions, other than those solely seen
     // as the function being called in a call.
@@ -357,6 +395,9 @@ protected:
     // Maps a type to its representative (which might be itself).
     std::unordered_map<const Type*, const Type*> type_to_rep;
 
+    // ###
+    std::unordered_map<const Type*, std::set<const Type*>> type_aliases;
+
     // Script functions that get called.
     std::unordered_set<ScriptFunc*> script_calls;
 
@@ -369,7 +410,7 @@ protected:
     // Names of generated events.
     std::unordered_set<std::string> events;
 
-    // Maps script functions to associated profiles.  This isn't
+    // ### Maps script functions to associated profiles.  This isn't
     // actually well-defined in the case of event handlers and hooks,
     // which can have multiple bodies.  However, the need for this
     // is temporary (it's for skipping compilation of functions that
@@ -381,8 +422,21 @@ protected:
     // management.
     std::unordered_map<const Expr*, std::shared_ptr<ProfileFunc>> expr_profs;
 
+    // Maps expression-valued attributes to a collection of types in which
+    // the attribute appears. For records, the mapping also includes the
+    // field offset in the record.
+    std::unordered_map<const Attr*, std::vector<std::pair<const Type*, int>>> expr_attrs;
+
+    std::unordered_map<const Attr*, std::vector<std::shared_ptr<SideEffectsOp>>> attr_side_effects;
+
     // These remaining member variables are only used internally,
     // not provided via accessors:
+
+    // ###
+    std::unordered_set<const Attr*> candidates;
+
+    // ###
+    std::unordered_set<std::shared_ptr<ProfileFunc>> active_func_profiles;
 
     // Maps types to their hashes.
     std::unordered_map<const Type*, p_hash_type> type_hashes;
@@ -399,6 +453,10 @@ protected:
     // profile.  These can arise for example due to lambdas or
     // record attributes.
     std::vector<const Expr*> pending_exprs;
+
+    // ###
+    std::vector<std::shared_ptr<SideEffectsOp>> side_effects_ops;
+
 
     // Whether the hashes for extended records should cover their final,
     // full form, or only their original fields.

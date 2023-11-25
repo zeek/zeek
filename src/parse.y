@@ -132,6 +132,10 @@ std::string zeek::detail::current_module = GLOBAL_MODULE_NAME;
 
 bool is_export = false; // true if in an export {} block
 
+// Used to temporarily turn off "is_export". A stack because the need
+// to do so can nest.
+std::vector<bool> hold_is_export;
+
 // When parsing an expression for the debugger, where to put the result
 // (obviously not reentrant).
 extern Expr* g_curr_debug_expr;
@@ -1584,8 +1588,17 @@ lambda_body:
 	;
 
 anonymous_function:
-		TOK_FUNCTION begin_lambda conditional_list lambda_body
-			{ $$ = $4; }
+		TOK_FUNCTION
+			{
+			hold_is_export.push_back(is_export);
+			is_export = false;
+			}
+		begin_lambda conditional_list lambda_body
+			{
+			is_export = hold_is_export.back();
+			hold_is_export.pop_back();
+			$$ = $5;
+			}
 	;
 
 begin_lambda:

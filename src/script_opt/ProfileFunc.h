@@ -95,8 +95,8 @@ public:
     const IDSet& Params() const { return params; }
     const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
     const std::unordered_set<const ID*>& NonLocalAssignees() const { return non_local_assignees; }
-    const auto& AggrRefs() const { return aggr_refs; }
-    const auto& AggrMods() const { return aggr_mods; }
+    const auto& TableRefs() const { return tbl_refs; }
+    const auto& TableMods() const { return tbl_mods; }
     const IDSet& Inits() const { return inits; }
     const std::vector<const Stmt*>& Stmts() const { return stmts; }
     const std::vector<const Expr*>& Exprs() const { return exprs; }
@@ -183,8 +183,8 @@ protected:
     // ###
     std::unordered_set<const ID*> non_local_assignees;
 
-    std::set<std::pair<const Type*, int>> aggr_refs;
-    std::unordered_set<const Type*> aggr_mods;
+    std::unordered_set<const Type*> tbl_refs;
+    std::unordered_set<const Type*> tbl_mods;
 
     // Same for locals seen in initializations, so we can find,
     // for example, unused aggregates.
@@ -353,15 +353,14 @@ protected:
     void ComputeProfileHash(std::shared_ptr<ProfileFunc> pf);
 
     // Analyze the expressions and lambdas appearing in a set of
-    // attributes, in the context of a given type.  "field" is only
-    // meaningful if "t" is a RecordType.
-    void AnalyzeAttrs(const Attributes* attrs, const Type* t, int field = 0);
+    // attributes, in the context of a given type.
+    void AnalyzeAttrs(const Attributes* attrs, const Type* t);
 
     void ComputeSideEffects();
 
     bool DefinitelyHasNoSideEffects(const ExprPtr& e) const;
 
-    std::vector<const Attr*> AssociatedAttrs(const Type* t, int f);
+    std::vector<const Attr*> AssociatedAttrs(const Type* t);
 
     // ### False on can't-make-decision-yet
     bool AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, std::unordered_set<const Type*>& types,
@@ -370,7 +369,7 @@ protected:
                            bool& is_unknown);
 
     // ### const? etc.
-    bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, int f, IDSet& non_local_ids,
+    bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
                            std::unordered_set<const Type*>& aggrs, bool& is_unknown);
 
     // Globals seen across the functions, other than those solely seen
@@ -423,9 +422,8 @@ protected:
     std::unordered_map<const Expr*, std::shared_ptr<ProfileFunc>> expr_profs;
 
     // Maps expression-valued attributes to a collection of types in which
-    // the attribute appears. For records, the mapping also includes the
-    // field offset in the record.
-    std::unordered_map<const Attr*, std::vector<std::pair<const Type*, int>>> expr_attrs;
+    // the attribute appears.
+    std::unordered_map<const Attr*, std::vector<const Type*>> expr_attrs;
 
     std::unordered_map<const Attr*, std::vector<std::shared_ptr<SideEffectsOp>>> attr_side_effects;
 

@@ -99,8 +99,6 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "Broker::__vector_size",
     "Broker::make_event",
     "Broker::publish",
-    "Cluster::publish_hrw",
-    "Cluster::publish_rr",
     "FileExtract::__set_limit",
     "Files::__add_analyzer",
     "Files::__analyzer_enabled",
@@ -128,9 +126,7 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "Log::__remove_filter",
     "Log::__remove_stream",
     "Log::__set_buf",
-    "Log::__write",
     "Option::any_set_to_any_vec",
-    // "Option::set",
     "Option::set_change_handler",
     "PacketAnalyzer::GTPV1::remove_gtpv1_connection",
     "PacketAnalyzer::TEREDO::remove_teredo_connection",
@@ -235,7 +231,6 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "ceil",
     "check_subnet",
     "clean",
-    // "clear_table",
     "close",
     "community_id_v1",
     "compress_path",
@@ -254,7 +249,6 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "decode_base64_conn",
     "decode_netbios_name",
     "decode_netbios_name_type",
-    "disable_analyzer",
     "disable_event_group",
     "disable_module_events",
     "do_profiling",
@@ -293,7 +287,6 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "fmt",
     "fmt_ftp_port",
     "fnv1a32",
-    "from_json",
     "generate_all_events",
     "get_broker_stats",
     "get_conn_stats",
@@ -403,7 +396,6 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "network_time",
     "open",
     "open_for_append",
-    "order",
     "packet_source",
     "paraglob_equals",
     "paraglob_init",
@@ -431,7 +423,6 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "remove_prefix",
     "remove_suffix",
     "rename",
-    // "resize",
     "reverse",
     "rfind_str",
     "rjust",
@@ -468,7 +459,6 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "skip_further_processing",
     "skip_http_entity_data",
     "skip_smtp_data",
-    // "sort",
     "split_string",
     "split_string1",
     "split_string_all",
@@ -551,6 +541,41 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
     "zeek_version",
     "zfill",
 };
+
+// Ones not listed:
+//
+// Cluster::publish_hrw
+// Cluster::publish_rr
+//	Call script functions to get topic names.
+//
+// Log::__write
+//	Calls log policy functions.
+//
+// Option::set
+//	Both explicitly changes a global and potentially calls a
+//	function specified at run-time.
+//
+// clear_table
+//	Both clears a set/table and potentially calls an &on_change handler.
+//
+// disable_analyzer
+//	Potentially calls Analyzer::disabling_analyzer hook.
+//
+// from_json
+//	Potentially calls a normalization function.
+//
+// order
+//	Potentially calls a comparison function.
+//
+// resize
+//	Changes a vector in place.
+//
+// sort
+//	Both changes a vector in place and potentially calls an arbitrary
+//	comparison function.
+//
+// Some of these have side effects that could be checked for in a specific
+// context, but the gains from doing so likely aren't worth the complexity.
 
 bool is_side_effect_free(std::string f) { return side_effects_free_BiFs.count(f) > 0; }
 

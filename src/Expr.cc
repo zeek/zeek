@@ -4192,7 +4192,7 @@ ScopePtr LambdaExpr::GetScope() const { return ingredients->Scope(); }
 void LambdaExpr::ReplaceBody(StmtPtr new_body) { ingredients->ReplaceBody(std::move(new_body)); }
 
 ValPtr LambdaExpr::Eval(Frame* f) const {
-    auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID());
+    auto lamb = make_intrusive<ScriptFunc>(ingredients->GetID(), primary_func);
 
     // Use the primary function as the source of the frame size
     // and function body, rather than the ingredients, since script

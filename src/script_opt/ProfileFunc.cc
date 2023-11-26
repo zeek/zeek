@@ -86,7 +86,13 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
         case STMT_INIT:
             for ( const auto& id : s->AsInitStmt()->Inits() ) {
                 inits.insert(id.get());
-                TrackType(id->GetType());
+
+                auto& t = id->GetType();
+                TrackType(t);
+
+                auto attrs = id->GetAttrs();
+                if ( attrs )
+                    constructor_attrs[attrs.get()] = t;
             }
 
             // Don't traverse further into the statement, since we
@@ -457,14 +463,14 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
     full_record_hashes = _full_record_hashes;
 
     for ( auto& f : funcs ) {
-        if ( f.ShouldSkip() )
-            continue;
-
-        auto pf = std::make_unique<ProfileFunc>(f.Func(), f.Body(), full_record_hashes);
+        auto pf = std::make_shared<ProfileFunc>(f.Func(), f.Body(), full_record_hashes);
 
         if ( ! pred || (*pred)(pf.get(), nullptr) )
             MergeInProfile(pf.get());
 
+        // Track the profile even if we're not compiling the function, since
+        // the AST optimizer will still need it to reason about function-call
+        // side effects.
         f.SetProfile(std::move(pf));
         func_profs[f.Func()] = f.ProfilePtr();
     }
@@ -645,7 +651,6 @@ void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
 
     for ( auto& l : lambdas ) {
         auto pf = ExprProf(l);
-        printf("adding lambda profile for %s (%p)\n", l->PrimaryFunc()->Name(), l->PrimaryFunc().get());
         func_profs[l->PrimaryFunc().get()] = pf;
         ComputeProfileHash(pf);
     }
@@ -952,11 +957,8 @@ void ProfileFuncs::ComputeSideEffects() {
         auto at = a->Tag();
         if ( at == ATTR_DEFAULT || at == ATTR_DEFAULT_INSERT || at == ATTR_ON_CHANGE ) {
             // Weed out very-common-and-completely-safe expressions.
-            if ( DefinitelyHasNoSideEffects(a->GetExpr()) )
-                continue;
-
-            printf("adding candidate %s\n", obj_desc(a).c_str());
-            candidates.insert(a);
+            if ( ! DefinitelyHasNoSideEffects(a->GetExpr()) )
+                candidates.insert(a);
         }
     }
 
@@ -977,10 +979,13 @@ void ProfileFuncs::ComputeSideEffects() {
             made_decision.insert(c);
             auto& effects_vec = attr_side_effects[c] = std::vector<std::shared_ptr<SideEffectsOp>>{};
 
-            if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown )
+            if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
+                printf("%s has no side effects\n", obj_desc(c).c_str());
                 // Definitely no side effects.
                 continue;
+            }
 
+            printf("%s has side effects\n", obj_desc(c).c_str());
             // Track the associated side effects.
             auto at = c->Tag() == ATTR_ON_CHANGE ? SideEffectsOp::WRITE : SideEffectsOp::READ;
             for ( auto& ea : expr_attrs[c] ) {
@@ -1063,17 +1068,12 @@ bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, std
             return true;
         }
 
-        auto sf = static_cast<ScriptFunc*>(func);
-        if ( func_profs.count(sf) == 0 ) {
-            printf("no function profile for %s / %s (%p)\n", obj_desc(e.get()).c_str(), sf->Name(), sf);
-            is_unknown = true;
-            return true;
-        }
-
+        auto sf = static_cast<ScriptFunc*>(func)->Primary();
+        ASSERT(func_profs.count(sf) != 0);
         pf = func_profs[sf];
     }
     else {
-        ASSERT(expr_profs.count(e.get()) > 0);
+        ASSERT(expr_profs.count(e.get()) != 0);
         pf = expr_profs[e.get()];
     }
 

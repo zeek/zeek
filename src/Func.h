@@ -44,6 +44,8 @@ using StmtPtr = IntrusivePtr<Stmt>;
 class ScriptFunc;
 class FunctionIngredients;
 
+using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
+
 } // namespace detail
 
 class EventGroup;
@@ -166,7 +168,7 @@ namespace detail {
 
 class ScriptFunc : public Func {
 public:
-    ScriptFunc(const IDPtr& id);
+    ScriptFunc(const IDPtr& id, ScriptFuncPtr primary = nullptr);
 
     // For compiled scripts.
     ScriptFunc(std::string name, FuncTypePtr ft, std::vector<StmtPtr> bodies, std::vector<int> priorities);
@@ -259,6 +261,12 @@ public:
     int CurrentPriority() const { return current_priority; }
 
     /**
+     * If this function is an instantiated lambda, returns the primary from
+     * which it was constructed. Otherwise, returns this function itself.
+     */
+    const ScriptFunc* Primary() { return primary ? primary.get() : this; }
+
+    /**
      * Returns the function's frame size.
      * @return  The number of ValPtr slots in the function's frame.
      */
@@ -317,6 +325,9 @@ private:
 
     // ... and its priority.
     int current_priority = 0;
+
+    // For lambdas, the primary function on which they're based.
+    ScriptFuncPtr primary;
 };
 
 using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);

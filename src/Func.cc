@@ -261,7 +261,7 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 
 namespace detail {
 
-ScriptFunc::ScriptFunc(const IDPtr& arg_id) : Func(SCRIPT_FUNC) {
+ScriptFunc::ScriptFunc(const IDPtr& arg_id, ScriptFuncPtr _primary) : Func(SCRIPT_FUNC), primary(std::move(_primary)) {
     name = arg_id->Name();
     type = arg_id->GetType<zeek::FuncType>();
     frame_size = 0;

@@ -93,6 +93,9 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
                 auto attrs = id->GetAttrs();
                 if ( attrs )
                     constructor_attrs[attrs.get()] = t;
+
+                if ( t->Tag() == TYPE_RECORD )
+                    CheckRecordConstructor(t);
             }
 
             // Don't traverse further into the statement, since we
@@ -217,14 +220,15 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
 
         case EXPR_FIELD:
             if ( abs_rec_fields ) {
-		auto f = e->AsFieldExpr()->Field();
+                auto f = e->AsFieldExpr()->Field();
                 addl_hashes.push_back(p_hash(f));
-            } else {
+            }
+            else {
                 auto fn = e->AsFieldExpr()->FieldName();
                 addl_hashes.push_back(p_hash(fn));
             }
 
-        break;
+            break;
 
         case EXPR_HAS_FIELD:
             if ( abs_rec_fields ) {
@@ -268,9 +272,9 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     // The following might be nil for an assignment like
                     // "aggr = new_val".
                     auto lhs_parent = lhs->GetOp1();
-		    lhs_t = lhs_parent ? lhs_parent->GetType() : nullptr;
+                    lhs_t = lhs_parent ? lhs_parent->GetType() : nullptr;
                 }
-		if ( lhs_t && lhs_t->Tag() == TYPE_TABLE )
+                if ( lhs_t && lhs_t->Tag() == TYPE_TABLE )
                     tbl_mods.insert(lhs_t.get());
             }
 
@@ -380,6 +384,8 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             return TC_ABORTSTMT;
         }
 
+        case EXPR_RECORD_CONSTRUCTOR: CheckRecordConstructor(e->GetType()); break;
+
         case EXPR_SET_CONSTRUCTOR: {
             auto sc = static_cast<const SetConstructorExpr*>(e);
             const auto& attrs = sc->GetAttrs();
@@ -397,7 +403,14 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
         } break;
 
         case EXPR_RECORD_COERCE:
+            // This effectively does a record construction of the target
+            // type, so check that.
+            CheckRecordConstructor(e->GetType());
+            break;
+
         case EXPR_TABLE_COERCE: {
+            // This is written without casting so it can work with other
+            // types if needed.
             auto res_type = e->GetType().get();
             auto orig_type = e->GetOp1()->GetType().get();
             if ( type_aliases.count(res_type) == 0 )
@@ -453,6 +466,20 @@ void ProfileFunc::TrackAssignment(const ID* id) {
 
     if ( id->IsGlobal() || captures.count(id) > 0 )
         non_local_assignees.insert(id);
+}
+
+void ProfileFunc::CheckRecordConstructor(TypePtr t) {
+    auto rt = cast_intrusive<RecordType>(t);
+    for ( auto td : *rt->Types() )
+        if ( td->attrs ) {
+            auto attrs = td->attrs.get();
+            constructor_attrs[attrs] = rt;
+
+            if ( rec_constructor_attrs.count(rt.get()) == 0 )
+                rec_constructor_attrs[rt.get()] = {attrs};
+            else
+                rec_constructor_attrs[rt.get()].insert(attrs);
+        }
 }
 
 ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _full_record_hashes) {
@@ -780,7 +807,7 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
                 // those are ignored.
 
                 if ( f->attrs && do_hash )
-                        h = merge_p_hashes(h, HashAttrs(f->attrs));
+                    h = merge_p_hashes(h, HashAttrs(f->attrs));
             }
         } break;
 
@@ -916,24 +943,6 @@ void ProfileFuncs::AnalyzeAttrs(const Attributes* attrs, const Type* t) {
 
         if ( e->Tag() == EXPR_LAMBDA )
             lambdas.insert(e->AsLambdaExpr());
-
-#if 0
-        // If this is an attribute that can be triggered by statement/expression
-        // execution, then we need to determine any modifications it might make
-	// to non-local state.
-        auto at = a->Tag();
-        if ( at != ATTR_DEFAULT && at != ATTR_DEFAULT_INSERT && at != ATTR_ON_CHANGE )
-            continue;
-
-	if ( ! CouldHaveSideEffects(e) )
-		continue;
-
-	std::vector<SensitiveType> changes;
-	GetExprChangesToLocalState(e, changes);
-
-	if ( ! changes.empty() )
-		printf("problematic expr: %s\n", obj_desc(e.get()).c_str());
-#endif
     }
 }
 
@@ -970,7 +979,6 @@ void ProfileFuncs::ComputeSideEffects() {
                 continue;
 
             made_decision.insert(c);
-            auto& effects_vec = attr_side_effects[c] = std::vector<std::shared_ptr<SideEffectsOp>>{};
 
             if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
                 printf("%s has no side effects\n", obj_desc(c).c_str());
@@ -979,8 +987,18 @@ void ProfileFuncs::ComputeSideEffects() {
             }
 
             printf("%s has side effects\n", obj_desc(c).c_str());
-            // Track the associated side effects.
-            auto at = c->Tag() == ATTR_ON_CHANGE ? SideEffectsOp::WRITE : SideEffectsOp::READ;
+
+            auto seo_vec = std::vector<std::shared_ptr<SideEffectsOp>>{};
+            bool is_rec = expr_attrs[c][0]->Tag() == TYPE_RECORD;
+
+            SideEffectsOp::AccessType at;
+            if ( is_rec )
+                at = SideEffectsOp::CONSTRUCTION;
+            else if ( c->Tag() == ATTR_ON_CHANGE )
+                at = SideEffectsOp::WRITE;
+            else
+                at = SideEffectsOp::READ;
+
             for ( auto ea_t : expr_attrs[c] ) {
                 auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
                 seo->AddModNonGlobal(non_local_ids);
@@ -989,9 +1007,14 @@ void ProfileFuncs::ComputeSideEffects() {
                 if ( is_unknown )
                     seo->SetUnknownChanges();
 
-                effects_vec.push_back(seo);
+                seo_vec.push_back(seo);
                 side_effects.push_back(std::move(seo));
             }
+
+            if ( is_rec )
+                record_constr_with_side_effects[c] = std::move(seo_vec);
+            else
+                attr_side_effects[c] = std::move(seo_vec);
         }
 
         ASSERT(! made_decision.empty());
@@ -1028,18 +1051,17 @@ std::vector<const Attr*> ProfileFuncs::AssociatedAttrs(const Type* t) {
 
     for ( auto c : candidates )
         for ( auto ea_t : expr_attrs[c] ) {
-	    if ( same_type(t, ea_t) )
-		    {
-                    assoc_attrs.push_back(c);
-		    break;
-		    }
+            if ( same_type(t, ea_t) ) {
+                assoc_attrs.push_back(c);
+                break;
+            }
 
             for ( auto ta : type_aliases[ea_t] )
                 if ( same_type(t, ta) ) {
                     assoc_attrs.push_back(c);
                     break;
                 }
-	}
+        }
 
     return assoc_attrs;
 }
@@ -1097,12 +1119,21 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
     for ( auto& a : pf->NonLocalAssignees() )
         nla.insert(a);
 
-    for ( auto& r : pf->TableRefs() )
-        if ( ! AssessAggrEffects(SideEffectsOp::READ, r, nla, mod_aggrs, is_unknown) )
+    for ( auto& r : pf->RecordConstructorAttrs() )
+        if ( ! AssessAggrEffects(SideEffectsOp::CONSTRUCTION, r.first, nla, mod_aggrs, is_unknown) )
+            // You'd think we would return "false" here, because we don't have
+            // enough information yet to know all of the side effects. However,
+            // if "is_unknown" is true then that means there are already
+            // wildcard side effects, so there's no need to analyze further
+            // since it won't change that situation.
             return is_unknown;
 
-    for ( auto& a : pf->TableMods() )
-        if ( ! AssessAggrEffects(SideEffectsOp::WRITE, a, nla, mod_aggrs, is_unknown) )
+    for ( auto& tr : pf->TableRefs() )
+        if ( ! AssessAggrEffects(SideEffectsOp::READ, tr, nla, mod_aggrs, is_unknown) )
+            return is_unknown;
+
+    for ( auto& tm : pf->TableMods() )
+        if ( ! AssessAggrEffects(SideEffectsOp::WRITE, tm, nla, mod_aggrs, is_unknown) )
             return is_unknown;
 
     for ( auto& f : pf->ScriptCalls() ) {
@@ -1130,8 +1161,11 @@ bool ProfileFuncs::AssessAggrEffects(SideEffectsOp::AccessType access, const Typ
 
     for ( auto a : assoc_attrs ) {
         auto ase = attr_side_effects.find(a);
-        if ( ase == attr_side_effects.end() )
-            return false;
+        if ( ase == attr_side_effects.end() ) {
+            ase = record_constr_with_side_effects.find(a);
+            if ( ase == record_constr_with_side_effects.end() )
+                return false;
+        }
 
         for ( auto& se : ase->second ) {
             if ( se->GetAccessType() != access )

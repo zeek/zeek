@@ -111,6 +111,9 @@ public:
     const IDSet& BiFGlobals() const { return BiF_globals; }
     const std::unordered_set<std::string>& Events() const { return events; }
     const std::unordered_map<const Attributes*, TypePtr>& ConstructorAttrs() const { return constructor_attrs; }
+    const std::unordered_map<const Type*, std::set<const Attributes*>>& RecordConstructorAttrs() const {
+        return rec_constructor_attrs;
+    }
     const std::unordered_set<const SwitchStmt*>& ExprSwitches() const { return expr_switches; }
     const std::unordered_set<const SwitchStmt*>& TypeSwitches() const { return type_switches; }
 
@@ -143,6 +146,9 @@ protected:
 
     // Take note of an assignment to an identifier.
     void TrackAssignment(const ID* id);
+
+    // ###
+    void CheckRecordConstructor(TypePtr t);
 
     // The function, body, or expression profiled.  Can be null
     // depending on which constructor was used.
@@ -243,8 +249,12 @@ protected:
     // Names of generated events.
     std::unordered_set<std::string> events;
 
-    // Attributes seen in set or table constructors.
+    // Attributes seen in set, table, or record constructors, mapped back
+    // to the type where they appear.
     std::unordered_map<const Attributes*, TypePtr> constructor_attrs;
+
+    // ###
+    std::unordered_map<const Type*, std::set<const Attributes*>> rec_constructor_attrs;
 
     // Switch statements with either expression cases or type cases.
     std::unordered_set<const SwitchStmt*> expr_switches;
@@ -426,6 +436,7 @@ protected:
     std::unordered_map<const Attr*, std::vector<const Type*>> expr_attrs;
 
     std::unordered_map<const Attr*, std::vector<std::shared_ptr<SideEffectsOp>>> attr_side_effects;
+    std::unordered_map<const Attr*, std::vector<std::shared_ptr<SideEffectsOp>>> record_constr_with_side_effects;
 
     // These remaining member variables are only used internally,
     // not provided via accessors:

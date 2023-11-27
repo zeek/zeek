@@ -15,7 +15,7 @@ namespace zeek::detail {
 class SideEffectsOp {
 public:
     // ### remove NONE?
-    enum AccessType { NONE, READ, WRITE };
+    enum AccessType { NONE, READ, WRITE, CONSTRUCTION };
 
     // SideEffectsOp() : access(NONE), type(nullptr) {}
     SideEffectsOp(AccessType at, const Type* t) : access(at), type(t) {}
@@ -24,6 +24,7 @@ public:
     bool NoSideEffects() const { return access == NONE; }
     bool OnReadAccess() const { return access == READ; }
     bool OnWriteAccess() const { return access == WRITE; }
+    bool OnConstruction() const { return access == CONSTRUCTION; }
 
     const Type* GetType() const { return type; }
 
@@ -38,7 +39,7 @@ public:
 
 private:
     AccessType access;
-    const Type* type;         // type for which some operations alter state
+    const Type* type; // type for which some operations alter state
 
     std::unordered_set<const ID*> mod_non_locals;
     std::unordered_set<const Type*> mod_aggrs;

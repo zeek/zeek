@@ -439,17 +439,12 @@ vector<string> dir_contents_recursive(string dir) {
     while ( dir[dir.size() - 1] == '/' )
         dir.erase(dir.size() - 1, 1);
 
-    char* dir_copy = util::copy_string(dir.c_str());
-    char** scan_path = new char*[2];
-    scan_path[0] = dir_copy;
-    scan_path[1] = NULL;
+    char* scan_path[2] = {dir.data(), nullptr};
 
     FTS* fts = fts_open(scan_path, FTS_NOCHDIR, 0);
 
     if ( ! fts ) {
         reporter->Error("fts_open failure: %s", strerror(errno));
-        delete[] scan_path;
-        delete[] dir_copy;
         return rval;
     }
 
@@ -466,8 +461,6 @@ vector<string> dir_contents_recursive(string dir) {
     if ( fts_close(fts) < 0 )
         reporter->Error("fts_close failure: %s", strerror(errno));
 
-    delete[] scan_path;
-    delete[] dir_copy;
     return rval;
 }
 

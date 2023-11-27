@@ -21,14 +21,22 @@ EventHandlerPtr EventRegistry::Register(std::string_view name, bool is_from_scri
         if ( ! is_from_script )
             not_only_from_script.insert(std::string(name));
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+        // Remove in v7.1
         h->SetUsed();
+#pragma GCC diagnostic pop
         return h;
     }
 
     h = new EventHandler(std::string(name));
     event_registry->Register(h, is_from_script);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    // Remove in v7.1
     h->SetUsed();
+#pragma GCC diagnostic pop
 
     return h;
 }
@@ -71,8 +79,11 @@ EventRegistry::string_list EventRegistry::UnusedHandlers() {
 
     for ( const auto& entry : handlers ) {
         EventHandler* v = entry.second.get();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         if ( v->GetFunc() && ! v->Used() )
             names.push_back(entry.first);
+#pragma GCC diagnostic pop
     }
 
     return names;
@@ -83,8 +94,11 @@ EventRegistry::string_list EventRegistry::UsedHandlers() {
 
     for ( const auto& entry : handlers ) {
         EventHandler* v = entry.second.get();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         if ( v->GetFunc() && v->Used() )
             names.push_back(entry.first);
+#pragma GCC diagnostic pop
     }
 
     return names;
@@ -156,13 +170,16 @@ EventGroup::EventGroup(EventGroupKind kind, std::string_view name) : kind(kind),
 // from the public zeek:: namespace.
 void EventGroup::UpdateFuncBodies() {
     static auto is_group_disabled = [](const auto& g) { return g->IsDisabled(); };
+    static auto is_body_enabled = [](const auto& b) { return ! b.disabled; };
 
     for ( auto& func : funcs ) {
-        for ( auto& b : func->bodies )
+        func->has_enabled_bodies = false;
+        func->all_bodies_enabled = true;
+        for ( auto& b : func->bodies ) {
             b.disabled = std::any_of(b.groups.cbegin(), b.groups.cend(), is_group_disabled);
-
-        static auto is_body_enabled = [](const auto& b) { return ! b.disabled; };
-        func->has_enabled_bodies = std::any_of(func->bodies.cbegin(), func->bodies.cend(), is_body_enabled);
+            func->has_enabled_bodies |= is_body_enabled(b);
+            func->all_bodies_enabled &= is_body_enabled(b);
+        }
     }
 }
 

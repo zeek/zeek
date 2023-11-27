@@ -96,6 +96,14 @@ public:
     // to the matching expressions.  (idx must not contain zeros).
     bool CompileSet(const string_list& set, const int_list& idx);
 
+    // For use with CompileSet() to collect indices of all matched
+    // expressions into the matches vector. The matches vector is
+    // populated with the indices of all matching expressions provided
+    // to CompileSet()'s set and idx arguments.
+    //
+    // Behaves as MatchAll(), consuming the complete input string.
+    bool MatchSet(const String* s, std::vector<AcceptIdx>& matches);
+
     // Returns the position in s just beyond where the first match
     // occurs, or 0 if there is no such position in s.  Note that
     // if the pattern matches empty strings, matching continues
@@ -106,7 +114,7 @@ public:
 
     int LongestMatch(const char* s);
     int LongestMatch(const String* s);
-    int LongestMatch(const u_char* bv, int n);
+    int LongestMatch(const u_char* bv, int n, bool bol = true, bool eol = true);
 
     EquivClass* EC() { return &equiv_class; }
 
@@ -125,7 +133,7 @@ protected:
     // appending to an existing pattern_text.
     void AddPat(const char* pat, const char* orig_fmt, const char* app_fmt);
 
-    bool MatchAll(const u_char* bv, int n);
+    bool MatchAll(const u_char* bv, int n, std::vector<AcceptIdx>* matches = nullptr);
 
     match_type mt;
     bool multiline;
@@ -219,6 +227,11 @@ public:
     int MatchPrefix(const char* s) { return re_exact->LongestMatch(s); }
     int MatchPrefix(const String* s) { return re_exact->LongestMatch(s); }
     int MatchPrefix(const u_char* s, int n) { return re_exact->LongestMatch(s, n); }
+
+    // MatchPrefix() version allowing control of bol and eol.
+    // This can be useful when searching for a pattern with an
+    // anchor within a larger string.
+    int MatchPrefix(const u_char* s, int n, bool bol, bool eol) { return re_exact->LongestMatch(s, n, bol, eol); }
 
     bool Match(const u_char* s, int n) { return re_anywhere->Match(s, n); }
 

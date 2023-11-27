@@ -120,7 +120,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) {
 
         case TYPE_STRING: {
             std::string rnd = RandomString(10);
-            val->val.string_val.data = util::copy_string(rnd.c_str());
+            val->val.string_val.data = util::copy_string(rnd.c_str(), rnd.size());
             val->val.string_val.length = rnd.size();
             break;
         }

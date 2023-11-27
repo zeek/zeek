@@ -361,7 +361,7 @@ void do_print_stmt(const std::vector<ValPtr>& vals) {
 }
 
 ExprStmt::ExprStmt(ExprPtr arg_e) : Stmt(STMT_EXPR), e(std::move(arg_e)) {
-    if ( e && e->Tag() != EXPR_CALL && e->IsPure() && e->GetType()->Tag() != TYPE_ERROR )
+    if ( e && e->Tag() != EXPR_CALL && e->Tag() != EXPR_INLINE && e->IsPure() && e->GetType()->Tag() != TYPE_ERROR )
         Warn("expression value ignored");
 
     SetLocationInfo(e->GetLocationInfo());
@@ -1289,6 +1289,11 @@ void ForStmt::StmtDescribe(ODesc* d) const {
     if ( loop_vars->length() )
         d->Add("]");
 
+    if ( value_var ) {
+        d->AddSP(",");
+        value_var->Describe(d);
+    }
+
     if ( d->IsReadable() )
         d->Add(" in ");
 
@@ -1311,6 +1316,11 @@ TraversalCode ForStmt::Traverse(TraversalCallback* cb) const {
 
     for ( const auto& var : *loop_vars ) {
         tc = var->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    if ( value_var ) {
+        tc = value_var->Traverse(cb);
         HANDLE_TC_STMT_PRE(tc);
     }
 
@@ -1752,7 +1762,7 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 
     auto param_list = new type_decl_list();
     auto count_t = base_type(TYPE_COUNT);
-    param_list->push_back(new TypeDecl(util::copy_string(lambda_param_id.c_str()), count_t));
+    param_list->push_back(new TypeDecl(util::copy_string(lambda_param_id.c_str(), lambda_param_id.size()), count_t));
     auto params = make_intrusive<RecordType>(param_list);
 
     lambda_ft = make_intrusive<FuncType>(params, base_type(TYPE_ANY), FUNC_FLAVOR_FUNCTION);

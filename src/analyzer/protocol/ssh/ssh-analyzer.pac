@@ -203,7 +203,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh_server_host_key )
 			{
-			unsigned char digest[MD5_DIGEST_LENGTH];
+			unsigned char digest[ZEEK_MD5_DIGEST_LENGTH];
 			zeek::detail::internal_md5(${key}.data(), ${key}.length(), digest);
 
 			zeek::BifEvent::enqueue_ssh_server_host_key(connection()->zeek_analyzer(),
@@ -225,7 +225,7 @@ refine flow SSH_Flow += {
 		%{
 		if ( ssh_server_host_key )
 			{
-			unsigned char digest[MD5_DIGEST_LENGTH];
+			unsigned char digest[ZEEK_MD5_DIGEST_LENGTH];
 			auto ctx = zeek::detail::hash_init(zeek::detail::Hash_MD5);
 			// Fingerprint is calculated over concatenation of modulus + exponent.
 			zeek::detail::hash_update(ctx, ${mod}.data(), ${mod}.length());

@@ -50,6 +50,11 @@ struct AnalyOpt {
     // If true, do global inlining.
     bool inliner = false;
 
+    // If true, suppress global inlining.  A separate option because
+    // it needs to override situations where "inliner" is implicitly
+    // enabled due to other options.
+    bool no_inliner = false;
+
     // If true, report which functions are directly and indirectly
     // recursive, and exit.  Only germane if running the inliner.
     bool report_recursive = false;
@@ -129,13 +134,18 @@ public:
     const ProfileFunc* Profile() const { return pf.get(); }
     std::shared_ptr<ProfileFunc> ProfilePtr() const { return pf; }
 
+    void SetScope(ScopePtr new_scope) { scope = std::move(new_scope); }
     void SetBody(StmtPtr new_body) { body = std::move(new_body); }
     void SetProfile(std::shared_ptr<ProfileFunc> _pf) { pf = std::move(_pf); }
 
+    bool ShouldAnalyze() const { return should_analyze; }
+    void SetShouldNotAnalyze() {
+        should_analyze = false;
+        skip = true;
+    }
+
     // The following provide a way of marking FuncInfo's as
-    // should-be-skipped for script optimization, generally because
-    // the function body has a property that a given script optimizer
-    // doesn't know how to deal with.  Defaults to don't-skip.
+    // should-be-skipped for a given phase of script optimization.
     bool ShouldSkip() const { return skip; }
     void SetSkip(bool should_skip) { skip = should_skip; }
 
@@ -146,8 +156,37 @@ protected:
     std::shared_ptr<ProfileFunc> pf;
     int priority;
 
-    // Whether to skip optimizing this function.
+    // Whether to analyze this function at all, per optimization selection
+    // via --optimize-file/--optimize-func.  If those flags aren't used,
+    // then this will remain true, given that both ZAM and -O gen-C++ are
+    // feature-complete.
+    bool should_analyze = true;
+
+    // Whether to skip optimizing this function in a given context. May be
+    // altered during optimization.
     bool skip = false;
+};
+
+// ScriptFunc subclass that runs a single (coalesced) body if possible,
+// otherwise delegates to the original function with multiple bodies.
+class CoalescedScriptFunc : public ScriptFunc {
+public:
+    CoalescedScriptFunc(StmtPtr merged_body, ScopePtr scope, ScriptFuncPtr orig_func)
+        : ScriptFunc(orig_func->Name(), orig_func->GetType(), {merged_body}, {0}), orig_func(orig_func) {
+        SetScope(scope);
+    };
+
+    ValPtr Invoke(zeek::Args* args, Frame* parent) const override {
+        // If the original function has all bodies enabled, run our
+        // coalesced one, otherwise delegate.
+        if ( orig_func->HasAllBodiesEnabled() )
+            return ScriptFunc::Invoke(args, parent);
+
+        return orig_func->Invoke(args, parent);
+    }
+
+private:
+    ScriptFuncPtr orig_func;
 };
 
 // We track which functions are definitely not recursive.  We do this
@@ -170,10 +209,11 @@ extern void analyze_when_lambda(LambdaExpr* f);
 extern bool is_lambda(const ScriptFunc* f);
 extern bool is_when_lambda(const ScriptFunc* f);
 
-// Analyze the given top-level statement(s) for optimization.  Returns
-// a pointer to a FuncInfo for an argument-less quasi-function that can
-// be Invoked, or its body executed directly, to execute the statements.
-extern const FuncInfo* analyze_global_stmts(Stmt* stmts);
+// Analyze the given top-level statement(s) for optimization.
+extern void analyze_global_stmts(Stmt* stmts);
+
+// Returns the body and scope for the previously analyzed global statements.
+extern std::pair<StmtPtr, ScopePtr> get_global_stmts();
 
 // Add a pattern to the "only_funcs" list.
 extern void add_func_analysis_pattern(AnalyOpt& opts, const char* pat);

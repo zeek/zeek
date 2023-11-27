@@ -981,7 +981,7 @@ macro EvalIndexVec(index)
 	zeek_int_t ind = index;
 	if ( ind < 0 )
 		ind += vv.size();
-	if ( ind < 0 || ind >= vv.size() )
+	if ( ind < 0 || ind >= int(vv.size()) )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(CopyVal(*vec[ind]))
 
@@ -998,7 +998,7 @@ macro EvalIndexAnyVec(index)
 	zeek_int_t ind = index;
 	if ( ind < 0 )
 		ind += vv->Size();
-	if ( ind < 0 || ind >= vv->Size() )
+	if ( ind < 0 || ind >= int(vv->Size()) )
 		ZAM_run_time_error(z.loc, "no such index");
 	AssignV1(ZVal(vv->ValAt(ind).release()))
 
@@ -1057,6 +1057,15 @@ macro EvalTableIndex(index)
 		break;
 		}
 
+internal-op When-PatStr-Index
+type VV
+eval	auto args = z.aux->ToListVal(frame);
+	auto arg0 = args->Idx(0);
+	auto v = frame[z.v2].table_val->LookupPattern({NewRef{}, arg0->AsStringVal()});
+	if ( IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	AssignV1(BuildVal(v, z.t))
+
 internal-assignment-op Table-Index1
 type VVV
 assign-val v
@@ -1067,6 +1076,17 @@ internal-assignment-op Table-Index1
 type VVC
 assign-val v
 eval	EvalTableIndex(z.c.ToVal(z.t))
+
+# Same, but for indexing table[pattern] of X with a string.
+internal-assignment-op Table-PatStr-Index1
+type VVV
+assign-val v
+eval	auto v = frame[z.v2].table_val->LookupPattern({NewRef{}, frame[z.v3].AsString()});
+
+internal-assignment-op Table-PatStr-Index1
+type VVC
+assign-val v
+eval	auto v = frame[z.v2].table_val->LookupPattern({NewRef{}, z.c.AsString()});
 
 # This version is for a variable v3.
 internal-op Index-String
@@ -2089,7 +2109,7 @@ macro BuildWhen(timeout)
 		if ( v )
 			local_aggrs.push_back(v);
 		}
-	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, z.loc);
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, z.loc.get());
 
 ########################################
 # Internal

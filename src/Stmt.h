@@ -471,7 +471,7 @@ protected:
     std::vector<StmtPtr> stmts;
 
     // Optimization-related:
-    bool ReduceStmt(int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c);
+    bool ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c);
 
     void ResetStmts(std::vector<StmtPtr> new_stmts) { stmts = std::move(new_stmts); }
 };

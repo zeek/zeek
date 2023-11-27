@@ -169,8 +169,10 @@ bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report) {
 }
 
 UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bool second_pass) {
-    if ( ! second_pass )
+    if ( ! second_pass ) {
+        om.AddObj(s);
         stmts.push_back(s);
+    }
 
     switch ( s->Tag() ) {
         case STMT_LIST: {
@@ -182,10 +184,12 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
                 const Stmt* succ;
 
-                if ( i == stmts.size() - 1 ) { // Very last statement.
+                if ( i == int(stmts.size()) - 1 ) { // Very last statement.
                     succ = succ_stmt;
-                    if ( successor2.find(s) != successor2.end() )
+                    if ( successor2.find(s) != successor2.end() ) {
+                        om.AddObj(s_i);
                         successor2[s_i] = successor2[s];
+                    }
                 }
                 else
                     succ = stmts[i + 1].get();
@@ -326,6 +330,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
             // The loop body has two potential successors, itself
             // and the successor of the entire "for" statement.
+            om.AddObj(body);
             successor2[body] = succ_stmt;
             auto body_UDs = PropagateUDs(body, succ_UDs, body, second_pass);
 
@@ -359,6 +364,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
             // See note above for STMT_FOR regarding propagating
             // around the loop.
             auto succ = cond_stmt ? cond_stmt : body;
+            om.AddObj(body.get());
             successor2[body.get()] = succ_stmt;
             auto body_UDs = PropagateUDs(body.get(), succ_UDs, succ.get(), second_pass);
 
@@ -617,6 +623,7 @@ UDs UseDefs::UD_Union(const UDs& u1, const UDs& u2, const UDs& u3) const {
 }
 
 UDs UseDefs::UseUDs(const Stmt* s, UDs uds) {
+    om.AddObj(s);
     use_defs_map[s] = uds;
     UDs_are_copies.insert(s);
     return uds;
@@ -630,6 +637,7 @@ UDs UseDefs::CreateExprUDs(const Stmt* s, const Expr* e, const UDs& uds) {
 }
 
 UDs UseDefs::CreateUDs(const Stmt* s, UDs uds) {
+    om.AddObj(s);
     use_defs_map[s] = uds;
     UDs_are_copies.erase(s);
     return uds;

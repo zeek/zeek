@@ -77,8 +77,8 @@ void ZAM_run_time_error(const char* msg) {
     ZAM_error = true;
 }
 
-void ZAM_run_time_error(const Location* loc, const char* msg) {
-    reporter->RuntimeError(loc, "%s", msg);
+void ZAM_run_time_error(std::shared_ptr<Location> loc, const char* msg) {
+    reporter->RuntimeError(loc.get(), "%s", msg);
     ZAM_error = true;
 }
 
@@ -87,12 +87,12 @@ void ZAM_run_time_error(const char* msg, const Obj* o) {
     ZAM_error = true;
 }
 
-void ZAM_run_time_error(const Location* loc, const char* msg, const Obj* o) {
-    reporter->RuntimeError(loc, "%s (%s)", msg, obj_desc(o).c_str());
+void ZAM_run_time_error(std::shared_ptr<Location> loc, const char* msg, const Obj* o) {
+    reporter->RuntimeError(loc.get(), "%s (%s)", msg, obj_desc(o).c_str());
     ZAM_error = true;
 }
 
-void ZAM_run_time_warning(const Location* loc, const char* msg) {
+void ZAM_run_time_warning(std::shared_ptr<Location> loc, const char* msg) {
     ODesc d;
     loc->Describe(&d);
 

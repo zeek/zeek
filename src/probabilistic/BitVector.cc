@@ -403,7 +403,7 @@ BitVector::size_type BitVector::FindNext(size_type i) const {
 uint64_t BitVector::Hash() const {
     u_char buf[SHA256_DIGEST_LENGTH];
     uint64_t digest;
-    EVP_MD_CTX* ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
+    auto* ctx = zeek::detail::hash_init(zeek::detail::Hash_SHA256);
 
     for ( size_type i = 0; i < Blocks(); ++i )
         zeek::detail::hash_update(ctx, &bits[i], sizeof(bits[i]));

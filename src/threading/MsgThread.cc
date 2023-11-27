@@ -72,7 +72,7 @@ public:
     ReporterMessage(Type arg_type, MsgThread* thread, std::string_view arg_msg)
         : OutputMessage<MsgThread>("ReporterMessage", thread) {
         type = arg_type;
-        msg = util::copy_string(arg_msg.data());
+        msg = util::copy_string(arg_msg.data(), arg_msg.size());
     }
 
     ~ReporterMessage() override { delete[] msg; }
@@ -104,7 +104,7 @@ public:
     DebugMessage(DebugStream arg_stream, MsgThread* thread, std::string_view arg_msg)
         : OutputMessage<MsgThread>("DebugMessage", thread) {
         stream = arg_stream;
-        msg = util::copy_string(arg_msg.data());
+        msg = util::copy_string(arg_msg.data(), arg_msg.size());
     }
 
     ~DebugMessage() override { delete[] msg; }

@@ -3,6 +3,8 @@
 #include "zeek/script_opt/Inline.h"
 
 #include "zeek/Desc.h"
+#include "zeek/EventRegistry.h"
+#include "zeek/module_util.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
@@ -99,12 +101,12 @@ void Inliner::Analyze() {
     }
 
     for ( auto& f : funcs ) {
+        if ( f.ShouldSkip() )
+            continue;
+
         const auto& func_ptr = f.FuncPtr();
         const auto& func = func_ptr.get();
         const auto& body = f.Body();
-
-        if ( ! should_analyze(func_ptr, body) )
-            continue;
 
         // Candidates are non-event, non-hook, non-recursive,
         // non-compiled functions ...
@@ -117,36 +119,168 @@ void Inliner::Analyze() {
         if ( body->Tag() == STMT_CPP )
             continue;
 
-        inline_ables.insert(func);
+        inline_ables[func] = f.Profile();
     }
 
+    CoalesceEventHandlers();
+
     for ( auto& f : funcs )
-        if ( should_analyze(f.FuncPtr(), f.Body()) )
+        if ( f.ShouldAnalyze() )
             InlineFunction(&f);
 }
 
+void Inliner::CoalesceEventHandlers() {
+    std::unordered_map<ScriptFunc*, size_t> event_handlers;
+    BodyInfo body_to_info;
+    for ( size_t i = 0U; i < funcs.size(); ++i ) {
+        auto& f = funcs[i];
+        if ( ! f.ShouldAnalyze() )
+            continue;
+
+        auto& func_ptr = f.FuncPtr();
+        const auto& func = func_ptr.get();
+        const auto& func_type = func->GetType();
+
+        if ( func_type->AsFuncType()->Flavor() != FUNC_FLAVOR_EVENT )
+            continue;
+
+        // Special-case: zeek_init both has tons of event handlers (even
+        // with -b), such that it inevitably blows out the inlining budget,
+        // *and* only runs once, such that even if we could inline it, if
+        // it takes more time to compile it than to just run it via the
+        // interpreter, it's a lose.
+        static std::string zeek_init_name = "zeek_init";
+        if ( func->Name() == zeek_init_name )
+            continue;
+
+        const auto& body = f.Body();
+
+        if ( func->GetKind() == Func::SCRIPT_FUNC && func->GetBodies().size() > 1 ) {
+            ++event_handlers[func];
+            ASSERT(body_to_info.count(body.get()) == 0);
+            body_to_info[body.get()] = i;
+        }
+    }
+
+    for ( auto& e : event_handlers ) {
+        auto func = e.first;
+        auto& bodies = func->GetBodies();
+        if ( bodies.size() != e.second )
+            // It's potentially unsound to inline some-but-not-all event
+            // handlers, because doing so may violate &priority's. We
+            // could do the work of identifying such instances and only
+            // skipping those, but given that ZAM is feature-complete
+            // the mismatch here should only arise when using restrictions
+            // like --optimize-file, which likely aren't the common case.
+            continue;
+
+        CoalesceEventHandlers({NewRef{}, func}, bodies, body_to_info);
+    }
+}
+
+void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::Body>& bodies,
+                                    const BodyInfo& body_to_info) {
+    auto merged_body = make_intrusive<StmtList>();
+    auto oi = merged_body->GetOptInfo();
+
+    auto& params = func->GetType()->Params();
+    auto nparams = params->NumFields();
+    size_t init_frame_size = static_cast<size_t>(nparams);
+
+    PreInline(oi, init_frame_size);
+
+    // We pattern the new (alternate) body off of the first body.
+    auto& b0 = func->GetBodies()[0].stmts;
+    auto b0_info = body_to_info.find(b0.get());
+    ASSERT(b0_info != body_to_info.end());
+    auto& info0 = funcs[b0_info->second];
+    auto& scope0 = info0.Scope();
+    auto& vars = scope0->OrderedVars();
+
+    // We need to create a new Scope. Otherwise, when inlining the first
+    // body the analysis of identifiers gets confused regarding whether
+    // a given identifier represents the outer instance or the inner.
+    auto empty_attrs = std::make_unique<std::vector<AttrPtr>>();
+    push_scope(scope0->GetID(), std::move(empty_attrs));
+
+    std::vector<IDPtr> param_ids;
+
+    for ( auto i = 0; i < nparams; ++i ) {
+        auto& vi = vars[i];
+        // We use a special scope name so that when debugging issues we can
+        // see that a given variable came from coalescing event handlers.
+        auto p = install_ID(vi->Name(), "<event>", false, false);
+        p->SetType(vi->GetType());
+        param_ids.push_back(std::move(p));
+    }
+
+    auto new_scope = pop_scope();
+
+    // Build up the calling arguments.
+    auto args = make_intrusive<ListExpr>();
+    for ( auto& p : param_ids )
+        args->Append(make_intrusive<NameExpr>(p));
+
+    for ( auto& b : bodies ) {
+        auto bp = b.stmts;
+        auto bi_find = body_to_info.find(bp.get());
+        ASSERT(bi_find != body_to_info.end());
+        auto& bi = funcs[bi_find->second];
+        auto ie = DoInline(func, bp, args, bi.Scope(), bi.Profile());
+
+        if ( ! ie )
+            // Failure presumably occurred due to hitting the maximum
+            // AST complexity for inlining. We can give up by simply
+            // returning, as at this point we haven't made any actual
+            // changes other than the function's scope.
+            return;
+
+        merged_body->Stmts().push_back(make_intrusive<ExprStmt>(ie));
+    }
+
+    auto inlined_func = make_intrusive<CoalescedScriptFunc>(merged_body, new_scope, func);
+    inlined_func->SetScope(new_scope);
+
+    // Replace the function for that EventHandler with the delegating one.
+    auto* eh = event_registry->Lookup(func->Name());
+    ASSERT(eh);
+    eh->SetFunc(inlined_func);
+
+    // Likewise, replace the value of the identifier.
+    auto fid = lookup_ID(func->Name(), GLOBAL_MODULE_NAME, false, false, false);
+    ASSERT(fid);
+    fid->SetVal(make_intrusive<FuncVal>(inlined_func));
+
+    PostInline(oi, inlined_func);
+
+    funcs.emplace_back(inlined_func, new_scope, merged_body, 0);
+
+    auto pf = std::make_shared<ProfileFunc>(inlined_func.get(), merged_body, true);
+    funcs.back().SetProfile(std::move(pf));
+}
+
 void Inliner::InlineFunction(FuncInfo* f) {
-    max_inlined_frame_size = 0;
-
-    // It's important that we take the current frame size from the
-    // *scope* and not f->Func().  The latter tracks the maximum required
-    // across all bodies, but we want to track the size for this
-    // particular body.
-    curr_frame_size = f->Scope()->Length();
-
     auto oi = f->Body()->GetOptInfo();
+    PreInline(oi, f->Scope()->Length());
+    f->Body()->Inline(this);
+    PostInline(oi, f->FuncPtr());
+}
+
+void Inliner::PreInline(StmtOptInfo* oi, size_t frame_size) {
+    max_inlined_frame_size = 0;
+    curr_frame_size = frame_size;
     num_stmts = oi->num_stmts;
     num_exprs = oi->num_exprs;
+}
 
-    f->Body()->Inline(this);
-
+void Inliner::PostInline(StmtOptInfo* oi, ScriptFuncPtr f) {
     oi->num_stmts = num_stmts;
     oi->num_exprs = num_exprs;
 
     int new_frame_size = curr_frame_size + max_inlined_frame_size;
 
-    if ( new_frame_size > f->Func()->FrameSize() )
-        f->Func()->SetFrameSize(new_frame_size);
+    if ( new_frame_size > f->FrameSize() )
+        f->SetFrameSize(new_frame_size);
 }
 
 ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
@@ -166,20 +300,21 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     if ( ! func_v )
         return c;
 
-    auto function = func_v->AsFunc();
+    auto function = func_v->AsFuncVal()->AsFuncPtr();
 
     if ( function->GetKind() != Func::SCRIPT_FUNC )
         return c;
 
-    auto func_vf = static_cast<ScriptFunc*>(function);
+    auto func_vf = cast_intrusive<ScriptFunc>(function);
 
-    if ( inline_ables.count(func_vf) == 0 )
+    auto ia = inline_ables.find(func_vf.get());
+    if ( ia == inline_ables.end() )
         return c;
 
     if ( c->IsInWhen() ) {
         // Don't inline these, as doing so requires propagating
         // the in-when attribute to the inlined function body.
-        skipped_inlining.insert(func_vf);
+        skipped_inlining.insert(func_vf.get());
         return c;
     }
 
@@ -188,20 +323,31 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     // BiFs, which won't happen here, but instead to script functions that
     // are misusing/abusing the loophole.)
     if ( function->GetType()->Params()->NumFields() == 1 && c->Args()->Exprs().size() != 1 ) {
-        skipped_inlining.insert(func_vf);
+        skipped_inlining.insert(func_vf.get());
         return c;
     }
 
     // We're going to inline the body, unless it's too large.
     auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
+    auto scope = func_vf->GetScope();
+    auto ie = DoInline(func_vf, body, c->ArgsPtr(), scope, ia->second);
+
+    if ( ie ) {
+        ie->SetOriginal(c);
+        did_inline.insert(func_vf.get());
+    }
+
+    return ie;
+}
+
+ExprPtr Inliner::DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, ScopePtr scope, const ProfileFunc* pf) {
+    // Inline the body, unless it's too large.
     auto oi = body->GetOptInfo();
 
     if ( num_stmts + oi->num_stmts + num_exprs + oi->num_exprs > MAX_INLINE_SIZE ) {
-        skipped_inlining.insert(func_vf);
+        skipped_inlining.insert(sf.get());
         return nullptr; // signals "stop inlining"
     }
-
-    did_inline.insert(func_vf);
 
     num_stmts += oi->num_stmts;
     num_exprs += oi->num_exprs;
@@ -219,20 +365,22 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     // with the scope, which gives us all the variables declared in
     // the function, *using the knowledge that the parameters are
     // declared first*.
-    auto scope = func_vf->GetScope();
     auto& vars = scope->OrderedVars();
-    int nparam = func_vf->GetType()->Params()->NumFields();
+    int nparam = sf->GetType()->Params()->NumFields();
 
     std::vector<IDPtr> params;
-    params.reserve(nparam);
+    std::vector<bool> param_is_modified;
 
-    for ( int i = 0; i < nparam; ++i )
-        params.emplace_back(vars[i]);
+    for ( int i = 0; i < nparam; ++i ) {
+        auto& vi = vars[i];
+        params.emplace_back(vi);
+        param_is_modified.emplace_back((pf->Assignees().count(vi.get()) > 0));
+    }
 
     // Recursively inline the body.  This is safe to do because we've
     // ensured there are no recursive loops ... but we have to be
     // careful in accounting for the frame sizes.
-    int frame_size = func_vf->FrameSize();
+    int frame_size = sf->FrameSize();
 
     int hold_curr_frame_size = curr_frame_size;
     curr_frame_size = frame_size;
@@ -250,11 +398,10 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     else
         max_inlined_frame_size = hold_max_inlined_frame_size;
 
-    auto t = c->GetType();
-    auto ie = make_intrusive<InlineExpr>(c->ArgsPtr(), std::move(params), body_dup, curr_frame_size, t);
-    ie->SetOriginal(c);
+    auto t = scope->GetReturnType();
 
-    return ie;
+    ASSERT(params.size() == args->Exprs().size());
+    return make_intrusive<InlineExpr>(args, params, param_is_modified, body_dup, curr_frame_size, t);
 }
 
 } // namespace zeek::detail

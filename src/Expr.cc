@@ -402,7 +402,10 @@ NameExpr::NameExpr(IDPtr arg_id, bool const_init) : Expr(EXPR_NAME), id(std::mov
 
     EventHandler* h = event_registry->Lookup(id->Name());
     if ( h )
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         h->SetUsed();
+#pragma GCC diagnostic pop
 }
 
 // This isn't in-lined to avoid needing to pull in ID.h.
@@ -2379,6 +2382,17 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice, bo
     if ( IsError() )
         return;
 
+    if ( op1->GetType()->Tag() == TYPE_TABLE ) { // Check for a table[pattern] being indexed by a string
+        const auto& table_type = op1->GetType()->AsTableType();
+        const auto& rhs_type = op2->GetType()->AsTypeList()->GetTypes();
+        if ( table_type->IsPatternIndex() && table_type->Yield() && rhs_type.size() == 1 &&
+             IsString(rhs_type[0]->Tag()) ) {
+            is_pattern_table = true;
+            SetType(make_intrusive<VectorType>(op1->GetType()->Yield()));
+            return;
+        }
+    }
+
     int match_type = op1->GetType()->MatchesIndex(op2->AsListExpr());
 
     if ( match_type == DOES_NOT_MATCH_INDEX ) {
@@ -2529,7 +2543,12 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const {
                 return index_slice(vect, lv);
         } break;
 
-        case TYPE_TABLE: v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2}); break;
+        case TYPE_TABLE:
+            if ( is_pattern_table )
+                return v1->AsTableVal()->LookupPattern({NewRef{}, v2->AsListVal()->Idx(0)->AsStringVal()});
+
+            v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2});
+            break;
 
         case TYPE_STRING: return index_string(v1->AsString(), v2->AsListVal());
 
@@ -2735,7 +2754,7 @@ HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
     }
 }
 
-HasFieldExpr::~HasFieldExpr() { delete field_name; }
+HasFieldExpr::~HasFieldExpr() { delete[] field_name; }
 
 ValPtr HasFieldExpr::Fold(Val* v) const {
     auto rv = v->AsRecordVal();
@@ -3362,7 +3381,7 @@ bool FieldAssignExpr::PromoteTo(TypePtr t) {
 bool FieldAssignExpr::IsRecordElement(TypeDecl* td) const {
     if ( td ) {
         td->type = op->GetType();
-        td->id = util::copy_string(field_name.c_str());
+        td->id = util::copy_string(field_name.c_str(), field_name.size());
     }
 
     return true;
@@ -3796,6 +3815,18 @@ InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_IN, std::move
         }
     }
 
+    // Support <string> in table[pattern] / set[pattern]
+    if ( op1->GetType()->Tag() == TYPE_STRING ) {
+        if ( op2->GetType()->Tag() == TYPE_TABLE ) {
+            const auto& table_type = op2->GetType()->AsTableType();
+
+            if ( table_type->IsPatternIndex() ) {
+                SetType(base_type(TYPE_BOOL));
+                return;
+            }
+        }
+    }
+
     if ( op1->Tag() != EXPR_LIST )
         op1 = make_intrusive<ListExpr>(std::move(op1));
 
@@ -3834,8 +3865,15 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const {
         auto ind = v1->AsListVal()->Idx(0)->CoerceToUnsigned();
         res = ind < vv2->Size() && vv2->ValAt(ind);
     }
-    else
-        res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
+    else {
+        const auto& table_val = v2->AsTableVal();
+        const auto& table_type = table_val->GetType<zeek::TableType>();
+        // Special table[pattern] / set[pattern] in expression.
+        if ( table_type->IsPatternIndex() && v1->GetType()->Tag() == TYPE_STRING )
+            res = table_val->MatchPattern({NewRef{}, v1->AsStringVal()});
+        else
+            res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
+    }
 
     return val_mgr->Bool(res);
 }
@@ -4265,7 +4303,10 @@ EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
         event_registry->Register(h, true);
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     h->SetUsed();
+#pragma GCC diagnostic pop
 
     handler = h;
 
@@ -4367,6 +4408,12 @@ bool ListExpr::IsPure() const {
     for ( const auto& expr : exprs )
         if ( ! expr->IsPure() )
             return false;
+
+    return true;
+}
+
+bool ListExpr::HasConstantOps() const {
+    loop_over_list(exprs, i) if ( exprs[i]->Tag() != EXPR_CONST ) return false;
 
     return true;
 }

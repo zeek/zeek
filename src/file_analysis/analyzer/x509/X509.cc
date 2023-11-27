@@ -16,6 +16,7 @@
 #endif
 
 #include "zeek/Event.h"
+#include "zeek/digest.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/file_analysis/analyzer/x509/events.bif.h"

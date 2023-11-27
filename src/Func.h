@@ -85,6 +85,13 @@ public:
     bool HasEnabledBodies() const { return ! bodies.empty() && has_enabled_bodies; };
 
     /**
+     * Is every body enabled?
+     *
+     * @return  true if all bodies are enabled. (If no bodies, then true.)
+     */
+    bool HasAllBodiesEnabled() const { return all_bodies_enabled; };
+
+    /**
      * Calls a Zeek function.
      * @param args  the list of arguments to the function call.
      * @param parent  the frame from which the function is being called.
@@ -152,6 +159,7 @@ private:
     // expose accessors in the zeek:: public interface.
     friend class EventGroup;
     bool has_enabled_bodies = true;
+    bool all_bodies_enabled = true;
 };
 
 namespace detail {

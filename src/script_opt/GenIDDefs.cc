@@ -20,9 +20,7 @@ GenIDDefs::GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr s
 void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body) {
     func_flavor = f->Flavor();
 
-    // Establish the outermost barrier and associated set of
-    // identifiers.
-    barrier_blocks.push_back(0);
+    // Establish the outermost set of identifiers.
     modified_IDs.emplace_back();
 
     for ( const auto& g : pf->Globals() ) {
@@ -63,9 +61,9 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             auto cr = s->AsCatchReturnStmt();
             auto block = cr->Block();
 
-            StartConfluenceBlock(s);
+            cr_active.push_back(confluence_blocks.size());
             block->Traverse(this);
-            EndConfluenceBlock();
+            cr_active.pop_back();
 
             auto retvar = cr->RetVar();
             if ( retvar )
@@ -381,9 +379,6 @@ void GenIDDefs::CheckVarUsage(const Expr* e, const ID* id) {
 }
 
 void GenIDDefs::StartConfluenceBlock(const Stmt* s) {
-    if ( s->Tag() == STMT_CATCH_RETURN )
-        barrier_blocks.push_back(confluence_blocks.size());
-
     confluence_blocks.push_back(s);
     modified_IDs.emplace_back();
 }
@@ -393,11 +388,6 @@ void GenIDDefs::EndConfluenceBlock(bool no_orig) {
         id->GetOptInfo()->ConfluenceBlockEndsAfter(curr_stmt, no_orig);
 
     confluence_blocks.pop_back();
-
-    auto bb = barrier_blocks.back();
-    if ( bb > 0 && confluence_blocks.size() == bb )
-        barrier_blocks.pop_back();
-
     modified_IDs.pop_back();
 }
 
@@ -443,19 +433,29 @@ const Stmt* GenIDDefs::FindBreakTarget() {
 }
 
 void GenIDDefs::ReturnAt(const Stmt* s) {
-    for ( auto id : modified_IDs.back() )
-        id->GetOptInfo()->ReturnAt(s);
+    // If we're right at a catch-return then we don't want to make the
+    // identifier as encountering a scope-ending "return" here.  By avoiding
+    // that, we're able to do optimization across catch-return blocks.
+    if ( cr_active.empty() || cr_active.back() != confluence_blocks.size() )
+        for ( auto id : modified_IDs.back() )
+            id->GetOptInfo()->ReturnAt(s);
 }
 
 void GenIDDefs::TrackID(const ID* id, const ExprPtr& e) {
     auto oi = id->GetOptInfo();
 
-    ASSERT(! barrier_blocks.empty());
-    oi->DefinedAfter(curr_stmt, e, confluence_blocks, barrier_blocks.back());
+    // The 4th argument here is hardwired to 0, meaning "assess across all
+    // confluence blocks". If we want definitions inside catch-return bodies
+    // to not propagate outside those bodies, we'd instead create new
+    // confluence blocks for catch-return statements, and use their identifier
+    // here to set the lowest limit for definitions. For now we leave
+    // DefinedAfter as capable of supporting that distinction in case we
+    // find need to revive it in the future.
+    oi->DefinedAfter(curr_stmt, e, confluence_blocks, 0);
 
     // Ensure we track this identifier across all relevant
     // confluence regions.
-    for ( auto i = barrier_blocks.back(); i < confluence_blocks.size(); ++i )
+    for ( auto i = 0U; i < confluence_blocks.size(); ++i )
         // Add one because modified_IDs includes outer non-confluence
         // block.
         modified_IDs[i + 1].insert(id);

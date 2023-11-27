@@ -188,6 +188,7 @@ static void print_analysis_help() {
     fprintf(stderr, "    dump-ZAM	dump generated ZAM code; implies gen-ZAM-code\n");
     fprintf(stderr, "    gen-ZAM-code	generate ZAM code (without turning on additional optimizations)\n");
     fprintf(stderr, "    inline	inline function calls\n");
+    fprintf(stderr, "    no-inline	turn off inlining\n");
     fprintf(stderr, "    no-ZAM-opt	omit low-level ZAM optimization\n");
     fprintf(stderr, "    optimize-all	optimize all scripts, even inlined ones\n");
     fprintf(stderr, "    optimize-AST	optimize the (transformed) AST; implies xform\n");
@@ -235,6 +236,8 @@ static void set_analysis_option(const char* opt, Options& opts) {
         a_o.activate = a_o.gen_ZAM_code = true;
     else if ( util::streq(opt, "inline") )
         a_o.inliner = true;
+    else if ( util::streq(opt, "no-inline") )
+        a_o.no_inliner = true;
     else if ( util::streq(opt, "no-ZAM-opt") )
         a_o.activate = a_o.no_ZAM_opt = true;
     else if ( util::streq(opt, "optimize-all") )

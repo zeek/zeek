@@ -434,15 +434,14 @@ static std::vector<std::string> get_script_signature_files() {
     std::vector<std::string> rval;
 
     // Parse rule files defined on the script level.
-    char* script_signature_files = util::copy_string(id::find_val("signature_files")->AsString()->CheckString());
+    auto script_signature_files = id::find_val("signature_files")->AsStringVal()->ToStdString();
 
-    char* tmp = script_signature_files;
+    char* tmp = script_signature_files.data();
     char* s;
     while ( (s = strsep(&tmp, " \t")) )
         if ( *s )
             rval.emplace_back(s);
 
-    delete[] script_signature_files;
     return rval;
 }
 
@@ -924,7 +923,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         exit(reporter->Errors() != 0);
     }
 
-    auto init_stmts = stmts ? analyze_global_stmts(stmts) : nullptr;
+    if ( stmts )
+        analyze_global_stmts(stmts);
 
     analyze_scripts(options.no_unused_warnings);
 
@@ -1009,7 +1009,10 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     if ( zeek_init )
         event_mgr.Enqueue(zeek_init, Args{});
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
+#pragma GCC diagnostic pop
 
     if ( ! dead_handlers.empty() && check_for_unused_event_handlers ) {
         for ( const string& handler : dead_handlers )
@@ -1023,13 +1026,14 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     // cause more severe problems.
     ZEEK_LSAN_ENABLE();
 
-    if ( init_stmts ) {
+    if ( stmts ) {
+        auto [body, scope] = get_global_stmts();
         StmtFlowType flow;
-        Frame f(init_stmts->Scope()->Length(), nullptr, nullptr);
+        Frame f(scope->Length(), nullptr, nullptr);
         g_frame_stack.push_back(&f);
 
         try {
-            init_stmts->Body()->Exec(&f, flow);
+            body->Exec(&f, flow);
         } catch ( InterpreterException& ) {
             reporter->FatalError("failed to execute script statements at top-level scope");
         }

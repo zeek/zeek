@@ -13,17 +13,78 @@ Breaking Changes
   namespace were changed to return a reference to a std::shared_ptr instead of a copy
   for performance reasons.
 
+- Zeek's ``OPENSSL_INCLUDE_DIR`` is not automatically added to an external plugin's
+  include path anymore. A plugin using OpenSSL functionality directly can use the
+  following explicit entry to re-use Zeek's ``OPENSSL_INCLUDE_DIR``:
+
+	zeek_add_plugin(
+		Namespace Name
+		INCLUDE_DIRS "${OPENSSL_INCLUDE_DIR}"
+		SOURCES ...
+	)
+
 New Functionality
 -----------------
 
+- The table type was extended to allow parallel regular expression matching
+  when a table's index is a pattern. Indexing such tables yields a vector
+  containing all values of matching patterns for keys of type string.
+
+  As an example, the following snippet outputs ``[a, a or b], [a or b]``.
+
+	global tbl: table[pattern] of string;
+	tbl[/a/] = "a";
+	tbl[/a|b/] = "a or b";
+	tbl[/c/] = "c";
+	print tbl["a"], tbl["b"];
+
+  Depending on the patterns and input used for matching, memory growth may
+  be observed over time as the underlying DFA is constructed lazily. Users are
+  advised to test with realistic and adversarial input data with focus on
+  memory growth. The DFA's state can be reset by removal/addition of a single
+  pattern. For observability, a new bif ``table_pattern_matcher_stats()``
+  can be used to gather ``MatcherStats``.
+
+
 Changed Functionality
 ---------------------
+
+- The ``split_string`` family of functions now respect the beginning-of-line ^ and
+  end-of-line $ anchors. Previously, an anchored pattern would be matched anywhere
+  in the input string.
+
+- The ``sub()`` and ``gsub()` functions now respect the beginning-of-line ^ and
+  end-of-line $ anchors. Previously, an anchored pattern would be matched anywhere
+  in the input string.
+
+- Ed25519 and Ed448 DNSKEY and RRSIG entries do not cause weirds anymore.
+
+- The OpenSSL references in ``digest.h`` and ``OpaqueVal.h`` headers have been
+  hidden to avoid unneeded dependencies on OpenSSL headers. Plugins using the
+  detail API from ``digest.h`` to compute hashes likely need to accommodate for
+  this change.
 
 Removed Functionality
 ---------------------
 
 Deprecated Functionality
 ------------------------
+
+- The ``Cluster::Node$interface`` field has been deprecated. It's essentially
+  unneeded, unused and not a reliable way to gather the actual interface used
+  by a worker. In Zeekctl deployments the field will be populated until its
+  removal. The ``packet_source()`` bif should be used on worker processes to
+  gather information about the interface.
+
+- The ``policy/misc/load-balancing`` script has been deprecated in favor of
+  AF_PACKET PF_RING, Netmap or other NIC specific load balancing approaches.
+
+- Time machine related enums, options and fields have been marked for removal.
+
+- The ``check_for_unused_event_handlers`` options the related ``UsedHandlers()``,
+  ``UnusedHandlers()`` and their related ``SetUsed()`` and ``Used()`` methods
+  have been marked for removal. The feature of finding unused event handlers is
+  provided by default via the ``UsageAnalyzer`` component.
 
 Zeek 6.1.0
 ==========

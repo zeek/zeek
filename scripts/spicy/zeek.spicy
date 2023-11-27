@@ -107,8 +107,9 @@ public function protocol_handle_close(handle: ProtocolHandle): void &cxxname="ze
 
 ## Signals the beginning of a file to Zeek's file analysis, associating it with the current connection.
 ## Optionally, a mime type can be provided. It will be passed on to Zeek's file analysis framework.
+## Optionally, a file ID can be provided. It will be passed on to Zeek's file analysis framework.
 ## Returns the Zeek-side file ID of the new file.
-public function file_begin(mime_type: optional<string> = Null) : string &cxxname="zeek::spicy::rt::file_begin";
+public function file_begin(mime_type: optional<string> = Null, fuid: optional<string> = Null) : string &cxxname="zeek::spicy::rt::file_begin";
 
 ## Returns the current file's FUID.
 public function fuid() : string &cxxname="zeek::spicy::rt::fuid";
@@ -117,6 +118,10 @@ public function fuid() : string &cxxname="zeek::spicy::rt::fuid";
 ## subsequent activity will start a new session from scratch. This can only be
 ## called from inside a protocol analyzer.
 public function terminate_session() : void &cxxname="zeek::spicy::rt::terminate_session";
+
+## Tells Zeek to skip sending any further input data to the current analyzer.
+## This is supported for protocol and file analyzers.
+public function skip_input() : void &cxxname="zeek::spicy::rt::skip_input";
 
 ## Signals the expected size of a file to Zeek's file analysis.
 ##

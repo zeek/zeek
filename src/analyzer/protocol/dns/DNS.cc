@@ -872,6 +872,8 @@ bool DNS_Interpreter::ParseRR_RRSIG(detail::DNS_MsgInfo* msg, const u_char*& dat
         case detail::GOST_R_34_10_2001: break;
         case detail::ECDSA_curveP256withSHA256: break;
         case detail::ECDSA_curveP384withSHA384: break;
+        case detail::Ed25519: break;
+        case detail::Ed448: break;
         case detail::Indirect: analyzer->Weird("DNSSEC_RRSIG_Indirect_ZoneSignAlgo", util::fmt("%d", algo)); break;
         case detail::PrivateDNS: analyzer->Weird("DNSSEC_RRSIG_PrivateDNS_ZoneSignAlgo", util::fmt("%d", algo)); break;
         case detail::PrivateOID: analyzer->Weird("DNSSEC_RRSIG_PrivateOID_ZoneSignAlgo", util::fmt("%d", algo)); break;
@@ -945,6 +947,8 @@ bool DNS_Interpreter::ParseRR_DNSKEY(detail::DNS_MsgInfo* msg, const u_char*& da
         case detail::GOST_R_34_10_2001: break;
         case detail::ECDSA_curveP256withSHA256: break;
         case detail::ECDSA_curveP384withSHA384: break;
+        case detail::Ed25519: break;
+        case detail::Ed448: break;
         case detail::Indirect:
             analyzer->Weird("DNSSEC_DNSKEY_Indirect_ZoneSignAlgo", util::fmt("%d", dalgorithm));
             break;

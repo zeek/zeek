@@ -91,15 +91,12 @@ private:
     // A stack of confluence blocks, with the innermost at the top/back.
     std::vector<const Stmt*> confluence_blocks;
 
-    // Index into confluence_blocks of "barrier" blocks that
-    // represent unavoidable confluence blocks (no branching
-    // out of them).  These include the outermost block and
-    // any catch-return blocks.  We track these because
-    // (1) there's no need for an IDOptInfo to track previously
-    // unseen confluence regions outer to those, and (2) they
-    // can get quite deep due when inlining, so there are savings
-    // to avoid having to track outer to them.
-    std::vector<zeek_uint_t> barrier_blocks;
+    // Stack of confluence blocks corresponding to activate catch-return
+    // statements.  We used to stop identifier definitions at these
+    // boundaries, but given there's no confluence (i.e., the body of the
+    // catch-return *will* execute), we can do broader optimization if we
+    // don't treat them as their own (new) confluence blocks.
+    std::vector<zeek_uint_t> cr_active;
 
     // The following is parallel to confluence_blocks except
     // the front entry tracks identifiers at the outermost

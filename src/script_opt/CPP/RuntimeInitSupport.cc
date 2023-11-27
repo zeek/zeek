@@ -133,7 +133,10 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
 
     for ( const auto& e : events ) {
         auto eh = event_registry->Register(e);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         eh->SetUsed();
+#pragma GCC diagnostic pop
     }
 }
 
@@ -190,7 +193,10 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
         // the semantics for Register explicitly allow it.
         for ( auto& e : f.events ) {
             auto eh = event_registry->Register(e);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
             eh->SetUsed();
+#pragma GCC diagnostic pop
         }
     }
 

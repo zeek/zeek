@@ -448,7 +448,8 @@ static bool prepare_environment(zeek::TableVal* tbl, bool set)
 			return false;
 			}
 
-		char* tmp = zeek::util::copy_string(key->AsString()->CheckString());
+		auto [data,len] = key->AsString()->CheckStringWithSize();
+		char* tmp = zeek::util::copy_string(data, len);
 		zeek::util::to_upper(tmp);
 		std::string var1 = zeek::util::fmt("ZEEK_ARG_%s", tmp);
 		delete [] tmp;
@@ -586,7 +587,7 @@ function piped_exec%(program: string, to_write: string%): bool
 ##      friends.
 function md5_hash%(...%): string
 	%{
-	unsigned char digest[MD5_DIGEST_LENGTH];
+	unsigned char digest[ZEEK_MD5_DIGEST_LENGTH];
 	MD5Val::digest(@ARG@, digest);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(digest));
 	%}
@@ -606,7 +607,7 @@ function md5_hash%(...%): string
 ##      friends.
 function sha1_hash%(...%): string
 	%{
-	unsigned char digest[SHA_DIGEST_LENGTH];
+	unsigned char digest[ZEEK_SHA_DIGEST_LENGTH];
 	SHA1Val::digest(@ARG@, digest);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha1_digest_print(digest));
 	%}
@@ -626,7 +627,7 @@ function sha1_hash%(...%): string
 ##      friends.
 function sha256_hash%(...%): string
 	%{
-	unsigned char digest[SHA256_DIGEST_LENGTH];
+	unsigned char digest[ZEEK_SHA256_DIGEST_LENGTH];
 	SHA256Val::digest(@ARG@, digest);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha256_digest_print(digest));
 	%}
@@ -642,7 +643,7 @@ function sha256_hash%(...%): string
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
 function md5_hmac%(...%): string
 	%{
-	unsigned char hmac[MD5_DIGEST_LENGTH];
+	unsigned char hmac[ZEEK_MD5_DIGEST_LENGTH];
 	MD5Val::hmac(@ARG@, zeek::detail::KeyedHash::shared_hmac_md5_key, hmac);
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::md5_digest_print(hmac));
 	%}
@@ -5793,4 +5794,54 @@ function have_spicy%(%) : bool
 function have_spicy_analyzers%(%) : bool
 	%{
 	return zeek::val_mgr->Bool(USE_SPICY_ANALYZERS);
+	%}
+
+%%{
+#include "zeek/DFA.h"
+%%}
+
+## Return MatcherStats for a table[pattern] or set[pattern] value.
+##
+## This returns a MatcherStats objects that can be used for introspection
+## of the DFA used for such a table. Statistics reset whenever elements are
+## added or removed to the table as these operations result in the underlying
+## DFA being rebuilt.
+##
+## This function iterates over all states of the DFA. Calling it at a high
+## frequency is likely detrimental to performance.
+##
+## tbl: The table to get stats for.
+##
+## Returns: A record with matcher statistics.
+function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
+	%{
+	static auto matcher_stats_type = zeek::id::find_type<zeek::RecordType>("MatcherStats");
+
+	const auto& type = tbl->GetType();
+	if ( type->Tag() != zeek::TYPE_TABLE )
+		{
+		zeek::emit_builtin_error("pattern-table_stats() requires a table argument");
+		return nullptr;
+		}
+
+	if ( ! type->AsTableType()->IsPatternIndex() )
+		{
+		zeek::emit_builtin_error("pattern_table_stats() requires a single index of type pattern");
+		return nullptr;
+		}
+
+	zeek::detail::DFA_State_Cache::Stats stats;
+	tbl->AsTableVal()->GetPatternMatcherStats(&stats);
+
+	auto result = zeek::make_intrusive<zeek::RecordVal>(matcher_stats_type);
+	int n = 0;
+	result->Assign(n++, 1); // matchers
+	result->Assign(n++, stats.nfa_states);
+	result->Assign(n++, stats.dfa_states);
+	result->Assign(n++, stats.computed);
+	result->Assign(n++, stats.mem);
+	result->Assign(n++, stats.hits);
+	result->Assign(n++, stats.misses);
+
+	return result;
 	%}

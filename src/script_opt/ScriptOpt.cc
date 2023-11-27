@@ -36,6 +36,7 @@ static std::string CPP_dir; // where to generate C++ code
 static std::unordered_map<const ScriptFunc*, LambdaExpr*> lambdas;
 static std::unordered_set<const ScriptFunc*> when_lambdas;
 static ScriptFuncPtr global_stmts;
+static size_t global_stmts_ind; // index into Funcs corresponding to global_stmts
 
 void analyze_func(ScriptFuncPtr f) {
     // Even if we're analyzing only a subset of the scripts, we still
@@ -56,7 +57,7 @@ bool is_lambda(const ScriptFunc* f) { return lambdas.count(f) > 0; }
 
 bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.count(f) > 0; }
 
-const FuncInfo* analyze_global_stmts(Stmt* stmts) {
+void analyze_global_stmts(Stmt* stmts) {
     // We ignore analysis_options.only_{files,funcs} - if they're in use, later
     // logic will keep this function from being compiled, but it's handy
     // now to enter it into "funcs" so we have a FuncInfo to return.
@@ -71,8 +72,14 @@ const FuncInfo* analyze_global_stmts(Stmt* stmts) {
     global_stmts = make_intrusive<ScriptFunc>(id);
     global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
 
+    global_stmts_ind = funcs.size();
     funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);
-    return &funcs.back();
+}
+
+std::pair<StmtPtr, ScopePtr> get_global_stmts() {
+    ASSERT(global_stmts);
+    auto& fi = funcs[global_stmts_ind];
+    return std::pair<StmtPtr, ScopePtr>{fi.Body(), fi.Scope()};
 }
 
 void add_func_analysis_pattern(AnalyOpt& opts, const char* pat) {
@@ -160,7 +167,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
     push_existing_scope(scope);
 
-    auto rc = std::make_shared<Reducer>(f);
+    auto rc = std::make_shared<Reducer>(f, pf);
     auto new_body = rc->Reduce(body);
 
     if ( reporter->Errors() > 0 ) {
@@ -254,6 +261,7 @@ static void init_options() {
     check_env_opt("ZEEK_DUMP_XFORM", analysis_options.dump_xform);
     check_env_opt("ZEEK_DUMP_UDS", analysis_options.dump_uds);
     check_env_opt("ZEEK_INLINE", analysis_options.inliner);
+    check_env_opt("ZEEK_NO_INLINE", analysis_options.no_inliner);
     check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
     check_env_opt("ZEEK_XFORM", analysis_options.activate);
     check_env_opt("ZEEK_ZAM", analysis_options.gen_ZAM);
@@ -320,6 +328,9 @@ static void init_options() {
 
     if ( analysis_options.optimize_AST || analysis_options.gen_ZAM_code || analysis_options.usage_issues > 0 )
         analysis_options.activate = true;
+
+    if ( analysis_options.no_inliner )
+        analysis_options.inliner = false;
 }
 
 static void report_CPP() {
@@ -386,7 +397,10 @@ static void use_CPP() {
 
             for ( auto& e : s->second.events ) {
                 auto h = event_registry->Register(e);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
                 h->SetUsed();
+#pragma GCC diagnostic pop
             }
 
             auto finish = s->second.finish_init_func;
@@ -459,17 +473,15 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
     bool did_one = false;
 
     for ( auto& f : funcs ) {
+        if ( ! f.ShouldAnalyze() )
+            continue;
+
         auto func = f.Func();
         auto l = lambdas.find(func);
         bool is_lambda = l != lambdas.end();
 
-        if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() ) {
-            if ( ! should_analyze(f.FuncPtr(), f.Body()) )
-                continue;
-        }
-
-        else if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func) &&
-                  func_used_indirectly.count(func) == 0 ) {
+        if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func) &&
+             func_used_indirectly.count(func) == 0 ) {
             // No need to compile as it won't be called directly.
             // We'd like to zero out the body to recover the
             // memory, but a *few* such functions do get called,
@@ -549,7 +561,7 @@ void analyze_scripts(bool no_unused_warnings) {
         if ( should_analyze(func.FuncPtr(), func.Body()) )
             have_one_to_do = true;
         else
-            func.SetSkip(true);
+            func.SetShouldNotAnalyze();
 
     if ( ! have_one_to_do )
         reporter->FatalError("no matching functions/files for C++ compilation");

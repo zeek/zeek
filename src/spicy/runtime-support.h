@@ -381,10 +381,11 @@ void protocol_handle_close(const ProtocolHandle& handle);
  * Signals the beginning of a file to Zeek's file analysis, associating it
  * with the current connection.
  *
- * param mime_type optional mime type passed to Zeek
+ * @param mime_type optional mime type passed to Zeek
+ * @param fid optional file ID passed to Zeek
  * @returns Zeek-side file ID of the new file
  */
-std::string file_begin(const std::optional<std::string>& mime_type);
+std::string file_begin(const std::optional<std::string>& mime_type, const std::optional<std::string>& fid);
 
 /**
  * Returns the current file's FUID.
@@ -396,6 +397,12 @@ std::string fuid();
  * subsequent activity will start a new session from scratch.
  */
 void terminate_session();
+
+/**
+ * Tells Zeek to skip sending any further input data to the current protocol
+ * or file analyzer.
+ */
+void skip_input();
 
 /**
  * Signals the expected size of a file to Zeek's file analysis.

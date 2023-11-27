@@ -13,6 +13,7 @@
 namespace zeek::detail {
 
 class FuncInfo;
+class ProfileFunc;
 
 class Inliner {
 public:
@@ -36,15 +37,41 @@ protected:
     // recursively inlines eligible ones.
     void Analyze();
 
+    // Maps an event handler body to its corresponding FuncInfo.  For the
+    // latter we use a cursor rather than a direct reference or pointer
+    // because the collection of FuncInfo's are maintained in a vector and
+    // can wind up moving around in memory.
+    using BodyInfo = std::unordered_map<const Stmt*, size_t>;
+
+    // Goes through all the event handlers and coalesces those with
+    // multiple bodies into a single "alternative" body.
+    void CoalesceEventHandlers();
+
+    // For a given event handler, collection of bodies, and associated
+    // function information, creates a new FuncInfo entry reflecting an
+    // alternative body for the event handler with all of the bodies
+    // coalesced into a single new body.
+    void CoalesceEventHandlers(ScriptFuncPtr sf, const std::vector<Func::Body>& bodies, const BodyInfo& body_to_info);
+
     // Recursively inlines any calls associated with the given function.
     void InlineFunction(FuncInfo* f);
+
+    // Performs common functionality prior to inlining a call body.
+    void PreInline(StmtOptInfo* oi, size_t frame_size);
+
+    // Performs common functionality that comes after inlining a call body.
+    void PostInline(StmtOptInfo* oi, ScriptFuncPtr f);
+
+    // Inlines the given body using the given arguments.
+    ExprPtr DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, ScopePtr scope, const ProfileFunc* pf);
 
     // Information about all of the functions (and events/hooks) in
     // the full set of scripts.
     std::vector<FuncInfo>& funcs;
 
-    // Functions that we've determined to be suitable for inlining.
-    std::unordered_set<const Func*> inline_ables;
+    // Functions that we've determined to be suitable for inlining, and
+    // their associated profiles.
+    std::unordered_map<const Func*, const ProfileFunc*> inline_ables;
 
     // Functions that we inlined.
     std::unordered_set<const Func*> did_inline;

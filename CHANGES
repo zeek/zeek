@@ -1,3 +1,365 @@
+6.2.0-dev.187 | 2023-11-23 17:19:51 +0000
+
+  * Spicy: allow providing file id in zeek::file_begin (Johanna Amann, Corelight)
+
+    Allow spicy parsers to generate their own file IDs and provide them to
+    Zeek. This duplicates functionality that is currently possible (and
+    used) by some binpac-based analyzers. One example for an analyzer
+    creating its own file IDs is the SSL analyzer.
+
+  * Bump cmake submodule for INCLUDE_DIRS fix (Arne Welzel, Corelight)
+
+6.2.0-dev.180 | 2023-11-22 10:34:18 +0100
+
+  * Integrate review feedback (Dominik Charousset, Corelight)
+
+  * Avoid OpenSSL header dependencies (Dominik Charousset, Corelight)
+
+6.2.0-dev.176 | 2023-11-21 14:31:12 +0100
+
+  * Add jq to final.Dockerfile (Matti Bispham, Corelight)
+
+6.2.0-dev.174 | 2023-11-21 12:00:20 +0100
+
+  * TableVal: Replace raw subnets/pattern_matcher with unique_ptr (Arne Welzel, Corelight)
+
+  * TablePatternMatcher: Drop Insert()/Remove(), use Clear() (Arne Welzel, Corelight)
+
+    Also move Clear() when assigning into more generic Assign() function.
+
+  * TableType: Simplify and inline Is...Index tests (Arne Welzel, Corelight)
+
+  * NEWS: Add small table[pattern] section (Arne Welzel, Corelight)
+
+  * Expr/Val: Add support for in set[pattern] (Arne Welzel, Corelight)
+
+  * zeek.bif: Implement table_pattern_matcher_stats() bif for introspection (Arne Welzel, Corelight)
+
+    Provide a script accessible way to introspect the DFA stats that can be
+    leveraged to gather runtime statistics of the underlying DFA. This
+    re-uses the existing MatcherStats used by ``get_matcher_stats()``.
+
+  * DFA: Extract inner Stats struct from DFA_State_Cache (Arne Welzel, Corelight)
+
+    This makes it possible to forward declare the class in Val.h which
+    otherwise seems difficult.
+
+  * Expr: Implement string in table[pattern] of X (Arne Welzel, Corelight)
+
+    Not sure how useful this is (and the implementation isn't optimized in
+    any way), but seems reasonable for consistency.
+
+    Vern suggested that set[pattern] can already be achieved via
+    set_to_regex(), so left out any set[pattern] variants.
+
+  * RE: Remove RE_DisjunctiveMatcher and re-use MatchAll() (Arne Welzel, Corelight)
+
+    Seems we can just open code the CompileSet() usage in the TablePatternMatcher
+    helper without indirecting through another class. Further, add the collection
+    of indices into MatchAll() rather than duplicating its code in
+    MatchDisjunction(). Doesn't seem like MatchAll() is used widely.
+
+  * TablePatternMatcher: Use const StringValPtr& instead of const StringVal* (Arne Welzel, Corelight)
+
+  * Val: Move TablePatternMatcher into detail namespace (Arne Welzel, Corelight)
+
+    There's anyway only prototype in the headers, so detail seems better
+    than the public zeek namespace.
+
+  * TablePatternMatcher: Use unique_ptr (Arne Welzel, Corelight)
+
+  * IndexType: Add IsPatternIndex(), like IsSubNetIndex() (Arne Welzel, Corelight)
+
+  * btest: Add test for pattern tables and when (Arne Welzel, Corelight)
+
+  * Reuse CompileSet() instead of || string formatting (Arne Welzel, Corelight)
+
+  * script optimization support for using strings to index table[pattern] values (Vern Paxson, Corelight)
+
+  * BTests for indexing "table[pattern] of T" with strings (Vern Paxson, Corelight)
+
+  * support for indexing "table[pattern] of T" with strings to get multi-matches (Vern Paxson, Corelight)
+
+6.2.0-dev.155 | 2023-11-21 10:08:14 +0100
+
+  * GH-3453: DNS: Add Ed25519 and Ed448 enum values to parser (Arne Welzel, Corelight)
+
+    We already had these declared in dns/const.zeek, so extend the parser
+    as well to avoid raising weirds and add some test pcaps:
+
+       $ dig @8.8.8.8 DNSKEY ed448.no
+       $ dig @8.8.8.8 ed448.no +dnssec
+
+    And the same for the ed25519.no domain.
+
+  * RE_Match_State: Do not reset current_pos for every Match() call (Arne Welzel, Corelight)
+
+    This seems like a bug: If one feeds one byte at a time, current_pos
+    is being reset for every byte, possibly reporting the wrong offsets
+    in the accepted_matches map.
+
+  * frameworks/software: Fix stale value used for stripping (Arne Welzel, Corelight)
+
+    There was some confusion around which value was used subsequent to a strip(),
+    but sub not respecting anchors make it appear to work. Also seems that the
+    `\(?` part seems redundant.
+
+  * GH-3455: strings.bif/sub,gsub: Respect anchors in pattern (Arne Welzel, Corelight)
+
+    Anchors within pattern passed to sub() or gsub() were previously ignored,
+    replacing any occurrence of '<text>' even when '^<text>' was used as a
+    pattern.
+
+    This is a pretty user-visible change (and we even have anchored patterns
+    within the base scripts), but seems "the right thing to do".
+
+    Relates to #3455
+
+6.2.0-dev.147 | 2023-11-17 18:00:32 +0100
+
+  * BTest updates to accommodate event handler coalescence differences (Vern Paxson, Corelight)
+
+  * BTests for testing that event handler coalescence operates as expected (Vern Paxson, Corelight)
+
+  * coalescing of event handlers (ZAM optimization) (Vern Paxson, Corelight)
+
+6.2.0-dev.143 | 2023-11-17 09:24:36 -0700
+
+  * CI: Install missing packages on opensuse (Tim Wojtulewicz, Corelight)
+
+6.2.0-dev.141 | 2023-11-17 13:01:19 +0100
+
+  * GH-3455: strings.bif/do_split_string: Pass bol and eol to MatchPrefix() (Arne Welzel, Corelight)
+
+    This allows better control of BOL and EOL. MatchPrefix() / LongestMatch()
+    always start with BOL.
+
+  * RE_Matcher: Add MatchPrefix with bol/eol control (Arne Welzel, Corelight)
+
+6.2.0-dev.137 | 2023-11-11 17:45:51 +0100
+
+  * Bind scan_path to the scope; avoid heap allocation (Dominik Charousset, Corelight)
+
+6.2.0-dev.134 | 2023-11-10 12:42:57 +0100
+
+  * retention of superseded AST elements to prevent pointer mis-aliasing (Vern Paxson, Corelight)
+
+  * BTest updates for latest ZAM maintenance (Vern Paxson, Corelight)
+
+  * greater ZAM optimization of inlined function calls (Vern Paxson, Corelight)
+
+  * some minor ZAM optimization improvements (Vern Paxson, Corelight)
+
+  * added "-O noinline" option to turn off ZAM inlining, to help with diagnosing optimization problems (Vern Paxson, Corelight)
+
+  * fixes for a number of ZAM optimization bugs (Vern Paxson, Corelight)
+
+  * allow explicitly marking an identifier as equivalent to special '_' identifier (Vern Paxson, Corelight)
+
+  * fixed some warnings about mixing signed & unsigned integers (Vern Paxson, Corelight)
+
+  * descriptions of "for" statements now include their "value variable" if present (Vern Paxson, Corelight)
+
+6.2.0-dev.123 | 2023-11-09 17:22:29 +0100
+
+  * GH-3443: Spicy: Provide `zeek::skip_input()` to disable deliver to
+    current analyzer. (Robin Sommer, Corelight)
+
+6.2.0-dev.121 | 2023-11-09 10:42:16 +0100
+
+  * btest/opt: Update pure-inlining baseline (Arne Welzel, Corelight)
+
+    I suspect this as just stale due to not being executed regularly.
+
+  * btest/opt: Update basic baseline (Arne Welzel, Corelight)
+
+  * Expr: Fix alloc-dealloc-mismatch (Arne Welzel, Corelight)
+
+    I *thought* Vern had fixed this up, but maybe that was another
+    occurrence.
+
+  * btest: Move zam/basic.test into opt/basic.test, update TestDirs (Arne Welzel, Corelight)
+
+    It seems "opt" can and should run unconditionally. The "misc" dir was
+    definitely an oversight.
+
+  * Add deprecations to NEWS [nomail] [skipci] (Arne Welzel, Corelight)
+
+6.2.0-dev.114 | 2023-11-07 19:27:58 +0100
+
+  * Bump zeekctl (Arne Welzel, Corelight)
+
+  * GH-3187: EventHandler: Deprecate SetUsed() and Used() as well. (Arne Welzel, Corelight)
+
+    Seems the latter isn't used outside of the functions that were deprecated
+    in the previous commit and with UsageAnalyzer not making use of this
+    information unclear why we should keep it around.
+
+    Relates to #3187.
+
+  * GH-3187: EventRegistry: Deprecate UsedHandlers() and UnusedHandlers() (Arne Welzel, Corelight)
+
+    and check_for_unused_event_handlers: UsageAnalyzer is more thorough
+    and the previous ones weren't extended to work with &is_used and
+    should probably be considered superseded by the UsageAnalyzer even
+    if that currently does not provide a public API and just prints
+    out deprecation warnings.
+
+    I'm also tempted to deprecate SetUsed() and Used() of EventHandler
+    for the same reason.
+
+    Closes #3187.
+
+  * time machine: Mark leftovers for removal in v7.1 (Arne Welzel, Corelight)
+
+    I suspect we could just drop these directly, but lets follow the
+    deprecation cycle.
+
+  * policy/misc/load-balancing: Deprecate script (Arne Welzel, Corelight)
+
+  * GH-2877: cluster: Deprecate the Cluster::Node$interface field (Arne Welzel, Corelight)
+
+    This field isn't required by a worker and it's certainly not used by a
+    worker to listen on that specific interface. It also isn't required to
+    be set consistently and its use in-tree limited to the old load-balancing
+    script.
+
+    There's a bif called packet_source() which on a worker will provide
+    information about the actually used packet source.
+
+    Relates to zeek/zeek#2877.
+
+6.2.0-dev.107 | 2023-11-07 10:03:24 +0100
+
+  * Update binpac and bifcl submodules [nomail] (Tim Wojtulewicz, Corelight)
+
+  * CI: Use other base64 options on macOS Sonoma too (Tim Wojtulewicz, Corelight)
+
+  * CI: Add macOS Sonoma build, remove macOS Monterey build (Tim Wojtulewicz, Corelight)
+
+6.2.0-dev.102 | 2023-11-07 09:58:25 +0100
+
+  * Merge branch 'topic/xb-anssi/http_signature_body_end_match' of https://github.com/xb-anssi/zeek (Arne Welzel, Corelight)
+
+    * 'topic/xb-anssi/http_signature_body_end_match' of https://github.com/xb-anssi/zeek:
+      Let signature framework match HTTP body end
+      Test how the signature framework matches HTTP body
+
+  * Let signature framework match HTTP body end (xb-anssi)
+
+    The HTTP analyzer never tells the signature framework when the body of a
+    request or a response ends, so any signature regex ending in a '$' used
+    in an 'http-request-body' or in an 'http-reply-body' condition will
+    never match.
+
+    This made it impossible to write a signature which could distinguish an
+    HTTP body consisting only of something from an HTTP body prefixed by
+    that same something.
+
+    - Fix:
+
+    The fix notifies the signature framework on EndOfData() that there will
+    be no further data to match for this body by giving it an empty buffer
+    of length 0 with the eol parameter set to true and all others set to
+    false. This lets it reach the '$' state in its DFA, and doesn't affect
+    other documented HTTP match behaviours.
+
+    - Limitation:
+
+    Since the signature framework doesn't appear to keep previously consumed
+    data on hand, any match of an http-*-body condition whose patterns ends
+    with a '$' will lead to an empty data parameter being passed to the
+    signature_match() event because the body data is no longer available
+    when EndOfData() happens.
+
+    Due to segmentation there is anyway no guarantee the data parameter
+    would have held the entire match even without the '$', since the data
+    parameter only receives the last chunk of data which completed the match
+    condition, as can be seen on prefix matches in the btest cases where the
+    matching data spans multiple segments (the event gives 'B' and not
+    'AB'), so this is only an extreme case of partial data being given to
+    that event.
+
+  * Test how the signature framework matches HTTP body (xb-anssi)
+
+    This adds a signatures/http-body-match btest to verify how the signature
+    framework matches HTTP body in requests and responses.
+
+    It currently fails because the 'http-request-body' and 'http-reply-body'
+    clauses never match anything when there is a '$' in their regular
+    expressions.
+
+    The other pattern clauses such as the 'payload' clause do not suffer
+    from that restriction and it is not documented as a limitation of HTTP
+    body pattern clauses either, so it is probably a bug.
+
+    The "http-body-match" btest shows that without a fix any signatures
+    which ends with a '$' in a http-request-body or http-reply-body rule
+    will never raise a signature_match() event, and that signatures which do
+    not end with a '$' cannot distinguish an HTTP body prefixed by the
+    matching pattern (ex: ABCD) from an HTTP body consisting entirely of the
+    matching pattern (ex: AB).
+
+    Test cases by source port:
+    - 13579:
+      - GET without body, plain res body (CD, only)
+    - 13578:
+      - GET without body, plain res body (CDEF, prefix)
+    - 24680:
+      - POST plain req body (AB, only), plain res body (CD, only)
+    - 24681:
+      - POST plain req body (ABCD, prefix), plain res body (CDEF, prefix)
+    - 24682:
+      - POST gzipped req body (AB, only), gzipped res body (CD, only)
+      - POST plain req body (CD, only), plain res body (EF, only)
+    - 33210:
+      - POST multipart plain req body (AB;CD;EF, prefix)
+      - plain res body (CD, only)
+    - 33211:
+      - POST multipart plain req body (ABCD;EF, prefix)
+      - plain res body (CDEF, prefix)
+    - 34527:
+      - POST chunked gzipped req body (AB, only)
+      - chunked gzipped res body (CD, only)
+    - 34528:
+      - POST chunked gzipped req body (ABCD, prefix)
+      - chunked gzipped res body (CDEF, prefix)
+
+    The tests with source ports 24680, 24682 and 34527 should
+    match the signature http_request_body_AB_only and the signature
+    http_request_body_AB_prefix, but they only match the latter.
+
+    The tests with source ports 13579, 24680, 24682, 33210 and 34527 should
+    match the signature http_response_body_CD_only and the signature
+    http_response_body_CD_prefix, but they only match the latter.
+
+    The tests with source ports 24680, 24681, 33210 and 33211 show how the
+    http_request_body_AB_then_CD signature with two http-request-body
+    conditions match either on one or multiple requests (documented
+    behaviour).
+
+    The test cases with other source ports show where the
+    http_request_body_AB_only and http_response_body_CD_only signatures
+    should not match because their bodies include more than the searched
+    patterns.
+
+6.2.0-dev.99 | 2023-11-07 09:56:55 +0100
+
+  * Fix unsafe and inefficient uses of copy_string (Dominik Charousset, Corelight)
+
+    Add a new overload to `copy_string` that takes the input characters plus
+    size. The new overload avoids inefficient scanning of the input for the
+    null terminator in cases where we know the size beforehand. Furthermore,
+    this overload *must* be used when dealing with input character sequences
+    that may have no null terminator, e.g., when the input is from a
+    `std::string_view` object.
+
+6.2.0-dev.97 | 2023-11-06 09:29:49 -0700
+
+  * Update c-ares in Windows conanfile (Tim Wojtulewicz, Corelight)
+
+  * Upgrade c-ares submodule to 1.21.0 (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.93 | 2023-11-01 12:04:16 +0100
 
   * build_inner_connection: Use the outer packet's timestamp (Arne Welzel, Corelight)

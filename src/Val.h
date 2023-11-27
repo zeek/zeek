@@ -51,6 +51,9 @@ class Frame;
 class PrefixTable;
 class CompositeHash;
 class HashKey;
+class TablePatternMatcher;
+
+struct DFA_State_Cache_Stats;
 
 class ValTrace;
 class ZBody;
@@ -546,6 +549,7 @@ public:
     int Len() const;
     const u_char* Bytes() const;
     const char* CheckString() const;
+    std::pair<const char*, size_t> CheckStringWithSize() const;
 
     // Note that one needs to de-allocate the return value of
     // ExpandedString() to avoid a memory leak.
@@ -862,6 +866,20 @@ public:
     // Causes an internal error if called for any other kind of table.
     TableValPtr LookupSubnetValues(const SubNetVal* s);
 
+    // For a table[pattern], return a vector of all yields matching
+    // the given string.
+    // Causes an internal error if called for any other kind of table.
+    VectorValPtr LookupPattern(const StringValPtr& s);
+
+    // For a table[pattern] or set[pattern], returns True if any of the
+    // patterns in the index matches the given string, else False.
+    // Causes an internal error if called for any other kind of table.
+    bool MatchPattern(const StringValPtr& s);
+
+    // For a table[pattern], fill stats with information about
+    // the DFA's state for introspection.
+    void GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const;
+
     // Sets the timestamp for the given index to network time.
     // Returns false if index does not exist.
     bool UpdateTimestamp(Val* index);
@@ -921,7 +939,8 @@ public:
     // Returns the Prefix table used inside the table (if present).
     // This allows us to do more direct queries to this specialized
     // type that the general Table API does not allow.
-    const detail::PrefixTable* Subnets() const { return subnets; }
+    const detail::PrefixTable* Subnets() const { return subnets.get(); }
+
 
     void Describe(ODesc* d) const override;
 
@@ -1030,7 +1049,8 @@ protected:
     detail::ExprPtr expire_func;
     TableValTimer* timer;
     RobustDictIterator<TableEntryVal>* expire_iterator;
-    detail::PrefixTable* subnets;
+    std::unique_ptr<detail::PrefixTable> subnets;
+    std::unique_ptr<detail::TablePatternMatcher> pattern_matcher;
     ValPtr def_val;
     detail::ExprPtr change_func;
     std::string broker_store;

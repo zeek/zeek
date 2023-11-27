@@ -1483,6 +1483,7 @@ bool SupervisedNode::InitCluster() const {
         val->AssignField("ip", make_intrusive<AddrVal>(ep.host));
         val->AssignField("p", val_mgr->Port(ep.port, TRANSPORT_TCP));
 
+        // Remove in v7.1: Interface removed from Cluster::Node.
         if ( ep.interface )
             val->AssignField("interface", *ep.interface);
 

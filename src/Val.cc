@@ -20,6 +20,7 @@
 #include "zeek/Attr.h"
 #include "zeek/CompHash.h"
 #include "zeek/Conn.h"
+#include "zeek/DFA.h"
 #include "zeek/Desc.h"
 #include "zeek/Dict.h"
 #include "zeek/Expr.h"
@@ -752,6 +753,8 @@ const u_char* StringVal::Bytes() const { return AsString()->Bytes(); }
 
 const char* StringVal::CheckString() const { return AsString()->CheckString(); }
 
+std::pair<const char*, size_t> StringVal::CheckStringWithSize() const { return AsString()->CheckStringWithSize(); }
+
 string StringVal::ToStdString() const {
     auto* bs = AsString();
     return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
@@ -787,15 +790,22 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
     vector<std::pair<int, int>> cut_points;
 
     int size = 0; // size of result
+    bool bol = true;
+    const bool eol = true;
 
     while ( n > 0 ) {
         // Find next match offset.
         int end_of_match;
-        while ( n > 0 && (end_of_match = re->MatchPrefix(&s[offset], n)) <= 0 ) {
+        while ( n > 0 ) {
+            end_of_match = re->MatchPrefix(&s[offset], n, bol, eol);
+            if ( end_of_match > 0 )
+                break;
+
             // This character is going to be copied to the result.
             ++size;
 
             // Move on to next character.
+            bol = false;
             ++offset;
             --n;
         }
@@ -1418,6 +1428,112 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
     }
 }
 
+// Support class for returning multiple values from a table[pattern]
+// when indexed with a string.
+class detail::TablePatternMatcher {
+public:
+    TablePatternMatcher(const TableVal* _tbl, TypePtr _yield) : tbl(_tbl) {
+        vtype = make_intrusive<VectorType>(std::move(_yield));
+    }
+
+    void Clear() { matcher.reset(); }
+
+    VectorValPtr Lookup(const StringValPtr& s);
+
+    // Delegate to matcher->MatchAll().
+    bool MatchAll(const StringValPtr& s);
+
+    void GetStats(detail::DFA_State_Cache_Stats* stats) const {
+        if ( matcher && matcher->DFA() )
+            matcher->DFA()->Cache()->GetStats(stats);
+        else
+            *stats = {0};
+    };
+
+private:
+    void Build();
+
+    const TableVal* tbl;
+    VectorTypePtr vtype;
+
+    // If matcher is nil then we know we need to build it. This gives
+    // us an easy way to cache matchers in the common case that these
+    // sorts of tables don't change their elements very often (indeed,
+    // they'll frequently be constructed just once), and also keeps us
+    // from having to re-build the matcher on every insert/delete in
+    // the common case that a whole bunch of those are done in a single
+    // batch.
+    std::unique_ptr<detail::Specific_RE_Matcher> matcher = nullptr;
+
+    // Maps matcher values to corresponding yields. When building the
+    // matcher we insert a nil at the head to accommodate how
+    // disjunctive matchers use numbering starting at 1 rather than 0.
+    std::vector<ValPtr> matcher_yields;
+};
+
+VectorValPtr detail::TablePatternMatcher::Lookup(const StringValPtr& s) {
+    auto results = make_intrusive<VectorVal>(vtype);
+
+    if ( ! matcher ) {
+        if ( tbl->Get()->Length() == 0 )
+            return results;
+
+        Build();
+    }
+
+    std::vector<AcceptIdx> matches;
+    matcher->MatchSet(s->AsString(), matches);
+
+    for ( auto m : matches )
+        results->Append(matcher_yields[m]);
+
+    return results;
+}
+
+bool detail::TablePatternMatcher::MatchAll(const StringValPtr& s) {
+    if ( ! matcher ) {
+        if ( tbl->Get()->Length() == 0 )
+            return false;
+
+        Build();
+    }
+
+    return matcher->MatchAll(s->AsString());
+}
+
+void detail::TablePatternMatcher::Build() {
+    matcher_yields.clear();
+    matcher_yields.push_back(nullptr);
+
+    auto& tbl_dict = *tbl->Get();
+    auto& tbl_hash = *tbl->GetTableHash();
+
+    zeek::detail::string_list pattern_list;
+    zeek::detail::int_list index_list;
+
+    // We need to hold on to recovered hash key values so they don't
+    // get lost once a loop iteration goes out of scope.
+    std::vector<ListValPtr> hash_key_vals;
+
+    for ( auto& iter : tbl_dict ) {
+        auto k = iter.GetHashKey();
+        auto v = iter.value;
+        auto vl = tbl_hash.RecoverVals(*k);
+
+        char* pt = const_cast<char*>(vl->AsListVal()->Idx(0)->AsPattern()->PatternText());
+        pattern_list.push_back(pt);
+        index_list.push_back(pattern_list.size());
+        matcher_yields.push_back(v->GetVal());
+
+        hash_key_vals.push_back(std::move(vl));
+    }
+
+    matcher = std::make_unique<detail::Specific_RE_Matcher>(detail::MATCH_EXACTLY);
+
+    if ( ! matcher->CompileSet(pattern_list, index_list) )
+        reporter->FatalError("failed compile set for disjunctive matching");
+}
+
 TableVal::TableVal(TableTypePtr t, detail::AttributesPtr a) : Val(t) {
     bool ordered = (a != nullptr && a->Find(detail::ATTR_ORDERED) != nullptr);
     Init(std::move(t), ordered);
@@ -1447,9 +1563,10 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
     def_val = nullptr;
 
     if ( table_type->IsSubNetIndex() )
-        subnets = new detail::PrefixTable;
-    else
-        subnets = nullptr;
+        subnets = std::make_unique<detail::PrefixTable>();
+
+    if ( table_type->IsPatternIndex() )
+        pattern_matcher = std::make_unique<detail::TablePatternMatcher>(this, table_type->Yield());
 
     table_hash = new detail::CompositeHash(table_type->GetIndices());
     if ( ordered )
@@ -1466,7 +1583,6 @@ TableVal::~TableVal() {
 
     delete table_hash;
     delete table_val;
-    delete subnets;
     delete expire_iterator;
 }
 
@@ -1477,6 +1593,9 @@ void TableVal::RemoveAll() {
     delete table_val;
     table_val = new PDict<TableEntryVal>;
     table_val->SetDeleteFunc(table_entry_val_delete_func);
+
+    if ( pattern_matcher )
+        pattern_matcher->Clear();
 }
 
 int TableVal::Size() const { return table_val->Length(); }
@@ -1588,6 +1707,9 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
         else
             subnets->Insert(index.get(), new_entry_val);
     }
+
+    if ( pattern_matcher )
+        pattern_matcher->Clear();
 
     // Keep old expiration time if necessary.
     if ( old_entry_val && attrs && attrs->Find(detail::ATTR_EXPIRE_CREATE) )
@@ -1916,6 +2038,27 @@ TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search) {
     return nt;
 }
 
+VectorValPtr TableVal::LookupPattern(const StringValPtr& s) {
+    if ( ! pattern_matcher || ! GetType()->Yield() )
+        reporter->InternalError("LookupPattern called on wrong table type");
+
+    return pattern_matcher->Lookup(s);
+}
+
+bool TableVal::MatchPattern(const StringValPtr& s) {
+    if ( ! pattern_matcher )
+        reporter->InternalError("LookupPattern called on wrong table type");
+
+    return pattern_matcher->MatchAll(s);
+}
+
+void TableVal::GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const {
+    if ( ! pattern_matcher )
+        reporter->InternalError("GetPatternMatcherStats called on wrong table type");
+
+    return pattern_matcher->GetStats(stats);
+}
+
 bool TableVal::UpdateTimestamp(Val* index) {
     TableEntryVal* v;
 
@@ -2096,7 +2239,13 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
         va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
     if ( subnets && ! subnets->Remove(&index) )
+        // VP: not clear to me this should be an internal warning,
+        // since Zeek doesn't otherwise complain about removing
+        // non-existent table elements.
         reporter->InternalWarning("index not in prefix table");
+
+    if ( pattern_matcher )
+        pattern_matcher->Clear();
 
     delete v;
 

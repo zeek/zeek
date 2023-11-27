@@ -244,6 +244,8 @@ const char* zeek_version() {
 
 namespace detail {
 
+zeek::OpaqueTypePtr log_delay_token_type;
+
 static std::vector<const char*> to_cargs(const std::vector<std::string>& args) {
     std::vector<const char*> rval;
     rval.reserve(args.size());
@@ -719,6 +721,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     int_histogram_metric_family_type = make_intrusive<OpaqueType>("int_histogram_metric_family");
     dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
     dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
+    log_delay_token_type = make_intrusive<OpaqueType>("LogDelayToken");
 
     // After spinning up Broker, we have background threads running now. If
     // we exit early, we need to shut down at least Broker to get a clean

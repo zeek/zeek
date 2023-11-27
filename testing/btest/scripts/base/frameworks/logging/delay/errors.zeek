@@ -35,29 +35,9 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 
 hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	{
-	# Wrong token for delay_finish()
-	local token = Log::delay(id, rec);
-	Log::delay_finish(id, rec, 42);
-	}
-
-@TEST-START-NEXT
-@load base/protocols/conn
-
-hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
-	{
 	# Wrong record for delay_finish()
 	local token = Log::delay(id, rec);
 	Log::delay_finish(id, copy(rec), token);
-	}
-
-@TEST-START-NEXT
-@load base/protocols/conn
-
-hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
-	{
-	# Wrong token type for delay_finish()
-	local token = Log::delay(id, rec);
-	Log::delay_finish(id, rec, "42");
 	}
 
 @TEST-START-NEXT

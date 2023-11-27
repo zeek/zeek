@@ -636,7 +636,7 @@ export {
 	## Type of the opaque value returned by :zeek:see:`Log::delay`. These
 	## values can be passed to :zeek:see:`Log::delay_finish` to release a
 	## delayed write operation.
-	type DelayToken: any;
+	type DelayToken: opaque of LogDelayToken;
 
 	## Represents a post delay callback that simply returns T. This is used
 	## as a default value for :zeek:see:`Log::delay` and ignored internally.

@@ -106,3 +106,17 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	Log::delay(id, rec);
 	Log::delay(id, rec);
 	}
+
+@TEST-START-NEXT
+# Delay twice, never release, print the token value and its JSON representation.
+hook Log::log_stream_policy(rec: Info, id: Log::ID)
+	{
+	if ( id != LOG )
+		return;
+
+	print network_time(), "log_stream_policy", id, rec$uid;
+
+	local token = Log::delay(id, rec);
+	print "token", token;
+	print "to_json(token)", to_json(token);
+	}

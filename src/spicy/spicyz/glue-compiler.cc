@@ -639,7 +639,7 @@ void GlueCompiler::addSpicyModule(const hilti::ID& id, const hilti::rt::filesyst
     glue::SpicyModule module;
     module.id = id;
     module.file = file;
-    _spicy_modules[id] = std::make_shared<glue::SpicyModule>(std::move(module));
+    _spicy_modules[id] = hilti::rt::makeShared<glue::SpicyModule>(std::move(module));
 }
 
 glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& chunk) {

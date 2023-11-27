@@ -243,7 +243,7 @@ std::vector<std::pair<TypeInfo, hilti::ID>> Driver::exportedTypes() const {
     return result;
 }
 
-void Driver::hookNewASTPreCompilation(std::shared_ptr<hilti::Unit> unit) {
+void Driver::hookNewASTPreCompilation(hilti::rt::SharedPtr<hilti::Unit> unit) {
     if ( unit->extension() != ".spicy" )
         return;
 
@@ -268,7 +268,7 @@ void Driver::hookNewASTPreCompilation(std::shared_ptr<hilti::Unit> unit) {
     }
 }
 
-void Driver::hookNewASTPostCompilation(std::shared_ptr<hilti::Unit> unit) {
+void Driver::hookNewASTPostCompilation(hilti::rt::SharedPtr<hilti::Unit> unit) {
     if ( unit->extension() != ".spicy" )
         return;
 

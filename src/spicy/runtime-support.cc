@@ -571,7 +571,7 @@ rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer
         // analyzer. To make that work, we'll create a fake TCP analyzer,
         // just so that they have something to access. It won't
         // semantically have any "TCP" to analyze obviously.
-        c->fake_tcp = std::make_shared<packet_analysis::TCP::TCPSessionAdapter>(c->analyzer->Conn());
+        c->fake_tcp = hilti::rt::makeShared<packet_analysis::TCP::TCPSessionAdapter>(c->analyzer->Conn());
         static_cast<analyzer::Analyzer*>(c->fake_tcp.get())
             ->Done(); // will never see packets; cast to get around protected inheritance
     }

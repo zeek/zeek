@@ -14,6 +14,8 @@
 #include <variant>
 #include <vector>
 
+#include <hilti/rt/types/shared_ptr.h>
+
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
@@ -89,12 +91,12 @@ private:
 
 /** State on the current protocol analyzer. */
 struct ProtocolAnalyzer {
-    analyzer::Analyzer* analyzer = nullptr;                            /**< current analyzer */
-    bool is_orig = false;                                              /**< direction of the connection */
-    uint64_t num_packets = 0;                                          /**< number of packets seen so far */
-    FileStateStack fstate_orig;                                        /**< file analysis state for originator side */
-    FileStateStack fstate_resp;                                        /**< file analysis state for responder side */
-    std::shared_ptr<packet_analysis::TCP::TCPSessionAdapter> fake_tcp; /**< fake TPC analyzer created internally */
+    analyzer::Analyzer* analyzer = nullptr; /**< current analyzer */
+    bool is_orig = false;                   /**< direction of the connection */
+    uint64_t num_packets = 0;               /**< number of packets seen so far */
+    FileStateStack fstate_orig;             /**< file analysis state for originator side */
+    FileStateStack fstate_resp;             /**< file analysis state for responder side */
+    hilti::rt::SharedPtr<packet_analysis::TCP::TCPSessionAdapter> fake_tcp; /**< fake TPC analyzer created internally */
 };
 
 /** State on the current file analyzer. */

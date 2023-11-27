@@ -12,6 +12,7 @@
 
 #include <hilti/rt/filesystem.h>
 #include <hilti/rt/types/port.h>
+#include <hilti/rt/types/shared_ptr.h>
 #include <hilti/rt/util.h>
 
 #include <spicy/rt/mime.h>
@@ -121,7 +122,7 @@ struct Event {
     std::optional<::spicy::type::Unit> unit_type; /**< The Spicy type of referenced unit. */
     hilti::ID unit_module_id;                     /**< The name of the module the referenced unit is defined in. */
     hilti::rt::filesystem::path unit_module_path; /**< The path of the module that the referenced unit is defined in. */
-    std::shared_ptr<glue::SpicyModule>
+    hilti::rt::SharedPtr<glue::SpicyModule>
         spicy_module; /**< State for the Spichy module the referenced unit is defined in. */
 
     // TODO: The following aren't set yet.
@@ -267,7 +268,7 @@ private:
     Driver* _driver = nullptr;        /**< driver provided to Init() */
     std::optional<int> _zeek_version; /**< Zeek version provided to Init() */
 
-    std::map<hilti::ID, std::shared_ptr<glue::SpicyModule>> _spicy_modules;
+    std::map<hilti::ID, hilti::rt::SharedPtr<glue::SpicyModule>> _spicy_modules;
 
     std::vector<std::pair<hilti::ID, std::optional<hilti::ID>>>
         _imports;                                            /**< imports from EVT files, with ID and optional scope */

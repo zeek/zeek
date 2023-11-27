@@ -6,6 +6,7 @@
 
 # Paths to support compiling Spicy parsers in the build tree.
 PATHS=@CMAKE_SOURCE_DIR@/auxil/spicy/hilti/runtime/include
+PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/hilti/runtime/include/3rdparty
 PATHS=$PATHS:@CMAKE_SOURCE_DIR@/auxil/spicy/spicy/runtime/include
 PATHS=$PATHS:@CMAKE_BINARY_DIR@/auxil/spicy/include
 

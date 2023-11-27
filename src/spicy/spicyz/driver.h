@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <hilti/rt/filesystem.h>
+#include <hilti/rt/types/shared_ptr.h>
 
 #include <spicy/rt/driver.h>
 
@@ -175,10 +176,10 @@ protected:
     virtual void hookNewType(const TypeInfo& ti) {}
 
     /** Overridden from HILTI driver. */
-    void hookNewASTPreCompilation(std::shared_ptr<hilti::Unit> unit) override;
+    void hookNewASTPreCompilation(hilti::rt::SharedPtr<hilti::Unit> unit) override;
 
     /** Overridden from HILTI driver. */
-    void hookNewASTPostCompilation(std::shared_ptr<hilti::Unit> unit) override;
+    void hookNewASTPostCompilation(hilti::rt::SharedPtr<hilti::Unit> unit) override;
 
     /** Overridden from HILTI driver. */
     hilti::Result<hilti::Nothing> hookCompilationFinished(const hilti::Plugin& plugin) override;

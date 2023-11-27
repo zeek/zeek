@@ -185,7 +185,7 @@ namespace detail {
 
 IPTunnelTimer::IPTunnelTimer(double t, IPTunnelAnalyzer::IPPair p, IPTunnelAnalyzer* analyzer)
     : Timer(t + BifConst::Tunnel::ip_tunnel_timeout, zeek::detail::TIMER_IP_TUNNEL_INACTIVITY),
-      tunnel_idx(p),
+      tunnel_idx(std::move(p)),
       analyzer(analyzer) {}
 
 void IPTunnelTimer::Dispatch(double t, bool is_expire) {

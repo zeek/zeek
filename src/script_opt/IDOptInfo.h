@@ -71,7 +71,7 @@ public:
     // but not have an associated expression, if the point-of-definition
     // is the end of a confluence block.
     const ExprPtr& DefExprAfter() const { return def_expr; }
-    void SetDefExpr(ExprPtr e) { def_expr = e; }
+    void SetDefExpr(ExprPtr e) { def_expr = std::move(e); }
 
     // Used for debugging.
     void Dump() const;
@@ -107,7 +107,7 @@ protected:
 
 class IDInitInfo {
 public:
-    IDInitInfo(const ID* _id, ExprPtr _init, InitClass _ic) : id(_id), init(_init), ic(_ic) {}
+    IDInitInfo(const ID* _id, ExprPtr _init, InitClass _ic) : id(_id), init(std::move(_init)), ic(_ic) {}
 
     const ID* Id() const { return id; }
     const ExprPtr& Init() const { return init; }

@@ -151,7 +151,7 @@ public:
 // delete values.
 class DeltaSetSetEntry : public ValDelta {
 public:
-    DeltaSetSetEntry(const ValTrace* _vt, ValPtr _index) : ValDelta(_vt), index(_index) {}
+    DeltaSetSetEntry(const ValTrace* _vt, ValPtr _index) : ValDelta(_vt), index(std::move(_index)) {}
 
     std::string Generate(ValTraceMgr* vtm) const override;
     bool NeedsLHS() const override { return false; }
@@ -166,7 +166,7 @@ private:
 class DeltaSetTableEntry : public ValDelta {
 public:
     DeltaSetTableEntry(const ValTrace* _vt, ValPtr _index, ValPtr _new_val)
-        : ValDelta(_vt), index(_index), new_val(std::move(_new_val)) {}
+        : ValDelta(_vt), index(std::move(_index)), new_val(std::move(_new_val)) {}
 
     std::string Generate(ValTraceMgr* vtm) const override;
 

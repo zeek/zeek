@@ -7,7 +7,7 @@
 #include "zeek/spicy/cookie.h"
 #include "zeek/spicy/runtime-support.h"
 
-std::string ssl_get_fuid(const hilti::rt::Bool& is_client, const hilti::rt::integer::safe<uint32_t>& pos) {
+std::string ssl_get_certificate_fuid(const hilti::rt::Bool& is_client, const hilti::rt::integer::safe<uint32_t>& pos) {
     auto cookie = static_cast<zeek::spicy::rt::Cookie*>(hilti::rt::context::cookie());
     assert(cookie);
 
@@ -15,14 +15,31 @@ std::string ssl_get_fuid(const hilti::rt::Bool& is_client, const hilti::rt::inte
     if ( ! c )
         throw zeek::spicy::rt::ValueUnavailable("connection not available");
 
-    zeek::ODesc common;
-    common.AddRaw("Analyzer::ANALYZER_SSL");
-    common.Add(c->analyzer->Conn()->StartTime());
-    common.AddRaw(is_client ? "T" : "F", 1);
-    c->analyzer->Conn()->IDString(&common);
+    zeek::ODesc file_handle;
+    file_handle.AddRaw("Analyzer::ANALYZER_SSL");
+    file_handle.Add(c->analyzer->Conn()->StartTime());
+    file_handle.AddRaw(is_client ? "T" : "F", 1);
+    c->analyzer->Conn()->IDString(&file_handle);
 
-    // zeek::ODesc file_handle;
-    common.Add((uint32_t)pos);
-    std::string file_id = zeek::file_mgr->HashHandle(common.Description());
+    file_handle.Add((uint32_t)pos);
+    std::string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
+    return file_id;
+}
+
+std::string ssl_get_ocsp_fuid() {
+    auto cookie = static_cast<zeek::spicy::rt::Cookie*>(hilti::rt::context::cookie());
+    assert(cookie);
+
+    auto c = cookie->protocol;
+    if ( ! c )
+        throw zeek::spicy::rt::ValueUnavailable("connection not available");
+
+    zeek::ODesc file_handle;
+    file_handle.AddRaw("Analyzer::ANALYZER_SSL");
+    file_handle.Add(c->analyzer->Conn()->StartTime());
+    file_handle.AddRaw("F");
+    c->analyzer->Conn()->IDString(&file_handle);
+    file_handle.Add("ocsp");
+    std::string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
     return file_id;
 }

@@ -2,10 +2,13 @@ module SSL;
 
 import spicy;
 
-public function get_fuid(
+public function get_certificate_fuid(
   is_client: bool,
   pos: uint32
-): string &cxxname="ssl_get_fuid";
+): string &cxxname="ssl_get_certificate_fuid";
+
+public function get_ocsp_fuid(
+): string &cxxname="ssl_get_ocsp_fuid";
 
 type ContentType = enum {
   change_cipher_spec = 20,
@@ -550,11 +553,12 @@ type TLSCiphers = enum {
   TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAC,
   TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAD,
   TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256 = 0xCCAE,
-  # draft-ietf-tls-ecdhe-psk-aead-05
+  # draft-ietf-tls-ecdhe-psk-aead-05 & RFC8442
   TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256 = 0xD001,
   TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384 = 0xD002,
   TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256 = 0xD003,
-  TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256 = 0xD004
+  TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256_OLD = 0xD004,
+  TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256 = 0xD005
 };
 
 type Share = unit {
@@ -900,6 +904,14 @@ type CertificateStatus = unit {
   status_type: uint8; # 1 = ocsp, everything else is undefined
   length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network);
   response: bytes &size=self.length;
+
+  on %done {
+    if ( self.status_type == 1 ) {
+      zeek::file_begin("application/ocsp-response", get_ocsp_fuid());
+      zeek::file_data_in(self.response);
+      zeek::file_end();
+    }
+  }
 };
 
 type Random = unit {
@@ -1606,6 +1618,7 @@ type ClientKeyExchange = unit(sh: Share, len: uint64) {
     TLSCiphers::TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256,
     TLSCiphers::TLS_ECDHE_PSK_WITH_AES_256_GCM_SHA384,
     TLSCiphers::TLS_ECDHE_PSK_WITH_AES_128_CCM_8_SHA256,
+    TLSCiphers::TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256_OLD,
     TLSCiphers::TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256
       -> ecdh_client_key_exchange : EcdhClientKeyExchange(len);
 
@@ -1876,9 +1889,9 @@ on SSL::Certificate::%done {
   for ( i in self.certificate_list )
     {
     if ( first )
-      zeek::file_begin("application/x-x509-user-cert", get_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
+      zeek::file_begin("application/x-x509-user-cert", get_certificate_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
     else
-      zeek::file_begin("application/x-x509-ca-cert", get_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
+      zeek::file_begin("application/x-x509-ca-cert", get_certificate_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
     zeek::file_data_in(i.cert);
     zeek::file_end();
     first = False;

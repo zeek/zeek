@@ -23,9 +23,6 @@ p_hash_type p_hash(const Obj* o) {
 }
 
 ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields) {
-    if ( func->Name() == std::string("aggr_mod") )
-        printf("yep\n");
-
     profiled_func = func;
     profiled_body = body.get();
     abs_rec_fields = _abs_rec_fields;
@@ -295,7 +292,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
 
                     // We don't want the default recursion into the expression's
                     // LHS because it will treat this table modification as
-                    // instead a reference. So do it manually. Given that,
+                    // a reference instead. So do it manually. Given that,
                     // we need to do the expression's RHS manually too.
                     lhs->GetOp1()->Traverse(this);
                     lhs->GetOp2()->Traverse(this);
@@ -995,48 +992,63 @@ void ProfileFuncs::ComputeSideEffects() {
 
             made_decision.insert(c);
 
-            auto seo_vec = std::vector<std::shared_ptr<SideEffectsOp>>{};
-            bool is_rec = expr_attrs[c][0]->Tag() == TYPE_RECORD;
-
-            SideEffectsOp::AccessType at;
-            if ( is_rec )
-                at = SideEffectsOp::CONSTRUCTION;
-            else if ( c->Tag() == ATTR_ON_CHANGE )
-                at = SideEffectsOp::WRITE;
-            else
-                at = SideEffectsOp::READ;
-
-            if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
-                printf("%s has no side effects\n", obj_desc(c).c_str());
-                // Definitely no side effects.
-                seo_vec.push_back(std::make_shared<SideEffectsOp>());
-            }
-            else {
-                printf("%s has side effects\n", obj_desc(c).c_str());
-
-                for ( auto ea_t : expr_attrs[c] ) {
-                    auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
-                    seo->AddModNonGlobal(non_local_ids);
-                    seo->AddModAggrs(aggrs);
-
-                    if ( is_unknown )
-                        seo->SetUnknownChanges();
-
-                    seo_vec.push_back(seo);
-                    side_effects.push_back(std::move(seo));
-                }
-            }
-
-            if ( is_rec )
-                record_constr_with_side_effects[c] = std::move(seo_vec);
-            else
-                attr_side_effects[c] = std::move(seo_vec);
+            SetSideEffects(c, non_local_ids, aggrs, is_unknown);
         }
 
-        ASSERT(! made_decision.empty());
+        if ( made_decision.empty() ) {
+            // ###
+            IDSet non_local_ids;
+            std::unordered_set<const Type*> aggrs;
+            bool is_unknown = true;
+            for ( auto c : candidates ) {
+                printf("jackpot for %s\n", obj_desc(c).c_str());
+                SetSideEffects(c, non_local_ids, aggrs, is_unknown);
+            }
+            break;
+        }
+
         for ( auto md : made_decision )
             candidates.erase(md);
     }
+}
+
+void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs,
+                                  bool& is_unknown) {
+    auto seo_vec = std::vector<std::shared_ptr<SideEffectsOp>>{};
+    bool is_rec = expr_attrs[a][0]->Tag() == TYPE_RECORD;
+
+    SideEffectsOp::AccessType at;
+    if ( is_rec )
+        at = SideEffectsOp::CONSTRUCTION;
+    else if ( a->Tag() == ATTR_ON_CHANGE )
+        at = SideEffectsOp::WRITE;
+    else
+        at = SideEffectsOp::READ;
+
+    if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
+        printf("%s has no side effects\n", obj_desc(a).c_str());
+        // Definitely no side effects.
+        seo_vec.push_back(std::make_shared<SideEffectsOp>());
+    }
+    else {
+        printf("%s has side effects\n", obj_desc(a).c_str());
+
+        for ( auto ea_t : expr_attrs[a] ) {
+            auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
+            seo->AddModNonGlobal(non_local_ids);
+            seo->AddModAggrs(aggrs);
+
+            if ( is_unknown )
+                seo->SetUnknownChanges();
+
+            seo_vec.push_back(std::move(seo));
+        }
+    }
+
+    if ( is_rec )
+        record_constr_with_side_effects[a] = std::move(seo_vec);
+    else
+        attr_side_effects[a] = std::move(seo_vec);
 }
 
 bool ProfileFuncs::DefinitelyHasNoSideEffects(const ExprPtr& e) const {

@@ -366,6 +366,8 @@ protected:
 
     void ComputeSideEffects();
 
+    void SetSideEffects(const Attr* a, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs, bool& is_unknown);
+
     bool DefinitelyHasNoSideEffects(const ExprPtr& e) const;
 
     std::vector<const Attr*> AssociatedAttrs(const Type* t);
@@ -464,7 +466,7 @@ protected:
     // record attributes.
     std::vector<const Expr*> pending_exprs;
 
-    // ###
+    // ### used?
     std::vector<std::shared_ptr<SideEffectsOp>> side_effects_ops;
 
 

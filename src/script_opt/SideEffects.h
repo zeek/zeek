@@ -17,7 +17,7 @@ public:
     // ### remove NONE?
     enum AccessType { NONE, READ, WRITE, CONSTRUCTION };
 
-    // SideEffectsOp() : access(NONE), type(nullptr) {}
+    SideEffectsOp() : access(NONE), type(nullptr) {}
     SideEffectsOp(AccessType at, const Type* t) : access(at), type(t) {}
 
     auto GetAccessType() const { return access; }

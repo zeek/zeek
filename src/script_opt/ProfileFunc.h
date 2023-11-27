@@ -233,8 +233,6 @@ protected:
     // The same, but in a deterministic order, with duplicates removed.
     std::vector<const Type*> ordered_types;
 
-    std::unordered_set<const Type*> modified_aggrs;
-
     // Script functions that this script calls.  Includes calls made
     // by lambdas and when bodies, as the goal is to identify recursion.
     std::unordered_set<ScriptFunc*> script_calls;
@@ -443,6 +441,9 @@ protected:
 
     // ###
     std::unordered_set<const Attr*> candidates;
+
+    // ###
+    const Attr* curr_candidate;
 
     // ###
     std::unordered_set<std::shared_ptr<ProfileFunc>> active_func_profiles;

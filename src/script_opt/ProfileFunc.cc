@@ -23,6 +23,9 @@ p_hash_type p_hash(const Obj* o) {
 }
 
 ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields) {
+    if ( func->Name() == std::string("aggr_mod") )
+        printf("yep\n");
+
     profiled_func = func;
     profiled_body = body.get();
     abs_rec_fields = _abs_rec_fields;
@@ -262,22 +265,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 // use of "=" such as in a table constructor.
                 break;
 
-            auto lhs_t = lhs->GetType();
-            if ( IsAggr(lhs_t->Tag()) ) {
-                // Determine which aggregate is being modified.  For an
-                // assignment "a[b] = aggr", it's not a[b]'s type but rather
-                // a's type. However, for any of the others, e.g. "a[b] -= aggr"
-                // it is a[b]'s type.
-                if ( e->Tag() == EXPR_ASSIGN ) {
-                    // The following might be nil for an assignment like
-                    // "aggr = new_val".
-                    auto lhs_parent = lhs->GetOp1();
-                    lhs_t = lhs_parent ? lhs_parent->GetType() : nullptr;
-                }
-                if ( lhs_t && lhs_t->Tag() == TYPE_TABLE )
-                    tbl_mods.insert(lhs_t.get());
-            }
-
             if ( lhs->Tag() == EXPR_NAME ) {
                 auto id = lhs->AsNameExpr()->Id();
                 TrackAssignment(id);
@@ -290,10 +277,36 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                         // inside a when clause.
                         when_locals.insert(id);
                 }
-                break;
+                else if ( lhs->GetType()->Tag() == TYPE_TABLE )
+                    tbl_mods.insert(lhs->GetType().get());
             }
+            else if ( lhs->Tag() == EXPR_INDEX ) {
+                auto lhs_aggr = lhs->GetOp1();
+                auto lhs_aggr_t = lhs_aggr->GetType();
+                if ( lhs_aggr_t->Tag() == TYPE_TABLE ) {
+                    // Determine which aggregate is being modified.  For an
+                    // assignment "a[b] = aggr", it's not a[b]'s type but
+                    // rather a's type. However, for any of the others,
+                    // e.g. "a[b] -= aggr" it is a[b]'s type.
+                    if ( e->Tag() == EXPR_ASSIGN )
+                        tbl_mods.insert(lhs_aggr_t.get());
+                    else
+                        tbl_mods.insert(lhs->GetType().get());
 
+                    // We don't want the default recursion into the expression's
+                    // LHS because it will treat this table modification as
+                    // instead a reference. So do it manually. Given that,
+                    // we need to do the expression's RHS manually too.
+                    lhs->GetOp1()->Traverse(this);
+                    lhs->GetOp2()->Traverse(this);
 
+                    auto rhs = e->GetOp2();
+                    if ( rhs )
+                        rhs->Traverse(this);
+
+                    return TC_ABORTSTMT;
+                }
+            }
         } break;
 
         case EXPR_CALL: {
@@ -974,19 +987,13 @@ void ProfileFuncs::ComputeSideEffects() {
             std::unordered_set<const Type*> aggrs;
             bool is_unknown = false;
 
+            curr_candidate = c;
+
             if ( ! AssessSideEffects(c->GetExpr(), non_local_ids, aggrs, is_unknown) )
                 // Can't make a decision yet.
                 continue;
 
             made_decision.insert(c);
-
-            if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
-                printf("%s has no side effects\n", obj_desc(c).c_str());
-                // Definitely no side effects.
-                continue;
-            }
-
-            printf("%s has side effects\n", obj_desc(c).c_str());
 
             auto seo_vec = std::vector<std::shared_ptr<SideEffectsOp>>{};
             bool is_rec = expr_attrs[c][0]->Tag() == TYPE_RECORD;
@@ -999,16 +1006,25 @@ void ProfileFuncs::ComputeSideEffects() {
             else
                 at = SideEffectsOp::READ;
 
-            for ( auto ea_t : expr_attrs[c] ) {
-                auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
-                seo->AddModNonGlobal(non_local_ids);
-                seo->AddModAggrs(aggrs);
+            if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
+                printf("%s has no side effects\n", obj_desc(c).c_str());
+                // Definitely no side effects.
+                seo_vec.push_back(std::make_shared<SideEffectsOp>());
+            }
+            else {
+                printf("%s has side effects\n", obj_desc(c).c_str());
 
-                if ( is_unknown )
-                    seo->SetUnknownChanges();
+                for ( auto ea_t : expr_attrs[c] ) {
+                    auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
+                    seo->AddModNonGlobal(non_local_ids);
+                    seo->AddModAggrs(aggrs);
 
-                seo_vec.push_back(seo);
-                side_effects.push_back(std::move(seo));
+                    if ( is_unknown )
+                        seo->SetUnknownChanges();
+
+                    seo_vec.push_back(seo);
+                    side_effects.push_back(std::move(seo));
+                }
             }
 
             if ( is_rec )
@@ -1132,9 +1148,12 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
         if ( ! AssessAggrEffects(SideEffectsOp::READ, tr, nla, mod_aggrs, is_unknown) )
             return is_unknown;
 
-    for ( auto& tm : pf->TableMods() )
+    for ( auto& tm : pf->TableMods() ) {
         if ( ! AssessAggrEffects(SideEffectsOp::WRITE, tm, nla, mod_aggrs, is_unknown) )
             return is_unknown;
+
+        mod_aggrs.insert(tm);
+    }
 
     for ( auto& f : pf->ScriptCalls() ) {
         auto pff = func_profs[f];
@@ -1160,6 +1179,10 @@ bool ProfileFuncs::AssessAggrEffects(SideEffectsOp::AccessType access, const Typ
     auto assoc_attrs = AssociatedAttrs(t);
 
     for ( auto a : assoc_attrs ) {
+        if ( a == curr_candidate )
+            // ###
+            continue;
+
         auto ase = attr_side_effects.find(a);
         if ( ase == attr_side_effects.end() ) {
             ase = record_constr_with_side_effects.find(a);

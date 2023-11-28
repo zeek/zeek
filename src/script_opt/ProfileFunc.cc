@@ -1001,7 +1001,7 @@ void ProfileFuncs::ComputeSideEffects() {
             std::unordered_set<const Type*> aggrs;
             bool is_unknown = true;
             for ( auto c : candidates ) {
-                printf("jackpot for %s\n", obj_desc(c).c_str());
+                // printf("jackpot for %s\n", obj_desc(c).c_str());
                 SetSideEffects(c, non_local_ids, aggrs, is_unknown);
             }
             break;
@@ -1026,12 +1026,12 @@ void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, std::unor
         at = SideEffectsOp::READ;
 
     if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
-        printf("%s has no side effects\n", obj_desc(a).c_str());
+        // printf("%s has no side effects\n", obj_desc(a).c_str());
         // Definitely no side effects.
         seo_vec.push_back(std::make_shared<SideEffectsOp>());
     }
     else {
-        printf("%s has side effects\n", obj_desc(a).c_str());
+        // printf("%s has side effects\n", obj_desc(a).c_str());
 
         for ( auto ea_t : expr_attrs[a] ) {
             auto seo = std::make_shared<SideEffectsOp>(at, ea_t);

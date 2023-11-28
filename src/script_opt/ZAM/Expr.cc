@@ -965,11 +965,8 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
             }
         }
         else {
-            if ( indirect ) {
-                if ( func_id->IsGlobal() )
-                    z = ZInstI(op, -1);
-                else
-                    z = ZInstI(op, FrameSlot(func));
+            if ( indirect && ! func_id->IsGlobal() ) {
+                z = ZInstI(op, FrameSlot(func));
                 z.op_type = OP_V;
             }
             else {

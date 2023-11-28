@@ -378,7 +378,6 @@ protected:
     bool AssessSideEffects(const ProfileFunc* e, IDSet& non_local_ids, std::unordered_set<const Type*>& types,
                            bool& is_unknown);
 
-    // ### const? etc.
     bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
                            std::unordered_set<const Type*>& aggrs, bool& is_unknown);
 

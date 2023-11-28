@@ -16,7 +16,7 @@ class TempVar;
 
 class Reducer {
 public:
-    Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> pf);
+    Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> pf, ProfileFuncs& pfs);
 
     StmtPtr Reduce(StmtPtr s);
 
@@ -237,6 +237,9 @@ protected:
     // Profile associated with the function.
     std::shared_ptr<ProfileFunc> pf;
 
+    // Profile across all script functions - used for optimization decisions.
+    ProfileFuncs& pfs;
+
     // Tracks the temporary variables created during the reduction/
     // optimization process.
     std::vector<std::shared_ptr<TempVar>> temps;
@@ -324,7 +327,7 @@ protected:
 
 class CSE_ValidityChecker : public TraversalCallback {
 public:
-    CSE_ValidityChecker(const std::vector<const ID*>& ids, const Expr* start_e, const Expr* end_e);
+    CSE_ValidityChecker(ProfileFuncs& pfs, const std::vector<const ID*>& ids, const Expr* start_e, const Expr* end_e);
 
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PostStmt(const Stmt*) override;
@@ -342,20 +345,24 @@ public:
 
 protected:
     // Returns true if an assignment involving the given identifier on
-    // the LHS is in conflict with the given list of identifiers.
-    bool CheckID(const std::vector<const ID*>& ids, const ID* id, bool ignore_orig) const;
+    // the LHS is in conflict with the identifiers we're tracking.
+    bool CheckID(const ID* id, bool ignore_orig) const;
 
     // Returns true if the assignment given by 'e' modifies an aggregate
-    // with the same type as that of one of the identifiers.
-    bool CheckAggrMod(const std::vector<const ID*>& ids, const Expr* e) const;
+    // with the same type as that of one of the identifiers we're tracking.
+    bool CheckAggrMod(const Expr* e) const;
+
+    // Profile across all script functions.
+    ProfileFuncs& pfs;
 
     // The list of identifiers for which an assignment to one of them
     // renders the CSE unsafe.
     const std::vector<const ID*>& ids;
 
-    // Whether the list of identifiers includes some that we should
-    // consider potentially altered by a function call.
-    bool sensitive_to_calls = false;
+    // Whether the list of identifiers includes some that we need to evaluate
+    // for being affected by side effects from function calls, table
+    // accesses, etc.
+    bool have_sensitive_IDs = false;
 
     // Where in the AST to start our analysis.  This is the initial
     // assignment expression.
@@ -381,6 +388,7 @@ protected:
 
     // Whether analyzed expressions occur in the context of
     // a statement that modifies an aggregate ("add" or "delete").
+    // ###
     bool in_aggr_mod_stmt = false;
 };
 

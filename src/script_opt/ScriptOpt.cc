@@ -147,7 +147,8 @@ static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf, std::s
     return true;
 }
 
-static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr& body) {
+static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ProfileFuncs& pfs, ScopePtr scope,
+                          StmtPtr& body) {
     if ( reporter->Errors() > 0 )
         return;
 
@@ -167,7 +168,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
     push_existing_scope(scope);
 
-    auto rc = std::make_shared<Reducer>(f, pf);
+    auto rc = std::make_shared<Reducer>(f, pf, pfs);
     auto new_body = rc->Reduce(body);
 
     if ( reporter->Errors() > 0 ) {
@@ -486,7 +487,7 @@ static void analyze_scripts_for_ZAM() {
         }
 
         auto new_body = f.Body();
-        optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
+        optimize_func(func, f.ProfilePtr(), *pfs, f.Scope(), new_body);
         f.SetBody(new_body);
 
         if ( is_lambda )

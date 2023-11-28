@@ -16,7 +16,8 @@
 
 namespace zeek::detail {
 
-Reducer::Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> _pf) : pf(std::move(_pf)) {
+Reducer::Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> _pf, ProfileFuncs& _pfs)
+    : pf(std::move(_pf)), pfs(_pfs) {
     auto& ft = func->GetType();
 
     // Track the parameters so we don't remap them.
@@ -437,11 +438,14 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
     // * Same goes to modifications of aggregates via "add" or "delete"
     //   or "+=" append.
     //
-    // * No propagation of expressions that are based on aggregates
-    //   across function calls.
+    // * Assessment of any record constructors or coercions, or
+    //   table references or modifications, for possible invocation of
+    //   associated handlers that have side effects.
     //
-    // * No propagation of expressions that are based on globals
-    //   across calls.
+    // * Assessment of function calls for potential side effects.
+    //
+    // These latter two are guided by the global profile of the full set
+    // of script functions.
 
     // Tracks which ID's are germane for our analysis.
     std::vector<const ID*> ids;
@@ -456,7 +460,7 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
     if ( e1->Tag() == EXPR_NAME )
         ids.push_back(e1->AsNameExpr()->Id());
 
-    CSE_ValidityChecker vc(ids, e1, e2);
+    CSE_ValidityChecker vc(pfs, ids, e1, e2);
     reduction_root->Traverse(&vc);
 
     return vc.IsValid();
@@ -785,14 +789,15 @@ std::shared_ptr<TempVar> Reducer::FindTemporary(const ID* id) const {
         return tmp->second;
 }
 
-CSE_ValidityChecker::CSE_ValidityChecker(const std::vector<const ID*>& _ids, const Expr* _start_e, const Expr* _end_e)
-    : ids(_ids) {
+CSE_ValidityChecker::CSE_ValidityChecker(ProfileFuncs& _pfs, const std::vector<const ID*>& _ids, const Expr* _start_e,
+                                         const Expr* _end_e)
+    : pfs(_pfs), ids(_ids) {
     start_e = _start_e;
     end_e = _end_e;
 
     for ( auto i : ids )
         if ( i->IsGlobal() || IsAggr(i->GetType()) )
-            sensitive_to_calls = true;
+            have_sensitive_IDs = true;
 
     // Track whether this is a record assignment, in which case
     // we're attuned to assignments to the same field for the
@@ -858,22 +863,21 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto lhs_ref = e->GetOp1()->AsRefExprPtr();
             auto lhs = lhs_ref->GetOp1()->AsNameExpr();
 
-            if ( CheckID(ids, lhs->Id(), false) ) {
+            if ( CheckID(lhs->Id(), false) ) {
                 is_valid = false;
                 return TC_ABORTALL;
             }
 
-            // Note, we don't use CheckAggrMod() because this
-            // is a plain assignment.  It might be changing a variable's
-            // binding to an aggregate, but it's not changing the
-            // aggregate itself.
+            // Note, we don't use CheckAggrMod() because this is a plain
+            // assignment.  It might be changing a variable's binding to
+            // an aggregate, but it's not changing the aggregate itself.
         } break;
 
         case EXPR_INDEX_ASSIGN: {
             auto lhs_aggr = e->GetOp1();
             auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
 
-            if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) ) {
+            if ( CheckID(lhs_aggr_id, true) || CheckAggrMod(e) ) {
                 is_valid = false;
                 return TC_ABORTALL;
             }
@@ -894,7 +898,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
                 return TC_ABORTALL;
             }
 
-            if ( CheckID(ids, lhs_aggr_id, true) || CheckAggrMod(ids, e) ) {
+            if ( CheckID(lhs_aggr_id, true) || CheckAggrMod(e) ) {
                 is_valid = false;
                 return TC_ABORTALL;
             }
@@ -903,14 +907,14 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
         case EXPR_APPEND_TO:
             // This doesn't directly change any identifiers, but does
             // alter an aggregate.
-            if ( CheckAggrMod(ids, e) ) {
+            if ( CheckAggrMod(e) ) {
                 is_valid = false;
                 return TC_ABORTALL;
             }
             break;
 
         case EXPR_CALL:
-            if ( sensitive_to_calls ) {
+            if ( have_sensitive_IDs ) {
                 auto c = e->AsCallExpr();
                 auto func = c->Func();
                 std::string desc;
@@ -950,7 +954,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
         case EXPR_RECORD_CONSTRUCTOR:
             // If these have initializations done at construction
             // time, those can include function calls.
-            if ( sensitive_to_calls ) {
+            if ( have_sensitive_IDs ) {
                 auto& et = e->GetType();
                 if ( et->Tag() == TYPE_RECORD && ! et->AsRecordType()->IdempotentCreation() ) {
                     is_valid = false;
@@ -961,30 +965,25 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
         case EXPR_INDEX:
         case EXPR_FIELD:
-            // We treat these together because they both have
-            // to be checked when inside an "add" or "delete"
-            // statement.
+            // We treat these together because they both have to be checked
+            // when inside an "add" or "delete" statement.
             if ( in_aggr_mod_stmt ) {
                 auto aggr = e->GetOp1();
                 auto aggr_id = aggr->AsNameExpr()->Id();
 
-                if ( CheckID(ids, aggr_id, true) ) {
+                if ( CheckID(aggr_id, true) ) {
                     is_valid = false;
                     return TC_ABORTALL;
                 }
             }
 
-            if ( t == EXPR_INDEX && sensitive_to_calls ) {
-                // Unfortunately in isolation we can't
-                // statically determine whether this table
-                // has a &default associated with it.  In
-                // principle we could track all instances
-                // of the table type seen (across the
-                // entire set of scripts), and note whether
-                // any of those include an expression, but
-                // that's a lot of work for what might be
-                // minimal gain.
-
+            if ( t == EXPR_INDEX && have_sensitive_IDs ) {
+                // Unfortunately in isolation we can't statically determine
+                // whether this table has a &default associated with it.
+                // In principle we could track all instances of the table
+                // type seen (across the entire set of scripts), and note
+                // whether any of those include an expression, but that's a
+                // lot of work for what might be minimal gain.
                 is_valid = false;
                 return TC_ABORTALL;
             }
@@ -997,7 +996,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
     return TC_CONTINUE;
 }
 
-bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids, const ID* id, bool ignore_orig) const {
+bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) const {
     // Only check type info for aggregates.
     auto id_t = IsAggr(id->GetType()) ? id->GetType() : nullptr;
 
@@ -1016,11 +1015,10 @@ bool CSE_ValidityChecker::CheckID(const std::vector<const ID*>& ids, const ID* i
     return false;
 }
 
-bool CSE_ValidityChecker::CheckAggrMod(const std::vector<const ID*>& ids, const Expr* e) const {
+bool CSE_ValidityChecker::CheckAggrMod(const Expr* e) const {
     const auto& e_i_t = e->GetType();
     if ( IsAggr(e_i_t) ) {
-        // This assignment sets an aggregate value.
-        // Look for type matches.
+        // This assignment sets an aggregate value.  Look for type matches.
         for ( auto i : ids )
             if ( same_type(e_i_t, i->GetType()) )
                 return true;

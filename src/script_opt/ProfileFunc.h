@@ -318,7 +318,16 @@ public:
 
     // Expression-valued attributes that appear in the context of different
     // types.
-    const auto& ExprAttrs() const { return expr_attrs; }
+    // ### const auto& ExprAttrs() const { return expr_attrs; }
+
+    // ###
+    // true = unknown
+    bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t) const;
+    bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
+                        std::unordered_set<const Type*>& aggrs) const;
+
+    const auto& AttrSideEffects() const { return attr_side_effects; }
+    const auto& RecordConstructorEffects() const { return record_constr_with_side_effects; }
 
     // Returns the "representative" Type* for the hash associated with
     // the parameter (which might be the parameter itself).
@@ -380,6 +389,10 @@ protected:
 
     bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
                            std::unordered_set<const Type*>& aggrs, bool& is_unknown);
+
+    // true = is unknown
+    bool AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::AccessType access, const Type* t,
+                           IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs) const;
 
     // Globals seen across the functions, other than those solely seen
     // as the function being called in a call.
@@ -465,7 +478,6 @@ protected:
     // record attributes.
     std::vector<const Expr*> pending_exprs;
 
-    // ### used?
     std::vector<std::shared_ptr<SideEffectsOp>> side_effects_ops;
 
 

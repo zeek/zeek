@@ -350,7 +350,10 @@ protected:
 
     // Returns true if the assignment given by 'e' modifies an aggregate
     // with the same type as that of one of the identifiers we're tracking.
+    // ###
     bool CheckAggrMod(const Expr* e) const;
+
+    bool CheckTableRef(const Expr* e) const;
 
     // Profile across all script functions.
     ProfileFuncs& pfs;

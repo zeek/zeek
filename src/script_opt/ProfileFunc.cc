@@ -988,8 +988,10 @@ void ProfileFuncs::ComputeSideEffects() {
             // Weed out very-common-and-completely-safe expressions.
             if ( ! DefinitelyHasNoSideEffects(a->GetExpr()) )
                 candidates.insert(a);
+#if 0
             else
                 printf("attribute %s definitely has no side effects\n", obj_desc(a).c_str());
+#endif
         }
     }
 
@@ -1020,7 +1022,7 @@ void ProfileFuncs::ComputeSideEffects() {
             std::unordered_set<const Type*> aggrs;
             bool is_unknown = true;
             for ( auto c : candidates ) {
-                printf("jackpot for %s\n", obj_desc(c).c_str());
+                // printf("jackpot for %s\n", obj_desc(c).c_str());
                 SetSideEffects(c, non_local_ids, aggrs, is_unknown);
             }
             break;
@@ -1045,12 +1047,12 @@ void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, std::unor
         at = SideEffectsOp::READ;
 
     if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
-        printf("%s has no side effects\n", obj_desc(a).c_str());
+        // printf("%s has no side effects\n", obj_desc(a).c_str());
         // Definitely no side effects.
         seo_vec.push_back(std::make_shared<SideEffectsOp>());
     }
     else {
-        printf("%s has side effects\n", obj_desc(a).c_str());
+        // printf("%s has side effects\n", obj_desc(a).c_str());
 
         for ( auto ea_t : expr_attrs[a] ) {
             auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
@@ -1060,6 +1062,7 @@ void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, std::unor
             if ( is_unknown )
                 seo->SetUnknownChanges();
 
+            side_effects_ops.push_back(seo);
             seo_vec.push_back(std::move(seo));
         }
     }
@@ -1221,23 +1224,51 @@ bool ProfileFuncs::AssessAggrEffects(SideEffectsOp::AccessType access, const Typ
                 return false;
         }
 
-        for ( auto& se : ase->second ) {
-            if ( se->GetAccessType() != access )
-                continue;
-
-            if ( se->HasUnknownChanges() ) {
+        for ( auto& se : ase->second )
+            if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) ) {
                 is_unknown = true;
-                return true;
+                return true; // no point doing any more work
             }
-
-            for ( auto a : se->ModAggrs() )
-                aggrs.insert(a);
-            for ( auto nl : se->ModNonLocals() )
-                non_local_ids.insert(nl);
-        }
     }
 
     return true;
+}
+
+bool ProfileFuncs::AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::AccessType access, const Type* t,
+                                     IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs) const {
+    if ( se->GetAccessType() != access )
+        return false;
+
+    if ( ! same_type(se->GetType(), t) )
+        return false;
+
+    if ( se->HasUnknownChanges() )
+        return true;
+
+    for ( auto a : se->ModAggrs() )
+        aggrs.insert(a);
+    for ( auto nl : se->ModNonLocals() )
+        non_local_ids.insert(nl);
+
+    return false;
+}
+
+bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t) const {
+    IDSet nli;
+    std::unordered_set<const Type*> aggrs;
+
+    if ( GetSideEffects(access, t, nli, aggrs) )
+	return true;
+
+    return ! nli.empty() || ! aggrs.empty();
+}
+
+bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
+                                  std::unordered_set<const Type*>& aggrs) const {
+    for ( auto se : side_effects_ops )
+        if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) )
+            return true;
+    return false;
 }
 
 } // namespace zeek::detail

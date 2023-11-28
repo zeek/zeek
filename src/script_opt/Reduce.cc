@@ -425,6 +425,32 @@ IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a, const std::shared_ptr
 }
 
 bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
+    // First check for whether e1 is already known to itself have side effects.
+    // If so, then it's never safe to reuse its associated identifier in lieu
+    // of e2.
+    std::optional<ExprSideEffects>& e1_se = e1->GetOptInfo()->SideEffects();
+    if ( ! e1_se )
+	{
+	bool has_side_effects;
+
+	if ( e1->Tag() == EXPR_INDEX )
+		has_side_effects = pfs.GetSideEffects(SideEffectsOp::READ, e1->GetOp1()->GetType().get());
+
+	else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_RECORD_COERCE )
+		has_side_effects = pfs.GetSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType().get());
+	else
+		has_side_effects = false;
+
+	e1_se = ExprSideEffects(has_side_effects);
+	}
+
+    if ( e1_se->HasSideEffects() )
+	{
+	// We already know that e2 is structurally identical to e1.
+        e2->GetOptInfo()->SideEffects() = ExprSideEffects(true);
+	return false;
+	}
+
     // Here are the considerations for expression validity.
     //
     // * None of the operands used in the given expression can
@@ -964,19 +990,27 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             break;
 
         case EXPR_INDEX:
-        case EXPR_FIELD:
+        case EXPR_FIELD: {
             // We treat these together because they both have to be checked
             // when inside an "add" or "delete" statement.
+            auto aggr = e->GetOp1();
+
             if ( in_aggr_mod_stmt ) {
-                auto aggr = e->GetOp1();
                 auto aggr_id = aggr->AsNameExpr()->Id();
 
-                if ( CheckID(aggr_id, true) ) {
+                if ( CheckID(aggr_id, true) || CheckAggrMod(e) ) {
                     is_valid = false;
                     return TC_ABORTALL;
                 }
             }
 
+            else if ( t == EXPR_INDEX && aggr->GetType()->Tag() == TYPE_TABLE ) {
+                if ( CheckTableRef(e) ) {
+                    is_valid = false;
+                    return TC_ABORTALL;
+                }
+            }
+#if 0
             if ( t == EXPR_INDEX && have_sensitive_IDs ) {
                 // Unfortunately in isolation we can't statically determine
                 // whether this table has a &default associated with it.
@@ -986,9 +1020,11 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
                 // lot of work for what might be minimal gain.
                 is_valid = false;
                 return TC_ABORTALL;
-            }
+	}
+#endif
+        }
 
-            break;
+        break;
 
         default: break;
     }
@@ -1009,9 +1045,7 @@ bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) const {
 
         if ( id_t && same_type(id_t, i->GetType()) ) {
             // Same-type aggregate.
-            if ( ! ignore_orig )
-                printf("identifier %s (%d), start %s, end %s\n", id->Name(), ignore_orig, obj_desc(start_e).c_str(),
-                       obj_desc(end_e).c_str());
+            // if ( ! ignore_orig ) printf("identifier %s (%d), start %s, end %s\n", id->Name(), ignore_orig, obj_desc(start_e).c_str(), obj_desc(end_e).c_str());
             if ( ignore_orig )
                 return true;
         }
@@ -1023,10 +1057,72 @@ bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) const {
 bool CSE_ValidityChecker::CheckAggrMod(const Expr* e) const {
     const auto& e_i_t = e->GetType();
     if ( IsAggr(e_i_t) ) {
-        // This assignment sets an aggregate value.  Look for type matches.
-        for ( auto i : ids )
-            if ( same_type(e_i_t, i->GetType()) )
+        // This assignment sets an aggregate value.
+
+        // Note, the following will almost always remain empty, so spinning
+        // through them in the loop below will be very quick.
+        IDSet non_local_ids;
+        std::unordered_set<const Type*> aggrs;
+
+        // Here we do a bit of speed optimization by wiring in knowledge
+        // the aggregate WRITE effects only occur for tables.
+        if ( e_i_t->Tag() == TYPE_TABLE && pfs.GetSideEffects(SideEffectsOp::WRITE, e_i_t.get(), non_local_ids, aggrs) )
+            return true;
+
+        for ( auto i : ids ) {
+            for ( auto nli : non_local_ids )
+                if ( nli == i ) {
+                    // printf("non-local ID on WRITE: %s\n", i->Name());
+                    return true;
+                }
+
+            auto i_t = i->GetType();
+
+            if ( i_t->Tag() == TYPE_ANY )
+                continue;
+
+            if ( same_type(e_i_t, i_t) )
                 return true;
+
+            for ( auto a : aggrs )
+                if ( same_type(a, i_t.get()) ) {
+                    // printf("aggr type on WRITE: %s\n", i->Name());
+                    return true;
+                }
+        }
+    }
+
+    return false;
+}
+
+bool CSE_ValidityChecker::CheckTableRef(const Expr* e) const {
+    const auto& e_i_t = e->GetType();
+    // This assignment sets an aggregate value.
+
+    // Note, the following will almost always remain empty, so spinning
+    // through them in the loop below will be very quick.
+    IDSet non_local_ids;
+    std::unordered_set<const Type*> aggrs;
+
+    if ( pfs.GetSideEffects(SideEffectsOp::READ, e_i_t.get(), non_local_ids, aggrs) )
+        return true;
+
+    for ( auto i : ids ) {
+        for ( auto nli : non_local_ids )
+            if ( nli == i ) {
+                // printf("non-local ID on READ: %s\n", i->Name());
+                return true;
+            }
+
+        auto i_t = i->GetType();
+        if ( i_t->Tag() == TYPE_ANY )
+            continue;
+
+        for ( auto a : aggrs )
+            if ( same_type(a, i->GetType().get()) ) {
+                // printf("aggr type on READ: %p %s\n", e, obj_desc(e).c_str());
+                return true;
+            }
     }
 
     return false;

@@ -506,6 +506,17 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
 
             if ( reason != OCSP_REVOKED_STATUS_NOSTATUS ) {
                 const char* revoke_reason = OCSP_crl_reason_str(reason);
+
+#if OPENSSL_VERSION_NUMBER < 0x30200000L
+                // OpenSSL 3.2.0 and later return the right strings for
+                // OCSP_REVOKED_STATUS_PRIVILEGEWITHDRAWN (9) and
+                // OCSP_REVOKED_STATUS_AACOMPROMISE (10).
+                //
+                // For versions older than that, fix it up by hand.
+                if ( (reason == 9 || reason == 10) && zeek::util::streq(revoke_reason, "(UNKNOWN)") ) {
+                    revoke_reason = reason == 9 ? "privilegeWithdrawn" : "aACompromise";
+                }
+#endif
                 rvl.emplace_back(make_intrusive<StringVal>(strlen(revoke_reason), revoke_reason));
             }
             else

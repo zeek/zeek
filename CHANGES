@@ -1,3 +1,11 @@
+6.2.0-dev.189 | 2023-11-27 21:35:26 +0100
+
+  * OCSP: Open-code unknown revoke reason strings (Arne Welzel, Corelight)
+
+    OpenSSL 3.2.0 knows about more reasons. Add some backwards compatibility.
+
+    Reference: https://github.com/openssl/openssl/commit/1c8a7f5091e2c5aebc043be86bcbedc6947e1c6f
+
 6.2.0-dev.187 | 2023-11-23 17:19:51 +0000
 
   * Spicy: allow providing file id in zeek::file_begin (Johanna Amann, Corelight)

@@ -407,12 +407,20 @@ export {
 
 		## Maximum delay interval for this stream.
 		##
+		## This value can be increased using :zeek:see:`Log::set_max_delay_interval`
+		## after the stream has been created.
+		##
 		## .. :zeek:see:`Log::default_max_delay_interval`
+		## .. :zeek:see:`Log::set_max_delay_interval`
 		max_delay_interval: interval &default=default_max_delay_interval;
 
 		## Maximum delay queue size of this stream.
 		##
+		## This value can be changed using :zeek:see:`Log::set_max_delay_queue_size`
+		## after the stream has been created.
+		##
 		## .. :zeek:see:`Log::default_max_delay_queue_size`
+		## .. :zeek:see:`Log::set_max_delay_queue_size`
 		max_delay_queue_size: count &default=default_max_delay_queue_size;
 	};
 
@@ -626,11 +634,11 @@ export {
 
 	## Type of function to invoke when delaying a log write has completed.
 	##
-	## This is similar to a :zeek:see:`Log::StreamPolicyHook`, but a callback
-	## of this type is passed to zeek:see:`Log::delay` and executes just before
-	## the record is forwarded to the individual log filters.
+	## Functions of this type take the same arguments as :zeek:see:`Log::StreamPolicyHook`
+	## and act as a callback passed to zeek:see:`Log::delay`. They execute
+	## just before the record is forwarded to the individual log filters.
 	##
-	## Returning false from a post delay callback discards the log write.
+	## Returning ``F`` from a post delay callback discards the log write.
 	type PostDelayCallback: function(rec: any, id: ID): bool;
 
 	## Type of the opaque value returned by :zeek:see:`Log::delay`. These
@@ -652,21 +660,21 @@ export {
 	## Conceptually, the delay is inserted between the execution of the
 	## zeek:see:`Log::log_stream_policy` hook and the policy hooks of filters.
 	##
-	## Calling this function increases a reference count that can subsequently
-	## be released using :zeek:see:`Log::delay_finish`.
+	## Calling this function increments a reference count that can subsequently
+	## be decremented using :zeek:see:`Log::delay_finish`.
 	## The delay completes when either the reference count reaches zero, or
 	## the configured maximum delay interval for the stream expires. The
-	## optional *post_delay_callback* is invoked when the delay completed.
+	## optional *post_delay_cb* is invoked when the delay completed.
 	##
-	## The *post_delay_callback* function can extend the delay by invoking
-	## :zeek:see:`Log::delay`. There's no limit to how often a write can be
-	## re-delayed. Further, it can veto the forwarding of the log record
-	## to the stream's filters by returning ``F``. If *post_delay_cb* is not
-	## provided, it's equivalent to a function solely returning ``T``.
+	## The *post_delay_cb* function can extend the delay by invoking
+	## :zeek:see:`Log::delay` again. There's no limit to how often a write
+	## can be re-delayed. Further, it can discard the log record altogether
+	## by returning ``F``. If *post_delay_cb* is not provided, the behavior
+	## is equivalent to a no-op callback solely returning ``T``.
 	##
 	## id: The ID associated with a logging stream.
 	##
-	## rec: Log record
+	## rec: The log record.
 	##
 	## post_delay_cb: A callback to invoke when the delay completed.
 	##
@@ -681,7 +689,7 @@ export {
 	##
 	## id: The ID associated with a logging stream.
 	##
-	## rec: Log record
+	## rec: The log record.
 	##
 	## token: The opaque token as returned by :zeek:see:`Log::delay`.
 	##

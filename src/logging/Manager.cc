@@ -147,7 +147,7 @@ private:
     // Has this DelayInfo object been enqueued?
     bool enqueued = false;
 
-    // Iterator pointing this instance in the delay_queue.
+    // Iterator pointing at this instance in the delay_queue.
     DelayQueue::const_iterator queue_position;
 };
 

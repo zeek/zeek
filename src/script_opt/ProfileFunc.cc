@@ -162,8 +162,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
             auto ad_stmt = static_cast<const AddDelStmt*>(s);
             auto ad_e = ad_stmt->StmtExpr();
             auto& lhs_t = ad_e->GetOp1()->GetType();
-            if ( lhs_t->Tag() == TYPE_TABLE )
-                tbl_mods.insert(lhs_t.get());
+            aggr_mods.insert(lhs_t.get());
         } break;
 
         default: break;
@@ -262,47 +261,65 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 // use of "=" such as in a table constructor.
                 break;
 
-            if ( lhs->Tag() == EXPR_NAME ) {
-                auto id = lhs->AsNameExpr()->Id();
-                TrackAssignment(id);
+            auto lhs_t = lhs->GetType();
 
-                if ( e->Tag() == EXPR_ASSIGN ) {
-                    auto a_e = static_cast<const AssignExpr*>(e);
-                    auto& av = a_e->AssignVal();
-                    if ( av )
-                        // This is a funky "local" assignment
-                        // inside a when clause.
-                        when_locals.insert(id);
-                }
-                else if ( lhs->GetType()->Tag() == TYPE_TABLE )
-                    tbl_mods.insert(lhs->GetType().get());
-            }
-            else if ( lhs->Tag() == EXPR_INDEX ) {
-                auto lhs_aggr = lhs->GetOp1();
-                auto lhs_aggr_t = lhs_aggr->GetType();
-                if ( lhs_aggr_t->Tag() == TYPE_TABLE ) {
+            switch ( lhs->Tag() ) {
+                case EXPR_NAME: {
+                    auto id = lhs->AsNameExpr()->Id();
+                    TrackAssignment(id);
+
+                    if ( e->Tag() == EXPR_ASSIGN ) {
+                        auto a_e = static_cast<const AssignExpr*>(e);
+                        auto& av = a_e->AssignVal();
+                        if ( av )
+                            // This is a funky "local" assignment
+                            // inside a when clause.
+                            when_locals.insert(id);
+                    }
+                    else if ( IsAggr(lhs_t->Tag()) )
+                        aggr_mods.insert(lhs_t.get());
+                } break;
+
+                case EXPR_INDEX: {
+                    auto lhs_aggr = lhs->GetOp1();
+                    auto lhs_aggr_t = lhs_aggr->GetType();
+
                     // Determine which aggregate is being modified.  For an
                     // assignment "a[b] = aggr", it's not a[b]'s type but
                     // rather a's type. However, for any of the others,
                     // e.g. "a[b] -= aggr" it is a[b]'s type.
                     if ( e->Tag() == EXPR_ASSIGN )
-                        tbl_mods.insert(lhs_aggr_t.get());
+                        aggr_mods.insert(lhs_aggr_t.get());
                     else
-                        tbl_mods.insert(lhs->GetType().get());
+                        aggr_mods.insert(lhs_t.get());
 
-                    // We don't want the default recursion into the expression's
-                    // LHS because it will treat this table modification as
-                    // a reference instead. So do it manually. Given that,
-                    // we need to do the expression's RHS manually too.
-                    lhs->GetOp1()->Traverse(this);
-                    lhs->GetOp2()->Traverse(this);
+                    if ( lhs_aggr_t->Tag() == TYPE_TABLE ) {
+                        // We don't want the default recursion into the expression's
+                        // LHS because it will treat this table modification as
+                        // a reference instead. So do it manually. Given that,
+                        // we need to do the expression's RHS manually too.
+                        lhs->GetOp1()->Traverse(this);
+                        lhs->GetOp2()->Traverse(this);
 
-                    auto rhs = e->GetOp2();
-                    if ( rhs )
-                        rhs->Traverse(this);
+                        auto rhs = e->GetOp2();
+                        if ( rhs )
+                            rhs->Traverse(this);
 
-                    return TC_ABORTSTMT;
-                }
+                        return TC_ABORTSTMT;
+                    }
+                } break;
+
+                case EXPR_FIELD: aggr_mods.insert(lhs_t.get()); break;
+
+                case EXPR_LIST: {
+                    for ( auto id : lhs->AsListExpr()->Exprs() ) {
+                        auto id_t = id->GetType();
+                        if ( IsAggr(id_t->Tag()) )
+                            aggr_mods.insert(id_t.get());
+                    }
+                } break;
+
+                default: reporter->InternalError("bad expression in ProfileFunc: %s", obj_desc(e).c_str());
             }
         } break;
 
@@ -971,6 +988,8 @@ void ProfileFuncs::ComputeSideEffects() {
             // Weed out very-common-and-completely-safe expressions.
             if ( ! DefinitelyHasNoSideEffects(a->GetExpr()) )
                 candidates.insert(a);
+            else
+                printf("attribute %s definitely has no side effects\n", obj_desc(a).c_str());
         }
     }
 
@@ -1001,7 +1020,7 @@ void ProfileFuncs::ComputeSideEffects() {
             std::unordered_set<const Type*> aggrs;
             bool is_unknown = true;
             for ( auto c : candidates ) {
-                // printf("jackpot for %s\n", obj_desc(c).c_str());
+                printf("jackpot for %s\n", obj_desc(c).c_str());
                 SetSideEffects(c, non_local_ids, aggrs, is_unknown);
             }
             break;
@@ -1026,12 +1045,12 @@ void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, std::unor
         at = SideEffectsOp::READ;
 
     if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
-        // printf("%s has no side effects\n", obj_desc(a).c_str());
+        printf("%s has no side effects\n", obj_desc(a).c_str());
         // Definitely no side effects.
         seo_vec.push_back(std::make_shared<SideEffectsOp>());
     }
     else {
-        // printf("%s has side effects\n", obj_desc(a).c_str());
+        printf("%s has side effects\n", obj_desc(a).c_str());
 
         for ( auto ea_t : expr_attrs[a] ) {
             auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
@@ -1063,7 +1082,7 @@ bool ProfileFuncs::DefinitelyHasNoSideEffects(const ExprPtr& e) const {
 
     const auto& pf = ep->second;
 
-    if ( ! pf->NonLocalAssignees().empty() || ! pf->TableRefs().empty() || ! pf->TableMods().empty() ||
+    if ( ! pf->NonLocalAssignees().empty() || ! pf->TableRefs().empty() || ! pf->AggrMods().empty() ||
          ! pf->ScriptCalls().empty() )
         return false;
 
@@ -1160,8 +1179,8 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
         if ( ! AssessAggrEffects(SideEffectsOp::READ, tr, nla, mod_aggrs, is_unknown) )
             return is_unknown;
 
-    for ( auto& tm : pf->TableMods() ) {
-        if ( ! AssessAggrEffects(SideEffectsOp::WRITE, tm, nla, mod_aggrs, is_unknown) )
+    for ( auto& tm : pf->AggrMods() ) {
+        if ( tm->Tag() == TYPE_TABLE && ! AssessAggrEffects(SideEffectsOp::WRITE, tm, nla, mod_aggrs, is_unknown) )
             return is_unknown;
 
         mod_aggrs.insert(tm);

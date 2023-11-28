@@ -96,7 +96,7 @@ public:
     const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
     const std::unordered_set<const ID*>& NonLocalAssignees() const { return non_local_assignees; }
     const auto& TableRefs() const { return tbl_refs; }
-    const auto& TableMods() const { return tbl_mods; }
+    const auto& AggrMods() const { return aggr_mods; }
     const IDSet& Inits() const { return inits; }
     const std::vector<const Stmt*>& Stmts() const { return stmts; }
     const std::vector<const Expr*>& Exprs() const { return exprs; }
@@ -190,7 +190,7 @@ protected:
     std::unordered_set<const ID*> non_local_assignees;
 
     std::unordered_set<const Type*> tbl_refs;
-    std::unordered_set<const Type*> tbl_mods;
+    std::unordered_set<const Type*> aggr_mods;
 
     // Same for locals seen in initializations, so we can find,
     // for example, unused aggregates.

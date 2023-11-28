@@ -1007,9 +1007,12 @@ bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) const {
         if ( id == i )
             return true; // reassignment
 
-        if ( id_t && same_type(id_t, i->GetType()) )
-            // Same-type aggregate.
+        if ( id_t && same_type(id_t, i->GetType()) ) {
+            // printf("identifier %s (%d), start %s, end %s\n", id->Name(), ignore_orig, obj_desc(start_e).c_str(),
+            // obj_desc(end_e).c_str()); Same-type aggregate.
+            // if ( ignore_orig )
             return true;
+        }
     }
 
     return false;

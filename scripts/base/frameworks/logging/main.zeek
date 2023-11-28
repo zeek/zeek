@@ -860,31 +860,10 @@ function Log::rotation_format_func(ri: Log::RotationFmtInfo): Log::RotationPath
 	return rval;
 	}
 
-# Keep maximum stream delay and last queue sizes around.
-global max_stream_delay_intervals: table[ID] of interval;
-global max_stream_delay_queue_sizes: table[ID] of count;
-
 function create_stream(id: ID, stream: Stream) : bool
 	{
 	if ( ! __create_stream(id, stream) )
 		return F;
-
-	# Restore max value of any prior set_max_delay_interval().
-	if ( id in max_stream_delay_intervals &&
-	     max_stream_delay_intervals[id] > stream$max_delay_interval )
-		stream$max_delay_interval = max_stream_delay_intervals[id];
-	else
-		max_stream_delay_intervals[id] = stream$max_delay_interval;
-
-	# Restore the previous queue size.
-	if ( id in max_stream_delay_queue_sizes &&
-	     max_stream_delay_queue_sizes[id] != stream$max_delay_queue_size )
-		stream$max_delay_queue_size = max_stream_delay_queue_sizes[id];
-	else
-		max_stream_delay_queue_sizes[id] = stream$max_delay_queue_size;
-
-	Log::__set_max_delay_interval(id, stream$max_delay_interval);
-	Log::__set_max_delay_queue_size(id, stream$max_delay_queue_size);
 
 	active_streams[id] = stream;
 	all_streams[id] = stream;
@@ -1059,7 +1038,6 @@ function set_max_delay_interval(id: Log::ID, max_delay: interval): bool
 	if ( ! Log::__set_max_delay_interval(id, max_delay) )
 		return F;
 
-	max_stream_delay_intervals[id] = max_delay;
 	all_streams[id]$max_delay_interval = max_delay;
 
 	return T;
@@ -1070,13 +1048,9 @@ function set_max_delay_queue_size(id: Log::ID, max_size: count): bool
 	if ( id !in all_streams )
 		return F;
 
-	if ( all_streams[id]$max_delay_queue_size == max_size )
-		return T;
-
 	if ( ! Log::__set_max_delay_queue_size(id, max_size) )
 		return F;
 
-	max_stream_delay_queue_sizes[id] = max_size;
 	all_streams[id]$max_delay_queue_size = max_size;
 
 	return T;

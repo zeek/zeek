@@ -62,30 +62,6 @@
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__enable_stream, <frame>, (Analyzer::Logging::LOG)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Analyzer::Logging::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Broker::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Cluster::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Config::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Conn::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (DPD::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Files::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (HTTP::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Notice::ALARM_LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Notice::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Tunnel::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_interval, <frame>, (Weird::LOG, 200.0 msecs)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Analyzer::Logging::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Broker::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Cluster::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Config::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Conn::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (DPD::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Files::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (HTTP::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Notice::ALARM_LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Notice::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Tunnel::LOG, 1000)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__set_max_delay_queue_size, <frame>, (Weird::LOG, 1000)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Analyzer::Logging::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG)) -> <no result>
@@ -1004,30 +980,6 @@
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
 0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
 0.000000   MetaHookPre   CallFunction(Log::__enable_stream, <frame>, (Analyzer::Logging::LOG))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Analyzer::Logging::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Broker::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Cluster::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Config::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Conn::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (DPD::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Files::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (HTTP::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Notice::ALARM_LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Notice::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Tunnel::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_interval, <frame>, (Weird::LOG, 200.0 msecs))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Analyzer::Logging::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Broker::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Cluster::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Config::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Conn::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (DPD::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Files::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (HTTP::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Notice::ALARM_LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Notice::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Tunnel::LOG, 1000))
-0.000000   MetaHookPre   CallFunction(Log::__set_max_delay_queue_size, <frame>, (Weird::LOG, 1000))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Analyzer::Logging::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Cluster::LOG))
@@ -1945,30 +1897,6 @@
 0.000000 | HookCallFunction Log::__create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
 0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
 0.000000 | HookCallFunction Log::__enable_stream(Analyzer::Logging::LOG)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Analyzer::Logging::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Broker::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Cluster::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Config::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Conn::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(DPD::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Files::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(HTTP::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Notice::ALARM_LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Notice::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Tunnel::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_interval(Weird::LOG, 200.0 msecs)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Analyzer::Logging::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Broker::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Cluster::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Config::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Conn::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(DPD::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Files::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(HTTP::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Notice::ALARM_LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Notice::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Tunnel::LOG, 1000)
-0.000000 | HookCallFunction Log::__set_max_delay_queue_size(Weird::LOG, 1000)
 0.000000 | HookCallFunction Log::add_default_filter(Analyzer::Logging::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Cluster::LOG)

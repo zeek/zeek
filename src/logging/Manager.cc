@@ -1190,12 +1190,13 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
 
 ValPtr Manager::Delay(const EnumValPtr& id, const RecordValPtr record, FuncPtr post_delay_cb) {
     if ( active_writes.size() == 0 ) {
-        reporter->Error("invalid Log::delay() call: no active write context available");
+        reporter->Error("invalid Log::delay() call: outside of Log::log_stream_policy() hook");
         return make_intrusive<detail::LogDelayTokenVal>();
     }
+
     const auto& active_write_ctx = active_writes.back();
     if ( active_write_ctx.id != id || active_write_ctx.record != record ) {
-        reporter->Error("invalid Log::delay() call: active write mismatch");
+        reporter->Error("invalid Log::delay() call: argument mismatch with active Log::write()");
         return make_intrusive<detail::LogDelayTokenVal>();
     }
 

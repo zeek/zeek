@@ -5,10 +5,17 @@
 
 redef enum Log::ID += { LOG };
 
+type Info: record {
+	ts: time &log &default=network_time();
+};
+
 event zeek_init()
 	{
-	# Not within a log write
-	Log::delay(LOG, []);
+	# Log::delay() not within a Log::log_stream_policy hook
+	Log::create_stream(LOG, [$columns=Info]);
+	local rec = Info();
+	local token = Log::delay(LOG, rec);
+	Log::delay_finish(LOG, rec, token);
 	}
 
 @TEST-START-NEXT
@@ -48,5 +55,15 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	# Delay underflow.
 	local token = Log::delay(id, rec);
 	Log::delay_finish(id, rec, token);
+	Log::delay_finish(id, rec, token);
+	}
+
+@TEST-START-NEXT
+@load base/protocols/conn
+
+hook Conn::log_policy(rec: Conn::Info, id: Log::ID, filter: Log::Filter)
+	{
+	# Calling Log::delay() in a filter policy hook is an error.
+	local token = Log::delay(id, rec);
 	Log::delay_finish(id, rec, token);
 	}

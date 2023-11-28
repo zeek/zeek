@@ -172,8 +172,8 @@ protected:
 class CoalescedScriptFunc : public ScriptFunc {
 public:
     CoalescedScriptFunc(StmtPtr merged_body, ScopePtr scope, ScriptFuncPtr orig_func)
-        : ScriptFunc(orig_func->Name(), orig_func->GetType(), {merged_body}, {0}), orig_func(orig_func) {
-        SetScope(scope);
+        : ScriptFunc(orig_func->Name(), orig_func->GetType(), {std::move(merged_body)}, {0}), orig_func(orig_func) {
+        SetScope(std::move(scope));
     };
 
     ValPtr Invoke(zeek::Args* args, Frame* parent) const override {

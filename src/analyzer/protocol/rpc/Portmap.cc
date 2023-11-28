@@ -164,7 +164,7 @@ bool PortmapperInterp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status statu
     return true;
 }
 
-ValPtr PortmapperInterp::ExtractMapping(const u_char*& buf, int& len) {
+RecordValPtr PortmapperInterp::ExtractMapping(const u_char*& buf, int& len) {
     static auto pm_mapping = id::find_type<RecordType>("pm_mapping");
     auto mapping = make_intrusive<RecordVal>(pm_mapping);
 
@@ -181,7 +181,7 @@ ValPtr PortmapperInterp::ExtractMapping(const u_char*& buf, int& len) {
     return mapping;
 }
 
-ValPtr PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len) {
+RecordValPtr PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len) {
     static auto pm_port_request = id::find_type<RecordType>("pm_port_request");
     auto pr = make_intrusive<RecordVal>(pm_port_request);
 
@@ -198,7 +198,7 @@ ValPtr PortmapperInterp::ExtractPortRequest(const u_char*& buf, int& len) {
     return pr;
 }
 
-ValPtr PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len) {
+RecordValPtr PortmapperInterp::ExtractCallItRequest(const u_char*& buf, int& len) {
     static auto pm_callit_request = id::find_type<RecordType>("pm_callit_request");
     auto c = make_intrusive<RecordVal>(pm_callit_request);
 

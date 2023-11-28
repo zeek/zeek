@@ -74,7 +74,7 @@ public:
      */
     Packet(int link_type, pkt_timeval* ts, uint32_t caplen, uint32_t len, const u_char* data, bool copy = false,
            std::string tag = "") {
-        Init(link_type, ts, caplen, len, data, copy, tag);
+        Init(link_type, ts, caplen, len, data, copy, std::move(tag));
     }
 
     /**

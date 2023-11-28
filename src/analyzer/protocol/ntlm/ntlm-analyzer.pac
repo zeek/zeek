@@ -1,12 +1,12 @@
 %header{
-	zeek::ValPtr filetime2zeektime(uint64_t ts);
+	zeek::IntrusivePtr<zeek::TimeVal> filetime2zeektime(uint64_t ts);
 	zeek::RecordValPtr build_version_record(NTLM_Version* val);
 	zeek::RecordValPtr build_negotiate_flag_record(NTLM_Negotiate_Flags* val);
 %}
 
 %code{
 	// This is replicated from the SMB analyzer. :(
-	zeek::ValPtr filetime2zeektime(uint64_t ts)
+	zeek::IntrusivePtr<zeek::TimeVal> filetime2zeektime(uint64_t ts)
 		{
 		double secs = (ts / 10000000.0);
 

@@ -891,7 +891,7 @@ void DNS_Mgr::Event(EventHandlerPtr e, const DNS_MappingPtr& old_dm, DNS_Mapping
         event_mgr.Enqueue(e, BuildMappingVal(old_dm), BuildMappingVal(new_dm));
 }
 
-ValPtr DNS_Mgr::BuildMappingVal(const DNS_MappingPtr& dm) {
+RecordValPtr DNS_Mgr::BuildMappingVal(const DNS_MappingPtr& dm) {
     if ( ! dm_rec )
         return nullptr;
 

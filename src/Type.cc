@@ -1052,8 +1052,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
 
     if ( def_expr && ! IsErrorType(type->Tag()) ) {
         if ( def_expr->Tag() == detail::EXPR_CONST ) {
-            auto v = def_expr->Eval(nullptr);
-            auto zv = ZVal(v, type);
+            auto zv = ZVal(def_expr->Eval(nullptr), type);
 
             if ( ZVal::IsManagedType(type) )
                 init = std::make_unique<detail::DirectManagedFieldInit>(zv);
@@ -2303,7 +2302,7 @@ TypePtr merge_record_types(const Type* t1, const Type* t2) {
     return make_intrusive<RecordType>(tdl3);
 }
 
-TypePtr merge_list_types(const Type* t1, const Type* t2) {
+TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
     const TypeList* tl1 = t1->AsTypeList();
     const TypeList* tl2 = t2->AsTypeList();
 

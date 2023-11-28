@@ -1,3 +1,14 @@
+6.2.0-dev.196 | 2023-11-28 13:40:54 -0700
+
+  * Add some uses of std::move in constructors and simple functions for pass-by-value arguments (Tim Wojtulewicz, Corelight)
+
+  * Avoid creating a few temporary values to avoid copy operations (Tim Wojtulewicz, Corelight)
+
+  * Change function return types to more concise types where possible (Tim Wojtulewicz, Corelight)
+
+    This helps avoid needing to call std::move on return values when we know the
+    type of value is fixed.
+
 6.2.0-dev.192 | 2023-11-28 15:11:42 +0000
 
   * TLS: Update cipher consts and keyexchange parsing (Johanna Amann, Corelight)

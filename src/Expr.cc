@@ -3057,7 +3057,7 @@ ListExprPtr expand_op(ListExprPtr op, const TypePtr& t) {
 TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
                                            std::unique_ptr<std::vector<AttrPtr>> arg_attrs, TypePtr arg_type,
                                            AttributesPtr arg_attrs2)
-    : UnaryExpr(EXPR_TABLE_CONSTRUCTOR, expand_op(constructor_list, arg_type)) {
+    : UnaryExpr(EXPR_TABLE_CONSTRUCTOR, expand_op(std::move(constructor_list), arg_type)) {
     if ( IsError() )
         return;
 

@@ -263,7 +263,9 @@ void IPBasedAnalyzer::DumpPortDebug() {
 
 TableValPtr IPBasedAnalyzer::ignore_checksums_nets_table = nullptr;
 
-void IPBasedAnalyzer::SetIgnoreChecksumsNets(TableValPtr t) { IPBasedAnalyzer::ignore_checksums_nets_table = t; }
+void IPBasedAnalyzer::SetIgnoreChecksumsNets(TableValPtr t) {
+    IPBasedAnalyzer::ignore_checksums_nets_table = std::move(t);
+}
 
 TableValPtr IPBasedAnalyzer::GetIgnoreChecksumsNets() {
     if ( ! IPBasedAnalyzer::ignore_checksums_nets_table )

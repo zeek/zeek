@@ -1240,9 +1240,7 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
 
         auto key = env_table_val->RecreateIndex(*k);
         auto name = key->Idx(0)->AsStringVal()->ToStdString();
-        auto val = v->GetVal()->AsStringVal()->ToStdString();
-
-        rval.env[name] = val;
+        rval.env[name] = v->GetVal()->AsStringVal()->ToStdString();
     }
 
     auto cluster_table_val = node->GetField("cluster")->AsTableVal();

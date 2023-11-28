@@ -1,3 +1,13 @@
+6.2.0-dev.192 | 2023-11-28 15:11:42 +0000
+
+  * TLS: Update cipher consts and keyexchange parsing (Johanna Amann, Corelight)
+
+    Update cipher consts.
+
+    Furthermore some past updates have been applied to scriptland, but it
+    was not considered that some of these also have to be applied to binpac
+    code, to be able to correcly parse the ServerKeyExchange message.
+
 6.2.0-dev.189 | 2023-11-27 21:35:26 +0100
 
   * OCSP: Open-code unknown revoke reason strings (Arne Welzel, Corelight)

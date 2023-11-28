@@ -228,10 +228,10 @@ protected:
     // the same type can be seen numerous times.
     std::unordered_set<const Type*> types;
 
-    std::unordered_map<const Type*, std::set<const Type*>> type_aliases;
-
     // The same, but in a deterministic order, with duplicates removed.
     std::vector<const Type*> ordered_types;
+
+    std::unordered_map<const Type*, std::set<const Type*>> type_aliases;
 
     // Script functions that this script calls.  Includes calls made
     // by lambdas and when bodies, as the goal is to identify recursion.
@@ -319,6 +319,8 @@ public:
     // Expression-valued attributes that appear in the context of different
     // types.
     // ### const auto& ExprAttrs() const { return expr_attrs; }
+
+    bool IsTableWithDefaultAggr(const Type* t);
 
     // ###
     // true = unknown
@@ -446,6 +448,9 @@ protected:
     // Maps expression-valued attributes to a collection of types in which
     // the attribute appears.
     std::unordered_map<const Attr*, std::vector<const Type*>> expr_attrs;
+
+    // ###
+    std::unordered_map<const Type*, bool> aggr_tbls_analyzed;
 
     std::unordered_map<const Attr*, std::vector<std::shared_ptr<SideEffectsOp>>> attr_side_effects;
     std::unordered_map<const Attr*, std::vector<std::shared_ptr<SideEffectsOp>>> record_constr_with_side_effects;

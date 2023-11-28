@@ -985,6 +985,21 @@ void ProfileFuncs::ComputeSideEffects() {
         auto a = ea.first;
         auto at = a->Tag();
         if ( at == ATTR_DEFAULT || at == ATTR_DEFAULT_INSERT || at == ATTR_ON_CHANGE ) {
+            if ( at == ATTR_DEFAULT ) {
+                for ( auto t : ea.second ) {
+                    if ( t->Tag() != TYPE_TABLE )
+                        continue;
+
+                    auto y = t->AsTableType()->Yield();
+
+                    if ( y && IsAggr(y->Tag()) ) {
+                        aggr_tbls_analyzed[t] = true;
+                        for ( auto ta : type_aliases[t] )
+                            aggr_tbls_analyzed[ta] = true;
+                    }
+                }
+            }
+
             // Weed out very-common-and-completely-safe expressions.
             if ( ! DefinitelyHasNoSideEffects(a->GetExpr()) )
                 candidates.insert(a);
@@ -994,6 +1009,8 @@ void ProfileFuncs::ComputeSideEffects() {
 #endif
         }
     }
+
+    // ###
 
     std::vector<std::shared_ptr<SideEffectsOp>> side_effects;
 
@@ -1253,12 +1270,29 @@ bool ProfileFuncs::AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::Acc
     return false;
 }
 
+bool ProfileFuncs::IsTableWithDefaultAggr(const Type* t) {
+    auto analy = aggr_tbls_analyzed.find(t);
+    if ( analy != aggr_tbls_analyzed.end() )
+        return analy->second;
+
+    if ( t->AsTableType()->Yield() ) {
+        for ( auto& at : aggr_tbls_analyzed )
+            if ( same_type(at.first, t) ) {
+                aggr_tbls_analyzed[t] = at.second;
+                return at.second;
+            }
+    }
+
+    aggr_tbls_analyzed[t] = false;
+    return false;
+}
+
 bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t) const {
     IDSet nli;
     std::unordered_set<const Type*> aggrs;
 
     if ( GetSideEffects(access, t, nli, aggrs) )
-	return true;
+        return true;
 
     return ! nli.empty() || ! aggrs.empty();
 }

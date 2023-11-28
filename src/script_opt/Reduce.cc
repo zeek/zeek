@@ -429,27 +429,31 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
     // If so, then it's never safe to reuse its associated identifier in lieu
     // of e2.
     std::optional<ExprSideEffects>& e1_se = e1->GetOptInfo()->SideEffects();
-    if ( ! e1_se )
-	{
-	bool has_side_effects;
+    if ( ! e1_se ) {
+        bool has_side_effects = false;
 
-	if ( e1->Tag() == EXPR_INDEX )
-		has_side_effects = pfs.GetSideEffects(SideEffectsOp::READ, e1->GetOp1()->GetType().get());
+        if ( e1->Tag() == EXPR_INDEX ) {
+            auto aggr = e1->GetOp1();
+            auto aggr_t = aggr->GetType();
 
-	else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_RECORD_COERCE )
-		has_side_effects = pfs.GetSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType().get());
-	else
-		has_side_effects = false;
+            if ( pfs.GetSideEffects(SideEffectsOp::READ, aggr_t.get()) )
+                has_side_effects = true;
 
-	e1_se = ExprSideEffects(has_side_effects);
-	}
+            else if ( aggr_t->Tag() == TYPE_TABLE && pfs.IsTableWithDefaultAggr(aggr_t.get()) )
+                has_side_effects = true;
+        }
 
-    if ( e1_se->HasSideEffects() )
-	{
-	// We already know that e2 is structurally identical to e1.
+        else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_RECORD_COERCE )
+            has_side_effects = pfs.GetSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType().get());
+
+        e1_se = ExprSideEffects(has_side_effects);
+    }
+
+    if ( e1_se->HasSideEffects() ) {
+        // We already know that e2 is structurally identical to e1.
         e2->GetOptInfo()->SideEffects() = ExprSideEffects(true);
-	return false;
-	}
+        return false;
+    }
 
     // Here are the considerations for expression validity.
     //
@@ -1045,7 +1049,8 @@ bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) const {
 
         if ( id_t && same_type(id_t, i->GetType()) ) {
             // Same-type aggregate.
-            // if ( ! ignore_orig ) printf("identifier %s (%d), start %s, end %s\n", id->Name(), ignore_orig, obj_desc(start_e).c_str(), obj_desc(end_e).c_str());
+            // if ( ! ignore_orig ) printf("identifier %s (%d), start %s, end %s\n", id->Name(), ignore_orig,
+            // obj_desc(start_e).c_str(), obj_desc(end_e).c_str());
             if ( ignore_orig )
                 return true;
         }

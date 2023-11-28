@@ -9,12 +9,12 @@ namespace zeek::detail {
 
 class ExprSideEffects {
 public:
-	ExprSideEffects(bool _has_side_effects) : has_side_effects(_has_side_effects) {}
+    ExprSideEffects(bool _has_side_effects) : has_side_effects(_has_side_effects) {}
 
-	bool HasSideEffects() const { return has_side_effects; }
+    bool HasSideEffects() const { return has_side_effects; }
 
 protected:
-	bool has_side_effects;
+    bool has_side_effects;
 };
 
 class ExprOptInfo {

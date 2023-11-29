@@ -62,8 +62,17 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             auto block = cr->Block();
 
             cr_active.push_back(confluence_blocks.size());
+            cr_return_seen.push_back(false);
             block->Traverse(this);
+
+            if ( cr_return_seen.back() )
+                // We encountered a return along the way.  curr_stmt is
+                // now set to the last statement in the block, so mark
+                // it with a return.
+                ReturnAt(curr_stmt);
+
             cr_active.pop_back();
+            cr_return_seen.pop_back();
 
             auto retvar = cr->RetVar();
             if ( retvar )
@@ -436,9 +445,11 @@ void GenIDDefs::ReturnAt(const Stmt* s) {
     // If we're right at a catch-return then we don't want to make the
     // identifier as encountering a scope-ending "return" here.  By avoiding
     // that, we're able to do optimization across catch-return blocks.
-    if ( cr_active.empty() || cr_active.back() != confluence_blocks.size() )
+    if ( cr_active.empty() || cr_active.back() != confluence_blocks.size() || cr_return_seen.back() )
         for ( auto id : modified_IDs.back() )
             id->GetOptInfo()->ReturnAt(s);
+    if ( ! cr_active.empty() )
+        cr_return_seen.back() = true;
 }
 
 void GenIDDefs::TrackID(const ID* id, const ExprPtr& e) {

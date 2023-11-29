@@ -846,6 +846,15 @@ CSE_ValidityChecker::CSE_ValidityChecker(ProfileFuncs& _pfs, const std::vector<c
 }
 
 TraversalCode CSE_ValidityChecker::PreStmt(const Stmt* s) {
+    auto t = s->Tag();
+
+    if ( t == STMT_WHEN ) {
+        // These are too hard to analyze - they result in lambda calls
+        // that can affect aggregates, etc.
+        is_valid = false;
+        return TC_ABORTALL;
+    }
+
     if ( s->Tag() == STMT_ADD || s->Tag() == STMT_DELETE )
         in_aggr_mod_stmt = true;
 

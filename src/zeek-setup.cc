@@ -891,7 +891,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
     if ( ! all_signature_files.empty() ) {
         rule_matcher = new RuleMatcher(options.signature_re_level);
-        if ( ! rule_matcher->ReadFiles(all_signature_files) ) {
+        if ( ! rule_matcher->ReadFiles(all_signature_files) || zeek::reporter->Errors() > 0 ) {
             early_shutdown();
             exit(1);
         }

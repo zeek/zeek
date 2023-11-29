@@ -1,3 +1,13 @@
+6.2.0-dev.198 | 2023-11-29 11:51:56 +0100
+
+  * Update zeekjs submodule (Arne Welzel, Corelight)
+
+    Contains the following fixes:
+
+        2da4abe Types: Add support for opaque types
+        1f1093f Types: Cast internal field to v8::Value
+        67e225c Plugin: Avoid creating Exprs at runtime
+
 6.2.0-dev.196 | 2023-11-28 13:40:54 -0700
 
   * Add some uses of std::move in constructors and simple functions for pass-by-value arguments (Tim Wojtulewicz, Corelight)

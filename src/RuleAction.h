@@ -3,9 +3,16 @@
 #include <sys/types.h> // for u_char
 #include <string>
 
+#include "zeek/EventHandler.h"
+#include "zeek/IntrusivePtr.h"
 #include "zeek/Tag.h"
 
-namespace zeek::detail {
+namespace zeek {
+
+class StringVal;
+using StringValPtr = IntrusivePtr<StringVal>;
+
+namespace detail {
 
 class Rule;
 class RuleEndpointState;
@@ -24,14 +31,15 @@ public:
 class RuleActionEvent : public RuleAction {
 public:
     explicit RuleActionEvent(const char* arg_msg);
-    ~RuleActionEvent() override { delete[] msg; }
+    explicit RuleActionEvent(const char* arg_msg, const char* event_name);
 
     void DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data, int len) override;
 
     void PrintDebug() override;
 
 private:
-    const char* msg;
+    StringValPtr msg;
+    EventHandlerPtr handler;
 };
 
 class RuleActionMIME : public RuleAction {
@@ -88,4 +96,5 @@ public:
     void PrintDebug() override;
 };
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

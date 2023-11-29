@@ -191,6 +191,12 @@ rule_attr:
 				(zeek::detail::RuleHdrTest::Comp) $2, $3));
 			}
 
+	|	TOK_EVENT '[' TOK_IDENT ']'
+			{ current_rule->AddAction(new zeek::detail::RuleActionEvent(nullptr, $3)); }
+
+	|	TOK_EVENT '[' TOK_IDENT ']' string
+			{ current_rule->AddAction(new zeek::detail::RuleActionEvent($5, $3)); }
+
 	|	TOK_EVENT string
 			{ current_rule->AddAction(new zeek::detail::RuleActionEvent($2)); }
 

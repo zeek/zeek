@@ -99,9 +99,6 @@ private:
     // (new) confluence blocks.
     std::vector<zeek_uint_t> cr_active;
 
-    // Parallel array that tracks whether a return has occurred.
-    std::vector<zeek_uint_t> cr_return_seen;
-
     // The following is parallel to confluence_blocks except
     // the front entry tracks identifiers at the outermost
     // (non-confluence) scope.  Thus, to index it for a given

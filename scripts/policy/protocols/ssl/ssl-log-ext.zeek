@@ -137,7 +137,7 @@ event ssl_extension_supported_versions(c: connection, is_client: bool, versions:
 		c$ssl$server_supported_version = versions[0];
 	}
 
-	event ssl_extension_psk_key_exchange_modes(c: connection, is_client: bool, modes: index_vec)
+event ssl_extension_psk_key_exchange_modes(c: connection, is_client: bool, modes: index_vec)
 	{
 	if ( ! c?$ssl || ! is_client )
 		return;

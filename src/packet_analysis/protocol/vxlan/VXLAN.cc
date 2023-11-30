@@ -21,6 +21,7 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
 
     if ( packet->encap && packet->encap->Depth() >= BifConst::Tunnel::max_depth ) {
+        packet->session->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
         Weird("exceeded_tunnel_max_depth", packet);
         return false;
     }

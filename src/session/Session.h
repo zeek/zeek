@@ -24,7 +24,9 @@ class Analyzer;
 namespace session {
 namespace detail {
 class Timer;
-}
+
+constexpr uint32_t HIST_UNKNOWN_PKT = 0x400; // Initially for exceeded_tunnel_max_depth.
+} // namespace detail
 
 class Session;
 using timer_func = void (Session::*)(double t);

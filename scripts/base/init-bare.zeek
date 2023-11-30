@@ -5220,7 +5220,7 @@ module Tunnel;
 export {
 	## The maximum depth of a tunnel to decapsulate until giving up.
 	## Setting this to zero will disable all types of tunnel decapsulation.
-	const max_depth: count = 2 &redef;
+	const max_depth: count = 4 &redef;
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing

@@ -372,7 +372,6 @@ private:
     struct Filter;
     struct Stream;
     struct WriterInfo;
-    class LogDelayExpiredTimer;
 
     bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude,
                         const std::string& path, const std::list<int>& indices);

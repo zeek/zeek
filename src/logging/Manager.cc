@@ -3,6 +3,7 @@
 #include "zeek/logging/Manager.h"
 
 #include <broker/endpoint_info.hh>
+#include <functional>
 #include <optional>
 #include <utility>
 
@@ -153,6 +154,19 @@ private:
 
 const DelayInfoPtr DelayInfo::nil = nullptr;
 
+// Timer for the head of the per stream delay queue using an opaque
+// callback based approach to hide the Stream implementation details.
+class LogDelayExpiredTimer : public zeek::detail::Timer {
+public:
+    LogDelayExpiredTimer(std::function<void(double, bool)> dispatch_callback, double t)
+        : Timer(t, zeek::detail::TIMER_LOG_DELAY_EXPIRE), dispatch_callback(dispatch_callback) {}
+
+    void Dispatch(double t, bool is_expire) override { dispatch_callback(t, is_expire); }
+
+private:
+    std::function<void(double, bool)> dispatch_callback;
+};
+
 // Helper class for dealing with nested Write() calls.
 class ActiveWriteScope {
 public:
@@ -240,7 +254,7 @@ struct Manager::Stream {
     detail::DelayWriteMap delayed_writes;
     detail::WriteIdx write_idx = 0;
 
-    Manager::LogDelayExpiredTimer* delay_timer = nullptr;
+    detail::LogDelayExpiredTimer* delay_timer = nullptr;
     double max_delay_interval = 0.0;
     zeek_uint_t max_delay_queue_size = 1;
     bool evicting = false;
@@ -256,19 +270,6 @@ struct Manager::Stream {
     void ScheduleLogDelayExpiredTimer(double t);
     void DispatchDelayExpiredTimer(double t, bool is_expire);
 };
-
-// Timer for the head of the per stream delay queue.
-class Manager::LogDelayExpiredTimer : public zeek::detail::Timer {
-public:
-    LogDelayExpiredTimer(Manager::Stream* const stream, double t)
-        : Timer(t, zeek::detail::TIMER_LOG_DELAY_EXPIRE), stream(stream) {}
-
-    void Dispatch(double t, bool is_expire) override { stream->DispatchDelayExpiredTimer(t, is_expire); }
-
-private:
-    Manager::Stream* const stream;
-};
-
 
 Manager::Filter::~Filter() {
     Unref(fval);
@@ -389,7 +390,8 @@ void Manager::Stream::ScheduleLogDelayExpiredTimer(double t) {
         return;
     }
 
-    delay_timer = new LogDelayExpiredTimer(this, t);
+    auto cb = [this](double ts, bool is_expire) { this->DispatchDelayExpiredTimer(ts, is_expire); };
+    delay_timer = new detail::LogDelayExpiredTimer(cb, t);
     zeek::detail::timer_mgr->Add(delay_timer);
 }
 

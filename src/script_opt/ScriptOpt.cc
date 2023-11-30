@@ -231,7 +231,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, Profil
         f->SetFrameSize(new_frame_size);
 
     if ( analysis_options.gen_ZAM_code ) {
-        ZAMCompiler ZAM(f, pf, scope, new_body, ud, rc);
+        ZAMCompiler ZAM(f, pfs, pf, scope, new_body, ud, rc);
 
         new_body = ZAM.CompileBody();
 

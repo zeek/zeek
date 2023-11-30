@@ -437,7 +437,7 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
             auto aggr = e1->GetOp1();
             auto aggr_t = aggr->GetType();
 
-            if ( pfs.GetSideEffects(SideEffectsOp::READ, aggr_t.get()) )
+            if ( pfs.HasSideEffects(SideEffectsOp::READ, aggr_t) )
                 has_side_effects = true;
 
             else if ( aggr_t->Tag() == TYPE_TABLE && pfs.IsTableWithDefaultAggr(aggr_t.get()) )
@@ -445,7 +445,7 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
         }
 
         else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_RECORD_COERCE )
-            has_side_effects = pfs.GetSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType().get());
+            has_side_effects = pfs.HasSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType());
 
         e1_se = ExprSideEffects(has_side_effects);
     }
@@ -828,10 +828,6 @@ CSE_ValidityChecker::CSE_ValidityChecker(ProfileFuncs& _pfs, const std::vector<c
     start_e = _start_e;
     end_e = _end_e;
 
-    for ( auto i : ids )
-        if ( i->IsGlobal() || IsAggr(i->GetType()) )
-            have_sensitive_IDs = true;
-
     // Track whether this is a record assignment, in which case
     // we're attuned to assignments to the same field for the
     // same type of record.
@@ -1088,8 +1084,7 @@ bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, con
     return CheckSideEffects(non_local_ids, aggrs);
 }
 
-bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids,
-                                           const TypeSet& aggrs) const {
+bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids, const TypeSet& aggrs) const {
     if ( non_local_ids.empty() && aggrs.empty() )
         // This is far and away the most common case.
         return false;

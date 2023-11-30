@@ -1050,8 +1050,7 @@ void ProfileFuncs::ComputeSideEffects() {
     }
 }
 
-void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, TypeSet& aggrs,
-                                  bool& is_unknown) {
+void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
     auto seo_vec = std::vector<std::shared_ptr<SideEffectsOp>>{};
     bool is_rec = expr_attrs[a][0]->Tag() == TYPE_RECORD;
 
@@ -1133,8 +1132,7 @@ std::vector<const Attr*> ProfileFuncs::AssociatedAttrs(const Type* t) {
     return assoc_attrs;
 }
 
-bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& aggrs,
-                                     bool& is_unknown) {
+bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
     std::shared_ptr<ProfileFunc> pf;
 
     if ( e->Tag() == EXPR_NAME && e->GetType()->Tag() == TYPE_FUNC )
@@ -1146,8 +1144,7 @@ bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, Typ
     return AssessSideEffects(pf.get(), non_local_ids, aggrs, is_unknown);
 }
 
-bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids,
-                                     TypeSet& aggrs, bool& is_unknown) {
+bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
     if ( pf->DoesIndirectCalls() )
         is_unknown = true;
 
@@ -1271,11 +1268,11 @@ bool ProfileFuncs::IsTableWithDefaultAggr(const Type* t) {
     return false;
 }
 
-bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t) const {
+bool ProfileFuncs::HasSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const {
     IDSet nli;
     TypeSet aggrs;
 
-    if ( GetSideEffects(access, t, nli, aggrs) )
+    if ( GetSideEffects(access, t.get(), nli, aggrs) )
         return true;
 
     return ! nli.empty() || ! aggrs.empty();
@@ -1320,8 +1317,7 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     return seo;
 }
 
-bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs,
-                                      bool& is_unknown) {
+bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
     // This occurs when the expression is itself a function name, and
     // in an attribute context indicates an implicit call.
     auto fid = n->Id();

@@ -324,15 +324,13 @@ public:
 
     // ###
     // true = unknown
-    bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t) const;
-    bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
-                        TypeSet& aggrs) const;
+    bool HasSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const;
+    bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids, TypeSet& aggrs) const;
 
     // Returns nil if side effects are not available. That should never be
     // the case after we've done our initial analysis, but is provided
     // as a signal so that this method can also be used during that analysis.
-    bool GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs,
-                            bool& is_unknown);
+    bool GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown);
     std::shared_ptr<SideEffectsOp> GetCallSideEffects(const ScriptFunc* f);
 
     const auto& AttrSideEffects() const { return attr_side_effects; }
@@ -391,13 +389,11 @@ protected:
     std::vector<const Attr*> AssociatedAttrs(const Type* t);
 
     // ### False on can't-make-decision-yet
-    bool AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& types,
-                           bool& is_unknown);
-    bool AssessSideEffects(const ProfileFunc* e, IDSet& non_local_ids, TypeSet& types,
-                           bool& is_unknown);
+    bool AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& types, bool& is_unknown);
+    bool AssessSideEffects(const ProfileFunc* e, IDSet& non_local_ids, TypeSet& types, bool& is_unknown);
 
-    bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
-                           TypeSet& aggrs, bool& is_unknown);
+    bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids, TypeSet& aggrs,
+                           bool& is_unknown);
 
     // true = is unknown
     bool AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::AccessType access, const Type* t,

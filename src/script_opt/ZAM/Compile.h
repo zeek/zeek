@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/Event.h"
+#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/ZBody.h"
 
@@ -22,8 +23,6 @@ class ListExpr;
 class Stmt;
 class SwitchStmt;
 class CatchReturnStmt;
-
-class ProfileFunc;
 
 using InstLabel = ZInstI*;
 
@@ -53,7 +52,7 @@ public:
 
 class ZAMCompiler {
 public:
-    ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr body,
+    ZAMCompiler(ScriptFunc* f, ProfileFuncs& pfs, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr body,
                 std::shared_ptr<UseDefs> ud, std::shared_ptr<Reducer> rd);
     ~ZAMCompiler();
 
@@ -503,6 +502,7 @@ private:
     std::vector<const NameExpr*> retvars;
 
     ScriptFunc* func;
+    ProfileFuncs& pfs;
     std::shared_ptr<ProfileFunc> pf;
     ScopePtr scope;
     StmtPtr body;

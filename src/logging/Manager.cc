@@ -997,8 +997,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg) {
 }
 
 bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr columns, PolicyVerdict stream_verdict) {
-    for ( list<Filter*>::const_iterator i = stream->filters.begin(); i != stream->filters.end(); ++i ) {
-        Filter* filter = *i;
+    for ( auto* filter : stream->filters ) {
         string path = filter->path;
 
         // Policy hooks may veto the logging or alter the log

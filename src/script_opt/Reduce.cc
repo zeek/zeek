@@ -935,19 +935,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto lhs_aggr_id = lhs->AsNameExpr()->Id();
             auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
 
-            if ( CheckID(lhs_aggr_id, true) || CheckAggrMod(lhs->GetType()) ) {
-                is_valid = false;
-                return TC_ABORTALL;
-            }
-
-            // ### do we need this?
-            if ( lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type) ) {
-                ASSERT(0);
-                // Potential assignment to the same field as for
-                // our expression of interest.  Even if the
-                // identifier involved is not one we have our eye
-                // on, due to aggregate aliasing this could be
-                // altering the value of our expression, so bail.
+            if ( CheckID(lhs_aggr_id, true) || (lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type)) ) {
                 is_valid = false;
                 return TC_ABORTALL;
             }

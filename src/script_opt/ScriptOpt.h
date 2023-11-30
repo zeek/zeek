@@ -18,6 +18,8 @@ struct Options;
 
 namespace zeek::detail {
 
+using TypeSet = std::unordered_set<const Type*>;
+
 // Flags controlling what sorts of analysis to do.
 
 struct AnalyOpt {

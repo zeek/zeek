@@ -1019,7 +1019,7 @@ void ProfileFuncs::ComputeSideEffects() {
 
         for ( auto c : candidates ) {
             IDSet non_local_ids;
-            std::unordered_set<const Type*> aggrs;
+            TypeSet aggrs;
             bool is_unknown = false;
 
             curr_candidate = c;
@@ -1036,7 +1036,7 @@ void ProfileFuncs::ComputeSideEffects() {
         if ( made_decision.empty() ) {
             // ###
             IDSet non_local_ids;
-            std::unordered_set<const Type*> aggrs;
+            TypeSet aggrs;
             bool is_unknown = true;
             for ( auto c : candidates ) {
                 // printf("jackpot for %s\n", obj_desc(c).c_str());
@@ -1050,7 +1050,7 @@ void ProfileFuncs::ComputeSideEffects() {
     }
 }
 
-void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs,
+void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, TypeSet& aggrs,
                                   bool& is_unknown) {
     auto seo_vec = std::vector<std::shared_ptr<SideEffectsOp>>{};
     bool is_rec = expr_attrs[a][0]->Tag() == TYPE_RECORD;
@@ -1133,7 +1133,7 @@ std::vector<const Attr*> ProfileFuncs::AssociatedAttrs(const Type* t) {
     return assoc_attrs;
 }
 
-bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs,
+bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& aggrs,
                                      bool& is_unknown) {
     std::shared_ptr<ProfileFunc> pf;
 
@@ -1147,7 +1147,7 @@ bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, std
 }
 
 bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids,
-                                     std::unordered_set<const Type*>& aggrs, bool& is_unknown) {
+                                     TypeSet& aggrs, bool& is_unknown) {
     if ( pf->DoesIndirectCalls() )
         is_unknown = true;
 
@@ -1158,7 +1158,7 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
         }
 
     IDSet nla;
-    std::unordered_set<const Type*> mod_aggrs;
+    TypeSet mod_aggrs;
 
     for ( auto& a : pf->NonLocalAssignees() )
         nla.insert(a);
@@ -1210,7 +1210,7 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
 }
 
 bool ProfileFuncs::AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
-                                     std::unordered_set<const Type*>& aggrs, bool& is_unknown) {
+                                     TypeSet& aggrs, bool& is_unknown) {
     auto assoc_attrs = AssociatedAttrs(t);
 
     for ( auto a : assoc_attrs ) {
@@ -1236,7 +1236,7 @@ bool ProfileFuncs::AssessAggrEffects(SideEffectsOp::AccessType access, const Typ
 }
 
 bool ProfileFuncs::AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::AccessType access, const Type* t,
-                                     IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs) const {
+                                     IDSet& non_local_ids, TypeSet& aggrs) const {
     if ( se->GetAccessType() != access )
         return false;
 
@@ -1273,7 +1273,7 @@ bool ProfileFuncs::IsTableWithDefaultAggr(const Type* t) {
 
 bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t) const {
     IDSet nli;
-    std::unordered_set<const Type*> aggrs;
+    TypeSet aggrs;
 
     if ( GetSideEffects(access, t, nli, aggrs) )
         return true;
@@ -1282,7 +1282,7 @@ bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* 
 }
 
 bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
-                                  std::unordered_set<const Type*>& aggrs) const {
+                                  TypeSet& aggrs) const {
     for ( auto se : side_effects_ops )
         if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) )
             return true;
@@ -1299,7 +1299,7 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
 
     bool is_unknown = false;
     IDSet nla;
-    std::unordered_set<const Type*> mod_aggrs;
+    TypeSet mod_aggrs;
 
     ASSERT(func_profs.count(sf) != 0);
     auto pf = func_profs[sf];
@@ -1320,7 +1320,7 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     return seo;
 }
 
-bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs,
+bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs,
                                       bool& is_unknown) {
     // This occurs when the expression is itself a function name, and
     // in an attribute context indicates an implicit call.

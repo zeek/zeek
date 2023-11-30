@@ -1069,7 +1069,7 @@ bool CSE_ValidityChecker::CheckCall(const CallExpr* c) const {
         return true;
 
     IDSet non_local_ids;
-    std::unordered_set<const Type*> aggrs;
+    TypeSet aggrs;
     bool is_unknown = false;
 
     auto resolved = pfs.GetCallSideEffects(func->AsNameExpr(), non_local_ids, aggrs, is_unknown);
@@ -1080,7 +1080,7 @@ bool CSE_ValidityChecker::CheckCall(const CallExpr* c) const {
 
 bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const {
     IDSet non_local_ids;
-    std::unordered_set<const Type*> aggrs;
+    TypeSet aggrs;
 
     if ( pfs.GetSideEffects(access, t.get(), non_local_ids, aggrs) )
         return true;
@@ -1089,7 +1089,7 @@ bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, con
 }
 
 bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids,
-                                           const std::unordered_set<const Type*>& aggrs) const {
+                                           const TypeSet& aggrs) const {
     if ( non_local_ids.empty() && aggrs.empty() )
         // This is far and away the most common case.
         return false;

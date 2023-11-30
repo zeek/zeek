@@ -94,7 +94,7 @@ public:
     const IDSet& WhenLocals() const { return when_locals; }
     const IDSet& Params() const { return params; }
     const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
-    const std::unordered_set<const ID*>& NonLocalAssignees() const { return non_local_assignees; }
+    const IDSet& NonLocalAssignees() const { return non_local_assignees; }
     const auto& TableRefs() const { return tbl_refs; }
     const auto& AggrMods() const { return aggr_mods; }
     const IDSet& Inits() const { return inits; }
@@ -104,7 +104,7 @@ public:
     const std::vector<const ConstExpr*>& Constants() const { return constants; }
     const IDSet& UnorderedIdentifiers() const { return ids; }
     const std::vector<const ID*>& OrderedIdentifiers() const { return ordered_ids; }
-    const std::unordered_set<const Type*>& UnorderedTypes() const { return types; }
+    const TypeSet& UnorderedTypes() const { return types; }
     const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
     const auto& TypeAliases() const { return type_aliases; }
     const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
@@ -187,10 +187,10 @@ protected:
     std::unordered_map<const ID*, int> assignees;
 
     // ###
-    std::unordered_set<const ID*> non_local_assignees;
+    IDSet non_local_assignees;
 
-    std::unordered_set<const Type*> tbl_refs;
-    std::unordered_set<const Type*> aggr_mods;
+    TypeSet tbl_refs;
+    TypeSet aggr_mods;
 
     // Same for locals seen in initializations, so we can find,
     // for example, unused aggregates.
@@ -226,7 +226,7 @@ protected:
 
     // Types seen in the function.  A set rather than a vector because
     // the same type can be seen numerous times.
-    std::unordered_set<const Type*> types;
+    TypeSet types;
 
     // The same, but in a deterministic order, with duplicates removed.
     std::vector<const Type*> ordered_types;
@@ -326,12 +326,12 @@ public:
     // true = unknown
     bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t) const;
     bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
-                        std::unordered_set<const Type*>& aggrs) const;
+                        TypeSet& aggrs) const;
 
     // Returns nil if side effects are not available. That should never be
     // the case after we've done our initial analysis, but is provided
     // as a signal so that this method can also be used during that analysis.
-    bool GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs,
+    bool GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs,
                             bool& is_unknown);
     std::shared_ptr<SideEffectsOp> GetCallSideEffects(const ScriptFunc* f);
 
@@ -384,24 +384,24 @@ protected:
 
     void ComputeSideEffects();
 
-    void SetSideEffects(const Attr* a, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs, bool& is_unknown);
+    void SetSideEffects(const Attr* a, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown);
 
     bool DefinitelyHasNoSideEffects(const ExprPtr& e) const;
 
     std::vector<const Attr*> AssociatedAttrs(const Type* t);
 
     // ### False on can't-make-decision-yet
-    bool AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, std::unordered_set<const Type*>& types,
+    bool AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& types,
                            bool& is_unknown);
-    bool AssessSideEffects(const ProfileFunc* e, IDSet& non_local_ids, std::unordered_set<const Type*>& types,
+    bool AssessSideEffects(const ProfileFunc* e, IDSet& non_local_ids, TypeSet& types,
                            bool& is_unknown);
 
     bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
-                           std::unordered_set<const Type*>& aggrs, bool& is_unknown);
+                           TypeSet& aggrs, bool& is_unknown);
 
     // true = is unknown
     bool AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::AccessType access, const Type* t,
-                           IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs) const;
+                           IDSet& non_local_ids, TypeSet& aggrs) const;
 
     // Globals seen across the functions, other than those solely seen
     // as the function being called in a call.

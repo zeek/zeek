@@ -25,8 +25,8 @@ public:
     void SetUnknownChanges() { has_unknown_changes = true; }
     bool HasUnknownChanges() const { return has_unknown_changes; }
 
-    void AddModNonGlobal(std::unordered_set<const ID*> ids) { mod_non_locals.insert(ids.begin(), ids.end()); }
-    void AddModAggrs(std::unordered_set<const Type*> types) { mod_aggrs.insert(types.begin(), types.end()); }
+    void AddModNonGlobal(IDSet ids) { mod_non_locals.insert(ids.begin(), ids.end()); }
+    void AddModAggrs(TypeSet types) { mod_aggrs.insert(types.begin(), types.end()); }
 
     const auto& ModNonLocals() const { return mod_non_locals; }
     const auto& ModAggrs() const { return mod_aggrs; }
@@ -35,8 +35,8 @@ private:
     AccessType access;
     const Type* type; // type for which some operations alter state
 
-    std::unordered_set<const ID*> mod_non_locals;
-    std::unordered_set<const Type*> mod_aggrs;
+    IDSet mod_non_locals;
+    TypeSet mod_aggrs;
 
     bool has_unknown_changes = false;
 };

@@ -87,7 +87,7 @@ namespace
 	}
 
 	// Create intrusive pointer adopting reference.
-	zeek::RecordValPtr ref(zeek::Val *v)
+	zeek::RecordValPtr record_ref(zeek::Val *v)
 		{
 		if ( v->GetType()->Tag() != zeek::TYPE_RECORD )
 			{
@@ -102,7 +102,7 @@ namespace
 function Log::__delay%(id: Log::ID, rec: any, post_delay_cb: PostDelayCallback%): Log::DelayToken
         %{
         auto idptr = enum_ref(id);
-        auto recptr = ref(rec);
+        auto recptr = record_ref(rec);
         if ( ! idptr || ! recptr )
                 return zeek::val_mgr->Bool(false);
 
@@ -118,7 +118,7 @@ function Log::__delay%(id: Log::ID, rec: any, post_delay_cb: PostDelayCallback%)
 function Log::__delay_finish%(id: Log::ID, rec: any, token: Log::DelayToken%): bool
         %{
         auto idptr = enum_ref(id);
-        auto recptr = ref(rec);
+        auto recptr = record_ref(rec);
         if ( ! idptr || ! recptr )
                 return zeek::val_mgr->Bool(false);
 

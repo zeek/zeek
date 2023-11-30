@@ -511,9 +511,7 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-bool WhileStmt::CouldReturn(bool ignore_break) const {
-	return body->CouldReturn(false);
-}
+bool WhileStmt::CouldReturn(bool ignore_break) const { return body->CouldReturn(false); }
 
 StmtPtr ForStmt::Duplicate() {
     auto expr_copy = e->Duplicate();
@@ -584,9 +582,7 @@ StmtPtr ForStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-bool ForStmt::CouldReturn(bool ignore_break) const {
-	return body->CouldReturn(false);
-}
+bool ForStmt::CouldReturn(bool ignore_break) const { return body->CouldReturn(false); }
 
 StmtPtr ReturnStmt::Duplicate() { return SetSucc(new ReturnStmt(e ? e->Duplicate() : nullptr, true)); }
 

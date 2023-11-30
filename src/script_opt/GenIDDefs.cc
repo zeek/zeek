@@ -63,25 +63,22 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
 
             cr_active.push_back(confluence_blocks.size());
 
-	    bool did_confluence = false;
+            bool did_confluence = false;
 
-	    if ( block->Tag() == STMT_LIST )
-		{
-		auto prev_stmt = s;
-		auto& stmts = block->AsStmtList()->Stmts();
-		for ( auto& st : stmts )
-			{
-			if ( ! did_confluence && st->CouldReturn(false) )
-				{
-				StartConfluenceBlock(prev_stmt);
-				did_confluence = true;
-				}
+            if ( block->Tag() == STMT_LIST ) {
+                auto prev_stmt = s;
+                auto& stmts = block->AsStmtList()->Stmts();
+                for ( auto& st : stmts ) {
+                    if ( ! did_confluence && st->CouldReturn(false) ) {
+                        StartConfluenceBlock(prev_stmt);
+                        did_confluence = true;
+                    }
 
-			st->Traverse(this);
-			}
-		}
-	    else
-		    block->Traverse(this);
+                    st->Traverse(this);
+                }
+            }
+            else
+                block->Traverse(this);
 
             if ( did_confluence )
                 EndConfluenceBlock();

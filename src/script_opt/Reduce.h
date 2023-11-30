@@ -131,24 +131,22 @@ public:
         replaced_stmts.clear();
     }
 
-    // Given the LHS and RHS of an assignment, returns true
-    // if the RHS is a common subexpression (meaning that the
-    // current assignment statement should be deleted).  In
-    // that case, has the side effect of associating an alias
-    // for the LHS with the temporary variable that holds the
-    // equivalent RHS; or if the LHS is a local that has no other
-    // assignments, and the same for the RHS.
+    // Given the LHS and RHS of an assignment, returns true if the RHS is
+    // a common subexpression (meaning that the current assignment statement
+    // should be deleted).  In that case, has the side effect of associating
+    // an alias for the LHS with the temporary variable that holds the
+    // equivalent RHS; or if the LHS is a local that has no other assignments,
+    // and the same for the RHS.
     //
-    // Assumes reduction (including alias propagation) has
-    // already been applied.
+    // Assumes reduction (including alias propagation) has already been applied.
+
     bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
     // Returns a constant representing folding of the given expression
     // (which must have constant operands).
     ConstExprPtr Fold(ExprPtr e);
 
-    // Notes that the given expression has been folded to the
-    // given constant.
+    // Notes that the given expression has been folded to the given constant.
     void FoldedTo(ExprPtr orig, ConstExprPtr c);
 
     // Given an lhs=rhs statement followed by succ_stmt, returns
@@ -348,12 +346,14 @@ protected:
     // the LHS is in conflict with the identifiers we're tracking.
     bool CheckID(const ID* id, bool ignore_orig) const;
 
-    // Returns true if the assignment given by 'e' modifies an aggregate
-    // with the same type as that of one of the identifiers we're tracking.
-    // ###
-    bool CheckAggrMod(const Expr* e) const;
+    // Returns true if a modification to an aggregate of the given type
+    // potentially aliases with one of the identifiers we're tracking.
+    bool CheckAggrMod(const TypePtr& t) const;
 
-    bool CheckTableRef(const Expr* e) const;
+    // About elements ...
+    // ###
+    bool CheckTableMod(const TypePtr& t) const;
+    bool CheckTableRef(const TypePtr& t) const;
 
     // Profile across all script functions.
     ProfileFuncs& pfs;

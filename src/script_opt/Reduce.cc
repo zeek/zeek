@@ -491,6 +491,8 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
         ids.push_back(e1->AsNameExpr()->Id());
 
     CSE_ValidityChecker vc(pfs, ids, e1, e2);
+
+    auto loc = reduction_root->GetLocationInfo();
     reduction_root->Traverse(&vc);
 
     return vc.IsValid();
@@ -855,7 +857,7 @@ TraversalCode CSE_ValidityChecker::PreStmt(const Stmt* s) {
         return TC_ABORTALL;
     }
 
-    if ( s->Tag() == STMT_ADD || s->Tag() == STMT_DELETE )
+    if ( t == STMT_ADD || t == STMT_DELETE )
         in_aggr_mod_stmt = true;
 
     return TC_CONTINUE;
@@ -875,7 +877,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
         // Don't analyze the expression, as it's our starting
         // point and we don't want to conflate its properties
-        // with those of any intervening expression.
+        // with those of any intervening expressions.
         return TC_CONTINUE;
     }
 
@@ -909,14 +911,20 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
             // Note, we don't use CheckAggrMod() because this is a plain
             // assignment.  It might be changing a variable's binding to
-            // an aggregate, but it's not changing the aggregate itself.
+            // an aggregate ("aggr_var = new_aggr_val"), but we don't
+            // introduce temporaries that are simply aliases of existing
+            // variables (e.g., we don't have "<internal>::#8 = aggr_var"),
+            // and so there's no concern that the temporary could now be
+            // referring to the wrong aggregate.  If instead we have
+            // "<internal>::#8 = aggr_var$foo", then a reassignment here
+            // to "aggr_var" will already be caught by CheckID().
         } break;
 
         case EXPR_INDEX_ASSIGN: {
             auto lhs_aggr = e->GetOp1();
             auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
 
-            if ( CheckID(lhs_aggr_id, true) || CheckAggrMod(e) ) {
+            if ( CheckID(lhs_aggr_id, true) || CheckTableMod(lhs_aggr->GetType()) ) {
                 is_valid = false;
                 return TC_ABORTALL;
             }
@@ -927,7 +935,14 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto lhs_aggr_id = lhs->AsNameExpr()->Id();
             auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
 
+            if ( CheckID(lhs_aggr_id, true) || CheckAggrMod(lhs->GetType()) ) {
+                is_valid = false;
+                return TC_ABORTALL;
+            }
+
+            // ### do we need this?
             if ( lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type) ) {
+                ASSERT(0);
                 // Potential assignment to the same field as for
                 // our expression of interest.  Even if the
                 // identifier involved is not one we have our eye
@@ -936,17 +951,12 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
                 is_valid = false;
                 return TC_ABORTALL;
             }
-
-            if ( CheckID(lhs_aggr_id, true) || CheckAggrMod(e) ) {
-                is_valid = false;
-                return TC_ABORTALL;
-            }
         } break;
 
         case EXPR_APPEND_TO:
             // This doesn't directly change any identifiers, but does
             // alter an aggregate.
-            if ( CheckAggrMod(e) ) {
+            if ( CheckAggrMod(e->GetType()) ) {
                 is_valid = false;
                 return TC_ABORTALL;
             }
@@ -1007,18 +1017,19 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             // We treat these together because they both have to be checked
             // when inside an "add" or "delete" statement.
             auto aggr = e->GetOp1();
+            auto aggr_t = aggr->GetType();
 
             if ( in_aggr_mod_stmt ) {
                 auto aggr_id = aggr->AsNameExpr()->Id();
 
-                if ( CheckID(aggr_id, true) || CheckAggrMod(e) ) {
+                if ( CheckID(aggr_id, true) || CheckAggrMod(aggr_t) ) {
                     is_valid = false;
                     return TC_ABORTALL;
                 }
             }
 
-            else if ( t == EXPR_INDEX && aggr->GetType()->Tag() == TYPE_TABLE ) {
-                if ( CheckTableRef(e) ) {
+            else if ( t == EXPR_INDEX && aggr_t->Tag() == TYPE_TABLE ) {
+                if ( CheckTableRef(aggr_t) ) {
                     is_valid = false;
                     return TC_ABORTALL;
                 }
@@ -1068,57 +1079,59 @@ bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) const {
     return false;
 }
 
-bool CSE_ValidityChecker::CheckAggrMod(const Expr* e) const {
-    const auto& e_i_t = e->GetType();
-    if ( IsAggr(e_i_t) ) {
-        // This assignment sets an aggregate value.
+bool CSE_ValidityChecker::CheckAggrMod(const TypePtr& t) const {
+    if ( ! IsAggr(t) )
+        return false;
 
-        // Note, the following will almost always remain empty, so spinning
-        // through them in the loop below will be very quick.
-        IDSet non_local_ids;
-        std::unordered_set<const Type*> aggrs;
-
-        // Here we do a bit of speed optimization by wiring in knowledge
-        // the aggregate WRITE effects only occur for tables.
-        if ( e_i_t->Tag() == TYPE_TABLE && pfs.GetSideEffects(SideEffectsOp::WRITE, e_i_t.get(), non_local_ids, aggrs) )
+    for ( auto i : ids )
+        if ( same_type(t, i->GetType()) )
             return true;
 
-        for ( auto i : ids ) {
-            for ( auto nli : non_local_ids )
-                if ( nli == i ) {
-                    // printf("non-local ID on WRITE: %s\n", i->Name());
-                    return true;
-                }
+    return false;
+}
 
-            auto i_t = i->GetType();
+bool CSE_ValidityChecker::CheckTableMod(const TypePtr& t) const {
+    if ( ! CheckAggrMod(t) )
+        return false;
 
-            if ( i_t->Tag() == TYPE_ANY )
-                continue;
+    if ( t->Tag() != TYPE_TABLE )
+        return false;
 
-            if ( same_type(e_i_t, i_t) )
+    // Note, the following will almost always remain empty.
+    IDSet non_local_ids;
+    std::unordered_set<const Type*> aggrs;
+
+    if ( pfs.GetSideEffects(SideEffectsOp::WRITE, t.get(), non_local_ids, aggrs) )
+        return true;
+
+    if ( non_local_ids.empty() && aggrs.empty() )
+        return false;
+
+    for ( auto i : ids ) {
+        for ( auto nli : non_local_ids )
+            if ( nli == i ) {
+                // printf("non-local ID on WRITE: %s\n", i->Name());
                 return true;
+            }
 
-            for ( auto a : aggrs )
-                if ( same_type(a, i_t.get()) ) {
-                    // printf("aggr type on WRITE: %s\n", i->Name());
-                    return true;
-                }
-        }
+        auto i_t = i->GetType();
+        for ( auto a : aggrs )
+            if ( same_type(a, i_t.get()) ) {
+                // printf("aggr type on WRITE: %s\n", i->Name());
+                return true;
+            }
     }
 
     return false;
 }
 
-bool CSE_ValidityChecker::CheckTableRef(const Expr* e) const {
-    const auto& e_i_t = e->GetType();
-    // This assignment sets an aggregate value.
-
+bool CSE_ValidityChecker::CheckTableRef(const TypePtr& t) const {
     // Note, the following will almost always remain empty, so spinning
     // through them in the loop below will be very quick.
     IDSet non_local_ids;
     std::unordered_set<const Type*> aggrs;
 
-    if ( pfs.GetSideEffects(SideEffectsOp::READ, e_i_t.get(), non_local_ids, aggrs) )
+    if ( pfs.GetSideEffects(SideEffectsOp::READ, t.get(), non_local_ids, aggrs) )
         return true;
 
     for ( auto i : ids ) {
@@ -1129,11 +1142,8 @@ bool CSE_ValidityChecker::CheckTableRef(const Expr* e) const {
             }
 
         auto i_t = i->GetType();
-        if ( i_t->Tag() == TYPE_ANY )
-            continue;
-
         for ( auto a : aggrs )
-            if ( same_type(a, i->GetType().get()) ) {
+            if ( same_type(a, i_t.get()) ) {
                 // printf("aggr type on READ: %p %s\n", e, obj_desc(e).c_str());
                 return true;
             }

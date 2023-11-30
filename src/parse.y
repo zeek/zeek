@@ -590,7 +590,7 @@ expr:
 
 			if ( IsArithmetic($1->GetType()->Tag()) )
 				{
-				ExprPtr sum = make_intrusive<AddExpr>(lhs, rhs);
+				ExprPtr sum = make_intrusive<AddExpr>(lhs->Duplicate(), rhs);
 
 				if ( sum->GetType()->Tag() != tag1 )
 					sum = make_intrusive<ArithCoerceExpr>(sum, tag1);

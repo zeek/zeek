@@ -185,6 +185,67 @@ public:
     AnalyzerConfirmationState AnalyzerState(const zeek::Tag& tag) const;
     void SetAnalyzerState(const zeek::Tag& tag, AnalyzerConfirmationState);
 
+    /**
+     * Add \a code to history unless already seen.
+     *
+     * @param mask Bitmask used for the given code character.
+     * @param code The character to add to the history.
+     *
+     * @return True if the given \a code was already seen (mask set),
+     * otherwise false after adding it.
+     */
+    bool CheckHistory(uint32_t mask, char code) {
+        if ( (hist_seen & mask) == 0 ) {
+            hist_seen |= mask;
+            AddHistory(code);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Increments the passed counter and adds it as a history
+     * code if it has crossed the next scaling threshold.  Scaling
+     * is done in terms of powers of the third argument.
+     *
+     * @param code The history code.
+     * @param counter Reference to counter for this code.
+     * @param scaling_threshold The next threshold, updated to next threshold if crossed.
+     * @param scaling_base Base to compute the next scaling_threshold.
+     *
+     * @return True if the threshold was crossed, false otherwise.
+     */
+    bool ScaledHistoryEntry(char code, uint32_t& counter, uint32_t& scaling_threshold, uint32_t scaling_base = 10);
+
+    /**
+     *  Helper to enqueue a history threshold event \a e with the Connection object of this session.
+     *
+     * @param e The event to enqueue
+     * @param is_orig True if this is the originator of the session.
+     * @param threshold Crossed threshold to use as event argument.
+     */
+    void HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t threshold);
+
+    /**
+     * Add \a code to the history.
+     *
+     * @param code Code to add
+     */
+    void AddHistory(char code) { history += code; }
+
+    /**
+     * @return The current history value.
+     */
+    const std::string& GetHistory() const { return history; }
+
+    /**
+     * Replace the history of this session with a new one.
+     *
+     * @param new_h The new history.
+     */
+    void ReplaceHistory(std::string new_h) { history = std::move(new_h); }
+
 protected:
     friend class detail::Timer;
 
@@ -234,6 +295,9 @@ protected:
     bool in_session_table;
 
     std::map<zeek::Tag, AnalyzerConfirmationState> analyzer_confirmations;
+
+    uint32_t hist_seen;
+    std::string history;
 };
 
 namespace detail {

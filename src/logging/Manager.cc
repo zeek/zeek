@@ -129,7 +129,7 @@ public:
     void AppendPostDelayCallback(FuncPtr f) { post_delay_callbacks.emplace_back(std::move(f)); }
 
 private:
-    // ActiveWrite information
+    // Active log write information
     WriteContext ctx;
 
     // References - number of Log::delay() calls.
@@ -1217,7 +1217,7 @@ ValPtr Manager::Delay(const EnumValPtr& id, const RecordValPtr record, FuncPtr p
     }
     else {
         // This is the first time this Log::write() is delayed, allocate a
-        // new token an return it to script land.
+        // new token and return it to script land.
         detail::DelayTokenType token = ++last_delay_token;
         token_val = zeek::make_intrusive<detail::LogDelayTokenVal>(token);
         double expire_time = run_state::network_time + stream->max_delay_interval;
@@ -1304,7 +1304,7 @@ bool Manager::DelayCompleted(Stream* stream, detail::DelayInfo& delay_info) {
 
     {
         // Push a new active write when running the post delay callbacks. This
-        // allows re-delay the record and putting it at the end of the queue.
+        // allows re-delaying the record and putting it at the end of the queue.
         uint64_t idx = ++stream->write_idx;
         detail::WriteContext write_context{delay_info.StreamId(), delay_info.Record(), idx};
         detail::ActiveWriteScope active_write_scope{active_writes, write_context};

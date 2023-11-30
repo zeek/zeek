@@ -355,7 +355,9 @@ protected:
     bool CheckRecordConstructor(const TypePtr& t) const;
     bool CheckTableMod(const TypePtr& t) const;
     bool CheckTableRef(const TypePtr& t) const;
+    bool CheckCall(const CallExpr* c) const;
     bool CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const;
+    bool CheckSideEffects(const IDSet& non_local_ids, const std::unordered_set<const Type*>& aggrs) const;
 
     // Profile across all script functions.
     ProfileFuncs& pfs;

@@ -14,18 +14,12 @@ namespace zeek::detail {
 // modifications.
 class SideEffectsOp {
 public:
-    // ### remove NONE?
-    enum AccessType { NONE, READ, WRITE, CONSTRUCTION };
+    enum AccessType { NONE, CALL, CONSTRUCTION, READ, WRITE };
 
-    SideEffectsOp() : access(NONE), type(nullptr) {}
-    SideEffectsOp(AccessType at, const Type* t) : access(at), type(t) {}
+    // Type can be left off for CALL access.
+    SideEffectsOp(AccessType at = NONE, const Type* t = nullptr) : access(at), type(t) {}
 
     auto GetAccessType() const { return access; }
-    bool NoSideEffects() const { return access == NONE; }
-    bool OnReadAccess() const { return access == READ; }
-    bool OnWriteAccess() const { return access == WRITE; }
-    bool OnConstruction() const { return access == CONSTRUCTION; }
-
     const Type* GetType() const { return type; }
 
     void SetUnknownChanges() { has_unknown_changes = true; }

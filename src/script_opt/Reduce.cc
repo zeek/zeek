@@ -11,6 +11,7 @@
 #include "zeek/Stmt.h"
 #include "zeek/Var.h"
 #include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/TempVar.h"
 
@@ -951,32 +952,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             break;
 
         case EXPR_CALL:
-            if ( have_sensitive_IDs ) {
-                auto c = e->AsCallExpr();
-                auto func = c->Func();
-                std::string desc;
-                if ( func->Tag() == EXPR_NAME ) {
-                    auto f = func->AsNameExpr()->Id();
-                    if ( f->IsGlobal() ) {
-                        auto func_v = f->GetVal();
-                        if ( func_v ) {
-                            auto func_vf = func_v->AsFunc();
-
-                            if ( func_vf->GetKind() == Func::SCRIPT_FUNC )
-                                desc = "script";
-                            else
-                                desc = "BiF";
-                        }
-                        else
-                            desc = "missing";
-                    }
-                    else
-                        desc = "indirect";
-                }
-                else
-                    desc = "compound-indirect";
-
-                // printf("call sensitivity: %s %s\n", desc.c_str(), obj_desc(e).c_str());
+            if ( CheckCall(e->AsCallExpr()) ) {
                 is_valid = false;
                 return TC_ABORTALL;
             }
@@ -990,13 +966,13 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
         case EXPR_RECORD_COERCE:
         case EXPR_RECORD_CONSTRUCTOR:
-	    // Note, record coercion behaves like constructors in terms of
-	    // potentially executing &default functions. In either case,
-	    // the type of the expression reflects the type we want to analyze
-	    // for side effects.
+            // Note, record coercion behaves like constructors in terms of
+            // potentially executing &default functions. In either case,
+            // the type of the expression reflects the type we want to analyze
+            // for side effects.
             if ( CheckRecordConstructor(e->GetType()) ) {
-                    is_valid = false;
-                    return TC_ABORTALL;
+                is_valid = false;
+                return TC_ABORTALL;
             }
             break;
 
@@ -1022,18 +998,6 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
                     return TC_ABORTALL;
                 }
             }
-#if 0
-            if ( t == EXPR_INDEX && have_sensitive_IDs ) {
-                // Unfortunately in isolation we can't statically determine
-                // whether this table has a &default associated with it.
-                // In principle we could track all instances of the table
-                // type seen (across the entire set of scripts), and note
-                // whether any of those include an expression, but that's a
-                // lot of work for what might be minimal gain.
-                is_valid = false;
-                return TC_ABORTALL;
-	}
-#endif
         }
 
         break;
@@ -1095,8 +1059,23 @@ bool CSE_ValidityChecker::CheckTableMod(const TypePtr& t) const {
     return CheckSideEffects(SideEffectsOp::WRITE, t);
 }
 
-bool CSE_ValidityChecker::CheckTableRef(const TypePtr& t) const {
-    return CheckSideEffects(SideEffectsOp::READ, t);
+bool CSE_ValidityChecker::CheckTableRef(const TypePtr& t) const { return CheckSideEffects(SideEffectsOp::READ, t); }
+
+bool CSE_ValidityChecker::CheckCall(const CallExpr* c) const {
+    auto func = c->Func();
+    std::string desc;
+    if ( func->Tag() != EXPR_NAME )
+        // Can't analyze indirect calls.
+        return true;
+
+    IDSet non_local_ids;
+    std::unordered_set<const Type*> aggrs;
+    bool is_unknown = false;
+
+    auto resolved = pfs.GetCallSideEffects(func->AsNameExpr(), non_local_ids, aggrs, is_unknown);
+    ASSERT(resolved);
+
+    return is_unknown || CheckSideEffects(non_local_ids, aggrs);
 }
 
 bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const {
@@ -1106,23 +1085,24 @@ bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, con
     if ( pfs.GetSideEffects(access, t.get(), non_local_ids, aggrs) )
         return true;
 
+    return CheckSideEffects(non_local_ids, aggrs);
+}
+
+bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids,
+                                           const std::unordered_set<const Type*>& aggrs) const {
     if ( non_local_ids.empty() && aggrs.empty() )
-	// This is far and away the most common case.
+        // This is far and away the most common case.
         return false;
 
     for ( auto i : ids ) {
         for ( auto nli : non_local_ids )
-            if ( nli == i ) {
-                // printf("non-local ID on %d: %s\n", access, i->Name());
+            if ( nli == i )
                 return true;
-            }
 
         auto i_t = i->GetType();
         for ( auto a : aggrs )
-            if ( same_type(a, i_t.get()) ) {
-                // printf("aggr type on %d: %s\n", access, i->Name());
+            if ( same_type(a, i_t.get()) )
                 return true;
-            }
     }
 
     return false;

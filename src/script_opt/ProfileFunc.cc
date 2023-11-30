@@ -1137,34 +1137,11 @@ bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, std
                                      bool& is_unknown) {
     std::shared_ptr<ProfileFunc> pf;
 
-    if ( e->Tag() == EXPR_NAME && e->GetType()->Tag() == TYPE_FUNC ) {
-        // This occurs when the expression is itself a function name, and
-        // in an attribute context indicates an implicit call.
-        auto fid = e->AsNameExpr()->Id();
-        auto fv = fid->GetVal();
+    if ( e->Tag() == EXPR_NAME && e->GetType()->Tag() == TYPE_FUNC )
+        return GetCallSideEffects(e->AsNameExpr(), non_local_ids, aggrs, is_unknown);
 
-        if ( ! fv || ! fid->IsConst() ) {
-            // The value is unavailable (likely a bug), or might change
-            // at run-time.
-            is_unknown = true;
-            return true;
-        }
-
-        auto func = fv->AsFunc();
-        if ( func->GetKind() == Func::BUILTIN_FUNC ) {
-            if ( ! is_side_effect_free(func->Name()) )
-                is_unknown = true;
-            return true;
-        }
-
-        auto sf = static_cast<ScriptFunc*>(func)->Primary();
-        ASSERT(func_profs.count(sf) != 0);
-        pf = func_profs[sf];
-    }
-    else {
-        ASSERT(expr_profs.count(e.get()) != 0);
-        pf = expr_profs[e.get()];
-    }
+    ASSERT(expr_profs.count(e.get()) != 0);
+    pf = expr_profs[e.get()];
 
     return AssessSideEffects(pf.get(), non_local_ids, aggrs, is_unknown);
 }
@@ -1207,6 +1184,13 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
     }
 
     for ( auto& f : pf->ScriptCalls() ) {
+        if ( f->Flavor() != FUNC_FLAVOR_FUNCTION ) {
+            // A hook (since events can't be called) - not something
+            // to analyze further.
+            is_unknown = true;
+            return true;
+        }
+
         auto pff = func_profs[f];
         if ( active_func_profiles.count(pff) > 0 )
             continue;
@@ -1303,6 +1287,75 @@ bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* 
         if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) )
             return true;
     return false;
+}
+
+std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc* sf) {
+    sf = sf->Primary();
+
+    auto sf_se = func_side_effects.find(sf);
+
+    if ( sf_se != func_side_effects.end() )
+        return sf_se->second;
+
+    bool is_unknown = false;
+    IDSet nla;
+    std::unordered_set<const Type*> mod_aggrs;
+
+    ASSERT(func_profs.count(sf) != 0);
+    auto pf = func_profs[sf];
+
+    if ( ! AssessSideEffects(pf.get(), nla, mod_aggrs, is_unknown) )
+        // Can't figure it out yet.
+        return nullptr;
+
+    auto seo = std::make_shared<SideEffectsOp>(SideEffectsOp::CALL);
+    seo->AddModNonGlobal(nla);
+    seo->AddModAggrs(mod_aggrs);
+
+    if ( is_unknown )
+        seo->SetUnknownChanges();
+
+    func_side_effects[sf] = seo;
+
+    return seo;
+}
+
+bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs,
+                                      bool& is_unknown) {
+    // This occurs when the expression is itself a function name, and
+    // in an attribute context indicates an implicit call.
+    auto fid = n->Id();
+    auto fv = fid->GetVal();
+
+    if ( ! fv || ! fid->IsConst() ) {
+        // The value is unavailable (likely a bug), or might change
+        // at run-time.
+        is_unknown = true;
+        return true;
+    }
+
+    auto func = fv->AsFunc();
+    if ( func->GetKind() == Func::BUILTIN_FUNC ) {
+        if ( ! is_side_effect_free(func->Name()) )
+            is_unknown = true;
+        return true;
+    }
+
+    auto sf = static_cast<ScriptFunc*>(func);
+    auto seo = GetCallSideEffects(sf);
+
+    if ( ! seo )
+        return false;
+
+    if ( seo->HasUnknownChanges() )
+        is_unknown = true;
+
+    for ( auto a : seo->ModAggrs() )
+        aggrs.insert(a);
+    for ( auto nl : seo->ModNonLocals() )
+        non_local_ids.insert(nl);
+
+    return true;
 }
 
 } // namespace zeek::detail

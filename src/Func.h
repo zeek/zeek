@@ -264,7 +264,7 @@ public:
      * If this function is an instantiated lambda, returns the primary from
      * which it was constructed. Otherwise, returns this function itself.
      */
-    const ScriptFunc* Primary() { return primary ? primary.get() : this; }
+    const ScriptFunc* Primary() const { return primary ? primary.get() : this; }
 
     /**
      * Returns the function's frame size.

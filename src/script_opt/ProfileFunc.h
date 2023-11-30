@@ -328,6 +328,13 @@ public:
     bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
                         std::unordered_set<const Type*>& aggrs) const;
 
+    // Returns nil if side effects are not available. That should never be
+    // the case after we've done our initial analysis, but is provided
+    // as a signal so that this method can also be used during that analysis.
+    bool GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, std::unordered_set<const Type*>& aggrs,
+                            bool& is_unknown);
+    std::shared_ptr<SideEffectsOp> GetCallSideEffects(const ScriptFunc* f);
+
     const auto& AttrSideEffects() const { return attr_side_effects; }
     const auto& RecordConstructorEffects() const { return record_constr_with_side_effects; }
 
@@ -439,6 +446,9 @@ protected:
     // is temporary (it's for skipping compilation of functions that
     // appear in "when" clauses), and in that context it suffices.
     std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>> func_profs;
+
+    // ### ScriptFunc not Func, assumes is_side_effect_free() is cheap
+    std::unordered_map<const ScriptFunc*, std::shared_ptr<SideEffectsOp>> func_side_effects;
 
     // Maps expressions to their profiles.  This is only germane
     // externally for LambdaExpr's, but internally it abets memory

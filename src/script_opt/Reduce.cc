@@ -988,15 +988,15 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             // so we don't want to traverse them.
             return TC_ABORTSTMT;
 
+        case EXPR_RECORD_COERCE:
         case EXPR_RECORD_CONSTRUCTOR:
-            // If these have initializations done at construction
-            // time, those can include function calls.
-            if ( have_sensitive_IDs ) {
-                auto& et = e->GetType();
-                if ( et->Tag() == TYPE_RECORD && ! et->AsRecordType()->IdempotentCreation() ) {
+	    // Note, record coercion behaves like constructors in terms of
+	    // potentially executing &default functions. In either case,
+	    // the type of the expression reflects the type we want to analyze
+	    // for side effects.
+            if ( CheckRecordConstructor(e->GetType()) ) {
                     is_valid = false;
                     return TC_ABORTALL;
-                }
             }
             break;
 
@@ -1078,6 +1078,13 @@ bool CSE_ValidityChecker::CheckAggrMod(const TypePtr& t) const {
     return false;
 }
 
+bool CSE_ValidityChecker::CheckRecordConstructor(const TypePtr& t) const {
+    if ( t->Tag() != TYPE_RECORD )
+        return false;
+
+    return CheckSideEffects(SideEffectsOp::CONSTRUCTION, t);
+}
+
 bool CSE_ValidityChecker::CheckTableMod(const TypePtr& t) const {
     if ( ! CheckAggrMod(t) )
         return false;
@@ -1085,54 +1092,35 @@ bool CSE_ValidityChecker::CheckTableMod(const TypePtr& t) const {
     if ( t->Tag() != TYPE_TABLE )
         return false;
 
-    // Note, the following will almost always remain empty.
+    return CheckSideEffects(SideEffectsOp::WRITE, t);
+}
+
+bool CSE_ValidityChecker::CheckTableRef(const TypePtr& t) const {
+    return CheckSideEffects(SideEffectsOp::READ, t);
+}
+
+bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const {
     IDSet non_local_ids;
     std::unordered_set<const Type*> aggrs;
 
-    if ( pfs.GetSideEffects(SideEffectsOp::WRITE, t.get(), non_local_ids, aggrs) )
+    if ( pfs.GetSideEffects(access, t.get(), non_local_ids, aggrs) )
         return true;
 
     if ( non_local_ids.empty() && aggrs.empty() )
+	// This is far and away the most common case.
         return false;
 
     for ( auto i : ids ) {
         for ( auto nli : non_local_ids )
             if ( nli == i ) {
-                // printf("non-local ID on WRITE: %s\n", i->Name());
+                // printf("non-local ID on %d: %s\n", access, i->Name());
                 return true;
             }
 
         auto i_t = i->GetType();
         for ( auto a : aggrs )
             if ( same_type(a, i_t.get()) ) {
-                // printf("aggr type on WRITE: %s\n", i->Name());
-                return true;
-            }
-    }
-
-    return false;
-}
-
-bool CSE_ValidityChecker::CheckTableRef(const TypePtr& t) const {
-    // Note, the following will almost always remain empty, so spinning
-    // through them in the loop below will be very quick.
-    IDSet non_local_ids;
-    std::unordered_set<const Type*> aggrs;
-
-    if ( pfs.GetSideEffects(SideEffectsOp::READ, t.get(), non_local_ids, aggrs) )
-        return true;
-
-    for ( auto i : ids ) {
-        for ( auto nli : non_local_ids )
-            if ( nli == i ) {
-                // printf("non-local ID on READ: %s\n", i->Name());
-                return true;
-            }
-
-        auto i_t = i->GetType();
-        for ( auto a : aggrs )
-            if ( same_type(a, i_t.get()) ) {
-                // printf("aggr type on READ: %p %s\n", e, obj_desc(e).c_str());
+                // printf("aggr type on %d: %s\n", access, i->Name());
                 return true;
             }
     }

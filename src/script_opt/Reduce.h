@@ -352,8 +352,10 @@ protected:
 
     // About elements ...
     // ###
+    bool CheckRecordConstructor(const TypePtr& t) const;
     bool CheckTableMod(const TypePtr& t) const;
     bool CheckTableRef(const TypePtr& t) const;
+    bool CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const;
 
     // Profile across all script functions.
     ProfileFuncs& pfs;

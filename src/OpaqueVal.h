@@ -427,6 +427,11 @@ public:
 
     Handle GetHandle() const noexcept { return hdl; }
 
+    static zeek::OpaqueValPtr OpaqueInstantiate() {
+        reporter->Error("TelemetryValImpl::OpaqueInstantiate is unsupported");
+        return nullptr;
+    }
+
 protected:
     ValPtr DoClone(CloneState*) override { return make_intrusive<TelemetryValImpl>(hdl); }
 

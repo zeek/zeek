@@ -1,3 +1,10 @@
+6.2.0-dev.200 | 2023-11-30 10:16:13 +0100
+
+  * GH-3473: OpaqueVal: Register TelemetryVals, too (Arne Welzel, Corelight)
+
+    Even if they are not serializable, OpaqueMgr::TypeID() is called
+    during BuildJSON() for them and that previously just aborted.
+
 6.2.0-dev.198 | 2023-11-29 11:51:56 +0100
 
   * Update zeekjs submodule (Arne Welzel, Corelight)

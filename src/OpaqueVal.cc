@@ -1062,4 +1062,16 @@ TelemetryVal::TelemetryVal(telemetry::DblHistogram) : OpaqueVal(dbl_histogram_me
 
 TelemetryVal::TelemetryVal(telemetry::DblHistogramFamily) : OpaqueVal(dbl_histogram_metric_family_type) {}
 
+IMPLEMENT_OPAQUE_VALUE(IntCounterMetricVal)
+IMPLEMENT_OPAQUE_VALUE(IntCounterMetricFamilyVal)
+IMPLEMENT_OPAQUE_VALUE(DblCounterMetricVal)
+IMPLEMENT_OPAQUE_VALUE(DblCounterMetricFamilyVal)
+IMPLEMENT_OPAQUE_VALUE(IntGaugeMetricVal)
+IMPLEMENT_OPAQUE_VALUE(IntGaugeMetricFamilyVal)
+IMPLEMENT_OPAQUE_VALUE(DblGaugeMetricVal)
+IMPLEMENT_OPAQUE_VALUE(DblGaugeMetricFamilyVal)
+IMPLEMENT_OPAQUE_VALUE(IntHistogramMetricVal)
+IMPLEMENT_OPAQUE_VALUE(IntHistogramMetricFamilyVal)
+IMPLEMENT_OPAQUE_VALUE(DblHistogramMetricVal)
+IMPLEMENT_OPAQUE_VALUE(DblHistogramMetricFamilyVal)
 } // namespace zeek

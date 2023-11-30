@@ -69,12 +69,9 @@ void RuleActionEvent::PrintDebug() {
     fprintf(stderr, "	RuleActionEvent: |%s (%s)|\n", msg ? msg->CheckString() : "<none>", handler->Name());
 }
 
-RuleActionMIME::RuleActionMIME(const char* arg_mime, int arg_strength) {
-    mime = util::copy_string(arg_mime);
-    strength = arg_strength;
-}
+RuleActionMIME::RuleActionMIME(const char* arg_mime, int arg_strength) : mime(arg_mime), strength(arg_strength) {}
 
-void RuleActionMIME::PrintDebug() { fprintf(stderr, "	RuleActionMIME: |%s|\n", mime); }
+void RuleActionMIME::PrintDebug() { fprintf(stderr, "	RuleActionMIME: |%s|\n", mime.c_str()); }
 
 RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer) {
     string str(arg_analyzer);

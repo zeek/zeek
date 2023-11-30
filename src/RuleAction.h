@@ -46,18 +46,16 @@ class RuleActionMIME : public RuleAction {
 public:
     explicit RuleActionMIME(const char* arg_mime, int arg_strength = 0);
 
-    ~RuleActionMIME() override { delete[] mime; }
-
     void DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data, int len) override {}
 
     void PrintDebug() override;
 
-    std::string GetMIME() const { return mime; }
+    const std::string& GetMIME() const { return mime; }
 
     int GetStrength() const { return strength; }
 
 private:
-    const char* mime;
+    std::string mime;
     int strength;
 };
 

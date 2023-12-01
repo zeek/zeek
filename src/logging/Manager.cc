@@ -1233,8 +1233,8 @@ ValPtr Manager::Delay(const EnumValPtr& id, const RecordValPtr record, FuncPtr p
         assert(stream->GetDelayInfo(active_write_ctx) != detail::DelayInfo::nil);
     }
 
-    DBG_LOG(DBG_LOGGING, "Delayed log record %p RefCnt=%d token=%ld post_delay_cb=%p", record.get(), record->RefCnt(),
-            token_val->AsCount(), post_delay_cb.get());
+    DBG_LOG(DBG_LOGGING, "Delayed log record %p RefCnt=%d post_delay_cb=%p", record.get(), record->RefCnt(),
+            post_delay_cb.get());
 
     return token_val;
 }

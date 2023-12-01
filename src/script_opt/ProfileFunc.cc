@@ -499,6 +499,11 @@ void ProfileFunc::CheckRecordConstructor(TypePtr t) {
     auto rt = cast_intrusive<RecordType>(t);
     for ( auto td : *rt->Types() )
         if ( td->attrs ) {
+	    // In principle we could figure out whether this particular
+	    // constructor happens to explicitly specify &default fields, and
+	    // not include those attributes if it does since they won't come
+	    // into play. However that seems like added complexity for almost
+	    // surely no ultimate gain.
             auto attrs = td->attrs.get();
             constructor_attrs[attrs] = rt;
 
@@ -1065,7 +1070,7 @@ void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, TypeSet& 
         seo_vec.push_back(std::make_shared<SideEffectsOp>());
     }
     else {
-        // printf("%s has side effects\n", obj_desc(a).c_str());
+        // printf("%s has %d side effects\n", obj_desc(a).c_str(), at);
         attrs_with_side_effects.insert(a);
 
         for ( auto ea_t : expr_attrs[a] ) {
@@ -1323,8 +1328,7 @@ bool ProfileFuncs::HasSideEffects(SideEffectsOp::AccessType access, const TypePt
 bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
                                   TypeSet& aggrs) const {
     for ( auto se : side_effects_ops ) {
-        if ( access == SideEffectsOp::CONSTRUCTION )
-            printf("doing a construction side effects check: %lu\n", side_effects_ops.size());
+        // if ( access == SideEffectsOp::CONSTRUCTION ) printf("doing a construction side effects check: %lu\n", side_effects_ops.size());
         if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) ) {
             // if ( access == SideEffectsOp::CONSTRUCTION ) printf("construction side effects true\n");
             return true;

@@ -1030,8 +1030,8 @@ bool CSE_ValidityChecker::CheckRecordConstructor(const TypePtr& t) {
 }
 
 bool CSE_ValidityChecker::CheckTableMod(const TypePtr& t) {
-    if ( ! CheckAggrMod(t) )
-        return false;
+    if ( CheckAggrMod(t) )
+        return true;
 
     if ( t->Tag() != TYPE_TABLE )
         return false;

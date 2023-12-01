@@ -342,7 +342,7 @@ void Manager::Stream::EnqueueWriteForDelay(const detail::WriteContext& ctx) {
 void Manager::Stream::EvictDelayedWrites() {
     // Prevent recursion as DelayCompleted() may call EnqueueWriteForDelay()
     // in turn calling into eviction.
-    DBG_LOG(DBG_LOGGING, "EvictDelayedWrites queue_size=%ld max=%ld evicting=%d", delay_queue.size(),
+    DBG_LOG(DBG_LOGGING, "EvictDelayedWrites queue_size=%ld max=%" PRIu64 " evicting=%d", delay_queue.size(),
             max_delay_queue_size, evicting);
     if ( evicting )
         return;
@@ -1262,23 +1262,23 @@ bool Manager::DelayFinish(const EnumValPtr& id, const RecordValPtr& record, cons
         return false;
     }
 
-    DBG_LOG(DBG_LOGGING, "DelayFinish() for %p RefCnt=%d token=%ld", record.get(), record->RefCnt(), token);
+    DBG_LOG(DBG_LOGGING, "DelayFinish() for %p RefCnt=%d token=%" PRIu64, record.get(), record->RefCnt(), token);
     const auto& it = stream->delay_tokens.find(token);
 
     if ( it == stream->delay_tokens.end() ) {
-        reporter->Error("non-existing log record for token=%ld %p", token, record.get());
+        reporter->Error("non-existing log record for token=%" PRIu64 " %p", token, record.get());
         return false;
     }
 
     auto& delay_info = it->second;
 
     if ( delay_info->Record() != record ) {
-        reporter->Error("record mismatch token=%ld %p and %p", token, record.get(), delay_info->Record().get());
+        reporter->Error("record mismatch token=%" PRIu64 " %p and %p", token, record.get(), delay_info->Record().get());
         return false;
     }
 
     if ( ! delay_info->HasDelayRefs() ) {
-        reporter->Error("delay reference underflow for token=%ld", token);
+        reporter->Error("delay reference underflow for token=%" PRIu64, token);
         return false;
     }
 
@@ -1296,7 +1296,7 @@ bool Manager::DelayCompleted(Stream* stream, detail::DelayInfo& delay_info) {
     auto token = detail::to_internal_delay_token(delay_info.TokenVal());
     assert(stream->delay_tokens.find(token) != stream->delay_tokens.end());
 
-    DBG_LOG(DBG_LOGGING, "DelayCompleted() for log record %p RefCnt=%d token=%ld", delay_info.Record().get(),
+    DBG_LOG(DBG_LOGGING, "DelayCompleted() for log record %p RefCnt=%d token=%" PRIu64, delay_info.Record().get(),
             delay_info.Record()->RefCnt(), token);
 
     bool res = false;
@@ -1324,8 +1324,8 @@ bool Manager::DelayCompleted(Stream* stream, detail::DelayInfo& delay_info) {
             stream->delay_tokens.erase(token);
             stream->delayed_writes.erase(delay_info.Context());
 
-            DBG_LOG(DBG_LOGGING, "Enqueue re-delayed record %p as %ld (delay_refs=%d)", new_delay_info->Record().get(),
-                    write_context.idx, new_delay_info->DelayRefs());
+            DBG_LOG(DBG_LOGGING, "Enqueue re-delayed record %p as %" PRIu64 " (delay_refs=%d)",
+                    new_delay_info->Record().get(), write_context.idx, new_delay_info->DelayRefs());
             stream->EnqueueWriteForDelay(write_context);
             return true;
         }
@@ -1379,7 +1379,7 @@ bool Manager::SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t queue_size)
     if ( ! stream )
         return false;
 
-    DBG_LOG(DBG_LOGGING, "SetMaxDelayQueueSize: stream=%s queue_size=%ld", stream->name.c_str(), queue_size);
+    DBG_LOG(DBG_LOGGING, "SetMaxDelayQueueSize: stream=%s queue_size=%" PRIu64, stream->name.c_str(), queue_size);
 
     stream->max_delay_queue_size = queue_size;
 

@@ -70,3 +70,87 @@ function Log::__flush%(id: Log::ID%): bool
 	bool result = zeek::log_mgr->Flush(id->AsEnumVal());
 	return zeek::val_mgr->Bool(result);
 	%}
+
+%%{
+namespace
+	{
+	zeek::EnumValPtr enum_ref(zeek::Val *v)
+		{
+		if ( v->GetType()->Tag() != zeek::TYPE_ENUM )
+			{
+			zeek::emit_builtin_error("not an enum");
+			return nullptr;
+			}
+
+		return zeek::IntrusivePtr<zeek::EnumVal>{zeek::NewRef{}, v->AsEnumVal()};
+		}
+	}
+
+	// Create intrusive pointer adopting reference.
+	zeek::RecordValPtr record_ref(zeek::Val *v)
+		{
+		if ( v->GetType()->Tag() != zeek::TYPE_RECORD )
+			{
+			zeek::emit_builtin_error("not a record");
+			return nullptr;
+			}
+
+		return zeek::IntrusivePtr<zeek::RecordVal>{zeek::NewRef{}, v->AsRecordVal()};
+		}
+%%}
+
+function Log::__delay%(id: Log::ID, rec: any, post_delay_cb: PostDelayCallback%): Log::DelayToken
+        %{
+        auto idptr = enum_ref(id);
+        auto recptr = record_ref(rec);
+        if ( ! idptr || ! recptr )
+                return zeek::val_mgr->Bool(false);
+
+        static auto empty_post_delay_cb_ptr = zeek::id::find_func("Log::empty_post_delay_cb");
+
+        auto post_delay_cb_ptr = post_delay_cb->AsFuncVal()->AsFuncPtr();
+        if ( post_delay_cb_ptr == empty_post_delay_cb_ptr )
+                post_delay_cb_ptr = Func::nil;
+
+        return zeek::log_mgr->Delay(idptr, recptr, post_delay_cb_ptr);
+        %}
+
+function Log::__delay_finish%(id: Log::ID, rec: any, token: Log::DelayToken%): bool
+        %{
+        auto idptr = enum_ref(id);
+        auto recptr = record_ref(rec);
+        if ( ! idptr || ! recptr )
+                return zeek::val_mgr->Bool(false);
+
+        bool result = zeek::log_mgr->DelayFinish(idptr, recptr, {zeek::NewRef{}, token});
+        return zeek::val_mgr->Bool(result);
+        %}
+
+function Log::__set_max_delay_interval%(id: Log::ID, max_delay: interval%): bool
+        %{
+        auto idptr = enum_ref(id);
+        if ( ! idptr )
+                return zeek::val_mgr->Bool(false);
+
+        bool result = zeek::log_mgr->SetMaxDelayInterval(idptr, max_delay);
+        return zeek::val_mgr->Bool(result);
+        %}
+
+function Log::__set_max_delay_queue_size%(id: Log::ID, max_queue_size: count%): bool
+        %{
+        auto idptr = enum_ref(id);
+        if ( ! idptr )
+                return zeek::val_mgr->Bool(false);
+
+        bool result = zeek::log_mgr->SetMaxDelayQueueSize(idptr, max_queue_size);
+        return zeek::val_mgr->Bool(result);
+        %}
+
+function Log::__get_delay_queue_size%(id: Log::ID%): int
+        %{
+        auto idptr = enum_ref(id);
+        if ( ! idptr )
+                return zeek::val_mgr->Bool(false);
+
+        return zeek::val_mgr->Int(zeek::log_mgr->GetDelayQueueSize(idptr));
+        %}

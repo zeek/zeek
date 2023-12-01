@@ -45,6 +45,30 @@ New Functionality
   pattern. For observability, a new bif ``table_pattern_matcher_stats()``
   can be used to gather ``MatcherStats``.
 
+- Support for delaying log writes.
+
+  The logging framework offers two new functions ``Log::delay()`` and ``Log::delay_finish()``
+  to delay a ``Log::write()`` operation. This new functionality allows delaying of
+  a specific log record within the logging pipeline for a variable but bounded
+  amount of time. This can be used, for example, to query and wait for additional
+  information to attach to the pending record, or even change its final verdict.
+
+  Conceptually, delaying a log record happens after the execution of the global
+  ``Log::log_stream_policy`` hook for a given ``Log::write()`` and before the
+  execution of filter policy hooks. Any mutation of the log record within the
+  delay period will be visible to filter policy hooks. Calling ``Log::delay()``
+  is currently only allowed within the context of the ``Log::log_stream_policy`` hook
+  for the active ``Log::write()` operation (or during the execution of post delay callbacks).
+  While this may appear restrictive, it makes it explicit which ``Log::write()``
+  operation is subject to the delay.
+
+  Interactions, semantics and conflicts of this feature when writing the same
+  log record multiple times to the same or different log streams need to be taken
+  into consideration by script writers.
+
+  Given this is the first iteration of this feature, feedback around usability and
+  use-cases that aren't covered are more than welcome.
+
 
 Changed Functionality
 ---------------------

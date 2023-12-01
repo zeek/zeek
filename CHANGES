@@ -1,3 +1,99 @@
+6.2.0-dev.218 | 2023-12-01 12:04:32 +0100
+
+  * logging: ref() to record_ref() renaming (Arne Welzel, Corelight)
+
+  * logging: Fix typos from review (Arne Welzel, Corelight)
+
+  * logging/Manager: Make LogDelayExpiredTimer an implementation detail (Arne Welzel, Corelight)
+
+    The only reason this was a private component of Manager was to access
+    the Stream's function. Use a generic callback and a lambda to avoid
+    that exposure.
+
+  * logging/WriteToFilters: Use range-based for loop (Arne Welzel, Corelight)
+
+  * testing/btest: Log::delay() from JavaScript (Arne Welzel, Corelight)
+
+  * NEWS: Entry for delayed log writes (Arne Welzel, Corelight)
+
+  * Bump doc submodule to branch (Arne Welzel, Corelight)
+
+  * logging: Do not keep delay state persistent (Arne Welzel, Corelight)
+
+    If Log::remove_stream() and Log::create_stream() is called for a stream,
+    do not restore the previously used max delay or max queue size.
+
+  * logging: delay documentation polishing (Arne Welzel, Corelight)
+
+    Based on PR feedback.
+
+  * logging: Better error messages for invalid Log::delay() calls (Arne Welzel, Corelight)
+
+    Add a test for Log::delay() usage within filter policy hooks, too.
+
+  * logging/Manager: Implement DelayTokenType as an actual opaque (Arne Welzel, Corelight)
+
+    With a bit of tweaking in the JavaScript plugin to support opaque types, this
+    will allow the delay functionality to work there, too.
+
+    Making the LogDelayToken an actual opaque seems reasonable, too. It's not
+    supposed to be user inspected.
+
+  * logging: Implement get_delay_queue_size() (Arne Welzel, Corelight)
+
+    Primarily for introspection given that re-delaying may exceed
+    queue sizes.
+
+  * logging: Introduce Log::delay() and Log::delay_finish() (Arne Welzel, Corelight)
+
+    This is a verbose, opinionated and fairly restrictive version of the log delay idea.
+    Main drivers are explicitly, foot-gun-avoidance and implementation simplicity.
+
+    Calling the new Log::delay() function is only allowed within the execution
+    of a Log::log_stream_policy() hook for the currently active log write.
+
+    Conceptually, the delay is placed between the execution of the global stream
+    policy hook and the individual filter policy hooks. A post delay callback
+    can be registered with every Log::delay() invocation. Post delay callbacks
+    can (1) modify a log record as they see fit, (2) veto the forwarding of the
+    log record to the log filters and (3) extend the delay duration by calling
+    Log::delay() again. The last point allows to delay a record by an indefinite
+    amount of time, rather than a fixed maximum amount. This should be rare and
+    is therefore explicit.
+
+    Log::delay() increases an internal reference count and returns an opaque
+    token value to be passed to Log::delay_finish() to release a delay reference.
+    Once all references are released, the record is forwarded to all filters
+    attached to a stream when the delay completes.
+
+    This functionality separates Log::log_stream_policy() and individual filter
+    policy hooks. One consequence is that a common use-case of filter policy hooks,
+    removing unproductive log records, may run after a record was delayed. Users
+    can lift their filtering logic to the stream level (or replicate the condition
+    before the delay decision). The main motivation here is that deciding on a
+    stream-level delay in per-filter hooks is too late. Attaching multiple filters
+    to a stream can additionally result in hard to understand behavior.
+
+    On the flip side, filter policy hooks are guaranteed to run after the delay
+    and can be used for further mangling or filtering of a delayed record.
+
+  * logging/Manager: zeek::detail'ify (Arne Welzel, Corelight)
+
+    Introducing zeek::logging::detail requires detail:: references to be
+    qualified as preparation.
+
+  * logging/Manager: Split Write() (Arne Welzel, Corelight)
+
+    If we delay in the stream policy hook, we'll need to resume writing
+    to the attached filters later on. Prepare for that by splitting out
+    the filter processing.
+
+  * Timer: Add LOG_DELAY_EXPIRE timer type (Arne Welzel, Corelight)
+
+  * Ascii: Remove extra include (Arne Welzel, Corelight)
+
+    Should not be needed, not sure what I was thinking.
+
 6.2.0-dev.200 | 2023-11-30 10:16:13 +0100
 
   * GH-3473: OpaqueVal: Register TelemetryVals, too (Arne Welzel, Corelight)

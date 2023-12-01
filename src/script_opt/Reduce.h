@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "zeek/Desc.h" // ###
 #include "zeek/Expr.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
@@ -344,20 +345,25 @@ public:
 protected:
     // Returns true if an assignment involving the given identifier on
     // the LHS is in conflict with the identifiers we're tracking.
-    bool CheckID(const ID* id, bool ignore_orig) const;
+    bool CheckID(const ID* id, bool ignore_orig);
 
     // Returns true if a modification to an aggregate of the given type
     // potentially aliases with one of the identifiers we're tracking.
-    bool CheckAggrMod(const TypePtr& t) const;
+    bool CheckAggrMod(const TypePtr& t);
 
     // About elements ...
     // ###
-    bool CheckRecordConstructor(const TypePtr& t) const;
-    bool CheckTableMod(const TypePtr& t) const;
-    bool CheckTableRef(const TypePtr& t) const;
-    bool CheckCall(const CallExpr* c) const;
-    bool CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const;
-    bool CheckSideEffects(const IDSet& non_local_ids, const TypeSet& aggrs) const;
+    bool CheckRecordConstructor(const TypePtr& t);
+    bool CheckTableMod(const TypePtr& t);
+    bool CheckTableRef(const TypePtr& t);
+    bool CheckCall(const CallExpr* c);
+    bool CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t);
+    bool CheckSideEffects(const IDSet& non_local_ids, const TypeSet& aggrs);
+
+    bool Invalid() {
+        is_valid = false;
+        return true;
+    }
 
     // Profile across all script functions.
     ProfileFuncs& pfs;

@@ -901,10 +901,8 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto lhs_ref = e->GetOp1()->AsRefExprPtr();
             auto lhs = lhs_ref->GetOp1()->AsNameExpr();
 
-            if ( CheckID(lhs->Id(), false) ) {
-                is_valid = false;
+            if ( CheckID(lhs->Id(), false) )
                 return TC_ABORTALL;
-            }
 
             // Note, we don't use CheckAggrMod() because this is a plain
             // assignment.  It might be changing a variable's binding to
@@ -921,10 +919,8 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto lhs_aggr = e->GetOp1();
             auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
 
-            if ( CheckID(lhs_aggr_id, true) || CheckTableMod(lhs_aggr->GetType()) ) {
-                is_valid = false;
+            if ( CheckID(lhs_aggr_id, true) || CheckTableMod(lhs_aggr->GetType()) )
                 return TC_ABORTALL;
-            }
         } break;
 
         case EXPR_FIELD_LHS_ASSIGN: {
@@ -932,26 +928,20 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto lhs_aggr_id = lhs->AsNameExpr()->Id();
             auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
 
-            if ( CheckID(lhs_aggr_id, true) || (lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type)) ) {
-                is_valid = false;
+            if ( CheckID(lhs_aggr_id, true) || (lhs_field == field && same_type(lhs_aggr_id->GetType(), field_type)) )
                 return TC_ABORTALL;
-            }
         } break;
 
         case EXPR_APPEND_TO:
             // This doesn't directly change any identifiers, but does
             // alter an aggregate.
-            if ( CheckAggrMod(e->GetType()) ) {
-                is_valid = false;
+            if ( CheckAggrMod(e->GetType()) )
                 return TC_ABORTALL;
-            }
             break;
 
         case EXPR_CALL:
-            if ( CheckCall(e->AsCallExpr()) ) {
-                is_valid = false;
+            if ( CheckCall(e->AsCallExpr()) )
                 return TC_ABORTALL;
-            }
             break;
 
         case EXPR_TABLE_CONSTRUCTOR:
@@ -966,10 +956,8 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             // potentially executing &default functions. In either case,
             // the type of the expression reflects the type we want to analyze
             // for side effects.
-            if ( CheckRecordConstructor(e->GetType()) ) {
-                is_valid = false;
+            if ( CheckRecordConstructor(e->GetType()) )
                 return TC_ABORTALL;
-            }
             break;
 
         case EXPR_INDEX:
@@ -982,17 +970,13 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             if ( in_aggr_mod_stmt ) {
                 auto aggr_id = aggr->AsNameExpr()->Id();
 
-                if ( CheckID(aggr_id, true) || CheckAggrMod(aggr_t) ) {
-                    is_valid = false;
+                if ( CheckID(aggr_id, true) || CheckAggrMod(aggr_t) )
                     return TC_ABORTALL;
-                }
             }
 
             else if ( t == EXPR_INDEX && aggr_t->Tag() == TYPE_TABLE ) {
-                if ( CheckTableRef(aggr_t) ) {
-                    is_valid = false;
+                if ( CheckTableRef(aggr_t) )
                     return TC_ABORTALL;
-                }
             }
         }
 
@@ -1004,7 +988,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
     return TC_CONTINUE;
 }
 
-bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) const {
+bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) {
     // Only check type info for aggregates.
     auto id_t = IsAggr(id->GetType()) ? id->GetType() : nullptr;
 
@@ -1013,39 +997,39 @@ bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) const {
             continue;
 
         if ( id == i )
-            return true; // reassignment
+            return Invalid(); // reassignment
 
         if ( id_t && same_type(id_t, i->GetType()) ) {
             // Same-type aggregate.
             // if ( ! ignore_orig ) printf("identifier %s (%d), start %s, end %s\n", id->Name(), ignore_orig,
             // obj_desc(start_e).c_str(), obj_desc(end_e).c_str());
             if ( ignore_orig )
-                return true;
+                return Invalid();
         }
     }
 
     return false;
 }
 
-bool CSE_ValidityChecker::CheckAggrMod(const TypePtr& t) const {
+bool CSE_ValidityChecker::CheckAggrMod(const TypePtr& t) {
     if ( ! IsAggr(t) )
         return false;
 
     for ( auto i : ids )
         if ( same_type(t, i->GetType()) )
-            return true;
+            return Invalid();
 
     return false;
 }
 
-bool CSE_ValidityChecker::CheckRecordConstructor(const TypePtr& t) const {
+bool CSE_ValidityChecker::CheckRecordConstructor(const TypePtr& t) {
     if ( t->Tag() != TYPE_RECORD )
         return false;
 
     return CheckSideEffects(SideEffectsOp::CONSTRUCTION, t);
 }
 
-bool CSE_ValidityChecker::CheckTableMod(const TypePtr& t) const {
+bool CSE_ValidityChecker::CheckTableMod(const TypePtr& t) {
     if ( ! CheckAggrMod(t) )
         return false;
 
@@ -1055,14 +1039,14 @@ bool CSE_ValidityChecker::CheckTableMod(const TypePtr& t) const {
     return CheckSideEffects(SideEffectsOp::WRITE, t);
 }
 
-bool CSE_ValidityChecker::CheckTableRef(const TypePtr& t) const { return CheckSideEffects(SideEffectsOp::READ, t); }
+bool CSE_ValidityChecker::CheckTableRef(const TypePtr& t) { return CheckSideEffects(SideEffectsOp::READ, t); }
 
-bool CSE_ValidityChecker::CheckCall(const CallExpr* c) const {
+bool CSE_ValidityChecker::CheckCall(const CallExpr* c) {
     auto func = c->Func();
     std::string desc;
     if ( func->Tag() != EXPR_NAME )
         // Can't analyze indirect calls.
-        return true;
+        return Invalid();
 
     IDSet non_local_ids;
     TypeSet aggrs;
@@ -1071,20 +1055,30 @@ bool CSE_ValidityChecker::CheckCall(const CallExpr* c) const {
     auto resolved = pfs.GetCallSideEffects(func->AsNameExpr(), non_local_ids, aggrs, is_unknown);
     ASSERT(resolved);
 
-    return is_unknown || CheckSideEffects(non_local_ids, aggrs);
+    if ( is_unknown || CheckSideEffects(non_local_ids, aggrs) )
+        return Invalid();
+
+    return false;
 }
 
-bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const {
+bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) {
     IDSet non_local_ids;
     TypeSet aggrs;
 
-    if ( pfs.GetSideEffects(access, t.get(), non_local_ids, aggrs) )
-        return true;
+    // if ( access == SideEffectsOp::CONSTRUCTION ) printf("assessing construction\n");
+
+    if ( pfs.GetSideEffects(access, t.get(), non_local_ids, aggrs) ) {
+        // if ( access == SideEffectsOp::CONSTRUCTION ) printf("bailing directly on construction\n");
+        return Invalid();
+    }
+
+    // if ( access == SideEffectsOp::CONSTRUCTION ) printf("construction has %ld/%ld non-locals/aggrs\n",
+    // non_local_ids.size(), aggrs.size());
 
     return CheckSideEffects(non_local_ids, aggrs);
 }
 
-bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids, const TypeSet& aggrs) const {
+bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids, const TypeSet& aggrs) {
     if ( non_local_ids.empty() && aggrs.empty() )
         // This is far and away the most common case.
         return false;
@@ -1092,12 +1086,14 @@ bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids, const Typ
     for ( auto i : ids ) {
         for ( auto nli : non_local_ids )
             if ( nli == i )
-                return true;
+                return Invalid();
 
         auto i_t = i->GetType();
         for ( auto a : aggrs )
-            if ( same_type(a, i_t.get()) )
-                return true;
+            if ( same_type(a, i_t.get()) ) {
+                // printf("invalid identifier %s\n", i->Name());
+                return Invalid();
+            }
     }
 
     return false;

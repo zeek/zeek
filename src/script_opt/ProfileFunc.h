@@ -386,7 +386,11 @@ protected:
 
     bool DefinitelyHasNoSideEffects(const ExprPtr& e) const;
 
+    // ### more using
+    using AttrSet = std::unordered_set<const Attr*>;
+
     std::vector<const Attr*> AssociatedAttrs(const Type* t);
+    void FindAssociatedAttrs(const AttrSet& candidate_attrs, const Type* t, std::vector<const Attr*>& assoc_attrs);
 
     // ### False on can't-make-decision-yet
     bool AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& types, bool& is_unknown);
@@ -465,7 +469,8 @@ protected:
     // not provided via accessors:
 
     // ###
-    std::unordered_set<const Attr*> candidates;
+    AttrSet candidates;
+    AttrSet attrs_with_side_effects;
 
     // ###
     const Attr* curr_candidate;

@@ -594,7 +594,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval) {
     streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
     streams[idx]->policy = policy;
     streams[idx]->columns = columns->Ref()->AsRecordType();
-    streams[idx]->max_delay_interval = sval->GetField("max_delay_interval")->AsTime();
+    streams[idx]->max_delay_interval = sval->GetField("max_delay_interval")->AsInterval();
     streams[idx]->max_delay_queue_size = sval->GetField("max_delay_queue_size")->AsCount();
 
     streams[idx]->enable_remote = id::find_val("Log::enable_remote_logging")->AsBool();

@@ -1757,13 +1757,16 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line, const
 	{
 	if ( attr != "num-call-args" )
 		{
-		if ( attr == "indirect-call" )
+		if ( attr == "indirect-call" || attr == "indirect-local-call" )
 			{
 			if ( words.size() != 1 )
 				g->Gripe("indirect-call takes one argument", line);
 			// Note, currently only works with a *subsequent*
 			// num-call-args, whose setting needs to be 'n'.
 			is_indirect_call = true;
+
+			if ( attr == "indirect-local-call" )
+				is_local_indirect_call = true;
 			}
 		else
 			ZAM_OpTemplate::Parse(attr, line, words);
@@ -1805,10 +1808,23 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line, const
 				{
 				func = "func";
 
-				eval += "auto sel = z.v" + to_string(arg_slot) + ";\n";
-				eval += "auto func = (sel < 0) ? ";
-				eval += "aux->id_val->GetVal()->AsFunc() : ";
-				eval += "frame[sel].AsFunc();\n";
+				if ( is_local_indirect_call )
+					{
+					eval += "auto sel = z.v" +
+						to_string(arg_slot) + ";\n";
+					eval += "auto func = frame[sel].AsFunc();\n";
+					}
+				else
+					{
+					eval += "auto func_v = aux->id_val->GetVal();\n";
+					eval += "auto func = func_v ? func_v->AsFunc() : nullptr;\n";
+					}
+
+				eval += "if ( ! func )\n";
+				eval += "\t{\n";
+				eval += "\tZAM_run_time_error(z.loc, \"value used but not set\");\n";
+				eval += "\tbreak;\n";
+				eval += "\t}\n";
 				}
 
 			eval += "auto n = aux->n;\n";

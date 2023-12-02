@@ -847,6 +847,9 @@ private:
 	// True if the internal operation corresponds to an indirect call,
 	// i.e., one through a variable rather than one directly specified.
 	bool is_indirect_call = false;
+
+	// Refinement of is_indirect_call, when it's also via a local variable.
+	bool is_local_indirect_call = false;
 	};
 
 // An internal operation that assigns a result to a frame element.

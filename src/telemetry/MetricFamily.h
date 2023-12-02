@@ -119,21 +119,10 @@ public:
 
     bool operator==(const MetricAttributeIterable& other) const noexcept { return attributes == other.attributes; }
 
-    bool operator==(const Span<const LabelView>& other) const noexcept {
-        // Take the synthetic "endpoint" label into account when checking size here
-        if ( other.size() != attributes.size() - 1 )
-            return false;
-
-        for ( const auto& label : other ) {
-            if ( auto it = attributes.find(std::string{label.first}); it != attributes.end() )
-                if ( it->second != label.second )
-                    return false;
-        }
-
-        return true;
-    }
+    bool operator==(const Span<const LabelView>& other) const noexcept;
 
 private:
+    std::map<opentelemetry::nostd::string_view, opentelemetry::common::AttributeValue> otel_attributes;
     std::map<std::string, std::string> attributes;
 };
 

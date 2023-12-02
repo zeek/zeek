@@ -59,9 +59,11 @@ bool MetricFamily::Matches(std::string_view prefix_pattern, std::string_view nam
 MetricAttributeIterable::MetricAttributeIterable(Span<const LabelView> labels) {
     bool found_endpoint = false;
     for ( const auto& p : labels ) {
-        attributes.emplace(std::string{p.first}, std::string{p.second});
+        auto entry = attributes.emplace(std::string{p.first}, std::string{p.second});
         if ( p.first == "endpoint" )
             found_endpoint = true;
+
+        otel_attributes.emplace(entry.first->first, entry.first->second);
     }
 
     if ( ! found_endpoint ) {
@@ -73,9 +75,23 @@ MetricAttributeIterable::MetricAttributeIterable(Span<const LabelView> labels) {
 bool MetricAttributeIterable::ForEachKeyValue(
     opentelemetry::nostd::function_ref<bool(opentelemetry::nostd::string_view, opentelemetry::common::AttributeValue)>
         callback) const noexcept {
-    for ( const auto& [k, v] : attributes ) {
+    for ( const auto& [k, v] : otel_attributes ) {
         if ( ! callback(k, v) )
             return false;
+    }
+
+    return true;
+}
+
+bool MetricAttributeIterable::operator==(const Span<const LabelView>& other) const noexcept {
+    // Take the synthetic "endpoint" label into account when checking size here
+    if ( other.size() != attributes.size() - 1 )
+        return false;
+
+    for ( const auto& label : other ) {
+        if ( auto it = attributes.find(std::string{label.first}); it != attributes.end() )
+            if ( it->second != label.second )
+                return false;
     }
 
     return true;

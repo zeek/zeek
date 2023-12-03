@@ -1,0 +1,26 @@
+module SpicyBench;
+
+import spicy;
+
+type Header = unit {
+  version: uint8;
+  id: uint16;
+  length: uint32;
+};
+
+public type Request = unit {
+  header: Header;
+  data: bytes &size=self.header.length-7;
+};
+
+public type Requests = unit {
+    : Request[];
+};
+
+type Reply = unit {
+  header: Header;
+};
+
+public type Replies = unit {
+    : Reply[];
+};

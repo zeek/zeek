@@ -1,0 +1,2 @@
+event bench_request%(c: connection, version: count, id: count, length: count, data: string%);
+event bench_reply%(c: connection, version: count, id: count, length: count%);

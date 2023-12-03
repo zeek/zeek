@@ -1,5 +1,6 @@
 include(ZeekPlugin)
 
+add_subdirectory(bench)
 add_subdirectory(bittorrent)
 add_subdirectory(conn-size)
 add_subdirectory(dce-rpc)

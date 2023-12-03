@@ -1,0 +1,13 @@
+# Copyright (c) 2022 by the Zeek Project. See LICENSE for details.
+
+%doc-id= Zeek::SpicyBench;
+%doc-description = "SpicyBench";
+
+protocol analyzer SPICY_BENCH over TCP:
+    parse originator with SpicyBench::Requests,
+    parse responder with SpicyBench::Replies;
+
+import SpicyBench;
+
+on SpicyBench::Request -> event bench_request($conn, self.header.version, self.header.id, self.header.length, self.data);
+on SpicyBench::Reply -> event bench_reply($conn, self.header.version, self.header.id, self.header.length);

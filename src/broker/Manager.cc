@@ -1319,7 +1319,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
                                      expected_type->GetName().c_str());
             }
 
-            reporter->Warning("failed to convert remote event '%s' arg #%zu, %s", name.data(), i, msg_addl.c_str());
+            reporter->Warning("failed to convert remote event '%s' arg #%zu, %s", c_str_safe(name).c_str(), i, msg_addl.c_str());
 
             // If we got a vector and expected a function this is
             // possibly because of a mismatch between

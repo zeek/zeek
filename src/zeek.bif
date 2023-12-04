@@ -670,7 +670,7 @@ function md5_hash_init%(%): opaque of md5
 	%{
 	auto digest = zeek::make_intrusive<zeek::MD5Val>();
 	digest->Init();
-	return digest;
+	return std::move(digest);
 	%}
 
 ## Constructs an SHA1 handle to enable incremental hash computation. You can
@@ -695,7 +695,7 @@ function sha1_hash_init%(%): opaque of sha1
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA1Val>();
 	digest->Init();
-	return digest;
+	return std::move(digest);
 	%}
 
 ## Constructs an SHA256 handle to enable incremental hash computation. You can
@@ -720,7 +720,7 @@ function sha256_hash_init%(%): opaque of sha256
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA256Val>();
 	digest->Init();
-	return digest;
+	return std::move(digest);
 	%}
 
 ## Updates the MD5 value associated with a given index. It is required to
@@ -1086,7 +1086,7 @@ function find_entropy%(data: string%): entropy_test_result
 	ent_result->Assign(2, mean);
 	ent_result->Assign(3, montepi);
 	ent_result->Assign(4, scc);
-	return ent_result;
+	return std::move(ent_result);
 	%}
 
 ## Initializes data structures for incremental entropy calculation.
@@ -1138,7 +1138,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	ent_result->Assign(2, mean);
 	ent_result->Assign(3, montepi);
 	ent_result->Assign(4, scc);
-	return ent_result;
+	return std::move(ent_result);
 	%}
 
 ## Creates an identifier that is unique with high probability.
@@ -1216,7 +1216,7 @@ function table_values%(t: any%): any_vec
 		vv->Append(iter.value->GetVal());
 		}
 
-	return vv;
+	return std::move(vv);
 	%}
 
 ## Gets all keys from a table.
@@ -1243,7 +1243,7 @@ function table_keys%(t: any%): any
 		sv->Assign(th->RecoverVals(*iter.GetHashKey()), nullptr);
 		}
 
-	return sv;
+	return std::move(sv);
 	%}
 
 ## Gets all subnets that contain a given subnet from a set/table[subnet].
@@ -1461,7 +1461,7 @@ function sort%(v: any, ...%) : any
 	auto vv = v->As<zeek::VectorVal*>();
 	vv->Sort(comp);
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Returns the order of the elements in a vector according to some
@@ -1860,7 +1860,7 @@ function record_type_to_vector%(rt: string%): string_vec
 	for ( int i = 0; i < type->NumFields(); ++i )
 		result->Assign(i+1, zeek::make_intrusive<zeek::StringVal>(type->FieldName(i)));
 
-	return result;
+	return std::move(result);
 	%}
 
 ## Returns the type name of an arbitrary Zeek variable.
@@ -1969,7 +1969,7 @@ function type_aliases%(x: any%): string_set
 	for ( const auto& name : it->second )
 		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Returns all value names associated with an enum type.
@@ -2001,7 +2001,7 @@ function enum_names%(et: any%): string_set
 	for ( const auto& [name, i] : enum_type->Names() )
 		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
@@ -2013,7 +2013,7 @@ function zeek_args%(%): string_vec
 	for ( auto i = 0; i < zeek::detail::zeek_argc; ++i )
 		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::StringVal>(zeek::detail::zeek_argv[i]));
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Checks whether Zeek reads traffic from one or more network interfaces (as
@@ -2057,7 +2057,7 @@ function packet_source%(%): PacketSource
 		r->Assign(3, ps->Netmask());
 		}
 
-	return r;
+	return std::move(r);
 	%}
 
 ## Generates a table of the "footprint" of all global container variables.
@@ -2087,7 +2087,7 @@ function global_container_footprints%(%): var_sizes
 		sizes->Assign(std::move(id_name), std::move(fp));
 		}
 
-	return sizes;
+	return std::move(sizes);
 	%}
 
 ## Computes a value's "footprint": the number of objects the value contains
@@ -2154,7 +2154,7 @@ function global_ids%(%): id_table
 		ids->Assign(std::move(id_name), std::move(rec));
 		}
 
-	return ids;
+	return std::move(ids);
 	%}
 
 ## Returns a set giving the names of all global options.
@@ -2173,7 +2173,7 @@ function global_options%(%): string_set
 		options->Assign(std::move(id_name), nullptr);
 		}
 
-	return options;
+	return std::move(options);
 	%}
 
 ## Returns the value of a global identifier.
@@ -2436,7 +2436,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 		len -= 16;
 		}
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Converts an :zeek:type:`addr` to an :zeek:type:`index_vec`.
@@ -2456,7 +2456,7 @@ function addr_to_counts%(a: addr%): index_vec
 	for ( int i = 0; i < len; ++i )
 		rval->Assign(i, zeek::val_mgr->Count(ntohl(bytes[i])));
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Converts an :zeek:type:`index_vec` to an :zeek:type:`addr`.
@@ -2721,7 +2721,7 @@ function to_addr%(ip: string%): addr
 		}
 
 	delete [] s;
-	return ret;
+	return std::move(ret);
 	%}
 
 ## Checks if a string is a valid IPv4 or IPv6 address.
@@ -2756,7 +2756,7 @@ function to_subnet%(sn: string%): subnet
 
 	auto ret = zeek::make_intrusive<zeek::SubNetVal>(tmp);
 	delete [] s;
-	return ret;
+	return std::move(ret);
 	%}
 
 ## Converts a :zeek:type:`addr` to a :zeek:type:`subnet`.
@@ -3391,7 +3391,7 @@ function convert_for_pattern%(s: string%): string
 	char* t = to_pat_str(s->Len(), (const char*)(s->Bytes()));
 	auto ret = zeek::make_intrusive<zeek::StringVal>(t);
 	delete [] t;
-	return ret;
+	return std::move(ret);
 	%}
 
 ## Converts a :zeek:type:`string` into a :zeek:type:`pattern`.
@@ -3674,7 +3674,7 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
 	c->Assign(6, zeek::val_mgr->EmptyString());	// history
 
-	return c;
+	return std::move(c);
 	%}
 
 %%{
@@ -3784,7 +3784,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 
 	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
 	auto hdr = zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
-	return hdr;
+	return std::move(hdr);
 	%}
 
 ## Writes a given packet to a file.
@@ -4429,7 +4429,7 @@ function lookup_location%(a: addr%) : geo_location
 	// able to initialize it or it didn't return any information for
 	// the address.
 
-	return location;
+	return std::move(location);
 	%}
 
 ## Performs an lookup of AS number & organization of an IP address.
@@ -4496,7 +4496,7 @@ function lookup_autonomous_system%(a: addr%) : geo_autonomous_system
 	// We can get here even if we have GeoIP support, if we weren't
 	// able to initialize it or it didn't return any information for
 	// the address.
-	return autonomous_system;
+	return std::move(autonomous_system);
 	%}
 
 ## Calculates distance between two geographic locations using the haversine
@@ -5026,7 +5026,7 @@ function rotate_file%(f: file%): rotate_info
 	info->AssignTime(2, 0.0);
 	info->AssignTime(3, 0.0);
 
-	return info;
+	return std::move(info);
 	%}
 
 ## Rotates a file identified by its name.
@@ -5082,7 +5082,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 	if ( is_addl_pkt_dumper )
 		info->AssignTime(2, addl_pkt_dumper->OpenTime());
 
-	return info;
+	return std::move(info);
 	%}
 
 ## Calculates the duration until the next time a file is to be rotated, based
@@ -5614,7 +5614,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 		zeek::emit_builtin_error(std::get<std::string>(res).c_str());
 		}
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Compresses a given path by removing '..'s and the parent directory it
@@ -5843,5 +5843,5 @@ function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
 	result->Assign(n++, stats.hits);
 	result->Assign(n++, stats.misses);
 
-	return result;
+	return std::move(result);
 	%}

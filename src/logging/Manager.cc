@@ -1207,6 +1207,8 @@ ValPtr Manager::Delay(const EnumValPtr& id, const RecordValPtr record, FuncPtr p
 
     ValPtr token_val;
     Stream* stream = FindStream(id.get());
+    if ( ! stream )
+        return make_intrusive<detail::LogDelayTokenVal>();
 
     if ( const auto& delay_info = stream->GetDelayInfo(active_write_ctx); delay_info ) {
         // Previously delayed, return the same token to script-land.

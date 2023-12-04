@@ -406,7 +406,7 @@ private:
  * Convenience function to check whether a list of Broker data values are all of type `count`.
  */
 template<typename... Args>
-[[nodiscard]] inline bool IsCount(BrokerDataView arg, Args&&... args) {
+[[nodiscard]] bool are_all_counts(BrokerDataView arg, Args&&... args) {
     return arg.IsCount() && (args.IsCount() && ...);
 }
 
@@ -414,7 +414,7 @@ template<typename... Args>
  * Convenience function to check whether a list of Broker data values are all of type `integer`.
  */
 template<typename... Args>
-[[nodiscard]] inline auto ToCount(BrokerDataView arg, Args&&... args) {
+[[nodiscard]] auto to_count(BrokerDataView arg, Args&&... args) {
     return std::tuple{arg.ToCount(), args.ToCount()...};
 }
 
@@ -557,10 +557,15 @@ public:
      */
     template<typename T>
     void AddCount(T value) {
-        static_assert(std::is_integral_v<T> && ! std::is_same_v<bool, T>);
-        static_assert(std::is_unsigned_v<T>);
-        static_assert(sizeof(T) <= sizeof(broker::count));
-        values_.emplace_back(static_cast<broker::count>(value));
+        if constexpr ( std::is_enum_v<T> ) {
+            AddCount(static_cast<std::underlying_type_t<T>>(value));
+        }
+        else {
+            static_assert(std::is_integral_v<T> && ! std::is_same_v<bool, T>);
+            static_assert(std::is_unsigned_v<T>);
+            static_assert(sizeof(T) <= sizeof(broker::count));
+            values_.emplace_back(static_cast<broker::count>(value));
+        }
     }
 
     /**
@@ -568,10 +573,15 @@ public:
      */
     template<typename T>
     void AddInteger(T value) {
-        static_assert(std::is_integral_v<T> && ! std::is_same_v<bool, T>);
-        static_assert(std::is_signed_v<T>);
-        static_assert(sizeof(T) <= sizeof(broker::integer));
-        values_.emplace_back(static_cast<broker::integer>(value));
+        if constexpr ( std::is_enum_v<T> ) {
+            AddInteger(static_cast<std::underlying_type_t<T>>(value));
+        }
+        else {
+            static_assert(std::is_integral_v<T> && ! std::is_same_v<bool, T>);
+            static_assert(std::is_signed_v<T>);
+            static_assert(sizeof(T) <= sizeof(broker::integer));
+            values_.emplace_back(static_cast<broker::integer>(value));
+        }
     }
 
     /**
@@ -604,7 +614,7 @@ public:
      * @param cstr The characters to append.
      * @param len The number of characters to append.
      */
-    void AddString(const char* cstr, size_t len) { values_.emplace_back(std::string{cstr, len}); }
+    void Add(const char* cstr, size_t len) { values_.emplace_back(std::string{cstr, len}); }
 
     /**
      * Appends `value` to the end of the list.

@@ -61,10 +61,10 @@ std::unique_ptr<Hasher> Hasher::Unserialize(BrokerDataView data) {
 
     auto v = data.ToList();
 
-    if ( v.Size() != 4 || ! IsCount(v[0], v[1], v[2], v[3]) )
+    if ( v.Size() != 4 || ! are_all_counts(v[0], v[1], v[2], v[3]) )
         return nullptr;
 
-    auto [type, k, h1, h2] = ToCount(v[0], v[1], v[2], v[3]);
+    auto [type, k, h1, h2] = to_count(v[0], v[1], v[2], v[3]);
 
     std::unique_ptr<Hasher> hasher;
 

@@ -41,7 +41,7 @@ namespace zeek {
 // Helper to retrieve a broker count out of a list at a specified index, and
 // casted to the expected destination type.
 template<typename V, typename D>
-inline bool get_vector_idx(V& v, size_t i, D* dst) {
+bool get_vector_idx_if_count(V& v, size_t i, D* dst) {
     if ( i >= v.Size() || ! v[i].IsCount() )
         return false;
 
@@ -663,8 +663,10 @@ bool EntropyVal::Get(double* r_ent, double* r_chisq, double* r_mean, double* r_m
 IMPLEMENT_OPAQUE_VALUE(EntropyVal)
 
 std::optional<BrokerData> EntropyVal::DoSerialize() const {
+    constexpr size_t numMembers = 14; // RandTest has 14 non-array members.
+
     BrokerListBuilder builder;
-    builder.Reserve(256 + 3 + RT_MONTEN + 11);
+    builder.Reserve(numMembers + std::size(state.ccount) + std::size(state.monte));
 
     builder.Add(static_cast<uint64_t>(state.totalc));
     builder.Add(static_cast<uint64_t>(state.mp));
@@ -694,46 +696,46 @@ bool EntropyVal::DoUnserialize(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
 
+    auto index = size_t{0};
+
     auto d = data.ToList();
 
-    if ( ! get_vector_idx(d, 0, &state.totalc) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.totalc) )
         return false;
-    if ( ! get_vector_idx(d, 1, &state.mp) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.mp) )
         return false;
-    if ( ! get_vector_idx(d, 2, &state.sccfirst) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.sccfirst) )
         return false;
-    if ( ! get_vector_idx(d, 3, &state.inmont) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.inmont) )
         return false;
-    if ( ! get_vector_idx(d, 4, &state.mcount) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.mcount) )
         return false;
-    if ( ! get_vector_idx(d, 5, &state.cexp) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.cexp) )
         return false;
-    if ( ! get_vector_idx(d, 6, &state.montex) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.montex) )
         return false;
-    if ( ! get_vector_idx(d, 7, &state.montey) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.montey) )
         return false;
-    if ( ! get_vector_idx(d, 8, &state.montepi) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.montepi) )
         return false;
-    if ( ! get_vector_idx(d, 9, &state.sccu0) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.sccu0) )
         return false;
-    if ( ! get_vector_idx(d, 10, &state.scclast) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.scclast) )
         return false;
-    if ( ! get_vector_idx(d, 11, &state.scct1) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.scct1) )
         return false;
-    if ( ! get_vector_idx(d, 12, &state.scct2) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.scct2) )
         return false;
-    if ( ! get_vector_idx(d, 13, &state.scct3) )
+    if ( ! get_vector_idx_if_count(d, index++, &state.scct3) )
         return false;
-
-    auto index = size_t{14};
 
     for ( auto& bin : state.ccount ) {
-        if ( ! get_vector_idx(d, index++, &bin) )
+        if ( ! get_vector_idx_if_count(d, index++, &bin) )
             return false;
     }
 
     for ( auto& val : state.monte ) {
-        if ( ! get_vector_idx(d, index++, &val) )
+        if ( ! get_vector_idx_if_count(d, index++, &val) )
             return false;
     }
 
@@ -1036,7 +1038,7 @@ bool ParaglobVal::DoUnserialize(BrokerDataView data) {
     iv->resize(d.Size());
 
     for ( size_t index = 0; index < d.Size(); ++index ) {
-        if ( ! get_vector_idx(d, index, iv->data() + index) )
+        if ( ! get_vector_idx_if_count(d, index, iv->data() + index) )
             return false;
     }
 

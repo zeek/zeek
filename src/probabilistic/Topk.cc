@@ -423,6 +423,9 @@ bool TopkVal::DoUnserialize(BrokerDataView data) {
     bool ok = true;
     auto index = size_t{4}; // Index into v.
     auto atEnd = [&v, &index] { return index >= v.Size(); };
+    // Returns the element  at the given index in v, if that element is a count.
+    // If so, ok becomes true, and the index gets incremented.
+    // If not, ok becomes false, and the index remains unchanged.
     auto nextCount = [&v, &ok, &index]() -> uint64_t {
         if ( index >= v.Size() || ! v[index].IsCount() ) {
             ok = false;

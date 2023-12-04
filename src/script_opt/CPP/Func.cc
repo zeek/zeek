@@ -66,7 +66,7 @@ std::optional<BrokerData> CPPLambdaFunc::SerializeCaptures() const {
 
     BrokerListBuilder builder;
     builder.Reserve(2);
-    builder.AddString(name.data(), name.size());
+    builder.Add(name.data(), name.size());
     builder.Add(std::move(body));
     return std::move(builder).Build();
 }

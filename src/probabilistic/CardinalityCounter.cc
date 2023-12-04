@@ -191,10 +191,10 @@ std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(BrokerDataVi
         return nullptr;
 
     auto v = data.ToList();
-    if ( v.Size() < 3 || ! IsCount(v[0], v[1]) || ! v[2].IsReal() )
+    if ( v.Size() < 3 || ! are_all_counts(v[0], v[1]) || ! v[2].IsReal() )
         return nullptr;
 
-    auto [m, V] = ToCount(v[0], v[1]);
+    auto [m, V] = to_count(v[0], v[1]);
     auto alpha_m = v[2].ToReal();
 
     if ( v.Size() != 3 + m )

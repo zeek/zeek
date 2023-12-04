@@ -39,13 +39,13 @@ class SegmentProfiler {
 public:
     // The constructor takes some way of identifying the segment.
     SegmentProfiler(std::shared_ptr<SegmentStatsReporter> arg_reporter, const char* arg_name)
-        : reporter(std::move(arg_reporter)), name(arg_name), loc(), initial_rusage() {
+        : reporter(std::move(arg_reporter)), name(arg_name), loc() {
         if ( reporter )
             Init();
     }
 
     SegmentProfiler(std::shared_ptr<SegmentStatsReporter> arg_reporter, const Location* arg_loc)
-        : reporter(std::move(arg_reporter)), name(), loc(arg_loc), initial_rusage() {
+        : reporter(std::move(arg_reporter)), name(), loc(arg_loc) {
         if ( reporter )
             Init();
     }

@@ -59,13 +59,13 @@ static zeek::TypeTag ok_f_fmt[] = {
 	zeek::TYPE_ERROR
 };
 
-static int check_fmt_type(zeek::TypeTag t, zeek::TypeTag ok[])
+static bool check_fmt_type(zeek::TypeTag t, zeek::TypeTag ok[])
 	{
 	for ( int i = 0; ok[i] != zeek::TYPE_ERROR; ++i )
 		if ( ok[i] == t )
-			return 1;
+			return true;
 
-	return 0;
+	return false;
 	}
 
 static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
@@ -274,7 +274,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 	++fmt;
 	}
 
-static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, int& n)
+static bool next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, int& n)
 	{
 	const char* fp = fmt;
 
@@ -286,7 +286,7 @@ static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, in
 
 	if ( *fp == '\0' )
 		// No more to do.
-		return 0;
+		return false;
 
 	fmt = fp + 1;
 	if ( *fmt == '%' )
@@ -298,7 +298,7 @@ static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, in
 		}
 
 	if ( ++n >= static_cast<int>(args->size()) )
-		return 0;
+		return false;
 
 	do_fmt(fmt, (*args)[n].get(), d);
 

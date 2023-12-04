@@ -6,6 +6,11 @@
 
 namespace zeek::detail {
 
+// The following BiFs do not have any script-level side effects. It's
+// followed by comments listing the BiFs that have been omitted, and why.
+//
+// See script_opt/ZAM/maint/README for maintenance of these lists.
+
 static std::unordered_set<std::string> side_effects_free_BiFs = {
     "Analyzer::__disable_all_analyzers",
     "Analyzer::__disable_analyzer",
@@ -465,7 +470,7 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
 //
 // Cluster::publish_hrw
 // Cluster::publish_rr
-//	Call script functions to get topic names.
+//	These call script functions to get topic names.
 //
 // Log::__write
 //	Calls log policy functions.
@@ -478,24 +483,24 @@ static std::unordered_set<std::string> side_effects_free_BiFs = {
 //	Both clears a set/table and potentially calls an &on_change handler.
 //
 // disable_analyzer
-//	Potentially calls Analyzer::disabling_analyzer hook.
+//	Can call Analyzer::disabling_analyzer hook.
 //
 // from_json
-//	Potentially calls a normalization function.
+//	Can call a normalization function.
 //
 // order
-//	Potentially calls a comparison function.
+//	Can call a comparison function.
 //
 // resize
 //	Changes a vector in place.
 //
 // sort
-//	Both changes a vector in place and potentially calls an arbitrary
-//	comparison function.
+//	Both changes a vector in place and can call an arbitrary comparison
+//	function.
 //
 // Some of these have side effects that could be checked for in a specific
 // context, but the gains from doing so likely aren't worth the complexity.
 
-bool is_side_effect_free(std::string f) { return side_effects_free_BiFs.count(f) > 0; }
+bool is_side_effect_free(std::string func_name) { return side_effects_free_BiFs.count(func_name) > 0; }
 
 } // namespace zeek::detail

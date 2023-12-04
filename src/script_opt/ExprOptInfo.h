@@ -7,6 +7,10 @@
 
 namespace zeek::detail {
 
+// Class for tracking whether a given expression has side effects. Currently,
+// we just need to know whether Yes-it-does or No-it-doesn't, so the structure
+// is very simple.
+
 class ExprSideEffects {
 public:
     ExprSideEffects(bool _has_side_effects) : has_side_effects(_has_side_effects) {}
@@ -26,7 +30,8 @@ public:
     auto& SideEffects() { return side_effects; }
 
 protected:
-    // ###
+    // This optional value missing means "we haven't yet determined the
+    // side effects".
     std::optional<ExprSideEffects> side_effects;
 };
 

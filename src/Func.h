@@ -168,6 +168,8 @@ namespace detail {
 
 class ScriptFunc : public Func {
 public:
+    // The "primary", if present, reflects the primary function used to
+    // create an instance of a lambda.
     ScriptFunc(const IDPtr& id, ScriptFuncPtr primary = nullptr);
 
     // For compiled scripts.

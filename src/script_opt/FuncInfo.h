@@ -12,6 +12,6 @@
 
 namespace zeek::detail {
 
-extern bool is_side_effect_free(std::string f);
+extern bool is_side_effect_free(std::string func_name);
 
 } // namespace zeek::detail

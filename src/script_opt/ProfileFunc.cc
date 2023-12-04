@@ -226,7 +226,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 auto fn = e->AsFieldExpr()->FieldName();
                 addl_hashes.push_back(p_hash(fn));
             }
-
             break;
 
         case EXPR_HAS_FIELD:
@@ -294,10 +293,11 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                         aggr_mods.insert(lhs_t.get());
 
                     if ( lhs_aggr_t->Tag() == TYPE_TABLE ) {
-                        // We don't want the default recursion into the expression's
-                        // LHS because it will treat this table modification as
-                        // a reference instead. So do it manually. Given that,
-                        // we need to do the expression's RHS manually too.
+                        // We don't want the default recursion into the
+                        // expression's LHS because that will treat this
+                        // table modification as a reference instead. So
+                        // do it manually. Given that, we need to do the
+                        // expression's RHS manually too.
                         lhs->GetOp1()->Traverse(this);
                         lhs->GetOp2()->Traverse(this);
 
@@ -405,7 +405,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             // However, we still want to *profile* it so we can
             // identify calls within it.
             auto pf = std::make_shared<ProfileFunc>(l->Ingredients()->Body().get(), false);
-            // func_profs[l->PrimaryFunc()] = pf;
             script_calls.insert(pf->ScriptCalls().begin(), pf->ScriptCalls().end());
 
             return TC_ABORTSTMT;
@@ -550,7 +549,79 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
         // create more pending expressions to analyze.
     } while ( ! pending_exprs.empty() );
 
+    // Now that we have everything profiled, we can proceed to analyses
+    // that require full global information.
     ComputeSideEffects();
+}
+
+bool ProfileFuncs::IsTableWithDefaultAggr(const Type* t) {
+    auto analy = tbl_has_aggr_default.find(t);
+    if ( analy != tbl_has_aggr_default.end() )
+        // We already have the answer.
+        return analy->second;
+
+    // See whether an alias for the type has already been resolved.
+    if ( t->AsTableType()->Yield() ) {
+        for ( auto& at : tbl_has_aggr_default )
+            if ( same_type(at.first, t) ) {
+                tbl_has_aggr_default[t] = at.second;
+                return at.second;
+            }
+    }
+
+    tbl_has_aggr_default[t] = false;
+    return false;
+}
+
+bool ProfileFuncs::HasSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const {
+    IDSet nli;
+    TypeSet aggrs;
+
+    if ( GetSideEffects(access, t.get(), nli, aggrs) )
+        return true;
+
+    return ! nli.empty() || ! aggrs.empty();
+}
+
+bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
+                                  TypeSet& aggrs) const {
+    for ( auto se : side_effects_ops )
+        if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) )
+            return true;
+
+    return false;
+}
+
+bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
+    auto fid = n->Id();
+    auto fv = fid->GetVal();
+
+    if ( ! fv || ! fid->IsConst() ) {
+        // The value is unavailable (likely a bug), or might change at run-time.
+        is_unknown = true;
+        return true;
+    }
+
+    auto func = fv->AsFunc();
+    if ( func->GetKind() == Func::BUILTIN_FUNC && ! is_side_effect_free(func->Name()) ) {
+        is_unknown = true;
+        return true;
+    }
+
+    auto sf = static_cast<ScriptFunc*>(func);
+    auto seo = GetCallSideEffects(sf);
+    if ( ! seo )
+        return false;
+
+    if ( seo->HasUnknownChanges() )
+        is_unknown = true;
+
+    for ( auto a : seo->ModAggrs() )
+        aggrs.insert(a);
+    for ( auto nl : seo->ModNonLocals() )
+        non_local_ids.insert(nl);
+
+    return true;
 }
 
 void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
@@ -944,8 +1015,6 @@ p_hash_type ProfileFuncs::HashAttrs(const AttributesPtr& Attrs) {
     return h;
 }
 
-extern const char* attr_name(AttrTag t);
-
 void ProfileFuncs::AnalyzeAttrs(const Attributes* attrs, const Type* t) {
     for ( const auto& a : attrs->GetAttrs() ) {
         auto& e = a->GetExpr();
@@ -981,9 +1050,9 @@ void ProfileFuncs::AnalyzeAttrs(const Attributes* attrs, const Type* t) {
 void ProfileFuncs::ComputeSideEffects() {
     // Computing side effects is an iterative process, because whether
     // a given expression has a side effect can depend on whether it
-    // includes accesses to types that have side effects.
+    // includes accesses to types that themselves have side effects.
 
-    // Step one: assemble a candidate pool of attributes to assess.
+    // Step one: assemble the candidate pool of attributes to assess.
     for ( auto& ea : expr_attrs ) {
         // Is this an attribute that can be triggered by
         // statement/expression execution?
@@ -991,6 +1060,7 @@ void ProfileFuncs::ComputeSideEffects() {
         auto at = a->Tag();
         if ( at == ATTR_DEFAULT || at == ATTR_DEFAULT_INSERT || at == ATTR_ON_CHANGE ) {
             if ( at == ATTR_DEFAULT ) {
+                // Look for tables with &default's returning aggregate values.
                 for ( auto t : ea.second ) {
                     if ( t->Tag() != TYPE_TABLE )
                         continue;
@@ -998,9 +1068,9 @@ void ProfileFuncs::ComputeSideEffects() {
                     auto y = t->AsTableType()->Yield();
 
                     if ( y && IsAggr(y->Tag()) ) {
-                        aggr_tbls_analyzed[t] = true;
+                        tbl_has_aggr_default[t] = true;
                         for ( auto ta : type_aliases[t] )
-                            aggr_tbls_analyzed[ta] = true;
+                            tbl_has_aggr_default[ta] = true;
                     }
                 }
             }
@@ -1011,11 +1081,13 @@ void ProfileFuncs::ComputeSideEffects() {
         }
     }
 
-    // ###
-
-    std::vector<std::shared_ptr<SideEffectsOp>> side_effects;
+    // At this point, very often there are no candidates and we're done.
+    // However, if we have candidates then we need to process them in an
+    // iterative fashion because it's possible that the side effects of
+    // some of them depend on the side effects of other candidates.
 
     while ( ! candidates.empty() ) {
+        // For which attributes have we resolved their status.
         AttrSet made_decision;
 
         for ( auto c : candidates ) {
@@ -1023,75 +1095,40 @@ void ProfileFuncs::ComputeSideEffects() {
             TypeSet aggrs;
             bool is_unknown = false;
 
+            // Track the candidate we're currently analyzing, since sometimes
+            // it's self-referential and we need to identify that fact.
             curr_candidate = c;
 
             if ( ! AssessSideEffects(c->GetExpr(), non_local_ids, aggrs, is_unknown) )
                 // Can't make a decision yet.
                 continue;
 
+            // We've resolved this candidate.
             made_decision.insert(c);
-
             SetSideEffects(c, non_local_ids, aggrs, is_unknown);
         }
 
         if ( made_decision.empty() ) {
-            // ###
+            // We weren't able to make forward progress. This happens when
+            // the pending candidates are mutually dependent. While in
+            // principle we could scope the worst-case resolution of their
+            // side effects, this is such an unlikely situation that we just
+            // mark them all as unknown.
+
+            // We keep these empty.
             IDSet non_local_ids;
             TypeSet aggrs;
-            bool is_unknown = true;
-            for ( auto c : candidates ) {
-                // printf("jackpot for %s\n", obj_desc(c).c_str());
-                SetSideEffects(c, non_local_ids, aggrs, is_unknown);
-            }
+
+            for ( auto c : candidates )
+                SetSideEffects(c, non_local_ids, aggrs, true);
+
+            // We're now all done.
             break;
         }
 
         for ( auto md : made_decision )
             candidates.erase(md);
     }
-}
-
-void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
-    auto seo_vec = std::vector<std::shared_ptr<SideEffectsOp>>{};
-    bool is_rec = expr_attrs[a][0]->Tag() == TYPE_RECORD;
-
-    SideEffectsOp::AccessType at;
-    if ( is_rec ) {
-        at = SideEffectsOp::CONSTRUCTION;
-    }
-    else if ( a->Tag() == ATTR_ON_CHANGE )
-        at = SideEffectsOp::WRITE;
-    else
-        at = SideEffectsOp::READ;
-
-    if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown ) {
-        // printf("%s has no side effects\n", obj_desc(a).c_str());
-        // Definitely no side effects.
-        seo_vec.push_back(std::make_shared<SideEffectsOp>());
-    }
-    else {
-        // printf("%s has %d side effects\n", obj_desc(a).c_str(), at);
-        attrs_with_side_effects.insert(a);
-
-        for ( auto ea_t : expr_attrs[a] ) {
-            auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
-            seo->AddModNonGlobal(non_local_ids);
-            seo->AddModAggrs(aggrs);
-
-            if ( is_unknown )
-                seo->SetUnknownChanges();
-
-            // printf("adding to side effects ops (%lu) for type: %s\n", aggrs.size(), obj_desc(ea_t).c_str());
-            // for ( auto a : aggrs ) printf(" aggr type %s\n", obj_desc(a).c_str());
-            side_effects_ops.push_back(seo);
-            seo_vec.push_back(std::move(seo));
-        }
-    }
-
-    if ( is_rec )
-        record_constr_with_side_effects[a] = std::move(seo_vec);
-    else
-        attr_side_effects[a] = std::move(seo_vec);
 }
 
 bool ProfileFuncs::DefinitelyHasNoSideEffects(const ExprPtr& e) const {
@@ -1117,19 +1154,58 @@ bool ProfileFuncs::DefinitelyHasNoSideEffects(const ExprPtr& e) const {
     return true;
 }
 
-std::vector<const Attr*> ProfileFuncs::AssociatedAttrs(const Type* t) {
-    std::vector<const Attr*> assoc_attrs;
+void ProfileFuncs::SetSideEffects(const Attr* a, IDSet& non_local_ids, TypeSet& aggrs, bool is_unknown) {
+    auto seo_vec = std::vector<std::shared_ptr<SideEffectsOp>>{};
+    bool is_rec = expr_attrs[a][0]->Tag() == TYPE_RECORD;
 
+    SideEffectsOp::AccessType at;
+    if ( is_rec )
+        at = SideEffectsOp::CONSTRUCTION;
+    else if ( a->Tag() == ATTR_ON_CHANGE )
+        at = SideEffectsOp::WRITE;
+    else
+        at = SideEffectsOp::READ;
+
+    if ( non_local_ids.empty() && aggrs.empty() && ! is_unknown )
+        // Definitely no side effects.
+        seo_vec.push_back(std::make_shared<SideEffectsOp>());
+    else {
+        attrs_with_side_effects.insert(a);
+
+        // Set side effects for all of the types associated with this attribute.
+        for ( auto ea_t : expr_attrs[a] ) {
+            auto seo = std::make_shared<SideEffectsOp>(at, ea_t);
+            seo->AddModNonGlobal(non_local_ids);
+            seo->AddModAggrs(aggrs);
+
+            if ( is_unknown )
+                seo->SetUnknownChanges();
+
+            side_effects_ops.push_back(seo);
+            seo_vec.push_back(std::move(seo));
+        }
+    }
+
+    if ( is_rec )
+        record_constr_with_side_effects[a] = std::move(seo_vec);
+    else
+        aggr_side_effects[a] = std::move(seo_vec);
+}
+
+AttrVec ProfileFuncs::AssociatedAttrs(const Type* t) {
+    AttrVec assoc_attrs;
+
+    // Search both the pending candidates and the ones already identified.
+    // You might think we'd just do the latter, but we want to include the
+    // pending ones, too, so we can identify not-yet-resolved dependencies.
     FindAssociatedAttrs(candidates, t, assoc_attrs);
     FindAssociatedAttrs(attrs_with_side_effects, t, assoc_attrs);
 
     return assoc_attrs;
 }
 
-void ProfileFuncs::FindAssociatedAttrs(const AttrSet& candidate_attrs, const Type* t,
-                                       std::vector<const Attr*>& assoc_attrs) {
-    for ( auto a : candidate_attrs ) {
-        // printf("... candidate has %lu exprs\n", expr_attrs[a].size());
+void ProfileFuncs::FindAssociatedAttrs(const AttrSet& attrs, const Type* t, AttrVec& assoc_attrs) {
+    for ( auto a : attrs ) {
         for ( auto ea_t : expr_attrs[a] ) {
             if ( same_type(t, ea_t) ) {
                 assoc_attrs.push_back(a);
@@ -1146,98 +1222,74 @@ void ProfileFuncs::FindAssociatedAttrs(const AttrSet& candidate_attrs, const Typ
 }
 
 bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
-    std::shared_ptr<ProfileFunc> pf;
-
     if ( e->Tag() == EXPR_NAME && e->GetType()->Tag() == TYPE_FUNC )
+        // This occurs when the expression is itself a function name, and
+        // in an attribute context indicates an implicit call.
         return GetCallSideEffects(e->AsNameExpr(), non_local_ids, aggrs, is_unknown);
 
     ASSERT(expr_profs.count(e.get()) != 0);
-    pf = expr_profs[e.get()];
-
-    // printf("doing attr expr %s\n", obj_desc(e.get()).c_str());
+    auto pf = expr_profs[e.get()];
     return AssessSideEffects(pf.get(), non_local_ids, aggrs, is_unknown);
 }
 
 bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
-    if ( pf->DoesIndirectCalls() )
+    if ( pf->DoesIndirectCalls() ) {
         is_unknown = true;
+        return true;
+    }
 
     for ( auto& b : pf->BiFGlobals() )
         if ( ! is_side_effect_free(b->Name()) ) {
             is_unknown = true;
-            break;
+            return true;
         }
 
     IDSet nla;
     TypeSet mod_aggrs;
 
-    for ( auto& a : pf->NonLocalAssignees() ) {
-        // printf("adding assignee %s\n", a->Name());
+    for ( auto& a : pf->NonLocalAssignees() )
         nla.insert(a);
-    }
 
-    for ( auto& r : pf->RecordConstructorAttrs() ) {
-        // printf("doing record constructor attr (%d): %s\n", is_unknown, obj_desc(r.first).c_str());
-        if ( ! AssessAggrEffects(SideEffectsOp::CONSTRUCTION, r.first, nla, mod_aggrs, is_unknown) ) {
-            // You'd think we would return "false" here, because we don't have
-            // enough information yet to know all of the side effects. However,
-            // if "is_unknown" is true then that means there are already
-            // wildcard side effects, so there's no need to analyze further
-            // since it won't change that situation.
-            // printf("record construction assess failed, returning %d\n", is_unknown);
-            return is_unknown;
-        }
-        // printf("done: %lu/%lu\n", nla.size(), mod_aggrs.size());
-    }
+    for ( auto& r : pf->RecordConstructorAttrs() )
+        if ( ! AssessAggrEffects(SideEffectsOp::CONSTRUCTION, r.first, nla, mod_aggrs, is_unknown) )
+            // Not enough information yet to know all of the side effects.
+            return false;
 
-    for ( auto& tr : pf->TableRefs() ) {
-        // printf("doing table ref %s\n", obj_desc(tr).c_str());
-        if ( ! AssessAggrEffects(SideEffectsOp::READ, tr, nla, mod_aggrs, is_unknown) ) {
-            // printf("table read assess failed, returning %d\n", is_unknown);
-            return is_unknown;
-        }
-        // printf("done: %lu/%lu\n", nla.size(), mod_aggrs.size());
-    }
+    for ( auto& tr : pf->TableRefs() )
+        if ( ! AssessAggrEffects(SideEffectsOp::READ, tr, nla, mod_aggrs, is_unknown) )
+            return false;
 
     for ( auto& tm : pf->AggrMods() ) {
-        // printf("doing table mod %s\n", obj_desc(tm).c_str());
-        if ( tm->Tag() == TYPE_TABLE && ! AssessAggrEffects(SideEffectsOp::WRITE, tm, nla, mod_aggrs, is_unknown) ) {
-            // printf("table mod assess failed, returning %d\n", is_unknown);
-            return is_unknown;
-        }
+        if ( tm->Tag() == TYPE_TABLE && ! AssessAggrEffects(SideEffectsOp::WRITE, tm, nla, mod_aggrs, is_unknown) )
+            return false;
 
         mod_aggrs.insert(tm);
-        // printf("done: %lu/%lu\n", nla.size(), mod_aggrs.size());
     }
 
     for ( auto& f : pf->ScriptCalls() ) {
-        // printf("doing script call %s\n", f->Name());
         if ( f->Flavor() != FUNC_FLAVOR_FUNCTION ) {
             // A hook (since events can't be called) - not something
             // to analyze further.
-            // printf("flavor failed, returning %d\n", is_unknown);
             is_unknown = true;
             return true;
         }
 
         auto pff = func_profs[f];
-        if ( active_func_profiles.count(pff) > 0 ) {
-            // printf("pruned by recursion\n");
+        if ( active_func_profiles.count(pff) > 0 )
+            // We're already processing this function and arrived here via
+            // recursion. Skip further analysis here, we'll do it instead
+            // for the original instance.
             continue;
-        }
 
+        // Track this analysis so we can detect recursion.
         active_func_profiles.insert(pff);
         auto a = AssessSideEffects(pff.get(), nla, mod_aggrs, is_unknown);
-        // printf("done: %lu/%lu\n", nla.size(), mod_aggrs.size());
         active_func_profiles.erase(pff);
 
-        if ( ! a ) {
-            // printf("assess failed, returning %d\n", is_unknown);
-            return is_unknown;
-        }
+        if ( ! a )
+            return false;
     }
 
-    // printf("FINAL: %lu/%lu\n", nla.size(), mod_aggrs.size());
     non_local_ids.insert(nla.begin(), nla.end());
     aggrs.insert(mod_aggrs.begin(), mod_aggrs.end());
 
@@ -1248,32 +1300,27 @@ bool ProfileFuncs::AssessAggrEffects(SideEffectsOp::AccessType access, const Typ
                                      TypeSet& aggrs, bool& is_unknown) {
     auto assoc_attrs = AssociatedAttrs(t);
 
-    // if ( access == SideEffectsOp::READ ) printf("assessing %lu attrs for type %s (%lu, %lu, %d)\n",
-    // assoc_attrs.size(), obj_desc(t).c_str(), non_local_ids.size(), aggrs.size(), is_unknown);
-
     for ( auto a : assoc_attrs ) {
-        // printf("... assessing (%d) attr: %s\n", a == curr_candidate, obj_desc(a).c_str());
         if ( a == curr_candidate )
-            // ###
+            // Self-reference - don't treat the absence of any determination
+            // for it as meaning we can't resolve the candidate.
             continue;
 
-        auto ase = attr_side_effects.find(a);
-        if ( ase == attr_side_effects.end() ) {
+        // See whether we've already determined the side affects associated
+        // with this attribute.
+        auto ase = aggr_side_effects.find(a);
+        if ( ase == aggr_side_effects.end() ) {
             ase = record_constr_with_side_effects.find(a);
-            if ( ase == record_constr_with_side_effects.end() ) {
-                // printf("... ... didn't find it\n");
+            if ( ase == record_constr_with_side_effects.end() )
+                // Haven't resolved it yet, so can't resolve current candidate.
                 return false;
-            }
-            // printf("... ... found it for record construction (%lu)\n", ase->second.size());
         }
-        else
-            // printf("... ... found it for side effects (%lu)\n", ase->second.size());
 
-            for ( auto& se : ase->second )
-                if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) ) {
-                    is_unknown = true;
-                    return true; // no point doing any more work
-                }
+        for ( auto& se : ase->second )
+            if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) ) {
+                is_unknown = true;
+                return true;
+            }
     }
 
     return true;
@@ -1281,12 +1328,14 @@ bool ProfileFuncs::AssessAggrEffects(SideEffectsOp::AccessType access, const Typ
 
 bool ProfileFuncs::AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::AccessType access, const Type* t,
                                      IDSet& non_local_ids, TypeSet& aggrs) const {
+    // First determine whether the SideEffectsOp applies.
     if ( se->GetAccessType() != access )
         return false;
 
     if ( ! same_type(se->GetType(), t) )
         return false;
 
+    // It applies, return its effects.
     if ( se->HasUnknownChanges() )
         return true;
 
@@ -1298,53 +1347,12 @@ bool ProfileFuncs::AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::Acc
     return false;
 }
 
-bool ProfileFuncs::IsTableWithDefaultAggr(const Type* t) {
-    auto analy = aggr_tbls_analyzed.find(t);
-    if ( analy != aggr_tbls_analyzed.end() )
-        return analy->second;
-
-    if ( t->AsTableType()->Yield() ) {
-        for ( auto& at : aggr_tbls_analyzed )
-            if ( same_type(at.first, t) ) {
-                aggr_tbls_analyzed[t] = at.second;
-                return at.second;
-            }
-    }
-
-    aggr_tbls_analyzed[t] = false;
-    return false;
-}
-
-bool ProfileFuncs::HasSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const {
-    IDSet nli;
-    TypeSet aggrs;
-
-    if ( GetSideEffects(access, t.get(), nli, aggrs) )
-        return true;
-
-    return ! nli.empty() || ! aggrs.empty();
-}
-
-bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
-                                  TypeSet& aggrs) const {
-    for ( auto se : side_effects_ops ) {
-        // if ( access == SideEffectsOp::CONSTRUCTION ) printf("doing a construction side effects check: %lu\n",
-        // side_effects_ops.size());
-        if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) ) {
-            // if ( access == SideEffectsOp::CONSTRUCTION ) printf("construction side effects true\n");
-            return true;
-        }
-    }
-    // if ( access == SideEffectsOp::CONSTRUCTION ) printf("construction answer is false\n");
-    return false;
-}
-
 std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc* sf) {
     sf = sf->Primary();
 
     auto sf_se = func_side_effects.find(sf);
-
     if ( sf_se != func_side_effects.end() )
+        // Return cached result.
         return sf_se->second;
 
     bool is_unknown = false;
@@ -1353,7 +1361,6 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
 
     ASSERT(func_profs.count(sf) != 0);
     auto pf = func_profs[sf];
-
     if ( ! AssessSideEffects(pf.get(), nla, mod_aggrs, is_unknown) )
         // Can't figure it out yet.
         return nullptr;
@@ -1368,43 +1375,6 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     func_side_effects[sf] = seo;
 
     return seo;
-}
-
-bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown) {
-    // This occurs when the expression is itself a function name, and
-    // in an attribute context indicates an implicit call.
-    auto fid = n->Id();
-    auto fv = fid->GetVal();
-
-    if ( ! fv || ! fid->IsConst() ) {
-        // The value is unavailable (likely a bug), or might change
-        // at run-time.
-        is_unknown = true;
-        return true;
-    }
-
-    auto func = fv->AsFunc();
-    if ( func->GetKind() == Func::BUILTIN_FUNC ) {
-        if ( ! is_side_effect_free(func->Name()) )
-            is_unknown = true;
-        return true;
-    }
-
-    auto sf = static_cast<ScriptFunc*>(func);
-    auto seo = GetCallSideEffects(sf);
-
-    if ( ! seo )
-        return false;
-
-    if ( seo->HasUnknownChanges() )
-        is_unknown = true;
-
-    for ( auto a : seo->ModAggrs() )
-        aggrs.insert(a);
-    for ( auto nl : seo->ModNonLocals() )
-        non_local_ids.insert(nl);
-
-    return true;
 }
 
 } // namespace zeek::detail

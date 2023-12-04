@@ -590,6 +590,9 @@ expr:
 
 			if ( IsArithmetic($1->GetType()->Tag()) )
 				{
+				// Script optimization assumes that each AST
+				// node is distinct, hence the call to
+				// Duplicate() here.
 				ExprPtr sum = make_intrusive<AddExpr>(lhs->Duplicate(), rhs);
 
 				if ( sum->GetType()->Tag() != tag1 )
@@ -1590,6 +1593,13 @@ lambda_body:
 anonymous_function:
 		TOK_FUNCTION
 			{
+			// "is_export" is used in some contexts to determine
+			// whether a given newly seen identifier is a global.
+			// We're about parse a lambda body, for which all of
+			// the new identifiers should be locals, not globals,
+			// so we need to turn off "is_export" here.  We use
+			// a stack because lambdas can have additional lambdas
+			// inside their bodies.
 			hold_is_export.push_back(is_export);
 			is_export = false;
 			}

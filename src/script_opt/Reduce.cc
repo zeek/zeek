@@ -492,8 +492,6 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
         ids.push_back(e1->AsNameExpr()->Id());
 
     CSE_ValidityChecker vc(pfs, ids, e1, e2);
-
-    auto loc = reduction_root->GetLocationInfo();
     reduction_root->Traverse(&vc);
 
     return vc.IsValid();
@@ -978,9 +976,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
                 if ( CheckTableRef(aggr_t) )
                     return TC_ABORTALL;
             }
-        }
-
-        break;
+        } break;
 
         default: break;
     }
@@ -989,23 +985,12 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 }
 
 bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) {
-    // Only check type info for aggregates.
-    auto id_t = IsAggr(id->GetType()) ? id->GetType() : nullptr;
-
     for ( auto i : ids ) {
         if ( ignore_orig && i == ids.front() )
             continue;
 
         if ( id == i )
             return Invalid(); // reassignment
-
-        if ( id_t && same_type(id_t, i->GetType()) ) {
-            // Same-type aggregate.
-            // if ( ! ignore_orig ) printf("identifier %s (%d), start %s, end %s\n", id->Name(), ignore_orig,
-            // obj_desc(start_e).c_str(), obj_desc(end_e).c_str());
-            if ( ignore_orig )
-                return Invalid();
-        }
     }
 
     return false;
@@ -1065,15 +1050,8 @@ bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, con
     IDSet non_local_ids;
     TypeSet aggrs;
 
-    // if ( access == SideEffectsOp::CONSTRUCTION ) printf("assessing construction\n");
-
-    if ( pfs.GetSideEffects(access, t.get(), non_local_ids, aggrs) ) {
-        // if ( access == SideEffectsOp::CONSTRUCTION ) printf("bailing directly on construction\n");
+    if ( pfs.GetSideEffects(access, t.get(), non_local_ids, aggrs) )
         return Invalid();
-    }
-
-    // if ( access == SideEffectsOp::CONSTRUCTION ) printf("construction has %ld/%ld non-locals/aggrs\n",
-    // non_local_ids.size(), aggrs.size());
 
     return CheckSideEffects(non_local_ids, aggrs);
 }
@@ -1090,10 +1068,8 @@ bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids, const Typ
 
         auto i_t = i->GetType();
         for ( auto a : aggrs )
-            if ( same_type(a, i_t.get()) ) {
-                // printf("invalid identifier %s\n", i->Name());
+            if ( same_type(a, i_t.get()) )
                 return Invalid();
-            }
     }
 
     return false;

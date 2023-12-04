@@ -37,7 +37,6 @@
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 #include "zeek/script_opt/ScriptOpt.h"
-#include "zeek/script_opt/SideEffects.h"
 
 namespace zeek::detail {
 
@@ -287,6 +286,50 @@ protected:
     // Whether we should treat record field accesses as absolute
     // (integer offset) or relative (name-based).
     bool abs_rec_fields;
+};
+
+// Describes an operation for which some forms of access can lead to state
+// modifications.
+class SideEffectsOp {
+public:
+    // Access types correspond to:
+    //	NONE - there are no side effects
+    //	CALL - relevant for function calls
+    //	CONSTRUCTION - relevant for constructing/coercing a record
+    //	READ - relevant for reading a table element
+    //	WRITE - relevant for modifying a table element
+    enum AccessType { NONE, CALL, CONSTRUCTION, READ, WRITE };
+
+    SideEffectsOp(AccessType at = NONE, const Type* t = nullptr) : access(at), type(t) {}
+
+    auto GetAccessType() const { return access; }
+    const Type* GetType() const { return type; }
+
+    void SetUnknownChanges() { has_unknown_changes = true; }
+    bool HasUnknownChanges() const { return has_unknown_changes; }
+
+    void AddModNonGlobal(IDSet ids) { mod_non_locals.insert(ids.begin(), ids.end()); }
+    void AddModAggrs(TypeSet types) { mod_aggrs.insert(types.begin(), types.end()); }
+
+    const auto& ModNonLocals() const { return mod_non_locals; }
+    const auto& ModAggrs() const { return mod_aggrs; }
+
+private:
+    AccessType access;
+    const Type* type; // type for which some operations alter state
+
+    // Globals and/or captures that the operation potentially modifies.
+    IDSet mod_non_locals;
+
+    // Aggregates (specified by types) that potentially modified.
+    TypeSet mod_aggrs;
+
+    // Sometimes the side effects are not known (such as when making
+    // indirect function calls, so we can't know statically what function
+    // will be called). We refer to as Unknown, and their implications are
+    // presumed to be worst-case - any non-local or aggregate is potentially
+    // affected.
+    bool has_unknown_changes = false;
 };
 
 // Function pointer for a predicate that determines whether a given

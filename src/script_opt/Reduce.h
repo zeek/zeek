@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/Desc.h" // ###
 #include "zeek/Expr.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
@@ -351,15 +350,28 @@ protected:
     // potentially aliases with one of the identifiers we're tracking.
     bool CheckAggrMod(const TypePtr& t);
 
-    // About elements ...
-    // ###
+    // Returns true if a record constructor/coercion of the given type has
+    // side effects and invalides the CSE opportunity.
     bool CheckRecordConstructor(const TypePtr& t);
+
+    // The same for modifications to tables.
     bool CheckTableMod(const TypePtr& t);
+
+    // The same for accessing (reading) tables.
     bool CheckTableRef(const TypePtr& t);
+
+    // The same for the given function call.
     bool CheckCall(const CallExpr* c);
+
+    // True if the given form of access to the given type has side effects.
     bool CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t);
+
+    // True if side effects to the given identifiers and aggregates invalidate
+    // the CSE opportunity.
     bool CheckSideEffects(const IDSet& non_local_ids, const TypeSet& aggrs);
 
+    // Helper function that marks the CSE opportunity as invalid and returns
+    // "true" (used by various methods to signal invalidation).
     bool Invalid() {
         is_valid = false;
         return true;
@@ -394,9 +406,9 @@ protected:
     bool have_start_e = false;
     bool have_end_e = false;
 
-    // Whether analyzed expressions occur in the context of
-    // a statement that modifies an aggregate ("add" or "delete").
-    // ###
+    // Whether analyzed expressions occur in the context of a statement
+    // that modifies an aggregate ("add" or "delete"), which changes the
+    // interpretation of the expressions.
     bool in_aggr_mod_stmt = false;
 };
 

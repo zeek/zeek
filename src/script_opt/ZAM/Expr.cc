@@ -4,7 +4,6 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
@@ -983,7 +982,10 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     if ( ! z.aux )
         z.aux = new ZInstAux(0);
 
-    if ( ! indirect ) {
+    if ( indirect )
+        z.aux->can_change_non_locals = true;
+
+    else {
         IDSet non_local_ids;
         TypeSet aggrs;
         bool is_unknown = false;

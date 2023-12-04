@@ -67,11 +67,9 @@ ValPtr LogDelayTokenVal::DoClone(CloneState* state) {
 }
 
 // Delay tokens are only valid on the same worker.
-broker::expected<broker::data> LogDelayTokenVal::DoSerialize() const {
-    return broker::make_error(broker::ec::invalid_data, "cannot serialize delay tokens");
-}
+std::optional<BrokerData> LogDelayTokenVal::DoSerialize() const { return std::nullopt; }
 
-bool LogDelayTokenVal::DoUnserialize(const broker::data&) { return false; }
+bool LogDelayTokenVal::DoUnserialize(BrokerDataView) { return false; }
 
 IMPLEMENT_OPAQUE_VALUE(LogDelayTokenVal)
 

@@ -1,24 +1,42 @@
 #pragma once
 
+#include <cassert>
+#include <memory>
+#include <type_traits>
+
 #include "zeek/Expr.h"
 #include "zeek/Frame.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/Reporter.h"
 
+#include "broker/config.hh"
 #include "broker/data.hh"
 
 namespace zeek {
 
+/// A 64-bit timestamp with nanosecond precision.
+using BrokerTimespan = std::chrono::duration<int64_t, std::nano>;
+
 class ODesc;
 
-namespace threading {
+} // namespace zeek
+
+namespace zeek::Broker {
+
+class Manager;
+
+} // namespace zeek::Broker
+
+namespace zeek::threading {
 
 struct Value;
 struct Field;
 
-} // namespace threading
+} // namespace zeek::threading
 
-namespace Broker::detail {
+namespace zeek::Broker::detail {
+
+class StoreHandleVal;
 
 extern OpaqueTypePtr opaque_of_data_type;
 extern OpaqueTypePtr opaque_of_set_iterator;
@@ -59,7 +77,7 @@ EnumValPtr get_data_type(RecordVal* v, zeek::detail::Frame* frame);
  * @param v a Zeek value.
  * @return a Broker data value if the Zeek value could be converted to one.
  */
-broker::expected<broker::data> val_to_data(const Val* v);
+std::optional<broker::data> val_to_data(const Val* v);
 
 /**
  * Convert a Broker data value to a Zeek value.
@@ -68,7 +86,7 @@ broker::expected<broker::data> val_to_data(const Val* v);
  * @return a pointer to a new Zeek value or a nullptr if the conversion was not
  * possible.
  */
-ValPtr data_to_val(broker::data d, Type* type);
+ValPtr data_to_val(broker::data& d, Type* type);
 
 /**
  * Convert a zeek::threading::Field to a Broker data value.
@@ -255,5 +273,381 @@ protected:
     DECLARE_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
 };
 
-} // namespace Broker::detail
+} // namespace zeek::Broker::detail
+
+namespace zeek {
+
+class BrokerListView;
+
+/**
+ * Non-owning reference (view) to a Broker data value.
+ */
+class BrokerDataView {
+public:
+    friend class zeek::Broker::detail::DataVal;
+    friend class zeek::Broker::detail::SetIterator;
+    friend class zeek::Broker::detail::TableIterator;
+    friend class zeek::Broker::detail::VectorIterator;
+    friend class zeek::Broker::detail::RecordIterator;
+
+    BrokerDataView() = delete;
+
+    BrokerDataView(const BrokerDataView&) noexcept = default;
+
+    explicit BrokerDataView(broker::data* value) noexcept : value_(value) { assert(value != nullptr); }
+
+    /**
+     * Checks whether the value represents the `nil` value.
+     */
+    [[nodiscard]] bool IsNil() const noexcept { return broker::is<broker::none>(*value_); }
+
+    /**
+     * Checks whether the value is a Boolean.
+     */
+    [[nodiscard]] bool IsBool() const noexcept { return broker::is<bool>(*value_); }
+
+    /**
+     * Converts the value to a Boolean.
+     */
+    [[nodiscard]] bool ToBool(bool fallback = 0) const noexcept {
+        if ( auto val = broker::get_if<bool>(value_); val ) {
+            return *val;
+        }
+        return fallback;
+    }
+
+    /**
+     * Checks whether the value is a string.
+     */
+    [[nodiscard]] bool IsString() const noexcept { return broker::is<std::string>(*value_); }
+
+    /**
+     * Converts the value to a string.
+     */
+    [[nodiscard]] std::string_view ToString() const noexcept {
+        if ( auto val = broker::get_if<std::string>(value_); val ) {
+            return *val;
+        }
+        return std::string_view{};
+    }
+
+    /**
+     * Checks whether the value is an integer.
+     */
+    [[nodiscard]] bool IsInteger() const noexcept { return broker::is<broker::integer>(*value_); }
+
+    /**
+     * Converts the value to an integer.
+     */
+    [[nodiscard]] int64_t ToInteger(int64_t fallback = 0) const noexcept {
+        if ( auto val = broker::get_if<broker::integer>(value_); val ) {
+            return *val;
+        }
+        return fallback;
+    }
+
+    /**
+     * Checks whether the value is a count.
+     */
+    [[nodiscard]] bool IsCount() const noexcept { return broker::is<broker::count>(*value_); }
+
+    /**
+     * Converts the value to a count.
+     */
+    [[nodiscard]] uint64_t ToCount(uint64_t fallback = 0) const noexcept {
+        if ( auto val = broker::get_if<broker::count>(value_); val ) {
+            return *val;
+        }
+        return fallback;
+    }
+
+    /**
+     * Checks whether the value is a real (double).
+     */
+    [[nodiscard]] bool IsReal() const noexcept { return broker::is<broker::real>(*value_); }
+
+    /**
+     * Converts the value to a real (double).
+     */
+    [[nodiscard]] double ToReal(double fallback = 0) const noexcept {
+        if ( auto val = broker::get_if<broker::real>(value_); val ) {
+            return *val;
+        }
+        return fallback;
+    }
+
+    /**
+     * Checks whether the value is a list.
+     */
+    [[nodiscard]] bool IsList() const noexcept { return broker::is<broker::vector>(*value_); }
+
+    /**
+     * Converts the value to a list.
+     * @pre IsList()
+     */
+    [[nodiscard]] BrokerListView ToList() noexcept;
+
+    /**
+     * Tries to convert this view to a Zeek value.
+     * @returns a Zeek value or nullptr if the conversion failed.
+     */
+    [[nodiscard]] ValPtr ToVal(Type* type);
+
+    /**
+     * Renders the value as a string.
+     */
+    friend std::string to_string(const BrokerDataView& data) { return broker::to_string(*data.value_); }
+
+private:
+    broker::data* value_;
+};
+
+/**
+ * Convenience function to check whether a list of Broker data values are all of type `count`.
+ */
+template<typename... Args>
+[[nodiscard]] bool are_all_counts(BrokerDataView arg, Args&&... args) {
+    return arg.IsCount() && (args.IsCount() && ...);
+}
+
+/**
+ * Convenience function to check whether a list of Broker data values are all of type `integer`.
+ */
+template<typename... Args>
+[[nodiscard]] auto to_count(BrokerDataView arg, Args&&... args) {
+    return std::tuple{arg.ToCount(), args.ToCount()...};
+}
+
+/**
+ * Non-owning reference (view) to a Broker list value.
+ */
+class BrokerListView {
+public:
+    BrokerListView() = delete;
+
+    BrokerListView(const BrokerListView&) noexcept = default;
+
+    explicit BrokerListView(broker::vector* values) noexcept : values_(values) { assert(values != nullptr); }
+
+    /**
+     * Returns a view to the first element.
+     * @pre Size() > 0
+     */
+    [[nodiscard]] BrokerDataView Front() const { return BrokerDataView{std::addressof(values_->front())}; }
+
+    /**
+     * Returns a view to the last element.
+     * @pre Size() > 0
+     */
+    [[nodiscard]] BrokerDataView Back() const { return BrokerDataView{std::addressof(values_->back())}; }
+
+    /**
+     * Returns a view to the element at the given index.
+     * @pre index < Size()
+     */
+    [[nodiscard]] BrokerDataView operator[](size_t index) const {
+        return BrokerDataView{std::addressof((*values_)[index])};
+    }
+
+    /**
+     * Returns the number of elements in the list.
+     */
+    [[nodiscard]] size_t Size() const noexcept { return values_->size(); }
+
+    /**
+     * Checks whether the list is empty.
+     */
+    [[nodiscard]] size_t IsEmpty() const noexcept { return values_->empty(); }
+
+private:
+    broker::vector* values_;
+};
+
+class BrokerDataAccess;
+
+class BrokerListBuilder;
+
+/**
+ * Owning wrapper for a Broker data value.
+ */
+class BrokerData {
+public:
+    friend class BrokerDataAccess;
+    friend class BrokerListBuilder;
+    friend class zeek::Broker::Manager;
+    friend class zeek::Broker::detail::StoreHandleVal;
+
+    BrokerData() = default;
+
+    template<class DataType, class = std::enable_if_t<std::is_same_v<DataType, broker::data>>>
+    explicit BrokerData(DataType value) : value_(std::move(value)) {
+        // Note: we use enable_if here to avoid nasty implicit conversions of broker::data.
+    }
+
+    BrokerDataView AsView() noexcept { return BrokerDataView{std::addressof(value_)}; }
+
+    /**
+     * Attempts to parse a Zeek value into a Broker value. On success, the Broker
+     * value is stored in this object.
+     * @returns `true` if the conversion succeeded, `false` otherwise.
+     */
+    [[nodiscard]] bool Convert(const Val* value);
+
+    /**
+     * @copydoc Convert(const Val*)
+     */
+    [[nodiscard]] bool Convert(const ValPtr& value) { return Convert(value.get()); }
+
+    /**
+     * Converts this value to a Zeek record.
+     */
+    [[nodiscard]] RecordValPtr ToRecordVal() &&;
+
+    /**
+     * Convenience function for converting a Zeek value to a Broker value and then
+     * to a Zeek record.
+     */
+    [[nodiscard]] static RecordValPtr ToRecordVal(const Val* value);
+
+    /**
+     * @copydoc ToRecordVal(const Val*)
+     */
+    [[nodiscard]] static RecordValPtr ToRecordVal(const ValPtr& value) { return ToRecordVal(value.get()); }
+
+    /**
+     * Creates a Broker value from a string.
+     */
+    [[nodiscard]] static BrokerData FromString(const char* cstr, size_t len) {
+        return BrokerData{broker::data{std::string{cstr, len}}};
+    }
+
+    /**
+     * Renders the value as a string.
+     */
+    friend std::string to_string(const BrokerData& data) { return broker::to_string(data.value_); }
+
+private:
+    broker::data value_;
+};
+
+/**
+ * Utility class for building a BrokerData containing a list of values.
+ */
+class BrokerListBuilder {
+public:
+    friend class zeek::Broker::Manager;
+
+    /**
+     * Reserves space for up to `n` elements.
+     */
+    void Reserve(size_t n) { values_.reserve(n); }
+
+    /**
+     * Tries to convert a Zeek value into a Broker value and adds it to the list on success.
+     */
+    [[nodiscard]] bool Add(const Val* value);
+
+    /**
+     * @copydoc Add(const Val*)
+     */
+    [[nodiscard]] bool Add(const ValPtr& value) { return Add(value.get()); }
+
+    /**
+     * Adds `value` as a Broker `count` to the list, automatically converting it if necessary.
+     */
+    template<typename T>
+    void AddCount(T value) {
+        if constexpr ( std::is_enum_v<T> ) {
+            AddCount(static_cast<std::underlying_type_t<T>>(value));
+        }
+        else {
+            static_assert(std::is_integral_v<T> && ! std::is_same_v<bool, T>);
+            static_assert(std::is_unsigned_v<T>);
+            static_assert(sizeof(T) <= sizeof(broker::count));
+            values_.emplace_back(static_cast<broker::count>(value));
+        }
+    }
+
+    /**
+     * Adds `value` as a Broker `integer` to the list, automatically converting it if necessary.
+     */
+    template<typename T>
+    void AddInteger(T value) {
+        if constexpr ( std::is_enum_v<T> ) {
+            AddInteger(static_cast<std::underlying_type_t<T>>(value));
+        }
+        else {
+            static_assert(std::is_integral_v<T> && ! std::is_same_v<bool, T>);
+            static_assert(std::is_signed_v<T>);
+            static_assert(sizeof(T) <= sizeof(broker::integer));
+            values_.emplace_back(static_cast<broker::integer>(value));
+        }
+    }
+
+    /**
+     * Appends `value` to the end of the list.
+     */
+    void Add(uint64_t value) { values_.emplace_back(static_cast<broker::count>(value)); }
+
+    /**
+     * Appends `value` to the end of the list.
+     */
+    void Add(int64_t value) { values_.emplace_back(static_cast<broker::integer>(value)); }
+
+    /**
+     * Appends `value` to the end of the list.
+     */
+    void Add(double value) { values_.emplace_back(value); }
+
+    /**
+     * Appends `value` to the end of the list.
+     */
+    void Add(bool value) { values_.emplace_back(value); }
+
+    /**
+     * Appends `value` to the end of the list.
+     */
+    void Add(std::string value) { values_.emplace_back(std::move(value)); }
+
+    /**
+     * Appends a string to the end of the list.
+     * @param cstr The characters to append.
+     * @param len The number of characters to append.
+     */
+    void Add(const char* cstr, size_t len) { values_.emplace_back(std::string{cstr, len}); }
+
+    /**
+     * Appends `value` to the end of the list.
+     */
+    void Add(BrokerData value) { values_.emplace_back(std::move(value.value_)); }
+
+    /**
+     * Appends all elements from `builder` to the end of the list as a single element.
+     */
+    void Add(BrokerListBuilder&& builder) { values_.emplace_back(std::move(builder.values_)); }
+
+    /**
+     * Appends the `nil` value to the end of the list.
+     */
+    void AddNil() { values_.emplace_back(); }
+
+    /**
+     * Adds a list of values to the list (as a single element).
+     */
+    template<class... Ts>
+    void AddList(Ts&&... values) {
+        BrokerListBuilder sub;
+        (sub.Add(std::forward<Ts>(values)), ...);
+        values_.emplace_back(std::move(sub.values_));
+    }
+
+    /**
+     * Builds a `BrokerData` containing the list of values.
+     */
+    BrokerData Build() && { return BrokerData{broker::data{std::move(values_)}}; }
+
+private:
+    broker::vector values_;
+};
+
 } // namespace zeek

@@ -8,6 +8,7 @@
 #include "zeek/Expr.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/Trigger.h"
+#include "zeek/broker/Data.h"
 #include "zeek/broker/data.bif.h"
 #include "zeek/broker/store.bif.h"
 
@@ -109,6 +110,10 @@ public:
           store_pid{store.frontend_id()},
           forward_to{},
           have_store{true} {}
+
+    void Put(BrokerData&& key, BrokerData&& value, std::optional<BrokerTimespan> expiry = std::nullopt);
+
+    void Erase(BrokerData&& key);
 
     void ValDescribe(ODesc* d) const override;
 

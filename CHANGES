@@ -1,3 +1,7 @@
+6.2.0-dev.229 | 2023-12-04 12:32:17 -0800
+
+  * Add facade types to avoid using raw Broker types (Dominik Charousset, Corelight)
+
 6.2.0-dev.226 | 2023-12-04 18:57:29 +0100
 
   * logging: Fix coverity std::move suggestions (Arne Welzel, Corelight)

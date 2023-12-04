@@ -18,8 +18,8 @@ Telemetry::INT_GAUGE, broker, buffered-messages, [type], [data], 0.0
 count_value, 0
 Telemetry::INT_GAUGE, broker, buffered-messages, [type], [command], 0.0
 count_value, 0
-Telemetry::INT_GAUGE, broker, buffered-messages, [type], [routing-update], 2.0
-count_value, 2
+Telemetry::INT_GAUGE, broker, buffered-messages, [type], [routing-update], 0.0
+count_value, 0
 Telemetry::INT_GAUGE, broker, buffered-messages, [type], [ping], 0.0
 count_value, 0
 Telemetry::INT_GAUGE, broker, buffered-messages, [type], [pong], 0.0

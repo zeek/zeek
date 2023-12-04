@@ -1,3 +1,22 @@
+6.2.0-dev.226 | 2023-12-04 18:57:29 +0100
+
+  * logging: Fix coverity std::move suggestions (Arne Welzel, Corelight)
+
+  * logging/Manager: Fix coverity null-deref (Arne Welzel, Corelight)
+
+    Prior code assumed non-null stream given the active_write_ctx matches,
+    but please coverity.
+
+  * Fix some compiler warnings in logging::Manager (Tim Wojtulewicz, Corelight)
+
+  * logging/Manager: Fix token_val->AsCount() in debug logging (Arne Welzel, Corelight)
+
+    Second UBSAN error triggered from log delay merge.
+
+  * logging/Manager: Fix AsTime() to AsInterval() (Arne Welzel, Corelight)
+
+    Found by UBSAN after merge of log delay branch.
+
 6.2.0-dev.218 | 2023-12-01 12:04:32 +0100
 
   * logging: ref() to record_ref() renaming (Arne Welzel, Corelight)

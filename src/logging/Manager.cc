@@ -159,7 +159,7 @@ const DelayInfoPtr DelayInfo::nil = nullptr;
 class LogDelayExpiredTimer : public zeek::detail::Timer {
 public:
     LogDelayExpiredTimer(std::function<void(double, bool)> dispatch_callback, double t)
-        : Timer(t, zeek::detail::TIMER_LOG_DELAY_EXPIRE), dispatch_callback(dispatch_callback) {}
+        : Timer(t, zeek::detail::TIMER_LOG_DELAY_EXPIRE), dispatch_callback(std::move(dispatch_callback)) {}
 
     void Dispatch(double t, bool is_expire) override { dispatch_callback(t, is_expire); }
 
@@ -995,7 +995,7 @@ bool Manager::Write(EnumVal* id, RecordVal* columns_arg) {
         }
     } // scope for active write.
 
-    return WriteToFilters(stream, columns, stream_veto ? PolicyVerdict::VETO : PolicyVerdict::PASS);
+    return WriteToFilters(stream, std::move(columns), stream_veto ? PolicyVerdict::VETO : PolicyVerdict::PASS);
 }
 
 bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr columns, PolicyVerdict stream_verdict) {
@@ -1119,9 +1119,7 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
                 // Rename fields if a field name map is set.
                 if ( filter->field_name_map ) {
                     const char* name = filter->fields[j]->name;
-                    auto fn = make_intrusive<StringVal>(name);
-
-                    if ( const auto& val = filter->field_name_map->Find(fn) ) {
+                    if ( const auto& val = filter->field_name_map->Find(make_intrusive<StringVal>(name)) ) {
                         delete[] filter->fields[j]->name;
                         auto [data, len] = val->AsStringVal()->CheckStringWithSize();
                         filter->fields[j]->name = util::copy_string(data, len);
@@ -1207,6 +1205,8 @@ ValPtr Manager::Delay(const EnumValPtr& id, const RecordValPtr record, FuncPtr p
 
     ValPtr token_val;
     Stream* stream = FindStream(id.get());
+    if ( ! stream )
+        return make_intrusive<detail::LogDelayTokenVal>();
 
     if ( const auto& delay_info = stream->GetDelayInfo(active_write_ctx); delay_info ) {
         // Previously delayed, return the same token to script-land.

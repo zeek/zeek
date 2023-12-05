@@ -8,14 +8,14 @@
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/module_util.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
 
-ZAMCompiler::ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> _pf, ScopePtr _scope, StmtPtr _body,
-                         std::shared_ptr<UseDefs> _ud, std::shared_ptr<Reducer> _rd) {
+ZAMCompiler::ZAMCompiler(ScriptFunc* f, ProfileFuncs& _pfs, std::shared_ptr<ProfileFunc> _pf, ScopePtr _scope,
+                         StmtPtr _body, std::shared_ptr<UseDefs> _ud, std::shared_ptr<Reducer> _rd)
+    : pfs(_pfs) {
     func = f;
     pf = std::move(_pf);
     scope = std::move(_scope);

@@ -147,7 +147,8 @@ static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf, std::s
     return true;
 }
 
-static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr& body) {
+static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ProfileFuncs& pfs, ScopePtr scope,
+                          StmtPtr& body) {
     if ( reporter->Errors() > 0 )
         return;
 
@@ -167,7 +168,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
     push_existing_scope(scope);
 
-    auto rc = std::make_shared<Reducer>(f, pf);
+    auto rc = std::make_shared<Reducer>(f, pf, pfs);
     auto new_body = rc->Reduce(body);
 
     if ( reporter->Errors() > 0 ) {
@@ -230,7 +231,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
         f->SetFrameSize(new_frame_size);
 
     if ( analysis_options.gen_ZAM_code ) {
-        ZAMCompiler ZAM(f, pf, scope, new_body, ud, rc);
+        ZAMCompiler ZAM(f, pfs, pf, scope, new_body, ud, rc);
 
         new_body = ZAM.CompileBody();
 
@@ -413,16 +414,18 @@ static void use_CPP() {
         reporter->FatalError("no C++ functions found to use");
 }
 
-static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs) {
+static void generate_CPP() {
     const auto gen_name = CPP_dir + "CPP-gen.cc";
 
     const bool standalone = analysis_options.gen_standalone_CPP;
     const bool report = analysis_options.report_uncompilable;
 
+    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+
     CPPCompile cpp(funcs, *pfs, gen_name, standalone, report);
 }
 
-static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
+static void analyze_scripts_for_ZAM() {
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,
                 "warning: \"-O optimize-AST\" option is incompatible with -u option, "
@@ -430,15 +433,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
         analysis_options.optimize_AST = false;
     }
 
-    // Re-profile the functions, now without worrying about compatibility
-    // with compilation to C++.
-
-    // The first profiling pass earlier may have marked some of the
-    // functions as to-skip, so clear those markings.
-    for ( auto& f : funcs )
-        f.SetSkip(false);
-
-    pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
+    auto pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
 
     bool report_recursive = analysis_options.report_recursive;
     std::unique_ptr<Inliner> inl;
@@ -492,7 +487,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
         }
 
         auto new_body = f.Body();
-        optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
+        optimize_func(func, f.ProfilePtr(), *pfs, f.Scope(), new_body);
         f.SetBody(new_body);
 
         if ( is_lambda )
@@ -566,10 +561,6 @@ void analyze_scripts(bool no_unused_warnings) {
     if ( ! have_one_to_do )
         reporter->FatalError("no matching functions/files for C++ compilation");
 
-    // Now that everything's parsed and BiF's have been initialized,
-    // profile the functions.
-    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
-
     if ( CPP_init_hook ) {
         (*CPP_init_hook)();
         if ( compiled_scripts.empty() )
@@ -591,13 +582,13 @@ void analyze_scripts(bool no_unused_warnings) {
         if ( analysis_options.gen_ZAM )
             reporter->FatalError("-O ZAM and -O gen-C++ conflict");
 
-        generate_CPP(pfs);
+        generate_CPP();
         exit(0);
     }
 
     // At this point we're done with C++ considerations, so instead
     // are compiling to ZAM.
-    analyze_scripts_for_ZAM(pfs);
+    analyze_scripts_for_ZAM();
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

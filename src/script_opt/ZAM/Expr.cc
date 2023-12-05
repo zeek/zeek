@@ -4,7 +4,6 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
@@ -667,11 +666,10 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c3);
             }
 
-            // See the discussion in CSE_ValidityChecker::PreExpr
-            // regarding always needing to treat this as potentially
-            // modifying globals.
-            z.aux = new ZInstAux(0);
-            z.aux->can_change_non_locals = true;
+            if ( pfs.HasSideEffects(SideEffectsOp::READ, n2t) ) {
+                z.aux = new ZInstAux(0);
+                z.aux->can_change_non_locals = true;
+            }
 
             return AddInst(z);
         }
@@ -853,6 +851,9 @@ const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
     z.aux = InternalBuildVals(op2);
     z.t = op3->GetType();
 
+    if ( pfs.HasSideEffects(SideEffectsOp::WRITE, op1->GetType()) )
+        z.aux->can_change_non_locals = true;
+
     return AddInst(z);
 }
 
@@ -1004,7 +1005,20 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     if ( ! z.aux )
         z.aux = new ZInstAux(0);
 
-    z.aux->can_change_non_locals = true;
+    if ( indirect )
+        z.aux->can_change_non_locals = true;
+
+    else {
+        IDSet non_local_ids;
+        TypeSet aggrs;
+        bool is_unknown = false;
+
+        auto resolved = pfs.GetCallSideEffects(func, non_local_ids, aggrs, is_unknown);
+        ASSERT(resolved);
+
+        if ( is_unknown || ! non_local_ids.empty() || ! aggrs.empty() )
+            z.aux->can_change_non_locals = true;
+    }
 
     z.call_expr = {NewRef{}, const_cast<CallExpr*>(c)};
 
@@ -1089,7 +1103,7 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
 
     z.t = e->GetType();
 
-    if ( ! rc->GetType<RecordType>()->IdempotentCreation() )
+    if ( pfs.HasSideEffects(SideEffectsOp::CONSTRUCTION, z.t) )
         z.aux->can_change_non_locals = true;
 
     return AddInst(z);
@@ -1187,6 +1201,9 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
 
     // Mark the integer entries in z.aux as not being frame slots as usual.
     z.aux->slots = nullptr;
+
+    if ( pfs.HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
+        z.aux->can_change_non_locals = true;
 
     return AddInst(z);
 }

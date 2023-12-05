@@ -16,7 +16,7 @@ class TempVar;
 
 class Reducer {
 public:
-    Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> pf);
+    Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> pf, ProfileFuncs& pfs);
 
     StmtPtr Reduce(StmtPtr s);
 
@@ -131,24 +131,22 @@ public:
         replaced_stmts.clear();
     }
 
-    // Given the LHS and RHS of an assignment, returns true
-    // if the RHS is a common subexpression (meaning that the
-    // current assignment statement should be deleted).  In
-    // that case, has the side effect of associating an alias
-    // for the LHS with the temporary variable that holds the
-    // equivalent RHS; or if the LHS is a local that has no other
-    // assignments, and the same for the RHS.
+    // Given the LHS and RHS of an assignment, returns true if the RHS is
+    // a common subexpression (meaning that the current assignment statement
+    // should be deleted).  In that case, has the side effect of associating
+    // an alias for the LHS with the temporary variable that holds the
+    // equivalent RHS; or if the LHS is a local that has no other assignments,
+    // and the same for the RHS.
     //
-    // Assumes reduction (including alias propagation) has
-    // already been applied.
+    // Assumes reduction (including alias propagation) has already been applied.
+
     bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
     // Returns a constant representing folding of the given expression
     // (which must have constant operands).
     ConstExprPtr Fold(ExprPtr e);
 
-    // Notes that the given expression has been folded to the
-    // given constant.
+    // Notes that the given expression has been folded to the given constant.
     void FoldedTo(ExprPtr orig, ConstExprPtr c);
 
     // Given an lhs=rhs statement followed by succ_stmt, returns
@@ -237,6 +235,9 @@ protected:
     // Profile associated with the function.
     std::shared_ptr<ProfileFunc> pf;
 
+    // Profile across all script functions - used for optimization decisions.
+    ProfileFuncs& pfs;
+
     // Tracks the temporary variables created during the reduction/
     // optimization process.
     std::vector<std::shared_ptr<TempVar>> temps;
@@ -324,7 +325,7 @@ protected:
 
 class CSE_ValidityChecker : public TraversalCallback {
 public:
-    CSE_ValidityChecker(const std::vector<const ID*>& ids, const Expr* start_e, const Expr* end_e);
+    CSE_ValidityChecker(ProfileFuncs& pfs, const std::vector<const ID*>& ids, const Expr* start_e, const Expr* end_e);
 
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PostStmt(const Stmt*) override;
@@ -342,20 +343,46 @@ public:
 
 protected:
     // Returns true if an assignment involving the given identifier on
-    // the LHS is in conflict with the given list of identifiers.
-    bool CheckID(const std::vector<const ID*>& ids, const ID* id, bool ignore_orig) const;
+    // the LHS is in conflict with the identifiers we're tracking.
+    bool CheckID(const ID* id, bool ignore_orig);
 
-    // Returns true if the assignment given by 'e' modifies an aggregate
-    // with the same type as that of one of the identifiers.
-    bool CheckAggrMod(const std::vector<const ID*>& ids, const Expr* e) const;
+    // Returns true if a modification to an aggregate of the given type
+    // potentially aliases with one of the identifiers we're tracking.
+    bool CheckAggrMod(const TypePtr& t);
+
+    // Returns true if a record constructor/coercion of the given type has
+    // side effects and invalides the CSE opportunity.
+    bool CheckRecordConstructor(const TypePtr& t);
+
+    // The same for modifications to tables.
+    bool CheckTableMod(const TypePtr& t);
+
+    // The same for accessing (reading) tables.
+    bool CheckTableRef(const TypePtr& t);
+
+    // The same for the given function call.
+    bool CheckCall(const CallExpr* c);
+
+    // True if the given form of access to the given type has side effects.
+    bool CheckSideEffects(SideEffectsOp::AccessType access, const TypePtr& t);
+
+    // True if side effects to the given identifiers and aggregates invalidate
+    // the CSE opportunity.
+    bool CheckSideEffects(const IDSet& non_local_ids, const TypeSet& aggrs);
+
+    // Helper function that marks the CSE opportunity as invalid and returns
+    // "true" (used by various methods to signal invalidation).
+    bool Invalid() {
+        is_valid = false;
+        return true;
+    }
+
+    // Profile across all script functions.
+    ProfileFuncs& pfs;
 
     // The list of identifiers for which an assignment to one of them
     // renders the CSE unsafe.
     const std::vector<const ID*>& ids;
-
-    // Whether the list of identifiers includes some that we should
-    // consider potentially altered by a function call.
-    bool sensitive_to_calls = false;
 
     // Where in the AST to start our analysis.  This is the initial
     // assignment expression.
@@ -379,8 +406,9 @@ protected:
     bool have_start_e = false;
     bool have_end_e = false;
 
-    // Whether analyzed expressions occur in the context of
-    // a statement that modifies an aggregate ("add" or "delete").
+    // Whether analyzed expressions occur in the context of a statement
+    // that modifies an aggregate ("add" or "delete"), which changes the
+    // interpretation of the expressions.
     bool in_aggr_mod_stmt = false;
 };
 

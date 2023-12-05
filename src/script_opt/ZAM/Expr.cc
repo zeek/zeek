@@ -953,8 +953,12 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
                         op = OP_WHENCALLN_V;
                 }
 
-                else if ( indirect )
-                    op = n ? OP_INDCALLN_VV : OP_INDCALLN_V;
+                else if ( indirect ) {
+                    if ( func_id->IsGlobal() )
+                        op = n ? OP_INDCALLN_V : OP_INDCALLN_X;
+                    else
+                        op = n ? OP_LOCAL_INDCALLN_VV : OP_LOCAL_INDCALLN_V;
+                }
 
                 else
                     op = n ? OP_CALLN_V : OP_CALLN_X;
@@ -968,11 +972,14 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
             auto n_slot = Frame1Slot(n, OP1_WRITE);
 
             if ( indirect ) {
-                if ( func_id->IsGlobal() )
-                    z = ZInstI(op, n_slot, -1);
-                else
+                if ( func_id->IsGlobal() ) {
+                    z = ZInstI(op, n_slot);
+                    z.op_type = OP_V;
+                }
+                else {
                     z = ZInstI(op, n_slot, FrameSlot(func));
-                z.op_type = OP_VV;
+                    z.op_type = OP_VV;
+                }
             }
 
             else {
@@ -981,11 +988,8 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
             }
         }
         else {
-            if ( indirect ) {
-                if ( func_id->IsGlobal() )
-                    z = ZInstI(op, -1);
-                else
-                    z = ZInstI(op, FrameSlot(func));
+            if ( indirect && ! func_id->IsGlobal() ) {
+                z = ZInstI(op, FrameSlot(func));
                 z.op_type = OP_V;
             }
             else {

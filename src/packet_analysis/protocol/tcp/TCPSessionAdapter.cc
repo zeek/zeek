@@ -1027,8 +1027,11 @@ void TCPSessionAdapter::FlipRoles() {
 }
 
 void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
-    auto orig_endp_val = conn_val->GetFieldAs<RecordVal>("orig");
-    auto resp_endp_val = conn_val->GetFieldAs<RecordVal>("resp");
+    static const auto& conn_type = zeek::id::find_type<zeek::RecordType>("connection");
+    static const int origidx = conn_type->FieldOffset("orig");
+    static const int respidx = conn_type->FieldOffset("resp");
+    auto* orig_endp_val = conn_val->GetFieldAs<RecordVal>(origidx);
+    auto* resp_endp_val = conn_val->GetFieldAs<RecordVal>(respidx);
 
     orig_endp_val->Assign(0, orig->Size());
     orig_endp_val->Assign(1, orig->state);

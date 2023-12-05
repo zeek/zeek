@@ -1,3 +1,66 @@
+6.2.0-dev.238 | 2023-12-05 16:00:56 +0100
+
+  * SegmentProfiler: Do not initialize initial_rusage (Arne Welzel, Corelight)
+
+    We use the SegmentProfiler in quite a few hot places and the memset of
+    the rusage structure (144bytes here) can show up significantly even if
+    the segment profiler itself isn't used.
+
+    Relates to #3485.
+
+  * EventMgr: Remove queue_flare, use GetNextTimeout() instead (Arne Welzel, Corelight)
+
+    It can be visible overhead to call write() on the underlying pipe of the
+    EventMgr's flare whenever the first event is enqueued during an IO loop
+    iteration. Particularly in scenarios where there's about 1 event per packet
+    for long lived connections and script-side event processing is fast.
+
+    Given the event manager is drained anyhow at the end of the main loop, this
+    shouldn't be needed. In fact, the EventMgr.Process() method is basically
+    a stub. The one reason it is needed is when more events are enqueued during
+    a drain. That, however, can be dealt with by implementing GetNextTimeout()
+    to return 0.0 when there's more events queued. This way the main-loop's poll
+    timeout is 0.0 and it'll continue immediately.
+
+    This also allows to removes some extra code and drop the recently introduced
+    InitPostFork() addition: Without a pipe, there's no need to recreate it.
+
+  * UpdateConnVal: Avoid FieldOffset() calls (Arne Welzel, Corelight)
+
+    These can be significant if a lot of new connections and or events
+    are created for which an existing conn val needs updating and otherwise
+    things are very fast.
+
+  * RuleActionMIME: Switch to std::string (Arne Welzel, Corelight)
+
+    And return const std::string& from GetMIME(). Probably not at all performance
+    relevant, but while I'm already here.
+
+  * signatures: Support custom event via [event_name] syntax (Arne Welzel, Corelight)
+
+    This change allows to specify a per signature specific event, overriding
+    the default signature_match event. It further removes the message
+    parameter from such events if not provided in the signature.
+
+    This also tracks the message as StringValPtr directly to avoid
+    allocating the same StringVal for every DoAction() call.
+
+    Closes #3403
+
+  * zeek-setup: Exit when rule loading tickles reporter errors (Arne Welzel, Corelight)
+
+    With custom events for signatures, Reporter::error() may be invoked
+    while loading them. Early exit in case that happens. We could continue
+    and either disable the signatures or fallback to the default
+    signature_match() event, but not sure that would be obviously better.
+
+  * rule-scan: Copy yytext strings (Arne Welzel, Corelight)
+
+    When trying to use TOK_IDENT and TOK_STRING in a single rule, that
+    resulted in "corrupt" strings.
+
+    https://www.gnu.org/software/bison/manual/html_node/Strings-are-Destroyed.html
+
 6.2.0-dev.229 | 2023-12-04 12:32:17 -0800
 
   * Add facade types to avoid using raw Broker types (Dominik Charousset, Corelight)

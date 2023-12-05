@@ -506,8 +506,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         // If we get here, we're a supervised node that just returned
         // from CreateStem() after being forked from the stem.
         Supervisor::ThisNode()->Init(&options);
-
-        event_mgr.InitPostFork();
     }
 
     script_coverage_mgr.ReadStats();

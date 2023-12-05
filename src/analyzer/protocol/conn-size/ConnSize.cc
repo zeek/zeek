@@ -139,20 +139,15 @@ void ConnSize_Analyzer::SetDurationThreshold(double duration) {
 }
 
 void ConnSize_Analyzer::UpdateConnVal(RecordVal* conn_val) {
-    // RecordType *connection_type is declared in NetVar.h
-    RecordVal* orig_endp = conn_val->GetFieldAs<RecordVal>("orig");
-    RecordVal* resp_endp = conn_val->GetFieldAs<RecordVal>("resp");
+    static const auto& conn_type = zeek::id::find_type<zeek::RecordType>("connection");
+    static const int origidx = conn_type->FieldOffset("orig");
+    static const int respidx = conn_type->FieldOffset("resp");
+    static const auto& endpoint_type = zeek::id::find_type<zeek::RecordType>("endpoint");
+    static const int pktidx = endpoint_type->FieldOffset("num_pkts");
+    static const int bytesidx = endpoint_type->FieldOffset("num_bytes_ip");
 
-    // endpoint is the RecordType from NetVar.h
-    int pktidx = id::endpoint->FieldOffset("num_pkts");
-    int bytesidx = id::endpoint->FieldOffset("num_bytes_ip");
-
-    if ( pktidx < 0 )
-        reporter->InternalError("'endpoint' record missing 'num_pkts' field");
-
-    if ( bytesidx < 0 )
-        reporter->InternalError("'endpoint' record missing 'num_bytes_ip' field");
-
+    auto* orig_endp = conn_val->GetFieldAs<RecordVal>(origidx);
+    auto* resp_endp = conn_val->GetFieldAs<RecordVal>(respidx);
     orig_endp->Assign(pktidx, orig_pkts);
     orig_endp->Assign(bytesidx, orig_bytes);
     resp_endp->Assign(pktidx, resp_pkts);

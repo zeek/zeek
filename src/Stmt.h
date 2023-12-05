@@ -122,6 +122,7 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
     bool NoFlowAfter(bool ignore_break) const override;
+    bool CouldReturn(bool ignore_break) const override;
 
 protected:
     ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
@@ -182,6 +183,7 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
     bool NoFlowAfter(bool ignore_break) const override;
+    bool CouldReturn(bool ignore_break) const override;
 
 protected:
     friend class ZAMCompiler;
@@ -301,6 +303,8 @@ public:
 
     // Note, no need for a NoFlowAfter method because the loop might
     // execute zero times, so it's always the default of "false".
+    // However, we do need to check for potential returns.
+    bool CouldReturn(bool ignore_break) const override;
 
 protected:
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
@@ -350,6 +354,8 @@ public:
 
     // Note, no need for a NoFlowAfter method because the loop might
     // execute zero times, so it's always the default of "false".
+    // However, we do need to check for potential returns.
+    bool CouldReturn(bool ignore_break) const override;
 
 protected:
     ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
@@ -395,6 +401,7 @@ public:
     StmtPtr Duplicate() override { return SetSucc(new BreakStmt()); }
 
     bool NoFlowAfter(bool ignore_break) const override { return ! ignore_break; }
+    bool CouldReturn(bool ignore_break) const override { return ! ignore_break; }
 
 protected:
 };
@@ -436,6 +443,7 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
     bool NoFlowAfter(bool ignore_break) const override { return true; }
+    bool CouldReturn(bool ignore_break) const override { return true; }
 };
 
 class StmtList : public Stmt {
@@ -460,6 +468,7 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
     bool NoFlowAfter(bool ignore_break) const override;
+    bool CouldReturn(bool ignore_break) const override;
 
     // Idioms commonly used in reduction.
     StmtList(StmtPtr s1, StmtPtr s2);
@@ -725,7 +734,7 @@ public:
 
     // Note, no need for a NoFlowAfter() method because anything that
     // has "NoFlowAfter" inside the body still gets caught and we
-    // continue afterwards.
+    // continue afterwards.  Same goes for CouldReturn().
 
     StmtPtr Duplicate() override;
 

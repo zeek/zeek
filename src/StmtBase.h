@@ -138,6 +138,12 @@ public:
     // in that case, they do lead to flow reaching the end.
     virtual bool NoFlowAfter(bool ignore_break) const { return false; }
 
+    // True if the statement could potentially execute a return. This is
+    // used by script optimization to track confluence inside catch-return
+    // blocks. Here, ignore_break is false if we're analyzing a coalesced
+    // hook body.
+    virtual bool CouldReturn(bool ignore_break) const { return false; }
+
     // Access to the original statement from which this one is derived,
     // or this one if we don't have an original.  Returns a bare pointer
     // rather than a StmtPtr to emphasize that the access is read-only.

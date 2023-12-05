@@ -395,6 +395,7 @@ set(MAIN_SRCS
     script_opt/CPP/Vars.cc
     ${_gen_zeek_script_cpp}
     script_opt/Expr.cc
+    script_opt/FuncInfo.cc
     script_opt/GenIDDefs.cc
     script_opt/IDOptInfo.cc
     script_opt/Inline.cc

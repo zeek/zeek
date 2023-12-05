@@ -93,9 +93,10 @@ private:
 
     // Stack of confluence blocks corresponding to activate catch-return
     // statements.  We used to stop identifier definitions at these
-    // boundaries, but given there's no confluence (i.e., the body of the
-    // catch-return *will* execute), we can do broader optimization if we
-    // don't treat them as their own (new) confluence blocks.
+    // boundaries, but given there's limited confluence (i.e., the body of
+    // the catch-return *will* execute, up through its first return), we
+    // can do broader optimization if we don't treat them as their own
+    // (new) confluence blocks.
     std::vector<zeek_uint_t> cr_active;
 
     // The following is parallel to confluence_blocks except

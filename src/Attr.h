@@ -150,5 +150,8 @@ protected:
 // it will be returned in err_msg.
 extern bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_record, std::string& err_msg);
 
+// Returns the script-level name associated with an attribute, e.g. "&default".
+extern const char* attr_name(AttrTag t);
+
 } // namespace detail
 } // namespace zeek

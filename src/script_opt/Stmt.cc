@@ -975,10 +975,13 @@ TraversalCode CatchReturnStmt::Traverse(TraversalCallback* cb) const {
     TraversalCode tc = cb->PreStmt(this);
     HANDLE_TC_STMT_PRE(tc);
 
-    block->Traverse(cb);
+    tc = block->Traverse(cb);
+    HANDLE_TC_STMT_PRE(tc);
 
-    if ( ret_var )
-        ret_var->Traverse(cb);
+    if ( ret_var ) {
+        tc = ret_var->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
 
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);

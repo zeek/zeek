@@ -1,3 +1,9 @@
+6.2.0-dev.241 | 2023-12-06 11:41:29 +0100
+
+  * spicy/runtime-support: Use Vector::unsafeBegin() for args iteration (Arne Welzel, Corelight)
+
+  * Bump spicy submodule (Arne Welzel, Corelight)
+
 6.2.0-dev.238 | 2023-12-05 16:00:56 +0100
 
   * SegmentProfiler: Do not initialize initial_rusage (Arne Welzel, Corelight)

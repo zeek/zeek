@@ -1,3 +1,21 @@
+6.2.0-dev.245 | 2023-12-06 18:42:25 +0100
+
+  * Bump cmake submodule (Arne Welzel, Corelight)
+
+  * iosource: Specify libkqueue dependency for subdir lib (Arne Welzel, Corelight)
+
+    Since a while my build has been spilling the following warnings:
+
+        [18/1687] Building C object auxil/c-ares/src/lib/CMakeFiles/c-ares.dir/ares__addrinfo2hostent.c.o
+        cc1: warning: zeek/prod-build/libkqueue-build/include: No such file or directory [-Wmissing-include-dirs]
+
+    My take is that FindKqueue extends the include directories globally and
+    tickles this warning because c-ares is built first. Grepping around,
+    <sys/event.h> is only included in iosource/Manager.cc, so we should
+    be able to reduce the exposure just to the iosource subdir.
+
+  * Update zeek-aux submodule (Arne Welzel, Corelight)
+
 6.2.0-dev.241 | 2023-12-06 11:41:29 +0100
 
   * spicy/runtime-support: Use Vector::unsafeBegin() for args iteration (Arne Welzel, Corelight)

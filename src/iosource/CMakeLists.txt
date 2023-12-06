@@ -1,5 +1,9 @@
 zeek_add_subdir_library(
     iosource
+    INCLUDE_DIRS
+    ${LIBKQUEUE_INCLUDE_DIRS}
+    DEPENDENCIES
+    ${LIBKQUEUE_LIBRARIES}
     SOURCES
     BPF_Program.cc
     Component.cc

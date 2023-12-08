@@ -1194,7 +1194,7 @@ ValPtr Manager::Delay(const EnumValPtr& id, const RecordValPtr record, FuncPtr p
     }
 
     const auto& active_write_ctx = active_writes.back();
-    if ( active_write_ctx.id != id || active_write_ctx.record != record ) {
+    if ( active_write_ctx.id->Get() != id->Get() || active_write_ctx.record != record ) {
         reporter->Error("invalid Log::delay() call: argument mismatch with active Log::write()");
         return make_intrusive<detail::LogDelayTokenVal>();
     }

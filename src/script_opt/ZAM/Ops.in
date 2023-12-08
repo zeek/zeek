@@ -1832,7 +1832,6 @@ op1-read
 type VVV
 eval	auto v = frame[z.v1].subnet_val->AsSubNet().AsString();
 	EvalSwitchBody(str_cases,)
-	auto t = str_cases[z.v2];
 
 
 internal-op Branch-If-Not-Type

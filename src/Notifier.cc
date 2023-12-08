@@ -58,13 +58,10 @@ void Registry::Modified(Modifiable* m) {
 }
 
 void Registry::Terminate() {
-    std::set<Receiver*> receivers;
-
-    for ( auto& r : registrations )
-        receivers.emplace(r.second);
-
-    for ( auto& r : receivers )
-        r->Terminate();
+    while ( ! registrations.empty() ) {
+        const auto& it = registrations.begin();
+        it->second->Terminate();
+    }
 }
 
 Modifiable::~Modifiable() {

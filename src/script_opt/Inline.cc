@@ -332,6 +332,8 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     auto scope = func_vf->GetScope();
     auto ie = DoInline(func_vf, body, c->ArgsPtr(), scope, ia->second);
 
+    printf("inlined %s\n", obj_desc(c.get()).c_str());
+
     if ( ie ) {
         ie->SetOriginal(c);
         did_inline.insert(func_vf.get());

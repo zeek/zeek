@@ -318,20 +318,25 @@ string CPPCompile::GenInExpr(const Expr* e, GenType gt) {
     auto t1 = op1->GetType();
     auto t2 = op2->GetType();
 
+    auto tag1 = t1->Tag();
+    auto tag2 = t2->Tag();
+
     string gen;
 
-    if ( t1->Tag() == TYPE_PATTERN )
+    if ( tag1 == TYPE_STRING && tag2 == TYPE_TABLE && t2->AsTableType()->IsPatternIndex() )
+        gen = GenExpr(op2, GEN_DONT_CARE) + "->MatchPattern(" + GenExpr(op1, GEN_NATIVE) + ")";
+    else if ( tag1 == TYPE_PATTERN )
         gen = string("(") + GenExpr(op1, GEN_DONT_CARE) + ")->MatchAnywhere(" + GenExpr(op2, GEN_DONT_CARE) +
               "->AsString())";
 
-    else if ( t2->Tag() == TYPE_STRING )
+    else if ( tag2 == TYPE_STRING )
         gen = string("str_in__CPP(") + GenExpr(op1, GEN_DONT_CARE) + "->AsString(), " + GenExpr(op2, GEN_DONT_CARE) +
               "->AsString())";
 
-    else if ( t1->Tag() == TYPE_ADDR && t2->Tag() == TYPE_SUBNET )
+    else if ( tag1 == TYPE_ADDR && tag2 == TYPE_SUBNET )
         gen = string("(") + GenExpr(op2, GEN_DONT_CARE) + ")->Contains(" + GenExpr(op1, GEN_VAL_PTR) + "->Get())";
 
-    else if ( t2->Tag() == TYPE_VECTOR )
+    else if ( tag2 == TYPE_VECTOR )
         gen = GenExpr(op2, GEN_DONT_CARE) + "->Has(" + GenExpr(op1, GEN_NATIVE) + ")";
 
     else

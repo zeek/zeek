@@ -210,8 +210,7 @@ void ZAMCompiler::ResolveHookBreaks() {
             // Rewrite the breaks.
             for ( auto& b : breaks[0] ) {
                 auto& i = insts1[b.stmt_num];
-                delete i;
-                i = new ZInstI(OP_HOOK_BREAK_X);
+                *i = ZInstI(OP_HOOK_BREAK_X);
             }
         }
 

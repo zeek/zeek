@@ -1,6 +1,20 @@
 This directory holds scripts and associated data to support maintenance of
 ZAM optimization:
 
+find-special-script-funcs.sh
+	A shell script that prints to stdout a sorted list of script-level
+	functions that the event engine knows about. Invoke with the path
+	to the top-level src/ directory.
+
+	Use this to compare with Special-Script-Funcs.list to see
+	whether there are any new such functions (or old ones that have
+	been removed).  If so, update src/script_opt/FuncInfo.cc and then
+	Special-Script-Funcs.list accordingly.
+
+Special-Script-Funcs.list
+	The known-to-the-event-engine scripts that were present last time
+	ZAM maintenance included looking for any updates to these.
+
 list-bifs.zeek
 	A Zeek script that prints to stdout a sorted list of the BiFs
 	available for the Zeek invocation.

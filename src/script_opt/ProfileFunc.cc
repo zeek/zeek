@@ -911,8 +911,11 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
                 // We don't hash the field name, as in some contexts
                 // those are ignored.
 
-                if ( f->attrs && do_hash )
-                    h = merge_p_hashes(h, HashAttrs(f->attrs));
+                if ( f->attrs ) {
+                    if ( do_hash )
+                        h = merge_p_hashes(h, HashAttrs(f->attrs));
+                    AnalyzeAttrs(f->attrs.get(), ft);
+                }
             }
         } break;
 
@@ -929,24 +932,8 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
             auto ft = t->AsFuncType();
             auto flv = ft->FlavorString();
             h = merge_p_hashes(h, p_hash(flv));
-
-            // We deal with the parameters individually, rather than just
-            // recursing into the RecordType that's used (for convenience)
-            // to represent them. We do so because their properties are
-            // somewhat different - in particular, an &default on a parameter
-            // field is resolved in the context of the caller, not the
-            // function itself, and so we don't want to track those as
-            // attributes associated with the function body's execution.
             h = merge_p_hashes(h, p_hash("params"));
-            auto params = ft->Params()->Types();
-
-            if ( params ) {
-                h = merge_p_hashes(h, p_hash(params->length()));
-
-                for ( auto p : *params )
-                    h = merge_p_hashes(h, HashType(p->type));
-            }
-
+            h = merge_p_hashes(h, HashType(ft->Params()));
             h = merge_p_hashes(h, p_hash("func-yield"));
             h = merge_p_hashes(h, HashType(ft->Yield()));
         } break;

@@ -63,6 +63,9 @@ inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2) {
     return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
 }
 
+using AttrSet = std::unordered_set<const Attr*>;
+using AttrVec = std::vector<const Attr*>;
+
 // Class for profiling the components of a single function (or expression).
 class ProfileFunc : public TraversalCallback {
 public:
@@ -93,6 +96,9 @@ public:
     const IDSet& WhenLocals() const { return when_locals; }
     const IDSet& Params() const { return params; }
     const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
+    const IDSet& NonLocalAssignees() const { return non_local_assignees; }
+    const auto& TableRefs() const { return tbl_refs; }
+    const auto& AggrMods() const { return aggr_mods; }
     const IDSet& Inits() const { return inits; }
     const std::vector<const Stmt*>& Stmts() const { return stmts; }
     const std::vector<const Expr*>& Exprs() const { return exprs; }
@@ -100,16 +106,20 @@ public:
     const std::vector<const ConstExpr*>& Constants() const { return constants; }
     const IDSet& UnorderedIdentifiers() const { return ids; }
     const std::vector<const ID*>& OrderedIdentifiers() const { return ordered_ids; }
-    const std::unordered_set<const Type*>& UnorderedTypes() const { return types; }
+    const TypeSet& UnorderedTypes() const { return types; }
     const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
+    const auto& TypeAliases() const { return type_aliases; }
     const std::unordered_set<ScriptFunc*>& ScriptCalls() const { return script_calls; }
     const IDSet& BiFGlobals() const { return BiF_globals; }
     const std::unordered_set<std::string>& Events() const { return events; }
-    const std::unordered_set<const Attributes*>& ConstructorAttrs() const { return constructor_attrs; }
+    const std::unordered_map<const Attributes*, TypePtr>& ConstructorAttrs() const { return constructor_attrs; }
+    const std::unordered_map<const Type*, std::set<const Attributes*>>& RecordConstructorAttrs() const {
+        return rec_constructor_attrs;
+    }
     const std::unordered_set<const SwitchStmt*>& ExprSwitches() const { return expr_switches; }
     const std::unordered_set<const SwitchStmt*>& TypeSwitches() const { return type_switches; }
 
-    bool DoesIndirectCalls() { return does_indirect_calls; }
+    bool DoesIndirectCalls() const { return does_indirect_calls; }
 
     int NumParams() const { return num_params; }
     int NumLambdas() const { return lambdas.size(); }
@@ -138,6 +148,10 @@ protected:
 
     // Take note of an assignment to an identifier.
     void TrackAssignment(const ID* id);
+
+    // Extracts attributes of a record type used in a constructor (or implicit
+    // initialization, or coercion, which does an implicit construction).
+    void CheckRecordConstructor(TypePtr t);
 
     // The function, body, or expression profiled.  Can be null
     // depending on which constructor was used.
@@ -175,6 +189,15 @@ protected:
     // captured in "inits".
     std::unordered_map<const ID*, int> assignees;
 
+    // A subset of assignees reflecting those that are globals or captures.
+    IDSet non_local_assignees;
+
+    // TableType's that are used in table references (i.e., index operations).
+    TypeSet tbl_refs;
+
+    // Types corresponding to aggregates that are modified.
+    TypeSet aggr_mods;
+
     // Same for locals seen in initializations, so we can find,
     // for example, unused aggregates.
     IDSet inits;
@@ -209,10 +232,14 @@ protected:
 
     // Types seen in the function.  A set rather than a vector because
     // the same type can be seen numerous times.
-    std::unordered_set<const Type*> types;
+    TypeSet types;
 
     // The same, but in a deterministic order, with duplicates removed.
     std::vector<const Type*> ordered_types;
+
+    // For a given type (seen in an attribute), tracks other types that
+    // are effectively aliased with it via coercions.
+    std::unordered_map<const Type*, std::set<const Type*>> type_aliases;
 
     // Script functions that this script calls.  Includes calls made
     // by lambdas and when bodies, as the goal is to identify recursion.
@@ -228,8 +255,13 @@ protected:
     // Names of generated events.
     std::unordered_set<std::string> events;
 
-    // Attributes seen in set or table constructors.
-    std::unordered_set<const Attributes*> constructor_attrs;
+    // Attributes seen in set, table, or record constructors, mapped back
+    // to the type where they appear.
+    std::unordered_map<const Attributes*, TypePtr> constructor_attrs;
+
+    // Attributes associated with record constructors. There can be several,
+    // so we use a set.
+    std::unordered_map<const Type*, std::set<const Attributes*>> rec_constructor_attrs;
 
     // Switch statements with either expression cases or type cases.
     std::unordered_set<const SwitchStmt*> expr_switches;
@@ -254,6 +286,50 @@ protected:
     // Whether we should treat record field accesses as absolute
     // (integer offset) or relative (name-based).
     bool abs_rec_fields;
+};
+
+// Describes an operation for which some forms of access can lead to state
+// modifications.
+class SideEffectsOp {
+public:
+    // Access types correspond to:
+    //	NONE - there are no side effects
+    //	CALL - relevant for function calls
+    //	CONSTRUCTION - relevant for constructing/coercing a record
+    //	READ - relevant for reading a table element
+    //	WRITE - relevant for modifying a table element
+    enum AccessType { NONE, CALL, CONSTRUCTION, READ, WRITE };
+
+    SideEffectsOp(AccessType at = NONE, const Type* t = nullptr) : access(at), type(t) {}
+
+    auto GetAccessType() const { return access; }
+    const Type* GetType() const { return type; }
+
+    void SetUnknownChanges() { has_unknown_changes = true; }
+    bool HasUnknownChanges() const { return has_unknown_changes; }
+
+    void AddModNonGlobal(IDSet ids) { mod_non_locals.insert(ids.begin(), ids.end()); }
+    void AddModAggrs(TypeSet types) { mod_aggrs.insert(types.begin(), types.end()); }
+
+    const auto& ModNonLocals() const { return mod_non_locals; }
+    const auto& ModAggrs() const { return mod_aggrs; }
+
+private:
+    AccessType access;
+    const Type* type; // type for which some operations alter state
+
+    // Globals and/or captures that the operation potentially modifies.
+    IDSet mod_non_locals;
+
+    // Aggregates (specified by types) that potentially modified.
+    TypeSet mod_aggrs;
+
+    // Sometimes the side effects are not known (such as when making
+    // indirect function calls, so we can't know statically what function
+    // will be called). We refer to as Unknown, and their implications are
+    // presumed to be worst-case - any non-local or aggregate is potentially
+    // affected.
+    bool has_unknown_changes = false;
 };
 
 // Function pointer for a predicate that determines whether a given
@@ -286,10 +362,37 @@ public:
     const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
     const std::unordered_set<std::string>& Events() const { return events; }
 
-    std::shared_ptr<ProfileFunc> FuncProf(const ScriptFunc* f) { return func_profs[f]; }
+    const auto& FuncProfs() const { return func_profs; }
 
-    // This is only externally germane for LambdaExpr's.
+    // Profiles associated with LambdaExpr's and expressions appearing in
+    // attributes.
     std::shared_ptr<ProfileFunc> ExprProf(const Expr* e) { return expr_profs[e]; }
+
+    // Returns true if the given type corresponds to a table that has a
+    // &default attribute that returns an aggregate value.
+    bool IsTableWithDefaultAggr(const Type* t);
+
+    // Returns true if the given operation has non-zero side effects.
+    bool HasSideEffects(SideEffectsOp::AccessType access, const TypePtr& t) const;
+
+    // Retrieves the side effects of the given operation, updating non_local_ids
+    // and aggrs with identifiers and aggregate types that are modified.
+    //
+    // A return value of true means the side effects are Unknown. If false,
+    // then there are side effects iff either (or both) of non_local_ids
+    // or aggrs are non-empty.
+    bool GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids, TypeSet& aggrs) const;
+
+    // Retrieves the side effects of calling the function corresponding to
+    // the NameExpr, updating non_local_ids and aggrs with identifiers and
+    // aggregate types that are modified. is_unknown is set to true if the
+    // call has Unknown side effects (which overrides the relevance of the
+    // updates to the sets).
+    //
+    // A return value of true means that side effects cannot yet be determined,
+    // due to dependencies on other side effects. This can happen when
+    // constructing a ProfileFuncs, but should not happen once its constructed.
+    bool GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, TypeSet& aggrs, bool& is_unknown);
 
     // Returns the "representative" Type* for the hash associated with
     // the parameter (which might be the parameter itself).
@@ -332,8 +435,56 @@ protected:
     void ComputeProfileHash(std::shared_ptr<ProfileFunc> pf);
 
     // Analyze the expressions and lambdas appearing in a set of
-    // attributes.
-    void AnalyzeAttrs(const Attributes* Attrs);
+    // attributes, in the context of a given type.
+    void AnalyzeAttrs(const Attributes* attrs, const Type* t);
+
+    // In the abstract, computes side-effects associated with operations other
+    // than explicit function calls. Currently, this means tables and records
+    // that can implicitly call functions that have side effects due to
+    // attributes such as &default. The machinery also applies to assessing
+    // the side effects of explicit function calls, which is done by
+    // (the two versions of) GetCallSideEffects().
+    void ComputeSideEffects();
+
+    // True if the given expression for sure has no side effects, which is
+    // almost always the case. False if the expression *may* have side effects
+    // and requires further analysis.
+    bool DefinitelyHasNoSideEffects(const ExprPtr& e) const;
+
+    // Records the side effects associated with the given attribute.
+    void SetSideEffects(const Attr* a, IDSet& non_local_ids, TypeSet& aggrs, bool is_unknown);
+
+    // Returns the attributes associated with the given type *and its aliases*.
+    AttrVec AssociatedAttrs(const Type* t);
+
+    // For a given set of attributes, assesses which ones are associated with
+    // the given type or its aliases and adds them to the given vector.
+    void FindAssociatedAttrs(const AttrSet& candidate_attrs, const Type* t, AttrVec& assoc_attrs);
+
+    // Assesses the side effects associated with the given expression. Returns
+    // true if a complete assessment was possible, false if not because the
+    // results depend on resolving other potential side effects first.
+    bool AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, TypeSet& types, bool& is_unknown);
+
+    // Same, but for the given profile.
+    bool AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids, TypeSet& types, bool& is_unknown);
+
+    // Same but for the particular case of a relevant access to an aggregate
+    // (which can be constructing a record; reading a table element; or
+    // modifying a table element).
+    bool AssessAggrEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids, TypeSet& aggrs,
+                           bool& is_unknown);
+
+    // For a given set of side effects, determines whether the given aggregate
+    // access applies. If so, updates non_local_ids and aggrs and returns true
+    // if there are Unknown side effects; otherwise returns false.
+    bool AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::AccessType access, const Type* t,
+                           IDSet& non_local_ids, TypeSet& aggrs) const;
+
+    // Returns nil if side effects are not available. That should never be
+    // the case after we've done our initial analysis, but is provided
+    // as a signal so that this method can also be used during that analysis.
+    std::shared_ptr<SideEffectsOp> GetCallSideEffects(const ScriptFunc* f);
 
     // Globals seen across the functions, other than those solely seen
     // as the function being called in a call.
@@ -357,6 +508,11 @@ protected:
     // Maps a type to its representative (which might be itself).
     std::unordered_map<const Type*, const Type*> type_to_rep;
 
+    // For a given type, tracks which other types are aliased to it.
+    // Alias occurs via operations that can propagate attributes, which
+    // are various forms of aggregate coercions.
+    std::unordered_map<const Type*, std::set<const Type*>> type_aliases;
+
     // Script functions that get called.
     std::unordered_set<ScriptFunc*> script_calls;
 
@@ -369,20 +525,64 @@ protected:
     // Names of generated events.
     std::unordered_set<std::string> events;
 
-    // Maps script functions to associated profiles.  This isn't
-    // actually well-defined in the case of event handlers and hooks,
-    // which can have multiple bodies.  However, the need for this
-    // is temporary (it's for skipping compilation of functions that
-    // appear in "when" clauses), and in that context it suffices.
+    // Maps script functions to associated profiles.  This isn't actually
+    // well-defined in the case of event handlers and hooks, which can have
+    // multiple bodies.  However, we only use this in the context of calls
+    // to regular functions, and for that it suffices.
     std::unordered_map<const ScriptFunc*, std::shared_ptr<ProfileFunc>> func_profs;
 
-    // Maps expressions to their profiles.  This is only germane
-    // externally for LambdaExpr's, but internally it abets memory
-    // management.
+    // Map lambda names to their primary functions
+    std::unordered_map<std::string, const ScriptFunc*> lambda_primaries;
+
+    // Tracks side effects associated with script functions. If we decide in
+    // the future to associate richer side-effect information with BiFs then
+    // we could expand this to track Func*'s instead.
+    std::unordered_map<const ScriptFunc*, std::shared_ptr<SideEffectsOp>> func_side_effects;
+
+    // Maps expressions to their profiles.
     std::unordered_map<const Expr*, std::shared_ptr<ProfileFunc>> expr_profs;
 
     // These remaining member variables are only used internally,
     // not provided via accessors:
+
+    // Maps expression-valued attributes to a collection of types in which
+    // the attribute appears. Usually there's just one type, but there are
+    // some scripting constructs that can result in the same attribute being
+    // shared across multiple distinct (though compatible) types.
+    std::unordered_map<const Attr*, std::vector<const Type*>> expr_attrs;
+
+    // Tracks whether a given TableType has a &default that returns an
+    // aggregate. Expressions involving indexing tables with such types
+    // cannot be optimized out using CSE because each returned value is
+    // distinct.
+    std::unordered_map<const Type*, bool> tbl_has_aggr_default;
+
+    // For a given attribute, maps it to side effects associated with aggregate
+    // operations (table reads/writes).
+    std::unordered_map<const Attr*, std::vector<std::shared_ptr<SideEffectsOp>>> aggr_side_effects;
+
+    // The same, but for record constructors.
+    std::unordered_map<const Attr*, std::vector<std::shared_ptr<SideEffectsOp>>> record_constr_with_side_effects;
+
+    // The set of attributes that may have side effects but we haven't yet
+    // resolved if that's the case. Empty after we're done analyzing for
+    // side effects.
+    AttrSet candidates;
+
+    // The current candidate we're analyzing. We track this to deal with
+    // the possibility of the candidate's side effects recursively referring
+    // to the candidate itself.
+    const Attr* curr_candidate;
+
+    // The set of attributes that definitely have side effects.
+    AttrSet attrs_with_side_effects;
+
+    // The full collection of operations with side effects.
+    std::vector<std::shared_ptr<SideEffectsOp>> side_effects_ops;
+
+    // Which function profiles we are currently analyzing. Used to detect
+    // recursion and prevent it from leading to non-termination of the analysis.
+    std::unordered_set<std::shared_ptr<ProfileFunc>> active_func_profiles;
 
     // Maps types to their hashes.
     std::unordered_map<const Type*, p_hash_type> type_hashes;
@@ -390,14 +590,12 @@ protected:
     // An inverse mapping, to a representative for each distinct hash.
     std::unordered_map<p_hash_type, const Type*> type_hash_reps;
 
-    // For types with names, tracks the ones we've already hashed,
-    // so we can avoid work for distinct pointers that refer to the
-    // same underlying type.
+    // For types with names, tracks the ones we've already hashed, so we can
+    // avoid work for distinct pointers that refer to the same underlying type.
     std::unordered_map<std::string, const Type*> seen_type_names;
 
-    // Expressions that we've discovered that we need to further
-    // profile.  These can arise for example due to lambdas or
-    // record attributes.
+    // Expressions that we've discovered that we need to further profile.
+    // These can arise for example due to lambdas or record attributes.
     std::vector<const Expr*> pending_exprs;
 
     // Whether the hashes for extended records should cover their final,

@@ -273,6 +273,10 @@ bool IfStmt::NoFlowAfter(bool ignore_break) const {
     return false;
 }
 
+bool IfStmt::CouldReturn(bool ignore_break) const {
+    return (s1 && s1->CouldReturn(ignore_break)) || (s2 && s2->CouldReturn(ignore_break));
+}
+
 IntrusivePtr<Case> Case::Duplicate() {
     if ( expr_cases ) {
         auto new_exprs = expr_cases->Duplicate()->AsListExprPtr();
@@ -404,6 +408,14 @@ bool SwitchStmt::NoFlowAfter(bool ignore_break) const {
     return default_seen_with_no_flow_after;
 }
 
+bool SwitchStmt::CouldReturn(bool ignore_break) const {
+    for ( const auto& c : *Cases() )
+        if ( c->Body()->CouldReturn(true) )
+            return true;
+
+    return false;
+}
+
 bool AddDelStmt::IsReduced(Reducer* c) const { return e->HasReducedOps(c); }
 
 StmtPtr AddDelStmt::DoReduce(Reducer* c) {
@@ -499,6 +511,8 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
+bool WhileStmt::CouldReturn(bool ignore_break) const { return body->CouldReturn(false); }
+
 StmtPtr ForStmt::Duplicate() {
     auto expr_copy = e->Duplicate();
 
@@ -567,6 +581,8 @@ StmtPtr ForStmt::DoReduce(Reducer* c) {
 
     return ThisPtr();
 }
+
+bool ForStmt::CouldReturn(bool ignore_break) const { return body->CouldReturn(false); }
 
 StmtPtr ReturnStmt::Duplicate() { return SetSucc(new ReturnStmt(e ? e->Duplicate() : nullptr, true)); }
 
@@ -784,6 +800,14 @@ bool StmtList::NoFlowAfter(bool ignore_break) const {
     return false;
 }
 
+bool StmtList::CouldReturn(bool ignore_break) const {
+    for ( auto& s : stmts )
+        if ( s->CouldReturn(ignore_break) )
+            return true;
+
+    return false;
+}
+
 StmtPtr InitStmt::Duplicate() {
     // Need to duplicate the initializer list since later reductions
     // can modify it in place.
@@ -951,10 +975,13 @@ TraversalCode CatchReturnStmt::Traverse(TraversalCallback* cb) const {
     TraversalCode tc = cb->PreStmt(this);
     HANDLE_TC_STMT_PRE(tc);
 
-    block->Traverse(cb);
+    tc = block->Traverse(cb);
+    HANDLE_TC_STMT_PRE(tc);
 
-    if ( ret_var )
-        ret_var->Traverse(cb);
+    if ( ret_var ) {
+        tc = ret_var->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
 
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);

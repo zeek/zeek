@@ -1,3 +1,25 @@
+6.2.0-dev.256 | 2023-12-08 10:01:10 -0700
+
+  * incorporate latest version of gen-zam to correctly generate indirect calls (Vern Paxson, Corelight)
+
+  * added sub-directory for tracking ZAM maintenance issues (Vern Paxson, Corelight)
+
+  * BTest to stress-test AST optimizer's assessment of side effects (Vern Paxson, Corelight)
+
+  * reworked AST optimizers analysis of side effects during aggregate operations & calls (Vern Paxson, Corelight)
+
+  * script optimization support for tracking information associated with BiFs/functions (Vern Paxson, Corelight)
+
+  * fix for AST analysis of inlined functions (Vern Paxson, Corelight)
+
+  * improved AST optimizer's analysis of variable usage in inlined functions (Vern Paxson, Corelight)
+
+  * new method for Stmt nodes to report whether they could execute a "return" (Vern Paxson, Corelight)
+
+  * bug fixes for indirect function calls when using ZAM (Vern Paxson, Corelight)
+
+  * minor fixes for script optimization, exporting of attr_name, script layout tweak (Vern Paxson, Corelight)
+
 6.2.0-dev.245 | 2023-12-06 18:42:25 +0100
 
   * Bump cmake submodule (Arne Welzel, Corelight)

@@ -16,8 +16,6 @@ public:
     UsageAnalyzer(std::vector<FuncInfo>& funcs);
 
 private:
-    using IDSet = std::unordered_set<const ID*>;
-
     // Finds the set of identifiers that serve as a starting point of
     // what's-known-to-be-used.  An identifier qualifies as such if it is
     // (1) an event that was newly introduced by scripting (so, known to
@@ -67,10 +65,10 @@ private:
     // of why the first needs to be per-traversal.
 
     // All of the identifiers we've analyzed during the current traversal.
-    std::unordered_set<const ID*> analyzed_IDs;
+    IDSet analyzed_IDs;
 
     // All of the types we've analyzed to date.
-    std::unordered_set<const Type*> analyzed_types;
+    TypeSet analyzed_types;
 };
 
 // Marks a given identifier as referring to a script-level event (one

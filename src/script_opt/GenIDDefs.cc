@@ -62,7 +62,45 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             auto block = cr->Block();
 
             cr_active.push_back(confluence_blocks.size());
-            block->Traverse(this);
+
+            // Confluence for the bodies of catch-return's is a bit complex.
+            // We would like any expressions computed at the outermost level
+            // of the body to be available for script optimization *outside*
+            // the catch-return; this in particular is helpful in optimizing
+            // coalesced event handlers, but has other benefits as well.
+            //
+            // However, if one of the outermost statements executes a "return",
+            // then any outermost expressions computed after it might not
+            // be available. Put another way, the potentially-returning
+            // statement starts a confluence region that runs through the end
+            // of the body.
+            //
+            // To deal with this, we start off without a new confluence block,
+            // but create one upon encountering a statement that could return.
+
+            bool did_confluence = false;
+
+            if ( block->Tag() == STMT_LIST ) {
+                auto prev_stmt = s;
+                auto& stmts = block->AsStmtList()->Stmts();
+                for ( auto& st : stmts ) {
+                    if ( ! did_confluence && st->CouldReturn(false) ) {
+                        StartConfluenceBlock(prev_stmt);
+                        did_confluence = true;
+                    }
+
+                    st->Traverse(this);
+                }
+            }
+            else
+                // If there's just a single statement then there are no
+                // expressions computed subsequent to it that we need to
+                // worry about, so just do ordinary traversal.
+                block->Traverse(this);
+
+            if ( did_confluence )
+                EndConfluenceBlock();
+
             cr_active.pop_back();
 
             auto retvar = cr->RetVar();

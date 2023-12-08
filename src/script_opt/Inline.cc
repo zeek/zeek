@@ -5,6 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
+#include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
@@ -23,6 +24,16 @@ void Inliner::Analyze() {
     // Prime the call set for each function with the functions it
     // directly calls.
     for ( auto& f : funcs ) {
+        // For any function explicitly known to the event engine, it can
+        // be hard to analyze whether there's a possibility that when
+        // executing the function, doing so will tickle the event engine
+        // into calling it recursively. So we remove these up front.
+        //
+        // We deal with cases where these defaults are overridden to refer
+        // to some other function below, when we go through indirect functions.
+        if ( is_special_script_func(f.Func()->Name()) )
+            continue;
+
         std::unordered_set<const Func*> cs;
 
         // Aspirational ....
@@ -40,6 +51,32 @@ void Inliner::Analyze() {
         }
 
         call_set[f.Func()] = cs;
+
+        for ( auto& ind_func : f.Profile()->IndirectFuncs() ) {
+            auto& v = ind_func->GetVal();
+            if ( ! v )
+                // Global doesn't correspond to an actual function body.
+                continue;
+
+            auto vf = v->AsFunc();
+            if ( vf->GetKind() != BuiltinFunc::SCRIPT_FUNC )
+                // Not of analysis interest.
+                continue;
+
+            auto sf = static_cast<const ScriptFunc*>(vf);
+
+            // If we knew transitively that the function lead to any
+            // indirect calls, nor calls to unsafe BiFs that themselves
+            // might do so, then we could know that this function isn't
+            // recursive via indirection. It's not clear, however, that
+            // identifying such cases is worth the trouble, other than
+            // for cutting down noise from the following recursion report.
+
+            if ( report_recursive )
+                printf("%s is used indirectly, and thus potentially recursively\n", sf->Name());
+
+            non_recursive_funcs.erase(sf);
+        }
     }
 
     // Transitive closure.  If we had any self-respect, we'd implement
@@ -331,8 +368,6 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     auto body = func_vf->GetBodies()[0].stmts; // there's only 1 body
     auto scope = func_vf->GetScope();
     auto ie = DoInline(func_vf, body, c->ArgsPtr(), scope, ia->second);
-
-    printf("inlined %s\n", obj_desc(c.get()).c_str());
 
     if ( ie ) {
         ie->SetOriginal(c);

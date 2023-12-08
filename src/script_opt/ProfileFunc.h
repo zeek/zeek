@@ -120,6 +120,7 @@ public:
     const std::unordered_set<const SwitchStmt*>& TypeSwitches() const { return type_switches; }
 
     bool DoesIndirectCalls() const { return does_indirect_calls; }
+    const IDSet& IndirectFuncs() const { return indirect_funcs; }
 
     int NumParams() const { return num_params; }
     int NumLambdas() const { return lambdas.size(); }
@@ -270,6 +271,11 @@ protected:
     // True if the function makes a call through an expression rather
     // than simply a function's (global) name.
     bool does_indirect_calls = false;
+
+    // Functions (not hooks or event handlers) that are referred to in
+    // a context other than being called. These might be used elsewhere
+    // for indirect calls.
+    IDSet indirect_funcs;
 
     // Additional values present in the body that should be factored
     // into its hash.

@@ -144,6 +144,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
     StartBlock();
 
     Emit("flow = FLOW_RETURN;");
+    Emit("f->SetOnlyCall(ce.get());");
 
     if ( in_hook ) {
         Emit("if ( ! %s(%s) )", fname, args);

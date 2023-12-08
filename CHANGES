@@ -1,3 +1,9 @@
+6.2.0-dev.259 | 2023-12-08 11:54:03 -0700
+
+  * Audit creation of temporary strings in Spicy bindings (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 6.2.0-dev.256 | 2023-12-08 10:01:10 -0700
 
   * incorporate latest version of gen-zam to correctly generate indirect calls (Vern Paxson, Corelight)

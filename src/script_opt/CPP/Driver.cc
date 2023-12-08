@@ -13,9 +13,9 @@ namespace zeek::detail {
 
 using namespace std;
 
-CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, ProfileFuncs& _pfs, const string& gen_name, bool _standalone,
-                       bool report_uncompilable)
-    : funcs(_funcs), pfs(_pfs), standalone(_standalone) {
+CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, std::shared_ptr<ProfileFuncs> _pfs, const string& gen_name,
+                       bool _standalone, bool report_uncompilable)
+    : funcs(_funcs), pfs(std::move(_pfs)), standalone(_standalone) {
     auto target_name = gen_name.c_str();
 
     write_file = fopen(target_name, "w");
@@ -99,21 +99,21 @@ void CPPCompile::Compile(bool report_uncompilable) {
     GenProlog();
 
     // Track all of the types we'll be using.
-    for ( const auto& t : pfs.RepTypes() ) {
+    for ( const auto& t : pfs->RepTypes() ) {
         TypePtr tp{NewRef{}, (Type*)(t)};
-        types.AddKey(tp, pfs.HashType(t));
+        types.AddKey(tp, pfs->HashType(t));
     }
 
     NL();
 
-    for ( auto& g : pfs.AllGlobals() )
+    for ( auto& g : pfs->AllGlobals() )
         CreateGlobal(g);
 
-    for ( const auto& e : pfs.Events() )
+    for ( const auto& e : pfs->Events() )
         if ( AddGlobal(e, "gl") )
             Emit("EventHandlerPtr %s_ev;", globals[string(e)]);
 
-    for ( const auto& t : pfs.RepTypes() ) {
+    for ( const auto& t : pfs->RepTypes() ) {
         ASSERT(types.HasKey(t));
         TypePtr tp{NewRef{}, (Type*)(t)};
         RegisterType(tp);
@@ -131,14 +131,14 @@ void CPPCompile::Compile(bool report_uncompilable) {
     // be identical.  In that case, we don't want to generate the lambda
     // twice, but we do want to map the second one to the same body name.
     unordered_map<string, const Stmt*> lambda_ASTs;
-    for ( const auto& l : pfs.Lambdas() ) {
+    for ( const auto& l : pfs->Lambdas() ) {
         const auto& n = l->Name();
         const auto body = l->Ingredients()->Body().get();
         if ( lambda_ASTs.count(n) > 0 )
             // Reuse previous body.
             body_names[body] = body_names[lambda_ASTs[n]];
         else {
-            DeclareLambda(l, pfs.ExprProf(l).get());
+            DeclareLambda(l, pfs->ExprProf(l).get());
             lambda_ASTs[n] = body;
         }
     }
@@ -151,12 +151,12 @@ void CPPCompile::Compile(bool report_uncompilable) {
             CompileFunc(func);
 
     lambda_ASTs.clear();
-    for ( const auto& l : pfs.Lambdas() ) {
+    for ( const auto& l : pfs->Lambdas() ) {
         const auto& n = l->Name();
         if ( lambda_ASTs.count(n) > 0 )
             continue;
 
-        CompileLambda(l, pfs.ExprProf(l).get());
+        CompileLambda(l, pfs->ExprProf(l).get());
         lambda_ASTs[n] = l->Ingredients()->Body().get();
     }
 

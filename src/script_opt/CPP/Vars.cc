@@ -9,9 +9,9 @@ using namespace std;
 
 void CPPCompile::CreateGlobal(const ID* g) {
     auto gn = string(g->Name());
-    bool is_bif = pfs.BiFGlobals().count(g) > 0;
+    bool is_bif = pfs->BiFGlobals().count(g) > 0;
 
-    if ( pfs.Globals().count(g) == 0 ) {
+    if ( pfs->Globals().count(g) == 0 ) {
         // Only used in the context of calls.  If it's compilable,
         // then we'll call it directly.
         if ( compilable_funcs.count(gn) > 0 ) {
@@ -28,7 +28,7 @@ void CPPCompile::CreateGlobal(const ID* g) {
     if ( AddGlobal(gn, "gl") ) { // We'll be creating this global.
         Emit("IDPtr %s;", globals[gn]);
 
-        if ( pfs.Events().count(gn) > 0 )
+        if ( pfs->Events().count(gn) > 0 )
             // This is an event that's also used as a variable.
             Emit("EventHandlerPtr %s_ev;", globals[gn]);
 

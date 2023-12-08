@@ -666,7 +666,7 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c3);
             }
 
-            if ( pfs.HasSideEffects(SideEffectsOp::READ, n2t) ) {
+            if ( pfs->HasSideEffects(SideEffectsOp::READ, n2t) ) {
                 z.aux = new ZInstAux(0);
                 z.aux->can_change_non_locals = true;
             }
@@ -851,7 +851,7 @@ const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
     z.aux = InternalBuildVals(op2);
     z.t = op3->GetType();
 
-    if ( pfs.HasSideEffects(SideEffectsOp::WRITE, op1->GetType()) )
+    if ( pfs->HasSideEffects(SideEffectsOp::WRITE, op1->GetType()) )
         z.aux->can_change_non_locals = true;
 
     return AddInst(z);
@@ -1013,7 +1013,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
         TypeSet aggrs;
         bool is_unknown = false;
 
-        auto resolved = pfs.GetCallSideEffects(func, non_local_ids, aggrs, is_unknown);
+        auto resolved = pfs->GetCallSideEffects(func, non_local_ids, aggrs, is_unknown);
         ASSERT(resolved);
 
         if ( is_unknown || ! non_local_ids.empty() || ! aggrs.empty() )
@@ -1103,7 +1103,7 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
 
     z.t = e->GetType();
 
-    if ( pfs.HasSideEffects(SideEffectsOp::CONSTRUCTION, z.t) )
+    if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, z.t) )
         z.aux->can_change_non_locals = true;
 
     return AddInst(z);
@@ -1202,7 +1202,7 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
     // Mark the integer entries in z.aux as not being frame slots as usual.
     z.aux->slots = nullptr;
 
-    if ( pfs.HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
+    if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
         z.aux->can_change_non_locals = true;
 
     return AddInst(z);

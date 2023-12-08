@@ -17,7 +17,7 @@ class TempVar;
 
 class CSE_ValidityChecker : public TraversalCallback {
 public:
-    CSE_ValidityChecker(ProfileFuncs& pfs, const std::vector<const ID*>& ids, const Expr* start_e,
+    CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> pfs, const std::vector<const ID*>& ids, const Expr* start_e,
                         const Expr* end_e);
 
     TraversalCode PreStmt(const Stmt*) override;
@@ -71,7 +71,7 @@ protected:
     }
 
     // Profile across all script functions.
-    ProfileFuncs& pfs;
+    std::shared_ptr<ProfileFuncs> pfs;
 
     // The list of identifiers for which an assignment to one of them
     // renders the CSE unsafe.

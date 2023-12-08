@@ -2,23 +2,15 @@
 
 #include "zeek/script_opt/Reduce.h"
 
-#include "zeek/Desc.h"
-#include "zeek/Expr.h"
-#include "zeek/Func.h"
-#include "zeek/ID.h"
-#include "zeek/Reporter.h"
-#include "zeek/Scope.h"
-#include "zeek/Stmt.h"
-#include "zeek/Var.h"
+#include "zeek/script_opt/CSE.h"
 #include "zeek/script_opt/ExprOptInfo.h"
-#include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/TempVar.h"
 
 namespace zeek::detail {
 
-Reducer::Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> _pf, ProfileFuncs& _pfs)
-    : pf(std::move(_pf)), pfs(_pfs) {
+Reducer::Reducer(const ScriptFuncPtr& func, std::shared_ptr<ProfileFunc> _pf, std::shared_ptr<ProfileFuncs> _pfs)
+    : pf(std::move(_pf)), pfs(std::move(_pfs)) {
     auto& ft = func->GetType();
 
     // Track the parameters so we don't remap them.
@@ -442,15 +434,15 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
             auto aggr = e1->GetOp1();
             auto aggr_t = aggr->GetType();
 
-            if ( pfs.HasSideEffects(SideEffectsOp::READ, aggr_t) )
+            if ( pfs->HasSideEffects(SideEffectsOp::READ, aggr_t) )
                 has_side_effects = true;
 
-            else if ( aggr_t->Tag() == TYPE_TABLE && pfs.IsTableWithDefaultAggr(aggr_t.get()) )
+            else if ( aggr_t->Tag() == TYPE_TABLE && pfs->IsTableWithDefaultAggr(aggr_t.get()) )
                 has_side_effects = true;
         }
 
         else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_RECORD_COERCE )
-            has_side_effects = pfs.HasSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType());
+            has_side_effects = pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType());
 
         e1_se = ExprSideEffects(has_side_effects);
     }

@@ -2,11 +2,6 @@
 
 #pragma once
 
-#include "zeek/Expr.h"
-#include "zeek/Scope.h"
-#include "zeek/Stmt.h"
-#include "zeek/Traverse.h"
-#include "zeek/script_opt/CSE.h"
 #include "zeek/script_opt/ObjMgr.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
@@ -17,7 +12,7 @@ class TempVar;
 
 class Reducer {
 public:
-    Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> pf, ProfileFuncs& pfs);
+    Reducer(const ScriptFuncPtr& func, std::shared_ptr<ProfileFunc> pf, std::shared_ptr<ProfileFuncs> pfs);
 
     StmtPtr Reduce(StmtPtr s);
 
@@ -237,7 +232,7 @@ protected:
     std::shared_ptr<ProfileFunc> pf;
 
     // Profile across all script functions - used for optimization decisions.
-    ProfileFuncs& pfs;
+    std::shared_ptr<ProfileFuncs> pfs;
 
     // Tracks the temporary variables created during the reduction/
     // optimization process.

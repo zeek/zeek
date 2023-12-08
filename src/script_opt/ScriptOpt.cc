@@ -122,9 +122,9 @@ bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body) {
     return false;
 }
 
-static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf, std::shared_ptr<Reducer>& rc, ScopePtr scope,
-                         StmtPtr& body) {
-    pf = std::make_shared<ProfileFunc>(f, body, true);
+static bool optimize_AST(ScriptFuncPtr f, std::shared_ptr<ProfileFunc>& pf, std::shared_ptr<Reducer>& rc,
+                         ScopePtr scope, StmtPtr& body) {
+    pf = std::make_shared<ProfileFunc>(f.get(), body, true);
 
     GenIDDefs ID_defs(pf, f, scope, body);
 
@@ -147,8 +147,8 @@ static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf, std::s
     return true;
 }
 
-static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ProfileFuncs& pfs, ScopePtr scope,
-                          StmtPtr& body) {
+static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, std::shared_ptr<ProfileFuncs> pfs,
+                          ScopePtr scope, StmtPtr& body) {
     if ( reporter->Errors() > 0 )
         return;
 
@@ -201,7 +201,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, Profil
     }
 
     // Profile the new body.
-    pf = std::make_shared<ProfileFunc>(f, body, true);
+    pf = std::make_shared<ProfileFunc>(f.get(), body, true);
 
     // Compute its reaching definitions.
     GenIDDefs ID_defs(pf, f, scope, body);
@@ -372,6 +372,8 @@ static void use_CPP() {
 
     int num_used = 0;
 
+    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+
     for ( auto& f : funcs ) {
         auto hash = f.Profile()->HashVal();
         auto s = compiled_scripts.find(hash);
@@ -420,9 +422,9 @@ static void generate_CPP() {
     const bool standalone = analysis_options.gen_standalone_CPP;
     const bool report = analysis_options.report_uncompilable;
 
-    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+    auto pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, false);
 
-    CPPCompile cpp(funcs, *pfs, gen_name, standalone, report);
+    CPPCompile cpp(funcs, pfs, gen_name, standalone, report);
 }
 
 static void analyze_scripts_for_ZAM() {
@@ -433,7 +435,7 @@ static void analyze_scripts_for_ZAM() {
         analysis_options.optimize_AST = false;
     }
 
-    auto pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
+    auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
 
     bool report_recursive = analysis_options.report_recursive;
     std::unique_ptr<Inliner> inl;
@@ -471,12 +473,12 @@ static void analyze_scripts_for_ZAM() {
         if ( ! f.ShouldAnalyze() )
             continue;
 
-        auto func = f.Func();
-        auto l = lambdas.find(func);
+        auto& func = f.FuncPtr();
+        auto l = lambdas.find(func.get());
         bool is_lambda = l != lambdas.end();
 
-        if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func) &&
-             func_used_indirectly.count(func) == 0 ) {
+        if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func.get()) &&
+             func_used_indirectly.count(func.get()) == 0 ) {
             // No need to compile as it won't be called directly.
             // We'd like to zero out the body to recover the
             // memory, but a *few* such functions do get called,
@@ -487,7 +489,7 @@ static void analyze_scripts_for_ZAM() {
         }
 
         auto new_body = f.Body();
-        optimize_func(func, f.ProfilePtr(), *pfs, f.Scope(), new_body);
+        optimize_func(func, f.ProfilePtr(), pfs, f.Scope(), new_body);
         f.SetBody(new_body);
 
         if ( is_lambda )

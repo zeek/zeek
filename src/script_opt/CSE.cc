@@ -4,9 +4,9 @@
 
 namespace zeek::detail {
 
-CSE_ValidityChecker::CSE_ValidityChecker(ProfileFuncs& _pfs, const std::vector<const ID*>& _ids,
+CSE_ValidityChecker::CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> _pfs, const std::vector<const ID*>& _ids,
                                          const Expr* _start_e, const Expr* _end_e)
-    : pfs(_pfs), ids(_ids) {
+    : pfs(std::move(_pfs)), ids(_ids) {
     start_e = _start_e;
     end_e = _end_e;
 
@@ -225,7 +225,7 @@ bool CSE_ValidityChecker::CheckCall(const CallExpr* c) {
     TypeSet aggrs;
     bool is_unknown = false;
 
-    auto resolved = pfs.GetCallSideEffects(func->AsNameExpr(), non_local_ids, aggrs, is_unknown);
+    auto resolved = pfs->GetCallSideEffects(func->AsNameExpr(), non_local_ids, aggrs, is_unknown);
     ASSERT(resolved);
 
     if ( is_unknown || CheckSideEffects(non_local_ids, aggrs) )
@@ -238,7 +238,7 @@ bool CSE_ValidityChecker::CheckSideEffects(SideEffectsOp::AccessType access, con
     IDSet non_local_ids;
     TypeSet aggrs;
 
-    if ( pfs.GetSideEffects(access, t.get(), non_local_ids, aggrs) )
+    if ( pfs->GetSideEffects(access, t.get(), non_local_ids, aggrs) )
         return Invalid();
 
     return CheckSideEffects(non_local_ids, aggrs);

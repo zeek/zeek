@@ -52,8 +52,8 @@ public:
 
 class ZAMCompiler {
 public:
-    ZAMCompiler(ScriptFunc* f, ProfileFuncs& pfs, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr body,
-                std::shared_ptr<UseDefs> ud, std::shared_ptr<Reducer> rd);
+    ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> pfs, std::shared_ptr<ProfileFunc> pf, ScopePtr scope,
+                StmtPtr body, std::shared_ptr<UseDefs> ud, std::shared_ptr<Reducer> rd);
     ~ZAMCompiler();
 
     StmtPtr CompileBody();
@@ -501,8 +501,8 @@ private:
     // (and/or no return value generated).
     std::vector<const NameExpr*> retvars;
 
-    ScriptFunc* func;
-    ProfileFuncs& pfs;
+    ScriptFuncPtr func;
+    std::shared_ptr<ProfileFuncs> pfs;
     std::shared_ptr<ProfileFunc> pf;
     ScopePtr scope;
     StmtPtr body;

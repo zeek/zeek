@@ -367,10 +367,8 @@ macos_ventura_task:
 # FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:
   freebsd_instance:
-    # We don't support FreeBSD 14 yet, this is a purely informative task
-    image_family: freebsd-14-0-snap
-    allow_failures: true
-    skip_notification: true
+    # FreeBSD 14 EOL: Nov 30 2028
+    image_family: freebsd-14-0
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

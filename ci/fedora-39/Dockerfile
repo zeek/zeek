@@ -1,8 +1,8 @@
-FROM fedora:37
+FROM fedora:39
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20230816
+ENV DOCKERFILE_VERSION 20231208
 
 RUN dnf -y install \
     bison \

@@ -1,3 +1,7 @@
+6.2.0-dev.262 | 2023-12-11 13:11:09 +0100
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 6.2.0-dev.259 | 2023-12-08 11:54:03 -0700
 
   * Audit creation of temporary strings in Spicy bindings (Benjamin Bannier, Corelight)

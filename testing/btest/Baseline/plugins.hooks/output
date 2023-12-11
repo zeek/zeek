@@ -441,6 +441,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMTP.consts.bif.zeek, <...>/Zeek_SMTP.consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek) -> -1
@@ -728,6 +729,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMTP.consts.bif.zeek, <...>/Zeek_SMTP.consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek) -> (-1, <no content>)
@@ -1363,6 +1365,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMTP.consts.bif.zeek, <...>/Zeek_SMTP.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek)
@@ -1650,6 +1653,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMTP.consts.bif.zeek, <...>/Zeek_SMTP.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek)
@@ -2284,6 +2288,7 @@
 0.000000 | HookLoadFile  ./Zeek_SMB.smb2_com_write.bif.zeek <...>/Zeek_SMB.smb2_com_write.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SMB.smb2_events.bif.zeek <...>/Zeek_SMB.smb2_events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SMB.types.bif.zeek <...>/Zeek_SMB.types.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_SMTP.consts.bif.zeek <...>/Zeek_SMTP.consts.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SMTP.events.bif.zeek <...>/Zeek_SMTP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SMTP.functions.bif.zeek <...>/Zeek_SMTP.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SNMP.events.bif.zeek <...>/Zeek_SNMP.events.bif.zeek
@@ -2571,6 +2576,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_write.bif.zeek <...>/Zeek_SMB.smb2_com_write.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_events.bif.zeek <...>/Zeek_SMB.smb2_events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SMB.types.bif.zeek <...>/Zeek_SMB.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMTP.consts.bif.zeek <...>/Zeek_SMTP.consts.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SMTP.events.bif.zeek <...>/Zeek_SMTP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SMTP.functions.bif.zeek <...>/Zeek_SMTP.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SNMP.events.bif.zeek <...>/Zeek_SNMP.events.bif.zeek

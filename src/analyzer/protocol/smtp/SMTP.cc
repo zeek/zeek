@@ -10,6 +10,8 @@
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/smtp/BDAT.h"
+#include "zeek/analyzer/protocol/smtp/consts.bif.h"
 #include "zeek/analyzer/protocol/smtp/events.bif.h"
 
 #undef SMTP_CMD_DEF
@@ -117,6 +119,29 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     // NOTE: do not use IsOrig() here, because of TURN command.
     bool is_sender = orig_is_sender ? orig : ! orig;
 
+    if ( is_sender && bdat ) {
+        // We're processing BDAT and have switched the ContentLine analyzer
+        // into plain mode to send us the full chunk. Ensure we only use up
+        // as much as we need in case we get more.
+        int64_t bdat_len = std::min(bdat->RemainingChunkSize(), static_cast<int64_t>(length));
+        if ( bdat->RemainingChunkSize() > 0 )
+            bdat->NextStream(bdat_len, line, orig);
+
+        // All BDAT chunks seen?
+        if ( bdat->IsLastChunk() && bdat->RemainingChunkSize() == 0 )
+            UpdateState(detail::SMTP_CMD_END_OF_DATA, 0, orig);
+
+        line += bdat_len;
+        length -= bdat_len;
+        assert(length >= 0);
+
+        // Anything left? Usually the remainder is zero as we're doing
+        // plain delivery. However, a "BDAT 0 LAST" empty chunk isn't
+        // delivered by the ContentLineAnalyzer.
+        if ( length == 0 )
+            return;
+    }
+
 #if 0
 	###
 	if ( line[length] != '\r' || line[length+1] != '\n' )
@@ -173,8 +198,8 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig) {
             expect_recver = true;
         }
 
-        else if ( state == detail::SMTP_IN_DATA ) {
-            // Check "." for end of data.
+        else if ( state == detail::SMTP_IN_DATA && ! bdat ) {
+            // Check "." for end of data for non-BDAT transfers.
             expect_recver = false; // ?? MAY server respond to mail data?
 
             if ( line[0] == '.' )
@@ -236,6 +261,40 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig) {
 
                 if ( cmd_len > 0 || data_len > 0 )
                     RequestEvent(cmd_len, cmd, data_len, line);
+            }
+
+            // For the BDAT command, parse out the chunk-size from the line
+            // and switch the ContentLineAnalyzer into plain delivery mode
+            // assuming things look valid.
+            if ( cmd_code == detail::SMTP_CMD_BDAT ) {
+                const auto [chunk_size, is_last_chunk, error] = detail::parse_bdat_arg(end_of_line - line, line);
+                if ( ! error ) {
+                    assert(chunk_size >= 0);
+                    auto* cl = orig ? cl_orig : cl_resp;
+                    cl->SetPlainDelivery(chunk_size);
+
+                    if ( ! bdat ) {
+                        assert(! mail);
+                        // This is the first BDAT chunk.
+                        BeginData(orig);
+                        bdat = std::make_unique<detail::SMTP_BDAT_Analyzer>(Conn(), mail,
+                                                                            zeek::BifConst::SMTP::bdat_max_line_length);
+                    }
+
+                    bdat->NextChunk(is_last_chunk ? detail::ChunkType::Last : detail::ChunkType::Intermediate,
+                                    chunk_size);
+                }
+                else {
+                    AnalyzerViolation(error, line, length);
+                }
+            }
+            else if ( bdat ) {
+                // Non-BDAT command from client but still have BDAT state,
+                // close it out. This can happen when a client started to
+                // send BDAT chunks, but starts sending other commands without
+                // a last BDAT chunk.
+                Weird("smtp_missing_bdat_last_chunk");
+                EndData();
             }
 
             if ( cmd_code != detail::SMTP_CMD_END_OF_DATA )
@@ -540,6 +599,37 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig) {
             }
             break;
 
+        case detail::SMTP_CMD_BDAT:
+            switch ( reply_code ) {
+                case 0:
+                    if ( state != detail::SMTP_RCPT_OK )
+                        UnexpectedCommand(cmd_code, reply_code);
+
+                    assert(bdat);
+                    state = detail::SMTP_IN_DATA;
+                    break;
+
+                case 250: break; // server accepted BDAT transfer.
+
+                case 421: state = detail::SMTP_QUIT; break;
+
+                case 500:
+                case 501:
+                case 503:
+                case 451:
+                case 554:
+                    // Client may continue sending chunks if pipelined. We don't
+                    // call EndData() here as it might be interesting what the
+                    // client does send, even if the server isn't accepting it.
+                    break;
+
+                default:
+                    UnexpectedReply(cmd_code, reply_code);
+                    // Chunks might still be in-flight. See above.
+                    break;
+            }
+            break;
+
         case detail::SMTP_CMD_END_OF_DATA:
             switch ( reply_code ) {
                 case 0:
@@ -789,6 +879,11 @@ void SMTP_Analyzer::BeginData(bool orig) {
 }
 
 void SMTP_Analyzer::EndData() {
+    if ( bdat ) {
+        bdat->Done();
+        bdat.reset();
+    }
+
     if ( ! mail )
         Weird("smtp_unmatched_end_of_data");
     else {

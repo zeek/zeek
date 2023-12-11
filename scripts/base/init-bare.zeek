@@ -362,6 +362,13 @@ module FTP;
 ## raise a FTP_max_command_length_exceeded weird and are discarded.
 const max_command_length = 100 &redef;
 
+module SMTP;
+
+## The maximum line length within a BDAT chunk before a forceful linebreak
+## is introduced and a weird is raised. Conventionally, MIME messages
+## have a maximum line length of 1000 octest when properly encoded.
+const bdat_max_line_length = 4096 &redef;
+
 module GLOBAL;
 
 ## Statistics about what a TCP endpoint sent.

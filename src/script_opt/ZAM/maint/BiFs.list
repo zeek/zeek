@@ -113,12 +113,17 @@ Input::__force_update
 Input::__remove_stream
 Log::__add_filter
 Log::__create_stream
+Log::__delay
+Log::__delay_finish
 Log::__disable_stream
 Log::__enable_stream
 Log::__flush
+Log::__get_delay_queue_size
 Log::__remove_filter
 Log::__remove_stream
 Log::__set_buf
+Log::__set_max_delay_interval
+Log::__set_max_delay_queue_size
 Log::__write
 Option::any_set_to_any_vec
 Option::set
@@ -489,6 +494,7 @@ syslog
 system
 system_env
 table_keys
+table_pattern_matcher_stats
 table_values
 terminate
 time_to_double

@@ -12,12 +12,12 @@ namespace zeek::detail {
 
 class GenIDDefs : public TraversalCallback {
 public:
-    GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr scope, StmtPtr body);
+    GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const FuncPtr& f, ScopePtr scope, StmtPtr body);
 
 private:
     // Traverses the given function body, using the first two
     // arguments for context.
-    void TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body);
+    void TraverseFunction(const FuncPtr& f, ScopePtr scope, StmtPtr body);
 
     TraversalCode PreStmt(const Stmt*) override;
     void AnalyzeSwitch(const SwitchStmt* sw);

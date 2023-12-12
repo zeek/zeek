@@ -634,8 +634,9 @@ void ZAMCompiler::ReMapInterpreterFrame() {
 
     // Update frame sizes for functions that might have more than
     // one body.
-    if ( remapped_intrp_frame_sizes.count(func) == 0 || remapped_intrp_frame_sizes[func] < next_interp_slot )
-        remapped_intrp_frame_sizes[func] = next_interp_slot;
+    auto f = func.get();
+    if ( remapped_intrp_frame_sizes.count(f) == 0 || remapped_intrp_frame_sizes[f] < next_interp_slot )
+        remapped_intrp_frame_sizes[f] = next_interp_slot;
 }
 
 void ZAMCompiler::ReMapVar(const ID* id, int slot, zeek_uint_t inst) {

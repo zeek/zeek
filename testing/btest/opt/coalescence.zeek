@@ -1,4 +1,5 @@
 # @TEST-DOC: Ensure that event coalescence works properly.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
 # @TEST-EXEC: zeek -b -O ZAM %INPUT >output
 # @TEST-EXEC: btest-diff output

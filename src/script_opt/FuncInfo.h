@@ -1,10 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// Utility functions that return information about Zeek functions. Currently
-// this is limited to information about whether BiFs are side-effect-free
-// (from a Zeek scripting perspective), but could be expanded in the future
-// to include information about Zeek script functions, idempotency, and the
-// like.
+// Utility functions that return information about Zeek functions.
 
 #pragma once
 
@@ -12,6 +8,17 @@
 
 namespace zeek::detail {
 
-extern bool is_side_effect_free(std::string func_name);
+// A "special script function" is one that the event engine explicitly
+// knows about.
+extern bool is_special_script_func(std::string func_name);
+
+// An idempotent function returns the same value when called with the
+// same arguments (and has no meaningful side effects in terms of script-level
+// or Zeek-internal state).
+extern bool is_idempotent(std::string func_name);
+
+// Whether the given function (currently, just BiFs) has no Zeek-script-level
+// side effects.
+extern bool has_no_script_side_effects(std::string func_name);
 
 } // namespace zeek::detail

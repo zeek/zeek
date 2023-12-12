@@ -418,7 +418,16 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const NameExpr* n2,
 
     ZOp a;
 
-    if ( op2->GetType()->Tag() == TYPE_PATTERN )
+    auto& op2_t = op2->GetType();
+    auto& op3_t = op3->GetType();
+
+    if ( op3_t->Tag() == TYPE_TABLE ) {
+        if ( op3_t->AsTableType()->IsPatternIndex() && op2_t->Tag() == TYPE_STRING )
+            a = n2 ? OP_STR_IN_PAT_TBL_VVV : OP_STR_IN_PAT_TBL_VCV;
+        else
+            a = n2 ? OP_VAL_IS_IN_TABLE_VVV : OP_CONST_IS_IN_TABLE_VCV;
+    }
+    else if ( op2->GetType()->Tag() == TYPE_PATTERN )
         a = n2 ? (n3 ? OP_P_IN_S_VVV : OP_P_IN_S_VVC) : OP_P_IN_S_VCV;
 
     else if ( op2->GetType()->Tag() == TYPE_STRING )
@@ -426,9 +435,6 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const NameExpr* n2,
 
     else if ( op2->GetType()->Tag() == TYPE_ADDR && op3->GetType()->Tag() == TYPE_SUBNET )
         a = n2 ? (n3 ? OP_A_IN_S_VVV : OP_A_IN_S_VVC) : OP_A_IN_S_VCV;
-
-    else if ( op3->GetType()->Tag() == TYPE_TABLE )
-        a = n2 ? OP_VAL_IS_IN_TABLE_VVV : OP_CONST_IS_IN_TABLE_VCV;
 
     else
         reporter->InternalError("bad types when compiling \"in\"");
@@ -650,23 +656,29 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
         }
 
         if ( n2tag == TYPE_TABLE ) {
-            if ( n3 ) {
+            if ( is_pat_str_ind ) {
+                auto n1_slot = Frame1Slot(n1, OP1_WRITE);
+                if ( n3 ) {
+                    int n3_slot = FrameSlot(n3);
+                    z = ZInstI(OP_TABLE_PATSTR_INDEX_VVV, n1_slot, n2_slot, n3_slot);
+                }
+                else
+                    z = ZInstI(OP_TABLE_PATSTR_INDEX_VVC, n1_slot, n2_slot, c3);
+            }
+            else if ( n3 ) {
                 int n3_slot = FrameSlot(n3);
-                auto op = is_pat_str_ind ? OP_TABLE_PATSTR_INDEX1_VVV : OP_TABLE_INDEX1_VVV;
-                auto zop = AssignmentFlavor(op, n1->GetType()->Tag());
+                auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVV, n1->GetType()->Tag());
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, n3_slot);
                 z.SetType(n3->GetType());
             }
 
             else {
                 ASSERT(c3);
-
-                auto op = is_pat_str_ind ? OP_TABLE_PATSTR_INDEX1_VVC : OP_TABLE_INDEX1_VVC;
-                auto zop = AssignmentFlavor(op, n1->GetType()->Tag());
+                auto zop = AssignmentFlavor(OP_TABLE_INDEX1_VVC, n1->GetType()->Tag());
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c3);
             }
 
-            if ( pfs.HasSideEffects(SideEffectsOp::READ, n2t) ) {
+            if ( pfs->HasSideEffects(SideEffectsOp::READ, n2t) ) {
                 z.aux = new ZInstAux(0);
                 z.aux->can_change_non_locals = true;
             }
@@ -851,7 +863,7 @@ const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
     z.aux = InternalBuildVals(op2);
     z.t = op3->GetType();
 
-    if ( pfs.HasSideEffects(SideEffectsOp::WRITE, op1->GetType()) )
+    if ( pfs->HasSideEffects(SideEffectsOp::WRITE, op1->GetType()) )
         z.aux->can_change_non_locals = true;
 
     return AddInst(z);
@@ -1013,7 +1025,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
         TypeSet aggrs;
         bool is_unknown = false;
 
-        auto resolved = pfs.GetCallSideEffects(func, non_local_ids, aggrs, is_unknown);
+        auto resolved = pfs->GetCallSideEffects(func, non_local_ids, aggrs, is_unknown);
         ASSERT(resolved);
 
         if ( is_unknown || ! non_local_ids.empty() || ! aggrs.empty() )
@@ -1103,7 +1115,7 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
 
     z.t = e->GetType();
 
-    if ( pfs.HasSideEffects(SideEffectsOp::CONSTRUCTION, z.t) )
+    if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, z.t) )
         z.aux->can_change_non_locals = true;
 
     return AddInst(z);
@@ -1202,7 +1214,7 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
     // Mark the integer entries in z.aux as not being frame slots as usual.
     z.aux->slots = nullptr;
 
-    if ( pfs.HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
+    if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
         z.aux->can_change_non_locals = true;
 
     return AddInst(z);

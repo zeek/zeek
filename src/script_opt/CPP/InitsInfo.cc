@@ -460,12 +460,12 @@ FuncTypeInfo::FuncTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, st
     params = f->Params();
     yield = f->Yield();
 
-    auto gi = c->RegisterType(f->Params());
+    auto gi = c->RegisterType(params);
     if ( gi )
         init_cohort = gi->InitCohort();
 
     if ( yield ) {
-        gi = c->RegisterType(f->Yield());
+        auto gi = c->RegisterType(f->Yield());
         if ( gi )
             init_cohort = max(init_cohort, gi->InitCohort());
     }

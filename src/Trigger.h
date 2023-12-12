@@ -69,7 +69,7 @@ public:
     ~Trigger() override;
 
     // Evaluates the condition. If true, executes the body and deletes
-    // the object deleted.
+    // the object.
     //
     // Returns the state of condition.
     bool Eval();

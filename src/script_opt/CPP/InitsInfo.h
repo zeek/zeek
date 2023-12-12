@@ -594,7 +594,7 @@ public:
 
 private:
     FunctionFlavor flavor;
-    TypePtr params;
+    RecordTypePtr params;
     TypePtr yield;
 };
 

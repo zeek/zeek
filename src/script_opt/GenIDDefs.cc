@@ -12,12 +12,12 @@
 
 namespace zeek::detail {
 
-GenIDDefs::GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr scope, StmtPtr body)
+GenIDDefs::GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const FuncPtr& f, ScopePtr scope, StmtPtr body)
     : pf(std::move(_pf)) {
     TraverseFunction(f, scope, body);
 }
 
-void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body) {
+void GenIDDefs::TraverseFunction(const FuncPtr& f, ScopePtr scope, StmtPtr body) {
     func_flavor = f->Flavor();
 
     // Establish the outermost set of identifiers.

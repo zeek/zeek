@@ -13,10 +13,10 @@
 
 namespace zeek::detail {
 
-ZAMCompiler::ZAMCompiler(ScriptFunc* f, ProfileFuncs& _pfs, std::shared_ptr<ProfileFunc> _pf, ScopePtr _scope,
-                         StmtPtr _body, std::shared_ptr<UseDefs> _ud, std::shared_ptr<Reducer> _rd)
-    : pfs(_pfs) {
-    func = f;
+ZAMCompiler::ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> _pfs, std::shared_ptr<ProfileFunc> _pf,
+                         ScopePtr _scope, StmtPtr _body, std::shared_ptr<UseDefs> _ud, std::shared_ptr<Reducer> _rd) {
+    func = std::move(f);
+    pfs = std::move(_pfs);
     pf = std::move(_pf);
     scope = std::move(_scope);
     body = std::move(_body);
@@ -42,7 +42,7 @@ void ZAMCompiler::Init() {
 
     TrackMemoryManagement();
 
-    non_recursive = non_recursive_funcs.count(func) > 0;
+    non_recursive = non_recursive_funcs.count(func.get()) > 0;
 }
 
 void ZAMCompiler::InitGlobals() {
@@ -210,8 +210,7 @@ void ZAMCompiler::ResolveHookBreaks() {
             // Rewrite the breaks.
             for ( auto& b : breaks[0] ) {
                 auto& i = insts1[b.stmt_num];
-                delete i;
-                i = new ZInstI(OP_HOOK_BREAK_X);
+                *i = ZInstI(OP_HOOK_BREAK_X);
             }
         }
 

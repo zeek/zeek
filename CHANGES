@@ -1,3 +1,29 @@
+6.2.0-dev.275 | 2023-12-12 09:52:00 +0100
+
+  * recent BTests that should be skipped when using -O gen-C++ (Vern Paxson, Corelight)
+
+  * expanded ZAM maintenance notes & support scripts (Vern Paxson, Corelight)
+
+  * script optimization tracking of functions called by event engine or indirectly (Vern Paxson, Corelight)
+
+  * memory-handling fixes for information associated with low-level ZAM instructions (Vern Paxson, Corelight)
+
+  * fix for -O C++ lambda functions reporting errors/warnings (Vern Paxson, Corelight)
+
+  * revert problems with profiling attributes introduced by recent script-opt PR (Vern Paxson, Corelight)
+
+  * script optimization fixes for pattern tables (Vern Paxson, Corelight)
+
+  * regularized (some) types of pointers used in script optimization (Vern Paxson, Corelight)
+
+  * splitting off script optimization CSE into its own source files (Vern Paxson, Corelight)
+
+  * some very minor tidying of script optimization code/documentation (Vern Paxson, Corelight)
+
+  * fix for Trigger's whose termination leads to deleting other Trigger's (Vern Paxson, Corelight)
+
+  * bug fix for delayed logging (Vern Paxson, Corelight)
+
 6.2.0-dev.262 | 2023-12-11 13:11:09 +0100
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

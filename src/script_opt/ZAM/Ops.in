@@ -696,6 +696,17 @@ internal-op P-In-S
 type VVC
 eval	EvalPInS(frame[z.v2], z.c)
 
+macro EvalStrInPatTbl(op1, op2)
+	frame[z.v1].int_val = op2.table_val->MatchPattern({NewRef{}, op1.string_val});
+
+internal-op Str-In-Pat-Tbl
+type VVV
+eval	EvalStrInPatTbl(frame[z.v2], frame[z.v3])
+
+internal-op Str-In-Pat-Tbl
+type VCV
+eval	EvalStrInPatTbl(z.c, frame[z.v2])
+
 internal-binary-op S-In-S
 op-accessor string_val
 op-type I
@@ -1045,6 +1056,20 @@ type VV
 eval	EvalTableIndex(z.aux->ToListVal(frame))
 	AssignV1(BuildVal(v, z.t))
 
+macro	EvalTablePatStr(index)
+	auto& lhs = frame[z.v1];
+	auto vec = ZVal(frame[z.v2].table_val->LookupPattern({NewRef{}, index.string_val}));
+	ZVal::DeleteManagedType(lhs);
+	lhs = vec;
+
+internal-op Table-PatStr-Index
+type VVV
+eval	EvalTablePatStr(frame[z.v3])
+
+internal-op Table-PatStr-Index
+type VVC
+eval	EvalTablePatStr(z.c)
+
 internal-op When-Table-Index
 type VV
 eval	EvalTableIndex(z.aux->ToListVal(frame))
@@ -1079,17 +1104,6 @@ internal-assignment-op Table-Index1
 type VVC
 assign-val v
 eval	EvalTableIndex(z.c.ToVal(z.t))
-
-# Same, but for indexing table[pattern] of X with a string.
-internal-assignment-op Table-PatStr-Index1
-type VVV
-assign-val v
-eval	auto v = frame[z.v2].table_val->LookupPattern({NewRef{}, frame[z.v3].AsString()});
-
-internal-assignment-op Table-PatStr-Index1
-type VVC
-assign-val v
-eval	auto v = frame[z.v2].table_val->LookupPattern({NewRef{}, z.c.AsString()});
 
 # This version is for a variable v3.
 internal-op Index-String
@@ -1832,7 +1846,6 @@ op1-read
 type VVV
 eval	auto v = frame[z.v1].subnet_val->AsSubNet().AsString();
 	EvalSwitchBody(str_cases,)
-	auto t = str_cases[z.v2];
 
 
 internal-op Branch-If-Not-Type

@@ -151,7 +151,7 @@ string CPPCompile::GenNameExpr(const NameExpr* ne, GenType gt) {
 
     if ( t->Tag() == TYPE_FUNC && ! is_global_var ) {
         auto func = n->Name();
-        if ( globals.count(func) > 0 && pfs.BiFGlobals().count(n) == 0 )
+        if ( globals.count(func) > 0 && pfs->BiFGlobals().count(n) == 0 )
             return GenericValPtrToGT(IDNameStr(n), t, gt);
     }
 
@@ -202,9 +202,9 @@ string CPPCompile::GenIncrExpr(const Expr* e, GenType gt, bool is_incr, bool top
 
     // Make sure any newly created types are known to
     // the profiler.
-    (void)pfs.HashType(one_e->GetType());
-    (void)pfs.HashType(rhs->GetType());
-    (void)pfs.HashType(assign->GetType());
+    (void)pfs->HashType(one_e->GetType());
+    (void)pfs->HashType(rhs->GetType());
+    (void)pfs->HashType(assign->GetType());
 
     auto gen = GenExpr(assign, GEN_DONT_CARE, top_level);
 
@@ -269,10 +269,10 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level) {
         //
         // If it is a BiF *that's also a global variable*, then
         // we need to look up the BiF version of the global.
-        if ( pfs.BiFGlobals().count(f_id) == 0 )
+        if ( pfs->BiFGlobals().count(f_id) == 0 )
             gen += +"->AsFunc()";
 
-        else if ( pfs.Globals().count(f_id) > 0 )
+        else if ( pfs->Globals().count(f_id) > 0 )
             // The BiF version has an extra "_", per
             // AddBiF(..., true).
             gen = globals[string(id_name) + "_"];
@@ -318,20 +318,25 @@ string CPPCompile::GenInExpr(const Expr* e, GenType gt) {
     auto t1 = op1->GetType();
     auto t2 = op2->GetType();
 
+    auto tag1 = t1->Tag();
+    auto tag2 = t2->Tag();
+
     string gen;
 
-    if ( t1->Tag() == TYPE_PATTERN )
+    if ( tag1 == TYPE_STRING && tag2 == TYPE_TABLE && t2->AsTableType()->IsPatternIndex() )
+        gen = GenExpr(op2, GEN_DONT_CARE) + "->MatchPattern(" + GenExpr(op1, GEN_NATIVE) + ")";
+    else if ( tag1 == TYPE_PATTERN )
         gen = string("(") + GenExpr(op1, GEN_DONT_CARE) + ")->MatchAnywhere(" + GenExpr(op2, GEN_DONT_CARE) +
               "->AsString())";
 
-    else if ( t2->Tag() == TYPE_STRING )
+    else if ( tag2 == TYPE_STRING )
         gen = string("str_in__CPP(") + GenExpr(op1, GEN_DONT_CARE) + "->AsString(), " + GenExpr(op2, GEN_DONT_CARE) +
               "->AsString())";
 
-    else if ( t1->Tag() == TYPE_ADDR && t2->Tag() == TYPE_SUBNET )
+    else if ( tag1 == TYPE_ADDR && tag2 == TYPE_SUBNET )
         gen = string("(") + GenExpr(op2, GEN_DONT_CARE) + ")->Contains(" + GenExpr(op1, GEN_VAL_PTR) + "->Get())";
 
-    else if ( t2->Tag() == TYPE_VECTOR )
+    else if ( tag2 == TYPE_VECTOR )
         gen = GenExpr(op2, GEN_DONT_CARE) + "->Has(" + GenExpr(op1, GEN_NATIVE) + ")";
 
     else
@@ -511,8 +516,8 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level) {
 
         // Make sure any newly created types are known to
         // the profiler.
-        (void)pfs.HashType(rhs->GetType());
-        (void)pfs.HashType(assign->GetType());
+        (void)pfs->HashType(rhs->GetType());
+        (void)pfs->HashType(assign->GetType());
 
         return GenExpr(assign, gt, top_level);
     }
@@ -542,8 +547,8 @@ string CPPCompile::GenRemoveFromExpr(const Expr* e, GenType gt, bool top_level) 
 
         // Make sure any newly created types are known to
         // the profiler.
-        (void)pfs.HashType(rhs->GetType());
-        (void)pfs.HashType(assign->GetType());
+        (void)pfs->HashType(rhs->GetType());
+        (void)pfs->HashType(assign->GetType());
 
         return GenExpr(assign, gt, top_level);
     }

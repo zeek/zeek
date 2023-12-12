@@ -193,22 +193,21 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 all_globals.insert(id);
 
                 const auto& t = id->GetType();
-                if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
-                    events.insert(id->Name());
+                if ( t->Tag() == TYPE_FUNC )
+                    if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
+                        events.insert(id->Name());
 
                 break;
             }
 
-            // This is a tad ugly.  Unfortunately due to the
-            // weird way that Zeek function *declarations* work,
-            // there's no reliable way to get the list of
-            // parameters for a function *definition*, since
-            // they can have different names than what's present
-            // in the declaration.  So we identify them directly,
-            // by knowing that they come at the beginning of the
-            // frame ... and being careful to avoid misconfusing
-            // a lambda capture with a low frame offset as a
-            // parameter.
+            // This is a tad ugly.  Unfortunately due to the weird way
+            // that Zeek function *declarations* work, there's no reliable
+            // way to get the list of parameters for a function *definition*,
+            // since they can have different names than what's present in the
+            // declaration.  So we identify them directly, by knowing that
+            // they come at the beginning of the frame ... and being careful
+            // to avoid misconfusing a lambda capture with a low frame offset
+            // as a parameter.
             if ( captures.count(id) == 0 && id->Offset() < num_params )
                 params.insert(id);
 
@@ -251,11 +250,25 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
         case EXPR_REMOVE_FROM:
         case EXPR_ASSIGN: {
             auto lhs = e->GetOp1();
+            bool is_assign = e->Tag() == EXPR_ASSIGN;
+
+            if ( is_assign ) {
+                // Check for this being an assignment to a function (as
+                // opposed to a call). If so, then the function can be
+                // used indirectly.
+                auto rhs = e->GetOp2();
+                if ( rhs->Tag() == EXPR_NAME ) {
+                    auto& rhs_id = rhs->AsNameExpr()->IdPtr();
+                    const auto& t = rhs_id->GetType();
+                    if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_FUNCTION )
+                        indirect_funcs.insert(rhs_id.get());
+                }
+            }
 
             if ( lhs->Tag() == EXPR_REF )
                 lhs = lhs->GetOp1();
 
-            else if ( e->Tag() == EXPR_ASSIGN )
+            else if ( is_assign )
                 // This isn't a direct assignment, but instead an overloaded
                 // use of "=" such as in a table constructor.
                 break;
@@ -267,7 +280,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     auto id = lhs->AsNameExpr()->Id();
                     TrackAssignment(id);
 
-                    if ( e->Tag() == EXPR_ASSIGN ) {
+                    if ( is_assign ) {
                         auto a_e = static_cast<const AssignExpr*>(e);
                         auto& av = a_e->AssignVal();
                         if ( av )
@@ -287,7 +300,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     // assignment "a[b] = aggr", it's not a[b]'s type but
                     // rather a's type. However, for any of the others,
                     // e.g. "a[b] -= aggr" it is a[b]'s type.
-                    if ( e->Tag() == EXPR_ASSIGN )
+                    if ( is_assign )
                         aggr_mods.insert(lhs_aggr_t.get());
                     else
                         aggr_mods.insert(lhs_t.get());
@@ -325,20 +338,39 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
 
         case EXPR_CALL: {
             auto c = e->AsCallExpr();
+            auto args = c->Args();
             auto f = c->Func();
 
-            if ( f->Tag() != EXPR_NAME ) {
+            const NameExpr* n = nullptr;
+            const ID* func = nullptr;
+
+            if ( f->Tag() == EXPR_NAME ) {
+                n = f->AsNameExpr();
+                func = n->Id();
+
+                if ( ! func->IsGlobal() )
+                    does_indirect_calls = true;
+            }
+            else
                 does_indirect_calls = true;
-                return TC_CONTINUE;
+
+            // Check for whether any of the arguments is a bare function.
+            // If so, then note that that function may be used indirectly,
+            // unless the function being called is known to be idempotent.
+            if ( does_indirect_calls || ! is_idempotent(func->Name()) ) {
+                for ( auto& arg : args->Exprs() )
+                    if ( arg->Tag() == EXPR_NAME ) {
+                        auto& arg_id = arg->AsNameExpr()->IdPtr();
+                        const auto& t = arg_id->GetType();
+                        if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_FUNCTION )
+                            indirect_funcs.insert(arg_id.get());
+                    }
             }
 
-            auto n = f->AsNameExpr();
-            auto func = n->Id();
-
-            if ( ! func->IsGlobal() ) {
-                does_indirect_calls = true;
+            if ( does_indirect_calls )
+                // We waited on doing this until after checking for
+                // indirect functions.
                 return TC_CONTINUE;
-            }
 
             all_globals.insert(func);
 
@@ -361,7 +393,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             }
 
             // Recurse into the arguments.
-            auto args = c->Args();
             args->Traverse(this);
 
             // Do the following explicitly, since we won't be recursing
@@ -604,7 +635,7 @@ bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, T
 
     auto func = fv->AsFunc();
     if ( func->GetKind() == Func::BUILTIN_FUNC ) {
-        if ( ! is_side_effect_free(func->Name()) )
+        if ( ! has_no_script_side_effects(func->Name()) )
             is_unknown = true;
         return true;
     }
@@ -911,8 +942,11 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
                 // We don't hash the field name, as in some contexts
                 // those are ignored.
 
-                if ( f->attrs && do_hash )
-                    h = merge_p_hashes(h, HashAttrs(f->attrs));
+                if ( f->attrs ) {
+                    if ( do_hash )
+                        h = merge_p_hashes(h, HashAttrs(f->attrs));
+                    AnalyzeAttrs(f->attrs.get(), ft);
+                }
             }
         } break;
 
@@ -929,24 +963,8 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
             auto ft = t->AsFuncType();
             auto flv = ft->FlavorString();
             h = merge_p_hashes(h, p_hash(flv));
-
-            // We deal with the parameters individually, rather than just
-            // recursing into the RecordType that's used (for convenience)
-            // to represent them. We do so because their properties are
-            // somewhat different - in particular, an &default on a parameter
-            // field is resolved in the context of the caller, not the
-            // function itself, and so we don't want to track those as
-            // attributes associated with the function body's execution.
             h = merge_p_hashes(h, p_hash("params"));
-            auto params = ft->Params()->Types();
-
-            if ( params ) {
-                h = merge_p_hashes(h, p_hash(params->length()));
-
-                for ( auto p : *params )
-                    h = merge_p_hashes(h, HashType(p->type));
-            }
-
+            h = merge_p_hashes(h, HashType(ft->Params()));
             h = merge_p_hashes(h, p_hash("func-yield"));
             h = merge_p_hashes(h, HashType(ft->Yield()));
         } break;
@@ -1150,7 +1168,7 @@ bool ProfileFuncs::DefinitelyHasNoSideEffects(const ExprPtr& e) const {
         return false;
 
     for ( auto& b : pf->BiFGlobals() )
-        if ( ! is_side_effect_free(b->Name()) )
+        if ( ! has_no_script_side_effects(b->Name()) )
             return false;
 
     return true;
@@ -1241,7 +1259,7 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
     }
 
     for ( auto& b : pf->BiFGlobals() )
-        if ( ! is_side_effect_free(b->Name()) ) {
+        if ( ! has_no_script_side_effects(b->Name()) ) {
             is_unknown = true;
             return true;
         }

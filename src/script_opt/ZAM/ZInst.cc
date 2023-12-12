@@ -78,6 +78,9 @@ void ZInst::Dump(const string& id1, const string& id2, const string& id3, const 
     if ( func )
         printf(" (func %s)", func->Name());
 
+    if ( loc )
+        printf(" // %s:%d-%d", loc->filename, loc->first_line, loc->last_line);
+
     printf("\n");
 }
 

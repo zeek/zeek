@@ -1398,4 +1398,72 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     return seo;
 }
 
+BBAnalyzer::BBAnalyzer(std::vector<FuncInfo>& funcs) {
+    for ( auto& f : funcs )
+        f.Func()->Traverse(this);
+}
+
+TraversalCode BBAnalyzer::PostStmt(const Stmt* s) {
+    auto loc_ptr = s->GetLocationInfo();
+    if ( ! loc_ptr || loc_ptr->first_line == 0 )
+        return TC_CONTINUE;
+
+    auto loc = *loc_ptr;
+
+    if ( loc.first_line > loc.last_line )
+        std::swap(loc.first_line, loc.last_line);
+
+    switch ( s->Tag() ) {
+        case STMT_LIST:
+            for ( auto s_i : s->AsStmtList()->Stmts() )
+                MergeIn(s_i, loc);
+            break;
+
+        case STMT_IF: {
+            auto i = s->AsIfStmt();
+            MergeIn(i->TrueBranch(), loc);
+            MergeIn(i->FalseBranch(), loc);
+        } break;
+
+        case STMT_WHEN: {
+            auto wi = s->AsWhenStmt()->Info();
+            MergeIn(wi->OrigBody(), loc);
+            MergeIn(wi->OrigTimeoutStmt(), loc);
+        } break;
+
+        case STMT_SWITCH:
+            for ( auto c : *s->AsSwitchStmt()->Cases() )
+                MergeIn(c->Body(), loc);
+            break;
+
+        case STMT_FOR: MergeIn(s->AsForStmt()->LoopBody(), loc); break;
+
+        case STMT_WHILE: MergeIn(s->AsWhileStmt()->Body(), loc); break;
+
+        default: break;
+    }
+
+    basic_blocks[s] = std::move(loc);
+
+    return TC_CONTINUE;
+}
+
+void BBAnalyzer::MergeIn(const Stmt* s, Location& loc) {
+    if ( ! s )
+        return;
+
+    auto s_bb = basic_blocks.find(s);
+    ASSERT(s_bb != basic_blocks.end());
+
+    auto& l = s_bb->second;
+
+    if ( l.first_line == 0 || ! util::streq(l.filename, loc.filename) )
+        return;
+
+    loc.first_line = std::min(loc.first_line, l.first_line);
+    loc.last_line = std::max(loc.last_line, l.last_line);
+}
+
+std::unique_ptr<BBAnalyzer> basic_blocks;
+
 } // namespace zeek::detail

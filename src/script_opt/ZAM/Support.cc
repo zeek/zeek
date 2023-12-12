@@ -13,6 +13,7 @@
 namespace zeek::detail {
 
 StmtPtr curr_stmt;
+std::shared_ptr<Location> curr_loc;
 TypePtr log_ID_enum_type;
 TypePtr any_base_type;
 bool ZAM_error = false;

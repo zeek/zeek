@@ -437,6 +437,9 @@ static void analyze_scripts_for_ZAM() {
 
     auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
 
+    if ( analysis_options.profile_ZAM )
+        basic_blocks = std::make_unique<BBAnalyzer>(funcs);
+
     bool report_recursive = analysis_options.report_recursive;
     std::unique_ptr<Inliner> inl;
     if ( analysis_options.inliner )
@@ -597,12 +600,105 @@ void analyze_scripts(bool no_unused_warnings) {
 }
 
 void profile_script_execution() {
-    if ( analysis_options.profile_ZAM ) {
-        report_ZOP_profile();
+    if ( ! analysis_options.profile_ZAM )
+        return;
 
-        for ( auto& f : funcs ) {
-            if ( f.Body()->Tag() == STMT_ZAM )
-                cast_intrusive<ZBody>(f.Body())->ProfileExecution();
+    report_ZOP_profile();
+
+    std::unordered_map<std::string, int> file_size;
+
+    auto& bb = basic_blocks->BasicBlocks();
+    std::unordered_map<std::string, std::unordered_set<const Location*>> file_bbs;
+
+    for ( auto& b : bb ) {
+        auto& bl = b.second;
+        auto bmax = bl.last_line;
+        auto bf = bl.filename;
+        auto fs_b = file_size.find(bf);
+        if ( fs_b == file_size.end() )
+            file_size[bf] = bmax;
+        else
+            fs_b->second = std::max(fs_b->second, bmax);
+
+        auto fb = file_bbs.find(bf);
+        if ( fb == file_bbs.end() )
+            file_bbs[bf] = std::unordered_set<const Location*>{&bl};
+        else
+            fb->second.insert(&bl);
+    }
+
+    std::unordered_map<std::string, std::vector<std::pair<zeek_uint_t, double>>> loc_info;
+
+    for ( auto& fs : file_size ) {
+        auto stats = std::vector<std::pair<zeek_uint_t, double>>{};
+        stats.resize(fs.second + 1);
+        loc_info[fs.first] = std::move(stats);
+    }
+
+    for ( auto& f : funcs ) {
+        if ( f.Body()->Tag() == STMT_ZAM ) {
+            auto zb = cast_intrusive<ZBody>(f.Body());
+            zb->ProfileExecution();
+
+            for ( auto& pe : zb->ExecProfile() ) {
+                if ( pe.Count() == 0 )
+                    continue;
+
+                auto& loc = pe.Loc();
+                auto li = loc_info.find(loc->filename);
+                ASSERT(li != loc_info.end());
+
+                auto first = loc->first_line;
+                auto last = loc->last_line;
+                if ( last < first )
+                    std::swap(first, last);
+
+                li->second[first].first += pe.Count();
+                li->second[first].second += pe.CPU();
+
+#if 0
+			for ( auto i = first; i <= last; ++i )
+				{
+				li->second[i].first += pe.Count();
+				li->second[i].second += pe.CPU();
+				}
+#endif
+            }
+        }
+    }
+
+    std::unordered_set<std::string> locs_reported;
+
+    for ( auto& b : file_bbs ) {
+        auto& loc = b.first;
+
+        for ( auto& bb : b.second ) {
+            auto& fn = bb->filename;
+            if ( loc_info.count(fn) == 0 ) {
+                printf("NO LOC INFO: %s\n", fn);
+                continue;
+            }
+
+            auto lstr = std::string(fn) + ":" + std::to_string(bb->first_line);
+            if ( bb->last_line != bb->first_line )
+                lstr += "-" + std::to_string(bb->last_line);
+
+            if ( locs_reported.count(lstr) > 0 )
+                continue;
+
+            locs_reported.insert(lstr);
+
+            zeek_uint_t count = 0;
+            double CPU = 0.0;
+
+            auto& li = loc_info[fn];
+            for ( auto i = bb->first_line; i <= bb->last_line; ++i ) {
+                auto& li_i = li[i];
+                count += li_i.first;
+                CPU += li_i.second;
+            }
+
+            printf("%s %d %" PRId64 " %.06f\n", lstr.c_str(), 1 + bb->last_line - bb->first_line, count, CPU);
         }
     }
 }

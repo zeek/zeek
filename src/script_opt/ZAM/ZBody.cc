@@ -170,9 +170,6 @@ ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
 ZBody::~ZBody() {
     delete[] fixed_frame;
     delete[] insts;
-    delete inst_count;
-    delete inst_CPU;
-    delete CPU_time;
 }
 
 void ZBody::SetInsts(vector<ZInst*>& _insts) {
@@ -209,16 +206,15 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
 
 void ZBody::InitProfile() {
     if ( analysis_options.profile_ZAM ) {
-        inst_count = new vector<int>;
-        inst_CPU = new vector<double>;
-        for ( auto i = 0U; i < end_pc; ++i ) {
-            inst_count->push_back(0);
-            inst_CPU->push_back(0.0);
-        }
+        exec_prof = std::make_unique<std::vector<ProfileElem>>();
+        exec_prof->reserve(end_pc);
 
-        CPU_time = new double;
-        *CPU_time = 0.0;
+        for ( auto i = 0U; i < end_pc; ++i )
+            exec_prof->emplace_back(ProfileElem(insts->loc, 0, 0.0));
     }
+
+    CPU_time = std::make_unique<double>();
+    *CPU_time = 0.0;
 }
 
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
@@ -281,8 +277,8 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
         double profile_CPU = 0.0;
 
         if ( do_profile ) {
+            (*exec_prof)[pc].BumpCount();
             ++ZOP_count[z.op];
-            ++(*inst_count)[pc];
 
             profile_pc = pc;
             profile_CPU = util::curr_CPU_time();
@@ -305,7 +301,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
 #ifdef DEBUG
         if ( do_profile ) {
             double dt = util::curr_CPU_time() - profile_CPU;
-            inst_CPU->at(profile_pc) += dt;
+            (*exec_prof)[profile_pc].BumpCPU(dt);
             ZOP_CPU[z.op] += dt;
         }
 #endif
@@ -344,20 +340,21 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
 }
 
 void ZBody::ProfileExecution() const {
-    if ( inst_count->empty() ) {
+    if ( exec_prof->empty() ) {
         printf("%s has an empty body\n", func_name);
         return;
     }
 
-    if ( (*inst_count)[0] == 0 ) {
+    if ( (*exec_prof)[0].Count() == 0 ) {
         printf("%s did not execute\n", func_name);
         return;
     }
 
     printf("%s CPU time: %.06f\n", func_name, *CPU_time);
 
-    for ( auto i = 0U; i < inst_count->size(); ++i ) {
-        printf("%s %d %d %.06f ", func_name, i, (*inst_count)[i], (*inst_CPU)[i]);
+    for ( auto i = 0U; i < exec_prof->size(); ++i ) {
+        auto& pe = (*exec_prof)[i];
+        printf("%s %d %" PRId64 " %.06f ", func_name, i, pe.Count(), pe.CPU());
         insts[i].Dump(i, &frame_denizens);
     }
 }

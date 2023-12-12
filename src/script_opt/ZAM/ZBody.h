@@ -49,6 +49,7 @@ public:
     void Dump() const;
 
     void ProfileExecution() const;
+    const std::vector<ProfileElem>& ExecProfile() const { return *exec_prof; }
 
 protected:
     // Initializes profiling information, if needed.
@@ -100,13 +101,10 @@ private:
     std::vector<GlobalInfo> globals;
     int num_globals;
 
-    // The following are only maintained if we're doing profiling.
-    //
-    // These need to be pointers so we can manipulate them in a
-    // const method.
-    std::vector<int>* inst_count = nullptr;  // for profiling
-    double* CPU_time = nullptr;              // cumulative CPU time for the program
-    std::vector<double>* inst_CPU = nullptr; // per-instruction CPU time.
+    // The following is only maintained if we're doing profiling.  Need
+    // to be pointers so we can manipulate them in a const method.
+    std::unique_ptr<std::vector<ProfileElem>> exec_prof;
+    std::unique_ptr<double> CPU_time; // cumulative CPU time for the program
 
     CaseMaps<zeek_int_t> int_cases;
     CaseMaps<zeek_uint_t> uint_cases;

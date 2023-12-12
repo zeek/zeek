@@ -60,6 +60,8 @@ public:
     ZInst(ZOp _op, ZAMOpType _op_type) {
         op = _op;
         op_type = _op_type;
+        ASSERT(curr_loc);
+        loc = curr_loc;
     }
 
     // Create a stub instruction that will be populated later.

@@ -191,6 +191,24 @@ private:
     ScriptFuncPtr orig_func;
 };
 
+class ProfileElem {
+public:
+    ProfileElem(std::shared_ptr<Location> _loc, int _count, double _cpu)
+        : loc(std::move(_loc)), count(_count), cpu(_cpu) {}
+
+    auto& Loc() const { return loc; }
+    zeek_uint_t Count() const { return count; }
+    double CPU() const { return cpu; }
+
+    void BumpCount() { ++count; }
+    void BumpCPU(double new_cpu) { cpu += new_cpu; }
+
+private:
+    std::shared_ptr<Location> loc;
+    zeek_uint_t count;
+    double cpu;
+};
+
 // We track which functions are definitely not recursive.  We do this
 // as the negative, rather than tracking functions known to be recursive,
 // so that if we don't do the analysis at all (it's driven by inlining),

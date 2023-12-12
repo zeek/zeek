@@ -24,6 +24,11 @@ ZAMCompiler::ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> _pfs, st
     reducer = std::move(_rd);
     frame_sizeI = 0;
 
+    auto loc = body->Original()->GetLocationInfo();
+    ASSERT(loc->first_line != 0 || body->Tag() == STMT_NULL);
+    curr_loc =
+        std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+
     Init();
 }
 
@@ -382,6 +387,7 @@ void ZAMCompiler::Dump() {
 
     for ( auto i = 0U; i < insts2.size(); ++i ) {
         auto& inst = insts2[i];
+        // printf("%s:%d\n", inst->loc->filename, inst->loc->first_line);
         printf("%d: ", i);
         inst->Dump(&frame_denizens, remappings);
     }

@@ -63,7 +63,9 @@ StmtPtr ExprListStmt::DoReduce(Reducer* c) {
         return ThisPtr();
 
     auto new_l = make_intrusive<ListExpr>();
+    new_l->SetLocation(this);
     auto s = make_intrusive<StmtList>();
+    s->SetOriginal(ThisPtr());
 
     ExprPList& e = l->Exprs();
     for ( auto& expr : e ) {
@@ -201,7 +203,9 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         auto b = e->GetOp2();
 
         auto s1_dup = s1 ? s1->Duplicate() : nullptr;
+        auto orig_s2 = s2;
         s2 = make_intrusive<IfStmt>(b, s1_dup, s2);
+        s2->SetOriginal(s2);
         e = a;
 
         auto res = DoReduce(c);
@@ -218,7 +222,9 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         auto b = e->GetOp2();
 
         auto s2_dup = s2 ? s2->Duplicate() : nullptr;
+        auto orig_s1 = s1;
         s1 = make_intrusive<IfStmt>(b, s1, s2_dup);
+        s1->SetOriginal(s1);
         e = a;
 
         auto res = DoReduce(c);
@@ -238,11 +244,15 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         StmtPtr cond_red_stmt;
         e = e->ReduceToConditional(c, cond_red_stmt);
 
-        if ( red_e_stmt && cond_red_stmt )
+        if ( red_e_stmt && cond_red_stmt ) {
             red_e_stmt = make_intrusive<StmtList>(red_e_stmt, cond_red_stmt);
+            red_e_stmt->SetOriginal(ThisPtr());
+        }
         else if ( cond_red_stmt )
             red_e_stmt = cond_red_stmt;
     }
+
+    StmtPtr sl;
 
     if ( e->IsConst() ) {
         auto c_e = e->AsConstExprPtr();
@@ -251,14 +261,14 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         if ( c->Optimizing() )
             return t ? s1 : s2;
 
-        if ( t )
-            return TransformMe(make_intrusive<StmtList>(red_e_stmt, s1), c);
-        else
-            return TransformMe(make_intrusive<StmtList>(red_e_stmt, s2), c);
+        sl = make_intrusive<StmtList>(red_e_stmt, t ? s1 : s2);
     }
 
-    if ( red_e_stmt )
-        return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
+    else if ( red_e_stmt )
+        sl = TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
+
+    if ( sl )
+        return TransformMe(sl, c);
 
     return ThisPtr();
 }
@@ -339,9 +349,10 @@ bool SwitchStmt::IsReduced(Reducer* r) const {
 StmtPtr SwitchStmt::DoReduce(Reducer* rc) {
     if ( cases->length() == 0 )
         // Degenerate.
-        return make_intrusive<NullStmt>();
+        return TransformMe(make_intrusive<NullStmt>(), rc);
 
     auto s = make_intrusive<StmtList>();
+    s->SetOriginal(ThisPtr());
     StmtPtr red_e_stmt;
 
     if ( rc->Optimizing() )
@@ -381,11 +392,8 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc) {
         c->UpdateBody(c->Body()->Reduce(rc));
     }
 
-    if ( ! s->Stmts().empty() ) {
-        StmtPtr me = ThisPtr();
-        auto pre_and_me = make_intrusive<StmtList>(s, me);
-        return TransformMe(pre_and_me, rc);
-    }
+    if ( ! s->Stmts().empty() )
+        return TransformMe(make_intrusive<StmtList>(s, ThisPtr()), rc);
 
     return ThisPtr();
 }
@@ -429,10 +437,8 @@ StmtPtr AddDelStmt::DoReduce(Reducer* c) {
 
     auto red_e_stmt = e->ReduceToSingletons(c);
 
-    if ( red_e_stmt ) {
-        auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
-        return TransformMe(s, c);
-    }
+    if ( red_e_stmt )
+        return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
 
     else
         return ThisPtr();
@@ -457,10 +463,8 @@ StmtPtr EventStmt::DoReduce(Reducer* c) {
         event_expr = ee_red->AsEventExprPtr();
         e = event_expr;
 
-        if ( red_e_stmt ) {
-            auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
-            return TransformMe(s, c);
-        }
+        if ( red_e_stmt )
+            return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
     }
 
     return ThisPtr();
@@ -491,6 +495,7 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
                 // See comment below for the particulars
                 // of this constructor.
                 stmt_loop_condition = make_intrusive<ExprStmt>(STMT_EXPR, loop_condition);
+                stmt_loop_condition->SetOriginal(ThisPtr());
                 return ThisPtr();
             }
         }
@@ -504,6 +509,7 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
     // its check for whether the expression is being ignored, since
     // we're not actually creating an ExprStmt for execution.
     stmt_loop_condition = make_intrusive<ExprStmt>(STMT_EXPR, loop_condition);
+    stmt_loop_condition->SetOriginal(ThisPtr());
 
     if ( loop_cond_pred_stmt )
         loop_cond_pred_stmt = loop_cond_pred_stmt->Reduce(c);
@@ -606,10 +612,8 @@ StmtPtr ReturnStmt::DoReduce(Reducer* c) {
         StmtPtr red_e_stmt;
         e = e->ReduceToSingleton(c, red_e_stmt);
 
-        if ( red_e_stmt ) {
-            auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
-            return TransformMe(s, c);
-        }
+        if ( red_e_stmt )
+            return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
     }
 
     return ThisPtr();
@@ -829,7 +833,7 @@ StmtPtr AssertStmt::Duplicate() { return SetSucc(new AssertStmt(cond->Duplicate(
 
 bool AssertStmt::IsReduced(Reducer* c) const { return false; }
 
-StmtPtr AssertStmt::DoReduce(Reducer* c) { return make_intrusive<NullStmt>(); }
+StmtPtr AssertStmt::DoReduce(Reducer* c) { return TransformMe(make_intrusive<NullStmt>(), c); }
 
 bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
     for ( auto& cp : *cl ) {
@@ -891,10 +895,8 @@ StmtPtr WhenStmt::DoReduce(Reducer* c) {
         auto new_e = e->ReduceToSingleton(c, red_e_stmt);
         wi->SetTimeoutExpr(new_e);
 
-        if ( red_e_stmt ) {
-            auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
-            return TransformMe(std::move(s), c);
-        }
+        if ( red_e_stmt )
+            return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
     }
 
     return ThisPtr();
@@ -945,14 +947,16 @@ StmtPtr CatchReturnStmt::DoReduce(Reducer* c) {
             if ( ret_var )
                 reporter->InternalError("inlining inconsistency: no return value");
 
-            return make_intrusive<NullStmt>();
+            return TransformMe(make_intrusive<NullStmt>(), c);
         }
 
         auto rv_dup = ret_var->Duplicate();
         auto ret_e_dup = ret_e->Duplicate();
 
         auto assign = make_intrusive<AssignExpr>(rv_dup, ret_e_dup, false);
+        assign->SetLocation(this);
         assign_stmt = make_intrusive<ExprStmt>(assign);
+        assign_stmt->SetOriginal(ThisPtr());
 
         if ( ret_e_dup->Tag() == EXPR_CONST ) {
             auto ce = ret_e_dup->AsConstExpr();

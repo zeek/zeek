@@ -609,4 +609,21 @@ protected:
     bool full_record_hashes;
 };
 
+class BBAnalyzer : public TraversalCallback {
+public:
+    BBAnalyzer(std::vector<FuncInfo>& funcs);
+
+    TraversalCode PostStmt(const Stmt*) override;
+
+    const auto& BasicBlocks() const { return basic_blocks; }
+
+private:
+    void MergeIn(const StmtPtr& s, Location& loc) { MergeIn(s.get(), loc); }
+    void MergeIn(const Stmt* s, Location& loc);
+
+    std::unordered_map<const Stmt*, Location> basic_blocks;
+};
+
+extern std::unique_ptr<BBAnalyzer> basic_blocks;
+
 } // namespace zeek::detail

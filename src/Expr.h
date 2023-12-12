@@ -372,8 +372,15 @@ public:
 
     // Designate the given Expr node as the original for this one.
     void SetOriginal(ExprPtr _orig) {
-        if ( ! original )
-            original = std::move(_orig);
+        if ( _orig == this )
+            return;
+        original = std::move(_orig);
+        SetLocation(Original());
+    }
+
+    void SetLocation(const Obj* orig_obj) {
+        ASSERT(orig_obj->GetLocationInfo()->first_line != 0);
+        SetLocationInfo(orig_obj->GetLocationInfo());
     }
 
     // A convenience function for taking a newly-created Expr,
@@ -390,12 +397,14 @@ public:
         return {AdoptRef{}, succ};
     }
 
+#if 0
     const detail::Location* GetLocationInfo() const override {
         if ( original )
             return original->GetLocationInfo();
         else
             return Obj::GetLocationInfo();
     }
+#endif
 
     // Access script optimization information associated with
     // this statement.

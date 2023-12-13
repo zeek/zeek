@@ -7,12 +7,7 @@
 @TEST-START-FILE id.sig
 signature udp-proto {
   ip-proto == 17
-  event [my_signature_match3] "message"
-}
-
-signature udp-proto-msg-id {
-  ip-proto == 17
-  event [my_signature_match3] message_as_id
+  event my_signature_match3 "message"
 }
 
 signature udp-proto-msg-id2 {
@@ -22,7 +17,7 @@ signature udp-proto-msg-id2 {
 
 signature udp-stuff {
   dst-ip == mynets
-  event [my_signature_match2]
+  event my_signature_match2
 }
 
 @TEST-END-FILE

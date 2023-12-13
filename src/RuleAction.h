@@ -17,6 +17,9 @@ namespace detail {
 class Rule;
 class RuleEndpointState;
 
+// Returns true if the given C-string represents a registered event.
+bool is_event(const char* id);
+
 // Base class of all rule actions.
 class RuleAction {
 public:

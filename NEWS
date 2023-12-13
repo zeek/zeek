@@ -73,32 +73,32 @@ New Functionality
   to raise instead of ``signature_match()``. This can be more efficient in certain
   scenarios compared to funneling every match through a single event.
 
-  The new syntax is to put the name of the event in brackets before the string
-  or identifier used as message. As an extension, it is possible to only provide
-  the bracketed event name. In this case, the framework expects the event's
-  parameters to consist of only state and data as follows:
+  The new syntax is to put the name of the event before the string used for the
+  ``msg`` argument. As an extension, it is possible to only provide an event name,
+  skipping ``msg``. In this case, the framework expects the event's parameters to
+  consist of only state and data as follows:
 
 	signature only-event {
 		payload /.*root/
-		event [found_root]
+		event found_root
 	}
 
 	event found_root(state: signature_state, data: string) { }
 
-  Passing an additional message parameter to a custom event is possible with the
-  following syntax. The custom event's parameters need to align with those for the
-  ``signature_match()` event:
+  Using the ``msg`` parameter with a custom event looks as follows. The custom
+  event's parameters need to align with those for ``signature_match()` event:
 
 	signature event-with-msg {
 		payload /.*root/
-		event [found_root_with_msg] "the-message"
+		event found_root_with_msg "the-message"
 	}
 
 	event found_root_with_msg(state: signature_state, msg: string, data: string) { }
 
-  The message can also be specified as a Zeek side identifier, in which case
-  its initial value will be passed to the custom events. This is identical
-  to the behavior with the default ``signature_match()`` event.
+  Note, the message argument can currently still be specified as a Zeek identifier
+  referring to a script-level string value. If used, this is disambiguated behind
+  the scenes for the first variant. Specifying ``msg`` as a Zeek identifier has
+  been deprecated with the new event support and will be removed in the future. 
 
   Note that matches for signatures with custom events will not be recorded in
   ``signatures.log``. This log is based on the generation of ``signature_match()``
@@ -144,6 +144,9 @@ Deprecated Functionality
   ``UnusedHandlers()`` and their related ``SetUsed()`` and ``Used()`` methods
   have been marked for removal. The feature of finding unused event handlers is
   provided by default via the ``UsageAnalyzer`` component.
+
+- Using a Zeek identifier for the ``msg`` argument within a signatures's ``event``
+  keyword has been deprecated.
 
 Zeek 6.1.0
 ==========

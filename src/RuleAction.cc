@@ -15,6 +15,8 @@ using std::string;
 
 namespace zeek::detail {
 
+bool is_event(const char* id) { return zeek::event_registry->Lookup(id) != nullptr; }
+
 RuleActionEvent::RuleActionEvent(const char* arg_msg)
     : msg(make_intrusive<StringVal>(arg_msg)), handler(signature_match) {}
 

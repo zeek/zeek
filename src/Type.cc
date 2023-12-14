@@ -10,6 +10,7 @@
 #include <unordered_set>
 
 #include "zeek/Attr.h"
+#include "zeek/CompHash.h"
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Reporter.h"
@@ -478,7 +479,12 @@ TableType::TableType(TypeListPtr ind, TypePtr yield) : IndexType(TYPE_TABLE, std
             break;
         }
     }
+
+    if ( Tag() != TYPE_ERROR )
+        RegenerateHash();
 }
+
+TableType::~TableType() { delete table_hash; }
 
 bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr) {
     if ( reported_error )
@@ -492,6 +498,11 @@ bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr) {
 }
 
 TypePtr TableType::ShallowClone() { return make_intrusive<TableType>(indices, yield_type); }
+
+void TableType::RegenerateHash() {
+    delete table_hash;
+    table_hash = new detail::CompositeHash(GetIndices());
+}
 
 bool TableType::IsUnspecifiedTable() const {
     // Unspecified types have an empty list of indices.

@@ -49,7 +49,6 @@ namespace detail {
 class ScriptFunc;
 class Frame;
 class PrefixTable;
-class CompositeHash;
 class HashKey;
 class TablePatternMatcher;
 
@@ -930,7 +929,7 @@ public:
 
     const PDict<TableEntryVal>* Get() const { return table_val; }
 
-    const detail::CompositeHash* GetTableHash() const { return table_hash; }
+    const detail::CompositeHash* GetTableHash() const { return table_type->GetTableHash(); }
 
     // Returns the size of the table.
     int Size() const;
@@ -1043,7 +1042,6 @@ protected:
     ValPtr DoClone(CloneState* state) override;
 
     TableTypePtr table_type;
-    detail::CompositeHash* table_hash;
     detail::AttributesPtr attrs;
     detail::ExprPtr expire_time;
     detail::ExprPtr expire_func;

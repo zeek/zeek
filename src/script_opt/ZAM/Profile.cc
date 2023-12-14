@@ -11,26 +11,6 @@
 
 namespace zeek::detail {
 
-class BlockProfile {
-public:
-    BlockProfile(const ProfileElem* pe) {
-        count = pe->Count();
-        cpu = pe->CPU();
-    }
-
-    void AddProfileElem(const ProfileElem* pe) {
-        count += pe->Count();
-        cpu += pe->CPU();
-    }
-
-    int Count() const { return count; }
-    double CPU() const { return cpu; }
-
-private:
-    int count;
-    double cpu;
-};
-
 class FileProfInfo {
 public:
     FileProfInfo(std::string _filename, const ProfileElem* pe) : filename(std::move(_filename)) { AddProfileElem(pe); }
@@ -104,7 +84,10 @@ void FileProfInfo::CompileBasicBlocks() {
         if ( first_line < last_line )
             printf("-%d", last_line);
 
-        printf(" %" PRId64 " %.06f\n", prof->Count(), prof->CPU());
+	auto cpu = prof->CPU();
+	auto call_cpu = prof->CallCPU();
+
+        printf(" %" PRId64 " %.06f %.06f\n", prof->Count(), cpu - call_cpu, call_cpu);
     }
 }
 

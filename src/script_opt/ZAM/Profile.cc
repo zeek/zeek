@@ -58,6 +58,11 @@ private:
     int max_line = 0;
 };
 
+void FileProfInfo::AddBasicBlock(const Location* bb) {
+    max_line = std::max(max_line, bb->last_line);
+    bbs.insert(bb);
+}
+
 void FileProfInfo::CompileProfileElems() {
     line_profs.resize(max_line + 1);
 
@@ -70,25 +75,18 @@ void FileProfInfo::CompileProfileElems() {
     }
 }
 
-void FileProfInfo::AddBasicBlock(const Location* bb) {
-    if ( bb->last_line > max_line )
-        return;
-
-    for ( auto i = bb->first_line; i <= bb->last_line; ++i ) {
-        if ( line_profs[i] ) {
-            // It's relevant, we have data for it.
-            bbs.insert(bb);
-            break;
-        }
-    }
-}
-
 void FileProfInfo::CompileBasicBlocks() {
     // Ordered by size of the block, so it's easy to find overlaps.
     std::vector<const Location*> ordered_bbs;
 
-    for ( auto bb : bbs )
-        ordered_bbs.push_back(bb);
+    for ( auto bb : bbs ) {
+        for ( auto i = bb->first_line; i <= bb->last_line; ++i )
+            if ( line_profs[i] ) {
+                // It's relevant, we have data for it.
+                ordered_bbs.push_back(bb);
+                break;
+            }
+    }
 
     std::sort(ordered_bbs.begin(), ordered_bbs.end(), [](const Location* l1, const Location* l2) {
         return l1->last_line - l1->first_line < l2->last_line - l2->first_line;
@@ -117,8 +115,8 @@ std::shared_ptr<ProfileElem> FileProfInfo::UpdateBBProfile(const Location* bb) {
 
     if ( lp1 ) {
         ASSERT(lp1->LastLine() <= bb_last);
-        if ( lp1->FirstLine() == bb_first && lp1->LastLine() == bb_last )
-            // Already have it.
+        if ( bb_first != bb_last && lp1->FirstLine() == bb_first && lp1->LastLine() == bb_last )
+            // A consolidated block that we've already reported.
             return nullptr;
     }
     else
@@ -175,15 +173,15 @@ void profile_ZAM_execution(const std::vector<FuncInfo>& funcs) {
         }
     }
 
-    for ( auto& fp : file_profs )
-        fp.second->CompileProfileElems();
-
     for ( auto& bb : basic_blocks->BasicBlocks() ) {
         auto& loc = bb.second;
         auto fp = file_profs.find(loc.filename);
         if ( fp != file_profs.end() )
             fp->second->AddBasicBlock(&loc);
     }
+
+    for ( auto& fp : file_profs )
+        fp.second->CompileProfileElems();
 
     for ( auto& fp : file_profs )
         fp.second->CompileBasicBlocks();

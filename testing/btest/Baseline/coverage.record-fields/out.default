@@ -365,14 +365,14 @@ connection {
       LDAP::State {
         * messages: table[int] of record LDAP::MessageInfo, log=F, optional=T
             LDAP::MessageInfo {
-              * arguments: vector of string, log=T, optional=T
-              * diagnostic_messages: vector of string, log=T, optional=T
+              * argument: string, log=T, optional=T
+              * diagnostic_message: string, log=T, optional=T
               * id: record conn_id, log=T, optional=F
                   conn_id { ... }
               * message_id: int, log=T, optional=T
-              * objects: vector of string, log=T, optional=T
-              * opcodes: set[string], log=T, optional=T
-              * results: set[string], log=T, optional=T
+              * object: string, log=T, optional=T
+              * opcode: string, log=T, optional=T
+              * result: string, log=T, optional=T
               * ts: time, log=T, optional=F
               * uid: string, log=T, optional=F
               * version: int, log=T, optional=T
@@ -380,16 +380,16 @@ connection {
         * searches: table[int] of record LDAP::SearchInfo, log=F, optional=T
             LDAP::SearchInfo {
               * attributes: vector of string, log=T, optional=T
-              * base_objects: vector of string, log=T, optional=T
-              * derefs: set[string], log=T, optional=T
-              * diagnostic_messages: vector of string, log=T, optional=T
+              * base_object: string, log=T, optional=T
+              * deref_aliases: string, log=T, optional=T
+              * diagnostic_message: string, log=T, optional=T
               * filter: string, log=T, optional=T
               * id: record conn_id, log=T, optional=F
                   conn_id { ... }
               * message_id: int, log=T, optional=T
+              * result: string, log=T, optional=T
               * result_count: count, log=T, optional=T
-              * results: set[string], log=T, optional=T
-              * scopes: set[string], log=T, optional=T
+              * scope: string, log=T, optional=T
               * ts: time, log=T, optional=F
               * uid: string, log=T, optional=F
              }

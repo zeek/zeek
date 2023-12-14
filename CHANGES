@@ -1,3 +1,11 @@
+6.2.0-dev.278 | 2023-12-14 10:28:27 +0100
+
+  * rule-parse: Remove [event_name] syntax, deprecate msg as identifier (Arne Welzel, Corelight)
+
+    As suggested by Robin. Thanks.
+
+  * Bump zeekctl submodule to pull in Python 3.12 ConfigParser fix. (Christian Kreibich, Corelight)
+
 6.2.0-dev.275 | 2023-12-12 09:52:00 +0100
 
   * recent BTests that should be skipped when using -O gen-C++ (Vern Paxson, Corelight)

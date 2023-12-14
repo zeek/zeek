@@ -248,16 +248,6 @@ debian10_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-opensuse_leap_15_4_task:
-  container:
-    # Opensuse Leap 15.4 EOL: ~Dec 2023
-    dockerfile: ci/opensuse-leap-15.4/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
-
 opensuse_leap_15_5_task:
   container:
     # Opensuse Leap 15.5 EOL: ~Dec 2024

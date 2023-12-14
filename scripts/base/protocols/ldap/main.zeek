@@ -296,9 +296,9 @@ event LDAP::search_request(c: connection,
 }
 
 #############################################################################
-event LDAP::search_result(c: connection,
-                          message_id: int,
-                          object_name: string) {
+event LDAP::search_result_entry(c: connection,
+                                message_id: int,
+                                object_name: string) {
 
   set_session(c, message_id, LDAP::ProtocolOpcode_SEARCH_RESULT_ENTRY);
 

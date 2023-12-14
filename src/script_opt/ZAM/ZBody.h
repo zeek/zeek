@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/script_opt/ZAM/IterInfo.h"
+#include "zeek/script_opt/ZAM/Profile.h"
 #include "zeek/script_opt/ZAM/Support.h"
 
 namespace zeek::detail {
@@ -49,7 +50,7 @@ public:
     void Dump() const;
 
     void ProfileExecution() const;
-    const std::vector<ProfileElem>& ExecProfile() const { return *exec_prof; }
+    const std::vector<LocProfileElem>& ExecProfile() const { return *exec_prof; }
 
 protected:
     // Initializes profiling information, if needed.
@@ -103,7 +104,7 @@ private:
 
     // The following is only maintained if we're doing profiling.  Need
     // to be pointers so we can manipulate them in a const method.
-    std::unique_ptr<std::vector<ProfileElem>> exec_prof;
+    std::unique_ptr<std::vector<LocProfileElem>> exec_prof;
     std::unique_ptr<double> CPU_time; // cumulative CPU time for the program
 
     CaseMaps<zeek_int_t> int_cases;
@@ -111,8 +112,5 @@ private:
     CaseMaps<double> double_cases;
     CaseMaps<std::string> str_cases;
 };
-
-// Prints the execution profile.
-extern void report_ZOP_profile();
 
 } // namespace zeek::detail

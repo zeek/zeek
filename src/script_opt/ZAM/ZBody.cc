@@ -10,6 +10,7 @@
 #include "zeek/Trigger.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
+#include "zeek/script_opt/ZAM/Profile.h"
 
 // Needed for managing the corresponding values.
 #include "zeek/File.h"
@@ -206,11 +207,11 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
 
 void ZBody::InitProfile() {
     if ( analysis_options.profile_ZAM ) {
-        exec_prof = std::make_unique<std::vector<ProfileElem>>();
+        exec_prof = std::make_unique<std::vector<LocProfileElem>>();
         exec_prof->reserve(end_pc);
 
         for ( auto i = 0U; i < end_pc; ++i )
-            exec_prof->emplace_back(ProfileElem(insts[i].loc, 0, 0.0));
+            exec_prof->emplace_back(LocProfileElem(insts[i].loc));
     }
 
     CPU_time = std::make_unique<double>();

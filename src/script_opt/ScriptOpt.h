@@ -193,15 +193,22 @@ private:
 
 class ProfileElem {
 public:
-    ProfileElem(std::shared_ptr<Location> _loc, int _count, double _cpu)
+    ProfileElem(std::shared_ptr<Location> _loc, int _count = 0, double _cpu = 0.0)
         : loc(std::move(_loc)), count(_count), cpu(_cpu) {}
 
-    auto& Loc() const { return loc; }
+    const auto& Loc() const { return loc; }
     zeek_uint_t Count() const { return count; }
     double CPU() const { return cpu; }
 
     void BumpCount() { ++count; }
     void BumpCPU(double new_cpu) { cpu += new_cpu; }
+
+    void MergeIn(const ProfileElem* pe) {
+        auto& pe_loc = pe->Loc();
+        ASSERT(loc->first_line <= pe_loc->first_line && loc->last_line >= pe_loc->last_line);
+        count += pe->count;
+        cpu += pe->cpu;
+    }
 
 private:
     std::shared_ptr<Location> loc;

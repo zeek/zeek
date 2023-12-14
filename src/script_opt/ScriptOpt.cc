@@ -599,16 +599,245 @@ void analyze_scripts(bool no_unused_warnings) {
         reporter->FatalError("Optimized script execution aborted due to errors");
 }
 
+class ProfileBlock {
+public:
+    ProfileBlock(const ProfileElem* pe) {
+        auto& loc = pe->Loc();
+        min_first_line = max_first_line = loc->first_line;
+        min_last_line = max_last_line = loc->last_line;
+        prof_elems.push_back(pe);
+    }
+
+    void AddProfileElem(const ProfileElem* pe) {
+        auto& loc = pe->Loc();
+        min_first_line = std::min(min_first_line, loc->first_line);
+        max_first_line = std::max(max_first_line, loc->first_line);
+        min_last_line = std::min(min_last_line, loc->last_line);
+        max_last_line = std::max(max_last_line, loc->last_line);
+        prof_elems.push_back(pe);
+    }
+
+    bool BasicBlockFits(const Location* loc);
+
+    const auto& ProfElems() const { return prof_elems; }
+
+private:
+    std::vector<const ProfileElem*> prof_elems;
+    int min_first_line, max_first_line;
+    int min_last_line, max_last_line;
+};
+
+bool ProfileBlock::BasicBlockFits(const Location* loc) {
+    for ( auto& p : prof_elems ) {
+        auto& pl = p->Loc();
+        if ( loc->first_line <= pl->first_line && loc->last_line >= pl->last_line )
+            return true;
+    }
+
+    return false;
+}
+
+class FileProfInfo {
+public:
+    FileProfInfo(std::string _filename, const ProfileElem* pe) : filename(std::move(_filename)) { AddProfileElem(pe); }
+
+    void AddProfileElem(const ProfileElem* pe) {
+        base_profs.push_back(pe);
+        max_line = std::max(max_line, pe->Loc()->last_line);
+    }
+
+    void AddBasicBlock(const Location* bb);
+
+    void CompileProfileElems();
+    void CompileBasicBlocks();
+
+    void Report();
+
+private:
+    std::shared_ptr<ProfileElem> UpdateBBProfile(const Location* bb);
+
+    std::string filename;
+
+    std::vector<const ProfileElem*> base_profs;
+    std::unordered_set<const Location*> bbs;
+
+    std::vector<std::shared_ptr<ProfileBlock>> profile_blocks;
+    std::vector<std::shared_ptr<ProfileElem>> full_profs;
+
+    int max_line = 0;
+};
+
+void FileProfInfo::CompileProfileElems() {
+    profile_blocks.resize(max_line + 1);
+    full_profs.resize(max_line + 1);
+
+    for ( auto p : base_profs ) {
+        auto loc = p->Loc();
+        for ( int i = loc->first_line; i <= loc->last_line; ++i ) {
+            if ( ! profile_blocks[i] )
+                profile_blocks[i] = std::make_shared<ProfileBlock>(p);
+            else
+                profile_blocks[i]->AddProfileElem(p);
+        }
+    }
+}
+
+void FileProfInfo::AddBasicBlock(const Location* bb) {
+    if ( bb->last_line > max_line )
+        return;
+
+    for ( auto i = bb->first_line; i <= bb->last_line; ++i ) {
+        auto& pb = profile_blocks[i];
+        if ( pb && pb->BasicBlockFits(bb) ) {
+            bbs.insert(bb);
+            break;
+        }
+    }
+}
+
+void FileProfInfo::CompileBasicBlocks() {
+    // Ordered by size of the block.
+    std::vector<const Location*> ordered_bbs;
+
+    for ( auto bb : bbs )
+        ordered_bbs.push_back(bb);
+
+    std::sort(ordered_bbs.begin(), ordered_bbs.end(), [](const Location* l1, const Location* l2) {
+        return l1->last_line - l1->first_line < l2->last_line - l2->first_line;
+    });
+
+    for ( auto bb : ordered_bbs ) {
+        auto prof = UpdateBBProfile(bb);
+        if ( ! prof )
+            continue;
+
+        auto& loc = prof->Loc();
+        printf("%s:%d", filename.c_str(), loc->first_line);
+        if ( loc->first_line < loc->last_line )
+            printf("-%d", loc->last_line);
+
+        printf(" %" PRId64 " %.06f\n", prof->Count(), prof->CPU());
+    }
+}
+
+std::shared_ptr<ProfileElem> FileProfInfo::UpdateBBProfile(const Location* bb) {
+    auto& fp1 = full_profs[bb->first_line];
+
+    if ( fp1 ) {
+        ASSERT(fp1->Loc()->last_line <= bb->last_line);
+        if ( *fp1->Loc() == *bb )
+            // Already have it.
+            return nullptr;
+    }
+
+    // Need to create a new profile.
+    auto bb_loc = std::make_shared<Location>(*bb);
+    auto new_fp = std::make_shared<ProfileElem>(bb_loc);
+
+    int num_pb_merged = 0;
+    int num_fp_merged = 0;
+
+    for ( int i = bb->first_line; i <= bb->last_line; ++i ) {
+        const auto& fpi = full_profs[i];
+        if ( fpi ) {
+            ++num_fp_merged;
+            new_fp->MergeIn(fpi.get());
+            // Skip past what's already accounted for in this
+            // aggregation.
+            i = new_fp->Loc()->last_line;
+            continue;
+        }
+
+        auto& pb_i = profile_blocks[i];
+        if ( ! pb_i )
+            continue;
+
+        for ( auto pe : pb_i->ProfElems() )
+            if ( pe->Loc()->first_line == i ) {
+                ++num_pb_merged;
+                new_fp->MergeIn(pe);
+            }
+
+#if 0
+		// Avoid double-counting in the future.
+		pb_i = nullptr;
+#endif
+    }
+
+    ASSERT(new_fp->Count() > 0);
+
+    fp1 = std::move(new_fp);
+
+    if ( num_fp_merged == 1 && num_pb_merged == 0 )
+        // This is not a consolidation but just an expansion of range.
+        return nullptr;
+
+    return fp1;
+}
+
+void FileProfInfo::Report() {
+#if 0
+	for ( auto p : base_profs )
+		{
+		auto pb = std::make_shared<ProfileBlock>(p);
+		auto loc = p->Loc();
+		for ( int i = loc->first_line; i <= loc->last_line; ++i )
+			profile_blocks[i]->AddProfileElem(pb);
+		}
+#endif
+}
+
 void profile_script_execution() {
     if ( ! analysis_options.profile_ZAM )
         return;
 
     report_ZOP_profile();
 
-    std::unordered_map<std::string, int> file_size;
+    // Collect all of the profiles (and do initial reporting on them).
+    std::unordered_map<std::string, std::shared_ptr<FileProfInfo>> file_profs;
 
+    for ( auto& f : funcs ) {
+        if ( f.Body()->Tag() != STMT_ZAM )
+            continue;
+
+        auto zb = cast_intrusive<ZBody>(f.Body());
+        zb->ProfileExecution();
+
+        for ( auto& pe : zb->ExecProfile() ) {
+            if ( pe.Count() == 0 )
+                continue;
+
+            auto loc = pe.Loc();
+            auto fp = file_profs.find(loc->filename);
+            if ( fp == file_profs.end() )
+                file_profs[loc->filename] = std::make_shared<FileProfInfo>(loc->filename, &pe);
+            else
+                fp->second->AddProfileElem(&pe);
+        }
+    }
+
+    for ( auto& fp : file_profs )
+        fp.second->CompileProfileElems();
+
+    for ( auto& bb : basic_blocks->BasicBlocks() ) {
+        auto& loc = bb.second;
+        auto fp = file_profs.find(loc.filename);
+        if ( fp != file_profs.end() )
+            fp->second->AddBasicBlock(&loc);
+    }
+
+    for ( auto& fp : file_profs )
+        fp.second->CompileBasicBlocks();
+
+    for ( auto& fp : file_profs )
+        fp.second->Report();
+
+#if 0
+    // Put together a mapping of filenames to associated locations. In the
+    // process, compute per-file its largest line number.
     auto& bb = basic_blocks->BasicBlocks();
-    std::unordered_map<std::string, std::unordered_set<const Location*>> file_bbs;
+    std::unordered_map<std::string, std::unordered_set<const Location*>> file_bbs_seen;
+    std::unordered_map<std::string, int> file_size;
 
     for ( auto& b : bb ) {
         auto& bl = b.second;
@@ -620,9 +849,9 @@ void profile_script_execution() {
         else
             fs_b->second = std::max(fs_b->second, bmax);
 
-        auto fb = file_bbs.find(bf);
-        if ( fb == file_bbs.end() )
-            file_bbs[bf] = std::unordered_set<const Location*>{&bl};
+        auto fb = file_bbs_seen.find(bf);
+        if ( fb == file_bbs_seen.end() )
+            file_bbs_seen[bf] = std::unordered_set<const Location*>{&bl};
         else
             fb->second.insert(&bl);
     }
@@ -656,13 +885,11 @@ void profile_script_execution() {
                 li->second[first].first += pe.Count();
                 li->second[first].second += pe.CPU();
 
-#if 0
 			for ( auto i = first; i <= last; ++i )
 				{
 				li->second[i].first += pe.Count();
 				li->second[i].second += pe.CPU();
 				}
-#endif
             }
         }
     }
@@ -701,6 +928,7 @@ void profile_script_execution() {
             printf("%s %d %" PRId64 " %.06f\n", lstr.c_str(), 1 + bb->last_line - bb->first_line, count, CPU);
         }
     }
+#endif
 }
 
 void finish_script_execution() { profile_script_execution(); }

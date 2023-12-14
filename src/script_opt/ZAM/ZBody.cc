@@ -210,7 +210,7 @@ void ZBody::InitProfile() {
         exec_prof->reserve(end_pc);
 
         for ( auto i = 0U; i < end_pc; ++i )
-            exec_prof->emplace_back(ProfileElem(insts->loc, 0, 0.0));
+            exec_prof->emplace_back(ProfileElem(insts[i].loc, 0, 0.0));
     }
 
     CPU_time = std::make_unique<double>();

@@ -621,6 +621,8 @@ private:
     void MergeIn(const StmtPtr& s, Location& loc) { MergeIn(s.get(), loc); }
     void MergeIn(const Stmt* s, Location& loc);
 
+    // ### needs to be a Location copy because original might be deleted
+    // when AST memory recovered after optimization
     std::unordered_map<const Stmt*, Location> basic_blocks;
 };
 

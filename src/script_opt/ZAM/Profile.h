@@ -29,10 +29,7 @@ public:
         call_cpu += pe->call_cpu;
     }
 
-    void ExpandLastLine(int new_last_line) {
-        ASSERT(last_line <= new_last_line);
-        last_line = new_last_line;
-    }
+    void ExpandLastLine(int new_last_line) { last_line = std::max(last_line, new_last_line); }
 
 protected:
     bool is_call = false;
@@ -46,16 +43,18 @@ private:
 
 class LocProfileElem : public ProfileElem {
 public:
-    LocProfileElem(std::shared_ptr<Location> _loc, bool _is_call) : ProfileElem(_loc->first_line), loc(_loc) { is_call = _is_call; }
+    LocProfileElem(std::shared_ptr<Location> _loc, bool _is_call) : ProfileElem(_loc->first_line), loc(_loc) {
+        is_call = _is_call;
+    }
 
     const auto& Loc() const { return loc; }
 
     void BumpCount() { ++count; }
     void BumpCPU(double new_cpu) {
-	cpu += new_cpu;
-	if ( is_call )
-		call_cpu += new_cpu;
-	}
+        cpu += new_cpu;
+        if ( is_call )
+            call_cpu += new_cpu;
+    }
 
 private:
     std::shared_ptr<Location> loc;

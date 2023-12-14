@@ -84,8 +84,8 @@ void FileProfInfo::CompileBasicBlocks() {
         if ( first_line < last_line )
             printf("-%d", last_line);
 
-	auto cpu = prof->CPU();
-	auto call_cpu = prof->CallCPU();
+        auto cpu = prof->CPU();
+        auto call_cpu = prof->CallCPU();
 
         printf(" %" PRId64 " %.06f %.06f\n", prof->Count(), cpu - call_cpu, call_cpu);
     }
@@ -119,7 +119,11 @@ std::shared_ptr<ProfileElem> FileProfInfo::UpdateBBProfile(const Location* bb) {
         }
     }
 
-    ASSERT(lp1->Count() > 0);
+    if ( lp1->Count() == 0 )
+        // This can happen when script-level basic blocks overlap (due to
+        // inaccurate location-tracking) and the one processed earlier
+        // has subsumed all the profiling lines needed by the latter..
+        return nullptr;
 
     lp1->ExpandLastLine(bb_last);
 

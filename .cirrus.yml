@@ -266,8 +266,8 @@ opensuse_tumbleweed_task:
 
 ubuntu23_task:
   container:
-    # Ubuntu 23.04 EOL: January 2024
-    dockerfile: ci/ubuntu-23.04/Dockerfile
+    # Ubuntu 23.10 EOL: July 2024
+    dockerfile: ci/ubuntu-23.10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 

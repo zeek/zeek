@@ -64,6 +64,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
+    --enable-werror        build with -Werror
     --disable-af-packet    don't include native AF_PACKET support (Linux only)
     --disable-archiver     don't build or install zeek-archiver tool
     --disable-auxtools     don't build or install auxiliary tools
@@ -274,6 +275,9 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-static-broker)
             append_cache_entry BUILD_STATIC_BROKER BOOL true
+            ;;
+        --enable-werror)
+            append_cache_entry BUILD_WITH_WERROR BOOL true
             ;;
         --disable-af-packet)
             append_cache_entry DISABLE_AF_PACKET BOOL true

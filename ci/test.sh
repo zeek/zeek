@@ -59,14 +59,8 @@ function run_btests {
 
     pushd testing/btest
 
-    # Commenting out this line in btest.cfg causes the script profiling/coverage
-    # to be disabled. We do this for the sanitizer build right now because of a
-    # fairly significant performance bug when running tests.
-    if [ "${ZEEK_CI_DISABLE_SCRIPT_PROFILING}" = "1" ]; then
-        sed -i 's/^ZEEK_PROFILER_FILE/#ZEEK_PROFILER_FILE/g' btest.cfg
-    fi
-
-    ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
+    ZEEK_PROFILER_FILE=$(pwd)/.tmp/script-coverage/XXXXXX \
+        ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
     make coverage
     prep_artifacts
     popd
@@ -74,19 +68,11 @@ function run_btests {
 }
 
 function run_external_btests {
-    # Commenting out this line in btest.cfg causes the script profiling/coverage
-    # to be disabled. We do this for the sanitizer build right now because of a
-    # fairly significant performance bug when running tests.
-    if [ "${ZEEK_CI_DISABLE_SCRIPT_PROFILING}" = "1" ]; then
-        pushd testing/external
-        sed -i 's/^ZEEK_PROFILER_FILE/#ZEEK_PROFILER_FILE/g' subdir-btest.cfg
-        popd
-    fi
-
     local zeek_testing_pid=""
     local zeek_testing_pid_private=""
     pushd testing/external/zeek-testing
-    ${BTEST} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
+    ZEEK_PROFILER_FILE=$(pwd)/.tmp/script-coverage/XXXXXX \
+        ${BTEST} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
     zeek_testing_pid=$!
     popd
 
@@ -94,7 +80,8 @@ function run_external_btests {
         pushd testing/external/zeek-testing-private
         # Note that we don't use btest's "-d" flag or generate/upload any
         # artifacts to prevent leaking information about the private pcaps.
-        ${BTEST} -A -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
+        ZEEK_PROFILER_FILE=$(pwd)/.tmp/script-coverage/XXXXXX \
+            ${BTEST} -A -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
         zeek_testing_private_pid=$!
         popd
     fi

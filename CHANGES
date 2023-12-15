@@ -1,3 +1,16 @@
+6.2.0-dev.292 | 2023-12-15 18:58:00 +0100
+
+  * ci/btest: Remove ZEEK_PROFILER_FILE from btest.cfg, set in ci/test.sh explicitly (Arne Welzel, Corelight)
+
+    The produced coverage files are of little use in current local workflows
+    and usually just end-up taking up disk space. ZEEK_PROFILER_FILE can be
+    set explicitly if there's a one-off need to produce these locally, too.
+
+  * ci: Remove ZEEK_CI_DISABLE_SCRIPT_PROFILING logic (Arne Welzel, Corelight)
+
+    To my knowledge this doesn't make a huge difference anymore and locally
+    I'm only using ASAN builds. It's not actually too slow.
+
 6.2.0-dev.288 | 2023-12-14 20:03:07 -0800
 
   * Bump binpac, zeek-archiver, and zeek-aux submodules. (Christian Kreibich, Corelight)

@@ -1,3 +1,7 @@
+6.2.0-dev.288 | 2023-12-14 20:03:07 -0800
+
+  * Bump binpac, zeek-archiver, and zeek-aux submodules. (Christian Kreibich, Corelight)
+
 6.2.0-dev.287 | 2023-12-14 19:55:28 -0800
 
   * CI updates (Christian Kreibich, Corelight)

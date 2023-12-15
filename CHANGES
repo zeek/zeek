@@ -1,3 +1,7 @@
+6.2.0-dev.279 | 2023-12-15 00:11:59 +0000
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 6.2.0-dev.278 | 2023-12-14 10:28:27 +0100
 
   * rule-parse: Remove [event_name] syntax, deprecate msg as identifier (Arne Welzel, Corelight)

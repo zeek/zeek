@@ -157,7 +157,7 @@ export {
 		## A set of recent files to avoid logging the same
 		## files over and over in the smb files log.
 		## This only applies to files seen in a single connection.
-		recent_files : set[string] &default=string_set() &read_expire=3min;
+		recent_files : set[string] &default=set() &read_expire=3min;
 	};
 
 	## Everything below here is used internally in the SMB scripts.

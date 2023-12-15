@@ -1,3 +1,14 @@
+6.2.0-dev.287 | 2023-12-14 19:55:28 -0800
+
+  * CI updates (Christian Kreibich, Corelight)
+
+    - Move Debian variations from 11 to 12
+    - Bump Ubuntu 23.04 to 23.10
+    - Drop openSUSE Leap 15.4, about to EOL.
+    - FreeBSD 14 is out now, 12 is about to EOL.
+    - distro EOL comment tweaks
+    - drop Fedora 37, add Fedora 39
+
 6.2.0-dev.279 | 2023-12-15 00:11:59 +0000
 
   * Update doc submodule [nomail] [skip ci] (zeek-bot)

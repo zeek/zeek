@@ -484,7 +484,7 @@ TableType::TableType(TypeListPtr ind, TypePtr yield) : IndexType(TYPE_TABLE, std
         RegenerateHash();
 }
 
-TableType::~TableType() { delete table_hash; }
+TableType::~TableType() {}
 
 bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr) {
     if ( reported_error )
@@ -499,10 +499,7 @@ bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr) {
 
 TypePtr TableType::ShallowClone() { return make_intrusive<TableType>(indices, yield_type); }
 
-void TableType::RegenerateHash() {
-    delete table_hash;
-    table_hash = new detail::CompositeHash(GetIndices());
-}
+void TableType::RegenerateHash() { table_hash = std::make_unique<detail::CompositeHash>(GetIndices()); }
 
 bool TableType::IsUnspecifiedTable() const {
     // Unspecified types have an empty list of indices.

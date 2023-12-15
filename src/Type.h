@@ -4,6 +4,7 @@
 
 #include <list>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <string>
@@ -402,7 +403,7 @@ public:
     // what one gets using an empty "set()" or "table()" constructor.
     bool IsUnspecifiedTable() const;
 
-    const detail::CompositeHash* GetTableHash() const { return table_hash; }
+    const detail::CompositeHash* GetTableHash() const { return table_hash.get(); }
 
     // Called to rebuild the associated hash function when a record type
     // (that this table type depends on) gets redefined during parsing.
@@ -411,7 +412,7 @@ public:
 private:
     bool DoExpireCheck(const detail::AttrPtr& attr);
 
-    detail::CompositeHash* table_hash = nullptr;
+    std::unique_ptr<detail::CompositeHash> table_hash;
 
     // Used to prevent repeated error messages.
     bool reported_error = false;

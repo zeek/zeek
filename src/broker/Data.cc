@@ -1154,22 +1154,26 @@ broker::data threading_field_to_data(const threading::Field* f) {
     return broker::vector({name, secondary, type, subtype, optional});
 }
 
-threading::Field* data_to_threading_field(broker::data d) {
+threading::Field* data_to_threading_field(const broker::data& d) {
     if ( ! holds_alternative<broker::vector>(d) )
         return nullptr;
 
     auto& v = get<broker::vector>(d);
+
+    if ( v.size() < 5 )
+      return nullptr;
+
     auto name = get_if<std::string>(&v[0]);
-    auto secondary = v[1];
+    const auto& secondary = v[1];
     auto type = get_if<broker::count>(&v[2]);
     auto subtype = get_if<broker::count>(&v[3]);
     auto optional = get_if<broker::boolean>(&v[4]);
 
     if ( ! (name && type && subtype && optional) )
-        return nullptr;
+      return nullptr;
 
     if ( secondary != broker::nil && ! holds_alternative<std::string>(secondary) )
-        return nullptr;
+      return nullptr;
 
     return new threading::Field(name->c_str(), secondary != broker::nil ? get<std::string>(secondary).c_str() : nullptr,
                                 static_cast<TypeTag>(*type), static_cast<TypeTag>(*subtype), *optional);

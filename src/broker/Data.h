@@ -101,7 +101,7 @@ broker::data threading_field_to_data(const threading::Field* f);
  * @return a pointer to a new zeek::threading::Value or a nullptr if the conversion was not
  * possible.
  */
-threading::Field* data_to_threading_field(broker::data d);
+threading::Field* data_to_threading_field(const broker::data& d);
 
 /**
  * A Zeek value which wraps a Broker data value.

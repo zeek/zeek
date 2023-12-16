@@ -1,3 +1,13 @@
+6.2.0-dev.300 | 2023-12-16 17:57:49 +0100
+
+  * TableType: Convert table_hash unique_ptr (Arne Welzel, Corelight)
+
+    Cannot remove the destructor as otherwise the compiler attempts to create
+    its implementation in Type.h where CompositeHash isn't a complete type
+    yet and std::unique_ptr's delete fails to be instantiated.
+
+  * streamlining of constructing script-level tables (Vern Paxson, Corelight)
+
 6.2.0-dev.297 | 2023-12-15 14:59:34 -0700
 
   * Update broker submodule (Dominik Charousset, Corelight)

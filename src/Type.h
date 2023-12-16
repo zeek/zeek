@@ -4,6 +4,7 @@
 
 #include <list>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <string>
@@ -29,6 +30,7 @@ using TableValPtr = IntrusivePtr<TableVal>;
 
 namespace detail {
 
+class CompositeHash;
 class Expr;
 class ListExpr;
 class Attributes;
@@ -354,22 +356,20 @@ public:
     void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
     // Returns true if this table is solely indexed by subnet.
-    bool IsSubNetIndex() const {
-        const auto& types = indices->GetTypes();
-        return types.size() == 1 && types[0]->Tag() == TYPE_SUBNET;
-    }
+    bool IsSubNetIndex() const { return is_subnet_index; }
 
     // Returns true if this table has a single index of type pattern.
-    bool IsPatternIndex() const {
-        const auto& types = indices->GetTypes();
-        return types.size() == 1 && types[0]->Tag() == TYPE_PATTERN;
-    }
+    bool IsPatternIndex() const { return is_pattern_index; }
 
     detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:
     IndexType(TypeTag t, TypeListPtr arg_indices, TypePtr arg_yield_type)
-        : Type(t), indices(std::move(arg_indices)), yield_type(std::move(arg_yield_type)) {}
+        : Type(t), indices(std::move(arg_indices)), yield_type(std::move(arg_yield_type)) {
+        const auto& types = indices->GetTypes();
+        is_subnet_index = types.size() == 1 && types[0]->Tag() == TYPE_SUBNET;
+        is_pattern_index = types.size() == 1 && types[0]->Tag() == TYPE_PATTERN;
+    }
 
     ~IndexType() override = default;
 
@@ -377,11 +377,16 @@ protected:
 
     TypeListPtr indices;
     TypePtr yield_type;
+
+    bool is_subnet_index;
+    bool is_pattern_index;
 };
 
 class TableType : public IndexType {
 public:
     TableType(TypeListPtr ind, TypePtr yield);
+
+    ~TableType();
 
     /**
      * Assesses whether an &expire_func attribute's function type is compatible
@@ -398,8 +403,16 @@ public:
     // what one gets using an empty "set()" or "table()" constructor.
     bool IsUnspecifiedTable() const;
 
+    const detail::CompositeHash* GetTableHash() const { return table_hash.get(); }
+
+    // Called to rebuild the associated hash function when a record type
+    // (that this table type depends on) gets redefined during parsing.
+    void RegenerateHash();
+
 private:
     bool DoExpireCheck(const detail::AttrPtr& attr);
+
+    std::unique_ptr<detail::CompositeHash> table_hash;
 
     // Used to prevent repeated error messages.
     bool reported_error = false;

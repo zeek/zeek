@@ -27,6 +27,10 @@
 // For reading_live and reading_traces
 #include "zeek/RunState.h"
 
+#ifdef DEBUG
+#define ENABLE_ZAM_PROFILE
+#endif
+
 namespace zeek::detail {
 
 using std::vector;
@@ -194,9 +198,12 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
         insts_copy[i] = iI;
         if ( iI.stmt ) {
             auto l = iI.stmt->Original()->GetLocationInfo();
-            if ( l != &no_location )
-                insts_copy[i].loc = std::make_shared<Location>(l->filename, l->first_line, l->last_line,
-                                                               l->first_column, l->last_column);
+            if ( l != &no_location ) {
+                auto loc_copy = std::make_shared<Location>(l->filename, l->first_line, l->last_line, l->first_column,
+                                                           l->last_column);
+                insts_copy[i].loc = std::make_shared<ZAMLocInfo>(std::move(loc_copy));
+                ;
+            }
         }
     }
 
@@ -212,7 +219,7 @@ void ZBody::InitProfile() {
 
         for ( auto i = 0U; i < end_pc; ++i ) {
             auto& insts_i = insts[i];
-            exec_prof->emplace_back(LocProfileElem(insts_i.loc, insts_i.call_expr != nullptr));
+            exec_prof->emplace_back(LocProfileElem(insts_i.loc->LocPtr(), insts_i.call_expr != nullptr));
         }
     }
 
@@ -221,13 +228,13 @@ void ZBody::InitProfile() {
 }
 
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     double t = analysis_options.profile_ZAM ? util::curr_CPU_time() : 0.0;
 #endif
 
     auto val = DoExec(f, flow);
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     if ( analysis_options.profile_ZAM )
         *CPU_time += util::curr_CPU_time() - t;
 #endif
@@ -244,7 +251,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     // Type of the return value.  If nil, then we don't have a value.
     TypePtr ret_type;
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     bool do_profile = analysis_options.profile_ZAM;
 #endif
 
@@ -275,7 +282,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     while ( pc < end_pc && ! ZAM_error ) {
         auto& z = insts[pc];
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
         int profile_pc = 0;
         double profile_CPU = 0.0;
 
@@ -301,7 +308,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
             default: reporter->InternalError("bad ZAM opcode");
         }
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
         if ( do_profile ) {
             double dt = util::curr_CPU_time() - profile_CPU;
             (*exec_prof)[profile_pc].BumpCPU(dt);
@@ -363,7 +370,7 @@ void ZBody::ProfileExecution() const {
 }
 
 bool ZBody::CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
-                         const std::shared_ptr<Location>& loc) const {
+                         const std::shared_ptr<ZAMLocInfo>& loc) const {
     if ( IsAny(expected_type) )
         return true;
 
@@ -382,7 +389,7 @@ bool ZBody::CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
         char buf[8192];
         snprintf(buf, sizeof buf, "run-time type clash (%s/%s)", type_name(at), type_name(et));
 
-        reporter->RuntimeError(loc.get(), "%s", buf);
+        reporter->RuntimeError(loc->Loc(), "%s", buf);
         return false;
     }
 

@@ -6,6 +6,7 @@
 
 #include "zeek/Expr.h"
 #include "zeek/Stmt.h"
+#include "zeek/script_opt/ZAM/Profile.h"
 
 namespace zeek::detail {
 
@@ -14,7 +15,7 @@ using ValVec = std::vector<ValPtr>;
 // The (reduced) statement currently being compiled.  Used for both
 // tracking "use" and "reaching" definitions, and for error messages.
 extern StmtPtr curr_stmt;
-extern std::shared_ptr<Location> curr_loc;
+extern std::shared_ptr<ZAMLocInfo> curr_loc;
 
 // True if a function with the given profile can be compiled to ZAM.
 // If not, returns the reason in *reason, if non-nil.
@@ -36,14 +37,14 @@ extern TypePtr log_ID_enum_type;
 extern TypePtr any_base_type;
 
 extern void ZAM_run_time_error(const char* msg);
-extern void ZAM_run_time_error(std::shared_ptr<Location> loc, const char* msg);
-extern void ZAM_run_time_error(std::shared_ptr<Location> loc, const char* msg, const Obj* o);
+extern void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg);
+extern void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg, const Obj* o);
 extern void ZAM_run_time_error(const Stmt* stmt, const char* msg);
 extern void ZAM_run_time_error(const char* msg, const Obj* o);
 
 extern bool ZAM_error;
 
-extern void ZAM_run_time_warning(std::shared_ptr<Location> loc, const char* msg);
+extern void ZAM_run_time_warning(std::shared_ptr<ZAMLocInfo> loc, const char* msg);
 
 extern StringVal* ZAM_to_lower(const StringVal* sv);
 extern StringVal* ZAM_sub_bytes(const StringVal* s, zeek_uint_t start, zeek_int_t n);

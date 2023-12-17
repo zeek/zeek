@@ -9,6 +9,17 @@
 
 namespace zeek::detail {
 
+class ZAMLocInfo {
+public:
+    ZAMLocInfo(std::shared_ptr<Location> _loc) : loc(std::move(_loc)) {}
+
+    const Location* Loc() const { return loc.get(); }
+    std::shared_ptr<Location> LocPtr() const { return loc; }
+
+private:
+    std::shared_ptr<Location> loc;
+};
+
 class ProfileElem {
 public:
     ProfileElem(int _line) : first_line(_line), last_line(_line) {}

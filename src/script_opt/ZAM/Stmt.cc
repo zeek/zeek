@@ -13,8 +13,9 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
     curr_stmt = const_cast<Stmt*>(s)->ThisPtr();
     auto loc = curr_stmt->GetLocationInfo();
     ASSERT(loc->first_line != 0 || s->Tag() == STMT_NULL);
-    curr_loc =
+    auto loc_copy =
         std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+    curr_loc = std::make_shared<ZAMLocInfo>(std::move(loc_copy));
 
     switch ( s->Tag() ) {
         case STMT_PRINT: return CompilePrint(static_cast<const PrintStmt*>(s));

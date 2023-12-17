@@ -61,7 +61,7 @@ protected:
     // Run-time checking for "any" type being consistent with
     // expected typed.  Returns true if the type match is okay.
     bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
-                      const std::shared_ptr<Location>& loc) const;
+                      const std::shared_ptr<ZAMLocInfo>& loc) const;
 
     StmtPtr Duplicate() override { return {NewRef{}, this}; }
 

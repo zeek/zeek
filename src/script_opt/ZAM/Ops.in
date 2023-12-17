@@ -2139,7 +2139,7 @@ macro BuildWhen(timeout)
 		if ( v )
 			local_aggrs.push_back(v);
 		}
-	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, z.loc.get());
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, z.loc->Loc());
 
 ########################################
 # Internal

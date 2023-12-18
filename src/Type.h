@@ -30,10 +30,12 @@ using TableValPtr = IntrusivePtr<TableVal>;
 
 namespace detail {
 
+class Attributes;
 class CompositeHash;
 class Expr;
 class ListExpr;
-class Attributes;
+class ZAMCompiler;
+
 using ListExprPtr = IntrusivePtr<ListExpr>;
 
 // The following tracks how to initialize a given record field.
@@ -737,6 +739,7 @@ private:
 
     class CreationInitsOptimizer;
     friend zeek::RecordVal;
+    friend zeek::detail::ZAMCompiler;
     const auto& DeferredInits() const { return deferred_inits; }
     const auto& CreationInits() const { return creation_inits; }
 

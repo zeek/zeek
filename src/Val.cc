@@ -2772,7 +2772,7 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->ManagedFields()) {
+RecordVal::RecordVal(RecordTypePtr t, RVInitType init_type) : Val(t), is_managed(t->ManagedFields()) {
     origin = nullptr;
     rt = std::move(t);
 
@@ -2781,22 +2781,23 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
     if ( run_state::is_parsing )
         parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
-    if ( init_fields ) {
-        record_val.resize(n);
+    if ( init_type == RV_NO_INIT )
+        record_val.reserve(n);
 
-        for ( auto& e : rt->CreationInits() ) {
-            try {
-                record_val[e.first] = e.second->Generate();
-            } catch ( InterpreterException& e ) {
-                if ( run_state::is_parsing )
-                    parse_time_records[rt.get()].pop_back();
-                throw;
+    else {
+        record_val.resize(n);
+        if ( init_type == RV_FULL_INIT ) {
+            for ( auto& e : rt->CreationInits() ) {
+                try {
+                    record_val[e.first] = e.second->Generate();
+                } catch ( InterpreterException& e ) {
+                    if ( run_state::is_parsing )
+                        parse_time_records[rt.get()].pop_back();
+                    throw;
+                }
             }
         }
     }
-
-    else
-        record_val.reserve(n);
 }
 
 RecordVal::~RecordVal() {
@@ -3005,7 +3006,7 @@ void RecordVal::DescribeReST(ODesc* d) const {
 ValPtr RecordVal::DoClone(CloneState* state) {
     // We set origin to 0 here.  Origin only seems to be used for exactly one
     // purpose - to find the connection record that is associated with a
-    // record. As we cannot guarantee that it will ber zeroed out at the
+    // record. As we cannot guarantee that it will be zeroed out at the
     // appropriate time (as it seems to be guaranteed for the original record)
     // we don't touch it.
     auto rv = make_intrusive<RecordVal>(rt, false);

@@ -1081,7 +1081,8 @@ inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
-    explicit RecordVal(RecordTypePtr t, bool init_fields = true);
+    explicit RecordVal(RecordTypePtr t, bool init_fields = true)
+        : RecordVal(std::move(t), init_fields ? RV_FULL_INIT : RV_NO_INIT) {}
 
     ~RecordVal() override;
 
@@ -1392,6 +1393,15 @@ protected:
     friend class zeek::detail::CPPRuntime;
     friend class zeek::detail::CompositeHash;
 
+    // There are three ways of initializing a new record's underlying value
+    // vector: (1) just pre-size the vector, no initialization, (2) initialize
+    // the vector and its elements to not-present std::optional values,
+    // (3) initialize the vector per the values provided by the record's
+    // associated type.
+    enum RVInitType { RV_NO_INIT, RV_SLOTS_INIT, RV_FULL_INIT };
+
+    RecordVal(RecordTypePtr t, RVInitType init_type);
+
     RecordValPtr DoCoerceTo(RecordTypePtr other, bool allow_orphaning) const;
 
     /**
@@ -1431,6 +1441,11 @@ protected:
             f = ZVal();
         return *f;
     }
+
+    // Used by ZAM when constructing records. Unlike for Assign(), there's
+    // no need to check for memory management or Modified() because the
+    // record is completely fresh.
+    void InitField(int field, ZVal zv) { record_val[field] = zv; }
 
     ValPtr DoClone(CloneState* state) override;
 

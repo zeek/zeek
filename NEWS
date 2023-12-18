@@ -23,6 +23,9 @@ Breaking Changes
 		SOURCES ...
 	)
 
+- The "segment_profiling" functionality and ``load_sample`` event have been removed
+  without deprecation. This functionality was unmaintained and not known to be used.
+
 New Functionality
 -----------------
 

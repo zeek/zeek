@@ -1,5 +1,9 @@
 #include "zeek/Stats.h"
 
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/types.h>
+
 #include "zeek/Conn.h"
 #include "zeek/DNS_Mgr.h"
 #include "zeek/Event.h"
@@ -53,7 +57,7 @@ void ProfileTimer::Dispatch(double t, bool is_expire) {
         timer_mgr->Add(new ProfileTimer(run_state::network_time + interval, logger, interval));
 }
 
-ProfileLogger::ProfileLogger(zeek::File* arg_file, double interval) : SegmentStatsReporter() {
+ProfileLogger::ProfileLogger(zeek::File* arg_file, double interval) {
     file = arg_file;
     log_count = 0;
     timer_mgr->Add(new ProfileTimer(1, this, interval));
@@ -262,64 +266,6 @@ void ProfileLogger::Log() {
                                                            val_mgr->Bool(expensive),
                                                        }));
     }
-}
-
-void ProfileLogger::SegmentProfile(const char* name, const Location* loc, double dtime, int dmem) {
-    if ( name )
-        file->Write(util::fmt("%.06f segment-%s dt=%.06f dmem=%d\n", run_state::network_time, name, dtime, dmem));
-    else if ( loc )
-        file->Write(util::fmt("%.06f segment-%s:%d dt=%.06f dmem=%d\n", run_state::network_time,
-                              loc->filename ? loc->filename : "nofile", loc->first_line, dtime, dmem));
-    else
-        file->Write(util::fmt("%.06f segment-XXX dt=%.06f dmem=%d\n", run_state::network_time, dtime, dmem));
-}
-
-SampleLogger::SampleLogger() {
-    static TableType* load_sample_info = nullptr;
-
-    if ( ! load_sample_info )
-        load_sample_info = id::find_type("load_sample_info")->AsTableType();
-
-    load_samples = new TableVal({NewRef{}, load_sample_info});
-}
-
-SampleLogger::~SampleLogger() { Unref(load_samples); }
-
-void SampleLogger::FunctionSeen(const Func* func) {
-    auto idx = make_intrusive<StringVal>(func->Name());
-    load_samples->Assign(std::move(idx), nullptr);
-}
-
-void SampleLogger::LocationSeen(const Location* loc) {
-    auto idx = make_intrusive<StringVal>(loc->filename);
-    load_samples->Assign(std::move(idx), nullptr);
-}
-
-void SampleLogger::SegmentProfile(const char* /* name */, const Location* /* loc */, double dtime, int dmem) {
-    if ( load_sample )
-        event_mgr.Enqueue(load_sample, IntrusivePtr{NewRef{}, load_samples},
-                          make_intrusive<IntervalVal>(dtime, Seconds), val_mgr->Int(dmem));
-}
-
-void SegmentProfiler::Init() { getrusage(RUSAGE_SELF, &initial_rusage); }
-
-void SegmentProfiler::Report() {
-    struct rusage final_rusage;
-    getrusage(RUSAGE_SELF, &final_rusage);
-
-    double start_time = double(initial_rusage.ru_utime.tv_sec) + double(initial_rusage.ru_utime.tv_usec) / 1e6 +
-                        double(initial_rusage.ru_stime.tv_sec) + double(initial_rusage.ru_stime.tv_usec) / 1e6;
-
-    double stop_time = double(final_rusage.ru_utime.tv_sec) + double(final_rusage.ru_utime.tv_usec) / 1e6 +
-                       double(final_rusage.ru_stime.tv_sec) + double(final_rusage.ru_stime.tv_usec) / 1e6;
-
-    int start_mem = initial_rusage.ru_maxrss * 1024;
-    int stop_mem = initial_rusage.ru_maxrss * 1024;
-
-    double dtime = stop_time - start_time;
-    int dmem = stop_mem - start_mem;
-
-    reporter->SegmentProfile(name, loc, dtime, dmem);
 }
 
 PacketProfiler::PacketProfiler(unsigned int mode, double freq, File* arg_file) {

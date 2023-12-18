@@ -4384,11 +4384,6 @@ type signature_state: record {
 	payload_size: count;	##< Payload size of the first matching packet of current endpoint.
 };
 
-# Type used to report load samples via :zeek:see:`load_sample`. For now, it's a
-# set of names (event names, source file names, and perhaps ``<source file, line
-# number>``), which were seen during the sample.
-type load_sample_info: set[string];
-
 ## A BitTorrent peer.
 ##
 ## .. zeek:see:: bittorrent_peer_set
@@ -5025,26 +5020,20 @@ const log_rotate_base_time = "0:00" &redef;
 ## Write profiling info into this file in regular intervals. The easiest way to
 ## activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
-## .. zeek:see:: profiling_interval expensive_profiling_multiple segment_profiling
+## .. zeek:see:: profiling_interval expensive_profiling_multiple
 global profiling_file: file &redef;
 
 ## Update interval for profiling (0 disables).  The easiest way to activate
 ## profiling is loading  :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
-## .. zeek:see:: profiling_file expensive_profiling_multiple segment_profiling
+## .. zeek:see:: profiling_file expensive_profiling_multiple
 const profiling_interval = 0 secs &redef;
 
 ## Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
 ## profiling is done (0 disables).
 ##
-## .. zeek:see:: profiling_interval profiling_file segment_profiling
+## .. zeek:see:: profiling_interval profiling_file
 const expensive_profiling_multiple = 0 &redef;
-
-## If true, then write segment profiling information (very high volume!)
-## in addition to profiling statistics.
-##
-## .. zeek:see:: profiling_interval expensive_profiling_multiple profiling_file
-const segment_profiling = F &redef;
 
 ## Output modes for packet profiling information.
 ##
@@ -5070,14 +5059,6 @@ const pkt_profile_freq = 0.0 &redef;
 ##
 ## .. zeek:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode
 global pkt_profile_file: file &redef;
-
-## Rate at which to generate :zeek:see:`load_sample` events. As all
-## events, the event is only generated if you've also defined a
-## :zeek:see:`load_sample` handler.  Units are inverse number of packets; e.g.,
-## a value of 20 means "roughly one in every 20 packets".
-##
-## .. zeek:see:: load_sample
-global load_sample_freq = 20 &redef;
 
 ## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
 ## and not report missing segments for such connections.

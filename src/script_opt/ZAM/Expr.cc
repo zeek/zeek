@@ -1212,7 +1212,7 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
         z.aux->Add(i, map[i], nullptr);
 
     // Mark the integer entries in z.aux as not being frame slots as usual.
-    z.aux->slots = nullptr;
+    z.aux->elems_has_slots = false;
 
     if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
         z.aux->can_change_non_locals = true;

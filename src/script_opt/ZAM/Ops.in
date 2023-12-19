@@ -1199,35 +1199,49 @@ eval	ConstructTableOrSetPre()
 
 direct-unary-op Record-Constructor ConstructRecord
 
-internal-op Construct-Record
-type V
+# v2 is boolean of whether to initialize fields. For this instruction,
+# it's always false.
+op Construct-Direct-Record
+type Vi
 eval	EvalConstructRecord(, i)
+
+# v2 is boolean of whether to initialize fields.
+op Construct-Known-Record
+type Vi
+eval	EvalConstructRecord(auto& map = aux->map;, map[i])
 
 macro EvalConstructRecord(map_init, map_accessor)
 	auto rt = cast_intrusive<RecordType>(z.t);
-	auto new_r = new RecordVal(rt);
+	auto new_r = new RecordVal(rt, z.v2 ? RecordVal::RV_FULL_INIT : RecordVal::RV_SLOTS_INIT);
 	auto aux = z.aux;
 	auto n = aux->n;
 	map_init
 	for ( auto i = 0; i < n; ++i )
-		{
-		auto v_i = aux->ToVal(frame, i);
-		auto ind = map_accessor;
-		if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR &&
-		     v_i->GetType<VectorType>()->IsUnspecifiedVector() )
-			{
-			const auto& t_ind = rt->GetFieldType(ind);
-			v_i->AsVectorVal()->Concretize(t_ind->Yield());
-			}
-		new_r->Assign(ind, v_i);
-		}
+		new_r->InitField(map_accessor, aux->ToZVal(frame, i));
 	auto& r = frame[z.v1].record_val;
 	Unref(r);
 	r = new_r;
 
-internal-op Construct-Known-Record
+# Special instruction for concretizing vectors that are fields in a
+# newly-constructed record. "aux" holds which fields in the record to
+# inspect.
+op Concretize-Vector-Fields
+op1-read
 type V
-eval	EvalConstructRecord(auto& map = aux->map;, map[i])
+eval	auto rt = cast_intrusive<RecordType>(z.t);
+	auto r = frame[z.v1].record_val;
+	auto aux = z.aux;
+	auto n = aux->n;
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto v_i = r->GetField(aux->elems[i].IntVal());
+		ASSERT(v_i);
+		if ( v_i->GetType<VectorType>()->IsUnspecifiedVector() )
+			{
+			const auto& t_i = rt->GetFieldType(i);
+			v_i->AsVectorVal()->Concretize(t_i->Yield());
+			}
+		}
 
 direct-unary-op Vector-Constructor ConstructVector
 

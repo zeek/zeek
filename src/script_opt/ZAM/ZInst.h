@@ -418,6 +418,9 @@ public:
     // and type.
     void Add(int i, int slot, TypePtr t) { elems[i].SetInt(slot, t); }
 
+    // Same, but for non-slot integers.
+    void Add(int i, int v_i) { elems[i].SetInt(v_i); }
+
     // Same but for constants.
     void Add(int i, ValPtr c) { elems[i].SetConstant(c); }
 

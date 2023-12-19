@@ -1100,16 +1100,34 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
 
 const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
     auto rc = e->AsRecordConstructorExpr();
+    auto rt = e->GetType()->AsRecordType();
+    auto map = rc->Map();
 
     ZInstI z;
 
-    if ( rc->Map() ) {
-        z = GenInst(OP_CONSTRUCT_KNOWN_RECORD_V, n);
+    if ( map ) {
+        // Compute whether we need at least one of the default field
+        // initializations. We don't need so if every one of the fields
+        // with such an initializer is already covered in the map (meaning
+        // it has an explicit initialization value).
+        auto& ci = rt->CreationInits();
+        zeek_uint_t common = 0;
+        for ( auto& c : ci )
+            for ( auto r : *map )
+                if ( c.first == r )
+                    ++common;
+
+        auto need_init = common != ci.size();
+
+        z = GenInst(OP_CONSTRUCT_KNOWN_RECORD_Vi, n, need_init);
         z.aux = InternalBuildVals(rc->Op().get());
-        z.aux->map = *rc->Map();
+        z.aux->map = *map;
     }
     else {
-        z = GenInst(OP_CONSTRUCT_RECORD_V, n);
+        // Constructors that don't need maps are explicitly initializing
+        // every field, so they don't need default initializations, hence
+        // "false" in the following.
+        z = GenInst(OP_CONSTRUCT_DIRECT_RECORD_Vi, n, false);
         z.aux = InternalBuildVals(rc->Op().get());
     }
 
@@ -1117,6 +1135,33 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
 
     if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, z.t) )
         z.aux->can_change_non_locals = true;
+
+    // If one of the initialization values is an unspecified vector (which
+    // in general we can't know until run-time) then we'll need to
+    // "concretize" it. We first see whether this is a possibility, since
+    // it usually isn't, by counting up how many of the record fields are
+    // vectors.
+    std::vector<int> vector_fields; // holds indices of the vector fields
+    for ( int i = 0; i < z.aux->n; ++i ) {
+        auto field_ind = map ? (*map)[i] : i;
+        if ( rt->GetFieldType(field_ind)->Tag() == TYPE_VECTOR )
+            vector_fields.push_back(field_ind);
+    }
+
+    auto inst = AddInst(z);
+
+    if ( vector_fields.empty() )
+        // Common case of no vector fields, we're done.
+        return inst;
+
+    // Need to add a separate instruction for concretizing the fields.
+    z = GenInst(OP_CONCRETIZE_VECTOR_FIELDS_V, n);
+    z.t = e->GetType();
+    int nf = static_cast<int>(vector_fields.size());
+    z.aux = new ZInstAux(nf);
+    z.aux->elems_has_slots = false; // we're storing field offsets, not slots
+    for ( int i = 0; i < nf; ++i )
+        z.aux->Add(i, vector_fields[i]);
 
     return AddInst(z);
 }

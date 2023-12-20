@@ -80,7 +80,7 @@ void ZInst::Dump(const string& id1, const string& id2, const string& id3, const 
 
     if ( loc ) {
         auto l = loc->Loc();
-        printf(" // %s:%d-%d", l->filename, l->first_line, l->last_line);
+        printf(" // (%s) %s:%d-%d", loc->FuncName().c_str(), l->filename, l->first_line, l->last_line);
     }
 
     printf("\n");

@@ -65,7 +65,10 @@ public:
     }
 
     // Create a stub instruction that will be populated later.
-    ZInst() = default;
+    ZInst() {
+        ASSERT(curr_loc);
+        loc = curr_loc;
+    }
 
     virtual ~ZInst() = default;
 

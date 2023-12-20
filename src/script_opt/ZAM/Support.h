@@ -12,9 +12,11 @@ namespace zeek::detail {
 
 using ValVec = std::vector<ValPtr>;
 
-// The (reduced) statement currently being compiled.  Used for both
-// tracking "use" and "reaching" definitions, and for error messages.
-extern StmtPtr curr_stmt;
+// The name of the current function being compiled. For inlined functions,
+// this is the name of the inlinee, not the inliner.
+extern std::string curr_func;
+
+// The location corresponding to the current statement being compiled.
 extern std::shared_ptr<ZAMLocInfo> curr_loc;
 
 // True if a function with the given profile can be compiled to ZAM.

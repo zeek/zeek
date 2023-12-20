@@ -902,9 +902,10 @@ StmtPtr WhenStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-CatchReturnStmt::CatchReturnStmt(StmtPtr _block, NameExprPtr _ret_var) : Stmt(STMT_CATCH_RETURN) {
-    block = _block;
-    ret_var = _ret_var;
+CatchReturnStmt::CatchReturnStmt(ScriptFuncPtr _sf, StmtPtr _block, NameExprPtr _ret_var) : Stmt(STMT_CATCH_RETURN) {
+    sf = std::move(_sf);
+    block = std::move(_block);
+    ret_var = std::move(_ret_var);
 }
 
 ValPtr CatchReturnStmt::Exec(Frame* f, StmtFlowType& flow) {
@@ -931,7 +932,7 @@ bool CatchReturnStmt::IsPure() const {
 StmtPtr CatchReturnStmt::Duplicate() {
     auto rv_dup = ret_var->Duplicate();
     auto rv_dup_ptr = rv_dup->AsNameExprPtr();
-    return SetSucc(new CatchReturnStmt(block->Duplicate(), rv_dup_ptr));
+    return SetSucc(new CatchReturnStmt(sf, block->Duplicate(), rv_dup_ptr));
 }
 
 StmtPtr CatchReturnStmt::DoReduce(Reducer* c) {

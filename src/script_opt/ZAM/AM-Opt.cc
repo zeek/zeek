@@ -576,7 +576,7 @@ void ZAMCompiler::ReMapFrame() {
 
                     if ( new_slot < 0 ) {
                         ODesc d;
-                        inst->stmt->GetLocationInfo()->Describe(&d);
+                        inst->loc->Loc()->Describe(&d);
                         reporter->Error("%s: value used but not set: %s", d.Description(),
                                         frame_denizens[slot]->Name());
                     }
@@ -747,7 +747,7 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst) {
 
     if ( denizen_beginning.count(slot) == 0 ) {
         ODesc d;
-        inst->stmt->GetLocationInfo()->Describe(&d);
+        inst->loc->Loc()->Describe(&d);
         reporter->Error("%s: value used but not set: %s", d.Description(), frame_denizens[slot]->Name());
     }
 

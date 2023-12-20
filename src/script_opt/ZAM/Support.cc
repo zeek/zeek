@@ -12,7 +12,7 @@
 
 namespace zeek::detail {
 
-StmtPtr curr_stmt;
+std::string curr_func;
 std::shared_ptr<ZAMLocInfo> curr_loc;
 TypePtr log_ID_enum_type;
 TypePtr any_base_type;

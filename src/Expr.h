@@ -1598,11 +1598,12 @@ private:
 
 class InlineExpr : public Expr {
 public:
-    InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified, StmtPtr body,
-               int frame_offset, TypePtr ret_type);
+    InlineExpr(ScriptFuncPtr sf, ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified,
+               StmtPtr body, int frame_offset, TypePtr ret_type);
 
     bool IsPure() const override;
 
+    const ScriptFuncPtr& Func() const { return sf; }
     ListExprPtr Args() const { return args; }
     StmtPtr Body() const { return body; }
 
@@ -1623,6 +1624,7 @@ protected:
     std::vector<IDPtr> params;
     std::vector<bool> param_is_modified;
     int frame_offset;
+    ScriptFuncPtr sf;
     ListExprPtr args;
     StmtPtr body;
 };

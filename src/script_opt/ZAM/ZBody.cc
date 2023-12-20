@@ -196,15 +196,6 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
     for ( auto i = 0U; i < end_pc; ++i ) {
         auto& iI = *instsI[i];
         insts_copy[i] = iI;
-        if ( iI.stmt ) {
-            auto l = iI.stmt->Original()->GetLocationInfo();
-            if ( l != &no_location ) {
-                auto loc_copy = std::make_shared<Location>(l->filename, l->first_line, l->last_line, l->first_column,
-                                                           l->last_column);
-                insts_copy[i].loc = std::make_shared<ZAMLocInfo>(std::move(loc_copy));
-                ;
-            }
-        }
     }
 
     insts = insts_copy;

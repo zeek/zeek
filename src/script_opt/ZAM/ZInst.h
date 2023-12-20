@@ -292,9 +292,6 @@ public:
     // a branch target).
     int num_labels = 0;
 
-    // Used for debugging.  Transformed into the ZInst "loc" field.
-    StmtPtr stmt = curr_stmt;
-
 private:
     // Initialize 'c' from the given ConstExpr.
     void InitConst(const ConstExpr* ce);

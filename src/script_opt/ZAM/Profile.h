@@ -11,12 +11,15 @@ namespace zeek::detail {
 
 class ZAMLocInfo {
 public:
-    ZAMLocInfo(std::shared_ptr<Location> _loc) : loc(std::move(_loc)) {}
+    ZAMLocInfo(std::string _func_name, std::shared_ptr<Location> _loc)
+        : func_name(std::move(_func_name)), loc(std::move(_loc)) {}
 
+    const std::string& FuncName() const { return func_name; }
     const Location* Loc() const { return loc.get(); }
     std::shared_ptr<Location> LocPtr() const { return loc; }
 
 private:
+    std::string func_name;
     std::shared_ptr<Location> loc;
 };
 

@@ -250,15 +250,15 @@ public:
     template<class ValueType = int64_t>
     auto HistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
                          ConstSpan<ValueType> default_upper_bounds, std::string_view helptext,
-                         std::string_view unit = "1", bool is_sum = false) {
+                         std::string_view unit = "1") {
         auto fam = LookupFamily(prefix, name);
 
         if constexpr ( std::is_same<ValueType, int64_t>::value ) {
             if ( fam )
                 return std::static_pointer_cast<IntHistogramFamily>(fam);
 
-            auto int_fam = std::make_shared<IntHistogramFamily>(prefix, name, labels, default_upper_bounds, helptext,
-                                                                unit, is_sum);
+            auto int_fam =
+                std::make_shared<IntHistogramFamily>(prefix, name, labels, default_upper_bounds, helptext, unit);
             families.push_back(int_fam);
             return int_fam;
         }
@@ -267,8 +267,8 @@ public:
             if ( fam )
                 return std::static_pointer_cast<DblHistogramFamily>(fam);
 
-            auto dbl_fam = std::make_shared<DblHistogramFamily>(prefix, name, labels, default_upper_bounds, helptext,
-                                                                unit, is_sum);
+            auto dbl_fam =
+                std::make_shared<DblHistogramFamily>(prefix, name, labels, default_upper_bounds, helptext, unit);
             families.push_back(dbl_fam);
             return dbl_fam;
         }
@@ -278,9 +278,9 @@ public:
     template<class ValueType = int64_t>
     auto HistogramFamily(std::string_view prefix, std::string_view name, std::initializer_list<std::string_view> labels,
                          ConstSpan<ValueType> default_upper_bounds, std::string_view helptext,
-                         std::string_view unit = "1", bool is_sum = false) {
+                         std::string_view unit = "1") {
         auto lbl_span = Span{labels.begin(), labels.size()};
-        return HistogramFamily<ValueType>(prefix, name, lbl_span, default_upper_bounds, helptext, unit, is_sum);
+        return HistogramFamily<ValueType>(prefix, name, lbl_span, default_upper_bounds, helptext, unit);
     }
 
     /**
@@ -306,10 +306,9 @@ public:
     template<class ValueType = int64_t>
     Histogram<ValueType> HistogramInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
                                            ConstSpan<ValueType> default_upper_bounds, std::string_view helptext,
-                                           std::string_view unit = "1", bool is_sum = false) {
+                                           std::string_view unit = "1") {
         return WithLabelNames(labels, [&, this](auto labelNames) {
-            auto family =
-                HistogramFamily<ValueType>(prefix, name, labelNames, default_upper_bounds, helptext, unit, is_sum);
+            auto family = HistogramFamily<ValueType>(prefix, name, labelNames, default_upper_bounds, helptext, unit);
             return family.getOrAdd(labels);
         });
     }
@@ -319,9 +318,9 @@ public:
     Histogram<ValueType> HistogramInstance(std::string_view prefix, std::string_view name,
                                            std::initializer_list<LabelView> labels,
                                            ConstSpan<ValueType> default_upper_bounds, std::string_view helptext,
-                                           std::string_view unit = "1", bool is_sum = false) {
+                                           std::string_view unit = "1") {
         auto lbls = Span{labels.begin(), labels.size()};
-        return HistogramInstance<ValueType>(prefix, name, lbls, default_upper_bounds, helptext, unit, is_sum);
+        return HistogramInstance<ValueType>(prefix, name, lbls, default_upper_bounds, helptext, unit);
     }
 
     /**
@@ -366,6 +365,10 @@ public:
      *               selecting all metrics.
      */
     void SetMetricsExportPrefixes(std::vector<std::string> filter);
+
+    const std::string& MetricsName() const { return metrics_name; }
+    const std::string& MetricsVersion() const { return metrics_version; }
+    const std::string& MetricsSchema() const { return metrics_schema; }
 
 protected:
     template<class F>

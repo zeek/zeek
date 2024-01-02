@@ -14,23 +14,21 @@ namespace zeek::telemetry {
 namespace metrics_sdk = opentelemetry::sdk::metrics;
 
 template<typename BoundsType>
-void add_histogram_view(const std::string& full_name, zeek::Span<const BoundsType> default_upper_bounds,
-                        std::string_view helptext, std::string_view unit,
-                        opentelemetry::nostd::shared_ptr<opentelemetry::metrics::MeterProvider> provider) {
-    auto instrument_selector = metrics_sdk::InstrumentSelectorFactory::Create(metrics_sdk::InstrumentType::kHistogram,
-                                                                              full_name, std::string{unit});
-    auto meter_selector = metrics_sdk::MeterSelectorFactory::Create("", "", "");
-    auto histogram_aggregation_config =
-        std::unique_ptr<metrics_sdk::HistogramAggregationConfig>(new metrics_sdk::HistogramAggregationConfig);
+void add_histogram_view(const std::string& full_name, zeek::Span<const BoundsType> bounds, std::string_view helptext,
+                        std::string_view unit,
+                        const opentelemetry::nostd::shared_ptr<opentelemetry::metrics::MeterProvider>& provider) {
+    auto config = std::make_shared<metrics_sdk::HistogramAggregationConfig>();
+    config->boundaries_.clear();
+    std::copy(bounds.begin(), bounds.end(), std::back_inserter(config->boundaries_));
 
-    std::vector<double> bounds;
-    std::copy(default_upper_bounds.begin(), default_upper_bounds.end(), std::back_inserter(bounds));
-    histogram_aggregation_config->boundaries_ = bounds;
-
-    std::shared_ptr<metrics_sdk::AggregationConfig> aggregation_config(std::move(histogram_aggregation_config));
-
-    auto view = metrics_sdk::ViewFactory::Create(full_name, std::string{helptext}, std::string{unit},
-                                                 metrics_sdk::AggregationType::kHistogram, aggregation_config);
+    auto view = std::make_unique<metrics_sdk::View>(std::string{"bounds_view_"} + full_name, "", std::string{unit},
+                                                    metrics_sdk::AggregationType::kHistogram, config);
+    auto instrument_selector =
+        std::make_unique<metrics_sdk::InstrumentSelector>(metrics_sdk::InstrumentType::kHistogram, full_name,
+                                                          std::string{unit});
+    auto meter_selector =
+        std::make_unique<metrics_sdk::MeterSelector>(telemetry_mgr->MetricsName(), telemetry_mgr->MetricsVersion(),
+                                                     telemetry_mgr->MetricsSchema());
 
     auto* mp = static_cast<metrics_sdk::MeterProvider*>(provider.get());
     mp->AddView(std::move(instrument_selector), std::move(meter_selector), std::move(view));
@@ -38,34 +36,26 @@ void add_histogram_view(const std::string& full_name, zeek::Span<const BoundsTyp
 
 IntHistogramFamily::IntHistogramFamily(std::string_view prefix, std::string_view name,
                                        Span<const std::string_view> labels, Span<const int64_t> default_upper_bounds,
-                                       std::string_view helptext, std::string_view unit, bool is_sum)
-    : BaseHistogramFamily(prefix, name, labels, helptext, unit, is_sum) {
+                                       std::string_view helptext, std::string_view unit)
+    : BaseHistogramFamily(prefix, name, labels, helptext, unit) {
     auto p = opentelemetry::metrics::Provider::GetMeterProvider();
     auto m = p->GetMeter(prefix);
 
-    instrument = m->CreateUInt64Histogram(FullName(), helptext, unit);
-
-    if ( is_sum )
-        telemetry_mgr->AddView(FullName(), std::string{helptext}, std::string{unit},
-                               metrics_sdk::InstrumentType::kHistogram, metrics_sdk::AggregationType::kSum);
-
     add_histogram_view(FullName(), default_upper_bounds, helptext, unit, p);
+
+    instrument = m->CreateUInt64Histogram(FullName(), helptext, unit);
 }
 
 DblHistogramFamily::DblHistogramFamily(std::string_view prefix, std::string_view name,
                                        Span<const std::string_view> labels, Span<const double> default_upper_bounds,
-                                       std::string_view helptext, std::string_view unit, bool is_sum)
-    : BaseHistogramFamily(prefix, name, labels, helptext, unit, is_sum) {
+                                       std::string_view helptext, std::string_view unit)
+    : BaseHistogramFamily(prefix, name, labels, helptext, unit) {
     auto p = opentelemetry::metrics::Provider::GetMeterProvider();
     auto m = p->GetMeter(prefix);
 
-    instrument = m->CreateDoubleHistogram(FullName(), helptext, unit);
-
-    if ( is_sum )
-        telemetry_mgr->AddView(FullName(), std::string{helptext}, "", metrics_sdk::InstrumentType::kHistogram,
-                               metrics_sdk::AggregationType::kSum);
-
     add_histogram_view(FullName(), default_upper_bounds, helptext, unit, p);
+
+    instrument = m->CreateDoubleHistogram(FullName(), helptext, unit);
 }
 
 } // namespace zeek::telemetry

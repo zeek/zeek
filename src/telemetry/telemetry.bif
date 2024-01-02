@@ -372,7 +372,7 @@ function Telemetry::__int_histogram_family%(prefix: string,
 	auto std_bounds = to_std_vec<int64_t>(bounds);
 	auto hdl = telemetry_mgr->HistogramFamily(sv(prefix), sv(name), lbl_vec,
 	                                          std_bounds, sv(helptext),
-	                                          sv(unit), is_sum);
+	                                          sv(unit));
 	return zeek::make_intrusive<IntHistogramMetricFamilyVal>(hdl);
 	%}
 
@@ -435,8 +435,7 @@ function Telemetry::__dbl_histogram_family%(prefix: string,
 	auto std_bounds = to_std_vec<double>(bounds);
 	auto hdl = telemetry_mgr->HistogramFamily<double>(sv(prefix), sv(name),
 	                                                  lbl_vec, std_bounds,
-	                                                  sv(helptext), sv(unit),
-	                                                  is_sum);
+	                                                  sv(helptext), sv(unit));
 	return zeek::make_intrusive<DblHistogramMetricFamilyVal>(hdl);
 	%}
 

@@ -1,3 +1,16 @@
+6.2.0-dev.302 | 2024-01-02 11:13:17 -0700
+
+  * smb: Fix &read_expire not in effect due to &default=string_set() usage (Arne Welzel, Corelight)
+
+    The SMB::State$recent_files field is meant to have expiring entries.
+    However, due to usage of &default=string_set(), the &read_expire
+    attribute is not respected causing unbounded state growth. Replace
+    &default=string_set() with &default=set().
+
+    Thanks to ya-sato on Slack for reporting!
+
+    Related: zeek/zeek-docs#179, #3513.
+
 6.2.0-dev.300 | 2023-12-16 17:57:49 +0100
 
   * TableType: Convert table_hash unique_ptr (Arne Welzel, Corelight)

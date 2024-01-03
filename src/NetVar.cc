@@ -168,11 +168,8 @@ int other_addr_anonymization;
 
 double profiling_interval;
 int expensive_profiling_multiple;
-int segment_profiling;
 int pkt_profile_mode;
 double pkt_profile_freq;
-
-int load_sample_freq;
 
 int packet_filter_default;
 
@@ -317,12 +314,9 @@ void init_net_var() {
 
     expensive_profiling_multiple = id::find_val("expensive_profiling_multiple")->AsCount();
     profiling_interval = id::find_val("profiling_interval")->AsInterval();
-    segment_profiling = id::find_val("segment_profiling")->AsBool();
 
     pkt_profile_mode = id::find_val("pkt_profile_mode")->InternalInt();
     pkt_profile_freq = id::find_val("pkt_profile_freq")->AsDouble();
-
-    load_sample_freq = id::find_val("load_sample_freq")->AsCount();
 
     dpd_reassemble_first_packets = id::find_val("dpd_reassemble_first_packets")->AsBool();
     dpd_buffer_size = id::find_val("dpd_buffer_size")->AsCount();

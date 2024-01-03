@@ -308,11 +308,6 @@ bool ScriptFunc::IsPure() const {
 }
 
 ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
-    SegmentProfiler prof(segment_logger, location);
-
-    if ( sample_logger )
-        sample_logger->FunctionSeen(this);
-
     auto [handled, hook_result] =
         PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
@@ -365,9 +360,6 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
     for ( const auto& body : bodies ) {
         if ( body.disabled )
             continue;
-
-        if ( sample_logger )
-            sample_logger->LocationSeen(body.stmts->GetLocationInfo());
 
         // Fill in the rest of the frame with the function's arguments.
         for ( auto j = 0u; j < args->size(); ++j ) {
@@ -714,11 +706,6 @@ bool BuiltinFunc::IsPure() const { return is_pure; }
 ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const {
     if ( spm )
         spm->StartInvocation(this);
-
-    SegmentProfiler prof(segment_logger, Name());
-
-    if ( sample_logger )
-        sample_logger->FunctionSeen(this);
 
     auto [handled, hook_result] =
         PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);

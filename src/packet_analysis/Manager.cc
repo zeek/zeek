@@ -101,7 +101,6 @@ void Manager::ProcessPacket(Packet* packet) {
     DBG_LOG(DBG_PACKET_ANALYSIS, "Analyzing packet %ld, ts=%.3f...", ++counter, packet->time);
 #endif
 
-    zeek::detail::SegmentProfiler prof(detail::segment_logger, "dispatching-packet");
     if ( pkt_profiler )
         pkt_profiler->ProfilePkt(zeek::run_state::processing_start_time, packet->cap_len);
 

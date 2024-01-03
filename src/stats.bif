@@ -1,5 +1,7 @@
 
 %%{ // C segment
+#include <sys/resource.h>
+
 #include "zeek/util.h"
 #include "zeek/threading/Manager.h"
 #include "zeek/broker/Manager.h"

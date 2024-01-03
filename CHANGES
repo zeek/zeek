@@ -1,3 +1,30 @@
+6.2.0-dev.307 | 2024-01-03 12:25:03 +0100
+
+  * segment_profiling: Remove SegmentProfiler and load_sample event (Arne Welzel, Corelight)
+
+    While it seems interesting functionality, this hasn't been documented,
+    maintained or knowingly leveraged for many years.
+
+    There are various other approaches today, too:
+
+    * We track the number of event handler invocations regardless of
+      profiling. It's possible to approximate a load_sample event by
+      comparing the result of two get_event_stats() calls. Or, visualize
+      the corresponding counters in a Prometheus setup to get an idea of
+      event/s broken down by event names.
+
+    * HookCallFunction() allows to intercept script execution, including
+      measuring the time execution takes.
+
+    * The global call_stack and g_frame_stack can be used from plugins
+      (and even external processes) to walk the Zeek script stack at certain
+      points to implement a sampling profiler.
+
+    * USDT probes or more plugin hooks will likely be preferred over Zeek
+      builtin functionality in the future.
+
+    Relates to #3458
+
 6.2.0-dev.305 | 2024-01-03 09:38:17 +0000
 
   * Avoid extra copies in threading_field_to_data (Dominik Charousset)

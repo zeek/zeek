@@ -183,8 +183,6 @@ std::vector<std::string> zeek::detail::zeek_script_prefixes;
 zeek::detail::Stmt* zeek::detail::stmts = nullptr;
 zeek::EventRegistry* zeek::event_registry = nullptr;
 std::shared_ptr<zeek::detail::ProfileLogger> zeek::detail::profiling_logger;
-std::shared_ptr<zeek::detail::ProfileLogger> zeek::detail::segment_logger;
-std::shared_ptr<zeek::detail::SampleLogger> zeek::detail::sample_logger;
 
 zeek::detail::FragmentManager* zeek::detail::fragment_mgr = nullptr;
 
@@ -993,9 +991,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     if ( profiling_interval > 0 ) {
         const auto& profiling_file = id::find_val("profiling_file");
         profiling_logger = std::make_shared<ProfileLogger>(profiling_file->AsFile(), profiling_interval);
-
-        if ( segment_profiling )
-            segment_logger = profiling_logger;
     }
 
     if ( ! run_state::reading_live && ! run_state::reading_traces &&

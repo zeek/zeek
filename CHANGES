@@ -1,3 +1,25 @@
+6.2.0-dev.311 | 2024-01-03 12:29:23 +0100
+
+  * Update external baselines (Arne Welzel, Corelight)
+
+  * ldap: Use scalar values in logs where appropriate (Arne Welzel, Corelight)
+
+    Skimming through the RFC, the previous approach of having containers for most
+    fields seems unfounded for normal protocol operation. The new weirds could just
+    as well be considered protocol violations. Outside of duplicated or missed data
+    they just shouldn't happen for well-behaved client/server behavior.
+    Additionally, with non-conformant traffic it would be trivial to cause
+    unbounded state growth and immense log record sizes.
+
+    Unfortunately, things have become a bit clunky now.
+
+    Closes #3504
+
+  * ldap: Rename LDAP::search_result to LDAP::search_result_entry (Arne Welzel, Corelight)
+
+    To avoid confusion potential confusion between SearchResultEntry
+    and SearchResultDone.
+
 6.2.0-dev.307 | 2024-01-03 12:25:03 +0100
 
   * segment_profiling: Remove SegmentProfiler and load_sample event (Arne Welzel, Corelight)

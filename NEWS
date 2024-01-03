@@ -26,6 +26,31 @@ Breaking Changes
 - The "segment_profiling" functionality and ``load_sample`` event have been removed
   without deprecation. This functionality was unmaintained and not known to be used.
 
+- Certain ``ldap.log`` and ``ldap_search.log`` fields have been renamed from
+  plural to singular and their types changed to scalars. This maps better onto
+  the expected request-response protocol used between client and server. Additionally,
+  it removes the burden of working with non-scalar columns from downstream systems.
+
+  Specifically, for ``ldap.log``:
+    * ``arguments: vector of string`` is now ``argument: string``
+    * ``diagnostic_messages: vector of string`` is now ``diagnostic_message: string``
+    * ``objects: vector of string`` is now ``object: string``
+    * ``opcodes: set[string]`` is now ``opcode: string``
+    * ``results: set[string]`` is now ``result: string``
+
+  For ``ldap_search.log``, the following fields were changed:
+    * ``base_objects: vector of string`` is now ``base_object: string``
+    * ``derefs: set[string]`` is now ``deref_aliases: string``
+    * ``diagnostic_messages: vector of string`` is now ``diagnostic_message: string``
+    * ``results: set[string]`` is now ``result: string``
+    * ``scopes: set[string]`` is now ``scope: string``
+
+  In the unlikely scenario that a request-response pair with the same message
+  identifier is observed, containing different values for certain fields, new
+  weirds are raised and will appear in ``weird.log``, including the old and new
+  values as well as the LDAP message identifier. The value within the LDAP logs
+  will be the most recently observed one.
+
 New Functionality
 -----------------
 

@@ -93,7 +93,7 @@ global LDAP::search_request: event (
 ## message_id: The messageID element.
 ##
 ## object_name: The object name in the SearchResultEntry.
-global LDAP::search_result: event (
+global LDAP::search_result_entry: event (
   c: connection,
   message_id: int,
   object_name: string

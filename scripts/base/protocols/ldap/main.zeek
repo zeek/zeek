@@ -1,5 +1,6 @@
 # Copyright (c) 2021 by the Zeek Project. See LICENSE for details.
 
+@load base/frameworks/reporter
 @load base/protocols/conn/removal-hooks
 
 @load ./consts
@@ -49,20 +50,20 @@ export {
     # LDAP version
     version: int &log &optional;
 
-    # normalized operations (e.g., bind_request and bind_response to "bind")
-    opcodes: set[string] &log &optional;
+    # Normalized operation (e.g., bind_request and bind_response to "bind")
+    opcode: string &log &optional;
 
-    # Result code(s)
-    results: set[string] &log &optional;
+    # Result code
+    result: string &log &optional;
 
-    # result diagnostic message(s)
-    diagnostic_messages: vector of string &log &optional;
+    # Result diagnostic message
+    diagnostic_message: string &log &optional;
 
-    # object(s)
-    objects: vector of string &log &optional;
+    # Object
+    object: string &log &optional;
 
-    # argument(s)
-    arguments: vector of string &log &optional;
+    # Argument
+    argument: string &log &optional;
   };
 
   #############################################################################
@@ -82,25 +83,25 @@ export {
     message_id: int &log &optional;
 
     # sets of search scope and deref alias
-    scopes: set[string] &log &optional;
-    derefs: set[string] &log &optional;
+    scope: string &log &optional;
+    deref_aliases: string &log &optional;
 
-    # base search objects
-    base_objects: vector of string &log &optional;
+    # Base search objects
+    base_object: string &log &optional;
 
-    # number of results returned
+    # Number of results returned
     result_count: count &log &optional;
 
-    # Result code (s)
-    results: set[string] &log &optional;
+    # Result code of search operation
+    result: string &log &optional;
 
-    # result diagnostic message(s)
-    diagnostic_messages: vector of string &log &optional;
+    # Result diagnostic message
+    diagnostic_message: string &log &optional;
 
-    #  a string representation of the search filter used in the query
+    # A string representation of the search filter used in the query
     filter: string &log &optional;
 
-    # a list of attributes that were returned in the search
+    # A list of attributes that were returned in the search
     attributes: vector of string &log &optional;
   };
 
@@ -189,72 +190,93 @@ event LDAP::message(c: connection,
   if (opcode == LDAP::ProtocolOpcode_SEARCH_RESULT_DONE) {
     set_session(c, message_id, opcode);
 
-    local searches = c$ldap$searches[message_id];
+    local sm = c$ldap$searches[message_id];
 
     if ( result != LDAP::ResultCode_Undef ) {
-      if ( ! searches?$results )
-        searches$results = set();
-      add searches$results[RESULT_CODES[result]];
+      local sresult_str = RESULT_CODES[result];
+      if ( sm?$result && sm$result != sresult_str ) {
+        Reporter::conn_weird("LDAP_search_result_change", c,
+                             fmt("%s: %s -> %s", message_id, sm$result, sresult_str), "LDAP");
+      }
+
+      sm$result = sresult_str;
     }
 
     if ( diagnostic_message != "" ) {
-      if ( ! searches?$diagnostic_messages )
-        searches$diagnostic_messages = vector();
-      searches$diagnostic_messages += diagnostic_message;
+      if ( ! sm?$diagnostic_message && sm$diagnostic_message != diagnostic_message ) {
+        Reporter::conn_weird("LDAP_search_diagnostic_message_change", c,
+                             fmt("%s: %s -> %s", message_id, sm$diagnostic_message, diagnostic_message), "LDAP");
+      }
+
+      sm$diagnostic_message = diagnostic_message;
     }
 
-    Log::write(LDAP::LDAP_SEARCH_LOG, searches);
+    Log::write(LDAP::LDAP_SEARCH_LOG, sm);
     delete c$ldap$searches[message_id];
 
-  } else if (opcode !in OPCODES_SEARCH) {
+  } else if (opcode !in OPCODES_SEARCH) {  # search is handled via LDAP::search_request()
     set_session(c, message_id, opcode);
 
-    local messages = c$ldap$messages[message_id];
+    local m = c$ldap$messages[message_id];
 
-    if ( ! messages?$opcodes )
-      messages$opcodes = set();
-    add messages$opcodes[PROTOCOL_OPCODES[opcode]];
+    local opcode_str = PROTOCOL_OPCODES[opcode];
+
+    # bind request is explicitly handled via LDAP::bind_request() and
+    # can assume we have a more specific m$opcode set.
+    if ( opcode_str != "bind" ) {
+      if ( m?$opcode && opcode_str != m$opcode ) {
+        Reporter::conn_weird("LDAP_message_opcode_change", c,
+                             fmt("%s: %s -> %s", message_id, m$opcode, opcode_str), "LDAP");
+      }
+
+      m$opcode = opcode_str;
+    }
 
     if ( result != LDAP::ResultCode_Undef ) {
-      if ( ! messages?$results )
-        messages$results = set();
-      add messages$results[RESULT_CODES[result]];
+      local result_str = RESULT_CODES[result];
+      if ( m?$result && m$result != result_str ) {
+        Reporter::conn_weird("LDAP_message_result_change", c,
+                             fmt("%s: %s -> %s", message_id, m$result, result_str), "LDAP");
+      }
+
+      m$result = result_str;
     }
 
     if ( diagnostic_message != "" ) {
-      if ( ! messages?$diagnostic_messages )
-        messages$diagnostic_messages = vector();
-      messages$diagnostic_messages += diagnostic_message;
+      if ( m?$diagnostic_message && diagnostic_message != m$diagnostic_message ) {
+        Reporter::conn_weird("LDAP_message_diagnostic_message_change", c,
+                             fmt("%s: %s -> %s", message_id, m$diagnostic_message, diagnostic_message), "LDAP");
+      }
+
+      m$diagnostic_message = diagnostic_message;
     }
 
     if ( object != "" ) {
-      if ( ! messages?$objects )
-        messages$objects = vector();
-      messages$objects += object;
+      if ( m?$object && m$object != object ) {
+        Reporter::conn_weird("LDAP_message_object_change", c,
+                             fmt("%s: %s -> %s", message_id, m$object, object), "LDAP");
+      }
+
+      m$object = object;
     }
 
     if ( argument != "" ) {
-      if ( ! messages?$arguments )
-        messages$arguments = vector();
-      if ("bind simple" in messages$opcodes && !default_capture_password)
-        messages$arguments += "REDACTED";
-      else
-        messages$arguments += argument;
+      if ( m$opcode == BIND_SIMPLE && ! default_capture_password )
+        argument = "REDACTED";
+
+      if ( m?$argument && m$argument != argument ) {
+        Reporter::conn_weird("LDAP_message_argument_change", c,
+                             fmt("%s: %s -> %s", message_id, m$argument, argument), "LDAP");
+      }
+
+      m$argument = argument;
     }
 
     if (opcode in OPCODES_FINISHED) {
-
-      if ((BIND_SIMPLE in messages$opcodes) ||
-          (BIND_SASL in messages$opcodes)) {
-        # don't have both "bind" and "bind <method>" in the operations list
-        delete messages$opcodes[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
-      }
-
-      Log::write(LDAP::LDAP_LOG, messages);
+      Log::write(LDAP::LDAP_LOG, m);
       delete c$ldap$messages[message_id];
     }
   }
-
 }
 
 #############################################################################
@@ -271,34 +293,57 @@ event LDAP::search_request(c: connection,
 
   set_session(c, message_id, LDAP::ProtocolOpcode_SEARCH_REQUEST);
 
+  local sm = c$ldap$searches[message_id];
+
   if ( scope != LDAP::SearchScope_Undef ) {
-    if ( ! c$ldap$searches[message_id]?$scopes )
-      c$ldap$searches[message_id]$scopes = set();
-    add c$ldap$searches[message_id]$scopes[SEARCH_SCOPES[scope]];
+    local scope_str = SEARCH_SCOPES[scope];
+    if ( sm?$scope && sm$scope != scope_str ) {
+      Reporter::conn_weird("LDAP_search_scope_change", c,
+                           fmt("%s: %s -> %s", message_id, sm$scope, scope_str), "LDAP");
+    }
+
+    sm$scope = scope_str;
   }
 
   if ( deref != LDAP::SearchDerefAlias_Undef ) {
-    if ( ! c$ldap$searches[message_id]?$derefs )
-      c$ldap$searches[message_id]$derefs = set();
-    add c$ldap$searches[message_id]$derefs[SEARCH_DEREF_ALIASES[deref]];
+    local deref_aliases_str = SEARCH_DEREF_ALIASES[deref];
+    if ( sm?$deref_aliases && sm$deref_aliases != deref_aliases_str ) {
+      Reporter::conn_weird("LDAP_search_deref_aliases_change", c,
+                           fmt("%s: %s -> %s", message_id, sm$deref_aliases, deref_aliases_str), "LDAP");
+    }
+
+    sm$deref_aliases = deref_aliases_str;
   }
 
   if ( base_object != "" ) {
-    if ( ! c$ldap$searches[message_id]?$base_objects )
-      c$ldap$searches[message_id]$base_objects = vector();
-    c$ldap$searches[message_id]$base_objects += base_object;
+    if ( sm?$base_object && sm$base_object != base_object ) {
+      Reporter::conn_weird("LDAP_search_base_object_change", c,
+                           fmt("%s: %s -> %s", message_id, sm$base_object, base_object), "LDAP");
+    }
+
+    sm$base_object = base_object;
   }
-  c$ldap$searches[message_id]$filter = filter;
+
+  if ( sm?$filter && sm$filter != filter )
+      Reporter::conn_weird("LDAP_search_filter_change", c,
+                           fmt("%s: %s -> %s", message_id, sm$filter, filter), "LDAP");
+
+  sm$filter = filter;
 
   if ( default_log_search_attributes ) {
-    c$ldap$searches[message_id]$attributes = attributes;
+    if ( sm?$attributes && cat(sm$attributes) != cat(attributes) ) {
+      Reporter::conn_weird("LDAP_search_attributes_change", c,
+                           fmt("%s: %s -> %s", message_id, sm$attributes, attributes), "LDAP");
+    }
+
+    sm$attributes = attributes;
   }
 }
 
 #############################################################################
-event LDAP::search_result(c: connection,
-                          message_id: int,
-                          object_name: string) {
+event LDAP::search_result_entry(c: connection,
+                                message_id: int,
+                                object_name: string) {
 
   set_session(c, message_id, LDAP::ProtocolOpcode_SEARCH_RESULT_ENTRY);
 
@@ -314,16 +359,23 @@ event LDAP::bind_request(c: connection,
                          authInfo: string) {
   set_session(c, message_id, LDAP::ProtocolOpcode_BIND_REQUEST);
 
-  if ( ! c$ldap$messages[message_id]?$version )
-    c$ldap$messages[message_id]$version = version;
+  local m = c$ldap$messages[message_id];
 
-  if ( ! c$ldap$messages[message_id]?$opcodes )
-    c$ldap$messages[message_id]$opcodes = set();
+  if ( ! m?$version )
+    m$version = version;
+
+  # Getting herre, we don't expect the LDAP opcode to be set at all
+  # and it'll be overwritten below.
+  if ( m?$opcode )
+    Reporter::conn_weird("LDAP_bind_opcode_already_set", c, m$opcode, "LDAP");
 
   if (authType == LDAP::BindAuthType_BIND_AUTH_SIMPLE) {
-    add c$ldap$messages[message_id]$opcodes[BIND_SIMPLE];
+    m$opcode = BIND_SIMPLE;
   } else if (authType == LDAP::BindAuthType_BIND_AUTH_SASL) {
-    add c$ldap$messages[message_id]$opcodes[BIND_SASL];
+    m$opcode = BIND_SASL;
+  } else {
+    Reporter::conn_weird("LDAP_unknown_auth_type", c, cat(authType), "LDAP");
+    m$opcode = cat(authType);
   }
 }
 
@@ -333,15 +385,8 @@ hook finalize_ldap(c: connection) {
 
   if ( c$ldap?$messages && (|c$ldap$messages| > 0) ) {
     for ( [mid], m in c$ldap$messages ) {
-      if (mid > 0) {
-
-        if ((BIND_SIMPLE in m$opcodes) || (BIND_SASL in m$opcodes)) {
-          # don't have both "bind" and "bind <method>" in the operations list
-          delete m$opcodes[PROTOCOL_OPCODES[LDAP::ProtocolOpcode_BIND_REQUEST]];
-        }
-
+      if (mid > 0)
         Log::write(LDAP::LDAP_LOG, m);
-      }
     }
     delete c$ldap$messages;
   }

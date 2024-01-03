@@ -1,3 +1,12 @@
+6.2.0-dev.305 | 2024-01-03 09:38:17 +0000
+
+  * Avoid extra copies in threading_field_to_data (Dominik Charousset)
+
+    Passing the `broker::data` paramter for `threading_field_to_data` by
+    value forces copies. However, the function only needs const access to
+    its parameter. Hence, taking the parameter as const-ref is the logical
+    choice and avoids unnecessary copies of individual data fields.
+
 6.2.0-dev.302 | 2024-01-02 11:13:17 -0700
 
   * smb: Fix &read_expire not in effect due to &default=string_set() usage (Arne Welzel, Corelight)

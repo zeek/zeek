@@ -186,7 +186,14 @@ size_t modp_dtoa(double value, char* str, int prec)
       which can be 100s of characters overflowing your buffers == bad
     */
     if (value >= thres_max) {
+#pragma GCC diagnostic push
+        // Ignore the diagnostic warning about sprintf being deprecated here. We
+        // have to assume that the size of the string is long enough here
+        // because we'd have to change the function definition to support
+        // passing a length.
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         int n = sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+#pragma GCC diagnostic pop
         n -= sn_strip_trailing_zeros(str);
         return n;
     }
@@ -287,7 +294,14 @@ size_t modp_dtoa2(double value, char* str, int prec)
       which can be 100s of characters overflowing your buffers == bad
     */
     if (value >= thres_max) {
+#pragma GCC diagnostic push
+        // Ignore the diagnostic warning about sprintf being deprecated here. We
+        // have to assume that the size of the string is long enough here
+        // because we'd have to change the function definition to support
+        // passing a length.
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         int n = sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+#pragma GCC diagnostic pop
         n -= sn_strip_trailing_zeros(str);
         return n;
     }
@@ -306,7 +320,14 @@ size_t modp_dtoa2(double value, char* str, int prec)
     double smallest = _pow10r[prec];
 
     if (value != 0.0 && value < smallest) {
+#pragma GCC diagnostic push
+        // Ignore the diagnostic warning about sprintf being deprecated here. We
+        // have to assume that the size of the string is long enough here
+        // because we'd have to change the function definition to support
+        // passing a length.
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         int n = sprintf(str, "%.*e", DBL_DECIMAL_DIG - 1, neg ? -value : value);
+#pragma GCC diagnostic pop
         n -= sn_strip_trailing_zeros(str);
         return n;
     }

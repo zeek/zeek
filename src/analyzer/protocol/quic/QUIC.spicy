@@ -204,6 +204,16 @@ public type LongHeaderPacketV2 = unit(inout outer: LongHeaderPacket) {
   };
 };
 
+# Just eat the data for event raising.
+public type UnhandledVersion = unit(header: LongHeaderPacket) {
+  var header: LongHeaderPacket = header;
+@if SPICY_VERSION >= 10800
+  payload: skip bytes &eod;
+@else
+  payload: bytes &eod;
+@endif
+};
+
 public type LongHeaderPacket = unit {
   var encrypted_offset: uint64;
   var payload_length: uint64;
@@ -228,6 +238,9 @@ public type LongHeaderPacket = unit {
   switch ( self.version ) {
     Version1 -> v1: LongHeaderPacketV1(self);
     Version2 -> v2: LongHeaderPacketV2(self);
+    * -> unknown: UnhandledVersion(self) {
+      throw "unhandled QUIC version 0x%x" % self.version;
+    }
   };
 };
 

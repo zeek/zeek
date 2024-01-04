@@ -1,3 +1,12 @@
+6.2.0-dev.314 | 2024-01-04 16:40:00 +0100
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+    This bump mostly brings in small incremental performance improvements
+    for runtime throughput for Spicy-generated parsers. With a large
+    internal analyzer at Corelight these changes improve throughput by
+    around (3.8±1.2)%.
+
 6.2.0-dev.311 | 2024-01-03 12:29:23 +0100
 
   * Update external baselines (Arne Welzel, Corelight)

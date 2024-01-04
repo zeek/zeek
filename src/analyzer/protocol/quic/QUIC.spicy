@@ -8,6 +8,7 @@ import zeek;
 
 # The interface to the C++ code that handles the decryption of the INITIAL packet payload using well-known keys
 public function decrypt_crypto_payload(
+  version: uint32,
   all_data: bytes,
   connection_id: bytes,
   encrypted_offset: uint64,
@@ -430,6 +431,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       # This means that here, we can try to decrypt the initial packet!
       # All data is accessible via the `long_header` unit
       self.decrypted_data = decrypt_crypto_payload(
+        self.long_header.version,
         self.all_data,
         self.long_header.dest_conn_id,
         self.long_header.encrypted_offset,
@@ -449,6 +451,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       # Assuming that the client set up the connection, this can be considered the first
       # received Initial from the client. So disable change of ConnectionID's afterwards
       self.decrypted_data = decrypt_crypto_payload(
+        self.long_header.version,
         self.all_data,
         context.initial_destination_conn_id,
         self.long_header.encrypted_offset,

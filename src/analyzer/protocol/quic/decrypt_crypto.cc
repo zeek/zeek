@@ -2,15 +2,15 @@
 // Copyright (c) 2023 by the Zeek Project. See COPYING for details.
 
 /*
-WARNING: THIS CODE IS NOT SAFE IN MULTI-THREADED
+WARNING: THIS CODE IS NOT SAFE IN MULTI-THREADED ENVIRONMENTS:
 
 * Initializations of static OpenSSL contexts without locking
-* Use of contexts is not protected by locks.
+* Use of SSL contexts is not protected by locks
 
-The involved contexts are EVP_CIPHER_CTX and EVP_PKEY_CTX and are allocated
-lazily just once and re-used for performance reasons. Previously, every
-decrypt operation allocated, initialized and freed each of the used context
-resulting in a significant performance hit.
+The involved contexts are EVP_CIPHER_CTX and EVP_PKEY_CTX. These are allocated
+lazily and re-used for performance reasons. Previously, every decrypt operation
+allocated, initialized and freed these individually, resulting in a significant
+performance hit. Given Zeek's single threaded nature, this is fine.
 */
 
 /*
@@ -25,6 +25,7 @@ refactors as C++ development is not our main profession.
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -50,31 +51,6 @@ struct DecryptionInformation {
 //
 // This should be alright: https://stackoverflow.com/a/15172304
 inline const uint8_t* data_as_uint8(const hilti::rt::Bytes& b) { return reinterpret_cast<const uint8_t*>(b.data()); }
-
-/*
-Constants used in the HKDF functions. HKDF-Expand-Label uses labels
-such as 'quic key' and 'quic hp'. These labels can obviously be
-calculated dynamically, but are incluced statically for now, as the
-goal of this analyser is only to analyze the INITIAL packets.
-*/
-
-std::vector<uint8_t> INITIAL_SALT_V1 = {0x38, 0x76, 0x2c, 0xf7, 0xf5, 0x59, 0x34, 0xb3, 0x4d, 0x17,
-                                        0x9a, 0xe6, 0xa4, 0xc8, 0x0c, 0xad, 0xcc, 0xbb, 0x7f, 0x0a};
-
-std::vector<uint8_t> CLIENT_INITIAL_INFO = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x63,
-                                            0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x69, 0x6e, 0x00};
-
-std::vector<uint8_t> SERVER_INITIAL_INFO = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x73,
-                                            0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x69, 0x6e, 0x00};
-
-std::vector<uint8_t> KEY_INFO = {0x00, 0x10, 0x0e, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
-                                 0x71, 0x75, 0x69, 0x63, 0x20, 0x6b, 0x65, 0x79, 0x00};
-
-std::vector<uint8_t> IV_INFO = {0x00, 0x0c, 0x0d, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
-                                0x71, 0x75, 0x69, 0x63, 0x20, 0x69, 0x76, 0x00};
-
-std::vector<uint8_t> HP_INFO = {0x00, 0x10, 0x0d, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
-                                0x71, 0x75, 0x69, 0x63, 0x20, 0x68, 0x70, 0x00};
 
 /*
 Constants used by the different functions
@@ -106,100 +82,6 @@ EVP_CIPHER_CTX* get_aes_128_gcm() {
     }
 
     return ctx;
-}
-/*
-HKDF-Extract as described in https://www.rfc-editor.org/rfc/rfc8446.html#section-7.1
-*/
-std::vector<uint8_t> hkdf_extract(const hilti::rt::Bytes& connection_id) {
-    std::vector<uint8_t> out_temp(INITIAL_SECRET_LEN);
-    size_t initial_secret_len = out_temp.size();
-    static EVP_PKEY_CTX* ctx = nullptr;
-    if ( ! ctx ) {
-        ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
-        EVP_PKEY_derive_init(ctx);
-        EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
-        EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY);
-    }
-
-    EVP_PKEY_CTX_set1_hkdf_key(ctx, data_as_uint8(connection_id), connection_id.size());
-    EVP_PKEY_CTX_set1_hkdf_salt(ctx, INITIAL_SALT_V1.data(), INITIAL_SALT_V1.size());
-    EVP_PKEY_derive(ctx, out_temp.data(), &initial_secret_len);
-    return out_temp;
-}
-
-/*
-HKDF-Expand-Label as described in https://www.rfc-editor.org/rfc/rfc8446.html#section-7.1
-*/
-std::vector<uint8_t> hkdf_expand(EVP_PKEY_CTX* ctx, size_t out_len, const std::vector<uint8_t>& key) {
-    std::vector<uint8_t> out_temp(out_len);
-    EVP_PKEY_CTX_set1_hkdf_key(ctx, key.data(), key.size());
-    EVP_PKEY_derive(ctx, out_temp.data(), &out_len);
-    return out_temp;
-}
-
-std::vector<uint8_t> hkdf_expand_client_initial_info(size_t out_len, const std::vector<uint8_t>& key) {
-    static EVP_PKEY_CTX* ctx = nullptr;
-    if ( ! ctx ) {
-        ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
-        EVP_PKEY_derive_init(ctx);
-        EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
-        EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
-        EVP_PKEY_CTX_add1_hkdf_info(ctx, CLIENT_INITIAL_INFO.data(), CLIENT_INITIAL_INFO.size());
-    }
-
-    return hkdf_expand(ctx, out_len, key);
-}
-
-std::vector<uint8_t> hkdf_expand_server_initial_info(size_t out_len, const std::vector<uint8_t>& key) {
-    static EVP_PKEY_CTX* ctx = nullptr;
-    if ( ! ctx ) {
-        ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
-        EVP_PKEY_derive_init(ctx);
-        EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
-        EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
-        EVP_PKEY_CTX_add1_hkdf_info(ctx, SERVER_INITIAL_INFO.data(), SERVER_INITIAL_INFO.size());
-    }
-
-    return hkdf_expand(ctx, out_len, key);
-}
-
-std::vector<uint8_t> hkdf_expand_key_info(size_t out_len, const std::vector<uint8_t>& key) {
-    static EVP_PKEY_CTX* ctx = nullptr;
-    if ( ! ctx ) {
-        ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
-        EVP_PKEY_derive_init(ctx);
-        EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
-        EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
-        EVP_PKEY_CTX_add1_hkdf_info(ctx, KEY_INFO.data(), KEY_INFO.size());
-    }
-
-    return hkdf_expand(ctx, out_len, key);
-}
-
-std::vector<uint8_t> hkdf_expand_iv_info(size_t out_len, const std::vector<uint8_t>& key) {
-    static EVP_PKEY_CTX* ctx = nullptr;
-    if ( ! ctx ) {
-        ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
-        EVP_PKEY_derive_init(ctx);
-        EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
-        EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
-        EVP_PKEY_CTX_add1_hkdf_info(ctx, IV_INFO.data(), IV_INFO.size());
-    }
-
-    return hkdf_expand(ctx, out_len, key);
-}
-
-std::vector<uint8_t> hkdf_expand_hp_info(size_t out_len, const std::vector<uint8_t>& key) {
-    static EVP_PKEY_CTX* ctx = nullptr;
-    if ( ! ctx ) {
-        ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
-        EVP_PKEY_derive_init(ctx);
-        EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
-        EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
-        EVP_PKEY_CTX_add1_hkdf_info(ctx, HP_INFO.data(), HP_INFO.size());
-    }
-
-    return hkdf_expand(ctx, out_len, key);
 }
 
 /*
@@ -268,10 +150,8 @@ std::vector<uint8_t> calculate_nonce(std::vector<uint8_t> client_iv, uint64_t pa
 }
 
 /*
-Function that calls the AEAD decryption routine, and returns the
-decrypted data
+Function that calls the AEAD decryption routine, and returns the decrypted data.
 */
-
 hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt::Bytes& all_data,
                          uint64_t payload_length, const DecryptionInformation& decryptInfo) {
     int out, out2, res;
@@ -324,14 +204,203 @@ hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt
     return hilti::rt::Bytes(decrypt_buffer.data(), decrypt_buffer.data() + out);
 }
 
+
+// Pre-initialized SSL contexts for re-use. Not thread-safe. These are only used in expand-only mode
+// and have a fixed HKDF info set.
+struct HkdfCtx {
+    bool initialized = false;
+    EVP_PKEY_CTX* client_in_ctx = nullptr;
+    EVP_PKEY_CTX* server_in_ctx = nullptr;
+    EVP_PKEY_CTX* key_info_ctx = nullptr;
+    EVP_PKEY_CTX* iv_info_ctx = nullptr;
+    EVP_PKEY_CTX* hp_info_ctx = nullptr;
+};
+
+
+struct HkdfCtxParam {
+    EVP_PKEY_CTX** ctx;
+    std::vector<uint8_t> info;
+};
+
+/*
+HKDF-Extract as described in https://www.rfc-editor.org/rfc/rfc8446.html#section-7.1
+*/
+std::vector<uint8_t> hkdf_extract(const std::vector<uint8_t>& salt, const hilti::rt::Bytes& connection_id) {
+    std::vector<uint8_t> out_temp(INITIAL_SECRET_LEN);
+    size_t initial_secret_len = out_temp.size();
+    static EVP_PKEY_CTX* ctx = nullptr;
+    if ( ! ctx ) {
+        ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+        EVP_PKEY_derive_init(ctx);
+        EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256());
+        EVP_PKEY_CTX_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXTRACT_ONLY);
+    }
+
+    EVP_PKEY_CTX_set1_hkdf_key(ctx, data_as_uint8(connection_id), connection_id.size());
+    EVP_PKEY_CTX_set1_hkdf_salt(ctx, salt.data(), salt.size());
+    EVP_PKEY_derive(ctx, out_temp.data(), &initial_secret_len);
+    return out_temp;
+}
+
+std::vector<uint8_t> hkdf_expand(EVP_PKEY_CTX* ctx, size_t out_len, const std::vector<uint8_t>& key) {
+    std::vector<uint8_t> out_temp(out_len);
+    EVP_PKEY_CTX_set1_hkdf_key(ctx, key.data(), key.size());
+    EVP_PKEY_derive(ctx, out_temp.data(), &out_len);
+    return out_temp;
+}
+
+class QuicPacketProtection {
+public:
+    std::vector<uint8_t> GetSecret(bool is_orig, const hilti::rt::Bytes& connection_id) {
+        const auto& ctxs = GetHkdfCtxs();
+        const auto initial_secret = hkdf_extract(GetInitialSalt(), connection_id);
+        EVP_PKEY_CTX* ctx = is_orig ? ctxs.client_in_ctx : ctxs.server_in_ctx;
+        return hkdf_expand(ctx, INITIAL_SECRET_LEN, initial_secret);
+    }
+
+    std::vector<uint8_t> GetKey(const std::vector<uint8_t>& secret) {
+        const auto& ctxs = GetHkdfCtxs();
+        return hkdf_expand(ctxs.key_info_ctx, AEAD_KEY_LEN, secret);
+    }
+
+    std::vector<uint8_t> GetIv(const std::vector<uint8_t>& secret) {
+        const auto& ctxs = GetHkdfCtxs();
+        return hkdf_expand(ctxs.iv_info_ctx, AEAD_IV_LEN, secret);
+    }
+
+    std::vector<uint8_t> GetHp(const std::vector<uint8_t>& secret) {
+        const auto& ctxs = GetHkdfCtxs();
+        return hkdf_expand(ctxs.hp_info_ctx, AEAD_HP_LEN, secret);
+    }
+
+    virtual const std::vector<uint8_t>& GetInitialSalt() = 0;
+    virtual HkdfCtx& GetHkdfCtxs() = 0;
+
+    virtual ~QuicPacketProtection() = default;
+
+    // Helper to initialize HKDF expand only contexts.
+    static void Initialize(std::vector<HkdfCtxParam>& params) {
+        for ( const auto& p : params ) {
+            *p.ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, NULL);
+            EVP_PKEY_derive_init(*p.ctx);
+            EVP_PKEY_CTX_set_hkdf_md(*p.ctx, EVP_sha256());
+            EVP_PKEY_CTX_hkdf_mode(*p.ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY);
+            EVP_PKEY_CTX_add1_hkdf_info(*p.ctx, p.info.data(), p.info.size());
+        }
+    }
+};
+
+// QUIC v1
+//
+// https://datatracker.ietf.org/doc/html/rfc9001
+std::vector<uint8_t> INITIAL_SALT_V1 = {0x38, 0x76, 0x2c, 0xf7, 0xf5, 0x59, 0x34, 0xb3, 0x4d, 0x17,
+                                        0x9a, 0xe6, 0xa4, 0xc8, 0x0c, 0xad, 0xcc, 0xbb, 0x7f, 0x0a};
+
+std::vector<uint8_t> CLIENT_INITIAL_INFO = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x63,
+                                            0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x69, 0x6e, 0x00};
+
+std::vector<uint8_t> SERVER_INITIAL_INFO = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x73,
+                                            0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x69, 0x6e, 0x00};
+
+std::vector<uint8_t> KEY_INFO = {0x00, 0x10, 0x0e, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
+                                 0x71, 0x75, 0x69, 0x63, 0x20, 0x6b, 0x65, 0x79, 0x00};
+
+std::vector<uint8_t> IV_INFO = {0x00, 0x0c, 0x0d, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
+                                0x71, 0x75, 0x69, 0x63, 0x20, 0x69, 0x76, 0x00};
+
+std::vector<uint8_t> HP_INFO = {0x00, 0x10, 0x0d, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
+                                0x71, 0x75, 0x69, 0x63, 0x20, 0x68, 0x70, 0x00};
+
+
+class QuicPacketProtectionV1 : public QuicPacketProtection {
+public:
+    virtual std::vector<uint8_t>& GetInitialSalt() override { return INITIAL_SALT_V1; }
+    virtual HkdfCtx& GetHkdfCtxs() override { return hkdf_ctxs; }
+
+    // Pre-initialize SSL context for reuse with HKDF info set to version specific values.
+    static void Initialize() {
+        if ( hkdf_ctxs.initialized )
+            return;
+
+        std::vector<HkdfCtxParam> hkdf_ctx_params = {
+            {&hkdf_ctxs.client_in_ctx, CLIENT_INITIAL_INFO},
+            {&hkdf_ctxs.server_in_ctx, SERVER_INITIAL_INFO},
+            {&hkdf_ctxs.key_info_ctx, KEY_INFO},
+            {&hkdf_ctxs.iv_info_ctx, IV_INFO},
+            {&hkdf_ctxs.hp_info_ctx, HP_INFO},
+        };
+
+        QuicPacketProtection::Initialize(hkdf_ctx_params);
+
+        instance = std::make_unique<QuicPacketProtectionV1>();
+        hkdf_ctxs.initialized = true;
+    }
+
+    static HkdfCtx hkdf_ctxs;
+    static std::unique_ptr<QuicPacketProtectionV1> instance;
+};
+
+HkdfCtx QuicPacketProtectionV1::hkdf_ctxs = {0};
+std::unique_ptr<QuicPacketProtectionV1> QuicPacketProtectionV1::instance = nullptr;
+
+
+// QUIC v2
+//
+// https://datatracker.ietf.org/doc/rfc9369/
+std::vector<uint8_t> INITIAL_SALT_V2 = {0x0d, 0xed, 0xe3, 0xde, 0xf7, 0x00, 0xa6, 0xdb, 0x81, 0x93,
+                                        0x81, 0xbe, 0x6e, 0x26, 0x9d, 0xcb, 0xf9, 0xbd, 0x2e, 0xd9};
+
+std::vector<uint8_t> CLIENT_INITIAL_INFO_V2 = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x63,
+                                               0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x69, 0x6e, 0x00};
+
+std::vector<uint8_t> SERVER_INITIAL_INFO_V2 = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x73,
+                                               0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x69, 0x6e, 0x00};
+
+std::vector<uint8_t> KEY_INFO_V2 = {0x00, 0x10, 0x10, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
+                                    0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x6b, 0x65, 0x79, 0x00};
+
+std::vector<uint8_t> IV_INFO_V2 = {0x00, 0x0c, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
+                                   0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x69, 0x76, 0x00};
+
+std::vector<uint8_t> HP_INFO_V2 = {0x00, 0x10, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
+                                   0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x68, 0x70, 0x00};
+
+class QuicPacketProtectionV2 : public QuicPacketProtection {
+public:
+    virtual std::vector<uint8_t>& GetInitialSalt() override { return INITIAL_SALT_V2; }
+    virtual HkdfCtx& GetHkdfCtxs() override { return hkdf_ctxs; }
+
+    static void Initialize() {
+        if ( hkdf_ctxs.initialized )
+            return;
+        std::vector<HkdfCtxParam> hkdf_ctx_params = {
+            {&hkdf_ctxs.client_in_ctx, CLIENT_INITIAL_INFO_V2},
+            {&hkdf_ctxs.server_in_ctx, SERVER_INITIAL_INFO_V2},
+            {&hkdf_ctxs.key_info_ctx, KEY_INFO_V2},
+            {&hkdf_ctxs.iv_info_ctx, IV_INFO_V2},
+            {&hkdf_ctxs.hp_info_ctx, HP_INFO_V2},
+        };
+
+        QuicPacketProtection::Initialize(hkdf_ctx_params);
+        instance = std::make_unique<QuicPacketProtectionV2>();
+        hkdf_ctxs.initialized = true;
+    }
+
+    static HkdfCtx hkdf_ctxs;
+    static std::unique_ptr<QuicPacketProtectionV2> instance;
+};
+
+HkdfCtx QuicPacketProtectionV2::hkdf_ctxs = {0};
+std::unique_ptr<QuicPacketProtectionV2> QuicPacketProtectionV2::instance = nullptr;
+
 } // namespace
 
 /*
-Function that is called from Spicy. It's a wrapper around `process_data`;
-it stores all the passed data in a global struct and then calls `process_data`,
-which will eventually return the decrypted data and pass it back to Spicy.
+Function that is called from Spicy, decrypting an INITIAL packet and returning
+the decrypted payload back to the analyzer.
 */
-hilti::rt::Bytes QUIC_decrypt_crypto_payload(const hilti::rt::Bytes& all_data, const hilti::rt::Bytes& connection_id,
+hilti::rt::Bytes QUIC_decrypt_crypto_payload(const hilti::rt::integer::safe<uint32_t>& version,
+                                             const hilti::rt::Bytes& all_data, const hilti::rt::Bytes& connection_id,
                                              const hilti::rt::integer::safe<uint64_t>& encrypted_offset,
                                              const hilti::rt::integer::safe<uint64_t>& payload_length,
                                              const hilti::rt::Bool& from_client) {
@@ -342,19 +411,24 @@ hilti::rt::Bytes QUIC_decrypt_crypto_payload(const hilti::rt::Bytes& all_data, c
         throw hilti::rt::RuntimeError(
             hilti::rt::fmt("packet too small %ld %ld", all_data.size(), encrypted_offset + payload_length));
 
-    std::vector<uint8_t> initial_secret = hkdf_extract(connection_id);
+    QuicPacketProtection* qpp = nullptr;
 
-    std::vector<uint8_t> server_client_secret;
-    if ( from_client ) {
-        server_client_secret = hkdf_expand_client_initial_info(INITIAL_SECRET_LEN, initial_secret);
+    if ( version == 0x00000001 ) { // quicv1
+        QuicPacketProtectionV1::Initialize();
+        qpp = QuicPacketProtectionV1::instance.get();
+    }
+    else if ( version == 0x6b3343cf ) { // quicv2
+        QuicPacketProtectionV2::Initialize();
+        qpp = QuicPacketProtectionV2::instance.get();
     }
     else {
-        server_client_secret = hkdf_expand_server_initial_info(INITIAL_SECRET_LEN, initial_secret);
+        throw hilti::rt::RuntimeError(hilti::rt::fmt("unable to handle version %lx", version));
     }
 
-    std::vector<uint8_t> key = hkdf_expand_key_info(AEAD_KEY_LEN, server_client_secret);
-    std::vector<uint8_t> iv = hkdf_expand_iv_info(AEAD_IV_LEN, server_client_secret);
-    std::vector<uint8_t> hp = hkdf_expand_hp_info(AEAD_HP_LEN, server_client_secret);
+    const auto& secret = qpp->GetSecret(from_client, connection_id);
+    std::vector<uint8_t> key = qpp->GetKey(secret);
+    std::vector<uint8_t> iv = qpp->GetIv(secret);
+    std::vector<uint8_t> hp = qpp->GetHp(secret);
 
     DecryptionInformation decryptInfo = remove_header_protection(hp, encrypted_offset, all_data);
 

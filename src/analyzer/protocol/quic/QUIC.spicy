@@ -24,11 +24,10 @@ public function decrypt_crypto_payload(
 # Can we decrypt?
 function can_decrypt(long_header: LongHeaderPacket, context: ConnectionIDInfo, is_client: bool): bool {
 
-  if ( long_header.first_byte.packet_type != LongPacketType::INITIAL )
+  if ( ! long_header.is_initial )
     return False;
 
-  # decrypt_crypto_payload() has known secrets for version 1, nothing else.
-  if ( long_header.version != 0x00000001 )
+  if ( long_header.version != Version1 && long_header.version != Version2 )
     return False;
 
   if ( is_client )
@@ -81,12 +80,24 @@ type ConnectionIDInfo = struct {
 ##############
 # Definitions
 ##############
+const Version1: uint32 = 0x00000001;
+const Version2: uint32 = 0x6b3343cf;
 
-type LongPacketType = enum {
+type LongPacketTypeV1 = enum {
   INITIAL         = 0,
   ZERO_RTT        = 1,
   HANDSHAKE       = 2,
   RETRY           = 3,
+};
+
+# V2 changed packet types to avoid ossification.
+#
+# https://www.rfc-editor.org/rfc/rfc9369.html#name-long-header-packet-types
+type LongPacketTypeV2 = enum {
+  INITIAL         = 1,
+  ZERO_RTT        = 2,
+  HANDSHAKE       = 3,
+  RETRY           = 0,
 };
 
 type HeaderForm = enum {
@@ -155,17 +166,56 @@ type VariableLengthInteger = unit {
 # Long packets
 # Generic units
 ##############
+public type LongHeaderPacketV1 = unit(inout outer: LongHeaderPacket) {
+  switch ( LongPacketTypeV1(outer.first_byte.packet_type) ) {
+    LongPacketTypeV1::INITIAL -> initial_hdr : InitialPacket(outer) {
+      outer.is_initial = True;
+      outer.encrypted_offset = outer.offset() +
+                               self.initial_hdr.length.bytes_to_parse +
+                               self.initial_hdr.token_length.bytes_to_parse +
+                               self.initial_hdr.token_length.result;
+      outer.payload_length = self.initial_hdr.length.result;
+    }
+
+    LongPacketTypeV1::ZERO_RTT -> zerortt_hdr : ZeroRTTPacket(outer);
+    LongPacketTypeV1::HANDSHAKE -> handshake_hdr : HandshakePacket(outer);
+    LongPacketTypeV1::RETRY -> retry_hdr : RetryPacket(outer) {
+        outer.is_retry = True;
+    }
+  };
+};
+
+public type LongHeaderPacketV2 = unit(inout outer: LongHeaderPacket) {
+  switch ( LongPacketTypeV2(outer.first_byte.packet_type) ) {
+    LongPacketTypeV2::INITIAL -> initial_hdr : InitialPacket(outer) {
+      outer.is_initial = True;
+      outer.encrypted_offset = outer.offset() +
+                                self.initial_hdr.length.bytes_to_parse +
+                                self.initial_hdr.token_length.bytes_to_parse +
+                                self.initial_hdr.token_length.result;
+      outer.payload_length = self.initial_hdr.length.result;
+    }
+
+    LongPacketTypeV2::ZERO_RTT -> zerortt_hdr : ZeroRTTPacket(outer);
+    LongPacketTypeV2::HANDSHAKE -> handshake_hdr : HandshakePacket(outer);
+    LongPacketTypeV2::RETRY -> retry_hdr : RetryPacket(outer) {
+        outer.is_retry = True;
+    }
+  };
+};
 
 public type LongHeaderPacket = unit {
   var encrypted_offset: uint64;
   var payload_length: uint64;
   var client_conn_id_length: uint8;
   var server_conn_id_length: uint8;
+  var is_initial: bool;
+  var is_retry: bool;
 
   first_byte: bitfield(8) {
       header_form: 7 &convert=cast<HeaderForm>(cast<uint8>($$));
       fixed_bit: 6;
-      packet_type: 4..5 &convert=cast<LongPacketType>(cast<uint8>($$));
+      packet_type: 4..5;
       type_specific_bits: 0..3 &convert=cast<uint8>($$);
   };
 
@@ -175,18 +225,9 @@ public type LongHeaderPacket = unit {
   src_conn_id_len: uint8 { self.client_conn_id_length = $$; }
   src_conn_id: bytes &size=self.client_conn_id_length;
 
-  switch ( self.first_byte.packet_type ) {
-    LongPacketType::INITIAL -> initial_hdr : InitialPacket(self) {
-        self.encrypted_offset = self.offset() +
-                                self.initial_hdr.length.bytes_to_parse +
-                                self.initial_hdr.token_length.bytes_to_parse +
-                                self.initial_hdr.token_length.result;
-        self.payload_length   = self.initial_hdr.length.result;
-    }
-
-    LongPacketType::ZERO_RTT -> zerortt_hdr : ZeroRTTPacket(self);
-    LongPacketType::HANDSHAKE -> handshake_hdr : HandshakePacket(self);
-    LongPacketType::RETRY -> retry_hdr : RetryPacket(self);
+  switch ( self.version ) {
+    Version1 -> v1: LongHeaderPacketV1(self);
+    Version2 -> v2: LongHeaderPacketV2(self);
   };
 };
 
@@ -402,7 +443,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 
         # If we see a retry packet from the responder, reset the decryption
         # context such that the next DCID from the client is used for decryption.
-        if ( self.long_header.first_byte.packet_type == LongPacketType::RETRY ) {
+        if ( self.long_header.is_retry ) {
           context.client_initial_processed = False;
           context.server_initial_processed = False;
           context.initial_destination_conn_id = b"";
@@ -470,7 +511,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
     # are restablished and decryption is no longer possible
     #
     # TODO: verify if this is actually correct per RFC
-    if ( self.long_header.first_byte.packet_type != LongPacketType::RETRY && ! from_client ) {
+    if ( ! self.long_header.is_retry && ! from_client ) {
       context.server_initial_processed = True;
       context.client_initial_processed = True;
     }

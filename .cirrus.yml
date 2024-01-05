@@ -16,7 +16,6 @@ static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enab
 asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
-openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS

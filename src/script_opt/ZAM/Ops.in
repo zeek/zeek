@@ -1860,7 +1860,7 @@ internal-op Init-Table-Loop
 type VV
 op1-read
 eval	auto& ti = (*tiv_ptr)[z.v2];
-	ti.BeginLoop(frame[z.v1].table_val, z.aux);
+	ti.BeginLoop({NewRef{}, frame[z.v1].table_val}, z.aux);
 
 internal-op Next-Table-Iter
 op1-read

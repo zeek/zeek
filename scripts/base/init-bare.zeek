@@ -1107,6 +1107,25 @@ type geo_autonomous_system: record {
 ## The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
 const mmdb_dir: string = "" &redef;
 
+## Default name of the MaxMind City database file:
+const mmdb_city_db: string = "GeoLite2-City.mmdb" &redef;
+## Default name of the MaxMind Country database file:
+const mmdb_country_db: string = "GeoLite2-Country.mmdb" &redef;
+## Default name of the MaxMind ASN database file:
+const mmdb_asn_db: string = "GeoLite2-ASN.mmdb" &redef;
+
+## Fallback locations for MaxMind databases. Zeek attempts these when
+## :zeek:see:`mmdb_dir` is not set, or it cannot read a DB file from it. For
+## geolocation lookups, Zeek will first attempt to locate the city database in
+## each of the fallback locations, and should this fail, attempt to locate the
+## country one.
+const mmdb_dir_fallbacks: vector of string = vector(
+	"/usr/share/GeoIP",
+	"/var/lib/GeoIP",
+	"/usr/local/share/GeoIP",
+	"/usr/local/var/GeoIP",
+) &redef;
+
 ## Sets the interval for MaxMind DB file staleness checks. When Zeek detects a
 ## change in inode or modification time, the database is re-opened. Setting
 ## a negative interval disables staleness checks.

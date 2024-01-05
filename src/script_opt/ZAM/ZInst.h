@@ -88,6 +88,10 @@ public:
     // Returns nil if this instruction doesn't have an associated constant.
     ValPtr ConstVal() const;
 
+    // Returns true if this instruction represents a form of advancing
+    // a loop iteration, false otherwise.
+    bool IsLoopIterationAdvancement() const;
+
     // Returns a string describing the constant.
     std::string ConstDump() const;
 

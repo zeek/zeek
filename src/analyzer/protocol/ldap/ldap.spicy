@@ -601,8 +601,14 @@ public function string_representation(search_filter: SearchFilter): string {
                              search_filter.FILTER_LE.assertionValueDecoded);
       }
       case FilterType::FILTER_SUBSTR: {
-        repr  = "(%s=*%s*)" % (search_filter.FILTER_SUBSTR.attributeDesc.decode(),
-                               search_filter.FILTER_SUBSTR.assertionValueDecoded);
+        local anys: string = "";
+        if ( |search_filter.FILTER_SUBSTR.anys| > 0 )
+          anys = b"*".join(search_filter.FILTER_SUBSTR.anys).decode() + "*";
+
+        repr  = "(%s=%s*%s%s)" % (search_filter.FILTER_SUBSTR.attributeDesc.decode(),
+                                  search_filter.FILTER_SUBSTR.initial,
+                                  anys,
+                                  search_filter.FILTER_SUBSTR.final);
       }
       case FilterType::FILTER_PRESENT: {
         repr = "(%s=*)" % search_filter.FILTER_PRESENT;
@@ -619,10 +625,6 @@ type DecodedAttributeValue = unit(fType: FilterType) {
   : uint8;
   attributeDesc_len: uint8;
   attributeDesc: bytes &size=self.attributeDesc_len;
-
-  # For some reason, two intermediate uint8 values are present in the FILTER_SUBSTR type.
-  : uint8 if ( fType == FilterType::FILTER_SUBSTR );
-  : uint8 if ( fType == FilterType::FILTER_SUBSTR );
 
   : uint8;
   assertionValue_len: uint8;
@@ -662,6 +664,33 @@ type DecodedAttributeValue = unit(fType: FilterType) {
   }
 };
 
+type SubstringFilter = unit {
+  var initial: string;
+  var final: string;
+  var anys: vector<string>;
+
+  : uint8;  # filter tag
+  attributeDesc_len: uint8;
+  attributeDesc: bytes &size=self.attributeDesc_len;
+
+  # Crunch through the sequence/choice of substrings.
+  #
+  # https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1
+  header: ASN1::ASN1Header;
+  : ASN1::ASN1Message(False)[] &size=self.header.len.len foreach {
+    local data = $$.application_data.decode();
+    if ( $$.application_id == 0 ) {
+      self.initial = data;
+    } else if ( $$.application_id == 1 ) {
+      self.anys.push_back(data);
+    } else if ( $$.application_id == 2 ) {
+      self.final = data;
+    } else {
+      throw "invalid substring choice %s" % $$.application_id;
+    }
+  }
+};
+
 type SearchFilter = unit {
   var filterType: FilterType = FilterType::Undef;
   var filterBytes: bytes = b"";
@@ -693,7 +722,7 @@ type SearchFilter = unit {
 
     FilterType::FILTER_EQ      -> FILTER_EQ:      DecodedAttributeValue(FilterType::FILTER_EQ)
                                                   &parse-from=self.filterBytes;
-    FilterType::FILTER_SUBSTR  -> FILTER_SUBSTR:  DecodedAttributeValue(FilterType::FILTER_SUBSTR)
+    FilterType::FILTER_SUBSTR  -> FILTER_SUBSTR:  SubstringFilter
                                                   &parse-from=self.filterBytes;
     FilterType::FILTER_GE      -> FILTER_GE:      DecodedAttributeValue(FilterType::FILTER_GE)
                                                   &parse-from=self.filterBytes;

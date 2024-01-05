@@ -1,3 +1,16 @@
+6.2.0-dev.322 | 2024-01-05 16:07:04 +0100
+
+  * ldap: Fix substring filter parsing and rendering (Arne Welzel, Corelight)
+
+    The initial (prefix) and final (suffix) strings are specified individually
+    with a variable number of "any" matches that can occur between these.
+    The previous implementation assumed a single string and rendered it
+    as *<string>*.
+
+    Reported and PCAP provided by @martinvanhensbergen, thanks!
+
+    Closes zeek/spicy-ldap#27
+
 6.2.0-dev.320 | 2024-01-05 14:43:59 +0100
 
   * quic: tests: Require have-spicy (Arne Welzel, Corelight)

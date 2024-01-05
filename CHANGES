@@ -1,3 +1,7 @@
+6.2.0-dev.323 | 2024-01-05 16:08:18 +0100
+
+  * Bump cmake submodule (Arne Welzel, Corelight)
+
 6.2.0-dev.322 | 2024-01-05 16:07:04 +0100
 
   * ldap: Fix substring filter parsing and rendering (Arne Welzel, Corelight)

@@ -1443,8 +1443,6 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     StmtPtr rhs_reduce;
 
     if ( lhs_is_any != rhs_is_any ) {
-        auto op2_loc = op2->GetLocationInfo();
-
         ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
 
         if ( lhs_is_any ) {
@@ -1455,15 +1453,11 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         }
         else
             op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
-
-        op2->SetLocationInfo(op2_loc);
     }
 
     if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() && t2->Yield()->Tag() == TYPE_ANY ) {
-        auto op2_loc = op2->GetLocationInfo();
         ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
         op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
-        op2->SetLocationInfo(op2_loc);
     }
 
     auto lhs_ref = op1->AsRefExprPtr();

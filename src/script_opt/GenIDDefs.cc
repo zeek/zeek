@@ -403,7 +403,8 @@ void GenIDDefs::CheckVarUsage(const Expr* e, const ID* id) {
 
     auto oi = id->GetOptInfo();
 
-    if ( ! oi->DidUndefinedWarning() && ! oi->IsDefinedBefore(last_stmt_traversed) && ! id->GetAttr(ATTR_IS_ASSIGNED) ) {
+    if ( ! oi->DidUndefinedWarning() && ! oi->IsDefinedBefore(last_stmt_traversed) &&
+         ! id->GetAttr(ATTR_IS_ASSIGNED) ) {
         if ( ! oi->IsPossiblyDefinedBefore(last_stmt_traversed) ) {
             e->Warn("used without definition");
             oi->SetDidUndefinedWarning();

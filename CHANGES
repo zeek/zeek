@@ -1,3 +1,28 @@
+6.2.0-dev.320 | 2024-01-05 14:43:59 +0100
+
+  * quic: tests: Require have-spicy (Arne Welzel, Corelight)
+
+  * quic: analyzer: Recognize and report unknown versions better (Arne Welzel, Corelight)
+
+    This makes the analyzer.log entry more informative by including the
+    actual version and also allows to handle this scenario in script land
+    if needed.
+
+  * quic: tests: Add QUIC v2 test cases (Arne Welzel, Corelight)
+
+    Produced using examples from the go-quic project, patching the clients
+    to force QUIC v2.
+
+  * quic: analyzer: Support QUIC v2 (Arne Welzel, Corelight)
+
+    QUIC v2 changed the version *and* the packet type enumeration to prevent
+    protocol ossification. Use an intermediary unit to handle the difference.
+
+  * quic: decrypt_crypto: Support QUIC v2 (Arne Welzel, Corelight)
+
+    Attempt to refactor in order to re-use common code between the two
+    versions.
+
 6.2.0-dev.314 | 2024-01-04 16:40:00 +0100
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

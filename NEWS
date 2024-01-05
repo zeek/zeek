@@ -132,6 +132,9 @@ New Functionality
   ``signatures.log``. This log is based on the generation of ``signature_match()``
   events.
 
+- The QUIC analyzer has been extended to support analyzing QUIC Version 2
+  INITIAL packets (RFC 9369).
+
 
 Changed Functionality
 ---------------------

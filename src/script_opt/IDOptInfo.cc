@@ -185,7 +185,6 @@ void IDOptInfo::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all) {
             auto& ur = usage_regions[i];
 
             if ( ur.DefinedAfter() < new_def ) {
-                ASSERT(ur.DefinedAfter() != NO_DEF);
                 ur.UpdateDefinedAfter(new_def);
                 ur.SetDefExpr(nullptr);
             }

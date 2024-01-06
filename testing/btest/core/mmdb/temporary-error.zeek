@@ -13,6 +13,7 @@
 @load base/frameworks/reporter
 
 redef mmdb_dir = "./mmdb";
+redef mmdb_dir_fallbacks = vector(); # Clear out fallbacks to avoid influence on tests
 
 global pkt = 0;
 

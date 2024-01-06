@@ -17,8 +17,8 @@ extern bool is_special_script_func(std::string func_name);
 // or Zeek-internal state).
 extern bool is_idempotent(std::string func_name);
 
-// Whether the given function (currently, just BiFs) has no Zeek-script-level
+// Whether the given function (currently, just BiFs) has Zeek-script-level
 // side effects.
-extern bool has_no_script_side_effects(std::string func_name);
+extern bool has_script_side_effects(std::string func_name);
 
 } // namespace zeek::detail

@@ -560,12 +560,13 @@ bool is_idempotent(std::string func_name) {
     return f_attr != func_attrs.end() && (f_attr->second & ATTR_IDEMPOTENT) != 0;
 }
 
-bool has_no_script_side_effects(std::string func_name) {
+bool has_script_side_effects(std::string func_name) {
     auto f_attr = func_attrs.find(func_name);
     if ( f_attr == func_attrs.end() )
-        return false;
+        // We don't know about it, so be conservative.
+        return true;
 
-    return (f_attr->second & (ATTR_NO_SCRIPT_SIDE_EFFECTS | ATTR_NO_ZEEK_SIDE_EFFECTS | ATTR_IDEMPOTENT)) != 0;
+    return (f_attr->second & (ATTR_NO_SCRIPT_SIDE_EFFECTS | ATTR_NO_ZEEK_SIDE_EFFECTS | ATTR_IDEMPOTENT)) == 0;
 }
 
 } // namespace zeek::detail

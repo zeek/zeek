@@ -7,7 +7,7 @@
 
 namespace zeek::detail {
 
-FixedCatArg::FixedCatArg(const TypePtr& _t) : t(_t) {
+FixedCatArg::FixedCatArg(TypePtr _t) : t(std::move(_t)) {
     switch ( t->Tag() ) {
         case TYPE_BOOL: max_size = 1; break;
 

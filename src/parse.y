@@ -1319,9 +1319,9 @@ type_list:
 	;
 
 type_decl_list:
-		type_decl_list type_decl
+		type_decl_list conditional_list type_decl
 			{
-			$1->push_back($2);
+			$1->push_back($3);
 			}
 	|
 			{

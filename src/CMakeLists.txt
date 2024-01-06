@@ -114,6 +114,7 @@ set(BIF_SRCS
     communityid.bif
     const.bif
     event.bif
+    mmdb.bif
     option.bif
     reporter.bif
     stats.bif

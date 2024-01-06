@@ -56,7 +56,7 @@ public:
 
 protected:
     explicit LogDelayTokenVal() : LogDelayTokenVal(0) {}
-    DECLARE_OPAQUE_VALUE_V2(LogDelayTokenVal)
+    DECLARE_OPAQUE_VALUE_DATA(LogDelayTokenVal)
 
 private:
     DelayTokenType token;

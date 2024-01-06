@@ -105,8 +105,8 @@ public:
      */
     virtual std::string InternalState() const = 0;
 
-    [[deprecated("use SerializeData instead")]] broker::expected<broker::data> Serialize() const;
-    [[deprecated("use UnserializeData instead")]] static std::unique_ptr<BloomFilter> Unserialize(
+    [[deprecated("Remove in v7.1: use SerializeData instead")]] broker::expected<broker::data> Serialize() const;
+    [[deprecated("Remove in v7.1: use UnserializeData instead")]] static std::unique_ptr<BloomFilter> Unserialize(
         const broker::data& data);
     std::optional<BrokerData> SerializeData() const;
     static std::unique_ptr<BloomFilter> UnserializeData(BrokerDataView data);

@@ -94,7 +94,7 @@ private:
 /**
  * Legacy macro to insert into an OpaqueVal-derived class's declaration. Overrides the "old" serialization methods
  * DoSerialize and DoUnserialize.
- * @deprecated Use DECLARE_OPAQUE_VALUE_V2 instead.
+ * @deprecated Use DECLARE_OPAQUE_VALUE_DATA instead.
  */
 #define DECLARE_OPAQUE_VALUE(T)                                                                                        \
     friend class zeek::OpaqueMgr::Register<T>;                                                                         \
@@ -108,7 +108,7 @@ private:
  * Macro to insert into an OpaqueVal-derived class's declaration. Overrides the "new" serialization methods
  * DoSerializeData and DoUnserializeData.
  */
-#define DECLARE_OPAQUE_VALUE_V2(T)                                                                                     \
+#define DECLARE_OPAQUE_VALUE_DATA(T)                                                                                   \
     friend class zeek::OpaqueMgr::Register<T>;                                                                         \
     friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
     std::optional<zeek::BrokerData> DoSerializeData() const override;                                                  \
@@ -138,7 +138,7 @@ public:
      * @return the broker representation, or an error if serialization
      * isn't supported or failed.
      */
-    [[deprecated("use SerializeData instead")]] broker::expected<broker::data> Serialize() const;
+    [[deprecated("Remove in v7.1: use SerializeData instead")]] broker::expected<broker::data> Serialize() const;
 
     /**
      * @copydoc Serialize
@@ -151,7 +151,8 @@ public:
      * @param data Broker representation as returned by *Serialize()*.
      * @return unserialized instances with reference count at +1
      */
-    [[deprecated("use UnserializeData instead")]] static OpaqueValPtr Unserialize(const broker::data& data);
+    [[deprecated("Remove in v7.1: use UnserializeData instead")]] static OpaqueValPtr Unserialize(
+        const broker::data& data);
 
     /**
      * @copydoc Unserialize
@@ -289,7 +290,7 @@ protected:
     bool DoFeed(const void* data, size_t size) override;
     StringValPtr DoGet() override;
 
-    DECLARE_OPAQUE_VALUE_V2(MD5Val)
+    DECLARE_OPAQUE_VALUE_DATA(MD5Val)
 private:
     StatePtr ctx = nullptr;
 };
@@ -317,7 +318,7 @@ protected:
     bool DoFeed(const void* data, size_t size) override;
     StringValPtr DoGet() override;
 
-    DECLARE_OPAQUE_VALUE_V2(SHA1Val)
+    DECLARE_OPAQUE_VALUE_DATA(SHA1Val)
 private:
     StatePtr ctx = nullptr;
 };
@@ -345,7 +346,7 @@ protected:
     bool DoFeed(const void* data, size_t size) override;
     StringValPtr DoGet() override;
 
-    DECLARE_OPAQUE_VALUE_V2(SHA256Val)
+    DECLARE_OPAQUE_VALUE_DATA(SHA256Val)
 private:
     StatePtr ctx = nullptr;
 };
@@ -360,7 +361,7 @@ public:
 protected:
     friend class Val;
 
-    DECLARE_OPAQUE_VALUE_V2(EntropyVal)
+    DECLARE_OPAQUE_VALUE_DATA(EntropyVal)
 private:
     detail::RandTest state;
 };
@@ -390,7 +391,7 @@ protected:
     friend class Val;
     BloomFilterVal();
 
-    DECLARE_OPAQUE_VALUE_V2(BloomFilterVal)
+    DECLARE_OPAQUE_VALUE_DATA(BloomFilterVal)
 private:
     // Disable.
     BloomFilterVal(const BloomFilterVal&);
@@ -419,7 +420,7 @@ public:
 protected:
     CardinalityVal();
 
-    DECLARE_OPAQUE_VALUE_V2(CardinalityVal)
+    DECLARE_OPAQUE_VALUE_DATA(CardinalityVal)
 private:
     TypePtr type;
     detail::CompositeHash* hash;
@@ -436,7 +437,7 @@ public:
 protected:
     ParaglobVal() : OpaqueVal(paraglob_type) {}
 
-    DECLARE_OPAQUE_VALUE_V2(ParaglobVal)
+    DECLARE_OPAQUE_VALUE_DATA(ParaglobVal)
 
 private:
     std::unique_ptr<paraglob::Paraglob> internal_paraglob;

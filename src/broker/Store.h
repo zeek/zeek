@@ -127,7 +127,7 @@ public:
 protected:
     IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef{}, this}; }
 
-    DECLARE_OPAQUE_VALUE_V2(StoreHandleVal)
+    DECLARE_OPAQUE_VALUE_DATA(StoreHandleVal)
 };
 
 // Helper function to construct a broker backend type from script land.

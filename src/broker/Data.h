@@ -125,7 +125,7 @@ public:
 protected:
     DataVal() : OpaqueVal(opaque_of_data_type) {}
 
-    DECLARE_OPAQUE_VALUE_V2(zeek::Broker::detail::DataVal)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::DataVal)
 };
 
 /**
@@ -222,7 +222,7 @@ public:
 protected:
     SetIterator() : zeek::OpaqueVal(opaque_of_set_iterator) {}
 
-    DECLARE_OPAQUE_VALUE_V2(zeek::Broker::detail::SetIterator)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::SetIterator)
 };
 
 class TableIterator : public zeek::OpaqueVal {
@@ -238,7 +238,7 @@ public:
 protected:
     TableIterator() : zeek::OpaqueVal(opaque_of_table_iterator) {}
 
-    DECLARE_OPAQUE_VALUE_V2(zeek::Broker::detail::TableIterator)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::TableIterator)
 };
 
 class VectorIterator : public zeek::OpaqueVal {
@@ -254,7 +254,7 @@ public:
 protected:
     VectorIterator() : zeek::OpaqueVal(opaque_of_vector_iterator) {}
 
-    DECLARE_OPAQUE_VALUE_V2(zeek::Broker::detail::VectorIterator)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::VectorIterator)
 };
 
 class RecordIterator : public zeek::OpaqueVal {
@@ -270,7 +270,7 @@ public:
 protected:
     RecordIterator() : zeek::OpaqueVal(opaque_of_record_iterator) {}
 
-    DECLARE_OPAQUE_VALUE_V2(zeek::Broker::detail::RecordIterator)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::RecordIterator)
 };
 
 } // namespace zeek::Broker::detail

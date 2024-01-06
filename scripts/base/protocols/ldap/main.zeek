@@ -203,7 +203,7 @@ event LDAP::message(c: connection,
     }
 
     if ( diagnostic_message != "" ) {
-      if ( ! sm?$diagnostic_message && sm$diagnostic_message != diagnostic_message ) {
+      if ( sm?$diagnostic_message && sm$diagnostic_message != diagnostic_message ) {
         Reporter::conn_weird("LDAP_search_diagnostic_message_change", c,
                              fmt("%s: %s -> %s", message_id, sm$diagnostic_message, diagnostic_message), "LDAP");
       }

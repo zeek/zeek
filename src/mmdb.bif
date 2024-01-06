@@ -285,27 +285,43 @@ static bool mmdb_try_open_loc ()
 	const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
+	const auto& mmdb_city_db_val = zeek::detail::global_scope()->Find("mmdb_city_db")->GetVal();
+	std::string mmdb_city_db = mmdb_city_db_val->AsString()->CheckString();
+
+	const auto& mmdb_country_db_val = zeek::detail::global_scope()->Find("mmdb_country_db")->GetVal();
+	std::string mmdb_country_db = mmdb_country_db_val->AsString()->CheckString();
+
 	if ( ! mmdb_dir.empty() )
 		{
-		auto d = mmdb_dir + "/GeoLite2-City.mmdb";
+		auto d = mmdb_dir + "/" + mmdb_city_db;
 
 		if ( mmdb_open_loc(d.data()) )
 			return true;
 
-		d = mmdb_dir + "/GeoLite2-Country.mmdb";
+		d = mmdb_dir + "/" + mmdb_country_db;
 
 		if ( mmdb_open_loc(d.data()) )
-			return true;;
+			return true;
 		}
 
-	return mmdb_open_loc("/usr/share/GeoIP/GeoLite2-City.mmdb")
-	    || mmdb_open_loc("/var/lib/GeoIP/GeoLite2-City.mmdb")
-	    || mmdb_open_loc("/usr/local/share/GeoIP/GeoLite2-City.mmdb")
-	    || mmdb_open_loc("/usr/local/var/GeoIP/GeoLite2-City.mmdb")
-	    || mmdb_open_loc("/usr/share/GeoIP/GeoLite2-Country.mmdb")
-	    || mmdb_open_loc("/var/lib/GeoIP/GeoLite2-Country.mmdb")
-	    || mmdb_open_loc("/usr/local/share/GeoIP/GeoLite2-Country.mmdb")
-	    || mmdb_open_loc("/usr/local/var/GeoIP/GeoLite2-Country.mmdb");
+	const auto& mmdb_dir_fallbacks_val = zeek::detail::global_scope()->Find("mmdb_dir_fallbacks")->GetVal();
+	auto* vv = mmdb_dir_fallbacks_val->AsVectorVal();
+
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
+		{
+                auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_city_db;
+                if ( mmdb_open_loc(d.data()) )
+			return true;
+                }
+
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
+		{
+                auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_country_db;
+                if ( mmdb_open_loc(d.data()) )
+			return true;
+		}
+
+        return false;
 	}
 
 static bool mmdb_try_open_asn ()
@@ -313,18 +329,28 @@ static bool mmdb_try_open_asn ()
 	const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
 	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
+	const auto& mmdb_asn_db_val = zeek::detail::global_scope()->Find("mmdb_asn_db")->GetVal();
+	std::string mmdb_asn_db = mmdb_asn_db_val->AsString()->CheckString();
+
 	if ( ! mmdb_dir.empty() )
 		{
-		auto d = mmdb_dir + "/GeoLite2-ASN.mmdb";
+		auto d = mmdb_dir + "/" + mmdb_asn_db;
 
 		if ( mmdb_open_asn(d.data()) )
 			return true;
 		}
 
-	return mmdb_open_asn("/usr/share/GeoIP/GeoLite2-ASN.mmdb")
-	    || mmdb_open_asn("/var/lib/GeoIP/GeoLite2-ASN.mmdb")
-	    || mmdb_open_asn("/usr/local/share/GeoIP/GeoLite2-ASN.mmdb")
-	    || mmdb_open_asn("/usr/local/var/GeoIP/GeoLite2-ASN.mmdb");
+	const auto& mmdb_dir_fallbacks_val = zeek::detail::global_scope()->Find("mmdb_dir_fallbacks")->GetVal();
+	auto* vv = mmdb_dir_fallbacks_val->AsVectorVal();
+
+	for ( unsigned int i = 0; i < vv->Size(); ++i )
+		{
+                auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_asn_db;
+                if ( mmdb_open_asn(d.data()) )
+			return true;
+		}
+
+	return false;
 	}
 
 #endif

@@ -111,8 +111,8 @@ private:
 #define DECLARE_OPAQUE_VALUE_V2(T)                                                                                     \
     friend class zeek::OpaqueMgr::Register<T>;                                                                         \
     friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
-    std::optional<zeek::BrokerData> DoSerializeData() const override;                                                      \
-    bool DoUnserializeData(zeek::BrokerDataView data) override;                                                            \
+    std::optional<zeek::BrokerData> DoSerializeData() const override;                                                  \
+    bool DoUnserializeData(zeek::BrokerDataView data) override;                                                        \
     const char* OpaqueName() const override { return #T; }                                                             \
     static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
 
@@ -143,7 +143,7 @@ public:
     /**
      * @copydoc Serialize
      */
-     std::optional<BrokerData> SerializeData() const;
+    std::optional<BrokerData> SerializeData() const;
 
     /**
      * Reinstantiates a value from its serialized Broker representation.

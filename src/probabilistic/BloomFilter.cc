@@ -18,13 +18,19 @@ BloomFilter::BloomFilter(const detail::Hasher* arg_hasher) { hasher = arg_hasher
 
 BloomFilter::~BloomFilter() { delete hasher; }
 
-std::optional<BrokerData> BloomFilter::Serialize() const {
+broker::expected<broker::data> BloomFilter::Serialize() const {
+    if ( auto res = SerializeData() )
+        return zeek::detail::BrokerDataAccess::Unbox(*res);
+    return {broker::make_error(broker::ec::serialization_failed)};
+}
+
+std::optional<BrokerData> BloomFilter::SerializeData() const {
     auto h = hasher->Serialize();
 
     if ( ! h )
         return std::nullopt; // Cannot serialize
 
-    auto d = DoSerialize();
+    auto d = DoSerializeData();
 
     if ( ! d )
         return std::nullopt; // Cannot serialize
@@ -37,7 +43,11 @@ std::optional<BrokerData> BloomFilter::Serialize() const {
     return std::move(builder).Build();
 }
 
-std::unique_ptr<BloomFilter> BloomFilter::Unserialize(BrokerDataView data) {
+std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data) {
+    return UnserializeData(BrokerDataView{&data});
+}
+
+std::unique_ptr<BloomFilter> BloomFilter::UnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return nullptr;
 
@@ -56,7 +66,7 @@ std::unique_ptr<BloomFilter> BloomFilter::Unserialize(BrokerDataView data) {
         default: reporter->Error("found invalid bloom filter type"); return nullptr;
     }
 
-    if ( ! bf->DoUnserialize(v[2]) )
+    if ( ! bf->DoUnserializeData(v[2]) )
         return nullptr;
 
     bf->hasher = detail::Hasher::Unserialize(v[1]).release();
@@ -65,6 +75,23 @@ std::unique_ptr<BloomFilter> BloomFilter::Unserialize(BrokerDataView data) {
         return nullptr;
 
     return bf;
+}
+
+broker::expected<broker::data> BloomFilter::DoSerialize() const {
+    return {broker::make_error(broker::ec::serialization_failed)};
+}
+
+bool BloomFilter::DoUnserialize(const broker::data&) { return false; }
+
+std::optional<BrokerData> BloomFilter::DoSerializeData() const {
+    if ( auto res = DoSerialize() ) {
+        return BrokerData{std::move(*res)};
+    }
+    return std::nullopt;
+}
+
+bool BloomFilter::DoUnserializeData(BrokerDataView data) {
+    return DoUnserialize(zeek::detail::BrokerDataAccess::Unbox(data));
 }
 
 size_t BasicBloomFilter::M(double fp, size_t capacity) {
@@ -166,9 +193,9 @@ size_t BasicBloomFilter::Count(const zeek::detail::HashKey* key) const {
     return 1;
 }
 
-std::optional<BrokerData> BasicBloomFilter::DoSerialize() const { return bits->Serialize(); }
+std::optional<BrokerData> BasicBloomFilter::DoSerializeData() const { return bits->Serialize(); }
 
-bool BasicBloomFilter::DoUnserialize(BrokerDataView data) {
+bool BasicBloomFilter::DoUnserializeData(BrokerDataView data) {
     auto b = detail::BitVector::Unserialize(data);
     if ( ! b )
         return false;
@@ -280,9 +307,9 @@ size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const {
     return min;
 }
 
-std::optional<BrokerData> CountingBloomFilter::DoSerialize() const { return cells->Serialize(); }
+std::optional<BrokerData> CountingBloomFilter::DoSerializeData() const { return cells->Serialize(); }
 
-bool CountingBloomFilter::DoUnserialize(BrokerDataView data) {
+bool CountingBloomFilter::DoUnserializeData(BrokerDataView data) {
     auto c = detail::CounterVector::Unserialize(data);
     if ( ! c )
         return false;

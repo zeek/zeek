@@ -70,10 +70,16 @@ OpaqueValPtr OpaqueMgr::Instantiate(const std::string& id) const {
     return x != _types.end() ? (*x->second)() : nullptr;
 }
 
-std::optional<BrokerData> OpaqueVal::Serialize() const {
+broker::expected<broker::data> OpaqueVal::Serialize() const {
+    if ( auto res = SerializeData() )
+        return zeek::detail::BrokerDataAccess::Unbox(*res);
+    return {broker::make_error(broker::ec::serialization_failed)};
+}
+
+std::optional<BrokerData> OpaqueVal::SerializeData() const {
     auto type = OpaqueMgr::mgr()->TypeID(this);
 
-    auto d = DoSerialize();
+    auto d = DoSerializeData();
     if ( ! d )
         return std::nullopt;
 
@@ -83,14 +89,16 @@ std::optional<BrokerData> OpaqueVal::Serialize() const {
     return std::move(builder).Build();
 }
 
-OpaqueValPtr OpaqueVal::Unserialize(BrokerDataView data) {
+OpaqueValPtr OpaqueVal::Unserialize(const broker::data& data) { return UnserializeData(BrokerDataView(&data)); }
+
+OpaqueValPtr OpaqueVal::UnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return nullptr;
 
-    return Unserialize(data.ToList());
+    return UnserializeData(data.ToList());
 }
 
-OpaqueValPtr OpaqueVal::Unserialize(BrokerListView v) {
+OpaqueValPtr OpaqueVal::UnserializeData(BrokerListView v) {
     if ( v.Size() != 2 || ! v[0].IsString() )
         return nullptr;
 
@@ -100,10 +108,27 @@ OpaqueValPtr OpaqueVal::Unserialize(BrokerListView v) {
     if ( ! val )
         return nullptr;
 
-    if ( ! val->DoUnserialize(v[1]) )
+    if ( ! val->DoUnserializeData(v[1]) )
         return nullptr;
 
     return val;
+}
+
+broker::expected<broker::data> OpaqueVal::DoSerialize() const {
+    return {broker::make_error(broker::ec::serialization_failed)};
+}
+
+std::optional<BrokerData> OpaqueVal::DoSerializeData() const {
+    if ( auto res = DoSerialize() ) {
+        return BrokerData{std::move(*res)};
+    }
+    return std::nullopt;
+}
+
+bool OpaqueVal::DoUnserialize(const broker::data&) { return false; }
+
+bool OpaqueVal::DoUnserializeData(BrokerDataView data) {
+    return DoUnserialize(zeek::detail::BrokerDataAccess::Unbox(data));
 }
 
 std::optional<BrokerData> OpaqueVal::SerializeType(const TypePtr& t) {
@@ -158,11 +183,11 @@ TypePtr OpaqueVal::UnserializeType(BrokerDataView data) {
 }
 
 ValPtr OpaqueVal::DoClone(CloneState* state) {
-    auto d = OpaqueVal::Serialize();
+    auto d = OpaqueVal::SerializeData();
     if ( ! d )
         return nullptr;
 
-    auto rval = OpaqueVal::Unserialize(d->AsView());
+    auto rval = OpaqueVal::UnserializeData(d->AsView());
     return state->NewClone(this, std::move(rval));
 }
 
@@ -440,7 +465,7 @@ StringValPtr MD5Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(MD5Val)
 
-std::optional<BrokerData> MD5Val::DoSerialize() const {
+std::optional<BrokerData> MD5Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
     if ( ! IsValid() ) {
@@ -454,7 +479,7 @@ std::optional<BrokerData> MD5Val::DoSerialize() const {
     return std::move(builder).Build();
 }
 
-bool MD5Val::DoUnserialize(BrokerDataView data) {
+bool MD5Val::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
     auto d = data.ToList();
@@ -522,7 +547,7 @@ StringValPtr SHA1Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(SHA1Val)
 
-std::optional<BrokerData> SHA1Val::DoSerialize() const {
+std::optional<BrokerData> SHA1Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
     if ( ! IsValid() ) {
@@ -536,7 +561,7 @@ std::optional<BrokerData> SHA1Val::DoSerialize() const {
     return std::move(builder).Build();
 }
 
-bool SHA1Val::DoUnserialize(BrokerDataView data) {
+bool SHA1Val::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
 
@@ -608,7 +633,7 @@ StringValPtr SHA256Val::DoGet() {
 
 IMPLEMENT_OPAQUE_VALUE(SHA256Val)
 
-std::optional<BrokerData> SHA256Val::DoSerialize() const {
+std::optional<BrokerData> SHA256Val::DoSerializeData() const {
     BrokerListBuilder builder;
 
     if ( ! IsValid() ) {
@@ -621,7 +646,7 @@ std::optional<BrokerData> SHA256Val::DoSerialize() const {
     return std::move(builder).Build();
 }
 
-bool SHA256Val::DoUnserialize(BrokerDataView data) {
+bool SHA256Val::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
 
@@ -662,7 +687,7 @@ bool EntropyVal::Get(double* r_ent, double* r_chisq, double* r_mean, double* r_m
 
 IMPLEMENT_OPAQUE_VALUE(EntropyVal)
 
-std::optional<BrokerData> EntropyVal::DoSerialize() const {
+std::optional<BrokerData> EntropyVal::DoSerializeData() const {
     constexpr size_t numMembers = 14; // RandTest has 14 non-array members.
 
     BrokerListBuilder builder;
@@ -692,7 +717,7 @@ std::optional<BrokerData> EntropyVal::DoSerialize() const {
     return std::move(builder).Build();
 }
 
-bool EntropyVal::DoUnserialize(BrokerDataView data) {
+bool EntropyVal::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
 
@@ -868,7 +893,7 @@ BloomFilterVal::~BloomFilterVal() {
 
 IMPLEMENT_OPAQUE_VALUE(BloomFilterVal)
 
-std::optional<BrokerData> BloomFilterVal::DoSerialize() const {
+std::optional<BrokerData> BloomFilterVal::DoSerializeData() const {
     BrokerListBuilder builder;
 
     if ( type ) {
@@ -881,7 +906,7 @@ std::optional<BrokerData> BloomFilterVal::DoSerialize() const {
     else
         builder.AddNil();
 
-    auto bf = bloom_filter->Serialize();
+    auto bf = bloom_filter->SerializeData();
     if ( ! bf )
         return std::nullopt;
 
@@ -889,7 +914,7 @@ std::optional<BrokerData> BloomFilterVal::DoSerialize() const {
     return std::move(builder).Build();
 }
 
-bool BloomFilterVal::DoUnserialize(BrokerDataView data) {
+bool BloomFilterVal::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
 
@@ -905,7 +930,7 @@ bool BloomFilterVal::DoUnserialize(BrokerDataView data) {
             return false;
     }
 
-    auto bf = probabilistic::BloomFilter::Unserialize(v[1]);
+    auto bf = probabilistic::BloomFilter::UnserializeData(v[1]);
     if ( ! bf )
         return false;
 
@@ -952,7 +977,7 @@ void CardinalityVal::Add(const Val* val) {
 
 IMPLEMENT_OPAQUE_VALUE(CardinalityVal)
 
-std::optional<BrokerData> CardinalityVal::DoSerialize() const {
+std::optional<BrokerData> CardinalityVal::DoSerializeData() const {
     BrokerListBuilder builder;
     builder.Reserve(2);
 
@@ -974,7 +999,7 @@ std::optional<BrokerData> CardinalityVal::DoSerialize() const {
     return std::move(builder).Build();
 }
 
-bool CardinalityVal::DoUnserialize(BrokerDataView data) {
+bool CardinalityVal::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
 
@@ -1019,7 +1044,7 @@ bool ParaglobVal::operator==(const ParaglobVal& other) const {
 
 IMPLEMENT_OPAQUE_VALUE(ParaglobVal)
 
-std::optional<BrokerData> ParaglobVal::DoSerialize() const {
+std::optional<BrokerData> ParaglobVal::DoSerializeData() const {
     std::unique_ptr<std::vector<uint8_t>> iv = this->internal_paraglob->serialize();
     BrokerListBuilder builder;
     builder.Reserve(iv->size());
@@ -1028,7 +1053,7 @@ std::optional<BrokerData> ParaglobVal::DoSerialize() const {
     return std::move(builder).Build();
 }
 
-bool ParaglobVal::DoUnserialize(BrokerDataView data) {
+bool ParaglobVal::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
 
@@ -1067,9 +1092,9 @@ ValPtr ParaglobVal::DoClone(CloneState* state) {
     }
 }
 
-std::optional<BrokerData> TelemetryVal::DoSerialize() const { return std::nullopt; }
+std::optional<BrokerData> TelemetryVal::DoSerializeData() const { return std::nullopt; }
 
-bool TelemetryVal::DoUnserialize(BrokerDataView) { return false; }
+bool TelemetryVal::DoUnserializeData(BrokerDataView) { return false; }
 
 TelemetryVal::TelemetryVal(telemetry::IntCounter) : OpaqueVal(int_counter_metric_type) {}
 

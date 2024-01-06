@@ -132,7 +132,7 @@ public:
      */
     ValPtr DoClone(CloneState* state) override;
 
-    DECLARE_OPAQUE_VALUE(TopkVal)
+    DECLARE_OPAQUE_VALUE_V2(TopkVal)
 
 protected:
     /**

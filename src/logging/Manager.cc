@@ -56,7 +56,7 @@ public:
 
 protected:
     explicit LogDelayTokenVal() : LogDelayTokenVal(0) {}
-    DECLARE_OPAQUE_VALUE(LogDelayTokenVal)
+    DECLARE_OPAQUE_VALUE_V2(LogDelayTokenVal)
 
 private:
     DelayTokenType token;
@@ -67,9 +67,9 @@ ValPtr LogDelayTokenVal::DoClone(CloneState* state) {
 }
 
 // Delay tokens are only valid on the same worker.
-std::optional<BrokerData> LogDelayTokenVal::DoSerialize() const { return std::nullopt; }
+std::optional<BrokerData> LogDelayTokenVal::DoSerializeData() const { return std::nullopt; }
 
-bool LogDelayTokenVal::DoUnserialize(BrokerDataView) { return false; }
+bool LogDelayTokenVal::DoUnserializeData(BrokerDataView) { return false; }
 
 IMPLEMENT_OPAQUE_VALUE(LogDelayTokenVal)
 

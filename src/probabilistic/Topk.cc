@@ -360,7 +360,7 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count) {
 
 IMPLEMENT_OPAQUE_VALUE(TopkVal)
 
-std::optional<BrokerData> TopkVal::DoSerialize() const {
+std::optional<BrokerData> TopkVal::DoSerializeData() const {
     BrokerListBuilder builder;
     builder.Reserve(8);
 
@@ -399,7 +399,7 @@ std::optional<BrokerData> TopkVal::DoSerialize() const {
     return std::move(builder).Build();
 }
 
-bool TopkVal::DoUnserialize(BrokerDataView data) {
+bool TopkVal::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
         return false;
 

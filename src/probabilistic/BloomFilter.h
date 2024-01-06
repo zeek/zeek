@@ -105,8 +105,11 @@ public:
      */
     virtual std::string InternalState() const = 0;
 
-    std::optional<BrokerData> Serialize() const;
-    static std::unique_ptr<BloomFilter> Unserialize(BrokerDataView data);
+    [[deprecated("use SerializeData instead")]] broker::expected<broker::data> Serialize() const;
+    [[deprecated("use UnserializeData instead")]] static std::unique_ptr<BloomFilter> Unserialize(
+        const broker::data& data);
+    std::optional<BrokerData> SerializeData() const;
+    static std::unique_ptr<BloomFilter> UnserializeData(BrokerDataView data);
 
 protected:
     /**
@@ -121,8 +124,10 @@ protected:
      */
     explicit BloomFilter(const detail::Hasher* hasher);
 
-    virtual std::optional<BrokerData> DoSerialize() const = 0;
-    virtual bool DoUnserialize(BrokerDataView data) = 0;
+    virtual broker::expected<broker::data> DoSerialize() const;
+    virtual bool DoUnserialize(const broker::data& data);
+    virtual std::optional<BrokerData> DoSerializeData() const;
+    virtual bool DoUnserializeData(BrokerDataView data);
     virtual BloomFilterType Type() const = 0;
 
     const detail::Hasher* hasher;
@@ -201,8 +206,8 @@ protected:
     void Add(const zeek::detail::HashKey* key) override;
     bool Decrement(const zeek::detail::HashKey* key) override;
     size_t Count(const zeek::detail::HashKey* key) const override;
-    std::optional<BrokerData> DoSerialize() const override;
-    bool DoUnserialize(BrokerDataView data) override;
+    std::optional<BrokerData> DoSerializeData() const override;
+    bool DoUnserializeData(BrokerDataView data) override;
     BloomFilterType Type() const override { return BloomFilterType::Basic; }
 
 private:
@@ -264,8 +269,8 @@ protected:
     void Add(const zeek::detail::HashKey* key) override;
     bool Decrement(const zeek::detail::HashKey* key) override;
     size_t Count(const zeek::detail::HashKey* key) const override;
-    std::optional<BrokerData> DoSerialize() const override;
-    bool DoUnserialize(BrokerDataView data) override;
+    std::optional<BrokerData> DoSerializeData() const override;
+    bool DoUnserializeData(BrokerDataView data) override;
     BloomFilterType Type() const override { return BloomFilterType::Counting; }
 
 private:

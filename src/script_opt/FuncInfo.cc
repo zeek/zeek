@@ -550,17 +550,17 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
 // Some of these have side effects that could be checked for in a specific
 // context, but the gains from doing so likely aren't worth the complexity.
 
-bool is_special_script_func(std::string func_name) {
+bool is_special_script_func(const std::string& func_name) {
     auto f_attr = func_attrs.find(func_name);
     return f_attr != func_attrs.end() && (f_attr->second & ATTR_SPECIAL_SCRIPT_FUNC) != 0;
 }
 
-bool is_idempotent(std::string func_name) {
+bool is_idempotent(const std::string& func_name) {
     auto f_attr = func_attrs.find(func_name);
     return f_attr != func_attrs.end() && (f_attr->second & ATTR_IDEMPOTENT) != 0;
 }
 
-bool has_script_side_effects(std::string func_name) {
+bool has_script_side_effects(const std::string& func_name) {
     auto f_attr = func_attrs.find(func_name);
     if ( f_attr == func_attrs.end() )
         // We don't know about it, so be conservative.

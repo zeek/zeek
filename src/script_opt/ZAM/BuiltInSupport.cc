@@ -27,13 +27,13 @@ FixedCatArg::FixedCatArg(TypePtr _t) : t(std::move(_t)) {
         case TYPE_ENUM: {
             size_t n = 0;
             for ( const auto& e : t->AsEnumType()->Names() )
-                n += e.first.size();
+                n = std::max(n, e.first.size());
             max_size = n;
             break;
         }
 
         case TYPE_PORT:
-            max_size = 5 + 1 + 7; // <number> + / + "unknown
+            max_size = 5 + 1 + 7; // <number> + / + "unknown"
             break;
 
         case TYPE_ADDR:

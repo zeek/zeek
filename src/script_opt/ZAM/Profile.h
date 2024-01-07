@@ -18,9 +18,30 @@ public:
     const Location* Loc() const { return loc.get(); }
     std::shared_ptr<Location> LocPtr() const { return loc; }
 
+    void AddParent(std::shared_ptr<ZAMLocInfo> _parent) { parent = std::move(_parent); }
+    std::shared_ptr<ZAMLocInfo> Parent() { return parent; }
+
+    std::string Describe() const {
+	std::string desc;
+	std::string fname = func_name + ";";
+
+	if ( parent ) {
+		desc = parent->Describe() + ";";
+		if ( parent->FuncName() == func_name )
+			fname = "";
+	}
+
+	desc += fname + loc->filename + ":" + std::to_string(loc->first_line);
+	if ( loc->last_line > loc->first_line )
+		desc += "-" + std::to_string(loc->last_line);
+
+	return desc;
+    }
+
 private:
     std::string func_name;
     std::shared_ptr<Location> loc;
+    std::shared_ptr<ZAMLocInfo> parent;
 };
 
 class ProfileElem {

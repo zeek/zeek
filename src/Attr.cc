@@ -45,7 +45,10 @@ const char* attr_name(AttrTag t) {
 	};
     // clang-format on
 
-    return attr_names[int(t)];
+    if ( int(t) >= 0 && int(t) < NUM_ATTRS )
+        return attr_names[int(t)];
+    else
+        return "<unknown>";
 }
 
 Attr::Attr(AttrTag t, ExprPtr e) : expr(std::move(e)) {

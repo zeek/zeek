@@ -10,13 +10,12 @@ btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 16GB
 
-config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
-no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache
-static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache
-asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
-ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
-tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
-openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
+config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache --enable-werror
+ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache --enable-werror
+tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache --enable-werror
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS

@@ -47,9 +47,13 @@ void CPP_InitsInfo::GenerateInitializers(CPPCompile* c) {
         if ( ++n > 1 )
             c->Emit("");
 
-        c->Emit("{");
-        BuildCohort(c, cohort);
-        c->Emit("},");
+        if ( cohort.size() == 1 )
+            BuildCohort(c, cohort);
+        else {
+            c->Emit("{");
+            BuildCohort(c, cohort);
+            c->Emit("},");
+        }
     }
 
     c->Emit("}");

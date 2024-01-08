@@ -770,10 +770,9 @@ eval	auto op1 = frame[z.v1].ToVal(z.t);
 # the main instruction type, as always.
 
 macro EvalVal2InTableCore(op1, op2)
-	ListVal lv(TYPE_ANY);
-	lv.Append(op1);
-	lv.Append(op2);
-	ListValPtr lvp = {NewRef{}, &lv};
+	auto lvp = zeek::make_intrusive<ListVal>(TYPE_ANY);
+	lvp->Append(op1);
+	lvp->Append(op2);
 
 macro EvalVal2InTableAssignCore(slot)
 	frame[z.v1].int_val = frame[z.slot].table_val->Find(std::move(lvp)) != nullptr;

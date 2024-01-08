@@ -41,8 +41,16 @@ set(BISON_FLAGS "--debug")
 
 if (MSVC)
     set(SIGN_COMPARE_FLAG "/wd4018")
+    if (BUILD_WITH_WERROR)
+        # TODO: This is disabled for now because there a bunch of known
+        # compiler warnings on Windows that we don't have good fixes for.
+        #set(WERROR_FLAG "/WX")
+    endif ()
 else ()
     set(SIGN_COMPARE_FLAG "-Wno-sign-compare")
+    if (BUILD_WITH_WERROR)
+        set(WERROR_FLAG "-Werror")
+    endif ()
 endif ()
 
 # Rule parser/scanner
@@ -517,6 +525,7 @@ collect_headers(zeek_HEADERS ${zeek_SRCS})
 
 add_library(zeek_objs OBJECT ${zeek_SRCS})
 target_compile_features(zeek_objs PRIVATE ${ZEEK_CXX_STD})
+target_compile_options(zeek_objs PRIVATE ${WERROR_FLAG})
 set_target_properties(zeek_objs PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
@@ -530,6 +539,7 @@ endif ()
 
 if (TARGET zeek_exe)
     target_sources(zeek_exe PRIVATE main.cc ${zeek_HEADERS})
+    target_compile_options(zeek_exe PRIVATE ${WERROR_FLAG})
 
     # npcap/winpcap need to be loaded in delayed mode so that we can set the load
     # path correctly at runtime. See
@@ -553,6 +563,7 @@ endif ()
 
 if (TARGET zeek_lib)
     target_sources(zeek_lib PRIVATE ${zeek_HEADERS})
+    target_compile_options(zeek_lib PRIVATE ${WERROR_FLAG})
 
     target_link_libraries(zeek_lib PUBLIC ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif ()

@@ -1,3 +1,36 @@
+6.2.0-dev.337 | 2024-01-08 14:10:44 -0700
+
+  * Merge branch 'topic/timw/werror' (Tim Wojtulewicz, Corelight)
+
+    * topic/timw/werror:
+      CI: Remove unused openssl30_config
+      CPP-gen: Don't emit extra braces if only one element
+      Use <poll.h> instead of <sys/poll.h>
+      ZAM: Create ListValPtr directly instead of a stack object
+      Bump zeekjs to pick up dprintf warning fix
+      Avoid unused-result warning in Supervisor
+      Update src/3rdparty submodule to fix sprintf warning in modp
+      Fix warning with attribute string lookup
+      Set -Werror / /WX via target_compile_options to force warnings as errors
+
+  * CI: Remove unused openssl30_config (Tim Wojtulewicz, Corelight)
+
+  * CPP-gen: Don't emit extra braces if only one element (Tim Wojtulewicz, Corelight)
+
+  * Use <poll.h> instead of <sys/poll.h> (Tim Wojtulewicz, Corelight)
+
+  * ZAM: Create ListValPtr directly instead of a stack object (Tim Wojtulewicz, Corelight)
+
+  * Bump zeekjs to pick up dprintf warning fix (Tim Wojtulewicz, Corelight)
+
+  * Avoid unused-result warning in Supervisor (Tim Wojtulewicz, Corelight)
+
+  * Update src/3rdparty submodule to fix sprintf warning in modp (Tim Wojtulewicz, Corelight)
+
+  * Fix warning with attribute string lookup (Tim Wojtulewicz, Corelight)
+
+  * Set -Werror / /WX via target_compile_options to force warnings as errors (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.327 | 2024-01-08 10:04:49 -0700
 
   * Update broker to pick up Windows 2-minute exception fix (Tim Wojtulewicz, Corelight)

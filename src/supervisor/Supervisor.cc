@@ -42,7 +42,7 @@ extern "C" {
 #ifdef DEBUG
 #define DBG_STEM(...) stem->LogDebug(__VA_ARGS__);
 #else
-#define DBG_STEM
+#define DBG_STEM(...)
 #endif
 
 using namespace zeek;

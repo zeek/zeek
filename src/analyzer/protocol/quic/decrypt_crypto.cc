@@ -24,7 +24,6 @@ refactors as C++ development is not our main profession.
 #include <array>
 #include <cstdint>
 #include <cstdlib>
-#include <cstring>
 #include <memory>
 #include <string>
 #include <vector>
@@ -208,14 +207,12 @@ hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt
 // Pre-initialized SSL contexts for re-use. Not thread-safe. These are only used in expand-only mode
 // and have a fixed HKDF info set.
 struct HkdfCtx {
-    bool initialized = false;
     EVP_PKEY_CTX* client_in_ctx = nullptr;
     EVP_PKEY_CTX* server_in_ctx = nullptr;
     EVP_PKEY_CTX* key_info_ctx = nullptr;
     EVP_PKEY_CTX* iv_info_ctx = nullptr;
     EVP_PKEY_CTX* hp_info_ctx = nullptr;
 };
-
 
 struct HkdfCtxParam {
     EVP_PKEY_CTX** ctx;
@@ -251,9 +248,9 @@ std::vector<uint8_t> hkdf_expand(EVP_PKEY_CTX* ctx, size_t out_len, const std::v
 
 class QuicPacketProtection {
 public:
-    std::vector<uint8_t> GetSecret(bool is_orig, const hilti::rt::Bytes& connection_id) {
+    std::vector<uint8_t> GetSecret(bool is_orig, uint32_t version, const hilti::rt::Bytes& connection_id) {
         const auto& ctxs = GetHkdfCtxs();
-        const auto initial_secret = hkdf_extract(GetInitialSalt(), connection_id);
+        const auto initial_secret = hkdf_extract(GetInitialSalt(version), connection_id);
         EVP_PKEY_CTX* ctx = is_orig ? ctxs.client_in_ctx : ctxs.server_in_ctx;
         return hkdf_expand(ctx, INITIAL_SECRET_LEN, initial_secret);
     }
@@ -273,7 +270,8 @@ public:
         return hkdf_expand(ctxs.hp_info_ctx, AEAD_HP_LEN, secret);
     }
 
-    virtual const std::vector<uint8_t>& GetInitialSalt() = 0;
+    virtual bool Supports(uint32_t version) const = 0;
+    virtual const std::vector<uint8_t>& GetInitialSalt(uint32_t version) const = 0;
     virtual HkdfCtx& GetHkdfCtxs() = 0;
 
     virtual ~QuicPacketProtection() = default;
@@ -293,34 +291,73 @@ public:
 // QUIC v1
 //
 // https://datatracker.ietf.org/doc/html/rfc9001
-std::vector<uint8_t> INITIAL_SALT_V1 = {0x38, 0x76, 0x2c, 0xf7, 0xf5, 0x59, 0x34, 0xb3, 0x4d, 0x17,
-                                        0x9a, 0xe6, 0xa4, 0xc8, 0x0c, 0xad, 0xcc, 0xbb, 0x7f, 0x0a};
-
-std::vector<uint8_t> CLIENT_INITIAL_INFO = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x63,
-                                            0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x69, 0x6e, 0x00};
-
-std::vector<uint8_t> SERVER_INITIAL_INFO = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x73,
-                                            0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x69, 0x6e, 0x00};
-
-std::vector<uint8_t> KEY_INFO = {0x00, 0x10, 0x0e, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
-                                 0x71, 0x75, 0x69, 0x63, 0x20, 0x6b, 0x65, 0x79, 0x00};
-
-std::vector<uint8_t> IV_INFO = {0x00, 0x0c, 0x0d, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
-                                0x71, 0x75, 0x69, 0x63, 0x20, 0x69, 0x76, 0x00};
-
-std::vector<uint8_t> HP_INFO = {0x00, 0x10, 0x0d, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
-                                0x71, 0x75, 0x69, 0x63, 0x20, 0x68, 0x70, 0x00};
-
-
 class QuicPacketProtectionV1 : public QuicPacketProtection {
 public:
-    virtual std::vector<uint8_t>& GetInitialSalt() override { return INITIAL_SALT_V1; }
+    virtual bool Supports(uint32_t version) const override {
+        // Quic V1
+        if ( version == 0x00000001 )
+            return true;
+
+        // Draft 22 through 34
+        if ( version >= 0xff000016 && version <= 0xff000022 )
+            return true;
+
+        // mvfst from facebook
+        if ( version == 0xfaceb001 || (version >= 0xfaceb002 && version <= 0xfaceb013) )
+            return true;
+
+        return false;
+    };
+
+    virtual const std::vector<uint8_t>& GetInitialSalt(uint32_t version) const override {
+        static std::vector<uint8_t> INITIAL_SALT_V1 = {0x38, 0x76, 0x2c, 0xf7, 0xf5, 0x59, 0x34, 0xb3, 0x4d, 0x17,
+                                                       0x9a, 0xe6, 0xa4, 0xc8, 0x0c, 0xad, 0xcc, 0xbb, 0x7f, 0x0a};
+
+        // https://insights.sei.cmu.edu/documents/4499/2023_017_001_890985.pdf
+        static std::vector<uint8_t> INITIAL_SALT_D22 = {0x7f, 0xbc, 0xdb, 0x0e, 0x7c, 0x66, 0xbb, 0xe9, 0x19, 0x3a,
+                                                        0x96, 0xcd, 0x21, 0x51, 0x9e, 0xbd, 0x7a, 0x02, 0x64, 0x4a};
+
+        static std::vector<uint8_t> INITIAL_SALT_D23_D28 = {0xc3, 0xee, 0xf7, 0x12, 0xc7, 0x2e, 0xbb, 0x5a, 0x11, 0xa7,
+                                                            0xd2, 0x43, 0x2b, 0xb4, 0x63, 0x65, 0xbe, 0xf9, 0xf5, 0x02};
+
+        static std::vector<uint8_t> INITIAL_SALT_D29_D32 = {0xaf, 0xbf, 0xec, 0x28, 0x99, 0x93, 0xd2, 0x4c, 0x9e, 0x97,
+                                                            0x86, 0xf1, 0x9c, 0x61, 0x11, 0xe0, 0x43, 0x90, 0xa8, 0x99};
+        if ( version == 0xff000016 )
+            return INITIAL_SALT_D22;
+
+        if ( version >= 0xff000017 && version <= 0xff00001c )
+            return INITIAL_SALT_D23_D28;
+
+        if ( version >= 0xff00001d && version <= 0xff000020 )
+            return INITIAL_SALT_D29_D32;
+
+        if ( version == 0xfaceb001 )
+            return INITIAL_SALT_D22;
+
+        if ( version >= 0xfaceb002 && version <= 0xfaceb013 )
+            return INITIAL_SALT_D23_D28;
+
+        return INITIAL_SALT_V1;
+    }
+
     virtual HkdfCtx& GetHkdfCtxs() override { return hkdf_ctxs; }
 
     // Pre-initialize SSL context for reuse with HKDF info set to version specific values.
     static void Initialize() {
-        if ( hkdf_ctxs.initialized )
-            return;
+        std::vector<uint8_t> CLIENT_INITIAL_INFO = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x63,
+                                                    0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x69, 0x6e, 0x00};
+
+        std::vector<uint8_t> SERVER_INITIAL_INFO = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x73,
+                                                    0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x69, 0x6e, 0x00};
+
+        std::vector<uint8_t> KEY_INFO = {0x00, 0x10, 0x0e, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
+                                         0x71, 0x75, 0x69, 0x63, 0x20, 0x6b, 0x65, 0x79, 0x00};
+
+        std::vector<uint8_t> IV_INFO = {0x00, 0x0c, 0x0d, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
+                                        0x71, 0x75, 0x69, 0x63, 0x20, 0x69, 0x76, 0x00};
+
+        std::vector<uint8_t> HP_INFO = {0x00, 0x10, 0x0d, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20,
+                                        0x71, 0x75, 0x69, 0x63, 0x20, 0x68, 0x70, 0x00};
 
         std::vector<HkdfCtxParam> hkdf_ctx_params = {
             {&hkdf_ctxs.client_in_ctx, CLIENT_INITIAL_INFO},
@@ -333,7 +370,6 @@ public:
         QuicPacketProtection::Initialize(hkdf_ctx_params);
 
         instance = std::make_unique<QuicPacketProtectionV1>();
-        hkdf_ctxs.initialized = true;
     }
 
     static HkdfCtx hkdf_ctxs;
@@ -347,32 +383,35 @@ std::unique_ptr<QuicPacketProtectionV1> QuicPacketProtectionV1::instance = nullp
 // QUIC v2
 //
 // https://datatracker.ietf.org/doc/rfc9369/
-std::vector<uint8_t> INITIAL_SALT_V2 = {0x0d, 0xed, 0xe3, 0xde, 0xf7, 0x00, 0xa6, 0xdb, 0x81, 0x93,
-                                        0x81, 0xbe, 0x6e, 0x26, 0x9d, 0xcb, 0xf9, 0xbd, 0x2e, 0xd9};
-
-std::vector<uint8_t> CLIENT_INITIAL_INFO_V2 = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x63,
-                                               0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x69, 0x6e, 0x00};
-
-std::vector<uint8_t> SERVER_INITIAL_INFO_V2 = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x73,
-                                               0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x69, 0x6e, 0x00};
-
-std::vector<uint8_t> KEY_INFO_V2 = {0x00, 0x10, 0x10, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
-                                    0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x6b, 0x65, 0x79, 0x00};
-
-std::vector<uint8_t> IV_INFO_V2 = {0x00, 0x0c, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
-                                   0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x69, 0x76, 0x00};
-
-std::vector<uint8_t> HP_INFO_V2 = {0x00, 0x10, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
-                                   0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x68, 0x70, 0x00};
-
 class QuicPacketProtectionV2 : public QuicPacketProtection {
 public:
-    virtual std::vector<uint8_t>& GetInitialSalt() override { return INITIAL_SALT_V2; }
+    virtual bool Supports(uint32_t version) const override { return version == 0x6b3343cf; }
+
+    virtual const std::vector<uint8_t>& GetInitialSalt(uint32_t version) const override {
+        static std::vector<uint8_t> INITIAL_SALT_V2 = {0x0d, 0xed, 0xe3, 0xde, 0xf7, 0x00, 0xa6, 0xdb, 0x81, 0x93,
+                                                       0x81, 0xbe, 0x6e, 0x26, 0x9d, 0xcb, 0xf9, 0xbd, 0x2e, 0xd9};
+
+        return INITIAL_SALT_V2;
+    }
+
     virtual HkdfCtx& GetHkdfCtxs() override { return hkdf_ctxs; }
 
     static void Initialize() {
-        if ( hkdf_ctxs.initialized )
-            return;
+        std::vector<uint8_t> CLIENT_INITIAL_INFO_V2 = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x63,
+                                                       0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x69, 0x6e, 0x00};
+
+        std::vector<uint8_t> SERVER_INITIAL_INFO_V2 = {0x00, 0x20, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x73,
+                                                       0x65, 0x72, 0x76, 0x65, 0x72, 0x20, 0x69, 0x6e, 0x00};
+
+        std::vector<uint8_t> KEY_INFO_V2 = {0x00, 0x10, 0x10, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
+                                            0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x6b, 0x65, 0x79, 0x00};
+
+        std::vector<uint8_t> IV_INFO_V2 = {0x00, 0x0c, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
+                                           0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x69, 0x76, 0x00};
+
+        std::vector<uint8_t> HP_INFO_V2 = {0x00, 0x10, 0x0f, 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20, 0x71,
+                                           0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x68, 0x70, 0x00};
+
         std::vector<HkdfCtxParam> hkdf_ctx_params = {
             {&hkdf_ctxs.client_in_ctx, CLIENT_INITIAL_INFO_V2},
             {&hkdf_ctxs.server_in_ctx, SERVER_INITIAL_INFO_V2},
@@ -383,7 +422,6 @@ public:
 
         QuicPacketProtection::Initialize(hkdf_ctx_params);
         instance = std::make_unique<QuicPacketProtectionV2>();
-        hkdf_ctxs.initialized = true;
     }
 
     static HkdfCtx hkdf_ctxs;
@@ -404,6 +442,13 @@ hilti::rt::Bytes QUIC_decrypt_crypto_payload(const hilti::rt::integer::safe<uint
                                              const hilti::rt::integer::safe<uint64_t>& encrypted_offset,
                                              const hilti::rt::integer::safe<uint64_t>& payload_length,
                                              const hilti::rt::Bool& from_client) {
+    static bool initialized = false;
+    if ( ! initialized ) {
+        QuicPacketProtectionV1::Initialize();
+        QuicPacketProtectionV2::Initialize();
+        initialized = true;
+    }
+
     if ( payload_length < 20 )
         throw hilti::rt::RuntimeError(hilti::rt::fmt("payload too small %ld < 20", payload_length));
 
@@ -411,21 +456,20 @@ hilti::rt::Bytes QUIC_decrypt_crypto_payload(const hilti::rt::integer::safe<uint
         throw hilti::rt::RuntimeError(
             hilti::rt::fmt("packet too small %ld %ld", all_data.size(), encrypted_offset + payload_length));
 
+    uint32_t v = version;
     QuicPacketProtection* qpp = nullptr;
 
-    if ( version == 0x00000001 ) { // quicv1
-        QuicPacketProtectionV1::Initialize();
+    if ( QuicPacketProtectionV1::instance->Supports(v) ) {
         qpp = QuicPacketProtectionV1::instance.get();
     }
-    else if ( version == 0x6b3343cf ) { // quicv2
-        QuicPacketProtectionV2::Initialize();
+    else if ( QuicPacketProtectionV2::instance->Supports(v) ) {
         qpp = QuicPacketProtectionV2::instance.get();
     }
     else {
-        throw hilti::rt::RuntimeError(hilti::rt::fmt("unable to handle version %lx", version));
+        throw hilti::rt::RuntimeError(hilti::rt::fmt("unable to decrypt QUIC version 0x%lx", version));
     }
 
-    const auto& secret = qpp->GetSecret(from_client, connection_id);
+    const auto& secret = qpp->GetSecret(from_client, v, connection_id);
     std::vector<uint8_t> key = qpp->GetKey(secret);
     std::vector<uint8_t> iv = qpp->GetIv(secret);
     std::vector<uint8_t> hp = qpp->GetHp(secret);

@@ -27,9 +27,6 @@ function can_decrypt(long_header: LongHeaderPacket, context: ConnectionIDInfo, i
   if ( ! long_header.is_initial )
     return False;
 
-  if ( long_header.version != Version1 && long_header.version != Version2 )
-    return False;
-
   if ( is_client )
     return ! context.client_initial_processed;
 
@@ -80,6 +77,25 @@ type ConnectionIDInfo = struct {
 ##############
 # Definitions
 ##############
+const VersionDraft22: uint32 = 0xff000016;
+const VersionDraft23: uint32 = 0xff000017;
+const VersionDraft24: uint32 = 0xff000018;
+const VersionDraft25: uint32 = 0xff000019;
+const VersionDraft26: uint32 = 0xff00001a;
+const VersionDraft27: uint32 = 0xff00001b;
+const VersionDraft28: uint32 = 0xff00001c;
+const VersionDraft29: uint32 = 0xff00001d;
+const VersionDraft30: uint32 = 0xff00001e;
+const VersionDraft31: uint32 = 0xff00001f;
+const VersionDraft32: uint32 = 0xff000020;
+const VersionDraft33: uint32 = 0xff000021;
+const VersionDraft34: uint32 = 0xff000022;
+const VersionFace001: uint32 = 0xfaceb001;
+const VersionFace002: uint32 = 0xfaceb002;
+const VersionFace00e: uint32 = 0xfaceb00e;
+const VersionFace011: uint32 = 0xfaceb011;
+const VersionFace012: uint32 = 0xfaceb012;
+const VersionFace013: uint32 = 0xfaceb013;
 const Version1: uint32 = 0x00000001;
 const Version2: uint32 = 0x6b3343cf;
 
@@ -236,6 +252,25 @@ public type LongHeaderPacket = unit {
   src_conn_id: bytes &size=self.client_conn_id_length;
 
   switch ( self.version ) {
+    VersionDraft22,
+    VersionDraft23,
+    VersionDraft24,
+    VersionDraft25,
+    VersionDraft26,
+    VersionDraft27,
+    VersionDraft28,
+    VersionDraft29,
+    VersionDraft30,
+    VersionDraft31,
+    VersionDraft32,
+    VersionDraft33,
+    VersionDraft34,
+    VersionFace001,
+    VersionFace002,
+    VersionFace00e,
+    VersionFace011,
+    VersionFace012,
+    VersionFace013,
     Version1 -> v1: LongHeaderPacketV1(self);
     Version2 -> v2: LongHeaderPacketV2(self);
     * -> unknown: UnhandledVersion(self) {

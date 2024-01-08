@@ -1,6 +1,6 @@
-6.2.0-dev.323 | 2024-01-05 16:08:18 +0100
+6.2.0-dev.327 | 2024-01-08 10:04:49 -0700
 
-  * Bump cmake submodule (Arne Welzel, Corelight)
+  * Update broker to pick up Windows 2-minute exception fix (Tim Wojtulewicz, Corelight)
 
 6.2.0-dev.322 | 2024-01-05 16:07:04 +0100
 

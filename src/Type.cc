@@ -890,6 +890,16 @@ public:
         : init_expr(std::move(_init_expr)), init_type(std::move(_init_type)) {
         if ( init_type->Tag() == TYPE_RECORD && ! same_type(init_expr->GetType(), init_type) )
             coerce_type = cast_intrusive<RecordType>(init_type);
+
+        // If this is an unspecified vector, make it concrete directly.
+        // This is more efficient for regular execution and much more
+        // efficient for ZAM execution.
+        if ( init_expr->Tag() == EXPR_VECTOR_CONSTRUCTOR &&
+             init_expr->GetType()->AsVectorType()->IsUnspecifiedVector() ) {
+            auto empty_list = cast_intrusive<ListExpr>(init_expr->GetOp1());
+            auto concrete_vt = make_intrusive<VectorType>(init_type->Yield());
+            init_expr = make_intrusive<VectorConstructorExpr>(empty_list, concrete_vt);
+        }
     }
 
     ZVal Generate() const override {

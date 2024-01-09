@@ -120,7 +120,7 @@ public:
 			{
 			memcpy(key_here, arg_key, key_size);
 			if ( ! copy_key )
-				delete[](char*) arg_key; // own the arg_key, now don't need it.
+				delete[] (char*)arg_key; // own the arg_key, now don't need it.
 			}
 		else
 			{
@@ -136,7 +136,10 @@ public:
 			}
 		}
 
-	bool Empty() const { return distance == TOO_FAR_TO_REACH; }
+	bool Empty() const
+		{
+		return distance == TOO_FAR_TO_REACH;
+		}
 	void SetEmpty()
 		{
 		distance = TOO_FAR_TO_REACH;
@@ -157,7 +160,10 @@ public:
 		SetEmpty();
 		}
 
-	const char* GetKey() const { return key_size <= 8 ? key_here : key; }
+	const char* GetKey() const
+		{
+		return key_size <= 8 ? key_here : key;
+		}
 	std::unique_ptr<detail::HashKey> GetHashKey() const
 		{
 		return std::make_unique<detail::HashKey>(GetKey(), key_size, hash);
@@ -176,8 +182,14 @@ public:
 		return value;
 		}
 
-	bool operator==(const DictEntry& r) const { return Equal(r.GetKey(), r.key_size, r.hash); }
-	bool operator!=(const DictEntry& r) const { return ! Equal(r.GetKey(), r.key_size, r.hash); }
+	bool operator==(const DictEntry& r) const
+		{
+		return Equal(r.GetKey(), r.key_size, r.hash);
+		}
+	bool operator!=(const DictEntry& r) const
+		{
+		return ! Equal(r.GetKey(), r.key_size, r.hash);
+		}
 	};
 
 using DictEntryVec = std::vector<detail::HashKey>;
@@ -356,7 +368,10 @@ public:
 		return curr == that.curr;
 		}
 
-	bool operator!=(const DictIterator& that) const { return ! (*this == that); }
+	bool operator!=(const DictIterator& that) const
+		{
+		return ! (*this == that);
+		}
 
 private:
 	friend class Dictionary<T>;
@@ -427,14 +442,25 @@ public:
 		*this = other;
 		}
 
-	~RobustDictIterator() { Complete(); }
+	~RobustDictIterator()
+		{
+		Complete();
+		}
 
-	reference operator*() { return curr; }
-	pointer operator->() { return &curr; }
+	reference operator*()
+		{
+		return curr;
+		}
+	pointer operator->()
+		{
+		return &curr;
+		}
 
 	RobustDictIterator& operator++()
 		{
-		curr = dict->GetNextRobustIteration(this);
+		if ( dict )
+			curr = dict->GetNextRobustIteration(this);
+
 		return *this;
 		}
 
@@ -515,8 +541,14 @@ public:
 		return *this;
 		}
 
-	bool operator==(const RobustDictIterator& that) const { return curr == that.curr; }
-	bool operator!=(const RobustDictIterator& that) const { return ! (*this == that); }
+	bool operator==(const RobustDictIterator& that) const
+		{
+		return curr == that.curr;
+		}
+	bool operator!=(const RobustDictIterator& that) const
+		{
+		return ! (*this == that);
+		}
 
 private:
 	friend class Dictionary<T>;
@@ -538,6 +570,7 @@ private:
 			inserted = nullptr;
 			visited = nullptr;
 			dict = nullptr;
+			curr = nullptr; // make this same as robust_end()
 			}
 		}
 
@@ -583,7 +616,10 @@ public:
 			order = std::make_unique<std::vector<detail::HashKey>>();
 		}
 
-	~Dictionary() { Clear(); }
+	~Dictionary()
+		{
+		Clear();
+		}
 
 	// Member functions for looking up a key, inserting/changing its
 	// contents, and deleting it.  These come in two flavors: one
@@ -659,7 +695,7 @@ public:
 			v = table[position].value;
 			table[position].value = val;
 			if ( ! copy_key )
-				delete[](char*) key;
+				delete[] (char*)key;
 
 			if ( iterators && ! iterators->empty() )
 				// need to set new v for iterators too.
@@ -795,16 +831,28 @@ public:
 		}
 
 	// Number of entries.
-	int Length() const { return num_entries; }
+	int Length() const
+		{
+		return num_entries;
+		}
 
 	// Largest it's ever been.
-	int MaxLength() const { return max_entries; }
+	int MaxLength() const
+		{
+		return max_entries;
+		}
 
 	// Total number of entries ever.
-	uint64_t NumCumulativeInserts() const { return cum_entries; }
+	uint64_t NumCumulativeInserts() const
+		{
+		return cum_entries;
+		}
 
 	// True if the dictionary is ordered, false otherwise.
-	int IsOrdered() const { return order != nullptr; }
+	int IsOrdered() const
+		{
+		return order != nullptr;
+		}
 
 	// If the dictionary is ordered then returns the n'th entry's value;
 	// the second method also returns the key.  The first entry inserted
@@ -838,7 +886,10 @@ public:
 		return NthEntry(n, (const void*&)key, key_len);
 		}
 
-	void SetDeleteFunc(dict_delete_func f) { delete_func = f; }
+	void SetDeleteFunc(dict_delete_func f)
+		{
+		delete_func = f;
+		}
 
 	// Remove all entries.
 	void Clear()
@@ -862,9 +913,15 @@ public:
 
 		if ( iterators )
 			{
+			// Complete() erases from this Dictionary's iterators member, use a copy.
+			auto copied_iterators = *iterators;
+			for ( auto* i : copied_iterators )
+				i->Complete();
+
 			delete iterators;
 			iterators = nullptr;
 			}
+
 		log2_buckets = 0;
 		num_iterators = 0;
 		remaps = 0;
@@ -874,8 +931,14 @@ public:
 		}
 
 	/// The capacity of the table, Buckets + Overflow Size.
-	int Capacity() const { return table ? bucket_capacity : 0; }
-	int ExpectedCapacity() const { return bucket_capacity; }
+	int Capacity() const
+		{
+		return table ? bucket_capacity : 0;
+		}
+	int ExpectedCapacity() const
+		{
+		return bucket_capacity;
+		}
 
 	// Debugging
 #define DUMPIF(f)                                                                                  \
@@ -1103,8 +1166,14 @@ public:
 		return {this, table + Capacity(), table + Capacity()};
 		}
 
-	RobustDictIterator<T> begin_robust() { return MakeRobustIterator(); }
-	RobustDictIterator<T> end_robust() { return RobustDictIterator<T>(); }
+	RobustDictIterator<T> begin_robust()
+		{
+		return MakeRobustIterator();
+		}
+	RobustDictIterator<T> end_robust()
+		{
+		return RobustDictIterator<T>();
+		}
 
 private:
 	friend zeek::DictIterator<T>;
@@ -1118,15 +1187,18 @@ private:
 		}
 
 	/// Buckets of the table, not including overflow size.
-	int Buckets() const { return table ? bucket_count : 0; }
+	int Buckets() const
+		{
+		return table ? bucket_count : 0;
+		}
 
 	// bucket math
 	uint32_t ThresholdEntries() const
 		{
 		// Increase the size of the dictionary when it is 75% full. However, when the dictionary
-		// is small ( bucket_capacity <= 2^3+3=11 elements ), only resize it when it's 100% full.
-		// The dictionary will always resize when the current insertion causes it to be full. This
-		// ensures that the current insertion should always be successful.
+		// is small ( bucket_capacity <= 2^3+3=11 elements ), only resize it when it's 100%
+		// full. The dictionary will always resize when the current insertion causes it to be
+		// full. This ensures that the current insertion should always be successful.
 		int capacity = Capacity();
 		if ( log2_buckets <= detail::DICT_THRESHOLD_BITS )
 			return capacity;
@@ -1215,7 +1287,10 @@ private:
 	// Given a position of a non-empty item in the table, find the end of its cluster.
 	// The end should be equal to tail+1 if tail exists. Otherwise it's the tail of
 	// the just-smaller cluster + 1.
-	int EndOfClusterByPosition(int position) const { return TailOfClusterByPosition(position) + 1; }
+	int EndOfClusterByPosition(int position) const
+		{
+		return TailOfClusterByPosition(position) + 1;
+		}
 
 	// Given a position of a non-empty item in the table, find the offset of it within
 	// its cluster.
@@ -1454,8 +1529,8 @@ private:
 			if ( position == Capacity() - 1 || table[position + 1].Empty() ||
 			     table[position + 1].distance == 0 )
 				{
-				// no next cluster to fill, or next position is empty or next position is already in
-				// perfect bucket.
+				// no next cluster to fill, or next position is empty or next position is
+				// already in perfect bucket.
 				table[position].SetEmpty();
 				if ( last_affected_position )
 					*last_affected_position = position;
@@ -1501,16 +1576,19 @@ private:
 			}
 		}
 
-	bool Remapping() const { return remap_end >= 0; } // remap in reverse order.
+	bool Remapping() const
+		{
+		return remap_end >= 0;
+		} // remap in reverse order.
 
 	/// One round of remap.
 	void Remap()
 		{
 		/// since remap should be very fast. take more at a time.
-		/// delay Remap when cookie is there. hard to handle cookie iteration while size changes.
-		/// remap from bottom up.
-		/// remap creates two parts of the dict: [0,remap_end] (remap_end, ...]. the former is mixed
-		/// with old/new entries; the latter contains all new entries.
+		/// delay Remap when cookie is there. hard to handle cookie iteration while size
+		/// changes. remap from bottom up. remap creates two parts of the dict: [0,remap_end]
+		/// (remap_end, ...]. the former is mixed with old/new entries; the latter contains all
+		/// new entries.
 		///
 		if ( num_iterators > 0 )
 			return;
@@ -1520,7 +1598,8 @@ private:
 			{
 			if ( ! table[remap_end].Empty() && Remap(remap_end) )
 				left--;
-			else //< successful Remap may increase remap_end in the case of SizeUp due to insert. if
+			else //< successful Remap may increase remap_end in the case of SizeUp due to
+			     // insert. if
 			     // so,
 			     // remap_end need to be worked on again.
 				remap_end--;
@@ -1539,10 +1618,10 @@ private:
 		/// avoid it when safe iteration is in progress.
 		ASSERT(! iterators || iterators->empty());
 		int current = BucketByPosition(position); // current bucket
-		int expected = BucketByHash(table[position].hash, log2_buckets); // expected bucket in new
-		                                                                 // table.
-		// equal because 1: it's a new item, 2: it's an old item, but new bucket is the same as old.
-		// 50% of old items act this way due to fibhash.
+		int expected = BucketByHash(table[position].hash, log2_buckets); // expected bucket in
+		                                                                 // new table.
+		// equal because 1: it's a new item, 2: it's an old item, but new bucket is the same as
+		// old. 50% of old items act this way due to fibhash.
 		if ( current == expected )
 			return false;
 		detail::DictEntry<T> entry = RemoveAndRelocate(
@@ -1556,9 +1635,9 @@ private:
 		if ( new_position )
 			*new_position = insert_position;
 		entry.distance = insert_position - expected;
-		InsertAndRelocate(
-			entry,
-			insert_position); // no iteration cookies to adjust, no need for last_affected_position.
+		InsertAndRelocate(entry,
+		                  insert_position); // no iteration cookies to adjust, no need for
+		                                    // last_affected_position.
 		ASSERT_VALID(this);
 		return true;
 		}
@@ -1573,9 +1652,9 @@ private:
 		for ( int i = prev_capacity; i < capacity; i++ )
 			table[i].SetEmpty();
 
-		// REmap from last to first in reverse order. SizeUp can be triggered by 2 conditions, one
-		// of which is that the last space in the table is occupied and there's nowhere to put new
-		// items. In this case, the table doubles in capacity and the item is put at the
+		// REmap from last to first in reverse order. SizeUp can be triggered by 2 conditions,
+		// one of which is that the last space in the table is occupied and there's nowhere to
+		// put new items. In this case, the table doubles in capacity and the item is put at the
 		// prev_capacity position with the old hash. We need to cover this item (?).
 		remap_end = prev_capacity; // prev_capacity instead of prev_capacity-1.
 
@@ -1704,8 +1783,14 @@ private:
 		return e;
 		}
 
-	void IncrIters() { ++num_iterators; }
-	void DecrIters() { --num_iterators; }
+	void IncrIters()
+		{
+		++num_iterators;
+		}
+	void DecrIters()
+		{
+		--num_iterators;
+		}
 
 	// aligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
 

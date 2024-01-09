@@ -1889,44 +1889,56 @@ ValPtr TableVal::Default(const ValPtr& index) {
         return nullptr;
     }
 
+    ValPtr result;
+
     if ( def_val->GetType()->Tag() != TYPE_FUNC || same_type(def_val->GetType(), GetType()->Yield()) ) {
         if ( def_attr->GetExpr()->IsConst() )
             return def_val;
 
         try {
-            return def_val->Clone();
+            result = def_val->Clone();
         } catch ( InterpreterException& e ) { /* Already reported. */
+
+            if ( ! result ) {
+                Error("&default value for table is not clone-able");
+                return nullptr;
+            }
+        }
+    }
+
+    else {
+        const Func* f = def_val->AsFunc();
+        Args vl;
+
+        if ( index->GetType()->Tag() == TYPE_LIST ) {
+            auto lv = index->AsListVal();
+            vl.reserve(lv->Length());
+
+            for ( const auto& v : lv->Vals() )
+                vl.emplace_back(v);
+        }
+        else
+            vl.emplace_back(index);
+
+        try {
+            result = f->Invoke(&vl);
         }
 
-        Error("&default value for table is not clone-able");
-        return nullptr;
+        catch ( InterpreterException& e ) { /* Already reported. */
+        }
+
+        if ( ! result ) {
+            Error("no value returned from &default function");
+            return nullptr;
+        }
     }
 
-    const Func* f = def_val->AsFunc();
-    Args vl;
-
-    if ( index->GetType()->Tag() == TYPE_LIST ) {
-        auto lv = index->AsListVal();
-        vl.reserve(lv->Length());
-
-        for ( const auto& v : lv->Vals() )
-            vl.emplace_back(v);
-    }
-    else
-        vl.emplace_back(index);
-
-    ValPtr result;
-
-    try {
-        result = f->Invoke(&vl);
-    }
-
-    catch ( InterpreterException& e ) { /* Already reported. */
-    }
-
-    if ( ! result ) {
-        Error("no value returned from &default function");
-        return nullptr;
+    auto rt = result->GetType();
+    if ( rt->Tag() == TYPE_VECTOR && rt->Yield()->Tag() == TYPE_ANY ) {
+        auto rv = result->AsVectorVal();
+        auto table_vector_yield = GetType()->Yield()->Yield();
+        if ( rv->Size() == 0 && table_vector_yield && table_vector_yield->Tag() != TYPE_ANY )
+            rv->Concretize(table_vector_yield);
     }
 
     return result;

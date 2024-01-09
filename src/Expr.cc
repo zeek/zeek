@@ -2601,14 +2601,9 @@ VectorValPtr index_slice(VectorVal* vect, int _first, int _last) {
 
     zeek_int_t first = get_slice_index(_first, len);
     zeek_int_t last = get_slice_index(_last, len);
-    zeek_int_t sub_length = last - first;
 
-    if ( sub_length >= 0 ) {
-        result->Resize(sub_length);
-
-        for ( zeek_int_t idx = first; idx < last; idx++ )
-            result->Assign(idx - first, vect->ValAt(idx));
-    }
+    for ( zeek_int_t idx = first; idx < last; idx++ )
+        result->Assign(idx - first, vect->ValAt(idx));
 
     return result;
 }

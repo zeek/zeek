@@ -120,7 +120,7 @@ public:
 			{
 			memcpy(key_here, arg_key, key_size);
 			if ( ! copy_key )
-				delete[](char*) arg_key; // own the arg_key, now don't need it.
+				delete[] (char*)arg_key; // own the arg_key, now don't need it.
 			}
 		else
 			{
@@ -136,7 +136,10 @@ public:
 			}
 		}
 
-	bool Empty() const { return distance == TOO_FAR_TO_REACH; }
+	bool Empty() const
+		{
+		return distance == TOO_FAR_TO_REACH;
+		}
 	void SetEmpty()
 		{
 		distance = TOO_FAR_TO_REACH;
@@ -157,7 +160,10 @@ public:
 		SetEmpty();
 		}
 
-	const char* GetKey() const { return key_size <= 8 ? key_here : key; }
+	const char* GetKey() const
+		{
+		return key_size <= 8 ? key_here : key;
+		}
 	std::unique_ptr<detail::HashKey> GetHashKey() const
 		{
 		return std::make_unique<detail::HashKey>(GetKey(), key_size, hash);
@@ -169,8 +175,14 @@ public:
 		       0 == memcmp(GetKey(), arg_key, key_size);
 		}
 
-	bool operator==(const DictEntry& r) const { return Equal(r.GetKey(), r.key_size, r.hash); }
-	bool operator!=(const DictEntry& r) const { return ! Equal(r.GetKey(), r.key_size, r.hash); }
+	bool operator==(const DictEntry& r) const
+		{
+		return Equal(r.GetKey(), r.key_size, r.hash);
+		}
+	bool operator!=(const DictEntry& r) const
+		{
+		return ! Equal(r.GetKey(), r.key_size, r.hash);
+		}
 	};
 
 using DictEntryVec = std::vector<detail::HashKey>;
@@ -349,7 +361,10 @@ public:
 		return curr == that.curr;
 		}
 
-	bool operator!=(const DictIterator& that) const { return ! (*this == that); }
+	bool operator!=(const DictIterator& that) const
+		{
+		return ! (*this == that);
+		}
 
 private:
 	friend class Dictionary<T>;
@@ -420,14 +435,25 @@ public:
 		*this = other;
 		}
 
-	~RobustDictIterator() { Complete(); }
+	~RobustDictIterator()
+		{
+		Complete();
+		}
 
-	reference operator*() { return curr; }
-	pointer operator->() { return &curr; }
+	reference operator*()
+		{
+		return curr;
+		}
+	pointer operator->()
+		{
+		return &curr;
+		}
 
 	RobustDictIterator& operator++()
 		{
-		curr = dict->GetNextRobustIteration(this);
+		if ( dict )
+			curr = dict->GetNextRobustIteration(this);
+
 		return *this;
 		}
 
@@ -508,8 +534,14 @@ public:
 		return *this;
 		}
 
-	bool operator==(const RobustDictIterator& that) const { return curr == that.curr; }
-	bool operator!=(const RobustDictIterator& that) const { return ! (*this == that); }
+	bool operator==(const RobustDictIterator& that) const
+		{
+		return curr == that.curr;
+		}
+	bool operator!=(const RobustDictIterator& that) const
+		{
+		return ! (*this == that);
+		}
 
 private:
 	friend class Dictionary<T>;
@@ -531,6 +563,7 @@ private:
 			inserted = nullptr;
 			visited = nullptr;
 			dict = nullptr;
+			curr = nullptr; // make this same as robust_end()
 			}
 		}
 
@@ -576,7 +609,10 @@ public:
 			order = std::make_unique<std::vector<detail::HashKey>>();
 		}
 
-	~Dictionary() { Clear(); }
+	~Dictionary()
+		{
+		Clear();
+		}
 
 	// Member functions for looking up a key, inserting/changing its
 	// contents, and deleting it.  These come in two flavors: one
@@ -652,7 +688,7 @@ public:
 			v = table[position].value;
 			table[position].value = val;
 			if ( ! copy_key )
-				delete[](char*) key;
+				delete[] (char*)key;
 
 			if ( iterators && ! iterators->empty() )
 				// need to set new v for iterators too.
@@ -788,16 +824,28 @@ public:
 		}
 
 	// Number of entries.
-	int Length() const { return num_entries; }
+	int Length() const
+		{
+		return num_entries;
+		}
 
 	// Largest it's ever been.
-	int MaxLength() const { return max_entries; }
+	int MaxLength() const
+		{
+		return max_entries;
+		}
 
 	// Total number of entries ever.
-	uint64_t NumCumulativeInserts() const { return cum_entries; }
+	uint64_t NumCumulativeInserts() const
+		{
+		return cum_entries;
+		}
 
 	// True if the dictionary is ordered, false otherwise.
-	int IsOrdered() const { return order != nullptr; }
+	int IsOrdered() const
+		{
+		return order != nullptr;
+		}
 
 	// If the dictionary is ordered then returns the n'th entry's value;
 	// the second method also returns the key.  The first entry inserted
@@ -831,7 +879,10 @@ public:
 		return NthEntry(n, (const void*&)key, key_len);
 		}
 
-	void SetDeleteFunc(dict_delete_func f) { delete_func = f; }
+	void SetDeleteFunc(dict_delete_func f)
+		{
+		delete_func = f;
+		}
 
 	// Remove all entries.
 	void Clear()
@@ -855,6 +906,11 @@ public:
 
 		if ( iterators )
 			{
+			// Complete() erases from this Dictionary's iterators member, use a copy.
+			auto copied_iterators = *iterators;
+			for ( auto* i : copied_iterators )
+				i->Complete();
+
 			delete iterators;
 			iterators = nullptr;
 			}
@@ -867,8 +923,14 @@ public:
 		}
 
 	/// The capacity of the table, Buckets + Overflow Size.
-	int Capacity() const { return table ? bucket_capacity : 0; }
-	int ExpectedCapacity() const { return bucket_capacity; }
+	int Capacity() const
+		{
+		return table ? bucket_capacity : 0;
+		}
+	int ExpectedCapacity() const
+		{
+		return bucket_capacity;
+		}
 
 	// Debugging
 #define DUMPIF(f)                                                                                  \
@@ -1096,8 +1158,14 @@ public:
 		return {this, table + Capacity(), table + Capacity()};
 		}
 
-	RobustDictIterator<T> begin_robust() { return MakeRobustIterator(); }
-	RobustDictIterator<T> end_robust() { return RobustDictIterator<T>(); }
+	RobustDictIterator<T> begin_robust()
+		{
+		return MakeRobustIterator();
+		}
+	RobustDictIterator<T> end_robust()
+		{
+		return RobustDictIterator<T>();
+		}
 
 private:
 	friend zeek::DictIterator<T>;
@@ -1111,7 +1179,10 @@ private:
 		}
 
 	/// Buckets of the table, not including overflow size.
-	int Buckets() const { return table ? bucket_count : 0; }
+	int Buckets() const
+		{
+		return table ? bucket_count : 0;
+		}
 
 	// bucket math
 	uint32_t ThresholdEntries() const
@@ -1208,7 +1279,10 @@ private:
 	// Given a position of a non-empty item in the table, find the end of its cluster.
 	// The end should be equal to tail+1 if tail exists. Otherwise it's the tail of
 	// the just-smaller cluster + 1.
-	int EndOfClusterByPosition(int position) const { return TailOfClusterByPosition(position) + 1; }
+	int EndOfClusterByPosition(int position) const
+		{
+		return TailOfClusterByPosition(position) + 1;
+		}
 
 	// Given a position of a non-empty item in the table, find the offset of it within
 	// its cluster.
@@ -1494,7 +1568,10 @@ private:
 			}
 		}
 
-	bool Remapping() const { return remap_end >= 0; } // remap in reverse order.
+	bool Remapping() const
+		{
+		return remap_end >= 0;
+		} // remap in reverse order.
 
 	/// One round of remap.
 	void Remap()
@@ -1697,8 +1774,14 @@ private:
 		return e;
 		}
 
-	void IncrIters() { ++num_iterators; }
-	void DecrIters() { --num_iterators; }
+	void IncrIters()
+		{
+		++num_iterators;
+		}
+	void DecrIters()
+		{
+		--num_iterators;
+		}
 
 	// aligned on 8-bytes with 4-leading bytes. 7*8=56 bytes a dictionary.
 

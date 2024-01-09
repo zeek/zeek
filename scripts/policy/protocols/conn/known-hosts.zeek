@@ -121,7 +121,7 @@ event Cluster::node_up(name: string, id: string)
 		return;
 
 	# Drop local suppression cache on workers to force HRW key repartitioning.
-	Known::hosts = set();
+	clear_table(Known::hosts);
 	}
 
 event Cluster::node_down(name: string, id: string)
@@ -133,7 +133,7 @@ event Cluster::node_down(name: string, id: string)
 		return;
 
 	# Drop local suppression cache on workers to force HRW key repartitioning.
-	Known::hosts = set();
+	clear_table(Known::hosts);
 	}
 
 event Known::host_found(info: HostsInfo)

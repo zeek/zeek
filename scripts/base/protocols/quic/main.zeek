@@ -157,6 +157,19 @@ event QUIC::retry_packet(c: connection, is_orig: bool, version: count, dcid: str
 	delete c$quic;
 	}
 
+# If we couldn't handle a version, log it as a single record.
+event QUIC::unhandled_version(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
+	{
+	if ( ! c?$quic )
+		set_conn(c, is_orig, version, dcid, scid);
+
+	add_to_history(c, is_orig, "UNHANDLED_VERSION");
+
+	log_record(c$quic);
+
+	delete c$quic;
+	}
+
 # Upon a connection_close_frame(), if any c$quic state is pending to be logged, do so
 # now and prepare for a new entry.
 event QUIC::connection_close_frame(c: connection, is_orig: bool, version: count, dcid: string, scid: string, error_code: count, reason_phrase: string)

@@ -1,3 +1,12 @@
+6.2.0-dev.339 | 2024-01-09 09:15:39 +0100
+
+  * Dict: Invalidate iterators during Clear() (Arne Welzel, Corelight)
+
+    If we don't do this, a RobustDictIterator owned by someone else holds
+    dangling pointers to the Dictionary that is being cleared.
+
+    Closes #3523
+
 6.2.0-dev.337 | 2024-01-08 14:10:44 -0700
 
   * Merge branch 'topic/timw/werror' (Tim Wojtulewicz, Corelight)

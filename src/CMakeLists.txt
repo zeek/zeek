@@ -329,6 +329,7 @@ set(MAIN_SRCS
     IP.cc
     IPAddr.cc
     List.cc
+    MMDB.cc
     Reporter.cc
     NFA.cc
     NetVar.cc

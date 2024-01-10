@@ -890,16 +890,6 @@ public:
         : init_expr(std::move(_init_expr)), init_type(std::move(_init_type)) {
         if ( init_type->Tag() == TYPE_RECORD && ! same_type(init_expr->GetType(), init_type) )
             coerce_type = cast_intrusive<RecordType>(init_type);
-
-        // If this is an unspecified vector, make it concrete directly.
-        // This is more efficient for regular execution and much more
-        // efficient for ZAM execution.
-        if ( init_expr->Tag() == EXPR_VECTOR_CONSTRUCTOR &&
-             init_expr->GetType()->AsVectorType()->IsUnspecifiedVector() ) {
-            auto empty_list = cast_intrusive<ListExpr>(init_expr->GetOp1());
-            auto concrete_vt = make_intrusive<VectorType>(init_type->Yield());
-            init_expr = make_intrusive<VectorConstructorExpr>(empty_list, concrete_vt);
-        }
     }
 
     ZVal Generate() const override {
@@ -911,6 +901,15 @@ public:
 
         if ( coerce_type )
             v = v->AsRecordVal()->CoerceTo(coerce_type);
+
+        else if ( init_type->Tag() == TYPE_VECTOR ) {
+            // Look for common case of needing to concretize vector.
+            auto yield = init_type->Yield();
+            auto vv = v->AsVectorVal();
+            auto vv_yield = v->GetType()->Yield();
+            if ( vv->Size() == 0 && vv_yield && yield && vv_yield->Tag() == TYPE_ANY && yield->Tag() != TYPE_ANY )
+                vv->Concretize(yield);
+        }
 
         return ZVal(v, init_type);
     }

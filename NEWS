@@ -51,6 +51,39 @@ Breaking Changes
   values as well as the LDAP message identifier. The value within the LDAP logs
   will be the most recently observed one.
 
+- Zeek will no longer use the virtual member function pair ``DoSerialize`` and
+  ``DoUnserialize`` for subtypes of ``OpaqueVal`` (or ``BloomFilter``). Instead,
+  Zeek will call these virtual member functions:
+
+    * ``std::optional<BrokerData> OpaqueVal::DoSerializeData() const``
+    * ``bool OpaqueVal::DoUnserializeData(BrokerDataView data)``
+
+  When overriding ``DoSerializeData()``, return ``std::nullopt`` (or a
+  default-constructed ``optional``) for values that cannot be serialized.
+  Otherwise, the canonical way to create a ``BrokerData`` for serialization is
+  by using a ``BrokerListBuilder``. For example, creating a ``BrokerData`` that
+  contains ``true`` and the count ``42`` could be implemented as follows:
+
+    BrokerListBuilder builder;
+    builder.Add(true);
+    builder.AddCount(42u);
+    return std::move(builder).Build();
+
+  Please refer to the respective class documentation for a full list of member
+  functions on ``BrokerListBuilder`` and ``BrokerDataView``.
+
+  For plugins that are using the macro ``DECLARE_OPAQUE_VALUE`` to generate the
+  function prototypes for the serialization functions: please use
+  ``DECLARE_OPAQUE_VALUE_DATA`` instead to generate prototypes for the new API.
+
+  Please note that old code overriding ``DoSerialize`` and ``DoUnserialize``
+  will not break immediately. The default implementations for the new functions
+  will call the old signatures and convert the results. However, we are listing
+  this change as a breaking change since we cannot raise a deprecation warning
+  for overriding the old member functions. Thus, any code still depending on the
+  old signature will break without prior compiler warning when removing the old
+  functions eventually (scheduled for 7.1).
+
 New Functionality
 -----------------
 

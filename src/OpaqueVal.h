@@ -94,7 +94,7 @@ private:
 /**
  * Legacy macro to insert into an OpaqueVal-derived class's declaration. Overrides the "old" serialization methods
  * DoSerialize and DoUnserialize.
- * @deprecated Use DECLARE_OPAQUE_VALUE_DATA instead.
+ * @deprecated Use DECLARE_OPAQUE_VALUE_DATA instead. Remove in v7.1.
  */
 #define DECLARE_OPAQUE_VALUE(T)                                                                                        \
     friend class zeek::OpaqueMgr::Register<T>;                                                                         \
@@ -169,7 +169,7 @@ protected:
     friend class OpaqueMgr;
 
     /**
-     * @deprecated Override DoSerializeData instead.
+     * @deprecated Override DoSerializeData instead. Remove in v7.1.
      */
     virtual broker::expected<broker::data> DoSerialize() const;
 
@@ -183,7 +183,7 @@ protected:
     virtual std::optional<BrokerData> DoSerializeData() const;
 
     /**
-     * @deprecated Override DoUnserializeData instead.
+     * @deprecated Override DoUnserializeData instead. Remove in v7.1.
      */
     virtual bool DoUnserialize(const broker::data& data);
 

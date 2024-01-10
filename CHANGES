@@ -1,3 +1,9 @@
+6.2.0-dev.347 | 2024-01-10 12:32:43 -0700
+
+  * Use std::move in return values from bif methods to avoid copies (Tim Wojtulewicz, Corelight)
+
+  * Use bool return values instead of int in a couple zeek.bif static methods (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.344 | 2024-01-10 14:07:18 +0100
 
   * quic: Handle and log unhandled_version (Arne Welzel, Corelight)

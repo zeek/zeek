@@ -726,7 +726,7 @@ function escape_string%(s: string%): string
 	char* escstr = s->AsString()->Render(zeek::String::ESC_HEX | zeek::String::ESC_ESC);
 	auto val = zeek::make_intrusive<zeek::StringVal>(escstr);
 	delete [] escstr;
-	return val;
+	return std::move(val);
 	%}
 
 ## Returns an ASCII hexadecimal representation of a string.
@@ -767,7 +767,7 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 	zeek::util::delete_each(subseq);
 	delete subseq;
 
-	return result;
+	return std::move(result);
 	%}
 
 ## Splits a string into substrings with the help of an index vector of cutting
@@ -805,7 +805,7 @@ function str_split_indices%(s: string, idx: index_vec%): string_vec
 		delete result;
 		}
 
-	return result_v;
+	return std::move(result_v);
 	%}
 
 ## Strips whitespace at both ends of a string.
@@ -1021,7 +1021,7 @@ function find_all%(str: string, re: pattern, max_str_size: int &default=-1%) : s
 	auto a = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
 
 	if ( exceeds_max_string_length(str->Len(), max_str_size, frame) )
-		return a;
+		return std::move(a);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
@@ -1037,7 +1037,7 @@ function find_all%(str: string, re: pattern, max_str_size: int &default=-1%) : s
 			}
 		}
 
-	return a;
+	return std::move(a);
 	%}
 
 ## Finds all occurrences of a pattern in a string.  The order in which
@@ -1061,7 +1061,7 @@ function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=
 	auto a = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 	if ( exceeds_max_string_length(str->Len(), max_str_size, frame) )
-		return a;
+		return std::move(a);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
@@ -1077,7 +1077,7 @@ function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=
 			}
 		}
 
-	return a;
+	return std::move(a);
 	%}
 
 ## Finds the last occurrence of a pattern in a string. This function returns
@@ -1222,7 +1222,7 @@ function hexdump%(data_str: string%) : string
 	auto result = zeek::make_intrusive<zeek::StringVal>((const char*) hex_data);
 	delete [] hex_data;
 
-	return result;
+	return std::move(result);
 	%}
 
 ## Returns a reversed copy of the string

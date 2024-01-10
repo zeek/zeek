@@ -366,6 +366,15 @@ public:
 protected:
     IndexType(TypeTag t, TypeListPtr arg_indices, TypePtr arg_yield_type)
         : Type(t), indices(std::move(arg_indices)), yield_type(std::move(arg_yield_type)) {
+        // "indices" might be nil if we're deferring construction of the type
+        // for "-O use-C++" initialization.
+        if ( indices )
+            CheckForSpecialIndices();
+        else
+            is_subnet_index = is_pattern_index = false; // placeholders
+    }
+
+    void CheckForSpecialIndices() {
         const auto& types = indices->GetTypes();
         is_subnet_index = types.size() == 1 && types[0]->Tag() == TYPE_SUBNET;
         is_pattern_index = types.size() == 1 && types[0]->Tag() == TYPE_PATTERN;

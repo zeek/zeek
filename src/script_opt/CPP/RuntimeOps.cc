@@ -221,7 +221,7 @@ TableValPtr set_constructor__CPP(vector<ValPtr> elements, TableTypePtr t, vector
     auto aggr = make_intrusive<TableVal>(std::move(t), std::move(attrs));
 
     for ( auto& elem : elements )
-        aggr->Assign(std::move(elem), nullptr);
+        aggr->Assign(elem, nullptr);
 
     return aggr;
 }

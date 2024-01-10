@@ -22,8 +22,10 @@ public:
     CPPTableType() : TableType(nullptr, nullptr){};
 
     void SetIndexAndYield(TypeListPtr ind, TypePtr yield) {
-        ind = std::move(indices);
+        indices = std::move(ind);
         yield_type = std::move(yield);
+        CheckForSpecialIndices();
+        RegenerateHash();
     }
 };
 

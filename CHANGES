@@ -1,3 +1,11 @@
+6.2.0-dev.344 | 2024-01-10 14:07:18 +0100
+
+  * quic: Handle and log unhandled_version (Arne Welzel, Corelight)
+
+  * quic: Support decryption of a few more versions (Arne Welzel, Corelight)
+
+  * parse: Support @if conditionals in record definitions (Arne Welzel, Corelight)
+
 6.2.0-dev.339 | 2024-01-09 09:15:39 +0100
 
   * Dict: Invalidate iterators during Clear() (Arne Welzel, Corelight)

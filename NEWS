@@ -133,7 +133,9 @@ New Functionality
   events.
 
 - The QUIC analyzer has been extended to support analyzing QUIC Version 2
-  INITIAL packets (RFC 9369).
+  INITIAL packets (RFC 9369). Additionally, prior draft and some of
+  Facebook's mvfst versions are supported. Unknown QUIC versions will now be
+  reported in ``quic.log`` as an entry with a ``U`` history field.
 
 - Conditional directives (``@if``, ``@ifdef``, ``@ifndef``, ``@else`` and
   ``@endif``) can now be placed within a record's definition to conditionally

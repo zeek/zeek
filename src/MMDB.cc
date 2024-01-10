@@ -56,6 +56,30 @@ MMDB::MMDB(const char* filename, struct stat info)
 
 MMDB::~MMDB() { MMDB_close(&mmdb); }
 
+bool MMDB::Lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result) {
+    struct sockaddr_storage ss = {0};
+
+    if ( IPv4 == addr.GetFamily() ) {
+        struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
+        sa->sin_family = AF_INET;
+        addr.CopyIPv4(&sa->sin_addr);
+    }
+    else {
+        struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
+        sa->sin6_family = AF_INET6;
+        addr.CopyIPv6(&sa->sin6_addr);
+    }
+
+    try {
+        result = Lookup((struct sockaddr*)&ss);
+    } catch ( const std::exception& e ) {
+        report_msg("MaxMind DB lookup location error [%s]", e.what());
+        return false;
+    }
+
+    return result.found_entry;
+}
+
 MMDB_lookup_result_s MMDB::Lookup(const struct sockaddr* const sa) {
     int mmdb_error;
     MMDB_lookup_result_s result = MMDB_lookup_sockaddr(&mmdb, sa, &mmdb_error);
@@ -148,41 +172,6 @@ static void mmdb_check_asn() {
         did_asn_db_error = false;
         mmdb_asn.reset();
     }
-}
-
-static bool mmdb_lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result, bool asn) {
-    struct sockaddr_storage ss = {0};
-
-    if ( IPv4 == addr.GetFamily() ) {
-        struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
-        sa->sin_family = AF_INET;
-        addr.CopyIPv4(&sa->sin_addr);
-    }
-
-    else {
-        struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
-        sa->sin6_family = AF_INET6;
-        addr.CopyIPv6(&sa->sin6_addr);
-    }
-
-    try {
-        result = asn ? mmdb_asn->Lookup((struct sockaddr*)&ss) : mmdb_loc->Lookup((struct sockaddr*)&ss);
-    }
-
-    catch ( const std::exception& e ) {
-        report_msg("MaxMind DB lookup location error [%s]", e.what());
-        return false;
-    }
-
-    return result.found_entry;
-}
-
-static bool mmdb_lookup_loc(const zeek::IPAddr& addr, MMDB_lookup_result_s& result) {
-    return mmdb_lookup(addr, result, false);
-}
-
-static bool mmdb_lookup_asn(const zeek::IPAddr& addr, MMDB_lookup_result_s& result) {
-    return mmdb_lookup(addr, result, true);
 }
 
 static zeek::ValPtr mmdb_getvalue(MMDB_entry_data_s* entry_data, int status, int data_type) {
@@ -318,7 +307,7 @@ RecordValPtr mmdb_lookup_location(AddrVal* addr) {
 
     MMDB_lookup_result_s result;
 
-    if ( mmdb_lookup_loc(addr->AsAddr(), result) ) {
+    if ( mmdb_loc->Lookup(addr->AsAddr(), result) ) {
         MMDB_entry_data_s entry_data;
         int status;
 
@@ -379,7 +368,7 @@ RecordValPtr mmdb_lookup_autonomous_system(AddrVal* addr) {
 
     MMDB_lookup_result_s result;
 
-    if ( mmdb_lookup_asn(addr->AsAddr(), result) ) {
+    if ( mmdb_asn->Lookup(addr->AsAddr(), result) ) {
         MMDB_entry_data_s entry_data;
         int status;
 

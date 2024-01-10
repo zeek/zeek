@@ -18,13 +18,11 @@ namespace zeek {
 
 static int msg_count = 0;
 static double msg_suppression_time = 0;
-static bool did_loc_db_error = false;
-static bool did_asn_db_error = false;
 static constexpr int msg_limit = 20;
 static constexpr double msg_suppression_duration = 300;
 
-static std::unique_ptr<MMDB> mmdb_loc;
-static std::unique_ptr<MMDB> mmdb_asn;
+LocDB mmdb_loc;
+AsnDB mmdb_asn;
 
 static void report_msg(const char* format, ...) {
     if ( zeek::run_state::network_time > msg_suppression_time + msg_suppression_duration ) {
@@ -43,135 +41,6 @@ static void report_msg(const char* format, ...) {
     va_end(al);
 
     zeek::reporter->Info("%s", msg.data());
-}
-
-MMDB::MMDB(const char* filename, struct stat info)
-    : file_info(info), lookup_error{false}, last_check{zeek::run_state::network_time} {
-    int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
-
-    if ( MMDB_SUCCESS != status ) {
-        throw std::runtime_error(MMDB_strerror(status));
-    }
-}
-
-MMDB::~MMDB() { MMDB_close(&mmdb); }
-
-bool MMDB::Lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result) {
-    struct sockaddr_storage ss = {0};
-
-    if ( IPv4 == addr.GetFamily() ) {
-        struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
-        sa->sin_family = AF_INET;
-        addr.CopyIPv4(&sa->sin_addr);
-    }
-    else {
-        struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
-        sa->sin6_family = AF_INET6;
-        addr.CopyIPv6(&sa->sin6_addr);
-    }
-
-    try {
-        result = Lookup((struct sockaddr*)&ss);
-    } catch ( const std::exception& e ) {
-        report_msg("MaxMind DB lookup location error [%s]", e.what());
-        return false;
-    }
-
-    return result.found_entry;
-}
-
-MMDB_lookup_result_s MMDB::Lookup(const struct sockaddr* const sa) {
-    int mmdb_error;
-    MMDB_lookup_result_s result = MMDB_lookup_sockaddr(&mmdb, sa, &mmdb_error);
-
-    if ( MMDB_SUCCESS != mmdb_error ) {
-        lookup_error = true;
-        throw std::runtime_error(MMDB_strerror(mmdb_error));
-    }
-
-    return result;
-}
-
-// Check to see if the Maxmind DB should be closed and reopened.  This will
-// happen if there was a lookup error or if the mmap'd file has been replaced
-// by an external process.
-bool MMDB::StaleDB() {
-    struct stat buf;
-
-    if ( lookup_error )
-        return true;
-
-    static double mmdb_stale_check_interval = zeek::id::find_val("mmdb_stale_check_interval")->AsInterval();
-
-    if ( mmdb_stale_check_interval < 0.0 )
-        return false;
-
-    if ( zeek::run_state::network_time - last_check < mmdb_stale_check_interval )
-        return false;
-
-    last_check = zeek::run_state::network_time;
-
-    if ( 0 != stat(mmdb.filename, &buf) )
-        return true;
-
-    if ( buf.st_ino != file_info.st_ino || buf.st_mtime != file_info.st_mtime ) {
-        report_msg("%s change detected for MaxMind DB [%s]",
-                   buf.st_ino != file_info.st_ino ? "Inode" : "Modification time", mmdb.filename);
-        return true;
-    }
-
-    return false;
-}
-
-const char* MMDB::Filename() { return mmdb.filename; }
-
-static bool mmdb_open(const char* filename, bool asn) {
-    struct stat buf;
-
-    if ( 0 != stat(filename, &buf) ) {
-        return false;
-    }
-
-    try {
-        if ( asn ) {
-            mmdb_asn.reset(new MMDB(filename, buf));
-        }
-        else {
-            mmdb_loc.reset(new MMDB(filename, buf));
-        }
-    }
-
-    catch ( const std::exception& e ) {
-        if ( asn )
-            did_asn_db_error = false;
-        else
-            did_loc_db_error = false;
-
-        report_msg("Failed to open MaxMind DB: %s [%s]", filename, e.what());
-        return false;
-    }
-
-    return true;
-}
-
-static bool mmdb_open_loc(const char* filename) { return mmdb_open(filename, false); }
-
-static bool mmdb_open_asn(const char* filename) { return mmdb_open(filename, true); }
-
-static void mmdb_check_loc() {
-    if ( mmdb_loc && mmdb_loc->StaleDB() ) {
-        report_msg("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
-        did_loc_db_error = false;
-        mmdb_loc.reset();
-    }
-}
-
-static void mmdb_check_asn() {
-    if ( mmdb_asn && mmdb_asn->StaleDB() ) {
-        report_msg("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
-        did_asn_db_error = false;
-        mmdb_asn.reset();
-    }
 }
 
 static zeek::ValPtr mmdb_getvalue(MMDB_entry_data_s* entry_data, int status, int data_type) {
@@ -204,7 +73,115 @@ static zeek::ValPtr mmdb_getvalue(MMDB_entry_data_s* entry_data, int status, int
     return nullptr;
 }
 
-static bool mmdb_try_open_loc() {
+MMDB::MMDB() : mmdb{}, file_info{}, reported_error{false}, last_check{zeek::run_state::network_time} {}
+
+MMDB::~MMDB() { Close(); }
+
+bool MMDB::OpenFile(const char* a_filename) {
+    filename = a_filename;
+    Close();
+
+    if ( 0 != stat(a_filename, &file_info) ) {
+        return false;
+    }
+
+    int status = MMDB_open(a_filename, MMDB_MODE_MMAP, &mmdb);
+
+    if ( MMDB_SUCCESS != status ) {
+        memset(&mmdb, 0, sizeof(mmdb));
+        report_msg("Failed to open MaxMind DB: %s [%s]", filename.data(), MMDB_strerror(status));
+        return false;
+    }
+
+    return true;
+}
+
+void MMDB::Close() {
+    if ( IsOpen() ) {
+        MMDB_close(&mmdb);
+        memset(&mmdb, 0, sizeof(mmdb));
+        reported_error = false;
+    }
+}
+
+bool MMDB::EnsureLoaded() {
+    bool res = true;
+
+    if ( filename.empty() )
+        res = OpenFromScriptConfig();
+    else if ( ! IsOpen() )
+        res = OpenFile(filename.data());
+    else if ( IsStaleDB() ) {
+        report_msg("Closing stale MaxMind DB [%s]", filename.data());
+        if ( ! OpenFile(filename.data()) )
+            res = false;
+    }
+
+    if ( ! res && ! reported_error ) {
+        reported_error = true;
+        zeek::emit_builtin_error(zeek::util::fmt("Failed to open %s", Description()));
+    }
+
+    return res;
+}
+
+bool MMDB::Lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result) {
+    struct sockaddr_storage ss = {0};
+
+    if ( IPv4 == addr.GetFamily() ) {
+        struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
+        sa->sin_family = AF_INET;
+        addr.CopyIPv4(&sa->sin_addr);
+    }
+    else {
+        struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
+        sa->sin6_family = AF_INET6;
+        addr.CopyIPv6(&sa->sin6_addr);
+    }
+
+    int mmdb_error;
+    result = MMDB_lookup_sockaddr(&mmdb, (struct sockaddr*)&ss, &mmdb_error);
+
+    if ( MMDB_SUCCESS != mmdb_error ) {
+        report_msg("MaxMind DB lookup location error [%s]", MMDB_strerror(mmdb_error));
+        Close();
+        return false;
+    }
+
+    return true;
+}
+
+// Check to see if the Maxmind DB should be closed and reopened.  This will
+// happen if there was a lookup error or if the mmap'd file has been replaced
+// by an external process.
+bool MMDB::IsStaleDB() {
+    if ( ! IsOpen() )
+        return false;
+
+    static double mmdb_stale_check_interval = zeek::id::find_val("mmdb_stale_check_interval")->AsInterval();
+
+    if ( mmdb_stale_check_interval < 0.0 )
+        return false;
+
+    if ( zeek::run_state::network_time - last_check < mmdb_stale_check_interval )
+        return false;
+
+    last_check = zeek::run_state::network_time;
+    struct stat buf;
+
+    if ( 0 != stat(mmdb.filename, &buf) )
+        return true;
+
+    if ( buf.st_ino != file_info.st_ino || buf.st_mtime != file_info.st_mtime ) {
+        report_msg("%s change detected for MaxMind DB [%s]",
+                   buf.st_ino != file_info.st_ino ? "Inode" : "Modification time", mmdb.filename);
+        return true;
+    }
+
+    return false;
+}
+
+bool LocDB::OpenFromScriptConfig() {
     // City database is always preferred over Country database.
     const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
     std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
@@ -218,12 +195,12 @@ static bool mmdb_try_open_loc() {
     if ( ! mmdb_dir.empty() ) {
         auto d = mmdb_dir + "/" + mmdb_city_db;
 
-        if ( mmdb_open_loc(d.data()) )
+        if ( OpenFile(d.data()) )
             return true;
 
         d = mmdb_dir + "/" + mmdb_country_db;
 
-        if ( mmdb_open_loc(d.data()) )
+        if ( OpenFile(d.data()) )
             return true;
     }
 
@@ -232,20 +209,19 @@ static bool mmdb_try_open_loc() {
 
     for ( unsigned int i = 0; i < vv->Size(); ++i ) {
         auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_city_db;
-        if ( mmdb_open_loc(d.data()) )
+        if ( OpenFile(d.data()) )
             return true;
     }
 
     for ( unsigned int i = 0; i < vv->Size(); ++i ) {
         auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_country_db;
-        if ( mmdb_open_loc(d.data()) )
+        if ( OpenFile(d.data()) )
             return true;
     }
 
     return false;
 }
-
-static bool mmdb_try_open_asn() {
+bool AsnDB::OpenFromScriptConfig() {
     const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
     std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
 
@@ -255,7 +231,7 @@ static bool mmdb_try_open_asn() {
     if ( ! mmdb_dir.empty() ) {
         auto d = mmdb_dir + "/" + mmdb_asn_db;
 
-        if ( mmdb_open_asn(d.data()) )
+        if ( OpenFile(d.data()) )
             return true;
     }
 
@@ -264,7 +240,7 @@ static bool mmdb_try_open_asn() {
 
     for ( unsigned int i = 0; i < vv->Size(); ++i ) {
         auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_asn_db;
-        if ( mmdb_open_loc(d.data()) )
+        if ( OpenFile(d.data()) )
             return true;
     }
 
@@ -274,7 +250,7 @@ static bool mmdb_try_open_asn() {
 
 ValPtr mmdb_open_location_db(StringVal* filename) {
 #ifdef USE_GEOIP
-    return zeek::val_mgr->Bool(mmdb_open_loc(filename->CheckString()));
+    return zeek::val_mgr->Bool(mmdb_loc.OpenFile(filename->CheckString()));
 #else
     return zeek::val_mgr->False();
 #endif
@@ -282,7 +258,7 @@ ValPtr mmdb_open_location_db(StringVal* filename) {
 
 ValPtr mmdb_open_asn_db(StringVal* filename) {
 #ifdef USE_GEOIP
-    return zeek::val_mgr->Bool(mmdb_open_asn(filename->CheckString()));
+    return zeek::val_mgr->Bool(mmdb_asn.OpenFile(filename->CheckString()));
 #else
     return zeek::val_mgr->False();
 #endif
@@ -293,21 +269,12 @@ RecordValPtr mmdb_lookup_location(AddrVal* addr) {
     auto location = zeek::make_intrusive<zeek::RecordVal>(geo_location);
 
 #ifdef USE_GEOIP
-    mmdb_check_loc();
-    if ( ! mmdb_loc ) {
-        if ( ! mmdb_try_open_loc() ) {
-            if ( ! did_loc_db_error ) {
-                did_loc_db_error = true;
-                zeek::emit_builtin_error("Failed to open GeoIP location database");
-            }
-
-            return location;
-        }
-    }
+    if ( ! mmdb_loc.EnsureLoaded() )
+        return location;
 
     MMDB_lookup_result_s result;
 
-    if ( mmdb_loc->Lookup(addr->AsAddr(), result) ) {
+    if ( mmdb_loc.Lookup(addr->AsAddr(), result) ) {
         MMDB_entry_data_s entry_data;
         int status;
 
@@ -354,21 +321,12 @@ RecordValPtr mmdb_lookup_autonomous_system(AddrVal* addr) {
     auto autonomous_system = zeek::make_intrusive<zeek::RecordVal>(geo_autonomous_system);
 
 #ifdef USE_GEOIP
-    mmdb_check_asn();
-    if ( ! mmdb_asn ) {
-        if ( ! mmdb_try_open_asn() ) {
-            if ( ! did_asn_db_error ) {
-                did_asn_db_error = true;
-                zeek::emit_builtin_error("Failed to open GeoIP ASN database");
-            }
-
-            return autonomous_system;
-        }
-    }
+    if ( ! mmdb_asn.EnsureLoaded() )
+        return autonomous_system;
 
     MMDB_lookup_result_s result;
 
-    if ( mmdb_asn->Lookup(addr->AsAddr(), result) ) {
+    if ( mmdb_asn.Lookup(addr->AsAddr(), result) ) {
         MMDB_entry_data_s entry_data;
         int status;
 

@@ -135,6 +135,22 @@ New Functionality
 - The QUIC analyzer has been extended to support analyzing QUIC Version 2
   INITIAL packets (RFC 9369).
 
+- Conditional directives (``@if``, ``@ifdef``, ``@ifndef``, ``@else`` and
+  ``@endif``) can now be placed within a record's definition to conditionally
+  define or extend a record type's fields.
+
+	type r: record {
+		c: count;
+	@if ( cond )
+		d: double;
+	@else
+		d: count;
+	@endif
+	};
+
+  Note that generally you should prefer record extension in conditionally loaded
+  scripts rather than using conditional directives in the original record definition.
+
 
 Changed Functionality
 ---------------------

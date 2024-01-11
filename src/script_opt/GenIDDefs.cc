@@ -50,7 +50,7 @@ void GenIDDefs::TraverseFunction(const FuncPtr& f, ScopePtr scope, StmtPtr body)
 }
 
 TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
-    curr_stmt = s;
+    last_stmt_traversed = s;
 
     auto si = s->GetOptInfo();
     si->stmt_num = ++stmt_num;
@@ -122,11 +122,11 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
 
             t_branch->Traverse(this);
             if ( ! t_branch->NoFlowAfter(false) )
-                BranchBeyond(curr_stmt, s, true);
+                BranchBeyond(last_stmt_traversed, s, true);
 
             f_branch->Traverse(this);
             if ( ! f_branch->NoFlowAfter(false) )
-                BranchBeyond(curr_stmt, s, true);
+                BranchBeyond(last_stmt_traversed, s, true);
 
             EndConfluenceBlock(true);
 
@@ -155,7 +155,7 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             body->Traverse(this);
 
             if ( ! body->NoFlowAfter(false) )
-                BranchBackTo(curr_stmt, s, true);
+                BranchBackTo(last_stmt_traversed, s, true);
 
             EndConfluenceBlock();
 
@@ -183,7 +183,7 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             body->Traverse(this);
 
             if ( ! body->NoFlowAfter(false) )
-                BranchBackTo(curr_stmt, s, true);
+                BranchBackTo(last_stmt_traversed, s, true);
 
             EndConfluenceBlock();
 
@@ -242,7 +242,7 @@ TraversalCode GenIDDefs::PostStmt(const Stmt* s) {
 
         case STMT_RETURN: ReturnAt(s); break;
 
-        case STMT_NEXT: BranchBackTo(curr_stmt, FindLoop(), false); break;
+        case STMT_NEXT: BranchBackTo(last_stmt_traversed, FindLoop(), false); break;
 
         case STMT_BREAK: {
             auto target = FindBreakTarget();
@@ -403,8 +403,9 @@ void GenIDDefs::CheckVarUsage(const Expr* e, const ID* id) {
 
     auto oi = id->GetOptInfo();
 
-    if ( ! oi->DidUndefinedWarning() && ! oi->IsDefinedBefore(curr_stmt) && ! id->GetAttr(ATTR_IS_ASSIGNED) ) {
-        if ( ! oi->IsPossiblyDefinedBefore(curr_stmt) ) {
+    if ( ! oi->DidUndefinedWarning() && ! oi->IsDefinedBefore(last_stmt_traversed) &&
+         ! id->GetAttr(ATTR_IS_ASSIGNED) ) {
+        if ( ! oi->IsPossiblyDefinedBefore(last_stmt_traversed) ) {
             e->Warn("used without definition");
             oi->SetDidUndefinedWarning();
         }
@@ -423,7 +424,7 @@ void GenIDDefs::StartConfluenceBlock(const Stmt* s) {
 
 void GenIDDefs::EndConfluenceBlock(bool no_orig) {
     for ( auto id : modified_IDs.back() )
-        id->GetOptInfo()->ConfluenceBlockEndsAfter(curr_stmt, no_orig);
+        id->GetOptInfo()->ConfluenceBlockEndsAfter(last_stmt_traversed, no_orig);
 
     confluence_blocks.pop_back();
     modified_IDs.pop_back();
@@ -489,7 +490,7 @@ void GenIDDefs::TrackID(const ID* id, const ExprPtr& e) {
     // here to set the lowest limit for definitions. For now we leave
     // DefinedAfter as capable of supporting that distinction in case we
     // find need to revive it in the future.
-    oi->DefinedAfter(curr_stmt, e, confluence_blocks, 0);
+    oi->DefinedAfter(last_stmt_traversed, e, confluence_blocks, 0);
 
     // Ensure we track this identifier across all relevant
     // confluence regions.

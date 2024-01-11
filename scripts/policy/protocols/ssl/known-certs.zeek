@@ -146,7 +146,7 @@ event Cluster::node_up(name: string, id: string)
 		return;
 
 	# Drop local suppression cache on workers to force HRW key repartitioning.
-	Known::certs = table();
+	clear_table(Known::certs);
 	}
 
 event Cluster::node_down(name: string, id: string)
@@ -158,7 +158,7 @@ event Cluster::node_down(name: string, id: string)
 		return;
 
 	# Drop local suppression cache on workers to force HRW key repartitioning.
-	Known::certs = table();
+	clear_table(Known::certs);
 	}
 
 event ssl_established(c: connection) &priority=3

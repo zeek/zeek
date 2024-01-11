@@ -902,6 +902,9 @@ public:
         if ( coerce_type )
             v = v->AsRecordVal()->CoerceTo(coerce_type);
 
+        else if ( init_type->Tag() == TYPE_VECTOR )
+            concretize_if_unspecified(cast_intrusive<VectorVal>(v), init_type->Yield());
+
         return ZVal(v, init_type);
     }
 

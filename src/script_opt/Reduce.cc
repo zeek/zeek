@@ -124,6 +124,14 @@ StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
         // the inline block's execution.
         is_modified = true;
 
+    auto& id_t = id->GetType();
+    if ( id_t->Tag() == TYPE_VECTOR && rhs->GetType()->Yield() != id_t->Yield() )
+        // Presumably either the identifier or the RHS is a vector-of-any.
+        // This means there will essentially be a modification of the RHS
+        // due to the need to use (or omit) operations coercing from such
+        // vectors.
+        is_modified = true;
+
     if ( ! is_modified ) {
         // Can use a temporary variable, which then supports
         // optimization via alias propagation.

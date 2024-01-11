@@ -1744,6 +1744,13 @@ namespace detail {
 // for normalization. If Func::nil is passed, no normalization happens.
 extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t,
                                                      const FuncPtr& key_func);
+
+// If the given vector is an empty vector-of-any ("unspecified"),
+// concretizes it to the given type. *v* gives the vector and *t* the
+// type to concretize it to if appropriate. *t* can be nil, in which
+// case nothing is done.
+extern void concretize_if_unspecified(VectorValPtr v, TypePtr t);
+
 } // namespace detail
 
 } // namespace zeek

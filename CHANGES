@@ -1,3 +1,13 @@
+6.2.0-dev.362 | 2024-01-11 20:17:45 +0100
+
+  * GH-3540: Known: Keep &create_expire on local tables/sets valid (Arne Welzel, Corelight)
+
+    After switching the known scripts away from broker stores, the
+    &create_expire value of the local tables/sets of the known scripts
+    wasn't in effect due to Cluster::node_up() and Cluster::node_down()
+    re-assigning these without keeping the &create_expire attribute
+    intact. This broke the "log hosts every 24h" behavior.
+
 6.2.0-dev.360 | 2024-01-11 12:36:11 +0100
 
   * Document upcoming breaking change for OpaqueVal (Dominik Charousset, Corelight)

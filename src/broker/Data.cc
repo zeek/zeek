@@ -38,17 +38,6 @@ TEST_CASE("converting Zeek to Broker protocol constants") {
     CHECK_EQ(to_broker_port_proto(TRANSPORT_UNKNOWN), broker::port::protocol::unknown);
 }
 
-namespace zeek {
-
-class BrokerDataAccess {
-public:
-    static broker::data& Unbox(BrokerData& data) { return data.value_; }
-
-    static broker::data&& Unbox(BrokerData&& data) { return std::move(data.value_); }
-};
-
-} // namespace zeek
-
 namespace zeek::Broker::detail {
 
 // Returns true if the given Zeek type is serialized as a broker::vector
@@ -426,7 +415,7 @@ struct val_converter {
             return rval;
         }
         else if ( type->Tag() == TYPE_OPAQUE )
-            return OpaqueVal::Unserialize(BrokerListView{&a});
+            return OpaqueVal::UnserializeData(BrokerListView{&a});
 
         return nullptr;
     }
@@ -702,7 +691,7 @@ struct type_checker {
             // TODO: Could avoid doing the full unserialization here
             // and just check if the type is a correct match.
             auto cpy = a;
-            auto ov = OpaqueVal::Unserialize(BrokerListView{&cpy});
+            auto ov = OpaqueVal::UnserializeData(BrokerListView{&cpy});
             return ov != nullptr;
         }
 
@@ -784,7 +773,8 @@ std::optional<broker::data> val_to_data(const Val* v) {
                     if ( ! bc )
                         return std::nullopt;
 
-                    rval.emplace_back(std::move(BrokerDataAccess::Unbox(*bc)));
+                    auto& raw = zeek::detail::BrokerDataAccess::Unbox(*bc);
+                    rval.emplace_back(std::move(raw));
                 }
                 else {
                     reporter->InternalWarning("Closure with non-ScriptFunc");
@@ -916,13 +906,13 @@ std::optional<broker::data> val_to_data(const Val* v) {
             return {std::move(rval)};
         }
         case TYPE_OPAQUE: {
-            auto c = v->AsOpaqueVal()->Serialize();
+            auto c = v->AsOpaqueVal()->SerializeData();
             if ( ! c ) {
                 reporter->Error("unsupported opaque type for serialization");
                 break;
             }
 
-            return {BrokerDataAccess::Unbox(std::move(*c))};
+            return {zeek::detail::BrokerDataAccess::Unbox(std::move(*c))};
         }
         default: reporter->Error("unsupported Broker::Data type: %s", type_name(v->GetType()->Tag())); break;
     }
@@ -1037,20 +1027,20 @@ const TypePtr& DataVal::ScriptDataType() {
 
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::DataVal)
 
-std::optional<BrokerData> DataVal::DoSerialize() const { return BrokerData{data}; }
+std::optional<BrokerData> DataVal::DoSerializeData() const { return BrokerData{data}; }
 
-bool DataVal::DoUnserialize(BrokerDataView dv) {
+bool DataVal::DoUnserializeData(BrokerDataView dv) {
     data = std::move(*dv.value_);
     return true;
 }
 
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
 
-std::optional<BrokerData> SetIterator::DoSerialize() const {
+std::optional<BrokerData> SetIterator::DoSerializeData() const {
     return BrokerData{broker::data{broker::vector{dat, *it}}};
 }
 
-bool SetIterator::DoUnserialize(BrokerDataView data) {
+bool SetIterator::DoUnserializeData(BrokerDataView data) {
     auto v = get_if<broker::vector>(data.value_);
     if ( ! (v && v->size() == 2) )
         return false;
@@ -1071,11 +1061,11 @@ bool SetIterator::DoUnserialize(BrokerDataView data) {
 
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
 
-std::optional<BrokerData> TableIterator::DoSerialize() const {
+std::optional<BrokerData> TableIterator::DoSerializeData() const {
     return BrokerData{broker::data{broker::vector{dat, it->first}}};
 }
 
-bool TableIterator::DoUnserialize(BrokerDataView data) {
+bool TableIterator::DoUnserializeData(BrokerDataView data) {
     auto v = get_if<broker::vector>(data.value_);
     if ( ! (v && v->size() == 2) )
         return false;
@@ -1096,12 +1086,12 @@ bool TableIterator::DoUnserialize(BrokerDataView data) {
 
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
 
-std::optional<BrokerData> VectorIterator::DoSerialize() const {
+std::optional<BrokerData> VectorIterator::DoSerializeData() const {
     broker::integer difference = it - dat.begin();
     return BrokerData{broker::data{broker::vector{dat, difference}}};
 }
 
-bool VectorIterator::DoUnserialize(BrokerDataView data) {
+bool VectorIterator::DoUnserializeData(BrokerDataView data) {
     auto v = get_if<broker::vector>(data.value_);
     if ( ! (v && v->size() == 2) )
         return false;
@@ -1119,12 +1109,12 @@ bool VectorIterator::DoUnserialize(BrokerDataView data) {
 
 IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
 
-std::optional<BrokerData> RecordIterator::DoSerialize() const {
+std::optional<BrokerData> RecordIterator::DoSerializeData() const {
     auto difference = static_cast<broker::integer>(it - dat.begin());
     return BrokerData{broker::data{broker::vector{dat, difference}}};
 }
 
-bool RecordIterator::DoUnserialize(BrokerDataView data) {
+bool RecordIterator::DoUnserializeData(BrokerDataView data) {
     auto v = get_if<broker::vector>(data.value_);
     if ( ! (v && v->size() == 2) )
         return false;
@@ -1187,7 +1177,10 @@ BrokerListView BrokerDataView::ToList() noexcept {
     return BrokerListView{std::addressof(broker::get<broker::vector>(*value_))};
 }
 
-ValPtr BrokerDataView::ToVal(Type* type) { return zeek::Broker::detail::data_to_val(*value_, type); }
+ValPtr BrokerDataView::ToVal(Type* type) {
+    auto cpy = *value_;
+    return zeek::Broker::detail::data_to_val(cpy, type);
+}
 
 bool BrokerData::Convert(const Val* value) {
     if ( auto res = zeek::Broker::detail::val_to_data(value) ) {

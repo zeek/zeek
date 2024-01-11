@@ -40,12 +40,12 @@ void StoreHandleVal::ValDescribe(ODesc* d) const {
 
 IMPLEMENT_OPAQUE_VALUE(StoreHandleVal)
 
-std::optional<BrokerData> StoreHandleVal::DoSerialize() const {
+std::optional<BrokerData> StoreHandleVal::DoSerializeData() const {
     // Cannot serialize.
     return std::nullopt;
 }
 
-bool StoreHandleVal::DoUnserialize(BrokerDataView) {
+bool StoreHandleVal::DoUnserializeData(BrokerDataView) {
     // Cannot unserialize.
     return false;
 }

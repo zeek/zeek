@@ -1,3 +1,36 @@
+6.2.0-dev.360 | 2024-01-11 12:36:11 +0100
+
+  * Document upcoming breaking change for OpaqueVal (Dominik Charousset, Corelight)
+
+  * Integrate review feedback (Dominik Charousset, Corelight)
+
+  * Fix formatting (Dominik Charousset, Corelight)
+
+  * Backward compatibility for OpaqueVal serialization (Dominik Charousset, Corelight)
+
+    External plugins depend on the API for `OpaqueVal`. This set of changes
+    brings back the previous signature for the `Serialize` and `Unserialize`
+    member functions. The new set of functions that operate on the recently
+    added `BrokerData` API were renamed accordingly and use a `Data` suffix to
+    distinguish between the old and new interface.
+
+    For the transition period, `OpaqueVal` now has two "sets" of
+    serialization functions: old and new (using the suffix). By default, the
+    new functions call the old API and then convert to the new types. Hence,
+    plugins that override the old set of member functions will continue to
+    work. New code should only override the new set of functions.
+
+    Since the macro `DECLARE_OPAQUE_VALUE` (a convenience macro for adding a
+    default set of member functions to a subtype of `OpaqueVal`) might be
+    used by 3rd parties, the macro has been "restored" to its previous
+    behavior, i.e., it will override the old set of member functions. The
+    new macro `DECLARE_OPAQUE_VALUE_V2` is similar but overrides the new set
+    of functions instead.
+
+    The class `BloomFilter` uses the same member function signatures as
+    `OpaqueVal` for serialization. Hence, the same old/new split was
+    implemented to keep the APIs consistent.
+
 6.2.0-dev.355 | 2024-01-11 10:59:05 +0100
 
   * NEWS: Update news for tunnel depth changes (Arne Welzel, Corelight)

@@ -186,6 +186,40 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The virtual functions ``DoSerialize``and ``DoUnserialize`` of the ``OpaqueVal``
+  (and ``BloomFilter``) class will be removed with Zeek 7.1. Unfortunately, code
+  implementing the deprecated methods does not produce compiler warnings.
+
+  Plugin authors implementing an ``OpaqueVal`` subclass need to convert to
+  ``DoSerializeData`` and ``DoUnserializeData``:
+
+    * ``std::optional<BrokerData> OpaqueVal::DoSerializeData() const``
+    * ``bool OpaqueVal::DoUnserializeData(BrokerDataView data)``
+
+  When overriding ``DoSerializeData()``, return ``std::nullopt`` (or a
+  default-constructed ``optional``) for values that cannot be serialized.
+  Otherwise, the canonical way to create a ``BrokerData`` for serialization is
+  by using a ``BrokerListBuilder``. For example, creating a ``BrokerData`` that
+  contains ``true`` and the count ``42`` could be implemented as follows:
+
+    BrokerListBuilder builder;
+    builder.Add(true);
+    builder.AddCount(42u);
+    return std::move(builder).Build();
+
+  Please refer to the respective class documentation for a full list of member
+  functions on ``BrokerListBuilder`` and ``BrokerDataView``.
+
+  For plugins that are using the macro ``DECLARE_OPAQUE_VALUE`` to generate the
+  function prototypes for the serialization functions: please use
+  ``DECLARE_OPAQUE_VALUE_DATA`` instead to generate prototypes for the new API.
+
+  Plugin authors that need to support multiple Zeek versions can use the
+  ``ZEEK_VERSION_NUMBER`` macro to conditionally implement the new and old
+  methods. Provide the new versions with Zeek 6.2 (60200) or later, otherwise
+  keep the old signature. The default implementations for the new functions
+  as used by Zeek will call the old signatures and convert the results.
+
 - The ``Cluster::Node$interface`` field has been deprecated. It's essentially
   unneeded, unused and not a reliable way to gather the actual interface used
   by a worker. In Zeekctl deployments the field will be populated until its

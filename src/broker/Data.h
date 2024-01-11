@@ -125,7 +125,7 @@ public:
 protected:
     DataVal() : OpaqueVal(opaque_of_data_type) {}
 
-    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::DataVal)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::DataVal)
 };
 
 /**
@@ -222,7 +222,7 @@ public:
 protected:
     SetIterator() : zeek::OpaqueVal(opaque_of_set_iterator) {}
 
-    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::SetIterator)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::SetIterator)
 };
 
 class TableIterator : public zeek::OpaqueVal {
@@ -238,7 +238,7 @@ public:
 protected:
     TableIterator() : zeek::OpaqueVal(opaque_of_table_iterator) {}
 
-    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::TableIterator)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::TableIterator)
 };
 
 class VectorIterator : public zeek::OpaqueVal {
@@ -254,7 +254,7 @@ public:
 protected:
     VectorIterator() : zeek::OpaqueVal(opaque_of_vector_iterator) {}
 
-    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::VectorIterator)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::VectorIterator)
 };
 
 class RecordIterator : public zeek::OpaqueVal {
@@ -270,20 +270,33 @@ public:
 protected:
     RecordIterator() : zeek::OpaqueVal(opaque_of_record_iterator) {}
 
-    DECLARE_OPAQUE_VALUE(zeek::Broker::detail::RecordIterator)
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::RecordIterator)
 };
 
 } // namespace zeek::Broker::detail
 
 namespace zeek {
 
+class BrokerData;
+class BrokerDataView;
 class BrokerListView;
+
+} // namespace zeek
+
+namespace zeek::detail {
+
+class BrokerDataAccess;
+
+} // namespace zeek::detail
+
+namespace zeek {
 
 /**
  * Non-owning reference (view) to a Broker data value.
  */
 class BrokerDataView {
 public:
+    friend class zeek::detail::BrokerDataAccess;
     friend class zeek::Broker::detail::DataVal;
     friend class zeek::Broker::detail::SetIterator;
     friend class zeek::Broker::detail::TableIterator;
@@ -294,7 +307,7 @@ public:
 
     BrokerDataView(const BrokerDataView&) noexcept = default;
 
-    explicit BrokerDataView(broker::data* value) noexcept : value_(value) { assert(value != nullptr); }
+    explicit BrokerDataView(const broker::data* value) noexcept : value_(value) { assert(value != nullptr); }
 
     /**
      * Checks whether the value represents the `nil` value.
@@ -399,7 +412,7 @@ public:
     friend std::string to_string(const BrokerDataView& data) { return broker::to_string(*data.value_); }
 
 private:
-    broker::data* value_;
+    const broker::data* value_;
 };
 
 /**
@@ -423,11 +436,13 @@ template<typename... Args>
  */
 class BrokerListView {
 public:
+    friend class zeek::detail::BrokerDataAccess;
+
     BrokerListView() = delete;
 
     BrokerListView(const BrokerListView&) noexcept = default;
 
-    explicit BrokerListView(broker::vector* values) noexcept : values_(values) { assert(values != nullptr); }
+    explicit BrokerListView(const broker::vector* values) noexcept : values_(values) { assert(values != nullptr); }
 
     /**
      * Returns a view to the first element.
@@ -460,10 +475,8 @@ public:
     [[nodiscard]] size_t IsEmpty() const noexcept { return values_->empty(); }
 
 private:
-    broker::vector* values_;
+    const broker::vector* values_;
 };
-
-class BrokerDataAccess;
 
 class BrokerListBuilder;
 
@@ -472,10 +485,10 @@ class BrokerListBuilder;
  */
 class BrokerData {
 public:
-    friend class BrokerDataAccess;
     friend class BrokerListBuilder;
     friend class zeek::Broker::Manager;
     friend class zeek::Broker::detail::StoreHandleVal;
+    friend class zeek::detail::BrokerDataAccess;
 
     BrokerData() = default;
 
@@ -651,3 +664,18 @@ private:
 };
 
 } // namespace zeek
+
+namespace zeek::detail {
+
+class BrokerDataAccess {
+public:
+    static broker::data& Unbox(BrokerData& data) { return data.value_; }
+
+    static const broker::data& Unbox(const BrokerData& data) { return data.value_; }
+
+    static broker::data&& Unbox(BrokerData&& data) { return std::move(data.value_); }
+
+    static const broker::data& Unbox(const BrokerDataView& data) { return *data.value_; }
+};
+
+} // namespace zeek::detail

@@ -552,7 +552,7 @@ ValPtr X509Val::DoClone(CloneState* state) {
 
 IMPLEMENT_OPAQUE_VALUE(X509Val)
 
-std::optional<BrokerData> X509Val::DoSerialize() const {
+std::optional<BrokerData> X509Val::DoSerializeData() const {
     unsigned char* buf = nullptr;
     int length = i2d_X509(certificate, &buf);
 
@@ -565,7 +565,7 @@ std::optional<BrokerData> X509Val::DoSerialize() const {
     return std::move(result);
 }
 
-bool X509Val::DoUnserialize(BrokerDataView data) {
+bool X509Val::DoUnserializeData(BrokerDataView data) {
     if ( ! data.IsString() )
         return false;
 

@@ -1,3 +1,40 @@
+6.2.0-dev.355 | 2024-01-11 10:59:05 +0100
+
+  * NEWS: Update news for tunnel depth changes (Arne Welzel, Corelight)
+
+  * tunnels: Add 'X' to history when reaching Tunnel::max_depth (Arne Welzel, Corelight)
+
+  * Session/TCP/UDP: Reserve HIST_UNKNOWN_PKT mask (Arne Welzel, Corelight)
+
+    This is meant to be used for a new 'X' code in the history in scenarios when
+    packets are knowingly not processed or an unexpected unknown situation
+    is recognized.
+
+    Usually, these situations are currently reported via weirds or analyzer violations,
+    but being able to include it in the history field allows them to be more visible.
+
+    Will be used for exceeding tunnel depths first.
+
+  * Conn: Deprecated AppendAddl (Arne Welzel, Corelight)
+
+  * Conn/Session: Lift history logic into Session (Arne Welzel, Corelight)
+
+    This should allow to mangle a Session's history also from packet
+    analyzers without necessarily knowing the concrete connection type.
+
+    Given Connection is a subclass of Session, I don't think this
+    changes much.
+
+  * GH-3439: init-bare: Default Tunnel::max_depth to 4 (Arne Welzel, Corelight)
+
+    In AWS GLB environments, the max_depth of 2 is easily reached due to packets
+    being encapsulated with GENEVE and VXLAN [1]. Any additional encapsulation
+    layer causes Zeek raise a weird and ignore the inner traffic. Bump the default
+    maximum depth to 4, while not common it's not unusual either to observe
+    this in the wild.
+
+    [1] https://docs.aws.amazon.com/vpc/latest/mirroring/traffic-mirroring-packet-formats.html
+
 6.2.0-dev.347 | 2024-01-10 12:32:43 -0700
 
   * Use std::move in return values from bif methods to avoid copies (Tim Wojtulewicz, Corelight)

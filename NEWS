@@ -153,6 +153,10 @@ New Functionality
   Note that generally you should prefer record extension in conditionally loaded
   scripts rather than using conditional directives in the original record definition.
 
+- The 'X' code can now appear in a connection's history. It is meant to indicate
+  situations where Zeek stopped analyzing traffic due to exceeding certain limits or
+  when encountering unknown/unsupported protocols. Its first use is to indicate
+  ``Tunnel::max_depth`` being exceeded.
 
 Changed Functionality
 ---------------------
@@ -171,6 +175,10 @@ Changed Functionality
   hidden to avoid unneeded dependencies on OpenSSL headers. Plugins using the
   detail API from ``digest.h`` to compute hashes likely need to accommodate for
   this change.
+
+- The ``Tunnel::max_depth`` default was changed from 2 to 4 allowing for more than
+  two encapsulation layers. Two layers are already easily reached in AWS GLB
+  environments.
 
 Removed Functionality
 ---------------------

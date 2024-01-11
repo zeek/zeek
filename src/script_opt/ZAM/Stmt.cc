@@ -681,13 +681,10 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     auto value_var = f->ValueVar();
     auto body = f->LoopBody();
 
-    // Check whether the loop variables are actually used in the body.
-    // This is motivated by an idiom where there's both loop_vars and
-    // a value_var, but the script only actually needs the value_var;
-    // and also some weird cases where the script is managing a
-    // separate iteration process manually.
-    ProfileFunc body_pf(body);
-
+    // We used to have more involved logic here to check whether the loop
+    // variables are actually used in the body. Now that we have '_'
+    // loop placeholder variables, this is no longer worth trying to
+    // optimize for, though we still optimize for those placeholders.
     int num_unused = 0;
 
     auto aux = new ZInstAux(0);
@@ -695,7 +692,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     for ( auto i = 0; i < loop_vars->length(); ++i ) {
         auto id = (*loop_vars)[i];
 
-        if ( body_pf.Locals().count(id) == 0 || id->IsBlank() )
+        if ( id->IsBlank() )
             ++num_unused;
 
         int slot = id->IsBlank() ? -1 : FrameSlot(id);
@@ -706,12 +703,6 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     }
 
     bool no_loop_vars = (num_unused == loop_vars->length());
-
-    if ( value_var && body_pf.Locals().count(value_var.get()) == 0 )
-        // This is more clearly a coding botch - someone left in
-        // an unnecessary value_var variable.  But might as
-        // well not do the work.
-        value_var = nullptr;
 
     if ( value_var )
         aux->value_var_type = value_var->GetType();

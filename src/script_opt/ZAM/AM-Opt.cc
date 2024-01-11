@@ -158,15 +158,15 @@ bool ZAMCompiler::RemoveDeadCode() {
         }
 
         if ( t && t->inst_num > i0->inst_num && (! i1 || t->inst_num <= i1->inst_num) ) {
-            // This is effectively a branch to the next
-            // instruction.  Even if i0 is conditional, there's
-            // no point executing it because regardless of the
-            // outcome of the conditional, we go to the next
-            // successive live instruction (and we don't have
-            // conditionals with side effects).
-            KillInst(i0);
-            did_removal = true;
-            continue;
+            // This is effectively a branch to the next instruction.
+            // We can remove it *unless* the instruction has side effects.
+            // Conditionals don't, but loop-iteration-advancement
+            // instructions do.
+            if ( ! i0->IsLoopIterationAdvancement() ) {
+                KillInst(i0);
+                did_removal = true;
+                continue;
+            }
         }
 
         if ( i0->DoesNotContinue() && i1 && i1->num_labels == 0 ) {

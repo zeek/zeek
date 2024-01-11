@@ -214,6 +214,23 @@ ValPtr ZInst::ConstVal() const {
     return nullptr;
 }
 
+bool ZInst::IsLoopIterationAdvancement() const {
+    switch ( op ) {
+        case OP_NEXT_TABLE_ITER_VV:
+        case OP_NEXT_TABLE_ITER_NO_VARS_VV:
+        case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
+        case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV:
+        case OP_NEXT_VECTOR_ITER_VVV:
+        case OP_NEXT_VECTOR_BLANK_ITER_VV:
+        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV:
+        case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_VVV:
+        case OP_NEXT_STRING_ITER_VVV:
+        case OP_NEXT_STRING_BLANK_ITER_VV: return true;
+
+        default: return false;
+    }
+}
+
 string ZInst::ConstDump() const {
     auto v = ConstVal();
 

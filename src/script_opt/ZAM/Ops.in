@@ -2446,7 +2446,8 @@ type VV
 eval	Cat1OpRef(frame[z.v2])
 
 macro Cat1FullVal(val)
-	Cat1Op(ZVal(ZAM_val_cat(val.ToVal(z.t))))
+	auto formatted_val = ZVal(ZAM_val_cat(val.ToVal(z.t)));
+	Cat1Op(formatted_val)
 
 internal-op Cat1Full
 type VC

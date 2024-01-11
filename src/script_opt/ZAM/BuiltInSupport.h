@@ -36,12 +36,12 @@ protected:
 
 class FixedCatArg : public CatArg {
 public:
-    FixedCatArg(const TypePtr& t);
+    FixedCatArg(TypePtr t);
 
     void RenderInto(ZVal* zframe, int slot, char*& res) override;
 
 protected:
-    const TypePtr& t;
+    TypePtr t;
     char tmp[256];
 };
 
@@ -80,7 +80,7 @@ protected:
 
 class DescCatArg : public CatArg {
 public:
-    DescCatArg(const TypePtr& _t) : CatArg(), t(_t) { d.SetStyle(RAW_STYLE); }
+    DescCatArg(TypePtr _t) : CatArg(), t(std::move(_t)) { d.SetStyle(RAW_STYLE); }
 
     void RenderInto(ZVal* zframe, int slot, char*& res) override {
         auto n = d.Len();

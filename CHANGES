@@ -1,3 +1,26 @@
+6.0.2-11 | 2024-01-12 12:15:56 -0700
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * GH-3540: Known: Keep &create_expire on local tables/sets valid (Arne Welzel, Corelight)
+
+    After switching the known scripts away from broker stores, the
+    &create_expire value of the local tables/sets of the known scripts
+    wasn't in effect due to Cluster::node_up() and Cluster::node_down()
+    re-assigning these without keeping the &create_expire attribute
+    intact. This broke the "log hosts every 24h" behavior.
+
+    (cherry picked from commit 2ce4823c7acec6fb7b84ae1f7b5e172c6da5187e)
+
+  * Dict: Invalidate iterators during Clear() (Arne Welzel, Corelight)
+
+    If we don't do this, a RobustDictIterator owned by someone else holds
+    dangling pointers to the Dictionary that is being cleared.
+
+    Closes #3523
+
+    (cherry picked from commit f1e94594f91bce2ac181bba043c92586be1f1fd4)
+
 6.0.2-8 | 2024-01-12 11:57:00 -0700
 
   * Update cmake submodule [nomail] (Tim Wojtulewicz, Corelight)

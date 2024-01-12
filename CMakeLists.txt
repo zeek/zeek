@@ -1113,6 +1113,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
     endif ()
 endif ()
 
+set(ZEEK_HAVE_JAVASCRIPT no)
 if (NOT DISABLE_JAVASCRIPT)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/auxil/zeekjs/cmake)
     find_package(Nodejs)
@@ -1123,14 +1124,11 @@ if (NOT DISABLE_JAVASCRIPT)
                 STATUS
                     "Node.js version ${NODEJS_VERSION} is too old, need 16.13 or later. Not enabling JavaScript support."
             )
-            set(ZEEK_HAVE_JAVASCRIPT no)
         else ()
             set(ZEEKJS_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeekjs)
             list(APPEND ZEEK_INCLUDE_PLUGINS ${ZEEKJS_PLUGIN_PATH})
             set(ZEEK_HAVE_JAVASCRIPT yes)
         endif ()
-    else ()
-        set(ZEEK_HAVE_JAVASCRIPT no)
     endif ()
 endif ()
 

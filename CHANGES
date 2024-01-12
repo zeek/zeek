@@ -1,3 +1,9 @@
+6.0.2-15 | 2024-01-12 13:33:19 -0700
+
+  * Bump Spicy to latest LTS release. (Benjamin Bannier, Corelight)
+
+  * CI: Remove EOL (and broken) FreeBSD 12 build (Tim Wojtulewicz, Corelight)
+
 6.0.2-12 | 2024-01-12 12:21:52 -0700
 
   * Pick up upstream CAF patch for flow::from_steps (Tim Wojtulewicz, Corelight)

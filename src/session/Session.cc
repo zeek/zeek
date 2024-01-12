@@ -58,6 +58,7 @@ Session::Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status
     timers_canceled = 0;
     inactivity_timeout = 0;
     installed_status_timer = 0;
+    hist_seen = 0;
 }
 
 void Session::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name) {

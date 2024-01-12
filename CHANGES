@@ -1,3 +1,60 @@
+6.2.0-dev.375 | 2024-01-12 09:27:58 +0100
+
+  * Modernize various C++/Zeek-isms in the MMDB code. (Christian Kreibich, Corelight)
+
+  * Fix MMDB code to re-open explicitly opened DBs correctly (Christian Kreibich, Corelight)
+
+    The filename from which a DB first gets opened (either via an explicitly
+    specified filename, or via the path sequence now configurable at the script
+    layer) is now "sticky", meaning re-opening won't switch to a different file.
+
+    This was easiest by moving most state into the MMDB class itself. The previous
+    approach of tracking the two DB instances via a smart pointer and blowing the
+    pointed-to objects away as needed is now instead one of two objects fixed over
+    the lifetime of Zeek, able to open/close/reopen their underlying Maxmind DBs.
+
+    The MMDB class now only has one Lookup() method since there was no need to break
+    them apart -- it saves the return of a MMDB_lookup_result_s over the stack and
+    there's no need for throwing an exception.
+
+  * Add btest to verify behavior of re-opened MMDBs opened directly via BIFs (Christian Kreibich, Corelight)
+
+    The mmdb_open_location_db() and mmdb_open_asn_db() BiFs were untested, and Zeek
+    has a bug that makes any DBs opened that way fall back to looking up DBs via the
+    existing script-level config mechanism (via mmdb_dir), which is at least
+    unexpected and might well be unconfigured if somebody uses the direct BiFs.
+
+  * Simplify MMDB code by moving more lookup functionality into MMDB class (Christian Kreibich, Corelight)
+
+  * Move MMDB logic out of mmdb.bif and into MMDB.cc/h. (Christian Kreibich, Corelight)
+
+    This does not change the implementation except for some light renaming where
+    things are now naturally scoped within MMDB.cc.
+
+  * Fix mmdb.temporary-error testcase when MMDBs are installed on system (Christian Kreibich, Corelight)
+
+    The test would previously fail in settings where the user has Maxmind DBs
+    installed in the hardwired system locations, because the fallback logic still
+    picked those up.
+
+  * Adapt MMDB BiF code to new script-layer variables (Christian Kreibich, Corelight)
+
+  * Update btest baselines to reflect introduction of mmdb.bif (Christian Kreibich, Corelight)
+
+  * Move MaxMind/GeoIP BiF functionality into separate file (Christian Kreibich, Corelight)
+
+  * Provide script-level configurability of MaxMind DB placement on disk (Christian Kreibich, Corelight)
+
+    This lifts the list of fallback directories in which Zeek will look for Maxmind
+    DBs into the script layer, and makes the names of the DB files themselves
+    (previously hardwired) configurable as well.
+
+    This does not yet change the in-core code; that commit follows.
+
+  * Sort toplevel .bif list in CMakeLists (Christian Kreibich, Corelight)
+
+    Not important, but here it is safe to do so and the list is getting lengthy.
+
 6.2.0-dev.362 | 2024-01-11 20:17:45 +0100
 
   * GH-3540: Known: Keep &create_expire on local tables/sets valid (Arne Welzel, Corelight)

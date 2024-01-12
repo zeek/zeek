@@ -111,27 +111,28 @@ include(BifCl)
 set(SUPERVISOR_SRCS supervisor/Supervisor.cc Pipe.cc)
 
 set(BIF_SRCS
-    zeek.bif
     communityid.bif
-    stats.bif
-    event.bif
     const.bif
-    types.bif
-    strings.bif
-    reporter.bif
+    event.bif
+    mmdb.bif
     option.bif
-    # Note: the supervisor BIF file is treated like other top-level BIFs instead
-    # of contained in its own subdirectory CMake logic because subdirectory BIFs
-    # are treated differently and don't support being called *during* parsing
-    # (e.g. within an @if directive).
-    supervisor/supervisor.bif
+    reporter.bif
+    stats.bif
+    strings.bif
+    types.bif
+    zeek.bif
     # The packet analysis BIF is treated like other top-level BIFs because it's
     # needed before parsing the packet protocol scripts, which happen very near
     # to the start of parsing.
     packet_analysis/packet_analysis.bif
     # The C++ loading BIF is treated like other top-level BIFs to give us
     # flexibility regarding when it's called.
-    script_opt/CPP/CPP-load.bif)
+    script_opt/CPP/CPP-load.bif
+    # Note: the supervisor BIF file is treated like other top-level BIFs instead
+    # of contained in its own subdirectory CMake logic because subdirectory BIFs
+    # are treated differently and don't support being called *during* parsing
+    # (e.g. within an @if directive).
+    supervisor/supervisor.bif)
 
 foreach (bift ${BIF_SRCS})
     bif_target(${bift} "standard")
@@ -328,6 +329,7 @@ set(MAIN_SRCS
     IP.cc
     IPAddr.cc
     List.cc
+    MMDB.cc
     Reporter.cc
     NFA.cc
     NetVar.cc

@@ -1,3 +1,7 @@
+6.0.2-12 | 2024-01-12 12:21:52 -0700
+
+  * Pick up upstream CAF patch for flow::from_steps (Tim Wojtulewicz, Corelight)
+
 6.0.2-11 | 2024-01-12 12:15:56 -0700
 
   * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)

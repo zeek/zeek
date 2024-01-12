@@ -1,3 +1,194 @@
+6.1.0-8 | 2024-01-12 13:04:08 -0700
+
+  * GH-3540: Known: Keep &create_expire on local tables/sets valid (Arne Welzel, Corelight)
+
+    After switching the known scripts away from broker stores, the
+    &create_expire value of the local tables/sets of the known scripts
+    wasn't in effect due to Cluster::node_up() and Cluster::node_down()
+    re-assigning these without keeping the &create_expire attribute
+    intact. This broke the "log hosts every 24h" behavior.
+
+    (cherry picked from commit 2ce4823c7acec6fb7b84ae1f7b5e172c6da5187e)
+
+  * Dict: Invalidate iterators during Clear() (Arne Welzel, Corelight)
+
+    If we don't do this, a RobustDictIterator owned by someone else holds
+    dangling pointers to the Dictionary that is being cleared.
+
+    Closes #3523
+
+    (cherry picked from commit f1e94594f91bce2ac181bba043c92586be1f1fd4)
+
+  * smb: Fix &read_expire not in effect due to &default=string_set() usage (Arne Welzel, Corelight)
+
+    The SMB::State$recent_files field is meant to have expiring entries.
+    However, due to usage of &default=string_set(), the &read_expire
+    attribute is not respected causing unbounded state growth. Replace
+    &default=string_set() with &default=set().
+
+    Thanks to ya-sato on Slack for reporting!
+
+    Related: zeek/zeek-docs#179, #3513.
+
+    (cherry picked from commit 5740dbcf20ca81fdbd1a9e474a7025e71e997697)
+
+    We already had these declared in dns/const.zeek, so extend the parser
+    as well to avoid raising weirds and add some test pcaps:
+
+       $ dig @8.8.8.8 DNSKEY ed448.no
+       $ dig @8.8.8.8 ed448.no +dnssec
+
+    And the same for the ed25519.no domain.
+
+    (cherry picked from commit a5a79d3f3a0c8620d2e15dedb2606bbf18487cbf)
+
+  * RE_Match_State: Do not reset current_pos for every Match() call (Arne Welzel, Corelight)
+
+    This seems like a bug: If one feeds one byte at a time, current_pos
+    is being reset for every byte, possibly reporting the wrong offsets
+    in the accepted_matches map.
+
+    (cherry picked from commit a5a79d3f3a0c8620d2e15dedb2606bbf18487cbf)
+
+  * frameworks/software: Fix stale value used for stripping (Arne Welzel, Corelight)
+
+    There was some confusion around which value was used subsequent to a strip(),
+    but sub not respecting anchors make it appear to work. Also seems that the
+    `\(?` part seems redundant.
+
+    (cherry picked from commit a5a79d3f3a0c8620d2e15dedb2606bbf18487cbf)
+
+  * GH-3455: strings.bif/sub,gsub: Respect anchors in pattern (Arne Welzel, Corelight)
+
+    Anchors within pattern passed to sub() or gsub() were previously ignored,
+    replacing any occurrence of '<text>' even when '^<text>' was used as a
+    pattern.
+
+    This is a pretty user-visible change (and we even have anchored patterns
+    within the base scripts), but seems "the right thing to do".
+
+    Relates to #3455
+
+    (cherry picked from commit a5a79d3f3a0c8620d2e15dedb2606bbf18487cbf)
+
+  * SSL: Add new extension types and ECH test (Johanna Amann, Corelight)
+
+    This commit adds a multitude of new extension types that were added in
+    the last few years; it also adds grease values to extensions, curves,
+    and ciphersuites.
+
+    Furthermore, it adds a test that contains a encrypted-client-hello
+    key-exchange (which uses several extension types that we do not have in
+    our baseline so far).
+
+    (cherry picked from commit 3257c0e216c6f2231376baa9dbcb6b9c27805d97)
+
+  * Add jq to final.Dockerfile (Matti Bispham, Corelight)
+
+    (cherry picked from commit 5ef5733fcc51c078f4d439de86931c69c4339afc)
+
+  * Let signature framework match HTTP body end (xb-anssi)
+
+    The HTTP analyzer never tells the signature framework when the body of a
+    request or a response ends, so any signature regex ending in a '$' used
+    in an 'http-request-body' or in an 'http-reply-body' condition will
+    never match.
+
+    This made it impossible to write a signature which could distinguish an
+    HTTP body consisting only of something from an HTTP body prefixed by
+    that same something.
+
+    - Fix:
+
+    The fix notifies the signature framework on EndOfData() that there will
+    be no further data to match for this body by giving it an empty buffer
+    of length 0 with the eol parameter set to true and all others set to
+    false. This lets it reach the '$' state in its DFA, and doesn't affect
+    other documented HTTP match behaviours.
+
+    - Limitation:
+
+    Since the signature framework doesn't appear to keep previously consumed
+    data on hand, any match of an http-*-body condition whose patterns ends
+    with a '$' will lead to an empty data parameter being passed to the
+    signature_match() event because the body data is no longer available
+    when EndOfData() happens.
+
+    Due to segmentation there is anyway no guarantee the data parameter
+    would have held the entire match even without the '$', since the data
+    parameter only receives the last chunk of data which completed the match
+    condition, as can be seen on prefix matches in the btest cases where the
+    matching data spans multiple segments (the event gives 'B' and not
+    'AB'), so this is only an extreme case of partial data being given to
+    that event.
+
+    (cherry picked from commit 8a13155a415b7070e6c95480c5b9074a67bafb58)
+
+  * Test how the signature framework matches HTTP body (xb-anssi)
+
+    This adds a signatures/http-body-match btest to verify how the signature
+    framework matches HTTP body in requests and responses.
+
+    It currently fails because the 'http-request-body' and 'http-reply-body'
+    clauses never match anything when there is a '$' in their regular
+    expressions.
+
+    The other pattern clauses such as the 'payload' clause do not suffer
+    from that restriction and it is not documented as a limitation of HTTP
+    body pattern clauses either, so it is probably a bug.
+
+    The "http-body-match" btest shows that without a fix any signatures
+    which ends with a '$' in a http-request-body or http-reply-body rule
+    will never raise a signature_match() event, and that signatures which do
+    not end with a '$' cannot distinguish an HTTP body prefixed by the
+    matching pattern (ex: ABCD) from an HTTP body consisting entirely of the
+    matching pattern (ex: AB).
+
+    Test cases by source port:
+    - 13579:
+      - GET without body, plain res body (CD, only)
+    - 13578:
+      - GET without body, plain res body (CDEF, prefix)
+    - 24680:
+      - POST plain req body (AB, only), plain res body (CD, only)
+    - 24681:
+      - POST plain req body (ABCD, prefix), plain res body (CDEF, prefix)
+    - 24682:
+      - POST gzipped req body (AB, only), gzipped res body (CD, only)
+      - POST plain req body (CD, only), plain res body (EF, only)
+    - 33210:
+      - POST multipart plain req body (AB;CD;EF, prefix)
+      - plain res body (CD, only)
+    - 33211:
+      - POST multipart plain req body (ABCD;EF, prefix)
+      - plain res body (CDEF, prefix)
+    - 34527:
+      - POST chunked gzipped req body (AB, only)
+      - chunked gzipped res body (CD, only)
+    - 34528:
+      - POST chunked gzipped req body (ABCD, prefix)
+      - chunked gzipped res body (CDEF, prefix)
+
+    The tests with source ports 24680, 24682 and 34527 should
+    match the signature http_request_body_AB_only and the signature
+    http_request_body_AB_prefix, but they only match the latter.
+
+    The tests with source ports 13579, 24680, 24682, 33210 and 34527 should
+    match the signature http_response_body_CD_only and the signature
+    http_response_body_CD_prefix, but they only match the latter.
+
+    The tests with source ports 24680, 24681, 33210 and 33211 show how the
+    http_request_body_AB_then_CD signature with two http-request-body
+    conditions match either on one or multiple requests (documented
+    behaviour).
+
+    The test cases with other source ports show where the
+    http_request_body_AB_only and http_response_body_CD_only signatures
+    should not match because their bodies include more than the searched
+    patterns.
+
+    (cherry picked from commit 8a13155a415b7070e6c95480c5b9074a67bafb58)
+
 6.1.0 | 2023-10-27 11:48:30 -0700
 
   * IEEE802_11: Fix buffer-overflow due to not accounting for the amsdu header (Arne Welzel, Corelight)

@@ -14,6 +14,8 @@
 namespace zeek::analyzer::smtp {
 namespace detail {
 
+class SMTP_BDAT_Analyzer;
+
 enum SMTP_Cmd {
 #include "SMTP_cmd.def"
 };
@@ -82,6 +84,8 @@ protected:
     bool skip_data;               // whether to skip message body
     String* line_after_gap;       // last line before the first reply
                                   // after a gap
+
+    std::unique_ptr<detail::SMTP_BDAT_Analyzer> bdat; // if set, BDAT chunk transfer active
 
     analyzer::mime::MIME_Mail* mail;
 

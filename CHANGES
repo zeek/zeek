@@ -1,3 +1,12 @@
+6.2.0-dev.378 | 2024-01-12 10:48:33 +0100
+
+  * btest/smtp: Test with smtp-bdat-pipeline-8bitmime.pcap (Arne Welzel, Corelight)
+
+    Not sure about the origin of this pcap, so adding it in a separate
+    commit, but it seems a nice real-world test case.
+
+  * GH-3264: SMTP: Add BDAT support (Arne Welzel, Corelight)
+
 6.2.0-dev.375 | 2024-01-12 09:27:58 +0100
 
   * Modernize various C++/Zeek-isms in the MMDB code. (Christian Kreibich, Corelight)

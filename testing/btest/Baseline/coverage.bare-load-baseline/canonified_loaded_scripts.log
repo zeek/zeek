@@ -229,6 +229,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.consts.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.types.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_SMTP.consts.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMTP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMTP.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek

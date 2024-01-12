@@ -97,6 +97,10 @@ New Functionality
   Given this is the first iteration of this feature, feedback around usability and
   use-cases that aren't covered are more than welcome.
 
+- The SMTP analyzer was extended to recognize and properly handle the BDAT command
+  from RFC 3030. This improves visibility into the SMTP protocol when mail agents
+  and servers support and use this extension.
+
 - The event keyword in signatures was extended to support choosing a custom event
   to raise instead of ``signature_match()``. This can be more efficient in certain
   scenarios compared to funneling every match through a single event.

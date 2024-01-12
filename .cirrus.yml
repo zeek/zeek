@@ -390,17 +390,6 @@ freebsd13_task:
   << : *SKIP_TASK_ON_PR
   << : *FREEBSD_ENVIRONMENT
 
-freebsd12_task:
-  freebsd_instance:
-    # FreeBSD 12 EOL: June 30, 2024
-    image_family: freebsd-12-2
-    << : *FREEBSD_RESOURCES_TEMPLATE
-
-  prepare_script: ./ci/freebsd/prepare.sh
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
-  << : *FREEBSD_ENVIRONMENT
-
 asan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.

@@ -77,15 +77,15 @@ MMDB::MMDB() : mmdb{}, file_info{}, reported_error{false}, last_check{zeek::run_
 
 MMDB::~MMDB() { Close(); }
 
-bool MMDB::OpenFile(const char* a_filename) {
+bool MMDB::OpenFile(const std::string& a_filename) {
     filename = a_filename;
     Close();
 
-    if ( 0 != stat(a_filename, &file_info) ) {
+    if ( 0 != stat(filename.data(), &file_info) ) {
         return false;
     }
 
-    int status = MMDB_open(a_filename, MMDB_MODE_MMAP, &mmdb);
+    int status = MMDB_open(a_filename.data(), MMDB_MODE_MMAP, &mmdb);
 
     if ( MMDB_SUCCESS != status ) {
         memset(&mmdb, 0, sizeof(mmdb));
@@ -110,16 +110,16 @@ bool MMDB::EnsureLoaded() {
     if ( filename.empty() )
         res = OpenFromScriptConfig();
     else if ( ! IsOpen() )
-        res = OpenFile(filename.data());
+        res = OpenFile(filename);
     else if ( IsStaleDB() ) {
         report_msg("Closing stale MaxMind DB [%s]", filename.data());
-        if ( ! OpenFile(filename.data()) )
+        if ( ! OpenFile(filename) )
             res = false;
     }
 
     if ( ! res && ! reported_error ) {
         reported_error = true;
-        zeek::emit_builtin_error(zeek::util::fmt("Failed to open %s", Description()));
+        zeek::emit_builtin_error(zeek::util::fmt("Failed to open %s", Description().data()));
     }
 
     return res;
@@ -183,64 +183,62 @@ bool MMDB::IsStaleDB() {
 
 bool LocDB::OpenFromScriptConfig() {
     // City database is always preferred over Country database.
-    const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
-    std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
+    const auto& mmdb_dir_val = zeek::id::find_val<StringVal>("mmdb_dir");
+    std::string mmdb_dir{mmdb_dir_val->ToStdStringView()};
 
-    const auto& mmdb_city_db_val = zeek::detail::global_scope()->Find("mmdb_city_db")->GetVal();
-    std::string mmdb_city_db = mmdb_city_db_val->AsString()->CheckString();
+    const auto& mmdb_city_db_val = zeek::id::find_val<StringVal>("mmdb_city_db");
+    std::string mmdb_city_db{mmdb_city_db_val->ToStdStringView()};
 
-    const auto& mmdb_country_db_val = zeek::detail::global_scope()->Find("mmdb_country_db")->GetVal();
-    std::string mmdb_country_db = mmdb_country_db_val->AsString()->CheckString();
+    const auto& mmdb_country_db_val = zeek::id::find_val<StringVal>("mmdb_country_db");
+    std::string mmdb_country_db{mmdb_country_db_val->ToStdStringView()};
 
     if ( ! mmdb_dir.empty() ) {
         auto d = mmdb_dir + "/" + mmdb_city_db;
 
-        if ( OpenFile(d.data()) )
+        if ( OpenFile(d) )
             return true;
 
         d = mmdb_dir + "/" + mmdb_country_db;
 
-        if ( OpenFile(d.data()) )
+        if ( OpenFile(d) )
             return true;
     }
 
-    const auto& mmdb_dir_fallbacks_val = zeek::detail::global_scope()->Find("mmdb_dir_fallbacks")->GetVal();
-    auto* vv = mmdb_dir_fallbacks_val->AsVectorVal();
+    const auto& mmdb_dir_fallbacks_val = zeek::id::find_val<VectorVal>("mmdb_dir_fallbacks");
 
-    for ( unsigned int i = 0; i < vv->Size(); ++i ) {
-        auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_city_db;
-        if ( OpenFile(d.data()) )
+    for ( unsigned int i = 0; i < mmdb_dir_fallbacks_val->Size(); ++i ) {
+        auto d = mmdb_dir_fallbacks_val->StringValAt(i)->ToStdString() + "/" + mmdb_city_db;
+        if ( OpenFile(d) )
             return true;
     }
 
-    for ( unsigned int i = 0; i < vv->Size(); ++i ) {
-        auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_country_db;
-        if ( OpenFile(d.data()) )
+    for ( unsigned int i = 0; i < mmdb_dir_fallbacks_val->Size(); ++i ) {
+        auto d = mmdb_dir_fallbacks_val->StringValAt(i)->ToStdString() + "/" + mmdb_country_db;
+        if ( OpenFile(d) )
             return true;
     }
 
     return false;
 }
 bool AsnDB::OpenFromScriptConfig() {
-    const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
-    std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
+    const auto& mmdb_dir_val = zeek::id::find_val<StringVal>("mmdb_dir");
+    std::string mmdb_dir{mmdb_dir_val->ToStdStringView()};
 
-    const auto& mmdb_asn_db_val = zeek::detail::global_scope()->Find("mmdb_asn_db")->GetVal();
-    std::string mmdb_asn_db = mmdb_asn_db_val->AsString()->CheckString();
+    const auto& mmdb_asn_db_val = zeek::id::find_val<StringVal>("mmdb_asn_db");
+    std::string mmdb_asn_db{mmdb_asn_db_val->ToStdStringView()};
 
     if ( ! mmdb_dir.empty() ) {
         auto d = mmdb_dir + "/" + mmdb_asn_db;
 
-        if ( OpenFile(d.data()) )
+        if ( OpenFile(d) )
             return true;
     }
 
-    const auto& mmdb_dir_fallbacks_val = zeek::detail::global_scope()->Find("mmdb_dir_fallbacks")->GetVal();
-    auto* vv = mmdb_dir_fallbacks_val->AsVectorVal();
+    const auto& mmdb_dir_fallbacks_val = zeek::id::find_val<VectorVal>("mmdb_dir_fallbacks");
 
-    for ( unsigned int i = 0; i < vv->Size(); ++i ) {
-        auto d = std::string(vv->StringAt(i)->CheckString()) + "/" + mmdb_asn_db;
-        if ( OpenFile(d.data()) )
+    for ( unsigned int i = 0; i < mmdb_dir_fallbacks_val->Size(); ++i ) {
+        auto d = mmdb_dir_fallbacks_val->StringValAt(i)->ToStdString() + "/" + mmdb_asn_db;
+        if ( OpenFile(d) )
             return true;
     }
 
@@ -248,23 +246,23 @@ bool AsnDB::OpenFromScriptConfig() {
 }
 #endif // USE_GEOIP
 
-ValPtr mmdb_open_location_db(StringVal* filename) {
+ValPtr mmdb_open_location_db(const StringValPtr& filename) {
 #ifdef USE_GEOIP
-    return zeek::val_mgr->Bool(mmdb_loc.OpenFile(filename->CheckString()));
+    return zeek::val_mgr->Bool(mmdb_loc.OpenFile(filename->ToStdString()));
 #else
     return zeek::val_mgr->False();
 #endif
 }
 
-ValPtr mmdb_open_asn_db(StringVal* filename) {
+ValPtr mmdb_open_asn_db(const StringValPtr& filename) {
 #ifdef USE_GEOIP
-    return zeek::val_mgr->Bool(mmdb_asn.OpenFile(filename->CheckString()));
+    return zeek::val_mgr->Bool(mmdb_asn.OpenFile(filename->ToStdString()));
 #else
     return zeek::val_mgr->False();
 #endif
 }
 
-RecordValPtr mmdb_lookup_location(AddrVal* addr) {
+RecordValPtr mmdb_lookup_location(const AddrValPtr& addr) {
     static auto geo_location = zeek::id::find_type<zeek::RecordType>("geo_location");
     auto location = zeek::make_intrusive<zeek::RecordVal>(geo_location);
 
@@ -316,7 +314,7 @@ RecordValPtr mmdb_lookup_location(AddrVal* addr) {
     return location;
 }
 
-RecordValPtr mmdb_lookup_autonomous_system(AddrVal* addr) {
+RecordValPtr mmdb_lookup_autonomous_system(const AddrValPtr& addr) {
     static auto geo_autonomous_system = zeek::id::find_type<zeek::RecordType>("geo_autonomous_system");
     auto autonomous_system = zeek::make_intrusive<zeek::RecordVal>(geo_autonomous_system);
 

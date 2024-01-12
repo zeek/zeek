@@ -31,11 +31,11 @@ public:
     virtual bool OpenFromScriptConfig() = 0;
 
     // Helper string to identify the type of DB, useful in error messages.
-    virtual const char* Description() = 0;
+    virtual std::string_view Description() = 0;
 
     // Opens the DB at the given location, closing and cleaning up any currently
     // opened DB if there is one. Returns true if successful, false otherwise.
-    bool OpenFile(const char* filename);
+    bool OpenFile(const std::string& filename);
 
     // Closes a currently opened DB, releasing its state. Safe to call on a
     // closed DB.
@@ -71,21 +71,21 @@ private:
 class LocDB : public MMDB {
 public:
     bool OpenFromScriptConfig();
-    const char* Description() { return "GeoIP location database"; }
+    std::string_view Description() { return "GeoIP location database"; }
 };
 
 class AsnDB : public MMDB {
 public:
     bool OpenFromScriptConfig();
-    const char* Description() { return "GeoIP ASN database"; }
+    std::string_view Description() { return "GeoIP ASN database"; }
 };
 
 #endif // USE_GEOIP
 
-ValPtr mmdb_open_location_db(zeek::StringVal* filename);
-ValPtr mmdb_open_asn_db(zeek::StringVal* filename);
+ValPtr mmdb_open_location_db(const StringValPtr& filename);
+ValPtr mmdb_open_asn_db(const StringValPtr& filename);
 
-RecordValPtr mmdb_lookup_location(zeek::AddrVal* addr);
-RecordValPtr mmdb_lookup_autonomous_system(zeek::AddrVal* addr);
+RecordValPtr mmdb_lookup_location(const AddrValPtr& addr);
+RecordValPtr mmdb_lookup_autonomous_system(const AddrValPtr& addr);
 
 } // namespace zeek

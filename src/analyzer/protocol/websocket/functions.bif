@@ -1,0 +1,46 @@
+%%{
+#include "zeek/analyzer/protocol/websocket/WebSocket.h"
+%%}
+
+module WebSocket;
+
+## Configure the WebSocket analyzer.
+##
+## Called during :zeek:see:`websocket_handshake` to configure
+## the WebSocket analyzer given the selected protocol and extension
+## as chosen by the server.
+##
+## c: The WebSocket connection.
+#
+## aid: The identifier for the WebSocket analyzer as provided to :zeek:see:`websocket_handshake`.
+##
+## server_protocol: The protocol as found in the server's Sec-WebSocket-Protocol HTTP header, or empty.
+##
+## server_extensions: The extension as selected by the server via the Sec-WebSocket-Extensions HTTP Header.
+##
+## .. zeek:see:: websocket_handshake
+function __configure_analyzer%(c: connection, aid: count, config: WebSocket::AnalyzerConfig%): bool
+	%{
+	auto* analyzer = c->FindAnalyzer(aid);
+	auto* ws_analyzer = dynamic_cast<analyzer::websocket::WebSocket_Analyzer*>(analyzer);
+	if ( ! ws_analyzer )
+		{
+		reporter->Warning("WebSocket analyzer to configure not found");
+		return zeek::val_mgr->False();
+		}
+
+	static const auto& config_type = zeek::id::find_type<zeek::RecordType>("WebSocket::AnalyzerConfig");
+
+    if ( config->GetType() != config_type )
+		{
+		reporter->Warning("config has wrong type %s, expected %s",
+		                  config->GetType()->GetName().c_str(),
+		                  config_type->GetName().c_str());
+		return zeek::val_mgr->False();
+		}
+
+	if ( ! ws_analyzer->Configure({zeek::NewRef{}, config->AsRecordVal()}) )
+		return zeek::val_mgr->False();
+
+	return zeek::val_mgr->True();
+	%}

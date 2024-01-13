@@ -244,6 +244,10 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.functions.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_WebSocket.consts.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_WebSocket.events.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_WebSocket.functions.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_WebSocket.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_XMPP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_ARP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_UDP.events.bif.zeek
@@ -465,6 +469,9 @@ scripts/base/init-default.zeek
     scripts/base/protocols/syslog/spicy-events.zeek
     scripts/base/protocols/syslog/consts.zeek
     scripts/base/protocols/syslog/main.zeek
+  scripts/base/protocols/websocket/__load__.zeek
+    scripts/base/protocols/websocket/consts.zeek
+    scripts/base/protocols/websocket/main.zeek
   scripts/base/protocols/tunnels/__load__.zeek
   scripts/base/protocols/xmpp/__load__.zeek
     scripts/base/protocols/xmpp/main.zeek

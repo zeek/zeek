@@ -884,4 +884,18 @@ connection {
        }
   * uid: string, log=F, optional=F
   * vlan: int, log=F, optional=T
+  * websocket: record WebSocket::Info, log=F, optional=T
+      WebSocket::Info {
+        * client_extensions: vector of string, log=T, optional=T
+        * client_protocols: vector of string, log=T, optional=T
+        * host: string, log=T, optional=T
+        * id: record conn_id, log=T, optional=F
+            conn_id { ... }
+        * server_extensions: vector of string, log=T, optional=T
+        * subprotocol: string, log=T, optional=T
+        * ts: time, log=T, optional=F
+        * uid: string, log=T, optional=F
+        * uri: string, log=T, optional=T
+        * user_agent: string, log=T, optional=T
+       }
  }

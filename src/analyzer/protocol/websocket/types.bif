@@ -1,0 +1,4 @@
+module WebSocket;
+
+# A configuration record used for the WebSocket analyzer.
+type AnalyzerConfig: record;

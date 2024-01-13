@@ -12,6 +12,7 @@
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
+#include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/http/events.bif.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/file_analysis/Manager.h"
@@ -775,12 +776,9 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
     if ( TCP() && TCP()->IsPartial() )
         return;
 
-    if ( upgraded )
-        return;
-
-    if ( pia ) {
+    if ( upgraded || pia ) {
         // There will be a PIA instance if this connection has been identified
-        // as a connect proxy.
+        // as a connect proxy, or a child analyzer if there was an upgrade.
         ForwardStream(len, data, is_orig);
         return;
     }
@@ -1311,15 +1309,8 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg) {
         reply_reason_phrase = nullptr;
 
     // unanswered requests = 1 because there is no pop after 101.
-    if ( reply_code == 101 && unanswered_requests.size() == 1 && upgrade_connection && upgrade_protocol.size() ) {
-        // Upgraded connection that switches immediately - e.g. websocket.
-        upgraded = true;
-        RemoveSupportAnalyzer(content_line_orig);
-        RemoveSupportAnalyzer(content_line_resp);
-
-        if ( http_connection_upgrade )
-            EnqueueConnEvent(http_connection_upgrade, ConnVal(), make_intrusive<StringVal>(upgrade_protocol));
-    }
+    if ( reply_code == 101 && unanswered_requests.size() == 1 && upgrade_connection && upgrade_protocol.size() )
+        HTTP_Upgrade();
 
     reply_code = 0;
     upgrade_connection = false;
@@ -1329,6 +1320,49 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg) {
         reply_state = EXPECT_REPLY_NOTHING;
     else
         reply_state = EXPECT_REPLY_LINE;
+}
+
+void HTTP_Analyzer::HTTP_Upgrade() {
+    // Upgraded connection that switches immediately - e.g. websocket.
+
+    // Lookup an analyzer tag in the HTTP::upgrade_analyzer table.
+    static const auto& upgrade_analyzers = id::find_val<TableVal>("HTTP::upgrade_analyzers");
+
+    auto upgrade_protocol_val = make_intrusive<StringVal>(upgrade_protocol);
+    auto v = upgrade_analyzers->Find(upgrade_protocol_val);
+    if ( ! v ) {
+        // If not found, try the all lower version, too.
+        auto lower_upgrade_protocol = util::strtolower(upgrade_protocol);
+        upgrade_protocol_val = make_intrusive<StringVal>(lower_upgrade_protocol);
+        v = upgrade_analyzers->Find(upgrade_protocol_val);
+    }
+
+    if ( v ) {
+        auto analyzer_tag_val = cast_intrusive<EnumVal>(v);
+        DBG_LOG(DBG_ANALYZER, "Found %s in HTTP::upgrade_analyzers for %s",
+                analyzer_tag_val->GetType<EnumType>()->Lookup(analyzer_tag_val->AsEnum()),
+                upgrade_protocol_val->CheckString());
+        auto analyzer_tag = analyzer_mgr->GetComponentTag(analyzer_tag_val.get());
+        auto* analyzer = analyzer_mgr->InstantiateAnalyzer(analyzer_tag, Conn());
+        if ( analyzer )
+            AddChildAnalyzer(analyzer);
+    }
+    else {
+        DBG_LOG(DBG_ANALYZER, "No mapping for %s in HTTP::upgrade_analyzers, using PIA instead",
+                upgrade_protocol.c_str());
+        pia = new analyzer::pia::PIA_TCP(Conn());
+        if ( AddChildAnalyzer(pia) ) {
+            pia->FirstPacket(true, nullptr);
+            pia->FirstPacket(false, nullptr);
+        }
+    }
+
+    upgraded = true;
+    RemoveSupportAnalyzer(content_line_orig);
+    RemoveSupportAnalyzer(content_line_resp);
+
+    if ( http_connection_upgrade )
+        EnqueueConnEvent(http_connection_upgrade, ConnVal(), make_intrusive<StringVal>(upgrade_protocol));
 }
 
 void HTTP_Analyzer::RequestClash(Val* /* clash_val */) {

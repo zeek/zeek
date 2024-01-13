@@ -423,7 +423,6 @@ export {
 	## The full list of TCP Option fields parsed from a TCP header.
 	type OptionList: vector of Option;
 }
-module GLOBAL;
 
 module Tunnel;
 export {
@@ -449,6 +448,16 @@ export {
 	const max_changes_per_connection: count = 5 &redef;
 
 } # end export
+
+module HTTP;
+export {
+	## Lookup table for Upgrade analyzers. First, a case sensitive lookup
+	## is done using the client's Upgrade header. If no match is found,
+	## the all lower-case value is used. If there's still no match Zeek
+	## uses dynamic protocol detection for the upgraded to protocol instead.
+	const upgrade_analyzers: table[string] of Analyzer::Tag &redef;
+}
+
 module GLOBAL;
 
 ## A type alias for a vector of encapsulating "connections", i.e. for when

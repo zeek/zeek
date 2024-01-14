@@ -1944,6 +1944,30 @@ ExprPtr VectorCoerceExpr::Duplicate() {
     return SetSucc(new VectorCoerceExpr(op_dup, GetType<VectorType>()));
 }
 
+bool VectorCoerceExpr::IsReduced(Reducer* c) const {
+    if ( WillTransform(c) )
+        return NonReduced(this);
+
+    return UnaryExpr::IsReduced(c);
+}
+
+bool VectorCoerceExpr::WillTransform(Reducer* c) const {
+    return op->Tag() == EXPR_VECTOR_CONSTRUCTOR && op->GetType<VectorType>()->IsUnspecifiedVector();
+}
+
+ExprPtr VectorCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( WillTransform(c) ) {
+        auto op1_list = op->GetOp1();
+        ASSERT(op1_list->Tag() == EXPR_LIST);
+        auto empty_list = cast_intrusive<ListExpr>(op1_list);
+        auto new_me = make_intrusive<VectorConstructorExpr>(empty_list, type);
+        auto red_e = new_me->Reduce(c, red_stmt);
+        return TransformMe(std::move(red_e), c, red_stmt);
+    }
+
+    return UnaryExpr::Reduce(c, red_stmt);
+}
+
 ExprPtr ScheduleExpr::Duplicate() {
     auto when_d = when->Duplicate();
     auto event_d = event->Duplicate()->AsEventExprPtr();

@@ -175,6 +175,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_KRB.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Login.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Login.functions.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_MIME.consts.bif.zeek
     build/scripts/base/bif/plugins/Zeek_MIME.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Modbus.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_MQTT.types.bif.zeek

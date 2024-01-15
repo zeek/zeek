@@ -109,6 +109,7 @@ public:
 	virtual void EndOfData();
 
 	MIME_Entity* Parent() const { return parent; }
+	zeek_uint_t Depth() const { return depth; };
 	int MIMEContentType() const { return content_type; }
 	const StringValPtr& GetContentType() const { return content_type_str; }
 	const StringValPtr& GetContentSubType() const { return content_subtype_str; }
@@ -180,6 +181,7 @@ protected:
 
 	zeek::detail::Base64Converter* base64_decoder;
 
+	zeek_uint_t depth;
 	int data_buf_length;
 	char* data_buf_data;
 	int data_buf_offset;

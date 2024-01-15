@@ -263,31 +263,12 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig) {
                     RequestEvent(cmd_len, cmd, data_len, line);
             }
 
-            // For the BDAT command, parse out the chunk-size from the line
-            // and switch the ContentLineAnalyzer into plain delivery mode
-            // assuming things look valid.
-            if ( cmd_code == detail::SMTP_CMD_BDAT ) {
-                const auto [chunk_size, is_last_chunk, error] = detail::parse_bdat_arg(end_of_line - line, line);
-                if ( ! error ) {
-                    assert(chunk_size >= 0);
-                    auto* cl = orig ? cl_orig : cl_resp;
-                    cl->SetPlainDelivery(chunk_size);
+            // See above, might have already done so.
+            bool do_update_state = cmd_code != detail::SMTP_CMD_END_OF_DATA;
 
-                    if ( ! bdat ) {
-                        assert(! mail);
-                        // This is the first BDAT chunk.
-                        BeginData(orig);
-                        bdat = std::make_unique<detail::SMTP_BDAT_Analyzer>(Conn(), mail,
-                                                                            zeek::BifConst::SMTP::bdat_max_line_length);
-                    }
-
-                    bdat->NextChunk(is_last_chunk ? detail::ChunkType::Last : detail::ChunkType::Intermediate,
-                                    chunk_size);
-                }
-                else {
-                    AnalyzerViolation(error, line, length);
-                }
-            }
+            if ( cmd_code == detail::SMTP_CMD_BDAT )
+                // Do not update state if this isn't a valid BDAT command.
+                do_update_state = ProcessBdatArg(end_of_line - line, line, orig);
             else if ( bdat ) {
                 // Non-BDAT command from client but still have BDAT state,
                 // close it out. This can happen when a client started to
@@ -297,7 +278,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig) {
                 EndData();
             }
 
-            if ( cmd_code != detail::SMTP_CMD_END_OF_DATA )
+            if ( do_update_state )
                 UpdateState(cmd_code, 0, orig);
         }
     }
@@ -865,6 +846,31 @@ void SMTP_Analyzer::UnexpectedReply(int cmd_code, int reply_code) {
 }
 
 void SMTP_Analyzer::ProcessData(int length, const char* line) { mail->Deliver(length, line, true /* trailing_CRLF */); }
+
+bool SMTP_Analyzer::ProcessBdatArg(int arg_len, const char* arg, bool orig) {
+    // For the BDAT command, parse out the chunk-size from the line
+    // and switch the ContentLineAnalyzer into plain delivery mode
+    // assuming things look valid.
+    const auto [chunk_size, is_last_chunk, error] = detail::parse_bdat_arg(arg_len, arg);
+    if ( error ) {
+        Weird("smtp_invalid_bdat_command", error);
+        return false;
+    }
+
+    auto* cl = orig ? cl_orig : cl_resp;
+    cl->SetPlainDelivery(chunk_size);
+
+    if ( ! bdat ) {
+        // This is the first BDAT chunk.
+        BeginData(orig);
+        bdat = std::make_unique<detail::SMTP_BDAT_Analyzer>(Conn(), mail, zeek::BifConst::SMTP::bdat_max_line_length);
+    }
+
+    bdat->NextChunk(is_last_chunk ? detail::ChunkType::Last : detail::ChunkType::Intermediate, chunk_size);
+
+    // All good.
+    return true;
+}
 
 void SMTP_Analyzer::BeginData(bool orig) {
     state = detail::SMTP_IN_DATA;

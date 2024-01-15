@@ -1,0 +1,18 @@
+# @TEST-DOC: Test invalid BDAT lines. Pcaps generated with a Python client against Postfix.
+#
+# @TEST-EXEC: zeek -b -r $TRACES/smtp/smtp-bdat-cmd-invalid.pcap %INPUT >out
+# @TEST-EXEC: btest-diff smtp.log
+# @TEST-EXEC: btest-diff weird.log
+# @TEST-EXEC: btest-diff out
+
+@load base/protocols/conn
+@load base/protocols/smtp
+
+event smtp_request(c: connection, is_orig: bool, command: string, arg: string) {
+	print "smtp_request", c$uid, is_orig, command, arg;
+}
+
+event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
+                 msg: string, cont_resp: bool) {
+	print "smtp_reply", c$uid, is_orig, code, cmd, msg;
+}

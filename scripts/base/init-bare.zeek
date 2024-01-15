@@ -2780,6 +2780,16 @@ export {
 } # end export
 
 
+module MIME;
+export {
+	## Stop analysis of nested multipart MIME entities if this depth is
+	## reached. Setting this value to 0 removes the limit.
+	const max_depth = 100 &redef;
+
+} # end export
+
+
+
 module MOUNT3;
 export {
 

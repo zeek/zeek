@@ -7,6 +7,7 @@
 #include "zeek/Base64.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
+#include "zeek/analyzer/protocol/mime/consts.bif.h"
 #include "zeek/analyzer/protocol/mime/events.bif.h"
 #include "zeek/digest.h"
 #include "zeek/file_analysis/Manager.h"
@@ -450,8 +451,10 @@ MIME_Entity::MIME_Entity(MIME_Message* output_message, MIME_Entity* parent_entit
     init();
     parent = parent_entity;
     message = output_message;
-    if ( parent )
+    if ( parent ) {
         content_encoding = parent->ContentTransferEncoding();
+        depth = parent->Depth() + 1;
+    }
 
     want_all_headers = (bool)mime_all_headers;
 }
@@ -479,6 +482,7 @@ void MIME_Entity::init() {
 
     base64_decoder = nullptr;
 
+    depth = 0;
     data_buf_length = 0;
     data_buf_data = nullptr;
     data_buf_offset = -1;
@@ -1070,6 +1074,19 @@ void MIME_Entity::SubmitAllHeaders() { message->SubmitAllHeaders(headers); }
 
 void MIME_Entity::BeginChildEntity() {
     ASSERT(current_child_entity == nullptr);
+
+    // If the maximum depth for analysis is reached, don't create a new
+    // child entity. Instead, its header/body will be delivered to the
+    // current entity.
+    if ( zeek::BifConst::MIME::max_depth > 0 && Depth() >= zeek::BifConst::MIME::max_depth ) {
+        if ( message->GetAnalyzer() ) {
+            const char* addl = zeek::util::fmt("%" PRIu64, Depth());
+            message->GetAnalyzer()->Weird("exceeded_mime_max_depth", addl);
+        }
+
+        return;
+    }
+
     current_child_entity = NewChildEntity();
     message->BeginEntity(current_child_entity);
 }

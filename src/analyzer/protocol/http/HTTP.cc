@@ -1344,8 +1344,24 @@ void HTTP_Analyzer::HTTP_Upgrade() {
                 upgrade_protocol_val->CheckString());
         auto analyzer_tag = analyzer_mgr->GetComponentTag(analyzer_tag_val.get());
         auto* analyzer = analyzer_mgr->InstantiateAnalyzer(analyzer_tag, Conn());
-        if ( analyzer )
+        if ( analyzer ) {
             AddChildAnalyzer(analyzer);
+
+            // The analyzer's Init() may have scheduled an event for analyzer configuration.
+            // Drain the event queue now to process it. This further ensures that other
+            // events already in the event queue (http_reply, http_header, ...) are drained
+            // as well and accessible when the configuration runs.
+            //
+            // Don't just copy this code into a new analyzer, there might be better and more
+            // more general approaches.
+            //
+            // Alternative proposal from Robin:
+            //
+            //   Collect all HTTP headers (pattern/names configurable by script land)
+            //   and forward the collected headers to the analyzer via a custom
+            //   configuration method or some in-band channel.
+            event_mgr.Drain();
+        }
     }
     else {
         DBG_LOG(DBG_ANALYZER, "No mapping for %s in HTTP::upgrade_analyzers, using PIA instead",

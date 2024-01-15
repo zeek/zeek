@@ -58,9 +58,6 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
 
     finished = 0;
 
-    hist_seen = 0;
-    history = "";
-
     adapter = nullptr;
     primary_PIA = nullptr;
 

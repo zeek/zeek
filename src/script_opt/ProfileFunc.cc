@@ -635,7 +635,7 @@ bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, T
 
     auto func = fv->AsFunc();
     if ( func->GetKind() == Func::BUILTIN_FUNC ) {
-        if ( ! has_no_script_side_effects(func->Name()) )
+        if ( has_script_side_effects(func->Name()) )
             is_unknown = true;
         return true;
     }
@@ -1168,7 +1168,7 @@ bool ProfileFuncs::DefinitelyHasNoSideEffects(const ExprPtr& e) const {
         return false;
 
     for ( auto& b : pf->BiFGlobals() )
-        if ( ! has_no_script_side_effects(b->Name()) )
+        if ( has_script_side_effects(b->Name()) )
             return false;
 
     return true;
@@ -1259,7 +1259,7 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
     }
 
     for ( auto& b : pf->BiFGlobals() )
-        if ( ! has_no_script_side_effects(b->Name()) ) {
+        if ( has_script_side_effects(b->Name()) ) {
             is_unknown = true;
             return true;
         }

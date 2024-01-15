@@ -1889,45 +1889,56 @@ ValPtr TableVal::Default(const ValPtr& index) {
         return nullptr;
     }
 
+    ValPtr result;
+
     if ( def_val->GetType()->Tag() != TYPE_FUNC || same_type(def_val->GetType(), GetType()->Yield()) ) {
         if ( def_attr->GetExpr()->IsConst() )
             return def_val;
 
         try {
-            return def_val->Clone();
+            result = def_val->Clone();
         } catch ( InterpreterException& e ) { /* Already reported. */
         }
 
-        Error("&default value for table is not clone-able");
-        return nullptr;
+        if ( ! result ) {
+            Error("&default value for table is not clone-able");
+            return nullptr;
+        }
+    }
+    else {
+        const Func* f = def_val->AsFunc();
+        Args vl;
+
+        if ( index->GetType()->Tag() == TYPE_LIST ) {
+            auto lv = index->AsListVal();
+            vl.reserve(lv->Length());
+
+            for ( const auto& v : lv->Vals() )
+                vl.emplace_back(v);
+        }
+        else
+            vl.emplace_back(index);
+
+        try {
+            result = f->Invoke(&vl);
+        }
+
+        catch ( InterpreterException& e ) { /* Already reported. */
+        }
+
+        if ( ! result ) {
+            Error("no value returned from &default function");
+            return nullptr;
+        }
     }
 
-    const Func* f = def_val->AsFunc();
-    Args vl;
-
-    if ( index->GetType()->Tag() == TYPE_LIST ) {
-        auto lv = index->AsListVal();
-        vl.reserve(lv->Length());
-
-        for ( const auto& v : lv->Vals() )
-            vl.emplace_back(v);
-    }
-    else
-        vl.emplace_back(index);
-
-    ValPtr result;
-
-    try {
-        result = f->Invoke(&vl);
-    }
-
-    catch ( InterpreterException& e ) { /* Already reported. */
-    }
-
-    if ( ! result ) {
-        Error("no value returned from &default function");
-        return nullptr;
-    }
+    auto rt = result->GetType();
+    if ( rt->Tag() == TYPE_VECTOR )
+        // The double-Yield() here is because this is a "table of vector of X"
+        // and we want X. If this is instead a "table of any", that'll be
+        // okay because concretize_if_unspecified() correctly deals with
+        // nil target types.
+        detail::concretize_if_unspecified(cast_intrusive<VectorVal>(result), GetType()->Yield()->Yield());
 
     return result;
 }
@@ -3472,6 +3483,26 @@ bool VectorVal::Concretize(const TypePtr& t) {
     any_yield = false;
 
     return true;
+}
+
+void detail::concretize_if_unspecified(VectorValPtr v, TypePtr t) {
+    if ( v->Size() != 0 )
+        // Concretization only applies to empty vectors.
+        return;
+
+    if ( v->GetType()->Yield()->Tag() != TYPE_ANY )
+        // It's not an unspecified vector.
+        return;
+
+    if ( ! t )
+        // "t" can be nil if the vector is being assigned to an "any" value.
+        return;
+
+    if ( t->Tag() == TYPE_ANY )
+        // No need to concretize.
+        return;
+
+    v->Concretize(t);
 }
 
 unsigned int VectorVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const {

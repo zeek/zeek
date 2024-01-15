@@ -507,9 +507,6 @@ static void analyze_scripts_for_ZAM() {
 void clear_script_analysis() {
     IDOptInfo::ClearGlobalInitExprs();
 
-    // Keep the functions around if we're debugging, so we can
-    // generate profiles.
-#ifndef DEBUG
     // We need to explicitly clear out the optimization information
     // associated with identifiers.  They have reference loops with
     // the parent identifier that will prevent reclamation of the
@@ -519,8 +516,10 @@ void clear_script_analysis() {
         for ( auto& id : f.Scope()->OrderedVars() )
             id->ClearOptInfo();
 
-    funcs.clear();
-#endif
+    // Keep the functions around if we're profiling, so we can loop
+    // over them to generate the profiles.
+    if ( ! analysis_options.profile_ZAM )
+        funcs.clear();
 
     non_recursive_funcs.clear();
     lambdas.clear();

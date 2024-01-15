@@ -111,10 +111,13 @@ private:
     using CaseMapsI = std::vector<CaseMapI<T>>;
 
     template<typename T>
+    void AdjustSwitchTables(CaseMapsI<T>& abstract_cases);
+
+    template<typename T>
     void ConcretizeSwitchTables(const CaseMapsI<T>& abstract_cases, CaseMaps<T>& concrete_cases);
 
     template<typename T>
-    void DumpCases(const T& cases, const char* type_name) const;
+    void DumpCases(const CaseMaps<T>& cases, const char* type_name) const;
     void DumpInsts1(const FrameReMap* remappings);
 
 #include "zeek/ZAM-MethodDecls.h"

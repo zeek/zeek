@@ -441,7 +441,7 @@ TableTypeInfo::TableTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, 
     auto gi = c->RegisterType(tbl->GetIndices());
     ASSERT(gi);
     indices = gi->Offset();
-    final_init_cohort = gi->InitCohort();
+    final_init_cohort = gi->InitCohort() + 1;
 
     yield = tbl->Yield();
 

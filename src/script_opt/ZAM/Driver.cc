@@ -264,6 +264,20 @@ void ZAMCompiler::AdjustBranches() {
         if ( auto t = inst->target )
             inst->target = FindLiveTarget(t);
     }
+
+    // Fix up the implicit branches in switches, too.
+    AdjustSwitchTables(int_casesI);
+    AdjustSwitchTables(uint_casesI);
+    AdjustSwitchTables(double_casesI);
+    AdjustSwitchTables(str_casesI);
+}
+
+template<typename T>
+void ZAMCompiler::AdjustSwitchTables(CaseMapsI<T>& abstract_cases) {
+    for ( auto& targs : abstract_cases ) {
+        for ( auto& targ : targs )
+            targ.second = FindLiveTarget(targ.second);
+    }
 }
 
 void ZAMCompiler::RetargetBranches() {
@@ -386,14 +400,14 @@ void ZAMCompiler::Dump() {
         inst->Dump(&frame_denizens, remappings);
     }
 
-    DumpCases(int_casesI, "int");
-    DumpCases(uint_casesI, "uint");
-    DumpCases(double_casesI, "double");
-    DumpCases(str_casesI, "str");
+    DumpCases(int_cases, "int");
+    DumpCases(uint_cases, "uint");
+    DumpCases(double_cases, "double");
+    DumpCases(str_cases, "str");
 }
 
 template<typename T>
-void ZAMCompiler::DumpCases(const T& cases, const char* type_name) const {
+void ZAMCompiler::DumpCases(const CaseMaps<T>& cases, const char* type_name) const {
     for ( auto i = 0U; i < cases.size(); ++i ) {
         printf("%s switch table #%d:", type_name, i);
         for ( auto& m : cases[i] ) {
@@ -404,7 +418,7 @@ void ZAMCompiler::DumpCases(const T& cases, const char* type_name) const {
                                 std::is_same_v<T, double> )
                 case_val = std::to_string(m.first);
 
-            printf(" %s->%d", case_val.c_str(), m.second->inst_num);
+            printf(" %s->%d", case_val.c_str(), m.second);
         }
         printf("\n");
     }

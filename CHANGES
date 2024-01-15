@@ -1,3 +1,37 @@
+6.2.0-dev.396 | 2024-01-15 15:17:45 +0100
+
+  * ZAM speedup for constructing empty vectors (Vern Paxson, Corelight)
+
+  * fixes for ZAM optimization of "switch" statements (Vern Paxson, Corelight)
+
+  * BTests to catch regressions for recent ZAM fixes (Vern Paxson, Corelight)
+
+  * "-a zam" BTest baseline update for recent changes (Vern Paxson, Corelight)
+
+  * fix for needing to always flush optimization information for identifiers (Vern Paxson, Corelight)
+
+  * fix for logic bug in ldap base script (Vern Paxson, Corelight)
+
+  * better name for key variable in script optimization (Vern Paxson, Corelight)
+
+  * ZAM fix for tracking variable usage (Vern Paxson, Corelight)
+
+  * ZAM fixes for "for" loops that are only used to choose an element from a table/set (Vern Paxson, Corelight)
+
+  * ZAM fixes for loops indexed with variables not used in the loop body (Vern Paxson, Corelight)
+
+  * fix for ZAM location tracking - more extensive changes are pending (Vern Paxson, Corelight)
+
+  * fixes for ZAM's special-casing of that "cat" BiF (Vern Paxson, Corelight)
+
+  * some fixes for ZAM memory management (Vern Paxson, Corelight)
+
+  * streamlining of some script optimization APIs (Vern Paxson, Corelight)
+
+  * fixes for initializations of "-O gen-C++" script compilations (Vern Paxson, Corelight)
+
+  * script optimization fixes for "concretizing" vector-of-any's (Vern Paxson, Corelight)
+
 6.2.0-dev.378 | 2024-01-12 10:48:33 +0100
 
   * btest/smtp: Test with smtp-bdat-pipeline-8bitmime.pcap (Arne Welzel, Corelight)

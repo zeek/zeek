@@ -82,8 +82,8 @@ private:
     // outer "break" in that context.
     FunctionFlavor func_flavor;
 
-    // The statement we are currently traversing.
-    const Stmt* curr_stmt = nullptr;
+    // The most recently traversed statement.
+    const Stmt* last_stmt_traversed = nullptr;
 
     // Used to number Stmt objects found during AST traversal.
     int stmt_num;

@@ -60,10 +60,12 @@ event zeek_init()
 	print fmt("to_title 'bro is a very neat ids': '%s'", to_title("bro is a very neat ids"));
 	print fmt("to_title '   ': '%s'", to_title("   "));
 	print fmt("to_title '  a   c  ': '%s'", to_title("  a   c  "));
-	print fmt("remove_prefix 'ananab'/'an' : %s", remove_prefix("ananab", "an"));
-	print fmt("remove_prefix 'anatnab'/'an': %s", remove_prefix("anatnab", "an"));
+	print fmt("remove_prefix 'banana'/'ba' : %s", remove_prefix("banana", "ba"));
+	print fmt("remove_prefix 'bantana'/'ba': %s", remove_prefix("bantana", "ba"));
+	print fmt("remove_prefix 'bantana'/'ab': %s", remove_prefix("bantana", "ab"));
 	print fmt("remove_suffix 'banana'/'na' : %s", remove_suffix("banana", "na"));
 	print fmt("remove_suffix 'bantana'/'na': %s", remove_suffix("bantana", "na"));
+	print fmt("remove_suffix 'bantana'/'an': %s", remove_suffix("bantana", "an"));
 	print "";
 
 	print fmt("find_str/rfind_str (input string '%s')", s3);

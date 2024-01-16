@@ -26,7 +26,16 @@ struct BDATCmd parse_bdat_arg(int length, const char* arg) {
     }
 
     r.chunk_size = chunk_size;
-    r.is_last_chunk = strncasecmp(chunk_size_end, " LAST", 5) == 0;
+
+    // If there's something left after the chunk-size,
+    // it should be LAST, otherwise it's an error.
+    if ( chunk_size_end != arg_end ) {
+        r.is_last_chunk = strncasecmp(chunk_size_end, " LAST", 5) == 0;
+
+        if ( ! r.is_last_chunk || chunk_size_end + 5 != arg_end )
+            r.error = "BDAT chunk-size followed by junk";
+    }
+
     return r;
 }
 
@@ -179,6 +188,20 @@ TEST_CASE("missing space post chunk size") {
     const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
     REQUIRE(error != nullptr);
     CHECK(error == std::string("BDAT chunk-size not valid"));
+}
+
+TEST_CASE("chunk size followed by junk") {
+    std::string line = "86 SCRAMBLE";
+    const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
+    REQUIRE(error != nullptr);
+    CHECK(error == std::string("BDAT chunk-size followed by junk"));
+}
+
+TEST_CASE("chunk size followed by lastjunk") {
+    std::string line = "86 LASTSCRAMBLE";
+    const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
+    REQUIRE(error != nullptr);
+    CHECK(error == std::string("BDAT chunk-size followed by junk"));
 }
 
 TEST_SUITE_END();

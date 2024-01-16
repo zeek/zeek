@@ -59,6 +59,7 @@ protected:
     void NewReply(int reply_code, bool orig);
     void ProcessExtension(int ext_len, const char* ext);
     void ProcessData(int length, const char* line);
+    bool ProcessBdatArg(int arg_len, const char* arg, bool orig);
 
     void UpdateState(int cmd_code, int reply_code, bool orig);
 

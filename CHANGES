@@ -1,3 +1,23 @@
+6.2.0-dev.403 | 2024-01-16 18:03:54 +0100
+
+  * SMTP: No state update for bad BDAT commands (Arne Welzel, Corelight)
+
+    OSS-Fuzz found that providing an invalid BDAT line would tickle an
+    assert in UpdateState(). The BDAT state was never initialized, but
+    within UpdateState() that was expected.
+
+    This also removes the AnalyzerViolation() call for bad BDAT commands
+    and instead raises a weird. The SMTP analyzer is very lax and not triggering
+    the violation allows to parse the server's response to such an invalid
+    command.
+
+    PCAP files produced by a custom Python SMTP client against Postfix.
+
+  * SMTP/BDAT: Harden BDAT argument parsing a bit (Arne Welzel, Corelight)
+
+    If the size is followed by something and it's not " LAST", treat it
+    as an error.
+
 6.2.0-dev.400 | 2024-01-16 13:08:32 +0000
 
   * Fix ssl-log-ext omitting data in some cases (Johanna Amann, Corelight)

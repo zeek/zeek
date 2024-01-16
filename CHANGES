@@ -1,3 +1,16 @@
+6.2.0-dev.400 | 2024-01-16 13:08:32 +0000
+
+  * Fix ssl-log-ext omitting data in some cases (Johanna Amann, Corelight)
+
+    ssl-log-ext had a bug that caused data present in the SSL connection to
+    not be logged in some cases. Specifically, the script relied on the base
+    ssl script to initialize some data structures; however, this means that
+    protocol messages that arrive before a message is handled by the base
+    ssl script are not logged.
+
+    This commit changes the ssl-log-ext script to also initialize the data
+    structures; now messages are correctly included in the log in all cases.
+
 6.2.0-dev.398 | 2024-01-15 15:18:32 +0100
 
   * Session/Conn: Follow-up fix for hist_seen and history lift (Arne Welzel, Corelight)

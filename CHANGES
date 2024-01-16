@@ -1,3 +1,7 @@
+6.2.0-dev.405 | 2024-01-16 12:07:11 -0700
+
+  * Squeeze a bit more performance out of the ends_with bif (Tim Wojtulewicz)
+
 6.2.0-dev.403 | 2024-01-16 18:03:54 +0100
 
   * SMTP: No state update for bad BDAT commands (Arne Welzel, Corelight)

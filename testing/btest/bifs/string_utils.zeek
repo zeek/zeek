@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT >out 2>&1
 # @TEST-EXEC: btest-diff out
 
 event zeek_init()
@@ -51,6 +51,7 @@ event zeek_init()
 	print fmt("starts_with ids: %d", starts_with(s3, "ghi"));
 	print fmt("ends_with ids: %d", ends_with(s3, "ghi"));
 	print fmt("ends_with bro: %d", ends_with(s3, "abc"));
+	print fmt("ends_with containing null: %d", ends_with("a\x00\x00b", "\x00b"));
 	print "";
 
 	print "Transformations";

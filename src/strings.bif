@@ -1366,9 +1366,15 @@ function ends_with%(str: string, sub: string%) : bool
 	if ( sub->Len() > str->Len() )
 		return zeek::val_mgr->Bool(false);
 
-	string s = str->ToStdString();
-	string sub_s = sub->ToStdString();
-	return zeek::val_mgr->Bool(s.rfind(sub_s) == (s.size() - sub_s.size()));
+	auto sub_s = sub->ToStdStringView();
+	auto s = str->ToStdStringView();
+
+	// Create a string_view that only looks at the end of the string being searched
+	// with the same number of characters as the search string. This avoids possible
+	// pathological searches of big strings if the search string doesn't exist.
+	auto end_s = std::string_view{s.data() + s.size() - sub_s.size(), sub_s.size()};
+
+	return zeek::val_mgr->Bool(end_s == sub_s);
 	%}
 
 ## Returns whether a string consists entirely of digits.

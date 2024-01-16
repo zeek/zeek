@@ -41,6 +41,7 @@ starts_with bro: 1
 starts_with ids: 0
 ends_with ids: 1
 ends_with bro: 0
+ends_with containing null: 1
 
 Transformations
 ---------------

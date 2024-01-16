@@ -1247,8 +1247,8 @@ function reverse%(str: string%) : string
 ##
 function count_substr%(str: string, sub: string%) : count
 	%{
-	string s = str->ToStdString();
-	string sub_s = sub->ToStdString();
+	auto s = str->ToStdStringView();
+	auto sub_s = sub->ToStdStringView();
 
 	size_t count = 0;
 	size_t pos = s.find(sub_s);

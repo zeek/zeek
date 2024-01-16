@@ -1355,8 +1355,14 @@ function rfind_str%(str: string, sub: string, start: count &default=0, end: int 
 ##
 function starts_with%(str: string, sub: string%) : bool
 	%{
-	string s = str->ToStdString();
-	return zeek::val_mgr->Bool(s.find(sub->ToStdString()) == 0);
+	if ( sub->Len() > str->Len() )
+		return zeek::val_mgr->Bool(false);
+
+	auto sub_s = sub->ToStdStringView();
+	auto s = str->ToStdStringView();
+	auto start_s = std::string_view{s.data(), sub_s.size()};
+
+	return zeek::val_mgr->Bool(start_s == sub_s);
 	%}
 
 ## Returns whether a string ends with a substring.

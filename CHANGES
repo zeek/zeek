@@ -1,3 +1,7 @@
+6.2.0-dev.408 | 2024-01-17 10:00:06 -0700
+
+  * Enable darwin builds for zeek-security repo (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.405 | 2024-01-16 12:07:11 -0700
 
   * Squeeze a bit more performance out of the ends_with bif (Tim Wojtulewicz)

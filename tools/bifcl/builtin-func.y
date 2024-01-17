@@ -594,11 +594,11 @@ head_1:		TOK_ID opt_ws arg_begin
 				// (e.g. ones at global scope that may be used to implement
 				// the BIF itself).
 				fprintf(fp_func_h,
-					"namespace zeek { %sextern zeek::detail::BifReturnVal %s_bif(zeek::detail::Frame* frame, const zeek::Args*);%s }\n",
+					"namespace zeek { %sextern zeek::ValPtr %s_bif(zeek::detail::Frame* frame, const zeek::Args*);%s }\n",
 					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_func_def,
-					"zeek::detail::BifReturnVal zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)",
+					"zeek::ValPtr zeek::%s_bif(zeek::detail::Frame* frame, const zeek::Args* %s)",
 					decl.c_fullname.c_str(), arg_list_name);
 
 				record_bif_item(decl.zeek_fullname.c_str(), "FUNCTION");

@@ -1461,7 +1461,7 @@ function sort%(v: any, ...%) : any
 	auto vv = v->As<zeek::VectorVal*>();
 	vv->Sort(comp);
 
-	return std::move(rval);
+	return rval;
 	%}
 
 ## Returns the order of the elements in a vector according to some
@@ -2721,7 +2721,7 @@ function to_addr%(ip: string%): addr
 		}
 
 	delete [] s;
-	return std::move(ret);
+	return ret;
 	%}
 
 ## Checks if a string is a valid IPv4 or IPv6 address.

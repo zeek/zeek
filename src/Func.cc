@@ -729,7 +729,7 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const {
 
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
     call_stack.emplace_back(CallInfo{call_expr, this, *args});
-    auto result = std::move(func(parent, args).rval);
+    auto result = func(parent, args);
     call_stack.pop_back();
 
     if ( result && g_trace_state.DoTrace() ) {

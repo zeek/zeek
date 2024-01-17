@@ -181,20 +181,11 @@ struct ASN1Seq
 		decoded = d2i_ASN1_SEQUENCE_ANY(nullptr, der_in, length);
 		}
 
-	~ASN1Seq()
-		{
-		sk_ASN1_TYPE_pop_free(decoded, ASN1_TYPE_free);
-		}
+	~ASN1Seq() { sk_ASN1_TYPE_pop_free(decoded, ASN1_TYPE_free); }
 
-	explicit operator bool() const
-		{
-		return decoded;
-		}
+	explicit operator bool() const { return decoded; }
 
-	operator ASN1_SEQUENCE_ANY*() const
-		{
-		return decoded;
-		}
+	operator ASN1_SEQUENCE_ANY*() const { return decoded; }
 
 	ASN1_SEQUENCE_ANY* decoded;
 	};

@@ -450,10 +450,7 @@ public:
 
 	void Flush(); ///< process any partially-received data
 
-	detail::TCP_DNS_state State() const
-		{
-		return state;
-		}
+	detail::TCP_DNS_state State() const { return state; }
 
 protected:
 	void DeliverStream(int len, const u_char* data, bool orig) override;
@@ -484,10 +481,7 @@ public:
 	                      bool gen_event) override;
 	void ExpireTimer(double t);
 
-	static analyzer::Analyzer* Instantiate(Connection* conn)
-		{
-		return new DNS_Analyzer(conn);
-		}
+	static analyzer::Analyzer* Instantiate(Connection* conn) { return new DNS_Analyzer(conn); }
 
 protected:
 	detail::DNS_Interpreter* interp;

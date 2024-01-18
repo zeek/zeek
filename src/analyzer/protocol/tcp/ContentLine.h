@@ -47,6 +47,11 @@ public:
     int64_t GetPlainDeliveryLength() const { return plain_delivery_length; }
     bool IsPlainDelivery() { return is_plain; }
 
+    // Helper to check how many bytes are still in-flight for the
+    // current DeliverStream() invocation. This can be called
+    // by the parent during its DeliverStream() invocation.
+    int GetDeliverStreamRemainingLength() const { return deliver_stream_remaining_length; }
+
     // Skip <length> bytes after this line.
     // Can be used to skip HTTP data for performance considerations.
     void SkipBytesAfterThisLine(int64_t length);
@@ -107,6 +112,8 @@ protected:
 
     // Whether to skip partial conns.
     bool skip_partial;
+
+    int deliver_stream_remaining_length;
 };
 
 } // namespace zeek::analyzer::tcp

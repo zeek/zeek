@@ -1221,12 +1221,11 @@ PatternVal::PatternVal(RE_Matcher* re) : Val(base_type(TYPE_PATTERN)) { re_val =
 PatternVal::~PatternVal() { delete re_val; }
 
 bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const {
-    if ( v->GetType()->Tag() != TYPE_PATTERN ) {
+    auto pv = try_to_ptr<PatternVal>(v);
+    if ( ! pv ) {
         v->Error("not a pattern");
         return false;
     }
-
-    PatternVal* pv = v->AsPatternVal();
 
     RE_Matcher* re = new RE_Matcher(AsPattern()->PatternText());
     re->AddPat(pv->AsPattern()->PatternText());
@@ -1737,12 +1736,11 @@ ValPtr TableVal::SizeVal() const { return val_mgr->Count(Size()); }
 bool TableVal::AddTo(Val* val, bool is_first_init) const { return AddTo(val, is_first_init, true); }
 
 bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const {
-    if ( val->GetType()->Tag() != TYPE_TABLE ) {
+    auto t = try_to_ptr<TableVal>(val);
+    if ( ! t ) {
         val->Error("not a table");
         return false;
     }
-
-    TableVal* t = val->AsTableVal();
 
     if ( ! same_type(type, t->GetType()) ) {
         type->Error("table type clash", t->GetType().get());
@@ -1774,12 +1772,11 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const {
 }
 
 bool TableVal::RemoveFrom(Val* val) const {
-    if ( val->GetType()->Tag() != TYPE_TABLE ) {
+    auto t = try_to_ptr<TableVal>(val);
+    if ( ! t ) {
         val->Error("not a table");
         return false;
     }
-
-    TableVal* t = val->AsTableVal();
 
     if ( ! same_type(type, t->GetType()) ) {
         type->Error("table type clash", t->GetType().get());
@@ -3263,12 +3260,11 @@ bool VectorVal::Remove(unsigned int index) {
 }
 
 bool VectorVal::AddTo(Val* val, bool /* is_first_init */) const {
-    if ( val->GetType()->Tag() != TYPE_VECTOR ) {
+    auto v = try_to_ptr<VectorVal>(val);
+    if ( ! v ) {
         val->Error("not a vector");
         return false;
     }
-
-    VectorVal* v = val->AsVectorVal();
 
     if ( ! same_type(type, v->GetType()) ) {
         type->Error("vector type clash", v->GetType().get());

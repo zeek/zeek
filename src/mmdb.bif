@@ -12,7 +12,7 @@
 ## .. zeek:see:: lookup_autonomous_system
 function mmdb_open_location_db%(f: string%) : bool
 	%{
-	return zeek::mmdb_open_location_db(StringValPtr(NewRef(), f));
+	return zeek::mmdb_open_location_db(to_ptr(f));
 	%}
 
 ## Initializes MMDB for later use of lookup_autonomous_system.
@@ -25,7 +25,7 @@ function mmdb_open_location_db%(f: string%) : bool
 ## .. zeek:see:: lookup_autonomous_system
 function mmdb_open_asn_db%(f: string%) : bool
 	%{
-	return zeek::mmdb_open_asn_db(StringValPtr(NewRef(), f));
+	return zeek::mmdb_open_asn_db(to_ptr(f));
 	%}
 
 ## Performs a geo-lookup of an IP address.
@@ -38,7 +38,7 @@ function mmdb_open_asn_db%(f: string%) : bool
 ## .. zeek:see:: lookup_autonomous_system
 function lookup_location%(a: addr%) : geo_location
 	%{
-	return zeek::mmdb_lookup_location(AddrValPtr(NewRef(), a));
+	return zeek::mmdb_lookup_location(to_ptr(a));
 	%}
 
 ## Performs an lookup of AS number & organization of an IP address.
@@ -51,5 +51,5 @@ function lookup_location%(a: addr%) : geo_location
 ## .. zeek:see:: lookup_location
 function lookup_autonomous_system%(a: addr%) : geo_autonomous_system
 	%{
-	return zeek::mmdb_lookup_autonomous_system(AddrValPtr(NewRef(), a));
+	return zeek::mmdb_lookup_autonomous_system(to_ptr(a));
 	%}

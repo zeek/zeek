@@ -949,6 +949,19 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
                         pia->FirstPacket(true, nullptr);
                         pia->FirstPacket(false, nullptr);
 
+                        int remaining_in_content_line = content_line_resp->GetDeliverStreamRemainingLength();
+                        if ( remaining_in_content_line > 0 ) {
+                            // If there's immediately data following the empty line
+                            // of a successful CONNECT reply, that's at least curious.
+                            // Further, switch the responder's ContentLine analyzer
+                            // into plain delivery mode so anything left is sent to
+                            // PIA unaltered.
+                            const char* addl = zeek::util::fmt("%d", remaining_in_content_line);
+                            Weird("protocol_data_with_HTTP_CONNECT_reply", addl);
+                            content_line_resp->SetPlainDelivery(remaining_in_content_line);
+                        }
+
+
                         // This connection has transitioned to no longer
                         // being http and the content line support analyzers
                         // need to be removed.

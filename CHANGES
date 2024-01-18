@@ -1,3 +1,134 @@
+6.0.2-42 | 2024-01-18 16:25:03 -0700
+
+  * CI: Remove unused openssl30_config (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 652ba502aab843574402ec53aa0a6561b21253f3)
+
+  * ci: Remove ZEEK_CI_DISABLE_SCRIPT_PROFILING logic (Arne Welzel, Corelight)
+
+    To my knowledge this doesn't make a huge difference anymore and locally
+    I'm only using ASAN builds. It's not actually too slow.
+
+    (cherry picked from commit 344369f169b872b8dcb569f089b02e026fe7cfc2)
+
+  * CI: Move Debian variations from 11 to 12 (Christian Kreibich, Corelight)
+
+    This switches the ARM and static builds from 11 to 12. x86 and ARM now build by
+    default, and 11 only with fullci. 10 remains as-is, because we like to torture
+    ourselves.
+
+    (cherry picked from commit 4f6c25bb91b935666b6748b95c2b6ee55c1491ad)
+
+  * CI: Add Ubuntu 23.10 (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 866d4b4127ccfd8904f8867b468babd330dd6d52)
+
+  * CI: Drop openSUSE Leap 15.4, about to EOL. (Christian Kreibich, Corelight)
+
+    (cherry picked from commit ddd56b9ad7171a9f8ee3de03bc362223f2fad0fc)
+
+  * CI: FreeBSD 14 is out now, 12 is about to EOL. (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 18b8e6d6bceb4492d842d9bacbd3ad9dfbdd7702)
+
+  * CI: distro EOL comment tweaks (Christian Kreibich, Corelight)
+
+    (cherry picked from commit eb1c4bf019f6a39f1d76de717eee1b34cdc50378)
+
+  * CI: drop Fedora 37, add Fedora 39 (Christian Kreibich, Corelight)
+
+    This makes 39 the ony to run at all times, and 38 one to run only with fullci.
+
+    (cherry picked from commit ee8cc77050e39aea18f2da144dc8108110bb42dc)
+
+  * CI: Install missing packages on opensuse (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit a3ad1a24f11770d5b8c39af1671beb5d2b4c65b2)
+
+  * CI: Use other base64 options on macOS Sonoma too (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit b1e63ffd268cdb2cd28098a0a8578a3038be8fd4)
+
+  * CI: Add macOS Sonoma build, remove macOS Monterey build (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 35ca1e88c7f1398c37bcbc4e20700a2aff2c4169)
+
+  * Fix tests so they work both with GNU and BSD tools (Benjamin Bannier, Corelight)
+
+    The GNU and BSD versions of `touch` and `truncate` allow slightly
+    different arguments, change the tests so they work in both versions.
+
+    (cherry picked from commit caaffd0324ac0557ba4c5ce0290d07a4d013a735)
+
+  * Install libmaxminddb in macOS CI (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit dfba2d6df707840cabf822d70354f9e2e635b863)
+
+  * CI: Pass -A flag to btest for cluster-testing builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit ac7685c679cdb6d61768ac20449175eaaaacc34c)
+
+  * CI: Add more logging during docker builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 3d1380305beaf2e48e22444a285e1f64e4d120d0)
+
+  * CI: disable Spicy on CentOS 7 (Christian Kreibich, Corelight)
+
+    Based on 1774a25f0079076851232a81247a320ddc31b705 in master, which mainly
+    touched QUIC configuration that does not apply here just yet, hence not a
+    cherry-pick.
+
+  * CI: Disable spicy on arm_debian11 and opensuse_leap_15_4 builds (Tim Wojtulewicz, Corelight)
+
+    These two builds are struggling to complete due to OOM issues. Reducing the
+    number of CPUs didn't help, so this temporarily disables Spicy from
+    building on those hosts to reduce the memory usage.
+
+    (cherry picked from commit bbf7f34cdc532da4a8fcdc72b8b12afa4f0fdd9c)
+
+  * CI: Remove sanitizers resource template (Tim Wojtulewicz, Corelight)
+
+    This template was added when the sanitizer builds needed more memory than all
+    of the other builds. We've since increased the amount of memory that the other
+    builds use beyond what's requested in this template, so it doesn't make sense
+    to keep it around.
+
+    (cherry picked from commit 4c6c89d8636b249041bdaabbaaaa7b83154295b6)
+
+  * Enable ccache-backed Spicy JIT for users of developer scripts. (Benjamin Bannier, Corelight)
+
+    For CI and more general BTest execution we already enabled ccache
+    previously, but developers using a Spicy build out of the build
+    directory still needed to manually set up caching.
+
+    With this patch we enable it for such cases as well via
+    `zeek-path-dev.*sh`.
+
+    (cherry picked from commit e624c7500e442ed3b4595435019c46c69f57eac8)
+
+  * Add OpenSUSE Leap 15.5 to ci (Johanna Amann, Corelight)
+
+    This also adds 15.4 to the list of distributions that are skipped by
+    default - let me know if this is not a good idea. I assume that by now
+    most people will be running 15.5 (15.4 will be EOL in ~3 months).
+
+    (cherry picked from commit 4ad2a6ab9a015595e643b572ae27756f038c77dc)
+
+  * Run clang-format on the branch to fix some issues from patch merges (Tim Wojtulewicz, Corelight)
+
+  * Enable darwin builds for zeek-security repo (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit c4edd8410e7bd863e5ff528dcc321758103f678d)
+
+  * OCSP: Open-code unknown revoke reason strings (Arne Welzel, Corelight)
+
+    OpenSSL 3.2.0 knows about more reasons. Add some backwards compatibility.
+
+    Reference: https://github.com/openssl/openssl/commit/1c8a7f5091e2c5aebc043be86bcbedc6947e1c6f
+    (cherry picked from commit 02d00a19849d15f472b32a98a8fee27b20f2cb14)
+
+  * Revert update to scripts.base.protocols.ssl.ocsp-revoked btest baseline (Tim Wojtulewicz)
+
 6.0.2-15 | 2024-01-12 13:33:19 -0700
 
   * Bump Spicy to latest LTS release. (Benjamin Bannier, Corelight)

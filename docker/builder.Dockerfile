@@ -3,6 +3,11 @@
 # Layer to build Zeek.
 FROM debian:bookworm-slim
 
+# Make the shell split commands in the log so we can determine reasons for
+# failures more easily.
+SHELL ["/bin/sh", "-x", "-c"]
+
+# Allow apt to retry 3 times before failing.
 RUN echo 'Acquire::Retries "3";' > /etc/apt/apt.conf.d/80-retries
 
 # Configure system for build.

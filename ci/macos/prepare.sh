@@ -7,7 +7,7 @@ set -x
 
 brew update
 brew upgrade cmake
-brew install openssl@3 swig bison flex ccache
+brew install openssl@3 swig bison flex ccache libmaxminddb
 python3 -m pip install --user websockets
 
 # Brew doesn't create the /opt/homebrew/opt/openssl symlink if you install

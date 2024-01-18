@@ -302,6 +302,65 @@ private:
     void InitConst(const ConstExpr* ce);
 };
 
+// Class for tracking one element of auxiliary information. This can be an
+// integer, often specifying a frame slot, or a Val representing a constant.
+// The class also tracks any associated type and caches whether it's "managed".
+class AuxElem {
+public:
+    AuxElem() {}
+
+    // Different ways of setting the specifics of the element.
+    void SetInt(int _i) { i = _i; }
+    void SetInt(int _i, TypePtr _t) {
+        i = _i;
+        SetType(_t);
+    }
+    void SetSlot(int slot) { i = slot; }
+    void SetConstant(ValPtr _c) {
+        c = std::move(_c);
+        // c might be null in some contexts.
+        if ( c ) {
+            SetType(c->GetType());
+            zc = ZVal(c, t);
+        }
+    }
+
+    // Returns the element as a Val object.
+    ValPtr ToVal(const ZVal* frame) const {
+        if ( c )
+            return c;
+        else
+            return frame[i].ToVal(t);
+    }
+
+    // Returns the element as a ZVal object.
+    ZVal ToZVal(const ZVal* frame) const {
+        ZVal zv = c ? zc : frame[i];
+        if ( is_managed )
+            Ref(zv.ManagedVal());
+        return zv;
+    }
+
+    int Slot() const { return i; }
+    int IntVal() const { return i; }
+    const ValPtr& Constant() const { return c; }
+    ZVal ZConstant() const { return zc; }
+    const TypePtr& GetType() const { return t; }
+    bool IsManaged() const { return is_managed; }
+
+private:
+    void SetType(TypePtr _t) {
+        t = std::move(_t);
+        is_managed = t ? ZVal::IsManagedType(t) : false;
+    }
+
+    int i = -1; // -1 = "not a slot"
+    ValPtr c;
+    ZVal zc;
+    TypePtr t;
+    bool is_managed = false;
+};
+
 // Auxiliary information, used when the fixed ZInst layout lacks
 // sufficient expressiveness to represent all of the elements that
 // an instruction needs.
@@ -311,53 +370,41 @@ public:
     // tracking slots, constants, and types.
     ZInstAux(int _n) {
         n = _n;
-        if ( n > 0 ) {
-            slots = ints = new int[n];
-            constants = new ValPtr[n];
-            types = new TypePtr[n];
-            is_managed = new bool[n];
-        }
+        if ( n > 0 )
+            elems = new AuxElem[n];
     }
 
     ~ZInstAux() {
-        delete[] ints;
-        delete[] constants;
-        delete[] types;
-        delete[] is_managed;
+        delete[] elems;
         delete[] cat_args;
     }
 
-    // Returns the i'th element of the parallel arrays as a ValPtr.
-    ValPtr ToVal(const ZVal* frame, int i) const {
-        if ( constants[i] )
-            return constants[i];
-        else
-            return frame[slots[i]].ToVal(types[i]);
-    }
+    // Returns the i'th element of the elements as a ValPtr.
+    ValPtr ToVal(const ZVal* frame, int i) const { return elems[i].ToVal(frame); }
+    ZVal ToZVal(const ZVal* frame, int i) const { return elems[i].ToZVal(frame); }
 
-    // Returns the parallel arrays as a ListValPtr.
+    // Returns the elements as a ListValPtr.
     ListValPtr ToListVal(const ZVal* frame) const {
         auto lv = make_intrusive<ListVal>(TYPE_ANY);
         for ( auto i = 0; i < n; ++i )
-            lv->Append(ToVal(frame, i));
+            lv->Append(elems[i].ToVal(frame));
 
         return lv;
     }
 
-    // Converts the parallel arrays to a ListValPtr suitable for
-    // use as indices for indexing a table or set.  "offset" specifies
-    // which index we're looking for (there can be a bunch for
-    // constructors), and "width" the number of elements in a single
-    // index.
+    // Converts the elements to a ListValPtr suitable for use as indices
+    // for indexing a table or set.  "offset" specifies which index we're
+    // looking for (there can be a bunch for constructors), and "width"
+    // the number of elements in a single index.
     ListValPtr ToIndices(const ZVal* frame, int offset, int width) const {
         auto lv = make_intrusive<ListVal>(TYPE_ANY);
         for ( auto i = 0; i < 0 + width; ++i )
-            lv->Append(ToVal(frame, offset + i));
+            lv->Append(elems[offset + i].ToVal(frame));
 
         return lv;
     }
 
-    // Returns the parallel arrays converted to a vector of ValPtr's.
+    // Returns the elements converted to a vector of ValPtr's.
     const ValVec& ToValVec(const ZVal* frame) {
         vv.clear();
         FillValVec(vv, frame);
@@ -365,49 +412,45 @@ public:
     }
 
     // Populates the given vector of ValPtr's with the conversion
-    // of the parallel arrays.
+    // of the elements.
     void FillValVec(ValVec& vec, const ZVal* frame) const {
         for ( auto i = 0; i < n; ++i )
-            vec.push_back(ToVal(frame, i));
+            vec.push_back(elems[i].ToVal(frame));
     }
 
-    // When building up a ZInstAux, sets one element of the parallel
-    // arrays to a given frame slot and type.
-    void Add(int i, int slot, TypePtr t) {
-        ints[i] = slot;
-        constants[i] = nullptr;
-        types[i] = t;
-        is_managed[i] = t ? ZVal::IsManagedType(t) : false;
+    // Returns the elements converted to a vector of ZVal's.
+    const auto& ToZValVec(const ZVal* frame) {
+        for ( auto i = 0; i < n; ++i )
+            zvec[i] = elems[i].ToZVal(frame);
+        return zvec;
     }
+
+    // Same, but using the "map" to determine where to place the values.
+    // Returns a non-const value because in this situation other updates
+    // may be coming to the vector, too.
+    auto& ToZValVecWithMap(const ZVal* frame) {
+        for ( auto i = 0; i < n; ++i )
+            zvec[map[i]] = elems[i].ToZVal(frame);
+        return zvec;
+    }
+
+    // When building up a ZInstAux, sets one element to a given frame slot
+    // and type.
+    void Add(int i, int slot, TypePtr t) { elems[i].SetInt(slot, t); }
+
+    // Same, but for non-slot integers.
+    void Add(int i, int v_i) { elems[i].SetInt(v_i); }
 
     // Same but for constants.
-    void Add(int i, ValPtr c) {
-        ints[i] = -1;
-        constants[i] = c;
-        types[i] = nullptr;
-        is_managed[i] = false;
-    }
+    void Add(int i, ValPtr c) { elems[i].SetConstant(c); }
 
     // Member variables.  We could add accessors for manipulating
     // these (and make the variables private), but for convenience we
     // make them directly available.
 
-    // These are parallel arrays, used to build up lists of values.
-    // Each element is either an integer or a constant.  Usually the
-    // integer is a frame slot (in which case "slots" points to "ints";
-    // if not, it's nil).
-    //
-    // We track associated types, too, enabling us to use
-    // ZVal::ToVal to convert frame slots or constants to ValPtr's;
-    // and, as a performance optimization, whether those types
-    // indicate the slot needs to be managed.
-
-    int n;                // size of arrays
-    int* slots = nullptr; // either nil or points to ints
-    int* ints = nullptr;
-    ValPtr* constants = nullptr;
-    TypePtr* types = nullptr;
-    bool* is_managed = nullptr;
+    int n; // size of elements
+    AuxElem* elems = nullptr;
+    bool elems_has_slots = true;
 
     // Ingredients associated with lambdas ...
     ScriptFuncPtr primary_func;
@@ -429,8 +472,8 @@ public:
     // store here.
     bool can_change_non_locals = false;
 
-    // The following is only used for OP_CONSTRUCT_KNOWN_RECORD_V,
-    // to map elements in slots/constants/types to record field offsets.
+    // The following is used for constructing records, to map elements in
+    // slots/constants/types to record field offsets.
     std::vector<int> map;
 
     ///// The following four apply to looping over the elements of tables.
@@ -453,6 +496,13 @@ public:
     // If we cared about memory penny-pinching, we could make this
     // a pointer and only instantiate as needed.
     ValVec vv;
+
+    // Similar, but for ZVal's (used when constructing RecordVal's).
+    std::vector<std::optional<ZVal>> zvec;
+
+    // If non-nil, used for constructing records. Each pair gives the index
+    // into the final record and the associated field initializer.
+    std::unique_ptr<std::vector<std::pair<int, std::shared_ptr<detail::FieldInit>>>> field_inits;
 };
 
 // Returns a human-readable version of the given ZAM op-code.

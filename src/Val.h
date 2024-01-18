@@ -1392,6 +1392,10 @@ protected:
     friend class zeek::detail::CPPRuntime;
     friend class zeek::detail::CompositeHash;
 
+    // Constructor for use by script optimization, directly initializing
+    // record_vals from the second argument.
+    RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals);
+
     RecordValPtr DoCoerceTo(RecordTypePtr other, bool allow_orphaning) const;
 
     /**
@@ -1436,7 +1440,7 @@ protected:
 
     void AddedField(int field) { Modified(); }
 
-    Obj* origin;
+    Obj* origin = nullptr;
 
     using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
     static RecordTypeValMap parse_time_records;

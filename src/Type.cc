@@ -1059,20 +1059,20 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
     auto def_attr = a ? a->Find(detail::ATTR_DEFAULT) : nullptr;
     auto def_expr = def_attr ? def_attr->GetExpr() : nullptr;
 
-    std::unique_ptr<detail::FieldInit> init;
+    std::shared_ptr<detail::FieldInit> init;
 
     if ( def_expr && ! IsErrorType(type->Tag()) ) {
         if ( def_expr->Tag() == detail::EXPR_CONST ) {
             auto zv = ZVal(def_expr->Eval(nullptr), type);
 
             if ( ZVal::IsManagedType(type) )
-                init = std::make_unique<detail::DirectManagedFieldInit>(zv);
+                init = std::make_shared<detail::DirectManagedFieldInit>(zv);
             else
-                init = std::make_unique<detail::DirectFieldInit>(zv);
+                init = std::make_shared<detail::DirectFieldInit>(zv);
         }
 
         else {
-            auto efi = std::make_unique<detail::ExprFieldInit>(def_expr, type);
+            auto efi = std::make_shared<detail::ExprFieldInit>(def_expr, type);
             creation_inits.emplace_back(field, std::move(efi));
         }
     }
@@ -1086,15 +1086,15 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
             // and RecordType::CreationInitisOptimizer.
             //
             // init (nil) is appended to deferred_inits as placeholder.
-            auto rfi = std::make_unique<detail::RecordFieldInit>(cast_intrusive<RecordType>(type));
+            auto rfi = std::make_shared<detail::RecordFieldInit>(cast_intrusive<RecordType>(type));
             creation_inits.emplace_back(field, std::move(rfi));
         }
 
         else if ( tag == TYPE_TABLE )
-            init = std::make_unique<detail::TableFieldInit>(cast_intrusive<TableType>(type), a);
+            init = std::make_shared<detail::TableFieldInit>(cast_intrusive<TableType>(type), a);
 
         else if ( tag == TYPE_VECTOR )
-            init = std::make_unique<detail::VectorFieldInit>(cast_intrusive<VectorType>(type));
+            init = std::make_shared<detail::VectorFieldInit>(cast_intrusive<VectorType>(type));
     }
 
     deferred_inits.push_back(std::move(init));

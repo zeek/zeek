@@ -432,26 +432,27 @@ void ZAMCompiler::ComputeFrameLifetimes() {
             case OP_LAMBDA_VV: {
                 auto aux = inst->aux;
                 int n = aux->n;
-                auto& slots = aux->slots;
-                for ( int i = 0; i < n; ++i )
-                    if ( slots[i] >= 0 )
-                        ExtendLifetime(slots[i], EndOfLoop(inst, 1));
+                for ( int i = 0; i < n; ++i ) {
+                    auto slot_i = aux->elems[i].Slot();
+                    if ( slot_i >= 0 )
+                        ExtendLifetime(slot_i, EndOfLoop(inst, 1));
+                }
                 break;
             }
 
             default:
                 // Look for slots in auxiliary information.
                 auto aux = inst->aux;
-                if ( ! aux || ! aux->slots )
+                if ( ! aux || ! aux->elems_has_slots )
                     break;
 
                 int n = aux->n;
-                auto& slots = aux->slots;
                 for ( auto j = 0; j < n; ++j ) {
-                    if ( slots[j] < 0 )
+                    auto slot_j = aux->elems[j].Slot();
+                    if ( slot_j < 0 )
                         continue;
 
-                    ExtendLifetime(slots[j], EndOfLoop(inst, 1));
+                    ExtendLifetime(slot_j, EndOfLoop(inst, 1));
                 }
                 break;
         }
@@ -562,11 +563,11 @@ void ZAMCompiler::ReMapFrame() {
             default:
                 // Update slots in auxiliary information.
                 auto aux = inst->aux;
-                if ( ! aux || ! aux->slots )
+                if ( ! aux || ! aux->elems_has_slots )
                     break;
 
                 for ( auto j = 0; j < aux->n; ++j ) {
-                    auto& slot = aux->slots[j];
+                    auto slot = aux->elems[j].Slot();
 
                     if ( slot < 0 )
                         // This is instead a constant.
@@ -581,7 +582,7 @@ void ZAMCompiler::ReMapFrame() {
                                         frame_denizens[slot]->Name());
                     }
 
-                    slot = new_slot;
+                    aux->elems[j].SetSlot(new_slot);
                 }
                 break;
         }
@@ -858,9 +859,9 @@ bool ZAMCompiler::VarIsUsed(int slot) const {
             return true;
 
         auto aux = inst->aux;
-        if ( aux && aux->slots ) {
+        if ( aux && aux->elems_has_slots ) {
             for ( int j = 0; j < aux->n; ++j )
-                if ( aux->slots[j] == slot )
+                if ( aux->elems[j].Slot() == slot )
                     return true;
         }
     }

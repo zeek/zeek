@@ -1100,23 +1100,84 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
 
 const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
     auto rc = e->AsRecordConstructorExpr();
+    auto rt = e->GetType()->AsRecordType();
 
-    ZInstI z;
+    auto aux = InternalBuildVals(rc->Op().get());
 
-    if ( rc->Map() ) {
-        z = GenInst(OP_CONSTRUCT_KNOWN_RECORD_V, n);
-        z.aux = InternalBuildVals(rc->Op().get());
-        z.aux->map = *rc->Map();
+    // Note that we set the vector to the full size of the record being
+    // constructed, *not* the size of any map (which could be smaller).
+    // This is because we want to provide the vector directly to the
+    // constructor.
+    aux->zvec.resize(rt->NumFields());
+
+    if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
+        aux->can_change_non_locals = true;
+
+    ZOp op;
+
+    const auto& map = rc->Map();
+    if ( map ) {
+        aux->map = *map;
+
+        auto fi = std::make_unique<std::vector<std::pair<int, std::shared_ptr<detail::FieldInit>>>>();
+
+        // Populate the field inits as needed.
+        for ( auto& c : rt->CreationInits() ) {
+            bool seen = false;
+            for ( auto r : *map )
+                if ( c.first == r ) {
+                    // Superseded by a constructor element;
+                    seen = true;
+                    break;
+                }
+
+            if ( ! seen )
+                // Need to generate field dynamically.
+                fi->push_back(c);
+        }
+
+        if ( fi->empty() )
+            op = OP_CONSTRUCT_KNOWN_RECORD_V;
+        else {
+            op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_V;
+            aux->field_inits = std::move(fi);
+        }
     }
-    else {
-        z = GenInst(OP_CONSTRUCT_RECORD_V, n);
-        z.aux = InternalBuildVals(rc->Op().get());
-    }
+    else
+        op = OP_CONSTRUCT_DIRECT_RECORD_V;
 
+    ZInstI z = GenInst(op, n);
+
+    z.aux = aux;
     z.t = e->GetType();
 
-    if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, z.t) )
-        z.aux->can_change_non_locals = true;
+    auto inst = AddInst(z);
+
+    // If one of the initialization values is an unspecified vector (which
+    // in general we can't know until run-time) then we'll need to
+    // "concretize" it. We first see whether this is a possibility, since
+    // it usually isn't, by counting up how many of the record fields are
+    // vectors.
+    std::vector<int> vector_fields; // holds indices of the vector fields
+    for ( int i = 0; i < z.aux->n; ++i ) {
+        auto field_ind = map ? (*map)[i] : i;
+        auto& field_t = rt->GetFieldType(field_ind);
+        if ( field_t->Tag() == TYPE_VECTOR && field_t->Yield()->Tag() != TYPE_ANY )
+            vector_fields.push_back(field_ind);
+    }
+
+    if ( vector_fields.empty() )
+        // Common case of no vector fields, we're done.
+        return inst;
+
+    // Need to add a separate instruction for concretizing the fields.
+    z = GenInst(OP_CONCRETIZE_VECTOR_FIELDS_V, n);
+    z.t = e->GetType();
+    int nf = static_cast<int>(vector_fields.size());
+    z.aux = new ZInstAux(nf);
+    z.aux->elems_has_slots = false; // we're storing field offsets, not slots
+    for ( int i = 0; i < nf; ++i )
+        z.aux->Add(i, vector_fields[i]);
 
     return AddInst(z);
 }
@@ -1212,7 +1273,7 @@ const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
         z.aux->Add(i, map[i], nullptr);
 
     // Mark the integer entries in z.aux as not being frame slots as usual.
-    z.aux->slots = nullptr;
+    z.aux->elems_has_slots = false;
 
     if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
         z.aux->can_change_non_locals = true;

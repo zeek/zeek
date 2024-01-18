@@ -2545,7 +2545,7 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const {
 
         case TYPE_TABLE:
             if ( is_pattern_table )
-                return v1->AsTableVal()->LookupPattern({NewRef{}, v2->AsListVal()->Idx(0)->AsStringVal()});
+                return v1->AsTableVal()->LookupPattern(as_ptr<StringVal>(v2->AsListVal()->Idx(0)));
 
             v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2});
             break;

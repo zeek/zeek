@@ -2301,7 +2301,7 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
     return va;
 }
 
-ListValPtr TableVal::ToListVal(TypeTag t) const {
+ListValPtr TableVal::ToListVal(zeek::TypeTag t) const {
     auto l = make_intrusive<ListVal>(t);
 
     for ( const auto& tble : *table_val ) {

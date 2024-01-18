@@ -488,6 +488,8 @@ private:
 
 class AddrVal final : public Val {
 public:
+    static constexpr auto TypeTag = zeek::TYPE_ADDR;
+
     explicit AddrVal(const char* text);
     explicit AddrVal(const std::string& text);
     ~AddrVal() override;
@@ -538,6 +540,8 @@ private:
 
 class StringVal final : public Val {
 public:
+    static constexpr auto TypeTag = zeek::TYPE_STRING;
+
     explicit StringVal(String* s);
     StringVal(std::string_view s);
     StringVal(int length, const char* s);
@@ -607,6 +611,8 @@ private:
 
 class PatternVal final : public Val {
 public:
+    static constexpr auto TypeTag = zeek::TYPE_PATTERN;
+
     explicit PatternVal(RE_Matcher* re);
     ~PatternVal() override;
 
@@ -722,6 +728,8 @@ protected:
 
 class TableVal final : public Val, public notifier::detail::Modifiable {
 public:
+    static constexpr auto TypeTag = zeek::TYPE_TABLE;
+
     explicit TableVal(TableTypePtr t, detail::AttributesPtr attrs = nullptr);
 
     ~TableVal() override;
@@ -912,7 +920,7 @@ public:
     ValPtr Remove(const detail::HashKey& k, bool* iterators_invalidated = nullptr);
 
     // Returns a ListVal representation of the table (which must be a set).
-    ListValPtr ToListVal(TypeTag t = TYPE_ANY) const;
+    ListValPtr ToListVal(zeek::TypeTag t = TYPE_ANY) const;
 
     // Returns a ListVal representation of the table (which must be a set
     // with non-composite index type).
@@ -1081,6 +1089,8 @@ inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
+    static constexpr auto TypeTag = zeek::TYPE_RECORD;
+
     explicit RecordVal(RecordTypePtr t, bool init_fields = true);
 
     ~RecordVal() override;
@@ -1469,6 +1479,8 @@ private:
 
 class EnumVal final : public detail::IntValImplementation {
 public:
+    static constexpr auto TypeTag = zeek::TYPE_ENUM;
+
     ValPtr SizeVal() const override;
 
 protected:
@@ -1502,6 +1514,8 @@ protected:
 
 class VectorVal final : public Val, public notifier::detail::Modifiable {
 public:
+    static constexpr auto TypeTag = zeek::TYPE_VECTOR;
+
     explicit VectorVal(VectorTypePtr t);
     VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals);
 
@@ -1752,5 +1766,56 @@ extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, 
 extern void concretize_if_unspecified(VectorValPtr v, TypePtr t);
 
 } // namespace detail
+
+struct to_ptr_auto_type {};
+
+template<typename T, typename RefTag = zeek::NewRef>
+zeek::IntrusivePtr<T> try_to_ptr(zeek::Val* val) {
+    static_assert(std::is_base_of_v<zeek::Val, T>, "T not derived from Val");
+    if ( val->GetType()->Tag() == T::TypeTag )
+        return zeek::IntrusivePtr<T>(RefTag{}, val->As<T*>());
+
+    return nullptr;
+}
+
+/**
+ * Checked conversion of a raw pointer to an IntrusivePtr<T>.
+ *
+ * If T is not given, converts to an IntrusivePtr with type of
+ * the raw pointer. Allows to convert to a "right-typed" IntrusivePtr
+ * by just calling to_ptr(p).
+ *
+ * to_ptr((AddrVal*)) -> IntrusivePtr<AddrVal>
+ *
+ * to_ptr<AddrVal>((Val*)) -> IntrusivePtr<AddrVal> *if* Val->GetType() == TYPE_ADDR
+ */
+template<typename T = to_ptr_auto_type, typename RefTag = zeek::NewRef, typename U>
+auto to_ptr(U val) {
+    static_assert(std::is_pointer_v<U>, "U not a pointer");
+    using UT = std::remove_pointer_t<U>;
+    static_assert(std::is_base_of_v<zeek::Val, UT>, "U not derived from Val");
+    if constexpr ( std::is_same_v<T, to_ptr_auto_type> ) {
+        return zeek::IntrusivePtr<UT>(RefTag{}, val);
+    }
+    else {
+        auto ptr = try_to_ptr<T, RefTag>(val);
+        if ( ! ptr )
+            val->BadTag("try_to_ptr() failed", zeek::type_name(val->GetType()->Tag()), zeek::type_name(T::TypeTag));
+
+        return ptr;
+    }
+}
+
+/**
+ * Checked conversion from IntrusivePtr<Val> to IntrusivePtr<T>,
+ *
+ * This is a "safe" alternative to cast_intrusive<T> for <Val>
+ *
+ * Re-uses to_ptr() and may not be overly performant.
+ */
+template<typename T, typename RefTag = zeek::NewRef, typename UPtr>
+auto as_ptr(const UPtr val) {
+    return to_ptr<T, RefTag, decltype(val.get())>(val.get());
+}
 
 } // namespace zeek

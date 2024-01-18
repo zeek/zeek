@@ -1325,6 +1325,21 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg) {
 void HTTP_Analyzer::HTTP_Upgrade() {
     // Upgraded connection that switches immediately - e.g. websocket.
 
+    int remaining_in_content_line = content_line_resp->GetDeliverStreamRemainingLength();
+
+    if ( remaining_in_content_line > 0 ) {
+        // We've seen a complete HTTP response for an upgrade request and there's
+        // more data buffered in the ContentLine analyzer. This means the next
+        // protocol's data is in the same packet as the HTTP reply. Log a weird
+        // as this seems not very likely to happen in the wild.
+        const char* addl = zeek::util::fmt("%d", remaining_in_content_line);
+        Weird("protocol_data_with_HTTP_upgrade_reply", addl);
+
+        // Switch the ContentLine analyzer to deliver anything remaining in
+        // plain mode so it can be forwarded to the upgrade analyzer.
+        content_line_resp->SetPlainDelivery(remaining_in_content_line);
+    }
+
     // Lookup an analyzer tag in the HTTP::upgrade_analyzer table.
     static const auto& upgrade_analyzers = id::find_val<TableVal>("HTTP::upgrade_analyzers");
 

@@ -3,6 +3,41 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 6.0.3
+==========
+
+This release fixes the following security issues:
+
+- A specially-crafted series of packets containing nested MIME entities can
+  cause Zeek to spend large amounts of time parsing the entities. Due to the
+  possibility of receiving these packets from remote hosts, this is a DoS
+  risk.The fix included adds a new option (MIME::max_depth) to the MIME parser
+  that limits the depth the parser will attempt to follow the entity nesting. If
+  the limit is reached an exceeded_mime_max_depth weird is generated.
+
+This release fixes the following bugs:
+
+- CMake correctly passes along third-party package information when building
+  plugins. This ensures that, for example, the same paths to OpenSSL used in a
+  Zeek build are provided to a plugin build.
+
+- Fix a problem with the HTTP analyzer where a signature regex ending in '$'
+  used to match against 'http-request-body' or 'http-reply-bdoy' will never
+  succeed. Thank you to GitHub user xb-anssi for this fix.
+
+- The DNS analyzer now understands the Ed25519 and Ed448 signature algorithms.
+
+- The SMB::State$recent_files field was not correctly expiring entries, leading
+  to unbounded state growth. This is fixed to correctly follow the &read_expire
+  condition on the field. Thank you to Slack user ya-sato for reporting this.
+
+- The &create_expire attribute is now kept valid after clearing a table. After
+  switching the known scripts away from broker stores, the &create_expire value
+  of the local tables/sets of the known scripts wasn't in effect due to
+  Cluster::node_up() and Cluster::node_down() re-assigning these without keeping
+  the &create_expire attribute intact. This broke the "log hosts every 24h"
+  behavior.
+
 Zeek 6.0.2
 ==========
 

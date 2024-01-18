@@ -3436,7 +3436,7 @@ ValPtr ArithCoerceExpr::Fold(Val* v) const {
         if ( type->Tag() == TYPE_VECTOR )
             t = t->AsVectorType()->Yield();
 
-        return FoldSingleVal({NewRef{}, v}, t);
+        return FoldSingleVal(to_ptr(v), t);
     }
 
     VectorVal* vv = v->AsVectorVal();
@@ -3562,7 +3562,7 @@ RecordCoerceExpr::RecordCoerceExpr(ExprPtr arg_op, RecordTypePtr r) : UnaryExpr(
 
 ValPtr RecordCoerceExpr::Fold(Val* v) const {
     if ( same_type(GetType(), Op()->GetType()) )
-        return IntrusivePtr{NewRef{}, v};
+        return to_ptr(v);
 
     auto rt = cast_intrusive<RecordType>(GetType());
     return coerce_to_record(rt, v, map);
@@ -3870,9 +3870,9 @@ ValPtr InExpr::Fold(Val* v1, Val* v2) const {
         const auto& table_type = table_val->GetType<zeek::TableType>();
         // Special table[pattern] / set[pattern] in expression.
         if ( table_type->IsPatternIndex() && v1->GetType()->Tag() == TYPE_STRING )
-            res = table_val->MatchPattern({NewRef{}, v1->AsStringVal()});
+            res = table_val->MatchPattern(to_ptr<StringVal>(v1));
         else
-            res = (bool)v2->AsTableVal()->Find({NewRef{}, v1});
+            res = (bool)v2->AsTableVal()->Find(to_ptr(v1));
     }
 
     return val_mgr->Bool(res);
@@ -3989,7 +3989,7 @@ ValPtr CallExpr::Eval(Frame* f) const {
         if ( trigger::Trigger* trigger = f->GetTrigger() ) {
             if ( Val* v = trigger->Lookup((void*)this) ) {
                 DBG_LOG(DBG_NOTIFIERS, "%s: provides cached function result", trigger->Name());
-                return {NewRef{}, v};
+                return to_ptr(v);
             }
         }
     }

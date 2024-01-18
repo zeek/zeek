@@ -16,7 +16,6 @@ static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enab
 asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
-openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -166,17 +165,17 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
+fedora39_task:
+  container:
+    # Fedora 39 EOL: Around Nov 2024
+    dockerfile: ci/fedora-39/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 fedora38_task:
   container:
     # Fedora 38 EOL: Around May 2024
     dockerfile: ci/fedora-38/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-fedora37_task:
-  container:
-    # Fedora 37 EOL: Around Dec 2024
-    dockerfile: ci/fedora-37/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
@@ -208,11 +207,30 @@ centos7_task:
 
 debian12_task:
   container:
-    # Debian 12 (bookworm) EOL: (not yet released)
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
+arm_debian12_task:
+  arm_container:
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
+
+debian12_static_task:
+  container:
+    # Just use a recent/common distro to run a static compile test.
+    # Debian 12 (bookworm) EOL: TBD
     dockerfile: ci/debian-12/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
 
 debian11_task:
   container:
@@ -220,26 +238,7 @@ debian11_task:
     dockerfile: ci/debian-11/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-
-arm_debian11_task:
-  arm_container:
-    # Debian 11 EOL: June 2026
-    dockerfile: ci/debian-11/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
-
-debian11_static_task:
-  container:
-    # Just use a recent/common distro to run a static compile test.
-    # Debian 11 EOL: June 2026
-    dockerfile: ci/debian-11/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
 
 debian10_task:
   container:
@@ -247,16 +246,6 @@ debian10_task:
     dockerfile: ci/debian-10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-
-opensuse_leap_15_4_task:
-  container:
-    # Opensuse Leap 15.4 EOL: ~Nov 2023
-    dockerfile: ci/opensuse-leap-15.4/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
 
 opensuse_leap_15_5_task:
   container:
@@ -276,8 +265,8 @@ opensuse_tumbleweed_task:
 
 ubuntu23_task:
   container:
-    # Ubuntu 23.04 EOL: January 2024
-    dockerfile: ci/ubuntu-23.04/Dockerfile
+    # Ubuntu 23.10 EOL: July 2024
+    dockerfile: ci/ubuntu-23.10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -350,6 +339,13 @@ alpine_task:
 
 # Apple doesn't publish official long-term support timelines.
 # We aim to support both the current and previous macOS release.
+macos_sonoma_task:
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-sonoma-base:latest
+  prepare_script: ./ci/macos/prepare.sh
+  << : *CI_TEMPLATE
+  << : *MACOS_ENVIRONMENT
+
 macos_ventura_task:
   macos_instance:
     image: ghcr.io/cirruslabs/macos-ventura-base:latest
@@ -357,21 +353,11 @@ macos_ventura_task:
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
 
-macos_monterey_task:
-  macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-base:latest
-  prepare_script: ./ci/macos/prepare.sh
-  << : *CI_TEMPLATE
-  << : *MACOS_ENVIRONMENT
-  << : *SKIP_TASK_ON_PR
-
 # FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:
   freebsd_instance:
-    # We don't support FreeBSD 14 yet, this is a purely informative task
-    image_family: freebsd-14-0-snap
-    allow_failures: true
-    skip_notification: true
+    # FreeBSD 14 EOL: Nov 30 2028
+    image_family: freebsd-14-0
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
@@ -401,7 +387,6 @@ asan_sanitizer_task:
   env:
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
-    ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     ASAN_OPTIONS: detect_leaks=1
 
 ubsan_sanitizer_task:
@@ -416,7 +401,6 @@ ubsan_sanitizer_task:
   env:
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
-    ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
 
@@ -683,7 +667,7 @@ cluster_testing_docker_builder:
   test_script:
     # Invoke btest directly here. This mirrors ci/test.sh, ensures we don't
     # accidentally build a Docker image, and enables console-level output:
-    - cd testing/external/zeek-testing-cluster && ../../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
+    - cd testing/external/zeek-testing-cluster && ../../../auxil/btest/btest -A -d -b -j ${ZEEK_CI_BTEST_JOBS}
   on_failure:
     upload_cluster_testing_artifacts:
       path: "testing/external/zeek-testing-cluster/.tmp/**"

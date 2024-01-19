@@ -470,10 +470,10 @@ export {
 	## Whether to enable DPD on WebSocket frame payload by default.
 	const use_dpd_default = T &redef;
 
-	## Record type that is passed to :zeek:see:`WebSocket::__configure_analyzer`.
+	## Record type that is passed to :zeek:see:`WebSocket::configure_analyzer`.
 	##
-	## This allows to configure the WebSocket analyzer given parameters
-	## collected from HTTP headers.
+	## This record allows to configure the WebSocket analyzer given
+	## parameters collected from HTTP headers.
 	type AnalyzerConfig: record {
 		## The analyzer to attach for analysis of the WebSocket
 		## frame payload. See *use_dpd* below for the behavior

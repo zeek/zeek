@@ -11,7 +11,7 @@
 ##
 ## .. zeek:see:: WebSocket::configure_analyzer
 ##
-event websocket_handshake%(c: connection, aid: count%);
+event websocket_established%(c: connection, aid: count%);
 
 ## Generated for every WebSocket frame.
 ##

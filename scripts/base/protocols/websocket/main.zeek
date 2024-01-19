@@ -1,10 +1,12 @@
 ##! Implements base functionality for WebSocket analysis.
 ##!
-##! Upon a websocket_handshake(), logs all gathered information into websocket.log
-##! and then configures the WebSocket analyzer with the headers collected using
-##! http events.
+##! Upon a websocket_established() event, logs all gathered information into
+##! websocket.log and configures the WebSocket analyzer with the headers
+##! collected via http events.
 
 @load base/protocols/http
+
+@load ./consts
 
 module WebSocket;
 
@@ -38,6 +40,10 @@ export {
 		server_extensions: vector of string &log &optional;
 		## The extensions requested by the client, if any.
 		client_extensions: vector of string &log &optional;
+		## The Sec-WebSocket-Key header from the client.
+		client_key:        string &optional;
+		## The Sec-WebSocket-Accept header from the server.
+		server_accept:     string &optional;
 	};
 
 	## Event that can be handled to access the WebSocket record as it is
@@ -71,6 +77,10 @@ function set_websocket(c: connection)
 	);
 	}
 
+function expected_accept_for(key: string): string {
+	return encode_base64(hexstr_to_bytestring(sha1_hash(key + HANDSHAKE_GUID)));
+}
+
 event http_header(c: connection, is_orig: bool, name: string, value: string)
 	{
 	if ( ! starts_with(name, "SEC-WEBSOCKET-") )
@@ -98,11 +108,21 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 
 			ws$client_extensions += split_string(value, / *, */);
 			}
+		else if ( name == "SEC-WEBSOCKET-KEY" )
+			{
+			if ( ws?$client_key )
+				Reporter::conn_weird("websocket_multiple_key_headers", c, "", "WebSocket");
+
+			ws$client_key = value;
+			}
 		}
 	else
 		{
 		if ( name == "SEC-WEBSOCKET-PROTOCOL" )
 			{
+			if ( ws?$subprotocol )
+				Reporter::conn_weird("websocket_multiple_protocol_headers", c, "", "WebSocket");
+
 			ws$subprotocol = value;
 			}
 		else if ( name == "SEC-WEBSOCKET-EXTENSIONS" )
@@ -112,6 +132,13 @@ event http_header(c: connection, is_orig: bool, name: string, value: string)
 
 			ws$server_extensions += split_string(value, / *, */);
 			}
+		else if ( name == "SEC-WEBSOCKET-ACCEPT" )
+			{
+			if ( ws?$server_accept )
+				Reporter::conn_weird("websocket_multiple_accept_headers", c, "", "WebSocket");
+
+			ws$server_accept = value;
+			}
 		}
 	}
 
@@ -119,22 +146,38 @@ event http_request(c: connection, method: string, original_URI: string,
                    unescaped_URI: string, version: string)
 	{
 	# If we see a http_request and have websocket state, wipe it as
-	# we should've seen a websocket_handshake even on success and
+	# we should've seen a websocket_established even on success and
 	# likely no more http events.
 	if ( ! c?$websocket )
 		delete c$websocket;
 	}
 
-event websocket_handshake(c: connection, aid: count) &priority=5
+event websocket_established(c: connection, aid: count) &priority=5
 	{
 	if ( ! c?$websocket )
 		{
 		# This means we never saw a Sec-WebSocket-* header, weird.
-		Reporter::conn_weird("websocket_handshake_unexpected", c, "", "WebSocket");
+		Reporter::conn_weird("websocket_established_unexpected", c, "", "WebSocket");
 		set_websocket(c);
 		}
 
 	local ws = c$websocket;
+
+	if ( ! ws?$client_key )
+		Reporter::conn_weird("websocket_missing_key_header", c, "", "WebSocket");
+
+	if ( ! ws?$server_accept )
+		Reporter::conn_weird("websocket_missing_accept_header", c, "", "WebSocket");
+
+	# Verify the Sec-WebSocket-Accept header's value given the Sec-WebSocket-Key header's value.
+	if ( ws?$client_key && ws?$server_accept )
+		{
+		local expected_accept = expected_accept_for(ws$client_key);
+		if ( ws$server_accept != expected_accept )
+			Reporter::conn_weird("websocket_wrong_accept_header", c,
+			                     fmt("expected=%s, found=%s", expected_accept, ws$server_accept),
+			                     "WebSocket");
+		}
 
 	# Replicate some information from the HTTP.log
 	if ( c?$http )
@@ -150,7 +193,7 @@ event websocket_handshake(c: connection, aid: count) &priority=5
 		}
 	}
 
-event websocket_handshake(c: connection, aid: count) &priority=-5
+event websocket_established(c: connection, aid: count) &priority=-5
 	{
 	local ws = c$websocket;
 

@@ -12,9 +12,9 @@
 
 @load base/protocols/websocket
 
-event websocket_handshake(c: connection, aid: count)
+event websocket_established(c: connection, aid: count)
 	{
-	print "websocket_handshake", c$uid, aid, c$websocket;
+	print "websocket_established", c$uid, aid, c$websocket;
 	}
 
 event websocket_message(c: connection, is_orig: bool, opcode: count)

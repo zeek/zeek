@@ -18,4 +18,6 @@ export {
 		[OPCODE_PING]         = "ping",
 		[OPCODE_PONG]         = "pong",
 	} &default=function(opcode: count): string { return fmt("unknown-%x", opcode); } &redef;
+
+	const HANDSHAKE_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 }

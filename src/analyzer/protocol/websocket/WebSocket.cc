@@ -23,7 +23,7 @@ void WebSocket_Analyzer::Init() {
     tcp::TCP_ApplicationAnalyzer::Init();
 
     // This event calls back via Configure()
-    zeek::BifEvent::enqueue_websocket_handshake(this, Conn(), GetID());
+    zeek::BifEvent::enqueue_websocket_established(this, Conn(), GetID());
 }
 
 bool WebSocket_Analyzer::Configure(zeek::RecordValPtr config) {

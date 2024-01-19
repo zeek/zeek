@@ -6,6 +6,15 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 6.1.1
 ==========
 
+This release fixes the following security issues:
+
+- A specially-crafted series of packets containing nested MIME entities can
+  cause Zeek to spend large amounts of time parsing the entities. Due to the
+  possibility of receiving these packets from remote hosts, this is a DoS
+  risk.The fix included adds a new option (MIME::max_depth) to the MIME parser
+  that limits the depth the parser will attempt to follow the entity nesting. If
+  the limit is reached an exceeded_mime_max_depth weird is generated.
+
 This release fixes the following bugs:
 
 - CMake correctly passes along third-party package information when building
@@ -28,6 +37,9 @@ This release fixes the following bugs:
   Cluster::node_up() and Cluster::node_down() re-assigning these without keeping
   the &create_expire attribute intact. This broke the "log hosts every 24h"
   behavior.
+
+- Zeek builds using the --binary-package argument and including Spicy will now
+  include all necessary Spicy symbols.
 
 Zeek 6.1.0
 ==========

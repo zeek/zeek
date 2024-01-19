@@ -947,8 +947,10 @@ if (NOT DISABLE_SPICY)
         # instead explicitly branch on `BINARY_PACKAGING_MODE` here.
         if (BINARY_PACKAGING_MODE)
             hilti_link_object_libraries_in_tree(zeek_exe PRIVATE)
+            spicy_link_object_libraries_in_tree(zeek_exe PRIVATE)
         else ()
             hilti_link_libraries_in_tree(zeek_exe PRIVATE)
+            spicy_link_libraries_in_tree(zeek_exe PRIVATE)
         endif ()
 
         set(HAVE_SPICY yes)

@@ -1,3 +1,27 @@
+6.0.3 | 2024-01-19 09:00:16 -0700
+
+  * GH-208: MIME: Cap nested MIME analysis depth to 100 (Arne Welzel, Corelight)
+
+    OSS-Fuzz managed to produce a MIME multipart message construction with
+    thousands of nested entities (or that's what Zeek makes out of it anyhow).
+    Prevent such deep analysis by capping at a nesting depth of 100,
+    preventing unnecessary resource usage. A new weird named exceeded_mime_max_depth
+    is reported when this limit is reached.
+
+    This change reduces the runtime of the OSS-Fuzz reproducer from ~45 seconds
+    to ~2.5 seconds.
+
+    The test PCAP was produced from a Python script using the email package
+    and sending the rendered version via POST to a HTTP server.
+
+    Closes #208
+
+    (cherry picked from commit 4e5849fe82c6097df5d25cd1a74d69ab4fa50f46)
+
+  * GH-3177: Make sure Spicy symbols are available. (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit 638e8a051959c869261b46ebc56e1bce80d200b0)
+
 6.0.2-42 | 2024-01-18 16:25:03 -0700
 
   * CI: Remove unused openssl30_config (Tim Wojtulewicz, Corelight)

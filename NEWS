@@ -38,6 +38,9 @@ This release fixes the following bugs:
   the &create_expire attribute intact. This broke the "log hosts every 24h"
   behavior.
 
+- Zeek builds using the --binary-package argument and including Spicy will now
+  include all necessary Spicy symbols.
+
 Zeek 6.0.2
 ==========
 

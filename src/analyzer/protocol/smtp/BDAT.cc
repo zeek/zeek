@@ -55,10 +55,16 @@ void SMTP_BDAT_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig
     assert(mail != nullptr);
     assert(! IsFinished());
 
+    // We cast to uint64_t, so need to have a positive value.
+    if ( len < 0 ) {
+        Weird("smtp_bdat_negative_len");
+        return;
+    }
+
     // Upstream analyzer delivers more data than we're
     // expecting for the current chunk. Likely a logic
     // error on their side. Truncate it.
-    if ( len > RemainingChunkSize() ) {
+    if ( static_cast<uint64_t>(len) > RemainingChunkSize() ) {
         Weird("smtp_bdat_chunk_overflow");
         len = static_cast<int>(RemainingChunkSize());
     }
@@ -202,6 +208,20 @@ TEST_CASE("chunk size followed by lastjunk") {
     const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
     REQUIRE(error != nullptr);
     CHECK(error == std::string("BDAT chunk-size followed by junk"));
+}
+
+TEST_CASE("huge chunk size") {
+    std::string line = "15555555557777777777";
+    const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
+    REQUIRE(error == nullptr);
+    CHECK(chunk_size == 15555555557777777777UL);
+}
+
+TEST_CASE("negative chunk size") {
+    std::string line = "-42 LAST";
+    const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
+    REQUIRE(error != nullptr);
+    CHECK(error == std::string("BDAT not followed by a valid chunk-size"));
 }
 
 TEST_SUITE_END();

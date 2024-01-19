@@ -120,12 +120,15 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     // NOTE: do not use IsOrig() here, because of TURN command.
     bool is_sender = orig_is_sender ? orig : ! orig;
 
-    if ( is_sender && bdat ) {
+    if ( length > 0 && is_sender && bdat ) {
         // We're processing BDAT and have switched the ContentLine analyzer
         // into plain mode to send us the full chunk. Ensure we only use up
         // as much as we need in case we get more.
-        int64_t bdat_len = std::min(bdat->RemainingChunkSize(), static_cast<int64_t>(length));
-        if ( bdat->RemainingChunkSize() > 0 )
+        int bdat_len = length;
+        if ( bdat->RemainingChunkSize() < static_cast<uint64_t>(bdat_len) )
+            bdat_len = static_cast<int>(bdat->RemainingChunkSize());
+
+        if ( bdat_len > 0 )
             bdat->NextStream(bdat_len, line, orig);
 
         // All BDAT chunks seen?

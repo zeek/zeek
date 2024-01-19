@@ -88,6 +88,7 @@ bool UseDefs::RemoveUnused(int iter) {
                 // used identifiers.
 
                 auto new_init = make_intrusive<InitStmt>(used_ids);
+                new_init->SetLocation(s);
                 rc->AddStmtToReplace(s, std::move(new_init));
             }
 

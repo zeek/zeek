@@ -1896,17 +1896,38 @@ void WhenInfo::Build(StmtPtr ws) {
     lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), "", ws);
     lambda->SetPrivateCaptures(when_new_locals);
 
+    true_const->SetLocation(cond);
+    param->SetLocation(cond);
+    one_test->SetLocation(cond);
+    two_test->SetLocation(cond);
+    empty->SetLocation(cond);
+    test_cond->SetLocation(cond);
+    do_test->SetLocation(cond);
+    else_branch->SetLocation(cond);
+    do_bodies->SetLocation(cond);
+    dummy_return->SetLocation(cond);
+    shebang->SetLocation(cond);
+    lambda->SetLocation(cond);
+
     analyze_when_lambda(lambda.get());
 }
 
 void WhenInfo::Instantiate(Frame* f) { Instantiate(lambda->Eval(f)); }
 
-void WhenInfo::Instantiate(ValPtr func) { curr_lambda = make_intrusive<ConstExpr>(std::move(func)); }
+void WhenInfo::Instantiate(ValPtr func) {
+    curr_lambda = make_intrusive<ConstExpr>(std::move(func));
+    curr_lambda->SetLocation(cond);
+}
 
-ExprPtr WhenInfo::Cond() { return make_intrusive<CallExpr>(curr_lambda, invoke_cond); }
+ExprPtr WhenInfo::Cond() {
+    auto c = make_intrusive<CallExpr>(curr_lambda, invoke_cond);
+    c->SetLocation(cond);
+    return c;
+}
 
 StmtPtr WhenInfo::WhenBody() {
     auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_s);
+    invoke->SetLocation(s);
     return make_intrusive<ReturnStmt>(invoke, true);
 }
 
@@ -1922,6 +1943,8 @@ double WhenInfo::TimeoutVal(Frame* f) {
 
 StmtPtr WhenInfo::TimeoutStmt() {
     auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_timeout);
+    if ( timeout_s )
+        invoke->SetLocation(timeout_s);
     return make_intrusive<ReturnStmt>(invoke, true);
 }
 
@@ -1933,6 +1956,13 @@ void WhenInfo::BuildInvokeElems() {
     invoke_cond = make_intrusive<ListExpr>(one_const);
     invoke_s = make_intrusive<ListExpr>(two_const);
     invoke_timeout = make_intrusive<ListExpr>(three_const);
+
+    one_const->SetLocation(cond);
+    two_const->SetLocation(cond);
+    three_const->SetLocation(cond);
+    invoke_cond->SetLocation(cond);
+    invoke_s->SetLocation(cond);
+    invoke_timeout->SetLocation(cond);
 }
 
 WhenStmt::WhenStmt(std::shared_ptr<WhenInfo> arg_wi) : Stmt(STMT_WHEN), wi(std::move(arg_wi)) {

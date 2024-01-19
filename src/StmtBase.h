@@ -14,6 +14,8 @@
 
 namespace zeek {
 
+using ObjPtr = IntrusivePtr<Obj>;
+
 class Val;
 using ValPtr = IntrusivePtr<Val>;
 
@@ -151,8 +153,16 @@ public:
 
     // Designate the given Stmt node as the original for this one.
     void SetOriginal(StmtPtr _orig) {
-        if ( ! original )
-            original = std::move(_orig);
+        if ( _orig == this )
+            return;
+        original = std::move(_orig);
+        SetLocation(Original());
+    }
+
+    void SetLocation(const ObjPtr& orig_obj) { SetLocation(orig_obj.get()); }
+    void SetLocation(const Obj* orig_obj) {
+        // ASSERT(orig_obj->GetLocationInfo()->first_line != 0);
+        SetLocationInfo(orig_obj->GetLocationInfo());
     }
 
     // A convenience function for taking a newly-created Stmt,
@@ -167,12 +177,15 @@ public:
         return {AdoptRef{}, succ};
     }
 
+#if 0
+    // ###
     const detail::Location* GetLocationInfo() const override {
         if ( original )
             return original->GetLocationInfo();
         else
             return Obj::GetLocationInfo();
     }
+#endif
 
     // Access script optimization information associated with
     // this statement.
@@ -205,7 +218,7 @@ protected:
     // The original statement from which this statement was
     // derived, if any.  Used as an aid for generating meaningful
     // and correctly-localized error messages.
-    StmtPtr original = nullptr;
+    StmtPtr original;
 
     // Information associated with the Stmt for purposes of
     // script optimization.

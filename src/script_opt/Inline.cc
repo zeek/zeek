@@ -228,6 +228,7 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
 
     // We pattern the new (alternate) body off of the first body.
     auto& b0 = func->GetBodies()[0].stmts;
+    merged_body->SetOriginal(b0);
     auto b0_info = body_to_info.find(b0.get());
     ASSERT(b0_info != body_to_info.end());
     auto& info0 = funcs[b0_info->second];
@@ -255,8 +256,12 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
 
     // Build up the calling arguments.
     auto args = make_intrusive<ListExpr>();
-    for ( auto& p : param_ids )
-        args->Append(make_intrusive<NameExpr>(p));
+    args->SetLocation(b0);
+    for ( auto& p : param_ids ) {
+        auto pn = make_intrusive<NameExpr>(p);
+        pn->SetLocation(b0);
+        args->Append(pn);
+    }
 
     for ( auto& b : bodies ) {
         auto bp = b.stmts;
@@ -272,7 +277,9 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
             // changes other than the function's scope.
             return;
 
-        merged_body->Stmts().push_back(make_intrusive<ExprStmt>(ie));
+        auto ie_s = make_intrusive<ExprStmt>(ie);
+        ie_s->SetOriginal(bp);
+        merged_body->Stmts().push_back(ie_s);
     }
 
     auto inlined_func = make_intrusive<CoalescedScriptFunc>(merged_body, new_scope, func);
@@ -438,7 +445,10 @@ ExprPtr Inliner::DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, Scop
     auto t = scope->GetReturnType();
 
     ASSERT(params.size() == args->Exprs().size());
-    return make_intrusive<InlineExpr>(args, params, param_is_modified, body_dup, curr_frame_size, t);
+    // ### auto ie = make_intrusive<InlineExpr>(sf, args, params, param_is_modified, body_dup, curr_frame_size, t);
+    auto ie = make_intrusive<InlineExpr>(args, params, param_is_modified, body_dup, curr_frame_size, t);
+    ie->SetLocation(body);
+    return ie;
 }
 
 } // namespace zeek::detail

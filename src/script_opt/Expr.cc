@@ -1477,7 +1477,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     StmtPtr rhs_reduce;
 
     if ( lhs_is_any != rhs_is_any ) {
-	auto op2_orig = op2;
+        auto op2_orig = op2;
 
         ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
 
@@ -1490,14 +1490,14 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         else
             op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
 
-	op2->SetLocation(op2_orig);
+        op2->SetLocation(op2_orig);
     }
 
     if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() && t2->Yield()->Tag() == TYPE_ANY ) {
-	auto op2_orig = op2;
+        auto op2_orig = op2;
         ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
         op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
-	op2->SetLocation(op2_orig);
+        op2->SetLocation(op2_orig);
     }
 
     auto lhs_ref = op1->AsRefExprPtr();
@@ -2008,7 +2008,7 @@ ExprPtr VectorCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         ASSERT(op1_list->Tag() == EXPR_LIST);
         auto empty_list = cast_intrusive<ListExpr>(op1_list);
         auto new_me = make_intrusive<VectorConstructorExpr>(empty_list, type);
-	new_me->SetLocation(this);
+        new_me->SetLocation(this);
         auto red_e = new_me->Reduce(c, red_stmt);
         return TransformMe(std::move(red_e), c, red_stmt);
     }

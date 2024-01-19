@@ -902,8 +902,6 @@ StmtPtr WhenStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-// ### CatchReturnStmt::CatchReturnStmt(ScriptFuncPtr _sf, StmtPtr _block, NameExprPtr _ret_var) :
-// Stmt(STMT_CATCH_RETURN) {
 CatchReturnStmt::CatchReturnStmt(StmtPtr _block, NameExprPtr _ret_var) : Stmt(STMT_CATCH_RETURN) {
     // sf = std::move(_sf);
     block = std::move(_block);

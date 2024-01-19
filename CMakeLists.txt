@@ -1103,6 +1103,7 @@ endif ()
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
+set(ZEEK_HAVE_AF_PACKET no)
 if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
     if (NOT DISABLE_AF_PACKET)
         if (NOT AF_PACKET_PLUGIN_PATH)
@@ -1110,9 +1111,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
         endif ()
 
         list(APPEND ZEEK_INCLUDE_PLUGINS ${AF_PACKET_PLUGIN_PATH})
+        set(ZEEK_HAVE_AF_PACKET yes)
     endif ()
 endif ()
 
+set(ZEEK_HAVE_JAVASCRIPT no)
 if (NOT DISABLE_JAVASCRIPT)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/auxil/zeekjs/cmake)
     find_package(Nodejs)
@@ -1123,14 +1126,11 @@ if (NOT DISABLE_JAVASCRIPT)
                 STATUS
                     "Node.js version ${NODEJS_VERSION} is too old, need 16.13 or later. Not enabling JavaScript support."
             )
-            set(ZEEK_HAVE_JAVASCRIPT no)
         else ()
             set(ZEEKJS_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeekjs)
             list(APPEND ZEEK_INCLUDE_PLUGINS ${ZEEKJS_PLUGIN_PATH})
             set(ZEEK_HAVE_JAVASCRIPT yes)
         endif ()
-    else ()
-        set(ZEEK_HAVE_JAVASCRIPT no)
     endif ()
 endif ()
 
@@ -1435,18 +1435,19 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
-    "\nzeek-client:       ${INSTALL_ZEEK_CLIENT}"
-    "\nZeekControl:       ${INSTALL_ZEEKCTL}"
+    "\nAF_PACKET:         ${ZEEK_HAVE_AF_PACKET}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\nBifCL:             ${_bifcl_exe_path}"
     "\nBinPAC:            ${_binpac_exe_path}"
     "\nBTest:             ${INSTALL_BTEST}"
     "\nBTest tooling:     ${_install_btest_tools_msg}"
     "\nGen-ZAM:           ${_gen_zam_exe_path}"
-    "\nzkg:               ${INSTALL_ZKG}"
+    "\nJavaScript:        ${ZEEK_HAVE_JAVASCRIPT}"
     "\nSpicy:             ${_spicy}"
     "\nSpicy analyzers:   ${USE_SPICY_ANALYZERS}"
-    "\nJavaScript:        ${ZEEK_HAVE_JAVASCRIPT}"
+    "\nzeek-client:       ${INSTALL_ZEEK_CLIENT}"
+    "\nZeekControl:       ${INSTALL_ZEEKCTL}"
+    "\nzkg:               ${INSTALL_ZKG}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"
     "\nKerberos:          ${USE_KRB5}"

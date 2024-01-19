@@ -1,3 +1,10 @@
+6.2.0-dev.419 | 2024-01-19 10:25:52 -0800
+
+  * Default to setting ZEEK_HAVE_JAVASCRIPT=no in CMakeLists.txt (Christian Kreibich, Corelight)
+  * Show --disable-javascript in `configure --help` (Christian Kreibich, Corelight)
+  * Show AF_PACKET support status in cmake output, and sort features (Christian Kreibich, Corelight)
+  * Add feature tests for AF_PACKET, GeoIP, and JavaScript to zeek-config (Christian Kreibich, Corelight)
+
 6.2.0-dev.414 | 2024-01-19 12:27:39 +0100
 
   * GH-3177: Merge branch 'topic/bbannier/issue-3177' (Benjamin Bannier, Corelight)

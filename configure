@@ -72,6 +72,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-btest        don't install BTest
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-cpp-tests    don't build Zeek's C++ unit tests
+    --disable-javascript   don't build Zeek's JavaScript support
     --disable-port-prealloc disable pre-allocating the PortVal array in ValManager
     --disable-python       don't try to build python bindings for Broker
     --disable-spicy        don't include Spicy

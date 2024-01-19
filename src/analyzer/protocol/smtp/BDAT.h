@@ -88,7 +88,7 @@ public:
     /**
      * @return The remaining size of the current chunk.
      */
-    int64_t RemainingChunkSize() const { return remaining_chunk_size; }
+    uint64_t RemainingChunkSize() const { return remaining_chunk_size; }
 
     /**
      * @return true if the current chunk was started with LAST.

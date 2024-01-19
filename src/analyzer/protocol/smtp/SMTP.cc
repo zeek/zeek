@@ -5,6 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <cstdlib>
+#include <limits>
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
@@ -119,12 +120,15 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     // NOTE: do not use IsOrig() here, because of TURN command.
     bool is_sender = orig_is_sender ? orig : ! orig;
 
-    if ( is_sender && bdat ) {
+    if ( length > 0 && is_sender && bdat ) {
         // We're processing BDAT and have switched the ContentLine analyzer
         // into plain mode to send us the full chunk. Ensure we only use up
         // as much as we need in case we get more.
-        int64_t bdat_len = std::min(bdat->RemainingChunkSize(), static_cast<int64_t>(length));
-        if ( bdat->RemainingChunkSize() > 0 )
+        int bdat_len = length;
+        if ( bdat->RemainingChunkSize() < static_cast<uint64_t>(bdat_len) )
+            bdat_len = static_cast<int>(bdat->RemainingChunkSize());
+
+        if ( bdat_len > 0 )
             bdat->NextStream(bdat_len, line, orig);
 
         // All BDAT chunks seen?
@@ -854,6 +858,15 @@ bool SMTP_Analyzer::ProcessBdatArg(int arg_len, const char* arg, bool orig) {
     const auto [chunk_size, is_last_chunk, error] = detail::parse_bdat_arg(arg_len, arg);
     if ( error ) {
         Weird("smtp_invalid_bdat_command", error);
+        return false;
+    }
+
+    // The ContentLine analyzer only supports int64_t, but BDAT could deal
+    // with uint64_t sized chunks. Weird if the chunk size is larger and
+    // do not configure the ContentLine analyzer for plain delivery.
+    if ( chunk_size > std::numeric_limits<int64_t>::max() ) {
+        const char* addl = zeek::util::fmt("%" PRIu64, chunk_size);
+        Weird("smtp_huge_bdat_chunk", addl);
         return false;
     }
 

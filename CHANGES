@@ -1,3 +1,8 @@
+6.2.0-dev.412 | 2024-01-18 16:16:50 -0800
+
+  * Fix a zeek_init -> zeek_done confusion in a docstring (Christian Kreibich, Corelight)
+  * Fix typo in docstring (Christian Kreibich, Corelight)
+
 6.2.0-dev.408 | 2024-01-17 10:00:06 -0700
 
   * Enable darwin builds for zeek-security repo (Tim Wojtulewicz, Corelight)

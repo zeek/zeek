@@ -49,6 +49,7 @@ namespace detail {
 class ScriptFunc;
 class Frame;
 class PrefixTable;
+class CompositeHash;
 class HashKey;
 class TablePatternMatcher;
 
@@ -929,7 +930,7 @@ public:
 
     const PDict<TableEntryVal>* Get() const { return table_val; }
 
-    const detail::CompositeHash* GetTableHash() const { return table_type->GetTableHash(); }
+    const detail::CompositeHash* GetTableHash() const { return table_hash; }
 
     // Returns the size of the table.
     int Size() const;
@@ -971,8 +972,7 @@ public:
 
     // Retrieves and saves all table state (key-value pairs) for
     // tables whose index type depends on the given RecordType.
-    // Returns the associated table types.
-    static std::set<TableType*> SaveParseTimeTableState(RecordType* rt);
+    static void SaveParseTimeTableState(RecordType* rt);
 
     // Rebuilds all TableVals whose state was previously saved by
     // SaveParseTimeTableState().  This is used to re-recreate the tables
@@ -1043,6 +1043,7 @@ protected:
     ValPtr DoClone(CloneState* state) override;
 
     TableTypePtr table_type;
+    detail::CompositeHash* table_hash;
     detail::AttributesPtr attrs;
     detail::ExprPtr expire_time;
     detail::ExprPtr expire_func;

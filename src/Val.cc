@@ -1568,6 +1568,7 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
     if ( table_type->IsPatternIndex() )
         pattern_matcher = std::make_unique<detail::TablePatternMatcher>(this, table_type->Yield());
 
+    table_hash = new detail::CompositeHash(table_type->GetIndices());
     if ( ordered )
         table_val = new PDict<TableEntryVal>(DictOrder::ORDERED);
     else
@@ -1580,6 +1581,7 @@ TableVal::~TableVal() {
     if ( timer )
         detail::timer_mgr->Cancel(timer);
 
+    delete table_hash;
     delete table_val;
     delete expire_iterator;
 }
@@ -1754,7 +1756,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const {
         auto* v = tble.value;
 
         if ( is_first_init && t->AsTable()->Lookup(k.get()) ) {
-            auto key = GetTableHash()->RecoverVals(*k);
+            auto key = table_hash->RecoverVals(*k);
             // ### Shouldn't complain if their values are equal.
             key->Warn("multiple initializations for index");
             continue;
@@ -2079,7 +2081,7 @@ bool TableVal::UpdateTimestamp(Val* index) {
     return true;
 }
 
-ListValPtr TableVal::RecreateIndex(const detail::HashKey& k) const { return GetTableHash()->RecoverVals(k); }
+ListValPtr TableVal::RecreateIndex(const detail::HashKey& k) const { return table_hash->RecoverVals(k); }
 
 void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType tpe) {
     if ( ! change_func || ! index || in_change_func )
@@ -2268,7 +2270,7 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
         va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
     if ( subnets ) {
-        auto index = GetTableHash()->RecoverVals(k);
+        auto index = table_hash->RecoverVals(k);
 
         if ( ! subnets->Remove(index.get()) )
             reporter->InternalWarning("index not in prefix table");
@@ -2279,7 +2281,7 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
     Modified();
 
     if ( va && (change_func || ! broker_store.empty()) ) {
-        auto index = GetTableHash()->RecoverVals(k);
+        auto index = table_hash->RecoverVals(k);
         if ( ! broker_store.empty() )
             SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
 
@@ -2295,7 +2297,7 @@ ListValPtr TableVal::ToListVal(TypeTag t) const {
 
     for ( const auto& tble : *table_val ) {
         auto k = tble.GetHashKey();
-        auto index = GetTableHash()->RecoverVals(*k);
+        auto index = table_hash->RecoverVals(*k);
 
         if ( t == TYPE_ANY )
             l->Append(std::move(index));
@@ -2327,7 +2329,7 @@ std::unordered_map<ValPtr, ValPtr> TableVal::ToMap() const {
     for ( const auto& iter : *table_val ) {
         auto k = iter.GetHashKey();
         auto v = iter.value;
-        auto vl = GetTableHash()->RecoverVals(*k);
+        auto vl = table_hash->RecoverVals(*k);
 
         res[std::move(vl)] = v->GetVal();
     }
@@ -2364,7 +2366,7 @@ void TableVal::Describe(ODesc* d) const {
         auto k = iter->GetHashKey();
         auto* v = iter->value;
 
-        auto vl = GetTableHash()->RecoverVals(*k);
+        auto vl = table_hash->RecoverVals(*k);
         int dim = vl->Length();
 
         ODesc intermediary_d;
@@ -2703,7 +2705,7 @@ unsigned int TableVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed
 
     for ( const auto& iter : *table_val ) {
         auto k = iter.GetHashKey();
-        auto vl = GetTableHash()->RecoverVals(*k);
+        auto vl = table_hash->RecoverVals(*k);
         auto v = iter.value->GetVal();
 
         fp += vl->Footprint(analyzed_vals);
@@ -2715,25 +2717,19 @@ unsigned int TableVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed
 }
 
 std::unique_ptr<detail::HashKey> TableVal::MakeHashKey(const Val& index) const {
-    return GetTableHash()->MakeHashKey(index, true);
+    return table_hash->MakeHashKey(index, true);
 }
 
-std::set<TableType*> TableVal::SaveParseTimeTableState(RecordType* rt) {
-    std::set<TableType*> affected_table_types;
-
+void TableVal::SaveParseTimeTableState(RecordType* rt) {
     auto it = parse_time_table_record_dependencies.find(rt);
 
     if ( it == parse_time_table_record_dependencies.end() )
-        return affected_table_types;
+        return;
 
     auto& table_vals = it->second;
 
-    for ( auto& tv : table_vals ) {
+    for ( auto& tv : table_vals )
         parse_time_table_states[tv.get()] = tv->DumpTableState();
-        affected_table_types.insert(tv->table_type.get());
-    }
-
-    return affected_table_types;
 }
 
 void TableVal::RebuildParseTimeTables() {
@@ -2759,6 +2755,9 @@ TableVal::ParseTimeTableState TableVal::DumpTableState() {
 }
 
 void TableVal::RebuildTable(ParseTimeTableState ptts) {
+    delete table_hash;
+    table_hash = new detail::CompositeHash(table_type->GetIndices());
+
     for ( auto& [key, val] : ptts )
         Assign(std::move(key), std::move(val));
 }

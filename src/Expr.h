@@ -367,19 +367,6 @@ public:
     // Helper function to reduce boring code runs.
     StmtPtr MergeStmts(StmtPtr s1, StmtPtr s2, StmtPtr s3 = nullptr) const;
 
-    // Access to the original expression from which this one is derived,
-    // or this one if we don't have an original.  Returns a bare pointer
-    // rather than an ExprPtr to emphasize that the access is read-only.
-    const Expr* Original() const { return original ? original->Original() : this; }
-
-    // Designate the given Expr node as the original for this one.
-    void SetOriginal(ExprPtr _orig) {
-        if ( _orig == this )
-            return;
-        original = std::move(_orig);
-        SetLocation(Original());
-    }
-
     void SetLocation(const ObjPtr& orig_obj) { SetLocation(orig_obj.get()); }
     void SetLocation(const Obj* orig_obj) {
         ASSERT(orig_obj->GetLocationInfo()->first_line != 0);
@@ -394,20 +381,11 @@ public:
     // call, as a convenient side effect, transforms that bare pointer
     // into an ExprPtr.
     virtual ExprPtr SetSucc(Expr* succ) {
-        succ->SetOriginal(ThisPtr());
+        succ->SetLocation(this);
         if ( IsParen() )
             succ->MarkParen();
         return {AdoptRef{}, succ};
     }
-
-#if 0
-    const detail::Location* GetLocationInfo() const override {
-        if ( original )
-            return original->GetLocationInfo();
-        else
-            return Obj::GetLocationInfo();
-    }
-#endif
 
     // Access script optimization information associated with
     // this statement.
@@ -445,11 +423,6 @@ protected:
     ExprTag tag;
     bool paren;
     TypePtr type;
-
-    // The original expression from which this statement was
-    // derived, if any.  Used as an aid for generating meaningful
-    // and correctly-localized error messages.
-    ExprPtr original = nullptr;
 
     // Information associated with the Expr for purposes of
     // script optimization.

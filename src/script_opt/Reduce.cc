@@ -39,7 +39,7 @@ StmtPtr Reducer::Reduce(StmtPtr s) {
 
 ExprPtr Reducer::GenTemporaryExpr(const TypePtr& t, ExprPtr rhs) {
     auto e = make_intrusive<NameExpr>(GenTemporary(t, rhs));
-    e->SetOriginal(rhs);
+    e->SetLocation(rhs);
 
     // No need to associate with current statement, since these
     // are not generated during optimization.
@@ -117,7 +117,7 @@ bool Reducer::ID_IsReduced(const ID* id) const {
 
 StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
     auto param = GenInlineBlockName(id);
-    param->SetOriginal(rhs);
+    param->SetLocation(rhs);
     auto rhs_id = rhs->Tag() == EXPR_NAME ? rhs->AsNameExpr()->IdPtr() : nullptr;
 
     if ( rhs_id && pf->Locals().count(rhs_id.get()) == 0 && ! rhs_id->IsConst() )
@@ -146,11 +146,11 @@ StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
 
         param_temps.insert(param_id.get());
         param = make_intrusive<NameExpr>(param_id);
-        param->SetOriginal(rhs);
+        param->SetLocation(rhs);
     }
 
     auto assign = make_intrusive<AssignExpr>(param, rhs, false, nullptr, nullptr, false);
-    assign->SetOriginal(rhs);
+    assign->SetLocation(rhs);
     auto assign_s = make_intrusive<ExprStmt>(assign);
     return assign_s;
 }
@@ -607,10 +607,10 @@ ConstExprPtr Reducer::Fold(ExprPtr e) {
 }
 
 void Reducer::FoldedTo(ExprPtr e, ConstExprPtr c) {
+    c->SetLocation(e);
     om.AddObj(e.get());
     constant_exprs[e.get()] = std::move(c);
     folded_exprs.push_back(std::move(e));
-    c->SetOriginal(e);
 }
 
 ExprPtr Reducer::OptExpr(Expr* e) {
@@ -650,7 +650,7 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
             // we can still omit the assignment).
             constant_vars.insert(id);
             auto new_e = make_intrusive<ConstExpr>(is_const->ValuePtr());
-            new_e->SetOriginal(e);
+            new_e->SetLocation(e);
             return new_e;
         }
 
@@ -659,7 +659,7 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
 
     if ( tmp_var->Const() ) {
         auto ce = make_intrusive<ConstExpr>(tmp_var->Const()->ValuePtr());
-        ce->SetOriginal(e);
+        ce->SetLocation(e);
         return ce;
     }
 
@@ -684,7 +684,7 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
 
     auto c = rhs->AsConstExpr();
     auto ce = make_intrusive<ConstExpr>(c->ValuePtr());
-    ce->SetOriginal(e);
+    ce->SetLocation(e);
     return ce;
 }
 

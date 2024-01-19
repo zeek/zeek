@@ -349,7 +349,7 @@ ExprPtr Expr::AssignToTemporary(ExprPtr e, Reducer* c, StmtPtr& red_stmt) {
 
     auto a_e = make_intrusive<AssignExpr>(result_tmp->MakeLvalue(), e, false, nullptr, nullptr, false);
     a_e->SetIsTemp();
-    a_e->SetOriginal(ThisPtr());
+    a_e->SetLocation(this);
 
     auto a_e_s = make_intrusive<ExprStmt>(a_e);
     a_e_s->SetLocation(this);
@@ -367,7 +367,7 @@ ExprPtr Expr::TransformMe(ExprPtr new_me, Reducer* c, StmtPtr& red_stmt) {
     if ( new_me == this )
         return new_me;
 
-    new_me->SetOriginal(ThisPtr());
+    new_me->SetLocation(this);
 
     // Unlike for Stmt's, we assume that new_me has already
     // been reduced, so no need to do so further.
@@ -578,7 +578,7 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     target = target->ReduceToSingleton(c, target_stmt);
 
     auto incr_const = make_intrusive<ConstExpr>(val_mgr->Count(1));
-    incr_const->SetOriginal(ThisPtr());
+    incr_const->SetLocation(this);
 
     ExprPtr incr_expr;
 
@@ -587,7 +587,7 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     else
         incr_expr = make_intrusive<SubExpr>(target, incr_const);
 
-    incr_expr->SetOriginal(ThisPtr());
+    incr_expr->SetLocation(this);
     StmtPtr incr_stmt;
     auto incr_expr2 = incr_expr->Reduce(c, incr_stmt);
 
@@ -603,14 +603,14 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto dup2 = orig_target->GetOp2()->Duplicate();
         auto index = dup2->AsListExprPtr();
         orig_target = make_intrusive<IndexExpr>(dup1, index);
-        orig_target->SetOriginal(ThisPtr());
+        orig_target->SetLocation(this);
     }
 
     else if ( orig_target->Tag() == EXPR_FIELD ) {
         auto dup1 = orig_target->GetOp1()->Duplicate();
         auto field_name = orig_target->AsFieldExpr()->FieldName();
         orig_target = make_intrusive<FieldExpr>(dup1, field_name);
-        orig_target->SetOriginal(ThisPtr());
+        orig_target->SetLocation(this);
     }
 
     else
@@ -618,7 +618,7 @@ ExprPtr IncrExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     auto assign = make_intrusive<AssignExpr>(orig_target, rhs, false, nullptr, nullptr, false);
 
-    assign->SetOriginal(ThisPtr());
+    assign->SetLocation(this);
 
     // First reduce it regularly, so it can transform into $= or
     // such as needed.  Then reduce that to a singleton to provide
@@ -731,7 +731,7 @@ ExprPtr AddExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 ExprPtr AddExpr::BuildSub(const ExprPtr& op1, const ExprPtr& op2) {
     auto rhs = op2->GetOp1();
     auto sub = make_intrusive<SubExpr>(op1, rhs);
-    sub->SetOriginal(ThisPtr());
+    sub->SetLocation(this);
     return sub;
 }
 
@@ -779,7 +779,7 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
             if ( tag == TYPE_VECTOR && (! IsVector(op2->GetType()->Tag()) || ! same_type(t, op2->GetType())) ) {
                 auto append = make_intrusive<AppendToExpr>(op1->Duplicate(), op2);
-                append->SetOriginal(ThisPtr());
+                append->SetLocation(this);
 
                 auto append_stmt = make_intrusive<ExprStmt>(append);
                 append_stmt->SetLocation(this);
@@ -797,8 +797,8 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
             auto do_incr = make_intrusive<AddExpr>(rhs->Duplicate(), op2);
             auto assign = make_intrusive<AssignExpr>(op1, do_incr, false, nullptr, nullptr, false);
 
-            do_incr->SetOriginal(ThisPtr());
-            assign->SetOriginal(ThisPtr());
+            do_incr->SetLocation(this);
+            assign->SetLocation(this);
 
             return assign->ReduceToSingleton(c, red_stmt);
         }
@@ -831,7 +831,7 @@ ExprPtr SubExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op2->Tag() == EXPR_NEGATE ) {
         auto rhs = op2->GetOp1();
         auto add = make_intrusive<AddExpr>(op1, rhs);
-        add->SetOriginal(ThisPtr());
+        add->SetLocation(this);
         return add->Reduce(c, red_stmt);
     }
 
@@ -883,8 +883,8 @@ ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto do_decr = make_intrusive<SubExpr>(lhs->Duplicate(), op2);
     auto assign = make_intrusive<AssignExpr>(op1, do_decr, false, nullptr, nullptr, false);
 
-    do_decr->SetOriginal(ThisPtr());
-    assign->SetOriginal(ThisPtr());
+    do_decr->SetLocation(this);
+    assign->SetLocation(this);
 
     return assign->Reduce(c, red_stmt);
 }
@@ -1030,8 +1030,8 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto new_pat = build_disjunction(patterns, this);
         auto new_id = make_intrusive<NameExpr>(common_id);
         auto new_node = make_intrusive<InExpr>(new_pat, new_id);
-        new_id->SetOriginal(ThisPtr());
-        new_node->SetOriginal(ThisPtr());
+        new_id->SetLocation(this);
+        new_node->SetLocation(this);
         return new_node->Reduce(c, red_stmt);
     }
 
@@ -1084,8 +1084,8 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     else
         cond = make_intrusive<CondExpr>(op1, else_e, op2);
 
-    else_e->SetOriginal(ThisPtr());
-    cond->SetOriginal(ThisPtr());
+    else_e->SetLocation(this);
+    cond->SetLocation(this);
 
     auto cond_red = cond->ReduceToSingleton(c, red_stmt);
     return TransformMe(cond_red, c, red_stmt);
@@ -1145,7 +1145,7 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
         if ( Tag() == EXPR_XOR ) {
             auto zero = make_intrusive<ConstExpr>(val_mgr->Count(0));
-            zero->SetOriginal(ThisPtr());
+            zero->SetLocation(this);
             return zero->Reduce(c, red_stmt);
         }
 
@@ -1168,7 +1168,7 @@ ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2) ) {
         bool t = Tag() == EXPR_EQ;
         auto res = make_intrusive<ConstExpr>(val_mgr->Bool(t));
-        res->SetOriginal(ThisPtr());
+        res->SetLocation(this);
         return res->Reduce(c, red_stmt);
     }
 
@@ -1188,7 +1188,7 @@ ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         if ( same_singletons(op1, op2) ) {
             bool t = Tag() == EXPR_GE || Tag() == EXPR_LE;
             auto res = make_intrusive<ConstExpr>(val_mgr->Bool(t));
-            res->SetOriginal(ThisPtr());
+            res->SetLocation(this);
             return res->Reduce(c, red_stmt);
         }
 
@@ -1375,7 +1375,7 @@ StmtPtr RefExpr::ReduceToLHS(Reducer* c) {
 
     auto red_stmt1 = op->ReduceToSingletons(c);
     auto op_ref = make_intrusive<RefExpr>(op);
-    op_ref->SetOriginal(ThisPtr());
+    op_ref->SetLocation(this);
 
     StmtPtr red_stmt2;
     op = AssignToTemporary(op_ref, c, red_stmt2);
@@ -1461,7 +1461,7 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         // These are reduced to the assignment followed by
         // the assignment value.
         auto assign_val = make_intrusive<ConstExpr>(val);
-        assign_val->SetOriginal(ThisPtr());
+        assign_val->SetLocation(this);
         val = nullptr;
         red_stmt = make_intrusive<ExprStmt>(ThisPtr());
         red_stmt->SetLocation(this);
@@ -1477,6 +1477,8 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     StmtPtr rhs_reduce;
 
     if ( lhs_is_any != rhs_is_any ) {
+	auto op2_orig = op2;
+
         ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
 
         if ( lhs_is_any ) {
@@ -1487,11 +1489,15 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         }
         else
             op2 = make_intrusive<CoerceFromAnyExpr>(red_rhs, t1);
+
+	op2->SetLocation(op2_orig);
     }
 
     if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() && t2->Yield()->Tag() == TYPE_ANY ) {
+	auto op2_orig = op2;
         ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
         op2 = make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1);
+	op2->SetLocation(op2_orig);
     }
 
     auto lhs_ref = op1->AsRefExprPtr();
@@ -1549,8 +1555,8 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
             auto lhs = lhs_list[i]->ThisPtr();
             auto assign = make_intrusive<AssignExpr>(lhs, rhs, false, nullptr, nullptr, false);
 
-            rhs->SetOriginal(ThisPtr());
-            lhs->SetOriginal(ThisPtr());
+            rhs->SetLocation(this);
+            lhs->SetLocation(this);
 
             auto assign_stmt = make_intrusive<ExprStmt>(assign);
             assign_stmt->SetLocation(this);
@@ -1967,7 +1973,7 @@ ExprPtr RecordCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto rt = cast_intrusive<RecordType>(type);
         auto rc_op = op->AsRecordConstructorExpr();
         auto known_constr = make_intrusive<RecordConstructorExpr>(rt, rc_op->Op());
-        known_constr->SetOriginal(ThisPtr());
+        known_constr->SetLocation(this);
         auto red_e = known_constr->Reduce(c, red_stmt);
         return TransformMe(std::move(red_e), c, red_stmt);
     }
@@ -2002,6 +2008,7 @@ ExprPtr VectorCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         ASSERT(op1_list->Tag() == EXPR_LIST);
         auto empty_list = cast_intrusive<ListExpr>(op1_list);
         auto new_me = make_intrusive<VectorConstructorExpr>(empty_list, type);
+	new_me->SetLocation(this);
         auto red_e = new_me->Reduce(c, red_stmt);
         return TransformMe(std::move(red_e), c, red_stmt);
     }
@@ -2081,7 +2088,7 @@ bool InExpr::HasReducedOps(Reducer* c) const { return op1->HasReducedOps(c) && o
 ExprPtr InExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( op2->Tag() == EXPR_SET_CONSTRUCTOR && op2->GetOp1()->AsListExpr()->HasConstantOps() ) {
         op2 = make_intrusive<ConstExpr>(op2->Eval(nullptr));
-        op2->SetOriginal(ThisPtr());
+        op2->SetLocation(this);
     }
 
     return BinaryExpr::Reduce(c, red_stmt);
@@ -2393,7 +2400,7 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto args_list = args->Exprs();
     auto ret_val = c->PushInlineBlock(type);
     if ( ret_val )
-        ret_val->SetOriginal(ThisPtr());
+        ret_val->SetLocation(this);
 
     loop_over_list(args_list, i) {
         StmtPtr arg_red_stmt;
@@ -2550,7 +2557,7 @@ ExprPtr IndexAssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
 
     auto index = op2->AsListExprPtr();
     auto res = make_intrusive<IndexExpr>(GetOp1(), index, false);
-    res->SetOriginal(ThisPtr());
+    res->SetLocation(this);
     auto final_res = res->ReduceToSingleton(c, red_stmt);
 
     red_stmt = MergeStmts(op1_red_stmt, assign_stmt, red_stmt);
@@ -2652,7 +2659,7 @@ ExprPtr FieldLHSAssignExpr::ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) {
     assign_stmt->SetLocation(this);
 
     auto field_res = make_intrusive<FieldExpr>(op1, field_name);
-    field_res->SetOriginal(ThisPtr());
+    field_res->SetLocation(this);
     StmtPtr field_res_stmt;
     auto res = field_res->ReduceToSingleton(c, field_res_stmt);
 

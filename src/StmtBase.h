@@ -146,19 +146,6 @@ public:
     // hook body.
     virtual bool CouldReturn(bool ignore_break) const { return false; }
 
-    // Access to the original statement from which this one is derived,
-    // or this one if we don't have an original.  Returns a bare pointer
-    // rather than a StmtPtr to emphasize that the access is read-only.
-    const Stmt* Original() const { return original ? original->Original() : this; }
-
-    // Designate the given Stmt node as the original for this one.
-    void SetOriginal(StmtPtr _orig) {
-        if ( _orig == this )
-            return;
-        original = std::move(_orig);
-        SetLocation(Original());
-    }
-
     void SetLocation(const ObjPtr& orig_obj) { SetLocation(orig_obj.get()); }
     void SetLocation(const Obj* orig_obj) {
         // ASSERT(orig_obj->GetLocationInfo()->first_line != 0);
@@ -173,19 +160,9 @@ public:
     // call, as a convenient side effect, transforms that bare pointer
     // into a StmtPtr.
     virtual StmtPtr SetSucc(Stmt* succ) {
-        succ->SetOriginal(ThisPtr());
+        succ->SetLocation(this);
         return {AdoptRef{}, succ};
     }
-
-#if 0
-    // ###
-    const detail::Location* GetLocationInfo() const override {
-        if ( original )
-            return original->GetLocationInfo();
-        else
-            return Obj::GetLocationInfo();
-    }
-#endif
 
     // Access script optimization information associated with
     // this statement.
@@ -214,11 +191,6 @@ protected:
     // FIXME: Learn the exact semantics of mutable.
     mutable double last_access;    // time of last execution
     mutable uint32_t access_count; // number of executions
-
-    // The original statement from which this statement was
-    // derived, if any.  Used as an aid for generating meaningful
-    // and correctly-localized error messages.
-    StmtPtr original;
 
     // Information associated with the Stmt for purposes of
     // script optimization.

@@ -228,7 +228,7 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
 
     // We pattern the new (alternate) body off of the first body.
     auto& b0 = func->GetBodies()[0].stmts;
-    merged_body->SetOriginal(b0);
+    merged_body->SetLocation(b0);
     auto b0_info = body_to_info.find(b0.get());
     ASSERT(b0_info != body_to_info.end());
     auto& info0 = funcs[b0_info->second];
@@ -278,7 +278,7 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
             return;
 
         auto ie_s = make_intrusive<ExprStmt>(ie);
-        ie_s->SetOriginal(bp);
+        ie_s->SetLocation(bp);
         merged_body->Stmts().push_back(ie_s);
     }
 
@@ -377,7 +377,7 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     auto ie = DoInline(func_vf, body, c->ArgsPtr(), scope, ia->second);
 
     if ( ie ) {
-        ie->SetOriginal(c);
+        ie->SetLocation(c);
         did_inline.insert(func_vf.get());
     }
 

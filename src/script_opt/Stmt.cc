@@ -25,7 +25,7 @@ StmtPtr Stmt::Reduce(Reducer* c) {
 
     if ( c->ShouldOmitStmt(this) ) {
         auto null = make_intrusive<NullStmt>();
-        null->SetOriginal(this_ptr);
+        null->SetLocation(this_ptr);
         return null;
     }
 
@@ -39,7 +39,7 @@ StmtPtr Stmt::TransformMe(StmtPtr new_me, Reducer* c) {
 
     // Set the original prior to reduction, to support "original chains"
     // to ultimately resolve back to the source statement.
-    new_me->SetOriginal(ThisPtr());
+    new_me->SetLocation(this);
     return new_me->Reduce(c);
 }
 
@@ -65,7 +65,7 @@ StmtPtr ExprListStmt::DoReduce(Reducer* c) {
     auto new_l = make_intrusive<ListExpr>();
     new_l->SetLocation(this);
     auto s = make_intrusive<StmtList>();
-    s->SetOriginal(ThisPtr());
+    s->SetLocation(this);
 
     ExprPList& e = l->Exprs();
     for ( auto& expr : e ) {
@@ -100,7 +100,7 @@ StmtPtr PrintStmt::Duplicate() { return SetSucc(new PrintStmt(l->Duplicate()->As
 
 StmtPtr PrintStmt::DoSubclassReduce(ListExprPtr singletons, Reducer* c) {
     auto new_me = make_intrusive<PrintStmt>(singletons);
-    new_me->SetOriginal(ThisPtr());
+    new_me->SetLocation(this);
     return new_me;
 }
 
@@ -205,7 +205,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         auto s1_dup = s1 ? s1->Duplicate() : nullptr;
         auto orig_s2 = s2;
         s2 = make_intrusive<IfStmt>(b, s1_dup, s2);
-        s2->SetOriginal(s2);
+        s2->SetLocation(orig_s2);
         e = a;
 
         auto res = DoReduce(c);
@@ -224,7 +224,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         auto s2_dup = s2 ? s2->Duplicate() : nullptr;
         auto orig_s1 = s1;
         s1 = make_intrusive<IfStmt>(b, s1, s2_dup);
-        s1->SetOriginal(s1);
+        s1->SetLocation(orig_s1);
         e = a;
 
         auto res = DoReduce(c);
@@ -246,7 +246,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
 
         if ( red_e_stmt && cond_red_stmt ) {
             red_e_stmt = make_intrusive<StmtList>(red_e_stmt, cond_red_stmt);
-            red_e_stmt->SetOriginal(ThisPtr());
+            red_e_stmt->SetLocation(this);
         }
         else if ( cond_red_stmt )
             red_e_stmt = cond_red_stmt;
@@ -352,7 +352,7 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc) {
         return TransformMe(make_intrusive<NullStmt>(), rc);
 
     auto s = make_intrusive<StmtList>();
-    s->SetOriginal(ThisPtr());
+    s->SetLocation(this);
     StmtPtr red_e_stmt;
 
     if ( rc->Optimizing() )
@@ -495,7 +495,7 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
                 // See comment below for the particulars
                 // of this constructor.
                 stmt_loop_condition = make_intrusive<ExprStmt>(STMT_EXPR, loop_condition);
-                stmt_loop_condition->SetOriginal(ThisPtr());
+                stmt_loop_condition->SetLocation(this);
                 return ThisPtr();
             }
         }
@@ -509,7 +509,7 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
     // its check for whether the expression is being ignored, since
     // we're not actually creating an ExprStmt for execution.
     stmt_loop_condition = make_intrusive<ExprStmt>(STMT_EXPR, loop_condition);
-    stmt_loop_condition->SetOriginal(ThisPtr());
+    stmt_loop_condition->SetLocation(this);
 
     if ( loop_cond_pred_stmt )
         loop_cond_pred_stmt = loop_cond_pred_stmt->Reduce(c);
@@ -902,7 +902,8 @@ StmtPtr WhenStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-// ### CatchReturnStmt::CatchReturnStmt(ScriptFuncPtr _sf, StmtPtr _block, NameExprPtr _ret_var) : Stmt(STMT_CATCH_RETURN) {
+// ### CatchReturnStmt::CatchReturnStmt(ScriptFuncPtr _sf, StmtPtr _block, NameExprPtr _ret_var) :
+// Stmt(STMT_CATCH_RETURN) {
 CatchReturnStmt::CatchReturnStmt(StmtPtr _block, NameExprPtr _ret_var) : Stmt(STMT_CATCH_RETURN) {
     // sf = std::move(_sf);
     block = std::move(_block);
@@ -958,7 +959,7 @@ StmtPtr CatchReturnStmt::DoReduce(Reducer* c) {
         auto assign = make_intrusive<AssignExpr>(rv_dup, ret_e_dup, false);
         assign->SetLocation(this);
         assign_stmt = make_intrusive<ExprStmt>(assign);
-        assign_stmt->SetOriginal(ThisPtr());
+        assign_stmt->SetLocation(this);
 
         if ( ret_e_dup->Tag() == EXPR_CONST ) {
             auto ce = ret_e_dup->AsConstExpr();

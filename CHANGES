@@ -1,3 +1,9 @@
+6.2.0-dev.414 | 2024-01-19 12:27:39 +0100
+
+  * GH-3177: Merge branch 'topic/bbannier/issue-3177' (Benjamin Bannier, Corelight)
+
+  * GH-3177: Make sure Spicy symbols are available. (Benjamin Bannier, Corelight)
+
 6.2.0-dev.412 | 2024-01-18 16:16:50 -0800
 
   * Fix a zeek_init -> zeek_done confusion in a docstring (Christian Kreibich, Corelight)

@@ -6,6 +6,10 @@
 # @TEST-EXEC: zeek -b -r $TRACES/websocket/wstunnel-http.pcap %INPUT >>out
 # @TEST-EXEC: echo "broker-websocket.pcap" >>out
 # @TEST-EXEC: zeek -b -r $TRACES//websocket/broker-websocket.pcap %INPUT >>out
+# @TEST-EXEC: echo "message-too-big-status.pcap" >>out
+# @TEST-EXEC: zeek -b -r $TRACES//websocket/message-too-big-status.pcap %INPUT >>out
+# @TEST-EXEC: echo "two-binary-fragments.pcap" >>out
+# @TEST-EXEC: zeek -b -r $TRACES//websocket/two-binary-fragments.pcap %INPUT >>out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: test ! -f analyzer.log
 # @TEST-EXEC: test ! -f weird.log

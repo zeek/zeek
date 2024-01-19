@@ -80,7 +80,7 @@ type WebSocket_Message = record {
 	first_frame: WebSocket_Frame(true, this);
 	optional_more_frames: case first_frame.hdr.b.fin of {
 		true -> no_more_frames: empty;
-		false -> more_frames: WebSocket_Frame(false, this)[] &until($element.hdr.b.fin) &transient;
+		false -> more_frames: WebSocket_Frame(false, this)[] &until($element.hdr.b.fin);
 	};
 } &let {
 	opcode = first_frame.hdr.b.opcode;

@@ -870,21 +870,30 @@ const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
 }
 
 const ZAMStmt ZAMCompiler::Call(const ExprStmt* e) {
-    if ( IsZAM_BuiltIn(e->StmtExpr()) )
-        return LastInst();
+    auto c = cast_intrusive<CallExpr>(e->StmtExprPtr());
+
+    if ( IsZAM_BuiltIn(c.get()) ) {
+        auto ret = LastInst();
+        insts1.back()->call_expr = c;
+        return ret;
+    }
 
     return DoCall(e->StmtExpr()->AsCallExpr(), nullptr);
 }
 
 const ZAMStmt ZAMCompiler::AssignToCall(const ExprStmt* e) {
-    if ( IsZAM_BuiltIn(e->StmtExpr()) )
-        return LastInst();
-
     auto assign = e->StmtExpr()->AsAssignExpr();
-    auto n = assign->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
-    auto call = assign->GetOp2()->AsCallExpr();
+    auto call = cast_intrusive<CallExpr>(assign->GetOp2());
 
-    return DoCall(call, n);
+    if ( IsZAM_BuiltIn(e->StmtExpr()) ) {
+        auto ret = LastInst();
+        insts1.back()->call_expr = call;
+        return ret;
+    }
+
+    auto n = assign->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
+
+    return DoCall(call.get(), n);
 }
 
 const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {

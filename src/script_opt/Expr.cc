@@ -2340,9 +2340,9 @@ ExprPtr CastExpr::Duplicate() { return SetSucc(new CastExpr(op->Duplicate(), typ
 
 ExprPtr IsExpr::Duplicate() { return SetSucc(new IsExpr(op->Duplicate(), t)); }
 
-InlineExpr::InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> arg_params, std ::vector<bool> arg_param_is_modified,
-                       StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
-    : Expr(EXPR_INLINE), args(std::move(arg_args)), body(std::move(arg_body)) {
+InlineExpr::InlineExpr(ScriptFuncPtr arg_sf, ListExprPtr arg_args, std::vector<IDPtr> arg_params,
+                       std ::vector<bool> arg_param_is_modified, StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
+    : Expr(EXPR_INLINE), sf(std::move(arg_sf)), args(std::move(arg_args)), body(std::move(arg_body)) {
     params = std::move(arg_params);
     param_is_modified = std::move(arg_param_is_modified);
     frame_offset = _frame_offset;
@@ -2385,7 +2385,7 @@ ValPtr InlineExpr::Eval(Frame* f) const {
 ExprPtr InlineExpr::Duplicate() {
     auto args_d = args->Duplicate()->AsListExprPtr();
     auto body_d = body->Duplicate();
-    return SetSucc(new InlineExpr(args_d, params, param_is_modified, body_d, frame_offset, type));
+    return SetSucc(new InlineExpr(sf, args_d, params, param_is_modified, body_d, frame_offset, type));
 }
 
 bool InlineExpr::IsReduced(Reducer* c) const { return NonReduced(this); }
@@ -2413,8 +2413,7 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     body = body->Reduce(c);
     c->PopInlineBlock();
 
-    // auto catch_ret = make_intrusive<CatchReturnStmt>(sf, body, ret_val);
-    auto catch_ret = make_intrusive<CatchReturnStmt>(body, ret_val);
+    auto catch_ret = make_intrusive<CatchReturnStmt>(sf, body, ret_val);
     catch_ret->SetLocation(this);
 
     red_stmt = MergeStmts(red_stmt, catch_ret);

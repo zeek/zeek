@@ -445,7 +445,7 @@ ExprPtr Inliner::DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, Scop
     auto t = scope->GetReturnType();
 
     ASSERT(params.size() == args->Exprs().size());
-    auto ie = make_intrusive<InlineExpr>(args, params, param_is_modified, body_dup, curr_frame_size, t);
+    auto ie = make_intrusive<InlineExpr>(sf, args, params, param_is_modified, body_dup, curr_frame_size, t);
     ie->SetLocation(body);
     return ie;
 }

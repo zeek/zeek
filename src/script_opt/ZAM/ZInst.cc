@@ -79,7 +79,7 @@ void ZInst::Dump(const string& id1, const string& id2, const string& id3, const 
         printf(" (func %s)", func->Name());
 
     if ( loc )
-        printf(" // %s", loc->Describe().c_str());
+        printf(" // %s", loc->Describe(true).c_str());
 
     printf("\n");
 }

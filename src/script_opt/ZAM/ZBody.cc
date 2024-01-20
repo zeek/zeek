@@ -26,6 +26,10 @@
 // For reading_live and reading_traces
 #include "zeek/RunState.h"
 
+#ifdef DEBUG
+#define ENABLE_ZAM_PROFILE
+#endif
+
 namespace zeek::detail {
 
 using std::vector;
@@ -222,13 +226,13 @@ void ZBody::InitProfile() {
 }
 
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     double t = analysis_options.profile_ZAM ? util::curr_CPU_time() : 0.0;
 #endif
 
     auto val = DoExec(f, flow);
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     if ( analysis_options.profile_ZAM )
         *CPU_time += util::curr_CPU_time() - t;
 #endif
@@ -245,7 +249,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     // Type of the return value.  If nil, then we don't have a value.
     TypePtr ret_type;
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     bool do_profile = analysis_options.profile_ZAM;
 #endif
 
@@ -276,7 +280,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     while ( pc < end_pc && ! ZAM_error ) {
         auto& z = insts[pc];
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
         int profile_pc = 0;
         double profile_CPU = 0.0;
 
@@ -302,7 +306,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
             default: reporter->InternalError("bad ZAM opcode");
         }
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
         if ( do_profile ) {
             double dt = util::curr_CPU_time() - profile_CPU;
             inst_CPU->at(profile_pc) += dt;

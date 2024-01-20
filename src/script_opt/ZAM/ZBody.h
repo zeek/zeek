@@ -50,7 +50,7 @@ public:
     void Dump() const;
 
     void ProfileExecution() const;
-    const std::vector<LocProfileElem>& ExecProfile() const { return *exec_prof; }
+    const std::vector<LocProfileElem>& ExecProfile() const { return exec_prof; }
 
 protected:
     // Initializes profiling information, if needed.
@@ -102,10 +102,9 @@ private:
     std::vector<GlobalInfo> globals;
     int num_globals;
 
-    // The following is only maintained if we're doing profiling.  Need
-    // to be pointers so we can manipulate them in a const method.
-    std::unique_ptr<std::vector<LocProfileElem>> exec_prof;
-    std::unique_ptr<double> CPU_time; // cumulative CPU time for the program
+    // The following is only maintained if we're doing profiling.
+    std::vector<LocProfileElem> exec_prof;
+    double CPU_time = 0.0; // cumulative CPU time for the program
 
     CaseMaps<zeek_int_t> int_cases;
     CaseMaps<zeek_uint_t> uint_cases;

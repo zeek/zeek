@@ -60,10 +60,15 @@ public:
     ZInst(ZOp _op, ZAMOpType _op_type) {
         op = _op;
         op_type = _op_type;
+        ASSERT(curr_loc);
+        loc = curr_loc;
     }
 
     // Create a stub instruction that will be populated later.
-    ZInst() = default;
+    ZInst() {
+        ASSERT(curr_loc);
+        loc = curr_loc;
+    }
 
     virtual ~ZInst() = default;
 
@@ -125,7 +130,7 @@ public:
     ZInstAux* aux = nullptr;
 
     // Location associated with this instruction, for error reporting.
-    std::shared_ptr<Location> loc;
+    std::shared_ptr<ZAMLocInfo> loc;
 
     // Interpreter call expression associated with this instruction,
     // for error reporting and stack backtraces.
@@ -293,9 +298,6 @@ public:
     // Number of associated label(s) (indicating the statement is
     // a branch target).
     int num_labels = 0;
-
-    // Used for debugging.  Transformed into the ZInst "loc" field.
-    StmtPtr stmt = curr_stmt;
 
 private:
     // Initialize 'c' from the given ConstExpr.

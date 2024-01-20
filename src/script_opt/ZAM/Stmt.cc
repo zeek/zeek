@@ -10,8 +10,13 @@
 namespace zeek::detail {
 
 const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
-    curr_stmt = const_cast<Stmt*>(s)->ThisPtr();
-    ASSERT(curr_stmt->Tag() == STMT_NULL || curr_stmt->GetLocationInfo()->first_line != 0);
+    auto loc = s->GetLocationInfo();
+    ASSERT(loc->first_line != 0 || s->Tag() == STMT_NULL);
+    auto loc_copy =
+        std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+    auto loc_parent = curr_loc->Parent();
+    curr_loc = std::make_shared<ZAMLocInfo>(curr_func, std::move(loc_copy));
+    curr_loc->AddParent(loc_parent);
 
     switch ( s->Tag() ) {
         case STMT_PRINT: return CompilePrint(static_cast<const PrintStmt*>(s));
@@ -892,6 +897,13 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r) {
 const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.push_back(cr->RetVar());
 
+    auto hold_func = curr_func;
+    curr_func = cr->Func()->Name();
+
+    auto hold_loc = curr_loc;
+    curr_loc = std::make_shared<ZAMLocInfo>(curr_func, curr_loc->LocPtr());
+    curr_loc->AddParent(hold_loc);
+
     PushCatchReturns();
 
     auto block = cr->Block();
@@ -899,6 +911,9 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.pop_back();
 
     ResolveCatchReturns(GoToTargetBeyond(block_end));
+
+    curr_func = hold_func;
+    curr_loc = hold_loc;
 
     return block_end;
 }

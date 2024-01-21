@@ -32,12 +32,12 @@
 #endif
 
 #ifdef ENABLE_ZAM_PROFILE
-#define DO_ZAM_PROFILE \
-        if ( do_profile ) { \
-            double dt = util::curr_CPU_time() - profile_CPU; \
-            exec_prof[profile_pc].BumpCPU(dt); \
-            ZOP_CPU[z.op] += dt; \
-        }
+#define DO_ZAM_PROFILE                                                                                                 \
+    if ( do_profile ) {                                                                                                \
+        double dt = util::curr_CPU_time() - profile_CPU;                                                               \
+        exec_prof[profile_pc].BumpCPU(dt);                                                                             \
+        ZOP_CPU[z.op] += dt;                                                                                           \
+    }
 #else
 #define DO_ZAM_PROFILE
 #endif
@@ -308,7 +308,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
             default: reporter->InternalError("bad ZAM opcode");
         }
 
-	DO_ZAM_PROFILE
+        DO_ZAM_PROFILE
 
         ++pc;
     }

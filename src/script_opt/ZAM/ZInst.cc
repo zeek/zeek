@@ -80,8 +80,8 @@ void ZInst::Dump(const string& id1, const string& id2, const string& id3, const 
 
     if ( loc ) {
         auto l = loc->Describe(true);
-	if ( func )
-		l = l + ";" + func->Name();
+        if ( func )
+            l = l + ";" + func->Name();
         printf(" // %s", l.c_str());
     }
 

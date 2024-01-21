@@ -273,7 +273,7 @@ macro AssignV1T(v, t) {
 # the instruction.
 macro AssignV1(v) AssignV1T(v, z.t)
 
-macro BRANCH(target_slot) { pc = z.target_slot; continue; }
+macro BRANCH(target_slot) { DO_ZAM_PROFILE; pc = z.target_slot; continue; }
 
 ########## Unary Ops ##########
 
@@ -1782,6 +1782,7 @@ eval	EvalReturn(nullptr,)
 macro EvalReturn(val, type)
 	ret_u = val;
 	type
+	DO_ZAM_PROFILE
 	pc = end_pc;
 	continue;
 
@@ -1806,6 +1807,7 @@ macro EvalSwitchBody(cases, postscript)
 	else
 		pc = t[v];
 	postscript
+	DO_ZAM_PROFILE
 	continue;
 	}
 
@@ -2239,6 +2241,7 @@ internal-op Hook-Break
 type X
 eval	flow = FLOW_BREAK;
 	pc = end_pc;
+	DO_ZAM_PROFILE
 	continue;
 
 # Slot 2 gives frame size.

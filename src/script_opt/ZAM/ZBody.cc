@@ -31,6 +31,17 @@
 #define ENABLE_ZAM_PROFILE
 #endif
 
+#ifdef ENABLE_ZAM_PROFILE
+#define DO_ZAM_PROFILE \
+        if ( do_profile ) { \
+            double dt = util::curr_CPU_time() - profile_CPU; \
+            exec_prof[profile_pc].BumpCPU(dt); \
+            ZOP_CPU[z.op] += dt; \
+        }
+#else
+#define DO_ZAM_PROFILE
+#endif
+
 namespace zeek::detail {
 
 using std::vector;
@@ -238,6 +249,8 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     // Type of the return value.  If nil, then we don't have a value.
     TypePtr ret_type;
 
+    Func* callee; // used to track indirect function calls for profiling
+
 #ifdef ENABLE_ZAM_PROFILE
     bool do_profile = analysis_options.profile_ZAM;
 #endif
@@ -295,13 +308,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
             default: reporter->InternalError("bad ZAM opcode");
         }
 
-#ifdef ENABLE_ZAM_PROFILE
-        if ( do_profile ) {
-            double dt = util::curr_CPU_time() - profile_CPU;
-            exec_prof[profile_pc].BumpCPU(dt);
-            ZOP_CPU[z.op] += dt;
-        }
-#endif
+	DO_ZAM_PROFILE
 
         ++pc;
     }

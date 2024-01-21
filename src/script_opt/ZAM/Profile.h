@@ -33,7 +33,7 @@ public:
             desc = func_name;
 
         if ( include_lines ) {
-            desc += ":" + std::to_string(loc->first_line);
+            desc += ";" + func_name + ":" + std::to_string(loc->first_line);
             if ( loc->last_line > loc->first_line )
                 desc += "-" + std::to_string(loc->last_line);
         }
@@ -86,6 +86,11 @@ public:
 
 private:
     std::shared_ptr<Location> loc;
+};
+
+class ProfileStack {
+public:
+	void PushCall(ScriptFuncPtr sf, CallExprPtr call);
 };
 
 // ###

@@ -141,6 +141,8 @@ export {
 	##
 	## This is the primary mechanism where a user may take actions based on
 	## data provided by the intelligence framework.
+	##
+	## .. zeek::see:: Intel::seen_policy
 	global match: event(s: Seen, items: set[Item]);
 
 	## This hook can be used to influence the logging of intelligence hits
@@ -156,6 +158,27 @@ export {
 	## In case the hook execution is terminated using break, the match will
 	## not be logged.
 	global extend_match: hook(info: Info, s: Seen, items: set[Item]);
+
+	## Hook to modify and intercept :zeek:see:`Intel::seen` behavior.
+	##
+	## This hook is invoked after the Intel datastore was searched for
+	## a given :zeek:see:`Intel::Seen` instance. If a matching entry was
+	## found, the *found* argument is set to ``T``, else ``F``.
+	##
+	## Breaking from this hook suppresses :zeek:see:`Intel::match`
+	## event generation and any subsequent logging.
+	##
+	## Note that this hook only runs on the Zeek node where :zeek:seen:`Intel::seen`
+	## is invoked. In a cluster configuration that is usually on the worker nodes.
+	## This is in contrast to :zeek:see:`Intel::match` that usually runs
+	## centrally on the the manager node instead.
+	##
+	## s: The :zeek:see:`Intel::Seen` instance passed to the :zeek:see:`Intel::seen` function.
+	##
+	## found: ``T`` if Intel datastore contained *s*, else ``F``.
+	##
+	## .. zeek::see:: Intel::match
+	global seen_policy: hook(s: Seen, found: bool);
 
 	## The expiration timeout for intelligence items. Once an item expires, the
 	## :zeek:id:`Intel::item_expired` hook is called. Reinsertion of an item
@@ -352,28 +375,31 @@ function get_items(s: Seen): set[Item]
 
 function Intel::seen(s: Seen)
 	{
-	if ( find(s) )
+	local found = find(s);
+
+	if ( ! hook Intel::seen_policy(s, found) )
+		return;
+
+	if ( ! found )
+		return;
+
+	if ( s?$host )
 		{
-		if ( s?$host )
-			{
-			s$indicator = cat(s$host);
-			s$indicator_type = Intel::ADDR;
-			}
+		s$indicator = cat(s$host);
+		s$indicator_type = Intel::ADDR;
+		}
 
-		if ( ! s?$node )
-			{
-			s$node = peer_description;
-			}
+	if ( ! s?$node )
+		s$node = peer_description;
 
-		if ( have_full_data )
-			{
-			local items = get_items(s);
-			event Intel::match(s, items);
-			}
-		else
-			{
-			event Intel::match_remote(s);
-			}
+	if ( have_full_data )
+		{
+		local items = get_items(s);
+		event Intel::match(s, items);
+		}
+	else
+		{
+		event Intel::match_remote(s);
 		}
 	}
 

@@ -182,6 +182,11 @@ New Functionality
   when encountering unknown/unsupported protocols. Its first use is to indicate
   ``Tunnel::max_depth`` being exceeded.
 
+- A new ``Intel::seen_policy`` hook has been introduced to allow intercepting
+  and changing ``Intel::seen` behavior:
+
+	hook Intel::seen_policy(s: Intel::Seen, found: bool)
+
 Changed Functionality
 ---------------------
 

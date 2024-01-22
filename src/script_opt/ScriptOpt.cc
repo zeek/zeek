@@ -438,10 +438,8 @@ static void analyze_scripts_for_ZAM() {
 
     auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
 
-#if 0
     if ( analysis_options.profile_ZAM )
-        basic_blocks = std::make_unique<BBAnalyzer>(funcs);
-#endif
+        blocks = std::make_unique<BlockAnalyzer>(funcs);
 
     bool report_recursive = analysis_options.report_recursive;
     std::unique_ptr<Inliner> inl;

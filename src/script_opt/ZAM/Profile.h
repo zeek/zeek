@@ -21,25 +21,7 @@ public:
     void AddParent(std::shared_ptr<ZAMLocInfo> _parent) { parent = std::move(_parent); }
     std::shared_ptr<ZAMLocInfo> Parent() { return parent; }
 
-    std::string Describe(bool include_lines = false) const {
-        std::string desc;
-
-        if ( parent ) {
-            desc = parent->Describe();
-            if ( func_name != parent->FuncName() )
-                desc += ";" + func_name;
-        }
-        else
-            desc = func_name;
-
-        if ( include_lines ) {
-            desc += ";" + func_name + ":" + std::to_string(loc->first_line);
-            if ( loc->last_line > loc->first_line )
-                desc += "-" + std::to_string(loc->last_line);
-        }
-
-        return desc;
-    }
+    std::string Describe(bool include_lines = false) const;
 
 private:
     std::string func_name;

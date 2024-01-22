@@ -1398,4 +1398,51 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     return seo;
 }
 
+BlockAnalyzer::BlockAnalyzer(std::vector<FuncInfo>& funcs) {
+    for ( auto& f : funcs ) {
+        auto func = f.Func();
+        cf_name = std::string(func->Name()) + ":";
+        func->Traverse(this);
+    }
+}
+
+TraversalCode BlockAnalyzer::PreStmt(const Stmt* s) {
+    auto loc = s->GetLocationInfo();
+    ASSERT(loc && loc->first_line != 0);
+
+    auto lk = LocKey(loc);
+    auto ls = LocString(loc);
+
+    if ( ! parents.empty() )
+        ls = parents.back() + ";" + ls;
+
+    auto e_d = exp_desc.find(lk);
+    if ( e_d == exp_desc.end() )
+        exp_desc[lk] = ls;
+
+    switch ( s->Tag() ) {
+        case STMT_FOR:
+        case STMT_IF:
+        case STMT_LIST:
+        case STMT_SWITCH:
+        case STMT_WHEN:
+        case STMT_WHILE: {
+            parents.push_back(std::move(ls));
+            return TC_CONTINUE;
+        }
+
+        default:
+            // No more work to do, and it's handy that PostStmt can
+            // rely on only being invoked for compound statements.
+            return TC_ABORTSTMT;
+    }
+}
+
+TraversalCode BlockAnalyzer::PostStmt(const Stmt* s) {
+    parents.pop_back();
+    return TC_CONTINUE;
+}
+
+std::unique_ptr<BlockAnalyzer> blocks;
+
 } // namespace zeek::detail

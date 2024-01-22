@@ -1,3 +1,19 @@
+6.2.0-dev.426 | 2024-01-21 19:31:02 -0700
+
+  * MIME: Cap nested MIME analysis depth to 100 (Arne Welzel, Corelight)
+
+    OSS-Fuzz managed to produce a MIME multipart message construction with
+    thousands of nested entities (or that's what Zeek makes out of it anyhow).
+    Prevent such deep analysis by capping at a nesting depth of 100,
+    preventing unnecessary resource usage. A new weird named exceeded_mime_max_depth
+    is reported when this limit is reached.
+
+    This change reduces the runtime of the OSS-Fuzz reproducer from ~45 seconds
+    to ~2.5 seconds.
+
+    The test PCAP was produced from a Python script using the email package
+    and sending the rendered version via POST to a HTTP server.
+
 6.2.0-dev.423 | 2024-01-19 21:18:44 +0100
 
   * SMTP/BDAT: Use strtoull and bail on UULONG_MAX values (Arne Welzel, Corelight)

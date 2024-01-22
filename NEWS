@@ -184,6 +184,10 @@ Changed Functionality
   two encapsulation layers. Two layers are already easily reached in AWS GLB
   environments.
 
+- Nested MIME message analysis is now capped at a maximum depth of 100 to prevent
+  unbounded MIME message nesting. This limit is configurable with ``MIME::max_depth``.
+  A new weird named ``exceeded_mime_max_depth`` is reported when reached.
+
 Removed Functionality
 ---------------------
 

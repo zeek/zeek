@@ -295,7 +295,6 @@ set(MAIN_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
-    BifReturnVal.cc
     CCL.cc
     CompHash.cc
     Conn.cc

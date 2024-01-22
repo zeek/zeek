@@ -747,7 +747,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         auto ipbft =
             make_intrusive<FuncType>(make_intrusive<RecordType>(nullptr), base_type(TYPE_BOOL), FUNC_FLAVOR_FUNCTION);
         ipbid->SetType(std::move(ipbft));
-        auto init_bifs = [](Frame* frame, const Args* args) -> BifReturnVal {
+        auto init_bifs = [](Frame* frame, const Args* args) -> ValPtr {
             init_primary_bifs();
             return val_mgr->True();
         };

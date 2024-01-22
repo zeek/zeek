@@ -1,3 +1,9 @@
+6.2.0-dev.430 | 2024-01-22 10:36:11 -0700
+
+  * Make BIFs just return ValPtr directly instead of BifReturnVal (Tim Wojtulewicz, Corelight)
+
+  * Drop support for subscribing to bro/ topics (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.426 | 2024-01-21 19:31:02 -0700
 
   * MIME: Cap nested MIME analysis depth to 100 (Arne Welzel, Corelight)

@@ -51,6 +51,10 @@ Breaking Changes
   values as well as the LDAP message identifier. The value within the LDAP logs
   will be the most recently observed one.
 
+- BIF methods now return a ``ValPtr`` directly instead of a ``BifReturnVal`` object
+  which was just a thin wrapper around ``ValPtr``. This may cause compilation errors
+  in C++ code that was calling BIF methods directly.
+
 New Functionality
 -----------------
 

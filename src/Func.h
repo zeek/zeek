@@ -9,7 +9,6 @@
 #include <utility>
 #include <vector>
 
-#include "zeek/BifReturnVal.h"
 #include "zeek/Obj.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
@@ -314,7 +313,7 @@ private:
     int current_priority = 0;
 };
 
-using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);
+using built_in_func = ValPtr (*)(Frame* frame, const Args* args);
 
 class BuiltinFunc final : public Func {
 public:

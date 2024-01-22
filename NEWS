@@ -191,6 +191,10 @@ Changed Functionality
 Removed Functionality
 ---------------------
 
+- Zeek no longer automatically subscribes to topics prefixed with "bro/" whenever
+  subscribing to topics prefixed with "zeek/". This was a leftover backward-
+  compatibility step in the Broker code that should have been removed long ago.
+
 Deprecated Functionality
 ------------------------
 

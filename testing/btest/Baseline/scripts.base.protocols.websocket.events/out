@@ -52,12 +52,12 @@ websocket_frame, CHhAvVGS1DHFjwGM9, F, fin, T, rsv, 0, opcode, binary, payload_l
 websocket_frame_data, CHhAvVGS1DHFjwGM9, F, len, 409, data, HTTP/1.1 301 Moved Permanently\x0d\x0aServer: nginx\x0d\x0aDate: Fri, 12 Jan 2024 17:15:32 GMT\x0d\x0aContent-Type: text/html\x0d\x0aContent-Len
 websocket_message, CHhAvVGS1DHFjwGM9, F, opcode, binary
 websocket_frame, CHhAvVGS1DHFjwGM9, T, fin, T, rsv, 0, opcode, close, payload_len, 2
-websocket_close, CHhAvVGS1DHFjwGM9, T, status, 1000, reason, 
 websocket_frame_data, CHhAvVGS1DHFjwGM9, T, len, 2, data, \x03\xe8
+websocket_close, CHhAvVGS1DHFjwGM9, T, status, 1000, reason, 
 websocket_message, CHhAvVGS1DHFjwGM9, T, opcode, close
 websocket_frame, CHhAvVGS1DHFjwGM9, F, fin, T, rsv, 0, opcode, close, payload_len, 2
-websocket_close, CHhAvVGS1DHFjwGM9, F, status, 1000, reason, 
 websocket_frame_data, CHhAvVGS1DHFjwGM9, F, len, 2, data, \x03\xe8
+websocket_close, CHhAvVGS1DHFjwGM9, F, status, 1000, reason, 
 websocket_message, CHhAvVGS1DHFjwGM9, F, opcode, close
 broker-websocket.pcap
 websocket_established, CHhAvVGS1DHFjwGM9, 7, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=127.0.0.1, orig_p=38776/tcp, resp_h=127.0.0.1, resp_p=27599/tcp], host=localhost:27599, uri=/v1/messages/json, user_agent=Python/3.10 websockets/12.0, subprotocol=<uninitialized>, client_protocols=<uninitialized>, server_extensions=<uninitialized>, client_extensions=[permessage-deflate; client_max_window_bits], client_key=E58pVwft35HPkD/MFCjtEA==, server_accept=HxOmr1a2nvOOc4Qiv7Ou3wrCsJc=]
@@ -86,8 +86,8 @@ websocket_frame, CHhAvVGS1DHFjwGM9, T, fin, T, rsv, 0, opcode, text, payload_len
 websocket_frame_data, CHhAvVGS1DHFjwGM9, T, len, 361, data, {"type": "data-message", "topic": "/zeek/event/my_topic", "@data-type": "vector", "data": [{"@data-type": "count", "data
 websocket_message, CHhAvVGS1DHFjwGM9, T, opcode, text
 websocket_frame, CHhAvVGS1DHFjwGM9, T, fin, T, rsv, 0, opcode, close, payload_len, 2
-websocket_close, CHhAvVGS1DHFjwGM9, T, status, 1000, reason, 
 websocket_frame_data, CHhAvVGS1DHFjwGM9, T, len, 2, data, \x03\xe8
+websocket_close, CHhAvVGS1DHFjwGM9, T, status, 1000, reason, 
 websocket_message, CHhAvVGS1DHFjwGM9, T, opcode, close
 message-too-big-status.pcap
 websocket_established, CHhAvVGS1DHFjwGM9, 7, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=127.0.0.1, orig_p=60956/tcp, resp_h=127.0.0.1, resp_p=8080/tcp], host=localhost:8080, uri=/, user_agent=Python/3.10 websockets/12.0, subprotocol=v1, client_protocols=[v1], server_extensions=<uninitialized>, client_extensions=[permessage-deflate; client_max_window_bits], client_key=iTel1Ova5Nhz/G7VlI2qKg==, server_accept=YsQYYLj7ZCpzTLsVLb+w/ydy79E=]
@@ -95,12 +95,12 @@ websocket_frame, CHhAvVGS1DHFjwGM9, F, fin, T, rsv, 0, opcode, ping, payload_len
 websocket_frame_data, CHhAvVGS1DHFjwGM9, F, len, 4, data, Zeek
 websocket_message, CHhAvVGS1DHFjwGM9, F, opcode, ping
 websocket_frame, CHhAvVGS1DHFjwGM9, T, fin, T, rsv, 0, opcode, close, payload_len, 31
-websocket_close, CHhAvVGS1DHFjwGM9, T, status, 1009, reason, over size limit (4 > 2 bytes)
 websocket_frame_data, CHhAvVGS1DHFjwGM9, T, len, 31, data, \x03\xf1over size limit (4 > 2 bytes)
+websocket_close, CHhAvVGS1DHFjwGM9, T, status, 1009, reason, over size limit (4 > 2 bytes)
 websocket_message, CHhAvVGS1DHFjwGM9, T, opcode, close
 websocket_frame, CHhAvVGS1DHFjwGM9, F, fin, T, rsv, 0, opcode, close, payload_len, 2
-websocket_close, CHhAvVGS1DHFjwGM9, F, status, 1000, reason, 
 websocket_frame_data, CHhAvVGS1DHFjwGM9, F, len, 2, data, \x03\xe8
+websocket_close, CHhAvVGS1DHFjwGM9, F, status, 1000, reason, 
 websocket_message, CHhAvVGS1DHFjwGM9, F, opcode, close
 two-binary-fragments.pcap
 websocket_established, CHhAvVGS1DHFjwGM9, 7, [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=127.0.0.1, orig_p=50198/tcp, resp_h=127.0.0.1, resp_p=8080/tcp], host=localhost:8080, uri=/, user_agent=Python/3.10 websockets/12.0, subprotocol=v1, client_protocols=[v1], server_extensions=<uninitialized>, client_extensions=[permessage-deflate; client_max_window_bits], client_key=cQGA5Z1nvyUJ9XOVIaLaQA==, server_accept=zWaHVUKxEGPDs+xJeKtzkE1bm54=]
@@ -119,10 +119,10 @@ websocket_frame, CHhAvVGS1DHFjwGM9, F, fin, T, rsv, 0, opcode, continuation, pay
 websocket_frame_data, CHhAvVGS1DHFjwGM9, F, len, 7, data,  there!
 websocket_message, CHhAvVGS1DHFjwGM9, F, opcode, binary
 websocket_frame, CHhAvVGS1DHFjwGM9, T, fin, T, rsv, 0, opcode, close, payload_len, 2
-websocket_close, CHhAvVGS1DHFjwGM9, T, status, 1000, reason, 
 websocket_frame_data, CHhAvVGS1DHFjwGM9, T, len, 2, data, \x03\xe8
+websocket_close, CHhAvVGS1DHFjwGM9, T, status, 1000, reason, 
 websocket_message, CHhAvVGS1DHFjwGM9, T, opcode, close
 websocket_frame, CHhAvVGS1DHFjwGM9, F, fin, T, rsv, 0, opcode, close, payload_len, 2
-websocket_close, CHhAvVGS1DHFjwGM9, F, status, 1000, reason, 
 websocket_frame_data, CHhAvVGS1DHFjwGM9, F, len, 2, data, \x03\xe8
+websocket_close, CHhAvVGS1DHFjwGM9, F, status, 1000, reason, 
 websocket_message, CHhAvVGS1DHFjwGM9, F, opcode, close

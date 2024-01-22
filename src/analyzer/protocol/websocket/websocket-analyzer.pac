@@ -27,25 +27,10 @@ refine flow WebSocket_Flow += {
 			zeek::BifEvent::enqueue_websocket_frame(connection()->zeek_analyzer(),
 			                                        connection()->zeek_analyzer()->Conn(),
 			                                        is_orig(),
-			                                        ${hdr.b.fin},
-			                                        ${hdr.b.reserved},
-			                                        ${hdr.b.opcode},
+			                                        ${hdr.fin},
+			                                        ${hdr.reserved},
+			                                        ${hdr.opcode},
 			                                        ${hdr.payload_len});
-			}
-
-		return true;
-		%}
-
-	function process_payload_unmask(chunk: WebSocket_FramePayloadUnmask): bool
-		%{
-		auto& data = ${chunk.data};
-
-		// In-place unmasking if frame payload is masked.
-		if ( has_mask_ )
-			{
-			auto *d = data.data();
-			for ( int i = 0; i < data.length(); i++ )
-				d[i] = d[i] ^ mask_[mask_idx_++ % mask_.size()];
 			}
 
 		return true;
@@ -84,7 +69,15 @@ refine flow WebSocket_Flow += {
 
 	function process_payload_chunk(chunk: WebSocket_FramePayloadChunk): bool
 		%{
-		auto& data = ${chunk.unmask.data};
+		auto& data = ${chunk.data};
+
+		// In-place unmasking if frame payload is masked.
+		if ( has_mask_ )
+			{
+			auto *d = data.data();
+			for ( int i = 0; i < data.length(); i++ )
+				d[i] = d[i] ^ masking_key_[masking_key_idx_++ % masking_key_.size()];
+			}
 
 		if ( websocket_frame_data )
 			{
@@ -96,7 +89,7 @@ refine flow WebSocket_Flow += {
 			}
 
 		// Forward text and binary data to downstream analyzers.
-		if ( ${chunk.hdr.b.opcode} == OPCODE_TEXT|| ${chunk.hdr.b.opcode} == OPCODE_BINARY)
+		if ( ${chunk.hdr.opcode} == OPCODE_TEXT|| ${chunk.hdr.opcode} == OPCODE_BINARY)
 			connection()->zeek_analyzer()->ForwardStream(data.length(),
 			                                             data.data(),
 			                                             is_orig());
@@ -113,14 +106,6 @@ refine typeattr WebSocket_FrameHeader += &let {
 	proc_header = $context.flow.process_header(this);
 };
 
-refine typeattr WebSocket_FramePayloadUnmask += &let {
-	proc_payload_unmask = $context.flow.process_payload_unmask(this);
-};
-
 refine typeattr WebSocket_FramePayloadClose += &let {
 	proc_payload_close = $context.flow.process_payload_close(this);
-};
-
-refine typeattr WebSocket_FramePayloadChunk += &let {
-	proc_payload_chunk = $context.flow.process_payload_chunk(this);
 };

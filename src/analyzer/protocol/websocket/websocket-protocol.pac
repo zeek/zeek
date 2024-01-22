@@ -13,54 +13,47 @@ enum Opcodes {
 	OPCODE_PONG         = 0x0a,
 }
 
-type WebSocket_FrameHeaderFixed(first_frame: bool) = record {
-	# First frame in message cannot be continuation, following
-	# frames are only expected to be continuations.
-	b: uint16 &enforce((first_frame && opcode != 0) || (!first_frame && opcode == 0));
-} &let {
-	fin: bool = (b & 0x8000) ? true : false;
-	reserved: uint8 = ((b & 0x7000) >> 12);
-	opcode: uint8 = (b & 0x0f00) >> 8;
-	has_mask: bool = (b & 0x0080) ? true : false;
-	payload_len1: uint8 = (b & 0x007f);
-	rest_header_len: uint64 = (has_mask ? 4 : 0) + (payload_len1 < 126 ? 0 : (payload_len1 == 126 ? 2 : 8));
-} &length=2;
-
-type WebSocket_FrameHeader(b: WebSocket_FrameHeaderFixed) = record {
-	maybe_more_len: case b.payload_len1 of {
+type WebSocket_FrameHeader(first_frame: bool)  = record {
+	first2: uint16 &enforce((first_frame && opcode != 0) || (!first_frame && opcode == 0));
+	maybe_more_len: case payload_len1 of {
 		126 -> payload_len2: uint16;
 		127 -> payload_len8: uint64;
 		default -> short_len: empty;
 	};
 
-	maybe_mask: case b.has_mask of {
-		true	-> mask: bytestring &length=4;
-		false -> no_mask: empty;
+	maybe_masking_key: case has_mask of {
+		true -> masking_key: bytestring &length=4;
+		false -> no_masking_key: empty;
 	};
 } &let {
-	payload_len: uint64 = b.payload_len1 < 126 ? b.payload_len1 : (b.payload_len1 == 126 ? payload_len2 : payload_len8);
-	new_frame_payload = $context.flow.new_frame_payload(this);
-} &length=b.rest_header_len;
+	fin: bool = (first2 & 0x8000) ? true : false;
+	reserved: uint8 = ((first2 & 0x7000) >> 12);
+	opcode: uint8 = (first2 & 0x0f00) >> 8;
+	payload_len1: uint8 = (first2 & 0x007f);
+	has_mask: bool = (first2 & 0x0080) ? true : false;
 
-type WebSocket_FramePayloadClose(hdr: WebSocket_FrameHeader) = record {
+	# Derived fields.
+	rest_header_len: uint64 = (has_mask ? 4 : 0) + (payload_len1 < 126 ? 0 : (payload_len1 == 126 ? 2 : 8));
+	payload_len: uint64 = payload_len1 < 126 ? payload_len1 : (payload_len1 == 126 ? payload_len2 : payload_len8);
+
+	new_frame_payload = $context.flow.new_frame_payload(this);
+} &length=2+rest_header_len;
+
+type WebSocket_FramePayloadClose = record {
 	status: uint16;
 	reason: bytestring &restofdata;
 } &byteorder=bigendian;
 
-type WebSocket_FramePayloadUnmask(hdr: WebSocket_FrameHeader) = record {
-	data: bytestring &restofdata;
-};
-
 type WebSocket_FramePayloadChunk(len: uint64, hdr: WebSocket_FrameHeader) = record {
-	unmask: WebSocket_FramePayloadUnmask(hdr);
+	data: bytestring &restofdata;
 } &let {
-	consumed_payload = $context.flow.consumed_chunk(len);
-	close_payload: WebSocket_FramePayloadClose(hdr) withinput unmask.data &length=len &if(hdr.b.opcode == OPCODE_CLOSE);
+	consumed_payload = $context.flow.consumed_chunk_len(len);
+	payload_chunk = $context.flow.process_payload_chunk(this);  # unmasks if needed
+	close_payload: WebSocket_FramePayloadClose withinput data &length=len &if(hdr.opcode == OPCODE_CLOSE);
 } &length=len;
 
 type WebSocket_Frame(first_frame: bool, msg: WebSocket_Message) = record {
-	b: WebSocket_FrameHeaderFixed(first_frame);
-	hdr: WebSocket_FrameHeader(b);
+	hdr: WebSocket_FrameHeader(first_frame);
 
 	# This is implementing frame payload chunking so that we do not
 	# attempt to buffer huge frames and forward data to downstream
@@ -73,17 +66,17 @@ type WebSocket_Frame(first_frame: bool, msg: WebSocket_Message) = record {
 } &let {
 	# If we find a close frame without payload, raise the event here
 	# as the close won't have been parsed via chunks.
-	empty_close = $context.flow.process_empty_close(hdr) &if(b.opcode == OPCODE_CLOSE) && hdr.payload_len == 0;
+	empty_close = $context.flow.process_empty_close(hdr) &if(hdr.opcode == OPCODE_CLOSE) && hdr.payload_len == 0;
 };
 
 type WebSocket_Message = record {
 	first_frame: WebSocket_Frame(true, this);
-	optional_more_frames: case first_frame.hdr.b.fin of {
+	optional_more_frames: case first_frame.hdr.fin of {
 		true -> no_more_frames: empty;
-		false -> more_frames: WebSocket_Frame(false, this)[] &until($element.hdr.b.fin);
+		false -> more_frames: WebSocket_Frame(false, this)[] &until($element.hdr.fin);
 	};
 } &let {
-	opcode = first_frame.hdr.b.opcode;
+	opcode = first_frame.hdr.opcode;
 } &byteorder=bigendian;
 
 flow WebSocket_Flow(is_orig: bool) {
@@ -91,14 +84,14 @@ flow WebSocket_Flow(is_orig: bool) {
 
 	%member{
 		bool has_mask_;
-		uint64_t mask_idx_;
+		uint64_t masking_key_idx_;
 		uint64_t frame_payload_len_;
-		std::array<uint8_t, 4> mask_;
+		std::array<uint8_t, 4> masking_key_;
 	%}
 
 	%init{
 		has_mask_ = false;
-		mask_idx_ = 0;
+		masking_key_idx_ = 0;
 		frame_payload_len_ = 0;
 	%}
 
@@ -108,11 +101,11 @@ flow WebSocket_Flow(is_orig: bool) {
 			connection()->zeek_analyzer()->Weird("websocket_frame_not_consumed");
 
 		frame_payload_len_ = ${hdr.payload_len};
-		has_mask_ = ${hdr.b.has_mask};
-		mask_idx_ = 0;
+		has_mask_ = ${hdr.has_mask};
+		masking_key_idx_ = 0;
 		if ( has_mask_ ) {
-			assert(${hdr.mask}.length() == static_cast<int>(mask_.size()));
-			memcpy(mask_.data(), ${hdr.mask}.data(), mask_.size());
+			assert(${hdr.masking_key}.length() == static_cast<int>(masking_key_.size()));
+			memcpy(masking_key_.data(), ${hdr.masking_key}.data(), masking_key_.size());
 		}
 		return frame_payload_len_;
 		%}
@@ -122,7 +115,7 @@ flow WebSocket_Flow(is_orig: bool) {
 		return frame_payload_len_;
 		%}
 
-	function consumed_chunk(len: uint64): uint64
+	function consumed_chunk_len(len: uint64): uint64
 		%{
 		if ( len > frame_payload_len_ ) {
 			connection()->zeek_analyzer()->Weird("websocket_frame_consuming_too_much");

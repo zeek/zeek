@@ -53,7 +53,15 @@ export {
 	## Log policy hook.
 	global log_policy: Log::PolicyHook;
 
-	## Hook to allow interception of WebSocket analyzer configuration.
+	## Experimental: Hook to intercept WebSocket analyzer configuration.
+	##
+	## Breaking from this hook disables the WebSocket analyzer immediately.
+	## To modify the configuration of the analyzer, use the
+	## :zeek:see:`WebSocket::AnalyzerConfig` type.
+	##
+	## While this API allows quite some flexibility currently, should be
+	## considered experimental and may change in the future with or
+	## without a deprecation phase.
 	##
 	## c: The connection
 	##
@@ -77,9 +85,10 @@ function set_websocket(c: connection)
 	);
 	}
 
-function expected_accept_for(key: string): string {
+function expected_accept_for(key: string): string
+	{
 	return encode_base64(hexstr_to_bytestring(sha1_hash(key + HANDSHAKE_GUID)));
-}
+	}
 
 event http_header(c: connection, is_orig: bool, name: string, value: string)
 	{
@@ -205,9 +214,13 @@ event websocket_established(c: connection, aid: count) &priority=-5
 		config$server_extensions = ws$server_extensions;
 
 	# Give other scripts a chance to modify the analyzer configuration.
-	hook WebSocket::configure_analyzer(c, aid, config);
-
-	WebSocket::__configure_analyzer(c, aid, config);
+	#
+	# Breaking from this hook disables the new WebSocket analyzer
+	# completely instead of configuring it.
+	if ( hook WebSocket::configure_analyzer(c, aid, config) )
+		WebSocket::__configure_analyzer(c, aid, config);
+	else
+		disable_analyzer(c$id, aid);
 
 	ws$ts = network_time();
 	Log::write(LOG, ws);

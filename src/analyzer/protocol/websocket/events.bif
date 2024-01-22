@@ -1,16 +1,10 @@
 ## Generated when a WebSocket handshake completed.
 ##
-## This is a bit artificial. It can be used to configure the WebSocket
-## analyzer if the HTTP headers contained protocol and extension headers.
-##
 ## c: The WebSocket connection.
 ##
 ## aid: The analyzer identifier of the WebSocket analyzer.
 ##
-## .. zeek:see:: WebSocket::__configure_analyzer
-##
-## .. zeek:see:: WebSocket::configure_analyzer
-##
+## .. zeek:see:: WebSocket::__configure_analyzer WebSocket::configure_analyzer
 event websocket_established%(c: connection, aid: count%);
 
 ## Generated for every WebSocket frame.

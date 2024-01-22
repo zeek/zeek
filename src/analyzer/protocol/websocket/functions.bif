@@ -31,7 +31,7 @@ function __configure_analyzer%(c: connection, aid: count, config: WebSocket::Ana
 
 	static const auto& config_type = zeek::id::find_type<zeek::RecordType>("WebSocket::AnalyzerConfig");
 
-    if ( config->GetType() != config_type )
+	if ( config->GetType() != config_type )
 		{
 		reporter->Warning("config has wrong type %s, expected %s",
 		                  config->GetType()->GetName().c_str(),

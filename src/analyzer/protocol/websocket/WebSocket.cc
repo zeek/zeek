@@ -22,7 +22,9 @@ WebSocket_Analyzer::WebSocket_Analyzer(Connection* conn) : analyzer::tcp::TCP_Ap
 void WebSocket_Analyzer::Init() {
     tcp::TCP_ApplicationAnalyzer::Init();
 
-    // This event calls back via Configure()
+    // This event gives scriptland a chance to log and configure the analyzer.
+    // The WebSocket analyzer ships with a handler that calls back into
+    // Configure(), via  WebSocket::__configure_analyzer().
     zeek::BifEvent::enqueue_websocket_established(this, Conn(), GetID());
 }
 

@@ -26,6 +26,8 @@ template<typename T>
 using CaseMaps = std::vector<CaseMap<T>>;
 
 using TableIterVec = std::vector<TableIterInfo>;
+using ProfVec = std::vector<std::pair<zeek_uint_t, double>>;
+using CallStack = std::vector<std::shared_ptr<ZAMLocInfo>>;
 
 class ZBody : public Stmt {
 public:
@@ -50,11 +52,13 @@ public:
     void Dump() const;
 
     void ProfileExecution() const;
-    const std::vector<LocProfileElem>& ExecProfile() const { return exec_prof; }
 
-protected:
+private:
     // Initializes profiling information, if needed.
     void InitProfile();
+    std::shared_ptr<ProfVec> BuildProfVec() const;
+
+    void ReportProfile(const ProfVec& pv, const std::string& prefix) const;
 
     ValPtr DoExec(Frame* f, StmtFlowType& flow);
 
@@ -68,7 +72,6 @@ protected:
     void StmtDescribe(ODesc* d) const override;
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
-private:
     const char* func_name = nullptr;
 
     const ZInst* insts = nullptr;
@@ -102,14 +105,17 @@ private:
     std::vector<GlobalInfo> globals;
     int num_globals;
 
-    // The following is only maintained if we're doing profiling.
-    std::vector<LocProfileElem> exec_prof;
-    double CPU_time = 0.0; // cumulative CPU time for the program
-
     CaseMaps<zeek_int_t> int_cases;
     CaseMaps<zeek_uint_t> uint_cases;
     CaseMaps<double> double_cases;
     CaseMaps<std::string> str_cases;
+
+    // The following are only maintained if we're doing profiling.
+    double CPU_time = 0.0; // cumulative CPU time for the program
+
+    std::map<CallStack, std::shared_ptr<ProfVec>> prof_vecs;
+    std::shared_ptr<ProfVec> default_prof_vec;
+    std::shared_ptr<ProfVec> curr_prof_vec;
 };
 
 } // namespace zeek::detail

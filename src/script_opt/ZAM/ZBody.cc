@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/script_opt/ZAM/ZBody.h"
+
 #include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Frame.h"
@@ -10,7 +12,6 @@
 #include "zeek/Trigger.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
-#include "zeek/script_opt/ZAM/Profile.h"
 
 // Needed for managing the corresponding values.
 #include "zeek/File.h"
@@ -31,18 +32,31 @@
 #define ENABLE_ZAM_PROFILE
 #endif
 
+namespace zeek::detail {
+
 #ifdef ENABLE_ZAM_PROFILE
+
+static std::vector<std::shared_ptr<ZAMLocInfo>> caller_locs;
+
 #define DO_ZAM_PROFILE                                                                                                 \
     if ( do_profile ) {                                                                                                \
         double dt = util::curr_CPU_time() - profile_CPU;                                                               \
-        exec_prof[profile_pc].BumpCPU(dt);                                                                             \
+        auto& prof_info = (*curr_prof_vec)[profile_pc];                                                                \
+        ++prof_info.first;                                                                                             \
+        prof_info.second += dt;                                                                                        \
         ZOP_CPU[z.op] += dt;                                                                                           \
     }
-#else
-#define DO_ZAM_PROFILE
-#endif
+#define ZAM_PROFILE_PRE_CALL caller_locs.push_back(z.loc);
 
-namespace zeek::detail {
+#define ZAM_PROFILE_POST_CALL caller_locs.pop_back();
+
+#else
+
+#define DO_ZAM_PROFILE
+#define ZAM_PROFILE_PRE_CALL
+#define ZAM_PROFILE_POST_CALL
+
+#endif
 
 using std::vector;
 
@@ -215,14 +229,18 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
 }
 
 void ZBody::InitProfile() {
-    if ( analysis_options.profile_ZAM ) {
-        exec_prof.reserve(end_pc);
+    if ( analysis_options.profile_ZAM )
+        curr_prof_vec = default_prof_vec = BuildProfVec();
+}
 
-        for ( auto i = 0U; i < end_pc; ++i ) {
-            auto& insts_i = insts[i];
-            exec_prof.emplace_back(LocProfileElem(insts_i.loc->LocPtr()));
-        }
-    }
+std::shared_ptr<ProfVec> ZBody::BuildProfVec() const {
+    auto pv = std::make_shared<ProfVec>();
+    pv->resize(end_pc);
+
+    for ( auto i = 0U; i < end_pc; ++i )
+        (*pv)[i] = std::pair<zeek_uint_t, double>{0, 0.0};
+
+    return pv;
 }
 
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
@@ -249,10 +267,19 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     // Type of the return value.  If nil, then we don't have a value.
     TypePtr ret_type;
 
-    Func* callee; // used to track indirect function calls for profiling
-
 #ifdef ENABLE_ZAM_PROFILE
     bool do_profile = analysis_options.profile_ZAM;
+
+    if ( do_profile ) {
+        if ( ! caller_locs.empty() ) {
+            auto pv = prof_vecs.find(caller_locs);
+            if ( pv == prof_vecs.end() )
+                pv = prof_vecs.insert({caller_locs, BuildProfVec()}).first;
+            curr_prof_vec = pv->second;
+        }
+        else
+            curr_prof_vec = default_prof_vec;
+    }
 #endif
 
     ZVal* frame;
@@ -287,7 +314,6 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
         double profile_CPU = 0.0;
 
         if ( do_profile ) {
-            exec_prof[pc].BumpCount();
             ++ZOP_count[z.op];
 
             profile_pc = pc;
@@ -344,22 +370,33 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
 }
 
 void ZBody::ProfileExecution() const {
-    if ( exec_prof.empty() ) {
+    if ( end_pc == 0 ) {
         printf("%s has an empty body\n", func_name);
         return;
     }
 
-    if ( exec_prof[0].Count() == 0 ) {
+    if ( (*default_prof_vec)[0].first == 0 && prof_vecs.empty() ) {
         printf("%s did not execute\n", func_name);
         return;
     }
 
     printf("%s CPU time: %.06f\n", func_name, CPU_time);
 
-    for ( auto i = 0U; i < exec_prof.size(); ++i ) {
-        auto& pe = exec_prof[i];
-        printf("%s %d %" PRId64 " %.06f ", func_name, i, pe.Count(), pe.CPU());
-        insts[i].Dump(i, &frame_denizens);
+    ReportProfile(*default_prof_vec, "");
+
+    for ( auto& pv : prof_vecs ) {
+        std::string prefix;
+        for ( auto& caller : pv.first )
+            prefix += caller->Describe(true) + ";";
+
+        ReportProfile(*pv.second, prefix);
+    }
+}
+
+void ZBody::ReportProfile(const ProfVec& pv, const std::string& prefix) const {
+    for ( auto i = 0U; i < pv.size(); ++i ) {
+        printf("%s %d %" PRId64 " %.06f ", func_name, i, pv[i].first, pv[i].second);
+        insts[i].Dump(i, &frame_denizens, prefix);
     }
 }
 
@@ -412,7 +449,7 @@ void ZBody::Dump() const {
     for ( unsigned i = 0; i < end_pc; ++i ) {
         auto& inst = insts[i];
         printf("%d: ", i);
-        inst.Dump(i, &frame_denizens);
+        inst.Dump(i, &frame_denizens, "");
     }
 }
 

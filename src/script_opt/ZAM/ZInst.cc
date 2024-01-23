@@ -10,7 +10,7 @@ using std::string;
 
 namespace zeek::detail {
 
-void ZInst::Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const {
+void ZInst::Dump(zeek_uint_t inst_num, const FrameReMap* mappings, const string& prefix) const {
     // printf("v%d ", n);
 
     auto id1 = VName(1, inst_num, mappings);
@@ -18,10 +18,11 @@ void ZInst::Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const {
     auto id3 = VName(3, inst_num, mappings);
     auto id4 = VName(4, inst_num, mappings);
 
-    Dump(id1, id2, id3, id4);
+    Dump(prefix, id1, id2, id3, id4);
 }
 
-void ZInst::Dump(const string& id1, const string& id2, const string& id3, const string& id4) const {
+void ZInst::Dump(const string& prefix, const string& id1, const string& id2, const string& id3,
+                 const string& id4) const {
     printf("%s ", ZOP_name(op));
     // printf("(%s) ", op_type_name(op_type));
     if ( t && 0 )
@@ -82,6 +83,8 @@ void ZInst::Dump(const string& id1, const string& id2, const string& id3, const 
         auto l = loc->Describe(true);
         if ( func )
             l = l + ";" + func->Name();
+        if ( ! prefix.empty() )
+            l = prefix + l;
         printf(" // %s", l.c_str());
     }
 
@@ -258,7 +261,7 @@ void ZInstI::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const
     auto id3 = VName(3, frame_ids, remappings);
     auto id4 = VName(4, frame_ids, remappings);
 
-    ZInst::Dump(id1, id2, id3, id4);
+    ZInst::Dump("", id1, id2, id3, id4);
 }
 
 string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappings) const {

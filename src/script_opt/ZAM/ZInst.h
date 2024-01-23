@@ -72,9 +72,10 @@ public:
 
     virtual ~ZInst() = default;
 
-    // Methods for printing out the instruction for debugging/maintenance.
-    void Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const;
-    void Dump(const std::string& id1, const std::string& id2, const std::string& id3, const std::string& id4) const;
+    // Methods for printing out the instruction for debugging/profiling.
+    void Dump(zeek_uint_t inst_num, const FrameReMap* mappings, const std::string& prefix) const;
+    void Dump(const std::string& prefix, const std::string& id1, const std::string& id2, const std::string& id3,
+              const std::string& id4) const;
 
     // Returns the name to use in identifying one of the slots/integer
     // values (designated by "n").  "inst_num" identifies the instruction

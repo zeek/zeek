@@ -1454,8 +1454,12 @@ BlockAnalyzer::BlockAnalyzer(std::vector<FuncInfo>& funcs) {
         SetBlockLineNumbers sbln;
         func->Traverse(&sbln);
 
-        cf_name = std::string(func->Name()) + ":";
+        std::string fn = func->Name();
+
+        parents.push_back(fn);
+        cf_name = fn + ":";
         func->Traverse(this);
+        parents.pop_back();
     }
 
     cf_name = "<MISSING>";

@@ -220,7 +220,7 @@ void ZBody::InitProfile() {
 
         for ( auto i = 0U; i < end_pc; ++i ) {
             auto& insts_i = insts[i];
-            exec_prof.emplace_back(LocProfileElem(insts_i.loc->LocPtr(), insts_i.call_expr != nullptr));
+            exec_prof.emplace_back(LocProfileElem(insts_i.loc->LocPtr()));
         }
     }
 }

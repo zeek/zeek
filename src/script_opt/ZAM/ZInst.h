@@ -129,7 +129,8 @@ public:
     // which is why we bundle these separately.
     ZInstAux* aux = nullptr;
 
-    // Location associated with this instruction, for error reporting.
+    // Location associated with this instruction, for error reporting
+    // and profiling.
     std::shared_ptr<ZAMLocInfo> loc;
 
     // Interpreter call expression associated with this instruction,

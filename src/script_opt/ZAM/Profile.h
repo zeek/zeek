@@ -29,45 +29,22 @@ private:
     std::shared_ptr<ZAMLocInfo> parent;
 };
 
-class ProfileElem {
+class LocProfileElem {
 public:
-    ProfileElem(int _line) : first_line(_line), last_line(_line) {}
-
-    int FirstLine() const { return first_line; }
-    int LastLine() const { return last_line; }
-
-    zeek_uint_t Count() const { return count; }
-    double CPU() const { return cpu; }
-    double CallCPU() const { return call_cpu; }
-    bool IsCall() const { return is_call; }
-
-protected:
-    bool is_call = false;
-    zeek_uint_t count = 0;
-    double cpu = 0.0;
-    double call_cpu = 0.0;
-
-private:
-    int first_line, last_line;
-};
-
-class LocProfileElem : public ProfileElem {
-public:
-    LocProfileElem(std::shared_ptr<Location> _loc, bool _is_call) : ProfileElem(_loc->first_line), loc(_loc) {
-        is_call = _is_call;
-    }
+    LocProfileElem(std::shared_ptr<Location> _loc) : loc(std::move(_loc)) {}
 
     const auto& Loc() const { return loc; }
 
+    zeek_uint_t Count() const { return count; }
+    double CPU() const { return cpu; }
+
     void BumpCount() { ++count; }
-    void BumpCPU(double new_cpu) {
-        cpu += new_cpu;
-        if ( is_call )
-            call_cpu += new_cpu;
-    }
+    void BumpCPU(double new_cpu) { cpu += new_cpu; }
 
 private:
     std::shared_ptr<Location> loc;
+    zeek_uint_t count = 0;
+    double cpu = 0.0;
 };
 
 class ProfileStack {

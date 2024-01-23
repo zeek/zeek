@@ -14,21 +14,25 @@ namespace zeek::detail {
 std::string ZAMLocInfo::Describe(bool include_lines) const {
     std::string desc;
 
-    if ( parent ) {
-        desc = parent->Describe();
-        if ( func_name != parent->FuncName() )
-            desc += ";" + func_name;
+    if ( blocks ) {
+        desc = blocks->GetDesc(loc.get());
+        if ( parent )
+            desc = parent->Describe(false) + ";" + desc;
     }
-    else
-        desc = func_name;
+    else {
+        if ( parent ) {
+            desc = parent->Describe();
+            if ( func_name != parent->FuncName() )
+                desc += ";" + func_name;
+        }
+        else
+            desc = func_name;
 
-    if ( blocks )
-        return blocks->GetDesc(loc.get());
-
-    if ( include_lines ) {
-        desc += ";" + func_name + ":" + std::to_string(loc->first_line);
-        if ( loc->last_line > loc->first_line )
-            desc += "-" + std::to_string(loc->last_line);
+        if ( include_lines ) {
+            desc += ";" + func_name + ":" + std::to_string(loc->first_line);
+            if ( loc->last_line > loc->first_line )
+                desc += "-" + std::to_string(loc->last_line);
+        }
     }
 
     return desc;

@@ -1400,38 +1400,9 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
 
 TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {
     auto loc = const_cast<Location*>(s->GetLocationInfo());
-
-    // Sometimes locations are generated with inverted line coverage.
-    if ( loc->first_line > loc->last_line )
-        std::swap(loc->first_line, loc->last_line);
-
-    auto first_line = loc->first_line;
-    auto last_line = loc->last_line;
-
-    if ( block_line_range.empty() ) {
-        // This is an outer statement. Either it's a compound, in
-        // which case it'll push a new block range; or it's not,
-        // in which case we don't need to track it.
-    }
-    else {
-        auto& r = block_line_range.back();
-        r.first = std::min(r.first, first_line);
-        r.second = std::max(r.second, last_line);
-    }
-
-    switch ( s->Tag() ) {
-        case STMT_FOR:
-        case STMT_IF:
-        case STMT_LIST:
-        case STMT_SWITCH:
-        case STMT_WHEN:
-        case STMT_WHILE: block_line_range.push_back(std::pair<int, int>{first_line, last_line}); return TC_CONTINUE;
-
-        default:
-            // No more work to do, and it's handy that PostStmt can
-            // rely on only being invoked for compound statements.
-            return TC_ABORTSTMT;
-    }
+    UpdateLocInfo(loc);
+    block_line_range.push_back(std::pair<int, int>{loc->first_line, loc->last_line});
+    return TC_CONTINUE;
 }
 
 TraversalCode SetBlockLineNumbers::PostStmt(const Stmt* s) {
@@ -1452,6 +1423,27 @@ TraversalCode SetBlockLineNumbers::PostStmt(const Stmt* s) {
     return TC_CONTINUE;
 }
 
+TraversalCode SetBlockLineNumbers::PreExpr(const Expr* e) {
+    ASSERT(! block_line_range.empty());
+    UpdateLocInfo(const_cast<Location*>(e->GetLocationInfo()));
+    return TC_CONTINUE;
+}
+
+void SetBlockLineNumbers::UpdateLocInfo(Location* loc) {
+    // Sometimes locations are generated with inverted line coverage.
+    if ( loc->first_line > loc->last_line )
+        std::swap(loc->first_line, loc->last_line);
+
+    auto first_line = loc->first_line;
+    auto last_line = loc->last_line;
+
+    if ( ! block_line_range.empty() ) {
+        auto& r = block_line_range.back();
+        r.first = std::min(r.first, first_line);
+        r.second = std::max(r.second, last_line);
+    }
+}
+
 BlockAnalyzer::BlockAnalyzer(std::vector<FuncInfo>& funcs) {
     for ( auto& f : funcs ) {
         if ( ! f.ShouldAnalyze() )
@@ -1465,47 +1457,48 @@ BlockAnalyzer::BlockAnalyzer(std::vector<FuncInfo>& funcs) {
         cf_name = std::string(func->Name()) + ":";
         func->Traverse(this);
     }
+
+    cf_name = "<MISSING>";
+}
+
+static bool is_compound_stmt(const Stmt* s) {
+    static std::set<StmtTag> compound_stmts = {STMT_FOR, STMT_IF, STMT_LIST, STMT_SWITCH, STMT_WHEN, STMT_WHILE};
+    return compound_stmts.count(s->Tag()) > 0;
 }
 
 TraversalCode BlockAnalyzer::PreStmt(const Stmt* s) {
-    auto loc = s->GetLocationInfo();
-    ASSERT(loc && loc->first_line != 0);
+    auto ls = BuildExpandedDescription(s->GetLocationInfo());
 
-    auto lk = LocKey(loc);
-    auto ls = LocString(loc);
+    if ( is_compound_stmt(s) )
+        parents.push_back(std::move(ls));
 
-    if ( ! parents.empty() ) {
-        ASSERT(loc->last_line <= max_line.back());
-        ls = parents.back() + ";" + ls;
-    }
-
-    auto e_d = exp_desc.find(lk);
-    if ( e_d == exp_desc.end() )
-        exp_desc[lk] = ls;
-
-    switch ( s->Tag() ) {
-        case STMT_FOR:
-        case STMT_IF:
-        case STMT_LIST:
-        case STMT_SWITCH:
-        case STMT_WHEN:
-        case STMT_WHILE: {
-            parents.push_back(std::move(ls));
-            max_line.push_back(loc->last_line);
-            return TC_CONTINUE;
-        }
-
-        default:
-            // No more work to do, and it's handy that PostStmt can
-            // rely on only being invoked for compound statements.
-            return TC_ABORTSTMT;
-    }
+    return TC_CONTINUE;
 }
 
 TraversalCode BlockAnalyzer::PostStmt(const Stmt* s) {
-    parents.pop_back();
-    max_line.pop_back();
+    if ( is_compound_stmt(s) )
+        parents.pop_back();
+
     return TC_CONTINUE;
+}
+
+TraversalCode BlockAnalyzer::PreExpr(const Expr* e) {
+    (void)BuildExpandedDescription(e->GetLocationInfo());
+    return TC_CONTINUE;
+}
+
+std::string BlockAnalyzer::BuildExpandedDescription(const Location* loc) {
+    ASSERT(loc && loc->first_line != 0);
+
+    auto ls = LocString(loc);
+    if ( ! parents.empty() )
+        ls = parents.back() + ";" + ls;
+
+    auto lk = LocKey(loc);
+    if ( exp_desc.count(lk) == 0 )
+        exp_desc[lk] = ls;
+
+    return ls;
 }
 
 std::unique_ptr<BlockAnalyzer> blocks;

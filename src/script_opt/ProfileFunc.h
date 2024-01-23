@@ -613,8 +613,11 @@ class SetBlockLineNumbers : public TraversalCallback {
 public:
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PostStmt(const Stmt*) override;
+    TraversalCode PreExpr(const Expr*) override;
 
 private:
+    void UpdateLocInfo(Location* loc);
+
     std::vector<std::pair<int, int>> block_line_range;
 };
 
@@ -624,9 +627,9 @@ public:
 
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PostStmt(const Stmt*) override;
+    TraversalCode PreExpr(const Expr*) override;
 
-    std::string GetDesc(const detail::Location* loc) const {
-        auto lk = LocKey(loc);
+    std::string GetDesc(const Location* loc) const {
         auto e_d = exp_desc.find(LocKey(loc));
         if ( e_d == exp_desc.end() )
             return LocString(loc);
@@ -634,13 +637,17 @@ public:
             return e_d->second;
     }
 
-    // ### GetKeyAndDesc
-    std::string LocKey(const detail::Location* loc) const {
+    bool HaveExpDesc(const Location* loc) const { return exp_desc.count(LocKey(loc)) > 0; }
+
+private:
+    std::string BuildExpandedDescription(const Location* loc);
+
+    std::string LocKey(const Location* loc) const {
         return std::string(loc->filename) + ":" + std::to_string(loc->first_line) + "-" +
                std::to_string(loc->last_line);
     }
 
-    std::string LocString(const detail::Location* loc) const {
+    std::string LocString(const Location* loc) const {
         auto res = cf_name + std::to_string(loc->first_line);
 
         if ( loc->first_line != loc->last_line )
@@ -649,12 +656,10 @@ public:
         return res;
     }
 
-private:
     std::string cf_name;
 
     // Stack of expanded descriptions of parent blocks.
     std::vector<std::string> parents;
-    std::vector<int> max_line; // ###
 
     // Maps a statement's location key to its expanded description.
     std::unordered_map<std::string, std::string> exp_desc;

@@ -7,7 +7,7 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	33472	127.0.0.1	25	smtp_invalid_bdat_command	BDAT not followed by a valid chunk-size	F	zeek	SMTP
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	33472	127.0.0.1	25	smtp_invalid_bdat_command	BDAT argument bad length	F	zeek	SMTP
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	52364	127.0.0.1	25	smtp_invalid_bdat_command	BDAT chunk-size followed by junk	F	zeek	SMTP
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	46862	127.0.0.1	25	smtp_invalid_bdat_command	BDAT not followed by a valid chunk-size	F	zeek	SMTP
 #close XXXX-XX-XX-XX-XX-XX

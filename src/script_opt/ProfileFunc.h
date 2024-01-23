@@ -609,6 +609,15 @@ protected:
     bool full_record_hashes;
 };
 
+class SetBlockLineNumbers : public TraversalCallback {
+public:
+    TraversalCode PreStmt(const Stmt*) override;
+    TraversalCode PostStmt(const Stmt*) override;
+
+private:
+    std::vector<std::pair<int, int>> block_line_range;
+};
+
 class BlockAnalyzer : public TraversalCallback {
 public:
     BlockAnalyzer(std::vector<FuncInfo>& funcs);
@@ -627,26 +636,15 @@ public:
 
     // ### GetKeyAndDesc
     std::string LocKey(const detail::Location* loc) const {
-        auto first_line = loc->first_line;
-        auto last_line = loc->last_line;
-
-        if ( first_line > last_line )
-            std::swap(first_line, last_line);
-
-        return std::string(loc->filename) + ":" + std::to_string(first_line) + "-" + std::to_string(last_line);
+        return std::string(loc->filename) + ":" + std::to_string(loc->first_line) + "-" +
+               std::to_string(loc->last_line);
     }
 
     std::string LocString(const detail::Location* loc) const {
-        auto first_line = loc->first_line;
-        auto last_line = loc->last_line;
+        auto res = cf_name + std::to_string(loc->first_line);
 
-        if ( first_line > last_line )
-            std::swap(first_line, last_line);
-
-        auto res = cf_name + std::to_string(first_line);
-
-        if ( first_line != last_line )
-            res += "-" + std::to_string(last_line);
+        if ( loc->first_line != loc->last_line )
+            res += "-" + std::to_string(loc->last_line);
 
         return res;
     }
@@ -656,6 +654,7 @@ private:
 
     // Stack of expanded descriptions of parent blocks.
     std::vector<std::string> parents;
+    std::vector<int> max_line; // ###
 
     // Maps a statement's location key to its expanded description.
     std::unordered_map<std::string, std::string> exp_desc;

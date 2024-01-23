@@ -101,6 +101,22 @@ New Functionality
   Given this is the first iteration of this feature, feedback around usability and
   use-cases that aren't covered are more than welcome.
 
+- A WebSocket analyzer has been added together with a new ``websocket.log``.
+
+  The WebSocket analyzer is instantiated when a WebSocket handshake over HTTP is
+  recognized. By default, the payload of WebSocket messages is fed into Zeek's dynamic
+  protocol detection framework, possibly discovering and analyzing tunneled protocols.
+
+  The format of the log and the event semantics should be considered preliminary until
+  the arrival of the next long-term-stable release (7.0).
+
+  To disable the analyzer in case of fatal errors or unexpected resource usage,
+  use the ``Analyzer::disabled_analyzers`` pattern:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_WEBSOCKET,
+	};
+
 - The SMTP analyzer was extended to recognize and properly handle the BDAT command
   from RFC 3030. This improves visibility into the SMTP protocol when mail agents
   and servers support and use this extension.

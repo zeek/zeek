@@ -65,6 +65,7 @@ telemetry_histogram
 traceroute
 tunnel
 unknown_protocols
+websocket
 weird
 weird_stats
 x509

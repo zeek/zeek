@@ -30,6 +30,7 @@ void ContentLine_Analyzer::InitState() {
     delivery_length = -1;
     is_plain = false;
     suppress_weirds = false;
+    deliver_stream_remaining_length = 0;
 
     InitBuffer(0);
 }
@@ -149,6 +150,7 @@ void ContentLine_Analyzer::DoDeliver(int len, const u_char* data) {
             plain_delivery_length -= deliver_plain;
             is_plain = true;
 
+            deliver_stream_remaining_length = len - deliver_plain;
             ForwardStream(deliver_plain, data, IsOrig());
 
             is_plain = false;
@@ -207,6 +209,7 @@ int ContentLine_Analyzer::DoDeliverOnce(int len, const u_char* data) {
         int seq_len = data + 1 - data_start;                                                                           \
         seq_delivered_in_lines = seq + seq_len;                                                                        \
         last_char = c;                                                                                                 \
+        deliver_stream_remaining_length = len - 1;                                                                     \
         ForwardStream(offset, buf, IsOrig());                                                                          \
         offset = 0;                                                                                                    \
         return seq_len;                                                                                                \

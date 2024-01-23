@@ -1,3 +1,115 @@
+6.2.0-dev.445 | 2024-01-23 18:01:50 +0100
+
+  * websocket: Handle breaking from WebSocket::configure_analyzer() (Arne Welzel, Corelight)
+
+    ...and various nits from the review.
+
+  * websocket: Address review feedback for BinPac code (Arne Welzel, Corelight)
+
+    * Rename mask_ to masking_key_
+    * Fold FrameHeaderFixed into FrameHeader directly
+    * Drop WebSocket_FramePayloadUnmask type
+
+    Thanks a bunch @ckreibich!
+
+  * fuzzers: Add WebSocket fuzzer (Arne Welzel, Corelight)
+
+    It immediately found an issue with &transient, but fairly stable thereafter.
+
+    This is a separate fuzzer implementation as there's a custom Configure()
+    call for the analyzer as well as disabling all other analyzers so we
+    don't fuzz unrelated protocols.
+
+  * websocket: Fix crash for fragmented messages (Arne Welzel, Corelight)
+
+    The &transient attribute does not work well with $element as that won't
+    be available within &until anymore apparently.
+
+    Found after a few seconds building out the fuzzer.
+
+  * websocket: Verify Sec-WebSocket-Key/Accept headers and review feedback (Arne Welzel, Corelight)
+
+    Don't log them, they are random and arbitrary in the normal case. Users
+    can do the following to log them if wanted.
+
+        redef += WebSocket::Info$client_key += { &log };
+        redef += WebSocket::Info$server_accept += { &log };
+
+  * btest/websocket: Test for coalesced reply-ping (Arne Welzel, Corelight)
+
+    Add a constructed PCAP where the HTTP/websocket server send a WebSocket
+    ping message directly with the packet of the HTTP reply. Ensure this is
+    interpreted the same as if the WebSocket message is in a separate packet
+    following the HTTP reply.
+
+    For the server side this should work, for the client side we'd need to
+    synchronize suspend parsing the client side as we currently cannot quite
+    know whether it's a pipelined HTTP request following, or upgraded protocol
+    data and we don't have "suspend parsing" functionality here.
+
+  * HTTP/CONNECT: Also weird on extra data in reply (Arne Welzel, Corelight)
+
+  * HTTP/Upgrade: Weird when more data is available (Arne Welzel, Corelight)
+
+    After an HTTP upgrade to another protocol, create a weird if the packet
+    that contains the HTTP reply *also* contains some additional data
+    belonging to the upgraded to protocol already.
+
+  * ContentLine: Add GetDeliverStreamRemainingLength() accessor (Arne Welzel, Corelight)
+
+    Helper to get information from the ContentLine analyzer about
+    bytes still pending to be delivered. In certain cases this can
+    be a signal for weirdness.
+
+  * HTTP: Drain event queue after instantiating upgrade analyzer (Arne Welzel, Corelight)
+
+    With configurability through script-land comes the draw back
+    that we actually need to execute event handlers in the middle
+    of the parsing process: This might not be the best model, but
+    the script-side configurability it enables is kind of nice.
+
+    This explicit call only matters here when the HTTP reply is
+    directly followed by some WebSocket message data within the
+    same network packet, otherwise the queue is drained once the
+    packet has been completely processed anyhow.
+
+  * btest/http: Explain switching-protocols test change as comment (Arne Welzel, Corelight)
+
+    DPD enables HTTP based on the content of the WebSocket frames. However,
+    it's not HTTP, the protocol is x-kaazing-handshake and the server sends
+    some form of status/acknowledge to the client first, so the HTTP and the
+    HTTP analyzer receives that as the first bytes of the response and
+    bails, oh well.
+
+  * GH-3424: WebSocket: Introduce new analyzer and log (Arne Welzel, Corelight)
+
+    This adds a new WebSocket analyzer that is enabled with the HTTP upgrade
+    mechanism introduced previously. It is a first implementation in BinPac with
+    manual chunking of frame payload. Configuration of the analyzer is sketched
+    via the new websocket_handshake() event and a configuration BiF called
+    WebSocket::__configure_analyzer(). In short, script land collects WebSocket
+    related HTTP headers and can forward these to the analyzer to change its
+    parsing behavior at websocket_handshake() time. For now, however, there's
+    no actual logic that would change behavior based on agreed upon extensions
+    exchanged via HTTP headers (e.g. frame compression). WebSocket::Configure()
+    simply attaches a PIA_TCP analyzer to the WebSocket analyzer for dynamic
+    protocol detection (or a custom analyzer if set). The added pcaps show this
+    in action for tunneled ssh, http and https using wstunnel. One test pcap is
+    Broker's WebSocket traffic from our own test suite, the other is the
+    Jupyter websocket traffic from the ticket/discussion.
+
+    This commit further adds a basic websocket.log that aggregates the WebSocket
+    specific headers (Sec-WebSocket-*) headers into a single log.
+
+    Closes #3424
+
+  * HTTP: Add mechanism to instantiate Upgrade analyzer (Arne Welzel, Corelight)
+
+    When a HTTP upgrade request/reply is detected, lookup an analyzer tag
+    from HTTP::upgrade_analyzers, or if nothing is found, attach PIA_TCP.
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 6.2.0-dev.430 | 2024-01-22 10:36:11 -0700
 
   * Make BIFs just return ValPtr directly instead of BifReturnVal (Tim Wojtulewicz, Corelight)

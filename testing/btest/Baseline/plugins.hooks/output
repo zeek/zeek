@@ -463,6 +463,10 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_WebSocket.consts.bif.zeek, <...>/Zeek_WebSocket.consts.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_WebSocket.events.bif.zeek, <...>/Zeek_WebSocket.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_WebSocket.functions.bif.zeek, <...>/Zeek_WebSocket.functions.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_WebSocket.types.bif.zeek, <...>/Zeek_WebSocket.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> -1
@@ -752,6 +756,10 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_WebSocket.consts.bif.zeek, <...>/Zeek_WebSocket.consts.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_WebSocket.events.bif.zeek, <...>/Zeek_WebSocket.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_WebSocket.functions.bif.zeek, <...>/Zeek_WebSocket.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_WebSocket.types.bif.zeek, <...>/Zeek_WebSocket.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> (-1, <no content>)
@@ -1389,6 +1397,10 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_WebSocket.consts.bif.zeek, <...>/Zeek_WebSocket.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_WebSocket.events.bif.zeek, <...>/Zeek_WebSocket.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_WebSocket.functions.bif.zeek, <...>/Zeek_WebSocket.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_WebSocket.types.bif.zeek, <...>/Zeek_WebSocket.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
@@ -1678,6 +1690,10 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_WebSocket.consts.bif.zeek, <...>/Zeek_WebSocket.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_WebSocket.events.bif.zeek, <...>/Zeek_WebSocket.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_WebSocket.functions.bif.zeek, <...>/Zeek_WebSocket.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_WebSocket.types.bif.zeek, <...>/Zeek_WebSocket.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
@@ -2314,6 +2330,10 @@
 0.000000 | HookLoadFile  ./Zeek_Teredo.functions.bif.zeek <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_VXLAN.events.bif.zeek <...>/Zeek_VXLAN.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_WebSocket.consts.bif.zeek <...>/Zeek_WebSocket.consts.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_WebSocket.events.bif.zeek <...>/Zeek_WebSocket.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_WebSocket.functions.bif.zeek <...>/Zeek_WebSocket.functions.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_WebSocket.types.bif.zeek <...>/Zeek_WebSocket.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.events.bif.zeek <...>/Zeek_X509.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.functions.bif.zeek <...>/Zeek_X509.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek
@@ -2603,6 +2623,10 @@
 0.000000 | HookLoadFileExtended ./Zeek_Teredo.functions.bif.zeek <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_VXLAN.events.bif.zeek <...>/Zeek_VXLAN.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_WebSocket.consts.bif.zeek <...>/Zeek_WebSocket.consts.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_WebSocket.events.bif.zeek <...>/Zeek_WebSocket.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_WebSocket.functions.bif.zeek <...>/Zeek_WebSocket.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_WebSocket.types.bif.zeek <...>/Zeek_WebSocket.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.events.bif.zeek <...>/Zeek_X509.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.functions.bif.zeek <...>/Zeek_X509.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek

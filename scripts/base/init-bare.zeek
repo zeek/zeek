@@ -423,7 +423,6 @@ export {
 	## The full list of TCP Option fields parsed from a TCP header.
 	type OptionList: vector of Option;
 }
-module GLOBAL;
 
 module Tunnel;
 export {
@@ -449,6 +448,51 @@ export {
 	const max_changes_per_connection: count = 5 &redef;
 
 } # end export
+
+module HTTP;
+export {
+	## Lookup table for Upgrade analyzers. First, a case sensitive lookup
+	## is done using the client's Upgrade header. If no match is found,
+	## the all lower-case value is used. If there's still no match Zeek
+	## uses dynamic protocol detection for the upgraded to protocol instead.
+	const upgrade_analyzers: table[string] of Analyzer::Tag &redef;
+}
+
+module WebSocket;
+export {
+	## The WebSocket analyzer consumes and forwards
+	## frame payload in chunks to keep memory usage
+	## bounded. There should not be a reason to change
+	## this value except for debugging and
+	## testing reasons.
+	const payload_chunk_size = 8192 &redef;
+
+	## Whether to enable DPD on WebSocket frame payload by default.
+	const use_dpd_default = T &redef;
+
+	## Record type that is passed to :zeek:see:`WebSocket::configure_analyzer`.
+	##
+	## This record allows to configure the WebSocket analyzer given
+	## parameters collected from HTTP headers.
+	type AnalyzerConfig: record {
+		## The analyzer to attach for analysis of the WebSocket
+		## frame payload. See *use_dpd* below for the behavior
+		## when unset.
+		analyzer: Analyzer::Tag &optional;
+
+		## If *analyzer* is unset, determines whether to attach a
+		## PIA_TCP analyzer for dynamic protocol detection with
+		## WebSocket payload.
+		use_dpd: bool &default=use_dpd_default;
+
+		## The subprotocol as selected by the server, if any.
+		subprotocol: string &optional;
+
+		## The WebSocket extensions as selected by the server, if any.
+		server_extensions: vector of string &optional;
+	};
+}
+
 module GLOBAL;
 
 ## A type alias for a vector of encapsulating "connections", i.e. for when

@@ -78,6 +78,7 @@
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog
+@load base/protocols/websocket
 @load base/protocols/tunnels
 @load base/protocols/xmpp
 

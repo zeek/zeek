@@ -899,6 +899,12 @@ void SMTP_Analyzer::BeginData(bool orig, detail::SMTP_State new_state) {
 
 void SMTP_Analyzer::EndData() {
     if ( bdat ) {
+        if ( bdat->RemainingChunkSize() > 0 ) {
+            Weird("smtp_bdat_remaining_at_end_data");
+            cl_orig->SetPlainDelivery(0);
+            cl_resp->SetPlainDelivery(0);
+        }
+
         bdat->Done();
         bdat.reset();
     }

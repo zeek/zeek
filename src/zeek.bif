@@ -1986,7 +1986,7 @@ function enum_names%(et: any%): string_set
 
 	if ( et->GetType()->Tag() == TYPE_STRING )
 		{
-		const auto& id = zeek::detail::global_scope()->Find(et->AsStringVal()->ToStdString());
+		const auto& id = zeek::detail::global_scope()->Find(et->AsStringVal()->ToStdStringView());
 		if ( id && id->IsType() )
 			t = id->GetType();
 		}
@@ -2184,7 +2184,7 @@ function global_options%(%): string_set
 ##          the string ``"<unknown id>"`` or ``"<no ID value>"`` is returned.
 function lookup_ID%(id: string%) : any
 	%{
-	const auto& i = zeek::detail::global_scope()->Find(id->CheckString());
+	const auto& i = zeek::detail::global_scope()->Find(id->ToStdStringView());
 	if ( ! i )
 		return zeek::make_intrusive<zeek::StringVal>("<unknown id>");
 
@@ -2214,7 +2214,7 @@ function record_fields%(rec: any%): record_field_table
 
 	if ( rec->GetType()->Tag() == zeek::TYPE_STRING )
 		{
-		const auto& id = zeek::detail::global_scope()->Find(rec->AsStringVal()->ToStdString());
+		const auto& id = zeek::detail::global_scope()->Find(rec->AsStringVal()->ToStdStringView());
 
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != zeek::TYPE_RECORD )
 			{
@@ -5106,7 +5106,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 ## Returns: a compressed version of the input path.
 function compress_path%(dir: string%): string
 	%{
-	return zeek::make_intrusive<zeek::StringVal>(zeek::util::detail::normalize_path(dir->ToStdString()));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::util::detail::normalize_path(dir->ToStdStringView()));
 	%}
 
 ## Returns true if the given tag belongs to a protocol analyzer.

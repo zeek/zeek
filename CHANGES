@@ -1,3 +1,30 @@
+6.2.0-dev.456 | 2024-01-23 21:53:07 +0100
+
+  * btest/smtp/bdat: Move tests into proper directory (Arne Welzel, Corelight)
+
+  * BDAT: Harden parse_bdat_arg() (Arne Welzel, Corelight)
+
+    There implementation assumed that arg is null terminated. Due to
+    the ContentLineAnalyzer wrongly being in plain delivery mode, this
+    assumption was violated. It shouldn't happen anymore, but protect
+    from this anyhow.
+
+  * SMTP: Reset ContentLineAnalyzer plain delivery on EndData() (Arne Welzel, Corelight)
+
+    When resetting the BDAT state, we also need to switch the ContentLine
+    analyzer back into line mode, otherwise we're feeding plain delivery
+    data through ProcessLine(), possibly violating some assumptions about
+    null termination.
+
+    Do it for both ContentLineAnalyzers - only one of them will be in plain
+    delivery mode anyhow, but we don't keep state which one it was.
+
+  * SMTP: Add SMTP_IN_BDAT state (Arne Welzel, Corelight)
+
+    Initially this reused SMTP_IN_DATA, but separating into SMTP_IN_BDAT
+    to avoid spurious EndData() calls upon a server's reply. The client
+    should usually continue to send the full in-flight chunk still.
+
 6.2.0-dev.451 | 2024-01-23 12:40:53 -0700
 
   * Remove setting non-existent session history for IPTunnel (Tim Wojtulewicz, Corelight)

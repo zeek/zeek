@@ -10,18 +10,36 @@ namespace zeek::analyzer::smtp::detail {
 
 
 struct BDATCmd parse_bdat_arg(int length, const char* arg) {
-    const char* arg_end = arg + length;
     struct BDATCmd r = {0};
+
+    // UINT64_MAX followed by " LAST" is the most we can deal with
+    // and anyway this would be really weird for a client to use.
+    // strlen("18446744073709551615 LAST")
+    constexpr int max_arg_len = 25;
+
+    if ( length <= 0 || length > max_arg_len ) {
+        r.error = "BDAT argument bad length";
+        return r;
+    }
 
     if ( *arg == '\0' || ! isdigit(*arg) ) {
         r.error = "BDAT not followed by a valid chunk-size";
         return r;
     }
 
+    // Ensure arg is NULL terminated by copying the
+    // input into a new std::string object so we can use
+    // strtoull() properly. We do have zeek::util::atoi_n,
+    // but it's not handling overflows.
+    //
+    // The size is bounded, see max_arg_len above.
+    std::string arg_copy = {arg, static_cast<std::string::size_type>(length)};
+    const char* arg_end = arg_copy.c_str() + length;
+
     errno = 0;
     char* chunk_size_end = nullptr;
-    uint64_t chunk_size = strtoull(arg, &chunk_size_end, 10);
-    if ( *chunk_size_end != ' ' && chunk_size_end != arg_end ) {
+    uint64_t chunk_size = strtoull(arg_copy.c_str(), &chunk_size_end, 10);
+    if ( *chunk_size_end != ' ' && *chunk_size_end != '\0' ) {
         r.error = "BDAT chunk-size not valid";
         return r;
     }
@@ -237,6 +255,33 @@ TEST_CASE("negative chunk size") {
     const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
     REQUIRE(error != nullptr);
     CHECK(error == std::string("BDAT not followed by a valid chunk-size"));
+}
+
+TEST_CASE("non null terminated") {
+    // Regression test for buffer overread triggered by non-null
+    // terminated input from a wrongly configured ContentLineAnalyzer.
+    const char* input_data = "7777777777";
+    auto data = std::make_unique<char[]>(strlen(input_data));
+    memcpy(data.get(), input_data, strlen(input_data));
+
+    const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(strlen(input_data), data.get());
+    REQUIRE(error == nullptr);
+    CHECK(chunk_size == 7777777777);
+}
+
+TEST_CASE("maximum length") {
+    std::string line = "18446744073709551615 LAST";
+    const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
+    REQUIRE(error == nullptr);
+    CHECK(chunk_size == 18446744073709551615UL);
+    CHECK(is_last_chunk == true);
+}
+
+TEST_CASE("maximum length exceeded") {
+    std::string line = "184467440737095516150 LAST";
+    const auto& [chunk_size, is_last_chunk, error] = parse_bdat_arg(line.size(), line.c_str());
+    REQUIRE(error != nullptr);
+    CHECK(error == std::string("BDAT argument bad length"));
 }
 
 TEST_SUITE_END();

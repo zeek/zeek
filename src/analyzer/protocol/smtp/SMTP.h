@@ -35,6 +35,7 @@ enum SMTP_State {
     SMTP_QUIT,          // 10: after QUIT
     SMTP_AFTER_GAP,     // 11: after a gap is detected
     SMTP_GAP_RECOVERY,  // 12: after the first reply after a gap
+    SMTP_IN_BDAT,       // 13: receiving BDAT chunk via plain delivery
 };
 
 } // namespace detail
@@ -63,7 +64,7 @@ protected:
 
     void UpdateState(int cmd_code, int reply_code, bool orig);
 
-    void BeginData(bool orig);
+    void BeginData(bool orig, detail::SMTP_State new_state = detail::SMTP_IN_DATA);
     void EndData();
 
     int ParseCmd(int cmd_len, const char* cmd);

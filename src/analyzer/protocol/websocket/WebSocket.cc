@@ -10,14 +10,7 @@
 
 namespace zeek::analyzer::websocket {
 
-WebSocket_Analyzer::WebSocket_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("WebSocket", conn) {
-    // TODO: Consider approaches dispatching to optionally use a
-    // Spicy analyzer here instead of the BinPac interpreter.
-    //
-    // E.g. we could instantiate a SPICY_WEBSOCKET analyzer and pass it the necessary
-    // information and call DeliverStream() directly on it.
-    interp = std::make_unique<binpac::WebSocket::WebSocket_Conn>(this);
-}
+WebSocket_Analyzer::WebSocket_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("WebSocket", conn) {}
 
 void WebSocket_Analyzer::Init() {
     tcp::TCP_ApplicationAnalyzer::Init();
@@ -42,6 +35,25 @@ bool WebSocket_Analyzer::Configure(zeek::RecordValPtr config) {
     static const auto& config_type = id::find_type<zeek::RecordType>("WebSocket::AnalyzerConfig");
     static int analyzer_idx = config_type->FieldOffset("analyzer");
     static int use_dpd_idx = config_type->FieldOffset("use_dpd");
+    static const bool use_spicy_analyzer = id::find_val<BoolVal>("WebSocket::use_spicy_analyzer")->AsBool();
+
+    analyzer::Analyzer* effective_analyzer = nullptr;
+
+    if ( use_spicy_analyzer ) {
+        static const auto* component = zeek::analyzer_mgr->Lookup("SPICY_WEBSOCKET");
+        if ( ! component ) {
+            reporter->FatalError("SPICY_WEBSOCKET analyzer tag not available");
+            return false;
+        }
+
+        effective_analyzer = zeek::analyzer_mgr->InstantiateAnalyzer(component->Tag(), Conn());
+        if ( ! AddChildAnalyzer(effective_analyzer) )
+            return false;
+    }
+    else {
+        interp = std::make_unique<binpac::WebSocket::WebSocket_Conn>(this);
+        effective_analyzer = this;
+    }
 
     if ( config->HasField(analyzer_idx) ) {
         const auto& analyzer_tag_val = config->GetField(analyzer_idx);
@@ -60,13 +72,13 @@ bool WebSocket_Analyzer::Configure(zeek::RecordValPtr config) {
         if ( ! analyzer )
             return false;
 
-        return AddChildAnalyzer(analyzer);
+        return effective_analyzer->AddChildAnalyzer(analyzer);
     }
     else if ( config->GetField(use_dpd_idx)->AsBool() ) {
         DBG_LOG(DBG_ANALYZER, "%s Configure() enables DPD via PIA_TCP", fmt_analyzer(this).c_str());
 
         auto* pia = new analyzer::pia::PIA_TCP(Conn());
-        if ( AddChildAnalyzer(pia) ) {
+        if ( effective_analyzer->AddChildAnalyzer(pia) ) {
             pia->FirstPacket(true, nullptr);
             pia->FirstPacket(false, nullptr);
             return true;
@@ -87,10 +99,16 @@ void WebSocket_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         return;
     }
 
-    try {
-        interp->NewData(orig, data, data + len);
-    } catch ( const binpac::Exception& e ) {
-        AnalyzerViolation(e.c_msg(), reinterpret_cast<const char*>(data), len);
+    if ( interp ) {
+        try {
+            interp->NewData(orig, data, data + len);
+        } catch ( const binpac::Exception& e ) {
+            AnalyzerViolation(e.c_msg(), reinterpret_cast<const char*>(data), len);
+        }
+    }
+    else {
+        // The Spicy analyzer was attached as a child directly.
+        ForwardStream(len, data, orig);
     }
 }
 

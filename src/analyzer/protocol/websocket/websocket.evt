@@ -1,0 +1,18 @@
+# Copyright (c) 2024 by the Zeek Project. See LICENSE for details.
+
+%doc-id= Zeek::WebSocket;
+%doc-description = "webSocket analyzer";
+
+protocol analyzer spicy::WebSocket over TCP:
+    parse originator with WebSocket::Messages,
+    parse responder with WebSocket::Messages;
+
+import WebSocket;
+
+on WebSocket::Message -> event websocket_message($conn, $is_orig, self.opcode);
+
+on WebSocket::Frame -> event websocket_frame($conn, $is_orig, self.fin, self.rsv, self.opcode, self.payload_len);
+
+on WebSocket::CloseFrame -> event websocket_close($conn, $is_orig, self.status, self.reason);
+
+on WebSocket::Frame::chunk -> event websocket_frame_data($conn, $is_orig, self.chunk);

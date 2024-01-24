@@ -13,3 +13,7 @@ zeek_add_plugin(
     websocket.pac
     websocket-analyzer.pac
     websocket-protocol.pac)
+
+if (USE_SPICY_ANALYZERS)
+    spicy_add_analyzer(NAME WebSocket SOURCES websocket.spicy websocket.evt)
+endif ()

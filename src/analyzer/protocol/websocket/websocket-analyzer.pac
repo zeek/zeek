@@ -85,7 +85,7 @@ refine flow WebSocket_Flow += {
 			zeek::BifEvent::enqueue_websocket_frame_data(connection()->zeek_analyzer(),
 			                                             connection()->zeek_analyzer()->Conn(),
 			                                             is_orig(),
-			                                             data_val);
+			                                             std::move(data_val));
 			}
 
 		// Forward text and binary data to downstream analyzers.

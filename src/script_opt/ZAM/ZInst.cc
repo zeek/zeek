@@ -81,7 +81,7 @@ void ZInst::Dump(const string& prefix, const string& id1, const string& id2, con
 
     if ( loc ) {
         auto l = loc->Describe(true);
-        if ( func )
+        if ( func && (func->GetBodies().empty() || func->GetBodies()[0].stmts->Tag() != STMT_ZAM) )
             l = l + ";" + func->Name();
         if ( ! prefix.empty() )
             l = prefix + l;

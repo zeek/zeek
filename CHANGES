@@ -1,3 +1,11 @@
+6.2.0-dev.461 | 2024-01-24 23:04:12 +0100
+
+  * HTTP: Coverity std::move suggestion (Arne Welzel, Corelight)
+
+  * WebSocket: Coverity std::move suggestion (Arne Welzel, Corelight)
+
+  * SMTP/BDAT: Fix SonarQube reported issues (Arne Welzel, Corelight)
+
 6.2.0-dev.456 | 2024-01-23 21:53:07 +0100
 
   * btest/smtp/bdat: Move tests into proper directory (Arne Welzel, Corelight)

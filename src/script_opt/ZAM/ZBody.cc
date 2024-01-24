@@ -402,15 +402,21 @@ void ZBody::ProfileExecution() const {
         return;
     }
 
-    if ( (*default_prof_vec)[0].first == 0 && prof_vecs.empty() ) {
+    auto& dpv = *default_prof_vec;
+
+    if ( dpv[0].first == 0 && prof_vecs.empty() ) {
         printf("%s did not execute\n", func_name);
         return;
     }
 
-    printf("%s CPU time: %.06f (%d instructions)\n", func_name, CPU_time - ninst * prof_overhead, ninst);
+    int ncall = dpv[0].first;
+    for ( auto [_, pv] : prof_vecs )
+        ncall += (*pv)[0].first;
 
-    if ( (*default_prof_vec)[0].first != 0 )
-        ReportProfile(*default_prof_vec, "");
+    printf("%s CPU time %.06f, %d calls, %d instructions\n", func_name, CPU_time - ninst * prof_overhead, ncall, ninst);
+
+    if ( dpv[0].first != 0 )
+        ReportProfile(dpv, "");
 
     for ( auto& pv : prof_vecs ) {
         std::string prefix;

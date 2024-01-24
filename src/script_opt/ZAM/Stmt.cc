@@ -899,11 +899,16 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.push_back(cr->RetVar());
 
     auto hold_func = curr_func;
+    auto hold_loc = curr_loc;
+
     curr_func = cr->Func()->Name();
 
-    auto hold_loc = curr_loc;
-    curr_loc = std::make_shared<ZAMLocInfo>(curr_func, curr_loc->LocPtr());
-    curr_loc->AddParent(hold_loc);
+    bool is_event_inline = (hold_func == curr_func);
+
+    if ( ! is_event_inline ) {
+        curr_loc = std::make_shared<ZAMLocInfo>(curr_func, curr_loc->LocPtr());
+        curr_loc->AddParent(hold_loc);
+    }
 
     PushCatchReturns();
 
@@ -913,8 +918,13 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
 
     ResolveCatchReturns(GoToTargetBeyond(block_end));
 
-    curr_func = hold_func;
-    curr_loc = hold_loc;
+    if ( ! is_event_inline ) {
+        // Strictly speaking, we could do this even if is_event_inline
+        // is true, because the values won't have changed. However, that
+        // just looks weird, so we condition this to match the above.
+        curr_func = hold_func;
+        curr_loc = hold_loc;
+    }
 
     return block_end;
 }

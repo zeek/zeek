@@ -1,3 +1,12 @@
+6.2.0-dev.463 | 2024-01-24 23:04:38 +0100
+
+  * testing/scripts: Use sed -E everywhere (Arne Welzel, Corelight)
+
+    I'm always a bit worried to use sed -E anywhere, because the canonifiers
+    give the impression it won't work everywhere consistently. My manpage says
+    sed -E should be preferred for portability, so lets remove the
+    sed -r / sed -E differentiation assuming it's just a thing from the past.
+
 6.2.0-dev.461 | 2024-01-24 23:04:12 +0100
 
   * HTTP: Coverity std::move suggestion (Arne Welzel, Corelight)

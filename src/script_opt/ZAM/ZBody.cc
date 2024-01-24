@@ -38,16 +38,15 @@ namespace zeek::detail {
 
 static std::vector<std::shared_ptr<ZAMLocInfo>> caller_locs;
 
-static double compute_prof_overhead()
-	{
-	double start = util::curr_CPU_time();
-	double CPU = 0.0;
-	const int n = 100000;
-	for ( int i = 0; i < n; ++i )
-		CPU = std::max(CPU, util::curr_CPU_time());
+static double compute_prof_overhead() {
+    double start = util::curr_CPU_time();
+    double CPU = 0.0;
+    const int n = 100000;
+    for ( int i = 0; i < n; ++i )
+        CPU = std::max(CPU, util::curr_CPU_time());
 
-	return (CPU - start) / n;
-	}
+    return (CPU - start) / n;
+}
 
 static double prof_overhead = compute_prof_overhead();
 
@@ -59,9 +58,14 @@ static double prof_overhead = compute_prof_overhead();
         prof_info.second += dt;                                                                                        \
         ZOP_CPU[z.op] += dt;                                                                                           \
     }
-#define ZAM_PROFILE_PRE_CALL caller_locs.push_back(z.loc);
+#define ZAM_PROFILE_PRE_CALL                                                                                           \
+    caller_locs.push_back(z.loc);                                                                                      \
+    DO_ZAM_PROFILE
 
-#define ZAM_PROFILE_POST_CALL caller_locs.pop_back();
+#define ZAM_PROFILE_POST_CALL                                                                                          \
+    caller_locs.pop_back();                                                                                            \
+    ++pc;                                                                                                              \
+    continue;
 
 #else
 
@@ -86,9 +90,9 @@ double ZOP_CPU[OP_NOP + 1];
 void report_ZOP_profile() {
     for ( int i = 1; i <= OP_NOP; ++i )
         if ( ZOP_count[i] > 0 ) {
-	    auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * prof_overhead, 0.0);
+            auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * prof_overhead, 0.0);
             printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], CPU);
-	}
+        }
 }
 
 // Sets the given element to a copy of an existing (not newly constructed)
@@ -330,7 +334,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
 
         if ( do_profile ) {
             ++ZOP_count[z.op];
-	    ++ninst;
+            ++ninst;
 
             profile_pc = pc;
             profile_CPU = util::curr_CPU_time();
@@ -389,8 +393,8 @@ void ZBody::ProfileExecution() const {
     static bool did_overhead_report = false;
 
     if ( ! did_overhead_report ) {
-	printf("Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
-	did_overhead_report = true;
+        printf("Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
+        did_overhead_report = true;
     }
 
     if ( end_pc == 0 ) {
@@ -419,9 +423,9 @@ void ZBody::ProfileExecution() const {
 
 void ZBody::ReportProfile(const ProfVec& pv, const std::string& prefix) const {
     for ( auto i = 0U; i < pv.size(); ++i ) {
-	auto ninst = pv[i].first;
-	auto CPU = pv[i].second;
-	CPU = std::max(CPU - ninst * prof_overhead, 0.0);
+        auto ninst = pv[i].first;
+        auto CPU = pv[i].second;
+        CPU = std::max(CPU - ninst * prof_overhead, 0.0);
         printf("%s %d %" PRId64 " %.06f ", func_name, i, ninst, CPU);
         insts[i].Dump(i, &frame_denizens, prefix);
     }

@@ -271,14 +271,14 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     bool do_profile = analysis_options.profile_ZAM;
 
     if ( do_profile ) {
-        if ( ! caller_locs.empty() ) {
+        if ( caller_locs.empty() )
+            curr_prof_vec = default_prof_vec;
+        else {
             auto pv = prof_vecs.find(caller_locs);
             if ( pv == prof_vecs.end() )
                 pv = prof_vecs.insert({caller_locs, BuildProfVec()}).first;
             curr_prof_vec = pv->second;
         }
-        else
-            curr_prof_vec = default_prof_vec;
     }
 #endif
 
@@ -382,7 +382,8 @@ void ZBody::ProfileExecution() const {
 
     printf("%s CPU time: %.06f\n", func_name, CPU_time);
 
-    ReportProfile(*default_prof_vec, "");
+    if ( (*default_prof_vec)[0].first != 0 )
+        ReportProfile(*default_prof_vec, "");
 
     for ( auto& pv : prof_vecs ) {
         std::string prefix;

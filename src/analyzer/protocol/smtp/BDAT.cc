@@ -104,13 +104,13 @@ void SMTP_BDAT_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig
         }
     }
 
-    // Start searching for crlf at the end of the old buffer.
-    std::string::size_type i = buf.size() - 1;
+    // Start searching for crlf at the end of the old buffer, if any.
+    std::string::size_type i = buf.size() > 0 ? buf.size() - 1 : 0;
 
     buf.append(reinterpret_cast<const char*>(data), len);
 
     std::string::size_type line_start = 0;
-    for ( i = 0; i < buf.size(); i++ ) {
+    for ( ; i < buf.size(); i++ ) {
         if ( i < buf.size() - 1 && buf[i] == '\r' && buf[i + 1] == '\n' ) {
             // Found a match, buf[line_start, i) is the line we want to Deliver()
             buf[i] = '\0';
@@ -314,10 +314,9 @@ public:
     void SubmitAllHeaders(mime::MIME_HeaderList& hlist) override {}
     void SubmitData(int len, const char* buf) override {}
     bool RequestBuffer(int* plen, char** pbuf) override { return false; }
-    void SubmitAllData() {}
     void SubmitEvent(int event_type, const char* detail) override {}
 
-    const auto& DeliverCalls() { return deliver_calls; }
+    const auto& DeliverCalls() const { return deliver_calls; }
 
 private:
     std::vector<std::pair<std::string, bool>> deliver_calls;

@@ -112,6 +112,7 @@ private:
 
     // The following are only maintained if we're doing profiling.
     double CPU_time = 0.0; // cumulative CPU time for the program
+    int ninst = 0;
 
     std::map<CallStack, std::shared_ptr<ProfVec>> prof_vecs;
     std::shared_ptr<ProfVec> default_prof_vec;

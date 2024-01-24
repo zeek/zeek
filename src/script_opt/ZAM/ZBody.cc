@@ -38,6 +38,19 @@ namespace zeek::detail {
 
 static std::vector<std::shared_ptr<ZAMLocInfo>> caller_locs;
 
+static double compute_prof_overhead()
+	{
+	double start = util::curr_CPU_time();
+	double CPU = 0.0;
+	const int n = 100000;
+	for ( int i = 0; i < n; ++i )
+		CPU = std::max(CPU, util::curr_CPU_time());
+
+	return (CPU - start) / n;
+	}
+
+static double prof_overhead = compute_prof_overhead();
+
 #define DO_ZAM_PROFILE                                                                                                 \
     if ( do_profile ) {                                                                                                \
         double dt = util::curr_CPU_time() - profile_CPU;                                                               \
@@ -72,8 +85,10 @@ double ZOP_CPU[OP_NOP + 1];
 
 void report_ZOP_profile() {
     for ( int i = 1; i <= OP_NOP; ++i )
-        if ( ZOP_count[i] > 0 )
-            printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], ZOP_CPU[i]);
+        if ( ZOP_count[i] > 0 ) {
+	    auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * prof_overhead, 0.0);
+            printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], CPU);
+	}
 }
 
 // Sets the given element to a copy of an existing (not newly constructed)
@@ -315,6 +330,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
 
         if ( do_profile ) {
             ++ZOP_count[z.op];
+	    ++ninst;
 
             profile_pc = pc;
             profile_CPU = util::curr_CPU_time();
@@ -370,6 +386,13 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
 }
 
 void ZBody::ProfileExecution() const {
+    static bool did_overhead_report = false;
+
+    if ( ! did_overhead_report ) {
+	printf("Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
+	did_overhead_report = true;
+    }
+
     if ( end_pc == 0 ) {
         printf("%s has an empty body\n", func_name);
         return;
@@ -380,7 +403,7 @@ void ZBody::ProfileExecution() const {
         return;
     }
 
-    printf("%s CPU time: %.06f\n", func_name, CPU_time);
+    printf("%s CPU time: %.06f (%d instructions)\n", func_name, CPU_time - ninst * prof_overhead, ninst);
 
     if ( (*default_prof_vec)[0].first != 0 )
         ReportProfile(*default_prof_vec, "");
@@ -396,7 +419,10 @@ void ZBody::ProfileExecution() const {
 
 void ZBody::ReportProfile(const ProfVec& pv, const std::string& prefix) const {
     for ( auto i = 0U; i < pv.size(); ++i ) {
-        printf("%s %d %" PRId64 " %.06f ", func_name, i, pv[i].first, pv[i].second);
+	auto ninst = pv[i].first;
+	auto CPU = pv[i].second;
+	CPU = std::max(CPU - ninst * prof_overhead, 0.0);
+        printf("%s %d %" PRId64 " %.06f ", func_name, i, ninst, CPU);
         insts[i].Dump(i, &frame_denizens, prefix);
     }
 }

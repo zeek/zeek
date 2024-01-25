@@ -1,3 +1,30 @@
+6.2.0-dev.470 | 2024-01-25 12:25:57 +0100
+
+  * GH-3256: Intel: Introduce Intel::seen_policy() hook (Arne Welzel, Corelight)
+
+    This introduces a new hook into the Intel::seen() function that allows
+    users to directly interact with the result of a find() call via external
+    scripts.
+
+    This should solve the use-case brought up by @chrisanag1985 in
+    discussion #3256: Recording and acting on "no intel match found".
+
+    @Canon88 was recently asking on Slack about enabling HTTP logging for a
+    given connection only when an Intel match occurred and found that the
+    Intel::match() event would only occur on the manager. The
+    Intel::match_remote() event might be a workaround, but possibly running a
+    bit too late and also it's just an internal "detail" event that might not
+    be stable.
+
+    Another internal use case revolved around enabling packet recording
+    based on Intel matches which necessarily needs to happen on the worker
+    where the match happened. The proposed workaround is similar to the above
+    using Intel::match_remote().
+
+    This hook also provides an opportunity to rate-limit heavy hitter intel
+    items locally on the worker nodes, or even replacing the event approach
+    currently used with a customized approach.
+
 6.2.0-dev.468 | 2024-01-25 12:21:24 +0100
 
   * websocket: Fix opcode for continuation frames (Arne Welzel, Corelight)

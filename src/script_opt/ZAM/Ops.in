@@ -1198,35 +1198,48 @@ eval	ConstructTableOrSetPre()
 
 direct-unary-op Record-Constructor ConstructRecord
 
-internal-op Construct-Record
-type V
-eval	EvalConstructRecord(, i)
-
-macro EvalConstructRecord(map_init, map_accessor)
-	auto rt = cast_intrusive<RecordType>(z.t);
-	auto new_r = new RecordVal(rt);
-	auto aux = z.aux;
-	auto n = aux->n;
-	map_init
-	for ( auto i = 0; i < n; ++i )
-		{
-		auto v_i = aux->ToVal(frame, i);
-		auto ind = map_accessor;
-		if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR &&
-		     v_i->GetType<VectorType>()->IsUnspecifiedVector() )
-			{
-			const auto& t_ind = rt->GetFieldType(ind);
-			v_i->AsVectorVal()->Concretize(t_ind->Yield());
-			}
-		new_r->Assign(ind, v_i);
-		}
+macro ConstructRecordPost()
 	auto& r = frame[z.v1].record_val;
 	Unref(r);
-	r = new_r;
+	r = new RecordVal(cast_intrusive<RecordType>(z.t), init_vals);
 
-internal-op Construct-Known-Record
+op Construct-Direct-Record
 type V
-eval	EvalConstructRecord(auto& map = aux->map;, map[i])
+eval	auto& init_vals = z.aux->ToZValVec(frame);
+	ConstructRecordPost()
+
+op Construct-Known-Record
+type V
+eval	auto& init_vals = z.aux->ToZValVecWithMap(frame);
+	ConstructRecordPost()
+
+op Construct-Known-Record-With-Inits
+type V
+eval	auto& init_vals = z.aux->ToZValVecWithMap(frame);
+	for ( auto& fi : *z.aux->field_inits )
+		init_vals[fi.first] = fi.second->Generate();
+	ConstructRecordPost()
+
+# Special instruction for concretizing vectors that are fields in a
+# newly-constructed record. "aux" holds which fields in the record to
+# inspect.
+op Concretize-Vector-Fields
+op1-read
+type V
+eval	auto rt = cast_intrusive<RecordType>(z.t);
+	auto r = frame[z.v1].record_val;
+	auto aux = z.aux;
+	auto n = aux->n;
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto v_i = r->GetField(aux->elems[i].IntVal());
+		ASSERT(v_i);
+		if ( v_i->GetType<VectorType>()->IsUnspecifiedVector() )
+			{
+			const auto& t_i = rt->GetFieldType(i);
+			v_i->AsVectorVal()->Concretize(t_i->Yield());
+			}
+		}
 
 direct-unary-op Vector-Constructor ConstructVector
 
@@ -1757,21 +1770,21 @@ internal-op Event3
 type VVV
 op1-read
 eval	ValVec args(3);
+	auto& aux = z.aux;
 	args[0] = frame[z.v1].ToVal(z.t);
 	args[1] = frame[z.v2].ToVal(z.t2);
-	auto types = z.aux->types;
-	args[2] = frame[z.v3].ToVal(types[2]);
+	args[2] = frame[z.v3].ToVal(aux->elems[2].GetType());
 	QueueEvent(z.event_handler, args);
 
 internal-op Event4
 type VVVV
 op1-read
 eval	ValVec args(4);
+	auto& aux = z.aux;
 	args[0] = frame[z.v1].ToVal(z.t);
 	args[1] = frame[z.v2].ToVal(z.t2);
-	auto types = z.aux->types;
-	args[2] = frame[z.v3].ToVal(types[2]);
-	args[3] = frame[z.v4].ToVal(types[3]);
+	args[2] = frame[z.v3].ToVal(aux->elems[2].GetType());
+	args[3] = frame[z.v4].ToVal(aux->elems[3].GetType());
 	QueueEvent(z.event_handler, args);
 
 
@@ -2256,11 +2269,11 @@ eval	auto& aux = z.aux;
 		auto captures = std::make_unique<std::vector<ZVal>>();
 		for ( auto i = 0; i < aux->n; ++i )
 			{
-			auto slot = aux->slots[i];
+			auto slot = aux->elems[i].Slot();
 			if ( slot >= 0 )
 				{
-				auto& cp = frame[aux->slots[i]];
-				if ( aux->is_managed[i] )
+				auto& cp = frame[slot];
+				if ( aux->elems[i].IsManaged() )
 					zeek::Ref(cp.ManagedVal());
 				captures->push_back(cp);
 				}
@@ -2355,7 +2368,7 @@ eval	LogWritePre(frame[z.v2].ToVal(log_ID_enum_type), v3)
 internal-op Log-WriteC
 side-effects OP_LOG_WRITEC_V OP_V
 type VV
-eval	LogWritePre(z.aux->constants[0], v2)
+eval	LogWritePre(z.aux->elems[0].Constant(), v2)
 	LogWriteResPost()
 
 # Versions that discard the return value.
@@ -2370,7 +2383,7 @@ internal-op Log-WriteC
 side-effects
 op1-read
 type V
-eval	LogWritePre(z.aux->constants[0], v1)
+eval	LogWritePre(z.aux->elems[0].Constant(), v1)
 	LogWriteNoResPost()
 
 internal-op Broker-Flush-Logs
@@ -2460,23 +2473,21 @@ eval	Cat1FullVal(frame[z.v2])
 internal-op CatN
 type V
 eval	auto aux = z.aux;
-	auto slots = z.aux->slots;
 	auto& ca = aux->cat_args;
 	int n = aux->n;
 	size_t max_size = 0;
 	for ( int i = 0; i < n; ++i )
-		max_size += ca[i]->MaxSize(frame, slots[i]);
+		max_size += ca[i]->MaxSize(frame, aux->elems[i].Slot());
 	auto res = new char[max_size + /* slop */ n + 1];
 	auto res_p = res;
 	for ( int i = 0; i < n; ++i )
-		ca[i]->RenderInto(frame, slots[i], res_p);
+		ca[i]->RenderInto(frame, aux->elems[i].Slot(), res_p);
 	*res_p = '\0';
 	auto s = new String(true, reinterpret_cast<byte_vec>(res), res_p - res);
 	Cat1Op(ZVal(new StringVal(s)))
 
 macro CatNPre()
 	auto aux = z.aux;
-	auto slots = z.aux->slots;
 	auto& ca = aux->cat_args;
 
 macro CatNMid()
@@ -2491,113 +2502,113 @@ macro CatNPost()
 internal-op Cat2
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
-	max_size += ca[1]->MaxSize(frame, slots[1]);
+	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
+	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
 	CatNMid()
-	ca[0]->RenderInto(frame, slots[0], res_p);
-	ca[1]->RenderInto(frame, slots[1], res_p);
+	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
+	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
 	CatNPost()
 
 internal-op Cat3
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
-	max_size += ca[1]->MaxSize(frame, slots[1]);
-	max_size += ca[2]->MaxSize(frame, slots[2]);
+	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
+	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
+	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
 	CatNMid()
-	ca[0]->RenderInto(frame, slots[0], res_p);
-	ca[1]->RenderInto(frame, slots[1], res_p);
-	ca[2]->RenderInto(frame, slots[2], res_p);
+	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
+	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
+	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
 	CatNPost()
 
 internal-op Cat4
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
-	max_size += ca[1]->MaxSize(frame, slots[1]);
-	max_size += ca[2]->MaxSize(frame, slots[2]);
-	max_size += ca[3]->MaxSize(frame, slots[3]);
+	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
+	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
+	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
+	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
 	CatNMid()
-	ca[0]->RenderInto(frame, slots[0], res_p);
-	ca[1]->RenderInto(frame, slots[1], res_p);
-	ca[2]->RenderInto(frame, slots[2], res_p);
-	ca[3]->RenderInto(frame, slots[3], res_p);
+	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
+	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
+	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
+	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
 	CatNPost()
 
 internal-op Cat5
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
-	max_size += ca[1]->MaxSize(frame, slots[1]);
-	max_size += ca[2]->MaxSize(frame, slots[2]);
-	max_size += ca[3]->MaxSize(frame, slots[3]);
-	max_size += ca[4]->MaxSize(frame, slots[4]);
+	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
+	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
+	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
+	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
+	max_size += ca[4]->MaxSize(frame, aux->elems[4].Slot());
 	CatNMid()
-	ca[0]->RenderInto(frame, slots[0], res_p);
-	ca[1]->RenderInto(frame, slots[1], res_p);
-	ca[2]->RenderInto(frame, slots[2], res_p);
-	ca[3]->RenderInto(frame, slots[3], res_p);
-	ca[4]->RenderInto(frame, slots[4], res_p);
+	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
+	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
+	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
+	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
+	ca[4]->RenderInto(frame, aux->elems[4].Slot(), res_p);
 	CatNPost()
 
 internal-op Cat6
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
-	max_size += ca[1]->MaxSize(frame, slots[1]);
-	max_size += ca[2]->MaxSize(frame, slots[2]);
-	max_size += ca[3]->MaxSize(frame, slots[3]);
-	max_size += ca[4]->MaxSize(frame, slots[4]);
-	max_size += ca[5]->MaxSize(frame, slots[5]);
+	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
+	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
+	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
+	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
+	max_size += ca[4]->MaxSize(frame, aux->elems[4].Slot());
+	max_size += ca[5]->MaxSize(frame, aux->elems[5].Slot());
 	CatNMid()
-	ca[0]->RenderInto(frame, slots[0], res_p);
-	ca[1]->RenderInto(frame, slots[1], res_p);
-	ca[2]->RenderInto(frame, slots[2], res_p);
-	ca[3]->RenderInto(frame, slots[3], res_p);
-	ca[4]->RenderInto(frame, slots[4], res_p);
-	ca[5]->RenderInto(frame, slots[5], res_p);
+	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
+	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
+	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
+	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
+	ca[4]->RenderInto(frame, aux->elems[4].Slot(), res_p);
+	ca[5]->RenderInto(frame, aux->elems[5].Slot(), res_p);
 	CatNPost()
 
 internal-op Cat7
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
-	max_size += ca[1]->MaxSize(frame, slots[1]);
-	max_size += ca[2]->MaxSize(frame, slots[2]);
-	max_size += ca[3]->MaxSize(frame, slots[3]);
-	max_size += ca[4]->MaxSize(frame, slots[4]);
-	max_size += ca[5]->MaxSize(frame, slots[5]);
-	max_size += ca[6]->MaxSize(frame, slots[6]);
+	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
+	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
+	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
+	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
+	max_size += ca[4]->MaxSize(frame, aux->elems[4].Slot());
+	max_size += ca[5]->MaxSize(frame, aux->elems[5].Slot());
+	max_size += ca[6]->MaxSize(frame, aux->elems[6].Slot());
 	CatNMid()
-	ca[0]->RenderInto(frame, slots[0], res_p);
-	ca[1]->RenderInto(frame, slots[1], res_p);
-	ca[2]->RenderInto(frame, slots[2], res_p);
-	ca[3]->RenderInto(frame, slots[3], res_p);
-	ca[4]->RenderInto(frame, slots[4], res_p);
-	ca[5]->RenderInto(frame, slots[5], res_p);
-	ca[6]->RenderInto(frame, slots[6], res_p);
+	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
+	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
+	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
+	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
+	ca[4]->RenderInto(frame, aux->elems[4].Slot(), res_p);
+	ca[5]->RenderInto(frame, aux->elems[5].Slot(), res_p);
+	ca[6]->RenderInto(frame, aux->elems[6].Slot(), res_p);
 	CatNPost()
 
 internal-op Cat8
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, slots[0]);
-	max_size += ca[1]->MaxSize(frame, slots[1]);
-	max_size += ca[2]->MaxSize(frame, slots[2]);
-	max_size += ca[3]->MaxSize(frame, slots[3]);
-	max_size += ca[4]->MaxSize(frame, slots[4]);
-	max_size += ca[5]->MaxSize(frame, slots[5]);
-	max_size += ca[6]->MaxSize(frame, slots[6]);
-	max_size += ca[7]->MaxSize(frame, slots[7]);
+	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
+	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
+	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
+	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
+	max_size += ca[4]->MaxSize(frame, aux->elems[4].Slot());
+	max_size += ca[5]->MaxSize(frame, aux->elems[5].Slot());
+	max_size += ca[6]->MaxSize(frame, aux->elems[6].Slot());
+	max_size += ca[7]->MaxSize(frame, aux->elems[7].Slot());
 	CatNMid()
-	ca[0]->RenderInto(frame, slots[0], res_p);
-	ca[1]->RenderInto(frame, slots[1], res_p);
-	ca[2]->RenderInto(frame, slots[2], res_p);
-	ca[3]->RenderInto(frame, slots[3], res_p);
-	ca[4]->RenderInto(frame, slots[4], res_p);
-	ca[5]->RenderInto(frame, slots[5], res_p);
-	ca[6]->RenderInto(frame, slots[6], res_p);
-	ca[7]->RenderInto(frame, slots[7], res_p);
+	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
+	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
+	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
+	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
+	ca[4]->RenderInto(frame, aux->elems[4].Slot(), res_p);
+	ca[5]->RenderInto(frame, aux->elems[5].Slot(), res_p);
+	ca[6]->RenderInto(frame, aux->elems[6].Slot(), res_p);
+	ca[7]->RenderInto(frame, aux->elems[7].Slot(), res_p);
 	CatNPost()
 
 internal-op Analyzer--Name

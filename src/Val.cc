@@ -2784,7 +2784,6 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->ManagedFields()) {
-    origin = nullptr;
     rt = std::move(t);
 
     int n = rt->NumFields();
@@ -2808,6 +2807,12 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 
     else
         record_val.reserve(n);
+}
+
+RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals)
+    : Val(t), is_managed(t->ManagedFields()) {
+    rt = std::move(t);
+    record_val = std::move(init_vals);
 }
 
 RecordVal::~RecordVal() {
@@ -3016,11 +3021,10 @@ void RecordVal::DescribeReST(ODesc* d) const {
 ValPtr RecordVal::DoClone(CloneState* state) {
     // We set origin to 0 here.  Origin only seems to be used for exactly one
     // purpose - to find the connection record that is associated with a
-    // record. As we cannot guarantee that it will ber zeroed out at the
+    // record. As we cannot guarantee that it will be zeroed out at the
     // appropriate time (as it seems to be guaranteed for the original record)
     // we don't touch it.
     auto rv = make_intrusive<RecordVal>(rt, false);
-    rv->origin = nullptr;
     state->NewClone(this, rv);
 
     int n = NumFields();

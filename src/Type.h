@@ -30,10 +30,12 @@ using TableValPtr = IntrusivePtr<TableVal>;
 
 namespace detail {
 
+class Attributes;
 class CompositeHash;
 class Expr;
 class ListExpr;
-class Attributes;
+class ZAMCompiler;
+
 using ListExprPtr = IntrusivePtr<ListExpr>;
 
 // The following tracks how to initialize a given record field.
@@ -734,7 +736,7 @@ private:
     // Field initializations that can be deferred to first access,
     // beneficial for fields that are separately initialized prior
     // to first access.  Nil pointers mean "skip initializing the field".
-    std::vector<std::unique_ptr<detail::FieldInit>> deferred_inits;
+    std::vector<std::shared_ptr<detail::FieldInit>> deferred_inits;
 
     // Field initializations that need to be done upon record creation,
     // rather than deferred.  These are expressions whose value might
@@ -742,10 +744,11 @@ private:
     //
     // Such initializations are uncommon, so we represent them using
     // <fieldoffset, init> pairs.
-    std::vector<std::pair<int, std::unique_ptr<detail::FieldInit>>> creation_inits;
+    std::vector<std::pair<int, std::shared_ptr<detail::FieldInit>>> creation_inits;
 
     class CreationInitsOptimizer;
     friend zeek::RecordVal;
+    friend zeek::detail::ZAMCompiler;
     const auto& DeferredInits() const { return deferred_inits; }
     const auto& CreationInits() const { return creation_inits; }
 

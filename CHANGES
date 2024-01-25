@@ -1,3 +1,11 @@
+6.2.0-dev.473 | 2024-01-25 20:54:56 +0100
+
+  * ZAM optimizations for record creation (Vern Paxson, Corelight)
+
+    includes reworking of managing "auxiliary" information for ZAM instructions
+
+  * testing/external: Revert commit hash for zeek-testing (Arne Welzel, Corelight)
+
 6.2.0-dev.470 | 2024-01-25 12:25:57 +0100
 
   * GH-3256: Intel: Introduce Intel::seen_policy() hook (Arne Welzel, Corelight)

@@ -1,3 +1,12 @@
+6.2.0-dev.468 | 2024-01-25 12:21:24 +0100
+
+  * websocket: Fix opcode for continuation frames (Arne Welzel, Corelight)
+
+    A continuation frame has the same type as the first frame, but that
+    information wasn't used nor kept, resulting payload of continuation
+    frames not being forwarded. The pcap was created with a fake Python
+    server and a bit of message crafting.
+
 6.2.0-dev.465 | 2024-01-24 15:25:16 -0800
 
   * Prepare Broker manager for broker::variant (Dominik Charousset)

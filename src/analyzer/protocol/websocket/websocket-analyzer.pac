@@ -89,7 +89,7 @@ refine flow WebSocket_Flow += {
 			}
 
 		// Forward text and binary data to downstream analyzers.
-		if ( ${chunk.hdr.opcode} == OPCODE_TEXT|| ${chunk.hdr.opcode} == OPCODE_BINARY)
+		if ( effective_opcode_ == OPCODE_TEXT || effective_opcode_ == OPCODE_BINARY)
 			connection()->zeek_analyzer()->ForwardStream(data.length(),
 			                                             data.data(),
 			                                             is_orig());

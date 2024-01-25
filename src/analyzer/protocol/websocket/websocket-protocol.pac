@@ -87,18 +87,25 @@ flow WebSocket_Flow(is_orig: bool) {
 		uint64_t masking_key_idx_;
 		uint64_t frame_payload_len_;
 		std::array<uint8_t, 4> masking_key_;
+		uint8_t effective_opcode_;
 	%}
 
 	%init{
 		has_mask_ = false;
 		masking_key_idx_ = 0;
 		frame_payload_len_ = 0;
+		effective_opcode_ = OPCODE_CONTINUATION;
 	%}
 
 	function new_frame_payload(hdr: WebSocket_FrameHeader): uint64
 		%{
 		if ( frame_payload_len_ > 0 )
 			connection()->zeek_analyzer()->Weird("websocket_frame_not_consumed");
+
+		// Update the effective_opcode for all frames
+		// following this one in the message.
+		if ( ${hdr.first_frame} )
+			effective_opcode_ = ${hdr.opcode};
 
 		frame_payload_len_ = ${hdr.payload_len};
 		has_mask_ = ${hdr.has_mask};

@@ -11,6 +11,7 @@ namespace zeek::detail {
 
 const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
     curr_stmt = const_cast<Stmt*>(s)->ThisPtr();
+    ASSERT(curr_stmt->Tag() == STMT_NULL || curr_stmt->GetLocationInfo()->first_line != 0);
 
     switch ( s->Tag() ) {
         case STMT_PRINT: return CompilePrint(static_cast<const PrintStmt*>(s));

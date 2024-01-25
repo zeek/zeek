@@ -658,7 +658,7 @@ private:
 
     // The current instance of the lambda.  Created by Instantiate(),
     // for immediate use via calls to Cond() etc.
-    ConstExprPtr curr_lambda;
+    ExprPtr curr_lambda;
 
     // Arguments to use when calling the lambda to either evaluate
     // the conditional, or execute the body or the timeout statement.
@@ -712,8 +712,9 @@ private:
 // an already-reduced state.
 class CatchReturnStmt : public Stmt {
 public:
-    explicit CatchReturnStmt(StmtPtr block, NameExprPtr ret_var);
+    explicit CatchReturnStmt(ScriptFuncPtr sf, StmtPtr block, NameExprPtr ret_var);
 
+    const ScriptFuncPtr& Func() const { return sf; }
     StmtPtr Block() const { return block; }
 
     // This returns a bare pointer rather than a NameExprPtr only
@@ -743,6 +744,9 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
+    // The inlined function.
+    ScriptFuncPtr sf;
+
     // The inlined function body.
     StmtPtr block;
 
@@ -775,5 +779,26 @@ public:
 protected:
     int expected_len;
 };
+
+// Helper functions for setting the location of a statement (usually newly
+// created) to match that of the associated object, returning the statement
+// for convenience.
+inline StmtPtr with_location_of(StmtPtr s, const Obj* o) {
+    s->SetLocationInfo(o->GetLocationInfo());
+    return s;
+}
+
+inline StmtPtr with_location_of(StmtPtr s, const ObjPtr& o) { return with_location_of(s, o.get()); }
+
+// Versions that preserve the statement as a StmtList.
+inline IntrusivePtr<StmtList> with_location_of(IntrusivePtr<StmtList> s, const ObjPtr& o) {
+    (void)with_location_of(s, o.get());
+    return s;
+}
+
+inline IntrusivePtr<StmtList> with_location_of(IntrusivePtr<StmtList> s, const Obj* o) {
+    s->SetLocationInfo(o->GetLocationInfo());
+    return s;
+}
 
 } // namespace zeek::detail

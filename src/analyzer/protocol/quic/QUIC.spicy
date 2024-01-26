@@ -528,7 +528,8 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
         from_client
       );
 
-      # Set this to be the seed for the decryption
+      # Assuming that the client set up the connection, this can be considered the first
+      # received Initial from the client. So disable change of ConnectionID's afterwards
       if ( |context.initial_destination_conn_id| == 0 ) {
         context.initial_destination_conn_id = self.long_header.dest_conn_id;
       }
@@ -537,8 +538,6 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       context.server_cid_len = self.long_header.src_conn_id_len;
       context.client_cid_len = self.long_header.dest_conn_id_len;
 
-      # Assuming that the client set up the connection, this can be considered the first
-      # received Initial from the client. So disable change of ConnectionID's afterwards
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
         self.all_data,
@@ -554,15 +553,6 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
     # connection.
     if ( |self.decrypted_data| == 0 )
       throw "decryption failed";
-
-    # If this was a reply from the server and it's not a RETRY, we assume the keys
-    # are restablished and decryption is no longer possible
-    #
-    # TODO: verify if this is actually correct per RFC
-    if ( ! self.long_header.is_retry && ! from_client ) {
-      context.server_initial_processed = True;
-      context.client_initial_processed = True;
-    }
   }
 
   # Depending on the type of header and whether we were able to decrypt
@@ -594,8 +584,8 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 @endif
       );
 
-      # Stop decryption attempts after processing the very first
-      # INITIAL packet.
+      # Stop decryption attempts after processing the very first INITIAL
+      # INITIAL packet for which we forwarded data to the SSL analyzer.
       if ( from_client )
         context.client_initial_processed = True;
       else

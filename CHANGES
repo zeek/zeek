@@ -1,3 +1,11 @@
+6.2.0-dev.476 | 2024-01-26 15:08:37 -0700
+
+  * Force Windows CI to use OpenSSL 3.1.1 (Tim Wojtulewicz)
+
+    There's something wrong with chocolatey's OpenSSL 3.2.0 package that
+    causes cmake to not be able to find libcrypto even though it's clearly
+    in the directory. Pinning to 3.1.1 fixes the build issue.
+
 6.2.0-dev.473 | 2024-01-25 20:54:56 +0100
 
   * ZAM optimizations for record creation (Vern Paxson, Corelight)

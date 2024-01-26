@@ -27,10 +27,13 @@ export {
 		## by client and server.
 		client_initial_dcid: string  &log &optional;
 
+		## Client's Source Connection ID from the first INITIAL packet.
+		client_scid:         string  &log &optional;
+
 		## Server chosen Connection ID usually from server's first
 		## INITIAL packet. This is to be used by the client in
 		## subsequent packets.
-		server_scid:        string  &log &optional;
+		server_scid:         string  &log &optional;
 
 		## Server name extracted from SNI extension in ClientHello
 		## packet if available.
@@ -122,7 +125,9 @@ function set_session(c: connection, is_orig: bool, version: count, dcid: string,
 	if ( is_orig && |dcid| > 0 && ! c$quic?$client_initial_dcid )
 		c$quic$client_initial_dcid = bytestring_to_hexstr(dcid);
 
-	if ( ! is_orig && |scid| > 0 )
+	if ( is_orig )
+		c$quic$client_scid = bytestring_to_hexstr(scid);
+	else
 		c$quic$server_scid = bytestring_to_hexstr(scid);
 	}
 

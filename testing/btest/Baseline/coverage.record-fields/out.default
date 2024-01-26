@@ -513,6 +513,7 @@ connection {
       QUIC::Info {
         * client_initial_dcid: string, log=T, optional=T
         * client_protocol: string, log=T, optional=T
+        * client_scid: string, log=T, optional=T
         * history: string, log=T, optional=T
         * history_state: vector of string, log=F, optional=F
         * id: record conn_id, log=T, optional=F

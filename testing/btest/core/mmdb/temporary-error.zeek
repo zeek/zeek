@@ -1,6 +1,6 @@
 # @TEST-DOC: Test a few error and recovery cases (corrupted, removed and restored MMDB databases).
 #
-# @TEST-REQUIRES: grep -q "#define USE_GEOIP" $BUILD/zeek-config.h
+# @TEST-REQUIRES: $BUILD/zeek-config --have-geoip
 # @TEST-REQUIRES: command -v truncate
 #
 # @TEST-EXEC: cp -R $FILES/mmdb ./mmdb

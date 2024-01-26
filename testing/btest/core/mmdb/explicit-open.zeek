@@ -3,7 +3,7 @@
 # Like other MMDB tests, this uses a pcap to use each packet as a driver to
 # touch the DBs involved upon each packet, triggering DB reloads.
 #
-# @TEST-REQUIRES: grep -q "#define USE_GEOIP" $BUILD/zeek-config.h
+# @TEST-REQUIRES: $BUILD/zeek-config --have-geoip
 #
 # @TEST-EXEC: cp -R $FILES/mmdb ./mmdb
 # @TEST-EXEC: zeek -b -r $TRACES/rotation.trace %INPUT >out

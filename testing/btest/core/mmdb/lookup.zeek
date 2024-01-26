@@ -1,6 +1,6 @@
 # @TEST-DOC: Test basic DB lookups for success/failure.
 #
-# @TEST-REQUIRES: grep -q "#define USE_GEOIP" $BUILD/zeek-config.h
+# @TEST-REQUIRES: $BUILD/zeek-config --have-geoip
 #
 # @TEST-EXEC: zeek -b %INPUT >out.nodb
 # @TEST-EXEC: btest-diff out.nodb

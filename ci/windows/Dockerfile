@@ -18,7 +18,7 @@ RUN choco install -y --no-progress sed
 RUN choco install -y --no-progress winflexbison3
 RUN choco install -y --no-progress msysgit
 RUN choco install -y --no-progress python
-RUN choco install -y --no-progress openssl
+RUN choco install -y --no-progress openssl --version=3.1.1
 
 # Set working environment.
 SHELL [ "cmd", "/c" ]

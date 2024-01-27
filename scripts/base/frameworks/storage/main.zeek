@@ -32,6 +32,16 @@ export {
 		async_mode: bool &default=T;
 	};
 
+	## Options record for the built-in SQLite backend.
+	type SqliteOptions: record {
+		## Path to the database file on disk. Setting this to ":memory:"
+		## will tell SQLite to use an in-memory database.
+		database_path: string;
+
+		## Name of the table used for storing data
+		table_name: string;
+	};
+
 	## Opens a new backend connection based on a configuration object.
 	##
 	## btype: A tag indicating what type of backend should be opened.

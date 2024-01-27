@@ -6,6 +6,11 @@
 module Storage;
 
 export {
+	type SqliteOptions: record {
+		database_path: string;
+		table_name: string;
+	};
+
 	global open_backend: function(btype: Storage::Backend, config: any, val_type: any): opaque of Storage::BackendHandle;
 	global close_backend: function(backend: opaque of Storage::BackendHandle): bool;
 	global store: function(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool): bool;

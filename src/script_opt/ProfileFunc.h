@@ -658,8 +658,10 @@ private:
 
     std::string cf_name;
 
-    // Stack of expanded descriptions of parent blocks.
-    std::vector<std::string> parents;
+    // Stack of expanded descriptions of parent blocks. Each entry is
+    // a pair of the parent's own description plus the full descriptor
+    // up to that point.
+    std::vector<std::pair<std::string, std::string>> parents;
 
     // Maps a statement's location key to its expanded description.
     std::unordered_map<std::string, std::string> exp_desc;

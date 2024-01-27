@@ -20,6 +20,7 @@
 #include "zeek/Val.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
+#include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/UsageAnalyzer.h"
 
@@ -399,7 +400,10 @@ void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr) {
 
 static std::set<std::string> all_module_names;
 
-void add_module(const char* module_name) { all_module_names.emplace(module_name); }
+void add_module(const char* module_name) {
+    all_module_names.emplace(module_name);
+    switch_to_module(module_name);
+}
 
 const std::set<std::string>& module_names() { return all_module_names; }
 

@@ -1398,6 +1398,16 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     return seo;
 }
 
+// For now, we associate modules with filenames, and take the first one
+// we see.
+static std::unordered_map<std::string, std::string> filename_module;
+
+void switch_to_module(const char* module_name) {
+    auto loc = GetCurrentLocation();
+    if ( loc.first_line != 0 && filename_module.count(loc.filename) == 0 )
+        filename_module[loc.filename] = module_name;
+}
+
 TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {
     auto loc = const_cast<Location*>(s->GetLocationInfo());
     UpdateLocInfo(loc);
@@ -1456,7 +1466,7 @@ BlockAnalyzer::BlockAnalyzer(std::vector<FuncInfo>& funcs) {
 
         std::string fn = func->Name();
 
-        parents.push_back(fn);
+        parents.emplace_back(std::pair<std::string, std::string>{fn, fn});
         cf_name = fn + ":";
         func->Traverse(this);
         parents.pop_back();
@@ -1471,10 +1481,11 @@ static bool is_compound_stmt(const Stmt* s) {
 }
 
 TraversalCode BlockAnalyzer::PreStmt(const Stmt* s) {
-    auto ls = BuildExpandedDescription(s->GetLocationInfo());
+    auto loc = s->GetLocationInfo();
+    auto ls = BuildExpandedDescription(loc);
 
     if ( is_compound_stmt(s) )
-        parents.push_back(std::move(ls));
+        parents.push_back(std::pair<std::string, std::string>{LocString(loc), std::move(ls)});
 
     return TC_CONTINUE;
 }
@@ -1495,8 +1506,13 @@ std::string BlockAnalyzer::BuildExpandedDescription(const Location* loc) {
     ASSERT(loc && loc->first_line != 0);
 
     auto ls = LocString(loc);
-    if ( ! parents.empty() )
-        ls = parents.back() + ";" + ls;
+    if ( ! parents.empty() ) {
+        auto& parent_pair = parents.back();
+        if ( parent_pair.first == ls )
+            ls = parent_pair.second;
+        else
+            ls = parent_pair.second + ";" + ls;
+    }
 
     auto lk = LocKey(loc);
     if ( exp_desc.count(lk) == 0 )

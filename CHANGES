@@ -1,3 +1,13 @@
+6.2.0-dev.481 | 2024-01-26 17:13:53 -0800
+
+  * Move GeoIP availability test in btests to `zeek-config --have-geoip` (Christian Kreibich, Corelight)
+
+  * Fix MMDB::Lookup() to check result status correctly (Christian Kreibich, Corelight)
+
+  * Add btest for succeeding/failing IPv4/IPv6 lookups (Christian Kreibich, Corelight)
+
+  * Add an IPv6 range to the test MMDB DBs (Christian Kreibich, Corelight)
+
 6.2.0-dev.476 | 2024-01-26 15:08:37 -0700
 
   * Force Windows CI to use OpenSSL 3.1.1 (Tim Wojtulewicz)

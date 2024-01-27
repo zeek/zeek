@@ -44,12 +44,13 @@ func writeDB(fname, name string, record mmdbtype.Map, nets ...*net.IPNet) {
 func main() {
 	_, net1, _ := net.ParseCIDR("128.3.0.0/16")
 	_, net2, _ := net.ParseCIDR("131.243.0.0/16")
+	_, net3, _ := net.ParseCIDR("2607:f140::/32")
 
 	// The ASN record.
 	asnRecord := mmdbtype.Map{}
 	asnRecord["autonomous_system_number"] = mmdbtype.Uint32(16)
 	asnRecord["autonomous_system_organization"] = mmdbtype.String("Lawrence Berkeley National Laboratory")
-	writeDB("GeoLite2-ASN.mmdb", "My-ASN-DB", asnRecord, net1, net2)
+	writeDB("GeoLite2-ASN.mmdb", "My-ASN-DB", asnRecord, net1, net2, net3)
 
 	// The Location record.
 	locRecord := mmdbtype.Map{
@@ -69,5 +70,5 @@ func main() {
 			},
 		},
 	}
-	writeDB("GeoLite2-City.mmdb", "My-City-DB", locRecord, net1, net2)
+	writeDB("GeoLite2-City.mmdb", "My-City-DB", locRecord, net1, net2, net3)
 }

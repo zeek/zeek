@@ -148,7 +148,7 @@ bool MMDB::Lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result) {
         return false;
     }
 
-    return true;
+    return result.found_entry;
 }
 
 // Check to see if the Maxmind DB should be closed and reopened.  This will

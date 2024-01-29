@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "zeek/script_opt/ScriptOpt.h"
+#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/util.h"
 
 namespace zeek::detail {
@@ -12,11 +12,20 @@ namespace zeek::detail {
 class ZAMLocInfo {
 public:
     ZAMLocInfo(std::string _func_name, std::shared_ptr<Location> _loc)
-        : func_name(std::move(_func_name)), loc(std::move(_loc)) {}
+        : func_name(std::move(_func_name)), loc(std::move(_loc)) {
+        if ( loc_has_module(loc) ) {
+            module = get_loc_module(loc);
+            if ( func_name.find("::") == std::string::npos )
+                func_name = *module + "::" + func_name;
+        }
+    }
 
     const std::string& FuncName() const { return func_name; }
     const Location* Loc() const { return loc.get(); }
     std::shared_ptr<Location> LocPtr() const { return loc; }
+
+    bool HasModule() const { return module.has_value(); }
+    const std::string& Module() const { return *module; }
 
     void AddParent(std::shared_ptr<ZAMLocInfo> _parent) { parent = std::move(_parent); }
     std::shared_ptr<ZAMLocInfo> Parent() { return parent; }
@@ -24,6 +33,7 @@ public:
     std::string Describe(bool include_lines = false) const;
 
 private:
+    std::optional<std::string> module;
     std::string func_name;
     std::shared_ptr<Location> loc;
     std::shared_ptr<ZAMLocInfo> parent;

@@ -669,4 +669,9 @@ private:
 
 extern std::unique_ptr<BlockAnalyzer> blocks;
 
+extern bool loc_has_module(const Location* loc);
+inline bool loc_has_module(const std::shared_ptr<Location>& loc) { return loc_has_module(loc.get()); }
+extern const std::string& get_loc_module(const Location* loc);
+inline const std::string& get_loc_module(const std::shared_ptr<Location>& loc) { return get_loc_module(loc.get()); }
+
 } // namespace zeek::detail

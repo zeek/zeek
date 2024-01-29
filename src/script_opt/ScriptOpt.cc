@@ -603,10 +603,25 @@ void profile_script_execution() {
     if ( analysis_options.profile_ZAM ) {
         report_ZOP_profile();
 
+        std::unordered_map<std::string, std::pair<double, int>> module_prof;
+
         for ( auto& f : funcs ) {
-            if ( f.Body()->Tag() == STMT_ZAM )
-                cast_intrusive<ZBody>(f.Body())->ProfileExecution();
+            if ( f.Body()->Tag() == STMT_ZAM ) {
+                auto zb = cast_intrusive<ZBody>(f.Body());
+                zb->ProfileExecution();
+
+                auto& zb_fn = zb->FuncName();
+                auto mod_end = zb_fn.find("::");
+                if ( mod_end != std::string::npos ) {
+                    auto mod = zb_fn.substr(0, mod_end);
+                    module_prof[mod] = std::pair<double, int>{zb->CPUTime(), zb->NInst()};
+                }
+            }
         }
+
+        for ( auto& mp : module_prof )
+            if ( mp.second.second > 0 )
+                printf("%s:: CPU time %.06f, %d instructions\n", mp.first.c_str(), mp.second.first, mp.second.second);
     }
 }
 

@@ -31,7 +31,7 @@ using CallStack = std::vector<std::shared_ptr<ZAMLocInfo>>;
 
 class ZBody : public Stmt {
 public:
-    ZBody(const char* _func_name, const ZAMCompiler* zc);
+    ZBody(std::string _func_name, const ZAMCompiler* zc);
 
     ~ZBody() override;
 
@@ -51,7 +51,11 @@ public:
 
     void Dump() const;
 
-    void ProfileExecution() const;
+    void ProfileExecution();
+
+    const std::string& FuncName() const { return func_name; }
+    double CPUTime() const { return adj_CPU_time; }
+    int NInst() const { return ninst; }
 
 private:
     // Initializes profiling information, if needed.
@@ -72,7 +76,7 @@ private:
     void StmtDescribe(ODesc* d) const override;
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
-    const char* func_name = nullptr;
+    std::string func_name;
 
     const ZInst* insts = nullptr;
     unsigned int end_pc = 0;
@@ -111,7 +115,8 @@ private:
     CaseMaps<std::string> str_cases;
 
     // The following are only maintained if we're doing profiling.
-    double CPU_time = 0.0; // cumulative CPU time for the program
+    double CPU_time = 0.0;     // cumulative CPU time for the program
+    double adj_CPU_time = 0.0; // adjusted for profiling overhead
     int ninst = 0;
 
     std::map<CallStack, std::shared_ptr<ProfVec>> prof_vecs;

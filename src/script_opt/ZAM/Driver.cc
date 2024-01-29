@@ -199,7 +199,12 @@ StmtPtr ZAMCompiler::CompileBody() {
     // Could erase insts1 here to recover memory, but it's handy
     // for debugging.
 
-    auto zb = make_intrusive<ZBody>(func->Name(), this);
+    std::string fname = func->Name();
+    auto body_loc = body->GetLocationInfo();
+    if ( loc_has_module(body_loc) && fname.find("::") == std::string::npos )
+        fname = get_loc_module(body_loc) + "::" + fname;
+
+    auto zb = make_intrusive<ZBody>(fname, this);
     zb->SetInsts(insts2);
 
     return zb;

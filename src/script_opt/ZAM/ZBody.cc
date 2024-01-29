@@ -169,8 +169,8 @@ VEC_COERCE(IU, TYPE_INT, zeek_int_t, AsCount(), count_to_int_would_overflow, "un
 VEC_COERCE(UD, TYPE_COUNT, zeek_uint_t, AsDouble(), double_to_count_would_overflow, "double to unsigned")
 VEC_COERCE(UI, TYPE_COUNT, zeek_int_t, AsInt(), int_to_count_would_overflow, "signed to unsigned")
 
-ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
-    func_name = _func_name;
+ZBody::ZBody(std::string _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
+    func_name = std::move(_func_name);
 
     frame_denizens = zc->FrameDenizens();
     frame_size = frame_denizens.size();
@@ -389,7 +389,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     return result;
 }
 
-void ZBody::ProfileExecution() const {
+void ZBody::ProfileExecution() {
     static bool did_overhead_report = false;
 
     if ( ! did_overhead_report ) {
@@ -398,14 +398,14 @@ void ZBody::ProfileExecution() const {
     }
 
     if ( end_pc == 0 ) {
-        printf("%s has an empty body\n", func_name);
+        printf("%s has an empty body\n", func_name.c_str());
         return;
     }
 
     auto& dpv = *default_prof_vec;
 
     if ( dpv[0].first == 0 && prof_vecs.empty() ) {
-        printf("%s did not execute\n", func_name);
+        printf("%s did not execute\n", func_name.c_str());
         return;
     }
 
@@ -413,7 +413,9 @@ void ZBody::ProfileExecution() const {
     for ( auto [_, pv] : prof_vecs )
         ncall += (*pv)[0].first;
 
-    printf("%s CPU time %.06f, %d calls, %d instructions\n", func_name, CPU_time - ninst * prof_overhead, ncall, ninst);
+    adj_CPU_time = CPU_time - ninst * prof_overhead;
+
+    printf("%s CPU time %.06f, %d calls, %d instructions\n", func_name.c_str(), adj_CPU_time, ncall, ninst);
 
     if ( dpv[0].first != 0 )
         ReportProfile(dpv, "");
@@ -432,7 +434,7 @@ void ZBody::ReportProfile(const ProfVec& pv, const std::string& prefix) const {
         auto ninst = pv[i].first;
         auto CPU = pv[i].second;
         CPU = std::max(CPU - ninst * prof_overhead, 0.0);
-        printf("%s %d %" PRId64 " %.06f ", func_name, i, ninst, CPU);
+        printf("%s %d %" PRId64 " %.06f ", func_name.c_str(), i, ninst, CPU);
         insts[i].Dump(i, &frame_denizens, prefix);
     }
 }
@@ -492,7 +494,7 @@ void ZBody::Dump() const {
 
 void ZBody::StmtDescribe(ODesc* d) const {
     d->AddSP("ZAM-code");
-    d->AddSP(func_name);
+    d->AddSP(func_name.c_str());
 }
 
 TraversalCode ZBody::Traverse(TraversalCallback* cb) const {

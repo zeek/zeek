@@ -1,3 +1,7 @@
+6.2.0-dev.483 | 2024-01-29 10:30:06 +0100
+
+  * Bump Spicy to current `main`. (Robin Sommer, Corelight)
+
 6.2.0-dev.481 | 2024-01-26 17:13:53 -0800
 
   * Move GeoIP availability test in btests to `zeek-config --have-geoip` (Christian Kreibich, Corelight)

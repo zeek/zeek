@@ -1409,6 +1409,9 @@ void switch_to_module(const char* module_name) {
 }
 
 std::string func_name_at_loc(std::string fname, const Location* loc) {
+    if ( fname.find("::") != std::string::npos )
+        return fname; // it already has a module name
+
     auto find_module = filename_module.find(loc->filename);
     if ( find_module == filename_module.end() )
         return fname;

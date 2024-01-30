@@ -498,7 +498,7 @@ void ZBody::Dump() const {
 
 void ZBody::StmtDescribe(ODesc* d) const {
     d->AddSP("ZAM-code");
-    d->AddSP(func_name.c_str());
+    d->Add(func_name.c_str());
 }
 
 TraversalCode ZBody::Traverse(TraversalCallback* cb) const {

@@ -27,10 +27,13 @@ export {
 		## by client and server.
 		client_initial_dcid: string  &log &optional;
 
+		## Client's Source Connection ID from the first INITIAL packet.
+		client_scid:         string  &log &optional;
+
 		## Server chosen Connection ID usually from server's first
 		## INITIAL packet. This is to be used by the client in
 		## subsequent packets.
-		server_scid:        string  &log &optional;
+		server_scid:         string  &log &optional;
 
 		## Server name extracted from SNI extension in ClientHello
 		## packet if available.
@@ -105,7 +108,7 @@ function log_record(quic: Info)
 	quic$logged = T;
 	}
 
-function set_conn(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
+function set_session(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
 	if ( ! c?$quic )
 		{
@@ -122,25 +125,27 @@ function set_conn(c: connection, is_orig: bool, version: count, dcid: string, sc
 	if ( is_orig && |dcid| > 0 && ! c$quic?$client_initial_dcid )
 		c$quic$client_initial_dcid = bytestring_to_hexstr(dcid);
 
-	if ( ! is_orig && |scid| > 0 )
+	if ( is_orig )
+		c$quic$client_scid = bytestring_to_hexstr(scid);
+	else
 		c$quic$server_scid = bytestring_to_hexstr(scid);
 	}
 
 event QUIC::initial_packet(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
-	set_conn(c, is_orig, version, dcid, scid);
+	set_session(c, is_orig, version, dcid, scid);
 	add_to_history(c, is_orig, "INIT");
 	}
 
 event QUIC::handshake_packet(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
-	set_conn(c, is_orig, version, dcid, scid);
+	set_session(c, is_orig, version, dcid, scid);
 	add_to_history(c, is_orig, "HANDSHAKE");
 	}
 
 event QUIC::zero_rtt_packet(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
-	set_conn(c, is_orig, version, dcid, scid);
+	set_session(c, is_orig, version, dcid, scid);
 	add_to_history(c, is_orig, "ZeroRTT");
 	}
 
@@ -148,7 +153,7 @@ event QUIC::zero_rtt_packet(c: connection, is_orig: bool, version: count, dcid: 
 event QUIC::retry_packet(c: connection, is_orig: bool, version: count, dcid: string, scid: string, retry_token: string, integrity_tag: string)
 	{
 	if ( ! c?$quic )
-		set_conn(c, is_orig, version, dcid, scid);
+		set_session(c, is_orig, version, dcid, scid);
 
 	add_to_history(c, is_orig, "RETRY");
 
@@ -161,7 +166,7 @@ event QUIC::retry_packet(c: connection, is_orig: bool, version: count, dcid: str
 event QUIC::unhandled_version(c: connection, is_orig: bool, version: count, dcid: string, scid: string)
 	{
 	if ( ! c?$quic )
-		set_conn(c, is_orig, version, dcid, scid);
+		set_session(c, is_orig, version, dcid, scid);
 
 	add_to_history(c, is_orig, "UNHANDLED_VERSION");
 

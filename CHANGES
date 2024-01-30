@@ -1,3 +1,27 @@
+6.2.0-dev.487 | 2024-01-30 21:47:06 +0100
+
+  * quic: Log client's source connection id, too. (Arne Welzel, Corelight)
+
+    Seem reasonable give we log the server SCID. Interestingly, the Chromium
+    examples actually have zero length (empty) source connection IDs. I wonder
+    if that's part of their "protocol ossification avoidance" effort.
+
+  * quic: Continue decryption attempts for later INITIAL packets (Arne Welzel, Corelight)
+
+    The original logic stopped decrypting any INITIAL packets after the
+    first. The Firefox/cloudflare pcaps actually show that the server
+    replies with a QUIC INITAL packet containing just ACK frames and no
+    CRYPTO frames. Only the second QUIC INITIAL packet from the server
+    then contains the CRYPTO frames.
+
+    There's no good reason to stop decryption attempts, either we succeed
+    down the road and then stop, or we fail and raise analyzer violations.
+
+  * quic: Rename set_conn() to set_session() (Arne Welzel, Corelight)
+
+    set_conn() should be about the c$conn record. Most other base scripts
+    for protocols use set_session(), so do the same.
+
 6.2.0-dev.483 | 2024-01-29 10:30:06 +0100
 
   * Bump Spicy to current `main`. (Robin Sommer, Corelight)

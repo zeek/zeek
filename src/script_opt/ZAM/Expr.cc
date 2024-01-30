@@ -1062,8 +1062,11 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     if ( ! indirect || func_id->IsGlobal() ) {
         z.aux->id_val = func_id;
 
-        if ( ! indirect )
+        if ( ! indirect ) {
             z.aux->func = func_id->GetVal()->AsFunc();
+            if ( z.aux->func->GetKind() == Func::BUILTIN_FUNC )
+                z.aux->is_BiF_call = true;
+        }
     }
 
     return AddInst(z);

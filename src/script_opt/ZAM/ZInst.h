@@ -427,6 +427,9 @@ public:
     // Used for direct calls.
     Func* func = nullptr;
 
+    // Whether we know that we're calling a BiF.
+    bool is_BiF_call = false;
+
     // Used for referring to events.
     EventHandler* event_handler = nullptr;
 

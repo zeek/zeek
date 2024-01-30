@@ -60,12 +60,16 @@ static double prof_overhead = compute_prof_overhead();
     }
 #define ZAM_PROFILE_PRE_CALL                                                                                           \
     caller_locs.push_back(z.loc);                                                                                      \
-    DO_ZAM_PROFILE
+    if ( ! z.aux->is_BiF_call ) { /* For non-BiFs we don't include the callee's execution time as part of our own */   \
+        DO_ZAM_PROFILE                                                                                                 \
+    }
 
 #define ZAM_PROFILE_POST_CALL                                                                                          \
     caller_locs.pop_back();                                                                                            \
-    ++pc;                                                                                                              \
-    continue;
+    if ( ! z.aux->is_BiF_call ) { /* We already did the profiling, move on to next instruction */                      \
+        ++pc;                                                                                                          \
+        continue;                                                                                                      \
+    }
 
 #else
 

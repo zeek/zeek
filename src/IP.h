@@ -459,6 +459,11 @@ public:
      */
     int MF() const { return ip4 ? (ntohs(ip4->ip_off) & 0x2000) != 0 : ip6_hdrs->MF(); }
 
+     /**
+     * CUSTOM Returns whether a packet's "Reserved Bit" field is set. CUSTOM
+     */
+    int RF() const { return ip4 ? (ntohs(ip4->ip_off) & 0x8000) != 0 : 0; }
+
     /**
      * Returns whether a fragment packet's "Don't Fragment" field is set.
      * Note that IPv6 has no such field.

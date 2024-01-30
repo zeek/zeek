@@ -1850,6 +1850,7 @@ type ip4_hdr: record {
 	id: count;		##< Identification.
 	DF: bool;		##< True if the packet's *don't fragment* flag is set.
 	MF: bool;		##< True if the packet's *more fragments* flag is set.
+	RF: bool;		##CUSTOM < True if the packet's *reserved bit* flag is set CUSTOM FORK CHANGE!!! 
 	offset: count;		##< Fragment offset.
 	ttl: count;		##< Time to live.
 	p: count;		##< Protocol.

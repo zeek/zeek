@@ -330,12 +330,13 @@ RecordValPtr IP_Hdr::ToIPHdrVal() const {
         rval->Assign(3, ntohs(ip4->ip_id));
         rval->Assign(4, DF());
         rval->Assign(5, MF());
-        rval->Assign(6, FragOffset()); // 13 bit offset as multiple of 8
-        rval->Assign(7, ip4->ip_ttl);
-        rval->Assign(8, ip4->ip_p);
-        rval->Assign(9, ntohs(ip4->ip_sum));
-        rval->Assign(10, make_intrusive<AddrVal>(ip4->ip_src.s_addr));
-        rval->Assign(11, make_intrusive<AddrVal>(ip4->ip_dst.s_addr));
+        rval->Assign(6, RF());
+        rval->Assign(7, FragOffset()); // 13 bit offset as multiple of 8
+        rval->Assign(8, ip4->ip_ttl);
+        rval->Assign(9, ip4->ip_p);
+        rval->Assign(10, ntohs(ip4->ip_sum));
+        rval->Assign(11, make_intrusive<AddrVal>(ip4->ip_src.s_addr));
+        rval->Assign(12, make_intrusive<AddrVal>(ip4->ip_dst.s_addr));
     }
     else {
         rval = ((*ip6_hdrs)[0])->ToVal(ip6_hdrs->ToVal());

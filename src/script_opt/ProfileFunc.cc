@@ -1471,19 +1471,19 @@ BlockAnalyzer::BlockAnalyzer(std::vector<FuncInfo>& funcs) {
             continue;
 
         auto func = f.Func();
+        std::string fn = func->Name();
+        auto body = f.Body();
 
         SetBlockLineNumbers sbln;
-        func->Traverse(&sbln);
+        body->Traverse(&sbln);
 
-        std::string fn = func->Name();
-
-        auto body_loc = f.Body()->GetLocationInfo();
+        auto body_loc = body->GetLocationInfo();
         if ( loc_has_module(body_loc) && fn.find("::") == std::string::npos )
             fn = get_loc_module(body_loc) + "::" + fn;
 
         parents.emplace_back(std::pair<std::string, std::string>{fn, fn});
         cf_name = fn + ":";
-        func->Traverse(this);
+        body->Traverse(this);
         parents.pop_back();
     }
 

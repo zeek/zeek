@@ -76,6 +76,8 @@ void ZInst::Dump(const string& prefix, const string& id1, const string& id2, con
         case OP_VVVC_I1_I2_I3: printf("%d, %d, %d, %s", v1, v2, v3, ConstDump().c_str()); break;
     }
 
+    auto func = aux ? aux->func : nullptr;
+
     if ( func )
         printf(" (func %s)", func->Name());
 

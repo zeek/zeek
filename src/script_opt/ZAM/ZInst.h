@@ -118,11 +118,7 @@ public:
 
     // Type, usually for interpreting the constant.
     TypePtr t = nullptr;
-    TypePtr t2 = nullptr;                  // just a few ops need two types
-    const Expr* e = nullptr;               // only needed for "when" expressions
-    Func* func = nullptr;                  // used for calls
-    EventHandler* event_handler = nullptr; // used for referring to events
-    AttributesPtr attrs = nullptr;         // used for things like constructors
+    TypePtr t2 = nullptr; // just a few ops need two types
 
     // Auxiliary information.  We could in principle use this to
     // consolidate a bunch of the above, though at the cost of
@@ -133,10 +129,6 @@ public:
     // Location associated with this instruction, for error reporting
     // and profiling.
     std::shared_ptr<ZAMLocInfo> loc;
-
-    // Interpreter call expression associated with this instruction,
-    // for error reporting and stack backtraces.
-    CallExprPtr call_expr = nullptr;
 
     // Whether v1 represents a frame slot type for which we
     // explicitly manage the memory.
@@ -427,6 +419,19 @@ public:
 
     // Used for accessing function names.
     IDPtr id_val = nullptr;
+
+    // Interpreter call expression associated with this instruction,
+    // for error reporting and stack backtraces.
+    CallExprPtr call_expr = nullptr;
+
+    // Used for direct calls.
+    Func* func = nullptr;
+
+    // Used for referring to events.
+    EventHandler* event_handler = nullptr;
+
+    // Used for things like constructors.
+    AttributesPtr attrs = nullptr;
 
     // Whether the instruction can lead to globals/captures changing.
     // Currently only needed by the optimizer, but convenient to

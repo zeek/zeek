@@ -1024,7 +1024,8 @@ const ZAMStmt ZAMCompiler::InitVector(IDPtr id, VectorType* vt) {
 const ZAMStmt ZAMCompiler::InitTable(IDPtr id, TableType* tt, Attributes* attrs) {
     auto z = ZInstI(OP_INIT_TABLE_V, FrameSlot(id));
     z.SetType({NewRef{}, tt});
-    z.attrs = {NewRef{}, attrs};
+    z.aux = new ZInstAux(0);
+    z.aux->attrs = {NewRef{}, attrs};
     return AddInst(z);
 }
 

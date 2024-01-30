@@ -11,13 +11,8 @@ namespace zeek::detail {
 
 class ZAMLocInfo {
 public:
-    ZAMLocInfo(std::string _func_name, std::shared_ptr<Location> _loc)
-        : func_name(std::move(_func_name)), loc(std::move(_loc)) {
-        if ( loc_has_module(loc) ) {
-            module = get_loc_module(loc);
-            if ( func_name.find("::") == std::string::npos )
-                func_name = *module + "::" + func_name;
-        }
+    ZAMLocInfo(std::string _func_name, std::shared_ptr<Location> _loc) : loc(std::move(_loc)) {
+        func_name = func_name_at_loc(_func_name, loc.get());
     }
 
     const std::string& FuncName() const { return func_name; }

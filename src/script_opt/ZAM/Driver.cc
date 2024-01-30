@@ -196,16 +196,16 @@ StmtPtr ZAMCompiler::CompileBody() {
 
     ConcretizeSwitches();
 
-    // Could erase insts1 here to recover memory, but it's handy
-    // for debugging.
-
     std::string fname = func->Name();
-    auto body_loc = body->GetLocationInfo();
-    if ( loc_has_module(body_loc) && fname.find("::") == std::string::npos )
-        fname = get_loc_module(body_loc) + "::" + fname;
+
+    if ( func->Flavor() == FUNC_FLAVOR_FUNCTION )
+        fname = func_name_at_loc(fname, body->GetLocationInfo());
 
     auto zb = make_intrusive<ZBody>(fname, this);
     zb->SetInsts(insts2);
+
+    // Could erase insts1 here to recover memory, but it's handy
+    // for debugging.
 
     return zb;
 }

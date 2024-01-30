@@ -1408,15 +1408,16 @@ void switch_to_module(const char* module_name) {
         filename_module[loc.filename] = module_name;
 }
 
-bool loc_has_module(const Location* loc) { return filename_module.count(loc->filename) > 0; }
-
-const std::string& get_loc_module(const Location* loc) {
-    static std::string no_module = "<NO-MODULE>"; // shouldn't be used
+std::string func_name_at_loc(std::string fname, const Location* loc) {
     auto find_module = filename_module.find(loc->filename);
     if ( find_module == filename_module.end() )
-        return no_module;
-    else
-        return find_module->second;
+        return fname;
+
+    auto& module = find_module->second;
+    if ( module.empty() || module == "GLOBAL" )
+        return fname;
+
+    return module + "::" + fname;
 }
 
 TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {
@@ -1478,8 +1479,7 @@ BlockAnalyzer::BlockAnalyzer(std::vector<FuncInfo>& funcs) {
         body->Traverse(&sbln);
 
         auto body_loc = body->GetLocationInfo();
-        if ( loc_has_module(body_loc) && fn.find("::") == std::string::npos )
-            fn = get_loc_module(body_loc) + "::" + fn;
+        fn = func_name_at_loc(fn, body_loc);
 
         parents.emplace_back(std::pair<std::string, std::string>{fn, fn});
         cf_name = fn + ":";

@@ -1,3 +1,9 @@
+6.2.0-dev.490 | 2024-01-31 14:27:46 +0100
+
+  * spicy/diff-remove-timestamp: Fix missing -e (Arne Welzel, Corelight)
+
+    This got lost when converting to sed -E.
+
 6.2.0-dev.487 | 2024-01-30 21:47:06 +0100
 
   * quic: Log client's source connection id, too. (Arne Welzel, Corelight)

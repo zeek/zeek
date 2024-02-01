@@ -11,6 +11,19 @@
 
 namespace zeek::detail {
 
+ZAMLocInfo::ZAMLocInfo(std::string _func_name, std::shared_ptr<Location> _loc, std::shared_ptr<ZAMLocInfo> _parent)
+    : loc(std::move(_loc)), parent(std::move(_parent)) {
+    func_name = func_name_at_loc(_func_name, loc.get());
+
+    auto main_module = func_name.find("::");
+    if ( main_module != std::string::npos )
+        modules.insert(func_name.substr(0, main_module));
+
+    if ( parent )
+        parent->AddInModules(modules);
+}
+
+
 std::string ZAMLocInfo::Describe(bool include_lines) const {
     std::string desc;
 
@@ -36,18 +49,6 @@ std::string ZAMLocInfo::Describe(bool include_lines) const {
     }
 
     return desc;
-}
-
-void profile_ZAM_execution(const std::vector<FuncInfo>& funcs) {
-    report_ZOP_profile();
-
-    for ( auto& f : funcs ) {
-        if ( f.Body()->Tag() != STMT_ZAM )
-            continue;
-
-        auto zb = cast_intrusive<ZBody>(f.Body());
-        zb->ProfileExecution();
-    }
 }
 
 } // namespace zeek::detail

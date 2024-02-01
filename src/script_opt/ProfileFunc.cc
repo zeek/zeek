@@ -1409,9 +1409,6 @@ void switch_to_module(const char* module_name) {
 }
 
 std::string func_name_at_loc(std::string fname, const Location* loc) {
-    if ( fname.find("::") != std::string::npos )
-        return fname; // it already has a module name
-
     auto find_module = filename_module.find(loc->filename);
     if ( find_module == filename_module.end() )
         return fname;
@@ -1420,7 +1417,12 @@ std::string func_name_at_loc(std::string fname, const Location* loc) {
     if ( module.empty() || module == "GLOBAL" )
         return fname;
 
-    return module + "::" + fname;
+    auto mod_prefix = module + "::";
+
+    if ( fname.find(mod_prefix) == 0 )
+        return fname; // it already has the module name
+
+    return mod_prefix + fname;
 }
 
 TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {

@@ -393,7 +393,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     return result;
 }
 
-void ZBody::ProfileExecution() {
+void ZBody::ProfileExecution(ProfMap& pm) {
     static bool did_overhead_report = false;
 
     if ( ! did_overhead_report ) {
@@ -422,24 +422,41 @@ void ZBody::ProfileExecution() {
     printf("%s CPU time %.06f, %d calls, %d instructions\n", func_name.c_str(), adj_CPU_time, ncall, ninst);
 
     if ( dpv[0].first != 0 )
-        ReportProfile(dpv, "");
+        ReportProfile(pm, dpv, "", {});
 
     for ( auto& pv : prof_vecs ) {
         std::string prefix;
-        for ( auto& caller : pv.first )
+        std::set<std::string> modules;
+        for ( auto& caller : pv.first ) {
             prefix += caller->Describe(true) + ";";
+            caller->AddInModules(modules);
+        }
 
-        ReportProfile(*pv.second, prefix);
+        ReportProfile(pm, *pv.second, prefix, std::move(modules));
     }
 }
 
-void ZBody::ReportProfile(const ProfVec& pv, const std::string& prefix) const {
+void ZBody::ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
+                          std::set<std::string> caller_modules) const {
     for ( auto i = 0U; i < pv.size(); ++i ) {
         auto ninst = pv[i].first;
         auto CPU = pv[i].second;
         CPU = std::max(CPU - ninst * prof_overhead, 0.0);
         printf("%s %d %" PRId64 " %.06f ", func_name.c_str(), i, ninst, CPU);
         insts[i].Dump(i, &frame_denizens, prefix);
+
+        auto modules = caller_modules;
+        insts[i].loc->AddInModules(modules);
+
+        for ( auto& m : modules ) {
+            auto mod_prof = pm.find(m);
+            if ( mod_prof == pm.end() )
+                pm[m] = std::pair<zeek_uint_t, double>{ninst, CPU};
+            else {
+                mod_prof->second.first += ninst;
+                mod_prof->second.second += CPU;
+            }
+        }
     }
 }
 

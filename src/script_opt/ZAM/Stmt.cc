@@ -16,8 +16,7 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
         std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
     ASSERT(! blocks || s->Tag() == STMT_NULL || blocks->HaveExpDesc(loc_copy.get()));
     auto loc_parent = curr_loc->Parent();
-    curr_loc = std::make_shared<ZAMLocInfo>(curr_func, std::move(loc_copy));
-    curr_loc->AddParent(loc_parent);
+    curr_loc = std::make_shared<ZAMLocInfo>(curr_func, std::move(loc_copy), curr_loc->Parent());
 
     switch ( s->Tag() ) {
         case STMT_PRINT: return CompilePrint(static_cast<const PrintStmt*>(s));
@@ -905,10 +904,8 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
 
     bool is_event_inline = (hold_func == curr_func);
 
-    if ( ! is_event_inline ) {
-        curr_loc = std::make_shared<ZAMLocInfo>(curr_func, curr_loc->LocPtr());
-        curr_loc->AddParent(hold_loc);
-    }
+    if ( ! is_event_inline )
+        curr_loc = std::make_shared<ZAMLocInfo>(curr_func, curr_loc->LocPtr(), hold_loc);
 
     PushCatchReturns();
 

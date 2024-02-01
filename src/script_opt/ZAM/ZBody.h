@@ -27,6 +27,7 @@ using CaseMaps = std::vector<CaseMap<T>>;
 
 using TableIterVec = std::vector<TableIterInfo>;
 using ProfVec = std::vector<std::pair<zeek_uint_t, double>>;
+using ProfMap = std::unordered_map<std::string, std::pair<zeek_uint_t, double>>;
 using CallStack = std::vector<std::shared_ptr<ZAMLocInfo>>;
 
 class ZBody : public Stmt {
@@ -51,7 +52,7 @@ public:
 
     void Dump() const;
 
-    void ProfileExecution();
+    void ProfileExecution(ProfMap& pm);
 
     const std::string& FuncName() const { return func_name; }
     double CPUTime() const { return adj_CPU_time; }
@@ -62,7 +63,8 @@ private:
     void InitProfile();
     std::shared_ptr<ProfVec> BuildProfVec() const;
 
-    void ReportProfile(const ProfVec& pv, const std::string& prefix) const;
+    void ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
+                       std::set<std::string> caller_modules) const;
 
     ValPtr DoExec(Frame* f, StmtFlowType& flow);
 

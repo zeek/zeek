@@ -1,3 +1,18 @@
+6.2.0-dev.495 | 2024-02-01 11:22:03 -0700
+
+  * Configure c-ares before libkqueue (Tim Wojtulewicz, Corelight)
+
+    On platforms without a native libkqueue, c-ares is using the existing
+    value for HAVE_KQUEUE that was set during the libkqueue setup. We don't
+    pass the libkqueue information down to the c-ares cmake run so it won't
+    have the paths or library when it builds.
+
+  * Update 3rdparty submodule to update sqlite to 3.45.0 (Tim Wojtulewicz, Corelight)
+
+  * Upgrade rapidjson to current upstream master (Tim Wojtulewicz, Corelight)
+
+  * Upgrade c-ares to 1.26.0 (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.490 | 2024-01-31 14:27:46 +0100
 
   * spicy/diff-remove-timestamp: Fix missing -e (Arne Welzel, Corelight)

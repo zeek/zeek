@@ -1089,8 +1089,14 @@ include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
-include(FindKqueue)
+
+# On platforms without a native libkqueue, c-ares is using the existing
+# value for HAVE_KQUEUE that was set during the libkqueue setup. We don't
+# pass the libkqueue information down to the c-ares cmake run so it won't
+# have the paths or library when it builds.
 include(FindCAres)
+include(FindKqueue)
+
 include_directories(BEFORE "auxil/out_ptr/include")
 
 if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))

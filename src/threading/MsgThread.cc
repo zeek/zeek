@@ -318,7 +318,8 @@ void MsgThread::InternalError(const char* msg) {
 #ifdef DEBUG
 
 void MsgThread::Debug(DebugStream stream, const char* msg) {
-    SendOut(new detail::DebugMessage(stream, this, BuildMsgWithLocation(msg)));
+    if ( zeek::detail::debug_logger.IsEnabled(stream) )
+      SendOut(new detail::DebugMessage(stream, this, BuildMsgWithLocation(msg)));
 }
 
 #endif

@@ -168,7 +168,7 @@ export {
 	## Breaking from this hook suppresses :zeek:see:`Intel::match`
 	## event generation and any subsequent logging.
 	##
-	## Note that this hook only runs on the Zeek node where :zeek:seen:`Intel::seen`
+	## Note that this hook only runs on the Zeek node where :zeek:see:`Intel::seen`
 	## is invoked. In a cluster configuration that is usually on the worker nodes.
 	## This is in contrast to :zeek:see:`Intel::match` that usually runs
 	## centrally on the the manager node instead.

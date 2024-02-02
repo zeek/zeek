@@ -5,6 +5,17 @@ cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 if (WIN32)
     # Enable usage of CMAKE_MSVC_RUNTIME_LIBRARY variable
     cmake_policy(SET CMP0091 NEW)
+
+    # I tried to just use CMAKE_SOURCE_DIR and CMAKE_CURRENT_SOURCE_DIR
+    # but it's not setting the path correctly and so the toolchain
+    # variable doesn't get passed down to submodules like libkqueue
+    # correctly. Instead get the absolute path to the vcpkg.cmake file
+    # and use that.
+    get_filename_component(_toolchain ./auxil/vcpkg/scripts/buildsystems/vcpkg.cmake ABSOLUTE)
+
+    # This needs to happen before the project() call below so that it
+    # doesn't need to be manually passed on the command line.
+    set(CMAKE_TOOLCHAIN_FILE ${_toolchain} CACHE STRING "Vcpkg toolchain file")
 endif ()
 
 project(Zeek C CXX)
@@ -119,33 +130,23 @@ if (MSVC)
     set(OPENSSL_USE_STATIC_LIBS true)
     set(OPENSSL_MSVC_STATIC_RT true)
 
-    if (ZEEK_STANDALONE)
-        include(${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
-        conan_cmake_autodetect(settings)
-        # Install packages from conanfile
-        conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}/ci/windows/conanfile_windows.txt
-                            BUILD missing SETTINGS ${settings})
-    endif ()
-
-    # Set LibPCAP to point to libpcap binaries.
+    # Set PCAP_ROOT_DIR to point at the installation from vcpkg. A later call
+    # to FindPCAP.cmake will fill in the rest of the necessary variables.
     if (NOT PCAP_ROOT_DIR)
-        find_package(libpcap)
-        set(PCAP_ROOT_DIR "${libpcap_LIB_DIRS}/../")
-        set(PCAP_INCLUDE_DIR ${libpcap_INCLUDES})
-        set(PCAP_LIBRARY ${libpcap_LIBS})
+        set(PCAP_ROOT_DIR ${VCPKG_INSTALLED_DIR}/x64-windows-static)
     endif ()
 
     set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)
 
-    # Set ZLib to point at the right variable.
+    # Find zlib installed by vcpkg.
     find_package(ZLIB)
-    set(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+    set(ZLIB_LIBRARY ZLIB::ZLIB)
 
-    # Set CAres
+    # Find c-ares installed by vcpkg.
     find_package(c-ares)
     set(HAVE_CARES true) # Disable FindCAres cmake file
     include_directories(BEFORE ${c-ares_INCLUDE_DIRS})
-    set(zeekdeps ${zeekdeps} ${c-ares_LIBRARIES})
+    set(zeekdeps ${zeekdeps} c-ares::cares)
     add_definitions(-DCARES_STATICLIB)
 
     add_subdirectory(auxil/libunistd)

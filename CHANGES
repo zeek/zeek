@@ -1,3 +1,9 @@
+6.2.0-dev.500 | 2024-02-02 15:27:23 -0700
+
+  * Fix searching for libpcap installed by vcpkg (Tim Wojtulewicz)
+
+  * Switch all of the conan configuration to vcpkg (Tim Wojtulewicz)
+
 6.2.0-dev.497 | 2024-02-02 13:50:05 -0800
 
   * Fix markup typo in the Intel::seen_policy hook docstring [skip ci] (Christian Kreibich, Corelight)

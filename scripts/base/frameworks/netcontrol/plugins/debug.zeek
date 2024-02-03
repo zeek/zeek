@@ -12,7 +12,7 @@ export {
 	##
 	## do_something: If true, the plugin will claim it supports all operations; if
 	##               false, it will indicate it doesn't support any.
-	global create_debug: function(do_something: bool) : PluginState;
+	global create_debug: function(do_something: bool, name: string &default="") : PluginState;
 }
 
 function do_something(p: PluginState) : bool
@@ -22,7 +22,7 @@ function do_something(p: PluginState) : bool
 
 function debug_name(p: PluginState) : string
 	{
-	return fmt("Debug-%s", (do_something(p) ? "All" : "None"));
+	return p$config["name"];
 	}
 
 function debug_log(p: PluginState, msg: string)
@@ -73,13 +73,17 @@ global debug_plugin = Plugin(
 	$remove_rule = debug_remove_rule
 	);
 
-function create_debug(do_something: bool) : PluginState
+function create_debug(do_something: bool, name: string) : PluginState
 	{
 	local p: PluginState = [$plugin=debug_plugin];
 
 	# FIXME: Why's the default not working?
 	p$config = table();
 	p$config["all"] = (do_something ? "1" : "0");
+	if ( name == "" )
+		p$config["name"] = fmt("Debug-%s", (do_something ? "All" : "None"));
+	else
+		p$config["name"] = name;
 
 	return p;
 	}

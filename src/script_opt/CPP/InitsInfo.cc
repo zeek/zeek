@@ -47,7 +47,7 @@ void CPP_InitsInfo::GenerateInitializers(CPPCompile* c) {
         if ( ++n > 1 )
             c->Emit("");
 
-        if ( cohort.size() == 1 )
+        if ( cohort.size() == 1 && ! IsCompound() )
             BuildCohort(c, cohort);
         else {
             c->Emit("{");

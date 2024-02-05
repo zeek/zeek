@@ -290,7 +290,6 @@ event rule_exists(r: Rule, p: PluginState, msg: string)
 	log$plugin = p$plugin$name(p);
 	local infomsg = "Existing rule encountered while inserting rule";
 	log$message = msg + infomsg;
-	print p;
 	Log::write(CATCH_RELEASE, log);
 	}
 
@@ -303,6 +302,7 @@ event rule_error(r: Rule, p: PluginState, msg: string)
 	local bi = blocks[ip];
 
 	local log = populate_log_record(ip, bi, INFO);
+	log$plugin = p$plugin$name(p);
 	log$message = "Error occurred during rule operation: " + msg;
 	Log::write(CATCH_RELEASE, log);
 	}
@@ -316,6 +316,7 @@ event rule_timeout(r: Rule, i: FlowInfo, p: PluginState)
 	local bi = blocks[ip];
 
 	local log = populate_log_record(ip, bi, UNBLOCK);
+	log$plugin = p$plugin$name(p);
 	if ( bi?$block_until )
 		{
 		local difference: interval = network_time() - bi$block_until;

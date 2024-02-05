@@ -313,7 +313,7 @@ public:
     void SetInt(int _i) { i = _i; }
     void SetInt(int _i, TypePtr _t) {
         i = _i;
-        SetType(_t);
+        SetType(std::move(_t));
     }
     void SetSlot(int slot) { i = slot; }
     void SetConstant(ValPtr _c) {

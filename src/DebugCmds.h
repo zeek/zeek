@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <cstdlib>
 #include <deque>
 #include <string>

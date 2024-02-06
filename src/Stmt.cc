@@ -52,6 +52,7 @@ const char* stmt_name(StmtTag t) {
         "ZAM",
         "null",
         "assert",
+        "extern",
     };
 
     return stmt_names[int(t)];

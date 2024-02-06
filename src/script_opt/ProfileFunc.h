@@ -609,4 +609,66 @@ protected:
     bool full_record_hashes;
 };
 
+class SetBlockLineNumbers : public TraversalCallback {
+public:
+    TraversalCode PreStmt(const Stmt*) override;
+    TraversalCode PostStmt(const Stmt*) override;
+    TraversalCode PreExpr(const Expr*) override;
+
+private:
+    void UpdateLocInfo(Location* loc);
+
+    std::vector<std::pair<int, int>> block_line_range;
+};
+
+class BlockAnalyzer : public TraversalCallback {
+public:
+    BlockAnalyzer(std::vector<FuncInfo>& funcs);
+
+    TraversalCode PreStmt(const Stmt*) override;
+    TraversalCode PostStmt(const Stmt*) override;
+    TraversalCode PreExpr(const Expr*) override;
+
+    std::string GetDesc(const Location* loc) const {
+        auto e_d = exp_desc.find(LocKey(loc));
+        if ( e_d == exp_desc.end() )
+            return LocString(loc);
+        else
+            return e_d->second;
+    }
+
+    bool HaveExpDesc(const Location* loc) const { return exp_desc.count(LocKey(loc)) > 0; }
+
+private:
+    std::string BuildExpandedDescription(const Location* loc);
+
+    std::string LocKey(const Location* loc) const {
+        return std::string(loc->filename) + ":" + std::to_string(loc->first_line) + "-" +
+               std::to_string(loc->last_line);
+    }
+
+    std::string LocString(const Location* loc) const {
+        auto res = cf_name + std::to_string(loc->first_line);
+
+        if ( loc->first_line != loc->last_line )
+            res += "-" + std::to_string(loc->last_line);
+
+        return res;
+    }
+
+    std::string cf_name;
+
+    // Stack of expanded descriptions of parent blocks. Each entry is
+    // a pair of the parent's own description plus the full descriptor
+    // up to that point.
+    std::vector<std::pair<std::string, std::string>> parents;
+
+    // Maps a statement's location key to its expanded description.
+    std::unordered_map<std::string, std::string> exp_desc;
+};
+
+extern std::unique_ptr<BlockAnalyzer> blocks;
+
+extern std::string func_name_at_loc(std::string fname, const Location* loc);
+
 } // namespace zeek::detail

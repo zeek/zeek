@@ -217,6 +217,10 @@ extern void analyze_global_stmts(Stmt* stmts);
 // Returns the body and scope for the previously analyzed global statements.
 extern std::pair<StmtPtr, ScopePtr> get_global_stmts();
 
+// Informs script optimization that parsing is switching to the given module.
+// Used to associate module names with profiling information.
+extern void switch_to_module(const char* module);
+
 // Add a pattern to the "only_funcs" list.
 extern void add_func_analysis_pattern(AnalyOpt& opts, const char* pat);
 

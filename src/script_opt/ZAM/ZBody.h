@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/script_opt/ZAM/IterInfo.h"
+#include "zeek/script_opt/ZAM/Profile.h"
 #include "zeek/script_opt/ZAM/Support.h"
 
 namespace zeek::detail {
@@ -25,10 +26,13 @@ template<typename T>
 using CaseMaps = std::vector<CaseMap<T>>;
 
 using TableIterVec = std::vector<TableIterInfo>;
+using ProfVec = std::vector<std::pair<zeek_uint_t, double>>;
+using ProfMap = std::unordered_map<std::string, std::pair<zeek_uint_t, double>>;
+using CallStack = std::vector<std::shared_ptr<ZAMLocInfo>>;
 
 class ZBody : public Stmt {
 public:
-    ZBody(const char* _func_name, const ZAMCompiler* zc);
+    ZBody(std::string _func_name, const ZAMCompiler* zc);
 
     ~ZBody() override;
 
@@ -48,26 +52,33 @@ public:
 
     void Dump() const;
 
-    void ProfileExecution() const;
+    void ProfileExecution(ProfMap& pm);
 
-protected:
+    const std::string& FuncName() const { return func_name; }
+    double CPUTime() const { return adj_CPU_time; }
+    int NInst() const { return ninst; }
+
+private:
     // Initializes profiling information, if needed.
     void InitProfile();
+    std::shared_ptr<ProfVec> BuildProfVec() const;
+
+    void ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
+                       std::set<std::string> caller_modules) const;
 
     ValPtr DoExec(Frame* f, StmtFlowType& flow);
 
     // Run-time checking for "any" type being consistent with
     // expected typed.  Returns true if the type match is okay.
     bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
-                      const std::shared_ptr<Location>& loc) const;
+                      const std::shared_ptr<ZAMLocInfo>& loc) const;
 
     StmtPtr Duplicate() override { return {NewRef{}, this}; }
 
     void StmtDescribe(ODesc* d) const override;
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
-private:
-    const char* func_name = nullptr;
+    std::string func_name;
 
     const ZInst* insts = nullptr;
     unsigned int end_pc = 0;
@@ -100,21 +111,19 @@ private:
     std::vector<GlobalInfo> globals;
     int num_globals;
 
-    // The following are only maintained if we're doing profiling.
-    //
-    // These need to be pointers so we can manipulate them in a
-    // const method.
-    std::vector<int>* inst_count = nullptr;  // for profiling
-    double* CPU_time = nullptr;              // cumulative CPU time for the program
-    std::vector<double>* inst_CPU = nullptr; // per-instruction CPU time.
-
     CaseMaps<zeek_int_t> int_cases;
     CaseMaps<zeek_uint_t> uint_cases;
     CaseMaps<double> double_cases;
     CaseMaps<std::string> str_cases;
-};
 
-// Prints the execution profile.
-extern void report_ZOP_profile();
+    // The following are only maintained if we're doing profiling.
+    double CPU_time = 0.0;     // cumulative CPU time for the program
+    double adj_CPU_time = 0.0; // adjusted for profiling overhead
+    int ninst = 0;
+
+    std::map<CallStack, std::shared_ptr<ProfVec>> prof_vecs;
+    std::shared_ptr<ProfVec> default_prof_vec;
+    std::shared_ptr<ProfVec> curr_prof_vec;
+};
 
 } // namespace zeek::detail

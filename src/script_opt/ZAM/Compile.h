@@ -228,6 +228,7 @@ private:
     const ZAMStmt Call(const ExprStmt* e);
     const ZAMStmt AssignToCall(const ExprStmt* e);
     const ZAMStmt DoCall(const CallExpr* c, const NameExpr* n);
+    bool CheckForBuiltIn(const ExprPtr& e, CallExprPtr c);
 
     const ZAMStmt AssignVecElems(const Expr* e);
     const ZAMStmt AssignTableElem(const Expr* e);

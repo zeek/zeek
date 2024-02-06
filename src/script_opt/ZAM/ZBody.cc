@@ -1,5 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/script_opt/ZAM/ZBody.h"
+
 #include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Frame.h"
@@ -26,7 +28,56 @@
 // For reading_live and reading_traces
 #include "zeek/RunState.h"
 
+#ifdef DEBUG
+#define ENABLE_ZAM_PROFILE
+#endif
+
 namespace zeek::detail {
+
+#ifdef ENABLE_ZAM_PROFILE
+
+static std::vector<std::shared_ptr<ZAMLocInfo>> caller_locs;
+
+static double compute_prof_overhead() {
+    double start = util::curr_CPU_time();
+    double CPU = 0.0;
+    const int n = 100000;
+    for ( int i = 0; i < n; ++i )
+        CPU = std::max(CPU, util::curr_CPU_time());
+
+    return (CPU - start) / n;
+}
+
+static double prof_overhead = compute_prof_overhead();
+
+#define DO_ZAM_PROFILE                                                                                                 \
+    if ( do_profile ) {                                                                                                \
+        double dt = util::curr_CPU_time() - profile_CPU;                                                               \
+        auto& prof_info = (*curr_prof_vec)[profile_pc];                                                                \
+        ++prof_info.first;                                                                                             \
+        prof_info.second += dt;                                                                                        \
+        ZOP_CPU[z.op] += dt;                                                                                           \
+    }
+#define ZAM_PROFILE_PRE_CALL                                                                                           \
+    caller_locs.push_back(z.loc);                                                                                      \
+    if ( ! z.aux->is_BiF_call ) { /* For non-BiFs we don't include the callee's execution time as part of our own */   \
+        DO_ZAM_PROFILE                                                                                                 \
+    }
+
+#define ZAM_PROFILE_POST_CALL                                                                                          \
+    caller_locs.pop_back();                                                                                            \
+    if ( ! z.aux->is_BiF_call ) { /* We already did the profiling, move on to next instruction */                      \
+        ++pc;                                                                                                          \
+        continue;                                                                                                      \
+    }
+
+#else
+
+#define DO_ZAM_PROFILE
+#define ZAM_PROFILE_PRE_CALL
+#define ZAM_PROFILE_POST_CALL
+
+#endif
 
 using std::vector;
 
@@ -42,8 +93,10 @@ double ZOP_CPU[OP_NOP + 1];
 
 void report_ZOP_profile() {
     for ( int i = 1; i <= OP_NOP; ++i )
-        if ( ZOP_count[i] > 0 )
-            printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], ZOP_CPU[i]);
+        if ( ZOP_count[i] > 0 ) {
+            auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * prof_overhead, 0.0);
+            printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], CPU);
+        }
 }
 
 // Sets the given element to a copy of an existing (not newly constructed)
@@ -120,8 +173,8 @@ VEC_COERCE(IU, TYPE_INT, zeek_int_t, AsCount(), count_to_int_would_overflow, "un
 VEC_COERCE(UD, TYPE_COUNT, zeek_uint_t, AsDouble(), double_to_count_would_overflow, "double to unsigned")
 VEC_COERCE(UI, TYPE_COUNT, zeek_int_t, AsInt(), int_to_count_would_overflow, "signed to unsigned")
 
-ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
-    func_name = _func_name;
+ZBody::ZBody(std::string _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
+    func_name = std::move(_func_name);
 
     frame_denizens = zc->FrameDenizens();
     frame_size = frame_denizens.size();
@@ -170,9 +223,6 @@ ZBody::ZBody(const char* _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
 ZBody::~ZBody() {
     delete[] fixed_frame;
     delete[] insts;
-    delete inst_count;
-    delete inst_CPU;
-    delete CPU_time;
 }
 
 void ZBody::SetInsts(vector<ZInst*>& _insts) {
@@ -194,12 +244,6 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
     for ( auto i = 0U; i < end_pc; ++i ) {
         auto& iI = *instsI[i];
         insts_copy[i] = iI;
-        if ( iI.stmt ) {
-            auto l = iI.stmt->GetLocationInfo();
-            if ( l != &no_location )
-                insts_copy[i].loc = std::make_shared<Location>(l->filename, l->first_line, l->last_line,
-                                                               l->first_column, l->last_column);
-        }
     }
 
     insts = insts_copy;
@@ -208,29 +252,30 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
 }
 
 void ZBody::InitProfile() {
-    if ( analysis_options.profile_ZAM ) {
-        inst_count = new vector<int>;
-        inst_CPU = new vector<double>;
-        for ( auto i = 0U; i < end_pc; ++i ) {
-            inst_count->push_back(0);
-            inst_CPU->push_back(0.0);
-        }
+    if ( analysis_options.profile_ZAM )
+        curr_prof_vec = default_prof_vec = BuildProfVec();
+}
 
-        CPU_time = new double;
-        *CPU_time = 0.0;
-    }
+std::shared_ptr<ProfVec> ZBody::BuildProfVec() const {
+    auto pv = std::make_shared<ProfVec>();
+    pv->resize(end_pc);
+
+    for ( auto i = 0U; i < end_pc; ++i )
+        (*pv)[i] = std::pair<zeek_uint_t, double>{0, 0.0};
+
+    return pv;
 }
 
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     double t = analysis_options.profile_ZAM ? util::curr_CPU_time() : 0.0;
 #endif
 
     auto val = DoExec(f, flow);
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     if ( analysis_options.profile_ZAM )
-        *CPU_time += util::curr_CPU_time() - t;
+        CPU_time += util::curr_CPU_time() - t;
 #endif
 
     return val;
@@ -245,8 +290,19 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     // Type of the return value.  If nil, then we don't have a value.
     TypePtr ret_type;
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
     bool do_profile = analysis_options.profile_ZAM;
+
+    if ( do_profile ) {
+        if ( caller_locs.empty() )
+            curr_prof_vec = default_prof_vec;
+        else {
+            auto pv = prof_vecs.find(caller_locs);
+            if ( pv == prof_vecs.end() )
+                pv = prof_vecs.insert({caller_locs, BuildProfVec()}).first;
+            curr_prof_vec = pv->second;
+        }
+    }
 #endif
 
     ZVal* frame;
@@ -276,13 +332,13 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     while ( pc < end_pc && ! ZAM_error ) {
         auto& z = insts[pc];
 
-#ifdef DEBUG
+#ifdef ENABLE_ZAM_PROFILE
         int profile_pc = 0;
         double profile_CPU = 0.0;
 
         if ( do_profile ) {
             ++ZOP_count[z.op];
-            ++(*inst_count)[pc];
+            ++ninst;
 
             profile_pc = pc;
             profile_CPU = util::curr_CPU_time();
@@ -302,13 +358,7 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
             default: reporter->InternalError("bad ZAM opcode");
         }
 
-#ifdef DEBUG
-        if ( do_profile ) {
-            double dt = util::curr_CPU_time() - profile_CPU;
-            inst_CPU->at(profile_pc) += dt;
-            ZOP_CPU[z.op] += dt;
-        }
-#endif
+        DO_ZAM_PROFILE
 
         ++pc;
     }
@@ -343,27 +393,75 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     return result;
 }
 
-void ZBody::ProfileExecution() const {
-    if ( inst_count->empty() ) {
-        printf("%s has an empty body\n", func_name);
+void ZBody::ProfileExecution(ProfMap& pm) {
+    static bool did_overhead_report = false;
+
+    if ( ! did_overhead_report ) {
+        printf("Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
+        did_overhead_report = true;
+    }
+
+    if ( end_pc == 0 ) {
+        printf("%s has an empty body\n", func_name.c_str());
         return;
     }
 
-    if ( (*inst_count)[0] == 0 ) {
-        printf("%s did not execute\n", func_name);
+    auto& dpv = *default_prof_vec;
+
+    if ( dpv[0].first == 0 && prof_vecs.empty() ) {
+        printf("%s did not execute\n", func_name.c_str());
         return;
     }
 
-    printf("%s CPU time: %.06f\n", func_name, *CPU_time);
+    int ncall = dpv[0].first;
+    for ( auto [_, pv] : prof_vecs )
+        ncall += (*pv)[0].first;
 
-    for ( auto i = 0U; i < inst_count->size(); ++i ) {
-        printf("%s %d %d %.06f ", func_name, i, (*inst_count)[i], (*inst_CPU)[i]);
-        insts[i].Dump(i, &frame_denizens);
+    adj_CPU_time = CPU_time - ninst * prof_overhead;
+
+    printf("%s CPU time %.06f, %d calls, %d instructions\n", func_name.c_str(), adj_CPU_time, ncall, ninst);
+
+    if ( dpv[0].first != 0 )
+        ReportProfile(pm, dpv, "", {});
+
+    for ( auto& pv : prof_vecs ) {
+        std::string prefix;
+        std::set<std::string> modules;
+        for ( auto& caller : pv.first ) {
+            prefix += caller->Describe(true) + ";";
+            caller->AddInModules(modules);
+        }
+
+        ReportProfile(pm, *pv.second, prefix, std::move(modules));
+    }
+}
+
+void ZBody::ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
+                          std::set<std::string> caller_modules) const {
+    for ( auto i = 0U; i < pv.size(); ++i ) {
+        auto ninst = pv[i].first;
+        auto CPU = pv[i].second;
+        CPU = std::max(CPU - ninst * prof_overhead, 0.0);
+        printf("%s %d %" PRId64 " %.06f ", func_name.c_str(), i, ninst, CPU);
+        insts[i].Dump(i, &frame_denizens, prefix);
+
+        auto modules = caller_modules;
+        insts[i].loc->AddInModules(modules);
+
+        for ( auto& m : modules ) {
+            auto mod_prof = pm.find(m);
+            if ( mod_prof == pm.end() )
+                pm[m] = std::pair<zeek_uint_t, double>{ninst, CPU};
+            else {
+                mod_prof->second.first += ninst;
+                mod_prof->second.second += CPU;
+            }
+        }
     }
 }
 
 bool ZBody::CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
-                         const std::shared_ptr<Location>& loc) const {
+                         const std::shared_ptr<ZAMLocInfo>& loc) const {
     if ( IsAny(expected_type) )
         return true;
 
@@ -382,7 +480,7 @@ bool ZBody::CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
         char buf[8192];
         snprintf(buf, sizeof buf, "run-time type clash (%s/%s)", type_name(at), type_name(et));
 
-        reporter->RuntimeError(loc.get(), "%s", buf);
+        reporter->RuntimeError(loc->Loc(), "%s", buf);
         return false;
     }
 
@@ -411,13 +509,13 @@ void ZBody::Dump() const {
     for ( unsigned i = 0; i < end_pc; ++i ) {
         auto& inst = insts[i];
         printf("%d: ", i);
-        inst.Dump(i, &frame_denizens);
+        inst.Dump(i, &frame_denizens, "");
     }
 }
 
 void ZBody::StmtDescribe(ODesc* d) const {
     d->AddSP("ZAM-code");
-    d->AddSP(func_name);
+    d->Add(func_name.c_str());
 }
 
 TraversalCode ZBody::Traverse(TraversalCallback* cb) const {

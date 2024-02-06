@@ -22,8 +22,6 @@ namespace zeek {
 template<class T>
 class IntrusivePtr;
 
-using ObjPtr = IntrusivePtr<Obj>;
-
 namespace detail {
 
 class Frame;
@@ -1794,28 +1792,8 @@ inline bool is_vector(const ExprPtr& e) { return is_vector(e.get()); }
 
 // True if the given Expr* has a list type
 inline bool is_list(Expr* e) { return e->GetType()->Tag() == TYPE_LIST; }
+
 inline bool is_list(const ExprPtr& e) { return is_list(e.get()); }
-
-// Helper functions for setting the location of an expression (usually newly
-// created) to match that of the associated object, returning the expression
-// for convenience.
-inline ExprPtr with_location_of(ExprPtr e, const Obj* o) {
-    e->SetLocationInfo(o->GetLocationInfo());
-    return e;
-}
-
-inline ExprPtr with_location_of(ExprPtr e, const ObjPtr& o) { return with_location_of(e, o.get()); }
-
-// Versions that preserve the expression as a ListExpr.
-inline ListExprPtr with_location_of(ListExprPtr e, const ObjPtr& o) {
-    (void)with_location_of(e, o.get());
-    return e;
-}
-
-inline ListExprPtr with_location_of(ListExprPtr e, const Obj* o) {
-    e->SetLocationInfo(o->GetLocationInfo());
-    return e;
-}
 
 } // namespace detail
 } // namespace zeek

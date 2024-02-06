@@ -780,25 +780,4 @@ protected:
     int expected_len;
 };
 
-// Helper functions for setting the location of a statement (usually newly
-// created) to match that of the associated object, returning the statement
-// for convenience.
-inline StmtPtr with_location_of(StmtPtr s, const Obj* o) {
-    s->SetLocationInfo(o->GetLocationInfo());
-    return s;
-}
-
-inline StmtPtr with_location_of(StmtPtr s, const ObjPtr& o) { return with_location_of(s, o.get()); }
-
-// Versions that preserve the statement as a StmtList.
-inline IntrusivePtr<StmtList> with_location_of(IntrusivePtr<StmtList> s, const ObjPtr& o) {
-    (void)with_location_of(s, o.get());
-    return s;
-}
-
-inline IntrusivePtr<StmtList> with_location_of(IntrusivePtr<StmtList> s, const Obj* o) {
-    s->SetLocationInfo(o->GetLocationInfo());
-    return s;
-}
-
 } // namespace zeek::detail

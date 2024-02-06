@@ -15,5 +15,5 @@ zeek_add_plugin(
     websocket-protocol.pac)
 
 if (USE_SPICY_ANALYZERS)
-    spicy_add_analyzer(NAME WebSocket SOURCES websocket.spicy websocket.evt)
+    spicy_add_analyzer(NAME WebSocket SOURCES websocket.spicy websocket.evt unmask.cc)
 endif ()

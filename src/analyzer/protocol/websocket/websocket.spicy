@@ -12,25 +12,11 @@ const OPCODE_CLOSE        = 0x08;
 const OPCODE_PING         = 0x09;
 const OPCODE_PONG         = 0x0a;
 
-# Are bytes copied like a string in C++, or is that ref counted and cheap
-# like it would be in Python?
-function unmask(inout f: Frame, chunk: bytes): bytes {
-  if ( ! f.mask )
-    return chunk;
-
-  local unmasked_chunk: bytes;
-  local i = 0;
-  # This is very very expensive :-( Creates a new shared_ptr for
-  # each byte we iterate over it seems. Visible in the first
-  # flamegraph I looked at.
-  for ( c in chunk ) {
-    unmasked_chunk += c ^ f.masking_key[f.masking_key_idx % 4];
-    i++;
-    f.masking_key_idx++;
-  }
-
-  return unmasked_chunk;
-}
+public function fast_unmask(
+  masking_key_idx: uint64,
+  masking_key: vector<uint8>,
+  chunk: bytes
+): bytes &cxxname="hlt_websocket::WebSocket::fast_unmask";
 
 type Frame = unit(m: Message) {
   var payload_len: uint64;
@@ -71,9 +57,14 @@ type Frame = unit(m: Message) {
   # runtime when I tested it.
   masking_key: uint8[] &size=4 if (self.mask);
 
-  chunk: bytes &size=self.payload_len &chunked &convert=unmask(self, $$) {
-    self.chunk = $$;  # workaround to trigger websocket_frame_data
-                      # which has no access to $$ (???)
+  chunk: bytes &size=self.payload_len &chunked {
+    # Don't use &convert with &chunked: https://github.com/zeek/spicy/issues/1661
+    if ( self.mask ) {
+      self.chunk = fast_unmask(self.masking_key_idx, self.masking_key, $$);
+      self.masking_key_idx += |$$|;
+    } else {
+      self.chunk = $$;
+    }
 
     # Forward TEXT and BINARY data to dowstream analyzers.
     if ( self.effective_opcode == OPCODE_TEXT || self.effective_opcode == OPCODE_BINARY )

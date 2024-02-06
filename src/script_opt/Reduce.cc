@@ -38,13 +38,7 @@ StmtPtr Reducer::Reduce(StmtPtr s) {
 }
 
 ExprPtr Reducer::GenTemporaryExpr(const TypePtr& t, ExprPtr rhs) {
-    auto e = make_intrusive<NameExpr>(GenTemporary(t, rhs));
-    e->SetLocationInfo(rhs->GetLocationInfo());
-
-    // No need to associate with current statement, since these
-    // are not generated during optimization.
-
-    return e;
+    return with_location_of(make_intrusive<NameExpr>(GenTemporary(t, rhs)), rhs);
 }
 
 NameExprPtr Reducer::UpdateName(NameExprPtr n) {
@@ -117,6 +111,7 @@ bool Reducer::ID_IsReduced(const ID* id) const {
 
 StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
     auto param = GenInlineBlockName(id);
+    param->SetLocationInfo(rhs->GetLocationInfo());
     auto rhs_id = rhs->Tag() == EXPR_NAME ? rhs->AsNameExpr()->IdPtr() : nullptr;
 
     if ( rhs_id && pf->Locals().count(rhs_id.get()) == 0 && ! rhs_id->IsConst() )
@@ -145,9 +140,10 @@ StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
 
         param_temps.insert(param_id.get());
         param = make_intrusive<NameExpr>(param_id);
+        param->SetLocationInfo(rhs->GetLocationInfo());
     }
 
-    auto assign = make_intrusive<AssignExpr>(param, rhs, false, nullptr, nullptr, false);
+    auto assign = with_location_of(make_intrusive<AssignExpr>(param, rhs, false, nullptr, nullptr, false), rhs);
     return make_intrusive<ExprStmt>(assign);
 }
 
@@ -209,9 +205,15 @@ ExprPtr Reducer::NewVarUsage(IDPtr var, const Expr* orig) {
     return var_usage;
 }
 
-void Reducer::BindExprToCurrStmt(const ExprPtr& e) { e->GetOptInfo()->stmt_num = curr_stmt->GetOptInfo()->stmt_num; }
+void Reducer::BindExprToCurrStmt(const ExprPtr& e) {
+    e->GetOptInfo()->stmt_num = curr_stmt->GetOptInfo()->stmt_num;
+    e->SetLocationInfo(curr_stmt->GetLocationInfo());
+}
 
-void Reducer::BindStmtToCurrStmt(const StmtPtr& s) { s->GetOptInfo()->stmt_num = curr_stmt->GetOptInfo()->stmt_num; }
+void Reducer::BindStmtToCurrStmt(const StmtPtr& s) {
+    s->GetOptInfo()->stmt_num = curr_stmt->GetOptInfo()->stmt_num;
+    s->SetLocationInfo(curr_stmt->GetLocationInfo());
+}
 
 bool Reducer::SameOp(const Expr* op1, const Expr* op2) {
     if ( op1 == op2 )
@@ -597,6 +599,7 @@ ConstExprPtr Reducer::Fold(ExprPtr e) {
 }
 
 void Reducer::FoldedTo(ExprPtr e, ConstExprPtr c) {
+    c->SetLocationInfo(e->GetLocationInfo());
     om.AddObj(e.get());
     constant_exprs[e.get()] = std::move(c);
     folded_exprs.push_back(std::move(e));
@@ -638,14 +641,14 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
             // about it being assigned but not used (though
             // we can still omit the assignment).
             constant_vars.insert(id);
-            return make_intrusive<ConstExpr>(is_const->ValuePtr());
+            return with_location_of(make_intrusive<ConstExpr>(is_const->ValuePtr()), e);
         }
 
         return e;
     }
 
     if ( tmp_var->Const() )
-        return make_intrusive<ConstExpr>(tmp_var->Const()->ValuePtr());
+        return with_location_of(make_intrusive<ConstExpr>(tmp_var->Const()->ValuePtr()), e);
 
     auto alias = tmp_var->Alias();
     if ( alias ) {
@@ -667,7 +670,7 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
         return e;
 
     auto c = rhs->AsConstExpr();
-    return make_intrusive<ConstExpr>(c->ValuePtr());
+    return with_location_of(make_intrusive<ConstExpr>(c->ValuePtr()), e);
 }
 
 StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& succ_stmt) {
@@ -720,7 +723,7 @@ StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& suc
 
     // Got it.  Mark the original temporary as no longer relevant.
     lhs_tmp->Deactivate();
-    auto merge_e = make_intrusive<AssignExpr>(a_lhs_deref, rhs, false, nullptr, nullptr, false);
+    auto merge_e = with_location_of(make_intrusive<AssignExpr>(a_lhs_deref, rhs, false, nullptr, nullptr, false), lhs);
     auto merge_e_stmt = make_intrusive<ExprStmt>(merge_e);
 
     // Update the associated stmt_num's.  For strict correctness, we

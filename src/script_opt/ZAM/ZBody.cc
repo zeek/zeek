@@ -195,7 +195,7 @@ void ZBody::SetInsts(vector<ZInstI*>& instsI) {
         auto& iI = *instsI[i];
         insts_copy[i] = iI;
         if ( iI.stmt ) {
-            auto l = iI.stmt->Original()->GetLocationInfo();
+            auto l = iI.stmt->GetLocationInfo();
             if ( l != &no_location )
                 insts_copy[i].loc = std::make_shared<Location>(l->filename, l->first_line, l->last_line,
                                                                l->first_column, l->last_column);

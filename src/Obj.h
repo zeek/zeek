@@ -49,6 +49,13 @@ inline void set_location(const Location start, const Location end) {
     end_location = end;
 }
 
+// Helper for updating e's location to the one used by o, returning e.
+template<typename T, typename U>
+T with_location_of(T e, const U& o) {
+    e->SetLocationInfo(o->GetLocationInfo());
+    return e;
+}
+
 } // namespace detail
 
 class Obj {

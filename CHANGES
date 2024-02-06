@@ -1,3 +1,9 @@
+6.2.0-dev.515 | 2024-02-06 11:22:26 +0100
+
+  * Obj: Implement with_location_of() as template (Arne Welzel, Corelight)
+
+  * fixes & enhancements to location information associated w/ AST nodes & ZAM optimization (Vern Paxson, Corelight)
+
 6.2.0-dev.512 | 2024-02-06 09:55:48 +0100
 
   * Do not default PoolSpec topics to the empty string. (Christian Kreibich, Corelight)

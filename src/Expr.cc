@@ -446,7 +446,7 @@ ExprPtr NameExpr::MakeLvalue() {
     if ( id->IsOption() && ! in_const_init )
         ExprError("option is not a modifiable lvalue");
 
-    return make_intrusive<RefExpr>(ThisPtr());
+    return with_location_of(make_intrusive<RefExpr>(ThisPtr()), this);
 }
 
 void NameExpr::Assign(Frame* f, ValPtr v) {
@@ -1038,9 +1038,9 @@ void BinaryExpr::PromoteOps(TypeTag t) {
         bt2 = op2->GetType()->AsVectorType()->Yield()->Tag();
 
     if ( bt1 != t )
-        op1 = make_intrusive<ArithCoerceExpr>(op1, t);
+        op1 = with_location_of(make_intrusive<ArithCoerceExpr>(op1, t), op1);
     if ( bt2 != t )
-        op2 = make_intrusive<ArithCoerceExpr>(op2, t);
+        op2 = with_location_of(make_intrusive<ArithCoerceExpr>(op2, t), op2);
 }
 
 void BinaryExpr::PromoteType(TypeTag t, bool is_vector) {
@@ -1059,7 +1059,7 @@ void BinaryExpr::PromoteForInterval(ExprPtr& op) {
         SetType(base_type(TYPE_INTERVAL));
 
     if ( op->GetType()->Tag() != TYPE_DOUBLE )
-        op = make_intrusive<ArithCoerceExpr>(op, TYPE_DOUBLE);
+        op = with_location_of(make_intrusive<ArithCoerceExpr>(op, TYPE_DOUBLE), op);
 }
 
 bool BinaryExpr::CheckForRHSList() {
@@ -1078,7 +1078,7 @@ bool BinaryExpr::CheckForRHSList() {
 
             for ( auto i = 1U; i < rhs_exprs.size(); ++i ) {
                 ExprPtr re_i = {NewRef{}, rhs_exprs[i]};
-                op2 = make_intrusive<BitExpr>(EXPR_OR, op2, re_i);
+                op2 = with_location_of(make_intrusive<BitExpr>(EXPR_OR, op2, re_i), op2);
             }
 
             SetType(op1->GetType());
@@ -1098,9 +1098,9 @@ bool BinaryExpr::CheckForRHSList() {
         }
 
         if ( lhs_t->IsTable() )
-            op2 = make_intrusive<TableConstructorExpr>(rhs, nullptr, lhs_t);
+            op2 = with_location_of(make_intrusive<TableConstructorExpr>(rhs, nullptr, lhs_t), op2);
         else
-            op2 = make_intrusive<SetConstructorExpr>(rhs, nullptr, lhs_t);
+            op2 = with_location_of(make_intrusive<SetConstructorExpr>(rhs, nullptr, lhs_t), op2);
     }
 
     else if ( lhs_t->Tag() == TYPE_VECTOR ) {
@@ -1109,7 +1109,7 @@ bool BinaryExpr::CheckForRHSList() {
             return false;
         }
 
-        op2 = make_intrusive<VectorConstructorExpr>(rhs, lhs_t);
+        op2 = with_location_of(make_intrusive<VectorConstructorExpr>(rhs, lhs_t), op2);
     }
 
     else {
@@ -1422,7 +1422,7 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
         if ( IsArithmetic(bt1) ) {
             if ( IsArithmetic(bt2) ) {
                 if ( bt2 != bt1 )
-                    op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
+                    op2 = with_location_of(make_intrusive<ArithCoerceExpr>(op2, bt1), op2);
 
                 SetType(t1);
             }
@@ -2007,9 +2007,9 @@ CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
         if ( BothArithmetic(bt2, bt3) ) {
             TypeTag t = max_type(bt2, bt3);
             if ( bt2 != t )
-                op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), t);
+                op2 = with_location_of(make_intrusive<ArithCoerceExpr>(op2, t), op2);
             if ( bt3 != t )
-                op3 = make_intrusive<ArithCoerceExpr>(std::move(op3), t);
+                op3 = with_location_of(make_intrusive<ArithCoerceExpr>(op3, t), op3);
 
             if ( is_vector(op1) )
                 SetType(make_intrusive<VectorType>(base_type(t)));
@@ -2031,9 +2031,11 @@ CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
                 auto tt3 = op3->GetType<TableType>();
 
                 if ( tt2->IsUnspecifiedTable() )
-                    op2 = make_intrusive<TableCoerceExpr>(std::move(op2), std::move(tt3));
+                    op2 = with_location_of(make_intrusive<TableCoerceExpr>(op2, std::move(tt3)), op2);
+
                 else if ( tt3->IsUnspecifiedTable() )
-                    op3 = make_intrusive<TableCoerceExpr>(std::move(op3), std::move(tt2));
+                    op3 = with_location_of(make_intrusive<TableCoerceExpr>(op3, std::move(tt2)), op3);
+
                 else if ( ! same_type(op2->GetType(), op3->GetType()) )
                     ExprError("operands must be of the same type");
             }
@@ -2042,9 +2044,9 @@ CondExpr::CondExpr(ExprPtr arg_op1, ExprPtr arg_op2, ExprPtr arg_op3)
                 auto vt3 = op3->GetType<VectorType>();
 
                 if ( vt2->IsUnspecifiedVector() )
-                    op2 = make_intrusive<VectorCoerceExpr>(std::move(op2), std::move(vt3));
+                    op2 = with_location_of(make_intrusive<VectorCoerceExpr>(op2, std::move(vt3)), op2);
                 else if ( vt3->IsUnspecifiedVector() )
-                    op3 = make_intrusive<VectorCoerceExpr>(std::move(op3), std::move(vt2));
+                    op3 = with_location_of(make_intrusive<VectorCoerceExpr>(op3, std::move(vt2)), op3);
                 else if ( ! same_type(op2->GetType(), op3->GetType()) )
                     ExprError("operands must be of the same type");
             }
@@ -2199,23 +2201,24 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs) {
         return TypeCheckArithmetics(bt1, bt2);
 
     if ( bt1 == TYPE_TIME && IsArithmetic(bt2) && op2->IsZero() ) { // Allow assignments to zero as a special case.
-        op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
+        op2 = with_location_of(make_intrusive<ArithCoerceExpr>(op2, bt1), op2);
         return true;
     }
 
     if ( bt1 == TYPE_TABLE && bt2 == bt1 && op2->GetType()->AsTableType()->IsUnspecifiedTable() ) {
-        op2 = make_intrusive<TableCoerceExpr>(std::move(op2), op1->GetType<TableType>());
+        op2 = with_location_of(make_intrusive<TableCoerceExpr>(op2, op1->GetType<TableType>()), op2);
         return true;
     }
 
     if ( bt1 == TYPE_VECTOR ) {
         if ( bt2 == bt1 && op2->GetType()->AsVectorType()->IsUnspecifiedVector() ) {
-            op2 = make_intrusive<VectorCoerceExpr>(std::move(op2), op1->GetType<VectorType>());
+            op2 = with_location_of(make_intrusive<VectorCoerceExpr>(op2, op1->GetType<VectorType>()), op2);
             return true;
         }
 
         if ( op2->Tag() == EXPR_LIST ) {
-            op2 = make_intrusive<VectorConstructorExpr>(cast_intrusive<ListExpr>(op2), op1->GetType());
+            op2 = with_location_of(make_intrusive<VectorConstructorExpr>(cast_intrusive<ListExpr>(op2), op1->GetType()),
+                                   op2);
             return true;
         }
     }
@@ -2225,7 +2228,7 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs) {
             return true;
 
         // Need to coerce.
-        op2 = make_intrusive<RecordCoerceExpr>(std::move(op2), op1->GetType<RecordType>());
+        op2 = with_location_of(make_intrusive<RecordCoerceExpr>(op2, op1->GetType<RecordType>()), op2);
         return true;
     }
 
@@ -2249,7 +2252,9 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs) {
                 }
 
                 int errors_before = reporter->Errors();
-                op2 = make_intrusive<SetConstructorExpr>(ctor_list, std::move(attr_copy), op1->GetType());
+                op2 = with_location_of(make_intrusive<SetConstructorExpr>(ctor_list, std::move(attr_copy),
+                                                                          op1->GetType()),
+                                       op2);
                 int errors_after = reporter->Errors();
 
                 if ( errors_after > errors_before ) {
@@ -2282,7 +2287,7 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2) {
 
     if ( bt2 == TYPE_DOUBLE ) {
         Warn("dangerous assignment of double to integral");
-        op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
+        op2 = with_location_of(make_intrusive<ArithCoerceExpr>(op2, bt1), op2);
         bt2 = op2->GetType()->Tag();
     }
 
@@ -2291,7 +2296,7 @@ bool AssignExpr::TypeCheckArithmetics(TypeTag bt1, TypeTag bt2) {
     else {
         if ( bt2 == TYPE_INT ) {
             Warn("dangerous assignment of integer to count");
-            op2 = make_intrusive<ArithCoerceExpr>(std::move(op2), bt1);
+            op2 = with_location_of(make_intrusive<ArithCoerceExpr>(op2, bt1), op2);
         }
 
         // Assignment of count to counter or vice
@@ -2483,7 +2488,7 @@ ExprPtr IndexExpr::MakeLvalue() {
     if ( IsString(op1->GetType()->Tag()) )
         ExprError("cannot assign to string index expression");
 
-    return make_intrusive<RefExpr>(ThisPtr());
+    return with_location_of(make_intrusive<RefExpr>(ThisPtr()), this);
 }
 
 ValPtr IndexExpr::Eval(Frame* f) const {
@@ -2689,7 +2694,7 @@ FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
 
 FieldExpr::~FieldExpr() { delete[] field_name; }
 
-ExprPtr FieldExpr::MakeLvalue() { return make_intrusive<RefExpr>(ThisPtr()); }
+ExprPtr FieldExpr::MakeLvalue() { return with_location_of(make_intrusive<RefExpr>(ThisPtr()), this); }
 
 bool FieldExpr::CanDel() const { return td->GetAttr(ATTR_DEFAULT) || td->GetAttr(ATTR_OPTIONAL); }
 
@@ -2924,7 +2929,7 @@ TraversalCode RecordConstructorExpr::Traverse(TraversalCallback* cb) const {
 }
 
 static ExprPtr expand_one_elem(const ExprPList& index_exprs, ExprPtr yield, ExprPtr elem, int elem_offset) {
-    auto expanded_elem = make_intrusive<ListExpr>();
+    auto expanded_elem = with_location_of(make_intrusive<ListExpr>(), elem);
 
     for ( int i = 0; i < index_exprs.length(); ++i )
         if ( i == elem_offset )
@@ -2933,7 +2938,7 @@ static ExprPtr expand_one_elem(const ExprPList& index_exprs, ExprPtr yield, Expr
             expanded_elem->Append({NewRef{}, index_exprs[i]});
 
     if ( yield )
-        return make_intrusive<AssignExpr>(expanded_elem, yield, true);
+        return with_location_of(make_intrusive<AssignExpr>(expanded_elem, yield, true), elem);
     else
         return expanded_elem;
 }
@@ -3012,7 +3017,7 @@ static bool expand_op_elem(ListExprPtr elems, ExprPtr elem, TypePtr t) {
         }
 
         for ( auto& s_elem : v->AsTableVal()->ToMap() ) {
-            auto c_elem = make_intrusive<ConstExpr>(s_elem.first);
+            auto c_elem = with_location_of(make_intrusive<ConstExpr>(s_elem.first), elem);
             elems->Append(expand_one_elem(index_exprs, yield, c_elem, set_offset));
         }
 
@@ -3035,7 +3040,7 @@ static bool expand_op_elem(ListExprPtr elems, ExprPtr elem, TypePtr t) {
 }
 
 ListExprPtr expand_op(ListExprPtr op, const TypePtr& t) {
-    auto new_list = make_intrusive<ListExpr>();
+    auto new_list = with_location_of(make_intrusive<ListExpr>(), op);
     bool did_expansion = false;
 
     for ( auto e : op->Exprs() ) {
@@ -3828,7 +3833,7 @@ InExpr::InExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_IN, std::move
     }
 
     if ( op1->Tag() != EXPR_LIST )
-        op1 = make_intrusive<ListExpr>(std::move(op1));
+        op1 = with_location_of(make_intrusive<ListExpr>(op1), op1);
 
     ListExpr* lop1 = op1->AsListExpr();
 
@@ -4497,7 +4502,7 @@ ExprPtr ListExpr::MakeLvalue() {
         if ( expr->Tag() != EXPR_NAME )
             ExprError("can only assign to list of identifiers");
 
-    return make_intrusive<RefExpr>(ThisPtr());
+    return with_location_of(make_intrusive<RefExpr>(ThisPtr()), this);
 }
 
 void ListExpr::Assign(Frame* f, ValPtr v) {
@@ -4541,8 +4546,9 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
                 int field = lhs->FieldOffset(field_name);
 
                 if ( field >= 0 && same_type(lhs->GetFieldType(field), t->GetFieldType(j)) ) {
-                    auto fe_lhs = make_intrusive<FieldExpr>(record, field_name);
-                    auto fe_rhs = make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init}, field_name);
+                    auto fe_lhs = with_location_of(make_intrusive<FieldExpr>(record, field_name), init_list);
+                    auto fe_rhs = with_location_of(make_intrusive<FieldExpr>(IntrusivePtr{NewRef{}, init}, field_name),
+                                                   init_list);
                     Append(get_assign_expr(std::move(fe_lhs), std::move(fe_rhs), is_init));
                 }
             }
@@ -4554,7 +4560,7 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
 
             const char* field_name = ""; // rf->FieldName();
             if ( lhs->HasField(field_name) ) {
-                auto fe_lhs = make_intrusive<FieldExpr>(record, field_name);
+                auto fe_lhs = with_location_of(make_intrusive<FieldExpr>(record, field_name), init_list);
                 ExprPtr fe_rhs = {NewRef{}, rf->Op()};
                 Append(get_assign_expr(std::move(fe_lhs), std::move(fe_rhs), is_init));
             }
@@ -4637,14 +4643,19 @@ void IsExpr::ExprDescribe(ODesc* d) const {
 }
 
 ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init) {
+    ExprPtr e;
+
     if ( op1->GetType()->Tag() == TYPE_RECORD && op2->GetType()->Tag() == TYPE_LIST )
-        return make_intrusive<RecordAssignExpr>(std::move(op1), std::move(op2), is_init);
+        e = make_intrusive<RecordAssignExpr>(op1, std::move(op2), is_init);
 
     else if ( op1->Tag() == EXPR_INDEX && op1->AsIndexExpr()->IsSlice() )
-        return make_intrusive<IndexSliceAssignExpr>(std::move(op1), std::move(op2), is_init);
+        e = make_intrusive<IndexSliceAssignExpr>(op1, std::move(op2), is_init);
 
     else
-        return make_intrusive<AssignExpr>(std::move(op1), std::move(op2), is_init);
+        e = make_intrusive<AssignExpr>(op1, std::move(op2), is_init);
+
+    e->SetLocationInfo(op1->GetLocationInfo());
+    return e;
 }
 
 ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t) {
@@ -4654,13 +4665,13 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t) {
 
     if ( t_tag == TYPE_ANY ) {
         if ( e_tag != TYPE_ANY )
-            return make_intrusive<CoerceToAnyExpr>(e);
+            return with_location_of(make_intrusive<CoerceToAnyExpr>(e), e);
 
         return e;
     }
 
     if ( e_tag == TYPE_ANY )
-        return make_intrusive<CoerceFromAnyExpr>(e, t);
+        return with_location_of(make_intrusive<CoerceFromAnyExpr>(e, t), e);
 
     if ( EitherArithmetic(t_tag, e_tag) ) {
         if ( e_tag == t_tag )
@@ -4677,7 +4688,7 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t) {
             return nullptr;
         }
 
-        return make_intrusive<ArithCoerceExpr>(e, t_tag);
+        return with_location_of(make_intrusive<ArithCoerceExpr>(e, t_tag), e);
     }
 
     if ( t->Tag() == TYPE_RECORD && et->Tag() == TYPE_RECORD ) {
@@ -4688,7 +4699,7 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t) {
             return e;
 
         if ( record_promotion_compatible(t_r, et_r) )
-            return make_intrusive<RecordCoerceExpr>(e, IntrusivePtr{NewRef{}, t_r});
+            return with_location_of(make_intrusive<RecordCoerceExpr>(e, IntrusivePtr{NewRef{}, t_r}), e);
 
         t->Error("incompatible record types", e.get());
         return nullptr;
@@ -4718,11 +4729,12 @@ ExprPtr check_and_promote_expr(ExprPtr e, TypePtr t) {
                 }
             }
 
-            return make_intrusive<TableCoerceExpr>(e, IntrusivePtr{NewRef{}, t->AsTableType()}, false);
+            return with_location_of(make_intrusive<TableCoerceExpr>(e, IntrusivePtr{NewRef{}, t->AsTableType()}, false),
+                                    e);
         }
 
         if ( t->Tag() == TYPE_VECTOR && et->Tag() == TYPE_VECTOR && et->AsVectorType()->IsUnspecifiedVector() )
-            return make_intrusive<VectorCoerceExpr>(e, IntrusivePtr{NewRef{}, t->AsVectorType()});
+            return with_location_of(make_intrusive<VectorCoerceExpr>(e, IntrusivePtr{NewRef{}, t->AsVectorType()}), e);
 
         if ( t->Tag() != TYPE_ERROR && et->Tag() != TYPE_ERROR )
             t->Error("type clash", e.get());

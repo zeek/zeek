@@ -365,17 +365,6 @@ public:
     // Helper function to reduce boring code runs.
     StmtPtr MergeStmts(StmtPtr s1, StmtPtr s2, StmtPtr s3 = nullptr) const;
 
-    // Access to the original expression from which this one is derived,
-    // or this one if we don't have an original.  Returns a bare pointer
-    // rather than an ExprPtr to emphasize that the access is read-only.
-    const Expr* Original() const { return original ? original->Original() : this; }
-
-    // Designate the given Expr node as the original for this one.
-    void SetOriginal(ExprPtr _orig) {
-        if ( ! original )
-            original = std::move(_orig);
-    }
-
     // A convenience function for taking a newly-created Expr,
     // making it point to us as the successor, and returning it.
     //
@@ -384,17 +373,10 @@ public:
     // call, as a convenient side effect, transforms that bare pointer
     // into an ExprPtr.
     virtual ExprPtr SetSucc(Expr* succ) {
-        succ->SetOriginal(ThisPtr());
+        succ->SetLocationInfo(GetLocationInfo());
         if ( IsParen() )
             succ->MarkParen();
         return {AdoptRef{}, succ};
-    }
-
-    const detail::Location* GetLocationInfo() const override {
-        if ( original )
-            return original->GetLocationInfo();
-        else
-            return Obj::GetLocationInfo();
     }
 
     // Access script optimization information associated with
@@ -433,11 +415,6 @@ protected:
     ExprTag tag;
     bool paren;
     TypePtr type;
-
-    // The original expression from which this statement was
-    // derived, if any.  Used as an aid for generating meaningful
-    // and correctly-localized error messages.
-    ExprPtr original = nullptr;
 
     // Information associated with the Expr for purposes of
     // script optimization.
@@ -1593,11 +1570,12 @@ private:
 
 class InlineExpr : public Expr {
 public:
-    InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified, StmtPtr body,
-               int frame_offset, TypePtr ret_type);
+    InlineExpr(ScriptFuncPtr sf, ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified,
+               StmtPtr body, int frame_offset, TypePtr ret_type);
 
     bool IsPure() const override;
 
+    const ScriptFuncPtr& Func() const { return sf; }
     ListExprPtr Args() const { return args; }
     StmtPtr Body() const { return body; }
 
@@ -1618,6 +1596,7 @@ protected:
     std::vector<IDPtr> params;
     std::vector<bool> param_is_modified;
     int frame_offset;
+    ScriptFuncPtr sf;
     ListExprPtr args;
     StmtPtr body;
 };

@@ -55,6 +55,12 @@ const char* stmt_name(StmtTag t) {
         "extern",
     };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    if ( int(t) == STMT_ANY )
+        return "any";
+#pragma GCC diagnostic pop
+
     return stmt_names[int(t)];
 }
 

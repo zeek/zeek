@@ -187,6 +187,9 @@ New Functionality
 
 	hook Intel::seen_policy(s: Intel::Seen, found: bool)
 
+- A new ``NetControl::rule_added_policy`` hook has been introduced to allow modification
+  of NetControl rules after they have been added.
+
 Changed Functionality
 ---------------------
 
@@ -212,6 +215,10 @@ Changed Functionality
 - Nested MIME message analysis is now capped at a maximum depth of 100 to prevent
   unbounded MIME message nesting. This limit is configurable with ``MIME::max_depth``.
   A new weird named ``exceeded_mime_max_depth`` is reported when reached.
+
+- The ``netcontrol_catch_release.log`` now contains a plugin column that shows which
+  plugin took an action. The logs also contain information when errors or existing
+	rules are encountered.
 
 Removed Functionality
 ---------------------

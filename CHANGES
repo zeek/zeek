@@ -1,3 +1,27 @@
+6.2.0-dev.519 | 2024-02-06 11:51:26 +0000
+
+  * Netcontrol: add rule_added_policy (Johanna Amann, Corelight)
+
+    rule_added_policy allows the modification of rules just after they have
+    been added. This allows the implementation of some more complex features
+    - like changing rule states depending on insertion in other plugins.
+
+  * Netcontrol: more logging in catch-and-release (Johanna Amann, Corelight)
+
+    Catch-and-release logs now include the plugin that is responsible for an
+    action. Furthermore, the catch-and-release log also includes instances
+    where a rule already existed, and where an error occurred during an
+    operation.
+
+  * Netcontrol: allow supplying explicit name to Debug plugin (Johanna Amann, Corelight)
+
+    This change extends the arguments of NetControl::create_debug, and
+    allows the specification of an optional name argument, which can be used
+    instead of the default-generated name.
+
+    This is helpful when one wants to attach several plugins to verify
+    behavior in those cases.
+
 6.2.0-dev.515 | 2024-02-06 11:22:26 +0100
 
   * Obj: Implement with_location_of() as template (Arne Welzel, Corelight)

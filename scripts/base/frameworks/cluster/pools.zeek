@@ -23,9 +23,9 @@ export {
 	## A pool specification.
 	type PoolSpec: record {
 		## A topic string that can be used to reach all nodes within a pool.
-		topic: string &default = "";
+		topic: string;
 		## The type of nodes that are contained within the pool.
-		node_type: Cluster::NodeType &default = Cluster::PROXY;
+		node_type: Cluster::NodeType;
 		## The maximum number of nodes that may belong to the pool.
 		## If not set, then all available nodes will be added to the pool,
 		## else the cluster framework will automatically limit the pool
@@ -43,7 +43,7 @@ export {
 	## A pool used for distributing data/work among a set of cluster nodes.
 	type Pool: record {
 		## The specification of the pool that was used when registering it.
-		spec: PoolSpec &default = PoolSpec();
+		spec: PoolSpec;
 		## Nodes in the pool, indexed by their name (e.g. "manager").
 		nodes: PoolNodeTable &default = PoolNodeTable();
 		## A list of nodes in the pool in a deterministic order.

@@ -1,3 +1,7 @@
+6.2.0-dev.505 | 2024-02-05 17:18:41 -0800
+
+  * Bump cluster testsuite to latest main (Christian Kreibich, Corelight)
+
 6.2.0-dev.504 | 2024-02-05 12:50:48 -0700
 
   * minor updates and fixes for script optimization maintenance (Vern Paxson, Corelight)

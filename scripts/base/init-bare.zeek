@@ -470,6 +470,12 @@ export {
 	## Whether to enable DPD on WebSocket frame payload by default.
 	const use_dpd_default = T &redef;
 
+	## Whether to use the Spicy WebSocket protocol analyzer.
+	##
+	## As of now, the BinPac version has better performance, but
+	## we may change the default in the future.
+	const use_spicy_analyzer = F &redef;
+
 	## Record type that is passed to :zeek:see:`WebSocket::configure_analyzer`.
 	##
 	## This record allows to configure the WebSocket analyzer given

@@ -1,3 +1,19 @@
+6.2.0-dev.523 | 2024-02-07 13:14:40 +0100
+
+  * websocket: Implement Spicy's unmask in C++ (Arne Welzel, Corelight)
+
+    This improves runtime for the test pcap I have from 22 seconds to
+    12 seconds, about 1.8x times faster.
+
+  * websocket: Add Spicy parser version, too. (Arne Welzel, Corelight)
+
+    The Spicy analyzer is added as a child analyzer when enabled and the
+    WebSocket.cc logic dispatches between the BinPac and Spicy version.
+
+    It substantially slower when tested against a somewhat artificial
+    2.4GB PCAP. The first flamegraph indicates that the unmask() function
+    stands out with 35% of all samples, and above it shared_ptr samples.
+
 6.2.0-dev.519 | 2024-02-06 11:51:26 +0000
 
   * Netcontrol: add rule_added_policy (Johanna Amann, Corelight)

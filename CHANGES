@@ -1,3 +1,9 @@
+6.2.0-dev.528 | 2024-02-07 12:45:30 -0700
+
+  * Update .gitignore to add Emacs and Vim temp files (Tim Wojtulewicz)
+
+  * Update vcpkg submodule to pull in c-ares 1.26.0 to match other platforms (Tim Wojtulewicz)
+
 6.2.0-dev.525 | 2024-02-07 09:36:18 -0800
 
   * Some NEWS updates for 6.2 (Christian Kreibich, Corelight)

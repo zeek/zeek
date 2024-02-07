@@ -190,6 +190,20 @@ New Functionality
 - A new ``NetControl::rule_added_policy`` hook has been introduced to allow modification
   of NetControl rules after they have been added.
 
+- The IP geolocation / ASN lookup features in the script layer provide better
+  configurability. The file names of MaxMind databases are now configurable via
+  the new ``mmdb_city_db``, ``mmdb_country_db``, and ``mmdb_asn_db`` constants,
+  and the previously hardwired fallback search path when not using an
+  ``mmdb_dir`` value is now adjustable via the ``mmdb_dir_fallbacks``
+  vector. Databases opened explicitly via the ``mmdb_open_location_db`` and
+  ``mmdb_open_asn_db`` functions now behave more predictably when updated or
+  removed. For details, see:
+  https://docs.zeek.org/en/master/customizations.html#address-geolocation-and-as-lookups
+
+- The ``zeek-config`` script now provides a set of ``--have-XXX`` checks for
+  features optionally compiled in. Each check reports "yes"/"no" to stdout and
+  exits with 0/1, respectively.
+
 Changed Functionality
 ---------------------
 
@@ -218,7 +232,11 @@ Changed Functionality
 
 - The ``netcontrol_catch_release.log`` now contains a plugin column that shows which
   plugin took an action. The logs also contain information when errors or existing
-	rules are encountered.
+  rules are encountered.
+
+- The ``Cluster::PoolSpec`` record no longer provides default values for its
+  ``topic`` and ``node_type`` fields, since defaults don't fit their intended
+  use and looked confusing in generated documentation.
 
 Removed Functionality
 ---------------------

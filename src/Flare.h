@@ -18,20 +18,20 @@ public:
      */
     Flare();
 
+    ~Flare();
+
     /**
      * @return a file descriptor that will become ready if the flare has been
      *         Fire()'d and not yet Extinguished()'d.
      */
     int FD() const
+    {
 #ifndef _MSC_VER
-    {
         return pipe.ReadFD();
-    }
 #else
-    {
         return recvfd;
-    }
 #endif
+    }
 
     /**
      * Put the object in the "ready" state.

@@ -1,3 +1,35 @@
+6.2.0-dev.533 | 2024-02-08 15:12:16 +0100
+
+  * Bump zeekjs for STMT_ANY deprecation (Arne Welzel, Corelight)
+
+  * GH-3529: Stmt: Deprecate STMT_ANY (Arne Welzel, Corelight)
+
+    This isn't used in-tree and has been misused by some external plugins
+    of mine (zeekjs and zeek-perf-support) for their own Stmt subclasses.
+    These plugins should be updated to use the new STMT_EXTERN statement.
+
+    Handle STMT_ANY explicitly in stmt_name() for the time being
+    to fix #3529 until we remove STMT_ANY for good.
+
+  * Stmt: Introduce STMT_EXTERN (Arne Welzel, Corelight)
+
+    It's currently possible for plugin's to implement their own statement
+    subclasses and override the Exec() implementation. This has been leveraged
+    by ZeekJS [1] and zeek-perf-support [2] as well as a private WASM plugin.
+    All of these used STMT_ANY as the tag of their own statement subclasses.
+
+    With STMT_EXTERN, we make the possibility to add external code into the AST
+    somewhat more supported. It's all in detail space and plugin authors have
+    no guarantee for stability, but it seems such a powerful extension point
+    that IMO we should keep it.
+
+    I'm conscious there's the broader topic how this interacts with ZAM
+    optimization like in-lining or rewriting of statements. However, this
+    already applies to the STMT_ANY usage of the mentioned plugins.
+
+    [1] https://github.com/corelight/zeekjs
+    [2] https://github.com/zeek/zeek-perf-support
+
 6.2.0-dev.528 | 2024-02-07 12:45:30 -0700
 
   * Update .gitignore to add Emacs and Vim temp files (Tim Wojtulewicz)

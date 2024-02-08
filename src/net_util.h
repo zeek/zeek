@@ -207,11 +207,28 @@ extern const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port, cons
  * an empty string.
  *
  * @param m EUI-48 or EUI-64 MAC address to format, as a char array
- * @param len Number of bytes valid starting at *n*. This must be at
- *            least 8 for a valid address.
+ * @param len Number of bytes valid starting at *m*. This must be at
+ *            least 6 for a valid address.
  * @return A string of the formatted MAC. Passes ownership to caller.
  */
 extern std::string fmt_mac(const unsigned char* m, int len);
+
+/**
+ * Given a MAC address, formats it in hex as 00:de:ad:be:ef.
+ * Supports both EUI-48 and EUI-64. If it's neither, returns
+ * an empty buffer.
+ *
+ * This method returns a unique pointer to a buffer that is
+ * null terminated. It can, for example, be directly passed
+ * to a zeek::String instance.
+ *
+ * @param m EUI-48 or EUI-64 MAC address to format, as a char array
+ * @param len Number of bytes valid starting at *m*. This must be at
+ *            least 6 for a valid address.
+ * @return A pair consisting of a uint8_t buffer and its string length.
+ *         The buffer is null terminated and its actual length is + 1.
+ */
+extern std::pair<std::unique_ptr<uint8_t[]>, int> fmt_mac_bytes(const unsigned char* m, int len);
 
 // Read 4 bytes from data and return in network order.
 extern uint32_t extract_uint32(const u_char* data);

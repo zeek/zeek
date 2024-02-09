@@ -37,10 +37,6 @@ Flare::Flare()
     if ( WSAStartup(MAKEWORD(2, 2), &wsaData) != 0 )
         fatalError("WSAStartup failure: %d", WSAGetLastError());
 
-    // Windows sockets are, by default, always blocking. There's fancy ways to do
-    // non-blocking IO using overlapped mode but it's complicated and doesn't always
-    // do what you're expecting. See Fire() and Extinguish() for how we get around
-    // that.
     recvfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if ( recvfd == (int)INVALID_SOCKET )
         fatalError("WSASocket failure: %d", WSAGetLastError());
@@ -91,20 +87,9 @@ Flare::~Flare() {
 void Flare::Fire(bool signal_safe) {
     char tmp = 0;
 
-    for ( ;; ) {
 #ifndef _MSC_VER
+    for ( ;; ) {
         int n = write(pipe.WriteFD(), &tmp, 1);
-#else
-        // Get the number of bytes we can write without blocking. If this number is zero, then
-        // the socket buffer is full and we can break without doing anything.
-        u_long bytes_to_read = 0;
-        if ( ioctlsocket((SOCKET)sendfd, FIONBIO, &bytes_to_read) != 0 )
-            fatalError("Failed to set non-blocking mode on send socket: %d", WSAGetLastError());
-        if ( bytes_to_read == 0 )
-            break;
-
-        int n = send((SOCKET)sendfd, &tmp, 1, 0);
-#endif
         if ( n > 0 )
             // Success -- wrote a byte to pipe.
             break;
@@ -123,28 +108,37 @@ void Flare::Fire(bool signal_safe) {
 
         // No error, but didn't write a byte: try again.
     }
+#else
+    for ( ;; ) {
+        int n = send((SOCKET)sendfd, &tmp, 1, 0);
+        if ( n > 0 )
+            // Success -- wrote a byte to pipe.
+            break;
+
+        if ( n < 0 ) {
+            if ( errno == EAGAIN )
+                // Success: pipe is full and just need at least one byte in it.
+                break;
+
+            if ( errno == EINTR )
+                // Interrupted: try again.
+                continue;
+
+            bad_pipe_op("write", signal_safe);
+        }
+
+        // No error, but didn't write a byte: try again.
+    }
+#endif
 }
 
 int Flare::Extinguish(bool signal_safe) {
     int rval = 0;
     char tmp[256];
 
-    for ( ;; ) {
 #ifndef _MSC_VER
+    for ( ;; ) {
         int n = read(pipe.ReadFD(), &tmp, sizeof(tmp));
-#else
-        // Get the number of bytes we can read without blocking, clamped to the size of our buffer.
-        // If the number of bytes is zero, then the buffer is empty and we can just stop.
-        u_long bytes_to_read = 0;
-        if ( ioctlsocket((SOCKET)recvfd, FIONREAD, &bytes_to_read) != 0 )
-            fatalError("Failed to set non-blocking mode on recv socket: %d", WSAGetLastError());
-        if ( bytes_to_read == 0 )
-            break;
-        else if ( bytes_to_read > sizeof(tmp) )
-            bytes_to_read = sizeof(tmp);
-
-        int n = recv((SOCKET)recvfd, tmp, bytes_to_read, 0);
-#endif
         if ( n >= 0 ) {
             rval += n;
             // Pipe may not be empty yet: try again.
@@ -161,6 +155,35 @@ int Flare::Extinguish(bool signal_safe) {
 
         bad_pipe_op("read", signal_safe);
     }
+#else
+    for ( ;; ) {
+        // Get the number of bytes we can read without blocking, clamped to the size of our buffer.
+        u_long bytes_to_read = 0;
+        if ( ioctlsocket((SOCKET)recvfd, FIONREAD, &bytes_to_read) != 0 )
+            fatalError("Failed to set non-blocking mode on recv socket: %d", WSAGetLastError());
+        if ( bytes_to_read == 0 )
+            break;
+        if ( bytes_to_read > sizeof(tmp) )
+            bytes_to_read = sizeof(tmp);
+
+        int n = recv((SOCKET)recvfd, tmp, bytes_to_read, 0);
+        if ( n >= 0 ) {
+            rval += n;
+            // Pipe may not be empty yet: try again.
+            continue;
+        }
+
+        if ( errno == EAGAIN || errno == EWOULDBLOCK )
+            // Success: pipe is now empty.
+            break;
+
+        if ( errno == EINTR )
+            // Interrupted: try again.
+            continue;
+
+        bad_pipe_op("read", signal_safe);
+    }
+#endif
 
     return rval;
 }

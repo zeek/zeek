@@ -53,7 +53,7 @@ private:
 #ifndef _MSC_VER
     Pipe pipe;
 #else
-    int sendfd, recvfd;
+    unsigned long long sendfd, recvfd;
 #endif
 };
 

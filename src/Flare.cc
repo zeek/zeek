@@ -37,11 +37,15 @@ Flare::Flare()
     if ( WSAStartup(MAKEWORD(2, 2), &wsaData) != 0 )
         fatalError("WSAStartup failure: %d", WSAGetLastError());
 
-    recvfd = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, nullptr, 0, WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
+    // Windows sockets are, by default, always blocking. There's fancy ways to do
+    // non-blocking IO using overlapped mode but it's complicated and doesn't always
+    // do what you're expecting. See Fire() and Extinguish() for how we get around
+    // that.
+    recvfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if ( recvfd == (int)INVALID_SOCKET )
         fatalError("WSASocket failure: %d", WSAGetLastError());
 
-    sendfd = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, nullptr, 0, WSA_FLAG_OVERLAPPED | WSA_FLAG_NO_HANDLE_INHERIT);
+    sendfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if ( sendfd == (int)INVALID_SOCKET )
         fatalError("WSASocket failure: %d", WSAGetLastError());
 
@@ -87,9 +91,20 @@ Flare::~Flare() {
 void Flare::Fire(bool signal_safe) {
     char tmp = 0;
 
-#ifndef _MSC_VER
     for ( ;; ) {
+#ifndef _MSC_VER
         int n = write(pipe.WriteFD(), &tmp, 1);
+#else
+        // Get the number of bytes we can write without blocking. If this number is zero, then
+        // the socket buffer is full and we can break without doing anything.
+        u_long bytes_to_read = 0;
+        if ( ioctlsocket((SOCKET)recvfd, FIONBIO, &bytes_to_read) != 0 )
+            fatalError("Failed to set non-blocking mode on recv socket: %d", WSAGetLastError());
+        if ( bytes_to_read == 0 )
+            break;
+
+        int n = send((SOCKET)sendfd, &tmp, 1, 0);
+#endif
         if ( n > 0 )
             // Success -- wrote a byte to pipe.
             break;
@@ -108,59 +123,28 @@ void Flare::Fire(bool signal_safe) {
 
         // No error, but didn't write a byte: try again.
     }
-#else
-    WSABUF data_buf;
-    data_buf.len = 1;
-    data_buf.buf = &tmp;
-
-    WSAOVERLAPPED send_overlapped;
-    SecureZeroMemory((PVOID)&send_overlapped, sizeof(WSAOVERLAPPED));
-
-    send_overlapped.hEvent = WSACreateEvent();
-    if ( send_overlapped.hEvent == NULL ) {
-        bad_pipe_op(util::fmt("WSACreateEvent failed with error: %d\n", WSAGetLastError()), signal_safe);
-        closesocket(recvfd);
-        closesocket(sendfd);
-        return;
-    }
-
-    DWORD sent_bytes;
-    int err = 0;
-
-    // Try to send data. Fail if we got a socket error but the error wasn't that data
-    // is pending.
-    int n = WSASend(sendfd, &data_buf, 1, &sent_bytes, 0, &send_overlapped, NULL);
-    if ( (n == SOCKET_ERROR) && WSA_IO_PENDING != (err = WSAGetLastError()) ) {
-        bad_pipe_op(util::fmt("WSASend failed: %d", err), signal_safe);
-        return;
-    }
-
-    // Wait for the overlapped event to complete so that we're sure the data got sent.
-    int rc = WSAWaitForMultipleEvents(1, &send_overlapped.hEvent, TRUE, INFINITE, TRUE);
-    if ( rc == WSA_WAIT_FAILED ) {
-        bad_pipe_op(util::fmt("WSAWaitForMultipleEvents(send) failed with error: %d", WSAGetLastError()), signal_safe);
-        return;
-    }
-
-    DWORD flags;
-    rc = WSAGetOverlappedResult(sendfd, &send_overlapped, &sent_bytes, FALSE, &flags);
-    if ( rc == FALSE ) {
-        bad_pipe_op(util::fmt("WSAGetOverlappedResult(send) failed with error: %d", WSAGetLastError()), signal_safe);
-        return;
-    }
-
-    WSAResetEvent(send_overlapped.hEvent);
-    WSACloseEvent(send_overlapped.hEvent);
-#endif
 }
 
 int Flare::Extinguish(bool signal_safe) {
     int rval = 0;
     char tmp[256];
 
-#ifndef _MSC_VER
     for ( ;; ) {
+#ifndef _MSC_VER
         int n = read(pipe.ReadFD(), &tmp, sizeof(tmp));
+#else
+        // Get the number of bytes we can read without blocking, clamped to the size of our buffer.
+        // If the number of bytes is zero, then the buffer is empty and we can just stop.
+        u_long bytes_to_read = 0;
+        if ( ioctlsocket((SOCKET)recvfd, FIONREAD, &bytes_to_read) != 0 )
+            fatalError("Failed to set non-blocking mode on recv socket: %d", WSAGetLastError());
+        if ( bytes_to_read == 0 )
+            break;
+        else if ( bytes_to_read > sizeof(tmp) )
+            bytes_to_read = sizeof(tmp);
+
+        int n = recv((SOCKET)recvfd, tmp, bytes_to_read, 0);
+#endif
         if ( n >= 0 ) {
             rval += n;
             // Pipe may not be empty yet: try again.
@@ -177,52 +161,6 @@ int Flare::Extinguish(bool signal_safe) {
 
         bad_pipe_op("read", signal_safe);
     }
-#else
-    WSABUF data_buf;
-    data_buf.len = 256;
-    data_buf.buf = tmp;
-
-    WSAOVERLAPPED recv_overlapped;
-    SecureZeroMemory((PVOID)&recv_overlapped, sizeof(WSAOVERLAPPED));
-
-    recv_overlapped.hEvent = WSACreateEvent();
-    if ( recv_overlapped.hEvent == NULL ) {
-        bad_pipe_op(util::fmt("WSACreateEvent(recv) failed with error: %d\n", WSAGetLastError()), signal_safe);
-        closesocket(recvfd);
-        closesocket(sendfd);
-        return 0;
-    }
-
-    DWORD recv_bytes = 0;
-    DWORD flags = 0;
-    int err = 0;
-
-    // Try to receive data. Fail if we got a socket error but the error wasn't that data
-    // is pending.
-    int n = WSARecv(recvfd, &data_buf, 1, &recv_bytes, &flags, &recv_overlapped, NULL);
-    if ( (n == SOCKET_ERROR) && WSA_IO_PENDING != (err = WSAGetLastError()) ) {
-        bad_pipe_op(util::fmt("WSARecv failed: %d", err), signal_safe);
-        return 0;
-    }
-
-    // Wait for the overlapped event to complete so that we're sure the data got received.
-    int rc = WSAWaitForMultipleEvents(1, &recv_overlapped.hEvent, TRUE, INFINITE, TRUE);
-    if ( rc == WSA_WAIT_FAILED ) {
-        bad_pipe_op(util::fmt("WSAWaitForMultipleEvents(recv) failed with error: %d", WSAGetLastError()), signal_safe);
-        return 0;
-    }
-
-    rc = WSAGetOverlappedResult(recvfd, &recv_overlapped, &recv_bytes, FALSE, &flags);
-    if ( rc == FALSE ) {
-        bad_pipe_op(util::fmt("WSAGetOverlappedResult(recv) failed with error: %d", WSAGetLastError()), signal_safe);
-        return 0;
-    }
-
-    rval = recv_bytes;
-
-    WSAResetEvent(recv_overlapped.hEvent);
-    WSACloseEvent(recv_overlapped.hEvent);
-#endif
 
     return rval;
 }

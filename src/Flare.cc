@@ -98,8 +98,8 @@ void Flare::Fire(bool signal_safe) {
         // Get the number of bytes we can write without blocking. If this number is zero, then
         // the socket buffer is full and we can break without doing anything.
         u_long bytes_to_read = 0;
-        if ( ioctlsocket((SOCKET)recvfd, FIONBIO, &bytes_to_read) != 0 )
-            fatalError("Failed to set non-blocking mode on recv socket: %d", WSAGetLastError());
+        if ( ioctlsocket((SOCKET)sendfd, FIONBIO, &bytes_to_read) != 0 )
+            fatalError("Failed to set non-blocking mode on send socket: %d", WSAGetLastError());
         if ( bytes_to_read == 0 )
             break;
 

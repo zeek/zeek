@@ -938,10 +938,32 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
         }
 
         case TYPE_INTERVAL: {
-            if ( ! j.IsNumber() )
-                return mismatch_err();
+            if ( j.IsNumber() )
+                return make_intrusive<IntervalVal>(j.GetDouble());
 
-            return make_intrusive<IntervalVal>(j.GetDouble());
+            if ( j.IsString() ) {
+                auto parts = util::split(j.GetString(), " ");
+                if ( parts.size() != 2 )
+                    return "wrong interval format, must be 'value {day|hr|min|sec|msec|usec}'";
+
+                auto value = std::stod(std::string{parts[0]});
+                if ( parts[1] == "day" || parts[1] == "days" )
+                    return make_intrusive<IntervalVal>(value, Days);
+                else if ( parts[1] == "hr" || parts[1] == "hrs" )
+                    return make_intrusive<IntervalVal>(value, Hours);
+                else if ( parts[1] == "min" || parts[1] == "mins" )
+                    return make_intrusive<IntervalVal>(value, Minutes);
+                else if ( parts[1] == "sec" || parts[1] == "secs" )
+                    return make_intrusive<IntervalVal>(value, Seconds);
+                else if ( parts[1] == "msec" || parts[1] == "msecs" )
+                    return make_intrusive<IntervalVal>(value, Milliseconds);
+                else if ( parts[1] == "usec" || parts[1] == "usecs" )
+                    return make_intrusive<IntervalVal>(value, Microseconds);
+                else
+                    return "wrong interval format, must be 'value {day|hr|min|sec|msec|usec}'";
+            }
+
+            return mismatch_err();
         }
 
         case TYPE_PORT: {

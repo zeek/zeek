@@ -45,6 +45,13 @@ Flare::Flare()
     if ( sendfd == (int)INVALID_SOCKET )
         fatalError("WSASocket failure: %d", WSAGetLastError());
 
+    // Set both sockets in non-blocking mode.
+    u_long mode = 1;
+    if ( ioctlsocket((SOCKET)recvfd, FIONBIO, &mode) != 0 )
+        fatalError("Failed to set recv non-blocking mode: %d", WSAGetLastError());
+    if ( ioctlsocket((SOCKET)sendfd, FIONBIO, &mode) != 0 )
+        fatalError("Failed to set send non-blocking mode: %d", WSAGetLastError());
+
     sockaddr_in sa;
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
@@ -157,10 +164,11 @@ int Flare::Extinguish(bool signal_safe) {
     }
 #else
     for ( ;; ) {
-        // Get the number of bytes we can read without blocking, clamped to the size of our buffer.
+        // Get the number of bytes we can read without blocking, clamped to the size of our
+        // buffer. If this returns zero, there's nothing to read and we can move on.
         u_long bytes_to_read = 0;
         if ( ioctlsocket((SOCKET)recvfd, FIONREAD, &bytes_to_read) != 0 )
-            fatalError("Failed to set non-blocking mode on recv socket: %d", WSAGetLastError());
+            fatalError("Failed to lookup available read buffer: %d", WSAGetLastError());
         if ( bytes_to_read == 0 )
             break;
         if ( bytes_to_read > sizeof(tmp) )
@@ -173,7 +181,9 @@ int Flare::Extinguish(bool signal_safe) {
             continue;
         }
 
-        if ( errno == EAGAIN || errno == EWOULDBLOCK )
+        // On Windows, recv may return -1 and set errno to NOERROR if there wasn't
+        // anything to read, instead of setting EAGAIN like UNIX does.
+        if ( errno == EAGAIN || errno == NOERROR)
             // Success: pipe is now empty.
             break;
 

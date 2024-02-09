@@ -938,10 +938,44 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
         }
 
         case TYPE_INTERVAL: {
-            if ( ! j.IsNumber() )
-                return mismatch_err();
+            if ( j.IsNumber() )
+                return make_intrusive<IntervalVal>(j.GetDouble());
 
-            return make_intrusive<IntervalVal>(j.GetDouble());
+            if ( j.IsString() ) {
+                auto parts = util::split(j.GetString(), " ");
+
+                // Strip out any empty items. This can happen if there are
+                // strings of spaces in the original string.
+                parts.erase(std::remove_if(parts.begin(), parts.end(), [](auto x) { return x.empty(); }), parts.end());
+
+                if ( (parts.size() % 2) != 0 )
+                    return "wrong interval format, must be pairs of values with units";
+
+                double interval_secs = 0.0;
+                for ( size_t i = 0; i < parts.size(); i += 2 ) {
+                    auto value = std::stod(std::string{parts[i]});
+                    const auto& unit = parts[i + 1];
+
+                    if ( unit == "day" || unit == "days" )
+                        interval_secs += (value * Days);
+                    else if ( unit == "hr" || unit == "hrs" )
+                        interval_secs += (value * Hours);
+                    else if ( unit == "min" || unit == "mins" )
+                        interval_secs += (value * Minutes);
+                    else if ( unit == "sec" || unit == "secs" )
+                        interval_secs += (value * Seconds);
+                    else if ( unit == "msec" || unit == "msecs" )
+                        interval_secs += (value * Milliseconds);
+                    else if ( unit == "usec" || unit == "usecs" )
+                        interval_secs += (value * Microseconds);
+                    else
+                        return util::fmt("wrong interval format, invalid unit type %s", unit.data());
+                }
+
+                return make_intrusive<IntervalVal>(interval_secs, Seconds);
+            }
+
+            return mismatch_err();
         }
 
         case TYPE_PORT: {

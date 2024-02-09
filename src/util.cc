@@ -2305,13 +2305,12 @@ static void strerror_r_helper(int result, char* buf, size_t buflen) { /* XSI fla
 
 void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen) {
 #ifdef _MSC_VER
-    auto str = "Error number: " + std::to_string(zeek_errno);
-    auto res = str.data();
+    strerror_s(buf, sizeof(buf), errno);
 #else
     auto res = strerror_r(zeek_errno, buf, buflen);
-#endif
     // GNU vs. XSI flavors make it harder to use strerror_r.
     strerror_r_helper(res, buf, buflen);
+#endif
 }
 
 static string json_escape_byte(char c) {

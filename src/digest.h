@@ -7,6 +7,7 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <zeek/util.h>
 #include <cstdint>
 #include <cstdio>
 
@@ -41,7 +42,8 @@ enum HashAlgorithm { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384,
 inline const char* digest_print(const u_char* digest, size_t n) {
     static char buf[ZEEK_DIGEST_PRINT_LENGTH];
     for ( size_t i = 0; i < n; ++i )
-        snprintf(buf + i * 2, 3, "%02x", digest[i]);
+        zeek::util::bytetohex(digest[i], &buf[i * 2]);
+    buf[2 * n] = '\0';
     return buf;
 }
 

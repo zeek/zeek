@@ -1,3 +1,25 @@
+6.2.0-dev.539 | 2024-02-13 20:10:06 +0100
+
+  * zeek.bif: Booleanate String constructor calls (Arne Welzel, Corelight)
+
+  * Conn/net_utils/fmt_mac: Avoid snprintf(), memcpy() and allocation (Arne Welzel, Corelight)
+
+    The fmt_mac() function returning a std::string means the resulting mac
+    is copied at least once upon returning. Then, the Assign() in GetVal()
+    taking a std::string internally allocates a new zeek::String which
+    hits a malloc (no short-string optimization for zeek::String) and then
+    also copies the content from the std::string into the malloced memory.
+
+    Save a few cycles by directly using the allocated memory with the
+    String instance. This change improves runtime for a SYN-only pcap
+    with just base/protocols/conn loaded by some 1-2%.
+
+  * bytestring_to_hexstr: Use bytetohex() instead of snprintf() (Arne Welzel, Corelight)
+
+    ...also avoid the extra memcpy and memory allocation.
+
+  * digest/digest_print: Use bytetohex() instead of snprintf() (Arne Welzel, Corelight)
+
 6.2.0-dev.533 | 2024-02-08 15:12:16 +0100
 
   * Bump zeekjs for STMT_ANY deprecation (Arne Welzel, Corelight)

@@ -196,16 +196,20 @@ const RecordValPtr& Connection::GetVal() {
         const int l2_len = sizeof(orig_l2_addr);
         char null[l2_len]{};
 
-        if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
-            orig_endp->Assign(5, fmt_mac(orig_l2_addr, l2_len));
+        if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 ) {
+            auto [mac_bytes, mac_len] = fmt_mac_bytes(orig_l2_addr, l2_len);
+            orig_endp->Assign(5, new String(true, mac_bytes.release(), mac_len));
+        }
 
         auto resp_endp = make_intrusive<RecordVal>(id::endpoint);
         resp_endp->Assign(0, 0);
         resp_endp->Assign(1, 0);
         resp_endp->Assign(4, resp_flow_label);
 
-        if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
-            resp_endp->Assign(5, fmt_mac(resp_l2_addr, l2_len));
+        if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 ) {
+            auto [mac_bytes, mac_len] = fmt_mac_bytes(resp_l2_addr, l2_len);
+            resp_endp->Assign(5, new String(true, mac_bytes.release(), mac_len));
+        }
 
         conn_val->Assign(0, std::move(id_val));
         conn_val->Assign(1, std::move(orig_endp));

@@ -1546,7 +1546,7 @@ function cat%(...%): string
 	for ( const auto& a : @ARG@ )
 		a->Describe(&d);
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1583,7 +1583,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 		v->Describe(&d);
 		}
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1658,7 +1658,7 @@ function fmt%(...%): string
 		return zeek::val_mgr->EmptyString();
 		}
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1873,7 +1873,7 @@ function type_name%(t: any%): string
 	zeek::ODesc d;
 	t->GetType()->Describe(&d);
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -3175,14 +3175,16 @@ function bytestring_to_hexstr%(bytestring: string%): string
 	%{
 	zeek_uint_t len = bytestring->AsString()->Len();
 	const u_char* bytes = bytestring->AsString()->Bytes();
-	auto hextr_buf = std::make_unique<char[]>((2 * len) + 1);
-	auto hexstr = hextr_buf.get();
+	auto hexstr_buf = std::make_unique<char[]>((2 * len) + 1);
+	auto hexstr = hexstr_buf.get();
 
-	hexstr[0] = 0;
 	for ( zeek_uint_t i = 0; i < len; ++i )
-		snprintf(hexstr + (2 * i), 3, "%.2hhx", bytes[i]);
+		zeek::util::bytetohex(bytes[i], &hexstr[2 * i]);
+	hexstr[2 * len] = 0;
 
-	return zeek::make_intrusive<zeek::StringVal>(hexstr);
+	// Adopt the memory...
+	String* s = new String(true, reinterpret_cast<uint8_t*>(hexstr_buf.release()), 2 * len);
+	return zeek::make_intrusive<zeek::StringVal>(s);
 	%}
 
 ## Converts a hex-string into its binary representation.

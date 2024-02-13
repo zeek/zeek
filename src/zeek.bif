@@ -1546,7 +1546,7 @@ function cat%(...%): string
 	for ( const auto& a : @ARG@ )
 		a->Describe(&d);
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1583,7 +1583,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 		v->Describe(&d);
 		}
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1658,7 +1658,7 @@ function fmt%(...%): string
 		return zeek::val_mgr->EmptyString();
 		}
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1873,7 +1873,7 @@ function type_name%(t: any%): string
 	zeek::ODesc d;
 	t->GetType()->Describe(&d);
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);

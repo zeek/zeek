@@ -1,3 +1,7 @@
+6.2.0-dev.543 | 2024-02-15 11:08:16 -0500
+
+  * Bump zkg to v3.0.0 (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.541 | 2024-02-15 11:07:17 -0500
 
   * Bump Spicy to latest dev snapshot. (Benjamin Bannier, Corelight)

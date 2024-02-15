@@ -1,3 +1,7 @@
+6.2.0-dev.541 | 2024-02-15 11:07:17 -0500
+
+  * Bump Spicy to latest dev snapshot. (Benjamin Bannier, Corelight)
+
 6.2.0-dev.539 | 2024-02-13 20:10:06 +0100
 
   * zeek.bif: Booleanate String constructor calls (Arne Welzel, Corelight)

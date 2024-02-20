@@ -1,3 +1,9 @@
+6.2.0-rc1 | 2024-02-20 12:59:01 -0700
+
+  * Switch docs submodule to release/6.2 branch (Tim Wojtulewicz)
+
+  * Update zkg submodule to v3.0.1 (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.545 | 2024-02-20 10:57:30 -0700
 
   * Pull in variant-enabled Broker (Dominik Charousset, Corelight)

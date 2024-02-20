@@ -212,8 +212,9 @@ function ftp_message(c: connection)
 	# values after logging.
 	delete s$mime_type;
 	delete s$file_size;
-	# Same with data channel.
+	# Same with data channel and fuid;
 	delete s$data_channel;
+	delete s$fuid;
 	}
 
 event sync_add_expected_data(s: Info, chan: ExpectedDataChannel) &is_used

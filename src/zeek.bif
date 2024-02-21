@@ -5328,3 +5328,35 @@ function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
 
 	return std::move(result);
 	%}
+
+## Determine the path used by a non-relative @load directive.
+##
+## This function is package aware: Passing *package* will yield the
+## path to *package.zeek*, *package/__load__.zeek* or an empty string
+## if neither can be found. Note that passing a relative path or absolute
+## path is an error.
+##
+## path: The filename, package or path to search for in ZEEKPATH.
+##
+## Returns: Path of script file that would be loaded by an @load directive.
+function find_in_zeekpath%(p: string%): string
+	%{
+	auto path = p->ToStdString();
+	if ( ! path.empty() && (path[0] == '.' || path[0] == '/') )
+		{
+		zeek::reporter->Error("find_in_zeek_path: path must be relative or absolute");
+		return zeek::val_mgr->EmptyString();
+		}
+
+	auto resolved = zeek::util::find_script_file(path, zeek::util::zeek_path());
+	if ( ! resolved.empty() && zeek::util::is_dir(resolved.c_str()) )
+		{
+		// If it's a directory, try opening the package using
+		// the absolute path. This is zeek::util::open_package()
+		// without the noisy error log.
+		resolved.append("/__load__.zeek");
+		resolved = zeek::util::find_file(resolved, "");
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>(resolved.c_str());
+	%}

@@ -12,6 +12,14 @@ Breaking Changes
 New Functionality
 -----------------
 
+- A helper bif ``load_path()`` was added to determine the path used by ``@load``.
+  This can be used to guard ``@load`` directives when packages may or may not be
+  installed.
+
+	@if ( load_path("my-package") != "" )
+	@load my-package
+	@endif
+
 Changed Functionality
 ---------------------
 

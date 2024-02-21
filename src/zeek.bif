@@ -5328,3 +5328,29 @@ function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
 
 	return std::move(result);
 	%}
+
+## Return the load path of the file that a @load directive would use
+## given the same argument, or an empty string if @load would fail to
+## find a file to load.
+##
+## This function is package aware: Passing *package* will yield the
+## path to *package.zeek*, *package/__load__.zeek* or an empty string
+## if neither can be found.
+##
+## path: The filename, package or path to search for.
+##
+## Returns: Path of script file that would be loaded by a @load directive.
+function load_path%(p: string%): string
+	%{
+	auto resolved = zeek::util::find_script_file(p->ToStdString(), zeek::util::zeek_path());
+	if ( ! resolved.empty() && zeek::util::is_dir(resolved.c_str()) )
+		{
+		// If it's a directory, try opening the package using
+		// the absolute path. This is zeek::util::open_package()
+		// without the noisy error log.
+		resolved.append("/__load__.zeek");
+		resolved = zeek::util::find_file(resolved, "");
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>(resolved.c_str());
+	%}

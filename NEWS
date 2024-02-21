@@ -12,6 +12,12 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Support ``delete`` on tables, sets and vectors to clear their contents.
+
+	global v = vector(1, 2, 3);
+	delete v;
+	assert |v| == 0;
+
 Changed Functionality
 ---------------------
 

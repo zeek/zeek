@@ -1,3 +1,17 @@
+7.0.0-dev.13 | 2024-02-22 17:00:29 +0100
+
+  * GH-3139: spicy: Remove Zeek version from spicyz/config.h.in (Arne Welzel, Corelight)
+
+    It seems that Zeek's version number and string only need to be
+    available at runtime, so this change removes it from spicyz/configh.in
+    to avoid needlessly busting ccache for the src/spicyz tree for on a
+    Zeek version bump.
+
+  * spicy: Drop ZEEK_VERSION_NUMBER ifdef'ery (Arne Welzel, Corelight)
+
+    Given src/spicy is part of the Zeek tree, these are not necessary and
+    are probably just remains from the spicy-plugin era.
+
 7.0.0-dev.10 | 2024-02-22 12:38:38 +0100
 
   * signatures: Fix ISO 9960 signature (Arne Welzel, Corelight)

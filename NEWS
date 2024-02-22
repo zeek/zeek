@@ -12,6 +12,15 @@ Breaking Changes
 New Functionality
 -----------------
 
+- A helper ``can_load()`` backed by a new bif ``find_in_zeekpath()`` was added
+  to determine if a non-relative ``@load`` directive might work. This can be
+  used to guard ``@load`` directives when script packages may or may not be
+  installed.
+
+	@if ( can_load("my-package") )
+	@load my-package
+	@endif
+
 Changed Functionality
 ---------------------
 

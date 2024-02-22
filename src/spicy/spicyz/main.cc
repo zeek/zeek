@@ -8,6 +8,7 @@
 #include "config.h"
 #include "driver.h"
 #include "glue-compiler.h"
+#include "zeek-version.h"
 
 using namespace zeek::spicy;
 
@@ -194,9 +195,9 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
                 compiler_options->keep_tmps = true;
                 break;
 
-            case 'v': std::cout << configuration::ZeekVersion << std::endl; return Nothing();
+            case 'v': std::cout << configuration::ZeekVersionString() << std::endl; return Nothing();
 
-            case 'V': std::cout << ZEEK_VERSION_NUMBER << std::endl; return Nothing();
+            case 'V': std::cout << configuration::ZeekVersionNumber() << std::endl; return Nothing();
 
             case 'z': {
                 if ( auto zcfg = getenv("ZEEK_CONFIG"); zcfg && *zcfg )
@@ -245,7 +246,8 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
 }
 
 int main(int argc, char** argv) {
-    Driver driver(std::make_unique<GlueCompiler>(), "", configuration::LibraryPath(), ZEEK_VERSION_NUMBER);
+    Driver driver(std::make_unique<GlueCompiler>(), "", configuration::LibraryPath(),
+                  configuration::ZeekVersionNumber());
 
     hilti::driver::Options driver_options;
     driver_options.execute_code = true;

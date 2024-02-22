@@ -408,6 +408,24 @@ NameExpr::NameExpr(IDPtr arg_id, bool const_init) : Expr(EXPR_NAME), id(std::mov
 #pragma GCC diagnostic pop
 }
 
+bool NameExpr::CanDel() const {
+    if ( IsError() )
+        return true; // avoid cascading the error report
+
+    return GetType()->Tag() == TYPE_TABLE || GetType()->Tag() == TYPE_VECTOR;
+}
+
+void NameExpr::Delete(Frame* f) {
+    if ( auto v = Eval(f) ) {
+        if ( GetType()->Tag() == TYPE_TABLE )
+            v->AsTableVal()->RemoveAll();
+        else if ( GetType()->Tag() == TYPE_VECTOR )
+            v->AsVectorVal()->Resize(0);
+        else
+            RuntimeError("delete unsupported");
+    }
+}
+
 // This isn't in-lined to avoid needing to pull in ID.h.
 const IDPtr& NameExpr::IdPtr() const { return id; }
 

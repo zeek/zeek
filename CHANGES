@@ -1,3 +1,20 @@
+7.0.0-dev.5 | 2024-02-22 12:01:33 +0100
+
+  * GH-3472: Allow delete statement for tables, sets and vectors (Arne Welzel, Corelight)
+
+    Relates to #3472. This allow "delete tbl" as an alternative for
+    clear_table(tbl). Also works for vectors.
+
+  * Update cmake submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update cmake submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Point cmake submodule at master branch (Tim Wojtulewicz, Corelight)
+
+  * Start of 7.0.0 development (Tim Wojtulewicz, Corelight)
+
+  * Update zkg submodule to v3.0.1 (Tim Wojtulewicz, Corelight)
+
 6.2.0-dev.545 | 2024-02-20 10:57:30 -0700
 
   * Pull in variant-enabled Broker (Dominik Charousset, Corelight)

@@ -428,6 +428,9 @@ class NameExpr final : public Expr {
 public:
     explicit NameExpr(IDPtr id, bool const_init = false);
 
+    bool CanDel() const override;
+    void Delete(Frame* f) override;
+
     ID* Id() const { return id.get(); }
     const IDPtr& IdPtr() const;
 

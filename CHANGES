@@ -1,3 +1,10 @@
+7.0.0-dev.10 | 2024-02-22 12:38:38 +0100
+
+  * signatures: Fix ISO 9960 signature (Arne Welzel, Corelight)
+
+    This signature only really works when default_file_bof_buffer_size is bumped
+    to a sufficient value (40k).
+
 7.0.0-dev.8 | 2024-02-22 12:22:56 +0100
 
   * testing: Update zeek-testing-private commit hash (Arne Welzel, Corelight)

@@ -772,11 +772,7 @@ inline void set_record_field(RecordVal* rval, const IntrusivePtr<RecordType>& rt
     if constexpr ( NoConversionNeeded::value )
         rval->Assign(idx, x);
     else if constexpr ( IsSignedInteger::value )
-#if ZEEK_VERSION_NUMBER >= 50200
         rval->Assign(idx, static_cast<int64_t>(x.Ref()));
-#else
-        rval->Assign(idx, static_cast<int>(x.Ref()));
-#endif
     else if constexpr ( IsUnsignedInteger::value )
         rval->Assign(idx, static_cast<uint64_t>(x.Ref()));
     else if constexpr ( std::is_same_v<T, hilti::rt::Bytes> )

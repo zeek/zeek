@@ -21,6 +21,11 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The ``ftp.log`` fuid field is now cleared after handling a command with a fuid
+  associated with it. Previously, fuid was sticky and any subsequent FTP command
+  would reproduce the same fuid, even if the command itself did not result in
+  a file transfer over a data connection (e.g., CWD, DEL, PASV, SIZE).
+
 Removed Functionality
 ---------------------
 

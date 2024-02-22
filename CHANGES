@@ -1,3 +1,27 @@
+7.0.0-dev.8 | 2024-02-22 12:22:56 +0100
+
+  * testing: Update zeek-testing-private commit hash (Arne Welzel, Corelight)
+
+  * ftp: Reset fuid after logging (Arne Welzel, Corelight)
+
+    A user reported being confused about the fuid association of subsequent
+    FTP commands when a data transfer has completed. It seems reasonable to
+    unset fuid upon logging a FTP command which had a fuid.
+
+    The current behavior results in the PORT or PASV commands after a RETR or STOR
+    to have the fuid of the prior file transfer. Similarly, any CWD or DEL commands
+    following a file transfer will unnecessarily be logged with the fuid of the
+    prior file transfer.
+
+    This tickles the baselines for the private testing PCAP a lot, primarily
+    because there data connections in that pcap are never established properly.
+    E.g, the fuids FzDzid1Dxm9srVKHXf and FEfYX73q5C6GEQZXX9 have been re-used
+    for multiple commands.
+
+    This may look like we're losing information, but the fuids vanishing
+    in the normal btests belong to a LIST command that isn't logged by
+    default into ftp.log. If it was, the fuid would be attached to it.
+
 7.0.0-dev.5 | 2024-02-22 12:01:33 +0100
 
   * GH-3472: Allow delete statement for tables, sets and vectors (Arne Welzel, Corelight)

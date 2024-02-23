@@ -2117,12 +2117,15 @@ function global_ids%(%): id_table
 	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
 	static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 
+	zeek::ODesc d;
 	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
 
 	for ( const auto& [_, id] : zeek::detail::global_scope()->Vars() )
 		{
+		d.Clear();
+		id->GetType()->Describe(&d);
 		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
-		rec->Assign(0, type_name(id->GetType()->Tag()));
+		rec->Assign(0, d.Description());
 		rec->Assign(1, id->IsExport());
 		rec->Assign(2, id->IsConst());
 		rec->Assign(3, id->IsEnumConst());

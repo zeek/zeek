@@ -26,6 +26,10 @@ Changed Functionality
   would reproduce the same fuid, even if the command itself did not result in
   a file transfer over a data connection (e.g., CWD, DEL, PASV, SIZE).
 
+- The type_name field populated by ``global_ids()`` now aligns with the value
+  returned by ``type_name()`` for each identifier. E.g, ``Site::local_nets``
+  has a type_name of ``set[subnet]`` rather than ``table``.
+
 Removed Functionality
 ---------------------
 

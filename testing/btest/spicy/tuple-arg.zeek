@@ -6,7 +6,7 @@
 # @TEST-EXEC: btest-diff output
 
 type Foo: record {
-    i: int;
+	i: int;
 	s: string &optional;
 };
 
@@ -27,7 +27,7 @@ public type Banner = unit {
     dash    : /-/;
     software: /[^\r\n]*/;
 
-    unset_field: uint64 if ( False );
+    unset_field: bytes &eod if ( False );
 
     on %done { zeek::confirm_protocol(); }
 };

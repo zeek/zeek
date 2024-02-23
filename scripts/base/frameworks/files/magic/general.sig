@@ -299,15 +299,27 @@ signature file-windows-minidump {
 
 # ISO 9660 disk image: First 16 sectors (2k) are arbitrary data.
 # The following sector is a volume descriptor with magic string "CD001"
-# at offset 1: 16 * 2048  + 1 = 32769
+# at offset 1: 16 * 2048 + 1 = 32769
 signature file-iso9660 {
         file-mime "application/x-iso9660-image", 99
-        file-magic /^.{32769}CD001/
+
+        # We know we expect the magic string at byte 34817, but cannot use a
+        # quantifier here since it would trigger state explosion in the regex
+        # engine, see #3622.
+        #
+        # TODO(bbannier): match for `/^.{34817}CD001/` once the regex engine is fixed.
+        file-magic /^.*CD001/
 }
 
 # ISO 9660 disk image, magic string match in next volume descriptor.
-# 17 * 2048  + 1 = 34817
+# 17 * 2048 + 1 = 34817
 signature file-iso9660-2 {
         file-mime "application/x-iso9660-image", 99
-        file-magic /^.{34817}CD001/
+
+        # We know we expect the magic string at byte 34817, but cannot use a
+        # quantifier here since it would trigger state explosion in the regex
+        # engine, see #3622.
+        #
+        # TODO(bbannier): match for `/^.{34817}CD001/` once the regex engine is fixed.
+        file-magic /^.*CD001/
 }

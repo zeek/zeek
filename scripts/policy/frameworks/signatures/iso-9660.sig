@@ -6,5 +6,5 @@
 # results in major performance degradation.
 signature file-iso9660 {
         file-mime "application/x-iso9660-image", 99
-        file-magic /.*CD001/
+        file-magic /.*CD001\x01/
 }

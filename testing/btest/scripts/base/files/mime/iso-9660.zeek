@@ -7,6 +7,8 @@
 @load base/protocols/http
 @load base/frameworks/files
 
+@load frameworks/signatures/iso-9660
+
 redef default_file_bof_buffer_size = 40000;
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool)

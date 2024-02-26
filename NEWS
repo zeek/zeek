@@ -39,6 +39,13 @@ Changed Functionality
   returned by ``type_name()`` for each identifier. E.g, ``Site::local_nets``
   has a type_name of ``set[subnet]`` rather than ``table``.
 
+- The ISO 9660 file signature has been moved into the policy directory. The
+  signature has previously been non-functional due to implicit anchoring. Further,
+  this signature requires users to significantly increase their
+  ``default_file_bof_buffer_size``. Users can now enable this signature by loading
+  ``frameworks/signatures/iso-9660`` which also increases the BOF buffer sufficiently.
+  Note, doing so may increase memory and CPU usage significantly.
+
 Removed Functionality
 ---------------------
 

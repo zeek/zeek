@@ -1,3 +1,44 @@
+7.0.0-dev.26 | 2024-02-26 21:15:59 +0100
+
+  * signatures/iso-9660: Add \x01 suffix to CD001 (Arne Welzel, Corelight)
+
+    As discussed with Tim, that should make it a bit more robust against
+    false positives.
+
+  * test-all-policy: Do not load iso-9660.zeek (Arne Welzel, Corelight)
+
+    Changing the default_file_bof_buffer_size has subtle impact on
+    MIME type detection and changed the zeek-testing baseline. Do
+    not load this new script via test-all-policy to avoid this.
+
+    The new test was mainly an aid to understand what is actually going on.
+    In short, if default_file_bof_buffer_size is larger than the file MIME
+    detection only runs when the buffer is full, or when the file is removed.
+    When a file transfer happens over multiple HTTP connections, only
+    some or one of the http.log entries will have a proper response MIME type.
+
+    PCAP extracted from 2009-M57-day11-18.trace.gz.
+
+  * signatures: Move ISO 9660 signature to policy (Arne Welzel, Corelight)
+
+    The previous "fix" caused significant performance degradation without
+    the signature ever having a chance to trigger. Moving it to policy
+    seems the best compromise, the alternative being outright removing it.
+
+  * GH-3490: global_ids: Align script_id$type_name field with type_name() (Arne Welzel, Corelight)
+
+    Populate script_id$type_name with what the type_name() bif
+    would produce for the same identifier.
+
+    Closes #3490
+
+  * utils: Introduce packages.zeek with can_load() helper (Arne Welzel, Corelight)
+
+  * GH-3594: zeek.bif: Add find_in_zeekpath() helper (Arne Welzel, Corelight)
+
+    Relates to #3594. This helper can be used to determine the path that
+    will be used by @load, if at all.
+
 7.0.0-dev.16 | 2024-02-26 11:09:57 -0700
 
   * Update Mozilla CA and Google CT list and related tests. (Johanna Amann, Corelight)

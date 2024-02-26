@@ -1,3 +1,9 @@
+6.2.0-rc1.4 | 2024-02-26 11:12:56 -0700
+
+  * Update Mozilla CA and Google CT list and related tests. (Johanna Amann, Corelight)
+
+  * Point cmake submodule at master branch (Tim Wojtulewicz, Corelight)
+
 6.2.0-rc1 | 2024-02-20 12:59:01 -0700
 
   * Switch docs submodule to release/6.2 branch (Tim Wojtulewicz)

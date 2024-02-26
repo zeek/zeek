@@ -290,6 +290,7 @@ scripts/base/init-default.zeek
   scripts/base/utils/files.zeek
   scripts/base/utils/geoip-distance.zeek
   scripts/base/utils/numbers.zeek
+  scripts/base/utils/packages.zeek
   scripts/base/utils/queue.zeek
   scripts/base/utils/strings.zeek
   scripts/base/utils/thresholds.zeek

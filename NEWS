@@ -26,6 +26,13 @@ Changed Functionality
   would reproduce the same fuid, even if the command itself did not result in
   a file transfer over a data connection (e.g., CWD, DEL, PASV, SIZE).
 
+- The ISO 9660 file signature has been moved into the policy directory. The
+  signature has previously been non-functional due to implicit anchoring. Further,
+  this signature requires users to significantly increase their
+  ``default_file_bof_buffer_size``. Users can now enable this signature by loading
+  ``frameworks/signatures/iso-9660`` which also increases the BOF buffer sufficiently.
+  Note, doing so may increase memory and CPU usage significantly.
+
 Removed Functionality
 ---------------------
 

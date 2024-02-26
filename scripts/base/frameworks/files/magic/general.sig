@@ -296,18 +296,3 @@ signature file-windows-minidump {
     file-mime "application/x-windows-minidump", 50
     file-magic /^MDMP/
 }
-
-# ISO 9660 disk image: First 16 sectors (2k) are arbitrary data.
-# The following sector is a volume descriptor with magic string "CD001"
-# at offset 1: 16 * 2048  + 1 = 32769
-signature file-iso9660 {
-        file-mime "application/x-iso9660-image", 99
-        file-magic /^.{32769}CD001/
-}
-
-# ISO 9660 disk image, magic string match in next volume descriptor.
-# 17 * 2048  + 1 = 34817
-signature file-iso9660-2 {
-        file-mime "application/x-iso9660-image", 99
-        file-magic /^.{34817}CD001/
-}

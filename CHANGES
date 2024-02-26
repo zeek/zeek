@@ -1,3 +1,7 @@
+7.0.0-dev.16 | 2024-02-26 11:09:57 -0700
+
+  * Update Mozilla CA and Google CT list and related tests. (Johanna Amann, Corelight)
+
 7.0.0-dev.13 | 2024-02-22 17:00:29 +0100
 
   * GH-3139: spicy: Remove Zeek version from spicyz/config.h.in (Arne Welzel, Corelight)

@@ -1,3 +1,21 @@
+7.0.0-dev.29 | 2024-02-27 15:18:49 +0100
+
+  * GH-3619: spicy/zeekygen: Remove mtime from generated code (Arne Welzel, Corelight)
+
+    Zeekygen implements its own make-style update logic to prevent
+    re-creation of files that have not changed. To fulfill this, we
+    currently encode the current time into spicyz generated .cc files.
+
+    This degrades ccache efficiency for built-in analyzers and also
+    for all .evt files compiled during testing. Switch SpicyModuleInfo
+    to return current time instead. This results in the re-generation
+    of documentation files unconditionally when running Zeekygen, but
+    that seems more acceptable IMO.
+
+    Generally wonder if Zeekygen should produce output unconditionally
+    and if we need to clobber prevention, compare with the content of
+    the existing file.
+
 7.0.0-dev.26 | 2024-02-26 21:15:59 +0100
 
   * signatures/iso-9660: Add \x01 suffix to CD001 (Arne Welzel, Corelight)

@@ -987,10 +987,10 @@ bool GlueCompiler::compile() {
         return false;
 
     if ( ! _doc_id.empty() ) {
-        auto mtime = hilti::expression::Ctor(hilti::ctor::Time(hilti::rt::time::current_time()));
-        preinit_body.addCall("zeek_rt::register_spicy_module_begin",
-                             {hilti::builder::string_mut(_doc_id), hilti::builder::string_mut(_doc_description),
-                              mtime});
+        preinit_body.addCall("zeek_rt::register_spicy_module_begin", {
+                                                                         hilti::builder::string_mut(_doc_id),
+                                                                         hilti::builder::string_mut(_doc_description),
+                                                                     });
     }
 
     for ( auto& a : _protocol_analyzers ) {

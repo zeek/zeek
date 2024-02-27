@@ -22,8 +22,8 @@ public:
      * @param name name of the Spicy EVT module.
      * @param description text describing the module further
      */
-    explicit SpicyModuleInfo(const std::string& name, const std::string& description, time_t mtime)
-        : name(name), description(description), mtime(mtime) {}
+    explicit SpicyModuleInfo(const std::string& name, const std::string& description)
+        : name(name), description(description) {}
 
     /** @return textual description of the module */
     const auto& Description() const { return description; }
@@ -45,13 +45,12 @@ public:
     void AddBifItem(const std::string& id, plugin::BifItem::Type type) { bif_items.emplace_back(id, type); }
 
 private:
-    time_t DoGetModificationTime() const override { return mtime; }
+    time_t DoGetModificationTime() const override { return time(nullptr); }
     std::string DoName() const override { return name; }
     std::string DoReStructuredText(bool roles_only) const override { return ""; }
 
     std::string name;
     std::string description;
-    time_t mtime;
 
     std::list<plugin::Component*> components;
     std::list<plugin::BifItem> bif_items;

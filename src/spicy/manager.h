@@ -75,10 +75,8 @@ public:
      * and to index it, inside the Zeekygen documentation.
      * @param description textual description in reST that will be shown for
      * this module inside the Zeekygen documentation
-     * @param mtime timestamp indicating last time of modification of any of
-     * the module's content; used by Zeekygen to trigger rebuilds as necessary
      */
-    void registerSpicyModuleBegin(const std::string& name, const std::string& description, hilti::rt::Time mtime);
+    void registerSpicyModuleBegin(const std::string& name, const std::string& description);
 
     /**
      * Runtime method to register a protocol analyzer with its Zeek-side

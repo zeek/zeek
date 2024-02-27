@@ -94,7 +94,7 @@ public:
  * Begins registration of a Spicy EVT module. All subsequent, other `register_*()`
  * function call will be associated with this module for documentation purposes.
  */
-void register_spicy_module_begin(const std::string& name, const std::string& description, const hilti::rt::Time& mtime);
+void register_spicy_module_begin(const std::string& name, const std::string& description);
 
 /**
  * Registers a Spicy protocol analyzer with its EVT meta information with the

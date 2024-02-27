@@ -20,9 +20,8 @@
 using namespace zeek;
 using namespace zeek::spicy;
 
-void rt::register_spicy_module_begin(const std::string& name, const std::string& description,
-                                     const hilti::rt::Time& mtime) {
-    spicy_mgr->registerSpicyModuleBegin(name, description, mtime);
+void rt::register_spicy_module_begin(const std::string& name, const std::string& description) {
+    spicy_mgr->registerSpicyModuleBegin(name, description);
 }
 
 void rt::register_spicy_module_end() { spicy_mgr->registerSpicyModuleEnd(); }

@@ -1,3 +1,16 @@
+7.0.0-dev.32 | 2024-02-28 17:10:26 +0100
+
+  * Bump zeekjs to 0.12.0 (Arne Welzel, Corelight)
+
+      0a89ca6 doc: Expand zeek.as() description and add an example
+      7e814d7 Types: Implement basic pattern support
+      43df9d2 Update docs to provide example of shared Node.js openSSL configuration
+      3bf2ea5 lsan suppressions: Add some for 21.11
+      640affa zeek.global_vars: Remove leftover internal field usage
+      3ee53c7 zeek.global_vars: Implement setter
+      8144061 zeek.as: Support more Zeek types
+      b453483 zeek.as: Fix crash for non-atomic types
+
 7.0.0-dev.29 | 2024-02-27 15:18:49 +0100
 
   * GH-3619: spicy/zeekygen: Remove mtime from generated code (Arne Welzel, Corelight)

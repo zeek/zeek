@@ -36,7 +36,7 @@ redef Cluster::nodes = {
 # Query the Prometheus endpoint using ActiveHTTP for testing, oh my.
 event run_test()
 	{
-	local url = fmt("http://localhost:%s/metrics", port_to_count(Broker::metrics_port));
+	local url = fmt("http://localhost:%s/metrics", port_to_count(Telemetry::metrics_port));
 	when [url] ( local response = ActiveHTTP::request([$url=url]) )
 		{
 		if  ( response$code != 200 )
@@ -70,19 +70,19 @@ event run_test()
 @if ( Cluster::node == "manager-1" )
 # Use a dynamic metrics port for testing to avoid colliding on 9911/tcp
 # when running tests in parallel.
-global orig_metrics_port = Broker::metrics_port;
-redef Broker::metrics_port = to_port(getenv("BROKER_TEST_METRICS_PORT"));
+global orig_metrics_port = Telemetry::metrics_port;
+redef Telemetry::metrics_port = to_port(getenv("BROKER_TEST_METRICS_PORT"));
 
 event zeek_init()
 	{
-	print Cluster::node, "original Broker::metrics_port", orig_metrics_port;
+	print Cluster::node, "original Telemetry::metrics_port", orig_metrics_port;
 	}
 
 event Cluster::Experimental::cluster_started()
 	{
 	# Run the test once all nodes are up and metrics_export_interval
 	# has passed at least once.
-	schedule 2 * Broker::metrics_export_interval { run_test() };
+	schedule 2 * Telemetry::metrics_export_interval { run_test() };
 	}
 @endif
 

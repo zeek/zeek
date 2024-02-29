@@ -6,6 +6,7 @@
 ##! `BROKER_METRICS_PORT` environment variable.
 
 @load base/misc/version
+@load base/frameworks/telemetry/options
 
 module Telemetry;
 
@@ -21,7 +22,7 @@ export {
 		## The human-readable name of the metric.
 		name: string;
 
-		## The unit of the metric. Use the pseudo-unit "1" if this is a unit-less metric.
+		## The unit of the metric. Set to a blank string if this is a unit-less metric.
 		unit: string;
 
 		## Documentation for this metric.
@@ -361,6 +362,8 @@ export {
 		count_sum: count &optional;
 	};
 
+	type MetricVector : vector of Metric;
+
 	## Collect all counter and gauge metrics matching the given *name* and *prefix*.
 	##
 	## For histogram metrics, use the :zeek:see:`Telemetry::collect_histogram_metrics`.
@@ -406,7 +409,7 @@ function register_counter_family(opts: MetricOpts): CounterFamily
 global error_counter_cf = register_counter_family([
 	$prefix="zeek",
 	$name="telemetry_counter_usage_error",
-	$unit="1",
+	$unit="",
 	$help_text="This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero."
 ]);
 
@@ -466,7 +469,7 @@ function register_gauge_family(opts: MetricOpts): GaugeFamily
 global error_gauge_cf = register_gauge_family([
 	$prefix="zeek",
 	$name="telemetry_gauge_usage_error",
-	$unit="1",
+	$unit="",
 	$help_text="This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero."
 ]);
 
@@ -536,7 +539,7 @@ function register_histogram_family(opts: MetricOpts): HistogramFamily
 global error_histogram_hf = register_histogram_family([
 	$prefix="zeek",
 	$name="telemetry_histogram_usage_error",
-	$unit="1",
+	$unit="",
 	$help_text="This histogram is returned when label usage for histograms is wrong. Check reporter.log if non-zero.",
 	$bounds=vector(1.0)
 ]);
@@ -559,7 +562,7 @@ function histogram_observe(h: Histogram, measurement: double): bool
 	return Telemetry::__dbl_histogram_observe(h$__metric, measurement);
 	}
 
-function histogram_family_observe(hf: HistogramFamily,  label_values: labels_vector, measurement: double): bool
+function histogram_family_observe(hf: HistogramFamily, label_values: labels_vector, measurement: double): bool
 	{
 	return histogram_observe(histogram_with(hf, label_values), measurement);
 	}
@@ -580,16 +583,11 @@ event run_sync_hook()
 	schedule sync_interval { run_sync_hook() };
 	}
 
-event zeek_init()
-	{
-	schedule sync_interval { run_sync_hook() };
-	}
-
 # Expose the Zeek version as Prometheus style info metric
 global version_gauge_family = Telemetry::register_gauge_family([
 	$prefix="zeek",
 	$name="version_info",
-	$unit="1",
+	$unit="",
 	$help_text="The Zeek version",
 	$labels=vector("version_number", "major", "minor", "patch", "commit",
                        "beta", "debug","version_string")
@@ -597,6 +595,8 @@ global version_gauge_family = Telemetry::register_gauge_family([
 
 event zeek_init()
 	{
+	schedule sync_interval { run_sync_hook() };
+
 	local v = Version::info;
 	local labels = vector(cat(v$version_number),
 	                      cat(v$major), cat(v$minor), cat (v$patch),

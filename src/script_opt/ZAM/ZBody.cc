@@ -279,9 +279,7 @@ std::shared_ptr<ProfVec> ZBody::BuildProfVec() const {
     return pv;
 }
 
-ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) { return DoExec(f, flow); }
-
-ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
+ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     unsigned int pc = 0;
 
     // Return value, or nil if none.

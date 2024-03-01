@@ -64,8 +64,6 @@ private:
     void ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
                        std::set<std::string> caller_modules) const;
 
-    ValPtr DoExec(Frame* f, StmtFlowType& flow);
-
     // Run-time checking for "any" type being consistent with
     // expected typed.  Returns true if the type match is okay.
     bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,

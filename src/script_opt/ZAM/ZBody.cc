@@ -28,10 +28,6 @@
 // For reading_live and reading_traces
 #include "zeek/RunState.h"
 
-#ifdef DEBUG
-#define ENABLE_ZAM_PROFILE
-#endif
-
 namespace zeek::detail {
 
 #ifdef ENABLE_ZAM_PROFILE
@@ -76,6 +72,7 @@ static double prof_overhead = compute_prof_overhead();
 #define DO_ZAM_PROFILE
 #define ZAM_PROFILE_PRE_CALL
 #define ZAM_PROFILE_POST_CALL
+static double prof_overhead = 0.0;
 
 #endif
 
@@ -92,6 +89,13 @@ int ZOP_count[OP_NOP + 1];
 double ZOP_CPU[OP_NOP + 1];
 
 void report_ZOP_profile() {
+    static bool did_overhead_report = false;
+
+    if ( ! did_overhead_report ) {
+        printf("Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
+        did_overhead_report = true;
+    }
+
     for ( int i = 1; i <= OP_NOP; ++i )
         if ( ZOP_count[i] > 0 ) {
             auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * prof_overhead, 0.0);
@@ -395,11 +399,6 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
 
 void ZBody::ProfileExecution(ProfMap& pm) {
     static bool did_overhead_report = false;
-
-    if ( ! did_overhead_report ) {
-        printf("Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
-        did_overhead_report = true;
-    }
 
     if ( end_pc == 0 ) {
         printf("%s has an empty body\n", func_name.c_str());

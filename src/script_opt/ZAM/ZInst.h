@@ -98,6 +98,14 @@ public:
     // a loop iteration, false otherwise.
     bool IsLoopIterationAdvancement() const;
 
+    // True if the given instruction assigns to the frame location
+    // given by slot 1 (v1).
+    bool AssignsToSlot1() const;
+
+    // True if the given instruction assigns to the frame location
+    // corresponding to the given slot.
+    bool AssignsToSlot(int slot) const;
+
     // Returns a string describing the constant.
     std::string ConstDump() const;
 
@@ -217,14 +225,6 @@ public:
     // True if this instruction has side effects when executed, so
     // should not be pruned even if it has a dead assignment.
     bool HasSideEffects() const;
-
-    // True if the given instruction assigns to the frame location
-    // given by slot 1 (v1).
-    bool AssignsToSlot1() const;
-
-    // True if the given instruction assigns to the frame location
-    // corresponding to the given slot.
-    bool AssignsToSlot(int slot) const;
 
     // True if the given instruction uses the value in the given frame
     // slot. (Assigning to the slot does not constitute using the value.)

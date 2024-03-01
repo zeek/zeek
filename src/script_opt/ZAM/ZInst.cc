@@ -177,11 +177,12 @@ string ZInst::VName(int n, zeek_uint_t inst_num, const FrameReMap* mappings) con
 
     unsigned int i;
     for ( i = 0; i < map.id_start.size(); ++i ) {
-        // If the slot is right at the boundary between two
-        // identifiers, then it matters whether this is slot 1
-        // (starts right here) vs. slot > 1 (ignore change right
-        // at the boundary and stick with older value).
-        if ( (n == 1 && map.id_start[i] > inst_num) || (n > 1 && map.id_start[i] >= inst_num) )
+	// If the slot is right at the boundary between two identifiers, then
+	// it matters whether this is an assigned slot (starts right here) vs.
+	// not assigned (ignore change right at the boundary and stick with
+	// older value).
+	auto target_inst = AssignsToSlot(n) ? inst_num + 1 : inst_num;
+        if ( map.id_start[i] >= target_inst )
             // Went too far.
             break;
     }
@@ -240,6 +241,49 @@ bool ZInst::IsLoopIterationAdvancement() const {
         case OP_NEXT_STRING_BLANK_ITER_VV: return true;
 
         default: return false;
+    }
+}
+
+bool ZInst::AssignsToSlot1() const {
+    switch ( op_type ) {
+        case OP_X:
+        case OP_C:
+        case OP_V_I1:
+        case OP_VC_I1:
+        case OP_VV_I1_I2:
+        case OP_VVVC_I1_I2_I3: return false;
+
+        // We use this ginormous set of cases rather than "default" so
+        // that when we add a new operand type, we have to consider
+        // its behavior here.  (Same for many of the other switch's
+        // used for ZInst/ZinstI.)
+        case OP_V:
+        case OP_VC:
+        case OP_VV_FRAME:
+        case OP_VV_I2:
+        case OP_VVC_I2:
+        case OP_VVV_I2_I3:
+        case OP_VVVC_I2_I3:
+        case OP_VVVV_I2_I3_I4:
+        case OP_VV:
+        case OP_VVC:
+        case OP_VVV_I3:
+        case OP_VVVV_I3_I4:
+        case OP_VVVC_I3:
+        case OP_VVV:
+        case OP_VVVC:
+        case OP_VVVV_I4:
+        case OP_VVVV: auto fl = op1_flavor[op]; return fl == OP1_WRITE || fl == OP1_READ_WRITE;
+    }
+
+    return false;
+}
+
+bool ZInst::AssignsToSlot(int slot) const {
+    switch ( op ) {
+        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV: return slot == 1 || slot == 2;
+
+        default: return slot == 1 && AssignsToSlot1();
     }
 }
 
@@ -363,49 +407,6 @@ bool ZInstI::HasCaptures() const {
 }
 
 bool ZInstI::HasSideEffects() const { return op_side_effects[op]; }
-
-bool ZInstI::AssignsToSlot1() const {
-    switch ( op_type ) {
-        case OP_X:
-        case OP_C:
-        case OP_V_I1:
-        case OP_VC_I1:
-        case OP_VV_I1_I2:
-        case OP_VVVC_I1_I2_I3: return false;
-
-        // We use this ginormous set of cases rather than "default" so
-        // that when we add a new operand type, we have to consider
-        // its behavior here.  (Same for many of the other switch's
-        // used for ZInst/ZinstI.)
-        case OP_V:
-        case OP_VC:
-        case OP_VV_FRAME:
-        case OP_VV_I2:
-        case OP_VVC_I2:
-        case OP_VVV_I2_I3:
-        case OP_VVVC_I2_I3:
-        case OP_VVVV_I2_I3_I4:
-        case OP_VV:
-        case OP_VVC:
-        case OP_VVV_I3:
-        case OP_VVVV_I3_I4:
-        case OP_VVVC_I3:
-        case OP_VVV:
-        case OP_VVVC:
-        case OP_VVVV_I4:
-        case OP_VVVV: auto fl = op1_flavor[op]; return fl == OP1_WRITE || fl == OP1_READ_WRITE;
-    }
-
-    return false;
-}
-
-bool ZInstI::AssignsToSlot(int slot) const {
-    switch ( op ) {
-        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV: return slot == 1 || slot == 2;
-
-        default: return slot == 1 && AssignsToSlot1();
-    }
-}
 
 bool ZInstI::UsesSlot(int slot) const {
     auto fl = op1_flavor[op];

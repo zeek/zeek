@@ -47,7 +47,6 @@ int main(int argc, char** argv) {
 
     init_npcap_dll_path();
 #endif
-
     auto time_start = zeek::util::current_time(true);
     auto setup_result = zeek::detail::setup(argc, argv);
 

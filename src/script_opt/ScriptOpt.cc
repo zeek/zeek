@@ -438,8 +438,14 @@ static void analyze_scripts_for_ZAM() {
 
     auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
 
-    if ( analysis_options.profile_ZAM )
+    if ( analysis_options.profile_ZAM ) {
+#ifdef ENABLE_ZAM_PROFILE
         blocks = std::make_unique<BlockAnalyzer>(funcs);
+#else
+        fprintf(stderr, "warning: zeek was not built with --enable-ZAM-profiling\n");
+        analysis_options.profile_ZAM = false;
+#endif
+    }
 
     bool report_recursive = analysis_options.report_recursive;
     std::unique_ptr<Inliner> inl;

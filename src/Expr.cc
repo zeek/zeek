@@ -1408,9 +1408,11 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
     }
 
     else if ( IsVector(bt1) ) {
-        // We need the IsVector(bt2) check in the following because
-        // same_type() always treats "any" types as "same".
-        if ( IsVector(bt2) && same_type(t1, t2) ) {
+        // We need the second call to same_type() to not be fooled by the
+        // first operand being a vector-of-vector-of-X and the second operand
+        // being an unspecified vector or other expression of type "any"
+        // (which will pass the first same_type() test).
+        if ( same_type(t1, t2) && ! same_type(t1->AsVectorType()->Yield(), t2) ) {
             SetType(t1);
             return;
         }

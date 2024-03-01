@@ -12,6 +12,7 @@ enum MetricType %{
 %}
 
 %%{
+
 #include "zeek/telemetry/Counter.h"
 #include "zeek/telemetry/Gauge.h"
 #include "zeek/telemetry/Histogram.h"
@@ -112,7 +113,7 @@ function Telemetry::__int_counter_family%(prefix: string,
                                           name: string,
                                           labels: string_vec,
                                           helptext: string &default = "Zeek Script Metric",
-                                          unit: string &default = "1",
+                                          unit: string &default = "",
                                           is_sum: bool &default = F%): opaque of int_counter_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
@@ -129,9 +130,9 @@ function Telemetry::__int_counter_metric_get_or_add%(family: opaque of int_count
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntCounterMetricVal>(res);
 			}
 		else
@@ -150,14 +151,14 @@ function Telemetry::__int_counter_metric_get_or_add%(family: opaque of int_count
 function Telemetry::__int_counter_inc%(val: opaque of int_counter_metric,
                                        amount: int &default = 1%): bool
 	%{
-	return with<IntCounterMetricVal>(val, "Telemetry::int_counter_inc: invalid handle.", [amount](auto hdl) { hdl.Inc(amount); });
+	return with<IntCounterMetricVal>(val, "Telemetry::int_counter_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__int_counter_value%(val: opaque of int_counter_metric%): int
 	%{
 	if ( auto ptr = dynamic_cast<zeek::IntCounterMetricVal*>(val) )
 		{
-		return zeek::val_mgr->Int(ptr->GetHandle().Value());
+		return zeek::val_mgr->Int(ptr->GetHandle()->Value());
 		}
 	else
 		{
@@ -172,7 +173,7 @@ function Telemetry::__dbl_counter_family%(prefix: string,
                                           name: string,
                                           labels: string_vec,
                                           helptext: string &default = "Zeek Script Metric",
-                                          unit: string &default = "1",
+                                          unit: string &default = "",
                                           is_sum: bool &default = F%): opaque of dbl_counter_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
@@ -189,9 +190,9 @@ function Telemetry::__dbl_counter_metric_get_or_add%(family: opaque of dbl_count
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblCounterMetricVal>(res);
 			}
 		else
@@ -210,14 +211,14 @@ function Telemetry::__dbl_counter_metric_get_or_add%(family: opaque of dbl_count
 function Telemetry::__dbl_counter_inc%(val: opaque of dbl_counter_metric,
                                        amount: double &default = 1.0%): bool
 	%{
-	return with<DblCounterMetricVal>(val, "Telemetry::dbl_counter_inc: invalid handle.", [amount](auto hdl) { hdl.Inc(amount); });
+	return with<DblCounterMetricVal>(val, "Telemetry::dbl_counter_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__dbl_counter_value%(val: opaque of dbl_counter_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::DblCounterMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle().Value());
+		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle()->Value());
 		}
 	else
 		{
@@ -232,7 +233,7 @@ function Telemetry::__int_gauge_family%(prefix: string,
                                         name: string,
                                         labels: string_vec,
                                         helptext: string &default = "Zeek Script Metric",
-                                        unit: string &default = "1",
+                                        unit: string &default = "",
                                         is_sum: bool &default = F%): opaque of int_gauge_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
@@ -249,9 +250,9 @@ function Telemetry::__int_gauge_metric_get_or_add%(family: opaque of int_gauge_m
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntGaugeMetricVal>(res);
 			}
 		else
@@ -270,20 +271,20 @@ function Telemetry::__int_gauge_metric_get_or_add%(family: opaque of int_gauge_m
 function Telemetry::__int_gauge_inc%(val: opaque of int_gauge_metric,
                                      amount: int &default = 1%): bool
 	%{
-	return with<IntGaugeMetricVal>(val, "Telemetry::int_gauge_inc: invalid handle.", [amount](auto hdl) { hdl.Inc(amount); });
+	return with<IntGaugeMetricVal>(val, "Telemetry::int_gauge_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__int_gauge_dec%(val: opaque of int_gauge_metric,
                                      amount: int &default = 1%): bool
 	%{
-	return with<IntGaugeMetricVal>(val, "Telemetry::int_gauge_dec: invalid handle.", [amount](auto hdl) { hdl.Dec(amount); });
+	return with<IntGaugeMetricVal>(val, "Telemetry::int_gauge_dec: invalid handle.", [amount](auto hdl) { hdl->Dec(amount); });
 	%}
 
 function Telemetry::__int_gauge_value%(val: opaque of int_gauge_metric%): int
 	%{
 	if ( auto ptr = dynamic_cast<zeek::IntGaugeMetricVal*>(val) )
 		{
-		return zeek::val_mgr->Int(ptr->GetHandle().Value());
+		return zeek::val_mgr->Int(ptr->GetHandle()->Value());
 		}
 	else
 		{
@@ -298,7 +299,7 @@ function Telemetry::__dbl_gauge_family%(prefix: string,
                                         name: string,
                                         labels: string_vec,
                                         helptext: string &default = "Zeek Script Metric",
-                                        unit: string &default = "1",
+                                        unit: string &default = "",
                                         is_sum: bool &default = F%): opaque of dbl_gauge_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
@@ -315,9 +316,9 @@ function Telemetry::__dbl_gauge_metric_get_or_add%(family: opaque of dbl_gauge_m
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblGaugeMetricVal>(res);
 			}
 		else
@@ -336,20 +337,20 @@ function Telemetry::__dbl_gauge_metric_get_or_add%(family: opaque of dbl_gauge_m
 function Telemetry::__dbl_gauge_inc%(val: opaque of dbl_gauge_metric,
                                      amount: double &default = 1.0%): bool
 	%{
-	return with<DblGaugeMetricVal>(val, "Telemetry::dbl_gauge_inc: invalid handle.", [amount](auto hdl) { hdl.Inc(amount); });
+	return with<DblGaugeMetricVal>(val, "Telemetry::dbl_gauge_inc: invalid handle.", [amount](auto hdl) { hdl->Inc(amount); });
 	%}
 
 function Telemetry::__dbl_gauge_dec%(val: opaque of dbl_gauge_metric,
                                      amount: double &default = 1.0%): bool
 	%{
-	return with<DblGaugeMetricVal>(val, "Telemetry::dbl_gauge_dec: invalid handle.", [amount](auto hdl) { hdl.Dec(amount); });
+	return with<DblGaugeMetricVal>(val, "Telemetry::dbl_gauge_dec: invalid handle.", [amount](auto hdl) { hdl->Dec(amount); });
 	%}
 
 function Telemetry::__dbl_gauge_value%(val: opaque of dbl_gauge_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::DblGaugeMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle().Value());
+		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle()->Value());
 		}
 	else
 		{
@@ -365,14 +366,14 @@ function Telemetry::__int_histogram_family%(prefix: string,
                                             labels: string_vec,
                                             bounds: int_vec,
                                             helptext: string &default = "Zeek Script Metric",
-                                            unit: string &default = "1",
+                                            unit: string &default = "",
                                             is_sum: bool &default = F%): opaque of int_histogram_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
 	auto std_bounds = to_std_vec<int64_t>(bounds);
 	auto hdl = telemetry_mgr->HistogramFamily(sv(prefix), sv(name), lbl_vec,
 	                                          std_bounds, sv(helptext),
-	                                          sv(unit), is_sum);
+	                                          sv(unit));
 	return zeek::make_intrusive<IntHistogramMetricFamilyVal>(hdl);
 	%}
 
@@ -384,9 +385,9 @@ function Telemetry::__int_histogram_metric_get_or_add%(family: opaque of int_his
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntHistogramMetricVal>(res);
 			}
 		else
@@ -405,14 +406,14 @@ function Telemetry::__int_histogram_metric_get_or_add%(family: opaque of int_his
 function Telemetry::__int_histogram_observe%(val: opaque of int_histogram_metric,
                                              measurement: int%): bool
 	%{
-	return with<IntHistogramMetricVal>(val, "Telemetry::int_histogram_inc: invalid handle.", [measurement](auto hdl) { hdl.Observe(measurement); });
+	return with<IntHistogramMetricVal>(val, "Telemetry::int_histogram_inc: invalid handle.", [measurement](auto hdl) { hdl->Observe(measurement); });
 	%}
 
 function Telemetry::__int_histogram_sum%(val: opaque of int_histogram_metric%): int
 	%{
 	if ( auto ptr = dynamic_cast<zeek::IntHistogramMetricVal*>(val) )
 		{
-		return zeek::val_mgr->Int(ptr->GetHandle().Sum());
+		return zeek::val_mgr->Int(ptr->GetHandle()->Sum());
 		}
 	else
 		{
@@ -428,15 +429,14 @@ function Telemetry::__dbl_histogram_family%(prefix: string,
                                             labels: string_vec,
                                             bounds: double_vec,
                                             helptext: string &default = "Zeek Script Metric",
-                                            unit: string &default = "1",
+                                            unit: string &default = "",
                                             is_sum: bool &default = F%): opaque of dbl_histogram_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
 	auto std_bounds = to_std_vec<double>(bounds);
 	auto hdl = telemetry_mgr->HistogramFamily<double>(sv(prefix), sv(name),
 	                                                  lbl_vec, std_bounds,
-	                                                  sv(helptext), sv(unit),
-	                                                  is_sum);
+	                                                  sv(helptext), sv(unit));
 	return zeek::make_intrusive<DblHistogramMetricFamilyVal>(hdl);
 	%}
 
@@ -448,9 +448,9 @@ function Telemetry::__dbl_histogram_metric_get_or_add%(family: opaque of dbl_his
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl.LabelNames()) )
+		if ( is_valid(lbl_map, hdl->LabelNames()) )
 			{
-			auto res = hdl.GetOrAdd(lbl_map);
+			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblHistogramMetricVal>(res);
 			}
 		else
@@ -469,14 +469,14 @@ function Telemetry::__dbl_histogram_metric_get_or_add%(family: opaque of dbl_his
 function Telemetry::__dbl_histogram_observe%(val: opaque of dbl_histogram_metric,
                                              measurement: double%): bool
 	%{
-	return with<DblHistogramMetricVal>(val, "Telemetry::dbl_histogram_inc: invalid handle.", [measurement](auto hdl) { hdl.Observe(measurement); });
+	return with<DblHistogramMetricVal>(val, "Telemetry::dbl_histogram_inc: invalid handle.", [measurement](auto hdl) { hdl->Observe(measurement); });
 	%}
 
 function Telemetry::__dbl_histogram_sum%(val: opaque of dbl_histogram_metric%): double
 	%{
 	if ( auto ptr = dynamic_cast<zeek::DblHistogramMetricVal*>(val) )
 		{
-		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle().Sum());
+		return zeek::make_intrusive<DoubleVal>(ptr->GetHandle()->Sum());
 		}
 	else
 		{
@@ -487,26 +487,61 @@ function Telemetry::__dbl_histogram_sum%(val: opaque of dbl_histogram_metric%): 
 
 function Telemetry::__collect_metrics%(prefix: string, name: string%): any_vec
 	%{
-	auto metrics = telemetry_mgr->CollectMetrics(sv(prefix), sv(name));
-
-	static auto metrics_vector_type = zeek::id::find_type<VectorType>("any_vec");
-	auto vec = zeek::make_intrusive<VectorVal>(metrics_vector_type);
-
-	for ( const auto& m : metrics )
-		vec->Append(m.AsMetricRecord());
-
-	return vec;
+	return telemetry_mgr->CollectMetrics(sv(prefix), sv(name));
 	%}
 
 function Telemetry::__collect_histogram_metrics%(prefix: string, name: string%): any_vec
 	%{
-	auto metrics = telemetry_mgr->CollectHistogramMetrics(sv(prefix), sv(name));
+	return telemetry_mgr->CollectHistogramMetrics(sv(prefix), sv(name));
+	%}
 
-	static auto metrics_vector_type = zeek::id::find_type<VectorType>("any_vec");
-	auto vec = zeek::make_intrusive<VectorVal>(metrics_vector_type);
+function Telemetry::__set_metrics_export_interval%(value: interval%): bool
+	%{
+	// This BIF may run prior to telemetry::Manager::InitPostScript. In this case,
+	// telemetry_mgr is still null but we can safely ignore this event because the
+	// Manager is going to initialize Telemetry using the most recent value of the
+	// corresponding option.
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportInterval(value);
+	return zeek::val_mgr->True();
+	%}
 
-	for ( const auto& m : metrics )
-		vec->Append(m.AsHistogramMetricRecord());
+function Telemetry::__set_metrics_export_topic%(value: string%): bool
+	%{
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportTopic(value->ToStdString());
+	return zeek::val_mgr->True();
+	%}
 
-	return vec;
+function Telemetry::__set_metrics_import_topics%(filter: string_vec%): bool
+	%{
+	if ( telemetry_mgr )
+		{
+		std::vector<std::string> slist;
+		auto* vval = filter->AsVectorVal();
+		for ( unsigned index = 0; index < vval->Size(); ++index )
+			slist.emplace_back(vval->StringValAt(index)->ToStdString());
+		telemetry_mgr->SetMetricsImportTopics(std::move(slist));
+		}
+	return zeek::val_mgr->True();
+	%}
+
+function Telemetry::__set_metrics_export_endpoint_name%(value: string%): bool
+	%{
+	if ( telemetry_mgr )
+		telemetry_mgr->SetMetricsExportEndpointName(value->ToStdString());
+	return zeek::val_mgr->True();
+	%}
+
+function Telemetry::__set_metrics_export_prefixes%(filter: string_vec%): bool
+	%{
+	if ( telemetry_mgr )
+		{
+		std::vector<std::string> slist;
+		auto* vval = filter->AsVectorVal();
+		for ( unsigned index = 0; index < vval->Size(); ++index )
+			slist.emplace_back(vval->StringValAt(index)->ToStdString());
+		telemetry_mgr->SetMetricsExportPrefixes(std::move(slist));
+		}
+	return zeek::val_mgr->True();
 	%}

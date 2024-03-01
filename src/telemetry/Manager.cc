@@ -2,422 +2,293 @@
 
 #include "zeek/telemetry/Manager.h"
 
-#include <fnmatch.h>
+#include <algorithm>
 #include <thread>
 #include <variant>
 
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/ID.h"
+#include "zeek/ZeekString.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
 #include "zeek/telemetry/telemetry.bif.h"
 
-#include "broker/telemetry/metric_registry.hh"
-
-namespace {
-using NativeManager = broker::telemetry::metric_registry;
-using NativeManagerImpl = broker::telemetry::metric_registry_impl;
-using NativeManagerImplPtr = zeek::IntrusivePtr<NativeManagerImpl>;
-using DoubleValPtr = zeek::IntrusivePtr<zeek::DoubleVal>;
-
-std::vector<std::string_view> extract_label_values(broker::telemetry::const_label_list labels) {
-    auto get_value = [](const auto& label) { return label.second; };
-    std::vector<std::string_view> v;
-    std::transform(labels.begin(), labels.end(), std::back_inserter(v), get_value);
-    return v;
-}
-
-// Convert an int64_t or double to a DoubleValPtr. int64_t is casted.
-template<typename T>
-DoubleValPtr as_double_val(T val) {
-    if constexpr ( std::is_same_v<T, int64_t> ) {
-        return zeek::make_intrusive<zeek::DoubleVal>(static_cast<double>(val));
-    }
-    else {
-        static_assert(std::is_same_v<T, double>);
-        return zeek::make_intrusive<zeek::DoubleVal>(val);
-    }
-};
-
-} // namespace
-
 namespace zeek::telemetry {
 
-Manager::Manager() {
-    auto reg = NativeManager::pre_init_instance();
-    NativeManagerImplPtr ptr{NewRef{}, reg.pimpl()};
-    pimpl.swap(ptr);
+Manager::Manager() { prometheus_registry = std::make_shared<prometheus::Registry>(); }
+
+Manager::~Manager() {}
+
+void Manager::InitPostScript() {
+    std::string prometheus_url;
+    if ( auto env = getenv("ZEEK_METRICS_PORT") )
+        prometheus_url = util::fmt("localhost:%s", env);
+    else if ( auto env = getenv("BROKER_METRICS_PORT") ) {
+        // Remove this in v7.1 when the Broker variables are removed
+        reporter->Warning("BROKER_METRICS_PORT is deprecated, use ZEEK_METRICS_PORT.");
+        prometheus_url = util::fmt("localhost:%s", env);
+    }
+    else {
+        auto metrics_port = id::find_val("Telemetry::metrics_port")->AsPortVal();
+        if ( metrics_port->Port() == 0 )
+            // Remove this in v7.1 when the Broker variables are removed
+            metrics_port = id::find_val("Broker::metrics_port")->AsPortVal();
+
+        if ( metrics_port->Port() != 0 )
+            prometheus_url = util::fmt("localhost:%u", metrics_port->Port());
+    }
+
+    if ( ! prometheus_url.empty() ) {
+        printf("prometheus configured\n");
+
+        prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url);
+        prometheus_exposer->RegisterCollectable(prometheus_registry);
+
+        // Import topics are only enabled if Prometheus is enabled, because we don't care
+        // to get imported metrics if we're just going to drop them on the floor.
+        auto topics = import_topics;
+        if ( auto env = getenv("ZEEK_METRICS_IMPORT_TOPICS") ) {
+            topics = util::split(std::string{env}, ":");
+        }
+        else if ( auto env = getenv("BROKER_METRICS_IMPORT_TOPICS") ) {
+            // Remove this in v7.1 when the Broker variables are removed
+            reporter->Warning("BROKER_METRICS_IMPORT_TOPICS is deprecated, use ZEEK_METRICS_IMPORT_TOPICS.");
+            topics = util::split(std::string{env}, ":");
+        }
+        else {
+            auto script_topics = id::find_val("Telemetry::metrics_import_topics")->AsVectorVal();
+            if ( script_topics->Size() == 0 )
+                // Remove this in v7.1 when the Broker variables are removed
+                script_topics = id::find_val("Broker::metrics_import_topics")->AsVectorVal();
+
+            for ( int i = 0; i < script_topics->Size(); i++ )
+                topics.push_back(script_topics->StringValAt(i)->ToStdString());
+        }
+
+        for ( const auto& topic : topics ) {
+            broker_mgr->Subscribe(topic);
+        }
+    }
+
+    if ( export_topic.empty() ) {
+        if ( auto env = getenv("ZEEK_METRICS_EXPORT_TOPIC") )
+            export_topic = env;
+        else if ( auto env = getenv("BROKER_METRICS_EXPORT_TOPIC") ) {
+            // Remove this in v7.1 when the Broker variables are removed
+            reporter->Warning("BROKER_METRICS_EXPORT_TOPIC is deprecated, use ZEEK_METRICS_EXPORT_TOPIC.");
+            export_topic = env;
+        }
+        else {
+            auto script_topic = id::find_val("Telemetry::metrics_export_topic")->AsStringVal();
+            if ( script_topic->Len() == 0 )
+                // Remove this in v7.1 when the Broker variables are removed
+                script_topic = id::find_val("Broker::metrics_export_topic")->AsStringVal();
+
+            export_topic = script_topic->ToStdString();
+        }
+    }
+
+    if ( export_endpoint.empty() ) {
+        if ( auto env = getenv("ZEEK_METRICS_ENDPOINT_NAME") )
+            export_endpoint = env;
+        else if ( auto env = getenv("BROKER_METRICS_ENDPOINT_NAME") ) {
+            // Remove this in v7.1 when the Broker variables are removed
+            reporter->Warning("BROKER_METRICS_ENDPOINT_NAME is deprecated, use ZEEK_METRICS_ENDPOINT_NAME.");
+            export_endpoint = env;
+        }
+        else {
+            auto script_endpoint = id::find_val("Telemetry::metrics_export_endpoint_name")->AsStringVal();
+            if ( script_endpoint->Len() == 0 )
+                // Remove this in v7.1 when the Broker variables are removed
+                script_endpoint = id::find_val("Broker::metrics_export_endpoint_name")->AsStringVal();
+
+            export_endpoint = script_endpoint->ToStdString();
+        }
+    }
+
+    if ( export_interval == 0 ) {
+        if ( auto env = getenv("ZEEK_METRICS_EXPORT_INTERVAL") )
+            export_interval = std::strtod(env, nullptr);
+        else if ( auto env = getenv("BROKER_METRICS_EXPORT_INTERVAL") ) {
+            reporter->Warning("BROKER_METRICS_EXPORT_INTERVAL is deprecated, use ZEEK_METRICS_EXPORT_INTERVAL.");
+            export_interval = std::strtod(env, nullptr);
+        }
+        else {
+            export_interval = id::find_val("Telemetry::metrics_export_interval")->AsInterval();
+            if ( export_interval == 0 )
+                // Remove this in v7.1 when the Broker variables are removed
+                export_interval = id::find_val("Broker::metrics_export_interval")->AsInterval();
+        }
+    }
+
+    if ( export_prefixes.empty() ) {
+        if ( auto env = getenv("ZEEK_METRICS_EXPORT_PREFIXES") ) {
+            export_prefixes = util::split(std::string{env}, ":");
+        }
+        else if ( auto env = getenv("BROKER_METRICS_EXPORT_PREFIXES") ) {
+            reporter->Warning("BROKER_METRICS_EXPORT_PREFIXES is deprecated, use ZEEK_METRICS_EXPORT_PREFIXES.");
+            export_prefixes = util::split(std::string{env}, ":");
+        }
+        else {
+            auto script_topics = id::find_val("Telemetry::metrics_export_prefixes")->AsVectorVal();
+            if ( script_topics->Size() == 0 )
+                // Remove this in v7.1 when the Broker variables are removed
+                script_topics = id::find_val("Broker::metrics_export_prefixes")->AsVectorVal();
+
+            for ( int i = 0; i < script_topics->Size(); i++ )
+                export_prefixes.push_back(script_topics->StringValAt(i)->ToStdString());
+        }
+    }
+
+    // printf("topic: %s\n", export_topic.c_str());
+    // printf("endpoint: %s\n", export_endpoint.c_str());
+    // printf("interval: %f\n", export_interval);
+    // printf("prefixes: %zu\n", export_prefixes.size());
+
+    if ( ! export_topic.empty() && ! export_endpoint.empty() && export_interval > 0 ) {
+        printf("topic exporter configured\n");
+    }
+
+#ifdef HAVE_PROCESS_STAT_METRICS
+    static auto get_stats = [this]() -> const detail::process_stats* {
+        double now = util::current_time();
+        if ( this->process_stats_last_updated < now - 0.01 ) {
+            this->current_process_stats = detail::get_process_stats();
+            this->process_stats_last_updated = now;
+        }
+
+        return &this->current_process_stats;
+    };
+/*
+    rss_gauge =
+        GaugeInstance<int64_t>("process", "resident_memory", {}, "Resident memory size", "bytes", false,
+                               [](metrics_api::ObserverResult r, void* state) {
+                                   auto* s = get_stats();
+                                   opentelemetry::nostd::get<
+                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
+                                       ->Observe(s->rss);
+                               });
+
+    vms_gauge =
+        GaugeInstance<int64_t>("process", "virtual_memory", {}, "Virtual memory size", "bytes", false,
+                               [](metrics_api::ObserverResult r, void* state) {
+                                   auto* s = get_stats();
+                                   opentelemetry::nostd::get<
+                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
+                                       ->Observe(s->vms);
+                               });
+
+    cpu_gauge = GaugeInstance<double>("process", "cpu", {}, "Total user and system CPU time spent", "seconds", false,
+                                      [](metrics_api::ObserverResult r, void* state) {
+                                          auto* s = get_stats();
+                                          opentelemetry::nostd::get<
+                                              opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<double>>>(r)
+                                              ->Observe(s->cpu);
+                                      });
+
+    fds_gauge =
+        GaugeInstance<int64_t>("process", "open_fds", {}, "Number of open file descriptors", "", false,
+                               [](metrics_api::ObserverResult r, void* state) {
+                                   auto* s = get_stats();
+                                   opentelemetry::nostd::get<
+                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
+                                       ->Observe(s->fds);
+                               });
+*/
+#endif
 }
 
-void Manager::InitPostScript() {}
+std::shared_ptr<MetricFamily> Manager::LookupFamily(std::string_view prefix, std::string_view name) const {
+    auto check = [&](const auto& fam) { return fam.second->Prefix() == prefix && fam.second->Name() == name; };
 
-void Manager::InitPostBrokerSetup(broker::endpoint& ep) {
-    auto reg = NativeManager::merge(NativeManager{pimpl.get()}, ep);
-    NativeManagerImplPtr ptr{NewRef{}, reg.pimpl()};
-    pimpl.swap(ptr);
+    if ( auto it = std::find_if(families.begin(), families.end(), check); it != families.end() )
+        return it->second;
+
+    return nullptr;
 }
 
 // -- collect metric stuff -----------------------------------------------------
 
-template<typename T>
-zeek::RecordValPtr Manager::GetMetricOptsRecord(Manager::MetricType metric_type,
-                                                const broker::telemetry::metric_family_hdl* family) {
-    static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
-    static auto double_vec_type = zeek::id::find_type<zeek::VectorType>("double_vec");
-    static auto count_vec_type = zeek::id::find_type<zeek::VectorType>("index_vec");
-    static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
+ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
+    static auto metrics_vector_type = zeek::id::find_type<VectorType>("any_vec");
+    VectorValPtr ret_val = make_intrusive<VectorVal>(metrics_vector_type);
 
-    static auto prefix_idx = metric_opts_type->FieldOffset("prefix");
-    static auto name_idx = metric_opts_type->FieldOffset("name");
-    static auto help_text_idx = metric_opts_type->FieldOffset("help_text");
-    static auto unit_idx = metric_opts_type->FieldOffset("unit");
-    static auto is_total_idx = metric_opts_type->FieldOffset("is_total");
-    static auto labels_idx = metric_opts_type->FieldOffset("labels");
-    static auto bounds_idx = metric_opts_type->FieldOffset("bounds");
-    static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
+    // Build a map of all of the families that match the patterns based on their full prefixed
+    // name. This will let us match those families against the items returned from the otel reader.
+    for ( const auto& [name, family] : families ) {
+        // Histograms are handled by CollectHistogramMetrics and should be ignored here.
+        if ( family->MetricType() == BifEnum::Telemetry::MetricType::INT_HISTOGRAM ||
+             family->MetricType() == BifEnum::Telemetry::MetricType::DOUBLE_HISTOGRAM )
+            continue;
 
-    if ( const auto& it = metric_opts_cache.find(family); it != metric_opts_cache.end() )
-        return it->second;
-
-    auto r = make_intrusive<zeek::RecordVal>(metric_opts_type);
-    r->Assign(prefix_idx, make_intrusive<zeek::StringVal>(broker::telemetry::prefix(family)));
-    r->Assign(name_idx, make_intrusive<zeek::StringVal>(broker::telemetry::name(family)));
-    r->Assign(help_text_idx, make_intrusive<zeek::StringVal>(broker::telemetry::helptext(family)));
-    r->Assign(unit_idx, make_intrusive<zeek::StringVal>(broker::telemetry::unit(family)));
-    r->Assign(is_total_idx, val_mgr->Bool(broker::telemetry::is_sum(family)));
-
-    auto label_names_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
-    for ( const auto& l : broker::telemetry::label_names(family) )
-        label_names_vec->Append(make_intrusive<StringVal>(l));
-
-    r->Assign(labels_idx, label_names_vec);
-
-    // This is mapping Manager.h enums to bif values depending on
-    // the template type and whether this is a counter, gauge or
-    // histogram.
-    zeek_int_t metric_type_int = -1;
-    if constexpr ( std::is_same_v<T, double> ) {
-        switch ( metric_type ) {
-            case MetricType::Counter: metric_type_int = BifEnum::Telemetry::MetricType::DOUBLE_COUNTER; break;
-            case MetricType::Gauge: metric_type_int = BifEnum::Telemetry::MetricType::DOUBLE_GAUGE; break;
-            case MetricType::Histogram: metric_type_int = BifEnum::Telemetry::MetricType::DOUBLE_HISTOGRAM; break;
-        }
-    }
-    else {
-        switch ( metric_type ) {
-            case MetricType::Counter: metric_type_int = BifEnum::Telemetry::MetricType::INT_COUNTER; break;
-            case MetricType::Gauge: metric_type_int = BifEnum::Telemetry::MetricType::INT_GAUGE; break;
-            case MetricType::Histogram: metric_type_int = BifEnum::Telemetry::MetricType::INT_HISTOGRAM; break;
+        if ( family->Matches(prefix_pattern, name_pattern) ) {
+            auto records = family->Collect();
+            for ( const auto& r : records )
+                ret_val->Append(r);
         }
     }
 
-    if ( metric_type_int < 0 )
-        reporter->FatalError("Unable to lookup metric type %d", int(metric_type));
-
-    r->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(metric_type_int));
-
-    // Add bounds and optionally count_bounds into the MetricOpts record.
-    static auto opts_rt = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
-    static auto opts_rt_idx_bounds = opts_rt->FieldOffset("bounds");
-    static auto opts_rt_idx_count_bounds = opts_rt->FieldOffset("count_bounds");
-
-    if ( metric_type == MetricType::Histogram ) {
-        auto add_double_bounds = [](auto& r, const auto* histogram_family) {
-            size_t buckets = broker::telemetry::num_buckets(histogram_family);
-            auto bounds_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
-            for ( size_t i = 0; i < buckets; i++ )
-                bounds_vec->Append(as_double_val(broker::telemetry::upper_bound_at(histogram_family, i)));
-
-            r->Assign(opts_rt_idx_bounds, bounds_vec);
-        };
-
-        if constexpr ( std::is_same_v<T, int64_t> ) {
-            auto histogram_family = broker::telemetry::as_int_histogram_family(family);
-            add_double_bounds(r, histogram_family);
-
-            // Add count_bounds to int64_t histograms
-            size_t buckets = broker::telemetry::num_buckets(histogram_family);
-            auto count_bounds_vec = make_intrusive<zeek::VectorVal>(count_vec_type);
-            for ( size_t i = 0; i < buckets; i++ )
-                count_bounds_vec->Append(val_mgr->Count(broker::telemetry::upper_bound_at(histogram_family, i)));
-
-            r->Assign(opts_rt_idx_count_bounds, count_bounds_vec);
-        }
-        else {
-            static_assert(std::is_same_v<T, double>);
-            add_double_bounds(r, broker::telemetry::as_dbl_histogram_family(family));
-        }
-    }
-
-    metric_opts_cache.insert({family, r});
-
-    return r;
+    return ret_val;
 }
 
-zeek::RecordValPtr Manager::CollectedValueMetric::AsMetricRecord() const {
-    static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
-    static auto metric_record_type = zeek::id::find_type<zeek::RecordType>("Telemetry::Metric");
-    static auto opts_idx = metric_record_type->FieldOffset("opts");
-    static auto labels_idx = metric_record_type->FieldOffset("labels");
-    static auto value_idx = metric_record_type->FieldOffset("value");
-    static auto count_value_idx = metric_record_type->FieldOffset("count_value");
+ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
+    static auto metrics_vector_type = zeek::id::find_type<VectorType>("any_vec");
+    VectorValPtr ret_val = make_intrusive<VectorVal>(metrics_vector_type);
 
-    auto r = make_intrusive<zeek::RecordVal>(metric_record_type);
+    // Build a map of all of the families that match the patterns based on their full prefixed
+    // name. This will let us match those families against the items returned from the otel reader.
+    for ( const auto& [name, family] : families ) {
+        if ( family->MetricType() != BifEnum::Telemetry::MetricType::INT_HISTOGRAM &&
+             family->MetricType() != BifEnum::Telemetry::MetricType::DOUBLE_HISTOGRAM )
+            continue;
 
-    auto label_values_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
-    for ( const auto& l : label_values )
-        label_values_vec->Append(make_intrusive<StringVal>(l));
-
-    r->Assign(labels_idx, label_values_vec);
-
-    auto fn = [&](auto val) {
-        using val_t = decltype(val);
-        auto opts_record = telemetry_mgr->GetMetricOptsRecord<val_t>(metric_type, family);
-        r->Assign(opts_idx, opts_record);
-        r->Assign(value_idx, as_double_val(val));
-        if constexpr ( std::is_same_v<val_t, int64_t> )
-            r->Assign(count_value_idx, val_mgr->Count(val));
-    };
-
-    std::visit(fn, value);
-
-    return r;
-}
-
-zeek::RecordValPtr Manager::CollectedHistogramMetric::AsHistogramMetricRecord() const {
-    static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
-    static auto double_vec_type = zeek::id::find_type<zeek::VectorType>("double_vec");
-    static auto count_vec_type = zeek::id::find_type<zeek::VectorType>("index_vec");
-    static auto histogram_metric_type = zeek::id::find_type<zeek::RecordType>("Telemetry::HistogramMetric");
-    static auto opts_idx = histogram_metric_type->FieldOffset("opts");
-    static auto labels_idx = histogram_metric_type->FieldOffset("labels");
-    static auto values_idx = histogram_metric_type->FieldOffset("values");
-    static auto count_values_idx = histogram_metric_type->FieldOffset("count_values");
-    static auto observations_idx = histogram_metric_type->FieldOffset("observations");
-    static auto sum_idx = histogram_metric_type->FieldOffset("sum");
-    static auto count_observations_idx = histogram_metric_type->FieldOffset("count_observations");
-    static auto count_sum_idx = histogram_metric_type->FieldOffset("count_sum");
-
-    auto r = make_intrusive<zeek::RecordVal>(histogram_metric_type);
-
-    auto label_values_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
-    for ( const auto& l : label_values )
-        label_values_vec->Append(make_intrusive<StringVal>(l));
-
-    r->Assign(labels_idx, label_values_vec);
-
-    auto fn = [&](const auto& histogram_data) {
-        using val_t = std::decay_t<decltype(histogram_data.sum)>;
-        auto opts_record = telemetry_mgr->GetMetricOptsRecord<val_t>(MetricType::Histogram, family);
-        r->Assign(opts_idx, opts_record);
-
-        val_t observations = 0;
-        auto values_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
-        auto count_values_vec = make_intrusive<zeek::VectorVal>(count_vec_type);
-
-        for ( const auto& b : histogram_data.buckets ) {
-            observations += b.count;
-            values_vec->Append(as_double_val(b.count));
-            if constexpr ( std::is_same_v<val_t, int64_t> )
-                count_values_vec->Append(val_mgr->Count(b.count));
+        if ( family->Matches(prefix_pattern, name_pattern) ) {
+            auto records = family->Collect();
+            for ( const auto& r : records )
+                ret_val->Append(r);
         }
+    }
 
-        r->Assign(values_idx, values_vec);
-        r->Assign(sum_idx, as_double_val(histogram_data.sum));
-        r->Assign(observations_idx, as_double_val(observations));
-
-        // Add extra fields just for int64_t based histograms with type count
-        if constexpr ( std::is_same_v<val_t, int64_t> ) {
-            r->Assign(count_values_idx, count_values_vec);
-            r->Assign(count_sum_idx, val_mgr->Count(histogram_data.sum));
-            r->Assign(count_observations_idx, val_mgr->Count(observations));
-        }
-    };
-
-    std::visit(fn, histogram);
-
-    return r;
+    return ret_val;
 }
 
 /**
- * Encapsulate matching of prefix and name against a broker::telemetry::metric_family_hdl
+ * Changes the frequency for publishing scraped metrics to the target topic.
+ * Passing a zero-length interval has no effect.
+ * @param value Interval between two scrapes in seconds.
  */
-class MetricFamilyMatcher {
-public:
-    MetricFamilyMatcher(std::string_view prefix, std::string_view name) : prefix_pattern(prefix), name_pattern(name) {}
-
-    /**
-     * @return true if the given family's prefix and name match, else false;
-     */
-    bool operator()(const broker::telemetry::metric_family_hdl* family) {
-        auto prefix = std::string{broker::telemetry::prefix(family)};
-        auto name = std::string{broker::telemetry::name(family)};
-
-        return fnmatch(prefix_pattern.c_str(), prefix.c_str(), 0) != FNM_NOMATCH &&
-               fnmatch(name_pattern.c_str(), name.c_str(), 0) != FNM_NOMATCH;
-    }
-
-private:
-    std::string prefix_pattern;
-    std::string name_pattern;
-};
+void Manager::SetMetricsExportInterval(double value) { export_interval = value; }
 
 /**
- * A collector implementation for counters and gauges.
+ * Sets a new target topic for the metrics. Passing an empty string has no
+ * effect.
+ * @param value The new topic for publishing local metrics to.
  */
-class MetricsCollector : public broker::telemetry::metrics_collector {
-    using MetricType = Manager::MetricType;
-
-public:
-    MetricsCollector(std::string_view prefix, std::string_view name) : matches(prefix, name) {}
-
-    void operator()(const broker::telemetry::metric_family_hdl* family,
-                    const broker::telemetry::dbl_counter_hdl* counter,
-                    broker::telemetry::const_label_list labels) override {
-        if ( matches(family) )
-            metrics.emplace_back(MetricType::Counter, family, extract_label_values(labels),
-                                 broker::telemetry::value(counter));
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family,
-                    const broker::telemetry::int_counter_hdl* counter,
-                    broker::telemetry::const_label_list labels) override {
-        if ( matches(family) )
-            metrics.emplace_back(MetricType::Counter, family, extract_label_values(labels),
-                                 broker::telemetry::value(counter));
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family, const broker::telemetry::dbl_gauge_hdl* gauge,
-                    broker::telemetry::const_label_list labels) override {
-        if ( matches(family) )
-            metrics.emplace_back(MetricType::Gauge, family, extract_label_values(labels),
-                                 broker::telemetry::value(gauge));
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family, const broker::telemetry::int_gauge_hdl* gauge,
-                    broker::telemetry::const_label_list labels) override {
-        if ( matches(family) )
-            metrics.emplace_back(MetricType::Gauge, family, extract_label_values(labels),
-                                 broker::telemetry::value(gauge));
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family,
-                    const broker::telemetry::dbl_histogram_hdl* histogram,
-                    broker::telemetry::const_label_list labels) override {
-        // Ignored
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family,
-                    const broker::telemetry::int_histogram_hdl* histogram,
-                    broker::telemetry::const_label_list labels) override {
-        // Ignored
-    }
-
-    std::vector<Manager::CollectedValueMetric>& GetResult() { return metrics; }
-
-private:
-    MetricFamilyMatcher matches;
-    std::vector<Manager::CollectedValueMetric> metrics;
-};
-
-std::vector<Manager::CollectedValueMetric> Manager::CollectMetrics(std::string_view prefix, std::string_view name) {
-    auto collector = MetricsCollector(prefix, name);
-
-    pimpl->collect(collector);
-
-    return std::move(collector.GetResult());
-}
+void Manager::SetMetricsExportTopic(std::string value) { export_topic = std::move(value); }
 
 /**
- * A collector implementation for histograms.
+ * Sets the import topics for a node importing metrics.
+ *
+ * @param topics List of topics from which to import metrics.
  */
-class HistogramMetricsCollector : public broker::telemetry::metrics_collector {
-    using MetricType = Manager::MetricType;
+void Manager::SetMetricsImportTopics(std::vector<std::string> topics) { import_topics = std::move(topics); }
 
-public:
-    HistogramMetricsCollector(std::string_view prefix, std::string_view name) : matches(prefix, name) {}
+/**
+ * Sets a new ID for the metrics exporter. Passing an empty string has no
+ * effect.
+ * @param value The new ID of the exporter in published metrics.
+ */
+void Manager::SetMetricsExportEndpointName(std::string value) { export_endpoint = std::move(value); }
 
-    void operator()(const broker::telemetry::metric_family_hdl* family,
-                    const broker::telemetry::dbl_counter_hdl* counter,
-                    broker::telemetry::const_label_list labels) override {
-        // Ignored
-    }
+/**
+ * Sets a prefix selection for the metrics exporter. An empty vector selects
+ * *all* metrics.
+ * @param filter List of selected metric prefixes or an empty vector for
+ *               selecting all metrics.
+ */
+void Manager::SetMetricsExportPrefixes(std::vector<std::string> filter) { export_prefixes = std::move(filter); }
 
-    void operator()(const broker::telemetry::metric_family_hdl* family,
-                    const broker::telemetry::int_counter_hdl* counter,
-                    broker::telemetry::const_label_list labels) override {
-        // Ignored
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family, const broker::telemetry::dbl_gauge_hdl* gauge,
-                    broker::telemetry::const_label_list labels) override {
-        // Ignored
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family, const broker::telemetry::int_gauge_hdl* gauge,
-                    broker::telemetry::const_label_list labels) override {
-        // Ignored
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family,
-                    const broker::telemetry::dbl_histogram_hdl* histogram,
-                    broker::telemetry::const_label_list labels) override {
-        if ( ! matches(family) )
-            return;
-
-        size_t num_buckets = broker::telemetry::num_buckets(histogram);
-
-        Manager::CollectedHistogramMetric::DblHistogramData histogram_data;
-        histogram_data.buckets.reserve(num_buckets);
-
-        for ( size_t i = 0; i < num_buckets; i++ ) {
-            double c = broker::telemetry::count_at(histogram, i);
-            double ub = broker::telemetry::upper_bound_at(histogram, i);
-            histogram_data.buckets.emplace_back(c, ub);
-        }
-
-        histogram_data.sum = broker::telemetry::sum(histogram);
-
-        metrics.emplace_back(family, extract_label_values(labels), std::move(histogram_data));
-    }
-
-    void operator()(const broker::telemetry::metric_family_hdl* family,
-                    const broker::telemetry::int_histogram_hdl* histogram,
-                    broker::telemetry::const_label_list labels) override {
-        if ( ! matches(family) )
-            return;
-
-        size_t num_buckets = broker::telemetry::num_buckets(histogram);
-
-        Manager::CollectedHistogramMetric::IntHistogramData histogram_data;
-        histogram_data.buckets.reserve(num_buckets);
-
-        for ( size_t i = 0; i < num_buckets; i++ ) {
-            int64_t c = broker::telemetry::count_at(histogram, i);
-            int64_t ub = broker::telemetry::upper_bound_at(histogram, i);
-            histogram_data.buckets.emplace_back(c, ub);
-        }
-
-        histogram_data.sum = broker::telemetry::sum(histogram);
-
-        metrics.emplace_back(family, extract_label_values(labels), std::move(histogram_data));
-    }
-
-    std::vector<Manager::CollectedHistogramMetric>& GetResult() { return metrics; }
-
-private:
-    MetricFamilyMatcher matches;
-    std::vector<Manager::CollectedHistogramMetric> metrics;
-};
-
-std::vector<Manager::CollectedHistogramMetric> Manager::CollectHistogramMetrics(std::string_view prefix,
-                                                                                std::string_view name) {
-    auto collector = HistogramMetricsCollector(prefix, name);
-
-    pimpl->collect(collector);
-
-    return std::move(collector.GetResult());
-}
 
 } // namespace zeek::telemetry
 
@@ -444,42 +315,42 @@ SCENARIO("telemetry managers provide access to counter families") {
         WHEN("retrieving an IntCounter family") {
             auto family = mgr.CounterFamily("zeek", "requests", {"method"}, "test", "1", true);
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "requests"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"method"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "1"sv);
-                CHECK_EQ(family.IsSum(), true);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "requests"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"method"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "1"sv);
+                CHECK_EQ(family->IsSum(), true);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"method", "get"}});
-                auto second = family.GetOrAdd({{"method", "get"}});
+                auto first = family->GetOrAdd({{"method", "get"}});
+                auto second = family->GetOrAdd({{"method", "get"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"method", "get"}});
-                auto second = family.GetOrAdd({{"method", "put"}});
+                auto first = family->GetOrAdd({{"method", "get"}});
+                auto second = family->GetOrAdd({{"method", "put"}});
                 CHECK_NE(first, second);
             }
         }
         WHEN("retrieving a DblCounter family") {
             auto family = mgr.CounterFamily<double>("zeek", "runtime", {"query"}, "test", "seconds", true);
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "runtime"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"query"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "seconds"sv);
-                CHECK_EQ(family.IsSum(), true);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "runtime"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"query"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "seconds"sv);
+                CHECK_EQ(family->IsSum(), true);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"query", "foo"}});
-                auto second = family.GetOrAdd({{"query", "foo"}});
+                auto first = family->GetOrAdd({{"query", "foo"}});
+                auto second = family->GetOrAdd({{"query", "foo"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"query", "foo"}});
-                auto second = family.GetOrAdd({{"query", "bar"}});
+                auto first = family->GetOrAdd({{"query", "foo"}});
+                auto second = family->GetOrAdd({{"query", "bar"}});
                 CHECK_NE(first, second);
             }
         }
@@ -490,44 +361,44 @@ SCENARIO("telemetry managers provide access to gauge families") {
     GIVEN("a telemetry manager") {
         Manager mgr;
         WHEN("retrieving an IntGauge family") {
-            auto family = mgr.GaugeFamily("zeek", "open-connections", {"protocol"}, "test");
+            auto family = mgr.GaugeFamily("zeek", "open-connections", {"protocol"}, "test", "1");
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "open-connections"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"protocol"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "1"sv);
-                CHECK_EQ(family.IsSum(), false);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "open_connections"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"protocol"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "1"sv);
+                CHECK_EQ(family->IsSum(), false);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "tcp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "tcp"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "quic"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "quic"}});
                 CHECK_NE(first, second);
             }
         }
         WHEN("retrieving a DblGauge family") {
             auto family = mgr.GaugeFamily<double>("zeek", "water-level", {"river"}, "test", "meters");
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "water-level"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"river"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "meters"sv);
-                CHECK_EQ(family.IsSum(), false);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "water_level"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"river"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "meters"sv);
+                CHECK_EQ(family->IsSum(), false);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"river", "Sacramento"}});
-                auto second = family.GetOrAdd({{"river", "Sacramento"}});
+                auto first = family->GetOrAdd({{"river", "Sacramento"}});
+                auto second = family->GetOrAdd({{"river", "Sacramento"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"query", "Sacramento"}});
-                auto second = family.GetOrAdd({{"query", "San Joaquin"}});
+                auto first = family->GetOrAdd({{"query", "Sacramento"}});
+                auto second = family->GetOrAdd({{"query", "San Joaquin"}});
                 CHECK_NE(first, second);
             }
         }
@@ -541,21 +412,21 @@ SCENARIO("telemetry managers provide access to histogram families") {
             int64_t buckets[] = {10, 20};
             auto family = mgr.HistogramFamily("zeek", "payload-size", {"protocol"}, buckets, "test", "bytes");
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "payload-size"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"protocol"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "bytes"sv);
-                CHECK_EQ(family.IsSum(), false);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "payload_size"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"protocol"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "bytes"sv);
+                CHECK_EQ(family->IsSum(), false);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "tcp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "tcp"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "udp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "udp"}});
                 CHECK_NE(first, second);
             }
         }
@@ -563,31 +434,31 @@ SCENARIO("telemetry managers provide access to histogram families") {
             double buckets[] = {10.0, 20.0};
             auto family = mgr.HistogramFamily<double>("zeek", "parse-time", {"protocol"}, buckets, "test", "seconds");
             THEN("the family object stores the parameters") {
-                CHECK_EQ(family.Prefix(), "zeek"sv);
-                CHECK_EQ(family.Name(), "parse-time"sv);
-                CHECK_EQ(toVector(family.LabelNames()), std::vector{"protocol"s});
-                CHECK_EQ(family.Helptext(), "test"sv);
-                CHECK_EQ(family.Unit(), "seconds"sv);
-                CHECK_EQ(family.IsSum(), false);
+                CHECK_EQ(family->Prefix(), "zeek"sv);
+                CHECK_EQ(family->Name(), "parse_time"sv);
+                CHECK_EQ(toVector(family->LabelNames()), std::vector{"protocol"s});
+                CHECK_EQ(family->Helptext(), "test"sv);
+                CHECK_EQ(family->Unit(), "seconds"sv);
+                CHECK_EQ(family->IsSum(), false);
             }
             AND_THEN("GetOrAdd returns the same metric for the same labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "tcp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "tcp"}});
                 CHECK_EQ(first, second);
             }
             AND_THEN("GetOrAdd returns different metric for the disjoint labels") {
-                auto first = family.GetOrAdd({{"protocol", "tcp"}});
-                auto second = family.GetOrAdd({{"protocol", "udp"}});
+                auto first = family->GetOrAdd({{"protocol", "tcp"}});
+                auto second = family->GetOrAdd({{"protocol", "udp"}});
                 CHECK_NE(first, second);
             }
             AND_THEN("Timers add observations to histograms") {
-                auto hg = family.GetOrAdd({{"protocol", "tst"}});
-                CHECK_EQ(hg.Sum(), 0.0);
+                auto hg = family->GetOrAdd({{"protocol", "tst"}});
+                CHECK_EQ(hg->Sum(), 0.0);
                 {
                     Timer observer{hg};
                     std::this_thread::sleep_for(1ms);
                 }
-                CHECK_NE(hg.Sum(), 0.0);
+                CHECK_NE(hg->Sum(), 0.0);
             }
         }
     }

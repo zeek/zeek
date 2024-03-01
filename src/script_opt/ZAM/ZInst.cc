@@ -177,11 +177,11 @@ string ZInst::VName(int n, zeek_uint_t inst_num, const FrameReMap* mappings) con
 
     unsigned int i;
     for ( i = 0; i < map.id_start.size(); ++i ) {
-	// If the slot is right at the boundary between two identifiers, then
-	// it matters whether this is an assigned slot (starts right here) vs.
-	// not assigned (ignore change right at the boundary and stick with
-	// older value).
-	auto target_inst = AssignsToSlot(n) ? inst_num + 1 : inst_num;
+        // If the slot is right at the boundary between two identifiers, then
+        // it matters whether this is an assigned slot (starts right here) vs.
+        // not assigned (ignore change right at the boundary and stick with
+        // older value).
+        auto target_inst = AssignsToSlot(n) ? inst_num + 1 : inst_num;
         if ( map.id_start[i] >= target_inst )
             // Went too far.
             break;

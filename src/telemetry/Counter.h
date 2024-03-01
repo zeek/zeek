@@ -8,190 +8,182 @@
 
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
+#include "zeek/telemetry/telemetry.bif.h"
 
-#include "broker/telemetry/fwd.hh"
+#include "prometheus/counter.h"
+#include "prometheus/family.h"
 
 namespace zeek::telemetry {
 
-class DblCounterFamily;
-class IntCounterFamily;
-class Manager;
-
-/**
- * A handle to a metric that represents an integer value that can only go up.
- */
-class IntCounter {
+template<typename BaseType>
+class BaseCounter {
 public:
-    friend class IntCounterFamily;
-
-    static inline const char* OpaqueName = "IntCounterMetricVal";
-
-    IntCounter() = delete;
-    IntCounter(const IntCounter&) noexcept = default;
-    IntCounter& operator=(const IntCounter&) noexcept = default;
+    using Handle = prometheus::Counter;
+    using FamilyType = prometheus::Family<Handle>;
 
     /**
      * Increments the value by 1.
      */
-    void Inc() noexcept { broker::telemetry::inc(hdl); }
+    void Inc() noexcept { Inc(1); }
 
     /**
      * Increments the value by @p amount.
      * @pre `amount >= 0`
      */
-    void Inc(int64_t amount) noexcept { broker::telemetry::inc(hdl, amount); }
+    void Inc(BaseType amount) noexcept { handle.Increment(amount); }
 
     /**
      * Increments the value by 1.
      * @return The new value.
      */
-    int64_t operator++() noexcept { return broker::telemetry::inc(hdl); }
+    BaseType operator++() noexcept {
+        Inc(1);
+        return Value();
+    }
 
-    /**
-     * @return The current value.
-     */
-    int64_t Value() const noexcept { return broker::telemetry::value(hdl); }
+    BaseType Value() const noexcept { return static_cast<BaseType>(handle.Value()); }
 
-    /**
-     * @return Whether @c this and @p other refer to the same counter.
-     */
-    constexpr bool IsSameAs(const IntCounter& other) const noexcept { return hdl == other.hdl; }
+    bool operator==(const BaseCounter<BaseType>& rhs) const noexcept { return &handle == &rhs.handle; }
+    bool operator!=(const BaseCounter<BaseType>& rhs) const noexcept { return &handle != &rhs.handle; }
 
-private:
-    using Handle = broker::telemetry::int_counter_hdl*;
+    bool CompareLabels(const prometheus::Labels& lbls) const { return labels == lbls; }
 
-    explicit IntCounter(Handle hdl) noexcept : hdl(hdl) {}
+protected:
+    explicit BaseCounter(FamilyType& family, const prometheus::Labels& labels) noexcept
+        : handle(family.Add(labels)), labels(labels) {}
 
-    Handle hdl;
+    Handle& handle;
+    prometheus::Labels labels;
+    BaseType last_value = 0;
 };
 
 /**
- * Checks whether two @ref IntCounter handles are identical.
- * @return Whether @p lhs and @p rhs refer to the same object.
- * @note compare their @c value instead to check for equality.
+ * A handle to a metric that represents an integer value that can only go up.
  */
-constexpr bool operator==(const IntCounter& lhs, const IntCounter& rhs) noexcept { return lhs.IsSameAs(rhs); }
+class IntCounter : public BaseCounter<uint64_t> {
+public:
+    static inline const char* OpaqueName = "IntCounterMetricVal";
+    explicit IntCounter(FamilyType& family, const prometheus::Labels& labels) noexcept : BaseCounter(family, labels) {}
+};
 
-/// @relates IntCounter
-constexpr bool operator!=(const IntCounter& lhs, const IntCounter& rhs) noexcept { return ! (lhs == rhs); }
+/**
+ * A handle to a metric that represents a double value that can only go up.
+ */
+class DblCounter : public BaseCounter<double> {
+public:
+    static inline const char* OpaqueName = "DblCounterMetricVal";
+    explicit DblCounter(FamilyType& family, const prometheus::Labels& labels) noexcept : BaseCounter(family, labels) {}
+};
+
+template<class CounterType, typename BaseType>
+class BaseCounterFamily : public MetricFamily,
+                          public std::enable_shared_from_this<BaseCounterFamily<CounterType, BaseType>> {
+public:
+    BaseCounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                      std::string_view helptext, std::shared_ptr<prometheus::Registry> registry,
+                      std::string_view unit = "", bool is_sum = false)
+        : MetricFamily(prefix, name, labels, helptext, unit, is_sum),
+          family(prometheus::BuildCounter().Name(full_name).Help(std::string{helptext}).Register(*registry)) {}
+
+    /**
+     * Returns the metrics handle for given labels, creating a new instance
+     * lazily if necessary.
+     */
+    std::shared_ptr<CounterType> GetOrAdd(Span<const LabelView> labels) {
+        prometheus::Labels p_labels = BuildPrometheusLabels(labels);
+
+        auto check = [&](const std::shared_ptr<CounterType>& counter) { return counter->CompareLabels(p_labels); };
+
+        if ( auto it = std::find_if(counters.begin(), counters.end(), check); it != counters.end() )
+            return *it;
+
+        auto counter = std::make_shared<CounterType>(family, p_labels);
+        counters.push_back(counter);
+        return counter;
+    }
+
+    /**
+     * @copydoc GetOrAdd
+     */
+    std::shared_ptr<CounterType> GetOrAdd(std::initializer_list<LabelView> labels) {
+        return GetOrAdd(Span{labels.begin(), labels.size()});
+    }
+
+    std::vector<std::shared_ptr<CounterType>>& GetAllCounters() { return counters; }
+
+    std::vector<RecordValPtr> Collect() const override {
+        static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
+        static auto metric_record_type = zeek::id::find_type<zeek::RecordType>("Telemetry::Metric");
+        static auto opts_idx = metric_record_type->FieldOffset("opts");
+        static auto labels_idx = metric_record_type->FieldOffset("labels");
+        static auto value_idx = metric_record_type->FieldOffset("value");
+        static auto count_value_idx = metric_record_type->FieldOffset("count_value");
+
+        RecordValPtr opts_record = GetMetricOptsRecord();
+
+        std::vector<RecordValPtr> records;
+        for ( const auto& ctr : counters ) {
+            auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
+            for ( const auto& [label_key, label] : ctr->Labels() )
+                if ( label_key != "endpoint" )
+                    label_values_vec->Append(make_intrusive<StringVal>(label));
+
+            auto r = make_intrusive<zeek::RecordVal>(metric_record_type);
+            r->Assign(labels_idx, label_values_vec);
+            r->Assign(opts_idx, opts_record);
+
+            if constexpr ( std::is_same_v<BaseType, double> )
+                r->Assign(value_idx, zeek::make_intrusive<DoubleVal>(ctr->Value()));
+            else {
+                r->Assign(value_idx, zeek::make_intrusive<DoubleVal>(static_cast<double>(ctr->Value())));
+                r->Assign(count_value_idx, val_mgr->Count(ctr->Value()));
+            }
+
+            records.push_back(std::move(r));
+        }
+
+        return records;
+    }
+
+protected:
+    prometheus::Family<prometheus::Counter>& family;
+    std::vector<std::shared_ptr<CounterType>> counters;
+};
 
 /**
  * Manages a collection of IntCounter metrics.
  */
-class IntCounterFamily : public MetricFamily {
+class IntCounterFamily : public BaseCounterFamily<IntCounter, uint64_t> {
 public:
-    friend class Manager;
-
     static inline const char* OpaqueName = "IntCounterMetricFamilyVal";
 
-    using InstanceType = IntCounter;
+    explicit IntCounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                              std::string_view helptext, std::shared_ptr<prometheus::Registry> registry,
+                              std::string_view unit = "", bool is_sum = false)
+        : BaseCounterFamily(prefix, name, labels, helptext, std::move(registry), unit, is_sum) {}
 
     IntCounterFamily(const IntCounterFamily&) noexcept = default;
-    IntCounterFamily& operator=(const IntCounterFamily&) noexcept = default;
+    IntCounterFamily& operator=(const IntCounterFamily&) noexcept = delete;
 
-    /**
-     * Returns the metrics handle for given labels, creating a new instance
-     * lazily if necessary.
-     */
-    IntCounter GetOrAdd(Span<const LabelView> labels) { return IntCounter{int_counter_get_or_add(hdl, labels)}; }
-
-    /**
-     * @copydoc GetOrAdd
-     */
-    IntCounter GetOrAdd(std::initializer_list<LabelView> labels) {
-        return GetOrAdd(Span{labels.begin(), labels.size()});
-    }
-
-private:
-    using Handle = broker::telemetry::int_counter_family_hdl*;
-
-    explicit IntCounterFamily(Handle hdl) : MetricFamily(upcast(hdl)) {}
+    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::INT_COUNTER; }
 };
-
-/**
- * A handle to a metric that represents a floating point value that can only go
- * up.
- */
-class DblCounter {
-public:
-    friend class DblCounterFamily;
-
-    static inline const char* OpaqueName = "DblCounterMetricVal";
-
-    DblCounter() = delete;
-    DblCounter(const DblCounter&) noexcept = default;
-    DblCounter& operator=(const DblCounter&) noexcept = default;
-
-    /**
-     * Increments the value by 1.
-     */
-    void Inc() noexcept { broker::telemetry::inc(hdl); }
-
-    /**
-     * Increments the value by @p amount.
-     * @pre `amount >= 0`
-     */
-    void Inc(double amount) noexcept { broker::telemetry::inc(hdl, amount); }
-
-    /**
-     * @return The current value.
-     */
-    double Value() const noexcept { return broker::telemetry::value(hdl); }
-
-    /**
-     * @return Whether @c this and @p other refer to the same counter.
-     */
-    constexpr bool IsSameAs(const DblCounter& other) const noexcept { return hdl == other.hdl; }
-
-private:
-    using Handle = broker::telemetry::dbl_counter_hdl*;
-
-    explicit DblCounter(Handle hdl) noexcept : hdl(hdl) {}
-
-    Handle hdl;
-};
-
-/**
- * Checks whether two @ref DblCounter handles are identical.
- * @return Whether @p lhs and @p rhs refer to the same object.
- * @note compare their @c value instead to check for equality.
- */
-constexpr bool operator==(const DblCounter& lhs, const DblCounter& rhs) noexcept { return lhs.IsSameAs(rhs); }
-
-/// @relates DblCounter
-constexpr bool operator!=(const DblCounter& lhs, const DblCounter& rhs) noexcept { return ! (lhs == rhs); }
 
 /**
  * Manages a collection of DblCounter metrics.
  */
-class DblCounterFamily : public MetricFamily {
+class DblCounterFamily : public BaseCounterFamily<DblCounter, double> {
 public:
-    friend class Manager;
-
     static inline const char* OpaqueName = "DblCounterMetricFamilyVal";
 
-    using InstanceType = DblCounter;
+    explicit DblCounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                              std::string_view helptext, std::shared_ptr<prometheus::Registry> registry,
+                              std::string_view unit = "", bool is_sum = false)
+        : BaseCounterFamily(prefix, name, labels, helptext, std::move(registry), unit, is_sum) {}
 
     DblCounterFamily(const DblCounterFamily&) noexcept = default;
-    DblCounterFamily& operator=(const DblCounterFamily&) noexcept = default;
+    DblCounterFamily& operator=(const DblCounterFamily&) noexcept = delete;
 
-    /**
-     * Returns the metrics handle for given labels, creating a new instance
-     * lazily if necessary.
-     */
-    DblCounter GetOrAdd(Span<const LabelView> labels) { return DblCounter{dbl_counter_get_or_add(hdl, labels)}; }
-
-    /**
-     * @copydoc GetOrAdd
-     */
-    DblCounter GetOrAdd(std::initializer_list<LabelView> labels) {
-        return GetOrAdd(Span{labels.begin(), labels.size()});
-    }
-
-private:
-    using Handle = broker::telemetry::dbl_counter_family_hdl*;
-
-    explicit DblCounterFamily(Handle hdl) : MetricFamily(upcast(hdl)) {}
+    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::DOUBLE_COUNTER; }
 };
 
 namespace detail {

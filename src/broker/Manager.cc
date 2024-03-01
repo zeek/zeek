@@ -415,8 +415,6 @@ void Manager::InitPostScript() {
 
     bstate->subscriber.add_topic(broker::topic::store_events(), true);
 
-    telemetry_mgr->InitPostBrokerSetup(bstate->endpoint);
-
     InitializeBrokerStoreForwarding();
 }
 

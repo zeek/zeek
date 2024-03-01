@@ -15,7 +15,7 @@ class [[nodiscard]] Timer {
 public:
     using Clock = std::chrono::steady_clock;
 
-    explicit Timer(DblHistogram h) : h_(h) { start_ = Clock::now(); }
+    explicit Timer(std::shared_ptr<DblHistogram> h) : h_(std::move(h)) { start_ = Clock::now(); }
 
     Timer(const Timer&) = delete;
 
@@ -30,14 +30,14 @@ public:
     auto Started() const noexcept { return start_; }
 
     /// Calls `h.Observe` with the time passed since `start`.
-    static void Observe(DblHistogram h, Clock::time_point start) {
+    static void Observe(const std::shared_ptr<DblHistogram>& h, Clock::time_point start) {
         using DblSec = std::chrono::duration<double>;
         if ( auto end = Clock::now(); end > start )
-            h.Observe(std::chrono::duration_cast<DblSec>(end - start).count());
+            h->Observe(std::chrono::duration_cast<DblSec>(end - start).count());
     }
 
 private:
-    DblHistogram h_;
+    std::shared_ptr<DblHistogram> h_;
     Clock::time_point start_;
 };
 

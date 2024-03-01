@@ -403,8 +403,8 @@ private:
     FuncPtr rotation_format_func;
     FuncPtr log_stream_policy_hook;
 
-    telemetry::IntCounterFamily total_log_stream_writes_family;
-    telemetry::IntCounterFamily total_log_writer_writes_family;
+    std::shared_ptr<telemetry::IntCounterFamily> total_log_stream_writes_family;
+    std::shared_ptr<telemetry::IntCounterFamily> total_log_writer_writes_family;
 
     zeek_uint_t last_delay_token = 0;
     std::vector<detail::WriteContext> active_writes;

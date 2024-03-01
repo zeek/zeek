@@ -33,6 +33,7 @@ namespace zeek::detail {
 #ifdef ENABLE_ZAM_PROFILE
 
 static std::vector<std::shared_ptr<ZAMLocInfo>> caller_locs;
+static std::vector<bool> caller_prof;
 
 static double compute_prof_overhead() {
     double start = util::curr_CPU_time();
@@ -55,13 +56,19 @@ static double prof_overhead = compute_prof_overhead();
         ZOP_CPU[z.op] += dt;                                                                                           \
     }
 #define ZAM_PROFILE_PRE_CALL                                                                                           \
-    caller_locs.push_back(z.loc);                                                                                      \
+    if ( analysis_options.profile_ZAM ) {                                                                              \
+        caller_locs.push_back(z.loc);                                                                                  \
+        caller_prof.push_back(do_profile);                                                                             \
+    }                                                                                                                  \
     if ( ! z.aux->is_BiF_call ) { /* For non-BiFs we don't include the callee's execution time as part of our own */   \
         DO_ZAM_PROFILE                                                                                                 \
     }
 
 #define ZAM_PROFILE_POST_CALL                                                                                          \
-    caller_locs.pop_back();                                                                                            \
+    if ( analysis_options.profile_ZAM ) {                                                                              \
+        caller_locs.pop_back();                                                                                        \
+        caller_prof.pop_back();                                                                                        \
+    }                                                                                                                  \
     if ( ! z.aux->is_BiF_call ) { /* We already did the profiling, move on to next instruction */                      \
         ++pc;                                                                                                          \
         continue;                                                                                                      \
@@ -92,6 +99,8 @@ void report_ZOP_profile() {
     static bool did_overhead_report = false;
 
     if ( ! did_overhead_report ) {
+        fprintf(analysis_options.profile_file, "Profile sampled every %d calls\n",
+                analysis_options.profile_sampling_rate);
         fprintf(analysis_options.profile_file, "Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
         did_overhead_report = true;
     }
@@ -270,20 +279,7 @@ std::shared_ptr<ProfVec> ZBody::BuildProfVec() const {
     return pv;
 }
 
-ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
-#ifdef ENABLE_ZAM_PROFILE
-    double t = analysis_options.profile_ZAM ? util::curr_CPU_time() : 0.0;
-#endif
-
-    auto val = DoExec(f, flow);
-
-#ifdef ENABLE_ZAM_PROFILE
-    if ( analysis_options.profile_ZAM )
-        CPU_time += util::curr_CPU_time() - t;
-#endif
-
-    return val;
-}
+ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) { return DoExec(f, flow); }
 
 ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     unsigned int pc = 0;
@@ -295,18 +291,30 @@ ValPtr ZBody::DoExec(Frame* f, StmtFlowType& flow) {
     TypePtr ret_type;
 
 #ifdef ENABLE_ZAM_PROFILE
-    bool do_profile = analysis_options.profile_ZAM;
+    bool do_profile;
 
-    if ( do_profile ) {
-        if ( caller_locs.empty() )
-            curr_prof_vec = default_prof_vec;
-        else {
-            auto pv = prof_vecs.find(caller_locs);
-            if ( pv == prof_vecs.end() )
-                pv = prof_vecs.insert({caller_locs, BuildProfVec()}).first;
-            curr_prof_vec = pv->second;
+    if ( analysis_options.profile_ZAM ) {
+        if ( caller_prof.empty() ) {
+            static auto seed = util::detail::random_number();
+            seed = util::detail::prng(seed);
+            do_profile = seed % analysis_options.profile_sampling_rate == 0;
+        }
+        else
+            do_profile = caller_prof.back();
+
+        if ( do_profile ) {
+            if ( caller_locs.empty() )
+                curr_prof_vec = default_prof_vec;
+            else {
+                auto pv = prof_vecs.find(caller_locs);
+                if ( pv == prof_vecs.end() )
+                    pv = prof_vecs.insert({caller_locs, BuildProfVec()}).first;
+                curr_prof_vec = pv->second;
+            }
         }
     }
+    else
+        do_profile = false;
 #endif
 
     ZVal* frame;
@@ -413,10 +421,13 @@ void ZBody::ProfileExecution(ProfMap& pm) {
     }
 
     int ncall = dpv[0].first;
-    for ( auto [_, pv] : prof_vecs )
+    double CPU = dpv[0].second;
+    for ( auto [_, pv] : prof_vecs ) {
         ncall += (*pv)[0].first;
+        CPU += (*pv)[0].second;
+    }
 
-    adj_CPU_time = CPU_time - ninst * prof_overhead;
+    double adj_CPU_time = CPU - ninst * prof_overhead;
 
     fprintf(analysis_options.profile_file, "%s CPU time %.06f, %d calls, %d instructions\n", func_name.c_str(),
             adj_CPU_time, ncall, ninst);

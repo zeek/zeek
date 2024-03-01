@@ -311,6 +311,17 @@ static void init_options() {
             add_file_analysis_pattern(analysis_options, zo);
     }
 
+    if ( analysis_options.profile_ZAM ) {
+        auto zsamp = getenv("ZEEK_ZAM_PROF_SAMPLING_RATE");
+        if ( zsamp ) {
+            analysis_options.profile_sampling_rate = atoi(zsamp);
+            if ( analysis_options.profile_sampling_rate == 0 ) {
+                fprintf(stderr, "bad ZAM sampling profile rate from $ZEEK_ZAM_PROF_SAMPLING_RATE: %s\n", zsamp);
+                analysis_options.profile_ZAM = false;
+            }
+        }
+    }
+
     if ( analysis_options.gen_ZAM ) {
         analysis_options.gen_ZAM_code = true;
         analysis_options.inliner = true;

@@ -75,6 +75,9 @@ struct AnalyOpt {
     // Produce a profile of ZAM execution.
     bool profile_ZAM = false;
 
+    // ZAM profiling sampling rate. Set via ZEEK_ZAM_PROF_SAMPLING_RATE.
+    int profile_sampling_rate = 100;
+
     // An associated file to which to write the profile.
     FILE* profile_file = nullptr;
 

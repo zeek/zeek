@@ -55,8 +55,6 @@ public:
     void ProfileExecution(ProfMap& pm);
 
     const std::string& FuncName() const { return func_name; }
-    double CPUTime() const { return adj_CPU_time; }
-    int NInst() const { return ninst; }
 
 private:
     // Initializes profiling information, if needed.
@@ -117,10 +115,7 @@ private:
     CaseMaps<std::string> str_cases;
 
     // The following are only maintained if we're doing profiling.
-    double CPU_time = 0.0;     // cumulative CPU time for the program
-    double adj_CPU_time = 0.0; // adjusted for profiling overhead
     int ninst = 0;
-
     std::map<CallStack, std::shared_ptr<ProfVec>> prof_vecs;
     std::shared_ptr<ProfVec> default_prof_vec;
     std::shared_ptr<ProfVec> curr_prof_vec;

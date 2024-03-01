@@ -92,14 +92,14 @@ void report_ZOP_profile() {
     static bool did_overhead_report = false;
 
     if ( ! did_overhead_report ) {
-        printf("Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
+        fprintf(analysis_options.profile_file, "Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
         did_overhead_report = true;
     }
 
     for ( int i = 1; i <= OP_NOP; ++i )
         if ( ZOP_count[i] > 0 ) {
             auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * prof_overhead, 0.0);
-            printf("%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], CPU);
+            fprintf(analysis_options.profile_file, "%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], CPU);
         }
 }
 
@@ -401,14 +401,14 @@ void ZBody::ProfileExecution(ProfMap& pm) {
     static bool did_overhead_report = false;
 
     if ( end_pc == 0 ) {
-        printf("%s has an empty body\n", func_name.c_str());
+        fprintf(analysis_options.profile_file, "%s has an empty body\n", func_name.c_str());
         return;
     }
 
     auto& dpv = *default_prof_vec;
 
     if ( dpv[0].first == 0 && prof_vecs.empty() ) {
-        printf("%s did not execute\n", func_name.c_str());
+        fprintf(analysis_options.profile_file, "%s did not execute\n", func_name.c_str());
         return;
     }
 
@@ -418,7 +418,8 @@ void ZBody::ProfileExecution(ProfMap& pm) {
 
     adj_CPU_time = CPU_time - ninst * prof_overhead;
 
-    printf("%s CPU time %.06f, %d calls, %d instructions\n", func_name.c_str(), adj_CPU_time, ncall, ninst);
+    fprintf(analysis_options.profile_file, "%s CPU time %.06f, %d calls, %d instructions\n", func_name.c_str(),
+            adj_CPU_time, ncall, ninst);
 
     if ( dpv[0].first != 0 )
         ReportProfile(pm, dpv, "", {});
@@ -441,8 +442,8 @@ void ZBody::ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& pre
         auto ninst = pv[i].first;
         auto CPU = pv[i].second;
         CPU = std::max(CPU - ninst * prof_overhead, 0.0);
-        printf("%s %d %" PRId64 " %.06f ", func_name.c_str(), i, ninst, CPU);
-        insts[i].Dump(i, &frame_denizens, prefix);
+        fprintf(analysis_options.profile_file, "%s %d %" PRId64 " %.06f ", func_name.c_str(), i, ninst, CPU);
+        insts[i].Dump(analysis_options.profile_file, i, &frame_denizens, prefix);
 
         auto modules = caller_modules;
         insts[i].loc->AddInModules(modules);
@@ -508,7 +509,7 @@ void ZBody::Dump() const {
     for ( unsigned i = 0; i < end_pc; ++i ) {
         auto& inst = insts[i];
         printf("%d: ", i);
-        inst.Dump(i, &frame_denizens, "");
+        inst.Dump(stdout, i, &frame_denizens, "");
     }
 }
 

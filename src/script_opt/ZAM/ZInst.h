@@ -73,9 +73,9 @@ public:
     virtual ~ZInst() = default;
 
     // Methods for printing out the instruction for debugging/profiling.
-    void Dump(zeek_uint_t inst_num, const FrameReMap* mappings, const std::string& prefix) const;
-    void Dump(const std::string& prefix, const std::string& id1, const std::string& id2, const std::string& id3,
-              const std::string& id4) const;
+    void Dump(FILE* f, zeek_uint_t inst_num, const FrameReMap* mappings, const std::string& prefix) const;
+    void Dump(FILE* f, const std::string& prefix, const std::string& id1, const std::string& id2,
+              const std::string& id3, const std::string& id4) const;
 
     // Returns the name to use in identifying one of the slots/integer
     // values (designated by "n").  "inst_num" identifies the instruction
@@ -200,7 +200,7 @@ public:
     ZInstI() {}
 
     // If "remappings" is non-nil, then it is used instead of frame_ids.
-    void Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const;
+    void Dump(FILE* f, const FrameMap* frame_ids, const FrameReMap* remappings) const;
 
     // Note that this is *not* an override of the base class's VName
     // but instead a method with similar functionality but somewhat

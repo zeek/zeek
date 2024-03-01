@@ -441,6 +441,12 @@ static void analyze_scripts_for_ZAM() {
     if ( analysis_options.profile_ZAM ) {
 #ifdef ENABLE_ZAM_PROFILE
         blocks = std::make_unique<BlockAnalyzer>(funcs);
+        const auto prof_filename = "zprof.log";
+        analysis_options.profile_file = fopen(prof_filename, "w");
+        if ( ! analysis_options.profile_file ) {
+            fprintf(stderr, "warning: cannot create ZAM profiling log %s\n", prof_filename);
+            analysis_options.profile_ZAM = false;
+        }
 #else
         fprintf(stderr, "warning: zeek was not built with --enable-ZAM-profiling\n");
         analysis_options.profile_ZAM = false;
@@ -620,8 +626,8 @@ void profile_script_execution() {
 
         for ( auto& mp : module_prof )
             if ( mp.second.first > 0 )
-                printf("%s:: CPU time %.06f, %d instructions\n", mp.first.c_str(), mp.second.second,
-                       static_cast<int>(mp.second.first));
+                fprintf(analysis_options.profile_file, "%s:: CPU time %.06f, %d instructions\n", mp.first.c_str(),
+                        mp.second.second, static_cast<int>(mp.second.first));
     }
 }
 

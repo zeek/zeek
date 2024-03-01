@@ -75,6 +75,9 @@ struct AnalyOpt {
     // Produce a profile of ZAM execution.
     bool profile_ZAM = false;
 
+    // An associated file to which to write the profile.
+    FILE* profile_file = nullptr;
+
     // If true, dump out transformed code: the results of reducing
     // interpreted scripts, and, if optimize is set, of then optimizing
     // them.

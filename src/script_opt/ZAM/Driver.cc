@@ -396,7 +396,7 @@ void ZAMCompiler::Dump() {
 
         printf("%d %s%s: ", i, liveness.c_str(), depth.c_str());
 
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 
     if ( ! insts2.empty() )
@@ -406,7 +406,7 @@ void ZAMCompiler::Dump() {
         auto& inst = insts2[i];
         // printf("%s:%d\n", inst->loc->filename, inst->loc->first_line);
         printf("%d: ", i);
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 
     DumpCases(int_cases, "int");
@@ -454,7 +454,7 @@ void ZAMCompiler::DumpInsts1(const FrameReMap* remappings) {
 
         printf("%d %s%s: ", i, liveness.c_str(), depth.c_str());
 
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 }
 

@@ -65,6 +65,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
     --enable-werror        build with -Werror
+    --enable-zam-profiling build with ZAM profiling enabled (--enable-debug implies this)
     --disable-af-packet    don't include native AF_PACKET support (Linux only)
     --disable-archiver     don't build or install zeek-archiver tool
     --disable-auxtools     don't build or install auxiliary tools
@@ -254,9 +255,11 @@ while [ $# -ne 0 ]; do
         --enable-coverage)
             append_cache_entry ENABLE_COVERAGE BOOL true
             append_cache_entry ENABLE_DEBUG BOOL true
+            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG BOOL true
+            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --enable-fuzzers)
             append_cache_entry ZEEK_ENABLE_FUZZERS BOOL true
@@ -279,6 +282,9 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-werror)
             append_cache_entry BUILD_WITH_WERROR BOOL true
+            ;;
+        --enable-zam-profiling)
+            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --disable-af-packet)
             append_cache_entry DISABLE_AF_PACKET BOOL true

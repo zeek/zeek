@@ -241,6 +241,9 @@
 /* Spicy analyzers built in. */
 #cmakedefine01 USE_SPICY_ANALYZERS
 
+/* Enable/disable ZAM profiling capability */
+#cmakedefine ENABLE_ZAM_PROFILE
+
 /* String with host architecture (e.g., "linux-x86_64") */
 #define HOST_ARCHITECTURE "@HOST_ARCHITECTURE@"
 

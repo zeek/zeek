@@ -1918,13 +1918,22 @@ void WhenInfo::Build(StmtPtr ws) {
 void WhenInfo::Instantiate(Frame* f) { Instantiate(lambda->Eval(f)); }
 
 void WhenInfo::Instantiate(ValPtr func) {
-    curr_lambda = with_location_of(make_intrusive<ConstExpr>(std::move(func)), cond);
+    curr_lambda = make_intrusive<ConstExpr>(std::move(func));
+    if ( cond )
+        curr_lambda->SetLocationInfo(cond->GetLocationInfo());
 }
 
-ExprPtr WhenInfo::Cond() { return with_location_of(make_intrusive<CallExpr>(curr_lambda, invoke_cond), cond); }
+ExprPtr WhenInfo::Cond() {
+    if ( cond )
+        return with_location_of(make_intrusive<CallExpr>(curr_lambda, invoke_cond), cond);
+    else
+        return make_intrusive<CallExpr>(curr_lambda, invoke_cond);
+}
 
 StmtPtr WhenInfo::WhenBody() {
-    auto invoke = with_location_of(make_intrusive<CallExpr>(curr_lambda, invoke_s), s);
+    auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_s);
+    if ( s )
+        invoke->SetLocationInfo(s->GetLocationInfo());
     return make_intrusive<ReturnStmt>(invoke, true);
 }
 
@@ -1954,11 +1963,14 @@ void WhenInfo::BuildInvokeElems() {
     invoke_s = make_intrusive<ListExpr>(two_const);
     invoke_timeout = make_intrusive<ListExpr>(three_const);
 
-    auto cl = cond->GetLocationInfo();
+    if ( cond ) {
+        // "cond" might not exist if we're constructing via -O gen-C++.
+        auto cl = cond->GetLocationInfo();
 
-    for ( const auto& e :
-          std::vector<ExprPtr>{one_const, two_const, three_const, invoke_cond, invoke_s, invoke_timeout} )
-        e->SetLocationInfo(cl);
+        for ( const auto& e :
+              std::vector<ExprPtr>{one_const, two_const, three_const, invoke_cond, invoke_s, invoke_timeout} )
+            e->SetLocationInfo(cl);
+    }
 }
 
 WhenStmt::WhenStmt(std::shared_ptr<WhenInfo> arg_wi) : Stmt(STMT_WHEN), wi(std::move(arg_wi)) {

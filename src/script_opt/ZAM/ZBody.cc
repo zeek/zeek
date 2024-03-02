@@ -290,6 +290,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
 
 #ifdef ENABLE_ZAM_PROFILE
     bool do_profile;
+    double start_CPU_time;
 
     if ( analysis_options.profile_ZAM ) {
         if ( caller_prof.empty() ) {
@@ -301,6 +302,8 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
             do_profile = caller_prof.back();
 
         if ( do_profile ) {
+            start_CPU_time = util::curr_CPU_time();
+
             if ( caller_locs.empty() )
                 curr_prof_vec = default_prof_vec;
             else {
@@ -400,6 +403,11 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
         delete[] frame;
     }
 
+#ifdef ENABLE_ZAM_PROFILE
+    if ( do_profile )
+        tot_CPU_time += util::curr_CPU_time() - start_CPU_time;
+#endif
+
     return result;
 }
 
@@ -420,12 +428,10 @@ void ZBody::ProfileExecution(ProfMap& pm) {
 
     int ncall = dpv[0].first;
     double CPU = dpv[0].second;
-    for ( auto [_, pv] : prof_vecs ) {
+    for ( auto [_, pv] : prof_vecs )
         ncall += (*pv)[0].first;
-        CPU += (*pv)[0].second;
-    }
 
-    double adj_CPU_time = CPU - ninst * prof_overhead;
+    double adj_CPU_time = std::max(tot_CPU_time - ncall * prof_overhead, 0.0);
 
     fprintf(analysis_options.profile_file, "%s CPU time %.06f, %d calls, %d instructions\n", func_name.c_str(),
             adj_CPU_time, ncall, ninst);

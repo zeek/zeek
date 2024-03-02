@@ -136,13 +136,22 @@ public:
     C* Lookup(const zeek::Tag& tag, bool consider_remappings = true) const;
 
     /**
-     * @param name A component's enum value.
+     * @param val A component's enum value.
      * @param consider_remappings If true, component mappings will be honored
      * if the original component is disabled.
      * @return The component associated with the value or a null pointer if no
      * such component exists.
      */
     C* Lookup(EnumVal* val, bool consider_remappings = true) const;
+
+    /**
+     * @param val A component's enum value.
+     * @param consider_remappings If true, component mappings will be honored
+     * if the original component is disabled.
+     * @return The component associated with the value or a null pointer if no
+     * such component exists.
+     */
+    C* Lookup(const EnumValPtr& val, bool consider_remappings = true) const;
 
     /**
      * Registers a mapping of a component to another one that will be honored
@@ -345,6 +354,11 @@ C* ComponentManager<C>::Lookup(EnumVal* val, bool consider_remappings) const {
     }
     else
         return nullptr;
+}
+
+template<class C>
+C* ComponentManager<C>::Lookup(const EnumValPtr& val, bool consider_remappings) const {
+    return Lookup(val.get(), consider_remappings);
 }
 
 template<class C>

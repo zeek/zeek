@@ -270,7 +270,7 @@ export {
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
-	global node_topic: function(name: string): string;
+	global node_topic: function(name: string): string &redef;
 
 	## Retrieve the topic associated with a specific node in the cluster.
 	##
@@ -279,7 +279,7 @@ export {
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
-	global nodeid_topic: function(id: string): string;
+	global nodeid_topic: function(id: string): string &redef;
 }
 
 # Track active nodes per type.

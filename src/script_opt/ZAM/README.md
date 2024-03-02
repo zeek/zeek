@@ -54,9 +54,6 @@ of script interpretation).
 
 ### Deficiencies:
 
-* Run-time error messages in compiled scripts have diminished identifying
-information.
-
 * The optimizer assumes you have ensured initialization of your variables.
 If your script uses a variable that hasn't been set, the compiled code may
 crash or behave aberrantly. You can use the `-u` command-line flag to find such potential usage issues.
@@ -88,15 +85,26 @@ issues:
 |`dump-uds`	|	Dump use-defs to _stdout_.|
 |`dump-xform`	|	Dump transformed scripts to _stdout_.|
 |`dump-ZAM`	|	Dump generated ZAM code to _stdout_.|
+|`gen-ZAM-code`		|	Generate ZAM without additional optimizations.|
 |`help`		|	Print this list.|
 |`inline`		|	Inline function calls.|
+|`no-inline`		|	Suppress inlining even if another option implies it.|
 |`no-ZAM-opt`	|	Turn off low-level ZAM optimization.|
 |`optimize-all`	|	Optimize all scripts, even inlined ones. You need to separately specify which optimizations you want to apply, e.g., `-O inline -O xform`.|
 |`optimize-AST`	|	Optimize the (transform) AST; implies `xform`.|
-|`profile-ZAM`	|	Generate to _stdout_ a ZAM execution profile. (Requires configuring with `--enable-debug`.)|
+|`profile-ZAM`	|	Generate to "zprof.log" a ZAM execution profile. (Requires configuring with `--enable-ZAM-profiling` or `--enable-debug`.)|
 |`report-recursive`	|	Report on recursive functions and exit.|
 |`report-uncompilable`	|	Report on uncompilable functions and exit. For ZAM, all functions should be compilable.|
 |`xform`		|	Transform scripts to "reduced" form.|
+
+ZAM profiling (`-O profile-ZAM`) is done using _sampling_ of call trees.
+The default sampling rate is 1-in-100. You can control it via the
+`ZEEK_ZAM_PROF_SAMPLING_RATE` environment variable. More frequent sampling
+rates slow down execution but provide more accurate information. Note that
+there is (for unknown reasons) a _bias_ towards overestimating CPU time
+that diminishes with more frequent sampling. The bias appears to be uniform,
+so it does not alter relative comparisons, and does not affect instruction
+counts, only the CPU time associated with them.
 
 <br>
 <br>

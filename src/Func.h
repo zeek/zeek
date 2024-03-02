@@ -124,6 +124,7 @@ public:
     Kind GetKind() const { return kind; }
 
     const char* Name() const { return name.c_str(); }
+    const std::string& GetName() const { return name; }
     void SetName(const char* arg_name) { name = arg_name; }
 
     void Describe(ODesc* d) const override = 0;

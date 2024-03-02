@@ -2087,6 +2087,17 @@ type VC
 eval	EvalAddStmt(z.c.ToVal(z.t))
 
 
+op ClearTable
+op1-read
+type V
+eval	frame[z.v1].table_val->RemoveAll();
+
+op ClearVector
+op1-read
+type V
+eval	frame[z.v1].vector_val->Resize(0);
+
+
 op DelTable
 op1-read
 type VO

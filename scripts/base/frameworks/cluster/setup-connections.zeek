@@ -99,7 +99,7 @@ event zeek_init() &priority=-10
 		return;
 	}
 
-	Broker::subscribe(nodeid_topic(Broker::node_id()));
+	Broker::subscribe(nodeid_topic(Cluster::node_id()));
 	Broker::subscribe(node_topic(node));
 
 	if ( self$p != 0/unknown )

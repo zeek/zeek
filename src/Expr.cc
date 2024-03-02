@@ -1390,6 +1390,36 @@ void AddExpr::Canonicalize() {
         SwapOps();
 }
 
+// True if we should treat LHS += RHS as add-every-element-of-RHS-to-LHS.
+// False for the alternative, add-RHS-as-one-element-to-LHS.
+//
+// Assumes (1) LHS has already been confirmed as a vector, (2) the
+// "LHS += RHS" expression has been type-checked.
+
+static bool is_element_wise_vector_append(const TypePtr& lhs, const TypePtr& rhs) {
+    if ( ! IsVector(rhs->Tag()) )
+        // Can't be add-every-element since RHS isn't even a vector.
+        return false;
+
+    if ( ! same_type(lhs, rhs) )
+        // Can't be add-every-element since they're different types of vectors.
+        return false;
+
+    if ( lhs->Yield()->Tag() != TYPE_VECTOR )
+        // LHS is not a vector-of-vector, and RHS is a vector, so
+        // clearly we're doing element-wise-append.
+        return true;
+
+    if ( rhs->AsVectorType()->IsUnspecifiedVector() )
+        // This is a vector-of-vector-of-X += vector() construct.
+        // It is *not* treated as element-wise-append of an empty RHS,
+        // instead append an empty vector to the LHS.
+        return false;
+
+    // RHS is a compatible element-wise-append vector for LHS.
+    return true;
+}
+
 AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
     : BinaryExpr(EXPR_ADD_TO, std::move(arg_op1), std::move(arg_op2)) {
     if ( IsError() )
@@ -1426,9 +1456,9 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
     }
 
     else if ( IsVector(bt1) ) {
-        // We need the IsVector(bt2) check in the following because
-        // same_type() always treats "any" types as "same".
-        if ( IsVector(bt2) && same_type(t1, t2) ) {
+        // Treat += of two vectors as appending each element
+        // of the RHS to the LHS if types agree.
+        if ( is_element_wise_vector_append(t1, t2) ) {
             SetType(t1);
             return;
         }

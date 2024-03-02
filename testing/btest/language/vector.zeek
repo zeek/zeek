@@ -229,4 +229,16 @@ event zeek_init()
 	test_case( "negative index", v24[-1] == 5 );
 	test_case( "negative index", v24[-3] == 3 );
 
+	# For a vector-of-vectors, += of an empty vector should append it as
+	# a single element, not all of its elements (= nothing gets appended).
+	local v25: vector of vector of count;
+	v25 += vector();
+	test_case( "+= of empty vector", |v25| == 1 );
+
+	# OTOH, for a vector-of-non-vectors, it should result in appending
+	# nothing.
+	local v26: vector of set[count];
+	v26 += vector();
+	test_case( "+= of empty vector", |v26| == 0 );
+
 }

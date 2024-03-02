@@ -713,6 +713,8 @@ public:
     AddToExpr(ExprPtr op1, ExprPtr op2);
     ValPtr Eval(Frame* f) const override;
 
+    bool IsVectorElemAppend() const { return is_vector_elem_append; }
+
     // Optimization-related:
     bool IsPure() const override { return false; }
     ExprPtr Duplicate() override;

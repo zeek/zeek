@@ -481,10 +481,10 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level) {
     if ( t->Tag() == TYPE_VECTOR ) {
         auto& rt = rhs->GetType();
 
-        if ( IsVector(rt->Tag()) && same_type(lhs->GetType(), rt) )
-            add_to_func = "vector_vec_append__CPP";
-        else
+        if ( e->AsAddToExpr()->IsVectorElemAppend() )
             add_to_func = "vector_append__CPP";
+        else
+            add_to_func = "vector_vec_append__CPP";
     }
 
     else if ( t->Tag() == TYPE_PATTERN )

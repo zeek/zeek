@@ -401,14 +401,30 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 		{
 		if ( n?$id && n$id == endpoint$id )
 			{
-			Cluster::log(fmt("node down: %s", node_name));
-			delete n$id;
-			delete active_node_ids[n$node_type][endpoint$id];
-
 			event Cluster::node_down(node_name, endpoint$id);
 			break;
 			}
 		}
+	}
+
+event node_down(name: string, id: string) &priority=10
+	{
+	local found = F;
+	for ( node_name, n in nodes )
+		{
+		if ( n?$id && n$id == id )
+			{
+			Cluster::log(fmt("node down: %s", node_name));
+			delete n$id;
+			delete active_node_ids[n$node_type][id];
+			found = T;
+			break;
+			}
+		}
+
+	if ( ! found )
+		Reporter::error(fmt("No node found in Cluster::node_down() node:%s id:%s",
+		                    name, id));
 	}
 
 event zeek_init() &priority=5

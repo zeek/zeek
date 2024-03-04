@@ -115,7 +115,7 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
             }
 
             case 'g': {
-                driver_options->global_optimizations = false;
+                compiler_options->global_optimizations = false;
                 break;
             }
 

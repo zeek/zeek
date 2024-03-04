@@ -32,7 +32,7 @@ class GlueCompiler;
 
 struct TypeInfo {
     hilti::ID id;                        /**< fully-qualified name of the type */
-    hilti::Type type;                    /**< the type itself */
+    hilti::QualifiedTypePtr type;        /**< the type itself */
     hilti::declaration::Linkage linkage; /**< linkage of of the type's declaration */
     bool is_resolved = false; /**< true if we are far enough in processing that the type has been fully resolved */
     hilti::ID module_id;      /**< name of module type is defined in */
@@ -102,7 +102,7 @@ public:
         if ( ! ti )
             return ti.error();
 
-        if ( ! ti->type.isA<T>() )
+        if ( ! ti->type->type()->isA<T>() )
             return hilti::result::Error(hilti::util::fmt("'%s' is not of expected type", id));
 
         return ti;
@@ -165,7 +165,7 @@ public:
 protected:
     /**
      * Hook executed for all type declarations encountered in a Spicy module.
-     * Derived classes may override this to add custom processing. This hooks
+     * Derived classes may override this to add custom processing. This hook
      * executes twices for each declaration: once before we compile the AST
      * (meaning types have not been resolved yet), and once after. The type
      * info's `is_resolved` field indicates which of the two we're in.
@@ -175,13 +175,13 @@ protected:
     virtual void hookNewType(const TypeInfo& ti) {}
 
     /** Overridden from HILTI driver. */
-    void hookNewASTPreCompilation(std::shared_ptr<hilti::Unit> unit) override;
+    void hookNewASTPreCompilation(const hilti::Plugin& plugin, const std::shared_ptr<hilti::ASTRoot>& root) override;
 
     /** Overridden from HILTI driver. */
-    void hookNewASTPostCompilation(std::shared_ptr<hilti::Unit> unit) override;
+    bool hookNewASTPostCompilation(const hilti::Plugin& plugin, const std::shared_ptr<hilti::ASTRoot>& root) override;
 
     /** Overridden from HILTI driver. */
-    hilti::Result<hilti::Nothing> hookCompilationFinished(const hilti::Plugin& plugin) override;
+    hilti::Result<hilti::Nothing> hookCompilationFinished(const std::shared_ptr<hilti::ASTRoot>& root) override;
 
     /** Overridden from HILTI driver. */
     void hookInitRuntime() override;
@@ -194,6 +194,7 @@ protected:
     std::vector<TypeInfo> _public_enums;            // tracks Spicy enum types declared public, for automatic export
     bool _using_build_directory = false;            // true if we're running out of the plugin's build directory
     bool _need_glue = true;                         // true if glue code has not yet been generated
+    hilti::Result<hilti::Nothing> _error = hilti::Nothing(); // error encountered during compilation
 };
 
 } // namespace zeek::spicy

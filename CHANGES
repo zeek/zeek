@@ -1,3 +1,7 @@
+7.0.0-dev.34 | 2024-03-04 15:49:19 +0100
+
+  * Port Spicy integration to new AST API. (Robin Sommer, Corelight)
+
 7.0.0-dev.32 | 2024-02-28 17:10:26 +0100
 
   * Bump zeekjs to 0.12.0 (Arne Welzel, Corelight)

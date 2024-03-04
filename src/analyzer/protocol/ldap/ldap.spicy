@@ -733,7 +733,7 @@ type SearchFilter = unit {
     FilterType::FILTER_EXT     -> FILTER_EXT:     DecodedAttributeValue(FilterType::FILTER_EXT)
                                                   &parse-from=self.filterBytes;
     FilterType::FILTER_PRESENT -> FILTER_PRESENT: ASN1::ASN1OctetString(self.filterLen, False)
-                                                  &convert=$$.value.decode(hilti::Charset::ASCII)
+                                                  &convert=$$.value.decode(spicy::Charset::ASCII)
                                                   &parse-from=self.filterBytes;
   };
 

@@ -34,17 +34,31 @@ namespace zeek::detail {
 
 static std::vector<std::shared_ptr<ZAMLocInfo>> caller_locs;
 
-static double compute_prof_overhead() {
+static double compute_CPU_prof_overhead() {
     double start = util::curr_CPU_time();
     double CPU = 0.0;
     const int n = 100000;
     for ( int i = 0; i < n; ++i )
         CPU = std::max(CPU, util::curr_CPU_time());
 
-    return (CPU - start) / n;
+    return 2.0 * (CPU - start) / n;
 }
 
-static double prof_overhead = compute_prof_overhead();
+static double compute_mem_prof_overhead() {
+    double start = util::curr_CPU_time();
+    uint64_t m;
+    util::get_memory_usage(&m, nullptr);
+    const int n = 20000;
+    for ( int i = 0; i < n; ++i ) {
+        uint64_t m2;
+        util::get_memory_usage(&m2, nullptr);
+    }
+
+    return 2.0 * (util::curr_CPU_time() - start) / n;
+}
+
+static double CPU_prof_overhead = compute_CPU_prof_overhead();
+static double mem_prof_overhead = compute_mem_prof_overhead();
 
 #define DO_ZAM_PROFILE                                                                                                 \
     if ( do_profile ) {                                                                                                \
@@ -74,7 +88,8 @@ static double prof_overhead = compute_prof_overhead();
 #define DO_ZAM_PROFILE
 #define ZAM_PROFILE_PRE_CALL
 #define ZAM_PROFILE_POST_CALL
-static double prof_overhead = 0.0;
+static double CPU_prof_overhead = 0.0;
+static double mem_prof_overhead = 0.0;
 
 #endif
 
@@ -96,13 +111,15 @@ void report_ZOP_profile() {
     if ( ! did_overhead_report ) {
         fprintf(analysis_options.profile_file, "Profile sampled every %d instructions; all calls profiled\n",
                 analysis_options.profile_sampling_rate);
-        fprintf(analysis_options.profile_file, "Profiling overhead = %.0f nsec/instruction\n", prof_overhead * 1e9);
+        fprintf(analysis_options.profile_file,
+                "Profiling overhead = %.0f nsec/instruction, memory profiling overhead = %.0f nsec/call\n",
+                CPU_prof_overhead * 1e9, mem_prof_overhead * 1e9);
         did_overhead_report = true;
     }
 
     for ( int i = 1; i <= OP_NOP; ++i )
         if ( ZOP_count[i] > 0 ) {
-            auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * prof_overhead, 0.0);
+            auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * CPU_prof_overhead, 0.0);
             fprintf(analysis_options.profile_file, "%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], CPU);
         }
 }
@@ -287,7 +304,10 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     static bool profiling_active = analysis_options.profile_ZAM;
     static int sampling_rate = analysis_options.profile_sampling_rate;
     static auto seed = util::detail::random_number();
+
     double start_CPU_time = 0.0;
+    uint64_t start_mem;
+    util::get_memory_usage(&start_mem, nullptr);
 
     if ( profiling_active ) {
         ++ncall;
@@ -396,8 +416,13 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     }
 
 #ifdef ENABLE_ZAM_PROFILE
-    if ( profiling_active )
+    if ( profiling_active ) {
         tot_CPU_time += util::curr_CPU_time() - start_CPU_time;
+        uint64_t final_mem;
+        util::get_memory_usage(&final_mem, nullptr);
+        if ( final_mem > start_mem )
+            tot_mem += final_mem - start_mem;
+    }
 #endif
 
     return result;
@@ -418,10 +443,14 @@ void ZBody::ProfileExecution(ProfMap& pm) {
         return;
     }
 
-    double adj_CPU_time = std::max(tot_CPU_time - ncall * prof_overhead, 0.0);
+    int total_samples = ncall + ninst;
+    double adj_CPU_time = tot_CPU_time;
+    adj_CPU_time -= ncall * (mem_prof_overhead + CPU_prof_overhead);
+    adj_CPU_time -= ninst * CPU_prof_overhead;
+    adj_CPU_time = std::max(adj_CPU_time, 0.0);
 
-    fprintf(analysis_options.profile_file, "%s CPU time %.06f, %d calls, %d sampled instructions\n", func_name.c_str(),
-            adj_CPU_time, ncall, ninst);
+    fprintf(analysis_options.profile_file, "%s CPU time %.06f, %" PRIu64 " memory, %d calls, %d sampled instructions\n",
+            func_name.c_str(), adj_CPU_time, tot_mem, ncall, ninst);
 
     if ( dpv[0].first != 0 )
         ReportProfile(pm, dpv, "", {});
@@ -443,7 +472,7 @@ void ZBody::ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& pre
     for ( auto i = 0U; i < pv.size(); ++i ) {
         auto ninst = pv[i].first;
         auto CPU = pv[i].second;
-        CPU = std::max(CPU - ninst * prof_overhead, 0.0);
+        CPU = std::max(CPU - ninst * CPU_prof_overhead, 0.0);
         fprintf(analysis_options.profile_file, "%s %d %" PRId64 " %.06f ", func_name.c_str(), i, ninst, CPU);
         insts[i].Dump(analysis_options.profile_file, i, &frame_denizens, prefix);
 

@@ -1,3 +1,7 @@
+7.0.0-dev.38 | 2024-03-04 12:32:59 -0700
+
+  * CI: Bump FreeBSD 13 build to 13.3 (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.36 | 2024-03-04 18:22:34 +0100
 
   * Stmt: Fix assert evaluating cond twice (Arne Welzel, Corelight)

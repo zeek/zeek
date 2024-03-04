@@ -53,6 +53,7 @@ public:
     void Dump() const;
 
     void ProfileExecution(ProfMap& pm);
+    double TotalCPU() const { return tot_CPU_time; }
 
     const std::string& FuncName() const { return func_name; }
 
@@ -114,6 +115,7 @@ private:
 
     // The following are only maintained if we're doing profiling.
     int ninst = 0;
+    int ncall = 0;
     double tot_CPU_time = 0.0;
     std::map<CallStack, std::shared_ptr<ProfVec>> prof_vecs;
     std::shared_ptr<ProfVec> default_prof_vec;

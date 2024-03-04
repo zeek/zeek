@@ -320,6 +320,11 @@ static void init_options() {
                 analysis_options.profile_ZAM = false;
             }
         }
+
+        // If no ZAM generation options have been specified, default to
+        // the usual "-O ZAM" profile. But if they have, honor those.
+        if ( ! analysis_options.gen_ZAM_code )
+            analysis_options.gen_ZAM = true;
     }
 
     if ( analysis_options.gen_ZAM ) {
@@ -637,8 +642,8 @@ void profile_script_execution() {
 
         for ( auto& mp : module_prof )
             if ( mp.second.first > 0 )
-                fprintf(analysis_options.profile_file, "%s:: CPU time %.06f, %d instructions\n", mp.first.c_str(),
-                        mp.second.second, static_cast<int>(mp.second.first));
+                fprintf(analysis_options.profile_file, "module %s sampled CPU time %.06f, %d sampled instructions\n",
+                        mp.first.c_str(), mp.second.second, static_cast<int>(mp.second.first));
     }
 }
 

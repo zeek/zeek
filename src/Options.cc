@@ -245,7 +245,7 @@ static void set_analysis_option(const char* opt, Options& opts) {
     else if ( util::streq(opt, "optimize-AST") )
         a_o.activate = a_o.optimize_AST = true;
     else if ( util::streq(opt, "profile-ZAM") )
-        a_o.activate = a_o.gen_ZAM_code = a_o.profile_ZAM = true;
+        a_o.activate = a_o.profile_ZAM = true;
     else if ( util::streq(opt, "report-C++") )
         a_o.report_CPP = true;
     else if ( util::streq(opt, "report-recursive") )

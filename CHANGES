@@ -1,3 +1,39 @@
+6.2.0-rc1.10 | 2024-03-04 13:09:00 -0700
+
+  * Bump Spicy to latest release. (Benjamin Bannier, Corelight)
+
+  * Move bifcl/binpac/broker to zeek-6.2 release branches (Tim Wojtulewicz, Corelight)
+
+  * Stmt: Fix assert evaluating cond twice (Arne Welzel, Corelight)
+
+    Since 81a9745fb36fb6705873921423364bd2c438bfc4, the assert condition is
+    evaluated twice. This leads to unexpected behavior when cond has a side
+    effect like publishing a message or creating a log stream or filter.
+
+    Found while using the following in ad-hoc testing code and wondering
+    why two messages were published.
+
+        assert publish(Cluster::worker_topic, hello, "abc")
+
+    (cherry picked from commit 6867eda621c2d4f22d19139788f44d12b90add22)
+
+  * Bump zeekjs to 0.12.0 (Arne Welzel, Corelight)
+
+      0a89ca6 doc: Expand zeek.as() description and add an example
+      7e814d7 Types: Implement basic pattern support
+      43df9d2 Update docs to provide example of shared Node.js openSSL configuration
+      3bf2ea5 lsan suppressions: Add some for 21.11
+      640affa zeek.global_vars: Remove leftover internal field usage
+      3ee53c7 zeek.global_vars: Implement setter
+      8144061 zeek.as: Support more Zeek types
+      b453483 zeek.as: Fix crash for non-atomic types
+
+    (cherry picked from commit 724daa2792954fb3b66a0abfd3fe421f760419f6)
+
+  * Update Mozilla CA and Google CT list and related tests. (Johanna Amann, Corelight)
+
+    (cherry picked from commit c315202ece743ffa679958ed9bff5f21e99c131f)
+
 6.2.0-rc1.4 | 2024-02-26 11:12:56 -0700
 
   * Update Mozilla CA and Google CT list and related tests. (Johanna Amann, Corelight)

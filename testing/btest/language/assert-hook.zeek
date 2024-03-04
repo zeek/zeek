@@ -196,3 +196,31 @@ event zeek_done()
 	assert 2 + 2 == 5, "this is false";
 	print "not reached";
 	}
+
+@TEST-START-NEXT
+# Ensure cond is only evaluated once.
+hook assertion_result(result: bool, cond: string, msg: string, bt: Backtrace)
+	{
+	print "assertion_result", result, cond, msg, bt[0]$file_location, bt[0]$line_location;
+	break;
+	}
+
+function always_true(): bool
+	{
+	print "returning true";
+	return T;
+	}
+
+function always_false(): bool
+	{
+	print "returning false";
+	return F;
+	}
+
+event zeek_init()
+	{
+	print "zeek_init";
+	assert always_true(), "always true";
+	assert always_false(), "always false";
+	print "not reached";
+	}

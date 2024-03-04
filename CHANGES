@@ -1,3 +1,16 @@
+7.0.0-dev.36 | 2024-03-04 18:22:34 +0100
+
+  * Stmt: Fix assert evaluating cond twice (Arne Welzel, Corelight)
+
+    Since 81a9745fb36fb6705873921423364bd2c438bfc4, the assert condition is
+    evaluated twice. This leads to unexpected behavior when cond has a side
+    effect like publishing a message or creating a log stream or filter.
+
+    Found while using the following in ad-hoc testing code and wondering
+    why two messages were published.
+
+        assert publish(Cluster::worker_topic, hello, "abc")
+
 7.0.0-dev.34 | 2024-03-04 15:49:19 +0100
 
   * Port Spicy integration to new AST API. (Robin Sommer, Corelight)

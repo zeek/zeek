@@ -1644,7 +1644,7 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow) {
     bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
     auto assert_result = cond->Eval(f)->AsBool();
 
-    if ( ! cond->Eval(f)->AsBool() || run_result_hook ) {
+    if ( ! assert_result || run_result_hook ) {
         zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
 
         if ( msg ) {

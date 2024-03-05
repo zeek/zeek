@@ -69,18 +69,21 @@ static double mem_prof_overhead = compute_mem_prof_overhead();
         ZOP_CPU[z.op] += dt;                                                                                           \
     }
 #define ZAM_PROFILE_PRE_CALL                                                                                           \
-    if ( analysis_options.profile_ZAM )                                                                                \
+    if ( do_profile ) {                                                                                                \
         caller_locs.push_back(z.loc);                                                                                  \
-    if ( ! z.aux->is_BiF_call ) { /* For non-BiFs we don't include the callee's execution time as part of our own */   \
-        DO_ZAM_PROFILE                                                                                                 \
+        if ( ! z.aux->is_BiF_call ) { /* For non-BiFs we don't include the callee's execution time as part of our own  \
+                                       */                                                                              \
+            DO_ZAM_PROFILE                                                                                             \
+        }                                                                                                              \
     }
 
 #define ZAM_PROFILE_POST_CALL                                                                                          \
-    if ( analysis_options.profile_ZAM )                                                                                \
+    if ( do_profile ) {                                                                                                \
         caller_locs.pop_back();                                                                                        \
-    if ( ! z.aux->is_BiF_call ) { /* We already did the profiling, move on to next instruction */                      \
-        ++pc;                                                                                                          \
-        continue;                                                                                                      \
+        if ( ! z.aux->is_BiF_call ) { /* We already did the profiling, move on to next instruction */                  \
+            ++pc;                                                                                                      \
+            continue;                                                                                                  \
+        }                                                                                                              \
     }
 
 #else
@@ -306,12 +309,12 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     static auto seed = util::detail::random_number();
 
     double start_CPU_time = 0.0;
-    uint64_t start_mem;
-    util::get_memory_usage(&start_mem, nullptr);
+    uint64_t start_mem = 0;
 
     if ( profiling_active ) {
         ++ncall;
         start_CPU_time = util::curr_CPU_time();
+        util::get_memory_usage(&start_mem, nullptr);
 
         if ( caller_locs.empty() )
             curr_prof_vec = default_prof_vec;

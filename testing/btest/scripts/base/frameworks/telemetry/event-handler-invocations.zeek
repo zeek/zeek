@@ -12,7 +12,7 @@
 
 event zeek_done() &priority=-100
 	{
-	local ms = Telemetry::collect_metrics("zeek", "event-handler-invocations");
+	local ms = Telemetry::collect_metrics("zeek", "event_handler_invocations");
 	for ( _, m in ms )
 		{
 		if ( /zeek_.*|connection_.*/ in cat(m$labels))

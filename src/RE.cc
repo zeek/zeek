@@ -27,6 +27,8 @@ extern void RE_done_with_scan();
 namespace zeek {
 namespace detail {
 
+extern bool re_syntax_error;
+
 Specific_RE_Matcher::Specific_RE_Matcher(match_type arg_mt, bool arg_multiline)
     : mt(arg_mt), multiline(arg_multiline), equiv_class(NUM_SYM) {
     any_ccl = nullptr;
@@ -106,12 +108,13 @@ bool Specific_RE_Matcher::Compile(bool lazy) {
         return false;
 
     rem = this;
+    zeek::detail::re_syntax_error = false;
     RE_set_input(pattern_text.c_str());
 
     int parse_status = RE_parse();
     RE_done_with_scan();
 
-    if ( parse_status ) {
+    if ( parse_status || zeek::detail::re_syntax_error ) {
         reporter->Error("error compiling pattern /%s/", pattern_text.c_str());
         Unref(nfa);
         nfa = nullptr;
@@ -532,6 +535,35 @@ TEST_SUITE("re_matcher") {
         CHECK(dj->MatchExactly("a\nc"));
         CHECK(dj->MatchExactly("def"));
         delete dj;
+    }
+
+    TEST_CASE("synerr causes Compile() to fail") {
+        RE_Matcher match1("a{1,2}");
+        CHECK(match1.Compile());
+
+        RE_Matcher match2("a{6,5}");
+        CHECK_FALSE(match2.Compile());
+
+        RE_Matcher match3("a{1,a}");
+        CHECK_FALSE(match3.Compile());
+
+        RE_Matcher match4("a{1,2");
+        CHECK_FALSE(match4.Compile());
+
+        RE_Matcher match5("[1234");
+        CHECK_FALSE(match5.Compile());
+
+        RE_Matcher match6("a[1234}");
+        CHECK_FALSE(match6.Compile());
+
+        RE_Matcher match7("a\"b");
+        CHECK_FALSE(match7.Compile());
+
+        RE_Matcher match8("a\"b\"");
+        CHECK(match8.Compile());
+
+        RE_Matcher match9("a\\\"b");
+        CHECK(match9.Compile());
     }
 }
 

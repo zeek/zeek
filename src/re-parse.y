@@ -9,10 +9,10 @@
 #include "zeek/EquivClass.h"
 #include "zeek/Reporter.h"
 
-int csize = 256;
-int syntax_error = 0;
 
 namespace zeek::detail {
+	constexpr int csize = 256;
+	bool re_syntax_error = 0;
 	int cupper(int sym);
 	int clower(int sym);
 }
@@ -230,7 +230,7 @@ ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 
 ccl_expr:	   TOK_CCE
 			{
-			for ( int c = 0; c < csize; ++c )
+			for ( int c = 0; c < zeek::detail::csize; ++c )
 				if ( isascii(c) && $1(c) )
 					zeek::detail::curr_ccl->Add(c);
 			}
@@ -265,7 +265,7 @@ int clower(int sym)
 
 void synerr(const char str[])
 	{
-	syntax_error = true;
+	zeek::detail::re_syntax_error = true;
 	zeek::reporter->Error("%s (compiling pattern /%s/)", str, RE_parse_input);
 	}
 

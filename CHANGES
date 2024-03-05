@@ -1,3 +1,30 @@
+7.0.0-dev.43 | 2024-03-05 19:23:09 +0100
+
+  * highwayhash: Point to github.com/google/highwayhash, bump to master (Arne Welzel, Corelight)
+
+  * RE/Specific_RE_Matcher: Make Compile() return false for syntax errors (Arne Welzel, Corelight)
+
+    When creating RE_Matcher instances at runtime and verifying the pattern
+    compiles via Compile(), the syntax_error flag wasn't respected and
+    Compile() would return true even for some invalid regular expressions.
+
+    For example, compiling /a{1,b}/, Compile() would return true even though
+    it produced a reporter error while parsing complaining about b not
+    being valid.
+
+    This patch improves the error handling, so that calling Compile() returns
+    false whenever zeek::detail::synerr() was called while a pattern was
+    parsed. The use-case is creation of patterns at runtime based on
+    JavaScript strings. These might be entered or received at runtime via
+    an API. This change allows to be a bit more robust to detect invalid
+    input and raising exceptions to notify the user.
+
+    This also move syntax_error and csize out of global scope.
+
+    If RE_Matcher was to be used as an actual API, we likely should squelch
+    the reporter errors and mark it as not thread safe, but this is a small
+    step forward.
+
 7.0.0-dev.38 | 2024-03-04 12:32:59 -0700
 
   * CI: Bump FreeBSD 13 build to 13.3 (Tim Wojtulewicz, Corelight)

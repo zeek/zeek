@@ -187,6 +187,18 @@ Here the `awk` invocation is printing out the call tree (`$NF`) followed
 by the sampled CPU time multiplied by 100,000,000 to convert it to
 microseconds and to expand it by the default sampling rate of 100.
 
+The profile also computes per-module sampling statistics, which you can
+examine using `grep ^module zprof.log`. These include lines like:
+
+`
+module Weird sampled CPU time 0.095283, 157523 sampled instructions
+`
+
+This summary is derived from all sampled instructions whose call tree
+included some function from the `Weird` module.  As usual, you would
+multiply the sampled values by the sampling rate to get the full estimated
+values.
+
 Finally, note that using ZAM profiling with its default sampling rate slows
 down execution by 30-50%.
 

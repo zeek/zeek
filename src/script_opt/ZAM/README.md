@@ -135,12 +135,13 @@ off ZAM's inlining, although with a significant performance impact.)
 
 In addition to per-connection profiling, ZAM also profiles individual ZAM
 instructions. Because fine-grained profiling of every instruction execution
-imposes a significant performance penalty (roughly 3x in some experiments),
+imposes a significant performance penalty,
 ZAM does instruction-level profiling using _sampling_.  The default sampling
 rate is 1-in-100. (You can control it via the `ZEEK_ZAM_PROF_SAMPLING_RATE`
 environment variable, and setting that variable to `1` effectively turns
-off sampling). More frequent sampling rates slow down execution but provide
-more accurate information.
+off sampling). More frequent sampling rates slow down execution further but
+provide more accurate information. With the default rate, the slowdown is
+about 2x, so not something to use in production in its present form.
 
 At the top of `zprof.log`, ZAM reports the sampling rate and also its
 estimate of the cost to profiling a single ZAM instruction, and of assessing

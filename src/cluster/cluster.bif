@@ -1,0 +1,30 @@
+%%{
+#include <string>
+
+#include "zeek/cluster/Backend.h"
+
+%%}
+
+## Publishes an event to a give topic.
+function Cluster::publish%(topic: string, ...%): bool
+	%{
+	auto rval = zeek::cluster::backend->PublishEvent(*(@ARGS@));
+	return zeek::val_mgr->Bool(rval);
+	%}
+
+function Cluster::make_event%(...%): any
+	%{
+	return zeek::cluster::backend->MakeEvent(*(@ARGS@));
+	%}
+
+function Cluster::__subscribe%(topic_prefix: string%): bool
+	%{
+	auto rval = zeek::cluster::backend->Subscribe(topic_prefix->CheckString());
+	return zeek::val_mgr->Bool(rval);
+	%}
+
+function Cluster::__unsubscribe%(topic_prefix: string%): bool
+	%{
+	auto rval = zeek::cluster::backend->Unsubscribe(topic_prefix->CheckString());
+	return zeek::val_mgr->Bool(rval);
+	%}

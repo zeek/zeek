@@ -69,7 +69,7 @@ event zeek_init() &priority=-10
 		local pool = registered_pools[i];
 
 		if ( node in pool$nodes )
-			Broker::subscribe(pool$spec$topic);
+			Cluster::subscribe(pool$spec$topic);
 		}
 
 	switch ( self$node_type ) {
@@ -78,29 +78,52 @@ event zeek_init() &priority=-10
 	case CONTROL:
 		break;
 	case LOGGER:
-		Broker::subscribe(Cluster::logger_topic);
+		Cluster::subscribe(Cluster::logger_topic);
+
+		# As of now, logging and broker are coupled.
+		#
+		# All nodes connect via broker to all loggers and
+		# PublishLogWrite() uses broker directly today. This
+		# isn't exactly pub/sub, but rather load balancing
+		# across available nodes. Seems this could also be
+		# done via ZMQ push/pull sockets more directly, or
+		# AMQP or NATS queues. Maybe that's thought too simple,
+		# however.
+		#
+		# Also, if we were to publish log writes to a generic
+		# pub sub system, why couldn't that system be the "logger".
+		# Keyword zero-logger architecture.
+		#
+		# Long story short, loggers continue to subscribe explicitly
+		# using broker, because the log subsystem relies on that today.
+		Broker::subscribe(node_topic(node));
 		Broker::subscribe(Broker::default_log_topic_prefix);
 		break;
 	case MANAGER:
-		Broker::subscribe(Cluster::manager_topic);
+		Cluster::subscribe(Cluster::manager_topic);
 
 		if ( Cluster::manager_is_logger )
+			{
+			# See motivation above. This is broker dependent.
+			Broker::subscribe(node_topic(node));
 			Broker::subscribe(Broker::default_log_topic_prefix);
+			}
 
 		break;
 	case PROXY:
-		Broker::subscribe(Cluster::proxy_topic);
+		Cluster::subscribe(Cluster::proxy_topic);
 		break;
 	case WORKER:
-		Broker::subscribe(Cluster::worker_topic);
+		Cluster::subscribe(Cluster::worker_topic);
 		break;
 	default:
 		Reporter::error(fmt("Unhandled cluster node type: %s", self$node_type));
 		return;
 	}
 
-	Broker::subscribe(nodeid_topic(Cluster::node_id()));
-	Broker::subscribe(node_topic(node));
+	Cluster::subscribe(nodeid_topic(Cluster::node_id()));
+	Cluster::subscribe(node_topic(node));
+
 
 	if ( self$p != 0/unknown )
 		{

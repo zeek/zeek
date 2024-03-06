@@ -5,6 +5,94 @@
 
 %%}
 
+module Cluster;
+
+type Cluster::Pool: record;
+
+## Publishes an event to a node within a pool according to Round-Robin
+## distribution strategy.
+##
+## pool: the pool of nodes that are eligible to receive the event.
+##
+## key: an arbitrary string to identify the purpose for which you're
+##      distributing the event.  e.g. consider using namespacing of your
+##      script like "Intel::cluster_rr_key".
+##
+## args: Either the event arguments as already made by
+##       :zeek:see:`Broker::make_event` or the argument list to pass along
+##       to it.
+##
+## Returns: true if the message is sent.
+function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
+	%{
+	static zeek::Func* topic_func = nullptr;
+
+	if ( ! topic_func )
+		topic_func = zeek::detail::global_scope()->Find("Cluster::rr_topic")->GetVal()->AsFunc();
+
+	if ( ! is_cluster_pool(pool) )
+		{
+		zeek::emit_builtin_error("expected type Cluster::Pool for pool");
+		return zeek::val_mgr->False();
+		}
+
+	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
+	auto topic = topic_func->Invoke(&vl);
+
+	if ( ! topic->AsString()->Len() )
+		return zeek::val_mgr->False();
+
+	// Copy args[1:] and put the computed topic at index 0;
+	const auto& bif_args = @ARGS@;
+	zeek::Args args(std::next(bif_args->begin()), bif_args->end());
+	args[0] = std::move(topic);
+
+	auto rval = zeek::cluster::backend->PublishEvent(args);
+	return zeek::val_mgr->Bool(rval);
+	%}
+
+
+## Publishes an event to a node within a pool according to Rendezvous
+## (Highest Random Weight) hashing strategy.
+##
+## pool: the pool of nodes that are eligible to receive the event.
+##
+## key: data used for input to the hashing function that will uniformly
+##      distribute keys among available nodes.
+##
+## args: Either the event arguments as already made by
+##       :zeek:see:`Broker::make_event` or the argument list to pass along
+##       to it.
+##
+## Returns: true if the message is sent.
+function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
+	%{
+	static zeek::Func* topic_func = nullptr;
+
+	if ( ! topic_func )
+		topic_func = zeek::detail::global_scope()->Find("Cluster::hrw_topic")->GetVal()->AsFunc();
+
+	if ( ! is_cluster_pool(pool) )
+		{
+		zeek::emit_builtin_error("expected type Cluster::Pool for pool");
+		return zeek::val_mgr->False();
+		}
+
+	zeek::Args vl{{zeek::NewRef{}, pool}, {zeek::NewRef{}, key}};
+	auto topic = topic_func->Invoke(&vl);
+
+	if ( ! topic->AsString()->Len() )
+		return zeek::val_mgr->False();
+
+	// Copy args[1:] and put the computed topic at index 0;
+	const auto& bif_args = @ARGS@;
+	zeek::Args args(std::next(bif_args->begin()), bif_args->end());
+	args[0] = std::move(topic);
+
+	auto rval = zeek::cluster::backend->PublishEvent(args);
+	return zeek::val_mgr->Bool(rval);
+	%}
+
 ## Publishes an event to a give topic.
 function Cluster::publish%(topic: string, ...%): bool
 	%{

@@ -5729,6 +5729,16 @@ export {
 module Cluster;
 export {
 	type Cluster::Pool: record {};
+
+	## Cluster backend to use. Default is the broker backend.
+	##
+	## This is so very much experimental.
+	const backend = Cluster::CLUSTER_BACKEND_BROKER &redef;
+
+	## The serializer to use by the backend.
+	##
+	## This currently has no effect for backend BROKER.
+	const serializer = Cluster::CLUSTER_SERIALIZER_BROKER_BIN_V1 &redef;
 }
 
 module Weird;

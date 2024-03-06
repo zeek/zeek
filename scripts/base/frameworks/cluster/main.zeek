@@ -18,6 +18,8 @@
 @load base/frameworks/control
 @load base/frameworks/broker
 
+@load base/bif/cluster.bif
+
 module Cluster;
 
 export {
@@ -287,6 +289,17 @@ export {
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
 	global nodeid_topic: function(id: string): string &redef;
+
+	## Subscribe to the given topic using the currently active
+	## active cluster backend.
+	##
+	## Returns: true on success
+	global subscribe: function(topic: string): bool;
+
+	## Unsubscribe from the given topic.
+	##
+	## Returns: true on success
+	global unsubscribe: function(topic: string): bool;
 }
 
 # Track active nodes per type.
@@ -526,4 +539,14 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 function log(msg: string)
 	{
 	Log::write(Cluster::LOG, [$ts = network_time(), $node = node, $message = msg]);
+	}
+
+function subscribe(topic: string): bool
+	{
+	return Cluster::__subscribe(topic);
+	}
+
+function unsubscribe(topic: string): bool
+	{
+	return __unsubscribe(topic);
 	}

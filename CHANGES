@@ -1,3 +1,7 @@
+7.0.0-dev.45 | 2024-03-06 10:38:55 +0100
+
+  * Make worker restart in cluster btest race-proof (Jan Grashoefer, Corelight)
+
 7.0.0-dev.43 | 2024-03-05 19:23:09 +0100
 
   * highwayhash: Point to github.com/google/highwayhash, bump to master (Arne Welzel, Corelight)

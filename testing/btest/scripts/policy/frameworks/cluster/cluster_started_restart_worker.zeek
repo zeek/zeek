@@ -20,25 +20,28 @@ redef exit_only_after_terminate=T;
 redef Log::default_rotation_interval = 0secs;
 
 global topic = "test-topic";
+global restart_worker1_signal: event();
 
 @if ( Supervisor::is_supervisor() )
 
 global supervisor_output_file: file;
-global worker1_starts = 0;
+global worker1_restart_signals = 0;
 
-event Cluster::Experimental::node_fully_connected(name: string, id: string, resending: bool)
+event restart_worker1_signal()
 	{
-	if ( name != "worker-1" )
+	# Wait for the signal to be raised twice, which means worker-1 is fully connected and
+	# the cluster is started.
+	if ( ++worker1_restart_signals < 2 )
 		return;
 
-	# Restart worker-1 twice
-	if ( ++worker1_starts >= 3 )
+	# Shut down once we restarted worker-1 twice.
+	if ( worker1_restart_signals > 3 )
 		{
 		terminate();
 		return;
 		}
 
-	print supervisor_output_file, fmt("restarting %s", name);
+	print supervisor_output_file, "restarting worker-1";
 	Supervisor::restart("worker-1");
 	}
 
@@ -91,13 +94,16 @@ event Cluster::Experimental::node_fully_connected(name: string, id: string, rese
 	{
 	print "node fully connected";
 
-	if ( Cluster::node == "manager" )
-		Broker::publish(topic, Cluster::Experimental::node_fully_connected, name, id, resending);
+	if ( Cluster::node == "manager" && name == "worker-1" )
+		Broker::publish(topic, restart_worker1_signal);
 	}
 
 event Cluster::Experimental::cluster_started()
 	{
 	print "cluster_started";
+
+	if ( Cluster::node == "manager" )
+		Broker::publish(topic, restart_worker1_signal);
 	}
 
 event zeek_done()

@@ -16,6 +16,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
 #include "zeek/broker/Data.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
 
@@ -75,7 +76,7 @@ struct Stats {
  * Manages various forms of communication between peer Zeek processes
  * or other external applications via use of the Broker messaging library.
  */
-class Manager : public iosource::IOSource {
+class Manager : public zeek::cluster::Backend, public iosource::IOSource {
 public:
     /** Broker protocol to expect on a listening port. */
     enum class BrokerProtocol {
@@ -99,12 +100,12 @@ public:
      * Initialization of the manager. This is called late during Zeek's
      * initialization after any scripts are processed.
      */
-    void InitPostScript();
+    void InitPostScript() override;
 
     /**
      * Shuts Broker down at termination.
      */
-    void Terminate();
+    void Terminate() override;
 
     /**
      * Returns true if any Broker communication is currently active.
@@ -173,6 +174,11 @@ public:
     bool PublishIdentifier(std::string topic, std::string id);
 
     /**
+     * Cluster::Backend PublishEvent() implementation.
+     */
+    bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) override;
+
+    /**
      * Send an event to any interested peers.
      * @param topic a topic string associated with the message.
      * Peers advertise interest by registering a subscription to some prefix
@@ -204,6 +210,15 @@ public:
      * @return true if the message is sent successfully.
      */
     bool PublishEvent(std::string topic, RecordVal* ev);
+
+    /**
+     * Cluster::Backend PublishEvent() implementation.
+     */
+    bool PublishEvent(const std::string& topic, const zeek::ValPtr& event) override {
+        return PublishEvent(topic, event->AsRecordVal());
+    }
+
+    using cluster::Backend::PublishEvent;
 
     /**
      * Send a message to create a log stream to any interested peers.
@@ -284,13 +299,18 @@ public:
     zeek::RecordValPtr MakeEvent(ArgsSpan args, zeek::detail::Frame* frame);
 
     /**
+     * Cluster::Backend::make_event() support
+     */
+    zeek::ValPtr MakeEvent(const zeek::Args& args) override;
+
+    /**
      * Register interest in peer event messages that use a certain topic prefix.
      * @param topic_prefix a prefix to match against remote message topics.
      * e.g. an empty prefix will match everything and "a" will match "alice"
      * and "amy" but not "bob".
      * @return true if it's a new event subscription and it is now registered.
      */
-    bool Subscribe(const std::string& topic_prefix);
+    bool Subscribe(const std::string& topic_prefix) override;
 
     /**
      * Register interest in peer event messages that use a certain topic prefix,
@@ -309,7 +329,7 @@ public:
      * to zeek::Broker::Manager::Subscribe() or zeek::Broker::Manager::Forward().
      * @return true if interest in topic prefix is no longer advertised.
      */
-    bool Unsubscribe(const std::string& topic_prefix);
+    bool Unsubscribe(const std::string& topic_prefix) override;
 
     /**
      * Create a new *master* data store.

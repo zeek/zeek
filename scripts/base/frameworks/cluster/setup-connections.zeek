@@ -124,7 +124,6 @@ event zeek_init() &priority=-10
 	Cluster::subscribe(nodeid_topic(Cluster::node_id()));
 	Cluster::subscribe(node_topic(node));
 
-
 	if ( self$p != 0/unknown )
 		{
 		Broker::listen(Broker::default_listen_address,

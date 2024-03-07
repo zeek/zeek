@@ -3,7 +3,7 @@
 # Profiling
 # 
 #name count
-hilti/func/SSH::Banner::__parse_SSH_Banner_stage2 2
+hilti/func/SSH::Banner::__parse_SSH__Banner_stage2 2
 hilti/func/SSH::Banner::__parse_stage1 2
 hilti/func/SSH::Banner::parse1 2
 hilti/func/SSH::__register_SSH_Banner 1

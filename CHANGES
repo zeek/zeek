@@ -1,3 +1,7 @@
+7.0.0-dev.47 | 2024-03-07 09:52:29 +0100
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
 7.0.0-dev.45 | 2024-03-06 10:38:55 +0100
 
   * Make worker restart in cluster btest race-proof (Jan Grashoefer, Corelight)

@@ -2182,13 +2182,14 @@ void get_memory_usage(uint64_t* total, uint64_t* malloced) {
     uint64_t ret_total;
 
 #if defined(HAVE_MALLINFO2) || defined(HAVE_MALLINFO)
+    if ( malloced ) {
 #ifdef HAVE_MALLINFO2
-    struct mallinfo2 mi = mallinfo2();
+        struct mallinfo2 mi = mallinfo2();
 #else
-    struct mallinfo mi = mallinfo();
+        struct mallinfo mi = mallinfo();
 #endif
-    if ( malloced )
         *malloced = mi.uordblks;
+    }
 #endif
 
 #ifdef HAVE_DARWIN

@@ -9,3 +9,5 @@ zeek_add_subdir_library(
     Manager.cc
     BIFS
     cluster.bif)
+
+add_subdirectory(serializer)

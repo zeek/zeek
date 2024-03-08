@@ -143,6 +143,11 @@ void Func::AddBody(detail::StmtPtr /* new_body */, const std::vector<detail::IDP
     Internal("Func::AddBody called");
 }
 
+void Func::AddBody(detail::StdFunctionStmt::FunctionVariant body, int priority) {
+    auto stmt = zeek::make_intrusive<detail::StdFunctionStmt>(std::move(body));
+    AddBody(stmt, {}, priority);
+}
+
 void Func::SetScope(detail::ScopePtr newscope) { scope = std::move(newscope); }
 
 FuncPtr Func::DoClone() {

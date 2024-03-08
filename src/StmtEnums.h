@@ -31,8 +31,9 @@ enum StmtTag {
     STMT_ZAM,           // a ZAM function body
     STMT_NULL,
     STMT_ASSERT,
-    STMT_EXTERN, // for custom Stmt subclasses provided by plugins
-#define NUM_STMTS (int(STMT_EXTERN) + 1)
+    STMT_EXTERN,       // for custom Stmt subclasses provided by plugins
+    STMT_STD_FUNCTION, // statements that call a std::function from c++
+#define NUM_STMTS (int(STMT_STD_FUNCTION) + 1)
 };
 
 enum StmtFlowType {

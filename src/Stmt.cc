@@ -53,6 +53,7 @@ const char* stmt_name(StmtTag t) {
         "null",
         "assert",
         "extern",
+        "std-function",
     };
 
 #pragma GCC diagnostic push
@@ -2081,6 +2082,19 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const {
 
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);
+}
+
+ValPtr StdFunctionStmt::Exec(Frame* f, StmtFlowType& flow) {
+    zeek::Args args = *f->GetFuncArgs();
+
+    if ( func.index() == 0 ) {
+        flow = FLOW_NEXT;
+        std::get<0>(func)(args);
+    }
+    else
+        std::get<1>(func)(args, flow);
+
+    return nullptr;
 }
 
 } // namespace zeek::detail

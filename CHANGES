@@ -1,3 +1,13 @@
+7.0.0-dev.52 | 2024-03-08 19:10:06 +0100
+
+  * AST location fixes for -O gen-C++ (Vern Paxson, Corelight)
+
+  * script optimization support for clearing tables/vectors using "delete" (Vern Paxson, Corelight)
+
+  * fix for ZAM printing of instructions that modify slots other than slot 1 (Vern Paxson, Corelight)
+
+  * fixed bug where appending an empty vector to a vector-of-vector's had no effect (Vern Paxson, Corelight)
+
 7.0.0-dev.47 | 2024-03-07 09:52:29 +0100
 
   * Bump Spicy. (Robin Sommer, Corelight)

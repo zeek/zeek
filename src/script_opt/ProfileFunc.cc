@@ -161,8 +161,11 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
         case STMT_DELETE: {
             auto ad_stmt = static_cast<const AddDelStmt*>(s);
             auto ad_e = ad_stmt->StmtExpr();
-            auto& lhs_t = ad_e->GetOp1()->GetType();
-            aggr_mods.insert(lhs_t.get());
+            auto lhs = ad_e->GetOp1();
+            if ( lhs )
+                aggr_mods.insert(lhs->GetType().get());
+            else
+                aggr_mods.insert(ad_e->GetType().get());
         } break;
 
         default: break;

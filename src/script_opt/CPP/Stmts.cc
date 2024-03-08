@@ -159,6 +159,15 @@ void CPPCompile::GenAddStmt(const ExprStmt* es) {
 
 void CPPCompile::GenDeleteStmt(const ExprStmt* es) {
     auto op = es->StmtExpr();
+
+    if ( op->Tag() == EXPR_NAME ) {
+        if ( op->GetType()->Tag() == TYPE_TABLE )
+            Emit("%s->RemoveAll();", GenExpr(op, GEN_VAL_PTR));
+        else
+            Emit("%s->Resize(0);", GenExpr(op, GEN_VAL_PTR));
+        return;
+    }
+
     auto aggr = op->GetOp1();
     auto aggr_gen = GenExpr(aggr, GEN_VAL_PTR);
 

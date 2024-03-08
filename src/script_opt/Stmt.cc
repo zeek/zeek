@@ -255,7 +255,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         sl = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
 
     if ( sl )
-        return TransformMe(sl, c);
+        return TransformMe(std::move(sl), c);
 
     return ThisPtr();
 }
@@ -418,14 +418,10 @@ StmtPtr AddDelStmt::DoReduce(Reducer* c) {
         return ThisPtr();
     }
 
-    if ( e->Tag() != EXPR_INDEX && e->Tag() != EXPR_FIELD )
-        Internal("bad \"add\"/\"delete\"");
-
     auto red_e_stmt = e->ReduceToSingletons(c);
 
     if ( red_e_stmt )
         return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
-
     else
         return ThisPtr();
 }

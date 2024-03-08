@@ -874,7 +874,7 @@ const ZAMStmt ZAMCompiler::Call(const ExprStmt* e) {
 
     if ( IsZAM_BuiltIn(c.get()) ) {
         auto ret = LastInst();
-        insts1.back()->call_expr = c;
+        insts1.back()->call_expr = std::move(c);
         return ret;
     }
 

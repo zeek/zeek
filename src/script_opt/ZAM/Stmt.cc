@@ -591,6 +591,16 @@ const ZAMStmt ZAMCompiler::CompileAdd(const AddStmt* as) {
 
 const ZAMStmt ZAMCompiler::CompileDel(const DelStmt* ds) {
     auto e = ds->StmtExprPtr();
+
+    if ( e->Tag() == EXPR_NAME ) {
+        auto n = e->AsNameExpr();
+
+        if ( n->GetType()->Tag() == TYPE_TABLE )
+            return ClearTableV(n);
+        else
+            return ClearVectorV(n);
+    }
+
     auto aggr = e->GetOp1()->AsNameExpr();
 
     if ( e->Tag() == EXPR_FIELD ) {

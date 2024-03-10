@@ -24,12 +24,17 @@ ZAMCompiler::ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> _pfs, st
     reducer = std::move(_rd);
     frame_sizeI = 0;
 
+    auto loc = body->GetLocationInfo();
+    ASSERT(loc->first_line != 0 || body->Tag() == STMT_NULL);
+    auto loc_copy =
+        std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+    curr_func = func->Name();
+    curr_loc = std::make_shared<ZAMLocInfo>(curr_func, std::move(loc_copy), nullptr);
+
     Init();
 }
 
 ZAMCompiler::~ZAMCompiler() {
-    curr_stmt = nullptr;
-
     for ( auto i : insts1 )
         delete i;
 }
@@ -117,8 +122,6 @@ void ZAMCompiler::TrackMemoryManagement() {
 }
 
 StmtPtr ZAMCompiler::CompileBody() {
-    curr_stmt = nullptr;
-
     if ( func->Flavor() == FUNC_FLAVOR_HOOK )
         PushBreaks();
 
@@ -193,11 +196,16 @@ StmtPtr ZAMCompiler::CompileBody() {
 
     ConcretizeSwitches();
 
+    std::string fname = func->Name();
+
+    if ( func->Flavor() == FUNC_FLAVOR_FUNCTION )
+        fname = func_name_at_loc(fname, body->GetLocationInfo());
+
+    auto zb = make_intrusive<ZBody>(fname, this);
+    zb->SetInsts(insts2);
+
     // Could erase insts1 here to recover memory, but it's handy
     // for debugging.
-
-    auto zb = make_intrusive<ZBody>(func->Name(), this);
-    zb->SetInsts(insts2);
 
     return zb;
 }
@@ -388,7 +396,7 @@ void ZAMCompiler::Dump() {
 
         printf("%d %s%s: ", i, liveness.c_str(), depth.c_str());
 
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 
     if ( ! insts2.empty() )
@@ -396,8 +404,9 @@ void ZAMCompiler::Dump() {
 
     for ( auto i = 0U; i < insts2.size(); ++i ) {
         auto& inst = insts2[i];
+        // printf("%s:%d\n", inst->loc->filename, inst->loc->first_line);
         printf("%d: ", i);
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 
     DumpCases(int_cases, "int");
@@ -445,7 +454,7 @@ void ZAMCompiler::DumpInsts1(const FrameReMap* remappings) {
 
         printf("%d %s%s: ", i, liveness.c_str(), depth.c_str());
 
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 }
 

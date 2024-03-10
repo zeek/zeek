@@ -10,8 +10,13 @@
 namespace zeek::detail {
 
 const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
-    curr_stmt = const_cast<Stmt*>(s)->ThisPtr();
-    ASSERT(curr_stmt->Tag() == STMT_NULL || curr_stmt->GetLocationInfo()->first_line != 0);
+    auto loc = s->GetLocationInfo();
+    ASSERT(loc->first_line != 0 || s->Tag() == STMT_NULL);
+    auto loc_copy =
+        std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+    ASSERT(! blocks || s->Tag() == STMT_NULL || blocks->HaveExpDesc(loc_copy.get()));
+    auto loc_parent = curr_loc->Parent();
+    curr_loc = std::make_shared<ZAMLocInfo>(curr_func, std::move(loc_copy), curr_loc->Parent());
 
     switch ( s->Tag() ) {
         case STMT_PRINT: return CompilePrint(static_cast<const PrintStmt*>(s));
@@ -902,6 +907,16 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r) {
 const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.push_back(cr->RetVar());
 
+    auto hold_func = curr_func;
+    auto hold_loc = curr_loc;
+
+    curr_func = cr->Func()->Name();
+
+    bool is_event_inline = (hold_func == curr_func);
+
+    if ( ! is_event_inline )
+        curr_loc = std::make_shared<ZAMLocInfo>(curr_func, curr_loc->LocPtr(), hold_loc);
+
     PushCatchReturns();
 
     auto block = cr->Block();
@@ -909,6 +924,14 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.pop_back();
 
     ResolveCatchReturns(GoToTargetBeyond(block_end));
+
+    if ( ! is_event_inline ) {
+        // Strictly speaking, we could do this even if is_event_inline
+        // is true, because the values won't have changed. However, that
+        // just looks weird, so we condition this to match the above.
+        curr_func = hold_func;
+        curr_loc = hold_loc;
+    }
 
     return block_end;
 }
@@ -1008,7 +1031,8 @@ const ZAMStmt ZAMCompiler::InitVector(IDPtr id, VectorType* vt) {
 const ZAMStmt ZAMCompiler::InitTable(IDPtr id, TableType* tt, Attributes* attrs) {
     auto z = ZInstI(OP_INIT_TABLE_V, FrameSlot(id));
     z.SetType({NewRef{}, tt});
-    z.attrs = {NewRef{}, attrs};
+    z.aux = new ZInstAux(0);
+    z.aux->attrs = {NewRef{}, attrs};
     return AddInst(z);
 }
 

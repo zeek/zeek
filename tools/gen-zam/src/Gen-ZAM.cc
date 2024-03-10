@@ -663,9 +663,13 @@ void ZAM_OpTemplate::InstantiateAssignOp(const vector<ZAM_OperandType>& ot, cons
 		Emit("case " + op + ":");
 		BeginBlock();
 		GenAssignOpCore(ot, eval, ti.accessor, ti.is_managed);
+		if ( ! post_eval.empty() )
+			Emit(post_eval);
 		Emit("break;");
 		EndBlock();
 		}
+
+	post_eval.clear();
 	}
 
 void ZAM_OpTemplate::GenAssignOpCore(const vector<ZAM_OperandType>& ot, const string& eval,
@@ -1785,7 +1789,7 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line, const
 	auto arg_offset = HasAssignVal() ? 1 : 0;
 	auto arg_slot = arg_offset + 1;
 
-	string func = "z.func";
+	string func = "z.aux->func";
 
 	if ( n == 1 )
 		{
@@ -1841,16 +1845,24 @@ void ZAM_InternalOpTemplate::Parse(const string& attr, const string& line, const
 				}
 		}
 
-	eval += "f->SetOnlyCall(z.call_expr.get());\n";
+	eval += "f->SetOnlyCall(z.aux->call_expr.get());\n";
+	eval += "ZAM_PROFILE_PRE_CALL\n";
 
 	if ( HasAssignVal() )
 		{
 		auto av = GetAssignVal();
 		eval += "auto " + av + " = " + func + "->Invoke(&args, f);\n";
 		eval += "if ( ! " + av + " ) { ZAM_error = true; break; }\n";
+
+		// Postpone the profiling follow-up until after we process
+		// the assignment.
+		post_eval = "ZAM_PROFILE_POST_CALL\n";
 		}
 	else
+		{
 		eval += "(void) " + func + "->Invoke(&args, f);\n";
+		eval += "ZAM_PROFILE_POST_CALL\n";
+		}
 	}
 
 bool TemplateInput::ScanLine(string& line)

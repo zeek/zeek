@@ -523,6 +523,9 @@ protected:
 	// The C++ evaluation; may span multiple lines.
 	string eval;
 
+	// Postlog C++ code (currently only used in support of profiling).
+	string post_eval;
+
 	// Any associated custom method.
 	string custom_method;
 

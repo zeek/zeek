@@ -60,14 +60,14 @@ public:
     ZInst(ZOp _op, ZAMOpType _op_type) {
         op = _op;
         op_type = _op_type;
-        ASSERT(curr_loc);
-        loc = curr_loc;
+        ASSERT(ZAM::curr_loc);
+        loc = ZAM::curr_loc;
     }
 
     // Create a stub instruction that will be populated later.
     ZInst() {
-        ASSERT(curr_loc);
-        loc = curr_loc;
+        ASSERT(ZAM::curr_loc);
+        loc = ZAM::curr_loc;
     }
 
     virtual ~ZInst() = default;

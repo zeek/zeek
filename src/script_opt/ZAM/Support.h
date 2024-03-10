@@ -12,12 +12,23 @@ namespace zeek::detail {
 
 using ValVec = std::vector<ValPtr>;
 
+namespace ZAM {
+
 // The name of the current function being compiled. For inlined functions,
 // this is the name of the inlinee, not the inliner.
 extern std::string curr_func;
 
 // The location corresponding to the current statement being compiled.
 extern std::shared_ptr<ZAMLocInfo> curr_loc;
+
+// Needed for the logging built-in.  Exported so that ZAM can make sure it's
+// defined when compiling.
+extern TypePtr log_ID_enum_type;
+
+// Needed for a slight performance gain when dealing with "any" types.
+extern TypePtr any_base_type;
+
+} // namespace ZAM
 
 // True if a function with the given profile can be compiled to ZAM.
 // If not, returns the reason in *reason, if non-nil.
@@ -30,13 +41,6 @@ extern bool IsAny(const Type* t);
 // Convenience functions for getting to these.
 inline bool IsAny(const TypePtr& t) { return IsAny(t.get()); }
 inline bool IsAny(const Expr* e) { return IsAny(e->GetType()); }
-
-// Needed for the logging built-in.  Exported so that ZAM can make sure it's
-// defined when compiling.
-extern TypePtr log_ID_enum_type;
-
-// Needed for a slight performance gain when dealing with "any" types.
-extern TypePtr any_base_type;
 
 extern void ZAM_run_time_error(const char* msg);
 extern void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg);

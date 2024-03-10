@@ -1389,7 +1389,7 @@ eval	if ( frame[z.v2].vector_val->Size() > 0 )
 unary-expr-op To-Any-Coerce
 op-type X
 set-type $1
-eval	AssignV1(ZVal(frame[z.v2].ToVal(z.t), any_base_type))
+eval	AssignV1(ZVal(frame[z.v2].ToVal(z.t), ZAM::any_base_type))
 
 unary-expr-op From-Any-Coerce
 op-type X
@@ -2376,7 +2376,7 @@ macro LogWriteNoResPost()
 internal-op Log-Write
 side-effects OP_LOG_WRITE_VV OP_VV
 type VVV
-eval	LogWritePre(frame[z.v2].ToVal(log_ID_enum_type), v3)
+eval	LogWritePre(frame[z.v2].ToVal(ZAM::log_ID_enum_type), v3)
 	LogWriteResPost()
 
 internal-op Log-WriteC
@@ -2390,7 +2390,7 @@ internal-op Log-Write
 side-effects
 op1-read
 type VV
-eval	LogWritePre(frame[z.v1].ToVal(log_ID_enum_type), v2)
+eval	LogWritePre(frame[z.v1].ToVal(ZAM::log_ID_enum_type), v2)
 	LogWriteNoResPost()
 
 internal-op Log-WriteC

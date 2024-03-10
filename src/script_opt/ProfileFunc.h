@@ -635,9 +635,9 @@ private:
 
 // Goes through all of the functions to associate full location information
 // with each AST node.
-class BlockAnalyzer : public TraversalCallback {
+class ASTBlockAnalyzer : public TraversalCallback {
 public:
-    BlockAnalyzer(std::vector<FuncInfo>& funcs);
+    ASTBlockAnalyzer(std::vector<FuncInfo>& funcs);
 
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PostStmt(const Stmt*) override;
@@ -699,7 +699,7 @@ private:
 
 // If we're profiling, this provides the analysis of how low-level location
 // information relates to higher-level statement blocks.
-extern std::unique_ptr<BlockAnalyzer> blocks;
+extern std::unique_ptr<ASTBlockAnalyzer> AST_blocks;
 
 // Returns the full name of a function at a given location, including its
 // associated module (even for event handlers that don't actually have

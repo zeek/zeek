@@ -22,9 +22,7 @@ public:
     const Location* Loc() const { return loc.get(); }
     std::shared_ptr<Location> LocPtr() const { return loc; }
     std::shared_ptr<ZAMLocInfo> Parent() { return parent; }
-
-    // Add this location's modules to the target set.
-    void AddInModules(std::set<std::string>& target) const { target.insert(modules.begin(), modules.end()); }
+    const auto& GetModules() const { return modules; }
 
     // If include_lines is true, then in the description we include line
     // number information, otherwise we omit them.

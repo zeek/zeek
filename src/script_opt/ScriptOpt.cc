@@ -456,7 +456,7 @@ static void analyze_scripts_for_ZAM() {
 
     if ( analysis_options.profile_ZAM ) {
 #ifdef ENABLE_ZAM_PROFILE
-        blocks = std::make_unique<BlockAnalyzer>(funcs);
+        AST_blocks = std::make_unique<ASTBlockAnalyzer>(funcs);
         const auto prof_filename = "zprof.out";
         analysis_options.profile_file = fopen(prof_filename, "w");
         if ( ! analysis_options.profile_file )
@@ -634,14 +634,14 @@ void profile_script_execution() {
         for ( auto& f : funcs ) {
             if ( f.Body()->Tag() == STMT_ZAM ) {
                 auto zb = cast_intrusive<ZBody>(f.Body());
-                zb->ProfileExecution(module_prof);
+                zb->ReportExecutionProfile(module_prof);
             }
         }
 
         for ( auto& mp : module_prof )
-            if ( mp.second.first > 0 )
+            if ( mp.second.num_samples > 0 )
                 fprintf(analysis_options.profile_file, "module %s sampled CPU time %.06f, %d sampled instructions\n",
-                        mp.first.c_str(), mp.second.second, static_cast<int>(mp.second.first));
+                        mp.first.c_str(), mp.second.CPU_time, static_cast<int>(mp.second.num_samples));
     }
 }
 

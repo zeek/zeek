@@ -14,9 +14,9 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
     ASSERT(loc->first_line != 0 || s->Tag() == STMT_NULL);
     auto loc_copy =
         std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
-    ASSERT(! blocks || s->Tag() == STMT_NULL || blocks->HaveExpDesc(loc_copy.get()));
-    auto loc_parent = curr_loc->Parent();
-    curr_loc = std::make_shared<ZAMLocInfo>(curr_func, std::move(loc_copy), curr_loc->Parent());
+    ASSERT(! AST_blocks || s->Tag() == STMT_NULL || AST_blocks->HaveExpDesc(loc_copy.get()));
+    auto loc_parent = ZAM::curr_loc->Parent();
+    ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, std::move(loc_copy), ZAM::curr_loc->Parent());
 
     switch ( s->Tag() ) {
         case STMT_PRINT: return CompilePrint(static_cast<const PrintStmt*>(s));
@@ -907,15 +907,15 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r) {
 const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.push_back(cr->RetVar());
 
-    auto hold_func = curr_func;
-    auto hold_loc = curr_loc;
+    auto hold_func = ZAM::curr_func;
+    auto hold_loc = ZAM::curr_loc;
 
-    curr_func = cr->Func()->Name();
+    ZAM::curr_func = cr->Func()->Name();
 
-    bool is_event_inline = (hold_func == curr_func);
+    bool is_event_inline = (hold_func == ZAM::curr_func);
 
     if ( ! is_event_inline )
-        curr_loc = std::make_shared<ZAMLocInfo>(curr_func, curr_loc->LocPtr(), hold_loc);
+        ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, ZAM::curr_loc->LocPtr(), hold_loc);
 
     PushCatchReturns();
 
@@ -929,8 +929,8 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
         // Strictly speaking, we could do this even if is_event_inline
         // is true, because the values won't have changed. However, that
         // just looks weird, so we condition this to match the above.
-        curr_func = hold_func;
-        curr_loc = hold_loc;
+        ZAM::curr_func = hold_func;
+        ZAM::curr_loc = hold_loc;
     }
 
     return block_end;

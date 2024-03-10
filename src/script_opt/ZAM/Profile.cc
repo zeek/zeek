@@ -19,15 +19,17 @@ ZAMLocInfo::ZAMLocInfo(std::string _func_name, std::shared_ptr<Location> _loc, s
     if ( main_module != std::string::npos )
         modules.insert(func_name.substr(0, main_module));
 
-    if ( parent )
-        parent->AddInModules(modules);
+    if ( parent ) {
+        auto& m = parent->GetModules();
+        modules.insert(m.begin(), m.end());
+    }
 }
 
 std::string ZAMLocInfo::Describe(bool include_lines) const {
     std::string desc;
 
-    if ( blocks ) {
-        desc = blocks->GetDesc(loc.get());
+    if ( AST_blocks ) {
+        desc = AST_blocks->GetDesc(loc.get());
         if ( parent )
             desc = parent->Describe(false) + ";" + desc;
     }

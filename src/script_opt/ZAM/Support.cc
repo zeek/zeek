@@ -12,10 +12,13 @@
 
 namespace zeek::detail {
 
+namespace ZAM {
 std::string curr_func;
 std::shared_ptr<ZAMLocInfo> curr_loc;
 TypePtr log_ID_enum_type;
 TypePtr any_base_type;
+} // namespace ZAM
+
 bool ZAM_error = false;
 
 bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason) {

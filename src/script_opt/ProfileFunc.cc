@@ -1475,7 +1475,7 @@ void SetBlockLineNumbers::UpdateLocInfo(Location* loc) {
     }
 }
 
-BlockAnalyzer::BlockAnalyzer(std::vector<FuncInfo>& funcs) {
+ASTBlockAnalyzer::ASTBlockAnalyzer(std::vector<FuncInfo>& funcs) {
     for ( auto& f : funcs ) {
         if ( ! f.ShouldAnalyze() )
             continue;
@@ -1506,7 +1506,7 @@ static bool is_compound_stmt(const Stmt* s) {
     return compound_stmts.count(s->Tag()) > 0;
 }
 
-TraversalCode BlockAnalyzer::PreStmt(const Stmt* s) {
+TraversalCode ASTBlockAnalyzer::PreStmt(const Stmt* s) {
     auto loc = s->GetLocationInfo();
     auto ls = BuildExpandedDescription(loc);
 
@@ -1516,19 +1516,19 @@ TraversalCode BlockAnalyzer::PreStmt(const Stmt* s) {
     return TC_CONTINUE;
 }
 
-TraversalCode BlockAnalyzer::PostStmt(const Stmt* s) {
+TraversalCode ASTBlockAnalyzer::PostStmt(const Stmt* s) {
     if ( is_compound_stmt(s) )
         parents.pop_back();
 
     return TC_CONTINUE;
 }
 
-TraversalCode BlockAnalyzer::PreExpr(const Expr* e) {
+TraversalCode ASTBlockAnalyzer::PreExpr(const Expr* e) {
     (void)BuildExpandedDescription(e->GetLocationInfo());
     return TC_CONTINUE;
 }
 
-std::string BlockAnalyzer::BuildExpandedDescription(const Location* loc) {
+std::string ASTBlockAnalyzer::BuildExpandedDescription(const Location* loc) {
     ASSERT(loc && loc->first_line != 0);
 
     auto ls = LocWithFunc(loc);
@@ -1547,6 +1547,6 @@ std::string BlockAnalyzer::BuildExpandedDescription(const Location* loc) {
     return ls;
 }
 
-std::unique_ptr<BlockAnalyzer> blocks;
+std::unique_ptr<ASTBlockAnalyzer> AST_blocks;
 
 } // namespace zeek::detail

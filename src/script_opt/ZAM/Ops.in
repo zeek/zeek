@@ -273,7 +273,7 @@ macro AssignV1T(v, t) {
 # the instruction.
 macro AssignV1(v) AssignV1T(v, z.t)
 
-macro BRANCH(target_slot) { pc = z.target_slot; continue; }
+macro BRANCH(target_slot) { DO_ZAM_PROFILE; pc = z.target_slot; continue; }
 
 ########## Unary Ops ##########
 
@@ -1153,7 +1153,7 @@ direct-unary-op Table-Constructor ConstructTable
 
 macro ConstructTableOrSetPre()
 	auto tt = cast_intrusive<TableType>(z.t);
-	auto new_t = new TableVal(tt, z.attrs);
+	auto new_t = new TableVal(tt, z.aux->attrs);
 	auto aux = z.aux;
 	auto n = aux->n;
 	auto ind_width = z.v2;
@@ -1654,7 +1654,7 @@ macro WhenCall(func)
 		throw ZAMDelayedCallException();
 	auto& lhs = frame[z.v1];
 	auto trigger = f->GetTrigger();
-	Val* v = trigger ? trigger->Lookup(z.call_expr.get()) : nullptr;
+	Val* v = trigger ? trigger->Lookup(z.aux->call_expr.get()) : nullptr;
 	ValPtr vp;
 	if ( v )
 		vp = {NewRef{}, v};
@@ -1666,7 +1666,7 @@ macro WhenCall(func)
 		std::vector<ValPtr> args;
 		for ( auto i = 0; i < n; ++i )
 			args.push_back(aux->ToVal(frame, i));
-		f->SetCall(z.call_expr.get());
+		f->SetCall(z.aux->call_expr.get());
 		/* It's possible that this function will call another that
 		 * itself returns null because *it* is the actual blocker.
 		 * That will set ZAM_error, which we need to ignore.
@@ -1685,7 +1685,7 @@ macro WhenCall(func)
 internal-op WhenCallN
 type V
 side-effects
-eval	WhenCall(z.func)
+eval	WhenCall(z.aux->func)
 
 internal-op WhenIndCallN
 type VV
@@ -1703,7 +1703,7 @@ macro EvalScheduleArgs(time, is_delta, build_args)
 	double dt = time.double_val;
 	if ( is_delta )
 		dt += run_state::network_time;
-	auto handler = EventHandlerPtr(z.event_handler);
+	auto handler = EventHandlerPtr(z.aux->event_handler);
 	ValVec args;
 	build_args
 	auto timer = new ScheduleTimer(handler, std::move(args), dt);
@@ -1744,19 +1744,19 @@ op1-read
 custom-method return CompileEvent(h, l);
 eval	ValVec args;
 	z.aux->FillValVec(args, frame);
-	QueueEvent(z.event_handler, args);
+	QueueEvent(z.aux->event_handler, args);
 
 internal-op Event0
 type X
 eval	ValVec args(0);
-	QueueEvent(z.event_handler, args);
+	QueueEvent(z.aux->event_handler, args);
 
 internal-op Event1
 type V
 op1-read
 eval	ValVec args(1);
 	args[0] = frame[z.v1].ToVal(z.t);
-	QueueEvent(z.event_handler, args);
+	QueueEvent(z.aux->event_handler, args);
 
 internal-op Event2
 type VV
@@ -1764,7 +1764,7 @@ op1-read
 eval	ValVec args(2);
 	args[0] = frame[z.v1].ToVal(z.t);
 	args[1] = frame[z.v2].ToVal(z.t2);
-	QueueEvent(z.event_handler, args);
+	QueueEvent(z.aux->event_handler, args);
 
 internal-op Event3
 type VVV
@@ -1774,7 +1774,7 @@ eval	ValVec args(3);
 	args[0] = frame[z.v1].ToVal(z.t);
 	args[1] = frame[z.v2].ToVal(z.t2);
 	args[2] = frame[z.v3].ToVal(aux->elems[2].GetType());
-	QueueEvent(z.event_handler, args);
+	QueueEvent(z.aux->event_handler, args);
 
 internal-op Event4
 type VVVV
@@ -1785,7 +1785,7 @@ eval	ValVec args(4);
 	args[1] = frame[z.v2].ToVal(z.t2);
 	args[2] = frame[z.v3].ToVal(aux->elems[2].GetType());
 	args[3] = frame[z.v4].ToVal(aux->elems[3].GetType());
-	QueueEvent(z.event_handler, args);
+	QueueEvent(z.aux->event_handler, args);
 
 
 op Return
@@ -1795,6 +1795,7 @@ eval	EvalReturn(nullptr,)
 macro EvalReturn(val, type)
 	ret_u = val;
 	type
+	DO_ZAM_PROFILE
 	pc = end_pc;
 	continue;
 
@@ -1819,6 +1820,7 @@ macro EvalSwitchBody(cases, postscript)
 	else
 		pc = t[v];
 	postscript
+	DO_ZAM_PROFILE
 	continue;
 	}
 
@@ -2130,7 +2132,7 @@ eval	auto vt = cast_intrusive<VectorType>(z.t);
 internal-op Init-Table
 type V
 eval	auto tt = cast_intrusive<TableType>(z.t);
-	auto t = new TableVal(tt, z.attrs);
+	auto t = new TableVal(tt, z.aux->attrs);
 	Unref(frame[z.v1].table_val);
 	frame[z.v1].table_val = t;
 
@@ -2162,7 +2164,7 @@ macro BuildWhen(timeout)
 		if ( v )
 			local_aggrs.push_back(v);
 		}
-	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, z.loc.get());
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, z.loc->Loc());
 
 ########################################
 # Internal
@@ -2263,6 +2265,7 @@ internal-op Hook-Break
 type X
 eval	flow = FLOW_BREAK;
 	pc = end_pc;
+	DO_ZAM_PROFILE
 	continue;
 
 # Slot 2 gives frame size.

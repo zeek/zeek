@@ -60,16 +60,22 @@ public:
     ZInst(ZOp _op, ZAMOpType _op_type) {
         op = _op;
         op_type = _op_type;
+        ASSERT(curr_loc);
+        loc = curr_loc;
     }
 
     // Create a stub instruction that will be populated later.
-    ZInst() = default;
+    ZInst() {
+        ASSERT(curr_loc);
+        loc = curr_loc;
+    }
 
     virtual ~ZInst() = default;
 
-    // Methods for printing out the instruction for debugging/maintenance.
-    void Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const;
-    void Dump(const std::string& id1, const std::string& id2, const std::string& id3, const std::string& id4) const;
+    // Methods for printing out the instruction for debugging/profiling.
+    void Dump(FILE* f, zeek_uint_t inst_num, const FrameReMap* mappings, const std::string& prefix) const;
+    void Dump(FILE* f, const std::string& prefix, const std::string& id1, const std::string& id2,
+              const std::string& id3, const std::string& id4) const;
 
     // Returns the name to use in identifying one of the slots/integer
     // values (designated by "n").  "inst_num" identifies the instruction
@@ -120,11 +126,7 @@ public:
 
     // Type, usually for interpreting the constant.
     TypePtr t = nullptr;
-    TypePtr t2 = nullptr;                  // just a few ops need two types
-    const Expr* e = nullptr;               // only needed for "when" expressions
-    Func* func = nullptr;                  // used for calls
-    EventHandler* event_handler = nullptr; // used for referring to events
-    AttributesPtr attrs = nullptr;         // used for things like constructors
+    TypePtr t2 = nullptr; // just a few ops need two types
 
     // Auxiliary information.  We could in principle use this to
     // consolidate a bunch of the above, though at the cost of
@@ -132,12 +134,9 @@ public:
     // which is why we bundle these separately.
     ZInstAux* aux = nullptr;
 
-    // Location associated with this instruction, for error reporting.
-    std::shared_ptr<Location> loc;
-
-    // Interpreter call expression associated with this instruction,
-    // for error reporting and stack backtraces.
-    CallExprPtr call_expr = nullptr;
+    // Location associated with this instruction, for error reporting
+    // and profiling.
+    std::shared_ptr<ZAMLocInfo> loc;
 
     // Whether v1 represents a frame slot type for which we
     // explicitly manage the memory.
@@ -201,7 +200,7 @@ public:
     ZInstI() {}
 
     // If "remappings" is non-nil, then it is used instead of frame_ids.
-    void Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const;
+    void Dump(FILE* f, const FrameMap* frame_ids, const FrameReMap* remappings) const;
 
     // Note that this is *not* an override of the base class's VName
     // but instead a method with similar functionality but somewhat
@@ -293,9 +292,6 @@ public:
     // Number of associated label(s) (indicating the statement is
     // a branch target).
     int num_labels = 0;
-
-    // Used for debugging.  Transformed into the ZInst "loc" field.
-    StmtPtr stmt = curr_stmt;
 
 private:
     // Initialize 'c' from the given ConstExpr.
@@ -466,6 +462,22 @@ public:
 
     // Used for accessing function names.
     IDPtr id_val = nullptr;
+
+    // Interpreter call expression associated with this instruction,
+    // for error reporting and stack backtraces.
+    CallExprPtr call_expr = nullptr;
+
+    // Used for direct calls.
+    Func* func = nullptr;
+
+    // Whether we know that we're calling a BiF.
+    bool is_BiF_call = false;
+
+    // Used for referring to events.
+    EventHandler* event_handler = nullptr;
+
+    // Used for things like constructors.
+    AttributesPtr attrs = nullptr;
 
     // Whether the instruction can lead to globals/captures changing.
     // Currently only needed by the optimizer, but convenient to

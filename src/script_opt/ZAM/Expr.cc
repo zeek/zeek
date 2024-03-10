@@ -315,6 +315,7 @@ const ZAMStmt ZAMCompiler::CompileSchedule(const NameExpr* n, const ConstExpr* c
     if ( len == 0 ) {
         z = n ? ZInstI(OP_SCHEDULE0_ViH, FrameSlot(n), is_interval) : ZInstI(OP_SCHEDULE0_CiH, is_interval, c);
         z.op_type = n ? OP_VV_I2 : OP_VC_I1;
+        z.aux = new ZInstAux(0);
     }
 
     else {
@@ -330,7 +331,7 @@ const ZAMStmt ZAMCompiler::CompileSchedule(const NameExpr* n, const ConstExpr* c
         z.aux = InternalBuildVals(l);
     }
 
-    z.event_handler = h;
+    z.aux->event_handler = h;
 
     return AddInst(z);
 }
@@ -349,12 +350,11 @@ const ZAMStmt ZAMCompiler::CompileEvent(EventHandler* h, const ListExpr* l) {
     if ( n > 4 || ! all_vars ) { // do generic form
         ZInstI z(OP_EVENT_HL);
         z.aux = InternalBuildVals(l);
-        z.event_handler = h;
+        z.aux->event_handler = h;
         return AddInst(z);
     }
 
     ZInstI z;
-    z.event_handler = h;
 
     if ( n == 0 ) {
         z.op = OP_EVENT0_X;
@@ -402,6 +402,11 @@ const ZAMStmt ZAMCompiler::CompileEvent(EventHandler* h, const ListExpr* l) {
             }
         }
     }
+
+    if ( ! z.aux )
+        z.aux = new ZInstAux(0);
+
+    z.aux->event_handler = h;
 
     return AddInst(z);
 }
@@ -872,11 +877,8 @@ const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
 const ZAMStmt ZAMCompiler::Call(const ExprStmt* e) {
     auto c = cast_intrusive<CallExpr>(e->StmtExprPtr());
 
-    if ( IsZAM_BuiltIn(c.get()) ) {
-        auto ret = LastInst();
-        insts1.back()->call_expr = std::move(c);
-        return ret;
-    }
+    if ( CheckForBuiltIn(c, c) )
+        return LastInst();
 
     return DoCall(e->StmtExpr()->AsCallExpr(), nullptr);
 }
@@ -885,26 +887,37 @@ const ZAMStmt ZAMCompiler::AssignToCall(const ExprStmt* e) {
     auto assign = e->StmtExpr()->AsAssignExpr();
     auto call = cast_intrusive<CallExpr>(assign->GetOp2());
 
-    if ( IsZAM_BuiltIn(e->StmtExpr()) ) {
-        auto ret = LastInst();
-        insts1.back()->call_expr = call;
-        return ret;
-    }
+    if ( CheckForBuiltIn(e->StmtExprPtr(), call) )
+        return LastInst();
 
     auto n = assign->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
 
     return DoCall(call.get(), n);
 }
 
+bool ZAMCompiler::CheckForBuiltIn(const ExprPtr& e, CallExprPtr c) {
+    if ( ! IsZAM_BuiltIn(e.get()) )
+        return false;
+
+    auto ret = LastInst();
+    auto& i = insts1.back();
+    if ( ! i->aux )
+        i->aux = new ZInstAux(0);
+    i->aux->call_expr = c;
+
+    return true;
+}
+
 const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     auto func = c->Func()->AsNameExpr();
     auto func_id = func->IdPtr();
+    auto func_val = func_id->GetVal();
     auto& args = c->Args()->Exprs();
 
     int nargs = args.length();
     int call_case = nargs;
 
-    bool indirect = ! func_id->IsGlobal() || ! func_id->GetVal();
+    bool indirect = ! func_id->IsGlobal() || ! func_val;
     bool in_when = c->IsInWhen();
 
     if ( indirect || in_when )
@@ -1041,7 +1054,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
             z.aux->can_change_non_locals = true;
     }
 
-    z.call_expr = {NewRef{}, const_cast<CallExpr*>(c)};
+    z.aux->call_expr = {NewRef{}, const_cast<CallExpr*>(c)};
 
     if ( in_when )
         z.SetType(n->GetType());
@@ -1049,8 +1062,11 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     if ( ! indirect || func_id->IsGlobal() ) {
         z.aux->id_val = func_id;
 
-        if ( ! indirect )
-            z.func = func_id->GetVal()->AsFunc();
+        if ( ! indirect ) {
+            z.aux->func = func_id->GetVal()->AsFunc();
+            if ( z.aux->func->GetKind() == Func::BUILTIN_FUNC )
+                z.aux->is_BiF_call = true;
+        }
     }
 
     return AddInst(z);
@@ -1064,11 +1080,11 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
     auto z = GenInst(OP_CONSTRUCT_TABLE_VV, n, width);
     z.aux = InternalBuildVals(con, width + 1);
     z.t = tt;
-    z.attrs = e->AsTableConstructorExpr()->GetAttrs();
+    z.aux->attrs = e->AsTableConstructorExpr()->GetAttrs();
 
     auto zstmt = AddInst(z);
 
-    auto def_attr = z.attrs ? z.attrs->Find(ATTR_DEFAULT) : nullptr;
+    auto def_attr = z.aux->attrs ? z.aux->attrs->Find(ATTR_DEFAULT) : nullptr;
     if ( ! def_attr || def_attr->GetExpr()->Tag() != EXPR_LAMBDA )
         return zstmt;
 
@@ -1102,7 +1118,7 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
     auto z = GenInst(OP_CONSTRUCT_SET_VV, n, width);
     z.aux = InternalBuildVals(con, width);
     z.t = e->GetType();
-    z.attrs = e->AsSetConstructorExpr()->GetAttrs();
+    z.aux->attrs = e->AsSetConstructorExpr()->GetAttrs();
 
     return AddInst(z);
 }

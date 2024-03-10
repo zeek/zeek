@@ -10,75 +10,87 @@ using std::string;
 
 namespace zeek::detail {
 
-void ZInst::Dump(zeek_uint_t inst_num, const FrameReMap* mappings) const {
-    // printf("v%d ", n);
+void ZInst::Dump(FILE* f, zeek_uint_t inst_num, const FrameReMap* mappings, const string& prefix) const {
+    // fprintf(f, "v%d ", n);
 
     auto id1 = VName(1, inst_num, mappings);
     auto id2 = VName(2, inst_num, mappings);
     auto id3 = VName(3, inst_num, mappings);
     auto id4 = VName(4, inst_num, mappings);
 
-    Dump(id1, id2, id3, id4);
+    Dump(f, prefix, id1, id2, id3, id4);
 }
 
-void ZInst::Dump(const string& id1, const string& id2, const string& id3, const string& id4) const {
-    printf("%s ", ZOP_name(op));
-    // printf("(%s) ", op_type_name(op_type));
+void ZInst::Dump(FILE* f, const string& prefix, const string& id1, const string& id2, const string& id3,
+                 const string& id4) const {
+    fprintf(f, "%s ", ZOP_name(op));
+    // fprintf(f, "(%s) ", op_type_name(op_type));
     if ( t && 0 )
-        printf("(%s) ", type_name(t->Tag()));
+        fprintf(f, "(%s) ", type_name(t->Tag()));
 
     switch ( op_type ) {
         case OP_X: break;
 
-        case OP_V: printf("%s", id1.c_str()); break;
+        case OP_V: fprintf(f, "%s", id1.c_str()); break;
 
-        case OP_VV: printf("%s, %s", id1.c_str(), id2.c_str()); break;
+        case OP_VV: fprintf(f, "%s, %s", id1.c_str(), id2.c_str()); break;
 
-        case OP_VVV: printf("%s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str()); break;
+        case OP_VVV: fprintf(f, "%s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str()); break;
 
-        case OP_VVVV: printf("%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(), id4.c_str()); break;
+        case OP_VVVV: fprintf(f, "%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(), id4.c_str()); break;
 
-        case OP_VVVC: printf("%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(), ConstDump().c_str()); break;
+        case OP_VVVC: fprintf(f, "%s, %s, %s, %s", id1.c_str(), id2.c_str(), id3.c_str(), ConstDump().c_str()); break;
 
-        case OP_C: printf("%s", ConstDump().c_str()); break;
+        case OP_C: fprintf(f, "%s", ConstDump().c_str()); break;
 
-        case OP_VC: printf("%s, %s", id1.c_str(), ConstDump().c_str()); break;
+        case OP_VC: fprintf(f, "%s, %s", id1.c_str(), ConstDump().c_str()); break;
 
-        case OP_VVC: printf("%s, %s, %s", id1.c_str(), id2.c_str(), ConstDump().c_str()); break;
+        case OP_VVC: fprintf(f, "%s, %s, %s", id1.c_str(), id2.c_str(), ConstDump().c_str()); break;
 
-        case OP_V_I1: printf("%d", v1); break;
+        case OP_V_I1: fprintf(f, "%d", v1); break;
 
-        case OP_VC_I1: printf("%d %s", v1, ConstDump().c_str()); break;
+        case OP_VC_I1: fprintf(f, "%d %s", v1, ConstDump().c_str()); break;
 
-        case OP_VV_FRAME: printf("%s, interpreter frame[%d]", id1.c_str(), v2); break;
+        case OP_VV_FRAME: fprintf(f, "%s, interpreter frame[%d]", id1.c_str(), v2); break;
 
-        case OP_VV_I2: printf("%s, %d", id1.c_str(), v2); break;
+        case OP_VV_I2: fprintf(f, "%s, %d", id1.c_str(), v2); break;
 
-        case OP_VV_I1_I2: printf("%d, %d", v1, v2); break;
+        case OP_VV_I1_I2: fprintf(f, "%d, %d", v1, v2); break;
 
-        case OP_VVC_I2: printf("%s, %d, %s", id1.c_str(), v2, ConstDump().c_str()); break;
+        case OP_VVC_I2: fprintf(f, "%s, %d, %s", id1.c_str(), v2, ConstDump().c_str()); break;
 
-        case OP_VVV_I3: printf("%s, %s, %d", id1.c_str(), id2.c_str(), v3); break;
+        case OP_VVV_I3: fprintf(f, "%s, %s, %d", id1.c_str(), id2.c_str(), v3); break;
 
-        case OP_VVV_I2_I3: printf("%s, %d, %d", id1.c_str(), v2, v3); break;
+        case OP_VVV_I2_I3: fprintf(f, "%s, %d, %d", id1.c_str(), v2, v3); break;
 
-        case OP_VVVV_I4: printf("%s, %s, %s, %d", id1.c_str(), id2.c_str(), id3.c_str(), v4); break;
+        case OP_VVVV_I4: fprintf(f, "%s, %s, %s, %d", id1.c_str(), id2.c_str(), id3.c_str(), v4); break;
 
-        case OP_VVVV_I3_I4: printf("%s, %s, %d, %d", id1.c_str(), id2.c_str(), v3, v4); break;
+        case OP_VVVV_I3_I4: fprintf(f, "%s, %s, %d, %d", id1.c_str(), id2.c_str(), v3, v4); break;
 
-        case OP_VVVV_I2_I3_I4: printf("%s, %d, %d, %d", id1.c_str(), v2, v3, v4); break;
+        case OP_VVVV_I2_I3_I4: fprintf(f, "%s, %d, %d, %d", id1.c_str(), v2, v3, v4); break;
 
-        case OP_VVVC_I3: printf("%s, %s, %d, %s", id1.c_str(), id2.c_str(), v3, ConstDump().c_str()); break;
+        case OP_VVVC_I3: fprintf(f, "%s, %s, %d, %s", id1.c_str(), id2.c_str(), v3, ConstDump().c_str()); break;
 
-        case OP_VVVC_I2_I3: printf("%s, %d, %d, %s", id1.c_str(), v2, v3, ConstDump().c_str()); break;
+        case OP_VVVC_I2_I3: fprintf(f, "%s, %d, %d, %s", id1.c_str(), v2, v3, ConstDump().c_str()); break;
 
-        case OP_VVVC_I1_I2_I3: printf("%d, %d, %d, %s", v1, v2, v3, ConstDump().c_str()); break;
+        case OP_VVVC_I1_I2_I3: fprintf(f, "%d, %d, %d, %s", v1, v2, v3, ConstDump().c_str()); break;
     }
 
-    if ( func )
-        printf(" (func %s)", func->Name());
+    auto func = aux ? aux->func : nullptr;
 
-    printf("\n");
+    if ( func )
+        fprintf(f, " (func %s)", func->Name());
+
+    if ( loc ) {
+        auto l = loc->Describe(true);
+        if ( func && (func->GetBodies().empty() || func->GetBodies()[0].stmts->Tag() != STMT_ZAM) )
+            l = l + ";" + func->Name();
+        if ( ! prefix.empty() )
+            l = prefix + l;
+        fprintf(f, " // %s", l.c_str());
+    }
+
+    fprintf(f, "\n");
 }
 
 int ZInst::NumFrameSlots() const {
@@ -286,16 +298,16 @@ string ZInst::ConstDump() const {
     return d.Description();
 }
 
-void ZInstI::Dump(const FrameMap* frame_ids, const FrameReMap* remappings) const {
+void ZInstI::Dump(FILE* f, const FrameMap* frame_ids, const FrameReMap* remappings) const {
     int n = NumFrameSlots();
-    // printf("v%d ", n);
+    // fprintf(f, "v%d ", n);
 
     auto id1 = VName(1, frame_ids, remappings);
     auto id2 = VName(2, frame_ids, remappings);
     auto id3 = VName(3, frame_ids, remappings);
     auto id4 = VName(4, frame_ids, remappings);
 
-    ZInst::Dump(id1, id2, id3, id4);
+    ZInst::Dump(f, "", id1, id2, id3, id4);
 }
 
 string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappings) const {

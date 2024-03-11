@@ -1203,6 +1203,11 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         op3 = c->UpdateExpr(op3);
     }
 
+    while ( op1->Tag() == EXPR_NOT ) {
+        op1 = op1->GetOp1();
+        std::swap(op2, op3);
+    }
+
     StmtPtr op1_red_stmt;
     op1 = op1->ReduceToSingleton(c, op1_red_stmt);
 

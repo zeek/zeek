@@ -14,6 +14,8 @@
 #include "zeek/telemetry/Timer.h"
 #include "zeek/telemetry/telemetry.bif.h"
 
+#include "CivetServer.h"
+
 namespace zeek::telemetry {
 
 Manager::Manager() { prometheus_registry = std::make_shared<prometheus::Registry>(); }
@@ -21,14 +23,10 @@ Manager::Manager() { prometheus_registry = std::make_shared<prometheus::Registry
 Manager::~Manager() {}
 
 void Manager::InitPostScript() {
+    // Metrics port setting is used to calculate a URL for prometheus scraping
     std::string prometheus_url;
     if ( auto env = getenv("ZEEK_METRICS_PORT") )
         prometheus_url = util::fmt("localhost:%s", env);
-    else if ( auto env = getenv("BROKER_METRICS_PORT") ) {
-        // Remove this in v7.1 when the Broker variables are removed
-        reporter->Warning("BROKER_METRICS_PORT is deprecated, use ZEEK_METRICS_PORT.");
-        prometheus_url = util::fmt("localhost:%s", env);
-    }
     else {
         auto metrics_port = id::find_val("Telemetry::metrics_port")->AsPortVal();
         if ( metrics_port->Port() == 0 )
@@ -40,114 +38,35 @@ void Manager::InitPostScript() {
     }
 
     if ( ! prometheus_url.empty() ) {
-        printf("prometheus configured\n");
+        printf("prometheus configured: %s\n", prometheus_url.c_str());
 
-        prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url);
+        CivetCallbacks* callbacks = nullptr;
+        // if ( ! request_topic.empty() ) {
+        //     callbacks = new CivetCallbacks();
+        //     callbacks->begin_request = [](struct mg_connection* conn) -> int {
+        //         printf("begin_request\n");
+        //         // We only care about requests made to the /metrics endpoint. There are other request
+        //         // made to the server that we can ignore, such as favicon.ico.
+        //         auto req_info = mg_get_request_info(conn);
+        //         if ( strcmp(req_info->request_uri, "/metrics") == 0 ) {
+        //             // send a request to a topic for data from workers
+        //             printf("posting event\n");
+        //             broker_mgr->PublishEvent(telemetry_mgr->RequestTopic(), "Telemetry::remote_request",
+        //                                      broker::vector{});
+
+        //             // wait a few seconds for workers to respond
+        //             // TODO: do we wait for all workers to respond or just go ahead and
+        //             // respond after a few seconds with the understanding that some workers
+        //             // might be out of date?
+        //             // TODO: the 4 seconds here is completely arbitrary
+        //             std::this_thread::sleep_for(std::chrono::seconds(4));
+        //         }
+        //         return 0;
+        //     };
+        // }
+
+        prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url, 2, callbacks);
         prometheus_exposer->RegisterCollectable(prometheus_registry);
-
-        // Import topics are only enabled if Prometheus is enabled, because we don't care
-        // to get imported metrics if we're just going to drop them on the floor.
-        auto topics = import_topics;
-        if ( auto env = getenv("ZEEK_METRICS_IMPORT_TOPICS") ) {
-            topics = util::split(std::string{env}, ":");
-        }
-        else if ( auto env = getenv("BROKER_METRICS_IMPORT_TOPICS") ) {
-            // Remove this in v7.1 when the Broker variables are removed
-            reporter->Warning("BROKER_METRICS_IMPORT_TOPICS is deprecated, use ZEEK_METRICS_IMPORT_TOPICS.");
-            topics = util::split(std::string{env}, ":");
-        }
-        else {
-            auto script_topics = id::find_val("Telemetry::metrics_import_topics")->AsVectorVal();
-            if ( script_topics->Size() == 0 )
-                // Remove this in v7.1 when the Broker variables are removed
-                script_topics = id::find_val("Broker::metrics_import_topics")->AsVectorVal();
-
-            for ( int i = 0; i < script_topics->Size(); i++ )
-                topics.push_back(script_topics->StringValAt(i)->ToStdString());
-        }
-
-        for ( const auto& topic : topics ) {
-            broker_mgr->Subscribe(topic);
-        }
-    }
-
-    if ( export_topic.empty() ) {
-        if ( auto env = getenv("ZEEK_METRICS_EXPORT_TOPIC") )
-            export_topic = env;
-        else if ( auto env = getenv("BROKER_METRICS_EXPORT_TOPIC") ) {
-            // Remove this in v7.1 when the Broker variables are removed
-            reporter->Warning("BROKER_METRICS_EXPORT_TOPIC is deprecated, use ZEEK_METRICS_EXPORT_TOPIC.");
-            export_topic = env;
-        }
-        else {
-            auto script_topic = id::find_val("Telemetry::metrics_export_topic")->AsStringVal();
-            if ( script_topic->Len() == 0 )
-                // Remove this in v7.1 when the Broker variables are removed
-                script_topic = id::find_val("Broker::metrics_export_topic")->AsStringVal();
-
-            export_topic = script_topic->ToStdString();
-        }
-    }
-
-    if ( export_endpoint.empty() ) {
-        if ( auto env = getenv("ZEEK_METRICS_ENDPOINT_NAME") )
-            export_endpoint = env;
-        else if ( auto env = getenv("BROKER_METRICS_ENDPOINT_NAME") ) {
-            // Remove this in v7.1 when the Broker variables are removed
-            reporter->Warning("BROKER_METRICS_ENDPOINT_NAME is deprecated, use ZEEK_METRICS_ENDPOINT_NAME.");
-            export_endpoint = env;
-        }
-        else {
-            auto script_endpoint = id::find_val("Telemetry::metrics_export_endpoint_name")->AsStringVal();
-            if ( script_endpoint->Len() == 0 )
-                // Remove this in v7.1 when the Broker variables are removed
-                script_endpoint = id::find_val("Broker::metrics_export_endpoint_name")->AsStringVal();
-
-            export_endpoint = script_endpoint->ToStdString();
-        }
-    }
-
-    if ( export_interval == 0 ) {
-        if ( auto env = getenv("ZEEK_METRICS_EXPORT_INTERVAL") )
-            export_interval = std::strtod(env, nullptr);
-        else if ( auto env = getenv("BROKER_METRICS_EXPORT_INTERVAL") ) {
-            reporter->Warning("BROKER_METRICS_EXPORT_INTERVAL is deprecated, use ZEEK_METRICS_EXPORT_INTERVAL.");
-            export_interval = std::strtod(env, nullptr);
-        }
-        else {
-            export_interval = id::find_val("Telemetry::metrics_export_interval")->AsInterval();
-            if ( export_interval == 0 )
-                // Remove this in v7.1 when the Broker variables are removed
-                export_interval = id::find_val("Broker::metrics_export_interval")->AsInterval();
-        }
-    }
-
-    if ( export_prefixes.empty() ) {
-        if ( auto env = getenv("ZEEK_METRICS_EXPORT_PREFIXES") ) {
-            export_prefixes = util::split(std::string{env}, ":");
-        }
-        else if ( auto env = getenv("BROKER_METRICS_EXPORT_PREFIXES") ) {
-            reporter->Warning("BROKER_METRICS_EXPORT_PREFIXES is deprecated, use ZEEK_METRICS_EXPORT_PREFIXES.");
-            export_prefixes = util::split(std::string{env}, ":");
-        }
-        else {
-            auto script_topics = id::find_val("Telemetry::metrics_export_prefixes")->AsVectorVal();
-            if ( script_topics->Size() == 0 )
-                // Remove this in v7.1 when the Broker variables are removed
-                script_topics = id::find_val("Broker::metrics_export_prefixes")->AsVectorVal();
-
-            for ( int i = 0; i < script_topics->Size(); i++ )
-                export_prefixes.push_back(script_topics->StringValAt(i)->ToStdString());
-        }
-    }
-
-    // printf("topic: %s\n", export_topic.c_str());
-    // printf("endpoint: %s\n", export_endpoint.c_str());
-    // printf("interval: %f\n", export_interval);
-    // printf("prefixes: %zu\n", export_prefixes.size());
-
-    if ( ! export_topic.empty() && ! export_endpoint.empty() && export_interval > 0 ) {
-        printf("topic exporter configured\n");
     }
 
 #ifdef HAVE_PROCESS_STAT_METRICS

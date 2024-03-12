@@ -13,16 +13,10 @@
 
 @if ( Cluster::is_enabled() )
 
-# Use Cluster::node as "endpoint" label
-redef Telemetry::metrics_export_endpoint_name = Cluster::node;
+redef Telemetry::metrics_endpoint_name = Cluster::node;
 
-# The manager opens port 9911 and imports metrics from all nodes by default.
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 redef Telemetry::metrics_port = 9911/tcp;
-redef Telemetry::metrics_import_topics = vector("zeek/cluster/metrics/");
-
-@else
-redef Telemetry::metrics_export_topic = "zeek/cluster/metrics/";
 @endif
 
 @endif

@@ -5771,6 +5771,124 @@ export {
 	const flowbuffer_contract_threshold = 2 * 1024 * 1024 &redef;
 }
 
+module Telemetry;
+export {
+
+	type MetricType: enum {
+		DOUBLE_COUNTER,
+		INT_COUNTER,
+		DOUBLE_GAUGE,
+		INT_GAUGE,
+		DOUBLE_HISTOGRAM,
+		INT_HISTOGRAM,
+	};
+
+	## Type that captures options used to create metrics.
+	type MetricOpts: record {
+		## The prefix (namespace) of the metric. Zeek uses the ``zeek``
+		## prefix for any internal metrics and the ``process`` prefix
+		## for any metrics involving process state (CPU, memory, etc).
+		prefix: string;
+
+		## The human-readable name of the metric.
+		name: string;
+
+		## The unit of the metric. Set to a blank string if this is a unit-less metric.
+		unit: string;
+
+		## Documentation for this metric.
+		help_text: string &optional;
+
+		## The label names (also called dimensions) of the metric. When
+		## instantiating or working with concrete metrics, corresponding
+		## label values have to be provided. Examples of a label might
+		## be the protocol a general observation applies to, the
+		## directionality in a traffic flow, or protocol-specific
+		## context like a particular message type.
+		labels: vector of string &default=vector();
+
+		## Whether the metric represents something that is accumulating.
+		## Defaults to ``T`` for counters and ``F`` for gauges and
+		## histograms.
+		is_total: bool &optional;
+
+		## When creating a :zeek:see:`Telemetry::HistogramFamily`,
+		## describes the number and bounds of the individual buckets.
+		bounds: vector of double &optional;
+
+		## The same meaning as *bounds*, but as :zeek:type:`count`.
+		## Only set in the return value of
+		## :zeek:see:`Telemetry::collect_histogram_metrics`.
+		## for histograms when the underlying type is ``int64_t``,
+		## otherwise ignored.
+		count_bounds: vector of count &optional;
+
+		## Describes the underlying metric type.
+		## Only set in the return value of
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`,
+		## otherwise ignored.
+		metric_type: MetricType &optional;
+	};
+
+	## Metrics returned by the :zeek:see:`Telemetry::collect_metrics` function.
+	type Metric: record {
+		## A :zeek:see:`Telemetry::MetricOpts` record describing this metric.
+		opts: MetricOpts;
+
+		## The label values associated with this metric, if any.
+		labels: vector of string;
+
+		## The value of gauge or counter cast to a double
+		## independent of the underlying data type.
+		## This value is set for all counter and gauge metrics,
+		## it is unset for histograms.
+		value: double &optional;
+
+		## The integer value of underlying instrument if the metric type
+		## is INT_COUNTER or INT_GAUGE. This will be unset if the type
+		## is DOUBLE_COUNTER or DOUBLE_GAUGE.
+		count_value: count &optional;
+	};
+
+	## Histograms returned by the :zeek:see:`Telemetry::collect_histogram_metrics` function.
+	type HistogramMetric: record {
+		## A :zeek:see:`Telemetry::MetricOpts` record describing this histogram.
+		opts: MetricOpts;
+
+		## The label values associated with this histogram, if any.
+		labels: vector of string;
+
+		## Individual counters for each of the buckets as
+		## described by the *bounds* field in *opts*;
+		values: vector of double;
+
+		## Integer values for the individual counters for each of the
+		## bckets as described in the ``bounds`` field in ``opts``. This
+		## value will be unset if the metric type is DOUBLE_HISTOGRAM.
+		count_values: vector of count &optional;
+
+		## The number of observations made for this histogram.
+		observations: double;
+
+		## The sum of all observations for this histogram.
+		sum: double;
+
+		## The integer value of the number of observations made for this
+		## histogram. This value will be unset if the metric type is
+		## DOUBLE_HISTOGRAM.
+		count_observations: count &optional;
+
+		## The integer value of the sum of all observations for this
+		## histogram. This value will be unset if the metric type is
+		## DOUBLE_HISTOGRAM.
+		count_sum: count &optional;
+	};
+
+	type MetricVector : vector of Metric;
+	type HistogramMetricVector : vector of HistogramMetric;
+}
+
 module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using

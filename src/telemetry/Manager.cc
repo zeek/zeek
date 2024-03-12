@@ -253,43 +253,6 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
     return ret_val;
 }
 
-/**
- * Changes the frequency for publishing scraped metrics to the target topic.
- * Passing a zero-length interval has no effect.
- * @param value Interval between two scrapes in seconds.
- */
-void Manager::SetMetricsExportInterval(double value) { export_interval = value; }
-
-/**
- * Sets a new target topic for the metrics. Passing an empty string has no
- * effect.
- * @param value The new topic for publishing local metrics to.
- */
-void Manager::SetMetricsExportTopic(std::string value) { export_topic = std::move(value); }
-
-/**
- * Sets the import topics for a node importing metrics.
- *
- * @param topics List of topics from which to import metrics.
- */
-void Manager::SetMetricsImportTopics(std::vector<std::string> topics) { import_topics = std::move(topics); }
-
-/**
- * Sets a new ID for the metrics exporter. Passing an empty string has no
- * effect.
- * @param value The new ID of the exporter in published metrics.
- */
-void Manager::SetMetricsExportEndpointName(std::string value) { export_endpoint = std::move(value); }
-
-/**
- * Sets a prefix selection for the metrics exporter. An empty vector selects
- * *all* metrics.
- * @param filter List of selected metric prefixes or an empty vector for
- *               selecting all metrics.
- */
-void Manager::SetMetricsExportPrefixes(std::vector<std::string> filter) { export_prefixes = std::move(filter); }
-
-
 } // namespace zeek::telemetry
 
 // -- unit tests ---------------------------------------------------------------

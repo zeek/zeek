@@ -42,7 +42,6 @@ RecordValPtr MetricFamily::GetMetricOptsRecord() const {
     record_val->Assign(is_total_idx, val_mgr->Bool(is_sum));
 
     auto label_names_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
-    label_names_vec->Append(make_intrusive<StringVal>("endpoint"));
     for ( const auto& lbl : labels )
         label_names_vec->Append(make_intrusive<StringVal>(lbl));
 

@@ -1313,7 +1313,9 @@ SizeExpr::SizeExpr(ExprPtr arg_op) : UnaryExpr(EXPR_SIZE, std::move(arg_op)) {
 
     auto& t = op->GetType();
 
-    if ( t->Tag() == TYPE_ANY )
+    if ( t->Tag() == TYPE_VOID )
+        SetError("cannot take size of void");
+    else if ( t->Tag() == TYPE_ANY )
         SetType(base_type(TYPE_ANY));
     else if ( t->Tag() == TYPE_FILE || t->Tag() == TYPE_SUBNET || t->InternalType() == TYPE_INTERNAL_DOUBLE )
         SetType(base_type(TYPE_DOUBLE));
@@ -2234,6 +2236,11 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs) {
     TypeTag bt1 = op1->GetType()->Tag();
     TypeTag bt2 = op2->GetType()->Tag();
 
+    if ( bt2 == TYPE_VOID ) {
+        ExprError("can't assign void value");
+        return false;
+    }
+
     if ( bt1 == TYPE_LIST && bt2 == TYPE_ANY )
         // This is ok because we cannot explicitly declare lists on
         // the script level.
@@ -2271,7 +2278,7 @@ bool AssignExpr::TypeCheck(const AttributesPtr& attrs) {
         }
     }
 
-    if ( op1->GetType()->Tag() == TYPE_RECORD && op2->GetType()->Tag() == TYPE_RECORD ) {
+    if ( bt1 == TYPE_RECORD && bt2 == TYPE_RECORD ) {
         if ( same_type(op1->GetType(), op2->GetType()) )
             return true;
 

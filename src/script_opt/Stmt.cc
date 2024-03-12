@@ -180,10 +180,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
 
     // First, assess some fundamental transformations.
     if ( e->Tag() == EXPR_NOT ) { // Change "if ( ! x ) s1 else s2" to "if ( x ) s2 else s1".
-        auto s1_orig = s1;
-        s1 = s2;
-        s2 = s1_orig;
-
+        std::swap(s1, s2);
         e = e->GetOp1();
     }
 

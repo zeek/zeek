@@ -14,49 +14,6 @@ export {
 	## Alias for a vector of label values.
 	type labels_vector: vector of string;
 
-	## Type that captures options used to create metrics.
-	type MetricOpts: record {
-		## The prefix (namespace) of the metric.
-		prefix: string;
-
-		## The human-readable name of the metric.
-		name: string;
-
-		## The unit of the metric. Set to a blank string if this is a unit-less metric.
-		unit: string;
-
-		## Documentation for this metric.
-		help_text: string;
-
-		## The label names (also called dimensions) of the metric. When
-		## instantiating or working with concrete metrics, corresponding
-		## label values have to be provided.
-		labels: vector of string &default=vector();
-
-		## Whether the metric represents something that is accumulating.
-		## Defaults to ``T`` for counters and ``F`` for gauges and
-		## histograms.
-		is_total: bool &optional;
-
-		## When creating a :zeek:see:`Telemetry::HistogramFamily`,
-		## describes the number and bounds of the individual buckets.
-		bounds: vector of double &optional;
-
-		## The same meaning as *bounds*, but as :zeek:type:`count`.
-		## Only set in the return value of
-		## :zeek:see:`Telemetry::collect_histogram_metrics`.
-		## for histograms when the underlying type is ``int64_t``,
-		## otherwise ignored.
-		count_bounds: vector of count &optional;
-
-		## Describes the underlying metric type.
-		## Only set in the return value of
-		## :zeek:see:`Telemetry::collect_metrics` or
-		## :zeek:see:`Telemetry::collect_histogram_metrics`,
-		## otherwise ignored.
-		metric_type: MetricType &optional;
-	};
-
 	## Type representing a family of counters with uninitialized label values.
 	##
 	## To create concrete :zeek:see:`Telemetry::Counter` instances, use
@@ -305,64 +262,6 @@ export {
 
 	## Interval at which the :zeek:see:`Telemetry::sync` hook is invoked.
 	option sync_interval = 10sec;
-
-	## Type of elements returned by the :zeek:see:`Telemetry::collect_metrics` function.
-	type Metric: record {
-		## A :zeek:see:`Telemetry::MetricOpts` record describing this metric.
-		opts: MetricOpts;
-
-		## The label values associated with this metric, if any.
-		labels: vector of string;
-
-		## The value of gauge or counter cast to a double
-		## independent of the underlying data type.
-		## This value is set for all counter and gauge metrics,
-		## it is unset for histograms.
-		value: double &optional;
-
-		## The value of the underlying gauge or counter as a double
-		## if the underlying metric type uses ``int64_t``.
-		## Only counters and gauges created with the C++ API may
-		## have this value set.
-		count_value: count &optional;
-	};
-
-	## Type of elements returned by the :zeek:see:`Telemetry::collect_histogram_metrics` function.
-	type HistogramMetric: record {
-		## A :zeek:see:`Telemetry::MetricOpts` record describing this histogram.
-		opts: MetricOpts;
-
-		## The label values associated with this histogram, if any.
-		labels: vector of string;
-
-		## Individual counters for each of the buckets as
-		## described by the *bounds* field in *opts*;
-		values: vector of double;
-
-		## If the underlying data type of the histogram is ``int64_t``,
-		## this vector will hold the values as counts, otherwise it
-		## is unset. Only histograms created with the C++ API have
-		## may have this value set.
-		count_values: vector of count &optional;
-
-		## The number of observations made for this histogram.
-		observations: double;
-
-		## The sum of all observations for this histogram.
-		sum: double;
-
-		## If the underlying data type of the histogram is ``int64_t``,
-		## the number of observations as :zeek:type:`count`, otherwise
-		## unset.
-		count_observations: count &optional;
-
-		## If the underlying data type of the histogram is ``int64_t``,
-		## the sum of all observations as :zeek:type:`count`, otherwise
-		## unset.
-		count_sum: count &optional;
-	};
-
-	type MetricVector : vector of Metric;
 
 	## Collect all counter and gauge metrics matching the given *name* and *prefix*.
 	##

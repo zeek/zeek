@@ -239,6 +239,7 @@ bool ZAMCompiler::PruneUnused() {
         if ( inst->IsLoad() && ! VarIsUsed(inst->v1) ) {
             did_prune = true;
             KillInst(i);
+            continue;
         }
 
         if ( inst->IsNonLocalLoad() ) {

@@ -325,46 +325,6 @@ public:
         return HistogramInstance<ValueType>(prefix, name, lbls, bounds, helptext, unit);
     }
 
-    /**
-     * Changes the frequency for publishing scraped metrics to the target topic.
-     * Passing a zero-length interval has no effect.
-     * @param value Interval between two scrapes in seconds.
-     */
-    void SetMetricsExportInterval(double value);
-
-    /**
-     * Sets a new target topic for the metrics. Passing an empty string has no
-     * effect.
-     * @param value The new topic for publishing local metrics to.
-     */
-    void SetMetricsExportTopic(std::string value);
-
-    /**
-     * Sets the import topics for a node importing metrics.
-     *
-     * @param topics List of topics from which to import metrics.
-     */
-    void SetMetricsImportTopics(std::vector<std::string> topics);
-
-    /**
-     * Sets a new ID for the metrics exporter. Passing an empty string has no
-     * effect.
-     * @param value The new ID of the exporter in published metrics.
-     */
-    void SetMetricsExportEndpointName(std::string value);
-
-    /**
-     * Sets a prefix selection for the metrics exporter. An empty vector selects
-     * *all* metrics.
-     * @param filter List of selected metric prefixes or an empty vector for
-     *               selecting all metrics.
-     */
-    void SetMetricsExportPrefixes(std::vector<std::string> filter);
-
-    bool IsExporting() const { return ! export_topic.empty() && ! export_endpoint.empty(); }
-
-    const std::string& MetricsSchema() const { return metrics_schema; }
-
     std::shared_ptr<MetricFamily> GetFamilyByFullName(const std::string& full_name) const {
         if ( auto it = families.find(full_name); it != families.end() )
             return it->second;
@@ -392,8 +352,6 @@ protected:
 
 private:
     std::shared_ptr<MetricFamily> LookupFamily(std::string_view prefix, std::string_view name) const;
-
-    std::string metrics_schema;
 
     std::shared_ptr<OtelReader> otel_reader;
     std::map<std::string, std::shared_ptr<MetricFamily>> families;

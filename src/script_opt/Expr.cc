@@ -658,8 +658,8 @@ ExprPtr NotExpr::Duplicate() { return SetSucc(new NotExpr(op->Duplicate())); }
 bool NotExpr::WillTransform(Reducer* c) const { return op->Tag() == EXPR_NOT && Op()->GetType()->Tag() == TYPE_BOOL; }
 
 ExprPtr NotExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    if ( op->Tag() == EXPR_NOT && Op()->GetType()->Tag() == TYPE_BOOL )
-        return Op()->Reduce(c, red_stmt);
+    if ( op->Tag() == EXPR_NOT )
+        return op->GetOp1()->Reduce(c, red_stmt);
 
     return UnaryExpr::Reduce(c, red_stmt);
 }

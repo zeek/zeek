@@ -167,8 +167,11 @@ public:
         std::vector<RecordValPtr> records;
         for ( const auto& g : gauges ) {
             auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
-            for ( const auto& [label_key, label] : g->Labels() )
-                label_values_vec->Append(make_intrusive<StringVal>(label));
+            for ( const auto& [label_key, label] : g->Labels() ) {
+                // We don't include the endpoint key/value unless it's a prometheus request
+                if ( label_key != "endpoint" )
+                    label_values_vec->Append(make_intrusive<StringVal>(label));
+            }
 
             auto r = make_intrusive<zeek::RecordVal>(metric_record_type);
             r->Assign(labels_idx, label_values_vec);

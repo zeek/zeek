@@ -125,8 +125,7 @@ public:
         for ( const auto& ctr : counters ) {
             auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
             for ( const auto& [label_key, label] : ctr->Labels() )
-                if ( label_key != "endpoint" )
-                    label_values_vec->Append(make_intrusive<StringVal>(label));
+                label_values_vec->Append(make_intrusive<StringVal>(label));
 
             auto r = make_intrusive<zeek::RecordVal>(metric_record_type);
             r->Assign(labels_idx, label_values_vec);

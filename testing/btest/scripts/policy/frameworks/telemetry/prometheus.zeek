@@ -33,6 +33,8 @@ redef Cluster::nodes = {
 @load base/frameworks/telemetry
 @load base/utils/active-http
 
+@if ( Cluster::node == "manager-1" )
+
 # Query the Prometheus endpoint using ActiveHTTP for testing, oh my.
 event run_test()
 	{
@@ -67,7 +69,6 @@ event run_test()
 		}
 	}
 
-@if ( Cluster::node == "manager-1" )
 # Use a dynamic metrics port for testing to avoid colliding on 9911/tcp
 # when running tests in parallel.
 global orig_metrics_port = Telemetry::metrics_port;
@@ -80,9 +81,8 @@ event zeek_init()
 
 event Cluster::Experimental::cluster_started()
 	{
-	# Run the test once all nodes are up and metrics_export_interval
-	# has passed at least once.
-	schedule 2 * Telemetry::metrics_export_interval { run_test() };
+	# Run the test once all nodes are up
+	schedule 2 secs { run_test() };
 	}
 @endif
 

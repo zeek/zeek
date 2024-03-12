@@ -364,11 +364,8 @@ private:
     std::shared_ptr<DblGauge> cpu_gauge;
     std::shared_ptr<IntGauge> fds_gauge;
 
-    std::string export_topic;
-    std::vector<std::string> import_topics;
-    std::string export_endpoint;
+    std::string endpoint_name;
     std::vector<std::string> export_prefixes;
-    double export_interval = 0.0;
 
     std::shared_ptr<prometheus::Registry> prometheus_registry;
     std::unique_ptr<prometheus::Exposer> prometheus_exposer;

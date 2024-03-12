@@ -215,7 +215,7 @@ void Reducer::BindStmtToCurrStmt(const StmtPtr& s) {
     s->SetLocationInfo(curr_stmt->GetLocationInfo());
 }
 
-bool Reducer::SameOp(const Expr* op1, const Expr* op2) {
+bool Reducer::SameOp(const Expr* op1, const Expr* op2) const {
     if ( op1 == op2 )
         return true;
 
@@ -271,7 +271,7 @@ bool Reducer::SameOp(const Expr* op1, const Expr* op2) {
     return false;
 }
 
-bool Reducer::SameExpr(const Expr* e1, const Expr* e2) {
+bool Reducer::SameExpr(const Expr* e1, const Expr* e2) const {
     if ( e1 == e2 )
         return true;
 

@@ -178,8 +178,8 @@ protected:
 
     // Returns true if op1 and op2 represent the same operand, given
     // the reaching definitions available at their usages (e1 and e2).
-    bool SameOp(const Expr* op1, const Expr* op2);
-    bool SameOp(const ExprPtr& op1, const ExprPtr& op2) { return SameOp(op1.get(), op2.get()); }
+    bool SameOp(const Expr* op1, const Expr* op2) const;
+    bool SameOp(const ExprPtr& op1, const ExprPtr& op2) const { return SameOp(op1.get(), op2.get()); }
 
     // True if e1 and e2 reflect identical expressions in the context
     // of using a value computed for one of them in lieu of computing
@@ -187,7 +187,7 @@ protected:
     // are never equivalent even if they both specify exactly the same
     // record elements, because each invocation of the expression produces
     // a distinct value.)
-    bool SameExpr(const Expr* e1, const Expr* e2);
+    bool SameExpr(const Expr* e1, const Expr* e2) const;
 
     // Finds a temporary, if any, whose RHS matches the given "rhs", using
     // the reaching defs associated with the assignment "a".  The context

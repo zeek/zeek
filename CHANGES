@@ -1,3 +1,7 @@
+7.0.0-dev.57 | 2024-03-13 10:17:48 -0700
+
+  * Add community contributions for the 6.2 timeframe to NEWS. [skip ci] (Christian Kreibich, Corelight)
+
 7.0.0-dev.54 | 2024-03-12 10:31:19 +0100
 
   * GH-3640: Expr: Handle TYPE_VOID in SizeExpr and AssignExpr::Typecheck() (Arne Welzel, Corelight)

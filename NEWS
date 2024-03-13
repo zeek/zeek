@@ -6,6 +6,10 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 6.2.0
 ==========
 
+We would like to thank Anthony Verez (netantho), Bijoy Das (mute019), Jan
+Grashöfer (J-Gras), Matti Bispham (mbispham), Phil Rzewski (philrz), and
+xb-anssi for their contributions to this release.
+
 Breaking Changes
 ----------------
 

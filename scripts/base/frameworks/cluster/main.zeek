@@ -196,6 +196,10 @@ export {
 		## A unique identifier assigned to the node by the broker framework.
 		## This field is only set while a node is connected.
 		id: string                &optional;
+		## The port used to expose metrics to Prometheus. Setting this in a cluster
+		## configuration will override the setting for Telemetry::metrics_port for
+		## the node.
+		metrics_port: port        &optional;
 	};
 
 	## Record to represent a cluster node including its name.
@@ -217,6 +221,14 @@ export {
 	##
 	## Returns: The :zeek:type:`Cluster::NodeType` the calling node acts as.
 	global local_node_type: function(): NodeType;
+
+	## This function can be called at any time to determine the configured
+	## metrics port for Prometheus being used by current Zeek instance. If
+	## :zeek:id:`Cluster::is_enabled` returns false, then
+	## :zeek:enum:`Cluster::NONE` is returned.
+	##
+	## Returns: The metrics port used by the calling node.
+	global local_node_metrics_port: function(): port;
 
 	## The cluster layout definition.  This should be placed into a filter
 	## named cluster-layout.zeek somewhere in the ZEEKPATH.  It will be
@@ -336,6 +348,20 @@ function local_node_type(): NodeType
 		return NONE;
 
 	return nodes[node]$node_type;
+	}
+
+function local_node_metrics_port(): port
+	{
+	if ( ! is_enabled() )
+		return 0/unknown;
+
+	if ( node !in nodes )
+		return 0/unknown;
+
+	if ( ! nodes[node]?$metrics_port )
+		return 0/unknown;
+
+	return nodes[node]$metrics_port;
 	}
 
 function node_topic(name: string): string

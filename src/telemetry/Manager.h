@@ -331,6 +331,8 @@ public:
         return nullptr;
     }
 
+    std::string GetClusterJson() const;
+
 protected:
     template<class F>
     static auto WithLabelNames(Span<const LabelView> xs, F continuation) {

@@ -2,6 +2,9 @@
 
 #include "zeek/telemetry/Manager.h"
 
+#define RAPIDJSON_HAS_STDSTRING 1
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
 #include <algorithm>
 #include <thread>
 #include <variant>
@@ -13,6 +16,7 @@
 #include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
 #include "zeek/telemetry/telemetry.bif.h"
+#include "zeek/threading/formatters/detail/json.h"
 
 #include "CivetServer.h"
 
@@ -38,32 +42,31 @@ void Manager::InitPostScript() {
     }
 
     if ( ! prometheus_url.empty() ) {
-        printf("prometheus configured: %s\n", prometheus_url.c_str());
-
         CivetCallbacks* callbacks = nullptr;
-        // if ( ! request_topic.empty() ) {
-        //     callbacks = new CivetCallbacks();
-        //     callbacks->begin_request = [](struct mg_connection* conn) -> int {
-        //         printf("begin_request\n");
-        //         // We only care about requests made to the /metrics endpoint. There are other request
-        //         // made to the server that we can ignore, such as favicon.ico.
-        //         auto req_info = mg_get_request_info(conn);
-        //         if ( strcmp(req_info->request_uri, "/metrics") == 0 ) {
-        //             // send a request to a topic for data from workers
-        //             printf("posting event\n");
-        //             broker_mgr->PublishEvent(telemetry_mgr->RequestTopic(), "Telemetry::remote_request",
-        //                                      broker::vector{});
+        auto local_node_name = id::find_val("Cluster::node")->AsStringVal();
+        if ( local_node_name->Len() > 0 ) {
+            auto cluster_nodes = id::find_val("Cluster::nodes")->AsTableVal();
+            auto local_node = cluster_nodes->Find(IntrusivePtr<StringVal>{NewRef{}, local_node_name});
+            auto local_node_type = local_node->AsRecordVal()->GetField<EnumVal>("node_type")->Get();
 
-        //             // wait a few seconds for workers to respond
-        //             // TODO: do we wait for all workers to respond or just go ahead and
-        //             // respond after a few seconds with the understanding that some workers
-        //             // might be out of date?
-        //             // TODO: the 4 seconds here is completely arbitrary
-        //             std::this_thread::sleep_for(std::chrono::seconds(4));
-        //         }
-        //         return 0;
-        //     };
-        // }
+            // TODO: the cluster node types aren't defined in a bif anywhere so we can't
+            // just use a BifEnum for comparison here.
+            if ( local_node_type == 3 ) {
+                callbacks = new CivetCallbacks();
+                callbacks->begin_request = [](struct mg_connection* conn) -> int {
+                    // Handle the services.json request ourselves by building up a response based on
+                    // the cluster configuration.
+                    auto req_info = mg_get_request_info(conn);
+                    if ( strcmp(req_info->request_uri, "/services.json") == 0 ) {
+                        // send a request to a topic for data from workers
+                        auto json = telemetry_mgr->GetClusterJson();
+                        mg_send_http_ok(conn, "application/json", static_cast<long long>(json.size()));
+                        mg_write(conn, json.data(), json.size());
+                    }
+                    return 1;
+                };
+            }
+        }
 
         prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url, 2, callbacks);
         prometheus_exposer->RegisterCollectable(prometheus_registry);
@@ -170,6 +173,35 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
     }
 
     return ret_val;
+}
+
+std::string Manager::GetClusterJson() const {
+    rapidjson::StringBuffer buffer;
+    json::detail::NullDoubleWriter writer(buffer);
+
+    writer.StartArray();
+    writer.StartObject();
+
+    writer.Key("targets");
+    writer.StartArray();
+    auto cluster_nodes = id::find_val("Cluster::nodes")->AsTableVal()->ToMap();
+    for ( const auto& [idx, value] : cluster_nodes ) {
+        auto node = value->AsRecordVal();
+        auto ip = node->GetField<AddrVal>("ip");
+        auto port = node->GetField<PortVal>("metrics_port");
+        if ( port->Port() != 0 )
+            writer.String(util::fmt("%s:%d", ip->Get().AsString().c_str(), port->Port()));
+    }
+    writer.EndArray();
+
+    writer.Key("labels");
+    writer.StartObject();
+    writer.EndObject();
+
+    writer.EndObject();
+    writer.EndArray();
+
+    return buffer.GetString();
 }
 
 } // namespace zeek::telemetry

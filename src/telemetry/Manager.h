@@ -331,6 +331,12 @@ public:
         return nullptr;
     }
 
+    /**
+     * @return A JSON description of the cluster configuration for reporting
+     * to Prometheus for service discovery requests.
+     */
+    std::string GetClusterJson() const;
+
 protected:
     template<class F>
     static auto WithLabelNames(Span<const LabelView> xs, F continuation) {

@@ -15,8 +15,8 @@
 
 redef Telemetry::metrics_endpoint_name = Cluster::node;
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-redef Telemetry::metrics_port = 9911/tcp;
+@if ( Cluster::local_node_metrics_port() != 0/unknown )
+redef Telemetry::metrics_port = Cluster::local_node_metrics_port();
 @endif
 
 @endif

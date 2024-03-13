@@ -4,7 +4,6 @@
 
 #include "zeek/script_opt/CSE.h"
 #include "zeek/script_opt/Expr.h"
-#include "zeek/script_opt/ExprOptInfo.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/TempVar.h"
 

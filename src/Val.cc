@@ -3688,11 +3688,6 @@ ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init, const 
     return promoted_v;
 }
 
-bool same_val(const Val* /* v1 */, const Val* /* v2 */) {
-    reporter->InternalError("same_val not implemented");
-    return false;
-}
-
 bool is_atomic_val(const Val* v) { return is_atomic_type(v->GetType()); }
 
 bool same_atomic_val(const Val* v1, const Val* v2) {

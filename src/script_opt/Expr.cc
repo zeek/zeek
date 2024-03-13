@@ -2,7 +2,7 @@
 
 // Optimization-related methods for Expr classes.
 
-#include "zeek/Expr.h"
+#include "zeek/script_opt/Expr.h"
 
 #include "zeek/Desc.h"
 #include "zeek/Frame.h"
@@ -33,19 +33,14 @@ FieldExpr* Expr::AsFieldExpr() {
     return (FieldExpr*)this;
 }
 
+FieldAssignExpr* Expr::AsFieldAssignExpr() {
+    CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
+    return (FieldAssignExpr*)this;
+}
+
 IntrusivePtr<FieldAssignExpr> Expr::AsFieldAssignExprPtr() {
     CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
     return {NewRef{}, (FieldAssignExpr*)this};
-}
-
-const IndexAssignExpr* Expr::AsIndexAssignExpr() const {
-    CHECK_TAG(tag, EXPR_INDEX_ASSIGN, "ExprVal::AsIndexAssignExpr", expr_name)
-    return (const IndexAssignExpr*)this;
-}
-
-const FieldLHSAssignExpr* Expr::AsFieldLHSAssignExpr() const {
-    CHECK_TAG(tag, EXPR_FIELD_LHS_ASSIGN, "ExprVal::AsFieldLHSAssignExpr", expr_name)
-    return (const FieldLHSAssignExpr*)this;
 }
 
 HasFieldExpr* Expr::AsHasFieldExpr() {
@@ -58,11 +53,6 @@ const HasFieldExpr* Expr::AsHasFieldExpr() const {
     return (const HasFieldExpr*)this;
 }
 
-const AddToExpr* Expr::AsAddToExpr() const {
-    CHECK_TAG(tag, EXPR_ADD_TO, "ExprVal::AsAddToExpr", expr_name)
-    return (const AddToExpr*)this;
-}
-
 const IsExpr* Expr::AsIsExpr() const {
     CHECK_TAG(tag, EXPR_IS, "ExprVal::AsIsExpr", expr_name)
     return (const IsExpr*)this;
@@ -73,54 +63,9 @@ CallExpr* Expr::AsCallExpr() {
     return (CallExpr*)this;
 }
 
-FieldAssignExpr* Expr::AsFieldAssignExpr() {
-    CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
-    return (FieldAssignExpr*)this;
-}
-
-const RecordCoerceExpr* Expr::AsRecordCoerceExpr() const {
-    CHECK_TAG(tag, EXPR_RECORD_COERCE, "ExprVal::AsRecordCoerceExpr", expr_name)
-    return (const RecordCoerceExpr*)this;
-}
-
-RecordConstructorExpr* Expr::AsRecordConstructorExpr() {
-    CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
-    return (RecordConstructorExpr*)this;
-}
-
-const RecordConstructorExpr* Expr::AsRecordConstructorExpr() const {
-    CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
-    return (const RecordConstructorExpr*)this;
-}
-
-const TableConstructorExpr* Expr::AsTableConstructorExpr() const {
-    CHECK_TAG(tag, EXPR_TABLE_CONSTRUCTOR, "ExprVal::AsTableConstructorExpr", expr_name)
-    return (const TableConstructorExpr*)this;
-}
-
-const SetConstructorExpr* Expr::AsSetConstructorExpr() const {
-    CHECK_TAG(tag, EXPR_SET_CONSTRUCTOR, "ExprVal::AsSetConstructorExpr", expr_name)
-    return (const SetConstructorExpr*)this;
-}
-
 RefExpr* Expr::AsRefExpr() {
     CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
     return (RefExpr*)this;
-}
-
-const InlineExpr* Expr::AsInlineExpr() const {
-    CHECK_TAG(tag, EXPR_INLINE, "ExprVal::AsInlineExpr", expr_name)
-    return (const InlineExpr*)this;
-}
-
-AnyIndexExpr* Expr::AsAnyIndexExpr() {
-    CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)
-    return (AnyIndexExpr*)this;
-}
-
-const AnyIndexExpr* Expr::AsAnyIndexExpr() const {
-    CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)
-    return (const AnyIndexExpr*)this;
 }
 
 LambdaExpr* Expr::AsLambdaExpr() {
@@ -1191,7 +1136,7 @@ bool CondExpr::IsReduced(Reducer* c) const {
 }
 
 bool CondExpr::HasReducedOps(Reducer* c) const {
-    return op1->IsSingleton(c) && op2->IsSingleton(c) && op3->IsSingleton(c) && ! op1->IsConst();
+    return ! IsMinOrMax(c) && op1->IsSingleton(c) && op2->IsSingleton(c) && op3->IsSingleton(c) && ! op1->IsConst();
 }
 
 bool CondExpr::WillTransform(Reducer* c) const { return ! HasReducedOps(c); }
@@ -1206,6 +1151,11 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     while ( op1->Tag() == EXPR_NOT ) {
         op1 = op1->GetOp1();
         std::swap(op2, op3);
+    }
+
+    if ( IsMinOrMax(c) ) {
+        auto res = TransformToMinOrMax(c);
+        return res->Reduce(c, red_stmt);
     }
 
     StmtPtr op1_red_stmt;
@@ -1294,6 +1244,35 @@ StmtPtr CondExpr::ReduceToSingletons(Reducer* c) {
     }
 
     return MergeStmts(red1_stmt, if_else);
+}
+
+bool CondExpr::IsMinOrMax(Reducer* c) const {
+    switch ( op1->Tag() ) {
+        case EXPR_LT:
+        case EXPR_LE:
+        case EXPR_GE:
+        case EXPR_GT: break;
+
+        default: return false;
+    }
+
+    auto relop1 = op1->GetOp1();
+    auto relop2 = op1->GetOp2();
+
+    return (same_expr(relop1, op2) && same_expr(relop2, op3)) || (same_expr(relop1, op3) && same_expr(relop2, op2));
+}
+
+ExprPtr CondExpr::TransformToMinOrMax(Reducer* c) const {
+    auto relop1 = op1->GetOp1();
+    auto relop2 = op1->GetOp2();
+
+    auto is_min = (op1->Tag() == EXPR_LT || op1->Tag() == EXPR_LE);
+
+    if ( same_expr(relop1, op3) )
+        is_min = ! is_min;
+
+    printf("%s: %s\n", is_min ? "min" : "max", obj_desc(this).c_str());
+    return op2;
 }
 
 ExprPtr RefExpr::Duplicate() { return SetSucc(new RefExpr(op->Duplicate())); }
@@ -1929,7 +1908,8 @@ bool RecordCoerceExpr::WillTransform(Reducer* c) const { return op->Tag() == EXP
 ExprPtr RecordCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( WillTransform(c) ) {
         auto rt = cast_intrusive<RecordType>(type);
-        auto rc_op = op->AsRecordConstructorExpr();
+        ASSERT(op->Tag() == EXPR_RECORD_CONSTRUCTOR);
+        auto rc_op = static_cast<const RecordConstructorExpr*>(op.get());
         auto known_constr = with_location_of(make_intrusive<RecordConstructorExpr>(rt, rc_op->Op()), this);
         auto red_e = known_constr->Reduce(c, red_stmt);
         return TransformMe(std::move(red_e), c, red_stmt);

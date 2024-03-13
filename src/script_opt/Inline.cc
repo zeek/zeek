@@ -5,6 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"

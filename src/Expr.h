@@ -86,22 +86,24 @@ enum ExprTag : int {
     EXPR_RECORD_COERCE,
     EXPR_TABLE_COERCE,
     EXPR_VECTOR_COERCE,
+    EXPR_TO_ANY_COERCE,
+    EXPR_FROM_ANY_COERCE,
     EXPR_SIZE,
     EXPR_CAST,
     EXPR_IS,
     EXPR_INDEX_SLICE_ASSIGN,
-    EXPR_INLINE,
 
-    // The following types of expressions are only created for
-    // ASTs transformed to reduced form; they aren't germane for
-    // ASTs produced by parsing .zeek script files.
+    // The following types of expressions are only created for ASTs
+    // transformed to reduced form; they aren't germane for ASTs produced
+    // by parsing .zeek script files. See script_opt/Expr.h for the
+    // corresponding definitions.
+    EXPR_INLINE,
+    EXPR_APPEND_TO,
     EXPR_INDEX_ASSIGN,
     EXPR_FIELD_LHS_ASSIGN,
-    EXPR_APPEND_TO,
-    EXPR_TO_ANY_COERCE,
-    EXPR_FROM_ANY_COERCE,
     EXPR_FROM_ANY_VEC_COERCE,
     EXPR_ANY_INDEX,
+    EXPR_SCRIPT_OPT_BUILTIN,
 
     EXPR_NOP,
 
@@ -111,28 +113,20 @@ enum ExprTag : int {
 extern const char* expr_name(ExprTag t);
 
 class AddToExpr;
-class AnyIndexExpr;
 class AssignExpr;
 class CallExpr;
 class ConstExpr;
 class EventExpr;
 class FieldAssignExpr;
 class FieldExpr;
-class FieldLHSAssignExpr;
 class ForExpr;
 class HasFieldExpr;
-class IndexAssignExpr;
 class IndexExpr;
-class InlineExpr;
 class IsExpr;
 class LambdaExpr;
 class ListExpr;
 class NameExpr;
-class RecordCoerceExpr;
-class RecordConstructorExpr;
 class RefExpr;
-class SetConstructorExpr;
-class TableConstructorExpr;
 
 class Expr;
 using CallExprPtr = IntrusivePtr<CallExpr>;
@@ -228,34 +222,27 @@ public:
     void MarkParen() { paren = true; }
     bool IsParen() const { return paren; }
 
+    // These are used by script optimization for AST analysis.
 #define ZEEK_EXPR_ACCESSOR_DECLS(ctype)                                                                                \
     const ctype* As##ctype() const;                                                                                    \
     ctype* As##ctype();                                                                                                \
     IntrusivePtr<ctype> As##ctype##Ptr();
 
     ZEEK_EXPR_ACCESSOR_DECLS(AddToExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(AnyIndexExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(AssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(CallExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(ConstExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(EventExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(FieldAssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(FieldExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(FieldLHSAssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(ForExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(HasFieldExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(IndexAssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(IndexExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(InlineExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(IsExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(LambdaExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(ListExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(RecordCoerceExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(RecordConstructorExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(RefExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(SetConstructorExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(TableConstructorExpr)
 
     void Describe(ODesc* d) const override final;
 
@@ -882,6 +869,9 @@ public:
 
 protected:
     void ExprDescribe(ODesc* d) const override;
+
+    bool IsMinOrMax(Reducer* c) const;
+    ExprPtr TransformToMinOrMax(Reducer* c) const;
 
     ExprPtr op1;
     ExprPtr op2;
@@ -1573,108 +1563,6 @@ private:
     TypePtr t;
 };
 
-class InlineExpr : public Expr {
-public:
-    InlineExpr(ScriptFuncPtr sf, ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified,
-               StmtPtr body, int frame_offset, TypePtr ret_type);
-
-    bool IsPure() const override;
-
-    const ScriptFuncPtr& Func() const { return sf; }
-    ListExprPtr Args() const { return args; }
-    StmtPtr Body() const { return body; }
-
-    ValPtr Eval(Frame* f) const override;
-
-    ExprPtr Duplicate() override;
-
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override { return false; }
-    bool WillTransform(Reducer* c) const override { return true; }
-    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-
-    TraversalCode Traverse(TraversalCallback* cb) const override;
-
-protected:
-    void ExprDescribe(ODesc* d) const override;
-
-    std::vector<IDPtr> params;
-    std::vector<bool> param_is_modified;
-    int frame_offset;
-    ScriptFuncPtr sf;
-    ListExprPtr args;
-    StmtPtr body;
-};
-
-// A companion to AddToExpr that's for vector-append, instantiated during
-// the reduction process.
-class AppendToExpr : public BinaryExpr {
-public:
-    AppendToExpr(ExprPtr op1, ExprPtr op2);
-    ValPtr Eval(Frame* f) const override;
-
-    ExprPtr Duplicate() override;
-
-    bool IsPure() const override { return false; }
-    bool IsReduced(Reducer* c) const override;
-    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-    ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
-};
-
-// An internal class for reduced form.
-class IndexAssignExpr : public BinaryExpr {
-public:
-    // "op1[op2] = op3", all reduced.
-    IndexAssignExpr(ExprPtr op1, ExprPtr op2, ExprPtr op3);
-
-    ValPtr Eval(Frame* f) const override;
-
-    ExprPtr Duplicate() override;
-
-    bool IsPure() const override { return false; }
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
-    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-    ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
-
-    ExprPtr GetOp3() const override final { return op3; }
-    void SetOp3(ExprPtr _op) override final { op3 = std::move(_op); }
-
-    TraversalCode Traverse(TraversalCallback* cb) const override;
-
-protected:
-    void ExprDescribe(ODesc* d) const override;
-
-    ExprPtr op3; // assignment RHS
-};
-
-// An internal class for reduced form.
-class FieldLHSAssignExpr : public BinaryExpr {
-public:
-    // "op1$field = RHS", where RHS is reduced with respect to
-    // ReduceToFieldAssignment().
-    FieldLHSAssignExpr(ExprPtr op1, ExprPtr op2, const char* field_name, int field);
-
-    const char* FieldName() const { return field_name; }
-    int Field() const { return field; }
-
-    ValPtr Eval(Frame* f) const override;
-
-    ExprPtr Duplicate() override;
-
-    bool IsPure() const override { return false; }
-    bool IsReduced(Reducer* c) const override;
-    bool HasReducedOps(Reducer* c) const override;
-    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-    ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
-
-protected:
-    void ExprDescribe(ODesc* d) const override;
-
-    const char* field_name;
-    int field;
-};
-
 // Expression to explicitly capture conversion to an "any" type, rather
 // than it occurring implicitly during script interpretation.
 class CoerceToAnyExpr : public UnaryExpr {
@@ -1696,53 +1584,6 @@ protected:
     ValPtr Fold(Val* v) const override;
 
     ExprPtr Duplicate() override;
-};
-
-// ... and for conversion from a "vector of any" type.
-class CoerceFromAnyVecExpr : public UnaryExpr {
-public:
-    // to_type is yield type, not VectorType.
-    CoerceFromAnyVecExpr(ExprPtr op, TypePtr to_type);
-
-    // Can't use UnaryExpr's Eval() because it will do folding
-    // over the individual vector elements.
-    ValPtr Eval(Frame* f) const override;
-
-protected:
-    ExprPtr Duplicate() override;
-};
-
-// Expression used to explicitly capture [a, b, c, ...] = x assignments.
-class AnyIndexExpr : public UnaryExpr {
-public:
-    AnyIndexExpr(ExprPtr op, int index);
-
-    int Index() const { return index; }
-
-protected:
-    ValPtr Fold(Val* v) const override;
-
-    void ExprDescribe(ODesc* d) const override;
-
-    ExprPtr Duplicate() override;
-    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
-
-    int index;
-};
-
-// Used internally for optimization, when a placeholder is needed.
-class NopExpr : public Expr {
-public:
-    explicit NopExpr() : Expr(EXPR_NOP) {}
-
-    ValPtr Eval(Frame* f) const override;
-
-    ExprPtr Duplicate() override;
-
-    TraversalCode Traverse(TraversalCallback* cb) const override;
-
-protected:
-    void ExprDescribe(ODesc* d) const override;
 };
 
 // Assigns v1[v2] = v3.  Returns an error message, or nullptr on success.

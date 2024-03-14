@@ -42,11 +42,6 @@ public:
     }
 
     BaseType Value() const noexcept { return static_cast<BaseType>(handle.Value()); }
-    BaseType Change() noexcept {
-        BaseType change = Value() - last_value;
-        last_value = Value();
-        return change;
-    }
 
     /**
      * Directly sets the value of the counter.

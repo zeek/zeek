@@ -89,42 +89,37 @@ void Manager::InitPostScript() {
 
         return &this->current_process_stats;
     };
-/*
-    rss_gauge =
-        GaugeInstance<int64_t>("process", "resident_memory", {}, "Resident memory size", "bytes", false,
-                               [](metrics_api::ObserverResult r, void* state) {
-                                   auto* s = get_stats();
-                                   opentelemetry::nostd::get<
-                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
-                                       ->Observe(s->rss);
-                               });
+    rss_gauge = GaugeInstance<int64_t>("process", "resident_memory", {}, "Resident memory size", "bytes", false,
+                                       []() -> prometheus::ClientMetric {
+                                           auto* s = get_stats();
+                                           prometheus::ClientMetric metric;
+                                           metric.gauge.value = static_cast<double>(s->rss);
+                                           return metric;
+                                       });
 
-    vms_gauge =
-        GaugeInstance<int64_t>("process", "virtual_memory", {}, "Virtual memory size", "bytes", false,
-                               [](metrics_api::ObserverResult r, void* state) {
-                                   auto* s = get_stats();
-                                   opentelemetry::nostd::get<
-                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
-                                       ->Observe(s->vms);
-                               });
+    vms_gauge = GaugeInstance<int64_t>("process", "virtual_memory", {}, "Virtual memory size", "bytes", false,
+                                       []() -> prometheus::ClientMetric {
+                                           auto* s = get_stats();
+                                           prometheus::ClientMetric metric;
+                                           metric.gauge.value = static_cast<double>(s->vms);
+                                           return metric;
+                                       });
 
     cpu_gauge = GaugeInstance<double>("process", "cpu", {}, "Total user and system CPU time spent", "seconds", false,
-                                      [](metrics_api::ObserverResult r, void* state) {
+                                      []() -> prometheus::ClientMetric {
                                           auto* s = get_stats();
-                                          opentelemetry::nostd::get<
-                                              opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<double>>>(r)
-                                              ->Observe(s->cpu);
+                                          prometheus::ClientMetric metric;
+                                          metric.gauge.value = s->cpu;
+                                          return metric;
                                       });
 
-    fds_gauge =
-        GaugeInstance<int64_t>("process", "open_fds", {}, "Number of open file descriptors", "", false,
-                               [](metrics_api::ObserverResult r, void* state) {
-                                   auto* s = get_stats();
-                                   opentelemetry::nostd::get<
-                                       opentelemetry::nostd::shared_ptr<metrics_api::ObserverResultT<int64_t>>>(r)
-                                       ->Observe(s->fds);
-                               });
-*/
+    fds_gauge = GaugeInstance<int64_t>("process", "open_fds", {}, "Number of open file descriptors", "", false,
+                                       []() -> prometheus::ClientMetric {
+                                           auto* s = get_stats();
+                                           prometheus::ClientMetric metric;
+                                           metric.gauge.value = static_cast<double>(s->fds);
+                                           return metric;
+                                       });
 #endif
 }
 

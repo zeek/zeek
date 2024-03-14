@@ -173,29 +173,24 @@ process_stats get_process_stats() {
     process_stats result;
 
     struct kinfo_proc* kp = kinfo_getproc(getpid());
-    result.vms = kp->ki_size;
-    result.rss = kp->ki_rssize * getpagesize();
-    result.cpu = static_cast<double>(kp->ki_runtime) / 1000000.0;
+    if ( kp ) {
+        result.vms = kp->ki_size;
+        result.rss = kp->ki_rssize * getpagesize();
+        result.cpu = static_cast<double>(kp->ki_runtime) / 1000000.0;
 
-    struct procstat* procstat = procstat_open_sysctl();
-    struct filestat_list* files = procstat_getfiles(procstat, kp, 0);
-    struct filestat* file = nullptr;
+        struct procstat* procstat = procstat_open_sysctl();
+        struct filestat_list* files = procstat_getfiles(procstat, kp, 0);
+        struct filestat* file = nullptr;
 
-    // Use one of the looping methods from sys/queue.h instead of
-    // implementing this by hand.
-    STAILQ_FOREACH(file, files, next)
-    result.fds++;
+        // Use one of the looping methods from sys/queue.h instead of
+        // implementing this by hand.
+        STAILQ_FOREACH(file, files, next)
+        result.fds++;
 
-    procstat_freeprocs(procstat, kp);
-    procstat_close(procstat);
+        procstat_freeprocs(procstat, kp);
+        procstat_close(procstat);
+    }
 
-    return result;
-}
-
-#else
-
-process_stats get_process_stats() {
-    process_stats result = {0};
     return result;
 }
 

@@ -143,12 +143,12 @@ public:
         MAXIMUM,
     };
 
-    ScriptOptBuiltinExpr(SOBuiltInTag tag, ExprPtr arg0, ExprPtr arg1 = nullptr);
+    ScriptOptBuiltinExpr(SOBuiltInTag tag, ExprPtr arg1, ExprPtr arg2 = nullptr);
 
     auto Tag() const { return tag; }
 
-    ExprPtr GetOp1() const override final { return arg0; }
-    ExprPtr GetOp2() const override final { return arg1; }
+    ExprPtr GetOp1() const override final { return arg1; }
+    ExprPtr GetOp2() const override final { return arg2; }
 
     ValPtr Eval(Frame* f) const override;
 
@@ -167,8 +167,8 @@ protected:
     void BuildEvalExpr();
 
     SOBuiltInTag tag;
-    ExprPtr arg0;
     ExprPtr arg1;
+    ExprPtr arg2;
     ExprPtr eval_expr;
 };
 

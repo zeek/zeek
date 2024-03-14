@@ -2682,8 +2682,8 @@ void AnyIndexExpr::ExprDescribe(ODesc* d) const {
         d->Add("]");
 }
 
-ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, ExprPtr _arg0, ExprPtr _arg1)
-    : Expr(EXPR_SCRIPT_OPT_BUILTIN), tag(_tag), arg0(std::move(_arg0)), arg1(std::move(_arg1)) {
+ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, ExprPtr _arg1, ExprPtr _arg2)
+    : Expr(EXPR_SCRIPT_OPT_BUILTIN), tag(_tag), arg1(std::move(_arg1)), arg2(std::move(_arg2)) {
     BuildEvalExpr();
     SetType(eval_expr->GetType());
 }
@@ -2697,11 +2697,11 @@ void ScriptOptBuiltinExpr::ExprDescribe(ODesc* d) const {
     }
 
     d->Add("(");
-    arg0->Describe(d);
+    arg1->Describe(d);
 
-    if ( arg1 ) {
+    if ( arg2 ) {
         d->AddSP(",");
-        arg1->Describe(d);
+        arg2->Describe(d);
     }
 
     d->Add(")");
@@ -2711,11 +2711,11 @@ TraversalCode ScriptOptBuiltinExpr::Traverse(TraversalCallback* cb) const {
     TraversalCode tc = cb->PreExpr(this);
     HANDLE_TC_EXPR_PRE(tc);
 
-    tc = arg0->Traverse(cb);
+    tc = arg1->Traverse(cb);
     HANDLE_TC_EXPR_PRE(tc);
 
-    if ( arg1 ) {
-        tc = arg1->Traverse(cb);
+    if ( arg2 ) {
+        tc = arg2->Traverse(cb);
         HANDLE_TC_EXPR_PRE(tc);
     }
 
@@ -2723,27 +2723,35 @@ TraversalCode ScriptOptBuiltinExpr::Traverse(TraversalCallback* cb) const {
     HANDLE_TC_EXPR_POST(tc);
 }
 
-bool ScriptOptBuiltinExpr::IsPure() const { return arg0->IsPure() && (! arg1 || arg1->IsPure()); }
+bool ScriptOptBuiltinExpr::IsPure() const { return arg1->IsPure() && (! arg2 || arg2->IsPure()); }
 
 ExprPtr ScriptOptBuiltinExpr::Duplicate() {
-    auto new_me = make_intrusive<ScriptOptBuiltinExpr>(tag, arg0, arg1);
+    auto new_me = make_intrusive<ScriptOptBuiltinExpr>(tag, arg1, arg2);
     return with_location_of(new_me, this);
 }
 
-bool ScriptOptBuiltinExpr::IsReduced(Reducer* c) const { return arg0->IsReduced(c) && (! arg1 || arg1->IsReduced(c)); }
+bool ScriptOptBuiltinExpr::IsReduced(Reducer* c) const {
+    if ( ! arg1->IsReduced(c) )
+        return NonReduced(arg1.get());
+
+    if ( arg2 && ! arg2->IsReduced(c) )
+        return NonReduced(arg2.get());
+
+    return true;
+}
 
 ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    arg0 = arg0->Reduce(c, red_stmt);
-    if ( arg1 ) {
+    arg1 = arg1->Reduce(c, red_stmt);
+    if ( arg2 ) {
         StmtPtr red_stmt2;
-        arg1 = arg1->Reduce(c, red_stmt2);
+        arg2 = arg2->Reduce(c, red_stmt2);
         red_stmt = MergeStmts(red_stmt, red_stmt2);
     }
 
     if ( red_stmt )
         BuildEvalExpr();
 
-    if ( arg0->IsConst() && (! arg1 || arg1->IsConst()) ) {
+    if ( arg1->IsConst() && (! arg2 || arg2->IsConst()) ) {
         auto res = eval_expr->Eval(nullptr);
         ASSERT(res);
         return with_location_of(make_intrusive<ConstExpr>(res), this);
@@ -2758,14 +2766,14 @@ ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 void ScriptOptBuiltinExpr::BuildEvalExpr() {
     switch ( tag ) {
         case MINIMUM: {
-            auto cmp = make_intrusive<RelExpr>(EXPR_LT, arg0, arg1);
-            eval_expr = make_intrusive<CondExpr>(cmp, arg0, arg1);
+            auto cmp = make_intrusive<RelExpr>(EXPR_LT, arg1, arg2);
+            eval_expr = make_intrusive<CondExpr>(cmp, arg1, arg2);
             break;
         }
 
         case MAXIMUM: {
-            auto cmp = make_intrusive<RelExpr>(EXPR_GT, arg0, arg1);
-            eval_expr = make_intrusive<CondExpr>(cmp, arg0, arg1);
+            auto cmp = make_intrusive<RelExpr>(EXPR_GT, arg1, arg2);
+            eval_expr = make_intrusive<CondExpr>(cmp, arg1, arg2);
             break;
         }
     }

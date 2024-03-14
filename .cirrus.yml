@@ -195,16 +195,6 @@ centosstream8_task:
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
 
-centos7_task:
-  container:
-    # CentOS 7 EOL: June 30, 2024
-    dockerfile: ci/centos-7/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
-
 debian12_task:
   container:
     # Debian 12 (bookworm) EOL: TBD
@@ -239,13 +229,6 @@ debian11_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
-
-debian10_task:
-  container:
-    # Debian 10 EOL: June 2024
-    dockerfile: ci/debian-10/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
 
 opensuse_leap_15_5_task:
   container:

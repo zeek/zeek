@@ -103,6 +103,8 @@ static bool same_expr(const Expr* e1, const Expr* e2, bool check_defs) {
         case EXPR_NAME:
         case EXPR_CONST: return same_op(e1, e2, check_defs);
 
+        case EXPR_REF: return same_expr(e1->GetOp1(), e2->GetOp1());
+
         case EXPR_CLONE:
         case EXPR_RECORD_CONSTRUCTOR:
         case EXPR_TABLE_CONSTRUCTOR:

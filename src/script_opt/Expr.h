@@ -136,6 +136,42 @@ protected:
     int index;
 };
 
+class ScriptOptBuiltinExpr : public Expr {
+public:
+    enum SOBuiltInTag {
+        MINIMUM,
+        MAXIMUM,
+    };
+
+    ScriptOptBuiltinExpr(SOBuiltInTag tag, ExprPtr arg0, ExprPtr arg1 = nullptr);
+
+    auto Tag() const { return tag; }
+
+    ExprPtr GetOp1() const override final { return arg0; }
+    ExprPtr GetOp2() const override final { return arg1; }
+
+    ValPtr Eval(Frame* f) const override;
+
+protected:
+    void ExprDescribe(ODesc* d) const override;
+
+    TraversalCode Traverse(TraversalCallback* cb) const override;
+    bool IsPure() const override;
+
+    // Optimization-related:
+    ExprPtr Duplicate() override;
+    bool IsReduced(Reducer* c) const override;
+    bool HasReducedOps(Reducer* c) const override { return IsReduced(c); }
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
+    void BuildEvalExpr();
+
+    SOBuiltInTag tag;
+    ExprPtr arg0;
+    ExprPtr arg1;
+    ExprPtr eval_expr;
+};
+
 // Used internally for optimization, when a placeholder is needed.
 class NopExpr : public Expr {
 public:
@@ -179,4 +215,4 @@ protected:
     std::optional<ExprSideEffects> side_effects;
 };
 
-};
+}; // namespace zeek::detail

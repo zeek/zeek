@@ -134,8 +134,12 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
     auto op2 = e->GetOp2();
 
     auto lhs = op1->AsRefExpr()->GetOp1()->AsNameExpr();
-    auto lt = lhs->GetType().get();
     auto rhs = op2.get();
+
+    if ( rhs->Tag() == EXPR_SCRIPT_OPT_BUILTIN )
+        return CompileZAMBuiltin(lhs, static_cast<const ScriptOptBuiltinExpr*>(rhs));
+
+    auto lt = lhs->GetType().get();
     auto r1 = rhs->GetOp1();
 
     if ( rhs->Tag() == EXPR_INDEX && (r1->Tag() == EXPR_NAME || r1->Tag() == EXPR_CONST) )
@@ -220,6 +224,59 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
 
                 else
 #include "ZAM-GenExprsDefsV.h"
+}
+
+const ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOptBuiltinExpr* zbi) {
+    auto op1 = zbi->GetOp1();
+    auto op2 = zbi->GetOp2();
+
+    switch ( zbi->Tag() ) {
+        case ScriptOptBuiltinExpr::MINIMUM:
+        case ScriptOptBuiltinExpr::MAXIMUM: {
+            auto t1 = op1->GetType()->InternalType();
+            ASSERT(t1 == op2->GetType()->InternalType());
+
+            bool is_min = zbi->Tag() == ScriptOptBuiltinExpr::MINIMUM;
+            // Canonicalize to have constant as second op.
+            if ( op1->Tag() == EXPR_CONST ) {
+                ASSERT(op2->Tag() != EXPR_CONST);
+                std::swap(op1, op2);
+                is_min = ! is_min;
+            }
+
+            ZOp op;
+
+            auto n1 = op1->AsNameExpr();
+            auto n2 = op2->Tag() == EXPR_NAME ? op2->AsNameExpr() : nullptr;
+            auto c = op2->Tag() == EXPR_CONST ? op2->AsConstExpr() : nullptr;
+
+            if ( c ) {
+                if ( t1 == TYPE_INTERNAL_UNSIGNED )
+                    op = is_min ? OP_MINU_VVC : OP_MAXU_VVC;
+                else if ( t1 == TYPE_INTERNAL_INT )
+                    op = is_min ? OP_MINI_VVC : OP_MAXI_VVC;
+                else {
+                    ASSERT(t1 == TYPE_INTERNAL_DOUBLE);
+                    op = is_min ? OP_MIND_VVC : OP_MAXD_VVC;
+                }
+            }
+            else {
+                if ( t1 == TYPE_INTERNAL_UNSIGNED )
+                    op = is_min ? OP_MINU_VVV : OP_MAXU_VVV;
+                else if ( t1 == TYPE_INTERNAL_INT )
+                    op = is_min ? OP_MINI_VVV : OP_MAXI_VVV;
+                else {
+                    ASSERT(t1 == TYPE_INTERNAL_DOUBLE);
+                    op = is_min ? OP_MIND_VVV : OP_MAXD_VVV;
+                }
+            }
+
+            if ( c )
+                return AddInst(GenInst(op, lhs, n1, c));
+            else
+                return AddInst(GenInst(op, lhs, n1, n2));
+        }
+    }
 }
 
 const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs) {

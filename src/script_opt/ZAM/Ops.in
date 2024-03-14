@@ -2654,3 +2654,51 @@ op1-read
 type VC
 eval	auto f = frame[z.v1].string_val->CheckString();
 	file_mgr->SetReassemblyBuffer(f, zeek_uint_t(z.v2));
+
+internal-op MinU
+type VVC
+eval	frame[z.v1].uint_val = std::min(frame[z.v2].uint_val, z.c.uint_val);
+
+internal-op MinI
+type VVC
+eval	frame[z.v1].int_val = std::min(frame[z.v2].int_val, z.c.int_val);
+
+internal-op MinD
+type VVC
+eval	frame[z.v1].double_val = std::min(frame[z.v2].double_val, z.c.double_val);
+
+internal-op MinU
+type VVV
+eval	frame[z.v1].uint_val = std::min(frame[z.v2].uint_val, frame[z.v3].uint_val);
+
+internal-op MinI
+type VVV
+eval	frame[z.v1].int_val = std::min(frame[z.v2].int_val, frame[z.v3].int_val);
+
+internal-op MinD
+type VVV
+eval	frame[z.v1].double_val = std::min(frame[z.v2].double_val, frame[z.v3].double_val);
+
+internal-op MaxU
+type VVC
+eval	frame[z.v1].uint_val = std::max(frame[z.v2].uint_val, z.c.uint_val);
+
+internal-op MaxI
+type VVC
+eval	frame[z.v1].int_val = std::max(frame[z.v2].int_val, z.c.int_val);
+
+internal-op MaxD
+type VVC
+eval	frame[z.v1].double_val = std::max(frame[z.v2].double_val, z.c.double_val);
+
+internal-op MaxU
+type VVV
+eval	frame[z.v1].uint_val = std::max(frame[z.v2].uint_val, frame[z.v3].uint_val);
+
+internal-op MaxI
+type VVV
+eval	frame[z.v1].int_val = std::max(frame[z.v2].int_val, frame[z.v3].int_val);
+
+internal-op MaxD
+type VVV
+eval	frame[z.v1].double_val = std::max(frame[z.v2].double_val, frame[z.v3].double_val);

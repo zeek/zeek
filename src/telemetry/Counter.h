@@ -41,7 +41,12 @@ public:
         return Value();
     }
 
-    BaseType Value() const noexcept { return static_cast<BaseType>(handle.Value()); }
+    BaseType Value() const noexcept {
+        // Use Collect() here instead of Value() to correctly handle metrics with
+        // callbacks.
+        auto metric = handle.Collect();
+        return static_cast<BaseType>(metric.gauge.value);
+    }
 
     /**
      * Directly sets the value of the counter.
@@ -63,8 +68,12 @@ public:
     prometheus::Labels& Labels() { return labels; }
 
 protected:
-    explicit BaseCounter(FamilyType& family, const prometheus::Labels& labels) noexcept
-        : handle(family.Add(labels)), labels(labels) {}
+    explicit BaseCounter(FamilyType& family, const prometheus::Labels& labels,
+                         prometheus::CollectCallbackPtr callback = nullptr) noexcept
+        : handle(family.Add(labels)), labels(labels) {
+        if ( callback )
+            handle.AddCollectCallback(callback);
+    }
 
     Handle& handle;
     prometheus::Labels labels;
@@ -77,7 +86,9 @@ protected:
 class IntCounter : public BaseCounter<uint64_t> {
 public:
     static inline const char* OpaqueName = "IntCounterMetricVal";
-    explicit IntCounter(FamilyType& family, const prometheus::Labels& labels) noexcept : BaseCounter(family, labels) {}
+    explicit IntCounter(FamilyType& family, const prometheus::Labels& labels,
+                        prometheus::CollectCallbackPtr callback = nullptr) noexcept
+        : BaseCounter(family, labels, callback) {}
 };
 
 /**
@@ -86,7 +97,9 @@ public:
 class DblCounter : public BaseCounter<double> {
 public:
     static inline const char* OpaqueName = "DblCounterMetricVal";
-    explicit DblCounter(FamilyType& family, const prometheus::Labels& labels) noexcept : BaseCounter(family, labels) {}
+    explicit DblCounter(FamilyType& family, const prometheus::Labels& labels,
+                        prometheus::CollectCallbackPtr callback = nullptr) noexcept
+        : BaseCounter(family, labels, callback) {}
 };
 
 template<class CounterType, typename BaseType>
@@ -103,7 +116,8 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    std::shared_ptr<CounterType> GetOrAdd(Span<const LabelView> labels) {
+    std::shared_ptr<CounterType> GetOrAdd(Span<const LabelView> labels,
+                                          prometheus::CollectCallbackPtr callback = nullptr) {
         prometheus::Labels p_labels = BuildPrometheusLabels(labels);
 
         auto check = [&](const std::shared_ptr<CounterType>& counter) { return counter->CompareLabels(p_labels); };
@@ -111,7 +125,7 @@ public:
         if ( auto it = std::find_if(counters.begin(), counters.end(), check); it != counters.end() )
             return *it;
 
-        auto counter = std::make_shared<CounterType>(family, p_labels);
+        auto counter = std::make_shared<CounterType>(family, p_labels, callback);
         counters.push_back(counter);
         return counter;
     }
@@ -119,8 +133,9 @@ public:
     /**
      * @copydoc GetOrAdd
      */
-    std::shared_ptr<CounterType> GetOrAdd(std::initializer_list<LabelView> labels) {
-        return GetOrAdd(Span{labels.begin(), labels.size()});
+    std::shared_ptr<CounterType> GetOrAdd(std::initializer_list<LabelView> labels,
+                                          prometheus::CollectCallbackPtr callback = nullptr) {
+        return GetOrAdd(Span{labels.begin(), labels.size()}, callback);
     }
 
     std::vector<std::shared_ptr<CounterType>>& GetAllCounters() { return counters; }

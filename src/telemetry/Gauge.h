@@ -59,7 +59,12 @@ public:
         return Value();
     }
 
-    BaseType Value() const noexcept { return static_cast<BaseType>(handle.Value()); }
+    BaseType Value() const noexcept {
+        // Use Collect() here instead of Value() to correctly handle metrics
+        // with callbacks.
+        auto metric = handle.Collect();
+        return static_cast<BaseType>(metric.counter.value);
+    }
 
     /**
      * Directly sets the value of the gauge.
@@ -78,8 +83,12 @@ public:
     prometheus::Labels& Labels() { return labels; }
 
 protected:
-    explicit BaseGauge(FamilyType& family, const prometheus::Labels& labels) noexcept
-        : handle(family.Add(labels)), labels(labels) {}
+    explicit BaseGauge(FamilyType& family, const prometheus::Labels& labels,
+                       prometheus::CollectCallbackPtr callback = nullptr) noexcept
+        : handle(family.Add(labels)), labels(labels) {
+        if ( callback )
+            handle.AddCollectCallback(callback);
+    }
 
     Handle& handle;
     prometheus::Labels labels;
@@ -94,7 +103,9 @@ class IntGauge : public BaseGauge<int64_t> {
 public:
     static inline const char* OpaqueName = "IntGaugeMetricVal";
 
-    explicit IntGauge(FamilyType& family, const prometheus::Labels& labels) noexcept : BaseGauge(family, labels) {}
+    explicit IntGauge(FamilyType& family, const prometheus::Labels& labels,
+                      prometheus::CollectCallbackPtr callback = nullptr) noexcept
+        : BaseGauge(family, labels, callback) {}
 
     IntGauge(const IntGauge&) = delete;
     IntGauge& operator=(const IntGauge&) = delete;
@@ -108,7 +119,9 @@ class DblGauge : public BaseGauge<double> {
 public:
     static inline const char* OpaqueName = "DblGaugeMetricVal";
 
-    explicit DblGauge(FamilyType& family, const prometheus::Labels& labels) noexcept : BaseGauge(family, labels) {}
+    explicit DblGauge(FamilyType& family, const prometheus::Labels& labels,
+                      prometheus::CollectCallbackPtr callback = nullptr) noexcept
+        : BaseGauge(family, labels, callback) {}
 
     DblGauge(const DblGauge&) = delete;
     DblGauge& operator=(const DblGauge&) = delete;
@@ -127,7 +140,8 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    std::shared_ptr<GaugeType> GetOrAdd(Span<const LabelView> labels) {
+    std::shared_ptr<GaugeType> GetOrAdd(Span<const LabelView> labels,
+                                        prometheus::CollectCallbackPtr callback = nullptr) {
         prometheus::Labels p_labels = BuildPrometheusLabels(labels);
 
         auto check = [&](const std::shared_ptr<GaugeType>& gauge) { return gauge->CompareLabels(p_labels); };
@@ -135,7 +149,7 @@ public:
         if ( auto it = std::find_if(gauges.begin(), gauges.end(), check); it != gauges.end() )
             return *it;
 
-        auto gauge = std::make_shared<GaugeType>(family, p_labels);
+        auto gauge = std::make_shared<GaugeType>(family, p_labels, callback);
         gauges.push_back(gauge);
         return gauge;
     }
@@ -143,8 +157,9 @@ public:
     /**
      * @copydoc GetOrAdd
      */
-    std::shared_ptr<GaugeType> GetOrAdd(std::initializer_list<LabelView> labels) {
-        return GetOrAdd(Span{labels.begin(), labels.size()});
+    std::shared_ptr<GaugeType> GetOrAdd(std::initializer_list<LabelView> labels,
+                                        prometheus::CollectCallbackPtr callback = nullptr) {
+        return GetOrAdd(Span{labels.begin(), labels.size()}, callback);
     }
 
     std::vector<std::shared_ptr<GaugeType>>& GetAllGauges() { return gauges; }
@@ -202,7 +217,6 @@ public:
                    std::string_view unit = "", bool is_sum = false)
         : BaseGaugeFamily(prefix, name, labels, helptext, std::move(registry), unit, is_sum) {}
 
-
     IntGaugeFamily(const IntGaugeFamily&) noexcept = default;
     IntGaugeFamily& operator=(const IntGaugeFamily&) noexcept = delete;
 
@@ -220,7 +234,6 @@ public:
                    std::string_view helptext, std::shared_ptr<prometheus::Registry> registry,
                    std::string_view unit = "", bool is_sum = false)
         : BaseGaugeFamily(prefix, name, labels, helptext, std::move(registry), unit, is_sum) {}
-
 
     DblGaugeFamily(const DblGaugeFamily&) noexcept = default;
     DblGaugeFamily& operator=(const DblGaugeFamily&) noexcept = delete;

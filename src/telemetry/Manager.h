@@ -123,10 +123,11 @@ public:
     template<class ValueType = int64_t>
     std::shared_ptr<Counter<ValueType>> CounterInstance(std::string_view prefix, std::string_view name,
                                                         Span<const LabelView> labels, std::string_view helptext,
-                                                        std::string_view unit = "", bool is_sum = false) {
+                                                        std::string_view unit = "", bool is_sum = false,
+                                                        prometheus::CollectCallbackPtr callback = nullptr) {
         return WithLabelNames(labels, [&, this](auto labelNames) {
             auto family = CounterFamily<ValueType>(prefix, name, labelNames, helptext, unit, is_sum);
-            return family->GetOrAdd(labels);
+            return family->GetOrAdd(labels, callback);
         });
     }
 
@@ -135,9 +136,10 @@ public:
     std::shared_ptr<Counter<ValueType>> CounterInstance(std::string_view prefix, std::string_view name,
                                                         std::initializer_list<LabelView> labels,
                                                         std::string_view helptext, std::string_view unit = "",
-                                                        bool is_sum = false) {
+                                                        bool is_sum = false,
+                                                        prometheus::CollectCallbackPtr callback = nullptr) {
         auto lbl_span = Span{labels.begin(), labels.size()};
-        return CounterInstance<ValueType>(prefix, name, lbl_span, helptext, unit, is_sum);
+        return CounterInstance<ValueType>(prefix, name, lbl_span, helptext, unit, is_sum, callback);
     }
 
     /**
@@ -200,10 +202,11 @@ public:
     template<class ValueType = int64_t>
     std::shared_ptr<Gauge<ValueType>> GaugeInstance(std::string_view prefix, std::string_view name,
                                                     Span<const LabelView> labels, std::string_view helptext,
-                                                    std::string_view unit = "", bool is_sum = false) {
+                                                    std::string_view unit = "", bool is_sum = false,
+                                                    prometheus::CollectCallbackPtr callback = nullptr) {
         return WithLabelNames(labels, [&, this](auto labelNames) {
             auto family = GaugeFamily<ValueType>(prefix, name, labelNames, helptext, unit, is_sum);
-            return family->GetOrAdd(labels);
+            return family->GetOrAdd(labels, callback);
         });
     }
 
@@ -211,9 +214,10 @@ public:
     template<class ValueType = int64_t>
     std::shared_ptr<Gauge<ValueType>> GaugeInstance(std::string_view prefix, std::string_view name,
                                                     std::initializer_list<LabelView> labels, std::string_view helptext,
-                                                    std::string_view unit = "", bool is_sum = false) {
+                                                    std::string_view unit = "", bool is_sum = false,
+                                                    prometheus::CollectCallbackPtr callback = nullptr) {
         auto lbl_span = Span{labels.begin(), labels.size()};
-        return GaugeInstance<ValueType>(prefix, name, lbl_span, helptext, unit, is_sum);
+        return GaugeInstance<ValueType>(prefix, name, lbl_span, helptext, unit, is_sum, callback);
     }
 
     // Forces the compiler to use the type `Span<const T>` instead of trying to

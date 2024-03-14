@@ -28,7 +28,6 @@ public:
     void Observe(BaseType value) noexcept { handle.Observe(value); }
 
     /// @return The sum of all observed values.
-    // TODO
     BaseType Sum() const noexcept {
         auto metric = handle.Collect();
         return static_cast<BaseType>(metric.histogram.sample_sum);

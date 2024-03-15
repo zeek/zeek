@@ -816,6 +816,10 @@ protected:
 
     void Canonicalize() override;
 
+    bool WillTransform(Reducer* c) const override;
+    bool WillTransformInConditional(Reducer* c) const override;
+    bool IsReduced(Reducer* c) const override;
+
     bool IsHasElementsTest() const;
     ExprPtr BuildHasElementsTest() const;
 };
@@ -826,8 +830,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     bool InvertSense() override;
 
@@ -841,8 +843,6 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool WillTransform(Reducer* c) const override;
-    bool IsReduced(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     bool InvertSense() override;
 };

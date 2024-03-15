@@ -1075,10 +1075,18 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
-ExprPtr EqExpr::Duplicate() {
-    auto op1_d = op1->Duplicate();
-    auto op2_d = op2->Duplicate();
-    return SetSucc(new EqExpr(tag, op1_d, op2_d));
+bool CmpExpr::WillTransform(Reducer* c) const {
+    if ( IsHasElementsTest() )
+        return true;
+    return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
+}
+
+bool CmpExpr::WillTransformInConditional(Reducer* c) const { return WillTransform(c); }
+
+bool CmpExpr::IsReduced(Reducer* c) const {
+    if ( IsHasElementsTest() )
+        return NonReduced(this);
+    return true;
 }
 
 static std::map<ExprTag, ExprTag> has_elements_swap_tag = {
@@ -1143,16 +1151,10 @@ ExprPtr CmpExpr::BuildHasElementsTest() const {
     return he;
 }
 
-bool EqExpr::WillTransform(Reducer* c) const {
-    if ( IsHasElementsTest() )
-        return true;
-    return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
-}
-
-bool EqExpr::IsReduced(Reducer* c) const {
-    if ( IsHasElementsTest() )
-        return NonReduced(this);
-    return true;
+ExprPtr EqExpr::Duplicate() {
+    auto op1_d = op1->Duplicate();
+    auto op2_d = op2->Duplicate();
+    return SetSucc(new EqExpr(tag, op1_d, op2_d));
 }
 
 ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
@@ -1172,18 +1174,6 @@ ExprPtr RelExpr::Duplicate() {
     auto op1_d = op1->Duplicate();
     auto op2_d = op2->Duplicate();
     return SetSucc(new RelExpr(tag, op1_d, op2_d));
-}
-
-bool RelExpr::WillTransform(Reducer* c) const {
-    if ( IsHasElementsTest() )
-        return true;
-    return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
-}
-
-bool RelExpr::IsReduced(Reducer* c) const {
-    if ( IsHasElementsTest() )
-        return NonReduced(this);
-    return true;
 }
 
 ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {

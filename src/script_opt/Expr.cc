@@ -1157,7 +1157,7 @@ bool EqExpr::IsReduced(Reducer* c) const {
 
 ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( IsHasElementsTest() )
-        return BuildHasElementsTest();
+        return BuildHasElementsTest()->Reduce(c, red_stmt);
 
     if ( GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2) ) {
         bool t = Tag() == EXPR_EQ;
@@ -1188,7 +1188,7 @@ bool RelExpr::IsReduced(Reducer* c) const {
 
 ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( IsHasElementsTest() )
-        return BuildHasElementsTest();
+        return BuildHasElementsTest()->Reduce(c, red_stmt);
 
     if ( GetType()->Tag() == TYPE_BOOL ) {
         if ( same_singletons(op1, op2) ) {
@@ -2836,6 +2836,9 @@ bool ScriptOptBuiltinExpr::IsReduced(Reducer* c) const {
 }
 
 ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    auto orig_arg1 = arg1;
+    auto orig_arg2 = arg2;
+
     if ( c->Optimizing() ) {
         arg1 = c->UpdateExpr(arg1);
         if ( arg2 )
@@ -2850,7 +2853,7 @@ ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         red_stmt = MergeStmts(red_stmt, red_stmt2);
     }
 
-    if ( red_stmt )
+    if ( arg1 != orig_arg1 || arg2 != orig_arg2 )
         BuildEvalExpr();
 
     if ( arg1->IsConst() && (! arg2 || arg2->IsConst()) ) {

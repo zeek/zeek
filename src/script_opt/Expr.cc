@@ -254,6 +254,12 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
             return ThisPtr();
         }
 
+        case EXPR_SCRIPT_OPT_BUILTIN:
+            if ( GetType()->Tag() != TYPE_BOOL )
+                return Reduce(c, red_stmt);
+
+            // fall through
+
         case EXPR_EQ:
         case EXPR_NE:
         case EXPR_LE:
@@ -1080,15 +1086,15 @@ static std::map<ExprTag, ExprTag> has_elements_swap_tag = {
     {EXPR_LE, EXPR_GE}, {EXPR_GE, EXPR_LE}, {EXPR_GT, EXPR_LT},
 };
 
-static bool is_has_elements_test(const Expr* e) {
+bool CmpExpr::IsHasElementsTest() const {
     static std::set<ExprTag> rel_tags = {EXPR_EQ, EXPR_NE, EXPR_LT, EXPR_LE, EXPR_GE, EXPR_GT};
 
-    auto t = e->Tag(); // note, we may invert t below
+    auto t = Tag(); // note, we may invert t below
     if ( rel_tags.count(t) == 0 )
         return false;
 
-    auto op1 = e->GetOp1();
-    auto op2 = e->GetOp2();
+    auto op1 = GetOp1();
+    auto op2 = GetOp2();
 
     ASSERT(op1 && op2);
 
@@ -1114,10 +1120,10 @@ static bool is_has_elements_test(const Expr* e) {
     return zero_req[t] ? op2->IsZero() : op2->IsOne();
 }
 
-static ExprPtr build_has_elements_test(const Expr* e) {
-    auto t = e->Tag(); // note, we may invert t below
-    auto op1 = e->GetOp1();
-    auto op2 = e->GetOp2();
+ExprPtr CmpExpr::BuildHasElementsTest() const {
+    auto t = Tag();
+    auto op1 = GetOp1();
+    auto op2 = GetOp2();
 
     if ( op1->Tag() == EXPR_CONST ) {
         t = has_elements_swap_tag[t];
@@ -1125,33 +1131,33 @@ static ExprPtr build_has_elements_test(const Expr* e) {
     }
 
     ExprPtr he =
-        with_location_of(make_intrusive<ScriptOptBuiltinExpr>(ScriptOptBuiltinExpr::HAS_ELEMENTS, op1->GetOp1()), e);
+        with_location_of(make_intrusive<ScriptOptBuiltinExpr>(ScriptOptBuiltinExpr::HAS_ELEMENTS, op1->GetOp1()), this);
 
     static std::map<ExprTag, bool> has_elements = {
         {EXPR_EQ, false}, {EXPR_NE, true}, {EXPR_LT, false}, {EXPR_LE, false}, {EXPR_GE, true}, {EXPR_GT, true},
     };
 
     if ( ! has_elements[t] )
-        he = with_location_of(make_intrusive<NotExpr>(he), e);
+        he = with_location_of(make_intrusive<NotExpr>(he), this);
 
     return he;
 }
 
 bool EqExpr::WillTransform(Reducer* c) const {
-    if ( is_has_elements_test(this) )
+    if ( IsHasElementsTest() )
         return true;
     return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
 }
 
 bool EqExpr::IsReduced(Reducer* c) const {
-    if ( is_has_elements_test(this) )
+    if ( IsHasElementsTest() )
         return NonReduced(this);
     return true;
 }
 
 ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    if ( is_has_elements_test(this) )
-        return build_has_elements_test(this);
+    if ( IsHasElementsTest() )
+        return BuildHasElementsTest();
 
     if ( GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2) ) {
         bool t = Tag() == EXPR_EQ;
@@ -1169,20 +1175,21 @@ ExprPtr RelExpr::Duplicate() {
 }
 
 bool RelExpr::WillTransform(Reducer* c) const {
-    if ( is_has_elements_test(this) )
+    if ( IsHasElementsTest() )
         return true;
     return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
 }
 
 bool RelExpr::IsReduced(Reducer* c) const {
-    if ( is_has_elements_test(this) )
+    if ( IsHasElementsTest() )
         return NonReduced(this);
     return true;
 }
 
 ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    if ( is_has_elements_test(this) )
-        return build_has_elements_test(this);
+    if ( IsHasElementsTest() )
+        return BuildHasElementsTest();
+
     if ( GetType()->Tag() == TYPE_BOOL ) {
         if ( same_singletons(op1, op2) ) {
             bool t = Tag() == EXPR_GE || Tag() == EXPR_LE;
@@ -2879,6 +2886,8 @@ void ScriptOptBuiltinExpr::BuildEvalExpr() {
             break;
         }
     }
+
+    SetType(eval_expr->GetType());
 }
 
 void NopExpr::ExprDescribe(ODesc* d) const {

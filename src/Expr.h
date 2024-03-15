@@ -809,10 +809,20 @@ public:
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
-class EqExpr final : public BinaryExpr {
+// Intermediary class for comparison operators. Not directly instantiated.
+class CmpExpr : public BinaryExpr {
+protected:
+    CmpExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
+
+    void Canonicalize() override;
+
+    bool IsHasElementsTest() const;
+    ExprPtr BuildHasElementsTest() const;
+};
+
+class EqExpr final : public CmpExpr {
 public:
     EqExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
-    void Canonicalize() override;
 
     // Optimization-related:
     ExprPtr Duplicate() override;
@@ -825,10 +835,9 @@ protected:
     ValPtr Fold(Val* v1, Val* v2) const override;
 };
 
-class RelExpr final : public BinaryExpr {
+class RelExpr final : public CmpExpr {
 public:
     RelExpr(ExprTag tag, ExprPtr op1, ExprPtr op2);
-    void Canonicalize() override;
 
     // Optimization-related:
     ExprPtr Duplicate() override;

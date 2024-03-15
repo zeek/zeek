@@ -1871,12 +1871,45 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
         ExprError("requires \"count\" or compatible \"set\" operands");
 }
 
-EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
-    : BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2)) {
+CmpExpr::CmpExpr(ExprTag tag, ExprPtr _op1, ExprPtr _op2) : BinaryExpr(tag, std::move(_op1), std::move(_op2)) {
     if ( IsError() )
         return;
 
     Canonicalize();
+
+    if ( is_vector(op1) )
+        SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
+    else
+        SetType(base_type(TYPE_BOOL));
+}
+
+void CmpExpr::Canonicalize() {
+    if ( tag == EXPR_EQ || tag == EXPR_NE ) {
+        if ( op2->GetType()->Tag() == TYPE_PATTERN )
+            SwapOps();
+
+        else if ( op1->GetType()->Tag() == TYPE_PATTERN )
+            ;
+
+        else if ( expr_greater(op2.get(), op1.get()) )
+            SwapOps();
+    }
+
+    else if ( tag == EXPR_GT ) {
+        SwapOps();
+        tag = EXPR_LT;
+    }
+
+    else if ( tag == EXPR_GE ) {
+        SwapOps();
+        tag = EXPR_LE;
+    }
+}
+
+EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
+    : CmpExpr(arg_tag, std::move(arg_op1), std::move(arg_op2)) {
+    if ( IsError() )
+        return;
 
     const auto& t1 = op1->GetType();
     const auto& t2 = op2->GetType();
@@ -1884,11 +1917,6 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
     TypeTag bt1, bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
-
-    if ( is_vector(op1) )
-        SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
-    else
-        SetType(base_type(TYPE_BOOL));
 
     if ( BothArithmetic(bt1, bt2) )
         PromoteOps(max_type(bt1, bt2));
@@ -1935,17 +1963,6 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
         ExprError("type clash in comparison");
 }
 
-void EqExpr::Canonicalize() {
-    if ( op2->GetType()->Tag() == TYPE_PATTERN )
-        SwapOps();
-
-    else if ( op1->GetType()->Tag() == TYPE_PATTERN )
-        ;
-
-    else if ( expr_greater(op2.get(), op1.get()) )
-        SwapOps();
-}
-
 ValPtr EqExpr::Fold(Val* v1, Val* v2) const {
     if ( op1->GetType()->Tag() == TYPE_PATTERN ) {
         auto re = v1->As<PatternVal*>();
@@ -1970,11 +1987,9 @@ bool EqExpr::InvertSense() {
 }
 
 RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
-    : BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2)) {
+    : CmpExpr(arg_tag, std::move(arg_op1), std::move(arg_op2)) {
     if ( IsError() )
         return;
-
-    Canonicalize();
 
     const auto& t1 = op1->GetType();
     const auto& t2 = op2->GetType();
@@ -1982,11 +1997,6 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
     TypeTag bt1, bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
-
-    if ( is_vector(op1) )
-        SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
-    else
-        SetType(base_type(TYPE_BOOL));
 
     if ( BothArithmetic(bt1, bt2) )
         PromoteOps(max_type(bt1, bt2));
@@ -2001,18 +2011,6 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 
     else if ( bt1 != TYPE_TIME && bt1 != TYPE_INTERVAL && bt1 != TYPE_PORT && bt1 != TYPE_ADDR && bt1 != TYPE_STRING )
         ExprError("illegal comparison");
-}
-
-void RelExpr::Canonicalize() {
-    if ( tag == EXPR_GT ) {
-        SwapOps();
-        tag = EXPR_LT;
-    }
-
-    else if ( tag == EXPR_GE ) {
-        SwapOps();
-        tag = EXPR_LE;
-    }
 }
 
 bool RelExpr::InvertSense() {

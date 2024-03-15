@@ -1,3 +1,14 @@
+7.0.0-dev.59 | 2024-03-15 13:36:30 +0100
+
+  * testing/external/cluster: Switch to docker-compose v2 (Arne Welzel, Corelight)
+
+    The Python docker-compose executable in the docker_builder image is not
+    functional anymore (TypeError: kwargs_from_env() got an unexpected
+    keyword argument 'ssl_version').
+
+    docker-compose v1 has been sun-setted for quite some time. Do the
+    minimal to switch to docker compose v2.
+
 7.0.0-dev.57 | 2024-03-13 10:17:48 -0700
 
   * Add community contributions for the 6.2 timeframe to NEWS. [skip ci] (Christian Kreibich, Corelight)

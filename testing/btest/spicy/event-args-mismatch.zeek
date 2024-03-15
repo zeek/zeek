@@ -8,6 +8,10 @@
 
 event Banner::error(i: count) { }
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+}
+
 # @TEST-START-FILE test.spicy
 module SSH;
 
@@ -22,8 +26,7 @@ public type Banner = unit {
 # @TEST-START-FILE test.evt
 
 protocol analyzer spicy::SSH over TCP:
-    parse originator with SSH::Banner,
-    port 22/tcp;
+    parse originator with SSH::Banner;
 
 on SSH::Banner::magic -> event Banner::error(self.magic); # Error: string -> count
 

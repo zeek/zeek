@@ -1,8 +1,12 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -o test.hlto conv.spicy ./conv.evt
-# @TEST-EXEC: ASAN_OPTIONS=detect_leaks=0 zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T >output
+# @TEST-EXEC: ASAN_OPTIONS='detect_odr_violation=0 detect_leaks=0' zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T >output
 # @TEST-EXEC: btest-diff output
+
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_CONV, 22/tcp);
+}
 
 @TEST-START-FILE conv.spicy
 
@@ -41,8 +45,7 @@ type MyStruct = struct {
 @TEST-START-FILE conv.evt
 
 protocol analyzer Conv over TCP:
-    parse originator with Conv::Test,
-    port 22/tcp;
+    parse originator with Conv::Test;
 
 on Conv::Test -> event conv::test($conn,
                                   $is_orig,

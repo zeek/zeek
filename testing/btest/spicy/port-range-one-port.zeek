@@ -5,7 +5,7 @@
 # @TEST-EXEC: grep -e 'Scheduling analyzer' -e 'error during parsing' < out > out.filtered
 # @TEST-EXEC: btest-diff out.filtered
 
-# @TEST-DOC: Expect a single 'Scheduling analyzer ...' message in the debug output and no parsing errors. There was a bug that 'port 31336/udp' would be wrongly interpreted as a 31336/udp-31337/udp port range. Regression test for #3278.
+# @TEST-DOC: Remove with v7.1. Expect a single 'Scheduling analyzer ...' message in the debug output and no parsing errors. There was a bug that 'port 31336/udp' would be wrongly interpreted as a 31336/udp-31337/udp port range. Regression test for #3278.
 
 # @TEST-START-FILE udp-test.spicy
 module UDPTest;

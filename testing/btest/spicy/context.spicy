@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o x.hlto %INPUT ./ssh.evt
-# @TEST-EXEC: zeek -b -r ${TRACES}/ssh/single-conn.trace Zeek::Spicy x.hlto Spicy::enable_print=T >output
+# @TEST-EXEC: zeek -b -r ${TRACES}/ssh/single-conn.trace Zeek::Spicy x.hlto ssh.zeek Spicy::enable_print=T >output
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Check that the Zeek plugin passes a (and the same) %context object to both sides of a connection.
@@ -44,7 +44,13 @@ public type Responder = unit {
 
 # @TEST-START-FILE ssh.evt
 protocol analyzer spicy::SSH over TCP:
-    port 22/tcp,
     parse originator with SSH::Originator,
     parse responder with SSH::Responder;
+# @TEST-END-FILE
+
+
+# @TEST-START-FILE ssh.zeek
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+}
 # @TEST-END-FILE

@@ -13,6 +13,8 @@
 const ENABLE = T &redef;
 
 event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+
     if ( ENABLE )
         Spicy::enable_protocol_analyzer(Analyzer::ANALYZER_SPICY_SSH);
     else
@@ -39,7 +41,6 @@ public type Banner = unit {
 
 # @TEST-START-FILE ssh.evt
 protocol analyzer spicy::SSH over TCP:
-    port 22/tcp,
     parse originator with SSH::Banner;
 
 on SSH::Banner -> event ssh::banner($conn, $is_orig, self.version, self.software);

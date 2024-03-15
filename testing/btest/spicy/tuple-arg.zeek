@@ -15,6 +15,11 @@ event ssh::banner(f: Foo)
 	print f;
 	}
 
+event zeek_init()
+	{
+	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+	}
+
 # @TEST-START-FILE ssh.spicy
 
 module SSH;
@@ -37,7 +42,6 @@ public type Banner = unit {
 
 protocol analyzer spicy::SSH over TCP:
     parse originator with SSH::Banner,
-    port 22/tcp,
     replaces SSH;
 
 on SSH::Banner -> event ssh::banner((1, self.software));

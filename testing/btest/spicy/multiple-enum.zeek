@@ -12,11 +12,14 @@ event dtest_two(x: dtest::RESULT) {
     print "two", x;
 }
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_DTEST, 22/tcp);
+}
+
 # @TEST-START-FILE dtest.evt
 
 protocol analyzer spicy::dtest over TCP:
-    parse originator with dtest::Message,
-    port 22/tcp;
+    parse originator with dtest::Message;
 
 on dtest::Message if ( self.sswitch == 83 )
   -> event dtest_one(self.result);

@@ -66,9 +66,7 @@ public type Banner = unit {
 %doc-description = "Just a \"test\" analyzer.h";
 
 protocol analyzer spicy::MySSH over TCP:
-    parse originator with MySSH::Banner,
-    port 22/tcp,
-    replaces SSH;
+    parse originator with MySSH::Banner;
 
 export MySSH::Compression;  # This one also exists on the Zeek side
 

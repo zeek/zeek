@@ -13,12 +13,14 @@ event enum_message(f: Foo) {
 	print f;
 }
 
+event zeek_init() {
+	Analyzer::register_for_port(Analyzer::ANALYZER_TUPLEENUM, 22/tcp);
+}
+
 # @TEST-START-FILE tupleenum.evt
 
 protocol analyzer TupleEnum over TCP:
-    parse with TupleEnum::Message,
-    port 22/tcp,
-    replaces SSH;
+    parse with TupleEnum::Message;
 
 on TupleEnum::Message -> event enum_message( (self.a, cast<uint64>(self.b)) );
 

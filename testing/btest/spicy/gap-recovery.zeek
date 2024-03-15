@@ -1,16 +1,19 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o analyzer.hlto analyzer.spicy analyzer.evt
-# @TEST-EXEC: zeek -Cr ${TRACES}/spicy/gap-recovery.pcap analyzer.hlto Spicy::enable_print=T >output 2>&1
+# @TEST-EXEC: zeek -Cr ${TRACES}/spicy/gap-recovery.pcap analyzer.hlto %INPUT Spicy::enable_print=T >output 2>&1
 # @TEST-EXEC: if spicy-version 10503; then btest-diff output; else OUT=output-before-spicy-issue-1303; mv output "$OUT"; btest-diff "$OUT"; fi
 #
 # @TEST-DOC: Tests that parsers can resynchronize on gaps.
+
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 9000/tcp);
+}
 
 # @TEST-START-FILE analyzer.evt
 protocol analyzer spicy::HTTP over TCP:
     parse originator with test::Requests,
     parse responder with test::Responses,
-    port 9000/tcp,
     replaces HTTP;
 # @TEST-END-FILE
 

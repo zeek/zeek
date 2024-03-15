@@ -8,14 +8,14 @@
 
 #include <hilti/ast/all.h>
 #include <hilti/ast/builder/all.h>
+#include <hilti/ast/builder/builder.h>
+#include <hilti/ast/visitor.h>
 #include <hilti/base/preprocessor.h>
 #include <hilti/base/util.h>
 #include <hilti/compiler/unit.h>
 
 #include <spicy/ast/visitor.h>
 
-#include "ast/builder/builder.h"
-#include "ast/visitor.h"
 #include "config.h"
 #include "zeek/spicy/port-range.h"
 
@@ -131,7 +131,7 @@ static std::string extract_string(const std::string& chunk, size_t* i) {
     return str;
 }
 
-static hilti::UnqualifiedTypePtr extract_type(Builder* builder, const std::string& chunk, size_t* i) {
+static hilti::UnqualifiedType* extract_type(Builder* builder, const std::string& chunk, size_t* i) {
     eat_spaces(chunk, i);
 
     // We currently only parse Spicy types that can appear in parameters of
@@ -147,7 +147,7 @@ static hilti::UnqualifiedTypePtr extract_type(Builder* builder, const std::strin
     throw ParseError("mismatching type");
 }
 
-static hilti::type::function::ParameterPtr extract_parameter(Builder* builder, const std::string& chunk, size_t* i) {
+static hilti::type::function::Parameter* extract_parameter(Builder* builder, const std::string& chunk, size_t* i) {
     eat_spaces(chunk, i);
 
     auto id = extract_id(chunk, i);
@@ -839,7 +839,7 @@ glue::Event GlueCompiler::parseEvent(const std::string& chunk) {
         if ( ! looking_at(chunk, i, ")") ) {
             while ( true ) {
                 auto param = extract_parameter(builder(), chunk, &i);
-                ev.parameters.push_back(std::move(param));
+                ev.parameters.push_back(param);
 
                 if ( looking_at(chunk, i, ")") )
                     break;
@@ -970,10 +970,10 @@ bool GlueCompiler::compile() {
     auto init_module = context()->newModule(builder(), hilti::ID("spicy_init"), ".spicy");
 
     auto import_ = builder()->import(hilti::ID("zeek_rt"), ".hlt");
-    init_module->add(context(), std::move(import_));
+    init_module->add(context(), import_);
 
     import_ = builder()->import(hilti::ID("hilti"), ".hlt");
-    init_module->add(context(), std::move(import_));
+    init_module->add(context(), import_);
 
     auto preinit_body = Builder(context());
 
@@ -1028,7 +1028,7 @@ bool GlueCompiler::compile() {
                              {builder()->stringMutable(a.name.str()), builder()->id(protocol),
                               builder()->vector(
                                   hilti::util::transform(a.ports,
-                                                         [this](const auto& p) {
+                                                         [this](const auto& p) -> hilti::Expression* {
                                                              return builder()->call("zeek_rt::make_port_range",
                                                                                     {builder()->port(p.begin),
                                                                                      builder()->port(p.end)});
@@ -1101,10 +1101,10 @@ bool GlueCompiler::compile() {
     for ( auto&& [id, m] : _spicy_modules ) {
         // Import runtime module.
         auto import_ = builder()->import(hilti::ID("zeek_rt"), ".hlt");
-        m->spicy_module->add(context(), std::move(import_));
+        m->spicy_module->add(context(), import_);
 
         import_ = builder()->import(hilti::ID("hilti"), ".hlt");
-        m->spicy_module->add(context(), std::move(import_));
+        m->spicy_module->add(context(), import_);
 
         // Create a vector of unique parent paths from all EVTs files going into this module.
         auto search_dirs = hilti::util::transform(m->evts, [](auto p) { return p.parent_path(); });
@@ -1114,7 +1114,7 @@ bool GlueCompiler::compile() {
         for ( const auto& [module, scope] : _imports ) {
             auto import_ = builder()->declarationImportedModule(module, std::string(".spicy"), scope);
             import_->as<hilti::declaration::ImportedModule>()->setSearchDirectories(search_dirs_vec);
-            m->spicy_module->add(context(), std::move(import_));
+            m->spicy_module->add(context(), import_);
         }
 
         if ( auto rc = _driver->addInput(m->spicy_module->uid()); ! rc ) {
@@ -1132,7 +1132,7 @@ bool GlueCompiler::compile() {
                                 builder()->qualifiedType(builder()->typeVoid(), hilti::Constness::Const), {},
                                 preinit_body.block(), hilti::type::function::Flavor::Standard,
                                 hilti::declaration::Linkage::PreInit);
-        init_module->add(context(), std::move(preinit_function));
+        init_module->add(context(), preinit_function);
     }
 
     if ( auto rc = _driver->addInput(init_module->uid()); ! rc ) {
@@ -1227,8 +1227,8 @@ private:
     bool _catch_exception;
 };
 
-static hilti::Result<hilti::ExpressionPtr> parseArgument(Builder* builder, const std::string& expression,
-                                                         bool catch_exception, const hilti::Meta& meta) {
+static hilti::Result<hilti::Expression*> parseArgument(Builder* builder, const std::string& expression,
+                                                       bool catch_exception, const hilti::Meta& meta) {
     auto expr = ::spicy::builder::parseExpression(builder, expression, meta);
     if ( ! expr )
         return hilti::result::Error(hilti::util::fmt("error parsing event argument expression '%s'", expression));
@@ -1250,7 +1250,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
     SPICY_DEBUG(hilti::util::fmt("Adding Spicy hook '%s' for event %s", ev->hook, ev->name));
 
     auto import_ = builder()->declarationImportedModule(ev->unit_module_id, ev->unit_module_path);
-    ev->spicy_module->spicy_module->add(context(), std::move(import_));
+    ev->spicy_module->spicy_module->add(context(), import_);
 
     // Define Zeek-side event handler.
     auto handler_id = hilti::ID(hilti::util::fmt("__zeek_handler_%s", mangled_event_name));
@@ -1258,7 +1258,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
         builder()->global(handler_id,
                           builder()->call("zeek_rt::internal_handler", {builder()->stringMutable(ev->name.str())}),
                           hilti::declaration::Linkage::Private, meta);
-    ev->spicy_module->spicy_module->add(context(), std::move(handler));
+    ev->spicy_module->spicy_module->add(context(), handler);
 
     // Create the hook body that raises the event.
     auto body = Builder(context());
@@ -1293,7 +1293,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
             }
 
             if ( auto expr = parseArgument(builder(), e.expression, true, meta) )
-                fmt_args.emplace_back(std::move(*expr));
+                fmt_args.emplace_back(*expr);
             else
                 // We'll catch and report this below.
                 fmt_args.emplace_back(builder()->stringLiteral("<error>"));
@@ -1302,7 +1302,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
         std::vector<std::string> fmt_ctrls(fmt_args.size() - 1, "%s");
         auto fmt_str = hilti::util::fmt("-> event %%s(%s)", hilti::util::join(fmt_ctrls, ", "));
         auto msg = builder()->modulo(builder()->stringLiteral(fmt_str), builder()->tuple(fmt_args));
-        auto call = builder()->call("zeek_rt::debug", {std::move(msg)});
+        auto call = builder()->call("zeek_rt::debug", {msg});
         body.addExpression(call);
     }
 
@@ -1333,7 +1333,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 
     int i = 0;
     for ( const auto& e : ev->expression_accessors ) {
-        hilti::ExpressionPtr val;
+        hilti::Expression* val = nullptr;
 
         if ( e.expression == "$conn" )
             val = builder()->call("zeek_rt::current_conn", {}, meta);
@@ -1356,7 +1356,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
             }
 
             auto ztype = builder()->call("zeek_rt::event_arg_type", {handler_expr, builder()->integer(i)}, meta);
-            val = builder()->call("zeek_rt::to_val", {std::move(*expr), ztype}, meta);
+            val = builder()->call("zeek_rt::to_val", {*expr, ztype}, meta);
         }
 
         body.addMemberCall(builder()->id("args"), "push_back", {val}, meta);
@@ -1366,9 +1366,9 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
     body.addCall("zeek_rt::raise_event", {handler_expr, builder()->move(builder()->id("args"))}, meta);
 
     auto attrs = builder()->attributeSet({builder()->attribute("&priority", builder()->integer(ev->priority))});
-    auto unit_hook = builder()->declarationHook(ev->parameters, body.block(), ::spicy::Engine::All, {}, meta);
+    auto unit_hook = builder()->declarationHook(ev->parameters, body.block(), ::spicy::Engine::All, attrs, meta);
     auto hook_decl = builder()->declarationUnitHook(ev->hook, unit_hook, meta);
-    ev->spicy_module->spicy_module->add(context(), hilti::DeclarationPtr(hook_decl));
+    ev->spicy_module->spicy_module->add(context(), hook_decl);
 
     return true;
 }
@@ -1387,13 +1387,13 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
     Builder* builder;
     GlueCompiler::ZeekTypeCache* cache;
 
-    std::vector<hilti::Result<hilti::ExpressionPtr>> results;
+    std::vector<hilti::Result<hilti::Expression*>> results;
 
     std::set<hilti::ID> zeek_types;
     std::vector<hilti::ID> ids = {};
 
     // Record the resulting Zeek type for the currently processed type (or an error).
-    void result(hilti::Result<hilti::ExpressionPtr> r) { results.push_back(std::move(r)); }
+    void result(hilti::Result<hilti::Expression*> r) { results.push_back(std::move(r)); }
 
     // Returns current ID, if any.
     auto id() const { return ids.empty() ? hilti::ID() : ids.back(); }
@@ -1406,8 +1406,8 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
         return hilti::util::fmt("%s_%s", prefix, hilti::util::replace(id, "::", "_"));
     }
 
-    hilti::Result<hilti::ExpressionPtr> create_record_type(const hilti::ID& ns, const hilti::ID& local,
-                                                           const hilti::Expressions& fields) {
+    hilti::Result<hilti::Expression*> create_record_type(const hilti::ID& ns, const hilti::ID& local,
+                                                         const hilti::Expressions& fields) {
         if ( hilti::logger().isEnabled(ZeekPlugin) ) {
             if ( ! fields.empty() ) {
                 SPICY_DEBUG(hilti::util::fmt("Creating Zeek record type %s::%s with fields:", ns, local));
@@ -1430,17 +1430,17 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
                              {builder->stringMutable(ns.str()), builder->stringMutable(local.str()), tmp});
     }
 
-    hilti::ExpressionPtr create_record_field(const hilti::ID& id, const hilti::ExpressionPtr& type, bool optional,
-                                             bool log) const {
+    hilti::Expression* create_record_field(const hilti::ID& id, hilti::Expression* type, bool optional,
+                                           bool log) const {
         return builder->call("zeek_rt::create_record_field",
                              {builder->stringMutable(id.str()), type, builder->bool_(optional), builder->bool_(log)});
     }
 
-    hilti::Result<hilti::ExpressionPtr> base_type(const char* tag) {
+    hilti::Result<hilti::Expression*> base_type(const char* tag) {
         return builder->call("zeek_rt::create_base_type", {builder->id(tag)});
     }
 
-    hilti::Result<hilti::ExpressionPtr> createZeekType(const hilti::QualifiedTypePtr& t, hilti::ID id = {}) {
+    hilti::Result<hilti::Expression*> createZeekType(hilti::QualifiedType* t, hilti::ID id = {}) {
         if ( ! id )
             id = t->type()->typeID(); // may still be unset
 
@@ -1488,7 +1488,7 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
 
     void operator()(hilti::type::Bitfield* t) final {
         hilti::Expressions fields;
-        for ( const auto& b : t->bits() ) {
+        for ( auto b : t->bits() ) {
             if ( auto ztype = createZeekType(b->itemType()) )
                 fields.emplace_back(create_record_field(b->id(), *ztype, false, false));
             else {
@@ -1532,23 +1532,22 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
         assert(id());
 
         auto labels = hilti::rt::transform(t->labels(), [this](const auto& l) {
-            return builder->tuple({builder->stringLiteral(l.get()->id().str()), builder->integer(l.get()->value())});
+            return builder->tuple({builder->stringLiteral(l->id().str()), builder->integer(l->value())});
         });
 
-        auto tmp =
-            builder->addTmp(tmpName("labels", id()),
-                            builder->typeVector(
-                                builder->qualifiedType(builder->typeTuple(
-                                                           {builder->qualifiedType(builder->typeString(),
-                                                                                   hilti::Constness::Const),
-                                                            builder->qualifiedType(builder->typeSignedInteger(64),
-                                                                                   hilti::Constness::Const)}),
-                                                       hilti::Constness::Const)));
+        auto tmp = builder->addTmp(tmpName("labels", id()),
+                                   builder->typeVector(
+                                       builder->qualifiedType(builder->typeTuple(hilti::QualifiedTypes{
+                                                                  builder->qualifiedType(builder->typeString(),
+                                                                                         hilti::Constness::Const),
+                                                                  builder->qualifiedType(builder->typeSignedInteger(64),
+                                                                                         hilti::Constness::Const)}),
+                                                              hilti::Constness::Const)));
 
         for ( const auto& l : t->labels() )
             builder->addMemberCall(tmp, "push_back",
-                                   {builder->tuple({builder->stringLiteral(l.get()->id().str()),
-                                                    builder->integer(l.get()->value())})});
+                                   {builder->tuple(
+                                       {builder->stringLiteral(l->id().str()), builder->integer(l->value())})});
 
         result(builder->call("zeek_rt::create_enum_type", {builder->stringMutable(id().namespace_().str()),
                                                            builder->stringMutable(id().local().str()), tmp}));
@@ -1678,7 +1677,7 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
 };
 } // namespace
 
-hilti::Result<hilti::Nothing> GlueCompiler::createZeekType(const hilti::QualifiedTypePtr& t, const hilti::ID& id,
+hilti::Result<hilti::Nothing> GlueCompiler::createZeekType(hilti::QualifiedType* t, const hilti::ID& id,
                                                            Builder* builder, GlueCompiler::ZeekTypeCache* cache) const {
     builder->addComment(hilti::util::fmt("Creating Zeek type %s", id));
 

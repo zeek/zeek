@@ -316,6 +316,11 @@ public:
     // Reduces the expression to one that can appear as a conditional.
     ExprPtr ReduceToConditional(Reducer* c, StmtPtr& red_stmt);
 
+    // Transforms the expression into its form suitable for use in
+    // a conditional. Only meaningful for expressions that return true
+    // for WillTransformInConditional().
+    virtual ExprPtr TransformToConditional(Reducer* c, StmtPtr& red_stmt);
+
     // Reduces the expression to one that can appear as a field
     // assignment.
     ExprPtr ReduceToFieldAssignment(Reducer* c, StmtPtr& red_stmt);
@@ -793,6 +798,7 @@ public:
     bool WillTransform(Reducer* c) const override;
     bool WillTransformInConditional(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+    ExprPtr TransformToConditional(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
     bool IsTrue(const ExprPtr& e) const;
@@ -819,6 +825,7 @@ protected:
     bool WillTransform(Reducer* c) const override;
     bool WillTransformInConditional(Reducer* c) const override;
     bool IsReduced(Reducer* c) const override;
+    ExprPtr TransformToConditional(Reducer* c, StmtPtr& red_stmt) override;
 
     bool IsHasElementsTest() const;
     ExprPtr BuildHasElementsTest() const;

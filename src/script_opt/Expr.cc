@@ -117,6 +117,8 @@ bool Expr::IsReducedConditional(Reducer* c) const {
             return true;
         }
 
+        case EXPR_SCRIPT_OPT_BUILTIN: return GetType()->Tag() == TYPE_BOOL;
+
         case EXPR_EQ:
         case EXPR_NE:
         case EXPR_LE:
@@ -212,6 +214,18 @@ StmtPtr Expr::ReduceToSingletons(Reducer* c) {
 }
 
 ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
+    if ( WillTransformInConditional(c) ) {
+        auto new_me = TransformToConditional(c, red_stmt);
+
+        // Now that we've transformed, reduce the result for use in a
+        // conditional.
+        StmtPtr red_stmt2;
+        new_me = new_me->ReduceToConditional(c, red_stmt2);
+        red_stmt = MergeStmts(red_stmt, red_stmt2);
+
+        return new_me;
+    }
+
     switch ( tag ) {
         case EXPR_CONST: return ThisPtr();
 
@@ -254,6 +268,14 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
             return ThisPtr();
         }
 
+        case EXPR_NOT:
+            if ( GetOp1()->Tag() == EXPR_SCRIPT_OPT_BUILTIN ) {
+                red_stmt = GetOp1()->ReduceToSingletons(c);
+                return ThisPtr();
+            }
+            else
+                return Reduce(c, red_stmt);
+
         case EXPR_SCRIPT_OPT_BUILTIN:
             if ( GetType()->Tag() != TYPE_BOOL )
                 return Reduce(c, red_stmt);
@@ -284,6 +306,13 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
 
         default: return Reduce(c, red_stmt);
     }
+}
+
+ExprPtr Expr::TransformToConditional(Reducer* c, StmtPtr& red_stmt) {
+    // This shouldn't happen since every expression that can return
+    // true for WillTransformInConditional() should implement this
+    // method.
+    reporter->InternalError("Expr::TransformToConditional called");
 }
 
 ExprPtr Expr::ReduceToFieldAssignment(Reducer* c, StmtPtr& red_stmt) {
@@ -890,7 +919,7 @@ ExprPtr ModExpr::Duplicate() {
 // nullptr, and the caller should have ensured that the starting point is
 // a disjunction (since a bare "/pat/ in var" by itself isn't a "cascade"
 // and doesn't present a potential optimization opportunity.
-static bool is_pattern_cascade(const ExprPtr& e, IDPtr& id, std::vector<ConstExprPtr>& patterns) {
+static bool is_pattern_cascade(const Expr* e, IDPtr& id, std::vector<ConstExprPtr>& patterns) {
     auto lhs = e->GetOp1();
     auto rhs = e->GetOp2();
 
@@ -912,7 +941,7 @@ static bool is_pattern_cascade(const ExprPtr& e, IDPtr& id, std::vector<ConstExp
     if ( e->Tag() != EXPR_OR_OR )
         return false;
 
-    return is_pattern_cascade(lhs, id, patterns) && is_pattern_cascade(rhs, id, patterns);
+    return is_pattern_cascade(lhs.get(), id, patterns) && is_pattern_cascade(rhs.get(), id, patterns);
 }
 
 // Given a set of pattern constants, returns a disjunction that
@@ -939,10 +968,7 @@ bool BoolExpr::WillTransform(Reducer* c) const { return ! IsVector(op1->GetType(
 bool BoolExpr::WillTransformInConditional(Reducer* c) const {
     IDPtr common_id;
     std::vector<ConstExprPtr> patterns;
-
-    ExprPtr e_ptr = {NewRef{}, (Expr*)this};
-
-    return tag == EXPR_OR_OR && is_pattern_cascade(e_ptr, common_id, patterns);
+    return tag == EXPR_OR_OR && is_pattern_cascade(this, common_id, patterns);
 }
 
 ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
@@ -951,12 +977,8 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     // efficient to match.
     IDPtr common_id = nullptr;
     std::vector<ConstExprPtr> patterns;
-    if ( tag == EXPR_OR_OR && is_pattern_cascade(ThisPtr(), common_id, patterns) ) {
-        auto new_pat = build_disjunction(patterns, this);
-        auto new_id = with_location_of(make_intrusive<NameExpr>(common_id), this);
-        auto new_node = with_location_of(make_intrusive<InExpr>(new_pat, new_id), this);
-        return new_node->Reduce(c, red_stmt);
-    }
+    if ( tag == EXPR_OR_OR && is_pattern_cascade(this, common_id, patterns) )
+        return TransformToConditional(c, red_stmt);
 
     // It's either an EXPR_AND_AND or an EXPR_OR_OR.
     bool is_and = (tag == EXPR_AND_AND);
@@ -1009,6 +1031,23 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     auto cond_red = cond->ReduceToSingleton(c, red_stmt);
     return TransformMe(cond_red, c, red_stmt);
+}
+
+ExprPtr BoolExpr::TransformToConditional(Reducer* c, StmtPtr& red_stmt) {
+    // This only happens for pattern cascades.
+
+    // Here in some contexts we're re-doing work that our caller did, but
+    // these cascades are quite rare, and re-doing the work keeps the
+    // coupling simpler.
+    IDPtr common_id = nullptr;
+    std::vector<ConstExprPtr> patterns;
+    auto is_cascade = is_pattern_cascade(this, common_id, patterns);
+    ASSERT(is_cascade);
+
+    auto new_pat = build_disjunction(patterns, this);
+    auto new_id = with_location_of(make_intrusive<NameExpr>(common_id), this);
+    auto new_node = with_location_of(make_intrusive<InExpr>(new_pat, new_id), this);
+    return new_node->Reduce(c, red_stmt);
 }
 
 bool BoolExpr::IsTrue(const ExprPtr& e) const {
@@ -1127,6 +1166,8 @@ bool CmpExpr::IsHasElementsTest() const {
 
     return zero_req[t] ? op2->IsZero() : op2->IsOne();
 }
+
+ExprPtr CmpExpr::TransformToConditional(Reducer* c, StmtPtr& red_stmt) { return BuildHasElementsTest(); }
 
 ExprPtr CmpExpr::BuildHasElementsTest() const {
     auto t = Tag();

@@ -4,7 +4,7 @@ event zeek_init()
 	local bifs: vector of string;
 
 	for ( gn, gi in global_ids() )
-		if ( gi$type_name == "func" && gi?$value && fmt("%s", gi$value) == gn )
+		if ( /^function/ in gi$type_name && gi?$value && fmt("%s", gi$value) == gn )
 			bifs += gn;
 
 	bifs = sort(bifs, strcmp);

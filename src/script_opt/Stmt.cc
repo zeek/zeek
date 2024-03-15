@@ -181,7 +181,7 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
 
     // First, assess some fundamental transformations.
     if ( IsMinMaxConstruct() )
-        return ConvertToMinMaxConstruct();
+        return ConvertToMinMaxConstruct()->Reduce(c);
 
     if ( e->Tag() == EXPR_NOT ) { // Change "if ( ! x ) s1 else s2" to "if ( x ) s2 else s1".
         std::swap(s1, s2);

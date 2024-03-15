@@ -141,6 +141,7 @@ public:
     enum SOBuiltInTag {
         MINIMUM,
         MAXIMUM,
+        HAS_ELEMENTS,
     };
 
     ScriptOptBuiltinExpr(SOBuiltInTag tag, ExprPtr arg1, ExprPtr arg2 = nullptr);
@@ -149,6 +150,9 @@ public:
 
     ExprPtr GetOp1() const override final { return arg1; }
     ExprPtr GetOp2() const override final { return arg2; }
+
+    void SetOp1(ExprPtr op) override final { arg1 = std::move(op); }
+    void SetOp2(ExprPtr op) override final { arg2 = std::move(op); }
 
     ValPtr Eval(Frame* f) const override;
 

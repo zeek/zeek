@@ -666,6 +666,14 @@ type VVV
 eval	if ( frame[z.v1].record_val->HasField(z.v2) )
 		BRANCH(v3)
 
+internal-op Table-Has-Elements
+type VV
+eval	frame[z.v1].int_val = frame[z.v2].table_val->Size() > 0;
+
+internal-op Vector-Has-Elements
+type VV
+eval	frame[z.v1].int_val = frame[z.v2].vector_val->Size() > 0;
+
 expr-op In
 type VVV
 custom-method return CompileInExpr(n1, n2, n3);

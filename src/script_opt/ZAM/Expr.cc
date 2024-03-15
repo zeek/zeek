@@ -282,6 +282,11 @@ const ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOp
             auto op = op1->GetType()->Tag() == TYPE_TABLE ? OP_TABLE_HAS_ELEMENTS_VV : OP_VECTOR_HAS_ELEMENTS_VV;
             return AddInst(GenInst(op, lhs, n));
         }
+
+        case ScriptOptBuiltinExpr::FUNC_ID_STRING: {
+            auto n = op1->AsNameExpr();
+            return AddInst(GenInst(OP_FUNC_ID_STRING_VV, lhs, n));
+        }
     }
 }
 

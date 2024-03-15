@@ -35,6 +35,10 @@ namespace zeek::detail {
 // during its processing.
 #define ATTR_SPECIAL_SCRIPT_FUNC 0x8
 
+// ZAM knows about this script function and will replace it with specialized
+// instructions.
+#define ATTR_ZAM_REPLACEABLE_SCRIPT_FUNC 0x10
+
 static std::unordered_map<std::string, unsigned int> func_attrs = {
     // Script functions.
     {"Analyzer::disabling_analyzer", ATTR_SPECIAL_SCRIPT_FUNC},
@@ -51,6 +55,8 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"discarder_check_tcp", ATTR_SPECIAL_SCRIPT_FUNC},
     {"discarder_check_udp", ATTR_SPECIAL_SCRIPT_FUNC},
     {"from_json_default_key_mapper", ATTR_SPECIAL_SCRIPT_FUNC},
+
+    {"id_string", ATTR_ZAM_REPLACEABLE_SCRIPT_FUNC},
 
     // BiFs.
     {"Analyzer::__disable_all_analyzers", ATTR_NO_SCRIPT_SIDE_EFFECTS},
@@ -553,6 +559,11 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
 bool is_special_script_func(const std::string& func_name) {
     auto f_attr = func_attrs.find(func_name);
     return f_attr != func_attrs.end() && (f_attr->second & ATTR_SPECIAL_SCRIPT_FUNC) != 0;
+}
+
+bool is_ZAM_replaceable_script_func(const std::string& func_name) {
+    auto f_attr = func_attrs.find(func_name);
+    return f_attr != func_attrs.end() && (f_attr->second & ATTR_ZAM_REPLACEABLE_SCRIPT_FUNC) != 0;
 }
 
 bool is_idempotent(const std::string& func_name) {

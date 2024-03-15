@@ -142,9 +142,11 @@ public:
         MINIMUM,
         MAXIMUM,
         HAS_ELEMENTS,
+        FUNC_ID_STRING,
     };
 
     ScriptOptBuiltinExpr(SOBuiltInTag tag, ExprPtr arg1, ExprPtr arg2 = nullptr);
+    ScriptOptBuiltinExpr(SOBuiltInTag tag, CallExprPtr call);
 
     auto Tag() const { return tag; }
 
@@ -174,6 +176,7 @@ protected:
     ExprPtr arg1;
     ExprPtr arg2;
     ExprPtr eval_expr;
+    CallExprPtr call;
 };
 
 // Used internally for optimization, when a placeholder is needed.

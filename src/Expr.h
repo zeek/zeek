@@ -889,7 +889,7 @@ protected:
     void ExprDescribe(ODesc* d) const override;
 
     bool IsMinOrMax(Reducer* c) const;
-    ExprPtr TransformToMinOrMax(Reducer* c) const;
+    ExprPtr TransformToMinOrMax() const;
 
     ExprPtr op1;
     ExprPtr op2;
@@ -1374,6 +1374,7 @@ public:
     CallExpr(ExprPtr func, ListExprPtr args, bool in_hook = false, bool in_when = false);
 
     Expr* Func() const { return func.get(); }
+    ExprPtr FuncPtr() const { return func; }
     ListExpr* Args() const { return args.get(); }
     ListExprPtr ArgsPtr() const { return args; }
 
@@ -1389,12 +1390,16 @@ public:
     ExprPtr Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
+    bool WillTransform(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
     void ExprDescribe(ODesc* d) const override;
+
+    bool CheckForBuiltin() const;
+    ExprPtr TransformToBuiltin();
 
     ExprPtr func;
     ListExprPtr args;

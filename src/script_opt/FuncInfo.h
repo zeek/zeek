@@ -12,6 +12,9 @@ namespace zeek::detail {
 // knows about.
 extern bool is_special_script_func(const std::string& func_name);
 
+// Whether ZAM can replace the given script with specialized instructions.
+extern bool is_ZAM_replaceable_script_func(const std::string& func_name);
+
 // An idempotent function returns the same value when called with the
 // same arguments (and has no meaningful side effects in terms of script-level
 // or Zeek-internal state).

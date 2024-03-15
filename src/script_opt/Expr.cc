@@ -1279,7 +1279,7 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     }
 
     if ( IsMinOrMax(c) ) {
-        auto res = TransformToMinOrMax(c);
+        auto res = TransformToMinOrMax();
         return res->Reduce(c, red_stmt);
     }
 
@@ -1387,7 +1387,7 @@ bool CondExpr::IsMinOrMax(Reducer* c) const {
     return (same_expr(relop1, op2) && same_expr(relop2, op3)) || (same_expr(relop1, op3) && same_expr(relop2, op2));
 }
 
-ExprPtr CondExpr::TransformToMinOrMax(Reducer* c) const {
+ExprPtr CondExpr::TransformToMinOrMax() const {
     auto relop1 = op1->GetOp1();
     auto relop2 = op1->GetOp2();
 
@@ -2180,7 +2180,9 @@ ExprPtr CallExpr::Inline(Inliner* inl) {
     return ThisPtr();
 }
 
-bool CallExpr::IsReduced(Reducer* c) const { return func->IsSingleton(c) && args->IsReduced(c); }
+bool CallExpr::IsReduced(Reducer* c) const { return func->IsSingleton(c) && args->IsReduced(c) && ! WillTransform(c); }
+
+bool CallExpr::WillTransform(Reducer* c) const { return CheckForBuiltin(); }
 
 bool CallExpr::HasReducedOps(Reducer* c) const {
     if ( ! func->IsSingleton(c) )
@@ -2216,6 +2218,13 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
+    if ( CheckForBuiltin() ) {
+        StmtPtr red3_stmt;
+        auto res = TransformToBuiltin()->Reduce(c, red3_stmt);
+        red_stmt = MergeStmts(red_stmt, std::move(red3_stmt));
+        return res;
+    }
+
     if ( GetType()->Tag() == TYPE_VOID )
         return ThisPtr();
     else
@@ -2231,6 +2240,28 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c) {
     auto args_stmt = args->ReduceToSingletons(c);
 
     return MergeStmts(func_stmt, args_stmt);
+}
+
+static std::map<std::string, ScriptOptBuiltinExpr::SOBuiltInTag> known_funcs = {
+    {"id_string", ScriptOptBuiltinExpr::FUNC_ID_STRING}};
+
+bool CallExpr::CheckForBuiltin() const {
+    if ( func->Tag() != EXPR_NAME )
+        return false;
+
+    auto f_id = func->AsNameExpr()->Id();
+
+    auto kf = known_funcs.find(f_id->Name());
+    if ( kf == known_funcs.end() )
+        return false;
+
+    return true;
+}
+
+ExprPtr CallExpr::TransformToBuiltin() {
+    auto kf = known_funcs[func->AsNameExpr()->Id()->Name()];
+    CallExprPtr this_ptr = {NewRef{}, this};
+    return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(kf, this_ptr), this);
 }
 
 ExprPtr LambdaExpr::Duplicate() { return SetSucc(new LambdaExpr(this)); }
@@ -2813,6 +2844,23 @@ ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, ExprPtr _arg1, Exp
     SetType(eval_expr->GetType());
 }
 
+ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, CallExprPtr _call)
+    : Expr(EXPR_SCRIPT_OPT_BUILTIN), tag(_tag), call(std::move(_call)) {
+    const auto& args = call->Args()->Exprs();
+    ASSERT(args.size() <= 2);
+
+    if ( args.size() > 0 ) {
+        arg1 = args[0]->Duplicate();
+        if ( args.size() > 1 ) {
+            arg2 = args[1]->Duplicate();
+        }
+    }
+
+    BuildEvalExpr();
+
+    SetType(eval_expr->GetType());
+}
+
 ValPtr ScriptOptBuiltinExpr::Eval(Frame* f) const { return eval_expr->Eval(f); }
 
 void ScriptOptBuiltinExpr::ExprDescribe(ODesc* d) const {
@@ -2820,6 +2868,7 @@ void ScriptOptBuiltinExpr::ExprDescribe(ODesc* d) const {
         case MINIMUM: d->Add("ZAM_minimum"); break;
         case MAXIMUM: d->Add("ZAM_maximum"); break;
         case HAS_ELEMENTS: d->Add("ZAM_has_elements"); break;
+        case FUNC_ID_STRING: d->Add("ZAM_id_string"); break;
     }
 
     d->Add("(");
@@ -2917,6 +2966,17 @@ void ScriptOptBuiltinExpr::BuildEvalExpr() {
             auto size = make_intrusive<SizeExpr>(arg1);
             auto zero = make_intrusive<ConstExpr>(val_mgr->Count(0));
             eval_expr = make_intrusive<EqExpr>(EXPR_NE, size, zero);
+            break;
+        }
+
+        case FUNC_ID_STRING: {
+            auto args = make_intrusive<ListExpr>();
+            if ( arg1 ) {
+                args->Append(arg1);
+                if ( arg2 )
+                    args->Append(arg2);
+            }
+            eval_expr = make_intrusive<CallExpr>(call->FuncPtr(), args);
             break;
         }
     }

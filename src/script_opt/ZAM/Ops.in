@@ -2687,6 +2687,39 @@ type VC
 eval	auto f = frame[z.v1].string_val->CheckString();
 	file_mgr->SetReassemblyBuffer(f, zeek_uint_t(z.v2));
 
+########################################
+# Instructions for known script functions
+########################################
+
+internal-op Func-Id-String
+type VV
+eval	auto id_rec = frame[z.v2].record_val;
+	auto orig_h = id_rec->RawField(0).addr_val->AsAddr().AsString();
+	auto resp_h = id_rec->RawField(2).addr_val->AsAddr().AsString();
+	auto orig_p = static_cast<uint32_t>(id_rec->RawField(1).uint_val) & ~PORT_SPACE_MASK;
+	auto resp_p = static_cast<uint32_t>(id_rec->RawField(3).uint_val) & ~PORT_SPACE_MASK;
+	/* Maximum address size is for IPv6 with no compression. Each
+	 * 8 16-bit hex elements plus 7 colons between them plus the two []'s
+	 * = 8*4 + 7 + 2 = 41 characters.
+	 *
+	 * Maximum port size is 5.
+	 *
+	 * Two of these = 2*41 + 2*5 = 92.
+	 * Other delimiters: two ':', one ' < ' for 5 more.
+	 *
+	 * TOTAL: 97 characters.
+	 *
+	 * We use considerably more for safety.
+	 */
+	char buf[128];
+	snprintf(buf, sizeof buf, "%s:%u > %s:%u", orig_h.c_str(), orig_p, resp_h.c_str(), resp_p);
+	Unref(frame[z.v1].string_val);
+	frame[z.v1].string_val = new StringVal(buf);
+
+########################################
+# Instructions for script-level idioms
+########################################
+
 internal-op MinU
 type VVC
 eval	frame[z.v1].uint_val = std::min(frame[z.v2].uint_val, z.c.uint_val);

@@ -1,3 +1,7 @@
+7.0.0-dev.61 | 2024-03-15 13:14:47 -0700
+
+  * CI: Remove CentOS 7 and Debian 10 builds (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.59 | 2024-03-15 13:36:30 +0100
 
   * testing/external/cluster: Switch to docker-compose v2 (Arne Welzel, Corelight)

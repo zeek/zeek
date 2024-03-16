@@ -2228,8 +2228,8 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     if ( IsFoldableBiF() ) {
         auto res = Eval(nullptr);
-        ASSERT(res);
-        return with_location_of(make_intrusive<ConstExpr>(res), this);
+        if ( res )
+            return with_location_of(make_intrusive<ConstExpr>(res), this);
     }
 
     if ( GetType()->Tag() == TYPE_VOID )
@@ -2256,7 +2256,7 @@ bool CallExpr::IsFoldableBiF() const {
     if ( func->Tag() != EXPR_NAME )
         return false;
 
-    return is_idempotent(func->AsNameExpr()->Id()->Name());
+    return is_foldable(func->AsNameExpr()->Id()->Name());
 }
 
 bool CallExpr::AllConstArgs() const {

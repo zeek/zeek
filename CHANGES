@@ -1,3 +1,22 @@
+7.0.0-dev.66 | 2024-03-16 11:14:25 +0100
+
+  * Bump Spicy to latest version reworking AST memory management. (Robin Sommer, Corelight)
+
+    Includes the necessary Zeek-side changes.
+
+    Goes with https://github.com/zeek/spicy/pull/1691.
+
+  * GH-3647: Add a CI test with the same options as we used for binary builds. (Johanna Amann, Corelight)
+
+    We already do have a test that check static builds, but none that tests
+    the exact same build flags we use for binary builds on OBS. This commit
+    fixes this oversight.
+
+  * GH-3647: Fix binary build of `spicyz`. (Robin Sommer, Corelight)
+
+    We need to link against the Spicy toolchain's object libraries but
+    were linking against static libraries instead.
+
 7.0.0-dev.61 | 2024-03-15 13:14:47 -0700
 
   * CI: Remove CentOS 7 and Debian 10 builds (Tim Wojtulewicz, Corelight)

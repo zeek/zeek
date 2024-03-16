@@ -177,6 +177,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Telemetry::__int_histogram_metric_get_or_add", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Telemetry::__int_histogram_observe", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Telemetry::__int_histogram_sum", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"WebSocket::__configure_analyzer", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"__init_primary_bifs", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"__init_secondary_bifs", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"active_file", ATTR_NO_ZEEK_SIDE_EFFECTS},
@@ -257,6 +258,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"find_all", ATTR_FOLDABLE},
     {"find_all_ordered", ATTR_FOLDABLE},
     {"find_entropy", ATTR_FOLDABLE},
+    {"find_in_zeekpath", ATTR_IDEMPOTENT}, // can error
     {"find_last", ATTR_FOLDABLE},
     {"find_str", ATTR_FOLDABLE},
     {"floor", ATTR_FOLDABLE},

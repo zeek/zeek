@@ -9,6 +9,12 @@
 
 namespace zeek::detail {
 
+using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n, int nslot, const ExprPList& args);
+struct BuiltInInfo {
+    bool return_val_matters;
+    GenBuiltIn func;
+};
+
 bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     // The expression e is either directly a call (in which case there's
     // no return value), or an assignment to a call.
@@ -35,48 +41,52 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
 
     auto& args = c->Args()->Exprs();
 
-    const NameExpr* n = nullptr; // name to assign to, if any
+    static std::map<std::string, BuiltInInfo> builtins = {
+        {"Analyzer::__name", {true, &ZAMCompiler::BuiltIn_Analyzer__name}},
+        {"Broker::__flush_logs", {false, &ZAMCompiler::BuiltIn_Broker__flush_logs}},
+        {"Files::__enable_reassembly", {false, &ZAMCompiler::BuiltIn_Files__enable_reassembly}},
+        {"Files::__set_reassembly_buffer", {false, &ZAMCompiler::BuiltIn_Files__set_reassembly_buffer}},
+        {"Log::__write", {false, &ZAMCompiler::BuiltIn_Log__write}},
+        {"cat", {true, &ZAMCompiler::BuiltIn_cat}},
+        {"current_time", {true, &ZAMCompiler::BuiltIn_current_time}},
+        {"get_port_transport_proto", {true, &ZAMCompiler::BuiltIn_get_port_etc}},
+        {"network_time", {true, &ZAMCompiler::BuiltIn_network_time}},
+        {"reading_live_traffic", {true, &ZAMCompiler::BuiltIn_reading_live_traffic}},
+        {"reading_traces", {true, &ZAMCompiler::BuiltIn_reading_traces}},
+        {"strstr", {true, &ZAMCompiler::BuiltIn_strstr}},
+        {"sub_bytes", {true, &ZAMCompiler::BuiltIn_sub_bytes}},
+        {"to_lower", {true, &ZAMCompiler::BuiltIn_to_lower}},
+    };
 
+    auto b = builtins.find(func->Name());
+    if ( b == builtins.end() )
+        return false;
+
+    const auto& binfo = b->second;
+    const NameExpr* n = nullptr; // name to assign to, if any
     if ( e->Tag() != EXPR_CALL )
         n = e->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
 
-    using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n, const ExprPList& args);
-    static std::vector<std::pair<const char*, GenBuiltIn>> builtins = {
-        {"Analyzer::__name", &ZAMCompiler::BuiltIn_Analyzer__name},
-        {"Broker::__flush_logs", &ZAMCompiler::BuiltIn_Broker__flush_logs},
-        {"Files::__enable_reassembly", &ZAMCompiler::BuiltIn_Files__enable_reassembly},
-        {"Files::__set_reassembly_buffer", &ZAMCompiler::BuiltIn_Files__set_reassembly_buffer},
-        {"Log::__write", &ZAMCompiler::BuiltIn_Log__write},
-        {"cat", &ZAMCompiler::BuiltIn_cat},
-        {"current_time", &ZAMCompiler::BuiltIn_current_time},
-        {"get_port_transport_proto", &ZAMCompiler::BuiltIn_get_port_etc},
-        {"network_time", &ZAMCompiler::BuiltIn_network_time},
-        {"reading_live_traffic", &ZAMCompiler::BuiltIn_reading_live_traffic},
-        {"reading_traces", &ZAMCompiler::BuiltIn_reading_traces},
-        {"strstr", &ZAMCompiler::BuiltIn_strstr},
-        {"sub_bytes", &ZAMCompiler::BuiltIn_sub_bytes},
-        {"to_lower", &ZAMCompiler::BuiltIn_to_lower},
-    };
-
-    for ( auto& b : builtins )
-        if ( util::streq(func->Name(), b.first) )
-            return (this->*(b.second))(n, args);
-
-    return false;
-}
-
-bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
+    if ( binfo.return_val_matters && ! n ) {
         reporter->Warning("return value from built-in function ignored");
+
+        // The call is a no-op. We could return false here and have it
+        // execute (for no purpose). We can also return true, which will
+        // have the effect of just ignoring the statement.
         return true;
     }
 
+    auto nslot = n ? Frame1Slot(n, OP1_WRITE) : -1;
+
+    return (this->*(b->second.func))(n, nslot, args);
+}
+
+bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, int nslot, const ExprPList& args) {
     if ( args[0]->Tag() == EXPR_CONST )
         // Doesn't seem worth developing a variant for this weird
         // usage case.
         return false;
 
-    int nslot = Frame1Slot(n, OP1_WRITE);
     auto arg_t = args[0]->AsNameExpr();
 
     auto z = ZInstI(OP_ANALYZER__NAME_VV, nslot, FrameSlot(arg_t));
@@ -87,7 +97,7 @@ bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, const ExprPList& arg
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, int nslot, const ExprPList& args) {
     if ( n )
         AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_V, Frame1Slot(n, OP1_WRITE)));
     else
@@ -96,7 +106,7 @@ bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, const ExprPList&
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, int nslot, const ExprPList& args) {
     if ( n )
         // While this built-in nominally returns a value, existing
         // script code ignores it, so for now we don't bother
@@ -114,7 +124,7 @@ bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, const Expr
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, int nslot, const ExprPList& args) {
     if ( n )
         // See above for enable_reassembly
         return false;
@@ -140,7 +150,7 @@ bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, const 
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, int nslot, const ExprPList& args) {
     auto id = args[0];
     auto columns = args[1];
 
@@ -162,7 +172,6 @@ bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, const ExprPList& args) {
     ZInstI z;
 
     if ( n ) {
-        int nslot = Frame1Slot(n, OP1_WRITE);
         if ( const_id ) {
             z = ZInstI(OP_LOG_WRITEC_VV, nslot, col_slot);
             z.aux = aux;
@@ -186,13 +195,7 @@ bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, const ExprPList& args) {
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_cat(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
+bool ZAMCompiler::BuiltIn_cat(const NameExpr* n, int nslot, const ExprPList& args) {
     auto& a0 = args[0];
     ZInstI z;
 
@@ -293,83 +296,36 @@ ZInstAux* ZAMCompiler::BuildCatAux(const ExprPList& args) {
     return aux;
 }
 
-bool ZAMCompiler::BuiltIn_current_time(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
+bool ZAMCompiler::BuiltIn_current_time(const NameExpr* n, int nslot, const ExprPList& args) {
     AddInst(ZInstI(OP_CURRENT_TIME_V, nslot));
-
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_get_port_etc(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    auto p = args[0];
-
-    if ( p->Tag() != EXPR_NAME )
+bool ZAMCompiler::BuiltIn_get_port_etc(const NameExpr* n, int nslot, const ExprPList& args) {
+    if ( args[0]->Tag() != EXPR_NAME )
         return false;
 
-    auto pn = p->AsNameExpr();
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
+    auto pn = args[0]->AsNameExpr();
     AddInst(ZInstI(OP_GET_PORT_TRANSPORT_PROTO_VV, nslot, FrameSlot(pn)));
-
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_network_time(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
+bool ZAMCompiler::BuiltIn_network_time(const NameExpr* n, int nslot, const ExprPList& args) {
     AddInst(ZInstI(OP_NETWORK_TIME_V, nslot));
-
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
+bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n, int nslot, const ExprPList& args) {
     AddInst(ZInstI(OP_READING_LIVE_TRAFFIC_V, nslot));
-
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
+bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, int nslot, const ExprPList& args) {
     AddInst(ZInstI(OP_READING_TRACES_V, nslot));
-
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
+bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, int nslot, const ExprPList& args) {
     auto big = args[0];
     auto little = args[1];
 
@@ -392,17 +348,10 @@ bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, const ExprPList& args) {
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
+bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, int nslot, const ExprPList& args) {
     auto arg_s = args[0];
     auto arg_start = args[1];
     auto arg_n = args[2];
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
 
     int v2 = FrameSlotIfName(arg_s);
     int v3 = ConvertToCount(arg_start);
@@ -465,14 +414,7 @@ bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, const ExprPList& args) {
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_to_lower(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
+bool ZAMCompiler::BuiltIn_to_lower(const NameExpr* n, int nslot, const ExprPList& args) {
     if ( args[0]->Tag() == EXPR_CONST ) {
         auto arg_c = args[0]->AsConstExpr()->Value()->AsStringVal();
         ValPtr arg_lc = {AdoptRef{}, ZAM_to_lower(arg_c)};

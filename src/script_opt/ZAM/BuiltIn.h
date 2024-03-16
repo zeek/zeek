@@ -12,18 +12,21 @@
 bool IsZAM_BuiltIn(const Expr* e);
 
 // Built-ins return true if able to compile the call, false if not.
-bool BuiltIn_Analyzer__name(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_Broker__flush_logs(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_Files__enable_reassembly(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_Log__write(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_cat(const NameExpr* n, const ExprPList& args);
+// ### alpha
+bool BuiltIn_Analyzer__name(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_Broker__flush_logs(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_Files__enable_reassembly(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_Log__write(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_cat(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_current_time(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_get_port_etc(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_is_v6_addr(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_network_time(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_reading_live_traffic(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_reading_traces(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_strstr(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_sub_bytes(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_to_lower(const NameExpr* n, int nslot, const ExprPList& args);
+
 ZInstAux* BuildCatAux(const ExprPList& args);
-bool BuiltIn_current_time(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_get_port_etc(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_network_time(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_reading_live_traffic(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_reading_traces(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_strstr(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_sub_bytes(const NameExpr* n, const ExprPList& args);
-bool BuiltIn_to_lower(const NameExpr* n, const ExprPList& args);

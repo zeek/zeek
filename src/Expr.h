@@ -1398,6 +1398,8 @@ public:
 protected:
     void ExprDescribe(ODesc* d) const override;
 
+    bool IsFoldableBiF() const;
+    bool AllConstArgs() const;
     bool CheckForBuiltin() const;
     ExprPtr TransformToBuiltin();
 

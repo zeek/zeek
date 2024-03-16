@@ -50,6 +50,8 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"cat", {true, &ZAMCompiler::BuiltIn_cat}},
         {"current_time", {true, &ZAMCompiler::BuiltIn_current_time}},
         {"get_port_transport_proto", {true, &ZAMCompiler::BuiltIn_get_port_etc}},
+        // {"is_v4_addr", {true, &ZAMCompiler::BuiltIn_is_v4_addr}},
+        // {"is_v6_addr", {true, &ZAMCompiler::BuiltIn_is_v6_addr}},
         {"network_time", {true, &ZAMCompiler::BuiltIn_network_time}},
         {"reading_live_traffic", {true, &ZAMCompiler::BuiltIn_reading_live_traffic}},
         {"reading_traces", {true, &ZAMCompiler::BuiltIn_reading_traces}},

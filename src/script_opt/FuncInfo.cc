@@ -140,7 +140,9 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Supervisor::__init_cluster", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Supervisor::__is_supervised", ATTR_IDEMPOTENT},
     {"Supervisor::__is_supervisor", ATTR_IDEMPOTENT},
-    {"Supervisor::__node", ATTR_IDEMPOTENT},
+    // Note, the following is not idempotent since it can't be called during
+    // initialization.
+    {"Supervisor::__node", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"Supervisor::__restart", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Supervisor::__status", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"Supervisor::__stem_pid", ATTR_NO_SCRIPT_SIDE_EFFECTS},
@@ -297,7 +299,8 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"getpid", ATTR_IDEMPOTENT},
     {"global_container_footprints", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"global_ids", ATTR_IDEMPOTENT},
-    {"global_options", ATTR_IDEMPOTENT},
+    // Not available during initialization, so not idempotent.
+    {"global_options", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"gsub", ATTR_IDEMPOTENT},
     {"has_event_group", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"has_module_events", ATTR_NO_ZEEK_SIDE_EFFECTS},

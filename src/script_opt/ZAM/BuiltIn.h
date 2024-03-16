@@ -21,6 +21,7 @@ bool BuiltIn_Log__write(const NameExpr* n, int nslot, const ExprPList& args);
 bool BuiltIn_cat(const NameExpr* n, int nslot, const ExprPList& args);
 bool BuiltIn_current_time(const NameExpr* n, int nslot, const ExprPList& args);
 bool BuiltIn_get_port_etc(const NameExpr* n, int nslot, const ExprPList& args);
+bool BuiltIn_is_v4_addr(const NameExpr* n, int nslot, const ExprPList& args);
 bool BuiltIn_is_v6_addr(const NameExpr* n, int nslot, const ExprPList& args);
 bool BuiltIn_network_time(const NameExpr* n, int nslot, const ExprPList& args);
 bool BuiltIn_reading_live_traffic(const NameExpr* n, int nslot, const ExprPList& args);

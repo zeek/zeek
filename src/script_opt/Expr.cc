@@ -11,6 +11,7 @@
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
+#include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/Inline.h"
 #include "zeek/script_opt/Reduce.h"
 
@@ -2225,6 +2226,12 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         return res;
     }
 
+    if ( IsFoldableBiF() ) {
+        auto res = Eval(nullptr);
+        ASSERT(res);
+        return with_location_of(make_intrusive<ConstExpr>(res), this);
+    }
+
     if ( GetType()->Tag() == TYPE_VOID )
         return ThisPtr();
     else
@@ -2240,6 +2247,24 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c) {
     auto args_stmt = args->ReduceToSingletons(c);
 
     return MergeStmts(func_stmt, args_stmt);
+}
+
+bool CallExpr::IsFoldableBiF() const {
+    if ( ! AllConstArgs() )
+        return false;
+
+    if ( func->Tag() != EXPR_NAME )
+        return false;
+
+    return is_idempotent(func->AsNameExpr()->Id()->Name());
+}
+
+bool CallExpr::AllConstArgs() const {
+    for ( auto e : Args()->Exprs() )
+        if ( e->Tag() != EXPR_CONST )
+            return false;
+
+    return true;
 }
 
 static std::map<std::string, ScriptOptBuiltinExpr::SOBuiltInTag> known_funcs = {

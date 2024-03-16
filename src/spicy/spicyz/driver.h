@@ -31,9 +31,9 @@ namespace zeek::spicy {
 class GlueCompiler;
 
 struct TypeInfo {
-    hilti::ID id;                        /**< fully-qualified name of the type */
-    hilti::QualifiedTypePtr type;        /**< the type itself */
-    hilti::declaration::Linkage linkage; /**< linkage of of the type's declaration */
+    hilti::ID id;                         /**< fully-qualified name of the type */
+    hilti::QualifiedType* type = nullptr; /**< the type itself */
+    hilti::declaration::Linkage linkage;  /**< linkage of of the type's declaration */
     bool is_resolved = false; /**< true if we are far enough in processing that the type has been fully resolved */
     hilti::ID module_id;      /**< name of module type is defined in */
     hilti::rt::filesystem::path module_path; /**< path of module that type is defined in */
@@ -175,13 +175,13 @@ protected:
     virtual void hookNewType(const TypeInfo& ti) {}
 
     /** Overridden from HILTI driver. */
-    void hookNewASTPreCompilation(const hilti::Plugin& plugin, const std::shared_ptr<hilti::ASTRoot>& root) override;
+    void hookNewASTPreCompilation(const hilti::Plugin& plugin, hilti::ASTRoot* root) override;
 
     /** Overridden from HILTI driver. */
-    bool hookNewASTPostCompilation(const hilti::Plugin& plugin, const std::shared_ptr<hilti::ASTRoot>& root) override;
+    bool hookNewASTPostCompilation(const hilti::Plugin& plugin, hilti::ASTRoot* root) override;
 
     /** Overridden from HILTI driver. */
-    hilti::Result<hilti::Nothing> hookCompilationFinished(const std::shared_ptr<hilti::ASTRoot>& root) override;
+    hilti::Result<hilti::Nothing> hookCompilationFinished(hilti::ASTRoot* root) override;
 
     /** Overridden from HILTI driver. */
     void hookInitRuntime() override;

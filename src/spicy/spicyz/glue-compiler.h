@@ -101,7 +101,7 @@ struct SpicyModule {
     std::set<hilti::rt::filesystem::path> evts; /**< EVT files that refer to this module. */
 
     // Generated code.
-    hilti::ModulePtr spicy_module; /**< the ``BroHooks_*.spicy`` module. */
+    hilti::declaration::Module* spicy_module = nullptr; /**< the ``BroHooks_*.spicy`` module. */
 };
 
 /** Representation of an event parsed from an EVT file. */
@@ -119,7 +119,7 @@ struct Event {
     // Computed information.
     hilti::ID hook;                               /**< The name of the hook triggering the event. */
     hilti::ID unit;                               /**< The fully qualified name of the unit type. */
-    ::spicy::type::UnitPtr unit_type;             /**< The Spicy type of referenced unit. */
+    ::spicy::type::Unit* unit_type = nullptr;     /**< The Spicy type of referenced unit. */
     hilti::ID unit_module_id;                     /**< The name of the module the referenced unit is defined in. */
     hilti::rt::filesystem::path unit_module_path; /**< The path of the module that the referenced unit is defined in. */
     std::shared_ptr<glue::SpicyModule>
@@ -128,8 +128,8 @@ struct Event {
     // TODO: The following aren't set yet.
 
     // Code generation.
-    ::spicy::type::unit::item::UnitHookPtr spicy_hook;         /**< The generated Spicy hook. */
-    std::shared_ptr<hilti::declaration::Function> hilti_raise; /**< The generated HILTI raise() function. */
+    ::spicy::type::unit::item::UnitHook* spicy_hook = nullptr; /**< The generated Spicy hook. */
+    hilti::declaration::Function* hilti_raise = nullptr;       /**< The generated HILTI raise() function. */
     std::vector<ExpressionAccessor> expression_accessors; /**< One HILTI function per expression to access the value. */
 };
 
@@ -212,21 +212,21 @@ public:
      */
     ExportedField exportForField(const hilti::ID& zeek_id, const hilti::ID& field_id) const;
 
-    using ZeekTypeCache = std::map<hilti::ID, hilti::ExpressionPtr>;
+    using ZeekTypeCache = std::map<hilti::ID, hilti::Expression*>;
 
     /**
      * Generates code to convert a HILTI type to a corresponding Zeek type at
      * runtime. The code is added to the given body.
      */
-    hilti::Result<hilti::Nothing> createZeekType(const hilti::QualifiedTypePtr& t, const hilti::ID& id,
+    hilti::Result<hilti::Nothing> createZeekType(hilti::QualifiedType* t, const hilti::ID& id,
                                                  ::spicy::Builder* builder, ZeekTypeCache* cache) const;
 
     /** Return type for `recordField()`. */
     struct RecordField {
-        hilti::ID id;                 /**< name of record field */
-        hilti::QualifiedTypePtr type; /**< Spicy-side type object */
-        bool is_optional;             /**< true if field is optional */
-        bool is_anonymous;            /**< true if field is annymous */
+        hilti::ID id;                         /**< name of record field */
+        hilti::QualifiedType* type = nullptr; /**< Spicy-side type object */
+        bool is_optional;                     /**< true if field is optional */
+        bool is_anonymous;                    /**< true if field is annymous */
     };
 
     /**

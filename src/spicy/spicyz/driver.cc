@@ -263,7 +263,7 @@ std::vector<std::pair<TypeInfo, hilti::ID>> Driver::exportedTypes() const {
     return result;
 }
 
-void Driver::hookNewASTPreCompilation(const hilti::Plugin& plugin, const std::shared_ptr<hilti::ASTRoot>& root) {
+void Driver::hookNewASTPreCompilation(const hilti::Plugin& plugin, hilti::ASTRoot* root) {
     auto v = VisitorTypes(this, _glue.get(), false);
     hilti::visitor::visit(v, root, ".spicy");
 
@@ -281,7 +281,7 @@ void Driver::hookNewASTPreCompilation(const hilti::Plugin& plugin, const std::sh
     }
 }
 
-bool Driver::hookNewASTPostCompilation(const hilti::Plugin& plugin, const std::shared_ptr<hilti::ASTRoot>& root) {
+bool Driver::hookNewASTPostCompilation(const hilti::Plugin& plugin, hilti::ASTRoot* root) {
     if ( plugin.component != "Spicy" )
         return false;
 
@@ -305,9 +305,7 @@ bool Driver::hookNewASTPostCompilation(const hilti::Plugin& plugin, const std::s
     return true;
 }
 
-hilti::Result<hilti::Nothing> Driver::hookCompilationFinished(const std::shared_ptr<hilti::ASTRoot>& root) {
-    return _error;
-}
+hilti::Result<hilti::Nothing> Driver::hookCompilationFinished(hilti::ASTRoot* root) { return _error; }
 
 void Driver::hookInitRuntime() { ::spicy::rt::init(); }
 

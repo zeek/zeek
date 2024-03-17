@@ -9,7 +9,8 @@
 
 namespace zeek::detail {
 
-using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n, int nslot, const ExprPList& args);
+using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
+
 struct BuiltInInfo {
     bool return_val_matters;
     GenBuiltIn func;
@@ -50,8 +51,8 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"cat", {true, &ZAMCompiler::BuiltIn_cat}},
         {"current_time", {true, &ZAMCompiler::BuiltIn_current_time}},
         {"get_port_transport_proto", {true, &ZAMCompiler::BuiltIn_get_port_etc}},
-        // {"is_v4_addr", {true, &ZAMCompiler::BuiltIn_is_v4_addr}},
-        // {"is_v6_addr", {true, &ZAMCompiler::BuiltIn_is_v6_addr}},
+        {"is_v4_addr", {true, &ZAMCompiler::BuiltIn_is_v4_addr}},
+        {"is_v6_addr", {true, &ZAMCompiler::BuiltIn_is_v6_addr}},
         {"network_time", {true, &ZAMCompiler::BuiltIn_network_time}},
         {"reading_live_traffic", {true, &ZAMCompiler::BuiltIn_reading_live_traffic}},
         {"reading_traces", {true, &ZAMCompiler::BuiltIn_reading_traces}},
@@ -79,19 +80,20 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     }
 
     auto nslot = n ? Frame1Slot(n, OP1_WRITE) : -1;
+    auto arg0_slot = -1;
+    if ( args.size() > 0 )
+        arg0_slot = FrameSlotIfName(args[0]);
 
-    return (this->*(b->second.func))(n, nslot, args);
+    return (this->*(b->second.func))(n, nslot, arg0_slot, args);
 }
 
-bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     if ( args[0]->Tag() == EXPR_CONST )
         // Doesn't seem worth developing a variant for this weird
         // usage case.
         return false;
 
-    auto arg_t = args[0]->AsNameExpr();
-
-    auto z = ZInstI(OP_ANALYZER__NAME_VV, nslot, FrameSlot(arg_t));
+    auto z = ZInstI(OP_ANALYZER__NAME_VV, nslot, arg0_slot);
     z.SetType(args[0]->GetType());
 
     AddInst(z);
@@ -99,7 +101,7 @@ bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, int nslot, const Exp
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     if ( n )
         AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_V, Frame1Slot(n, OP1_WRITE)));
     else
@@ -108,7 +110,7 @@ bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, int nslot, const
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     if ( n )
         // While this built-in nominally returns a value, existing
         // script code ignores it, so for now we don't bother
@@ -119,14 +121,13 @@ bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, int nslot,
         // Weird!
         return false;
 
-    auto arg_f = args[0]->AsNameExpr();
-
-    AddInst(ZInstI(OP_FILES__ENABLE_REASSEMBLY_V, FrameSlot(arg_f)));
+    AddInst(ZInstI(OP_FILES__ENABLE_REASSEMBLY_V, arg0_slot));
 
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, int nslot, int arg0_slot,
+                                                       const ExprPList& args) {
     if ( n )
         // See above for enable_reassembly
         return false;
@@ -135,24 +136,22 @@ bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, int ns
         // Weird!
         return false;
 
-    auto arg_f = FrameSlot(args[0]->AsNameExpr());
-
     ZInstI z;
 
     if ( args[1]->Tag() == EXPR_CONST ) {
         auto arg_cnt = args[1]->AsConstExpr()->Value()->AsCount();
-        z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VC, arg_f, arg_cnt);
+        z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VC, arg0_slot, arg_cnt);
         z.op_type = OP_VV_I2;
     }
     else
-        z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VV, arg_f, FrameSlot(args[1]->AsNameExpr()));
+        z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VV, arg0_slot, FrameSlot(args[1]->AsNameExpr()));
 
     AddInst(z);
 
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     auto id = args[0];
     auto columns = args[1];
 
@@ -197,7 +196,7 @@ bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, int nslot, const ExprPLi
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_cat(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_cat(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     auto& a0 = args[0];
     ZInstI z;
 
@@ -298,36 +297,42 @@ ZInstAux* ZAMCompiler::BuildCatAux(const ExprPList& args) {
     return aux;
 }
 
-bool ZAMCompiler::BuiltIn_current_time(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_current_time(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     AddInst(ZInstI(OP_CURRENT_TIME_V, nslot));
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_get_port_etc(const NameExpr* n, int nslot, const ExprPList& args) {
-    if ( args[0]->Tag() != EXPR_NAME )
-        return false;
-
-    auto pn = args[0]->AsNameExpr();
-    AddInst(ZInstI(OP_GET_PORT_TRANSPORT_PROTO_VV, nslot, FrameSlot(pn)));
+bool ZAMCompiler::BuiltIn_get_port_etc(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
+    AddInst(ZInstI(OP_GET_PORT_TRANSPORT_PROTO_VV, nslot, arg0_slot));
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_network_time(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_is_v4_addr(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
+    AddInst(ZInstI(OP_IS_V4_ADDR_VV, nslot, arg0_slot));
+    return true;
+}
+
+bool ZAMCompiler::BuiltIn_is_v6_addr(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
+    AddInst(ZInstI(OP_IS_V6_ADDR_VV, nslot, arg0_slot));
+    return true;
+}
+
+bool ZAMCompiler::BuiltIn_network_time(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     AddInst(ZInstI(OP_NETWORK_TIME_V, nslot));
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     AddInst(ZInstI(OP_READING_LIVE_TRAFFIC_V, nslot));
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     AddInst(ZInstI(OP_READING_TRACES_V, nslot));
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     auto big = args[0];
     auto little = args[1];
 
@@ -350,12 +355,12 @@ bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, int nslot, const ExprPList& 
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, int nslot, const ExprPList& args) {
+bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     auto arg_s = args[0];
     auto arg_start = args[1];
     auto arg_n = args[2];
 
-    int v2 = FrameSlotIfName(arg_s);
+    int v2 = arg0_slot;
     int v3 = ConvertToCount(arg_start);
     int v4 = ConvertToInt(arg_n);
 
@@ -416,21 +421,8 @@ bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, int nslot, const ExprPLis
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_to_lower(const NameExpr* n, int nslot, const ExprPList& args) {
-    if ( args[0]->Tag() == EXPR_CONST ) {
-        auto arg_c = args[0]->AsConstExpr()->Value()->AsStringVal();
-        ValPtr arg_lc = {AdoptRef{}, ZAM_to_lower(arg_c)};
-        auto arg_lce = make_intrusive<ConstExpr>(arg_lc);
-        auto z = ZInstI(OP_ASSIGN_CONST_VC, nslot, arg_lce.get());
-        z.is_managed = true;
-        AddInst(z);
-    }
-
-    else {
-        auto arg_s = args[0]->AsNameExpr();
-        AddInst(ZInstI(OP_TO_LOWER_VV, nslot, FrameSlot(arg_s)));
-    }
-
+bool ZAMCompiler::BuiltIn_to_lower(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
+    AddInst(ZInstI(OP_TO_LOWER_VV, nslot, arg0_slot));
     return true;
 }
 

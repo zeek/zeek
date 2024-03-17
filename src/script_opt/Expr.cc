@@ -2183,9 +2183,12 @@ ExprPtr CallExpr::Inline(Inliner* inl) {
 
 bool CallExpr::IsReduced(Reducer* c) const { return func->IsSingleton(c) && args->IsReduced(c) && ! WillTransform(c); }
 
-bool CallExpr::WillTransform(Reducer* c) const { return CheckForBuiltin(); }
+bool CallExpr::WillTransform(Reducer* c) const { return CheckForBuiltin() || IsFoldableBiF(); }
 
 bool CallExpr::HasReducedOps(Reducer* c) const {
+    if ( WillTransform(c) )
+        return false;
+
     if ( ! func->IsSingleton(c) )
         return NonReduced(this);
 
@@ -2204,7 +2207,6 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         func = c->UpdateExpr(func);
         auto e = c->UpdateExpr(args);
         args = e->AsListExprPtr();
-        return ThisPtr();
     }
 
     red_stmt = nullptr;
@@ -2213,9 +2215,6 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         func = func->ReduceToSingleton(c, red_stmt);
 
     StmtPtr red2_stmt = args->ReduceToSingletons(c);
-
-    // ### could check here for (1) pure function, and (2) all
-    // arguments constants, and call it to fold right now.
 
     red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
@@ -2228,11 +2227,11 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     if ( IsFoldableBiF() ) {
         auto res = Eval(nullptr);
-        if ( res )
-            return with_location_of(make_intrusive<ConstExpr>(res), this);
+        ASSERT(res);
+        return with_location_of(make_intrusive<ConstExpr>(res), this);
     }
 
-    if ( GetType()->Tag() == TYPE_VOID )
+    if ( c->Optimizing() || GetType()->Tag() == TYPE_VOID )
         return ThisPtr();
     else
         return AssignToTemporary(c, red_stmt);
@@ -2250,6 +2249,9 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c) {
 }
 
 bool CallExpr::IsFoldableBiF() const {
+    if ( IsAggr(type) )
+        return false;
+
     if ( ! AllConstArgs() )
         return false;
 
@@ -2514,9 +2516,6 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     red_stmt = nullptr;
 
     auto args_list = args->Exprs();
-    auto ret_val = c->PushInlineBlock(type);
-    if ( ret_val )
-        ret_val->SetLocationInfo(GetLocationInfo());
 
     loop_over_list(args_list, i) {
         StmtPtr arg_red_stmt;
@@ -2524,6 +2523,10 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto assign_stmt = with_location_of(c->GenParam(params[i], red_i, param_is_modified[i]), this);
         red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
     }
+
+    auto ret_val = c->PushInlineBlock(type);
+    if ( ret_val )
+        ret_val->SetLocationInfo(GetLocationInfo());
 
     body = body->Reduce(c);
     c->PopInlineBlock();

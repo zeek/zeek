@@ -218,19 +218,19 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"count_substr", ATTR_FOLDABLE},
     {"count_to_double", ATTR_FOLDABLE},
     {"count_to_port", ATTR_FOLDABLE},
-    {"count_to_v4_addr", ATTR_FOLDABLE},
-    {"counts_to_addr", ATTR_FOLDABLE},
+    {"count_to_v4_addr", ATTR_IDEMPOTENT}, // can error
+    {"counts_to_addr", ATTR_IDEMPOTENT},   // can error
     {"current_analyzer", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"current_event_time", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"current_time", ATTR_NO_ZEEK_SIDE_EFFECTS},
-    {"decode_base64", ATTR_FOLDABLE},
+    {"decode_base64", ATTR_IDEMPOTENT}, // can error
     {"decode_base64_conn", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"decode_netbios_name", ATTR_FOLDABLE},
     {"decode_netbios_name_type", ATTR_FOLDABLE},
     {"disable_event_group", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"disable_module_events", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"do_profiling", ATTR_NO_SCRIPT_SIDE_EFFECTS},
-    {"double_to_count", ATTR_FOLDABLE},
+    {"double_to_count", ATTR_IDEMPOTENT}, // can error
     {"double_to_int", ATTR_FOLDABLE},
     {"double_to_interval", ATTR_FOLDABLE},
     {"double_to_time", ATTR_FOLDABLE},
@@ -247,7 +247,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"entropy_test_finish", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"entropy_test_init", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"enum_names", ATTR_IDEMPOTENT},
-    {"enum_to_int", ATTR_FOLDABLE},
+    {"enum_to_int", ATTR_IDEMPOTENT}, // can error
     {"escape_string", ATTR_FOLDABLE},
     {"exit", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"exp", ATTR_FOLDABLE},
@@ -264,7 +264,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"floor", ATTR_FOLDABLE},
     {"flush_all", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"fmt", ATTR_FOLDABLE},
-    {"fmt_ftp_port", ATTR_FOLDABLE},
+    {"fmt_ftp_port", ATTR_IDEMPOTENT}, // can error
     {"fnv1a32", ATTR_FOLDABLE},
     {"generate_all_events", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"get_broker_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},
@@ -324,7 +324,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"install_dst_net_filter", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"install_src_addr_filter", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"install_src_net_filter", ATTR_NO_SCRIPT_SIDE_EFFECTS},
-    {"int_to_count", ATTR_FOLDABLE},
+    {"int_to_count", ATTR_IDEMPOTENT}, // can error
     {"int_to_double", ATTR_FOLDABLE},
     {"interval_to_double", ATTR_FOLDABLE},
     {"is_alnum", ATTR_FOLDABLE},

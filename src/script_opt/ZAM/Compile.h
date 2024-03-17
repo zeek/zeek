@@ -363,7 +363,7 @@ private:
     int FrameSlot(const ID* id);
     int FrameSlotIfName(const Expr* e) {
         auto n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
-        return n ? FrameSlot(n->Id()) : 0;
+        return n ? FrameSlot(n->Id()) : -1;
     }
 
     int FrameSlot(const NameExpr* id) { return FrameSlot(id->AsNameExpr()->Id()); }

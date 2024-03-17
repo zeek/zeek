@@ -11,6 +11,8 @@
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
+#include "zeek.bif.func_h"
+
 // Needed for managing the corresponding values.
 #include "zeek/File.h"
 #include "zeek/Func.h"

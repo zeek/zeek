@@ -2475,6 +2475,35 @@ internal-op Reading-Traces
 type V
 eval	frame[z.v1].int_val = run_state::reading_traces;
 
+internal-op Sort
+op1-read
+type V
+eval	if ( frame[z.v1].vector_val->Size() > 1 )
+		{ // There is work to do.
+		static Args bif_args(1);
+		auto vv = frame[z.v1].vector_val;
+		bif_args[0] = {NewRef{}, vv};
+		zeek::BifFunc::sort_bif(f, &bif_args);
+		// Reclaim memory.
+		bif_args[0] = nullptr;
+		}
+
+internal-op Sort-With-Cmp
+op1-read
+type VV
+eval	if ( frame[z.v1].vector_val->Size() > 1 )
+		{ // There is work to do.
+		static Args bif_args(2);
+		auto vv = frame[z.v1].vector_val;
+		FuncPtr cmp_func = {NewRef{}, frame[z.v2].func_val};
+		bif_args[0] = {NewRef{}, vv};
+		bif_args[1] = make_intrusive<FuncVal>(cmp_func);
+		zeek::BifFunc::sort_bif(f, &bif_args);
+		// Reclaim memory.
+		bif_args[0] = bif_args[1] = nullptr;
+		}
+
+
 internal-op StrStr
 type VVV
 eval	EvalStrStr(frame[z.v2], frame[z.v3])

@@ -25,6 +25,7 @@ bool BuiltIn_is_v6_addr(const NameExpr* n, int nslot, int arg0_slot, const ExprP
 bool BuiltIn_network_time(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
 bool BuiltIn_reading_live_traffic(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
 bool BuiltIn_reading_traces(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
+bool BuiltIn_sort(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
 bool BuiltIn_strstr(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
 bool BuiltIn_sub_bytes(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
 bool BuiltIn_to_lower(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);

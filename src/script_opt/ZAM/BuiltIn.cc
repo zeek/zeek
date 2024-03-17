@@ -56,6 +56,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"network_time", {true, &ZAMCompiler::BuiltIn_network_time}},
         {"reading_live_traffic", {true, &ZAMCompiler::BuiltIn_reading_live_traffic}},
         {"reading_traces", {true, &ZAMCompiler::BuiltIn_reading_traces}},
+        {"sort", {false, &ZAMCompiler::BuiltIn_sort}},
         {"strstr", {true, &ZAMCompiler::BuiltIn_strstr}},
         {"sub_bytes", {true, &ZAMCompiler::BuiltIn_sub_bytes}},
         {"to_lower", {true, &ZAMCompiler::BuiltIn_to_lower}},
@@ -70,16 +71,22 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     if ( e->Tag() != EXPR_CALL )
         n = e->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
 
-    if ( binfo.return_val_matters && ! n ) {
-        reporter->Warning("return value from built-in function ignored");
+    int nslot;
 
-        // The call is a no-op. We could return false here and have it
-        // execute (for no purpose). We can also return true, which will
-        // have the effect of just ignoring the statement.
-        return true;
+    if ( binfo.return_val_matters ) {
+        if ( ! n ) {
+            reporter->Warning("return value from built-in function ignored");
+
+            // The call is a no-op. We could return false here and have it
+            // execute (for no purpose). We can also return true, which will
+            // have the effect of just ignoring the statement.
+            return true;
+        }
+        nslot = Frame1Slot(n, OP1_WRITE);
     }
+    else
+        nslot = n ? FrameSlot(n) : -1;
 
-    auto nslot = n ? Frame1Slot(n, OP1_WRITE) : -1;
     auto arg0_slot = -1;
     if ( args.size() > 0 )
         arg0_slot = FrameSlotIfName(args[0]);
@@ -329,6 +336,19 @@ bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n, int nslot, int
 
 bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     AddInst(ZInstI(OP_READING_TRACES_V, nslot));
+    return true;
+}
+
+bool ZAMCompiler::BuiltIn_sort(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
+    ZInstI z;
+    if ( args.size() == 1 )
+        z = ZInstI(OP_SORT_V, FrameSlot(args[0]->AsNameExpr()));
+    else
+        z = ZInstI(OP_SORT_WITH_CMP_VV, FrameSlot(args[0]->AsNameExpr()), FrameSlot(args[1]->AsNameExpr()));
+    z.t = args[0]->GetType();
+
+    AddInst(z);
+
     return true;
 }
 

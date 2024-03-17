@@ -85,6 +85,8 @@ public:
     void Dump();
 
 private:
+    friend class DirectBuiltIn;
+
     void Init();
     void InitGlobals();
     void InitArgs();

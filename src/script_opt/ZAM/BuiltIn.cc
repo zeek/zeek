@@ -9,12 +9,56 @@
 
 namespace zeek::detail {
 
+class ZAMBuiltIn {
+public:
+    virtual ~ZAMBuiltIn() = default;
+
+    virtual bool ReturnValMatters() const { return true; }
+    virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const = 0;
+};
+
+class DirectBuiltIn : public ZAMBuiltIn {
+public:
+    DirectBuiltIn(ZOp _op, int _nargs) : op(_op), nargs(_nargs) {}
+
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
+        if ( nargs == 0 ) {
+            if ( n )
+                zam->AddInst(ZInstI(op, zam->Frame1Slot(n, OP1_WRITE)));
+            else
+                zam->AddInst(ZInstI(op));
+        }
+        else {
+            ASSERT(nargs == 1);
+            auto& args = c->Args()->Exprs();
+            auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
+            if ( n )
+                zam->AddInst(ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0));
+            else
+                zam->AddInst(ZInstI(op, a0));
+        }
+
+        return true;
+    }
+
+protected:
+    ZOp op;
+    int nargs;
+};
+
+class ToLowerBuiltIn : public ZAMBuiltIn {
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override { return false; }
+};
+
+
+#if 0
 using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
 
 struct BuiltInInfo {
     bool return_val_matters;
     GenBuiltIn func;
 };
+#endif
 
 bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     // The expression e is either directly a call (in which case there's
@@ -40,8 +84,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     if ( func->GetKind() != BuiltinFunc::BUILTIN_FUNC )
         return false;
 
-    auto& args = c->Args()->Exprs();
-
+#if 0
     static std::map<std::string, BuiltInInfo> builtins = {
         {"Analyzer::__name", {true, &ZAMCompiler::BuiltIn_Analyzer__name}},
         {"Broker::__flush_logs", {false, &ZAMCompiler::BuiltIn_Broker__flush_logs}},
@@ -61,19 +104,22 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"sub_bytes", {true, &ZAMCompiler::BuiltIn_sub_bytes}},
         {"to_lower", {true, &ZAMCompiler::BuiltIn_to_lower}},
     };
+#endif
+    static std::map<std::string, std::shared_ptr<ZAMBuiltIn>> builtins = {
+        {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
+    };
 
     auto b = builtins.find(func->Name());
     if ( b == builtins.end() )
         return false;
 
-    const auto& binfo = b->second;
+    const auto& bi = b->second;
+
     const NameExpr* n = nullptr; // name to assign to, if any
     if ( e->Tag() != EXPR_CALL )
         n = e->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
 
-    int nslot;
-
-    if ( binfo.return_val_matters ) {
+    if ( bi->ReturnValMatters() ) {
         if ( ! n ) {
             reporter->Warning("return value from built-in function ignored");
 
@@ -82,16 +128,9 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
             // have the effect of just ignoring the statement.
             return true;
         }
-        nslot = Frame1Slot(n, OP1_WRITE);
     }
-    else
-        nslot = n ? FrameSlot(n) : -1;
 
-    auto arg0_slot = -1;
-    if ( args.size() > 0 )
-        arg0_slot = FrameSlotIfName(args[0]);
-
-    return (this->*(b->second.func))(n, nslot, arg0_slot, args);
+    return bi->Build(this, n, c);
 }
 
 bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {

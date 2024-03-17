@@ -13,13 +13,19 @@ class ZAMBuiltIn {
 public:
     virtual ~ZAMBuiltIn() = default;
 
-    virtual bool ReturnValMatters() const { return true; }
+    bool ReturnValMatters() const { return return_val_matters; }
+
     virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const = 0;
+
+protected:
+    bool return_val_matters = true;
 };
 
 class DirectBuiltIn : public ZAMBuiltIn {
 public:
-    DirectBuiltIn(ZOp _op, int _nargs) : op(_op), nargs(_nargs) {}
+    DirectBuiltIn(ZOp _op, int _nargs, bool _return_val_matters = true) : ZAMBuiltIn(), op(_op), nargs(_nargs) {
+        return_val_matters = _return_val_matters;
+    }
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
         if ( nargs == 0 ) {
@@ -46,8 +52,50 @@ protected:
     int nargs;
 };
 
-class ToLowerBuiltIn : public ZAMBuiltIn {
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override { return false; }
+class SortBuiltIn : public DirectBuiltIn {
+public:
+    SortBuiltIn() : DirectBuiltIn(OP_SORT_V, 1, false) {}
+
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
+        auto& args = c->Args()->Exprs();
+        if ( args.size() > 2 )
+            return false;
+
+        auto v = args[0]->AsNameExpr();
+        if ( v->GetType()->Tag() != TYPE_VECTOR )
+            return false;
+
+        const auto& elt_type = v->GetType()->Yield();
+
+        if ( args.size() == 1 ) {
+            if ( ! IsIntegral(elt_type->Tag()) && elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
+                return false;
+
+            return DirectBuiltIn::Build(zam, n, c);
+        }
+
+        const auto& comp_val = args[1];
+        if ( ! IsFunc(comp_val->GetType()->Tag()) )
+            return false;
+
+        if ( comp_val->Tag() != EXPR_NAME )
+            return false;
+
+        auto comp_func_val = comp_val->AsNameExpr()->Id()->GetVal();
+        if ( ! comp_func_val )
+            return false;
+
+        auto comp = comp_func_val->AsFunc();
+        const auto& comp_type = comp->GetType();
+
+        if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+             comp_type->ParamList()->GetTypes().size() != 2 )
+            return false;
+
+        zam->AddInst(ZInstI(OP_SORT_WITH_CMP_VV, zam->FrameSlot(v), zam->FrameSlot(comp_val->AsNameExpr())));
+
+        return true;
+    }
 };
 
 
@@ -106,6 +154,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     };
 #endif
     static std::map<std::string, std::shared_ptr<ZAMBuiltIn>> builtins = {
+        {"sort", std::make_shared<SortBuiltIn>()},
         {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
     };
 

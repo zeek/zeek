@@ -20,6 +20,10 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output-1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output-2
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+}
+
 # @TEST-START-FILE ssh.spicy
 module SSH;
 
@@ -70,7 +74,6 @@ import zeek;
 
 protocol analyzer spicy::SSH over TCP:
     parse with SSH::Banner,
-    port 22/tcp,
     replaces SSH;
 
 on SSH::Banner::software -> event have_filename($file, self.file_name);

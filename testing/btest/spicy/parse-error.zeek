@@ -8,6 +8,10 @@
 #
 # @TEST-DOC: Trigger parse error after confirmation, should be recorded in dpd.log
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+}
+
 # @TEST-START-FILE test.spicy
 module SSH;
 
@@ -24,9 +28,7 @@ public type Banner = unit {
 # @TEST-START-FILE test.evt
 
 protocol analyzer spicy::SSH over TCP:
-    parse originator with SSH::Banner,
-    port 22/tcp
-
+    parse originator with SSH::Banner
     # With Zeek < 5.0, DPD tracking doesn't work correctly for replaced
     # analyzers because the ProtocolViolation() doesn't take a tag.
     #

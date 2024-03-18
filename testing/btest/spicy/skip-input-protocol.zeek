@@ -11,6 +11,10 @@ redef udp_inactivity_timeout = 24hrs; # avoid long gaps to trigger removal
 
 event Test::foo() { print "event"; }
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_TEST, 53/udp);
+}
+
 # @TEST-START-FILE test.spicy
 module Test;
 
@@ -37,7 +41,6 @@ public type Foo = unit {
 
 # @TEST-START-FILE test.evt
 protocol analyzer spicy::Test over UDP:
-    port 53/udp,
     parse with Test::Foo;
 
 on Test::Foo -> event Test::foo();

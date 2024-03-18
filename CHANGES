@@ -1,3 +1,23 @@
+7.0.0-dev.72 | 2024-03-18 09:55:51 +0100
+
+  * btest/spicy: Remove most port usages (Arne Welzel, Corelight)
+
+  * spicy: Deprecate port/ports in .evt files (Arne Welzel, Corelight)
+
+  * Update doc submodule (Arne Welzel, Corelight)
+
+    For spicy-pygments.py sync.
+
+  * github/generate-docs: Only commit if there are staged changes (Arne Welzel, Corelight)
+
+    git diff-index by default includes staged and non-staged changes.
+    The autogen-spicy-docs script copies over spicy-pygments.py from
+    the Spicy tree into doc/ext.
+
+    The job would attempt to commit scripts and script-reference even
+    though nothing actually is staged when a spurious diff existed in
+    ext/spicy-pygments.py. Guard from this by using --cached.
+
 7.0.0-dev.66 | 2024-03-16 11:14:25 +0100
 
   * Bump Spicy to latest version reworking AST memory management. (Robin Sommer, Corelight)

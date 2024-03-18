@@ -19,7 +19,6 @@ public type Banner = unit {
 
 protocol analyzer spicy::SSH over TCP:
     parse with SSH::Banner,
-    port 22/tcp,
     replaces Ethernet; # fail
 
 # @TEST-END-FILE

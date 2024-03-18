@@ -8,6 +8,23 @@
 # We use the module search path for loading here as a regression test for #137.
 # Note that this that problem only showed up when the Spicy plugin was built
 # into Zeek.
+#
+# XXX: Replaces is kin of borked. "replaces" probably should inherit/use
+#      ports previously registered through Analyzer::register_for_port() for
+#      the analyzer that is being replaced, but that doesn't seem to be
+#      happening. Having ports previosly in .evt "worked around it" mostly.
+#
+#      This seems pretty much #3573.
+#
+event zeek_init()
+	{
+	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+
+	# The following should maybe "do the right thing" when using replaces
+	# if we fiddle with the underlying enum value?
+	#
+	# Analyzer::register_for_port(Analyzer::ANALYZER_SSH, 22/tcp);
+	}
 
 event ssh::banner(c: connection, is_orig: bool, version: string, software: string)
 	{
@@ -15,9 +32,9 @@ event ssh::banner(c: connection, is_orig: bool, version: string, software: strin
 	}
 
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)
-    {
-    print atype, info$aid;
-    }
+	{
+	print atype, info$aid;
+	}
 
 # @TEST-START-FILE ssh.spicy
 module SSH;
@@ -38,7 +55,6 @@ public type Banner = unit {
 
 protocol analyzer spicy::SSH over TCP:
     parse with SSH::Banner,
-    port 22/tcp,
     replaces SSH;
 
 on SSH::Banner -> event ssh::banner($conn, $is_orig, self.version, self.software);

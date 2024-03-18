@@ -12,6 +12,10 @@
 redef likely_server_ports += { 53/udp }; # avoid flipping direction after termination
 redef udp_inactivity_timeout = 24hrs; # avoid long gaps to trigger removal
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_TEST, 53/udp);
+}
+
 # @TEST-START-FILE test.spicy
 module Test;
 
@@ -36,6 +40,5 @@ type Counter = tuple<counter:int64>;
 
 # @TEST-START-FILE test.evt
 protocol analyzer spicy::Test over UDP:
-    port 53/udp,
     parse originator with Test::Foo;
 # @TEST-END-FILE

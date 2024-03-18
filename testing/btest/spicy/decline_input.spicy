@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o foo.hlto foo.spicy foo.evt %INPUT
-# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap foo.hlto
+# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap foo.hlto foo.zeek
 # @TEST-EXEC: cat analyzer.log | zeek-cut analyzer_name failure_reason failure_data > analyzer.log2 && mv analyzer.log2 analyzer.log
 # @TEST-EXEC: btest-diff analyzer.log
 #
@@ -17,8 +17,13 @@ public type X = unit {
 
 # @TEST-START-FILE foo.evt
 protocol analyzer spicy::foo over UDP:
-    parse with foo::X,
-    ports { 12345/udp, 31337/udp };
+    parse with foo::X;
+# @TEST-END-FILE
+
+# @TEST-START-FILE foo.zeek
+event zeek_init() {
+    Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_FOO, set(12345/udp, 31337/udp));
+}
 # @TEST-END-FILE
 
 module zeek_foo;

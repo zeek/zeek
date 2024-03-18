@@ -10,6 +10,10 @@ event Banner::error(msg: string) {
     print fmt("Error message: %s", msg);
 }
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+}
+
 # @TEST-START-FILE test.spicy
 module SSH;
 
@@ -24,8 +28,7 @@ public type Banner = unit {
 # @TEST-START-FILE test.evt
 
 protocol analyzer spicy::SSH over TCP:
-    parse originator with SSH::Banner,
-    port 22/tcp;
+    parse originator with SSH::Banner;
 
 on SSH::Banner::%error(msg: string) -> event Banner::error(msg);
 on SSH::Banner::%error() -> event Banner::error("n/a");

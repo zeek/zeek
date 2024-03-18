@@ -16,7 +16,7 @@ public:
     bool ReturnValMatters() const { return return_val_matters; }
     bool HaveBothReturnValAndNon() const { return have_both; }
 
-    virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const = 0;
+    virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const = 0;
 
 protected:
     bool return_val_matters = true;
@@ -29,7 +29,7 @@ public:
         return_val_matters = _return_val_matters;
     }
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         ZInstI z;
         if ( nargs == 0 ) {
             if ( n )
@@ -39,7 +39,6 @@ public:
         }
         else {
             ASSERT(nargs == 1);
-            auto& args = c->Args()->Exprs();
             auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
             if ( n )
                 z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0);
@@ -65,16 +64,15 @@ public:
         have_both = true;
     }
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         if ( n )
-            return DirectBuiltIn::Build(zam, n, c);
+            return DirectBuiltIn::Build(zam, n, args);
 
         ZInstI z;
         if ( nargs == 0 )
             z = ZInstI(op2);
         else {
             ASSERT(nargs == 1);
-            auto& args = c->Args()->Exprs();
             auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
             z = ZInstI(op, a0);
             z.t = args[0]->GetType();
@@ -93,8 +91,7 @@ class SortBuiltIn : public DirectBuiltIn {
 public:
     SortBuiltIn() : DirectBuiltIn(OP_SORT_V, 1, false) {}
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
-        auto& args = c->Args()->Exprs();
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         if ( args.size() > 2 )
             return false;
 
@@ -108,7 +105,7 @@ public:
             if ( ! IsIntegral(elt_type->Tag()) && elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
                 return false;
 
-            return DirectBuiltIn::Build(zam, n, c);
+            return DirectBuiltIn::Build(zam, n, args);
         }
 
         const auto& comp_val = args[1];
@@ -139,9 +136,8 @@ class CatBuiltIn : public ZAMBuiltIn {
 public:
     CatBuiltIn() : ZAMBuiltIn() {}
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto nslot = zam->Frame1Slot(n, OP1_WRITE);
-        auto& args = c->Args()->Exprs();
         auto& a0 = args[0];
         ZInstI z;
 
@@ -248,8 +244,7 @@ class FilesSetReassemblyBufferBuiltIn : public ZAMBuiltIn {
 public:
     FilesSetReassemblyBufferBuiltIn() : ZAMBuiltIn() { return_val_matters = false; }
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
-        auto& args = c->Args()->Exprs();
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         if ( args[0]->Tag() == EXPR_CONST )
             // Weird!
             return false;
@@ -279,8 +274,7 @@ class LogWriteBuiltIn : public ZAMBuiltIn {
 public:
     LogWriteBuiltIn() : ZAMBuiltIn() { return_val_matters = false; }
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
-        auto& args = c->Args()->Exprs();
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto id = args[0];
         auto columns = args[1];
 
@@ -332,8 +326,7 @@ class StrStrBuiltIn : public ZAMBuiltIn {
 public:
     StrStrBuiltIn() : ZAMBuiltIn() {}
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
-        auto& args = c->Args()->Exprs();
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto big = args[0];
         auto little = args[1];
 
@@ -361,8 +354,7 @@ class SubBytesBuiltIn : public ZAMBuiltIn {
 public:
     SubBytesBuiltIn() : ZAMBuiltIn() {}
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* call) const override {
-        auto& args = call->Args()->Exprs();
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto nslot = zam->Frame1Slot(n, OP1_WRITE);
         auto arg_s = args[0];
         auto arg_start = args[1];
@@ -451,16 +443,6 @@ private:
     }
 };
 
-
-#if 0
-using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args);
-
-struct BuiltInInfo {
-    bool return_val_matters;
-    GenBuiltIn func;
-};
-#endif
-
 bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     // The expression e is either directly a call (in which case there's
     // no return value), or an assignment to a call.
@@ -534,7 +516,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         return false;
     }
 
-    return bi->Build(this, n, c);
+    return bi->Build(this, n, c->Args()->Exprs());
 }
 
 } // namespace zeek::detail

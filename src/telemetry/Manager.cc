@@ -62,8 +62,10 @@ void Manager::InitPostScript() {
                         auto json = telemetry_mgr->GetClusterJson();
                         mg_send_http_ok(conn, "application/json", static_cast<long long>(json.size()));
                         mg_write(conn, json.data(), json.size());
+                        return 1;
                     }
-                    return 1;
+
+                    return 0;
                 };
             }
         }

@@ -811,6 +811,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
         RecordType::InitPostScript();
 
+        telemetry_mgr->InitPostScript();
         iosource_mgr->InitPostScript();
         log_mgr->InitPostScript();
         plugin_mgr->InitPostScript();
@@ -818,10 +819,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         broker_mgr->InitPostScript();
         timer_mgr->InitPostScript();
         event_mgr.InitPostScript();
-
-        // telemetry_mgr has be initialized after broker manager since it might
-        // register for a topic and would fail to do so otherwise.
-        telemetry_mgr->InitPostScript();
 
         if ( supervisor_mgr )
             supervisor_mgr->InitPostScript();

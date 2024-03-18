@@ -170,13 +170,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Files::__set_reassembly_buffer", {false, &ZAMCompiler::BuiltIn_Files__set_reassembly_buffer}},
         {"Log::__write", {false, &ZAMCompiler::BuiltIn_Log__write}},
         {"cat", {true, &ZAMCompiler::BuiltIn_cat}},
-        {"current_time", {true, &ZAMCompiler::BuiltIn_current_time}},
-        {"get_port_transport_proto", {true, &ZAMCompiler::BuiltIn_get_port_etc}},
-        {"is_v4_addr", {true, &ZAMCompiler::BuiltIn_is_v4_addr}},
-        {"is_v6_addr", {true, &ZAMCompiler::BuiltIn_is_v6_addr}},
-        {"network_time", {true, &ZAMCompiler::BuiltIn_network_time}},
-        {"reading_live_traffic", {true, &ZAMCompiler::BuiltIn_reading_live_traffic}},
-        {"reading_traces", {true, &ZAMCompiler::BuiltIn_reading_traces}},
+        e"current_time", {true, &ZAMCompiler::BuiltIn_current_time}},
         {"strstr", {true, &ZAMCompiler::BuiltIn_strstr}},
         {"sub_bytes", {true, &ZAMCompiler::BuiltIn_sub_bytes}},
     };
@@ -186,6 +180,13 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Broker::__flush_logs",
          std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES__ENABLE_REASSEMBLY_V, 1, false)},
+        {"current_time", std::make_shared<DirectBuiltIn>(OP_CURRENT_TIME_V, 0)},
+        {"get_port_transport_proto", std::make_shared<DirectBuiltIn>(OP_GET_PORT_TRANSPORT_PROTO_VV, 1)},
+        {"is_v4_addr", std::make_shared<DirectBuiltIn>(OP_IS_V4_ADDR_VV, 1)},
+        {"is_v6_addr", std::make_shared<DirectBuiltIn>(OP_IS_V6_ADDR_VV, 1)},
+        {"network_time", std::make_shared<DirectBuiltIn>(OP_NETWORK_TIME_V, 0)},
+        {"reading_live_traffic", std::make_shared<DirectBuiltIn>(OP_READING_LIVE_TRAFFIC_V, 0)},
+        {"reading_traces", std::make_shared<DirectBuiltIn>(OP_READING_TRACES_V, 0)},
         {"sort", std::make_shared<SortBuiltIn>()},
         {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
     };
@@ -390,41 +391,6 @@ ZInstAux* ZAMCompiler::BuildCatAux(const ExprPList& args) {
     }
 
     return aux;
-}
-
-bool ZAMCompiler::BuiltIn_current_time(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    AddInst(ZInstI(OP_CURRENT_TIME_V, nslot));
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_get_port_etc(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    AddInst(ZInstI(OP_GET_PORT_TRANSPORT_PROTO_VV, nslot, arg0_slot));
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_is_v4_addr(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    AddInst(ZInstI(OP_IS_V4_ADDR_VV, nslot, arg0_slot));
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_is_v6_addr(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    AddInst(ZInstI(OP_IS_V6_ADDR_VV, nslot, arg0_slot));
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_network_time(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    AddInst(ZInstI(OP_NETWORK_TIME_V, nslot));
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    AddInst(ZInstI(OP_READING_LIVE_TRAFFIC_V, nslot));
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    AddInst(ZInstI(OP_READING_TRACES_V, nslot));
-    return true;
 }
 
 bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {

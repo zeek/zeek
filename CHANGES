@@ -1,3 +1,7 @@
+7.0.0-dev.78 | 2024-03-18 16:37:46 -0700
+
+  * Add a method to register an event handler to a std::function via C++ (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.76 | 2024-03-18 16:15:44 -0700
 
   * Update Broker submodule (Dominik Charousset, Corelight)

@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/ZeekArgs.h"
 
 namespace zeek {
 

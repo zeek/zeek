@@ -780,4 +780,25 @@ protected:
     int expected_len;
 };
 
+// Statement that calls a std::function. These can be added to a Func body
+// to directly all a C++ method.
+class StdFunctionStmt : public Stmt {
+public:
+    using FunctionVariant =
+        std::variant<std::function<void(const zeek::Args&)>, std::function<void(const zeek::Args&, StmtFlowType&)>>;
+    StdFunctionStmt(FunctionVariant f) : Stmt(STMT_STD_FUNCTION), func(std::move(f)) {}
+
+    ValPtr Exec(Frame* f, StmtFlowType& flow) override;
+
+    StmtPtr Duplicate() override {
+        reporter->Error("Duplicate() on StdFunctionStmt not implemented");
+        return {zeek::NewRef{}, this};
+    }
+
+    TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
+
+private:
+    FunctionVariant func;
+};
+
 } // namespace zeek::detail

@@ -23,6 +23,7 @@ public:
     virtual void EndpointEOF(bool is_orig);
 
     static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn) { return new Foo(conn); }
+    void ConnectionEstablishedHandler(const zeek::Args& args);
 
 protected:
     binpac::Foo::Foo_Conn* interp;

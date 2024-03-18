@@ -87,9 +87,9 @@ protected:
     ZOp op2;
 };
 
-class SortBuiltIn : public DirectBuiltIn {
+class SortBiF : public DirectBuiltIn {
 public:
-    SortBuiltIn() : DirectBuiltIn(OP_SORT_V, 1, false) {}
+    SortBiF() : DirectBuiltIn(OP_SORT_V, 1, false) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         if ( args.size() > 2 )
@@ -132,9 +132,9 @@ public:
     }
 };
 
-class CatBuiltIn : public ZAMBuiltIn {
+class CatBiF : public ZAMBuiltIn {
 public:
-    CatBuiltIn() : ZAMBuiltIn() {}
+    CatBiF() : ZAMBuiltIn() {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto nslot = zam->Frame1Slot(n, OP1_WRITE);
@@ -240,9 +240,9 @@ private:
     }
 };
 
-class FilesSetReassemblyBufferBuiltIn : public ZAMBuiltIn {
+class FilesSetReassemBiF : public ZAMBuiltIn {
 public:
-    FilesSetReassemblyBufferBuiltIn() : ZAMBuiltIn() { return_val_matters = false; }
+    FilesSetReassemBiF() : ZAMBuiltIn() { return_val_matters = false; }
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         if ( args[0]->Tag() == EXPR_CONST )
@@ -270,9 +270,9 @@ public:
     }
 };
 
-class LogWriteBuiltIn : public ZAMBuiltIn {
+class LogWriteBiF : public ZAMBuiltIn {
 public:
-    LogWriteBuiltIn() : ZAMBuiltIn() { return_val_matters = false; }
+    LogWriteBiF() : ZAMBuiltIn() { return_val_matters = false; }
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto id = args[0];
@@ -322,9 +322,9 @@ public:
     }
 };
 
-class StrStrBuiltIn : public ZAMBuiltIn {
+class StrStrBiF : public ZAMBuiltIn {
 public:
-    StrStrBuiltIn() : ZAMBuiltIn() {}
+    StrStrBiF() : ZAMBuiltIn() {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto big = args[0];
@@ -350,9 +350,9 @@ public:
     }
 };
 
-class SubBytesBuiltIn : public ZAMBuiltIn {
+class SubBytesBiF : public ZAMBuiltIn {
 public:
-    SubBytesBuiltIn() : ZAMBuiltIn() {}
+    SubBytesBiF() : ZAMBuiltIn() {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto nslot = zam->Frame1Slot(n, OP1_WRITE);
@@ -472,9 +472,9 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Broker::__flush_logs",
          std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
-        {"Files::__set_reassembly_buffer", std::make_shared<FilesSetReassemblyBufferBuiltIn>()},
-        {"Log::__write", std::make_shared<LogWriteBuiltIn>()},
-        {"cat", std::make_shared<CatBuiltIn>()},
+        {"Files::__set_reassembly_buffer", std::make_shared<FilesSetReassemBiF>()},
+        {"Log::__write", std::make_shared<LogWriteBiF>()},
+        {"cat", std::make_shared<CatBiF>()},
         {"current_time", std::make_shared<DirectBuiltIn>(OP_CURRENT_TIME_V, 0)},
         {"get_port_transport_proto", std::make_shared<DirectBuiltIn>(OP_GET_PORT_TRANSPORT_PROTO_VV, 1)},
         {"is_v4_addr", std::make_shared<DirectBuiltIn>(OP_IS_V4_ADDR_VV, 1)},
@@ -482,9 +482,9 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"network_time", std::make_shared<DirectBuiltIn>(OP_NETWORK_TIME_V, 0)},
         {"reading_live_traffic", std::make_shared<DirectBuiltIn>(OP_READING_LIVE_TRAFFIC_V, 0)},
         {"reading_traces", std::make_shared<DirectBuiltIn>(OP_READING_TRACES_V, 0)},
-        {"sort", std::make_shared<SortBuiltIn>()},
-        {"strstr", std::make_shared<StrStrBuiltIn>()},
-        {"sub_bytes", std::make_shared<SubBytesBuiltIn>()},
+        {"sort", std::make_shared<SortBiF>()},
+        {"strstr", std::make_shared<StrStrBiF>()},
+        {"sub_bytes", std::make_shared<SubBytesBiF>()},
         {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
     };
 

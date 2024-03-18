@@ -87,12 +87,12 @@ public:
 private:
     friend class DirectBuiltIn;
     friend class DirectBuiltInOptAssign;
-    friend class SortBuiltIn;
-    friend class CatBuiltIn;
-    friend class FilesSetReassemblyBufferBuiltIn;
-    friend class LogWriteBuiltIn;
-    friend class StrStrBuiltIn;
-    friend class SubBytesBuiltIn;
+    friend class SortBiF;
+    friend class CatBiF;
+    friend class FilesSetReassemBiF;
+    friend class LogWriteBiF;
+    friend class StrStrBiF;
+    friend class SubBytesBiF;
 
     void Init();
     void InitGlobals();

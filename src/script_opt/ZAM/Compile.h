@@ -88,6 +88,11 @@ private:
     friend class DirectBuiltIn;
     friend class DirectBuiltInOptAssign;
     friend class SortBuiltIn;
+    friend class CatBuiltIn;
+    friend class FilesSetReassemblyBufferBuiltIn;
+    friend class LogWriteBuiltIn;
+    friend class StrStrBuiltIn;
+    friend class SubBytesBuiltIn;
 
     void Init();
     void InitGlobals();
@@ -250,16 +255,11 @@ private:
 
     const ZAMStmt Is(const NameExpr* n, const Expr* e);
 
-#include "zeek/script_opt/ZAM/BuiltIn.h"
 #include "zeek/script_opt/ZAM/Inst-Gen.h"
 
-    // A bit weird, but handy for switch statements used in built-in
-    // operations: returns a bit mask of which of the arguments in the
-    // given list correspond to constants, with the high-ordered bit
-    // being the first argument (argument "0" in the list) and the
-    // low-ordered bit being the last.  Second parameter is the number
-    // of arguments that should be present.
-    zeek_uint_t ConstArgsMask(const ExprPList& args, int nargs) const;
+    // If the given expression corresponds to a call to a ZAM built-in,
+    // then compiles the call and returns true.  Otherwise, returns false.
+    bool IsZAM_BuiltIn(const Expr* e);
 
     int ConvertToInt(const Expr* e) {
         if ( e->Tag() == EXPR_NAME )

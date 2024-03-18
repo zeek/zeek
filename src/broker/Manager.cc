@@ -331,82 +331,6 @@ void Manager::InitPostScript() {
     config.set("caf.work-stealing.moderate-steal-interval", get_option("Broker::moderate_interval")->AsCount());
     config.set("caf.work-stealing.relaxed-steal-interval", get_option("Broker::relaxed_interval")->AsCount());
 
-    // Before launching Broker, we check whether the configuration contains
-    // values for the metric_exporter_* options. If Broker already has picked up
-    // values from environment variables (or config files) then we write then
-    // back. Otherwise, we forward user-defined values from script land (but
-    // ignore defaults).
-    WITH_OPT_MAPPING("broker.metrics.port", "Broker::metrics_port") {
-        if ( auto port = opt.broker_read<uint16_t>() ) {
-            opt.zeek_write(broker::port{*port, broker::port::protocol::tcp});
-        }
-        else {
-            auto ptr = opt.zeek_read()->AsPortVal();
-            if ( ptr->IsTCP() )
-                opt.broker_write(ptr->Port());
-        }
-    }
-
-    WITH_OPT_MAPPING("broker.metrics.export.interval", "Broker::metrics_export_interval") {
-        if ( auto ts = opt.broker_read<broker::timespan>() ) {
-            opt.zeek_write(*ts);
-        }
-        else {
-            using std::chrono::duration_cast;
-            auto val = opt.zeek_read()->AsInterval();
-            auto frac_ts = broker::fractional_seconds{val};
-            if ( frac_ts.count() > 0.0 )
-                opt.broker_write(duration_cast<broker::timespan>(frac_ts));
-        }
-    }
-
-    WITH_OPT_MAPPING("broker.metrics.export.topic", "Broker::metrics_export_topic") {
-        if ( auto str = opt.broker_read<std::string>() ) {
-            opt.zeek_write(*str);
-        }
-        else {
-            auto ptr = opt.zeek_read()->AsStringVal();
-            if ( ptr->Len() > 0 )
-                opt.broker_write(ptr->ToStdString());
-        }
-    }
-
-    WITH_OPT_MAPPING("broker.metrics.endpoint-name", "Broker::metrics_export_endpoint_name") {
-        if ( auto str = opt.broker_read<std::string>() ) {
-            opt.zeek_write(*str);
-        }
-        else {
-            auto ptr = opt.zeek_read()->AsStringVal();
-            if ( ptr->Len() > 0 )
-                opt.broker_write(ptr->ToStdString());
-        }
-    }
-
-    WITH_OPT_MAPPING("broker.metrics.export.prefixes", "Broker::metrics_export_prefixes") {
-        if ( auto str = opt.broker_read<std::vector<std::string>>() ) {
-            opt.zeek_write(*str);
-        }
-        else {
-            auto ptr = opt.zeek_read()->AsVectorVal();
-            std::vector<std::string> str_ls;
-            for ( unsigned index = 0; index < ptr->Size(); ++index )
-                str_ls.emplace_back(ptr->StringValAt(index)->ToStdString());
-            opt.broker_write(std::move(str_ls));
-        }
-    }
-    WITH_OPT_MAPPING("broker.metrics.import.topics", "Broker::metrics_import_topics") {
-        if ( auto topics = opt.broker_read<std::vector<std::string>>() ) {
-            opt.zeek_write(*topics);
-        }
-        else {
-            auto ptr = opt.zeek_read()->AsVectorVal();
-            std::vector<std::string> str_ls;
-            for ( unsigned index = 0; index < ptr->Size(); ++index )
-                str_ls.emplace_back(ptr->StringValAt(index)->ToStdString());
-            opt.broker_write(std::move(str_ls));
-        }
-    }
-
     auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
     bstate = std::make_shared<BrokerState>(std::move(config), cqs);
 
@@ -1810,28 +1734,6 @@ void Manager::PrepareForwarding(const std::string& name) {
 
     handle->forward_to = forwarded_stores.at(name);
     DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
-}
-
-void Manager::SetMetricsExportInterval(double value) {
-    using dbl_seconds = std::chrono::duration<double>;
-    auto ts = std::chrono::duration_cast<broker::timespan>(dbl_seconds{value});
-    bstate->endpoint.metrics_exporter().set_interval(ts);
-}
-
-void Manager::SetMetricsExportTopic(std::string value) {
-    bstate->endpoint.metrics_exporter().set_target(std::move(value));
-}
-
-void Manager::SetMetricsImportTopics(std::vector<std::string> topics) {
-    bstate->endpoint.metrics_exporter().set_import_topics(std::move(topics));
-}
-
-void Manager::SetMetricsExportEndpointName(std::string value) {
-    bstate->endpoint.metrics_exporter().set_id(std::move(value));
-}
-
-void Manager::SetMetricsExportPrefixes(std::vector<std::string> filter) {
-    bstate->endpoint.metrics_exporter().set_prefixes(std::move(filter));
 }
 
 } // namespace zeek::Broker

@@ -2689,19 +2689,19 @@ eval	auto atype = frame[z.v2].ToVal(z.t);
 	else
 		frame[z.v1].string_val = new StringVal("<error>");
 
-internal-op Files--Enable-Reassembly
+internal-op Files-Enable-Reassembly
 op1-read
 type V
 eval	auto f = frame[z.v1].string_val->CheckString();
 	file_mgr->EnableReassembly(f);
 
-internal-op Files--Set-Reassembly-Buffer
+internal-op Files-Set-Reassembly-Buffer
 op1-read
 type VV
 eval	auto f = frame[z.v1].string_val->CheckString();
 	file_mgr->SetReassemblyBuffer(f, frame[z.v2].uint_val);
 
-internal-op Files--Set-Reassembly-Buffer
+internal-op Files-Set-Reassembly-Buffer
 op1-read
 type VC
 eval	auto f = frame[z.v1].string_val->CheckString();

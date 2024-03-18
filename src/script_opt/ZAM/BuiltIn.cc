@@ -14,11 +14,13 @@ public:
     virtual ~ZAMBuiltIn() = default;
 
     bool ReturnValMatters() const { return return_val_matters; }
+    bool HaveBothReturnValAndNon() const { return have_both; }
 
     virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const = 0;
 
 protected:
     bool return_val_matters = true;
+    bool have_both = false;
 };
 
 class DirectBuiltIn : public ZAMBuiltIn {
@@ -59,7 +61,9 @@ protected:
 class DirectBuiltInOptAssign : public DirectBuiltIn {
 public:
     // First argument is assignment flavor, second is assignment-less flavor.
-    DirectBuiltInOptAssign(ZOp _op, ZOp _op2, int _nargs) : DirectBuiltIn(_op, _nargs, false), op2(_op2) {}
+    DirectBuiltInOptAssign(ZOp _op, ZOp _op2, int _nargs) : DirectBuiltIn(_op, _nargs, false), op2(_op2) {
+        have_both = true;
+    }
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
         if ( n )
@@ -179,7 +183,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Analyzer::__name", std::make_shared<DirectBuiltIn>(OP_ANALYZER_NAME_VV, 1)},
         {"Broker::__flush_logs",
          std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
-        {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES__ENABLE_REASSEMBLY_V, 1, false)},
+        {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
         {"current_time", std::make_shared<DirectBuiltIn>(OP_CURRENT_TIME_V, 0)},
         {"get_port_transport_proto", std::make_shared<DirectBuiltIn>(OP_GET_PORT_TRANSPORT_PROTO_VV, 1)},
         {"is_v4_addr", std::make_shared<DirectBuiltIn>(OP_IS_V4_ADDR_VV, 1)},
@@ -211,7 +215,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
             return true;
         }
     }
-    else if ( n ) {
+    else if ( n && ! bi->HaveBothReturnValAndNon() ) {
         // Because the return value "doesn't matter", we've built the
         // BiF replacement operation assuming we don't need a version that
         // does the assignment. If we *do* have an assignment, let the usual
@@ -236,11 +240,11 @@ bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, int ns
 
     if ( args[1]->Tag() == EXPR_CONST ) {
         auto arg_cnt = args[1]->AsConstExpr()->Value()->AsCount();
-        z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VC, arg0_slot, arg_cnt);
+        z = ZInstI(OP_FILES_SET_REASSEMBLY_BUFFER_VC, arg0_slot, arg_cnt);
         z.op_type = OP_VV_I2;
     }
     else
-        z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VV, arg0_slot, FrameSlot(args[1]->AsNameExpr()));
+        z = ZInstI(OP_FILES_SET_REASSEMBLY_BUFFER_VV, arg0_slot, FrameSlot(args[1]->AsNameExpr()));
 
     AddInst(z);
 

@@ -324,13 +324,13 @@ endfunction ()
 add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/src/include
     ${PROJECT_SOURCE_DIR}/auxil/binpac/lib
-    ${PROJECT_SOURCE_DIR}/auxil/broker/include
+    ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/rapidjson/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
-    ${CMAKE_BINARY_DIR}/auxil/broker/include)
+    ${CMAKE_BINARY_DIR}/auxil/broker/libbroker)
 
 # threading/formatters/JSON.h includes rapidjson headers and may be used
 # by external plugins, extend the include path.
@@ -902,8 +902,8 @@ else ()
         list(APPEND zeekdeps broker)
     endif ()
 
-    set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include
-                        ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
+    set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/libbroker
+                        ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/libbroker)
 
     if (BUILD_STATIC_BROKER)
         set(ZEEK_HAS_STATIC_BROKER ON)

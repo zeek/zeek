@@ -1,3 +1,9 @@
+7.0.0-dev.76 | 2024-03-18 16:15:44 -0700
+
+  * Update Broker submodule (Dominik Charousset, Corelight)
+
+  * cirrus: Remove misleading and always empty AWS_ECR_USERNAME (Arne Welzel, Corelight)
+
 7.0.0-dev.72 | 2024-03-18 09:55:51 +0100
 
   * btest/spicy: Remove most port usages (Arne Welzel, Corelight)

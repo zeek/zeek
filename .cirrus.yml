@@ -540,7 +540,7 @@ container_image_manifest_docker_builder:
   login_script: |
     docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
     AWS_ACCESS_KEY_ID=$AWS_ECR_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_ECR_SECRET_ACCESS_KEY aws ecr-public get-login-password --region us-east-1 | \
-        docker login --username AWS $AWS_ECR_USERNAME --password-stdin public.ecr.aws
+        docker login --username AWS --password-stdin public.ecr.aws
   set_image_tag_script: |
     # If we have a CIRRUS_TAG, use the value in VERSION to push the multiarch
     # images, otherwise use latest. Basically we push the arch images as

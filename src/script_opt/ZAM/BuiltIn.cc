@@ -28,21 +28,25 @@ public:
     }
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
+        ZInstI z;
         if ( nargs == 0 ) {
             if ( n )
-                zam->AddInst(ZInstI(op, zam->Frame1Slot(n, OP1_WRITE)));
+                z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE));
             else
-                zam->AddInst(ZInstI(op));
+                z = ZInstI(op);
         }
         else {
             ASSERT(nargs == 1);
             auto& args = c->Args()->Exprs();
             auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
             if ( n )
-                zam->AddInst(ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0));
+                z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0);
             else
-                zam->AddInst(ZInstI(op, a0));
+                z = ZInstI(op, a0);
+            z.t = args[0]->GetType();
         }
+
+        zam->AddInst(z);
 
         return true;
     }
@@ -50,6 +54,35 @@ public:
 protected:
     ZOp op;
     int nargs;
+};
+
+class DirectBuiltInOptAssign : public DirectBuiltIn {
+public:
+    // First argument is assignment flavor, second is assignment-less flavor.
+    DirectBuiltInOptAssign(ZOp _op, ZOp _op2, int _nargs) : DirectBuiltIn(_op, _nargs, false), op2(_op2) {}
+
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const CallExpr* c) const override {
+        if ( n )
+            return DirectBuiltIn::Build(zam, n, c);
+
+        ZInstI z;
+        if ( nargs == 0 )
+            z = ZInstI(op2);
+        else {
+            ASSERT(nargs == 1);
+            auto& args = c->Args()->Exprs();
+            auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
+            z = ZInstI(op, a0);
+            z.t = args[0]->GetType();
+        }
+
+        zam->AddInst(z);
+
+        return true;
+    }
+
+protected:
+    ZOp op2;
 };
 
 class SortBuiltIn : public DirectBuiltIn {
@@ -134,9 +167,6 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
 
 #if 0
     static std::map<std::string, BuiltInInfo> builtins = {
-        {"Analyzer::__name", {true, &ZAMCompiler::BuiltIn_Analyzer__name}},
-        {"Broker::__flush_logs", {false, &ZAMCompiler::BuiltIn_Broker__flush_logs}},
-        {"Files::__enable_reassembly", {false, &ZAMCompiler::BuiltIn_Files__enable_reassembly}},
         {"Files::__set_reassembly_buffer", {false, &ZAMCompiler::BuiltIn_Files__set_reassembly_buffer}},
         {"Log::__write", {false, &ZAMCompiler::BuiltIn_Log__write}},
         {"cat", {true, &ZAMCompiler::BuiltIn_cat}},
@@ -147,13 +177,15 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"network_time", {true, &ZAMCompiler::BuiltIn_network_time}},
         {"reading_live_traffic", {true, &ZAMCompiler::BuiltIn_reading_live_traffic}},
         {"reading_traces", {true, &ZAMCompiler::BuiltIn_reading_traces}},
-        {"sort", {false, &ZAMCompiler::BuiltIn_sort}},
         {"strstr", {true, &ZAMCompiler::BuiltIn_strstr}},
         {"sub_bytes", {true, &ZAMCompiler::BuiltIn_sub_bytes}},
-        {"to_lower", {true, &ZAMCompiler::BuiltIn_to_lower}},
     };
 #endif
     static std::map<std::string, std::shared_ptr<ZAMBuiltIn>> builtins = {
+        {"Analyzer::__name", std::make_shared<DirectBuiltIn>(OP_ANALYZER_NAME_VV, 1)},
+        {"Broker::__flush_logs",
+         std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
+        {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES__ENABLE_REASSEMBLY_V, 1, false)},
         {"sort", std::make_shared<SortBuiltIn>()},
         {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
     };
@@ -178,47 +210,15 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
             return true;
         }
     }
+    else if ( n ) {
+        // Because the return value "doesn't matter", we've built the
+        // BiF replacement operation assuming we don't need a version that
+        // does the assignment. If we *do* have an assignment, let the usual
+        // call take its place.
+        return false;
+    }
 
     return bi->Build(this, n, c);
-}
-
-bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    if ( args[0]->Tag() == EXPR_CONST )
-        // Doesn't seem worth developing a variant for this weird
-        // usage case.
-        return false;
-
-    auto z = ZInstI(OP_ANALYZER__NAME_VV, nslot, arg0_slot);
-    z.SetType(args[0]->GetType());
-
-    AddInst(z);
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    if ( n )
-        AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_V, Frame1Slot(n, OP1_WRITE)));
-    else
-        AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_X));
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    if ( n )
-        // While this built-in nominally returns a value, existing
-        // script code ignores it, so for now we don't bother
-        // special-casing the possibility that it doesn't.
-        return false;
-
-    if ( args[0]->Tag() == EXPR_CONST )
-        // Weird!
-        return false;
-
-    AddInst(ZInstI(OP_FILES__ENABLE_REASSEMBLY_V, arg0_slot));
-
-    return true;
 }
 
 bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, int nslot, int arg0_slot,
@@ -427,19 +427,6 @@ bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, int nslot, int arg0_
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_sort(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    ZInstI z;
-    if ( args.size() == 1 )
-        z = ZInstI(OP_SORT_V, FrameSlot(args[0]->AsNameExpr()));
-    else
-        z = ZInstI(OP_SORT_WITH_CMP_VV, FrameSlot(args[0]->AsNameExpr()), FrameSlot(args[1]->AsNameExpr()));
-    z.t = args[0]->GetType();
-
-    AddInst(z);
-
-    return true;
-}
-
 bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
     auto big = args[0];
     auto little = args[1];
@@ -526,11 +513,6 @@ bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, int nslot, int arg0_slot,
 
     AddInst(z);
 
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_to_lower(const NameExpr* n, int nslot, int arg0_slot, const ExprPList& args) {
-    AddInst(ZInstI(OP_TO_LOWER_VV, nslot, arg0_slot));
     return true;
 }
 

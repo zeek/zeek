@@ -86,6 +86,7 @@ public:
 
 private:
     friend class DirectBuiltIn;
+    friend class DirectBuiltInOptAssign;
     friend class SortBuiltIn;
 
     void Init();

@@ -2674,7 +2674,7 @@ eval	CatNPre()
 	ca[7]->RenderInto(frame, aux->elems[7].Slot(), res_p);
 	CatNPost()
 
-internal-op Analyzer--Name
+internal-op Analyzer-Name
 type VV
 eval	auto atype = frame[z.v2].ToVal(z.t);
 	auto val = atype->AsEnumVal();

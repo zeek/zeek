@@ -114,8 +114,8 @@ jobs:
           git add scripts/ script-reference/
           git status
           # git commit errors when there's nothing to commit, so guard it
-          # with a check that detects whether there's anything to commit/push.
-          git diff-index --quiet HEAD || { git commit -m "Generate docs" && git push; }
+          # with a check that detects whether there's anything staged.
+          git diff-index --cached --quiet HEAD || { git commit -m "Generate docs" && git push; }
 
       - name: Update zeek-docs Submodule
         if: github.event_name == 'schedule'
@@ -125,7 +125,7 @@ jobs:
           git add doc
           git status
           # Similar logic here: proceed only if there's a change in the submodule.
-          git diff-index --quiet HEAD || { git commit -m 'Update doc submodule [nomail] [skip ci]' && git push; }
+          git diff-index --cached --quiet HEAD || { git commit -m 'Update doc submodule [nomail] [skip ci]' && git push; }
 
       - name: Send email
         # Only send notifications for scheduled runs. Runs from pull requests

@@ -87,6 +87,132 @@ protected:
     ZOp op2;
 };
 
+enum ArgType {
+    VV = 0x0,
+    VC = 0x1,
+    CV = 0x2,
+    CC = 0x3,
+
+    VVV = 0x0,
+    VVC = 0x1,
+    VCV = 0x2,
+    VCC = 0x3,
+    CVV = 0x4,
+    CVC = 0x5,
+    CCV = 0x6,
+    CCC = 0x7,
+};
+
+struct ArgInfo {
+    ZOp op;
+    ZAMOpType op_type;
+};
+
+using BifArgsInfo = std::map<ArgType, ArgInfo>;
+
+class MultiArgBuiltIn : public ZAMBuiltIn {
+public:
+    MultiArgBuiltIn(bool _return_val_matters, BifArgsInfo _args_info, std::vector<TypeTag> _const_types)
+        : ZAMBuiltIn(), args_info(std::move(_args_info)), const_types(std::move(_const_types)) {
+        return_val_matters = _return_val_matters;
+    }
+
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
+        ASSERT(args.size() == const_types.size());
+
+        auto consts = ConstArgsMask(args);
+        auto bif_arg_info = args_info.find(consts);
+        if ( bif_arg_info == args_info.end() )
+            return false;
+
+        std::vector<int> v;
+        auto c = args[0]->Tag() == EXPR_CONST ? args[0]->AsConstExpr() : nullptr;
+
+        for ( auto i = 0U; i < args.size(); ++i ) {
+            auto a = args[i];
+
+            if ( a->Tag() == EXPR_NAME )
+                v.push_back(zam->FrameSlot(a->AsNameExpr()));
+            else if ( i == 0 && c )
+                v.push_back(0);
+            else {
+                ASSERT(i < const_types.size());
+                auto t = const_types[i];
+                ASSERT(t == TYPE_INT || t == TYPE_COUNT);
+
+                int slot_val;
+                if ( t == TYPE_INT )
+                    slot_val = a->AsConstExpr()->Value()->AsInt();
+                else
+                    slot_val = static_cast<int>(a->AsConstExpr()->Value()->AsCount());
+                v.push_back(slot_val);
+            }
+        }
+
+        auto nslot = n ? zam->Frame1Slot(n, OP1_WRITE) : -1;
+
+        ZInstI z;
+        const auto& bi = bif_arg_info->second;
+        auto op = bi.op;
+
+        if ( args.size() == 3 ) {
+            switch ( consts ) {
+                case VVV:
+                case VVC:
+                case VCC: break;
+
+                case VCV: std::swap(v[2], v[1]); break;
+
+                case CCV:
+                    std::swap(v[2], v[1]);
+                    // fall through
+                case CVV:
+                case CVC:
+                case CCC: v.erase(v.begin()); break;
+            }
+
+            if ( n ) {
+                if ( c )
+                    z = ZInstI(op, nslot, v[0], v[1], c);
+                else
+                    z = ZInstI(op, nslot, v[0], v[1], v[2]);
+            }
+            else {
+                if ( c )
+                    z = ZInstI(op, v[0], v[1], c);
+                else
+                    z = ZInstI(op, v[0], v[1], v[2]);
+            }
+        }
+
+        z.op_type = bi.op_type;
+
+        zam->AddInst(z);
+
+        return true;
+    }
+
+private:
+    // Returns a bit mask of which of the arguments in the given list
+    // correspond to constants, with the high-ordered bit being the first
+    // argument (argument "0" in the list) and the low-ordered bit being
+    // the last. These correspond to the ArgType enum integer values.
+    ArgType ConstArgsMask(const ExprPList& args) const {
+        zeek_uint_t mask = 0;
+
+        for ( int i = 0; i < args.size(); ++i ) {
+            mask <<= 1;
+            if ( args[i]->Tag() == EXPR_CONST )
+                mask |= 1;
+        }
+
+        return ArgType(mask);
+    }
+
+    BifArgsInfo args_info;
+    std::vector<TypeTag> const_types;
+};
+
 class SortBiF : public DirectBuiltIn {
 public:
     SortBiF() : DirectBuiltIn(OP_SORT_V, 1, false) {}
@@ -322,6 +448,13 @@ public:
     }
 };
 
+class SetConnBytesThreshBiF : public ZAMBuiltIn {
+public:
+    SetConnBytesThreshBiF() : ZAMBuiltIn() {}
+
+    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override { return true; }
+};
+
 class StrStrBiF : public ZAMBuiltIn {
 public:
     StrStrBiF() : ZAMBuiltIn() {}
@@ -350,99 +483,6 @@ public:
     }
 };
 
-class SubBytesBiF : public ZAMBuiltIn {
-public:
-    SubBytesBiF() : ZAMBuiltIn() {}
-
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
-        auto nslot = zam->Frame1Slot(n, OP1_WRITE);
-        auto arg_s = args[0];
-        auto arg_start = args[1];
-        auto arg_n = args[2];
-
-        int v2 = arg_s->Tag() == EXPR_NAME ? zam->FrameSlot(arg_s->AsNameExpr()) : -1;
-        int v3 = zam->ConvertToCount(arg_start);
-        int v4 = zam->ConvertToInt(arg_n);
-
-        auto c = arg_s->Tag() == EXPR_CONST ? arg_s->AsConstExpr() : nullptr;
-
-        ZInstI z;
-
-        switch ( ConstArgsMask(args, 3) ) {
-            case 0x0: // all variable
-                z = ZInstI(OP_SUB_BYTES_VVVV, nslot, v2, v3, v4);
-                z.op_type = OP_VVVV;
-                break;
-
-            case 0x1: // last argument a constant
-                z = ZInstI(OP_SUB_BYTES_VVVi, nslot, v2, v3, v4);
-                z.op_type = OP_VVVV_I4;
-                break;
-
-            case 0x2: // 2nd argument a constant; flip!
-                z = ZInstI(OP_SUB_BYTES_VViV, nslot, v2, v4, v3);
-                z.op_type = OP_VVVV_I4;
-                break;
-
-            case 0x3: // both 2nd and third are constants
-                z = ZInstI(OP_SUB_BYTES_VVii, nslot, v2, v3, v4);
-                z.op_type = OP_VVVV_I3_I4;
-                break;
-
-            case 0x4: // first argument a constant
-                ASSERT(c);
-                z = ZInstI(OP_SUB_BYTES_VVVC, nslot, v3, v4, c);
-                z.op_type = OP_VVVC;
-                break;
-
-            case 0x5: // first and third constant
-                ASSERT(c);
-                z = ZInstI(OP_SUB_BYTES_VViC, nslot, v3, v4, c);
-                z.op_type = OP_VVVC_I3;
-                break;
-
-            case 0x6: // first and second constant - flip!
-                ASSERT(c);
-                z = ZInstI(OP_SUB_BYTES_ViVC, nslot, v4, v3, c);
-                z.op_type = OP_VVVC_I3;
-                break;
-
-            case 0x7: // whole shebang
-                ASSERT(c);
-                z = ZInstI(OP_SUB_BYTES_ViiC, nslot, v3, v4, c);
-                z.op_type = OP_VVVC_I2_I3;
-                break;
-
-            default: reporter->InternalError("bad constant mask");
-        }
-
-        zam->AddInst(z);
-
-        return true;
-    }
-
-private:
-    // A bit weird, but handy for switch statements used in built-in
-    // operations: returns a bit mask of which of the arguments in the
-    // given list correspond to constants, with the high-ordered bit
-    // being the first argument (argument "0" in the list) and the
-    // low-ordered bit being the last.  Second parameter is the number
-    // of arguments that should be present.
-    zeek_uint_t ConstArgsMask(const ExprPList& args, int nargs) const {
-        ASSERT(args.length() == nargs);
-
-        zeek_uint_t mask = 0;
-
-        for ( int i = 0; i < nargs; ++i ) {
-            mask <<= 1;
-            if ( args[i]->Tag() == EXPR_CONST )
-                mask |= 1;
-        }
-
-        return mask;
-    }
-};
-
 bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     // The expression e is either directly a call (in which case there's
     // no return value), or an assignment to a call.
@@ -467,6 +507,26 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     if ( func->GetKind() != BuiltinFunc::BUILTIN_FUNC )
         return false;
 
+    static auto sub_bytes_consts = std::vector<TypeTag>{TYPE_STRING, TYPE_COUNT, TYPE_INT};
+
+    static BifArgsInfo sub_bytes_info;
+
+    static bool did_init = false;
+    if ( ! did_init ) {
+        // We initialize these explicitly rather than with initializer
+        // lists just because the latter gets hard to read.
+        sub_bytes_info[VVV] = {OP_SUB_BYTES_VVVV, OP_VVVV};
+        sub_bytes_info[VVC] = {OP_SUB_BYTES_VVVi, OP_VVVV_I4};
+        sub_bytes_info[VCV] = {OP_SUB_BYTES_VViV, OP_VVVV_I4};
+        sub_bytes_info[VCC] = {OP_SUB_BYTES_VVii, OP_VVVV_I3_I4};
+        sub_bytes_info[CVV] = {OP_SUB_BYTES_VVVC, OP_VVVC};
+        sub_bytes_info[CVC] = {OP_SUB_BYTES_VViC, OP_VVVC_I3};
+        sub_bytes_info[CCV] = {OP_SUB_BYTES_ViVC, OP_VVVC_I3};
+        sub_bytes_info[CCC] = {OP_SUB_BYTES_ViiC, OP_VVVC_I2_I3};
+
+        did_init = true;
+    }
+
     static std::map<std::string, std::shared_ptr<ZAMBuiltIn>> builtins = {
         {"Analyzer::__name", std::make_shared<DirectBuiltIn>(OP_ANALYZER_NAME_VV, 1)},
         {"Broker::__flush_logs",
@@ -482,9 +542,10 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"network_time", std::make_shared<DirectBuiltIn>(OP_NETWORK_TIME_V, 0)},
         {"reading_live_traffic", std::make_shared<DirectBuiltIn>(OP_READING_LIVE_TRAFFIC_V, 0)},
         {"reading_traces", std::make_shared<DirectBuiltIn>(OP_READING_TRACES_V, 0)},
+        {"set_current_conn_bytes_threshold", std::make_shared<SetConnBytesThreshBiF>()},
         {"sort", std::make_shared<SortBiF>()},
         {"strstr", std::make_shared<StrStrBiF>()},
-        {"sub_bytes", std::make_shared<SubBytesBiF>()},
+        {"sub_bytes", std::make_shared<MultiArgBuiltIn>(true, sub_bytes_info, sub_bytes_consts)},
         {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
     };
 

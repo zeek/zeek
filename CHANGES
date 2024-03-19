@@ -1,3 +1,11 @@
+7.0.0-dev.80 | 2024-03-19 10:59:22 -0700
+
+  * Remove variant from StdFunctionStmt (Tim Wojtulewicz, Corelight)
+
+    The variant ended up conflicting with std::bind, which resulted in failures
+    on the btest invoking it. Change back to a single function that takes a
+    flow, and default it to a value in Exec.
+
 7.0.0-dev.78 | 2024-03-18 16:37:46 -0700
 
   * Add a method to register an event handler to a std::function via C++ (Tim Wojtulewicz, Corelight)

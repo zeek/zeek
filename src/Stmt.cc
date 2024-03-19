@@ -2087,12 +2087,9 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const {
 ValPtr StdFunctionStmt::Exec(Frame* f, StmtFlowType& flow) {
     zeek::Args args = *f->GetFuncArgs();
 
-    if ( func.index() == 0 ) {
-        flow = FLOW_NEXT;
-        std::get<0>(func)(args);
-    }
-    else
-        std::get<1>(func)(args, flow);
+    // Set this to NEXT by default. The function can override that if it wants.
+    flow = FLOW_NEXT;
+    func(args, flow);
 
     return nullptr;
 }

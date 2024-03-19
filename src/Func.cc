@@ -129,7 +129,7 @@ void Func::AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_
 void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
                    int priority) {
     std::set<EventGroupPtr> groups;
-    AddBody(new_body, new_inits, new_frame_size, priority, groups);
+    AddBody(std::move(new_body), new_inits, new_frame_size, priority, groups);
 }
 
 void Func::AddBody(detail::StmtPtr new_body, size_t new_frame_size) {
@@ -143,7 +143,7 @@ void Func::AddBody(detail::StmtPtr /* new_body */, const std::vector<detail::IDP
     Internal("Func::AddBody called");
 }
 
-void Func::AddBody(detail::StdFunctionStmt::FunctionVariant body, int priority) {
+void Func::AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)> body, int priority) {
     auto stmt = zeek::make_intrusive<detail::StdFunctionStmt>(std::move(body));
     AddBody(stmt, {}, priority);
 }

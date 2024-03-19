@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "Stmt.h"
 #include "analyzer/protocol/pia/PIA.h"
 #include "analyzer/protocol/tcp/TCP.h"
 
@@ -23,7 +24,7 @@ public:
     virtual void EndpointEOF(bool is_orig);
 
     static zeek::analyzer::Analyzer* Instantiate(zeek::Connection* conn) { return new Foo(conn); }
-    void ConnectionEstablishedHandler(const zeek::Args& args);
+    void ConnectionEstablishedHandler(const zeek::Args& args, zeek::detail::StmtFlowType& flow);
 
 protected:
     binpac::Foo::Foo_Conn* interp;

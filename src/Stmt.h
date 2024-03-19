@@ -784,9 +784,8 @@ protected:
 // to directly all a C++ method.
 class StdFunctionStmt : public Stmt {
 public:
-    using FunctionVariant =
-        std::variant<std::function<void(const zeek::Args&)>, std::function<void(const zeek::Args&, StmtFlowType&)>>;
-    StdFunctionStmt(FunctionVariant f) : Stmt(STMT_STD_FUNCTION), func(std::move(f)) {}
+    StdFunctionStmt(std::function<void(const zeek::Args&, StmtFlowType&)> f)
+        : Stmt(STMT_STD_FUNCTION), func(std::move(f)) {}
 
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
@@ -798,7 +797,7 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
 
 private:
-    FunctionVariant func;
+    std::function<void(const zeek::Args&, StmtFlowType&)> func;
 };
 
 } // namespace zeek::detail

@@ -15,17 +15,17 @@ Foo::Foo(zeek::Connection* conn) : zeek::analyzer::tcp::TCP_ApplicationAnalyzer(
 
     auto handler = zeek::event_registry->Lookup("connection_established");
     if ( handler ) {
-        handler->GetFunc()->AddBody([](const zeek::Args& args) {
+        handler->GetFunc()->AddBody([](const zeek::Args& args, zeek::detail::StmtFlowType& flow) {
             printf("c++ connection_established lambda handler, received %zu arguments\n", args.size());
         });
 
-        handler->GetFunc()->AddBody(std::bind(&Foo::ConnectionEstablishedHandler, this, _1));
+        handler->GetFunc()->AddBody(std::bind(&Foo::ConnectionEstablishedHandler, this, _1, _2));
     }
 }
 
 Foo::~Foo() { delete interp; }
 
-void Foo::ConnectionEstablishedHandler(const zeek::Args& args) {
+void Foo::ConnectionEstablishedHandler(const zeek::Args& args, zeek::detail::StmtFlowType& flow) {
     printf("c++ connection_established member handler, received %zu arguments\n", args.size());
 }
 

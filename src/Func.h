@@ -114,7 +114,7 @@ public:
     void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
                  int priority = 0);
     void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
-    void AddBody(detail::StdFunctionStmt::FunctionVariant body, int priority = 0);
+    void AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)> body, int priority = 0);
 
     virtual void SetScope(detail::ScopePtr newscope);
     virtual detail::ScopePtr GetScope() const { return scope; }

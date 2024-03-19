@@ -18,7 +18,7 @@ public:
     // No constructor needed, as all of our member variables are
     // instead instantiated via BeginLoop().  This allows us to
     // reuse TableIterInfo objects to lower the overhead associated
-    // with executing ZBody::DoExec for non-recursive functions.
+    // with executing ZBody::Exec for non-recursive functions.
 
     // We do, however, want to make sure that when we go out of scope,
     // if we have any pending iterators we clear them.

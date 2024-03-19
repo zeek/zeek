@@ -5,4 +5,4 @@ my_test
 print I shouldn't be ZAM code!;
 }
 set_to_regex
-ZAM-code set_to_regex 
+ZAM-code set_to_regex

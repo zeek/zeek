@@ -17,6 +17,7 @@
 #include "zeek/script_opt/UsageAnalyzer.h"
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/Compile.h"
+#include "zeek/script_opt/ZAM/Profile.h"
 
 namespace zeek::detail {
 
@@ -310,6 +311,22 @@ static void init_options() {
             add_file_analysis_pattern(analysis_options, zo);
     }
 
+    if ( analysis_options.profile_ZAM ) {
+        auto zsamp = getenv("ZEEK_ZAM_PROF_SAMPLING_RATE");
+        if ( zsamp ) {
+            analysis_options.profile_sampling_rate = atoi(zsamp);
+            if ( analysis_options.profile_sampling_rate == 0 ) {
+                fprintf(stderr, "bad ZAM sampling profile rate from $ZEEK_ZAM_PROF_SAMPLING_RATE: %s\n", zsamp);
+                analysis_options.profile_ZAM = false;
+            }
+        }
+
+        // If no ZAM generation options have been specified, default to
+        // the usual "-O ZAM" profile. But if they have, honor those.
+        if ( ! analysis_options.gen_ZAM_code )
+            analysis_options.gen_ZAM = true;
+    }
+
     if ( analysis_options.gen_ZAM ) {
         analysis_options.gen_ZAM_code = true;
         analysis_options.inliner = true;
@@ -436,6 +453,19 @@ static void analyze_scripts_for_ZAM() {
     }
 
     auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
+
+    if ( analysis_options.profile_ZAM ) {
+#ifdef ENABLE_ZAM_PROFILE
+        AST_blocks = std::make_unique<ASTBlockAnalyzer>(funcs);
+        const auto prof_filename = "zprof.out";
+        analysis_options.profile_file = fopen(prof_filename, "w");
+        if ( ! analysis_options.profile_file )
+            reporter->FatalError("cannot create ZAM profiling log %s", prof_filename);
+#else
+        fprintf(stderr, "warning: zeek was not built with --enable-ZAM-profiling\n");
+        analysis_options.profile_ZAM = false;
+#endif
+    }
 
     bool report_recursive = analysis_options.report_recursive;
     std::unique_ptr<Inliner> inl;
@@ -599,10 +629,19 @@ void profile_script_execution() {
     if ( analysis_options.profile_ZAM ) {
         report_ZOP_profile();
 
+        ProfMap module_prof;
+
         for ( auto& f : funcs ) {
-            if ( f.Body()->Tag() == STMT_ZAM )
-                cast_intrusive<ZBody>(f.Body())->ProfileExecution();
+            if ( f.Body()->Tag() == STMT_ZAM ) {
+                auto zb = cast_intrusive<ZBody>(f.Body());
+                zb->ReportExecutionProfile(module_prof);
+            }
         }
+
+        for ( auto& mp : module_prof )
+            if ( mp.second.num_samples > 0 )
+                fprintf(analysis_options.profile_file, "module %s sampled CPU time %.06f, %d sampled instructions\n",
+                        mp.first.c_str(), mp.second.CPU_time, static_cast<int>(mp.second.num_samples));
     }
 }
 

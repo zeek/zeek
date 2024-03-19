@@ -609,4 +609,102 @@ protected:
     bool full_record_hashes;
 };
 
+// Updates the line numbers associated with an AST node to reflect its
+// full block (i.e., correct "first" and "last" for multi-line and compound
+// statements).
+class SetBlockLineNumbers : public TraversalCallback {
+public:
+    // Note, these modify the location information of their "const" arguments.
+    // It would be cleaner if Obj provided an interface for doing so (by making
+    // SetLocationInfo be a "const" method), but unfortunately it's virtual
+    // (unclear why) so we don't know how it might be overridden in user code.
+    TraversalCode PreStmt(const Stmt*) override;
+    TraversalCode PostStmt(const Stmt*) override;
+    TraversalCode PreExpr(const Expr*) override;
+
+private:
+    void UpdateLocInfo(Location* loc);
+
+    // A stack of block ranges. Each entry in the vector corresponds to a
+    // statement block, managed in a LIFO manner reflecting statement nesting.
+    // We start building up a given block's range during pre-traversal and
+    // finish it during post-traversal, propagating the updates to the
+    // nesting parent.
+    std::vector<std::pair<int, int>> block_line_range;
+};
+
+// Goes through all of the functions to associate full location information
+// with each AST node.
+class ASTBlockAnalyzer : public TraversalCallback {
+public:
+    ASTBlockAnalyzer(std::vector<FuncInfo>& funcs);
+
+    TraversalCode PreStmt(const Stmt*) override;
+    TraversalCode PostStmt(const Stmt*) override;
+    TraversalCode PreExpr(const Expr*) override;
+
+    // For a given location, returns its full local description (not
+    // including its parent).
+    std::string GetDesc(const Location* loc) const {
+        auto e_d = exp_desc.find(LocKey(loc));
+        if ( e_d == exp_desc.end() )
+            return LocWithFunc(loc);
+        else
+            return e_d->second;
+    }
+
+    // Whether we've created a description for the given location. This
+    // should always be true other than for certain functions with empty
+    // bodies that are created post-parsing. Available for debugging so
+    // we can assert we have these.
+    bool HaveExpDesc(const Location* loc) const { return exp_desc.count(LocKey(loc)) > 0; }
+
+private:
+    // Construct the full expanded description associated with the given
+    // location (if not already cached) and return it. This is the "static"
+    // view; if we reach the location via a non-inlined call, we will
+    // prepend that expansion when reporting the corresponding profile.
+    std::string BuildExpandedDescription(const Location* loc);
+
+    // Return the key used to associate a Location object with its full
+    // descriptiion.
+    std::string LocKey(const Location* loc) const {
+        return std::string(loc->filename) + ":" + std::to_string(loc->first_line) + "-" +
+               std::to_string(loc->last_line);
+    }
+
+    // Return the description of a location including its the function
+    // in which it's embedded.
+    std::string LocWithFunc(const Location* loc) const {
+        auto res = func_name_prefix + std::to_string(loc->first_line);
+
+        if ( loc->first_line != loc->last_line )
+            res += "-" + std::to_string(loc->last_line);
+
+        return res;
+    }
+
+    // The function whose body we are analyzing, in a form convenient
+    // for adding it as a prefix (i.e., with a trailing ':').
+    std::string func_name_prefix;
+
+    // Stack of expanded descriptions of parent blocks. Each entry is
+    // a pair of the parent's own description plus the full descriptor
+    // up to that point.
+    std::vector<std::pair<std::string, std::string>> parents;
+
+    // Maps a statement's location key to its expanded description.
+    std::unordered_map<std::string, std::string> exp_desc;
+};
+
+// If we're profiling, this provides the analysis of how low-level location
+// information relates to higher-level statement blocks.
+extern std::unique_ptr<ASTBlockAnalyzer> AST_blocks;
+
+// Returns the full name of a function at a given location, including its
+// associated module (even for event handlers that don't actually have
+// modules in their names), so we can track overall per-module resource
+// usage.
+extern std::string func_name_at_loc(std::string fname, const Location* loc);
+
 } // namespace zeek::detail

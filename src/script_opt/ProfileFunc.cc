@@ -1401,4 +1401,152 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     return seo;
 }
 
+// We associate modules with filenames, and take the first one we see.
+static std::unordered_map<std::string, std::string> filename_module;
+
+void switch_to_module(const char* module_name) {
+    auto loc = GetCurrentLocation();
+    if ( loc.first_line != 0 && filename_module.count(loc.filename) == 0 )
+        filename_module[loc.filename] = module_name;
+}
+
+std::string func_name_at_loc(std::string fname, const Location* loc) {
+    auto find_module = filename_module.find(loc->filename);
+    if ( find_module == filename_module.end() )
+        // No associated module.
+        return fname;
+
+    auto& module = find_module->second;
+    if ( module.empty() || module == "GLOBAL" )
+        // Trivial associated module.
+        return fname;
+
+    auto mod_prefix = module + "::";
+
+    if ( fname.find(mod_prefix) == 0 )
+        return fname; // it already has the module name
+
+    return mod_prefix + fname;
+}
+
+TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {
+    auto loc = const_cast<Location*>(s->GetLocationInfo());
+    UpdateLocInfo(loc);
+    block_line_range.emplace_back(std::pair<int, int>{loc->first_line, loc->last_line});
+    return TC_CONTINUE;
+}
+
+TraversalCode SetBlockLineNumbers::PostStmt(const Stmt* s) {
+    auto loc = const_cast<Location*>(s->GetLocationInfo());
+    auto& r = block_line_range.back();
+    loc->first_line = r.first;
+    loc->last_line = r.second;
+
+    block_line_range.pop_back();
+
+    if ( ! block_line_range.empty() ) {
+        // We may have widened our range, propagate that to our parent.
+        auto& r_p = block_line_range.back();
+        r_p.first = std::min(r_p.first, r.first);
+        r_p.second = std::max(r_p.second, r.second);
+    }
+
+    return TC_CONTINUE;
+}
+
+TraversalCode SetBlockLineNumbers::PreExpr(const Expr* e) {
+    ASSERT(! block_line_range.empty());
+    UpdateLocInfo(const_cast<Location*>(e->GetLocationInfo()));
+    return TC_CONTINUE;
+}
+
+void SetBlockLineNumbers::UpdateLocInfo(Location* loc) {
+    // Sometimes locations are generated with inverted line coverage.
+    if ( loc->first_line > loc->last_line )
+        std::swap(loc->first_line, loc->last_line);
+
+    auto first_line = loc->first_line;
+    auto last_line = loc->last_line;
+
+    if ( ! block_line_range.empty() ) {
+        auto& r = block_line_range.back();
+        r.first = std::min(r.first, first_line);
+        r.second = std::max(r.second, last_line);
+    }
+}
+
+ASTBlockAnalyzer::ASTBlockAnalyzer(std::vector<FuncInfo>& funcs) {
+    for ( auto& f : funcs ) {
+        if ( ! f.ShouldAnalyze() )
+            continue;
+
+        auto func = f.Func();
+        std::string fn = func->Name();
+        auto body = f.Body();
+
+        // First get the line numbers all sorted out.
+        SetBlockLineNumbers sbln;
+        body->Traverse(&sbln);
+
+        auto body_loc = body->GetLocationInfo();
+        fn = func_name_at_loc(fn, body_loc);
+
+        parents.emplace_back(std::pair<std::string, std::string>{fn, fn});
+        func_name_prefix = fn + ":";
+        body->Traverse(this);
+        parents.pop_back();
+    }
+
+    // This should never appear!
+    func_name_prefix = "<MISSING>:";
+}
+
+static bool is_compound_stmt(const Stmt* s) {
+    static std::set<StmtTag> compound_stmts = {STMT_FOR, STMT_IF, STMT_LIST, STMT_SWITCH, STMT_WHEN, STMT_WHILE};
+    return compound_stmts.count(s->Tag()) > 0;
+}
+
+TraversalCode ASTBlockAnalyzer::PreStmt(const Stmt* s) {
+    auto loc = s->GetLocationInfo();
+    auto ls = BuildExpandedDescription(loc);
+
+    if ( is_compound_stmt(s) )
+        parents.push_back(std::pair<std::string, std::string>{LocWithFunc(loc), std::move(ls)});
+
+    return TC_CONTINUE;
+}
+
+TraversalCode ASTBlockAnalyzer::PostStmt(const Stmt* s) {
+    if ( is_compound_stmt(s) )
+        parents.pop_back();
+
+    return TC_CONTINUE;
+}
+
+TraversalCode ASTBlockAnalyzer::PreExpr(const Expr* e) {
+    (void)BuildExpandedDescription(e->GetLocationInfo());
+    return TC_CONTINUE;
+}
+
+std::string ASTBlockAnalyzer::BuildExpandedDescription(const Location* loc) {
+    ASSERT(loc && loc->first_line != 0);
+
+    auto ls = LocWithFunc(loc);
+    if ( ! parents.empty() ) {
+        auto& parent_pair = parents.back();
+        if ( parent_pair.first == ls )
+            ls = parent_pair.second;
+        else
+            ls = parent_pair.second + ";" + ls;
+    }
+
+    auto lk = LocKey(loc);
+    if ( exp_desc.count(lk) == 0 )
+        exp_desc[lk] = ls;
+
+    return ls;
+}
+
+std::unique_ptr<ASTBlockAnalyzer> AST_blocks;
+
 } // namespace zeek::detail

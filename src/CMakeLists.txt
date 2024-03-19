@@ -424,6 +424,7 @@ set(MAIN_SRCS
     script_opt/ZAM/Expr.cc
     script_opt/ZAM/Inst-Gen.cc
     script_opt/ZAM/Low-Level.cc
+    script_opt/ZAM/Profile.cc
     script_opt/ZAM/Stmt.cc
     script_opt/ZAM/Support.cc
     script_opt/ZAM/Vars.cc

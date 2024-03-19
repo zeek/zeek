@@ -1,3 +1,27 @@
+7.0.0-dev.92 | 2024-03-19 14:39:26 -0700
+
+  * ZAM documentation updated to reflect finer-grained profiling (Vern Paxson, Corelight)
+
+  * ZAM-specific BTest baseline changes for tweak to how ZAM bodies print (Vern Paxson, Corelight)
+
+  * BTest baseline changes for tweak to how ZAM bodies print (Vern Paxson, Corelight)
+
+  * ZAM execution changes to support richer profiling (Vern Paxson, Corelight)
+
+  * use richer block-aware location information for ZAM instructions (Vern Paxson, Corelight)
+
+  * better isolation of ZAM instruction elements (Vern Paxson, Corelight)
+    hooks for tracking extended ZAM profiling location
+
+  * framework for --enable-ZAM-profiling configuration (Vern Paxson, Corelight)
+    profiles go to zprof.log rather than stdout
+
+  * ZAM classes in support of finer-grained profiling (Vern Paxson, Corelight)
+
+  * refined ZAM function profiling to include (correct) statement line number blocks (Vern Paxson, Corelight)
+
+  * avoid potentially expensive mallinfo() call if result won't be used (Vern Paxson, Corelight)
+
 7.0.0-dev.80 | 2024-03-19 10:59:22 -0700
 
   * Remove variant from StdFunctionStmt (Tim Wojtulewicz, Corelight)

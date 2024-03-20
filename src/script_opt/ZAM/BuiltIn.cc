@@ -543,6 +543,8 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"network_time", std::make_shared<DirectBuiltIn>(OP_NETWORK_TIME_V, 0)},
         {"reading_live_traffic", std::make_shared<DirectBuiltIn>(OP_READING_LIVE_TRAFFIC_V, 0)},
         {"reading_traces", std::make_shared<DirectBuiltIn>(OP_READING_TRACES_V, 0)},
+        {"PacketAnalyzer::GTPV1::remove_gtpv1_connection", std::make_shared<DirectBuiltIn>(OP_REMOVE_GTPV1_VV, 1)},
+        {"PacketAnalyzer::TEREDO::remove_teredo_connection", std::make_shared<DirectBuiltIn>(OP_REMOVE_TEREDO_VV, 1)},
         {"set_current_conn_bytes_threshold",
          std::make_shared<MultiArgBuiltIn>(set_bytes_thresh_info, set_bytes_thresh_assign_info)},
         {"sort", std::make_shared<SortBiF>()},

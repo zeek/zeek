@@ -2340,6 +2340,24 @@ macro EvalSubBytes(arg1, arg2, arg3)
 	frame[z.v1].string_val = sv;
 	}
 
+internal-op Remove-Teredo
+type VV
+eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
+        if ( teredo )
+                {
+                zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
+                static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+                }
+
+internal-op Remove-GTPv1
+type VV
+eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
+        if ( gtpv1 )
+                {
+                zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
+                static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
+                }
+
 internal-op Subnet-To-Addr
 type VV
 eval	Unref(frame[z.v1].addr_val);

@@ -47,4 +47,7 @@ protected:
     double duration_thresh;
 };
 
+// Exposed to make it available to script optimization.
+extern zeek::analyzer::Analyzer* GetConnsizeAnalyzer(zeek::Val* cid);
+
 } // namespace zeek::analyzer::conn_size

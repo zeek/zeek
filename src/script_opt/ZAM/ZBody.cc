@@ -8,6 +8,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
+#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 

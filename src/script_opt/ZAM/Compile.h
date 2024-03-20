@@ -91,9 +91,7 @@ private:
 
     friend class SortBiF;
     friend class CatBiF;
-    friend class FilesSetReassemBiF;
     friend class LogWriteBiF;
-    friend class StrStrBiF;
 
     void Init();
     void InitGlobals();

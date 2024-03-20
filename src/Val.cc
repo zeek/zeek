@@ -534,11 +534,6 @@ void IntervalVal::ValDescribe(ODesc* d) const {
     bool did_one = false;
     constexpr auto last_idx = units.size() - 1;
 
-    auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool {
-        auto v = a - b;
-        return v < 0 ? -v < tolerance : v < tolerance;
-    };
-
     for ( size_t i = 0; i < units.size(); ++i ) {
         auto unit = units[i].first;
         auto word = units[i].second;
@@ -547,7 +542,7 @@ void IntervalVal::ValDescribe(ODesc* d) const {
         if ( i == last_idx ) {
             to_print = v / unit;
 
-            if ( approx_equal(to_print, 0) ) {
+            if ( util::approx_equal(to_print, 0, 1e-6) ) {
                 if ( ! did_one )
                     d->Add("0 secs");
 
@@ -571,7 +566,7 @@ void IntervalVal::ValDescribe(ODesc* d) const {
         d->SP();
         d->Add(word);
 
-        if ( ! approx_equal(to_print, 1) && ! approx_equal(to_print, -1) )
+        if ( ! util::approx_equal(to_print, 1, 1e-6) && ! util::approx_equal(to_print, -1, 1e-6) )
             d->Add("s");
 
         did_one = true;

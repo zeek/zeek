@@ -2550,6 +2550,32 @@ TEST_CASE("util split") {
     }
 }
 
+TEST_CASE("util approx_equal") {
+    CHECK(approx_equal(47.0, 47.0) == true);
+    CHECK(approx_equal(47.0, -47.0) == false);
+    CHECK(approx_equal(47.00001, 47.00002) == false);
+    CHECK(approx_equal(47.00001, 47.00002, 1e-5) == true);
+    CHECK(approx_equal(47.0, -47.0, 1e2) == true);
+    CHECK(approx_equal(47.0, -47.0, 94 + 1e-10) == true);
+    CHECK(approx_equal(47.0, -47.0, 94) == false);
+
+    constexpr auto inf = std::numeric_limits<double>::infinity();
+    CHECK_FALSE(approx_equal(inf, inf));
+    CHECK_FALSE(approx_equal(-inf, inf));
+    CHECK_FALSE(approx_equal(inf, -inf));
+    CHECK_FALSE(approx_equal(inf, inf, inf));
+
+    constexpr auto qnan = std::numeric_limits<double>::quiet_NaN(); // There's also `signaling_NaN`.
+    CHECK_FALSE(approx_equal(qnan, qnan));
+    CHECK_FALSE(approx_equal(-qnan, qnan));
+    CHECK_FALSE(approx_equal(qnan, -qnan));
+}
+
+/**
+ * Returns whether two double values are approximately equal within some tolerance value.
+ */
+bool approx_equal(double a, double b, double tolerance) { return std::abs(a - b) < std::abs(tolerance); }
+
 } // namespace zeek::util
 
 extern "C" void out_of_memory(const char* where) {

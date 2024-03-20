@@ -9,6 +9,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/file_analysis/file_analysis.bif.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 #include "zeek/session/Manager.h"

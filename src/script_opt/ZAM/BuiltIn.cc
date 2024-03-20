@@ -475,6 +475,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     if ( func->GetKind() != BuiltinFunc::BUILTIN_FUNC )
         return false;
 
+    static BifArgsInfo files_add_analyzer_info, files_add_analyzer_assign_info;
     static BifArgsInfo get_bytes_thresh_info;
     static BifArgsInfo sub_bytes_info;
     static BifArgsInfo set_bytes_thresh_info, set_bytes_thresh_assign_info;
@@ -483,6 +484,12 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
 
     static bool did_init = false;
     if ( ! did_init ) {
+        files_add_analyzer_info[VVV] = {OP_FILES_ADD_ANALYZER_VVV, OP_VVV};
+        files_add_analyzer_info[VCV] = {OP_FILES_ADD_ANALYZER_ViV, OP_VVC};
+
+        files_add_analyzer_assign_info[VVV] = {OP_FILES_ADD_ANALYZER_VVVV, OP_VVVV};
+        files_add_analyzer_assign_info[VCV] = {OP_FILES_ADD_ANALYZER_VViV, OP_VVVC};
+
         get_bytes_thresh_info[VV] = {OP_GET_BYTES_THRESH_VVV, OP_VVV};
         get_bytes_thresh_info[VC] = {OP_GET_BYTES_THRESH_VVi, OP_VVC};
 
@@ -520,6 +527,8 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Analyzer::__name", std::make_shared<DirectBuiltIn>(OP_ANALYZER_NAME_VV, 1)},
         {"Broker::__flush_logs",
          std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
+        {"Files::__add_analyzer",
+         std::make_shared<MultiArgBuiltIn>(files_add_analyzer_info, files_add_analyzer_assign_info)},
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
         {"Files::__set_reassembly_buffer",
          std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info)},

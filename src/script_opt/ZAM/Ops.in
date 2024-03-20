@@ -2703,6 +2703,38 @@ eval	auto atype = frame[z.v2].ToVal(z.t);
 	else
 		frame[z.v1].string_val = new StringVal("<error>");
 
+macro FilesAddAnalyzer(file_id_slot, tag, args_slot)
+	auto file_id = frame[z.file_id_slot].string_val;
+	using zeek::BifType::Record::Files::AnalyzerArgs;
+	IntVal tag_v(tag.int_val);
+	auto rv = frame[z.args_slot].record_val->CoerceTo(AnalyzerArgs);
+	bool result = zeek::file_mgr->AddAnalyzer(
+	     file_id->CheckString(),
+	     zeek::file_mgr->GetComponentTag(&tag_v),
+	     std::move(rv));
+
+internal-op Files-Add-Analyzer
+op1-read
+type VVV
+eval	FilesAddAnalyzer(v1, frame[z.v2], v3)
+
+internal-op Files-Add-Analyzer
+op1-read
+type ViV
+eval	FilesAddAnalyzer(v1, z.c, v3)
+
+internal-op Files-Add-Analyzer
+type VVVV
+side-effects OP_FILES_ADD_ANALYZER_VVV OP_VVV
+eval	FilesAddAnalyzer(v2, frame[z.v3], v4)
+	frame[z.v1].int_val = result;
+
+internal-op Files-Add-Analyzer
+type VViV
+side-effects OP_FILES_ADD_ANALYZER_ViV OP_VVC
+eval	FilesAddAnalyzer(v2, z.c, v4)
+	frame[z.v1].int_val = result;
+
 internal-op Files-Enable-Reassembly
 op1-read
 type V

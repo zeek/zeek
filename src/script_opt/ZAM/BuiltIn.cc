@@ -11,23 +11,24 @@ namespace zeek::detail {
 
 class ZAMBuiltIn {
 public:
+    ZAMBuiltIn(bool _ret_val_matters) : ret_val_matters(_ret_val_matters) {}
+
     virtual ~ZAMBuiltIn() = default;
 
-    bool ReturnValMatters() const { return return_val_matters; }
+    bool ReturnValMatters() const { return ret_val_matters; }
     bool HaveBothReturnValAndNon() const { return have_both; }
 
     virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const = 0;
 
 protected:
-    bool return_val_matters = true;
+    bool ret_val_matters = true;
     bool have_both = false;
 };
 
 class DirectBuiltIn : public ZAMBuiltIn {
 public:
-    DirectBuiltIn(ZOp _op, int _nargs, bool _return_val_matters = true) : ZAMBuiltIn(), op(_op), nargs(_nargs) {
-        return_val_matters = _return_val_matters;
-    }
+    DirectBuiltIn(ZOp _op, int _nargs, bool _ret_val_matters = true)
+        : ZAMBuiltIn(_ret_val_matters), op(_op), nargs(_nargs) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         ZInstI z;
@@ -87,7 +88,7 @@ protected:
     ZOp op2;
 };
 
-enum ArgType {
+enum ArgsType {
     VV = 0x0,
     VC = 0x1,
     CV = 0x2,
@@ -108,22 +109,14 @@ struct ArgInfo {
     ZAMOpType op_type;
 };
 
-using BifArgsInfo = std::map<ArgType, ArgInfo>;
+using BifArgsInfo = std::map<ArgsType, ArgInfo>;
 
 class MultiArgBuiltIn : public ZAMBuiltIn {
 public:
-    MultiArgBuiltIn(bool _return_val_matters, BifArgsInfo _args_info) : ZAMBuiltIn(), args_info(std::move(_args_info)) {
-        return_val_matters = _return_val_matters;
-    }
+    MultiArgBuiltIn(bool _ret_val_matters, BifArgsInfo _args_info)
+        : ZAMBuiltIn(_ret_val_matters), args_info(std::move(_args_info)) {}
 
-    MultiArgBuiltIn(bool _return_val_matters, BifArgsInfo _args_info, std::vector<TypeTag> _const_types)
-        : MultiArgBuiltIn(_return_val_matters, _args_info) {
-        const_types = std::move(_const_types);
-        return_val_matters = _return_val_matters;
-    }
-
-    MultiArgBuiltIn(BifArgsInfo _args_info, BifArgsInfo _assign_args_info, std::vector<TypeTag> _const_types)
-        : MultiArgBuiltIn(false, _args_info, _const_types) {
+    MultiArgBuiltIn(BifArgsInfo _args_info, BifArgsInfo _assign_args_info) : MultiArgBuiltIn(false, _args_info) {
         assign_args_info = std::move(_assign_args_info);
         have_both = true;
     }
@@ -135,91 +128,91 @@ public:
             ASSERT(! ai->empty());
         }
 
-        auto consts = ConstArgsMask(args);
-        auto bif_arg_info = ai->find(consts);
+        auto bif_arg_info = ai->find(ComputeArgsType(args));
         if ( bif_arg_info == ai->end() )
             return false;
 
         const auto& bi = bif_arg_info->second;
         auto op = bi.op;
 
-        ConstExpr* c = nullptr;
+        std::vector<ValPtr> consts;
         std::vector<int> v;
 
-        if ( const_types.empty() ) {
-            for ( auto i = 0U; i < args.size(); ++i ) {
-                auto a = args[i];
-                if ( a->Tag() == EXPR_NAME )
-                    v.push_back(zam->FrameSlot(a->AsNameExpr()));
-                else {
-                    ASSERT(! c);
-                    c = a->AsConstExpr();
-                }
-            }
-        }
-
-        else {
-            ASSERT(args.size() == const_types.size());
-
-            c = args[0]->Tag() == EXPR_CONST ? args[0]->AsConstExpr() : nullptr;
-
-            for ( auto i = 0U; i < args.size(); ++i ) {
-                auto a = args[i];
-
-                if ( a->Tag() == EXPR_NAME ) {
-                    v.push_back(zam->FrameSlot(a->AsNameExpr()));
-                    continue;
-                }
-                else if ( i == 0 && c )
-                    v.push_back(0);
-                else {
-                    auto t = const_types[i];
-                    ASSERT(t == TYPE_INT || t == TYPE_COUNT);
-                    int slot_val;
-                    if ( t == TYPE_INT )
-                        slot_val = a->AsConstExpr()->Value()->AsInt();
-                    else
-                        slot_val = static_cast<int>(a->AsConstExpr()->Value()->AsCount());
-                    v.push_back(slot_val);
-                }
-            }
+        for ( auto i = 0U; i < args.size(); ++i ) {
+            auto a = args[i];
+            if ( a->Tag() == EXPR_NAME )
+                v.push_back(zam->FrameSlot(a->AsNameExpr()));
+            else
+                consts.push_back(a->AsConstExpr()->ValuePtr());
         }
 
         auto nslot = n ? zam->Frame1Slot(n, OP1_WRITE) : -1;
 
         ZInstI z;
 
-        if ( args.size() == 3 ) {
-            switch ( consts ) {
-                case VVV:
-                case VVC:
-                case VCC: break;
-
-                case VCV: std::swap(v[2], v[1]); break;
-
-                case CCV:
-                    std::swap(v[2], v[1]);
-                    // fall through
-                case CVV:
-                case CVC:
-                case CCC: v.erase(v.begin()); break;
-            }
-
-            if ( n ) {
-                if ( c )
-                    z = ZInstI(op, nslot, v[0], v[1], c);
+        if ( args.size() == 2 ) {
+            if ( consts.empty() ) {
+                if ( n )
+                    z = ZInstI(op, nslot, v[0], v[1]);
                 else
-                    z = ZInstI(op, nslot, v[0], v[1], v[2]);
+                    z = ZInstI(op, v[0], v[1]);
             }
             else {
-                if ( c )
-                    z = ZInstI(op, v[0], v[1], c);
+                ASSERT(consts.size() == 1);
+                if ( n )
+                    z = ZInstI(op, nslot, v[0]);
                 else
-                    z = ZInstI(op, v[0], v[1], v[2]);
+                    z = ZInstI(op, v[0]);
             }
         }
 
+        else if ( args.size() == 3 ) {
+            switch ( consts.size() ) {
+                case 0:
+                    if ( n )
+                        z = ZInstI(op, nslot, v[0], v[1], v[2]);
+                    else
+                        z = ZInstI(op, v[0], v[1], v[2]);
+                    break;
+
+                case 1:
+                    if ( n )
+                        z = ZInstI(op, nslot, v[0], v[1]);
+                    else
+                        z = ZInstI(op, v[0], v[1]);
+                    break;
+
+                case 2: {
+                    auto c2 = consts[1];
+                    auto c2_t = c2->GetType()->Tag();
+
+                    ASSERT(c2_t == TYPE_BOOL || c2_t == TYPE_INT || c2_t == TYPE_COUNT);
+                    int slot_val;
+                    if ( c2_t == TYPE_COUNT )
+                        slot_val = static_cast<int>(c2->AsCount());
+                    else
+                        slot_val = c2->AsInt();
+
+                    if ( n )
+                        z = ZInstI(op, nslot, v[0], slot_val);
+                    else
+                        z = ZInstI(op, v[0], slot_val);
+                    break;
+                }
+
+                default: reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
+            }
+        }
+
+        else
+            reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
+
         z.op_type = bi.op_type;
+
+        if ( ! consts.empty() ) {
+            z.t = consts[0]->GetType();
+            z.c = ZVal(consts[0], z.t);
+        }
 
         zam->AddInst(z);
 
@@ -230,8 +223,8 @@ private:
     // Returns a bit mask of which of the arguments in the given list
     // correspond to constants, with the high-ordered bit being the first
     // argument (argument "0" in the list) and the low-ordered bit being
-    // the last. These correspond to the ArgType enum integer values.
-    ArgType ConstArgsMask(const ExprPList& args) const {
+    // the last. These correspond to the ArgsType enum integer values.
+    ArgsType ComputeArgsType(const ExprPList& args) const {
         zeek_uint_t mask = 0;
 
         for ( int i = 0; i < args.size(); ++i ) {
@@ -240,12 +233,11 @@ private:
                 mask |= 1;
         }
 
-        return ArgType(mask);
+        return ArgsType(mask);
     }
 
     BifArgsInfo args_info;
     BifArgsInfo assign_args_info;
-    std::vector<TypeTag> const_types;
 };
 
 class SortBiF : public DirectBuiltIn {
@@ -295,7 +287,7 @@ public:
 
 class CatBiF : public ZAMBuiltIn {
 public:
-    CatBiF() : ZAMBuiltIn() {}
+    CatBiF() : ZAMBuiltIn(true) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto nslot = zam->Frame1Slot(n, OP1_WRITE);
@@ -403,7 +395,7 @@ private:
 
 class LogWriteBiF : public ZAMBuiltIn {
 public:
-    LogWriteBiF() : ZAMBuiltIn() { return_val_matters = false; }
+    LogWriteBiF() : ZAMBuiltIn(false) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto id = args[0];
@@ -477,10 +469,6 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     if ( func->GetKind() != BuiltinFunc::BUILTIN_FUNC )
         return false;
 
-    static auto sub_bytes_consts = std::vector<TypeTag>{TYPE_STRING, TYPE_COUNT, TYPE_INT};
-    static auto set_bytes_thresh_consts = std::vector<TypeTag>{TYPE_VOID, TYPE_COUNT, TYPE_INT};
-    static auto set_reassem_consts = std::vector<TypeTag>{TYPE_VOID, TYPE_COUNT};
-
     static BifArgsInfo sub_bytes_info;
     static BifArgsInfo set_bytes_thresh_info, set_bytes_thresh_assign_info;
     static BifArgsInfo set_reassem_info, set_reassem_assign_info;
@@ -491,23 +479,22 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         // We initialize these explicitly rather than with initializer
         // lists just because the latter gets hard to read.
         sub_bytes_info[VVV] = {OP_SUB_BYTES_VVVV, OP_VVVV};
-        sub_bytes_info[VVC] = {OP_SUB_BYTES_VVVi, OP_VVVV_I4};
-        sub_bytes_info[VCV] = {OP_SUB_BYTES_VViV, OP_VVVV_I4};
-        sub_bytes_info[VCC] = {OP_SUB_BYTES_VVii, OP_VVVV_I3_I4};
+        sub_bytes_info[VVC] = {OP_SUB_BYTES_VVVi, OP_VVVC};
+        sub_bytes_info[VCV] = {OP_SUB_BYTES_VViV, OP_VVVC};
+        sub_bytes_info[VCC] = {OP_SUB_BYTES_VVii, OP_VVVC_I3};
         sub_bytes_info[CVV] = {OP_SUB_BYTES_VVVC, OP_VVVC};
         sub_bytes_info[CVC] = {OP_SUB_BYTES_VViC, OP_VVVC_I3};
         sub_bytes_info[CCV] = {OP_SUB_BYTES_ViVC, OP_VVVC_I3};
-        sub_bytes_info[CCC] = {OP_SUB_BYTES_ViiC, OP_VVVC_I2_I3};
 
         set_bytes_thresh_info[VVV] = {OP_SET_BYTES_THRESH_VVV, OP_VVV};
-        set_bytes_thresh_info[VVC] = {OP_SET_BYTES_THRESH_VVi, OP_VVV_I3};
-        set_bytes_thresh_info[VCV] = {OP_SET_BYTES_THRESH_ViV, OP_VVV_I3};
-        set_bytes_thresh_info[VCC] = {OP_SET_BYTES_THRESH_Vii, OP_VVV_I2_I3};
+        set_bytes_thresh_info[VVC] = {OP_SET_BYTES_THRESH_VVi, OP_VVC};
+        set_bytes_thresh_info[VCV] = {OP_SET_BYTES_THRESH_ViV, OP_VVC};
+        set_bytes_thresh_info[VCC] = {OP_SET_BYTES_THRESH_Vii, OP_VVC_I2};
 
         set_bytes_thresh_assign_info[VVV] = {OP_SET_BYTES_THRESH_VVVV, OP_VVVV};
-        set_bytes_thresh_assign_info[VVC] = {OP_SET_BYTES_THRESH_VVVi, OP_VVVV_I4};
-        set_bytes_thresh_assign_info[VCV] = {OP_SET_BYTES_THRESH_VViV, OP_VVVV_I4};
-        set_bytes_thresh_assign_info[VCC] = {OP_SET_BYTES_THRESH_VVii, OP_VVVV_I3_I4};
+        set_bytes_thresh_assign_info[VVC] = {OP_SET_BYTES_THRESH_VVVi, OP_VVVC};
+        set_bytes_thresh_assign_info[VCV] = {OP_SET_BYTES_THRESH_VViV, OP_VVVC};
+        set_bytes_thresh_assign_info[VCC] = {OP_SET_BYTES_THRESH_VVii, OP_VVVC_I3};
 
         set_reassem_info[VV] = {OP_FILES_SET_REASSEMBLY_BUFFER_VV, OP_VV};
         set_reassem_info[VC] = {OP_FILES_SET_REASSEMBLY_BUFFER_VC, OP_VV_I2};
@@ -527,7 +514,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
          std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
         {"Files::__set_reassembly_buffer",
-         std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info, set_reassem_consts)},
+         std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info)},
         {"Log::__write", std::make_shared<LogWriteBiF>()},
         {"cat", std::make_shared<CatBiF>()},
         {"current_time", std::make_shared<DirectBuiltIn>(OP_CURRENT_TIME_V, 0)},
@@ -538,11 +525,10 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"reading_live_traffic", std::make_shared<DirectBuiltIn>(OP_READING_LIVE_TRAFFIC_V, 0)},
         {"reading_traces", std::make_shared<DirectBuiltIn>(OP_READING_TRACES_V, 0)},
         {"set_current_conn_bytes_threshold",
-         std::make_shared<MultiArgBuiltIn>(set_bytes_thresh_info, set_bytes_thresh_assign_info,
-                                           set_bytes_thresh_consts)},
+         std::make_shared<MultiArgBuiltIn>(set_bytes_thresh_info, set_bytes_thresh_assign_info)},
         {"sort", std::make_shared<SortBiF>()},
         {"strstr", std::make_shared<MultiArgBuiltIn>(true, strstr_info)},
-        {"sub_bytes", std::make_shared<MultiArgBuiltIn>(true, sub_bytes_info, sub_bytes_consts)},
+        {"sub_bytes", std::make_shared<MultiArgBuiltIn>(true, sub_bytes_info)},
         {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
     };
 

@@ -2346,15 +2346,15 @@ eval	EvalSubBytes(frame[z.v2], frame[z.v3].uint_val, frame[z.v4].int_val)
 
 internal-op Sub-Bytes
 type VVVi
-eval	EvalSubBytes(frame[z.v2], frame[z.v3].uint_val, z.v4)
+eval	EvalSubBytes(frame[z.v2], frame[z.v3].uint_val, z.c.int_val)
 
 internal-op Sub-Bytes
 type VViV
-eval	EvalSubBytes(frame[z.v2], zeek_uint_t(z.v4), frame[z.v3].int_val)
+eval	EvalSubBytes(frame[z.v2], z.c.uint_val, frame[z.v3].int_val)
 
 internal-op Sub-Bytes
 type VVii
-eval	EvalSubBytes(frame[z.v2], zeek_uint_t(z.v3), z.v4)
+eval	EvalSubBytes(frame[z.v2], z.c.uint_val, z.v3)
 
 internal-op Sub-Bytes
 type VVVC
@@ -2367,10 +2367,6 @@ eval	EvalSubBytes(z.c, frame[z.v2].uint_val, z.v3)
 internal-op Sub-Bytes
 type ViVC
 eval	EvalSubBytes(z.c, zeek_uint_t(z.v3), frame[z.v2].uint_val)
-
-internal-op Sub-Bytes
-type ViiC
-eval	EvalSubBytes(z.c, zeek_uint_t(z.v2), z.v3)
 
 
 internal-op To-Lower
@@ -2736,17 +2732,17 @@ eval	SetBytesThresh(frame[z.v1].record_val, frame[z.v2].uint_val, frame[z.v3].in
 internal-op Set-Bytes-Thresh
 op1-read
 type VVi
-eval	SetBytesThresh(frame[z.v1].record_val, frame[z.v2].uint_val, z.v3)
+eval	SetBytesThresh(frame[z.v1].record_val, frame[z.v2].uint_val, z.c.int_val)
 
 internal-op Set-Bytes-Thresh
 op1-read
 type ViV
-eval	SetBytesThresh(frame[z.v1].record_val, zeek_uint_t(z.v3), frame[z.v2].int_val)
+eval	SetBytesThresh(frame[z.v1].record_val, z.c.uint_val, frame[z.v2].int_val)
 
 internal-op Set-Bytes-Thresh
 op1-read
 type Vii
-eval	SetBytesThresh(frame[z.v1].record_val, zeek_uint_t(z.v2), z.v3)
+eval	SetBytesThresh(frame[z.v1].record_val, z.c.uint_val, z.v2)
 
 internal-op Set-Bytes-Thresh
 type VVVV
@@ -2757,25 +2753,20 @@ eval	SetBytesThresh(frame[z.v2].record_val, frame[z.v3].uint_val, frame[z.v4].in
 internal-op Set-Bytes-Thresh
 type VVVi
 side-effects OP_SET_BYTES_THRESH_VVi OP_VVV_I3
-eval	SetBytesThresh(frame[z.v2].record_val, frame[z.v3].uint_val, z.v4)
+eval	SetBytesThresh(frame[z.v2].record_val, frame[z.v3].uint_val, z.c.int_val)
 	frame[z.v1].int_val = res;
 
 internal-op Set-Bytes-Thresh
 type VViV
 side-effects OP_SET_BYTES_THRESH_ViV OP_VVV_I3
-eval	SetBytesThresh(frame[z.v2].record_val, zeek_uint_t(z.v4), frame[z.v3].int_val)
+eval	SetBytesThresh(frame[z.v2].record_val, z.c.uint_val, frame[z.v3].int_val)
 	frame[z.v1].int_val = res;
 
 internal-op Set-Bytes-Thresh
 type VVii
-side-effects OP_SET_BYTES_THRESH_Vii OP_VVV_I2_I3
-eval	SetBytesThresh(frame[z.v2].record_val, zeek_uint_t(z.v3), zeek_uint_t(z.v4))
+side-effects OP_SET_BYTES_THRESH_Vii OP_VVC_I2
+eval	SetBytesThresh(frame[z.v2].record_val, z.c.uint_val, zeek_uint_t(z.v3))
 	frame[z.v1].int_val = res;
-
-#       set_bytes_thresh_info[VVV] = {OP_SET_BYTES_THRESH_VVV, OP_VVV};  
-#       set_bytes_thresh_info[VVC] = {OP_SET_BYTES_THRESH_VVi, OP_VVV_I3};  
-#       set_bytes_thresh_info[VCV] = {OP_SET_BYTES_THRESH_ViV, OP_VVV_I3};  
-#       set_bytes_thresh_info[VCC] = {OP_SET_BYTES_THRESH_Vii, OP_VVV_I2_I3};  
 
 ########################################
 # Instructions for known script functions

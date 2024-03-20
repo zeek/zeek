@@ -2715,6 +2715,21 @@ side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VC OP_VC
 eval	auto f = frame[z.v2].string_val->CheckString();
 	frame[z.v1].int_val = file_mgr->SetReassemblyBuffer(f, zeek_uint_t(z.v2));
 
+macro GetBytesThresh(cid, is_orig)
+        zeek::analyzer::Analyzer* a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
+	auto res = 0U;
+        if ( a )
+		res = static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, is_orig);
+	frame[z.v1].uint_val = res;
+
+internal-op Get-Bytes-Thresh
+type VVV
+eval	GetBytesThresh(frame[z.v2].record_val, frame[z.v3].int_val)
+
+internal-op Get-Bytes-Thresh
+type VVi
+eval	GetBytesThresh(frame[z.v2].record_val, z.c.uint_val)
+
 macro SetBytesThresh(cid, threshold, is_orig)
 	bool res = false;
         zeek::analyzer::Analyzer* a = analyzer::conn_size::GetConnsizeAnalyzer(cid);

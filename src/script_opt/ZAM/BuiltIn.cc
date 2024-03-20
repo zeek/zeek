@@ -469,6 +469,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     if ( func->GetKind() != BuiltinFunc::BUILTIN_FUNC )
         return false;
 
+    static BifArgsInfo get_bytes_thresh_info;
     static BifArgsInfo sub_bytes_info;
     static BifArgsInfo set_bytes_thresh_info, set_bytes_thresh_assign_info;
     static BifArgsInfo set_reassem_info, set_reassem_assign_info;
@@ -476,8 +477,9 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
 
     static bool did_init = false;
     if ( ! did_init ) {
-        // We initialize these explicitly rather than with initializer
-        // lists just because the latter gets hard to read.
+        get_bytes_thresh_info[VV] = {OP_GET_BYTES_THRESH_VVV, OP_VVV};
+        get_bytes_thresh_info[VC] = {OP_GET_BYTES_THRESH_VVi, OP_VVC};
+
         sub_bytes_info[VVV] = {OP_SUB_BYTES_VVVV, OP_VVVV};
         sub_bytes_info[VVC] = {OP_SUB_BYTES_VVVi, OP_VVVC};
         sub_bytes_info[VCV] = {OP_SUB_BYTES_VViV, OP_VVVC};
@@ -518,6 +520,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Log::__write", std::make_shared<LogWriteBiF>()},
         {"cat", std::make_shared<CatBiF>()},
         {"current_time", std::make_shared<DirectBuiltIn>(OP_CURRENT_TIME_V, 0)},
+        {"get_current_conn_bytes_threshold", std::make_shared<MultiArgBuiltIn>(true, get_bytes_thresh_info)},
         {"get_port_transport_proto", std::make_shared<DirectBuiltIn>(OP_GET_PORT_TRANSPORT_PROTO_VV, 1)},
         {"is_v4_addr", std::make_shared<DirectBuiltIn>(OP_IS_V4_ADDR_VV, 1)},
         {"is_v6_addr", std::make_shared<DirectBuiltIn>(OP_IS_V6_ADDR_VV, 1)},

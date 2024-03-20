@@ -68,10 +68,24 @@ void FixedCatArg::RenderInto(ZVal* zframe, int slot, char*& res) {
             break;
 
         case TYPE_DOUBLE:
-        case TYPE_TIME:
-            n = modp_dtoa2(z.AsDouble(), res, 6);
+        case TYPE_TIME: {
+            auto d = z.AsDouble();
+            n = modp_dtoa2(d, res, 6);
             res += n;
+
+            // Taken from ODesc::Add(double d, bool no_exp)
+            auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool {
+                auto v = a - b;
+                return v < 0 ? -v < tolerance : v < tolerance;
+            };
+
+            if ( approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && ! strchr(tmp, 'e') ) {
+                // disambiguate from integer
+                *(res++) = '.';
+                *(res++) = '0';
+            }
             break;
+        }
 
         case TYPE_PATTERN:
             text = z.AsPattern()->AsPattern()->PatternText();

@@ -2451,6 +2451,20 @@ internal-op Conn-Exists
 type VV
 eval	frame[z.v1].int_val = session_mgr->FindConnection(frame[z.v2].record_val) != nullptr;
 
+internal-op Lookup-Conn
+type VV
+eval	auto cid = frame[z.v2].record_val;
+	Connection* conn = session_mgr->FindConnection(cid);
+	ValPtr res;
+	if ( conn )
+		res = conn->GetVal();
+	else
+		{
+		ZAM_run_time_error(z.loc, "connection ID not a known connection", cid);
+		res = build_dummy_conn_record();
+		}
+	AssignV1(ZVal(res, res->GetType()));
+
 internal-op Is-V4-Addr
 type VV
 eval	frame[z.v1].int_val = frame[z.v2].addr_val->AsAddr().GetFamily() == IPv4;

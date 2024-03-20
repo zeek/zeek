@@ -48,6 +48,9 @@ public:
             z.t = args[0]->GetType();
         }
 
+        if ( n )
+            z.is_managed = ZVal::IsManagedType(n->GetType());
+
         zam->AddInst(z);
 
         return true;
@@ -208,6 +211,9 @@ public:
             reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
 
         z.op_type = bi.op_type;
+
+        if ( n )
+            z.is_managed = ZVal::IsManagedType(n->GetType());
 
         if ( ! consts.empty() ) {
             z.t = consts[0]->GetType();

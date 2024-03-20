@@ -323,10 +323,11 @@ public:
     template<class ValueType = int64_t>
     std::shared_ptr<Histogram<ValueType>> HistogramInstance(std::string_view prefix, std::string_view name,
                                                             std::initializer_list<LabelView> labels,
-                                                            ConstSpan<ValueType> default_upper_bounds,
+                                                            std::initializer_list<ValueType> default_upper_bounds,
                                                             std::string_view helptext, std::string_view unit = "") {
         auto lbls = Span{labels.begin(), labels.size()};
-        return HistogramInstance<ValueType>(prefix, name, lbls, default_upper_bounds, helptext, unit);
+        auto bounds = Span{default_upper_bounds.begin(), default_upper_bounds.size()};
+        return HistogramInstance<ValueType>(prefix, name, lbls, bounds, helptext, unit);
     }
 
     std::shared_ptr<MetricFamily> GetFamilyByFullName(const std::string& full_name) const {
@@ -335,7 +336,18 @@ public:
         return nullptr;
     }
 
+    /**
+     * @return A JSON description of the cluster configuration for reporting
+     * to Prometheus for service discovery requests.
+     */
     std::string GetClusterJson() const;
+
+    /**
+     * @return The pointer to the prometheus-cpp registry used by the telemetry
+     * manager. This is public so that third parties (such as broker) can add
+     * elements to it directly.
+     */
+    std::shared_ptr<prometheus::Registry> GetRegistry() const { return prometheus_registry; }
 
 protected:
     template<class F>

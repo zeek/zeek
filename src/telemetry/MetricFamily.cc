@@ -76,5 +76,4 @@ prometheus::Labels MetricFamily::BuildPrometheusLabels(Span<const LabelView> lab
     return p_labels;
 }
 
-
 } // namespace zeek::telemetry

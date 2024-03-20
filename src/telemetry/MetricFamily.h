@@ -60,9 +60,8 @@ public:
     std::string_view Helptext() const noexcept { return helptext; }
 
     /**
-     * @return The unit of measurement, preferably a base unit such as
-     *         @c bytes or @c seconds. Dimensionless counts return the
-     *         pseudo-unit @c 1.
+     * @return The unit of measurement, preferably a base unit such as @c bytes
+     *         or @c seconds.
      */
     std::string_view Unit() const noexcept { return unit; }
 
@@ -74,21 +73,23 @@ public:
     bool IsSum() const noexcept { return is_sum; }
 
     /**
-     * Converts the family data into script layer record. This record lazily-allocated
-     * and reused for each instrument associated with this family.
+     * Converts the family data into script layer record. This record
+     * lazily-allocated and reused for each instrument associated with this
+     * family.
      *
      * @return A script layer Telemetry::Metric record for this family.
      */
     RecordValPtr GetMetricOptsRecord() const;
 
     /**
-     * @return The type of this metric, defined as one of the values in the script-layer
-     * Telemetry::MetricType enum.
+     * @return The type of this metric, defined as one of the values in the
+     * script-layer Telemetry::MetricType enum.
      */
     virtual zeek_int_t MetricType() const noexcept = 0;
 
     /**
-     * @return Whether the prefix and name of this family matches the patterns provided.
+     * @return Whether the prefix and name of this family matches the patterns
+     * provided.
      */
     bool Matches(std::string_view prefix_pattern, std::string_view name_pattern) const noexcept;
 
@@ -99,8 +100,8 @@ protected:
                  std::string_view helptext, std::string_view unit, bool is_sum = false);
 
     /**
-     * Builds a set of labels for prometheus based on a set of labels from Zeek. This adds
-     * an 'endpoint' label if it's missing from the set.
+     * Builds a set of labels for prometheus based on a set of labels from
+     * Zeek. This adds an 'endpoint' label if it's missing from the set.
      */
     static prometheus::Labels BuildPrometheusLabels(Span<const LabelView> labels);
 

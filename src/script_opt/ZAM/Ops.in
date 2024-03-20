@@ -2447,6 +2447,10 @@ eval	auto mask = frame[z.v2].uint_val & PORT_SPACE_MASK;
 		v = 3;
 	frame[z.v1].uint_val = v;
 
+internal-op Conn-Exists
+type VV
+eval	frame[z.v1].int_val = session_mgr->FindConnection(frame[z.v2].record_val) != nullptr;
+
 internal-op Is-V4-Addr
 type VV
 eval	frame[z.v1].int_val = frame[z.v2].addr_val->AsAddr().GetFamily() == IPv4;

@@ -519,6 +519,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
          std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info)},
         {"Log::__write", std::make_shared<LogWriteBiF>()},
         {"cat", std::make_shared<CatBiF>()},
+        {"connection_exists", std::make_shared<DirectBuiltIn>(OP_CONN_EXISTS_VV, 1)},
         {"current_time", std::make_shared<DirectBuiltIn>(OP_CURRENT_TIME_V, 0)},
         {"get_current_conn_bytes_threshold", std::make_shared<MultiArgBuiltIn>(true, get_bytes_thresh_info)},
         {"get_port_transport_proto", std::make_shared<DirectBuiltIn>(OP_GET_PORT_TRANSPORT_PROTO_VV, 1)},

@@ -11,6 +11,7 @@
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
+#include "zeek/session/Manager.h"
 
 #include "zeek.bif.func_h"
 

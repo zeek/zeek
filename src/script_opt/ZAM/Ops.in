@@ -2340,6 +2340,11 @@ macro EvalSubBytes(arg1, arg2, arg3)
 	frame[z.v1].string_val = sv;
 	}
 
+internal-op Subnet-To-Addr
+type VV
+eval	Unref(frame[z.v1].addr_val);
+	frame[z.v1] = ZVal(make_intrusive<AddrVal>(frame[z.v2].subnet_val->Prefix()));
+
 internal-op Sub-Bytes
 type VVVV
 eval	EvalSubBytes(frame[z.v2], frame[z.v3].uint_val, frame[z.v4].int_val)

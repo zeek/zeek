@@ -40,6 +40,13 @@ public:
         }
         else {
             ASSERT(nargs == 1);
+
+            if ( args[0]->Tag() != EXPR_NAME )
+                // This can happen for BiFs that aren't foldable, and for
+                // which it's implausible they'll be called with a constant
+                // argument.
+                return false;
+
             auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
             if ( n )
                 z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0);
@@ -547,6 +554,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"PacketAnalyzer::TEREDO::remove_teredo_connection", std::make_shared<DirectBuiltIn>(OP_REMOVE_TEREDO_VV, 1)},
         {"set_current_conn_bytes_threshold",
          std::make_shared<MultiArgBuiltIn>(set_bytes_thresh_info, set_bytes_thresh_assign_info)},
+        {"set_file_handle", std::make_shared<DirectBuiltIn>(OP_SET_FILE_HANDLE_V, 1, false)},
         {"sort", std::make_shared<SortBiF>()},
         {"strstr", std::make_shared<MultiArgBuiltIn>(true, strstr_info)},
         {"sub_bytes", std::make_shared<MultiArgBuiltIn>(true, sub_bytes_info)},

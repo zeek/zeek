@@ -2343,20 +2343,28 @@ macro EvalSubBytes(arg1, arg2, arg3)
 internal-op Remove-Teredo
 type VV
 eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
-        if ( teredo )
-                {
-                zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
-                static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
-                }
+	if ( teredo )
+		{
+		zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
+		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+		}
 
 internal-op Remove-GTPv1
 type VV
 eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
-        if ( gtpv1 )
-                {
-                zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
-                static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
-                }
+	if ( gtpv1 )
+		{
+		zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
+		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
+		}
+
+internal-op Set-File-Handle
+op1-read
+type V
+eval	auto handle = frame[z.v1].string_val;
+	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
+	auto h = std::string(bytes, handle->Len());
+	zeek::file_mgr->SetHandle(h);
 
 internal-op Subnet-To-Addr
 type VV
@@ -2789,9 +2797,9 @@ eval	auto f = frame[z.v2].string_val->CheckString();
 	frame[z.v1].int_val = file_mgr->SetReassemblyBuffer(f, zeek_uint_t(z.v2));
 
 macro GetBytesThresh(cid, is_orig)
-        zeek::analyzer::Analyzer* a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
+	zeek::analyzer::Analyzer* a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
 	auto res = 0U;
-        if ( a )
+	if ( a )
 		res = static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, is_orig);
 	frame[z.v1].uint_val = res;
 
@@ -2805,8 +2813,8 @@ eval	GetBytesThresh(frame[z.v2].record_val, z.c.uint_val)
 
 macro SetBytesThresh(cid, threshold, is_orig)
 	bool res = false;
-        zeek::analyzer::Analyzer* a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
-        if ( a )
+	zeek::analyzer::Analyzer* a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
+	if ( a )
 		{
 		static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, true, is_orig);
 		res = true;

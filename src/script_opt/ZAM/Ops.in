@@ -2496,6 +2496,18 @@ eval	auto cid = frame[z.v2].record_val;
 		}
 	AssignV1(ZVal(res, res->GetType()));
 
+internal-op Is-ICMP-Port
+type VV
+eval	frame[z.v1].int_val = (frame[z.v2].uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK;
+
+internal-op Is-TCP-Port
+type VV
+eval	frame[z.v1].int_val = (frame[z.v2].uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
+
+internal-op Is-UDP-Port
+type VV
+eval	frame[z.v1].int_val = (frame[z.v2].uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK;
+
 internal-op Is-V4-Addr
 type VV
 eval	frame[z.v1].int_val = frame[z.v2].addr_val->AsAddr().GetFamily() == IPv4;

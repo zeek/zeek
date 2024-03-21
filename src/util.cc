@@ -2550,6 +2550,24 @@ TEST_CASE("util split") {
     }
 }
 
+TEST_CASE("util approx_equal") {
+    CHECK(approx_equal(47.0, 47.0) == true);
+    CHECK(approx_equal(47.0, -47.0) == false);
+    CHECK(approx_equal(47.00001, 47.00002) == false);
+    CHECK(approx_equal(47.00001, 47.00002, 1e-5) == true);
+    CHECK(approx_equal(47.0, -47.0, 1e2) == true);
+    CHECK(approx_equal(47.0, -47.0, 94 + 1e-10) == true);
+    CHECK(approx_equal(47.0, -47.0, 94) == false);
+    CHECK(approx_equal(1 / 0.0, 2 / 0.0) == false);
+    CHECK(approx_equal(1 / 0.0, 2 / 0.0, 3 / 0.0) == false);
+    CHECK(approx_equal(0.0 / 0.0, 0.0 / 0.0) == false);
+}
+
+bool approx_equal(double a, double b, double tolerance) {
+    auto v = a - b;
+    return v < 0 ? -v < tolerance : v < tolerance;
+}
+
 } // namespace zeek::util
 
 extern "C" void out_of_memory(const char* where) {

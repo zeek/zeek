@@ -2341,7 +2341,8 @@ macro EvalSubBytes(arg1, arg2, arg3)
 	}
 
 internal-op Remove-Teredo
-type VV
+op1-read
+type V
 eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
 	if ( teredo )
 		{
@@ -2349,14 +2350,37 @@ eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
 		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
 		}
 
-internal-op Remove-GTPv1
+internal-op Remove-Teredo
+side-effects OP_REMOVE_TEREDO_V OP_V
 type VV
+eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
+	if ( teredo )
+		{
+		zeek::detail::ConnKey conn_key(frame[z.v2].record_val);
+		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+		}
+	frame[z.v1].int_val = 1;
+
+internal-op Remove-GTPv1
+op1-read
+type V
 eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
 	if ( gtpv1 )
 		{
 		zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
 		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
 		}
+
+internal-op Remove-GTPv1
+side-effects OP_REMOVE_GTPV1_V OP_V
+type VV
+eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
+	if ( gtpv1 )
+		{
+		zeek::detail::ConnKey conn_key(frame[z.v2].record_val);
+		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
+		}
+	frame[z.v1].int_val = 1;
 
 internal-op Set-File-Handle
 op1-read
@@ -2783,11 +2807,10 @@ eval	auto atype = frame[z.v2].ToVal(z.t);
 macro FilesAddOrRemoveAnalyzer(file_id_slot, tag, args_slot, METHOD)
 	auto file_id = frame[z.file_id_slot].string_val;
 	using zeek::BifType::Record::Files::AnalyzerArgs;
-	IntVal tag_v(tag.int_val);
 	auto rv = frame[z.args_slot].record_val->CoerceTo(AnalyzerArgs);
 	bool result = zeek::file_mgr->METHOD(
 	     file_id->CheckString(),
-	     zeek::file_mgr->GetComponentTag(&tag_v),
+	     zeek::file_mgr->GetComponentTag(tag.ToVal(z.t).get()),
 	     std::move(rv));
 
 macro FilesAddAnalyzer(file_id_slot, tag, args_slot)
@@ -2801,7 +2824,7 @@ eval	FilesAddAnalyzer(v1, frame[z.v2], v3)
 internal-op Files-Add-Analyzer
 op1-read
 type ViV
-eval	FilesAddAnalyzer(v1, z.c, v3)
+eval	FilesAddAnalyzer(v1, z.c, v2)
 
 internal-op Files-Add-Analyzer
 type VVVV
@@ -2812,7 +2835,7 @@ eval	FilesAddAnalyzer(v2, frame[z.v3], v4)
 internal-op Files-Add-Analyzer
 type VViV
 side-effects OP_FILES_ADD_ANALYZER_ViV OP_VVC
-eval	FilesAddAnalyzer(v2, z.c, v4)
+eval	FilesAddAnalyzer(v2, z.c, v3)
 	frame[z.v1].int_val = result;
 
 macro FilesRemoveAnalyzer(file_id_slot, tag, args_slot)
@@ -2826,7 +2849,7 @@ eval	FilesRemoveAnalyzer(v1, frame[z.v2], v3)
 internal-op Files-Remove-Analyzer
 op1-read
 type ViV
-eval	FilesRemoveAnalyzer(v1, z.c, v3)
+eval	FilesRemoveAnalyzer(v1, z.c, v2)
 
 internal-op Files-Remove-Analyzer
 type VVVV
@@ -2837,7 +2860,7 @@ eval	FilesRemoveAnalyzer(v2, frame[z.v3], v4)
 internal-op Files-Remove-Analyzer
 type VViV
 side-effects OP_FILES_REMOVE_ANALYZER_ViV OP_VVC
-eval	FilesRemoveAnalyzer(v2, z.c, v4)
+eval	FilesRemoveAnalyzer(v2, z.c, v3)
 	frame[z.v1].int_val = result;
 
 internal-op Analyzer-Enabled

@@ -89,7 +89,7 @@ public:
         else {
             ASSERT(nargs == 1);
             auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
-            z = ZInstI(op, a0);
+            z = ZInstI(op2, a0);
             z.t = args[0]->GetType();
         }
 
@@ -127,10 +127,11 @@ using BifArgsInfo = std::map<ArgsType, ArgInfo>;
 
 class MultiArgBuiltIn : public ZAMBuiltIn {
 public:
-    MultiArgBuiltIn(bool _ret_val_matters, BifArgsInfo _args_info)
-        : ZAMBuiltIn(_ret_val_matters), args_info(std::move(_args_info)) {}
+    MultiArgBuiltIn(bool _ret_val_matters, BifArgsInfo _args_info, int _type_arg = -1)
+        : ZAMBuiltIn(_ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
 
-    MultiArgBuiltIn(BifArgsInfo _args_info, BifArgsInfo _assign_args_info) : MultiArgBuiltIn(false, _args_info) {
+    MultiArgBuiltIn(BifArgsInfo _args_info, BifArgsInfo _assign_args_info, int _type_arg = -1)
+        : MultiArgBuiltIn(false, _args_info, _type_arg) {
         assign_args_info = std::move(_assign_args_info);
         have_both = true;
     }
@@ -231,6 +232,9 @@ public:
             z.c = ZVal(consts[0], z.t);
         }
 
+        if ( type_arg >= 0 && ! z.t )
+            z.t = args[type_arg]->GetType();
+
         zam->AddInst(z);
 
         return true;
@@ -255,6 +259,7 @@ private:
 
     BifArgsInfo args_info;
     BifArgsInfo assign_args_info;
+    int type_arg;
 };
 
 class SortBiF : public DirectBuiltIn {
@@ -551,9 +556,9 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Broker::__flush_logs",
          std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
         {"Files::__add_analyzer",
-         std::make_shared<MultiArgBuiltIn>(files_add_analyzer_info, files_add_analyzer_assign_info)},
+         std::make_shared<MultiArgBuiltIn>(files_add_analyzer_info, files_add_analyzer_assign_info, 1)},
         {"Files::__remove_analyzer",
-         std::make_shared<MultiArgBuiltIn>(files_remove_analyzer_info, files_remove_analyzer_assign_info)},
+         std::make_shared<MultiArgBuiltIn>(files_remove_analyzer_info, files_remove_analyzer_assign_info, 1)},
         {"Files::__analyzer_enabled", std::make_shared<DirectBuiltIn>(OP_ANALYZER_ENABLED_VV, 1)},
         {"Files::__analyzer_name", std::make_shared<DirectBuiltIn>(OP_FILE_ANALYZER_NAME_VV, 1)},
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
@@ -575,8 +580,10 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"network_time", std::make_shared<DirectBuiltIn>(OP_NETWORK_TIME_V, 0)},
         {"reading_live_traffic", std::make_shared<DirectBuiltIn>(OP_READING_LIVE_TRAFFIC_V, 0)},
         {"reading_traces", std::make_shared<DirectBuiltIn>(OP_READING_TRACES_V, 0)},
-        {"PacketAnalyzer::GTPV1::remove_gtpv1_connection", std::make_shared<DirectBuiltIn>(OP_REMOVE_GTPV1_VV, 1)},
-        {"PacketAnalyzer::TEREDO::remove_teredo_connection", std::make_shared<DirectBuiltIn>(OP_REMOVE_TEREDO_VV, 1)},
+        {"PacketAnalyzer::GTPV1::remove_gtpv1_connection",
+         std::make_shared<DirectBuiltInOptAssign>(OP_REMOVE_GTPV1_VV, OP_REMOVE_GTPV1_V, 1)},
+        {"PacketAnalyzer::TEREDO::remove_teredo_connection",
+         std::make_shared<DirectBuiltInOptAssign>(OP_REMOVE_TEREDO_VV, OP_REMOVE_TEREDO_V, 1)},
         {"set_current_conn_bytes_threshold",
          std::make_shared<MultiArgBuiltIn>(set_bytes_thresh_info, set_bytes_thresh_assign_info)},
         {"set_file_handle", std::make_shared<DirectBuiltIn>(OP_SET_FILE_HANDLE_V, 1, false)},

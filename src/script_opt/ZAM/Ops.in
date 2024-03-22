@@ -2399,6 +2399,10 @@ internal-op Sub-Bytes
 type ViVC
 eval	EvalSubBytes(z.c, zeek_uint_t(z.v3), frame[z.v2].uint_val)
 
+internal-op Time-To-Double
+type VV
+eval	frame[z.v1] = frame[z.v2];
+
 
 internal-op To-Lower
 type VV

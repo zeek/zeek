@@ -585,6 +585,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"strstr", std::make_shared<MultiArgBuiltIn>(true, strstr_info)},
         {"sub_bytes", std::make_shared<MultiArgBuiltIn>(true, sub_bytes_info)},
         {"subnet_to_addr", std::make_shared<DirectBuiltIn>(OP_SUBNET_TO_ADDR_VV, 1)},
+        {"time_to_double", std::make_shared<DirectBuiltIn>(OP_TIME_TO_DOUBLE_VV, 1)},
         {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
     };
 

@@ -2778,6 +2778,12 @@ side-effects OP_FILES_ADD_ANALYZER_ViV OP_VVC
 eval	FilesAddAnalyzer(v2, z.c, v4)
 	frame[z.v1].int_val = result;
 
+internal-op Analyzer-Enabled
+type VV
+eval	auto atype = frame[z.v2].ToVal(z.t);
+	auto c = zeek::file_mgr->Lookup(atype->AsEnumVal());
+	frame[z.v1].int_val = c && c->Enabled();
+
 internal-op Files-Enable-Reassembly
 op1-read
 type V

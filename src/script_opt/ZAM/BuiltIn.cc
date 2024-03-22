@@ -536,6 +536,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
          std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
         {"Files::__add_analyzer",
          std::make_shared<MultiArgBuiltIn>(files_add_analyzer_info, files_add_analyzer_assign_info)},
+        {"Files::__analyzer_enabled", std::make_shared<DirectBuiltIn>(OP_ANALYZER_ENABLED_VV, 1)},
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
         {"Files::__set_reassembly_buffer",
          std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info)},

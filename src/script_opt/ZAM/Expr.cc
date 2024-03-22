@@ -134,8 +134,12 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
     auto op2 = e->GetOp2();
 
     auto lhs = op1->AsRefExpr()->GetOp1()->AsNameExpr();
-    auto lt = lhs->GetType().get();
     auto rhs = op2.get();
+
+    if ( rhs->Tag() == EXPR_SCRIPT_OPT_BUILTIN )
+        return CompileZAMBuiltin(lhs, static_cast<const ScriptOptBuiltinExpr*>(rhs));
+
+    auto lt = lhs->GetType().get();
     auto r1 = rhs->GetOp1();
 
     if ( rhs->Tag() == EXPR_INDEX && (r1->Tag() == EXPR_NAME || r1->Tag() == EXPR_CONST) )
@@ -178,8 +182,10 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
         return L_In_VecVLC(lhs, r1->AsListExpr(), r2c);
     }
 
-    if ( rhs->Tag() == EXPR_ANY_INDEX )
-        return AnyIndexVVi(lhs, r1->AsNameExpr(), rhs->AsAnyIndexExpr()->Index());
+    if ( rhs->Tag() == EXPR_ANY_INDEX ) {
+        auto rhs_as_any = static_cast<const AnyIndexExpr*>(rhs);
+        return AnyIndexVVi(lhs, r1->AsNameExpr(), rhs_as_any->Index());
+    }
 
     if ( rhs->Tag() == EXPR_LAMBDA )
         return BuildLambda(lhs, rhs->AsLambdaExpr());
@@ -218,6 +224,70 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
 
                 else
 #include "ZAM-GenExprsDefsV.h"
+}
+
+const ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOptBuiltinExpr* zbi) {
+    auto op1 = zbi->GetOp1();
+    auto op2 = zbi->GetOp2();
+
+    switch ( zbi->Tag() ) {
+        case ScriptOptBuiltinExpr::MINIMUM:
+        case ScriptOptBuiltinExpr::MAXIMUM: {
+            auto t1 = op1->GetType()->InternalType();
+            ASSERT(t1 == op2->GetType()->InternalType());
+
+            bool is_min = zbi->Tag() == ScriptOptBuiltinExpr::MINIMUM;
+            // Canonicalize to have constant as second op.
+            if ( op1->Tag() == EXPR_CONST ) {
+                ASSERT(op2->Tag() != EXPR_CONST);
+                std::swap(op1, op2);
+                is_min = ! is_min;
+            }
+
+            ZOp op;
+
+            auto n1 = op1->AsNameExpr();
+            auto n2 = op2->Tag() == EXPR_NAME ? op2->AsNameExpr() : nullptr;
+            auto c = op2->Tag() == EXPR_CONST ? op2->AsConstExpr() : nullptr;
+
+            if ( c ) {
+                if ( t1 == TYPE_INTERNAL_UNSIGNED )
+                    op = is_min ? OP_MINU_VVC : OP_MAXU_VVC;
+                else if ( t1 == TYPE_INTERNAL_INT )
+                    op = is_min ? OP_MINI_VVC : OP_MAXI_VVC;
+                else {
+                    ASSERT(t1 == TYPE_INTERNAL_DOUBLE);
+                    op = is_min ? OP_MIND_VVC : OP_MAXD_VVC;
+                }
+            }
+            else {
+                if ( t1 == TYPE_INTERNAL_UNSIGNED )
+                    op = is_min ? OP_MINU_VVV : OP_MAXU_VVV;
+                else if ( t1 == TYPE_INTERNAL_INT )
+                    op = is_min ? OP_MINI_VVV : OP_MAXI_VVV;
+                else {
+                    ASSERT(t1 == TYPE_INTERNAL_DOUBLE);
+                    op = is_min ? OP_MIND_VVV : OP_MAXD_VVV;
+                }
+            }
+
+            if ( c )
+                return AddInst(GenInst(op, lhs, n1, c));
+            else
+                return AddInst(GenInst(op, lhs, n1, n2));
+        }
+
+        case ScriptOptBuiltinExpr::HAS_ELEMENTS: {
+            auto n = op1->AsNameExpr();
+            auto op = op1->GetType()->Tag() == TYPE_TABLE ? OP_TABLE_HAS_ELEMENTS_VV : OP_VECTOR_HAS_ELEMENTS_VV;
+            return AddInst(GenInst(op, lhs, n));
+        }
+
+        case ScriptOptBuiltinExpr::FUNC_ID_STRING: {
+            auto n = op1->AsNameExpr();
+            return AddInst(GenInst(OP_FUNC_ID_STRING_VV, lhs, n));
+        }
+    }
 }
 
 const ZAMStmt ZAMCompiler::CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs) {
@@ -762,7 +832,8 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le) {
 }
 
 const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e) {
-    auto index_assign = e->AsIndexAssignExpr();
+    ASSERT(e->Tag() == EXPR_INDEX_ASSIGN);
+    auto index_assign = static_cast<const IndexAssignExpr*>(e);
 
     auto op1 = index_assign->GetOp1();
     const auto& t1 = op1->GetType();
@@ -852,7 +923,8 @@ const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e) {
 }
 
 const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
-    auto index_assign = e->AsIndexAssignExpr();
+    ASSERT(e->Tag() == EXPR_INDEX_ASSIGN);
+    auto index_assign = static_cast<const IndexAssignExpr*>(e);
 
     auto op1 = index_assign->GetOp1()->AsNameExpr();
     auto op2 = index_assign->GetOp2()->AsListExpr();
@@ -1080,7 +1152,8 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
     auto z = GenInst(OP_CONSTRUCT_TABLE_VV, n, width);
     z.aux = InternalBuildVals(con, width + 1);
     z.t = tt;
-    z.aux->attrs = e->AsTableConstructorExpr()->GetAttrs();
+    ASSERT(e->Tag() == EXPR_TABLE_CONSTRUCTOR);
+    z.aux->attrs = static_cast<const TableConstructorExpr*>(e)->GetAttrs();
 
     auto zstmt = AddInst(z);
 
@@ -1118,13 +1191,15 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
     auto z = GenInst(OP_CONSTRUCT_SET_VV, n, width);
     z.aux = InternalBuildVals(con, width);
     z.t = e->GetType();
-    z.aux->attrs = e->AsSetConstructorExpr()->GetAttrs();
+    ASSERT(e->Tag() == EXPR_SET_CONSTRUCTOR);
+    z.aux->attrs = static_cast<const SetConstructorExpr*>(e)->GetAttrs();
 
     return AddInst(z);
 }
 
 const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
-    auto rc = e->AsRecordConstructorExpr();
+    ASSERT(e->Tag() == EXPR_RECORD_CONSTRUCTOR);
+    auto rc = static_cast<const RecordConstructorExpr*>(e);
     auto rt = e->GetType()->AsRecordType();
 
     auto aux = InternalBuildVals(rc->Op().get());
@@ -1279,7 +1354,8 @@ const ZAMStmt ZAMCompiler::ArithCoerce(const NameExpr* n, const Expr* e) {
 }
 
 const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
-    auto r = e->AsRecordCoerceExpr();
+    ASSERT(e->Tag() == EXPR_RECORD_COERCE);
+    auto r = static_cast<const RecordCoerceExpr*>(e);
     auto op = r->GetOp1()->AsNameExpr();
 
     int op_slot = FrameSlot(op);

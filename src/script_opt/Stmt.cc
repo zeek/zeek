@@ -9,6 +9,7 @@
 #include "zeek/Frame.h"
 #include "zeek/Reporter.h"
 #include "zeek/Traverse.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/Reduce.h"
 
@@ -166,7 +167,7 @@ void IfStmt::Inline(Inliner* inl) {
 }
 
 bool IfStmt::IsReduced(Reducer* c) const {
-    if ( e->IsConst() || ! e->IsReducedConditional(c) )
+    if ( e->IsConst() || ! e->IsReducedConditional(c) || IsMinMaxConstruct() )
         return NonReduced(e.get());
 
     return s1->IsReduced(c) && s2->IsReduced(c);
@@ -179,11 +180,11 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
         e = e->ReduceToConditional(c, red_e_stmt);
 
     // First, assess some fundamental transformations.
-    if ( e->Tag() == EXPR_NOT ) { // Change "if ( ! x ) s1 else s2" to "if ( x ) s2 else s1".
-        auto s1_orig = s1;
-        s1 = s2;
-        s2 = s1_orig;
+    if ( IsMinMaxConstruct() )
+        return ConvertToMinMaxConstruct()->Reduce(c);
 
+    if ( e->Tag() == EXPR_NOT ) { // Change "if ( ! x ) s1 else s2" to "if ( x ) s2 else s1".
+        std::swap(s1, s2);
         e = e->GetOp1();
     }
 
@@ -272,6 +273,81 @@ bool IfStmt::NoFlowAfter(bool ignore_break) const {
 
 bool IfStmt::CouldReturn(bool ignore_break) const {
     return (s1 && s1->CouldReturn(ignore_break)) || (s2 && s2->CouldReturn(ignore_break));
+}
+
+bool IfStmt::IsMinMaxConstruct() const {
+    if ( ! s1 || ! s2 )
+        // not an if-else construct
+        return false;
+
+    if ( s1->Tag() != STMT_EXPR || s2->Tag() != STMT_EXPR )
+        // definitely not if-else assignments
+        return false;
+
+    auto es1 = s1->AsExprStmt()->StmtExpr();
+    auto es2 = s2->AsExprStmt()->StmtExpr();
+
+    if ( es1->Tag() != EXPR_ASSIGN || es2->Tag() != EXPR_ASSIGN )
+        return false;
+
+    switch ( e->Tag() ) {
+        case EXPR_LT:
+        case EXPR_LE:
+        case EXPR_GE:
+        case EXPR_GT: break;
+
+        default:
+            // Not an apt conditional.
+            return false;
+    }
+
+    auto a1 = es1->AsAssignExpr();
+    auto a2 = es2->AsAssignExpr();
+    auto a1_lhs = a1->GetOp1();
+    auto a2_lhs = a2->GetOp1();
+
+    if ( ! same_expr(a1_lhs, a2_lhs) )
+        // if-else assignments are not to the same variable
+        return false;
+
+    auto a1_rhs = a1->GetOp2();
+    auto a2_rhs = a2->GetOp2();
+    auto op1 = e->GetOp1();
+    auto op2 = e->GetOp2();
+
+    if ( ! same_expr(op1, a1_rhs) && ! same_expr(op1, a2_rhs) )
+        // Operand does not appear in the assignment RHS.
+        return false;
+
+    if ( ! same_expr(op2, a1_rhs) && ! same_expr(op2, a2_rhs) )
+        // Operand does not appear in the assignment RHS.
+        return false;
+
+    if ( same_expr(op1, op2) )
+        // This is degenerate and should be found by other reductions.
+        return false;
+
+    return true;
+}
+
+StmtPtr IfStmt::ConvertToMinMaxConstruct() {
+    auto relop1 = e->GetOp1();
+    auto relop2 = e->GetOp2();
+
+    auto is_min = (e->Tag() == EXPR_LT || e->Tag() == EXPR_LE);
+    auto assign2 = s2->AsExprStmt()->StmtExpr();
+    auto lhs2 = assign2->GetOp1();
+    auto rhs2 = assign2->GetOp2();
+
+    if ( same_expr(relop1, rhs2) )
+        is_min = ! is_min;
+
+    auto built_in = is_min ? ScriptOptBuiltinExpr::MINIMUM : ScriptOptBuiltinExpr::MAXIMUM;
+
+    auto bi = with_location_of(make_intrusive<ScriptOptBuiltinExpr>(built_in, relop1, relop2), this);
+    auto new_assign = with_location_of(make_intrusive<AssignExpr>(lhs2, bi, false), this);
+
+    return with_location_of(make_intrusive<ExprStmt>(new_assign), this);
 }
 
 IntrusivePtr<Case> Case::Duplicate() {

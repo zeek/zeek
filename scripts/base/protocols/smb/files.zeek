@@ -27,10 +27,10 @@ function get_file_handle(c: connection, is_orig: bool): string
 	# should be considered a new file. We use the raw version here to avoid
 	# getting differences when double precision varies by architecture.
 	local last_mod  = cat(current_file?$times ? current_file$times$modified_raw : 0);
-	# TODO: This is doing hexdump to avoid problems due to file analysis handling
+	# TODO: This is doing clean to avoid problems due to file analysis handling
 	#       using CheckString which is not immune to encapsulated null bytes.
 	#       This needs to be fixed lower in the file analysis code later.
-	return hexdump(cat(Analyzer::ANALYZER_SMB, c$id$orig_h, c$id$resp_h, path_name, file_name, last_mod));
+	return clean(cat(Analyzer::ANALYZER_SMB, c$id$orig_h, c$id$resp_h, path_name, file_name, last_mod));
 	}
 
 function describe_file(f: fa_file): string

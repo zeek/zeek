@@ -2784,6 +2784,11 @@ eval	auto atype = frame[z.v2].ToVal(z.t);
 	auto c = zeek::file_mgr->Lookup(atype->AsEnumVal());
 	frame[z.v1].int_val = c && c->Enabled();
 
+internal-op Clear-Table
+op1-read
+type V
+eval	frame[z.v1].table_val->RemoveAll();
+
 internal-op Files-Enable-Reassembly
 op1-read
 type V

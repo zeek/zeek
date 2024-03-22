@@ -27,8 +27,8 @@ protected:
 
 class DirectBuiltIn : public ZAMBuiltIn {
 public:
-    DirectBuiltIn(ZOp _op, int _nargs, bool _ret_val_matters = true)
-        : ZAMBuiltIn(_ret_val_matters), op(_op), nargs(_nargs) {}
+    DirectBuiltIn(ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID)
+        : ZAMBuiltIn(_ret_val_matters), op(_op), nargs(_nargs), arg_type(_arg_type) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         ZInstI z;
@@ -45,6 +45,9 @@ public:
                 // This can happen for BiFs that aren't foldable, and for
                 // which it's implausible they'll be called with a constant
                 // argument.
+                return false;
+
+            if ( arg_type != TYPE_VOID && args[0]->GetType()->Tag() != arg_type )
                 return false;
 
             auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
@@ -66,6 +69,7 @@ public:
 protected:
     ZOp op;
     int nargs;
+    TypeTag arg_type;
 };
 
 class DirectBuiltInOptAssign : public DirectBuiltIn {
@@ -542,6 +546,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
          std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info)},
         {"Log::__write", std::make_shared<LogWriteBiF>()},
         {"cat", std::make_shared<CatBiF>()},
+        {"clear_table", std::make_shared<DirectBuiltIn>(OP_CLEAR_TABLE_V, 1, false, TYPE_TABLE)},
         {"connection_exists", std::make_shared<DirectBuiltIn>(OP_CONN_EXISTS_VV, 1)},
         {"current_time", std::make_shared<DirectBuiltIn>(OP_CURRENT_TIME_V, 0)},
         {"get_current_conn_bytes_threshold", std::make_shared<MultiArgBuiltIn>(true, get_bytes_thresh_info)},

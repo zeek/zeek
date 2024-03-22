@@ -45,7 +45,7 @@ public:
         // Use Collect() here instead of Value() to correctly handle metrics with
         // callbacks.
         auto metric = handle.Collect();
-        return static_cast<BaseType>(metric.gauge.value);
+        return static_cast<BaseType>(metric.counter.value);
     }
 
     /**

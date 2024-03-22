@@ -33,10 +33,6 @@ void Manager::InitPostScript() {
         prometheus_url = util::fmt("localhost:%s", env);
     else {
         auto metrics_port = id::find_val("Telemetry::metrics_port")->AsPortVal();
-        if ( metrics_port->Port() == 0 )
-            // Remove this in v7.1 when the Broker variables are removed
-            metrics_port = id::find_val("Broker::metrics_port")->AsPortVal();
-
         if ( metrics_port->Port() != 0 )
             prometheus_url = util::fmt("localhost:%u", metrics_port->Port());
     }

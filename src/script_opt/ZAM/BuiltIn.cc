@@ -555,6 +555,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Files::__remove_analyzer",
          std::make_shared<MultiArgBuiltIn>(files_remove_analyzer_info, files_remove_analyzer_assign_info)},
         {"Files::__analyzer_enabled", std::make_shared<DirectBuiltIn>(OP_ANALYZER_ENABLED_VV, 1)},
+        {"Files::__analyzer_name", std::make_shared<DirectBuiltIn>(OP_FILE_ANALYZER_NAME_VV, 1)},
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
         {"Files::__set_reassembly_buffer",
          std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info)},

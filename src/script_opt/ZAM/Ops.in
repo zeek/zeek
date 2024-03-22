@@ -2544,14 +2544,44 @@ type VV
 eval	if ( frame[z.v1].vector_val->Size() > 1 )
 		frame[z.v1].vector_val->Sort(frame[z.v2].func_val);
 
-internal-op StrStr
+macro EvalStartsWith(str_val, sub_val)
+	auto str = str_val.string_val;
+	auto sub = sub_val.string_val;
+	auto str_n = str->Len();
+	auto sub_n = sub->Len();
+	if ( str_n < sub_n )
+		frame[z.v1].int_val = 0;
+	else
+		{
+		auto str_b = str->Bytes();
+		auto sub_b = sub->Bytes();
+		int i;
+		for ( i = 0; i < sub_n; ++i )
+			if ( str_b[i] != sub_b[i] )
+				break;
+		frame[z.v1].int_val = i == sub_n;
+		}
+
+internal-op Starts-With
 type VVV
-eval	EvalStrStr(frame[z.v2], frame[z.v3])
+eval	EvalStartsWith(frame[z.v2], frame[z.v3])
+
+internal-op Starts-With
+type VCV
+eval	EvalStrStr(z.c, frame[z.v2])
+
+internal-op Starts-With
+type VVC
+eval	EvalStartsWith(frame[z.v2], z.c)
 
 macro EvalStrStr(big_value, little_value)
 	auto big = big_value.string_val;
 	auto little = little_value.string_val;
 	frame[z.v1].int_val = 1 + big->AsString()->FindSubstring(little->AsString());
+
+internal-op StrStr
+type VVV
+eval	EvalStrStr(frame[z.v2], frame[z.v3])
 
 internal-op StrStr
 type VCV

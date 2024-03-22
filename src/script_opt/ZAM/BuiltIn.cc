@@ -491,6 +491,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     static BifArgsInfo sub_bytes_info;
     static BifArgsInfo set_bytes_thresh_info, set_bytes_thresh_assign_info;
     static BifArgsInfo set_reassem_info, set_reassem_assign_info;
+    static BifArgsInfo starts_with_info;
     static BifArgsInfo strstr_info;
 
     static bool did_init = false;
@@ -526,6 +527,10 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         set_reassem_info[VC] = {OP_FILES_SET_REASSEMBLY_BUFFER_VC, OP_VV_I2};
         set_reassem_assign_info[VV] = {OP_FILES_SET_REASSEMBLY_BUFFER_VVV, OP_VVV};
         set_reassem_assign_info[VC] = {OP_FILES_SET_REASSEMBLY_BUFFER_VVC, OP_VVV_I3};
+
+        starts_with_info[VV] = {OP_STARTS_WITH_VVV, OP_VVV};
+        starts_with_info[VC] = {OP_STARTS_WITH_VVC, OP_VVC};
+        starts_with_info[CV] = {OP_STARTS_WITH_VCV, OP_VVC};
 
         strstr_info[VV] = {OP_STRSTR_VVV, OP_VVV};
         strstr_info[VC] = {OP_STRSTR_VVC, OP_VVC};
@@ -565,6 +570,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
          std::make_shared<MultiArgBuiltIn>(set_bytes_thresh_info, set_bytes_thresh_assign_info)},
         {"set_file_handle", std::make_shared<DirectBuiltIn>(OP_SET_FILE_HANDLE_V, 1, false)},
         {"sort", std::make_shared<SortBiF>()},
+        {"starts_with", std::make_shared<MultiArgBuiltIn>(true, starts_with_info)},
         {"strstr", std::make_shared<MultiArgBuiltIn>(true, strstr_info)},
         {"sub_bytes", std::make_shared<MultiArgBuiltIn>(true, sub_bytes_info)},
         {"subnet_to_addr", std::make_shared<DirectBuiltIn>(OP_SUBNET_TO_ADDR_VV, 1)},

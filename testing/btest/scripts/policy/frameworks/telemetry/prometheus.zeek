@@ -7,10 +7,6 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 # @TEST-PORT: BROKER_PORT4
-# @TEST-PORT: BROKER_METRICS_PORT1
-# @TEST-PORT: BROKER_METRICS_PORT2
-# @TEST-PORT: BROKER_METRICS_PORT3
-# @TEST-PORT: BROKER_METRICS_PORT4
 #
 # @TEST-REQUIRES: which curl
 # @TEST-EXEC: zeek --parse-only %INPUT
@@ -24,10 +20,10 @@
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1")), $metrics_port=to_port(getenv("BROKER_METRICS_PORT1"))],
-	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1", $metrics_port=to_port(getenv("BROKER_METRICS_PORT2"))],
-	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1", $metrics_port=to_port(getenv("BROKER_METRICS_PORT3"))],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $metrics_port=to_port(getenv("BROKER_METRICS_PORT4"))],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1")), $metrics_port=1028/tcp],
+	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1", $metrics_port=1029/tcp],
+	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1", $metrics_port=1030/tcp],
+	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $metrics_port=1031/tcp],
 };
 @TEST-END-FILE
 
@@ -48,7 +44,7 @@ for target in $(echo ${services_data} | jq '.[0].targets.[]'); do
 	host=$(echo ${target} | sed 's/"//g')
 	echo ${host} >> ${output_file}
 	echo "$(date +%s) requesting from ${host}" >> ${output_file}
-	metrics=$(curl -s http://${host}/metrics)
+	metrics=$(curl -s -m 5 http://${host}/metrics)
 	if [ $? == 0 ] ; then
 		version_info=$(echo ${metrics} | grep -Eo "zeek_version_info\{[^}]+\}" | grep -o 'endpoint=\"[^"]*\"')
 		echo ${version_info} >> ${output_file};

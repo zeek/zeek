@@ -248,7 +248,7 @@ private:
     ArgsType ComputeArgsType(const ExprPList& args) const {
         zeek_uint_t mask = 0;
 
-        for ( int i = 0; i < args.size(); ++i ) {
+        for ( auto i = 0U; i < args.size(); ++i ) {
             mask <<= 1;
             if ( args[i]->Tag() == EXPR_CONST )
                 mask |= 1;

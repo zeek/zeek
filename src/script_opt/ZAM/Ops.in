@@ -2846,7 +2846,12 @@ internal-op File-Analyzer-Name
 type VV
 eval	auto atype = frame[z.v2].ToVal(z.t);
 	Unref(frame[z.v1].string_val);
-	frame[z.v1] = ZVal(file_mgr->GetComponentNameVal(IntrusivePtr{zeek::NewRef{}, atype->AsEnumVal()}));
+	frame[z.v1] = ZVal(file_mgr->GetComponentNameVal({NewRef{}, atype->AsEnumVal()}));
+
+internal-op Is-Protocol-Analyzer
+type VV
+eval	auto atype = frame[z.v2].ToVal(z.t);
+	frame[z.v1].int_val = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
 
 internal-op Clear-Table
 op1-read

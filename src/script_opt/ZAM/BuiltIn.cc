@@ -567,6 +567,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"get_current_conn_bytes_threshold", std::make_shared<MultiArgBuiltIn>(true, get_bytes_thresh_info)},
         {"get_port_transport_proto", std::make_shared<DirectBuiltIn>(OP_GET_PORT_TRANSPORT_PROTO_VV, 1)},
         {"is_icmp_port", std::make_shared<DirectBuiltIn>(OP_IS_ICMP_PORT_VV, 1)},
+        {"is_protocol_analyzer", std::make_shared<DirectBuiltIn>(OP_IS_PROTOCOL_ANALYZER_VV, 1)},
         {"is_tcp_port", std::make_shared<DirectBuiltIn>(OP_IS_TCP_PORT_VV, 1)},
         {"is_udp_port", std::make_shared<DirectBuiltIn>(OP_IS_UDP_PORT_VV, 1)},
         {"is_v4_addr", std::make_shared<DirectBuiltIn>(OP_IS_V4_ADDR_VV, 1)},

@@ -17,6 +17,7 @@ enum MetricType %{
 #include "zeek/telemetry/Gauge.h"
 #include "zeek/telemetry/Histogram.h"
 #include "zeek/telemetry/Manager.h"
+#include "zeek/telemetry/Opaques.h"
 
 namespace {
 

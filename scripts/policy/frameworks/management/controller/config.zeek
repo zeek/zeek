@@ -61,16 +61,27 @@ export {
 	## for websocket clients.
 	const default_port_websocket = 2149/tcp &redef;
 
-	## Whether the controller should auto-assign listening ports to cluster
-	## nodes that need them and don't have them explicitly specified in
-	## cluster configurations.
-	const auto_assign_ports = T &redef;
+	## Whether the controller should auto-assign Broker listening ports to
+	## cluster nodes that need them and don't have them explicitly specified
+	## in cluster configurations.
+	const auto_assign_broker_ports = T &redef;
+	const auto_assign_ports = T &redef &deprecated="Remove in v7.1: replaced by auto_assign_broker_ports.";
 
 	## The TCP start port to use for auto-assigning cluster node listening
-	## ports, if :zeek:see:`Management::Controller::auto_assign_ports` is
-	## enabled (the default) and the provided configurations don't have
-	## ports assigned.
-	const auto_assign_start_port = 2200/tcp &redef;
+	## ports, if :zeek:see:`Management::Controller::auto_assign_broker_ports` is
+	## enabled (the default) and nodes don't come with those ports assigned.
+	const auto_assign_broker_start_port = 2200/tcp &redef;
+	const auto_assign_start_port = 2200/tcp &redef &deprecated="Remove in v7.1: replaced by auto_assign_broker_start_port.";
+
+	## Whether the controller should auto-assign metrics ports for Prometheus
+	## to nodes that need them and don't have them explicitly specified in
+	## their cluster configurations.
+	const auto_assign_metrics_ports = T &redef;
+
+	## The TCP start port to use for auto-assigning metrics exposition ports
+	## for Prometheus, if :zeek:see:`Management::Controller::auto_assign_metrics_ports`
+	## is enabled (the default) and nodes don't come with those ports assigned.
+	const auto_assign_metrics_start_port = 2400/tcp &redef;
 
 	## The controller's Broker topic. Clients send requests to this topic.
 	const topic = "zeek/management/controller" &redef;

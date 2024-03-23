@@ -521,6 +521,9 @@ function deploy_request_finish(areq: Management::Request::Request)
 		if ( node?$interface )
 			cep$interface = node$interface;
 
+		if ( node?$metrics_port )
+			cep$metrics_port = node$metrics_port;
+
 		g_cluster[node$name] = cep;
 		}
 
@@ -630,6 +633,9 @@ function get_nodes_request_finish(areq: Management::Request::Request)
 			# serialization always assumes TCP.
 			if ( sns$node$cluster[node]$p != 0/tcp )
 				cns$p = sns$node$cluster[node]$p;
+
+			if ( sns$node$cluster[node]?$metrics_port )
+				cns$metrics_port = sns$node$cluster[node]$metrics_port;
 			}
 		else
 			{

@@ -1269,6 +1269,11 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
         if ( pcap_file )
             ep.pcap_file = pcap_file->AsStringVal()->ToStdString();
 
+        const auto& metrics_port = rv->GetField("metrics_port");
+
+        if ( metrics_port )
+            ep.metrics_port = rv->GetFieldAs<PortVal>("metrics_port")->Port();
+
         rval.cluster.emplace(name, std::move(ep));
     }
 
@@ -1336,6 +1341,9 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json) {
 
         if ( auto it = val.FindMember("pcap_file"); it != val.MemberEnd() )
             ep.pcap_file = it->value.GetString();
+
+        if ( auto it = val.FindMember("metrics_port"); it != val.MemberEnd() )
+            ep.metrics_port = it->value["port"].GetInt();
 
         rval.cluster.emplace(key, std::move(ep));
     }
@@ -1421,6 +1429,9 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const {
         if ( ep.pcap_file )
             val->AssignField("pcap_file", *ep.pcap_file);
 
+        if ( ep.metrics_port )
+            val->AssignField("metrics_port", val_mgr->Port(*ep.metrics_port, TRANSPORT_TCP));
+
         cluster_val->Assign(std::move(key), std::move(val));
     }
 
@@ -1488,6 +1499,9 @@ bool SupervisedNode::InitCluster() const {
         if ( manager_name && ep.role != BifEnum::Supervisor::MANAGER )
             val->AssignField("manager", *manager_name);
 
+        if ( ep.metrics_port )
+            val->AssignField("metrics_port", val_mgr->Port(*ep.metrics_port, TRANSPORT_TCP));
+
         cluster_nodes->Assign(std::move(key), std::move(val));
     }
 
@@ -1550,6 +1564,14 @@ void SupervisedNode::Init(Options* options) const {
         if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 ) {
             fprintf(stderr, "node '%s' failed to setenv: %s\n", node_name.data(), strerror(errno));
             exit(1);
+        }
+
+        if ( const auto& ep = config.cluster.find(node_name); ep != config.cluster.end() && ep->second.metrics_port ) {
+            auto metrics_port_str = std::to_string(*(ep->second.metrics_port));
+            if ( setenv("ZEEK_METRICS_PORT", metrics_port_str.c_str(), true) == -1 ) {
+                fprintf(stderr, "metrics port '%s' failed to setenv: %s\n", metrics_port_str.c_str(), strerror(errno));
+                exit(1);
+            }
         }
     }
 

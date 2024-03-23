@@ -137,6 +137,10 @@ public:
          * Typically used by worker nodes.
          */
         std::optional<std::string> pcap_file;
+        /**
+         * The TCP port number at which the cluster node exposes metrics for Prometheus.
+         */
+        std::optional<int> metrics_port;
     };
 
     /**

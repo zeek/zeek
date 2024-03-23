@@ -417,7 +417,7 @@ private:
 
 class LogWriteBiF : public ZAMBuiltIn {
 public:
-    LogWriteBiF() : ZAMBuiltIn(false) {}
+    LogWriteBiF() : ZAMBuiltIn(false) { have_both = true; }
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto id = args[0];
@@ -564,6 +564,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
         {"Files::__set_reassembly_buffer",
          std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info)},
+        {"Log::write", std::make_shared<LogWriteBiF>()},
         {"Log::__write", std::make_shared<LogWriteBiF>()},
         {"cat", std::make_shared<CatBiF>()},
         {"clear_table", std::make_shared<DirectBuiltIn>(OP_CLEAR_TABLE_V, 1, false, TYPE_TABLE)},

@@ -288,8 +288,7 @@ const ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOp
             return AddInst(GenInst(OP_FUNC_ID_STRING_VV, lhs, n));
         }
 
-	default:
-		reporter->InternalError("bad built-in tag in ZAMCompiler::CompileZAMBuiltin");
+        default: reporter->InternalError("bad built-in tag in ZAMCompiler::CompileZAMBuiltin");
     }
 }
 

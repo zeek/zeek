@@ -2792,9 +2792,8 @@ eval	CatNPre()
 	ca[7]->RenderInto(frame, aux->elems[7].Slot(), res_p);
 	CatNPost()
 
-internal-op Analyzer-Name
-type VV
-eval	auto atype = frame[z.v2].ToVal(z.t);
+macro AnalyzerName(tag)
+	auto atype = tag.ToVal(z.t);
 	auto val = atype->AsEnumVal();
 	Unref(frame[z.v1].string_val);
 	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
@@ -2806,6 +2805,14 @@ eval	auto atype = frame[z.v2].ToVal(z.t);
 		frame[z.v1].string_val = new StringVal(component->CanonicalName());
 	else
 		frame[z.v1].string_val = new StringVal("<error>");
+
+internal-op Analyzer-Name
+type VV
+eval	AnalyzerName(frame[z.v2])
+
+internal-op Analyzer-Name
+type VC
+eval	AnalyzerName(z.c)
 
 macro FilesAddOrRemoveAnalyzer(file_id_slot, tag, args_slot, METHOD)
 	auto file_id = frame[z.file_id_slot].string_val;
@@ -2866,22 +2873,43 @@ side-effects OP_FILES_REMOVE_ANALYZER_ViV OP_VVC
 eval	FilesRemoveAnalyzer(v2, z.c, v3)
 	frame[z.v1].int_val = result;
 
-internal-op Analyzer-Enabled
-type VV
-eval	auto atype = frame[z.v2].ToVal(z.t);
+macro AnalyzerEnabled(tag)
+	auto atype = tag.ToVal(z.t);
 	auto c = zeek::file_mgr->Lookup(atype->AsEnumVal());
 	frame[z.v1].int_val = c && c->Enabled();
 
-internal-op File-Analyzer-Name
+internal-op Analyzer-Enabled
 type VV
-eval	auto atype = frame[z.v2].ToVal(z.t);
+eval	AnalyzerEnabled(frame[z.v2])
+
+internal-op Analyzer-Enabled
+type VC
+eval	AnalyzerEnabled(z.c)
+
+macro FileAnalyzerName(tag)
+	auto atype = tag.ToVal(z.t);
 	Unref(frame[z.v1].string_val);
 	frame[z.v1] = ZVal(file_mgr->GetComponentNameVal({NewRef{}, atype->AsEnumVal()}));
 
+internal-op File-Analyzer-Name
+type VV
+eval	FileAnalyzerName(frame[z.v2])
+
+internal-op File-Analyzer-Name
+type VC
+eval	FileAnalyzerName(z.c)
+
+macro IsProtocolAnalyzer(tag)
+	auto atype = tag.ToVal(z.t);
+	frame[z.v1].int_val = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
+
 internal-op Is-Protocol-Analyzer
 type VV
-eval	auto atype = frame[z.v2].ToVal(z.t);
-	frame[z.v1].int_val = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
+eval	IsProtocolAnalyzer(frame[z.v2])
+
+internal-op Is-Protocol-Analyzer
+type VC
+eval	IsProtocolAnalyzer(z.c)
 
 internal-op Clear-Table
 op1-read

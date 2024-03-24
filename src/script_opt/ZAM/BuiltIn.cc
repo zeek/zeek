@@ -30,6 +30,9 @@ public:
     DirectBuiltIn(ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID)
         : ZAMBuiltIn(_ret_val_matters), op(_op), nargs(_nargs), arg_type(_arg_type) {}
 
+    DirectBuiltIn(ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID)
+        : ZAMBuiltIn(_ret_val_matters), op(_op), const_op(_const_op), nargs(_nargs), arg_type(_arg_type) {}
+
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         ZInstI z;
         if ( nargs == 0 ) {
@@ -40,22 +43,33 @@ public:
         }
         else {
             ASSERT(nargs == 1);
+            auto& t = args[0]->GetType();
 
-            if ( args[0]->Tag() != EXPR_NAME )
-                // This can happen for BiFs that aren't foldable, and for
-                // which it's implausible they'll be called with a constant
-                // argument.
+            if ( arg_type != TYPE_VOID && t->Tag() != arg_type )
                 return false;
 
-            if ( arg_type != TYPE_VOID && args[0]->GetType()->Tag() != arg_type )
-                return false;
+            if ( args[0]->Tag() == EXPR_NAME ) {
+                auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
+                if ( n )
+                    z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0);
+                else
+                    z = ZInstI(op, a0);
+            }
 
-            auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
-            if ( n )
-                z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0);
-            else
-                z = ZInstI(op, a0);
-            z.t = args[0]->GetType();
+            else {
+                if ( const_op == OP_NOP )
+                    // This can happen for BiFs that aren't foldable, and for
+                    // which it's implausible they'll be called with a constant
+                    // argument.
+                    return false;
+                if ( n )
+                    z = ZInstI(const_op, zam->Frame1Slot(n, OP1_WRITE));
+                else
+                    z = ZInstI(const_op);
+                z.c = ZVal(args[0]->AsConstExpr()->ValuePtr(), t);
+            }
+
+            z.t = t;
         }
 
         if ( n )
@@ -68,6 +82,7 @@ public:
 
 protected:
     ZOp op;
+    ZOp const_op = OP_NOP;
     int nargs;
     TypeTag arg_type;
 };
@@ -290,18 +305,14 @@ public:
         if ( comp_val->Tag() != EXPR_NAME )
             return false;
 
-        auto comp_func_val = comp_val->AsNameExpr()->Id()->GetVal();
-        if ( ! comp_func_val )
-            return false;
-
-        auto comp = comp_func_val->AsFunc();
-        const auto& comp_type = comp->GetType();
+        auto comp_func = comp_val->AsNameExpr();
+        auto comp_type = comp_func->GetType()->AsFuncType();
 
         if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
              comp_type->ParamList()->GetTypes().size() != 2 )
             return false;
 
-        zam->AddInst(ZInstI(OP_SORT_WITH_CMP_VV, zam->FrameSlot(v), zam->FrameSlot(comp_val->AsNameExpr())));
+        zam->AddInst(ZInstI(OP_SORT_WITH_CMP_VV, zam->FrameSlot(v), zam->FrameSlot(comp_func)));
 
         return true;
     }
@@ -487,10 +498,6 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         // A call to a function that hasn't been defined.
         return false;
 
-    auto func = func_val->AsFunc();
-    if ( func->GetKind() != BuiltinFunc::BUILTIN_FUNC )
-        return false;
-
     static BifArgsInfo files_add_analyzer_info, files_add_analyzer_assign_info;
     static BifArgsInfo files_remove_analyzer_info, files_remove_analyzer_assign_info;
     static BifArgsInfo get_bytes_thresh_info;
@@ -552,15 +559,17 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     }
 
     static std::map<std::string, std::shared_ptr<ZAMBuiltIn>> builtins = {
-        {"Analyzer::__name", std::make_shared<DirectBuiltIn>(OP_ANALYZER_NAME_VV, 1)},
+        {"Analyzer::__name", std::make_shared<DirectBuiltIn>(OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1)},
         {"Broker::__flush_logs",
          std::make_shared<DirectBuiltInOptAssign>(OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0)},
         {"Files::__add_analyzer",
          std::make_shared<MultiArgBuiltIn>(files_add_analyzer_info, files_add_analyzer_assign_info, 1)},
         {"Files::__remove_analyzer",
          std::make_shared<MultiArgBuiltIn>(files_remove_analyzer_info, files_remove_analyzer_assign_info, 1)},
-        {"Files::__analyzer_enabled", std::make_shared<DirectBuiltIn>(OP_ANALYZER_ENABLED_VV, 1)},
-        {"Files::__analyzer_name", std::make_shared<DirectBuiltIn>(OP_FILE_ANALYZER_NAME_VV, 1)},
+        {"Files::__analyzer_enabled",
+         std::make_shared<DirectBuiltIn>(OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV, 1)},
+        {"Files::__analyzer_name",
+         std::make_shared<DirectBuiltIn>(OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1)},
         {"Files::__enable_reassembly", std::make_shared<DirectBuiltIn>(OP_FILES_ENABLE_REASSEMBLY_V, 1, false)},
         {"Files::__set_reassembly_buffer",
          std::make_shared<MultiArgBuiltIn>(set_reassem_info, set_reassem_assign_info)},
@@ -573,7 +582,8 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"get_current_conn_bytes_threshold", std::make_shared<MultiArgBuiltIn>(true, get_bytes_thresh_info)},
         {"get_port_transport_proto", std::make_shared<DirectBuiltIn>(OP_GET_PORT_TRANSPORT_PROTO_VV, 1)},
         {"is_icmp_port", std::make_shared<DirectBuiltIn>(OP_IS_ICMP_PORT_VV, 1)},
-        {"is_protocol_analyzer", std::make_shared<DirectBuiltIn>(OP_IS_PROTOCOL_ANALYZER_VV, 1)},
+        {"is_protocol_analyzer",
+         std::make_shared<DirectBuiltIn>(OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1)},
         {"is_tcp_port", std::make_shared<DirectBuiltIn>(OP_IS_TCP_PORT_VV, 1)},
         {"is_udp_port", std::make_shared<DirectBuiltIn>(OP_IS_UDP_PORT_VV, 1)},
         {"is_v4_addr", std::make_shared<DirectBuiltIn>(OP_IS_V4_ADDR_VV, 1)},
@@ -597,6 +607,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"to_lower", std::make_shared<DirectBuiltIn>(OP_TO_LOWER_VV, 1)},
     };
 
+    auto func = func_val->AsFunc();
     auto b = builtins.find(func->Name());
     if ( b == builtins.end() )
         return false;

@@ -2451,7 +2451,7 @@ eval	auto sv = ZAM_to_lower(frame[z.v2].string_val);
 
 macro LogWritePre(id_val, columns_slot)
 	auto id = id_val;
-	auto columns = frame[z.columns_slot].ToVal(z.t);
+	auto columns = frame[z.columns_slot].record_val;
 
 macro LogWriteResPost()
 	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());

@@ -470,8 +470,6 @@ public:
                 z = ZInstI(OP_LOG_WRITE_VV, zam->FrameSlot(id->AsNameExpr()), col_slot);
         }
 
-        z.SetType(columns_n->GetType());
-
         zam->AddInst(z);
 
         return true;

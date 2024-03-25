@@ -124,6 +124,10 @@ public:
 
     void Dump(FILE* f);
 
+    size_t Hash() const { return std::hash<std::string>{}(pattern_text); }
+    bool operator==(const Specific_RE_Matcher& other) { return pattern_text == other.pattern_text; }
+    bool operator!=(const Specific_RE_Matcher& other) { return pattern_text != other.pattern_text; }
+
 protected:
     void AddAnywherePat(const char* pat);
     void AddExactPat(const char* pat);
@@ -241,6 +245,10 @@ public:
     // Original text used to construct this matcher.  Empty unless
     // the main ("explicit") constructor was used.
     const char* OrigText() const { return orig_text.c_str(); }
+
+    size_t Hash() const;
+
+    bool operator==(const RE_Matcher& other) const;
 
 protected:
     std::string orig_text;

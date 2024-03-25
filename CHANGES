@@ -1,3 +1,7 @@
+7.0.0-dev.94 | 2024-03-25 11:25:47 +0100
+
+  * Bump Spicy to current `main`. (Robin Sommer, Corelight)
+
 7.0.0-dev.92 | 2024-03-19 14:39:26 -0700
 
   * ZAM documentation updated to reflect finer-grained profiling (Vern Paxson, Corelight)

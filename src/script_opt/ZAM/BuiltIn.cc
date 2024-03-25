@@ -277,9 +277,9 @@ private:
     int type_arg;
 };
 
-class SortBiF : public DirectBuiltIn {
+class SortBiF : public DirectBuiltInOptAssign {
 public:
-    SortBiF() : DirectBuiltIn(OP_SORT_V, 1, false) {}
+    SortBiF() : DirectBuiltInOptAssign(OP_SORT_V, OP_SORT_VV, 1) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         if ( args.size() > 2 )
@@ -295,7 +295,7 @@ public:
             if ( ! IsIntegral(elt_type->Tag()) && elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
                 return false;
 
-            return DirectBuiltIn::Build(zam, n, args);
+            return DirectBuiltInOptAssign::Build(zam, n, args);
         }
 
         const auto& comp_val = args[1];
@@ -312,7 +312,15 @@ public:
              comp_type->ParamList()->GetTypes().size() != 2 )
             return false;
 
-        zam->AddInst(ZInstI(OP_SORT_WITH_CMP_VV, zam->FrameSlot(v), zam->FrameSlot(comp_func)));
+        ZInstI z;
+
+        if ( n )
+            z = ZInstI(OP_SORT_WITH_CMP_VVV, zam->Frame1Slot(n, OP1_WRITE), zam->FrameSlot(v),
+                       zam->FrameSlot(comp_func));
+        else
+            z = ZInstI(OP_SORT_WITH_CMP_VV, zam->FrameSlot(v), zam->FrameSlot(comp_func));
+
+        zam->AddInst(z);
 
         return true;
     }

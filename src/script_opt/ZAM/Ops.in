@@ -2569,11 +2569,29 @@ type V
 eval	if ( frame[z.v1].vector_val->Size() > 1 )
 		frame[z.v1].vector_val->Sort();
 
+internal-op Sort
+type VV
+eval	auto vv = frame[z.v2].vector_val;
+	if ( vv->Size() > 1 )
+		vv->Sort();
+	zeek::Ref(vv);
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vv;
+
 internal-op Sort-With-Cmp
 op1-read
 type VV
 eval	if ( frame[z.v1].vector_val->Size() > 1 )
 		frame[z.v1].vector_val->Sort(frame[z.v2].func_val);
+
+internal-op Sort-With-Cmp
+type VVV
+eval	auto vv = frame[z.v2].vector_val;
+	if ( vv->Size() > 1 )
+		vv->Sort(frame[z.v3].func_val);
+	zeek::Ref(vv);
+	Unref(frame[z.v1].vector_val);
+	frame[z.v1].vector_val = vv;
 
 macro EvalStartsWith(str_val, sub_val)
 	auto str = str_val.string_val;

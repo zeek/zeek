@@ -1218,6 +1218,8 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
     ZOp op;
 
     const auto& map = rc->Map();
+    int network_time_index = -1; // -1 = "no network_time() initializer"
+
     if ( map ) {
         aux->map = *map;
 
@@ -1233,22 +1235,49 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
                     break;
                 }
 
+            if ( ! seen ) {
+                // Look for very fine-grained optimization: a record
+                // initialization expression of network_time(). This winds
+                // up occurring a lot, and it's expensive since it means
+                // every such record creation entails a script-level
+                // function call.
+                auto ie = c.second->InitExpr();
+                if ( ie && ie->Tag() == EXPR_CALL ) {
+                    auto call = ie->AsCallExpr();
+                    auto func = call->Func();
+                    if ( func->Tag() == EXPR_NAME ) {
+                        auto f = func->AsNameExpr()->Id();
+                        if ( f->Name() == std::string("network_time") ) {
+                            network_time_index = c.first;
+                            seen = true;
+                        }
+                    }
+                }
+            }
+
             if ( ! seen )
                 // Need to generate field dynamically.
                 fi->push_back(c);
         }
 
-        if ( fi->empty() )
-            op = OP_CONSTRUCT_KNOWN_RECORD_V;
+        if ( fi->empty() ) {
+            if ( network_time_index >= 0 )
+                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_VV;
+            else
+                op = OP_CONSTRUCT_KNOWN_RECORD_V;
+        }
         else {
-            op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_V;
+            if ( network_time_index >= 0 )
+                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_VV;
+            else
+                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_V;
             aux->field_inits = std::move(fi);
         }
     }
     else
         op = OP_CONSTRUCT_DIRECT_RECORD_V;
 
-    ZInstI z = GenInst(op, n);
+    ZInstI z = network_time_index >= 0 ? GenInst(op, n, network_time_index) : GenInst(op, n);
 
     z.aux = aux;
     z.t = e->GetType();

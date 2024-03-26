@@ -2639,6 +2639,23 @@ internal-op Starts-With
 type VVC
 eval	EvalStartsWith(frame[z.v2], z.c)
 
+macro EvalStrCmp(s1_src, s2_src)
+	auto s1 = s1_src.string_val;
+	auto s2 = s2_src.string_val;
+	frame[z.v1].int_val = Bstr_cmp(s1->AsString(), s2->AsString());
+
+internal-op StrCmp
+type VVV
+eval	EvalStrCmp(frame[z.v2], frame[z.v3])
+
+internal-op StrCmp
+type VCV
+eval	EvalStrCmp(z.c, frame[z.v2])
+
+internal-op StrCmp
+type VVC
+eval	EvalStrCmp(frame[z.v2], z.c)
+
 macro EvalStrStr(big_value, little_value)
 	auto big = big_value.string_val;
 	auto little = little_value.string_val;

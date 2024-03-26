@@ -91,35 +91,35 @@ export {
 global bytes_received_cf = Telemetry::register_counter_family([
     $prefix="zeek",
     $name="net-received-bytes",
-    $unit="1",
+    $unit="",
     $help_text="Total number of bytes received",
 ]);
 
 global packets_received_cf = Telemetry::register_counter_family([
     $prefix="zeek",
     $name="net-received-packets",
-    $unit="1",
+    $unit="",
     $help_text="Total number of packets received",
 ]);
 
 global packets_dropped_cf = Telemetry::register_counter_family([
     $prefix="zeek",
     $name="net-dropped-packets",
-    $unit="1",
+    $unit="",
     $help_text="Total number of packets dropped",
 ]);
 
 global link_packets_cf = Telemetry::register_counter_family([
     $prefix="zeek",
     $name="net-link-packets",
-    $unit="1",
+    $unit="",
     $help_text="Total number of packets on the packet source link before filtering",
 ]);
 
 global packets_filtered_cf = Telemetry::register_counter_family([
     $prefix="zeek",
     $name="net-filtered-packets",
-    $unit="1",
+    $unit="",
     $help_text="Total number of packets filtered",
 ]);
 

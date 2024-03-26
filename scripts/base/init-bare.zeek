@@ -5790,11 +5790,17 @@ export {
 		## for any metrics involving process state (CPU, memory, etc).
 		prefix: string;
 
-		## The human-readable name of the metric.
+		## The human-readable name of the metric. This is set to the
+		## full prefixed name including the unit when returned from
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`.
 		name: string;
 
-		## The unit of the metric. Set to a blank string if this is a unit-less metric.
-		unit: string;
+		## The unit of the metric. Leave this unset for a unit-less
+		## metric. Will be unset when returned from
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`.
+		unit: string &optional;
 
 		## Documentation for this metric.
 		help_text: string &optional;

@@ -73,7 +73,7 @@ std::vector<zeek::telemetry::LabelView> sv_tbl(zeek::TableVal* xs)
 	return result;
 	}
 
-bool is_valid(zeek::Span<const zeek::telemetry::LabelView> labels,
+bool labels_valid(zeek::Span<const zeek::telemetry::LabelView> labels,
               zeek::Span<const std::string> label_names)
 	{
 	auto key_in_label_names = [keys{label_names}](auto x)
@@ -131,7 +131,7 @@ function Telemetry::__int_counter_metric_get_or_add%(family: opaque of int_count
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl->LabelNames()) )
+		if ( labels_valid(lbl_map, hdl->LabelNames()) )
 			{
 			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntCounterMetricVal>(res);
@@ -191,7 +191,7 @@ function Telemetry::__dbl_counter_metric_get_or_add%(family: opaque of dbl_count
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl->LabelNames()) )
+		if ( labels_valid(lbl_map, hdl->LabelNames()) )
 			{
 			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblCounterMetricVal>(res);
@@ -251,7 +251,7 @@ function Telemetry::__int_gauge_metric_get_or_add%(family: opaque of int_gauge_m
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl->LabelNames()) )
+		if ( labels_valid(lbl_map, hdl->LabelNames()) )
 			{
 			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntGaugeMetricVal>(res);
@@ -317,7 +317,7 @@ function Telemetry::__dbl_gauge_metric_get_or_add%(family: opaque of dbl_gauge_m
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl->LabelNames()) )
+		if ( labels_valid(lbl_map, hdl->LabelNames()) )
 			{
 			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblGaugeMetricVal>(res);
@@ -386,7 +386,7 @@ function Telemetry::__int_histogram_metric_get_or_add%(family: opaque of int_his
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl->LabelNames()) )
+		if ( labels_valid(lbl_map, hdl->LabelNames()) )
 			{
 			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<IntHistogramMetricVal>(res);
@@ -449,7 +449,7 @@ function Telemetry::__dbl_histogram_metric_get_or_add%(family: opaque of dbl_his
 		{
 		auto hdl = ptr->GetHandle();
 		auto lbl_map = sv_tbl(labels->AsTableVal());
-		if ( is_valid(lbl_map, hdl->LabelNames()) )
+		if ( labels_valid(lbl_map, hdl->LabelNames()) )
 			{
 			auto res = hdl->GetOrAdd(lbl_map);
 			return zeek::make_intrusive<DblHistogramMetricVal>(res);

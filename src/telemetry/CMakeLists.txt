@@ -2,9 +2,9 @@ zeek_add_subdir_library(
     telemetry
     SOURCES
     Manager.cc
-    MetricFamily.cc
     Opaques.cc
     ProcessStats.cc
+    Utils.cc
     BIFS
     telemetry.bif)
 

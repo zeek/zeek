@@ -594,6 +594,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         {"is_udp_port", std::make_shared<DirectBuiltIn>(OP_IS_UDP_PORT_VV, 1)},
         {"is_v4_addr", std::make_shared<DirectBuiltIn>(OP_IS_V4_ADDR_VV, 1)},
         {"is_v6_addr", std::make_shared<DirectBuiltIn>(OP_IS_V6_ADDR_VV, 1)},
+        {"lookup_connection", std::make_shared<DirectBuiltIn>(OP_LOOKUP_CONN_VV, 1)},
         {"network_time", std::make_shared<DirectBuiltIn>(OP_NETWORK_TIME_V, 0)},
         {"reading_live_traffic", std::make_shared<DirectBuiltIn>(OP_READING_LIVE_TRAFFIC_V, 0)},
         {"reading_traces", std::make_shared<DirectBuiltIn>(OP_READING_TRACES_V, 0)},

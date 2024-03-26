@@ -2633,7 +2633,7 @@ eval	EvalStartsWith(frame[z.v2], frame[z.v3])
 
 internal-op Starts-With
 type VCV
-eval	EvalStrStr(z.c, frame[z.v2])
+eval	EvalStartsWith(z.c, frame[z.v2])
 
 internal-op Starts-With
 type VVC

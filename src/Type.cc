@@ -1075,6 +1075,12 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
                 init = std::make_shared<detail::DirectFieldInit>(zv);
         }
 
+        else if ( def_expr->Tag() == detail::EXPR_ARITH_COERCE &&
+                  (def_expr->GetOp1()->IsZero() || def_expr->GetOp1()->IsOne()) ) {
+            auto zv = ZVal(def_expr->Eval(nullptr), type);
+            init = std::make_shared<detail::DirectFieldInit>(zv);
+        }
+
         else {
             auto efi = std::make_shared<detail::ExprFieldInit>(def_expr, type);
             creation_inits.emplace_back(field, std::move(efi));

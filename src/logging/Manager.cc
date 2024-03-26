@@ -419,13 +419,13 @@ Manager::Manager()
     : plugin::ComponentManager<logging::Component>("Log", "Writer"),
       total_log_stream_writes_family(telemetry_mgr->CounterFamily("zeek", "log-stream-writes", {"module", "stream"},
                                                                   "Total number of log writes for the given stream.",
-                                                                  "1", true)),
+                                                                  "", true)),
       total_log_writer_writes_family(
           telemetry_mgr
               ->CounterFamily("zeek", "log-writer-writes", {"writer", "module", "stream", "filter-name", "path"},
                               "Total number of log writes passed to a concrete log writer not vetoed by stream or "
                               "filter policies.",
-                              "1", true)) {
+                              "", true)) {
     rotations_pending = 0;
 }
 

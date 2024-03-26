@@ -14,7 +14,7 @@ function print_histogram_metrics(what: string, metrics: vector of Telemetry::His
 	for (i in metrics)
 		{
 		local m = metrics[i];
-		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$bounds, m$opts$labels, m$labels;
+		print m$opts$metric_type, m$opts$name, m$opts$bounds, m$opts$labels, m$labels;
 		# Don't output actual values as they are runtime dependent.
 		# print m$values, m$sum, m$observations;
 		if ( m$opts?$count_bounds )
@@ -28,7 +28,7 @@ function print_metrics(what: string, metrics: vector of Telemetry::Metric)
 	for (i in metrics)
 		{
 		local m = metrics[i];
-		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$labels, m$labels, m$value;
+		print m$opts$metric_type, m$opts$name, m$opts$labels, m$labels, m$value;
 
 		if (m?$count_value)
 			print "count_value", m$count_value;

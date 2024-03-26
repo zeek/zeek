@@ -5785,14 +5785,22 @@ export {
 
 	## Type that captures options used to create metrics.
 	type MetricOpts: record {
-		## The prefix (namespace) of the metric.
-		prefix: string;
+		## The prefix (namespace) of the metric. Will be unset when
+		## returned from :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`.
+		prefix: string &optional;
 
-		## The human-readable name of the metric.
+		## The human-readable name of the metric. This will the full
+		## prefixed name including the unit when returned from
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`.
 		name: string;
 
-		## The unit of the metric. Set to a blank string if this is a unit-less metric.
-		unit: string;
+		## The unit of the metric. Set to a blank string if this is a
+		## unit-less metric. Will be unset when returned from
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`.
+		unit: string &optional;
 
 		## Documentation for this metric.
 		help_text: string;

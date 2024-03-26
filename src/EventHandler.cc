@@ -47,7 +47,7 @@ void EventHandler::Call(Args* vl, bool no_remote, double ts) {
     if ( ! call_count ) {
         static auto eh_invocations_family =
             telemetry_mgr->CounterFamily("zeek", "event-handler-invocations", {"name"},
-                                         "Number of times the given event handler was called", "1", true);
+                                         "Number of times the given event handler was called", "", true);
 
         call_count = eh_invocations_family->GetOrAdd({{"name", name}});
     }

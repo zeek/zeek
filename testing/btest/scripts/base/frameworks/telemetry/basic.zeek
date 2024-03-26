@@ -55,7 +55,7 @@ function print_metrics(what: string, metrics: vector of Telemetry::Metric)
 	for (i in metrics)
 		{
 		local m = metrics[i];
-		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$labels, m$labels, m$value;
+		print m$opts$metric_type, m$opts$name, m$opts$labels, m$labels, m$value;
 
 		if (m?$count_value)
 			print "count_value", m$count_value;
@@ -68,7 +68,7 @@ function print_histogram_metrics(what: string, metrics: vector of Telemetry::His
 	for (i in metrics)
 		{
 		local m = metrics[i];
-		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$bounds, m$opts$labels, m$labels, m$values, m$sum, m$observations;
+		print m$opts$metric_type, m$opts$name, m$opts$bounds, m$opts$labels, m$labels, m$values, m$sum, m$observations;
 		}
 	}
 

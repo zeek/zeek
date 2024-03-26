@@ -16,6 +16,6 @@ event zeek_done() &priority=-100
 	for ( _, m in ms )
 		{
 		if ( /zeek_.*|connection_.*/ in cat(m$labels))
-			print m$opts$prefix, m$opts$name, m$labels, m$count_value;
+			print m$opts$name, m$labels, m$count_value;
 		}
 	}

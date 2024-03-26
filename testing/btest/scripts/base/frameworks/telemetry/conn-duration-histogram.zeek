@@ -41,7 +41,7 @@ event zeek_done() &priority=-100
 	for (i in histogram_metrics)
 		{
 		local hm = histogram_metrics[i];
-		print hm$opts$metric_type, hm$opts$prefix, hm$opts$name;
+		print hm$opts$metric_type, hm$opts$name;
 		print hm$opts$labels;
 		print hm$labels;
 		print hm$opts$bounds;

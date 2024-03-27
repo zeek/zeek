@@ -243,7 +243,7 @@ if (TARGET zeek_lib)
     add_dependencies(zeek_lib zeek_autogen_files)
     set_target_properties(zeek_lib PROPERTIES RUNTIME_OUTPUT_NAME libzeek)
     if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-        set_target_properties(zeek_lie PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
+        set_target_properties(zeek_lib PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
     endif ()
     install(TARGETS zeek_lib LIBRARY DESTINATION lib)
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.

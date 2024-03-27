@@ -132,11 +132,18 @@ public:
     C* Lookup(const zeek::Tag& tag) const;
 
     /**
-     * @param name A component's enum value.
+     * @param val A component's enum value.
      * @return The component associated with the value or a null pointer if no
      * such component exists.
      */
     C* Lookup(EnumVal* val) const;
+
+    /**
+     * @param val A component's enum value.
+     * @return The component associated with the value or a null pointer if no
+     * such component exists.
+     */
+    C* Lookup(const EnumValPtr& val) const;
 
 private:
     /** Script layer module in which component tags live. */
@@ -281,6 +288,11 @@ template<class C>
 C* ComponentManager<C>::Lookup(EnumVal* val) const {
     typename std::map<zeek_int_t, C*>::const_iterator i = components_by_val.find(val->InternalInt());
     return i != components_by_val.end() ? i->second : nullptr;
+}
+
+template<class C>
+C* ComponentManager<C>::Lookup(const EnumValPtr& val) const {
+    return Lookup(val.get());
 }
 
 template<class C>

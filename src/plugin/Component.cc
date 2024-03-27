@@ -39,6 +39,10 @@ void Component::Describe(ODesc* d) const {
 
         case component::SESSION_ADAPTER: d->Add("Session Adapter"); break;
 
+        case component::CLUSTER_BACKEND: d->Add("Cluster Backend"); break;
+
+        case component::CLUSTER_SERIALIZER: d->Add("Cluster Serializer"); break;
+
         default:
             reporter->InternalWarning("unknown component type in plugin::Component::Describe");
             d->Add("<unknown component type>");

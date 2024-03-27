@@ -21,15 +21,17 @@ namespace component {
  * Component types.
  */
 enum Type {
-    READER,          /// An input reader (not currently used).
-    WRITER,          /// A logging writer (not currently used).
-    ANALYZER,        /// A protocol analyzer.
-    PACKET_ANALYZER, /// A packet analyzer.
-    FILE_ANALYZER,   /// A file analyzer.
-    IOSOURCE,        /// An I/O source, excluding packet sources.
-    PKTSRC,          /// A packet source.
-    PKTDUMPER,       /// A packet dumper.
-    SESSION_ADAPTER, /// A session adapter analyzer.
+    READER,             /// An input reader (not currently used).
+    WRITER,             /// A logging writer (not currently used).
+    ANALYZER,           /// A protocol analyzer.
+    PACKET_ANALYZER,    /// A packet analyzer.
+    FILE_ANALYZER,      /// A file analyzer.
+    IOSOURCE,           /// An I/O source, excluding packet sources.
+    PKTSRC,             /// A packet source.
+    PKTDUMPER,          /// A packet dumper.
+    CLUSTER_BACKEND,    /// A cluster backend.
+    CLUSTER_SERIALIZER, /// A serializer used for clustering.
+    SESSION_ADAPTER,    /// A session adapter analyzer.
 };
 
 } // namespace component

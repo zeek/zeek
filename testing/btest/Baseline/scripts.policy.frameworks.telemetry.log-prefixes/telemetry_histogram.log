@@ -7,6 +7,6 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	peer	prefix	name	unit	labels	label_values	bounds	values	sum	observations
 #types	time	string	string	string	string	vector[string]	vector[string]	vector[double]	vector[double]	double	double
-XXXXXXXXXX.XXXXXX	zeek	btest	connection_duration	seconds	(empty)	(empty)	2.0,3.0,4.0,5.0,6.0,10.0,inf	0.0,0.0,0.0,0.0,0.0,0.0,0.0	0.0	0.0
-XXXXXXXXXX.XXXXXX	zeek	btest	connection_duration	seconds	(empty)	(empty)	2.0,3.0,4.0,5.0,6.0,10.0,inf	0.0,322.0,90.0,5.0,76.0,7.0,0.0	1650.264644	500.0
+XXXXXXXXXX.XXXXXX	zeek	-	btest_connection_duration_seconds	-	(empty)	(empty)	2.0,3.0,4.0,5.0,6.0,10.0,inf	0.0,0.0,0.0,0.0,0.0,0.0,0.0	0.0	0.0
+XXXXXXXXXX.XXXXXX	zeek	-	btest_connection_duration_seconds	-	(empty)	(empty)	2.0,3.0,4.0,5.0,6.0,10.0,inf	0.0,322.0,90.0,5.0,76.0,7.0,0.0	1650.264644	500.0
 #close XXXX-XX-XX-XX-XX-XX

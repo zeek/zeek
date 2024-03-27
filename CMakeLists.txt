@@ -230,10 +230,6 @@ if (ZEEK_STANDALONE)
     endif ()
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_exe_access PRIVATE)
-    # Also build the static library when asked for via Conan.
-    if (CONAN_EXPORTED)
-        add_library(zeek_lib STATIC)
-    endif ()
 else ()
     add_library(zeek_lib STATIC)
 endif ()

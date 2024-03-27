@@ -120,8 +120,6 @@ function do_log()
 		metrics = Telemetry::collect_metrics();
 		}
 
-	print |metrics|;
-
 	for ( i in metrics )
 		{
 		local m = metrics[i];
@@ -153,7 +151,6 @@ function do_log()
 		if ( m$opts?$unit && m$opts$unit != "" )
 			rec$unit = m$opts$unit;
 
-		print("log write");
 		Log::write(LOG, rec);
 		}
 
@@ -172,8 +169,6 @@ function do_log()
 		{
 		histogram_metrics = Telemetry::collect_histogram_metrics();
 		}
-
-	print |histogram_metrics|;
 
 	for ( i in histogram_metrics )
 		{

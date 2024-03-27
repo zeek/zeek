@@ -39,9 +39,6 @@ export {
 		## The name of the metric.
 		name: string &log;
 
-		## The unit of this metric, or unset if unit-less.
-		unit: string &log &optional;
-
 		## The names of the individual labels.
 		labels: vector of string &log;
 
@@ -65,9 +62,6 @@ export {
 
 		## The name of the metric.
 		name: string &log;
-
-		## The unit of this metric, or unset if unit-less.
-		unit: string &log &optional;
 
 		## The names of the individual labels.
 		labels: vector of string &log;
@@ -104,7 +98,21 @@ export {
 function do_log()
 	{
 	local ts = network_time();
-	local metrics = Telemetry::collect_metrics();
+
+	## TODO: this is potentially slow, since it requires looping over all of the metrics for each
+	## prefix, and then doing it again for all of the histograms multiple times.
+	local metrics : vector of Telemetry::Metric;
+	if ( |log_prefixes| > 0 )
+		{
+		for ( prefix in log_prefixes )
+			{
+			metrics += Telemetry::collect_metrics(prefix, "*");
+			}
+		}
+	else
+		{
+		metrics = Telemetry::collect_metrics();
+		}
 
 	for ( i in metrics )
 		{
@@ -112,9 +120,6 @@ function do_log()
 
 		# Histograms don't have single values, skip over them.
 		if ( m$opts$metric_type == DOUBLE_HISTOGRAM || m$opts$metric_type == INT_HISTOGRAM )
-			next;
-
-		if ( |log_prefixes| > 0 && m$opts$prefix !in log_prefixes )
 			next;
 
 		# Render the metric_type as a short string. Unknown
@@ -138,21 +143,28 @@ function do_log()
 		                 $label_values=m$labels,
 		                 $value=m$value);
 
-		if ( m$opts$unit != "1" )
-			rec$unit = m$opts$unit;
-
 		Log::write(LOG, rec);
 		}
 
 	# Logging of histograms.
 	ts = network_time();
-	local histogram_metrics = Telemetry::collect_histogram_metrics();
+
+	local histogram_metrics : vector of Telemetry::HistogramMetric;
+	if ( |log_prefixes| > 0 )
+		{
+		for ( prefix in log_prefixes )
+			{
+			histogram_metrics += Telemetry::collect_histogram_metrics(prefix, "*");
+			}
+		}
+	else
+		{
+		histogram_metrics = Telemetry::collect_histogram_metrics();
+		}
+
 	for ( i in histogram_metrics )
 		{
 		local hm = histogram_metrics[i];
-
-		if ( |log_prefixes| > 0 && hm$opts$prefix !in log_prefixes )
-			next;
 
 		local hrec = HistogramInfo($ts=ts,
 		                           $peer=peer_description,
@@ -164,9 +176,6 @@ function do_log()
 		                           $values=hm$values,
 		                           $sum=hm$sum,
 		                           $observations=hm$observations);
-
-		if ( hm$opts$unit != "1" )
-			hrec$unit = hm$opts$unit;
 
 		Log::write(LOG_HISTOGRAM, hrec);
 		}

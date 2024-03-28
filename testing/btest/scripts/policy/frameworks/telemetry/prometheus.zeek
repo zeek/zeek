@@ -7,8 +7,10 @@
 # @TEST-PORT: BROKER_PORT2
 # @TEST-PORT: BROKER_PORT3
 # @TEST-PORT: BROKER_PORT4
-# @TEST-PORT: BROKER_PORT4
-# @TEST-PORT: BROKER_TEST_METRICS_PORT
+# @TEST-PORT: METRICS_PORT1
+# @TEST-PORT: METRICS_PORT2
+# @TEST-PORT: METRICS_PORT3
+# @TEST-PORT: METRICS_PORT4
 #
 # @TEST-REQUIRES: which curl
 # @TEST-EXEC: zeek --parse-only %INPUT
@@ -16,21 +18,20 @@
 # @TEST-EXEC: btest-bg-run logger-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run proxy-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
-# @TEST-EXEC: btest-bg-wait 10
-# @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager-1/services.out
 
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1")), $metrics_port=1028/tcp],
-	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1", $metrics_port=1029/tcp],
-	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1", $metrics_port=1030/tcp],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $metrics_port=1031/tcp],
+	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1")), $metrics_port=to_port(getenv("METRICS_PORT1"))],
+	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT2"))],
+	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT3"))],
+	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT4"))],
 };
 @TEST-END-FILE
 
 @TEST-START-FILE request-services.sh
-#!/bin/sh
+#! /usr/bin/env bash
 
 # This script makes repeat curl requests to find all of the metrics data from the
 # hosts listed in the services output from the manager, and outputs it all into a
@@ -39,34 +40,53 @@ redef Cluster::nodes = {
 services_url=$1
 output_file=$2
 
-for host in $(curl -s -m 5 ${services_url} | jq '.[0].targets.[]'); do
-	host=$(echo ${host} | sed 's/"//g')
-	metrics=$(curl -s -m 5 http://${host}/metrics)
-	version_info=$(echo ${metrics} | grep -Eo "zeek_version_info\{[^}]+\}" | grep -o 'endpoint=\"[^"]*\"')
-	echo ${version_info} >> ${output_file};
+services_data=$(curl -s -m 5 ${services_url})
+
+for host in $(echo ${services_data} | jq -r '.[0].targets[]' | sort); do
+	metrics=$(curl -m 5 --trace trace-${host}.out http://${host}/metrics)
+	if [ $? -eq 0 ] ; then
+		version_info=$(echo ${metrics} | grep -Eo "zeek_version_info\{[^}]+\}" | grep -o 'endpoint="[^"]*"')
+		echo ${version_info} >> ${output_file};
+	else
+		echo "Failed to request data from ${host}" >> ${output_file}
+	fi
 done
 @TEST-END-FILE
 
 @load policy/frameworks/cluster/experimental
 @load policy/frameworks/telemetry/prometheus
 @load base/frameworks/telemetry
-@load base/utils/active-http
+
+# So the cluster nodes don't terminate right away.
+#redef exit_only_after_terminate=T;
 
 @if ( Cluster::node == "manager-1" )
 
-# Query the Prometheus endpoint using ActiveHTTP for testing, oh my.
+@load base/utils/exec
+
+# Query the Prometheus endpoint using curl for testing, oh my.
 event run_test()
 	{
 	local services_url = fmt("http://localhost:%s/services.json", port_to_count(Telemetry::metrics_port));
-	local result = system(fmt("sh ../request-services.sh %s %s", services_url, "services.out"));
-	if ( result != 0 )
+	local req_cmd = fmt("sh ../request-services.sh %s %s", services_url, "services.out");
+
+	when [req_cmd] ( local result = Exec::run([$cmd=req_cmd]) )
+		{
+		if ( result$exit_code != 0 )
+			{
+			# This is bad.
+			print "ERROR: Failed to request service information";
+			exit(1);
+			}
+
+		terminate();
+		}
+	timeout 10sec
 		{
 		# This is bad.
-		print "ERROR: Failed to request service information";
+		print "ERROR: Timed out requesting service information";
 		exit(1);
 		}
-
-	terminate();
 	}
 
 # Use a dynamic metrics port for testing to avoid colliding on 9911/tcp

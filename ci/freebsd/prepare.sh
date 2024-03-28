@@ -6,7 +6,7 @@ set -e
 set -x
 
 env ASSUME_ALWAYS_YES=YES pkg bootstrap
-pkg install -y bash git cmake swig bison python3 base64 flex ccache
+pkg install -y bash git cmake swig bison python3 base64 flex ccache jq
 pkg upgrade -y curl
 pyver=$(python3 -c 'import sys; print(f"py{sys.version_info[0]}{sys.version_info[1]}")')
 pkg install -y $pyver-sqlite3

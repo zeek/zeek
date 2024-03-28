@@ -19,6 +19,7 @@ RUN apt-get update && apt-get -y install \
     g++ \
     gcc \
     git \
+    jq \
     lcov \
     libkrb5-dev \
     libmaxminddb-dev \

@@ -27,6 +27,7 @@ RUN dnf -y --nobest install \
     gcc \
     gcc-c++ \
     git \
+    jq \
     libpcap-devel \
     make \
     openssl \

@@ -39,7 +39,7 @@ output_file=$2
 
 services_data=$(curl -s -m 5 ${services_url})
 
-for host in $(echo ${services_data} | jq -r '.[0].targets[]'); do
+for host in $(echo ${services_data} | jq -r '.[0].targets[]' | sort); do
 	metrics=$(curl -m 5 --trace trace-${host}.out http://${host}/metrics)
 	if [ $? == 0 ] ; then
 		version_info=$(echo ${metrics} | grep -Eo "zeek_version_info\{[^}]+\}" | grep -o 'endpoint="[^"]*"')

@@ -1,3 +1,11 @@
+7.0.0-dev.98 | 2024-03-28 11:09:48 -0700
+
+  * Remove vestigial Conan bit in CMakeLists.txt (Christian Kreibich, Corelight)
+
+  * When configuring Spicy, be prepated for zeek_lib or zeek_exe targets. (Christian Kreibich, Corelight)
+
+  * Fix a typo in CMakeLists.txt when building Zeek as a library (Christian Kreibich, Corelight)
+
 7.0.0-dev.94 | 2024-03-25 11:25:47 +0100
 
   * Bump Spicy to current `main`. (Robin Sommer, Corelight)

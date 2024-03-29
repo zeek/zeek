@@ -1,3 +1,7 @@
+7.0.0-dev.100 | 2024-03-29 11:15:24 -0700
+
+  * CI: Specify the xcode version of the macOS Sonoma instance (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.98 | 2024-03-28 11:09:48 -0700
 
   * Remove vestigial Conan bit in CMakeLists.txt (Christian Kreibich, Corelight)

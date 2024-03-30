@@ -241,8 +241,8 @@ bool RuleMatcher::ReadFiles(const std::vector<SignatureFile>& files) {
         // if load is relative to the load location, and we don't have a valid full_path
         // let's fix it by setting the full_path to load location and relative path
         if ( f.file.find("./") == 0 && (! f.full_path.has_value() || f.full_path == "") ) {
-          auto full_path = std::string(f.load_location.filename) + "/" + f.file);
-          f.full_path = util::detail::normalize_path(full_path);
+            auto full_path = std::string(f.load_location.filename) + "/" + f.file;
+            f.full_path = util::detail::normalize_path(full_path);
         }
 
         if ( ! f.full_path )

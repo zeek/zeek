@@ -325,6 +325,8 @@ static void init_options() {
         // the usual "-O ZAM" profile. But if they have, honor those.
         if ( ! analysis_options.gen_ZAM_code )
             analysis_options.gen_ZAM = true;
+
+        estimate_ZAM_profiling_overhead();
     }
 
     if ( analysis_options.gen_ZAM ) {

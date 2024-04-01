@@ -35,6 +35,9 @@ private:
     std::shared_ptr<ZAMLocInfo> parent;
 };
 
+// Computes the approximate overhead of ZAM CPU and memory profiling.
+extern void estimate_ZAM_profiling_overhead();
+
 // Reports a profile of the different ZAM operations (instructions)
 // that executed.
 extern void report_ZOP_profile();

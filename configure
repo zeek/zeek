@@ -145,6 +145,25 @@ Zeek. To check out the required subdirectories, please execute:
     exit 1
 fi
 
+if [ ! -e "$sourcedir/cmake/COPYING" ] && [ ! -d "$sourcedir/.git" ]; then
+    echo "\
+You seem to be missing the content of the cmake directory.
+
+This typically means that you downloaded a non-release archive from github.
+These archives do not contain all required files.
+
+If you want to download the current release of Zeek, please download a full
+archive using one of the links at https://zeek.org/get-zeek/.
+
+If you want to get the current development version of Zeek, please use git to
+clone our repository.
+
+See https://docs.zeek.org/en/master/install.html#retrieving-the-sources for
+instructions.
+" >&2
+    exit 1
+fi
+
 # Function to append a CMake cache entry definition to the
 # CMakeCacheEntries variable.
 #   $1 is the cache entry variable name

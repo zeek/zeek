@@ -133,8 +133,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
 sourcedir="$(cd "$(dirname "$0")" && pwd)"
 
-if [ ! -e "$sourcedir/cmake/COPYING" ] && [ -d "$sourcedir/.git" ]; then
-    echo "\
+if [ ! -e "$sourcedir/cmake/COPYING" ]; then
+    if [ -d "$sourcedir/.git" ]; then
+        echo "\
 You seem to be missing the content of the cmake directory.
 
 This typically means that you performed a non-recursive git clone of
@@ -142,11 +143,8 @@ Zeek. To check out the required subdirectories, please execute:
 
   ( cd $sourcedir && git submodule update --recursive --init )
 " >&2
-    exit 1
-fi
-
-if [ ! -e "$sourcedir/cmake/COPYING" ] && [ ! -d "$sourcedir/.git" ]; then
-    echo "\
+    else
+        echo "\
 You seem to be missing the content of the cmake directory.
 
 This typically means that you downloaded a non-release archive from github.
@@ -161,6 +159,7 @@ clone our repository.
 See https://docs.zeek.org/en/master/install.html#retrieving-the-sources for
 instructions.
 " >&2
+    fi
     exit 1
 fi
 

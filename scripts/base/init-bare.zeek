@@ -5947,6 +5947,9 @@ const io_poll_interval_default = 100 &redef;
 ## .. zeek:see:: io_poll_interval_default
 const io_poll_interval_live = 10 &redef;
 
+## Whether Zeek is being run under test. This can be used to alter functionality
+## while testing, but should be used sparingly.
+const running_under_test: bool = F &redef;
 
 global done_with_network = F;
 event net_done(t: time)

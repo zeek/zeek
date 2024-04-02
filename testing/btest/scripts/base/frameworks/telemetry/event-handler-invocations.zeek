@@ -9,6 +9,7 @@
 
 @load base/frameworks/telemetry
 
+redef running_under_test = T;
 
 event zeek_done() &priority=-100
 	{

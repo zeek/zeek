@@ -8,6 +8,8 @@
 
 @load base/frameworks/telemetry
 
+redef running_under_test = T;
+
 global btest_a_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="a_test",

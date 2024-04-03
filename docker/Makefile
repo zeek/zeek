@@ -1,6 +1,12 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
 VERSION := $(shell cat ../VERSION)
+LOCALVERSION ?= ""
+LOCAL_VERSION_FLAG = ""
+ifneq ($(LOCALVERSION), "")
+	VERSION := $(VERSION)-$(LOCALVERSION)
+	LOCAL_VERSION_FLAG := "--localversion=$(LOCALVERSION)"
+endif
 BUILD_IMAGE := zeek-builder:$(VERSION)
 BUILD_CONTAINER := zeek-builder-container-$(VERSION)
 ZEEK_IMAGE ?= zeek:$(VERSION)
@@ -11,7 +17,7 @@ ZEEK_CONFIGURE_FLAGS ?= \
 	--build-type=Release \
 	--disable-btest-pcaps \
 	--disable-broker-tests \
-	--disable-cpp-tests
+	--disable-cpp-tests $(LOCAL_VERSION_FLAG)
 
 .PHONY: all
 

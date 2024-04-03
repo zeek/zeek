@@ -33,6 +33,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --sanitizers=LIST           comma-separated list of sanitizer names to enable
     --include-plugins=PATHS     paths containing plugins to build directly into Zeek
                                 (semicolon delimited and quoted when multiple)
+    --localversion=version      version contains an additional, custom version string
+                                that is appended to the standard Zeek version string,
+                                with a dash [-] separating the two.
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/zeek]
@@ -228,6 +231,9 @@ while [ $# -ne 0 ]; do
             ;;
         --include-plugins=*)
             append_cache_entry ZEEK_INCLUDE_PLUGINS STRING \"$optarg\"
+            ;;
+        --localversion=*)
+            append_cache_entry ZEEK_VERSION_LOCAL STRING \"$optarg\"
             ;;
         --prefix=*)
             append_cache_entry CMAKE_INSTALL_PREFIX PATH $optarg

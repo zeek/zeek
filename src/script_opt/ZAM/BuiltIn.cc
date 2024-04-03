@@ -11,488 +11,404 @@
 
 namespace zeek::detail {
 
-class ZAMBuiltIn;
 std::map<std::string, const ZAMBuiltIn*> builtins;
 
-class ZAMBuiltIn {
-public:
-    ZAMBuiltIn(std::string name, bool _ret_val_matters) : ret_val_matters(_ret_val_matters) { builtins[name] = this; }
-    virtual ~ZAMBuiltIn() = default;
+ZAMBuiltIn::ZAMBuiltIn(std::string name, bool _ret_val_matters) : ret_val_matters(_ret_val_matters) {
+    builtins[name] = this;
+}
 
-    bool ReturnValMatters() const { return ret_val_matters; }
-    bool HaveBothReturnValAndNon() const { return have_both; }
+DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters, TypeTag _arg_type)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), nargs(_nargs), arg_type(_arg_type) {}
 
-    virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const = 0;
+DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters,
+                             TypeTag _arg_type)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(_nargs), arg_type(_arg_type) {}
 
-protected:
-    bool ret_val_matters = true;
-    bool have_both = false;
-};
-
-class DirectBuiltIn : public ZAMBuiltIn {
-public:
-    DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID)
-        : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), nargs(_nargs), arg_type(_arg_type) {}
-
-    DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters = true,
-                  TypeTag _arg_type = TYPE_VOID)
-        : ZAMBuiltIn(std::move(name), _ret_val_matters),
-          op(_op),
-          const_op(_const_op),
-          nargs(_nargs),
-          arg_type(_arg_type) {}
-
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
-        ZInstI z;
-        if ( nargs == 0 ) {
-            if ( n )
-                z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE));
-            else
-                z = ZInstI(op);
-        }
-        else {
-            ASSERT(nargs == 1);
-            auto& t = args[0]->GetType();
-
-            if ( arg_type != TYPE_VOID && t->Tag() != arg_type )
-                return false;
-
-            if ( args[0]->Tag() == EXPR_NAME ) {
-                auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
-                if ( n )
-                    z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0);
-                else
-                    z = ZInstI(op, a0);
-            }
-
-            else {
-                if ( const_op == OP_NOP )
-                    // This can happen for BiFs that aren't foldable, and for
-                    // which it's implausible they'll be called with a constant
-                    // argument.
-                    return false;
-                if ( n )
-                    z = ZInstI(const_op, zam->Frame1Slot(n, OP1_WRITE));
-                else
-                    z = ZInstI(const_op);
-                z.c = ZVal(args[0]->AsConstExpr()->ValuePtr(), t);
-            }
-
-            z.t = t;
-        }
-
+bool DirectBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    ZInstI z;
+    if ( nargs == 0 ) {
         if ( n )
-            z.is_managed = ZVal::IsManagedType(n->GetType());
-
-        zam->AddInst(z);
-
-        return true;
+            z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE));
+        else
+            z = ZInstI(op);
     }
+    else {
+        ASSERT(nargs == 1);
+        auto& t = args[0]->GetType();
 
-protected:
-    ZOp op;
-    ZOp const_op = OP_NOP;
-    int nargs;
-    TypeTag arg_type;
-};
-
-class DirectBuiltInOptAssign : public DirectBuiltIn {
-public:
-    // Second argument is assignment flavor, third is assignment-less flavor.
-    DirectBuiltInOptAssign(std::string(name), ZOp _op, ZOp _op2, int _nargs)
-        : DirectBuiltIn(std::move(name), _op, _nargs, false), op2(_op2) {
-        have_both = true;
-    }
-
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
-        if ( n )
-            return DirectBuiltIn::Build(zam, n, args);
-
-        ZInstI z;
-        if ( nargs == 0 )
-            z = ZInstI(op2);
-        else {
-            ASSERT(nargs == 1);
-            auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
-            z = ZInstI(op2, a0);
-            z.t = args[0]->GetType();
-        }
-
-        zam->AddInst(z);
-
-        return true;
-    }
-
-protected:
-    ZOp op2;
-};
-
-enum ArgsType {
-    VV = 0x0,
-    VC = 0x1,
-    CV = 0x2,
-    CC = 0x3,
-
-    VVV = 0x0,
-    VVC = 0x1,
-    VCV = 0x2,
-    VCC = 0x3,
-    CVV = 0x4,
-    CVC = 0x5,
-    CCV = 0x6,
-    CCC = 0x7,
-};
-
-struct ArgInfo {
-    ZOp op;
-    ZAMOpType op_type;
-};
-
-using BifArgsInfo = std::map<ArgsType, ArgInfo>;
-
-class MultiArgBuiltIn : public ZAMBuiltIn {
-public:
-    MultiArgBuiltIn(std::string name, bool _ret_val_matters, BifArgsInfo _args_info, int _type_arg = -1)
-        : ZAMBuiltIn(std::move(name), _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
-
-    MultiArgBuiltIn(std::string name, BifArgsInfo _args_info, BifArgsInfo _assign_args_info, int _type_arg = -1)
-        : MultiArgBuiltIn(std::move(name), false, _args_info, _type_arg) {
-        assign_args_info = std::move(_assign_args_info);
-        have_both = true;
-    }
-
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
-        auto ai = &args_info;
-        if ( n && have_both ) {
-            ai = &assign_args_info;
-            ASSERT(! ai->empty());
-        }
-
-        auto bif_arg_info = ai->find(ComputeArgsType(args));
-        if ( bif_arg_info == ai->end() )
+        if ( arg_type != TYPE_VOID && t->Tag() != arg_type )
             return false;
 
-        const auto& bi = bif_arg_info->second;
-        auto op = bi.op;
-
-        std::vector<ValPtr> consts;
-        std::vector<int> v;
-
-        for ( auto i = 0U; i < args.size(); ++i ) {
-            auto a = args[i];
-            if ( a->Tag() == EXPR_NAME )
-                v.push_back(zam->FrameSlot(a->AsNameExpr()));
+        if ( args[0]->Tag() == EXPR_NAME ) {
+            auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
+            if ( n )
+                z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0);
             else
-                consts.push_back(a->AsConstExpr()->ValuePtr());
+                z = ZInstI(op, a0);
         }
 
-        auto nslot = n ? zam->Frame1Slot(n, OP1_WRITE) : -1;
+        else {
+            if ( const_op == OP_NOP )
+                // This can happen for BiFs that aren't foldable, and for
+                // which it's implausible they'll be called with a constant
+                // argument.
+                return false;
+            if ( n )
+                z = ZInstI(const_op, zam->Frame1Slot(n, OP1_WRITE));
+            else
+                z = ZInstI(const_op);
+            z.c = ZVal(args[0]->AsConstExpr()->ValuePtr(), t);
+        }
 
-        ZInstI z;
+        z.t = t;
+    }
 
-        if ( args.size() == 2 ) {
-            if ( consts.empty() ) {
+    if ( n )
+        z.is_managed = ZVal::IsManagedType(n->GetType());
+
+    zam->AddInst(z);
+
+    return true;
+}
+
+DirectBuiltInOptAssign::DirectBuiltInOptAssign(std::string name, ZOp _op, ZOp _op2, int _nargs)
+    : DirectBuiltIn(std::move(name), _op, _nargs, false), op2(_op2) {
+    have_both = true;
+}
+
+bool DirectBuiltInOptAssign::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    if ( n )
+        return DirectBuiltIn::Build(zam, n, args);
+
+    ZInstI z;
+    if ( nargs == 0 )
+        z = ZInstI(op2);
+    else {
+        ASSERT(nargs == 1);
+        auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
+        z = ZInstI(op2, a0);
+        z.t = args[0]->GetType();
+    }
+
+    zam->AddInst(z);
+
+    return true;
+}
+
+bool CatBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    auto nslot = zam->Frame1Slot(n, OP1_WRITE);
+    auto& a0 = args[0];
+    ZInstI z;
+
+    if ( args.empty() ) {
+        // Weird, but easy enough to support.
+        z = ZInstI(OP_CAT1_VC, nslot);
+        z.t = n->GetType();
+        z.c = ZVal(val_mgr->EmptyString());
+    }
+
+    else if ( args.size() > 1 ) {
+        switch ( args.size() ) {
+            case 2: z = zam->GenInst(OP_CAT2_V, n); break;
+            case 3: z = zam->GenInst(OP_CAT3_V, n); break;
+            case 4: z = zam->GenInst(OP_CAT4_V, n); break;
+            case 5: z = zam->GenInst(OP_CAT5_V, n); break;
+            case 6: z = zam->GenInst(OP_CAT6_V, n); break;
+            case 7: z = zam->GenInst(OP_CAT7_V, n); break;
+            case 8: z = zam->GenInst(OP_CAT8_V, n); break;
+
+            default: z = zam->GenInst(OP_CATN_V, n); break;
+        }
+
+        z.aux = BuildCatAux(zam, args);
+    }
+
+    else if ( a0->GetType()->Tag() != TYPE_STRING ) {
+        if ( a0->Tag() == EXPR_NAME ) {
+            z = zam->GenInst(OP_CAT1FULL_VV, n, a0->AsNameExpr());
+            z.t = a0->GetType();
+        }
+        else {
+            z = ZInstI(OP_CAT1_VC, nslot);
+            z.t = n->GetType();
+            z.c = ZVal(ZAM_val_cat(a0->AsConstExpr()->ValuePtr()));
+        }
+    }
+
+    else if ( a0->Tag() == EXPR_CONST ) {
+        z = zam->GenInst(OP_CAT1_VC, n, a0->AsConstExpr());
+        z.t = n->GetType();
+    }
+
+    else
+        z = zam->GenInst(OP_CAT1_VV, n, a0->AsNameExpr());
+
+    zam->AddInst(z);
+
+    return true;
+}
+
+ZInstAux* CatBiF::BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const {
+    auto n = args.size();
+    auto aux = new ZInstAux(n);
+    aux->cat_args = new std::unique_ptr<CatArg>[n];
+
+    for ( size_t i = 0; i < n; ++i ) {
+        auto& a_i = args[i];
+        auto& t = a_i->GetType();
+
+        std::unique_ptr<CatArg> ca;
+
+        if ( a_i->Tag() == EXPR_CONST ) {
+            auto c = a_i->AsConstExpr()->ValuePtr();
+            aux->Add(i, c); // it will be ignored
+            auto sv = ZAM_val_cat(c);
+            auto s = sv->AsString();
+            auto b = reinterpret_cast<char*>(s->Bytes());
+            ca = std::make_unique<CatArg>(std::string(b, s->Len()));
+        }
+
+        else {
+            auto slot = zam->FrameSlot(a_i->AsNameExpr());
+            aux->Add(i, slot, t);
+
+            switch ( t->Tag() ) {
+                case TYPE_BOOL:
+                case TYPE_INT:
+                case TYPE_COUNT:
+                case TYPE_DOUBLE:
+                case TYPE_TIME:
+                case TYPE_ENUM:
+                case TYPE_PORT:
+                case TYPE_ADDR:
+                case TYPE_SUBNET: ca = std::make_unique<FixedCatArg>(t); break;
+
+                case TYPE_STRING: ca = std::make_unique<StringCatArg>(); break;
+
+                case TYPE_PATTERN: ca = std::make_unique<PatternCatArg>(); break;
+
+                default: ca = std::make_unique<DescCatArg>(t); break;
+            }
+        }
+
+        aux->cat_args[i] = std::move(ca);
+    }
+
+    return aux;
+}
+
+bool SortBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    if ( args.size() > 2 )
+        return false;
+
+    auto v = args[0]->AsNameExpr();
+    if ( v->GetType()->Tag() != TYPE_VECTOR )
+        return false;
+
+    const auto& elt_type = v->GetType()->Yield();
+
+    if ( args.size() == 1 ) {
+        if ( ! IsIntegral(elt_type->Tag()) && elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
+            return false;
+
+        return DirectBuiltInOptAssign::Build(zam, n, args);
+    }
+
+    const auto& comp_val = args[1];
+    if ( ! IsFunc(comp_val->GetType()->Tag()) )
+        return false;
+
+    if ( comp_val->Tag() != EXPR_NAME )
+        return false;
+
+    auto comp_func = comp_val->AsNameExpr();
+    auto comp_type = comp_func->GetType()->AsFuncType();
+
+    if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+         comp_type->ParamList()->GetTypes().size() != 2 )
+        return false;
+
+    ZInstI z;
+
+    if ( n )
+        z = ZInstI(OP_SORT_WITH_CMP_VVV, zam->Frame1Slot(n, OP1_WRITE), zam->FrameSlot(v), zam->FrameSlot(comp_func));
+    else
+        z = ZInstI(OP_SORT_WITH_CMP_VV, zam->FrameSlot(v), zam->FrameSlot(comp_func));
+
+    zam->AddInst(z);
+
+    return true;
+}
+
+bool LogWriteBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    auto id = args[0];
+    auto columns = args[1];
+
+    if ( columns->Tag() != EXPR_NAME )
+        return false;
+
+    auto columns_n = columns->AsNameExpr();
+    auto col_slot = zam->FrameSlot(columns_n);
+
+    bool const_id = (id->Tag() == EXPR_CONST);
+
+    ZInstAux* aux = nullptr;
+
+    if ( const_id ) {
+        aux = new ZInstAux(1);
+        aux->Add(0, id->AsConstExpr()->ValuePtr());
+    }
+
+    ZInstI z;
+
+    if ( n ) {
+        auto nslot = zam->Frame1Slot(n, OP1_WRITE);
+
+        if ( const_id ) {
+            z = ZInstI(OP_LOG_WRITEC_VV, nslot, col_slot);
+            z.aux = aux;
+        }
+        else
+            z = ZInstI(OP_LOG_WRITE_VVV, nslot, zam->FrameSlot(id->AsNameExpr()), col_slot);
+    }
+    else {
+        if ( const_id ) {
+            z = ZInstI(OP_LOG_WRITEC_V, col_slot, id->AsConstExpr());
+            z.aux = aux;
+        }
+        else
+            z = ZInstI(OP_LOG_WRITE_VV, zam->FrameSlot(id->AsNameExpr()), col_slot);
+    }
+
+    zam->AddInst(z);
+
+    return true;
+}
+
+MultiArgBuiltIn::MultiArgBuiltIn(std::string name, bool _ret_val_matters, BifArgsInfo _args_info, int _type_arg)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
+
+MultiArgBuiltIn::MultiArgBuiltIn(std::string name, BifArgsInfo _args_info, BifArgsInfo _assign_args_info, int _type_arg)
+    : MultiArgBuiltIn(std::move(name), false, _args_info, _type_arg) {
+    assign_args_info = std::move(_assign_args_info);
+    have_both = true;
+}
+
+bool MultiArgBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    auto ai = &args_info;
+    if ( n && have_both ) {
+        ai = &assign_args_info;
+        ASSERT(! ai->empty());
+    }
+
+    auto bif_arg_info = ai->find(ComputeArgsType(args));
+    if ( bif_arg_info == ai->end() )
+        return false;
+
+    const auto& bi = bif_arg_info->second;
+    auto op = bi.op;
+
+    std::vector<ValPtr> consts;
+    std::vector<int> v;
+
+    for ( auto i = 0U; i < args.size(); ++i ) {
+        auto a = args[i];
+        if ( a->Tag() == EXPR_NAME )
+            v.push_back(zam->FrameSlot(a->AsNameExpr()));
+        else
+            consts.push_back(a->AsConstExpr()->ValuePtr());
+    }
+
+    auto nslot = n ? zam->Frame1Slot(n, OP1_WRITE) : -1;
+
+    ZInstI z;
+
+    if ( args.size() == 2 ) {
+        if ( consts.empty() ) {
+            if ( n )
+                z = ZInstI(op, nslot, v[0], v[1]);
+            else
+                z = ZInstI(op, v[0], v[1]);
+        }
+        else {
+            ASSERT(consts.size() == 1);
+            if ( n )
+                z = ZInstI(op, nslot, v[0]);
+            else
+                z = ZInstI(op, v[0]);
+        }
+    }
+
+    else if ( args.size() == 3 ) {
+        switch ( consts.size() ) {
+            case 0:
+                if ( n )
+                    z = ZInstI(op, nslot, v[0], v[1], v[2]);
+                else
+                    z = ZInstI(op, v[0], v[1], v[2]);
+                break;
+
+            case 1:
                 if ( n )
                     z = ZInstI(op, nslot, v[0], v[1]);
                 else
                     z = ZInstI(op, v[0], v[1]);
-            }
-            else {
-                ASSERT(consts.size() == 1);
-                if ( n )
-                    z = ZInstI(op, nslot, v[0]);
+                break;
+
+            case 2: {
+                auto c2 = consts[1];
+                auto c2_t = c2->GetType()->Tag();
+
+                ASSERT(c2_t == TYPE_BOOL || c2_t == TYPE_INT || c2_t == TYPE_COUNT);
+                int slot_val;
+                if ( c2_t == TYPE_COUNT )
+                    slot_val = static_cast<int>(c2->AsCount());
                 else
-                    z = ZInstI(op, v[0]);
+                    slot_val = c2->AsInt();
+
+                if ( n )
+                    z = ZInstI(op, nslot, v[0], slot_val);
+                else
+                    z = ZInstI(op, v[0], slot_val);
+                break;
             }
+
+            default: reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
         }
-
-        else if ( args.size() == 3 ) {
-            switch ( consts.size() ) {
-                case 0:
-                    if ( n )
-                        z = ZInstI(op, nslot, v[0], v[1], v[2]);
-                    else
-                        z = ZInstI(op, v[0], v[1], v[2]);
-                    break;
-
-                case 1:
-                    if ( n )
-                        z = ZInstI(op, nslot, v[0], v[1]);
-                    else
-                        z = ZInstI(op, v[0], v[1]);
-                    break;
-
-                case 2: {
-                    auto c2 = consts[1];
-                    auto c2_t = c2->GetType()->Tag();
-
-                    ASSERT(c2_t == TYPE_BOOL || c2_t == TYPE_INT || c2_t == TYPE_COUNT);
-                    int slot_val;
-                    if ( c2_t == TYPE_COUNT )
-                        slot_val = static_cast<int>(c2->AsCount());
-                    else
-                        slot_val = c2->AsInt();
-
-                    if ( n )
-                        z = ZInstI(op, nslot, v[0], slot_val);
-                    else
-                        z = ZInstI(op, v[0], slot_val);
-                    break;
-                }
-
-                default: reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
-            }
-        }
-
-        else
-            reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
-
-        z.op_type = bi.op_type;
-
-        if ( n )
-            z.is_managed = ZVal::IsManagedType(n->GetType());
-
-        if ( ! consts.empty() ) {
-            z.t = consts[0]->GetType();
-            z.c = ZVal(consts[0], z.t);
-        }
-
-        if ( type_arg >= 0 && ! z.t )
-            z.t = args[type_arg]->GetType();
-
-        zam->AddInst(z);
-
-        return true;
     }
 
-private:
-    // Returns a bit mask of which of the arguments in the given list
-    // correspond to constants, with the high-ordered bit being the first
-    // argument (argument "0" in the list) and the low-ordered bit being
-    // the last. These correspond to the ArgsType enum integer values.
-    ArgsType ComputeArgsType(const ExprPList& args) const {
-        zeek_uint_t mask = 0;
+    else
+        reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
 
-        for ( auto i = 0U; i < args.size(); ++i ) {
-            mask <<= 1;
-            if ( args[i]->Tag() == EXPR_CONST )
-                mask |= 1;
-        }
+    z.op_type = bi.op_type;
 
-        return ArgsType(mask);
+    if ( n )
+        z.is_managed = ZVal::IsManagedType(n->GetType());
+
+    if ( ! consts.empty() ) {
+        z.t = consts[0]->GetType();
+        z.c = ZVal(consts[0], z.t);
     }
 
-    BifArgsInfo args_info;
-    BifArgsInfo assign_args_info;
-    int type_arg;
-};
+    if ( type_arg >= 0 && ! z.t )
+        z.t = args[type_arg]->GetType();
 
-class SortBiF : public DirectBuiltInOptAssign {
-public:
-    SortBiF() : DirectBuiltInOptAssign("sort", OP_SORT_V, OP_SORT_VV, 1) {}
+    zam->AddInst(z);
 
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
-        if ( args.size() > 2 )
-            return false;
+    return true;
+}
 
-        auto v = args[0]->AsNameExpr();
-        if ( v->GetType()->Tag() != TYPE_VECTOR )
-            return false;
+BIFArgsType MultiArgBuiltIn::ComputeArgsType(const ExprPList& args) const {
+    zeek_uint_t mask = 0;
 
-        const auto& elt_type = v->GetType()->Yield();
-
-        if ( args.size() == 1 ) {
-            if ( ! IsIntegral(elt_type->Tag()) && elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
-                return false;
-
-            return DirectBuiltInOptAssign::Build(zam, n, args);
-        }
-
-        const auto& comp_val = args[1];
-        if ( ! IsFunc(comp_val->GetType()->Tag()) )
-            return false;
-
-        if ( comp_val->Tag() != EXPR_NAME )
-            return false;
-
-        auto comp_func = comp_val->AsNameExpr();
-        auto comp_type = comp_func->GetType()->AsFuncType();
-
-        if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
-             comp_type->ParamList()->GetTypes().size() != 2 )
-            return false;
-
-        ZInstI z;
-
-        if ( n )
-            z = ZInstI(OP_SORT_WITH_CMP_VVV, zam->Frame1Slot(n, OP1_WRITE), zam->FrameSlot(v),
-                       zam->FrameSlot(comp_func));
-        else
-            z = ZInstI(OP_SORT_WITH_CMP_VV, zam->FrameSlot(v), zam->FrameSlot(comp_func));
-
-        zam->AddInst(z);
-
-        return true;
-    }
-};
-
-class CatBiF : public ZAMBuiltIn {
-public:
-    CatBiF() : ZAMBuiltIn("cat", true) {}
-
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
-        auto nslot = zam->Frame1Slot(n, OP1_WRITE);
-        auto& a0 = args[0];
-        ZInstI z;
-
-        if ( args.empty() ) {
-            // Weird, but easy enough to support.
-            z = ZInstI(OP_CAT1_VC, nslot);
-            z.t = n->GetType();
-            z.c = ZVal(val_mgr->EmptyString());
-        }
-
-        else if ( args.size() > 1 ) {
-            switch ( args.size() ) {
-                case 2: z = zam->GenInst(OP_CAT2_V, n); break;
-                case 3: z = zam->GenInst(OP_CAT3_V, n); break;
-                case 4: z = zam->GenInst(OP_CAT4_V, n); break;
-                case 5: z = zam->GenInst(OP_CAT5_V, n); break;
-                case 6: z = zam->GenInst(OP_CAT6_V, n); break;
-                case 7: z = zam->GenInst(OP_CAT7_V, n); break;
-                case 8: z = zam->GenInst(OP_CAT8_V, n); break;
-
-                default: z = zam->GenInst(OP_CATN_V, n); break;
-            }
-
-            z.aux = BuildCatAux(zam, args);
-        }
-
-        else if ( a0->GetType()->Tag() != TYPE_STRING ) {
-            if ( a0->Tag() == EXPR_NAME ) {
-                z = zam->GenInst(OP_CAT1FULL_VV, n, a0->AsNameExpr());
-                z.t = a0->GetType();
-            }
-            else {
-                z = ZInstI(OP_CAT1_VC, nslot);
-                z.t = n->GetType();
-                z.c = ZVal(ZAM_val_cat(a0->AsConstExpr()->ValuePtr()));
-            }
-        }
-
-        else if ( a0->Tag() == EXPR_CONST ) {
-            z = zam->GenInst(OP_CAT1_VC, n, a0->AsConstExpr());
-            z.t = n->GetType();
-        }
-
-        else
-            z = zam->GenInst(OP_CAT1_VV, n, a0->AsNameExpr());
-
-        zam->AddInst(z);
-
-        return true;
+    for ( auto i = 0U; i < args.size(); ++i ) {
+        mask <<= 1;
+        if ( args[i]->Tag() == EXPR_CONST )
+            mask |= 1;
     }
 
-private:
-    ZInstAux* BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const {
-        auto n = args.size();
-        auto aux = new ZInstAux(n);
-        aux->cat_args = new std::unique_ptr<CatArg>[n];
-
-        for ( size_t i = 0; i < n; ++i ) {
-            auto& a_i = args[i];
-            auto& t = a_i->GetType();
-
-            std::unique_ptr<CatArg> ca;
-
-            if ( a_i->Tag() == EXPR_CONST ) {
-                auto c = a_i->AsConstExpr()->ValuePtr();
-                aux->Add(i, c); // it will be ignored
-                auto sv = ZAM_val_cat(c);
-                auto s = sv->AsString();
-                auto b = reinterpret_cast<char*>(s->Bytes());
-                ca = std::make_unique<CatArg>(std::string(b, s->Len()));
-            }
-
-            else {
-                auto slot = zam->FrameSlot(a_i->AsNameExpr());
-                aux->Add(i, slot, t);
-
-                switch ( t->Tag() ) {
-                    case TYPE_BOOL:
-                    case TYPE_INT:
-                    case TYPE_COUNT:
-                    case TYPE_DOUBLE:
-                    case TYPE_TIME:
-                    case TYPE_ENUM:
-                    case TYPE_PORT:
-                    case TYPE_ADDR:
-                    case TYPE_SUBNET: ca = std::make_unique<FixedCatArg>(t); break;
-
-                    case TYPE_STRING: ca = std::make_unique<StringCatArg>(); break;
-
-                    case TYPE_PATTERN: ca = std::make_unique<PatternCatArg>(); break;
-
-                    default: ca = std::make_unique<DescCatArg>(t); break;
-                }
-            }
-
-            aux->cat_args[i] = std::move(ca);
-        }
-
-        return aux;
-    }
-};
-
-class LogWriteBiF : public ZAMBuiltIn {
-public:
-    LogWriteBiF(std::string name) : ZAMBuiltIn(std::move(name), false) { have_both = true; }
-
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
-        auto id = args[0];
-        auto columns = args[1];
-
-        if ( columns->Tag() != EXPR_NAME )
-            return false;
-
-        auto columns_n = columns->AsNameExpr();
-        auto col_slot = zam->FrameSlot(columns_n);
-
-        bool const_id = (id->Tag() == EXPR_CONST);
-
-        ZInstAux* aux = nullptr;
-
-        if ( const_id ) {
-            aux = new ZInstAux(1);
-            aux->Add(0, id->AsConstExpr()->ValuePtr());
-        }
-
-        ZInstI z;
-
-        if ( n ) {
-            auto nslot = zam->Frame1Slot(n, OP1_WRITE);
-
-            if ( const_id ) {
-                z = ZInstI(OP_LOG_WRITEC_VV, nslot, col_slot);
-                z.aux = aux;
-            }
-            else
-                z = ZInstI(OP_LOG_WRITE_VVV, nslot, zam->FrameSlot(id->AsNameExpr()), col_slot);
-        }
-        else {
-            if ( const_id ) {
-                z = ZInstI(OP_LOG_WRITEC_V, col_slot, id->AsConstExpr());
-                z.aux = aux;
-            }
-            else
-                z = ZInstI(OP_LOG_WRITE_VV, zam->FrameSlot(id->AsNameExpr()), col_slot);
-        }
-
-        zam->AddInst(z);
-
-        return true;
-    }
-};
+    return BIFArgsType(mask);
+}
 
 DirectBuiltIn analyzer_name_BIF{"Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1};
 DirectBuiltInOptAssign broker_flush_logs_BIF{"Broker::__flush_logs", OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0};

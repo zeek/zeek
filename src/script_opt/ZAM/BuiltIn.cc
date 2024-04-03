@@ -492,14 +492,50 @@ public:
     }
 };
 
+DirectBuiltIn analyzer_name_BIF{"Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1};
+DirectBuiltInOptAssign broker_flush_logs_BIF{"Broker::__flush_logs", OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0};
+DirectBuiltIn analyzer_enabled_BIF{"Files::__analyzer_enabled", OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV, 1};
+DirectBuiltIn file_analyzer_name_BIF{"Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1};
+DirectBuiltIn files_enable_reassembly_BIF{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
+DirectBuiltIn clear_table_BIF{"clear_table", OP_CLEAR_TABLE_V, 1, false};
+DirectBuiltIn connection_exists_BIF{"connection_exists", OP_CONN_EXISTS_VV, 1};
+DirectBuiltIn current_time_BIF{"current_time", OP_CURRENT_TIME_V, 0};
+DirectBuiltIn get_port_transport_proto_BIF{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
+DirectBuiltIn is_icmp_port_BIF{"is_icmp_port", OP_IS_ICMP_PORT_VV, 1};
+DirectBuiltIn is_proto_analy_BIF{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1};
+DirectBuiltIn is_tcp_port_BIF{"is_tcp_port", OP_IS_TCP_PORT_VV, 1};
+DirectBuiltIn is_udp_port_BIF{"is_udp_port", OP_IS_UDP_PORT_VV, 1};
+DirectBuiltIn is_v4_addr_BIF{"is_v4_addr", OP_IS_V4_ADDR_VV, 1};
+DirectBuiltIn is_v6_addr_BIF{"is_v6_addr", OP_IS_V6_ADDR_VV, 1};
+DirectBuiltIn lookup_connection_BIF{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
+DirectBuiltIn network_time_BIF{"network_time", OP_NETWORK_TIME_V, 0};
+DirectBuiltIn reading_live_traffic_BIF{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, 0};
+DirectBuiltIn reading_traces_BIF{"reading_traces", OP_READING_TRACES_V, 0};
+DirectBuiltIn set_file_handle_BIF{"set_file_handle", OP_SET_FILE_HANDLE_V, 1, false};
+DirectBuiltIn subnet_to_addr_BIF{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
+DirectBuiltIn time_to_double_BIF{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
+DirectBuiltIn to_lower_BIF{"to_lower", OP_TO_LOWER_VV, 1};
+
+LogWriteBiF log_write_BIF("Log::write");
+LogWriteBiF log___write_BIF("Log::__write");
+
+auto cat_BIF = CatBiF();
+auto sort_BIF = SortBiF();
+
+// For the following, clang-format makes them hard to follow compared to
+// a manual layout.
+//
 // clang-format off
 
-DirectBuiltIn analyzer_name_BIF{
-    "Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1
+DirectBuiltInOptAssign remove_gtpv1_BIF{
+    "PacketAnalyzer::GTPV1::remove_gtpv1_connection",
+    OP_REMOVE_GTPV1_VV, OP_REMOVE_GTPV1_V,
+    1
 };
-
-DirectBuiltInOptAssign broker_flush_logs_BIF{
-    "Broker::__flush_logs", OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0
+DirectBuiltInOptAssign remove_teredo_BIF{
+    "PacketAnalyzer::TEREDO::remove_teredo_connection",
+    OP_REMOVE_TEREDO_VV, OP_REMOVE_TEREDO_V,
+    1
 };
 
 MultiArgBuiltIn files_add_analyzer_BIF{
@@ -526,12 +562,6 @@ MultiArgBuiltIn files_remove_analyzer_BIF{
     1
 };
 
-DirectBuiltIn analyzer_enabled_BIF{"Files::__analyzer_enabled", OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV, 1};
-
-DirectBuiltIn file_analyzer_name_BIF{ "Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1 };
-
-DirectBuiltIn files_enable_reassembly_BIF{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
-
 MultiArgBuiltIn files_set_reassem_buf_BIF{
     "Files::__set_reassembly_buffer",
 
@@ -542,39 +572,12 @@ MultiArgBuiltIn files_set_reassem_buf_BIF{
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVC, OP_VVV_I3}}}
 };
 
-LogWriteBiF log_write_BIF("Log::write");
-LogWriteBiF log___write_BIF("Log::__write");
-
-auto cat_BIF = CatBiF();
-
-DirectBuiltIn clear_table_BIF{"clear_table", OP_CLEAR_TABLE_V, 1, false};
-
-DirectBuiltIn connection_exists_BIF{"connection_exists", OP_CONN_EXISTS_VV, 1};
-
-DirectBuiltIn current_time_BIF{"current_time", OP_CURRENT_TIME_V, 0};
-
 MultiArgBuiltIn get_bytes_thresh_BIF{
     "get_current_conn_bytes_threshold",
     true,
     {{{VV}, {OP_GET_BYTES_THRESH_VVV, OP_VVV}},
      {{VC}, {OP_GET_BYTES_THRESH_VVi, OP_VVC}}}
 };
-
-DirectBuiltIn get_port_transport_proto_BIF{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
-
-DirectBuiltIn is_icmp_port_BIF{"is_icmp_port", OP_IS_ICMP_PORT_VV, 1};
-DirectBuiltIn is_protocol_analyzer_BIF{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1 };
-DirectBuiltIn is_tcp_port_BIF{"is_tcp_port", OP_IS_TCP_PORT_VV, 1};
-DirectBuiltIn is_udp_port_BIF{"is_udp_port", OP_IS_UDP_PORT_VV, 1};
-DirectBuiltIn is_v4_addr_BIF{"is_v4_addr", OP_IS_V4_ADDR_VV, 1};
-DirectBuiltIn is_v6_addr_BIF{"is_v6_addr", OP_IS_V6_ADDR_VV, 1};
-DirectBuiltIn lookup_connection_BIF{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
-DirectBuiltIn network_time_BIF{"network_time", OP_NETWORK_TIME_V, 0};
-DirectBuiltIn reading_live_traffic_BIF{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, 0};
-DirectBuiltIn reading_traces_BIF{"reading_traces", OP_READING_TRACES_V, 0};
-
-DirectBuiltInOptAssign remove_gtpv1_BIF{"PacketAnalyzer::GTPV1::remove_gtpv1_connection", OP_REMOVE_GTPV1_VV, OP_REMOVE_GTPV1_V, 1};
-DirectBuiltInOptAssign remove_teredo_BIF{"PacketAnalyzer::TEREDO::remove_teredo_connection", OP_REMOVE_TEREDO_VV, OP_REMOVE_TEREDO_V, 1};
 
 MultiArgBuiltIn set_bytes_thresh_BIF{
     "set_current_conn_bytes_threshold",
@@ -589,10 +592,6 @@ MultiArgBuiltIn set_bytes_thresh_BIF{
      {{VCV}, {OP_SET_BYTES_THRESH_VViV, OP_VVVC}},
      {{VCC}, {OP_SET_BYTES_THRESH_VVii, OP_VVVC_I3}}}
 };
-
-DirectBuiltIn set_file_handle_BIF{"set_file_handle", OP_SET_FILE_HANDLE_V, 1, false};
-
-auto sort_BIF = SortBiF();
 
 MultiArgBuiltIn starts_with_BIF{
     "starts_with",
@@ -629,10 +628,6 @@ MultiArgBuiltIn sub_bytes_BIF{
      {{CVC}, {OP_SUB_BYTES_VViC, OP_VVVC_I3}},
      {{CCV}, {OP_SUB_BYTES_ViVC, OP_VVVC_I3}}}
 };
-
-DirectBuiltIn subnet_to_addr_BIF{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
-DirectBuiltIn time_to_double_BIF{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
-DirectBuiltIn to_lower_BIF{"to_lower", OP_TO_LOWER_VV, 1};
 
 // clang-format on
 

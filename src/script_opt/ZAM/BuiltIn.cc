@@ -3,6 +3,8 @@
 // ZAM methods associated with instructions that replace calls to
 // built-in functions.
 
+#include "zeek/script_opt/ZAM/BuiltIn.h"
+
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/script_opt/ZAM/Compile.h"
@@ -631,7 +633,7 @@ MultiArgBuiltIn sub_bytes_BIF{
 
 // clang-format on
 
-bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
+bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
     // The expression e is either directly a call (in which case there's
     // no return value), or an assignment to a call.
     const CallExpr* c;
@@ -680,7 +682,7 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
         return false;
     }
 
-    return bi->Build(this, n, c->Args()->Exprs());
+    return bi->Build(zam, n, c->Args()->Exprs());
 }
 
 } // namespace zeek::detail

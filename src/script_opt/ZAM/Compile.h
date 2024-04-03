@@ -257,10 +257,6 @@ private:
 
 #include "zeek/script_opt/ZAM/Inst-Gen.h"
 
-    // If the given expression corresponds to a call to a ZAM built-in,
-    // then compiles the call and returns true.  Otherwise, returns false.
-    bool IsZAM_BuiltIn(const Expr* e);
-
     int ConvertToInt(const Expr* e) {
         if ( e->Tag() == EXPR_NAME )
             return FrameSlot(e->AsNameExpr()->Id());

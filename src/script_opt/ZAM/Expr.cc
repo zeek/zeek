@@ -4,6 +4,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/script_opt/ZAM/BuiltIn.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
@@ -970,7 +971,7 @@ const ZAMStmt ZAMCompiler::AssignToCall(const ExprStmt* e) {
 }
 
 bool ZAMCompiler::CheckForBuiltIn(const ExprPtr& e, CallExprPtr c) {
-    if ( ! IsZAM_BuiltIn(e.get()) )
+    if ( ! IsZAM_BuiltIn(this, e.get()) )
         return false;
 
     auto ret = LastInst();

@@ -484,6 +484,137 @@ public:
     }
 };
 
+// clang-format off
+
+DirectBuiltIn analyzer_name_BIF{OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1};
+
+DirectBuiltInOptAssign broker_flush_logs_BIF{
+    OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0
+};
+
+MultiArgBuiltIn files_add_analyzer_BIF{
+    {{{VVV}, {OP_FILES_ADD_ANALYZER_VVV, OP_VVV}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_ViV, OP_VVC}}},
+
+    {{{VVV}, {OP_FILES_ADD_ANALYZER_VVVV, OP_VVVV}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_VViV, OP_VVVC}}},
+
+    1
+};
+
+MultiArgBuiltIn files_remove_analyzer_BIF{
+    {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVV, OP_VVV}},
+     {{VCV}, {OP_FILES_REMOVE_ANALYZER_ViV, OP_VVC}}},
+
+    {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVVV, OP_VVVV}},
+     {{VCV}, {OP_FILES_REMOVE_ANALYZER_VViV, OP_VVVC}}},
+
+    1
+};
+
+DirectBuiltIn analyzer_enabled_BIF{OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV, 1};
+
+DirectBuiltIn file_analyzer_name_BIF{
+    OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1
+};
+
+DirectBuiltIn files_enable_reassembly_BIF{OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
+
+MultiArgBuiltIn files_set_reassem_buf_BIF{
+    {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VV, OP_VV}},
+     {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VC, OP_VV_I2}}},
+
+    {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVV, OP_VVV}},
+     {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVC, OP_VVV_I3}}}
+};
+
+LogWriteBiF log_write_BIF();
+LogWriteBiF log___write_BIF();
+
+CatBiF cat_BIF();
+
+DirectBuiltIn clear_table_BIF{OP_CLEAR_TABLE_V, 1, false};
+
+DirectBuiltIn connection_exists_BIF{OP_CONN_EXISTS_VV, 1};
+
+DirectBuiltIn current_time_BIF{OP_CURRENT_TIME_V, 0};
+
+MultiArgBuiltIn get_bytes_thresh_BIF{
+    true,
+    {{{VV}, {OP_GET_BYTES_THRESH_VVV, OP_VVV}},
+     {{VC}, {OP_GET_BYTES_THRESH_VVi, OP_VVC}}}
+};
+
+DirectBuiltIn get_port_transport_proto_BIF{OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
+
+DirectBuiltIn is_icmp_port_BIF{OP_IS_ICMP_PORT_VV, 1};
+DirectBuiltIn is_protocol_analyzer_BIF{OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1 };
+DirectBuiltIn is_tcp_port_BIF{OP_IS_TCP_PORT_VV, 1};
+DirectBuiltIn is_udp_port_BIF{OP_IS_UDP_PORT_VV, 1};
+DirectBuiltIn is_v4_addr_BIF{OP_IS_V4_ADDR_VV, 1};
+DirectBuiltIn is_v6_addr_BIF{OP_IS_V6_ADDR_VV, 1};
+DirectBuiltIn lookup_connection_BIF{OP_LOOKUP_CONN_VV, 1};
+DirectBuiltIn network_time_BIF{OP_NETWORK_TIME_V, 0};
+DirectBuiltIn reading_live_traffic_BIF{OP_READING_LIVE_TRAFFIC_V, 0};
+DirectBuiltIn reading_traces_BIF{OP_READING_TRACES_V, 0};
+
+DirectBuiltInOptAssign remove_gtpv1_BIF{OP_REMOVE_GTPV1_VV, OP_REMOVE_GTPV1_V, 1};
+DirectBuiltInOptAssign remove_teredo_BIF{OP_REMOVE_TEREDO_VV, OP_REMOVE_TEREDO_V, 1};
+
+MultiArgBuiltIn set_bytes_thresh_BIF{
+    {{{VVV}, {OP_SET_BYTES_THRESH_VVV, OP_VVV}},
+     {{VVC}, {OP_SET_BYTES_THRESH_VVi, OP_VVC}},
+     {{VCV}, {OP_SET_BYTES_THRESH_ViV, OP_VVC}},
+     {{VCC}, {OP_SET_BYTES_THRESH_Vii, OP_VVC_I2}}},
+
+    {{{VVV}, {OP_SET_BYTES_THRESH_VVVV, OP_VVVV}},
+     {{VVC}, {OP_SET_BYTES_THRESH_VVVi, OP_VVVC}},
+     {{VCV}, {OP_SET_BYTES_THRESH_VViV, OP_VVVC}},
+     {{VCC}, {OP_SET_BYTES_THRESH_VVii, OP_VVVC_I3}}}
+};
+
+DirectBuiltIn set_file_handle_BIF{OP_SET_FILE_HANDLE_V, 1, false};
+
+SortBiF sort_BIF();
+
+MultiArgBuiltIn starts_with_BIF{
+    true,
+    {{{VV}, {OP_STARTS_WITH_VVV, OP_VVV}},
+     {{VC}, {OP_STARTS_WITH_VVC, OP_VVC}},
+     {{CV}, {OP_STARTS_WITH_VCV, OP_VVC}}}
+};
+
+MultiArgBuiltIn strcmp_BIF{
+    true,
+    {{{VV}, {OP_STRCMP_VVV, OP_VVV}},
+     {{VC}, {OP_STRCMP_VVC, OP_VVC}},
+     {{CV}, {OP_STRCMP_VCV, OP_VVC}}}
+};
+
+MultiArgBuiltIn strstr_BIF{
+    true,
+    {{{VV}, {OP_STRSTR_VVV, OP_VVV}},
+     {{VC}, {OP_STRSTR_VVC, OP_VVC}},
+     {{CV}, {OP_STRSTR_VCV, OP_VVC}}}
+};
+
+MultiArgBuiltIn sub_bytes_BIF{
+    true,
+    {{{VVV}, {OP_SUB_BYTES_VVVV, OP_VVVV}},
+     {{VVC}, {OP_SUB_BYTES_VVVi, OP_VVVC}},
+     {{VCV}, {OP_SUB_BYTES_VViV, OP_VVVC}},
+     {{VCC}, {OP_SUB_BYTES_VVii, OP_VVVC_I3}},
+     {{CVV}, {OP_SUB_BYTES_VVVC, OP_VVVC}},
+     {{CVC}, {OP_SUB_BYTES_VViC, OP_VVVC_I3}},
+     {{CCV}, {OP_SUB_BYTES_ViVC, OP_VVVC_I3}}}
+};
+
+DirectBuiltIn subnet_to_addr_BIF{OP_SUBNET_TO_ADDR_VV, 1};
+DirectBuiltIn time_to_double_BIF{OP_TIME_TO_DOUBLE_VV, 1};
+DirectBuiltIn to_lower_BIF{OP_TO_LOWER_VV, 1};
+
+// clang-format on
+
 bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     // The expression e is either directly a call (in which case there's
     // no return value), or an assignment to a call.

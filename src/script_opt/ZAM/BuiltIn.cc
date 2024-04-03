@@ -9,9 +9,17 @@
 
 namespace zeek::detail {
 
+class ZAMBuiltIn;
+std::map<std::string, const ZAMBuiltIn*> new_builtins;
+
 class ZAMBuiltIn {
 public:
     ZAMBuiltIn(bool _ret_val_matters) : ret_val_matters(_ret_val_matters) {}
+    ZAMBuiltIn(std::string name, bool _ret_val_matters) :
+	ret_val_matters(_ret_val_matters)
+	{
+	new_builtins[name] = this;
+	}
 
     virtual ~ZAMBuiltIn() = default;
 
@@ -30,8 +38,14 @@ public:
     DirectBuiltIn(ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID)
         : ZAMBuiltIn(_ret_val_matters), op(_op), nargs(_nargs), arg_type(_arg_type) {}
 
+    DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID)
+        : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), nargs(_nargs), arg_type(_arg_type) {}
+
     DirectBuiltIn(ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID)
         : ZAMBuiltIn(_ret_val_matters), op(_op), const_op(_const_op), nargs(_nargs), arg_type(_arg_type) {}
+
+    DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID)
+        : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(_nargs), arg_type(_arg_type) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         ZInstI z;
@@ -94,6 +108,10 @@ public:
         have_both = true;
     }
 
+    DirectBuiltInOptAssign(std::string(name), ZOp _op, ZOp _op2, int _nargs) : DirectBuiltIn(std::move(name), _op, _nargs, false), op2(_op2) {
+        have_both = true;
+    }
+
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         if ( n )
             return DirectBuiltIn::Build(zam, n, args);
@@ -145,8 +163,17 @@ public:
     MultiArgBuiltIn(bool _ret_val_matters, BifArgsInfo _args_info, int _type_arg = -1)
         : ZAMBuiltIn(_ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
 
+    MultiArgBuiltIn(std::string name, bool _ret_val_matters, BifArgsInfo _args_info, int _type_arg = -1)
+        : ZAMBuiltIn(std::move(name), _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
+
     MultiArgBuiltIn(BifArgsInfo _args_info, BifArgsInfo _assign_args_info, int _type_arg = -1)
         : MultiArgBuiltIn(false, _args_info, _type_arg) {
+        assign_args_info = std::move(_assign_args_info);
+        have_both = true;
+    }
+
+    MultiArgBuiltIn(std::string name, BifArgsInfo _args_info, BifArgsInfo _assign_args_info, int _type_arg = -1)
+        : MultiArgBuiltIn(std::move(name), false, _args_info, _type_arg) {
         assign_args_info = std::move(_assign_args_info);
         have_both = true;
     }
@@ -279,7 +306,7 @@ private:
 
 class SortBiF : public DirectBuiltInOptAssign {
 public:
-    SortBiF() : DirectBuiltInOptAssign(OP_SORT_V, OP_SORT_VV, 1) {}
+    SortBiF() : DirectBuiltInOptAssign("sort", OP_SORT_V, OP_SORT_VV, 1) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         if ( args.size() > 2 )
@@ -328,7 +355,7 @@ public:
 
 class CatBiF : public ZAMBuiltIn {
 public:
-    CatBiF() : ZAMBuiltIn(true) {}
+    CatBiF() : ZAMBuiltIn("cat", true) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto nslot = zam->Frame1Slot(n, OP1_WRITE);
@@ -437,6 +464,7 @@ private:
 class LogWriteBiF : public ZAMBuiltIn {
 public:
     LogWriteBiF() : ZAMBuiltIn(false) { have_both = true; }
+    LogWriteBiF(std::string name) : ZAMBuiltIn(std::move(name), false) { have_both = true; }
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override {
         auto id = args[0];
@@ -486,13 +514,17 @@ public:
 
 // clang-format off
 
-DirectBuiltIn analyzer_name_BIF{OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1};
+DirectBuiltIn analyzer_name_BIF{
+    "Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1
+};
 
 DirectBuiltInOptAssign broker_flush_logs_BIF{
-    OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0
+    "Broker::__flush_logs", OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0
 };
 
 MultiArgBuiltIn files_add_analyzer_BIF{
+    "Files::__add_analyzer",
+
     {{{VVV}, {OP_FILES_ADD_ANALYZER_VVV, OP_VVV}},
      {{VCV}, {OP_FILES_ADD_ANALYZER_ViV, OP_VVC}}},
 
@@ -503,6 +535,8 @@ MultiArgBuiltIn files_add_analyzer_BIF{
 };
 
 MultiArgBuiltIn files_remove_analyzer_BIF{
+    "Files::__remove_analyzer",
+
     {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVV, OP_VVV}},
      {{VCV}, {OP_FILES_REMOVE_ANALYZER_ViV, OP_VVC}}},
 
@@ -512,15 +546,15 @@ MultiArgBuiltIn files_remove_analyzer_BIF{
     1
 };
 
-DirectBuiltIn analyzer_enabled_BIF{OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV, 1};
+DirectBuiltIn analyzer_enabled_BIF{"Files::__analyzer_enabled", OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV, 1};
 
-DirectBuiltIn file_analyzer_name_BIF{
-    OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1
-};
+DirectBuiltIn file_analyzer_name_BIF{ "Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1 };
 
-DirectBuiltIn files_enable_reassembly_BIF{OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
+DirectBuiltIn files_enable_reassembly_BIF{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
 
 MultiArgBuiltIn files_set_reassem_buf_BIF{
+    "Files::__set_reassembly_buffer",
+
     {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VV, OP_VV}},
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VC, OP_VV_I2}}},
 
@@ -528,40 +562,43 @@ MultiArgBuiltIn files_set_reassem_buf_BIF{
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVC, OP_VVV_I3}}}
 };
 
-LogWriteBiF log_write_BIF();
-LogWriteBiF log___write_BIF();
+LogWriteBiF log_write_BIF("Log::write");
+LogWriteBiF log___write_BIF("Log::__write");
 
 CatBiF cat_BIF();
 
-DirectBuiltIn clear_table_BIF{OP_CLEAR_TABLE_V, 1, false};
+DirectBuiltIn clear_table_BIF{"clear_table", OP_CLEAR_TABLE_V, 1, false};
 
-DirectBuiltIn connection_exists_BIF{OP_CONN_EXISTS_VV, 1};
+DirectBuiltIn connection_exists_BIF{"connection_exists", OP_CONN_EXISTS_VV, 1};
 
-DirectBuiltIn current_time_BIF{OP_CURRENT_TIME_V, 0};
+DirectBuiltIn current_time_BIF{"current_time", OP_CURRENT_TIME_V, 0};
 
 MultiArgBuiltIn get_bytes_thresh_BIF{
+    "get_current_conn_bytes_threshold",
     true,
     {{{VV}, {OP_GET_BYTES_THRESH_VVV, OP_VVV}},
      {{VC}, {OP_GET_BYTES_THRESH_VVi, OP_VVC}}}
 };
 
-DirectBuiltIn get_port_transport_proto_BIF{OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
+DirectBuiltIn get_port_transport_proto_BIF{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
 
-DirectBuiltIn is_icmp_port_BIF{OP_IS_ICMP_PORT_VV, 1};
-DirectBuiltIn is_protocol_analyzer_BIF{OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1 };
-DirectBuiltIn is_tcp_port_BIF{OP_IS_TCP_PORT_VV, 1};
-DirectBuiltIn is_udp_port_BIF{OP_IS_UDP_PORT_VV, 1};
-DirectBuiltIn is_v4_addr_BIF{OP_IS_V4_ADDR_VV, 1};
-DirectBuiltIn is_v6_addr_BIF{OP_IS_V6_ADDR_VV, 1};
-DirectBuiltIn lookup_connection_BIF{OP_LOOKUP_CONN_VV, 1};
-DirectBuiltIn network_time_BIF{OP_NETWORK_TIME_V, 0};
-DirectBuiltIn reading_live_traffic_BIF{OP_READING_LIVE_TRAFFIC_V, 0};
-DirectBuiltIn reading_traces_BIF{OP_READING_TRACES_V, 0};
+DirectBuiltIn is_icmp_port_BIF{"is_icmp_port", OP_IS_ICMP_PORT_VV, 1};
+DirectBuiltIn is_protocol_analyzer_BIF{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1 };
+DirectBuiltIn is_tcp_port_BIF{"is_tcp_port", OP_IS_TCP_PORT_VV, 1};
+DirectBuiltIn is_udp_port_BIF{"is_udp_port", OP_IS_UDP_PORT_VV, 1};
+DirectBuiltIn is_v4_addr_BIF{"is_v4_addr", OP_IS_V4_ADDR_VV, 1};
+DirectBuiltIn is_v6_addr_BIF{"is_v6_addr", OP_IS_V6_ADDR_VV, 1};
+DirectBuiltIn lookup_connection_BIF{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
+DirectBuiltIn network_time_BIF{"network_time", OP_NETWORK_TIME_V, 0};
+DirectBuiltIn reading_live_traffic_BIF{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, 0};
+DirectBuiltIn reading_traces_BIF{"reading_traces", OP_READING_TRACES_V, 0};
 
-DirectBuiltInOptAssign remove_gtpv1_BIF{OP_REMOVE_GTPV1_VV, OP_REMOVE_GTPV1_V, 1};
-DirectBuiltInOptAssign remove_teredo_BIF{OP_REMOVE_TEREDO_VV, OP_REMOVE_TEREDO_V, 1};
+DirectBuiltInOptAssign remove_gtpv1_BIF{"PacketAnalyzer::GTPV1::remove_gtpv1_connection", OP_REMOVE_GTPV1_VV, OP_REMOVE_GTPV1_V, 1};
+DirectBuiltInOptAssign remove_teredo_BIF{"PacketAnalyzer::TEREDO::remove_teredo_connection", OP_REMOVE_TEREDO_VV, OP_REMOVE_TEREDO_V, 1};
 
 MultiArgBuiltIn set_bytes_thresh_BIF{
+    "set_current_conn_bytes_threshold",
+
     {{{VVV}, {OP_SET_BYTES_THRESH_VVV, OP_VVV}},
      {{VVC}, {OP_SET_BYTES_THRESH_VVi, OP_VVC}},
      {{VCV}, {OP_SET_BYTES_THRESH_ViV, OP_VVC}},
@@ -573,11 +610,12 @@ MultiArgBuiltIn set_bytes_thresh_BIF{
      {{VCC}, {OP_SET_BYTES_THRESH_VVii, OP_VVVC_I3}}}
 };
 
-DirectBuiltIn set_file_handle_BIF{OP_SET_FILE_HANDLE_V, 1, false};
+DirectBuiltIn set_file_handle_BIF{"set_file_handle", OP_SET_FILE_HANDLE_V, 1, false};
 
 SortBiF sort_BIF();
 
 MultiArgBuiltIn starts_with_BIF{
+    "starts_with",
     true,
     {{{VV}, {OP_STARTS_WITH_VVV, OP_VVV}},
      {{VC}, {OP_STARTS_WITH_VVC, OP_VVC}},
@@ -585,6 +623,7 @@ MultiArgBuiltIn starts_with_BIF{
 };
 
 MultiArgBuiltIn strcmp_BIF{
+    "strcmp",
     true,
     {{{VV}, {OP_STRCMP_VVV, OP_VVV}},
      {{VC}, {OP_STRCMP_VVC, OP_VVC}},
@@ -592,6 +631,7 @@ MultiArgBuiltIn strcmp_BIF{
 };
 
 MultiArgBuiltIn strstr_BIF{
+    "strstr",
     true,
     {{{VV}, {OP_STRSTR_VVV, OP_VVV}},
      {{VC}, {OP_STRSTR_VVC, OP_VVC}},
@@ -599,6 +639,7 @@ MultiArgBuiltIn strstr_BIF{
 };
 
 MultiArgBuiltIn sub_bytes_BIF{
+    "sub_bytes",
     true,
     {{{VVV}, {OP_SUB_BYTES_VVVV, OP_VVVV}},
      {{VVC}, {OP_SUB_BYTES_VVVi, OP_VVVC}},
@@ -609,9 +650,9 @@ MultiArgBuiltIn sub_bytes_BIF{
      {{CCV}, {OP_SUB_BYTES_ViVC, OP_VVVC_I3}}}
 };
 
-DirectBuiltIn subnet_to_addr_BIF{OP_SUBNET_TO_ADDR_VV, 1};
-DirectBuiltIn time_to_double_BIF{OP_TIME_TO_DOUBLE_VV, 1};
-DirectBuiltIn to_lower_BIF{OP_TO_LOWER_VV, 1};
+DirectBuiltIn subnet_to_addr_BIF{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
+DirectBuiltIn time_to_double_BIF{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
+DirectBuiltIn to_lower_BIF{"to_lower", OP_TO_LOWER_VV, 1};
 
 // clang-format on
 
@@ -752,9 +793,15 @@ bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
     };
 
     auto func = func_val->AsFunc();
+#if 0
     auto b = builtins.find(func->Name());
     if ( b == builtins.end() )
         return false;
+#else
+    auto b = new_builtins.find(func->Name());
+    if ( b == new_builtins.end() )
+        return false;
+#endif
 
     const auto& bi = b->second;
 

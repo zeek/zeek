@@ -17,8 +17,8 @@ ZAMBuiltIn::ZAMBuiltIn(std::string name, bool _ret_val_matters) : ret_val_matter
     builtins[name] = this;
 }
 
-DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters, ZOp _cond_op)
-    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), cond_op(_cond_op), nargs(_nargs) {}
+DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), nargs(_nargs) {}
 
 DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters)
     : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(_nargs) {}
@@ -67,7 +67,10 @@ bool DirectBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& 
     return true;
 }
 
-bool DirectBuiltIn::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const {
+CondBuiltIn::CondBuiltIn(std::string name, ZOp _op, ZOp _cond_op, int _nargs)
+    : DirectBuiltIn(std::move(name), _op, _nargs, true), cond_op(_cond_op) {}
+
+bool CondBuiltIn::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const {
     if ( cond_op == OP_NOP )
         return false;
 
@@ -446,25 +449,25 @@ DirectBuiltIn analyzer_enabled_BIF{"Files::__analyzer_enabled", OP_ANALYZER_ENAB
 DirectBuiltIn file_analyzer_name_BIF{"Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1};
 DirectBuiltIn files_enable_reassembly_BIF{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
 DirectBuiltIn clear_table_BIF{"clear_table", OP_CLEAR_TABLE_V, 1, false};
-DirectBuiltIn connection_exists_BIF{"connection_exists", OP_CONN_EXISTS_VV, 1, true, OP_CONN_EXISTS_COND_VV};
 DirectBuiltIn current_time_BIF{"current_time", OP_CURRENT_TIME_V, 0};
 DirectBuiltIn get_port_transport_proto_BIF{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
-DirectBuiltIn is_icmp_port_BIF{"is_icmp_port", OP_IS_ICMP_PORT_VV, 1, true, OP_IS_ICMP_PORT_COND_VV};
 DirectBuiltIn is_proto_analy_BIF{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1,
                                  true};
-DirectBuiltIn is_tcp_port_BIF{"is_tcp_port", OP_IS_TCP_PORT_VV, 1, true, OP_IS_TCP_PORT_COND_VV};
-DirectBuiltIn is_udp_port_BIF{"is_udp_port", OP_IS_UDP_PORT_VV, 1, true, OP_IS_UDP_PORT_COND_VV};
-DirectBuiltIn is_v4_addr_BIF{"is_v4_addr", OP_IS_V4_ADDR_VV, 1, true, OP_IS_V4_ADDR_COND_VV};
-DirectBuiltIn is_v6_addr_BIF{"is_v6_addr", OP_IS_V6_ADDR_VV, 1, true, OP_IS_V6_ADDR_COND_VV};
 DirectBuiltIn lookup_connection_BIF{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
 DirectBuiltIn network_time_BIF{"network_time", OP_NETWORK_TIME_V, 0};
-DirectBuiltIn reading_live_traffic_BIF{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, 0, true,
-                                       OP_READING_LIVE_TRAFFIC_COND_V};
-DirectBuiltIn reading_traces_BIF{"reading_traces", OP_READING_TRACES_V, 0, true, OP_READING_TRACES_COND_V};
 DirectBuiltIn set_file_handle_BIF{"set_file_handle", OP_SET_FILE_HANDLE_V, 1, false};
 DirectBuiltIn subnet_to_addr_BIF{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
 DirectBuiltIn time_to_double_BIF{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
 DirectBuiltIn to_lower_BIF{"to_lower", OP_TO_LOWER_VV, 1};
+
+CondBuiltIn connection_exists_BIF{"connection_exists", OP_CONN_EXISTS_VV, OP_CONN_EXISTS_COND_VV, 1};
+CondBuiltIn is_icmp_port_BIF{"is_icmp_port", OP_IS_ICMP_PORT_VV, OP_IS_ICMP_PORT_COND_VV, 1};
+CondBuiltIn is_tcp_port_BIF{"is_tcp_port", OP_IS_TCP_PORT_VV, OP_IS_TCP_PORT_COND_VV, 1};
+CondBuiltIn is_udp_port_BIF{"is_udp_port", OP_IS_UDP_PORT_VV, OP_IS_UDP_PORT_COND_VV, 1};
+CondBuiltIn is_v4_addr_BIF{"is_v4_addr", OP_IS_V4_ADDR_VV, OP_IS_V4_ADDR_COND_VV, 1};
+CondBuiltIn is_v6_addr_BIF{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_VV, 1};
+CondBuiltIn reading_live_traffic_BIF{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_V, 0};
+CondBuiltIn reading_traces_BIF{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_V, 0};
 
 LogWriteBiF log_write_BIF("Log::write");
 LogWriteBiF log___write_BIF("Log::__write");

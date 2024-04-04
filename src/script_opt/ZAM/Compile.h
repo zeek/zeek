@@ -86,9 +86,9 @@ public:
 
 private:
     friend class DirectBuiltIn;
+    friend class CondBuiltIn;
     friend class DirectBuiltInOptAssign;
     friend class MultiArgBuiltIn;
-
     friend class SortBiF;
     friend class CatBiF;
     friend class LogWriteBiF;

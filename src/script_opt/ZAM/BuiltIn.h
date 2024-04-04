@@ -27,18 +27,26 @@ protected:
 
 class DirectBuiltIn : public ZAMBuiltIn {
 public:
-    DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true, ZOp _cond_op = OP_NOP);
+    DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true);
 
     DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters = true);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
-    bool BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const override;
 
 protected:
     ZOp op;
     ZOp const_op = OP_NOP;
-    ZOp cond_op = OP_NOP;
     int nargs;
+};
+
+class CondBuiltIn : public DirectBuiltIn {
+public:
+    CondBuiltIn(std::string name, ZOp _op, ZOp _cond_op, int _nargs);
+
+    bool BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const override;
+
+protected:
+    ZOp cond_op = OP_NOP;
 };
 
 class DirectBuiltInOptAssign : public DirectBuiltIn {

@@ -56,7 +56,7 @@ export {
 
 function parse(version_string: string): VersionDescription
 	{
-	if ( /[0-9]+\.[0-9]+(\.[0-9]+)?(-(beta|rc|dev)[0-9]*)?((-|\.)[0-9]+)?(-debug)?/ != version_string )
+	if ( /[0-9]+\.[0-9]+(\.[0-9]+)?(-(beta|rc|dev)[0-9]*)?((-|\.)[0-9]+)?(-[a-zA-Z0-9]+)?(-debug)?/ != version_string )
 		{
 		Reporter::error(fmt("Version string %s cannot be parsed", version_string));
 		return VersionDescription($version_number=0, $major=0, $minor=0, $patch=0, $commit=0, $beta=F, $debug=F, $version_string=version_string);
@@ -92,6 +92,8 @@ function parse(version_string: string): VersionDescription
 
 		vs = gsub(vs, /-debug$/, "");
 		vs = gsub(vs, /-(beta|rc|dev)[0-9]*/, "");
+		# Drop the optional local version piece
+		vs = gsub(vs, /-[a-zA-Z0-9]+$/, "");
 
 		# Either a .X, or -X possibly remaining
 		vs = lstrip(vs, ".-");

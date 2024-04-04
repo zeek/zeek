@@ -3,7 +3,7 @@
 #pragma once
 
 /* Version number of package */
-#define VERSION "@ZEEK_VERSION_FULL@"
+#define VERSION "@ZEEK_VERSION_FULL_LOCAL@"
 
 // Zeek version number.
 // This is the result of (major * 10000 + minor * 100 + patch)

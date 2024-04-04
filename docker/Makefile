@@ -5,7 +5,7 @@ LOCALVERSION ?= ""
 LOCAL_VERSION_FLAG = ""
 ifneq ($(LOCALVERSION), "")
 	VERSION := $(VERSION)-$(LOCALVERSION)
-	LOCAL_VERSION_FLAG := "--localversion=$(LOCALVERSION)"
+	LOCAL_VERSION_FLAG := --localversion=$(LOCALVERSION)
 endif
 BUILD_IMAGE := zeek-builder:$(VERSION)
 BUILD_CONTAINER := zeek-builder-container-$(VERSION)

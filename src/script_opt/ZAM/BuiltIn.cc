@@ -17,13 +17,13 @@ ZAMBuiltIn::ZAMBuiltIn(std::string name, bool _ret_val_matters) : ret_val_matter
     builtins[name] = this;
 }
 
-DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters)
+SimpleZBI::SimpleZBI(std::string name, ZOp _op, int _nargs, bool _ret_val_matters)
     : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), nargs(_nargs) {}
 
-DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters)
-    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(_nargs) {}
+SimpleZBI::SimpleZBI(std::string name, ZOp _const_op, ZOp _op, bool _ret_val_matters)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(1) {}
 
-bool DirectBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     ZInstI z;
     if ( nargs == 0 ) {
         if ( n )
@@ -67,10 +67,10 @@ bool DirectBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& 
     return true;
 }
 
-CondBuiltIn::CondBuiltIn(std::string name, ZOp _op, ZOp _cond_op, int _nargs)
-    : DirectBuiltIn(std::move(name), _op, _nargs, true), cond_op(_cond_op) {}
+CondZBI::CondZBI(std::string name, ZOp _op, ZOp _cond_op, int _nargs)
+    : SimpleZBI(std::move(name), _op, _nargs, true), cond_op(_cond_op) {}
 
-bool CondBuiltIn::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const {
+bool CondZBI::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const {
     if ( cond_op == OP_NOP )
         return false;
 
@@ -105,14 +105,14 @@ bool CondBuiltIn::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch
     return true;
 }
 
-DirectBuiltInOptAssign::DirectBuiltInOptAssign(std::string name, ZOp _op, ZOp _op2, int _nargs)
-    : DirectBuiltIn(std::move(name), _op, _nargs, false), op2(_op2) {
+OptAssignZBI::OptAssignZBI(std::string name, ZOp _op, ZOp _op2, int _nargs)
+    : SimpleZBI(std::move(name), _op, _nargs, false), op2(_op2) {
     have_both = true;
 }
 
-bool DirectBuiltInOptAssign::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+bool OptAssignZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     if ( n )
-        return DirectBuiltIn::Build(zam, n, args);
+        return SimpleZBI::Build(zam, n, args);
 
     ZInstI z;
     if ( nargs == 0 )
@@ -129,7 +129,7 @@ bool DirectBuiltInOptAssign::Build(ZAMCompiler* zam, const NameExpr* n, const Ex
     return true;
 }
 
-bool CatBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+bool CatZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     auto nslot = zam->Frame1Slot(n, OP1_WRITE);
     auto& a0 = args[0];
     ZInstI z;
@@ -182,7 +182,7 @@ bool CatBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) c
     return true;
 }
 
-ZInstAux* CatBiF::BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const {
+ZInstAux* CatZBI::BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const {
     auto n = args.size();
     auto aux = new ZInstAux(n);
     aux->cat_args = new std::unique_ptr<CatArg>[n];
@@ -231,7 +231,7 @@ ZInstAux* CatBiF::BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const {
     return aux;
 }
 
-bool SortBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     if ( args.size() > 2 )
         return false;
 
@@ -245,7 +245,7 @@ bool SortBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) 
         if ( ! IsIntegral(elt_type->Tag()) && elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
             return false;
 
-        return DirectBuiltInOptAssign::Build(zam, n, args);
+        return OptAssignZBI::Build(zam, n, args);
     }
 
     const auto& comp_val = args[1];
@@ -274,7 +274,7 @@ bool SortBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) 
     return true;
 }
 
-bool LogWriteBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+bool LogWriteZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     auto id = args[0];
     auto columns = args[1];
 
@@ -319,16 +319,16 @@ bool LogWriteBiF::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& ar
     return true;
 }
 
-MultiArgBuiltIn::MultiArgBuiltIn(std::string name, bool _ret_val_matters, BifArgsInfo _args_info, int _type_arg)
+MultiZBI::MultiZBI(std::string name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg)
     : ZAMBuiltIn(std::move(name), _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
 
-MultiArgBuiltIn::MultiArgBuiltIn(std::string name, BifArgsInfo _args_info, BifArgsInfo _assign_args_info, int _type_arg)
-    : MultiArgBuiltIn(std::move(name), false, _args_info, _type_arg) {
+MultiZBI::MultiZBI(std::string name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg)
+    : MultiZBI(std::move(name), false, _args_info, _type_arg) {
     assign_args_info = std::move(_assign_args_info);
     have_both = true;
 }
 
-bool MultiArgBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+bool MultiZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     auto ai = &args_info;
     if ( n && have_both ) {
         ai = &assign_args_info;
@@ -407,12 +407,12 @@ bool MultiArgBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList
                 break;
             }
 
-            default: reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
+            default: reporter->InternalError("inconsistency in MultiZBI::Build");
         }
     }
 
     else
-        reporter->InternalError("inconsistency in MultiArgBuiltIn::Build");
+        reporter->InternalError("inconsistency in MultiZBI::Build");
 
     z.op_type = bi.op_type;
 
@@ -432,7 +432,7 @@ bool MultiArgBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList
     return true;
 }
 
-BIFArgsType MultiArgBuiltIn::ComputeArgsType(const ExprPList& args) const {
+BiFArgsType MultiZBI::ComputeArgsType(const ExprPList& args) const {
     zeek_uint_t mask = 0;
 
     for ( auto i = 0U; i < args.size(); ++i ) {
@@ -441,144 +441,116 @@ BIFArgsType MultiArgBuiltIn::ComputeArgsType(const ExprPList& args) const {
             mask |= 1;
     }
 
-    return BIFArgsType(mask);
+    return BiFArgsType(mask);
 }
 
-DirectBuiltIn analyzer_name_BIF{"Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1};
-DirectBuiltIn analyzer_enabled_BIF{"Files::__analyzer_enabled", OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV, 1};
-DirectBuiltIn file_analyzer_name_BIF{"Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1};
-DirectBuiltIn files_enable_reassembly_BIF{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
-DirectBuiltIn clear_table_BIF{"clear_table", OP_CLEAR_TABLE_V, 1, false};
-DirectBuiltIn current_time_BIF{"current_time", OP_CURRENT_TIME_V, 0};
-DirectBuiltIn get_port_transport_proto_BIF{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
-DirectBuiltIn is_proto_analy_BIF{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1,
-                                 true};
-DirectBuiltIn lookup_connection_BIF{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
-DirectBuiltIn network_time_BIF{"network_time", OP_NETWORK_TIME_V, 0};
-DirectBuiltIn set_file_handle_BIF{"set_file_handle", OP_SET_FILE_HANDLE_V, 1, false};
-DirectBuiltIn subnet_to_addr_BIF{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
-DirectBuiltIn time_to_double_BIF{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
-DirectBuiltIn to_lower_BIF{"to_lower", OP_TO_LOWER_VV, 1};
+SimpleZBI an_ZBI{"Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV};
+SimpleZBI ae_ZBI{"Files::__analyzer_enabled", OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV};
+SimpleZBI fan_ZBI{"Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV};
+SimpleZBI fer_ZBI{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
+SimpleZBI ct_ZBI{"clear_table", OP_CLEAR_TABLE_V, 1, false};
+SimpleZBI currt_ZBI_BIF{"current_time", OP_CURRENT_TIME_V, 0};
+SimpleZBI gptp_ZBI{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
+SimpleZBI ipa_ZBI{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, true};
+SimpleZBI lc_ZBI{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
+SimpleZBI nt_ZBI{"network_time", OP_NETWORK_TIME_V, 0};
+SimpleZBI sfh_ZBI{"set_file_handle", OP_SET_FILE_HANDLE_V, 1, false};
+SimpleZBI sta_ZBI{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
+SimpleZBI ttd_ZBI{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
+SimpleZBI tl_ZBI{"to_lower", OP_TO_LOWER_VV, 1};
 
-CondBuiltIn connection_exists_BIF{"connection_exists", OP_CONN_EXISTS_VV, OP_CONN_EXISTS_COND_VV, 1};
-CondBuiltIn is_icmp_port_BIF{"is_icmp_port", OP_IS_ICMP_PORT_VV, OP_IS_ICMP_PORT_COND_VV, 1};
-CondBuiltIn is_tcp_port_BIF{"is_tcp_port", OP_IS_TCP_PORT_VV, OP_IS_TCP_PORT_COND_VV, 1};
-CondBuiltIn is_udp_port_BIF{"is_udp_port", OP_IS_UDP_PORT_VV, OP_IS_UDP_PORT_COND_VV, 1};
-CondBuiltIn is_v4_addr_BIF{"is_v4_addr", OP_IS_V4_ADDR_VV, OP_IS_V4_ADDR_COND_VV, 1};
-CondBuiltIn is_v6_addr_BIF{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_VV, 1};
-CondBuiltIn reading_live_traffic_BIF{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_V, 0};
-CondBuiltIn reading_traces_BIF{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_V, 0};
+CondZBI ce_ZBI{"connection_exists", OP_CONN_EXISTS_VV, OP_CONN_EXISTS_COND_VV, 1};
+CondZBI iip_ZBI{"is_icmp_port", OP_IS_ICMP_PORT_VV, OP_IS_ICMP_PORT_COND_VV, 1};
+CondZBI itp_ZBI{"is_tcp_port", OP_IS_TCP_PORT_VV, OP_IS_TCP_PORT_COND_VV, 1};
+CondZBI iup_ZBI{"is_udp_port", OP_IS_UDP_PORT_VV, OP_IS_UDP_PORT_COND_VV, 1};
+CondZBI iv4_ZBI{"is_v4_addr", OP_IS_V4_ADDR_VV, OP_IS_V4_ADDR_COND_VV, 1};
+CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_VV, 1};
+CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_V, 0};
+CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_V, 0};
 
-LogWriteBiF log_write_BIF("Log::write");
-LogWriteBiF log___write_BIF("Log::__write");
+LogWriteZBI lw1_ZBI("Log::write");
+LogWriteZBI lw2_ZBI("Log::__write");
 
-auto cat_BIF = CatBiF();
-auto sort_BIF = SortBiF();
+auto cat_ZBI = CatZBI();
+auto sort_ZBI = SortZBI();
 
 // For the following, clang-format makes them hard to follow compared to
 // a manual layout.
 //
 // clang-format off
 
-DirectBuiltInOptAssign broker_flush_logs_BIF{
-    "Broker::__flush_logs",
+OptAssignZBI bfl_ZBI{ "Broker::__flush_logs",
     OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X,
     0
 };
 
-DirectBuiltInOptAssign remove_gtpv1_BIF{
-    "PacketAnalyzer::GTPV1::remove_gtpv1_connection",
+OptAssignZBI rgc_ZBI{ "PacketAnalyzer::GTPV1::remove_gtpv1_connection",
     OP_REMOVE_GTPV1_VV, OP_REMOVE_GTPV1_V,
     1
 };
-DirectBuiltInOptAssign remove_teredo_BIF{
-    "PacketAnalyzer::TEREDO::remove_teredo_connection",
+OptAssignZBI rtc_ZBI{ "PacketAnalyzer::TEREDO::remove_teredo_connection",
     OP_REMOVE_TEREDO_VV, OP_REMOVE_TEREDO_V,
     1
 };
 
-MultiArgBuiltIn files_add_analyzer_BIF{
-    "Files::__add_analyzer",
-
+MultiZBI faa_ZBI{ "Files::__add_analyzer",
     {{{VVV}, {OP_FILES_ADD_ANALYZER_VVV, OP_VVV}},
      {{VCV}, {OP_FILES_ADD_ANALYZER_ViV, OP_VVC}}},
-
     {{{VVV}, {OP_FILES_ADD_ANALYZER_VVVV, OP_VVVV}},
      {{VCV}, {OP_FILES_ADD_ANALYZER_VViV, OP_VVVC}}},
-
     1
 };
 
-MultiArgBuiltIn files_remove_analyzer_BIF{
-    "Files::__remove_analyzer",
-
+MultiZBI fra_ZBI{ "Files::__remove_analyzer",
     {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVV, OP_VVV}},
      {{VCV}, {OP_FILES_REMOVE_ANALYZER_ViV, OP_VVC}}},
-
     {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVVV, OP_VVVV}},
      {{VCV}, {OP_FILES_REMOVE_ANALYZER_VViV, OP_VVVC}}},
-
     1
 };
 
-MultiArgBuiltIn files_set_reassem_buf_BIF{
-    "Files::__set_reassembly_buffer",
-
+MultiZBI fsrb_ZBI{ "Files::__set_reassembly_buffer",
     {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VV, OP_VV}},
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VC, OP_VV_I2}}},
-
     {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVV, OP_VVV}},
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVC, OP_VVV_I3}}}
 };
 
-MultiArgBuiltIn get_bytes_thresh_BIF{
-    "get_current_conn_bytes_threshold",
-    true,
+MultiZBI gccbt_ZBI{ "get_current_conn_bytes_threshold", true,
     {{{VV}, {OP_GET_BYTES_THRESH_VVV, OP_VVV}},
      {{VC}, {OP_GET_BYTES_THRESH_VVi, OP_VVC}}}
 };
 
-MultiArgBuiltIn set_bytes_thresh_BIF{
-    "set_current_conn_bytes_threshold",
-
+MultiZBI sccbt_ZBI{ "set_current_conn_bytes_threshold",
     {{{VVV}, {OP_SET_BYTES_THRESH_VVV, OP_VVV}},
      {{VVC}, {OP_SET_BYTES_THRESH_VVi, OP_VVC}},
      {{VCV}, {OP_SET_BYTES_THRESH_ViV, OP_VVC}},
      {{VCC}, {OP_SET_BYTES_THRESH_Vii, OP_VVC_I2}}},
-
     {{{VVV}, {OP_SET_BYTES_THRESH_VVVV, OP_VVVV}},
      {{VVC}, {OP_SET_BYTES_THRESH_VVVi, OP_VVVC}},
      {{VCV}, {OP_SET_BYTES_THRESH_VViV, OP_VVVC}},
      {{VCC}, {OP_SET_BYTES_THRESH_VVii, OP_VVVC_I3}}}
 };
 
-MultiArgBuiltIn starts_with_BIF{
-    "starts_with",
-    true,
+MultiZBI sw_ZBI{ "starts_with", true,
     {{{VV}, {OP_STARTS_WITH_VVV, OP_VVV}},
      {{VC}, {OP_STARTS_WITH_VVC, OP_VVC}},
      {{CV}, {OP_STARTS_WITH_VCV, OP_VVC}}}
 };
 
-MultiArgBuiltIn strcmp_BIF{
-    "strcmp",
-    true,
+MultiZBI strcmp_ZBI{ "strcmp", true,
     {{{VV}, {OP_STRCMP_VVV, OP_VVV}},
      {{VC}, {OP_STRCMP_VVC, OP_VVC}},
      {{CV}, {OP_STRCMP_VCV, OP_VVC}}}
 };
 
-MultiArgBuiltIn strstr_BIF{
-    "strstr",
-    true,
+MultiZBI strstr_ZBI{ "strstr", true,
     {{{VV}, {OP_STRSTR_VVV, OP_VVV}},
      {{VC}, {OP_STRSTR_VVC, OP_VVC}},
      {{CV}, {OP_STRSTR_VCV, OP_VVC}}}
 };
 
-MultiArgBuiltIn sub_bytes_BIF{
-    "sub_bytes",
-    true,
+MultiZBI sb_ZBI{ "sub_bytes", true,
     {{{VVV}, {OP_SUB_BYTES_VVVV, OP_VVVV}},
      {{VVC}, {OP_SUB_BYTES_VVVi, OP_VVVC}},
      {{VCV}, {OP_SUB_BYTES_VViV, OP_VVVC}},

@@ -85,13 +85,13 @@ public:
     void Dump();
 
 private:
-    friend class DirectBuiltIn;
-    friend class CondBuiltIn;
-    friend class DirectBuiltInOptAssign;
-    friend class MultiArgBuiltIn;
-    friend class SortBiF;
-    friend class CatBiF;
-    friend class LogWriteBiF;
+    friend class SimpleZBI;
+    friend class CondZBI;
+    friend class OptAssignZBI;
+    friend class SortZBI;
+    friend class CatZBI;
+    friend class LogWriteZBI;
+    friend class MultiZBI;
 
     void Init();
     void InitGlobals();

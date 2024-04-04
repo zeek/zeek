@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-// ZAM classes for built-in functions.
+// ZAM classes for built-in functions. We refer to the script-level notion
+// as a BiF, and the (potential) ZAM-level replacement as a ZBI = ZAM built-in.
 
 #pragma once
 
@@ -9,39 +10,72 @@
 
 namespace zeek::detail {
 
+// Base class for analyzing function calls to BiFs to see if they can
+// be replaced with ZBIs.
 class ZAMBuiltIn {
 public:
+    // Constructed using the name of the BiF and a flag that if true means
+    // that the point of calling the BiF is (in part) to do something with
+    // its return value.
     ZAMBuiltIn(std::string name, bool _ret_val_matters);
     virtual ~ZAMBuiltIn() = default;
 
     bool ReturnValMatters() const { return ret_val_matters; }
     bool HaveBothReturnValAndNon() const { return have_both; }
 
+    // Called to compile, if appropriate, a call to the BiF into the
+    // corresponding specialized instruction. "n", if non-nil, provides
+    // the assignment target for the return value. "args" are the (reduced)
+    // arguments in the call, all either names or constants.
+    //
+    // Returns true if the replacement was successful, false if it's not
+    // appropriate.
     virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const = 0;
+
+    // Similar to Build(), but done in the context of a conditional. If
+    // successful, "branch_v" is updated with the slot in the newly added
+    // instruction where the branch target lives.
+    //
+    // If "zam" is nil then does the true/false checking but not the actual
+    // compilation. In this case, "branch_v" is unchanged.
     virtual bool BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const { return false; };
 
 protected:
     bool ret_val_matters = true;
+
+    // If true, then there are two versions of the ZBI, one for returning
+    // a value and one for when the value is ignored.
     bool have_both = false;
 };
 
-class DirectBuiltIn : public ZAMBuiltIn {
+// Class for dealing with simple 0- or 1-argument ZBIs that don't have
+// any special considerations for applicability or compiling.
+class SimpleZBI : public ZAMBuiltIn {
 public:
-    DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true);
+    // This constructor is for ZBIs that either take no arguments, or always
+    // take a single variable as their argument.
+    SimpleZBI(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true);
 
-    DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters = true);
+    // A version for supporting a single argument that can be either a
+    // constant (first operand) or a variable (second operand).
+    SimpleZBI(std::string name, ZOp _const_op, ZOp _op, bool _ret_val_matters = true);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 
 protected:
+    // Operand used for the 0-argument or 1-argument-that's-a-variable case.
     ZOp op;
+
+    // Operand used for the 1-argument-that's-a-constant case.
     ZOp const_op = OP_NOP;
+
     int nargs;
 };
 
-class CondBuiltIn : public DirectBuiltIn {
+// A form of simple ZBIs that also support calling the BiF in a conditional.
+class CondZBI : public SimpleZBI {
 public:
-    CondBuiltIn(std::string name, ZOp _op, ZOp _cond_op, int _nargs);
+    CondZBI(std::string name, ZOp _op, ZOp _cond_op, int _nargs);
 
     bool BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const override;
 
@@ -49,10 +83,10 @@ protected:
     ZOp cond_op = OP_NOP;
 };
 
-class DirectBuiltInOptAssign : public DirectBuiltIn {
+class OptAssignZBI : public SimpleZBI {
 public:
     // Second argument is assignment flavor, third is assignment-less flavor.
-    DirectBuiltInOptAssign(std::string name, ZOp _op, ZOp _op2, int _nargs);
+    OptAssignZBI(std::string name, ZOp _op, ZOp _op2, int _nargs);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 
@@ -60,9 +94,9 @@ protected:
     ZOp op2;
 };
 
-class CatBiF : public ZAMBuiltIn {
+class CatZBI : public ZAMBuiltIn {
 public:
-    CatBiF() : ZAMBuiltIn("cat", true) {}
+    CatZBI() : ZAMBuiltIn("cat", true) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 
@@ -70,21 +104,21 @@ private:
     ZInstAux* BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const;
 };
 
-class SortBiF : public DirectBuiltInOptAssign {
+class SortZBI : public OptAssignZBI {
 public:
-    SortBiF() : DirectBuiltInOptAssign("sort", OP_SORT_VV, OP_SORT_V, 1) {}
+    SortZBI() : OptAssignZBI("sort", OP_SORT_VV, OP_SORT_V, 1) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 };
 
-class LogWriteBiF : public ZAMBuiltIn {
+class LogWriteZBI : public ZAMBuiltIn {
 public:
-    LogWriteBiF(std::string name) : ZAMBuiltIn(std::move(name), false) { have_both = true; }
+    LogWriteZBI(std::string name) : ZAMBuiltIn(std::move(name), false) { have_both = true; }
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 };
 
-enum BIFArgsType {
+enum BiFArgsType {
     VV = 0x0,
     VC = 0x1,
     CV = 0x2,
@@ -100,18 +134,18 @@ enum BIFArgsType {
     CCC = 0x7,
 };
 
-struct BIFArgInfo {
+struct BiFArgInfo {
     ZOp op;
     ZAMOpType op_type;
 };
 
-using BifArgsInfo = std::map<BIFArgsType, BIFArgInfo>;
+using BiFArgsInfo = std::map<BiFArgsType, BiFArgInfo>;
 
-class MultiArgBuiltIn : public ZAMBuiltIn {
+class MultiZBI : public ZAMBuiltIn {
 public:
-    MultiArgBuiltIn(std::string name, bool _ret_val_matters, BifArgsInfo _args_info, int _type_arg = -1);
+    MultiZBI(std::string name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg = -1);
 
-    MultiArgBuiltIn(std::string name, BifArgsInfo _args_info, BifArgsInfo _assign_args_info, int _type_arg = -1);
+    MultiZBI(std::string name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg = -1);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 
@@ -120,10 +154,10 @@ private:
     // correspond to constants, with the high-ordered bit being the first
     // argument (argument "0" in the list) and the low-ordered bit being
     // the last. These correspond to the ArgsType enum integer values.
-    BIFArgsType ComputeArgsType(const ExprPList& args) const;
+    BiFArgsType ComputeArgsType(const ExprPList& args) const;
 
-    BifArgsInfo args_info;
-    BifArgsInfo assign_args_info;
+    BiFArgsInfo args_info;
+    BiFArgsInfo assign_args_info;
     int type_arg;
 };
 

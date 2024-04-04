@@ -80,6 +80,8 @@ set(CPACK_SOURCE_IGNORE_FILES "" CACHE STRING "Files to be ignored by CPack")
 
 set(ZEEK_INCLUDE_PLUGINS "" CACHE STRING "Extra plugins to add to the build.")
 
+set(ZEEK_VERSION_LOCAL "" CACHE STRING "Custom version string.")
+
 # Look into the build tree for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})

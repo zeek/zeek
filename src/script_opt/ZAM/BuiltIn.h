@@ -18,6 +18,7 @@ public:
     bool HaveBothReturnValAndNon() const { return have_both; }
 
     virtual bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const = 0;
+    virtual bool BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const { return false; };
 
 protected:
     bool ret_val_matters = true;
@@ -26,18 +27,18 @@ protected:
 
 class DirectBuiltIn : public ZAMBuiltIn {
 public:
-    DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true, TypeTag _arg_type = TYPE_VOID);
+    DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters = true, ZOp _cond_op = OP_NOP);
 
-    DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters = true,
-                  TypeTag _arg_type = TYPE_VOID);
+    DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters = true);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
+    bool BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const override;
 
 protected:
     ZOp op;
     ZOp const_op = OP_NOP;
+    ZOp cond_op = OP_NOP;
     int nargs;
-    TypeTag arg_type;
 };
 
 class DirectBuiltInOptAssign : public DirectBuiltIn {
@@ -63,7 +64,7 @@ private:
 
 class SortBiF : public DirectBuiltInOptAssign {
 public:
-    SortBiF() : DirectBuiltInOptAssign("sort", OP_SORT_V, OP_SORT_VV, 1) {}
+    SortBiF() : DirectBuiltInOptAssign("sort", OP_SORT_VV, OP_SORT_V, 1) {}
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 };
@@ -121,5 +122,11 @@ private:
 // If the given expression corresponds to a call to a ZAM built-in,
 // then compiles the call and returns true.  Otherwise, returns false.
 extern bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e);
+
+// If the given expression corresponds to a call to a ZAM built-in
+// that has a conditional version, compiles the conditional and returns
+// true, and updates branch_v to reflect the branch slot.
+// Otherwise, returns false.
+extern bool IsZAM_BuiltInCond(ZAMCompiler* zam, const CallExpr* c, int& branch_v);
 
 } // namespace zeek::detail

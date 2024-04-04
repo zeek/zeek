@@ -5,6 +5,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
+#include "zeek/script_opt/ZAM/BuiltIn.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
@@ -179,6 +180,30 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
         case OP_HAS_FIELD_COND_VVV: z->op = OP_NOT_HAS_FIELD_COND_VVV; break;
         case OP_NOT_HAS_FIELD_COND_VVV: z->op = OP_HAS_FIELD_COND_VVV; break;
 
+        case OP_CONN_EXISTS_COND_VV: z->op = OP_NOT_CONN_EXISTS_COND_VV; break;
+        case OP_NOT_CONN_EXISTS_COND_VV: z->op = OP_CONN_EXISTS_COND_VV; break;
+
+        case OP_IS_ICMP_PORT_COND_VV: z->op = OP_NOT_IS_ICMP_PORT_COND_VV; break;
+        case OP_NOT_IS_ICMP_PORT_COND_VV: z->op = OP_IS_ICMP_PORT_COND_VV; break;
+
+        case OP_IS_TCP_PORT_COND_VV: z->op = OP_NOT_IS_TCP_PORT_COND_VV; break;
+        case OP_NOT_IS_TCP_PORT_COND_VV: z->op = OP_IS_TCP_PORT_COND_VV; break;
+
+        case OP_IS_UDP_PORT_COND_VV: z->op = OP_NOT_IS_UDP_PORT_COND_VV; break;
+        case OP_NOT_IS_UDP_PORT_COND_VV: z->op = OP_IS_UDP_PORT_COND_VV; break;
+
+        case OP_IS_V4_ADDR_COND_VV: z->op = OP_NOT_IS_V4_ADDR_COND_VV; break;
+        case OP_NOT_IS_V4_ADDR_COND_VV: z->op = OP_IS_V4_ADDR_COND_VV; break;
+
+        case OP_IS_V6_ADDR_COND_VV: z->op = OP_NOT_IS_V6_ADDR_COND_VV; break;
+        case OP_NOT_IS_V6_ADDR_COND_VV: z->op = OP_IS_V6_ADDR_COND_VV; break;
+
+        case OP_READING_LIVE_TRAFFIC_COND_V: z->op = OP_NOT_READING_LIVE_TRAFFIC_COND_V; break;
+        case OP_NOT_READING_LIVE_TRAFFIC_COND_V: z->op = OP_READING_LIVE_TRAFFIC_COND_V; break;
+
+        case OP_READING_TRACES_COND_V: z->op = OP_NOT_READING_TRACES_COND_V; break;
+        case OP_NOT_READING_TRACES_COND_V: z->op = OP_READING_TRACES_COND_V; break;
+
         case OP_TABLE_HAS_ELEMENTS_COND_VV: z->op = OP_NOT_TABLE_HAS_ELEMENTS_COND_VV; break;
         case OP_NOT_TABLE_HAS_ELEMENTS_COND_VV: z->op = OP_TABLE_HAS_ELEMENTS_COND_VV; break;
 
@@ -292,6 +317,12 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
         }
 
         return AddInst(z);
+    }
+
+    if ( e->Tag() == EXPR_CALL ) {
+        auto c = static_cast<const CallExpr*>(e);
+        if ( IsZAM_BuiltInCond(this, c, branch_v) )
+            return LastInst();
     }
 
     if ( e->Tag() == EXPR_SCRIPT_OPT_BUILTIN ) {

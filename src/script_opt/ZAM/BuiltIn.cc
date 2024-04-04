@@ -17,12 +17,11 @@ ZAMBuiltIn::ZAMBuiltIn(std::string name, bool _ret_val_matters) : ret_val_matter
     builtins[name] = this;
 }
 
-DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters, TypeTag _arg_type)
-    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), nargs(_nargs), arg_type(_arg_type) {}
+DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _op, int _nargs, bool _ret_val_matters, ZOp _cond_op)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), cond_op(_cond_op), nargs(_nargs) {}
 
-DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters,
-                             TypeTag _arg_type)
-    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(_nargs), arg_type(_arg_type) {}
+DirectBuiltIn::DirectBuiltIn(std::string name, ZOp _const_op, ZOp _op, int _nargs, bool _ret_val_matters)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(_nargs) {}
 
 bool DirectBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     ZInstI z;
@@ -35,9 +34,6 @@ bool DirectBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& 
     else {
         ASSERT(nargs == 1);
         auto& t = args[0]->GetType();
-
-        if ( arg_type != TYPE_VOID && t->Tag() != arg_type )
-            return false;
 
         if ( args[0]->Tag() == EXPR_NAME ) {
             auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
@@ -65,6 +61,41 @@ bool DirectBuiltIn::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& 
 
     if ( n )
         z.is_managed = ZVal::IsManagedType(n->GetType());
+
+    zam->AddInst(z);
+
+    return true;
+}
+
+bool DirectBuiltIn::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const {
+    if ( cond_op == OP_NOP )
+        return false;
+
+    if ( nargs == 1 && args[0]->Tag() != EXPR_NAME )
+        return false;
+
+    if ( ! zam )
+        // This was just a check, not an actual build.
+        return true;
+
+    ZInstI z;
+
+    if ( nargs == 0 ) {
+        z = ZInstI(cond_op, 0);
+        z.op_type = OP_V_I1;
+        branch_v = 1;
+    }
+
+    else {
+        ASSERT(nargs == 1);
+
+        auto a0 = args[0];
+        auto a0_slot = zam->FrameSlot(a0->AsNameExpr());
+        z = ZInstI(cond_op, a0_slot, 0);
+        z.op_type = OP_VV_I2;
+        z.t = a0->GetType();
+        branch_v = 2;
+    }
 
     zam->AddInst(z);
 
@@ -411,24 +442,25 @@ BIFArgsType MultiArgBuiltIn::ComputeArgsType(const ExprPList& args) const {
 }
 
 DirectBuiltIn analyzer_name_BIF{"Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV, 1};
-DirectBuiltInOptAssign broker_flush_logs_BIF{"Broker::__flush_logs", OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X, 0};
 DirectBuiltIn analyzer_enabled_BIF{"Files::__analyzer_enabled", OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV, 1};
 DirectBuiltIn file_analyzer_name_BIF{"Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV, 1};
 DirectBuiltIn files_enable_reassembly_BIF{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
 DirectBuiltIn clear_table_BIF{"clear_table", OP_CLEAR_TABLE_V, 1, false};
-DirectBuiltIn connection_exists_BIF{"connection_exists", OP_CONN_EXISTS_VV, 1};
+DirectBuiltIn connection_exists_BIF{"connection_exists", OP_CONN_EXISTS_VV, 1, true, OP_CONN_EXISTS_COND_VV};
 DirectBuiltIn current_time_BIF{"current_time", OP_CURRENT_TIME_V, 0};
 DirectBuiltIn get_port_transport_proto_BIF{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
-DirectBuiltIn is_icmp_port_BIF{"is_icmp_port", OP_IS_ICMP_PORT_VV, 1};
-DirectBuiltIn is_proto_analy_BIF{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1};
-DirectBuiltIn is_tcp_port_BIF{"is_tcp_port", OP_IS_TCP_PORT_VV, 1};
-DirectBuiltIn is_udp_port_BIF{"is_udp_port", OP_IS_UDP_PORT_VV, 1};
-DirectBuiltIn is_v4_addr_BIF{"is_v4_addr", OP_IS_V4_ADDR_VV, 1};
-DirectBuiltIn is_v6_addr_BIF{"is_v6_addr", OP_IS_V6_ADDR_VV, 1};
+DirectBuiltIn is_icmp_port_BIF{"is_icmp_port", OP_IS_ICMP_PORT_VV, 1, true, OP_IS_ICMP_PORT_COND_VV};
+DirectBuiltIn is_proto_analy_BIF{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, 1,
+                                 true};
+DirectBuiltIn is_tcp_port_BIF{"is_tcp_port", OP_IS_TCP_PORT_VV, 1, true, OP_IS_TCP_PORT_COND_VV};
+DirectBuiltIn is_udp_port_BIF{"is_udp_port", OP_IS_UDP_PORT_VV, 1, true, OP_IS_UDP_PORT_COND_VV};
+DirectBuiltIn is_v4_addr_BIF{"is_v4_addr", OP_IS_V4_ADDR_VV, 1, true, OP_IS_V4_ADDR_COND_VV};
+DirectBuiltIn is_v6_addr_BIF{"is_v6_addr", OP_IS_V6_ADDR_VV, 1, true, OP_IS_V6_ADDR_COND_VV};
 DirectBuiltIn lookup_connection_BIF{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
 DirectBuiltIn network_time_BIF{"network_time", OP_NETWORK_TIME_V, 0};
-DirectBuiltIn reading_live_traffic_BIF{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, 0};
-DirectBuiltIn reading_traces_BIF{"reading_traces", OP_READING_TRACES_V, 0};
+DirectBuiltIn reading_live_traffic_BIF{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, 0, true,
+                                       OP_READING_LIVE_TRAFFIC_COND_V};
+DirectBuiltIn reading_traces_BIF{"reading_traces", OP_READING_TRACES_V, 0, true, OP_READING_TRACES_COND_V};
 DirectBuiltIn set_file_handle_BIF{"set_file_handle", OP_SET_FILE_HANDLE_V, 1, false};
 DirectBuiltIn subnet_to_addr_BIF{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
 DirectBuiltIn time_to_double_BIF{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
@@ -444,6 +476,12 @@ auto sort_BIF = SortBiF();
 // a manual layout.
 //
 // clang-format off
+
+DirectBuiltInOptAssign broker_flush_logs_BIF{
+    "Broker::__flush_logs",
+    OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X,
+    0
+};
 
 DirectBuiltInOptAssign remove_gtpv1_BIF{
     "PacketAnalyzer::GTPV1::remove_gtpv1_connection",
@@ -549,6 +587,20 @@ MultiArgBuiltIn sub_bytes_BIF{
 
 // clang-format on
 
+static const Func* get_func(const CallExpr* c) {
+    auto func_expr = c->Func();
+    if ( func_expr->Tag() != EXPR_NAME )
+        // An indirect call.
+        return nullptr;
+
+    auto func_val = func_expr->AsNameExpr()->Id()->GetVal();
+    if ( ! func_val )
+        // A call to a function that hasn't been defined.
+        return nullptr;
+
+    return func_val->AsFunc();
+}
+
 bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
     // The expression e is either directly a call (in which case there's
     // no return value), or an assignment to a call.
@@ -559,17 +611,10 @@ bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
     else
         c = e->GetOp2()->AsCallExpr();
 
-    auto func_expr = c->Func();
-    if ( func_expr->Tag() != EXPR_NAME )
-        // An indirect call.
+    auto func = get_func(c);
+    if ( ! func )
         return false;
 
-    auto func_val = func_expr->AsNameExpr()->Id()->GetVal();
-    if ( ! func_val )
-        // A call to a function that hasn't been defined.
-        return false;
-
-    auto func = func_val->AsFunc();
     auto b = builtins.find(func->Name());
     if ( b == builtins.end() )
         return false;
@@ -599,6 +644,23 @@ bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
     }
 
     return bi->Build(zam, n, c->Args()->Exprs());
+}
+
+bool IsZAM_BuiltInCond(ZAMCompiler* zam, const CallExpr* c, int& branch_v) {
+    auto func = get_func(c);
+    if ( ! func )
+        return false;
+
+    auto b = builtins.find(func->Name());
+    if ( b == builtins.end() )
+        return false;
+
+    return b->second->BuildCond(zam, c->Args()->Exprs(), branch_v);
+}
+
+bool IsZAM_BuiltInCond(const CallExpr* c) {
+    int branch_v; // ignored
+    return IsZAM_BuiltInCond(nullptr, c, branch_v);
 }
 
 } // namespace zeek::detail

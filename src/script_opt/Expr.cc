@@ -97,6 +97,13 @@ bool Expr::IsReducedConditional(Reducer* c) const {
 
         case EXPR_NAME: return IsReduced(c);
 
+        case EXPR_CALL: {
+            if ( ! HasReducedOps(c) )
+                return false;
+
+            return IsZAM_BuiltInCond(static_cast<const CallExpr*>(this));
+        }
+
         case EXPR_IN: {
             auto op1 = GetOp1();
             auto op2 = GetOp2();
@@ -235,6 +242,19 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
                 return ThisPtr();
 
             return Reduce(c, red_stmt);
+
+        case EXPR_CALL: {
+            auto ce = static_cast<CallExpr*>(this);
+            red_stmt = ce->ReduceToSingletons(c);
+
+            if ( IsZAM_BuiltInCond(ce) )
+                return ThisPtr();
+
+            StmtPtr red_stmt2;
+            auto res = Reduce(c, red_stmt2);
+            red_stmt = MergeStmts(red_stmt, red_stmt2);
+            return res;
+        }
 
         case EXPR_IN: {
             // This is complicated because there are lots of forms

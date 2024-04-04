@@ -1237,31 +1237,31 @@ macro ConstructRecordPost()
 
 op Construct-Direct-Record
 type V
-eval	auto& init_vals = z.aux->ToZValVec(frame);
+eval	auto init_vals = z.aux->ToZValVec(frame);
 	ConstructRecordPost()
 
 op Construct-Known-Record
 type V
-eval	auto& init_vals = z.aux->ToZValVecWithMap(frame);
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
 	ConstructRecordPost()
 
 op Construct-Known-Record-With-NT
 type VV
-eval	auto& init_vals = z.aux->ToZValVecWithMap(frame);
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
 	ASSERT(! init_vals[z.v2]);
 	init_vals[z.v2] = ZVal(run_state::network_time);
 	ConstructRecordPost()
 
 op Construct-Known-Record-With-Inits
 type V
-eval	auto& init_vals = z.aux->ToZValVecWithMap(frame);
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
 	for ( auto& fi : *z.aux->field_inits )
 		init_vals[fi.first] = fi.second->Generate();
 	ConstructRecordPost()
 
 op Construct-Known-Record-With-Inits-And-NT
 type VV
-eval	auto& init_vals = z.aux->ToZValVecWithMap(frame);
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
 	for ( auto& fi : *z.aux->field_inits )
 		init_vals[fi.first] = fi.second->Generate();
 	ASSERT(! init_vals[z.v2]);
@@ -2529,6 +2529,18 @@ internal-op Conn-Exists
 type VV
 eval	frame[z.v1].int_val = session_mgr->FindConnection(frame[z.v2].record_val) != nullptr;
 
+internal-op Conn-Exists-Cond
+op1-read
+type VV
+eval	if ( ! session_mgr->FindConnection(frame[z.v1].record_val) )
+		BRANCH(v2)
+
+internal-op Not-Conn-Exists-Cond
+op1-read
+type VV
+eval	if ( session_mgr->FindConnection(frame[z.v1].record_val) )
+		BRANCH(v2)
+
 internal-op Lookup-Conn
 type VV
 eval	auto cid = frame[z.v2].record_val;
@@ -2547,21 +2559,81 @@ internal-op Is-ICMP-Port
 type VV
 eval	frame[z.v1].int_val = (frame[z.v2].uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK;
 
+internal-op Is-ICMP-Port-Cond
+op1-read
+type VV
+eval	if ( (frame[z.v1].uint_val & PORT_SPACE_MASK) != ICMP_PORT_MASK )
+		BRANCH(v2)
+
+internal-op Not-Is-ICMP-Port-Cond
+op1-read
+type VV
+eval	if ( (frame[z.v1].uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK )
+		BRANCH(v2)
+
 internal-op Is-TCP-Port
 type VV
 eval	frame[z.v1].int_val = (frame[z.v2].uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
+
+internal-op Is-TCP-Port-Cond
+op1-read
+type VV
+eval	if ( (frame[z.v1].uint_val & PORT_SPACE_MASK) != TCP_PORT_MASK )
+		BRANCH(v2)
+
+internal-op Not-Is-TCP-Port-Cond
+op1-read
+type VV
+eval	if ( (frame[z.v1].uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK )
+		BRANCH(v2)
 
 internal-op Is-UDP-Port
 type VV
 eval	frame[z.v1].int_val = (frame[z.v2].uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK;
 
+internal-op Is-UDP-Port-Cond
+op1-read
+type VV
+eval	if ( (frame[z.v1].uint_val & PORT_SPACE_MASK) != UDP_PORT_MASK )
+		BRANCH(v2)
+
+internal-op Not-Is-UDP-Port-Cond
+op1-read
+type VV
+eval	if ( (frame[z.v1].uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK )
+		BRANCH(v2)
+
 internal-op Is-V4-Addr
 type VV
 eval	frame[z.v1].int_val = frame[z.v2].addr_val->AsAddr().GetFamily() == IPv4;
 
+internal-op Is-V4-Addr-Cond
+op1-read
+type VV
+eval	if ( frame[z.v1].addr_val->AsAddr().GetFamily() != IPv4 )
+		BRANCH(v2)
+
+internal-op Not-Is-V4-Addr-Cond
+op1-read
+type VV
+eval	if ( frame[z.v1].addr_val->AsAddr().GetFamily() == IPv4 )
+		BRANCH(v2)
+
 internal-op Is-V6-Addr
 type VV
 eval	frame[z.v1].int_val = frame[z.v2].addr_val->AsAddr().GetFamily() == IPv6;
+
+internal-op Is-V6-Addr-Cond
+op1-read
+type VV
+eval	if ( frame[z.v1].addr_val->AsAddr().GetFamily() != IPv6 )
+		BRANCH(v2)
+
+internal-op Not-Is-V6-Addr-Cond
+op1-read
+type VV
+eval	if ( frame[z.v1].addr_val->AsAddr().GetFamily() == IPv6 )
+		BRANCH(v2)
 
 internal-op Network-Time
 type V
@@ -2575,9 +2647,33 @@ internal-op Reading-Live-Traffic
 type V
 eval	frame[z.v1].int_val = run_state::reading_live;
 
+internal-op Reading-Live-Traffic-Cond
+op1-read
+type V
+eval	if ( ! run_state::reading_live )
+		BRANCH(v1)
+
+internal-op Not-Reading-Live-Traffic-Cond
+op1-read
+type V
+eval	if ( run_state::reading_live )
+		BRANCH(v1)
+
 internal-op Reading-Traces
 type V
 eval	frame[z.v1].int_val = run_state::reading_traces;
+
+internal-op Reading-Traces-Cond
+op1-read
+type V
+eval	if ( ! run_state::reading_traces )
+		BRANCH(v1)
+
+internal-op Not-Reading-Traces-Cond
+op1-read
+type V
+eval	if ( run_state::reading_traces )
+		BRANCH(v1)
 
 internal-op Sort
 op1-read

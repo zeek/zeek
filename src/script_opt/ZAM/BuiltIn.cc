@@ -275,43 +275,29 @@ bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) 
 }
 
 bool LogWriteZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
-    auto id = args[0];
     auto columns = args[1];
 
     if ( columns->Tag() != EXPR_NAME )
         return false;
 
     auto columns_n = columns->AsNameExpr();
-    auto col_slot = zam->FrameSlot(columns_n);
-
-    bool const_id = (id->Tag() == EXPR_CONST);
-
-    ZInstAux* aux = nullptr;
-
-    if ( const_id ) {
-        aux = new ZInstAux(1);
-        aux->Add(0, id->AsConstExpr()->ValuePtr());
-    }
+    auto a0 = args[0];
+    auto id = a0->Tag() == EXPR_NAME ? a0->AsNameExpr() : nullptr;
+    auto c = a0->Tag() == EXPR_CONST ? a0->AsConstExpr() : nullptr;
 
     ZInstI z;
 
     if ( n ) {
-        auto nslot = zam->Frame1Slot(n, OP1_WRITE);
-
-        if ( const_id ) {
-            z = ZInstI(OP_LOG_WRITEC_VV, nslot, col_slot);
-            z.aux = aux;
-        }
+        if ( c )
+            z = zam->GenInst(OP_LOG_WRITEC_VV, n, columns_n, c);
         else
-            z = ZInstI(OP_LOG_WRITE_VVV, nslot, zam->FrameSlot(id->AsNameExpr()), col_slot);
+            z = zam->GenInst(OP_LOG_WRITE_VVV, n, id, columns_n);
     }
     else {
-        if ( const_id ) {
-            z = ZInstI(OP_LOG_WRITEC_V, col_slot, id->AsConstExpr());
-            z.aux = aux;
-        }
+        if ( c )
+            z = zam->GenInst(OP_LOG_WRITEC_V, columns_n, c);
         else
-            z = ZInstI(OP_LOG_WRITE_VV, zam->FrameSlot(id->AsNameExpr()), col_slot);
+            z = zam->GenInst(OP_LOG_WRITE_VV, id, columns_n);
     }
 
     zam->AddInst(z);
@@ -628,7 +614,7 @@ bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
     else if ( n && ! bi->HaveBothReturnValAndNon() )
         // Because the return value "doesn't matter", we've built the
         // corresponding ZIB assuming we don't need a version that does
-	// the assignment. If we *do* have an assignment, let the usual
+        // the assignment. If we *do* have an assignment, let the usual
         // call take place.
         return false;
 

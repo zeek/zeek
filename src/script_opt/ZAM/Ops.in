@@ -2466,7 +2466,7 @@ eval	auto sv = ZAM_to_lower(frame[z.v2].string_val);
 # actually used.
 
 macro LogWritePre(id_val, columns_slot)
-	auto id = id_val;
+	auto id = id_val.ToVal(ZAM::log_ID_enum_type);
 	auto columns = frame[z.columns_slot].record_val;
 
 macro LogWriteResPost()
@@ -2479,13 +2479,13 @@ macro LogWriteNoResPost()
 internal-op Log-Write
 side-effects OP_LOG_WRITE_VV OP_VV
 type VVV
-eval	LogWritePre(frame[z.v2].ToVal(ZAM::log_ID_enum_type), v3)
+eval	LogWritePre(frame[z.v2], v3)
 	LogWriteResPost()
 
 internal-op Log-WriteC
 side-effects OP_LOG_WRITEC_V OP_V
 type VV
-eval	LogWritePre(z.aux->elems[0].Constant(), v2)
+eval	LogWritePre(z.c, v2)
 	LogWriteResPost()
 
 # Versions that discard the return value.
@@ -2493,14 +2493,14 @@ internal-op Log-Write
 side-effects
 op1-read
 type VV
-eval	LogWritePre(frame[z.v1].ToVal(ZAM::log_ID_enum_type), v2)
+eval	LogWritePre(frame[z.v1], v2)
 	LogWriteNoResPost()
 
 internal-op Log-WriteC
 side-effects
 op1-read
 type V
-eval	LogWritePre(z.aux->elems[0].Constant(), v1)
+eval	LogWritePre(z.c, v1)
 	LogWriteNoResPost()
 
 internal-op Broker-Flush-Logs

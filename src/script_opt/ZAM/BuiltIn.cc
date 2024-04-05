@@ -444,12 +444,19 @@ BiFArgsType MultiZBI::ComputeArgsType(const ExprPList& args) const {
     return BiFArgsType(mask);
 }
 
+////////////////////////////////////////////////////////////////////////
+
+// To create a new built-in, add it to the following collection. We chose
+// this style with an aim to making the entries both easy to update & readable.
+// The names of the variables don't matter, so we keep them short to aid
+// readability.
+
 SimpleZBI an_ZBI{"Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV};
 SimpleZBI ae_ZBI{"Files::__analyzer_enabled", OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV};
 SimpleZBI fan_ZBI{"Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV};
 SimpleZBI fer_ZBI{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
 SimpleZBI ct_ZBI{"clear_table", OP_CLEAR_TABLE_V, 1, false};
-SimpleZBI currt_ZBI_BIF{"current_time", OP_CURRENT_TIME_V, 0};
+SimpleZBI currt_ZBI{"current_time", OP_CURRENT_TIME_V, 0};
 SimpleZBI gptp_ZBI{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
 SimpleZBI ipa_ZBI{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, true};
 SimpleZBI lc_ZBI{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
@@ -468,9 +475,13 @@ CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_VV, 1};
 CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_V, 0};
 CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_V, 0};
 
+// It's useful to intercept any lingering calls to the script-level Log::write
+// as well as the Log::__write BiF. When inlining there can still be
+// script-level calls if the calling function got too big to inline them.
 LogWriteZBI lw1_ZBI("Log::write");
 LogWriteZBI lw2_ZBI("Log::__write");
 
+// These have a slightly different form
 auto cat_ZBI = CatZBI();
 auto sort_ZBI = SortZBI();
 
@@ -562,6 +573,10 @@ MultiZBI sb_ZBI{ "sub_bytes", true,
 
 // clang-format on
 
+////////////////////////////////////////////////////////////////////////
+
+// Helper function that extracts the underlying Func* from a CallExpr
+// node. Returns nil if it's not accessible.
 static const Func* get_func(const CallExpr* c) {
     auto func_expr = c->Func();
     if ( func_expr->Tag() != EXPR_NAME )
@@ -610,13 +625,12 @@ bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
             return true;
         }
     }
-    else if ( n && ! bi->HaveBothReturnValAndNon() ) {
+    else if ( n && ! bi->HaveBothReturnValAndNon() )
         // Because the return value "doesn't matter", we've built the
-        // BiF replacement operation assuming we don't need a version that
-        // does the assignment. If we *do* have an assignment, let the usual
-        // call take its place.
+        // corresponding ZIB assuming we don't need a version that does
+	// the assignment. If we *do* have an assignment, let the usual
+        // call take place.
         return false;
-    }
 
     return bi->Build(zam, n, c->Args()->Exprs());
 }

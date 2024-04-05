@@ -15,8 +15,8 @@ namespace zeek::detail {
 class ZAMBuiltIn {
 public:
     // Constructed using the name of the BiF and a flag that if true means
-    // that the point of calling the BiF is (in part) to do something with
-    // its return value.
+    // that the point of calling the BiF is to do something with its return
+    // value (in particular, the BiF does not have side-effects).
     ZAMBuiltIn(std::string name, bool _ret_val_matters);
     virtual ~ZAMBuiltIn() = default;
 
@@ -49,7 +49,8 @@ protected:
 };
 
 // Class for dealing with simple 0- or 1-argument ZBIs that don't have
-// any special considerations for applicability or compiling.
+// any special considerations for applicability or compiling. These are
+// quite common.
 class SimpleZBI : public ZAMBuiltIn {
 public:
     // This constructor is for ZBIs that either take no arguments, or always
@@ -80,9 +81,10 @@ public:
     bool BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const override;
 
 protected:
-    ZOp cond_op = OP_NOP;
+    ZOp cond_op;
 };
 
+// A form of simple ZBIs that support assignment but do not require it.
 class OptAssignZBI : public SimpleZBI {
 public:
     // Second argument is assignment flavor, third is assignment-less flavor.
@@ -94,6 +96,8 @@ protected:
     ZOp op2;
 };
 
+// The cat() ZBI has an involved build process that can employ a number
+// of different ZAM operations.
 class CatZBI : public ZAMBuiltIn {
 public:
     CatZBI() : ZAMBuiltIn("cat", true) {}
@@ -104,6 +108,9 @@ private:
     ZInstAux* BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const;
 };
 
+// The sort() ZBI needs to refrain from replacing the BiF call if the
+// arguments will generate an error (which can be determined at compile-time).
+// Doing so enables us to streamline the corresponding ZAM operations.
 class SortZBI : public OptAssignZBI {
 public:
     SortZBI() : OptAssignZBI("sort", OP_SORT_VV, OP_SORT_V, 1) {}
@@ -111,6 +118,7 @@ public:
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 };
 
+// The log::__write() ZBI has to deal with 
 class LogWriteZBI : public ZAMBuiltIn {
 public:
     LogWriteZBI(std::string name) : ZAMBuiltIn(std::move(name), false) { have_both = true; }

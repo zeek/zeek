@@ -274,37 +274,6 @@ bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) 
     return true;
 }
 
-bool LogWriteZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
-    auto columns = args[1];
-
-    if ( columns->Tag() != EXPR_NAME )
-        return false;
-
-    auto columns_n = columns->AsNameExpr();
-    auto a0 = args[0];
-    auto id = a0->Tag() == EXPR_NAME ? a0->AsNameExpr() : nullptr;
-    auto c = a0->Tag() == EXPR_CONST ? a0->AsConstExpr() : nullptr;
-
-    ZInstI z;
-
-    if ( n ) {
-        if ( c )
-            z = zam->GenInst(OP_LOG_WRITEC_VV, n, columns_n, c);
-        else
-            z = zam->GenInst(OP_LOG_WRITE_VVV, n, id, columns_n);
-    }
-    else {
-        if ( c )
-            z = zam->GenInst(OP_LOG_WRITEC_V, columns_n, c);
-        else
-            z = zam->GenInst(OP_LOG_WRITE_VV, id, columns_n);
-    }
-
-    zam->AddInst(z);
-
-    return true;
-}
-
 MultiZBI::MultiZBI(std::string name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg)
     : ZAMBuiltIn(std::move(name), _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
 
@@ -461,12 +430,6 @@ CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_VV, 1};
 CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_V, 0};
 CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_V, 0};
 
-// It's useful to intercept any lingering calls to the script-level Log::write
-// as well as the Log::__write BiF. When inlining there can still be
-// script-level calls if the calling function got too big to inline them.
-LogWriteZBI lw1_ZBI("Log::write");
-LogWriteZBI lw2_ZBI("Log::__write");
-
 // These have a slightly different form
 auto cat_ZBI = CatZBI();
 auto sort_ZBI = SortZBI();
@@ -511,6 +474,13 @@ MultiZBI fsrb_ZBI{ "Files::__set_reassembly_buffer",
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VC, OP_VV_I2}}},
     {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVV, OP_VVV}},
      {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVC, OP_VVV_I3}}}
+};
+
+MultiZBI lw_ZBI{ "Log::__write",
+    {{{VV}, {OP_LOG_WRITE_VV, OP_VV}},
+     {{CV}, {OP_LOG_WRITEC_V, OP_V}}},
+    {{{VV}, {OP_LOG_WRITE_VVV, OP_VVV}},
+     {{CV}, {OP_LOG_WRITEC_VV, OP_VV}}}
 };
 
 MultiZBI gccbt_ZBI{ "get_current_conn_bytes_threshold", true,
@@ -591,7 +561,18 @@ bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
     if ( ! func )
         return false;
 
-    auto b = builtins.find(func->Name());
+    std::string fn = func->Name();
+
+    // It's useful to intercept any lingering calls to the script-level
+    // Log::write as well as the Log::__write BiF. When inlining there can
+    // still be script-level calls if the calling function got too big to
+    // inline them. We could do this for other script-level functions that
+    // are simply direct wrappers for BiFs, but this is only one that has
+    // turned up as significant in profiling.
+    if ( fn == "Log::write" )
+        fn = "Log::__write";
+
+    auto b = builtins.find(fn);
     if ( b == builtins.end() )
         return false;
 

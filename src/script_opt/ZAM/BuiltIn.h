@@ -118,14 +118,6 @@ public:
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 };
 
-// The log::__write() ZBI has to deal with
-class LogWriteZBI : public ZAMBuiltIn {
-public:
-    LogWriteZBI(std::string name) : ZAMBuiltIn(std::move(name), false) { have_both = true; }
-
-    bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
-};
-
 enum BiFArgsType {
     VV = 0x0,
     VC = 0x1,

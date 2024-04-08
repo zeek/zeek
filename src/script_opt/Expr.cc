@@ -2347,9 +2347,6 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     red_stmt = nullptr;
 
     auto args_list = args->Exprs();
-    auto ret_val = c->PushInlineBlock(type);
-    if ( ret_val )
-        ret_val->SetLocationInfo(GetLocationInfo());
 
     loop_over_list(args_list, i) {
         StmtPtr arg_red_stmt;
@@ -2357,6 +2354,10 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         auto assign_stmt = with_location_of(c->GenParam(params[i], red_i, param_is_modified[i]), this);
         red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
     }
+
+    auto ret_val = c->PushInlineBlock(type);
+    if ( ret_val )
+        ret_val->SetLocationInfo(GetLocationInfo());
 
     body = body->Reduce(c);
     c->PopInlineBlock();

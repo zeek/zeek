@@ -6,7 +6,7 @@
 #include "zeek/Expr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
-#include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 

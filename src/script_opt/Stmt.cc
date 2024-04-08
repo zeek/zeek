@@ -9,6 +9,7 @@
 #include "zeek/Frame.h"
 #include "zeek/Reporter.h"
 #include "zeek/Traverse.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/Reduce.h"
 

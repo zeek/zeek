@@ -1438,7 +1438,7 @@ TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {
 
 TraversalCode SetBlockLineNumbers::PostStmt(const Stmt* s) {
     auto loc = const_cast<Location*>(s->GetLocationInfo());
-    auto& r = block_line_range.back();
+    auto r = block_line_range.back();
     loc->first_line = r.first;
     loc->last_line = r.second;
 

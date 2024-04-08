@@ -105,6 +105,8 @@ public:
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 
 private:
+    // cat() ZBIs can have complex auxiliary information capturing the various
+    // transformations (and fixed strings) to compute for each call.
     ZInstAux* BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const;
 };
 
@@ -118,6 +120,16 @@ public:
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 };
 
+
+// The last form of ZBI is for more complex BiFs that take multiple arguments,
+// which vary in whether some of them can be constants or have to be variables.
+// Currently, 2- and 3-argument BiFs are supported.
+
+// The following encodes the possible patterns of 2- and 3-argument calls
+// to BiFs. V = Variable argument, C = Constant argument. The enums have
+// values assigned to them reflecting the bit-pattern of the arguments from
+// left (most significant) to right (least), with a 1-bit encoding Constant,
+// 0-bit for Variable.
 enum BiFArgsType {
     VV = 0x0,
     VC = 0x1,
@@ -134,26 +146,36 @@ enum BiFArgsType {
     CCC = 0x7,
 };
 
+// The following captures a ZAM operation and its associated operand type.
 struct BiFArgInfo {
     ZOp op;
     ZAMOpType op_type;
 };
 
+// A map that associates ZAM operations (and types) with particular
+// argument patterns.
 using BiFArgsInfo = std::map<BiFArgsType, BiFArgInfo>;
 
+// Class for supporting ZBIs that take multiple (i.e., > 1) arguments.
 class MultiZBI : public ZAMBuiltIn {
 public:
+    // This first constructor is for ZBIs that either always have return
+    // values or never do, and thus need just one BiFArgsInfo map.
+    // If "_type_arg" is non-negative, then it specifies which argument
+    // (numbered left-to-right, starting at 0) should be used to set the
+    // Zeek type associated with the generated ZAM instruction.
     MultiZBI(std::string name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg = -1);
 
+    // Alternative constructor for ZBIs that have optional return values.
+    // The first map is for the non-assignment case, the second for the
+    // assignment case.
     MultiZBI(std::string name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg = -1);
 
     bool Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const override;
 
 private:
-    // Returns a bit mask of which of the arguments in the given list
-    // correspond to constants, with the high-ordered bit being the first
-    // argument (argument "0" in the list) and the low-ordered bit being
-    // the last. These correspond to the ArgsType enum integer values.
+    // Returns an enum describing the pattern of Constants/Variables in the
+    // given argument list.
     BiFArgsType ComputeArgsType(const ExprPList& args) const;
 
     BiFArgsInfo args_info;
@@ -161,14 +183,13 @@ private:
     int type_arg;
 };
 
-// If the given expression corresponds to a call to a ZAM built-in,
-// then compiles the call and returns true.  Otherwise, returns false.
+// If the given expression corresponds to a call to a ZAM built-in, then
+// compiles the call and returns true.  Otherwise, returns false.
 extern bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e);
 
-// If the given expression corresponds to a call to a ZAM built-in
-// that has a conditional version, compiles the conditional and returns
-// true, and updates branch_v to reflect the branch slot.
-// Otherwise, returns false.
+// If the given expression corresponds to a call to a ZAM built-in that has
+// a conditional version, compiles the conditional and returns true, and
+// updates branch_v to reflect the branch slot. Otherwise, returns false.
 extern bool IsZAM_BuiltInCond(ZAMCompiler* zam, const CallExpr* c, int& branch_v);
 
 } // namespace zeek::detail

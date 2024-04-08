@@ -11,7 +11,8 @@
 
 namespace zeek::detail {
 
-std::map<std::string, const ZAMBuiltIn*> builtins;
+// Maps BiF names to their associated ZBI class.
+std::unordered_map<std::string, const ZAMBuiltIn*> builtins;
 
 ZAMBuiltIn::ZAMBuiltIn(std::string name, bool _ret_val_matters) : ret_val_matters(_ret_val_matters) {
     builtins[name] = this;
@@ -49,10 +50,12 @@ bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args
                 // which it's implausible they'll be called with a constant
                 // argument.
                 return false;
+
             if ( n )
                 z = ZInstI(const_op, zam->Frame1Slot(n, OP1_WRITE));
             else
                 z = ZInstI(const_op);
+
             z.c = ZVal(args[0]->AsConstExpr()->ValuePtr(), t);
         }
 
@@ -75,7 +78,12 @@ bool CondZBI::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) 
         return false;
 
     if ( nargs == 1 && args[0]->Tag() != EXPR_NAME )
+        // ZBI-worthy predicates called with constant arguments will generally
+        // have been folded. If not, for simplicity we don't support the
+        // flavor where they're called with a constant.
         return false;
+
+    // If we get here, then the ZBI is good-to-go.
 
     if ( ! zam )
         // This was just a check, not an actual build.
@@ -195,7 +203,9 @@ ZInstAux* CatZBI::BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const {
 
         if ( a_i->Tag() == EXPR_CONST ) {
             auto c = a_i->AsConstExpr()->ValuePtr();
-            aux->Add(i, c); // it will be ignored
+            aux->Add(i, c); // we add it to consume a slot, but it'll be ignored
+
+            // Convert it up front and transform into a fixed string.
             auto sv = ZAM_val_cat(c);
             auto s = sv->AsString();
             auto b = reinterpret_cast<char*>(s->Bytes());
@@ -232,6 +242,7 @@ ZInstAux* CatZBI::BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const {
 }
 
 bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    // The checks the sort() BiF does can all be computed statically.
     if ( args.size() > 2 )
         return false;
 
@@ -248,6 +259,7 @@ bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) 
         return OptAssignZBI::Build(zam, n, args);
     }
 
+    // If we get here, then there's a comparison function.
     const auto& comp_val = args[1];
     if ( ! IsFunc(comp_val->GetType()->Tag()) )
         return false;
@@ -292,6 +304,7 @@ bool MultiZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args)
 
     auto bif_arg_info = ai->find(ComputeArgsType(args));
     if ( bif_arg_info == ai->end() )
+        // Not a Constant/Variable combination this ZBI supports.
         return false;
 
     const auto& bi = bif_arg_info->second;
@@ -430,7 +443,7 @@ CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_VV, 1};
 CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_V, 0};
 CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_V, 0};
 
-// These have a slightly different form
+// These have a different form to avoid invoking copy constructors.
 auto cat_ZBI = CatZBI();
 auto sort_ZBI = SortZBI();
 

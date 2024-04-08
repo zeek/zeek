@@ -18,6 +18,10 @@ export {
 	global directed_id_string: function(id: conn_id, is_orig: bool): string;
 }
 
+### Note, this function is known to -O ZAM (see `known_funcs` and
+### `ScriptOptBuiltinExpr::FUNC_ID_STRING` in src/script_opt/Expr.cc),
+### which replaces it with a custom instruction, so if changed here,
+### that needs to be changed too.
 function id_string(id: conn_id): string
 	{
 	return fmt("%s:%d > %s:%d",

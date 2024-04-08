@@ -1374,6 +1374,7 @@ public:
     CallExpr(ExprPtr func, ListExprPtr args, bool in_hook = false, bool in_when = false);
 
     Expr* Func() const { return func.get(); }
+    ExprPtr FuncPtr() const { return func; }
     ListExpr* Args() const { return args.get(); }
     ListExprPtr ArgsPtr() const { return args; }
 

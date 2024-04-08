@@ -179,6 +179,8 @@ bool Expr::IsReducedConditional(Reducer* c) const {
             return true;
         }
 
+        case EXPR_SCRIPT_OPT_BUILTIN: return GetType()->Tag() == TYPE_BOOL;
+
         case EXPR_EQ:
         case EXPR_NE:
         case EXPR_LE:
@@ -340,6 +342,20 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
 
             return ThisPtr();
         }
+
+        case EXPR_NOT:
+            if ( GetOp1()->Tag() == EXPR_SCRIPT_OPT_BUILTIN ) {
+                red_stmt = GetOp1()->ReduceToSingletons(c);
+                return ThisPtr();
+            }
+            else
+                return Reduce(c, red_stmt);
+
+        case EXPR_SCRIPT_OPT_BUILTIN:
+            if ( GetType()->Tag() != TYPE_BOOL )
+                return Reduce(c, red_stmt);
+
+            // fall through
 
         case EXPR_EQ:
         case EXPR_NE:
@@ -2912,6 +2928,152 @@ void AnyIndexExpr::ExprDescribe(ODesc* d) const {
 
     if ( d->IsReadable() )
         d->Add("]");
+}
+
+ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, ExprPtr _arg1, ExprPtr _arg2)
+    : Expr(EXPR_SCRIPT_OPT_BUILTIN), tag(_tag), arg1(std::move(_arg1)), arg2(std::move(_arg2)) {
+    BuildEvalExpr();
+    SetType(eval_expr->GetType());
+}
+
+ScriptOptBuiltinExpr::ScriptOptBuiltinExpr(SOBuiltInTag _tag, CallExprPtr _call)
+    : Expr(EXPR_SCRIPT_OPT_BUILTIN), tag(_tag), call(std::move(_call)) {
+    const auto& args = call->Args()->Exprs();
+    ASSERT(args.size() <= 2);
+
+    if ( args.size() > 0 ) {
+        arg1 = args[0]->Duplicate();
+        if ( args.size() > 1 ) {
+            arg2 = args[1]->Duplicate();
+        }
+    }
+
+    BuildEvalExpr();
+
+    SetType(eval_expr->GetType());
+}
+
+ValPtr ScriptOptBuiltinExpr::Eval(Frame* f) const { return eval_expr->Eval(f); }
+
+void ScriptOptBuiltinExpr::ExprDescribe(ODesc* d) const {
+    switch ( tag ) {
+        case MINIMUM: d->Add("ZAM_minimum"); break;
+        case MAXIMUM: d->Add("ZAM_maximum"); break;
+        case HAS_ELEMENTS: d->Add("ZAM_has_elements"); break;
+        case FUNC_ID_STRING: d->Add("ZAM_id_string"); break;
+    }
+
+    d->Add("(");
+    arg1->Describe(d);
+
+    if ( arg2 ) {
+        d->AddSP(",");
+        arg2->Describe(d);
+    }
+
+    d->Add(")");
+}
+
+TraversalCode ScriptOptBuiltinExpr::Traverse(TraversalCallback* cb) const {
+    TraversalCode tc = cb->PreExpr(this);
+    HANDLE_TC_EXPR_PRE(tc);
+
+    tc = arg1->Traverse(cb);
+    HANDLE_TC_EXPR_PRE(tc);
+
+    if ( arg2 ) {
+        tc = arg2->Traverse(cb);
+        HANDLE_TC_EXPR_PRE(tc);
+    }
+
+    tc = cb->PostExpr(this);
+    HANDLE_TC_EXPR_POST(tc);
+}
+
+bool ScriptOptBuiltinExpr::IsPure() const { return arg1->IsPure() && (! arg2 || arg2->IsPure()); }
+
+ExprPtr ScriptOptBuiltinExpr::Duplicate() {
+    auto new_me = make_intrusive<ScriptOptBuiltinExpr>(tag, arg1, arg2);
+    return with_location_of(new_me, this);
+}
+
+bool ScriptOptBuiltinExpr::IsReduced(Reducer* c) const {
+    if ( ! arg1->IsReduced(c) )
+        return NonReduced(arg1.get());
+
+    if ( arg2 && ! arg2->IsReduced(c) )
+        return NonReduced(arg2.get());
+
+    return true;
+}
+
+ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    auto orig_arg1 = arg1;
+    auto orig_arg2 = arg2;
+
+    if ( c->Optimizing() ) {
+        arg1 = c->UpdateExpr(arg1);
+        if ( arg2 )
+            arg2 = c->UpdateExpr(arg2);
+        return ThisPtr();
+    }
+
+    arg1 = arg1->Reduce(c, red_stmt);
+    if ( arg2 ) {
+        StmtPtr red_stmt2;
+        arg2 = arg2->Reduce(c, red_stmt2);
+        red_stmt = MergeStmts(red_stmt, red_stmt2);
+    }
+
+    if ( arg1 != orig_arg1 || arg2 != orig_arg2 )
+        BuildEvalExpr();
+
+    if ( arg1->IsConst() && (! arg2 || arg2->IsConst()) ) {
+        auto res = eval_expr->Eval(nullptr);
+        ASSERT(res);
+        return with_location_of(make_intrusive<ConstExpr>(res), this);
+    }
+
+    if ( c->Optimizing() )
+        return ThisPtr();
+    else
+        return AssignToTemporary(c, red_stmt);
+}
+
+void ScriptOptBuiltinExpr::BuildEvalExpr() {
+    switch ( tag ) {
+        case MINIMUM: {
+            auto cmp = make_intrusive<RelExpr>(EXPR_LT, arg1, arg2);
+            eval_expr = make_intrusive<CondExpr>(cmp, arg1, arg2);
+            break;
+        }
+
+        case MAXIMUM: {
+            auto cmp = make_intrusive<RelExpr>(EXPR_GT, arg1, arg2);
+            eval_expr = make_intrusive<CondExpr>(cmp, arg1, arg2);
+            break;
+        }
+
+        case HAS_ELEMENTS: {
+            auto size = make_intrusive<SizeExpr>(arg1);
+            auto zero = make_intrusive<ConstExpr>(val_mgr->Count(0));
+            eval_expr = make_intrusive<EqExpr>(EXPR_NE, size, zero);
+            break;
+        }
+
+        case FUNC_ID_STRING: {
+            auto args = make_intrusive<ListExpr>();
+            if ( arg1 ) {
+                args->Append(arg1);
+                if ( arg2 )
+                    args->Append(arg2);
+            }
+            eval_expr = make_intrusive<CallExpr>(call->FuncPtr(), args);
+            break;
+        }
+    }
+
+    SetType(eval_expr->GetType());
 }
 
 void NopExpr::ExprDescribe(ODesc* d) const {

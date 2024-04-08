@@ -34,6 +34,11 @@ void Inliner::Analyze() {
         if ( is_special_script_func(f.Func()->Name()) )
             continue;
 
+        // If ZAM can replace the script, don't inline it, so its usage
+        // remains visible during the AST reduction process.
+        if ( is_ZAM_replaceable_script_func(f.Func()->Name()) )
+            continue;
+
         std::unordered_set<const Func*> cs;
 
         // Aspirational ....

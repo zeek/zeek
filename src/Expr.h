@@ -86,22 +86,24 @@ enum ExprTag : int {
     EXPR_RECORD_COERCE,
     EXPR_TABLE_COERCE,
     EXPR_VECTOR_COERCE,
+    EXPR_TO_ANY_COERCE,
+    EXPR_FROM_ANY_COERCE,
     EXPR_SIZE,
     EXPR_CAST,
     EXPR_IS,
     EXPR_INDEX_SLICE_ASSIGN,
-    EXPR_INLINE,
 
-    // The following types of expressions are only created for
-    // ASTs transformed to reduced form; they aren't germane for
-    // ASTs produced by parsing .zeek script files.
+    // The following types of expressions are only created for ASTs
+    // transformed to reduced form; they aren't germane for ASTs produced
+    // by parsing .zeek script files. See script_opt/Expr.h for the
+    // corresponding definitions.
+    EXPR_INLINE,
+    EXPR_APPEND_TO,
     EXPR_INDEX_ASSIGN,
     EXPR_FIELD_LHS_ASSIGN,
-    EXPR_APPEND_TO,
-    EXPR_TO_ANY_COERCE,
-    EXPR_FROM_ANY_COERCE,
     EXPR_FROM_ANY_VEC_COERCE,
     EXPR_ANY_INDEX,
+    EXPR_SCRIPT_OPT_BUILTIN,
 
     EXPR_NOP,
 

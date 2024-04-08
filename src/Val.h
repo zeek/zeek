@@ -1711,7 +1711,6 @@ UNDERLYING_ACCESSOR_DEF(TypeVal, zeek::Type*, AsType)
 extern ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init,
                                 const detail::Location* expr_location = nullptr);
 
-extern bool same_val(const Val* v1, const Val* v2);
 extern bool same_atomic_val(const Val* v1, const Val* v2);
 extern bool is_atomic_val(const Val* v);
 extern void describe_vals(const ValPList* vals, ODesc* d, int offset = 0);

@@ -304,6 +304,38 @@ static bool next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, i
 
 	return *fmt != '\0';
 	}
+
+zeek::RecordValPtr zeek::detail::build_dummy_conn_record()
+	{
+	// Return a dummy connection record.
+	auto c = zeek::make_intrusive<zeek::RecordVal>(zeek::id::connection);
+
+	auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
+	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
+	id_val->Assign(1, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
+	id_val->Assign(3, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
+	c->Assign(0, std::move(id_val));
+
+	auto orig_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
+	orig_endp->Assign(0, 0);
+	orig_endp->Assign(1, 0);
+
+	auto resp_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
+	resp_endp->Assign(0, 0);
+	resp_endp->Assign(1, 0);
+
+	c->Assign(1, std::move(orig_endp));
+	c->Assign(2, std::move(resp_endp));
+
+	c->AssignTime(3, zeek::run_state::network_time);
+	c->AssignInterval(4, 0.0);
+	c->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
+	c->Assign(6, zeek::val_mgr->EmptyString());	// history
+
+	return c;
+	}
+
 %%}
 
 # ===========================================================================
@@ -3652,34 +3684,7 @@ function lookup_connection%(cid: conn_id%): connection
 		return conn->GetVal();
 
 	zeek::emit_builtin_error("connection ID not a known connection", cid);
-
-	// Return a dummy connection record.
-	auto c = zeek::make_intrusive<zeek::RecordVal>(zeek::id::connection);
-
-	auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
-	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
-	id_val->Assign(1, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
-	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
-	id_val->Assign(3, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
-	c->Assign(0, std::move(id_val));
-
-	auto orig_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
-	orig_endp->Assign(0, 0);
-	orig_endp->Assign(1, 0);
-
-	auto resp_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
-	resp_endp->Assign(0, 0);
-	resp_endp->Assign(1, 0);
-
-	c->Assign(1, std::move(orig_endp));
-	c->Assign(2, std::move(resp_endp));
-
-	c->AssignTime(3, zeek::run_state::network_time);
-	c->AssignInterval(4, 0.0);
-	c->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
-	c->Assign(6, zeek::val_mgr->EmptyString());	// history
-
-	return std::move(c);
+	return zeek::detail::build_dummy_conn_record();
 	%}
 
 %%{

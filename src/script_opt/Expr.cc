@@ -274,6 +274,18 @@ StmtPtr Expr::ReduceToSingletons(Reducer* c) {
 }
 
 ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
+    if ( WillTransformInConditional(c) ) {
+        auto new_me = TransformToConditional(c, red_stmt);
+
+        // Now that we've transformed, reduce the result for use in a
+        // conditional.
+        StmtPtr red_stmt2;
+        new_me = new_me->ReduceToConditional(c, red_stmt2);
+        red_stmt = MergeStmts(red_stmt, red_stmt2);
+
+        return new_me;
+    }
+
     switch ( tag ) {
         case EXPR_CONST: return ThisPtr();
 
@@ -353,6 +365,13 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
 
         default: return Reduce(c, red_stmt);
     }
+}
+
+ExprPtr Expr::TransformToConditional(Reducer* c, StmtPtr& red_stmt) {
+    // This shouldn't happen since every expression that can return
+    // true for WillTransformInConditional() should implement this
+    // method.
+    reporter->InternalError("Expr::TransformToConditional called");
 }
 
 ExprPtr Expr::ReduceToFieldAssignment(Reducer* c, StmtPtr& red_stmt) {
@@ -1291,7 +1310,7 @@ bool CondExpr::IsReduced(Reducer* c) const {
 }
 
 bool CondExpr::HasReducedOps(Reducer* c) const {
-    return op1->IsSingleton(c) && op2->IsSingleton(c) && op3->IsSingleton(c) && ! op1->IsConst();
+    return ! IsMinOrMax(c) && op1->IsSingleton(c) && op2->IsSingleton(c) && op3->IsSingleton(c) && ! op1->IsConst();
 }
 
 bool CondExpr::WillTransform(Reducer* c) const { return ! HasReducedOps(c); }
@@ -1301,6 +1320,16 @@ ExprPtr CondExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         op1 = c->UpdateExpr(op1);
         op2 = c->UpdateExpr(op2);
         op3 = c->UpdateExpr(op3);
+    }
+
+    while ( op1->Tag() == EXPR_NOT ) {
+        op1 = op1->GetOp1();
+        std::swap(op2, op3);
+    }
+
+    if ( IsMinOrMax(c) ) {
+        auto res = TransformToMinOrMax();
+        return res->Reduce(c, red_stmt);
     }
 
     StmtPtr op1_red_stmt;
@@ -1389,6 +1418,36 @@ StmtPtr CondExpr::ReduceToSingletons(Reducer* c) {
     }
 
     return MergeStmts(red1_stmt, if_else);
+}
+
+bool CondExpr::IsMinOrMax(Reducer* c) const {
+    switch ( op1->Tag() ) {
+        case EXPR_LT:
+        case EXPR_LE:
+        case EXPR_GE:
+        case EXPR_GT: break;
+
+        default: return false;
+    }
+
+    auto relop1 = op1->GetOp1();
+    auto relop2 = op1->GetOp2();
+
+    return (same_expr(relop1, op2) && same_expr(relop2, op3)) || (same_expr(relop1, op3) && same_expr(relop2, op2));
+}
+
+ExprPtr CondExpr::TransformToMinOrMax() const {
+    auto relop1 = op1->GetOp1();
+    auto relop2 = op1->GetOp2();
+
+    auto is_min = (op1->Tag() == EXPR_LT || op1->Tag() == EXPR_LE);
+
+    if ( same_expr(relop1, op3) )
+        is_min = ! is_min;
+
+    auto built_in = is_min ? ScriptOptBuiltinExpr::MINIMUM : ScriptOptBuiltinExpr::MAXIMUM;
+
+    return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(built_in, relop1, relop2), this);
 }
 
 ExprPtr RefExpr::Duplicate() { return SetSucc(new RefExpr(op->Duplicate())); }

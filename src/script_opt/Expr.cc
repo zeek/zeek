@@ -1144,15 +1144,94 @@ ExprPtr BitExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     return BinaryExpr::Reduce(c, red_stmt);
 }
 
+bool CmpExpr::WillTransform(Reducer* c) const {
+    if ( IsHasElementsTest() )
+        return true;
+    return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2);
+}
+
+bool CmpExpr::WillTransformInConditional(Reducer* c) const { return WillTransform(c); }
+
+bool CmpExpr::IsReduced(Reducer* c) const {
+    if ( IsHasElementsTest() )
+        return NonReduced(this);
+    return true;
+}
+
+static std::map<ExprTag, ExprTag> has_elements_swap_tag = {
+    {EXPR_EQ, EXPR_EQ}, {EXPR_NE, EXPR_NE}, {EXPR_LT, EXPR_GT},
+    {EXPR_LE, EXPR_GE}, {EXPR_GE, EXPR_LE}, {EXPR_GT, EXPR_LT},
+};
+
+bool CmpExpr::IsHasElementsTest() const {
+    static std::set<ExprTag> rel_tags = {EXPR_EQ, EXPR_NE, EXPR_LT, EXPR_LE, EXPR_GE, EXPR_GT};
+
+    auto t = Tag(); // note, we may invert t below
+    if ( rel_tags.count(t) == 0 )
+        return false;
+
+    auto op1 = GetOp1();
+    auto op2 = GetOp2();
+
+    ASSERT(op1 && op2);
+
+    if ( op1->Tag() != EXPR_SIZE && op2->Tag() != EXPR_SIZE )
+        return false;
+
+    if ( ! op1->IsZero() && ! op1->IsOne() && ! op2->IsZero() && ! op2->IsOne() )
+        return false;
+
+    if ( op1->Tag() == EXPR_CONST ) {
+        t = has_elements_swap_tag[t];
+        std::swap(op1, op2);
+    }
+
+    auto op1_t = op1->GetOp1()->GetType()->Tag();
+    if ( op1_t != TYPE_TABLE && op1_t != TYPE_VECTOR )
+        return false;
+
+    static std::map<ExprTag, bool> zero_req = {
+        {EXPR_EQ, true}, {EXPR_NE, true}, {EXPR_LT, false}, {EXPR_LE, true}, {EXPR_GE, false}, {EXPR_GT, true},
+    };
+
+    return zero_req[t] ? op2->IsZero() : op2->IsOne();
+}
+
+ExprPtr CmpExpr::TransformToConditional(Reducer* c, StmtPtr& red_stmt) { return BuildHasElementsTest(); }
+
+ExprPtr CmpExpr::BuildHasElementsTest() const {
+    auto t = Tag();
+    auto op1 = GetOp1();
+    auto op2 = GetOp2();
+
+    if ( op1->Tag() == EXPR_CONST ) {
+        t = has_elements_swap_tag[t];
+        std::swap(op1, op2);
+    }
+
+    ExprPtr he =
+        with_location_of(make_intrusive<ScriptOptBuiltinExpr>(ScriptOptBuiltinExpr::HAS_ELEMENTS, op1->GetOp1()), this);
+
+    static std::map<ExprTag, bool> has_elements = {
+        {EXPR_EQ, false}, {EXPR_NE, true}, {EXPR_LT, false}, {EXPR_LE, false}, {EXPR_GE, true}, {EXPR_GT, true},
+    };
+
+    if ( ! has_elements[t] )
+        he = with_location_of(make_intrusive<NotExpr>(he), this);
+
+    return he;
+}
+
 ExprPtr EqExpr::Duplicate() {
     auto op1_d = op1->Duplicate();
     auto op2_d = op2->Duplicate();
     return SetSucc(new EqExpr(tag, op1_d, op2_d));
 }
 
-bool EqExpr::WillTransform(Reducer* c) const { return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2); }
-
 ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( IsHasElementsTest() )
+        return BuildHasElementsTest()->Reduce(c, red_stmt);
+
     if ( GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2) ) {
         bool t = Tag() == EXPR_EQ;
         auto res = with_location_of(make_intrusive<ConstExpr>(val_mgr->Bool(t)), this);
@@ -1168,9 +1247,10 @@ ExprPtr RelExpr::Duplicate() {
     return SetSucc(new RelExpr(tag, op1_d, op2_d));
 }
 
-bool RelExpr::WillTransform(Reducer* c) const { return GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2); }
-
 ExprPtr RelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( IsHasElementsTest() )
+        return BuildHasElementsTest()->Reduce(c, red_stmt);
+
     if ( GetType()->Tag() == TYPE_BOOL ) {
         if ( same_singletons(op1, op2) ) {
             bool t = Tag() == EXPR_GE || Tag() == EXPR_LE;

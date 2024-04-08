@@ -7,7 +7,6 @@
 
 namespace zeek::detail {
 
-class Expr;
 class TempVar;
 
 class Reducer {
@@ -162,12 +161,6 @@ public:
     ExprPtr UpdateExpr(ExprPtr e);
 
 protected:
-    // True if two Val's refer to the same underlying value.  We gauge
-    // this conservatively (i.e., for complicated values we just return
-    // false, even if with a lot of work we could establish that they
-    // are in fact equivalent.)
-    bool SameVal(const Val* v1, const Val* v2) const;
-
     // Track that the variable "var" will be a replacement for
     // the "orig" expression.  Returns the replacement expression
     // (which is is just a NameExpr referring to "var").
@@ -175,19 +168,6 @@ protected:
 
     void BindExprToCurrStmt(const ExprPtr& e);
     void BindStmtToCurrStmt(const StmtPtr& s);
-
-    // Returns true if op1 and op2 represent the same operand, given
-    // the reaching definitions available at their usages (e1 and e2).
-    bool SameOp(const Expr* op1, const Expr* op2);
-    bool SameOp(const ExprPtr& op1, const ExprPtr& op2) { return SameOp(op1.get(), op2.get()); }
-
-    // True if e1 and e2 reflect identical expressions in the context
-    // of using a value computed for one of them in lieu of computing
-    // the other.  (Thus, for example, two record construction expressions
-    // are never equivalent even if they both specify exactly the same
-    // record elements, because each invocation of the expression produces
-    // a distinct value.)
-    bool SameExpr(const Expr* e1, const Expr* e2);
 
     // Finds a temporary, if any, whose RHS matches the given "rhs", using
     // the reaching defs associated with the assignment "a".  The context
@@ -317,5 +297,12 @@ extern bool checking_reduction;
 
 // Used to report a non-reduced expression.
 extern bool NonReduced(const Expr* perp);
+
+// True if e1 and e2 reflect identical expressions, meaning that it's okay
+// to use a value computed for one of them in lieu of computing the other.
+// (Thus, for example, two record construction expressions are never
+// equivalent even if they both specify exactly the same record elements,
+// because each invocation of the expression produces a distinct value.)
+extern bool same_expr(const ExprPtr& e1, const ExprPtr& e2);
 
 } // namespace zeek::detail

@@ -2083,7 +2083,8 @@ bool RecordCoerceExpr::WillTransform(Reducer* c) const { return op->Tag() == EXP
 ExprPtr RecordCoerceExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( WillTransform(c) ) {
         auto rt = cast_intrusive<RecordType>(type);
-        auto rc_op = op->AsRecordConstructorExpr();
+        ASSERT(op->Tag() == EXPR_RECORD_CONSTRUCTOR);
+        auto rc_op = static_cast<const RecordConstructorExpr*>(op.get());
         auto known_constr = with_location_of(make_intrusive<RecordConstructorExpr>(rt, rc_op->Op()), this);
         auto red_e = known_constr->Reduce(c, red_stmt);
         return TransformMe(std::move(red_e), c, red_stmt);

@@ -113,28 +113,20 @@ enum ExprTag : int {
 extern const char* expr_name(ExprTag t);
 
 class AddToExpr;
-class AnyIndexExpr;
 class AssignExpr;
 class CallExpr;
 class ConstExpr;
 class EventExpr;
 class FieldAssignExpr;
 class FieldExpr;
-class FieldLHSAssignExpr;
 class ForExpr;
 class HasFieldExpr;
-class IndexAssignExpr;
 class IndexExpr;
-class InlineExpr;
 class IsExpr;
 class LambdaExpr;
 class ListExpr;
 class NameExpr;
-class RecordCoerceExpr;
-class RecordConstructorExpr;
 class RefExpr;
-class SetConstructorExpr;
-class TableConstructorExpr;
 
 class Expr;
 using CallExprPtr = IntrusivePtr<CallExpr>;
@@ -230,34 +222,27 @@ public:
     void MarkParen() { paren = true; }
     bool IsParen() const { return paren; }
 
+    // These are used by script optimization for AST analysis.
 #define ZEEK_EXPR_ACCESSOR_DECLS(ctype)                                                                                \
     const ctype* As##ctype() const;                                                                                    \
     ctype* As##ctype();                                                                                                \
     IntrusivePtr<ctype> As##ctype##Ptr();
 
     ZEEK_EXPR_ACCESSOR_DECLS(AddToExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(AnyIndexExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(AssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(CallExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(ConstExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(EventExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(FieldAssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(FieldExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(FieldLHSAssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(ForExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(HasFieldExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(IndexAssignExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(IndexExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(InlineExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(IsExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(LambdaExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(ListExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(RecordCoerceExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(RecordConstructorExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(RefExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(SetConstructorExpr)
-    ZEEK_EXPR_ACCESSOR_DECLS(TableConstructorExpr)
 
     void Describe(ODesc* d) const override final;
 

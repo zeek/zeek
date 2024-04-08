@@ -3,196 +3,142 @@
 // ZAM methods associated with instructions that replace calls to
 // built-in functions.
 
+#include "zeek/script_opt/ZAM/BuiltIn.h"
+
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
 
-bool ZAMCompiler::IsZAM_BuiltIn(const Expr* e) {
-    // The expression e is either directly a call (in which case there's
-    // no return value), or an assignment to a call.
-    const CallExpr* c;
+// Maps BiF names to their associated ZBI class.
+std::unordered_map<std::string, const ZAMBuiltIn*> builtins;
 
-    if ( e->Tag() == EXPR_CALL )
-        c = e->AsCallExpr();
-    else
-        c = e->GetOp2()->AsCallExpr();
-
-    auto func_expr = c->Func();
-    if ( func_expr->Tag() != EXPR_NAME )
-        // An indirect call.
-        return false;
-
-    auto func_val = func_expr->AsNameExpr()->Id()->GetVal();
-    if ( ! func_val )
-        // A call to a function that hasn't been defined.
-        return false;
-
-    auto func = func_val->AsFunc();
-    if ( func->GetKind() != BuiltinFunc::BUILTIN_FUNC )
-        return false;
-
-    auto& args = c->Args()->Exprs();
-
-    const NameExpr* n = nullptr; // name to assign to, if any
-
-    if ( e->Tag() != EXPR_CALL )
-        n = e->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
-
-    using GenBuiltIn = bool (ZAMCompiler::*)(const NameExpr* n, const ExprPList& args);
-    static std::vector<std::pair<const char*, GenBuiltIn>> builtins = {
-        {"Analyzer::__name", &ZAMCompiler::BuiltIn_Analyzer__name},
-        {"Broker::__flush_logs", &ZAMCompiler::BuiltIn_Broker__flush_logs},
-        {"Files::__enable_reassembly", &ZAMCompiler::BuiltIn_Files__enable_reassembly},
-        {"Files::__set_reassembly_buffer", &ZAMCompiler::BuiltIn_Files__set_reassembly_buffer},
-        {"Log::__write", &ZAMCompiler::BuiltIn_Log__write},
-        {"cat", &ZAMCompiler::BuiltIn_cat},
-        {"current_time", &ZAMCompiler::BuiltIn_current_time},
-        {"get_port_transport_proto", &ZAMCompiler::BuiltIn_get_port_etc},
-        {"network_time", &ZAMCompiler::BuiltIn_network_time},
-        {"reading_live_traffic", &ZAMCompiler::BuiltIn_reading_live_traffic},
-        {"reading_traces", &ZAMCompiler::BuiltIn_reading_traces},
-        {"strstr", &ZAMCompiler::BuiltIn_strstr},
-        {"sub_bytes", &ZAMCompiler::BuiltIn_sub_bytes},
-        {"to_lower", &ZAMCompiler::BuiltIn_to_lower},
-    };
-
-    for ( auto& b : builtins )
-        if ( util::streq(func->Name(), b.first) )
-            return (this->*(b.second))(n, args);
-
-    return false;
+ZAMBuiltIn::ZAMBuiltIn(std::string name, bool _ret_val_matters) : ret_val_matters(_ret_val_matters) {
+    builtins[name] = this;
 }
 
-bool ZAMCompiler::BuiltIn_Analyzer__name(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
+SimpleZBI::SimpleZBI(std::string name, ZOp _op, int _nargs, bool _ret_val_matters)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), nargs(_nargs) {}
 
-    if ( args[0]->Tag() == EXPR_CONST )
-        // Doesn't seem worth developing a variant for this weird
-        // usage case.
-        return false;
+SimpleZBI::SimpleZBI(std::string name, ZOp _const_op, ZOp _op, bool _ret_val_matters)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), op(_op), const_op(_const_op), nargs(1) {}
 
-    int nslot = Frame1Slot(n, OP1_WRITE);
-    auto arg_t = args[0]->AsNameExpr();
-
-    auto z = ZInstI(OP_ANALYZER__NAME_VV, nslot, FrameSlot(arg_t));
-    z.SetType(args[0]->GetType());
-
-    AddInst(z);
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_Broker__flush_logs(const NameExpr* n, const ExprPList& args) {
-    if ( n )
-        AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_V, Frame1Slot(n, OP1_WRITE)));
-    else
-        AddInst(ZInstI(OP_BROKER_FLUSH_LOGS_X));
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_Files__enable_reassembly(const NameExpr* n, const ExprPList& args) {
-    if ( n )
-        // While this built-in nominally returns a value, existing
-        // script code ignores it, so for now we don't bother
-        // special-casing the possibility that it doesn't.
-        return false;
-
-    if ( args[0]->Tag() == EXPR_CONST )
-        // Weird!
-        return false;
-
-    auto arg_f = args[0]->AsNameExpr();
-
-    AddInst(ZInstI(OP_FILES__ENABLE_REASSEMBLY_V, FrameSlot(arg_f)));
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_Files__set_reassembly_buffer(const NameExpr* n, const ExprPList& args) {
-    if ( n )
-        // See above for enable_reassembly
-        return false;
-
-    if ( args[0]->Tag() == EXPR_CONST )
-        // Weird!
-        return false;
-
-    auto arg_f = FrameSlot(args[0]->AsNameExpr());
-
+bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     ZInstI z;
-
-    if ( args[1]->Tag() == EXPR_CONST ) {
-        auto arg_cnt = args[1]->AsConstExpr()->Value()->AsCount();
-        z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VC, arg_f, arg_cnt);
-        z.op_type = OP_VV_I2;
-    }
-    else
-        z = ZInstI(OP_FILES__SET_REASSEMBLY_BUFFER_VV, arg_f, FrameSlot(args[1]->AsNameExpr()));
-
-    AddInst(z);
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_Log__write(const NameExpr* n, const ExprPList& args) {
-    auto id = args[0];
-    auto columns = args[1];
-
-    if ( columns->Tag() != EXPR_NAME )
-        return false;
-
-    auto columns_n = columns->AsNameExpr();
-    auto col_slot = FrameSlot(columns_n);
-
-    bool const_id = (id->Tag() == EXPR_CONST);
-
-    ZInstAux* aux = nullptr;
-
-    if ( const_id ) {
-        aux = new ZInstAux(1);
-        aux->Add(0, id->AsConstExpr()->ValuePtr());
-    }
-
-    ZInstI z;
-
-    if ( n ) {
-        int nslot = Frame1Slot(n, OP1_WRITE);
-        if ( const_id ) {
-            z = ZInstI(OP_LOG_WRITEC_VV, nslot, col_slot);
-            z.aux = aux;
-        }
+    if ( nargs == 0 ) {
+        if ( n )
+            z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE));
         else
-            z = ZInstI(OP_LOG_WRITE_VVV, nslot, FrameSlot(id->AsNameExpr()), col_slot);
+            z = ZInstI(op);
     }
     else {
-        if ( const_id ) {
-            z = ZInstI(OP_LOG_WRITEC_V, col_slot, id->AsConstExpr());
-            z.aux = aux;
+        ASSERT(nargs == 1);
+        auto& t = args[0]->GetType();
+
+        if ( args[0]->Tag() == EXPR_NAME ) {
+            auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
+            if ( n )
+                z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE), a0);
+            else
+                z = ZInstI(op, a0);
         }
-        else
-            z = ZInstI(OP_LOG_WRITE_VV, FrameSlot(id->AsNameExpr()), col_slot);
+
+        else {
+            if ( const_op == OP_NOP )
+                // This can happen for BiFs that aren't foldable, and for
+                // which it's implausible they'll be called with a constant
+                // argument.
+                return false;
+
+            if ( n )
+                z = ZInstI(const_op, zam->Frame1Slot(n, OP1_WRITE));
+            else
+                z = ZInstI(const_op);
+
+            z.c = ZVal(args[0]->AsConstExpr()->ValuePtr(), t);
+        }
+
+        z.t = t;
     }
 
-    z.SetType(columns_n->GetType());
+    if ( n )
+        z.is_managed = ZVal::IsManagedType(n->GetType());
 
-    AddInst(z);
+    zam->AddInst(z);
 
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_cat(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
+CondZBI::CondZBI(std::string name, ZOp _op, ZOp _cond_op, int _nargs)
+    : SimpleZBI(std::move(name), _op, _nargs, true), cond_op(_cond_op) {}
+
+bool CondZBI::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) const {
+    if ( cond_op == OP_NOP )
+        return false;
+
+    if ( nargs == 1 && args[0]->Tag() != EXPR_NAME )
+        // ZBI-worthy predicates called with constant arguments will generally
+        // have been folded. If not, for simplicity we don't support the
+        // flavor where they're called with a constant.
+        return false;
+
+    // If we get here, then the ZBI is good-to-go.
+
+    if ( ! zam )
+        // This was just a check, not an actual build.
         return true;
+
+    ZInstI z;
+
+    if ( nargs == 0 ) {
+        z = ZInstI(cond_op, 0);
+        z.op_type = OP_V_I1;
+        branch_v = 1;
     }
 
-    int nslot = Frame1Slot(n, OP1_WRITE);
+    else {
+        ASSERT(nargs == 1);
+
+        auto a0 = args[0];
+        auto a0_slot = zam->FrameSlot(a0->AsNameExpr());
+        z = ZInstI(cond_op, a0_slot, 0);
+        z.op_type = OP_VV_I2;
+        z.t = a0->GetType();
+        branch_v = 2;
+    }
+
+    zam->AddInst(z);
+
+    return true;
+}
+
+OptAssignZBI::OptAssignZBI(std::string name, ZOp _op, ZOp _op2, int _nargs)
+    : SimpleZBI(std::move(name), _op, _nargs, false), op2(_op2) {
+    have_both = true;
+}
+
+bool OptAssignZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    if ( n )
+        return SimpleZBI::Build(zam, n, args);
+
+    ZInstI z;
+    if ( nargs == 0 )
+        z = ZInstI(op2);
+    else {
+        ASSERT(nargs == 1);
+        auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
+        z = ZInstI(op2, a0);
+        z.t = args[0]->GetType();
+    }
+
+    zam->AddInst(z);
+
+    return true;
+}
+
+bool CatZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    auto nslot = zam->Frame1Slot(n, OP1_WRITE);
     auto& a0 = args[0];
     ZInstI z;
 
@@ -205,23 +151,23 @@ bool ZAMCompiler::BuiltIn_cat(const NameExpr* n, const ExprPList& args) {
 
     else if ( args.size() > 1 ) {
         switch ( args.size() ) {
-            case 2: z = GenInst(OP_CAT2_V, n); break;
-            case 3: z = GenInst(OP_CAT3_V, n); break;
-            case 4: z = GenInst(OP_CAT4_V, n); break;
-            case 5: z = GenInst(OP_CAT5_V, n); break;
-            case 6: z = GenInst(OP_CAT6_V, n); break;
-            case 7: z = GenInst(OP_CAT7_V, n); break;
-            case 8: z = GenInst(OP_CAT8_V, n); break;
+            case 2: z = zam->GenInst(OP_CAT2_V, n); break;
+            case 3: z = zam->GenInst(OP_CAT3_V, n); break;
+            case 4: z = zam->GenInst(OP_CAT4_V, n); break;
+            case 5: z = zam->GenInst(OP_CAT5_V, n); break;
+            case 6: z = zam->GenInst(OP_CAT6_V, n); break;
+            case 7: z = zam->GenInst(OP_CAT7_V, n); break;
+            case 8: z = zam->GenInst(OP_CAT8_V, n); break;
 
-            default: z = GenInst(OP_CATN_V, n); break;
+            default: z = zam->GenInst(OP_CATN_V, n); break;
         }
 
-        z.aux = BuildCatAux(args);
+        z.aux = BuildCatAux(zam, args);
     }
 
     else if ( a0->GetType()->Tag() != TYPE_STRING ) {
         if ( a0->Tag() == EXPR_NAME ) {
-            z = GenInst(OP_CAT1FULL_VV, n, a0->AsNameExpr());
+            z = zam->GenInst(OP_CAT1FULL_VV, n, a0->AsNameExpr());
             z.t = a0->GetType();
         }
         else {
@@ -232,19 +178,19 @@ bool ZAMCompiler::BuiltIn_cat(const NameExpr* n, const ExprPList& args) {
     }
 
     else if ( a0->Tag() == EXPR_CONST ) {
-        z = GenInst(OP_CAT1_VC, n, a0->AsConstExpr());
+        z = zam->GenInst(OP_CAT1_VC, n, a0->AsConstExpr());
         z.t = n->GetType();
     }
 
     else
-        z = GenInst(OP_CAT1_VV, n, a0->AsNameExpr());
+        z = zam->GenInst(OP_CAT1_VV, n, a0->AsNameExpr());
 
-    AddInst(z);
+    zam->AddInst(z);
 
     return true;
 }
 
-ZInstAux* ZAMCompiler::BuildCatAux(const ExprPList& args) {
+ZInstAux* CatZBI::BuildCatAux(ZAMCompiler* zam, const ExprPList& args) const {
     auto n = args.size();
     auto aux = new ZInstAux(n);
     aux->cat_args = new std::unique_ptr<CatArg>[n];
@@ -257,7 +203,9 @@ ZInstAux* ZAMCompiler::BuildCatAux(const ExprPList& args) {
 
         if ( a_i->Tag() == EXPR_CONST ) {
             auto c = a_i->AsConstExpr()->ValuePtr();
-            aux->Add(i, c); // it will be ignored
+            aux->Add(i, c); // we add it to consume a slot, but it'll be ignored
+
+            // Convert it up front and transform into a fixed string.
             auto sv = ZAM_val_cat(c);
             auto s = sv->AsString();
             auto b = reinterpret_cast<char*>(s->Bytes());
@@ -265,7 +213,7 @@ ZInstAux* ZAMCompiler::BuildCatAux(const ExprPList& args) {
         }
 
         else {
-            auto slot = FrameSlot(a_i->AsNameExpr());
+            auto slot = zam->FrameSlot(a_i->AsNameExpr());
             aux->Add(i, slot, t);
 
             switch ( t->Tag() ) {
@@ -293,215 +241,395 @@ ZInstAux* ZAMCompiler::BuildCatAux(const ExprPList& args) {
     return aux;
 }
 
-bool ZAMCompiler::BuiltIn_current_time(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
-    AddInst(ZInstI(OP_CURRENT_TIME_V, nslot));
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_get_port_etc(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    auto p = args[0];
-
-    if ( p->Tag() != EXPR_NAME )
+bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    // The checks the sort() BiF does can all be computed statically.
+    if ( args.size() > 2 )
         return false;
 
-    auto pn = p->AsNameExpr();
-    int nslot = Frame1Slot(n, OP1_WRITE);
+    auto v = args[0]->AsNameExpr();
+    if ( v->GetType()->Tag() != TYPE_VECTOR )
+        return false;
 
-    AddInst(ZInstI(OP_GET_PORT_TRANSPORT_PROTO_VV, nslot, FrameSlot(pn)));
+    const auto& elt_type = v->GetType()->Yield();
 
-    return true;
-}
+    if ( args.size() == 1 ) {
+        if ( ! IsIntegral(elt_type->Tag()) && elt_type->InternalType() != TYPE_INTERNAL_DOUBLE )
+            return false;
 
-bool ZAMCompiler::BuiltIn_network_time(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
+        return OptAssignZBI::Build(zam, n, args);
     }
 
-    int nslot = Frame1Slot(n, OP1_WRITE);
+    // If we get here, then there's a comparison function.
+    const auto& comp_val = args[1];
+    if ( ! IsFunc(comp_val->GetType()->Tag()) )
+        return false;
 
-    AddInst(ZInstI(OP_NETWORK_TIME_V, nslot));
+    if ( comp_val->Tag() != EXPR_NAME )
+        return false;
 
-    return true;
-}
+    auto comp_func = comp_val->AsNameExpr();
+    auto comp_type = comp_func->GetType()->AsFuncType();
 
-bool ZAMCompiler::BuiltIn_reading_live_traffic(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
-    AddInst(ZInstI(OP_READING_LIVE_TRAFFIC_V, nslot));
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_reading_traces(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
-    AddInst(ZInstI(OP_READING_TRACES_V, nslot));
-
-    return true;
-}
-
-bool ZAMCompiler::BuiltIn_strstr(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    auto big = args[0];
-    auto little = args[1];
-
-    auto big_n = big->Tag() == EXPR_NAME ? big->AsNameExpr() : nullptr;
-    auto little_n = little->Tag() == EXPR_NAME ? little->AsNameExpr() : nullptr;
+    if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+         comp_type->ParamList()->GetTypes().size() != 2 )
+        return false;
 
     ZInstI z;
 
-    if ( big_n && little_n )
-        z = GenInst(OP_STRSTR_VVV, n, big_n, little_n);
-    else if ( big_n )
-        z = GenInst(OP_STRSTR_VVC, n, big_n, little->AsConstExpr());
-    else if ( little_n )
-        z = GenInst(OP_STRSTR_VCV, n, little_n, big->AsConstExpr());
+    if ( n )
+        z = ZInstI(OP_SORT_WITH_CMP_VVV, zam->Frame1Slot(n, OP1_WRITE), zam->FrameSlot(v), zam->FrameSlot(comp_func));
     else
-        return false;
+        z = ZInstI(OP_SORT_WITH_CMP_VV, zam->FrameSlot(v), zam->FrameSlot(comp_func));
 
-    AddInst(z);
+    zam->AddInst(z);
 
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_sub_bytes(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
+MultiZBI::MultiZBI(std::string name, bool _ret_val_matters, BiFArgsInfo _args_info, int _type_arg)
+    : ZAMBuiltIn(std::move(name), _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
+
+MultiZBI::MultiZBI(std::string name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg)
+    : MultiZBI(std::move(name), false, _args_info, _type_arg) {
+    assign_args_info = std::move(_assign_args_info);
+    have_both = true;
+}
+
+bool MultiZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
+    auto ai = &args_info;
+    if ( n && have_both ) {
+        ai = &assign_args_info;
+        ASSERT(! ai->empty());
     }
 
-    auto arg_s = args[0];
-    auto arg_start = args[1];
-    auto arg_n = args[2];
+    auto bif_arg_info = ai->find(ComputeArgsType(args));
+    if ( bif_arg_info == ai->end() )
+        // Not a Constant/Variable combination this ZBI supports.
+        return false;
 
-    int nslot = Frame1Slot(n, OP1_WRITE);
+    const auto& bi = bif_arg_info->second;
+    auto op = bi.op;
 
-    int v2 = FrameSlotIfName(arg_s);
-    int v3 = ConvertToCount(arg_start);
-    int v4 = ConvertToInt(arg_n);
+    std::vector<ValPtr> consts;
+    std::vector<int> v;
 
-    auto c = arg_s->Tag() == EXPR_CONST ? arg_s->AsConstExpr() : nullptr;
+    for ( auto i = 0U; i < args.size(); ++i ) {
+        auto a = args[i];
+        if ( a->Tag() == EXPR_NAME )
+            v.push_back(zam->FrameSlot(a->AsNameExpr()));
+        else
+            consts.push_back(a->AsConstExpr()->ValuePtr());
+    }
+
+    auto nslot = n ? zam->Frame1Slot(n, OP1_WRITE) : -1;
 
     ZInstI z;
 
-    switch ( ConstArgsMask(args, 3) ) {
-        case 0x0: // all variable
-            z = ZInstI(OP_SUB_BYTES_VVVV, nslot, v2, v3, v4);
-            z.op_type = OP_VVVV;
-            break;
-
-        case 0x1: // last argument a constant
-            z = ZInstI(OP_SUB_BYTES_VVVi, nslot, v2, v3, v4);
-            z.op_type = OP_VVVV_I4;
-            break;
-
-        case 0x2: // 2nd argument a constant; flip!
-            z = ZInstI(OP_SUB_BYTES_VViV, nslot, v2, v4, v3);
-            z.op_type = OP_VVVV_I4;
-            break;
-
-        case 0x3: // both 2nd and third are constants
-            z = ZInstI(OP_SUB_BYTES_VVii, nslot, v2, v3, v4);
-            z.op_type = OP_VVVV_I3_I4;
-            break;
-
-        case 0x4: // first argument a constant
-            ASSERT(c);
-            z = ZInstI(OP_SUB_BYTES_VVVC, nslot, v3, v4, c);
-            z.op_type = OP_VVVC;
-            break;
-
-        case 0x5: // first and third constant
-            ASSERT(c);
-            z = ZInstI(OP_SUB_BYTES_VViC, nslot, v3, v4, c);
-            z.op_type = OP_VVVC_I3;
-            break;
-
-        case 0x6: // first and second constant - flip!
-            ASSERT(c);
-            z = ZInstI(OP_SUB_BYTES_ViVC, nslot, v4, v3, c);
-            z.op_type = OP_VVVC_I3;
-            break;
-
-        case 0x7: // whole shebang
-            ASSERT(c);
-            z = ZInstI(OP_SUB_BYTES_ViiC, nslot, v3, v4, c);
-            z.op_type = OP_VVVC_I2_I3;
-            break;
-
-        default: reporter->InternalError("bad constant mask");
+    if ( args.size() == 2 ) {
+        if ( consts.empty() ) {
+            if ( n )
+                z = ZInstI(op, nslot, v[0], v[1]);
+            else
+                z = ZInstI(op, v[0], v[1]);
+        }
+        else {
+            ASSERT(consts.size() == 1);
+            if ( n )
+                z = ZInstI(op, nslot, v[0]);
+            else
+                z = ZInstI(op, v[0]);
+        }
     }
 
-    AddInst(z);
+    else if ( args.size() == 3 ) {
+        switch ( consts.size() ) {
+            case 0:
+                if ( n )
+                    z = ZInstI(op, nslot, v[0], v[1], v[2]);
+                else
+                    z = ZInstI(op, v[0], v[1], v[2]);
+                break;
+
+            case 1:
+                if ( n )
+                    z = ZInstI(op, nslot, v[0], v[1]);
+                else
+                    z = ZInstI(op, v[0], v[1]);
+                break;
+
+            case 2: {
+                auto c2 = consts[1];
+                auto c2_t = c2->GetType()->Tag();
+
+                ASSERT(c2_t == TYPE_BOOL || c2_t == TYPE_INT || c2_t == TYPE_COUNT);
+                int slot_val;
+                if ( c2_t == TYPE_COUNT )
+                    slot_val = static_cast<int>(c2->AsCount());
+                else
+                    slot_val = c2->AsInt();
+
+                if ( n )
+                    z = ZInstI(op, nslot, v[0], slot_val);
+                else
+                    z = ZInstI(op, v[0], slot_val);
+                break;
+            }
+
+            default: reporter->InternalError("inconsistency in MultiZBI::Build");
+        }
+    }
+
+    else
+        reporter->InternalError("inconsistency in MultiZBI::Build");
+
+    z.op_type = bi.op_type;
+
+    if ( n )
+        z.is_managed = ZVal::IsManagedType(n->GetType());
+
+    if ( ! consts.empty() ) {
+        z.t = consts[0]->GetType();
+        z.c = ZVal(consts[0], z.t);
+    }
+
+    if ( type_arg >= 0 && ! z.t )
+        z.t = args[type_arg]->GetType();
+
+    zam->AddInst(z);
 
     return true;
 }
 
-bool ZAMCompiler::BuiltIn_to_lower(const NameExpr* n, const ExprPList& args) {
-    if ( ! n ) {
-        reporter->Warning("return value from built-in function ignored");
-        return true;
-    }
-
-    int nslot = Frame1Slot(n, OP1_WRITE);
-
-    if ( args[0]->Tag() == EXPR_CONST ) {
-        auto arg_c = args[0]->AsConstExpr()->Value()->AsStringVal();
-        ValPtr arg_lc = {AdoptRef{}, ZAM_to_lower(arg_c)};
-        auto arg_lce = make_intrusive<ConstExpr>(arg_lc);
-        auto z = ZInstI(OP_ASSIGN_CONST_VC, nslot, arg_lce.get());
-        z.is_managed = true;
-        AddInst(z);
-    }
-
-    else {
-        auto arg_s = args[0]->AsNameExpr();
-        AddInst(ZInstI(OP_TO_LOWER_VV, nslot, FrameSlot(arg_s)));
-    }
-
-    return true;
-}
-
-zeek_uint_t ZAMCompiler::ConstArgsMask(const ExprPList& args, int nargs) const {
-    ASSERT(args.length() == nargs);
-
+BiFArgsType MultiZBI::ComputeArgsType(const ExprPList& args) const {
     zeek_uint_t mask = 0;
 
-    for ( int i = 0; i < nargs; ++i ) {
+    for ( auto i = 0U; i < args.size(); ++i ) {
         mask <<= 1;
         if ( args[i]->Tag() == EXPR_CONST )
             mask |= 1;
     }
 
-    return mask;
+    return BiFArgsType(mask);
+}
+
+////////////////////////////////////////////////////////////////////////
+
+// To create a new built-in, add it to the following collection. We chose
+// this style with an aim to making the entries both easy to update & readable.
+// The names of the variables don't matter, so we keep them short to aid
+// readability.
+
+SimpleZBI an_ZBI{"Analyzer::__name", OP_ANALYZER_NAME_VC, OP_ANALYZER_NAME_VV};
+SimpleZBI ae_ZBI{"Files::__analyzer_enabled", OP_ANALYZER_ENABLED_VC, OP_ANALYZER_ENABLED_VV};
+SimpleZBI fan_ZBI{"Files::__analyzer_name", OP_FILE_ANALYZER_NAME_VC, OP_FILE_ANALYZER_NAME_VV};
+SimpleZBI fer_ZBI{"Files::__enable_reassembly", OP_FILES_ENABLE_REASSEMBLY_V, 1, false};
+SimpleZBI ct_ZBI{"clear_table", OP_CLEAR_TABLE_V, 1, false};
+SimpleZBI currt_ZBI{"current_time", OP_CURRENT_TIME_V, 0};
+SimpleZBI gptp_ZBI{"get_port_transport_proto", OP_GET_PORT_TRANSPORT_PROTO_VV, 1};
+SimpleZBI ipa_ZBI{"is_protocol_analyzer", OP_IS_PROTOCOL_ANALYZER_VC, OP_IS_PROTOCOL_ANALYZER_VV, true};
+SimpleZBI lc_ZBI{"lookup_connection", OP_LOOKUP_CONN_VV, 1};
+SimpleZBI nt_ZBI{"network_time", OP_NETWORK_TIME_V, 0};
+SimpleZBI sfh_ZBI{"set_file_handle", OP_SET_FILE_HANDLE_V, 1, false};
+SimpleZBI sta_ZBI{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
+SimpleZBI ttd_ZBI{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
+SimpleZBI tl_ZBI{"to_lower", OP_TO_LOWER_VV, 1};
+
+CondZBI ce_ZBI{"connection_exists", OP_CONN_EXISTS_VV, OP_CONN_EXISTS_COND_VV, 1};
+CondZBI iip_ZBI{"is_icmp_port", OP_IS_ICMP_PORT_VV, OP_IS_ICMP_PORT_COND_VV, 1};
+CondZBI itp_ZBI{"is_tcp_port", OP_IS_TCP_PORT_VV, OP_IS_TCP_PORT_COND_VV, 1};
+CondZBI iup_ZBI{"is_udp_port", OP_IS_UDP_PORT_VV, OP_IS_UDP_PORT_COND_VV, 1};
+CondZBI iv4_ZBI{"is_v4_addr", OP_IS_V4_ADDR_VV, OP_IS_V4_ADDR_COND_VV, 1};
+CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_VV, 1};
+CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_V, 0};
+CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_V, 0};
+
+// These have a different form to avoid invoking copy constructors.
+auto cat_ZBI = CatZBI();
+auto sort_ZBI = SortZBI();
+
+// For the following, clang-format makes them hard to follow compared to
+// a manual layout.
+//
+// clang-format off
+
+OptAssignZBI bfl_ZBI{ "Broker::__flush_logs",
+    OP_BROKER_FLUSH_LOGS_V, OP_BROKER_FLUSH_LOGS_X,
+    0
+};
+
+OptAssignZBI rgc_ZBI{ "PacketAnalyzer::GTPV1::remove_gtpv1_connection",
+    OP_REMOVE_GTPV1_VV, OP_REMOVE_GTPV1_V,
+    1
+};
+OptAssignZBI rtc_ZBI{ "PacketAnalyzer::TEREDO::remove_teredo_connection",
+    OP_REMOVE_TEREDO_VV, OP_REMOVE_TEREDO_V,
+    1
+};
+
+MultiZBI faa_ZBI{ "Files::__add_analyzer",
+    {{{VVV}, {OP_FILES_ADD_ANALYZER_VVV, OP_VVV}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_ViV, OP_VVC}}},
+    {{{VVV}, {OP_FILES_ADD_ANALYZER_VVVV, OP_VVVV}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_VViV, OP_VVVC}}},
+    1
+};
+
+MultiZBI fra_ZBI{ "Files::__remove_analyzer",
+    {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVV, OP_VVV}},
+     {{VCV}, {OP_FILES_REMOVE_ANALYZER_ViV, OP_VVC}}},
+    {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVVV, OP_VVVV}},
+     {{VCV}, {OP_FILES_REMOVE_ANALYZER_VViV, OP_VVVC}}},
+    1
+};
+
+MultiZBI fsrb_ZBI{ "Files::__set_reassembly_buffer",
+    {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VV, OP_VV}},
+     {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VC, OP_VV_I2}}},
+    {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVV, OP_VVV}},
+     {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVC, OP_VVV_I3}}}
+};
+
+MultiZBI lw_ZBI{ "Log::__write",
+    {{{VV}, {OP_LOG_WRITE_VV, OP_VV}},
+     {{CV}, {OP_LOG_WRITEC_V, OP_V}}},
+    {{{VV}, {OP_LOG_WRITE_VVV, OP_VVV}},
+     {{CV}, {OP_LOG_WRITEC_VV, OP_VV}}}
+};
+
+MultiZBI gccbt_ZBI{ "get_current_conn_bytes_threshold", true,
+    {{{VV}, {OP_GET_BYTES_THRESH_VVV, OP_VVV}},
+     {{VC}, {OP_GET_BYTES_THRESH_VVi, OP_VVC}}}
+};
+
+MultiZBI sccbt_ZBI{ "set_current_conn_bytes_threshold",
+    {{{VVV}, {OP_SET_BYTES_THRESH_VVV, OP_VVV}},
+     {{VVC}, {OP_SET_BYTES_THRESH_VVi, OP_VVC}},
+     {{VCV}, {OP_SET_BYTES_THRESH_ViV, OP_VVC}},
+     {{VCC}, {OP_SET_BYTES_THRESH_Vii, OP_VVC_I2}}},
+    {{{VVV}, {OP_SET_BYTES_THRESH_VVVV, OP_VVVV}},
+     {{VVC}, {OP_SET_BYTES_THRESH_VVVi, OP_VVVC}},
+     {{VCV}, {OP_SET_BYTES_THRESH_VViV, OP_VVVC}},
+     {{VCC}, {OP_SET_BYTES_THRESH_VVii, OP_VVVC_I3}}}
+};
+
+MultiZBI sw_ZBI{ "starts_with", true,
+    {{{VV}, {OP_STARTS_WITH_VVV, OP_VVV}},
+     {{VC}, {OP_STARTS_WITH_VVC, OP_VVC}},
+     {{CV}, {OP_STARTS_WITH_VCV, OP_VVC}}}
+};
+
+MultiZBI strcmp_ZBI{ "strcmp", true,
+    {{{VV}, {OP_STRCMP_VVV, OP_VVV}},
+     {{VC}, {OP_STRCMP_VVC, OP_VVC}},
+     {{CV}, {OP_STRCMP_VCV, OP_VVC}}}
+};
+
+MultiZBI strstr_ZBI{ "strstr", true,
+    {{{VV}, {OP_STRSTR_VVV, OP_VVV}},
+     {{VC}, {OP_STRSTR_VVC, OP_VVC}},
+     {{CV}, {OP_STRSTR_VCV, OP_VVC}}}
+};
+
+MultiZBI sb_ZBI{ "sub_bytes", true,
+    {{{VVV}, {OP_SUB_BYTES_VVVV, OP_VVVV}},
+     {{VVC}, {OP_SUB_BYTES_VVVi, OP_VVVC}},
+     {{VCV}, {OP_SUB_BYTES_VViV, OP_VVVC}},
+     {{VCC}, {OP_SUB_BYTES_VVii, OP_VVVC_I3}},
+     {{CVV}, {OP_SUB_BYTES_VVVC, OP_VVVC}},
+     {{CVC}, {OP_SUB_BYTES_VViC, OP_VVVC_I3}},
+     {{CCV}, {OP_SUB_BYTES_ViVC, OP_VVVC_I3}}}
+};
+
+// clang-format on
+
+////////////////////////////////////////////////////////////////////////
+
+// Helper function that extracts the underlying Func* from a CallExpr
+// node. Returns nil if it's not accessible.
+static const Func* get_func(const CallExpr* c) {
+    auto func_expr = c->Func();
+    if ( func_expr->Tag() != EXPR_NAME )
+        // An indirect call.
+        return nullptr;
+
+    auto func_val = func_expr->AsNameExpr()->Id()->GetVal();
+    if ( ! func_val )
+        // A call to a function that hasn't been defined.
+        return nullptr;
+
+    return func_val->AsFunc();
+}
+
+bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
+    // The expression e is either directly a call (in which case there's
+    // no return value), or an assignment to a call.
+    const CallExpr* c;
+
+    if ( e->Tag() == EXPR_CALL )
+        c = e->AsCallExpr();
+    else
+        c = e->GetOp2()->AsCallExpr();
+
+    auto func = get_func(c);
+    if ( ! func )
+        return false;
+
+    std::string fn = func->Name();
+
+    // It's useful to intercept any lingering calls to the script-level
+    // Log::write as well as the Log::__write BiF. When inlining there can
+    // still be script-level calls if the calling function got too big to
+    // inline them. We could do this for other script-level functions that
+    // are simply direct wrappers for BiFs, but this is only one that has
+    // turned up as significant in profiling.
+    if ( fn == "Log::write" )
+        fn = "Log::__write";
+
+    auto b = builtins.find(fn);
+    if ( b == builtins.end() )
+        return false;
+
+    const auto& bi = b->second;
+
+    const NameExpr* n = nullptr; // name to assign to, if any
+    if ( e->Tag() != EXPR_CALL )
+        n = e->GetOp1()->AsRefExpr()->GetOp1()->AsNameExpr();
+
+    if ( bi->ReturnValMatters() ) {
+        if ( ! n ) {
+            reporter->Warning("return value from built-in function ignored");
+
+            // The call is a no-op. We could return false here and have it
+            // execute (for no purpose). We can also return true, which will
+            // have the effect of just ignoring the statement.
+            return true;
+        }
+    }
+    else if ( n && ! bi->HaveBothReturnValAndNon() )
+        // Because the return value "doesn't matter", we've built the
+        // corresponding ZIB assuming we don't need a version that does
+        // the assignment. If we *do* have an assignment, let the usual
+        // call take place.
+        return false;
+
+    return bi->Build(zam, n, c->Args()->Exprs());
+}
+
+bool IsZAM_BuiltInCond(ZAMCompiler* zam, const CallExpr* c, int& branch_v) {
+    auto func = get_func(c);
+    if ( ! func )
+        return false;
+
+    auto b = builtins.find(func->Name());
+    if ( b == builtins.end() )
+        return false;
+
+    return b->second->BuildCond(zam, c->Args()->Exprs(), branch_v);
+}
+
+bool IsZAM_BuiltInCond(const CallExpr* c) {
+    int branch_v; // ignored
+    return IsZAM_BuiltInCond(nullptr, c, branch_v);
 }
 
 } // namespace zeek::detail

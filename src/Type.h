@@ -36,6 +36,7 @@ class Expr;
 class ListExpr;
 class ZAMCompiler;
 
+using ExprPtr = IntrusivePtr<Expr>;
 using ListExprPtr = IntrusivePtr<ListExpr>;
 
 // The following tracks how to initialize a given record field.
@@ -48,6 +49,10 @@ public:
 
     // Can initialization of the field be deferred?
     virtual bool IsDeferrable() const { return true; }
+
+    // Returns the expression evaluated to initialize the field, if any.
+    // (Used for script optimization.)
+    virtual ExprPtr InitExpr() const;
 };
 
 } // namespace detail

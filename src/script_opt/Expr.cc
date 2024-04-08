@@ -2,7 +2,7 @@
 
 // Optimization-related methods for Expr classes.
 
-#include "zeek/Expr.h"
+#include "zeek/script_opt/Expr.h"
 
 #include "zeek/Desc.h"
 #include "zeek/Frame.h"
@@ -11,6 +11,7 @@
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
+#include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/Inline.h"
 #include "zeek/script_opt/Reduce.h"
 
@@ -33,19 +34,14 @@ FieldExpr* Expr::AsFieldExpr() {
     return (FieldExpr*)this;
 }
 
+FieldAssignExpr* Expr::AsFieldAssignExpr() {
+    CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
+    return (FieldAssignExpr*)this;
+}
+
 IntrusivePtr<FieldAssignExpr> Expr::AsFieldAssignExprPtr() {
     CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
     return {NewRef{}, (FieldAssignExpr*)this};
-}
-
-const IndexAssignExpr* Expr::AsIndexAssignExpr() const {
-    CHECK_TAG(tag, EXPR_INDEX_ASSIGN, "ExprVal::AsIndexAssignExpr", expr_name)
-    return (const IndexAssignExpr*)this;
-}
-
-const FieldLHSAssignExpr* Expr::AsFieldLHSAssignExpr() const {
-    CHECK_TAG(tag, EXPR_FIELD_LHS_ASSIGN, "ExprVal::AsFieldLHSAssignExpr", expr_name)
-    return (const FieldLHSAssignExpr*)this;
 }
 
 HasFieldExpr* Expr::AsHasFieldExpr() {
@@ -58,11 +54,6 @@ const HasFieldExpr* Expr::AsHasFieldExpr() const {
     return (const HasFieldExpr*)this;
 }
 
-const AddToExpr* Expr::AsAddToExpr() const {
-    CHECK_TAG(tag, EXPR_ADD_TO, "ExprVal::AsAddToExpr", expr_name)
-    return (const AddToExpr*)this;
-}
-
 const IsExpr* Expr::AsIsExpr() const {
     CHECK_TAG(tag, EXPR_IS, "ExprVal::AsIsExpr", expr_name)
     return (const IsExpr*)this;
@@ -73,54 +64,9 @@ CallExpr* Expr::AsCallExpr() {
     return (CallExpr*)this;
 }
 
-FieldAssignExpr* Expr::AsFieldAssignExpr() {
-    CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
-    return (FieldAssignExpr*)this;
-}
-
-const RecordCoerceExpr* Expr::AsRecordCoerceExpr() const {
-    CHECK_TAG(tag, EXPR_RECORD_COERCE, "ExprVal::AsRecordCoerceExpr", expr_name)
-    return (const RecordCoerceExpr*)this;
-}
-
-RecordConstructorExpr* Expr::AsRecordConstructorExpr() {
-    CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
-    return (RecordConstructorExpr*)this;
-}
-
-const RecordConstructorExpr* Expr::AsRecordConstructorExpr() const {
-    CHECK_TAG(tag, EXPR_RECORD_CONSTRUCTOR, "ExprVal::AsRecordConstructorExpr", expr_name)
-    return (const RecordConstructorExpr*)this;
-}
-
-const TableConstructorExpr* Expr::AsTableConstructorExpr() const {
-    CHECK_TAG(tag, EXPR_TABLE_CONSTRUCTOR, "ExprVal::AsTableConstructorExpr", expr_name)
-    return (const TableConstructorExpr*)this;
-}
-
-const SetConstructorExpr* Expr::AsSetConstructorExpr() const {
-    CHECK_TAG(tag, EXPR_SET_CONSTRUCTOR, "ExprVal::AsSetConstructorExpr", expr_name)
-    return (const SetConstructorExpr*)this;
-}
-
 RefExpr* Expr::AsRefExpr() {
     CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
     return (RefExpr*)this;
-}
-
-const InlineExpr* Expr::AsInlineExpr() const {
-    CHECK_TAG(tag, EXPR_INLINE, "ExprVal::AsInlineExpr", expr_name)
-    return (const InlineExpr*)this;
-}
-
-AnyIndexExpr* Expr::AsAnyIndexExpr() {
-    CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)
-    return (AnyIndexExpr*)this;
-}
-
-const AnyIndexExpr* Expr::AsAnyIndexExpr() const {
-    CHECK_TAG(tag, EXPR_ANY_INDEX, "ExprVal::AsAnyIndexExpr", expr_name)
-    return (const AnyIndexExpr*)this;
 }
 
 LambdaExpr* Expr::AsLambdaExpr() {
@@ -994,7 +940,7 @@ ExprPtr ModExpr::Duplicate() {
 // nullptr, and the caller should have ensured that the starting point is
 // a disjunction (since a bare "/pat/ in var" by itself isn't a "cascade"
 // and doesn't present a potential optimization opportunity.
-static bool is_pattern_cascade(const ExprPtr& e, IDPtr& id, std::vector<ConstExprPtr>& patterns) {
+static bool is_pattern_cascade(const Expr* e, IDPtr& id, std::vector<ConstExprPtr>& patterns) {
     auto lhs = e->GetOp1();
     auto rhs = e->GetOp2();
 
@@ -1016,7 +962,7 @@ static bool is_pattern_cascade(const ExprPtr& e, IDPtr& id, std::vector<ConstExp
     if ( e->Tag() != EXPR_OR_OR )
         return false;
 
-    return is_pattern_cascade(lhs, id, patterns) && is_pattern_cascade(rhs, id, patterns);
+    return is_pattern_cascade(lhs.get(), id, patterns) && is_pattern_cascade(rhs.get(), id, patterns);
 }
 
 // Given a set of pattern constants, returns a disjunction that
@@ -1043,10 +989,7 @@ bool BoolExpr::WillTransform(Reducer* c) const { return ! IsVector(op1->GetType(
 bool BoolExpr::WillTransformInConditional(Reducer* c) const {
     IDPtr common_id;
     std::vector<ConstExprPtr> patterns;
-
-    ExprPtr e_ptr = {NewRef{}, (Expr*)this};
-
-    return tag == EXPR_OR_OR && is_pattern_cascade(e_ptr, common_id, patterns);
+    return tag == EXPR_OR_OR && is_pattern_cascade(this, common_id, patterns);
 }
 
 ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
@@ -1055,12 +998,8 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     // efficient to match.
     IDPtr common_id = nullptr;
     std::vector<ConstExprPtr> patterns;
-    if ( tag == EXPR_OR_OR && is_pattern_cascade(ThisPtr(), common_id, patterns) ) {
-        auto new_pat = build_disjunction(patterns, this);
-        auto new_id = with_location_of(make_intrusive<NameExpr>(common_id), this);
-        auto new_node = with_location_of(make_intrusive<InExpr>(new_pat, new_id), this);
-        return new_node->Reduce(c, red_stmt);
-    }
+    if ( tag == EXPR_OR_OR && is_pattern_cascade(this, common_id, patterns) )
+        return TransformToConditional(c, red_stmt);
 
     // It's either an EXPR_AND_AND or an EXPR_OR_OR.
     bool is_and = (tag == EXPR_AND_AND);
@@ -1113,6 +1052,23 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     auto cond_red = cond->ReduceToSingleton(c, red_stmt);
     return TransformMe(cond_red, c, red_stmt);
+}
+
+ExprPtr BoolExpr::TransformToConditional(Reducer* c, StmtPtr& red_stmt) {
+    // This only happens for pattern cascades.
+
+    // Here in some contexts we're re-doing work that our caller did, but
+    // these cascades are quite rare, and re-doing the work keeps the
+    // coupling simpler.
+    IDPtr common_id = nullptr;
+    std::vector<ConstExprPtr> patterns;
+    auto is_cascade = is_pattern_cascade(this, common_id, patterns);
+    ASSERT(is_cascade);
+
+    auto new_pat = build_disjunction(patterns, this);
+    auto new_id = with_location_of(make_intrusive<NameExpr>(common_id), this);
+    auto new_node = with_location_of(make_intrusive<InExpr>(new_pat, new_id), this);
+    return new_node->Reduce(c, red_stmt);
 }
 
 bool BoolExpr::IsTrue(const ExprPtr& e) const {

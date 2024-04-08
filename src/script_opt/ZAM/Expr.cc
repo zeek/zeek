@@ -835,7 +835,8 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le) {
 }
 
 const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e) {
-    auto index_assign = e->AsIndexAssignExpr();
+    ASSERT(e->Tag() == EXPR_INDEX_ASSIGN);
+    auto index_assign = static_cast<const IndexAssignExpr*>(e);
 
     auto op1 = index_assign->GetOp1();
     const auto& t1 = op1->GetType();
@@ -925,7 +926,8 @@ const ZAMStmt ZAMCompiler::AssignVecElems(const Expr* e) {
 }
 
 const ZAMStmt ZAMCompiler::AssignTableElem(const Expr* e) {
-    auto index_assign = e->AsIndexAssignExpr();
+    ASSERT(e->Tag() == EXPR_INDEX_ASSIGN);
+    auto index_assign = static_cast<const IndexAssignExpr*>(e);
 
     auto op1 = index_assign->GetOp1()->AsNameExpr();
     auto op2 = index_assign->GetOp2()->AsListExpr();
@@ -1153,7 +1155,8 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
     auto z = GenInst(OP_CONSTRUCT_TABLE_VV, n, width);
     z.aux = InternalBuildVals(con, width + 1);
     z.t = tt;
-    z.aux->attrs = e->AsTableConstructorExpr()->GetAttrs();
+    ASSERT(e->Tag() == EXPR_TABLE_CONSTRUCTOR);
+    z.aux->attrs = static_cast<const TableConstructorExpr*>(e)->GetAttrs();
 
     auto zstmt = AddInst(z);
 
@@ -1191,13 +1194,15 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
     auto z = GenInst(OP_CONSTRUCT_SET_VV, n, width);
     z.aux = InternalBuildVals(con, width);
     z.t = e->GetType();
-    z.aux->attrs = e->AsSetConstructorExpr()->GetAttrs();
+    ASSERT(e->Tag() == EXPR_SET_CONSTRUCTOR);
+    z.aux->attrs = static_cast<const SetConstructorExpr*>(e)->GetAttrs();
 
     return AddInst(z);
 }
 
 const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
-    auto rc = e->AsRecordConstructorExpr();
+    ASSERT(e->Tag() == EXPR_RECORD_CONSTRUCTOR);
+    auto rc = static_cast<const RecordConstructorExpr*>(e);
     auto rt = e->GetType()->AsRecordType();
 
     auto aux = InternalBuildVals(rc->Op().get());
@@ -1352,7 +1357,8 @@ const ZAMStmt ZAMCompiler::ArithCoerce(const NameExpr* n, const Expr* e) {
 }
 
 const ZAMStmt ZAMCompiler::RecordCoerce(const NameExpr* n, const Expr* e) {
-    auto r = e->AsRecordCoerceExpr();
+    ASSERT(e->Tag() == EXPR_RECORD_COERCE);
+    auto r = static_cast<const RecordCoerceExpr*>(e);
     auto op = r->GetOp1()->AsNameExpr();
 
     int op_slot = FrameSlot(op);

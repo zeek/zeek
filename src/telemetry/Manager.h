@@ -341,6 +341,13 @@ public:
      */
     std::string GetClusterJson() const;
 
+    /**
+     * @return The pointer to the prometheus-cpp registry used by the telemetry
+     * manager. This is public so that third parties (such as broker) can add
+     * elements to it directly.
+     */
+    std::shared_ptr<prometheus::Registry> GetRegistry() const { return prometheus_registry; }
+
 protected:
     template<class F>
     static auto WithLabelNames(Span<const LabelView> xs, F continuation) {

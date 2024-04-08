@@ -1381,12 +1381,18 @@ public:
     ExprPtr Inline(Inliner* inl) override;
 
     bool IsReduced(Reducer* c) const override;
+    bool WillTransform(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
 protected:
     void ExprDescribe(ODesc* d) const override;
+
+    bool IsFoldableBiF() const;
+    bool AllConstArgs() const;
+    bool CheckForBuiltin() const;
+    ExprPtr TransformToBuiltin();
 
     ExprPtr func;
     ListExprPtr args;

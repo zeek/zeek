@@ -151,6 +151,13 @@ bool Expr::IsReducedConditional(Reducer* c) const {
 
         case EXPR_NAME: return IsReduced(c);
 
+        case EXPR_CALL: {
+            if ( ! HasReducedOps(c) )
+                return false;
+
+            return IsZAM_BuiltInCond(static_cast<const CallExpr*>(this));
+        }
+
         case EXPR_IN: {
             auto op1 = GetOp1();
             auto op2 = GetOp2();
@@ -275,6 +282,19 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
                 return ThisPtr();
 
             return Reduce(c, red_stmt);
+
+        case EXPR_CALL: {
+            auto ce = static_cast<CallExpr*>(this);
+            red_stmt = ce->ReduceToSingletons(c);
+
+            if ( IsZAM_BuiltInCond(ce) )
+                return ThisPtr();
+
+            StmtPtr red_stmt2;
+            auto res = Reduce(c, red_stmt2);
+            red_stmt = MergeStmts(red_stmt, red_stmt2);
+            return res;
+        }
 
         case EXPR_IN: {
             // This is complicated because there are lots of forms
@@ -2069,9 +2089,14 @@ ExprPtr CallExpr::Inline(Inliner* inl) {
     return ThisPtr();
 }
 
-bool CallExpr::IsReduced(Reducer* c) const { return func->IsSingleton(c) && args->IsReduced(c); }
+bool CallExpr::IsReduced(Reducer* c) const { return func->IsSingleton(c) && args->IsReduced(c) && ! WillTransform(c); }
+
+bool CallExpr::WillTransform(Reducer* c) const { return CheckForBuiltin() || IsFoldableBiF(); }
 
 bool CallExpr::HasReducedOps(Reducer* c) const {
+    if ( WillTransform(c) )
+        return false;
+
     if ( ! func->IsSingleton(c) )
         return NonReduced(this);
 
@@ -2090,7 +2115,6 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         func = c->UpdateExpr(func);
         auto e = c->UpdateExpr(args);
         args = e->AsListExprPtr();
-        return ThisPtr();
     }
 
     red_stmt = nullptr;
@@ -2100,12 +2124,22 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     StmtPtr red2_stmt = args->ReduceToSingletons(c);
 
-    // ### could check here for (1) pure function, and (2) all
-    // arguments constants, and call it to fold right now.
-
     red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
 
-    if ( GetType()->Tag() == TYPE_VOID )
+    if ( CheckForBuiltin() ) {
+        StmtPtr red3_stmt;
+        auto res = TransformToBuiltin()->Reduce(c, red3_stmt);
+        red_stmt = MergeStmts(red_stmt, std::move(red3_stmt));
+        return res;
+    }
+
+    if ( IsFoldableBiF() ) {
+        auto res = Eval(nullptr);
+        ASSERT(res);
+        return with_location_of(make_intrusive<ConstExpr>(res), this);
+    }
+
+    if ( c->Optimizing() || GetType()->Tag() == TYPE_VOID )
         return ThisPtr();
     else
         return AssignToTemporary(c, red_stmt);
@@ -2120,6 +2154,49 @@ StmtPtr CallExpr::ReduceToSingletons(Reducer* c) {
     auto args_stmt = args->ReduceToSingletons(c);
 
     return MergeStmts(func_stmt, args_stmt);
+}
+
+bool CallExpr::IsFoldableBiF() const {
+    if ( IsAggr(type) )
+        return false;
+
+    if ( ! AllConstArgs() )
+        return false;
+
+    if ( func->Tag() != EXPR_NAME )
+        return false;
+
+    return is_foldable(func->AsNameExpr()->Id()->Name());
+}
+
+bool CallExpr::AllConstArgs() const {
+    for ( auto e : Args()->Exprs() )
+        if ( e->Tag() != EXPR_CONST )
+            return false;
+
+    return true;
+}
+
+static std::map<std::string, ScriptOptBuiltinExpr::SOBuiltInTag> known_funcs = {
+    {"id_string", ScriptOptBuiltinExpr::FUNC_ID_STRING}};
+
+bool CallExpr::CheckForBuiltin() const {
+    if ( func->Tag() != EXPR_NAME )
+        return false;
+
+    auto f_id = func->AsNameExpr()->Id();
+
+    auto kf = known_funcs.find(f_id->Name());
+    if ( kf == known_funcs.end() )
+        return false;
+
+    return true;
+}
+
+ExprPtr CallExpr::TransformToBuiltin() {
+    auto kf = known_funcs[func->AsNameExpr()->Id()->Name()];
+    CallExprPtr this_ptr = {NewRef{}, this};
+    return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(kf, this_ptr), this);
 }
 
 ExprPtr LambdaExpr::Duplicate() { return SetSucc(new LambdaExpr(this)); }

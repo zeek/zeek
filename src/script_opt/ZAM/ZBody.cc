@@ -33,6 +33,7 @@ namespace zeek::detail {
 #ifdef ENABLE_ZAM_PROFILE
 
 static std::vector<const ZAMLocInfo*> caller_locs;
+static bool profile_all = getenv("ZAM_PROFILE_ALL") != nullptr;
 
 static double compute_CPU_prof_overhead() {
     double start = util::curr_CPU_time();
@@ -123,7 +124,7 @@ void report_ZOP_profile() {
     }
 
     for ( int i = 1; i <= OP_NOP; ++i )
-        if ( ZOP_count[i] > 0 ) {
+        if ( ZOP_count[i] > 0 || profile_all ) {
             auto CPU = std::max(ZOP_CPU[i] - ZOP_count[i] * CPU_prof_overhead, 0.0);
             fprintf(analysis_options.profile_file, "%s\t%d\t%.06f\n", ZOP_name(ZOp(i)), ZOP_count[i], CPU);
         }
@@ -444,7 +445,8 @@ void ZBody::ReportExecutionProfile(ProfMap& pm) {
 
     if ( dpv[0].num_samples == 0 && prof_vecs.empty() ) {
         fprintf(analysis_options.profile_file, "%s did not execute\n", func_name.c_str());
-        return;
+        if ( ! profile_all )
+            return;
     }
 
     int total_samples = ncall + ninst;
@@ -456,7 +458,7 @@ void ZBody::ReportExecutionProfile(ProfMap& pm) {
     fprintf(analysis_options.profile_file, "%s CPU time %.06f, %" PRIu64 " memory, %d calls, %d sampled instructions\n",
             func_name.c_str(), adj_CPU_time, tot_mem, ncall, ninst);
 
-    if ( dpv[0].num_samples != 0 )
+    if ( dpv[0].num_samples != 0 || profile_all )
         ReportProfile(pm, dpv, "", {});
 
     for ( auto& pv : prof_vecs ) {

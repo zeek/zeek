@@ -128,6 +128,9 @@ protected:
     ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
     bool IsPure() const override;
 
+    bool IsMinMaxConstruct() const;
+    StmtPtr ConvertToMinMaxConstruct();
+
     StmtPtr s1;
     StmtPtr s2;
 };

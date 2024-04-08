@@ -1,3 +1,11 @@
+7.0.0-dev.108 | 2024-04-08 12:02:03 -0700
+
+  * CI: Remove commented openssl 1.1 workaround from macOS preparation script (Tim Wojtulewicz, Corelight)
+
+  * CI: Fix installation of python package on macOS (Tim Wojtulewicz, Corelight)
+
+  * fix ZAM "cat" of doubles/times to include trailing ".0" per normal BiF behavior (Vern Paxson, Corelight)
+
 7.0.0-dev.102 | 2024-04-02 08:17:08 -0700
 
   * fix ZAM "cat" of doubles/times to include trailing ".0" per normal BiF behavior (Vern Paxson, Corelight)

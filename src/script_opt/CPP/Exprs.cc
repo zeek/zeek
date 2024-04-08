@@ -576,6 +576,9 @@ string CPPCompile::GenSizeExpr(const Expr* e, GenType gt) {
     else if ( it == TYPE_INTERNAL_DOUBLE )
         gen = string("fabs__CPP(") + gen + ")";
 
+    else if ( gt == GEN_NATIVE && (t1->Tag() == TYPE_TABLE || t1->Tag() == TYPE_VECTOR) )
+        return gen + "->Size()";
+
     else
         return GenericValPtrToGT(gen + "->SizeVal()", t, gt);
 

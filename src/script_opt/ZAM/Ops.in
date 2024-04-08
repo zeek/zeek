@@ -1237,19 +1237,35 @@ macro ConstructRecordPost()
 
 op Construct-Direct-Record
 type V
-eval	auto& init_vals = z.aux->ToZValVec(frame);
+eval	auto init_vals = z.aux->ToZValVec(frame);
 	ConstructRecordPost()
 
 op Construct-Known-Record
 type V
-eval	auto& init_vals = z.aux->ToZValVecWithMap(frame);
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
+	ConstructRecordPost()
+
+op Construct-Known-Record-With-NT
+type VV
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
+	ASSERT(! init_vals[z.v2]);
+	init_vals[z.v2] = ZVal(run_state::network_time);
 	ConstructRecordPost()
 
 op Construct-Known-Record-With-Inits
 type V
-eval	auto& init_vals = z.aux->ToZValVecWithMap(frame);
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
 	for ( auto& fi : *z.aux->field_inits )
 		init_vals[fi.first] = fi.second->Generate();
+	ConstructRecordPost()
+
+op Construct-Known-Record-With-Inits-And-NT
+type VV
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
+	for ( auto& fi : *z.aux->field_inits )
+		init_vals[fi.first] = fi.second->Generate();
+	ASSERT(! init_vals[z.v2]);
+	init_vals[z.v2] = ZVal(run_state::network_time);
 	ConstructRecordPost()
 
 # Special instruction for concretizing vectors that are fields in a

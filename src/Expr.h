@@ -883,6 +883,9 @@ public:
 protected:
     void ExprDescribe(ODesc* d) const override;
 
+    bool IsMinOrMax(Reducer* c) const;
+    ExprPtr TransformToMinOrMax() const;
+
     ExprPtr op1;
     ExprPtr op2;
     ExprPtr op3;

@@ -30,35 +30,58 @@
 
 namespace zeek::detail {
 
+static double CPU_prof_overhead = 0.0;
+static double mem_prof_overhead = 0.0;
+
+// Estimates the minimum overhead for calling function "f", in seconds.
+// "n" specifies how many total calls to measure, and "navg" the number
+// of calls to average over. "f" should be a somewhat heavyweight function
+// such that a call to it amounts to at least 100s of nsecs.
+//
+// We use minimum overhead rather than average as the latter can be
+// significantly skewed by scheduling spikes and the like, whereas the
+// minimum has proven robust in practice.
+//
+// Note that the measurement itself has some overhead from calling
+// util::curr_CPU_time(), though this becomes quite minor as long as "navg"
+// isn't too small / "f" is sufficiently heavyweight.
+
+static double est_min_overhead(void (*f)(), int n, int navg) {
+    double last_t = util::curr_CPU_time();
+    double min_dt = -1.0;
+    int ncall = 0;
+
+    for ( int i = 0; i < n; ++i ) {
+        (*f)();
+        if ( ++ncall % navg == 0 ) {
+            double new_t = util::curr_CPU_time();
+            double dt = new_t - last_t;
+            if ( min_dt >= 0.0 )
+                min_dt = std::min(min_dt, dt);
+            else
+                min_dt = dt;
+            last_t = new_t;
+        }
+    }
+
+    return min_dt / navg;
+}
+
+static void get_CPU_time() { (void)util::curr_CPU_time(); }
+
+static void get_mem_time() {
+    uint64_t m2;
+    util::get_memory_usage(&m2, nullptr);
+}
+
+void estimate_ZAM_profiling_overhead() {
+    CPU_prof_overhead = est_min_overhead(get_CPU_time, 1000000, 100);
+    mem_prof_overhead = est_min_overhead(get_mem_time, 250000, 100);
+}
+
 #ifdef ENABLE_ZAM_PROFILE
 
 static std::vector<const ZAMLocInfo*> caller_locs;
-
-static double compute_CPU_prof_overhead() {
-    double start = util::curr_CPU_time();
-    double CPU = 0.0;
-    const int n = 100000;
-    for ( int i = 0; i < n; ++i )
-        CPU = std::max(CPU, util::curr_CPU_time());
-
-    return 2.0 * (CPU - start) / n;
-}
-
-static double compute_mem_prof_overhead() {
-    double start = util::curr_CPU_time();
-    uint64_t m;
-    util::get_memory_usage(&m, nullptr);
-    const int n = 20000;
-    for ( int i = 0; i < n; ++i ) {
-        uint64_t m2;
-        util::get_memory_usage(&m2, nullptr);
-    }
-
-    return 2.0 * (util::curr_CPU_time() - start) / n;
-}
-
-static double CPU_prof_overhead = compute_CPU_prof_overhead();
-static double mem_prof_overhead = compute_mem_prof_overhead();
 
 #define DO_ZAM_PROFILE                                                                                                 \
     if ( do_profile ) {                                                                                                \
@@ -93,8 +116,6 @@ static double mem_prof_overhead = compute_mem_prof_overhead();
 #define DO_ZAM_PROFILE
 #define ZAM_PROFILE_PRE_CALL
 #define ZAM_PROFILE_POST_CALL
-static double CPU_prof_overhead = 0.0;
-static double mem_prof_overhead = 0.0;
 
 #endif
 

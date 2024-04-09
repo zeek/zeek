@@ -1,3 +1,9 @@
+7.0.0-dev.111 | 2024-04-09 15:12:13 -0700
+
+  * ZAM fix for concretizing vectors in record constructors (Vern Paxson, Corelight)
+
+  * improve ZAM's estimation of profiling overheads (Vern Paxson, Corelight)
+
 7.0.0-dev.108 | 2024-04-08 12:02:03 -0700
 
   * CI: Remove commented openssl 1.1 workaround from macOS preparation script (Tim Wojtulewicz, Corelight)

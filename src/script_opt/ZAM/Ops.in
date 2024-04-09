@@ -1232,11 +1232,12 @@ eval	auto rt = cast_intrusive<RecordType>(z.t);
 	auto n = aux->n;
 	for ( auto i = 0; i < n; ++i )
 		{
-		auto v_i = r->GetField(aux->elems[i].IntVal());
+		auto ind = aux->elems[i].IntVal();
+		auto v_i = r->GetField(ind);
 		ASSERT(v_i);
 		if ( v_i->GetType<VectorType>()->IsUnspecifiedVector() )
 			{
-			const auto& t_i = rt->GetFieldType(i);
+			const auto& t_i = rt->GetFieldType(ind);
 			v_i->AsVectorVal()->Concretize(t_i->Yield());
 			}
 		}

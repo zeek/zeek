@@ -61,10 +61,14 @@ public:
     }
 
     BaseType Value() const noexcept {
-        // Use Collect() here instead of Value() to correctly handle metrics
-        // with callbacks.
-        auto metric = handle.Collect();
-        return static_cast<BaseType>(metric.gauge.value);
+        if ( has_callback ) {
+            // Use Collect() here instead of Value() to correctly handle metrics
+            // with callbacks.
+            auto metric = handle.Collect();
+            return static_cast<BaseType>(metric.gauge.value);
+        }
+
+        return handle.Value();
     }
 
     /**
@@ -81,12 +85,15 @@ protected:
     explicit BaseGauge(FamilyType* family, const prometheus::Labels& labels,
                        prometheus::CollectCallbackPtr callback = nullptr) noexcept
         : handle(family->Add(labels)), labels(labels) {
-        if ( callback )
+        if ( callback ) {
             handle.AddCollectCallback(callback);
+            has_callback = true;
+        }
     }
 
     Handle& handle;
     prometheus::Labels labels;
+    bool has_callback = false;
 };
 
 /**

@@ -127,11 +127,7 @@ struct Event {
     std::shared_ptr<glue::SpicyModule>
         spicy_module; /**< State for the Spichy module the referenced unit is defined in. */
 
-    // TODO: The following aren't set yet.
-
     // Code generation.
-    ::spicy::type::unit::item::UnitHook* spicy_hook = nullptr; /**< The generated Spicy hook. */
-    hilti::declaration::Function* hilti_raise = nullptr;       /**< The generated HILTI raise() function. */
     std::vector<ExpressionAccessor> expression_accessors; /**< One HILTI function per expression to access the value. */
 };
 

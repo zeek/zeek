@@ -2029,7 +2029,10 @@ void WhenStmt::StmtDescribe(ODesc* d) const {
             if ( c.IsDeepCopy() )
                 d->Add("copy ");
 
-            d->Add(c.Id()->Name());
+            if ( c.Id() )
+                d->Add(c.Id()->Name());
+            else
+                d->Add("<error>");
         }
         d->Add("]");
     }

@@ -1,3 +1,10 @@
+7.0.0-dev.114 | 2024-04-10 11:02:32 +0200
+
+  * Bump Spicy, including necessary changes to work with the current
+    Spicy version. (Robin Sommer, Corelight)
+
+  * Remove some unused Spicy state. (Robin Sommer, Corelight)
+
 7.0.0-dev.111 | 2024-04-09 15:12:13 -0700
 
   * ZAM fix for concretizing vectors in record constructors (Vern Paxson, Corelight)

@@ -101,35 +101,33 @@ struct SpicyModule {
     std::set<hilti::rt::filesystem::path> evts; /**< EVT files that refer to this module. */
 
     // Generated code.
-    hilti::declaration::Module* spicy_module = nullptr; /**< the ``BroHooks_*.spicy`` module. */
+    hilti::node::RetainedPtr<hilti::declaration::Module> spicy_module =
+        nullptr; /**< the ``BroHooks_*.spicy`` module. */
 };
 
 /** Representation of an event parsed from an EVT file. */
 struct Event {
     // Information parsed directly from the *.evt file.
-    hilti::rt::filesystem::path file;             /**< The path of the *.evt file we parsed this from. */
-    hilti::ID name;                               /**< The name of the event. */
-    hilti::ID path;                               /**< The hook path as specified in the evt file. */
-    hilti::type::function::Parameters parameters; /**< Event parameters specified in the evt file. */
-    std::string condition;                        /**< Condition that must be true for the event to trigger. */
-    std::vector<std::string> exprs;               /**< The argument expressions. */
-    int priority;                                 /**< Event/hook priority. */
-    hilti::Location location;                     /**< Location where event is defined. */
+    hilti::rt::filesystem::path file; /**< The path of the *.evt file we parsed this from. */
+    hilti::ID name;                   /**< The name of the event. */
+    hilti::ID path;                   /**< The hook path as specified in the evt file. */
+    std::vector<hilti::node::RetainedPtr<hilti::declaration::Parameter>>
+        parameters;                 /**< Event parameters specified in the evt file. */
+    std::string condition;          /**< Condition that must be true for the event to trigger. */
+    std::vector<std::string> exprs; /**< The argument expressions. */
+    int priority;                   /**< Event/hook priority. */
+    hilti::Location location;       /**< Location where event is defined. */
 
     // Computed information.
-    hilti::ID hook;                               /**< The name of the hook triggering the event. */
-    hilti::ID unit;                               /**< The fully qualified name of the unit type. */
-    ::spicy::type::Unit* unit_type = nullptr;     /**< The Spicy type of referenced unit. */
+    hilti::ID hook; /**< The name of the hook triggering the event. */
+    hilti::ID unit; /**< The fully qualified name of the unit type. */
+    hilti::node::RetainedPtr<::spicy::type::Unit> unit_type = nullptr; /**< The Spicy type of referenced unit. */
     hilti::ID unit_module_id;                     /**< The name of the module the referenced unit is defined in. */
     hilti::rt::filesystem::path unit_module_path; /**< The path of the module that the referenced unit is defined in. */
     std::shared_ptr<glue::SpicyModule>
         spicy_module; /**< State for the Spichy module the referenced unit is defined in. */
 
-    // TODO: The following aren't set yet.
-
     // Code generation.
-    ::spicy::type::unit::item::UnitHook* spicy_hook = nullptr; /**< The generated Spicy hook. */
-    hilti::declaration::Function* hilti_raise = nullptr;       /**< The generated HILTI raise() function. */
     std::vector<ExpressionAccessor> expression_accessors; /**< One HILTI function per expression to access the value. */
 };
 
@@ -167,7 +165,7 @@ public:
      * Returns the AST context in use. Only available once the driver has
      * initialized the glue compiler.
      */
-    auto* context() { return _driver->context()->astContext().get(); }
+    auto* context() { return _driver->context()->astContext(); }
 
     /**
      * Returns the AST builder in use. Only available once the driver has

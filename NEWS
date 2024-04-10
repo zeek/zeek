@@ -36,6 +36,9 @@ New Functionality
   might be "7.0.0-dev.114-XXX-debug". For Docker builds, the ``LOCALVERSION``
   environment variable configures the addition.
 
+- SMB2 packets containing multiple PDUs now correctly parse all of the headers,
+  instead of just the first one and ignoring the rest.
+
 Changed Functionality
 ---------------------
 

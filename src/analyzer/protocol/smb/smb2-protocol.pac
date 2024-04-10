@@ -166,6 +166,12 @@ type SMB2_PDU(is_orig: bool) = record {
 		true  -> err : SMB2_error_response(header);
 		false -> msg : SMB2_Message(header, is_orig);
 	};
+    pad        : case header.next_command of {
+        0 ->       none: empty;
+        default -> chain_pad: bytestring &length = header.next_command - header.head_length - @sizeof(message);
+    };
+} &let {
+    end_of_chain: bool = header.next_command == 0;
 };
 
 type SMB2_Message(header: SMB2_Header, is_orig: bool) = case is_orig of {

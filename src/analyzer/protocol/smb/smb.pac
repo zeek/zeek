@@ -115,7 +115,7 @@ type SMB_TCP(is_orig: bool) = record {
 	len24        : uint24;
 	body         : case message_type of {
 		# SMB/SMB2 packets are required to use NBSS session messages.
-		0       -> nbss : SMB_Protocol_Identifier(is_orig, len);
+		0       -> nbss : SMB_Protocol_Identifier(is_orig, len)[] &until($element.end_of_chain);
 
 		# TODO: support more nbss message types?
 		default -> skip : bytestring &transient &restofdata;
@@ -126,7 +126,7 @@ type SMB_TCP(is_orig: bool) = record {
 
 type SMB_Protocol_Identifier(is_orig: bool, msg_len: uint32) = record {
 	# Sort of cheating by reading this in as an integer instead of a string.
-	protocol          : uint32 &byteorder=bigendian;
+	protocol          : int32 &byteorder=bigendian;
 	smb_1_or_2        : case protocol of {
 		SMB1    -> smb1    : SMB_PDU(is_orig, msg_len);
 		SMB2    -> smb2    : SMB2_PDU(is_orig);
@@ -134,6 +134,11 @@ type SMB_Protocol_Identifier(is_orig: bool, msg_len: uint32) = record {
 		SMB3    -> smb3    : SMB2_transform_header;
 		default -> unknown : empty;
 	};
+} &let {
+    # For smb2, a packet can contain multiple PDUs. Check for the end of the chain based
+    # on the smb2 header to end the array in SMB_TCP. If smb1 or smb3, it's always
+    # the end of the chain.
+    end_of_chain: bool = (protocol == SMB2) ? smb2.end_of_chain : true;
 };
 
 %include smb1-protocol.pac

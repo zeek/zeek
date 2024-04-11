@@ -1,3 +1,7 @@
+7.0.0-dev.116 | 2024-04-11 15:26:05 -0700
+
+  * Make sure that vcpkg isn't preferred if pcap_root_dir is passed in (Tim Wojtulewicz)
+
 7.0.0-dev.114 | 2024-04-10 11:02:32 +0200
 
   * Bump Spicy, including necessary changes to work with the current

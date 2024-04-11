@@ -133,7 +133,10 @@ if (MSVC)
     # Set PCAP_ROOT_DIR to point at the installation from vcpkg. A later call
     # to FindPCAP.cmake will fill in the rest of the necessary variables.
     if (NOT PCAP_ROOT_DIR)
-        set(PCAP_ROOT_DIR ${VCPKG_INSTALLED_DIR}/x64-windows-static)
+        set(PCAP_ROOT_DIR ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})
+    else ()
+        unset(PCAP_INCLUDE_DIR CACHE)
+        unset(PCAP_LIBRARY CACHE)
     endif ()
 
     set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)

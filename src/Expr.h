@@ -40,6 +40,7 @@ enum ExprTag : int {
     EXPR_CLONE,
     EXPR_INCR,
     EXPR_DECR,
+    EXPR_POP_QUEUE,
     EXPR_NOT,
     EXPR_COMPLEMENT,
     EXPR_POSITIVE,
@@ -71,6 +72,7 @@ enum ExprTag : int {
     EXPR_INDEX,
     EXPR_FIELD,
     EXPR_HAS_FIELD,
+    EXPR_QUEUE_CONSTRUCTOR,
     EXPR_RECORD_CONSTRUCTOR,
     EXPR_TABLE_CONSTRUCTOR,
     EXPR_SET_CONSTRUCTOR,
@@ -1195,6 +1197,21 @@ protected:
 class VectorConstructorExpr final : public UnaryExpr {
 public:
     explicit VectorConstructorExpr(ListExprPtr constructor_list, TypePtr arg_type = nullptr);
+
+    ValPtr Eval(Frame* f) const override;
+
+    // Optimization-related:
+    ExprPtr Duplicate() override;
+
+    bool HasReducedOps(Reducer* c) const override;
+
+protected:
+    void ExprDescribe(ODesc* d) const override;
+};
+
+class QueueConstructorExpr final : public UnaryExpr {
+public:
+    explicit QueueConstructorExpr(ListExprPtr constructor_list, TypePtr arg_type = nullptr);
 
     ValPtr Eval(Frame* f) const override;
 

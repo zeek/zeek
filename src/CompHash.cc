@@ -270,6 +270,25 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
                     *pval = make_intrusive<PatternVal>(re);
                 } break;
 
+                case TYPE_QUEUE: {
+                    unsigned int n;
+                    hk.Read("queue-size", n);
+                    auto qt = t->AsQueueType();
+                    auto qv = make_intrusive<QueueVal>(IntrusivePtr{NewRef{}, qt});
+
+                    for ( unsigned int i = 0; i < n; ++i ) {
+                        ValPtr value;
+                        if ( ! RecoverOneVal(hk, qt->Yield().get(), &value, false, false) ) {
+                            *pval = nullptr;
+                            return false;
+                        }
+
+                        qv->Append(std::move(value));
+                    }
+
+                    *pval = std::move(qv);
+                } break;
+
                 case TYPE_RECORD: {
                     auto rt = t->AsRecordType();
                     int num_fields = rt->NumFields();
@@ -501,6 +520,21 @@ bool CompositeHash::SingleValHash(HashKey& hk, const Val* v, Type* bt, bool type
                     break;
                 }
 
+                case TYPE_QUEUE: {
+                    if ( ! EnsureTypeReserve(hk, v, bt, type_check) )
+                        return false;
+
+                    auto qv = v->AsQueueVal();
+                    auto qt = v->GetType()->AsQueueType();
+                    auto y = qt->Yield();
+
+                    hk.Write("queue-size", qv->Size());
+
+                    for ( auto& val : qv->QueueVals() )
+                        if ( ! SingleValHash(hk, val.get(), y.get(), type_check, false, false) )
+                            return false;
+                } break;
+
                 case TYPE_RECORD: {
                     auto rv = v->AsRecordVal();
                     auto rt = bt->AsRecordType();
@@ -684,6 +718,22 @@ bool CompositeHash::ReserveSingleTypeKeySize(HashKey& hk, Type* bt, const Val* v
                     // +1 in the following to include null terminators
                     hk.Reserve("pattern-string1", strlen(v->AsPattern()->PatternText()) + 1, 0);
                     hk.Reserve("pattern-string1", strlen(v->AsPattern()->AnywherePatternText()) + 1, 0);
+                    break;
+                }
+
+                case TYPE_QUEUE: {
+                    if ( ! v )
+                        return (optional && ! calc_static_size);
+
+                    hk.ReserveType<int>("queue-size");
+                    QueueVal* qv = const_cast<QueueVal*>(v->AsQueueVal());
+                    auto qt = bt->AsQueueType();
+                    auto yield = qt->Yield();
+                    for ( auto val : qv->QueueVals() ) {
+                        if ( ! ReserveSingleTypeKeySize(hk, yield.get(), val.get(), type_check, false, calc_static_size,
+                                                        false) )
+                            return false;
+                    }
                     break;
                 }
 

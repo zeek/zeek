@@ -149,6 +149,7 @@ enum class ZeekTypeTag : uint64_t {
     Opaque,
     Pattern,
     Port,
+    Queue,
     Record,
     String,
     Subnet,

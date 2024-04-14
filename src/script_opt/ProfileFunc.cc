@@ -770,6 +770,12 @@ void ProfileFuncs::TraverseValue(const ValPtr& v) {
                 TraverseValue(vv->ValAt(i));
         } break;
 
+        case TYPE_QUEUE: {
+            auto qv = cast_intrusive<QueueVal>(v);
+            for ( auto val : qv->QueueVals() )
+                TraverseValue(std::move(val));
+        } break;
+
         case TYPE_TYPE: (void)HashType(t->AsTypeType()->GetType()); break;
     }
 }
@@ -985,6 +991,11 @@ p_hash_type ProfileFuncs::HashType(const Type* t) {
         case TYPE_VECTOR:
             h = merge_p_hashes(h, p_hash("vec"));
             h = merge_p_hashes(h, HashType(t->AsVectorType()->Yield()));
+            break;
+
+        case TYPE_QUEUE:
+            h = merge_p_hashes(h, p_hash("queue"));
+            h = merge_p_hashes(h, HashType(t->AsQueueType()->Yield()));
             break;
 
         case TYPE_FILE:

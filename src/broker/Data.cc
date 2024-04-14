@@ -44,6 +44,7 @@ namespace zeek::Broker::detail {
 static bool serialized_as_vector(TypeTag tag) {
     switch ( tag ) {
         case TYPE_VECTOR:
+        case TYPE_QUEUE:
         case TYPE_RECORD:
         case TYPE_FUNC:
         case TYPE_PATTERN:
@@ -291,6 +292,21 @@ struct val_converter {
                     return nullptr;
 
                 rval->Assign(rval->Size(), std::move(item_val));
+            }
+
+            return rval;
+        }
+        else if ( type->Tag() == TYPE_QUEUE ) {
+            auto qt = type->AsQueueType();
+            auto rval = make_intrusive<QueueVal>(IntrusivePtr{NewRef{}, qt});
+
+            for ( auto& item : a ) {
+                auto item_val = data_to_val(item, qt->Yield().get());
+
+                if ( ! item_val )
+                    return nullptr;
+
+                rval->Append(std::move(item_val));
             }
 
             return rval;
@@ -620,6 +636,16 @@ struct type_checker {
 
             return true;
         }
+        else if ( type->Tag() == TYPE_QUEUE ) {
+            auto qt = type->AsQueueType();
+
+            for ( auto& item : a ) {
+                if ( ! data_type_check(item, qt->Yield().get()) )
+                    return false;
+            }
+
+            return true;
+        }
         else if ( type->Tag() == TYPE_FUNC ) {
             if ( a.size() < 1 || a.size() > 2 )
                 return false;
@@ -843,6 +869,23 @@ std::optional<broker::data> val_to_data(const Val* v) {
                 if ( ! item_val )
                     continue;
 
+                auto item = val_to_data(item_val.get());
+
+                if ( ! item )
+                    return std::nullopt;
+
+                rval.emplace_back(std::move(*item));
+            }
+
+            return {std::move(rval)};
+        }
+        case TYPE_QUEUE: {
+            auto q = v->AsQueueVal();
+            auto yield = v->GetType()->AsQueueType()->Yield();
+            broker::vector rval;
+            rval.reserve(q->Size());
+
+            for ( auto& item_val : q->QueueVals() ) {
                 auto item = val_to_data(item_val.get());
 
                 if ( ! item )

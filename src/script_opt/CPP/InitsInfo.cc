@@ -193,6 +193,12 @@ VectorConstInfo::VectorConstInfo(CPPCompile* c, ValPtr v) : CompoundItemInfo(c, 
         vals.emplace_back(ValElem(c, vv->ValAt(i)));
 }
 
+QueueConstInfo::QueueConstInfo(CPPCompile* c, ValPtr v) : CompoundItemInfo(c, v) {
+    auto qv = cast_intrusive<QueueVal>(v);
+    for ( auto& v : qv->QueueVals() )
+        vals.emplace_back(ValElem(c, v));
+}
+
 RecordConstInfo::RecordConstInfo(CPPCompile* c, ValPtr v) : CompoundItemInfo(c, v) {
     auto r = cast_intrusive<RecordVal>(v);
     auto n = r->NumFields();
@@ -407,6 +413,17 @@ VectorTypeInfo::VectorTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c
 }
 
 void VectorTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
+    ivs.emplace_back(to_string(c->TypeOffset(yield)));
+}
+
+QueueTypeInfo::QueueTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t)) {
+    yield = t->Yield();
+    auto gi = c->RegisterType(yield);
+    if ( gi )
+        init_cohort = gi->InitCohort();
+}
+
+void QueueTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
     ivs.emplace_back(to_string(c->TypeOffset(yield)));
 }
 

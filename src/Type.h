@@ -74,9 +74,10 @@ enum TypeTag {
     TYPE_FUNC,     // 17
     TYPE_FILE,     // 18
     TYPE_VECTOR,   // 19
-    TYPE_OPAQUE,   // 20
-    TYPE_TYPE,     // 21
-    TYPE_ERROR     // 22
+    TYPE_QUEUE,    // 20
+    TYPE_OPAQUE,   // 21
+    TYPE_TYPE,     // 22
+    TYPE_ERROR     // 23
 #define NUM_TYPES (int(TYPE_ERROR) + 1)
 };
 
@@ -128,6 +129,7 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept {
         case TYPE_FUNC:
         case TYPE_FILE:
         case TYPE_OPAQUE:
+        case TYPE_QUEUE:
         case TYPE_VECTOR:
         case TYPE_TYPE: return TYPE_INTERNAL_OTHER;
 
@@ -146,6 +148,7 @@ class RecordType;
 class FuncType;
 class EnumType;
 class VectorType;
+class QueueType;
 class TypeType;
 class OpaqueType;
 class FileType;
@@ -158,6 +161,7 @@ using RecordTypePtr = IntrusivePtr<RecordType>;
 using FuncTypePtr = IntrusivePtr<FuncType>;
 using EnumTypePtr = IntrusivePtr<EnumType>;
 using VectorTypePtr = IntrusivePtr<VectorType>;
+using QueueTypePtr = IntrusivePtr<QueueType>;
 using TypeTypePtr = IntrusivePtr<TypeType>;
 using OpaqueTypePtr = IntrusivePtr<OpaqueType>;
 using FileTypePtr = IntrusivePtr<FileType>;
@@ -225,6 +229,9 @@ public:
 
     const VectorType* AsVectorType() const;
     VectorType* AsVectorType();
+
+    const QueueType* AsQueueType() const;
+    QueueType* AsQueueType();
 
     const OpaqueType* AsOpaqueType() const;
     OpaqueType* AsOpaqueType();
@@ -878,9 +885,30 @@ public:
 
     int MatchesIndex(detail::ListExpr* index) const override;
 
-    // Returns true if this table type is "unspecified", which is what one
+    // Returns true if this vector type is "unspecified", which is what one
     // gets using an empty "vector()" constructor.
     bool IsUnspecifiedVector() const;
+
+    void DescribeReST(ODesc* d, bool roles_only = false) const override;
+
+    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+
+protected:
+    void DoDescribe(ODesc* d) const override;
+
+    TypePtr yield_type;
+};
+
+class QueueType final : public Type {
+public:
+    explicit QueueType(TypePtr t);
+    TypePtr ShallowClone() override;
+
+    const TypePtr& Yield() const override;
+
+    // Returns true if this queue type is "unspecified", which is what one
+    // gets using an empty "list()" constructor.
+    bool IsUnspecifiedQueue() const;
 
     void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
@@ -988,12 +1016,14 @@ inline bool IsVector(TypeTag t) { return (t == TYPE_VECTOR); }
 inline bool IsString(TypeTag t) { return (t == TYPE_STRING); }
 
 // True if the given type is an aggregate.
-inline bool IsAggr(TypeTag tag) { return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD; }
+inline bool IsAggr(TypeTag tag) {
+    return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_RECORD || tag == TYPE_QUEUE;
+}
 inline bool IsAggr(const Type* t) { return IsAggr(t->Tag()); }
 inline bool IsAggr(const TypePtr& t) { return IsAggr(t->Tag()); }
 
 // True if the given type is a container.
-inline bool IsContainer(TypeTag tag) { return tag == TYPE_VECTOR || tag == TYPE_TABLE; }
+inline bool IsContainer(TypeTag tag) { return tag == TYPE_VECTOR || tag == TYPE_TABLE || tag == TYPE_QUEUE; }
 
 // True if the given type tag corresponds to the error type.
 inline bool IsErrorType(TypeTag t) { return (t == TYPE_ERROR); }

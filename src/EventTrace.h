@@ -69,12 +69,14 @@ public:
 private:
     // Methods for tracing different types of aggregate values.
     void TraceList(const ListValPtr& lv);
+    void TraceQueue(const QueueValPtr& vv);
     void TraceRecord(const RecordValPtr& rv);
     void TraceTable(const TableValPtr& tv);
     void TraceVector(const VectorValPtr& vv);
 
     // Predicates for comparing different types of aggregates for equality.
     bool SameList(const ValTrace& vt) const;
+    bool SameQueue(const ValTrace& vt) const;
     bool SameRecord(const ValTrace& vt) const;
     bool SameTable(const ValTrace& vt) const;
     bool SameVector(const ValTrace& vt) const;
@@ -89,6 +91,7 @@ private:
 
     // Add to "deltas" the differences needed to turn a previous instance
     // of the given type of aggregate to the current instance.
+    void ComputeQueueDelta(const ValTrace* prev, DeltaVector& deltas) const;
     void ComputeRecordDelta(const ValTrace* prev, DeltaVector& deltas) const;
     void ComputeTableDelta(const ValTrace* prev, DeltaVector& deltas) const;
     void ComputeVectorDelta(const ValTrace* prev, DeltaVector& deltas) const;
@@ -233,6 +236,14 @@ private:
 class DeltaVectorCreate : public ValDelta {
 public:
     DeltaVectorCreate(const ValTrace* _vt) : ValDelta(_vt) {}
+
+    std::string Generate(ValTraceMgr* vtm) const override;
+};
+
+// Captures the notion of replacing a queue wholesale.
+class DeltaQueueCreate : public ValDelta {
+public:
+    DeltaQueueCreate(const ValTrace* _vt) : ValDelta(_vt) {}
 
     std::string Generate(ValTraceMgr* vtm) const override;
 };

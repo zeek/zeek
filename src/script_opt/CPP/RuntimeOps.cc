@@ -254,9 +254,15 @@ RecordValPtr record_constructor__CPP(vector<ValPtr> vals, RecordTypePtr t) {
     for ( auto i = 0u; i < n; ++i ) {
         auto& v_i = vals[i];
 
-        if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR && v_i->AsVectorVal()->Size() == 0 ) {
-            const auto& t_ind = t->GetFieldType(i);
-            v_i->AsVectorVal()->Concretize(t_ind->Yield());
+        if ( v_i ) {
+            if ( v_i->GetType()->Tag() == TYPE_VECTOR && v_i->AsVectorVal()->Size() == 0 ) {
+                const auto& t_ind = t->GetFieldType(i);
+                v_i->AsVectorVal()->Concretize(t_ind->Yield());
+            }
+            if ( v_i->GetType()->Tag() == TYPE_QUEUE && v_i->AsQueueVal()->Size() == 0 ) {
+                const auto& t_ind = t->GetFieldType(i);
+                v_i->AsQueueVal()->Concretize(t_ind->Yield());
+            }
         }
 
         rv->Assign(i, v_i);
@@ -273,9 +279,15 @@ RecordValPtr record_constructor_map__CPP(vector<ValPtr> vals, vector<int> map, R
         auto& v_i = vals[i];
         auto ind = map[i];
 
-        if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR && v_i->AsVectorVal()->Size() == 0 ) {
-            const auto& t_ind = t->GetFieldType(ind);
-            v_i->AsVectorVal()->Concretize(t_ind->Yield());
+        if ( v_i ) {
+            if ( v_i->GetType()->Tag() == TYPE_VECTOR && v_i->AsVectorVal()->Size() == 0 ) {
+                const auto& t_ind = t->GetFieldType(ind);
+                v_i->AsVectorVal()->Concretize(t_ind->Yield());
+            }
+            else if ( v_i->GetType()->Tag() == TYPE_QUEUE && v_i->AsQueueVal()->Size() == 0 ) {
+                const auto& t_ind = t->GetFieldType(ind);
+                v_i->AsQueueVal()->Concretize(t_ind->Yield());
+            }
         }
 
         rv->Assign(ind, v_i);

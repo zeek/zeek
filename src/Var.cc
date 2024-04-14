@@ -126,6 +126,9 @@ static ExprPtr initialize_var(const IDPtr& id, InitClass c, ExprPtr init) {
                 }
             }
 
+            else if ( t->Tag() == TYPE_QUEUE )
+                init_val = make_intrusive<QueueVal>(cast_intrusive<QueueType>(t));
+
             else if ( t->Tag() == TYPE_TABLE )
                 init_val = make_intrusive<TableVal>(cast_intrusive<TableType>(t), id->GetAttrs());
 

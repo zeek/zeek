@@ -27,6 +27,7 @@ bool CPPCompile::IsNativeType(const TypePtr& t) const {
         case TYPE_FUNC:
         case TYPE_OPAQUE:
         case TYPE_PATTERN:
+        case TYPE_QUEUE:
         case TYPE_RECORD:
         case TYPE_STRING:
         case TYPE_SUBNET:
@@ -96,6 +97,7 @@ const char* CPPCompile::TypeTagName(TypeTag tag) {
         case TYPE_OPAQUE: return "TYPE_OPAQUE";
         case TYPE_PATTERN: return "TYPE_PATTERN";
         case TYPE_PORT: return "TYPE_PORT";
+        case TYPE_QUEUE: return "TYPE_QUEUE";
         case TYPE_RECORD: return "TYPE_RECORD";
         case TYPE_STRING: return "TYPE_STRING";
         case TYPE_SUBNET: return "TYPE_SUBNET";
@@ -127,6 +129,7 @@ const char* CPPCompile::TypeName(const TypePtr& t) {
         case TYPE_FUNC: return "FuncVal";
         case TYPE_OPAQUE: return "OpaqueVal";
         case TYPE_PATTERN: return "PatternVal";
+        case TYPE_QUEUE: return "QueueVal";
         case TYPE_RECORD: return "RecordVal";
         case TYPE_STRING: return "StringVal";
         case TYPE_SUBNET: return "SubNetVal";
@@ -159,6 +162,7 @@ const char* CPPCompile::FullTypeName(const TypePtr& t) {
         case TYPE_FUNC: return "FuncValPtr";
         case TYPE_OPAQUE: return "OpaqueValPtr";
         case TYPE_PATTERN: return "PatternValPtr";
+        case TYPE_QUEUE: return "QueueValPtr";
         case TYPE_RECORD: return "RecordValPtr";
         case TYPE_STRING: return "StringValPtr";
         case TYPE_SUBNET: return "SubNetValPtr";
@@ -172,6 +176,7 @@ const char* CPPCompile::FullTypeName(const TypePtr& t) {
 
 const char* CPPCompile::TypeType(const TypePtr& t) {
     switch ( t->Tag() ) {
+        case TYPE_QUEUE: return "QueueType";
         case TYPE_RECORD: return "RecordType";
         case TYPE_TABLE: return "TableType";
         case TYPE_VECTOR: return "VectorType";
@@ -216,6 +221,8 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp) {
 
         case TYPE_VECTOR: gi = make_shared<VectorTypeInfo>(this, tp); break;
 
+        case TYPE_QUEUE: gi = make_shared<QueueTypeInfo>(this, tp); break;
+
         case TYPE_LIST: gi = make_shared<ListTypeInfo>(this, tp); break;
 
         case TYPE_TABLE: gi = make_shared<TableTypeInfo>(this, tp); break;
@@ -251,6 +258,7 @@ const char* CPPCompile::NativeAccessor(const TypePtr& t) {
         case TYPE_FUNC: return "->AsFuncVal()";
         case TYPE_OPAQUE: return "->AsOpaqueVal()";
         case TYPE_PATTERN: return "->AsPatternVal()";
+        case TYPE_QUEUE: return "->AsQueueVal()";
         case TYPE_RECORD: return "->AsRecordVal()";
         case TYPE_STRING: return "->AsStringVal()";
         case TYPE_SUBNET: return "->AsSubNetVal()";
@@ -283,6 +291,7 @@ const char* CPPCompile::IntrusiveVal(const TypePtr& t) {
         case TYPE_FUNC: return "FuncVal";
         case TYPE_OPAQUE: return "OpaqueVal";
         case TYPE_PATTERN: return "PatternVal";
+        case TYPE_QUEUE: return "QueueVal";
         case TYPE_RECORD: return "RecordVal";
         case TYPE_STRING: return "StringVal";
         case TYPE_SUBNET: return "SubNetVal";

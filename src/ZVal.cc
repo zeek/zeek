@@ -59,6 +59,8 @@ ZVal::ZVal(ValPtr v, const TypePtr& t) {
 
         case TYPE_VECTOR: vector_val = v.release()->AsVectorVal(); break;
 
+        case TYPE_QUEUE: queue_val = v.release()->AsQueueVal(); break;
+
         case TYPE_RECORD: record_val = v.release()->AsRecordVal(); break;
 
         case TYPE_STRING: string_val = v.release()->AsStringVal(); break;
@@ -102,6 +104,8 @@ ZVal::ZVal(const TypePtr& t) {
         case TYPE_TABLE: table_val = nullptr; break;
 
         case TYPE_VECTOR: vector_val = nullptr; break;
+
+        case TYPE_QUEUE: queue_val = nullptr; break;
 
         case TYPE_RECORD: record_val = nullptr; break;
 
@@ -164,6 +168,7 @@ ValPtr ZVal::ToVal(const TypePtr& t) const {
         case TYPE_TABLE: v = table_val; break;
         case TYPE_RECORD: v = record_val; break;
         case TYPE_VECTOR: v = vector_val; break;
+        case TYPE_QUEUE: v = queue_val; break;
         case TYPE_PATTERN: v = re_val; break;
         case TYPE_ANY: v = any_val; break;
         case TYPE_TYPE: v = type_val; break;
@@ -191,6 +196,7 @@ bool ZVal::IsManagedType(const TypePtr& t) {
         case zeek::TYPE_LIST:
         case zeek::TYPE_OPAQUE:
         case zeek::TYPE_PATTERN:
+        case zeek::TYPE_QUEUE:
         case zeek::TYPE_RECORD:
         case zeek::TYPE_STRING:
         case zeek::TYPE_SUBNET:

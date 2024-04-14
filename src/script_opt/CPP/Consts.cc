@@ -95,6 +95,8 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 
         case TYPE_VECTOR: gi = make_shared<VectorConstInfo>(this, vp); break;
 
+        case TYPE_QUEUE: gi = make_shared<QueueConstInfo>(this, vp); break;
+
         case TYPE_RECORD: gi = make_shared<RecordConstInfo>(this, vp); break;
 
         case TYPE_TABLE: gi = make_shared<TableConstInfo>(this, vp); break;

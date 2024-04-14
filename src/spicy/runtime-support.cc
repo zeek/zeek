@@ -86,6 +86,7 @@ TypePtr rt::create_base_type(ZeekTypeTag tag) {
         case ZeekTypeTag::Opaque: ztag = TYPE_OPAQUE; break;
         case ZeekTypeTag::Pattern: ztag = TYPE_PATTERN; break;
         case ZeekTypeTag::Port: ztag = TYPE_PORT; break;
+        case ZeekTypeTag::Queue: ztag = TYPE_QUEUE; break;
         case ZeekTypeTag::Record: ztag = TYPE_RECORD; break;
         case ZeekTypeTag::String: ztag = TYPE_STRING; break;
         case ZeekTypeTag::Subnet: ztag = TYPE_SUBNET; break;

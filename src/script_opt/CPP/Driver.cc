@@ -203,6 +203,7 @@ void CPPCompile::GenProlog() {
     const_info[TYPE_LIST] = CreateCompoundInitInfo("List", "ValPtr");
     const_info[TYPE_PATTERN] = CreateCompoundInitInfo("Pattern", "ValPtr");
     const_info[TYPE_VECTOR] = CreateCompoundInitInfo("Vector", "ValPtr");
+    const_info[TYPE_QUEUE] = CreateCompoundInitInfo("Queue", "ValPtr");
     const_info[TYPE_RECORD] = CreateCompoundInitInfo("Record", "ValPtr");
     const_info[TYPE_TABLE] = CreateCompoundInitInfo("Table", "ValPtr");
     const_info[TYPE_FUNC] = CreateCompoundInitInfo("Func", "ValPtr");

@@ -277,6 +277,8 @@ void CPP_TypeInits::Generate(InitsManager* im, vector<TypePtr>& ivec, int offset
 
         case TYPE_VECTOR: t = BuildVectorType(im, init_vals); break;
 
+        case TYPE_QUEUE: t = BuildQueueType(im, init_vals); break;
+
         case TYPE_LIST: t = BuildTypeList(im, init_vals, offset); break;
 
         case TYPE_TABLE: t = BuildTableType(im, init_vals, offset); break;
@@ -322,6 +324,11 @@ TypePtr CPP_TypeInits::BuildTypeType(InitsManager* im, ValElemVec& init_vals) co
 TypePtr CPP_TypeInits::BuildVectorType(InitsManager* im, ValElemVec& init_vals) const {
     auto& t = im->Types(init_vals[1]);
     return make_intrusive<VectorType>(t);
+}
+
+TypePtr CPP_TypeInits::BuildQueueType(InitsManager* im, ValElemVec& init_vals) const {
+    auto& t = im->Types(init_vals[1]);
+    return make_intrusive<QueueType>(t);
 }
 
 TypePtr CPP_TypeInits::BuildTypeList(InitsManager* im, ValElemVec& init_vals, int offset) const {

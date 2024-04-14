@@ -57,6 +57,8 @@ ValTrace::ValTrace(const ValPtr& _v) : v(_v) {
     switch ( t->Tag() ) {
         case TYPE_LIST: TraceList(cast_intrusive<ListVal>(v)); break;
 
+        case TYPE_QUEUE: TraceQueue(cast_intrusive<QueueVal>(v)); break;
+
         case TYPE_RECORD: TraceRecord(cast_intrusive<RecordVal>(v)); break;
 
         case TYPE_TABLE: TraceTable(cast_intrusive<TableVal>(v)); break;
@@ -108,6 +110,8 @@ bool ValTrace::operator==(const ValTrace& vt) const {
         case TYPE_OPAQUE: return false; // needs pointer equivalence
 
         case TYPE_LIST: return SameList(vt);
+
+        case TYPE_QUEUE: return SameQueue(vt);
 
         case TYPE_RECORD: return SameRecord(vt);
 
@@ -173,6 +177,18 @@ void ValTrace::ComputeDelta(const ValTrace* prev, DeltaVector& deltas) const {
             // via compound assignment; for now, we don't support
             // those.
             reporter->InternalError("list type seen in ValTrace::ComputeDelta");
+            break;
+
+        case TYPE_QUEUE:
+            if ( prev )
+                ComputeQueueDelta(prev, deltas);
+
+            else if ( GetType()->AsQueueType()->IsUnspecifiedQueue() )
+                // See above for empty tables/sets.
+                break;
+
+            else
+                deltas.emplace_back(std::make_unique<DeltaQueueCreate>(this));
             break;
 
         case TYPE_RECORD:
@@ -265,6 +281,11 @@ void ValTrace::TraceVector(const VectorValPtr& vv) {
     }
 }
 
+void ValTrace::TraceQueue(const QueueValPtr& qv) {
+    for ( auto v : qv->QueueVals() )
+        elems.emplace_back(std::make_shared<ValTrace>(v));
+}
+
 bool ValTrace::SameList(const ValTrace& vt) const { return SameElems(vt); }
 
 bool ValTrace::SameRecord(const ValTrace& vt) const { return SameElems(vt); }
@@ -316,6 +337,8 @@ bool ValTrace::SameTable(const ValTrace& vt) const {
 }
 
 bool ValTrace::SameVector(const ValTrace& vt) const { return SameElems(vt); }
+
+bool ValTrace::SameQueue(const ValTrace& vt) const { return SameElems(vt); }
 
 bool ValTrace::SameElems(const ValTrace& vt) const {
     auto& vt_elems = vt.elems;
@@ -496,6 +519,11 @@ void ValTrace::ComputeVectorDelta(const ValTrace* prev, DeltaVector& deltas) con
     }
 }
 
+void ValTrace::ComputeQueueDelta(const ValTrace* prev, DeltaVector& deltas) const {
+    // For now, just build it from scratch.
+    deltas.emplace_back(std::make_unique<DeltaQueueCreate>(this));
+}
+
 std::string ValDelta::Generate(ValTraceMgr* vtm) const { return "<bad ValDelta>"; }
 
 std::string DeltaReplaceValue::Generate(ValTraceMgr* vtm) const { return std::string(" = ") + vtm->ValName(new_val); }
@@ -608,6 +636,20 @@ std::string DeltaVectorCreate::Generate(ValTraceMgr* vtm) const {
     }
 
     return std::string(" = vector(") + vec + ")";
+}
+
+std::string DeltaQueueCreate::Generate(ValTraceMgr* vtm) const {
+    auto& elems = vt->GetElems();
+    std::string vec;
+
+    for ( auto& e : elems ) {
+        if ( vec.size() > 0 )
+            vec += ", ";
+
+        vec += vtm->ValName(e->GetVal());
+    }
+
+    return std::string(" = list(") + vec + ")";
 }
 
 std::string DeltaUnsupportedCreate::Generate(ValTraceMgr* vtm) const {
@@ -895,6 +937,8 @@ std::string ValTraceMgr::GenValName(const ValPtr& v) {
 
         case TYPE_INTERVAL: rep = "double_to_interval(" + std::to_string(v->AsDouble()) + ")"; break;
 
+        case TYPE_QUEUE: rep = "list()"; break;
+
         case TYPE_TABLE: rep = t->Yield() ? "table()" : "set()"; break;
 
         case TYPE_VECTOR: rep = "vector()"; break;
@@ -937,6 +981,9 @@ std::string ValTraceMgr::GenValName(const ValPtr& v) {
 
 bool ValTraceMgr::IsUnspecifiedAggregate(const ValPtr& v) const {
     auto t = v->GetType()->Tag();
+
+    if ( t == TYPE_QUEUE && v->GetType<QueueType>()->IsUnspecifiedQueue() )
+        return true;
 
     if ( t == TYPE_TABLE && v->GetType<TableType>()->IsUnspecifiedTable() )
         return true;

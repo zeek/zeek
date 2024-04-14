@@ -79,6 +79,7 @@ CONVERTERS(TYPE_RECORD, RecordVal*, Val::AsRecordVal)
 CONVERTERS(TYPE_LIST, ListVal*, Val::AsListVal)
 CONVERTERS(TYPE_STRING, StringVal*, Val::AsStringVal)
 CONVERTERS(TYPE_VECTOR, VectorVal*, Val::AsVectorVal)
+CONVERTERS(TYPE_QUEUE, QueueVal*, Val::AsQueueVal)
 CONVERTERS(TYPE_ENUM, EnumVal*, Val::AsEnumVal)
 CONVERTERS(TYPE_OPAQUE, OpaqueVal*, Val::AsOpaqueVal)
 CONVERTERS(TYPE_TYPE, TypeVal*, Val::AsTypeVal)
@@ -484,9 +485,22 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
             writer.StartArray();
 
             auto* vval = val->AsVectorVal();
-            size_t size = vval->SizeVal()->AsCount();
+            size_t size = vval->Size();
             for ( size_t i = 0; i < size; i++ )
                 BuildJSON(writer, vval->ValAt(i).get(), only_loggable, re);
+
+            writer.EndArray();
+            break;
+        }
+
+        case TYPE_QUEUE: {
+            writer.StartArray();
+
+            auto* qval = val->AsQueueVal();
+            auto y = val->GetType()->Yield();
+            size_t size = qval->Size();
+            for ( auto z : qval->Deque() )
+                BuildJSON(writer, z.ToVal(y).get(), only_loggable, re);
 
             writer.EndArray();
             break;
@@ -1155,6 +1169,26 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
             return vv;
         }
 
+        case TYPE_QUEUE: {
+            if ( ! j.IsArray() )
+                return mismatch_err();
+
+            auto qt = t->AsQueueType();
+            auto qv = make_intrusive<QueueVal>(IntrusivePtr{NewRef{}, qt});
+            for ( const auto& item : j.GetArray() ) {
+                auto v = BuildVal(item, qt->Yield(), key_func);
+                if ( ! get_if<ValPtr>(&v) )
+                    return v;
+
+                if ( ! std::get<ValPtr>(v) )
+                    continue;
+
+                qv->Append(std::move(std::get<ValPtr>(v)));
+            }
+
+            return qv;
+        }
+
         default: return util::fmt("type '%s' unsupported", type_name(t->Tag()));
     }
 }
@@ -1418,6 +1452,7 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
             find_nested_record_types(t->AsFuncType()->Yield(), found, analyzed_records);
             return;
         case TYPE_VECTOR: find_nested_record_types(t->AsVectorType()->Yield(), found, analyzed_records); return;
+        case TYPE_QUEUE: find_nested_record_types(t->AsQueueType()->Yield(), found, analyzed_records); return;
         case TYPE_TYPE: find_nested_record_types(t->AsTypeType()->GetType(), found, analyzed_records); return;
         default: return;
     }
@@ -1934,6 +1969,8 @@ ValPtr TableVal::Default(const ValPtr& index) {
         // okay because concretize_if_unspecified() correctly deals with
         // nil target types.
         detail::concretize_if_unspecified(cast_intrusive<VectorVal>(result), GetType()->Yield()->Yield());
+    else if ( rt->Tag() == TYPE_QUEUE )
+        detail::concretize_if_unspecified(cast_intrusive<QueueVal>(result), GetType()->Yield()->Yield());
 
     return result;
 }
@@ -3079,7 +3116,7 @@ VectorVal::VectorVal(VectorTypePtr t) : Val(t) {
     managed_yield = ZVal::IsManagedType(yield_type);
 }
 
-VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : VectorVal(t) {
+VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : VectorVal(std::move(t)) {
     if ( vals )
         vector_val = std::move(*vals);
 }
@@ -3580,6 +3617,247 @@ void VectorVal::ValDescribe(ODesc* d) const {
     }
 
     d->Add("]");
+}
+
+QueueVal::QueueVal(QueueTypePtr t) : Val(t) {
+    yield_type = t->Yield();
+
+    auto y_tag = yield_type->Tag();
+    any_yield = (y_tag == TYPE_VOID || y_tag == TYPE_ANY);
+    managed_yield = ZVal::IsManagedType(yield_type);
+}
+
+QueueVal::QueueVal(QueueTypePtr t, std::deque<ZVal>* vals) : QueueVal(std::move(t)) {
+    if ( vals )
+        queue_val = std::move(*vals);
+}
+
+QueueVal::~QueueVal() {
+    if ( yield_types ) {
+        for ( auto& t : *yield_types ) {
+            ASSERT(! queue_val.empty());
+            auto qv = queue_val.front();
+            ZVal::DeleteIfManaged(qv, t);
+            queue_val.pop_front();
+        }
+        delete yield_types;
+    }
+
+    else if ( managed_yield ) {
+        for ( auto& elem : queue_val )
+            ZVal::DeleteManagedType(elem);
+    }
+}
+
+ValPtr QueueVal::SizeVal() const { return val_mgr->Count(uint32_t(queue_val.size())); }
+
+bool QueueVal::CheckElementType(const TypePtr& e_type) {
+    if ( yield_types )
+        // We're already a heterogeneous vector-of-any.
+        return true;
+
+    if ( any_yield ) {
+        int n = queue_val.size();
+
+        if ( n == 0 ) {
+            // First addition to an empty list-of-any, perhaps
+            // it will be homogeneous.
+            yield_type = std::move(e_type);
+            managed_yield = ZVal::IsManagedType(yield_type);
+        }
+
+        else {
+            yield_types = new std::deque<TypePtr>();
+
+            // Since we're only now switching to the heterogeneous
+            // representation, capture the types of the existing
+            // elements.
+
+            for ( auto i = 0; i < n; ++i )
+                yield_types->push_back(yield_type);
+        }
+    }
+
+    else if ( ! same_type(e_type, yield_type, false) )
+        return false;
+
+    return true;
+}
+
+bool QueueVal::Append(ValPtr element) {
+    auto& t = element->GetType();
+
+    if ( ! CheckElementType(t) )
+        return false;
+
+    queue_val.push_back(ZVal(std::move(element), t));
+
+    if ( yield_types )
+        yield_types->push_back(std::move(t));
+
+    Modified();
+    return true;
+}
+
+ValPtr QueueVal::Front() {
+    if ( queue_val.empty() )
+        return nullptr;
+
+    auto z = queue_val.front();
+
+    if ( yield_types ) {
+        ASSERT(! yield_types->empty());
+        auto zt = yield_types->front();
+        return z.ToVal(zt);
+    }
+    else
+        return z.ToVal(yield_type);
+}
+
+ValPtr QueueVal::PopFront() {
+    auto v = Front();
+    if ( v ) {
+        queue_val.pop_front();
+        if ( yield_types )
+            yield_types->pop_front();
+    }
+
+    return v;
+}
+
+void QueueVal::Clear() {
+    if ( yield_types ) {
+        auto qt_iter = yield_types->begin();
+        for ( auto qv : queue_val ) {
+            if ( ZVal::IsManagedType(*qt_iter) )
+                ZVal::DeleteManagedType(qv);
+            ++qt_iter;
+        }
+    }
+    else if ( managed_yield ) {
+        for ( auto qv : queue_val )
+            ZVal::DeleteManagedType(qv);
+    }
+
+    queue_val.clear();
+}
+
+bool QueueVal::Concretize(const TypePtr& t) {
+    if ( ! any_yield )
+        // Could do a same_type() call here, but really this case
+        // shouldn't happen in any case.
+        return yield_type->Tag() == t->Tag();
+
+    if ( yield_types ) {
+        auto qt_iter = yield_types->begin();
+        for ( auto& qv : queue_val ) {
+            if ( (*qt_iter)->Tag() == TYPE_ANY ) {
+                ValPtr any_qv = {NewRef{}, qv.AsAny()};
+                auto& qvt = any_qv->GetType();
+                if ( qvt->Tag() != t->Tag() )
+                    return false;
+
+                qv = ZVal(any_qv, t);
+            }
+            ++qt_iter;
+        }
+    }
+    else if ( yield_type->Tag() == TYPE_ANY ) {
+        for ( auto& qv : queue_val ) {
+            ValPtr any_qv = {NewRef{}, qv.AsAny()};
+            auto& qvt = any_qv->GetType();
+            if ( qvt->Tag() != t->Tag() )
+                return false;
+
+            qv = ZVal(any_qv, t);
+        }
+    }
+    else
+        return yield_type->Tag() == t->Tag();
+
+    // If we get here, then we've been dealing with a set of "any" types.
+    // Require that this queue be treated consistently in the future.
+    type = make_intrusive<QueueType>(t);
+    yield_type = t;
+    managed_yield = ZVal::IsManagedType(yield_type);
+    delete yield_types;
+    yield_types = nullptr;
+    any_yield = false;
+
+    return true;
+}
+
+std::vector<ValPtr> QueueVal::QueueVals() const {
+    std::vector<ValPtr> vals;
+    vals.reserve(queue_val.size());
+
+    if ( yield_types ) {
+        auto q_iter = queue_val.begin();
+        auto t_iter = yield_types->begin();
+        while ( q_iter != queue_val.end() ) {
+            vals.push_back(q_iter->ToVal(*t_iter));
+            ++q_iter;
+            ++t_iter;
+        }
+    }
+    else
+        for ( auto z : queue_val )
+            vals.push_back(z.ToVal(yield_type));
+
+    return vals;
+}
+
+// ### This should be template'd.
+void detail::concretize_if_unspecified(QueueValPtr v, TypePtr t) {
+    if ( v->Size() != 0 )
+        // Concretization only applies to empty containers.
+        return;
+
+    if ( v->GetType()->Yield()->Tag() != TYPE_ANY )
+        // It's not unspecified.
+        return;
+
+    if ( ! t )
+        // "t" can be nil if the container is being assigned to an "any" value.
+        return;
+
+    if ( t->Tag() == TYPE_ANY )
+        // No need to concretize.
+        return;
+
+    v->Concretize(t);
+}
+
+unsigned int QueueVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const {
+    unsigned int fp = queue_val.size();
+
+    for ( auto qv : QueueVals() )
+        fp += qv->Footprint(analyzed_vals);
+
+    return fp;
+}
+
+ValPtr QueueVal::DoClone(CloneState* state) {
+    auto qv = make_intrusive<QueueVal>(GetType<QueueType>());
+    state->NewClone(this, qv);
+
+    for ( auto v : QueueVals() )
+        qv->Append(std::move(v));
+
+    return qv;
+}
+
+void QueueVal::ValDescribe(ODesc* d) const {
+    d->Add("{");
+
+    auto qv = QueueVals();
+    for ( auto qv_iter = qv.begin(); qv_iter != qv.end(); ++qv_iter ) {
+        if ( qv_iter != qv.begin() )
+            d->Add(", ");
+        (*qv_iter)->Describe(d);
+    }
+
+    d->Add("}");
 }
 
 ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init, const detail::Location* expr_location) {

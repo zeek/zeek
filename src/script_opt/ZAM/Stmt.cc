@@ -679,17 +679,14 @@ const ZAMStmt ZAMCompiler::CompileFor(const ForStmt* f) {
     PushNexts();
     PushBreaks();
 
-    if ( et == TYPE_TABLE )
-        return LoopOverTable(f, val);
+    switch ( et ) {
+        case TYPE_TABLE: return LoopOverTable(f, val);
+        case TYPE_VECTOR: return LoopOverVector(f, val);
+        case TYPE_QUEUE: reporter->InternalError("queue in ZAMCompiler::CompileFor");
+        case TYPE_STRING: return LoopOverString(f, val);
 
-    else if ( et == TYPE_VECTOR )
-        return LoopOverVector(f, val);
-
-    else if ( et == TYPE_STRING )
-        return LoopOverString(f, e);
-
-    else
-        reporter->InternalError("bad \"for\" loop-over value when compiling");
+        default: reporter->InternalError("bad \"for\" loop-over value when compiling");
+    }
 }
 
 const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) {
@@ -956,6 +953,8 @@ const ZAMStmt ZAMCompiler::CompileInit(const InitStmt* is) {
 
         switch ( t->Tag() ) {
             case TYPE_RECORD: last = InitRecord(aggr, t->AsRecordType()); break;
+
+            case TYPE_QUEUE: reporter->InternalError("queue in ZAMCompiler::CompileInit");
 
             case TYPE_VECTOR: last = InitVector(aggr, t->AsVectorType()); break;
 

@@ -15,6 +15,7 @@ class Func;
 class ListVal;
 class OpaqueVal;
 class PatternVal;
+class QueueVal;
 class RecordVal;
 class StringVal;
 class SubNetVal;
@@ -28,6 +29,7 @@ using EnumValPtr = IntrusivePtr<EnumVal>;
 using ListValPtr = IntrusivePtr<ListVal>;
 using OpaqueValPtr = IntrusivePtr<OpaqueVal>;
 using PatternValPtr = IntrusivePtr<PatternVal>;
+using QueueValPtr = IntrusivePtr<QueueVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 using SubNetValPtr = IntrusivePtr<SubNetVal>;
@@ -74,6 +76,7 @@ union ZVal {
     ZVal(ListVal* v) { list_val = v; }
     ZVal(OpaqueVal* v) { opaque_val = v; }
     ZVal(PatternVal* v) { re_val = v; }
+    ZVal(QueueVal* v) { queue_val = v; }
     ZVal(TableVal* v) { table_val = v; }
     ZVal(RecordVal* v) { record_val = v; }
     ZVal(VectorVal* v) { vector_val = v; }
@@ -89,6 +92,7 @@ union ZVal {
     ZVal(TableValPtr v) { table_val = v.release(); }
     ZVal(RecordValPtr v) { record_val = v.release(); }
     ZVal(VectorValPtr v) { vector_val = v.release(); }
+    ZVal(QueueValPtr v) { queue_val = v.release(); }
     ZVal(TypeValPtr v) { type_val = v.release(); }
 
     // Convert to a higher-level script value.  The caller needs to
@@ -110,6 +114,7 @@ union ZVal {
     TableVal* AsTable() const { return table_val; }
     RecordVal* AsRecord() const { return record_val; }
     VectorVal* AsVector() const { return vector_val; }
+    QueueVal* AsQueue() const { return queue_val; }
     TypeVal* AsType() const { return type_val; }
     Val* AsAny() const { return any_val; }
 
@@ -132,6 +137,7 @@ union ZVal {
     TableVal*& AsTableRef() { return table_val; }
     RecordVal*& AsRecordRef() { return record_val; }
     VectorVal*& AsVectorRef() { return vector_val; }
+    QueueVal*& AsQueueRef() { return queue_val; }
     TypeVal*& AsTypeRef() { return type_val; }
     Val*& AsAnyRef() { return any_val; }
     Obj*& ManagedValRef() { return managed_val; }
@@ -158,6 +164,7 @@ union ZVal {
     static void SetZValNilStatusAddr(bool* _zval_was_nil_addr) { zval_was_nil_addr = _zval_was_nil_addr; }
 
 private:
+    friend class QueueVal;
     friend class RecordVal;
     friend class VectorVal;
     friend class zeek::detail::ZBody;
@@ -186,6 +193,7 @@ private:
     TableVal* table_val;
     RecordVal* record_val;
     VectorVal* vector_val;
+    QueueVal* queue_val;
     TypeVal* type_val;
 
     // Used for "any" values.

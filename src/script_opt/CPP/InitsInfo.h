@@ -426,6 +426,11 @@ public:
     VectorConstInfo(CPPCompile* c, ValPtr v);
 };
 
+class QueueConstInfo : public CompoundItemInfo {
+public:
+    QueueConstInfo(CPPCompile* c, ValPtr v);
+};
+
 class RecordConstInfo : public CompoundItemInfo {
 public:
     RecordConstInfo(CPPCompile* c, ValPtr v);
@@ -570,6 +575,16 @@ private:
 class VectorTypeInfo : public AbstractTypeInfo {
 public:
     VectorTypeInfo(CPPCompile* c, TypePtr _t);
+
+    void AddInitializerVals(std::vector<std::string>& ivs) const override;
+
+private:
+    TypePtr yield;
+};
+
+class QueueTypeInfo : public AbstractTypeInfo {
+public:
+    QueueTypeInfo(CPPCompile* c, TypePtr _t);
 
     void AddInitializerVals(std::vector<std::string>& ivs) const override;
 

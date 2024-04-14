@@ -42,6 +42,7 @@ extern OpaqueTypePtr opaque_of_data_type;
 extern OpaqueTypePtr opaque_of_set_iterator;
 extern OpaqueTypePtr opaque_of_table_iterator;
 extern OpaqueTypePtr opaque_of_vector_iterator;
+extern OpaqueTypePtr opaque_of_queue_iterator;
 extern OpaqueTypePtr opaque_of_record_iterator;
 
 /**
@@ -163,8 +164,13 @@ struct type_name_getter {
     result_type operator()(const broker::table&) { return "table"; }
 
     result_type operator()(const broker::vector&) {
-        assert(tag == zeek::TYPE_VECTOR || tag == zeek::TYPE_RECORD);
-        return tag == zeek::TYPE_VECTOR ? "vector" : "record";
+        assert(tag == zeek::TYPE_VECTOR || tag == zeek::TYPE_RECORD || tag == zeek::TYPE_QUEUE);
+        if ( tag == zeek::TYPE_VECTOR )
+            return "vector";
+        else if ( tag == zeek::TYPE_RECORD )
+            return "record";
+        else
+            return "list";
     }
 
     zeek::TypeTag tag;
@@ -255,6 +261,22 @@ protected:
     VectorIterator() : zeek::OpaqueVal(opaque_of_vector_iterator) {}
 
     DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::VectorIterator)
+};
+
+class QueueIterator : public zeek::OpaqueVal {
+public:
+    QueueIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
+        : zeek::OpaqueVal(opaque_of_vector_iterator),
+          dat(require_data_type<broker::vector>(v, zeek::TYPE_QUEUE, f)),
+          it(dat.begin()) {}
+
+    broker::vector dat;
+    broker::vector::iterator it;
+
+protected:
+    QueueIterator() : zeek::OpaqueVal(opaque_of_queue_iterator) {}
+
+    DECLARE_OPAQUE_VALUE_DATA(zeek::Broker::detail::QueueIterator)
 };
 
 class RecordIterator : public zeek::OpaqueVal {

@@ -36,6 +36,7 @@ const char* expr_name(ExprTag t) {
         "(*)",
         "++",
         "--",
+        "--", // pop queue
         "!",
         "~",
         "+",
@@ -67,6 +68,7 @@ const char* expr_name(ExprTag t) {
         "[]",
         "$",
         "?$",
+        "list()",
         "[=]",
         "table()",
         "set()",
@@ -412,7 +414,7 @@ bool NameExpr::CanDel() const {
     if ( IsError() )
         return true; // avoid cascading the error report
 
-    return GetType()->Tag() == TYPE_TABLE || GetType()->Tag() == TYPE_VECTOR;
+    return IsContainer(GetType()->Tag());
 }
 
 void NameExpr::Delete(Frame* f) {
@@ -421,6 +423,8 @@ void NameExpr::Delete(Frame* f) {
             v->AsTableVal()->RemoveAll();
         else if ( GetType()->Tag() == TYPE_VECTOR )
             v->AsVectorVal()->Resize(0);
+        else if ( GetType()->Tag() == TYPE_QUEUE )
+            v->AsQueueVal()->Clear();
         else
             RuntimeError("delete unsupported");
     }
@@ -1177,7 +1181,16 @@ IncrExpr::IncrExpr(ExprTag arg_tag, ExprPtr arg_op) : UnaryExpr(arg_tag, arg_op-
         return;
 
     const auto& t = op->GetType();
-    if ( ! IsIntegral(t->Tag()) )
+
+    if ( t->Tag() == TYPE_QUEUE ) {
+        if ( tag == EXPR_DECR ) {
+            SetType(t->Yield());
+            tag = EXPR_POP_QUEUE;
+        }
+        else
+            ExprError("illegal list operation");
+    }
+    else if ( ! IsIntegral(t->Tag()) )
         ExprError("requires an integral operand");
     else
         SetType(t);
@@ -1208,6 +1221,13 @@ ValPtr IncrExpr::Eval(Frame* f) const {
 
     if ( ! v )
         return nullptr;
+
+    if ( tag == EXPR_POP_QUEUE ) {
+        v = v->AsQueueVal()->PopFront();
+        if ( ! v )
+            reporter->ExprRuntimeWarning(this, "removal from empty list");
+        return v;
+    }
 
     auto new_v = DoSingleEval(f, v.get());
     op->Assign(f, new_v);
@@ -1432,7 +1452,7 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
     TypeTag bt1 = t1->Tag();
     TypeTag bt2 = t2->Tag();
 
-    if ( bt1 != TYPE_TABLE && bt1 != TYPE_VECTOR && bt1 != TYPE_PATTERN )
+    if ( bt1 != TYPE_TABLE && bt1 != TYPE_VECTOR && bt1 != TYPE_PATTERN && bt1 != TYPE_QUEUE )
         op1 = op1->MakeLvalue();
 
     if ( BothArithmetic(bt1, bt2) )
@@ -1488,6 +1508,11 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
             SetType(t1);
     }
 
+    else if ( bt1 == TYPE_QUEUE ) {
+        op2 = check_and_promote_expr(op2, t1->Yield());
+        SetType(t1);
+    }
+
     else
         ExprError("requires two arithmetic or two string operands");
 }
@@ -1514,6 +1539,11 @@ ValPtr AddToExpr::Eval(Frame* f) const {
 
     if ( type->Tag() == TYPE_PATTERN ) {
         v2->AddTo(v1.get(), false);
+        return v1;
+    }
+
+    if ( type->Tag() == TYPE_QUEUE ) {
+        v1->AsQueueVal()->Append(v2);
         return v1;
     }
 
@@ -2429,12 +2459,16 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice, bo
     if ( IsError() )
         return;
 
+    auto& t1 = op1->GetType();
+    auto t1y = t1->Yield();
+    auto tag1 = t1->Tag();
+
     if ( is_slice ) {
-        if ( ! IsString(op1->GetType()->Tag()) && ! IsVector(op1->GetType()->Tag()) )
+        if ( ! IsString(tag1) && ! IsVector(tag1) )
             ExprError("slice notation indexing only supported for strings and vectors currently");
     }
 
-    else if ( IsString(op1->GetType()->Tag()) ) {
+    else if ( IsString(tag1) ) {
         if ( op2->AsListExpr()->Exprs().length() != 1 )
             ExprError("invalid string index expression");
     }
@@ -2442,27 +2476,36 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice, bo
     if ( IsError() )
         return;
 
-    if ( op1->GetType()->Tag() == TYPE_TABLE ) { // Check for a table[pattern] being indexed by a string
-        const auto& table_type = op1->GetType()->AsTableType();
+    if ( tag1 == TYPE_TABLE ) { // Check for a table[pattern] being indexed by a string
+        const auto& table_type = t1->AsTableType();
         const auto& rhs_type = op2->GetType()->AsTypeList()->GetTypes();
         if ( table_type->IsPatternIndex() && table_type->Yield() && rhs_type.size() == 1 &&
              IsString(rhs_type[0]->Tag()) ) {
             is_pattern_table = true;
-            SetType(make_intrusive<VectorType>(op1->GetType()->Yield()));
+            SetType(make_intrusive<VectorType>(t1y));
             return;
         }
     }
 
-    int match_type = op1->GetType()->MatchesIndex(op2->AsListExpr());
+    if ( tag1 == TYPE_QUEUE ) {
+        auto& op2_e = op2->AsListExpr()->Exprs();
+        if ( op2_e.size() == 1 && op2_e[0]->IsZero() )
+            SetType(t1y);
+        else
+            ExprError("can only index a list with [0]");
+        return;
+    }
+
+    int match_type = t1->MatchesIndex(op2->AsListExpr());
 
     if ( match_type == DOES_NOT_MATCH_INDEX ) {
         std::string error_msg =
-            util::fmt("expression with type '%s' is not a type that can be indexed", type_name(op1->GetType()->Tag()));
+            util::fmt("expression with type '%s' is not a type that can be indexed", type_name(tag1));
         SetError(error_msg.data());
     }
 
-    else if ( ! op1->GetType()->Yield() ) {
-        if ( IsString(op1->GetType()->Tag()) && match_type == MATCHES_INDEX_SCALAR )
+    else if ( ! t1y ) {
+        if ( IsString(tag1) && match_type == MATCHES_INDEX_SCALAR )
             SetType(base_type(TYPE_STRING));
         else
             // It's a set - so indexing it yields void.  We don't
@@ -2473,10 +2516,10 @@ IndexExpr::IndexExpr(ExprPtr arg_op1, ListExprPtr arg_op2, bool arg_is_slice, bo
     }
 
     else if ( match_type == MATCHES_INDEX_SCALAR )
-        SetType(op1->GetType()->Yield());
+        SetType(t1y);
 
     else if ( match_type == MATCHES_INDEX_VECTOR )
-        SetType(make_intrusive<VectorType>(op1->GetType()->Yield()));
+        SetType(make_intrusive<VectorType>(t1y));
 
     else
         ExprError("Unknown MatchesIndex() return value");
@@ -2609,6 +2652,15 @@ ValPtr IndexExpr::Fold(Val* v1, Val* v2) const {
 
             v = v1->AsTableVal()->FindOrDefault({NewRef{}, v2});
             break;
+
+        case TYPE_QUEUE: {
+            auto v = v1->AsQueueVal()->Front();
+            if ( v )
+                return v;
+
+            RuntimeError("list is empty");
+            return nullptr;
+        }
 
         case TYPE_STRING: return index_string(v1->AsString(), v2->AsListVal());
 
@@ -3424,6 +3476,63 @@ ValPtr VectorConstructorExpr::Eval(Frame* f) const {
 
 void VectorConstructorExpr::ExprDescribe(ODesc* d) const {
     d->Add("vector(");
+    op->Describe(d);
+    d->Add(")");
+}
+
+QueueConstructorExpr::QueueConstructorExpr(ListExprPtr constructor_list, TypePtr arg_type)
+    : UnaryExpr(EXPR_QUEUE_CONSTRUCTOR, std::move(constructor_list)) {
+    if ( IsError() )
+        return;
+
+    if ( arg_type ) {
+        if ( arg_type->Tag() != TYPE_QUEUE ) {
+            Error("bad list constructor type", arg_type.get());
+            SetError();
+            return;
+        }
+
+        SetType(std::move(arg_type));
+    }
+    else {
+        if ( op->AsListExpr()->Exprs().empty() ) {
+            SetType(make_intrusive<QueueType>(base_type(TYPE_VOID)));
+            return;
+        }
+
+        if ( auto t = maximal_type(op->AsListExpr()) )
+            SetType(make_intrusive<QueueType>(std::move(t)));
+        else {
+            SetError();
+            return;
+        }
+    }
+
+    if ( ! check_and_promote_exprs_to_type(op->AsListExpr(), type->AsQueueType()->Yield()) )
+        ExprError("inconsistent types in list constructor");
+}
+
+ValPtr QueueConstructorExpr::Eval(Frame* f) const {
+    if ( IsError() )
+        return nullptr;
+
+    auto q = make_intrusive<QueueVal>(GetType<QueueType>());
+    const ExprPList& exprs = op->AsListExpr()->Exprs();
+
+    loop_over_list(exprs, i) {
+        Expr* e = exprs[i];
+
+        if ( ! q->Append(e->Eval(f)) ) {
+            RuntimeError(util::fmt("type mismatch at position %d", i));
+            return nullptr;
+        }
+    }
+
+    return q;
+}
+
+void QueueConstructorExpr::ExprDescribe(ODesc* d) const {
+    d->Add("list(");
     op->Describe(d);
     d->Add(")");
 }

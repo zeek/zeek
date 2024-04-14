@@ -162,7 +162,7 @@ void ID::SetVal(ValPtr v, InitClass c) {
     }
 
     if ( type->Tag() != TYPE_TABLE && (type->Tag() != TYPE_PATTERN || c == INIT_REMOVE) &&
-         (type->Tag() != TYPE_VECTOR || c == INIT_REMOVE) ) {
+         (type->Tag() != TYPE_VECTOR || c == INIT_REMOVE) && (type->Tag() != TYPE_QUEUE || c == INIT_REMOVE) ) {
         if ( c == INIT_EXTRA )
             Error("+= initializer only applies to tables, sets, vectors and patterns", v.get());
         else

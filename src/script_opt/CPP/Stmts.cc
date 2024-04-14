@@ -421,6 +421,9 @@ void CPPCompile::GenForStmt(const ForStmt* f) {
     else if ( t == TYPE_VECTOR )
         GenForOverVector(v, value_var, loop_vars);
 
+    else if ( t == TYPE_QUEUE )
+        reporter->InternalError("queue in CPPCompile::GenForStmt");
+
     else if ( t == TYPE_STRING )
         GenForOverString(v, loop_vars);
 

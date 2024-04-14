@@ -26,6 +26,8 @@ const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e) {
             auto t = iae->GetOp1()->GetType()->Tag();
             if ( t == TYPE_VECTOR )
                 return AssignVecElems(iae);
+            if ( t == TYPE_QUEUE )
+                reporter->InternalError("queue in ZAMCompiler::CompileExpr");
 
             ASSERT(t == TYPE_TABLE);
             return AssignTableElem(iae);
@@ -113,6 +115,9 @@ const ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e) {
 
     if ( t1 == TYPE_VECTOR )
         return n2 ? AddVecToVecVV(n1, n2) : AddVecToVecVC(n1, cc);
+
+    if ( t1 == TYPE_QUEUE )
+        reporter->InternalError("queue in ZAMCompiler::CompileAddToExpr");
 
     assert(t1 == TYPE_TABLE);
 
@@ -659,6 +664,8 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
             z.SetType(n1->GetType());
             return AddInst(z);
         }
+        if ( n2tag == TYPE_QUEUE )
+            reporter->InternalError("queue in ZAMCompiler::CompileIndex");
 
         if ( n2tag == TYPE_TABLE ) {
             if ( is_pat_str_ind ) {
@@ -1189,6 +1196,8 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
         auto& field_t = rt->GetFieldType(field_ind);
         if ( field_t->Tag() == TYPE_VECTOR && field_t->Yield()->Tag() != TYPE_ANY )
             vector_fields.push_back(field_ind);
+        if ( field_t->Tag() == TYPE_QUEUE )
+            reporter->InternalError("queue in ZAMCompiler::ConstructRecord");
     }
 
     if ( vector_fields.empty() )

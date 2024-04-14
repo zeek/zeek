@@ -434,6 +434,9 @@ string CPPCompile::GenIndexExpr(const Expr* e, GenType gt) {
         }
     }
 
+    else if ( aggr_t->Tag() == TYPE_QUEUE )
+        reporter->InternalError("queue in CPPCompile::GenIndexExpr");
+
     else if ( aggr_t->Tag() == TYPE_STRING )
         gen =
             string("index_string__CPP(") + GenExpr(aggr, GEN_NATIVE) + ", {" + GenExpr(e->GetOp2(), GEN_VAL_PTR) + "})";
@@ -486,6 +489,9 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level) {
         else
             add_to_func = "vector_vec_append__CPP";
     }
+
+    else if ( t->Tag() == TYPE_QUEUE )
+        reporter->InternalError("queue in CPPCompile::GenAddToExpr");
 
     else if ( t->Tag() == TYPE_PATTERN )
         add_to_func = "re_append__CPP";

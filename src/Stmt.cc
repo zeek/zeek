@@ -1069,8 +1069,9 @@ ValPtr WhileStmt::Exec(Frame* f, StmtFlowType& flow) {
 ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR, std::move(loop_expr)) {
     loop_vars = arg_loop_vars;
     body = nullptr;
+    auto tag = e->GetType()->Tag();
 
-    if ( e->GetType()->Tag() == TYPE_TABLE ) {
+    if ( tag == TYPE_TABLE ) {
         const auto& indices = e->GetType()->AsTableType()->GetIndexTypes();
 
         if ( loop_vars->length() == 1 && (*loop_vars)[0]->IsBlank() ) {
@@ -1106,7 +1107,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
         }
     }
 
-    else if ( e->GetType()->Tag() == TYPE_VECTOR ) {
+    else if ( tag == TYPE_VECTOR ) {
         if ( loop_vars->length() != 1 ) {
             e->Error("iterating over a vector requires only a single index type");
             return;
@@ -1127,7 +1128,29 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
         }
     }
 
-    else if ( e->GetType()->Tag() == TYPE_STRING ) {
+    else if ( tag == TYPE_QUEUE ) {
+        if ( loop_vars->length() != 1 ) {
+            e->Error("iterating over a vector list only a single index type");
+            return;
+        }
+
+        const auto& lv = (*loop_vars)[0];
+        const auto& t = lv->GetType();
+        auto y = e->GetType()->AsQueueType()->Yield();
+
+        if ( lv->IsBlank() ) {
+            // nop
+        }
+        else if ( ! t )
+            add_local({NewRef{}, lv}, y, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
+
+        else if ( ! same_type(t, y) ) {
+            e->Error("iteration variable in \"for\" loop must be same type as held in the list");
+            return;
+        }
+    }
+
+    else if ( tag == TYPE_STRING ) {
         if ( loop_vars->length() != 1 ) {
             e->Error("iterating over a string requires only a single index type");
             return;
@@ -1164,6 +1187,9 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
     else if ( t->Tag() == TYPE_VECTOR )
         yield_type = t->AsVectorType()->Yield();
 
+    else if ( t->Tag() == TYPE_QUEUE )
+        yield_type = t->AsQueueType()->Yield();
+
     else {
         e->Error("key value for loops only support iteration over tables or vectors");
         return;
@@ -1189,8 +1215,9 @@ ForStmt::~ForStmt() {
 
 ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
     ValPtr ret;
+    auto tag = v->GetType()->Tag();
 
-    if ( v->GetType()->Tag() == TYPE_TABLE ) {
+    if ( tag == TYPE_TABLE ) {
         TableVal* tv = v->AsTableVal();
         const PDict<TableEntryVal>* loop_vals = tv->AsTable();
 
@@ -1227,7 +1254,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
         }
     }
 
-    else if ( v->GetType()->Tag() == TYPE_VECTOR ) {
+    else if ( tag == TYPE_VECTOR ) {
         VectorVal* vv = v->AsVectorVal();
         const auto& raw_vv = vv->RawVec();
 
@@ -1251,7 +1278,24 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
                 break;
         }
     }
-    else if ( v->GetType()->Tag() == TYPE_STRING ) {
+
+    else if ( tag == TYPE_QUEUE ) {
+        QueueVal* qv = v->AsQueueVal();
+        auto y = qv->GetType()->Yield();
+
+        for ( auto val : qv->QueueVals() ) {
+            const auto* lv = (*loop_vars)[0];
+            if ( ! lv->IsBlank() )
+                f->SetElement(lv, std::move(val));
+
+            flow = FLOW_NEXT;
+            ret = body->Exec(f, flow);
+
+            if ( flow == FLOW_BREAK || flow == FLOW_RETURN )
+                break;
+        }
+    }
+    else if ( tag == TYPE_STRING ) {
         StringVal* sval = v->AsStringVal();
 
         for ( int i = 0; i < sval->Len(); ++i ) {
@@ -1555,6 +1599,7 @@ ValPtr InitStmt::Exec(Frame* f, StmtFlowType& flow) {
         ValPtr v;
 
         switch ( t->Tag() ) {
+            case TYPE_QUEUE: v = make_intrusive<QueueVal>(cast_intrusive<QueueType>(t)); break;
             case TYPE_RECORD: v = make_intrusive<RecordVal>(cast_intrusive<RecordType>(t)); break;
             case TYPE_VECTOR: v = make_intrusive<VectorVal>(cast_intrusive<VectorType>(t)); break;
             case TYPE_TABLE: v = make_intrusive<TableVal>(cast_intrusive<TableType>(t), aggr->GetAttrs()); break;

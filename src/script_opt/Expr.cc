@@ -748,6 +748,8 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto tag = op1->GetType()->Tag();
 
     switch ( tag ) {
+        case TYPE_QUEUE: reporter->InternalError("queue in AddToExpr::Reduce"); break;
+
         case TYPE_PATTERN:
         case TYPE_TABLE:
         case TYPE_VECTOR: {
@@ -1364,14 +1366,17 @@ bool AssignExpr::IsReduced(Reducer* c) const {
 
     const auto& t1 = op1->GetType();
     const auto& t2 = op2->GetType();
+    auto tag1 = t1->Tag();
+    auto tag2 = t2->Tag();
 
-    auto lhs_is_any = t1->Tag() == TYPE_ANY;
-    auto rhs_is_any = t2->Tag() == TYPE_ANY;
+    auto lhs_is_any = tag1 == TYPE_ANY;
+    auto rhs_is_any = tag2 == TYPE_ANY;
 
     if ( lhs_is_any != rhs_is_any && op2->Tag() != EXPR_CONST )
         return NonReduced(this);
 
-    if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() && t2->Yield()->Tag() == TYPE_ANY )
+    if ( (tag1 == TYPE_VECTOR || tag2 == TYPE_QUEUE) && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
+         t2->Yield()->Tag() == TYPE_ANY )
         return NonReduced(this);
 
     if ( op1->Tag() == EXPR_REF && op2->HasConstantOps() && op2->Tag() != EXPR_TO_ANY_COERCE )
@@ -1429,9 +1434,11 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     auto& t1 = op1->GetType();
     auto& t2 = op2->GetType();
+    auto tag1 = t1->Tag();
+    auto tag2 = t2->Tag();
 
-    auto lhs_is_any = t1->Tag() == TYPE_ANY;
-    auto rhs_is_any = t2->Tag() == TYPE_ANY;
+    auto lhs_is_any = tag1 == TYPE_ANY;
+    auto rhs_is_any = tag2 == TYPE_ANY;
 
     StmtPtr rhs_reduce;
 
@@ -1452,7 +1459,9 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         op2->SetLocationInfo(op2_orig->GetLocationInfo());
     }
 
-    if ( t1->Tag() == TYPE_VECTOR && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() && t2->Yield()->Tag() == TYPE_ANY ) {
+
+    if ( (tag1 == TYPE_VECTOR || tag1 == TYPE_QUEUE) && t1->Yield()->Tag() != TYPE_ANY && t2->Yield() &&
+         t2->Yield()->Tag() == TYPE_ANY ) {
         ExprPtr red_rhs = op2->ReduceToSingleton(c, rhs_reduce);
         op2 = with_location_of(make_intrusive<CoerceFromAnyVecExpr>(red_rhs, t1), op2);
     }
@@ -1823,6 +1832,17 @@ ExprPtr VectorConstructorExpr::Duplicate() {
 }
 
 bool VectorConstructorExpr::HasReducedOps(Reducer* c) const { return Op()->HasReducedOps(c); }
+
+ExprPtr QueueConstructorExpr::Duplicate() {
+    auto op_l = op->Duplicate()->AsListExprPtr();
+
+    if ( op->AsListExpr()->Exprs().empty() )
+        return SetSucc(new QueueConstructorExpr(op_l, nullptr));
+    else
+        return SetSucc(new QueueConstructorExpr(op_l, type));
+}
+
+bool QueueConstructorExpr::HasReducedOps(Reducer* c) const { return Op()->HasReducedOps(c); }
 
 ExprPtr FieldAssignExpr::Duplicate() {
     auto op_dup = op->Duplicate();

@@ -265,6 +265,7 @@ protected:
 
     TypePtr BuildEnumType(InitsManager* im, ValElemVec& init_vals) const;
     TypePtr BuildOpaqueType(InitsManager* im, ValElemVec& init_vals) const;
+    TypePtr BuildQueueType(InitsManager* im, ValElemVec& init_vals) const;
     TypePtr BuildTypeType(InitsManager* im, ValElemVec& init_vals) const;
     TypePtr BuildVectorType(InitsManager* im, ValElemVec& init_vals) const;
     TypePtr BuildTypeList(InitsManager* im, ValElemVec& init_vals, int offset) const;

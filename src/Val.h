@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
+#include <deque>
 #include <list>
 #include <unordered_map>
 #include <variant>
@@ -89,6 +90,7 @@ class StringVal;
 class EnumVal;
 class OpaqueVal;
 class VectorVal;
+class QueueVal;
 class TableEntryVal;
 class TypeVal;
 
@@ -102,6 +104,7 @@ using StringValPtr = IntrusivePtr<StringVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;
+using QueueValPtr = IntrusivePtr<QueueVal>;
 
 class Val : public Obj {
 public:
@@ -210,6 +213,9 @@ public:
     VectorVal* AsVectorVal();
     const VectorVal* AsVectorVal() const;
 
+    QueueVal* AsQueueVal();
+    const QueueVal* AsQueueVal() const;
+
     EnumVal* AsEnumVal();
     const EnumVal* AsEnumVal() const;
 
@@ -252,6 +258,7 @@ protected:
     friend class RecordVal;
     friend class TableVal;
     friend class VectorVal;
+    friend class QueueVal;
     friend class ValManager;
     friend class TableEntryVal;
 
@@ -1069,12 +1076,14 @@ private:
 // easier in the definitions of GetFieldAs().
 template<typename T>
 struct is_zeek_val {
-    static const bool value = std::disjunction_v<
-        std::is_same<AddrVal, T>, std::is_same<BoolVal, T>, std::is_same<CountVal, T>, std::is_same<DoubleVal, T>,
-        std::is_same<EnumVal, T>, std::is_same<FileVal, T>, std::is_same<FuncVal, T>, std::is_same<IntVal, T>,
-        std::is_same<IntervalVal, T>, std::is_same<ListVal, T>, std::is_same<OpaqueVal, T>, std::is_same<PatternVal, T>,
-        std::is_same<PortVal, T>, std::is_same<RecordVal, T>, std::is_same<StringVal, T>, std::is_same<SubNetVal, T>,
-        std::is_same<TableVal, T>, std::is_same<TimeVal, T>, std::is_same<TypeVal, T>, std::is_same<VectorVal, T>>;
+    static const bool value =
+        std::disjunction_v<std::is_same<AddrVal, T>, std::is_same<BoolVal, T>, std::is_same<CountVal, T>,
+                           std::is_same<DoubleVal, T>, std::is_same<EnumVal, T>, std::is_same<FileVal, T>,
+                           std::is_same<FuncVal, T>, std::is_same<IntVal, T>, std::is_same<IntervalVal, T>,
+                           std::is_same<ListVal, T>, std::is_same<OpaqueVal, T>, std::is_same<PatternVal, T>,
+                           std::is_same<PortVal, T>, std::is_same<RecordVal, T>, std::is_same<StringVal, T>,
+                           std::is_same<SubNetVal, T>, std::is_same<TableVal, T>, std::is_same<TimeVal, T>,
+                           std::is_same<TypeVal, T>, std::is_same<VectorVal, T>, std::is_same<QueueVal, T>>;
 };
 template<typename T>
 inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
@@ -1315,6 +1324,8 @@ public:
             return record_val[field]->record_val;
         else if constexpr ( std::is_same_v<T, VectorVal> )
             return record_val[field]->vector_val;
+        else if constexpr ( std::is_same_v<T, QueueVal> )
+            return record_val[field]->queue_val;
         else if constexpr ( std::is_same_v<T, TableVal> )
             return record_val[field]->table_val->Get();
         else {
@@ -1685,6 +1696,105 @@ private:
     std::vector<TypePtr>* yield_types = nullptr;
 };
 
+class QueueVal final : public Val, public notifier::detail::Modifiable {
+public:
+    explicit QueueVal(QueueTypePtr t);
+
+    // ### Used?
+    QueueVal(QueueTypePtr t, std::deque<ZVal>* vals);
+
+    ~QueueVal() override;
+
+    ValPtr SizeVal() const override;
+
+    unsigned int Size() const { return queue_val.size(); }
+
+    notifier::detail::Modifiable* Modifiable() override { return this; }
+
+    /**
+     * Appends an element to the end of the queue.
+     * @param element  The value to append.
+     * @return  True if the element was inserted or false if the element was
+     * the wrong type.
+     */
+    bool Append(ValPtr element);
+
+    /**
+     * Returns the element at the front of the queue.
+     * @return  The element, or nil if the queue is empty.
+     */
+    ValPtr Front();
+
+    /**
+     * Removes the element at the front of the queue and returns it.
+     * @return  The element, or nil if the queue is empty.
+     */
+    ValPtr PopFront();
+
+    /**
+     * Remove all elements from the queue.
+     */
+    void Clear();
+
+    /**
+     * Ensures that the queue can be used as a "list of t". See the
+     * similar notion for VectorVal for particulars.
+     *
+     * Returns true if the object is compatible with "list of t", false if not.
+     * @param t  The yield type to concretize to.
+     * @return  True if the object is compatible with list-of-t, false if not.
+     */
+    bool Concretize(const TypePtr& t);
+
+    // A version of the queue with each value available as a ValPtr.
+    std::vector<ValPtr> QueueVals() const;
+
+    // Only intended for low-level access by internal or compiled code.
+    // ### used?
+    const std::deque<ZVal>& Deque() const { return queue_val; }
+
+    const auto& RawYieldType() const { return yield_type; }
+    const auto& RawYieldTypes() const { return yield_types; }
+
+protected:
+    void ValDescribe(ODesc* d) const override;
+
+    unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
+
+    ValPtr DoClone(CloneState* state) override;
+
+private:
+    // Just for template inferencing.
+    friend class RecordVal;
+    QueueVal* Get() { return this; }
+
+    // Check the type of the given element against our current
+    // yield type and adjust as necessary.  Returns whether the
+    // element type-checked.
+    bool CheckElementType(const TypePtr& e_type);
+
+    std::deque<ZVal> queue_val;
+
+    // For homogeneous queues (the usual case), the type of the elements.
+    // Will be TYPE_VOID for empty vectors created using "list()".
+    TypePtr yield_type;
+
+    // True if this is a list-of-any, or potentially one (which is the case
+    // for empty vectors created using "list()").
+    bool any_yield;
+
+    // True if this is a list-of-managed-types, requiring explicit memory
+    // management.
+    bool managed_yield;
+
+    // For heterogeneous queues, the individual type of each element,
+    // parallel to queue_val.  Heterogeneous queues can arise for
+    // "list of any" when disparate elements are stored in the queue.
+    //
+    // Thus, if yield_types is non-nil, then we know this is a list-of-any.
+    std::deque<TypePtr>* yield_types = nullptr;
+};
+
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name)                                                                    \
     inline ctype Val::name() const { return static_cast<const ztype*>(this)->Get(); }
 
@@ -1754,6 +1864,9 @@ extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, 
 // type to concretize it to if appropriate. *t* can be nil, in which
 // case nothing is done.
 extern void concretize_if_unspecified(VectorValPtr v, TypePtr t);
+
+// Same, for queues.
+extern void concretize_if_unspecified(QueueValPtr v, TypePtr t);
 
 } // namespace detail
 

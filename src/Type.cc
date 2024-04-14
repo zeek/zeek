@@ -54,9 +54,10 @@ const char* type_name(TypeTag t) {
         "func",     // 17
         "file",     // 18
         "vector",   // 19
-        "opaque",   // 20
-        "type",     // 21
-        "error",    // 22
+        "list",     // 20
+        "opaque",   // 21
+        "type",     // 22
+        "error",    // 23
     };
 
     if ( int(t) >= NUM_TYPES )
@@ -153,6 +154,16 @@ const VectorType* Type::AsVectorType() const {
 VectorType* Type::AsVectorType() {
     CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
     return (VectorType*)this;
+}
+
+const QueueType* Type::AsQueueType() const {
+    CHECK_TYPE_TAG(TYPE_QUEUE, "Type::AsQueueType");
+    return (const QueueType*)this;
+}
+
+QueueType* Type::AsQueueType() {
+    CHECK_TYPE_TAG(TYPE_QUEUE, "Type::AsQueueType");
+    return (QueueType*)this;
 }
 
 const OpaqueType* Type::AsOpaqueType() const {
@@ -453,6 +464,7 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname, std::u
         }
 
         case TYPE_VECTOR: return is_supported_index_type(t->AsVectorType()->Yield(), tname, seen);
+        case TYPE_QUEUE: return is_supported_index_type(t->AsQueueType()->Yield(), tname, seen);
 
         default: *tname = type_name(tag); return false;
     }
@@ -905,6 +917,9 @@ public:
         else if ( init_type->Tag() == TYPE_VECTOR )
             concretize_if_unspecified(cast_intrusive<VectorVal>(v), init_type->Yield());
 
+        else if ( init_type->Tag() == TYPE_QUEUE )
+            concretize_if_unspecified(cast_intrusive<QueueVal>(v), init_type->Yield());
+
         return ZVal(v, init_type);
     }
 
@@ -957,6 +972,18 @@ public:
 
 private:
     VectorTypePtr init_type;
+};
+
+// A record field initialization where the field is initialized to an
+// empty queue of the given type.
+class QueueFieldInit final : public FieldInit {
+public:
+    QueueFieldInit(QueueTypePtr _init_type) : init_type(std::move(_init_type)) {}
+
+    ZVal Generate() const override { return ZVal(new QueueVal(init_type)); }
+
+private:
+    QueueTypePtr init_type;
 };
 
 } // namespace detail
@@ -1095,6 +1122,9 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
 
         else if ( tag == TYPE_VECTOR )
             init = std::make_shared<detail::VectorFieldInit>(cast_intrusive<VectorType>(type));
+
+        else if ( tag == TYPE_QUEUE )
+            init = std::make_shared<detail::QueueFieldInit>(cast_intrusive<QueueType>(type));
     }
 
     deferred_inits.push_back(std::move(init));
@@ -1169,6 +1199,8 @@ static string container_type_name(const Type* ft) {
         s = "record " + ft->GetName();
     else if ( ft->Tag() == TYPE_VECTOR )
         s = "vector of " + container_type_name(ft->Yield().get());
+    else if ( ft->Tag() == TYPE_QUEUE )
+        s = "list of " + container_type_name(ft->Yield().get());
     else if ( ft->Tag() == TYPE_TABLE ) {
         if ( ft->IsSet() )
             s = "set[";
@@ -1775,6 +1807,52 @@ detail::TraversalCode VectorType::Traverse(detail::TraversalCallback* cb) const 
     HANDLE_TC_TYPE_POST(tc);
 }
 
+QueueType::QueueType(TypePtr element_type) : Type(TYPE_QUEUE), yield_type(std::move(element_type)) {}
+
+TypePtr QueueType::ShallowClone() { return make_intrusive<QueueType>(yield_type); }
+
+const TypePtr& QueueType::Yield() const {
+    // Work around the fact that we use void internally to mark a queue
+    // as being unspecified. When looking at its yield type, we need to
+    // return any as that's what other code historically expects for type
+    // comparisons.
+    if ( IsUnspecifiedQueue() )
+        return zeek::base_type(TYPE_ANY);
+
+    return yield_type;
+}
+
+bool QueueType::IsUnspecifiedQueue() const { return yield_type->Tag() == TYPE_VOID; }
+
+void QueueType::DoDescribe(ODesc* d) const {
+    if ( d->IsReadable() )
+        d->AddSP("list of");
+    else
+        d->Add(int(Tag()));
+
+    yield_type->Describe(d);
+}
+
+void QueueType::DescribeReST(ODesc* d, bool roles_only) const {
+    d->Add(util::fmt(":zeek:type:`%s` of ", type_name(Tag())));
+
+    if ( yield_type->GetName().empty() )
+        yield_type->DescribeReST(d, roles_only);
+    else
+        d->Add(util::fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
+}
+
+detail::TraversalCode QueueType::Traverse(detail::TraversalCallback* cb) const {
+    auto tc = cb->PreType(this);
+    HANDLE_TC_TYPE_PRE(tc);
+
+    tc = yield_type->Traverse(cb);
+    HANDLE_TC_TYPE_PRE(tc);
+
+    tc = cb->PostType(this);
+    HANDLE_TC_TYPE_POST(tc);
+}
+
 // Returns true if t1 is initialization-compatible with t2 (i.e., if an
 // initializer with type t1 can be used to initialize a value with type t2),
 // false otherwise.  Assumes that t1's tag is different from t2's.  Note
@@ -1921,6 +1999,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         }
 
         case TYPE_VECTOR:
+        case TYPE_QUEUE:
         case TYPE_FILE:
         case TYPE_TYPE: break;
     }
@@ -2025,6 +2104,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         }
 
         case TYPE_VECTOR:
+        case TYPE_QUEUE:
         case TYPE_FILE: result = same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names); break;
 
         case TYPE_TYPE: {
@@ -2125,6 +2205,7 @@ bool is_assignable(TypeTag t) {
         case TYPE_LIST: return true;
 
         case TYPE_VECTOR:
+        case TYPE_QUEUE:
         case TYPE_FILE:
         case TYPE_OPAQUE:
         case TYPE_TABLE:
@@ -2386,12 +2467,18 @@ TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2) {
         case TYPE_LIST: return merge_list_types(t1, t2);
 
         case TYPE_VECTOR:
+        case TYPE_QUEUE: {
             if ( ! same_type(t1->Yield(), t2->Yield()) ) {
                 t1->Error("incompatible types", t2);
                 return nullptr;
             }
 
-            return make_intrusive<VectorType>(merge_types(t1->Yield(), t2->Yield()));
+            auto mt = merge_types(t1->Yield(), t2->Yield());
+            if ( tg1 == TYPE_VECTOR )
+                return make_intrusive<VectorType>(mt);
+            else
+                return make_intrusive<QueueType>(mt);
+        }
 
         case TYPE_FILE:
             if ( ! same_type(t1->Yield(), t2->Yield()) ) {
@@ -2528,7 +2615,8 @@ TypePtr init_type(const detail::ExprPtr& init) {
         auto t = init->InitType();
 
         if ( (t->Tag() == TYPE_TABLE && cast_intrusive<TableType>(t)->IsUnspecifiedTable()) ||
-             (t->Tag() == TYPE_VECTOR && cast_intrusive<VectorType>(t)->IsUnspecifiedVector()) ) {
+             (t->Tag() == TYPE_VECTOR && cast_intrusive<VectorType>(t)->IsUnspecifiedVector()) ||
+             (t->Tag() == TYPE_QUEUE && cast_intrusive<QueueType>(t)->IsUnspecifiedQueue()) ) {
             init->Error("empty constructor in untyped initialization");
             return nullptr;
         }

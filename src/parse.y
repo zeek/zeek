@@ -866,6 +866,12 @@ expr:
 			$$ = new VectorConstructorExpr({AdoptRef{}, $3});
 			}
 
+	|	TOK_LIST '(' opt_expr_list ')'
+			{
+			set_location(@1, @4);
+			$$ = new QueueConstructorExpr({AdoptRef{}, $3});
+			}
+
 	|	expr '('
 			{
 			if ( expr_is_table_type_name($1) )
@@ -904,6 +910,10 @@ expr:
 
 				case TYPE_VECTOR:
 					$$ = new VectorConstructorExpr({AdoptRef{}, $4}, ctor_type);
+					break;
+
+				case TYPE_QUEUE:
+					$$ = new QueueConstructorExpr({AdoptRef{}, $4}, ctor_type);
 					break;
 
 				default:
@@ -1231,20 +1241,10 @@ type:
 				$$ = $4;
 				}
 
-	|	TOK_LIST
-				{
-				set_location(@1);
-				// $$ = new TypeList();
-				reporter->Error("list type not implemented");
-				$$ = 0;
-				}
-
 	|	TOK_LIST TOK_OF type
 				{
 				set_location(@1);
-				// $$ = new TypeList($3);
-				reporter->Error("list type not implemented");
-				$$ = 0;
+				$$ = new QueueType({AdoptRef{}, $3});
 				}
 
 	|	TOK_VECTOR TOK_OF type

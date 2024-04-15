@@ -272,7 +272,7 @@ public type LongHeaderPacket = unit {
 };
 
 # A QUIC Frame.
-public type Frame = unit(header: LongHeaderPacket, from_client: bool, inout crypto_sink: sink) {
+public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto_sink: sink&) {
   frame_type : uint8 &convert=cast<FrameType>($$);
 
   # TODO: add other FrameTypes as well
@@ -415,7 +415,7 @@ type CryptoBuffer = unit() {
 #
 # A UDP datagram contains one or more QUIC packets.
 ##############
-type Packet = unit(from_client: bool, inout context: ConnectionIDInfo&) {
+type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
   var decrypted_data: bytes;
   var full_packet: bytes;
   var start: iterator<stream>;

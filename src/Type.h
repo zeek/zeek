@@ -1012,6 +1012,9 @@ inline bool IsFunc(TypeTag t) { return (t == TYPE_FUNC); }
 // True if the given type tag is a vector.
 inline bool IsVector(TypeTag t) { return (t == TYPE_VECTOR); }
 
+// True if the given type tag is a queue.
+inline bool IsQueue(TypeTag t) { return (t == TYPE_QUEUE); }
+
 // True if the given type tag is a string.
 inline bool IsString(TypeTag t) { return (t == TYPE_STRING); }
 

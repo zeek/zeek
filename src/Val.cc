@@ -4046,16 +4046,39 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
         return static_cast<Broker::detail::DataVal*>(dv.get())->castTo(t);
     }
 
-    // Allow casting between sets and vectors if the yield types are the same.
-    if ( v->GetType()->IsSet() && IsVector(t->Tag()) ) {
+    auto v_is_set = v->GetType()->IsSet();
+    auto v_is_vector = IsVector(v->GetType()->Tag());
+    auto v_is_queue = IsQueue(v->GetType()->Tag());
+
+    if ( ! v_is_set && ! v_is_vector && ! v_is_queue )
+        return nullptr;
+
+    auto t_is_set = t->IsSet();
+    auto t_is_vector = IsVector(t->Tag());
+    auto t_is_queue = IsQueue(t->Tag());
+
+    if ( ! t_is_set && ! t_is_vector && ! t_is_queue )
+        return nullptr;
+
+    TypePtr tp{NewRef{}, t};
+    auto ts = t_is_set ? cast_intrusive<SetType>(tp) : nullptr;
+    auto tv = t_is_vector ? cast_intrusive<VectorType>(tp) : nullptr;
+    auto tq = t_is_queue ? cast_intrusive<QueueType>(tp) : nullptr;
+
+    auto s_ret = t_is_set ? make_intrusive<TableVal>(ts) : nullptr;
+    auto v_ret = t_is_vector ? make_intrusive<VectorVal>(tv) : nullptr;
+    auto q_ret = t_is_queue ? make_intrusive<QueueVal>(tq) : nullptr;
+
+    if ( v_is_set ) {
+        if ( t_is_set )
+            // It's incompatible, per earlier test.
+            return nullptr;
+
         auto set_type = v->GetType<SetType>();
         auto indices = set_type->GetIndices();
 
         if ( indices->GetTypes().size() > 1 )
             return nullptr;
-
-        auto ret_type = IntrusivePtr<VectorType>{NewRef{}, t->AsVectorType()};
-        auto ret = make_intrusive<VectorVal>(ret_type);
 
         auto* table = v->AsTable();
         auto* tval = v->AsTableVal();
@@ -4064,52 +4087,78 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
             auto k = te.GetHashKey();
             auto lv = tval->RecreateIndex(*k);
             ValPtr entry_key = lv->Length() == 1 ? lv->Idx(0) : lv;
-            ret->Assign(index, entry_key);
+
+            if ( t_is_vector )
+                v_ret->Assign(index, entry_key);
+            else
+                q_ret->Append(entry_key);
             index++;
         }
 
-        return ret;
+        if ( v_ret )
+            return v_ret;
+        return q_ret;
     }
-    else if ( IsVector(v->GetType()->Tag()) && t->IsSet() ) {
-        auto ret_type = IntrusivePtr<TableType>{NewRef{}, t->AsSetType()};
-        auto ret = make_intrusive<TableVal>(ret_type);
+
+    if ( v_is_vector ) {
+        if ( t_is_vector )
+            return nullptr;
 
         auto vv = v->AsVectorVal();
         size_t size = vv->Size();
 
         for ( size_t i = 0; i < size; i++ ) {
             auto ve = vv->ValAt(i);
-            ret->Assign(std::move(ve), nullptr);
+            if ( s_ret )
+                s_ret->Assign(std::move(ve), nullptr);
+            else
+                q_ret->Append(std::move(ve));
         }
 
-        return ret;
+        if ( s_ret )
+            return s_ret;
+        return q_ret;
     }
 
-    return nullptr;
+    ASSERT(v_is_queue);
+    if ( t_is_queue )
+        return nullptr;
+
+    for ( auto v : v->AsQueueVal()->QueueVals() ) {
+        if ( s_ret )
+            s_ret->Assign(std::move(v), nullptr);
+        else
+            v_ret->Append(std::move(v));
+    }
+
+    if ( s_ret )
+        return s_ret;
+    return v_ret;
 }
 
-static bool can_cast_set_and_vector(const Type* t1, const Type* t2) {
-    const TableType* st = nullptr;
-    const VectorType* vt = nullptr;
+static bool can_cast_canonicalized_containers(const Type* t1, const Type* t2) {
+    if ( ! IsVector(t2->Tag()) && ! IsQueue(t2->Tag()) )
+        return false;
 
-    if ( t1->IsSet() && IsVector(t2->Tag()) ) {
-        st = t1->AsSetType();
-        vt = t2->AsVectorType();
-    }
-    else if ( IsVector(t1->Tag()) && t2->IsSet() ) {
-        st = t2->AsSetType();
-        vt = t1->AsVectorType();
-    }
-
-    if ( st && vt ) {
-        auto set_indices = st->GetIndices()->GetTypes();
+    if ( t1->IsSet() ) {
+        auto set_indices = t1->AsSetType()->GetIndices()->GetTypes();
         if ( set_indices.size() > 1 )
             return false;
 
-        return same_type(set_indices[0], vt->Yield());
+        return same_type(set_indices[0], t2->Yield());
     }
 
-    return false;
+    return IsVector(t1->Tag()) && same_type(t1->Yield(), t2->Yield());
+}
+
+static bool can_cast_containers(const Type* t1, const Type* t2) {
+    if ( t2->IsSet() )
+        return can_cast_canonicalized_containers(t2, t1);
+
+    if ( IsVector(t2->Tag()) && ! t1->IsSet() )
+        return can_cast_canonicalized_containers(t2, t1);
+
+    return can_cast_canonicalized_containers(t1, t2);
 }
 
 bool can_cast_value_to_type(const Val* v, Type* t) {
@@ -4133,8 +4182,8 @@ bool can_cast_value_to_type(const Val* v, Type* t) {
         return static_cast<const Broker::detail::DataVal*>(dv.get())->canCastTo(t);
     }
 
-    // Allow casting between sets and vectors if the yield types are the same.
-    if ( can_cast_set_and_vector(v->GetType().get(), t) )
+    // Allow casting between sets/vectors/lists if the yield types are the same.
+    if ( can_cast_containers(v->GetType().get(), t) )
         return true;
 
     return false;
@@ -4155,8 +4204,8 @@ bool can_cast_value_to_type(const Type* s, Type* t) {
         // will.
         return true;
 
-    // Allow casting between sets and vectors if the yield types are the same.
-    if ( can_cast_set_and_vector(s, t) )
+    // Allow casting between sets/vectors/lists if the yield types are the same.
+    if ( can_cast_containers(s, t) )
         return true;
 
     return false;

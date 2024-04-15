@@ -715,7 +715,7 @@ public:
     AddToExpr(ExprPtr op1, ExprPtr op2);
     ValPtr Eval(Frame* f) const override;
 
-    bool IsVectorElemAppend() const { return is_vector_elem_append; }
+    bool IsVectorElemAppend() const { return is_elem_append; }
 
     // Optimization-related:
     bool IsPure() const override { return false; }
@@ -728,7 +728,7 @@ public:
 
 private:
     // Whether this operation is appending a single element to a vector.
-    bool is_vector_elem_append = false;
+    bool is_elem_append = false;
 };
 
 class RemoveFromExpr final : public BinaryExpr {

@@ -1134,6 +1134,15 @@ bool BinaryExpr::CheckForRHSList() {
         op2 = with_location_of(make_intrusive<VectorConstructorExpr>(rhs, lhs_t), op2);
     }
 
+    else if ( lhs_t->Tag() == TYPE_QUEUE ) {
+        if ( tag == EXPR_REMOVE_FROM ) {
+            ExprError("constructor list not allowed for -= operations on lists");
+            return false;
+        }
+
+        op2 = with_location_of(make_intrusive<QueueConstructorExpr>(rhs, lhs_t), op2);
+    }
+
     else {
         ExprError("invalid constructor list on RHS of assignment");
         return false;
@@ -1442,6 +1451,17 @@ static bool is_element_wise_vector_append(const TypePtr& lhs, const TypePtr& rhs
     return true;
 }
 
+// Same, but for queues. See above for logic.
+static bool is_element_wise_queue_append(const TypePtr& lhs, const TypePtr& rhs) {
+    if ( ! IsQueue(rhs->Tag()) || ! same_type(lhs, rhs) )
+        return false;
+
+    if ( lhs->Yield()->Tag() != TYPE_QUEUE )
+        return true;
+
+    return ! rhs->AsQueueType()->IsUnspecifiedQueue();
+}
+
 AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
     : BinaryExpr(EXPR_ADD_TO, std::move(arg_op1), std::move(arg_op2)) {
     if ( IsError() )
@@ -1485,7 +1505,7 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
             return;
         }
 
-        is_vector_elem_append = true;
+        is_elem_append = true;
 
         bt1 = t1->AsVectorType()->Yield()->Tag();
 
@@ -1509,6 +1529,14 @@ AddToExpr::AddToExpr(ExprPtr arg_op1, ExprPtr arg_op2)
     }
 
     else if ( bt1 == TYPE_QUEUE ) {
+        // Treat += of two lists as appending each element
+        // of the RHS to the LHS if types agree.
+        if ( is_element_wise_queue_append(t1, t2) ) {
+            SetType(t1);
+            return;
+        }
+
+        is_elem_append = true;
         op2 = check_and_promote_expr(op2, t1->Yield());
         SetType(t1);
     }
@@ -1528,11 +1556,30 @@ ValPtr AddToExpr::Eval(Frame* f) const {
     if ( ! v2 )
         return nullptr;
 
-    if ( is_vector_elem_append ) {
-        VectorVal* vv = v1->AsVectorVal();
+    if ( is_elem_append ) {
+        if ( IsVector(type->Tag()) ) {
+            VectorVal* vv = v1->AsVectorVal();
 
-        if ( ! vv->Assign(vv->Size(), v2) )
-            RuntimeError("type-checking failed in vector append");
+            if ( ! vv->Assign(vv->Size(), v2) )
+                RuntimeError("type-checking failed in vector append");
+        }
+        else {
+            ASSERT(IsQueue(type->Tag()));
+            QueueVal* qv = v1->AsQueueVal();
+
+            if ( ! qv->Append(v2) )
+                RuntimeError("type-checking failed in queue append");
+        }
+
+        return v1;
+    }
+
+    if ( type->Tag() == TYPE_QUEUE ) {
+        // This is an add-all-RHS-elements-to-LHS operation.
+        auto lhs_q = v1->AsQueueVal();
+        auto rhs_q = v2->AsQueueVal();
+        for ( auto v : rhs_q->QueueVals() )
+            lhs_q->Append(std::move(v));
 
         return v1;
     }

@@ -748,9 +748,8 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto tag = op1->GetType()->Tag();
 
     switch ( tag ) {
-        case TYPE_QUEUE: reporter->InternalError("queue in AddToExpr::Reduce"); break;
-
         case TYPE_PATTERN:
+        case TYPE_QUEUE:
         case TYPE_TABLE:
         case TYPE_VECTOR: {
             StmtPtr red_stmt1;
@@ -766,7 +765,7 @@ ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
             red_stmt = MergeStmts(red_stmt1, red_stmt2);
 
-            if ( is_vector_elem_append ) {
+            if ( is_elem_append ) {
                 auto append = with_location_of(make_intrusive<AppendToExpr>(op1->Duplicate(), op2), this);
                 auto append_stmt = with_location_of(make_intrusive<ExprStmt>(append), this);
 

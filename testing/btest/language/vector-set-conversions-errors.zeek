@@ -1,4 +1,4 @@
-# @TEST-DOC: Test error cases while converting between sets and vectorswith the 'as' keyword
+# @TEST-DOC: Test error cases while converting between sets and vectors with the 'as' keyword
 # @TEST-EXEC-FAIL: zeek -b %INPUT > out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath" btest-diff .stderr

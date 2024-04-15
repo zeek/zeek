@@ -43,6 +43,9 @@ type cr: record {
      e: vector of vector of string;
      f: vector of color;
      g: table[string] of color;
+     h: table[double, string] of table[string] of list of string;
+     i: list of list of string;
+     j: list of color;
 };
 
 event zeek_init()

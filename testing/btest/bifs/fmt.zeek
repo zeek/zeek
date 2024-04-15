@@ -10,6 +10,7 @@ event zeek_init()
 	local b = vector( 1, 2, 3);
 	local c = set( 1, 2, 3);
 	local d: table[count] of string = { [1] = "test", [2] = "bro" };
+	local e = list(1, 2, 3);
 
 	# tests with only a format string (no additional args)
 	print fmt("test");
@@ -55,6 +56,7 @@ event zeek_init()
 	print fmt("*%10s*", b);
 	print fmt("*%10s*", c);
 	print fmt("*%10s*", d);
+	print fmt("*%10s*", e);
 
 	# tests of various data types without field width
 	print fmt("%e", 3.1e+2);

@@ -63,6 +63,15 @@ event zeek_init()
 	local v3 = vector(l1, l1b);
 	print "v3", val_footprint(v3);
 
+	local list1 = list(9, 7, 3, 1);
+	print "list1", val_footprint(list1);
+
+	local list2 = list(list1, list1);
+	print "list2", val_footprint(list2);
+
+	local list3 = list(l1, l1b);
+	print "list3", val_footprint(list3);
+
 	local t1 = table([1] = 1, [2] = 4, [3] = 9);
 	# Note, table and set footprint values using count_entries=T because
 	# table indices are ListVal's, so those add their own container
@@ -91,6 +100,9 @@ event zeek_init()
 
 	local s4 = set(vector(l1b), vector(l1b), vector(l1b));
 	print "s4", val_footprint(s4);
+
+	local s5 = set(list(l1b), list(l1b), list(l1b));
+	print "s5", val_footprint(s5);
 
 	local x: X;
 	local y: Y;

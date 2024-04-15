@@ -227,6 +227,23 @@ function complex_index_types()
 		break;
 		}
 
+	# A mirror of that one but with lists.
+	local s2l: set[list of string] = { list("l1", "l2") };
+
+	add s2l[list("l3", "l4")];
+	test_case( "list index size", |s2l| == 2 );
+	test_case( "list index membership", list("l3", "l4") in s2l );
+	test_case( "list index non-membership", list("l4", "l5") !in s2l );
+
+	delete s2l[list("l1", "l2")];
+	test_case( "list index reduced size", |s2l| == 1 );
+
+	for ( li in s2l )
+		{
+		test_case( "list index iteration", to_json(li) == to_json(list("l3", "l4")) );
+		break;
+		}
+
 	local s3: set[set[string]] = { set("s1", "s2") };
 
 	add s3[set("s3", "s4")];

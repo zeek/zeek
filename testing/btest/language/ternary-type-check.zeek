@@ -44,11 +44,14 @@ function ternaries()
 	local tt: table[count] of int = { [1] = -1 };
 	local v: vector of string = { "one" };
 	local vv: vector of count = { 111 };
+	local l: list of string = { "one" };
+	local ll: list of count = { 111 };
 	print T ? s : s;
 	print T ? t : t;
 	print T ? v : v;
 	print T ? s : ss;
 	print T ? t : tt;
 	print T ? v : vv;
+	print T ? l : ll;
 	print T ? v : s;
 	}

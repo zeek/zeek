@@ -13,6 +13,7 @@ global t: table[addr] of bool;
 global t2 = { [1, 3] = F, [2, 4, 6] = T };
 global t3 = table( ["foo"] = 3, "bar" );
 global v: vector of count;
+global l: list of count;
 global p: pattern;
 global x = { };
 
@@ -25,6 +26,7 @@ function foo()
 
 c += { 2, 4 };
 v -= { 3, 5 };
+l -= { 3, 5 };
 
 s1 += s2;
 s1 -= s2;

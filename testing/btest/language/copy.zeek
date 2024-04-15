@@ -33,6 +33,7 @@ type myrec: record {
 event zeek_init()
 	{
 	local v: vector of myrec;
+	local l: list of myrec;
 	local t: table[count] of myrec;
 	local mr = myrec($a = 42);
 
@@ -46,5 +47,12 @@ event zeek_init()
 	local vc = copy(v);
 	print same_object(v, vc), same_object(vc[0], vc[1]);
 	print tc[0], tc[1], vc[0], vc[1];
+
+	l += mr;
+	l += mr;
+	local lc = copy(l);
+	print same_object(l, lc), same_object(lc[0], mr);
+	local lc0 = --lc;
+	print same_object(lc0, lc[0]), same_object(lc0, mr);
 	}
 

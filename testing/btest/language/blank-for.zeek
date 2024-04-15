@@ -1,12 +1,19 @@
-# @TEST-DOC: Some blank identifier tests iterating over vectors, tables and strings.
+# @TEST-DOC: Some blank identifier tests iterating over lists, vectors, tables and strings.
 # @TEST-EXEC: zeek -b %INPUT > output
 # @TEST-EXEC: btest-diff output
 event zeek_init()
 	{
+	local l = list(1.0, 3.0, 4.0, 9.0);
 	local vec = vector("a", "b", "c");
 	local t1 = table(["keya"] = "a", ["keyb"] = "b", ["keyc"] = "c");
 	local t2 = table(["a",1,T] = "a1a", ["b",2,F] = "b2b", ["c",3,T] = "c3c");
 	local s = "the string";
+
+	# Ignore just the value.
+	print "== list 1";
+	local nl = 0;
+	for ( _ in l )
+		print ++nl;
 
 	# Ignore just the index.
 	print "== vec 1";

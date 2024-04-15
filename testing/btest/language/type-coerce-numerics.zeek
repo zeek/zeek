@@ -23,6 +23,10 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff vectors.out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff vectors.err
 
+# @TEST-EXEC: zeek -b lists.zeek >lists.out 2>lists.err
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff lists.out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff lists.err
+
 @TEST-START-FILE first_set.zeek
 type myrecord : record {
 	ii: int &optional;
@@ -140,6 +144,47 @@ event zeek_init()
 	local d1 : vector of double = { 1, 2 };
 	local d2 : vector of double = { 3, 4 };
 	local d3 = d1 + d2;
+	print type_name(d1);
+	print type_name(d2);
+	print type_name(d3);
+	print d1;
+	print d2;
+	print d3;
+	}
+@TEST-END-FILE
+
+@TEST-START-FILE lists.zeek
+event zeek_init()
+	{
+	local c1 : list of count = { 1 , 2 };
+	local c2 : list of count = { 3 , 4 };
+	local c3 = copy(c1);
+	c3 += c2;
+	c3 += c2;
+	print type_name(c1);
+	print type_name(c2);
+	print type_name(c3);
+	print c1;
+	print c2;
+	print c3;
+
+	local i1 : list of int = { 1, 2 };
+	local i2 : list of int = { 3, 4 };
+	local i3 = copy(i1);
+	i3 += i2;
+	i3 += i2;
+	print type_name(i1);
+	print type_name(i2);
+	print type_name(i3);
+	print i1;
+	print i2;
+	print i3;
+
+	local d1 : list of double = { 1, 2 };
+	local d2 : list of double = { 3, 4 };
+	local d3 = copy(d1);
+	d3 += d2;
+	d3 += d2;
 	print type_name(d1);
 	print type_name(d2);
 	print type_name(d3);

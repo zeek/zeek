@@ -19,11 +19,29 @@ function foo(v: vector of any)
 	print "foo done";
 	}
 
+function bar(l: list of any)
+	{
+	print "in bar";
+	# List append incompatible element type
+	l += "ok";
+	# Unreachable
+	print "bar done";
+	}
+
 event zeek_init()
 	{
 	local v: vector of count;
 	v += 1;
 	foo(v);
 	# Unreachable
-	print "zeek_init done", v;
+	print "zeek_init #1 done", v;
+	}
+
+event zeek_init()
+	{
+	local l: list of count;
+	l += 1;
+	bar(l);
+	# Unreachable
+	print "zeek_init #2 done", l;
 	}

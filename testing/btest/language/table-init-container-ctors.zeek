@@ -6,6 +6,7 @@
 
 type set_yield: set[string, count];
 type vector_yield: vector of count;
+type list_yield: list of count;
 type table_yield: table[string, count] of count;
 type record_yield: record {
 	a: count;
@@ -14,6 +15,7 @@ type record_yield: record {
 
 global lone_set_ctor: set_yield = set(["foo", 1], ["bar", 2]);
 global lone_vector_ctor: vector_yield = vector(1, 2);
+global lone_list_ctor: list_yield = list(1, 2);
 global lone_table_ctor: table_yield = table(["foo", 1] = 1, ["bar", 2] = 2);
 global lone_record_ctor: record_yield = record($a=1, $b="foo");
 
@@ -25,6 +27,11 @@ global table_of_set: table[count] of set_yield = {
 global table_of_vector: table[count] of vector_yield = {
 	[13] = lone_vector_ctor,
 	 [5] = vector(3, 4),
+};
+
+global table_of_list: table[count] of list_yield = {
+	[13] = lone_list_ctor,
+	 [5] = list(3, 4),
 };
 
 global table_of_table: table[count] of table_yield = {
@@ -41,6 +48,7 @@ global table_of_record: table[count] of record_yield = {
 # for later comparisons.
 global inline_set_ctor: set_yield = set(["bah", 3], ["baz", 4]);
 global inline_vector_ctor: vector_yield = vector(3, 4);
+global inline_list_ctor: list_yield = list(3, 4);
 global inline_table_ctor: table_yield = table(["bah", 3] = 3, ["baz", 4] = 4);
 global inline_record_ctor: record_yield = record($a=2, $b="bar");
 
@@ -57,6 +65,18 @@ function compare_vector_yield(a: vector_yield, b: vector_yield)
 	local c: count;
 	for ( c in a )
 		print a[c] == b[c];
+	}
+
+function compare_list_yield(a: list_yield, b: list_yield)
+	{
+	# Don't modify the original arguments.
+	local copy_a = copy(a);
+	local copy_b = copy(b);
+
+	while ( |copy_a| > 0 && |copy_b| > 0 )
+		print --copy_a == --copy_b;
+
+	print |copy_a| == |copy_b|;
 	}
 
 function compare_table_yield(a: table_yield, b: table_yield)
@@ -78,6 +98,9 @@ print "";
 print "table of vector";
 print table_of_vector;
 print "";
+print "table of list";
+print table_of_list;
+print "";
 print "table of table";
 print table_of_table;
 print "";
@@ -89,6 +112,8 @@ compare_set_yield(table_of_set[13], lone_set_ctor);
 compare_set_yield(table_of_set[5], inline_set_ctor);
 compare_vector_yield(table_of_vector[13], lone_vector_ctor);
 compare_vector_yield(table_of_vector[5], inline_vector_ctor);
+compare_list_yield(table_of_list[13], lone_list_ctor);
+compare_list_yield(table_of_list[5], inline_list_ctor);
 compare_table_yield(table_of_table[13], lone_table_ctor);
 compare_table_yield(table_of_table[5], inline_table_ctor);
 compare_record_yield(table_of_record[13], lone_record_ctor);

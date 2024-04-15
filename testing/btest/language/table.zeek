@@ -209,6 +209,25 @@ function complex_index_types()
 		break;
 		}
 
+	local t2l: table[list of string] of string = {
+		[list("l1", "l2")] = "res1"
+	};
+
+	t2l[list("l3", "l4")] = "res2";
+	test_case( "list index size", |t2l| == 2 );
+	test_case( "list index membership", list("l3", "l4") in t2l );
+	test_case( "list index non-membership", list("l4", "l5") !in t2l );
+	test_case( "list index lookup", t2l[list("l3", "l4")] == "res2" );
+
+	delete t2l[list("l1", "l2")];
+	test_case( "list index reduced size", |t2l| == 1 );
+
+	for ( li in t2l )
+		{
+		test_case( "list index iteration", to_json(li) == to_json(list("l3", "l4")) );
+		break;
+		}
+
 	local t3: table[set[string]] of string = {
 		[set("s1", "s2")] = "res1"
 	};

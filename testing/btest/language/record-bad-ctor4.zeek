@@ -9,6 +9,7 @@ type info1 : record {
 	cnt: count &optional;
 	a: addr &optional;
 
+	l: list of double;
 	v: vector of bool;
 	r: record { x: count; };
 	s: set[bool];

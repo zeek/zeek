@@ -17,6 +17,12 @@ table of vector
 [13] = [1, 2]
 }
 
+table of list
+{
+[5] = {3, 4},
+[13] = {1, 2}
+}
+
 table of table
 {
 [5] = {
@@ -35,6 +41,12 @@ table of record
 [13] = [a=1, b=foo]
 }
 
+T
+T
+T
+T
+T
+T
 T
 T
 T

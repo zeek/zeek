@@ -3772,8 +3772,8 @@ bool QueueVal::Concretize(const TypePtr& t) {
             qv = ZVal(any_qv, t);
         }
     }
-    else
-        return yield_type->Tag() == t->Tag();
+    else if ( yield_type->Tag() != t->Tag() )
+        return false;
 
     // If we get here, then we've been dealing with a set of "any" types.
     // Require that this queue be treated consistently in the future.

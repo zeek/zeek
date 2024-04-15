@@ -2,6 +2,9 @@
 vec1, vector of count, [1, 2]
 vec2, vector of count, [1, 2]
 vec3, vector of count, [1, 2]
+l1, list of count, {1, 2}
+l2, list of count, {1, 2}
+l3, list of count, {1, 2}
 set1, set[count], {
 2,
 1

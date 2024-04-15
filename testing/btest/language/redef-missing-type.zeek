@@ -43,3 +43,8 @@ redef string_set += { &log };
 # ...also bogus.
 type sv: vector of string;
 redef sv += { 1 };
+
+# @TEST-START-NEXT
+# ...and still further bogus.
+type sl: list of string;
+redef sl += { 1 };

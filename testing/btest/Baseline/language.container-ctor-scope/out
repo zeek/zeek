@@ -21,6 +21,8 @@
 }
 [1/tcp, 2/tcp, 3/tcp, 1/tcp]
 [1/tcp, 2/tcp, 3/tcp, 1/tcp]
+{1/tcp, 2/tcp, 3/tcp, 1/tcp}
+{1/tcp, 2/tcp, 3/tcp, 1/tcp}
 {
 [1/tcp] = 1,
 [2/tcp] = 2,
@@ -43,3 +45,5 @@
 }
 [1/tcp, 2/tcp, 3/tcp, 1/tcp]
 [1/tcp, 2/tcp, 3/tcp, 1/tcp]
+{1/tcp, 2/tcp, 3/tcp, 1/tcp}
+{1/tcp, 2/tcp, 3/tcp, 1/tcp}

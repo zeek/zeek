@@ -3,6 +3,7 @@
 
 local test_string = "foo";
 local myvec: vector of pattern = vector(/a/, /b/, /o/);
+local mylist: list of pattern = list(/a/, /b/, /o/);
 local myset: set[pattern] = {/a/, /b/, /o/};
 local tk: table[pattern] of count = {[/a/] = 0, [/b/] = 1, [/o/] = 2};
 local tv: table[count] of pattern = {[0] = /a/, [1] = /b/, [2] = /o/};
@@ -15,6 +16,14 @@ print "---";
 
 for ( i in myvec )
 	print myvec[i], myvec[i] in test_string;
+
+print "---";
+
+while ( |mylist| > 0 )
+	{
+	print mylist[0], mylist[0] in test_string;
+	--mylist;
+	}
 
 print "---";
 

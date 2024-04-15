@@ -8,7 +8,9 @@
 option foo: set[count] &redef;
 option foo2: table[count] of count &redef;
 option foo3: vector of count &redef;
+option foo4: list of count &redef;
 
 print |foo|;
 print |foo2|;
 print |foo3|;
+print |foo4|;

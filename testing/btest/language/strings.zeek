@@ -13,14 +13,7 @@ event zeek_init()
 	print fmt("String splitting");
 	print fmt("----------------");
 
-	local idx1: index_vec;
-
-	idx1[0] =  0; # We really need initializers for vectors ...
-	idx1[1] =  3;
-	idx1[2] =  5;
-	idx1[3] =  6;
-	idx1[4] = 10;
-	idx1[5] = 14;
+	local idx1 = vector(0, 3, 5, 6, 10, 14);
 
 	print fmt("Splitting '%s' at %d points in zero-indexed mode...", s1, |idx1|);
 	local res_split: string_vec = str_split_indices(s1, idx1);

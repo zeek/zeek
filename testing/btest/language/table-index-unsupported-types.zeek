@@ -13,6 +13,10 @@ type rv: record {
 	f: vector of any;
 };
 
+type rl: record {
+	f: list of any;
+};
+
 type rt: record {
 	f: table[count] of any;
 };
@@ -23,4 +27,5 @@ global c: set[r];
 global d: table[r] of count;
 global e: set[rr];
 global f: set[rv];
-global g: set[rt];
+global g: set[rl];
+global h: set[rt];

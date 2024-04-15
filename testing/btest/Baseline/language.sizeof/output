@@ -18,3 +18,4 @@ String 'Hello': 5
 Subnet 192.168.0.0/24: 256.000000
 Table 2
 Vector [Hello, , , , World]: 5
+List {5.5, 7.5, 9.5}: 3

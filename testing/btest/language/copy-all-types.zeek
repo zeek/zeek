@@ -170,6 +170,16 @@ event zeek_init()
 	local v2 = copy(v1);
 	check(v1, v2, check_vector_equal(v1, v2), F);
 
+	local l1 = list(1, 2, 3, 4, 5);
+	local l2 = l1;
+	check(l1, l2, T, T);
+	--l2;
+	check(l1, l2, T, T);
+	l2 = copy(l2);
+	print fmt("orig=%s (%s) clone=%s (%s) same_object=%s", l1, type_name(l1), l2, type_name(l2), same_object(l1, l2));
+	--l2;
+	print fmt("orig=%s (%s) clone=%s (%s) same_object=%s", l1, type_name(l1), l2, type_name(l2), same_object(l1, l2));
+
 	local t1 : table[string] of string = table();
 	t1["a"] = "va";
 	t1["b"] = "vb";

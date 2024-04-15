@@ -18,6 +18,15 @@ event zeek_init()
 	local vec3: vector of count = {1, 2, };
 	print "vec3", type_name(vec3), vec3;
 
+	local l1 = list(1, 2, );
+	print "l1", type_name(l1), l1;
+
+	local l2: list of count = [1, 2, ];
+	print "l2", type_name(l2), l2;
+
+	local l3: list of count = {1, 2, };
+	print "l3", type_name(l3), l3;
+
 	local set1 = set(1, 2, );
 	print "set1", type_name(set1), set1;
 

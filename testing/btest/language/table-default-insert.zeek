@@ -4,6 +4,7 @@
 
 global tbl: table[count] of string &default_insert="<default>";
 global tbl_vec: table[count] of vector of string &default_insert=vector("a", "b");
+global tbl_list: table[count] of list of string &default_insert=list("w", "x");
 
 type R: record {
 	a: string;
@@ -27,6 +28,13 @@ event zeek_init()
 	tbl_vec[0] += "c";
 	tbl_vec[1] += "d";
 	print tbl_vec;
+
+	print "===";
+	print tbl_list[0];
+	print tbl_list[1];
+	tbl_list[0] += "y";
+	tbl_list[1] += "z";
+	print tbl_list;
 
 	print "===";
 	print tbl_def_func[0];

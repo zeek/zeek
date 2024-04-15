@@ -36,6 +36,7 @@ global sn: subnet = 192.168.0.0/24;
 global t:  table[string] of string;
 global ti: time = current_time();
 global v:  vector of string;
+global l:  list of double;
 
 # Additional initialization
 #
@@ -50,6 +51,10 @@ t["bar"] = "World";
 
 v[0] = "Hello";
 v[4] = "World";
+
+l += 5.5;
+l += 7.5;
+l += 9.5;
 
 # Print out the sizes of the various vals:
 #-----------------------------------------
@@ -123,5 +128,10 @@ print fmt("Table %d", |t|);
 # The following prints "5":
 #
 print fmt("Vector %s: %d", v, |v|);
+
+# Size of list: returns number of elements in the list.
+# The following prints "3":
+#
+print fmt("List %s: %d", l, |l|);
 
 close(f);

@@ -3042,9 +3042,16 @@ ValPtr RecordConstructorExpr::Eval(Frame* f) const {
         auto v_i = exprs[i]->Eval(f);
         int ind = map ? (*map)[i] : i;
 
-        if ( v_i && v_i->GetType()->Tag() == TYPE_VECTOR && v_i->GetType<VectorType>()->IsUnspecifiedVector() ) {
-            const auto& t_ind = rt->GetFieldType(ind);
-            v_i->AsVectorVal()->Concretize(t_ind->Yield());
+        // ### factor me
+        if ( v_i ) {
+            if ( v_i->GetType()->Tag() == TYPE_VECTOR && v_i->GetType<VectorType>()->IsUnspecifiedVector() ) {
+                const auto& t_ind = rt->GetFieldType(ind);
+                v_i->AsVectorVal()->Concretize(t_ind->Yield());
+            }
+            if ( v_i->GetType()->Tag() == TYPE_QUEUE && v_i->GetType<QueueType>()->IsUnspecifiedQueue() ) {
+                const auto& t_ind = rt->GetFieldType(ind);
+                v_i->AsQueueVal()->Concretize(t_ind->Yield());
+            }
         }
 
         rv->Assign(ind, v_i);
@@ -3824,6 +3831,13 @@ RecordValPtr coerce_to_record(RecordTypePtr rt, Val* v, const std::vector<int>& 
                 auto rhs_v = rhs->AsVectorVal();
                 if ( ! rhs_v->Concretize(field_type->Yield()) )
                     reporter->InternalError("could not concretize empty vector");
+            }
+            // ### factor
+            else if ( rhs_type->Tag() == TYPE_QUEUE && field_type->Tag() == TYPE_QUEUE &&
+                      rhs_type->AsQueueType()->IsUnspecifiedQueue() ) {
+                auto rhs_q = rhs->AsQueueVal();
+                if ( ! rhs_q->Concretize(field_type->Yield()) )
+                    reporter->InternalError("could not concretize empty queue");
             }
             else if ( BothArithmetic(rhs_type->Tag(), field_type->Tag()) && ! same_type(rhs_type, field_type) ) {
                 auto new_val = check_and_promote(rhs, field_type, false);

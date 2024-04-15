@@ -50,3 +50,9 @@ global tab: table[string, string] of string = {
 global tab = table(
 	["abc", "def", ] = "ghi",
 );
+
+@TEST-START-NEXT
+global l = list(, 99, 99);
+
+@TEST-START-NEXT
+global l = list(99, 99, , );

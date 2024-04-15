@@ -112,4 +112,20 @@ event zeek_init()
 	v3 += v2;
 	v3 += v4;
 	print v3;
+
+	# Tests for lists.
+	local l: list of count;
+	local l2 = list(20, 21, 22, 23);
+	l = { 1, 3, 5 };
+	l += 9;
+	l += { 2, 4, 6 };
+	l += l2;
+	print l;
+
+	local l3: list of list of count;
+	local l4 = list(list(80, 81), list(90, 91, 92));
+	l3 += { list(3,2,1), list(1,2,3) };
+	l3 += l2;
+	l3 += l4;
+	print l3;
 	}

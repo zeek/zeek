@@ -1,12 +1,13 @@
 # @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# This test checks whether records with complex fields (tables, sets, vectors)
-# can be used as table/set indices.
+# This test checks whether records with complex fields (tables, sets, vectors,
+# lists) can be used as table/set indices.
 
 type MetaData: record {
 	a: count;
 	tags_v: vector of count;
+	tags_l: list of count;
 	tags_t: table[string] of count;
 	tags_s: set[string];
 };
@@ -18,13 +19,22 @@ global t2_t: table[string] of count = { ["four"] = 4, ["five"] = 5 };
 
 global t1_v: vector of count = vector();
 global t2_v: vector of count = vector();
+
+global t1_l: list of count = list();
+global t2_l: list of count = list();
+
 t1_v[0] = 0;
 t1_v[1] = 1;
 t2_v[2] = 2;
 t2_v[3] = 3;
 
-local m: MetaData = [$a=4, $tags_v=t1_v, $tags_t=t1_t, $tags_s=set("a", "b")];
-local n: MetaData = [$a=13, $tags_v=t2_v, $tags_t=t2_t, $tags_s=set("c", "d")];
+t1_l += 5;
+t1_l += 6;
+t2_l += 7;
+t2_l += 8;
+
+local m: MetaData = [$a=4, $tags_v=t1_v, $tags_l=t1_l, $tags_t=t1_t, $tags_s=set("a", "b")];
+local n: MetaData = [$a=13, $tags_v=t2_v, $tags_l=t2_l, $tags_t=t2_t, $tags_s=set("c", "d")];
 
 if ( 1.2.3.4 !in ip_data )
 	ip_data[1.2.3.4] = set(m);

@@ -67,11 +67,7 @@ type ConnectionIDInfo = struct {
   client_initial_processed: bool;
   server_initial_processed: bool;
 
-@if SPICY_VERSION >= 10800
   ssl_handle: zeek::ProtocolHandle &optional;
-@else
-  did_ssl_begin: bool;
-@endif
 };
 
 ##############
@@ -223,11 +219,7 @@ public type LongHeaderPacketV2 = unit(inout outer: LongHeaderPacket) {
 # Just eat the data for event raising.
 public type UnhandledVersion = unit(header: LongHeaderPacket) {
   var header: LongHeaderPacket = header;
-@if SPICY_VERSION >= 10800
   payload: skip bytes &eod;
-@else
-  payload: bytes &eod;
-@endif
 };
 
 public type LongHeaderPacket = unit {
@@ -280,7 +272,7 @@ public type LongHeaderPacket = unit {
 };
 
 # A QUIC Frame.
-public type Frame = unit(header: LongHeaderPacket, from_client: bool, inout crypto_sink: sink) {
+public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto_sink: sink&) {
   frame_type : uint8 &convert=cast<FrameType>($$);
 
   # TODO: add other FrameTypes as well
@@ -292,11 +284,7 @@ public type Frame = unit(header: LongHeaderPacket, from_client: bool, inout cryp
       crypto_sink.write(self.c.cryptodata, self.c.offset.result);
     }
     FrameType::CONNECTION_CLOSE1 -> : ConnectionClosePayload(header);
-@if SPICY_VERSION >= 10800
     FrameType::PADDING -> : skip /\x00*/;  # eat the padding
-@else
-    FrameType::PADDING -> : /\x00*/;  # eat the padding
-@endif
     FrameType::PING -> : void;
     * -> : void {
       throw "unhandled frame type %s in %s" % (self.frame_type, header.first_byte.packet_type);
@@ -354,31 +342,19 @@ type InitialPacket = unit(header: LongHeaderPacket) {
   # includes the packet number field, but we
   # do not know its length yet. We need the
   # payload for sampling, however.
-@if SPICY_VERSION >= 10800
   payload: skip bytes &size=self.length.result;
-@else
-  payload: bytes &size=self.length.result;
-@endif
 };
 
 type ZeroRTTPacket = unit(header: LongHeaderPacket) {
   var header: LongHeaderPacket = header;
   length: VariableLengthInteger;
-@if SPICY_VERSION >= 10800
   payload: skip bytes &size=self.length.result;
-@else
-  payload: bytes &size=self.length.result;
-@endif
 };
 
 type HandshakePacket = unit(header: LongHeaderPacket) {
   var header: LongHeaderPacket = header;
   length: VariableLengthInteger;
-@if SPICY_VERSION >= 10800
   payload: skip bytes &size=self.length.result;
-@else
-  payload: bytes &size=self.length.result;
-@endif
 };
 
 
@@ -414,20 +390,12 @@ public type ShortHeader = unit(dest_conn_id_length: uint8) {
 
 # TODO: investigate whether we can parse something useful out of this
 public type ShortPacketPayload = unit {
-@if SPICY_VERSION >= 10800
   payload: skip bytes &eod;
-@else
-  payload: bytes &eod;
-@endif
 };
 
 # TODO: investigate whether we can do something useful with this
 public type EncryptedLongPacketPayload = unit {
-@if SPICY_VERSION >= 10800
   payload: skip bytes &eod;
-@else
-  payload: bytes &eod;
-@endif
 };
 
 # Buffer all crypto messages (which might be fragmented and unordered)
@@ -447,7 +415,7 @@ type CryptoBuffer = unit() {
 #
 # A UDP datagram contains one or more QUIC packets.
 ##############
-type Packet = unit(from_client: bool, inout context: ConnectionIDInfo&) {
+type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
   var decrypted_data: bytes;
   var full_packet: bytes;
   var start: iterator<stream>;
@@ -457,16 +425,9 @@ type Packet = unit(from_client: bool, inout context: ConnectionIDInfo&) {
 
   # Attach an SSL analyzer to this connection once.
   on %init {
-@if SPICY_VERSION >= 10800
     if ( ! context?.ssl_handle ) {
       context.ssl_handle = zeek::protocol_handle_get_or_create("SSL");
     }
-@else
-    if ( ! context.did_ssl_begin ) {
-      zeek::protocol_begin("SSL");
-      context.did_ssl_begin = True;
-    }
-@endif
 
     self.start = self.input();
   }
@@ -497,13 +458,8 @@ type Packet = unit(from_client: bool, inout context: ConnectionIDInfo&) {
           context.initial_destination_conn_id = b"";
 
           # Allow re-opening the SSL analyzer the next time around.
-@if SPICY_VERSION >= 10800
           zeek::protocol_handle_close(context.ssl_handle);
           unset context.ssl_handle;
-@else
-          zeek::protocol_end();
-          context.did_ssl_begin = False;
-@endif
         }
      }
   };
@@ -578,10 +534,7 @@ type Packet = unit(from_client: bool, inout context: ConnectionIDInfo&) {
       zeek::protocol_data_in(
         from_client
         , b"\x16\x03\x03" + length_bytes + handshake_data
-# With Spicy 1.8.0, can use the SSL handle directly.
-@if SPICY_VERSION >= 10800
         , context.ssl_handle
-@endif
       );
 
       # Stop decryption attempts after processing the very first INITIAL

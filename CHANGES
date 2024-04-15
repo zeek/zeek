@@ -1,3 +1,11 @@
+7.0.0-dev.119 | 2024-04-15 17:52:44 +0200
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
+    Includes a couple of updates for the QUIC analyzer.
+
+  * Remove support for old Spicy versions from QUIC analyzer. (Robin Sommer, Corelight)
+
 7.0.0-dev.116 | 2024-04-11 15:26:05 -0700
 
   * Make sure that vcpkg isn't preferred if pcap_root_dir is passed in (Tim Wojtulewicz)

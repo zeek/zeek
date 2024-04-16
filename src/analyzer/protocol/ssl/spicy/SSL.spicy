@@ -605,7 +605,7 @@ function get_encrypted(sh: Share) : bool {
     return sh.server_encrypted;
 }
 
-function startEncryption(inout handshakesink: sink, inout alertsink: sink, inout sh: Share) {
+function startEncryption(handshakesink: sink&, alertsink: sink&, inout sh: Share) {
   local old_state: bool;
 
   if ( get_direction(sh) ) {
@@ -680,7 +680,7 @@ function is_dtls_version(version: uint16) : bool {
   return False;
 }
 
-type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
+type RecordFragmentChoice = unit(handshakesink: sink&, alertsink: sink&, inout msg: Message, inout sh: Share) {
   content_type: uint8; # &convert=ContentType($$);
   version: uint16;
 
@@ -702,11 +702,11 @@ type RecordFragmentChoice = unit(handshakesink: sink, alertsink: sink, inout msg
 
 
 
-type TLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
+type TLSRecordFragment = unit(content_type: uint8, handshakesink: sink& , alertsink: sink&, inout msg: Message, inout sh: Share) {
   record: PlaintextRecord(content_type, handshakesink, alertsink, msg, sh);
 };
 
-type DTLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
+type DTLSRecordFragment = unit(content_type: uint8, handshakesink: sink&, alertsink: sink&, inout msg: Message, inout sh: Share) {
 # the epoch signalizes that a changecipherspec message has been received. Hence, everything with
 # an epoch > 0 should be encrypted
   epoch: uint16;
@@ -714,7 +714,7 @@ type DTLSRecordFragment = unit(content_type: uint8, handshakesink: sink, alertsi
   record: PlaintextRecord(content_type, handshakesink, alertsink, msg, sh);
 };
 
-type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) {
+type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink: sink&, inout msg: Message, inout sh: Share) {
   length: uint16;
   var encrypted: bool;
   # convenient triggers to hang stuff in the evt file from. Two of them for event ordering :)
@@ -783,7 +783,7 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink, alertsink:
 ## a bit of context here - we can't really say when we get the first packet
 ## that uses the final cryptographic key material - and will contain content
 ## data. We just don't have that information available in TLS 1.3 anymore.
-function determine_encryption_on(pr: PlaintextRecord, content_type: uint8, handshakesink: sink, alertsink: sink, inout msg: Message, inout sh: Share) : bool {
+function determine_encryption_on(pr: PlaintextRecord, content_type: uint8, handshakesink: sink&, alertsink: sink&, inout msg: Message, inout sh: Share) : bool {
     if ( get_encrypted(sh) )
       return True;
 
@@ -816,12 +816,12 @@ public type Alert = unit(sh: Share&) {
   alerts: Alert_message(sh)[];
 };
 
-type Alert_message = unit(sh: Share) {
+type Alert_message = unit(sh: Share&) {
   level: uint8; # &convert=AlertLevel($$);
   description: uint8; # &convert=AlertDescription($$);
 };
 
-type Handshake = unit(inout msg: Message, inout sh: Share&) {
+type Handshake = unit(inout msg: Message, sh: Share&) {
   handshakes: Handshake_message(msg, sh)[];
 };
 

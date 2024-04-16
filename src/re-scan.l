@@ -149,9 +149,13 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 }
 
 <SC_QUOTE>{
-	[^"\n]$		zeek::detail::synerr("missing quote"); return '"';
 	[^"\n]		yylval.int_val = yytext[0]; return TOK_CHAR;
 	\"		BEGIN(INITIAL); return '"';
+	<<EOF>>		{
+			zeek::detail::synerr("missing quote");
+			BEGIN(INITIAL);
+			return '"';
+			}
 }
 
 <SC_FIRST_CCL>{
@@ -164,8 +168,8 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 	-/[^\]\n]	return '-';
 	[^\]\n]		yylval.int_val = yytext[0]; return TOK_CHAR;
 	"]"		BEGIN(INITIAL); return ']';
-	[^\]]$		{
-			zeek::detail::synerr("bad character class");
+	<<EOF>>		{
+			zeek::detail::synerr("unterminated character class");
 			BEGIN(INITIAL);
 			return ']';
 			}

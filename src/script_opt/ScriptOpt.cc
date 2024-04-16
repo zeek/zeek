@@ -17,6 +17,7 @@
 #include "zeek/script_opt/UsageAnalyzer.h"
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/Compile.h"
+#include "zeek/script_opt/ZAM/Profile.h"
 
 namespace zeek::detail {
 
@@ -122,9 +123,9 @@ bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body) {
     return false;
 }
 
-static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf, std::shared_ptr<Reducer>& rc, ScopePtr scope,
-                         StmtPtr& body) {
-    pf = std::make_shared<ProfileFunc>(f, body, true);
+static bool optimize_AST(ScriptFuncPtr f, std::shared_ptr<ProfileFunc>& pf, std::shared_ptr<Reducer>& rc,
+                         ScopePtr scope, StmtPtr& body) {
+    pf = std::make_shared<ProfileFunc>(f.get(), body, true);
 
     GenIDDefs ID_defs(pf, f, scope, body);
 
@@ -147,7 +148,8 @@ static bool optimize_AST(ScriptFunc* f, std::shared_ptr<ProfileFunc>& pf, std::s
     return true;
 }
 
-static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr& body) {
+static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, std::shared_ptr<ProfileFuncs> pfs,
+                          ScopePtr scope, StmtPtr& body) {
     if ( reporter->Errors() > 0 )
         return;
 
@@ -167,7 +169,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
 
     push_existing_scope(scope);
 
-    auto rc = std::make_shared<Reducer>(f, pf);
+    auto rc = std::make_shared<Reducer>(f, pf, pfs);
     auto new_body = rc->Reduce(body);
 
     if ( reporter->Errors() > 0 ) {
@@ -200,7 +202,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
     }
 
     // Profile the new body.
-    pf = std::make_shared<ProfileFunc>(f, body, true);
+    pf = std::make_shared<ProfileFunc>(f.get(), body, true);
 
     // Compute its reaching definitions.
     GenIDDefs ID_defs(pf, f, scope, body);
@@ -230,7 +232,7 @@ static void optimize_func(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopeP
         f->SetFrameSize(new_frame_size);
 
     if ( analysis_options.gen_ZAM_code ) {
-        ZAMCompiler ZAM(f, pf, scope, new_body, ud, rc);
+        ZAMCompiler ZAM(f, pfs, pf, scope, new_body, ud, rc);
 
         new_body = ZAM.CompileBody();
 
@@ -309,6 +311,24 @@ static void init_options() {
             add_file_analysis_pattern(analysis_options, zo);
     }
 
+    if ( analysis_options.profile_ZAM ) {
+        auto zsamp = getenv("ZEEK_ZAM_PROF_SAMPLING_RATE");
+        if ( zsamp ) {
+            analysis_options.profile_sampling_rate = atoi(zsamp);
+            if ( analysis_options.profile_sampling_rate == 0 ) {
+                fprintf(stderr, "bad ZAM sampling profile rate from $ZEEK_ZAM_PROF_SAMPLING_RATE: %s\n", zsamp);
+                analysis_options.profile_ZAM = false;
+            }
+        }
+
+        // If no ZAM generation options have been specified, default to
+        // the usual "-O ZAM" profile. But if they have, honor those.
+        if ( ! analysis_options.gen_ZAM_code )
+            analysis_options.gen_ZAM = true;
+
+        estimate_ZAM_profiling_overhead();
+    }
+
     if ( analysis_options.gen_ZAM ) {
         analysis_options.gen_ZAM_code = true;
         analysis_options.inliner = true;
@@ -371,6 +391,8 @@ static void use_CPP() {
 
     int num_used = 0;
 
+    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+
     for ( auto& f : funcs ) {
         auto hash = f.Profile()->HashVal();
         auto s = compiled_scripts.find(hash);
@@ -413,16 +435,18 @@ static void use_CPP() {
         reporter->FatalError("no C++ functions found to use");
 }
 
-static void generate_CPP(std::unique_ptr<ProfileFuncs>& pfs) {
+static void generate_CPP() {
     const auto gen_name = CPP_dir + "CPP-gen.cc";
 
     const bool standalone = analysis_options.gen_standalone_CPP;
     const bool report = analysis_options.report_uncompilable;
 
-    CPPCompile cpp(funcs, *pfs, gen_name, standalone, report);
+    auto pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, false);
+
+    CPPCompile cpp(funcs, pfs, gen_name, standalone, report);
 }
 
-static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
+static void analyze_scripts_for_ZAM() {
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,
                 "warning: \"-O optimize-AST\" option is incompatible with -u option, "
@@ -430,15 +454,20 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
         analysis_options.optimize_AST = false;
     }
 
-    // Re-profile the functions, now without worrying about compatibility
-    // with compilation to C++.
+    auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
 
-    // The first profiling pass earlier may have marked some of the
-    // functions as to-skip, so clear those markings.
-    for ( auto& f : funcs )
-        f.SetSkip(false);
-
-    pfs = std::make_unique<ProfileFuncs>(funcs, nullptr, true);
+    if ( analysis_options.profile_ZAM ) {
+#ifdef ENABLE_ZAM_PROFILE
+        AST_blocks = std::make_unique<ASTBlockAnalyzer>(funcs);
+        const auto prof_filename = "zprof.out";
+        analysis_options.profile_file = fopen(prof_filename, "w");
+        if ( ! analysis_options.profile_file )
+            reporter->FatalError("cannot create ZAM profiling log %s", prof_filename);
+#else
+        fprintf(stderr, "warning: zeek was not built with --enable-ZAM-profiling\n");
+        analysis_options.profile_ZAM = false;
+#endif
+    }
 
     bool report_recursive = analysis_options.report_recursive;
     std::unique_ptr<Inliner> inl;
@@ -476,12 +505,12 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
         if ( ! f.ShouldAnalyze() )
             continue;
 
-        auto func = f.Func();
-        auto l = lambdas.find(func);
+        auto& func = f.FuncPtr();
+        auto l = lambdas.find(func.get());
         bool is_lambda = l != lambdas.end();
 
-        if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func) &&
-             func_used_indirectly.count(func) == 0 ) {
+        if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func.get()) &&
+             func_used_indirectly.count(func.get()) == 0 ) {
             // No need to compile as it won't be called directly.
             // We'd like to zero out the body to recover the
             // memory, but a *few* such functions do get called,
@@ -492,7 +521,7 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
         }
 
         auto new_body = f.Body();
-        optimize_func(func, f.ProfilePtr(), f.Scope(), new_body);
+        optimize_func(func, f.ProfilePtr(), pfs, f.Scope(), new_body);
         f.SetBody(new_body);
 
         if ( is_lambda )
@@ -510,9 +539,6 @@ static void analyze_scripts_for_ZAM(std::unique_ptr<ProfileFuncs>& pfs) {
 void clear_script_analysis() {
     IDOptInfo::ClearGlobalInitExprs();
 
-    // Keep the functions around if we're debugging, so we can
-    // generate profiles.
-#ifndef DEBUG
     // We need to explicitly clear out the optimization information
     // associated with identifiers.  They have reference loops with
     // the parent identifier that will prevent reclamation of the
@@ -522,8 +548,10 @@ void clear_script_analysis() {
         for ( auto& id : f.Scope()->OrderedVars() )
             id->ClearOptInfo();
 
-    funcs.clear();
-#endif
+    // Keep the functions around if we're profiling, so we can loop
+    // over them to generate the profiles.
+    if ( ! analysis_options.profile_ZAM )
+        funcs.clear();
 
     non_recursive_funcs.clear();
     lambdas.clear();
@@ -566,10 +594,6 @@ void analyze_scripts(bool no_unused_warnings) {
     if ( ! have_one_to_do )
         reporter->FatalError("no matching functions/files for C++ compilation");
 
-    // Now that everything's parsed and BiF's have been initialized,
-    // profile the functions.
-    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
-
     if ( CPP_init_hook ) {
         (*CPP_init_hook)();
         if ( compiled_scripts.empty() )
@@ -591,13 +615,13 @@ void analyze_scripts(bool no_unused_warnings) {
         if ( analysis_options.gen_ZAM )
             reporter->FatalError("-O ZAM and -O gen-C++ conflict");
 
-        generate_CPP(pfs);
+        generate_CPP();
         exit(0);
     }
 
     // At this point we're done with C++ considerations, so instead
     // are compiling to ZAM.
-    analyze_scripts_for_ZAM(pfs);
+    analyze_scripts_for_ZAM();
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");
@@ -607,10 +631,19 @@ void profile_script_execution() {
     if ( analysis_options.profile_ZAM ) {
         report_ZOP_profile();
 
+        ProfMap module_prof;
+
         for ( auto& f : funcs ) {
-            if ( f.Body()->Tag() == STMT_ZAM )
-                cast_intrusive<ZBody>(f.Body())->ProfileExecution();
+            if ( f.Body()->Tag() == STMT_ZAM ) {
+                auto zb = cast_intrusive<ZBody>(f.Body());
+                zb->ReportExecutionProfile(module_prof);
+            }
         }
+
+        for ( auto& mp : module_prof )
+            if ( mp.second.num_samples > 0 )
+                fprintf(analysis_options.profile_file, "module %s sampled CPU time %.06f, %d sampled instructions\n",
+                        mp.first.c_str(), mp.second.CPU_time, static_cast<int>(mp.second.num_samples));
     }
 }
 

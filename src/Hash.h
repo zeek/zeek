@@ -37,12 +37,11 @@ class ODesc;
 namespace zeek::detail {
 
 class Frame;
-class BifReturnVal;
 
 } // namespace zeek::detail
 
 namespace zeek::BifFunc {
-extern zeek::detail::BifReturnVal md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
+zeek::ValPtr md5_hmac_bif(zeek::detail::Frame* frame, const zeek::Args*);
 }
 
 namespace zeek::detail {
@@ -211,7 +210,7 @@ private:
     inline static bool seeds_initialized = false;
 
     friend void util::detail::hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16]);
-    friend BifReturnVal BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
+    friend ValPtr BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
 };
 
 enum HashKeyTag { HASH_KEY_INT, HASH_KEY_DOUBLE, HASH_KEY_STRING };

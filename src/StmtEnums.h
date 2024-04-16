@@ -6,7 +6,7 @@ namespace zeek::detail {
 
 // These are in a separate file to break circular dependences
 enum StmtTag {
-    STMT_ANY = -1,
+    STMT_ANY [[deprecated("Remove in v7.1 - Unused and plugins should use STMT_EXTERN.")]] = -1,
     STMT_ALARM, // Does no longer exist but kept to create enums consistent.
     STMT_PRINT,
     STMT_EVENT,
@@ -31,7 +31,9 @@ enum StmtTag {
     STMT_ZAM,           // a ZAM function body
     STMT_NULL,
     STMT_ASSERT,
-#define NUM_STMTS (int(STMT_ASSERT) + 1)
+    STMT_EXTERN,       // for custom Stmt subclasses provided by plugins
+    STMT_STD_FUNCTION, // statements that call a std::function from c++
+#define NUM_STMTS (int(STMT_STD_FUNCTION) + 1)
 };
 
 enum StmtFlowType {

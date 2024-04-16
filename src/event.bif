@@ -68,7 +68,7 @@ event zeek_done%(%);
 ## having exhausted reading its input trace file(s), receiving a termination
 ## signal, or because Zeek was run without a network input source and has
 ## finished executing any global statements.  This event comes before
-## :zeek:see:`zeek_init`.
+## :zeek:see:`zeek_done`.
 ##
 ## t: The time at with the Zeek-termination process started.
 ##
@@ -557,20 +557,6 @@ event net_weird%(name: string, addl: string%);
 ##    endpoint's implementation interprets an RFC quite liberally.
 event file_weird%(name: string, f: fa_file, addl: string, source: string%);
 event file_weird%(name: string, f: fa_file, addl: string%);
-
-## Generated regularly for the purpose of profiling Zeek's processing. This event
-## is raised for every :zeek:id:`load_sample_freq` packet. For these packets,
-## Zeek records script-level functions executed during their processing as well
-## as further internal locations. By sampling the processing in this form, one
-## can understand where Zeek spends its time.
-##
-## samples: A set with functions and locations seen during the processing of
-##          the sampled packet.
-##
-## CPU: The CPU time spent on processing the sampled packet.
-##
-## dmem: The difference in memory usage caused by processing the sampled packet.
-event load_sample%(samples: load_sample_info, CPU: interval, dmem: int%);
 
 ## Generated when a signature matches. Zeek's signature engine provides
 ## high-performance pattern matching separately from the normal script

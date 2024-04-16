@@ -2,7 +2,7 @@
 
 #include "zeek/script_opt/CPP/Func.h"
 
-#include <broker/error.hh>
+#include <string_view>
 
 #include "zeek/Desc.h"
 #include "zeek/broker/Data.h"
@@ -46,27 +46,29 @@ CPPLambdaFunc::CPPLambdaFunc(string _name, FuncTypePtr ft, CPPStmtPtr _l_body)
     l_body = std::move(_l_body);
 }
 
-broker::expected<broker::data> CPPLambdaFunc::SerializeCaptures() const {
+std::optional<BrokerData> CPPLambdaFunc::SerializeCaptures() const {
+    using namespace std::literals;
+
+    auto name = "CopyFrame"sv;
     auto vals = l_body->SerializeLambdaCaptures();
 
-    broker::vector rval;
-    rval.emplace_back(string("CopyFrame"));
-
-    broker::vector body;
+    BrokerListBuilder body;
+    body.Reserve(vals.size());
 
     for ( const auto& val : vals ) {
-        auto expected = Broker::detail::val_to_data(val.get());
-        if ( ! expected )
-            return broker::ec::invalid_data;
+        BrokerData tmp;
+        if ( ! tmp.Convert(val) )
+            return std::nullopt;
 
         TypeTag tag = val->GetType()->Tag();
-        broker::vector val_tuple{std::move(*expected), static_cast<broker::integer>(tag)};
-        body.emplace_back(std::move(val_tuple));
+        body.AddList(std::move(tmp), static_cast<int64_t>(tag));
     }
 
-    rval.emplace_back(std::move(body));
-
-    return {std::move(rval)};
+    BrokerListBuilder builder;
+    builder.Reserve(2);
+    builder.Add(name.data(), name.size());
+    builder.Add(std::move(body));
+    return std::move(builder).Build();
 }
 
 void CPPLambdaFunc::SetCaptures(Frame* f) { l_body->SetLambdaCaptures(f); }

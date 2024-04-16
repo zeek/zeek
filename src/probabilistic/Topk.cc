@@ -360,69 +360,59 @@ void TopkVal::IncrementCounter(Element* e, unsigned int count) {
 
 IMPLEMENT_OPAQUE_VALUE(TopkVal)
 
-broker::expected<broker::data> TopkVal::DoSerialize() const {
-    broker::vector d = {size, numElements, pruned};
+std::optional<BrokerData> TopkVal::DoSerializeData() const {
+    BrokerListBuilder builder;
+    builder.Reserve(8);
+
+    builder.Add(size);
+    builder.Add(numElements);
+    builder.Add(pruned);
 
     if ( type ) {
         auto t = SerializeType(type);
         if ( ! t )
-            return broker::ec::invalid_data;
+            return std::nullopt;
 
-        d.emplace_back(std::move(*t));
+        builder.Add(std::move(*t));
     }
     else
-        d.emplace_back(broker::none());
+        builder.AddNil();
 
     uint64_t i = 0;
-    std::list<Bucket*>::const_iterator it = buckets.begin();
-    while ( it != buckets.end() ) {
-        Bucket* b = *it;
-        uint32_t elements_count = b->elements.size();
+    for ( const auto* b : buckets ) {
+        builder.AddCount(b->elements.size());
+        builder.AddCount(b->count);
 
-        d.emplace_back(static_cast<uint64_t>(b->elements.size()));
-        d.emplace_back(b->count);
+        for ( const auto* element : b->elements ) {
+            builder.AddCount(element->epsilon);
+            BrokerData val;
+            if ( ! val.Convert(element->value) )
+                return std::nullopt;
 
-        std::list<Element*>::const_iterator eit = b->elements.begin();
-        while ( eit != b->elements.end() ) {
-            Element* element = *eit;
-            d.emplace_back(element->epsilon);
-            auto v = Broker::detail::val_to_data(element->value.get());
-            if ( ! v )
-                return broker::ec::invalid_data;
+            builder.Add(std::move(val));
 
-            d.emplace_back(*v);
-
-            eit++;
             i++;
         }
-
-        it++;
     }
 
     assert(i == numElements);
-    return {std::move(d)};
+    return std::move(builder).Build();
 }
 
-bool TopkVal::DoUnserialize(const broker::data& data) {
-    auto v = broker::get_if<broker::vector>(&data);
-
-    if ( ! (v && v->size() >= 4) )
+bool TopkVal::DoUnserializeData(BrokerDataView data) {
+    if ( ! data.IsList() )
         return false;
 
-    auto size_ = broker::get_if<uint64_t>(&(*v)[0]);
-    auto numElements_ = broker::get_if<uint64_t>(&(*v)[1]);
-    auto pruned_ = broker::get_if<bool>(&(*v)[2]);
-
-    if ( ! (size_ && numElements_ && pruned_) )
+    auto v = data.ToList();
+    if ( v.Size() < 4 || ! v[0].IsCount() || ! v[1].IsCount() || ! v[2].IsBool() )
         return false;
 
-    size = *size_;
-    numElements = *numElements_;
-    pruned = *pruned_;
+    size = v[0].ToCount();
+    numElements = v[1].ToCount();
+    pruned = v[2].ToBool();
 
-    auto no_type = broker::get_if<broker::none>(&(*v)[3]);
-    if ( ! no_type ) {
-        auto t = UnserializeType((*v)[3]);
+    if ( ! v[3].IsNil() ) {
+        auto t = UnserializeType(v[3]);
 
         if ( ! t )
             return false;
@@ -430,29 +420,51 @@ bool TopkVal::DoUnserialize(const broker::data& data) {
         Typify(t);
     }
 
+    bool ok = true;
+    auto index = size_t{4}; // Index into v.
+    auto atEnd = [&v, &index] { return index >= v.Size(); };
+    // Returns the element  at the given index in v, if that element is a count.
+    // If so, ok becomes true, and the index gets incremented.
+    // If not, ok becomes false, and the index remains unchanged.
+    auto nextCount = [&v, &ok, &index]() -> uint64_t {
+        if ( index >= v.Size() || ! v[index].IsCount() ) {
+            ok = false;
+            return 0;
+        }
+        auto res = v[index].ToCount();
+        ++index;
+        return res;
+    };
+
     uint64_t i = 0;
-    uint64_t idx = 4;
-
     while ( i < numElements ) {
-        auto elements_count = broker::get_if<uint64_t>(&(*v)[idx++]);
-        auto count = broker::get_if<uint64_t>(&(*v)[idx++]);
-
-        if ( ! (elements_count && count) )
+        auto elements_count = nextCount();
+        if ( ! ok )
             return false;
 
-        Bucket* b = new Bucket();
-        b->count = *count;
+        auto count = nextCount();
+        if ( ! ok )
+            return false;
+
+        auto* b = new Bucket();
+        b->count = count;
         b->bucketPos = buckets.insert(buckets.end(), b);
 
-        for ( uint64_t j = 0; j < *elements_count; j++ ) {
-            auto epsilon = broker::get_if<uint64_t>(&(*v)[idx++]);
-            auto val = Broker::detail::data_to_val((*v)[idx++], type.get());
+        for ( uint64_t j = 0; j < elements_count; j++ ) {
+            auto epsilon = nextCount();
+            if ( ! ok )
+                return false;
 
-            if ( ! (epsilon && val) )
+            if ( atEnd() )
+                return false;
+
+            auto val = v[index++].ToVal(type.get());
+
+            if ( ! val )
                 return false;
 
             Element* e = new Element();
-            e->epsilon = *epsilon;
+            e->epsilon = epsilon;
             e->value = std::move(val);
             e->parent = b;
 
@@ -463,12 +475,13 @@ bool TopkVal::DoUnserialize(const broker::data& data) {
 
             elementDict->Insert(key, e);
             delete key;
-
-            i++;
+            ++i;
         }
     }
 
-    assert(i == numElements);
+    if ( ! atEnd() )
+        return false;
+
     return true;
 }
 

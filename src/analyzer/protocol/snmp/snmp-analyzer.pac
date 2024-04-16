@@ -10,7 +10,7 @@
 %header{
 zeek::AddrValPtr network_address_to_val(const ASN1Encoding* na);
 zeek::AddrValPtr network_address_to_val(const NetworkAddress* na);
-zeek::ValPtr     asn1_obj_to_val(const ASN1Encoding* obj);
+zeek::RecordValPtr asn1_obj_to_val(const ASN1Encoding* obj);
 
 zeek::RecordValPtr build_hdr(const Header* header);
 zeek::RecordValPtr build_hdrV3(const Header* header);
@@ -42,7 +42,7 @@ zeek::AddrValPtr network_address_to_val(const ASN1Encoding* na)
 	return zeek::make_intrusive<zeek::AddrVal>(ntohl(network_order));
 	}
 
-zeek::ValPtr asn1_obj_to_val(const ASN1Encoding* obj)
+zeek::RecordValPtr asn1_obj_to_val(const ASN1Encoding* obj)
 	{
 	zeek::RecordValPtr rval = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::SNMP::ObjectValue);
 	uint8 tag = obj->meta()->tag();

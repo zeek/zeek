@@ -12,12 +12,12 @@ namespace zeek::detail {
 
 class GenIDDefs : public TraversalCallback {
 public:
-    GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr scope, StmtPtr body);
+    GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const FuncPtr& f, ScopePtr scope, StmtPtr body);
 
 private:
     // Traverses the given function body, using the first two
     // arguments for context.
-    void TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body);
+    void TraverseFunction(const FuncPtr& f, ScopePtr scope, StmtPtr body);
 
     TraversalCode PreStmt(const Stmt*) override;
     void AnalyzeSwitch(const SwitchStmt* sw);
@@ -82,8 +82,8 @@ private:
     // outer "break" in that context.
     FunctionFlavor func_flavor;
 
-    // The statement we are currently traversing.
-    const Stmt* curr_stmt = nullptr;
+    // The most recently traversed statement.
+    const Stmt* last_stmt_traversed = nullptr;
 
     // Used to number Stmt objects found during AST traversal.
     int stmt_num;
@@ -93,9 +93,10 @@ private:
 
     // Stack of confluence blocks corresponding to activate catch-return
     // statements.  We used to stop identifier definitions at these
-    // boundaries, but given there's no confluence (i.e., the body of the
-    // catch-return *will* execute), we can do broader optimization if we
-    // don't treat them as their own (new) confluence blocks.
+    // boundaries, but given there's limited confluence (i.e., the body of
+    // the catch-return *will* execute, up through its first return), we
+    // can do broader optimization if we don't treat them as their own
+    // (new) confluence blocks.
     std::vector<zeek_uint_t> cr_active;
 
     // The following is parallel to confluence_blocks except

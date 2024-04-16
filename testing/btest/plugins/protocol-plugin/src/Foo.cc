@@ -1,18 +1,33 @@
 
 #include "Foo.h"
 
+#include "zeek/EventRegistry.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "events.bif.h"
 #include "foo_pac.h"
 
 using namespace btest::plugin::Demo_Foo;
+using namespace std::placeholders;
 
 Foo::Foo(zeek::Connection* conn) : zeek::analyzer::tcp::TCP_ApplicationAnalyzer("Foo", conn) {
     interp = new binpac::Foo::Foo_Conn(this);
+
+    auto handler = zeek::event_registry->Lookup("connection_established");
+    if ( handler ) {
+        handler->GetFunc()->AddBody([](const zeek::Args& args, zeek::detail::StmtFlowType& flow) {
+            printf("c++ connection_established lambda handler, received %zu arguments\n", args.size());
+        });
+
+        handler->GetFunc()->AddBody(std::bind(&Foo::ConnectionEstablishedHandler, this, _1, _2));
+    }
 }
 
 Foo::~Foo() { delete interp; }
+
+void Foo::ConnectionEstablishedHandler(const zeek::Args& args, zeek::detail::StmtFlowType& flow) {
+    printf("c++ connection_established member handler, received %zu arguments\n", args.size());
+}
 
 void Foo::Done() {
     zeek::analyzer::tcp::TCP_ApplicationAnalyzer::Done();

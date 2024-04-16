@@ -38,6 +38,6 @@ on LDAP::SearchRequest -> event LDAP::search_request($conn,
                                                      self.filter,
                                                      self.attributes);
 
-on LDAP::SearchResultEntry -> event LDAP::search_result($conn,
-                                                        message.messageID,
-                                                        self.objectName);
+on LDAP::SearchResultEntry -> event LDAP::search_result_entry($conn,
+                                                              message.messageID,
+                                                              self.objectName);

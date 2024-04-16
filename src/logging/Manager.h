@@ -30,6 +30,33 @@ class WriterFrontend;
 class RotationFinishedMessage;
 class RotationTimer;
 
+namespace detail {
+
+class DelayInfo;
+
+using WriteIdx = uint64_t;
+
+/**
+ * Information about a Log::write() call.
+ */
+struct WriteContext {
+    EnumValPtr id = nullptr;
+    RecordValPtr record = nullptr;
+    WriteIdx idx = 0; // Ever increasing counter.
+
+    bool operator<(const WriteContext& o) const {
+        assert(id == o.id);
+        return idx < o.idx;
+    }
+
+    bool operator==(const WriteContext& o) const {
+        assert(id == o.id);
+        return idx == o.idx;
+    }
+};
+
+} // namespace detail
+
 /**
  * Singleton class for managing log streams.
  */
@@ -151,6 +178,72 @@ public:
      * logging.bif, which just forwards here.
      */
     bool Write(EnumVal* id, RecordVal* columns);
+
+    /**
+     * Delay the currently active @ref Write operation.
+     *
+     * This method is only allowed to be called during the execution of the
+     * Log::log_stream_policy Zeek script hook. This restriction may be
+     * relaxed in the future.
+     *
+     * @param id  The enum value corresponding the log stream.
+     *
+     * @param record The log record to delay.
+     *
+     * @param post_delay_cb A callback function to invoke when the delay
+     * has completed or nullptr.
+     *
+     * @return An opaque token that can be passed to DelayFinish() to
+     * release a delayed Log::write() operation.
+     */
+    ValPtr Delay(const EnumValPtr& id, const RecordValPtr record, FuncPtr post_delay_cb);
+
+    /**
+     * Release reference for a delayed Log::write().
+     *
+     * @param id  The enum value corresponding the log stream.
+     *
+     * @param record The log record previously passed to Delay()
+     *
+     * @param token The token returned by the Delay() call.
+     *
+     * @return Returns true if the call was successful.
+     */
+    bool DelayFinish(const EnumValPtr& id, const RecordValPtr& record, const ValPtr& token);
+
+    /**
+     * Update the maximum delay interval of a given stream.
+     *
+     * Currently, it is only allowed to increase the maximum
+     * delay of a stream.
+     *
+     * @param id The enum value corresponding to the log stream.
+     *
+     * @param max_delay  The new maximum delay, in seconds.
+     *
+     * @return Returns true if the call was successful, else false.
+     */
+    bool SetMaxDelayInterval(const EnumValPtr& id, double max_delay);
+
+    /**
+     * Set the maximum delay queue size for the given stream.
+     *
+     * @param id The enum value corresponding to the log stream.
+     *
+     * @param max_queue_length The new maximum queue length.
+     *
+     * @return Returns true if the call was successful, else false.
+     */
+    bool SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t max_queue_length);
+
+    /**
+     * Returns the current size for the delay queue for the stream identified by \a id.
+     *
+     * @param id The enum value corresponding to the log stream.
+     *
+     * @return The size of the delay queue or -1 on error.
+     */
+    zeek_int_t GetDelayQueueSize(const EnumValPtr& id);
 
     /**
      * Create a new log writer frontend. This is exposed so that the
@@ -283,7 +376,7 @@ private:
     bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude,
                         const std::string& path, const std::list<int>& indices);
 
-    threading::Value** RecordToFilterVals(Stream* stream, Filter* filter, RecordVal* columns);
+    threading::Value** RecordToFilterVals(const Stream* stream, Filter* filter, RecordVal* columns);
 
     threading::Value* ValToLogVal(std::optional<ZVal>& val, Type* ty);
     Stream* FindStream(EnumVal* id);
@@ -294,7 +387,16 @@ private:
     bool CompareFields(const Filter* filter, const WriterFrontend* writer);
     bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
 
+    // Verdict of a PolicyHook.
+    enum class PolicyVerdict {
+        PASS,
+        VETO,
+    };
+    bool WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr columns, PolicyVerdict stream_verdict);
+
     bool RemoveStream(unsigned int idx);
+
+    bool DelayCompleted(Manager::Stream* stream, detail::DelayInfo& delay_info);
 
     std::vector<Stream*> streams; // Indexed by stream enum.
     int rotations_pending;        // Number of rotations not yet finished.
@@ -303,6 +405,9 @@ private:
 
     telemetry::IntCounterFamily total_log_stream_writes_family;
     telemetry::IntCounterFamily total_log_writer_writes_family;
+
+    zeek_uint_t last_delay_token = 0;
+    std::vector<detail::WriteContext> active_writes;
 };
 
 } // namespace logging

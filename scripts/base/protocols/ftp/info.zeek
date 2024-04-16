@@ -72,5 +72,8 @@ export {
 
 		## Determines if the password will be captured for this request.
 		capture_password:   bool &default=default_capture_password;
+
+		## File unique ID.
+		fuid: string &optional &log;
 	};
 }

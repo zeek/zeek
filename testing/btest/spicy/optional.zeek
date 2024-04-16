@@ -12,11 +12,14 @@ event foo_result_tuple(r: R) {
     print(r);
 }
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_FOO, 22/tcp);
+}
+
 # @TEST-START-FILE foo.evt
 
 protocol analyzer spicy::foo over TCP:
-    parse originator with Foo::Message,
-    port 22/tcp;
+    parse originator with Foo::Message;
 
 on Foo::Message -> event foo_result_tuple(Foo::bro_result(self));
 

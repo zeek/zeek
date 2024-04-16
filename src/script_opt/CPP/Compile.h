@@ -124,8 +124,8 @@ namespace zeek::detail {
 
 class CPPCompile {
 public:
-    CPPCompile(std::vector<FuncInfo>& _funcs, ProfileFuncs& pfs, const std::string& gen_name, bool _standalone,
-               bool report_uncompilable);
+    CPPCompile(std::vector<FuncInfo>& _funcs, std::shared_ptr<ProfileFuncs> pfs, const std::string& gen_name,
+               bool _standalone, bool report_uncompilable);
     ~CPPCompile();
 
     // Constructing a CPPCompile object does all of the compilation.
@@ -191,7 +191,7 @@ public:
     // However, we can't generate that code when first encountering
     // the attribute, because doing so will need to refer to the names
     // of types, and initially those are unavailable (because the type's
-    // representatives, per pfs.RepTypes(), might not have yet been
+    // representatives, per pfs->RepTypes(), might not have yet been
     // tracked).  So instead we track the associated CallExprInitInfo
     // objects, and after all types have been tracked, then spin
     // through them to generate the code.
@@ -314,7 +314,7 @@ private:
     std::vector<FuncInfo>& funcs;
 
     // The global profile of all of the functions.
-    ProfileFuncs& pfs;
+    std::shared_ptr<ProfileFuncs> pfs;
 
     // Script functions that we are able to compile.  We compute
     // these ahead of time so that when compiling script function A
@@ -894,7 +894,7 @@ private:
     // Returns the "representative" for a given type, used to ensure
     // that we re-use the C++ variable corresponding to a type and
     // don't instantiate redundant instances.
-    const Type* TypeRep(const Type* t) { return pfs.TypeRep(t); }
+    const Type* TypeRep(const Type* t) { return pfs->TypeRep(t); }
     const Type* TypeRep(const TypePtr& t) { return TypeRep(t.get()); }
 
     // Low-level C++ representations for types, of various flavors.

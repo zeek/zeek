@@ -121,7 +121,7 @@ type ASN1OctetString = unit(len: uint64, constructed: bool) {
 # https://www.obj-sys.com/asn1tutorial/node124.html
 
 type ASN1String = unit(tag: ASN1Tag, len: uint64) {
-  var encoding: hilti::Charset;
+  var encoding: spicy::Charset;
 
   on %init {
     switch ( tag.type_ ) {
@@ -132,7 +132,7 @@ type ASN1String = unit(tag: ASN1Tag, len: uint64) {
       case ASN1Type::PrintableString,
            ASN1Type::GeneralizedTime,
            ASN1Type::UTCTime: {
-        self.encoding = hilti::Charset::ASCII;
+        self.encoding = spicy::Charset::ASCII;
       }
 
       case ASN1Type::UTF8String,
@@ -148,7 +148,7 @@ type ASN1String = unit(tag: ASN1Tag, len: uint64) {
            # BMPString and UniversalString. This *may* not be correct.
            ASN1Type::BMPString,
            ASN1Type::UniversalString: {
-        self.encoding = hilti::Charset::UTF8;
+        self.encoding = spicy::Charset::UTF8;
       }
     }
   }
@@ -216,7 +216,7 @@ public type ASN1Body = unit(head: ASN1Header, recursive: bool) {
     ASN1Type::BitString -> bitstr_value: ASN1BitString(head.len.len, head.tag.constructed);
 
     ASN1Type::OctetString -> str_value: ASN1OctetString(head.len.len, head.tag.constructed)
-                                        &convert=$$.value.decode(hilti::Charset::ASCII);
+                                        &convert=$$.value.decode(spicy::Charset::ASCII);
 
     ASN1Type::ObjectIdentifier -> str_value: ASN1ObjectIdentifier(head.len.len)
                                              &convert=$$.oidstring;

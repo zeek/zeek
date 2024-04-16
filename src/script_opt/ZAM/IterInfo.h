@@ -18,7 +18,7 @@ public:
     // No constructor needed, as all of our member variables are
     // instead instantiated via BeginLoop().  This allows us to
     // reuse TableIterInfo objects to lower the overhead associated
-    // with executing ZBody::DoExec for non-recursive functions.
+    // with executing ZBody::Exec for non-recursive functions.
 
     // We do, however, want to make sure that when we go out of scope,
     // if we have any pending iterators we clear them.
@@ -27,7 +27,7 @@ public:
     // Start looping over the elements of the given table.  "_aux"
     // provides information about the index variables, their types,
     // and the type of the value variable (if any).
-    void BeginLoop(const TableVal* _tv, ZInstAux* _aux) {
+    void BeginLoop(TableValPtr _tv, ZInstAux* _aux) {
         tv = _tv;
         aux = _aux;
         auto tvd = tv->AsTable();
@@ -76,10 +76,7 @@ public:
     }
 
 private:
-    // The table we're looping over.  If we want to allow for the table
-    // going away before we're able to clear our iterators then we
-    // could change this to non-const and use Ref/Unref.
-    const TableVal* tv = nullptr;
+    TableValPtr tv = nullptr;
 
     // Associated auxiliary information.
     ZInstAux* aux = nullptr;

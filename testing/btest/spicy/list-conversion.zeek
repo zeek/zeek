@@ -4,6 +4,10 @@
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT >output
 # @TEST-EXEC: btest-diff output
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_LISTCONV, 22/tcp);
+}
+
 @TEST-START-FILE listconv.spicy
 
 module listconv;
@@ -23,8 +27,7 @@ public type Test = unit {
 @TEST-START-FILE listconv.evt
 
 protocol analyzer listconv over TCP:
-    parse originator with listconv::Test,
-    port 22/tcp;
+    parse originator with listconv::Test;
 
 on listconv::Test -> event listconv::test($conn,
                                   $is_orig,

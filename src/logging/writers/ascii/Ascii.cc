@@ -19,7 +19,6 @@
 #include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/logging/Manager.h"
-#include "zeek/logging/logging.bif.h"
 #include "zeek/logging/writers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/util.h"

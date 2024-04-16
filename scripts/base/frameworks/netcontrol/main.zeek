@@ -262,6 +262,20 @@ export {
 	## r: The rule to be added.
 	global NetControl::rule_policy: hook(r: Rule);
 
+	## Hook that allows the modification of rule states after they are returned from
+	## the plugins and have been added to the rules database. This allows low-level
+	## modification of the handling of rules like, e.g., changing rule expiration depending
+	## on context.
+	##
+	## r: The rule now in place.
+	##
+	## p: The state for the plugin that put it into place.
+	##
+	## exists: If the adding plugin flagged the rule as already existing.
+	##
+	## msg: An optional informational message by the plugin.
+	global NetControl::rule_added_policy: hook(r: Rule, p: PluginState, exists: bool, msg: string);
+
 	##### Plugin functions
 
 	## Function called by plugins once they finished their activation. After all
@@ -945,6 +959,8 @@ function rule_added_impl(r: Rule, p: PluginState, exists: bool, msg: string &def
 		# rule was completely added.
 		rule$_added = T;
 		}
+
+	hook NetControl::rule_added_policy(rule, p, exists, msg);
 	}
 
 function rule_removed_impl(r: Rule, p: PluginState, msg: string &default="") &is_used

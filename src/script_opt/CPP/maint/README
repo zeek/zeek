@@ -13,7 +13,7 @@ The maintenance workflow:
 
 1.  Make sure the compiler can compile and execute the base scripts:
 
-	echo | src/zeek -O gen-C++
+	src/zeek -O gen-C++ /dev/null
 	ninja
 	src/zeek -O use-C++ -r some.pcap
 
@@ -21,7 +21,7 @@ The maintenance workflow:
 
 	rm CPP-gen.cc
 	ninja
-	echo | src/zeek -O gen-standalone-C++
+	src/zeek -O gen-standalone-C++ /dev/null
 	ninja
 	rm CPP-gen.cc
 	ninja

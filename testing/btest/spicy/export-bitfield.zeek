@@ -7,6 +7,10 @@
 #
 # @TEST-DOC: Tests that named and anonymous bitfields are exported as expected.
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_FOO, 80/tcp);
+}
+
 # @TEST-START-FILE export.spicy
 module foo;
 
@@ -33,8 +37,7 @@ public type X = unit {
 import foo;
 
 protocol analyzer FOO over TCP:
-    parse originator with foo::X,
-    port 80/tcp;
+    parse originator with foo::X;
 
 export foo::X;
 

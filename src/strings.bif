@@ -726,7 +726,7 @@ function escape_string%(s: string%): string
 	char* escstr = s->AsString()->Render(zeek::String::ESC_HEX | zeek::String::ESC_ESC);
 	auto val = zeek::make_intrusive<zeek::StringVal>(escstr);
 	delete [] escstr;
-	return val;
+	return std::move(val);
 	%}
 
 ## Returns an ASCII hexadecimal representation of a string.
@@ -767,7 +767,7 @@ function str_smith_waterman%(s1: string, s2: string, params: sw_params%) : sw_su
 	zeek::util::delete_each(subseq);
 	delete subseq;
 
-	return result;
+	return std::move(result);
 	%}
 
 ## Splits a string into substrings with the help of an index vector of cutting
@@ -805,7 +805,7 @@ function str_split_indices%(s: string, idx: index_vec%): string_vec
 		delete result;
 		}
 
-	return result_v;
+	return std::move(result_v);
 	%}
 
 ## Strips whitespace at both ends of a string.
@@ -1021,7 +1021,7 @@ function find_all%(str: string, re: pattern, max_str_size: int &default=-1%) : s
 	auto a = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
 
 	if ( exceeds_max_string_length(str->Len(), max_str_size, frame) )
-		return a;
+		return std::move(a);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
@@ -1037,7 +1037,7 @@ function find_all%(str: string, re: pattern, max_str_size: int &default=-1%) : s
 			}
 		}
 
-	return a;
+	return std::move(a);
 	%}
 
 ## Finds all occurrences of a pattern in a string.  The order in which
@@ -1061,7 +1061,7 @@ function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=
 	auto a = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
 	if ( exceeds_max_string_length(str->Len(), max_str_size, frame) )
-		return a;
+		return std::move(a);
 
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
@@ -1077,7 +1077,7 @@ function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=
 			}
 		}
 
-	return a;
+	return std::move(a);
 	%}
 
 ## Finds the last occurrence of a pattern in a string. This function returns
@@ -1222,7 +1222,7 @@ function hexdump%(data_str: string%) : string
 	auto result = zeek::make_intrusive<zeek::StringVal>((const char*) hex_data);
 	delete [] hex_data;
 
-	return result;
+	return std::move(result);
 	%}
 
 ## Returns a reversed copy of the string
@@ -1247,8 +1247,8 @@ function reverse%(str: string%) : string
 ##
 function count_substr%(str: string, sub: string%) : count
 	%{
-	string s = str->ToStdString();
-	string sub_s = sub->ToStdString();
+	auto s = str->ToStdStringView();
+	auto sub_s = sub->ToStdStringView();
 
 	size_t count = 0;
 	size_t pos = s.find(sub_s);
@@ -1355,8 +1355,14 @@ function rfind_str%(str: string, sub: string, start: count &default=0, end: int 
 ##
 function starts_with%(str: string, sub: string%) : bool
 	%{
-	string s = str->ToStdString();
-	return zeek::val_mgr->Bool(s.find(sub->ToStdString()) == 0);
+	if ( sub->Len() > str->Len() )
+		return zeek::val_mgr->Bool(false);
+
+	auto sub_s = sub->ToStdStringView();
+	auto s = str->ToStdStringView();
+	auto start_s = std::string_view{s.data(), sub_s.size()};
+
+	return zeek::val_mgr->Bool(start_s == sub_s);
 	%}
 
 ## Returns whether a string ends with a substring.
@@ -1366,9 +1372,15 @@ function ends_with%(str: string, sub: string%) : bool
 	if ( sub->Len() > str->Len() )
 		return zeek::val_mgr->Bool(false);
 
-	string s = str->ToStdString();
-	string sub_s = sub->ToStdString();
-	return zeek::val_mgr->Bool(s.rfind(sub_s) == (s.size() - sub_s.size()));
+	auto sub_s = sub->ToStdStringView();
+	auto s = str->ToStdStringView();
+
+	// Create a string_view that only looks at the end of the string being searched
+	// with the same number of characters as the search string. This avoids possible
+	// pathological searches of big strings if the search string doesn't exist.
+	auto end_s = std::string_view{s.data() + s.size() - sub_s.size(), sub_s.size()};
+
+	return zeek::val_mgr->Bool(end_s == sub_s);
 	%}
 
 ## Returns whether a string consists entirely of digits.
@@ -1550,8 +1562,8 @@ function remove_prefix%(str: string, sub: string%) : string
 	// This could just use repeated calls to lstrip(), except for a couple of reasons:
 	// 1) lstrip() creates a StringVal at the end, and that would mean repeated recreation of objects
 	// 2) lstrip() searches for any character in the string, not the string as a whole.
-	string s = str->ToStdString();
-	string sub_s = sub->ToStdString();
+	auto s = str->ToStdStringView();
+	auto sub_s = sub->ToStdStringView();
 
 	size_t pos = s.find(sub_s);
 	if ( pos != 0 )
@@ -1572,11 +1584,14 @@ function remove_prefix%(str: string, sub: string%) : string
 function remove_suffix%(str: string, sub: string%) : string
 	%{
 	// See the note in removeprefix for why this doesn't just call rstrip.
-	string s = str->ToStdString();
-	string sub_s = sub->ToStdString();
+	auto s = str->ToStdStringView();
+	auto sub_s = sub->ToStdStringView();
 
 	size_t pos = s.rfind(sub_s);
 	size_t next_pos = s.size() - sub_s.size();
+
+	if ( pos != next_pos )
+		return zeek::IntrusivePtr<zeek::StringVal>(NewRef{}, str);
 
 	while ( pos == next_pos )
 		{

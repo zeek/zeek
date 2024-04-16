@@ -7,11 +7,6 @@
 module FTP;
 
 export {
-	redef record Info += {
-		## File unique ID.
-		fuid: string &optional &log;
-	};
-
 	## Default file handle provider for FTP.
 	global get_file_handle: function(c: connection, is_orig: bool): string;
 

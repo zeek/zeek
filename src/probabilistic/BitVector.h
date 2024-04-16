@@ -2,14 +2,17 @@
 
 #pragma once
 
-#include <broker/expected.hh>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <vector>
 
-namespace broker {
-class data;
-}
+namespace zeek {
+
+class BrokerData;
+class BrokerDataView;
+
+} // namespace zeek
 
 namespace zeek::probabilistic::detail {
 
@@ -281,8 +284,8 @@ public:
      */
     uint64_t Hash() const;
 
-    broker::expected<broker::data> Serialize() const;
-    static std::unique_ptr<BitVector> Unserialize(const broker::data& data);
+    std::optional<BrokerData> Serialize() const;
+    static std::unique_ptr<BitVector> Unserialize(BrokerDataView data);
 
 private:
     /**

@@ -2,10 +2,6 @@
 
 #pragma once
 
-#include "zeek/Expr.h"
-#include "zeek/Scope.h"
-#include "zeek/Stmt.h"
-#include "zeek/Traverse.h"
 #include "zeek/script_opt/ObjMgr.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
@@ -16,7 +12,7 @@ class TempVar;
 
 class Reducer {
 public:
-    Reducer(const ScriptFunc* func, std::shared_ptr<ProfileFunc> pf);
+    Reducer(const ScriptFuncPtr& func, std::shared_ptr<ProfileFunc> pf, std::shared_ptr<ProfileFuncs> pfs);
 
     StmtPtr Reduce(StmtPtr s);
 
@@ -131,24 +127,22 @@ public:
         replaced_stmts.clear();
     }
 
-    // Given the LHS and RHS of an assignment, returns true
-    // if the RHS is a common subexpression (meaning that the
-    // current assignment statement should be deleted).  In
-    // that case, has the side effect of associating an alias
-    // for the LHS with the temporary variable that holds the
-    // equivalent RHS; or if the LHS is a local that has no other
-    // assignments, and the same for the RHS.
+    // Given the LHS and RHS of an assignment, returns true if the RHS is
+    // a common subexpression (meaning that the current assignment statement
+    // should be deleted).  In that case, has the side effect of associating
+    // an alias for the LHS with the temporary variable that holds the
+    // equivalent RHS; or if the LHS is a local that has no other assignments,
+    // and the same for the RHS.
     //
-    // Assumes reduction (including alias propagation) has
-    // already been applied.
+    // Assumes reduction (including alias propagation) has already been applied.
+
     bool IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs);
 
     // Returns a constant representing folding of the given expression
     // (which must have constant operands).
     ConstExprPtr Fold(ExprPtr e);
 
-    // Notes that the given expression has been folded to the
-    // given constant.
+    // Notes that the given expression has been folded to the given constant.
     void FoldedTo(ExprPtr orig, ConstExprPtr c);
 
     // Given an lhs=rhs statement followed by succ_stmt, returns
@@ -237,6 +231,9 @@ protected:
     // Profile associated with the function.
     std::shared_ptr<ProfileFunc> pf;
 
+    // Profile across all script functions - used for optimization decisions.
+    std::shared_ptr<ProfileFuncs> pfs;
+
     // Tracks the temporary variables created during the reduction/
     // optimization process.
     std::vector<std::shared_ptr<TempVar>> temps;
@@ -311,77 +308,6 @@ protected:
     const Stmt* curr_stmt = nullptr;
 
     bool opt_ready = false;
-};
-
-// Helper class that walks an AST to determine whether it's safe
-// to substitute a common subexpression (which at this point is
-// an assignment to a variable) created using the assignment
-// expression at position "start_e", at the location specified by
-// the expression at position "end_e".
-//
-// See Reducer::ExprValid for a discussion of what's required
-// for safety.
-
-class CSE_ValidityChecker : public TraversalCallback {
-public:
-    CSE_ValidityChecker(const std::vector<const ID*>& ids, const Expr* start_e, const Expr* end_e);
-
-    TraversalCode PreStmt(const Stmt*) override;
-    TraversalCode PostStmt(const Stmt*) override;
-    TraversalCode PreExpr(const Expr*) override;
-
-    // Returns the ultimate verdict re safety.
-    bool IsValid() const {
-        if ( ! is_valid )
-            return false;
-
-        if ( ! have_end_e )
-            reporter->InternalError("CSE_ValidityChecker: saw start but not end");
-        return true;
-    }
-
-protected:
-    // Returns true if an assignment involving the given identifier on
-    // the LHS is in conflict with the given list of identifiers.
-    bool CheckID(const std::vector<const ID*>& ids, const ID* id, bool ignore_orig) const;
-
-    // Returns true if the assignment given by 'e' modifies an aggregate
-    // with the same type as that of one of the identifiers.
-    bool CheckAggrMod(const std::vector<const ID*>& ids, const Expr* e) const;
-
-    // The list of identifiers for which an assignment to one of them
-    // renders the CSE unsafe.
-    const std::vector<const ID*>& ids;
-
-    // Whether the list of identifiers includes some that we should
-    // consider potentially altered by a function call.
-    bool sensitive_to_calls = false;
-
-    // Where in the AST to start our analysis.  This is the initial
-    // assignment expression.
-    const Expr* start_e;
-
-    // Where in the AST to end our analysis.
-    const Expr* end_e;
-
-    // If what we're analyzing is a record element, then its offset.
-    // -1 if not.
-    int field;
-
-    // The type of that record element, if any.
-    TypePtr field_type;
-
-    // The verdict so far.
-    bool is_valid = true;
-
-    // Whether we've encountered the start/end expression in
-    // the AST traversal.
-    bool have_start_e = false;
-    bool have_end_e = false;
-
-    // Whether analyzed expressions occur in the context of
-    // a statement that modifies an aggregate ("add" or "delete").
-    bool in_aggr_mod_stmt = false;
 };
 
 // Used for debugging, to communicate which expression wasn't

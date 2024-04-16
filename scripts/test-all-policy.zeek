@@ -72,6 +72,7 @@
 @load frameworks/notice/extend-email/hostnames.zeek
 @load files/x509/disable-certificate-events-known-certs.zeek
 @load frameworks/packet-filter/shunt.zeek
+# @load frameworks/signatures/iso-9660.zeek
 @load frameworks/software/version-changes.zeek
 @load frameworks/software/vulnerable.zeek
 # @load frameworks/spicy/record-spicy-batch.zeek

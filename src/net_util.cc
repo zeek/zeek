@@ -8,7 +8,9 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <memory>
 
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/IP.h"
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
@@ -157,21 +159,69 @@ const char* fmt_conn_id(const uint32_t* src_addr, uint32_t src_port, const uint3
     return fmt_conn_id(src, src_port, dst, dst_port);
 }
 
-std::string fmt_mac(const unsigned char* m, int len) {
-    static char buf[25];
+TEST_CASE("fmt_mac") {
+    auto my_fmt_mac = [](const char* m, int len) {
+        // allow working with literal strings
+        return fmt_mac(reinterpret_cast<const unsigned char*>(m), len);
+    };
 
+    CHECK(my_fmt_mac("", 0) == "");
+    CHECK(my_fmt_mac("\x01\x02\x03\x04\x05\x06", 4) == "");
+    CHECK(my_fmt_mac("\x01\x02\x03\x04\x05\x06", 6) == "01:02:03:04:05:06");
+    CHECK(my_fmt_mac("\x01\x02\x03\x04\x05\x06\x00\x00", 8) == "01:02:03:04:05:06");
+    CHECK(my_fmt_mac("\x01\x02\x03\x04\x05\x06\x07\x08", 8) == "01:02:03:04:05:06:07:08");
+    CHECK(my_fmt_mac("\x08\x07\x06\x05\x04\x03\x02\x01", 8) == "08:07:06:05:04:03:02:01");
+}
+
+std::string fmt_mac(const unsigned char* m, int len) {
+    auto [mac_bytes, slen] = fmt_mac_bytes(m, len);
+    return reinterpret_cast<char*>(mac_bytes.get());
+}
+
+TEST_CASE("fmt_mac_bytes") {
+    auto my_fmt_mac_bytes = [](const char* m, int len) {
+        // allow working with literal strings
+        return fmt_mac_bytes(reinterpret_cast<const unsigned char*>(m), len);
+    };
+
+    auto [buf1, len1] = my_fmt_mac_bytes("\x01\x02\x03\x04\x05\x06", 4);
+    CHECK(len1 == 0);
+    CHECK(memcmp(buf1.get(), "", 1) == 0); // still null terminated
+
+    auto [buf2, len2] = my_fmt_mac_bytes("\x01\x02\x03\x04\x05\x06", 6);
+    CHECK(len2 == 2 * 6 + 5);
+    CHECK(memcmp(buf2.get(), "01:02:03:04:05:06", len2 + 1) == 0);
+
+    auto [buf3, len3] = my_fmt_mac_bytes("\x01\x02\x03\x04\x05\x06\x00\x00", 8);
+    CHECK(len3 == 2 * 6 + 5);
+    CHECK(memcmp(buf3.get(), "01:02:03:04:05:06", len3 + 1) == 0);
+
+    // Check for no memory overreads
+    auto [buf4, len4] = my_fmt_mac_bytes("\x01\x02\x03\x04\x05\x06\x07\x08\xff\xff", 42);
+    CHECK(len4 == 2 * 8 + 7);
+    CHECK(memcmp(buf4.get(), "01:02:03:04:05:06:07:08", len4 + 1) == 0);
+}
+
+std::pair<std::unique_ptr<uint8_t[]>, int> fmt_mac_bytes(const unsigned char* m, int len) {
     if ( len < 8 && len != 6 ) {
-        *buf = '\0';
-        return buf;
+        auto buf = std::make_unique<uint8_t[]>(1);
+        buf[0] = '\0';
+        return {std::move(buf), 0};
     }
 
-    if ( (len == 6) || (m[6] == 0 && m[7] == 0) ) // EUI-48
-        snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x", m[0], m[1], m[2], m[3], m[4], m[5]);
-    else
-        snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x", m[0], m[1], m[2], m[3], m[4], m[5], m[6],
-                 m[7]);
+    int elen = (len == 6 || (m[6] == 0 && m[7] == 0)) ? 6 : 8;
+    auto slen = 2 * elen + (elen - 1);
+    auto buf = std::make_unique<uint8_t[]>(slen + 1);
+    auto* bufp = reinterpret_cast<char*>(buf.get());
 
-    return buf;
+    for ( int i = 0; i < elen; i++ ) {
+        zeek::util::bytetohex(m[i], &bufp[i * 2 + i]);
+        if ( i < elen - 1 )
+            bufp[i * 2 + i + 2] = ':';
+    }
+    bufp[slen] = '\0';
+
+    return {std::move(buf), slen};
 }
 
 uint32_t extract_uint32(const u_char* data) {

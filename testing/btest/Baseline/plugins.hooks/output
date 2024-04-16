@@ -49,18 +49,18 @@
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=tunnel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::__enable_stream, <frame>, (Analyzer::Logging::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Analyzer::Logging::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_default_filter, <frame>, (Broker::LOG)) -> <no result>
@@ -98,18 +98,18 @@
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Notice::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Tunnel::LOG, default)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::add_stream_filters, <frame>, (Weird::LOG, default)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
+0.000000   MetaHookPost  CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Log::enable_stream, <frame>, (Analyzer::Logging::LOG)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set, <frame>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24}, <skip-config-log>)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::enable, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)) -> <no result>
@@ -385,6 +385,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_KRB.types.bif.zeek, <...>/Zeek_KRB.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Login.events.bif.zeek, <...>/Zeek_Login.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Login.functions.bif.zeek, <...>/Zeek_Login.functions.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_MIME.consts.bif.zeek, <...>/Zeek_MIME.consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_MIME.events.bif.zeek, <...>/Zeek_MIME.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_MQTT.events.bif.zeek, <...>/Zeek_MQTT.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_MQTT.types.bif.zeek, <...>/Zeek_MQTT.types.bif.zeek) -> -1
@@ -441,6 +442,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMTP.consts.bif.zeek, <...>/Zeek_SMTP.consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek) -> -1
@@ -461,6 +463,10 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_WebSocket.consts.bif.zeek, <...>/Zeek_WebSocket.consts.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_WebSocket.events.bif.zeek, <...>/Zeek_WebSocket.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_WebSocket.functions.bif.zeek, <...>/Zeek_WebSocket.functions.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_WebSocket.types.bif.zeek, <...>/Zeek_WebSocket.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> -1
@@ -493,6 +499,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./main, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./main.zeek, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./messaging.bif.zeek, <...>/messaging.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./mmdb.bif.zeek, <...>/mmdb.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./option.bif.zeek, <...>/option.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./packet_analysis.bif.zeek, <...>/packet_analysis.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./patterns, <...>/patterns.zeek) -> -1
@@ -580,6 +587,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/main, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/main.zeek, <...>/main.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/messaging.bif, <...>/messaging.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/mmdb.bif, <...>/mmdb.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/mpls, <...>/mpls) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/nflog, <...>/nflog) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/novell_802_3, <...>/novell_802_3) -> -1
@@ -670,6 +678,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_KRB.types.bif.zeek, <...>/Zeek_KRB.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Login.events.bif.zeek, <...>/Zeek_Login.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Login.functions.bif.zeek, <...>/Zeek_Login.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_MIME.consts.bif.zeek, <...>/Zeek_MIME.consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_MIME.events.bif.zeek, <...>/Zeek_MIME.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_MQTT.events.bif.zeek, <...>/Zeek_MQTT.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_MQTT.types.bif.zeek, <...>/Zeek_MQTT.types.bif.zeek) -> (-1, <no content>)
@@ -726,6 +735,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMTP.consts.bif.zeek, <...>/Zeek_SMTP.consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek) -> (-1, <no content>)
@@ -746,6 +756,10 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_WebSocket.consts.bif.zeek, <...>/Zeek_WebSocket.consts.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_WebSocket.events.bif.zeek, <...>/Zeek_WebSocket.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_WebSocket.functions.bif.zeek, <...>/Zeek_WebSocket.functions.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_WebSocket.types.bif.zeek, <...>/Zeek_WebSocket.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek) -> (-1, <no content>)
@@ -778,6 +792,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./main, <...>/main.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./main.zeek, <...>/main.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./messaging.bif.zeek, <...>/messaging.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./mmdb.bif.zeek, <...>/mmdb.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./option.bif.zeek, <...>/option.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./packet_analysis.bif.zeek, <...>/packet_analysis.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./patterns, <...>/patterns.zeek) -> (-1, <no content>)
@@ -865,6 +880,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/main, <...>/main.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/main.zeek, <...>/main.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/messaging.bif, <...>/messaging.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/mmdb.bif, <...>/mmdb.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/mpls, <...>/mpls) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/nflog, <...>/nflog) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/novell_802_3, <...>/novell_802_3) -> (-1, <no content>)
@@ -967,18 +983,18 @@
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=tunnel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
 0.000000   MetaHookPre   CallFunction(Log::__add_filter, <frame>, (Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::__create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
 0.000000   MetaHookPre   CallFunction(Log::__enable_stream, <frame>, (Analyzer::Logging::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Analyzer::Logging::LOG))
 0.000000   MetaHookPre   CallFunction(Log::add_default_filter, <frame>, (Broker::LOG))
@@ -1016,18 +1032,18 @@
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Notice::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Tunnel::LOG, default))
 0.000000   MetaHookPre   CallFunction(Log::add_stream_filters, <frame>, (Weird::LOG, default))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}]))
-0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
+0.000000   MetaHookPre   CallFunction(Log::create_stream, <frame>, (Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000]))
 0.000000   MetaHookPre   CallFunction(Log::enable_stream, <frame>, (Analyzer::Logging::LOG))
 0.000000   MetaHookPre   CallFunction(Option::set, <frame>, (Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24}, <skip-config-log>))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::enable, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100))
@@ -1303,6 +1319,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_KRB.types.bif.zeek, <...>/Zeek_KRB.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Login.events.bif.zeek, <...>/Zeek_Login.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Login.functions.bif.zeek, <...>/Zeek_Login.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_MIME.consts.bif.zeek, <...>/Zeek_MIME.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_MIME.events.bif.zeek, <...>/Zeek_MIME.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_MQTT.events.bif.zeek, <...>/Zeek_MQTT.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_MQTT.types.bif.zeek, <...>/Zeek_MQTT.types.bif.zeek)
@@ -1359,6 +1376,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMTP.consts.bif.zeek, <...>/Zeek_SMTP.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek)
@@ -1379,6 +1397,10 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_WebSocket.consts.bif.zeek, <...>/Zeek_WebSocket.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_WebSocket.events.bif.zeek, <...>/Zeek_WebSocket.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_WebSocket.functions.bif.zeek, <...>/Zeek_WebSocket.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_WebSocket.types.bif.zeek, <...>/Zeek_WebSocket.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
@@ -1411,6 +1433,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./main, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./main.zeek, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./messaging.bif.zeek, <...>/messaging.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./mmdb.bif.zeek, <...>/mmdb.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./option.bif.zeek, <...>/option.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./packet_analysis.bif.zeek, <...>/packet_analysis.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./patterns, <...>/patterns.zeek)
@@ -1498,6 +1521,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/main, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/main.zeek, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/messaging.bif, <...>/messaging.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/mmdb.bif, <...>/mmdb.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/mpls, <...>/mpls)
 0.000000   MetaHookPre   LoadFile(0, base<...>/nflog, <...>/nflog)
 0.000000   MetaHookPre   LoadFile(0, base<...>/novell_802_3, <...>/novell_802_3)
@@ -1588,6 +1612,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_KRB.types.bif.zeek, <...>/Zeek_KRB.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Login.events.bif.zeek, <...>/Zeek_Login.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Login.functions.bif.zeek, <...>/Zeek_Login.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_MIME.consts.bif.zeek, <...>/Zeek_MIME.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_MIME.events.bif.zeek, <...>/Zeek_MIME.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_MQTT.events.bif.zeek, <...>/Zeek_MQTT.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_MQTT.types.bif.zeek, <...>/Zeek_MQTT.types.bif.zeek)
@@ -1644,6 +1669,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_com_write.bif.zeek, <...>/Zeek_SMB.smb2_com_write.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.smb2_events.bif.zeek, <...>/Zeek_SMB.smb2_events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMB.types.bif.zeek, <...>/Zeek_SMB.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMTP.consts.bif.zeek, <...>/Zeek_SMTP.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMTP.events.bif.zeek, <...>/Zeek_SMTP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SMTP.functions.bif.zeek, <...>/Zeek_SMTP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SNMP.events.bif.zeek, <...>/Zeek_SNMP.events.bif.zeek)
@@ -1664,6 +1690,10 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Teredo.functions.bif.zeek, <...>/Zeek_Teredo.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_UDP.events.bif.zeek, <...>/Zeek_UDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_VXLAN.events.bif.zeek, <...>/Zeek_VXLAN.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_WebSocket.consts.bif.zeek, <...>/Zeek_WebSocket.consts.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_WebSocket.events.bif.zeek, <...>/Zeek_WebSocket.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_WebSocket.functions.bif.zeek, <...>/Zeek_WebSocket.functions.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_WebSocket.types.bif.zeek, <...>/Zeek_WebSocket.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.events.bif.zeek, <...>/Zeek_X509.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.functions.bif.zeek, <...>/Zeek_X509.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.ocsp_events.bif.zeek, <...>/Zeek_X509.ocsp_events.bif.zeek)
@@ -1696,6 +1726,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./main, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./main.zeek, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./messaging.bif.zeek, <...>/messaging.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./mmdb.bif.zeek, <...>/mmdb.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./option.bif.zeek, <...>/option.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./packet_analysis.bif.zeek, <...>/packet_analysis.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./patterns, <...>/patterns.zeek)
@@ -1783,6 +1814,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/main, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/main.zeek, <...>/main.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/messaging.bif, <...>/messaging.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/mmdb.bif, <...>/mmdb.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/mpls, <...>/mpls)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/nflog, <...>/nflog)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/novell_802_3, <...>/novell_802_3)
@@ -1884,18 +1916,18 @@
 0.000000 | HookCallFunction Log::__add_filter(Notice::LOG, [name=default, writer=Log::WRITER_ASCII, path=notice, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Tunnel::LOG, [name=default, writer=Log::WRITER_ASCII, path=tunnel, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
 0.000000 | HookCallFunction Log::__add_filter(Weird::LOG, [name=default, writer=Log::WRITER_ASCII, path=weird, path_func=<uninitialized>, include=<uninitialized>, exclude=<uninitialized>, log_local=T, log_remote=T, field_name_map={}, scope_sep=., ext_prefix=_, ext_func=lambda_<2528247166937952945>, interv=0 secs, postprocessor=<uninitialized>, config={}, policy=<uninitialized>])
-0.000000 | HookCallFunction Log::__create_stream(Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])
-0.000000 | HookCallFunction Log::__create_stream(Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])
+0.000000 | HookCallFunction Log::__create_stream(Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::__create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
 0.000000 | HookCallFunction Log::__enable_stream(Analyzer::Logging::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Analyzer::Logging::LOG)
 0.000000 | HookCallFunction Log::add_default_filter(Broker::LOG)
@@ -1933,18 +1965,18 @@
 0.000000 | HookCallFunction Log::add_stream_filters(Notice::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Tunnel::LOG, default)
 0.000000 | HookCallFunction Log::add_stream_filters(Weird::LOG, default)
-0.000000 | HookCallFunction Log::create_stream(Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}])
-0.000000 | HookCallFunction Log::create_stream(Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}])
-0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}])
+0.000000 | HookCallFunction Log::create_stream(Analyzer::Logging::LOG, [columns=Analyzer::Logging::Info, ev=<uninitialized>, path=analyzer, policy=Analyzer::Logging::log_policy, event_groups={Analyzer::Logging}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Broker::LOG, [columns=Broker::Info, ev=<uninitialized>, path=broker, policy=Broker::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Cluster::LOG, [columns=Cluster::Info, ev=<uninitialized>, path=cluster, policy=Cluster::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Config::LOG, [columns=Config::Info, ev=Config::log_config, path=config, policy=Config::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Conn::LOG, [columns=Conn::Info, ev=Conn::log_conn, path=conn, policy=Conn::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(DPD::LOG, [columns=DPD::Info, ev=<uninitialized>, path=dpd, policy=DPD::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Files::LOG, [columns=Files::Info, ev=Files::log_files, path=files, policy=Files::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(HTTP::LOG, [columns=HTTP::Info, ev=HTTP::log_http, path=http, policy=HTTP::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Notice::ALARM_LOG, [columns=Notice::Info, ev=<uninitialized>, path=notice_alarm, policy=Notice::log_policy_alarm, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Notice::LOG, [columns=Notice::Info, ev=Notice::log_notice, path=notice, policy=Notice::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Tunnel::LOG, [columns=Tunnel::Info, ev=<uninitialized>, path=tunnel, policy=Tunnel::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
+0.000000 | HookCallFunction Log::create_stream(Weird::LOG, [columns=Weird::Info, ev=Weird::log_weird, path=weird, policy=Weird::log_policy, event_groups={}, max_delay_interval=200.0 msecs, max_delay_queue_size=1000])
 0.000000 | HookCallFunction Log::enable_stream(Analyzer::Logging::LOG)
 0.000000 | HookCallFunction Option::set(Site::local_nets, {64:ff9b:1::<...>/15,fc00::<...>/10,::/128,2002:ffff:ffff::/48,::1/128,2002:cb00:7100::<...>/4,2002:c633:6400::/40,2002:a00::/24,100::<...>/8,2001:2::/48,2002:c000:200::<...>/12,2002:f000::/20,2002:7f00::/24,2001::/23,2002:6440::/26,2002:c000::<...>/16,2002:ac10::/28,2002:a9fe::/32,2002:c612::<...>/16,2002::/24,fe80::/10,2001:db8::<...>/24,2002:c0a8::<...>/24}, <skip-config-log>)
 0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::enable, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerceConfig::log)return (Config::new_value)}, -100)
@@ -2220,6 +2252,7 @@
 0.000000 | HookLoadFile  ./Zeek_KRB.types.bif.zeek <...>/Zeek_KRB.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Login.events.bif.zeek <...>/Zeek_Login.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Login.functions.bif.zeek <...>/Zeek_Login.functions.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_MIME.consts.bif.zeek <...>/Zeek_MIME.consts.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_MIME.events.bif.zeek <...>/Zeek_MIME.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_MQTT.events.bif.zeek <...>/Zeek_MQTT.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_MQTT.types.bif.zeek <...>/Zeek_MQTT.types.bif.zeek
@@ -2276,6 +2309,7 @@
 0.000000 | HookLoadFile  ./Zeek_SMB.smb2_com_write.bif.zeek <...>/Zeek_SMB.smb2_com_write.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SMB.smb2_events.bif.zeek <...>/Zeek_SMB.smb2_events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SMB.types.bif.zeek <...>/Zeek_SMB.types.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_SMTP.consts.bif.zeek <...>/Zeek_SMTP.consts.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SMTP.events.bif.zeek <...>/Zeek_SMTP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SMTP.functions.bif.zeek <...>/Zeek_SMTP.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SNMP.events.bif.zeek <...>/Zeek_SNMP.events.bif.zeek
@@ -2296,6 +2330,10 @@
 0.000000 | HookLoadFile  ./Zeek_Teredo.functions.bif.zeek <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_VXLAN.events.bif.zeek <...>/Zeek_VXLAN.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_WebSocket.consts.bif.zeek <...>/Zeek_WebSocket.consts.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_WebSocket.events.bif.zeek <...>/Zeek_WebSocket.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_WebSocket.functions.bif.zeek <...>/Zeek_WebSocket.functions.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_WebSocket.types.bif.zeek <...>/Zeek_WebSocket.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.events.bif.zeek <...>/Zeek_X509.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.functions.bif.zeek <...>/Zeek_X509.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek
@@ -2337,6 +2375,7 @@
 0.000000 | HookLoadFile  ./main <...>/main.zeek
 0.000000 | HookLoadFile  ./main.zeek <...>/main.zeek
 0.000000 | HookLoadFile  ./messaging.bif.zeek <...>/messaging.bif.zeek
+0.000000 | HookLoadFile  ./mmdb.bif.zeek <...>/mmdb.bif.zeek
 0.000000 | HookLoadFile  ./office <...>/office.sig
 0.000000 | HookLoadFile  ./option.bif.zeek <...>/option.bif.zeek
 0.000000 | HookLoadFile  ./packet_analysis.bif.zeek <...>/packet_analysis.bif.zeek
@@ -2427,6 +2466,7 @@
 0.000000 | HookLoadFile  base<...>/main <...>/main.zeek
 0.000000 | HookLoadFile  base<...>/main.zeek <...>/main.zeek
 0.000000 | HookLoadFile  base<...>/messaging.bif <...>/messaging.bif.zeek
+0.000000 | HookLoadFile  base<...>/mmdb.bif <...>/mmdb.bif.zeek
 0.000000 | HookLoadFile  base<...>/mpls <...>/mpls
 0.000000 | HookLoadFile  base<...>/nflog <...>/nflog
 0.000000 | HookLoadFile  base<...>/novell_802_3 <...>/novell_802_3
@@ -2505,6 +2545,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_KRB.types.bif.zeek <...>/Zeek_KRB.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Login.events.bif.zeek <...>/Zeek_Login.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Login.functions.bif.zeek <...>/Zeek_Login.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_MIME.consts.bif.zeek <...>/Zeek_MIME.consts.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_MIME.events.bif.zeek <...>/Zeek_MIME.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_MQTT.events.bif.zeek <...>/Zeek_MQTT.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_MQTT.types.bif.zeek <...>/Zeek_MQTT.types.bif.zeek
@@ -2561,6 +2602,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_com_write.bif.zeek <...>/Zeek_SMB.smb2_com_write.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SMB.smb2_events.bif.zeek <...>/Zeek_SMB.smb2_events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SMB.types.bif.zeek <...>/Zeek_SMB.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_SMTP.consts.bif.zeek <...>/Zeek_SMTP.consts.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SMTP.events.bif.zeek <...>/Zeek_SMTP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SMTP.functions.bif.zeek <...>/Zeek_SMTP.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SNMP.events.bif.zeek <...>/Zeek_SNMP.events.bif.zeek
@@ -2581,6 +2623,10 @@
 0.000000 | HookLoadFileExtended ./Zeek_Teredo.functions.bif.zeek <...>/Zeek_Teredo.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_UDP.events.bif.zeek <...>/Zeek_UDP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_VXLAN.events.bif.zeek <...>/Zeek_VXLAN.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_WebSocket.consts.bif.zeek <...>/Zeek_WebSocket.consts.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_WebSocket.events.bif.zeek <...>/Zeek_WebSocket.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_WebSocket.functions.bif.zeek <...>/Zeek_WebSocket.functions.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_WebSocket.types.bif.zeek <...>/Zeek_WebSocket.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.events.bif.zeek <...>/Zeek_X509.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.functions.bif.zeek <...>/Zeek_X509.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_X509.ocsp_events.bif.zeek <...>/Zeek_X509.ocsp_events.bif.zeek
@@ -2622,6 +2668,7 @@
 0.000000 | HookLoadFileExtended ./main <...>/main.zeek
 0.000000 | HookLoadFileExtended ./main.zeek <...>/main.zeek
 0.000000 | HookLoadFileExtended ./messaging.bif.zeek <...>/messaging.bif.zeek
+0.000000 | HookLoadFileExtended ./mmdb.bif.zeek <...>/mmdb.bif.zeek
 0.000000 | HookLoadFileExtended ./office <...>/office.sig
 0.000000 | HookLoadFileExtended ./option.bif.zeek <...>/option.bif.zeek
 0.000000 | HookLoadFileExtended ./packet_analysis.bif.zeek <...>/packet_analysis.bif.zeek
@@ -2712,6 +2759,7 @@
 0.000000 | HookLoadFileExtended base<...>/main <...>/main.zeek
 0.000000 | HookLoadFileExtended base<...>/main.zeek <...>/main.zeek
 0.000000 | HookLoadFileExtended base<...>/messaging.bif <...>/messaging.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/mmdb.bif <...>/mmdb.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/mpls <...>/mpls
 0.000000 | HookLoadFileExtended base<...>/nflog <...>/nflog
 0.000000 | HookLoadFileExtended base<...>/novell_802_3 <...>/novell_802_3

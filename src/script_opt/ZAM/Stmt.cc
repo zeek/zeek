@@ -5,13 +5,18 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
 
 const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
-    curr_stmt = const_cast<Stmt*>(s)->ThisPtr();
+    auto loc = s->GetLocationInfo();
+    ASSERT(loc->first_line != 0 || s->Tag() == STMT_NULL);
+    auto loc_copy =
+        std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+    ASSERT(! AST_blocks || s->Tag() == STMT_NULL || AST_blocks->HaveExpDesc(loc_copy.get()));
+    auto loc_parent = ZAM::curr_loc->Parent();
+    ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, std::move(loc_copy), ZAM::curr_loc->Parent());
 
     switch ( s->Tag() ) {
         case STMT_PRINT: return CompilePrint(static_cast<const PrintStmt*>(s));
@@ -591,6 +596,16 @@ const ZAMStmt ZAMCompiler::CompileAdd(const AddStmt* as) {
 
 const ZAMStmt ZAMCompiler::CompileDel(const DelStmt* ds) {
     auto e = ds->StmtExprPtr();
+
+    if ( e->Tag() == EXPR_NAME ) {
+        auto n = e->AsNameExpr();
+
+        if ( n->GetType()->Tag() == TYPE_TABLE )
+            return ClearTableV(n);
+        else
+            return ClearVectorV(n);
+    }
+
     auto aggr = e->GetOp1()->AsNameExpr();
 
     if ( e->Tag() == EXPR_FIELD ) {
@@ -682,13 +697,10 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     auto value_var = f->ValueVar();
     auto body = f->LoopBody();
 
-    // Check whether the loop variables are actually used in the body.
-    // This is motivated by an idiom where there's both loop_vars and
-    // a value_var, but the script only actually needs the value_var;
-    // and also some weird cases where the script is managing a
-    // separate iteration process manually.
-    ProfileFunc body_pf(body);
-
+    // We used to have more involved logic here to check whether the loop
+    // variables are actually used in the body. Now that we have '_'
+    // loop placeholder variables, this is no longer worth trying to
+    // optimize for, though we still optimize for those placeholders.
     int num_unused = 0;
 
     auto aux = new ZInstAux(0);
@@ -696,7 +708,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     for ( auto i = 0; i < loop_vars->length(); ++i ) {
         auto id = (*loop_vars)[i];
 
-        if ( body_pf.Locals().count(id) == 0 || id->IsBlank() )
+        if ( id->IsBlank() )
             ++num_unused;
 
         int slot = id->IsBlank() ? -1 : FrameSlot(id);
@@ -707,12 +719,6 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     }
 
     bool no_loop_vars = (num_unused == loop_vars->length());
-
-    if ( value_var && body_pf.Locals().count(value_var.get()) == 0 )
-        // This is more clearly a coding botch - someone left in
-        // an unnecessary value_var variable.  But might as
-        // well not do the work.
-        value_var = nullptr;
 
     if ( value_var )
         aux->value_var_type = value_var->GetType();
@@ -901,6 +907,16 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r) {
 const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.push_back(cr->RetVar());
 
+    auto hold_func = ZAM::curr_func;
+    auto hold_loc = ZAM::curr_loc;
+
+    ZAM::curr_func = cr->Func()->Name();
+
+    bool is_event_inline = (hold_func == ZAM::curr_func);
+
+    if ( ! is_event_inline )
+        ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, ZAM::curr_loc->LocPtr(), hold_loc);
+
     PushCatchReturns();
 
     auto block = cr->Block();
@@ -908,6 +924,14 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.pop_back();
 
     ResolveCatchReturns(GoToTargetBeyond(block_end));
+
+    if ( ! is_event_inline ) {
+        // Strictly speaking, we could do this even if is_event_inline
+        // is true, because the values won't have changed. However, that
+        // just looks weird, so we condition this to match the above.
+        ZAM::curr_func = hold_func;
+        ZAM::curr_loc = hold_loc;
+    }
 
     return block_end;
 }
@@ -1007,7 +1031,8 @@ const ZAMStmt ZAMCompiler::InitVector(IDPtr id, VectorType* vt) {
 const ZAMStmt ZAMCompiler::InitTable(IDPtr id, TableType* tt, Attributes* attrs) {
     auto z = ZInstI(OP_INIT_TABLE_V, FrameSlot(id));
     z.SetType({NewRef{}, tt});
-    z.attrs = {NewRef{}, attrs};
+    z.aux = new ZInstAux(0);
+    z.aux->attrs = {NewRef{}, attrs};
     return AddInst(z);
 }
 

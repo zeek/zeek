@@ -64,6 +64,8 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-perftools-debug use Google's perftools for debugging
     --enable-static-binpac build binpac statically (ignored if --with-binpac is specified)
     --enable-static-broker build Broker statically (ignored if --with-broker is specified)
+    --enable-werror        build with -Werror
+    --enable-ZAM-profiling build with ZAM profiling enabled (--enable-debug implies this)
     --disable-af-packet    don't include native AF_PACKET support (Linux only)
     --disable-archiver     don't build or install zeek-archiver tool
     --disable-auxtools     don't build or install auxiliary tools
@@ -71,6 +73,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-btest        don't install BTest
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
     --disable-cpp-tests    don't build Zeek's C++ unit tests
+    --disable-javascript   don't build Zeek's JavaScript support
     --disable-port-prealloc disable pre-allocating the PortVal array in ValManager
     --disable-python       don't try to build python bindings for Broker
     --disable-spicy        don't include Spicy
@@ -130,8 +133,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
 
 sourcedir="$(cd "$(dirname "$0")" && pwd)"
 
-if [ ! -e "$sourcedir/cmake/COPYING" ] && [ -d "$sourcedir/.git" ]; then
-    echo "\
+if [ ! -e "$sourcedir/cmake/COPYING" ]; then
+    if [ -d "$sourcedir/.git" ]; then
+        echo "\
 You seem to be missing the content of the cmake directory.
 
 This typically means that you performed a non-recursive git clone of
@@ -139,6 +143,23 @@ Zeek. To check out the required subdirectories, please execute:
 
   ( cd $sourcedir && git submodule update --recursive --init )
 " >&2
+    else
+        echo "\
+You seem to be missing the content of the cmake directory.
+
+This typically means that you downloaded a non-release archive from github.
+These archives do not contain all required files.
+
+If you want to download the current release of Zeek, please download a full
+archive using one of the links at https://zeek.org/get-zeek/.
+
+If you want to get the current development version of Zeek, please use git to
+clone our repository.
+
+See https://docs.zeek.org/en/master/install.html#retrieving-the-sources for
+instructions.
+" >&2
+    fi
     exit 1
 fi
 
@@ -252,9 +273,11 @@ while [ $# -ne 0 ]; do
         --enable-coverage)
             append_cache_entry ENABLE_COVERAGE BOOL true
             append_cache_entry ENABLE_DEBUG BOOL true
+            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --enable-debug)
             append_cache_entry ENABLE_DEBUG BOOL true
+            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --enable-fuzzers)
             append_cache_entry ZEEK_ENABLE_FUZZERS BOOL true
@@ -274,6 +297,12 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-static-broker)
             append_cache_entry BUILD_STATIC_BROKER BOOL true
+            ;;
+        --enable-werror)
+            append_cache_entry BUILD_WITH_WERROR BOOL true
+            ;;
+        --enable-ZAM-profiling)
+            append_cache_entry ENABLE_ZAM_PROFILE BOOL true
             ;;
         --disable-af-packet)
             append_cache_entry DISABLE_AF_PACKET BOOL true

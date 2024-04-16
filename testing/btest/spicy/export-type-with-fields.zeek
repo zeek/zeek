@@ -21,8 +21,7 @@ public type X = unit {
 import foo;
 
 protocol analyzer FOO over TCP:
-    parse with foo::X,
-    port 80/tcp;
+    parse with foo::X;
 
 export foo::X with { x };
 export foo::X as foo::X1;

@@ -2,11 +2,5 @@
 #
 # Replace absolute paths with the basename.
 
-if [ $(uname) == "Linux" ]; then
-    sed="sed -r"
-else
-    sed="sed -E"
-fi
-
-$sed 's#/+#/#g' |
-    $sed 's#/([^	 :/]{1,}/){1,}([^	 :/]{1,})#<...>/\2#g'
+sed -E 's#/+#/#g' |
+    sed -E 's#/([^	 :/]{1,}/){1,}([^	 :/]{1,})#<...>/\2#g'

@@ -158,15 +158,15 @@ bool ZAMCompiler::RemoveDeadCode() {
         }
 
         if ( t && t->inst_num > i0->inst_num && (! i1 || t->inst_num <= i1->inst_num) ) {
-            // This is effectively a branch to the next
-            // instruction.  Even if i0 is conditional, there's
-            // no point executing it because regardless of the
-            // outcome of the conditional, we go to the next
-            // successive live instruction (and we don't have
-            // conditionals with side effects).
-            KillInst(i0);
-            did_removal = true;
-            continue;
+            // This is effectively a branch to the next instruction.
+            // We can remove it *unless* the instruction has side effects.
+            // Conditionals don't, but loop-iteration-advancement
+            // instructions do.
+            if ( ! i0->IsLoopIterationAdvancement() ) {
+                KillInst(i0);
+                did_removal = true;
+                continue;
+            }
         }
 
         if ( i0->DoesNotContinue() && i1 && i1->num_labels == 0 ) {
@@ -432,26 +432,27 @@ void ZAMCompiler::ComputeFrameLifetimes() {
             case OP_LAMBDA_VV: {
                 auto aux = inst->aux;
                 int n = aux->n;
-                auto& slots = aux->slots;
-                for ( int i = 0; i < n; ++i )
-                    if ( slots[i] >= 0 )
-                        ExtendLifetime(slots[i], EndOfLoop(inst, 1));
+                for ( int i = 0; i < n; ++i ) {
+                    auto slot_i = aux->elems[i].Slot();
+                    if ( slot_i >= 0 )
+                        ExtendLifetime(slot_i, EndOfLoop(inst, 1));
+                }
                 break;
             }
 
             default:
                 // Look for slots in auxiliary information.
                 auto aux = inst->aux;
-                if ( ! aux || ! aux->slots )
+                if ( ! aux || ! aux->elems_has_slots )
                     break;
 
                 int n = aux->n;
-                auto& slots = aux->slots;
                 for ( auto j = 0; j < n; ++j ) {
-                    if ( slots[j] < 0 )
+                    auto slot_j = aux->elems[j].Slot();
+                    if ( slot_j < 0 )
                         continue;
 
-                    ExtendLifetime(slots[j], EndOfLoop(inst, 1));
+                    ExtendLifetime(slot_j, EndOfLoop(inst, 1));
                 }
                 break;
         }
@@ -562,11 +563,11 @@ void ZAMCompiler::ReMapFrame() {
             default:
                 // Update slots in auxiliary information.
                 auto aux = inst->aux;
-                if ( ! aux || ! aux->slots )
+                if ( ! aux || ! aux->elems_has_slots )
                     break;
 
                 for ( auto j = 0; j < aux->n; ++j ) {
-                    auto& slot = aux->slots[j];
+                    auto slot = aux->elems[j].Slot();
 
                     if ( slot < 0 )
                         // This is instead a constant.
@@ -576,12 +577,12 @@ void ZAMCompiler::ReMapFrame() {
 
                     if ( new_slot < 0 ) {
                         ODesc d;
-                        inst->stmt->GetLocationInfo()->Describe(&d);
+                        inst->loc->Loc()->Describe(&d);
                         reporter->Error("%s: value used but not set: %s", d.Description(),
                                         frame_denizens[slot]->Name());
                     }
 
-                    slot = new_slot;
+                    aux->elems[j].SetSlot(new_slot);
                 }
                 break;
         }
@@ -634,8 +635,9 @@ void ZAMCompiler::ReMapInterpreterFrame() {
 
     // Update frame sizes for functions that might have more than
     // one body.
-    if ( remapped_intrp_frame_sizes.count(func) == 0 || remapped_intrp_frame_sizes[func] < next_interp_slot )
-        remapped_intrp_frame_sizes[func] = next_interp_slot;
+    auto f = func.get();
+    if ( remapped_intrp_frame_sizes.count(f) == 0 || remapped_intrp_frame_sizes[f] < next_interp_slot )
+        remapped_intrp_frame_sizes[f] = next_interp_slot;
 }
 
 void ZAMCompiler::ReMapVar(const ID* id, int slot, zeek_uint_t inst) {
@@ -746,7 +748,7 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst) {
 
     if ( denizen_beginning.count(slot) == 0 ) {
         ODesc d;
-        inst->stmt->GetLocationInfo()->Describe(&d);
+        inst->loc->Loc()->Describe(&d);
         reporter->Error("%s: value used but not set: %s", d.Description(), frame_denizens[slot]->Name());
     }
 
@@ -857,9 +859,9 @@ bool ZAMCompiler::VarIsUsed(int slot) const {
             return true;
 
         auto aux = inst->aux;
-        if ( aux && aux->slots ) {
+        if ( aux && aux->elems_has_slots ) {
             for ( int j = 0; j < aux->n; ++j )
-                if ( aux->slots[j] == slot )
+                if ( aux->elems[j].Slot() == slot )
                     return true;
         }
     }

@@ -382,7 +382,9 @@ public:
     pointer operator->() { return &curr; }
 
     RobustDictIterator& operator++() {
-        curr = dict->GetNextRobustIteration(this);
+        if ( dict )
+            curr = dict->GetNextRobustIteration(this);
+
         return *this;
     }
 
@@ -475,6 +477,7 @@ private:
             inserted = nullptr;
             visited = nullptr;
             dict = nullptr;
+            curr = nullptr; // make this same as robust_end()
         }
     }
 
@@ -765,6 +768,11 @@ public:
             order.reset();
 
         if ( iterators ) {
+            // Complete() erases from this Dictionary's iterators member, use a copy.
+            auto copied_iterators = *iterators;
+            for ( auto* i : copied_iterators )
+                i->Complete();
+
             delete iterators;
             iterators = nullptr;
         }

@@ -572,6 +572,15 @@ std::string json_escape_utf8(const std::string& val, bool escape_printable_contr
 std::string json_escape_utf8(const char* val, size_t val_size, bool escape_printable_controls = true);
 
 /**
+ * Checks for values that are approximately equal.
+ * @param a first value to compare
+ * @param b second value to compare
+ * @param tolerance how close they need to be to deem them "approximately equal"
+ * @return true if `a` is within the given tolerance of `b`, false otherwise
+ */
+bool approx_equal(double a, double b, double tolerance = std::numeric_limits<double>::epsilon());
+
+/**
  * Splits a string at all occurrences of a delimiter. Successive occurrences
  * of the delimiter will be split into multiple pieces.
  *

@@ -1,0 +1,16 @@
+# @TEST-DOC: PCAP just containing a BDAT 0 LAST command, postfix accepted it as a valid mail :-)
+#
+# @TEST-EXEC: zeek -b -r $TRACES/smtp/rfc3030-bdat-0-last.pcap %INPUT >out
+# @TEST-EXEC: zeek-cut -m uid id.orig_h id.orig_p id.resp_h id.resp_p service duration < conn.log > conn.log.cut
+# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff conn.log.cut
+# @TEST-EXEC: btest-diff smtp.log
+# @TEST-EXEC: test ! -f weird.log
+
+@load base/protocols/conn
+@load base/protocols/smtp
+
+event smtp_request(c: connection, is_orig: bool, command: string, arg: string)
+	{
+	print c$uid, is_orig, command, arg;
+	}

@@ -10,6 +10,7 @@
 #include <unordered_set>
 
 #include "zeek/Attr.h"
+#include "zeek/CompHash.h"
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Reporter.h"
@@ -478,7 +479,12 @@ TableType::TableType(TypeListPtr ind, TypePtr yield) : IndexType(TYPE_TABLE, std
             break;
         }
     }
+
+    if ( Tag() != TYPE_ERROR )
+        RegenerateHash();
 }
+
+TableType::~TableType() {}
 
 bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr) {
     if ( reported_error )
@@ -492,6 +498,8 @@ bool TableType::CheckExpireFuncCompatibility(const detail::AttrPtr& attr) {
 }
 
 TypePtr TableType::ShallowClone() { return make_intrusive<TableType>(indices, yield_type); }
+
+void TableType::RegenerateHash() { table_hash = std::make_unique<detail::CompositeHash>(GetIndices()); }
 
 bool TableType::IsUnspecifiedTable() const {
     // Unspecified types have an empty list of indices.
@@ -894,6 +902,9 @@ public:
         if ( coerce_type )
             v = v->AsRecordVal()->CoerceTo(coerce_type);
 
+        else if ( init_type->Tag() == TYPE_VECTOR )
+            concretize_if_unspecified(cast_intrusive<VectorVal>(v), init_type->Yield());
+
         return ZVal(v, init_type);
     }
 
@@ -1048,21 +1059,20 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
     auto def_attr = a ? a->Find(detail::ATTR_DEFAULT) : nullptr;
     auto def_expr = def_attr ? def_attr->GetExpr() : nullptr;
 
-    std::unique_ptr<detail::FieldInit> init;
+    std::shared_ptr<detail::FieldInit> init;
 
     if ( def_expr && ! IsErrorType(type->Tag()) ) {
         if ( def_expr->Tag() == detail::EXPR_CONST ) {
-            auto v = def_expr->Eval(nullptr);
-            auto zv = ZVal(v, type);
+            auto zv = ZVal(def_expr->Eval(nullptr), type);
 
             if ( ZVal::IsManagedType(type) )
-                init = std::make_unique<detail::DirectManagedFieldInit>(zv);
+                init = std::make_shared<detail::DirectManagedFieldInit>(zv);
             else
-                init = std::make_unique<detail::DirectFieldInit>(zv);
+                init = std::make_shared<detail::DirectFieldInit>(zv);
         }
 
         else {
-            auto efi = std::make_unique<detail::ExprFieldInit>(def_expr, type);
+            auto efi = std::make_shared<detail::ExprFieldInit>(def_expr, type);
             creation_inits.emplace_back(field, std::move(efi));
         }
     }
@@ -1076,15 +1086,15 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
             // and RecordType::CreationInitisOptimizer.
             //
             // init (nil) is appended to deferred_inits as placeholder.
-            auto rfi = std::make_unique<detail::RecordFieldInit>(cast_intrusive<RecordType>(type));
+            auto rfi = std::make_shared<detail::RecordFieldInit>(cast_intrusive<RecordType>(type));
             creation_inits.emplace_back(field, std::move(rfi));
         }
 
         else if ( tag == TYPE_TABLE )
-            init = std::make_unique<detail::TableFieldInit>(cast_intrusive<TableType>(type), a);
+            init = std::make_shared<detail::TableFieldInit>(cast_intrusive<TableType>(type), a);
 
         else if ( tag == TYPE_VECTOR )
-            init = std::make_unique<detail::VectorFieldInit>(cast_intrusive<VectorType>(type));
+            init = std::make_shared<detail::VectorFieldInit>(cast_intrusive<VectorType>(type));
     }
 
     deferred_inits.push_back(std::move(init));
@@ -2303,7 +2313,7 @@ TypePtr merge_record_types(const Type* t1, const Type* t2) {
     return make_intrusive<RecordType>(tdl3);
 }
 
-TypePtr merge_list_types(const Type* t1, const Type* t2) {
+TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
     const TypeList* tl1 = t1->AsTypeList();
     const TypeList* tl2 = t2->AsTypeList();
 

@@ -20,9 +20,8 @@
 using namespace zeek;
 using namespace zeek::spicy;
 
-void rt::register_spicy_module_begin(const std::string& name, const std::string& description,
-                                     const hilti::rt::Time& mtime) {
-    spicy_mgr->registerSpicyModuleBegin(name, description, mtime);
+void rt::register_spicy_module_begin(const std::string& name, const std::string& description) {
+    spicy_mgr->registerSpicyModuleBegin(name, description);
 }
 
 void rt::register_spicy_module_end() { spicy_mgr->registerSpicyModuleEnd(); }
@@ -197,7 +196,8 @@ void rt::raise_event(const EventHandlerPtr& handler, const hilti::rt::Vector<Val
 
     Args vl = Args();
     vl.reserve(args.size());
-    for ( const auto& v : args ) {
+    for ( auto it = args.unsafeBegin(); it != args.unsafeEnd(); it++ ) {
+        const auto& v = *it;
         if ( v )
             vl.emplace_back(v);
         else

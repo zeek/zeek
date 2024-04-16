@@ -41,8 +41,16 @@ set(BISON_FLAGS "--debug")
 
 if (MSVC)
     set(SIGN_COMPARE_FLAG "/wd4018")
+    if (BUILD_WITH_WERROR)
+        # TODO: This is disabled for now because there a bunch of known
+        # compiler warnings on Windows that we don't have good fixes for.
+        #set(WERROR_FLAG "/WX")
+    endif ()
 else ()
     set(SIGN_COMPARE_FLAG "-Wno-sign-compare")
+    if (BUILD_WITH_WERROR)
+        set(WERROR_FLAG "-Werror")
+    endif ()
 endif ()
 
 # Rule parser/scanner
@@ -103,27 +111,28 @@ include(BifCl)
 set(SUPERVISOR_SRCS supervisor/Supervisor.cc Pipe.cc)
 
 set(BIF_SRCS
-    zeek.bif
     communityid.bif
-    stats.bif
-    event.bif
     const.bif
-    types.bif
-    strings.bif
-    reporter.bif
+    event.bif
+    mmdb.bif
     option.bif
-    # Note: the supervisor BIF file is treated like other top-level BIFs instead
-    # of contained in its own subdirectory CMake logic because subdirectory BIFs
-    # are treated differently and don't support being called *during* parsing
-    # (e.g. within an @if directive).
-    supervisor/supervisor.bif
+    reporter.bif
+    stats.bif
+    strings.bif
+    types.bif
+    zeek.bif
     # The packet analysis BIF is treated like other top-level BIFs because it's
     # needed before parsing the packet protocol scripts, which happen very near
     # to the start of parsing.
     packet_analysis/packet_analysis.bif
     # The C++ loading BIF is treated like other top-level BIFs to give us
     # flexibility regarding when it's called.
-    script_opt/CPP/CPP-load.bif)
+    script_opt/CPP/CPP-load.bif
+    # Note: the supervisor BIF file is treated like other top-level BIFs instead
+    # of contained in its own subdirectory CMake logic because subdirectory BIFs
+    # are treated differently and don't support being called *during* parsing
+    # (e.g. within an @if directive).
+    supervisor/supervisor.bif)
 
 foreach (bift ${BIF_SRCS})
     bif_target(${bift} "standard")
@@ -286,7 +295,6 @@ set(MAIN_SRCS
     Anon.cc
     Attr.cc
     Base64.cc
-    BifReturnVal.cc
     CCL.cc
     CompHash.cc
     Conn.cc
@@ -320,6 +328,7 @@ set(MAIN_SRCS
     IP.cc
     IPAddr.cc
     List.cc
+    MMDB.cc
     Reporter.cc
     NFA.cc
     NetVar.cc
@@ -394,7 +403,9 @@ set(MAIN_SRCS
     script_opt/CPP/Util.cc
     script_opt/CPP/Vars.cc
     ${_gen_zeek_script_cpp}
+    script_opt/CSE.cc
     script_opt/Expr.cc
+    script_opt/FuncInfo.cc
     script_opt/GenIDDefs.cc
     script_opt/IDOptInfo.cc
     script_opt/Inline.cc
@@ -413,6 +424,7 @@ set(MAIN_SRCS
     script_opt/ZAM/Expr.cc
     script_opt/ZAM/Inst-Gen.cc
     script_opt/ZAM/Low-Level.cc
+    script_opt/ZAM/Profile.cc
     script_opt/ZAM/Stmt.cc
     script_opt/ZAM/Support.cc
     script_opt/ZAM/Vars.cc
@@ -515,6 +527,7 @@ collect_headers(zeek_HEADERS ${zeek_SRCS})
 
 add_library(zeek_objs OBJECT ${zeek_SRCS})
 target_compile_features(zeek_objs PRIVATE ${ZEEK_CXX_STD})
+target_compile_options(zeek_objs PRIVATE ${WERROR_FLAG})
 set_target_properties(zeek_objs PROPERTIES CXX_EXTENSIONS OFF)
 target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
@@ -528,6 +541,7 @@ endif ()
 
 if (TARGET zeek_exe)
     target_sources(zeek_exe PRIVATE main.cc ${zeek_HEADERS})
+    target_compile_options(zeek_exe PRIVATE ${WERROR_FLAG})
 
     # npcap/winpcap need to be loaded in delayed mode so that we can set the load
     # path correctly at runtime. See
@@ -551,6 +565,7 @@ endif ()
 
 if (TARGET zeek_lib)
     target_sources(zeek_lib PRIVATE ${zeek_HEADERS})
+    target_compile_options(zeek_lib PRIVATE ${WERROR_FLAG})
 
     target_link_libraries(zeek_lib PUBLIC ${zeekdeps} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 endif ()

@@ -14,6 +14,8 @@
 namespace zeek::analyzer::smtp {
 namespace detail {
 
+class SMTP_BDAT_Analyzer;
+
 enum SMTP_Cmd {
 #include "SMTP_cmd.def"
 };
@@ -33,6 +35,7 @@ enum SMTP_State {
     SMTP_QUIT,          // 10: after QUIT
     SMTP_AFTER_GAP,     // 11: after a gap is detected
     SMTP_GAP_RECOVERY,  // 12: after the first reply after a gap
+    SMTP_IN_BDAT,       // 13: receiving BDAT chunk via plain delivery
 };
 
 } // namespace detail
@@ -57,10 +60,11 @@ protected:
     void NewReply(int reply_code, bool orig);
     void ProcessExtension(int ext_len, const char* ext);
     void ProcessData(int length, const char* line);
+    bool ProcessBdatArg(int arg_len, const char* arg, bool orig);
 
     void UpdateState(int cmd_code, int reply_code, bool orig);
 
-    void BeginData(bool orig);
+    void BeginData(bool orig, detail::SMTP_State new_state = detail::SMTP_IN_DATA);
     void EndData();
 
     int ParseCmd(int cmd_len, const char* cmd);
@@ -82,6 +86,8 @@ protected:
     bool skip_data;               // whether to skip message body
     String* line_after_gap;       // last line before the first reply
                                   // after a gap
+
+    std::unique_ptr<detail::SMTP_BDAT_Analyzer> bdat; // if set, BDAT chunk transfer active
 
     analyzer::mime::MIME_Mail* mail;
 

@@ -125,60 +125,58 @@ static bool val_is_func(const ValPtr& v, ScriptFunc* func) {
     return v->AsFunc() == func;
 }
 
-broker::expected<broker::data> Frame::Serialize() {
-    broker::vector body;
+std::optional<BrokerData> Frame::Serialize() {
+    BrokerListBuilder body;
 
     for ( int i = 0; i < size; ++i ) {
-        const auto& val = frame[i];
-        auto expected = Broker::detail::val_to_data(val.get());
-        if ( ! expected )
-            return broker::ec::invalid_data;
+        BrokerListBuilder val_tuple;
 
-        TypeTag tag = val->GetType()->Tag();
-        broker::vector val_tuple{std::move(*expected), static_cast<broker::integer>(tag)};
-        body.emplace_back(std::move(val_tuple));
+        const auto& val = frame[i];
+        if ( ! val_tuple.Add(val) )
+            return std::nullopt;
+
+        val_tuple.Add(static_cast<int64_t>(val->GetType()->Tag()));
+
+        body.Add(std::move(val_tuple));
     }
 
-    broker::vector rval;
-    rval.emplace_back(std::move(body));
+    BrokerListBuilder rval;
+    rval.Add(std::move(body));
 
-    return {std::move(rval)};
+    return std::move(rval).Build();
 }
 
-std::pair<bool, FramePtr> Frame::Unserialize(const broker::vector& data) {
-    if ( data.size() == 0 )
+std::pair<bool, FramePtr> Frame::Unserialize(BrokerListView data) {
+    if ( data.IsEmpty() )
         return std::make_pair(true, nullptr);
 
-    auto where = data.begin();
-    auto has_body = broker::get_if<broker::vector>(*where);
-    if ( ! has_body )
+    if ( ! data.Front().IsList() )
         return std::make_pair(false, nullptr);
 
-    broker::vector body = *has_body;
-    int frame_size = body.size();
-    auto rf = make_intrusive<Frame>(frame_size, nullptr, nullptr);
+    auto body = data.Front().ToList();
 
-    for ( int i = 0; i < frame_size; ++i ) {
-        auto has_vec = broker::get_if<broker::vector>(body[i]);
-        if ( ! has_vec )
+    auto frame_size = body.Size();
+    auto rf = make_intrusive<Frame>(static_cast<int>(frame_size), nullptr, nullptr);
+
+    for ( size_t index = 0; index < frame_size; ++index ) {
+        if ( ! body[index].IsList() )
             continue;
 
-        broker::vector val_tuple = *has_vec;
-        if ( val_tuple.size() != 2 )
+        auto val_tuple = body[index].ToList();
+
+        if ( val_tuple.Size() != 2 )
             return std::make_pair(false, nullptr);
 
-        auto has_type = broker::get_if<broker::integer>(val_tuple[1]);
-        if ( ! has_type )
+        auto type_int = val_tuple[1].ToInteger(-1);
+        if ( type_int < 0 || type_int >= NUM_TYPES )
             return std::make_pair(false, nullptr);
 
-        broker::integer g = *has_type;
-        Type t(static_cast<TypeTag>(g));
-
-        auto val = Broker::detail::data_to_val(std::move(val_tuple[0]), &t);
+        Type t{static_cast<TypeTag>(type_int)};
+        auto val = val_tuple[0].ToVal(&t);
         if ( ! val )
             return std::make_pair(false, nullptr);
 
-        rf->frame[i] = std::move(val);
+        rf->frame[index] = std::move(val);
     }
 
     return std::make_pair(true, std::move(rf));

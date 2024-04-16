@@ -41,6 +41,7 @@ starts_with bro: 1
 starts_with ids: 0
 ends_with ids: 1
 ends_with bro: 0
+ends_with containing null: 1
 
 Transformations
 ---------------
@@ -48,10 +49,12 @@ swap_case 'aBc': AbC
 to_title 'bro is a very neat ids': 'Bro Is A Very Neat Ids'
 to_title '   ': '   '
 to_title '  a   c  ': '  A   C  '
-remove_prefix 'ananab'/'an' : ab
-remove_prefix 'anatnab'/'an': atnab
+remove_prefix 'banana'/'ba' : nana
+remove_prefix 'bantana'/'ba': ntana
+remove_prefix 'bantana'/'ab': bantana
 remove_suffix 'banana'/'na' : ba
 remove_suffix 'bantana'/'na': banta
+remove_suffix 'bantana'/'an': bantana
 
 find_str/rfind_str (input string 'abcdefghi')
 -----------------------------------------------------

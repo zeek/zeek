@@ -124,6 +124,11 @@ public:
     // Sets the associated C++ type.
     virtual void SetCPPType(std::string ct) { CPP_type = std::move(ct); }
 
+    // Whether this initializer is in terms of compound objects. Used
+    // for avoiding compiler warnings about singleton initializations in
+    // braces.
+    virtual bool IsCompound() const { return false; }
+
     // Returns the type associated with the table used for initialization
     // (i.e., this is the type of the global returned by InitializersName()).
     std::string InitsType() const { return inits_type; }
@@ -187,7 +192,8 @@ protected:
 
 // A class for a collection of initialization items for which each item
 // has a "custom" initializer (that is, a bespoke C++ object, rather than
-// a simple C++ type or a vector of indices).
+// a simple C++ type or a vector of indices). These are things like lambdas,
+// global identifiers, or call expressions.
 class CPP_CustomInitsInfo : public CPP_InitsInfo {
 public:
     CPP_CustomInitsInfo(std::string _tag, std::string _type) : CPP_InitsInfo(std::move(_tag), std::move(_type)) {
@@ -198,6 +204,8 @@ public:
         CPP_InitsInfo::SetCPPType(std::move(ct));
         BuildInitType();
     }
+
+    bool IsCompound() const override { return true; }
 
 private:
     void BuildInitType() { inits_type = std::string("CPP_CustomInits<") + CPPType() + ">"; }
@@ -219,6 +227,8 @@ public:
             inits_type = std::string("CPP_BasicConsts<") + CPP_type + ", " + c_type + ", " + tag + "Val>";
     }
 
+    bool IsCompound() const override { return false; }
+
     void BuildCohortElement(CPPCompile* c, std::string init_type, std::vector<std::string>& ivs) override;
 };
 
@@ -234,6 +244,8 @@ public:
         else
             inits_type = std::string("CPP_IndexedInits<") + CPPType() + ">";
     }
+
+    bool IsCompound() const override { return true; }
 
     void BuildCohortElement(CPPCompile* c, std::string init_type, std::vector<std::string>& ivs) override;
 };
@@ -594,7 +606,7 @@ public:
 
 private:
     FunctionFlavor flavor;
-    TypePtr params;
+    RecordTypePtr params;
     TypePtr yield;
 };
 

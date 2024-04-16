@@ -534,11 +534,6 @@ void IntervalVal::ValDescribe(ODesc* d) const {
     bool did_one = false;
     constexpr auto last_idx = units.size() - 1;
 
-    auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool {
-        auto v = a - b;
-        return v < 0 ? -v < tolerance : v < tolerance;
-    };
-
     for ( size_t i = 0; i < units.size(); ++i ) {
         auto unit = units[i].first;
         auto word = units[i].second;
@@ -547,7 +542,7 @@ void IntervalVal::ValDescribe(ODesc* d) const {
         if ( i == last_idx ) {
             to_print = v / unit;
 
-            if ( approx_equal(to_print, 0) ) {
+            if ( util::approx_equal(to_print, 0, 1e-6) ) {
                 if ( ! did_one )
                     d->Add("0 secs");
 
@@ -571,7 +566,7 @@ void IntervalVal::ValDescribe(ODesc* d) const {
         d->SP();
         d->Add(word);
 
-        if ( ! approx_equal(to_print, 1) && ! approx_equal(to_print, -1) )
+        if ( ! util::approx_equal(to_print, 1, 1e-6) && ! util::approx_equal(to_print, -1, 1e-6) )
             d->Add("s");
 
         did_one = true;
@@ -1568,7 +1563,6 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
     if ( table_type->IsPatternIndex() )
         pattern_matcher = std::make_unique<detail::TablePatternMatcher>(this, table_type->Yield());
 
-    table_hash = new detail::CompositeHash(table_type->GetIndices());
     if ( ordered )
         table_val = new PDict<TableEntryVal>(DictOrder::ORDERED);
     else
@@ -1581,7 +1575,6 @@ TableVal::~TableVal() {
     if ( timer )
         detail::timer_mgr->Cancel(timer);
 
-    delete table_hash;
     delete table_val;
     delete expire_iterator;
 }
@@ -1756,7 +1749,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const {
         auto* v = tble.value;
 
         if ( is_first_init && t->AsTable()->Lookup(k.get()) ) {
-            auto key = table_hash->RecoverVals(*k);
+            auto key = GetTableHash()->RecoverVals(*k);
             // ### Shouldn't complain if their values are equal.
             key->Warn("multiple initializations for index");
             continue;
@@ -1891,45 +1884,56 @@ ValPtr TableVal::Default(const ValPtr& index) {
         return nullptr;
     }
 
+    ValPtr result;
+
     if ( def_val->GetType()->Tag() != TYPE_FUNC || same_type(def_val->GetType(), GetType()->Yield()) ) {
         if ( def_attr->GetExpr()->IsConst() )
             return def_val;
 
         try {
-            return def_val->Clone();
+            result = def_val->Clone();
         } catch ( InterpreterException& e ) { /* Already reported. */
         }
 
-        Error("&default value for table is not clone-able");
-        return nullptr;
+        if ( ! result ) {
+            Error("&default value for table is not clone-able");
+            return nullptr;
+        }
+    }
+    else {
+        const Func* f = def_val->AsFunc();
+        Args vl;
+
+        if ( index->GetType()->Tag() == TYPE_LIST ) {
+            auto lv = index->AsListVal();
+            vl.reserve(lv->Length());
+
+            for ( const auto& v : lv->Vals() )
+                vl.emplace_back(v);
+        }
+        else
+            vl.emplace_back(index);
+
+        try {
+            result = f->Invoke(&vl);
+        }
+
+        catch ( InterpreterException& e ) { /* Already reported. */
+        }
+
+        if ( ! result ) {
+            Error("no value returned from &default function");
+            return nullptr;
+        }
     }
 
-    const Func* f = def_val->AsFunc();
-    Args vl;
-
-    if ( index->GetType()->Tag() == TYPE_LIST ) {
-        auto lv = index->AsListVal();
-        vl.reserve(lv->Length());
-
-        for ( const auto& v : lv->Vals() )
-            vl.emplace_back(v);
-    }
-    else
-        vl.emplace_back(index);
-
-    ValPtr result;
-
-    try {
-        result = f->Invoke(&vl);
-    }
-
-    catch ( InterpreterException& e ) { /* Already reported. */
-    }
-
-    if ( ! result ) {
-        Error("no value returned from &default function");
-        return nullptr;
-    }
+    auto rt = result->GetType();
+    if ( rt->Tag() == TYPE_VECTOR )
+        // The double-Yield() here is because this is a "table of vector of X"
+        // and we want X. If this is instead a "table of any", that'll be
+        // okay because concretize_if_unspecified() correctly deals with
+        // nil target types.
+        detail::concretize_if_unspecified(cast_intrusive<VectorVal>(result), GetType()->Yield()->Yield());
 
     return result;
 }
@@ -2081,7 +2085,7 @@ bool TableVal::UpdateTimestamp(Val* index) {
     return true;
 }
 
-ListValPtr TableVal::RecreateIndex(const detail::HashKey& k) const { return table_hash->RecoverVals(k); }
+ListValPtr TableVal::RecreateIndex(const detail::HashKey& k) const { return GetTableHash()->RecoverVals(k); }
 
 void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType tpe) {
     if ( ! change_func || ! index || in_change_func )
@@ -2163,9 +2167,9 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
         else
             index_val = index;
 
-        auto broker_index = Broker::detail::val_to_data(index_val);
+        auto broker_index = BrokerData{};
 
-        if ( ! broker_index ) {
+        if ( ! broker_index.Convert(index_val) ) {
             emit_builtin_error("invalid Broker data conversation for table index");
             return;
         }
@@ -2195,26 +2199,25 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
                 }
 
                 if ( table_type->IsSet() )
-                    handle->store.put(std::move(*broker_index), broker::data(), expiry);
+                    handle->Put(std::move(broker_index), BrokerData{}, expiry);
                 else {
                     if ( ! new_entry_val ) {
                         emit_builtin_error("did not receive new value for Broker datastore send operation");
                         return;
                     }
 
-                    auto new_value = new_entry_val->GetVal().get();
-                    auto broker_val = Broker::detail::val_to_data(new_value);
-                    if ( ! broker_val ) {
+                    auto broker_val = BrokerData{};
+                    if ( ! broker_val.Convert(new_entry_val->GetVal()) ) {
                         emit_builtin_error("invalid Broker data conversation for table value");
                         return;
                     }
 
-                    handle->store.put(std::move(*broker_index), std::move(*broker_val), expiry);
+                    handle->Put(std::move(broker_index), std::move(broker_val), expiry);
                 }
                 break;
             }
 
-            case ELEMENT_REMOVED: handle->store.erase(std::move(*broker_index)); break;
+            case ELEMENT_REMOVED: handle->Erase(std::move(broker_index)); break;
 
             case ELEMENT_EXPIRED:
                 // we do nothing here. The Broker store does its own expiration - so the element
@@ -2271,7 +2274,7 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
         va = v->GetVal() ? v->GetVal() : IntrusivePtr{NewRef{}, this};
 
     if ( subnets ) {
-        auto index = table_hash->RecoverVals(k);
+        auto index = GetTableHash()->RecoverVals(k);
 
         if ( ! subnets->Remove(index.get()) )
             reporter->InternalWarning("index not in prefix table");
@@ -2282,7 +2285,7 @@ ValPtr TableVal::Remove(const detail::HashKey& k, bool* iterators_invalidated) {
     Modified();
 
     if ( va && (change_func || ! broker_store.empty()) ) {
-        auto index = table_hash->RecoverVals(k);
+        auto index = GetTableHash()->RecoverVals(k);
         if ( ! broker_store.empty() )
             SendToStore(index.get(), nullptr, ELEMENT_REMOVED);
 
@@ -2298,7 +2301,7 @@ ListValPtr TableVal::ToListVal(TypeTag t) const {
 
     for ( const auto& tble : *table_val ) {
         auto k = tble.GetHashKey();
-        auto index = table_hash->RecoverVals(*k);
+        auto index = GetTableHash()->RecoverVals(*k);
 
         if ( t == TYPE_ANY )
             l->Append(std::move(index));
@@ -2330,7 +2333,7 @@ std::unordered_map<ValPtr, ValPtr> TableVal::ToMap() const {
     for ( const auto& iter : *table_val ) {
         auto k = iter.GetHashKey();
         auto v = iter.value;
-        auto vl = table_hash->RecoverVals(*k);
+        auto vl = GetTableHash()->RecoverVals(*k);
 
         res[std::move(vl)] = v->GetVal();
     }
@@ -2367,7 +2370,7 @@ void TableVal::Describe(ODesc* d) const {
         auto k = iter->GetHashKey();
         auto* v = iter->value;
 
-        auto vl = table_hash->RecoverVals(*k);
+        auto vl = GetTableHash()->RecoverVals(*k);
         int dim = vl->Length();
 
         ODesc intermediary_d;
@@ -2706,7 +2709,7 @@ unsigned int TableVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed
 
     for ( const auto& iter : *table_val ) {
         auto k = iter.GetHashKey();
-        auto vl = table_hash->RecoverVals(*k);
+        auto vl = GetTableHash()->RecoverVals(*k);
         auto v = iter.value->GetVal();
 
         fp += vl->Footprint(analyzed_vals);
@@ -2718,7 +2721,7 @@ unsigned int TableVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed
 }
 
 std::unique_ptr<detail::HashKey> TableVal::MakeHashKey(const Val& index) const {
-    return table_hash->MakeHashKey(index, true);
+    return GetTableHash()->MakeHashKey(index, true);
 }
 
 void TableVal::SaveParseTimeTableState(RecordType* rt) {
@@ -2734,8 +2737,17 @@ void TableVal::SaveParseTimeTableState(RecordType* rt) {
 }
 
 void TableVal::RebuildParseTimeTables() {
-    for ( auto& [tv, ptts] : parse_time_table_states )
+    std::set<TableType*> table_types; // regenerate hash just once per table type
+
+    for ( auto& [tv, ptts] : parse_time_table_states ) {
+        auto* tt = tv->table_type.get();
+        if ( table_types.count(tt) == 0 ) {
+            tt->RegenerateHash();
+            table_types.insert(tt);
+        }
+
         tv->RebuildTable(std::move(ptts));
+    }
 
     parse_time_table_states.clear();
 }
@@ -2756,9 +2768,6 @@ TableVal::ParseTimeTableState TableVal::DumpTableState() {
 }
 
 void TableVal::RebuildTable(ParseTimeTableState ptts) {
-    delete table_hash;
-    table_hash = new detail::CompositeHash(table_type->GetIndices());
-
     for ( auto& [key, val] : ptts )
         Assign(std::move(key), std::move(val));
 }
@@ -2770,7 +2779,6 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->ManagedFields()) {
-    origin = nullptr;
     rt = std::move(t);
 
     int n = rt->NumFields();
@@ -2794,6 +2802,12 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 
     else
         record_val.reserve(n);
+}
+
+RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals)
+    : Val(t), is_managed(t->ManagedFields()) {
+    rt = std::move(t);
+    record_val = std::move(init_vals);
 }
 
 RecordVal::~RecordVal() {
@@ -3002,11 +3016,10 @@ void RecordVal::DescribeReST(ODesc* d) const {
 ValPtr RecordVal::DoClone(CloneState* state) {
     // We set origin to 0 here.  Origin only seems to be used for exactly one
     // purpose - to find the connection record that is associated with a
-    // record. As we cannot guarantee that it will ber zeroed out at the
+    // record. As we cannot guarantee that it will be zeroed out at the
     // appropriate time (as it seems to be guaranteed for the original record)
     // we don't touch it.
     auto rv = make_intrusive<RecordVal>(rt, false);
-    rv->origin = nullptr;
     state->NewClone(this, rv);
 
     int n = NumFields();
@@ -3469,6 +3482,26 @@ bool VectorVal::Concretize(const TypePtr& t) {
     any_yield = false;
 
     return true;
+}
+
+void detail::concretize_if_unspecified(VectorValPtr v, TypePtr t) {
+    if ( v->Size() != 0 )
+        // Concretization only applies to empty vectors.
+        return;
+
+    if ( v->GetType()->Yield()->Tag() != TYPE_ANY )
+        // It's not an unspecified vector.
+        return;
+
+    if ( ! t )
+        // "t" can be nil if the vector is being assigned to an "any" value.
+        return;
+
+    if ( t->Tag() == TYPE_ANY )
+        // No need to concretize.
+        return;
+
+    v->Concretize(t);
 }
 
 unsigned int VectorVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const {

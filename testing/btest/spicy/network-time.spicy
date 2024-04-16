@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o test.hlto %INPUT ./udp-test.evt
-# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap test.hlto Spicy::enable_print=T >output
+# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap test.hlto network-time.zeek Spicy::enable_print=T >output
 # @TEST-EXEC: btest-diff output
 
 module Test;
@@ -20,7 +20,13 @@ public type Message = unit {
 
 # @TEST-START-FILE udp-test.evt
 protocol analyzer spicy::TEST over UDP:
-    parse with Test::Message,
-    port 11337/udp-11340/udp,
-    ports {31337/udp-31340/udp};
+    parse with Test::Message;
+# @TEST-END-FILE
+
+
+# @TEST-START-FILE network-time.zeek
+event zeek_init() {
+    Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_TEST, set(11337/udp, 11338/udp, 11339/udp, 11340/udp));
+    Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_TEST, set(31337/udp, 31338/udp, 31339/udp, 31340/udp));
+}
 # @TEST-END-FILE

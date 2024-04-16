@@ -94,6 +94,7 @@ target_link_libraries(zeek_fuzzer_shared PUBLIC ${zeek_fuzzer_shared_deps}
 
 add_fuzz_target(packet)
 add_fuzz_target(dns)
+add_fuzz_target(websocket)
 
 add_generic_analyzer_fuzz_target(ftp)
 add_generic_analyzer_fuzz_target(http)

@@ -20,6 +20,7 @@ scripts/base/init-bare.zeek
   build/scripts/base/bif/supervisor.bif.zeek
   build/scripts/base/bif/packet_analysis.bif.zeek
   build/scripts/base/bif/CPP-load.bif.zeek
+  build/scripts/base/bif/mmdb.bif.zeek
   build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
   build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
   build/scripts/base/bif/event.bif.zeek
@@ -175,6 +176,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_KRB.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Login.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Login.functions.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_MIME.consts.bif.zeek
     build/scripts/base/bif/plugins/Zeek_MIME.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Modbus.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_MQTT.types.bif.zeek
@@ -228,6 +230,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.consts.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMB.types.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_SMTP.consts.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMTP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SMTP.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_SNMP.events.bif.zeek
@@ -241,6 +244,10 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_TCP.functions.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_WebSocket.consts.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_WebSocket.events.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_WebSocket.functions.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_WebSocket.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_XMPP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_ARP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_UDP.events.bif.zeek
@@ -283,6 +290,7 @@ scripts/base/init-default.zeek
   scripts/base/utils/files.zeek
   scripts/base/utils/geoip-distance.zeek
   scripts/base/utils/numbers.zeek
+  scripts/base/utils/packages.zeek
   scripts/base/utils/queue.zeek
   scripts/base/utils/strings.zeek
   scripts/base/utils/thresholds.zeek
@@ -462,6 +470,9 @@ scripts/base/init-default.zeek
     scripts/base/protocols/syslog/spicy-events.zeek
     scripts/base/protocols/syslog/consts.zeek
     scripts/base/protocols/syslog/main.zeek
+  scripts/base/protocols/websocket/__load__.zeek
+    scripts/base/protocols/websocket/consts.zeek
+    scripts/base/protocols/websocket/main.zeek
   scripts/base/protocols/tunnels/__load__.zeek
   scripts/base/protocols/xmpp/__load__.zeek
     scripts/base/protocols/xmpp/main.zeek

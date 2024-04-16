@@ -106,13 +106,13 @@ public:
 
     void Describe(ODesc* d) const override;
 
-    double GetNextTimeout() override { return -1; }
+    // Let the IO loop know when there's more events to process
+    // by returning a zero-timeout.
+    double GetNextTimeout() override { return head ? 0.0 : -1.0; }
+
     void Process() override;
     const char* Tag() override { return "EventManager"; }
     void InitPostScript();
-
-    // Initialization to be done after a fork() happened.
-    void InitPostFork();
 
     uint64_t num_events_queued = 0;
     uint64_t num_events_dispatched = 0;
@@ -127,7 +127,6 @@ protected:
     double current_ts;
     RecordVal* src_val;
     bool draining;
-    detail::Flare queue_flare;
 };
 
 extern EventMgr event_mgr;

@@ -183,8 +183,6 @@ std::vector<std::string> zeek::detail::zeek_script_prefixes;
 zeek::detail::Stmt* zeek::detail::stmts = nullptr;
 zeek::EventRegistry* zeek::event_registry = nullptr;
 std::shared_ptr<zeek::detail::ProfileLogger> zeek::detail::profiling_logger;
-std::shared_ptr<zeek::detail::ProfileLogger> zeek::detail::segment_logger;
-std::shared_ptr<zeek::detail::SampleLogger> zeek::detail::sample_logger;
 
 zeek::detail::FragmentManager* zeek::detail::fragment_mgr = nullptr;
 
@@ -243,6 +241,8 @@ const char* zeek_version() {
 }
 
 namespace detail {
+
+zeek::OpaqueTypePtr log_delay_token_type;
 
 static std::vector<const char*> to_cargs(const std::vector<std::string>& args) {
     std::vector<const char*> rval;
@@ -504,8 +504,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         // If we get here, we're a supervised node that just returned
         // from CreateStem() after being forked from the stem.
         Supervisor::ThisNode()->Init(&options);
-
-        event_mgr.InitPostFork();
     }
 
     script_coverage_mgr.ReadStats();
@@ -719,6 +717,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     int_histogram_metric_family_type = make_intrusive<OpaqueType>("int_histogram_metric_family");
     dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
     dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
+    log_delay_token_type = make_intrusive<OpaqueType>("LogDelayToken");
 
     // After spinning up Broker, we have background threads running now. If
     // we exit early, we need to shut down at least Broker to get a clean
@@ -748,7 +747,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         auto ipbft =
             make_intrusive<FuncType>(make_intrusive<RecordType>(nullptr), base_type(TYPE_BOOL), FUNC_FLAVOR_FUNCTION);
         ipbid->SetType(std::move(ipbft));
-        auto init_bifs = [](Frame* frame, const Args* args) -> BifReturnVal {
+        auto init_bifs = [](Frame* frame, const Args* args) -> ValPtr {
             init_primary_bifs();
             return val_mgr->True();
         };
@@ -888,7 +887,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
     if ( ! all_signature_files.empty() ) {
         rule_matcher = new RuleMatcher(options.signature_re_level);
-        if ( ! rule_matcher->ReadFiles(all_signature_files) ) {
+        if ( ! rule_matcher->ReadFiles(all_signature_files) || zeek::reporter->Errors() > 0 ) {
             early_shutdown();
             exit(1);
         }
@@ -992,9 +991,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     if ( profiling_interval > 0 ) {
         const auto& profiling_file = id::find_val("profiling_file");
         profiling_logger = std::make_shared<ProfileLogger>(profiling_file->AsFile(), profiling_interval);
-
-        if ( segment_profiling )
-            segment_logger = profiling_logger;
     }
 
     if ( ! run_state::reading_live && ! run_state::reading_traces &&

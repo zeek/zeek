@@ -13,6 +13,11 @@ event ssh::banner(c: connection, is_orig: bool, version: string, software: strin
 	print "SSH banner", c$id, is_orig, version, software;
 	}
 
+event zeek_init()
+	{
+	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+	}
+
 # @TEST-START-FILE ssh.spicy
 module SSH;
 
@@ -28,9 +33,7 @@ public type Banner = unit {
 
 # @TEST-START-FILE ssh.evt
 protocol analyzer spicy::SSH over TCP:
-    # no port, we're using the signature
     parse with SSH::Banner,
-    port 22/tcp,
     replaces SSH;
 
 on SSH::Banner -> event ssh::banner($conn, $is_orig, self.version, self.software);

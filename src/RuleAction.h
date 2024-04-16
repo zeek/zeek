@@ -3,12 +3,22 @@
 #include <sys/types.h> // for u_char
 #include <string>
 
+#include "zeek/EventHandler.h"
+#include "zeek/IntrusivePtr.h"
 #include "zeek/Tag.h"
 
-namespace zeek::detail {
+namespace zeek {
+
+class StringVal;
+using StringValPtr = IntrusivePtr<StringVal>;
+
+namespace detail {
 
 class Rule;
 class RuleEndpointState;
+
+// Returns true if the given C-string represents a registered event.
+bool is_event(const char* id);
 
 // Base class of all rule actions.
 class RuleAction {
@@ -24,32 +34,31 @@ public:
 class RuleActionEvent : public RuleAction {
 public:
     explicit RuleActionEvent(const char* arg_msg);
-    ~RuleActionEvent() override { delete[] msg; }
+    explicit RuleActionEvent(const char* arg_msg, const char* event_name);
 
     void DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data, int len) override;
 
     void PrintDebug() override;
 
 private:
-    const char* msg;
+    StringValPtr msg;
+    EventHandlerPtr handler;
 };
 
 class RuleActionMIME : public RuleAction {
 public:
     explicit RuleActionMIME(const char* arg_mime, int arg_strength = 0);
 
-    ~RuleActionMIME() override { delete[] mime; }
-
     void DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data, int len) override {}
 
     void PrintDebug() override;
 
-    std::string GetMIME() const { return mime; }
+    const std::string& GetMIME() const { return mime; }
 
     int GetStrength() const { return strength; }
 
 private:
-    const char* mime;
+    std::string mime;
     int strength;
 };
 
@@ -88,4 +97,5 @@ public:
     void PrintDebug() override;
 };
 
-} // namespace zeek::detail
+} // namespace detail
+} // namespace zeek

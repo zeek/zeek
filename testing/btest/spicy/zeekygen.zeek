@@ -41,9 +41,7 @@ public type Banner = unit {
 %doc-description = "Just a \"test\" analyzer.h";
 
 protocol analyzer spicy::SSH over TCP:
-    parse originator with SSH::Banner,
-    port 22/tcp,
-    replaces SSH;
+    parse originator with SSH::Banner;
 
 on SSH::Banner -> event ssh::banner((1, self.software));
 

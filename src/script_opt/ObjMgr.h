@@ -18,6 +18,8 @@
 #include <zeek/Obj.h>
 #include <unordered_map>
 
+#include "zeek/IntrusivePtr.h"
+
 namespace zeek::detail {
 
 // A class that keeps a const Obj* pointer live - used to isolate instances

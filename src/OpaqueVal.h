@@ -9,6 +9,7 @@
 #include <broker/expected.hh>
 #include <paraglob/paraglob.h>
 #include <sys/types.h> // for u_char
+#include <optional>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/RandTest.h"
@@ -23,6 +24,10 @@ class data;
 }
 
 namespace zeek {
+
+class BrokerData;
+class BrokerDataView;
+class BrokerListView;
 
 namespace probabilistic {
 class BloomFilter;
@@ -86,12 +91,28 @@ private:
     std::unordered_map<std::string, Factory*> _types;
 };
 
-/** Macro to insert into an OpaqueVal-derived class's declaration. */
+/**
+ * Legacy macro to insert into an OpaqueVal-derived class's declaration. Overrides the "old" serialization methods
+ * DoSerialize and DoUnserialize.
+ * @deprecated Use DECLARE_OPAQUE_VALUE_DATA instead. Remove in v7.1.
+ */
 #define DECLARE_OPAQUE_VALUE(T)                                                                                        \
     friend class zeek::OpaqueMgr::Register<T>;                                                                         \
     friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
     broker::expected<broker::data> DoSerialize() const override;                                                       \
     bool DoUnserialize(const broker::data& data) override;                                                             \
+    const char* OpaqueName() const override { return #T; }                                                             \
+    static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
+
+/**
+ * Macro to insert into an OpaqueVal-derived class's declaration. Overrides the "new" serialization methods
+ * DoSerializeData and DoUnserializeData.
+ */
+#define DECLARE_OPAQUE_VALUE_DATA(T)                                                                                   \
+    friend class zeek::OpaqueMgr::Register<T>;                                                                         \
+    friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
+    std::optional<zeek::BrokerData> DoSerializeData() const override;                                                  \
+    bool DoUnserializeData(zeek::BrokerDataView data) override;                                                        \
     const char* OpaqueName() const override { return #T; }                                                             \
     static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
 
@@ -117,7 +138,12 @@ public:
      * @return the broker representation, or an error if serialization
      * isn't supported or failed.
      */
-    broker::expected<broker::data> Serialize() const;
+    [[deprecated("Remove in v7.1: use SerializeData instead")]] broker::expected<broker::data> Serialize() const;
+
+    /**
+     * @copydoc Serialize
+     */
+    std::optional<BrokerData> SerializeData() const;
 
     /**
      * Reinstantiates a value from its serialized Broker representation.
@@ -125,11 +151,27 @@ public:
      * @param data Broker representation as returned by *Serialize()*.
      * @return unserialized instances with reference count at +1
      */
-    static OpaqueValPtr Unserialize(const broker::data& data);
+    [[deprecated("Remove in v7.1: use UnserializeData instead")]] static OpaqueValPtr Unserialize(
+        const broker::data& data);
+
+    /**
+     * @copydoc Unserialize
+     */
+    static OpaqueValPtr UnserializeData(BrokerDataView data);
+
+    /**
+     * @copydoc Unserialize
+     */
+    static OpaqueValPtr UnserializeData(BrokerListView data);
 
 protected:
     friend class Val;
     friend class OpaqueMgr;
+
+    /**
+     * @deprecated Override DoSerializeData instead. Remove in v7.1.
+     */
+    virtual broker::expected<broker::data> DoSerialize() const;
 
     /**
      * Must be overridden to provide a serialized version of the derived
@@ -138,7 +180,12 @@ protected:
      * @return the serialized data or an error if serialization
      * isn't supported or failed.
      */
-    virtual broker::expected<broker::data> DoSerialize() const = 0;
+    virtual std::optional<BrokerData> DoSerializeData() const;
+
+    /**
+     * @deprecated Override DoUnserializeData instead. Remove in v7.1.
+     */
+    virtual bool DoUnserialize(const broker::data& data);
 
     /**
      * Must be overridden to recreate the derived class' state from a
@@ -146,7 +193,7 @@ protected:
      *
      * @return true if successful.
      */
-    virtual bool DoUnserialize(const broker::data& data) = 0;
+    virtual bool DoUnserializeData(BrokerDataView data);
 
     /**
      * Internal helper for the serialization machinery. Automatically
@@ -166,13 +213,13 @@ protected:
      * Helper function for derived class that need to record a type
      * during serialization.
      */
-    static broker::expected<broker::data> SerializeType(const TypePtr& t);
+    static std::optional<BrokerData> SerializeType(const TypePtr& t);
 
     /**
      * Helper function for derived class that need to restore a type
      * during unserialization. Returns the type at reference count +1.
      */
-    static TypePtr UnserializeType(const broker::data& data);
+    static TypePtr UnserializeType(BrokerDataView data);
 
     void ValDescribe(ODesc* d) const override;
     void ValDescribeReST(ODesc* d) const override;
@@ -243,7 +290,7 @@ protected:
     bool DoFeed(const void* data, size_t size) override;
     StringValPtr DoGet() override;
 
-    DECLARE_OPAQUE_VALUE(MD5Val)
+    DECLARE_OPAQUE_VALUE_DATA(MD5Val)
 private:
     StatePtr ctx = nullptr;
 };
@@ -271,7 +318,7 @@ protected:
     bool DoFeed(const void* data, size_t size) override;
     StringValPtr DoGet() override;
 
-    DECLARE_OPAQUE_VALUE(SHA1Val)
+    DECLARE_OPAQUE_VALUE_DATA(SHA1Val)
 private:
     StatePtr ctx = nullptr;
 };
@@ -299,7 +346,7 @@ protected:
     bool DoFeed(const void* data, size_t size) override;
     StringValPtr DoGet() override;
 
-    DECLARE_OPAQUE_VALUE(SHA256Val)
+    DECLARE_OPAQUE_VALUE_DATA(SHA256Val)
 private:
     StatePtr ctx = nullptr;
 };
@@ -314,7 +361,7 @@ public:
 protected:
     friend class Val;
 
-    DECLARE_OPAQUE_VALUE(EntropyVal)
+    DECLARE_OPAQUE_VALUE_DATA(EntropyVal)
 private:
     detail::RandTest state;
 };
@@ -344,7 +391,7 @@ protected:
     friend class Val;
     BloomFilterVal();
 
-    DECLARE_OPAQUE_VALUE(BloomFilterVal)
+    DECLARE_OPAQUE_VALUE_DATA(BloomFilterVal)
 private:
     // Disable.
     BloomFilterVal(const BloomFilterVal&);
@@ -373,7 +420,7 @@ public:
 protected:
     CardinalityVal();
 
-    DECLARE_OPAQUE_VALUE(CardinalityVal)
+    DECLARE_OPAQUE_VALUE_DATA(CardinalityVal)
 private:
     TypePtr type;
     detail::CompositeHash* hash;
@@ -390,7 +437,7 @@ public:
 protected:
     ParaglobVal() : OpaqueVal(paraglob_type) {}
 
-    DECLARE_OPAQUE_VALUE(ParaglobVal)
+    DECLARE_OPAQUE_VALUE_DATA(ParaglobVal)
 
 private:
     std::unique_ptr<paraglob::Paraglob> internal_paraglob;
@@ -414,8 +461,8 @@ protected:
     explicit TelemetryVal(telemetry::DblHistogram);
     explicit TelemetryVal(telemetry::DblHistogramFamily);
 
-    broker::expected<broker::data> DoSerialize() const override;
-    bool DoUnserialize(const broker::data& data) override;
+    std::optional<BrokerData> DoSerializeData() const override;
+    bool DoUnserializeData(BrokerDataView data) override;
 };
 
 template<class Handle>
@@ -426,6 +473,11 @@ public:
     explicit TelemetryValImpl(Handle hdl) : TelemetryVal(hdl), hdl(hdl) {}
 
     Handle GetHandle() const noexcept { return hdl; }
+
+    static zeek::OpaqueValPtr OpaqueInstantiate() {
+        reporter->Error("TelemetryValImpl::OpaqueInstantiate is unsupported");
+        return nullptr;
+    }
 
 protected:
     ValPtr DoClone(CloneState*) override { return make_intrusive<TelemetryValImpl>(hdl); }

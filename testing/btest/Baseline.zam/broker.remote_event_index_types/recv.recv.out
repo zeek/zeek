@@ -13,7 +13,7 @@ setrecord, {
 }
 setfunction, {
 foo
-ZAM-code foo 
+ZAM-code foo
 }
 setpattern, {
 /^?(foobar)$?/
@@ -32,7 +32,7 @@ tablerecord, {
 }
 tablefunction, {
 [foo
-ZAM-code foo ] = tfunc
+ZAM-code foo] = tfunc
 }
 tablepattern, {
 [/^?(foobar)$?/] = tpat

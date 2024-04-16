@@ -10,13 +10,13 @@ btest_jobs: &BTEST_JOBS 4
 btest_retries: &BTEST_RETRIES 2
 memory: &MEMORY 16GB
 
-config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache
-no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache
-static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache
-asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
-ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache
-tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache
-openssl30_config: &OPENSSL30_CONFIG --build-type=release --disable-broker-tests --with-openssl=/opt/openssl --prefix=$CIRRUS_WORKING_DIR/install --ccache
+config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+binary_config: &BINARY_CONFIG --prefix=$CIRRUS_WORKING_DIR/install --libdir=$CIRRUS_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache --enable-werror
+ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache --enable-werror
+tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache --enable-werror
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -53,7 +53,6 @@ builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
   # - Always build master and release/* builds from the main repo
   only_if: >
     ( $CIRRUS_CRON == '' ) &&
-    ( $CIRRUS_REPO_NAME != 'zeek-security' || $CIRRUS_OS != "darwin" ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       (
@@ -167,17 +166,17 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
+fedora39_task:
+  container:
+    # Fedora 39 EOL: Around Nov 2024
+    dockerfile: ci/fedora-39/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 fedora38_task:
   container:
     # Fedora 38 EOL: Around May 2024
     dockerfile: ci/fedora-38/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-fedora37_task:
-  container:
-    # Fedora 37 EOL: Around Dec 2024
-    dockerfile: ci/fedora-37/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
@@ -197,23 +196,46 @@ centosstream8_task:
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
 
-centos7_task:
+debian12_task:
   container:
-    # CentOS 7 EOL: June 30, 2024
-    dockerfile: ci/centos-7/Dockerfile
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
+
+arm_debian12_task:
+  arm_container:
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
 
-debian12_task:
+debian12_static_task:
   container:
-    # Debian 12 (bookworm) EOL: (not yet released)
+    # Just use a recent/common distro to run a static compile test.
+    # Debian 12 (bookworm) EOL: TBD
     dockerfile: ci/debian-12/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
+
+debian12_binary_task:
+  container:
+    # Just use a recent/common distro to run binary mode compile test.
+    # As of 2024-03, the used configure flags are equivalent to the flags
+    # that we use to create binary packages.
+    # Just use a recent/common distro to run a static compile test.
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *BINARY_CONFIG
 
 debian11_task:
   container:
@@ -221,43 +243,7 @@ debian11_task:
     dockerfile: ci/debian-11/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-
-arm_debian11_task:
-  arm_container:
-    # Debian 11 EOL: June 2026
-    dockerfile: ci/debian-11/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
-
-debian11_static_task:
-  container:
-    # Just use a recent/common distro to run a static compile test.
-    # Debian 11 EOL: June 2026
-    dockerfile: ci/debian-11/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
-
-debian10_task:
-  container:
-    # Debian 10 EOL: June 2024
-    dockerfile: ci/debian-10/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-opensuse_leap_15_4_task:
-  container:
-    # Opensuse Leap 15.4 EOL: ~Nov 2023
-    dockerfile: ci/opensuse-leap-15.4/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
 
 opensuse_leap_15_5_task:
   container:
@@ -277,8 +263,8 @@ opensuse_tumbleweed_task:
 
 ubuntu23_task:
   container:
-    # Ubuntu 23.04 EOL: January 2024
-    dockerfile: ci/ubuntu-23.04/Dockerfile
+    # Ubuntu 23.10 EOL: July 2024
+    dockerfile: ci/ubuntu-23.10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
@@ -353,7 +339,7 @@ alpine_task:
 # We aim to support both the current and previous macOS release.
 macos_sonoma_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-sonoma-base:latest
+    image: ghcr.io/cirruslabs/macos-sonoma-xcode:latest
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
@@ -368,10 +354,8 @@ macos_ventura_task:
 # FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
 freebsd14_task:
   freebsd_instance:
-    # We don't support FreeBSD 14 yet, this is a purely informative task
-    image_family: freebsd-14-0-snap
-    allow_failures: true
-    skip_notification: true
+    # FreeBSD 14 EOL: Nov 30 2028
+    image_family: freebsd-14-0
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
@@ -381,18 +365,7 @@ freebsd14_task:
 freebsd13_task:
   freebsd_instance:
     # FreeBSD 13 EOL: January 31, 2026
-    image_family: freebsd-13-2
-    << : *FREEBSD_RESOURCES_TEMPLATE
-
-  prepare_script: ./ci/freebsd/prepare.sh
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
-  << : *FREEBSD_ENVIRONMENT
-
-freebsd12_task:
-  freebsd_instance:
-    # FreeBSD 12 EOL: June 30, 2024
-    image_family: freebsd-12-2
+    image_family: freebsd-13-3
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh
@@ -412,7 +385,6 @@ asan_sanitizer_task:
   env:
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
-    ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     ASAN_OPTIONS: detect_leaks=1
 
 ubsan_sanitizer_task:
@@ -427,7 +399,6 @@ ubsan_sanitizer_task:
   env:
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
-    ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
 
@@ -569,7 +540,7 @@ container_image_manifest_docker_builder:
   login_script: |
     docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
     AWS_ACCESS_KEY_ID=$AWS_ECR_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_ECR_SECRET_ACCESS_KEY aws ecr-public get-login-password --region us-east-1 | \
-        docker login --username AWS $AWS_ECR_USERNAME --password-stdin public.ecr.aws
+        docker login --username AWS --password-stdin public.ecr.aws
   set_image_tag_script: |
     # If we have a CIRRUS_TAG, use the value in VERSION to push the multiarch
     # images, otherwise use latest. Basically we push the arch images as

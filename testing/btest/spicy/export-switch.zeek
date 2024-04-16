@@ -9,6 +9,9 @@
 event TEST_ZEEK::MessageEvt(message: TEST::Message)
 	{ print message; }
 
+event zeek_init()
+	{ Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_TEST, 31337/udp); }
+
 # @TEST-START-FILE test.spicy
 module TEST;
 
@@ -22,7 +25,6 @@ public type Message = unit {
 # @TEST-START-FILE test.evt
 import TEST;
 protocol analyzer spicy::Test over UDP:
-    port 0/udp - 42000/udp,
     parse with TEST::Message;
 
 export TEST::Message;

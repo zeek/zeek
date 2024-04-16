@@ -207,13 +207,13 @@ function ftp_message(c: connection)
 	if ( s?$cmdarg && s$command in logged_commands)
 		Log::write(FTP::LOG, s);
 
-	# The MIME and file_size fields are specific to file transfer commands
-	# and may not be used in all commands so they need reset to "blank"
-	# values after logging.
+	# The MIME and file_size, data_channel and fuid fields are specific to
+	# file transfer commands and may not be used in all commands so they
+	# need reset to "blank" values after logging.
 	delete s$mime_type;
 	delete s$file_size;
-	# Same with data channel.
 	delete s$data_channel;
+	delete s$fuid;
 	}
 
 event sync_add_expected_data(s: Info, chan: ExpectedDataChannel) &is_used

@@ -47,9 +47,13 @@ void CPP_InitsInfo::GenerateInitializers(CPPCompile* c) {
         if ( ++n > 1 )
             c->Emit("");
 
-        c->Emit("{");
-        BuildCohort(c, cohort);
-        c->Emit("},");
+        if ( cohort.size() == 1 && ! IsCompound() )
+            BuildCohort(c, cohort);
+        else {
+            c->Emit("{");
+            BuildCohort(c, cohort);
+            c->Emit("},");
+        }
     }
 
     c->Emit("}");
@@ -437,7 +441,7 @@ TableTypeInfo::TableTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, 
     auto gi = c->RegisterType(tbl->GetIndices());
     ASSERT(gi);
     indices = gi->Offset();
-    final_init_cohort = gi->InitCohort();
+    final_init_cohort = gi->InitCohort() + 1;
 
     yield = tbl->Yield();
 
@@ -460,12 +464,12 @@ FuncTypeInfo::FuncTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, st
     params = f->Params();
     yield = f->Yield();
 
-    auto gi = c->RegisterType(f->Params());
+    auto gi = c->RegisterType(params);
     if ( gi )
         init_cohort = gi->InitCohort();
 
     if ( yield ) {
-        gi = c->RegisterType(f->Yield());
+        auto gi = c->RegisterType(f->Yield());
         if ( gi )
             init_cohort = max(init_cohort, gi->InitCohort());
     }

@@ -4,6 +4,10 @@
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace foo.hlto %INPUT Spicy::enable_print=T >output
 # @TEST-EXEC: btest-diff output
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_X, 22/tcp);
+}
+
 # @TEST-START-FILE foo.spicy
 module foo;
 import zeek;
@@ -37,7 +41,6 @@ public type Z = unit {
 # Analyzer instantiated from Zeek based on the traffic.
 protocol analyzer spicy::X over TCP:
     parse originator with foo::X,
-    port 22/tcp,
     replaces SSH;
 
 # Analyzers which will only be instantiated explicitly by us.

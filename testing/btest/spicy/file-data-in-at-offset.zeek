@@ -7,6 +7,10 @@
 # @TEST-EXEC: btest-diff x509.log
 # @TEST-EXEC: btest-diff output
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+}
+
 # @TEST-START-FILE ssh.spicy
 module SSH;
 
@@ -41,7 +45,6 @@ import zeek;
 
 protocol analyzer spicy::SSH over TCP:
     parse with SSH::Banner,
-    port 22/tcp,
     replaces SSH;
 
 # @TEST-END-FILE

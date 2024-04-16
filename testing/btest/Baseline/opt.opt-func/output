@@ -2,7 +2,7 @@
 I should be ZAM code!
 I shouldn't be ZAM code!
 my_test
-ZAM-code my_test 
+ZAM-code my_test
 another_test
 { 
 print I shouldn't be ZAM code!;

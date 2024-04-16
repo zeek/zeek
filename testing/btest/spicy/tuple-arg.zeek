@@ -6,13 +6,18 @@
 # @TEST-EXEC: btest-diff output
 
 type Foo: record {
-    i: int;
+	i: int;
 	s: string &optional;
 };
 
 event ssh::banner(f: Foo)
 	{
 	print f;
+	}
+
+event zeek_init()
+	{
+	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
 	}
 
 # @TEST-START-FILE ssh.spicy
@@ -27,7 +32,7 @@ public type Banner = unit {
     dash    : /-/;
     software: /[^\r\n]*/;
 
-    unset_field: uint64 if ( False );
+    unset_field: bytes &eod if ( False );
 
     on %done { zeek::confirm_protocol(); }
 };
@@ -37,7 +42,6 @@ public type Banner = unit {
 
 protocol analyzer spicy::SSH over TCP:
     parse originator with SSH::Banner,
-    port 22/tcp,
     replaces SSH;
 
 on SSH::Banner -> event ssh::banner((1, self.software));

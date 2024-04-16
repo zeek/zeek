@@ -58,9 +58,6 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
 
     finished = 0;
 
-    hist_seen = 0;
-    history = "";
-
     adapter = nullptr;
     primary_PIA = nullptr;
 
@@ -158,39 +155,6 @@ void Connection::NextPacket(double t, bool is_orig, const IP_Hdr* ip, int len, i
 
 bool Connection::IsReuse(double t, const u_char* pkt) { return adapter && adapter->IsReuse(t, pkt); }
 
-bool Connection::ScaledHistoryEntry(char code, uint32_t& counter, uint32_t& scaling_threshold, uint32_t scaling_base) {
-    if ( ++counter == scaling_threshold ) {
-        AddHistory(code);
-
-        auto new_threshold = scaling_threshold * scaling_base;
-
-        if ( new_threshold <= scaling_threshold )
-            // This can happen due to wrap-around.  In that
-            // case, reset the counter but leave the threshold
-            // unchanged.
-            counter = 0;
-
-        else
-            scaling_threshold = new_threshold;
-
-        return true;
-    }
-
-    return false;
-}
-
-void Connection::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t threshold) {
-    if ( ! e )
-        return;
-
-    if ( threshold == 1 )
-        // This will be far and away the most common case,
-        // and at this stage it's not a *multiple* instance.
-        return;
-
-    EnqueueEvent(e, nullptr, GetVal(), val_mgr->Bool(is_orig), val_mgr->Count(threshold));
-}
-
 namespace {
 // Flip everything that needs to be flipped in the connection
 // record that is known on this level. This needs to align
@@ -232,16 +196,20 @@ const RecordValPtr& Connection::GetVal() {
         const int l2_len = sizeof(orig_l2_addr);
         char null[l2_len]{};
 
-        if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 )
-            orig_endp->Assign(5, fmt_mac(orig_l2_addr, l2_len));
+        if ( memcmp(&orig_l2_addr, &null, l2_len) != 0 ) {
+            auto [mac_bytes, mac_len] = fmt_mac_bytes(orig_l2_addr, l2_len);
+            orig_endp->Assign(5, new String(true, mac_bytes.release(), mac_len));
+        }
 
         auto resp_endp = make_intrusive<RecordVal>(id::endpoint);
         resp_endp->Assign(0, 0);
         resp_endp->Assign(1, 0);
         resp_endp->Assign(4, resp_flow_label);
 
-        if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 )
-            resp_endp->Assign(5, fmt_mac(resp_l2_addr, l2_len));
+        if ( memcmp(&resp_l2_addr, &null, l2_len) != 0 ) {
+            auto [mac_bytes, mac_len] = fmt_mac_bytes(resp_l2_addr, l2_len);
+            resp_endp->Assign(5, new String(true, mac_bytes.release(), mac_len));
+        }
 
         conn_val->Assign(0, std::move(id_val));
         conn_val->Assign(1, std::move(orig_endp));

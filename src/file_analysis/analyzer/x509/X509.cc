@@ -16,6 +16,7 @@
 #endif
 
 #include "zeek/Event.h"
+#include "zeek/broker/Data.h"
 #include "zeek/digest.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
@@ -551,27 +552,28 @@ ValPtr X509Val::DoClone(CloneState* state) {
 
 IMPLEMENT_OPAQUE_VALUE(X509Val)
 
-broker::expected<broker::data> X509Val::DoSerialize() const {
+std::optional<BrokerData> X509Val::DoSerializeData() const {
     unsigned char* buf = nullptr;
     int length = i2d_X509(certificate, &buf);
 
     if ( length < 0 )
-        return broker::ec::invalid_data;
+        return std::nullopt;
 
-    auto d = std::string(reinterpret_cast<const char*>(buf), length);
+    auto result = BrokerData::FromString(reinterpret_cast<const char*>(buf), static_cast<size_t>(length));
     OPENSSL_free(buf);
 
-    return {std::move(d)};
+    return std::move(result);
 }
 
-bool X509Val::DoUnserialize(const broker::data& data) {
-    auto s = broker::get_if<std::string>(&data);
-    if ( ! s )
+bool X509Val::DoUnserializeData(BrokerDataView data) {
+    if ( ! data.IsString() )
         return false;
 
-    auto opensslbuf = reinterpret_cast<const unsigned char*>(s->data());
-    certificate = d2i_X509(NULL, &opensslbuf, s->size());
-    return (certificate != nullptr);
+    auto s = data.ToString();
+
+    auto opensslbuf = reinterpret_cast<const unsigned char*>(s.data());
+    certificate = d2i_X509(NULL, &opensslbuf, s.size());
+    return certificate != nullptr;
 }
 
 } // namespace zeek::file_analysis::detail

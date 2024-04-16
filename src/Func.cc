@@ -52,6 +52,7 @@
 #include "supervisor.bif.func_h"
 #include "packet_analysis.bif.func_h"
 #include "CPP-load.bif.func_h"
+#include "mmdb.bif.func_h"
 
 #include "zeek.bif.func_def"
 #include "communityid.bif.func_def"
@@ -62,6 +63,7 @@
 #include "supervisor.bif.func_def"
 #include "packet_analysis.bif.func_def"
 #include "CPP-load.bif.func_def"
+#include "mmdb.bif.func_def"
 // clang-format on
 
 extern RETSIGTYPE sig_handler(int signo);
@@ -127,7 +129,7 @@ void Func::AddBody(const detail::FunctionIngredients& ingr, detail::StmtPtr new_
 void Func::AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
                    int priority) {
     std::set<EventGroupPtr> groups;
-    AddBody(new_body, new_inits, new_frame_size, priority, groups);
+    AddBody(std::move(new_body), new_inits, new_frame_size, priority, groups);
 }
 
 void Func::AddBody(detail::StmtPtr new_body, size_t new_frame_size) {
@@ -139,6 +141,11 @@ void Func::AddBody(detail::StmtPtr new_body, size_t new_frame_size) {
 void Func::AddBody(detail::StmtPtr /* new_body */, const std::vector<detail::IDPtr>& /* new_inits */,
                    size_t /* new_frame_size */, int /* priority */, const std::set<EventGroupPtr>& /* groups */) {
     Internal("Func::AddBody called");
+}
+
+void Func::AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)> body, int priority) {
+    auto stmt = zeek::make_intrusive<detail::StdFunctionStmt>(std::move(body));
+    AddBody(stmt, {}, priority);
 }
 
 void Func::SetScope(detail::ScopePtr newscope) { scope = std::move(newscope); }
@@ -308,11 +315,6 @@ bool ScriptFunc::IsPure() const {
 }
 
 ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
-    SegmentProfiler prof(segment_logger, location);
-
-    if ( sample_logger )
-        sample_logger->FunctionSeen(this);
-
     auto [handled, hook_result] =
         PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
@@ -365,9 +367,6 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
     for ( const auto& body : bodies ) {
         if ( body.disabled )
             continue;
-
-        if ( sample_logger )
-            sample_logger->LocationSeen(body.stmts->GetLocationInfo());
 
         // Fill in the rest of the frame with the function's arguments.
         for ( auto j = 0u; j < args->size(); ++j ) {
@@ -586,7 +585,7 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body) {
     current_body = new_body;
 }
 
-bool ScriptFunc::DeserializeCaptures(const broker::vector& data) {
+bool ScriptFunc::DeserializeCaptures(BrokerListView data) {
     auto result = Frame::Unserialize(data);
 
     ASSERT(result.first);
@@ -649,7 +648,7 @@ FuncPtr ScriptFunc::DoClone() {
     return other;
 }
 
-broker::expected<broker::data> ScriptFunc::SerializeCaptures() const {
+std::optional<BrokerData> ScriptFunc::SerializeCaptures() const {
     if ( captures_vec ) {
         auto& cv = *captures_vec;
         auto& captures = *type->GetCaptures();
@@ -668,7 +667,7 @@ broker::expected<broker::data> ScriptFunc::SerializeCaptures() const {
         return captures_frame->Serialize();
 
     // No captures, return an empty vector.
-    return broker::vector{};
+    return BrokerListBuilder{}.Build();
 }
 
 void ScriptFunc::Describe(ODesc* d) const {
@@ -686,8 +685,10 @@ StmtPtr ScriptFunc::AddInits(StmtPtr body, const std::vector<IDPtr>& inits) {
     if ( inits.empty() )
         return body;
 
-    auto stmt_series = make_intrusive<StmtList>();
-    stmt_series->Stmts().push_back(make_intrusive<InitStmt>(inits));
+    auto stmt_series = with_location_of(make_intrusive<StmtList>(), body);
+    auto init = with_location_of(make_intrusive<InitStmt>(inits), body);
+
+    stmt_series->Stmts().push_back(std::move(init));
     stmt_series->Stmts().push_back(std::move(body));
 
     return stmt_series;
@@ -715,11 +716,6 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const {
     if ( spm )
         spm->StartInvocation(this);
 
-    SegmentProfiler prof(segment_logger, Name());
-
-    if ( sample_logger )
-        sample_logger->FunctionSeen(this);
-
     auto [handled, hook_result] =
         PLUGIN_HOOK_WITH_RESULT(HOOK_CALL_FUNCTION, HookCallFunction(this, parent, args), empty_hook_result);
 
@@ -740,7 +736,7 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const {
 
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
     call_stack.emplace_back(CallInfo{call_expr, this, *args});
-    auto result = std::move(func(parent, args).rval);
+    auto result = func(parent, args);
     call_stack.pop_back();
 
     if ( result && g_trace_state.DoTrace() ) {
@@ -1062,6 +1058,7 @@ void init_primary_bifs() {
 
 #include "CPP-load.bif.func_init"
 #include "communityid.bif.func_init"
+#include "mmdb.bif.func_init"
 #include "option.bif.func_init"
 #include "packet_analysis.bif.func_init"
 #include "reporter.bif.func_init"

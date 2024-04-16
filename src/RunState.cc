@@ -217,8 +217,6 @@ void init_run(const std::optional<std::string>& interface, const std::optional<s
 }
 
 void expire_timers() {
-    zeek::detail::SegmentProfiler prof(zeek::detail::segment_logger, "expiring-timers");
-
     current_dispatched +=
         zeek::detail::timer_mgr->Advance(network_time, zeek::detail::max_timer_expires - current_dispatched);
 }
@@ -241,31 +239,8 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src) {
     processing_start_time = t;
     expire_timers();
 
-    zeek::detail::SegmentProfiler* sp = nullptr;
-
-    if ( load_sample ) {
-        static uint32_t load_freq = 0;
-
-        if ( load_freq == 0 )
-            load_freq = uint32_t(0xffffffff) / uint32_t(zeek::detail::load_sample_freq);
-
-        if ( uint32_t(util::detail::random_number() & 0xffffffff) < load_freq ) {
-            // Drain the queued timer events so they're not
-            // charged against this sample.
-            event_mgr.Drain();
-
-            zeek::detail::sample_logger = std::make_shared<zeek::detail::SampleLogger>();
-            sp = new zeek::detail::SegmentProfiler(zeek::detail::sample_logger, "load-samp");
-        }
-    }
-
     packet_mgr->ProcessPacket(pkt);
     event_mgr.Drain();
-
-    if ( sp ) {
-        delete sp;
-        zeek::detail::sample_logger = nullptr;
-    }
 
     processing_start_time = 0.0; // = "we're not processing now"
     current_dispatched = 0;

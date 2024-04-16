@@ -362,6 +362,13 @@ module FTP;
 ## raise a FTP_max_command_length_exceeded weird and are discarded.
 const max_command_length = 100 &redef;
 
+module SMTP;
+
+## The maximum line length within a BDAT chunk before a forceful linebreak
+## is introduced and a weird is raised. Conventionally, MIME messages
+## have a maximum line length of 1000 octets when properly encoded.
+const bdat_max_line_length = 4096 &redef;
+
 module GLOBAL;
 
 ## Statistics about what a TCP endpoint sent.
@@ -416,7 +423,6 @@ export {
 	## The full list of TCP Option fields parsed from a TCP header.
 	type OptionList: vector of Option;
 }
-module GLOBAL;
 
 module Tunnel;
 export {
@@ -442,6 +448,57 @@ export {
 	const max_changes_per_connection: count = 5 &redef;
 
 } # end export
+
+module HTTP;
+export {
+	## Lookup table for Upgrade analyzers. First, a case sensitive lookup
+	## is done using the client's Upgrade header. If no match is found,
+	## the all lower-case value is used. If there's still no match Zeek
+	## uses dynamic protocol detection for the upgraded to protocol instead.
+	const upgrade_analyzers: table[string] of Analyzer::Tag &redef;
+}
+
+module WebSocket;
+export {
+	## The WebSocket analyzer consumes and forwards
+	## frame payload in chunks to keep memory usage
+	## bounded. There should not be a reason to change
+	## this value except for debugging and
+	## testing reasons.
+	const payload_chunk_size = 8192 &redef;
+
+	## Whether to enable DPD on WebSocket frame payload by default.
+	const use_dpd_default = T &redef;
+
+	## Whether to use the Spicy WebSocket protocol analyzer.
+	##
+	## As of now, the BinPac version has better performance, but
+	## we may change the default in the future.
+	const use_spicy_analyzer = F &redef;
+
+	## Record type that is passed to :zeek:see:`WebSocket::configure_analyzer`.
+	##
+	## This record allows to configure the WebSocket analyzer given
+	## parameters collected from HTTP headers.
+	type AnalyzerConfig: record {
+		## The analyzer to attach for analysis of the WebSocket
+		## frame payload. See *use_dpd* below for the behavior
+		## when unset.
+		analyzer: Analyzer::Tag &optional;
+
+		## If *analyzer* is unset, determines whether to attach a
+		## PIA_TCP analyzer for dynamic protocol detection with
+		## WebSocket payload.
+		use_dpd: bool &default=use_dpd_default;
+
+		## The subprotocol as selected by the server, if any.
+		subprotocol: string &optional;
+
+		## The WebSocket extensions as selected by the server, if any.
+		server_extensions: vector of string &optional;
+	};
+}
+
 module GLOBAL;
 
 ## A type alias for a vector of encapsulating "connections", i.e. for when
@@ -1106,6 +1163,25 @@ type geo_autonomous_system: record {
 
 ## The directory containing MaxMind DB (.mmdb) files to use for GeoIP support.
 const mmdb_dir: string = "" &redef;
+
+## Default name of the MaxMind City database file:
+const mmdb_city_db: string = "GeoLite2-City.mmdb" &redef;
+## Default name of the MaxMind Country database file:
+const mmdb_country_db: string = "GeoLite2-Country.mmdb" &redef;
+## Default name of the MaxMind ASN database file:
+const mmdb_asn_db: string = "GeoLite2-ASN.mmdb" &redef;
+
+## Fallback locations for MaxMind databases. Zeek attempts these when
+## :zeek:see:`mmdb_dir` is not set, or it cannot read a DB file from it. For
+## geolocation lookups, Zeek will first attempt to locate the city database in
+## each of the fallback locations, and should this fail, attempt to locate the
+## country one.
+const mmdb_dir_fallbacks: vector of string = vector(
+	"/usr/share/GeoIP",
+	"/var/lib/GeoIP",
+	"/usr/local/share/GeoIP",
+	"/usr/local/var/GeoIP",
+) &redef;
 
 ## Sets the interval for MaxMind DB file staleness checks. When Zeek detects a
 ## change in inode or modification time, the database is re-opened. Setting
@@ -2094,6 +2170,7 @@ type gtp_delete_pdp_ctx_response_elements: record {
 @load base/bif/supervisor.bif
 @load base/bif/packet_analysis.bif
 @load base/bif/CPP-load.bif
+@load base/bif/mmdb.bif
 
 ## Internal function.
 function add_interface(iold: string, inew: string): string
@@ -2751,6 +2828,16 @@ export {
 		invarsec: interval;	##< TODO.
 	};
 } # end export
+
+
+module MIME;
+export {
+	## Stop analysis of nested multipart MIME entities if this depth is
+	## reached. Setting this value to 0 removes the limit.
+	const max_depth = 100 &redef;
+
+} # end export
+
 
 
 module MOUNT3;
@@ -4384,11 +4471,6 @@ type signature_state: record {
 	payload_size: count;	##< Payload size of the first matching packet of current endpoint.
 };
 
-# Type used to report load samples via :zeek:see:`load_sample`. For now, it's a
-# set of names (event names, source file names, and perhaps ``<source file, line
-# number>``), which were seen during the sample.
-type load_sample_info: set[string];
-
 ## A BitTorrent peer.
 ##
 ## .. zeek:see:: bittorrent_peer_set
@@ -5025,26 +5107,20 @@ const log_rotate_base_time = "0:00" &redef;
 ## Write profiling info into this file in regular intervals. The easiest way to
 ## activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
-## .. zeek:see:: profiling_interval expensive_profiling_multiple segment_profiling
+## .. zeek:see:: profiling_interval expensive_profiling_multiple
 global profiling_file: file &redef;
 
 ## Update interval for profiling (0 disables).  The easiest way to activate
 ## profiling is loading  :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
-## .. zeek:see:: profiling_file expensive_profiling_multiple segment_profiling
+## .. zeek:see:: profiling_file expensive_profiling_multiple
 const profiling_interval = 0 secs &redef;
 
 ## Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
 ## profiling is done (0 disables).
 ##
-## .. zeek:see:: profiling_interval profiling_file segment_profiling
+## .. zeek:see:: profiling_interval profiling_file
 const expensive_profiling_multiple = 0 &redef;
-
-## If true, then write segment profiling information (very high volume!)
-## in addition to profiling statistics.
-##
-## .. zeek:see:: profiling_interval expensive_profiling_multiple profiling_file
-const segment_profiling = F &redef;
 
 ## Output modes for packet profiling information.
 ##
@@ -5070,14 +5146,6 @@ const pkt_profile_freq = 0.0 &redef;
 ##
 ## .. zeek:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode
 global pkt_profile_file: file &redef;
-
-## Rate at which to generate :zeek:see:`load_sample` events. As all
-## events, the event is only generated if you've also defined a
-## :zeek:see:`load_sample` handler.  Units are inverse number of packets; e.g.,
-## a value of 20 means "roughly one in every 20 packets".
-##
-## .. zeek:see:: load_sample
-global load_sample_freq = 20 &redef;
 
 ## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
 ## and not report missing segments for such connections.
@@ -5239,7 +5307,7 @@ module Tunnel;
 export {
 	## The maximum depth of a tunnel to decapsulate until giving up.
 	## Setting this to zero will disable all types of tunnel decapsulation.
-	const max_depth: count = 2 &redef;
+	const max_depth: count = 4 &redef;
 
 	## With this set, the Teredo analyzer waits until it sees both sides
 	## of a connection using a valid Teredo encapsulation before issuing

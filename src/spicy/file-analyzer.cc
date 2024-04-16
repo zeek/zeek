@@ -87,11 +87,7 @@ bool FileAnalyzer::Process(int len, const u_char* data) {
         file->FileEvent(Spicy::max_file_depth_exceeded, {file_val, analyzer_args, val_mgr->Count(_state.file().depth)});
 
         auto tag = spicy_mgr->tagForFileAnalyzer(_state.file().analyzer->Tag());
-#if ZEEK_VERSION_NUMBER >= 50200
         AnalyzerViolation("maximal file depth exceeded", reinterpret_cast<const char*>(data), len, tag);
-#else
-        // We don't have an an appropriate way to report this with older Zeeks.
-#endif
         return false;
     }
 
@@ -101,11 +97,7 @@ bool FileAnalyzer::Process(int len, const u_char* data) {
     } catch ( const hilti::rt::RuntimeError& e ) {
         STATE_DEBUG_MSG(hilti::rt::fmt("error during parsing, triggering analyzer violation: %s", e.what()));
         auto tag = spicy_mgr->tagForFileAnalyzer(_state.file().analyzer->Tag());
-#if ZEEK_VERSION_NUMBER >= 50200
         AnalyzerViolation(e.what(), reinterpret_cast<const char*>(data), len, tag);
-#else
-        // We don't have an an appropriate way to report this with older Zeeks.
-#endif
     } catch ( const hilti::rt::Exception& e ) {
         STATE_DEBUG_MSG(e.what());
         spicy_mgr->analyzerError(_state.file().analyzer, e.description(),
@@ -122,11 +114,7 @@ void FileAnalyzer::Finish() {
     } catch ( const hilti::rt::RuntimeError& e ) {
         STATE_DEBUG_MSG(hilti::rt::fmt("error during parsing, triggering analyzer violation: %s", e.what()));
         auto tag = spicy_mgr->tagForFileAnalyzer(_state.file().analyzer->Tag());
-#if ZEEK_VERSION_NUMBER >= 50200
         AnalyzerViolation(e.what(), "", 0, tag);
-#else
-        // We don't have an an appropriate way to report this with older Zeeks.
-#endif
     } catch ( const hilti::rt::Exception& e ) {
         spicy_mgr->analyzerError(_state.file().analyzer, e.description(),
                                  e.location()); // this sets Zeek to skip sending any further input

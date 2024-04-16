@@ -4,6 +4,10 @@
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T >output
 # @TEST-EXEC: btest-diff output
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+}
+
 # @TEST-START-FILE ssh.spicy
 module SSH;
 
@@ -51,7 +55,6 @@ import zeek;
 
 protocol analyzer spicy::SSH over TCP:
     parse originator with SSH::Banner,
-    port 22/tcp,
     replaces SSH;
 
 file analyzer spicy::Text:

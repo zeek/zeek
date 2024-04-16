@@ -1,0 +1,9 @@
+{
+  "name": "main",
+  "version-string": "latest",
+  "dependencies": [
+    "c-ares",
+    "libpcap",
+    "zlib"
+  ]
+}

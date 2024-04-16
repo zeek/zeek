@@ -47,10 +47,9 @@ static std::pair<std::string, std::string> parseID(const std::string& s) {
 
 Manager::~Manager() {}
 
-void Manager::registerSpicyModuleBegin(const std::string& name, const std::string& description, hilti::rt::Time mtime) {
+void Manager::registerSpicyModuleBegin(const std::string& name, const std::string& description) {
     assert(! _module_info);
-    _module_info =
-        std::make_unique<zeekygen::detail::SpicyModuleInfo>(name, description, static_cast<time_t>(mtime.seconds()));
+    _module_info = std::make_unique<zeekygen::detail::SpicyModuleInfo>(name, description);
 }
 
 void Manager::registerSpicyModuleEnd() {

@@ -2182,13 +2182,14 @@ void get_memory_usage(uint64_t* total, uint64_t* malloced) {
     uint64_t ret_total;
 
 #if defined(HAVE_MALLINFO2) || defined(HAVE_MALLINFO)
+    if ( malloced ) {
 #ifdef HAVE_MALLINFO2
-    struct mallinfo2 mi = mallinfo2();
+        struct mallinfo2 mi = mallinfo2();
 #else
-    struct mallinfo mi = mallinfo();
+        struct mallinfo mi = mallinfo();
 #endif
-    if ( malloced )
         *malloced = mi.uordblks;
+    }
 #endif
 
 #ifdef HAVE_DARWIN
@@ -2207,6 +2208,8 @@ void get_memory_usage(uint64_t* total, uint64_t* malloced) {
     ret_total = r.ru_maxrss * 1024;
 
     if ( malloced )
+        // This will overwrite any mallinfo[2] value from above, should
+        // be restructured to avoid unnecessary work.
         *malloced = r.ru_ixrss * 1024;
 #endif
 
@@ -2546,6 +2549,32 @@ TEST_CASE("util split") {
         CHECK_EQ(split(L"12345", L""), wstr_vec{L"12345"});
     }
 }
+
+TEST_CASE("util approx_equal") {
+    CHECK(approx_equal(47.0, 47.0) == true);
+    CHECK(approx_equal(47.0, -47.0) == false);
+    CHECK(approx_equal(47.00001, 47.00002) == false);
+    CHECK(approx_equal(47.00001, 47.00002, 1e-5) == true);
+    CHECK(approx_equal(47.0, -47.0, 1e2) == true);
+    CHECK(approx_equal(47.0, -47.0, 94 + 1e-10) == true);
+    CHECK(approx_equal(47.0, -47.0, 94) == false);
+
+    constexpr auto inf = std::numeric_limits<double>::infinity();
+    CHECK_FALSE(approx_equal(inf, inf));
+    CHECK_FALSE(approx_equal(-inf, inf));
+    CHECK_FALSE(approx_equal(inf, -inf));
+    CHECK_FALSE(approx_equal(inf, inf, inf));
+
+    constexpr auto qnan = std::numeric_limits<double>::quiet_NaN(); // There's also `signaling_NaN`.
+    CHECK_FALSE(approx_equal(qnan, qnan));
+    CHECK_FALSE(approx_equal(-qnan, qnan));
+    CHECK_FALSE(approx_equal(qnan, -qnan));
+}
+
+/**
+ * Returns whether two double values are approximately equal within some tolerance value.
+ */
+bool approx_equal(double a, double b, double tolerance) { return std::abs(a - b) < std::abs(tolerance); }
 
 } // namespace zeek::util
 

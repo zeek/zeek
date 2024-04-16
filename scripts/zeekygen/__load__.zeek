@@ -10,6 +10,7 @@
 @load frameworks/management/node/__load__.zeek
 @load frameworks/management/node/main.zeek
 @load frameworks/files/extract-all-files.zeek
+@load frameworks/signatures/iso-9660.zeek
 @load policy/misc/dump-events.zeek
 @load policy/protocols/conn/speculative-service.zeek
 

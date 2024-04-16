@@ -3,15 +3,15 @@ ts	level	message	location
 1299470395.000000	Reporter::INFO	Modification time change detected for MaxMind DB [.<...>/GeoLite2-ASN.mmdb]	<params>, line 1
 1299470395.000000	Reporter::INFO	Closing stale MaxMind DB [.<...>/GeoLite2-ASN.mmdb]	<params>, line 1
 1299470395.000000	Reporter::INFO	Failed to open MaxMind DB: .<...>/GeoLite2-ASN.mmdb [The MaxMind DB file contains invalid metadata]	<params>, line 1
-1299470395.000000	Reporter::ERROR	Failed to open GeoIP ASN database (lookup_autonomous_system(128.3.0.1))	<...>/temporary-error.zeek, line 100
+1299470395.000000	Reporter::ERROR	Failed to open GeoIP ASN database (lookup_autonomous_system(128.3.0.1))	<...>/temporary-error.zeek, line 101
 1299470395.000000	Reporter::INFO	Modification time change detected for MaxMind DB [.<...>/GeoLite2-City.mmdb]	<params>, line 1
 1299470395.000000	Reporter::INFO	Closing stale MaxMind DB [.<...>/GeoLite2-City.mmdb]	<params>, line 1
 1299470395.000000	Reporter::INFO	Failed to open MaxMind DB: .<...>/GeoLite2-City.mmdb [The MaxMind DB file contains invalid metadata]	<params>, line 1
-1299470395.000000	Reporter::ERROR	Failed to open GeoIP location database (lookup_location(128.3.0.1))	<...>/temporary-error.zeek, line 101
+1299470395.000000	Reporter::ERROR	Failed to open GeoIP location database (lookup_location(128.3.0.1))	<...>/temporary-error.zeek, line 102
 1299473995.000000	Reporter::INFO	Closing stale MaxMind DB [.<...>/GeoLite2-ASN.mmdb]	<params>, line 1
-1299473995.000000	Reporter::ERROR	Failed to open GeoIP ASN database (lookup_autonomous_system(128.3.0.1))	<...>/temporary-error.zeek, line 100
+1299473995.000000	Reporter::ERROR	Failed to open GeoIP ASN database (lookup_autonomous_system(128.3.0.1))	<...>/temporary-error.zeek, line 101
 1299473995.000000	Reporter::INFO	Closing stale MaxMind DB [.<...>/GeoLite2-City.mmdb]	<params>, line 1
-1299473995.000000	Reporter::ERROR	Failed to open GeoIP location database (lookup_location(128.3.0.1))	<...>/temporary-error.zeek, line 101
+1299473995.000000	Reporter::ERROR	Failed to open GeoIP location database (lookup_location(128.3.0.1))	<...>/temporary-error.zeek, line 102
 1299477595.000000	Reporter::INFO	Inode change detected for MaxMind DB [.<...>/GeoLite2-ASN.mmdb]	<params>, line 1
 1299477595.000000	Reporter::INFO	Closing stale MaxMind DB [.<...>/GeoLite2-ASN.mmdb]	<params>, line 1
 1299477595.000000	Reporter::INFO	Inode change detected for MaxMind DB [.<...>/GeoLite2-City.mmdb]	<params>, line 1

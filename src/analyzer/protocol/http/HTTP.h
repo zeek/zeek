@@ -220,6 +220,7 @@ protected:
 
     void HTTP_Request();
     void HTTP_Reply();
+    void HTTP_Upgrade();
 
     void RequestMade(bool interrupted, const char* msg);
     void ReplyMade(bool interrupted, const char* msg);

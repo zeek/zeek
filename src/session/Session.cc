@@ -58,6 +58,7 @@ Session::Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status
     timers_canceled = 0;
     inactivity_timeout = 0;
     installed_status_timer = 0;
+    hist_seen = 0;
 }
 
 void Session::Event(EventHandlerPtr f, analyzer::Analyzer* analyzer, const char* name) {
@@ -184,6 +185,39 @@ AnalyzerConfirmationState Session::AnalyzerState(const zeek::Tag& tag) const {
 
 void Session::SetAnalyzerState(const zeek::Tag& tag, AnalyzerConfirmationState value) {
     analyzer_confirmations.insert_or_assign(tag, value);
+}
+
+bool Session::ScaledHistoryEntry(char code, uint32_t& counter, uint32_t& scaling_threshold, uint32_t scaling_base) {
+    if ( ++counter == scaling_threshold ) {
+        AddHistory(code);
+
+        auto new_threshold = scaling_threshold * scaling_base;
+
+        if ( new_threshold <= scaling_threshold )
+            // This can happen due to wrap-around.  In that
+            // case, reset the counter but leave the threshold
+            // unchanged.
+            counter = 0;
+
+        else
+            scaling_threshold = new_threshold;
+
+        return true;
+    }
+
+    return false;
+}
+
+void Session::HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t threshold) {
+    if ( ! e )
+        return;
+
+    if ( threshold == 1 )
+        // This will be far and away the most common case,
+        // and at this stage it's not a *multiple* instance.
+        return;
+
+    EnqueueEvent(e, nullptr, GetVal(), val_mgr->Bool(is_orig), val_mgr->Count(threshold));
 }
 
 } // namespace zeek::session

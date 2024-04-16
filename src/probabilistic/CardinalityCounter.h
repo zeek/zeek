@@ -2,14 +2,15 @@
 
 #pragma once
 
-#include <broker/expected.hh>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <vector>
 
-namespace broker {
-class data;
-}
+namespace zeek {
+class BrokerData;
+class BrokerDataView;
+} // namespace zeek
 
 namespace zeek::probabilistic::detail {
 
@@ -89,8 +90,8 @@ public:
      */
     bool Merge(CardinalityCounter* c);
 
-    broker::expected<broker::data> Serialize() const;
-    static std::unique_ptr<CardinalityCounter> Unserialize(const broker::data& data);
+    std::optional<BrokerData> Serialize() const;
+    static std::unique_ptr<CardinalityCounter> Unserialize(BrokerDataView data);
 
 protected:
     /**

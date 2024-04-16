@@ -14,6 +14,7 @@
 #include <unordered_map>
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/broker/Data.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
 
@@ -178,6 +179,15 @@ public:
      * @return true if the message is sent successfully.
      */
     bool PublishEvent(std::string topic, std::string name, broker::vector args, double ts = run_state::network_time);
+
+    /**
+     * @copydoc PublishEvent(std::string, std::string, broker::vector, double)
+     */
+    bool PublishEvent(std::string topic, std::string name, BrokerData args, double ts = run_state::network_time) {
+        if ( ! args.AsView().IsList() )
+            return false;
+        return PublishEvent(std::move(topic), std::move(name), std::move(broker::get<broker::vector>(args.value_)), ts);
+    }
 
     /**
      * Send an event to any interested peers.
@@ -415,8 +425,8 @@ private:
     bool ProcessMessage(std::string_view topic, broker::zeek::LogCreate& lc);
     bool ProcessMessage(std::string_view topic, broker::zeek::LogWrite& lw);
     bool ProcessMessage(std::string_view topic, broker::zeek::IdentifierUpdate& iu);
-    void ProcessStatus(broker::status_view stat);
-    void ProcessError(broker::error_view err);
+    void ProcessStatus(broker::status& stat);
+    void ProcessError(broker::error& err);
     void ProcessStoreResponse(detail::StoreHandleVal*, broker::store::response response);
     void FlushPendingQueries();
     // Initializes the masters for Broker backed Zeek tables when using the &backend attribute

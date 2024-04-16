@@ -8,6 +8,7 @@
 #include "zeek/Expr.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/Trigger.h"
+#include "zeek/broker/Data.h"
 #include "zeek/broker/data.bif.h"
 #include "zeek/broker/store.bif.h"
 
@@ -110,6 +111,10 @@ public:
           forward_to{},
           have_store{true} {}
 
+    void Put(BrokerData&& key, BrokerData&& value, std::optional<BrokerTimespan> expiry = std::nullopt);
+
+    void Erase(BrokerData&& key);
+
     void ValDescribe(ODesc* d) const override;
 
     broker::store store;
@@ -122,7 +127,7 @@ public:
 protected:
     IntrusivePtr<Val> DoClone(CloneState* state) override { return {NewRef{}, this}; }
 
-    DECLARE_OPAQUE_VALUE(StoreHandleVal)
+    DECLARE_OPAQUE_VALUE_DATA(StoreHandleVal)
 };
 
 // Helper function to construct a broker backend type from script land.

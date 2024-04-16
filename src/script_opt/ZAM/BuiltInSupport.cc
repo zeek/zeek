@@ -7,7 +7,7 @@
 
 namespace zeek::detail {
 
-FixedCatArg::FixedCatArg(const TypePtr& _t) : t(_t) {
+FixedCatArg::FixedCatArg(TypePtr _t) : t(std::move(_t)) {
     switch ( t->Tag() ) {
         case TYPE_BOOL: max_size = 1; break;
 
@@ -27,13 +27,13 @@ FixedCatArg::FixedCatArg(const TypePtr& _t) : t(_t) {
         case TYPE_ENUM: {
             size_t n = 0;
             for ( const auto& e : t->AsEnumType()->Names() )
-                n += e.first.size();
+                n = std::max(n, e.first.size());
             max_size = n;
             break;
         }
 
         case TYPE_PORT:
-            max_size = 5 + 1 + 7; // <number> + / + "unknown
+            max_size = 5 + 1 + 7; // <number> + / + "unknown"
             break;
 
         case TYPE_ADDR:
@@ -68,10 +68,18 @@ void FixedCatArg::RenderInto(ZVal* zframe, int slot, char*& res) {
             break;
 
         case TYPE_DOUBLE:
-        case TYPE_TIME:
-            n = modp_dtoa2(z.AsDouble(), res, 6);
+        case TYPE_TIME: {
+            auto d = z.AsDouble();
+            n = modp_dtoa2(d, res, 6);
             res += n;
+
+            if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && ! strchr(tmp, 'e') ) {
+                // disambiguate from integer
+                *(res++) = '.';
+                *(res++) = '0';
+            }
             break;
+        }
 
         case TYPE_PATTERN:
             text = z.AsPattern()->AsPattern()->PatternText();

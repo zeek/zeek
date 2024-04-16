@@ -187,17 +187,17 @@ finger	{ rules_lval.val = zeek::detail::Rule::FINGER; return TOK_PATTERN_TYPE; }
 
 {STRING}	{
 	*(yytext + strlen(yytext) - 1) = '\0';
-	rules_lval.str = yytext + 1;
+	rules_lval.str = zeek::util::copy_string(yytext + 1);
 	return TOK_STRING;
 	}
 
 {ID}	{
-	rules_lval.str = yytext;
+	rules_lval.str = zeek::util::copy_string(yytext);
 	return TOK_IDENT;
 	}
 
 <PS>{PID}	{
-	rules_lval.str = yytext;
+	rules_lval.str = zeek::util::copy_string(yytext);
 	return TOK_POLICY_SYMBOL;
 	}
 
@@ -216,7 +216,7 @@ finger	{ rules_lval.val = zeek::detail::Rule::FINGER; return TOK_PATTERN_TYPE; }
 	else
 		{
 		*(yytext + len - 1) = '\0';
-		rules_lval.str = yytext + 1;
+		rules_lval.str = zeek::util::copy_string(yytext + 1);
 		}
 
 	return TOK_PATTERN;

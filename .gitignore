@@ -19,11 +19,17 @@ cmake-build-*
 # clangd
 .cache
 
-out/
-
 # Visual Studio
 .vs/
 .vscode/
+out/
 CMakeSettings.json
+
+# Emacs temporary files
+*~
+
+# Vim temporary files
+*.swp
+*.swo
 
 src/include

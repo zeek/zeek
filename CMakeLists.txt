@@ -5,6 +5,17 @@ cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 if (WIN32)
     # Enable usage of CMAKE_MSVC_RUNTIME_LIBRARY variable
     cmake_policy(SET CMP0091 NEW)
+
+    # I tried to just use CMAKE_SOURCE_DIR and CMAKE_CURRENT_SOURCE_DIR
+    # but it's not setting the path correctly and so the toolchain
+    # variable doesn't get passed down to submodules like libkqueue
+    # correctly. Instead get the absolute path to the vcpkg.cmake file
+    # and use that.
+    get_filename_component(_toolchain ./auxil/vcpkg/scripts/buildsystems/vcpkg.cmake ABSOLUTE)
+
+    # This needs to happen before the project() call below so that it
+    # doesn't need to be manually passed on the command line.
+    set(CMAKE_TOOLCHAIN_FILE ${_toolchain} CACHE STRING "Vcpkg toolchain file")
 endif ()
 
 project(Zeek C CXX)
@@ -119,33 +130,26 @@ if (MSVC)
     set(OPENSSL_USE_STATIC_LIBS true)
     set(OPENSSL_MSVC_STATIC_RT true)
 
-    if (ZEEK_STANDALONE)
-        include(${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
-        conan_cmake_autodetect(settings)
-        # Install packages from conanfile
-        conan_cmake_install(PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}/ci/windows/conanfile_windows.txt
-                            BUILD missing SETTINGS ${settings})
-    endif ()
-
-    # Set LibPCAP to point to libpcap binaries.
+    # Set PCAP_ROOT_DIR to point at the installation from vcpkg. A later call
+    # to FindPCAP.cmake will fill in the rest of the necessary variables.
     if (NOT PCAP_ROOT_DIR)
-        find_package(libpcap)
-        set(PCAP_ROOT_DIR "${libpcap_LIB_DIRS}/../")
-        set(PCAP_INCLUDE_DIR ${libpcap_INCLUDES})
-        set(PCAP_LIBRARY ${libpcap_LIBS})
+        set(PCAP_ROOT_DIR ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET})
+    else ()
+        unset(PCAP_INCLUDE_DIR CACHE)
+        unset(PCAP_LIBRARY CACHE)
     endif ()
 
     set(LIBPCAP_PCAP_COMPILE_NOPCAP_HAS_ERROR_PARAMETER false)
 
-    # Set ZLib to point at the right variable.
+    # Find zlib installed by vcpkg.
     find_package(ZLIB)
-    set(ZLIB_LIBRARY ${ZLIB_LIBRARIES})
+    set(ZLIB_LIBRARY ZLIB::ZLIB)
 
-    # Set CAres
+    # Find c-ares installed by vcpkg.
     find_package(c-ares)
     set(HAVE_CARES true) # Disable FindCAres cmake file
     include_directories(BEFORE ${c-ares_INCLUDE_DIRS})
-    set(zeekdeps ${zeekdeps} ${c-ares_LIBRARIES})
+    set(zeekdeps ${zeekdeps} c-ares::cares)
     add_definitions(-DCARES_STATICLIB)
 
     add_subdirectory(auxil/libunistd)
@@ -165,8 +169,18 @@ if (MSVC)
 
     # Disable Spicy as it is not yet supported in Windows.
     set(DISABLE_SPICY true)
+
+    if (BUILD_WITH_WERROR)
+        # TODO: This is disabled for now because there a bunch of known
+        # compiler warnings on Windows that we don't have good fixes for.
+        #set(WERROR_FLAG "/WX")
+        #set(WERROR_FLAG "/WX")
+    endif ()
 else ()
     include(GNUInstallDirs)
+    if (BUILD_WITH_WERROR)
+        set(WERROR_FLAG "-Werror")
+    endif ()
 endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
@@ -219,10 +233,6 @@ if (ZEEK_STANDALONE)
     endif ()
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_exe_access PRIVATE)
-    # Also build the static library when asked for via Conan.
-    if (CONAN_EXPORTED)
-        add_library(zeek_lib STATIC)
-    endif ()
 else ()
     add_library(zeek_lib STATIC)
 endif ()
@@ -232,7 +242,7 @@ if (TARGET zeek_lib)
     add_dependencies(zeek_lib zeek_autogen_files)
     set_target_properties(zeek_lib PROPERTIES RUNTIME_OUTPUT_NAME libzeek)
     if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-        set_target_properties(zeek_lie PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
+        set_target_properties(zeek_lib PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
     endif ()
     install(TARGETS zeek_lib LIBRARY DESTINATION lib)
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
@@ -254,6 +264,7 @@ endif ()
 foreach (name zeek_exe zeek_lib zeek_fuzzer_shared)
     if (TARGET ${name})
         target_compile_definitions(${name} PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
+        target_compile_options(${name} PRIVATE ${WERROR_FLAG})
     endif ()
 endforeach ()
 
@@ -312,13 +323,13 @@ endfunction ()
 add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/src/include
     ${PROJECT_SOURCE_DIR}/auxil/binpac/lib
-    ${PROJECT_SOURCE_DIR}/auxil/broker/include
+    ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/rapidjson/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
-    ${CMAKE_BINARY_DIR}/auxil/broker/include)
+    ${CMAKE_BINARY_DIR}/auxil/broker/libbroker)
 
 # threading/formatters/JSON.h includes rapidjson headers and may be used
 # by external plugins, extend the include path.
@@ -347,6 +358,7 @@ function (zeek_add_subdir_library name)
     add_dependencies(${target_name} zeek_autogen_files)
     target_link_libraries(${target_name} PRIVATE $<BUILD_INTERFACE:zeek_internal>)
     add_clang_tidy_files(${FN_ARGS_SOURCES})
+    target_compile_options(${target_name} PRIVATE ${WERROR_FLAG})
 
     # Take care of compiling BIFs.
     if (FN_ARGS_BIFS)
@@ -889,8 +901,8 @@ else ()
         list(APPEND zeekdeps broker)
     endif ()
 
-    set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/include
-                        ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/include)
+    set(broker_includes ${CMAKE_CURRENT_SOURCE_DIR}/auxil/broker/libbroker
+                        ${CMAKE_CURRENT_BINARY_DIR}/auxil/broker/libbroker)
 
     if (BUILD_STATIC_BROKER)
         set(ZEEK_HAS_STATIC_BROKER ON)
@@ -947,8 +959,16 @@ if (NOT DISABLE_SPICY)
         # instead explicitly branch on `BINARY_PACKAGING_MODE` here.
         if (BINARY_PACKAGING_MODE)
             hilti_link_object_libraries_in_tree(zeek_exe PRIVATE)
+            spicy_link_object_libraries_in_tree(zeek_exe PRIVATE)
         else ()
-            hilti_link_libraries_in_tree(zeek_exe PRIVATE)
+            if (TARGET zeek_exe)
+                hilti_link_libraries_in_tree(zeek_exe PRIVATE)
+                spicy_link_libraries_in_tree(zeek_exe PRIVATE)
+            endif ()
+            if (TARGET zeek_lib)
+                hilti_link_libraries_in_tree(zeek_lib PRIVATE)
+                spicy_link_libraries_in_tree(zeek_lib PRIVATE)
+            endif ()
         endif ()
 
         set(HAVE_SPICY yes)
@@ -1075,8 +1095,14 @@ include(PCAPTests)
 include(OpenSSLTests)
 include(CheckNameserCompat)
 include(GetArchitecture)
-include(FindKqueue)
+
+# On platforms without a native libkqueue, c-ares is using the existing
+# value for HAVE_KQUEUE that was set during the libkqueue setup. We don't
+# pass the libkqueue information down to the c-ares cmake run so it won't
+# have the paths or library when it builds.
 include(FindCAres)
+include(FindKqueue)
+
 include_directories(BEFORE "auxil/out_ptr/include")
 
 if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))
@@ -1089,6 +1115,7 @@ endif ()
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
+set(ZEEK_HAVE_AF_PACKET no)
 if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
     if (NOT DISABLE_AF_PACKET)
         if (NOT AF_PACKET_PLUGIN_PATH)
@@ -1096,9 +1123,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
         endif ()
 
         list(APPEND ZEEK_INCLUDE_PLUGINS ${AF_PACKET_PLUGIN_PATH})
+        set(ZEEK_HAVE_AF_PACKET yes)
     endif ()
 endif ()
 
+set(ZEEK_HAVE_JAVASCRIPT no)
 if (NOT DISABLE_JAVASCRIPT)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/auxil/zeekjs/cmake)
     find_package(Nodejs)
@@ -1109,14 +1138,11 @@ if (NOT DISABLE_JAVASCRIPT)
                 STATUS
                     "Node.js version ${NODEJS_VERSION} is too old, need 16.13 or later. Not enabling JavaScript support."
             )
-            set(ZEEK_HAVE_JAVASCRIPT no)
         else ()
             set(ZEEKJS_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeekjs)
             list(APPEND ZEEK_INCLUDE_PLUGINS ${ZEEKJS_PLUGIN_PATH})
             set(ZEEK_HAVE_JAVASCRIPT yes)
         endif ()
-    else ()
-        set(ZEEK_HAVE_JAVASCRIPT no)
     endif ()
 endif ()
 
@@ -1421,18 +1447,19 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
-    "\nzeek-client:       ${INSTALL_ZEEK_CLIENT}"
-    "\nZeekControl:       ${INSTALL_ZEEKCTL}"
+    "\nAF_PACKET:         ${ZEEK_HAVE_AF_PACKET}"
     "\nAux. Tools:        ${INSTALL_AUX_TOOLS}"
     "\nBifCL:             ${_bifcl_exe_path}"
     "\nBinPAC:            ${_binpac_exe_path}"
     "\nBTest:             ${INSTALL_BTEST}"
     "\nBTest tooling:     ${_install_btest_tools_msg}"
     "\nGen-ZAM:           ${_gen_zam_exe_path}"
-    "\nzkg:               ${INSTALL_ZKG}"
+    "\nJavaScript:        ${ZEEK_HAVE_JAVASCRIPT}"
     "\nSpicy:             ${_spicy}"
     "\nSpicy analyzers:   ${USE_SPICY_ANALYZERS}"
-    "\nJavaScript:        ${ZEEK_HAVE_JAVASCRIPT}"
+    "\nzeek-client:       ${INSTALL_ZEEK_CLIENT}"
+    "\nZeekControl:       ${INSTALL_ZEEKCTL}"
+    "\nzkg:               ${INSTALL_ZKG}"
     "\n"
     "\nlibmaxminddb:      ${USE_GEOIP}"
     "\nKerberos:          ${USE_KRB5}"

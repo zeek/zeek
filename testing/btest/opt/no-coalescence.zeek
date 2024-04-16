@@ -1,4 +1,5 @@
 # @TEST-DOC: Ensure that event coalescence doesn't happen if inlining turned off.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #
 # @TEST-EXEC: zeek -b -O ZAM -O no-inline %INPUT >output
 # @TEST-EXEC: btest-diff output

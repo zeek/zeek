@@ -1,0 +1,65 @@
+## Generated when a WebSocket handshake completed.
+##
+## c: The WebSocket connection.
+##
+## aid: The analyzer identifier of the WebSocket analyzer.
+##
+## .. zeek:see:: WebSocket::__configure_analyzer WebSocket::configure_analyzer
+event websocket_established%(c: connection, aid: count%);
+
+## Generated for every WebSocket frame.
+##
+## c: The WebSocket connection.
+##
+## is_orig: True if the frame is from the originator, else false.
+##
+## fin: True if the fin bit is set, else false.
+##
+## rsv: The value of the RSV1, RSV2 and RSV3 bits.
+##
+## opcode: The frame's opcode.
+##
+## payload_len: The frame's payload length.
+##
+event websocket_frame%(c: connection, is_orig: bool, fin: bool, rsv: count, opcode: count, payload_len: count%);
+
+## Generated for every chunk of WebSocket frame payload data.
+##
+## Do not use it to extract data from a WebSocket connection unless for testing
+## or experimentation. Consider implementing a proper analyzer instead.
+##
+## c: The WebSocket connection.
+##
+## is_orig: True if the frame is from the originator, else false.
+##
+## data: One data chunk of frame payload. The length of is at most
+##       :zeek:see:`WebSocket::payload_chunk_size` bytes. A frame with
+##       a longer payload will result in multiple events events.
+##
+## .. zeek:see:: WebSocket::payload_chunk_size
+event websocket_frame_data%(c: connection, is_orig: bool, data: string%);
+
+
+## Generated for every completed WebSocket message.
+##
+## c: The WebSocket connection.
+##
+## is_orig: True if the frame is from the originator, else false.
+##
+## opcode: The first frame's opcode.
+event websocket_message%(c: connection, is_orig: bool, opcode: count%);
+
+## Generated for WebSocket Close frames.
+##
+## c: The WebSocket connection.
+##
+## is_orig: True if the frame is from the originator, else false.
+##
+## status: If the CloseFrame had no payload, this is 0, otherwise the value
+##         of the first two bytes in the frame's payload.
+##
+## reason: Remaining payload after *status*. This is capped at
+##         2 bytes less than :zeek:see:`WebSocket::payload_chunk_size`.
+##
+## .. zeek:see:: WebSocket::payload_chunk_size
+event websocket_close%(c: connection, is_orig: bool, status: count, reason: string%);

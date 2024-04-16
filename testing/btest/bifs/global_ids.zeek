@@ -5,12 +5,14 @@
 event zeek_init()
 	{
 	local a = global_ids();
-	for ( i in a )
+	for ( k, v in a )
 		{
-		# the table is quite large, so just print one item we expect
-		if ( i == "zeek_init" )
-			print a[i]$type_name;
-
+		# the table is quite large, so just print the following.
+		if ( k in set("zeek_init", "Log::write", "Site::local_nets") )
+			{
+			print k, v$type_name;
+			assert type_name(lookup_ID(k)) == v$type_name, fmt("%s vs %s", type_name(lookup_ID(k)), v$type_name);
+			}
 		}
 
 	}

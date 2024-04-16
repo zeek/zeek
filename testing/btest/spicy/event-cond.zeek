@@ -29,6 +29,11 @@ event ssh::banner5(c: connection, is_orig: bool, version: string, software: stri
 	print "5", software;
 	}
 
+event zeek_init()
+	{
+	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+	}
+
 # @TEST-START-FILE ssh.spicy
 module SSH;
 
@@ -46,7 +51,6 @@ import zeek;
 
 protocol analyzer spicy::SSH over TCP:
     parse with SSH::Banner,
-    port 22/tcp,
     replaces SSH;
 
 on SSH::Banner if ( True ) -> event ssh::banner1($conn, $is_orig, self.version, self.software);

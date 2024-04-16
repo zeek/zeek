@@ -3,8 +3,61 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.0
+==========
+
+Breaking Changes
+----------------
+
+New Functionality
+-----------------
+
+- Support ``delete`` on tables, sets and vectors to clear their contents.
+
+	global v = vector(1, 2, 3);
+	delete v;
+	assert |v| == 0;
+
+- A new helper function ``can_load()`` backed by a new bif ``find_in_zeekpath()``
+  was added to determine if a non-relative ``@load`` directive might work. This
+  can be used to guard ``@load`` directives when script packages may or may not
+  be installed.
+
+	@if ( can_load("my-package") )
+	@load my-package
+	@endif
+
+Changed Functionality
+---------------------
+
+- The ``ftp.log`` fuid field is now cleared after handling a command with a fuid
+  associated with it. Previously, fuid was sticky and any subsequent FTP command
+  would reproduce the same fuid, even if the command itself did not result in
+  a file transfer over a data connection (e.g., CWD, DEL, PASV, SIZE).
+
+- The type_name field populated by ``global_ids()`` now aligns with the value
+  returned by ``type_name()`` for each identifier. E.g, ``Site::local_nets``
+  has a type_name of ``set[subnet]`` rather than ``table``.
+
+- The ISO 9660 file signature has been moved into the policy directory. The
+  signature has previously been non-functional due to implicit anchoring. Further,
+  this signature requires users to significantly increase their
+  ``default_file_bof_buffer_size``. Users can now enable this signature by loading
+  ``frameworks/signatures/iso-9660`` which also increases the BOF buffer sufficiently.
+  Note, doing so may increase memory and CPU usage significantly.
+
+Removed Functionality
+---------------------
+
+Deprecated Functionality
+------------------------
+
 Zeek 6.2.0
 ==========
+
+We would like to thank Anthony Verez (netantho), Bijoy Das (mute019), Jan
+Grashöfer (J-Gras), Matti Bispham (mbispham), Phil Rzewski (philrz), and
+xb-anssi for their contributions to this release.
 
 Breaking Changes
 ----------------
@@ -22,6 +75,38 @@ Breaking Changes
 		INCLUDE_DIRS "${OPENSSL_INCLUDE_DIR}"
 		SOURCES ...
 	)
+
+- The "segment_profiling" functionality and ``load_sample`` event have been removed
+  without deprecation. This functionality was unmaintained and not known to be used.
+
+- Certain ``ldap.log`` and ``ldap_search.log`` fields have been renamed from
+  plural to singular and their types changed to scalars. This maps better onto
+  the expected request-response protocol used between client and server. Additionally,
+  it removes the burden of working with non-scalar columns from downstream systems.
+
+  Specifically, for ``ldap.log``:
+    * ``arguments: vector of string`` is now ``argument: string``
+    * ``diagnostic_messages: vector of string`` is now ``diagnostic_message: string``
+    * ``objects: vector of string`` is now ``object: string``
+    * ``opcodes: set[string]`` is now ``opcode: string``
+    * ``results: set[string]`` is now ``result: string``
+
+  For ``ldap_search.log``, the following fields were changed:
+    * ``base_objects: vector of string`` is now ``base_object: string``
+    * ``derefs: set[string]`` is now ``deref_aliases: string``
+    * ``diagnostic_messages: vector of string`` is now ``diagnostic_message: string``
+    * ``results: set[string]`` is now ``result: string``
+    * ``scopes: set[string]`` is now ``scope: string``
+
+  In the unlikely scenario that a request-response pair with the same message
+  identifier is observed, containing different values for certain fields, new
+  weirds are raised and will appear in ``weird.log``, including the old and new
+  values as well as the LDAP message identifier. The value within the LDAP logs
+  will be the most recently observed one.
+
+- BIF methods now return a ``ValPtr`` directly instead of a ``BifReturnVal`` object
+  which was just a thin wrapper around ``ValPtr``. This may cause compilation errors
+  in C++ code that was calling BIF methods directly.
 
 New Functionality
 -----------------
@@ -45,6 +130,132 @@ New Functionality
   pattern. For observability, a new bif ``table_pattern_matcher_stats()``
   can be used to gather ``MatcherStats``.
 
+- Support for delaying log writes.
+
+  The logging framework offers two new functions ``Log::delay()`` and ``Log::delay_finish()``
+  to delay a ``Log::write()`` operation. This new functionality allows delaying of
+  a specific log record within the logging pipeline for a variable but bounded
+  amount of time. This can be used, for example, to query and wait for additional
+  information to attach to the pending record, or even change its final verdict.
+
+  Conceptually, delaying a log record happens after the execution of the global
+  ``Log::log_stream_policy`` hook for a given ``Log::write()`` and before the
+  execution of filter policy hooks. Any mutation of the log record within the
+  delay period will be visible to filter policy hooks. Calling ``Log::delay()``
+  is currently only allowed within the context of the ``Log::log_stream_policy`` hook
+  for the active ``Log::write()` operation (or during the execution of post delay callbacks).
+  While this may appear restrictive, it makes it explicit which ``Log::write()``
+  operation is subject to the delay.
+
+  Interactions, semantics and conflicts of this feature when writing the same
+  log record multiple times to the same or different log streams need to be taken
+  into consideration by script writers.
+
+  Given this is the first iteration of this feature, feedback around usability and
+  use-cases that aren't covered are more than welcome.
+
+- A WebSocket analyzer has been added together with a new ``websocket.log``.
+
+  The WebSocket analyzer is instantiated when a WebSocket handshake over HTTP is
+  recognized. By default, the payload of WebSocket messages is fed into Zeek's dynamic
+  protocol detection framework, possibly discovering and analyzing tunneled protocols.
+
+  The format of the log and the event semantics should be considered preliminary until
+  the arrival of the next long-term-stable release (7.0).
+
+  To disable the analyzer in case of fatal errors or unexpected resource usage,
+  use the ``Analyzer::disabled_analyzers`` pattern:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_WEBSOCKET,
+	};
+
+- The SMTP analyzer was extended to recognize and properly handle the BDAT command
+  from RFC 3030. This improves visibility into the SMTP protocol when mail agents
+  and servers support and use this extension.
+
+- The event keyword in signatures was extended to support choosing a custom event
+  to raise instead of ``signature_match()``. This can be more efficient in certain
+  scenarios compared to funneling every match through a single event.
+
+  The new syntax is to put the name of the event before the string used for the
+  ``msg`` argument. As an extension, it is possible to only provide an event name,
+  skipping ``msg``. In this case, the framework expects the event's parameters to
+  consist of only state and data as follows:
+
+	signature only-event {
+		payload /.*root/
+		event found_root
+	}
+
+	event found_root(state: signature_state, data: string) { }
+
+  Using the ``msg`` parameter with a custom event looks as follows. The custom
+  event's parameters need to align with those for ``signature_match()` event:
+
+	signature event-with-msg {
+		payload /.*root/
+		event found_root_with_msg "the-message"
+	}
+
+	event found_root_with_msg(state: signature_state, msg: string, data: string) { }
+
+  Note, the message argument can currently still be specified as a Zeek identifier
+  referring to a script-level string value. If used, this is disambiguated behind
+  the scenes for the first variant. Specifying ``msg`` as a Zeek identifier has
+  been deprecated with the new event support and will be removed in the future.
+
+  Note that matches for signatures with custom events will not be recorded in
+  ``signatures.log``. This log is based on the generation of ``signature_match()``
+  events.
+
+- The QUIC analyzer has been extended to support analyzing QUIC Version 2
+  INITIAL packets (RFC 9369). Additionally, prior draft and some of
+  Facebook's mvfst versions are supported. Unknown QUIC versions will now be
+  reported in ``quic.log`` as an entry with a ``U`` history field.
+
+- Conditional directives (``@if``, ``@ifdef``, ``@ifndef``, ``@else`` and
+  ``@endif``) can now be placed within a record's definition to conditionally
+  define or extend a record type's fields.
+
+	type r: record {
+		c: count;
+	@if ( cond )
+		d: double;
+	@else
+		d: count;
+	@endif
+	};
+
+  Note that generally you should prefer record extension in conditionally loaded
+  scripts rather than using conditional directives in the original record definition.
+
+- The 'X' code can now appear in a connection's history. It is meant to indicate
+  situations where Zeek stopped analyzing traffic due to exceeding certain limits or
+  when encountering unknown/unsupported protocols. Its first use is to indicate
+  ``Tunnel::max_depth`` being exceeded.
+
+- A new ``Intel::seen_policy`` hook has been introduced to allow intercepting
+  and changing ``Intel::seen` behavior:
+
+	hook Intel::seen_policy(s: Intel::Seen, found: bool)
+
+- A new ``NetControl::rule_added_policy`` hook has been introduced to allow modification
+  of NetControl rules after they have been added.
+
+- The IP geolocation / ASN lookup features in the script layer provide better
+  configurability. The file names of MaxMind databases are now configurable via
+  the new ``mmdb_city_db``, ``mmdb_country_db``, and ``mmdb_asn_db`` constants,
+  and the previously hardwired fallback search path when not using an
+  ``mmdb_dir`` value is now adjustable via the ``mmdb_dir_fallbacks``
+  vector. Databases opened explicitly via the ``mmdb_open_location_db`` and
+  ``mmdb_open_asn_db`` functions now behave more predictably when updated or
+  removed. For details, see:
+  https://docs.zeek.org/en/master/customizations.html#address-geolocation-and-as-lookups
+
+- The ``zeek-config`` script now provides a set of ``--have-XXX`` checks for
+  features optionally compiled in. Each check reports "yes"/"no" to stdout and
+  exits with 0/1, respectively.
 
 Changed Functionality
 ---------------------
@@ -64,11 +275,65 @@ Changed Functionality
   detail API from ``digest.h`` to compute hashes likely need to accommodate for
   this change.
 
+- The ``Tunnel::max_depth`` default was changed from 2 to 4 allowing for more than
+  two encapsulation layers. Two layers are already easily reached in AWS GLB
+  environments.
+
+- Nested MIME message analysis is now capped at a maximum depth of 100 to prevent
+  unbounded MIME message nesting. This limit is configurable with ``MIME::max_depth``.
+  A new weird named ``exceeded_mime_max_depth`` is reported when reached.
+
+- The ``netcontrol_catch_release.log`` now contains a plugin column that shows which
+  plugin took an action. The logs also contain information when errors or existing
+  rules are encountered.
+
+- The ``Cluster::PoolSpec`` record no longer provides default values for its
+  ``topic`` and ``node_type`` fields, since defaults don't fit their intended
+  use and looked confusing in generated documentation.
+
 Removed Functionality
 ---------------------
 
+- Zeek no longer automatically subscribes to topics prefixed with "bro/" whenever
+  subscribing to topics prefixed with "zeek/". This was a leftover backward-
+  compatibility step in the Broker code that should have been removed long ago.
+
 Deprecated Functionality
 ------------------------
+
+- The virtual functions ``DoSerialize``and ``DoUnserialize`` of the ``OpaqueVal``
+  (and ``BloomFilter``) class will be removed with Zeek 7.1. Unfortunately, code
+  implementing the deprecated methods does not produce compiler warnings.
+
+  Plugin authors implementing an ``OpaqueVal`` subclass need to convert to
+  ``DoSerializeData`` and ``DoUnserializeData``:
+
+    * ``std::optional<BrokerData> OpaqueVal::DoSerializeData() const``
+    * ``bool OpaqueVal::DoUnserializeData(BrokerDataView data)``
+
+  When overriding ``DoSerializeData()``, return ``std::nullopt`` (or a
+  default-constructed ``optional``) for values that cannot be serialized.
+  Otherwise, the canonical way to create a ``BrokerData`` for serialization is
+  by using a ``BrokerListBuilder``. For example, creating a ``BrokerData`` that
+  contains ``true`` and the count ``42`` could be implemented as follows:
+
+    BrokerListBuilder builder;
+    builder.Add(true);
+    builder.AddCount(42u);
+    return std::move(builder).Build();
+
+  Please refer to the respective class documentation for a full list of member
+  functions on ``BrokerListBuilder`` and ``BrokerDataView``.
+
+  For plugins that are using the macro ``DECLARE_OPAQUE_VALUE`` to generate the
+  function prototypes for the serialization functions: please use
+  ``DECLARE_OPAQUE_VALUE_DATA`` instead to generate prototypes for the new API.
+
+  Plugin authors that need to support multiple Zeek versions can use the
+  ``ZEEK_VERSION_NUMBER`` macro to conditionally implement the new and old
+  methods. Provide the new versions with Zeek 6.2 (60200) or later, otherwise
+  keep the old signature. The default implementations for the new functions
+  as used by Zeek will call the old signatures and convert the results.
 
 - The ``Cluster::Node$interface`` field has been deprecated. It's essentially
   unneeded, unused and not a reliable way to gather the actual interface used
@@ -85,6 +350,9 @@ Deprecated Functionality
   ``UnusedHandlers()`` and their related ``SetUsed()`` and ``Used()`` methods
   have been marked for removal. The feature of finding unused event handlers is
   provided by default via the ``UsageAnalyzer`` component.
+
+- Using a Zeek identifier for the ``msg`` argument within a signatures's ``event``
+  keyword has been deprecated.
 
 Zeek 6.1.0
 ==========

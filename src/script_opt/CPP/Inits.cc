@@ -180,7 +180,7 @@ void CPPCompile::InitializeGlobals() {
 
     for ( const auto& ginit : IDOptInfo::GetGlobalInitExprs() ) {
         auto g = ginit.Id();
-        if ( pfs.Globals().count(g) == 0 )
+        if ( pfs->Globals().count(g) == 0 )
             continue;
 
         auto ic = ginit.IC();

@@ -191,7 +191,33 @@ rule_attr:
 				(zeek::detail::RuleHdrTest::Comp) $2, $3));
 			}
 
-	|	TOK_EVENT string
+	|	TOK_EVENT TOK_IDENT
+			{
+			if ( is_event($2) )
+				current_rule->AddAction(new zeek::detail::RuleActionEvent(nullptr, $2));
+			else
+				{
+				const char *msg = id_to_str($2);
+				if ( ! zeek::util::streq(msg, "<error>") )
+					zeek::reporter->Deprecation(zeek::util::fmt("Remove in v7.1: Using an identifier for msg is deprecated (%s:%d)",
+					                                            current_rule_file, rules_line_number+1));
+				current_rule->AddAction(new zeek::detail::RuleActionEvent(msg));
+				}
+			}
+
+	|	TOK_EVENT TOK_IDENT TOK_IDENT
+			{
+			// Maybe remove in v7.1: Once we do not support msg as identifier,
+			// this extra messaging isn't all that useful anymore, but it
+			// beats a syntax error.
+			rules_error("custom event and identifier for msg unsupported");
+			zeek::detail::rule_matcher->SetParseError();
+			}
+
+	|	TOK_EVENT TOK_IDENT TOK_STRING
+			{ current_rule->AddAction(new zeek::detail::RuleActionEvent($3, $2)); }
+
+	|	TOK_EVENT TOK_STRING
 			{ current_rule->AddAction(new zeek::detail::RuleActionEvent($2)); }
 
 	|	TOK_MIME string opt_strength
@@ -438,14 +464,14 @@ pattern:
 
 void rules_error(const char* msg)
 	{
-	zeek::reporter->Error("Error in signature (%s:%d): %s\n",
+	zeek::reporter->Error("Error in signature (%s:%d): %s",
 	                      current_rule_file, rules_line_number+1, msg);
 	zeek::detail::rule_matcher->SetParseError();
 	}
 
 void rules_error(const char* msg, const char* addl)
 	{
-	zeek::reporter->Error("Error in signature (%s:%d): %s (%s)\n",
+	zeek::reporter->Error("Error in signature (%s:%d): %s (%s)",
 	                      current_rule_file, rules_line_number+1, msg, addl);
 	zeek::detail::rule_matcher->SetParseError();
 	}
@@ -453,7 +479,7 @@ void rules_error(const char* msg, const char* addl)
 void rules_error(zeek::detail::Rule* r, const char* msg)
 	{
 	const zeek::detail::Location& l = r->GetLocation();
-	zeek::reporter->Error("Error in signature %s (%s:%d): %s\n",
+	zeek::reporter->Error("Error in signature %s (%s:%d): %s",
 	                      r->ID(), l.filename, l.first_line, msg);
 	zeek::detail::rule_matcher->SetParseError();
 	}

@@ -9,7 +9,6 @@
 #include <utility>
 #include <vector>
 
-#include "zeek/BifReturnVal.h"
 #include "zeek/Obj.h"
 #include "zeek/Scope.h"
 #include "zeek/Stmt.h"
@@ -18,17 +17,12 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
 
-namespace broker {
-class data;
-using vector = std::vector<data>;
-template<class>
-class expected;
-} // namespace broker
-
 namespace zeek {
 
 class Val;
 class FuncType;
+class BrokerData;
+class BrokerListView;
 
 namespace detail {
 
@@ -120,6 +114,7 @@ public:
     void AddBody(detail::StmtPtr new_body, const std::vector<detail::IDPtr>& new_inits, size_t new_frame_size,
                  int priority = 0);
     void AddBody(detail::StmtPtr new_body, size_t new_frame_size);
+    void AddBody(std::function<void(const zeek::Args&, detail::StmtFlowType&)> body, int priority = 0);
 
     virtual void SetScope(detail::ScopePtr newscope);
     virtual detail::ScopePtr GetScope() const { return scope; }
@@ -231,14 +226,14 @@ public:
      *
      * @return a serialized version of the function's capture frame.
      */
-    virtual broker::expected<broker::data> SerializeCaptures() const;
+    virtual std::optional<BrokerData> SerializeCaptures() const;
 
     /**
      * Sets the captures frame to one built from *data*.
      *
      * @param data a serialized frame
      */
-    bool DeserializeCaptures(const broker::vector& data);
+    bool DeserializeCaptures(BrokerListView data);
 
     using Func::AddBody;
 
@@ -319,7 +314,7 @@ private:
     int current_priority = 0;
 };
 
-using built_in_func = BifReturnVal (*)(Frame* frame, const Args* args);
+using built_in_func = ValPtr (*)(Frame* frame, const Args* args);
 
 class BuiltinFunc final : public Func {
 public:

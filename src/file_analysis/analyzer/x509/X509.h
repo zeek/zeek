@@ -184,7 +184,7 @@ protected:
      */
     X509Val();
 
-    DECLARE_OPAQUE_VALUE(X509Val)
+    DECLARE_OPAQUE_VALUE_DATA(X509Val)
 private:
     ::X509* certificate; // the wrapped certificate
 };

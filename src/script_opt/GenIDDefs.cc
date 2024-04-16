@@ -12,12 +12,12 @@
 
 namespace zeek::detail {
 
-GenIDDefs::GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const Func* f, ScopePtr scope, StmtPtr body)
+GenIDDefs::GenIDDefs(std::shared_ptr<ProfileFunc> _pf, const FuncPtr& f, ScopePtr scope, StmtPtr body)
     : pf(std::move(_pf)) {
     TraverseFunction(f, scope, body);
 }
 
-void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body) {
+void GenIDDefs::TraverseFunction(const FuncPtr& f, ScopePtr scope, StmtPtr body) {
     func_flavor = f->Flavor();
 
     // Establish the outermost set of identifiers.
@@ -50,7 +50,7 @@ void GenIDDefs::TraverseFunction(const Func* f, ScopePtr scope, StmtPtr body) {
 }
 
 TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
-    curr_stmt = s;
+    last_stmt_traversed = s;
 
     auto si = s->GetOptInfo();
     si->stmt_num = ++stmt_num;
@@ -62,7 +62,45 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             auto block = cr->Block();
 
             cr_active.push_back(confluence_blocks.size());
-            block->Traverse(this);
+
+            // Confluence for the bodies of catch-return's is a bit complex.
+            // We would like any expressions computed at the outermost level
+            // of the body to be available for script optimization *outside*
+            // the catch-return; this in particular is helpful in optimizing
+            // coalesced event handlers, but has other benefits as well.
+            //
+            // However, if one of the outermost statements executes a "return",
+            // then any outermost expressions computed after it might not
+            // be available. Put another way, the potentially-returning
+            // statement starts a confluence region that runs through the end
+            // of the body.
+            //
+            // To deal with this, we start off without a new confluence block,
+            // but create one upon encountering a statement that could return.
+
+            bool did_confluence = false;
+
+            if ( block->Tag() == STMT_LIST ) {
+                auto prev_stmt = s;
+                auto& stmts = block->AsStmtList()->Stmts();
+                for ( auto& st : stmts ) {
+                    if ( ! did_confluence && st->CouldReturn(false) ) {
+                        StartConfluenceBlock(prev_stmt);
+                        did_confluence = true;
+                    }
+
+                    st->Traverse(this);
+                }
+            }
+            else
+                // If there's just a single statement then there are no
+                // expressions computed subsequent to it that we need to
+                // worry about, so just do ordinary traversal.
+                block->Traverse(this);
+
+            if ( did_confluence )
+                EndConfluenceBlock();
+
             cr_active.pop_back();
 
             auto retvar = cr->RetVar();
@@ -84,11 +122,11 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
 
             t_branch->Traverse(this);
             if ( ! t_branch->NoFlowAfter(false) )
-                BranchBeyond(curr_stmt, s, true);
+                BranchBeyond(last_stmt_traversed, s, true);
 
             f_branch->Traverse(this);
             if ( ! f_branch->NoFlowAfter(false) )
-                BranchBeyond(curr_stmt, s, true);
+                BranchBeyond(last_stmt_traversed, s, true);
 
             EndConfluenceBlock(true);
 
@@ -117,7 +155,7 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             body->Traverse(this);
 
             if ( ! body->NoFlowAfter(false) )
-                BranchBackTo(curr_stmt, s, true);
+                BranchBackTo(last_stmt_traversed, s, true);
 
             EndConfluenceBlock();
 
@@ -145,7 +183,7 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
             body->Traverse(this);
 
             if ( ! body->NoFlowAfter(false) )
-                BranchBackTo(curr_stmt, s, true);
+                BranchBackTo(last_stmt_traversed, s, true);
 
             EndConfluenceBlock();
 
@@ -204,7 +242,7 @@ TraversalCode GenIDDefs::PostStmt(const Stmt* s) {
 
         case STMT_RETURN: ReturnAt(s); break;
 
-        case STMT_NEXT: BranchBackTo(curr_stmt, FindLoop(), false); break;
+        case STMT_NEXT: BranchBackTo(last_stmt_traversed, FindLoop(), false); break;
 
         case STMT_BREAK: {
             auto target = FindBreakTarget();
@@ -365,8 +403,9 @@ void GenIDDefs::CheckVarUsage(const Expr* e, const ID* id) {
 
     auto oi = id->GetOptInfo();
 
-    if ( ! oi->DidUndefinedWarning() && ! oi->IsDefinedBefore(curr_stmt) && ! id->GetAttr(ATTR_IS_ASSIGNED) ) {
-        if ( ! oi->IsPossiblyDefinedBefore(curr_stmt) ) {
+    if ( ! oi->DidUndefinedWarning() && ! oi->IsDefinedBefore(last_stmt_traversed) &&
+         ! id->GetAttr(ATTR_IS_ASSIGNED) ) {
+        if ( ! oi->IsPossiblyDefinedBefore(last_stmt_traversed) ) {
             e->Warn("used without definition");
             oi->SetDidUndefinedWarning();
         }
@@ -385,7 +424,7 @@ void GenIDDefs::StartConfluenceBlock(const Stmt* s) {
 
 void GenIDDefs::EndConfluenceBlock(bool no_orig) {
     for ( auto id : modified_IDs.back() )
-        id->GetOptInfo()->ConfluenceBlockEndsAfter(curr_stmt, no_orig);
+        id->GetOptInfo()->ConfluenceBlockEndsAfter(last_stmt_traversed, no_orig);
 
     confluence_blocks.pop_back();
     modified_IDs.pop_back();
@@ -451,7 +490,7 @@ void GenIDDefs::TrackID(const ID* id, const ExprPtr& e) {
     // here to set the lowest limit for definitions. For now we leave
     // DefinedAfter as capable of supporting that distinction in case we
     // find need to revive it in the future.
-    oi->DefinedAfter(curr_stmt, e, confluence_blocks, 0);
+    oi->DefinedAfter(last_stmt_traversed, e, confluence_blocks, 0);
 
     // Ensure we track this identifier across all relevant
     // confluence regions.

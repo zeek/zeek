@@ -52,7 +52,15 @@ const char* stmt_name(StmtTag t) {
         "ZAM",
         "null",
         "assert",
+        "extern",
+        "std-function",
     };
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    if ( int(t) == STMT_ANY )
+        return "any";
+#pragma GCC diagnostic pop
 
     return stmt_names[int(t)];
 }
@@ -1637,7 +1645,7 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow) {
     bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
     auto assert_result = cond->Eval(f)->AsBool();
 
-    if ( ! cond->Eval(f)->AsBool() || run_result_hook ) {
+    if ( ! assert_result || run_result_hook ) {
         zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
 
         if ( msg ) {
@@ -1896,17 +1904,37 @@ void WhenInfo::Build(StmtPtr ws) {
     lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), "", ws);
     lambda->SetPrivateCaptures(when_new_locals);
 
+    auto cl = cond->GetLocationInfo();
+
+    for ( const auto& e : std::vector<ExprPtr>{true_const, param, one_test, two_test, lambda} )
+        e->SetLocationInfo(cl);
+
+    for ( const auto& s :
+          std::vector<StmtPtr>{empty, test_cond, do_test, else_branch, do_bodies, dummy_return, shebang} )
+        s->SetLocationInfo(cl);
+
     analyze_when_lambda(lambda.get());
 }
 
 void WhenInfo::Instantiate(Frame* f) { Instantiate(lambda->Eval(f)); }
 
-void WhenInfo::Instantiate(ValPtr func) { curr_lambda = make_intrusive<ConstExpr>(std::move(func)); }
+void WhenInfo::Instantiate(ValPtr func) {
+    curr_lambda = make_intrusive<ConstExpr>(std::move(func));
+    if ( cond )
+        curr_lambda->SetLocationInfo(cond->GetLocationInfo());
+}
 
-ExprPtr WhenInfo::Cond() { return make_intrusive<CallExpr>(curr_lambda, invoke_cond); }
+ExprPtr WhenInfo::Cond() {
+    if ( cond )
+        return with_location_of(make_intrusive<CallExpr>(curr_lambda, invoke_cond), cond);
+    else
+        return make_intrusive<CallExpr>(curr_lambda, invoke_cond);
+}
 
 StmtPtr WhenInfo::WhenBody() {
     auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_s);
+    if ( s )
+        invoke->SetLocationInfo(s->GetLocationInfo());
     return make_intrusive<ReturnStmt>(invoke, true);
 }
 
@@ -1922,6 +1950,8 @@ double WhenInfo::TimeoutVal(Frame* f) {
 
 StmtPtr WhenInfo::TimeoutStmt() {
     auto invoke = make_intrusive<CallExpr>(curr_lambda, invoke_timeout);
+    if ( timeout_s )
+        invoke->SetLocationInfo(timeout_s->GetLocationInfo());
     return make_intrusive<ReturnStmt>(invoke, true);
 }
 
@@ -1933,6 +1963,15 @@ void WhenInfo::BuildInvokeElems() {
     invoke_cond = make_intrusive<ListExpr>(one_const);
     invoke_s = make_intrusive<ListExpr>(two_const);
     invoke_timeout = make_intrusive<ListExpr>(three_const);
+
+    if ( cond ) {
+        // "cond" might not exist if we're constructing via -O gen-C++.
+        auto cl = cond->GetLocationInfo();
+
+        for ( const auto& e :
+              std::vector<ExprPtr>{one_const, two_const, three_const, invoke_cond, invoke_s, invoke_timeout} )
+            e->SetLocationInfo(cl);
+    }
 }
 
 WhenStmt::WhenStmt(std::shared_ptr<WhenInfo> arg_wi) : Stmt(STMT_WHEN), wi(std::move(arg_wi)) {
@@ -2043,6 +2082,16 @@ TraversalCode WhenStmt::Traverse(TraversalCallback* cb) const {
 
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);
+}
+
+ValPtr StdFunctionStmt::Exec(Frame* f, StmtFlowType& flow) {
+    zeek::Args args = *f->GetFuncArgs();
+
+    // Set this to NEXT by default. The function can override that if it wants.
+    flow = FLOW_NEXT;
+    func(args, flow);
+
+    return nullptr;
 }
 
 } // namespace zeek::detail

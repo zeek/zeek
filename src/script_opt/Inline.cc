@@ -5,6 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
+#include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
@@ -23,6 +24,16 @@ void Inliner::Analyze() {
     // Prime the call set for each function with the functions it
     // directly calls.
     for ( auto& f : funcs ) {
+        // For any function explicitly known to the event engine, it can
+        // be hard to analyze whether there's a possibility that when
+        // executing the function, doing so will tickle the event engine
+        // into calling it recursively. So we remove these up front.
+        //
+        // We deal with cases where these defaults are overridden to refer
+        // to some other function below, when we go through indirect functions.
+        if ( is_special_script_func(f.Func()->Name()) )
+            continue;
+
         std::unordered_set<const Func*> cs;
 
         // Aspirational ....
@@ -40,6 +51,32 @@ void Inliner::Analyze() {
         }
 
         call_set[f.Func()] = cs;
+
+        for ( auto& ind_func : f.Profile()->IndirectFuncs() ) {
+            auto& v = ind_func->GetVal();
+            if ( ! v )
+                // Global doesn't correspond to an actual function body.
+                continue;
+
+            auto vf = v->AsFunc();
+            if ( vf->GetKind() != BuiltinFunc::SCRIPT_FUNC )
+                // Not of analysis interest.
+                continue;
+
+            auto sf = static_cast<const ScriptFunc*>(vf);
+
+            // If we knew transitively that the function lead to any
+            // indirect calls, nor calls to unsafe BiFs that themselves
+            // might do so, then we could know that this function isn't
+            // recursive via indirection. It's not clear, however, that
+            // identifying such cases is worth the trouble, other than
+            // for cutting down noise from the following recursion report.
+
+            if ( report_recursive )
+                printf("%s is used indirectly, and thus potentially recursively\n", sf->Name());
+
+            non_recursive_funcs.erase(sf);
+        }
     }
 
     // Transitive closure.  If we had any self-respect, we'd implement
@@ -180,7 +217,9 @@ void Inliner::CoalesceEventHandlers() {
 
 void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::Body>& bodies,
                                     const BodyInfo& body_to_info) {
-    auto merged_body = make_intrusive<StmtList>();
+    // We pattern the new (alternate) body off of the first body.
+    auto& b0 = func->GetBodies()[0].stmts;
+    auto merged_body = with_location_of(make_intrusive<StmtList>(), b0);
     auto oi = merged_body->GetOptInfo();
 
     auto& params = func->GetType()->Params();
@@ -189,8 +228,6 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
 
     PreInline(oi, init_frame_size);
 
-    // We pattern the new (alternate) body off of the first body.
-    auto& b0 = func->GetBodies()[0].stmts;
     auto b0_info = body_to_info.find(b0.get());
     ASSERT(b0_info != body_to_info.end());
     auto& info0 = funcs[b0_info->second];
@@ -217,9 +254,9 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
     auto new_scope = pop_scope();
 
     // Build up the calling arguments.
-    auto args = make_intrusive<ListExpr>();
+    auto args = with_location_of(make_intrusive<ListExpr>(), b0);
     for ( auto& p : param_ids )
-        args->Append(make_intrusive<NameExpr>(p));
+        args->Append(with_location_of(make_intrusive<NameExpr>(p), b0));
 
     for ( auto& b : bodies ) {
         auto bp = b.stmts;
@@ -235,7 +272,8 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
             // changes other than the function's scope.
             return;
 
-        merged_body->Stmts().push_back(make_intrusive<ExprStmt>(ie));
+        auto ie_s = with_location_of(make_intrusive<ExprStmt>(ie), bp);
+        merged_body->Stmts().push_back(std::move(ie_s));
     }
 
     auto inlined_func = make_intrusive<CoalescedScriptFunc>(merged_body, new_scope, func);
@@ -333,7 +371,7 @@ ExprPtr Inliner::CheckForInlining(CallExprPtr c) {
     auto ie = DoInline(func_vf, body, c->ArgsPtr(), scope, ia->second);
 
     if ( ie ) {
-        ie->SetOriginal(c);
+        ie->SetLocationInfo(c->GetLocationInfo());
         did_inline.insert(func_vf.get());
     }
 
@@ -401,7 +439,9 @@ ExprPtr Inliner::DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, Scop
     auto t = scope->GetReturnType();
 
     ASSERT(params.size() == args->Exprs().size());
-    return make_intrusive<InlineExpr>(args, params, param_is_modified, body_dup, curr_frame_size, t);
+    return with_location_of(make_intrusive<InlineExpr>(sf, args, params, param_is_modified, body_dup, curr_frame_size,
+                                                       t),
+                            body);
 }
 
 } // namespace zeek::detail

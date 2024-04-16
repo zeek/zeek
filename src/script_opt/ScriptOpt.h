@@ -18,6 +18,8 @@ struct Options;
 
 namespace zeek::detail {
 
+using TypeSet = std::unordered_set<const Type*>;
+
 // Flags controlling what sorts of analysis to do.
 
 struct AnalyOpt {
@@ -72,6 +74,12 @@ struct AnalyOpt {
 
     // Produce a profile of ZAM execution.
     bool profile_ZAM = false;
+
+    // ZAM profiling sampling rate. Set via ZEEK_ZAM_PROF_SAMPLING_RATE.
+    int profile_sampling_rate = 100;
+
+    // An associated file to which to write the profile.
+    FILE* profile_file = nullptr;
 
     // If true, dump out transformed code: the results of reducing
     // interpreted scripts, and, if optimize is set, of then optimizing
@@ -172,8 +180,8 @@ protected:
 class CoalescedScriptFunc : public ScriptFunc {
 public:
     CoalescedScriptFunc(StmtPtr merged_body, ScopePtr scope, ScriptFuncPtr orig_func)
-        : ScriptFunc(orig_func->Name(), orig_func->GetType(), {merged_body}, {0}), orig_func(orig_func) {
-        SetScope(scope);
+        : ScriptFunc(orig_func->Name(), orig_func->GetType(), {std::move(merged_body)}, {0}), orig_func(orig_func) {
+        SetScope(std::move(scope));
     };
 
     ValPtr Invoke(zeek::Args* args, Frame* parent) const override {
@@ -214,6 +222,10 @@ extern void analyze_global_stmts(Stmt* stmts);
 
 // Returns the body and scope for the previously analyzed global statements.
 extern std::pair<StmtPtr, ScopePtr> get_global_stmts();
+
+// Informs script optimization that parsing is switching to the given module.
+// Used to associate module names with profiling information.
+extern void switch_to_module(const char* module);
 
 // Add a pattern to the "only_funcs" list.
 extern void add_func_analysis_pattern(AnalyOpt& opts, const char* pat);

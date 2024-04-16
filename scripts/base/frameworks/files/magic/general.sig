@@ -296,9 +296,3 @@ signature file-windows-minidump {
     file-mime "application/x-windows-minidump", 50
     file-magic /^MDMP/
 }
-
-# ISO 9660 disk image
-signature file-iso9660 {
-        file-mime "application/x-iso9660-image", 99
-        file-magic /CD001/
-}

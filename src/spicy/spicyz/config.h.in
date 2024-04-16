@@ -58,10 +58,7 @@ inline const auto CxxZeekIncludesDirectories() {
 
 // Version of Spicy that we are compiling against.
 #cmakedefine SPICY_VERSION_NUMBER ${SPICY_VERSION_NUMBER}
-#cmakedefine ZEEK_VERSION_NUMBER ${ZEEK_VERSION_NUMBER}
 
-inline const auto SpicyVersion = "${SPICY_VERSION_LONG}";
-inline const auto ZeekVersion = "${ZEEK_VERSION_FULL}";
 inline const auto InstallPrefix = path("${CMAKE_INSTALL_PREFIX}");
 
 } // namespace zeek::spicy::configuration

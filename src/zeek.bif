@@ -59,13 +59,13 @@ static zeek::TypeTag ok_f_fmt[] = {
 	zeek::TYPE_ERROR
 };
 
-static int check_fmt_type(zeek::TypeTag t, zeek::TypeTag ok[])
+static bool check_fmt_type(zeek::TypeTag t, zeek::TypeTag ok[])
 	{
 	for ( int i = 0; ok[i] != zeek::TYPE_ERROR; ++i )
 		if ( ok[i] == t )
-			return 1;
+			return true;
 
-	return 0;
+	return false;
 	}
 
 static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
@@ -274,7 +274,7 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 	++fmt;
 	}
 
-static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, int& n)
+static bool next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, int& n)
 	{
 	const char* fp = fmt;
 
@@ -286,7 +286,7 @@ static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, in
 
 	if ( *fp == '\0' )
 		// No more to do.
-		return 0;
+		return false;
 
 	fmt = fp + 1;
 	if ( *fmt == '%' )
@@ -298,7 +298,7 @@ static int next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, in
 		}
 
 	if ( ++n >= static_cast<int>(args->size()) )
-		return 0;
+		return false;
 
 	do_fmt(fmt, (*args)[n].get(), d);
 
@@ -670,7 +670,7 @@ function md5_hash_init%(%): opaque of md5
 	%{
 	auto digest = zeek::make_intrusive<zeek::MD5Val>();
 	digest->Init();
-	return digest;
+	return std::move(digest);
 	%}
 
 ## Constructs an SHA1 handle to enable incremental hash computation. You can
@@ -695,7 +695,7 @@ function sha1_hash_init%(%): opaque of sha1
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA1Val>();
 	digest->Init();
-	return digest;
+	return std::move(digest);
 	%}
 
 ## Constructs an SHA256 handle to enable incremental hash computation. You can
@@ -720,7 +720,7 @@ function sha256_hash_init%(%): opaque of sha256
 	%{
 	auto digest = zeek::make_intrusive<zeek::SHA256Val>();
 	digest->Init();
-	return digest;
+	return std::move(digest);
 	%}
 
 ## Updates the MD5 value associated with a given index. It is required to
@@ -1086,7 +1086,7 @@ function find_entropy%(data: string%): entropy_test_result
 	ent_result->Assign(2, mean);
 	ent_result->Assign(3, montepi);
 	ent_result->Assign(4, scc);
-	return ent_result;
+	return std::move(ent_result);
 	%}
 
 ## Initializes data structures for incremental entropy calculation.
@@ -1138,7 +1138,7 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	ent_result->Assign(2, mean);
 	ent_result->Assign(3, montepi);
 	ent_result->Assign(4, scc);
-	return ent_result;
+	return std::move(ent_result);
 	%}
 
 ## Creates an identifier that is unique with high probability.
@@ -1216,7 +1216,7 @@ function table_values%(t: any%): any_vec
 		vv->Append(iter.value->GetVal());
 		}
 
-	return vv;
+	return std::move(vv);
 	%}
 
 ## Gets all keys from a table.
@@ -1243,7 +1243,7 @@ function table_keys%(t: any%): any
 		sv->Assign(th->RecoverVals(*iter.GetHashKey()), nullptr);
 		}
 
-	return sv;
+	return std::move(sv);
 	%}
 
 ## Gets all subnets that contain a given subnet from a set/table[subnet].
@@ -1546,7 +1546,7 @@ function cat%(...%): string
 	for ( const auto& a : @ARG@ )
 		a->Describe(&d);
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1583,7 +1583,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 		v->Describe(&d);
 		}
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1658,7 +1658,7 @@ function fmt%(...%): string
 		return zeek::val_mgr->EmptyString();
 		}
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1860,7 +1860,7 @@ function record_type_to_vector%(rt: string%): string_vec
 	for ( int i = 0; i < type->NumFields(); ++i )
 		result->Assign(i+1, zeek::make_intrusive<zeek::StringVal>(type->FieldName(i)));
 
-	return result;
+	return std::move(result);
 	%}
 
 ## Returns the type name of an arbitrary Zeek variable.
@@ -1873,7 +1873,7 @@ function type_name%(t: any%): string
 	zeek::ODesc d;
 	t->GetType()->Describe(&d);
 
-	String* s = new String(1, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Len());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1969,7 +1969,7 @@ function type_aliases%(x: any%): string_set
 	for ( const auto& name : it->second )
 		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Returns all value names associated with an enum type.
@@ -1986,7 +1986,7 @@ function enum_names%(et: any%): string_set
 
 	if ( et->GetType()->Tag() == TYPE_STRING )
 		{
-		const auto& id = zeek::detail::global_scope()->Find(et->AsStringVal()->ToStdString());
+		const auto& id = zeek::detail::global_scope()->Find(et->AsStringVal()->ToStdStringView());
 		if ( id && id->IsType() )
 			t = id->GetType();
 		}
@@ -2001,7 +2001,7 @@ function enum_names%(et: any%): string_set
 	for ( const auto& [name, i] : enum_type->Names() )
 		rval->Assign(make_intrusive<zeek::StringVal>(name), nullptr);
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Returns: list of command-line arguments (``argv``) used to run Zeek.
@@ -2013,7 +2013,7 @@ function zeek_args%(%): string_vec
 	for ( auto i = 0; i < zeek::detail::zeek_argc; ++i )
 		rval->Assign(rval->Size(), zeek::make_intrusive<zeek::StringVal>(zeek::detail::zeek_argv[i]));
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Checks whether Zeek reads traffic from one or more network interfaces (as
@@ -2057,7 +2057,7 @@ function packet_source%(%): PacketSource
 		r->Assign(3, ps->Netmask());
 		}
 
-	return r;
+	return std::move(r);
 	%}
 
 ## Generates a table of the "footprint" of all global container variables.
@@ -2087,7 +2087,7 @@ function global_container_footprints%(%): var_sizes
 		sizes->Assign(std::move(id_name), std::move(fp));
 		}
 
-	return sizes;
+	return std::move(sizes);
 	%}
 
 ## Computes a value's "footprint": the number of objects the value contains
@@ -2117,12 +2117,15 @@ function global_ids%(%): id_table
 	static auto id_table = zeek::id::find_type<zeek::TableType>("id_table");
 	static auto script_id = zeek::id::find_type<zeek::RecordType>("script_id");
 
+	zeek::ODesc d;
 	auto ids = zeek::make_intrusive<zeek::TableVal>(id_table);
 
 	for ( const auto& [_, id] : zeek::detail::global_scope()->Vars() )
 		{
+		d.Clear();
+		id->GetType()->Describe(&d);
 		auto rec = zeek::make_intrusive<zeek::RecordVal>(script_id);
-		rec->Assign(0, type_name(id->GetType()->Tag()));
+		rec->Assign(0, d.Description());
 		rec->Assign(1, id->IsExport());
 		rec->Assign(2, id->IsConst());
 		rec->Assign(3, id->IsEnumConst());
@@ -2154,7 +2157,7 @@ function global_ids%(%): id_table
 		ids->Assign(std::move(id_name), std::move(rec));
 		}
 
-	return ids;
+	return std::move(ids);
 	%}
 
 ## Returns a set giving the names of all global options.
@@ -2173,7 +2176,7 @@ function global_options%(%): string_set
 		options->Assign(std::move(id_name), nullptr);
 		}
 
-	return options;
+	return std::move(options);
 	%}
 
 ## Returns the value of a global identifier.
@@ -2184,7 +2187,7 @@ function global_options%(%): string_set
 ##          the string ``"<unknown id>"`` or ``"<no ID value>"`` is returned.
 function lookup_ID%(id: string%) : any
 	%{
-	const auto& i = zeek::detail::global_scope()->Find(id->CheckString());
+	const auto& i = zeek::detail::global_scope()->Find(id->ToStdStringView());
 	if ( ! i )
 		return zeek::make_intrusive<zeek::StringVal>("<unknown id>");
 
@@ -2214,7 +2217,7 @@ function record_fields%(rec: any%): record_field_table
 
 	if ( rec->GetType()->Tag() == zeek::TYPE_STRING )
 		{
-		const auto& id = zeek::detail::global_scope()->Find(rec->AsStringVal()->ToStdString());
+		const auto& id = zeek::detail::global_scope()->Find(rec->AsStringVal()->ToStdStringView());
 
 		if ( ! id || ! id->IsType() || id->GetType()->Tag() != zeek::TYPE_RECORD )
 			{
@@ -2436,7 +2439,7 @@ function routing0_data_to_addrs%(s: string%): addr_vec
 		len -= 16;
 		}
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Converts an :zeek:type:`addr` to an :zeek:type:`index_vec`.
@@ -2456,7 +2459,7 @@ function addr_to_counts%(a: addr%): index_vec
 	for ( int i = 0; i < len; ++i )
 		rval->Assign(i, zeek::val_mgr->Count(ntohl(bytes[i])));
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Converts an :zeek:type:`index_vec` to an :zeek:type:`addr`.
@@ -2756,7 +2759,7 @@ function to_subnet%(sn: string%): subnet
 
 	auto ret = zeek::make_intrusive<zeek::SubNetVal>(tmp);
 	delete [] s;
-	return ret;
+	return std::move(ret);
 	%}
 
 ## Converts a :zeek:type:`addr` to a :zeek:type:`subnet`.
@@ -3175,14 +3178,16 @@ function bytestring_to_hexstr%(bytestring: string%): string
 	%{
 	zeek_uint_t len = bytestring->AsString()->Len();
 	const u_char* bytes = bytestring->AsString()->Bytes();
-	auto hextr_buf = std::make_unique<char[]>((2 * len) + 1);
-	auto hexstr = hextr_buf.get();
+	auto hexstr_buf = std::make_unique<char[]>((2 * len) + 1);
+	auto hexstr = hexstr_buf.get();
 
-	hexstr[0] = 0;
 	for ( zeek_uint_t i = 0; i < len; ++i )
-		snprintf(hexstr + (2 * i), 3, "%.2hhx", bytes[i]);
+		zeek::util::bytetohex(bytes[i], &hexstr[2 * i]);
+	hexstr[2 * len] = 0;
 
-	return zeek::make_intrusive<zeek::StringVal>(hexstr);
+	// Adopt the memory...
+	String* s = new String(true, reinterpret_cast<uint8_t*>(hexstr_buf.release()), 2 * len);
+	return zeek::make_intrusive<zeek::StringVal>(s);
 	%}
 
 ## Converts a hex-string into its binary representation.
@@ -3391,7 +3396,7 @@ function convert_for_pattern%(s: string%): string
 	char* t = to_pat_str(s->Len(), (const char*)(s->Bytes()));
 	auto ret = zeek::make_intrusive<zeek::StringVal>(t);
 	delete [] t;
-	return ret;
+	return std::move(ret);
 	%}
 
 ## Converts a :zeek:type:`string` into a :zeek:type:`pattern`.
@@ -3674,7 +3679,7 @@ function lookup_connection%(cid: conn_id%): connection
 	c->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
 	c->Assign(6, zeek::val_mgr->EmptyString());	// history
 
-	return c;
+	return std::move(c);
 	%}
 
 %%{
@@ -3784,7 +3789,7 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 
 	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
 	auto hdr = zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
-	return hdr;
+	return std::move(hdr);
 	%}
 
 ## Writes a given packet to a file.
@@ -3978,525 +3983,6 @@ function lookup_hostname%(host: string%) : addr_set
 	zeek::detail::dns_mgr->LookupHost(host->CheckString(),
 			new LookupHostCallback(trigger, frame->GetTriggerAssoc(), false));
 	return nullptr;
-	%}
-
-%%{
-#ifdef USE_GEOIP
-#include <chrono>
-
-extern "C" {
-#include <maxminddb.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-}
-
-static int mmdb_msg_count = 0;
-static constexpr int mmdb_msg_limit = 20;
-static double mmdb_msg_suppression_time = 0;
-static constexpr double mmdb_msg_suppression_duration = 300;
-
-static void report_mmdb_msg(const char* format, ...)
-	{
-	if ( zeek::run_state::network_time > mmdb_msg_suppression_time + mmdb_msg_suppression_duration )
-		{
-		mmdb_msg_count = 0;
-		mmdb_msg_suppression_time = zeek::run_state::network_time;
-		}
-
-	if ( mmdb_msg_count >= mmdb_msg_limit )
-		return;
-
-	++mmdb_msg_count;
-
-	va_list al;
-	va_start(al, format);
-	std::string msg = zeek::util::vfmt(format, al);
-	va_end(al);
-
-	zeek::reporter->Info("%s", msg.data());
-	}
-
-class MMDB {
-public:
-	MMDB(const char* filename, struct stat info);
-
-	~MMDB();
-
-	MMDB_lookup_result_s Lookup(const struct sockaddr* const sa);
-	bool StaleDB();
-	const char* Filename();
-
-private:
-	MMDB_s mmdb;
-	struct stat file_info;
-	bool lookup_error;
-	double last_check;
-};
-
-MMDB::MMDB(const char* filename, struct stat info)
-	: file_info(info), lookup_error{false},
-	  last_check{zeek::run_state::network_time}
-	{
-	int status = MMDB_open(filename, MMDB_MODE_MMAP, &mmdb);
-
-	if ( MMDB_SUCCESS != status )
-		{
-		throw std::runtime_error(MMDB_strerror(status));
-		}
-	}
-
-MMDB::~MMDB()
-	{
-	MMDB_close(&mmdb);
-	}
-
-MMDB_lookup_result_s MMDB::Lookup(const struct sockaddr* const sa)
-	{
-	int mmdb_error;
-	MMDB_lookup_result_s result = MMDB_lookup_sockaddr(&mmdb, sa, &mmdb_error);
-
-	if ( MMDB_SUCCESS != mmdb_error )
-		{
-		lookup_error = true;
-		throw std::runtime_error(MMDB_strerror(mmdb_error));
-		}
-
-	return result;
-	}
-
-// Check to see if the Maxmind DB should be closed and reopened.  This will
-// happen if there was a lookup error or if the mmap'd file has been replaced
-// by an external process.
-bool MMDB::StaleDB()
-	{
-	struct stat buf;
-
-	if ( lookup_error )
-		return true;
-
-
-	static double mmdb_stale_check_interval = zeek::id::find_val("mmdb_stale_check_interval")->AsInterval();
-
-	if ( mmdb_stale_check_interval < 0.0 )
-		return false;
-
-	if ( zeek::run_state::network_time - last_check < mmdb_stale_check_interval )
-		return false;
-
-	last_check = zeek::run_state::network_time;
-
-	if ( 0 != stat(mmdb.filename, &buf) )
-		return true;
-
-	if ( buf.st_ino != file_info.st_ino || buf.st_mtime != file_info.st_mtime )
-		{
-		report_mmdb_msg("%s change detected for MaxMind DB [%s]",
-				buf.st_ino != file_info.st_ino ? "Inode" : "Modification time",
-				mmdb.filename);
-		return true;
-		}
-
-	return false;
-	}
-
-const char* MMDB::Filename()
-	{
-	return mmdb.filename;
-	}
-
-std::unique_ptr<MMDB> mmdb_loc;
-std::unique_ptr<MMDB> mmdb_asn;
-static bool did_mmdb_loc_db_error = false;
-static bool did_mmdb_asn_db_error = false;
-
-static bool mmdb_open(const char* filename, bool asn)
-	{
-	struct stat buf;
-
-	if ( 0 != stat(filename, &buf) )
-		{
-		return false;
-		}
-
-	try
-		{
-		if ( asn )
-			{
-			mmdb_asn.reset(new MMDB(filename, buf));
-			}
-		else
-			{
-			mmdb_loc.reset(new MMDB(filename, buf));
-			}
-		}
-
-	catch ( const std::exception& e )
-		{
-		if ( asn )
-			did_mmdb_asn_db_error = false;
-		else
-			did_mmdb_loc_db_error = false;
-
-		report_mmdb_msg("Failed to open MaxMind DB: %s [%s]", filename,
-		                e.what());
-		return false;
-		}
-
-	return true;
-	}
-
-static bool mmdb_open_loc(const char* filename)
-	{
-	return mmdb_open(filename, false);
-	}
-
-static bool mmdb_open_asn(const char* filename)
-	{
-	return mmdb_open(filename, true);
-	}
-
-static void mmdb_check_loc()
-	{
-	if ( mmdb_loc && mmdb_loc->StaleDB() )
-		{
-		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_loc->Filename());
-		did_mmdb_loc_db_error = false;
-		mmdb_loc.reset();
-		}
-	}
-
-static void mmdb_check_asn()
-	{
-	if ( mmdb_asn && mmdb_asn->StaleDB() )
-		{
-		report_mmdb_msg("Closing stale MaxMind DB [%s]", mmdb_asn->Filename());
-		did_mmdb_asn_db_error = false;
-		mmdb_asn.reset();
-		}
-	}
-
-static bool mmdb_lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result,
-                        bool asn)
-	{
-	struct sockaddr_storage ss = {0};
-
-	if ( IPv4 == addr.GetFamily() )
-		{
-		struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
-		sa->sin_family = AF_INET;
-		addr.CopyIPv4(&sa->sin_addr);
-		}
-
-	else
-		{
-		struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
-		sa->sin6_family = AF_INET6;
-		addr.CopyIPv6(&sa->sin6_addr);
-		}
-
-	try
-		{
-		result = asn ? mmdb_asn->Lookup((struct sockaddr*)&ss)
-		             : mmdb_loc->Lookup((struct sockaddr*)&ss);
-		}
-
-	catch ( const std::exception& e )
-		{
-		report_mmdb_msg("MaxMind DB lookup location error [%s]", e.what());
-		return false;
-		}
-
-	return result.found_entry;
-	}
-
-static bool mmdb_lookup_loc(const zeek::IPAddr& addr, MMDB_lookup_result_s& result)
-	{
-	return mmdb_lookup(addr, result, false);
-	}
-
-static bool mmdb_lookup_asn(const zeek::IPAddr& addr, MMDB_lookup_result_s& result)
-	{
-	return mmdb_lookup(addr, result, true);
-	}
-
-static zeek::ValPtr mmdb_getvalue(MMDB_entry_data_s* entry_data, int status,
-                            int data_type )
-	{
-	switch (status)
-		{
-		case MMDB_SUCCESS:
-			if ( entry_data->has_data )
-				{
-				switch (data_type)
-					{
-					case MMDB_DATA_TYPE_UTF8_STRING:
-						return zeek::make_intrusive<zeek::StringVal>(
-						    entry_data->data_size, entry_data->utf8_string);
-						break;
-
-					case MMDB_DATA_TYPE_DOUBLE:
-						return zeek::make_intrusive<zeek::DoubleVal>(entry_data->double_value);
-						break;
-
-					case MMDB_DATA_TYPE_UINT32:
-						return zeek::val_mgr->Count(entry_data->uint32);
-
-					default:
-						break;
-					}
-				}
-			break;
-
-		case MMDB_LOOKUP_PATH_DOES_NOT_MATCH_DATA_ERROR:
-			// key doesn't exist, nothing to do
-			break;
-
-		default:
-			report_mmdb_msg("MaxMind DB error [%s]", MMDB_strerror(status));
-			break;
-		}
-
-	return nullptr;
-	}
-
-static bool mmdb_try_open_loc ()
-	{
-	// City database is always preferred over Country database.
-	const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
-	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
-
-	if ( ! mmdb_dir.empty() )
-		{
-		auto d = mmdb_dir + "/GeoLite2-City.mmdb";
-
-		if ( mmdb_open_loc(d.data()) )
-			return true;
-
-		d = mmdb_dir + "/GeoLite2-Country.mmdb";
-
-		if ( mmdb_open_loc(d.data()) )
-			return true;;
-		}
-
-	return mmdb_open_loc("/usr/share/GeoIP/GeoLite2-City.mmdb")
-	    || mmdb_open_loc("/var/lib/GeoIP/GeoLite2-City.mmdb")
-	    || mmdb_open_loc("/usr/local/share/GeoIP/GeoLite2-City.mmdb")
-	    || mmdb_open_loc("/usr/local/var/GeoIP/GeoLite2-City.mmdb")
-	    || mmdb_open_loc("/usr/share/GeoIP/GeoLite2-Country.mmdb")
-	    || mmdb_open_loc("/var/lib/GeoIP/GeoLite2-Country.mmdb")
-	    || mmdb_open_loc("/usr/local/share/GeoIP/GeoLite2-Country.mmdb")
-	    || mmdb_open_loc("/usr/local/var/GeoIP/GeoLite2-Country.mmdb");
-	}
-
-static bool mmdb_try_open_asn ()
-	{
-	const auto& mmdb_dir_val = zeek::detail::global_scope()->Find("mmdb_dir")->GetVal();
-	std::string mmdb_dir = mmdb_dir_val->AsString()->CheckString();
-
-	if ( ! mmdb_dir.empty() )
-		{
-		auto d = mmdb_dir + "/GeoLite2-ASN.mmdb";
-
-		if ( mmdb_open_asn(d.data()) )
-			return true;
-		}
-
-	return mmdb_open_asn("/usr/share/GeoIP/GeoLite2-ASN.mmdb")
-	    || mmdb_open_asn("/var/lib/GeoIP/GeoLite2-ASN.mmdb")
-	    || mmdb_open_asn("/usr/local/share/GeoIP/GeoLite2-ASN.mmdb")
-	    || mmdb_open_asn("/usr/local/var/GeoIP/GeoLite2-ASN.mmdb");
-	}
-
-#endif
-%%}
-
-## Initializes MMDB for later use of lookup_location.
-## Requires Zeek to be built with ``libmaxminddb``.
-##
-## f: The filename of the MaxMind City or Country DB.
-##
-## Returns: A boolean indicating whether the db was successfully opened.
-##
-## .. zeek:see:: lookup_autonomous_system
-function mmdb_open_location_db%(f: string%) : bool
-	%{
-#ifdef USE_GEOIP
-	return zeek::val_mgr->Bool(mmdb_open_loc(f->CheckString()));
-#else
-	return zeek::val_mgr->False();
-#endif
-	%}
-
-## Initializes MMDB for later use of lookup_autonomous_system.
-## Requires Zeek to be built with ``libmaxminddb``.
-##
-## f: The filename of the MaxMind ASN DB.
-##
-## Returns: A boolean indicating whether the db was successfully opened.
-##
-## .. zeek:see:: lookup_autonomous_system
-function mmdb_open_asn_db%(f: string%) : bool
-	%{
-#ifdef USE_GEOIP
-	return zeek::val_mgr->Bool(mmdb_open_asn(f->CheckString()));
-#else
-	return zeek::val_mgr->False();
-#endif
-	%}
-
-## Performs a geo-lookup of an IP address.
-## Requires Zeek to be built with ``libmaxminddb``.
-##
-## a: The IP address to lookup.
-##
-## Returns: A record with country, region, city, latitude, and longitude.
-##
-## .. zeek:see:: lookup_autonomous_system
-function lookup_location%(a: addr%) : geo_location
-	%{
-	static auto geo_location = zeek::id::find_type<zeek::RecordType>("geo_location");
-	auto location = zeek::make_intrusive<zeek::RecordVal>(geo_location);
-
-#ifdef USE_GEOIP
-	mmdb_check_loc();
-	if ( ! mmdb_loc )
-		{
-		if ( ! mmdb_try_open_loc() )
-			{
-			if ( ! did_mmdb_loc_db_error )
-				{
-				did_mmdb_loc_db_error = true;
-				zeek::emit_builtin_error("Failed to open GeoIP location database");
-				}
-
-			return location;
-			}
-		}
-
-	MMDB_lookup_result_s result;
-
-	if ( mmdb_lookup_loc(a->AsAddr(), result) )
-		{
-		MMDB_entry_data_s entry_data;
-		int status;
-
-		// Get Country ISO Code
-		status = MMDB_get_value(&result.entry, &entry_data,
-		                        "country", "iso_code", nullptr);
-		location->Assign(0, mmdb_getvalue(&entry_data, status,
-		                 MMDB_DATA_TYPE_UTF8_STRING));
-
-		// Get Major Subdivision ISO Code
-		status = MMDB_get_value(&result.entry, &entry_data,
-		                        "subdivisions", "0", "iso_code", nullptr);
-		location->Assign(1, mmdb_getvalue(&entry_data, status,
-		                 MMDB_DATA_TYPE_UTF8_STRING));
-
-		// Get City English Name
-		status = MMDB_get_value(&result.entry, &entry_data,
-		                        "city", "names", "en", nullptr);
-		location->Assign(2, mmdb_getvalue(&entry_data, status,
-		                 MMDB_DATA_TYPE_UTF8_STRING));
-
-		// Get Location Latitude
-		status = MMDB_get_value(&result.entry, &entry_data,
-		                        "location", "latitude", nullptr);
-		location->Assign(3, mmdb_getvalue(&entry_data, status,
-		                 MMDB_DATA_TYPE_DOUBLE));
-
-		// Get Location Longitude
-		status = MMDB_get_value(&result.entry, &entry_data,
-		                        "location", "longitude", nullptr);
-		location->Assign(4, mmdb_getvalue(&entry_data, status,
-		                 MMDB_DATA_TYPE_DOUBLE));
-
-		return location;
-		}
-
-#else // not USE_GEOIP
-	static int missing_geoip_reported = 0;
-
-	if ( ! missing_geoip_reported )
-		{
-		zeek::emit_builtin_error("Zeek was not configured for GeoIP support");
-		missing_geoip_reported = 1;
-		}
-#endif
-
-	// We can get here even if we have MMDB support if we weren't
-	// able to initialize it or it didn't return any information for
-	// the address.
-
-	return location;
-	%}
-
-## Performs an lookup of AS number & organization of an IP address.
-## Requires Zeek to be built with ``libmaxminddb``.
-##
-## a: The IP address to lookup.
-##
-## Returns: A record with autonomous system number and organization that contains *a*.
-##
-## .. zeek:see:: lookup_location
-function lookup_autonomous_system%(a: addr%) : geo_autonomous_system
-	%{
-	static auto geo_autonomous_system = zeek::id::find_type<zeek::RecordType>("geo_autonomous_system");
-	auto autonomous_system = zeek::make_intrusive<zeek::RecordVal>(geo_autonomous_system);
-
-#ifdef USE_GEOIP
-	mmdb_check_asn();
-	if ( ! mmdb_asn )
-		{
-		if ( ! mmdb_try_open_asn() )
-			{
-			if ( ! did_mmdb_asn_db_error )
-				{
-				did_mmdb_asn_db_error = true;
-				zeek::emit_builtin_error("Failed to open GeoIP ASN database");
-				}
-
-			return autonomous_system;
-			}
-		}
-
-	MMDB_lookup_result_s result;
-
-	if ( mmdb_lookup_asn(a->AsAddr(), result) )
-		{
-		MMDB_entry_data_s entry_data;
-		int status;
-
-		// Get Autonomous System Number
-		status = MMDB_get_value(&result.entry, &entry_data,
-		                        "autonomous_system_number", nullptr);
-		autonomous_system->Assign(0, mmdb_getvalue(&entry_data, status,
-		                          MMDB_DATA_TYPE_UINT32));
-
-		// Get Autonomous System Organization
-		status = MMDB_get_value(&result.entry, &entry_data,
-		                        "autonomous_system_organization", nullptr);
-		autonomous_system->Assign(1, mmdb_getvalue(&entry_data, status,
-		                          MMDB_DATA_TYPE_UTF8_STRING));
-
-		return autonomous_system;
-		}
-
-#else // not USE_GEOIP
-	static int missing_geoip_reported = 0;
-
-	if ( ! missing_geoip_reported )
-		{
-		zeek::emit_builtin_error("Zeek was not configured for GeoIP ASN support");
-		missing_geoip_reported = 1;
-		}
-#endif
-
-	// We can get here even if we have GeoIP support, if we weren't
-	// able to initialize it or it didn't return any information for
-	// the address.
-	return autonomous_system;
 	%}
 
 ## Calculates distance between two geographic locations using the haversine
@@ -5026,7 +4512,7 @@ function rotate_file%(f: file%): rotate_info
 	info->AssignTime(2, 0.0);
 	info->AssignTime(3, 0.0);
 
-	return info;
+	return std::move(info);
 	%}
 
 ## Rotates a file identified by its name.
@@ -5082,7 +4568,7 @@ function rotate_file_by_name%(f: string%): rotate_info
 	if ( is_addl_pkt_dumper )
 		info->AssignTime(2, addl_pkt_dumper->OpenTime());
 
-	return info;
+	return std::move(info);
 	%}
 
 ## Calculates the duration until the next time a file is to be rotated, based
@@ -5614,7 +5100,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 		zeek::emit_builtin_error(std::get<std::string>(res).c_str());
 		}
 
-	return rval;
+	return std::move(rval);
 	%}
 
 ## Compresses a given path by removing '..'s and the parent directory it
@@ -5625,7 +5111,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 ## Returns: a compressed version of the input path.
 function compress_path%(dir: string%): string
 	%{
-	return zeek::make_intrusive<zeek::StringVal>(zeek::util::detail::normalize_path(dir->ToStdString()));
+	return zeek::make_intrusive<zeek::StringVal>(zeek::util::detail::normalize_path(dir->ToStdStringView()));
 	%}
 
 ## Returns true if the given tag belongs to a protocol analyzer.
@@ -5843,5 +5329,37 @@ function table_pattern_matcher_stats%(tbl: any%) : MatcherStats
 	result->Assign(n++, stats.hits);
 	result->Assign(n++, stats.misses);
 
-	return result;
+	return std::move(result);
+	%}
+
+## Determine the path used by a non-relative @load directive.
+##
+## This function is package aware: Passing *package* will yield the
+## path to *package.zeek*, *package/__load__.zeek* or an empty string
+## if neither can be found. Note that passing a relative path or absolute
+## path is an error.
+##
+## path: The filename, package or path to search for in ZEEKPATH.
+##
+## Returns: Path of script file that would be loaded by an @load directive.
+function find_in_zeekpath%(p: string%): string
+	%{
+	auto path = p->ToStdString();
+	if ( ! path.empty() && (path[0] == '.' || path[0] == '/') )
+		{
+		zeek::reporter->Error("find_in_zeek_path: path must be relative or absolute");
+		return zeek::val_mgr->EmptyString();
+		}
+
+	auto resolved = zeek::util::find_script_file(path, zeek::util::zeek_path());
+	if ( ! resolved.empty() && zeek::util::is_dir(resolved.c_str()) )
+		{
+		// If it's a directory, try opening the package using
+		// the absolute path. This is zeek::util::open_package()
+		// without the noisy error log.
+		resolved.append("/__load__.zeek");
+		resolved = zeek::util::find_file(resolved, "");
+		}
+
+	return zeek::make_intrusive<zeek::StringVal>(resolved.c_str());
 	%}

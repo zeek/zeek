@@ -18,6 +18,7 @@ constexpr uint32_t HIST_ORIG_DATA_PKT = 0x1;
 constexpr uint32_t HIST_RESP_DATA_PKT = 0x2;
 constexpr uint32_t HIST_ORIG_CORRUPT_PKT = 0x4;
 constexpr uint32_t HIST_RESP_CORRUPT_PKT = 0x8;
+// constexpr uint32_t HIST_UNKNOWN_PKT = 0x400;  (do not use - used in Session.h)
 
 UDPAnalyzer::UDPAnalyzer() : IPBasedAnalyzer("UDP", TRANSPORT_UDP, UDP_PORT_MASK, false) {}
 

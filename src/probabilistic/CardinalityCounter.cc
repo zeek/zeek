@@ -2,12 +2,12 @@
 
 #include "zeek/probabilistic/CardinalityCounter.h"
 
-#include <broker/data.hh>
 #include <cmath>
 #include <cstdint>
 #include <utility>
 
 #include "zeek/Reporter.h"
+#include "zeek/broker/Data.h"
 
 namespace zeek::probabilistic::detail {
 
@@ -173,42 +173,45 @@ const std::vector<uint8_t>& CardinalityCounter::GetBuckets() const { return buck
 
 uint64_t CardinalityCounter::GetM() const { return m; }
 
-broker::expected<broker::data> CardinalityCounter::Serialize() const {
-    broker::vector v = {m, V, alpha_m};
-    v.reserve(3 + m);
+std::optional<BrokerData> CardinalityCounter::Serialize() const {
+    BrokerListBuilder builder;
+    builder.Reserve(3 + m);
+    builder.Add(m);
+    builder.Add(V);
+    builder.Add(alpha_m);
 
     for ( size_t i = 0; i < m; ++i )
-        v.emplace_back(static_cast<uint64_t>(buckets[i]));
+        builder.AddCount(buckets[i]);
 
-    return {std::move(v)};
+    return std::move(builder).Build();
 }
 
-std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(const broker::data& data) {
-    auto v = broker::get_if<broker::vector>(&data);
-    if ( ! (v && v->size() >= 3) )
+std::unique_ptr<CardinalityCounter> CardinalityCounter::Unserialize(BrokerDataView data) {
+    if ( ! data.IsList() )
         return nullptr;
 
-    auto m = broker::get_if<uint64_t>(&(*v)[0]);
-    auto V = broker::get_if<uint64_t>(&(*v)[1]);
-    auto alpha_m = broker::get_if<double>(&(*v)[2]);
-
-    if ( ! (m && V && alpha_m) )
-        return nullptr;
-    if ( v->size() != 3 + *m )
+    auto v = data.ToList();
+    if ( v.Size() < 3 || ! are_all_counts(v[0], v[1]) || ! v[2].IsReal() )
         return nullptr;
 
-    auto cc = std::unique_ptr<CardinalityCounter>(new CardinalityCounter(*m, *V, *alpha_m));
-    if ( *m != cc->m )
-        return nullptr;
-    if ( cc->buckets.size() != *m )
+    auto [m, V] = to_count(v[0], v[1]);
+    auto alpha_m = v[2].ToReal();
+
+    if ( v.Size() != 3 + m )
         return nullptr;
 
-    for ( size_t i = 0; i < *m; ++i ) {
-        auto x = broker::get_if<uint64_t>(&(*v)[3 + i]);
-        if ( ! x )
+    auto cc = std::unique_ptr<CardinalityCounter>(new CardinalityCounter(m, V, alpha_m));
+    if ( m != cc->m )
+        return nullptr;
+    if ( cc->buckets.size() != m )
+        return nullptr;
+
+    for ( size_t i = 0; i < m; ++i ) {
+        auto x = v[3 + i];
+        if ( ! x.IsCount() )
             return nullptr;
 
-        cc->buckets[i] = *x;
+        cc->buckets[i] = x.ToCount();
     }
 
     return cc;

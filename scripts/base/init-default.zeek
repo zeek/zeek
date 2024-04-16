@@ -17,6 +17,7 @@
 @load base/utils/geoip-distance
 @load base/utils/hash_hrw
 @load base/utils/numbers
+@load base/utils/packages
 @load base/utils/paths
 @load base/utils/patterns
 @load base/utils/queue
@@ -78,6 +79,7 @@
 @load base/protocols/ssh
 @load base/protocols/ssl
 @load base/protocols/syslog
+@load base/protocols/websocket
 @load base/protocols/tunnels
 @load base/protocols/xmpp
 

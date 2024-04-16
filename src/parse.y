@@ -132,6 +132,10 @@ std::string zeek::detail::current_module = GLOBAL_MODULE_NAME;
 
 bool is_export = false; // true if in an export {} block
 
+// Used to temporarily turn off "is_export". A stack because the need
+// to do so can nest.
+std::vector<bool> hold_is_export;
+
 // When parsing an expression for the debugger, where to put the result
 // (obviously not reentrant).
 extern Expr* g_curr_debug_expr;
@@ -586,7 +590,10 @@ expr:
 
 			if ( IsArithmetic($1->GetType()->Tag()) )
 				{
-				ExprPtr sum = make_intrusive<AddExpr>(lhs, rhs);
+				// Script optimization assumes that each AST
+				// node is distinct, hence the call to
+				// Duplicate() here.
+				ExprPtr sum = make_intrusive<AddExpr>(lhs->Duplicate(), rhs);
 
 				if ( sum->GetType()->Tag() != tag1 )
 					sum = make_intrusive<ArithCoerceExpr>(sum, tag1);
@@ -1312,9 +1319,9 @@ type_list:
 	;
 
 type_decl_list:
-		type_decl_list type_decl
+		type_decl_list conditional_list type_decl
 			{
-			$1->push_back($2);
+			$1->push_back($3);
 			}
 	|
 			{
@@ -1584,8 +1591,24 @@ lambda_body:
 	;
 
 anonymous_function:
-		TOK_FUNCTION begin_lambda conditional_list lambda_body
-			{ $$ = $4; }
+		TOK_FUNCTION
+			{
+			// "is_export" is used in some contexts to determine
+			// whether a given newly seen identifier is a global.
+			// We're about parse a lambda body, for which all of
+			// the new identifiers should be locals, not globals,
+			// so we need to turn off "is_export" here.  We use
+			// a stack because lambdas can have additional lambdas
+			// inside their bodies.
+			hold_is_export.push_back(is_export);
+			is_export = false;
+			}
+		begin_lambda conditional_list lambda_body
+			{
+			is_export = hold_is_export.back();
+			hold_is_export.pop_back();
+			$$ = $5;
+			}
 	;
 
 begin_lambda:

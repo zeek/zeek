@@ -8,15 +8,15 @@
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/module_util.h"
-#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
 
-ZAMCompiler::ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> _pf, ScopePtr _scope, StmtPtr _body,
-                         std::shared_ptr<UseDefs> _ud, std::shared_ptr<Reducer> _rd) {
-    func = f;
+ZAMCompiler::ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> _pfs, std::shared_ptr<ProfileFunc> _pf,
+                         ScopePtr _scope, StmtPtr _body, std::shared_ptr<UseDefs> _ud, std::shared_ptr<Reducer> _rd) {
+    func = std::move(f);
+    pfs = std::move(_pfs);
     pf = std::move(_pf);
     scope = std::move(_scope);
     body = std::move(_body);
@@ -24,12 +24,17 @@ ZAMCompiler::ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> _pf, ScopeP
     reducer = std::move(_rd);
     frame_sizeI = 0;
 
+    auto loc = body->GetLocationInfo();
+    ASSERT(loc->first_line != 0 || body->Tag() == STMT_NULL);
+    auto loc_copy =
+        std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+    ZAM::curr_func = func->Name();
+    ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, std::move(loc_copy), nullptr);
+
     Init();
 }
 
 ZAMCompiler::~ZAMCompiler() {
-    curr_stmt = nullptr;
-
     for ( auto i : insts1 )
         delete i;
 }
@@ -42,7 +47,7 @@ void ZAMCompiler::Init() {
 
     TrackMemoryManagement();
 
-    non_recursive = non_recursive_funcs.count(func) > 0;
+    non_recursive = non_recursive_funcs.count(func.get()) > 0;
 }
 
 void ZAMCompiler::InitGlobals() {
@@ -117,8 +122,6 @@ void ZAMCompiler::TrackMemoryManagement() {
 }
 
 StmtPtr ZAMCompiler::CompileBody() {
-    curr_stmt = nullptr;
-
     if ( func->Flavor() == FUNC_FLAVOR_HOOK )
         PushBreaks();
 
@@ -193,11 +196,16 @@ StmtPtr ZAMCompiler::CompileBody() {
 
     ConcretizeSwitches();
 
+    std::string fname = func->Name();
+
+    if ( func->Flavor() == FUNC_FLAVOR_FUNCTION )
+        fname = func_name_at_loc(fname, body->GetLocationInfo());
+
+    auto zb = make_intrusive<ZBody>(fname, this);
+    zb->SetInsts(insts2);
+
     // Could erase insts1 here to recover memory, but it's handy
     // for debugging.
-
-    auto zb = make_intrusive<ZBody>(func->Name(), this);
-    zb->SetInsts(insts2);
 
     return zb;
 }
@@ -210,8 +218,7 @@ void ZAMCompiler::ResolveHookBreaks() {
             // Rewrite the breaks.
             for ( auto& b : breaks[0] ) {
                 auto& i = insts1[b.stmt_num];
-                delete i;
-                i = new ZInstI(OP_HOOK_BREAK_X);
+                *i = ZInstI(OP_HOOK_BREAK_X);
             }
         }
 
@@ -264,6 +271,20 @@ void ZAMCompiler::AdjustBranches() {
 
         if ( auto t = inst->target )
             inst->target = FindLiveTarget(t);
+    }
+
+    // Fix up the implicit branches in switches, too.
+    AdjustSwitchTables(int_casesI);
+    AdjustSwitchTables(uint_casesI);
+    AdjustSwitchTables(double_casesI);
+    AdjustSwitchTables(str_casesI);
+}
+
+template<typename T>
+void ZAMCompiler::AdjustSwitchTables(CaseMapsI<T>& abstract_cases) {
+    for ( auto& targs : abstract_cases ) {
+        for ( auto& targ : targs )
+            targ.second = FindLiveTarget(targ.second);
     }
 }
 
@@ -375,7 +396,7 @@ void ZAMCompiler::Dump() {
 
         printf("%d %s%s: ", i, liveness.c_str(), depth.c_str());
 
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 
     if ( ! insts2.empty() )
@@ -383,18 +404,19 @@ void ZAMCompiler::Dump() {
 
     for ( auto i = 0U; i < insts2.size(); ++i ) {
         auto& inst = insts2[i];
+        // printf("%s:%d\n", inst->loc->filename, inst->loc->first_line);
         printf("%d: ", i);
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 
-    DumpCases(int_casesI, "int");
-    DumpCases(uint_casesI, "uint");
-    DumpCases(double_casesI, "double");
-    DumpCases(str_casesI, "str");
+    DumpCases(int_cases, "int");
+    DumpCases(uint_cases, "uint");
+    DumpCases(double_cases, "double");
+    DumpCases(str_cases, "str");
 }
 
 template<typename T>
-void ZAMCompiler::DumpCases(const T& cases, const char* type_name) const {
+void ZAMCompiler::DumpCases(const CaseMaps<T>& cases, const char* type_name) const {
     for ( auto i = 0U; i < cases.size(); ++i ) {
         printf("%s switch table #%d:", type_name, i);
         for ( auto& m : cases[i] ) {
@@ -405,7 +427,7 @@ void ZAMCompiler::DumpCases(const T& cases, const char* type_name) const {
                                 std::is_same_v<T, double> )
                 case_val = std::to_string(m.first);
 
-            printf(" %s->%d", case_val.c_str(), m.second->inst_num);
+            printf(" %s->%d", case_val.c_str(), m.second);
         }
         printf("\n");
     }
@@ -432,7 +454,7 @@ void ZAMCompiler::DumpInsts1(const FrameReMap* remappings) {
 
         printf("%d %s%s: ", i, liveness.c_str(), depth.c_str());
 
-        inst->Dump(&frame_denizens, remappings);
+        inst->Dump(stdout, &frame_denizens, remappings);
     }
 }
 

@@ -10,4 +10,5 @@ zeek_add_plugin(
     MIME.cc
     Plugin.cc
     BIFS
+    consts.bif
     events.bif)

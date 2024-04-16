@@ -143,12 +143,7 @@ void ODesc::Add(double d, bool no_exp) {
 
         Add(tmp);
 
-        auto approx_equal = [](double a, double b, double tolerance = 1e-6) -> bool {
-            auto v = a - b;
-            return v < 0 ? -v < tolerance : v < tolerance;
-        };
-
-        if ( approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && ! strchr(tmp, 'e') )
+        if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && ! strchr(tmp, 'e') )
             // disambiguate from integer
             Add(".0");
     }

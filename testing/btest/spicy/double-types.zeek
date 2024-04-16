@@ -21,11 +21,14 @@ event dtest_result_tuple(r: R) {
     print "dtest_result_tuple", r$x, r$y;
 }
 
+event zeek_init() {
+    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_DTEST, 22/tcp);
+}
+
 # @TEST-START-FILE dtest.evt
 
 protocol analyzer spicy::dtest over TCP:
-    parse originator with dtest::Message,
-    port 22/tcp;
+    parse originator with dtest::Message;
 
 on dtest::Message -> event dtest_message(self.func);
 
@@ -57,7 +60,7 @@ public type SubMessage = unit {
 };
 
 public function bro_result(entry: Message) : tuple<FUNCS, RESULT>  {
-	return (entry.func, entry.sub.result);
+  return (entry.func, entry.sub.result);
 }
 
 # @TEST-END-FILE

@@ -99,7 +99,6 @@ void EventMgr::QueueEvent(Event* event) {
 
     if ( ! head ) {
         head = tail = event;
-        queue_flare.Fire();
     }
     else {
         tail->SetNext(event);
@@ -120,8 +119,6 @@ void EventMgr::Dispatch(Event* event, bool no_remote) {
 void EventMgr::Drain() {
     if ( event_queue_flush_point )
         Enqueue(event_queue_flush_point, Args{});
-
-    detail::SegmentProfiler prof(detail::segment_logger, "draining-events");
 
     PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
@@ -177,25 +174,12 @@ void EventMgr::Describe(ODesc* d) const {
 }
 
 void EventMgr::Process() {
-    queue_flare.Extinguish();
-
     // While it semes like the most logical thing to do, we dont want
     // to call Drain() as part of this method. It will get called at
-    // the end of net_run after all of the sources have been processed
+    // the end of run_loop after all of the sources have been processed
     // and had the opportunity to spawn new events.
 }
 
-void EventMgr::InitPostScript() {
-    iosource_mgr->Register(this, true, false);
-    if ( ! iosource_mgr->RegisterFd(queue_flare.FD(), this) )
-        reporter->FatalError("Failed to register event manager FD with iosource_mgr");
-}
-
-void EventMgr::InitPostFork() {
-    // Re-initialize the flare, closing and re-opening the underlying
-    // pipe FDs. This is needed so that each Zeek process in a supervisor
-    // setup has its own pipe instead of them all sharing a single pipe.
-    queue_flare = zeek::detail::Flare{};
-}
+void EventMgr::InitPostScript() { iosource_mgr->Register(this, true, false); }
 
 } // namespace zeek

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/Event.h"
+#include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/ZBody.h"
 
@@ -22,8 +23,6 @@ class ListExpr;
 class Stmt;
 class SwitchStmt;
 class CatchReturnStmt;
-
-class ProfileFunc;
 
 using InstLabel = ZInstI*;
 
@@ -53,8 +52,8 @@ public:
 
 class ZAMCompiler {
 public:
-    ZAMCompiler(ScriptFunc* f, std::shared_ptr<ProfileFunc> pf, ScopePtr scope, StmtPtr body,
-                std::shared_ptr<UseDefs> ud, std::shared_ptr<Reducer> rd);
+    ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> pfs, std::shared_ptr<ProfileFunc> pf, ScopePtr scope,
+                StmtPtr body, std::shared_ptr<UseDefs> ud, std::shared_ptr<Reducer> rd);
     ~ZAMCompiler();
 
     StmtPtr CompileBody();
@@ -112,10 +111,13 @@ private:
     using CaseMapsI = std::vector<CaseMapI<T>>;
 
     template<typename T>
+    void AdjustSwitchTables(CaseMapsI<T>& abstract_cases);
+
+    template<typename T>
     void ConcretizeSwitchTables(const CaseMapsI<T>& abstract_cases, CaseMaps<T>& concrete_cases);
 
     template<typename T>
-    void DumpCases(const T& cases, const char* type_name) const;
+    void DumpCases(const CaseMaps<T>& cases, const char* type_name) const;
     void DumpInsts1(const FrameReMap* remappings);
 
 #include "zeek/ZAM-MethodDecls.h"
@@ -226,6 +228,7 @@ private:
     const ZAMStmt Call(const ExprStmt* e);
     const ZAMStmt AssignToCall(const ExprStmt* e);
     const ZAMStmt DoCall(const CallExpr* c, const NameExpr* n);
+    bool CheckForBuiltIn(const ExprPtr& e, CallExprPtr c);
 
     const ZAMStmt AssignVecElems(const Expr* e);
     const ZAMStmt AssignTableElem(const Expr* e);
@@ -502,7 +505,8 @@ private:
     // (and/or no return value generated).
     std::vector<const NameExpr*> retvars;
 
-    ScriptFunc* func;
+    ScriptFuncPtr func;
+    std::shared_ptr<ProfileFuncs> pfs;
     std::shared_ptr<ProfileFunc> pf;
     ScopePtr scope;
     StmtPtr body;

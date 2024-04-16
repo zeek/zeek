@@ -247,12 +247,20 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 		c$smtp_state$trans_mail_from_seen = T;
 		c$smtp_state$trans_rcpt_to_seen = F;  # Reset state on MAIL FROM
 		}
-	else if ( upper_command == "DATA" )
+	else if ( upper_command == "DATA" || upper_command == "BDAT" )
 		{
 		if ( mail_transaction_validation )
 			{
 			if ( ! c$smtp_state$trans_rcpt_to_seen )  # mail from checked in rctp to
 				mail_transaction_invalid(c, "data missing rcpt to");
+			}
+
+		if ( upper_command == "BDAT" && ends_with(arg, " LAST") )
+			{
+			# Reset state mail transaction state when we're seeing
+			# the last BDAT command.
+			c$smtp_state$trans_mail_from_seen = F;
+			c$smtp_state$trans_rcpt_to_seen = F;
 			}
 		}
 	else if ( upper_command == "." )

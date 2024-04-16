@@ -365,17 +365,6 @@ public:
     // Helper function to reduce boring code runs.
     StmtPtr MergeStmts(StmtPtr s1, StmtPtr s2, StmtPtr s3 = nullptr) const;
 
-    // Access to the original expression from which this one is derived,
-    // or this one if we don't have an original.  Returns a bare pointer
-    // rather than an ExprPtr to emphasize that the access is read-only.
-    const Expr* Original() const { return original ? original->Original() : this; }
-
-    // Designate the given Expr node as the original for this one.
-    void SetOriginal(ExprPtr _orig) {
-        if ( ! original )
-            original = std::move(_orig);
-    }
-
     // A convenience function for taking a newly-created Expr,
     // making it point to us as the successor, and returning it.
     //
@@ -384,17 +373,10 @@ public:
     // call, as a convenient side effect, transforms that bare pointer
     // into an ExprPtr.
     virtual ExprPtr SetSucc(Expr* succ) {
-        succ->SetOriginal(ThisPtr());
+        succ->SetLocationInfo(GetLocationInfo());
         if ( IsParen() )
             succ->MarkParen();
         return {AdoptRef{}, succ};
-    }
-
-    const detail::Location* GetLocationInfo() const override {
-        if ( original )
-            return original->GetLocationInfo();
-        else
-            return Obj::GetLocationInfo();
     }
 
     // Access script optimization information associated with
@@ -434,11 +416,6 @@ protected:
     bool paren;
     TypePtr type;
 
-    // The original expression from which this statement was
-    // derived, if any.  Used as an aid for generating meaningful
-    // and correctly-localized error messages.
-    ExprPtr original = nullptr;
-
     // Information associated with the Expr for purposes of
     // script optimization.
     ExprOptInfo* opt_info;
@@ -450,6 +427,9 @@ protected:
 class NameExpr final : public Expr {
 public:
     explicit NameExpr(IDPtr id, bool const_init = false);
+
+    bool CanDel() const override;
+    void Delete(Frame* f) override;
 
     ID* Id() const { return id.get(); }
     const IDPtr& IdPtr() const;
@@ -732,6 +712,8 @@ class AddToExpr final : public BinaryExpr {
 public:
     AddToExpr(ExprPtr op1, ExprPtr op2);
     ValPtr Eval(Frame* f) const override;
+
+    bool IsVectorElemAppend() const { return is_vector_elem_append; }
 
     // Optimization-related:
     bool IsPure() const override { return false; }
@@ -1310,6 +1292,10 @@ public:
     // Optimization-related:
     ExprPtr Duplicate() override;
 
+    bool IsReduced(Reducer* c) const override;
+    bool WillTransform(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
 protected:
     ValPtr Fold(Val* v) const override;
 };
@@ -1589,11 +1575,12 @@ private:
 
 class InlineExpr : public Expr {
 public:
-    InlineExpr(ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified, StmtPtr body,
-               int frame_offset, TypePtr ret_type);
+    InlineExpr(ScriptFuncPtr sf, ListExprPtr arg_args, std::vector<IDPtr> params, std::vector<bool> param_is_modified,
+               StmtPtr body, int frame_offset, TypePtr ret_type);
 
     bool IsPure() const override;
 
+    const ScriptFuncPtr& Func() const { return sf; }
     ListExprPtr Args() const { return args; }
     StmtPtr Body() const { return body; }
 
@@ -1614,6 +1601,7 @@ protected:
     std::vector<IDPtr> params;
     std::vector<bool> param_is_modified;
     int frame_offset;
+    ScriptFuncPtr sf;
     ListExprPtr args;
     StmtPtr body;
 };

@@ -844,8 +844,7 @@ void ValTraceMgr::AssessChange(const ValTrace* vt, const ValTrace* prev_vt) {
 
 void ValTraceMgr::TrackVar(const Val* v) {
     std::string base_name = IsUnsupported(v) ? "UNSUPPORTED" : "val";
-    auto val_name = "__" + base_name + std::to_string(num_vars++);
-    val_names[v] = val_name;
+    val_names[v] = "__" + base_name + std::to_string(num_vars++);
 }
 
 std::string ValTraceMgr::GenValName(const ValPtr& v) {

@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: spicyz test.spicy test.evt -d -o test.hlto
 # @TEST-EXEC: zeek -NN test.hlto | grep -q ANALYZER_SPICY_TEST
-# @TEST-EXEC: zeek -r ${TRACES}/http/post.trace test.zeek test.hlto "Spicy::enable_print = T;" >>output 2>&1
+# @TEST-EXEC: zeek -r ${TRACES}/http/post.trace test.hlto test.zeek "Spicy::enable_print = T;" >>output 2>&1
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Smoke test for a custom ahead-of-time compiled Spicy analyzer hooked into Zeek.
@@ -22,8 +22,7 @@ public type Dummy = unit {
 
 # @TEST-START-FILE test.evt
 protocol analyzer spicy::Test over TCP:
-    parse with test::Dummy,
-    port 80/tcp;
+    parse with test::Dummy;
 
 on test::Dummy -> event test::dummy(self.data);
 # @TEST-END-FILE
@@ -34,5 +33,10 @@ module test;
 event test::dummy(data: vector of string)
 {
 	print "Event:", data;
+}
+
+event zeek_init()
+{
+	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_TEST, 80/tcp);
 }
 # @TEST-END-FILE

@@ -148,7 +148,8 @@ public:
     /**
      * Append additional entries to the history field in the connection record.
      */
-    void AppendAddl(const char* str);
+    [[deprecated("Remove in v7.1 - Appears unused and named rough. Use CheckHistory() or AddHistory() instead.")]] void
+    AppendAddl(const char* str);
 
     void Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig, bool bol, bool eol,
                bool clear_state);
@@ -178,30 +179,6 @@ public:
 
     static uint64_t TotalConnections() { return total_connections; }
     static uint64_t CurrentConnections() { return current_connections; }
-
-    // Returns true if the history was already seen, false otherwise.
-    bool CheckHistory(uint32_t mask, char code) {
-        if ( (hist_seen & mask) == 0 ) {
-            hist_seen |= mask;
-            AddHistory(code);
-            return false;
-        }
-        else
-            return true;
-    }
-
-    // Increments the passed counter and adds it as a history
-    // code if it has crossed the next scaling threshold.  Scaling
-    // is done in terms of powers of the third argument.
-    // Returns true if the threshold was crossed, false otherwise.
-    bool ScaledHistoryEntry(char code, uint32_t& counter, uint32_t& scaling_threshold, uint32_t scaling_base = 10);
-
-    void HistoryThresholdEvent(EventHandlerPtr e, bool is_orig, uint32_t threshold);
-
-    void AddHistory(char code) { history += code; }
-
-    const std::string& GetHistory() const { return history; }
-    void ReplaceHistory(std::string new_h) { history = std::move(new_h); }
 
     // Sets the root of the analyzer tree as well as the primary PIA.
     void SetSessionAdapter(packet_analysis::IP::SessionAdapter* aa, analyzer::pia::PIA* pia);
@@ -245,9 +222,6 @@ private:
     unsigned int weird : 1;
     unsigned int finished : 1;
     unsigned int saw_first_orig_packet : 1, saw_first_resp_packet : 1;
-
-    uint32_t hist_seen;
-    std::string history;
 
     packet_analysis::IP::SessionAdapter* adapter;
     analyzer::pia::PIA* primary_PIA;

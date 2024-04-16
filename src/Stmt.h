@@ -122,6 +122,7 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
     bool NoFlowAfter(bool ignore_break) const override;
+    bool CouldReturn(bool ignore_break) const override;
 
 protected:
     ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
@@ -182,6 +183,7 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
     bool NoFlowAfter(bool ignore_break) const override;
+    bool CouldReturn(bool ignore_break) const override;
 
 protected:
     friend class ZAMCompiler;
@@ -301,6 +303,8 @@ public:
 
     // Note, no need for a NoFlowAfter method because the loop might
     // execute zero times, so it's always the default of "false".
+    // However, we do need to check for potential returns.
+    bool CouldReturn(bool ignore_break) const override;
 
 protected:
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
@@ -350,6 +354,8 @@ public:
 
     // Note, no need for a NoFlowAfter method because the loop might
     // execute zero times, so it's always the default of "false".
+    // However, we do need to check for potential returns.
+    bool CouldReturn(bool ignore_break) const override;
 
 protected:
     ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
@@ -395,6 +401,7 @@ public:
     StmtPtr Duplicate() override { return SetSucc(new BreakStmt()); }
 
     bool NoFlowAfter(bool ignore_break) const override { return ! ignore_break; }
+    bool CouldReturn(bool ignore_break) const override { return ! ignore_break; }
 
 protected:
 };
@@ -436,6 +443,7 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
     bool NoFlowAfter(bool ignore_break) const override { return true; }
+    bool CouldReturn(bool ignore_break) const override { return true; }
 };
 
 class StmtList : public Stmt {
@@ -460,6 +468,7 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
     bool NoFlowAfter(bool ignore_break) const override;
+    bool CouldReturn(bool ignore_break) const override;
 
     // Idioms commonly used in reduction.
     StmtList(StmtPtr s1, StmtPtr s2);
@@ -649,7 +658,7 @@ private:
 
     // The current instance of the lambda.  Created by Instantiate(),
     // for immediate use via calls to Cond() etc.
-    ConstExprPtr curr_lambda;
+    ExprPtr curr_lambda;
 
     // Arguments to use when calling the lambda to either evaluate
     // the conditional, or execute the body or the timeout statement.
@@ -703,8 +712,9 @@ private:
 // an already-reduced state.
 class CatchReturnStmt : public Stmt {
 public:
-    explicit CatchReturnStmt(StmtPtr block, NameExprPtr ret_var);
+    explicit CatchReturnStmt(ScriptFuncPtr sf, StmtPtr block, NameExprPtr ret_var);
 
+    const ScriptFuncPtr& Func() const { return sf; }
     StmtPtr Block() const { return block; }
 
     // This returns a bare pointer rather than a NameExprPtr only
@@ -725,7 +735,7 @@ public:
 
     // Note, no need for a NoFlowAfter() method because anything that
     // has "NoFlowAfter" inside the body still gets caught and we
-    // continue afterwards.
+    // continue afterwards.  Same goes for CouldReturn().
 
     StmtPtr Duplicate() override;
 
@@ -734,6 +744,9 @@ public:
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
 protected:
+    // The inlined function.
+    ScriptFuncPtr sf;
+
     // The inlined function body.
     StmtPtr block;
 
@@ -765,6 +778,26 @@ public:
 
 protected:
     int expected_len;
+};
+
+// Statement that calls a std::function. These can be added to a Func body
+// to directly all a C++ method.
+class StdFunctionStmt : public Stmt {
+public:
+    StdFunctionStmt(std::function<void(const zeek::Args&, StmtFlowType&)> f)
+        : Stmt(STMT_STD_FUNCTION), func(std::move(f)) {}
+
+    ValPtr Exec(Frame* f, StmtFlowType& flow) override;
+
+    StmtPtr Duplicate() override {
+        reporter->Error("Duplicate() on StdFunctionStmt not implemented");
+        return {zeek::NewRef{}, this};
+    }
+
+    TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
+
+private:
+    std::function<void(const zeek::Args&, StmtFlowType&)> func;
 };
 
 } // namespace zeek::detail

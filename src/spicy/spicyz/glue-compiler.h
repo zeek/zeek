@@ -18,12 +18,13 @@
 
 #include <hilti/ast/builder/builder.h>
 #include <hilti/ast/declarations/function.h>
+#include <hilti/ast/declarations/module.h>
 #include <hilti/ast/expression.h>
-#include <hilti/ast/module.h>
 #include <hilti/ast/type.h>
 #include <hilti/compiler/context.h>
 #include <hilti/compiler/driver.h>
 
+#include <spicy/ast/builder/builder.h>
 #include <spicy/ast/declarations/unit-hook.h>
 #include <spicy/ast/types/unit.h>
 
@@ -100,35 +101,33 @@ struct SpicyModule {
     std::set<hilti::rt::filesystem::path> evts; /**< EVT files that refer to this module. */
 
     // Generated code.
-    std::optional<hilti::Module> spicy_module; /**< the ``BroHooks_*.spicy`` module. */
+    hilti::node::RetainedPtr<hilti::declaration::Module> spicy_module =
+        nullptr; /**< the ``BroHooks_*.spicy`` module. */
 };
 
 /** Representation of an event parsed from an EVT file. */
 struct Event {
     // Information parsed directly from the *.evt file.
-    hilti::rt::filesystem::path file;                         /**< The path of the *.evt file we parsed this from. */
-    hilti::ID name;                                           /**< The name of the event. */
-    hilti::ID path;                                           /**< The hook path as specified in the evt file. */
-    std::vector<hilti::type::function::Parameter> parameters; /**< Event parameters specified in the evt file. */
+    hilti::rt::filesystem::path file; /**< The path of the *.evt file we parsed this from. */
+    hilti::ID name;                   /**< The name of the event. */
+    hilti::ID path;                   /**< The hook path as specified in the evt file. */
+    std::vector<hilti::node::RetainedPtr<hilti::declaration::Parameter>>
+        parameters;                 /**< Event parameters specified in the evt file. */
     std::string condition;          /**< Condition that must be true for the event to trigger. */
     std::vector<std::string> exprs; /**< The argument expressions. */
     int priority;                   /**< Event/hook priority. */
     hilti::Location location;       /**< Location where event is defined. */
 
     // Computed information.
-    hilti::ID hook;                               /**< The name of the hook triggering the event. */
-    hilti::ID unit;                               /**< The fully qualified name of the unit type. */
-    std::optional<::spicy::type::Unit> unit_type; /**< The Spicy type of referenced unit. */
+    hilti::ID hook; /**< The name of the hook triggering the event. */
+    hilti::ID unit; /**< The fully qualified name of the unit type. */
+    hilti::node::RetainedPtr<::spicy::type::Unit> unit_type = nullptr; /**< The Spicy type of referenced unit. */
     hilti::ID unit_module_id;                     /**< The name of the module the referenced unit is defined in. */
     hilti::rt::filesystem::path unit_module_path; /**< The path of the module that the referenced unit is defined in. */
     std::shared_ptr<glue::SpicyModule>
         spicy_module; /**< State for the Spichy module the referenced unit is defined in. */
 
-    // TODO: The following aren't set yet.
-
     // Code generation.
-    std::optional<::spicy::declaration::UnitHook> spicy_hook; /**< The generated Spicy hook. */
-    std::optional<hilti::declaration::Function> hilti_raise;  /**< The generated HILTI raise() function. */
     std::vector<ExpressionAccessor> expression_accessors; /**< One HILTI function per expression to access the value. */
 };
 
@@ -161,6 +160,18 @@ public:
 
     /** Destructor. */
     virtual ~GlueCompiler();
+
+    /**
+     * Returns the AST context in use. Only available once the driver has
+     * initialized the glue compiler.
+     */
+    auto* context() { return _driver->context()->astContext(); }
+
+    /**
+     * Returns the AST builder in use. Only available once the driver has
+     * initialized the glue compiler.
+     */
+    auto* builder() { return static_cast<::spicy::Builder*>(_driver->builder()); }
 
     /** Parses an `*.evt` file, without generating any code yet. */
     bool loadEvtFile(hilti::rt::filesystem::path& path);
@@ -199,21 +210,21 @@ public:
      */
     ExportedField exportForField(const hilti::ID& zeek_id, const hilti::ID& field_id) const;
 
-    using ZeekTypeCache = std::map<hilti::ID, hilti::Expression>;
+    using ZeekTypeCache = std::map<hilti::ID, hilti::Expression*>;
 
     /**
      * Generates code to convert a HILTI type to a corresponding Zeek type at
      * runtime. The code is added to the given body.
      */
-    hilti::Result<hilti::Nothing> createZeekType(const hilti::Type& t, const hilti::ID& id,
-                                                 hilti::builder::Builder* body, ZeekTypeCache* cache) const;
+    hilti::Result<hilti::Nothing> createZeekType(hilti::QualifiedType* t, const hilti::ID& id,
+                                                 ::spicy::Builder* builder, ZeekTypeCache* cache) const;
 
     /** Return type for `recordField()`. */
     struct RecordField {
-        hilti::ID id;      /**< name of record field */
-        hilti::Type type;  /**< Spicy-side type object */
-        bool is_optional;  /**< true if field is optional */
-        bool is_anonymous; /**< true if field is annymous */
+        hilti::ID id;                         /**< name of record field */
+        hilti::QualifiedType* type = nullptr; /**< Spicy-side type object */
+        bool is_optional;                     /**< true if field is optional */
+        bool is_anonymous;                    /**< true if field is annymous */
     };
 
     /**
@@ -223,13 +234,13 @@ public:
      * @param unit the unit type to retrieve fields for
      * @return list of fields
      */
-    static std::vector<RecordField> recordFields(const ::spicy::type::Unit& unit);
+    static std::vector<RecordField> recordFields(const ::spicy::type::Unit* unit);
 
 protected:
     friend class Driver;
 
     /** Called by driver to initialized a provided glue compiler. */
-    void Init(Driver* driver, int zeek_version);
+    void init(Driver* driver, int zeek_version);
 
 private:
     /**
@@ -269,8 +280,8 @@ private:
 
     std::map<hilti::ID, std::shared_ptr<glue::SpicyModule>> _spicy_modules;
 
-    std::vector<std::pair<hilti::ID, std::optional<hilti::ID>>>
-        _imports;                                            /**< imports from EVT files, with ID and optional scope */
+    std::vector<std::pair<hilti::ID, hilti::ID>>
+        _imports; /**< imports from EVT files, with ID and scope; latter is optional and can be empty */
     std::map<hilti::ID, glue::Export> _exports;              /**< exports from EVT files */
     std::vector<glue::Event> _events;                        /**< events parsed from EVT files */
     std::vector<glue::ProtocolAnalyzer> _protocol_analyzers; /**< protocol analyzers parsed from EVT files */

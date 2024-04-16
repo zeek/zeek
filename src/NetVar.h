@@ -71,10 +71,8 @@ extern double connection_status_update_interval;
 extern double profiling_interval;
 extern int expensive_profiling_multiple;
 
-extern int segment_profiling;
 extern int pkt_profile_mode;
 extern double pkt_profile_freq;
-extern int load_sample_freq;
 
 extern int packet_filter_default;
 

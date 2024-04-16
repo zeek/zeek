@@ -1,8 +1,0 @@
-[requires]
-zlib/1.2.11
-libpcap/1.10.1
-c-ares/1.21.0
-
-[generators]
-cmake_find_package
-cmake

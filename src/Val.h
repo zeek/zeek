@@ -49,7 +49,6 @@ namespace detail {
 class ScriptFunc;
 class Frame;
 class PrefixTable;
-class CompositeHash;
 class HashKey;
 class TablePatternMatcher;
 
@@ -930,7 +929,7 @@ public:
 
     const PDict<TableEntryVal>* Get() const { return table_val; }
 
-    const detail::CompositeHash* GetTableHash() const { return table_hash; }
+    const detail::CompositeHash* GetTableHash() const { return table_type->GetTableHash(); }
 
     // Returns the size of the table.
     int Size() const;
@@ -1043,7 +1042,6 @@ protected:
     ValPtr DoClone(CloneState* state) override;
 
     TableTypePtr table_type;
-    detail::CompositeHash* table_hash;
     detail::AttributesPtr attrs;
     detail::ExprPtr expire_time;
     detail::ExprPtr expire_func;
@@ -1394,6 +1392,10 @@ protected:
     friend class zeek::detail::CPPRuntime;
     friend class zeek::detail::CompositeHash;
 
+    // Constructor for use by script optimization, directly initializing
+    // record_vals from the second argument.
+    RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals);
+
     RecordValPtr DoCoerceTo(RecordTypePtr other, bool allow_orphaning) const;
 
     /**
@@ -1438,7 +1440,7 @@ protected:
 
     void AddedField(int field) { Modified(); }
 
-    Obj* origin;
+    Obj* origin = nullptr;
 
     using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
     static RecordTypeValMap parse_time_records;
@@ -1563,7 +1565,7 @@ public:
      * @return  True if the element was inserted or false if the element was
      * the wrong type.
      */
-    bool Append(ValPtr element) { return Insert(Size(), element); }
+    bool Append(ValPtr element) { return Insert(Size(), std::move(element)); }
 
     // Removes an element at a specific position.
     bool Remove(unsigned int index);
@@ -1746,6 +1748,13 @@ namespace detail {
 // for normalization. If Func::nil is passed, no normalization happens.
 extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t,
                                                      const FuncPtr& key_func);
+
+// If the given vector is an empty vector-of-any ("unspecified"),
+// concretizes it to the given type. *v* gives the vector and *t* the
+// type to concretize it to if appropriate. *t* can be nil, in which
+// case nothing is done.
+extern void concretize_if_unspecified(VectorValPtr v, TypePtr t);
+
 } // namespace detail
 
 } // namespace zeek

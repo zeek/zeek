@@ -15,6 +15,12 @@ event udp_test::message(c: connection, is_orig: bool, data: string)
 	print "UDP packet", c$id, is_orig, data;
 	}
 
+event zeek_init()
+	{
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_UDP_TEST, set(11337/udp, 11338/udp, 11339/udp, 11340/udp));
+	Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_UDP_TEST, set(31337/udp, 31338/udp, 31339/udp, 31340/udp));
+	}
+
 # @TEST-START-FILE udp-test.spicy
 module UDPTest;
 
@@ -25,9 +31,7 @@ public type Message = unit {
 
 # @TEST-START-FILE udp-test.evt
 protocol analyzer spicy::UDP_TEST over UDP:
-    parse with UDPTest::Message,
-    port 11337/udp-11340/udp,
-    ports {31337/udp-31340/udp};
+    parse with UDPTest::Message;
 
 on UDPTest::Message -> event udp_test::message($conn, $is_orig, self.data);
 # @TEST-END-FILE

@@ -15,23 +15,65 @@ using std::string;
 
 namespace zeek::detail {
 
-RuleActionEvent::RuleActionEvent(const char* arg_msg) { msg = util::copy_string(arg_msg); }
+bool is_event(const char* id) { return zeek::event_registry->Lookup(id) != nullptr; }
 
+RuleActionEvent::RuleActionEvent(const char* arg_msg)
+    : msg(make_intrusive<StringVal>(arg_msg)), handler(signature_match) {}
+
+RuleActionEvent::RuleActionEvent(const char* arg_msg, const char* event_name) {
+    if ( arg_msg ) // Message can be null (not provided).
+        msg = make_intrusive<StringVal>(arg_msg);
+
+    handler = zeek::event_registry->Lookup(event_name);
+
+    if ( ! handler ) {
+        reporter->Error("unknown event '%s' specified in rule", event_name);
+        return;
+    }
+
+    // Register non-script usage to make the UsageAnalyzer happy.
+    zeek::event_registry->Register(event_name, false /*is_from_script*/);
+
+    static const auto& signature_match_params = signature_match->GetFunc()->GetType()->ParamList()->GetTypes();
+    // Fabricated params for non-message event(state: signature_state, data: string)
+    static const std::vector<zeek::TypePtr> signature_match2_params = {signature_match_params[0],
+                                                                       signature_match_params[2]};
+
+    if ( msg ) {
+        // If msg was provided, the function signature needs to agree with
+        // the signature_match event, even if it's a different event.
+        if ( ! handler->GetFunc()->GetType()->CheckArgs(signature_match_params, true, true) )
+            zeek::reporter->Error("wrong event parameters for '%s'", event_name);
+    }
+    else {
+        // When no message is provided, use non-message parameters.
+        if ( ! handler->GetFunc()->GetType()->CheckArgs(signature_match2_params, true, true) )
+            zeek::reporter->Error("wrong event parameters for '%s'", event_name);
+    }
+}
 void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data, int len) {
-    if ( signature_match )
-        event_mgr.Enqueue(signature_match, IntrusivePtr{AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)},
-                          make_intrusive<StringVal>(msg),
-                          data ? make_intrusive<StringVal>(len, (const char*)data) : val_mgr->EmptyString());
+    if ( handler ) {
+        zeek::Args args;
+        args.reserve(msg ? 3 : 2);
+        args.push_back({AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)});
+        if ( msg )
+            args.push_back(msg);
+        if ( data )
+            args.push_back(make_intrusive<StringVal>(len, reinterpret_cast<const char*>(data)));
+        else
+            args.push_back(zeek::val_mgr->EmptyString());
+
+        event_mgr.Enqueue(handler, std::move(args));
+    }
 }
 
-void RuleActionEvent::PrintDebug() { fprintf(stderr, "	RuleActionEvent: |%s|\n", msg); }
-
-RuleActionMIME::RuleActionMIME(const char* arg_mime, int arg_strength) {
-    mime = util::copy_string(arg_mime);
-    strength = arg_strength;
+void RuleActionEvent::PrintDebug() {
+    fprintf(stderr, "	RuleActionEvent: |%s (%s)|\n", msg ? msg->CheckString() : "<none>", handler->Name());
 }
 
-void RuleActionMIME::PrintDebug() { fprintf(stderr, "	RuleActionMIME: |%s|\n", mime); }
+RuleActionMIME::RuleActionMIME(const char* arg_mime, int arg_strength) : mime(arg_mime), strength(arg_strength) {}
+
+void RuleActionMIME::PrintDebug() { fprintf(stderr, "	RuleActionMIME: |%s|\n", mime.c_str()); }
 
 RuleActionAnalyzer::RuleActionAnalyzer(const char* arg_analyzer) {
     string str(arg_analyzer);

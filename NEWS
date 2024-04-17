@@ -27,6 +27,15 @@ New Functionality
 	@load my-package
 	@endif
 
+- Zeek packagers can now include a "local" addition into Zeek's version string.
+  Configure your Zeek build with ``--localversion=XXX`` to add the provided
+  string, dash-separated, at the end of Zeek's regular version string. The build
+  setup will refuse strings that contain dashes, to avoid confusing the version
+  components.  For debug builds, the ``-debug`` suffix remains at the end. For
+  example, the version string on a debug-enabled build with local addition "XXX"
+  might be "7.0.0-dev.114-XXX-debug". For Docker builds, the ``LOCALVERSION``
+  environment variable configures the addition.
+
 Changed Functionality
 ---------------------
 

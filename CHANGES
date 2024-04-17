@@ -1,3 +1,11 @@
+7.0.0-dev.132 | 2024-04-17 14:59:43 -0700
+
+  * Parse and store localversion string (Peter Cullen, Corelight)
+
+  * Update version string btests for localversion (Peter Cullen, Corelight)
+
+  * Support for configurable localversion (Peter Cullen, Corelight)
+
 7.0.0-dev.123 | 2024-04-17 14:33:55 -0700
 
   * fix for ZAM optimization of "while" loops (Vern Paxson, Corelight)

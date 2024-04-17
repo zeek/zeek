@@ -80,6 +80,8 @@ set(CPACK_SOURCE_IGNORE_FILES "" CACHE STRING "Files to be ignored by CPack")
 
 set(ZEEK_INCLUDE_PLUGINS "" CACHE STRING "Extra plugins to add to the build.")
 
+set(ZEEK_VERSION_LOCAL "" CACHE STRING "Custom version string.")
+
 # Look into the build tree for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
@@ -576,6 +578,15 @@ math(EXPR ZEEK_VERSION_NUMBER
 set(VERSION_C_IDENT "${ZEEK_VERSION_FULL}_plugin_${API_VERSION}")
 string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
 string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
+
+set(ZEEK_VERSION_FULL_LOCAL "${ZEEK_VERSION_FULL}")
+if (NOT ZEEK_VERSION_LOCAL STREQUAL "")
+    if (ZEEK_VERSION_LOCAL MATCHES "-")
+        message(FATAL_ERROR "ZEEK_VERSION_LOCAL can not contain dashes: ${ZEEK_VERSION_LOCAL}")
+    endif ()
+    set(ZEEK_VERSION_FULL_LOCAL "${ZEEK_VERSION_FULL_LOCAL}-${ZEEK_VERSION_LOCAL}")
+    set(VERSION_C_IDENT "${VERSION_C_IDENT}_${ZEEK_VERSION_LOCAL}")
+endif ()
 
 if (ENABLE_DEBUG)
     set(VERSION_C_IDENT "${VERSION_C_IDENT}_debug")

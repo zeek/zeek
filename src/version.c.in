@@ -1,7 +1,7 @@
 
 #include "zeek/zeek-version.h"
 
-char version[] = "@ZEEK_VERSION_FULL@";
+char version[] = "@ZEEK_VERSION_FULL_LOCAL@";
 
 // A C function that has the current version built into its name.
 // One can link a shared library against this to ensure that it won't

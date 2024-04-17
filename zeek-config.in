@@ -14,7 +14,7 @@ prefix="@CMAKE_INSTALL_PREFIX@"
 python_dir="@PY_MOD_INSTALL_DIR@"
 script_dir="@ZEEK_SCRIPT_INSTALL_PATH@"
 site_dir="@ZEEK_SCRIPT_INSTALL_PATH@/site"
-version="@VERSION@"
+version="@ZEEK_VERSION_FULL_LOCAL@"
 zeek_dist="@ZEEK_DIST@"
 zeekpath="@DEFAULT_ZEEKPATH@"
 

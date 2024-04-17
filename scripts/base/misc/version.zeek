@@ -34,6 +34,8 @@ export {
 		beta: bool;
 		## If set to true, the version is a debug build
 		debug: bool;
+		## Local version portion of the version string
+		localversion: string;
 		## String representation of this version
 		version_string: string;
 	};
@@ -56,10 +58,10 @@ export {
 
 function parse(version_string: string): VersionDescription
 	{
-	if ( /[0-9]+\.[0-9]+(\.[0-9]+)?(-(beta|rc|dev)[0-9]*)?((-|\.)[0-9]+)?(-debug)?/ != version_string )
+	if ( /[0-9]+\.[0-9]+(\.[0-9]+)?(-(beta|rc|dev)[0-9]*)?(\.[0-9]+)?(-[a-zA-Z0-9_\.]+)?(-debug)?/ != version_string )
 		{
 		Reporter::error(fmt("Version string %s cannot be parsed", version_string));
-		return VersionDescription($version_number=0, $major=0, $minor=0, $patch=0, $commit=0, $beta=F, $debug=F, $version_string=version_string);
+		return VersionDescription($version_number=0, $major=0, $minor=0, $patch=0, $commit=0, $beta=F, $debug=F, $localversion="", $version_string=version_string);
 		}
 
 	local beta = /-(beta|rc)/ in version_string;
@@ -67,6 +69,7 @@ function parse(version_string: string): VersionDescription
 	local patchlevel = 0;
 	local commit = 0;
 	local vs = version_string;
+	local localversion = "";
 
 	local parts = split_string1(vs, /\./);
 	local major = to_count(parts[0]);
@@ -92,9 +95,17 @@ function parse(version_string: string): VersionDescription
 
 		vs = gsub(vs, /-debug$/, "");
 		vs = gsub(vs, /-(beta|rc|dev)[0-9]*/, "");
+		localversion = find_last(vs, /-[a-zA-Z0-9_\.]+$/);
+                if ( localversion != "" )
+			{
+			# Remove leadig dash from localversion
+			localversion = lstrip(localversion, "-");
+			# Drop the local version piece from the version string
+			vs = gsub(vs, /-[a-zA-Z0-9_\.]+$/, "");
+			}
 
-		# Either a .X, or -X possibly remaining
-		vs = lstrip(vs, ".-");
+		# A .X possibly remaining
+		vs = lstrip(vs, ".");
 
 		if ( |vs| > 0 )
 			commit = to_count(vs);
@@ -105,6 +116,7 @@ function parse(version_string: string): VersionDescription
 	return VersionDescription($version_number=version_number, $major=major,
 	                          $minor=minor, $patch=patchlevel, $commit=commit,
 	                          $beta=beta, $debug=debug,
+				  $localversion=localversion,
 	                          $version_string=version_string);
 	}
 

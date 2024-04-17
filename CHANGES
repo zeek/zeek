@@ -1,3 +1,7 @@
+7.0.0-dev.123 | 2024-04-17 14:33:55 -0700
+
+  * fix for ZAM optimization of "while" loops (Vern Paxson, Corelight)
+
 7.0.0-dev.121 | 2024-04-17 09:20:53 -0700
 
   * Add Opensuse leap 15.6 to CI (Johanna Amann, Corelight)

@@ -101,6 +101,16 @@ export {
 	##          installed or not.
 	global exclude_for: function(filter_id: string, filter: string, span: interval): bool;
 
+	## Remove a previously added exclude filter fragment by name. The
+	## traffic that was being filtered will be allowed through the filter
+	## after calling this function.
+	##
+	## filter_id: The name given to the filter fragment which you'd like to remove.
+	##
+	## Returns: A boolean value to indicate if a filter fragment with the given name
+	##          actually installed.
+	global remove_exclude: function(filter_id: string): bool;
+
 	## Call this function to build and install a new dynamically built
 	## packet filter.
 	global install: function(): bool;
@@ -195,11 +205,18 @@ function register_filter_plugin(fp: FilterPlugin)
 
 event remove_dynamic_filter(filter_id: string)
 	{
+	remove_exclude(filter_id);
+	}
+
+function remove_exclude(filter_id: string): bool
+	{
 	if ( filter_id in dynamic_restrict_filters )
 		{
 		delete dynamic_restrict_filters[filter_id];
 		install();
+		return T;
 		}
+	return F;
 	}
 
 function exclude(filter_id: string, filter: string): bool

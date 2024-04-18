@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	level	message	location
 #types	time	enum	string	string
-XXXXXXXXXX.XXXXXX	Reporter::WARNING	Warning while compiling pcap filter 'ip or not ip': IEEE 802.15.4 link-layer type filtering not implemented	<...>/main.zeek, line 307
+XXXXXXXXXX.XXXXXX	Reporter::WARNING	Warning while compiling pcap filter 'ip or not ip': IEEE 802.15.4 link-layer type filtering not implemented	<...>/main.zeek, line 324
 #close XXXX-XX-XX-XX-XX-XX

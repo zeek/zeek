@@ -1,3 +1,14 @@
+7.0.0-dev.136 | 2024-04-18 09:02:14 -0700
+
+  * Update core.pcap.filter-warning baseline (Peter Cullen, Corelight)
+
+    Only the line numbers changed.
+
+  * Add PacketFilter::remove_exclude function (Peter Cullen, Corelight)
+
+    This adds a public function to the PacketFilter framework that
+    allows the caller to remove an exclude filter by filter id.
+
 7.0.0-dev.132 | 2024-04-17 14:59:43 -0700
 
   * Parse and store localversion string (Peter Cullen, Corelight)

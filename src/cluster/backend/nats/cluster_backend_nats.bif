@@ -1,0 +1,23 @@
+%%{
+#include "NATS.h"
+%%}
+
+## Attempt to connect to a NATS with the settings
+## found on the Cluster::Backend::NATS module.
+##
+function Cluster::Backend::NATS::connect%(%): bool
+	%{
+	// This is a bit chicken and egg: zeek-setup.cc instantiates
+	// the zeek::cluster::backend as a generic Backend, we cast
+	// it to a NATSBackend here and call Connect() on it.
+	// Suppose this could be just Connect(), but unclear all
+	// backends have a single Connect() method.
+	auto *nats_backend = dynamic_cast<zeek::cluster::nats::NATSBackend*>(zeek::cluster::backend);
+	if ( ! nats_backend )
+		{
+		zeek::emit_builtin_error("Cluster::backend not set to NATS?");
+		return zeek::val_mgr->False();
+		}
+
+	return zeek::val_mgr->Bool(nats_backend->Connect());
+	%}

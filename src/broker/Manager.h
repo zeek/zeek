@@ -15,6 +15,8 @@
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/broker/Data.h"
+#include "zeek/cluster/Backend.h"
+#include "zeek/cluster/Component.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
 
@@ -71,7 +73,7 @@ struct Stats {
  * Manages various forms of communication between peer Zeek processes
  * or other external applications via use of the Broker messaging library.
  */
-class Manager : public iosource::IOSource {
+class Manager : public zeek::cluster::Backend, public iosource::IOSource {
 public:
     /** Broker protocol to expect on a listening port. */
     enum class BrokerProtocol {
@@ -95,12 +97,12 @@ public:
      * Initialization of the manager. This is called late during Zeek's
      * initialization after any scripts are processed.
      */
-    void InitPostScript();
+    void InitPostScript() override;
 
     /**
      * Shuts Broker down at termination.
      */
-    void Terminate();
+    void Terminate() override;
 
     /**
      * Returns true if any Broker communication is currently active.
@@ -169,6 +171,11 @@ public:
     bool PublishIdentifier(std::string topic, std::string id);
 
     /**
+     * Cluster::Backend PublishEvent() implementation.
+     */
+    bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) override;
+
+    /**
      * Send an event to any interested peers.
      * @param topic a topic string associated with the message.
      * Peers advertise interest by registering a subscription to some prefix
@@ -200,6 +207,15 @@ public:
      * @return true if the message is sent successfully.
      */
     bool PublishEvent(std::string topic, RecordVal* ev);
+
+    /**
+     * Cluster::Backend PublishEvent() implementation.
+     */
+    bool PublishEvent(const std::string& topic, const zeek::ValPtr& event) override {
+        return PublishEvent(topic, event->AsRecordVal());
+    }
+
+    using cluster::Backend::PublishEvent;
 
     /**
      * Send a message to create a log stream to any interested peers.
@@ -260,6 +276,20 @@ public:
      * were supplied the optional "name" field will not be set.
      */
     RecordVal* MakeEvent(ValPList* args, zeek::detail::Frame* frame);
+
+    /**
+     * Create an `Event` record value from an event and its arguments.
+     * @param args the event and its arguments.  The event is always the first
+     * elements in the list.
+     * @return an `Event` record value.  If an invalid event or arguments
+     * were supplied the optional "name" field will not be set.
+     */
+    RecordVal* MakeEvent(ValPList* args);
+
+    /**
+     * Cluster::Backend::make_event() support
+     */
+    zeek::ValPtr MakeEvent(const zeek::Args& args) override;
 
     /**
      * Register interest in peer event messages that use a certain topic prefix.

@@ -118,7 +118,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname) {
     auto sfname = prefix_basename_with(fname, shadow_file_prefix);
     string default_ext = "." + Ascii::LogExt();
     if ( BifConst::LogAscii::gzip_level > 0 )
-	default_ext += ".gz";
+        default_ext += ".gz";
 
     LeftoverLog rval = {};
     rval.filename = fname;
@@ -169,11 +169,11 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname) {
     auto sf_lines = util::tokenize_string(sf_view, '\n');
 
     if ( sf_lines.size() < 2 ) {
-        reporter->Warning("Found leftover log, '%s', but the associated shadow "
-                          " file, '%s', required to process it is invalid: using default "
-                          " for extension (%s) and post_proc_func",
-                          rval.filename.data(), rval.shadow_filename.data(),
-                          default_ext.data());
+        reporter->Warning(
+            "Found leftover log, '%s', but the associated shadow "
+            " file, '%s', required to process it is invalid: using default "
+            " for extension (%s) and post_proc_func",
+            rval.filename.data(), rval.shadow_filename.data(), default_ext.data());
     }
     else {
         rval.extension = sf_lines[0];

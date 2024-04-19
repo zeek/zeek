@@ -47,7 +47,6 @@ option(INSTALL_AUX_TOOLS "Install additional tools from auxil." ${ZEEK_INSTALL_T
 option(INSTALL_BTEST "Install btest alongside Zeek." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_BTEST_PCAPS "Install pcap files for testing." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZEEKCTL "Install zeekctl." ${ZEEK_INSTALL_TOOLS_DEFAULT})
-option(INSTALL_ZEEK_ARCHIVER "Install the zeek-archiver." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZEEK_CLIENT "Install the zeek-client." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZKG "Install zkg." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
@@ -1317,7 +1316,6 @@ checkoptionalbuildsources(auxil/btest BTest INSTALL_BTEST)
 checkoptionalbuildsources(auxil/package-manager ZKG INSTALL_ZKG)
 checkoptionalbuildsources(auxil/zeekctl ZeekControl INSTALL_ZEEKCTL)
 checkoptionalbuildsources(auxil/zeek-aux Zeek-Aux INSTALL_AUX_TOOLS)
-checkoptionalbuildsources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
 checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 # Generate Spicy helper scripts referenced in e.g., `zeek-path-dev.*`. These

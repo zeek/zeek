@@ -1684,7 +1684,12 @@ void ZAM_RelationalExprOpTemplate::BuildInstruction(const vector<ZAM_OperandType
 			op1 = "n1";
 		}
 	else
-		op1 = "n2";
+		{
+		if ( ot[1] == ZAM_OT_CONSTANT )
+			op1 = "c";
+		else
+			op1 = "n2";
+		}
 
 	auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
 	Emit("auto t = " + op1 + "->GetType()" + type_suffix);

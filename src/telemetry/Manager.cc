@@ -122,7 +122,9 @@ void Manager::InitPostScript() {
 // -- collect metric stuff -----------------------------------------------------
 
 RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric_family) {
-    // Avoid recreating this repeatedly
+    // Avoid recreating this repeatedly.
+    // TODO: this may cause problems if new metrics are added or removed by external users,
+    // since the validation of label names needs to happen.
     if ( auto it = opts_records.find(metric_family.name); it != opts_records.end() )
         return it->second;
 
@@ -179,13 +181,29 @@ RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric
             record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
                                                     BifEnum::Telemetry::MetricType::DOUBLE_HISTOGRAM));
 
-        // prom-cpp doesn't store label names anywhere other than in each instrument. just assume
-        // they're always going to be the same across all of the instruments and use the names from
-        // the first one.
-        // TODO: is this check here ever false?
-        if ( ! metric_family.metric.empty() )
-            for ( const auto& lbl : metric_family.metric[0].label )
+        // prometheus-cpp doesn't store label names anywhere other than in each
+        // instrument. this is valid because label names can be different
+        // between instruments within a single family for prometheus.  we don't
+        // follow that model in Zeek, so use the names from the first instrument
+        // but validate that they're the same in the rest and warn if not.
+        if ( ! metric_family.metric.empty() ) {
+            std::unordered_set<std::string> names;
+            for ( const auto& lbl : metric_family.metric[0].label ) {
                 label_names_vec->Append(make_intrusive<StringVal>(lbl.name));
+                names.insert(lbl.name);
+            }
+
+            if ( metric_family.metric.size() > 1 ) {
+                for ( size_t i = 1; i < metric_family.metric.size(); ++i ) {
+                    for ( const auto& lbl : metric_family.metric[i].label ) {
+                        if ( names.count(lbl.name) == 0 )
+                            reporter->Warning(
+                                "Telemetry labels must be the same across all instruments for metric family %s\n",
+                                metric_family.name.c_str());
+                    }
+                }
+            }
+        }
     }
 
     record_val->Assign(labels_idx, label_names_vec);

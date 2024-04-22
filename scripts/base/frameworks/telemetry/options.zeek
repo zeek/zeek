@@ -17,9 +17,4 @@ export {
 	## overrides any value provided in zeek_init or earlier at startup if
 	## the environment variable ZEEK_METRICS_ENDPOINT_NAME is defined.
 	const metrics_endpoint_name = "" &redef;
-
-	## Selects prefixes from the local metrics. Only metrics with prefixes
-	## listed in this variable are included when publishing local metrics.
-	## Setting an empty vector selects *all* metrics.
-	const metrics_export_prefixes: vector of string = vector() &redef;
 }

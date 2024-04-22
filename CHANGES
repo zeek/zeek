@@ -1,3 +1,7 @@
+7.0.0-dev.145 | 2024-04-22 15:55:53 -0700
+
+  * Allow SMB_TCP record to contain multiple protocol identifiers/headers (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.143 | 2024-04-22 15:15:55 -0700
 
   * Check for valid identifier in WhenStmt::Describe (Tim Wojtulewicz, Corelight)

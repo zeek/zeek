@@ -1,0 +1,30 @@
+# @TEST-DOC: Tests handling of packets with mulitple SMB2 PDUs in them
+# @TEST-EXEC: zeek -b -r $TRACES/smb/smb2-multiple-pdus.pcap %INPUT 2>&1 >out
+# @TEST-EXEC: btest-diff out
+
+@load base/protocols/smb
+
+event smb2_file_delete(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID, delete_pending: bool)
+{
+    print "smb2_file_delete", hdr;
+}
+
+event smb2_create_request(c: connection, hdr: SMB2::Header, request: SMB2::CreateRequest)
+{
+    print "smb2_create_request", hdr, request;
+}
+
+event smb2_close_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID)
+{
+    print "smb2_close_request", hdr;
+}
+
+event smb2_create_response(c: connection, hdr: SMB2::Header, response: SMB2::CreateResponse)
+{
+    print "smb2_create_response", hdr, response;
+}
+
+event smb2_close_response(c: connection, hdr: SMB2::Header, response: SMB2::CloseResponse)
+{
+    print "smb2_close_response", hdr, response;
+}

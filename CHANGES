@@ -1,3 +1,15 @@
+7.0.0-dev.143 | 2024-04-22 15:15:55 -0700
+
+  * Check for valid identifier in WhenStmt::Describe (Tim Wojtulewicz, Corelight)
+
+  * Bump zeek-aux submodule to pull in zeek-archiver addition (Christian Kreibich, Corelight)
+
+  * Remove zeek-archiver from build config, deprecate --disable-archiver in configure (Christian Kreibich, Corelight)
+
+  * Drop zeek-archiver submodule (Christian Kreibich, Corelight)
+
+    zeek-archiver now lives in the zeek-aux submodule.
+
 7.0.0-dev.136 | 2024-04-18 09:02:14 -0700
 
   * Update core.pcap.filter-warning baseline (Peter Cullen, Corelight)

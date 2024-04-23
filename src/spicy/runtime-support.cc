@@ -597,8 +597,16 @@ void rt::protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes
     if ( ! c )
         throw ValueUnavailable("no current connection available");
 
+    // We need to copy the data here to be on the safe side: the streaming
+    // input methods expect the data to stay around until they return. At first
+    // sight, it might seem that that's guaranteed here, but because we'll
+    // usually be called from Spicy code, the data might be on the current
+    // fiber's stack, which could end up being swapped out if any of the
+    // streaming input methods end up going into Spicy land as well.
     auto len = data.size();
-    auto* data_ = reinterpret_cast<const u_char*>(data.data());
+    std::unique_ptr<u_char[]> copy(new u_char[len.Ref()]);
+    memcpy(copy.get(), data.data(), len);
+    auto* data_ = reinterpret_cast<const u_char*>(copy.get());
 
     if ( h ) {
         if ( auto* output_handler = c->analyzer->GetOutputHandler() )
@@ -737,8 +745,13 @@ static void _data_in(const char* data, uint64_t len, std::optional<uint64_t> off
                      const std::optional<std::string>& fid) {
     auto cookie = static_cast<rt::Cookie*>(hilti::rt::context::cookie());
     auto* fstate = _file_state(cookie, fid);
-    auto data_ = reinterpret_cast<const unsigned char*>(data);
     auto mime_type = (fstate->mime_type ? *fstate->mime_type : std::string());
+
+    // We need to copy the data here to be on the safe side for the same reason
+    // as in `protocol_data_in`; see there for more.
+    std::unique_ptr<u_char[]> copy(new u_char[len]);
+    memcpy(copy.get(), data, len);
+    auto* data_ = reinterpret_cast<const u_char*>(copy.get());
 
     if ( auto c = cookie->protocol ) {
         auto tag = spicy_mgr->tagForProtocolAnalyzer(c->analyzer->GetAnalyzerTag());

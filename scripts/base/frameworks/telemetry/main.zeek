@@ -428,8 +428,7 @@ function register_histogram_family(opts: MetricOpts): HistogramFamily
 		opts$labels,
 		opts$bounds,
 		opts$help_text,
-		opts$unit,
-		opts?$is_total ? opts$is_total : F
+		opts$unit
 	);
 	return HistogramFamily($__family=f, $__labels=opts$labels);
 	}

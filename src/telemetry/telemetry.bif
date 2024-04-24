@@ -367,8 +367,7 @@ function Telemetry::__int_histogram_family%(prefix: string,
                                             labels: string_vec,
                                             bounds: int_vec,
                                             helptext: string &default = "Zeek Script Metric",
-                                            unit: string &default = "",
-                                            is_sum: bool &default = F%): opaque of int_histogram_metric_family
+                                            unit: string &default = ""%): opaque of int_histogram_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
 	auto std_bounds = to_std_vec<int64_t>(bounds);
@@ -430,8 +429,7 @@ function Telemetry::__dbl_histogram_family%(prefix: string,
                                             labels: string_vec,
                                             bounds: double_vec,
                                             helptext: string &default = "Zeek Script Metric",
-                                            unit: string &default = "",
-                                            is_sum: bool &default = F%): opaque of dbl_histogram_metric_family
+                                            unit: string &default = ""%): opaque of dbl_histogram_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
 	auto std_bounds = to_std_vec<double>(bounds);

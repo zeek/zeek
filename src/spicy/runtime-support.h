@@ -21,6 +21,7 @@
 #include <hilti/rt/fmt.h>
 #include <hilti/rt/types/all.h>
 
+#include "Val.h"
 #include "zeek/Desc.h"
 #include "zeek/spicy/cookie.h"
 #include "zeek/spicy/manager.h"
@@ -929,6 +930,19 @@ inline ValPtr to_val(const T& t, TypePtr target) {
     return rval;
 }
 
+/** Maps HILTI's `Protocol` enum to Zeek's `transport_proto` enum. */
+inline ValPtr to_val_for_transport_proto(int64_t val, const TypePtr& target) {
+    switch ( val ) {
+        case hilti::rt::Protocol::TCP: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_TCP);
+        case hilti::rt::Protocol::UDP: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_UDP);
+        case hilti::rt::Protocol::ICMP: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_ICMP);
+        case hilti::rt::Protocol::Undef: [[fallthrough]]; // just for readability, make Undef explicit
+        default: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_UNKNOWN);
+    }
+
+    hilti::rt::cannot_be_reached();
+}
+
 /**
  * Converts a Spicy-side enum to a Zeek record value. The result is returned
  * with ref count +1.
@@ -959,6 +973,14 @@ inline ValPtr to_val(const T& t, TypePtr target) {
     // as well.
     static_assert(std::is_signed<std::underlying_type_t<T>>{});
     auto it = static_cast<int64_t>(t);
+
+    // Special case: map enum values to Zeek's semantics.
+    if ( target->GetName() == "transport_proto" ) {
+        if ( ! std::is_same_v<T, hilti::rt::Protocol> )
+            throw TypeMismatch(hilti::rt::demangle(typeid(t).name()), target);
+
+        return to_val_for_transport_proto(it, target);
+    }
 
     // Zeek's enum can't be negative, so we swap in max_int for our Undef (-1).
     if ( it == std::numeric_limits<int64_t>::max() )

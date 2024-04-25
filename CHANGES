@@ -1,3 +1,71 @@
+7.0.0-dev.179 | 2024-04-25 09:15:30 -0700
+
+  * rewrite of ZAM optimization of BiFs and script functions/idioms (Vern Paxson, Corelight)
+
+  * flag base script as being known to ZAM optimization (Vern Paxson, Corelight)
+
+  * ZAM optimization for constructing records w/ fields initialized to network_time (Vern Paxson, Corelight)
+
+  * factor some functionality used by BiFs to make accessible to ZAM instructions (Vern Paxson, Corelight)
+
+  * factor script optimization Expr AST nodes out of main AST header (Vern Paxson, Corelight)
+
+  * new internal AST node for expression idioms with corresponding ZAM built-ins (Vern Paxson, Corelight)
+
+  * streamlining of expressions only used for script optimization (Vern Paxson, Corelight)
+
+  * reordering of expressions to match main usage vs. script-optimization extras (Vern Paxson, Corelight)
+
+  * support for conditional expressions transforming into interal has-elements expr (Vern Paxson, Corelight)
+
+  * make same_expr() functionality accessible as a utility (Vern Paxson, Corelight)
+
+  * unify functionality across EqExpr and RelExpr classes (Vern Paxson, Corelight)
+
+  * introduce notions of script functions/BiFs that are (1) foldable, (2) replaceable (Vern Paxson, Corelight)
+
+  * optimization of scripting idioms - min/max, has-elements (Vern Paxson, Corelight)
+
+  * hooks for ZAM optimization of calls to particular functions (Vern Paxson, Corelight)
+
+  * shift ZAM maintenance monitoring of new BiFs to a BTest so it automatically runs (Vern Paxson, Corelight)
+
+  * make externally available the expression used for initializating a record field (Vern Paxson, Corelight)
+
+  * record field initialization optimization: do coercions at compile-time if applicable (Vern Paxson, Corelight)
+
+  * $ZAM_PROFILE_ALL set tells ZAM to profile function bodies even if not executed (Vern Paxson, Corelight)
+
+  * performance speed-up for SMB base scripts (Vern Paxson, Corelight)
+
+  * fix for ZAM optimization pruning of unnecessary instructions (Vern Paxson, Corelight)
+
+  * bug fix for ZAM code generation (Vern Paxson, Corelight)
+
+  * optimize generation of "-O gen-C++" code for table/vector size operations (Vern Paxson, Corelight)
+
+  * removing vestigial same_val() function (Vern Paxson, Corelight)
+
+  * fix for ZAM optimization of '!' expressions (Vern Paxson, Corelight)
+
+  * fix for ZAM tracking of return values when in-lining (Vern Paxson, Corelight)
+
+  * fix for ZAM profiling potentially accessing freed memory (Vern Paxson, Corelight)
+
+  * Fix typo in hook name (Benjamin Bannier, Corelight)
+
+    While in Spicy code a hook priority is spelled `priority=4711` the
+    attribute is still called `&priority` (like in HILTI) and we rely on
+    exactly that name when e.g., extracting hook priorities for scheduling.
+
+    This change was introduced as part of
+    db98dc419334667e9299ef00670f4d435f3e408c and caused the default hook
+    priority for hooks defined in EVT files (intended to be -1000 to likely
+    schedule after e.g., hooks in the Spicy grammars) to be ignored. This
+    could then e.g., introduce issue when a `%done` hook would mutate state
+    exposed in an EVT hook (which now might not have seen the updated state
+    due to different scheduling).
+
 7.0.0-dev.147 | 2024-04-22 17:08:25 -0700
 
   * Don't attempt to stop or flush disabled writer frontends (Tim Wojtulewicz, Corelight)

@@ -248,6 +248,10 @@ extern void clear_script_analysis();
 // Called when Zeek is terminating.
 extern void finish_script_execution();
 
+// Returns true if the given call has a specialized ZAM equivalent when
+// used in a conditional.
+extern bool IsZAM_BuiltInCond(const CallExpr* c);
+
 // Used for C++-compiled scripts to signal their presence, by setting this
 // to a non-empty value.
 extern void (*CPP_init_hook)();

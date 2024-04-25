@@ -2,6 +2,8 @@
 
 #include "zeek/script_opt/CSE.h"
 
+#include "zeek/script_opt/Expr.h"
+
 namespace zeek::detail {
 
 CSE_ValidityChecker::CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> _pfs, const std::vector<const ID*>& _ids,
@@ -108,7 +110,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
         case EXPR_FIELD_LHS_ASSIGN: {
             auto lhs = e->GetOp1();
             auto lhs_aggr_id = lhs->AsNameExpr()->Id();
-            auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
+            auto lhs_field = static_cast<const FieldLHSAssignExpr*>(e)->Field();
 
             if ( CheckID(lhs_aggr_id, true) )
                 return TC_ABORTALL;

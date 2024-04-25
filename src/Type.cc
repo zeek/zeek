@@ -854,6 +854,8 @@ void TypeDecl::DescribeReST(ODesc* d, bool roles_only) const {
 
 namespace detail {
 
+ExprPtr FieldInit::InitExpr() const { return nullptr; }
+
 // A record field initialization that directly assigns a fixed value ...
 class DirectFieldInit final : public FieldInit {
 public:
@@ -884,7 +886,7 @@ private:
 class ExprFieldInit final : public FieldInit {
 public:
     // Initialization requires evaluating the given expression,
-    // yielding the a value of the given type (which might require
+    // yielding a value of the given type (which might require
     // coercion for some records).
     ExprFieldInit(detail::ExprPtr _init_expr, TypePtr _init_type)
         : init_expr(std::move(_init_expr)), init_type(std::move(_init_type)) {
@@ -909,6 +911,8 @@ public:
     }
 
     bool IsDeferrable() const override { return false; }
+
+    ExprPtr InitExpr() const override { return init_expr; }
 
 private:
     detail::ExprPtr init_expr;
@@ -1069,6 +1073,12 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
                 init = std::make_shared<detail::DirectManagedFieldInit>(zv);
             else
                 init = std::make_shared<detail::DirectFieldInit>(zv);
+        }
+
+        else if ( def_expr->Tag() == detail::EXPR_ARITH_COERCE &&
+                  (def_expr->GetOp1()->IsZero() || def_expr->GetOp1()->IsOne()) ) {
+            auto zv = ZVal(def_expr->Eval(nullptr), type);
+            init = std::make_shared<detail::DirectFieldInit>(zv);
         }
 
         else {

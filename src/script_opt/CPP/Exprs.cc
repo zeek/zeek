@@ -481,7 +481,8 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level) {
     if ( t->Tag() == TYPE_VECTOR ) {
         auto& rt = rhs->GetType();
 
-        if ( e->AsAddToExpr()->IsVectorElemAppend() )
+        ASSERT(e->Tag() == EXPR_ADD_TO);
+        if ( static_cast<const AddToExpr*>(e)->IsVectorElemAppend() )
             add_to_func = "vector_append__CPP";
         else
             add_to_func = "vector_vec_append__CPP";
@@ -575,6 +576,9 @@ string CPPCompile::GenSizeExpr(const Expr* e, GenType gt) {
 
     else if ( it == TYPE_INTERNAL_DOUBLE )
         gen = string("fabs__CPP(") + gen + ")";
+
+    else if ( gt == GEN_NATIVE && (t1->Tag() == TYPE_TABLE || t1->Tag() == TYPE_VECTOR) )
+        return gen + "->Size()";
 
     else
         return GenericValPtrToGT(gen + "->SizeVal()", t, gt);

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "zeek/Event.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/ZBody.h"
@@ -84,6 +85,13 @@ public:
     void Dump();
 
 private:
+    friend class SimpleZBI;
+    friend class CondZBI;
+    friend class OptAssignZBI;
+    friend class SortZBI;
+    friend class CatZBI;
+    friend class MultiZBI;
+
     void Init();
     void InitGlobals();
     void InitArgs();
@@ -181,6 +189,7 @@ private:
     const ZAMStmt CompileAddToExpr(const AddToExpr* e);
     const ZAMStmt CompileRemoveFromExpr(const RemoveFromExpr* e);
     const ZAMStmt CompileAssignExpr(const AssignExpr* e);
+    const ZAMStmt CompileZAMBuiltin(const NameExpr* lhs, const ScriptOptBuiltinExpr* zbi);
     const ZAMStmt CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs);
     const ZAMStmt CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e);
     const ZAMStmt CompileScheduleExpr(const ScheduleExpr* e);
@@ -245,16 +254,7 @@ private:
 
     const ZAMStmt Is(const NameExpr* n, const Expr* e);
 
-#include "zeek/script_opt/ZAM/BuiltIn.h"
 #include "zeek/script_opt/ZAM/Inst-Gen.h"
-
-    // A bit weird, but handy for switch statements used in built-in
-    // operations: returns a bit mask of which of the arguments in the
-    // given list correspond to constants, with the high-ordered bit
-    // being the first argument (argument "0" in the list) and the
-    // low-ordered bit being the last.  Second parameter is the number
-    // of arguments that should be present.
-    zeek_uint_t ConstArgsMask(const ExprPList& args, int nargs) const;
 
     int ConvertToInt(const Expr* e) {
         if ( e->Tag() == EXPR_NAME )
@@ -362,7 +362,7 @@ private:
     int FrameSlot(const ID* id);
     int FrameSlotIfName(const Expr* e) {
         auto n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
-        return n ? FrameSlot(n->Id()) : 0;
+        return n ? FrameSlot(n->Id()) : -1;
     }
 
     int FrameSlot(const NameExpr* id) { return FrameSlot(id->AsNameExpr()->Id()); }

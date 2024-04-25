@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: cat ssh.spicy ssh-1.spicy > ssh-test.spicy
 # @TEST-EXEC: spicyz -d -o test.hlto ssh-test.spicy ./ssh-cond.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T | sort  >output-1
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T 2>&1 | sort  >output-1
 #
 # @TEST-EXEC: cat x509.log | grep -v ^# | cut -f 4-5 >x509.log.tmp && mv x509.log.tmp x509.log
 # @TEST-EXEC: btest-diff x509.log
@@ -12,7 +12,7 @@
 #
 # @TEST-EXEC: cat ssh.spicy ssh-2.spicy > ssh-test.spicy
 # @TEST-EXEC: spicyz -d -o test.hlto ssh-test.spicy ./ssh-cond.evt
-# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T | sort  >output-2
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T 2>&1  | sort  >output-2
 #
 # @TEST-EXEC: cat files.log | zeek-cut fuid filename >files.log.tmp && mv files.log.tmp files-2.log
 # @TEST-EXEC: btest-diff files-2.log
@@ -20,9 +20,19 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output-1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff output-2
 
-event zeek_init() {
-    Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
-}
+module SSH;
+
+function get_file_handle(c: connection, is_orig: bool): string
+	{
+	print "get_file_handle called";
+	return cat(c$uid);
+	}
+
+event zeek_init()
+	{
+	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+	Files::register_protocol(Analyzer::ANALYZER_SSH, [$get_file_handle=SSH::get_file_handle]); # use tag of replaced analyzer
+	}
 
 # @TEST-START-FILE ssh.spicy
 module SSH;

@@ -64,6 +64,13 @@ Changed Functionality
   but mainly for providing comparisons, which is why this is not a breaking
   change.
 
+- If a Spicy protocol analyzers feeds data into file analysis, it now
+  needs to call Zeek's `Files::register_protocol()` and provide a
+  callback for computing file handles. If that's missing, Zeek will
+  issue a warning. While this was not necessary in previous versions,
+  it aligns with the same requirement for traditional analyzers and
+  enables customizing file handles for protocol-specific semantics.
+  
 Removed Functionality
 ---------------------
 

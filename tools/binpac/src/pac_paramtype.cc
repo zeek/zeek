@@ -27,7 +27,7 @@ void ParameterizedType::AddParamArg(Expr* arg) { args_->push_back(arg); }
 
 bool ParameterizedType::DefineValueVar() const { return true; }
 
-string ParameterizedType::DataTypeStr() const { return strfmt("%s *", type_id_->Name()); }
+string ParameterizedType::DataTypeStr() const { return strfmt("%s*", type_id_->Name()); }
 
 Type* ParameterizedType::MemberDataType(const ID* member_id) const {
     Type* ref_type = TypeDecl::LookUpType(type_id_);

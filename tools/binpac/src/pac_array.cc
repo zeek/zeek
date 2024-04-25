@@ -42,7 +42,7 @@ void ArrayType::init() {
 
     vector_str_ = strfmt("vector<%s>", elemtype_->DataTypeStr().c_str());
 
-    datatype_str_ = strfmt("%s *", vector_str_.c_str());
+    datatype_str_ = strfmt("%s*", vector_str_.c_str());
 
     attr_generic_until_expr_ = nullptr;
     attr_until_element_expr_ = nullptr;
@@ -210,14 +210,13 @@ void ArrayType::GenArrayLength(Output* out_cc, Env* env, const DataPtr& data) {
         env->SetEvaluated(arraylength_var());
 
         // Check negative array length
-        out_cc->println("if ( %s < 0 )", env->LValue(arraylength_var()));
+        out_cc->println("if ( %s < 0 ) {", env->LValue(arraylength_var()));
         out_cc->inc_indent();
-        out_cc->println("{");
         out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", data_id_str_.c_str());
         out_cc->println("  %s, (%s) - (%s));", env->LValue(arraylength_var()), env->RValue(end_of_data),
                         env->RValue(begin_of_data));
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
 
         int element_size;
 
@@ -309,19 +308,17 @@ void ArrayType::GenCleanUpCode(Output* out_cc, Env* env) {
             elem_var_field_->Prepare(env);
         }
 
-        out_cc->println("if ( %s )", env->RValue(value_var()));
+        out_cc->println("if ( %s ) {", env->RValue(value_var()));
         out_cc->inc_indent();
-        out_cc->println("{");
 
-        out_cc->println("for ( auto* %s : *%s )", env->LValue(elem_var()), env->RValue(value_var()));
+        out_cc->println("for ( auto* %s : *%s ) {", env->LValue(elem_var()), env->RValue(value_var()));
         out_cc->inc_indent();
-        out_cc->println("{");
         elemtype_->GenCleanUpCode(out_cc, env);
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
 
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
     out_cc->println("delete %s;", lvalue());
 }
@@ -331,9 +328,8 @@ string ArrayType::GenArrayInit(Output* out_cc, Env* env, bool known_array_length
 
     array_str = lvalue();
     if ( incremental_parsing() ) {
-        out_cc->println("if ( %s < 0 )", env->LValue(elem_it_var()));
+        out_cc->println("if ( %s < 0 ) {", env->LValue(elem_it_var()));
         out_cc->inc_indent();
-        out_cc->println("{");
         out_cc->println("// Initialize only once");
         out_cc->println("%s = 0;", env->LValue(elem_it_var()));
     }
@@ -345,8 +341,8 @@ string ArrayType::GenArrayInit(Output* out_cc, Env* env, bool known_array_length
     }
 
     if ( incremental_parsing() ) {
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
 
     return array_str;
@@ -426,9 +422,8 @@ void ArrayType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, in
                                strfmt("%s < %s", env->LValue(elem_it_var()), env->RValue(arraylength_var())) :
                                "/* forever */";
 
-    out_cc->println("for (; %s; ++%s)", for_condition.c_str(), env->LValue(elem_it_var()));
+    out_cc->println("for (; %s; ++%s) {", for_condition.c_str(), env->LValue(elem_it_var()));
     out_cc->inc_indent();
-    out_cc->println("{");
 
     if ( attr_generic_until_expr_ )
         GenUntilCheck(out_cc, env, attr_generic_until_expr_, true);
@@ -472,8 +467,8 @@ void ArrayType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, in
     if ( elemtype_->IsPointerType() )
         out_cc->println("%s = nullptr;", env->LValue(elem_var()));
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 
     out_cc->dec_indent();
     out_cc->println("%s: ;", end_of_array_loop_label_.c_str());
@@ -508,9 +503,8 @@ void ArrayType::GenUntilCheck(Output* out_cc, Env* env, Expr* until_expr, bool d
     }
 
     out_cc->println("// Check &until(%s)", until_expr->orig());
-    out_cc->println("if ( %s )", until_expr->EvalExpr(out_cc, &check_env));
+    out_cc->println("if ( %s ) {", until_expr->EvalExpr(out_cc, &check_env));
     out_cc->inc_indent();
-    out_cc->println("{");
     if ( parsing_complete_var() ) {
         out_cc->println("%s = true;", env->LValue(parsing_complete_var()));
     }
@@ -523,8 +517,8 @@ void ArrayType::GenUntilCheck(Output* out_cc, Env* env, Expr* until_expr, bool d
     }
 
     out_cc->println("goto %s;", end_of_array_loop_label_.c_str());
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 }
 
 void ArrayType::GenDynamicSize(Output* out_cc, Env* env, const DataPtr& data) {

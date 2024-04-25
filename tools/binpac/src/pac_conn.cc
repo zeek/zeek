@@ -63,9 +63,8 @@ void ConnDecl::GenEOFFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("void %s;", proto.c_str());
 
-    out_cc->println("void %s::%s", class_name().c_str(), proto.c_str());
+    out_cc->println("void %s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
 
     out_cc->println("if ( is_orig )");
     out_cc->inc_indent();
@@ -81,8 +80,8 @@ void ConnDecl::GenEOFFunc(Output* out_h, Output* out_cc) {
 
     out_cc->dec_indent();
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
     out_cc->println("");
 }
 
@@ -91,9 +90,8 @@ void ConnDecl::GenGapFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("void %s;", proto.c_str());
 
-    out_cc->println("void %s::%s", class_name().c_str(), proto.c_str());
+    out_cc->println("void %s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
 
     out_cc->println("if ( is_orig )");
     out_cc->inc_indent();
@@ -104,8 +102,8 @@ void ConnDecl::GenGapFunc(Output* out_h, Output* out_cc) {
     out_cc->println("%s->%s(gap_length);", env_->LValue(downflow_id), kFlowGap);
     out_cc->dec_indent();
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
     out_cc->println("");
 }
 
@@ -114,9 +112,8 @@ void ConnDecl::GenProcessFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("void %s;", proto.c_str());
 
-    out_cc->println("void %s::%s", class_name().c_str(), proto.c_str());
+    out_cc->println("void %s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
 
     out_cc->println("if ( is_orig )");
     out_cc->inc_indent();
@@ -127,7 +124,7 @@ void ConnDecl::GenProcessFunc(Output* out_h, Output* out_cc) {
     out_cc->println("%s->%s(begin, end);", env_->LValue(downflow_id), kNewData);
     out_cc->dec_indent();
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
     out_cc->println("");
 }

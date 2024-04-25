@@ -209,11 +209,10 @@ void Expr::GenCaseEval(Output* out_cc, Env* env) {
     foreach (i, CaseExprList, cases_)
         (*i)->value()->ForceIDEval(out_cc, env);
 
-    out_cc->println("switch ( %s )", operand_[0]->EvalExpr(out_cc, env));
+    out_cc->println("switch ( %s ) {", operand_[0]->EvalExpr(out_cc, env));
     Type* switch_type = operand_[0]->DataType(env);
 
     out_cc->inc_indent();
-    out_cc->println("{");
 
     CaseExpr* default_case = nullptr;
     foreach (i, CaseExprList, cases_) {
@@ -246,8 +245,8 @@ void Expr::GenCaseEval(Output* out_cc, Env* env) {
     out_cc->println("break;");
     out_cc->dec_indent();
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 
     env->SetEvaluated(val_var);
     str_ = env->RValue(val_var);

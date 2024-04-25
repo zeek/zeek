@@ -112,9 +112,8 @@ void FlowDecl::GenEOFFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("void %s;", proto.c_str());
 
-    out_cc->println("void %s::%s", class_name().c_str(), proto.c_str());
+    out_cc->println("void %s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
 
     foreach (i, AnalyzerHelperList, eof_helpers_) {
         (*i)->GenCode(nullptr, out_cc, this);
@@ -125,8 +124,8 @@ void FlowDecl::GenEOFFunc(Output* out_h, Output* out_cc) {
         out_cc->println("%s(nullptr, nullptr);", kNewData);
     }
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 }
 
 void FlowDecl::GenGapFunc(Output* out_h, Output* out_cc) {
@@ -134,16 +133,15 @@ void FlowDecl::GenGapFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("void %s;", proto.c_str());
 
-    out_cc->println("void %s::%s", class_name().c_str(), proto.c_str());
+    out_cc->println("void %s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
 
     if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT ) {
         out_cc->println("%s->NewGap(gap_length);", env_->LValue(flow_buffer_id));
     }
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 }
 
 void FlowDecl::GenProcessFunc(Output* out_h, Output* out_cc) {
@@ -155,13 +153,11 @@ void FlowDecl::GenProcessFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("void %s;", proto.c_str());
 
-    out_cc->println("void %s::%s", class_name().c_str(), proto.c_str());
+    out_cc->println("void %s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
 
-    out_cc->println("try");
+    out_cc->println("try {");
     out_cc->inc_indent();
-    out_cc->println("{");
 
     env_->SetEvaluated(begin_of_data);
     env_->SetEvaluated(end_of_data);
@@ -172,22 +168,20 @@ void FlowDecl::GenProcessFunc(Output* out_h, Output* out_cc) {
         default: ASSERT(0);
     }
 
-    out_cc->println("}");
     out_cc->dec_indent();
 
-    out_cc->println("catch ( binpac::Exception const &e )");
+    out_cc->println("} catch ( binpac::Exception const& e ) {");
     out_cc->inc_indent();
-    out_cc->println("{");
     GenCleanUpCode(out_cc);
     if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT ) {
         out_cc->println("%s->DiscardData();", env_->LValue(flow_buffer_id));
     }
     out_cc->println("throw e;");
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
     out_cc->println("");
 }
 
@@ -216,41 +210,36 @@ void FlowDecl::GenCodeFlowUnit(Output* out_cc) {
 
     out_cc->println("while ( %s->data_available() && ", env_->LValue(flow_buffer_id));
     out_cc->inc_indent();
-    out_cc->println("( !%s->have_pending_request() || %s->ready() ) )", env_->LValue(flow_buffer_id),
+    out_cc->println("( !%s->have_pending_request() || %s->ready() ) ) {", env_->LValue(flow_buffer_id),
                     env_->LValue(flow_buffer_id));
-    out_cc->println("{");
 
     // Generate a new dataunit if necessary
-    out_cc->println("if ( ! %s )", env_->LValue(dataunit_id));
+    out_cc->println("if ( ! %s ) {", env_->LValue(dataunit_id));
     out_cc->inc_indent();
-    out_cc->println("{");
     out_cc->println("BINPAC_ASSERT(!%s);", env_->LValue(analyzer_context_id));
     GenNewDataUnit(out_cc);
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 
     DataPtr data(env_, nullptr, 0);
     unit_datatype->GenParseCode(out_cc, env_, data, 0);
 
-    out_cc->println("if ( %s )", unit_datatype->parsing_complete(env_).c_str());
+    out_cc->println("if ( %s ) {", unit_datatype->parsing_complete(env_).c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
     out_cc->println("// Clean up the flow unit after parsing");
     GenDeleteDataUnit(out_cc);
     // out_cc->println("BINPAC_ASSERT(%s == 0);", env_->LValue(dataunit_id));
-    out_cc->println("}");
     out_cc->dec_indent();
-    out_cc->println("else");
+    out_cc->println("} else {");
     out_cc->inc_indent();
-    out_cc->println("{");
     out_cc->println("// Resume upon next input segment");
     out_cc->println("BINPAC_ASSERT(!%s->ready());", env_->RValue(flow_buffer_id));
     out_cc->println("break;");
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 }
 
 void FlowDecl::GenCodeDatagram(Output* out_cc) {

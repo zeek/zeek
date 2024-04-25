@@ -49,8 +49,13 @@ int Output::print(const char* fmt, ...) {
 }
 
 int Output::println(const char* fmt, ...) {
+    if ( strlen(fmt) == 0 ) {
+        fprintf(fp, "\n");
+        return 0;
+    }
+
     for ( int i = 0; i < indent(); ++i )
-        fprintf(fp, "\t");
+        fprintf(fp, "    ");
 
     va_list ap;
     va_start(ap, fmt);

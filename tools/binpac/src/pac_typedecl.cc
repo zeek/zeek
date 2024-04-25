@@ -114,10 +114,9 @@ void TypeDecl::GenCode(Output* out_h, Output* out_cc) {
         else
             out_h->print(", public %s", i->c_str());
     }
-    out_h->print("\n");
+    out_h->println(" {");
 
     // Public members
-    out_h->println("{");
     out_h->println("public:");
     out_h->inc_indent();
 
@@ -166,18 +165,16 @@ void TypeDecl::GenConstructorFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("%s;", proto.c_str());
 
-    out_cc->println("%s::%s", class_name().c_str(), proto.c_str());
+    out_cc->println("%s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
-
-    out_cc->println("{");
 
     // GenParamAssignments(params_, out_cc, env_);
 
     type_->GenInitCode(out_cc, env_);
     GenInitCode(out_cc);
 
-    out_cc->println("}\n");
     out_cc->dec_indent();
+    out_cc->println("}\n");
 }
 
 void TypeDecl::GenDestructorFunc(Output* out_h, Output* out_cc) {
@@ -185,15 +182,14 @@ void TypeDecl::GenDestructorFunc(Output* out_h, Output* out_cc) {
 
     out_h->println("%s;", proto.c_str());
 
-    out_cc->println("%s::%s", class_name().c_str(), proto.c_str());
+    out_cc->println("%s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
 
     GenCleanUpCode(out_cc);
     type_->GenCleanUpCode(out_cc, env_);
 
-    out_cc->println("}\n");
     out_cc->dec_indent();
+    out_cc->println("}\n");
 }
 
 string TypeDecl::ParseFuncPrototype(Env* env) {
@@ -283,8 +279,7 @@ void TypeDecl::GenParseFunc(Output* out_h, Output* out_cc) {
         env->SetEvaluated(end_of_data);
     }
 
-    string proto;
-    proto = ParseFuncPrototype(env);
+    string proto = ParseFuncPrototype(env);
 
 #if 0
 	if ( func_type == PARSE )
@@ -303,9 +298,8 @@ void TypeDecl::GenParseFunc(Output* out_h, Output* out_cc) {
     out_h->println(proto.c_str(), "", ";");
 
     string tmp = strfmt("%s::", class_name().c_str());
-    out_cc->println(proto.c_str(), tmp.c_str(), "");
+    out_cc->println(proto.c_str(), tmp.c_str(), " {");
     out_cc->inc_indent();
-    out_cc->println("{");
 
     DataPtr data(env, nullptr, 0);
 
@@ -314,8 +308,8 @@ void TypeDecl::GenParseFunc(Output* out_h, Output* out_cc) {
     type_->GenParseCode(out_cc, env, data, 0);
     GenParsingEnd(out_cc, env, data);
 
-    out_cc->println("}\n");
     out_cc->dec_indent();
+    out_cc->println("}\n");
 }
 
 void TypeDecl::GenInitialBufferLengthFunc(Output* out_h, Output* out_cc) {

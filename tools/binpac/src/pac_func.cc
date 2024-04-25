@@ -51,27 +51,23 @@ void Function::GenCode(Output* out_h, Output* out_cc) {
     ASSERT(! (expr_ && code_));
 
     if ( expr_ ) {
-        out_cc->println("%s", proto_str.c_str());
-
+        out_cc->println("%s {", proto_str.c_str());
         out_cc->inc_indent();
-        out_cc->println("{");
 
         out_cc->println("return static_cast<%s>(%s);", type_->DataTypeStr().c_str(), expr_->EvalExpr(out_cc, env_));
 
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
 
     else if ( code_ ) {
-        out_cc->println("%s", proto_str.c_str());
-
+        out_cc->println("%s {", proto_str.c_str());
         out_cc->inc_indent();
-        out_cc->println("{");
 
         code_->GenCode(out_cc, env_);
 
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
 
     out_cc->println("");

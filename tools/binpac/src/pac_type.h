@@ -111,7 +111,7 @@ public:
     string DataTypeConstRefStr() const {
         string data_type = DataTypeStr();
         if ( ! IsPointerType() && ! IsNumericType() )
-            data_type += " const &";
+            data_type += " const&";
         return data_type;
     }
 

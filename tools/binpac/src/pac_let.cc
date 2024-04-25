@@ -63,9 +63,8 @@ void LetField::GenParseCode(Output* out_cc, Env* env) {
         // force evaluation of IDs contained in this expr
         expr()->ForceIDEval(out_cc, env);
 
-        out_cc->println("if ( %s )", env->RValue(type_->has_value_var()));
+        out_cc->println("if ( %s ) {", env->RValue(type_->has_value_var()));
         out_cc->inc_indent();
-        out_cc->println("{");
     }
 
     out_cc->println("%s = %s;", env->LValue(id_), expr()->EvalExpr(out_cc, env));
@@ -73,8 +72,8 @@ void LetField::GenParseCode(Output* out_cc, Env* env) {
         env->SetEvaluated(id_);
 
     if ( type_->attr_if_expr() ) {
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
 }
 

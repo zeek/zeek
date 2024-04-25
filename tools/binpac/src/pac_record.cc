@@ -41,7 +41,7 @@ bool RecordType::DefineValueVar() const { return false; }
 
 string RecordType::DataTypeStr() const {
     ASSERT(type_decl());
-    return strfmt("%s *", type_decl()->class_name().c_str());
+    return strfmt("%s*", type_decl()->class_name().c_str());
 }
 
 void RecordType::Prepare(Env* env, int flags) {
@@ -347,7 +347,7 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env) {
 
     out_cc->println("// Parse \"%s\"", id_->Name());
 #if 0
-	out_cc->println("DEBUG_MSG(\"%%.6f Parse %s\\n\", network_time());", 
+	out_cc->println("DEBUG_MSG(\"%%.6f Parse %s\\n\", network_time());",
 		id_->Name());
 #endif
     type_->GenPreParsing(out_cc, env);
@@ -357,8 +357,8 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env) {
         out_cc->println("/* fall through */");
         out_cc->dec_indent();
         out_cc->println("case %d:", parsing_state_seq());
-        out_cc->inc_indent();
         out_cc->println("{");
+        out_cc->inc_indent();
     }
 
     type_->GenParseCode(out_cc, env, data, 0);
@@ -374,7 +374,7 @@ void RecordDataField::GenParseCode(Output* out_cc, Env* env) {
 
     if ( record_type()->incremental_parsing() ) {
 #if 0
-		const ID *dataptr_var = 
+		const ID *dataptr_var =
 			record_type()->parsing_dataptr_var();
 		ASSERT(dataptr_var);
 		out_cc->println("%s += (%s);",
@@ -484,50 +484,46 @@ void RecordPaddingField::GenFieldEnd(Output* out_cc, Env* env, const DataPtr& fi
     char* padding_var;
     switch ( ptype_ ) {
         case PAD_BY_LENGTH:
-            out_cc->println("if ( (%s) < 0 ) // check for negative pad length", expr_->EvalExpr(out_cc, env));
+            out_cc->println("if ( (%s) < 0 ) { // check for negative pad length", expr_->EvalExpr(out_cc, env));
             out_cc->inc_indent();
-            out_cc->println("{");
             out_cc->println("throw binpac::ExceptionInvalidStringLength(\"%s\", %s);", Location(),
                             expr_->EvalExpr(out_cc, env));
-            out_cc->println("}");
             out_cc->dec_indent();
+            out_cc->println("}");
             out_cc->println("");
 
             out_cc->println("const_byteptr const %s = %s + (%s);", env->LValue(end_of_field_dataptr_var),
                             field_begin.ptr_expr(), expr_->EvalExpr(out_cc, env));
 
             out_cc->println("// Checking out-of-bound padding for \"%s\"", field_id_str_.c_str());
-            out_cc->println("if ( %s > %s || %s < %s )", env->LValue(end_of_field_dataptr_var),
+            out_cc->println("if ( %s > %s || %s < %s ) {", env->LValue(end_of_field_dataptr_var),
                             env->RValue(end_of_data), env->LValue(end_of_field_dataptr_var), field_begin.ptr_expr());
             out_cc->inc_indent();
-            out_cc->println("{");
             out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", field_id_str_.c_str());
             out_cc->println("	(%s), ", expr_->EvalExpr(out_cc, env));
             out_cc->println("	(%s) - (%s));", env->RValue(end_of_data), env->LValue(end_of_field_dataptr_var));
-            out_cc->println("}");
             out_cc->dec_indent();
+            out_cc->println("}");
             out_cc->println("");
             break;
 
         case PAD_TO_OFFSET:
             out_cc->println("const_byteptr %s = %s + (%s);", env->LValue(end_of_field_dataptr_var),
                             env->RValue(begin_of_data), expr_->EvalExpr(out_cc, env));
-            out_cc->println("if ( %s < %s )", env->LValue(end_of_field_dataptr_var), field_begin.ptr_expr());
+            out_cc->println("if ( %s < %s ) {", env->LValue(end_of_field_dataptr_var), field_begin.ptr_expr());
             out_cc->inc_indent();
-            out_cc->println("{");
             out_cc->println("// throw binpac::ExceptionInvalidOffset(\"%s\", %s - %s, %s);", id_->LocName(),
                             field_begin.ptr_expr(), env->RValue(begin_of_data), expr_->EvalExpr(out_cc, env));
             out_cc->println("%s = %s;", env->LValue(end_of_field_dataptr_var), field_begin.ptr_expr());
-            out_cc->println("}");
             out_cc->dec_indent();
-            out_cc->println("if ( %s > %s )", env->LValue(end_of_field_dataptr_var), env->RValue(end_of_data));
+            out_cc->println("}");
+            out_cc->println("if ( %s > %s ) {", env->LValue(end_of_field_dataptr_var), env->RValue(end_of_data));
             out_cc->inc_indent();
-            out_cc->println("{");
             out_cc->println("throw binpac::ExceptionOutOfBound(\"%s\",", field_id_str_.c_str());
             out_cc->println("	(%s), ", expr_->EvalExpr(out_cc, env));
             out_cc->println("	(%s) - (%s));", env->RValue(end_of_data), env->LValue(end_of_field_dataptr_var));
-            out_cc->println("}");
             out_cc->dec_indent();
+            out_cc->println("}");
             break;
 
         case PAD_TO_NEXT_WORD:

@@ -319,9 +319,8 @@ void Type::GenBufferConfiguration(Output* out_cc, Env* env) {
                 break;
 
             ASSERT(env->GetDataType(buffering_state_id));
-            out_cc->println("if ( %s == 0 )", env->RValue(buffering_state_id));
+            out_cc->println("if ( %s == 0 ) {", env->RValue(buffering_state_id));
             out_cc->inc_indent();
-            out_cc->println("{");
 
             if ( attr_length_expr_ ) {
                 // frame_buffer_arg = attr_length_expr_->EvalExpr(out_cc, env);
@@ -339,15 +338,14 @@ void Type::GenBufferConfiguration(Output* out_cc, Env* env) {
                             attr_chunked() ? "true" : "false");
 
             out_cc->println("%s = 1;", env->LValue(buffering_state_id));
-            out_cc->println("}");
             out_cc->dec_indent();
+            out_cc->println("}");
             break;
 
         case BUFFER_BY_LINE:
             ASSERT(env->GetDataType(buffering_state_id));
-            out_cc->println("if ( %s == 0 )", env->RValue(buffering_state_id));
+            out_cc->println("if ( %s == 0 ) {", env->RValue(buffering_state_id));
             out_cc->inc_indent();
-            out_cc->println("{");
 
             if ( BufferableWithLineBreaker() )
                 out_cc->println("%s->SetLineBreaker((unsigned char*)%s);", env->LValue(flow_buffer_id),
@@ -358,8 +356,8 @@ void Type::GenBufferConfiguration(Output* out_cc, Env* env) {
             out_cc->println("%s->NewLine();", env->LValue(flow_buffer_id));
 
             out_cc->println("%s = 1;", env->LValue(buffering_state_id));
-            out_cc->println("}");
             out_cc->dec_indent();
+            out_cc->println("}");
             break;
 
         default: ASSERT(0); break;
@@ -368,12 +366,11 @@ void Type::GenBufferConfiguration(Output* out_cc, Env* env) {
 
 void Type::GenPreParsing(Output* out_cc, Env* env) {
     if ( incremental_input() && IsPointerType() ) {
-        out_cc->println("if ( ! %s )", env->LValue(value_var()));
+        out_cc->println("if ( ! %s ) {", env->LValue(value_var()));
         out_cc->inc_indent();
-        out_cc->println("{");
         GenNewInstance(out_cc, env);
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
     else
         GenNewInstance(out_cc, env);
@@ -425,12 +422,14 @@ void Type::GenParseCode(Output* out_cc, Env* env, const DataPtr& data, int flags
             GenBoundaryCheck(out_cc, env, data);
 
             out_cc->println("{");
+            out_cc->inc_indent();
             out_cc->println("// Setting %s with &length", env->RValue(end_of_data));
             out_cc->println("%s %s = %s + %s;", extern_type_const_byteptr->DataTypeStr().c_str(),
                             env->LValue(end_of_data), data.ptr_expr(), EvalLengthExpr(out_cc, env).c_str());
 
             GenParseCode2(out_cc, env, data, flags);
 
+            out_cc->dec_indent();
             out_cc->println("}");
         }
         else {
@@ -440,16 +439,16 @@ void Type::GenParseCode(Output* out_cc, Env* env, const DataPtr& data, int flags
 }
 
 void Type::GenBufferingLoop(Output* out_cc, Env* env, int flags) {
-    out_cc->println("while ( ! %s && %s->ready() )", env->LValue(parsing_complete_var()), env->LValue(flow_buffer_id));
+    out_cc->println("while ( ! %s && %s->ready() ) {", env->LValue(parsing_complete_var()),
+                    env->LValue(flow_buffer_id));
 
     out_cc->inc_indent();
-    out_cc->println("{");
 
     Env buffer_env(env, this);
     GenParseBuffer(out_cc, &buffer_env, flags);
 
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 }
 
 void Type::GenParseBuffer(Output* out_cc, Env* env, int flags) {
@@ -488,9 +487,8 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags) {
 
     if ( attr_length_expr() ) {
         ASSERT(buffer_mode() == BUFFER_BY_LENGTH);
-        out_cc->println("switch ( %s )", env->LValue(buffering_state_id));
+        out_cc->println("switch ( %s ) {", env->LValue(buffering_state_id));
         out_cc->inc_indent();
-        out_cc->println("{");
         out_cc->println("case 0:");
         out_cc->inc_indent();
         GenBufferConfiguration(out_cc, env);
@@ -499,34 +497,33 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags) {
         out_cc->dec_indent();
 
         out_cc->println("case 1:");
-        out_cc->inc_indent();
 
         out_cc->println("{");
+        out_cc->inc_indent();
 
         out_cc->println("%s = 2;", env->LValue(buffering_state_id));
 
         Env frame_length_env(env, this);
         out_cc->println("%s->GrowFrame(%s);", env->LValue(flow_buffer_id),
                         attr_length_expr_->EvalExpr(out_cc, &frame_length_env));
+        out_cc->dec_indent();
         out_cc->println("}");
         out_cc->println("break;");
 
-        out_cc->dec_indent();
         out_cc->println("case 2:");
         out_cc->inc_indent();
 
         out_cc->println("BINPAC_ASSERT(%s->ready());", env->RValue(flow_buffer_id));
-        out_cc->println("if ( %s->ready() )", env->RValue(flow_buffer_id));
+        out_cc->println("if ( %s->ready() ) {", env->RValue(flow_buffer_id));
         out_cc->inc_indent();
-        out_cc->println("{");
 
         Env parse_env(env, this);
         GenParseCode2(out_cc, &parse_env, data, 0);
 
         out_cc->println("BINPAC_ASSERT(%s);", parsing_complete(env).c_str());
         out_cc->println("%s = 0;", env->LValue(buffering_state_id));
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
 
         out_cc->println("break;");
 
@@ -538,8 +535,8 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags) {
         out_cc->println("break;");
 
         out_cc->dec_indent();
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
     else if ( attr_restofflow_ ) {
         out_cc->println("BINPAC_ASSERT(%s->eof());", env->RValue(flow_buffer_id));
@@ -589,9 +586,8 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
     DoGenParseCode(out_cc, env, data, flags);
 
     if ( incremental_input() ) {
-        out_cc->println("if ( %s )", parsing_complete(env).c_str());
+        out_cc->println("if ( %s ) {", parsing_complete(env).c_str());
         out_cc->inc_indent();
-        out_cc->println("{");
     }
 
     if ( ! fields_->empty() ) {
@@ -614,8 +610,8 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
     }
 
     if ( incremental_input() ) {
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
 
     if ( value_var() )
@@ -628,12 +624,11 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
         Expr* enforce = *i;
         const char* enforce_expr = enforce->EvalExpr(out_cc, env);
         out_cc->println("// Evaluate '&enforce' attribute");
-        out_cc->println("if (!%s)", enforce_expr);
+        out_cc->println("if (!%s) {", enforce_expr);
         out_cc->inc_indent();
-        out_cc->println("{");
         out_cc->println("throw binpac::ExceptionEnforceViolation(\"%s\");", data_id_str_.c_str());
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
 }
 

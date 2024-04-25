@@ -36,7 +36,7 @@ bool CaseType::DefineValueVar() const { return false; }
 
 string CaseType::DataTypeStr() const {
     ASSERT(type_decl());
-    return strfmt("%s *", type_decl()->class_name().c_str());
+    return strfmt("%s*", type_decl()->class_name().c_str());
 }
 
 Type* CaseType::ValueType() const {
@@ -117,15 +117,14 @@ void CaseType::GenCleanUpCode(Output* out_cc, Env* env) {
     Type::GenCleanUpCode(out_cc, env);
 
     env->set_in_branch(true);
-    out_cc->println("switch ( %s )", env->RValue(index_var_));
+    out_cc->println("switch ( %s ) {", env->RValue(index_var_));
     out_cc->inc_indent();
-    out_cc->println("{");
     foreach (i, CaseFieldList, cases_) {
         CaseField* c = *i;
         c->GenCleanUpCode(out_cc, env);
     }
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
     env->set_in_branch(false);
 }
 
@@ -142,9 +141,8 @@ void CaseType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int
     env->SetEvaluated(index_var_);
 
     env->set_in_branch(true);
-    out_cc->println("switch ( %s )", env->RValue(index_var_));
+    out_cc->println("switch ( %s ) {", env->RValue(index_var_));
     out_cc->inc_indent();
-    out_cc->println("{");
     bool has_default_case = false;
     foreach (i, CaseFieldList, cases_) {
         CaseField* c = *i;
@@ -161,8 +159,8 @@ void CaseType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int
         out_cc->println("break;");
         out_cc->dec_indent();
     }
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
     env->set_in_branch(false);
 
     if ( compute_size_var )
@@ -282,7 +280,7 @@ void GenCaseStr(ExprList* index_list, Output* out_cc, Env* env, Type* switch_typ
             // We're always using "int" for storage, so ok to just
             // cast into the type used by the switch statement since
             // some unsafe stuff is already checked above.
-            out_cc->println("case ((%s) %d):", switch_type->DataTypeStr().c_str(), index_const);
+            out_cc->println("case ((%s)%d):", switch_type->DataTypeStr().c_str(), index_const);
         }
     }
     else {
@@ -303,17 +301,14 @@ void CaseField::GenPubDecls(Output* out_h, Env* env) {
     if ( type_->DataTypeStr().empty() )
         return;
 
-    out_h->println("%s %s const", type_->DataTypeConstRefStr().c_str(), env->RValue(id_));
-
+    out_h->println("%s %s const {", type_->DataTypeConstRefStr().c_str(), env->RValue(id_));
     out_h->inc_indent();
-    out_h->println("{");
 
     if ( ! index_ )
         out_h->println("return %s;", lvalue());
     else {
-        out_h->println("switch ( %s )", env->RValue(index_var_));
+        out_h->println("switch ( %s ) {", env->RValue(index_var_));
         out_h->inc_indent();
-        out_h->println("{");
         GenCaseStr(index_, out_h, env, case_type()->IndexExpr()->DataType(env));
         out_h->inc_indent();
         out_h->println("break;  // OK");
@@ -326,14 +321,14 @@ void CaseField::GenPubDecls(Output* out_h, Env* env) {
         out_h->println("break;");
         out_h->dec_indent();
 
-        out_h->println("}");
         out_h->dec_indent();
+        out_h->println("}");
 
         out_h->println("return %s;", lvalue());
     }
 
-    out_h->println("}");
     out_h->dec_indent();
+    out_h->println("}");
 }
 
 void CaseField::GenInitCode(Output* out_cc, Env* env) {
@@ -351,10 +346,16 @@ void CaseField::GenCleanUpCode(Output* out_cc, Env* env) {
     GenCaseStr(index_, out_cc, env, case_type()->IndexExpr()->DataType(env));
     out_cc->inc_indent();
     out_cc->println("// Clean up \"%s\"", id_->Name());
-    out_cc->println("{");
-    if ( ! anonymous_field() )
+    if ( ! anonymous_field() ) {
+        out_cc->println("{");
+        out_cc->inc_indent();
         type_->GenCleanUpCode(out_cc, env);
-    out_cc->println("}");
+        out_cc->dec_indent();
+        out_cc->println("}");
+    }
+    else
+        out_cc->println("{}");
+
     out_cc->println("break;");
     out_cc->dec_indent();
 }
@@ -364,6 +365,7 @@ void CaseField::GenParseCode(Output* out_cc, Env* env, const DataPtr& data, cons
     out_cc->inc_indent();
     out_cc->println("// Parse \"%s\"", id_->Name());
     out_cc->println("{");
+    out_cc->inc_indent();
 
     {
         Env case_env(env, this);
@@ -378,9 +380,10 @@ void CaseField::GenParseCode(Output* out_cc, Env* env, const DataPtr& data, cons
             out_cc->println("%s = %s;", case_env.LValue(case_type()->parsing_complete_var()),
                             case_env.RValue(type_->parsing_complete_var()));
         }
-        out_cc->println("}");
     }
 
+    out_cc->dec_indent();
+    out_cc->println("}");
     out_cc->println("break;");
     out_cc->dec_indent();
 }

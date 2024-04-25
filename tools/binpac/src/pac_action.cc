@@ -34,15 +34,14 @@ void AnalyzerAction::GenCode(Output* out_h, Output* out_cc, AnalyzerDecl* decl) 
 
     out_h->println("void %s;", action_func_proto.c_str());
 
-    out_cc->println("void %s::%s", decl->class_name().c_str(), action_func_proto.c_str());
+    out_cc->println("void %s::%s {", decl->class_name().c_str(), action_func_proto.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
 
     code_->GenCode(out_cc, &action_func_env);
 
     out_cc->println("");
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
     out_cc->println("");
 }
 

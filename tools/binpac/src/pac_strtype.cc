@@ -233,12 +233,11 @@ void StringType::GenCheckingCStr(Output* out_cc, Env* env, const DataPtr& data, 
     string str_val = str_->str();
 
     // Compare the string and report error on mismatch
-    out_cc->println("if ( memcmp(%s, %s, %s) != 0 )", data.ptr_expr(), str_val.c_str(), str_size.c_str());
+    out_cc->println("if ( memcmp(%s, %s, %s) != 0 ) {", data.ptr_expr(), str_val.c_str(), str_size.c_str());
     out_cc->inc_indent();
-    out_cc->println("{");
     GenStringMismatch(out_cc, env, data, str_val);
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 }
 
 void StringType::GenDynamicSizeRegEx(Output* out_cc, Env* env, const DataPtr& data) {
@@ -261,13 +260,12 @@ void StringType::GenDynamicSizeRegEx(Output* out_cc, Env* env, const DataPtr& da
 
     env->SetEvaluated(string_length_var());
 
-    out_cc->println("if ( %s < 0 )", env->RValue(string_length_var()));
+    out_cc->println("if ( %s < 0 ) {", env->RValue(string_length_var()));
     out_cc->inc_indent();
-    out_cc->println("{");
     string tmp = strfmt("\"%s\"", regex_->str().c_str());
     GenStringMismatch(out_cc, env, data, tmp);
-    out_cc->println("}");
     out_cc->dec_indent();
+    out_cc->println("}");
 }
 
 void StringType::GenDynamicSizeAnyStr(Output* out_cc, Env* env, const DataPtr& data) {

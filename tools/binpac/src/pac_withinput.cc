@@ -39,9 +39,8 @@ void WithInputField::GenParseCode(Output* out_cc, Env* env) {
     if ( type_->attr_if_expr() ) {
         // A conditional field
         env->Evaluate(out_cc, type_->has_value_var());
-        out_cc->println("if ( %s )", env->RValue(type_->has_value_var()));
+        out_cc->println("if ( %s ) {", env->RValue(type_->has_value_var()));
         out_cc->inc_indent();
-        out_cc->println("{");
     }
     else
         out_cc->println("{");
@@ -52,8 +51,8 @@ void WithInputField::GenParseCode(Output* out_cc, Env* env) {
     type_->GenParseCode(out_cc, &field_env, input()->GenDataBeginEnd(out_cc, &field_env), 0);
 
     if ( type_->attr_if_expr() ) {
-        out_cc->println("}");
         out_cc->dec_indent();
+        out_cc->println("}");
     }
     else
         out_cc->println("}");

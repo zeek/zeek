@@ -25,7 +25,7 @@ static void DbgAndWarn(const char* msg) {
         // be confusing.
         return;
 
-    reporter->Warning("%s", msg);
+    reporter->Warning("[zeekygen] %s", msg);
     DBG_LOG(DBG_ZEEKYGEN, "%s", msg);
 }
 

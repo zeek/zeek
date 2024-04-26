@@ -1,3 +1,13 @@
+7.0.0-dev.187 | 2024-04-26 12:29:18 -0700
+
+  * Gracefully handle empty/missing shadow file (Peter Cullen, Corelight)
+
+    When a shadow file is empty/missing during rotation, Zeek aborts
+    with an error message, but if the shadow file was empty, it'll still
+    be there after the restart, causing an endless restart loop. This
+    solution gracefully handles the rotation in such cases using the
+    default file extension and post processing function.
+
 7.0.0-dev.184 | 2024-04-26 11:17:52 -0700
 
   * GH-3671: Factor in caplens in ICMPAnalyzer::DeliverPacket length calculations (Christian Kreibich, Corelight)

@@ -23,8 +23,8 @@ using namespace zeek::packet_analysis::TCP;
 
 TCPSessionAdapter::TCPSessionAdapter(Connection* conn) : packet_analysis::IP::SessionAdapter("TCP", conn) {
     // Set a timer to eventually time out this connection.
-    ADD_ANALYZER_TIMER(&TCPSessionAdapter::ExpireTimer, run_state::network_time + detail::tcp_SYN_timeout, false,
-                       detail::TIMER_TCP_EXPIRE);
+    ADD_ANALYZER_TIMER(&TCPSessionAdapter::ExpireTimer, run_state::network_time + zeek::detail::tcp_SYN_timeout, false,
+                       zeek::detail::TIMER_TCP_EXPIRE);
 
     deferred_gen_event = close_deferred = 0;
 
@@ -529,8 +529,8 @@ void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len, 
     if ( flags.FIN() ) {
         ++endpoint->FIN_cnt;
 
-        if ( endpoint->FIN_cnt >= detail::tcp_storm_thresh &&
-             run_state::current_timestamp < endpoint->last_time + detail::tcp_storm_interarrival_thresh )
+        if ( endpoint->FIN_cnt >= zeek::detail::tcp_storm_thresh &&
+             run_state::current_timestamp < endpoint->last_time + zeek::detail::tcp_storm_interarrival_thresh )
             Weird("FIN_storm");
 
         endpoint->FIN_seq = rel_seq + seg_len;
@@ -539,8 +539,8 @@ void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len, 
     if ( flags.RST() ) {
         ++endpoint->RST_cnt;
 
-        if ( endpoint->RST_cnt >= detail::tcp_storm_thresh &&
-             run_state::current_timestamp < endpoint->last_time + detail::tcp_storm_interarrival_thresh )
+        if ( endpoint->RST_cnt >= zeek::detail::tcp_storm_thresh &&
+             run_state::current_timestamp < endpoint->last_time + zeek::detail::tcp_storm_interarrival_thresh )
             Weird("RST_storm");
 
         // This now happens often enough that it's
@@ -717,8 +717,8 @@ void TCPSessionAdapter::UpdateInactiveState(double t, analyzer::tcp::TCP_Endpoin
                 endpoint->SetState(analyzer::tcp::TCP_ENDPOINT_SYN_SENT);
 
             if ( zeek::detail::tcp_attempt_delay )
-                ADD_ANALYZER_TIMER(&TCPSessionAdapter::AttemptTimer, t + detail::tcp_attempt_delay, true,
-                                   detail::TIMER_TCP_ATTEMPT);
+                ADD_ANALYZER_TIMER(&TCPSessionAdapter::AttemptTimer, t + zeek::detail::tcp_attempt_delay, true,
+                                   zeek::detail::TIMER_TCP_ATTEMPT);
         }
         else {
             if ( flags.ACK() ) {
@@ -1205,7 +1205,7 @@ void TCPSessionAdapter::ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint, 
 
     if ( DEBUG_tcp_connection_close ) {
         DEBUG_MSG("%.6f close_complete=%d tcp_close_delay=%f\n", run_state::network_time, close_complete,
-                  detail::tcp_close_delay);
+                  zeek::detail::tcp_close_delay);
     }
 
     if ( close_complete ) {

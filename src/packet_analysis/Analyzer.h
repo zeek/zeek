@@ -266,7 +266,7 @@ private:
     const AnalyzerPtr& DetectInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet) const;
 
     zeek::Tag tag;
-    Dispatcher dispatcher;
+    detail::Dispatcher dispatcher;
     AnalyzerPtr default_analyzer = nullptr;
     bool enabled = true;
 

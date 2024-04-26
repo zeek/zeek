@@ -1,3 +1,13 @@
+7.0.0-dev.184 | 2024-04-26 11:17:52 -0700
+
+  * GH-3671: Factor in caplens in ICMPAnalyzer::DeliverPacket length calculations (Christian Kreibich, Corelight)
+
+  * Update binpac submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update gen-zam submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.0.0-dev.179 | 2024-04-25 09:15:30 -0700
 
   * rewrite of ZAM optimization of BiFs and script functions/idioms (Vern Paxson, Corelight)

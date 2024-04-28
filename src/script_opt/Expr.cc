@@ -229,7 +229,7 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
         // conditional.
         StmtPtr red_stmt2;
         new_me = new_me->ReduceToConditional(c, red_stmt2);
-        red_stmt = MergeStmts(red_stmt, red_stmt2);
+        red_stmt = MergeStmts(std::move(red_stmt), std::move(red_stmt2));
 
         return new_me;
     }
@@ -252,7 +252,7 @@ ExprPtr Expr::ReduceToConditional(Reducer* c, StmtPtr& red_stmt) {
 
             StmtPtr red_stmt2;
             auto res = Reduce(c, red_stmt2);
-            red_stmt = MergeStmts(red_stmt, red_stmt2);
+            red_stmt = MergeStmts(std::move(red_stmt), std::move(red_stmt2));
             return res;
         }
 
@@ -2950,7 +2950,7 @@ bool ScriptOptBuiltinExpr::IsPure() const { return arg1->IsPure() && (! arg2 || 
 
 ExprPtr ScriptOptBuiltinExpr::Duplicate() {
     auto new_me = make_intrusive<ScriptOptBuiltinExpr>(tag, arg1, arg2);
-    return with_location_of(new_me, this);
+    return with_location_of(std::move(new_me), this);
 }
 
 bool ScriptOptBuiltinExpr::IsReduced(Reducer* c) const {
@@ -2980,7 +2980,7 @@ ExprPtr ScriptOptBuiltinExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         if ( arg2 ) {
             StmtPtr red_stmt2;
             arg2 = arg2->Reduce(c, red_stmt2);
-            red_stmt = MergeStmts(red_stmt, red_stmt2);
+            red_stmt = MergeStmts(std::move(red_stmt), std::move(red_stmt2));
         }
     }
 

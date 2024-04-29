@@ -1,3 +1,7 @@
+7.0.0-dev.191 | 2024-04-29 09:06:24 -0700
+
+  * Avoid calling typecasts in Val when we have direct access to the underlying value object (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.187 | 2024-04-26 12:29:18 -0700
 
   * Gracefully handle empty/missing shadow file (Peter Cullen, Corelight)

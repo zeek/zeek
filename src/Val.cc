@@ -855,6 +855,10 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
     return make_intrusive<StringVal>(new String(true, result, r - result));
 }
 
+unsigned int StringVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const {
+    return 1 /* this object */ + static_cast<unsigned int>(Len()) / sizeof(Val);
+}
+
 static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t,
                                                   const FuncPtr& key_func) {
     auto mismatch_err = [t, &j]() {

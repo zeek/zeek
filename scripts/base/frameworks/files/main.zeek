@@ -603,7 +603,7 @@ event file_state_remove(f: fa_file) &priority=-10
 		# by reference in Log::write() rather than by copy.
 		local info = |f$conns| > 1 ? copy(f$info) : f$info;
 		info$uid = c$uid;
-		info$id = cid;
+		info$id = c$id;
 		Log::write(Files::LOG, info);
 		}
 	}

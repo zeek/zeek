@@ -1,3 +1,12 @@
+7.0.0-dev.196 | 2024-04-29 09:09:28 -0700
+
+  * Fix cid propagation into files.log (Johanna Amann, Corelight)
+
+    Changes to the connection id were not propagated to files.log in all
+    cases.
+
+    Fixes GH-3700
+
 7.0.0-dev.194 | 2024-04-29 09:08:20 -0700
 
   * factored BTest constants into globals to prevent premature ZAM optimization when testing (Vern Paxson, Corelight)

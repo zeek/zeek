@@ -1,3 +1,9 @@
+7.0.0-dev.194 | 2024-04-29 09:08:20 -0700
+
+  * factored BTest constants into globals to prevent premature ZAM optimization when testing (Vern Paxson, Corelight)
+
+  * addressed minor issues flagged by Coverity (Vern Paxson, Corelight)
+
 7.0.0-dev.191 | 2024-04-29 09:06:24 -0700
 
   * Avoid calling typecasts in Val when we have direct access to the underlying value object (Tim Wojtulewicz, Corelight)

@@ -1233,7 +1233,7 @@ direct-unary-op Record-Constructor ConstructRecord
 macro ConstructRecordPost()
 	auto& r = frame[z.v1].record_val;
 	Unref(r);
-	r = new RecordVal(cast_intrusive<RecordType>(z.t), init_vals);
+	r = new RecordVal(cast_intrusive<RecordType>(z.t), std::move(init_vals));
 
 op Construct-Direct-Record
 type V

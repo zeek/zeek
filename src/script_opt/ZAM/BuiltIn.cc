@@ -290,7 +290,7 @@ MultiZBI::MultiZBI(std::string name, bool _ret_val_matters, BiFArgsInfo _args_in
     : ZAMBuiltIn(std::move(name), _ret_val_matters), args_info(std::move(_args_info)), type_arg(_type_arg) {}
 
 MultiZBI::MultiZBI(std::string name, BiFArgsInfo _args_info, BiFArgsInfo _assign_args_info, int _type_arg)
-    : MultiZBI(std::move(name), false, _args_info, _type_arg) {
+    : MultiZBI(std::move(name), false, std::move(_args_info), _type_arg) {
     assign_args_info = std::move(_assign_args_info);
     have_both = true;
 }

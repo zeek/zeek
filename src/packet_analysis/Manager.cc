@@ -159,7 +159,7 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag) {
         return nullptr;
     }
 
-    if ( tag != a->GetAnalyzerTag() ) {
+    if ( tag != a->GetAnalyzerTag() && ! HasComponentMapping(tag) ) {
         reporter->InternalError(
             "Mismatch of requested analyzer %s and instantiated analyzer %s. "
             "This usually means that the plugin author made a mistake.",

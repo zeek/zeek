@@ -42,7 +42,7 @@ void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer) {
     }
 
     int64_t index = identifier - lowest_identifier;
-    if ( table[index] != nullptr )
+    if ( table[index] != nullptr && table[index] != analyzer )
         reporter->Info("Overwriting packet analyzer mapping %#8" PRIx64 " => %s with %s", index + lowest_identifier,
                        table[index]->GetAnalyzerName(), analyzer->GetAnalyzerName());
     table[index] = std::move(analyzer);

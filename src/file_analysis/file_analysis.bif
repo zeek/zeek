@@ -41,7 +41,7 @@ function Files::__set_reassembly_buffer%(file_id: string, max: count%): bool
 ## :zeek:see:`Files::enable_analyzer`.
 function Files::__enable_analyzer%(tag: Files::Tag%) : bool
 	%{
-	auto c = zeek::file_mgr->Lookup(tag->AsEnumVal());
+	auto c = zeek::file_mgr->Lookup(tag->AsEnumVal(), false);
 
 	if ( ! c )
 		return zeek::val_mgr->False();
@@ -53,7 +53,7 @@ function Files::__enable_analyzer%(tag: Files::Tag%) : bool
 ## :zeek:see:`Files::disable_analyzer`.
 function Files::__disable_analyzer%(tag: Files::Tag%) : bool
 	%{
-	auto c = zeek::file_mgr->Lookup(tag->AsEnumVal());
+	auto c = zeek::file_mgr->Lookup(tag->AsEnumVal(), false);
 
 	if ( ! c )
 		return zeek::val_mgr->False();

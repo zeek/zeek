@@ -21,7 +21,7 @@ void Component::SetEnabled(bool arg_enabled) {
     plugin::Component::SetEnabled(arg_enabled);
 
     // If we already have instantiated an analyzer, update its state.
-    if ( auto analyzer = packet_mgr->Lookup(Tag().AsVal().get()) )
+    if ( auto analyzer = packet_mgr->Lookup(Tag().AsVal().get(), false) )
         analyzer->SetEnabled(arg_enabled);
 }
 

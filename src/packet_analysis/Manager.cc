@@ -82,14 +82,14 @@ AnalyzerPtr Manager::GetAnalyzer(const std::string& name) {
 }
 
 bool Manager::EnableAnalyzer(EnumVal* tag) {
-    Component* c = Lookup(tag);
+    Component* c = Lookup(tag, false);
     c->SetEnabled(true);
 
     return true;
 }
 
 bool Manager::DisableAnalyzer(EnumVal* tag) {
-    Component* c = Lookup(tag);
+    Component* c = Lookup(tag, false);
     c->SetEnabled(false);
 
     return true;

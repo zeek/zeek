@@ -801,4 +801,30 @@ TEST_SUITE("Analyzer management") {
         CHECK(conn->FindAnalyzer("IMAP"));
         conn->Done();
     }
+
+    TEST_CASE("Analyzer mapping") {
+        REQUIRE(zeek::analyzer_mgr);
+
+        zeek::Packet p;
+        zeek::ConnTuple t;
+        auto conn = std::make_unique<zeek::Connection>(zeek::detail::ConnKey(t), 0, &t, 0, &p);
+
+        auto ssh = zeek::analyzer_mgr->InstantiateAnalyzer("SSH", conn.get());
+        REQUIRE(ssh);
+        auto imap = zeek::analyzer_mgr->InstantiateAnalyzer("IMAP", conn.get());
+        REQUIRE(imap);
+
+        zeek::analyzer_mgr->AddComponentMapping(ssh->GetAnalyzerTag(), imap->GetAnalyzerTag());
+        zeek::analyzer_mgr->DisableAnalyzer(ssh->GetAnalyzerTag()); // needs to be disabled for mapping to take effect
+        auto ssh_is_imap = zeek::analyzer_mgr->InstantiateAnalyzer("SSH", conn.get());
+        CHECK_EQ(ssh_is_imap->GetAnalyzerTag(), imap->GetAnalyzerTag()); // SSH is now IMAP
+
+        // orderly cleanup through connection
+        auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn.get());
+        conn->SetSessionAdapter(tcp, nullptr);
+        tcp->AddChildAnalyzer(ssh);
+        tcp->AddChildAnalyzer(imap);
+        tcp->AddChildAnalyzer(ssh_is_imap);
+        conn->Done();
+    }
 }

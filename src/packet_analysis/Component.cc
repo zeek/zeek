@@ -18,11 +18,11 @@ void Component::Initialize() {
 }
 
 void Component::SetEnabled(bool arg_enabled) {
-    enabled = arg_enabled;
+    plugin::Component::SetEnabled(arg_enabled);
 
     // If we already have instantiated an analyzer, update its state.
-    if ( auto analyzer = packet_mgr->GetAnalyzer(Tag().AsVal().get()) )
-        analyzer->SetEnabled(enabled);
+    if ( auto analyzer = packet_mgr->Lookup(Tag().AsVal().get()) )
+        analyzer->SetEnabled(arg_enabled);
 }
 
 void Component::DoDescribe(ODesc* d) const {
@@ -32,5 +32,5 @@ void Component::DoDescribe(ODesc* d) const {
         d->Add(", ");
     }
 
-    d->Add(enabled ? "enabled" : "disabled");
+    d->Add(Enabled() ? "enabled" : "disabled");
 }

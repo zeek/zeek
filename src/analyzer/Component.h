@@ -85,20 +85,6 @@ public:
      */
     bool Partial() const { return partial; }
 
-    /**
-     * Returns true if the analyzer is currently enabled and hence
-     * available for use.
-     */
-    bool Enabled() const { return enabled; }
-
-    /**
-     * Enables or disables this analyzer.
-     *
-     * @param arg_enabled True to enabled, false to disable.
-     *
-     */
-    void SetEnabled(bool arg_enabled) { enabled = arg_enabled; }
-
 protected:
     /**
      * Overridden from plugin::Component.
@@ -108,7 +94,6 @@ protected:
 private:
     factory_callback factory; // The analyzer's factory callback.
     bool partial;             // True if the analyzer supports partial connections.
-    bool enabled;             // True if the analyzer is enabled.
 };
 
 } // namespace analyzer

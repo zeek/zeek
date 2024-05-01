@@ -2483,12 +2483,14 @@ void TableVal::DoExpire(double t) {
 
     double timeout = GetExpireTime();
 
+    printf("%p %p expire %d\n", this, table_val, Size());
     if ( timeout < 0 )
         // Skip in case of unset/invalid expiration value. If it's an
         // error, it has been reported already.
         return;
 
     if ( ! expire_iterator ) {
+        printf("%p %p new iterator\n", this, table_val);
         auto it = table_val->begin_robust();
         expire_iterator = new RobustDictIterator(std::move(it));
     }
@@ -2563,9 +2565,12 @@ void TableVal::DoExpire(double t) {
         delete expire_iterator;
         expire_iterator = nullptr;
         InitTimer(zeek::detail::table_expire_interval);
+        printf("%p %p reset iterator\n", this, table_val);
     }
     else
         InitTimer(zeek::detail::table_expire_delay);
+
+    printf("%p %p expire done %d\n", this, table_val, Size());
 }
 
 double TableVal::GetExpireTime() {

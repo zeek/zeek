@@ -16,6 +16,8 @@
 // Type for function to be called when deleting elements.
 using dict_delete_func = void (*)(void*);
 
+#define ZEEK_DICT_DEBUG 1
+
 #if defined(DEBUG) && defined(ZEEK_DICT_DEBUG)
 #define ASSERT_VALID(o) o->AssertValid()
 #define ASSERT_EQUAL(a, b) ASSERT(a == b)
@@ -157,6 +159,17 @@ public:
 
     bool operator==(const DictEntry& r) const { return Equal(r.GetKey(), r.key_size, r.hash); }
     bool operator!=(const DictEntry& r) const { return ! Equal(r.GetKey(), r.key_size, r.hash); }
+
+    void PrintKey() const {
+        printf("hash: %u  key_size: %d  ", hash, key_size);
+        for ( int i = 0; i < key_size; i++ ) {
+            if ( key_size <= 8 )
+                printf("%02x", key_here[i]);
+            else
+                printf("%02x", key[i]);
+        }
+        printf("\n");
+    }
 };
 
 using DictEntryVec = std::vector<detail::HashKey>;
@@ -621,6 +634,8 @@ public:
             // necessary.
             detail::DictEntry<T> entry(key, key_size, hash, val, insert_distance, copy_key);
             InsertRelocateAndAdjust(entry, insert_position);
+            printf("%p inserted at %d: ", this, insert_position);
+            entry.PrintKey();
 
             num_entries++;
             cum_entries++;
@@ -843,8 +858,6 @@ public:
             if ( table[i].Empty() )
                 continue;
             key_size += zeek::util::pad_size(table[i].key_size);
-            if ( ! table[i].value )
-                continue;
         }
 
 #define DICT_NUM_DISTANCES 5
@@ -1149,17 +1162,28 @@ private:
             return position;
         }
 
+        if ( insert_position )
+            printf("%p lookupindex: position %d  insert_position %d  bucket %d  capacity %d\n", this, position,
+                   *insert_position, bucket, Capacity());
+
         for ( int i = 1; i <= remaps; i++ ) {
             int prev_bucket = BucketByHash(hash, log2_buckets - i);
             if ( prev_bucket <= remap_end ) {
                 // possibly here. insert_position & insert_distance returned on failed lookup is
                 // not valid in previous table_sizes.
                 position = LookupIndex(key, key_size, hash, prev_bucket, remap_end + 1);
+                if ( insert_position )
+                    printf("%p lookupindex during remap : position %d  insert_position %d\n", this, position,
+                           *insert_position);
+
                 if ( position >= 0 ) {
                     ASSERT_EQUAL(position, linear_position); // same as linearLookup
                     // remap immediately if no iteration is on.
                     if ( ! num_iterators ) {
+                        auto old_position = position;
                         Remap(position, &position);
+                        printf("%p remapped position %d to position %d\n", this, old_position, position);
+
                         ASSERT_EQUAL(position, LookupIndex(key, key_size, hash));
                     }
                     return position;
@@ -1226,8 +1250,9 @@ private:
         }
 
         if ( iterators && ! iterators->empty() )
-            for ( auto c : *iterators )
+            for ( auto c : *iterators ) {
                 AdjustOnInsert(c, entry, insert_position, last_affected_position);
+            }
     }
 
     /// insert entry into position, relocate other entries when necessary.
@@ -1270,8 +1295,14 @@ private:
         c->inserted->erase(std::remove(c->inserted->begin(), c->inserted->end(), entry), c->inserted->end());
         c->visited->erase(std::remove(c->visited->begin(), c->visited->end(), entry), c->visited->end());
 
-        if ( insert_position < c->next )
+        if ( insert_position < c->next ) {
             c->inserted->push_back(entry);
+            printf("%p %p inserted new (%zu now)\n", this, c, c->inserted->size());
+        }
+        else {
+            printf("%p %p didn't add to inserted because %d >= %d\n", this, c, insert_position, c->next);
+        }
+
         if ( insert_position < c->next && c->next <= last_affected_position ) {
             int k = TailOfClusterByPosition(c->next);
             ASSERT(k >= 0 && k < Capacity());
@@ -1345,12 +1376,16 @@ private:
             else
                 c->curr = detail::DictEntry<T>(nullptr); // -> c == end_robust()
         }
+
+        printf("%p %p removed (%zu now)\n", this, c, c->inserted->size());
     }
 
     bool Remapping() const { return remap_end >= 0; } // remap in reverse order.
 
     /// One round of remap.
     void Remap() {
+        printf("%p remap1 %d iterators\n", this, num_iterators);
+
         /// since remap should be very fast. take more at a time.
         /// delay Remap when cookie is there. hard to handle cookie iteration while size changes.
         /// remap from bottom up.
@@ -1377,10 +1412,12 @@ private:
     // successful, false otherwise. new_position will be set to the new position if a
     // pointer is provided to store the new value.
     bool Remap(int position, int* new_position = nullptr) {
+        printf("%p remap2 %d iterators\n", this, num_iterators);
         ASSERT_VALID(this);
-        /// Remap changes item positions by remove() and insert(). to avoid excessive operation.
+        ASSERT(num_iterators == 0);
+        /// Remap changes item positions by remove() and insert(). To avoid excessive operation,
         /// avoid it when safe iteration is in progress.
-        ASSERT(! iterators || iterators->empty());
+        //        ASSERT(! iterators || iterators->empty());
         int current = BucketByPosition(position);                        // current bucket
         int expected = BucketByHash(table[position].hash, log2_buckets); // expected bucket in new
                                                                          // table.
@@ -1414,7 +1451,7 @@ private:
         for ( int i = prev_capacity; i < capacity; i++ )
             table[i].SetEmpty();
 
-        // REmap from last to first in reverse order. SizeUp can be triggered by 2 conditions, one
+        // Remap from last to first in reverse order. SizeUp can be triggered by 2 conditions, one
         // of which is that the last space in the table is occupied and there's nowhere to put new
         // items. In this case, the table doubles in capacity and the item is put at the
         // prev_capacity position with the old hash. We need to cover this item (?).
@@ -1471,6 +1508,8 @@ private:
     }
 
     detail::DictEntry<T> GetNextRobustIteration(RobustDictIterator<T>* iter) {
+        printf("%p get next rempping: %d  next: %d  capacity: %d\n", this, Remapping(), iter->next, Capacity());
+
         // If there's no table in the dictionary, then the iterator needs to be
         // cleaned up because it's not pointing at anything.
         if ( ! table ) {
@@ -1486,6 +1525,7 @@ private:
             // and removing from the tail is cheaper.
             detail::DictEntry<T> e = iter->inserted->back();
             iter->inserted->pop_back();
+            printf("%p get next return for inserted\n", this);
             return e;
         }
 
@@ -1494,6 +1534,12 @@ private:
             iter->next = Next(-1);
 
         if ( iter->next < Capacity() && table[iter->next].Empty() ) {
+            for ( int i = iter->next; i < Capacity(); i++ ) {
+                printf("table[%d] empty: %d\n", i, table[i].Empty());
+                if ( ! table[i].Empty() )
+                    table[i].PrintKey();
+            }
+
             // [Robin] I believe this means that the table has resized in a way
             // that we're now inside the overflow area where elements are empty,
             // because elsewhere empty slots aren't allowed. Assuming that's right,
@@ -1530,6 +1576,7 @@ private:
 
         // prepare for next time.
         iter->next = Next(iter->next);
+        printf("%p get next return for next\n", this);
         return e;
     }
 

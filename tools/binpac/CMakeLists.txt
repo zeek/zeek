@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 project(BinPAC C CXX)
 include(cmake/CommonCMakeConfig.cmake)
+include(cmake/RequireCXXStd.cmake)
 
 file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" BINPAC_VERSION LIMIT_COUNT 1)
 string(REPLACE "." " " _version_numbers ${BINPAC_VERSION})

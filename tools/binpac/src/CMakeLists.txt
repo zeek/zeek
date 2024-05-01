@@ -99,9 +99,9 @@ set(binpac_SRCS
     pac_varfield.h
     pac_withinput.h)
 
+include(${PROJECT_SOURCE_DIR}/cmake/RequireCXXStd.cmake)
+
 add_executable(binpac ${binpac_SRCS})
-target_compile_features(binpac PRIVATE cxx_std_17)
-set_target_properties(binpac PROPERTIES CXX_EXTENSIONS OFF)
 
 if (MSVC)
     # If building separately from zeek, we need to add the libunistd subdirectory

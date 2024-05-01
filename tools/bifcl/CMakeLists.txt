@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 project(BifCl C CXX)
 
 include(cmake/CommonCMakeConfig.cmake)
+include(cmake/RequireCXXStd.cmake)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
@@ -34,8 +35,6 @@ set(bifcl_SRCS
     include/module_util.h)
 
 add_executable(bifcl ${bifcl_SRCS})
-target_compile_features(bifcl PRIVATE cxx_std_17)
-set_target_properties(bifcl PROPERTIES CXX_EXTENSIONS OFF)
 
 if (MSVC)
     # If building separately from zeek, we need to add the libunistd subdirectory

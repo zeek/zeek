@@ -485,15 +485,16 @@ void rt::weird(const std::string& id, const std::string& addl) {
         throw ValueUnavailable("none of $conn, $file, or $packet available for weird reporting");
 }
 
-void rt::protocol_begin(const std::optional<std::string>& analyzer) {
+void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilti::rt::Protocol& proto) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_begin");
 
     if ( analyzer ) {
-        protocol_handle_get_or_create(*analyzer);
+        protocol_handle_get_or_create(*analyzer, proto);
         return;
     }
 
     // Instantiate a DPD analyzer.
+
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     assert(cookie);
 
@@ -501,36 +502,46 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer) {
     if ( ! c )
         throw ValueUnavailable("no current connection available");
 
-    // Use a Zeek PIA stream analyzer performing DPD.
-    auto pia_tcp = std::make_unique<analyzer::pia::PIA_TCP>(c->analyzer->Conn());
+    switch ( proto.value() ) {
+        case ::hilti::rt::Protocol::TCP: {
+            auto pia_tcp = std::make_unique<analyzer::pia::PIA_TCP>(c->analyzer->Conn());
+            pia_tcp->FirstPacket(true, nullptr);
+            pia_tcp->FirstPacket(false, nullptr);
 
-    // Forward empty payload to trigger lifecycle management in this analyzer tree.
-    c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), true);
-    c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), false);
+            // Forward empty payload to trigger lifecycle management in this analyzer tree.
+            c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), true);
+            c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), false);
 
-    // Direct child of this type already exists. We ignore this silently
-    // because that makes usage nicer if either side of the connection
-    // might end up creating the analyzer; this way the user doesn't
-    // need to track what the other side already did.
-    //
-    // We inspect the children directly to work around zeek/zeek#2899.
-    const auto& children = c->analyzer->GetChildren();
-    if ( auto it = std::find_if(children.begin(), children.end(),
-                                [&](const auto& it) {
-                                    return ! it->Removing() && ! it->IsFinished() &&
-                                           it->GetAnalyzerTag() == pia_tcp->GetAnalyzerTag();
-                                });
-         it != children.end() )
-        return;
+            // If the child already exists, do not add it again so this function is idempotent.
+            //
+            // We inspect the children directly to work around zeek/zeek#2899.
+            const auto& children = c->analyzer->GetChildren();
+            if ( auto it = std::find_if(children.begin(), children.end(),
+                                        [&](const auto& it) {
+                                            return ! it->Removing() && ! it->IsFinished() &&
+                                                   it->GetAnalyzerName() == pia_tcp->GetAnalyzerTag();
+                                        });
+                 it != children.end() )
+                return;
 
-    auto child = pia_tcp.release();
-    c->analyzer->AddChildAnalyzer(child);
+            auto child = pia_tcp.release();
+            c->analyzer->AddChildAnalyzer(child);
+            break;
+        }
 
-    child->FirstPacket(true, nullptr);
-    child->FirstPacket(false, nullptr);
+        case ::hilti::rt::Protocol::UDP: throw Unsupported("protocol_begin: UDPnot supported for DPD");
+
+        case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_begin: ICMP not supported for DPD");
+
+        case ::hilti::rt::Protocol::Undef: throw InvalidValue("protocol_begin: no protocol specified for DPD");
+
+        default: throw InvalidValue("protocol_begin: unknown protocol for DPD");
+    }
 }
 
-rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer) {
+void rt::protocol_begin(const ::hilti::rt::Protocol& proto) { return protocol_begin(std::nullopt, proto); }
+
+rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer, const ::hilti::rt::Protocol& proto) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_handle_get_or_create");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     assert(cookie);
@@ -539,56 +550,73 @@ rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer
     if ( ! c )
         throw ValueUnavailable("no current connection available");
 
-    // Forward empty payload to trigger lifecycle management in this analyzer tree.
-    c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), true);
-    c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), false);
+    switch ( proto.value() ) {
+        case ::hilti::rt::Protocol::TCP: {
+            // Forward empty payload to trigger lifecycle management in this analyzer tree.
+            c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), true);
+            c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), false);
 
-    // If the child already exists, do not add it again so this function is idempotent.
-    //
-    // We inspect the children directly to work around zeek/zeek#2899.
-    const auto& children = c->analyzer->GetChildren();
-    if ( auto it = std::find_if(children.begin(), children.end(),
-                                [&](const auto& it) {
-                                    return ! it->Removing() && ! it->IsFinished() && it->GetAnalyzerName() == analyzer;
-                                });
-         it != children.end() )
-        return rt::ProtocolHandle((*it)->GetID());
+            // If the child already exists, do not add it again so this function is idempotent.
+            //
+            // We inspect the children directly to work around zeek/zeek#2899.
+            const auto& children = c->analyzer->GetChildren();
+            if ( auto it = std::find_if(children.begin(), children.end(),
+                                        [&](const auto& it) {
+                                            return ! it->Removing() && ! it->IsFinished() &&
+                                                   it->GetAnalyzerName() == analyzer;
+                                        });
+                 it != children.end() )
+                return rt::ProtocolHandle((*it)->GetID(), proto);
 
-    auto child = analyzer_mgr->InstantiateAnalyzer(analyzer.c_str(), c->analyzer->Conn());
-    if ( ! child )
-        throw ZeekError(::hilti::rt::fmt("unknown analyzer '%s' requested", analyzer));
+            auto child = analyzer_mgr->InstantiateAnalyzer(analyzer.c_str(), c->analyzer->Conn());
+            if ( ! child )
+                throw ZeekError(::hilti::rt::fmt("unknown analyzer '%s' requested", analyzer));
 
-    // If we had no such child before but cannot add it the analyzer was prevented.
-    //
-    // NOTE: We make this a hard error since returning e.g., an empty optional
-    // here would make it easy to incorrectly use the return value with e.g.,
-    // `protocol_data_in` or `protocol_gap`.
-    if ( ! c->analyzer->AddChildAnalyzer(child) )
-        throw ZeekError(::hilti::rt::fmt("creation of child analyzer %s was prevented", analyzer));
+            // If we had no such child before but cannot add it the analyzer was prevented.
+            //
+            // NOTE: We make this a hard error since returning e.g., an empty optional
+            // here would make it easy to incorrectly use the return value with e.g.,
+            // `protocol_data_in` or `protocol_gap`.
+            if ( ! c->analyzer->AddChildAnalyzer(child) )
+                throw ZeekError(::hilti::rt::fmt("creation of child analyzer %s was prevented", analyzer));
 
-    if ( c->analyzer->Conn()->ConnTransport() != TRANSPORT_TCP ) {
-        // Some TCP application analyzer may expect to have access to a TCP
-        // analyzer. To make that work, we'll create a fake TCP analyzer,
-        // just so that they have something to access. It won't
-        // semantically have any "TCP" to analyze obviously.
-        c->fake_tcp = std::make_shared<packet_analysis::TCP::TCPSessionAdapter>(c->analyzer->Conn());
-        static_cast<analyzer::Analyzer*>(c->fake_tcp.get())
-            ->Done(); // will never see packets; cast to get around protected inheritance
+            if ( c->analyzer->Conn()->ConnTransport() != TRANSPORT_TCP ) {
+                // Some TCP application analyzer may expect to have access to a TCP
+                // analyzer. To make that work, we'll create a fake TCP analyzer,
+                // just so that they have something to access. It won't
+                // semantically have any "TCP" to analyze obviously.
+                c->fake_tcp = std::make_shared<packet_analysis::TCP::TCPSessionAdapter>(c->analyzer->Conn());
+                static_cast<analyzer::Analyzer*>(c->fake_tcp.get())
+                    ->Done(); // will never see packets; cast to get around protected inheritance
+            }
+
+            auto* child_as_tcp = dynamic_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(child);
+            if ( ! child_as_tcp )
+                throw ZeekError(
+                    ::hilti::rt::fmt("could not add analyzer '%s' to connection; not a TCP-based analyzer", analyzer));
+
+            if ( c->fake_tcp )
+                child_as_tcp->SetTCP(c->fake_tcp.get());
+
+            return rt::ProtocolHandle(child->GetID(), proto);
+        }
+
+        case ::hilti::rt::Protocol::UDP: {
+            throw Unsupported("protocol_handle_get_or_create: UDP not supported");
+        }
+
+        case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_handle_get_or_create: ICMP not supported");
+
+        case ::hilti::rt::Protocol::Undef: throw InvalidValue("protocol_handle_get_or_create: no protocol specified");
+
+        default: throw InvalidValue("protocol_handle_get_or_create: unknown protocol");
     }
-
-    auto* child_as_tcp = dynamic_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(child);
-    if ( ! child_as_tcp )
-        throw ZeekError(
-            ::hilti::rt::fmt("could not add analyzer '%s' to connection; not a TCP-based analyzer", analyzer));
-
-    if ( c->fake_tcp )
-        child_as_tcp->SetTCP(c->fake_tcp.get());
-
-    return rt::ProtocolHandle(child->GetID());
 }
 
-void rt::protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data,
-                          const std::optional<rt::ProtocolHandle>& h) {
+namespace zeek::spicy::rt {
+static void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data,
+                             const std::optional<::hilti::rt::Protocol>& proto,
+                             const std::optional<rt::ProtocolHandle>& h) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_data_in");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     assert(cookie);
@@ -597,25 +625,65 @@ void rt::protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes
     if ( ! c )
         throw ValueUnavailable("no current connection available");
 
-    auto len = data.size();
-    auto* data_ = reinterpret_cast<const u_char*>(data.data());
+    ::hilti::rt::Protocol protocol_to_use = ::hilti::rt::Protocol::Undef;
 
-    if ( h ) {
-        if ( auto* output_handler = c->analyzer->GetOutputHandler() )
-            output_handler->DeliverStream(len, data_, is_orig);
+    if ( proto ) {
+        if ( h && h->protocol() != *proto )
+            throw InvalidValue("protocol_data_in: protocol mismatches with analyzer handle");
 
-        auto* child = c->analyzer->FindChild(h->id());
-        if ( ! child )
-            throw ValueUnavailable(hilti::rt::fmt("unknown child analyzer %s", *h));
-
-        if ( child->IsFinished() || child->Removing() )
-            throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", *h));
-
-        child->NextStream(len, data_, is_orig);
+        protocol_to_use = *proto;
     }
+    else if ( h )
+        protocol_to_use = h->protocol();
 
-    else
-        c->analyzer->ForwardStream(len, data_, is_orig);
+    if ( protocol_to_use == ::hilti::rt::Protocol::Undef )
+        throw InvalidValue("protocol_data_in: cannot determine protocol to use");
+
+    switch ( protocol_to_use.value() ) {
+        case ::hilti::rt::Protocol::TCP: {
+            auto len = data.size();
+            auto* data_ = reinterpret_cast<const u_char*>(data.data());
+
+            if ( h ) {
+                if ( auto* output_handler = c->analyzer->GetOutputHandler() )
+                    output_handler->DeliverStream(len, data_, is_orig);
+
+                auto* child = c->analyzer->FindChild(h->id());
+                if ( ! child )
+                    throw ValueUnavailable(hilti::rt::fmt("unknown child analyzer %s", *h));
+
+                if ( child->IsFinished() || child->Removing() )
+                    throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", *h));
+
+                child->NextStream(len, data_, is_orig);
+            }
+
+            else
+                c->analyzer->ForwardStream(len, data_, is_orig);
+
+            break;
+        }
+
+        case ::hilti::rt::Protocol::UDP: {
+            throw Unsupported("protocol_data_in: UDP not supported");
+        }
+
+        case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_data_in: ICMP not supported");
+
+        case ::hilti::rt::Protocol::Undef: hilti::rt::cannot_be_reached();
+
+        default: throw InvalidValue("protocol_data_in: unknown protocol");
+    }
+}
+} // namespace zeek::spicy::rt
+
+void rt::protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data,
+                          const ::hilti::rt::Protocol& proto) {
+    protocol_data_in(is_orig, data, proto, {});
+}
+
+void rt::protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data, const rt::ProtocolHandle& h) {
+    protocol_data_in(is_orig, data, {}, h);
 }
 
 void rt::protocol_gap(const hilti::rt::Bool& is_orig, const hilti::rt::integer::safe<uint64_t>& offset,
@@ -628,22 +696,38 @@ void rt::protocol_gap(const hilti::rt::Bool& is_orig, const hilti::rt::integer::
     if ( ! c )
         throw ValueUnavailable("no current connection available");
 
-    if ( h ) {
-        if ( auto* output_handler = c->analyzer->GetOutputHandler() )
-            output_handler->Undelivered(offset, len, is_orig);
+    switch ( h->protocol().value() ) {
+        case ::hilti::rt::Protocol::TCP: {
+            if ( h ) {
+                if ( auto* output_handler = c->analyzer->GetOutputHandler() )
+                    output_handler->Undelivered(offset, len, is_orig);
 
-        auto* child = c->analyzer->FindChild(h->id());
-        if ( ! child )
-            throw ValueUnavailable(hilti::rt::fmt("unknown child analyzer %s", *h));
+                auto* child = c->analyzer->FindChild(h->id());
+                if ( ! child )
+                    throw ValueUnavailable(hilti::rt::fmt("unknown child analyzer %s", *h));
 
-        if ( child->IsFinished() || child->Removing() )
-            throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", *h));
+                if ( child->IsFinished() || child->Removing() )
+                    throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", *h));
 
-        child->NextUndelivered(offset, len, is_orig);
+                child->NextUndelivered(offset, len, is_orig);
+            }
+
+            else
+                c->analyzer->ForwardUndelivered(offset, len, is_orig);
+
+            break;
+        }
+
+        case ::hilti::rt::Protocol::UDP: {
+            throw Unsupported("protocol_gap: UDP not supported");
+        }
+
+        case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_gap: ICMP not supported");
+
+        case ::hilti::rt::Protocol::Undef: throw InvalidValue("protocol_gap: no protocol specified");
+
+        default: throw InvalidValue("protocol_gap: unknown protocol");
     }
-
-    else
-        c->analyzer->ForwardUndelivered(offset, len, is_orig);
 }
 
 void rt::protocol_end() {
@@ -668,17 +752,32 @@ void rt::protocol_handle_close(const ProtocolHandle& handle) {
     if ( ! c )
         throw ValueUnavailable("no current connection available");
 
-    auto child = c->analyzer->FindChild(handle.id());
-    if ( ! child )
-        throw ValueUnavailable(hilti::rt::fmt("unknown child analyzer %s", handle));
+    switch ( handle.protocol().value() ) {
+        case ::hilti::rt::Protocol::TCP: {
+            auto child = c->analyzer->FindChild(handle.id());
+            if ( ! child )
+                throw ValueUnavailable(hilti::rt::fmt("unknown child analyzer %s", handle));
 
-    if ( child->IsFinished() || child->Removing() )
-        throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", handle));
+            if ( child->IsFinished() || child->Removing() )
+                throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", handle));
 
-    child->NextEndOfData(true);
-    child->NextEndOfData(false);
+            child->NextEndOfData(true);
+            child->NextEndOfData(false);
 
-    c->analyzer->RemoveChildAnalyzer(handle.id());
+            c->analyzer->RemoveChildAnalyzer(handle.id());
+            break;
+        }
+
+        case ::hilti::rt::Protocol::UDP: {
+            throw Unsupported("protocol_handle_close: UDP not supported");
+        }
+
+        case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_handle_close: ICMP not supported");
+
+        case ::hilti::rt::Protocol::Undef: throw InvalidValue("protocol_handle_close: no protocol specified");
+
+        default: throw InvalidValue("protocol_handle_close: unknown protocol");
+    }
 }
 
 rt::cookie::FileState* rt::cookie::FileStateStack::push(std::optional<std::string> fid_provided) {

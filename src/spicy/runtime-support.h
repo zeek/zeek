@@ -294,7 +294,7 @@ void reject_protocol(const std::string& reason = "protocol rejected");
 class ProtocolHandle {
 public:
     ProtocolHandle() {}
-    explicit ProtocolHandle(uint64_t id) : _id(id) {}
+    explicit ProtocolHandle(uint64_t id, ::hilti::rt::Protocol proto) : _id(id), _proto(proto) {}
 
     uint64_t id() const {
         if ( ! _id )
@@ -302,6 +302,8 @@ public:
 
         return *_id;
     }
+
+    const auto& protocol() const { return _proto; }
 
     friend std::string to_string(const ProtocolHandle& h, ::hilti::rt::detail::adl::tag) {
         if ( ! h._id )
@@ -316,38 +318,56 @@ public:
 
 private:
     std::optional<uint64_t> _id;
+    ::hilti::rt::Protocol _proto = ::hilti::rt::Protocol::Undef;
 };
 
 /**
  * Adds a Zeek-side child protocol analyzer to the current connection.
  *
- * @param analyzer if given, the Zeek-side name of the analyzer to instantiate;
- * if not given, DPD will be used
+ * @param analyzer the Zeek-side name of the analyzer to instantiate; can be left unset to add a DPD analyzer
  */
-void protocol_begin(const std::optional<std::string>& analyzer);
+void protocol_begin(const std::optional<std::string>& analyzer, const ::hilti::rt::Protocol& proto);
+
+/**
+ * Adds a Zeek-side DPD child analyzer to the current connection.
+ *
+ * @param proto the transport-layer protocol of the desired DPD analyzer; must be TCP or UDP
+ */
+void protocol_begin(const ::hilti::rt::Protocol& proto);
 
 /**
  * Gets a handle to a child analyzer of a given type. If a child of that type
  * does not yet exist it will be created.
  *
  * @param analyzer the Zeek-side name of the analyzer to get (e.g., `HTTP`)
+ * @param proto the transport-layer protocol of the analyzer, which must match
+ * the type of the child analyzer that *analyzer* refers to
  *
  * @return a handle to the child analyzer. When done, the handle should be
  * closed, either explicitly with protocol_handle_close or implicitly with
  * protocol_end.
  */
-ProtocolHandle protocol_handle_get_or_create(const std::string& analyzer);
+rt::ProtocolHandle protocol_handle_get_or_create(const std::string& analyzer, const ::hilti::rt::Protocol& proto);
 
 /**
  * Forwards data to all previously instantiated Zeek-side child protocol
- * analyzers.
+ * analyzers of a given transport-layer protocol.
  *
  * @param is_orig true to feed data to originator side, false for responder
  * @param data next chunk of stream data for child analyzer to process
- * @param h optional handle to the child analyzer to stream data into
+ * @param h optional handle to pass data to a specific child analyzer only
  */
-void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data,
-                      const std::optional<ProtocolHandle>& h = {});
+void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data, const ::hilti::rt::Protocol& proto);
+
+/**
+ * Forwards data to a specific previously instantiated Zeek-side child protocol
+ * analyzer.
+ *
+ * @param is_orig true to feed data to originator side, false for responder
+ * @param data next chunk of stream data for child analyzer to process
+ * @param h handle identifying the specific child analyzer only
+ */
+void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data, const ProtocolHandle& h);
 
 /**
  * Signals a gap in input data to all previously instantiated Zeek-side child

@@ -1959,29 +1959,36 @@ void TemplateInput::Gripe(const char* msg, const InputLoc& l) const
 
 ZAMGen::ZAMGen(int argc, char** argv)
 	{
-	auto prog_name = argv[0];
+	auto prog_name = (argv++)[0];
 
-	if ( argc != 2 )
+	if ( --argc < 1 )
 		{
 		fprintf(stderr, "usage: %s <ZAM-templates-file>\n", prog_name);
 		exit(1);
 		}
 
-	auto file_name = argv[1];
-	auto f = strcmp(file_name, "-") ? fopen(file_name, "r") : stdin;
-
-	if ( ! f )
+	while ( argc-- > 0 )
 		{
-		fprintf(stderr, "%s: cannot open \"%s\"\n", prog_name, file_name);
-		exit(1);
+		auto file_name = (argv++)[0];
+		bool is_stdin = file_name == std::string("-");
+		auto f = is_stdin ? stdin : fopen(file_name, "r");
+
+		if ( ! f )
+			{
+			fprintf(stderr, "%s: cannot open \"%s\"\n", prog_name, file_name);
+			exit(1);
+			}
+
+		ti = make_unique<TemplateInput>(f, prog_name, file_name);
+
+		while ( ParseTemplate() )
+			;
+
+		if ( ! is_stdin )
+			fclose(f);
 		}
 
-	ti = make_unique<TemplateInput>(f, prog_name, file_name);
-
 	InitEmitTargets();
-
-	while ( ParseTemplate() )
-		;
 
 	for ( auto& t : templates )
 		t->Instantiate();

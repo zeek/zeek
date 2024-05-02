@@ -25,6 +25,7 @@ XXXXXXXXXX.XXXXXX	testtime	0.0	XXXXXXXXXX.XXXXXX	../configfile
 XXXXXXXXXX.XXXXXX	test_set	(empty)	a,d,b,c,erdbeerschnitzel	../configfile
 XXXXXXXXXX.XXXXXX	test_set	a,d,b,c,erdbeerschnitzel	a,c,b	../configfile
 XXXXXXXXXX.XXXXXX	test_vector	(empty)	1,2,3,4,5,6	../configfile
+XXXXXXXXXX.XXXXXX	test_list	{}	{-1, 2, -3, 4, -5, 6}	../configfile
 XXXXXXXXXX.XXXXXX	test_set	a,c,b	(empty)	../configfile
 XXXXXXXXXX.XXXXXX	test_set	(empty)	\x2d	../configfile
 #close XXXX-XX-XX-XX-XX-XX

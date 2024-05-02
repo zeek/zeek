@@ -7,9 +7,9 @@ redef exit_only_after_terminate = T;
 @TEST-START-FILE input.log
 #separator \x09
 #path	ssh
-#fields	b	bt	i	e	c	p	pp	sn	a	d	t	iv	s	sc	ss	se	vc	ve	ns
-#types	bool	int	enum	count	port	port	subnet	addr	double	time	interval	string	table	table	table	vector	vector	string
-T	1	-42	SSH::LOG	21	123	5/icmp	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242
+#fields	b	bt	i	e	c	p	pp	sn	a	d	t	iv	s	sc	ss	se	vc	ve	lc	le	ns
+#types	bool	int	enum	count	port	port	subnet	addr	double	time	interval	string	table	table	table	vector	vector	list	list	string
+T	1	-42	SSH::LOG	21	123	5/icmp	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	-1.2,3.4,-5.6,7.8e90	EMPTY	4242
 @TEST-END-FILE
 
 @load base/protocols/ssh
@@ -43,6 +43,8 @@ type Val: record {
 	se: set[string];
 	vc: vector of int;
 	ve: vector of int;
+	lc: list of double;
+	le: list of double;
 };
 
 global servers: table[int] of Val = table();

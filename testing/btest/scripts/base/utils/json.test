@@ -105,6 +105,22 @@ event zeek_init()
 	print to_json(ve5, T);
 	print to_json(ve6);
 
+	# Lists
+	local le1: list of count = list();
+	local le2: list of count = list(8, 9);
+	local le3: list of addr = list(4.3.2.1);
+	local le4: list of set[bool] = list(set(T, F));
+	local le5: list of myrec1 = list(myrec1($s="test again", $c=222));
+	local le6: list of count;
+	le6 += 101;
+	le6 += 103;
+	print to_json(le1);
+	print to_json(le2);
+	print to_json(le3);
+	print to_json(le4);
+	print to_json(le5, T);
+	print to_json(le6);
+
 	# Sets
 	local st1: set[count] = set();
 	local st2: set[count] = set(2, 1);

@@ -281,6 +281,7 @@ void Manager::InitPostScript() {
     detail::opaque_of_set_iterator = make_intrusive<OpaqueType>("Broker::SetIterator");
     detail::opaque_of_table_iterator = make_intrusive<OpaqueType>("Broker::TableIterator");
     detail::opaque_of_vector_iterator = make_intrusive<OpaqueType>("Broker::VectorIterator");
+    detail::opaque_of_queue_iterator = make_intrusive<OpaqueType>("Broker::QueueIterator");
     detail::opaque_of_record_iterator = make_intrusive<OpaqueType>("Broker::RecordIterator");
     detail::opaque_of_store_handle = make_intrusive<OpaqueType>("Broker::Store");
     vector_of_data_type = make_intrusive<VectorType>(id::find_type("Broker::Data"));

@@ -24,7 +24,7 @@ struct Field {
     //! port, one for the type), and this specifies the secondary name.
     const char* secondary_name;
     TypeTag type;    //! Type of the field.
-    TypeTag subtype; //! Inner type for sets and vectors.
+    TypeTag subtype; //! Inner type for sets/vectors/queues.
     bool optional;   //! True if field is optional.
 
     /**
@@ -105,7 +105,7 @@ private:
  */
 struct Value {
     TypeTag type;    //! The type of the value.
-    TypeTag subtype; //! Inner type for sets and vectors.
+    TypeTag subtype; //! Inner type for sets/vectors/queues.
     bool present;    //! False for optional record fields that are not set.
 
     struct set_t {
@@ -148,7 +148,7 @@ struct Value {
         port_t port_val;
         double double_val;
         set_t set_val;
-        vec_t vector_val;
+        vec_t vector_val; // note, we use this for TYPE_QUEUE too
         addr_t addr_val;
         subnet_t subnet_val;
         const char* pattern_text_val;
@@ -177,7 +177,7 @@ struct Value {
      *
      * arg_type: The type of the value.
      *
-     * arg_type: The subtype of the value for sets and vectors.
+     * arg_type: The subtype of the value for sets/vectors/queues.
      *
      * arg_present: False if the value represents an optional record field
      * that is not set.

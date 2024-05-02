@@ -469,6 +469,11 @@ bool WhileStmt::IsReduced(Reducer* c) const {
 }
 
 StmtPtr WhileStmt::DoReduce(Reducer* c) {
+    if ( loop_cond_pred_stmt )
+	// Important to do this before updating the loop_condition, since
+	// changes to the predecessor statement can alter the condition.
+        loop_cond_pred_stmt = loop_cond_pred_stmt->Reduce(c);
+
     if ( c->Optimizing() )
         loop_condition = c->OptExpr(loop_condition);
     else {
@@ -490,9 +495,6 @@ StmtPtr WhileStmt::DoReduce(Reducer* c) {
     // its check for whether the expression is being ignored, since
     // we're not actually creating an ExprStmt for execution.
     stmt_loop_condition = with_location_of(make_intrusive<ExprStmt>(STMT_EXPR, loop_condition), this);
-
-    if ( loop_cond_pred_stmt )
-        loop_cond_pred_stmt = loop_cond_pred_stmt->Reduce(c);
 
     return ThisPtr();
 }
@@ -680,7 +682,7 @@ StmtPtr StmtList::DoReduce(Reducer* c) {
 bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
     bool did_change = false;
     auto& stmt_i = stmts[s_i];
-    auto old_stmt = stmt_i.get();
+    auto old_stmt = stmt_i;
 
     auto stmt = stmt_i->Reduce(c);
 

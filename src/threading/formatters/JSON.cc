@@ -152,6 +152,7 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
             break;
         }
 
+        case TYPE_QUEUE:
         case TYPE_VECTOR: {
             writer.StartArray();
 

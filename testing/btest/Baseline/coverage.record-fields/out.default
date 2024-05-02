@@ -117,15 +117,11 @@ connection {
       DNS::State {
         * pending_queries: table[count] of record Queue::Queue, log=F, optional=T
             Queue::Queue {
-              * bottom: count, log=F, optional=T
-              * initialized: bool, log=F, optional=T
               * settings: record Queue::Settings, log=F, optional=T
                   Queue::Settings {
                     * max_len: count, log=F, optional=T
                    }
-              * size: count, log=F, optional=T
-              * top: count, log=F, optional=T
-              * vals: table[count] of any, log=F, optional=T
+              * vals: list of any, log=F, optional=T
              }
         * pending_query: record DNS::Info, log=F, optional=T
             DNS::Info { ... }

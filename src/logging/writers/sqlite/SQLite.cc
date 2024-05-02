@@ -70,6 +70,7 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
         case TYPE_FUNC: type = "text"; break;
 
         case TYPE_TABLE:
+        case TYPE_QUEUE:
         case TYPE_VECTOR:
             type = "text"; // dirty - but sqlite does not directly support arrays. so - we just roll
                            // it into a ","-separated string.
@@ -265,6 +266,7 @@ int SQLite::AddParams(Value* val, int pos) {
             return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Len(), SQLITE_TRANSIENT);
         }
 
+	case TYPE_QUEUE:
         case TYPE_VECTOR: {
             ODesc desc;
             desc.Clear();

@@ -29,6 +29,7 @@ testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
 test_set a,b,c,
 test_vector 1,2,3,4,5,6
+test_list -1,2,-3,4,-5,6
 test_set 
 test_set -
 @TEST-END-FILE
@@ -51,6 +52,7 @@ export {
 	option teststring = "a";
 	option test_set: set[string] = {};
 	option test_vector: vector of count = {};
+	option test_list: list of int = {};
 }
 
 event Input::end_of_data(name: string, source:string)

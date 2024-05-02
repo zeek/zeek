@@ -1,0 +1,38 @@
+# @TEST-EXEC: zeek -b %INPUT > output
+# @TEST-EXEC: btest-diff output
+
+# A version of the queue.zeek test written instead using lists.
+
+event zeek_init()
+	{
+	local q: list of count;
+	q += 1;
+	q += 2;
+	q += 3;
+	q += 4;
+
+	# lists don't support max_len (at least, not yet), so do that
+	# part manually.
+	--q;
+	--q;
+
+	local test1 = q as vector of count;
+	for ( i in test1 )
+		print fmt("This is a convert-to-vector test: %d", test1[i]);
+
+	local test_val = --q;
+	print fmt("Testing get: %s", test_val);
+	print fmt("Length after get: %d", |q|);
+
+	local q2: list of string;
+	q2 += "test 1";
+	q2 += "test 2";
+	q2 += "test 2";
+	q2 += "test 1";
+
+	print fmt("Size of q2: %d", |q2|);
+
+	local test2 = q2 as vector of string;
+	for ( i in test2 )
+		print fmt("String queue value: %s", test2[i]);
+	}

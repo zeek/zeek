@@ -193,6 +193,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt* st, const threading::Field* field, int p
         }
 
         case TYPE_TABLE:
+	case TYPE_QUEUE:
         case TYPE_VECTOR: {
             const char* text = (const char*)sqlite3_column_text(st, pos);
             std::string s(text, sqlite3_column_bytes(st, pos));

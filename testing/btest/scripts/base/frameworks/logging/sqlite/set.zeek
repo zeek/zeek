@@ -41,7 +41,6 @@ event zeek_init()
 	Log::add_filter(SSH::LOG, filter);
 
 	local empty_set: set[string];
-	local empty_vector: vector of string;
 
 	Log::write(SSH::LOG, [
 		$ss=set("AA", "BB", "CC")

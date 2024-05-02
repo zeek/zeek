@@ -761,12 +761,12 @@ bool Manager::IsCompatibleType(Type* t, bool atomic_only) {
             return IsCompatibleType(indices->GetPureType().get(), true);
         }
 
-        case TYPE_VECTOR: {
+	case TYPE_QUEUE:
+        case TYPE_VECTOR:
             if ( atomic_only )
                 return false;
 
-            return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
-        }
+            return IsCompatibleType(t->Yield().get(), true);
 
         default: return false;
     }
@@ -867,8 +867,8 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, co
             if ( ty == TYPE_TABLE )
                 st = rec->GetFieldType(i)->AsSetType()->GetIndices()->GetPureType()->Tag();
 
-            else if ( ty == TYPE_VECTOR )
-                st = rec->GetFieldType(i)->AsVectorType()->Yield()->Tag();
+            else if ( ty == TYPE_VECTOR || ty == TYPE_QUEUE )
+                st = rec->GetFieldType(i)->Yield()->Tag();
 
             else if ( ty == TYPE_PORT && rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_TYPE_COLUMN) ) {
                 // we have an annotation for the second column
@@ -1803,6 +1803,7 @@ int Manager::GetValueLength(const Value* val) const {
             break;
         }
 
+	case TYPE_QUEUE:
         case TYPE_VECTOR: {
             int j = val->val.vector_val.size;
             for ( int i = 0; i < j; i++ )
@@ -1913,6 +1914,7 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const {
             return length;
         }
 
+	case TYPE_QUEUE:
         case TYPE_VECTOR: {
             int length = 0;
             int j = val->val.vector_val.size;
@@ -2077,6 +2079,24 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
             }
 
             return v.release();
+        }
+
+        case TYPE_QUEUE: {
+            // all entries have to have the same type...
+            const auto& type = request_type->AsQueueType()->Yield();
+            auto qt = make_intrusive<QueueType>(type);
+            auto q = make_intrusive<QueueVal>(std::move(qt));
+
+            for ( int j = 0; j < val->val.vector_val.size; j++ ) {
+                auto el = ValueToVal(i, val->val.vector_val.vals[j], type.get(), have_error);
+
+                if ( have_error )
+                    return nullptr;
+
+		q->Append({AdoptRef{}, el});
+            }
+
+            return q.release();
         }
 
         case TYPE_ENUM: {

@@ -79,6 +79,12 @@ std::string Field::TypeName() const {
         n += "]";
     }
 
+    else if ( type == TYPE_QUEUE ) {
+        n += "{";
+        n += type_name(subtype);
+        n += "}";
+    }
+
     return n;
 }
 
@@ -99,7 +105,7 @@ Value::~Value() {
         delete[] val.set_val.vals;
     }
 
-    else if ( type == TYPE_VECTOR ) {
+    else if ( type == TYPE_VECTOR || type == TYPE_QUEUE ) {
         for ( zeek_int_t i = 0; i < val.vector_val.size; i++ )
             delete val.vector_val.vals[i];
 
@@ -138,12 +144,12 @@ bool Value::IsCompatibleType(Type* t, bool atomic_only) {
             return IsCompatibleType(t->AsSetType()->GetIndices()->GetPureType().get(), true);
         }
 
-        case TYPE_VECTOR: {
+        case TYPE_VECTOR:
+	case TYPE_QUEUE:
             if ( atomic_only )
                 return false;
 
-            return IsCompatibleType(t->AsVectorType()->Yield().get(), true);
-        }
+            return IsCompatibleType(t->Yield().get(), true);
 
         default: return false;
     }
@@ -250,6 +256,7 @@ bool Value::Read(detail::SerializationFormat* fmt) {
             return true;
         }
 
+	case TYPE_QUEUE:
         case TYPE_VECTOR: {
             if ( ! fmt->Read(&val.vector_val.size, "vector_size") )
                 return false;
@@ -337,6 +344,7 @@ bool Value::Write(detail::SerializationFormat* fmt) const {
             return true;
         }
 
+	case TYPE_QUEUE:
         case TYPE_VECTOR: {
             if ( ! fmt->Write(val.vector_val.size, "vector_size") )
                 return false;
@@ -475,6 +483,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
             return t.release();
         }
 
+	case TYPE_QUEUE:
         case TYPE_VECTOR: {
             TypePtr type;
 
@@ -505,18 +514,36 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
                     type = base_type(val->subtype);
             }
 
-            auto vt = make_intrusive<VectorType>(std::move(type));
-            auto v = make_intrusive<VectorVal>(std::move(vt));
+	    if ( val->type == TYPE_VECTOR )
+		    {
+		    auto vt = make_intrusive<VectorType>(std::move(type));
+		    auto v = make_intrusive<VectorVal>(std::move(vt));
 
-            for ( int j = 0; j < val->val.vector_val.size; j++ ) {
-                auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
-                if ( have_error )
-                    return nullptr;
+		    for ( int j = 0; j < val->val.vector_val.size; j++ ) {
+			auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
+			if ( have_error )
+			    return nullptr;
 
-                v->Assign(j, {AdoptRef{}, el});
-            }
+			v->Assign(j, {AdoptRef{}, el});
+		    }
 
-            return v.release();
+		    return v.release();
+		}
+	else
+		{
+		    auto qt = make_intrusive<QueueType>(std::move(type));
+		    auto q = make_intrusive<QueueVal>(std::move(qt));
+
+		    for ( int j = 0; j < val->val.vector_val.size; j++ ) {
+			auto el = ValueToVal(source, val->val.vector_val.vals[j], have_error);
+			if ( have_error )
+			    return nullptr;
+
+			q->Append({AdoptRef{}, el});
+		    }
+
+		    return q.release();
+		}
         }
 
         case TYPE_ENUM: {

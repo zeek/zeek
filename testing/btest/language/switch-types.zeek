@@ -8,6 +8,8 @@ function switch_one(v: any): string
 		return "String!";
 	case type count:
 		return "Count!";
+	case type list of double:
+		return "List of Double!";
 	case type bool, type addr:
 		return "Bool or address!";
 	default:
@@ -22,6 +24,8 @@ function switch_one_no_default(v: any): string
 		return "String!";
 	case type count:
 		return "Count!";
+	case type list of double:
+		return "List of Double!";
 	case type bool, type addr:
 		return "Bool or address!";
 	}
@@ -36,6 +40,8 @@ event zeek_init()
 	print switch_one(42);
 	print switch_one(T);
 	print switch_one(1947/tcp);
+	print switch_one(list(3.0, 5.0));
+	print switch_one(list(4, 6));
 	print "";
 	print switch_one_no_default(1.2.3.4);
 	print switch_one_no_default(1947/tcp);

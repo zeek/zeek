@@ -3690,10 +3690,12 @@ bool QueueVal::Append(ValPtr element) {
     if ( ! CheckElementType(t) )
         return false;
 
+    if ( yield_types ) {
     queue_val.push_back(ZVal(std::move(element), t));
-
-    if ( yield_types )
         yield_types->push_back(std::move(t));
+}
+    else
+	    queue_val.push_back(ZVal(std::move(element), yield_type));
 
     Modified();
     return true;

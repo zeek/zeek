@@ -42,8 +42,8 @@ Config::Config(ReaderFrontend* frontend) : ReaderBackend(frontend) {
         TypeTag secondary = TYPE_VOID;
         if ( primary == TYPE_TABLE )
             secondary = id->GetType()->AsSetType()->GetIndices()->GetPureType()->Tag();
-        else if ( primary == TYPE_VECTOR )
-            secondary = id->GetType()->AsVectorType()->Yield()->Tag();
+        else if ( primary == TYPE_VECTOR || primary == TYPE_QUEUE )
+            secondary = id->GetType()->Yield()->Tag();
 
         option_types[id->Name()] = std::make_tuple(primary, secondary, id);
     }

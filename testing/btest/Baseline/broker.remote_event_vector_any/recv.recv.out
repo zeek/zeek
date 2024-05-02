@@ -5,4 +5,13 @@ vector, [[data=broker::data{one}], [data=broker::data{two}], [data=broker::data{
 string, one
 string, two
 count, 3
+vector, [[data=broker::data{four}], [data=broker::data{five}], [data=broker::data{6}]]
+string, four
+string, five
+count, 6
 record, [a=bye, b=<uninitialized>, c=<uninitialized>]
+record, [a=hello, b=5, c=-5]
+vector, [[data=broker::data{hello}], [data=broker::data{5}], [data=broker::data{5}]]
+string, hello
+count, 5
+count, 5

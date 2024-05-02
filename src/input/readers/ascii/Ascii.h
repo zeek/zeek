@@ -18,7 +18,7 @@ namespace zeek::input::reader::detail {
 struct FieldMapping {
     std::string name;
     TypeTag type;
-    TypeTag subtype; // internal type for sets and vectors
+    TypeTag subtype; // internal type for sets/vectors/queues
     int position = -1;
     int secondary_position = -1; // for ports: pos of the second field
     bool present = false;

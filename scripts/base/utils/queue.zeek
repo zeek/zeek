@@ -71,64 +71,41 @@ export {
 }
 
 redef record Queue += {
-	# Indicator for if the queue was appropriately initialized.
-	initialized: bool                   &default=F;
 	# The values are stored here.
-	vals:        table[count] of any &optional;
+	vals:        list of any &optional;
+
 	# Settings for the queue.
 	settings:    Settings               &optional;
-	# The top value in the vals table.
-	top:         count                  &default=0;
-	# The bottom value in the vals table.
-	bottom:      count                  &default=0;
-	# The number of bytes in the queue.
-	size:        count                  &default=0;
 };
 
 function init(s: Settings): Queue
 	{
-	local q: Queue;
-	q$vals=table();
-	q$settings = copy(s);
-	q$initialized=T;
-	return q;
+	return Queue($vals=list(), $settings=copy(s));
 	}
 
 function put(q: Queue, val: any)
 	{
-	if ( q$settings?$max_len && len(q) >= q$settings$max_len )
-		get(q);
-	q$vals[q$top] = val;
-	++q$top;
+	if ( q$settings?$max_len && |q$vals| >= q$settings$max_len )
+		--q$vals;
+
+	q$vals += val;
 	}
 
 function get(q: Queue): any
 	{
-	local ret = q$vals[q$bottom];
-	delete q$vals[q$bottom];
-	++q$bottom;
-	return ret;
+	return --q$vals;
 	}
 
 function peek(q: Queue): any
 	{
-	return q$vals[q$bottom];
+	return q$vals[0];
 	}
 
 function merge(q1: Queue, q2: Queue): Queue
 	{
 	local ret = init(q1$settings);
-	local i = q1$bottom;
-	local j = q2$bottom;
-	for ( ignored_val in q1$vals )
-		{
-		if ( i in q1$vals )
-			put(ret, q1$vals[i]);
-		if ( j in q2$vals )
-			put(ret, q2$vals[j]);
-		++i;
-		++j;
-		}
+	ret$vals += q1;
+	ret$vals += q2;
 	return ret;
 	}
 
@@ -139,17 +116,6 @@ function len(q: Queue): count
 
 function get_vector(q: Queue, ret: vector of any)
 	{
-	local i = q$bottom;
-	local j = 0;
-	# Really dumb hack, this is only to provide
-	# the iteration for the correct number of
-	# values in q$vals.
-	for ( ignored_val in q$vals )
-		{
-		if ( i >= q$top )
-			break;
-
-		ret[j] = q$vals[i];
-		++j; ++i;
-		}
+	for ( i in q$vals )
+		ret += i;
 	}

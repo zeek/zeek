@@ -19,6 +19,7 @@ zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_data_type;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_set_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_table_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_vector_iterator;
+zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_queue_iterator;
 zeek::OpaqueTypePtr zeek::Broker::detail::opaque_of_record_iterator;
 
 static broker::port::protocol to_broker_port_proto(TransportProto tp) {

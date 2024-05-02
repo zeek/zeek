@@ -167,6 +167,8 @@ struct type_name_getter {
         assert(tag == zeek::TYPE_VECTOR || tag == zeek::TYPE_RECORD || tag == zeek::TYPE_QUEUE);
         if ( tag == zeek::TYPE_VECTOR )
             return "vector";
+        else if ( tag == zeek::TYPE_QUEUE )
+            return "queue";
         else if ( tag == zeek::TYPE_RECORD )
             return "record";
         else
@@ -266,7 +268,7 @@ protected:
 class QueueIterator : public zeek::OpaqueVal {
 public:
     QueueIterator(zeek::RecordVal* v, zeek::TypeTag tag, zeek::detail::Frame* f)
-        : zeek::OpaqueVal(opaque_of_vector_iterator),
+        : zeek::OpaqueVal(opaque_of_queue_iterator),
           dat(require_data_type<broker::vector>(v, zeek::TYPE_QUEUE, f)),
           it(dat.begin()) {}
 
@@ -323,6 +325,7 @@ public:
     friend class zeek::Broker::detail::SetIterator;
     friend class zeek::Broker::detail::TableIterator;
     friend class zeek::Broker::detail::VectorIterator;
+    friend class zeek::Broker::detail::QueueIterator;
     friend class zeek::Broker::detail::RecordIterator;
 
     BrokerDataView() = delete;

@@ -151,6 +151,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) {
         case TYPE_ADDR: val->val.addr_val = ascii->ParseAddr("192.168.17.1"); break;
 
         case TYPE_TABLE:
+        case TYPE_QUEUE:
         case TYPE_VECTOR:
             // First - common initialization
             // Then - initialization for table.
@@ -166,7 +167,7 @@ threading::Value* Benchmark::EntryToVal(TypeTag type, TypeTag subtype) {
                     val->val.set_val.vals = lvals;
                     val->val.set_val.size = length;
                 }
-                else if ( type == TYPE_VECTOR ) {
+                else if ( type == TYPE_VECTOR || type == TYPE_QUEUE ) {
                     val->val.vector_val.vals = lvals;
                     val->val.vector_val.size = length;
                 }

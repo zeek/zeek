@@ -136,6 +136,7 @@ bool Ascii::Describe(ODesc* desc, Value* val, const string& name) const {
             break;
         }
 
+	case TYPE_QUEUE:
         case TYPE_VECTOR: {
             if ( ! val->val.vector_val.size ) {
                 desc->Add(separators.empty_field);
@@ -297,10 +298,11 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
         }
 
         case TYPE_TABLE:
+	case TYPE_QUEUE:
         case TYPE_VECTOR:
             // First - common initialization
             // Then - initialization for table.
-            // Then - initialization for vector.
+            // Then - initialization for vector/queue.
             // Then - common stuff
             {
                 // how many entries do we have...
@@ -326,7 +328,7 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
                     val->val.set_val.size = length;
                 }
 
-                else if ( type == TYPE_VECTOR ) {
+                else if ( type == TYPE_VECTOR || type == TYPE_QUEUE ) {
                     val->val.vector_val.vals = lvals;
                     val->val.vector_val.size = length;
                 }
@@ -379,7 +381,7 @@ Value* Ascii::ParseValue(const string& s, const string& name, TypeTag type, Type
                 }
 
                 if ( error ) {
-                    // We had an error while reading a set or a vector.
+                    // We had an error while reading a set or a vector/queue.
                     // Hence we have to clean up the values that have
                     // been read so far
                     for ( unsigned int i = 0; i < pos; i++ )

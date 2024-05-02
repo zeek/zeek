@@ -723,6 +723,10 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
                 // That's ok, we handle it below.
             }
 
+            else if ( t->Tag() == TYPE_QUEUE ) {
+                // That's ok, we handle it below.
+            }
+
             else if ( t->Tag() == TYPE_FILE ) {
                 // That's ok, we handle it below.
             }
@@ -775,8 +779,8 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         if ( t->Tag() == TYPE_TABLE )
             st = t->AsSetType()->GetIndices()->GetPureType()->Tag();
 
-        else if ( t->Tag() == TYPE_VECTOR )
-            st = t->AsVectorType()->Yield()->Tag();
+        else if ( t->Tag() == TYPE_VECTOR || t->Tag() == TYPE_QUEUE )
+            st = t->Yield()->Tag();
 
         bool optional = (bool)rtype->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL);
 
@@ -1508,6 +1512,23 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
 
             for ( zeek_int_t i = 0; i < lval->val.vector_val.size; i++ ) {
                 lval->val.vector_val.vals[i] = ValToLogVal(vv[i], vt.get());
+            }
+
+            break;
+        }
+
+        case TYPE_QUEUE: {
+            auto q = val->AsQueue();
+            auto& vt = q->GetType()->Yield();
+
+            lval->val.vector_val.size = q->Size();
+            lval->val.vector_val.vals = new threading::Value*[lval->val.vector_val.size];
+
+	    zeek_int_t i = 0;
+	    for ( auto zv : q->Deque() ) {
+		std::optional<ZVal> ozv = zv;
+                lval->val.vector_val.vals[i] = ValToLogVal(ozv, vt.get());
+		++i;
             }
 
             break;

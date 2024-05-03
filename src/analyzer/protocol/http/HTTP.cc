@@ -946,8 +946,8 @@ void HTTP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
                     pia = new analyzer::pia::PIA_TCP(Conn());
 
                     if ( AddChildAnalyzer(pia) ) {
-                        pia->FirstPacket(true, nullptr);
-                        pia->FirstPacket(false, nullptr);
+                        pia->FirstPacket(true, TransportProto::TRANSPORT_TCP);
+                        pia->FirstPacket(false, TransportProto::TRANSPORT_TCP);
 
                         int remaining_in_content_line = content_line_resp->GetDeliverStreamRemainingLength();
                         if ( remaining_in_content_line > 0 ) {
@@ -1396,8 +1396,8 @@ void HTTP_Analyzer::HTTP_Upgrade() {
                 upgrade_protocol.c_str());
         pia = new analyzer::pia::PIA_TCP(Conn());
         if ( AddChildAnalyzer(pia) ) {
-            pia->FirstPacket(true, nullptr);
-            pia->FirstPacket(false, nullptr);
+            pia->FirstPacket(true, TransportProto::TRANSPORT_TCP);
+            pia->FirstPacket(false, TransportProto::TRANSPORT_TCP);
         }
     }
 

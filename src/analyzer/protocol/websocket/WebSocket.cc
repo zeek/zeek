@@ -79,8 +79,8 @@ bool WebSocket_Analyzer::Configure(zeek::RecordValPtr config) {
 
         auto* pia = new analyzer::pia::PIA_TCP(Conn());
         if ( effective_analyzer->AddChildAnalyzer(pia) ) {
-            pia->FirstPacket(true, nullptr);
-            pia->FirstPacket(false, nullptr);
+            pia->FirstPacket(true, TransportProto::TRANSPORT_TCP);
+            pia->FirstPacket(false, TransportProto::TRANSPORT_TCP);
             return true;
         }
 

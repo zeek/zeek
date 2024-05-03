@@ -477,6 +477,17 @@ Analyzer* Analyzer::FindChild(const char* name) {
     return tag ? FindChild(tag) : nullptr;
 }
 
+void Analyzer::CleanupChildren() {
+    AppendNewChildren();
+
+    for ( auto i = children.begin(); i != children.end(); ) {
+        if ( ! ((*i)->finished || (*i)->removing) )
+            ++i;
+        else
+            i = DeleteChild(i);
+    }
+}
+
 analyzer_list::iterator Analyzer::DeleteChild(analyzer_list::iterator i) {
     Analyzer* child = *i;
 

@@ -508,6 +508,13 @@ public:
     const analyzer_list& GetChildren() { return children; }
 
     /**
+     * Removes any child analyzers that are finished or marked for deletion.
+     * This normally happens automatically are various times when feeding data
+     * to children, can be triggered explicitly through this method as needed.
+     */
+    void CleanupChildren();
+
+    /**
      * Returns a pointer to the parent analyzer, or null if this instance
      * has not yet been added to an analyzer tree.
      */

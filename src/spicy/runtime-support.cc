@@ -512,9 +512,7 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilt
             pia_tcp->FirstPacket(true, TransportProto::TRANSPORT_TCP);
             pia_tcp->FirstPacket(false, TransportProto::TRANSPORT_TCP);
 
-            // Forward empty payload to trigger lifecycle management in this analyzer tree.
-            c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), true);
-            c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), false);
+            c->analyzer->CleanupChildren();
 
             // If the child already exists, do not add it again so this function is idempotent.
             if ( auto child = c->analyzer->GetChildAnalyzer(pia_tcp->GetAnalyzerName()) )
@@ -531,10 +529,7 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilt
             pia_udp->FirstPacket(true, TransportProto::TRANSPORT_UDP);
             pia_udp->FirstPacket(false, TransportProto::TRANSPORT_UDP);
 
-            // Forward empty payload to trigger lifecycle management in this analyzer tree.
-            c->analyzer->ForwardPacket(0, reinterpret_cast<const u_char*>(c->analyzer), true, 0, nullptr, 0);
-            c->analyzer->ForwardPacket(0, reinterpret_cast<const u_char*>(c->analyzer), false, 0, nullptr, 0);
-
+            c->analyzer->CleanupChildren();
             auto child = pia_udp.release();
             c->analyzer->AddChildAnalyzer(child);
             break;
@@ -561,9 +556,7 @@ rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer
 
     switch ( proto.value() ) {
         case ::hilti::rt::Protocol::TCP: {
-            // Forward empty payload to trigger lifecycle management in this analyzer tree.
-            c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), true);
-            c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), false);
+            c->analyzer->CleanupChildren();
 
             // If the child already exists, do not add it again so this function is idempotent.
             if ( auto child = c->analyzer->GetChildAnalyzer(analyzer) )
@@ -595,9 +588,7 @@ rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer
         }
 
         case ::hilti::rt::Protocol::UDP: {
-            // Forward empty payload to trigger lifecycle management in this analyzer tree.
-            c->analyzer->ForwardPacket(0, reinterpret_cast<const u_char*>(c->analyzer), true, 0, nullptr, 0);
-            c->analyzer->ForwardPacket(0, reinterpret_cast<const u_char*>(c->analyzer), false, 0, nullptr, 0);
+            c->analyzer->CleanupChildren();
 
             // If the child already exists, do not add it again so this function is idempotent.
             if ( auto child = c->analyzer->GetChildAnalyzer(analyzer) )

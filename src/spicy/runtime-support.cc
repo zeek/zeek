@@ -2,7 +2,6 @@
 
 #include "zeek/spicy/runtime-support.h"
 
-#include <algorithm>
 #include <memory>
 
 #include <hilti/rt/exception.h>
@@ -10,6 +9,7 @@
 #include <hilti/rt/types/port.h>
 #include <hilti/rt/util.h>
 
+#include "net_util.h"
 #include "zeek/Event.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
@@ -493,7 +493,10 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilt
         return;
     }
 
-    // Instantiate a DPD analyzer.
+    // Instantiate a DPD analyzer. If a direct child of this type already
+    // exists, we abort silently because that makes usage nicer if either side
+    // of the connection might end up creating the analyzer; this way the user
+    // doesn't need to track what the other side already did.
 
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
     assert(cookie);
@@ -504,24 +507,17 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilt
 
     switch ( proto.value() ) {
         case ::hilti::rt::Protocol::TCP: {
+            // Use a Zeek PIA stream (TCP) analyzer performing DPD.
             auto pia_tcp = std::make_unique<analyzer::pia::PIA_TCP>(c->analyzer->Conn());
-            pia_tcp->FirstPacket(true, nullptr);
-            pia_tcp->FirstPacket(false, nullptr);
+            pia_tcp->FirstPacket(true, TransportProto::TRANSPORT_TCP);
+            pia_tcp->FirstPacket(false, TransportProto::TRANSPORT_TCP);
 
             // Forward empty payload to trigger lifecycle management in this analyzer tree.
             c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), true);
             c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), false);
 
             // If the child already exists, do not add it again so this function is idempotent.
-            //
-            // We inspect the children directly to work around zeek/zeek#2899.
-            const auto& children = c->analyzer->GetChildren();
-            if ( auto it = std::find_if(children.begin(), children.end(),
-                                        [&](const auto& it) {
-                                            return ! it->Removing() && ! it->IsFinished() &&
-                                                   it->GetAnalyzerName() == pia_tcp->GetAnalyzerTag();
-                                        });
-                 it != children.end() )
+            if ( auto child = c->analyzer->GetChildAnalyzer(pia_tcp->GetAnalyzerName()) )
                 return;
 
             auto child = pia_tcp.release();
@@ -529,7 +525,20 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilt
             break;
         }
 
-        case ::hilti::rt::Protocol::UDP: throw Unsupported("protocol_begin: UDPnot supported for DPD");
+        case ::hilti::rt::Protocol::UDP: {
+            // Use a Zeek PIA packet (UDP) analyzer performing DPD.
+            auto pia_udp = std::make_unique<analyzer::pia::PIA_UDP>(c->analyzer->Conn());
+            pia_udp->FirstPacket(true, TransportProto::TRANSPORT_UDP);
+            pia_udp->FirstPacket(false, TransportProto::TRANSPORT_UDP);
+
+            // Forward empty payload to trigger lifecycle management in this analyzer tree.
+            c->analyzer->ForwardPacket(0, reinterpret_cast<const u_char*>(c->analyzer), true, 0, nullptr, 0);
+            c->analyzer->ForwardPacket(0, reinterpret_cast<const u_char*>(c->analyzer), false, 0, nullptr, 0);
+
+            auto child = pia_udp.release();
+            c->analyzer->AddChildAnalyzer(child);
+            break;
+        }
 
         case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_begin: ICMP not supported for DPD");
 
@@ -557,16 +566,8 @@ rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer
             c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), false);
 
             // If the child already exists, do not add it again so this function is idempotent.
-            //
-            // We inspect the children directly to work around zeek/zeek#2899.
-            const auto& children = c->analyzer->GetChildren();
-            if ( auto it = std::find_if(children.begin(), children.end(),
-                                        [&](const auto& it) {
-                                            return ! it->Removing() && ! it->IsFinished() &&
-                                                   it->GetAnalyzerName() == analyzer;
-                                        });
-                 it != children.end() )
-                return rt::ProtocolHandle((*it)->GetID(), proto);
+            if ( auto child = c->analyzer->GetChildAnalyzer(analyzer) )
+                return rt::ProtocolHandle(child->GetID(), proto);
 
             auto child = analyzer_mgr->InstantiateAnalyzer(analyzer.c_str(), c->analyzer->Conn());
             if ( ! child )
@@ -590,19 +591,31 @@ rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer
                     ->Done(); // will never see packets; cast to get around protected inheritance
             }
 
-            auto* child_as_tcp = dynamic_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(child);
-            if ( ! child_as_tcp )
-                throw ZeekError(
-                    ::hilti::rt::fmt("could not add analyzer '%s' to connection; not a TCP-based analyzer", analyzer));
-
-            if ( c->fake_tcp )
-                child_as_tcp->SetTCP(c->fake_tcp.get());
-
             return rt::ProtocolHandle(child->GetID(), proto);
         }
 
         case ::hilti::rt::Protocol::UDP: {
-            throw Unsupported("protocol_handle_get_or_create: UDP not supported");
+            // Forward empty payload to trigger lifecycle management in this analyzer tree.
+            c->analyzer->ForwardPacket(0, reinterpret_cast<const u_char*>(c->analyzer), true, 0, nullptr, 0);
+            c->analyzer->ForwardPacket(0, reinterpret_cast<const u_char*>(c->analyzer), false, 0, nullptr, 0);
+
+            // If the child already exists, do not add it again so this function is idempotent.
+            if ( auto child = c->analyzer->GetChildAnalyzer(analyzer) )
+                return rt::ProtocolHandle(child->GetID(), proto);
+
+            auto child = analyzer_mgr->InstantiateAnalyzer(analyzer.c_str(), c->analyzer->Conn());
+            if ( ! child )
+                throw ZeekError(::hilti::rt::fmt("unknown analyzer '%s' requested", analyzer));
+
+            // If we had no such child before but cannot add it the analyzer was prevented.
+            //
+            // NOTE: We make this a hard error since returning e.g., an empty optional
+            // here would make it easy to incorrectly use the return value with e.g.,
+            // `protocol_data_in` or `protocol_gap`.
+            if ( ! c->analyzer->AddChildAnalyzer(child) )
+                throw ZeekError(::hilti::rt::fmt("creation of child analyzer %s was prevented", analyzer));
+
+            return rt::ProtocolHandle(child->GetID(), proto);
         }
 
         case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_handle_get_or_create: ICMP not supported");
@@ -665,7 +678,27 @@ static void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::By
         }
 
         case ::hilti::rt::Protocol::UDP: {
-            throw Unsupported("protocol_data_in: UDP not supported");
+            auto len = data.size();
+            auto* data_ = reinterpret_cast<const u_char*>(data.data());
+
+            if ( h ) {
+                if ( auto* output_handler = c->analyzer->GetOutputHandler() )
+                    output_handler->DeliverPacket(len, data_, is_orig, 0, nullptr, 0);
+
+                auto* child = c->analyzer->FindChild(h->id());
+                if ( ! child )
+                    throw ValueUnavailable(hilti::rt::fmt("unknown child analyzer %s", *h));
+
+                if ( child->IsFinished() || child->Removing() )
+                    throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", *h));
+
+                child->NextPacket(len, data_, is_orig);
+            }
+
+            else
+                c->analyzer->ForwardPacket(len, data_, is_orig, 0, nullptr, 0);
+
+            break;
         }
 
         case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_data_in: ICMP not supported");
@@ -769,7 +802,15 @@ void rt::protocol_handle_close(const ProtocolHandle& handle) {
         }
 
         case ::hilti::rt::Protocol::UDP: {
-            throw Unsupported("protocol_handle_close: UDP not supported");
+            auto child = c->analyzer->FindChild(handle.id());
+            if ( ! child )
+                throw ValueUnavailable(hilti::rt::fmt("unknown child analyzer %s", handle));
+
+            if ( child->IsFinished() || child->Removing() )
+                throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", handle));
+
+            c->analyzer->RemoveChildAnalyzer(handle.id());
+            break;
         }
 
         case ::hilti::rt::Protocol::ICMP: throw Unsupported("protocol_handle_close: ICMP not supported");

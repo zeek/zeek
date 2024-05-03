@@ -13,8 +13,8 @@ RUN dnf -y install \
     cmake \
     diffutils \
     flex \
-    gcc \
-    gcc-c++ \
+    gcc-toolset-9-gcc \
+    gcc-toolset-9-c++ \
     git \
     libpcap-devel \
     make \

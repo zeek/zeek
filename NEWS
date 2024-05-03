@@ -58,6 +58,12 @@ Changed Functionality
   ``frameworks/signatures/iso-9660`` which also increases the BOF buffer sufficiently.
   Note, doing so may increase memory and CPU usage significantly.
 
+- The ``val_footprint()`` BiF now factors in the size of strings when reporting
+  footprints, roughly equating a string's size with the number of elements
+  comparable to that length. As before, footprints are not meant to be precise
+  but mainly for providing comparisons, which is why this is not a breaking
+  change.
+
 Removed Functionality
 ---------------------
 

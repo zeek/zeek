@@ -564,6 +564,8 @@ public:
     StringValPtr Replace(RE_Matcher* re, const String& repl, bool do_all);
 
 protected:
+    unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
+
     void ValDescribe(ODesc* d) const override;
     ValPtr DoClone(CloneState* state) override;
 

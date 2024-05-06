@@ -1,4 +1,1 @@
-@load base/files/extract
-
-# 100 MB.
-redef FileExtract::default_limit = 104857600;
+@deprecated "Remove in v7.1 The policy/tuning/defaults package is deprecated. The options set here are now the defaults for Zeek in general.";

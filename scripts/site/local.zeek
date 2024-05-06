@@ -9,9 +9,6 @@ redef digest_salt = "Please change this value.";
 # This script logs which scripts were loaded during each run.
 @load misc/loaded-scripts
 
-# Apply the default tuning scripts for common tuning settings.
-@load tuning/defaults
-
 # Estimate and log capture loss.
 @load misc/capture-loss
 

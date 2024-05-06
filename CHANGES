@@ -1,3 +1,7 @@
+7.0.0-dev.205 | 2024-05-06 11:16:15 -0700
+
+  * Move the options from policy/tuning/defaults to actual Zeek defaults, deprecate that package (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.200 | 2024-05-02 19:00:53 -0700
 
   * refine Val "footprint" to equate long strings with multiple objects (Vern Paxson, Corelight)

@@ -64,6 +64,13 @@ Changed Functionality
   but mainly for providing comparisons, which is why this is not a breaking
   change.
 
+- The tuning/defaults policy has been deprecated and will be removed in
+  v7.1. This policy was already being loaded by default via local.zeek. The
+  settings contained within have become the overall defaults for Zeek now,
+  instead of having to load the policy. The two changes here are that fragments
+  now timeout after 5 minutes by default instead of no timeout, and extracted
+  files now have a default size limit of 100MB instead of unlimited.
+
 Removed Functionality
 ---------------------
 

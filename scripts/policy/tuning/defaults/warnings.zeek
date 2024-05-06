@@ -1,11 +1,1 @@
-##! This file is meant to print messages on stdout for settings that would be
-##! good to set in most cases or other things that could be done to achieve
-##! better detection.
-
-@load base/utils/site
-
-event zeek_init() &priority=-10
-	{
-	if ( |Site::local_nets| == 0 )
-		print "WARNING: No Site::local_nets have been defined.  It's usually a good idea to define your local networks.";
-	}
+@deprecated "Remove in v7.1 The policy/tuning/defaults package is deprecated. The options set here are now the defaults for Zeek in general.";

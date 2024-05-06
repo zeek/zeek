@@ -1,3 +1,7 @@
+7.0.0-dev.207 | 2024-05-06 16:59:31 -0700
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.205 | 2024-05-06 11:16:15 -0700
 
   * Move the options from policy/tuning/defaults to actual Zeek defaults, deprecate that package (Tim Wojtulewicz, Corelight)

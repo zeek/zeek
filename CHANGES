@@ -1,3 +1,72 @@
+7.0.0-dev.218 | 2024-05-07 09:45:25 +0200
+
+  * Fix packet analyzer replacement. (Robin Sommer, Corelight)
+
+    Also reworking the existing test, which was pretty odd/broken.
+
+  * GH-3573: Spicy: Wenn replacing an analyzer add a component mapping. (Robin Sommer, Corelight)
+
+    This uses the new API to replace components internally.
+
+    With these changes in place, replacing protocol analyzers now don't
+    need to register their ports anymore if they match what the original
+    analyzer was using (because the old one's registrations will map
+    over).
+
+    Packet analyzer replacement doesn't quite work yet but will be fixed
+    in next commit.
+
+  * Add component API to transparently remap one component to another one. (Robin Sommer, Corelight)
+
+    When a specific component is requested through its tag or name, one
+    can now have the component manager transparently return a different
+    one that has been registered to replace the original one. We limit
+    this to disabled components to avoid unnecessary confusion. That also
+    means that remappings are currently only supported for analyzers
+    (because other types of components cannot be disabled for now, per the
+    previous change).
+
+  * Move enabled/disabled functionality from analyzers into `Component` base class API. (Robin Sommer, Corelight)
+
+    The different analyzers types all had their own methods for
+    enabling/disabling their availability. This change abstracts that into
+    a new API inside their base class (`plugin::Component`) so that they
+    can be toggled in a unified way.
+
+    In principle, other types of components could/should use this as well
+    now, so that, e.g., an input reader's availability could be toggled at
+    runtime. The code doesn't make that broader change for now because it
+    would requires a series of changes wherever these other component
+    types are being used. However, that means that one now could try
+    toggling some other component through the new API without that having
+    any effect. To catch that, there's a runtime check in place that turns
+    any such attempt into an internal error.
+
+  * GH-3440: Spicy: Query Zeek scriptland for file handles. (Robin Sommer, Corelight)
+
+    Like traditional file analyzers, we now query Zeek's
+    `get_file_handle()` event for handles when a connection begins
+    analyzing an embedded file. That means that Spicy-side protocol
+    analyzers that are forwarding data into file analysis now need to call
+    Zeek's `Files::register_protocol()` and provide a callback for
+    computing file handles. If that's missing, Zeek will now issue a
+    warning. This aligns with the requirements Zeek's traditional protocol
+    analyzers. (If the EVT file defines a protocol analyzer to `replace`
+    an existing one, that one's `register_protocol()` will be consulted.)
+
+    Because Zeek's `get_file_handle()` event requires a current
+    connection, if a Spicy file analyzer isn't directly part of a
+    connection context (e.g., with nested files), we continue to use
+    hardcoded, built-in file handle. Scriptland won't be consulted in
+    that case, just like before.
+
+  * Spicy: Cleanup some runtime code. (Robin Sommer, Corelight)
+
+  * GH-3606: Spicy: Map Spicy's `Protocol` enum to Zeek's `transport_proto`. (Robin Sommer, Corelight)
+
+    We now hardcode this specific enum mapping to make Zeek-side usage
+    more convenient.
+
 7.0.0-dev.207 | 2024-05-06 16:59:31 -0700
 
   * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)

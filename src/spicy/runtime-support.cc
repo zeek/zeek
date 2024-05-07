@@ -689,8 +689,22 @@ rt::cookie::FileState* rt::cookie::FileStateStack::push(std::optional<std::strin
     std::string fid;
     if ( fid_provided )
         fid = *fid_provided;
-    else
-        fid = file_mgr->HashHandle(hilti::rt::fmt("%s.%d", _analyzer_id, ++_id_counter));
+    else {
+        auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
+        assert(cookie);
+
+        if ( auto c = cookie->protocol ) {
+            auto tag = spicy_mgr->tagForProtocolAnalyzer(c->analyzer->GetAnalyzerTag());
+            fid = file_mgr->GetFileID(tag, c->analyzer->Conn(), c->is_orig);
+        }
+
+        if ( fid.empty() )
+            // If we can't get a FID from the file manager (e.g., because don't
+            // have a current protocol), we make one up.
+            fid = file_mgr->HashHandle(hilti::rt::fmt("%s.%d", _analyzer_id, ++_id_counter));
+    }
+
+    assert(! fid.empty());
     _stack.emplace_back(std::move(fid));
     return &_stack.back();
 }

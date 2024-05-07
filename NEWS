@@ -71,6 +71,13 @@ Changed Functionality
   now timeout after 5 minutes by default instead of no timeout, and extracted
   files now have a default size limit of 100MB instead of unlimited.
 
+- If a Spicy protocol analyzers feeds data into file analysis, it now
+  needs to call Zeek's `Files::register_protocol()` and provide a
+  callback for computing file handles. If that's missing, Zeek will
+  issue a warning. While this was not necessary in previous versions,
+  it aligns with the same requirement for traditional analyzers and
+  enables customizing file handles for protocol-specific semantics.
+
 Removed Functionality
 ---------------------
 

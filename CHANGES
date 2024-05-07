@@ -1,3 +1,13 @@
+7.0.0-dev.224 | 2024-05-07 10:26:40 -0700
+
+  * Clarify membership in the Site::private_address_space prefix list. [skip ci] (Christian Kreibich, Corelight)
+
+    IANA's IPv6 special-purpose address registry now has members that technically
+    meet the definition of not being globally reachable, but don't imply operating
+    locally. An example: https://datatracker.ietf.org/doc/draft-ietf-6man-sids/06/
+
+    This change just explains that distinction.
+
 7.0.0-dev.222 | 2024-05-07 10:25:55 -0700
 
   * Avoid segfault when generating Zeekygen docs on Zeek-internal identifiers. (Christian Kreibich, Corelight)

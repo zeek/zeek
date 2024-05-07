@@ -1,3 +1,7 @@
+7.0.0-dev.226 | 2024-05-07 12:02:28 -0700
+
+  * make SSH analyzer robust to half-duplex connections (Vern Paxson, Corelight)
+
 7.0.0-dev.224 | 2024-05-07 10:26:40 -0700
 
   * Clarify membership in the Site::private_address_space prefix list. [skip ci] (Christian Kreibich, Corelight)

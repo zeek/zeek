@@ -37,6 +37,7 @@ type SSH_Key_Exchange(is_orig: bool) = record {
 	key_ex: case $context.connection.get_version() of {
 		SSH1 -> ssh1_msg : SSH1_Key_Exchange(is_orig, packet_length);
 		SSH2 -> ssh2_msg : SSH2_Key_Exchange(is_orig, packet_length);
+		default -> terminate : bytestring &restofdata &transient;
 	};
 } &length = $context.flow.get_kex_length($context.connection.get_version(), packet_length);
 
@@ -381,32 +382,32 @@ refine connection SSH_Conn += {
 				}
 			}
 
-			if ( version_server_ == version_client_ )
-				{
-				// SSH199 vs SSH199 -> 2
-				if (version_server_ == SSH199 )
-					version_ = SSH2;
-				else
-					version_ = version_server_;
-				}
-			// SSH1 vs SSH2 -> Undefined
-			else if ( version_client_ == SSH1 && version_server_ == SSH2 )
-				version_ = UNK;
-			// SSH2 vs SSH1 -> Undefined
-			else if ( version_client_ == SSH2 && version_server_ == SSH1 )
-				version_ = UNK;
-			// SSH199 vs SSH2 -> 2
-			else if ( version_client_ == SSH199 && version_server_ == SSH2 )
+		if ( version_server_ == version_client_ )
+			{
+			// SSH199 vs SSH199 -> 2
+			if (version_server_ == SSH199 )
+				version_ = SSH2;
+			else
 				version_ = version_server_;
-			// SSH2 vs SSH199 -> 2
-			else if ( version_client_ == SSH2 && version_server_ == SSH199 )
-				version_ = version_client_;
-			// SSH1 vs SSH199 -> 1
-			else if ( version_client_ == SSH1 && version_server_ == SSH199 )
-				version_ = version_client_;
-			// SSH199 vs SSH1 -> 1
-			else if ( version_client_ == SSH199 && version_server_ == SSH1 )
-				version_ = version_server_;
+			}
+		// SSH1 vs SSH2 -> Undefined
+		else if ( version_client_ == SSH1 && version_server_ == SSH2 )
+			version_ = UNK;
+		// SSH2 vs SSH1 -> Undefined
+		else if ( version_client_ == SSH2 && version_server_ == SSH1 )
+			version_ = UNK;
+		// SSH199 vs SSH2 -> 2
+		else if ( version_client_ == SSH199 && version_server_ == SSH2 )
+			version_ = version_server_;
+		// SSH2 vs SSH199 -> 2
+		else if ( version_client_ == SSH2 && version_server_ == SSH199 )
+			version_ = version_client_;
+		// SSH1 vs SSH199 -> 1
+		else if ( version_client_ == SSH1 && version_server_ == SSH199 )
+			version_ = version_client_;
+		// SSH199 vs SSH1 -> 1
+		else if ( version_client_ == SSH199 && version_server_ == SSH1 )
+			version_ = version_server_;
 
 		return true;
 		%}

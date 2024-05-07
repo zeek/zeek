@@ -422,6 +422,18 @@ Analyzer* Analyzer::GetChildAnalyzer(const zeek::Tag& tag) const {
     return nullptr;
 }
 
+Analyzer* Analyzer::GetChildAnalyzer(const std::string& name) const {
+    LOOP_OVER_CHILDREN(i)
+    if ( (*i)->GetAnalyzerName() == name && ! ((*i)->removing || (*i)->finished) )
+        return *i;
+
+    LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+    if ( (*i)->GetAnalyzerName() == name && ! ((*i)->removing || (*i)->finished) )
+        return *i;
+
+    return nullptr;
+}
+
 Analyzer* Analyzer::FindChild(ID arg_id) {
     if ( id == arg_id && ! (removing || finished) )
         return this;

@@ -1,3 +1,21 @@
+7.0.0-dev.222 | 2024-05-07 10:25:55 -0700
+
+  * Avoid segfault when generating Zeekygen docs on Zeek-internal identifiers. (Christian Kreibich, Corelight)
+
+    Identifiers that Zeek generates explicitly in-core for example during component management
+    ("Analyzer::ANALYZER_FOO", "Input::READER_FOO", etc), aren't associated with any
+    scripts and would lead to nullpointer derefs when trying to identify
+    modification time.
+
+    This fix returns a zero timestamp in such cases, ensuring it never triggers docs
+    refreshes. We do the same e.g. in PackageInfo instances.
+
+  * Add btest for Zeekygen docs extraction on identifiers defined by the Zeek core. (Christian Kreibich, Corelight)
+
+    Mainly, this should not crash. :-) The baseline output file also should remain
+    empty, since Zeekygen's staleness test should conclude that it's sufficiently
+    fresh.
+
 7.0.0-dev.218 | 2024-05-07 09:45:25 +0200
 
   * Fix packet analyzer replacement. (Robin Sommer, Corelight)

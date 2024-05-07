@@ -132,7 +132,10 @@ string IdentifierInfo::DoReStructuredText(bool roles_only) const {
 time_t IdentifierInfo::DoGetModificationTime() const {
     // Could probably get away with just checking the set of scripts that
     // contributed to the ID declaration/redefinitions, but this is easier...
-    return declaring_script->GetModificationTime();
+    if ( declaring_script )
+        return declaring_script->GetModificationTime();
+
+    return 0;
 }
 
 IdentifierInfo::Redefinition::Redefinition(std::string arg_script, zeek::detail::InitClass arg_ic,

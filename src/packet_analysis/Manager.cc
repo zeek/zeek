@@ -82,14 +82,14 @@ AnalyzerPtr Manager::GetAnalyzer(const std::string& name) {
 }
 
 bool Manager::EnableAnalyzer(EnumVal* tag) {
-    Component* c = Lookup(tag);
+    Component* c = Lookup(tag, false);
     c->SetEnabled(true);
 
     return true;
 }
 
 bool Manager::DisableAnalyzer(EnumVal* tag) {
-    Component* c = Lookup(tag);
+    Component* c = Lookup(tag, false);
     c->SetEnabled(false);
 
     return true;
@@ -159,7 +159,7 @@ AnalyzerPtr Manager::InstantiateAnalyzer(const Tag& tag) {
         return nullptr;
     }
 
-    if ( tag != a->GetAnalyzerTag() ) {
+    if ( tag != a->GetAnalyzerTag() && ! HasComponentMapping(tag) ) {
         reporter->InternalError(
             "Mismatch of requested analyzer %s and instantiated analyzer %s. "
             "This usually means that the plugin author made a mistake.",

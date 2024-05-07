@@ -110,7 +110,7 @@ void Manager::DumpDebug() {
 void Manager::Done() {}
 
 bool Manager::EnableAnalyzer(const zeek::Tag& tag) {
-    Component* p = Lookup(tag);
+    Component* p = Lookup(tag, false);
 
     if ( ! p )
         return false;
@@ -122,7 +122,7 @@ bool Manager::EnableAnalyzer(const zeek::Tag& tag) {
 }
 
 bool Manager::EnableAnalyzer(EnumVal* val) {
-    Component* p = Lookup(val);
+    Component* p = Lookup(val, false);
 
     if ( ! p )
         return false;
@@ -134,7 +134,7 @@ bool Manager::EnableAnalyzer(EnumVal* val) {
 }
 
 bool Manager::DisableAnalyzer(const zeek::Tag& tag) {
-    Component* p = Lookup(tag);
+    Component* p = Lookup(tag, false);
 
     if ( ! p )
         return false;

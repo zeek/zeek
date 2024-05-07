@@ -70,20 +70,6 @@ public:
      */
     factory_function FactoryFunction() const { return factory_func; }
 
-    /**
-     * Returns true if the analyzer is currently enabled and hence
-     * available for use.
-     */
-    bool Enabled() const { return enabled; }
-
-    /**
-     * Enables or disables this analyzer.
-     *
-     * @param arg_enabled True to enabled, false to disable.
-     *
-     */
-    void SetEnabled(bool arg_enabled) { enabled = arg_enabled; }
-
 protected:
     /**
      * Overridden from plugin::Component.
@@ -94,7 +80,6 @@ private:
     friend class Manager;
 
     factory_function factory_func; // The analyzer's factory callback.
-    bool enabled;                  // True if the analyzer is enabled.
 };
 
 } // namespace file_analysis

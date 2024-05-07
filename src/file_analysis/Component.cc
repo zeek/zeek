@@ -11,7 +11,7 @@ namespace zeek::file_analysis {
 Component::Component(const std::string& name, factory_function arg_factory, Tag::subtype_t subtype, bool arg_enabled)
     : plugin::Component(plugin::component::FILE_ANALYZER, name, subtype, file_mgr->GetTagType()) {
     factory_func = arg_factory;
-    enabled = arg_enabled;
+    SetEnabled(arg_enabled);
 }
 
 void Component::Initialize() {
@@ -26,7 +26,7 @@ void Component::DoDescribe(ODesc* d) const {
         d->Add(", ");
     }
 
-    d->Add(enabled ? "enabled" : "disabled");
+    d->Add(Enabled() ? "enabled" : "disabled");
 }
 
 } // namespace zeek::file_analysis

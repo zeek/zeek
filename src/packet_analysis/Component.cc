@@ -18,11 +18,23 @@ void Component::Initialize() {
 }
 
 void Component::SetEnabled(bool arg_enabled) {
-    enabled = arg_enabled;
+    auto analyzer = packet_mgr->GetAnalyzer(Tag().AsVal().get());
+    if ( analyzer ) {
+        // We can only toggle the analyzer if it's not replacing another one,
+        // otherwise our dispatching tables would be wrong.
+        if ( packet_mgr->ProvidesComponentMapping(Tag()) ) {
+            reporter->Warning(
+                "attempt to toggle packet analyzer %s, which replaces another one; toggling replacement analyzers is "
+                "not supported",
+                analyzer->GetAnalyzerName());
+            return;
+        }
 
-    // If we already have instantiated an analyzer, update its state.
-    if ( auto analyzer = packet_mgr->GetAnalyzer(Tag().AsVal().get()) )
-        analyzer->SetEnabled(enabled);
+        // Update the existing analyzer's state.
+        analyzer->SetEnabled(arg_enabled);
+    }
+
+    plugin::Component::SetEnabled(arg_enabled);
 }
 
 void Component::DoDescribe(ODesc* d) const {
@@ -32,5 +44,5 @@ void Component::DoDescribe(ODesc* d) const {
         d->Add(", ");
     }
 
-    d->Add(enabled ? "enabled" : "disabled");
+    d->Add(Enabled() ? "enabled" : "disabled");
 }

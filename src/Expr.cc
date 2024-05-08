@@ -42,6 +42,8 @@ const char* expr_name(ExprTag t) {
         "-",
         "+",
         "-",
+        "add",
+        "delete",
         "+=",
         "-=",
         "*",
@@ -211,9 +213,13 @@ bool Expr::CanAdd() const { return false; }
 
 bool Expr::CanDel() const { return false; }
 
-void Expr::Add(Frame* /* f */) { Internal("Expr::Add called"); }
+TypePtr Expr::AddType() const { return nullptr; }
 
-void Expr::Delete(Frame* /* f */) { Internal("Expr::Delete called"); }
+TypePtr Expr::DelType() const { return nullptr; }
+
+ValPtr Expr::Add(Frame* /* f */) { Internal("Expr::Add called"); }
+
+ValPtr Expr::Delete(Frame* /* f */) { Internal("Expr::Delete called"); }
 
 ExprPtr Expr::MakeLvalue() {
     if ( ! IsError() )
@@ -416,8 +422,11 @@ bool NameExpr::CanDel() const {
     return GetType()->Tag() == TYPE_TABLE || GetType()->Tag() == TYPE_VECTOR;
 }
 
-void NameExpr::Delete(Frame* f) {
-    if ( auto v = Eval(f) ) {
+TypePtr NameExpr::DelType() const { return GetType(); }
+
+ValPtr NameExpr::Delete(Frame* f) {
+    auto v = Eval(f);
+    if ( v ) {
         if ( GetType()->Tag() == TYPE_TABLE )
             v->AsTableVal()->RemoveAll();
         else if ( GetType()->Tag() == TYPE_VECTOR )
@@ -425,6 +434,7 @@ void NameExpr::Delete(Frame* f) {
         else
             RuntimeError("delete unsupported");
     }
+    return v;
 }
 
 // This isn't in-lined to avoid needing to pull in ID.h.
@@ -1392,6 +1402,24 @@ void AddExpr::Canonicalize() {
          (op2->IsConst() && ! is_vector(op2->ExprVal()) && ! op1->IsConst()) )
         SwapOps();
 }
+
+AggrAddExpr::AggrAddExpr(ExprPtr _op) : UnaryExpr(EXPR_AGGR_ADD, std::move(_op)) {
+    if ( ! op->IsError() && ! op->CanAdd() )
+        ExprError("illegal add expression");
+
+    SetType(op->AddType());
+}
+
+ValPtr AggrAddExpr::Eval(Frame* f) const { return op->Add(f); }
+
+AggrDelExpr::AggrDelExpr(ExprPtr _op) : UnaryExpr(EXPR_AGGR_DEL, std::move(_op)) {
+    if ( ! op->IsError() && ! op->CanDel() )
+        Error("illegal delete expression");
+
+    SetType(op->DelType());
+}
+
+ValPtr AggrDelExpr::Eval(Frame* f) const { return op->Delete(f); }
 
 // True if we should treat LHS += RHS as add-every-element-of-RHS-to-LHS.
 // False for the alternative, add-RHS-as-one-element-to-LHS.
@@ -2496,46 +2524,57 @@ bool IndexExpr::CanDel() const {
     return op1->GetType()->Tag() == TYPE_TABLE;
 }
 
-void IndexExpr::Add(Frame* f) {
+TypePtr IndexExpr::AddType() const { return op1->GetType(); }
+
+TypePtr IndexExpr::DelType() const {
+    auto y = op1->GetType()->Yield();
+    return y ? y : base_type(TYPE_VOID);
+}
+
+ValPtr IndexExpr::Add(Frame* f) {
     if ( IsError() )
-        return;
+        return nullptr;
 
     auto v1 = op1->Eval(f);
 
     if ( ! v1 )
-        return;
+        return nullptr;
 
     auto v2 = op2->Eval(f);
 
     if ( ! v2 )
-        return;
+        return nullptr;
 
     bool iterators_invalidated = false;
     v1->AsTableVal()->Assign(std::move(v2), nullptr, true, &iterators_invalidated);
 
     if ( iterators_invalidated )
         reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");
+
+    return v1;
 }
 
-void IndexExpr::Delete(Frame* f) {
+ValPtr IndexExpr::Delete(Frame* f) {
     if ( IsError() )
-        return;
+        return nullptr;
 
     auto v1 = op1->Eval(f);
 
     if ( ! v1 )
-        return;
+        return nullptr;
 
     auto v2 = op2->Eval(f);
 
     if ( ! v2 )
-        return;
+        return nullptr;
 
     bool iterators_invalidated = false;
-    v1->AsTableVal()->Remove(*v2, true, &iterators_invalidated);
+    auto removed = v1->AsTableVal()->Remove(*v2, true, &iterators_invalidated);
 
     if ( iterators_invalidated )
         reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");
+
+    return removed;
 }
 
 ExprPtr IndexExpr::MakeLvalue() {
@@ -2752,17 +2791,25 @@ ExprPtr FieldExpr::MakeLvalue() { return with_location_of(make_intrusive<RefExpr
 
 bool FieldExpr::CanDel() const { return td->GetAttr(ATTR_DEFAULT) || td->GetAttr(ATTR_OPTIONAL); }
 
+TypePtr FieldExpr::DelType() const { return GetType(); }
+
 void FieldExpr::Assign(Frame* f, ValPtr v) {
     if ( IsError() )
         return;
 
-    if ( auto op_v = op->Eval(f) ) {
-        RecordVal* r = op_v->AsRecordVal();
-        r->Assign(field, std::move(v));
-    }
+    Assign(op->Eval(f), v);
 }
 
-void FieldExpr::Delete(Frame* f) { Assign(f, nullptr); }
+void FieldExpr::Assign(ValPtr lhs, ValPtr rhs) {
+    if ( lhs )
+        lhs->AsRecordVal()->Assign(field, std::move(rhs));
+}
+
+ValPtr FieldExpr::Delete(Frame* f) {
+    auto op_v = op->Eval(f);
+    Assign(op_v, nullptr);
+    return op_v;
+}
 
 ValPtr FieldExpr::Fold(Val* v) const {
     if ( const auto& result = v->AsRecordVal()->GetField(field) )

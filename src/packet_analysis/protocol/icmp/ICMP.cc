@@ -280,8 +280,8 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& dat
 
         if ( ! bad_hdr_len )
             bad_checksum = ! run_state::current_pkt->l4_checksummed &&
-                           (detail::in_cksum(reinterpret_cast<const uint8_t*>(ip_hdr->IP4_Hdr()),
-                                             static_cast<int>(ip_hdr_len)) != 0xffff);
+                           (zeek::detail::in_cksum(reinterpret_cast<const uint8_t*>(ip_hdr->IP4_Hdr()),
+                                                   static_cast<int>(ip_hdr_len)) != 0xffff);
         else
             bad_checksum = false;
 

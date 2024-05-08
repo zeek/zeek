@@ -148,7 +148,7 @@ const struct tcphdr* TCPAnalyzer::ExtractTCP_Header(const u_char*& data, int& le
 
 bool TCPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const struct tcphdr* tp, analyzer::tcp::TCP_Endpoint* endpoint,
                                    int len, int caplen, TCPSessionAdapter* adapter) {
-    if ( ! run_state::current_pkt->l4_checksummed && ! detail::ignore_checksums &&
+    if ( ! run_state::current_pkt->l4_checksummed && ! zeek::detail::ignore_checksums &&
          ! GetIgnoreChecksumsNets()->Contains(ip->IPHeaderSrcAddr()) && caplen >= len &&
          ! endpoint->ValidChecksum(tp, len, ip->IP4_Hdr()) ) {
         adapter->Weird("bad_TCP_checksum");

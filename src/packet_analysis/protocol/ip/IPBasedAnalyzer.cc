@@ -27,7 +27,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
         return false;
 
     const std::shared_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
-    detail::ConnKey key(tuple);
+    zeek::detail::ConnKey key(tuple);
 
     Connection* conn = session_mgr->FindConnection(key);
 
@@ -140,7 +140,7 @@ bool IPBasedAnalyzer::IsLikelyServerPort(uint32_t port) const {
     return port_cache.find(port) != port_cache.end();
 }
 
-zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const detail::ConnKey& key, const Packet* pkt) {
+zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const zeek::detail::ConnKey& key, const Packet* pkt) {
     int src_h = ntohs(id->src_port);
     int dst_h = ntohs(id->dst_port);
     bool flip = false;

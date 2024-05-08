@@ -37,9 +37,9 @@ void Manager::InitPostScript(const std::string& unprocessed_output_file) {
 
     auto pkt_profile_file = id::find_val("pkt_profile_file");
 
-    if ( detail::pkt_profile_mode && detail::pkt_profile_freq > 0 && pkt_profile_file )
-        pkt_profiler =
-            new detail::PacketProfiler(detail::pkt_profile_mode, detail::pkt_profile_freq, pkt_profile_file->AsFile());
+    if ( zeek::detail::pkt_profile_mode && zeek::detail::pkt_profile_freq > 0 && pkt_profile_file )
+        pkt_profiler = new zeek::detail::PacketProfiler(zeek::detail::pkt_profile_mode, zeek::detail::pkt_profile_freq,
+                                                        pkt_profile_file->AsFile());
 
     unknown_sampling_rate = id::find_val("UnknownProtocol::sampling_rate")->AsCount();
     unknown_sampling_threshold = id::find_val("UnknownProtocol::sampling_threshold")->AsCount();
@@ -215,7 +215,7 @@ bool Manager::PermitUnknownProtocol(const std::string& analyzer, uint32_t protoc
     ++count;
 
     if ( count == 1 )
-        detail::timer_mgr->Add(new UnknownProtocolTimer(run_state::network_time, p, unknown_sampling_duration));
+        zeek::detail::timer_mgr->Add(new UnknownProtocolTimer(run_state::network_time, p, unknown_sampling_duration));
 
     if ( count < unknown_sampling_threshold )
         return true;

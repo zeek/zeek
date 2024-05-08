@@ -8,7 +8,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/packet_analysis/Analyzer.h"
 
-namespace zeek::packet_analysis {
+namespace zeek::packet_analysis::detail {
 
 Dispatcher::~Dispatcher() { FreeValues(); }
 
@@ -80,4 +80,4 @@ void Dispatcher::DumpDebug() const {
 #endif
 }
 
-} // namespace zeek::packet_analysis
+} // namespace zeek::packet_analysis::detail

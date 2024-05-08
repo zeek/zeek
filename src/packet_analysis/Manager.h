@@ -164,9 +164,9 @@ public:
      */
     void ResetUnknownProtocolTimer(const std::string& analyzer, uint32_t protocol);
 
-    detail::PacketFilter* GetPacketFilter(bool init = true) {
+    zeek::detail::PacketFilter* GetPacketFilter(bool init = true) {
         if ( ! pkt_filter && init )
-            pkt_filter = new detail::PacketFilter(detail::packet_filter_default);
+            pkt_filter = new zeek::detail::PacketFilter(zeek::detail::packet_filter_default);
         return pkt_filter;
     }
 
@@ -203,8 +203,8 @@ private:
     AnalyzerPtr root_analyzer = nullptr;
 
     uint64_t num_packets_processed = 0;
-    detail::PacketProfiler* pkt_profiler = nullptr;
-    detail::PacketFilter* pkt_filter = nullptr;
+    zeek::detail::PacketProfiler* pkt_profiler = nullptr;
+    zeek::detail::PacketFilter* pkt_filter = nullptr;
 
     using UnknownProtocolPair = std::pair<std::string, uint32_t>;
     std::map<UnknownProtocolPair, uint64_t> unknown_protocols;

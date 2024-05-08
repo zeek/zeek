@@ -22,7 +22,7 @@ public:
     void MatchEndpoint(const u_char* data, int len, bool is_orig);
 
 private:
-    detail::RuleMatcherState matcher_state;
+    zeek::detail::RuleMatcherState matcher_state;
     int request_len = -1;
     int reply_len = -1;
 };

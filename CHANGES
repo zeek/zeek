@@ -1,3 +1,7 @@
+7.0.0-dev.231 | 2024-05-08 13:09:25 -0700
+
+  * enable ZAM operation specifications to reside in multiple files (not yet used) (Vern Paxson, Corelight)
+
 7.0.0-dev.229 | 2024-05-08 09:55:01 -0700
 
   * Move packet_analysis::Dispatcher to detail namespace (Tim Wojtulewicz, Corelight)

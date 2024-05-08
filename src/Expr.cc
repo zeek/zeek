@@ -1403,7 +1403,7 @@ void AddExpr::Canonicalize() {
         SwapOps();
 }
 
-AggrAddExpr::AggrAddExpr(ExprPtr _op) : UnaryExpr(EXPR_AGGR_ADD, std::move(_op)) {
+AggrAddExpr::AggrAddExpr(ExprPtr _op) : AggrAddDelExpr(EXPR_AGGR_ADD, std::move(_op)) {
     if ( ! op->IsError() && ! op->CanAdd() )
         ExprError("illegal add expression");
 
@@ -1412,7 +1412,7 @@ AggrAddExpr::AggrAddExpr(ExprPtr _op) : UnaryExpr(EXPR_AGGR_ADD, std::move(_op))
 
 ValPtr AggrAddExpr::Eval(Frame* f) const { return op->Add(f); }
 
-AggrDelExpr::AggrDelExpr(ExprPtr _op) : UnaryExpr(EXPR_AGGR_DEL, std::move(_op)) {
+AggrDelExpr::AggrDelExpr(ExprPtr _op) : AggrAddDelExpr(EXPR_AGGR_DEL, std::move(_op)) {
     if ( ! op->IsError() && ! op->CanDel() )
         Error("illegal delete expression");
 

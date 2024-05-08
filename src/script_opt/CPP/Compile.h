@@ -757,6 +757,8 @@ private:
 
     std::string GenNameExpr(const NameExpr* ne, GenType gt);
     std::string GenConstExpr(const ConstExpr* c, GenType gt);
+    std::string GenAggrAdd(const Expr* e);
+    std::string GenAggrDel(const Expr* e);
     std::string GenIncrExpr(const Expr* e, GenType gt, bool is_incr, bool top_level);
     std::string GenCondExpr(const Expr* e, GenType gt);
     std::string GenCallExpr(const CallExpr* c, GenType gt, bool top_level);

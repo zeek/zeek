@@ -16,6 +16,10 @@ const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e) {
 
         case EXPR_APPEND_TO: return CompileAppendToExpr(static_cast<const AppendToExpr*>(e));
 
+        case EXPR_AGGR_ADD: return CompileAdd(static_cast<const AggrAddExpr*>(e));
+
+        case EXPR_AGGR_DEL: return CompileDel(static_cast<const AggrDelExpr*>(e));
+
         case EXPR_ADD_TO: return CompileAddToExpr(static_cast<const AddToExpr*>(e));
 
         case EXPR_REMOVE_FROM: return CompileRemoveFromExpr(static_cast<const RemoveFromExpr*>(e));
@@ -76,6 +80,56 @@ const ZAMStmt ZAMCompiler::CompileAppendToExpr(const AppendToExpr* e) {
         return n2 ? AppendToAnyVecVV(n1, n2) : AppendToAnyVecVC(n1, cc);
 
     return n2 ? AppendToVV(n1, n2) : AppendToVC(n1, cc);
+}
+
+const ZAMStmt ZAMCompiler::CompileAdd(const AggrAddExpr* e) {
+    auto op = e->GetOp1();
+    auto aggr = op->GetOp1()->AsNameExpr();
+    auto index_list = op->GetOp2();
+
+    if ( index_list->Tag() != EXPR_LIST )
+        reporter->InternalError("non-list in \"add\"");
+
+    auto indices = index_list->AsListExprPtr();
+    auto& exprs = indices->Exprs();
+
+    if ( exprs.length() == 1 ) {
+        auto e1 = exprs[0];
+        if ( e1->Tag() == EXPR_NAME )
+            return AddStmt1VV(aggr, e1->AsNameExpr());
+        else
+            return AddStmt1VC(aggr, e1->AsConstExpr());
+    }
+
+    return AddStmtVO(aggr, BuildVals(indices));
+}
+
+const ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
+    auto op = e->GetOp1();
+
+    if ( op->Tag() == EXPR_NAME ) {
+        auto n = op->AsNameExpr();
+
+        if ( n->GetType()->Tag() == TYPE_TABLE )
+            return ClearTableV(n);
+        else
+            return ClearVectorV(n);
+    }
+
+    auto aggr = op->GetOp1()->AsNameExpr();
+
+    if ( op->Tag() == EXPR_FIELD ) {
+        int field = op->AsFieldExpr()->Field();
+        return DelFieldVi(aggr, field);
+    }
+
+    auto index_list = op->GetOp2();
+
+    if ( index_list->Tag() != EXPR_LIST )
+        reporter->InternalError("non-list in \"delete\"");
+
+    auto internal_ind = std::unique_ptr<OpaqueVals>(BuildVals(index_list->AsListExprPtr()));
+    return DelTableVO(aggr, internal_ind.get());
 }
 
 const ZAMStmt ZAMCompiler::CompileAddToExpr(const AddToExpr* e) {

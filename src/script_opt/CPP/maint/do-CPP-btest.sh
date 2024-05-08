@@ -34,7 +34,9 @@ export ZEEK_OPT_FILES="testing/btest"
 # export -n ZEEK_GEN_CPP ZEEK_CPP_DIR ZEEK_OPT_FUNCS ZEEK_OPT_FILES
 unset ZEEK_GEN_CPP ZEEK_REPORT_UNCOMPILABLE ZEEK_CPP_DIR ZEEK_OPT_FILES
 
+ls -l CPP-gen.cc
 ninja
+ls -l src/zeek
 
 (
     cd ../testing/btest

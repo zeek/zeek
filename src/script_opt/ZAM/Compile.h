@@ -186,6 +186,8 @@ private:
 
     const ZAMStmt CompileIncrExpr(const IncrExpr* e);
     const ZAMStmt CompileAppendToExpr(const AppendToExpr* e);
+    const ZAMStmt CompileAdd(const AggrAddExpr* e);
+    const ZAMStmt CompileDel(const AggrDelExpr* e);
     const ZAMStmt CompileAddToExpr(const AddToExpr* e);
     const ZAMStmt CompileRemoveFromExpr(const RemoveFromExpr* e);
     const ZAMStmt CompileAssignExpr(const AssignExpr* e);

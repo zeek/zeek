@@ -707,31 +707,36 @@ protected:
     ExprPtr BuildSub(const ExprPtr& op1, const ExprPtr& op2);
 };
 
-class AggrAddExpr final : public UnaryExpr {
+// A helper class that enables us to factor some common code.
+class AggrAddDelExpr : public UnaryExpr {
 public:
-    explicit AggrAddExpr(ExprPtr e);
+    explicit AggrAddDelExpr(ExprTag _tag, ExprPtr _e) : UnaryExpr(_tag, std::move(_e)) {}
 
     bool IsPure() const override { return false; }
 
     // Optimization-related:
-    ExprPtr Duplicate() override;
     bool IsReduced(Reducer* c) const override { return HasReducedOps(c); }
+    bool HasReducedOps(Reducer* c) const override { return op->HasReducedOps(c); }
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+};
+
+class AggrAddExpr final : public AggrAddDelExpr {
+public:
+    explicit AggrAddExpr(ExprPtr e);
+
+    // Optimization-related:
+    ExprPtr Duplicate() override;
 
 protected:
     ValPtr Eval(Frame* f) const override;
 };
 
-class AggrDelExpr final : public UnaryExpr {
+class AggrDelExpr final : public AggrAddDelExpr {
 public:
     explicit AggrDelExpr(ExprPtr e);
 
-    bool IsPure() const override { return false; }
-
     // Optimization-related:
     ExprPtr Duplicate() override;
-    bool IsReduced(Reducer* c) const override { return HasReducedOps(c); }
-    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
     ValPtr Eval(Frame* f) const override;

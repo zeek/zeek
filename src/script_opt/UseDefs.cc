@@ -436,6 +436,19 @@ UDs UseDefs::ExprUDs(const Expr* e) {
             break;
         }
 
+        case EXPR_AGGR_ADD:
+        case EXPR_AGGR_DEL: {
+            auto op = e->GetOp1();
+            if ( op->Tag() == EXPR_INDEX ) {
+                AddInExprUDs(uds, op->GetOp1().get());
+                auto rhs_UDs = ExprUDs(op->GetOp2().get());
+                uds = UD_Union(uds, rhs_UDs);
+            }
+            else
+                AddInExprUDs(uds, op.get());
+            break;
+        }
+
         case EXPR_INCR:
         case EXPR_DECR: AddInExprUDs(uds, e->GetOp1()->AsRefExprPtr()->GetOp1().get()); break;
 

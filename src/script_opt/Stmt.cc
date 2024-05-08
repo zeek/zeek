@@ -486,26 +486,6 @@ bool SwitchStmt::CouldReturn(bool ignore_break) const {
     return false;
 }
 
-bool AddDelStmt::IsReduced(Reducer* c) const { return e->HasReducedOps(c); }
-
-StmtPtr AddDelStmt::DoReduce(Reducer* c) {
-    if ( c->Optimizing() ) {
-        e = c->OptExpr(e);
-        return ThisPtr();
-    }
-
-    auto red_e_stmt = e->ReduceToSingletons(c);
-
-    if ( red_e_stmt )
-        return TransformMe(make_intrusive<StmtList>(red_e_stmt, ThisPtr()), c);
-    else
-        return ThisPtr();
-}
-
-StmtPtr AddStmt::Duplicate() { return SetSucc(new AddStmt(e->Duplicate())); }
-
-StmtPtr DelStmt::Duplicate() { return SetSucc(new DelStmt(e->Duplicate())); }
-
 StmtPtr EventStmt::Duplicate() { return SetSucc(new EventStmt(e->Duplicate()->AsEventExprPtr())); }
 
 StmtPtr EventStmt::DoReduce(Reducer* c) {

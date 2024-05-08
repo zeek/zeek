@@ -688,8 +688,6 @@ private:
     void GenIfStmt(const IfStmt* i);
     void GenWhileStmt(const WhileStmt* w);
     void GenReturnStmt(const ReturnStmt* r);
-    void GenAddStmt(const ExprStmt* es);
-    void GenDeleteStmt(const ExprStmt* es);
     void GenEventStmt(const EventStmt* ev);
 
     void GenSwitchStmt(const SwitchStmt* sw);

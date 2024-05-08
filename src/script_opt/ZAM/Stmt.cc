@@ -28,10 +28,6 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
 
         case STMT_SWITCH: return CompileSwitch(static_cast<const SwitchStmt*>(s));
 
-        case STMT_ADD: return CompileAdd(static_cast<const AddStmt*>(s));
-
-        case STMT_DELETE: return CompileDel(static_cast<const DelStmt*>(s));
-
         case STMT_EVENT: {
             auto es = static_cast<const EventStmt*>(s);
             auto e = static_cast<const EventExpr*>(es->StmtExpr());
@@ -621,56 +617,6 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, c
     ResolveBreaks(GoToTargetBeyond(body_end));
 
     return body_end;
-}
-
-const ZAMStmt ZAMCompiler::CompileAdd(const AddStmt* as) {
-    auto e = as->StmtExprPtr();
-    auto aggr = e->GetOp1()->AsNameExpr();
-    auto index_list = e->GetOp2();
-
-    if ( index_list->Tag() != EXPR_LIST )
-        reporter->InternalError("non-list in \"add\"");
-
-    auto indices = index_list->AsListExprPtr();
-    auto& exprs = indices->Exprs();
-
-    if ( exprs.length() == 1 ) {
-        auto e1 = exprs[0];
-        if ( e1->Tag() == EXPR_NAME )
-            return AddStmt1VV(aggr, e1->AsNameExpr());
-        else
-            return AddStmt1VC(aggr, e1->AsConstExpr());
-    }
-
-    return AddStmtVO(aggr, BuildVals(indices));
-}
-
-const ZAMStmt ZAMCompiler::CompileDel(const DelStmt* ds) {
-    auto e = ds->StmtExprPtr();
-
-    if ( e->Tag() == EXPR_NAME ) {
-        auto n = e->AsNameExpr();
-
-        if ( n->GetType()->Tag() == TYPE_TABLE )
-            return ClearTableV(n);
-        else
-            return ClearVectorV(n);
-    }
-
-    auto aggr = e->GetOp1()->AsNameExpr();
-
-    if ( e->Tag() == EXPR_FIELD ) {
-        int field = e->AsFieldExpr()->Field();
-        return DelFieldVi(aggr, field);
-    }
-
-    auto index_list = e->GetOp2();
-
-    if ( index_list->Tag() != EXPR_LIST )
-        reporter->InternalError("non-list in \"delete\"");
-
-    auto internal_ind = std::unique_ptr<OpaqueVals>(BuildVals(index_list->AsListExprPtr()));
-    return DelTableVO(aggr, internal_ind.get());
 }
 
 const ZAMStmt ZAMCompiler::CompileWhile(const WhileStmt* ws) {

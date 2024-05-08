@@ -137,8 +137,6 @@ private:
     const ZAMStmt CompileExpr(const ExprStmt* es);
     const ZAMStmt CompileIf(const IfStmt* is);
     const ZAMStmt CompileSwitch(const SwitchStmt* sw);
-    const ZAMStmt CompileAdd(const AddStmt* as);
-    const ZAMStmt CompileDel(const DelStmt* ds);
     const ZAMStmt CompileWhile(const WhileStmt* ws);
     const ZAMStmt CompileFor(const ForStmt* f);
     const ZAMStmt CompileReturn(const ReturnStmt* r);

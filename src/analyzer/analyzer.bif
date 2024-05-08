@@ -42,11 +42,13 @@ function __name%(atype: AllAnalyzers::Tag%) : string
 	%{
 	auto val = atype->AsEnumVal();
 
-	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
+	// Note that we don't want to follow mappings here, we want the name of
+	// whatever the user passes in.
+	plugin::Component* component = zeek::analyzer_mgr->Lookup(val, false);
 	if ( ! component )
-		component = zeek::packet_mgr->Lookup(val);
+		component = zeek::packet_mgr->Lookup(val, false);
 	if ( ! component )
-		component = zeek::file_mgr->Lookup(val);
+		component = zeek::file_mgr->Lookup(val, false);
 	if ( ! component )
 		return zeek::make_intrusive<zeek::StringVal>("<error>");
 
@@ -56,11 +58,13 @@ function __name%(atype: AllAnalyzers::Tag%) : string
 %%{
 static zeek::plugin::Component* component_for_name(const char* name)
 	{
+	// Note that we don't want to follow mappings here, we want the name of
+	// whatever the user passes in.
 	zeek::plugin::Component* component = zeek::analyzer_mgr->Lookup(name);
 	if ( ! component )
-		component = zeek::packet_mgr->Lookup(name);
+		component = zeek::packet_mgr->Lookup(name, false);
 	if ( ! component )
-		component = zeek::file_mgr->Lookup(name);
+		component = zeek::file_mgr->Lookup(name, false);
 
 	return component;
 	}

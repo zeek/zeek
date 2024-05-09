@@ -717,7 +717,6 @@ public:
     // Optimization-related:
     bool IsReduced(Reducer* c) const override { return HasReducedOps(c); }
     bool HasReducedOps(Reducer* c) const override { return op->HasReducedOps(c); }
-    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
 class AggrAddExpr final : public AggrAddDelExpr {

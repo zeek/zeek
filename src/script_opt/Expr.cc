@@ -2834,6 +2834,105 @@ void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const {
     op2->Describe(d);
 }
 
+static NameExprPtr get_RFU_LHS_var(const Stmt* s) {
+    auto s_e = s->AsExprStmt()->StmtExpr();
+    auto var = s_e->GetOp1()->GetOp1()->GetOp1();
+    ASSERT(var->Tag() == EXPR_NAME);
+    return cast_intrusive<NameExpr>(var);
+}
+
+static NameExprPtr get_RFU_RHS_var(const Stmt* s) {
+    auto s_e = s->AsExprStmt()->StmtExpr();
+    auto rhs = s_e->GetOp2();
+
+    ExprPtr var;
+    if ( rhs->Tag() == EXPR_FIELD )
+        var = rhs->GetOp1();
+    else
+        var = rhs->GetOp2()->GetOp1();
+
+    ASSERT(var->Tag() == EXPR_NAME);
+    return cast_intrusive<NameExpr>(var);
+}
+
+RecordFieldUpdates::RecordFieldUpdates(ExprTag t, const std::vector<const Stmt*>& stmts,
+                                       std::set<const Stmt*>& stmt_pool)
+    : BinaryExpr(t, get_RFU_LHS_var(stmts[0]), get_RFU_RHS_var(stmts[0])) {
+    for ( auto s : stmts ) {
+        auto s_e = s->AsExprStmt()->StmtExpr();
+        auto lhs = s_e->GetOp1();
+        auto lhs_field = lhs->AsFieldExpr()->Field();
+
+        auto rhs = s_e->GetOp2();
+        if ( rhs->Tag() != EXPR_FIELD )
+            rhs = rhs->GetOp2();
+
+        auto rhs_field = rhs->GetOp2()->AsFieldExpr()->Field();
+
+        lhs_map.push_back(lhs_field);
+        rhs_map.push_back(rhs_field);
+
+        stmt_pool.erase(s);
+    }
+}
+
+RecordFieldUpdates::RecordFieldUpdates(ExprTag t, ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map,
+                                       std::vector<int> _rhs_map)
+    : BinaryExpr(t, std::move(e1), std::move(e2)) {
+    lhs_map = std::move(_lhs_map);
+    rhs_map = std::move(_rhs_map);
+}
+
+ValPtr RecordFieldUpdates::Fold(Val* v1, Val* v2) const {
+    auto rv1 = v1->AsRecordVal();
+    auto rv2 = v2->AsRecordVal();
+
+    for ( size_t i = 0; i < lhs_map.size(); ++i )
+        FoldField(rv1, rv2, i);
+
+    return nullptr;
+}
+
+bool RecordFieldUpdates::IsReduced(Reducer* c) const { return HasReducedOps(c); }
+
+void RecordFieldUpdates::ExprDescribe(ODesc* d) const {
+    op1->Describe(d);
+    d->Add(expr_name(tag));
+    op2->Describe(d);
+}
+
+ExprPtr AssignRecordFields::Duplicate() {
+    auto e1 = op1->Duplicate();
+    auto e2 = op2->Duplicate();
+    return SetSucc(new AssignRecordFields(e1, e2, lhs_map, rhs_map));
+}
+
+void AssignRecordFields::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const {
+    rv1->Assign(lhs_map[i], rv2->GetField(rhs_map[i]));
+}
+
+ExprPtr AddRecordFields::Duplicate() {
+    auto e1 = op1->Duplicate();
+    auto e2 = op2->Duplicate();
+    return SetSucc(new AddRecordFields(e1, e2, lhs_map, rhs_map));
+}
+
+void AddRecordFields::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const {
+    // The goal here is correctness, not efficiency, since normally this
+    // expression only exists temporarily before being compiled to ZAM.
+    auto lhs_val = rv1->GetField(lhs_map[i]);
+    auto rhs_val = rv2->GetField(rhs_map[i]);
+
+    auto lhs_const = make_intrusive<ConstExpr>(lhs_val);
+    auto rhs_const = make_intrusive<ConstExpr>(rhs_val);
+
+    auto add_expr = make_intrusive<AddExpr>(lhs_const, rhs_const);
+    auto sum = add_expr->Eval(nullptr);
+    ASSERT(sum);
+
+    rv1->Assign(lhs_map[i], sum);
+}
+
 CoerceToAnyExpr::CoerceToAnyExpr(ExprPtr arg_op) : UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op)) {
     type = base_type(TYPE_ANY);
 }

@@ -92,6 +92,8 @@ const char* expr_name(ExprTag t) {
         "vec+=",
         "[]=",
         "$=",
+        "$=$",
+        "$+=$",
         "from_any_vec_coerce",
         "any[]",
         "ZAM-builtin()",

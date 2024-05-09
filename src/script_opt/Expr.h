@@ -115,6 +115,7 @@ public:
 
     bool IsPure() const override { return false; }
     bool IsReduced(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
     RecordFieldUpdates(ExprTag t, const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool);

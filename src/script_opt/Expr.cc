@@ -2860,18 +2860,19 @@ RecordFieldUpdates::RecordFieldUpdates(ExprTag t, const std::vector<const Stmt*>
     : BinaryExpr(t, get_RFU_LHS_var(stmts[0]), get_RFU_RHS_var(stmts[0])) {
     for ( auto s : stmts ) {
         auto s_e = s->AsExprStmt()->StmtExpr();
-        auto lhs = s_e->GetOp1();
+        auto lhs = s_e->GetOp1()->GetOp1();
         auto lhs_field = lhs->AsFieldExpr()->Field();
 
         auto rhs = s_e->GetOp2();
         if ( rhs->Tag() != EXPR_FIELD )
             rhs = rhs->GetOp2();
 
-        auto rhs_field = rhs->GetOp2()->AsFieldExpr()->Field();
+        auto rhs_field = rhs->AsFieldExpr()->Field();
 
         lhs_map.push_back(lhs_field);
         rhs_map.push_back(rhs_field);
 
+        ASSERT(stmt_pool.count(s) > 0);
         stmt_pool.erase(s);
     }
 }
@@ -2899,6 +2900,26 @@ void RecordFieldUpdates::ExprDescribe(ODesc* d) const {
     op1->Describe(d);
     d->Add(expr_name(tag));
     op2->Describe(d);
+}
+
+ExprPtr RecordFieldUpdates::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() ) {
+        op1 = c->UpdateExpr(op1);
+        op2 = c->UpdateExpr(op2);
+    }
+
+    red_stmt = nullptr;
+
+    if ( ! op1->IsSingleton(c) )
+        op1 = op1->ReduceToSingleton(c, red_stmt);
+
+    StmtPtr red2_stmt;
+    if ( ! op2->IsSingleton(c) )
+        op2 = op2->ReduceToSingleton(c, red2_stmt);
+
+    red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
+
+    return ThisPtr();
 }
 
 ExprPtr AssignRecordFields::Duplicate() {

@@ -856,12 +856,24 @@ static void UpdateAssignmentChains(const StmtPtr& s, OpChain& assign_chains, OpC
         cf->second.push_back(s.get());
 }
 
-static void TransformChain(const OpChain& c, ExprTag t, std::set<const Stmt*>& chain_stmts) {
-    for ( auto& id_stmts : c )
-        for ( auto i_s : id_stmts.second ) {
-            ASSERT(chain_stmts.count(i_s) > 0);
-            chain_stmts.erase(i_s);
-        }
+static StmtPtr TransformChain(const OpChain& c, ExprTag t, std::set<const Stmt*>& chain_stmts, StmtPtr s0) {
+    auto sl = with_location_of(make_intrusive<StmtList>(), s0);
+    auto& stmts = sl->Stmts();
+
+    for ( auto& id_stmts : c ) {
+        auto orig_s = id_stmts.second;
+        ExprPtr e;
+        if ( t == EXPR_ASSIGN )
+            e = make_intrusive<AssignRecordFields>(orig_s, chain_stmts);
+        else
+            e = make_intrusive<AddRecordFields>(orig_s, chain_stmts);
+
+        e->SetLocationInfo(sl->GetLocationInfo());
+        auto es = with_location_of(make_intrusive<ExprStmt>(std::move(e)), sl);
+        stmts.emplace_back(std::move(es));
+    }
+
+    return sl;
 }
 
 static bool SimplifyChain(const std::vector<StmtPtr>& stmts, unsigned int start, unsigned int end,
@@ -890,13 +902,14 @@ static bool SimplifyChain(const std::vector<StmtPtr>& stmts, unsigned int start,
             return false;
     }
 
-    TransformChain(assign_chains, EXPR_ASSIGN, chain_stmts);
-    TransformChain(add_chains, EXPR_ADD, chain_stmts);
+    f_stmts.push_back(TransformChain(assign_chains, EXPR_ASSIGN, chain_stmts, stmts[start]));
+    f_stmts.push_back(TransformChain(add_chains, EXPR_ADD, chain_stmts, stmts[start]));
 
-    printf("chain reduction %d -> %lu starting at %s\n", end - start + 1, chain_stmts.size(),
-           obj_desc(stmts[start].get()).c_str());
+    for ( auto s : stmts )
+        if ( chain_stmts.count(s.get()) > 0 )
+            f_stmts.push_back(s);
 
-    return false;
+    return true;
 }
 
 bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {

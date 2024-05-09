@@ -1801,6 +1801,28 @@ ExprPtr RecordConstructorExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 }
 
 StmtPtr RecordConstructorExpr::ReduceToSingletons(Reducer* c) {
+    auto& exprs2 = op->AsListExpr()->Exprs();
+    int nfield = 0;
+    std::set<const ID*> field_names;
+    loop_over_list(exprs2, j) {
+        auto e_i = exprs2[j];
+        auto fa_i = e_i->AsFieldAssignExprPtr();
+        auto fa_i_rhs = e_i->GetOp1();
+
+        if ( fa_i_rhs->Tag() == EXPR_FIELD ) {
+            ++nfield;
+            auto op1 = fa_i_rhs->GetOp1();
+            if ( op1->Tag() == EXPR_NAME )
+                field_names.insert(op1->AsNameExpr()->Id());
+        }
+    }
+
+#if 0
+    if ( nfield > 0 )
+	printf("constructor with %d fields spanning %lu names: %s\n",
+		nfield, field_names.size(), obj_desc(this).c_str());
+#endif
+
     StmtPtr red_stmt;
     auto& exprs = op->AsListExpr()->Exprs();
 

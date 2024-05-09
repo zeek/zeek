@@ -143,8 +143,13 @@ StmtPtr ExprStmt::DoReduce(Reducer* c) {
         // it has a non-void type it'll generate an
         // assignment to a temporary.
         red_e_stmt = e->ReduceToSingletons(c);
-    else
+    else {
         e = e->Reduce(c, red_e_stmt);
+        // It's possible that 'e' has gone away because it was a call
+        // to an inlined function that doesn't have a return value.
+        if ( ! e )
+            return red_e_stmt;
+    }
 
     if ( red_e_stmt ) {
         auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
@@ -755,10 +760,153 @@ StmtPtr StmtList::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
+// Returns just past the end of the chain.
+static unsigned int FindAssignmentChain(const std::vector<StmtPtr>& stmts, unsigned int i) {
+    const NameExpr* targ_rec = nullptr;
+    std::set<int> fields_seen;
+
+    for ( ; i < stmts.size(); ++i ) {
+        auto& s = stmts[i];
+
+        if ( s->Tag() != STMT_EXPR )
+            return i;
+
+        auto se = s->AsExprStmt()->StmtExpr();
+        if ( se->Tag() != EXPR_ASSIGN )
+            return i;
+
+        auto lhs_ref = se->GetOp1();
+        ASSERT(lhs_ref->Tag() == EXPR_REF);
+
+        auto lhs = lhs_ref->GetOp1();
+        if ( lhs->Tag() != EXPR_FIELD )
+            return i;
+
+        auto lhs_field = lhs->AsFieldExpr()->Field();
+        if ( fields_seen.count(lhs_field) > 0 )
+            return i;
+        fields_seen.insert(lhs_field);
+
+        auto lhs_rec = lhs->GetOp1();
+        if ( lhs_rec->Tag() != EXPR_NAME )
+            // Not a simple field reference.
+            return i;
+
+        auto lhs_rec_n = lhs_rec->AsNameExpr();
+
+        if ( targ_rec ) {
+            if ( lhs_rec_n->Id() != targ_rec->Id() )
+                return i;
+        }
+        else
+            targ_rec = lhs_rec_n;
+    }
+
+    return i;
+}
+
+// Maps RHS identifiers to their collection of operations, expressed
+// as the underlying statement.
+using OpChain = std::map<const ID*, std::vector<const Stmt*>>;
+
+static void UpdateAssignmentChains(const StmtPtr& s, OpChain& assign_chains, OpChain& add_chains) {
+    auto se = s->AsExprStmt()->StmtExpr();
+    ASSERT(se->Tag() == EXPR_ASSIGN);
+
+    auto lhs_id = se->GetOp1()->GetOp1()->GetOp1()->AsNameExpr()->Id();
+    auto rhs = se->GetOp2();
+    const FieldExpr* f;
+    OpChain* c;
+
+    if ( rhs->Tag() == EXPR_ADD ) {
+        auto rhs_op1 = rhs->GetOp1();
+
+        if ( rhs_op1->Tag() != EXPR_FIELD )
+            return;
+
+        auto rhs_op1_rec = rhs_op1->GetOp1();
+        if ( rhs_op1_rec->Tag() != EXPR_NAME || rhs_op1_rec->AsNameExpr()->Id() != lhs_id )
+            return;
+
+        auto rhs_op2 = rhs->GetOp2();
+        if ( rhs_op2->Tag() != EXPR_FIELD )
+            return;
+
+        f = rhs_op2->AsFieldExpr();
+        c = &add_chains;
+    }
+
+    else if ( rhs->Tag() == EXPR_FIELD ) {
+        f = rhs->AsFieldExpr();
+        c = &assign_chains;
+    }
+
+    else
+        return;
+
+    auto f_rec = f->GetOp1();
+    if ( f_rec->Tag() != EXPR_NAME )
+        return;
+
+    auto id = f_rec->AsNameExpr()->Id();
+    auto cf = c->find(id);
+    if ( cf == c->end() )
+        (*c)[id] = std::vector<const Stmt*>{s.get()};
+    else
+        cf->second.push_back(s.get());
+}
+
+static void TransformChain(const OpChain& c, ExprTag t, std::set<const Stmt*>& chain_stmts) {
+    for ( auto& id_stmts : c )
+        for ( auto i_s : id_stmts.second ) {
+            ASSERT(chain_stmts.count(i_s) > 0);
+            chain_stmts.erase(i_s);
+        }
+}
+
+static bool SimplifyChain(const std::vector<StmtPtr>& stmts, unsigned int start, unsigned int end,
+                          std::vector<StmtPtr>& f_stmts) {
+    OpChain assign_chains;
+    OpChain add_chains;
+    std::set<const Stmt*> chain_stmts;
+
+    for ( int i = start; i <= end; ++i ) {
+        auto& s = stmts[i];
+        chain_stmts.insert(s.get());
+        UpdateAssignmentChains(s, assign_chains, add_chains);
+    }
+
+    // An add-chain of any size is a win. For an assign-chain to be
+    // a win, it needs to have at least two elements.
+    if ( add_chains.empty() ) {
+        bool have_useful_assign_chain = false;
+        for ( auto& ac : assign_chains )
+            if ( ac.second.size() > 1 ) {
+                have_useful_assign_chain = true;
+                break;
+            }
+
+        if ( ! have_useful_assign_chain )
+            return false;
+    }
+
+    TransformChain(assign_chains, EXPR_ASSIGN, chain_stmts);
+    TransformChain(add_chains, EXPR_ADD, chain_stmts);
+
+    printf("chain reduction %d -> %lu starting at %s\n", end - start + 1, chain_stmts.size(),
+           obj_desc(stmts[start].get()).c_str());
+
+    return false;
+}
+
 bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
     bool did_change = false;
     auto& stmt_i = stmts[s_i];
     auto old_stmt = stmt_i;
+
+    auto chain_end = FindAssignmentChain(stmts, s_i);
+    if ( chain_end > s_i && SimplifyChain(stmts, s_i, chain_end - 1, f_stmts) )
+        return true;
 
     auto stmt = stmt_i->Reduce(c);
 

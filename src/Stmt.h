@@ -480,6 +480,47 @@ public:
 protected:
     bool IsPure() const override;
 
+    // These are used for script optimization, to find sequences of
+    // record assignments that form a chain that can be collapsed into
+    // specialized expressions/operations.
+
+    // Starting a position i, looks for a chain of record assignments.
+    // Returns a position just past where the chain ends, so a return
+    // value of i means "not an assignment chain".
+    //
+    // At this point, chains are simply a series of assignment to the
+    // same record, but different fields, with the only restriction being
+    // that the record is a simple variable and not a compound like "x$a$b =".
+    //
+    // Note that chains can have length 1, which is still useful for
+    // optimization in some circumstances.
+    unsigned int FindRecAssignmentChain(unsigned int i) const;
+
+    // For an assignment chain, maps RHS identifiers to their collection
+    // of operations (all of those that are of a type we know how to
+    // optimize, and that use the same RHS). The operations are captured
+    // as the underlying statements, which turns out to be convenient..
+    using OpChain = std::map<const ID*, std::vector<const Stmt*>>;
+
+    // For a given statement s that's part of an assignment chain,
+    // updates its corresponding OpChain, either the one for "x$a = y$b"
+    // ("assign") or "x$a += y$b" ("add"). Note that for this latter,
+    // the actual AST is "x$a = x$a + y$b".
+    void UpdateAssignmentChains(const StmtPtr& s, OpChain& assign_chains, OpChain& add_chains) const;
+
+    // Given an OpChain, transform it into one or more custom expressions
+    // for evaluating it.The tag t indicates whether this chain is
+    // a set of assignments or +='s. The statements in the chain should
+    // all be found in chain_stmts, and will be removed from it.
+    StmtPtr TransformChain(const OpChain& c, ExprTag t, std::set<const Stmt*>& chain_stmts) const;
+
+    // Simplify the chain that runs from "start" to "end" by collapsing
+    // subsets of it into specialized operations. These are added to
+    // f_stmts, as are the statements in the chain that don't correspond
+    // to collapsible subsets. Returns true if simplification occurred,
+    // false if not.
+    bool SimplifyChain(unsigned int start, unsigned int end, std::vector<StmtPtr>& f_stmts) const;
+
     std::vector<StmtPtr> stmts;
 
     // Optimization-related:

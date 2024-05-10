@@ -21,8 +21,8 @@
 #include <hilti/rt/fmt.h>
 #include <hilti/rt/types/all.h>
 
-#include "Val.h"
 #include "zeek/Desc.h"
+#include "zeek/Val.h"
 #include "zeek/spicy/cookie.h"
 #include "zeek/spicy/manager.h"
 #include "zeek/spicy/port-range.h"

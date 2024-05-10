@@ -5,6 +5,7 @@
 # @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/single-conn.trace %INPUT | sort >>output
 # @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/ssh-on-port-80.trace %INPUT | sort >>output
 # @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff conn.log
 #
 # We use the module search path for loading here as a regression test for #137.
 # Note that this that problem only showed up when the Spicy plugin was built

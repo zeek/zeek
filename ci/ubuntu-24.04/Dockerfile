@@ -11,6 +11,8 @@ RUN apt-get update && apt-get -y install \
     bison \
     bsdmainutils \
     ccache \
+    clang-18 \
+    clang++-18 \
     cmake \
     curl \
     flex \

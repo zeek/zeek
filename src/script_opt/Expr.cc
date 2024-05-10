@@ -2931,12 +2931,9 @@ ConstructFromRecordExpr::ConstructFromRecordExpr(const RecordConstructorExpr* or
     for ( size_t i = 0; i < orig_args.size(); ++i ) {
         auto e = orig_args[i];
         auto src = FindRecordSource(e);
-        if ( src ) {
-            auto id = src->GetOp1()->AsNameExpr()->IdPtr();
-            if ( id == src_id ) {
-                lhs_map.push_back(map ? (*map)[i] : i);
-                rhs_map.push_back(src->Field());
-            }
+        if ( src && src->GetOp1()->AsNameExpr()->IdPtr() == src_id ) {
+            lhs_map.push_back(map ? (*map)[i] : i);
+            rhs_map.push_back(src->Field());
         }
         else
             args->Append({NewRef{}, e});

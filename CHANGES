@@ -1,3 +1,9 @@
+7.0.0-dev.247 | 2024-05-10 10:19:43 -0700
+
+  * CI: Update asan and ubsan tasks to use Ubuntu 22.04 VM (Tim Wojtulewicz, Corelight)
+
+  * CI: Replace Ubuntu 23.10 with Ubuntu 24.04 (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.244 | 2024-05-10 11:08:47 +0200
 
   * GH-3725: Spicy: Fix service reporting for replaced analyzers. (Robin Sommer, Corelight)

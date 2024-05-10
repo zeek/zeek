@@ -125,6 +125,7 @@ static bool same_expr(const Expr* e1, const Expr* e2, bool check_defs) {
 
         case EXPR_CLONE:
         case EXPR_RECORD_CONSTRUCTOR:
+        case EXPR_REC_CONSTRUCT_WITH_REC:
         case EXPR_TABLE_CONSTRUCTOR:
         case EXPR_SET_CONSTRUCTOR:
         case EXPR_VECTOR_CONSTRUCTOR:
@@ -490,7 +491,8 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
                 has_side_effects = true;
         }
 
-        else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_RECORD_COERCE )
+        else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_REC_CONSTRUCT_WITH_REC ||
+                  e1->Tag() == EXPR_RECORD_COERCE )
             has_side_effects = pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType());
 
         e1_se = ExprSideEffects(has_side_effects);

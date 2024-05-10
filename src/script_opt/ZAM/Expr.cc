@@ -23,7 +23,7 @@ const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e) {
         case EXPR_ASSIGN: return CompileAssignExpr(static_cast<const AssignExpr*>(e));
 
         case EXPR_REC_ASSIGN_FIELDS:
-        case EXPR_REC_ADD_FIELDS: return CompileRecFieldUpdates(static_cast<const RecordFieldUpdates*>(e));
+        case EXPR_REC_ADD_FIELDS: return CompileRecFieldUpdates(static_cast<const RecordFieldUpdatesExpr*>(e));
 
         case EXPR_INDEX_ASSIGN: {
             auto iae = static_cast<const IndexAssignExpr*>(e);
@@ -230,15 +230,14 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
 #include "ZAM-GenExprsDefsV.h"
 }
 
-const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdates* e) {
-    auto lhs = e->GetOp1()->AsNameExpr();
+const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdatesExpr* e) {
     auto rhs = e->GetOp2()->AsNameExpr();
 
     auto& rhs_map = e->RHSMap();
 
     auto aux = new ZInstAux(0);
     aux->map = e->LHSMap();
-    aux->rhs_map = e->RHSMap();
+    aux->rhs_map = rhs_map;
 
     std::set<TypeTag> field_tags;
 
@@ -288,6 +287,7 @@ const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdates* e) {
     else
         op = OP_REC_ADD_FIELDS_VV;
 
+    auto lhs = e->GetOp1()->AsNameExpr();
     auto z = GenInst(op, lhs, rhs);
     z.aux = aux;
 
@@ -1267,10 +1267,11 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
-    ASSERT(e->Tag() == EXPR_RECORD_CONSTRUCTOR);
-    auto rc = static_cast<const RecordConstructorExpr*>(e);
-    auto rt = e->GetType()->AsRecordType();
+const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, bool is_from_rec) {
+    auto rec_e = is_from_rec ? e->GetOp1().get() : e;
+    ASSERT(rec_e->Tag() == EXPR_RECORD_CONSTRUCTOR);
+    auto rc = static_cast<const RecordConstructorExpr*>(rec_e);
+    auto rt = rec_e->GetType()->AsRecordType();
 
     auto aux = InternalBuildVals(rc->Op().get());
 
@@ -1280,7 +1281,7 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
     // constructor.
     aux->zvec.resize(rt->NumFields());
 
-    if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e->GetType()) )
+    if ( pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, rec_e->GetType()) )
         aux->can_change_non_locals = true;
 
     ZOp op;
@@ -1345,25 +1346,80 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
     else
         op = OP_CONSTRUCT_DIRECT_RECORD_V;
 
-    ZInstI z = network_time_index >= 0 ? GenInst(op, n, network_time_index) : GenInst(op, n);
+    ZInstI z;
+
+    if ( is_from_rec ) {
+        switch ( op ) {
+            case OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_VV: op = OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_FROM_VVV; break;
+
+            case OP_CONSTRUCT_KNOWN_RECORD_V: op = OP_CONSTRUCT_KNOWN_RECORD_FROM_VV; break;
+
+            case OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_VV:
+                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_FROM_VVV;
+                break;
+
+            case OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_V:
+                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_FROM_VV;
+                break;
+
+                // Note, no case for OP_CONSTRUCT_DIRECT_RECORD_V - shouldn't happen
+                // given how we construct ConstructFromRecordExpr's.
+            default: reporter->InternalError("bad op in ZAMCompiler::ConstructRecord");
+        }
+
+        auto cfr = static_cast<const ConstructFromRecordExpr*>(e);
+        auto from_n = cfr->GetOp2()->AsNameExpr();
+        if ( network_time_index >= 0 )
+            z = GenInst(op, n, from_n, network_time_index);
+        else
+            z = GenInst(op, n, from_n);
+
+        aux->lhs_map = cfr->LHSMap();
+        aux->rhs_map = cfr->RHSMap();
+
+        for ( auto i : aux->lhs_map ) {
+            auto& field_t = rt->GetFieldType(i);
+            aux->is_managed.push_back(ZVal::IsManagedType(field_t));
+        }
+    }
+
+    else
+        z = network_time_index >= 0 ? GenInst(op, n, network_time_index) : GenInst(op, n);
 
     z.aux = aux;
-    z.t = e->GetType();
+    z.t = rec_e->GetType();
 
     auto inst = AddInst(z);
 
     // If one of the initialization values is an unspecified vector (which
     // in general we can't know until run-time) then we'll need to
     // "concretize" it. We first see whether this is a possibility, since
-    // it usually isn't, by counting up how many of the record fields are
-    // vectors.
-    std::vector<int> vector_fields; // holds indices of the vector fields
+    // it usually isn't, by counting up how many of the initialized record
+    // fields are vectors.
+
+    // First just gather up the types of all the fields, and their location
+    // in the target.
+    std::vector<std::pair<TypePtr, int>> init_field_types;
+
     for ( int i = 0; i < z.aux->n; ++i ) {
         auto field_ind = map ? (*map)[i] : i;
         auto& field_t = rt->GetFieldType(field_ind);
-        if ( field_t->Tag() == TYPE_VECTOR && field_t->Yield()->Tag() != TYPE_ANY )
-            vector_fields.push_back(field_ind);
+        init_field_types.emplace_back(std::pair<TypePtr, int>{field_t, field_ind});
     }
+
+    if ( is_from_rec )
+        // Need to also check the source record.
+        for ( auto i : aux->lhs_map ) {
+            auto& field_t = rt->GetFieldType(i);
+            init_field_types.emplace_back(std::pair<TypePtr, int>{field_t, i});
+        }
+
+    // Now spin through to find the vector fields.
+
+    std::vector<int> vector_fields; // holds indices of the vector fields
+    for ( auto& ft : init_field_types )
+        if ( ft.first->Tag() == TYPE_VECTOR && ft.first->Yield()->Tag() != TYPE_ANY )
+            vector_fields.push_back(ft.second);
 
     if ( vector_fields.empty() )
         // Common case of no vector fields, we're done.
@@ -1371,7 +1427,7 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
 
     // Need to add a separate instruction for concretizing the fields.
     z = GenInst(OP_CONCRETIZE_VECTOR_FIELDS_V, n);
-    z.t = e->GetType();
+    z.t = rec_e->GetType();
     int nf = static_cast<int>(vector_fields.size());
     z.aux = new ZInstAux(nf);
     z.aux->elems_has_slots = false; // we're storing field offsets, not slots

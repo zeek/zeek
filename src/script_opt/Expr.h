@@ -106,7 +106,7 @@ protected:
 
 // Base class for updating a number of record fields from fields in
 // another record.
-class RecordFieldUpdates : public BinaryExpr {
+class RecordFieldUpdatesExpr : public BinaryExpr {
 public:
     const auto& LHSMap() const { return lhs_map; }
     const auto& RHSMap() const { return rhs_map; }
@@ -118,8 +118,8 @@ public:
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
 protected:
-    RecordFieldUpdates(ExprTag t, const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool);
-    RecordFieldUpdates(ExprTag t, ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map);
+    RecordFieldUpdatesExpr(ExprTag t, const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool);
+    RecordFieldUpdatesExpr(ExprTag t, ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map);
 
     virtual void FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const = 0;
 
@@ -129,30 +129,59 @@ protected:
     std::vector<int> rhs_map;
 };
 
-class AssignRecordFields : public RecordFieldUpdates {
+// Assign a bunch of record fields en masse from fields in another record.
+class AssignRecordFieldsExpr : public RecordFieldUpdatesExpr {
 public:
-    AssignRecordFields(const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool)
-        : RecordFieldUpdates(EXPR_REC_ASSIGN_FIELDS, stmts, stmt_pool) {}
+    AssignRecordFieldsExpr(const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool)
+        : RecordFieldUpdatesExpr(EXPR_REC_ASSIGN_FIELDS, stmts, stmt_pool) {}
 
     ExprPtr Duplicate() override;
 
 protected:
-    AssignRecordFields(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
-        : RecordFieldUpdates(EXPR_REC_ASSIGN_FIELDS, e1, e2, _lhs_map, _rhs_map) {}
+    // Used for duplicating.
+    AssignRecordFieldsExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
+        : RecordFieldUpdatesExpr(EXPR_REC_ASSIGN_FIELDS, e1, e2, _lhs_map, _rhs_map) {}
 
     void FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const override;
 };
 
-class AddRecordFields : public RecordFieldUpdates {
+// Construct a record with some of the fields taken directly from another
+// record. First operand is the base constructor (a subset of the original)
+// and the second is the source record being used for some of the
+// initialization.
+using FieldExprPtr = IntrusivePtr<FieldExpr>;
+class ConstructFromRecordExpr : public AssignRecordFieldsExpr {
 public:
-    AddRecordFields(const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool)
-        : RecordFieldUpdates(EXPR_REC_ADD_FIELDS, stmts, stmt_pool) {}
+    ConstructFromRecordExpr(const RecordConstructorExpr* orig);
+
+    static IDPtr FindMostCommonRecordSource(const ListExprPtr& exprs);
+
+    ExprPtr Duplicate() override;
+
+    bool IsReduced(Reducer* c) const override;
+    bool HasReducedOps(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
+protected:
+    ConstructFromRecordExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
+        : AssignRecordFieldsExpr(e1, e2, _lhs_map, _rhs_map) {
+        tag = EXPR_REC_CONSTRUCT_WITH_REC;
+    }
+
+    static FieldExprPtr FindRecordSource(const Expr* e);
+};
+
+// Add en masse fields from one record to fields in another record.
+class AddRecordFieldsExpr : public RecordFieldUpdatesExpr {
+public:
+    AddRecordFieldsExpr(const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool)
+        : RecordFieldUpdatesExpr(EXPR_REC_ADD_FIELDS, stmts, stmt_pool) {}
 
     ExprPtr Duplicate() override;
 
 protected:
-    AddRecordFields(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
-        : RecordFieldUpdates(EXPR_REC_ADD_FIELDS, e1, e2, _lhs_map, _rhs_map) {}
+    AddRecordFieldsExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
+        : RecordFieldUpdatesExpr(EXPR_REC_ADD_FIELDS, e1, e2, _lhs_map, _rhs_map) {}
 
     void FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const override;
 };

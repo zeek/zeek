@@ -5,6 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
 #include "zeek/Stmt.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
@@ -450,6 +451,14 @@ UDs UseDefs::ExprUDs(const Expr* e) {
         case EXPR_RECORD_CONSTRUCTOR: {
             auto r = static_cast<const RecordConstructorExpr*>(e);
             AddInExprUDs(uds, r->Op().get());
+            break;
+        }
+
+        case EXPR_REC_CONSTRUCT_WITH_REC: {
+            auto rcw = static_cast<const RecordFieldUpdatesExpr*>(e);
+            auto constructor_UDs = ExprUDs(e->GetOp1().get());
+            AddInExprUDs(uds, e->GetOp2().get());
+            uds = UD_Union(uds, constructor_UDs);
             break;
         }
 

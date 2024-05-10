@@ -493,6 +493,13 @@ public:
     // the above) and a RHS one.
     std::vector<int> rhs_map;
 
+    // ... and the following when we need *three* (for constructing certain
+    // types of records). We could hack it in by adding onto "map" but
+    // this is cleaner, and we're not really concerned with the size of
+    // ZAM auxiliary information as it's not that commonly used, and doesn't
+    // grow during execution.
+    std::vector<int> lhs_map;
+
     // For operations that need to track types corresponding to other vectors.
     std::vector<TypePtr> types;
 

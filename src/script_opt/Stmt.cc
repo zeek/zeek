@@ -887,9 +887,9 @@ StmtPtr StmtList::TransformChain(const OpChain& c, ExprTag t, std::set<const Stm
 
         ExprPtr e;
         if ( t == EXPR_ASSIGN )
-            e = make_intrusive<AssignRecordFields>(orig_s, chain_stmts);
+            e = make_intrusive<AssignRecordFieldsExpr>(orig_s, chain_stmts);
         else
-            e = make_intrusive<AddRecordFields>(orig_s, chain_stmts);
+            e = make_intrusive<AddRecordFieldsExpr>(orig_s, chain_stmts);
 
         e->SetLocationInfo(sl->GetLocationInfo());
         auto es = with_location_of(make_intrusive<ExprStmt>(std::move(e)), sl);

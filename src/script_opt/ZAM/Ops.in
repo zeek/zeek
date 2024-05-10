@@ -1230,6 +1230,8 @@ eval	ConstructTableOrSetPre()
 
 direct-unary-op Record-Constructor ConstructRecord
 
+direct-unary-op Rec-Construct-With-Rec ConstructRecordFromRecord
+
 macro ConstructRecordPost()
 	auto& r = frame[z.v1].record_val;
 	Unref(r);
@@ -1245,48 +1247,85 @@ type V
 eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
 	ConstructRecordPost()
 
+macro	AssignFromRec()
+	/* The following is defined below, for use by Rec-Assign-Fields */
+	SetUpRecFieldOps(lhs_map)
+	auto is_managed = aux->is_managed;
+	for ( size_t i = 0U; i < n; ++i )
+		{
+		auto rhs_i = rhs->RawField(rhs_map[i]);
+		if ( is_managed[i] )
+			zeek::Ref(rhs_i.ManagedVal());
+		init_vals[lhs_map[i]] = rhs_i;
+		}
+
+op Construct-Known-Record-From
+type VV
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
+	AssignFromRec()
+	ConstructRecordPost()
+
+macro DoNetworkTimeInit(slot)
+	init_vals[slot] = ZVal(run_state::network_time);
+
 op Construct-Known-Record-With-NT
 type VV
 eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
-	ASSERT(! init_vals[z.v2]);
-	init_vals[z.v2] = ZVal(run_state::network_time);
+	DoNetworkTimeInit(z.v2)
 	ConstructRecordPost()
+
+op Construct-Known-Record-With-NT-From
+type VVV
+eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
+	DoNetworkTimeInit(z.v3)
+	AssignFromRec()
+	ConstructRecordPost()
+
+macro GenInits()
+	auto init_vals = z.aux->ToZValVecWithMap(frame);
+	for ( auto& fi : *z.aux->field_inits )
+		init_vals[fi.first] = fi.second->Generate();
 
 op Construct-Known-Record-With-Inits
 type V
-eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
-	for ( auto& fi : *z.aux->field_inits )
-		init_vals[fi.first] = fi.second->Generate();
+eval	GenInits()
+	ConstructRecordPost()
+
+op Construct-Known-Record-With-Inits-From
+type VV
+eval	GenInits()
+	AssignFromRec()
 	ConstructRecordPost()
 
 op Construct-Known-Record-With-Inits-And-NT
 type VV
-eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
-	for ( auto& fi : *z.aux->field_inits )
-		init_vals[fi.first] = fi.second->Generate();
-	ASSERT(! init_vals[z.v2]);
-	init_vals[z.v2] = ZVal(run_state::network_time);
+eval	GenInits()
+	DoNetworkTimeInit(z.v2)
 	ConstructRecordPost()
 
-macro SetUpRecFieldOps()
+op Construct-Known-Record-With-Inits-And-NT-From
+type VVV
+eval	GenInits()
+	DoNetworkTimeInit(z.v3)
+	AssignFromRec()
+	ConstructRecordPost()
+
+macro SetUpRecFieldOps(which_lhs_map)
 	auto lhs = frame[z.v1].record_val;
 	auto rhs = frame[z.v2].record_val;
 	auto aux = z.aux;
-	auto& lhs_map = aux->map;
+	auto& lhs_map = aux->which_lhs_map;
 	auto& rhs_map = aux->rhs_map;
 	auto n = rhs_map.size();
 
 op Rec-Assign-Fields
 op1-read
 type VV
-eval	SetUpRecFieldOps()
+eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
 		lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
 
-op Rec-Assign-Fields-Managed
-op1-read
-type VV
-eval	SetUpRecFieldOps()
+macro DoManagedRecAssign()
 	auto is_managed = aux->is_managed;
 	for ( size_t i = 0U; i < n; ++i )
 		if ( is_managed[i] )
@@ -1300,11 +1339,16 @@ eval	SetUpRecFieldOps()
 			}
 		else
 			lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
+op Rec-Assign-Fields-Managed
+op1-read
+type VV
+eval	SetUpRecFieldOps(map)
+	DoManagedRecAssign()
 
 op Rec-Assign-Fields-All-Managed
 op1-read
 type VV
-eval	SetUpRecFieldOps()
+eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
 		{
 		auto& lhs_i = lhs->RawOptField(lhs_map[i]);
@@ -1318,21 +1362,21 @@ eval	SetUpRecFieldOps()
 op Rec-Add-Int-Fields
 op1-read
 type VV
-eval	SetUpRecFieldOps()
+eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
 		lhs->RawField(lhs_map[i]).int_val += rhs->RawField(rhs_map[i]).int_val;
 
 op Rec-Add-Double-Fields
 op1-read
 type VV
-eval	SetUpRecFieldOps()
+eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
 		lhs->RawField(lhs_map[i]).double_val += rhs->RawField(rhs_map[i]).double_val;
 
 op Rec-Add-Fields
 op1-read
 type VV
-eval	SetUpRecFieldOps()
+eval	SetUpRecFieldOps(map)
 	auto& types = aux->types;
 	for ( size_t i = 0U; i < n; ++i )
 		{

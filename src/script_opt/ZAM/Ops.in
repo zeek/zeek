@@ -1288,7 +1288,7 @@ op1-read
 type VV
 eval	SetUpRecFieldOps()
 	auto is_managed = aux->is_managed;
-	for ( auto i = 0; i < n; ++i )
+	for ( size_t i = 0U; i < n; ++i )
 		if ( is_managed[i] )
 			{
 			auto& lhs_i = lhs->RawOptField(lhs_map[i]);

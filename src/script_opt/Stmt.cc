@@ -904,7 +904,7 @@ bool StmtList::SimplifyChain(unsigned int start, unsigned int end, std::vector<S
     OpChain add_chains;
     std::set<const Stmt*> chain_stmts;
 
-    for ( int i = start; i <= end; ++i ) {
+    for ( auto i = start; i <= end; ++i ) {
         auto& s = stmts[i];
         chain_stmts.insert(s.get());
         UpdateAssignmentChains(s, assign_chains, add_chains);

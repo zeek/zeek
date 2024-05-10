@@ -189,6 +189,7 @@ private:
     const ZAMStmt CompileAddToExpr(const AddToExpr* e);
     const ZAMStmt CompileRemoveFromExpr(const RemoveFromExpr* e);
     const ZAMStmt CompileAssignExpr(const AssignExpr* e);
+    const ZAMStmt CompileRecFieldUpdates(const RecordFieldUpdates* e);
     const ZAMStmt CompileZAMBuiltin(const NameExpr* lhs, const ScriptOptBuiltinExpr* zbi);
     const ZAMStmt CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs);
     const ZAMStmt CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e);

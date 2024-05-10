@@ -765,7 +765,7 @@ unsigned int StmtList::FindRecAssignmentChain(unsigned int i) const {
     std::set<int> fields_seen;
 
     for ( ; i < stmts.size(); ++i ) {
-        auto& s = stmts[i];
+        const auto& s = stmts[i];
 
         // We're looking for either "x$a = y$b" or "x$a = x$a + y$b".
         if ( s->Tag() != STMT_EXPR )
@@ -841,6 +841,10 @@ void StmtList::UpdateAssignmentChains(const StmtPtr& s, OpChain& assign_chains, 
 
         auto rhs_op2 = rhs->GetOp2(); // need to see that it's "y$b"
         if ( rhs_op2->Tag() != EXPR_FIELD )
+            return;
+
+        if ( ! IsArithmetic(rhs_op2->GetType()->Tag()) )
+            // Avoid esoteric forms of adding.
             return;
 
         f = rhs_op2->AsFieldExpr();
@@ -922,8 +926,15 @@ bool StmtList::SimplifyChain(unsigned int start, unsigned int end, std::vector<S
             return false;
     }
 
-    f_stmts.push_back(TransformChain(assign_chains, EXPR_ASSIGN, chain_stmts));
-    f_stmts.push_back(TransformChain(add_chains, EXPR_ADD, chain_stmts));
+    auto as_c = TransformChain(assign_chains, EXPR_ASSIGN, chain_stmts);
+    auto ad_c = TransformChain(add_chains, EXPR_ADD, chain_stmts);
+
+    ASSERT(as_c || ad_c);
+
+    if ( as_c )
+        f_stmts.push_back(as_c);
+    if ( ad_c )
+        f_stmts.push_back(ad_c);
 
     // At this point, chain_stmts has only the remainders that weren't removed.
     for ( auto s : stmts )
@@ -939,8 +950,10 @@ bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Redu
     auto old_stmt = stmt_i;
 
     auto chain_end = FindRecAssignmentChain(s_i);
-    if ( chain_end > s_i && SimplifyChain(s_i, chain_end - 1, f_stmts) )
+    if ( chain_end > s_i && SimplifyChain(s_i, chain_end - 1, f_stmts) ) {
+        s_i = chain_end - 1;
         return true;
+    }
 
     auto stmt = stmt_i->Reduce(c);
 

@@ -22,6 +22,9 @@ const ZAMStmt ZAMCompiler::CompileExpr(const Expr* e) {
 
         case EXPR_ASSIGN: return CompileAssignExpr(static_cast<const AssignExpr*>(e));
 
+        case EXPR_REC_ASSIGN_FIELDS:
+        case EXPR_REC_ADD_FIELDS: return CompileRecFieldUpdates(static_cast<const RecordFieldUpdates*>(e));
+
         case EXPR_INDEX_ASSIGN: {
             auto iae = static_cast<const IndexAssignExpr*>(e);
             auto t = iae->GetOp1()->GetType()->Tag();
@@ -225,6 +228,64 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
 
                 else
 #include "ZAM-GenExprsDefsV.h"
+}
+
+const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdates* e) {
+    auto lhs = e->GetOp1()->AsNameExpr();
+    auto rhs = e->GetOp2()->AsNameExpr();
+
+    auto& rhs_map = e->RHSMap();
+
+    auto aux = new ZInstAux(0);
+    aux->map = e->LHSMap();
+    aux->rhs_map = e->RHSMap();
+
+    std::set<TypeTag> field_tags;
+
+    bool is_managed = false;
+
+    for ( auto i : rhs_map ) {
+        auto rt = rhs->GetType()->AsRecordType();
+        auto rt_ft_i = rt->GetFieldType(i);
+        field_tags.insert(rt_ft_i->Tag());
+
+        if ( ZVal::IsManagedType(rt_ft_i) ) {
+            aux->is_managed.push_back(true);
+            is_managed = true;
+        }
+        else
+            // This will only be needed if is_managed winds up being true,
+            // but it's harmless to build it up in any case.
+            aux->is_managed.push_back(false);
+
+        // The following is only needed for non-homogeneous "add"s, but
+        // likewise it's harmless to build it anyway.
+        aux->types.push_back(rt_ft_i);
+    }
+
+    bool homogeneous = field_tags.size() == 1;
+    if ( ! homogeneous && field_tags.size() == 2 && field_tags.count(TYPE_INT) > 0 && field_tags.count(TYPE_COUNT) > 0 )
+        homogeneous = true;
+
+    ZOp op;
+
+    if ( e->Tag() == EXPR_REC_ASSIGN_FIELDS )
+        op = is_managed ? OP_REC_ASSIGN_FIELDS_MANAGED_VV : OP_REC_ASSIGN_FIELDS_VV;
+
+    else if ( homogeneous ) {
+        if ( field_tags.count(TYPE_DOUBLE) > 0 )
+            op = OP_REC_ADD_DOUBLE_FIELDS_VV;
+        else
+            op = OP_REC_ADD_INT_FIELDS_VV;
+    }
+
+    else
+        op = OP_REC_ADD_FIELDS_VV;
+
+    auto z = GenInst(op, lhs, rhs);
+    z.aux = aux;
+
+    return AddInst(z);
 }
 
 const ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOptBuiltinExpr* zbi) {

@@ -51,9 +51,9 @@ public:
             if ( lv < 0 )
                 continue;
             auto& var = frame[lv];
-            if ( aux->lvt_is_managed[i] )
+            if ( aux->is_managed[i] )
                 ZVal::DeleteManagedType(var);
-            auto& t = aux->loop_var_types[i];
+            auto& t = aux->types[i];
             var = ZVal(ind_lv_p, t);
         }
 

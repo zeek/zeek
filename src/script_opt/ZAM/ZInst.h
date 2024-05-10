@@ -484,19 +484,26 @@ public:
     // store here.
     bool can_change_non_locals = false;
 
-    // The following is used for constructing records, to map elements in
-    // slots/constants/types to record field offsets.
+    // The following is used for constructing records or in record chain
+    // operations, to map elements in slots/constants/types to record field
+    // offsets.
     std::vector<int> map;
+
+    // The following is used when we need two maps, a LHS one (done with
+    // the above) and a RHS one.
+    std::vector<int> rhs_map;
+
+    // For operations that need to track types corresponding to other vectors.
+    std::vector<TypePtr> types;
+
+    // For operations that mix managed and unmanaged assignments.
+    std::vector<bool> is_managed;
 
     ///// The following four apply to looping over the elements of tables.
 
     // Frame slots of iteration variables, such as "[v1, v2, v3] in aggr".
     // A negative value means "skip assignment".
     std::vector<int> loop_vars;
-
-    // Their types and whether they're managed.
-    std::vector<TypePtr> loop_var_types;
-    std::vector<bool> lvt_is_managed;
 
     // Type associated with the "value" entry, for "k, value in aggr"
     // iteration.

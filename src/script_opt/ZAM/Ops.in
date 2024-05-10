@@ -1268,6 +1268,71 @@ eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
 	init_vals[z.v2] = ZVal(run_state::network_time);
 	ConstructRecordPost()
 
+macro SetUpRecFieldOps()
+	auto lhs = frame[z.v1].record_val;
+	auto rhs = frame[z.v2].record_val;
+	auto aux = z.aux;
+	auto& lhs_map = aux->map;
+	auto& rhs_map = aux->rhs_map;
+	auto n = rhs_map.size();
+
+op Rec-Assign-Fields
+op1-read
+type VV
+eval	SetUpRecFieldOps()
+	for ( size_t i = 0U; i < n; ++i )
+		lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
+
+op Rec-Assign-Fields-Managed
+op1-read
+type VV
+eval	SetUpRecFieldOps()
+	auto is_managed = aux->is_managed;
+	for ( auto i = 0; i < n; ++i )
+		if ( is_managed[i] )
+			{
+			auto& lhs_i = lhs->RawOptField(lhs_map[i]);
+			auto rhs_i = rhs->RawField(rhs_map[i]);
+			zeek::Ref(rhs_i.ManagedVal());
+			if ( lhs_i )
+				ZVal::DeleteManagedType(*lhs_i);
+			lhs_i = rhs_i;
+			}
+		else
+			lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
+
+op Rec-Add-Int-Fields
+op1-read
+type VV
+eval	SetUpRecFieldOps()
+	for ( size_t i = 0U; i < n; ++i )
+		lhs->RawField(lhs_map[i]).int_val += rhs->RawField(rhs_map[i]).int_val;
+
+op Rec-Add-Double-Fields
+op1-read
+type VV
+eval	SetUpRecFieldOps()
+	for ( size_t i = 0U; i < n; ++i )
+		lhs->RawField(lhs_map[i]).double_val += rhs->RawField(rhs_map[i]).double_val;
+
+op Rec-Add-Fields
+op1-read
+type VV
+eval	SetUpRecFieldOps()
+	auto& types = aux->types;
+	for ( size_t i = 0U; i < n; ++i )
+		{
+		auto& lhs_i = lhs->RawField(lhs_map[i]);
+		auto rhs_i = rhs->RawField(rhs_map[i]);
+		auto tag = types[i]->Tag();
+		if ( tag == TYPE_INT )
+			lhs_i.int_val += rhs_i.int_val;
+		else if ( tag == TYPE_COUNT )
+			lhs_i.uint_val += rhs_i.uint_val;
+		else
+			lhs_i.double_val += rhs_i.double_val;
+		}
+
 # Special instruction for concretizing vectors that are fields in a
 # newly-constructed record. "aux" holds which fields in the record to
 # inspect.

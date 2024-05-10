@@ -422,6 +422,18 @@ Analyzer* Analyzer::GetChildAnalyzer(const zeek::Tag& tag) const {
     return nullptr;
 }
 
+Analyzer* Analyzer::GetChildAnalyzer(const std::string& name) const {
+    LOOP_OVER_CHILDREN(i)
+    if ( (*i)->GetAnalyzerName() == name && ! ((*i)->removing || (*i)->finished) )
+        return *i;
+
+    LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+    if ( (*i)->GetAnalyzerName() == name && ! ((*i)->removing || (*i)->finished) )
+        return *i;
+
+    return nullptr;
+}
+
 Analyzer* Analyzer::FindChild(ID arg_id) {
     if ( id == arg_id && ! (removing || finished) )
         return this;
@@ -463,6 +475,17 @@ Analyzer* Analyzer::FindChild(zeek::Tag arg_tag) {
 Analyzer* Analyzer::FindChild(const char* name) {
     zeek::Tag tag = analyzer_mgr->GetComponentTag(name);
     return tag ? FindChild(tag) : nullptr;
+}
+
+void Analyzer::CleanupChildren() {
+    AppendNewChildren();
+
+    for ( auto i = children.begin(); i != children.end(); ) {
+        if ( ! ((*i)->finished || (*i)->removing) )
+            ++i;
+        else
+            i = DeleteChild(i);
+    }
 }
 
 analyzer_list::iterator Analyzer::DeleteChild(analyzer_list::iterator i) {

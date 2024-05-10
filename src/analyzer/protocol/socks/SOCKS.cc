@@ -48,8 +48,8 @@ void SOCKS_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         if ( ! pia ) {
             pia = new analyzer::pia::PIA_TCP(Conn());
             if ( AddChildAnalyzer(pia) ) {
-                pia->FirstPacket(true, nullptr);
-                pia->FirstPacket(false, nullptr);
+                pia->FirstPacket(true, TransportProto::TRANSPORT_TCP);
+                pia->FirstPacket(false, TransportProto::TRANSPORT_TCP);
             }
             else
                 pia = nullptr;

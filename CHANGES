@@ -1,3 +1,57 @@
+7.0.0-dev.244 | 2024-05-10 11:08:47 +0200
+
+  * GH-3725: Spicy: Fix service reporting for replaced analyzers. (Robin Sommer, Corelight)
+
+    We accidentally applied analyzer mappings when looking up an
+    analyzer's name from scriptland.
+
+  * GH-3561: Spicy: Support UDP in Spicy's `protocol_*` runtime functions. (Robin Sommer, Corelight)
+
+    This extends the ability to feed new payload back into Zeek's analyzer
+    pipeline from TCP to now also UDP.
+
+    Note: We don't extend this further to ICMP because the ICMP analyzer
+    cannot be dynamically instantiated (Zeek aborts when trying so). As
+    ICMP isn't very interesting from use case perspective anyways, that
+    seems fine.
+
+  * Add method to analyzer to retrieve direct child by name. (Robin Sommer, Corelight)
+
+  * Add explicit children life-cycle management method to analyzers. (Robin Sommer, Corelight)
+
+  * Extend PIA's `FirstPacket` API. (Robin Sommer, Corelight)
+
+    `FirstPacket()` so far supported only TCP. To extend this to UDP, we
+    move the method into the PIA base class; give it a protocol parameter
+    for the case that there's no actual packet is available; and add the
+    ability to create fake UDP packets as well, not just TCP.
+
+    This whole thing is pretty ugly to begin with, and this doesn't make
+    it nicer, but we need this extension that so we can feed UDP data into
+    the signature engine that's tunneled over other protocols. Without the
+    fake packets, DPD signatures in particular wouldn't have anything to
+    match on.
+
+  * Spicy: Prepare for supporting forwarding to protocols other than TCP. (Robin Sommer, Corelight)
+
+    So far the Spicy runtime supported forwarding data into other
+    analyzers only for TCP analyzers. This puts branching logic in place
+    that let the relevant runtime functions dispatch differently based on
+    the target transport-layer protocol. We don't implement anything else
+    than TCP yet; that will come next.
+
+    Along with the internal changes, this also updates the user-visible
+    runtime function to pass protocol information in. For now, this
+    likewise remains limited to TCP. The function signatures are chosen so
+    that they stay backwards-compatible to previous Spicy version. In
+    particular, they default to TCP where not otherwise specified.
+
+  * Fix include of private file in public header (Benjamin Bannier, Corelight)
+
+  * Update package-manager submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.231 | 2024-05-08 13:09:25 -0700
 
   * enable ZAM operation specifications to reside in multiple files (not yet used) (Vern Paxson, Corelight)

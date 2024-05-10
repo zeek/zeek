@@ -452,6 +452,19 @@ public:
     Analyzer* GetChildAnalyzer(const zeek::Tag& tag) const;
 
     /**
+     * Returns a pointer to a direct child analyzer of the given name.
+     *
+     * Note that the returned pointer is owned by the analyzer and may
+     * be deleted without notification. Do not hold on to it.
+     *
+     * @param name The name of the analyzers, as returned by its
+     * GetAnalyzereName() method.
+     *
+     * @return The analyzer, or null if not found.
+     */
+    Analyzer* GetChildAnalyzer(const std::string& name) const;
+
+    /**
      * Recursively searches all (direct or indirect) children of the
      * analyzer for an analyzer with a specific ID.
      *
@@ -493,6 +506,13 @@ public:
      * it will not immediately be in this list.
      */
     const analyzer_list& GetChildren() { return children; }
+
+    /**
+     * Removes any child analyzers that are finished or marked for deletion.
+     * This normally happens automatically are various times when feeding data
+     * to children, can be triggered explicitly through this method as needed.
+     */
+    void CleanupChildren();
 
     /**
      * Returns a pointer to the parent analyzer, or null if this instance

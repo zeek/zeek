@@ -36,6 +36,32 @@ public:
 
     void ReplayPacketBuffer(analyzer::Analyzer* analyzer);
 
+    // The first packet for each direction of a connection is passed
+    // in here. This initializes the signature engine state for DPD.
+    //
+    // This version of the method should be used preferably, assuming an IP
+    // header is available.
+    //
+    // (This API is a bit crude as it doesn't really fit nicely into the
+    // analyzer interface. Yet we need it for initializing the packet matcher
+    // in the case that we already get reassembled input; and making it part of
+    // the general analyzer interface seems to be unnecessary overhead.)
+    void FirstPacket(bool is_orig, const IP_Hdr* ip);
+
+    // The first packet for each direction of a connection is passed
+    // in here. This initializes the signature engine state for DPD.
+    //
+    // This version of the method should be used if no actual IP header is
+    // available. In that case a fake one will be created internally just for
+    // initializing the signature engine. The fake header's transport-layer
+    // protocol will be `proto`. Only TCP or UDP are supported.
+    //
+    // (Similar to the other variant of this method, this API is a bit crude as
+    // it doesn't really fit nicely into the analyzer interface. This version
+    // we need for feeding data into the matcher that's not directly top-level
+    // IP payload, but decapsulated out of other layers.)
+    void FirstPacket(bool is_orig, TransportProto proto);
+
     // Children are also derived from Analyzer. Return this object
     // as pointer to an Analyzer.
     analyzer::Analyzer* AsAnalyzer() { return as_analyzer; }
@@ -77,11 +103,15 @@ protected:
     void DoMatch(const u_char* data, int len, bool is_orig, bool bol, bool eol, bool clear_state,
                  const IP_Hdr* ip = nullptr);
 
+    auto Conn() const { return conn; }
     void SetConn(Connection* c) { conn = c; }
 
     Buffer pkt_buffer;
 
 private:
+    // Joint backend for the two public FirstPacket() methods.
+    void FirstPacket(bool is_orig, const std::optional<TransportProto>& proto, const IP_Hdr* ip);
+
     analyzer::Analyzer* as_analyzer;
     Connection* conn;
     DataBlock current_packet;
@@ -122,16 +152,6 @@ public:
     ~PIA_TCP() override;
 
     void Init() override;
-
-    // The first packet for each direction of a connection is passed
-    // in here.
-    //
-    // (This is a bit crude as it doesn't really fit nicely into the
-    // analyzer interface.  Yet we need it for initializing the packet
-    // matcher in the case that we already get reassembled input,
-    // and making it part of the general analyzer interface seems
-    // to be unnecessary overhead.)
-    void FirstPacket(bool is_orig, const IP_Hdr* ip);
 
     void ReplayStreamBuffer(analyzer::Analyzer* analyzer);
 

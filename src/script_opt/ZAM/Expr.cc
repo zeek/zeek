@@ -242,7 +242,7 @@ const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdates* e) {
 
     std::set<TypeTag> field_tags;
 
-    bool is_managed = false;
+    size_t num_managed = 0;
 
     for ( auto i : rhs_map ) {
         auto rt = rhs->GetType()->AsRecordType();
@@ -251,7 +251,7 @@ const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdates* e) {
 
         if ( ZVal::IsManagedType(rt_ft_i) ) {
             aux->is_managed.push_back(true);
-            is_managed = true;
+            ++num_managed;
         }
         else
             // This will only be needed if is_managed winds up being true,
@@ -269,8 +269,14 @@ const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdates* e) {
 
     ZOp op;
 
-    if ( e->Tag() == EXPR_REC_ASSIGN_FIELDS )
-        op = is_managed ? OP_REC_ASSIGN_FIELDS_MANAGED_VV : OP_REC_ASSIGN_FIELDS_VV;
+    if ( e->Tag() == EXPR_REC_ASSIGN_FIELDS ) {
+        if ( num_managed == rhs_map.size() )
+            op = OP_REC_ASSIGN_FIELDS_ALL_MANAGED_VV;
+        else if ( num_managed > 0 )
+            op = OP_REC_ASSIGN_FIELDS_MANAGED_VV;
+        else
+            op = OP_REC_ASSIGN_FIELDS_VV;
+    }
 
     else if ( homogeneous ) {
         if ( field_tags.count(TYPE_DOUBLE) > 0 )

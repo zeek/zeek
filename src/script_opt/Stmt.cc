@@ -904,6 +904,10 @@ bool StmtList::SimplifyChain(unsigned int start, unsigned int end, std::vector<S
     OpChain add_chains;
     std::set<const Stmt*> chain_stmts;
 
+    static bool skip_chains = getenv("ZAM_SKIP_CHAINS");
+    if ( skip_chains )
+        return false;
+
     for ( auto i = start; i <= end; ++i ) {
         auto& s = stmts[i];
         chain_stmts.insert(s.get());

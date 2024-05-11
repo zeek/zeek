@@ -57,7 +57,7 @@ static bool same_op(const Expr* op1, const Expr* op2, bool check_defs) {
         return def_1 == def_2 && def_1 != NO_DEF;
     }
 
-    else if ( op1->Tag() == EXPR_CONST ) {
+    if ( op1->Tag() == EXPR_CONST ) {
         auto op1_c = op1->AsConstExpr();
         auto op2_c = op2->AsConstExpr();
 
@@ -67,7 +67,7 @@ static bool same_op(const Expr* op1, const Expr* op2, bool check_defs) {
         return same_val(op1_v, op2_v);
     }
 
-    else if ( op1->Tag() == EXPR_LIST ) {
+    if ( op1->Tag() == EXPR_LIST ) {
         auto op1_l = op1->AsListExpr()->Exprs();
         auto op2_l = op2->AsListExpr()->Exprs();
 
@@ -81,8 +81,22 @@ static bool same_op(const Expr* op1, const Expr* op2, bool check_defs) {
         return true;
     }
 
-    reporter->InternalError("bad singleton tag");
-    return false;
+    // We only get here if dealing with non-reduced operands.
+    auto subop1_1 = op1->GetOp1();
+    auto subop1_2 = op2->GetOp1();
+    ASSERT(subop1_1 && subop1_2);
+
+    if ( ! same_expr(subop1_1, subop1_2) )
+        return false;
+
+    auto subop2_1 = op1->GetOp2();
+    auto subop2_2 = op2->GetOp2();
+    if ( subop2_1 && ! same_expr(subop2_1, subop2_2) )
+        return false;
+
+    auto subop3_1 = op1->GetOp3();
+    auto subop3_2 = op2->GetOp3();
+    return ! subop3_1 || same_expr(subop3_1, subop3_2);
 }
 
 static bool same_op(const ExprPtr& op1, const ExprPtr& op2, bool check_defs) {
@@ -107,6 +121,7 @@ static bool same_expr(const Expr* e1, const Expr* e2, bool check_defs) {
 
         case EXPR_CLONE:
         case EXPR_RECORD_CONSTRUCTOR:
+        case EXPR_REC_CONSTRUCT_WITH_REC:
         case EXPR_TABLE_CONSTRUCTOR:
         case EXPR_SET_CONSTRUCTOR:
         case EXPR_VECTOR_CONSTRUCTOR:
@@ -473,7 +488,8 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
                 has_side_effects = true;
         }
 
-        else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_RECORD_COERCE )
+        else if ( e1->Tag() == EXPR_RECORD_CONSTRUCTOR || e1->Tag() == EXPR_REC_CONSTRUCT_WITH_REC ||
+                  e1->Tag() == EXPR_RECORD_COERCE )
             has_side_effects = pfs->HasSideEffects(SideEffectsOp::CONSTRUCTION, e1->GetType());
 
         e1_se = ExprSideEffects(has_side_effects);

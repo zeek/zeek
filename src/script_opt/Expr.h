@@ -104,6 +104,98 @@ protected:
     int field;
 };
 
+// Base class for updating a number of record fields from fields in
+// another record.
+class RecordFieldUpdatesExpr : public BinaryExpr {
+public:
+    const auto& LHSMap() const { return lhs_map; }
+    const auto& RHSMap() const { return rhs_map; }
+
+    // Only needed if we're transforming-but-not-compiling.
+    ValPtr Fold(Val* v1, Val* v2) const override;
+
+    bool IsPure() const override { return false; }
+    bool IsReduced(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
+protected:
+    RecordFieldUpdatesExpr(ExprTag t, const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool);
+    RecordFieldUpdatesExpr(ExprTag t, ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map);
+
+    // Apply the operation for the given index 'i' from rv2 to rv1.
+    // Does not return a value since we're modifying rv1 in-place.
+    virtual void FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const = 0;
+
+    void ExprDescribe(ODesc* d) const override;
+
+    std::vector<int> lhs_map;
+    std::vector<int> rhs_map;
+};
+
+// Assign a bunch of record fields en masse from fields in another record.
+class AssignRecordFieldsExpr : public RecordFieldUpdatesExpr {
+public:
+    AssignRecordFieldsExpr(const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool)
+        : RecordFieldUpdatesExpr(EXPR_REC_ASSIGN_FIELDS, stmts, stmt_pool) {}
+
+    ExprPtr Duplicate() override;
+
+protected:
+    // Used for duplicating.
+    AssignRecordFieldsExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
+        : RecordFieldUpdatesExpr(EXPR_REC_ASSIGN_FIELDS, e1, e2, _lhs_map, _rhs_map) {}
+
+    void FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const override;
+};
+
+// Construct a record with some of the fields taken directly from another
+// record. After full construction, the  first operand is the base constructor
+// (a subset of the original) and the second is the source record being used
+// for some of the initialization.
+using FieldExprPtr = IntrusivePtr<FieldExpr>;
+class ConstructFromRecordExpr : public AssignRecordFieldsExpr {
+public:
+    ConstructFromRecordExpr(const RecordConstructorExpr* orig);
+
+    // Helper function that finds the most common source value.
+    // Returns its identifier, or nil if there is no "$field = x$y"
+    // to leverage.
+    static IDPtr FindMostCommonRecordSource(const ListExprPtr& exprs);
+
+    ExprPtr Duplicate() override;
+
+    bool IsReduced(Reducer* c) const override;
+    bool HasReducedOps(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
+protected:
+    ConstructFromRecordExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
+        : AssignRecordFieldsExpr(e1, e2, _lhs_map, _rhs_map) {
+        tag = EXPR_REC_CONSTRUCT_WITH_REC;
+    }
+
+    // Helper function that for a given "$field = x$y" returns the
+    // "x$y" node, or nil if that's not the nature of the expression.
+    static FieldExprPtr FindRecordSource(const Expr* e);
+};
+
+// Add en masse fields from one record to fields in another record.
+// We could add additional such expressions for other common operations
+// like "x$foo -= y$bar", but in practice these are quite rare.
+class AddRecordFieldsExpr : public RecordFieldUpdatesExpr {
+public:
+    AddRecordFieldsExpr(const std::vector<const Stmt*>& stmts, std::set<const Stmt*>& stmt_pool)
+        : RecordFieldUpdatesExpr(EXPR_REC_ADD_FIELDS, stmts, stmt_pool) {}
+
+    ExprPtr Duplicate() override;
+
+protected:
+    AddRecordFieldsExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
+        : RecordFieldUpdatesExpr(EXPR_REC_ADD_FIELDS, e1, e2, _lhs_map, _rhs_map) {}
+
+    void FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const override;
+};
+
 // ... and for conversion from a "vector of any" type.
 class CoerceFromAnyVecExpr : public UnaryExpr {
 public:

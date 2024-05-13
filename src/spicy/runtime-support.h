@@ -7,7 +7,6 @@
 #pragma once
 
 #include <limits>
-#include <memory>
 #include <optional>
 #include <ostream>
 #include <string>
@@ -489,8 +488,8 @@ template<typename T>
 ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target);
 template<typename T>
 ValPtr to_val(const std::optional<T>& t, const TypePtr& target);
-template<typename T>
-ValPtr to_val(const hilti::rt::DeferredExpression<T>& t, const TypePtr& target);
+template<typename T, typename E>
+ValPtr to_val(const hilti::rt::DeferredExpression<T, E>& t, const TypePtr& target);
 template<typename T>
 ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target);
 template<typename T>
@@ -519,13 +518,13 @@ inline ValPtr to_val(const std::optional<T>& t, const TypePtr& target) {
 }
 
 /**
- * Converts a Spicy-side DeferredExpression<T> value to a Zeek value. Such
+ * Converts a Spicy-side DeferredExpression<T,E> value to a Zeek value. Such
  * result values are returned by the ``.?`` operator. If the result is not
  * set, this will convert into nullptr (which the tuple-to-record to_val()
  * picks up on).
  */
-template<typename T>
-inline ValPtr to_val(const hilti::rt::DeferredExpression<T>& t, const TypePtr& target) {
+template<typename T, typename E>
+inline ValPtr to_val(const hilti::rt::DeferredExpression<T, E>& t, const TypePtr& target) {
     try {
         return to_val(t(), target);
     } catch ( const hilti::rt::AttributeNotSet& ) {

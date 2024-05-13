@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include <prometheus/counter.h>
+#include <prometheus/family.h>
+
 #include "zeek/OpaqueVal.h"
 #include "zeek/broker/Data.h"
-
-#include "prometheus/counter.h"
-#include "prometheus/family.h"
 
 namespace zeek {
 

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <prometheus/exposer.h>
+#include <prometheus/registry.h>
 #include <condition_variable>
 #include <cstdint>
 #include <initializer_list>
@@ -16,9 +18,6 @@
 #include "zeek/telemetry/Histogram.h"
 #include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Utils.h"
-
-#include "prometheus/exposer.h"
-#include "prometheus/registry.h"
 
 namespace zeek {
 class RecordVal;

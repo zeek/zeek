@@ -1,12 +1,11 @@
 #pragma once
 
+#include <prometheus/family.h>
+#include <prometheus/labels.h>
 #include <string_view>
 
 #include "zeek/Span.h"
 #include "zeek/Val.h"
-
-#include "prometheus/family.h"
-#include "prometheus/labels.h"
 
 namespace zeek::telemetry {
 

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <prometheus/family.h>
+#include <prometheus/gauge.h>
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
@@ -10,9 +12,6 @@
 #include "zeek/telemetry/MetricFamily.h"
 #include "zeek/telemetry/Utils.h"
 #include "zeek/telemetry/telemetry.bif.h"
-
-#include "prometheus/family.h"
-#include "prometheus/gauge.h"
 
 namespace zeek::telemetry {
 

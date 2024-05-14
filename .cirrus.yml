@@ -341,7 +341,7 @@ alpine_task:
 # We aim to support both the current and previous macOS release.
 macos_sonoma_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-sonoma-base:latest
+    image: ghcr.io/cirruslabs/macos-sonoma-xcode:latest
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT

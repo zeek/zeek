@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20230816
+ENV DOCKERFILE_VERSION 20240514
 
 ENV CMAKE_DIR "/opt/cmake"
 ENV CMAKE_VERSION "3.19.1"

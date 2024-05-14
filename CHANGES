@@ -1,3 +1,35 @@
+6.0.3-10 | 2024-05-14 14:35:47 -0700
+
+  * Bump commit hash for zeek-testing-cluster (Tim Wojtulewicz, Corelight)
+
+  * Bump spicy submodule to v1.8.4 (Tim Wojtulewicz, Corelight)
+
+  * Force Windows CI to use OpenSSL 3.1.1 (Tim Wojtulewicz)
+
+    There's something wrong with chocolatey's OpenSSL 3.2.0 package that
+    causes cmake to not be able to find libcrypto even though it's clearly
+    in the directory. Pinning to 3.1.1 fixes the build issue.
+
+    (cherry picked from commit 5a7c482a0fe04f9cd4c8c7a7a0c5b4c748ebf28e)
+
+  * Make worker restart in cluster btest race-proof (Jan Grashoefer, Corelight)
+
+    (cherry picked from commit 08daef8d42a1b014969203bb5ad99a55fcbd56f8)
+
+  * Add missing include for int32_t in DebugCmds.h (Tim Wojtulewicz)
+
+    (cherry picked from commit 01d11d6c0bf5845e5bc6bedf037166bd9d498cc8)
+
+  * Fix warning with attribute string lookup (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit b639f1426fc1ce55f4cf6c2b693d567437d68917)
+
+  * CI: Force rebuilds of all of the VMs (Tim Wojtulewicz, Corelight)
+
+  * CI: Fix python installations on alpine (Tim Wojtulewicz, Corelight)
+
+  * CI: Use macOS Sonoma xcode VM to fix problem with missing tools (Tim Wojtulewicz, Corelight)
+
 6.0.3 | 2024-01-19 09:00:16 -0700
 
   * GH-208: MIME: Cap nested MIME analysis depth to 100 (Arne Welzel, Corelight)

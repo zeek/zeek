@@ -1,3 +1,9 @@
+7.0.0-dev.254 | 2024-05-13 17:40:37 -0700
+
+  * CI: Use clang-18 on Ubuntu 24 for sanitizers builds, enable TSan builds (Tim Wojtulewicz)
+
+  * CI: Add clang-18 to Ubuntu 24.04 VM (Tim Wojtulewicz)
+
 7.0.0-dev.251 | 2024-05-13 16:38:33 +0200
 
   * Spicy: Apply missing fix for recent Spicy bump. (Robin Sommer, Corelight)

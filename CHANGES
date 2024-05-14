@@ -1,3 +1,52 @@
+6.2.0-rc1.21 | 2024-05-14 16:44:29 -0700
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Parse and store localversion string (Peter Cullen, Corelight)
+
+    (cherry picked from commit d09584e52e96fe4d5cb3d211e18ece53668bf568)
+
+  * Update version string btests for localversion (Peter Cullen, Corelight)
+
+    (cherry picked from commit d09584e52e96fe4d5cb3d211e18ece53668bf568)
+
+  * Support for configurable localversion (Peter Cullen, Corelight)
+
+    (cherry picked from commit d09584e52e96fe4d5cb3d211e18ece53668bf568)
+
+  * Update core.pcap.filter-warning baseline (Peter Cullen, Corelight)
+
+    Only the line numbers changed.
+
+    (cherry picked from commit d566961da5171c9873357e3beafc21683a12bc4e)
+
+  * Add PacketFilter::remove_exclude function (Peter Cullen, Corelight)
+
+    This adds a public function to the PacketFilter framework that
+    allows the caller to remove an exclude filter by filter id.
+
+    (cherry picked from commit d566961da5171c9873357e3beafc21683a12bc4e)
+
+  * Gracefully handle empty/missing shadow file (Peter Cullen, Corelight)
+
+    When a shadow file is empty/missing during rotation, Zeek aborts
+    with an error message, but if the shadow file was empty, it'll still
+    be there after the restart, causing an endless restart loop. This
+    solution gracefully handles the rotation in such cases using the
+    default file extension and post processing function.
+
+    (cherry picked from ad6d70d4e6f53e611cb56429a7e6e9b7a3a0759d)
+
+  * GH-3671: Factor in caplens in ICMPAnalyzer::DeliverPacket length calculations (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 7fdbb73511d7ba3a48a220cb184add6cd68f2506)
+
+  * CI: Use macOS Sonoma xcode VM to fix problem with missing tools (Tim Wojtulewicz, Corelight)
+
+  * CI: Fix python installations on macOS (Tim Wojtulewicz, Corelight)
+
+  * Bump commit hash for zeek-testing-cluster (Tim Wojtulewicz, Corelight)
+
 6.2.0 | 2024-03-13 10:53:51 -0700
 
   * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz)

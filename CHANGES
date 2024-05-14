@@ -1,3 +1,40 @@
+6.0.3-15 | 2024-05-14 14:52:34 -0700
+
+  * Update core.pcap.filter-warning baseline (Peter Cullen, Corelight)
+
+    Only the line numbers changed.
+
+    (cherry picked from d566961da5171c9873357e3beafc21683a12bc4e)
+
+  * Add PacketFilter::remove_exclude function (Peter Cullen, Corelight)
+
+    This adds a public function to the PacketFilter framework that
+    allows the caller to remove an exclude filter by filter id.
+
+    (cherry picked from d566961da5171c9873357e3beafc21683a12bc4e)
+
+  * Gracefully handle empty/missing shadow file (Peter Cullen, Corelight)
+
+    When a shadow file is empty/missing during rotation, Zeek aborts
+    with an error message, but if the shadow file was empty, it'll still
+    be there after the restart, causing an endless restart loop. This
+    solution gracefully handles the rotation in such cases using the
+    default file extension and post processing function.
+
+    (cherry picked from ad6d70d4e6f53e611cb56429a7e6e9b7a3a0759d)
+
+  * GH-3671: Factor in caplens in ICMPAnalyzer::DeliverPacket length calculations (Christian Kreibich, Corelight)
+
+    (cherry picked from 7fdbb73511d7ba3a48a220cb184add6cd68f2506)
+
+  * Bump highwayhash to pull in FreeBSD 14 fix (Christian Kreibich, Corelight)
+
+    (cherry picked from d8b0ee085327e1347474ec9bb261ab50b3b9b6f2)
+
+  * Update Mozilla CA and Google CT list and related tests. (Johanna Amann, Corelight)
+
+    (cherry picked from c315202ece743ffa679958ed9bff5f21e99c131f)
+
 6.0.3-10 | 2024-05-14 14:35:47 -0700
 
   * Bump commit hash for zeek-testing-cluster (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,19 @@
+6.0.3-18 | 2024-05-14 16:28:29 -0700
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Parse and store localversion string (Peter Cullen, Corelight)
+
+    (cherry picked from commit d09584e52e96fe4d5cb3d211e18ece53668bf568)
+
+  * Update version string btests for localversion (Peter Cullen, Corelight)
+
+    (cherry picked from commit d09584e52e96fe4d5cb3d211e18ece53668bf568)
+
+  * Support for configurable localversion (Peter Cullen, Corelight)
+
+    (cherry picked from commit d09584e52e96fe4d5cb3d211e18ece53668bf568)
+
 6.0.3-15 | 2024-05-14 14:52:34 -0700
 
   * Update core.pcap.filter-warning baseline (Peter Cullen, Corelight)

@@ -23,9 +23,10 @@ RUN apk add --no-cache \
   openssl-dev \
   procps \
   py3-pip \
+  py3-websockets \
   python3 \
   python3-dev \
   swig \
   zlib-dev
 
-RUN pip3 install websockets junit2html
+RUN pip3 install --break-system-packages junit2html

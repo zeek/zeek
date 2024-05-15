@@ -1,3 +1,11 @@
+6.2.0-rc1.26 | 2024-05-15 15:02:19 -0700
+
+  * Bump spicy submodule to v1.10.1 (Tim Wojtulewicz, Corelight)
+
+  * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz)
+
+  * CI: Disable spicy_head task on release branches (Tim Wojtulewicz, Corelight)
+
 6.2.0-rc1.21 | 2024-05-14 16:44:29 -0700
 
   * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)

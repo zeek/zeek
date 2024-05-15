@@ -324,6 +324,9 @@ ubuntu22_spicy_head_task:
   upload_binary_artifacts:
     path: build.tgz
   benchmark_script: ./ci/benchmark.sh
+  # Don't run this job on release branches. It tests against spicy HEAD, which
+  # will frequently require other fixes that won't be in a release branch.
+  skip: $CIRRUS_BRANCH =~ 'release/.*'
   << : *BENCHMARK_ONLY_IF_TEMPLATE
 
 ubuntu20_task:

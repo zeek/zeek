@@ -305,6 +305,10 @@ ubuntu22_spicy_task:
   << : *BENCHMARK_ONLY_IF_TEMPLATE
 
 ubuntu22_spicy_head_task:
+  # Don't run this job on release branches. It tests against spicy HEAD, which
+  # will frequently require other fixes that won't be in a release branch.
+  only_if: >
+    ( $CIRRUS_BRANCH !=~ 'release/.*' )
   container:
     # Ubuntu 22.04 EOL: April 2027
     dockerfile: ci/ubuntu-22.04/Dockerfile

@@ -1,3 +1,9 @@
+6.0.4 | 2024-05-16 10:23:37 -0700
+
+  * Update CHANGES, VERSION, and NEWS for the v6.0.4 release (Tim Wojtulewicz, Corelight)
+
+  * Update baseline for plugins.hooks btest (Tim Wojtulewicz)
+
 6.0.3-18 | 2024-05-14 16:28:29 -0700
 
   * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)

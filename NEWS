@@ -3,6 +3,32 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 6.0.4
+==========
+
+This release fixes the following bugs:
+
+- The Mozilla CA and Google CT lists was updated to their latest versions.
+
+- A crash with ICMP packets involving errant length checking was fixed. Thank
+  you to Ronny Barkan from Microsoft for reporting this issue.
+
+- When a shadow file is empty/missing during rotation, Zeek aborts with an error
+  message, but if the shadow file was empty, it will still be there after the
+  restart. This results in an endless restart loop. This has been corrected to
+  overwrite the existing shadow file, using the default file extension and
+  post processing function.
+
+- A new function ``remove_exclude`` was added to the ``PacketFilter`` framework
+  which can be used to remove a previously added exclude filter by name.
+
+- A new option ``--localversion`` was added to the ``configure`` script. This
+  option allows a caller to add custom strings to the end of the Zeek version
+  reported by ``zeek -v``.
+
+- The highwayhash submodule was updated to fix a build issue for FreeBSD. Thank
+  you to community member Craig Leres for reporting this.
+
 Zeek 6.0.3
 ==========
 

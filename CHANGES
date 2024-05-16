@@ -1,3 +1,9 @@
+6.2.1 | 2024-05-16 10:11:49 -0700
+
+  * Update CHANGES, VERSION, and NEWS for the v6.2.1 release (Tim Wojtulewicz, Corelight)
+
+  * CI: Change spicy-head test to match master (Tim Wojtulewicz, Corelight)
+
 6.2.0-rc1.26 | 2024-05-15 15:02:19 -0700
 
   * Bump spicy submodule to v1.10.1 (Tim Wojtulewicz, Corelight)

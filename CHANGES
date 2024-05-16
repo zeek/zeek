@@ -1,3 +1,7 @@
+7.0.0-dev.260 | 2024-05-16 09:34:55 -0700
+
+  * CI: Disable spicy_head task for release branches (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.258 | 2024-05-15 20:00:41 -0700
 
   * CI: Use llvm-cov-18 on Cirrus for building coverage data (Tim Wojtulewicz, Corelight)

@@ -30,6 +30,11 @@
 namespace zeek::detail {
 
 const char* expr_name(ExprTag t) {
+    // Note that some of the names in the following have trailing spaces.
+    // These are for unary operations that (1) are identified by names
+    // rather than symbols, and (2) don't have custom ExprDescribe printers.
+    // Adding the spaces here lets them leverage the UnaryExpr::ExprDescribe
+    // method without it having to know about such expressions.
     static const char* expr_names[int(NUM_EXPRS)] = {
         "name",
         "const",
@@ -62,7 +67,7 @@ const char* expr_name(ExprTag t) {
         ">=",
         ">",
         "?:",
-        "ref",
+        "ref ",
         "=",
         "[]",
         "$",
@@ -79,12 +84,12 @@ const char* expr_name(ExprTag t) {
         "event",
         "schedule",
         "coerce",
-        "record_coerce",
-        "table_coerce",
-        "vector_coerce",
-        "to_any_coerce",
-        "from_any_coerce",
-        "sizeof",
+        "record_coerce ",
+        "table_coerce ",
+        "vector_coerce ",
+        "to_any_coerce ",
+        "from_any_coerce ",
+        "sizeof ",
         "cast",
         "is",
         "[:]=",
@@ -92,7 +97,7 @@ const char* expr_name(ExprTag t) {
         "vec+=",
         "[]=",
         "$=",
-        "from_any_vec_coerce",
+        "from_any_vec_coerce ",
         "any[]",
         "ZAM-builtin()",
         "nop",

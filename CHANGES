@@ -1,3 +1,13 @@
+7.0.0-dev.265 | 2024-05-16 11:09:23 -0700
+
+  * Fix for ZAM inlining of nested function calls with the same parameter names (Vern Paxson, Corelight)
+
+  * Fixed ZAM logic error in canonicalizing specialized min/max instructions (Vern Paxson, Corelight)
+
+  * Fixed order-of-evaluation bug in ZAM Subnet-To-Addr instruction (Vern Paxson, Corelight)
+
+  * "-a zam" BTest baseline update reflecting recent Spicy baseline change (Vern Paxson, Corelight)
+
 7.0.0-dev.260 | 2024-05-16 09:34:55 -0700
 
   * CI: Disable spicy_head task for release branches (Tim Wojtulewicz, Corelight)

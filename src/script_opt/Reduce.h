@@ -57,11 +57,15 @@ public:
 
     int NumNewLocals() const { return new_locals.size(); }
 
+    // These should be used as a balanced pair to start and end a
+    // block being inlined.
+    void PushInlineBlock();
+    void PopInlineBlock();
+
     // Returns the name of a temporary for holding the return
     // value of the block, or nil if the type indicates there's
-    // o return value.
-    NameExprPtr PushInlineBlock(TypePtr type);
-    void PopInlineBlock();
+    // no return value. Call before popping the block.
+    NameExprPtr GetRetVar(TypePtr type);
 
     // Whether it's okay to split a statement into two copies for if-else
     // expansion.  We only allow this to a particular depth because

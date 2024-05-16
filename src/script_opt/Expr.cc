@@ -2529,22 +2529,41 @@ ExprPtr InlineExpr::Duplicate() {
 bool InlineExpr::IsReduced(Reducer* c) const { return NonReduced(this); }
 
 ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    // First, reduce each argument and assign it to a parameter.
-    // We do this one at a time because that will often allow the
-    // optimizer to collapse the final assignment.
+    // We have to be careful regarding the order in which we evaluate
+    // the various elements that go into inlining the call. First, the
+    // arguments need to be reduced in the current scope, not the block
+    // we'll create for the inlined code. Second, we need to generate the
+    // identifiers for the formal parameters *after* creating that inner
+    // block scope, so the variables are distinct to that context. Finally,
+    // when done we need to create the return variable within that scope
+    // (so it's unique to the inlined instance) even though we'll use it -
+    // and possibly other locals from the inlining, via optimization - in
+    // the outer scope.
+
+    auto args_list = args->Exprs();
+    std::vector<ExprPtr> red_args; // holds the arguments as singletons
 
     red_stmt = nullptr;
 
-    auto args_list = args->Exprs();
-
+    // Gather up the reduced arguments.
     loop_over_list(args_list, i) {
         StmtPtr arg_red_stmt;
-        auto red_i = args_list[i]->Reduce(c, arg_red_stmt);
-        auto assign_stmt = with_location_of(c->GenParam(params[i], red_i, param_is_modified[i]), this);
-        red_stmt = MergeStmts(red_stmt, arg_red_stmt, assign_stmt);
+        red_args.emplace_back(args_list[i]->Reduce(c, arg_red_stmt));
+        red_stmt = MergeStmts(red_stmt, arg_red_stmt);
     }
 
-    auto ret_val = c->PushInlineBlock(type);
+    // Start the inline block, so the parameters we generate pick up
+    // its naming scope.
+    c->PushInlineBlock();
+
+    // Generate the parameters and assign them to the reduced arguments.
+    loop_over_list(args_list, j) {
+        auto assign_stmt = with_location_of(c->GenParam(params[j], red_args[j], param_is_modified[j]), this);
+        red_stmt = MergeStmts(red_stmt, assign_stmt);
+    }
+
+    // Generate the return variable distinct to the inner block.
+    auto ret_val = c->GetRetVar(type);
     if ( ret_val )
         ret_val->SetLocationInfo(GetLocationInfo());
 

@@ -1,3 +1,9 @@
+7.0.0-dev.258 | 2024-05-15 20:00:41 -0700
+
+  * CI: Use llvm-cov-18 on Cirrus for building coverage data (Tim Wojtulewicz, Corelight)
+
+  * CI: Add missing lcov package to ubuntu 24 Dockerfile (Tim Wojtulewicz)
+
 7.0.0-dev.254 | 2024-05-13 17:40:37 -0700
 
   * CI: Use clang-18 on Ubuntu 24 for sanitizers builds, enable TSan builds (Tim Wojtulewicz)

@@ -18,8 +18,6 @@ enum StmtTag {
     STMT_NEXT,
     STMT_BREAK,
     STMT_RETURN,
-    STMT_ADD,
-    STMT_DELETE,
     STMT_LIST,
     STMT_EVENT_BODY_LIST,
     STMT_INIT,

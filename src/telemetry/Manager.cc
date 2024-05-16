@@ -28,13 +28,9 @@ Manager::Manager() { prometheus_registry = std::make_shared<prometheus::Registry
 void Manager::InitPostScript() {
     // Metrics port setting is used to calculate a URL for prometheus scraping
     std::string prometheus_url;
-    if ( auto env = getenv("ZEEK_METRICS_PORT") )
-        prometheus_url = util::fmt("localhost:%s", env);
-    else {
-        auto metrics_port = id::find_val("Telemetry::metrics_port")->AsPortVal();
-        if ( metrics_port->Port() != 0 )
-            prometheus_url = util::fmt("localhost:%u", metrics_port->Port());
-    }
+    auto metrics_port = id::find_val("Telemetry::metrics_port")->AsPortVal();
+    if ( metrics_port->Port() != 0 )
+        prometheus_url = util::fmt("localhost:%u", metrics_port->Port());
 
     if ( ! prometheus_url.empty() ) {
         CivetCallbacks* callbacks = nullptr;

@@ -31,14 +31,13 @@ Breaking Changes
 
   The ``unit`` field has been removed from the telemetry log.
 
-  All of the ``BROKER_METRICS_*`` environment variables have been replaced with
-  ``ZEEK_METRICS_*`` versions. This is most prevalent in cluster configurations,
-  where ``ZEEK_METRICS_PORT`` should no longer be set for each node that wants
-  to output telemetry data. Instead, a new ``metrics_port`` option was added to
-  the ``node.cfg`` options and can be used to set the port number. The cluster
-  layout record defined in ``cluster-layout.zeek`` has the same option, and it
-  can be automatically populated by ``zeekctl`` during the ``install`` or
-  ``deploy`` commands.
+  All of the ``BROKER_METRICS_*`` environment variables have been removed. Use
+  the equivalent script-level variables for setting configuration settings. For
+  cluster settings, a new ``metrics_port`` option was added to the ``node.cfg``
+  options and can be used to set the port number. The cluster layout record
+  defined in ``cluster-layout.zeek`` has the same option, and it can be
+  automatically populated by ``zeekctl`` during the ``install`` or ``deploy``
+  commands.
 
 New Functionality
 -----------------

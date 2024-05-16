@@ -242,7 +242,6 @@ const ZAMStmt ZAMCompiler::CompileZAMBuiltin(const NameExpr* lhs, const ScriptOp
             if ( op1->Tag() == EXPR_CONST ) {
                 ASSERT(op2->Tag() != EXPR_CONST);
                 std::swap(op1, op2);
-                is_min = ! is_min;
             }
 
             ZOp op;

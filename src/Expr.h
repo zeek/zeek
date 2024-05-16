@@ -427,7 +427,6 @@ public:
     explicit NameExpr(IDPtr id, bool const_init = false);
 
     bool CanDel() const override;
-    TypePtr DelType() const override;
     ValPtr Delete(Frame* f) override;
 
     ID* Id() const { return id.get(); }
@@ -717,6 +716,7 @@ public:
     // Optimization-related:
     bool IsReduced(Reducer* c) const override { return HasReducedOps(c); }
     bool HasReducedOps(Reducer* c) const override { return op->HasReducedOps(c); }
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 };
 
 class AggrAddExpr final : public AggrAddDelExpr {
@@ -1017,9 +1017,6 @@ public:
     bool CanAdd() const override;
     bool CanDel() const override;
 
-    TypePtr AddType() const override;
-    TypePtr DelType() const override;
-
     ValPtr Add(Frame* f) override;
     ValPtr Delete(Frame* f) override;
 
@@ -1119,7 +1116,6 @@ public:
     const char* FieldName() const { return field_name; }
 
     bool CanDel() const override;
-    TypePtr DelType() const override;
 
     void Assign(Frame* f, ValPtr v) override;
     ValPtr Delete(Frame* f) override;

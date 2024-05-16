@@ -148,7 +148,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto aggr = e->GetOp1();
             auto aggr_t = aggr->GetType();
 
-            if ( in_aggr_mod_expr ) {
+            if ( in_aggr_mod_expr > 0 ) {
                 auto aggr_id = aggr->AsNameExpr()->Id();
 
                 if ( CheckID(aggr_id, true) || CheckAggrMod(aggr_t) )
@@ -168,7 +168,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 }
 
 TraversalCode CSE_ValidityChecker::PostExpr(const Expr* e) {
-    if ( e->Tag() == EXPR_AGGR_ADD || e->Tag() == EXPR_AGGR_DEL )
+    if ( have_start_e && (e->Tag() == EXPR_AGGR_ADD || e->Tag() == EXPR_AGGR_DEL) )
         --in_aggr_mod_expr;
 
     return TC_CONTINUE;

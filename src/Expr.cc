@@ -422,8 +422,6 @@ bool NameExpr::CanDel() const {
     return GetType()->Tag() == TYPE_TABLE || GetType()->Tag() == TYPE_VECTOR;
 }
 
-TypePtr NameExpr::DelType() const { return GetType(); }
-
 ValPtr NameExpr::Delete(Frame* f) {
     auto v = Eval(f);
     if ( v ) {
@@ -2524,13 +2522,6 @@ bool IndexExpr::CanDel() const {
     return op1->GetType()->Tag() == TYPE_TABLE;
 }
 
-TypePtr IndexExpr::AddType() const { return op1->GetType(); }
-
-TypePtr IndexExpr::DelType() const {
-    auto y = op1->GetType()->Yield();
-    return y ? y : base_type(TYPE_VOID);
-}
-
 ValPtr IndexExpr::Add(Frame* f) {
     if ( IsError() )
         return nullptr;
@@ -2791,8 +2782,6 @@ ExprPtr FieldExpr::MakeLvalue() { return with_location_of(make_intrusive<RefExpr
 
 bool FieldExpr::CanDel() const { return td->GetAttr(ATTR_DEFAULT) || td->GetAttr(ATTR_OPTIONAL); }
 
-TypePtr FieldExpr::DelType() const { return GetType(); }
-
 void FieldExpr::Assign(Frame* f, ValPtr v) {
     if ( IsError() )
         return;
@@ -2807,8 +2796,12 @@ void FieldExpr::Assign(ValPtr lhs, ValPtr rhs) {
 
 ValPtr FieldExpr::Delete(Frame* f) {
     auto op_v = op->Eval(f);
+    if ( ! op_v )
+        return nullptr;
+
+    auto former = op_v->AsRecordVal()->GetField(field);
     Assign(op_v, nullptr);
-    return op_v;
+    return former;
 }
 
 ValPtr FieldExpr::Fold(Val* v) const {

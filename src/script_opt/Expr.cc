@@ -723,6 +723,17 @@ ExprPtr AddExpr::BuildSub(const ExprPtr& op1, const ExprPtr& op2) {
     return with_location_of(make_intrusive<SubExpr>(op1, rhs), this);
 }
 
+ExprPtr AggrAddDelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( type )
+        return UnaryExpr::Reduce(c, red_stmt);
+
+    if ( c->Optimizing() )
+        op = c->UpdateExpr(op);
+
+    red_stmt = op->ReduceToSingletons(c);
+    return ThisPtr();
+}
+
 ExprPtr AggrAddExpr::Duplicate() { return SetSucc(new AggrAddExpr(op->Duplicate())); }
 
 ExprPtr AggrDelExpr::Duplicate() { return SetSucc(new AggrDelExpr(op->Duplicate())); }

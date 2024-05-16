@@ -359,11 +359,27 @@ NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id) {
     return make_intrusive<NameExpr>(GenLocal(id));
 }
 
-NameExprPtr Reducer::PushInlineBlock(TypePtr type) {
+void Reducer::PushInlineBlock() {
     ++inline_block_level;
-
     block_locals.emplace_back(std::unordered_map<const ID*, IDPtr>());
+}
 
+void Reducer::PopInlineBlock() {
+    --inline_block_level;
+
+    for ( auto& l : block_locals.back() ) {
+        auto key = l.first;
+        auto prev = l.second;
+        if ( prev )
+            orig_to_new_locals[key] = prev;
+        else
+            orig_to_new_locals.erase(key);
+    }
+
+    block_locals.pop_back();
+}
+
+NameExprPtr Reducer::GetRetVar(TypePtr type) {
     if ( ! type || type->Tag() == TYPE_VOID )
         return nullptr;
 
@@ -380,21 +396,6 @@ NameExprPtr Reducer::PushInlineBlock(TypePtr type) {
         AddNewLocal(ret_id);
 
     return GenInlineBlockName(ret_id);
-}
-
-void Reducer::PopInlineBlock() {
-    --inline_block_level;
-
-    for ( auto& l : block_locals.back() ) {
-        auto key = l.first;
-        auto prev = l.second;
-        if ( prev )
-            orig_to_new_locals[key] = prev;
-        else
-            orig_to_new_locals.erase(key);
-    }
-
-    block_locals.pop_back();
 }
 
 ExprPtr Reducer::NewVarUsage(IDPtr var, const Expr* orig) {

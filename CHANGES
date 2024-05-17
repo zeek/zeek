@@ -1,3 +1,9 @@
+7.0.0-dev.268 | 2024-05-17 08:56:31 -0700
+
+  * Bump Spicy to latest dev snapshot (Benjamin Bannier, Corelight)
+
+  * CI: Disable coverage temporarily, broken with clang-18 (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.265 | 2024-05-16 11:09:23 -0700
 
   * Fix for ZAM inlining of nested function calls with the same parameter names (Vern Paxson, Corelight)

@@ -93,6 +93,8 @@ void hash_copy(HashDigestState* out, const HashDigestState* in);
 
 unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsigned char* out);
 
+unsigned char* internal_sha1(const unsigned char* data, unsigned long len, unsigned char* out);
+
 /**
  * Calculates the selected digest.
  * @param Alg Digest algorithm to use.

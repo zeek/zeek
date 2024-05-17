@@ -392,7 +392,7 @@ asan_sanitizer_task:
 
   << : *CI_TEMPLATE
   test_fuzzers_script: ./ci/test-fuzzers.sh
-  coverage_script: ./ci/upload-coverage.sh
+#  coverage_script: ./ci/upload-coverage.sh
   env:
     CC: clang-18
     CXX: clang++-18

@@ -1,3 +1,7 @@
+7.0.0-dev.270 | 2024-05-20 15:54:09 -0700
+
+  * Fix for suppressing SMB logging of previously-logged files (Vern Paxson, Corelight)
+
 7.0.0-dev.268 | 2024-05-17 08:56:31 -0700
 
   * Bump Spicy to latest dev snapshot (Benjamin Bannier, Corelight)

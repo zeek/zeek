@@ -215,12 +215,18 @@ function write_file_log(state: State)
 		# seen files in the SMB::State $recent_files field.
 		if ( f?$times )
 			{
+			# For repeated reads of the same file, the access
+			# time can change, so make a copy of the various times
+			# and zero that one out.
+			local times = copy(f$times);
+			times$accessed_raw = 0;
+			times$accessed = double_to_time(0.0);
 			local file_ident = cat(f$action,
 			                       f?$fuid ? f$fuid : "",
 			                       f?$name ? f$name : "",
 			                       f?$path ? f$path : "",
 			                       f$size,
-			                       f$times);
+			                       times);
 			if ( file_ident in state$recent_files )
 				{
 				# We've already seen this file and don't want to log it again.

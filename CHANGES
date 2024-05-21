@@ -1,3 +1,28 @@
+7.0.0-dev.280 | 2024-05-21 16:22:57 -0700
+
+  * CI: Remove --enable-werror for asan builds (Tim Wojtulewicz, Corelight)
+
+    There's a bug in GCC (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105562) that
+    causes std::regex to emit some warnings when built with -fsanitize=address. Any
+    warnings that actually mean anything would be caught by the other sanitizer
+    builds or by the regular ubuntu24 build.
+
+  * CI: Run coverage builds for PRs, but only upload on master (Tim Wojtulewicz, Corelight)
+
+  * Coverage: Ignore a few errors during generation (Tim Wojtulewicz, Corelight)
+
+  * Coverage: don't bother ignoring non-existent bro.dir files (Tim Wojtulewicz, Corelight)
+
+  * CI: Re-enable coverage (Tim Wojtulewicz, Corelight)
+
+  * CI: Switch asan build back to gcc (Tim Wojtulewicz, Corelight)
+
+    The tools used for coverage (gcov, lcov) work better with GCC. We could switch
+    over to similar tools for llvm, but they way they store files during coverage
+    builds don't work as well for us (mostly the places they store the files).
+
+  * CI: Avoid divide by zero error when generating coverage files (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.270 | 2024-05-20 15:54:09 -0700
 
   * Fix for suppressing SMB logging of previously-logged files (Vern Paxson, Corelight)

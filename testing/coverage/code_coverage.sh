@@ -90,9 +90,11 @@ function check_group_coverage {
             TOTAL=$(echo $(grep "$i" $DATA | cut -f 3) | tr " " "+" | bc)
         fi
 
-        PERCENTAGE=$(echo "scale=3;100*$RUN/$TOTAL" | bc | tr "\n" " ")
-        printf "%-50s\t%12s\t%6s %%\n" "$i" "$RUN/$TOTAL" $PERCENTAGE |
-            sed 's|#|/|g' >>$OUTPUT
+        if [ $TOTAL -ne 0 ]; then
+            PERCENTAGE=$(echo "scale=3;100*$RUN/$TOTAL" | bc | tr "\n" " ")
+            printf "%-50s\t%12s\t%6s %%\n" "$i" "$RUN/$TOTAL" $PERCENTAGE |
+                sed 's|#|/|g' >>$OUTPUT
+        fi
     done
 }
 

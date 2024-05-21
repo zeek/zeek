@@ -123,13 +123,13 @@ verify_run "lcov --no-external --capture --directory . --output-file $COVERAGE_F
 # Zeek coverage numbers.
 for TARGET in $REMOVE_TARGETS; do
     echo -n "Getting rid of $TARGET files from tracefile... "
-    verify_run "lcov --remove $COVERAGE_FILE $TARGET --output-file $COVERAGE_FILE"
+    verify_run "lcov --ignore-errors unused,empty --remove $COVERAGE_FILE $TARGET --output-file $COVERAGE_FILE"
 done
 
 # 6. Create HTML files or Coveralls report
 if [ $HTML_REPORT -eq 1 ]; then
     echo -n "Creating HTML files... "
-    verify_run "genhtml -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
+    verify_run "genhtml --ignore-errors empty -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
 else
     # The data we send to coveralls has a lot of duplicate files in it because of the
     # zeek symlink in the src directory. Run a script that cleans that up.

@@ -131,6 +131,11 @@ if [ $HTML_REPORT -eq 1 ]; then
     echo -n "Creating HTML files... "
     verify_run "genhtml --ignore-errors empty -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
 else
+    if [ "${CIRRUS_BRANCH}" != "master" ]; then
+        echo "Coverage upload skipped for non-master branches"
+        exit 0
+    fi
+
     # The data we send to coveralls has a lot of duplicate files in it because of the
     # zeek symlink in the src directory. Run a script that cleans that up.
     echo -n "Cleaning coverage data for Coveralls..."

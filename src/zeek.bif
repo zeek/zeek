@@ -4121,6 +4121,34 @@ function file_mode%(mode: count%): string
 #include "zeek/analyzer/Manager.h"
 %%}
 
+## Returns the numeric ID of the requested protocol analyzer for the given
+## connection.
+##
+## cid: The connection identifier.
+##
+## atype: The analyzer tag, such as ``Analyzer::ANALYZER_HTTP``.
+##
+## Returns: a numeric identifier for the analyzer, valid for the given
+##          connection. When no such analyzer exists the function returns
+##          0, which is never a valid analyzer ID value.
+##
+## .. zeek:see:: disable_analyzer Analyzer::disabling_analyzer
+function lookup_connection_analyzer_id%(cid: conn_id, atype: AllAnalyzers::Tag%): count
+	%{
+	Connection* c = session_mgr->FindConnection(cid);
+	if ( ! c )
+		{
+		zeek::emit_builtin_error("connection ID not a known connection", cid);
+		return zeek::val_mgr->Count(0);
+		}
+
+	analyzer::Analyzer* a = c->FindAnalyzer(analyzer_mgr->GetComponentTag(atype));
+	if ( ! a )
+		return zeek::val_mgr->Count(0);
+
+	return zeek::val_mgr->Count(a->GetID());
+	%}
+
 ## Disables the analyzer which raised the current event (if the analyzer
 ## belongs to the given connection).
 ##

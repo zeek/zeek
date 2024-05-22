@@ -175,7 +175,7 @@ event mime_all_data%(c: connection, length: count, data: string%);
 event mime_event%(c: connection, event_type: string, detail: string%);
 
 ## Generated for decoded MIME entities extracted from email messages, passing on
-## their MD5 checksums. Zeek computes the MD5 over the complete decoded data of
+## their SHA1 checksums. Zeek computes the SHA1 over the complete decoded data of
 ## each MIME entity.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
@@ -186,7 +186,7 @@ event mime_event%(c: connection, event_type: string, detail: string%);
 ##
 ## content_len: The length of the entity being hashed.
 ##
-## hash_value: The MD5 hash.
+## hash_value: The SHA1 hash.
 ##
 ## .. zeek:see:: mime_all_data mime_all_headers mime_begin_entity mime_end_entity
 ##    mime_entity_data mime_event mime_one_header mime_segment_data

@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: ! fips-mode-setup --is-enabled >/dev/null 2>&1
 # @TEST-EXEC: zeek -b -r $TRACES/tls/tls-expired-cert.trace %INPUT
 
 # This is a hack: the results of OpenSSL 1.1's vs 1.0's

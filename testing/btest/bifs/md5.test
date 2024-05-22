@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: ! fips-mode-setup --is-enabled >/dev/null 2>&1
 # @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 

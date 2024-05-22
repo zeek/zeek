@@ -1,3 +1,5 @@
+# @TEST-REQUIRES: ! fips-mode-setup --is-enabled >/dev/null 2>&1
+#
 # @TEST-EXEC: zeek -b -r $TRACES/tls/tls-expired-cert.trace $SCRIPTS/external-ca-list.zeek %INPUT
 # @TEST-EXEC: cat ssl.log > ssl-all.log
 # @TEST-EXEC: zeek -b -C -r $TRACES/tls/missing-intermediate.pcap $SCRIPTS/external-ca-list.zeek %INPUT

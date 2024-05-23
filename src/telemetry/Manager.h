@@ -41,7 +41,9 @@ public:
 
     /**
      * Initialization of the manager. This is called late during Zeek's
-     * initialization after any scripts are processed.
+     * initialization after any scripts are processed. Sets up the Prometheus
+     * server and the process stats metrics, and on a manager node will enable
+     * the Prometheus service discovery endpoint.
      */
     void InitPostScript();
 

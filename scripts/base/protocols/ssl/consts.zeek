@@ -136,7 +136,9 @@ export {
 		[113] = "bad_certificate_status_response",
 		[114] = "bad_certificate_hash_value",
 		[115] = "unknown_psk_identity",
+		[116] = "certificate_required", # RFC8446
 		[120] = "no_application_protocol",
+		[121] = "ech_required", # draft-ietf-tls-esni-17
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	# Map SSL Extension values to consts for easier readability of code.
@@ -338,15 +340,27 @@ export {
 		[26] = "brainpoolP256r1", # 26-28 are TLS 1.3 obsoleted
 		[27] = "brainpoolP384r1",
 		[28] = "brainpoolP512r1",
-		# Temporary till 2017-01-09 - draft-ietf-tls-rfc4492bis
-		[29] = "x25519", # TLS 1.3 valid
-		[30] = "x448", # TLS 1.3 valid
+		[29] = "x25519", # RFC8446, RFC8422, TLS 1.3 valid
+		[30] = "x448", # RFC8446, RFC8422, TLS 1.3 valid
+		[31] = "brainpoolP256r1tls13", # RFC8734
+		[32] = "brainpoolP384r1tls13", # RFC8734
+		[33] = "brainpoolP512r1tls13", # RFC8734
+		[34] = "GC256A", # RFC9189
+		[35] = "GC256B", # RFC9189
+		[36] = "GC256C", # RFC9189
+		[37] = "GC256D", # RFC9189
+		[38] = "GC512A", # RFC9189
+		[39] = "GC512B", # RFC9189
+		[40] = "GC512C", # RFC9189
+		[41] = "curveSM2", # RFC8998
 		# draft-ietf-tls-negotiated-ff-dhe-10
 		[256] = "ffdhe2048", # 256-260 are TLS 1.3 valid
 		[257] = "ffdhe3072",
 		[258] = "ffdhe4096",
 		[259] = "ffdhe6144",
 		[260] = "ffdhe8192",
+		[25497] = "X25519Kyber768Draft00", # draft-tls-westerbaan-xyber768d00-02
+		[25498] = "SecP256r1Kyber768Draft00", # draft-kwiatkowski-tls-ecdhe-kyber-01
 		[0xFF01] = "arbitrary_explicit_prime_curves",
 		[0xFF02] = "arbitrary_explicit_char2_curves",
 		# GREASE values - rfc8701

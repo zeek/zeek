@@ -63,3 +63,13 @@ XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.178.80	54220	174.138.9.219	443	TLSv1
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	string	vector[string]	vector[string]	bool
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.192.48.168	63564	64.233.185.139	443	TLSv13	TLS_AES_256_GCM_SHA384	secp256r1	-	F	-	-	T	CjiICs	-	-	-
 #close XXXX-XX-XX-XX-XX-XX
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ssl
+#open XXXX-XX-XX-XX-XX-XX
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	ssl_history	cert_chain_fps	client_cert_chain_fps	sni_matches_cert
+#types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	string	vector[string]	vector[string]	bool
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	0.0.51.217	13783	142.250.200.14	443	TLSv13	TLS_AES_128_GCM_SHA256	X25519Kyber768Draft00	lh3.google.com	F	-	-	T	CsiI	-	-	-
+#close XXXX-XX-XX-XX-XX-XX

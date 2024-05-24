@@ -1,3 +1,9 @@
+7.0.0-dev.282 | 2024-05-24 10:49:31 -0700
+
+  * Update TLS consts, mainly new named curves. (Johanna Amann, Corelight)
+
+    Add test for X25519Kyber768Draft00 (post-quantum key agreement)
+
 7.0.0-dev.280 | 2024-05-21 16:22:57 -0700
 
   * CI: Remove --enable-werror for asan builds (Tim Wojtulewicz, Corelight)

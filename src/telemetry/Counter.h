@@ -15,11 +15,18 @@
 
 namespace zeek::telemetry {
 
-template<typename BaseType>
-class BaseCounter {
+/**
+ * A handle to a metric that can only go up.
+ */
+class Counter {
 public:
+    static inline const char* OpaqueName = "CounterMetricVal";
+
     using Handle = prometheus::Counter;
     using FamilyType = prometheus::Family<Handle>;
+
+    explicit Counter(FamilyType* family, const prometheus::Labels& labels,
+                     prometheus::CollectCallbackPtr callback = nullptr) noexcept;
 
     /**
      * Increments the value by 1.
@@ -30,151 +37,54 @@ public:
      * Increments the value by @p amount.
      * @pre `amount >= 0`
      */
-    void Inc(BaseType amount) noexcept { handle.Increment(amount); }
+    void Inc(double amount) noexcept { handle.Increment(amount); }
 
     /**
      * Increments the value by 1.
      * @return The new value.
      */
-    BaseType operator++() noexcept {
+    double operator++() noexcept {
         Inc(1);
         return Value();
     }
 
-    BaseType Value() const noexcept {
-        if ( has_callback ) {
-            // Use Collect() here instead of Value() to correctly handle metrics with
-            // callbacks.
-            auto metric = handle.Collect();
-            return static_cast<BaseType>(metric.counter.value);
-        }
+    double Value() const noexcept;
 
-        return handle.Value();
-    }
-
-    bool operator==(const BaseCounter<BaseType>& rhs) const noexcept { return &handle == &rhs.handle; }
-    bool operator!=(const BaseCounter<BaseType>& rhs) const noexcept { return &handle != &rhs.handle; }
+    bool operator==(const Counter& rhs) const noexcept { return &handle == &rhs.handle; }
+    bool operator!=(const Counter& rhs) const noexcept { return &handle != &rhs.handle; }
 
     bool CompareLabels(const prometheus::Labels& lbls) const { return labels == lbls; }
 
-protected:
-    explicit BaseCounter(FamilyType* family, const prometheus::Labels& labels,
-                         prometheus::CollectCallbackPtr callback = nullptr) noexcept
-        : handle(family->Add(labels)), labels(labels) {
-        if ( callback ) {
-            handle.AddCollectCallback(callback);
-            has_callback = true;
-        }
-    }
-
+private:
     Handle& handle;
     prometheus::Labels labels;
     bool has_callback = false;
 };
 
-/**
- * A handle to a metric that represents an integer value that can only go up.
- */
-class IntCounter final : public BaseCounter<uint64_t> {
+class CounterFamily : public MetricFamily, public std::enable_shared_from_this<CounterFamily> {
 public:
-    static inline const char* OpaqueName = "IntCounterMetricVal";
-    explicit IntCounter(FamilyType* family, const prometheus::Labels& labels,
-                        prometheus::CollectCallbackPtr callback = nullptr) noexcept
-        : BaseCounter(family, labels, callback) {}
-};
+    static inline const char* OpaqueName = "CounterMetricFamilyVal";
 
-/**
- * A handle to a metric that represents a double value that can only go up.
- */
-class DblCounter final : public BaseCounter<double> {
-public:
-    static inline const char* OpaqueName = "DblCounterMetricVal";
-    explicit DblCounter(FamilyType* family, const prometheus::Labels& labels,
-                        prometheus::CollectCallbackPtr callback = nullptr) noexcept
-        : BaseCounter(family, labels, callback) {}
-};
+    CounterFamily(prometheus::Family<prometheus::Counter>* family, Span<const std::string_view> labels)
+        : MetricFamily(labels), family(family) {}
 
-template<class CounterType, typename BaseType>
-class BaseCounterFamily : public MetricFamily,
-                          public std::enable_shared_from_this<BaseCounterFamily<CounterType, BaseType>> {
-public:
     /**
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    std::shared_ptr<CounterType> GetOrAdd(Span<const LabelView> labels,
-                                          prometheus::CollectCallbackPtr callback = nullptr) {
-        prometheus::Labels p_labels = detail::BuildPrometheusLabels(labels);
-
-        auto check = [&](const std::shared_ptr<CounterType>& counter) { return counter->CompareLabels(p_labels); };
-
-        if ( auto it = std::find_if(counters.begin(), counters.end(), check); it != counters.end() )
-            return *it;
-
-        auto counter = std::make_shared<CounterType>(family, p_labels, callback);
-        counters.push_back(counter);
-        return counter;
-    }
+    std::shared_ptr<Counter> GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd
      */
-    std::shared_ptr<CounterType> GetOrAdd(std::initializer_list<LabelView> labels,
-                                          prometheus::CollectCallbackPtr callback = nullptr) {
-        return GetOrAdd(Span{labels.begin(), labels.size()}, callback);
-    }
+    std::shared_ptr<Counter> GetOrAdd(std::initializer_list<LabelView> labels,
+                                      prometheus::CollectCallbackPtr callback = nullptr);
 
-protected:
-    BaseCounterFamily(prometheus::Family<prometheus::Counter>* family, Span<const std::string_view> labels)
-        : MetricFamily(labels), family(family) {}
+    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::COUNTER; }
 
+private:
     prometheus::Family<prometheus::Counter>* family;
-    std::vector<std::shared_ptr<CounterType>> counters;
+    std::vector<std::shared_ptr<Counter>> counters;
 };
-
-/**
- * Manages a collection of IntCounter metrics.
- */
-class IntCounterFamily final : public BaseCounterFamily<IntCounter, uint64_t> {
-public:
-    static inline const char* OpaqueName = "IntCounterMetricFamilyVal";
-
-    explicit IntCounterFamily(prometheus::Family<prometheus::Counter>* family, Span<const std::string_view> labels)
-        : BaseCounterFamily(family, labels) {}
-
-    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::INT_COUNTER; }
-};
-
-/**
- * Manages a collection of DblCounter metrics.
- */
-class DblCounterFamily final : public BaseCounterFamily<DblCounter, double> {
-public:
-    static inline const char* OpaqueName = "DblCounterMetricFamilyVal";
-
-    explicit DblCounterFamily(prometheus::Family<prometheus::Counter>* family, Span<const std::string_view> labels)
-        : BaseCounterFamily(family, labels) {}
-
-    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::DOUBLE_COUNTER; }
-};
-
-namespace detail {
-
-template<class T>
-struct CounterOracle {
-    static_assert(std::is_same<T, int64_t>::value, "Counter<T> only supports int64_t and double");
-
-    using type = IntCounter;
-};
-
-template<>
-struct CounterOracle<double> {
-    using type = DblCounter;
-};
-
-} // namespace detail
-
-template<class T>
-using Counter = typename detail::CounterOracle<T>::type;
 
 } // namespace zeek::telemetry

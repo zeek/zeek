@@ -70,40 +70,16 @@ public:
      * @param unit Unit of measurement.
      * @param is_sum Indicates whether this metric accumulates something, where only the total value is of interest.
      */
-    template<class ValueType = int64_t>
-    auto CounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                       std::string_view helptext, std::string_view unit = "", bool is_sum = false) {
-        auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, is_sum);
-
-        auto& prom_fam =
-            prometheus::BuildCounter().Name(full_name).Help(std::string{helptext}).Register(*prometheus_registry);
-
-        if constexpr ( std::is_same<ValueType, int64_t>::value ) {
-            if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
-                return std::static_pointer_cast<IntCounterFamily>(it->second);
-
-            auto fam = std::make_shared<IntCounterFamily>(&prom_fam, labels);
-            families.insert({prom_fam.GetName(), fam});
-            return fam;
-        }
-        else {
-            static_assert(std::is_same<ValueType, double>::value, "metrics only support int64_t and double values");
-            if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
-                return std::static_pointer_cast<DblCounterFamily>(it->second);
-
-            auto fam = std::make_shared<DblCounterFamily>(&prom_fam, labels);
-            families.insert({prom_fam.GetName(), fam});
-            return fam;
-        }
-    }
+    std::shared_ptr<telemetry::CounterFamily> CounterFamily(std::string_view prefix, std::string_view name,
+                                                            Span<const std::string_view> labels,
+                                                            std::string_view helptext, std::string_view unit = "",
+                                                            bool is_sum = false);
 
     /// @copydoc CounterFamily
-    template<class ValueType = int64_t>
-    auto CounterFamily(std::string_view prefix, std::string_view name, std::initializer_list<std::string_view> labels,
-                       std::string_view helptext, std::string_view unit = "", bool is_sum = false) {
-        auto lbl_span = Span{labels.begin(), labels.size()};
-        return CounterFamily<ValueType>(prefix, name, lbl_span, helptext, unit, is_sum);
-    }
+    std::shared_ptr<telemetry::CounterFamily> CounterFamily(std::string_view prefix, std::string_view name,
+                                                            std::initializer_list<std::string_view> labels,
+                                                            std::string_view helptext, std::string_view unit = "",
+                                                            bool is_sum = false);
 
     /**
      * Accesses a counter instance. Creates the hosting metric family as well
@@ -117,27 +93,16 @@ public:
      * @param callback Passing a callback method will enable asynchronous mode. The callback method will be called by
      * the metrics subsystem whenever data is requested.
      */
-    template<class ValueType = int64_t>
-    std::shared_ptr<Counter<ValueType>> CounterInstance(std::string_view prefix, std::string_view name,
-                                                        Span<const LabelView> labels, std::string_view helptext,
-                                                        std::string_view unit = "", bool is_sum = false,
-                                                        prometheus::CollectCallbackPtr callback = nullptr) {
-        return WithLabelNames(labels, [&, this](auto labelNames) {
-            auto family = CounterFamily<ValueType>(prefix, name, labelNames, helptext, unit, is_sum);
-            return family->GetOrAdd(labels, callback);
-        });
-    }
+    std::shared_ptr<Counter> CounterInstance(std::string_view prefix, std::string_view name,
+                                             Span<const LabelView> labels, std::string_view helptext,
+                                             std::string_view unit = "", bool is_sum = false,
+                                             prometheus::CollectCallbackPtr callback = nullptr);
 
     /// @copydoc counterInstance
-    template<class ValueType = int64_t>
-    std::shared_ptr<Counter<ValueType>> CounterInstance(std::string_view prefix, std::string_view name,
-                                                        std::initializer_list<LabelView> labels,
-                                                        std::string_view helptext, std::string_view unit = "",
-                                                        bool is_sum = false,
-                                                        prometheus::CollectCallbackPtr callback = nullptr) {
-        auto lbl_span = Span{labels.begin(), labels.size()};
-        return CounterInstance<ValueType>(prefix, name, lbl_span, helptext, unit, is_sum, callback);
-    }
+    std::shared_ptr<Counter> CounterInstance(std::string_view prefix, std::string_view name,
+                                             std::initializer_list<LabelView> labels, std::string_view helptext,
+                                             std::string_view unit = "", bool is_sum = false,
+                                             prometheus::CollectCallbackPtr callback = nullptr);
 
     /**
      * @return A gauge metric family. Creates the family lazily if necessary.
@@ -148,40 +113,15 @@ public:
      * @param unit Unit of measurement.
      * @param is_sum Indicates whether this metric accumulates something, where only the total value is of interest.
      */
-    template<class ValueType = int64_t>
-    auto GaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                     std::string_view helptext, std::string_view unit = "", bool is_sum = false) {
-        auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, is_sum);
-
-        auto& prom_fam =
-            prometheus::BuildGauge().Name(full_name).Help(std::string{helptext}).Register(*prometheus_registry);
-
-        if constexpr ( std::is_same<ValueType, int64_t>::value ) {
-            if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
-                return std::static_pointer_cast<IntGaugeFamily>(it->second);
-
-            auto fam = std::make_shared<IntGaugeFamily>(&prom_fam, labels);
-            families.insert({prom_fam.GetName(), fam});
-            return fam;
-        }
-        else {
-            static_assert(std::is_same<ValueType, double>::value, "metrics only support int64_t and double values");
-            if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
-                return std::static_pointer_cast<DblGaugeFamily>(it->second);
-
-            auto fam = std::make_shared<DblGaugeFamily>(&prom_fam, labels);
-            families.insert({prom_fam.GetName(), fam});
-            return fam;
-        }
-    }
+    std::shared_ptr<telemetry::GaugeFamily> GaugeFamily(std::string_view prefix, std::string_view name,
+                                                        Span<const std::string_view> labels, std::string_view helptext,
+                                                        std::string_view unit = "", bool is_sum = false);
 
     /// @copydoc GaugeFamily
-    template<class ValueType = int64_t>
-    auto GaugeFamily(std::string_view prefix, std::string_view name, std::initializer_list<std::string_view> labels,
-                     std::string_view helptext, std::string_view unit = "", bool is_sum = false) {
-        auto lbl_span = Span{labels.begin(), labels.size()};
-        return GaugeFamily<ValueType>(prefix, name, lbl_span, helptext, unit, is_sum);
-    }
+    std::shared_ptr<telemetry::GaugeFamily> GaugeFamily(std::string_view prefix, std::string_view name,
+                                                        std::initializer_list<std::string_view> labels,
+                                                        std::string_view helptext, std::string_view unit = "",
+                                                        bool is_sum = false);
 
     /**
      * Accesses a gauge instance. Creates the hosting metric family as well
@@ -195,26 +135,15 @@ public:
      * @param callback Passing a callback method will enable asynchronous mode. The callback method will be called by
      * the metrics subsystem whenever data is requested.
      */
-    template<class ValueType = int64_t>
-    std::shared_ptr<Gauge<ValueType>> GaugeInstance(std::string_view prefix, std::string_view name,
-                                                    Span<const LabelView> labels, std::string_view helptext,
-                                                    std::string_view unit = "", bool is_sum = false,
-                                                    prometheus::CollectCallbackPtr callback = nullptr) {
-        return WithLabelNames(labels, [&, this](auto labelNames) {
-            auto family = GaugeFamily<ValueType>(prefix, name, labelNames, helptext, unit, is_sum);
-            return family->GetOrAdd(labels, callback);
-        });
-    }
+    std::shared_ptr<Gauge> GaugeInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+                                         std::string_view helptext, std::string_view unit = "", bool is_sum = false,
+                                         prometheus::CollectCallbackPtr callback = nullptr);
 
     /// @copydoc GaugeInstance
-    template<class ValueType = int64_t>
-    std::shared_ptr<Gauge<ValueType>> GaugeInstance(std::string_view prefix, std::string_view name,
-                                                    std::initializer_list<LabelView> labels, std::string_view helptext,
-                                                    std::string_view unit = "", bool is_sum = false,
-                                                    prometheus::CollectCallbackPtr callback = nullptr) {
-        auto lbl_span = Span{labels.begin(), labels.size()};
-        return GaugeInstance<ValueType>(prefix, name, lbl_span, helptext, unit, is_sum, callback);
-    }
+    std::shared_ptr<Gauge> GaugeInstance(std::string_view prefix, std::string_view name,
+                                         std::initializer_list<LabelView> labels, std::string_view helptext,
+                                         std::string_view unit = "", bool is_sum = false,
+                                         prometheus::CollectCallbackPtr callback = nullptr);
 
     // Forces the compiler to use the type `Span<const T>` instead of trying to
     // match parameters to a `span`.
@@ -245,40 +174,16 @@ public:
      *       different bucket settings. Users may also override
      *       @p bounds via run-time configuration.
      */
-    template<class ValueType = int64_t>
-    auto HistogramFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                         ConstSpan<ValueType> bounds, std::string_view helptext, std::string_view unit = "") {
-        auto full_name = detail::BuildFullPrometheusName(prefix, name, unit);
-
-        auto& prom_fam =
-            prometheus::BuildHistogram().Name(full_name).Help(std::string{helptext}).Register(*prometheus_registry);
-
-        if constexpr ( std::is_same<ValueType, int64_t>::value ) {
-            if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
-                return std::static_pointer_cast<IntHistogramFamily>(it->second);
-
-            auto fam = std::make_shared<IntHistogramFamily>(&prom_fam, bounds, labels);
-            families.insert({prom_fam.GetName(), fam});
-            return fam;
-        }
-        else {
-            static_assert(std::is_same<ValueType, double>::value, "metrics only support int64_t and double values");
-            if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
-                return std::static_pointer_cast<DblHistogramFamily>(it->second);
-
-            auto fam = std::make_shared<DblHistogramFamily>(&prom_fam, bounds, labels);
-            families.insert({prom_fam.GetName(), fam});
-            return fam;
-        }
-    }
+    std::shared_ptr<telemetry::HistogramFamily> HistogramFamily(std::string_view prefix, std::string_view name,
+                                                                Span<const std::string_view> labels,
+                                                                ConstSpan<double> bounds, std::string_view helptext,
+                                                                std::string_view unit = "");
 
     /// @copydoc HistogramFamily
-    template<class ValueType = int64_t>
-    auto HistogramFamily(std::string_view prefix, std::string_view name, std::initializer_list<std::string_view> labels,
-                         ConstSpan<ValueType> bounds, std::string_view helptext, std::string_view unit = "") {
-        auto lbl_span = Span{labels.begin(), labels.size()};
-        return HistogramFamily<ValueType>(prefix, name, lbl_span, bounds, helptext, unit);
-    }
+    std::shared_ptr<telemetry::HistogramFamily> HistogramFamily(std::string_view prefix, std::string_view name,
+                                                                std::initializer_list<std::string_view> labels,
+                                                                ConstSpan<double> bounds, std::string_view helptext,
+                                                                std::string_view unit = "");
 
     /**
      * Returns a histogram. Creates the family lazily if necessary.
@@ -297,26 +202,15 @@ public:
      *       different bucket settings. Users may also override
      *       @p bounds via run-time configuration.
      */
-    template<class ValueType = int64_t>
-    std::shared_ptr<Histogram<ValueType>> HistogramInstance(std::string_view prefix, std::string_view name,
-                                                            Span<const LabelView> labels, ConstSpan<ValueType> bounds,
-                                                            std::string_view helptext, std::string_view unit = "") {
-        return WithLabelNames(labels, [&, this](auto labelNames) {
-            auto family = HistogramFamily<ValueType>(prefix, name, labelNames, bounds, helptext, unit);
-            return family->GetOrAdd(labels);
-        });
-    }
+    std::shared_ptr<Histogram> HistogramInstance(std::string_view prefix, std::string_view name,
+                                                 Span<const LabelView> labels, ConstSpan<double> bounds,
+                                                 std::string_view helptext, std::string_view unit = "");
 
     /// @copdoc HistogramInstance
-    template<class ValueType = int64_t>
-    std::shared_ptr<Histogram<ValueType>> HistogramInstance(std::string_view prefix, std::string_view name,
-                                                            std::initializer_list<LabelView> labels,
-                                                            std::initializer_list<ValueType> bounds,
-                                                            std::string_view helptext, std::string_view unit = "") {
-        auto lbls = Span{labels.begin(), labels.size()};
-        auto bounds_span = Span{bounds.begin(), bounds.size()};
-        return HistogramInstance<ValueType>(prefix, name, lbls, bounds_span, helptext, unit);
-    }
+    std::shared_ptr<Histogram> HistogramInstance(std::string_view prefix, std::string_view name,
+                                                 std::initializer_list<LabelView> labels,
+                                                 std::initializer_list<double> bounds, std::string_view helptext,
+                                                 std::string_view unit = "");
 
     /**
      * @return A JSON description of the cluster configuration for reporting
@@ -359,10 +253,10 @@ private:
     detail::process_stats current_process_stats;
     double process_stats_last_updated = 0.0;
 
-    std::shared_ptr<IntGauge> rss_gauge;
-    std::shared_ptr<IntGauge> vms_gauge;
-    std::shared_ptr<DblGauge> cpu_gauge;
-    std::shared_ptr<IntGauge> fds_gauge;
+    std::shared_ptr<Gauge> rss_gauge;
+    std::shared_ptr<Gauge> vms_gauge;
+    std::shared_ptr<Gauge> cpu_gauge;
+    std::shared_ptr<Gauge> fds_gauge;
 
     std::string endpoint_name;
     std::vector<std::string> export_prefixes;

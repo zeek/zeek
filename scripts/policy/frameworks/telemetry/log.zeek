@@ -119,17 +119,17 @@ function do_log()
 		local m = metrics[i];
 
 		# Histograms don't have single values, skip over them.
-		if ( m$opts$metric_type == DOUBLE_HISTOGRAM || m$opts$metric_type == INT_HISTOGRAM )
+		if ( m$opts$metric_type == HISTOGRAM )
 			next;
 
 		# Render the metric_type as a short string. Unknown
 		# shouldn't really happen, but lets have a fallback.
 		local metric_type = "unknown";
 		switch ( m$opts$metric_type ) {
-			case DOUBLE_COUNTER, INT_COUNTER:
+			case COUNTER:
 				metric_type = "counter";
 				break;
-			case DOUBLE_GAUGE, INT_GAUGE:
+			case GAUGE:
 				metric_type = "gauge";
 				break;
 		}

@@ -15,11 +15,18 @@
 
 namespace zeek::telemetry {
 
-template<typename BaseType>
-class BaseGauge {
+/**
+ * A handle to a metric that can count up and down.
+ */
+class Gauge {
 public:
+    static inline const char* OpaqueName = "GaugeMetricVal";
+
     using Handle = prometheus::Gauge;
     using FamilyType = prometheus::Family<Handle>;
+
+    explicit Gauge(FamilyType* family, const prometheus::Labels& labels,
+                   prometheus::CollectCallbackPtr callback = nullptr) noexcept;
 
     /**
      * Increments the value by 1.
@@ -29,13 +36,13 @@ public:
     /**
      * Increments the value by @p amount.
      */
-    void Inc(BaseType amount) noexcept { handle.Increment(amount); }
+    void Inc(double amount) noexcept { handle.Increment(amount); }
 
     /**
      * Increments the value by 1.
      * @return The new value.
      */
-    BaseType operator++() noexcept {
+    double operator++() noexcept {
         Inc(1);
         return Value();
     }
@@ -48,164 +55,54 @@ public:
     /**
      * Decrements the value by @p amount.
      */
-    void Dec(BaseType amount) noexcept { handle.Decrement(amount); }
+    void Dec(double amount) noexcept { handle.Decrement(amount); }
 
     /**
      * Decrements the value by 1.
      * @return The new value.
      */
-    BaseType operator--() noexcept {
+    double operator--() noexcept {
         Dec(1);
         return Value();
     }
 
-    BaseType Value() const noexcept {
-        if ( has_callback ) {
-            // Use Collect() here instead of Value() to correctly handle metrics
-            // with callbacks.
-            auto metric = handle.Collect();
-            return static_cast<BaseType>(metric.gauge.value);
-        }
+    double Value() const noexcept;
 
-        return handle.Value();
-    }
-
-    /**
-     * Directly sets the value of the gauge.
-     */
-    void Set(BaseType v) { handle.Set(v); }
-
-    bool operator==(const BaseGauge<BaseType>& rhs) const noexcept { return &handle == &rhs.handle; }
-    bool operator!=(const BaseGauge<BaseType>& rhs) const noexcept { return &handle != &rhs.handle; }
+    bool operator==(const Gauge& rhs) const noexcept { return &handle == &rhs.handle; }
+    bool operator!=(const Gauge& rhs) const noexcept { return &handle != &rhs.handle; }
 
     bool CompareLabels(const prometheus::Labels& lbls) const { return labels == lbls; }
 
-protected:
-    explicit BaseGauge(FamilyType* family, const prometheus::Labels& labels,
-                       prometheus::CollectCallbackPtr callback = nullptr) noexcept
-        : handle(family->Add(labels)), labels(labels) {
-        if ( callback ) {
-            handle.AddCollectCallback(callback);
-            has_callback = true;
-        }
-    }
-
+private:
     Handle& handle;
     prometheus::Labels labels;
     bool has_callback = false;
 };
 
-/**
- * A handle to a metric that represents an integer value. Gauges are more
- * permissive than counters and also allow decrementing the value.
- */
-class IntGauge final : public BaseGauge<int64_t> {
+class GaugeFamily : public MetricFamily, public std::enable_shared_from_this<GaugeFamily> {
 public:
-    static inline const char* OpaqueName = "IntGaugeMetricVal";
+    static inline const char* OpaqueName = "GaugeMetricFamilyVal";
 
-    explicit IntGauge(FamilyType* family, const prometheus::Labels& labels,
-                      prometheus::CollectCallbackPtr callback = nullptr) noexcept
-        : BaseGauge(family, labels, callback) {}
-
-    IntGauge(const IntGauge&) = delete;
-    IntGauge& operator=(const IntGauge&) = delete;
-};
-
-/**
- * A handle to a metric that represents a double value. Gauges are more
- * permissive than counters and also allow decrementing the value.
- */
-class DblGauge final : public BaseGauge<double> {
-public:
-    static inline const char* OpaqueName = "DblGaugeMetricVal";
-
-    explicit DblGauge(FamilyType* family, const prometheus::Labels& labels,
-                      prometheus::CollectCallbackPtr callback = nullptr) noexcept
-        : BaseGauge(family, labels, callback) {}
-
-    DblGauge(const DblGauge&) = delete;
-    DblGauge& operator=(const DblGauge&) = delete;
-};
-
-template<class GaugeType, typename BaseType>
-class BaseGaugeFamily : public MetricFamily, public std::enable_shared_from_this<BaseGaugeFamily<GaugeType, BaseType>> {
-public:
     /**
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    std::shared_ptr<GaugeType> GetOrAdd(Span<const LabelView> labels,
-                                        prometheus::CollectCallbackPtr callback = nullptr) {
-        prometheus::Labels p_labels = detail::BuildPrometheusLabels(labels);
-
-        auto check = [&](const std::shared_ptr<GaugeType>& gauge) { return gauge->CompareLabels(p_labels); };
-
-        if ( auto it = std::find_if(gauges.begin(), gauges.end(), check); it != gauges.end() )
-            return *it;
-
-        auto gauge = std::make_shared<GaugeType>(family, p_labels, callback);
-        gauges.push_back(gauge);
-        return gauge;
-    }
+    std::shared_ptr<Gauge> GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd
      */
-    std::shared_ptr<GaugeType> GetOrAdd(std::initializer_list<LabelView> labels,
-                                        prometheus::CollectCallbackPtr callback = nullptr) {
-        return GetOrAdd(Span{labels.begin(), labels.size()}, callback);
-    }
+    std::shared_ptr<Gauge> GetOrAdd(std::initializer_list<LabelView> labels,
+                                    prometheus::CollectCallbackPtr callback = nullptr);
 
-protected:
-    BaseGaugeFamily(prometheus::Family<prometheus::Gauge>* family, Span<const std::string_view> labels)
+    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::GAUGE; }
+
+    GaugeFamily(prometheus::Family<prometheus::Gauge>* family, Span<const std::string_view> labels)
         : MetricFamily(labels), family(family) {}
 
+private:
     prometheus::Family<prometheus::Gauge>* family;
-    std::vector<std::shared_ptr<GaugeType>> gauges;
+    std::vector<std::shared_ptr<Gauge>> gauges;
 };
-
-/**
- * Manages a collection of IntGauge metrics.
- */
-class IntGaugeFamily final : public BaseGaugeFamily<IntGauge, int64_t> {
-public:
-    static inline const char* OpaqueName = "IntGaugeMetricFamilyVal";
-
-    explicit IntGaugeFamily(prometheus::Family<prometheus::Gauge>* family, Span<const std::string_view> labels)
-        : BaseGaugeFamily(family, labels) {}
-
-    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::INT_GAUGE; }
-};
-
-/**
- * Manages a collection of DblGauge metrics.
- */
-class DblGaugeFamily final : public BaseGaugeFamily<DblGauge, double> {
-public:
-    static inline const char* OpaqueName = "DblGaugeMetricFamilyVal";
-
-    explicit DblGaugeFamily(prometheus::Family<prometheus::Gauge>* family, Span<const std::string_view> labels)
-        : BaseGaugeFamily(family, labels) {}
-
-    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::DOUBLE_GAUGE; }
-};
-
-namespace detail {
-
-template<class T>
-struct GaugeOracle {
-    static_assert(std::is_same<T, int64_t>::value, "Gauge<T> only supports int64_t and double");
-    using type = IntGauge;
-};
-
-template<>
-struct GaugeOracle<double> {
-    using type = DblGauge;
-};
-
-} // namespace detail
-
-template<class T>
-using Gauge = typename detail::GaugeOracle<T>::type;
 
 } // namespace zeek::telemetry

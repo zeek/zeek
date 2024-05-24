@@ -58,9 +58,6 @@ function print_metrics(what: string, metrics: vector of Telemetry::Metric)
 		{
 		local m = metrics[i];
 		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$labels, m$labels, m$value;
-
-		if (m?$count_value)
-			print "count_value", m$count_value;
 		}
 	}
 

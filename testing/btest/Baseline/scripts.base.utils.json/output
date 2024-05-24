@@ -42,7 +42,7 @@ XXXXXXXXXX.XXXXXX
 {"10.1.1.1":[1,2],"10.2.2.2":[3,5]}
 {"1":{"s":"test"}}
 {"opaque_type":"TopkVal"}
-{"_metric":{"opaque_type":"DblGaugeMetricVal"}}
-{"_family":{"opaque_type":"DblGaugeMetricFamilyVal"},"_labels":["dim_1"]}
-{"_metric":{"opaque_type":"DblCounterMetricVal"}}
-{"_family":{"opaque_type":"DblCounterMetricFamilyVal"},"_labels":["dim_1"]}
+{"_metric":{"opaque_type":"GaugeMetricVal"}}
+{"_family":{"opaque_type":"GaugeMetricFamilyVal"},"_labels":["dim_1"]}
+{"_metric":{"opaque_type":"CounterMetricVal"}}
+{"_family":{"opaque_type":"CounterMetricFamilyVal"},"_labels":["dim_1"]}

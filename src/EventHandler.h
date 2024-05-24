@@ -17,7 +17,7 @@ extern double network_time;
 } // namespace run_state
 
 namespace telemetry {
-class IntCounter;
+class Counter;
 }
 
 class Func;
@@ -78,7 +78,7 @@ private:
     bool generate_always;
 
     // Initialize this lazy, so we don't expose metrics for 0 values.
-    std::shared_ptr<zeek::telemetry::IntCounter> call_count;
+    std::shared_ptr<zeek::telemetry::Counter> call_count;
 
     std::unordered_set<std::string> auto_publish;
 };

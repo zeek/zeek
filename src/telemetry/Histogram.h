@@ -15,159 +15,59 @@
 
 namespace zeek::telemetry {
 
-template<typename BaseType>
-class BaseHistogram {
+class Histogram {
 public:
+    static inline const char* OpaqueName = "HistogramMetricVal";
+
     using Handle = prometheus::Histogram;
     using FamilyType = prometheus::Family<Handle>;
+
+    explicit Histogram(FamilyType* family, const prometheus::Labels& labels,
+                       prometheus::Histogram::BucketBoundaries bounds) noexcept;
 
     /**
      * Increments all buckets with an upper bound less than or equal to @p value
      * by one and adds @p value to the total sum of all observed values.
      */
-    void Observe(BaseType value) noexcept { handle.Observe(value); }
+    void Observe(double value) noexcept { handle.Observe(value); }
 
     /// @return The sum of all observed values.
-    BaseType Sum() const noexcept {
-        auto metric = handle.Collect();
-        return static_cast<BaseType>(metric.histogram.sample_sum);
-    }
+    double Sum() const noexcept;
 
-    bool operator==(const BaseHistogram<BaseType>& rhs) const noexcept { return &handle == &rhs.handle; }
-    bool operator!=(const BaseHistogram<BaseType>& rhs) const noexcept { return &handle != &rhs.handle; }
+    bool operator==(const Histogram& rhs) const noexcept { return &handle == &rhs.handle; }
+    bool operator!=(const Histogram& rhs) const noexcept { return &handle != &rhs.handle; }
 
     bool CompareLabels(const prometheus::Labels& lbls) const { return labels == lbls; }
 
-protected:
-    explicit BaseHistogram(FamilyType* family, const prometheus::Labels& labels,
-                           prometheus::Histogram::BucketBoundaries bounds) noexcept
-        : handle(family->Add(labels, std::move(bounds))), labels(labels) {}
-
+private:
     Handle& handle;
     prometheus::Labels labels;
 };
 
-/**
- * A handle to a metric that represents an aggregable distribution of observed
- * measurements with integer precision. Sorts individual measurements into
- * configurable buckets.
- */
-class IntHistogram final : public BaseHistogram<int64_t> {
+class HistogramFamily : public MetricFamily, public std::enable_shared_from_this<HistogramFamily> {
 public:
-    static inline const char* OpaqueName = "IntHistogramMetricVal";
+    static inline const char* OpaqueName = "HistogramMetricFamilyVal";
 
-    explicit IntHistogram(FamilyType* family, const prometheus::Labels& labels,
-                          prometheus::Histogram::BucketBoundaries bounds) noexcept
-        : BaseHistogram(family, labels, std::move(bounds)) {}
+    HistogramFamily(prometheus::Family<prometheus::Histogram>* family, Span<const double> bounds,
+                    Span<const std::string_view> labels);
 
-    IntHistogram() = delete;
-    IntHistogram(const IntHistogram&) noexcept = delete;
-    IntHistogram& operator=(const IntHistogram&) noexcept = delete;
-};
-
-/**
- * A handle to a metric that represents an aggregable distribution of observed
- * measurements with integer precision. Sorts individual measurements into
- * configurable buckets.
- */
-class DblHistogram final : public BaseHistogram<double> {
-public:
-    static inline const char* OpaqueName = "DblHistogramMetricVal";
-
-    explicit DblHistogram(FamilyType* family, const prometheus::Labels& labels,
-                          prometheus::Histogram::BucketBoundaries bounds) noexcept
-        : BaseHistogram(family, labels, std::move(bounds)) {}
-
-    DblHistogram() = delete;
-    DblHistogram(const DblHistogram&) noexcept = delete;
-    DblHistogram& operator=(const DblHistogram&) noexcept = delete;
-};
-
-template<class HistogramType, typename BaseType>
-class BaseHistogramFamily : public MetricFamily,
-                            public std::enable_shared_from_this<BaseHistogramFamily<HistogramType, BaseType>> {
-public:
     /**
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    std::shared_ptr<HistogramType> GetOrAdd(Span<const LabelView> labels) {
-        prometheus::Labels p_labels = detail::BuildPrometheusLabels(labels);
-
-        auto check = [&](const std::shared_ptr<HistogramType>& histo) { return histo->CompareLabels(p_labels); };
-
-        if ( auto it = std::find_if(histograms.begin(), histograms.end(), check); it != histograms.end() )
-            return *it;
-
-        auto histogram = std::make_shared<HistogramType>(family, p_labels, boundaries);
-        histograms.push_back(histogram);
-        return histogram;
-    }
+    std::shared_ptr<Histogram> GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
      */
-    std::shared_ptr<HistogramType> GetOrAdd(std::initializer_list<LabelView> labels) {
-        return GetOrAdd(Span{labels.begin(), labels.size()});
-    }
+    std::shared_ptr<Histogram> GetOrAdd(std::initializer_list<LabelView> labels);
 
-protected:
-    BaseHistogramFamily(prometheus::Family<prometheus::Histogram>* family, Span<const BaseType> bounds,
-                        Span<const std::string_view> labels)
-        : MetricFamily(labels), family(family) {
-        std::copy(bounds.begin(), bounds.end(), std::back_inserter(boundaries));
-    }
+    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::HISTOGRAM; }
 
+private:
     prometheus::Family<prometheus::Histogram>* family;
     prometheus::Histogram::BucketBoundaries boundaries;
-    std::vector<std::shared_ptr<HistogramType>> histograms;
+    std::vector<std::shared_ptr<Histogram>> histograms;
 };
-
-/**
- * Manages a collection of IntHistogram metrics.
- */
-class IntHistogramFamily final : public BaseHistogramFamily<IntHistogram, int64_t> {
-public:
-    static inline const char* OpaqueName = "IntHistogramMetricFamilyVal";
-
-    explicit IntHistogramFamily(prometheus::Family<prometheus::Histogram>* family, Span<const int64_t> bounds,
-                                Span<const std::string_view> labels)
-        : BaseHistogramFamily(family, bounds, labels) {}
-
-    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::INT_HISTOGRAM; }
-};
-
-/**
- * Manages a collection of DblHistogram metrics.
- */
-class DblHistogramFamily final : public BaseHistogramFamily<DblHistogram, double> {
-public:
-    static inline const char* OpaqueName = "DblHistogramMetricFamilyVal";
-
-    explicit DblHistogramFamily(prometheus::Family<prometheus::Histogram>* family, Span<const double> bounds,
-                                Span<const std::string_view> labels)
-        : BaseHistogramFamily(family, bounds, labels) {}
-
-    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::DOUBLE_HISTOGRAM; }
-};
-
-namespace detail {
-
-template<class T>
-struct HistogramOracle {
-    static_assert(std::is_same<T, int64_t>::value, "Histogram<T> only supports int64_t and double");
-
-    using type = IntHistogram;
-};
-
-template<>
-struct HistogramOracle<double> {
-    using type = DblHistogram;
-};
-
-} // namespace detail
-
-template<class T>
-using Histogram = typename detail::HistogramOracle<T>::type;
 
 } // namespace zeek::telemetry

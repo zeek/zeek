@@ -19,7 +19,7 @@ export {
 	## :zeek:see:`Telemetry::counter_with`. To modify counters directly
 	## use :zeek:see:`Telemetry::counter_family_inc`.
 	type CounterFamily: record {
-		__family: opaque of dbl_counter_metric_family;
+		__family: opaque of counter_metric_family;
 		__labels: vector of string;
 	};
 
@@ -32,7 +32,7 @@ export {
 	## per :zeek:see:`Log::Stream` or number connections broken down
 	## by protocol and service.
 	type Counter: record {
-		__metric: opaque of dbl_counter_metric;
+		__metric: opaque of counter_metric;
 	};
 
 	## Register a counter family.
@@ -103,7 +103,7 @@ export {
 	## :zeek:see:`Telemetry::gauge_family_inc` or
 	## :zeek:see:`Telemetry::gauge_family_set` directly.
 	type GaugeFamily: record {
-		__family: opaque of dbl_gauge_metric_family;
+		__family: opaque of gauge_metric_family;
 		__labels: vector of string;
 	};
 
@@ -115,7 +115,7 @@ export {
 	## or footprints of long-lived values as determined by
 	## :zeek:see:`val_footprint`.
 	type Gauge: record {
-		__metric: opaque of dbl_gauge_metric;
+		__metric: opaque of gauge_metric;
 	};
 
 	## Register a gauge family.
@@ -204,14 +204,14 @@ export {
 	## :zeek:see:`Telemetry::histogram_with` or use
 	## :zeek:see:`Telemetry::histogram_family_observe` directly.
 	type HistogramFamily: record {
-		__family: opaque of dbl_histogram_metric_family;
+		__family: opaque of histogram_metric_family;
 		__labels: vector of string;
 	};
 
 	## Type representing a histogram metric with initialized label values.
 	## Use :zeek:see:`Telemetry::histogram_observe` to make observations.
 	type Histogram: record {
-		__metric: opaque of dbl_histogram_metric;
+		__metric: opaque of histogram_metric;
 	};
 
 	## Register a histogram family.
@@ -292,7 +292,7 @@ function make_labels(keys: vector of string, values: labels_vector): table[strin
 
 function register_counter_family(opts: MetricOpts): CounterFamily
 	{
-	local f = Telemetry::__dbl_counter_family(
+	local f = Telemetry::__counter_family(
 		opts$prefix,
 		opts$name,
 		opts$labels,
@@ -320,24 +320,24 @@ function counter_with(cf: CounterFamily, label_values: labels_vector): Counter
 		}
 
 	local labels = make_labels(cf$__labels, label_values);
-	local m = Telemetry::__dbl_counter_metric_get_or_add(cf$__family, labels);
+	local m = Telemetry::__counter_metric_get_or_add(cf$__family, labels);
 	return Counter($__metric=m);
 	}
 
 function counter_inc(c: Counter, amount: double): bool
 	{
-	return Telemetry::__dbl_counter_inc(c$__metric, amount);
+	return Telemetry::__counter_inc(c$__metric, amount);
 	}
 
 function counter_set(c: Counter, value: double): bool
 	{
-	local cur_value: double = Telemetry::__dbl_counter_value(c$__metric);
+	local cur_value: double = Telemetry::__counter_value(c$__metric);
 	if (value < cur_value)
 		{
 		Reporter::error(fmt("Attempted to set lower counter value=%s cur_value=%s", value, cur_value));
 		return F;
 		}
-	return Telemetry::__dbl_counter_inc(c$__metric, value - cur_value);
+	return Telemetry::__counter_inc(c$__metric, value - cur_value);
 	}
 
 function counter_family_inc(cf: CounterFamily, label_values: labels_vector, amount: double): bool
@@ -352,7 +352,7 @@ function counter_family_set(cf: CounterFamily, label_values: labels_vector, valu
 
 function register_gauge_family(opts: MetricOpts): GaugeFamily
 	{
-	local f = Telemetry::__dbl_gauge_family(
+	local f = Telemetry::__gauge_family(
 		opts$prefix,
 		opts$name,
 		opts$labels,
@@ -379,29 +379,29 @@ function gauge_with(gf: GaugeFamily, label_values: labels_vector): Gauge
 		return gauge_with(error_gauge_cf);
 		}
 	local labels = make_labels(gf$__labels, label_values);
-	local m = Telemetry::__dbl_gauge_metric_get_or_add(gf$__family, labels);
+	local m = Telemetry::__gauge_metric_get_or_add(gf$__family, labels);
 	return Gauge($__metric=m);
 	}
 
 function gauge_inc(g: Gauge, amount: double &default=1.0): bool
 	{
-	return Telemetry::__dbl_gauge_inc(g$__metric, amount);
+	return Telemetry::__gauge_inc(g$__metric, amount);
 	}
 
 function gauge_dec(g: Gauge, amount: double &default=1.0): bool
 	{
-	return Telemetry::__dbl_gauge_dec(g$__metric, amount);
+	return Telemetry::__gauge_dec(g$__metric, amount);
 	}
 
 function gauge_set(g: Gauge, value: double): bool
 	{
-	# Telemetry currently does not implement __dbl_gauge_set(), do
+	# Telemetry currently does not implement __gauge_set(), do
 	# it by hand here.
-	local cur_value: double = Telemetry::__dbl_gauge_value(g$__metric);
+	local cur_value: double = Telemetry::__gauge_value(g$__metric);
 	if (value > cur_value)
-		return Telemetry::__dbl_gauge_inc(g$__metric, value - cur_value);
+		return Telemetry::__gauge_inc(g$__metric, value - cur_value);
 
-	return Telemetry::__dbl_gauge_dec(g$__metric, cur_value - value);
+	return Telemetry::__gauge_dec(g$__metric, cur_value - value);
 	}
 
 function gauge_family_inc(gf: GaugeFamily, label_values: labels_vector, value: double): bool
@@ -421,7 +421,7 @@ function gauge_family_set(gf: GaugeFamily, label_values: labels_vector, value: d
 
 function register_histogram_family(opts: MetricOpts): HistogramFamily
 	{
-	local f = Telemetry::__dbl_histogram_family(
+	local f = Telemetry::__histogram_family(
 		opts$prefix,
 		opts$name,
 		opts$labels,
@@ -450,13 +450,13 @@ function histogram_with(hf: HistogramFamily, label_values: labels_vector): Histo
 		}
 
 	local labels = make_labels(hf$__labels, label_values);
-	local m = Telemetry::__dbl_histogram_metric_get_or_add(hf$__family, labels);
+	local m = Telemetry::__histogram_metric_get_or_add(hf$__family, labels);
 	return Histogram($__metric=m);
 	}
 
 function histogram_observe(h: Histogram, measurement: double): bool
 	{
-	return Telemetry::__dbl_histogram_observe(h$__metric, measurement);
+	return Telemetry::__histogram_observe(h$__metric, measurement);
 	}
 
 function histogram_family_observe(hf: HistogramFamily, label_values: labels_vector, measurement: double): bool

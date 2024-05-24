@@ -223,9 +223,9 @@ struct Manager::WriterInfo {
     bool hook_initialized = false;
     string instantiating_filter;
 
-    std::shared_ptr<telemetry::IntCounter> total_writes;
+    std::shared_ptr<telemetry::Counter> total_writes;
 
-    WriterInfo(std::shared_ptr<telemetry::IntCounter> total_writes) : total_writes(std::move(total_writes)) {}
+    WriterInfo(std::shared_ptr<telemetry::Counter> total_writes) : total_writes(std::move(total_writes)) {}
 };
 
 struct Manager::Stream {
@@ -244,7 +244,7 @@ struct Manager::Stream {
 
     bool enable_remote = false;
 
-    std::shared_ptr<telemetry::IntCounter> total_writes; // Initialized on first write.
+    std::shared_ptr<telemetry::Counter> total_writes; // Initialized on first write.
 
     // State about delayed writes for this Stream.
     detail::DelayQueue delay_queue;

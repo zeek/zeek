@@ -81,37 +81,37 @@ void Manager::InitPostScript() {
 
         return &this->current_process_stats;
     };
-    rss_gauge = GaugeInstance<int64_t>("process", "resident_memory", {}, "Resident memory size", "bytes", false,
-                                       []() -> prometheus::ClientMetric {
-                                           auto* s = get_stats();
-                                           prometheus::ClientMetric metric;
-                                           metric.gauge.value = static_cast<double>(s->rss);
-                                           return metric;
-                                       });
+    rss_gauge = GaugeInstance("process", "resident_memory", {}, "Resident memory size", "bytes", false,
+                              []() -> prometheus::ClientMetric {
+                                  auto* s = get_stats();
+                                  prometheus::ClientMetric metric;
+                                  metric.gauge.value = static_cast<double>(s->rss);
+                                  return metric;
+                              });
 
-    vms_gauge = GaugeInstance<int64_t>("process", "virtual_memory", {}, "Virtual memory size", "bytes", false,
-                                       []() -> prometheus::ClientMetric {
-                                           auto* s = get_stats();
-                                           prometheus::ClientMetric metric;
-                                           metric.gauge.value = static_cast<double>(s->vms);
-                                           return metric;
-                                       });
+    vms_gauge = GaugeInstance("process", "virtual_memory", {}, "Virtual memory size", "bytes", false,
+                              []() -> prometheus::ClientMetric {
+                                  auto* s = get_stats();
+                                  prometheus::ClientMetric metric;
+                                  metric.gauge.value = static_cast<double>(s->vms);
+                                  return metric;
+                              });
 
-    cpu_gauge = GaugeInstance<double>("process", "cpu", {}, "Total user and system CPU time spent", "seconds", false,
-                                      []() -> prometheus::ClientMetric {
-                                          auto* s = get_stats();
-                                          prometheus::ClientMetric metric;
-                                          metric.gauge.value = s->cpu;
-                                          return metric;
-                                      });
+    cpu_gauge = GaugeInstance("process", "cpu", {}, "Total user and system CPU time spent", "seconds", false,
+                              []() -> prometheus::ClientMetric {
+                                  auto* s = get_stats();
+                                  prometheus::ClientMetric metric;
+                                  metric.gauge.value = s->cpu;
+                                  return metric;
+                              });
 
-    fds_gauge = GaugeInstance<int64_t>("process", "open_fds", {}, "Number of open file descriptors", "", false,
-                                       []() -> prometheus::ClientMetric {
-                                           auto* s = get_stats();
-                                           prometheus::ClientMetric metric;
-                                           metric.gauge.value = static_cast<double>(s->fds);
-                                           return metric;
-                                       });
+    fds_gauge = GaugeInstance("process", "open_fds", {}, "Number of open file descriptors", "", false,
+                              []() -> prometheus::ClientMetric {
+                                  auto* s = get_stats();
+                                  prometheus::ClientMetric metric;
+                                  metric.gauge.value = static_cast<double>(s->fds);
+                                  return metric;
+                              });
 #endif
 }
 
@@ -169,13 +169,13 @@ RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric
         // prom-cpp stores everything internally as doubles
         if ( metric_family.type == prometheus::MetricType::Counter )
             record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::DOUBLE_COUNTER));
+                                                    BifEnum::Telemetry::MetricType::COUNTER));
         if ( metric_family.type == prometheus::MetricType::Gauge )
             record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::DOUBLE_GAUGE));
+                                                    BifEnum::Telemetry::MetricType::GAUGE));
         if ( metric_family.type == prometheus::MetricType::Histogram )
             record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::DOUBLE_HISTOGRAM));
+                                                    BifEnum::Telemetry::MetricType::HISTOGRAM));
 
         // prometheus-cpp doesn't store label names anywhere other than in each
         // instrument. this is valid because label names can be different
@@ -264,7 +264,6 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
     static auto opts_idx = metric_record_type->FieldOffset("opts");
     static auto labels_idx = metric_record_type->FieldOffset("labels");
     static auto value_idx = metric_record_type->FieldOffset("value");
-    static auto count_value_idx = metric_record_type->FieldOffset("count_value");
 
     static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
@@ -304,17 +303,6 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
             else if ( fam.type == prometheus::MetricType::Gauge )
                 r->Assign(value_idx, zeek::make_intrusive<DoubleVal>(inst.gauge.value));
 
-            // Use the information from GetMetaricOptsRecord to check whether we need to add the integer
-            // fields, or if this is a double.
-            if ( opts_record->GetField<EnumVal>(metric_type_idx)->Get() ==
-                 BifEnum::Telemetry::MetricType::INT_COUNTER ) {
-                r->Assign(count_value_idx, val_mgr->Count(static_cast<int64_t>(inst.counter.value)));
-            }
-            else if ( opts_record->GetField<EnumVal>(metric_type_idx)->Get() ==
-                      BifEnum::Telemetry::MetricType::INT_GAUGE ) {
-                r->Assign(count_value_idx, val_mgr->Count(static_cast<int64_t>(inst.gauge.value)));
-            }
-
             ret_val->Append(r);
         }
     }
@@ -339,22 +327,16 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
     static auto metrics_vector_type = zeek::id::find_type<VectorType>("Telemetry::HistogramMetricVector");
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
     static auto double_vec_type = zeek::id::find_type<zeek::VectorType>("double_vec");
-    static auto count_vec_type = zeek::id::find_type<zeek::VectorType>("index_vec");
     static auto histogram_metric_type = zeek::id::find_type<zeek::RecordType>("Telemetry::HistogramMetric");
     static auto labels_idx = histogram_metric_type->FieldOffset("labels");
     static auto values_idx = histogram_metric_type->FieldOffset("values");
-    static auto count_values_idx = histogram_metric_type->FieldOffset("count_values");
 
     static auto observations_idx = histogram_metric_type->FieldOffset("observations");
-    static auto count_observations_idx = histogram_metric_type->FieldOffset("count_observations");
-
     static auto sum_idx = histogram_metric_type->FieldOffset("sum");
-    static auto count_sum_idx = histogram_metric_type->FieldOffset("count_sum");
 
     static auto opts_idx = histogram_metric_type->FieldOffset("opts");
     static auto opts_rt = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto bounds_idx = opts_rt->FieldOffset("bounds");
-    static auto count_bounds_idx = opts_rt->FieldOffset("count_bounds");
 
     static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
@@ -390,31 +372,19 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
             r->Assign(opts_idx, opts_record);
 
             auto double_values_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
-            auto count_values_vec = make_intrusive<zeek::VectorVal>(count_vec_type);
             std::vector<double> boundaries;
             uint64_t last = 0.0;
             for ( const auto& b : inst.histogram.bucket ) {
                 double_values_vec->Append(
                     zeek::make_intrusive<DoubleVal>(static_cast<double>(b.cumulative_count - last)));
-                count_values_vec->Append(val_mgr->Count(b.cumulative_count - last));
                 last = b.cumulative_count;
                 boundaries.push_back(b.upper_bound);
             }
 
             // TODO: these could be stored somehow to avoid recreating them repeatedly
             auto bounds_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
-            auto count_bounds_vec = make_intrusive<zeek::VectorVal>(count_vec_type);
-            for ( auto b : boundaries ) {
+            for ( auto b : boundaries )
                 bounds_vec->Append(zeek::make_intrusive<DoubleVal>(b));
-
-                // The boundaries from prom-cpp include the infinite boundary in double.
-                // This can't be converted safely to int64_t, so check for that case and
-                // set the int64_t version.
-                if ( b != std::numeric_limits<double>::infinity() )
-                    count_bounds_vec->Append(val_mgr->Count(static_cast<int64_t>(b)));
-                else
-                    count_bounds_vec->Append(val_mgr->Count(std::numeric_limits<int64_t>::infinity()));
-            }
 
             r->Assign(values_idx, double_values_vec);
             r->Assign(observations_idx,
@@ -423,16 +393,6 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
 
             RecordValPtr local_opts_record = r->GetField<RecordVal>(opts_idx);
             local_opts_record->Assign(bounds_idx, bounds_vec);
-
-            // Use the information from GetMetaricOptsRecord to check whether we need to add the integer
-            // fields, or if this is a double.
-            if ( opts_record->GetField<EnumVal>(metric_type_idx)->Get() ==
-                 BifEnum::Telemetry::MetricType::INT_HISTOGRAM ) {
-                r->Assign(count_values_idx, count_values_vec);
-                r->Assign(count_observations_idx, val_mgr->Count(inst.histogram.sample_count));
-                r->Assign(count_sum_idx, val_mgr->Count(static_cast<int64_t>(inst.histogram.sample_sum)));
-                local_opts_record->Assign(count_bounds_idx, count_bounds_vec);
-            }
 
             ret_val->Append(r);
         }
@@ -483,6 +443,135 @@ std::string Manager::GetClusterJson() const {
     return buffer.GetString();
 }
 
+std::shared_ptr<telemetry::CounterFamily> Manager::CounterFamily(std::string_view prefix, std::string_view name,
+                                                                 Span<const std::string_view> labels,
+                                                                 std::string_view helptext, std::string_view unit,
+                                                                 bool is_sum) {
+    auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, is_sum);
+
+    auto& prom_fam =
+        prometheus::BuildCounter().Name(full_name).Help(std::string{helptext}).Register(*prometheus_registry);
+
+    if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
+        return std::static_pointer_cast<telemetry::CounterFamily>(it->second);
+
+    auto fam = std::make_shared<telemetry::CounterFamily>(&prom_fam, labels);
+    families.insert({prom_fam.GetName(), fam});
+    return fam;
+}
+
+std::shared_ptr<telemetry::CounterFamily> Manager::CounterFamily(std::string_view prefix, std::string_view name,
+                                                                 std::initializer_list<std::string_view> labels,
+                                                                 std::string_view helptext, std::string_view unit,
+                                                                 bool is_sum) {
+    auto lbl_span = Span{labels.begin(), labels.size()};
+    return CounterFamily(prefix, name, lbl_span, helptext, unit, is_sum);
+}
+
+std::shared_ptr<Counter> Manager::CounterInstance(std::string_view prefix, std::string_view name,
+                                                  Span<const LabelView> labels, std::string_view helptext,
+                                                  std::string_view unit, bool is_sum,
+                                                  prometheus::CollectCallbackPtr callback) {
+    return WithLabelNames(labels, [&, this](auto labelNames) {
+        auto family = CounterFamily(prefix, name, labelNames, helptext, unit, is_sum);
+        return family->GetOrAdd(labels, callback);
+    });
+}
+
+std::shared_ptr<Counter> Manager::CounterInstance(std::string_view prefix, std::string_view name,
+                                                  std::initializer_list<LabelView> labels, std::string_view helptext,
+                                                  std::string_view unit, bool is_sum,
+                                                  prometheus::CollectCallbackPtr callback) {
+    auto lbl_span = Span{labels.begin(), labels.size()};
+    return CounterInstance(prefix, name, lbl_span, helptext, unit, is_sum, std::move(callback));
+}
+
+std::shared_ptr<telemetry::GaugeFamily> Manager::GaugeFamily(std::string_view prefix, std::string_view name,
+                                                             Span<const std::string_view> labels,
+                                                             std::string_view helptext, std::string_view unit,
+                                                             bool is_sum) {
+    auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, is_sum);
+
+    auto& prom_fam =
+        prometheus::BuildGauge().Name(full_name).Help(std::string{helptext}).Register(*prometheus_registry);
+
+    if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
+        return std::static_pointer_cast<telemetry::GaugeFamily>(it->second);
+
+    auto fam = std::make_shared<telemetry::GaugeFamily>(&prom_fam, labels);
+    families.insert({prom_fam.GetName(), fam});
+    return fam;
+}
+
+std::shared_ptr<telemetry::GaugeFamily> Manager::GaugeFamily(std::string_view prefix, std::string_view name,
+                                                             std::initializer_list<std::string_view> labels,
+                                                             std::string_view helptext, std::string_view unit,
+                                                             bool is_sum) {
+    auto lbl_span = Span{labels.begin(), labels.size()};
+    return GaugeFamily(prefix, name, lbl_span, helptext, unit, is_sum);
+}
+
+std::shared_ptr<Gauge> Manager::GaugeInstance(std::string_view prefix, std::string_view name,
+                                              Span<const LabelView> labels, std::string_view helptext,
+                                              std::string_view unit, bool is_sum,
+                                              prometheus::CollectCallbackPtr callback) {
+    return WithLabelNames(labels, [&, this](auto labelNames) {
+        auto family = GaugeFamily(prefix, name, labelNames, helptext, unit, is_sum);
+        return family->GetOrAdd(labels, callback);
+    });
+}
+
+std::shared_ptr<Gauge> Manager::GaugeInstance(std::string_view prefix, std::string_view name,
+                                              std::initializer_list<LabelView> labels, std::string_view helptext,
+                                              std::string_view unit, bool is_sum,
+                                              prometheus::CollectCallbackPtr callback) {
+    auto lbl_span = Span{labels.begin(), labels.size()};
+    return GaugeInstance(prefix, name, lbl_span, helptext, unit, is_sum, callback);
+}
+
+std::shared_ptr<telemetry::HistogramFamily> Manager::HistogramFamily(std::string_view prefix, std::string_view name,
+                                                                     Span<const std::string_view> labels,
+                                                                     ConstSpan<double> bounds,
+                                                                     std::string_view helptext, std::string_view unit) {
+    auto full_name = detail::BuildFullPrometheusName(prefix, name, unit);
+
+    auto& prom_fam =
+        prometheus::BuildHistogram().Name(full_name).Help(std::string{helptext}).Register(*prometheus_registry);
+
+    if ( auto it = families.find(prom_fam.GetName()); it != families.end() )
+        return std::static_pointer_cast<telemetry::HistogramFamily>(it->second);
+
+    auto fam = std::make_shared<telemetry::HistogramFamily>(&prom_fam, bounds, labels);
+    families.insert({prom_fam.GetName(), fam});
+    return fam;
+}
+
+std::shared_ptr<telemetry::HistogramFamily> Manager::HistogramFamily(std::string_view prefix, std::string_view name,
+                                                                     std::initializer_list<std::string_view> labels,
+                                                                     ConstSpan<double> bounds,
+                                                                     std::string_view helptext, std::string_view unit) {
+    auto lbl_span = Span{labels.begin(), labels.size()};
+    return HistogramFamily(prefix, name, lbl_span, bounds, helptext, unit);
+}
+
+std::shared_ptr<Histogram> Manager::HistogramInstance(std::string_view prefix, std::string_view name,
+                                                      Span<const LabelView> labels, ConstSpan<double> bounds,
+                                                      std::string_view helptext, std::string_view unit) {
+    return WithLabelNames(labels, [&, this](auto labelNames) {
+        auto family = HistogramFamily(prefix, name, labelNames, bounds, helptext, unit);
+        return family->GetOrAdd(labels);
+    });
+}
+
+std::shared_ptr<Histogram> Manager::HistogramInstance(std::string_view prefix, std::string_view name,
+                                                      std::initializer_list<LabelView> labels,
+                                                      std::initializer_list<double> bounds, std::string_view helptext,
+                                                      std::string_view unit) {
+    auto lbls = Span{labels.begin(), labels.size()};
+    auto bounds_span = Span{bounds.begin(), bounds.size()};
+    return HistogramInstance(prefix, name, lbls, bounds_span, helptext, unit);
+}
+
 } // namespace zeek::telemetry
 
 // -- unit tests ---------------------------------------------------------------
@@ -519,7 +608,7 @@ SCENARIO("telemetry managers provide access to counter families") {
             }
         }
         WHEN("retrieving a DblCounter family") {
-            auto family = mgr.CounterFamily<double>("zeek", "runtime", {"query"}, "test", "seconds", true);
+            auto family = mgr.CounterFamily("zeek", "runtime", {"query"}, "test", "seconds", true);
             THEN("GetOrAdd returns the same metric for the same labels") {
                 auto first = family->GetOrAdd({{"query", "foo"}});
                 auto second = family->GetOrAdd({{"query", "foo"}});
@@ -551,7 +640,7 @@ SCENARIO("telemetry managers provide access to gauge families") {
             }
         }
         WHEN("retrieving a DblGauge family") {
-            auto family = mgr.GaugeFamily<double>("zeek", "water-level", {"river"}, "test", "meters");
+            auto family = mgr.GaugeFamily("zeek", "water-level", {"river"}, "test", "meters");
             THEN("GetOrAdd returns the same metric for the same labels") {
                 auto first = family->GetOrAdd({{"river", "Sacramento"}});
                 auto second = family->GetOrAdd({{"river", "Sacramento"}});
@@ -570,7 +659,7 @@ SCENARIO("telemetry managers provide access to histogram families") {
     GIVEN("a telemetry manager") {
         Manager mgr;
         WHEN("retrieving an IntHistogram family") {
-            int64_t buckets[] = {10, 20};
+            double buckets[] = {10, 20};
             auto family = mgr.HistogramFamily("zeek", "payload-size", {"protocol"}, buckets, "test", "bytes");
             THEN("GetOrAdd returns the same metric for the same labels") {
                 auto first = family->GetOrAdd({{"protocol", "tcp"}});
@@ -585,7 +674,7 @@ SCENARIO("telemetry managers provide access to histogram families") {
         }
         WHEN("retrieving a DblHistogram family") {
             double buckets[] = {10.0, 20.0};
-            auto family = mgr.HistogramFamily<double>("zeek", "parse-time", {"protocol"}, buckets, "test", "seconds");
+            auto family = mgr.HistogramFamily("zeek", "parse-time", {"protocol"}, buckets, "test", "seconds");
             THEN("GetOrAdd returns the same metric for the same labels") {
                 auto first = family->GetOrAdd({{"protocol", "tcp"}});
                 auto second = family->GetOrAdd({{"protocol", "tcp"}});

@@ -205,18 +205,12 @@ zeek::OpaqueTypePtr bloomfilter_type;
 zeek::OpaqueTypePtr x509_opaque_type;
 zeek::OpaqueTypePtr ocsp_resp_opaque_type;
 zeek::OpaqueTypePtr paraglob_type;
-zeek::OpaqueTypePtr int_counter_metric_type;
-zeek::OpaqueTypePtr int_counter_metric_family_type;
-zeek::OpaqueTypePtr dbl_counter_metric_type;
-zeek::OpaqueTypePtr dbl_counter_metric_family_type;
-zeek::OpaqueTypePtr int_gauge_metric_type;
-zeek::OpaqueTypePtr int_gauge_metric_family_type;
-zeek::OpaqueTypePtr dbl_gauge_metric_type;
-zeek::OpaqueTypePtr dbl_gauge_metric_family_type;
-zeek::OpaqueTypePtr int_histogram_metric_type;
-zeek::OpaqueTypePtr int_histogram_metric_family_type;
-zeek::OpaqueTypePtr dbl_histogram_metric_type;
-zeek::OpaqueTypePtr dbl_histogram_metric_family_type;
+zeek::OpaqueTypePtr counter_metric_type;
+zeek::OpaqueTypePtr counter_metric_family_type;
+zeek::OpaqueTypePtr gauge_metric_type;
+zeek::OpaqueTypePtr gauge_metric_family_type;
+zeek::OpaqueTypePtr histogram_metric_type;
+zeek::OpaqueTypePtr histogram_metric_family_type;
 
 // Keep copy of command line
 int zeek::detail::zeek_argc;
@@ -705,18 +699,12 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     x509_opaque_type = make_intrusive<OpaqueType>("x509");
     ocsp_resp_opaque_type = make_intrusive<OpaqueType>("ocsp_resp");
     paraglob_type = make_intrusive<OpaqueType>("paraglob");
-    int_counter_metric_type = make_intrusive<OpaqueType>("int_counter_metric");
-    int_counter_metric_family_type = make_intrusive<OpaqueType>("int_counter_metric_family");
-    dbl_counter_metric_type = make_intrusive<OpaqueType>("dbl_counter_metric");
-    dbl_counter_metric_family_type = make_intrusive<OpaqueType>("dbl_counter_metric_family");
-    int_gauge_metric_type = make_intrusive<OpaqueType>("int_gauge_metric");
-    int_gauge_metric_family_type = make_intrusive<OpaqueType>("int_gauge_metric_family");
-    dbl_gauge_metric_type = make_intrusive<OpaqueType>("dbl_gauge_metric");
-    dbl_gauge_metric_family_type = make_intrusive<OpaqueType>("dbl_gauge_metric_family");
-    int_histogram_metric_type = make_intrusive<OpaqueType>("int_histogram_metric");
-    int_histogram_metric_family_type = make_intrusive<OpaqueType>("int_histogram_metric_family");
-    dbl_histogram_metric_type = make_intrusive<OpaqueType>("dbl_histogram_metric");
-    dbl_histogram_metric_family_type = make_intrusive<OpaqueType>("dbl_histogram_metric_family");
+    counter_metric_type = make_intrusive<OpaqueType>("counter_metric");
+    counter_metric_family_type = make_intrusive<OpaqueType>("counter_metric_family");
+    gauge_metric_type = make_intrusive<OpaqueType>("gauge_metric");
+    gauge_metric_family_type = make_intrusive<OpaqueType>("gauge_metric_family");
+    histogram_metric_type = make_intrusive<OpaqueType>("histogram_metric");
+    histogram_metric_family_type = make_intrusive<OpaqueType>("histogram_metric_family");
     log_delay_token_type = make_intrusive<OpaqueType>("LogDelayToken");
 
     // After spinning up Broker, we have background threads running now. If

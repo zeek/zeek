@@ -32,12 +32,12 @@ namespace detail {
 class ProtocolStats {
 public:
     struct Protocol {
-        std::shared_ptr<telemetry::IntGauge> active;
-        std::shared_ptr<telemetry::IntCounter> total;
+        std::shared_ptr<telemetry::Gauge> active;
+        std::shared_ptr<telemetry::Counter> total;
         ssize_t max = 0;
 
-        Protocol(const std::shared_ptr<telemetry::IntGaugeFamily>& active_family,
-                 const std::shared_ptr<telemetry::IntCounterFamily>& total_family, std::string protocol)
+        Protocol(const std::shared_ptr<telemetry::GaugeFamily>& active_family,
+                 const std::shared_ptr<telemetry::CounterFamily>& total_family, std::string protocol)
             : active(active_family->GetOrAdd({{"protocol", protocol}})),
               total(total_family->GetOrAdd({{"protocol", protocol}})) {}
     };

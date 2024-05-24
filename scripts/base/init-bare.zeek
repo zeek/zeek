@@ -5775,12 +5775,9 @@ module Telemetry;
 export {
 
 	type MetricType: enum {
-		DOUBLE_COUNTER,
-		INT_COUNTER,
-		DOUBLE_GAUGE,
-		INT_GAUGE,
-		DOUBLE_HISTOGRAM,
-		INT_HISTOGRAM,
+		COUNTER,
+		GAUGE,
+		HISTOGRAM,
 	};
 
 	## Type that captures options used to create metrics.
@@ -5822,13 +5819,6 @@ export {
 		## describes the number and bounds of the individual buckets.
 		bounds: vector of double &optional;
 
-		## The same meaning as *bounds*, but as :zeek:type:`count`.
-		## Only set in the return value of
-		## :zeek:see:`Telemetry::collect_histogram_metrics`.
-		## for histograms when the underlying type is ``int64_t``,
-		## otherwise ignored.
-		count_bounds: vector of count &optional;
-
 		## Describes the underlying metric type.
 		## Only set in the return value of
 		## :zeek:see:`Telemetry::collect_metrics` or
@@ -5850,11 +5840,6 @@ export {
 		## This value is set for all counter and gauge metrics,
 		## it is unset for histograms.
 		value: double &optional;
-
-		## The integer value of underlying instrument if the metric type
-		## is INT_COUNTER or INT_GAUGE. This will be unset if the type
-		## is DOUBLE_COUNTER or DOUBLE_GAUGE.
-		count_value: count &optional;
 	};
 
 	## Histograms returned by the :zeek:see:`Telemetry::collect_histogram_metrics` function.
@@ -5869,26 +5854,11 @@ export {
 		## described by the *bounds* field in *opts*;
 		values: vector of double;
 
-		## Integer values for the individual counters for each of the
-		## bckets as described in the ``bounds`` field in ``opts``. This
-		## value will be unset if the metric type is DOUBLE_HISTOGRAM.
-		count_values: vector of count &optional;
-
 		## The number of observations made for this histogram.
 		observations: double;
 
 		## The sum of all observations for this histogram.
 		sum: double;
-
-		## The integer value of the number of observations made for this
-		## histogram. This value will be unset if the metric type is
-		## DOUBLE_HISTOGRAM.
-		count_observations: count &optional;
-
-		## The integer value of the sum of all observations for this
-		## histogram. This value will be unset if the metric type is
-		## DOUBLE_HISTOGRAM.
-		count_sum: count &optional;
 	};
 
 	type MetricVector : vector of Metric;

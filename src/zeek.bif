@@ -4172,7 +4172,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		{
-		zeek::reporter->Error("cannot find connection");
+		zeek::emit_builtin_error("connection ID not a known connection", cid);
 		return zeek::val_mgr->False();
 		}
 
@@ -4180,7 +4180,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	if ( ! a )
 		{
 		if ( err_if_no_conn )
-			zeek::reporter->Error("connection does not have analyzer specified to disable");
+			zeek::emit_builtin_error("connection does not have analyzer specified to disable");
 		return zeek::val_mgr->False();
 		}
 
@@ -4190,7 +4190,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	// of a root analyzer without probing for it.
 	if ( ! a->Parent() )
 		{
-		zeek::reporter->Error("root analyzer %s cannot be removed", a->GetAnalyzerName());
+		zeek::emit_builtin_error(zeek::util::fmt("root analyzer %s cannot be removed", a->GetAnalyzerName()));
 		return zeek::val_mgr->False();
 		}
 

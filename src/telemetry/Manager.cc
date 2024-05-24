@@ -81,7 +81,7 @@ void Manager::InitPostScript() {
 
         return &this->current_process_stats;
     };
-    rss_gauge = GaugeInstance("process", "resident_memory", {}, "Resident memory size", "bytes", false,
+    rss_gauge = GaugeInstance("process", "resident_memory", {}, "Resident memory size", "bytes",
                               []() -> prometheus::ClientMetric {
                                   auto* s = get_stats();
                                   prometheus::ClientMetric metric;
@@ -89,7 +89,7 @@ void Manager::InitPostScript() {
                                   return metric;
                               });
 
-    vms_gauge = GaugeInstance("process", "virtual_memory", {}, "Virtual memory size", "bytes", false,
+    vms_gauge = GaugeInstance("process", "virtual_memory", {}, "Virtual memory size", "bytes",
                               []() -> prometheus::ClientMetric {
                                   auto* s = get_stats();
                                   prometheus::ClientMetric metric;
@@ -97,7 +97,7 @@ void Manager::InitPostScript() {
                                   return metric;
                               });
 
-    cpu_gauge = GaugeInstance("process", "cpu", {}, "Total user and system CPU time spent", "seconds", false,
+    cpu_gauge = GaugeInstance("process", "cpu", {}, "Total user and system CPU time spent", "seconds",
                               []() -> prometheus::ClientMetric {
                                   auto* s = get_stats();
                                   prometheus::ClientMetric metric;
@@ -105,7 +105,7 @@ void Manager::InitPostScript() {
                                   return metric;
                               });
 
-    fds_gauge = GaugeInstance("process", "open_fds", {}, "Number of open file descriptors", "", false,
+    fds_gauge = GaugeInstance("process", "open_fds", {}, "Number of open file descriptors", "",
                               []() -> prometheus::ClientMetric {
                                   auto* s = get_stats();
                                   prometheus::ClientMetric metric;
@@ -445,9 +445,8 @@ std::string Manager::GetClusterJson() const {
 
 std::shared_ptr<telemetry::CounterFamily> Manager::CounterFamily(std::string_view prefix, std::string_view name,
                                                                  Span<const std::string_view> labels,
-                                                                 std::string_view helptext, std::string_view unit,
-                                                                 bool is_sum) {
-    auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, is_sum);
+                                                                 std::string_view helptext, std::string_view unit) {
+    auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, true);
 
     auto& prom_fam =
         prometheus::BuildCounter().Name(full_name).Help(std::string{helptext}).Register(*prometheus_registry);
@@ -462,35 +461,31 @@ std::shared_ptr<telemetry::CounterFamily> Manager::CounterFamily(std::string_vie
 
 std::shared_ptr<telemetry::CounterFamily> Manager::CounterFamily(std::string_view prefix, std::string_view name,
                                                                  std::initializer_list<std::string_view> labels,
-                                                                 std::string_view helptext, std::string_view unit,
-                                                                 bool is_sum) {
+                                                                 std::string_view helptext, std::string_view unit) {
     auto lbl_span = Span{labels.begin(), labels.size()};
-    return CounterFamily(prefix, name, lbl_span, helptext, unit, is_sum);
+    return CounterFamily(prefix, name, lbl_span, helptext, unit);
 }
 
 std::shared_ptr<Counter> Manager::CounterInstance(std::string_view prefix, std::string_view name,
                                                   Span<const LabelView> labels, std::string_view helptext,
-                                                  std::string_view unit, bool is_sum,
-                                                  prometheus::CollectCallbackPtr callback) {
+                                                  std::string_view unit, prometheus::CollectCallbackPtr callback) {
     return WithLabelNames(labels, [&, this](auto labelNames) {
-        auto family = CounterFamily(prefix, name, labelNames, helptext, unit, is_sum);
+        auto family = CounterFamily(prefix, name, labelNames, helptext, unit);
         return family->GetOrAdd(labels, callback);
     });
 }
 
 std::shared_ptr<Counter> Manager::CounterInstance(std::string_view prefix, std::string_view name,
                                                   std::initializer_list<LabelView> labels, std::string_view helptext,
-                                                  std::string_view unit, bool is_sum,
-                                                  prometheus::CollectCallbackPtr callback) {
+                                                  std::string_view unit, prometheus::CollectCallbackPtr callback) {
     auto lbl_span = Span{labels.begin(), labels.size()};
-    return CounterInstance(prefix, name, lbl_span, helptext, unit, is_sum, std::move(callback));
+    return CounterInstance(prefix, name, lbl_span, helptext, unit, std::move(callback));
 }
 
 std::shared_ptr<telemetry::GaugeFamily> Manager::GaugeFamily(std::string_view prefix, std::string_view name,
                                                              Span<const std::string_view> labels,
-                                                             std::string_view helptext, std::string_view unit,
-                                                             bool is_sum) {
-    auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, is_sum);
+                                                             std::string_view helptext, std::string_view unit) {
+    auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, false);
 
     auto& prom_fam =
         prometheus::BuildGauge().Name(full_name).Help(std::string{helptext}).Register(*prometheus_registry);
@@ -505,28 +500,25 @@ std::shared_ptr<telemetry::GaugeFamily> Manager::GaugeFamily(std::string_view pr
 
 std::shared_ptr<telemetry::GaugeFamily> Manager::GaugeFamily(std::string_view prefix, std::string_view name,
                                                              std::initializer_list<std::string_view> labels,
-                                                             std::string_view helptext, std::string_view unit,
-                                                             bool is_sum) {
+                                                             std::string_view helptext, std::string_view unit) {
     auto lbl_span = Span{labels.begin(), labels.size()};
-    return GaugeFamily(prefix, name, lbl_span, helptext, unit, is_sum);
+    return GaugeFamily(prefix, name, lbl_span, helptext, unit);
 }
 
 std::shared_ptr<Gauge> Manager::GaugeInstance(std::string_view prefix, std::string_view name,
                                               Span<const LabelView> labels, std::string_view helptext,
-                                              std::string_view unit, bool is_sum,
-                                              prometheus::CollectCallbackPtr callback) {
+                                              std::string_view unit, prometheus::CollectCallbackPtr callback) {
     return WithLabelNames(labels, [&, this](auto labelNames) {
-        auto family = GaugeFamily(prefix, name, labelNames, helptext, unit, is_sum);
+        auto family = GaugeFamily(prefix, name, labelNames, helptext, unit);
         return family->GetOrAdd(labels, callback);
     });
 }
 
 std::shared_ptr<Gauge> Manager::GaugeInstance(std::string_view prefix, std::string_view name,
                                               std::initializer_list<LabelView> labels, std::string_view helptext,
-                                              std::string_view unit, bool is_sum,
-                                              prometheus::CollectCallbackPtr callback) {
+                                              std::string_view unit, prometheus::CollectCallbackPtr callback) {
     auto lbl_span = Span{labels.begin(), labels.size()};
-    return GaugeInstance(prefix, name, lbl_span, helptext, unit, is_sum, callback);
+    return GaugeInstance(prefix, name, lbl_span, helptext, unit, callback);
 }
 
 std::shared_ptr<telemetry::HistogramFamily> Manager::HistogramFamily(std::string_view prefix, std::string_view name,
@@ -595,7 +587,7 @@ SCENARIO("telemetry managers provide access to counter families") {
     GIVEN("a telemetry manager") {
         Manager mgr;
         WHEN("retrieving an IntCounter family") {
-            auto family = mgr.CounterFamily("zeek", "requests", {"method"}, "test", "", true);
+            auto family = mgr.CounterFamily("zeek", "requests", {"method"}, "test");
             THEN("GetOrAdd returns the same metric for the same labels") {
                 auto first = family->GetOrAdd({{"method", "get"}});
                 auto second = family->GetOrAdd({{"method", "get"}});
@@ -608,7 +600,7 @@ SCENARIO("telemetry managers provide access to counter families") {
             }
         }
         WHEN("retrieving a DblCounter family") {
-            auto family = mgr.CounterFamily("zeek", "runtime", {"query"}, "test", "seconds", true);
+            auto family = mgr.CounterFamily("zeek", "runtime", {"query"}, "test", "seconds");
             THEN("GetOrAdd returns the same metric for the same labels") {
                 auto first = family->GetOrAdd({{"query", "foo"}});
                 auto second = family->GetOrAdd({{"query", "foo"}});
@@ -627,7 +619,7 @@ SCENARIO("telemetry managers provide access to gauge families") {
     GIVEN("a telemetry manager") {
         Manager mgr;
         WHEN("retrieving an IntGauge family") {
-            auto family = mgr.GaugeFamily("zeek", "open-connections", {"protocol"}, "test", "");
+            auto family = mgr.GaugeFamily("zeek", "open-connections", {"protocol"}, "test");
             THEN("GetOrAdd returns the same metric for the same labels") {
                 auto first = family->GetOrAdd({{"protocol", "tcp"}});
                 auto second = family->GetOrAdd({{"protocol", "tcp"}});

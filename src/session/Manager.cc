@@ -48,7 +48,7 @@ public:
         auto active_family =
             telemetry_mgr->GaugeFamily("zeek", "active-sessions", {"protocol"}, "Active Zeek Sessions");
         auto total_family =
-            telemetry_mgr->CounterFamily("zeek", "total-sessions", {"protocol"}, "Total number of sessions", "", true);
+            telemetry_mgr->CounterFamily("zeek", "total-sessions", {"protocol"}, "Total number of sessions");
 
         auto [it, inserted] = entries.insert({protocol, Protocol{active_family, total_family, protocol}});
 

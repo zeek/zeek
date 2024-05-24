@@ -418,14 +418,12 @@ void Manager::Stream::DispatchDelayExpiredTimer(double t, bool is_expire) {
 Manager::Manager()
     : plugin::ComponentManager<logging::Component>("Log", "Writer"),
       total_log_stream_writes_family(telemetry_mgr->CounterFamily("zeek", "log-stream-writes", {"module", "stream"},
-                                                                  "Total number of log writes for the given stream.",
-                                                                  "", true)),
+                                                                  "Total number of log writes for the given stream.")),
       total_log_writer_writes_family(
           telemetry_mgr
               ->CounterFamily("zeek", "log-writer-writes", {"writer", "module", "stream", "filter-name", "path"},
                               "Total number of log writes passed to a concrete log writer not vetoed by stream or "
-                              "filter policies.",
-                              "", true)) {
+                              "filter policies.")) {
     rotations_pending = 0;
 }
 

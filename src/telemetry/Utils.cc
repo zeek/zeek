@@ -21,6 +21,12 @@ std::string BuildFullPrometheusName(std::string_view prefix, std::string_view na
             c = '_';
     });
 
+    // Suffixes of full metric names of _total are reserved by Prometheus. Disallow their use here.
+    if ( util::ends_with(fn, "_total") )
+        reporter->FatalError("Metric names cannot end with '_total'");
+    else if ( unit == "total" || util::ends_with(unit, "_total") )
+        reporter->FatalError("Metric units cannot end with '_total'");
+
     // We were previously using "1" to mean "no unit value" for whatever reason, so we have to handle that now
     // to mean the same thing.
     if ( ! unit.empty() && unit != "1" )

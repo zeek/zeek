@@ -68,18 +68,15 @@ public:
      * @param labels Names for all label dimensions of the metric.
      * @param helptext Short explanation of the metric.
      * @param unit Unit of measurement.
-     * @param is_sum Indicates whether this metric accumulates something, where only the total value is of interest.
      */
     std::shared_ptr<telemetry::CounterFamily> CounterFamily(std::string_view prefix, std::string_view name,
                                                             Span<const std::string_view> labels,
-                                                            std::string_view helptext, std::string_view unit = "",
-                                                            bool is_sum = false);
+                                                            std::string_view helptext, std::string_view unit = "");
 
     /// @copydoc CounterFamily
     std::shared_ptr<telemetry::CounterFamily> CounterFamily(std::string_view prefix, std::string_view name,
                                                             std::initializer_list<std::string_view> labels,
-                                                            std::string_view helptext, std::string_view unit = "",
-                                                            bool is_sum = false);
+                                                            std::string_view helptext, std::string_view unit = "");
 
     /**
      * Accesses a counter instance. Creates the hosting metric family as well
@@ -89,19 +86,18 @@ public:
      * @param labels Values for all label dimensions of the metric.
      * @param helptext Short explanation of the metric.
      * @param unit Unit of measurement.
-     * @param is_sum Indicates whether this metric accumulates something, where only the total value is of interest.
      * @param callback Passing a callback method will enable asynchronous mode. The callback method will be called by
      * the metrics subsystem whenever data is requested.
      */
     std::shared_ptr<Counter> CounterInstance(std::string_view prefix, std::string_view name,
                                              Span<const LabelView> labels, std::string_view helptext,
-                                             std::string_view unit = "", bool is_sum = false,
+                                             std::string_view unit = "",
                                              prometheus::CollectCallbackPtr callback = nullptr);
 
     /// @copydoc counterInstance
     std::shared_ptr<Counter> CounterInstance(std::string_view prefix, std::string_view name,
                                              std::initializer_list<LabelView> labels, std::string_view helptext,
-                                             std::string_view unit = "", bool is_sum = false,
+                                             std::string_view unit = "",
                                              prometheus::CollectCallbackPtr callback = nullptr);
 
     /**
@@ -111,17 +107,15 @@ public:
      * @param labels Names for all label dimensions of the metric.
      * @param helptext Short explanation of the metric.
      * @param unit Unit of measurement.
-     * @param is_sum Indicates whether this metric accumulates something, where only the total value is of interest.
      */
     std::shared_ptr<telemetry::GaugeFamily> GaugeFamily(std::string_view prefix, std::string_view name,
                                                         Span<const std::string_view> labels, std::string_view helptext,
-                                                        std::string_view unit = "", bool is_sum = false);
+                                                        std::string_view unit = "");
 
     /// @copydoc GaugeFamily
     std::shared_ptr<telemetry::GaugeFamily> GaugeFamily(std::string_view prefix, std::string_view name,
                                                         std::initializer_list<std::string_view> labels,
-                                                        std::string_view helptext, std::string_view unit = "",
-                                                        bool is_sum = false);
+                                                        std::string_view helptext, std::string_view unit = "");
 
     /**
      * Accesses a gauge instance. Creates the hosting metric family as well
@@ -131,19 +125,17 @@ public:
      * @param labels Values for all label dimensions of the metric.
      * @param helptext Short explanation of the metric.
      * @param unit Unit of measurement.
-     * @param is_sum Indicates whether this metric accumulates something, where only the total value is of interest.
      * @param callback Passing a callback method will enable asynchronous mode. The callback method will be called by
      * the metrics subsystem whenever data is requested.
      */
     std::shared_ptr<Gauge> GaugeInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
-                                         std::string_view helptext, std::string_view unit = "", bool is_sum = false,
+                                         std::string_view helptext, std::string_view unit = "",
                                          prometheus::CollectCallbackPtr callback = nullptr);
 
     /// @copydoc GaugeInstance
     std::shared_ptr<Gauge> GaugeInstance(std::string_view prefix, std::string_view name,
                                          std::initializer_list<LabelView> labels, std::string_view helptext,
-                                         std::string_view unit = "", bool is_sum = false,
-                                         prometheus::CollectCallbackPtr callback = nullptr);
+                                         std::string_view unit = "", prometheus::CollectCallbackPtr callback = nullptr);
 
     // Forces the compiler to use the type `Span<const T>` instead of trying to
     // match parameters to a `span`.

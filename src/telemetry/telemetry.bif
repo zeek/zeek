@@ -111,12 +111,11 @@ function Telemetry::__counter_family%(prefix: string,
                                           name: string,
                                           labels: string_vec,
                                           helptext: string &default = "Zeek Script Metric",
-                                          unit: string &default = "",
-                                          is_sum: bool &default = F%): opaque of counter_metric_family
+                                          unit: string &default = ""%): opaque of counter_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
 	auto hdl = telemetry_mgr->CounterFamily(sv(prefix), sv(name), lbl_vec,
-	                                        sv(helptext), sv(unit), is_sum);
+	                                        sv(helptext), sv(unit));
 	return zeek::make_intrusive<CounterMetricFamilyVal>(hdl);
 	%}
 
@@ -171,12 +170,11 @@ function Telemetry::__gauge_family%(prefix: string,
                                         name: string,
                                         labels: string_vec,
                                         helptext: string &default = "Zeek Script Metric",
-                                        unit: string &default = "",
-                                        is_sum: bool &default = F%): opaque of gauge_metric_family
+                                        unit: string &default = ""%): opaque of gauge_metric_family
 	%{
 	auto lbl_vec = sv_vec(labels->AsVectorVal());
 	auto hdl = telemetry_mgr->GaugeFamily(sv(prefix), sv(name), lbl_vec,
-	                                        sv(helptext), sv(unit), is_sum);
+	                                        sv(helptext), sv(unit));
 	return zeek::make_intrusive<GaugeMetricFamilyVal>(hdl);
 	%}
 

@@ -297,8 +297,7 @@ function register_counter_family(opts: MetricOpts): CounterFamily
 		opts$name,
 		opts$labels,
 		opts$help_text,
-		opts$unit,
-		opts?$is_total ? opts$is_total : T
+		opts$unit
 	);
 	return CounterFamily($__family=f, $__labels=opts$labels);
 	}
@@ -357,8 +356,7 @@ function register_gauge_family(opts: MetricOpts): GaugeFamily
 		opts$name,
 		opts$labels,
 		opts$help_text,
-		opts$unit,
-		opts?$is_total ? opts$is_total : F
+		opts$unit
 	);
 	return GaugeFamily($__family=f, $__labels=opts$labels);
 	}

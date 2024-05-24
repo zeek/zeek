@@ -80,3 +80,17 @@ global QUIC::zero_rtt_packet: event(c: connection, is_orig: bool, version: count
 ##
 ## .. note:: Packets with CONNECTION_CLOSE frames are usually encrypted after connection establishment and not visible to Zeek.
 global QUIC::connection_close_frame: event(c: connection, is_orig: bool, version: count, dcid: string, scid: string, error_code: count, reason_phrase: string);
+
+
+## Generated for an unrecognized QUIC version.
+##
+## c: The connection.
+##
+## is_orig: True if the packet is from the the connection's originator.
+##
+## version: The Version field.
+##
+## dcid: The Destination Connection ID field.
+##
+## scid: The Source Connection ID field.
+global QUIC::unhandled_version: event(c: connection, is_orig: bool, version: count, dcid: string, scid: string);

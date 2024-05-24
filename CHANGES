@@ -1,3 +1,7 @@
+7.0.0-dev.284 | 2024-05-24 15:04:27 -0700
+
+  * Fix Zeekygen warning for QUIC::unrecognized_version event (Christian Kreibich, Corelight)
+
 7.0.0-dev.282 | 2024-05-24 10:49:31 -0700
 
   * Update TLS consts, mainly new named curves. (Johanna Amann, Corelight)

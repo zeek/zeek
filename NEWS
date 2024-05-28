@@ -39,6 +39,18 @@ Breaking Changes
   automatically populated by ``zeekctl`` during the ``install`` or ``deploy``
   commands.
 
+  The instruments that previously supported ``count`` in scripts and ``int64_t``
+  in C++ were removed in favor of only providing ``double`` versions. Prometheus
+  only handles ``double`` underneath the Zeek code, so it makes sense to only
+  support it directly in Zeek as well. This also simplifies the code
+  significantly.
+
+  The ``is_sum`` argument has been removed from the constructors/creation
+  methods for all of the instruments. This again follows how Prometheus works,
+  where ``counter`` instruments are always considered sums and ``gauge``
+  instruments are not. ``Histogram`` instruments don't have the concept of
+  summing.
+
 New Functionality
 -----------------
 

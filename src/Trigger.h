@@ -18,6 +18,11 @@ class Val;
 
 using ValPtr = IntrusivePtr<Val>;
 
+namespace telemetry {
+class Counter;
+class Gauge;
+} // namespace telemetry
+
 namespace detail {
 
 class Frame;
@@ -187,7 +192,8 @@ public:
 private:
     using TriggerList = std::list<Trigger*>;
     TriggerList* pending;
-    unsigned long total_triggers = 0;
+    std::shared_ptr<telemetry::Counter> trigger_metric;
+    std::shared_ptr<telemetry::Gauge> pending_metric;
 };
 
 } // namespace trigger

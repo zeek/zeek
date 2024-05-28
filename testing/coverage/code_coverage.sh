@@ -21,15 +21,7 @@ BASE="$(cd "$CURR" && cd ../../ && pwd)"
 TMP="${CURR}/tmp.$$"
 mkdir -p $TMP
 
-GCOV_CMD=""
-if [ -n "${CIRRUS_TASK_NAME}" ]; then
-    GCOV_CMD="$(which llvm-cov-18)"
-    if [ -n "${GCOV_CMD}" ]; then
-        GCOV_CMD="${GCOV_CMD} gcov"
-    fi
-else
-    GCOV_CMD="$(which gcov)"
-fi
+GCOV_CMD=$(which gcov)
 
 if [ -z "${GCOV_CMD}" ]; then
     echo "gcov is not installed on system, aborting"

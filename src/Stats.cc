@@ -173,7 +173,7 @@ void ProfileLogger::Log() {
         util::fmt("%.06f DNS_Mgr: requests=%lu successful=%lu failed=%lu pending=%lu "
                   "cached_hosts=%lu cached_addrs=%lu\n",
                   run_state::network_time, dstats.requests, dstats.successful, dstats.failed, dstats.pending,
-                  dstats.cached_hosts, dstats.cached_addresses));
+                  dstats.cached.hosts, dstats.cached.addresses));
 
     trigger::Manager::Stats tstats;
     trigger_mgr->GetStats(&tstats);

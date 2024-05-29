@@ -252,10 +252,10 @@ function get_dns_stats%(%): DNSStats
 	r->Assign(n++, static_cast<uint64_t>(dstats.successful));
 	r->Assign(n++, static_cast<uint64_t>(dstats.failed));
 	r->Assign(n++, static_cast<uint64_t>(dstats.pending));
-	r->Assign(n++, static_cast<uint64_t>(dstats.cached_hosts));
-	r->Assign(n++, static_cast<uint64_t>(dstats.cached_addresses));
-	r->Assign(n++, static_cast<uint64_t>(dstats.cached_texts));
-	r->Assign(n++, static_cast<uint64_t>(dstats.cached_total));
+	r->Assign(n++, static_cast<uint64_t>(dstats.cached.hosts));
+	r->Assign(n++, static_cast<uint64_t>(dstats.cached.addresses));
+	r->Assign(n++, static_cast<uint64_t>(dstats.cached.texts));
+	r->Assign(n++, static_cast<uint64_t>(dstats.cached.total));
 
 	return std::move(r);
 	%}

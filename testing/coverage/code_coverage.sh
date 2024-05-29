@@ -134,6 +134,12 @@ done
 NUM_GCOVS=$(ls "$TMP"/*.gcov | wc -l)
 echo "ok, $NUM_GCOVS coverage files remain"
 
+echo -n "Pruning auxil files... "
+(cd "$TMP" && find . -name "*#zeek#auxil#*" -exec rm {} \;)
+(cd "$TMP" && find . -name "*#zeek#build#auxil#*" -exec rm {} \;)
+NUM_GCOVS=$(ls "$TMP"/*.gcov | wc -l)
+echo "ok, $NUM_GCOVS coverage files remain"
+
 # 4a. Analyze .gcov files generated and create summary file
 echo -n "Creating summary file... "
 DATA="${TMP}/data.txt"

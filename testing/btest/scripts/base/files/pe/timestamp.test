@@ -1,0 +1,12 @@
+# This tests if a pe file's timestamp in pe.log matches the files timestamp in files.log
+
+# btest-diff cannot be used as that throws away the timestamps in logs
+
+# We simply test if the timestamp and uid of the file is in both pe.log and files.log
+
+# @TEST-EXEC: zcat <$TRACES/pe/pe_files_timestamp.pcap.gz | zeek -b -r - %INPUT
+# @TEST-EXEC: grep "1716472371.824801	FyNlOv4xQHBf68TIf5" pe.log
+# @TEST-EXEC: grep "1716472371.824801	FyNlOv4xQHBf68TIf5" files.log
+
+@load base/protocols/http
+@load base/files/pe

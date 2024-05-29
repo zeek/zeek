@@ -223,8 +223,6 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
         case STMT_EVENT:
         case STMT_CHECK_ANY_LEN:
-        case STMT_ADD:
-        case STMT_DELETE:
         case STMT_RETURN: {
             auto e = static_cast<const ExprStmt*>(s)->StmtExpr();
 
@@ -433,6 +431,19 @@ UDs UseDefs::ExprUDs(const Expr* e) {
             AddInExprUDs(uds, e->GetOp1().get());
             auto rhs_UDs = ExprUDs(e->GetOp2().get());
             uds = UD_Union(uds, rhs_UDs);
+            break;
+        }
+
+        case EXPR_AGGR_ADD:
+        case EXPR_AGGR_DEL: {
+            auto op = e->GetOp1();
+            if ( op->Tag() == EXPR_INDEX ) {
+                AddInExprUDs(uds, op->GetOp1().get());
+                auto rhs_UDs = ExprUDs(op->GetOp2().get());
+                uds = UD_Union(uds, rhs_UDs);
+            }
+            else
+                AddInExprUDs(uds, op.get());
             break;
         }
 

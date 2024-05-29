@@ -39,10 +39,6 @@ void CPPCompile::GenStmt(const Stmt* s) {
 
         case STMT_RETURN: GenReturnStmt(s->AsReturnStmt()); break;
 
-        case STMT_ADD: GenAddStmt(static_cast<const ExprStmt*>(s)); break;
-
-        case STMT_DELETE: GenDeleteStmt(static_cast<const ExprStmt*>(s)); break;
-
         case STMT_EVENT: GenEventStmt(static_cast<const EventStmt*>(s)); break;
 
         case STMT_SWITCH: GenSwitchStmt(static_cast<const SwitchStmt*>(s)); break;
@@ -146,41 +142,6 @@ void CPPCompile::GenReturnStmt(const ReturnStmt* r) {
             ret = GenericValPtrToGT(ret, ret_type, gt);
 
         Emit("return %s;", ret);
-    }
-}
-
-void CPPCompile::GenAddStmt(const ExprStmt* es) {
-    auto op = es->StmtExpr();
-    auto aggr = GenExpr(op->GetOp1(), GEN_DONT_CARE);
-    auto indices = op->GetOp2();
-
-    Emit("add_element__CPP(%s, index_val__CPP({%s}));", aggr, GenExpr(indices, GEN_VAL_PTR));
-}
-
-void CPPCompile::GenDeleteStmt(const ExprStmt* es) {
-    auto op = es->StmtExpr();
-
-    if ( op->Tag() == EXPR_NAME ) {
-        if ( op->GetType()->Tag() == TYPE_TABLE )
-            Emit("%s->RemoveAll();", GenExpr(op, GEN_VAL_PTR));
-        else
-            Emit("%s->Resize(0);", GenExpr(op, GEN_VAL_PTR));
-        return;
-    }
-
-    auto aggr = op->GetOp1();
-    auto aggr_gen = GenExpr(aggr, GEN_VAL_PTR);
-
-    if ( op->Tag() == EXPR_INDEX ) {
-        auto indices = op->GetOp2();
-
-        Emit("remove_element__CPP(%s, index_val__CPP({%s}));", aggr_gen, GenExpr(indices, GEN_VAL_PTR));
-    }
-
-    else {
-        ASSERT(op->Tag() == EXPR_FIELD);
-        auto field = GenField(aggr, op->AsFieldExpr()->Field());
-        Emit("%s->Remove(%s);", aggr_gen, field);
     }
 }
 

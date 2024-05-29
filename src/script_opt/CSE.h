@@ -21,8 +21,8 @@ public:
                         const Expr* end_e);
 
     TraversalCode PreStmt(const Stmt*) override;
-    TraversalCode PostStmt(const Stmt*) override;
     TraversalCode PreExpr(const Expr*) override;
+    TraversalCode PostExpr(const Expr*) override;
 
     // Returns the ultimate verdict re safety.
     bool IsValid() const {
@@ -99,10 +99,12 @@ protected:
     bool have_start_e = false;
     bool have_end_e = false;
 
-    // Whether analyzed expressions occur in the context of a statement
+    // Whether analyzed expressions occur in the context of an expression
     // that modifies an aggregate ("add" or "delete"), which changes the
     // interpretation of the expressions.
-    bool in_aggr_mod_stmt = false;
+    //
+    // A count to allow for nesting.
+    int in_aggr_mod_expr = 0;
 };
 
 // Used for debugging, to communicate which expression wasn't

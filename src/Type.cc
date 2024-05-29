@@ -2537,6 +2537,11 @@ TypePtr init_type(const detail::ExprPtr& init) {
     if ( init->Tag() != detail::EXPR_LIST ) {
         auto t = init->InitType();
 
+        if ( ! t ) {
+            init->Error("not a valid initializer");
+            return nullptr;
+        }
+
         if ( (t->Tag() == TYPE_TABLE && cast_intrusive<TableType>(t)->IsUnspecifiedTable()) ||
              (t->Tag() == TYPE_VECTOR && cast_intrusive<VectorType>(t)->IsUnspecifiedVector()) ) {
             init->Error("empty constructor in untyped initialization");

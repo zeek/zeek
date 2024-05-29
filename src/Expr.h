@@ -46,6 +46,8 @@ enum ExprTag : int {
     EXPR_NEGATE,
     EXPR_ADD,
     EXPR_SUB,
+    EXPR_AGGR_ADD,
+    EXPR_AGGR_DEL,
     EXPR_ADD_TO,
     EXPR_REMOVE_FROM,
     EXPR_TIMES,
@@ -204,8 +206,12 @@ public:
     virtual bool CanAdd() const;
     virtual bool CanDel() const;
 
-    virtual void Add(Frame* f);    // perform add operation
-    virtual void Delete(Frame* f); // perform delete operation
+    // The types associated with those operations.
+    virtual TypePtr AddType() const;
+    virtual TypePtr DelType() const;
+
+    virtual ValPtr Add(Frame* f);    // perform add operation
+    virtual ValPtr Delete(Frame* f); // perform delete operation
 
     // Return the expression converted to L-value form.  If expr
     // cannot be used as an L-value, reports an error and returns
@@ -421,7 +427,7 @@ public:
     explicit NameExpr(IDPtr id, bool const_init = false);
 
     bool CanDel() const override;
-    void Delete(Frame* f) override;
+    ValPtr Delete(Frame* f) override;
 
     ID* Id() const { return id.get(); }
     const IDPtr& IdPtr() const;
@@ -700,6 +706,41 @@ protected:
     ExprPtr BuildSub(const ExprPtr& op1, const ExprPtr& op2);
 };
 
+// A helper class that enables us to factor some common code.
+class AggrAddDelExpr : public UnaryExpr {
+public:
+    explicit AggrAddDelExpr(ExprTag _tag, ExprPtr _e) : UnaryExpr(_tag, std::move(_e)) {}
+
+    bool IsPure() const override { return false; }
+
+    // Optimization-related:
+    bool IsReduced(Reducer* c) const override { return HasReducedOps(c); }
+    bool HasReducedOps(Reducer* c) const override { return op->HasReducedOps(c); }
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+};
+
+class AggrAddExpr final : public AggrAddDelExpr {
+public:
+    explicit AggrAddExpr(ExprPtr e);
+
+    // Optimization-related:
+    ExprPtr Duplicate() override;
+
+protected:
+    ValPtr Eval(Frame* f) const override;
+};
+
+class AggrDelExpr final : public AggrAddDelExpr {
+public:
+    explicit AggrDelExpr(ExprPtr e);
+
+    // Optimization-related:
+    ExprPtr Duplicate() override;
+
+protected:
+    ValPtr Eval(Frame* f) const override;
+};
+
 class AddToExpr final : public BinaryExpr {
 public:
     AddToExpr(ExprPtr op1, ExprPtr op2);
@@ -976,8 +1017,8 @@ public:
     bool CanAdd() const override;
     bool CanDel() const override;
 
-    void Add(Frame* f) override;
-    void Delete(Frame* f) override;
+    ValPtr Add(Frame* f) override;
+    ValPtr Delete(Frame* f) override;
 
     void Assign(Frame* f, ValPtr v) override;
     ExprPtr MakeLvalue() override;
@@ -1077,7 +1118,7 @@ public:
     bool CanDel() const override;
 
     void Assign(Frame* f, ValPtr v) override;
-    void Delete(Frame* f) override;
+    ValPtr Delete(Frame* f) override;
 
     ExprPtr MakeLvalue() override;
 
@@ -1085,6 +1126,7 @@ public:
     ExprPtr Duplicate() override;
 
 protected:
+    void Assign(ValPtr lhs, ValPtr rhs);
     ValPtr Fold(Val* v) const override;
 
     void ExprDescribe(ODesc* d) const override;

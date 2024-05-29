@@ -1,3 +1,15 @@
+7.0.0-dev.292 | 2024-05-29 14:11:57 +0100
+
+  * Copy timestamp from file object (mvhensbergen)
+
+		In some cases, e.g. running zeek on short pcaps as opposed to continuous
+		packet streams, network_time() may not equal the time that was used when
+		generating the file object.  This results in the pe.log entry having a
+		different timestamp than its corresponding files.log entry which is strange
+		as they refer to the exact same file.
+
+  * CI: Add coveralls-lcov gem to ubuntu 24, remove from ubuntu 20 (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.287 | 2024-05-28 13:05:45 -0700
 
   * CI: Revert part of 2bde82ffa2f5fe9161e3322fee82eb45699b9164 to fix coverage builds (Tim Wojtulewicz, Corelight)

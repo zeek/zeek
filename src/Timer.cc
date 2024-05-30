@@ -10,6 +10,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 
 namespace zeek::detail {
@@ -97,6 +98,41 @@ void TimerMgr::InitPostScript() {
         iosource_mgr->Register(this, true);
 
     dispatch_all_expired = zeek::detail::max_timer_expires == 0;
+
+    peak_size_metric = telemetry_mgr->CounterInstance("zeek", "timer_peak_count", {}, "Peak number of timers", "",
+                                                      [this]() -> prometheus::ClientMetric {
+                                                          prometheus::ClientMetric metric;
+                                                          metric.counter.value = static_cast<double>(this->PeakSize());
+                                                          return metric;
+                                                      });
+
+    cumulative_num_metric =
+        telemetry_mgr->GaugeInstance("zeek", "timer_cumulative_num", {}, "Cumulative number of timers", "",
+                                     [this]() -> prometheus::ClientMetric {
+                                         prometheus::ClientMetric metric;
+                                         metric.gauge.value = static_cast<double>(this->CumulativeNum());
+                                         return metric;
+                                     });
+
+    lag_time_metric = telemetry_mgr->GaugeInstance("zeek", "timer_lag_time", {},
+                                                   "Lag between current network time and last expired timer", "",
+                                                   [this]() -> prometheus::ClientMetric {
+                                                       prometheus::ClientMetric metric;
+                                                       metric.gauge.value =
+                                                           run_state::network_time - this->last_timestamp;
+                                                       return metric;
+                                                   });
+
+    std::shared_ptr<telemetry::GaugeFamily> family =
+        telemetry_mgr->GaugeFamily("zeek", "timer_count", {"type"}, "Number of timers for a certain type");
+    for ( int i = 0; i < NUM_TIMER_TYPES; i++ ) {
+        current_timer_metrics[i] = family->GetOrAdd({{"type", timer_type_to_string(static_cast<TimerType>(i))}},
+                                                    [i]() -> prometheus::ClientMetric {
+                                                        prometheus::ClientMetric metric;
+                                                        metric.gauge.value = TimerMgr::CurrentTimers()[i];
+                                                        return metric;
+                                                    });
+    }
 }
 
 void TimerMgr::Add(Timer* timer) {

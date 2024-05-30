@@ -10,7 +10,12 @@
 
 namespace zeek {
 class ODesc;
-}
+
+namespace telemetry {
+class Gauge;
+class Counter;
+} // namespace telemetry
+} // namespace zeek
 
 namespace zeek::detail {
 
@@ -110,7 +115,6 @@ public:
      * @param timer the timer to cancel
      */
     void Cancel(Timer* timer) { Remove(timer); }
-
     double Time() const { return t ? t : 1; } // 1 > 0
 
     size_t Size() const { return q->Size(); }
@@ -153,10 +157,13 @@ private:
     // for the max_timer_expires=0 case.
     bool dispatch_all_expired = false;
 
-    size_t peak_size = 0;
-    size_t cumulative_num = 0;
-
     static unsigned int current_timers[NUM_TIMER_TYPES];
+
+    std::shared_ptr<telemetry::Counter> peak_size_metric;
+    std::shared_ptr<telemetry::Gauge> cumulative_num_metric;
+    std::shared_ptr<telemetry::Gauge> lag_time_metric;
+    std::shared_ptr<telemetry::Gauge> current_timer_metrics[NUM_TIMER_TYPES];
+
     std::unique_ptr<PriorityQueue> q;
 };
 

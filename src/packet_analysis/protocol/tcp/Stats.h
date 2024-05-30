@@ -2,7 +2,14 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
+
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
+
+namespace zeek::telemetry {
+class Gauge;
+}
 
 namespace zeek::packet_analysis::TCP {
 
@@ -19,17 +26,11 @@ public:
                      analyzer::tcp::EndpointState r_prev, analyzer::tcp::EndpointState r_now);
     void FlipState(analyzer::tcp::EndpointState orig, analyzer::tcp::EndpointState resp);
 
-    void StateEntered(analyzer::tcp::EndpointState o_state, analyzer::tcp::EndpointState r_state) {
-        ++state_cnt[o_state][r_state];
-    }
-    void StateLeft(analyzer::tcp::EndpointState o_state, analyzer::tcp::EndpointState r_state) {
-        --state_cnt[o_state][r_state];
-    }
+    void StateEntered(analyzer::tcp::EndpointState o_state, analyzer::tcp::EndpointState r_state);
+    void StateLeft(analyzer::tcp::EndpointState o_state, analyzer::tcp::EndpointState r_state);
 
-    unsigned int Cnt(analyzer::tcp::EndpointState state) const { return Cnt(state, state); }
-    unsigned int Cnt(analyzer::tcp::EndpointState state1, analyzer::tcp::EndpointState state2) const {
-        return state_cnt[state1][state2];
-    }
+    unsigned int Cnt(analyzer::tcp::EndpointState state) const;
+    unsigned int Cnt(analyzer::tcp::EndpointState state1, analyzer::tcp::EndpointState state2) const;
 
     unsigned int NumStateEstablished() const { return Cnt(analyzer::tcp::TCP_ENDPOINT_ESTABLISHED); }
     unsigned int NumStateHalfClose() const { // corresponds to S2,S3
@@ -59,7 +60,8 @@ public:
     void PrintStats(File* file, const char* prefix);
 
 private:
-    unsigned int state_cnt[analyzer::tcp::TCP_ENDPOINT_RESET + 1][analyzer::tcp::TCP_ENDPOINT_RESET + 1];
+    std::shared_ptr<telemetry::Gauge> state_cnt[analyzer::tcp::TCP_ENDPOINT_RESET + 1]
+                                               [analyzer::tcp::TCP_ENDPOINT_RESET + 1];
 };
 
 } // namespace zeek::packet_analysis::TCP

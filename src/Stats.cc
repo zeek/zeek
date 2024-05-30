@@ -213,12 +213,12 @@ void ProfileLogger::Log() {
                   cs.num_events_outgoing, cs.num_logs_incoming, cs.num_logs_outgoing, cs.num_ids_incoming,
                   cs.num_ids_outgoing));
 
-    // Script-level state.
-    const auto& globals = global_scope()->Vars();
-
     if ( expensive ) {
+        // Script-level state.
         int total_table_entries = 0;
         int total_table_rentries = 0;
+
+        const auto& globals = global_scope()->Vars();
 
         for ( const auto& global : globals ) {
             auto& id = global.second;

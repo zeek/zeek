@@ -75,7 +75,25 @@ private:
 
 } // namespace detail
 
-Manager::Manager() { stats = new detail::ProtocolStats(); }
+Manager::Manager() {
+    stats = new detail::ProtocolStats();
+    killed_by_inactivity_metric =
+        telemetry_mgr->CounterInstance("zeek", "sessions_killed_by_inactivity", {},
+                                       "Number of sessions killed by inactivity", "", []() -> prometheus::ClientMetric {
+                                           prometheus::ClientMetric metric;
+                                           metric.counter.value =
+                                               static_cast<double>(zeek::detail::killed_by_inactivity);
+                                           return metric;
+                                       });
+
+    current_sessions_metric =
+        telemetry_mgr->GaugeInstance("zeek", "current_session_count", {}, "Current number of sessions", "",
+                                     [this]() -> prometheus::ClientMetric {
+                                         prometheus::ClientMetric metric;
+                                         metric.gauge.value = static_cast<double>(this->session_map.size());
+                                         return metric;
+                                     });
+}
 
 Manager::~Manager() {
     Clear();

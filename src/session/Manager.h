@@ -13,6 +13,11 @@
 
 namespace zeek {
 
+namespace telemetry {
+class Counter;
+class Gauge;
+} // namespace telemetry
+
 namespace detail {
 class PacketFilter;
 }
@@ -82,7 +87,7 @@ public:
     void Weird(const char* name, const Packet* pkt, const char* addl = "", const char* source = "");
     void Weird(const char* name, const IP_Hdr* ip, const char* addl = "");
 
-    unsigned int CurrentSessions() { return session_map.size(); }
+    size_t CurrentSessions() { return session_map.size(); }
 
 private:
     using SessionMap = std::unordered_map<detail::Key, Session*, detail::KeyHash>;
@@ -96,6 +101,8 @@ private:
 
     SessionMap session_map;
     detail::ProtocolStats* stats;
+    std::shared_ptr<telemetry::Counter> killed_by_inactivity_metric;
+    std::shared_ptr<telemetry::Gauge> current_sessions_metric;
 };
 
 } // namespace session

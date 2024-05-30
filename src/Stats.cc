@@ -188,7 +188,7 @@ void ProfileLogger::Log() {
                                   timer_type_to_string(static_cast<TimerType>(i)), current_timers[i]));
     }
 
-    file->Write(util::fmt("%0.6f Threads: current=%d\n", run_state::network_time, thread_mgr->NumThreads()));
+    file->Write(util::fmt("%0.6f Threads: current=%zu\n", run_state::network_time, thread_mgr->NumThreads()));
 
     const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
     for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin(); i != thread_stats.end(); ++i ) {

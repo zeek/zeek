@@ -8,6 +8,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/telemetry/Manager.h"
 
 namespace zeek::threading {
 namespace detail {
@@ -33,6 +34,16 @@ Manager::Manager() {
 Manager::~Manager() {
     if ( all_threads.size() )
         Terminate();
+}
+
+void Manager::InitPostScript() {
+    num_threads_metric = telemetry_mgr->GaugeInstance("zeek", "thread_count", {}, "Number of active threads", "",
+                                                      [this]() -> prometheus::ClientMetric {
+                                                          prometheus::ClientMetric metric;
+                                                          metric.gauge.value =
+                                                              static_cast<double>(this->all_threads.size());
+                                                          return metric;
+                                                      });
 }
 
 void Manager::Terminate() {

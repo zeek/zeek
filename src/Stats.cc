@@ -119,7 +119,7 @@ void ProfileLogger::Log() {
 
     // TODO: This previously output the number of connections, but now that we're storing
     // sessions as well as connections, this might need to be renamed.
-    file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%u\n", run_state::network_time,
+    file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%zu\n", run_state::network_time,
                           Connection::TotalConnections(), Connection::CurrentConnections(),
                           session_mgr->CurrentSessions()));
 

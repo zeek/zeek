@@ -7,6 +7,11 @@
 #include "zeek/threading/MsgThread.h"
 
 namespace zeek {
+
+namespace telemetry {
+class Gauge;
+}
+
 namespace threading {
 namespace detail {
 
@@ -47,6 +52,12 @@ public:
     ~Manager();
 
     /**
+     * Performs initialization that can only happen after script parsing has
+     * completed.
+     */
+    void InitPostScript();
+
+    /**
      * Terminates the manager's processor. The method signals all threads
      * to terminates and wait for them to do so. It then joins them and
      * returns to the caller. Afterwards, no more thread instances may be
@@ -77,7 +88,7 @@ public:
      * threads that are not yet joined, including any potentially in
      * Terminating() state.
      */
-    int NumThreads() const { return all_threads.size(); }
+    size_t NumThreads() const { return all_threads.size(); }
 
     /**
      * Signals a specific threads to terminate immediately.
@@ -151,6 +162,7 @@ private:
     msg_stats_list stats;
 
     bool heartbeat_timer_running = false;
+    std::shared_ptr<telemetry::Gauge> num_threads_metric;
 };
 
 } // namespace threading

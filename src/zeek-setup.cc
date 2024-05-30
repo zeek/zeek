@@ -802,6 +802,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         RecordType::InitPostScript();
 
         telemetry_mgr->InitPostScript();
+        thread_mgr->InitPostScript();
         iosource_mgr->InitPostScript();
         log_mgr->InitPostScript();
         plugin_mgr->InitPostScript();

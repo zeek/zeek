@@ -1139,6 +1139,10 @@ public:
         record_val[field] = ZVal(zeek_uint_t(new_val));
         AddedField(field);
     }
+    void Assign(int field, size_t new_val) {
+        record_val[field] = ZVal(zeek_uint_t(new_val));
+        AddedField(field);
+    }
 
     void Assign(int field, double new_val) {
         record_val[field] = ZVal(new_val);

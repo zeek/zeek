@@ -2199,10 +2199,10 @@ type VC
 op1-read
 eval	BuildWhen($1, $2.double_val)
 
-macro BuildWhen(f, timeout)
+macro BuildWhen(zf, timeout)
 	auto& aux = z.aux;
 	auto wi = aux->wi;
-	FuncPtr func{NewRef{}, f.func_val};
+	FuncPtr func{NewRef{}, zf.func_val};
 	auto lambda = make_intrusive<FuncVal>(func);
 	wi->Instantiate(std::move(lambda));
 	std::vector<ValPtr> local_aggrs;
@@ -2241,7 +2241,7 @@ type VC
 eval	AssignTarget($$, BuildVal($1.ToVal(z.t), z.t))
 
 internal-assignment-op Load-Val
-type VV
+type Vi
 assign-val v
 eval	auto& v = f->GetElement($1);
 
@@ -2433,15 +2433,15 @@ eval	EvalSubBytes($$, $1, $2.uint_val, $3)
 
 ### The next ones are weird
 internal-op Sub-Bytes
-type VVVC
+type VCVV
 eval	EvalSubBytes($$, $3, $1.uint_val, $2.uint_val)
 
 internal-op Sub-Bytes
 type VViC
 eval	EvalSubBytes($$, $3, $1.uint_val, $2)
 
-internal-op Sub-Bytes
-type ViVC
+internal-op Sub-Bytes2
+type VViC
 eval	EvalSubBytes($$, $3, zeek_uint_t($2), $1.uint_val)
 
 internal-op Time-To-Double
@@ -2467,9 +2467,9 @@ eval	auto sv = ZAM_to_lower($1.string_val);
 # take the raw enum value, as it appears that that's all that's ever
 # actually used.
 
-macro LogWritePre(id_val, columns)
+macro LogWritePre(id_val, columns_val)
 	auto id = id_val.ToVal(ZAM::log_ID_enum_type);
-	auto columns = columns.record_val;
+	auto columns = columns_val.record_val;
 
 macro LogWriteResPost(lhs)
 	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());

@@ -535,9 +535,9 @@ MultiZBI sb_ZBI{ "sub_bytes", true,
      {{VVC}, {OP_SUB_BYTES_VVVC, OP_VVVC}},
      {{VCV}, {OP_SUB_BYTES_VVCV, OP_VVVC}},
      {{VCC}, {OP_SUB_BYTES_VVCi, OP_VVVC_I3}},
-     {{CVV}, {OP_SUB_BYTES_VVVC, OP_VVVC}},
+     {{CVV}, {OP_SUB_BYTES_VCVV, OP_VVVC}},
      {{CVC}, {OP_SUB_BYTES_VVCi, OP_VVVC_I3}},
-     {{CCV}, {OP_SUB_BYTES_ViVC, OP_VVVC_I3}}}
+     {{CCV}, {OP_SUB_BYTES2_VViC, OP_VVVC_I3}}}
 };
 
 // clang-format on

@@ -40,7 +40,7 @@ void ZAMCompiler::LoadParam(const ID* id) {
 
     ZOp op;
 
-    op = AssignmentFlavor(OP_LOAD_VAL_VV, id->GetType()->Tag());
+    op = AssignmentFlavor(OP_LOAD_VAL_Vi, id->GetType()->Tag());
 
     int slot = AddToFrame(id);
 

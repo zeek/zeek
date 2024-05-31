@@ -25,13 +25,13 @@ ZAMStmt ZAMCompiler::GenGoTo(GoToSet& v) {
 }
 
 ZAMStmt ZAMCompiler::GoToStub() {
-    ZInstI z(OP_GOTO_V, 0);
+    ZInstI z(OP_GOTO_i, 0);
     z.op_type = OP_V_I1;
     return AddInst(z);
 }
 
 ZAMStmt ZAMCompiler::GoTo(const InstLabel l) {
-    ZInstI inst(OP_GOTO_V, 0);
+    ZInstI inst(OP_GOTO_i, 0);
     inst.target = l;
     inst.target_slot = 1;
     inst.op_type = OP_V_I1;

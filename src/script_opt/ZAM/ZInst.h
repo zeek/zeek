@@ -214,7 +214,7 @@ public:
     // True if this instruction always branches elsewhere.  Different
     // from DoesNotContinue() in that returns & hook breaks do not
     // continue, but they are not branches.
-    bool IsUnconditionalBranch() const { return op == OP_GOTO_V; }
+    bool IsUnconditionalBranch() const { return op == OP_GOTO_i; }
 
     // True if this instruction is of the form "v1 = v2".
     bool IsDirectAssignment() const;
@@ -254,7 +254,7 @@ public:
     bool IsLoad() const { return op_type == OP_VV_FRAME || IsNonLocalLoad(); }
 
     // True if the instruction corresponds to storing a global.
-    bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_V; }
+    bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_i; }
 
     void CheckIfManaged(const TypePtr& t) {
         if ( ZVal::IsManagedType(t) )

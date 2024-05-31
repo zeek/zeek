@@ -689,7 +689,7 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, n3_slot);
             }
             else {
-                auto zop = OP_INDEX_STRINGC_VVV;
+                auto zop = OP_INDEX_STRINGC_VVi;
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
                 z.op_type = OP_VVV_I3;
             }
@@ -710,7 +710,7 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
                 else if ( is_any )
                     zop = OP_INDEX_ANY_VEC_VVV;
                 else
-                    zop = OP_INDEX_VEC_VVV;
+                    zop = OP_INDEX_VEC_VVi;
 
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, n3_slot);
             }
@@ -718,11 +718,11 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
                 ZOp zop;
 
                 if ( in_when )
-                    zop = OP_WHEN_INDEX_VECC_VVV;
+                    zop = OP_WHEN_INDEX_VECC_VVi;
                 else if ( is_any )
-                    zop = OP_INDEX_ANY_VECC_VVV;
+                    zop = OP_INDEX_ANY_VECC_VVi;
                 else
-                    zop = OP_INDEX_VECC_VVV;
+                    zop = OP_INDEX_VECC_VVi;
 
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, c);
                 z.op_type = OP_VVV_I3;
@@ -826,7 +826,7 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le) {
             aux->Add(i, FrameSlot(id_i), id_i->GetType());
     }
 
-    auto z = ZInstI(OP_LAMBDA_VV, n_slot, le->PrimaryFunc()->FrameSize());
+    auto z = ZInstI(OP_LAMBDA_Vi, n_slot, le->PrimaryFunc()->FrameSize());
     z.op_type = OP_VV_I2;
     z.aux = aux;
 
@@ -1057,7 +1057,7 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
             default:
                 if ( in_when ) {
                     if ( indirect )
-                        op = OP_WHENINDCALLN_VV;
+                        op = OP_WHENINDCALLN_Vi;
                     else
                         op = OP_WHENCALLN_V;
                 }
@@ -1151,7 +1151,7 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
     auto tt = cast_intrusive<TableType>(n->GetType());
     auto width = tt->GetIndices()->GetTypes().size();
 
-    auto z = GenInst(OP_CONSTRUCT_TABLE_VV, n, width);
+    auto z = GenInst(OP_CONSTRUCT_TABLE_V, n, width);
     z.aux = InternalBuildVals(con, width + 1);
     z.t = tt;
     ASSERT(e->Tag() == EXPR_TABLE_CONSTRUCTOR);
@@ -1190,7 +1190,7 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
     auto tt = n->GetType()->AsTableType();
     auto width = tt->GetIndices()->GetTypes().size();
 
-    auto z = GenInst(OP_CONSTRUCT_SET_VV, n, width);
+    auto z = GenInst(OP_CONSTRUCT_SET_V, n, width);
     z.aux = InternalBuildVals(con, width);
     z.t = e->GetType();
     ASSERT(e->Tag() == EXPR_SET_CONSTRUCTOR);
@@ -1262,13 +1262,13 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e) {
 
         if ( fi->empty() ) {
             if ( network_time_index >= 0 )
-                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_VV;
+                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_Vi;
             else
                 op = OP_CONSTRUCT_KNOWN_RECORD_V;
         }
         else {
             if ( network_time_index >= 0 )
-                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_VV;
+                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_Vi;
             else
                 op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_V;
             aux->field_inits = std::move(fi);

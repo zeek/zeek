@@ -229,16 +229,16 @@ ValPtr ZInst::ConstVal() const {
 
 bool ZInst::IsLoopIterationAdvancement() const {
     switch ( op ) {
-        case OP_NEXT_TABLE_ITER_VV:
-        case OP_NEXT_TABLE_ITER_NO_VARS_VV:
-        case OP_NEXT_TABLE_ITER_VAL_VAR_VVV:
-        case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV:
-        case OP_NEXT_VECTOR_ITER_VVV:
-        case OP_NEXT_VECTOR_BLANK_ITER_VV:
-        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV:
-        case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_VVV:
-        case OP_NEXT_STRING_ITER_VVV:
-        case OP_NEXT_STRING_BLANK_ITER_VV: return true;
+        case OP_NEXT_TABLE_ITER_ii:
+        case OP_NEXT_TABLE_ITER_NO_VARS_ii:
+        case OP_NEXT_TABLE_ITER_VAL_VAR_Vii:
+        case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vii:
+        case OP_NEXT_VECTOR_ITER_Vii:
+        case OP_NEXT_VECTOR_BLANK_ITER_ii:
+        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVii:
+        case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vii:
+        case OP_NEXT_STRING_ITER_Vii:
+        case OP_NEXT_STRING_BLANK_ITER_ii: return true;
 
         default: return false;
     }
@@ -281,7 +281,7 @@ bool ZInst::AssignsToSlot1() const {
 
 bool ZInst::AssignsToSlot(int slot) const {
     switch ( op ) {
-        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV: return slot == 1 || slot == 2;
+        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVii: return slot == 1 || slot == 2;
 
         default: return slot == 1 && AssignsToSlot1();
     }
@@ -358,7 +358,7 @@ string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappi
 
 bool ZInstI::DoesNotContinue() const {
     switch ( op ) {
-        case OP_GOTO_V:
+        case OP_GOTO_i:
         case OP_HOOK_BREAK_X:
         case OP_RETURN_C:
         case OP_RETURN_V:
@@ -397,7 +397,7 @@ bool ZInstI::IsDirectAssignment() const {
 
 bool ZInstI::HasCaptures() const {
     switch ( op ) {
-        case OP_LAMBDA_VV:
+        case OP_LAMBDA_Vi:
         case OP_WHEN_V:
         case OP_WHEN_TIMEOUT_VV:
         case OP_WHEN_TIMEOUT_VC: return true;
@@ -557,7 +557,7 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping) {
 }
 
 bool ZInstI::IsGlobalLoad() const {
-    if ( op == OP_LOAD_GLOBAL_TYPE_VV )
+    if ( op == OP_LOAD_GLOBAL_TYPE_Vi )
         // These don't have flavors.
         return true;
 
@@ -566,7 +566,7 @@ bool ZInstI::IsGlobalLoad() const {
     if ( global_ops.empty() ) { // Initialize the set.
         for ( int t = 0; t < NUM_TYPES; ++t ) {
             TypeTag tag = TypeTag(t);
-            ZOp global_op_flavor = AssignmentFlavor(OP_LOAD_GLOBAL_VV, tag, false);
+            ZOp global_op_flavor = AssignmentFlavor(OP_LOAD_GLOBAL_Vi, tag, false);
 
             if ( global_op_flavor != OP_NOP )
                 global_ops.insert(global_op_flavor);
@@ -576,7 +576,7 @@ bool ZInstI::IsGlobalLoad() const {
     return global_ops.count(op) > 0;
 }
 
-bool ZInstI::IsCaptureLoad() const { return op == OP_LOAD_CAPTURE_VV || op == OP_LOAD_MANAGED_CAPTURE_VV; }
+bool ZInstI::IsCaptureLoad() const { return op == OP_LOAD_CAPTURE_Vi || op == OP_LOAD_MANAGED_CAPTURE_Vi; }
 
 void ZInstI::InitConst(const ConstExpr* ce) {
     auto v = ce->ValuePtr();

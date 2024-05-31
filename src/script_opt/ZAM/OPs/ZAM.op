@@ -386,14 +386,14 @@ op1-read
 eval	EvalAddPatternToField($$.record_val, $1, $2)
 
 macro EvalAddPatternToField(r, v, f)
-	auto fpat = r->GetField(z.f)->AsPatternVal();
+	auto fpat = r->GetField(f)->AsPatternVal();
 	if ( fpat )
 		{
 		v.re_val->AddTo(fpat, false);
 		r->Modified();
 		}
 	else
-		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(z.f)));
+		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(f)));
 
 internal-op AddPatternToField
 type VCi
@@ -1015,11 +1015,11 @@ custom-method return CompileIndex(n, c, l, true);
 no-eval
 
 internal-op Index-Vec
-type VVV
+type VVi
 eval	EvalIndexVec($$, $1, $2)
 
-macro EvalIndexVec(lhs, vec, index)
-	auto& vv = vec.vector_val->RawVec();
+macro EvalIndexVec(lhs, rhs_vec, index)
+	auto& vv = rhs_vec.vector_val->RawVec();
 	const auto& vec = vv;
 	zeek_int_t ind = index;
 	if ( ind < 0 )
@@ -1125,13 +1125,13 @@ eval	auto args = z.aux->ToListVal(frame);
 internal-assignment-op Table-Index1
 type VVV
 assign-val v
-eval	EvalTableIndex(frame[z.v3].ToVal(z.t))
+eval	EvalTableIndex($$, frame[z.v3].ToVal(z.t))
 # No AssignV1 needed, as this is an assignment-op
 
 internal-assignment-op Table-Index1
 type VVC
 assign-val v
-eval	EvalTableIndex(z.c.ToVal(z.t))
+eval	EvalTableIndex($$, z.c.ToVal(z.t))
 
 # This version is for a variable v3.
 internal-op Index-String
@@ -1438,12 +1438,14 @@ set-type $1
 eval	AssignTarget($$, ZVal($1.ToVal(z.t), ZAM::any_base_type))
 
 unary-expr-op From-Any-Coerce
+no-const
 op-type X
 set-type $$
 eval	auto v = $1.any_val;
 	AssignTarget($$, ZVal({NewRef{}, v}, z.t))
 
 unary-expr-op From-Any-Vec-Coerce
+no-const
 op-type X
 set-type $$
 eval	auto vv = $1.vector_val;
@@ -1896,13 +1898,13 @@ eval	auto vs = $1.string_val->AsString()->Render();
 
 internal-op SwitchA
 op1-read
-type VVV
+type Vii
 eval	auto v = $1.addr_val->AsAddr().AsString();
 	EvalSwitchBody($2, $3, str_cases,)
 
 internal-op SwitchN
 op1-read
-type VVV
+type Vii
 eval	auto v = $1.subnet_val->AsSubNet().AsString();
 	EvalSwitchBody($2, $3, str_cases,)
 
@@ -1938,7 +1940,7 @@ internal-op Next-Table-Iter-No-Vars
 op1-read
 # v1 = iteration info
 # v2 = branch target if loop done
-type VV
+type ii
 eval	NextTableIterPre($1, $2)
 	ti.IterFinished();
 
@@ -1946,7 +1948,7 @@ internal-op Next-Table-Iter-Val-Var
 # v1 = slot of the "ValueVar"
 # v2 = iteration info
 # v3 = branch target if loop done
-type VVV
+type Vii
 eval	NextTableIterPre($1, $2)
 	AssignTarget($$, ti.IterValue());
 	ti.NextIter(frame);
@@ -1955,7 +1957,7 @@ internal-op Next-Table-Iter-Val-Var-No-Vars
 # v1 = slot of the "ValueVar"
 # v2 = iteration info
 # v3 = branch target if loop done
-type VVV
+type Vii
 eval	NextTableIterPre($1, $2)
 	AssignTarget($$, ti.IterValue());
 	ti.IterFinished();
@@ -2244,7 +2246,7 @@ assign-val v
 eval	auto& v = f->GetElement(z.v2);
 
 internal-assignment-op Load-Global
-type VV
+type Vi
 assign-val v
 eval	auto& v = globals[z.v2].id->GetVal();
 	if ( ! v )
@@ -2484,7 +2486,7 @@ eval	LogWritePre($1, $2)
 
 ### Check that invoked correctly
 internal-op Log-WriteC
-side-effects OP_LOG_WRITEC_V OP_V
+side-effects OP_LOG_WRITEC_CV OP_V
 type VCV
 eval	LogWritePre($1, $2)
 	LogWriteResPost($$)
@@ -3006,7 +3008,7 @@ eval	FilesRemoveAnalyzer($1, $2, $3)
 
 internal-op Files-Remove-Analyzer
 op1-read
-type ViV
+type VCV
 eval	FilesRemoveAnalyzer($1, $2, $3)
 
 internal-op Files-Remove-Analyzer
@@ -3090,7 +3092,7 @@ eval	auto f = $1.string_val->CheckString();
 
 internal-op Files-Set-Reassembly-Buffer
 type VVi
-side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VC OP_VC
+side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV
 eval	auto f = $1.string_val->CheckString();
 	$$.int_val = file_mgr->SetReassemblyBuffer(f, zeek_uint_t($2));
 

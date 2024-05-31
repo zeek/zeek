@@ -57,9 +57,9 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id) {
     if ( id->IsType() )
         // Need a special load for these, as they don't fit
         // with the usual template.
-        op = OP_LOAD_GLOBAL_TYPE_VV;
+        op = OP_LOAD_GLOBAL_TYPE_Vi;
     else
-        op = AssignmentFlavor(OP_LOAD_GLOBAL_VV, id->GetType()->Tag());
+        op = AssignmentFlavor(OP_LOAD_GLOBAL_Vi, id->GetType()->Tag());
 
     auto slot = RawSlot(id);
 
@@ -78,9 +78,9 @@ const ZAMStmt ZAMCompiler::LoadCapture(const ID* id) {
     ZOp op;
 
     if ( ZVal::IsManagedType(id->GetType()) )
-        op = OP_LOAD_MANAGED_CAPTURE_VV;
+        op = OP_LOAD_MANAGED_CAPTURE_Vi;
     else
-        op = OP_LOAD_CAPTURE_VV;
+        op = OP_LOAD_CAPTURE_Vi;
 
     auto slot = RawSlot(id);
 

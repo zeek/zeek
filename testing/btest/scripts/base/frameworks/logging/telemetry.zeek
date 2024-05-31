@@ -8,6 +8,9 @@
 
 @load policy/frameworks/telemetry/log
 
+# Force telemetry output to be sorted for test determinism
+redef running_under_test = T;
+
 global http_logs = 0;
 hook HTTP::log_policy(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)
 	{

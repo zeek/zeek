@@ -496,9 +496,8 @@ eval-pre	if ( $2 == 0 )
 eval $1 / $2
 
 binary-expr-op Mask
-# The following is used for only-mixed-mode expressions.
+# Signal that this expression only has mixed-type evaluation.
 op-type X
-vector
 explicit-result-type
 eval-mixed A I	auto mask = static_cast<uint32_t>($2);
 		auto a = $1->AsAddr();
@@ -653,13 +652,13 @@ eval	$$.int_val = $1.record_val->HasField($2);
 
 internal-op Has-Field-Cond
 op1-read
-type VVi
+type Vii
 eval	if ( ! $1.record_val->HasField($2) )
 		BRANCH($3)
 
 internal-op Not-Has-Field-Cond
 op1-read
-type VVi
+type Vii
 eval	if ( $1.record_val->HasField($2) )
 		BRANCH($3)
 
@@ -861,7 +860,7 @@ eval	EvalVal2InTableCore($3.ToVal(z.t), $1.ToVal(z.t2))
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
-type VVCV
+type VVCi
 eval	EvalVal2InTableCore($3.ToVal(z.t), $1.ToVal(z.t2))
 	EvalVal2InTableCond($2, lvp, $4, )
 

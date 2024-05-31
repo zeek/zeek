@@ -630,16 +630,16 @@ assign-op Field
 type R
 field-op
 assign-val v
-eval	auto r = frame[z.v2].record_val;
-	auto& rv = r->RawOptField(z.v3);
+eval	auto r = $1.record_val;
+	auto& rv = r->RawOptField($2);
 	if ( ! rv )
 		{
-		auto def = r->GetType<RecordType>()->FieldDefault(z.v3);
+		auto def = r->GetType<RecordType>()->FieldDefault($2);
 		if ( def )
 			rv = ZVal(def, z.t);
 		else
 			{
-			ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(z.v3)));
+			ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
 			break;
 			}
 		}
@@ -1125,13 +1125,13 @@ eval	auto args = z.aux->ToListVal(frame);
 internal-assignment-op Table-Index1
 type VVV
 assign-val v
-eval	EvalTableIndex($$, frame[z.v3].ToVal(z.t))
-# No AssignV1 needed, as this is an assignment-op
+eval	EvalTableIndex($1, $2.ToVal(z.t))
+# No AssignTarget needed, as this is an assignment-op
 
 internal-assignment-op Table-Index1
 type VVC
 assign-val v
-eval	EvalTableIndex($$, z.c.ToVal(z.t))
+eval	EvalTableIndex($1, $2.ToVal(z.t))
 
 # This version is for a variable v3.
 internal-op Index-String
@@ -2243,12 +2243,12 @@ eval	AssignTarget($$, BuildVal($1.ToVal(z.t), z.t))
 internal-assignment-op Load-Val
 type VV
 assign-val v
-eval	auto& v = f->GetElement(z.v2);
+eval	auto& v = f->GetElement($1);
 
 internal-assignment-op Load-Global
 type Vi
 assign-val v
-eval	auto& v = globals[z.v2].id->GetVal();
+eval	auto& v = globals[$1].id->GetVal();
 	if ( ! v )
 		{
 		ZAM_run_time_error(z.loc, "value used but not set", z.aux->id_val.get());

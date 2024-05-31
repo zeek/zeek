@@ -710,7 +710,7 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
                 else if ( is_any )
                     zop = OP_INDEX_ANY_VEC_VVV;
                 else
-                    zop = OP_INDEX_VEC_VVi;
+                    zop = OP_INDEX_VEC_VVV;
 
                 z = ZInstI(zop, Frame1Slot(n1, zop), n2_slot, n3_slot);
             }

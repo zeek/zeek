@@ -1015,8 +1015,8 @@ custom-method return CompileIndex(n, c, l, true);
 no-eval
 
 internal-op Index-Vec
-type VVi
-eval	EvalIndexVec($$, $1, $2)
+type VVV
+eval	EvalIndexVec($$, $1, $2.int_val)
 
 macro EvalIndexVec(lhs, rhs_vec, index)
 	auto& vv = rhs_vec.vector_val->RawVec();

@@ -16,6 +16,7 @@ RUN apk add --no-cache \
   musl-fts-dev \
   g++ \
   git \
+  jq \
   libpcap-dev \
   linux-headers \
   make \

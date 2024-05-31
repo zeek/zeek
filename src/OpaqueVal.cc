@@ -1092,44 +1092,4 @@ ValPtr ParaglobVal::DoClone(CloneState* state) {
     }
 }
 
-std::optional<BrokerData> TelemetryVal::DoSerializeData() const { return std::nullopt; }
-
-bool TelemetryVal::DoUnserializeData(BrokerDataView) { return false; }
-
-TelemetryVal::TelemetryVal(telemetry::IntCounter) : OpaqueVal(int_counter_metric_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::IntCounterFamily) : OpaqueVal(int_counter_metric_family_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::DblCounter) : OpaqueVal(dbl_counter_metric_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::DblCounterFamily) : OpaqueVal(dbl_counter_metric_family_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::IntGauge) : OpaqueVal(int_gauge_metric_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::IntGaugeFamily) : OpaqueVal(int_gauge_metric_family_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::DblGauge) : OpaqueVal(dbl_gauge_metric_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::DblGaugeFamily) : OpaqueVal(dbl_gauge_metric_family_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::IntHistogram) : OpaqueVal(int_histogram_metric_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::IntHistogramFamily) : OpaqueVal(int_histogram_metric_family_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::DblHistogram) : OpaqueVal(dbl_histogram_metric_type) {}
-
-TelemetryVal::TelemetryVal(telemetry::DblHistogramFamily) : OpaqueVal(dbl_histogram_metric_family_type) {}
-
-IMPLEMENT_OPAQUE_VALUE(IntCounterMetricVal)
-IMPLEMENT_OPAQUE_VALUE(IntCounterMetricFamilyVal)
-IMPLEMENT_OPAQUE_VALUE(DblCounterMetricVal)
-IMPLEMENT_OPAQUE_VALUE(DblCounterMetricFamilyVal)
-IMPLEMENT_OPAQUE_VALUE(IntGaugeMetricVal)
-IMPLEMENT_OPAQUE_VALUE(IntGaugeMetricFamilyVal)
-IMPLEMENT_OPAQUE_VALUE(DblGaugeMetricVal)
-IMPLEMENT_OPAQUE_VALUE(DblGaugeMetricFamilyVal)
-IMPLEMENT_OPAQUE_VALUE(IntHistogramMetricVal)
-IMPLEMENT_OPAQUE_VALUE(IntHistogramMetricFamilyVal)
-IMPLEMENT_OPAQUE_VALUE(DblHistogramMetricVal)
-IMPLEMENT_OPAQUE_VALUE(DblHistogramMetricFamilyVal)
 } // namespace zeek

@@ -47,9 +47,9 @@ void EventHandler::Call(Args* vl, bool no_remote, double ts) {
     if ( ! call_count ) {
         static auto eh_invocations_family =
             telemetry_mgr->CounterFamily("zeek", "event-handler-invocations", {"name"},
-                                         "Number of times the given event handler was called", "1", true);
+                                         "Number of times the given event handler was called");
 
-        call_count = eh_invocations_family.GetOrAdd({{"name", name}});
+        call_count = eh_invocations_family->GetOrAdd({{"name", name}});
     }
 
     call_count->Inc();
@@ -112,5 +112,7 @@ void EventHandler::NewEvent(Args* vl) {
                                    });
     event_mgr.Dispatch(ev);
 }
+
+uint64_t EventHandler::CallCount() const { return call_count ? call_count->Value() : 0; }
 
 } // namespace zeek

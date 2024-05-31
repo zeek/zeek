@@ -1,3 +1,71 @@
+7.0.0-dev.338 | 2024-05-31 14:18:15 -0700
+
+  * Add type aliases for instrument and family shared_ptrs (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for double and is_sum changes (Tim Wojtulewicz, Corelight)
+
+  * Remove is_sum arguments from counters and gauges (Tim Wojtulewicz, Corelight)
+
+  * Change all instruments to only handle doubles (Tim Wojtulewicz, Corelight)
+
+  * Add comment to telemetry::Manager::InitPostScript (Tim Wojtulewicz, Corelight)
+
+  * Remove all of the ZEEK_METRICS_ environment variables (Tim Wojtulewicz, Corelight)
+
+  * Fix header comments in scripts/policy/frameworks/telemetry/prometheus.zeek (Tim Wojtulewicz, Corelight)
+
+  * Change all prometheus #includes to use angle brackets (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl submodule for metrics_port node.cfg option (Tim Wojtulewicz, Corelight)
+
+  * Remove the is_sum argument from BIF histogram creation methods (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for Telemetry rework (Tim Wojtulewicz, Corelight)
+
+  * Remove Telemetry::metrics_export_prefixes option (Tim Wojtulewicz, Corelight)
+
+  * Validate that label names are constant in non-zeek metrics (Tim Wojtulewicz, Corelight)
+
+  * Avoid calling Collect() in counter/gauge Value() methods if not needed (Tim Wojtulewicz, Corelight)
+
+  * Fix some determinism issues with btests (Tim Wojtulewicz, Corelight)
+
+  * Temporarily disable the scripts/base/frameworks/telemetry/internal-metrics btest (Tim Wojtulewicz, Corelight)
+
+  * Fix the scripts.policy.frameworks.telemetry.prometheus btest to use the service discovery endpoint (Tim Wojtulewicz, Corelight)
+
+  * Btest updates due to recent changes (Tim Wojtulewicz, Corelight)
+
+  * Update telemetry log policy due to the fact that unit will not be filled in anymore (Tim Wojtulewicz, Corelight)
+
+  * Rework everything to access the prometheus-cpp objects more directly (Tim Wojtulewicz, Corelight)
+
+  * Move telemetry opaques out of OpaqueVal.h (Tim Wojtulewicz, Corelight)
+
+  * Add GetRegistry() method for retrieving access to prometheus-cpp registry (Tim Wojtulewicz, Corelight)
+
+  * Remove Broker metrics configuration values and methods (Tim Wojtulewicz, Corelight)
+
+  * Add support for callbacks for gauges/counters, restore process stat metrics (Tim Wojtulewicz, Corelight)
+
+  * Add a services.json endpoint for Prometheus service discovery (Tim Wojtulewicz, Corelight)
+
+  * Don't include endpoint label/value when collecting metrics internally (Tim Wojtulewicz, Corelight)
+
+  * Remove everything related to aggregation (Tim Wojtulewicz, Corelight)
+
+  * Make all options const-redefs, remove all of the change handler code (Tim Wojtulewicz, Corelight)
+
+  * Move base types from telemetry framework to init-bare (Tim Wojtulewicz, Corelight)
+
+  * Update test baselines due to underscore changes (Tim Wojtulewicz, Corelight)
+
+  * Convert telemetry code to use prometheus-cpp (Tim Wojtulewicz, Corelight)
+
+  * Add necessary script-land changes (Tim Wojtulewicz, Corelight)
+
+  * Add prometheus-cpp submodule, FindPrometheusCpp cmake module (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.302 | 2024-05-31 09:37:21 -0700
 
   * More precise error reporting for the disable_analyzer() BiF (Christian Kreibich, Corelight)

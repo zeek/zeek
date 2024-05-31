@@ -18,18 +18,8 @@
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 81/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8888/tcp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp})) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_endpoint_name, <frame>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_interval, <frame>, (1.0 sec)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_prefixes, <frame>, ([])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_export_topic, <frame>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::__set_metrics_import_topics, <frame>, ([])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Broker::subscribe, <frame>, (zeek/supervisor)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_endpoint_name, <frame>, (Broker::metrics_export_endpoint_name, )) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_interval, <frame>, (Broker::metrics_export_interval, 1.0 sec)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_prefixes, <frame>, (Broker::metrics_export_prefixes, [])) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::update_metrics_export_topic, <frame>, (Broker::metrics_export_topic, )) -> <no result>
-0.000000   MetaHookPost  CallFunction(Broker::update_metrics_import_topics, <frame>, (Broker::metrics_import_topics, [])) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <frame>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::is_enabled, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])) -> <no result>
@@ -118,16 +108,6 @@
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::ignore_analyzers, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::include_confirmations, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::include_confirmations, lambda_<15261139872714441626>{ if (Analyzer::Logging::new_value) enable_event_group(Analyzer::Logging::include_confirmations)elsedisable_event_group(Analyzer::Logging::include_confirmations)return (Analyzer::Logging::new_value)}, 0)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_prefixes, Broker::update_metrics_export_prefixes{ Broker::__set_metrics_export_prefixes(Broker::filter)return (Broker::filter)}, 0)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_prefixes, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_topic, Broker::update_metrics_export_topic{ Broker::__set_metrics_export_topic(Broker::val)return (Broker::val)}, 0)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_topic, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_import_topics, Broker::update_metrics_import_topics{ Broker::__set_metrics_import_topics(Broker::topics)return (Broker::topics)}, 0)) -> <no result>
-0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_import_topics, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Broker::peer_counts_as_iosource, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Conn::analyzer_inactivity_timeouts, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
 0.000000   MetaHookPost  CallFunction(Option::set_change_handler, <frame>, (Conn::default_extract, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)) -> <no result>
@@ -594,6 +574,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/null, <...>/null) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/numbers, <...>/numbers.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/option.bif, <...>/option.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/options, <...>/options.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/pbb, <...>/pbb) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/plugins, <...>/plugins) -> -1
@@ -887,6 +868,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/null, <...>/null) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/numbers, <...>/numbers.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/option.bif, <...>/option.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/options, <...>/options.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/pbb, <...>/pbb) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/plugins, <...>/plugins) -> (-1, <no content>)
@@ -952,18 +934,8 @@
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 81/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_port, <frame>, (Analyzer::ANALYZER_HTTP, 8888/tcp))
 0.000000   MetaHookPre   CallFunction(Analyzer::register_for_ports, <frame>, (Analyzer::ANALYZER_HTTP, {80<...>/tcp}))
-0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_endpoint_name, <frame>, ())
-0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_interval, <frame>, (1.0 sec))
-0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_prefixes, <frame>, ([]))
-0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_export_topic, <frame>, ())
-0.000000   MetaHookPre   CallFunction(Broker::__set_metrics_import_topics, <frame>, ([]))
 0.000000   MetaHookPre   CallFunction(Broker::__subscribe, <frame>, (zeek/supervisor))
 0.000000   MetaHookPre   CallFunction(Broker::subscribe, <frame>, (zeek/supervisor))
-0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_endpoint_name, <frame>, (Broker::metrics_export_endpoint_name, ))
-0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_interval, <frame>, (Broker::metrics_export_interval, 1.0 sec))
-0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_prefixes, <frame>, (Broker::metrics_export_prefixes, []))
-0.000000   MetaHookPre   CallFunction(Broker::update_metrics_export_topic, <frame>, (Broker::metrics_export_topic, ))
-0.000000   MetaHookPre   CallFunction(Broker::update_metrics_import_topics, <frame>, (Broker::metrics_import_topics, []))
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <frame>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::is_enabled, <null>, ())
 0.000000   MetaHookPre   CallFunction(Cluster::register_pool, <frame>, ([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F]))
@@ -1052,16 +1024,6 @@
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::ignore_analyzers, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::include_confirmations, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Analyzer::Logging::include_confirmations, lambda_<15261139872714441626>{ if (Analyzer::Logging::new_value) enable_event_group(Analyzer::Logging::include_confirmations)elsedisable_event_group(Analyzer::Logging::include_confirmations)return (Analyzer::Logging::new_value)}, 0))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_endpoint_name, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_interval, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_prefixes, Broker::update_metrics_export_prefixes{ Broker::__set_metrics_export_prefixes(Broker::filter)return (Broker::filter)}, 0))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_prefixes, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_topic, Broker::update_metrics_export_topic{ Broker::__set_metrics_export_topic(Broker::val)return (Broker::val)}, 0))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_export_topic, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_import_topics, Broker::update_metrics_import_topics{ Broker::__set_metrics_import_topics(Broker::topics)return (Broker::topics)}, 0))
-0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::metrics_import_topics, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Broker::peer_counts_as_iosource, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Conn::analyzer_inactivity_timeouts, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
 0.000000   MetaHookPre   CallFunction(Option::set_change_handler, <frame>, (Conn::default_extract, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100))
@@ -1528,6 +1490,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/null, <...>/null)
 0.000000   MetaHookPre   LoadFile(0, base<...>/numbers, <...>/numbers.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/option.bif, <...>/option.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/options, <...>/options.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/pbb, <...>/pbb)
 0.000000   MetaHookPre   LoadFile(0, base<...>/plugins, <...>/plugins)
@@ -1821,6 +1784,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/null, <...>/null)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/numbers, <...>/numbers.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/option.bif, <...>/option.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/options, <...>/options.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/packet_analysis.bif, <...>/packet_analysis.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/pbb, <...>/pbb)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/plugins, <...>/plugins)
@@ -1886,18 +1850,8 @@
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 81/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_port(Analyzer::ANALYZER_HTTP, 8888/tcp)
 0.000000 | HookCallFunction Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, {80<...>/tcp})
-0.000000 | HookCallFunction Broker::__set_metrics_export_endpoint_name()
-0.000000 | HookCallFunction Broker::__set_metrics_export_interval(1.0 sec)
-0.000000 | HookCallFunction Broker::__set_metrics_export_prefixes([])
-0.000000 | HookCallFunction Broker::__set_metrics_export_topic()
-0.000000 | HookCallFunction Broker::__set_metrics_import_topics([])
 0.000000 | HookCallFunction Broker::__subscribe(zeek/supervisor)
 0.000000 | HookCallFunction Broker::subscribe(zeek/supervisor)
-0.000000 | HookCallFunction Broker::update_metrics_export_endpoint_name(Broker::metrics_export_endpoint_name, )
-0.000000 | HookCallFunction Broker::update_metrics_export_interval(Broker::metrics_export_interval, 1.0 sec)
-0.000000 | HookCallFunction Broker::update_metrics_export_prefixes(Broker::metrics_export_prefixes, [])
-0.000000 | HookCallFunction Broker::update_metrics_export_topic(Broker::metrics_export_topic, )
-0.000000 | HookCallFunction Broker::update_metrics_import_topics(Broker::metrics_import_topics, [])
 0.000000 | HookCallFunction Cluster::is_enabled()
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/logger, node_type=Cluster::LOGGER, max_nodes=<uninitialized>, exclusive=F])
 0.000000 | HookCallFunction Cluster::register_pool([topic=zeek<...>/proxy, node_type=Cluster::PROXY, max_nodes=<uninitialized>, exclusive=F])
@@ -1985,16 +1939,6 @@
 0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::ignore_analyzers, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::include_confirmations, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Analyzer::Logging::include_confirmations, lambda_<15261139872714441626>{ if (Analyzer::Logging::new_value) enable_event_group(Analyzer::Logging::include_confirmations)elsedisable_event_group(Analyzer::Logging::include_confirmations)return (Analyzer::Logging::new_value)}, 0)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_endpoint_name, Broker::update_metrics_export_endpoint_name{ Broker::__set_metrics_export_endpoint_name(Broker::val)return (Broker::val)}, 0)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_endpoint_name, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_interval, Broker::update_metrics_export_interval{ Broker::__set_metrics_export_interval(Broker::val)return (Broker::val)}, 0)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_interval, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_prefixes, Broker::update_metrics_export_prefixes{ Broker::__set_metrics_export_prefixes(Broker::filter)return (Broker::filter)}, 0)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_prefixes, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_topic, Broker::update_metrics_export_topic{ Broker::__set_metrics_export_topic(Broker::val)return (Broker::val)}, 0)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_export_topic, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_import_topics, Broker::update_metrics_import_topics{ Broker::__set_metrics_import_topics(Broker::topics)return (Broker::topics)}, 0)
-0.000000 | HookCallFunction Option::set_change_handler(Broker::metrics_import_topics, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Broker::peer_counts_as_iosource, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Conn::analyzer_inactivity_timeouts, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
 0.000000 | HookCallFunction Option::set_change_handler(Conn::default_extract, Config::config_option_changed{ if (<skip-config-log> == Config::location) return (Config::new_value)Config::log = Config::Info($ts=network_time(), $id=Config::ID, $old_value=Config::format_value(lookup_ID(Config::ID)), $new_value=Config::format_value(Config::new_value))if ( != Config::location) Config::log$location = Config::locationLog::write(Config::LOG, to_any_coerce Config::log)return (Config::new_value)}, -100)
@@ -2473,6 +2417,7 @@
 0.000000 | HookLoadFile  base<...>/null <...>/null
 0.000000 | HookLoadFile  base<...>/numbers <...>/numbers.zeek
 0.000000 | HookLoadFile  base<...>/option.bif <...>/option.bif.zeek
+0.000000 | HookLoadFile  base<...>/options <...>/options.zeek
 0.000000 | HookLoadFile  base<...>/packet_analysis.bif <...>/packet_analysis.bif.zeek
 0.000000 | HookLoadFile  base<...>/pbb <...>/pbb
 0.000000 | HookLoadFile  base<...>/plugins <...>/plugins
@@ -2766,6 +2711,7 @@
 0.000000 | HookLoadFileExtended base<...>/null <...>/null
 0.000000 | HookLoadFileExtended base<...>/numbers <...>/numbers.zeek
 0.000000 | HookLoadFileExtended base<...>/option.bif <...>/option.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/options <...>/options.zeek
 0.000000 | HookLoadFileExtended base<...>/packet_analysis.bif <...>/packet_analysis.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/pbb <...>/pbb
 0.000000 | HookLoadFileExtended base<...>/plugins <...>/plugins

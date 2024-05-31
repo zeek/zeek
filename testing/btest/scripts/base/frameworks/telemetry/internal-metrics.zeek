@@ -1,6 +1,7 @@
 # @TEST-DOC: Query some internal broker/caf related metrics as they use the int64_t versions, too.
 # Note compilable to C++ due to globals being initialized to a record that
 # has an opaque type as a field.
+# @TEST-KNOWN-FAILURE: Implementation for prometheus-cpp missing in broker
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek -b -Cr - %INPUT > out
 # @TEST-EXEC: btest-diff out

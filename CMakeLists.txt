@@ -234,6 +234,11 @@ if (ZEEK_STANDALONE)
     endif ()
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_exe_access PRIVATE)
+
+    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+        target_link_libraries(zeek_exe PRIVATE /usr/lib/libutil.so)
+        target_link_libraries(zeek_exe PRIVATE procstat)
+    endif ()
 else ()
     add_library(zeek_lib STATIC)
 endif ()
@@ -248,6 +253,12 @@ if (TARGET zeek_lib)
     install(TARGETS zeek_lib LIBRARY DESTINATION lib)
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_lib_access PRIVATE)
+
+    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+        target_link_libraries(zeek_lib PRIVATE /usr/lib/libutil.so)
+        target_link_libraries(zeek_lib PRIVATE procstat)
+    endif ()
+
 endif ()
 
 # When building our fuzzers, we also need one extra top-level target that
@@ -1113,6 +1124,7 @@ include(GetArchitecture)
 include(FindCAres)
 include(FindKqueue)
 
+include(FindPrometheusCpp)
 include_directories(BEFORE "auxil/out_ptr/include")
 
 if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))

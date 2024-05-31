@@ -2,10 +2,10 @@
 ##! the lower-level telemetry.bif functions.
 ##!
 ##! Metrics will be exposed through a Prometheus HTTP endpoint when
-##! enabled by setting :zeek:see:`Broker::metrics_port` or using the
-##! `BROKER_METRICS_PORT` environment variable.
+##! enabled by setting :zeek:see:`Telemetry::metrics_port`.
 
 @load base/misc/version
+@load base/frameworks/telemetry/options
 
 module Telemetry;
 
@@ -13,56 +13,13 @@ export {
 	## Alias for a vector of label values.
 	type labels_vector: vector of string;
 
-	## Type that captures options used to create metrics.
-	type MetricOpts: record {
-		## The prefix (namespace) of the metric.
-		prefix: string;
-
-		## The human-readable name of the metric.
-		name: string;
-
-		## The unit of the metric. Use the pseudo-unit "1" if this is a unit-less metric.
-		unit: string;
-
-		## Documentation for this metric.
-		help_text: string;
-
-		## The label names (also called dimensions) of the metric. When
-		## instantiating or working with concrete metrics, corresponding
-		## label values have to be provided.
-		labels: vector of string &default=vector();
-
-		## Whether the metric represents something that is accumulating.
-		## Defaults to ``T`` for counters and ``F`` for gauges and
-		## histograms.
-		is_total: bool &optional;
-
-		## When creating a :zeek:see:`Telemetry::HistogramFamily`,
-		## describes the number and bounds of the individual buckets.
-		bounds: vector of double &optional;
-
-		## The same meaning as *bounds*, but as :zeek:type:`count`.
-		## Only set in the return value of
-		## :zeek:see:`Telemetry::collect_histogram_metrics`.
-		## for histograms when the underlying type is ``int64_t``,
-		## otherwise ignored.
-		count_bounds: vector of count &optional;
-
-		## Describes the underlying metric type.
-		## Only set in the return value of
-		## :zeek:see:`Telemetry::collect_metrics` or
-		## :zeek:see:`Telemetry::collect_histogram_metrics`,
-		## otherwise ignored.
-		metric_type: MetricType &optional;
-	};
-
 	## Type representing a family of counters with uninitialized label values.
 	##
 	## To create concrete :zeek:see:`Telemetry::Counter` instances, use
 	## :zeek:see:`Telemetry::counter_with`. To modify counters directly
 	## use :zeek:see:`Telemetry::counter_family_inc`.
 	type CounterFamily: record {
-		__family: opaque of dbl_counter_metric_family;
+		__family: opaque of counter_metric_family;
 		__labels: vector of string;
 	};
 
@@ -75,7 +32,7 @@ export {
 	## per :zeek:see:`Log::Stream` or number connections broken down
 	## by protocol and service.
 	type Counter: record {
-		__metric: opaque of dbl_counter_metric;
+		__metric: opaque of counter_metric;
 	};
 
 	## Register a counter family.
@@ -146,7 +103,7 @@ export {
 	## :zeek:see:`Telemetry::gauge_family_inc` or
 	## :zeek:see:`Telemetry::gauge_family_set` directly.
 	type GaugeFamily: record {
-		__family: opaque of dbl_gauge_metric_family;
+		__family: opaque of gauge_metric_family;
 		__labels: vector of string;
 	};
 
@@ -158,7 +115,7 @@ export {
 	## or footprints of long-lived values as determined by
 	## :zeek:see:`val_footprint`.
 	type Gauge: record {
-		__metric: opaque of dbl_gauge_metric;
+		__metric: opaque of gauge_metric;
 	};
 
 	## Register a gauge family.
@@ -247,14 +204,14 @@ export {
 	## :zeek:see:`Telemetry::histogram_with` or use
 	## :zeek:see:`Telemetry::histogram_family_observe` directly.
 	type HistogramFamily: record {
-		__family: opaque of dbl_histogram_metric_family;
+		__family: opaque of histogram_metric_family;
 		__labels: vector of string;
 	};
 
 	## Type representing a histogram metric with initialized label values.
 	## Use :zeek:see:`Telemetry::histogram_observe` to make observations.
 	type Histogram: record {
-		__metric: opaque of dbl_histogram_metric;
+		__metric: opaque of histogram_metric;
 	};
 
 	## Register a histogram family.
@@ -305,62 +262,6 @@ export {
 	## Interval at which the :zeek:see:`Telemetry::sync` hook is invoked.
 	option sync_interval = 10sec;
 
-	## Type of elements returned by the :zeek:see:`Telemetry::collect_metrics` function.
-	type Metric: record {
-		## A :zeek:see:`Telemetry::MetricOpts` record describing this metric.
-		opts: MetricOpts;
-
-		## The label values associated with this metric, if any.
-		labels: vector of string;
-
-		## The value of gauge or counter cast to a double
-		## independent of the underlying data type.
-		## This value is set for all counter and gauge metrics,
-		## it is unset for histograms.
-		value: double &optional;
-
-		## The value of the underlying gauge or counter as a double
-		## if the underlying metric type uses ``int64_t``.
-		## Only counters and gauges created with the C++ API may
-		## have this value set.
-		count_value: count &optional;
-	};
-
-	## Type of elements returned by the :zeek:see:`Telemetry::collect_histogram_metrics` function.
-	type HistogramMetric: record {
-		## A :zeek:see:`Telemetry::MetricOpts` record describing this histogram.
-		opts: MetricOpts;
-
-		## The label values associated with this histogram, if any.
-		labels: vector of string;
-
-		## Individual counters for each of the buckets as
-		## described by the *bounds* field in *opts*;
-		values: vector of double;
-
-		## If the underlying data type of the histogram is ``int64_t``,
-		## this vector will hold the values as counts, otherwise it
-		## is unset. Only histograms created with the C++ API have
-		## may have this value set.
-		count_values: vector of count &optional;
-
-		## The number of observations made for this histogram.
-		observations: double;
-
-		## The sum of all observations for this histogram.
-		sum: double;
-
-		## If the underlying data type of the histogram is ``int64_t``,
-		## the number of observations as :zeek:type:`count`, otherwise
-		## unset.
-		count_observations: count &optional;
-
-		## If the underlying data type of the histogram is ``int64_t``,
-		## the sum of all observations as :zeek:type:`count`, otherwise
-		## unset.
-		count_sum: count &optional;
-	};
-
 	## Collect all counter and gauge metrics matching the given *name* and *prefix*.
 	##
 	## For histogram metrics, use the :zeek:see:`Telemetry::collect_histogram_metrics`.
@@ -391,13 +292,12 @@ function make_labels(keys: vector of string, values: labels_vector): table[strin
 
 function register_counter_family(opts: MetricOpts): CounterFamily
 	{
-	local f = Telemetry::__dbl_counter_family(
+	local f = Telemetry::__counter_family(
 		opts$prefix,
 		opts$name,
 		opts$labels,
 		opts$help_text,
-		opts$unit,
-		opts?$is_total ? opts$is_total : T
+		opts$unit
 	);
 	return CounterFamily($__family=f, $__labels=opts$labels);
 	}
@@ -406,7 +306,7 @@ function register_counter_family(opts: MetricOpts): CounterFamily
 global error_counter_cf = register_counter_family([
 	$prefix="zeek",
 	$name="telemetry_counter_usage_error",
-	$unit="1",
+	$unit="",
 	$help_text="This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero."
 ]);
 
@@ -419,24 +319,24 @@ function counter_with(cf: CounterFamily, label_values: labels_vector): Counter
 		}
 
 	local labels = make_labels(cf$__labels, label_values);
-	local m = Telemetry::__dbl_counter_metric_get_or_add(cf$__family, labels);
+	local m = Telemetry::__counter_metric_get_or_add(cf$__family, labels);
 	return Counter($__metric=m);
 	}
 
 function counter_inc(c: Counter, amount: double): bool
 	{
-	return Telemetry::__dbl_counter_inc(c$__metric, amount);
+	return Telemetry::__counter_inc(c$__metric, amount);
 	}
 
 function counter_set(c: Counter, value: double): bool
 	{
-	local cur_value: double = Telemetry::__dbl_counter_value(c$__metric);
+	local cur_value: double = Telemetry::__counter_value(c$__metric);
 	if (value < cur_value)
 		{
 		Reporter::error(fmt("Attempted to set lower counter value=%s cur_value=%s", value, cur_value));
 		return F;
 		}
-	return Telemetry::__dbl_counter_inc(c$__metric, value - cur_value);
+	return Telemetry::__counter_inc(c$__metric, value - cur_value);
 	}
 
 function counter_family_inc(cf: CounterFamily, label_values: labels_vector, amount: double): bool
@@ -451,13 +351,12 @@ function counter_family_set(cf: CounterFamily, label_values: labels_vector, valu
 
 function register_gauge_family(opts: MetricOpts): GaugeFamily
 	{
-	local f = Telemetry::__dbl_gauge_family(
+	local f = Telemetry::__gauge_family(
 		opts$prefix,
 		opts$name,
 		opts$labels,
 		opts$help_text,
-		opts$unit,
-		opts?$is_total ? opts$is_total : F
+		opts$unit
 	);
 	return GaugeFamily($__family=f, $__labels=opts$labels);
 	}
@@ -466,7 +365,7 @@ function register_gauge_family(opts: MetricOpts): GaugeFamily
 global error_gauge_cf = register_gauge_family([
 	$prefix="zeek",
 	$name="telemetry_gauge_usage_error",
-	$unit="1",
+	$unit="",
 	$help_text="This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero."
 ]);
 
@@ -478,29 +377,29 @@ function gauge_with(gf: GaugeFamily, label_values: labels_vector): Gauge
 		return gauge_with(error_gauge_cf);
 		}
 	local labels = make_labels(gf$__labels, label_values);
-	local m = Telemetry::__dbl_gauge_metric_get_or_add(gf$__family, labels);
+	local m = Telemetry::__gauge_metric_get_or_add(gf$__family, labels);
 	return Gauge($__metric=m);
 	}
 
 function gauge_inc(g: Gauge, amount: double &default=1.0): bool
 	{
-	return Telemetry::__dbl_gauge_inc(g$__metric, amount);
+	return Telemetry::__gauge_inc(g$__metric, amount);
 	}
 
 function gauge_dec(g: Gauge, amount: double &default=1.0): bool
 	{
-	return Telemetry::__dbl_gauge_dec(g$__metric, amount);
+	return Telemetry::__gauge_dec(g$__metric, amount);
 	}
 
 function gauge_set(g: Gauge, value: double): bool
 	{
-	# Telemetry currently does not implement __dbl_gauge_set(), do
+	# Telemetry currently does not implement __gauge_set(), do
 	# it by hand here.
-	local cur_value: double = Telemetry::__dbl_gauge_value(g$__metric);
+	local cur_value: double = Telemetry::__gauge_value(g$__metric);
 	if (value > cur_value)
-		return Telemetry::__dbl_gauge_inc(g$__metric, value - cur_value);
+		return Telemetry::__gauge_inc(g$__metric, value - cur_value);
 
-	return Telemetry::__dbl_gauge_dec(g$__metric, cur_value - value);
+	return Telemetry::__gauge_dec(g$__metric, cur_value - value);
 	}
 
 function gauge_family_inc(gf: GaugeFamily, label_values: labels_vector, value: double): bool
@@ -520,14 +419,13 @@ function gauge_family_set(gf: GaugeFamily, label_values: labels_vector, value: d
 
 function register_histogram_family(opts: MetricOpts): HistogramFamily
 	{
-	local f = Telemetry::__dbl_histogram_family(
+	local f = Telemetry::__histogram_family(
 		opts$prefix,
 		opts$name,
 		opts$labels,
 		opts$bounds,
 		opts$help_text,
-		opts$unit,
-		opts?$is_total ? opts$is_total : F
+		opts$unit
 	);
 	return HistogramFamily($__family=f, $__labels=opts$labels);
 	}
@@ -536,7 +434,7 @@ function register_histogram_family(opts: MetricOpts): HistogramFamily
 global error_histogram_hf = register_histogram_family([
 	$prefix="zeek",
 	$name="telemetry_histogram_usage_error",
-	$unit="1",
+	$unit="",
 	$help_text="This histogram is returned when label usage for histograms is wrong. Check reporter.log if non-zero.",
 	$bounds=vector(1.0)
 ]);
@@ -550,16 +448,16 @@ function histogram_with(hf: HistogramFamily, label_values: labels_vector): Histo
 		}
 
 	local labels = make_labels(hf$__labels, label_values);
-	local m = Telemetry::__dbl_histogram_metric_get_or_add(hf$__family, labels);
+	local m = Telemetry::__histogram_metric_get_or_add(hf$__family, labels);
 	return Histogram($__metric=m);
 	}
 
 function histogram_observe(h: Histogram, measurement: double): bool
 	{
-	return Telemetry::__dbl_histogram_observe(h$__metric, measurement);
+	return Telemetry::__histogram_observe(h$__metric, measurement);
 	}
 
-function histogram_family_observe(hf: HistogramFamily,  label_values: labels_vector, measurement: double): bool
+function histogram_family_observe(hf: HistogramFamily, label_values: labels_vector, measurement: double): bool
 	{
 	return histogram_observe(histogram_with(hf, label_values), measurement);
 	}
@@ -580,16 +478,11 @@ event run_sync_hook()
 	schedule sync_interval { run_sync_hook() };
 	}
 
-event zeek_init()
-	{
-	schedule sync_interval { run_sync_hook() };
-	}
-
 # Expose the Zeek version as Prometheus style info metric
 global version_gauge_family = Telemetry::register_gauge_family([
 	$prefix="zeek",
 	$name="version_info",
-	$unit="1",
+	$unit="",
 	$help_text="The Zeek version",
 	$labels=vector("version_number", "major", "minor", "patch", "commit",
                        "beta", "debug","version_string")
@@ -597,6 +490,8 @@ global version_gauge_family = Telemetry::register_gauge_family([
 
 event zeek_init()
 	{
+	schedule sync_interval { run_sync_hook() };
+
 	local v = Version::info;
 	local labels = vector(cat(v$version_number),
 	                      cat(v$major), cat(v$minor), cat (v$patch),

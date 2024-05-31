@@ -8,10 +8,12 @@
 
 @load base/frameworks/telemetry
 
+redef running_under_test = T;
+
 global btest_a_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="a_test",
-	$unit="1",
+	$unit="",
 	$help_text="A btest metric",
 	$labels=vector("x", "y")
 ]);
@@ -19,7 +21,7 @@ global btest_a_cf = Telemetry::register_counter_family([
 global btest_b_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="b_test",
-	$unit="1",
+	$unit="",
 	$help_text="Another btest metric",
 	$labels=vector("x", "y")
 ]);
@@ -27,7 +29,7 @@ global btest_b_cf = Telemetry::register_counter_family([
 global btest_c_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="c_test",
-	$unit="1",
+	$unit="",
 	$help_text="The last btest metric",
 	$labels=vector("x", "y")
 ]);
@@ -43,7 +45,7 @@ global system_sensor_temp_gf = Telemetry::register_gauge_family([
 global btest_sample_histogram_hf = Telemetry::register_histogram_family([
 	$prefix="btest",
 	$name="sample_histogram",
-	$unit="1",
+	$unit="",
 	$help_text="A sample histogram that is not returned by Telemetry::collect_metrics",
 	$bounds=vector(1.0, 2.0, 3.0, 4.0, 5.0),
 	$labels=vector("dim")
@@ -56,9 +58,6 @@ function print_metrics(what: string, metrics: vector of Telemetry::Metric)
 		{
 		local m = metrics[i];
 		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$labels, m$labels, m$value;
-
-		if (m?$count_value)
-			print "count_value", m$count_value;
 		}
 	}
 

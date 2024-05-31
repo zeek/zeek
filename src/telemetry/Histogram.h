@@ -44,6 +44,8 @@ private:
     prometheus::Labels labels;
 };
 
+using HistogramPtr = std::shared_ptr<Histogram>;
+
 class HistogramFamily : public MetricFamily, public std::enable_shared_from_this<HistogramFamily> {
 public:
     static inline const char* OpaqueName = "HistogramMetricFamilyVal";
@@ -55,19 +57,21 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    std::shared_ptr<Histogram> GetOrAdd(Span<const LabelView> labels);
+    HistogramPtr GetOrAdd(Span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd
      */
-    std::shared_ptr<Histogram> GetOrAdd(std::initializer_list<LabelView> labels);
+    HistogramPtr GetOrAdd(std::initializer_list<LabelView> labels);
 
     zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::HISTOGRAM; }
 
 private:
     prometheus::Family<prometheus::Histogram>* family;
     prometheus::Histogram::BucketBoundaries boundaries;
-    std::vector<std::shared_ptr<Histogram>> histograms;
+    std::vector<HistogramPtr> histograms;
 };
+
+using HistogramFamilyPtr = std::shared_ptr<HistogramFamily>;
 
 } // namespace zeek::telemetry

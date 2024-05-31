@@ -69,14 +69,13 @@ public:
      * @param helptext Short explanation of the metric.
      * @param unit Unit of measurement.
      */
-    std::shared_ptr<telemetry::CounterFamily> CounterFamily(std::string_view prefix, std::string_view name,
-                                                            Span<const std::string_view> labels,
-                                                            std::string_view helptext, std::string_view unit = "");
+    CounterFamilyPtr CounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                                   std::string_view helptext, std::string_view unit = "");
 
     /// @copydoc CounterFamily
-    std::shared_ptr<telemetry::CounterFamily> CounterFamily(std::string_view prefix, std::string_view name,
-                                                            std::initializer_list<std::string_view> labels,
-                                                            std::string_view helptext, std::string_view unit = "");
+    CounterFamilyPtr CounterFamily(std::string_view prefix, std::string_view name,
+                                   std::initializer_list<std::string_view> labels, std::string_view helptext,
+                                   std::string_view unit = "");
 
     /**
      * Accesses a counter instance. Creates the hosting metric family as well
@@ -89,16 +88,14 @@ public:
      * @param callback Passing a callback method will enable asynchronous mode. The callback method will be called by
      * the metrics subsystem whenever data is requested.
      */
-    std::shared_ptr<Counter> CounterInstance(std::string_view prefix, std::string_view name,
-                                             Span<const LabelView> labels, std::string_view helptext,
-                                             std::string_view unit = "",
-                                             prometheus::CollectCallbackPtr callback = nullptr);
+    CounterPtr CounterInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+                               std::string_view helptext, std::string_view unit = "",
+                               prometheus::CollectCallbackPtr callback = nullptr);
 
     /// @copydoc counterInstance
-    std::shared_ptr<Counter> CounterInstance(std::string_view prefix, std::string_view name,
-                                             std::initializer_list<LabelView> labels, std::string_view helptext,
-                                             std::string_view unit = "",
-                                             prometheus::CollectCallbackPtr callback = nullptr);
+    CounterPtr CounterInstance(std::string_view prefix, std::string_view name, std::initializer_list<LabelView> labels,
+                               std::string_view helptext, std::string_view unit = "",
+                               prometheus::CollectCallbackPtr callback = nullptr);
 
     /**
      * @return A gauge metric family. Creates the family lazily if necessary.
@@ -108,14 +105,13 @@ public:
      * @param helptext Short explanation of the metric.
      * @param unit Unit of measurement.
      */
-    std::shared_ptr<telemetry::GaugeFamily> GaugeFamily(std::string_view prefix, std::string_view name,
-                                                        Span<const std::string_view> labels, std::string_view helptext,
-                                                        std::string_view unit = "");
+    GaugeFamilyPtr GaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+                               std::string_view helptext, std::string_view unit = "");
 
     /// @copydoc GaugeFamily
-    std::shared_ptr<telemetry::GaugeFamily> GaugeFamily(std::string_view prefix, std::string_view name,
-                                                        std::initializer_list<std::string_view> labels,
-                                                        std::string_view helptext, std::string_view unit = "");
+    GaugeFamilyPtr GaugeFamily(std::string_view prefix, std::string_view name,
+                               std::initializer_list<std::string_view> labels, std::string_view helptext,
+                               std::string_view unit = "");
 
     /**
      * Accesses a gauge instance. Creates the hosting metric family as well
@@ -128,14 +124,14 @@ public:
      * @param callback Passing a callback method will enable asynchronous mode. The callback method will be called by
      * the metrics subsystem whenever data is requested.
      */
-    std::shared_ptr<Gauge> GaugeInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
-                                         std::string_view helptext, std::string_view unit = "",
-                                         prometheus::CollectCallbackPtr callback = nullptr);
+    GaugePtr GaugeInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+                           std::string_view helptext, std::string_view unit = "",
+                           prometheus::CollectCallbackPtr callback = nullptr);
 
     /// @copydoc GaugeInstance
-    std::shared_ptr<Gauge> GaugeInstance(std::string_view prefix, std::string_view name,
-                                         std::initializer_list<LabelView> labels, std::string_view helptext,
-                                         std::string_view unit = "", prometheus::CollectCallbackPtr callback = nullptr);
+    GaugePtr GaugeInstance(std::string_view prefix, std::string_view name, std::initializer_list<LabelView> labels,
+                           std::string_view helptext, std::string_view unit = "",
+                           prometheus::CollectCallbackPtr callback = nullptr);
 
     // Forces the compiler to use the type `Span<const T>` instead of trying to
     // match parameters to a `span`.
@@ -166,16 +162,14 @@ public:
      *       different bucket settings. Users may also override
      *       @p bounds via run-time configuration.
      */
-    std::shared_ptr<telemetry::HistogramFamily> HistogramFamily(std::string_view prefix, std::string_view name,
-                                                                Span<const std::string_view> labels,
-                                                                ConstSpan<double> bounds, std::string_view helptext,
-                                                                std::string_view unit = "");
+    HistogramFamilyPtr HistogramFamily(std::string_view prefix, std::string_view name,
+                                       Span<const std::string_view> labels, ConstSpan<double> bounds,
+                                       std::string_view helptext, std::string_view unit = "");
 
     /// @copydoc HistogramFamily
-    std::shared_ptr<telemetry::HistogramFamily> HistogramFamily(std::string_view prefix, std::string_view name,
-                                                                std::initializer_list<std::string_view> labels,
-                                                                ConstSpan<double> bounds, std::string_view helptext,
-                                                                std::string_view unit = "");
+    HistogramFamilyPtr HistogramFamily(std::string_view prefix, std::string_view name,
+                                       std::initializer_list<std::string_view> labels, ConstSpan<double> bounds,
+                                       std::string_view helptext, std::string_view unit = "");
 
     /**
      * Returns a histogram. Creates the family lazily if necessary.
@@ -194,15 +188,13 @@ public:
      *       different bucket settings. Users may also override
      *       @p bounds via run-time configuration.
      */
-    std::shared_ptr<Histogram> HistogramInstance(std::string_view prefix, std::string_view name,
-                                                 Span<const LabelView> labels, ConstSpan<double> bounds,
-                                                 std::string_view helptext, std::string_view unit = "");
+    HistogramPtr HistogramInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+                                   ConstSpan<double> bounds, std::string_view helptext, std::string_view unit = "");
 
     /// @copdoc HistogramInstance
-    std::shared_ptr<Histogram> HistogramInstance(std::string_view prefix, std::string_view name,
-                                                 std::initializer_list<LabelView> labels,
-                                                 std::initializer_list<double> bounds, std::string_view helptext,
-                                                 std::string_view unit = "");
+    HistogramPtr HistogramInstance(std::string_view prefix, std::string_view name,
+                                   std::initializer_list<LabelView> labels, std::initializer_list<double> bounds,
+                                   std::string_view helptext, std::string_view unit = "");
 
     /**
      * @return A JSON description of the cluster configuration for reporting
@@ -245,10 +237,10 @@ private:
     detail::process_stats current_process_stats;
     double process_stats_last_updated = 0.0;
 
-    std::shared_ptr<Gauge> rss_gauge;
-    std::shared_ptr<Gauge> vms_gauge;
-    std::shared_ptr<Gauge> cpu_gauge;
-    std::shared_ptr<Gauge> fds_gauge;
+    GaugePtr rss_gauge;
+    GaugePtr vms_gauge;
+    GaugePtr cpu_gauge;
+    GaugePtr fds_gauge;
 
     std::string endpoint_name;
     std::vector<std::string> export_prefixes;

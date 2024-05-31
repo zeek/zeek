@@ -79,6 +79,8 @@ private:
     bool has_callback = false;
 };
 
+using GaugePtr = std::shared_ptr<Gauge>;
+
 class GaugeFamily : public MetricFamily, public std::enable_shared_from_this<GaugeFamily> {
 public:
     static inline const char* OpaqueName = "GaugeMetricFamilyVal";
@@ -87,13 +89,12 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    std::shared_ptr<Gauge> GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
+    GaugePtr GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd
      */
-    std::shared_ptr<Gauge> GetOrAdd(std::initializer_list<LabelView> labels,
-                                    prometheus::CollectCallbackPtr callback = nullptr);
+    GaugePtr GetOrAdd(std::initializer_list<LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
 
     zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::GAUGE; }
 
@@ -102,7 +103,9 @@ public:
 
 private:
     prometheus::Family<prometheus::Gauge>* family;
-    std::vector<std::shared_ptr<Gauge>> gauges;
+    std::vector<GaugePtr> gauges;
 };
+
+using GaugeFamilyPtr = std::shared_ptr<GaugeFamily>;
 
 } // namespace zeek::telemetry

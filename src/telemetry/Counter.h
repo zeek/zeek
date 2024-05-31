@@ -61,6 +61,8 @@ private:
     bool has_callback = false;
 };
 
+using CounterPtr = std::shared_ptr<Counter>;
+
 class CounterFamily : public MetricFamily, public std::enable_shared_from_this<CounterFamily> {
 public:
     static inline const char* OpaqueName = "CounterMetricFamilyVal";
@@ -72,19 +74,20 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    std::shared_ptr<Counter> GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
+    CounterPtr GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd
      */
-    std::shared_ptr<Counter> GetOrAdd(std::initializer_list<LabelView> labels,
-                                      prometheus::CollectCallbackPtr callback = nullptr);
+    CounterPtr GetOrAdd(std::initializer_list<LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
 
     zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::COUNTER; }
 
 private:
     prometheus::Family<prometheus::Counter>* family;
-    std::vector<std::shared_ptr<Counter>> counters;
+    std::vector<CounterPtr> counters;
 };
+
+using CounterFamilyPtr = std::shared_ptr<CounterFamily>;
 
 } // namespace zeek::telemetry

@@ -443,9 +443,9 @@ std::string Manager::GetClusterJson() const {
     return buffer.GetString();
 }
 
-std::shared_ptr<telemetry::CounterFamily> Manager::CounterFamily(std::string_view prefix, std::string_view name,
-                                                                 Span<const std::string_view> labels,
-                                                                 std::string_view helptext, std::string_view unit) {
+CounterFamilyPtr Manager::CounterFamily(std::string_view prefix, std::string_view name,
+                                        Span<const std::string_view> labels, std::string_view helptext,
+                                        std::string_view unit) {
     auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, true);
 
     auto& prom_fam =
@@ -459,32 +459,32 @@ std::shared_ptr<telemetry::CounterFamily> Manager::CounterFamily(std::string_vie
     return fam;
 }
 
-std::shared_ptr<telemetry::CounterFamily> Manager::CounterFamily(std::string_view prefix, std::string_view name,
-                                                                 std::initializer_list<std::string_view> labels,
-                                                                 std::string_view helptext, std::string_view unit) {
+CounterFamilyPtr Manager::CounterFamily(std::string_view prefix, std::string_view name,
+                                        std::initializer_list<std::string_view> labels, std::string_view helptext,
+                                        std::string_view unit) {
     auto lbl_span = Span{labels.begin(), labels.size()};
     return CounterFamily(prefix, name, lbl_span, helptext, unit);
 }
 
-std::shared_ptr<Counter> Manager::CounterInstance(std::string_view prefix, std::string_view name,
-                                                  Span<const LabelView> labels, std::string_view helptext,
-                                                  std::string_view unit, prometheus::CollectCallbackPtr callback) {
+CounterPtr Manager::CounterInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+                                    std::string_view helptext, std::string_view unit,
+                                    prometheus::CollectCallbackPtr callback) {
     return WithLabelNames(labels, [&, this](auto labelNames) {
         auto family = CounterFamily(prefix, name, labelNames, helptext, unit);
         return family->GetOrAdd(labels, callback);
     });
 }
 
-std::shared_ptr<Counter> Manager::CounterInstance(std::string_view prefix, std::string_view name,
-                                                  std::initializer_list<LabelView> labels, std::string_view helptext,
-                                                  std::string_view unit, prometheus::CollectCallbackPtr callback) {
+CounterPtr Manager::CounterInstance(std::string_view prefix, std::string_view name,
+                                    std::initializer_list<LabelView> labels, std::string_view helptext,
+                                    std::string_view unit, prometheus::CollectCallbackPtr callback) {
     auto lbl_span = Span{labels.begin(), labels.size()};
     return CounterInstance(prefix, name, lbl_span, helptext, unit, std::move(callback));
 }
 
-std::shared_ptr<telemetry::GaugeFamily> Manager::GaugeFamily(std::string_view prefix, std::string_view name,
-                                                             Span<const std::string_view> labels,
-                                                             std::string_view helptext, std::string_view unit) {
+std::shared_ptr<GaugeFamily> Manager::GaugeFamily(std::string_view prefix, std::string_view name,
+                                                  Span<const std::string_view> labels, std::string_view helptext,
+                                                  std::string_view unit) {
     auto full_name = detail::BuildFullPrometheusName(prefix, name, unit, false);
 
     auto& prom_fam =
@@ -498,33 +498,32 @@ std::shared_ptr<telemetry::GaugeFamily> Manager::GaugeFamily(std::string_view pr
     return fam;
 }
 
-std::shared_ptr<telemetry::GaugeFamily> Manager::GaugeFamily(std::string_view prefix, std::string_view name,
-                                                             std::initializer_list<std::string_view> labels,
-                                                             std::string_view helptext, std::string_view unit) {
+GaugeFamilyPtr Manager::GaugeFamily(std::string_view prefix, std::string_view name,
+                                    std::initializer_list<std::string_view> labels, std::string_view helptext,
+                                    std::string_view unit) {
     auto lbl_span = Span{labels.begin(), labels.size()};
     return GaugeFamily(prefix, name, lbl_span, helptext, unit);
 }
 
-std::shared_ptr<Gauge> Manager::GaugeInstance(std::string_view prefix, std::string_view name,
-                                              Span<const LabelView> labels, std::string_view helptext,
-                                              std::string_view unit, prometheus::CollectCallbackPtr callback) {
+GaugePtr Manager::GaugeInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+                                std::string_view helptext, std::string_view unit,
+                                prometheus::CollectCallbackPtr callback) {
     return WithLabelNames(labels, [&, this](auto labelNames) {
         auto family = GaugeFamily(prefix, name, labelNames, helptext, unit);
         return family->GetOrAdd(labels, callback);
     });
 }
 
-std::shared_ptr<Gauge> Manager::GaugeInstance(std::string_view prefix, std::string_view name,
-                                              std::initializer_list<LabelView> labels, std::string_view helptext,
-                                              std::string_view unit, prometheus::CollectCallbackPtr callback) {
+GaugePtr Manager::GaugeInstance(std::string_view prefix, std::string_view name, std::initializer_list<LabelView> labels,
+                                std::string_view helptext, std::string_view unit,
+                                prometheus::CollectCallbackPtr callback) {
     auto lbl_span = Span{labels.begin(), labels.size()};
     return GaugeInstance(prefix, name, lbl_span, helptext, unit, callback);
 }
 
-std::shared_ptr<telemetry::HistogramFamily> Manager::HistogramFamily(std::string_view prefix, std::string_view name,
-                                                                     Span<const std::string_view> labels,
-                                                                     ConstSpan<double> bounds,
-                                                                     std::string_view helptext, std::string_view unit) {
+HistogramFamilyPtr Manager::HistogramFamily(std::string_view prefix, std::string_view name,
+                                            Span<const std::string_view> labels, ConstSpan<double> bounds,
+                                            std::string_view helptext, std::string_view unit) {
     auto full_name = detail::BuildFullPrometheusName(prefix, name, unit);
 
     auto& prom_fam =
@@ -538,27 +537,24 @@ std::shared_ptr<telemetry::HistogramFamily> Manager::HistogramFamily(std::string
     return fam;
 }
 
-std::shared_ptr<telemetry::HistogramFamily> Manager::HistogramFamily(std::string_view prefix, std::string_view name,
-                                                                     std::initializer_list<std::string_view> labels,
-                                                                     ConstSpan<double> bounds,
-                                                                     std::string_view helptext, std::string_view unit) {
+HistogramFamilyPtr Manager::HistogramFamily(std::string_view prefix, std::string_view name,
+                                            std::initializer_list<std::string_view> labels, ConstSpan<double> bounds,
+                                            std::string_view helptext, std::string_view unit) {
     auto lbl_span = Span{labels.begin(), labels.size()};
     return HistogramFamily(prefix, name, lbl_span, bounds, helptext, unit);
 }
 
-std::shared_ptr<Histogram> Manager::HistogramInstance(std::string_view prefix, std::string_view name,
-                                                      Span<const LabelView> labels, ConstSpan<double> bounds,
-                                                      std::string_view helptext, std::string_view unit) {
+HistogramPtr Manager::HistogramInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+                                        ConstSpan<double> bounds, std::string_view helptext, std::string_view unit) {
     return WithLabelNames(labels, [&, this](auto labelNames) {
         auto family = HistogramFamily(prefix, name, labelNames, bounds, helptext, unit);
         return family->GetOrAdd(labels);
     });
 }
 
-std::shared_ptr<Histogram> Manager::HistogramInstance(std::string_view prefix, std::string_view name,
-                                                      std::initializer_list<LabelView> labels,
-                                                      std::initializer_list<double> bounds, std::string_view helptext,
-                                                      std::string_view unit) {
+HistogramPtr Manager::HistogramInstance(std::string_view prefix, std::string_view name,
+                                        std::initializer_list<LabelView> labels, std::initializer_list<double> bounds,
+                                        std::string_view helptext, std::string_view unit) {
     auto lbls = Span{labels.begin(), labels.size()};
     auto bounds_span = Span{bounds.begin(), bounds.size()};
     return HistogramInstance(prefix, name, lbls, bounds_span, helptext, unit);

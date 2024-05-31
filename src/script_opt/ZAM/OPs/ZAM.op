@@ -256,23 +256,19 @@ macro BuildVal(v, t) ZVal(v, t)
 # Returns a memory-managed-if-necessary copy of an existing value.
 macro CopyVal(v) (ZVal::IsManagedType(z.t) ? BuildVal((v).ToVal(z.t), z.t) : (v))
 
-# Managed assignments to "lhs" (generally, frame[z.v1]).
-macro AssignV1T(lhs, v, t) {
+# Managed assignments to the given target.
+macro AssignTarget(target, v) {
 	if ( z.is_managed )
 		{
 		/* It's important to hold a reference to v here prior
-		   to the deletion in case lhs points to v. */
+		   to the deletion in case target points to v. */
 		auto v2 = v;
-		ZVal::DeleteManagedType(lhs);
-		lhs = v2;
+		ZVal::DeleteManagedType(target);
+		target = v2;
 		}
 	else
-		lhs = v;
+		target = v;
 	}
-# Convenience macro for when the value of the assigned type comes from
-# the instruction.
-macro AssignV1(v) AssignV1T(frame[z.v1], v, z.t)
-macro AssignTarget(target, v) AssignV1T(target, v, z.t)
 
 macro BRANCH(target) { DO_ZAM_PROFILE; pc = target; continue; }
 
@@ -293,7 +289,7 @@ op-type X
 set-type $$
 set-type2 $1
 eval	auto v = $1.ToVal(z.t2)->Clone();
-	AssignV1(BuildVal(v, z.t))
+	AssignTarget($$, BuildVal(v, z.t))
 
 unary-expr-op Size
 no-const
@@ -439,7 +435,7 @@ macro EvalCast(lhs, rhs)
 	std::string error;
 	auto res = cast_value(rhs, z.t, error);
 	if ( res )
-		AssignV1T(lhs, BuildVal(res, z.t), z.t)
+		AssignTarget(lhs, BuildVal(res, z.t))
 	else
 		ZAM_run_time_error(z.loc, error.c_str());
 
@@ -1180,12 +1176,12 @@ eval	auto lv = $1.any_val->AsListVal();
 # using information from their expression specifics.
 direct-unary-op Table-Constructor ConstructTable
 
-macro ConstructTableOrSetPre()
+macro ConstructTableOrSetPre(width)
 	auto tt = cast_intrusive<TableType>(z.t);
 	auto new_t = new TableVal(tt, z.aux->attrs);
 	auto aux = z.aux;
 	auto n = aux->n;
-	auto ind_width = z.v2;
+	auto ind_width = width;
 
 macro ConstructTableOrSetPost(lhs)
 	auto& t = lhs.table_val;
@@ -1193,8 +1189,8 @@ macro ConstructTableOrSetPost(lhs)
 	t = new_t;
 
 internal-op Construct-Table
-type V
-eval	ConstructTableOrSetPre()
+type Vi
+eval	ConstructTableOrSetPre($1)
 	for ( auto i = 0; i < n; ++i )
 		{
 		auto indices = aux->ToIndices(frame, i, ind_width);
@@ -1216,8 +1212,8 @@ eval	auto& tbl = $1.table_val;
 direct-unary-op Set-Constructor ConstructSet
 
 internal-op Construct-Set
-type V
-eval	ConstructTableOrSetPre()
+type Vi
+eval	ConstructTableOrSetPre($1)
 	for ( auto i = 0; i < n; i += ind_width )
 		{
 		auto indices = aux->ToIndices(frame, i, ind_width);
@@ -1861,9 +1857,9 @@ eval	EvalReturn(&$$, ret_type = z.t;)
 
 macro EvalSwitchBody(index, branch, cases, postscript)
 	{
-	auto t = cases[z.v2];
+	auto t = cases[index];
 	if ( t.find(v) == t.end() )
-		pc = z.v3;
+		pc = branch;
 	else
 		pc = t[v];
 	postscript

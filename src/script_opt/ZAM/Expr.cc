@@ -1151,7 +1151,7 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
     auto tt = cast_intrusive<TableType>(n->GetType());
     auto width = tt->GetIndices()->GetTypes().size();
 
-    auto z = GenInst(OP_CONSTRUCT_TABLE_V, n, width);
+    auto z = GenInst(OP_CONSTRUCT_TABLE_Vi, n, width);
     z.aux = InternalBuildVals(con, width + 1);
     z.t = tt;
     ASSERT(e->Tag() == EXPR_TABLE_CONSTRUCTOR);
@@ -1190,7 +1190,7 @@ const ZAMStmt ZAMCompiler::ConstructSet(const NameExpr* n, const Expr* e) {
     auto tt = n->GetType()->AsTableType();
     auto width = tt->GetIndices()->GetTypes().size();
 
-    auto z = GenInst(OP_CONSTRUCT_SET_V, n, width);
+    auto z = GenInst(OP_CONSTRUCT_SET_Vi, n, width);
     z.aux = InternalBuildVals(con, width);
     z.t = e->GetType();
     ASSERT(e->Tag() == EXPR_SET_CONSTRUCTOR);

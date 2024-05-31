@@ -2427,18 +2427,20 @@ internal-op Sub-Bytes
 type VVCi
 eval	EvalSubBytes($$, $1, $2.uint_val, $3)
 
-### The next ones are weird
 internal-op Sub-Bytes
 type VCVV
-eval	EvalSubBytes($$, $3, $1.uint_val, $2.uint_val)
+eval	EvalSubBytes($$, $1, $2.uint_val, $3.uint_val)
 
 internal-op Sub-Bytes
-type VViC
-eval	EvalSubBytes($$, $3, $1.uint_val, $2)
+type VCVi
+eval	EvalSubBytes($$, $1, $2.uint_val, $3)
 
+# Use a distinct name because due to the convention when constructing
+# instructions, frame slots are always positioned earlier than non-frame
+# slots, i.e. we can't construct "VCiV".
 internal-op Sub-Bytes2
-type VViC
-eval	EvalSubBytes($$, $3, zeek_uint_t($2), $1.uint_val)
+type VCVi
+eval	EvalSubBytes($$, $1, zeek_uint_t($3), $2.uint_val)
 
 internal-op Time-To-Double
 type VV

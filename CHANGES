@@ -1,3 +1,11 @@
+7.0.0-dev.302 | 2024-05-31 09:37:21 -0700
+
+  * More precise error reporting for the disable_analyzer() BiF (Christian Kreibich, Corelight)
+
+  * Add btests for the lookup_connection_analyzer_id() BiF. (Christian Kreibich, Corelight)
+
+  * Add BiF for looking up a connection's numeric protocol analyzer IDs (Christian Kreibich, Corelight)
+
 7.0.0-dev.298 | 2024-05-29 13:49:00 -0700
 
   * removing now-vestigial "add" and "delete" statements (Vern Paxson, Corelight)

@@ -39,6 +39,26 @@ New Functionality
 - SMB2 packets containing multiple PDUs now correctly parse all of the headers,
   instead of just the first one and ignoring the rest.
 
+- The new built-in function ``lookup_connection_analyzer_id()`` retrieves the
+  numeric identifier of an analyzer associated with a connection. This enables
+  the use of the ``disable_analyzer()`` BiF outside of the analyzer
+  confirmation/violation events that have so far been the only providers of
+  those identifiers. For example, this allows the suppression of an analyzer
+  from the outset for specific connections:
+
+	event connection_established(c: connection):
+		{
+		if ( no_http_for_this_conn_wanted(c) )
+			{
+			local aid = lookup_connection_analyzer_id(c$id, Analyzer::ANALYZER_HTTP);
+			if ( aid > 0 )
+				disable_analyzer(c$id, aid, T, T);
+			}
+		}
+
+  Use ``Analyzer::get_tag()`` if you need to obtain an analyzer's tag from its
+  name (such as "HTTP").
+
 Changed Functionality
 ---------------------
 

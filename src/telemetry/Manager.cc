@@ -259,6 +259,32 @@ static bool compare_histograms(const std::optional<ZVal>& a, const std::optional
     return comparer(a, b, metric_record_type);
 }
 
+static VectorValPtr build_label_values_vector(const std::vector<prometheus::ClientMetric::Label>& prom_labels,
+                                              const VectorValPtr& record_label_names) {
+    static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
+    auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
+
+    // This feels really bad, since it's an O(m*n) search to bulld the vector,
+    // but prometheus-cpp returns us a vector of labels and so we just have to
+    // search through it.
+    int i = 0;
+    for ( const auto& name : record_label_names->RawVec() ) {
+        auto n = name->AsString()->ToStdStringView();
+        auto it = std::find_if(prom_labels.begin(), prom_labels.end(),
+                               [n](const prometheus::ClientMetric::Label& l) { return l.name == n; });
+        if ( it != prom_labels.end() )
+            label_values_vec->Assign(i, make_intrusive<StringVal>(it->value));
+
+        // See the comment in GetMetricOptsRecord about how labels from non-Zeek
+        // metrics within the same family can have different labels from each
+        // other. In this case we might leave some fields null in the output.
+
+        ++i;
+    }
+
+    return label_values_vec;
+}
+
 ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
     static auto metrics_vector_type = zeek::id::find_type<VectorType>("Telemetry::MetricVector");
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
@@ -287,17 +313,11 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
             continue;
 
         RecordValPtr opts_record = GetMetricOptsRecord(fam);
+        const auto& label_names = opts_record->GetField<VectorVal>("labels");
 
         for ( const auto& inst : fam.metric ) {
-            auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
-            for ( const auto& label : inst.label ) {
-                // We don't include the endpoint key/value unless it's a prometheus request
-                if ( label.name != "endpoint" )
-                    label_values_vec->Append(make_intrusive<StringVal>(label.value));
-            }
-
             auto r = make_intrusive<zeek::RecordVal>(metric_record_type);
-            r->Assign(labels_idx, label_values_vec);
+            r->Assign(labels_idx, build_label_values_vector(inst.label, label_names));
             r->Assign(opts_idx, opts_record);
 
             if ( fam.type == prometheus::MetricType::Counter )
@@ -360,17 +380,11 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
             continue;
 
         RecordValPtr opts_record = GetMetricOptsRecord(fam);
+        const auto& label_names = opts_record->GetField<VectorVal>("labels");
 
         for ( const auto& inst : fam.metric ) {
-            auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
-            for ( const auto& label : inst.label ) {
-                // We don't include the endpoint key/value unless it's a prometheus request
-                if ( label.name != "endpoint" )
-                    label_values_vec->Append(make_intrusive<StringVal>(label.value));
-            }
-
             auto r = make_intrusive<zeek::RecordVal>(histogram_metric_type);
-            r->Assign(labels_idx, label_values_vec);
+            r->Assign(labels_idx, build_label_values_vector(inst.label, label_names));
             r->Assign(opts_idx, opts_record);
 
             auto double_values_vec = make_intrusive<zeek::VectorVal>(double_vec_type);

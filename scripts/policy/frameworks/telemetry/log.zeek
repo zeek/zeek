@@ -33,9 +33,6 @@ export {
 		## the underlying metric type.
 		metric_type: string &log;
 
-		## The prefix (namespace) of the metric.
-		prefix: string &log;
-
 		## The name of the metric.
 		name: string &log;
 
@@ -56,9 +53,6 @@ export {
 
 		## Peer that generated this log.
 		peer: string &log;
-
-		## The prefix (namespace) of the metric.
-		prefix: string &log;
 
 		## The name of the metric.
 		name: string &log;
@@ -137,7 +131,6 @@ function do_log()
 		local rec = Info($ts=ts,
 		                 $peer=peer_description,
 		                 $metric_type=metric_type,
-		                 $prefix=m$opts$prefix,
 		                 $name=m$opts$name,
 		                 $labels=m$opts$labels,
 		                 $label_values=m$labels,
@@ -168,7 +161,6 @@ function do_log()
 
 		local hrec = HistogramInfo($ts=ts,
 		                           $peer=peer_description,
-		                           $prefix=hm$opts$prefix,
 		                           $name=hm$opts$name,
 		                           $labels=hm$opts$labels,
 		                           $label_values=hm$labels,

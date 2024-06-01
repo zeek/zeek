@@ -200,7 +200,7 @@ public:
      * @return A JSON description of the cluster configuration for reporting
      * to Prometheus for service discovery requests.
      */
-    std::string GetClusterJson() const;
+    std::string GetClusterJson() const { return cluster_json; }
 
     /**
      * @return The pointer to the prometheus-cpp registry used by the telemetry
@@ -230,6 +230,7 @@ protected:
 
 private:
     RecordValPtr GetMetricOptsRecord(const prometheus::MetricFamily& metric_family);
+    void BuildClusterJson();
 
     std::map<std::string, std::shared_ptr<MetricFamily>> families;
     std::map<std::string, RecordValPtr> opts_records;
@@ -242,11 +243,10 @@ private:
     GaugePtr cpu_gauge;
     GaugePtr fds_gauge;
 
-    std::string endpoint_name;
-    std::vector<std::string> export_prefixes;
-
     std::shared_ptr<prometheus::Registry> prometheus_registry;
     std::unique_ptr<prometheus::Exposer> prometheus_exposer;
+
+    std::string cluster_json;
 };
 
 } // namespace zeek::telemetry

@@ -44,6 +44,8 @@ void Manager::InitPostScript() {
             static auto manager_type = node_type_type->Lookup("Cluster", "MANAGER");
 
             if ( local_node_type == manager_type ) {
+                BuildClusterJson();
+
                 callbacks = new CivetCallbacks();
                 callbacks->begin_request = [](struct mg_connection* conn) -> int {
                     // Handle the services.json request ourselves by building up a response based on
@@ -414,7 +416,7 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
     return ret_val;
 }
 
-std::string Manager::GetClusterJson() const {
+void Manager::BuildClusterJson() {
     rapidjson::StringBuffer buffer;
     json::detail::NullDoubleWriter writer(buffer);
 
@@ -423,8 +425,9 @@ std::string Manager::GetClusterJson() const {
 
     writer.Key("targets");
     writer.StartArray();
-    auto cluster_nodes = id::find_val("Cluster::nodes")->AsTableVal()->ToMap();
-    for ( const auto& [idx, value] : cluster_nodes ) {
+    auto& node_val = id::find_val("Cluster::nodes");
+    auto node_map = node_val->AsTableVal()->ToMap();
+    for ( const auto& [idx, value] : node_map ) {
         auto node = value->AsRecordVal();
         auto ip = node->GetField<AddrVal>("ip");
         auto port = node->GetField<PortVal>("metrics_port");
@@ -440,7 +443,7 @@ std::string Manager::GetClusterJson() const {
     writer.EndObject();
     writer.EndArray();
 
-    return buffer.GetString();
+    cluster_json = buffer.GetString();
 }
 
 CounterFamilyPtr Manager::CounterFamily(std::string_view prefix, std::string_view name,

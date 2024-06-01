@@ -344,6 +344,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"lookup_addr", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"lookup_autonomous_system", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"lookup_connection", ATTR_NO_ZEEK_SIDE_EFFECTS},
+    {"lookup_connection_analyzer_id", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"lookup_hostname", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"lookup_hostname_txt", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"lookup_location", ATTR_NO_SCRIPT_SIDE_EFFECTS},

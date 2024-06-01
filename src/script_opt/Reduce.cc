@@ -384,7 +384,7 @@ NameExprPtr Reducer::GetRetVar(TypePtr type) {
         return nullptr;
 
     IDPtr ret_id = install_ID("@retvar", "<internal>", false, false);
-    ret_id->SetType(type);
+    ret_id->SetType(std::move(type));
     ret_id->GetOptInfo()->SetTemp();
 
     ret_vars.insert(ret_id.get());

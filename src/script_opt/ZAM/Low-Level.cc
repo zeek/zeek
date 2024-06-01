@@ -24,7 +24,9 @@ const ZAMStmt ZAMCompiler::LastInst() { return ZAMStmt(insts1.size() - 1); }
 
 const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
 
-OpaqueVals* ZAMCompiler::BuildVals(const ListExprPtr& l) { return new OpaqueVals(InternalBuildVals(l.get())); }
+std::unique_ptr<OpaqueVals> ZAMCompiler::BuildVals(const ListExprPtr& l) {
+    return std::make_unique<OpaqueVals>(InternalBuildVals(l.get()));
+}
 
 ZInstAux* ZAMCompiler::InternalBuildVals(const ListExpr* l, int stride) {
     auto exprs = l->Exprs();

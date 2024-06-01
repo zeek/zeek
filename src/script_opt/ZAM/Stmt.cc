@@ -78,7 +78,7 @@ const ZAMStmt ZAMCompiler::CompilePrint(const PrintStmt* ps) {
             return Print1C(e0->AsConstExpr());
     }
 
-    return PrintO(BuildVals(l));
+    return PrintO(BuildVals(l).get());
 }
 
 const ZAMStmt ZAMCompiler::CompileExpr(const ExprStmt* es) {

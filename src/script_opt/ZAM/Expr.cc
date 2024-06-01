@@ -101,7 +101,7 @@ const ZAMStmt ZAMCompiler::CompileAdd(const AggrAddExpr* e) {
             return AddStmt1VC(aggr, e1->AsConstExpr());
     }
 
-    return AddStmtVO(aggr, BuildVals(indices));
+    return AddStmtVO(aggr, BuildVals(indices).get());
 }
 
 const ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
@@ -128,7 +128,7 @@ const ZAMStmt ZAMCompiler::CompileDel(const AggrDelExpr* e) {
     if ( index_list->Tag() != EXPR_LIST )
         reporter->InternalError("non-list in \"delete\"");
 
-    auto internal_ind = std::unique_ptr<OpaqueVals>(BuildVals(index_list->AsListExprPtr()));
+    auto internal_ind = BuildVals(index_list->AsListExprPtr());
     return DelTableVO(aggr, internal_ind.get());
 }
 

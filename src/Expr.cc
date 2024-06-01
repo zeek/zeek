@@ -2793,7 +2793,7 @@ void FieldExpr::Assign(Frame* f, ValPtr v) {
     if ( IsError() )
         return;
 
-    Assign(op->Eval(f), v);
+    Assign(op->Eval(f), std::move(v));
 }
 
 void FieldExpr::Assign(ValPtr lhs, ValPtr rhs) {
@@ -2807,7 +2807,7 @@ ValPtr FieldExpr::Delete(Frame* f) {
         return nullptr;
 
     auto former = op_v->AsRecordVal()->GetField(field);
-    Assign(op_v, nullptr);
+    Assign(std::move(op_v), nullptr);
     // In the future we could return a value, such as former, here.
     return nullptr;
 }

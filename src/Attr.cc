@@ -221,8 +221,13 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef) {
     // instantiator of the object specified a null type, however, then
     // that's a signal to skip the checking. If the type is error,
     // there's no point checking attributes either.
-    if ( type && ! IsErrorType(type->Tag()) )
-        CheckAttr(attr.get());
+    if ( type && ! IsErrorType(type->Tag()) ) {
+        if ( ! CheckAttr(attr.get()) ) {
+            // Get rid of it, so we don't get error cascades down the line.
+            RemoveAttr(attr->Tag());
+            return;
+        }
+    }
 
     // For ADD_FUNC or DEL_FUNC, add in an implicit REDEF, since
     // those attributes only have meaning for a redefinable value.
@@ -285,7 +290,7 @@ void Attributes::DescribeReST(ODesc* d, bool shorten) const {
     }
 }
 
-void Attributes::CheckAttr(Attr* a) {
+bool Attributes::CheckAttr(Attr* a) {
     switch ( a->Tag() ) {
         case ATTR_DEPRECATED:
         case ATTR_REDEF:
@@ -294,7 +299,7 @@ void Attributes::CheckAttr(Attr* a) {
 
         case ATTR_OPTIONAL:
             if ( global_var )
-                Error("&optional is not valid for global variables");
+                return AttrError("&optional is not valid for global variables");
             break;
 
         case ATTR_ADD_FUNC:
@@ -304,61 +309,53 @@ void Attributes::CheckAttr(Attr* a) {
             const auto& at = a->GetExpr()->GetType();
             if ( at->Tag() != TYPE_FUNC ) {
                 a->GetExpr()->Error(is_add ? "&add_func must be a function" : "&delete_func must be a function");
-                break;
+                return false;
             }
 
             FuncType* aft = at->AsFuncType();
             if ( ! same_type(aft->Yield(), type) ) {
                 a->GetExpr()->Error(is_add ? "&add_func function must yield same type as variable" :
                                              "&delete_func function must yield same type as variable");
-                break;
+                return false;
             }
         } break;
 
         case ATTR_DEFAULT_INSERT: {
-            if ( ! type->IsTable() ) {
-                Error("&default_insert only applicable to tables");
-                break;
-            }
+            if ( ! type->IsTable() )
+                return AttrError("&default_insert only applicable to tables");
 
-            if ( Find(ATTR_DEFAULT) ) {
-                Error("&default and &default_insert cannot be used together");
-                break;
-            }
+            if ( Find(ATTR_DEFAULT) )
+                return AttrError("&default and &default_insert cannot be used together");
 
             std::string err_msg;
             if ( ! check_default_attr(a, type, global_var, in_record, err_msg) && ! err_msg.empty() )
-                Error(err_msg.c_str());
+                return AttrError(err_msg.c_str());
             break;
         }
 
         case ATTR_DEFAULT: {
-            if ( Find(ATTR_DEFAULT_INSERT) ) {
-                Error("&default and &default_insert cannot be used together");
-                break;
-            }
+            if ( Find(ATTR_DEFAULT_INSERT) )
+                return AttrError("&default and &default_insert cannot be used together");
 
             std::string err_msg;
             if ( ! check_default_attr(a, type, global_var, in_record, err_msg) && ! err_msg.empty() )
-                Error(err_msg.c_str());
+                return AttrError(err_msg.c_str());
             break;
         }
 
         case ATTR_EXPIRE_READ: {
             if ( Find(ATTR_BROKER_STORE) )
-                Error("&broker_store and &read_expire cannot be used simultaneously");
+                return AttrError("&broker_store and &read_expire cannot be used simultaneously");
 
             if ( Find(ATTR_BACKEND) )
-                Error("&backend and &read_expire cannot be used simultaneously");
+                return AttrError("&backend and &read_expire cannot be used simultaneously");
         }
             // fallthrough
 
         case ATTR_EXPIRE_WRITE:
         case ATTR_EXPIRE_CREATE: {
-            if ( type->Tag() != TYPE_TABLE ) {
-                Error("expiration only applicable to sets/tables");
-                break;
-            }
+            if ( type->Tag() != TYPE_TABLE )
+                return AttrError("expiration only applicable to sets/tables");
 
             int num_expires = 0;
 
@@ -368,57 +365,49 @@ void Attributes::CheckAttr(Attr* a) {
                     num_expires++;
             }
 
-            if ( num_expires > 1 ) {
-                Error(
+            if ( num_expires > 1 )
+                return AttrError(
                     "set/table can only have one of &read_expire, &write_expire, "
                     "&create_expire");
-                break;
-            }
         }
 
 #if 0
 		//### not easy to test this w/o knowing the ID.
 		if ( ! global_var )
-			Error("expiration not supported for local variables");
+			return AttrError("expiration not supported for local variables");
 #endif
 
         break;
 
         case ATTR_EXPIRE_FUNC: {
-            if ( type->Tag() != TYPE_TABLE ) {
-                Error("expiration only applicable to tables");
-                break;
-            }
+            if ( type->Tag() != TYPE_TABLE )
+                return AttrError("expiration only applicable to tables");
 
             type->AsTableType()->CheckExpireFuncCompatibility({NewRef{}, a});
 
             if ( Find(ATTR_BROKER_STORE) )
-                Error("&broker_store and &expire_func cannot be used simultaneously");
+                return AttrError("&broker_store and &expire_func cannot be used simultaneously");
 
             if ( Find(ATTR_BACKEND) )
-                Error("&backend and &expire_func cannot be used simultaneously");
+                return AttrError("&backend and &expire_func cannot be used simultaneously");
 
             break;
         }
 
         case ATTR_ON_CHANGE: {
-            if ( type->Tag() != TYPE_TABLE ) {
-                Error("&on_change only applicable to sets/tables");
-                break;
-            }
+            if ( type->Tag() != TYPE_TABLE )
+                return AttrError("&on_change only applicable to sets/tables");
 
             const auto& change_func = a->GetExpr();
 
             if ( change_func->GetType()->Tag() != TYPE_FUNC ||
                  change_func->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
-                Error("&on_change attribute is not a function");
+                return AttrError("&on_change attribute is not a function");
 
             const FuncType* c_ft = change_func->GetType()->AsFuncType();
 
-            if ( c_ft->Yield()->Tag() != TYPE_VOID ) {
-                Error("&on_change must not return a value");
-                break;
-            }
+            if ( c_ft->Yield()->Tag() != TYPE_VOID )
+                return AttrError("&on_change must not return a value");
 
             const TableType* the_table = type->AsTableType();
 
@@ -427,107 +416,85 @@ void Attributes::CheckAttr(Attr* a) {
 
             const auto& args = c_ft->ParamList()->GetTypes();
             const auto& t_indexes = the_table->GetIndexTypes();
-            if ( args.size() != (type->IsSet() ? 2 : 3) + t_indexes.size() ) {
-                Error("&on_change function has incorrect number of arguments");
-                break;
-            }
+            if ( args.size() != (type->IsSet() ? 2 : 3) + t_indexes.size() )
+                return AttrError("&on_change function has incorrect number of arguments");
 
-            if ( ! same_type(args[0], the_table->AsTableType()) ) {
-                Error("&on_change: first argument must be of same type as table");
-                break;
-            }
+            if ( ! same_type(args[0], the_table->AsTableType()) )
+                return AttrError("&on_change: first argument must be of same type as table");
 
             // can't check exact type here yet - the data structures don't exist yet.
-            if ( args[1]->Tag() != TYPE_ENUM ) {
-                Error("&on_change: second argument must be a TableChange enum");
-                break;
-            }
+            if ( args[1]->Tag() != TYPE_ENUM )
+                return AttrError("&on_change: second argument must be a TableChange enum");
 
             for ( size_t i = 0; i < t_indexes.size(); i++ ) {
-                if ( ! same_type(args[2 + i], t_indexes[i]) ) {
-                    Error("&on_change: index types do not match table");
-                    break;
-                }
+                if ( ! same_type(args[2 + i], t_indexes[i]) )
+                    return AttrError("&on_change: index types do not match table");
             }
 
             if ( ! type->IsSet() )
-                if ( ! same_type(args[2 + t_indexes.size()], the_table->Yield()) ) {
-                    Error("&on_change: value type does not match table");
-                    break;
-                }
+                if ( ! same_type(args[2 + t_indexes.size()], the_table->Yield()) )
+                    return AttrError("&on_change: value type does not match table");
         } break;
 
         case ATTR_BACKEND: {
-            if ( ! global_var || type->Tag() != TYPE_TABLE ) {
-                Error("&backend only applicable to global sets/tables");
-                break;
-            }
+            if ( ! global_var || type->Tag() != TYPE_TABLE )
+                return AttrError("&backend only applicable to global sets/tables");
 
             // cannot do better equality check - the Broker types are not
             // actually existing yet when we are here. We will do that
             // later - before actually attaching to a broker store
-            if ( a->GetExpr()->GetType()->Tag() != TYPE_ENUM ) {
-                Error("&backend must take an enum argument");
-                break;
-            }
+            if ( a->GetExpr()->GetType()->Tag() != TYPE_ENUM )
+                return AttrError("&backend must take an enum argument");
 
             // Only support atomic types for the moment, unless
             // explicitly overridden
             if ( ! type->AsTableType()->IsSet() &&
                  ! input::Manager::IsCompatibleType(type->AsTableType()->Yield().get(), true) &&
-                 ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) ) {
-                Error("&backend only supports atomic types as table value");
-            }
+                 ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )
+                return AttrError("&backend only supports atomic types as table value");
 
             if ( Find(ATTR_EXPIRE_FUNC) )
-                Error("&backend and &expire_func cannot be used simultaneously");
+                return AttrError("&backend and &expire_func cannot be used simultaneously");
 
             if ( Find(ATTR_EXPIRE_READ) )
-                Error("&backend and &read_expire cannot be used simultaneously");
+                return AttrError("&backend and &read_expire cannot be used simultaneously");
 
             if ( Find(ATTR_BROKER_STORE) )
-                Error("&backend and &broker_store cannot be used simultaneously");
+                return AttrError("&backend and &broker_store cannot be used simultaneously");
 
             break;
         }
 
         case ATTR_BROKER_STORE: {
-            if ( type->Tag() != TYPE_TABLE ) {
-                Error("&broker_store only applicable to sets/tables");
-                break;
-            }
+            if ( type->Tag() != TYPE_TABLE )
+                return AttrError("&broker_store only applicable to sets/tables");
 
-            if ( a->GetExpr()->GetType()->Tag() != TYPE_STRING ) {
-                Error("&broker_store must take a string argument");
-                break;
-            }
+            if ( a->GetExpr()->GetType()->Tag() != TYPE_STRING )
+                return AttrError("&broker_store must take a string argument");
 
             // Only support atomic types for the moment, unless
             // explicitly overridden
             if ( ! type->AsTableType()->IsSet() &&
                  ! input::Manager::IsCompatibleType(type->AsTableType()->Yield().get(), true) &&
-                 ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) ) {
-                Error("&broker_store only supports atomic types as table value");
-            }
+                 ! Find(ATTR_BROKER_STORE_ALLOW_COMPLEX) )
+                return AttrError("&broker_store only supports atomic types as table value");
 
             if ( Find(ATTR_EXPIRE_FUNC) )
-                Error("&broker_store and &expire_func cannot be used simultaneously");
+                return AttrError("&broker_store and &expire_func cannot be used simultaneously");
 
             if ( Find(ATTR_EXPIRE_READ) )
-                Error("&broker_store and &read_expire cannot be used simultaneously");
+                return AttrError("&broker_store and &read_expire cannot be used simultaneously");
 
             if ( Find(ATTR_BACKEND) )
-                Error("&backend and &broker_store cannot be used simultaneously");
+                return AttrError("&backend and &broker_store cannot be used simultaneously");
 
             break;
         }
 
-        case ATTR_BROKER_STORE_ALLOW_COMPLEX: {
-            if ( type->Tag() != TYPE_TABLE ) {
-                Error("&broker_allow_complex_type only applicable to sets/tables");
-                break;
-            }
-        }
+        case ATTR_BROKER_STORE_ALLOW_COMPLEX:
+            if ( type->Tag() != TYPE_TABLE )
+                return AttrError("&broker_allow_complex_type only applicable to sets/tables");
+            break;
 
         case ATTR_TRACKED:
             // FIXME: Check here for global ID?
@@ -535,49 +502,52 @@ void Attributes::CheckAttr(Attr* a) {
 
         case ATTR_RAW_OUTPUT:
             if ( type->Tag() != TYPE_FILE )
-                Error("&raw_output only applicable to files");
+                return AttrError("&raw_output only applicable to files");
             break;
 
-        case ATTR_PRIORITY: Error("&priority only applicable to event bodies"); break;
+        case ATTR_PRIORITY: return AttrError("&priority only applicable to event bodies");
 
         case ATTR_GROUP:
             if ( type->Tag() != TYPE_FUNC || type->AsFuncType()->Flavor() != FUNC_FLAVOR_EVENT )
-                Error("&group only applicable to events");
+                return AttrError("&group only applicable to events");
             break;
 
         case ATTR_ERROR_HANDLER:
             if ( type->Tag() != TYPE_FUNC || type->AsFuncType()->Flavor() != FUNC_FLAVOR_EVENT )
-                Error("&error_handler only applicable to events");
+                return AttrError("&error_handler only applicable to events");
             break;
 
         case ATTR_LOG:
             if ( ! threading::Value::IsCompatibleType(type.get()) )
-                Error("&log applied to a type that cannot be logged");
+                return AttrError("&log applied to a type that cannot be logged");
             break;
 
         case ATTR_TYPE_COLUMN: {
-            if ( type->Tag() != TYPE_PORT ) {
-                Error("type_column tag only applicable to ports");
-                break;
-            }
+            if ( type->Tag() != TYPE_PORT )
+                return AttrError("type_column tag only applicable to ports");
 
             const auto& atype = a->GetExpr()->GetType();
 
-            if ( atype->Tag() != TYPE_STRING ) {
-                Error("type column needs to have a string argument");
-                break;
-            }
+            if ( atype->Tag() != TYPE_STRING )
+                return AttrError("type column needs to have a string argument");
 
             break;
         }
 
         case ATTR_ORDERED:
             if ( type->Tag() != TYPE_TABLE )
-                Error("&ordered only applicable to tables");
+                return AttrError("&ordered only applicable to tables");
             break;
 
         default: BadTag("Attributes::CheckAttr", attr_name(a->Tag()));
     }
+
+    return true;
+}
+
+bool Attributes::AttrError(const char* msg) {
+    Error(msg);
+    return false;
 }
 
 bool Attributes::operator==(const Attributes& other) const {

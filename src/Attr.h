@@ -131,7 +131,11 @@ public:
     detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
 protected:
-    void CheckAttr(Attr* attr);
+    // Returns true if the attribute is okay, false if not.
+    bool CheckAttr(Attr* attr);
+
+    // Reports an attribute error and returns false (handy for CheckAttr()).
+    bool AttrError(const char* msg);
 
     TypePtr type;
     std::vector<AttrPtr> attrs;

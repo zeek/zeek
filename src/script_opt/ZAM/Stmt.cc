@@ -861,7 +861,7 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const Expr* e) {
     }
     else {
         ASSERT(c);
-        z = ZInstI(OP_INIT_STRING_LOOP_iC, iter_slot, c);
+        z = ZInstI(OP_INIT_STRING_LOOP_Ci, iter_slot, c);
         z.op_type = OP_VC_I1;
     }
 

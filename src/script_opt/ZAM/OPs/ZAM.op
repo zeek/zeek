@@ -109,6 +109,9 @@
 # 		constant, and the third operand is the instruction's third
 # 		integer value, with the fourth integer value not being used.
 #
+#	types	specifies a number of "type" values to instantiate over.
+#		Cannot be combined with "type", nor used for expressions.
+#
 # 	op-type for some form of expr-op, specifies to which Zeek scripting
 # 		types the expression applies:
 #
@@ -377,7 +380,7 @@ eval	auto vv = $1.vector_val;
 	vv->Assign(vv->Size(), $2.ToVal(z.t));
 
 internal-op AddPatternToField
-type VVi
+types VVi VCi
 op1-read
 eval	EvalAddPatternToField($$.record_val, $1, $2)
 
@@ -390,11 +393,6 @@ macro EvalAddPatternToField(r, v, f)
 		}
 	else
 		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(f)));
-
-internal-op AddPatternToField
-type VCi
-op1-read
-eval	EvalAddPatternToField($$.record_val, $1, $2)
 
 unary-op ExtendPattern
 op1-read
@@ -709,26 +707,14 @@ macro EvalPInS(lhs, op1, op2)
 	lhs.int_val = op1.re_val->MatchAnywhere(op2.string_val->AsString()) != 0;
 
 internal-op P-In-S
-type VVV
-eval	EvalPInS($$, $1, $2)
-
-internal-op P-In-S
-type VCV
-eval	EvalPInS($$, $1, $2)
-
-internal-op P-In-S
-type VVC
+types VVV VCV VVC
 eval	EvalPInS($$, $1, $2)
 
 macro EvalStrInPatTbl(lhs, op1, op2)
 	lhs.int_val = op2.table_val->MatchPattern({NewRef{}, op1.string_val});
 
 internal-op Str-In-Pat-Tbl
-type VVV
-eval	EvalStrInPatTbl($$, $1, $2)
-
-internal-op Str-In-Pat-Tbl
-type VCV
+types VVV VCV
 eval	EvalStrInPatTbl($$, $1, $2)
 
 internal-binary-op S-In-S
@@ -881,12 +867,7 @@ eval	auto op1 = $3.ToVal(z.t);
 		BRANCH($2)
 
 internal-op List-Is-In-Table
-type VV
-eval	auto op1 = z.aux->ToListVal(frame);
-	$$.int_val = $1.table_val->Find(std::move(op1)) != nullptr;
-
-internal-op List-Is-In-Table
-type VC
+types VV VC
 eval	auto op1 = z.aux->ToListVal(frame);
 	$$.int_val = $1.table_val->Find(std::move(op1)) != nullptr;
 
@@ -905,12 +886,12 @@ eval	auto& vec = $2.vector_val;
 expr-op Cond
 type VVVV
 set-type $2
-eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
+eval   AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
 
 expr-op Cond
 type VVVC
 set-type $2
-eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
+eval   AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
 
 expr-op Cond
 type VVCV
@@ -950,7 +931,7 @@ eval	if ( ! $1.int_val )
 ########## Index Expressions ##########
 
 op IndexVecBoolSelect
-type VVV
+types VVV VCV
 set-type $$
 eval	EvalIndexVecBoolSelect($$, $1, $2)
 
@@ -967,13 +948,8 @@ macro EvalIndexVecBoolSelect(lhs, op1, op2)
 	Unref(lhs.vector_val);
 	lhs.vector_val = v.release();
 
-op IndexVecBoolSelect
-type VCV
-set-type $$
-eval	EvalIndexVecBoolSelect($$, $1, $2)
-
 op IndexVecIntSelect
-type VVV
+types VVV VCV
 set-type $$
 eval	EvalIndexVecIntSelect($$, $1, $2)
 
@@ -984,11 +960,6 @@ macro EvalIndexVecIntSelect(lhs, op1, op2)
 	auto v = vector_int_select(std::move(vt), v2, v3);
 	Unref(lhs.vector_val);
 	lhs.vector_val = v.release();
-
-op IndexVecIntSelect
-type VCV
-set-type $$
-eval	EvalIndexVecIntSelect($$, $1, $2)
 
 op Index
 type VVL
@@ -1087,11 +1058,7 @@ macro	EvalTablePatStr(lhs, tbl, index)
 	lhs = vec;
 
 internal-op Table-PatStr-Index
-type VVV
-eval	EvalTablePatStr($$, $1, $2)
-
-internal-op Table-PatStr-Index
-type VVC
+types VVV VVC
 eval	EvalTablePatStr($$, $1, $2)
 
 internal-op When-Table-Index
@@ -1119,15 +1086,10 @@ eval	auto args = z.aux->ToListVal(frame);
 	AssignTarget($$, BuildVal(v, z.t))
 
 internal-assignment-op Table-Index1
-type VVV
+types VVV VVC
 assign-val v
 eval	EvalTableIndex($1, $2.ToVal(z.t))
 # No AssignTarget needed, as this is an assignment-op
-
-internal-assignment-op Table-Index1
-type VVC
-assign-val v
-eval	EvalTableIndex($1, $2.ToVal(z.t))
 
 # This version is for a variable v3.
 internal-op Index-String
@@ -1475,7 +1437,7 @@ eval	EvalVectorElemAssign($1, $2,, copy_vec_elem(vv, ind, $3, z.t))
 op Any-Vector-Elem-Assign
 op1-read
 set-type $1
-type VVV
+types VVV VVC
 eval	EvalVectorElemAssign($1, $2,, vv->Assign(ind, $3.ToVal(z.t)))
 
 op Vector-Elem-Assign-Any
@@ -1489,14 +1451,6 @@ set-type $2
 type VVC
 eval	VectorElemAssignPre($1, $2)
 	(void) copy_vec_elem(vv, ind, $3, z.t);
-
-op Any-Vector-Elem-Assign
-op1-read
-set-type $1
-type VVC
-eval	VectorElemAssignPre($1, $2)
-	if ( ! vv->Assign(ind, $3.ToVal(z.t)) )
-		ZAM_run_time_error(z.loc, "vector index assignment failed for invalid type");
 
 # These versions are used when the constant is the index, not the new value.
 op Vector-Elem-Assign
@@ -1538,7 +1492,7 @@ eval	ValPtr vec = {NewRef{}, $1.vector_val};
 
 internal-op Table-Elem-Assign
 op1-read
-type VV
+types VV VC
 eval	EvalTableElemAssign($1, $2)
 
 macro EvalTableElemAssign(tbl, value)
@@ -1548,11 +1502,6 @@ macro EvalTableElemAssign(tbl, value)
 	tbl.table_val->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
 	if ( iterators_invalidated )
 		ZAM_run_time_warning(z.loc, "possible loop/iterator invalidation");
-
-internal-op Table-Elem-Assign
-op1-read
-type VC
-eval	EvalTableElemAssign($1, $2)
 
 
 ########## Function Calls ##########
@@ -1574,13 +1523,7 @@ num-call-args 0
 # Calls with 1 argument and no return value.
 internal-op Call1
 op1-read
-type V
-side-effects
-num-call-args 1
-
-internal-op Call1
-op1-read
-type C
+types V C
 side-effects
 num-call-args 1
 
@@ -1768,12 +1711,7 @@ custom-method return CompileSchedule(nullptr, c, i, h, l);
 eval	EvalSchedule($1, $2)
 
 internal-op Schedule0
-type ViH
-op1-read
-eval	EvalScheduleArgs($1, $2,)
-
-internal-op Schedule0
-type CiH
+types ViH CiH
 op1-read
 eval	EvalScheduleArgs($1, $2,)
 
@@ -1844,12 +1782,8 @@ macro EvalReturn(val, type)
 
 op Return
 op1-read
-type V
+types V C
 set-type $$
-eval	EvalReturn(&$$, ret_type = z.t;)
-
-op Return
-type C
 eval	EvalReturn(&$$, ret_type = z.t;)
 
 
@@ -2023,14 +1957,9 @@ eval	NextVectorIterCore($1, $2)
 
 
 internal-op Init-String-Loop
-type Vi
+types Vi Ci
 op1-read
 eval	step_iters[$2].InitLoop($1.string_val->AsString());
-
-internal-op Init-String-Loop
-op1-read
-type iC
-eval	step_iters[$1].InitLoop($2.string_val->AsString());
 
 internal-op Next-String-Iter
 # v1 = iteration variable
@@ -2076,7 +2005,7 @@ method-post z.aux = v->aux;
 
 op Print1
 op1-read
-type V
+types V C
 set-type $$
 eval	EvalPrint1($$)
 
@@ -2084,12 +2013,6 @@ macro EvalPrint1(value)
 	std::vector<ValPtr> vals;
 	vals.push_back(value.ToVal(z.t));
 	do_print_stmt(vals);
-
-op Print1
-op1-read
-type C
-set-type $$
-eval	EvalPrint1($1)
 
 
 internal-op If-Else
@@ -2124,12 +2047,7 @@ macro EvalAddStmt(lhs, ind)
 op AddStmt1
 op1-read
 set-type $1
-type VV
-eval	EvalAddStmt($1, $2.ToVal(z.t))
-
-op AddStmt1
-op1-read
-type VC
+types VV VC
 eval	EvalAddStmt($1, $2.ToVal(z.t))
 
 
@@ -2186,12 +2104,7 @@ op1-read
 eval	BuildWhen($1, -1.0)
 
 op When-Timeout
-type VV
-op1-read
-eval	BuildWhen($1, $2.double_val)
-
-op When-Timeout
-type VC
+types VV VC
 op1-read
 eval	BuildWhen($1, $2.double_val)
 
@@ -2217,18 +2130,13 @@ macro BuildWhen(zf, timeout)
 # These two are only needed for type-based switch statements.  Could think
 # about replacing them using CoerceFromAnyExpr.
 op Assign-Any
-type VV
+types VV VC
 set-type $1
 eval	EvalAssignAny($$, $1)
 
 macro EvalAssignAny(lhs, value)
 	auto v = value.ToVal(z.t);
 	lhs.any_val = v.release();
-
-op Assign-Any
-type VC
-set-type $1
-eval	EvalAssignAny($$, $1)
 
 # Lazy way to assign without having to track the specific type of
 # a constant.
@@ -2412,27 +2320,11 @@ macro EvalSubBytes(lhs, arg1, arg2, arg3)
 	}
 
 internal-op Sub-Bytes
-type VVVV
+types VVVV VVVC VVCV VCVV
 eval	EvalSubBytes($$, $1, $2.uint_val, $3.int_val)
 
 internal-op Sub-Bytes
-type VVVC
-eval	EvalSubBytes($$, $1, $2.uint_val, $3.int_val)
-
-internal-op Sub-Bytes
-type VVCV
-eval	EvalSubBytes($$, $1, $2.uint_val, $3.int_val)
-
-internal-op Sub-Bytes
-type VVCi
-eval	EvalSubBytes($$, $1, $2.uint_val, $3)
-
-internal-op Sub-Bytes
-type VCVV
-eval	EvalSubBytes($$, $1, $2.uint_val, $3.uint_val)
-
-internal-op Sub-Bytes
-type VCVi
+types VVCi VCVi
 eval	EvalSubBytes($$, $1, $2.uint_val, $3)
 
 # Use a distinct name because due to the convention when constructing
@@ -2725,15 +2617,7 @@ macro EvalStartsWith(lhs, str_val, sub_val)
 		}
 
 internal-op Starts-With
-type VVV
-eval	EvalStartsWith($$, $1, $2)
-
-internal-op Starts-With
-type VCV
-eval	EvalStartsWith($$, $1, $2)
-
-internal-op Starts-With
-type VVC
+types VVV VCV VVC
 eval	EvalStartsWith($$, $1, $2)
 
 macro EvalStrCmp(lhs, s1_src, s2_src)
@@ -2742,15 +2626,7 @@ macro EvalStrCmp(lhs, s1_src, s2_src)
 	lhs.int_val = Bstr_cmp(s1->AsString(), s2->AsString());
 
 internal-op StrCmp
-type VVV
-eval	EvalStrCmp($$, $1, $2)
-
-internal-op StrCmp
-type VCV
-eval	EvalStrCmp($$, $1, $2)
-
-internal-op StrCmp
-type VVC
+types VVV VCV VVC
 eval	EvalStrCmp($$, $1, $2)
 
 macro EvalStrStr(lhs, big_value, little_value)
@@ -2759,15 +2635,7 @@ macro EvalStrStr(lhs, big_value, little_value)
 	lhs.int_val = 1 + big->AsString()->FindSubstring(little->AsString());
 
 internal-op StrStr
-type VVV
-eval	EvalStrStr($$, $1, $2)
-
-internal-op StrStr
-type VCV
-eval	EvalStrStr($$, $1, $2)
-
-internal-op StrStr
-type VVC
+types VVV VCV VVC
 eval	EvalStrStr($$, $1, $2)
 
 macro Cat1Op(lhs, val)
@@ -2780,11 +2648,7 @@ macro Cat1OpRef(lhs, val)
 	zeek::Ref(v1.string_val);
 
 internal-op Cat1
-type VC
-eval	Cat1OpRef($$, $1)
-
-internal-op Cat1
-type VV
+types VV VC
 eval	Cat1OpRef($$, $1)
 
 macro Cat1FullVal(lhs, val)
@@ -2792,11 +2656,7 @@ macro Cat1FullVal(lhs, val)
 	Cat1Op(lhs, formatted_val)
 
 internal-op Cat1Full
-type VC
-eval	Cat1FullVal($$, $1)
-
-internal-op Cat1Full
-type VV
+types VV VC
 eval	Cat1FullVal($$, $1)
 
 internal-op CatN
@@ -2955,11 +2815,7 @@ macro AnalyzerName(lhs, tag)
 		lhs.string_val = new StringVal("<error>");
 
 internal-op Analyzer-Name
-type VV
-eval	AnalyzerName($$, $1)
-
-internal-op Analyzer-Name
-type VC
+types VV VC
 eval	AnalyzerName($$, $1)
 
 macro FilesAddOrRemoveAnalyzer(file_id_val, tag, args_val, METHOD)
@@ -2976,23 +2832,12 @@ macro FilesAddAnalyzer(file_id_val, tag, args_val)
 
 internal-op Files-Add-Analyzer
 op1-read
-type VVV
+types VVV VCV
 eval	FilesAddAnalyzer($1, $2, $3)
 
 internal-op Files-Add-Analyzer
-op1-read
-type VCV
-eval	FilesAddAnalyzer($1, $2, $3)
-
-internal-op Files-Add-Analyzer
-type VVVV
+types VVVV VVCV
 side-effects OP_FILES_ADD_ANALYZER_VVV OP_VVV
-eval	FilesAddAnalyzer($1, $2, $3)
-	$$.int_val = result;
-
-internal-op Files-Add-Analyzer
-type VVCV
-side-effects OP_FILES_ADD_ANALYZER_VCV OP_VVC
 eval	FilesAddAnalyzer($1, $2, $3)
 	$$.int_val = result;
 
@@ -3001,12 +2846,7 @@ macro FilesRemoveAnalyzer(file_id_val, tag, args_slot)
 
 internal-op Files-Remove-Analyzer
 op1-read
-type VVV
-eval	FilesRemoveAnalyzer($1, $2, $3)
-
-internal-op Files-Remove-Analyzer
-op1-read
-type VCV
+types VVV VCV
 eval	FilesRemoveAnalyzer($1, $2, $3)
 
 internal-op Files-Remove-Analyzer
@@ -3027,11 +2867,7 @@ macro AnalyzerEnabled(lhs, tag)
 	lhs.int_val = c && c->Enabled();
 
 internal-op Analyzer-Enabled
-type VV
-eval	AnalyzerEnabled($$, $1)
-
-internal-op Analyzer-Enabled
-type VC
+types VV VC
 eval	AnalyzerEnabled($$, $1)
 
 macro FileAnalyzerName(lhs, tag)
@@ -3040,11 +2876,7 @@ macro FileAnalyzerName(lhs, tag)
 	lhs = ZVal(file_mgr->GetComponentNameVal({NewRef{}, atype->AsEnumVal()}));
 
 internal-op File-Analyzer-Name
-type VV
-eval	FileAnalyzerName($$, $1)
-
-internal-op File-Analyzer-Name
-type VC
+types VV VC
 eval	FileAnalyzerName($$, $1)
 
 macro IsProtocolAnalyzer(lhs, tag)
@@ -3052,11 +2884,7 @@ macro IsProtocolAnalyzer(lhs, tag)
 	lhs.int_val = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
 
 internal-op Is-Protocol-Analyzer
-type VV
-eval	IsProtocolAnalyzer($$, $1)
-
-internal-op Is-Protocol-Analyzer
-type VC
+types VV VC
 eval	IsProtocolAnalyzer($$, $1)
 
 internal-op Clear-Table
@@ -3102,11 +2930,7 @@ macro GetBytesThresh(lhs, cid, is_orig)
 	lhs.uint_val = res;
 
 internal-op Get-Bytes-Thresh
-type VVV
-eval	GetBytesThresh($$, $1.record_val, $2.int_val)
-
-internal-op Get-Bytes-Thresh
-type VVC
+types VVV VVC
 eval	GetBytesThresh($$, $1.record_val, $2.int_val)
 
 macro SetBytesThresh(cid, threshold, is_orig)
@@ -3120,17 +2944,7 @@ macro SetBytesThresh(cid, threshold, is_orig)
 
 internal-op Set-Bytes-Thresh
 op1-read
-type VVV
-eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
-
-internal-op Set-Bytes-Thresh
-op1-read
-type VVC
-eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
-
-internal-op Set-Bytes-Thresh
-op1-read
-type VCV
+types VVV VVC VCV
 eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
 
 internal-op Set-Bytes-Thresh
@@ -3196,49 +3010,25 @@ eval	auto id_rec = $1.record_val;
 ########################################
 
 internal-op MinU
-type VVC
+types VVV VVC
 eval	$$.uint_val = std::min($1.uint_val, $2.uint_val);
 
 internal-op MinI
-type VVC
+types VVV VVC
 eval	$$.int_val = std::min($1.int_val, $2.int_val);
 
 internal-op MinD
-type VVC
-eval	$$.double_val = std::min($1.double_val, $2.double_val);
-
-internal-op MinU
-type VVV
-eval	$$.uint_val = std::min($1.uint_val, $2.uint_val);
-
-internal-op MinI
-type VVV
-eval	$$.int_val = std::min($1.int_val, $2.int_val);
-
-internal-op MinD
-type VVV
+types VVV VVC
 eval	$$.double_val = std::min($1.double_val, $2.double_val);
 
 internal-op MaxU
-type VVC
+types VVV VVC
 eval	$$.uint_val = std::max($1.uint_val, $2.uint_val);
 
 internal-op MaxI
-type VVC
+types VVV VVC
 eval	$$.int_val = std::max($1.int_val, $2.int_val);
 
 internal-op MaxD
-type VVC
-eval	$$.double_val = std::max($1.double_val, $2.double_val);
-
-internal-op MaxU
-type VVV
-eval	$$.uint_val = std::max($1.uint_val, $2.uint_val);
-
-internal-op MaxI
-type VVV
-eval	$$.int_val = std::max($1.int_val, $2.int_val);
-
-internal-op MaxD
-type VVV
+types VVV VVC
 eval	$$.double_val = std::max($1.double_val, $2.double_val);

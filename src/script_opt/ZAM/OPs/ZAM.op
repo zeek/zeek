@@ -644,18 +644,12 @@ type VRi
 includes-field-op
 eval	$$.int_val = $1.record_val->HasField($2);
 
-# Can't use predicate-op because we need the "includes-field-op".
-internal-op Has-Field-Cond
-op1-read
-type Vii
-eval	if ( ! $1.record_val->HasField($2) )
-		BRANCH($3)
-
-internal-op Not-Has-Field-Cond
-op1-read
-type Vii
-eval	if ( $1.record_val->HasField($2) )
-		BRANCH($3)
+# The following generates an assignment version of Has-Field that we
+# don't use (because we need the one above that uses "includes-field-op")
+# but lets us compress the two conditionals.
+predicate-op Has-Field
+type Vi
+eval	$1.record_val->HasField($2)
 
 predicate-op Table-Has-Elements
 type V

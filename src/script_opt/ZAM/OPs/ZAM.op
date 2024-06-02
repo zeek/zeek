@@ -2284,7 +2284,7 @@ eval	LogWritePre($1, $2)
 
 ### Check that invoked correctly
 internal-op Log-WriteC
-side-effects OP_LOG_WRITE_CV OP_V
+side-effects OP_LOG_WRITE_CV OP_VC
 type VCV
 eval	LogWritePre($1, $2)
 	LogWriteResPost($$)
@@ -2630,7 +2630,7 @@ eval	FilesAddAnalyzer($1, $2, $3)
 
 internal-op Files-Add-Analyzer
 type VVCV
-side-effects OP_FILES_ADD_ANALYZER_VVV OP_VVC
+side-effects OP_FILES_ADD_ANALYZER_VCV OP_VVC
 eval	FilesAddAnalyzer($1, $2, $3)
 	$$.int_val = result;
 
@@ -2696,7 +2696,7 @@ eval	auto f = $1.string_val->CheckString();
 
 internal-op Files-Set-Reassembly-Buffer
 type VVi
-side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV
+side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV_I2
 eval	auto f = $1.string_val->CheckString();
 	$$.int_val = file_mgr->SetReassemblyBuffer(f, zeek_uint_t($2));
 
@@ -2730,13 +2730,13 @@ eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
 
 internal-op Set-Bytes-Thresh
 type VVVC
-side-effects OP_SET_BYTES_THRESH_VVC OP_VVV
+side-effects OP_SET_BYTES_THRESH_VVC OP_VVC
 eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
 	$$.int_val = res;
 
 internal-op Set-Bytes-Thresh
 type VVCV
-side-effects OP_SET_BYTES_THRESH_VCV OP_VVV
+side-effects OP_SET_BYTES_THRESH_VCV OP_VVC
 eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
 	$$.int_val = res;
 

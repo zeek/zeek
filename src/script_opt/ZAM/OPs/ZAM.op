@@ -772,18 +772,6 @@ type VVVC
 eval	EvalVal2InTableCore($1.ToVal(z.t2), $3.ToVal(z.t))
 	EvalVal2InTableAssignCore($$, $2)
 
-internal-op Val2-Is-In-Table-Cond
-op1-read
-type VViC
-eval	EvalVal2InTableCore($1.ToVal(z.t2), $4.ToVal(z.t))
-	EvalVal2InTableCond($2, lvp, $3, !)
-
-internal-op Val2-Is-Not-In-Table-Cond
-op1-read
-type VViC
-eval	EvalVal2InTableCore($1.ToVal(z.t2), $4.ToVal(z.t))
-	EvalVal2InTableCond($2, lvp, $3, )
-
 internal-op Val2-Is-In-Table
 type VVCV
 eval	EvalVal2InTableCore($2.ToVal(z.t), $1.ToVal(z.t2))
@@ -791,9 +779,21 @@ eval	EvalVal2InTableCore($2.ToVal(z.t), $1.ToVal(z.t2))
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
+type VViC
+eval	EvalVal2InTableCore($1.ToVal(z.t2), $4.ToVal(z.t))
+	EvalVal2InTableCond($2, lvp, $3, !)
+
+internal-op Val2-Is-In-Table-Cond
+op1-read
 type VVCi
 eval	EvalVal2InTableCore($3.ToVal(z.t), $1.ToVal(z.t2))
 	EvalVal2InTableCond($2, lvp, $4, !)
+
+internal-op Val2-Is-Not-In-Table-Cond
+op1-read
+type VViC
+eval	EvalVal2InTableCore($1.ToVal(z.t2), $4.ToVal(z.t))
+	EvalVal2InTableCond($2, lvp, $3, )
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
@@ -2260,11 +2260,7 @@ macro EvalSubBytes(lhs, arg1, arg2, arg3)
 	}
 
 internal-op Sub-Bytes
-types VVVV VVVC VVCV VCVV
-eval	EvalSubBytes($$, $1, $2.uint_val, $3.int_val)
-
-internal-op Sub-Bytes
-types VVCi VCVi
+types VVVV VVVC VVCV VCVV VVCi VCVi
 eval	EvalSubBytes($$, $1, $2.uint_val, $3)
 
 # Use a distinct name because due to the convention when constructing
@@ -2316,7 +2312,7 @@ eval	LogWritePre($1, $2)
 
 ### Check that invoked correctly
 internal-op Log-WriteC
-side-effects OP_LOG_WRITEC_CV OP_V
+side-effects OP_LOG_WRITE_CV OP_V
 type VCV
 eval	LogWritePre($1, $2)
 	LogWriteResPost($$)
@@ -2325,14 +2321,7 @@ eval	LogWritePre($1, $2)
 internal-op Log-Write
 side-effects
 op1-read
-type VV
-eval	LogWritePre($1, $2)
-	LogWriteNoResPost()
-
-internal-op Log-WriteC
-side-effects
-op1-read
-type CV
+types VV CV
 eval	LogWritePre($1, $2)
 	LogWriteNoResPost()
 
@@ -2744,21 +2733,15 @@ eval	auto f = $1.string_val->CheckString();
 
 internal-op Files-Set-Reassembly-Buffer
 op1-read
-type VV
+types VV Vi
 eval	auto f = $1.string_val->CheckString();
-	file_mgr->SetReassemblyBuffer(f, $2.uint_val);
+	file_mgr->SetReassemblyBuffer(f, $2);
 
 internal-op Files-Set-Reassembly-Buffer
 type VVV
 side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VV OP_VV
 eval	auto f = $1.string_val->CheckString();
 	$$.int_val = file_mgr->SetReassemblyBuffer(f, $2.uint_val);
-
-internal-op Files-Set-Reassembly-Buffer
-op1-read
-type Vi
-eval	auto f = $1.string_val->CheckString();
-	file_mgr->SetReassemblyBuffer(f, zeek_uint_t($2));
 
 internal-op Files-Set-Reassembly-Buffer
 type VVi
@@ -2788,12 +2771,7 @@ macro SetBytesThresh(cid, threshold, is_orig)
 
 internal-op Set-Bytes-Thresh
 op1-read
-types VVV VVC VCV
-eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
-
-internal-op Set-Bytes-Thresh
-op1-read
-type VCi
+types VVV VVC VCV VCi
 eval	SetBytesThresh($1.record_val, $2.uint_val, $3)
 
 internal-op Set-Bytes-Thresh

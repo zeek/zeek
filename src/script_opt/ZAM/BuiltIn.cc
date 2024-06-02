@@ -491,7 +491,7 @@ MultiZBI fsrb_ZBI{ "Files::__set_reassembly_buffer",
 
 MultiZBI lw_ZBI{ "Log::__write",
     {{{VV}, {OP_LOG_WRITE_VV, OP_VV}},
-     {{CV}, {OP_LOG_WRITEC_CV, OP_V}}},
+     {{CV}, {OP_LOG_WRITE_CV, OP_V}}},
     {{{VV}, {OP_LOG_WRITE_VVV, OP_VVV}},
      {{CV}, {OP_LOG_WRITEC_VCV, OP_VV}}}
 };

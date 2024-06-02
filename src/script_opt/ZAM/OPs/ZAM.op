@@ -382,17 +382,15 @@ eval	auto vv = $1.vector_val;
 internal-op AddPatternToField
 types VVi VCi
 op1-read
-eval	EvalAddPatternToField($$.record_val, $1, $2)
-
-macro EvalAddPatternToField(r, v, f)
-	auto fpat = r->GetField(f)->AsPatternVal();
+eval	auto r = $$.record_val;
+	auto fpat = r->GetField($2)->AsPatternVal();
 	if ( fpat )
 		{
-		v.re_val->AddTo(fpat, false);
+		$1.re_val->AddTo(fpat, false);
 		r->Modified();
 		}
 	else
-		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName(f)));
+		ZAM_run_time_error(z.loc, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
 
 unary-op ExtendPattern
 op1-read
@@ -674,19 +672,13 @@ type VVC
 custom-method return CompileInExpr(n1, n2, c);
 no-eval
 
-macro EvalPInS(lhs, op1, op2)
-	lhs.int_val = op1.re_val->MatchAnywhere(op2.string_val->AsString()) != 0;
-
 internal-op P-In-S
 types VVV VCV VVC
-eval	EvalPInS($$, $1, $2)
-
-macro EvalStrInPatTbl(lhs, op1, op2)
-	lhs.int_val = op2.table_val->MatchPattern({NewRef{}, op1.string_val});
+eval	$$.int_val = $1.re_val->MatchAnywhere($2.string_val->AsString()) != 0;
 
 internal-op Str-In-Pat-Tbl
 types VVV VCV
-eval	EvalStrInPatTbl($$, $1, $2)
+eval	$$.int_val = $2.table_val->MatchPattern({NewRef{}, $1.string_val});
 
 internal-binary-op S-In-S
 op-accessor string_val
@@ -873,33 +865,27 @@ eval	if ( ! $1.int_val )
 op IndexVecBoolSelect
 types VVV VCV
 set-type $$
-eval	EvalIndexVecBoolSelect($$, $1, $2)
-
-macro EvalIndexVecBoolSelect(lhs, op1, op2)
-	if ( op1.vector_val->Size() != op2.vector_val->Size() )
+eval	if ( $1.vector_val->Size() != $2.vector_val->Size() )
 		{
 		ZAM_run_time_error(z.loc, "size mismatch, boolean index and vector");
 		break;
 		}
 	auto vt = cast_intrusive<VectorType>(z.t);
-	auto v2 = op1.vector_val;
-	auto v3 = op2.vector_val;
+	auto v2 = $1.vector_val;
+	auto v3 = $2.vector_val;
 	auto v = vector_bool_select(std::move(vt), v2, v3);
-	Unref(lhs.vector_val);
-	lhs.vector_val = v.release();
+	Unref($$.vector_val);
+	$$.vector_val = v.release();
 
 op IndexVecIntSelect
 types VVV VCV
 set-type $$
-eval	EvalIndexVecIntSelect($$, $1, $2)
-
-macro EvalIndexVecIntSelect(lhs, op1, op2)
-	auto vt = cast_intrusive<VectorType>(z.t);
-	auto v2 = op1.vector_val;
-	auto v3 = op2.vector_val;
+eval	auto vt = cast_intrusive<VectorType>(z.t);
+	auto v2 = $1.vector_val;
+	auto v3 = $2.vector_val;
 	auto v = vector_int_select(std::move(vt), v2, v3);
-	Unref(lhs.vector_val);
-	lhs.vector_val = v.release();
+	Unref($$.vector_val);
+	$$.vector_val = v.release();
 
 op Index
 type VVL
@@ -992,14 +978,11 @@ type VV
 eval	EvalTableIndex($1, z.aux->ToListVal(frame))
 	AssignTarget($$, BuildVal(v, z.t))
 
-macro EvalTablePatStr(lhs, tbl, index)
-	auto vec = ZVal(tbl.table_val->LookupPattern({NewRef{}, index.string_val}));
-	ZVal::DeleteManagedType(lhs);
-	lhs = vec;
-
 internal-op Table-PatStr-Index
 types VVV VVC
-eval	EvalTablePatStr($$, $1, $2)
+eval	auto vec = ZVal($1.table_val->LookupPattern({NewRef{}, $2.string_val}));
+	ZVal::DeleteManagedType($$);
+	$$ = vec;
 
 internal-op When-Table-Index
 type VV
@@ -1433,13 +1416,10 @@ eval	ValPtr vec = {NewRef{}, $1.vector_val};
 internal-op Table-Elem-Assign
 op1-read
 types VV VC
-eval	EvalTableElemAssign($1, $2)
-
-macro EvalTableElemAssign(tbl, value)
-	auto indices = z.aux->ToListVal(frame);
-	auto val = value.ToVal(z.t);
+eval	auto indices = z.aux->ToListVal(frame);
+	auto val = $2.ToVal(z.t);
 	bool iterators_invalidated = false;
-	tbl.table_val->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
+	$1.table_val->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
 	if ( iterators_invalidated )
 		ZAM_run_time_warning(z.loc, "possible loop/iterator invalidation");
 
@@ -1947,11 +1927,8 @@ op Print1
 op1-read
 types V C
 set-type $$
-eval	EvalPrint1($$)
-
-macro EvalPrint1(value)
-	std::vector<ValPtr> vals;
-	vals.push_back(value.ToVal(z.t));
+eval	std::vector<ValPtr> vals;
+	vals.push_back($$.ToVal(z.t));
 	do_print_stmt(vals);
 
 
@@ -2072,11 +2049,8 @@ macro BuildWhen(zf, timeout)
 op Assign-Any
 types VV VC
 set-type $1
-eval	EvalAssignAny($$, $1)
-
-macro EvalAssignAny(lhs, value)
-	auto v = value.ToVal(z.t);
-	lhs.any_val = v.release();
+eval	auto v = $1.ToVal(z.t);
+	$$.any_val = v.release();
 
 # Lazy way to assign without having to track the specific type of
 # a constant.
@@ -2265,7 +2239,8 @@ eval	EvalSubBytes($$, $1, $2.uint_val, $3)
 
 # Use a distinct name because due to the convention when constructing
 # instructions, frame slots are always positioned earlier than non-frame
-# slots, i.e. we can't construct "VCiV".
+# slots, i.e. we can't construct "VCiV", which is why the arguments are
+# in a different order than above.
 internal-op Sub-Bytes2
 type VCVi
 eval	EvalSubBytes($$, $1, zeek_uint_t($3), $2.uint_val)
@@ -2301,9 +2276,6 @@ macro LogWriteResPost(lhs)
 	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
 	lhs.int_val = result;
 
-macro LogWriteNoResPost()
-	(void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
-
 internal-op Log-Write
 side-effects OP_LOG_WRITE_VV OP_VV
 type VVV
@@ -2323,7 +2295,7 @@ side-effects
 op1-read
 types VV CV
 eval	LogWritePre($1, $2)
-	LogWriteNoResPost()
+	(void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
 
 internal-op Broker-Flush-Logs
 side-effects OP_BROKER_FLUSH_LOGS_X OP_X
@@ -2431,13 +2403,14 @@ eval	auto vv = $1.vector_val;
 	Unref($$.vector_val);
 	$$.vector_val = vv;
 
-macro EvalStartsWith(lhs, str_val, sub_val)
-	auto str = str_val.string_val;
-	auto sub = sub_val.string_val;
+internal-op Starts-With
+types VVV VCV VVC
+eval	auto str = $1.string_val;
+	auto sub = $2.string_val;
 	auto str_n = str->Len();
 	auto sub_n = sub->Len();
 	if ( str_n < sub_n )
-		lhs.int_val = 0;
+		$$.int_val = 0;
 	else
 		{
 		auto str_b = str->Bytes();
@@ -2446,51 +2419,35 @@ macro EvalStartsWith(lhs, str_val, sub_val)
 		for ( i = 0; i < sub_n; ++i )
 			if ( str_b[i] != sub_b[i] )
 				break;
-		lhs.int_val = i == sub_n;
+		$$.int_val = i == sub_n;
 		}
-
-internal-op Starts-With
-types VVV VCV VVC
-eval	EvalStartsWith($$, $1, $2)
-
-macro EvalStrCmp(lhs, s1_src, s2_src)
-	auto s1 = s1_src.string_val;
-	auto s2 = s2_src.string_val;
-	lhs.int_val = Bstr_cmp(s1->AsString(), s2->AsString());
 
 internal-op StrCmp
 types VVV VCV VVC
-eval	EvalStrCmp($$, $1, $2)
-
-macro EvalStrStr(lhs, big_value, little_value)
-	auto big = big_value.string_val;
-	auto little = little_value.string_val;
-	lhs.int_val = 1 + big->AsString()->FindSubstring(little->AsString());
+eval	auto s1 = $1.string_val;
+	auto s2 = $2.string_val;
+	$$.int_val = Bstr_cmp(s1->AsString(), s2->AsString());
 
 internal-op StrStr
 types VVV VCV VVC
-eval	EvalStrStr($$, $1, $2)
+eval	auto big = $1.string_val;
+	auto little = $2.string_val;
+	$$.int_val = 1 + big->AsString()->FindSubstring(little->AsString());
 
 macro Cat1Op(lhs, val)
 	auto& v1 = lhs;
 	ZVal::DeleteManagedType(v1);
 	v1 = val;
 
-macro Cat1OpRef(lhs, val)
-	Cat1Op(lhs, val)
-	zeek::Ref(v1.string_val);
-
 internal-op Cat1
 types VV VC
-eval	Cat1OpRef($$, $1)
-
-macro Cat1FullVal(lhs, val)
-	auto formatted_val = ZVal(ZAM_val_cat(val.ToVal(z.t)));
-	Cat1Op(lhs, formatted_val)
+eval	Cat1Op($$, $1)
+	zeek::Ref(v1.string_val);
 
 internal-op Cat1Full
 types VV VC
-eval	Cat1FullVal($$, $1)
+eval	auto formatted_val = ZVal(ZAM_val_cat($1.ToVal(z.t)));
+	Cat1Op($$, formatted_val)
 
 internal-op CatN
 type V
@@ -2633,23 +2590,20 @@ eval	CatNPre()
 	ca[7]->RenderInto(frame, aux->elems[7].Slot(), res_p);
 	CatNPost($$)
 
-macro AnalyzerName(lhs, tag)
-	auto atype = tag.ToVal(z.t);
+internal-op Analyzer-Name
+types VV VC
+eval	auto atype = $1.ToVal(z.t);
 	auto val = atype->AsEnumVal();
-	Unref(lhs.string_val);
+	Unref($$.string_val);
 	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
 	if ( ! component )
 		component = zeek::packet_mgr->Lookup(val);
 	if ( ! component )
 		component = zeek::file_mgr->Lookup(val);
 	if ( component )
-		lhs.string_val = new StringVal(component->CanonicalName());
+		$$.string_val = new StringVal(component->CanonicalName());
 	else
-		lhs.string_val = new StringVal("<error>");
-
-internal-op Analyzer-Name
-types VV VC
-eval	AnalyzerName($$, $1)
+		$$.string_val = new StringVal("<error>");
 
 macro FilesAddOrRemoveAnalyzer(file_id_val, tag, args_val, METHOD)
 	auto file_id = file_id_val.string_val;
@@ -2700,31 +2654,22 @@ side-effects OP_FILES_REMOVE_ANALYZER_VCV OP_VVC
 eval	FilesRemoveAnalyzer($1, $2, $3)
 	$$.int_val = result;
 
-macro AnalyzerEnabled(lhs, tag)
-	auto atype = tag.ToVal(z.t);
-	auto c = zeek::file_mgr->Lookup(atype->AsEnumVal());
-	lhs.int_val = c && c->Enabled();
-
 internal-op Analyzer-Enabled
 types VV VC
-eval	AnalyzerEnabled($$, $1)
-
-macro FileAnalyzerName(lhs, tag)
-	auto atype = tag.ToVal(z.t);
-	Unref(lhs.string_val);
-	lhs = ZVal(file_mgr->GetComponentNameVal({NewRef{}, atype->AsEnumVal()}));
+eval	auto atype = $1.ToVal(z.t);
+	auto c = zeek::file_mgr->Lookup(atype->AsEnumVal());
+	$$.int_val = c && c->Enabled();
 
 internal-op File-Analyzer-Name
 types VV VC
-eval	FileAnalyzerName($$, $1)
-
-macro IsProtocolAnalyzer(lhs, tag)
-	auto atype = tag.ToVal(z.t);
-	lhs.int_val = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
+eval	auto atype = $1.ToVal(z.t);
+	Unref($$.string_val);
+	$$ = ZVal(file_mgr->GetComponentNameVal({NewRef{}, atype->AsEnumVal()}));
 
 internal-op Is-Protocol-Analyzer
 types VV VC
-eval	IsProtocolAnalyzer($$, $1)
+eval	auto atype = $1.ToVal(z.t);
+	$$.int_val = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
 
 internal-op Clear-Table
 op1-read
@@ -2755,20 +2700,17 @@ side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV
 eval	auto f = $1.string_val->CheckString();
 	$$.int_val = file_mgr->SetReassemblyBuffer(f, zeek_uint_t($2));
 
-macro GetBytesThresh(lhs, cid, is_orig)
-	zeek::analyzer::Analyzer* a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
-	auto res = 0U;
-	if ( a )
-		res = static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, is_orig);
-	lhs.uint_val = res;
-
 internal-op Get-Bytes-Thresh
 types VVV VVC
-eval	GetBytesThresh($$, $1.record_val, $2.int_val)
+eval	auto a = analyzer::conn_size::GetConnsizeAnalyzer($1.record_val);
+	auto res = 0U;
+	if ( a )
+		res = static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, $2.int_val);
+	$$.uint_val = res;
 
 macro SetBytesThresh(cid, threshold, is_orig)
 	bool res = false;
-	zeek::analyzer::Analyzer* a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
+	auto a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
 	if ( a )
 		{
 		static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, true, is_orig);

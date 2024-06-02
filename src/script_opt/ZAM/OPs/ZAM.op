@@ -2669,8 +2669,14 @@ types VVV VCV
 eval	FilesAddAnalyzer($1, $2, $3)
 
 internal-op Files-Add-Analyzer
-types VVVV VVCV
+type VVVV
 side-effects OP_FILES_ADD_ANALYZER_VVV OP_VVV
+eval	FilesAddAnalyzer($1, $2, $3)
+	$$.int_val = result;
+
+internal-op Files-Add-Analyzer
+type VVCV
+side-effects OP_FILES_ADD_ANALYZER_VVV OP_VVC
 eval	FilesAddAnalyzer($1, $2, $3)
 	$$.int_val = result;
 

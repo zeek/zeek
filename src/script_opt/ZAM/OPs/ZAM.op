@@ -826,12 +826,12 @@ eval	auto& vec = $2.vector_val;
 expr-op Cond
 type VVVV
 set-type $2
-eval   AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
+eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
 
 expr-op Cond
 type VVVC
 set-type $2
-eval   AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
+eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
 
 expr-op Cond
 type VVCV
@@ -956,7 +956,7 @@ internal-op Index-Any-VecC
 type VVi
 eval	EvalIndexAnyVec($$, $1, $2)
 
-macro	WhenIndexResCheck(vec)
+macro WhenIndexResCheck(vec)
 	auto& res = vec.vector_val;
 	if ( res && IndexExprWhen::evaluating > 0 )
 		IndexExprWhen::results.push_back({NewRef{}, res});
@@ -971,7 +971,7 @@ type VVi
 eval	EvalIndexAnyVec($$, $1, $2)
 	WhenIndexResCheck($$)
 
-macro	EvalVecSlice(lhs, vv)
+macro EvalVecSlice(lhs, vv)
 	auto vec = vv.vector_val;
 	auto lv = z.aux->ToListVal(frame);
 	auto v = index_slice(vec, lv.get());
@@ -992,7 +992,7 @@ type VV
 eval	EvalTableIndex($1, z.aux->ToListVal(frame))
 	AssignTarget($$, BuildVal(v, z.t))
 
-macro	EvalTablePatStr(lhs, tbl, index)
+macro EvalTablePatStr(lhs, tbl, index)
 	auto vec = ZVal(tbl.table_val->LookupPattern({NewRef{}, index.string_val}));
 	ZVal::DeleteManagedType(lhs);
 	lhs = vec;
@@ -1928,7 +1928,7 @@ eval	auto& si = step_iters[$1];
 internal-op End-Table-Loop
 op1-internal
 type i
-eval    (*tiv_ptr)[$1].Clear();
+eval	(*tiv_ptr)[$1].Clear();
 
 
 op CheckAnyLen

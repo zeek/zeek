@@ -210,11 +210,11 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
         case OP_VECTOR_HAS_ELEMENTS_COND_Vi: z->op = OP_NOT_VECTOR_HAS_ELEMENTS_COND_Vi; break;
         case OP_NOT_VECTOR_HAS_ELEMENTS_COND_Vi: z->op = OP_VECTOR_HAS_ELEMENTS_COND_Vi; break;
 
-        case OP_VAL_IS_IN_TABLE_COND_VVi: z->op = OP_VAL_IS_NOT_IN_TABLE_COND_VVi; break;
-        case OP_VAL_IS_NOT_IN_TABLE_COND_VVi: z->op = OP_VAL_IS_IN_TABLE_COND_VVi; break;
+        case OP_VAL_IS_IN_TABLE_COND_VVi: z->op = OP_NOT_VAL_IS_IN_TABLE_COND_VVi; break;
+        case OP_NOT_VAL_IS_IN_TABLE_COND_VVi: z->op = OP_VAL_IS_IN_TABLE_COND_VVi; break;
 
-        case OP_CONST_IS_IN_TABLE_COND_ViC: z->op = OP_CONST_IS_NOT_IN_TABLE_COND_ViC; break;
-        case OP_CONST_IS_NOT_IN_TABLE_COND_ViC: z->op = OP_CONST_IS_IN_TABLE_COND_ViC; break;
+        case OP_CONST_IS_IN_TABLE_COND_VCi: z->op = OP_NOT_CONST_IS_IN_TABLE_COND_VCi; break;
+        case OP_NOT_CONST_IS_IN_TABLE_COND_VCi: z->op = OP_CONST_IS_IN_TABLE_COND_VCi; break;
 
         case OP_VAL2_IS_IN_TABLE_COND_VVVi: z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVi; break;
         case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVi: z->op = OP_VAL2_IS_IN_TABLE_COND_VVVi; break;
@@ -262,7 +262,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
         }
 
         if ( op1->Tag() == EXPR_CONST ) {
-            auto z = GenInst(OP_CONST_IS_IN_TABLE_COND_ViC, op2, op1->AsConstExpr(), 0);
+            auto z = GenInst(OP_CONST_IS_IN_TABLE_COND_VCi, op2, op1->AsConstExpr(), 0);
             z.t = op1->GetType();
             branch_v = 2;
             return AddInst(z);

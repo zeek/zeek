@@ -644,6 +644,7 @@ type VRi
 includes-field-op
 eval	$$.int_val = $1.record_val->HasField($2);
 
+# Can't use predicate-op because we need the "includes-field-op".
 internal-op Has-Field-Cond
 op1-read
 type Vii
@@ -656,37 +657,13 @@ type Vii
 eval	if ( $1.record_val->HasField($2) )
 		BRANCH($3)
 
-internal-op Table-Has-Elements
-type VV
-eval	$$.int_val = $1.table_val->Size() > 0;
+predicate-op Table-Has-Elements
+type V
+eval	$1.table_val->Size() > 0
 
-internal-op Table-Has-Elements-Cond
-op1-read
-type Vi
-eval	if ( $1.table_val->Size() == 0 )
-		BRANCH($2)
-
-internal-op Not-Table-Has-Elements-Cond
-op1-read
-type Vi
-eval	if ( $1.table_val->Size() > 0 )
-		BRANCH($2)
-
-internal-op Vector-Has-Elements
-type VV
-eval	$$.int_val = $1.vector_val->Size() > 0;
-
-internal-op Vector-Has-Elements-Cond
-op1-read
-type Vi
-eval	if ( $1.vector_val->Size() == 0 )
-		BRANCH($2)
-
-internal-op Not-Vector-Has-Elements-Cond
-op1-read
-type Vi
-eval	if ( $1.vector_val->Size() > 0 )
-		BRANCH($2)
+predicate-op Vector-Has-Elements
+type V
+eval	$1.vector_val->Size() > 0
 
 expr-op In
 type VVV
@@ -753,25 +730,9 @@ custom-method return CompileInExpr(n, l, c);
 no-eval
 
 
-internal-op Val-Is-In-Table
-type VVV
-# No set-type as these are internal ops.
-eval	auto op1 = $1.ToVal(z.t);
-	$$.int_val = $2.table_val->Find(op1) != nullptr;
-
-internal-op Val-Is-In-Table-Cond
-op1-read
-type VVi
-eval	auto op1 = $1.ToVal(z.t);
-	if ( ! $2.table_val->Find(op1) )
-		BRANCH($3)
-
-internal-op Val-Is-Not-In-Table-Cond
-op1-read
-type VVi
-eval	auto op1 = $1.ToVal(z.t);
-	if ( $2.table_val->Find(op1) )
-		BRANCH($3)
+predicate-op Val-Is-In-Table
+type VV
+eval	$2.table_val->Find($1.ToVal(z.t)) != nullptr
 
 # Variants for indexing two values, one of which might be a constant.
 # We set the instructions's *second* type to be that of the first variable
@@ -847,24 +808,9 @@ eval	EvalVal2InTableCore($3.ToVal(z.t), $1.ToVal(z.t2))
 	EvalVal2InTableCond($2, lvp, $4, )
 
 
-internal-op Const-Is-In-Table
-type VCV
-eval	auto op1 = $1.ToVal(z.t);
-	$$.int_val = $2.table_val->Find(op1) != nullptr;
-
-internal-op Const-Is-In-Table-Cond
-op1-read
-type ViC
-eval	auto op1 = $3.ToVal(z.t);
-	if ( ! $1.table_val->Find(op1) )
-		BRANCH($2)
-
-internal-op Const-Is-Not-In-Table-Cond
-op1-read
-type ViC
-eval	auto op1 = $3.ToVal(z.t);
-	if ( $1.table_val->Find(op1) )
-		BRANCH($2)
+predicate-op Const-Is-In-Table
+type VC
+eval	$1.table_val->Find($2.ToVal(z.t)) != nullptr
 
 internal-op List-Is-In-Table
 types VV VC
@@ -2418,21 +2364,9 @@ eval	auto mask = $1.uint_val & PORT_SPACE_MASK;
 		v = 3;
 	$$.uint_val = v;
 
-internal-op Conn-Exists
-type VV
-eval	$$.int_val = session_mgr->FindConnection($1.record_val) != nullptr;
-
-internal-op Conn-Exists-Cond
-op1-read
-type Vi
-eval	if ( ! session_mgr->FindConnection($1.record_val) )
-		BRANCH($2)
-
-internal-op Not-Conn-Exists-Cond
-op1-read
-type Vi
-eval	if ( session_mgr->FindConnection($1.record_val) )
-		BRANCH($2)
+predicate-op Conn-Exists
+type V
+eval	session_mgr->FindConnection($1.record_val) != nullptr
 
 internal-op Lookup-Conn
 type VV
@@ -2448,85 +2382,25 @@ eval	auto cid = $1.record_val;
 		}
 	AssignTarget($$, ZVal(res, res->GetType()));
 
-internal-op Is-ICMP-Port
-type VV
-eval	$$.int_val = ($1.uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK;
+predicate-op Is-ICMP-Port
+type V
+eval	($1.uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK
 
-internal-op Is-ICMP-Port-Cond
-op1-read
-type Vi
-eval	if ( ($1.uint_val & PORT_SPACE_MASK) != ICMP_PORT_MASK )
-		BRANCH($2)
+predicate-op Is-TCP-Port
+type V
+eval	($1.uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK
 
-internal-op Not-Is-ICMP-Port-Cond
-op1-read
-type Vi
-eval	if ( ($1.uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK )
-		BRANCH($2)
+predicate-op Is-UDP-Port
+type V
+eval	($1.uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK
 
-internal-op Is-TCP-Port
-type VV
-eval	$$.int_val = ($1.uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK;
+predicate-op Is-V4-Addr
+type V
+eval	$1.addr_val->AsAddr().GetFamily() == IPv4
 
-internal-op Is-TCP-Port-Cond
-op1-read
-type Vi
-eval	if ( ($1.uint_val & PORT_SPACE_MASK) != TCP_PORT_MASK )
-		BRANCH($2)
-
-internal-op Not-Is-TCP-Port-Cond
-op1-read
-type Vi
-eval	if ( ($1.uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK )
-		BRANCH($2)
-
-internal-op Is-UDP-Port
-type VV
-eval	$$.int_val = ($1.uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK;
-
-internal-op Is-UDP-Port-Cond
-op1-read
-type Vi
-eval	if ( ($1.uint_val & PORT_SPACE_MASK) != UDP_PORT_MASK )
-		BRANCH($2)
-
-internal-op Not-Is-UDP-Port-Cond
-op1-read
-type Vi
-eval	if ( ($1.uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK )
-		BRANCH($2)
-
-internal-op Is-V4-Addr
-type VV
-eval	$$.int_val = $1.addr_val->AsAddr().GetFamily() == IPv4;
-
-internal-op Is-V4-Addr-Cond
-op1-read
-type Vi
-eval	if ( $1.addr_val->AsAddr().GetFamily() != IPv4 )
-		BRANCH($2)
-
-internal-op Not-Is-V4-Addr-Cond
-op1-read
-type Vi
-eval	if ( $1.addr_val->AsAddr().GetFamily() == IPv4 )
-		BRANCH($2)
-
-internal-op Is-V6-Addr
-type VV
-eval	$$.int_val = $1.addr_val->AsAddr().GetFamily() == IPv6;
-
-internal-op Is-V6-Addr-Cond
-op1-read
-type Vi
-eval	if ( $1.addr_val->AsAddr().GetFamily() != IPv6 )
-		BRANCH($2)
-
-internal-op Not-Is-V6-Addr-Cond
-op1-read
-type Vi
-eval	if ( $1.addr_val->AsAddr().GetFamily() == IPv6 )
-		BRANCH($2)
+predicate-op Is-V6-Addr
+type V
+eval	$1.addr_val->AsAddr().GetFamily() == IPv6
 
 internal-op Network-Time
 type V
@@ -2536,37 +2410,13 @@ internal-op Current-Time
 type V
 eval	$$.double_val = util::current_time();
 
-internal-op Reading-Live-Traffic
-type V
-eval	$$.int_val = run_state::reading_live;
+predicate-op Reading-Live-Traffic
+type X
+eval	run_state::reading_live
 
-internal-op Reading-Live-Traffic-Cond
-op1-read
-type i
-eval	if ( ! run_state::reading_live )
-		BRANCH($1)
-
-internal-op Not-Reading-Live-Traffic-Cond
-op1-read
-type i
-eval	if ( run_state::reading_live )
-		BRANCH($1)
-
-internal-op Reading-Traces
-type V
-eval	$$.int_val = run_state::reading_traces;
-
-internal-op Reading-Traces-Cond
-op1-read
-type i
-eval	if ( ! run_state::reading_traces )
-		BRANCH($1)
-
-internal-op Not-Reading-Traces-Cond
-op1-read
-type i
-eval	if ( run_state::reading_traces )
-		BRANCH($1)
+predicate-op Reading-Traces
+type X
+eval	run_state::reading_traces
 
 internal-op Sort
 op1-read

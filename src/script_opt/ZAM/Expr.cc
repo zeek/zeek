@@ -502,7 +502,7 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const NameExpr* n2,
         if ( op3_t->AsTableType()->IsPatternIndex() && op2_t->Tag() == TYPE_STRING )
             a = n2 ? OP_STR_IN_PAT_TBL_VVV : OP_STR_IN_PAT_TBL_VCV;
         else
-            a = n2 ? OP_VAL_IS_IN_TABLE_VVV : OP_CONST_IS_IN_TABLE_VCV;
+            a = n2 ? OP_VAL_IS_IN_TABLE_VVV : OP_CONST_IS_IN_TABLE_VVC;
     }
     else if ( op2->GetType()->Tag() == TYPE_PATTERN )
         a = n2 ? (n3 ? OP_P_IN_S_VVV : OP_P_IN_S_VVC) : OP_P_IN_S_VCV;
@@ -564,7 +564,7 @@ const ZAMStmt ZAMCompiler::CompileInExpr(const NameExpr* n1, const ListExpr* l, 
 
         else {
             auto l_e0_c = l_e[0]->AsConstExpr();
-            ZOp op = is_vec ? OP_CONST_IS_IN_VECTOR_VCV : OP_CONST_IS_IN_TABLE_VCV;
+            ZOp op = is_vec ? OP_CONST_IS_IN_VECTOR_VCV : OP_CONST_IS_IN_TABLE_VVC;
             z = GenInst(op, n1, l_e0_c, n2);
         }
 

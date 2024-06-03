@@ -337,6 +337,21 @@ public:
         return zv;
     }
 
+    // The same, but for read-only access for which memory-management is
+    // not required.
+    const ZVal& ToDirectZVal(const ZVal* frame) const {
+        if ( c )
+            return zc;
+        if ( i >= 0 )
+            return frame[i];
+
+        // Currently the way we use AuxElem's we shouldn't get here, but
+        // just in case we do, return something sound rather than mis-indexing
+        // the frame.
+        static ZVal null_zval;
+        return null_zval;
+    }
+
     int Slot() const { return i; }
     int IntVal() const { return i; }
     const ValPtr& Constant() const { return c; }

@@ -9,6 +9,7 @@ extend-ignore-re = [
     "Remove in v6.1.*SupressWeird",
     "max_repititions:.*Remove in v6.1",
     "mis-aliasing of",
+    "mis-indexing",
     # On purpose
     "\"THE NETBIOS NAM\"",
     # NFS stuff.

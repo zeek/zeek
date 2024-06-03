@@ -2455,16 +2455,15 @@ eval	auto formatted_val = ZVal(ZAM_val_cat($1.ToVal(z.t)));
 
 internal-op CatN
 type V
-eval	auto aux = z.aux;
-	auto& ca = aux->cat_args;
+eval	CatNPre()
 	int n = aux->n;
 	size_t max_size = 0;
 	for ( int i = 0; i < n; ++i )
-		max_size += ca[i]->MaxSize(frame, aux->elems[i].Slot());
+		max_size += ca[i]->MaxSize(aux->elems[i].ToDirectZVal(frame));
 	auto res = new char[max_size + /* slop */ n + 1];
 	auto res_p = res;
 	for ( int i = 0; i < n; ++i )
-		ca[i]->RenderInto(frame, aux->elems[i].Slot(), res_p);
+		ca[i]->RenderInto(aux->elems[i].ToDirectZVal(frame), res_p);
 	*res_p = '\0';
 	auto s = new String(true, reinterpret_cast<byte_vec>(res), res_p - res);
 	Cat1Op($$, ZVal(new StringVal(s)))
@@ -2485,113 +2484,113 @@ macro CatNPost(lhs)
 internal-op Cat2
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
-	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
-	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
 	CatNPost($$)
 
 internal-op Cat3
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
-	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
-	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
-	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
-	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
 	CatNPost($$)
 
 internal-op Cat4
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
-	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
-	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
-	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
-	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
-	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
-	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
 	CatNPost($$)
 
 internal-op Cat5
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
-	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
-	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
-	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
-	max_size += ca[4]->MaxSize(frame, aux->elems[4].Slot());
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
-	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
-	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
-	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
-	ca[4]->RenderInto(frame, aux->elems[4].Slot(), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
 	CatNPost($$)
 
 internal-op Cat6
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
-	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
-	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
-	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
-	max_size += ca[4]->MaxSize(frame, aux->elems[4].Slot());
-	max_size += ca[5]->MaxSize(frame, aux->elems[5].Slot());
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
+	max_size += ca[5]->MaxSize(aux->elems[5].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
-	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
-	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
-	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
-	ca[4]->RenderInto(frame, aux->elems[4].Slot(), res_p);
-	ca[5]->RenderInto(frame, aux->elems[5].Slot(), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
 	CatNPost($$)
 
 internal-op Cat7
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
-	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
-	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
-	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
-	max_size += ca[4]->MaxSize(frame, aux->elems[4].Slot());
-	max_size += ca[5]->MaxSize(frame, aux->elems[5].Slot());
-	max_size += ca[6]->MaxSize(frame, aux->elems[6].Slot());
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
+	max_size += ca[5]->MaxSize(aux->elems[5].ToDirectZVal(frame));
+	max_size += ca[6]->MaxSize(aux->elems[6].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
-	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
-	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
-	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
-	ca[4]->RenderInto(frame, aux->elems[4].Slot(), res_p);
-	ca[5]->RenderInto(frame, aux->elems[5].Slot(), res_p);
-	ca[6]->RenderInto(frame, aux->elems[6].Slot(), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
+	ca[6]->RenderInto(aux->elems[6].ToDirectZVal(frame), res_p);
 	CatNPost($$)
 
 internal-op Cat8
 type V
 eval	CatNPre()
-	size_t max_size = ca[0]->MaxSize(frame, aux->elems[0].Slot());
-	max_size += ca[1]->MaxSize(frame, aux->elems[1].Slot());
-	max_size += ca[2]->MaxSize(frame, aux->elems[2].Slot());
-	max_size += ca[3]->MaxSize(frame, aux->elems[3].Slot());
-	max_size += ca[4]->MaxSize(frame, aux->elems[4].Slot());
-	max_size += ca[5]->MaxSize(frame, aux->elems[5].Slot());
-	max_size += ca[6]->MaxSize(frame, aux->elems[6].Slot());
-	max_size += ca[7]->MaxSize(frame, aux->elems[7].Slot());
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
+	max_size += ca[5]->MaxSize(aux->elems[5].ToDirectZVal(frame));
+	max_size += ca[6]->MaxSize(aux->elems[6].ToDirectZVal(frame));
+	max_size += ca[7]->MaxSize(aux->elems[7].ToDirectZVal(frame));
 	CatNMid()
-	ca[0]->RenderInto(frame, aux->elems[0].Slot(), res_p);
-	ca[1]->RenderInto(frame, aux->elems[1].Slot(), res_p);
-	ca[2]->RenderInto(frame, aux->elems[2].Slot(), res_p);
-	ca[3]->RenderInto(frame, aux->elems[3].Slot(), res_p);
-	ca[4]->RenderInto(frame, aux->elems[4].Slot(), res_p);
-	ca[5]->RenderInto(frame, aux->elems[5].Slot(), res_p);
-	ca[6]->RenderInto(frame, aux->elems[6].Slot(), res_p);
-	ca[7]->RenderInto(frame, aux->elems[7].Slot(), res_p);
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
+	ca[6]->RenderInto(aux->elems[6].ToDirectZVal(frame), res_p);
+	ca[7]->RenderInto(aux->elems[7].ToDirectZVal(frame), res_p);
 	CatNPost($$)
 
 internal-op Analyzer-Name

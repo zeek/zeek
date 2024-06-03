@@ -1594,11 +1594,15 @@ side-effects
 eval	WhenCall($$, z.aux->func)
 
 internal-op WhenIndCallN
-type Vi
+type VV
 side-effects
-eval	auto sel = $1;
-	auto func = (sel < 0) ? z.aux->id_val->GetVal()->AsFunc() : frame[sel].AsFunc();
-	WhenCall($$, func)
+eval	WhenCall($$, $1.AsFunc())
+
+# Form for when we need to look up the function value at run-time.
+internal-op When-ID-IndCallN
+type V
+side-effects
+eval	WhenCall($$, z.aux->id_val->GetVal()->AsFunc())
 
 
 ########## Statements ##########

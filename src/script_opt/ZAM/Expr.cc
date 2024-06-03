@@ -1056,10 +1056,12 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
 
             default:
                 if ( in_when ) {
-                    if ( indirect )
-                        op = OP_WHENINDCALLN_Vi;
-                    else
+                    if ( ! indirect )
                         op = OP_WHENCALLN_V;
+                    else if ( func_id->IsGlobal() )
+                        op = OP_WHEN_ID_INDCALLN_V;
+                    else
+                        op = OP_WHENINDCALLN_VV;
                 }
 
                 else if ( indirect ) {

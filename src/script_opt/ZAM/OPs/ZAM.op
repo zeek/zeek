@@ -251,6 +251,9 @@
 #
 # 	vector          generate a version of the operation that takes
 # 			vectors as operands
+#
+# Finally, a note concernning comments: due to internal use of C++ #define
+# macros, comments in C++ code should use /* ... */ rather than // delimiters.
 
 
 # The following abstracts the process of creating a frame-assignable value.
@@ -361,9 +364,10 @@ op1-read
 set-type $1
 eval	auto vv = $1.vector_val;
 	if ( vv->Size() == 0 )
-		// Use the slightly more expensive Assign(), since it
-		// knows how to deal with empty vectors that do not yet
-		// have concrete types.
+		/* Use the slightly more expensive Assign(), since it
+		 * knows how to deal with empty vectors that do not yet
+		 * have concrete types.
+		 */
 		vv->Assign(0, $2.ToVal(z.t));
 	else
 		{
@@ -1247,7 +1251,7 @@ eval	$$.double_val = double($1.uint_val);
 macro EvalCoerceVec(lhs, rhs, coercer)
 	auto old_v1 = lhs.vector_val;
 	lhs.vector_val = coercer(rhs.vector_val, z);
-	Unref(old_v1);	// delayed to allow for same value on both sides
+	Unref(old_v1);	/* delayed to allow for same value on both sides */
 
 internal-op Coerce-UI-Vec
 type VV
@@ -2162,7 +2166,7 @@ eval	auto& aux = z.aux;
 				captures->push_back(cp);
 				}
 			else
-				// Used for when-locals.
+				/* Used for when-locals. */
 				captures->push_back(ZVal());
 			}
 		lamb->CreateCaptures(std::move(captures));

@@ -6,6 +6,8 @@
 
 // CivetServer is from the civetweb submodule in prometheus-cpp
 #include <CivetServer.h>
+#include <prometheus/exposer.h>
+#include <prometheus/registry.h>
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <algorithm>
@@ -24,6 +26,10 @@
 namespace zeek::telemetry {
 
 Manager::Manager() { prometheus_registry = std::make_shared<prometheus::Registry>(); }
+
+// This can't be defined as =default because of the use of unique_ptr with a forward-declared type
+// in Manager.h
+Manager::~Manager() {}
 
 void Manager::InitPostScript() {
     // Metrics port setting is used to calculate a URL for prometheus scraping

@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <prometheus/exposer.h>
-#include <prometheus/registry.h>
 #include <condition_variable>
 #include <cstdint>
 #include <initializer_list>
@@ -24,6 +22,11 @@ class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 } // namespace zeek
 
+namespace prometheus {
+class Exposer;
+class Registry;
+} // namespace prometheus
+
 namespace zeek::telemetry {
 
 /**
@@ -37,7 +40,7 @@ public:
 
     Manager& operator=(const Manager&) = delete;
 
-    ~Manager() = default;
+    ~Manager();
 
     /**
      * Initialization of the manager. This is called late during Zeek's

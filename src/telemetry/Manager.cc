@@ -265,10 +265,10 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
                 label_values_vec->Append(make_intrusive<StringVal>(lbl.value));
             }
 
-            r->Assign(label_names_idx, label_names_vec);
-            r->Assign(label_values_idx, label_values_vec);
+            r->Assign(label_names_idx, std::move(label_names_vec));
+            r->Assign(label_values_idx, std::move(label_values_vec));
 
-            ret_val->Append(r);
+            ret_val->Append(std::move(r));
         }
     }
 
@@ -285,7 +285,7 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
         }
     }
 
-    return ret_val;
+    return std::move(ret_val);
 }
 
 ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
@@ -337,8 +337,8 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
                 label_values_vec->Append(make_intrusive<StringVal>(lbl.value));
             }
 
-            r->Assign(label_names_idx, label_names_vec);
-            r->Assign(label_values_idx, label_values_vec);
+            r->Assign(label_names_idx, std::move(label_names_vec));
+            r->Assign(label_values_idx, std::move(label_values_vec));
 
             auto double_values_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
             std::vector<double> boundaries;
@@ -361,9 +361,9 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
             r->Assign(sum_idx, zeek::make_intrusive<DoubleVal>(inst.histogram.sample_sum));
 
             RecordValPtr local_opts_record = r->GetField<RecordVal>(opts_idx);
-            local_opts_record->Assign(bounds_idx, bounds_vec);
+            local_opts_record->Assign(bounds_idx, std::move(bounds_vec));
 
-            ret_val->Append(r);
+            ret_val->Append(std::move(r));
         }
     }
 
@@ -380,7 +380,7 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
         }
     }
 
-    return ret_val;
+    return std::move(ret_val);
 }
 
 void Manager::BuildClusterJson() {
@@ -488,7 +488,7 @@ GaugePtr Manager::GaugeInstance(std::string_view prefix, std::string_view name, 
                                 std::string_view helptext, std::string_view unit,
                                 prometheus::CollectCallbackPtr callback) {
     auto lbl_span = Span{labels.begin(), labels.size()};
-    return GaugeInstance(prefix, name, lbl_span, helptext, unit, callback);
+    return GaugeInstance(prefix, name, lbl_span, helptext, unit, std::move(callback));
 }
 
 HistogramFamilyPtr Manager::HistogramFamily(std::string_view prefix, std::string_view name,

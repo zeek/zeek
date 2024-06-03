@@ -5802,14 +5802,6 @@ export {
 		## Documentation for this metric.
 		help_text: string &optional;
 
-		## The label names (also called dimensions) of the metric. When
-		## instantiating or working with concrete metrics, corresponding
-		## label values have to be provided. Examples of a label might
-		## be the protocol a general observation applies to, the
-		## directionality in a traffic flow, or protocol-specific
-		## context like a particular message type.
-		labels: vector of string &default=vector();
-
 		## Whether the metric represents something that is accumulating.
 		## Defaults to ``T`` for counters and ``F`` for gauges and
 		## histograms.
@@ -5832,8 +5824,16 @@ export {
 		## A :zeek:see:`Telemetry::MetricOpts` record describing this metric.
 		opts: MetricOpts;
 
+		## The label names (also called dimensions) of the metric. When
+		## instantiating or working with concrete metrics, corresponding
+		## label values have to be provided. Examples of a label might
+		## be the protocol a general observation applies to, the
+		## directionality in a traffic flow, or protocol-specific
+		## context like a particular message type.
+		label_names: vector of string &default=vector();
+
 		## The label values associated with this metric, if any.
-		labels: vector of string;
+		label_values: vector of string &optional;
 
 		## The value of gauge or counter cast to a double
 		## independent of the underlying data type.
@@ -5847,8 +5847,16 @@ export {
 		## A :zeek:see:`Telemetry::MetricOpts` record describing this histogram.
 		opts: MetricOpts;
 
-		## The label values associated with this histogram, if any.
-		labels: vector of string;
+		## The label names (also called dimensions) of the metric. When
+		## instantiating or working with concrete metrics, corresponding
+		## label values have to be provided. Examples of a label might
+		## be the protocol a general observation applies to, the
+		## directionality in a traffic flow, or protocol-specific
+		## context like a particular message type.
+		label_names: vector of string &default=vector();
+
+		## The label values associated with this metric, if any.
+		label_values: vector of string &optional;
 
 		## Individual counters for each of the buckets as
 		## described by the *bounds* field in *opts*;

@@ -132,8 +132,8 @@ function do_log()
 		                 $peer=peer_description,
 		                 $metric_type=metric_type,
 		                 $name=m$opts$name,
-		                 $labels=m$opts$labels,
-		                 $label_values=m$labels,
+		                 $labels=m$label_names,
+		                 $label_values=m$label_values,
 		                 $value=m$value);
 
 		Log::write(LOG, rec);
@@ -162,8 +162,8 @@ function do_log()
 		local hrec = HistogramInfo($ts=ts,
 		                           $peer=peer_description,
 		                           $name=hm$opts$name,
-		                           $labels=hm$opts$labels,
-		                           $label_values=hm$labels,
+		                           $labels=hm$label_names,
+		                           $label_values=hm$label_values,
 		                           $bounds=hm$opts$bounds,
 		                           $values=hm$values,
 		                           $sum=hm$sum,

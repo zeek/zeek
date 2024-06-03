@@ -36,7 +36,8 @@ export {
 	};
 
 	## Register a counter family.
-	global register_counter_family: function(opts: MetricOpts): CounterFamily;
+	global register_counter_family: function(opts: MetricOpts,
+	                                         label_names: labels_vector &default=vector()): CounterFamily;
 
 	## Get a :zeek:see:`Telemetry::Counter` instance given family and label values.
 	global counter_with: function(cf: CounterFamily,
@@ -119,7 +120,8 @@ export {
 	};
 
 	## Register a gauge family.
-	global register_gauge_family: function(opts: MetricOpts): GaugeFamily;
+	global register_gauge_family: function(opts: MetricOpts,
+	                                       label_names: labels_vector &default=vector()): GaugeFamily;
 
 
 	## Get a :zeek:see:`Telemetry::Gauge` instance given family and label values.
@@ -215,7 +217,8 @@ export {
 	};
 
 	## Register a histogram family.
-	global register_histogram_family: function(opts: MetricOpts): HistogramFamily;
+	global register_histogram_family: function(opts: MetricOpts,
+	                                           label_names: labels_vector &default=vector()): HistogramFamily;
 
 	## Get a :zeek:see:`Telemetry::Histogram` instance given family and label values.
 	global histogram_with: function(hf: HistogramFamily,
@@ -290,16 +293,16 @@ function make_labels(keys: vector of string, values: labels_vector): table[strin
 	return labels;
 	}
 
-function register_counter_family(opts: MetricOpts): CounterFamily
+function register_counter_family(opts: MetricOpts, label_names: labels_vector): CounterFamily
 	{
 	local f = Telemetry::__counter_family(
 		opts$prefix,
 		opts$name,
-		opts$labels,
+		label_names,
 		opts$help_text,
 		opts$unit
 	);
-	return CounterFamily($__family=f, $__labels=opts$labels);
+	return CounterFamily($__family=f, $__labels=label_names);
 	}
 
 # Fallback Counter returned when there are issues with the labels.
@@ -349,16 +352,16 @@ function counter_family_set(cf: CounterFamily, label_values: labels_vector, valu
 	return counter_set(counter_with(cf, label_values), value);
 	}
 
-function register_gauge_family(opts: MetricOpts): GaugeFamily
+function register_gauge_family(opts: MetricOpts, label_names: labels_vector): GaugeFamily
 	{
 	local f = Telemetry::__gauge_family(
 		opts$prefix,
 		opts$name,
-		opts$labels,
+		label_names,
 		opts$help_text,
 		opts$unit
 	);
-	return GaugeFamily($__family=f, $__labels=opts$labels);
+	return GaugeFamily($__family=f, $__labels=label_names);
 	}
 
 # Fallback Gauge returned when there are issues with the label usage.
@@ -417,17 +420,17 @@ function gauge_family_set(gf: GaugeFamily, label_values: labels_vector, value: d
 	return gauge_set(gauge_with(gf, label_values), value);
 	}
 
-function register_histogram_family(opts: MetricOpts): HistogramFamily
+function register_histogram_family(opts: MetricOpts, label_names: labels_vector): HistogramFamily
 	{
 	local f = Telemetry::__histogram_family(
 		opts$prefix,
 		opts$name,
-		opts$labels,
+		label_names,
 		opts$bounds,
 		opts$help_text,
 		opts$unit
 	);
-	return HistogramFamily($__family=f, $__labels=opts$labels);
+	return HistogramFamily($__family=f, $__labels=label_names);
 	}
 
 # Fallback Histogram when there are issues with the labels.
@@ -483,10 +486,10 @@ global version_gauge_family = Telemetry::register_gauge_family([
 	$prefix="zeek",
 	$name="version_info",
 	$unit="",
-	$help_text="The Zeek version",
-	$labels=vector("version_number", "major", "minor", "patch", "commit",
-                       "beta", "debug","version_string")
-]);
+	$help_text="The Zeek version"],
+	vector("version_number", "major", "minor", "patch", "commit",
+               "beta", "debug","version_string")
+);
 
 event zeek_init()
 	{

@@ -134,7 +134,6 @@ RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric
     static auto name_idx = metric_opts_type->FieldOffset("name");
     static auto help_text_idx = metric_opts_type->FieldOffset("help_text");
     static auto unit_idx = metric_opts_type->FieldOffset("unit");
-    static auto labels_idx = metric_opts_type->FieldOffset("labels");
     static auto is_total_idx = metric_opts_type->FieldOffset("is_total");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
 
@@ -156,55 +155,15 @@ RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric
     // Assume that a metric ending with _total is always a summed metric so we can set that.
     record_val->Assign(is_total_idx, val_mgr->Bool(util::ends_with(metric_family.name, "_total")));
 
-    auto label_names_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
-
-    // Check if this is a Zeek-internal metric. We keep a little more information about a metric
-    // for these than we do for ones that were inserted into prom-cpp directly.
-    if ( auto it = families.find(metric_family.name); it != families.end() ) {
-        record_val->Assign(metric_type_idx,
-                           zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(it->second->MetricType()));
-
-        for ( const auto& lbl : it->second->LabelNames() )
-            label_names_vec->Append(make_intrusive<StringVal>(lbl));
-    }
-    else {
-        // prom-cpp stores everything internally as doubles
-        if ( metric_family.type == prometheus::MetricType::Counter )
-            record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::COUNTER));
-        if ( metric_family.type == prometheus::MetricType::Gauge )
-            record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::GAUGE));
-        if ( metric_family.type == prometheus::MetricType::Histogram )
-            record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::HISTOGRAM));
-
-        // prometheus-cpp doesn't store label names anywhere other than in each
-        // instrument. this is valid because label names can be different
-        // between instruments within a single family for prometheus.  we don't
-        // follow that model in Zeek, so use the names from the first instrument
-        // but validate that they're the same in the rest and warn if not.
-        if ( ! metric_family.metric.empty() ) {
-            std::unordered_set<std::string> names;
-            for ( const auto& lbl : metric_family.metric[0].label ) {
-                label_names_vec->Append(make_intrusive<StringVal>(lbl.name));
-                names.insert(lbl.name);
-            }
-
-            if ( metric_family.metric.size() > 1 ) {
-                for ( size_t i = 1; i < metric_family.metric.size(); ++i ) {
-                    for ( const auto& lbl : metric_family.metric[i].label ) {
-                        if ( names.count(lbl.name) == 0 )
-                            reporter->Warning(
-                                "Telemetry labels must be the same across all instruments for metric family %s\n",
-                                metric_family.name.c_str());
-                    }
-                }
-            }
-        }
-    }
-
-    record_val->Assign(labels_idx, label_names_vec);
+    if ( metric_family.type == prometheus::MetricType::Counter )
+        record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
+                                                BifEnum::Telemetry::MetricType::COUNTER));
+    if ( metric_family.type == prometheus::MetricType::Gauge )
+        record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
+                                                BifEnum::Telemetry::MetricType::GAUGE));
+    if ( metric_family.type == prometheus::MetricType::Histogram )
+        record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
+                                                BifEnum::Telemetry::MetricType::HISTOGRAM));
 
     opts_records.insert({metric_family.name, record_val});
 
@@ -244,8 +203,8 @@ static bool comparer(const std::optional<ZVal>& a, const std::optional<ZVal>& b,
     auto a_r = a->ToVal(type)->AsRecordVal();
     auto b_r = b->ToVal(type)->AsRecordVal();
 
-    auto a_labels = a_r->GetField<VectorVal>("labels");
-    auto b_labels = b_r->GetField<VectorVal>("labels");
+    auto a_labels = a_r->GetField<VectorVal>("label_values");
+    auto b_labels = b_r->GetField<VectorVal>("label_values");
     return compare_string_vectors(a_labels, b_labels);
 }
 
@@ -259,39 +218,14 @@ static bool compare_histograms(const std::optional<ZVal>& a, const std::optional
     return comparer(a, b, metric_record_type);
 }
 
-static VectorValPtr build_label_values_vector(const std::vector<prometheus::ClientMetric::Label>& prom_labels,
-                                              const VectorValPtr& record_label_names) {
-    static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
-    auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
-
-    // This feels really bad, since it's an O(m*n) search to bulld the vector,
-    // but prometheus-cpp returns us a vector of labels and so we just have to
-    // search through it.
-    int i = 0;
-    for ( const auto& name : record_label_names->RawVec() ) {
-        auto n = name->AsString()->ToStdStringView();
-        auto it = std::find_if(prom_labels.begin(), prom_labels.end(),
-                               [n](const prometheus::ClientMetric::Label& l) { return l.name == n; });
-        if ( it != prom_labels.end() )
-            label_values_vec->Assign(i, make_intrusive<StringVal>(it->value));
-
-        // See the comment in GetMetricOptsRecord about how labels from non-Zeek
-        // metrics within the same family can have different labels from each
-        // other. In this case we might leave some fields null in the output.
-
-        ++i;
-    }
-
-    return label_values_vec;
-}
-
 ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
     static auto metrics_vector_type = zeek::id::find_type<VectorType>("Telemetry::MetricVector");
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
     static auto metric_record_type = zeek::id::find_type<zeek::RecordType>("Telemetry::Metric");
     static auto opts_idx = metric_record_type->FieldOffset("opts");
-    static auto labels_idx = metric_record_type->FieldOffset("labels");
     static auto value_idx = metric_record_type->FieldOffset("value");
+    static auto label_names_idx = metric_record_type->FieldOffset("label_names");
+    static auto label_values_idx = metric_record_type->FieldOffset("label_values");
 
     static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
@@ -313,17 +247,26 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
             continue;
 
         RecordValPtr opts_record = GetMetricOptsRecord(fam);
-        const auto& label_names = opts_record->GetField<VectorVal>("labels");
 
         for ( const auto& inst : fam.metric ) {
             auto r = make_intrusive<zeek::RecordVal>(metric_record_type);
-            r->Assign(labels_idx, build_label_values_vector(inst.label, label_names));
             r->Assign(opts_idx, opts_record);
 
             if ( fam.type == prometheus::MetricType::Counter )
                 r->Assign(value_idx, zeek::make_intrusive<DoubleVal>(inst.counter.value));
             else if ( fam.type == prometheus::MetricType::Gauge )
                 r->Assign(value_idx, zeek::make_intrusive<DoubleVal>(inst.gauge.value));
+
+            auto label_names_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
+            auto label_values_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
+
+            for ( const auto& lbl : inst.label ) {
+                label_names_vec->Append(make_intrusive<StringVal>(lbl.name));
+                label_values_vec->Append(make_intrusive<StringVal>(lbl.value));
+            }
+
+            r->Assign(label_names_idx, label_names_vec);
+            r->Assign(label_values_idx, label_values_vec);
 
             ret_val->Append(r);
         }
@@ -350,8 +293,9 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
     static auto double_vec_type = zeek::id::find_type<zeek::VectorType>("double_vec");
     static auto histogram_metric_type = zeek::id::find_type<zeek::RecordType>("Telemetry::HistogramMetric");
-    static auto labels_idx = histogram_metric_type->FieldOffset("labels");
     static auto values_idx = histogram_metric_type->FieldOffset("values");
+    static auto label_names_idx = histogram_metric_type->FieldOffset("label_names");
+    static auto label_values_idx = histogram_metric_type->FieldOffset("label_values");
 
     static auto observations_idx = histogram_metric_type->FieldOffset("observations");
     static auto sum_idx = histogram_metric_type->FieldOffset("sum");
@@ -380,12 +324,21 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
             continue;
 
         RecordValPtr opts_record = GetMetricOptsRecord(fam);
-        const auto& label_names = opts_record->GetField<VectorVal>("labels");
 
         for ( const auto& inst : fam.metric ) {
             auto r = make_intrusive<zeek::RecordVal>(histogram_metric_type);
-            r->Assign(labels_idx, build_label_values_vector(inst.label, label_names));
             r->Assign(opts_idx, opts_record);
+
+            auto label_names_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
+            auto label_values_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
+
+            for ( const auto& lbl : inst.label ) {
+                label_names_vec->Append(make_intrusive<StringVal>(lbl.name));
+                label_values_vec->Append(make_intrusive<StringVal>(lbl.value));
+            }
+
+            r->Assign(label_names_idx, label_names_vec);
+            r->Assign(label_values_idx, label_values_vec);
 
             auto double_values_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
             std::vector<double> boundaries;

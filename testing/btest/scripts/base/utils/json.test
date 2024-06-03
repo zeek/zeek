@@ -140,9 +140,9 @@ event zeek_init()
 		$prefix="btest",
 		$name="btest_testing_gauge",
 		$unit="",
-		$help_text="Btest testing",
-		$labels=vector("dim_1"),
-	]);
+		$help_text="Btest testing"],
+		vector("dim_1"),
+	);
 	local gauge = Telemetry::gauge_with(gauge_family, vector("dim_1_value"));
 	print to_json(gauge);
 	print to_json(gauge_family);
@@ -151,9 +151,9 @@ event zeek_init()
 		$prefix="btest",
 		$name="btest_testing_counter",
 		$unit="",
-		$help_text="Btest testing",
-		$labels=vector("dim_1"),
-	]);
+		$help_text="Btest testing"],
+		vector("dim_1"),
+	);
 	local counter = Telemetry::counter_with(counter_family, vector("dim_1_value"));
 	print to_json(counter);
 	print to_json(counter_family);

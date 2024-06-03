@@ -66,6 +66,9 @@ void Manager::InitPostScript() {
 
         try {
             prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url, 2, callbacks);
+
+            // CivetWeb stores a copy of the callbacks, so we're safe to delete the pointer here
+            delete callbacks;
         } catch ( const CivetException& exc ) {
             reporter->FatalError("Failed to setup Prometheus endpoint: %s\n", exc.what());
         }

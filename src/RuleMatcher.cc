@@ -143,7 +143,7 @@ RuleHdrTest::~RuleHdrTest() {
     delete ruleset;
 }
 
-bool RuleHdrTest::operator==(const RuleHdrTest& h) {
+bool RuleHdrTest::operator==(const RuleHdrTest& h) const {
     if ( prot != h.prot || offset != h.offset || size != h.size || comp != h.comp ||
          vals->length() != h.vals->length() )
         return false;
@@ -158,7 +158,7 @@ bool RuleHdrTest::operator==(const RuleHdrTest& h) {
     return true;
 }
 
-void RuleHdrTest::PrintDebug() {
+void RuleHdrTest::PrintDebug() const {
     static const char* str_comp[] = {"<=", ">=", "<", ">", "==", "!="};
     static const char* str_prot[] = {"", "ip", "ipv6", "icmp", "icmpv6", "tcp", "udp", "next", "ipsrc", "ipdst"};
 
@@ -1013,7 +1013,7 @@ void RuleMatcher::ClearFileMagicState(RuleFileMagicState* state) const {
         matcher->state->Clear();
 }
 
-void RuleMatcher::PrintDebug() {
+void RuleMatcher::PrintDebug() const {
     for ( const auto& rule : rules )
         rule->PrintDebug();
 
@@ -1027,7 +1027,7 @@ static inline void indent(int level) {
         fputc(' ', stderr);
 }
 
-void RuleMatcher::PrintTreeDebug(RuleHdrTest* node) {
+void RuleMatcher::PrintTreeDebug(RuleHdrTest* node) const {
     for ( int i = 0; i < Rule::TYPES; ++i ) {
         indent(node->level);
         loop_over_list(node->psets[i], j) {
@@ -1055,7 +1055,7 @@ void RuleMatcher::PrintTreeDebug(RuleHdrTest* node) {
     }
 }
 
-void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test) {
+void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test) const {
     if ( ! hdr_test ) {
         stats->matchers = 0;
         stats->dfa_states = 0;
@@ -1089,7 +1089,7 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test) {
         GetStats(stats, h);
 }
 
-void RuleMatcher::DumpStats(File* f) {
+void RuleMatcher::DumpStats(File* f) const {
     Stats stats;
     GetStats(&stats);
 
@@ -1102,7 +1102,7 @@ void RuleMatcher::DumpStats(File* f) {
     DumpStateStats(f, root);
 }
 
-void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test) {
+void RuleMatcher::DumpStateStats(File* f, RuleHdrTest* hdr_test) const {
     if ( ! hdr_test )
         return;
 

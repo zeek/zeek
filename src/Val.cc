@@ -742,22 +742,18 @@ StringVal::~StringVal() { delete string_val; }
 
 ValPtr StringVal::SizeVal() const { return val_mgr->Count(string_val->Len()); }
 
-int StringVal::Len() const { return AsString()->Len(); }
+int StringVal::Len() const { return string_val->Len(); }
 
-const u_char* StringVal::Bytes() const { return AsString()->Bytes(); }
+const u_char* StringVal::Bytes() const { return string_val->Bytes(); }
 
-const char* StringVal::CheckString() const { return AsString()->CheckString(); }
+const char* StringVal::CheckString() const { return string_val->CheckString(); }
 
-std::pair<const char*, size_t> StringVal::CheckStringWithSize() const { return AsString()->CheckStringWithSize(); }
+std::pair<const char*, size_t> StringVal::CheckStringWithSize() const { return string_val->CheckStringWithSize(); }
 
-string StringVal::ToStdString() const {
-    auto* bs = AsString();
-    return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
-}
+string StringVal::ToStdString() const { return {(char*)string_val->Bytes(), static_cast<size_t>(string_val->Len())}; }
 
 string_view StringVal::ToStdStringView() const {
-    auto* bs = AsString();
-    return {(char*)bs->Bytes(), static_cast<size_t>(bs->Len())};
+    return {(char*)string_val->Bytes(), static_cast<size_t>(string_val->Len())};
 }
 
 StringVal* StringVal::ToUpper() {
@@ -857,6 +853,10 @@ StringValPtr StringVal::Replace(RE_Matcher* re, const String& repl, bool do_all)
     r[0] = '\0';
 
     return make_intrusive<StringVal>(new String(true, result, r - result));
+}
+
+unsigned int StringVal::ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const {
+    return 1 /* this object */ + static_cast<unsigned int>(Len()) / sizeof(Val);
 }
 
 static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t,
@@ -1223,7 +1223,7 @@ bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const {
 
     PatternVal* pv = v->AsPatternVal();
 
-    RE_Matcher* re = new RE_Matcher(AsPattern()->PatternText());
+    RE_Matcher* re = new RE_Matcher(re_val->PatternText());
     re->AddPat(pv->AsPattern()->PatternText());
     re->Compile();
 
@@ -1233,7 +1233,7 @@ bool PatternVal::AddTo(Val* v, bool /* is_first_init */) const {
 }
 
 void PatternVal::SetMatcher(RE_Matcher* re) {
-    delete AsPattern();
+    delete re_val;
     re_val = re;
 }
 
@@ -1243,7 +1243,7 @@ bool PatternVal::MatchAnywhere(const String* s) const { return re_val->MatchAnyw
 
 void PatternVal::ValDescribe(ODesc* d) const {
     d->Add("/");
-    d->Add(AsPattern()->PatternText());
+    d->Add(re_val->PatternText());
     d->Add("/");
 }
 
@@ -2668,7 +2668,6 @@ ValPtr TableVal::DoClone(CloneState* state) {
     auto tv = make_intrusive<TableVal>(table_type, init_attrs);
     state->NewClone(this, tv);
 
-    const PDict<TableEntryVal>* tbl = AsTable();
     for ( const auto& tble : *table_val ) {
         auto key = tble.GetHashKey();
         auto* val = tble.value;
@@ -3681,11 +3680,6 @@ ValPtr check_and_promote(ValPtr v, const TypePtr& new_type, bool is_init, const 
     }
 
     return promoted_v;
-}
-
-bool same_val(const Val* /* v1 */, const Val* /* v2 */) {
-    reporter->InternalError("same_val not implemented");
-    return false;
 }
 
 bool is_atomic_val(const Val* v) { return is_atomic_type(v->GetType()); }

@@ -159,9 +159,10 @@ list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 
 include(Gen-ZAM)
 
-set(GEN_ZAM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/Ops.in)
+set(GEN_ZAM_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/OPs)
+set(GEN_ZAM_SRC ${GEN_ZAM_SRC_DIR}/ZAM.op)
 
-gen_zam_target(${GEN_ZAM_SRC})
+gen_zam_target(${GEN_ZAM_SRC_DIR})
 
 # ##############################################################################
 # Including subdirectories.

@@ -8,8 +8,8 @@ export {
 	const prefix = "./extract_files/" &redef;
 
 	## The default max size for extracted files (they won't exceed this
-	## number of bytes). A value of zero means unlimited.
-	option default_limit = 0;
+	## number of bytes). A value of zero means unlimited. Defaults to 100MB.
+	option default_limit = 104857600;
 
 	## This setting configures if the file extract limit is inclusive
 	## of missing bytes. By default, missing bytes do count towards the

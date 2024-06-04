@@ -39,8 +39,6 @@ const char* stmt_name(StmtTag t) {
         "next",
         "break",
         "return",
-        "add",
-        "delete",
         "list",
         "bodylist",
         "<init>",
@@ -902,49 +900,6 @@ TraversalCode SwitchStmt::Traverse(TraversalCallback* cb) const {
 
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);
-}
-
-AddDelStmt::AddDelStmt(StmtTag t, ExprPtr arg_e) : ExprStmt(t, std::move(arg_e)) {}
-
-bool AddDelStmt::IsPure() const { return false; }
-
-TraversalCode AddDelStmt::Traverse(TraversalCallback* cb) const {
-    TraversalCode tc = cb->PreStmt(this);
-    HANDLE_TC_STMT_PRE(tc);
-
-    // Argument is stored in base class's "e" field.
-    tc = e->Traverse(cb);
-    HANDLE_TC_STMT_PRE(tc);
-
-    tc = cb->PostStmt(this);
-    HANDLE_TC_STMT_POST(tc);
-}
-
-AddStmt::AddStmt(ExprPtr arg_e) : AddDelStmt(STMT_ADD, std::move(arg_e)) {
-    if ( ! e->CanAdd() )
-        Error("illegal add statement");
-}
-
-ValPtr AddStmt::Exec(Frame* f, StmtFlowType& flow) {
-    RegisterAccess();
-    flow = FLOW_NEXT;
-    e->Add(f);
-    return nullptr;
-}
-
-DelStmt::DelStmt(ExprPtr arg_e) : AddDelStmt(STMT_DELETE, std::move(arg_e)) {
-    if ( e->IsError() )
-        return;
-
-    if ( ! e->CanDel() )
-        Error("illegal delete statement");
-}
-
-ValPtr DelStmt::Exec(Frame* f, StmtFlowType& flow) {
-    RegisterAccess();
-    flow = FLOW_NEXT;
-    e->Delete(f);
-    return nullptr;
 }
 
 EventStmt::EventStmt(EventExprPtr arg_e) : ExprStmt(STMT_EVENT, arg_e), event_expr(std::move(arg_e)) {}
@@ -2029,7 +1984,10 @@ void WhenStmt::StmtDescribe(ODesc* d) const {
             if ( c.IsDeepCopy() )
                 d->Add("copy ");
 
-            d->Add(c.Id()->Name());
+            if ( c.Id() )
+                d->Add(c.Id()->Name());
+            else
+                d->Add("<error>");
         }
         d->Add("]");
     }

@@ -16,6 +16,7 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.5
     gcc12-c++ \
     git \
     gzip \
+    jq \
     libopenssl-devel \
     libpcap-devel \
     make \

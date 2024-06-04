@@ -264,9 +264,6 @@ public:
      * loaded will also be activated. By calling this method, an analyzer can
      * toggled.
      *
-     * @note This is currently not supported because Zeek does not provide the
-     * necessary API.
-     *
      * @param analyzer tag of analyzer
      * @param enable true to enable, false to disable
      */
@@ -352,7 +349,7 @@ private:
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;
         std::string name_zeekygen;
-        Tag::type_t type;
+        Tag tag;
         const ::spicy::rt::Parser* parser_orig;
         const ::spicy::rt::Parser* parser_resp;
         Tag replaces;
@@ -378,7 +375,7 @@ private:
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;
         std::string name_zeekygen;
-        Tag::type_t type;
+        Tag tag;
         const ::spicy::rt::Parser* parser;
         Tag replaces;
 
@@ -402,7 +399,7 @@ private:
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;
         std::string name_zeekygen;
-        Tag::type_t type;
+        Tag tag;
         const ::spicy::rt::Parser* parser;
         Tag replaces;
 

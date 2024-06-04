@@ -21,6 +21,13 @@ BASE="$(cd "$CURR" && cd ../../ && pwd)"
 TMP="${CURR}/tmp.$$"
 mkdir -p $TMP
 
+GCOV_CMD=$(which gcov)
+
+if [ -z "${GCOV_CMD}" ]; then
+    echo "gcov is not installed on system, aborting"
+    exit 1
+fi
+
 # DEFINE CLEANUP PROCESS
 function finish {
     rm -rf $TMP
@@ -75,9 +82,11 @@ function check_group_coverage {
             TOTAL=$(echo $(grep "$i" $DATA | cut -f 3) | tr " " "+" | bc)
         fi
 
-        PERCENTAGE=$(echo "scale=3;100*$RUN/$TOTAL" | bc | tr "\n" " ")
-        printf "%-50s\t%12s\t%6s %%\n" "$i" "$RUN/$TOTAL" $PERCENTAGE |
-            sed 's|#|/|g' >>$OUTPUT
+        if [ $TOTAL -ne 0 ]; then
+            PERCENTAGE=$(echo "scale=3;100*$RUN/$TOTAL" | bc | tr "\n" " ")
+            printf "%-50s\t%12s\t%6s %%\n" "$i" "$RUN/$TOTAL" $PERCENTAGE |
+                sed 's|#|/|g' >>$OUTPUT
+        fi
     done
 }
 
@@ -97,25 +106,20 @@ echo "ok"
 # 3a. Run gcov (-p to preserve path) and move into tmp directory
 # ... if system does not have gcov installed, exit with message.
 echo -n "Creating coverage files... "
-if which gcov >/dev/null 2>&1; then
-    (cd "$TMP" && find "$BASE" -name "*.o" -exec gcov -p {} \; >/dev/null 2>&1)
-    NUM_GCOVS=$(find "$TMP" -name *.gcov | wc -l)
-    if [ $NUM_GCOVS -eq 0 ]; then
-        echo "no gcov files produced, aborting"
-        exit 1
-    fi
-
-    # Account for '^' that occurs in macOS due to LLVM
-    # This character seems to be equivalent to ".." (up 1 dir)
-    for file in $(ls $TMP/*.gcov | grep '\^'); do
-        mv $file "$(sed 's/#[^#]*#\^//g' <<<"$file")"
-    done
-
-    echo "ok, $NUM_GCOVS coverage files"
-else
-    echo "gcov is not installed on system, aborting"
+(cd "$TMP" && find "$BASE" -name "*.o" -exec ${GCOV_CMD} -p {} \; >/dev/null 2>&1)
+NUM_GCOVS=$(find "$TMP" -name *.gcov | wc -l)
+if [ $NUM_GCOVS -eq 0 ]; then
+    echo "no gcov files produced, aborting"
     exit 1
 fi
+
+# Account for '^' that occurs in macOS due to LLVM
+# This character seems to be equivalent to ".." (up 1 dir)
+for file in $(ls $TMP/*.gcov | grep '\^'); do
+    mv $file "$(sed 's/#[^#]*#\^//g' <<<"$file")"
+done
+
+echo "ok, $NUM_GCOVS coverage files"
 
 # 3b. Prune gcov files that fall outside of the Zeek tree:
 # Look for files containing gcov's slash substitution character "#"

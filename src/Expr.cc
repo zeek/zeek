@@ -24,12 +24,17 @@
 #include "zeek/broker/Data.h"
 #include "zeek/digest.h"
 #include "zeek/module_util.h"
-#include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
 namespace zeek::detail {
 
 const char* expr_name(ExprTag t) {
+    // Note that some of the names in the following have trailing spaces.
+    // These are for unary operations that (1) are identified by names
+    // rather than symbols, and (2) don't have custom ExprDescribe printers.
+    // Adding the spaces here lets them leverage the UnaryExpr::ExprDescribe
+    // method without it having to know about such expressions.
     static const char* expr_names[int(NUM_EXPRS)] = {
         "name",
         "const",
@@ -42,6 +47,8 @@ const char* expr_name(ExprTag t) {
         "-",
         "+",
         "-",
+        "add ",
+        "delete ",
         "+=",
         "-=",
         "*",
@@ -62,7 +69,7 @@ const char* expr_name(ExprTag t) {
         ">=",
         ">",
         "?:",
-        "ref",
+        "ref ",
         "=",
         "[]",
         "$",
@@ -79,21 +86,22 @@ const char* expr_name(ExprTag t) {
         "event",
         "schedule",
         "coerce",
-        "record_coerce",
-        "table_coerce",
-        "vector_coerce",
-        "sizeof",
+        "record_coerce ",
+        "table_coerce ",
+        "vector_coerce ",
+        "to_any_coerce ",
+        "from_any_coerce ",
+        "sizeof ",
         "cast",
         "is",
         "[:]=",
         "inline()",
+        "vec+=",
         "[]=",
         "$=",
-        "vec+=",
-        "to_any_coerce",
-        "from_any_coerce",
-        "from_any_vec_coerce",
+        "from_any_vec_coerce ",
         "any[]",
+        "ZAM-builtin()",
         "nop",
 
     };
@@ -210,9 +218,13 @@ bool Expr::CanAdd() const { return false; }
 
 bool Expr::CanDel() const { return false; }
 
-void Expr::Add(Frame* /* f */) { Internal("Expr::Add called"); }
+TypePtr Expr::AddType() const { return nullptr; }
 
-void Expr::Delete(Frame* /* f */) { Internal("Expr::Delete called"); }
+TypePtr Expr::DelType() const { return nullptr; }
+
+ValPtr Expr::Add(Frame* /* f */) { Internal("Expr::Add called"); }
+
+ValPtr Expr::Delete(Frame* /* f */) { Internal("Expr::Delete called"); }
 
 ExprPtr Expr::MakeLvalue() {
     if ( ! IsError() )
@@ -415,8 +427,9 @@ bool NameExpr::CanDel() const {
     return GetType()->Tag() == TYPE_TABLE || GetType()->Tag() == TYPE_VECTOR;
 }
 
-void NameExpr::Delete(Frame* f) {
-    if ( auto v = Eval(f) ) {
+ValPtr NameExpr::Delete(Frame* f) {
+    auto v = Eval(f);
+    if ( v ) {
         if ( GetType()->Tag() == TYPE_TABLE )
             v->AsTableVal()->RemoveAll();
         else if ( GetType()->Tag() == TYPE_VECTOR )
@@ -424,6 +437,7 @@ void NameExpr::Delete(Frame* f) {
         else
             RuntimeError("delete unsupported");
     }
+    return v;
 }
 
 // This isn't in-lined to avoid needing to pull in ID.h.
@@ -1392,6 +1406,24 @@ void AddExpr::Canonicalize() {
         SwapOps();
 }
 
+AggrAddExpr::AggrAddExpr(ExprPtr _op) : AggrAddDelExpr(EXPR_AGGR_ADD, std::move(_op)) {
+    if ( ! op->IsError() && ! op->CanAdd() )
+        ExprError("illegal add expression");
+
+    SetType(op->AddType());
+}
+
+ValPtr AggrAddExpr::Eval(Frame* f) const { return op->Add(f); }
+
+AggrDelExpr::AggrDelExpr(ExprPtr _op) : AggrAddDelExpr(EXPR_AGGR_DEL, std::move(_op)) {
+    if ( ! op->IsError() && ! op->CanDel() )
+        Error("illegal delete expression");
+
+    SetType(op->DelType());
+}
+
+ValPtr AggrDelExpr::Eval(Frame* f) const { return op->Delete(f); }
+
 // True if we should treat LHS += RHS as add-every-element-of-RHS-to-LHS.
 // False for the alternative, add-RHS-as-one-element-to-LHS.
 //
@@ -1872,12 +1904,45 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
         ExprError("requires \"count\" or compatible \"set\" operands");
 }
 
-EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
-    : BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2)) {
+CmpExpr::CmpExpr(ExprTag tag, ExprPtr _op1, ExprPtr _op2) : BinaryExpr(tag, std::move(_op1), std::move(_op2)) {
     if ( IsError() )
         return;
 
     Canonicalize();
+
+    if ( is_vector(op1) )
+        SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
+    else
+        SetType(base_type(TYPE_BOOL));
+}
+
+void CmpExpr::Canonicalize() {
+    if ( tag == EXPR_EQ || tag == EXPR_NE ) {
+        if ( op2->GetType()->Tag() == TYPE_PATTERN )
+            SwapOps();
+
+        else if ( op1->GetType()->Tag() == TYPE_PATTERN )
+            ;
+
+        else if ( expr_greater(op2.get(), op1.get()) )
+            SwapOps();
+    }
+
+    else if ( tag == EXPR_GT ) {
+        SwapOps();
+        tag = EXPR_LT;
+    }
+
+    else if ( tag == EXPR_GE ) {
+        SwapOps();
+        tag = EXPR_LE;
+    }
+}
+
+EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
+    : CmpExpr(arg_tag, std::move(arg_op1), std::move(arg_op2)) {
+    if ( IsError() )
+        return;
 
     const auto& t1 = op1->GetType();
     const auto& t2 = op2->GetType();
@@ -1885,11 +1950,6 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
     TypeTag bt1, bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
-
-    if ( is_vector(op1) )
-        SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
-    else
-        SetType(base_type(TYPE_BOOL));
 
     if ( BothArithmetic(bt1, bt2) )
         PromoteOps(max_type(bt1, bt2));
@@ -1936,17 +1996,6 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
         ExprError("type clash in comparison");
 }
 
-void EqExpr::Canonicalize() {
-    if ( op2->GetType()->Tag() == TYPE_PATTERN )
-        SwapOps();
-
-    else if ( op1->GetType()->Tag() == TYPE_PATTERN )
-        ;
-
-    else if ( expr_greater(op2.get(), op1.get()) )
-        SwapOps();
-}
-
 ValPtr EqExpr::Fold(Val* v1, Val* v2) const {
     if ( op1->GetType()->Tag() == TYPE_PATTERN ) {
         auto re = v1->As<PatternVal*>();
@@ -1971,11 +2020,9 @@ bool EqExpr::InvertSense() {
 }
 
 RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
-    : BinaryExpr(arg_tag, std::move(arg_op1), std::move(arg_op2)) {
+    : CmpExpr(arg_tag, std::move(arg_op1), std::move(arg_op2)) {
     if ( IsError() )
         return;
-
-    Canonicalize();
 
     const auto& t1 = op1->GetType();
     const auto& t2 = op2->GetType();
@@ -1983,11 +2030,6 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
     TypeTag bt1, bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
-
-    if ( is_vector(op1) )
-        SetType(make_intrusive<VectorType>(base_type(TYPE_BOOL)));
-    else
-        SetType(base_type(TYPE_BOOL));
 
     if ( BothArithmetic(bt1, bt2) )
         PromoteOps(max_type(bt1, bt2));
@@ -2002,18 +2044,6 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 
     else if ( bt1 != TYPE_TIME && bt1 != TYPE_INTERVAL && bt1 != TYPE_PORT && bt1 != TYPE_ADDR && bt1 != TYPE_STRING )
         ExprError("illegal comparison");
-}
-
-void RelExpr::Canonicalize() {
-    if ( tag == EXPR_GT ) {
-        SwapOps();
-        tag = EXPR_LT;
-    }
-
-    else if ( tag == EXPR_GE ) {
-        SwapOps();
-        tag = EXPR_LE;
-    }
 }
 
 bool RelExpr::InvertSense() {
@@ -2497,46 +2527,52 @@ bool IndexExpr::CanDel() const {
     return op1->GetType()->Tag() == TYPE_TABLE;
 }
 
-void IndexExpr::Add(Frame* f) {
+ValPtr IndexExpr::Add(Frame* f) {
     if ( IsError() )
-        return;
+        return nullptr;
 
     auto v1 = op1->Eval(f);
 
     if ( ! v1 )
-        return;
+        return nullptr;
 
     auto v2 = op2->Eval(f);
 
     if ( ! v2 )
-        return;
+        return nullptr;
 
     bool iterators_invalidated = false;
     v1->AsTableVal()->Assign(std::move(v2), nullptr, true, &iterators_invalidated);
 
     if ( iterators_invalidated )
         reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");
+
+    // In the future we could return a value, such as v1, here.
+    return nullptr;
 }
 
-void IndexExpr::Delete(Frame* f) {
+ValPtr IndexExpr::Delete(Frame* f) {
     if ( IsError() )
-        return;
+        return nullptr;
 
     auto v1 = op1->Eval(f);
 
     if ( ! v1 )
-        return;
+        return nullptr;
 
     auto v2 = op2->Eval(f);
 
     if ( ! v2 )
-        return;
+        return nullptr;
 
     bool iterators_invalidated = false;
-    v1->AsTableVal()->Remove(*v2, true, &iterators_invalidated);
+    auto removed = v1->AsTableVal()->Remove(*v2, true, &iterators_invalidated);
 
     if ( iterators_invalidated )
         reporter->ExprRuntimeWarning(this, "possible loop/iterator invalidation");
+
+    // In the future we could return a value, such as removed, here.
+    return nullptr;
 }
 
 ExprPtr IndexExpr::MakeLvalue() {
@@ -2757,13 +2793,24 @@ void FieldExpr::Assign(Frame* f, ValPtr v) {
     if ( IsError() )
         return;
 
-    if ( auto op_v = op->Eval(f) ) {
-        RecordVal* r = op_v->AsRecordVal();
-        r->Assign(field, std::move(v));
-    }
+    Assign(op->Eval(f), v);
 }
 
-void FieldExpr::Delete(Frame* f) { Assign(f, nullptr); }
+void FieldExpr::Assign(ValPtr lhs, ValPtr rhs) {
+    if ( lhs )
+        lhs->AsRecordVal()->Assign(field, std::move(rhs));
+}
+
+ValPtr FieldExpr::Delete(Frame* f) {
+    auto op_v = op->Eval(f);
+    if ( ! op_v )
+        return nullptr;
+
+    auto former = op_v->AsRecordVal()->GetField(field);
+    Assign(op_v, nullptr);
+    // In the future we could return a value, such as former, here.
+    return nullptr;
+}
 
 ValPtr FieldExpr::Fold(Val* v) const {
     if ( const auto& result = v->AsRecordVal()->GetField(field) )

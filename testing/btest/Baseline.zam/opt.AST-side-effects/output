@@ -358,7 +358,7 @@ print 2 * g1, tbl_c_of_c[2], tbl_c_of_c2[1], tbl_c_of_b[100], tbl_s_of_s[4];
 print 2 * g1, tbl_c_of_c[2], tbl_c_of_c2[1], tbl_c_of_b[100], tbl_s_of_s[4];
 print table(11 = F)&default=function(){ 
 tbl_s_of_s2[2] = two;
-return (sizeoftbl_s_of_s2 < 9);
+return (sizeof tbl_s_of_s2 < 9);
 }, &optional;
 } <...>/AST-side-effects.zeek, lines 247-261
 Transformed: { 
@@ -376,7 +376,7 @@ print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3, <internal>
 print <internal>::#5, <internal>::#6, <internal>::#7, <internal>::#8, <internal>::#9;
 <internal>::#10 = table(11 = F)&default=function(){ 
 tbl_s_of_s2[2] = two;
-return (sizeoftbl_s_of_s2 < 9);
+return (sizeof tbl_s_of_s2 < 9);
 }, &optional;
 print <internal>::#10;
 } <...>/AST-side-effects.zeek, lines 247-261
@@ -392,7 +392,7 @@ print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3, <internal>
 print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#8, <internal>::#9;
 <internal>::#10 = table(11 = F)&default=function(){ 
 tbl_s_of_s2[2] = two;
-return (sizeoftbl_s_of_s2 < 9);
+return (sizeof tbl_s_of_s2 < 9);
 }, &optional;
 print <internal>::#10;
 } <...>/AST-side-effects.zeek, lines 247-261
@@ -408,7 +408,7 @@ print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3, <internal>
 print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#8, <internal>::#9;
 <internal>::#10 = table(11 = F)&default=function(){ 
 tbl_s_of_s2[2] = two;
-return (sizeoftbl_s_of_s2 < 9);
+return (sizeof tbl_s_of_s2 < 9);
 }, &optional;
 print <internal>::#10;
 } <...>/AST-side-effects.zeek, lines 247-261

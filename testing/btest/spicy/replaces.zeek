@@ -2,28 +2,22 @@
 #
 # @TEST-EXEC: mkdir -p modules
 # @TEST-EXEC: spicyz -d -o modules/ssh.hlto ssh.spicy ./ssh.evt
-# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/single-conn.trace %INPUT | sort >output
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/single-conn.trace %INPUT | sort >>output
+# @TEST-EXEC: ZEEK_SPICY_MODULE_PATH=$(pwd)/modules zeek -r ${TRACES}/ssh/ssh-on-port-80.trace %INPUT | sort >>output
 # @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff conn.log
 #
 # We use the module search path for loading here as a regression test for #137.
 # Note that this that problem only showed up when the Spicy plugin was built
 # into Zeek.
-#
-# XXX: Replaces is kin of borked. "replaces" probably should inherit/use
-#      ports previously registered through Analyzer::register_for_port() for
-#      the analyzer that is being replaced, but that doesn't seem to be
-#      happening. Having ports previosly in .evt "worked around it" mostly.
-#
-#      This seems pretty much #3573.
-#
+
 event zeek_init()
 	{
-	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);
+	# Reuse existing analyzer's port.
+	Analyzer::register_for_port(Analyzer::ANALYZER_SSH, 22/tcp);
 
-	# The following should maybe "do the right thing" when using replaces
-	# if we fiddle with the underlying enum value?
-	#
-	# Analyzer::register_for_port(Analyzer::ANALYZER_SSH, 22/tcp);
+	# Add our own port.
+	Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 80/tcp);
 	}
 
 event ssh::banner(c: connection, is_orig: bool, version: string, software: string)

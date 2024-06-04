@@ -2,236 +2,110 @@
 
 #pragma once
 
+#include <prometheus/family.h>
+#include <prometheus/gauge.h>
 #include <cstdint>
 #include <initializer_list>
-#include <type_traits>
+#include <memory>
 
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
-
-#include "broker/telemetry/fwd.hh"
+#include "zeek/telemetry/Utils.h"
+#include "zeek/telemetry/telemetry.bif.h"
 
 namespace zeek::telemetry {
 
-class DblGaugeFamily;
-class IntGaugeFamily;
-class Manager;
-
 /**
- * A handle to a metric that represents an integer value. Gauges are more
- * permissive than counters and also allow decrementing the value.
+ * A handle to a metric that can count up and down.
  */
-class IntGauge {
+class Gauge {
 public:
-    friend class IntGaugeFamily;
+    static inline const char* OpaqueName = "GaugeMetricVal";
 
-    static inline const char* OpaqueName = "IntGaugeMetricVal";
+    using Handle = prometheus::Gauge;
+    using FamilyType = prometheus::Family<Handle>;
 
-    IntGauge() = delete;
-    IntGauge(const IntGauge&) noexcept = default;
-    IntGauge& operator=(const IntGauge&) noexcept = default;
+    explicit Gauge(FamilyType* family, const prometheus::Labels& labels,
+                   prometheus::CollectCallbackPtr callback = nullptr) noexcept;
 
     /**
      * Increments the value by 1.
      */
-    void Inc() noexcept { broker::telemetry::inc(hdl); }
+    void Inc() noexcept { Inc(1); }
 
     /**
      * Increments the value by @p amount.
      */
-    void Inc(int64_t amount) noexcept { broker::telemetry::inc(hdl, amount); }
+    void Inc(double amount) noexcept { handle.Increment(amount); }
 
     /**
      * Increments the value by 1.
      * @return The new value.
      */
-    int64_t operator++() noexcept { return broker::telemetry::inc(hdl); }
+    double operator++() noexcept {
+        Inc(1);
+        return Value();
+    }
 
     /**
      * Decrements the value by 1.
      */
-    void Dec() noexcept { broker::telemetry::dec(hdl); }
+    void Dec() noexcept { Dec(1); }
 
     /**
      * Decrements the value by @p amount.
      */
-    void Dec(int64_t amount) noexcept { broker::telemetry::dec(hdl, amount); }
+    void Dec(double amount) noexcept { handle.Decrement(amount); }
 
     /**
      * Decrements the value by 1.
      * @return The new value.
      */
-    int64_t operator--() noexcept { return broker::telemetry::dec(hdl); }
+    double operator--() noexcept {
+        Dec(1);
+        return Value();
+    }
 
-    /**
-     * @return The current value.
-     */
-    int64_t Value() const noexcept { return broker::telemetry::value(hdl); }
+    double Value() const noexcept;
 
-    /**
-     * @return Whether @c this and @p other refer to the same counter.
-     */
-    constexpr bool IsSameAs(const IntGauge& other) const noexcept { return hdl == other.hdl; }
+    bool operator==(const Gauge& rhs) const noexcept { return &handle == &rhs.handle; }
+    bool operator!=(const Gauge& rhs) const noexcept { return &handle != &rhs.handle; }
+
+    bool CompareLabels(const prometheus::Labels& lbls) const { return labels == lbls; }
 
 private:
-    using Handle = broker::telemetry::int_gauge_hdl*;
-
-    explicit IntGauge(Handle hdl) noexcept : hdl(hdl) {}
-
-    Handle hdl;
+    Handle& handle;
+    prometheus::Labels labels;
+    bool has_callback = false;
 };
 
-/**
- * Checks whether two @ref IntGauge handles are identical.
- * @return Whether @p lhs and @p rhs refer to the same object.
- * @note compare their @c value instead to check for equality.
- */
-constexpr bool operator==(const IntGauge& lhs, const IntGauge& rhs) noexcept { return lhs.IsSameAs(rhs); }
+using GaugePtr = std::shared_ptr<Gauge>;
 
-/// @relates IntGauge
-constexpr bool operator!=(const IntGauge& lhs, const IntGauge& rhs) noexcept { return ! (lhs == rhs); }
-
-/**
- * Manages a collection of IntGauge metrics.
- */
-class IntGaugeFamily : public MetricFamily {
+class GaugeFamily : public MetricFamily, public std::enable_shared_from_this<GaugeFamily> {
 public:
-    friend class Manager;
-
-    static inline const char* OpaqueName = "IntGaugeMetricFamilyVal";
-
-    using InstanceType = IntGauge;
-
-    IntGaugeFamily(const IntGaugeFamily&) noexcept = default;
-    IntGaugeFamily& operator=(const IntGaugeFamily&) noexcept = default;
+    static inline const char* OpaqueName = "GaugeMetricFamilyVal";
 
     /**
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    IntGauge GetOrAdd(Span<const LabelView> labels) { return IntGauge{int_gauge_get_or_add(hdl, labels)}; }
+    GaugePtr GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd
      */
-    IntGauge GetOrAdd(std::initializer_list<LabelView> labels) { return GetOrAdd(Span{labels.begin(), labels.size()}); }
+    GaugePtr GetOrAdd(std::initializer_list<LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
+
+    zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::GAUGE; }
+
+    GaugeFamily(prometheus::Family<prometheus::Gauge>* family, Span<const std::string_view> labels)
+        : MetricFamily(labels), family(family) {}
 
 private:
-    using Handle = broker::telemetry::int_gauge_family_hdl*;
-
-    explicit IntGaugeFamily(Handle hdl) : MetricFamily(upcast(hdl)) {}
+    prometheus::Family<prometheus::Gauge>* family;
+    std::vector<GaugePtr> gauges;
 };
 
-/**
- * A handle to a metric that represents a floating point value. Gauges are more
- * permissive than counters and also allow decrementing the value.
- */
-class DblGauge {
-public:
-    friend class DblGaugeFamily;
-
-    static inline const char* OpaqueName = "DblGaugeMetricVal";
-
-    DblGauge() = delete;
-    DblGauge(const DblGauge&) noexcept = default;
-    DblGauge& operator=(const DblGauge&) noexcept = default;
-
-    /**
-     * Increments the value by 1.
-     */
-    void Inc() noexcept { broker::telemetry::inc(hdl); }
-
-    /**
-     * Increments the value by @p amount.
-     */
-    void Inc(double amount) noexcept { broker::telemetry::inc(hdl, amount); }
-
-    /**
-     * Increments the value by 1.
-     */
-    void Dec() noexcept { broker::telemetry::dec(hdl); }
-
-    /**
-     * Increments the value by @p amount.
-     */
-    void Dec(double amount) noexcept { broker::telemetry::dec(hdl, amount); }
-
-    /**
-     * @return The current value.
-     */
-    double Value() const noexcept { return broker::telemetry::value(hdl); }
-
-    /**
-     * @return Whether @c this and @p other refer to the same counter.
-     */
-    constexpr bool IsSameAs(const DblGauge& other) const noexcept { return hdl == other.hdl; }
-
-private:
-    using Handle = broker::telemetry::dbl_gauge_hdl*;
-
-    explicit DblGauge(Handle hdl) noexcept : hdl(hdl) {}
-
-    Handle hdl;
-};
-
-/**
- * Checks whether two @ref DblGauge handles are identical.
- * @return Whether @p lhs and @p rhs refer to the same object.
- * @note compare their @c value instead to check for equality.
- */
-constexpr bool operator==(const DblGauge& lhs, const DblGauge& rhs) noexcept { return lhs.IsSameAs(rhs); }
-
-/// @relates DblGauge
-constexpr bool operator!=(const DblGauge& lhs, const DblGauge& rhs) noexcept { return ! (lhs == rhs); }
-
-/**
- * Manages a collection of DblGauge metrics.
- */
-class DblGaugeFamily : public MetricFamily {
-public:
-    friend class Manager;
-
-    static inline const char* OpaqueName = "DblGaugeMetricFamilyVal";
-
-    using InstanceType = DblGauge;
-
-    DblGaugeFamily(const DblGaugeFamily&) noexcept = default;
-    DblGaugeFamily& operator=(const DblGaugeFamily&) noexcept = default;
-
-    /**
-     * Returns the metrics handle for given labels, creating a new instance
-     * lazily if necessary.
-     */
-    DblGauge GetOrAdd(Span<const LabelView> labels) { return DblGauge{dbl_gauge_get_or_add(hdl, labels)}; }
-
-    /**
-     * @copydoc GetOrAdd
-     */
-    DblGauge GetOrAdd(std::initializer_list<LabelView> labels) { return GetOrAdd(Span{labels.begin(), labels.size()}); }
-
-private:
-    using Handle = broker::telemetry::dbl_gauge_family_hdl*;
-
-    explicit DblGaugeFamily(Handle hdl) : MetricFamily(upcast(hdl)) {}
-};
-
-namespace detail {
-
-template<class T>
-struct GaugeOracle {
-    static_assert(std::is_same<T, int64_t>::value, "Gauge<T> only supports int64_t and double");
-
-    using type = IntGauge;
-};
-
-template<>
-struct GaugeOracle<double> {
-    using type = DblGauge;
-};
-
-} // namespace detail
-
-template<class T>
-using Gauge = typename detail::GaugeOracle<T>::type;
+using GaugeFamilyPtr = std::shared_ptr<GaugeFamily>;
 
 } // namespace zeek::telemetry

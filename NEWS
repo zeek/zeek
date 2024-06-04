@@ -9,6 +9,48 @@ Zeek 7.0.0
 Breaking Changes
 ----------------
 
+- The Telemetry framework has had a major rework, and includes a number of
+  breaking changes. The biggest change is a move towards a Prometheus-first
+  model. This removes the internal aggregation of metrics from nodes onto the
+  manager node, replacing it with a Prometheus service discovery endpoint. The
+  usage of this endpoint is described in the updated documentation for the
+  Telemetry framework. Using this endpoint also requires adding a new
+  ``metrics_port`` field to each node in the cluster configuration, denoting
+  what port to connect to for each node.
+
+  All of the metrics-related script-level options, type, and methods have been
+  moved to the Telemetry framework:
+    * Option ``Broker::metrics_port` is now ``Telemetry::metrics_port``
+    * Option ``Broker::metrics_export_endpoint_name`` is now ``Telemetry::metrics_endpoint_name``
+
+  The following options have been removed:
+    * ``Broker::metrics_export_interval``
+    * ``Broker::metrics_export_topic``
+    * ``Broker::metrics_import_topics``
+    * ``Broker::metrics_export_prefixes``
+
+  The ``unit`` field has been removed from the telemetry log.
+
+  All of the ``BROKER_METRICS_*`` environment variables have been removed. Use
+  the equivalent script-level variables for setting configuration settings. For
+  cluster settings, a new ``metrics_port`` option was added to the ``node.cfg``
+  options and can be used to set the port number. The cluster layout record
+  defined in ``cluster-layout.zeek`` has the same option, and it can be
+  automatically populated by ``zeekctl`` during the ``install`` or ``deploy``
+  commands.
+
+  The instruments that previously supported ``count`` in scripts and ``int64_t``
+  in C++ were removed in favor of only providing ``double`` versions. Prometheus
+  only handles ``double`` underneath the Zeek code, so it makes sense to only
+  support it directly in Zeek as well. This also simplifies the code
+  significantly.
+
+  The ``is_sum`` argument has been removed from the constructors/creation
+  methods for all of the instruments. This again follows how Prometheus works,
+  where ``counter`` instruments are always considered sums and ``gauge``
+  instruments are not. ``Histogram`` instruments don't have the concept of
+  summing.
+
 New Functionality
 -----------------
 
@@ -26,6 +68,38 @@ New Functionality
 	@if ( can_load("my-package") )
 	@load my-package
 	@endif
+
+- Zeek packagers can now include a "local" addition into Zeek's version string.
+  Configure your Zeek build with ``--localversion=XXX`` to add the provided
+  string, dash-separated, at the end of Zeek's regular version string. The build
+  setup will refuse strings that contain dashes, to avoid confusing the version
+  components.  For debug builds, the ``-debug`` suffix remains at the end. For
+  example, the version string on a debug-enabled build with local addition "XXX"
+  might be "7.0.0-dev.114-XXX-debug". For Docker builds, the ``LOCALVERSION``
+  environment variable configures the addition.
+
+- SMB2 packets containing multiple PDUs now correctly parse all of the headers,
+  instead of just the first one and ignoring the rest.
+
+- The new built-in function ``lookup_connection_analyzer_id()`` retrieves the
+  numeric identifier of an analyzer associated with a connection. This enables
+  the use of the ``disable_analyzer()`` BiF outside of the analyzer
+  confirmation/violation events that have so far been the only providers of
+  those identifiers. For example, this allows the suppression of an analyzer
+  from the outset for specific connections:
+
+	event connection_established(c: connection):
+		{
+		if ( no_http_for_this_conn_wanted(c) )
+			{
+			local aid = lookup_connection_analyzer_id(c$id, Analyzer::ANALYZER_HTTP);
+			if ( aid > 0 )
+				disable_analyzer(c$id, aid, T, T);
+			}
+		}
+
+  Use ``Analyzer::get_tag()`` if you need to obtain an analyzer's tag from its
+  name (such as "HTTP").
 
 Changed Functionality
 ---------------------
@@ -46,11 +120,34 @@ Changed Functionality
   ``frameworks/signatures/iso-9660`` which also increases the BOF buffer sufficiently.
   Note, doing so may increase memory and CPU usage significantly.
 
+- The ``val_footprint()`` BiF now factors in the size of strings when reporting
+  footprints, roughly equating a string's size with the number of elements
+  comparable to that length. As before, footprints are not meant to be precise
+  but mainly for providing comparisons, which is why this is not a breaking
+  change.
+
+- The tuning/defaults policy has been deprecated and will be removed in
+  v7.1. This policy was already being loaded by default via local.zeek. The
+  settings contained within have become the overall defaults for Zeek now,
+  instead of having to load the policy. The two changes here are that fragments
+  now timeout after 5 minutes by default instead of no timeout, and extracted
+  files now have a default size limit of 100MB instead of unlimited.
+
+- If a Spicy protocol analyzers feeds data into file analysis, it now
+  needs to call Zeek's `Files::register_protocol()` and provide a
+  callback for computing file handles. If that's missing, Zeek will
+  issue a warning. While this was not necessary in previous versions,
+  it aligns with the same requirement for traditional analyzers and
+  enables customizing file handles for protocol-specific semantics.
+
 Removed Functionality
 ---------------------
 
 Deprecated Functionality
 ------------------------
+
+- The ``--disable-archiver`` configure flag no longer does anything and will be
+  removed in 7.1. zeek-archiver has moved into the zeek-aux repository.
 
 Zeek 6.2.0
 ==========

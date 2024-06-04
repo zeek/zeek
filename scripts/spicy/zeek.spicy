@@ -2,6 +2,8 @@
 
 module zeek;
 
+import spicy;
+
 # Note: Retain the formatting here, doc/scripts/autogen-spicy-lib is picking up on that.
 
 %cxx-include = "zeek/spicy/runtime-support.h";
@@ -48,46 +50,82 @@ public type ProtocolHandle = __library_type("zeek::spicy::rt::ProtocolHandle");
 
 ## Adds a Zeek-side child protocol analyzer to the current connection.
 ##
-## If the same analyzer was added previously with protocol_handle_get_or_create or
-## protocol_begin with same argument, and not closed with protocol_handle_close
-## or protocol_end, no new analyzer will be added.
+## If the same analyzer was added previously with `protocol_handle_get_or_create` or
+## `protocol_begin` with same argument, and not closed with `protocol_handle_close`
+## or `protocol_end`, no new analyzer will be added.
 ##
 ## See `protocol_handle_get_or_create` for the error semantics of this function.
 ##
 ## analyzer: type of analyzer to instantiate, specified through its Zeek-side
-## name (similar to what Zeek's signature action `enable` takes); if not
-## specified, Zeek will perform its usual dynamic protocol detection to figure
-## out how to parse the data (the latter will work only for TCP protocols, though.)
-public function protocol_begin(analyzer: optional<string> = Null) : void &cxxname="zeek::spicy::rt::protocol_begin";
+## name (similar to what Zeek's signature action `enable` takes)
+##
+## protocol: the transport-layer protocol that the analyzer uses; only TCP is
+## currently supported here
+##
+## Note: For backwards compatibility, the analyzer argument can be left unset to add
+## a DPD analyzer. This use is deprecated, though; use the single-argument version of
+## `protocol_begin` for that instead.
+public function protocol_begin(analyzer: optional<string>, protocol: spicy::Protocol = spicy::Protocol::TCP) : void &cxxname="zeek::spicy::rt::protocol_begin";
+
+## Adds a Zeek-side DPD child protocol analyzer performing dynamic protocol detection
+## on subsequently provided data.
+##
+## If the same DPD analyzer was added previously with `protocol_handle_get_or_create` or
+## `protocol_begin` with same argument, and not closed with `protocol_handle_close`
+## or `protocol_end`, no new analyzer will be added.
+##
+## See `protocol_handle_get_or_create` for the error semantics of this function.
+##
+## protocol: the transport-layer protocol on which to perform protocol detection;
+## only TCP is currently supported here
+public function protocol_begin(protocol: spicy::Protocol = spicy::Protocol::TCP) : void &cxxname="zeek::spicy::rt::protocol_begin";
 
 ## Gets a handle to a Zeek-side child protocol analyzer for the current connection.
 ##
-## If no such child exists it will be added; otherwise a handle to the
+## If no such child exists yet it will be added; otherwise a handle to the
 ## existing child protocol analyzer will be returned.
 ##
-## This function will return an error
+## This function will return an error if:
 ##
-## - if not called from a protocol analyzer, or
-## - the requested child protocol analyzer is unknown, or
+## - not called from a protocol analyzer, or
+## - the requested child protocol analyzer is of unknown type or not support by the requested transport protocol, or
 ## - creation of a child analyzer of the requested type was prevented by a
 ##   previous call of `disable_analyzer` with `prevent=T`
 ##
-## analyzer: type of analyzer to instantiate, specified through its Zeek-side
+## analyzer: type of analyzer to get or instantiate, specified through its Zeek-side
 ## name (similar to what Zeek's signature action `enable` takes).
-public function protocol_handle_get_or_create(analyzer: string) : ProtocolHandle &cxxname="zeek::spicy::rt::protocol_handle_get_or_create";
+##
+## protocol: the transport-layer protocol that the analyser uses; only TCP is
+## currently supported here
+##
+public function protocol_handle_get_or_create(analyzer: string, protocol: spicy::Protocol = spicy::Protocol::TCP) : ProtocolHandle &cxxname="zeek::spicy::rt::protocol_handle_get_or_create";
 
-## Forwards protocol data to all previously instantiated Zeek-side child protocol analyzers.
+## Forwards protocol data to all previously instantiated Zeek-side child protocol analyzers of a given transport-layer.
 ##
 ## is_orig: true to feed the data to the child's originator side, false for the responder
+##
 ## data: chunk of data to forward to child analyzer
-## h: optional handle to the child analyzer to forward data into, else forward to all child analyzers
-public function protocol_data_in(is_orig: bool, data: bytes, h: optional<ProtocolHandle> = Null) : void &cxxname="zeek::spicy::rt::protocol_data_in";
+##
+## protocol: the transport-layer protocol of the children to forward to; only TCP is currently supported here
+public function protocol_data_in(is_orig: bool, data: bytes, protocol: spicy::Protocol = spicy::Protocol::TCP) : void &cxxname="zeek::spicy::rt::protocol_data_in";
+
+## Forwards protocol data to a specific previously instantiated Zeek-side child analyzer.
+##
+## is_orig: true to feed the data to the child's originator side, false for the responder
+##
+## data: chunk of data to forward to child analyzer
+##
+## h: handle to the child analyzer to forward data into
+public function protocol_data_in(is_orig: bool, data: bytes, h: ProtocolHandle) : void &cxxname="zeek::spicy::rt::protocol_data_in";
 
 ## Signals a gap in input data to all previously instantiated Zeek-side child protocol analyzers.
 ##
 ## is_orig: true to signal gap to the child's originator side, false for the responder
+##
 ## offset: start offset of gap in input stream
+##
 ## len: size of gap
+##
 ## h: optional handle to the child analyzer signal a gap to, else signal to all child analyzers
 public function protocol_gap(is_orig: bool, offset: uint64, len: uint64, h: optional<ProtocolHandle> = Null) : void &cxxname="zeek::spicy::rt::protocol_gap";
 

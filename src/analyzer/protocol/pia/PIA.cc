@@ -169,51 +169,111 @@ void PIA_TCP::Init() {
     }
 }
 
-void PIA_TCP::FirstPacket(bool is_orig, const IP_Hdr* ip) {
+void PIA::FirstPacket(bool is_orig, TransportProto proto) { FirstPacket(is_orig, proto, nullptr); }
+
+void PIA::FirstPacket(bool is_orig, const IP_Hdr* ip) {
+    assert(ip);
+    FirstPacket(is_orig, {}, ip);
+}
+
+void PIA::FirstPacket(bool is_orig, const std::optional<TransportProto>& proto, const IP_Hdr* ip) {
     static char dummy_packet[sizeof(struct ip) + sizeof(struct tcphdr)];
-    static struct ip* ip4 = nullptr;
+    static struct ip* ip4_tcp = nullptr;
+    static struct ip* ip4_udp = nullptr;
     static struct tcphdr* tcp4 = nullptr;
-    static IP_Hdr* ip4_hdr = nullptr;
+    static struct udphdr* udp4 = nullptr;
+    static IP_Hdr* ip4_tcp_hdr = nullptr;
+    static IP_Hdr* ip4_udp_hdr = nullptr;
 
-    DBG_LOG(DBG_ANALYZER, "PIA_TCP[%d] FirstPacket(%s)", GetID(), (is_orig ? "T" : "F"));
-
-    if ( ! ip ) {
+    if ( ! ip && proto ) { // proto needed here to avoid GCC warning that it may be used uninitialized
         // Create a dummy packet.  Not very elegant, but everything
         // else would be *really* ugly ...
-        if ( ! ip4_hdr ) {
-            ip4 = (struct ip*)dummy_packet;
-            tcp4 = (struct tcphdr*)(dummy_packet + sizeof(struct ip));
-            ip4->ip_len = sizeof(struct ip) + sizeof(struct tcphdr);
-            ip4->ip_hl = sizeof(struct ip) >> 2;
-            ip4->ip_p = IPPROTO_TCP;
+        switch ( *proto ) {
+            case TransportProto::TRANSPORT_TCP: {
+                DBG_LOG(DBG_ANALYZER, "PIA/TCP FirstPacket(%s)", (is_orig ? "T" : "F"));
 
-            // Cast to const so that it doesn't delete it.
-            ip4_hdr = new IP_Hdr(ip4, false);
+                if ( ! ip4_tcp_hdr ) {
+                    ip4_tcp = (struct ip*)dummy_packet;
+                    tcp4 = (struct tcphdr*)(dummy_packet + sizeof(struct ip));
+                    ip4_tcp->ip_len = sizeof(struct ip) + sizeof(struct tcphdr);
+                    ip4_tcp->ip_hl = sizeof(struct ip) >> 2;
+
+                    // Cast to const so that it doesn't delete it.
+                    ip4_tcp_hdr = new IP_Hdr(ip4_tcp, false);
+                }
+
+                // Locals used to avoid potential alignment problems
+                // with some archs/compilers when grabbing the address
+                // of the struct member directly in the following.
+                in_addr tmp_src;
+                in_addr tmp_dst;
+
+                if ( is_orig ) {
+                    Conn()->OrigAddr().CopyIPv4(&tmp_src);
+                    Conn()->RespAddr().CopyIPv4(&tmp_dst);
+                    tcp4->th_sport = htons(Conn()->OrigPort());
+                    tcp4->th_dport = htons(Conn()->RespPort());
+                }
+                else {
+                    Conn()->RespAddr().CopyIPv4(&tmp_src);
+                    Conn()->OrigAddr().CopyIPv4(&tmp_dst);
+                    tcp4->th_sport = htons(Conn()->RespPort());
+                    tcp4->th_dport = htons(Conn()->OrigPort());
+                }
+
+                ip4_tcp->ip_src = tmp_src;
+                ip4_tcp->ip_dst = tmp_dst;
+                ip4_tcp->ip_p = IPPROTO_TCP;
+                ip = ip4_tcp_hdr;
+                break;
+            }
+
+            case TransportProto::TRANSPORT_UDP: {
+                DBG_LOG(DBG_ANALYZER, "PIA/UDP FirstPacket(%s)", (is_orig ? "T" : "F"));
+
+                if ( ! ip4_udp_hdr ) {
+                    ip4_udp = (struct ip*)dummy_packet;
+                    udp4 = (struct udphdr*)(dummy_packet + sizeof(struct ip));
+                    ip4_udp->ip_len = sizeof(struct ip) + sizeof(struct udphdr);
+                    ip4_udp->ip_hl = sizeof(struct ip) >> 2;
+
+                    // Cast to const so that it doesn't delete it.
+                    ip4_udp_hdr = new IP_Hdr(ip4_udp, false);
+                }
+
+                // Locals used to avoid potential alignment problems
+                // with some archs/compilers when grabbing the address
+                // of the struct member directly in the following.
+                in_addr tmp_src;
+                in_addr tmp_dst;
+
+                if ( is_orig ) {
+                    Conn()->OrigAddr().CopyIPv4(&tmp_src);
+                    Conn()->RespAddr().CopyIPv4(&tmp_dst);
+                    udp4->uh_sport = htons(Conn()->OrigPort());
+                    udp4->uh_dport = htons(Conn()->RespPort());
+                }
+                else {
+                    Conn()->RespAddr().CopyIPv4(&tmp_src);
+                    Conn()->OrigAddr().CopyIPv4(&tmp_dst);
+                    udp4->uh_sport = htons(Conn()->RespPort());
+                    udp4->uh_dport = htons(Conn()->OrigPort());
+                }
+
+                ip4_udp->ip_src = tmp_src;
+                ip4_udp->ip_dst = tmp_dst;
+                ip4_udp->ip_p = IPPROTO_UDP;
+                ip = ip4_udp_hdr;
+                break;
+            }
+
+            case TransportProto::TRANSPORT_ICMP: reporter->InternalError("ICMP not supported in PIA::FirstPacket");
+
+            default: reporter->InternalError("unknown transport proto in PIA::FirstPacket");
         }
-
-        // Locals used to avoid potential alignment problems
-        // with some archs/compilers when grabbing the address
-        // of the struct member directly in the following.
-        in_addr tmp_src;
-        in_addr tmp_dst;
-
-        if ( is_orig ) {
-            Conn()->OrigAddr().CopyIPv4(&tmp_src);
-            Conn()->RespAddr().CopyIPv4(&tmp_dst);
-            tcp4->th_sport = htons(Conn()->OrigPort());
-            tcp4->th_dport = htons(Conn()->RespPort());
-        }
-        else {
-            Conn()->RespAddr().CopyIPv4(&tmp_src);
-            Conn()->OrigAddr().CopyIPv4(&tmp_dst);
-            tcp4->th_sport = htons(Conn()->RespPort());
-            tcp4->th_dport = htons(Conn()->OrigPort());
-        }
-
-        ip4->ip_src = tmp_src;
-        ip4->ip_dst = tmp_dst;
-        ip = ip4_hdr;
     }
+
+    assert(ip);
 
     if ( ! MatcherInitialized(is_orig) )
         DoMatch((const u_char*)"", 0, is_orig, true, false, false, ip);

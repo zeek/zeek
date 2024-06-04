@@ -40,9 +40,6 @@
 [submodule "auxil/highwayhash"]
 	path = auxil/highwayhash
 	url = https://github.com/google/highwayhash
-[submodule "auxil/zeek-archiver"]
-	path = auxil/zeek-archiver
-	url = https://github.com/zeek/zeek-archiver
 [submodule "auxil/package-manager"]
 	path = auxil/package-manager
 	url = https://github.com/zeek/package-manager
@@ -76,3 +73,6 @@
 [submodule "auxil/vcpkg"]
 	path = auxil/vcpkg
 	url = https://github.com/microsoft/vcpkg
+[submodule "auxil/prometheus-cpp"]
+	path = auxil/prometheus-cpp
+	url = https://github.com/jupp0r/prometheus-cpp

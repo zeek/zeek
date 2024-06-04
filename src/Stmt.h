@@ -128,6 +128,9 @@ protected:
     ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
     bool IsPure() const override;
 
+    bool IsMinMaxConstruct() const;
+    StmtPtr ConvertToMinMaxConstruct();
+
     StmtPtr s1;
     StmtPtr s2;
 };
@@ -223,42 +226,6 @@ protected:
     std::unordered_map<const Val*, int> case_label_value_map;
     PDict<int> case_label_hash_map;
     std::vector<std::pair<ID*, int>> case_label_type_list;
-};
-
-// Helper class. Added for script optimization, but it makes sense
-// in terms of factoring even without.
-class AddDelStmt : public ExprStmt {
-public:
-    TraversalCode Traverse(TraversalCallback* cb) const override;
-
-    bool IsPure() const override;
-
-    // Optimization-related:
-    StmtPtr DoReduce(Reducer* c) override;
-    bool IsReduced(Reducer* c) const override;
-
-protected:
-    AddDelStmt(StmtTag t, ExprPtr arg_e);
-};
-
-class AddStmt final : public AddDelStmt {
-public:
-    explicit AddStmt(ExprPtr e);
-
-    ValPtr Exec(Frame* f, StmtFlowType& flow) override;
-
-    // Optimization-related:
-    StmtPtr Duplicate() override;
-};
-
-class DelStmt final : public AddDelStmt {
-public:
-    explicit DelStmt(ExprPtr e);
-
-    ValPtr Exec(Frame* f, StmtFlowType& flow) override;
-
-    // Optimization-related:
-    StmtPtr Duplicate() override;
 };
 
 class EventStmt final : public ExprStmt {

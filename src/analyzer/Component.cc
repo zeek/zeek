@@ -13,8 +13,8 @@ Component::Component(const std::string& name, factory_callback arg_factory, zeek
     : plugin::Component(arg_adapter ? plugin::component::SESSION_ADAPTER : plugin::component::ANALYZER, name,
                         arg_subtype, analyzer_mgr->GetTagType()) {
     factory = arg_factory;
-    enabled = arg_enabled;
     partial = arg_partial;
+    SetEnabled(arg_enabled);
 }
 
 void Component::Initialize() {
@@ -29,7 +29,7 @@ void Component::DoDescribe(ODesc* d) const {
         d->Add(", ");
     }
 
-    d->Add(enabled ? "enabled" : "disabled");
+    d->Add(Enabled() ? "enabled" : "disabled");
 }
 
 } // namespace zeek::analyzer

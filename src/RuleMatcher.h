@@ -84,7 +84,7 @@ public:
     RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<IPPrefix> arg_v);
     ~RuleHdrTest();
 
-    void PrintDebug();
+    void PrintDebug() const;
 
 private:
     // The constructor does not copy those attributes which are set
@@ -93,7 +93,7 @@ private:
     // should be const, but lists don't have const version
 
     // Likewise, the operator== checks only for same test semantics.
-    bool operator==(const RuleHdrTest& h);
+    bool operator==(const RuleHdrTest& h) const;
 
     Prot prot;
     Comp comp;
@@ -282,7 +282,7 @@ public:
     // Reset the state of the pattern matcher for this endpoint.
     void ClearEndpointState(RuleEndpointState* state);
 
-    void PrintDebug();
+    void PrintDebug() const;
 
     // Interface to parser
     void AddRule(Rule* rule);
@@ -309,8 +309,8 @@ public:
 
     Val* BuildRuleStateValue(const Rule* rule, const RuleEndpointState* state) const;
 
-    void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr);
-    void DumpStats(File* f);
+    void GetStats(Stats* stats, RuleHdrTest* hdr_test = nullptr) const;
+    void DumpStats(File* f) const;
 
 private:
     // Delete node and all children.
@@ -346,9 +346,9 @@ private:
     // Evaluate all rule conditions except patterns and "header".
     bool EvalRuleConditions(Rule* r, RuleEndpointState* state, const u_char* data, int len, bool eos);
 
-    void PrintTreeDebug(RuleHdrTest* node);
+    void PrintTreeDebug(RuleHdrTest* node) const;
 
-    void DumpStateStats(File* f, RuleHdrTest* hdr_test);
+    void DumpStateStats(File* f, RuleHdrTest* hdr_test) const;
 
     static bool AllRulePatternsMatched(const Rule* r, MatchPos matchpos, const AcceptingMatchSet& ams);
 

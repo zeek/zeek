@@ -47,7 +47,6 @@ option(INSTALL_AUX_TOOLS "Install additional tools from auxil." ${ZEEK_INSTALL_T
 option(INSTALL_BTEST "Install btest alongside Zeek." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_BTEST_PCAPS "Install pcap files for testing." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZEEKCTL "Install zeekctl." ${ZEEK_INSTALL_TOOLS_DEFAULT})
-option(INSTALL_ZEEK_ARCHIVER "Install the zeek-archiver." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZEEK_CLIENT "Install the zeek-client." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZKG "Install zkg." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
@@ -79,6 +78,8 @@ set(ZEEK_SANITIZERS "" CACHE STRING "Sanitizers to use when building.")
 set(CPACK_SOURCE_IGNORE_FILES "" CACHE STRING "Files to be ignored by CPack")
 
 set(ZEEK_INCLUDE_PLUGINS "" CACHE STRING "Extra plugins to add to the build.")
+
+set(ZEEK_VERSION_LOCAL "" CACHE STRING "Custom version string.")
 
 # Look into the build tree for additional CMake modules.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
@@ -233,6 +234,11 @@ if (ZEEK_STANDALONE)
     endif ()
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_exe_access PRIVATE)
+
+    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+        target_link_libraries(zeek_exe PRIVATE /usr/lib/libutil.so)
+        target_link_libraries(zeek_exe PRIVATE procstat)
+    endif ()
 else ()
     add_library(zeek_lib STATIC)
 endif ()
@@ -247,6 +253,12 @@ if (TARGET zeek_lib)
     install(TARGETS zeek_lib LIBRARY DESTINATION lib)
     # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
     set(zeek_lib_access PRIVATE)
+
+    if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+        target_link_libraries(zeek_lib PRIVATE /usr/lib/libutil.so)
+        target_link_libraries(zeek_lib PRIVATE procstat)
+    endif ()
+
 endif ()
 
 # When building our fuzzers, we also need one extra top-level target that
@@ -575,6 +587,15 @@ math(EXPR ZEEK_VERSION_NUMBER
 set(VERSION_C_IDENT "${ZEEK_VERSION_FULL}_plugin_${API_VERSION}")
 string(REGEX REPLACE "-[0-9]*$" "_git" VERSION_C_IDENT "${VERSION_C_IDENT}")
 string(REGEX REPLACE "[^a-zA-Z0-9_\$]" "_" VERSION_C_IDENT "${VERSION_C_IDENT}")
+
+set(ZEEK_VERSION_FULL_LOCAL "${ZEEK_VERSION_FULL}")
+if (NOT ZEEK_VERSION_LOCAL STREQUAL "")
+    if (ZEEK_VERSION_LOCAL MATCHES "-")
+        message(FATAL_ERROR "ZEEK_VERSION_LOCAL can not contain dashes: ${ZEEK_VERSION_LOCAL}")
+    endif ()
+    set(ZEEK_VERSION_FULL_LOCAL "${ZEEK_VERSION_FULL_LOCAL}-${ZEEK_VERSION_LOCAL}")
+    set(VERSION_C_IDENT "${VERSION_C_IDENT}_${ZEEK_VERSION_LOCAL}")
+endif ()
 
 if (ENABLE_DEBUG)
     set(VERSION_C_IDENT "${VERSION_C_IDENT}_debug")
@@ -1103,6 +1124,7 @@ include(GetArchitecture)
 include(FindCAres)
 include(FindKqueue)
 
+include(FindPrometheusCpp)
 include_directories(BEFORE "auxil/out_ptr/include")
 
 if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))
@@ -1306,7 +1328,6 @@ checkoptionalbuildsources(auxil/btest BTest INSTALL_BTEST)
 checkoptionalbuildsources(auxil/package-manager ZKG INSTALL_ZKG)
 checkoptionalbuildsources(auxil/zeekctl ZeekControl INSTALL_ZEEKCTL)
 checkoptionalbuildsources(auxil/zeek-aux Zeek-Aux INSTALL_AUX_TOOLS)
-checkoptionalbuildsources(auxil/zeek-archiver ZeekArchiver INSTALL_ZEEK_ARCHIVER)
 checkoptionalbuildsources(auxil/zeek-client ZeekClient INSTALL_ZEEK_CLIENT)
 
 # Generate Spicy helper scripts referenced in e.g., `zeek-path-dev.*`. These

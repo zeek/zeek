@@ -36,6 +36,7 @@ class Expr;
 class ListExpr;
 class ZAMCompiler;
 
+using ExprPtr = IntrusivePtr<Expr>;
 using ListExprPtr = IntrusivePtr<ListExpr>;
 
 // The following tracks how to initialize a given record field.
@@ -48,6 +49,10 @@ public:
 
     // Can initialization of the field be deferred?
     virtual bool IsDeferrable() const { return true; }
+
+    // Returns the expression evaluated to initialize the field, if any.
+    // (Used for script optimization.)
+    virtual ExprPtr InitExpr() const;
 };
 
 } // namespace detail
@@ -1037,15 +1042,9 @@ extern zeek::OpaqueTypePtr bloomfilter_type;
 extern zeek::OpaqueTypePtr x509_opaque_type;
 extern zeek::OpaqueTypePtr ocsp_resp_opaque_type;
 extern zeek::OpaqueTypePtr paraglob_type;
-extern zeek::OpaqueTypePtr int_counter_metric_type;
-extern zeek::OpaqueTypePtr int_counter_metric_family_type;
-extern zeek::OpaqueTypePtr dbl_counter_metric_type;
-extern zeek::OpaqueTypePtr dbl_counter_metric_family_type;
-extern zeek::OpaqueTypePtr int_gauge_metric_type;
-extern zeek::OpaqueTypePtr int_gauge_metric_family_type;
-extern zeek::OpaqueTypePtr dbl_gauge_metric_type;
-extern zeek::OpaqueTypePtr dbl_gauge_metric_family_type;
-extern zeek::OpaqueTypePtr int_histogram_metric_type;
-extern zeek::OpaqueTypePtr int_histogram_metric_family_type;
-extern zeek::OpaqueTypePtr dbl_histogram_metric_type;
-extern zeek::OpaqueTypePtr dbl_histogram_metric_family_type;
+extern zeek::OpaqueTypePtr counter_metric_type;
+extern zeek::OpaqueTypePtr counter_metric_family_type;
+extern zeek::OpaqueTypePtr gauge_metric_type;
+extern zeek::OpaqueTypePtr gauge_metric_family_type;
+extern zeek::OpaqueTypePtr histogram_metric_type;
+extern zeek::OpaqueTypePtr histogram_metric_family_type;

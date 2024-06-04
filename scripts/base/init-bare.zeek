@@ -1491,7 +1491,7 @@ const rpc_timeout = 24 sec &redef;
 
 ## How long to hold onto fragments for possible reassembly.  A value of 0.0
 ## means "forever", which resists evasion, but can lead to state accrual.
-const frag_timeout = 0.0 sec &redef;
+const frag_timeout = 5 min &redef;
 
 ## Whether to use the ``ConnSize`` analyzer to count the number of packets and
 ## IP-level bytes transferred by each endpoint. If true, these values are
@@ -5771,6 +5771,100 @@ export {
 	const flowbuffer_contract_threshold = 2 * 1024 * 1024 &redef;
 }
 
+module Telemetry;
+export {
+
+	type MetricType: enum {
+		COUNTER,
+		GAUGE,
+		HISTOGRAM,
+	};
+
+	## Type that captures options used to create metrics.
+	type MetricOpts: record {
+		## The prefix (namespace) of the metric. Zeek uses the ``zeek``
+		## prefix for any internal metrics and the ``process`` prefix
+		## for any metrics involving process state (CPU, memory, etc).
+		prefix: string;
+
+		## The human-readable name of the metric. This is set to the
+		## full prefixed name including the unit when returned from
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`.
+		name: string;
+
+		## The unit of the metric. Leave this unset for a unit-less
+		## metric. Will be unset when returned from
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`.
+		unit: string &optional;
+
+		## Documentation for this metric.
+		help_text: string &optional;
+
+		## The label names (also called dimensions) of the metric. When
+		## instantiating or working with concrete metrics, corresponding
+		## label values have to be provided. Examples of a label might
+		## be the protocol a general observation applies to, the
+		## directionality in a traffic flow, or protocol-specific
+		## context like a particular message type.
+		labels: vector of string &default=vector();
+
+		## Whether the metric represents something that is accumulating.
+		## Defaults to ``T`` for counters and ``F`` for gauges and
+		## histograms.
+		is_total: bool &optional;
+
+		## When creating a :zeek:see:`Telemetry::HistogramFamily`,
+		## describes the number and bounds of the individual buckets.
+		bounds: vector of double &optional;
+
+		## Describes the underlying metric type.
+		## Only set in the return value of
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`,
+		## otherwise ignored.
+		metric_type: MetricType &optional;
+	};
+
+	## Metrics returned by the :zeek:see:`Telemetry::collect_metrics` function.
+	type Metric: record {
+		## A :zeek:see:`Telemetry::MetricOpts` record describing this metric.
+		opts: MetricOpts;
+
+		## The label values associated with this metric, if any.
+		labels: vector of string;
+
+		## The value of gauge or counter cast to a double
+		## independent of the underlying data type.
+		## This value is set for all counter and gauge metrics,
+		## it is unset for histograms.
+		value: double &optional;
+	};
+
+	## Histograms returned by the :zeek:see:`Telemetry::collect_histogram_metrics` function.
+	type HistogramMetric: record {
+		## A :zeek:see:`Telemetry::MetricOpts` record describing this histogram.
+		opts: MetricOpts;
+
+		## The label values associated with this histogram, if any.
+		labels: vector of string;
+
+		## Individual counters for each of the buckets as
+		## described by the *bounds* field in *opts*;
+		values: vector of double;
+
+		## The number of observations made for this histogram.
+		observations: double;
+
+		## The sum of all observations for this histogram.
+		sum: double;
+	};
+
+	type MetricVector : vector of Metric;
+	type HistogramMetricVector : vector of HistogramMetric;
+}
+
 module GLOBAL;
 
 ## Seed for hashes computed internally for probabilistic data structures. Using
@@ -5823,6 +5917,9 @@ const io_poll_interval_default = 100 &redef;
 ## .. zeek:see:: io_poll_interval_default
 const io_poll_interval_live = 10 &redef;
 
+## Whether Zeek is being run under test. This can be used to alter functionality
+## while testing, but should be used sparingly.
+const running_under_test: bool = F &redef;
 
 global done_with_network = F;
 event net_done(t: time)

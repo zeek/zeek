@@ -66,7 +66,7 @@ event zeek_init() &priority=5
 hook set_file(f: fa_file) &priority=5
 	{
 	if ( ! f?$pe )
-		f$pe = [$ts=network_time(), $id=f$id];
+		f$pe = [$ts=f$info$ts, $id=f$id];
 	}
 
 event pe_dos_header(f: fa_file, h: PE::DOSHeader) &priority=5

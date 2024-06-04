@@ -1,0 +1,10 @@
+# This tests if a pe file's timestamp in pe.log matches the files timestamp in files.log
+
+# We simply test if the timestamp and uid of the file is in both pe.log and files.log
+
+# @TEST-EXEC: zcat <$TRACES/pe/pe_files_timestamp.pcap.gz | zeek -b -r - %INPUT
+# @TEST-EXEC: zeek-cut ts id < pe.log > pevalues.txt
+# @TEST-EXEC: fgrep "`cat pevalues.txt`" files.log
+
+@load base/protocols/http
+@load base/files/pe

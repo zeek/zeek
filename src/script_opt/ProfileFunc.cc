@@ -157,17 +157,6 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
                 expr_switches.insert(sw);
         } break;
 
-        case STMT_ADD:
-        case STMT_DELETE: {
-            auto ad_stmt = static_cast<const AddDelStmt*>(s);
-            auto ad_e = ad_stmt->StmtExpr();
-            auto lhs = ad_e->GetOp1();
-            if ( lhs )
-                aggr_mods.insert(lhs->GetType().get());
-            else
-                aggr_mods.insert(ad_e->GetType().get());
-        } break;
-
         default: break;
     }
 
@@ -337,6 +326,15 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
 
                 default: reporter->InternalError("bad expression in ProfileFunc: %s", obj_desc(e).c_str());
             }
+        } break;
+
+        case EXPR_AGGR_ADD:
+        case EXPR_AGGR_DEL: {
+            auto lhs = e->GetOp1();
+            if ( lhs )
+                aggr_mods.insert(lhs->GetType().get());
+            else
+                aggr_mods.insert(e->GetType().get());
         } break;
 
         case EXPR_CALL: {
@@ -1438,7 +1436,7 @@ TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {
 
 TraversalCode SetBlockLineNumbers::PostStmt(const Stmt* s) {
     auto loc = const_cast<Location*>(s->GetLocationInfo());
-    auto& r = block_line_range.back();
+    auto r = block_line_range.back();
     loc->first_line = r.first;
     loc->last_line = r.second;
 

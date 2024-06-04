@@ -19,7 +19,7 @@
 using namespace zeek::packet_analysis::IP;
 
 IPAnalyzer::IPAnalyzer() : zeek::packet_analysis::Analyzer("IP") {
-    discarder = new detail::Discarder();
+    discarder = new zeek::detail::Discarder();
     if ( ! discarder->IsActive() ) {
         delete discarder;
         discarder = nullptr;
@@ -69,7 +69,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
         // TCP segmentation offloading can zero out the ip_len field.
         Weird("ip_hdr_len_zero", packet);
 
-        if ( detail::ignore_checksums )
+        if ( zeek::detail::ignore_checksums )
             // Cope with the zero'd out ip_len field by using the caplen.
             total_len = packet->cap_len - hdr_size;
         else
@@ -123,13 +123,13 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     }
 
     // Ignore if packet matches packet filter.
-    detail::PacketFilter* packet_filter = packet_mgr->GetPacketFilter(false);
+    zeek::detail::PacketFilter* packet_filter = packet_mgr->GetPacketFilter(false);
     if ( packet_filter && packet_filter->Match(packet->ip_hdr, total_len, len) )
         return false;
 
-    if ( ! packet->l3_checksummed && ! detail::ignore_checksums && ip4 &&
+    if ( ! packet->l3_checksummed && ! zeek::detail::ignore_checksums && ip4 &&
          ! IPBasedAnalyzer::GetIgnoreChecksumsNets()->Contains(packet->ip_hdr->IPHeaderSrcAddr()) &&
-         detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff ) {
+         zeek::detail::in_cksum(reinterpret_cast<const uint8_t*>(ip4), ip_hdr_len) != 0xffff ) {
         Weird("bad_IP_checksum", packet);
         return false;
     }
@@ -137,7 +137,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     if ( discarder && discarder->NextPacket(packet->ip_hdr, total_len, len) )
         return false;
 
-    detail::FragReassembler* f = nullptr;
+    zeek::detail::FragReassembler* f = nullptr;
 
     // Store this off so that it can be reset back to the original value before returning from
     // this method.
@@ -156,8 +156,8 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
                 return false;
         }
         else {
-            f = detail::fragment_mgr->NextFragment(run_state::processing_start_time, packet->ip_hdr,
-                                                   packet->data + hdr_size);
+            f = zeek::detail::fragment_mgr->NextFragment(run_state::processing_start_time, packet->ip_hdr,
+                                                         packet->data + hdr_size);
             std::shared_ptr<IP_Hdr> ih = f->ReassembledPkt();
 
             if ( ! ih )
@@ -184,7 +184,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
         }
     }
 
-    detail::FragReassemblerTracker frt(f);
+    zeek::detail::FragReassemblerTracker frt(f);
 
     // We stop building the chain when seeing IPPROTO_ESP so if it's
     // there, it's always the last.
@@ -203,7 +203,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     if ( packet->ip_hdr->LastHeader() == IPPROTO_MOBILITY ) {
         packet->dump_packet = true;
 
-        if ( ! detail::ignore_checksums && mobility_header_checksum(packet->ip_hdr.get()) != 0xffff ) {
+        if ( ! zeek::detail::ignore_checksums && mobility_header_checksum(packet->ip_hdr.get()) != 0xffff ) {
             Weird("bad_MH_checksum", packet);
             packet->cap_len = orig_cap_len;
             return false;

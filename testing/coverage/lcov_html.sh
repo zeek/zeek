@@ -93,7 +93,7 @@ fi
 
 # Files and directories that will be removed from the counts in step 5. Directories
 # need to be surrounded by escaped wildcards.
-REMOVE_TARGETS="*.yy *.ll *.y *.l \*/bro.dir/\* *.bif \*/zeek.dir/\* \*/src/3rdparty/\* \*/src/zeek/3rdparty/\* \*/auxil/\* \*/build/zeek/3rdparty/\*"
+REMOVE_TARGETS="*.yy *.ll *.y *.l *.bif \*/zeek.dir/\* \*/src/3rdparty/\* \*/src/zeek/3rdparty/\* \*/auxil/\* \*/build/zeek/3rdparty/\*"
 
 # 1. Move to base dir, create tmp dir
 cd ../../
@@ -123,14 +123,19 @@ verify_run "lcov --no-external --capture --directory . --output-file $COVERAGE_F
 # Zeek coverage numbers.
 for TARGET in $REMOVE_TARGETS; do
     echo -n "Getting rid of $TARGET files from tracefile... "
-    verify_run "lcov --remove $COVERAGE_FILE $TARGET --output-file $COVERAGE_FILE"
+    verify_run "lcov --ignore-errors unused,empty --remove $COVERAGE_FILE $TARGET --output-file $COVERAGE_FILE"
 done
 
 # 6. Create HTML files or Coveralls report
 if [ $HTML_REPORT -eq 1 ]; then
     echo -n "Creating HTML files... "
-    verify_run "genhtml -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
+    verify_run "genhtml --ignore-errors empty -o $COVERAGE_HTML_DIR $COVERAGE_FILE"
 else
+    if [ "${CIRRUS_BRANCH}" != "master" ]; then
+        echo "Coverage upload skipped for non-master branches"
+        exit 0
+    fi
+
     # The data we send to coveralls has a lot of duplicate files in it because of the
     # zeek symlink in the src directory. Run a script that cleans that up.
     echo -n "Cleaning coverage data for Coveralls..."

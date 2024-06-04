@@ -119,9 +119,9 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
 
     trackComponent(c, c->Tag().Type()); // Must come after Initialize().
 
-    info.type = c->Tag().Type();
-    _protocol_analyzers_by_type.resize(info.type + 1);
-    _protocol_analyzers_by_type[info.type] = info;
+    info.tag = c->Tag();
+    _protocol_analyzers_by_type.resize(info.tag.Type() + 1);
+    _protocol_analyzers_by_type[info.tag.Type()] = info;
 }
 
 void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
@@ -165,9 +165,9 @@ void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vec
 
     trackComponent(c, c->Tag().Type()); // Must come after Initialize().
 
-    info.type = c->Tag().Type();
-    _file_analyzers_by_type.resize(info.type + 1);
-    _file_analyzers_by_type[info.type] = info;
+    info.tag = c->Tag();
+    _file_analyzers_by_type.resize(info.tag.Type() + 1);
+    _file_analyzers_by_type[info.tag.Type()] = info;
 }
 
 void Manager::registerPacketAnalyzer(const std::string& name, const std::string& parser, const std::string& replaces,
@@ -214,9 +214,9 @@ void Manager::registerPacketAnalyzer(const std::string& name, const std::string&
 
     trackComponent(c, c->Tag().Type()); // Must come after Initialize().
 
-    info.type = c->Tag().Type();
-    _packet_analyzers_by_type.resize(info.type + 1);
-    _packet_analyzers_by_type[info.type] = info;
+    info.tag = c->Tag();
+    _packet_analyzers_by_type.resize(info.tag.Type() + 1);
+    _packet_analyzers_by_type[info.tag.Type()] = info;
 }
 
 void Manager::registerType(const std::string& id, const TypePtr& type) {
@@ -337,7 +337,7 @@ bool Manager::toggleProtocolAnalyzer(const Tag& tag, bool enable) {
 
     const auto& analyzer = _protocol_analyzers_by_type[type];
 
-    if ( ! analyzer.type )
+    if ( ! analyzer.tag )
         // not set -> not ours
         return false;
 
@@ -371,12 +371,13 @@ bool Manager::toggleFileAnalyzer(const Tag& tag, bool enable) {
 
     const auto& analyzer = _file_analyzers_by_type[type];
 
-    if ( ! analyzer.type )
+    if ( ! analyzer.tag )
         // not set -> not ours
         return false;
 
-    file_analysis::Component* component = file_mgr->Lookup(tag);
-    file_analysis::Component* component_replaces = analyzer.replaces ? file_mgr->Lookup(analyzer.replaces) : nullptr;
+    file_analysis::Component* component = file_mgr->Lookup(tag, false);
+    file_analysis::Component* component_replaces =
+        analyzer.replaces ? file_mgr->Lookup(analyzer.replaces, false) : nullptr;
 
     if ( ! component ) {
         // Shouldn't really happen.
@@ -414,13 +415,13 @@ bool Manager::togglePacketAnalyzer(const Tag& tag, bool enable) {
 
     const auto& analyzer = _packet_analyzers_by_type[type];
 
-    if ( ! analyzer.type )
+    if ( ! analyzer.tag )
         // not set -> not ours
         return false;
 
-    packet_analysis::Component* component = packet_mgr->Lookup(tag);
+    packet_analysis::Component* component = packet_mgr->Lookup(tag, false);
     packet_analysis::Component* component_replaces =
-        analyzer.replaces ? packet_mgr->Lookup(analyzer.replaces) : nullptr;
+        analyzer.replaces ? packet_mgr->Lookup(analyzer.replaces, false) : nullptr;
 
     if ( ! component ) {
         // Shouldn't really happen.
@@ -452,21 +453,21 @@ bool Manager::togglePacketAnalyzer(const Tag& tag, bool enable) {
 
 bool Manager::toggleAnalyzer(EnumVal* tag, bool enable) {
     if ( tag->GetType() == analyzer_mgr->GetTagType() ) {
-        if ( auto analyzer = analyzer_mgr->Lookup(tag) )
+        if ( auto analyzer = analyzer_mgr->Lookup(tag, false) )
             return toggleProtocolAnalyzer(analyzer->Tag(), enable);
         else
             return false;
     }
 
     if ( tag->GetType() == file_mgr->GetTagType() ) {
-        if ( auto analyzer = file_mgr->Lookup(tag) )
+        if ( auto analyzer = file_mgr->Lookup(tag, false) )
             return toggleFileAnalyzer(analyzer->Tag(), enable);
         else
             return false;
     }
 
     if ( tag->GetType() == packet_mgr->GetTagType() ) {
-        if ( auto analyzer = packet_mgr->Lookup(tag) )
+        if ( auto analyzer = packet_mgr->Lookup(tag, false) )
             return togglePacketAnalyzer(analyzer->Tag(), enable);
         else
             return false;
@@ -686,7 +687,7 @@ void Manager::InitPostScript() {
     };
 
     for ( auto& p : _protocol_analyzers_by_type ) {
-        if ( p.type == 0 )
+        if ( ! p.tag )
             // vector element not set
             continue;
 
@@ -732,7 +733,7 @@ void Manager::InitPostScript() {
     }
 
     for ( auto& p : _file_analyzers_by_type ) {
-        if ( p.type == 0 )
+        if ( ! p.tag )
             // vector element not set
             continue;
 
@@ -767,7 +768,7 @@ void Manager::InitPostScript() {
     }
 
     for ( auto& p : _packet_analyzers_by_type ) {
-        if ( p.type == 0 )
+        if ( ! p.tag )
             // vector element not set
             continue;
 
@@ -893,7 +894,7 @@ void Manager::disableReplacedAnalyzers() {
 
         auto replaces = info.name_replaces.c_str();
 
-        if ( file_mgr->Lookup(replaces) || packet_mgr->Lookup(replaces) )
+        if ( file_mgr->Lookup(replaces, false) || packet_mgr->Lookup(replaces, false) )
             reporter->FatalError("cannot replace '%s' analyzer with a protocol analyzer", replaces);
 
         auto tag = analyzer_mgr->GetAnalyzerTag(replaces);
@@ -907,6 +908,7 @@ void Manager::disableReplacedAnalyzers() {
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing protocol analyzer %s", info.name_analyzer, replaces));
         info.replaces = tag;
         analyzer_mgr->DisableAnalyzer(tag);
+        analyzer_mgr->AddComponentMapping(tag, info.tag);
     }
 
     for ( auto& info : _file_analyzers_by_type ) {
@@ -915,10 +917,10 @@ void Manager::disableReplacedAnalyzers() {
 
         auto replaces = info.name_replaces.c_str();
 
-        if ( analyzer_mgr->Lookup(replaces) || packet_mgr->Lookup(replaces) )
+        if ( analyzer_mgr->Lookup(replaces, false) || packet_mgr->Lookup(replaces, false) )
             reporter->FatalError("cannot replace '%s' analyzer with a file analyzer", replaces);
 
-        auto component = file_mgr->Lookup(replaces);
+        auto component = file_mgr->Lookup(replaces, false);
         if ( ! component ) {
             SPICY_DEBUG(hilti::rt::fmt("%s is supposed to replace file analyzer %s, but that does not exist",
                                        info.name_analyzer, replaces));
@@ -929,6 +931,7 @@ void Manager::disableReplacedAnalyzers() {
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing file analyzer %s", info.name_analyzer, replaces));
         info.replaces = component->Tag();
         component->SetEnabled(false);
+        file_mgr->AddComponentMapping(component->Tag(), info.tag);
     }
 
     for ( auto& info : _packet_analyzers_by_type ) {
@@ -937,7 +940,7 @@ void Manager::disableReplacedAnalyzers() {
 
         auto replaces = info.name_replaces.c_str();
 
-        auto component = packet_mgr->Lookup(replaces);
+        auto component = packet_mgr->Lookup(replaces, false);
         if ( ! component ) {
             SPICY_DEBUG(hilti::rt::fmt("%s is supposed to replace packet analyzer %s, but that does not exist",
                                        info.name_analyzer, replaces));
@@ -948,6 +951,7 @@ void Manager::disableReplacedAnalyzers() {
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing packet analyzer %s", info.name_analyzer, replaces));
         info.replaces = component->Tag();
         component->SetEnabled(false);
+        packet_mgr->AddComponentMapping(component->Tag(), info.tag);
     }
 }
 

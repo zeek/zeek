@@ -118,6 +118,25 @@ public:
      */
     zeek::Tag Tag() const;
 
+    /**
+     * Returns true if the component is currently enabled and hence
+     * available for use.
+     */
+    bool Enabled() const { return enabled; }
+
+    /**
+     * Enables or disables this component. Derived classes may override this if
+     * they need to initiate additional actions, but must then call the base
+     * class version.
+     *
+     * @param arg_enabled True to enabled, false to disable.
+     *
+     * Note: This method is currently supported for protocol, file, and packet
+     * analyzers, as well as session adapters. Using it on other types of
+     * component will result in an internal error.
+     */
+    virtual void SetEnabled(bool arg_enabled);
+
 protected:
     /**
      * Adds type specific information to the output of Describe().
@@ -139,6 +158,7 @@ private:
     EnumTypePtr etype;
     Tag::subtype_t tag_subtype;
     bool tag_initialized = false;
+    bool enabled = true;
 
     /** Used to generate globally unique tags */
     static Tag::type_t type_counter;

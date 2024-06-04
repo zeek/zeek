@@ -14,7 +14,7 @@ config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WOR
 no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
 static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
 binary_config: &BINARY_CONFIG --prefix=$CIRRUS_WORKING_DIR/install --libdir=$CIRRUS_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
-asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache --enable-werror
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache --enable-werror
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache --enable-werror
 
@@ -251,6 +251,14 @@ opensuse_leap_15_5_task:
     dockerfile: ci/opensuse-leap-15.5/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
+
+opensuse_leap_15_6_task:
+  container:
+    # Opensuse Leap 15.6 EOL: ~Dec 2025
+    dockerfile: ci/opensuse-leap-15.6/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
 
 opensuse_tumbleweed_task:
   container:
@@ -261,16 +269,16 @@ opensuse_tumbleweed_task:
   << : *CI_TEMPLATE
 #  << : *SKIP_TASK_ON_PR
 
-ubuntu23_task:
+ubuntu24_task:
   container:
-    # Ubuntu 23.10 EOL: July 2024
-    dockerfile: ci/ubuntu-23.10/Dockerfile
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
 ubuntu22_task:
   container:
-    # Ubuntu 22.04 EOL: April 2027
+    # Ubuntu 22.04 EOL: June 2027
     dockerfile: ci/ubuntu-22.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
@@ -316,6 +324,9 @@ ubuntu22_spicy_head_task:
   upload_binary_artifacts:
     path: build.tgz
   benchmark_script: ./ci/benchmark.sh
+  # Don't run this job on release branches. It tests against spicy HEAD, which
+  # will frequently require other fixes that won't be in a release branch.
+  skip: $CIRRUS_BRANCH =~ 'release/.*'
   << : *BENCHMARK_ONLY_IF_TEMPLATE
 
 ubuntu20_task:
@@ -376,7 +387,7 @@ freebsd13_task:
 asan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run memory error/leak checks.
-    dockerfile: ci/ubuntu-20.04/Dockerfile
+    dockerfile: ci/ubuntu-24.04/Dockerfile
     << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
@@ -385,38 +396,42 @@ asan_sanitizer_task:
   env:
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
-    ASAN_OPTIONS: detect_leaks=1
+    ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
 
 ubsan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run undefined behavior checks.
-    dockerfile: ci/ubuntu-20.04/Dockerfile
+    dockerfile: ci/ubuntu-24.04/Dockerfile
     << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
+    CC: clang-18
+    CXX: clang++-18
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
 
-# tsan_sanitizer_task:
-#   container:
-#     # Just uses a recent/common distro to run memory error/leak checks.
-#     dockerfile: ci/ubuntu-22.04/Dockerfile
-#     << : *RESOURCES_TEMPLATE
+tsan_sanitizer_task:
+  container:
+    # Just uses a recent/common distro to run memory error/leak checks.
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
 
-#   << : *CI_TEMPLATE
-#   << : *SKIP_TASK_ON_PR
-#   env:
-#     ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
-#     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
-#     # If this is defined directly in the environment, configure fails to find
-#     # OpenSSL. Instead we define it with a different name and then give it
-#     # the correct name in the testing scripts.
-#     ZEEK_TSAN_OPTIONS: suppressions=/zeek/ci/tsan_suppressions.txt
+  << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
+  env:
+    CC: clang-18
+    CXX: clang++-18
+    ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
+    ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
+    # If this is defined directly in the environment, configure fails to find
+    # OpenSSL. Instead we define it with a different name and then give it
+    # the correct name in the testing scripts.
+    ZEEK_TSAN_OPTIONS: suppressions=/zeek/ci/tsan_suppressions.txt
 
 windows_task:
   # 2 hour timeout just for potential of building Docker image taking a while

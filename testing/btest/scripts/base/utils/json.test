@@ -139,7 +139,7 @@ event zeek_init()
 	local gauge_family = Telemetry::register_gauge_family([
 		$prefix="btest",
 		$name="btest_testing_gauge",
-		$unit="1",
+		$unit="",
 		$help_text="Btest testing",
 		$labels=vector("dim_1"),
 	]);
@@ -150,7 +150,7 @@ event zeek_init()
 	local counter_family = Telemetry::register_counter_family([
 		$prefix="btest",
 		$name="btest_testing_counter",
-		$unit="1",
+		$unit="",
 		$help_text="Btest testing",
 		$labels=vector("dim_1"),
 	]);

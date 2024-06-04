@@ -11,6 +11,7 @@
 @load base/frameworks/config
 @load base/frameworks/analyzer
 @load base/frameworks/files
+@load base/frameworks/telemetry/options
 
 @load base/bif
 

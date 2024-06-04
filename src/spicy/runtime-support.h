@@ -7,7 +7,6 @@
 #pragma once
 
 #include <limits>
-#include <memory>
 #include <optional>
 #include <ostream>
 #include <string>
@@ -22,6 +21,7 @@
 #include <hilti/rt/types/all.h>
 
 #include "zeek/Desc.h"
+#include "zeek/Val.h"
 #include "zeek/spicy/cookie.h"
 #include "zeek/spicy/manager.h"
 #include "zeek/spicy/port-range.h"
@@ -29,11 +29,7 @@
 namespace zeek::spicy::rt {
 
 // Adapt to rename of exception.
-#if SPICY_VERSION_NUMBER >= 10700
 using UsageError = ::hilti::rt::UsageError;
-#else
-using UsageError = ::hilti::rt::UserException;
-#endif
 
 /**
  * Exception thrown by event generation code if the value of an `$...`
@@ -70,11 +66,11 @@ class TypeMismatch : public UsageError {
 public:
     TypeMismatch(const std::string_view& msg, std::string_view location = "")
         : UsageError(hilti::rt::fmt("Event parameter mismatch, %s", msg)) {}
-    TypeMismatch(const std::string_view& have, TypePtr want, std::string_view location = "")
+    TypeMismatch(const std::string_view& have, const TypePtr& want, std::string_view location = "")
         : TypeMismatch(_fmt(have, want)) {}
 
 private:
-    std::string _fmt(const std::string_view& have, TypePtr want) {
+    std::string _fmt(const std::string_view& have, const TypePtr& want) {
         ODesc d;
         want->Describe(&d);
         return hilti::rt::fmt("cannot convert Spicy value of type '%s' to Zeek value of type '%s'", have,
@@ -297,7 +293,7 @@ void reject_protocol(const std::string& reason = "protocol rejected");
 class ProtocolHandle {
 public:
     ProtocolHandle() {}
-    explicit ProtocolHandle(uint64_t id) : _id(id) {}
+    explicit ProtocolHandle(uint64_t id, ::hilti::rt::Protocol proto) : _id(id), _proto(proto) {}
 
     uint64_t id() const {
         if ( ! _id )
@@ -305,6 +301,8 @@ public:
 
         return *_id;
     }
+
+    const auto& protocol() const { return _proto; }
 
     friend std::string to_string(const ProtocolHandle& h, ::hilti::rt::detail::adl::tag) {
         if ( ! h._id )
@@ -319,38 +317,56 @@ public:
 
 private:
     std::optional<uint64_t> _id;
+    ::hilti::rt::Protocol _proto = ::hilti::rt::Protocol::Undef;
 };
 
 /**
  * Adds a Zeek-side child protocol analyzer to the current connection.
  *
- * @param analyzer if given, the Zeek-side name of the analyzer to instantiate;
- * if not given, DPD will be used
+ * @param analyzer the Zeek-side name of the analyzer to instantiate; can be left unset to add a DPD analyzer
  */
-void protocol_begin(const std::optional<std::string>& analyzer);
+void protocol_begin(const std::optional<std::string>& analyzer, const ::hilti::rt::Protocol& proto);
+
+/**
+ * Adds a Zeek-side DPD child analyzer to the current connection.
+ *
+ * @param proto the transport-layer protocol of the desired DPD analyzer; must be TCP or UDP
+ */
+void protocol_begin(const ::hilti::rt::Protocol& proto);
 
 /**
  * Gets a handle to a child analyzer of a given type. If a child of that type
  * does not yet exist it will be created.
  *
  * @param analyzer the Zeek-side name of the analyzer to get (e.g., `HTTP`)
+ * @param proto the transport-layer protocol of the analyzer, which must match
+ * the type of the child analyzer that *analyzer* refers to
  *
  * @return a handle to the child analyzer. When done, the handle should be
  * closed, either explicitly with protocol_handle_close or implicitly with
  * protocol_end.
  */
-ProtocolHandle protocol_handle_get_or_create(const std::string& analyzer);
+rt::ProtocolHandle protocol_handle_get_or_create(const std::string& analyzer, const ::hilti::rt::Protocol& proto);
 
 /**
  * Forwards data to all previously instantiated Zeek-side child protocol
- * analyzers.
+ * analyzers of a given transport-layer protocol.
  *
  * @param is_orig true to feed data to originator side, false for responder
  * @param data next chunk of stream data for child analyzer to process
- * @param h optional handle to the child analyzer to stream data into
+ * @param h optional handle to pass data to a specific child analyzer only
  */
-void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data,
-                      const std::optional<ProtocolHandle>& h = {});
+void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data, const ::hilti::rt::Protocol& proto);
+
+/**
+ * Forwards data to a specific previously instantiated Zeek-side child protocol
+ * analyzer.
+ *
+ * @param is_orig true to feed data to originator side, false for responder
+ * @param data next chunk of stream data for child analyzer to process
+ * @param h handle identifying the specific child analyzer only
+ */
+void protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes& data, const ProtocolHandle& h);
 
 /**
  * Signals a gap in input data to all previously instantiated Zeek-side child
@@ -455,38 +471,38 @@ hilti::rt::Time network_time();
 
 // Forward-declare to_val() functions.
 template<typename T, typename std::enable_if_t<hilti::rt::is_tuple<T>::value>* = nullptr>
-ValPtr to_val(const T& t, TypePtr target);
+ValPtr to_val(const T& t, const TypePtr& target);
 template<typename... Ts>
-inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, TypePtr target);
+inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, const TypePtr& target);
 template<typename T, typename std::enable_if_t<std::is_base_of<::hilti::rt::trait::isStruct, T>::value>* = nullptr>
-ValPtr to_val(const T& t, TypePtr target);
+ValPtr to_val(const T& t, const TypePtr& target);
 template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>* = nullptr>
-ValPtr to_val(const T& t, TypePtr target);
+ValPtr to_val(const T& t, const TypePtr& target);
 template<typename T, typename std::enable_if_t<std::is_enum<T>::value>* = nullptr>
-ValPtr to_val(const T& t, TypePtr target);
+ValPtr to_val(const T& t, const TypePtr& target);
 template<typename K, typename V>
-ValPtr to_val(const hilti::rt::Map<K, V>& s, TypePtr target);
+ValPtr to_val(const hilti::rt::Map<K, V>& s, const TypePtr& target);
 template<typename T>
-ValPtr to_val(const hilti::rt::Set<T>& s, TypePtr target);
+ValPtr to_val(const hilti::rt::Set<T>& s, const TypePtr& target);
 template<typename T>
-ValPtr to_val(const hilti::rt::Vector<T>& v, TypePtr target);
+ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target);
 template<typename T>
-ValPtr to_val(const std::optional<T>& t, TypePtr target);
+ValPtr to_val(const std::optional<T>& t, const TypePtr& target);
+template<typename T, typename E>
+ValPtr to_val(const hilti::rt::DeferredExpression<T, E>& t, const TypePtr& target);
 template<typename T>
-ValPtr to_val(const hilti::rt::DeferredExpression<T>& t, TypePtr target);
+ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target);
 template<typename T>
-ValPtr to_val(hilti::rt::integer::safe<T> i, TypePtr target);
-template<typename T>
-ValPtr to_val(const hilti::rt::ValueReference<T>& t, TypePtr target);
+ValPtr to_val(const hilti::rt::ValueReference<T>& t, const TypePtr& target);
 
-inline ValPtr to_val(const hilti::rt::Bool& b, TypePtr target);
-inline ValPtr to_val(const hilti::rt::Address& d, TypePtr target);
-inline ValPtr to_val(const hilti::rt::Bytes& b, TypePtr target);
-inline ValPtr to_val(const hilti::rt::Interval& t, TypePtr target);
-inline ValPtr to_val(const hilti::rt::Port& d, TypePtr target);
-inline ValPtr to_val(const hilti::rt::Time& t, TypePtr target);
-inline ValPtr to_val(const std::string& s, TypePtr target);
-inline ValPtr to_val(double r, TypePtr target);
+inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Bytes& b, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Interval& t, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Port& d, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target);
+inline ValPtr to_val(const std::string& s, const TypePtr& target);
+inline ValPtr to_val(double r, const TypePtr& target);
 
 /**
  * Converts a Spicy-side optional value to a Zeek value. This assumes the
@@ -494,7 +510,7 @@ inline ValPtr to_val(double r, TypePtr target);
  * returned with ref count +1.
  */
 template<typename T>
-inline ValPtr to_val(const std::optional<T>& t, TypePtr target) {
+inline ValPtr to_val(const std::optional<T>& t, const TypePtr& target) {
     if ( t.has_value() )
         return to_val(hilti::rt::optional::value(t), target);
 
@@ -502,13 +518,13 @@ inline ValPtr to_val(const std::optional<T>& t, TypePtr target) {
 }
 
 /**
- * Converts a Spicy-side DeferredExpression<T> value to a Zeek value. Such
+ * Converts a Spicy-side DeferredExpression<T,E> value to a Zeek value. Such
  * result values are returned by the ``.?`` operator. If the result is not
  * set, this will convert into nullptr (which the tuple-to-record to_val()
  * picks up on).
  */
-template<typename T>
-inline ValPtr to_val(const hilti::rt::DeferredExpression<T>& t, TypePtr target) {
+template<typename T, typename E>
+inline ValPtr to_val(const hilti::rt::DeferredExpression<T, E>& t, const TypePtr& target) {
     try {
         return to_val(t(), target);
     } catch ( const hilti::rt::AttributeNotSet& ) {
@@ -520,7 +536,7 @@ inline ValPtr to_val(const hilti::rt::DeferredExpression<T>& t, TypePtr target) 
  * Converts a Spicy-side string to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const std::string& s, TypePtr target) {
+inline ValPtr to_val(const std::string& s, const TypePtr& target) {
     if ( target->Tag() != TYPE_STRING )
         throw TypeMismatch("string", target);
 
@@ -531,7 +547,7 @@ inline ValPtr to_val(const std::string& s, TypePtr target) {
  * Converts a Spicy-side bytes instance to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Bytes& b, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Bytes& b, const TypePtr& target) {
     if ( target->Tag() != TYPE_STRING )
         throw TypeMismatch("string", target);
 
@@ -543,7 +559,7 @@ inline ValPtr to_val(const hilti::rt::Bytes& b, TypePtr target) {
  * returned with ref count +1.
  */
 template<typename T>
-inline ValPtr to_val(hilti::rt::integer::safe<T> i, TypePtr target) {
+inline ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target) {
     ValPtr v = nullptr;
     if constexpr ( std::is_unsigned<T>::value ) {
         if ( target->Tag() == TYPE_COUNT )
@@ -570,7 +586,7 @@ inline ValPtr to_val(hilti::rt::integer::safe<T> i, TypePtr target) {
 }
 
 template<typename T>
-ValPtr to_val(const hilti::rt::ValueReference<T>& t, TypePtr target) {
+ValPtr to_val(const hilti::rt::ValueReference<T>& t, const TypePtr& target) {
     if ( auto* x = t.get() )
         return to_val(*x, target);
 
@@ -581,7 +597,7 @@ ValPtr to_val(const hilti::rt::ValueReference<T>& t, TypePtr target) {
  * Converts a Spicy-side signed bool to a Zeek value. The result is
  * returned with ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Bool& b, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target) {
     if ( target->Tag() != TYPE_BOOL )
         throw TypeMismatch("bool", target);
 
@@ -592,7 +608,7 @@ inline ValPtr to_val(const hilti::rt::Bool& b, TypePtr target) {
  * Converts a Spicy-side real to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(double r, TypePtr target) {
+inline ValPtr to_val(double r, const TypePtr& target) {
     if ( target->Tag() != TYPE_DOUBLE )
         throw TypeMismatch("double", target);
 
@@ -603,7 +619,7 @@ inline ValPtr to_val(double r, TypePtr target) {
  * Converts a Spicy-side address to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Address& d, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target) {
     if ( target->Tag() != TYPE_ADDR )
         throw TypeMismatch("addr", target);
 
@@ -620,17 +636,11 @@ inline ValPtr to_val(const hilti::rt::Address& d, TypePtr target) {
  * Converts a Spicy-side address to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Port& p, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Port& p, const TypePtr& target) {
     if ( target->Tag() != TYPE_PORT )
         throw TypeMismatch("port", target);
 
-#if SPICY_VERSION_NUMBER >= 10700
-    auto proto = p.protocol().value();
-#else
-    auto proto = p.protocol();
-#endif
-
-    switch ( proto ) {
+    switch ( p.protocol().value() ) {
         case hilti::rt::Protocol::TCP: return val_mgr->Port(p.port(), ::TransportProto::TRANSPORT_TCP);
 
         case hilti::rt::Protocol::UDP: return val_mgr->Port(p.port(), ::TransportProto::TRANSPORT_UDP);
@@ -645,7 +655,7 @@ inline ValPtr to_val(const hilti::rt::Port& p, TypePtr target) {
  * Converts a Spicy-side time to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Interval& i, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Interval& i, const TypePtr& target) {
     if ( target->Tag() != TYPE_INTERVAL )
         throw TypeMismatch("interval", target);
 
@@ -656,7 +666,7 @@ inline ValPtr to_val(const hilti::rt::Interval& i, TypePtr target) {
  * Converts a Spicy-side time to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Time& t, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_TIME )
         throw TypeMismatch("time", target);
 
@@ -668,7 +678,7 @@ inline ValPtr to_val(const hilti::rt::Time& t, TypePtr target) {
  * ref count +1.
  */
 template<typename T>
-inline ValPtr to_val(const hilti::rt::Vector<T>& v, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target) {
     if ( target->Tag() != TYPE_VECTOR && target->Tag() != TYPE_LIST )
         throw TypeMismatch("expected vector or list", target);
 
@@ -685,7 +695,7 @@ inline ValPtr to_val(const hilti::rt::Vector<T>& v, TypePtr target) {
  * ref count +1.
  */
 template<typename K, typename V>
-inline ValPtr to_val(const hilti::rt::Map<K, V>& m, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const TypePtr& target) {
     if constexpr ( hilti::rt::is_tuple<K>::value )
         throw TypeMismatch("internal error: sets with tuples not yet supported in to_val()");
 
@@ -715,7 +725,7 @@ inline ValPtr to_val(const hilti::rt::Map<K, V>& m, TypePtr target) {
  * ref count +1.
  */
 template<typename T>
-inline ValPtr to_val(const hilti::rt::Set<T>& s, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Set<T>& s, const TypePtr& target) {
     if ( target->Tag() != TYPE_TABLE )
         throw TypeMismatch("set", target);
 
@@ -821,7 +831,7 @@ inline void set_record_field(RecordVal* rval, const IntrusivePtr<RecordType>& rt
  * with ref count +1.
  */
 template<typename T, typename std::enable_if_t<hilti::rt::is_tuple<T>::value>*>
-inline ValPtr to_val(const T& t, TypePtr target) {
+inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_RECORD )
         throw TypeMismatch("tuple", target);
 
@@ -842,7 +852,7 @@ inline ValPtr to_val(const T& t, TypePtr target) {
  * with ref count +1.
  */
 template<typename... Ts>
-inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, TypePtr target) {
+inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, const TypePtr& target) {
     using Bitfield = hilti::rt::Bitfield<Ts...>;
 
     if ( target->Tag() != TYPE_RECORD )
@@ -875,7 +885,7 @@ constexpr bool is_optional = is_optional_impl<std::remove_cv_t<std::remove_refer
  * with a ref count +1.
  */
 template<typename T, typename std::enable_if_t<std::is_base_of<::hilti::rt::trait::isStruct, T>::value>*>
-inline ValPtr to_val(const T& t, TypePtr target) {
+inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_RECORD )
         throw TypeMismatch("struct", target);
 
@@ -929,36 +939,40 @@ inline ValPtr to_val(const T& t, TypePtr target) {
     return rval;
 }
 
-/**
- * Converts a Spicy-side enum to a Zeek record value. The result is returned
- * with ref count +1.
- */
-template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>*>
-inline ValPtr to_val(const T& t, TypePtr target) {
-#if SPICY_VERSION_NUMBER >= 10700
-    auto proto = typename T::Value(t.value());
-#else
-    auto proto = t;
-#endif
+/** Maps HILTI's `Protocol` enum to Zeek's `transport_proto` enum. */
+inline ValPtr to_val_for_transport_proto(int64_t val, const TypePtr& target) {
+    switch ( val ) {
+        case hilti::rt::Protocol::TCP: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_TCP);
+        case hilti::rt::Protocol::UDP: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_UDP);
+        case hilti::rt::Protocol::ICMP: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_ICMP);
+        case hilti::rt::Protocol::Undef: [[fallthrough]]; // just for readability, make Undef explicit
+        default: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_UNKNOWN);
+    }
 
-    return to_val(proto, target);
+    hilti::rt::cannot_be_reached();
 }
 
 /**
- * Converts a C++ Spicy-side enum to a Zeek record value. The result is returned
- * with ref count +1. This specialization is provided for compatibility with <spicy-1.7.0.
- *
- * TODO(bbannier): remove this once we drop support for Spicy versions before 1.7.0.
+ * Converts a Spicy-side enum to a Zeek enum value. The result is returned
+ * with ref count +1.
  */
-template<typename T, typename std::enable_if_t<std::is_enum<T>::value>*>
-inline ValPtr to_val(const T& t, TypePtr target) {
+template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>*>
+inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_ENUM )
         throw TypeMismatch("enum", target);
 
     // We'll usually be getting an int64_t for T, but allow other signed ints
     // as well.
-    static_assert(std::is_signed<std::underlying_type_t<T>>{});
-    auto it = static_cast<int64_t>(t);
+    static_assert(std::is_signed<std::underlying_type_t<typename T::Value>>{});
+    auto it = static_cast<int64_t>(t.value());
+
+    // Special case: map enum values to Zeek's semantics.
+    if ( target->GetName() == "transport_proto" ) {
+        if ( ! std::is_same_v<T, hilti::rt::Protocol> )
+            throw TypeMismatch(hilti::rt::demangle(typeid(t).name()), target);
+
+        return to_val_for_transport_proto(it, target);
+    }
 
     // Zeek's enum can't be negative, so we swap in max_int for our Undef (-1).
     if ( it == std::numeric_limits<int64_t>::max() )

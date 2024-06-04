@@ -1,3 +1,525 @@
+7.0.0-dev.338 | 2024-05-31 14:18:15 -0700
+
+  * Add type aliases for instrument and family shared_ptrs (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for double and is_sum changes (Tim Wojtulewicz, Corelight)
+
+  * Remove is_sum arguments from counters and gauges (Tim Wojtulewicz, Corelight)
+
+  * Change all instruments to only handle doubles (Tim Wojtulewicz, Corelight)
+
+  * Add comment to telemetry::Manager::InitPostScript (Tim Wojtulewicz, Corelight)
+
+  * Remove all of the ZEEK_METRICS_ environment variables (Tim Wojtulewicz, Corelight)
+
+  * Fix header comments in scripts/policy/frameworks/telemetry/prometheus.zeek (Tim Wojtulewicz, Corelight)
+
+  * Change all prometheus #includes to use angle brackets (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl submodule for metrics_port node.cfg option (Tim Wojtulewicz, Corelight)
+
+  * Remove the is_sum argument from BIF histogram creation methods (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for Telemetry rework (Tim Wojtulewicz, Corelight)
+
+  * Remove Telemetry::metrics_export_prefixes option (Tim Wojtulewicz, Corelight)
+
+  * Validate that label names are constant in non-zeek metrics (Tim Wojtulewicz, Corelight)
+
+  * Avoid calling Collect() in counter/gauge Value() methods if not needed (Tim Wojtulewicz, Corelight)
+
+  * Fix some determinism issues with btests (Tim Wojtulewicz, Corelight)
+
+  * Temporarily disable the scripts/base/frameworks/telemetry/internal-metrics btest (Tim Wojtulewicz, Corelight)
+
+  * Fix the scripts.policy.frameworks.telemetry.prometheus btest to use the service discovery endpoint (Tim Wojtulewicz, Corelight)
+
+  * Btest updates due to recent changes (Tim Wojtulewicz, Corelight)
+
+  * Update telemetry log policy due to the fact that unit will not be filled in anymore (Tim Wojtulewicz, Corelight)
+
+  * Rework everything to access the prometheus-cpp objects more directly (Tim Wojtulewicz, Corelight)
+
+  * Move telemetry opaques out of OpaqueVal.h (Tim Wojtulewicz, Corelight)
+
+  * Add GetRegistry() method for retrieving access to prometheus-cpp registry (Tim Wojtulewicz, Corelight)
+
+  * Remove Broker metrics configuration values and methods (Tim Wojtulewicz, Corelight)
+
+  * Add support for callbacks for gauges/counters, restore process stat metrics (Tim Wojtulewicz, Corelight)
+
+  * Add a services.json endpoint for Prometheus service discovery (Tim Wojtulewicz, Corelight)
+
+  * Don't include endpoint label/value when collecting metrics internally (Tim Wojtulewicz, Corelight)
+
+  * Remove everything related to aggregation (Tim Wojtulewicz, Corelight)
+
+  * Make all options const-redefs, remove all of the change handler code (Tim Wojtulewicz, Corelight)
+
+  * Move base types from telemetry framework to init-bare (Tim Wojtulewicz, Corelight)
+
+  * Update test baselines due to underscore changes (Tim Wojtulewicz, Corelight)
+
+  * Convert telemetry code to use prometheus-cpp (Tim Wojtulewicz, Corelight)
+
+  * Add necessary script-land changes (Tim Wojtulewicz, Corelight)
+
+  * Add prometheus-cpp submodule, FindPrometheusCpp cmake module (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.302 | 2024-05-31 09:37:21 -0700
+
+  * More precise error reporting for the disable_analyzer() BiF (Christian Kreibich, Corelight)
+
+  * Add btests for the lookup_connection_analyzer_id() BiF. (Christian Kreibich, Corelight)
+
+  * Add BiF for looking up a connection's numeric protocol analyzer IDs (Christian Kreibich, Corelight)
+
+7.0.0-dev.298 | 2024-05-29 13:49:00 -0700
+
+  * removing now-vestigial "add" and "delete" statements (Vern Paxson, Corelight)
+
+  * script optimization support for "add" and "delete" being expressions (Vern Paxson, Corelight)
+
+  * "add" and "delete" are now expressions rather than statements (Vern Paxson, Corelight)
+
+  * bug fix for dealing with illegal types of initializers (Vern Paxson, Corelight)
+
+  * added a space when rendering some expressions so they're more readable (Vern Paxson, Corelight)
+
+7.0.0-dev.292 | 2024-05-29 14:11:57 +0100
+
+  * Copy timestamp from file object (mvhensbergen)
+
+		In some cases, e.g. running zeek on short pcaps as opposed to continuous
+		packet streams, network_time() may not equal the time that was used when
+		generating the file object.  This results in the pe.log entry having a
+		different timestamp than its corresponding files.log entry which is strange
+		as they refer to the exact same file.
+
+  * CI: Add coveralls-lcov gem to ubuntu 24, remove from ubuntu 20 (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.287 | 2024-05-28 13:05:45 -0700
+
+  * CI: Revert part of 2bde82ffa2f5fe9161e3322fee82eb45699b9164 to fix coverage builds (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.284 | 2024-05-24 15:04:27 -0700
+
+  * Fix Zeekygen warning for QUIC::unrecognized_version event (Christian Kreibich, Corelight)
+
+7.0.0-dev.282 | 2024-05-24 10:49:31 -0700
+
+  * Update TLS consts, mainly new named curves. (Johanna Amann, Corelight)
+
+    Add test for X25519Kyber768Draft00 (post-quantum key agreement)
+
+7.0.0-dev.280 | 2024-05-21 16:22:57 -0700
+
+  * CI: Remove --enable-werror for asan builds (Tim Wojtulewicz, Corelight)
+
+    There's a bug in GCC (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105562) that
+    causes std::regex to emit some warnings when built with -fsanitize=address. Any
+    warnings that actually mean anything would be caught by the other sanitizer
+    builds or by the regular ubuntu24 build.
+
+  * CI: Run coverage builds for PRs, but only upload on master (Tim Wojtulewicz, Corelight)
+
+  * Coverage: Ignore a few errors during generation (Tim Wojtulewicz, Corelight)
+
+  * Coverage: don't bother ignoring non-existent bro.dir files (Tim Wojtulewicz, Corelight)
+
+  * CI: Re-enable coverage (Tim Wojtulewicz, Corelight)
+
+  * CI: Switch asan build back to gcc (Tim Wojtulewicz, Corelight)
+
+    The tools used for coverage (gcov, lcov) work better with GCC. We could switch
+    over to similar tools for llvm, but they way they store files during coverage
+    builds don't work as well for us (mostly the places they store the files).
+
+  * CI: Avoid divide by zero error when generating coverage files (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.270 | 2024-05-20 15:54:09 -0700
+
+  * Fix for suppressing SMB logging of previously-logged files (Vern Paxson, Corelight)
+
+7.0.0-dev.268 | 2024-05-17 08:56:31 -0700
+
+  * Bump Spicy to latest dev snapshot (Benjamin Bannier, Corelight)
+
+  * CI: Disable coverage temporarily, broken with clang-18 (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.265 | 2024-05-16 11:09:23 -0700
+
+  * Fix for ZAM inlining of nested function calls with the same parameter names (Vern Paxson, Corelight)
+
+  * Fixed ZAM logic error in canonicalizing specialized min/max instructions (Vern Paxson, Corelight)
+
+  * Fixed order-of-evaluation bug in ZAM Subnet-To-Addr instruction (Vern Paxson, Corelight)
+
+  * "-a zam" BTest baseline update reflecting recent Spicy baseline change (Vern Paxson, Corelight)
+
+7.0.0-dev.260 | 2024-05-16 09:34:55 -0700
+
+  * CI: Disable spicy_head task for release branches (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.258 | 2024-05-15 20:00:41 -0700
+
+  * CI: Use llvm-cov-18 on Cirrus for building coverage data (Tim Wojtulewicz, Corelight)
+
+  * CI: Add missing lcov package to ubuntu 24 Dockerfile (Tim Wojtulewicz)
+
+7.0.0-dev.254 | 2024-05-13 17:40:37 -0700
+
+  * CI: Use clang-18 on Ubuntu 24 for sanitizers builds, enable TSan builds (Tim Wojtulewicz)
+
+  * CI: Add clang-18 to Ubuntu 24.04 VM (Tim Wojtulewicz)
+
+7.0.0-dev.251 | 2024-05-13 16:38:33 +0200
+
+  * Spicy: Apply missing fix for recent Spicy bump. (Robin Sommer, Corelight)
+
+7.0.0-dev.249 | 2024-05-13 11:51:17 +0200
+
+  * Bump Spicy, with small tweaks for API changes. (Robin Sommer, Corelight)
+
+7.0.0-dev.247 | 2024-05-10 10:19:43 -0700
+
+  * CI: Update asan and ubsan tasks to use Ubuntu 22.04 VM (Tim Wojtulewicz, Corelight)
+
+  * CI: Replace Ubuntu 23.10 with Ubuntu 24.04 (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.244 | 2024-05-10 11:08:47 +0200
+
+  * GH-3725: Spicy: Fix service reporting for replaced analyzers. (Robin Sommer, Corelight)
+
+    We accidentally applied analyzer mappings when looking up an
+    analyzer's name from scriptland.
+
+  * GH-3561: Spicy: Support UDP in Spicy's `protocol_*` runtime functions. (Robin Sommer, Corelight)
+
+    This extends the ability to feed new payload back into Zeek's analyzer
+    pipeline from TCP to now also UDP.
+
+    Note: We don't extend this further to ICMP because the ICMP analyzer
+    cannot be dynamically instantiated (Zeek aborts when trying so). As
+    ICMP isn't very interesting from use case perspective anyways, that
+    seems fine.
+
+  * Add method to analyzer to retrieve direct child by name. (Robin Sommer, Corelight)
+
+  * Add explicit children life-cycle management method to analyzers. (Robin Sommer, Corelight)
+
+  * Extend PIA's `FirstPacket` API. (Robin Sommer, Corelight)
+
+    `FirstPacket()` so far supported only TCP. To extend this to UDP, we
+    move the method into the PIA base class; give it a protocol parameter
+    for the case that there's no actual packet is available; and add the
+    ability to create fake UDP packets as well, not just TCP.
+
+    This whole thing is pretty ugly to begin with, and this doesn't make
+    it nicer, but we need this extension that so we can feed UDP data into
+    the signature engine that's tunneled over other protocols. Without the
+    fake packets, DPD signatures in particular wouldn't have anything to
+    match on.
+
+  * Spicy: Prepare for supporting forwarding to protocols other than TCP. (Robin Sommer, Corelight)
+
+    So far the Spicy runtime supported forwarding data into other
+    analyzers only for TCP analyzers. This puts branching logic in place
+    that let the relevant runtime functions dispatch differently based on
+    the target transport-layer protocol. We don't implement anything else
+    than TCP yet; that will come next.
+
+    Along with the internal changes, this also updates the user-visible
+    runtime function to pass protocol information in. For now, this
+    likewise remains limited to TCP. The function signatures are chosen so
+    that they stay backwards-compatible to previous Spicy version. In
+    particular, they default to TCP where not otherwise specified.
+
+  * Fix include of private file in public header (Benjamin Bannier, Corelight)
+
+  * Update package-manager submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.231 | 2024-05-08 13:09:25 -0700
+
+  * enable ZAM operation specifications to reside in multiple files (not yet used) (Vern Paxson, Corelight)
+
+7.0.0-dev.229 | 2024-05-08 09:55:01 -0700
+
+  * Move packet_analysis::Dispatcher to detail namespace (Tim Wojtulewicz, Corelight)
+
+.0.0-dev.226 | 2024-05-07 12:02:28 -0700
+
+  * make SSH analyzer robust to half-duplex connections (Vern Paxson, Corelight)
+
+7.0.0-dev.224 | 2024-05-07 10:26:40 -0700
+
+  * Clarify membership in the Site::private_address_space prefix list. [skip ci] (Christian Kreibich, Corelight)
+
+    IANA's IPv6 special-purpose address registry now has members that technically
+    meet the definition of not being globally reachable, but don't imply operating
+    locally. An example: https://datatracker.ietf.org/doc/draft-ietf-6man-sids/06/
+
+    This change just explains that distinction.
+
+7.0.0-dev.222 | 2024-05-07 10:25:55 -0700
+
+  * Avoid segfault when generating Zeekygen docs on Zeek-internal identifiers. (Christian Kreibich, Corelight)
+
+    Identifiers that Zeek generates explicitly in-core for example during component management
+    ("Analyzer::ANALYZER_FOO", "Input::READER_FOO", etc), aren't associated with any
+    scripts and would lead to nullpointer derefs when trying to identify
+    modification time.
+
+    This fix returns a zero timestamp in such cases, ensuring it never triggers docs
+    refreshes. We do the same e.g. in PackageInfo instances.
+
+  * Add btest for Zeekygen docs extraction on identifiers defined by the Zeek core. (Christian Kreibich, Corelight)
+
+    Mainly, this should not crash. :-) The baseline output file also should remain
+    empty, since Zeekygen's staleness test should conclude that it's sufficiently
+    fresh.
+
+7.0.0-dev.218 | 2024-05-07 09:45:25 +0200
+
+  * Fix packet analyzer replacement. (Robin Sommer, Corelight)
+
+    Also reworking the existing test, which was pretty odd/broken.
+
+  * GH-3573: Spicy: Wenn replacing an analyzer add a component mapping. (Robin Sommer, Corelight)
+
+    This uses the new API to replace components internally.
+
+    With these changes in place, replacing protocol analyzers now don't
+    need to register their ports anymore if they match what the original
+    analyzer was using (because the old one's registrations will map
+    over).
+
+    Packet analyzer replacement doesn't quite work yet but will be fixed
+    in next commit.
+
+  * Add component API to transparently remap one component to another one. (Robin Sommer, Corelight)
+
+    When a specific component is requested through its tag or name, one
+    can now have the component manager transparently return a different
+    one that has been registered to replace the original one. We limit
+    this to disabled components to avoid unnecessary confusion. That also
+    means that remappings are currently only supported for analyzers
+    (because other types of components cannot be disabled for now, per the
+    previous change).
+
+  * Move enabled/disabled functionality from analyzers into `Component` base class API. (Robin Sommer, Corelight)
+
+    The different analyzers types all had their own methods for
+    enabling/disabling their availability. This change abstracts that into
+    a new API inside their base class (`plugin::Component`) so that they
+    can be toggled in a unified way.
+
+    In principle, other types of components could/should use this as well
+    now, so that, e.g., an input reader's availability could be toggled at
+    runtime. The code doesn't make that broader change for now because it
+    would requires a series of changes wherever these other component
+    types are being used. However, that means that one now could try
+    toggling some other component through the new API without that having
+    any effect. To catch that, there's a runtime check in place that turns
+    any such attempt into an internal error.
+
+  * GH-3440: Spicy: Query Zeek scriptland for file handles. (Robin Sommer, Corelight)
+
+    Like traditional file analyzers, we now query Zeek's
+    `get_file_handle()` event for handles when a connection begins
+    analyzing an embedded file. That means that Spicy-side protocol
+    analyzers that are forwarding data into file analysis now need to call
+    Zeek's `Files::register_protocol()` and provide a callback for
+    computing file handles. If that's missing, Zeek will now issue a
+    warning. This aligns with the requirements Zeek's traditional protocol
+    analyzers. (If the EVT file defines a protocol analyzer to `replace`
+    an existing one, that one's `register_protocol()` will be consulted.)
+
+    Because Zeek's `get_file_handle()` event requires a current
+    connection, if a Spicy file analyzer isn't directly part of a
+    connection context (e.g., with nested files), we continue to use
+    hardcoded, built-in file handle. Scriptland won't be consulted in
+    that case, just like before.
+
+  * Spicy: Cleanup some runtime code. (Robin Sommer, Corelight)
+
+  * GH-3606: Spicy: Map Spicy's `Protocol` enum to Zeek's `transport_proto`. (Robin Sommer, Corelight)
+
+    We now hardcode this specific enum mapping to make Zeek-side usage
+    more convenient.
+
+7.0.0-dev.207 | 2024-05-06 16:59:31 -0700
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.205 | 2024-05-06 11:16:15 -0700
+
+  * Move the options from policy/tuning/defaults to actual Zeek defaults, deprecate that package (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.200 | 2024-05-02 19:00:53 -0700
+
+  * refine Val "footprint" to equate long strings with multiple objects (Vern Paxson, Corelight)
+
+7.0.0-dev.198 | 2024-05-02 10:21:43 -0700
+
+  * Constify classes in RuleMatcher, fixes c++20 build failure (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.196 | 2024-04-29 09:09:28 -0700
+
+  * Fix cid propagation into files.log (Johanna Amann, Corelight)
+
+    Changes to the connection id were not propagated to files.log in all
+    cases.
+
+    Fixes GH-3700
+
+7.0.0-dev.194 | 2024-04-29 09:08:20 -0700
+
+  * factored BTest constants into globals to prevent premature ZAM optimization when testing (Vern Paxson, Corelight)
+
+  * addressed minor issues flagged by Coverity (Vern Paxson, Corelight)
+
+7.0.0-dev.191 | 2024-04-29 09:06:24 -0700
+
+  * Avoid calling typecasts in Val when we have direct access to the underlying value object (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.187 | 2024-04-26 12:29:18 -0700
+
+  * Gracefully handle empty/missing shadow file (Peter Cullen, Corelight)
+
+    When a shadow file is empty/missing during rotation, Zeek aborts
+    with an error message, but if the shadow file was empty, it'll still
+    be there after the restart, causing an endless restart loop. This
+    solution gracefully handles the rotation in such cases using the
+    default file extension and post processing function.
+
+7.0.0-dev.184 | 2024-04-26 11:17:52 -0700
+
+  * GH-3671: Factor in caplens in ICMPAnalyzer::DeliverPacket length calculations (Christian Kreibich, Corelight)
+
+  * Update binpac submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update gen-zam submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
+7.0.0-dev.179 | 2024-04-25 09:15:30 -0700
+
+  * rewrite of ZAM optimization of BiFs and script functions/idioms (Vern Paxson, Corelight)
+
+  * flag base script as being known to ZAM optimization (Vern Paxson, Corelight)
+
+  * ZAM optimization for constructing records w/ fields initialized to network_time (Vern Paxson, Corelight)
+
+  * factor some functionality used by BiFs to make accessible to ZAM instructions (Vern Paxson, Corelight)
+
+  * factor script optimization Expr AST nodes out of main AST header (Vern Paxson, Corelight)
+
+  * new internal AST node for expression idioms with corresponding ZAM built-ins (Vern Paxson, Corelight)
+
+  * streamlining of expressions only used for script optimization (Vern Paxson, Corelight)
+
+  * reordering of expressions to match main usage vs. script-optimization extras (Vern Paxson, Corelight)
+
+  * support for conditional expressions transforming into interal has-elements expr (Vern Paxson, Corelight)
+
+  * make same_expr() functionality accessible as a utility (Vern Paxson, Corelight)
+
+  * unify functionality across EqExpr and RelExpr classes (Vern Paxson, Corelight)
+
+  * introduce notions of script functions/BiFs that are (1) foldable, (2) replaceable (Vern Paxson, Corelight)
+
+  * optimization of scripting idioms - min/max, has-elements (Vern Paxson, Corelight)
+
+  * hooks for ZAM optimization of calls to particular functions (Vern Paxson, Corelight)
+
+  * shift ZAM maintenance monitoring of new BiFs to a BTest so it automatically runs (Vern Paxson, Corelight)
+
+  * make externally available the expression used for initializating a record field (Vern Paxson, Corelight)
+
+  * record field initialization optimization: do coercions at compile-time if applicable (Vern Paxson, Corelight)
+
+  * $ZAM_PROFILE_ALL set tells ZAM to profile function bodies even if not executed (Vern Paxson, Corelight)
+
+  * performance speed-up for SMB base scripts (Vern Paxson, Corelight)
+
+  * fix for ZAM optimization pruning of unnecessary instructions (Vern Paxson, Corelight)
+
+  * bug fix for ZAM code generation (Vern Paxson, Corelight)
+
+  * optimize generation of "-O gen-C++" code for table/vector size operations (Vern Paxson, Corelight)
+
+  * removing vestigial same_val() function (Vern Paxson, Corelight)
+
+  * fix for ZAM optimization of '!' expressions (Vern Paxson, Corelight)
+
+  * fix for ZAM tracking of return values when in-lining (Vern Paxson, Corelight)
+
+  * fix for ZAM profiling potentially accessing freed memory (Vern Paxson, Corelight)
+
+  * Fix typo in hook name (Benjamin Bannier, Corelight)
+
+    While in Spicy code a hook priority is spelled `priority=4711` the
+    attribute is still called `&priority` (like in HILTI) and we rely on
+    exactly that name when e.g., extracting hook priorities for scheduling.
+
+    This change was introduced as part of
+    db98dc419334667e9299ef00670f4d435f3e408c and caused the default hook
+    priority for hooks defined in EVT files (intended to be -1000 to likely
+    schedule after e.g., hooks in the Spicy grammars) to be ignored. This
+    could then e.g., introduce issue when a `%done` hook would mutate state
+    exposed in an EVT hook (which now might not have seen the updated state
+    due to different scheduling).
+
+7.0.0-dev.147 | 2024-04-22 17:08:25 -0700
+
+  * Don't attempt to stop or flush disabled writer frontends (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.145 | 2024-04-22 15:55:53 -0700
+
+  * Allow SMB_TCP record to contain multiple protocol identifiers/headers (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.143 | 2024-04-22 15:15:55 -0700
+
+  * Check for valid identifier in WhenStmt::Describe (Tim Wojtulewicz, Corelight)
+
+  * Bump zeek-aux submodule to pull in zeek-archiver addition (Christian Kreibich, Corelight)
+
+  * Remove zeek-archiver from build config, deprecate --disable-archiver in configure (Christian Kreibich, Corelight)
+
+  * Drop zeek-archiver submodule (Christian Kreibich, Corelight)
+
+    zeek-archiver now lives in the zeek-aux submodule.
+
+7.0.0-dev.136 | 2024-04-18 09:02:14 -0700
+
+  * Update core.pcap.filter-warning baseline (Peter Cullen, Corelight)
+
+    Only the line numbers changed.
+
+  * Add PacketFilter::remove_exclude function (Peter Cullen, Corelight)
+
+    This adds a public function to the PacketFilter framework that
+    allows the caller to remove an exclude filter by filter id.
+
+7.0.0-dev.132 | 2024-04-17 14:59:43 -0700
+
+  * Parse and store localversion string (Peter Cullen, Corelight)
+
+  * Update version string btests for localversion (Peter Cullen, Corelight)
+
+  * Support for configurable localversion (Peter Cullen, Corelight)
+
+7.0.0-dev.123 | 2024-04-17 14:33:55 -0700
+
+  * fix for ZAM optimization of "while" loops (Vern Paxson, Corelight)
+
+7.0.0-dev.121 | 2024-04-17 09:20:53 -0700
+
+  * Add Opensuse leap 15.6 to CI (Johanna Amann, Corelight)
+
 7.0.0-dev.119 | 2024-04-15 17:52:44 +0200
 
   * Bump Spicy. (Robin Sommer, Corelight)

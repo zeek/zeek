@@ -37,7 +37,7 @@ zeek::analyzer::pia::PIA* UDPAnalyzer::MakePIA(Connection* conn) { return new an
 void UDPAnalyzer::Initialize() {
     IPBasedAnalyzer::Initialize();
 
-    const auto& id = detail::global_scope()->Find("PacketAnalyzer::VXLAN::vxlan_ports");
+    const auto& id = zeek::detail::global_scope()->Find("PacketAnalyzer::VXLAN::vxlan_ports");
 
     if ( ! (id && id->GetVal()) )
         reporter->FatalError("PacketAnalyzer::VXLAN::vxlan_ports not defined");
@@ -204,8 +204,8 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 }
 
 bool UDPAnalyzer::ValidateChecksum(const IP_Hdr* ip, const udphdr* up, int len) {
-    auto sum = detail::ip_in_cksum(ip->IP4_Hdr(), ip->SrcAddr(), ip->DstAddr(), IPPROTO_UDP,
-                                   reinterpret_cast<const uint8_t*>(up), len);
+    auto sum = zeek::detail::ip_in_cksum(ip->IP4_Hdr(), ip->SrcAddr(), ip->DstAddr(), IPPROTO_UDP,
+                                         reinterpret_cast<const uint8_t*>(up), len);
 
     return sum == 0xffff;
 }

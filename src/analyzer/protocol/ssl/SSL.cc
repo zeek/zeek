@@ -357,8 +357,8 @@ void SSL_Analyzer::ForwardDecryptedData(const std::vector<u_char>& data, bool is
     if ( ! pia ) {
         pia = new analyzer::pia::PIA_TCP(Conn());
         if ( AddChildAnalyzer(pia) ) {
-            pia->FirstPacket(true, nullptr);
-            pia->FirstPacket(false, nullptr);
+            pia->FirstPacket(true, TransportProto::TRANSPORT_TCP);
+            pia->FirstPacket(false, TransportProto::TRANSPORT_TCP);
         }
         else
             reporter->Error("Could not initialize PIA");

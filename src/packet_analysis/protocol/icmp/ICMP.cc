@@ -92,11 +92,14 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
     c->SetLastTime(run_state::current_timestamp);
     adapter->InitEndpointMatcher(ip.get(), len, is_orig);
 
-    // Move past common portion of ICMP header.
+    // Move past common portion of ICMP header. BuildConnTuple() verified that
+    // the header is fully present.
     data += 8;
     remaining -= 8;
     len -= 8;
 
+    // The ICMP session adapter only uses len to signal endpoint activity, so
+    // caplen vs len does not matter.
     adapter->UpdateLength(is_orig, len);
 
     if ( ip->NextProto() == IPPROTO_ICMP )
@@ -112,12 +115,12 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
     // handling those properly.
     pkt->session = c;
 
-    ForwardPacket(len, data, pkt);
+    ForwardPacket(std::min(len, remaining), data, pkt);
 
     if ( remaining >= len )
         adapter->ForwardPacket(len, data, is_orig, -1, ip.get(), remaining);
 
-    adapter->MatchEndpoint(data, len, is_orig);
+    adapter->MatchEndpoint(data, std::min(len, remaining), is_orig);
 }
 
 void ICMPAnalyzer::NextICMP4(double t, const struct icmp* icmpp, int len, int caplen, const u_char*& data,
@@ -277,8 +280,8 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& dat
 
         if ( ! bad_hdr_len )
             bad_checksum = ! run_state::current_pkt->l4_checksummed &&
-                           (detail::in_cksum(reinterpret_cast<const uint8_t*>(ip_hdr->IP4_Hdr()),
-                                             static_cast<int>(ip_hdr_len)) != 0xffff);
+                           (zeek::detail::in_cksum(reinterpret_cast<const uint8_t*>(ip_hdr->IP4_Hdr()),
+                                                   static_cast<int>(ip_hdr_len)) != 0xffff);
         else
             bad_checksum = false;
 

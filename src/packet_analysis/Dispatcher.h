@@ -12,6 +12,8 @@ namespace zeek::packet_analysis {
 class Analyzer; // Forward declaration for Value
 using AnalyzerPtr = std::shared_ptr<zeek::packet_analysis::Analyzer>;
 
+namespace detail {
+
 /**
  * The Dispatcher class manages identifier-to-analyzer mappings.
  */
@@ -62,4 +64,5 @@ private:
     inline uint32_t GetHighestIdentifier() const { return lowest_identifier + table.size() - 1; }
 };
 
+} // namespace detail
 } // namespace zeek::packet_analysis

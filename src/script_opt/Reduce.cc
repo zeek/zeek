@@ -3,11 +3,217 @@
 #include "zeek/script_opt/Reduce.h"
 
 #include "zeek/script_opt/CSE.h"
-#include "zeek/script_opt/ExprOptInfo.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 #include "zeek/script_opt/TempVar.h"
 
 namespace zeek::detail {
+
+// True if two Val's refer to the same underlying value.  We gauge this
+// conservatively (i.e., for complicated values we just return false, even
+// if with a lot of work we could establish that they are in fact equivalent.)
+
+static bool same_val(const Val* v1, const Val* v2) {
+    if ( is_atomic_val(v1) )
+        return same_atomic_val(v1, v2);
+    else
+        return v1 == v2;
+}
+
+static bool same_expr(const Expr* e1, const Expr* e2, bool check_defs);
+
+// Returns true if op1 and op2 represent the same operand. If check_defs
+// is true then this factors in the reaching definitions available at
+// their usages.
+
+static bool same_op(const Expr* op1, const Expr* op2, bool check_defs) {
+    if ( op1 == op2 )
+        return true;
+
+    if ( op1->Tag() != op2->Tag() )
+        return false;
+
+    if ( op1->Tag() == EXPR_NAME ) {
+        // Needs to be both the same identifier and in contexts
+        // where the identifier has the same definitions.
+        auto op1_n = op1->AsNameExpr();
+        auto op2_n = op2->AsNameExpr();
+
+        auto op1_id = op1_n->Id();
+        auto op2_id = op2_n->Id();
+
+        if ( op1_id != op2_id )
+            return false;
+
+        if ( ! check_defs )
+            return true;
+
+        auto e_stmt_1 = op1->GetOptInfo()->stmt_num;
+        auto e_stmt_2 = op2->GetOptInfo()->stmt_num;
+
+        auto def_1 = op1_id->GetOptInfo()->DefinitionBefore(e_stmt_1);
+        auto def_2 = op2_id->GetOptInfo()->DefinitionBefore(e_stmt_2);
+
+        return def_1 == def_2 && def_1 != NO_DEF;
+    }
+
+    else if ( op1->Tag() == EXPR_CONST ) {
+        auto op1_c = op1->AsConstExpr();
+        auto op2_c = op2->AsConstExpr();
+
+        auto op1_v = op1_c->Value();
+        auto op2_v = op2_c->Value();
+
+        return same_val(op1_v, op2_v);
+    }
+
+    else if ( op1->Tag() == EXPR_LIST ) {
+        auto op1_l = op1->AsListExpr()->Exprs();
+        auto op2_l = op2->AsListExpr()->Exprs();
+
+        if ( op1_l.length() != op2_l.length() )
+            return false;
+
+        for ( auto i = 0; i < op1_l.length(); ++i )
+            if ( ! same_expr(op1_l[i], op2_l[i], check_defs) )
+                return false;
+
+        return true;
+    }
+
+    reporter->InternalError("bad singleton tag");
+    return false;
+}
+
+static bool same_op(const ExprPtr& op1, const ExprPtr& op2, bool check_defs) {
+    return same_op(op1.get(), op2.get(), check_defs);
+}
+
+static bool same_expr(const Expr* e1, const Expr* e2, bool check_defs) {
+    if ( e1 == e2 )
+        return true;
+
+    if ( e1->Tag() != e2->Tag() )
+        return false;
+
+    if ( ! same_type(e1->GetType(), e2->GetType()) )
+        return false;
+
+    switch ( e1->Tag() ) {
+        case EXPR_NAME:
+        case EXPR_CONST: return same_op(e1, e2, check_defs);
+
+        case EXPR_REF: return same_expr(e1->GetOp1(), e2->GetOp1());
+
+        case EXPR_CLONE:
+        case EXPR_RECORD_CONSTRUCTOR:
+        case EXPR_TABLE_CONSTRUCTOR:
+        case EXPR_SET_CONSTRUCTOR:
+        case EXPR_VECTOR_CONSTRUCTOR:
+        case EXPR_EVENT:
+        case EXPR_SCHEDULE:
+            // These always generate a new value.
+            return false;
+
+        case EXPR_INCR:
+        case EXPR_DECR:
+        case EXPR_AND_AND:
+        case EXPR_OR_OR:
+        case EXPR_ASSIGN:
+        case EXPR_FIELD_ASSIGN:
+        case EXPR_INDEX_SLICE_ASSIGN:
+            // All of these should have been translated into something
+            // else.
+            reporter->InternalError("Unexpected tag in Reducer::same_expr");
+
+        case EXPR_ANY_INDEX: {
+            auto a1 = static_cast<const AnyIndexExpr*>(e1);
+            auto a2 = static_cast<const AnyIndexExpr*>(e2);
+
+            if ( a1->Index() != a2->Index() )
+                return false;
+
+            return same_op(a1->GetOp1(), a2->GetOp1(), check_defs);
+        }
+
+        case EXPR_FIELD: {
+            auto f1 = e1->AsFieldExpr();
+            auto f2 = e2->AsFieldExpr();
+
+            if ( f1->Field() != f2->Field() )
+                return false;
+
+            return same_op(f1->GetOp1(), f2->GetOp1(), check_defs);
+        }
+
+        case EXPR_HAS_FIELD: {
+            auto f1 = e1->AsHasFieldExpr();
+            auto f2 = e2->AsHasFieldExpr();
+
+            if ( f1->Field() != f2->Field() )
+                return false;
+
+            return same_op(f1->GetOp1(), f2->GetOp1(), check_defs);
+        }
+
+        case EXPR_LIST: {
+            auto l1 = e1->AsListExpr()->Exprs();
+            auto l2 = e2->AsListExpr()->Exprs();
+
+            ASSERT(l1.length() == l2.length());
+
+            for ( int i = 0; i < l1.length(); ++i )
+                if ( ! same_expr(l1[i], l2[i], check_defs) )
+                    return false;
+
+            return true;
+        }
+
+        case EXPR_CALL: {
+            auto c1 = e1->AsCallExpr();
+            auto c2 = e2->AsCallExpr();
+            auto f1 = c1->Func();
+            auto f2 = c2->Func();
+
+            if ( f1 != f2 )
+                return false;
+
+            if ( ! f1->IsPure() )
+                return false;
+
+            return same_expr(c1->Args(), c2->Args(), check_defs);
+        }
+
+        case EXPR_LAMBDA: return false;
+
+        case EXPR_IS: {
+            if ( ! same_op(e1->GetOp1(), e2->GetOp1(), check_defs) )
+                return false;
+
+            auto i1 = e1->AsIsExpr();
+            auto i2 = e2->AsIsExpr();
+
+            return same_type(i1->TestType(), i2->TestType());
+        }
+
+        default:
+            if ( ! e1->GetOp1() )
+                reporter->InternalError("Bad default in Reducer::same_expr");
+
+            if ( ! same_op(e1->GetOp1(), e2->GetOp1(), check_defs) )
+                return false;
+
+            if ( e1->GetOp2() && ! same_op(e1->GetOp2(), e2->GetOp2(), check_defs) )
+                return false;
+
+            if ( e1->GetOp3() && ! same_op(e1->GetOp3(), e2->GetOp3(), check_defs) )
+                return false;
+
+            return true;
+    }
+}
+
+bool same_expr(const ExprPtr& e1, const ExprPtr& e2) { return same_expr(e1.get(), e2.get(), false); }
 
 Reducer::Reducer(const ScriptFuncPtr& func, std::shared_ptr<ProfileFunc> _pf, std::shared_ptr<ProfileFuncs> _pfs)
     : pf(std::move(_pf)), pfs(std::move(_pfs)) {
@@ -153,27 +359,9 @@ NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id) {
     return make_intrusive<NameExpr>(GenLocal(id));
 }
 
-NameExprPtr Reducer::PushInlineBlock(TypePtr type) {
+void Reducer::PushInlineBlock() {
     ++inline_block_level;
-
     block_locals.emplace_back(std::unordered_map<const ID*, IDPtr>());
-
-    if ( ! type || type->Tag() == TYPE_VOID )
-        return nullptr;
-
-    IDPtr ret_id = install_ID("@retvar", "<internal>", false, false);
-    ret_id->SetType(type);
-    ret_id->GetOptInfo()->SetTemp();
-
-    ret_vars.insert(ret_id.get());
-
-    // Track this as a new local *if* we're in the outermost inlining
-    // block.  If we're recursively deeper into inlining, then this
-    // variable will get mapped to a local anyway, so no need.
-    if ( inline_block_level == 1 )
-        AddNewLocal(ret_id);
-
-    return GenInlineBlockName(ret_id);
 }
 
 void Reducer::PopInlineBlock() {
@@ -191,11 +379,23 @@ void Reducer::PopInlineBlock() {
     block_locals.pop_back();
 }
 
-bool Reducer::SameVal(const Val* v1, const Val* v2) const {
-    if ( is_atomic_val(v1) )
-        return same_atomic_val(v1, v2);
-    else
-        return v1 == v2;
+NameExprPtr Reducer::GetRetVar(TypePtr type) {
+    if ( ! type || type->Tag() == TYPE_VOID )
+        return nullptr;
+
+    IDPtr ret_id = install_ID("@retvar", "<internal>", false, false);
+    ret_id->SetType(type);
+    ret_id->GetOptInfo()->SetTemp();
+
+    ret_vars.insert(ret_id.get());
+
+    // Track this as a new local *if* we're in the outermost inlining
+    // block.  If we're recursively deeper into inlining, then this
+    // variable will get mapped to a local anyway, so no need.
+    if ( inline_block_level == 1 )
+        AddNewLocal(ret_id);
+
+    return GenInlineBlockName(ret_id);
 }
 
 ExprPtr Reducer::NewVarUsage(IDPtr var, const Expr* orig) {
@@ -215,184 +415,6 @@ void Reducer::BindStmtToCurrStmt(const StmtPtr& s) {
     s->SetLocationInfo(curr_stmt->GetLocationInfo());
 }
 
-bool Reducer::SameOp(const Expr* op1, const Expr* op2) {
-    if ( op1 == op2 )
-        return true;
-
-    if ( op1->Tag() != op2->Tag() )
-        return false;
-
-    if ( op1->Tag() == EXPR_NAME ) {
-        // Needs to be both the same identifier and in contexts
-        // where the identifier has the same definitions.
-        auto op1_n = op1->AsNameExpr();
-        auto op2_n = op2->AsNameExpr();
-
-        auto op1_id = op1_n->Id();
-        auto op2_id = op2_n->Id();
-
-        if ( op1_id != op2_id )
-            return false;
-
-        auto e_stmt_1 = op1->GetOptInfo()->stmt_num;
-        auto e_stmt_2 = op2->GetOptInfo()->stmt_num;
-
-        auto def_1 = op1_id->GetOptInfo()->DefinitionBefore(e_stmt_1);
-        auto def_2 = op2_id->GetOptInfo()->DefinitionBefore(e_stmt_2);
-
-        return def_1 == def_2 && def_1 != NO_DEF;
-    }
-
-    else if ( op1->Tag() == EXPR_CONST ) {
-        auto op1_c = op1->AsConstExpr();
-        auto op2_c = op2->AsConstExpr();
-
-        auto op1_v = op1_c->Value();
-        auto op2_v = op2_c->Value();
-
-        return SameVal(op1_v, op2_v);
-    }
-
-    else if ( op1->Tag() == EXPR_LIST ) {
-        auto op1_l = op1->AsListExpr()->Exprs();
-        auto op2_l = op2->AsListExpr()->Exprs();
-
-        if ( op1_l.length() != op2_l.length() )
-            return false;
-
-        for ( auto i = 0; i < op1_l.length(); ++i )
-            if ( ! SameExpr(op1_l[i], op2_l[i]) )
-                return false;
-
-        return true;
-    }
-
-    reporter->InternalError("bad singleton tag");
-    return false;
-}
-
-bool Reducer::SameExpr(const Expr* e1, const Expr* e2) {
-    if ( e1 == e2 )
-        return true;
-
-    if ( e1->Tag() != e2->Tag() )
-        return false;
-
-    if ( ! same_type(e1->GetType(), e2->GetType()) )
-        return false;
-
-    switch ( e1->Tag() ) {
-        case EXPR_NAME:
-        case EXPR_CONST: return SameOp(e1, e2);
-
-        case EXPR_CLONE:
-        case EXPR_RECORD_CONSTRUCTOR:
-        case EXPR_TABLE_CONSTRUCTOR:
-        case EXPR_SET_CONSTRUCTOR:
-        case EXPR_VECTOR_CONSTRUCTOR:
-        case EXPR_EVENT:
-        case EXPR_SCHEDULE:
-            // These always generate a new value.
-            return false;
-
-        case EXPR_INCR:
-        case EXPR_DECR:
-        case EXPR_AND_AND:
-        case EXPR_OR_OR:
-        case EXPR_ASSIGN:
-        case EXPR_FIELD_ASSIGN:
-        case EXPR_INDEX_SLICE_ASSIGN:
-            // All of these should have been translated into something
-            // else.
-            reporter->InternalError("Unexpected tag in Reducer::SameExpr");
-
-        case EXPR_ANY_INDEX: {
-            auto a1 = e1->AsAnyIndexExpr();
-            auto a2 = e2->AsAnyIndexExpr();
-
-            if ( a1->Index() != a2->Index() )
-                return false;
-
-            return SameOp(a1->GetOp1(), a2->GetOp1());
-        }
-
-        case EXPR_FIELD: {
-            auto f1 = e1->AsFieldExpr();
-            auto f2 = e2->AsFieldExpr();
-
-            if ( f1->Field() != f2->Field() )
-                return false;
-
-            return SameOp(f1->GetOp1(), f2->GetOp1());
-        }
-
-        case EXPR_HAS_FIELD: {
-            auto f1 = e1->AsHasFieldExpr();
-            auto f2 = e2->AsHasFieldExpr();
-
-            if ( f1->Field() != f2->Field() )
-                return false;
-
-            return SameOp(f1->GetOp1(), f2->GetOp1());
-        }
-
-        case EXPR_LIST: {
-            auto l1 = e1->AsListExpr()->Exprs();
-            auto l2 = e2->AsListExpr()->Exprs();
-
-            ASSERT(l1.length() == l2.length());
-
-            for ( int i = 0; i < l1.length(); ++i )
-                if ( ! SameExpr(l1[i], l2[i]) )
-                    return false;
-
-            return true;
-        }
-
-        case EXPR_CALL: {
-            auto c1 = e1->AsCallExpr();
-            auto c2 = e2->AsCallExpr();
-            auto f1 = c1->Func();
-            auto f2 = c2->Func();
-
-            if ( f1 != f2 )
-                return false;
-
-            if ( ! f1->IsPure() )
-                return false;
-
-            return SameExpr(c1->Args(), c2->Args());
-        }
-
-        case EXPR_LAMBDA: return false;
-
-        case EXPR_IS: {
-            if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
-                return false;
-
-            auto i1 = e1->AsIsExpr();
-            auto i2 = e2->AsIsExpr();
-
-            return same_type(i1->TestType(), i2->TestType());
-        }
-
-        default:
-            if ( ! e1->GetOp1() )
-                reporter->InternalError("Bad default in Reducer::SameExpr");
-
-            if ( ! SameOp(e1->GetOp1(), e2->GetOp1()) )
-                return false;
-
-            if ( e1->GetOp2() && ! SameOp(e1->GetOp2(), e2->GetOp2()) )
-                return false;
-
-            if ( e1->GetOp3() && ! SameOp(e1->GetOp3(), e2->GetOp3()) )
-                return false;
-
-            return true;
-    }
-}
-
 IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a, const std::shared_ptr<const TempVar>& lhs_tmp) {
     for ( const auto& et_i : expr_temps ) {
         if ( et_i->Alias() || ! et_i->IsActive() || et_i == lhs_tmp )
@@ -402,7 +424,7 @@ IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a, const std::shared_ptr
 
         auto et_i_expr = et_i->RHS();
 
-        if ( SameExpr(rhs, et_i_expr) ) {
+        if ( same_expr(rhs, et_i_expr, true) ) {
             // We have an apt candidate.  Make sure its value
             // always makes it here.
             auto id = et_i->Id().get();

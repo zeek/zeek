@@ -304,6 +304,38 @@ static bool next_fmt(const char*& fmt, const zeek::Args* args, zeek::ODesc* d, i
 
 	return *fmt != '\0';
 	}
+
+zeek::RecordValPtr zeek::detail::build_dummy_conn_record()
+	{
+	// Return a dummy connection record.
+	auto c = zeek::make_intrusive<zeek::RecordVal>(zeek::id::connection);
+
+	auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
+	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
+	id_val->Assign(1, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
+	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
+	id_val->Assign(3, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
+	c->Assign(0, std::move(id_val));
+
+	auto orig_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
+	orig_endp->Assign(0, 0);
+	orig_endp->Assign(1, 0);
+
+	auto resp_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
+	resp_endp->Assign(0, 0);
+	resp_endp->Assign(1, 0);
+
+	c->Assign(1, std::move(orig_endp));
+	c->Assign(2, std::move(resp_endp));
+
+	c->AssignTime(3, zeek::run_state::network_time);
+	c->AssignInterval(4, 0.0);
+	c->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
+	c->Assign(6, zeek::val_mgr->EmptyString());	// history
+
+	return c;
+	}
+
 %%}
 
 # ===========================================================================
@@ -3652,34 +3684,7 @@ function lookup_connection%(cid: conn_id%): connection
 		return conn->GetVal();
 
 	zeek::emit_builtin_error("connection ID not a known connection", cid);
-
-	// Return a dummy connection record.
-	auto c = zeek::make_intrusive<zeek::RecordVal>(zeek::id::connection);
-
-	auto id_val = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
-	id_val->Assign(0, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
-	id_val->Assign(1, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
-	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
-	id_val->Assign(3, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
-	c->Assign(0, std::move(id_val));
-
-	auto orig_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
-	orig_endp->Assign(0, 0);
-	orig_endp->Assign(1, 0);
-
-	auto resp_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);
-	resp_endp->Assign(0, 0);
-	resp_endp->Assign(1, 0);
-
-	c->Assign(1, std::move(orig_endp));
-	c->Assign(2, std::move(resp_endp));
-
-	c->AssignTime(3, zeek::run_state::network_time);
-	c->AssignInterval(4, 0.0);
-	c->Assign(5, zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set));	// service
-	c->Assign(6, zeek::val_mgr->EmptyString());	// history
-
-	return std::move(c);
+	return zeek::detail::build_dummy_conn_record();
 	%}
 
 %%{
@@ -4116,6 +4121,34 @@ function file_mode%(mode: count%): string
 #include "zeek/analyzer/Manager.h"
 %%}
 
+## Returns the numeric ID of the requested protocol analyzer for the given
+## connection.
+##
+## cid: The connection identifier.
+##
+## atype: The analyzer tag, such as ``Analyzer::ANALYZER_HTTP``.
+##
+## Returns: a numeric identifier for the analyzer, valid for the given
+##          connection. When no such analyzer exists the function returns
+##          0, which is never a valid analyzer ID value.
+##
+## .. zeek:see:: disable_analyzer Analyzer::disabling_analyzer
+function lookup_connection_analyzer_id%(cid: conn_id, atype: AllAnalyzers::Tag%): count
+	%{
+	Connection* c = session_mgr->FindConnection(cid);
+	if ( ! c )
+		{
+		zeek::emit_builtin_error("connection ID not a known connection", cid);
+		return zeek::val_mgr->Count(0);
+		}
+
+	analyzer::Analyzer* a = c->FindAnalyzer(analyzer_mgr->GetComponentTag(atype));
+	if ( ! a )
+		return zeek::val_mgr->Count(0);
+
+	return zeek::val_mgr->Count(a->GetID());
+	%}
+
 ## Disables the analyzer which raised the current event (if the analyzer
 ## belongs to the given connection).
 ##
@@ -4139,7 +4172,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	Connection* c = session_mgr->FindConnection(cid);
 	if ( ! c )
 		{
-		zeek::reporter->Error("cannot find connection");
+		zeek::emit_builtin_error("connection ID not a known connection", cid);
 		return zeek::val_mgr->False();
 		}
 
@@ -4147,7 +4180,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	if ( ! a )
 		{
 		if ( err_if_no_conn )
-			zeek::reporter->Error("connection does not have analyzer specified to disable");
+			zeek::emit_builtin_error("connection does not have analyzer specified to disable");
 		return zeek::val_mgr->False();
 		}
 
@@ -4157,7 +4190,7 @@ function disable_analyzer%(cid: conn_id, aid: count, err_if_no_conn: bool &defau
 	// of a root analyzer without probing for it.
 	if ( ! a->Parent() )
 		{
-		zeek::reporter->Error("root analyzer %s cannot be removed", a->GetAnalyzerName());
+		zeek::emit_builtin_error(zeek::util::fmt("root analyzer %s cannot be removed", a->GetAnalyzerName()));
 		return zeek::val_mgr->False();
 		}
 

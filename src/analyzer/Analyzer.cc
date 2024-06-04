@@ -422,6 +422,18 @@ Analyzer* Analyzer::GetChildAnalyzer(const zeek::Tag& tag) const {
     return nullptr;
 }
 
+Analyzer* Analyzer::GetChildAnalyzer(const std::string& name) const {
+    LOOP_OVER_CHILDREN(i)
+    if ( (*i)->GetAnalyzerName() == name && ! ((*i)->removing || (*i)->finished) )
+        return *i;
+
+    LOOP_OVER_GIVEN_CHILDREN(i, new_children)
+    if ( (*i)->GetAnalyzerName() == name && ! ((*i)->removing || (*i)->finished) )
+        return *i;
+
+    return nullptr;
+}
+
 Analyzer* Analyzer::FindChild(ID arg_id) {
     if ( id == arg_id && ! (removing || finished) )
         return this;
@@ -463,6 +475,17 @@ Analyzer* Analyzer::FindChild(zeek::Tag arg_tag) {
 Analyzer* Analyzer::FindChild(const char* name) {
     zeek::Tag tag = analyzer_mgr->GetComponentTag(name);
     return tag ? FindChild(tag) : nullptr;
+}
+
+void Analyzer::CleanupChildren() {
+    AppendNewChildren();
+
+    for ( auto i = children.begin(); i != children.end(); ) {
+        if ( ! ((*i)->finished || (*i)->removing) )
+            ++i;
+        else
+            i = DeleteChild(i);
+    }
 }
 
 analyzer_list::iterator Analyzer::DeleteChild(analyzer_list::iterator i) {
@@ -799,6 +822,32 @@ TEST_SUITE("Analyzer management") {
 
         REQUIRE(a->AddChildAnalyzer(b2));
         CHECK(conn->FindAnalyzer("IMAP"));
+        conn->Done();
+    }
+
+    TEST_CASE("Analyzer mapping") {
+        REQUIRE(zeek::analyzer_mgr);
+
+        zeek::Packet p;
+        zeek::ConnTuple t;
+        auto conn = std::make_unique<zeek::Connection>(zeek::detail::ConnKey(t), 0, &t, 0, &p);
+
+        auto ssh = zeek::analyzer_mgr->InstantiateAnalyzer("SSH", conn.get());
+        REQUIRE(ssh);
+        auto imap = zeek::analyzer_mgr->InstantiateAnalyzer("IMAP", conn.get());
+        REQUIRE(imap);
+
+        zeek::analyzer_mgr->AddComponentMapping(ssh->GetAnalyzerTag(), imap->GetAnalyzerTag());
+        zeek::analyzer_mgr->DisableAnalyzer(ssh->GetAnalyzerTag()); // needs to be disabled for mapping to take effect
+        auto ssh_is_imap = zeek::analyzer_mgr->InstantiateAnalyzer("SSH", conn.get());
+        CHECK_EQ(ssh_is_imap->GetAnalyzerTag(), imap->GetAnalyzerTag()); // SSH is now IMAP
+
+        // orderly cleanup through connection
+        auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn.get());
+        conn->SetSessionAdapter(tcp, nullptr);
+        tcp->AddChildAnalyzer(ssh);
+        tcp->AddChildAnalyzer(imap);
+        tcp->AddChildAnalyzer(ssh_is_imap);
         conn->Done();
     }
 }

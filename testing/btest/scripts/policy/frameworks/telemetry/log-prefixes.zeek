@@ -11,7 +11,7 @@ redef Telemetry::log_prefixes = {"btest"};
 global connections_by_proto_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="connections",
-	$unit="1",
+	$unit="",
 	$help_text="Total number of monitored connections",
 	$labels=vector("proto")
 ]);

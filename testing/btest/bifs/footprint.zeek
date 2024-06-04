@@ -54,6 +54,12 @@ event zeek_init()
 	local l2b = r2($a=3, $b1=99.0, $c="I'm here");
 	print "l2b", val_footprint(l2b);
 
+	local l2c = r2($a=3, $b1=99e99, $c="I'm here and really very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very long-winded");
+	# In the following, we just print the comparison rather than the
+	# actual footprint value, since the latter will change depending
+	# on the size of C++ pointers and the like.
+	print "l2c", val_footprint(l2c) > val_footprint(l2b);
+
 	local v1 = vector(9, 7, 3, 1);
 	print "v1", val_footprint(v1);
 

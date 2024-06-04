@@ -234,4 +234,9 @@ private:
     static uint64_t current_connections;
 };
 
+// The following is used by script optimization.
+namespace detail {
+extern RecordValPtr build_dummy_conn_record();
+}
+
 } // namespace zeek

@@ -351,6 +351,19 @@ public:
      */
     std::string DetectMIME(const u_char* data, uint64_t len) const;
 
+    /**
+     * Sets #current_file_id to a hash of a unique file handle string based on
+     * what the \c get_file_handle event derives from the connection params.
+     * Event queue is flushed so that we can get the handle value immediately.
+     * @param tag network protocol over which the file is transferred.
+     * @param conn network connection over which the file is transferred.
+     * @param is_orig true if the file is being sent from connection originator
+     *        or false if is being sent in the opposite direction.
+     * @return #current_file_id, which is a hash of a unique file handle string
+     *         set by a \c get_file_handle event handler.
+     */
+    std::string GetFileID(const zeek::Tag& tag, Connection* c, bool is_orig);
+
     uint64_t CurrentFiles() { return id_map.size(); }
 
     uint64_t MaxFiles() { return max_files; }
@@ -398,19 +411,6 @@ protected:
      * @return false if file id string did not map to anything, else true.
      */
     bool RemoveFile(const std::string& file_id);
-
-    /**
-     * Sets #current_file_id to a hash of a unique file handle string based on
-     * what the \c get_file_handle event derives from the connection params.
-     * Event queue is flushed so that we can get the handle value immediately.
-     * @param tag network protocol over which the file is transferred.
-     * @param conn network connection over which the file is transferred.
-     * @param is_orig true if the file is being sent from connection originator
-     *        or false if is being sent in the opposite direction.
-     * @return #current_file_id, which is a hash of a unique file handle string
-     *         set by a \c get_file_handle event handler.
-     */
-    std::string GetFileID(const zeek::Tag& tag, Connection* c, bool is_orig);
 
     /**
      * Check if analysis is available for files transferred over a given

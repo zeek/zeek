@@ -52,6 +52,9 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level) {
             gen = GenExpr(e->GetOp1(), GEN_VAL_PTR) + "->Clone()";
             return GenericValPtrToGT(gen, e->GetType(), gt);
 
+        case EXPR_AGGR_ADD: return GenAggrAdd(e);
+        case EXPR_AGGR_DEL: return GenAggrDel(e);
+
         case EXPR_INCR:
         case EXPR_DECR: return GenIncrExpr(e, gt, e->Tag() == EXPR_INCR, top_level);
 
@@ -181,6 +184,39 @@ string CPPCompile::GenConstExpr(const ConstExpr* c, GenType gt) {
     }
 
     return NativeToGT(GenVal(c->ValuePtr()), t, gt);
+}
+
+string CPPCompile::GenAggrAdd(const Expr* e) {
+    auto op = e->GetOp1();
+    auto aggr = GenExpr(op->GetOp1(), GEN_DONT_CARE);
+    auto indices = GenExpr(op->GetOp2(), GEN_VAL_PTR);
+
+    return "add_element__CPP(" + aggr + ", index_val__CPP({" + indices + "}))";
+}
+
+string CPPCompile::GenAggrDel(const Expr* e) {
+    auto op = e->GetOp1();
+
+    if ( op->Tag() == EXPR_NAME ) {
+        auto aggr_gen = GenExpr(op, GEN_VAL_PTR);
+
+        if ( op->GetType()->Tag() == TYPE_TABLE )
+            return aggr_gen + "->RemoveAll()";
+        else
+            return aggr_gen + "->Resize(0)";
+    }
+
+    auto aggr = op->GetOp1();
+    auto aggr_gen = GenExpr(aggr, GEN_VAL_PTR);
+
+    if ( op->Tag() == EXPR_INDEX ) {
+        auto indices = GenExpr(op->GetOp2(), GEN_VAL_PTR);
+        return "remove_element__CPP(" + aggr_gen + ", index_val__CPP({" + indices + "}))";
+    }
+
+    ASSERT(op->Tag() == EXPR_FIELD);
+    auto field = GenField(aggr, op->AsFieldExpr()->Field());
+    return aggr_gen + "->Remove(" + field + ")";
 }
 
 string CPPCompile::GenIncrExpr(const Expr* e, GenType gt, bool is_incr, bool top_level) {
@@ -481,7 +517,8 @@ string CPPCompile::GenAddToExpr(const Expr* e, GenType gt, bool top_level) {
     if ( t->Tag() == TYPE_VECTOR ) {
         auto& rt = rhs->GetType();
 
-        if ( e->AsAddToExpr()->IsVectorElemAppend() )
+        ASSERT(e->Tag() == EXPR_ADD_TO);
+        if ( static_cast<const AddToExpr*>(e)->IsVectorElemAppend() )
             add_to_func = "vector_append__CPP";
         else
             add_to_func = "vector_vec_append__CPP";
@@ -575,6 +612,9 @@ string CPPCompile::GenSizeExpr(const Expr* e, GenType gt) {
 
     else if ( it == TYPE_INTERNAL_DOUBLE )
         gen = string("fabs__CPP(") + gen + ")";
+
+    else if ( gt == GEN_NATIVE && (t1->Tag() == TYPE_TABLE || t1->Tag() == TYPE_VECTOR) )
+        return gen + "->Size()";
 
     else
         return GenericValPtrToGT(gen + "->SizeVal()", t, gt);

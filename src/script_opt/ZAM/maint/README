@@ -15,14 +15,5 @@ Special-Script-Funcs.list
 	The known-to-the-event-engine scripts that were present last time
 	ZAM maintenance included looking for any updates to these.
 
-list-bifs.zeek
-	A Zeek script that prints to stdout a sorted list of the BiFs
-	available for the Zeek invocation.
-
-	Use this to compare with BiFs.list to see whether there are any
-	new BiFs (or old ones that have been removed). If so, update
-	src/script_opt/FuncInfo.cc and then BiFs.list accordingly.
-
-BiFs.list
-	The BiFs that were present last time ZAM maintenance included
-	looking for any updates to available BiFs.
+In addition, the opt/ZAM-bif-tracking.zeek BTest, when run with the -a zam
+alternative, flags updates that should be made to src/script_opt/FuncInfo.cc.

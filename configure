@@ -33,6 +33,9 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --sanitizers=LIST           comma-separated list of sanitizer names to enable
     --include-plugins=PATHS     paths containing plugins to build directly into Zeek
                                 (semicolon delimited and quoted when multiple)
+    --localversion=version      version contains an additional, custom version string
+                                that is appended to the standard Zeek version string,
+                                with a dash [-] separating the two.
 
   Installation Directories:
     --prefix=PREFIX        installation directory [/usr/local/zeek]
@@ -67,7 +70,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-werror        build with -Werror
     --enable-ZAM-profiling build with ZAM profiling enabled (--enable-debug implies this)
     --disable-af-packet    don't include native AF_PACKET support (Linux only)
-    --disable-archiver     don't build or install zeek-archiver tool
     --disable-auxtools     don't build or install auxiliary tools
     --disable-broker-tests don't try to build Broker unit tests
     --disable-btest        don't install BTest
@@ -176,6 +178,7 @@ append_cache_entry() {
 builddir=build
 CMakeCacheEntries=""
 display_cmake=0
+has_disable_archiver=0
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -228,6 +231,9 @@ while [ $# -ne 0 ]; do
             ;;
         --include-plugins=*)
             append_cache_entry ZEEK_INCLUDE_PLUGINS STRING \"$optarg\"
+            ;;
+        --localversion=*)
+            append_cache_entry ZEEK_VERSION_LOCAL STRING \"$optarg\"
             ;;
         --prefix=*)
             append_cache_entry CMAKE_INSTALL_PREFIX PATH $optarg
@@ -308,7 +314,7 @@ while [ $# -ne 0 ]; do
             append_cache_entry DISABLE_AF_PACKET BOOL true
             ;;
         --disable-archiver)
-            append_cache_entry INSTALL_ZEEK_ARCHIVER BOOL false
+            has_disable_archiver=1
             ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS BOOL false
@@ -486,3 +492,8 @@ eval ${cmake} 2>&1
 echo "# This is the command used to configure this build" >config.status
 echo $command >>config.status
 chmod u+x config.status
+
+if [ $has_disable_archiver -eq 1 ]; then
+    echo
+    echo "NOTE: The --disable-archiver argument no longer has any effect and will be removed in v7.1. zeek-archiver is now part of zeek-aux, so consider --disable-auxtools instead."
+fi

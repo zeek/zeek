@@ -133,6 +133,11 @@ WriterFrontend::~WriterFrontend() {
 }
 
 void WriterFrontend::Stop() {
+    if ( disabled ) {
+        CleanupWriteBuffer();
+        return;
+    }
+
     FlushWriteBuffer();
     SetDisable();
 
@@ -204,6 +209,11 @@ void WriterFrontend::Write(int arg_num_fields, Value** vals) {
 }
 
 void WriterFrontend::FlushWriteBuffer() {
+    if ( disabled ) {
+        CleanupWriteBuffer();
+        return;
+    }
+
     if ( ! write_buffer_pos )
         // Nothing to do.
         return;
@@ -259,6 +269,18 @@ void WriterFrontend::DeleteVals(int num_fields, Value** vals) {
         delete vals[i];
 
     delete[] vals;
+}
+
+void WriterFrontend::CleanupWriteBuffer() {
+    if ( ! write_buffer || write_buffer_pos == 0 )
+        return;
+
+    for ( int j = 0; j < write_buffer_pos; j++ )
+        DeleteVals(num_fields, write_buffer[j]);
+
+    delete[] write_buffer;
+    write_buffer = nullptr;
+    write_buffer_pos = 0;
 }
 
 } // namespace zeek::logging

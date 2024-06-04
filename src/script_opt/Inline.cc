@@ -5,6 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
+#include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/FuncInfo.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"
@@ -32,6 +33,11 @@ void Inliner::Analyze() {
         // We deal with cases where these defaults are overridden to refer
         // to some other function below, when we go through indirect functions.
         if ( is_special_script_func(f.Func()->Name()) )
+            continue;
+
+        // If ZAM can replace the script, don't inline it, so its usage
+        // remains visible during the AST reduction process.
+        if ( is_ZAM_replaceable_script_func(f.Func()->Name()) )
             continue;
 
         std::unordered_set<const Func*> cs;

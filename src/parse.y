@@ -37,7 +37,7 @@
 %token TOK_NO_TEST
 
 %left ','
-%right '=' TOK_ADD_TO TOK_REMOVE_FROM
+%right '=' TOK_ADD_TO TOK_REMOVE_FROM TOK_ADD TOK_DELETE
 %right '?' ':'
 %left TOK_OR_OR
 %left TOK_AND_AND
@@ -506,6 +506,18 @@ expr:
 			{
 			set_location(@1, @4);
 			$$ = new CloneExpr({AdoptRef{}, $3});
+			}
+
+	|	TOK_ADD expr
+			{
+			set_location(@1, @2);
+			$$ = new AggrAddExpr({AdoptRef{}, $2});
+			}
+
+	|	TOK_DELETE expr
+			{
+			set_location(@1, @2);
+			$$ = new AggrDelExpr({AdoptRef{}, $2});
 			}
 
 	|	TOK_INCR expr
@@ -1930,22 +1942,6 @@ stmt:
 			{
 			set_location(@1, @2);
 			$$ = new ReturnStmt({AdoptRef{}, $2});
-			if ( ! $4 )
-			    script_coverage_mgr.AddStmt($$);
-			}
-
-	|	TOK_ADD expr ';' opt_no_test
-			{
-			set_location(@1, @3);
-			$$ = new AddStmt({AdoptRef{}, $2});
-			if ( ! $4 )
-			    script_coverage_mgr.AddStmt($$);
-			}
-
-	|	TOK_DELETE expr ';' opt_no_test
-			{
-			set_location(@1, @3);
-			$$ = new DelStmt({AdoptRef{}, $2});
 			if ( ! $4 )
 			    script_coverage_mgr.AddStmt($$);
 			}

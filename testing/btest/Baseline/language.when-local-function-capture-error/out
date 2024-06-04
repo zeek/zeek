@@ -1,0 +1,2 @@
+error in /Users/tim/Desktop/projects/zeek-master/testing/btest/.tmp/language.when-local-function-capture-error/when-local-function-capture-error.zeek, line 9: no such local identifier: z
+error in /Users/tim/Desktop/projects/zeek-master/testing/btest/.tmp/language.when-local-function-capture-error/when-local-function-capture-error.zeek, lines 12-16: y is used inside "when" statement but not captured (when [x, <error>](T == T) { print hmm?, x, y} timeout 100.0 msecs { print timeout})

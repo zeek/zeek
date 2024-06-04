@@ -119,24 +119,59 @@ public:
 
     /**
      * @param name The canonical name of a component.
+     * @param consider_remappings If true, component mappings will be honored
+     * if the original component is disabled.
      * @return The component associated with the name or a null pointer if no
      * such component exists.
      */
-    C* Lookup(const std::string& name) const;
+    C* Lookup(const std::string& name, bool consider_remappings = true) const;
 
     /**
      * @param name A component tag.
+     * @param consider_remappings If true, component mappings will be honored
+     * if the original component is disabled.
      * @return The component associated with the tag or a null pointer if no
      * such component exists.
      */
-    C* Lookup(const zeek::Tag& tag) const;
+    C* Lookup(const zeek::Tag& tag, bool consider_remappings = true) const;
 
     /**
      * @param name A component's enum value.
+     * @param consider_remappings If true, component mappings will be honored
+     * if the original component is disabled.
      * @return The component associated with the value or a null pointer if no
      * such component exists.
      */
-    C* Lookup(EnumVal* val) const;
+    C* Lookup(EnumVal* val, bool consider_remappings = true) const;
+
+    /**
+     * Registers a mapping of a component to another one that will be honored
+     * by the `Lookup()` methods if (and only if) the original is currently
+     * disabled.
+     *
+     * @param old The original component tag.
+     * @param new_ The new component tag.
+     */
+    void AddComponentMapping(const zeek::Tag& old, const zeek::Tag& new_) {
+        if ( old != new_ ) {
+            component_mapping_by_src[old] = new_;
+            component_mapping_by_dst[new_] = old;
+        }
+    }
+
+    /**
+     * Returns true if a given component has a mapping to different one in place.
+     *
+     * @param tag The component tag to check.
+     */
+    auto HasComponentMapping(const zeek::Tag& tag) const { return component_mapping_by_src.count(tag); }
+
+    /**
+     * Returns true if a given component is mapped to from a different one.
+     *
+     * @param tag The component tag to check.
+     */
+    bool ProvidesComponentMapping(const zeek::Tag& tag) const { return component_mapping_by_dst.count(tag); }
 
 private:
     /** Script layer module in which component tags live. */
@@ -150,6 +185,8 @@ private:
     std::map<std::string, C*> components_by_name;
     std::map<zeek::Tag, C*> components_by_tag;
     std::map<zeek_int_t, C*> components_by_val;
+    std::map<zeek::Tag, zeek::Tag> component_mapping_by_src;
+    std::map<zeek::Tag, zeek::Tag> component_mapping_by_dst;
 };
 
 template<class C>
@@ -204,7 +241,7 @@ const std::string& ComponentManager<C>::GetComponentName(zeek::Tag tag) const {
     if ( ! tag )
         return error;
 
-    if ( C* c = Lookup(tag) )
+    if ( C* c = Lookup(tag, false) ) // use actual, not remapped name
         return c->CanonicalName();
 
     reporter->InternalWarning("requested name of unknown component tag %s", tag.AsString().c_str());
@@ -266,21 +303,48 @@ zeek::Tag ComponentManager<C>::GetComponentTag(Val* v) const {
 }
 
 template<class C>
-C* ComponentManager<C>::Lookup(const std::string& name) const {
-    typename std::map<std::string, C*>::const_iterator i = components_by_name.find(util::to_upper(name));
-    return i != components_by_name.end() ? i->second : nullptr;
+C* ComponentManager<C>::Lookup(const std::string& name, bool consider_remappings) const {
+    if ( auto i = components_by_name.find(util::to_upper(name)); i != components_by_name.end() ) {
+        auto c = (*i).second;
+        if ( consider_remappings && ! c->Enabled() ) {
+            if ( auto j = component_mapping_by_src.find(c->Tag()); j != component_mapping_by_src.end() )
+                return Lookup(j->second, false);
+        }
+
+        return c;
+    }
+    else
+        return nullptr;
 }
 
 template<class C>
-C* ComponentManager<C>::Lookup(const zeek::Tag& tag) const {
-    typename std::map<zeek::Tag, C*>::const_iterator i = components_by_tag.find(tag);
-    return i != components_by_tag.end() ? i->second : nullptr;
+C* ComponentManager<C>::Lookup(const zeek::Tag& tag, bool consider_remappings) const {
+    if ( auto i = components_by_tag.find(tag); i != components_by_tag.end() ) {
+        auto c = (*i).second;
+        if ( consider_remappings && ! c->Enabled() ) {
+            if ( auto j = component_mapping_by_src.find(c->Tag()); j != component_mapping_by_src.end() )
+                return Lookup(j->second, false);
+        }
+
+        return c;
+    }
+    else
+        return nullptr;
 }
 
 template<class C>
-C* ComponentManager<C>::Lookup(EnumVal* val) const {
-    typename std::map<zeek_int_t, C*>::const_iterator i = components_by_val.find(val->InternalInt());
-    return i != components_by_val.end() ? i->second : nullptr;
+C* ComponentManager<C>::Lookup(EnumVal* val, bool consider_remappings) const {
+    if ( auto i = components_by_val.find(val->InternalInt()); i != components_by_val.end() ) {
+        auto c = (*i).second;
+        if ( consider_remappings && ! c->Enabled() ) {
+            if ( auto j = component_mapping_by_src.find(c->Tag()); j != component_mapping_by_src.end() )
+                return Lookup(j->second, false);
+        }
+
+        return c;
+    }
+    else
+        return nullptr;
 }
 
 template<class C>

@@ -2,6 +2,8 @@
 
 #include "zeek/script_opt/CSE.h"
 
+#include "zeek/script_opt/Expr.h"
+
 namespace zeek::detail {
 
 CSE_ValidityChecker::CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> _pfs, const std::vector<const ID*>& _ids,
@@ -35,16 +37,6 @@ TraversalCode CSE_ValidityChecker::PreStmt(const Stmt* s) {
         is_valid = false;
         return TC_ABORTALL;
     }
-
-    if ( t == STMT_ADD || t == STMT_DELETE )
-        in_aggr_mod_stmt = true;
-
-    return TC_CONTINUE;
-}
-
-TraversalCode CSE_ValidityChecker::PostStmt(const Stmt* s) {
-    if ( s->Tag() == STMT_ADD || s->Tag() == STMT_DELETE )
-        in_aggr_mod_stmt = false;
 
     return TC_CONTINUE;
 }
@@ -108,7 +100,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
         case EXPR_FIELD_LHS_ASSIGN: {
             auto lhs = e->GetOp1();
             auto lhs_aggr_id = lhs->AsNameExpr()->Id();
-            auto lhs_field = e->AsFieldLHSAssignExpr()->Field();
+            auto lhs_field = static_cast<const FieldLHSAssignExpr*>(e)->Field();
 
             if ( CheckID(lhs_aggr_id, true) )
                 return TC_ABORTALL;
@@ -117,6 +109,9 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
                 return TC_ABORTALL;
             }
         } break;
+
+        case EXPR_AGGR_ADD:
+        case EXPR_AGGR_DEL: ++in_aggr_mod_expr; break;
 
         case EXPR_APPEND_TO:
             // This doesn't directly change any identifiers, but does
@@ -153,7 +148,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto aggr = e->GetOp1();
             auto aggr_t = aggr->GetType();
 
-            if ( in_aggr_mod_stmt ) {
+            if ( in_aggr_mod_expr > 0 ) {
                 auto aggr_id = aggr->AsNameExpr()->Id();
 
                 if ( CheckID(aggr_id, true) || CheckAggrMod(aggr_t) )
@@ -168,6 +163,13 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
         default: break;
     }
+
+    return TC_CONTINUE;
+}
+
+TraversalCode CSE_ValidityChecker::PostExpr(const Expr* e) {
+    if ( have_start_e && (e->Tag() == EXPR_AGGR_ADD || e->Tag() == EXPR_AGGR_DEL) )
+        --in_aggr_mod_expr;
 
     return TC_CONTINUE;
 }

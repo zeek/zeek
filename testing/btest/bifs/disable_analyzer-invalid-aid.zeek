@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT >out 2>&1
-# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-canonifier | $SCRIPTS/diff-remove-abspath' btest-diff out
 # @TEST-DOC: Validates that one can use disable_analyzer even for analyzers without parent. This is a regression test for #3071.
 
 event new_connection(c: connection)

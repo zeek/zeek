@@ -5,6 +5,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
+#include "zeek/script_opt/ZAM/BuiltIn.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {
@@ -26,10 +27,6 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
         case STMT_IF: return CompileIf(static_cast<const IfStmt*>(s));
 
         case STMT_SWITCH: return CompileSwitch(static_cast<const SwitchStmt*>(s));
-
-        case STMT_ADD: return CompileAdd(static_cast<const AddStmt*>(s));
-
-        case STMT_DELETE: return CompileDel(static_cast<const DelStmt*>(s));
 
         case STMT_EVENT: {
             auto es = static_cast<const EventStmt*>(s);
@@ -179,6 +176,36 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
         case OP_HAS_FIELD_COND_VVV: z->op = OP_NOT_HAS_FIELD_COND_VVV; break;
         case OP_NOT_HAS_FIELD_COND_VVV: z->op = OP_HAS_FIELD_COND_VVV; break;
 
+        case OP_CONN_EXISTS_COND_VV: z->op = OP_NOT_CONN_EXISTS_COND_VV; break;
+        case OP_NOT_CONN_EXISTS_COND_VV: z->op = OP_CONN_EXISTS_COND_VV; break;
+
+        case OP_IS_ICMP_PORT_COND_VV: z->op = OP_NOT_IS_ICMP_PORT_COND_VV; break;
+        case OP_NOT_IS_ICMP_PORT_COND_VV: z->op = OP_IS_ICMP_PORT_COND_VV; break;
+
+        case OP_IS_TCP_PORT_COND_VV: z->op = OP_NOT_IS_TCP_PORT_COND_VV; break;
+        case OP_NOT_IS_TCP_PORT_COND_VV: z->op = OP_IS_TCP_PORT_COND_VV; break;
+
+        case OP_IS_UDP_PORT_COND_VV: z->op = OP_NOT_IS_UDP_PORT_COND_VV; break;
+        case OP_NOT_IS_UDP_PORT_COND_VV: z->op = OP_IS_UDP_PORT_COND_VV; break;
+
+        case OP_IS_V4_ADDR_COND_VV: z->op = OP_NOT_IS_V4_ADDR_COND_VV; break;
+        case OP_NOT_IS_V4_ADDR_COND_VV: z->op = OP_IS_V4_ADDR_COND_VV; break;
+
+        case OP_IS_V6_ADDR_COND_VV: z->op = OP_NOT_IS_V6_ADDR_COND_VV; break;
+        case OP_NOT_IS_V6_ADDR_COND_VV: z->op = OP_IS_V6_ADDR_COND_VV; break;
+
+        case OP_READING_LIVE_TRAFFIC_COND_V: z->op = OP_NOT_READING_LIVE_TRAFFIC_COND_V; break;
+        case OP_NOT_READING_LIVE_TRAFFIC_COND_V: z->op = OP_READING_LIVE_TRAFFIC_COND_V; break;
+
+        case OP_READING_TRACES_COND_V: z->op = OP_NOT_READING_TRACES_COND_V; break;
+        case OP_NOT_READING_TRACES_COND_V: z->op = OP_READING_TRACES_COND_V; break;
+
+        case OP_TABLE_HAS_ELEMENTS_COND_VV: z->op = OP_NOT_TABLE_HAS_ELEMENTS_COND_VV; break;
+        case OP_NOT_TABLE_HAS_ELEMENTS_COND_VV: z->op = OP_TABLE_HAS_ELEMENTS_COND_VV; break;
+
+        case OP_VECTOR_HAS_ELEMENTS_COND_VV: z->op = OP_NOT_VECTOR_HAS_ELEMENTS_COND_VV; break;
+        case OP_NOT_VECTOR_HAS_ELEMENTS_COND_VV: z->op = OP_VECTOR_HAS_ELEMENTS_COND_VV; break;
+
         case OP_VAL_IS_IN_TABLE_COND_VVV: z->op = OP_VAL_IS_NOT_IN_TABLE_COND_VVV; break;
         case OP_VAL_IS_NOT_IN_TABLE_COND_VVV: z->op = OP_VAL_IS_IN_TABLE_COND_VVV; break;
 
@@ -205,10 +232,6 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
     auto op1 = e->GetOp1();
     auto op2 = e->GetOp2();
 
-    NameExpr* n1 = nullptr;
-    NameExpr* n2 = nullptr;
-    ConstExpr* c = nullptr;
-
     if ( e->Tag() == EXPR_HAS_FIELD ) {
         auto hf = e->AsHasFieldExpr();
         auto z = GenInst(OP_HAS_FIELD_COND_VVV, op1->AsNameExpr(), hf->Field());
@@ -218,7 +241,6 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
     }
 
     if ( e->Tag() == EXPR_IN ) {
-        auto op1 = e->GetOp1();
         auto op2 = e->GetOp2()->AsNameExpr();
 
         // First, deal with the easy cases: it's a single index.
@@ -292,6 +314,31 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
 
         return AddInst(z);
     }
+
+    if ( e->Tag() == EXPR_CALL ) {
+        auto c = static_cast<const CallExpr*>(e);
+        if ( IsZAM_BuiltInCond(this, c, branch_v) )
+            return LastInst();
+    }
+
+    if ( e->Tag() == EXPR_SCRIPT_OPT_BUILTIN ) {
+        auto bi = static_cast<const ScriptOptBuiltinExpr*>(e);
+        ASSERT(bi->Tag() == ScriptOptBuiltinExpr::HAS_ELEMENTS);
+        auto aggr = bi->GetOp1()->AsNameExpr();
+
+        ZOp op;
+        if ( aggr->GetType()->Tag() == TYPE_TABLE )
+            op = OP_TABLE_HAS_ELEMENTS_COND_VV;
+        else
+            op = OP_VECTOR_HAS_ELEMENTS_COND_VV;
+
+        branch_v = 2;
+        return AddInst(GenInst(op, aggr, +0));
+    }
+
+    NameExpr* n1 = nullptr;
+    NameExpr* n2 = nullptr;
+    ConstExpr* c = nullptr;
 
     if ( op1->Tag() == EXPR_NAME ) {
         n1 = op1->AsNameExpr();
@@ -570,56 +617,6 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, c
     ResolveBreaks(GoToTargetBeyond(body_end));
 
     return body_end;
-}
-
-const ZAMStmt ZAMCompiler::CompileAdd(const AddStmt* as) {
-    auto e = as->StmtExprPtr();
-    auto aggr = e->GetOp1()->AsNameExpr();
-    auto index_list = e->GetOp2();
-
-    if ( index_list->Tag() != EXPR_LIST )
-        reporter->InternalError("non-list in \"add\"");
-
-    auto indices = index_list->AsListExprPtr();
-    auto& exprs = indices->Exprs();
-
-    if ( exprs.length() == 1 ) {
-        auto e1 = exprs[0];
-        if ( e1->Tag() == EXPR_NAME )
-            return AddStmt1VV(aggr, e1->AsNameExpr());
-        else
-            return AddStmt1VC(aggr, e1->AsConstExpr());
-    }
-
-    return AddStmtVO(aggr, BuildVals(indices));
-}
-
-const ZAMStmt ZAMCompiler::CompileDel(const DelStmt* ds) {
-    auto e = ds->StmtExprPtr();
-
-    if ( e->Tag() == EXPR_NAME ) {
-        auto n = e->AsNameExpr();
-
-        if ( n->GetType()->Tag() == TYPE_TABLE )
-            return ClearTableV(n);
-        else
-            return ClearVectorV(n);
-    }
-
-    auto aggr = e->GetOp1()->AsNameExpr();
-
-    if ( e->Tag() == EXPR_FIELD ) {
-        int field = e->AsFieldExpr()->Field();
-        return DelFieldVi(aggr, field);
-    }
-
-    auto index_list = e->GetOp2();
-
-    if ( index_list->Tag() != EXPR_LIST )
-        reporter->InternalError("non-list in \"delete\"");
-
-    auto internal_ind = std::unique_ptr<OpaqueVals>(BuildVals(index_list->AsListExprPtr()));
-    return DelTableVO(aggr, internal_ind.get());
 }
 
 const ZAMStmt ZAMCompiler::CompileWhile(const WhileStmt* ws) {

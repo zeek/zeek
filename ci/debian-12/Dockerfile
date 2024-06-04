@@ -16,6 +16,7 @@ RUN apt-get update && apt-get -y install \
     g++ \
     gcc \
     git \
+    jq \
     libkrb5-dev \
     libnode-dev \
     libpcap-dev \

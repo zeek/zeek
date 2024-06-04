@@ -22,6 +22,7 @@ RUN zypper refresh \
     gcc-c++ \
     git \
     gzip \
+    jq \
     libopenssl-devel \
     libpcap-devel \
     make \

@@ -321,7 +321,7 @@ private:
 
     // Returns a handle to state associated with building
     // up a list of values.
-    OpaqueVals* BuildVals(const ListExprPtr&);
+    std::unique_ptr<OpaqueVals> BuildVals(const ListExprPtr&);
 
     // "stride" is how many slots each element of l will consume.
     ZInstAux* InternalBuildVals(const ListExpr* l, int stride = 1);

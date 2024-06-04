@@ -1,3 +1,13 @@
+7.0.0-dev.345 | 2024-06-04 10:36:46 -0700
+
+  * script optimization baseline tweaks due to recent minor changes (Vern Paxson, Corelight)
+
+  * updated list of BiFs for script optimization (Vern Paxson, Corelight)
+
+  * addressed some Coverity nits (Vern Paxson, Corelight)
+
+  * improved error cascade for invalid attributes (Vern Paxson, Corelight)
+
 7.0.0-dev.338 | 2024-05-31 14:18:15 -0700
 
   * Add type aliases for instrument and family shared_ptrs (Tim Wojtulewicz, Corelight)

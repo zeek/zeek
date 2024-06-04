@@ -2414,7 +2414,7 @@ internal-op Subnet-To-Addr
 type VV
 eval	auto addr_v = make_intrusive<AddrVal>(frame[z.v2].subnet_val->Prefix());
 	Unref(frame[z.v1].addr_val);
-	frame[z.v1] = ZVal(addr_v);
+	frame[z.v1] = ZVal(std::move(addr_v));
 
 internal-op Sub-Bytes
 type VVVV

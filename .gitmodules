@@ -75,4 +75,4 @@
 	url = https://github.com/microsoft/vcpkg
 [submodule "auxil/prometheus-cpp"]
 	path = auxil/prometheus-cpp
-	url = https://github.com/jupp0r/prometheus-cpp
+	url = https://github.com/zeek/prometheus-cpp
